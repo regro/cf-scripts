@@ -119,9 +119,11 @@ try:
                     'url': yaml_dict['source']['url'],
                     'req': req,
                     'time': time.time(),
-                    'hash_type': (set(yaml_dict['source'].keys())
-                                  & hashlib.algorithms_available).pop()
                 }
+                k = next(iter((set(yaml_dict['source'].keys())
+                                  & hashlib.algorithms_available)), None)
+                if k:
+                    sub_graph['hash_type'] = k
 
                 if name in new_names:
                     gx.add_node(name, **sub_graph)
