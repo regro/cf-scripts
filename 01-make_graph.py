@@ -1,5 +1,6 @@
 import codecs
 import datetime
+import hashlib
 import os
 import re
 import time
@@ -103,8 +104,11 @@ try:
                     'version': str(yaml_dict['package']['version']),
                     'url': yaml_dict['source']['url'],
                     'req': req,
-                    'time': time.time(),
-                }
+                    'time': time.time(),}
+                for k in yaml_dict['source']:
+                    if k in hashlib.algorithms_available:
+                        sub_graph['hash_type'] = k
+                        break
 
                 if name in new_names:
                     gx.add_node(name, **sub_graph)
