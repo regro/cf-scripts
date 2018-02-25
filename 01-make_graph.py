@@ -82,7 +82,7 @@ try:
             raise github3.GitHubError(r)
         meta_yaml = r.json()['content']
         if meta_yaml:
-            text = codecs.decode(b64decode(meta_yaml.content))
+            text = codecs.decode(b64decode(meta_yaml))
             a = parsed_meta_yaml(text)
             if not a:
                 with open('bad.txt', 'a') as f:
