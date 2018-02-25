@@ -81,8 +81,9 @@ try:
         if r.status_code == 403:
             raise github3.GitHubError(r)
         elif r.status_code != 200:
-            raise RuntimeError('Something odd happened to this recipe '
+            print('Something odd happened to this recipe '
                                '{}'.format(r.status_code))
+            continue
         meta_yaml = r.json()['content']
         if meta_yaml:
             text = codecs.decode(b64decode(meta_yaml))
