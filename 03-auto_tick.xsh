@@ -96,21 +96,29 @@ DEFAULT_PATTERNS = (
     ('meta.yaml', '{% set $HASH_TYPE = "[0-9A-Fa-f]+" %}',
                   '{% set $HASH_TYPE = "$HASH" %}'),
     ('meta.yaml', '  $HASH_TYPE:\s*[0-9A-Fa-f]+', '  $HASH_TYPE: $HASH'),
-    ('meta.yaml', '{% set hash_value = [0-9A-Fa-f]+ %}', '{% set hash_value = $HASH %}'),
-    ('meta.yaml', '{% set hash = "[0-9A-Fa-f]+" %}', '{% set hash = $HASH %}'),
-    ('meta.yaml', '{% set hash_val = "[0-9A-Fa-f]+" %}', '{% set hash_val = $HASH %}'),
-    ('meta.yaml', "{% set sha256sum = '[0-9A-Fa-f]+ %}", '{% set sha256sum = $HASH %}'),
-    ('meta.yaml', '{% set checksum = "[0-9A-Fa-f]+" %}', '{% set checksum = $HASH %}'),
-    ('meta.yaml', '{% set hash = [0-9A-Fa-f]+ %}', '{% set hash = $HASH %}'),
-    ('meta.yaml', '{%set hash_value = [0-9A-Fa-f]+ %}', '{%set hash_value = $HASH %}'),
-    ('meta.yaml', '{%set hash_val = [0-9A-Fa-f]+ %}', '{%set hash_val = $HASH %}'),
 
     )
+
+more_patterns = []
+checksum_names = ['hash_value', 'hash', 'hash_val', 'sha256sum', 'checksum']
+delim = ["'", '"']
+sets = [' set', 'set']
+base1 = '''{{%{set} {checkname} = {d}[0-9A-Fa-f]+{d} %}}'''
+base2 = '''{{%{set} {checkname} = {d}$HASH{d} %}}'''
+for cn in checksum_names:
+    for s in sets:
+        for d in delim:
+            more_patterns.append(('meta.yaml',
+                                  base1.format(set=s, checkname=cn, d=d),
+                                  base2.format(set=s, checkname=cn, d=d)))
+DEFAULT_PATTERNS += tuple(more_patterns)
 
 
 def run(feedstock=None, protocol='ssh',
         hash_type='sha256', patterns=DEFAULT_PATTERNS,
-        pull_request=True, rerender=True, fork=True, pred=[], gh=None):
+        pull_request=True, rerender=True, fork=True, pred=None, gh=None):
+    if pred is None:
+        pred = []
     if gh is None:
         gh = github3.login($USERNAME, $PASSWORD)
         # first, let's grab the feedstock locally
@@ -197,13 +205,16 @@ def run(feedstock=None, protocol='ssh',
     head = $USERNAME + ':' + $VERSION
     body = ('Merge only after success.\n\n'
             'This PR was created by [regro auto-tick](https://github.com/regro/cf-graph). '
-            'Please let the devs know if there are any [issues](https://github.com/regro/cf-graph/issues). \n\n'
-            'Here is a list of all the pending dependencies (and their '
-            'versions) for this repo. '
-            'Please double check all dependencies before merging.\n\n')
+            'Please let the devs know if there are any [issues](https://github.com/regro/cf-graph/issues). \n\n')
     # Statement here
     template = '|{name}|{new_version}|[![Anaconda-Server Badge](https://anaconda.org/conda-forge/{name}/badges/version.svg)](https://anaconda.org/conda-forge/{name})|\n'
-    body += '''| Name | Upstream Version | Current Version |\n|:----:|:----------------:|:---------------:|\n'''
+    if len(pred) > 0:
+        body += ('Here is a list of all the pending dependencies (and their '
+                 'versions) for this repo. '
+                 'Please double check all dependencies before merging.\n\n')
+        # Only add the header row if we have content. Otherwise the rendered table in the github comment
+        # is empty which is confusing
+        body += '''| Name | Upstream Version | Current Version |\n|:----:|:----------------:|:---------------:|\n'''
     for p in pred:
         body += template.format(name=p[0], new_version=p[1])
     pr = repo.create_pull(title, 'master', head, body=body)
@@ -248,7 +259,7 @@ for node, attrs in gx2.node.items():
                 break
             else:
                 run(pred=pred, gh=gh, rerender=True, protocol='https',
-                    hash_type=attrs['hash_type'])
+                    hash_type=attrs.get('hash_type', 'sha256'))
                 gx.nodes[node]['PRed'] = attrs['new_version']
         except github3.GitHubError as e:
             print('GITHUB ERROR ON FEEDSTOCK: {}'.format($PROJECT))
