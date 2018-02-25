@@ -8,6 +8,7 @@ from base64 import b64decode
 
 import github3
 import networkx as nx
+import requests
 import yaml
 from jinja2 import UndefinedError, Template
 
@@ -74,10 +75,14 @@ gh = github3.login(os.environ['USERNAME'], os.environ['PASSWORD'])
 try:
     for i, name in enumerate(total_names):
         print(i, name)
-        feedstock = gh.repository('conda-forge', name + '-feedstock')
-        meta_yaml = feedstock.contents('recipe/meta.yaml')
+        r = requests.get('https://api.github.com/repos/conda-forge/'
+                         '{}-feedstock/contents/recipe/meta.yaml'.format(name),
+                         auth=(os.environ['USERNAME'], os.environ['PASSWORD']))
+        if r.status_code != 200:
+            raise github3.GitHubError(r)
+        meta_yaml = r.json()['content']
         if meta_yaml:
-            text = codecs.decode(b64decode(meta_yaml.content))
+            text = codecs.decode(b64decode(meta_yaml))
             a = parsed_meta_yaml(text)
             if not a:
                 with open('bad.txt', 'a') as f:
