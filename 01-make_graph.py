@@ -65,7 +65,8 @@ print('reading graph')
 gx = nx.read_gpickle('graph.pkl')
 # gx = nx.read_yaml('graph.yml')
 
-new_names = [name for name in names if name not in gx.nodes and name not in bad]
+new_names = [name for name in names if
+             name not in gx.nodes and name not in bad]
 old_names = [name for name in names if name in gx.nodes]
 old_names = sorted(old_names, key=lambda n: gx.nodes[n]['time'])
 
@@ -74,7 +75,7 @@ print('start loop')
 gh = github3.login(os.environ['USERNAME'], os.environ['PASSWORD'])
 try:
     for i, name in enumerate(total_names):
-        print(i, name)
+        print(i, name, gh.rate_limit()['resources']['core']['remaining'])
         r = requests.get('https://api.github.com/repos/conda-forge/'
                          '{}-feedstock/contents/recipe/meta.yaml'.format(name),
                          auth=(os.environ['USERNAME'], os.environ['PASSWORD']))
@@ -82,7 +83,7 @@ try:
             raise github3.GitHubError(r)
         elif r.status_code != 200:
             print('Something odd happened to this recipe '
-                               '{}'.format(r.status_code))
+                  '{}'.format(r.status_code))
             with open('bad.txt', 'a') as f:
                 f.write('{}\n'.format(name))
             continue
@@ -99,14 +100,16 @@ try:
             if yaml_dict:
                 req = yaml_dict.get('requirements', set())
                 if req:
-                    build = req.get('build', []) if req.get('build', []) is not None else []
-                    run = req.get('run', []) if req.get('run', []) is not None else []
+                    build = req.get('build', []) if req.get(
+                        'build', []) is not None else []
+                    run = req.get('run', []) if req.get(
+                        'run', []) is not None else []
                     req = build + run
                     req = set([x.split()[0] for x in req])
 
                 if not ('url' in yaml_dict.get('source', {})
-                    and 'name' in yaml_dict.get('package', {})
-                    and 'version' in yaml_dict.get('package', {})):
+                        and 'name' in yaml_dict.get('package', {})
+                        and 'version' in yaml_dict.get('package', {})):
                     with open('bad.txt', 'a') as f:
                         f.write('{}\n'.format(name))
                     continue
@@ -115,11 +118,12 @@ try:
                     'version': str(yaml_dict['package']['version']),
                     'url': yaml_dict['source']['url'],
                     'req': req,
-                    'time': time.time(),}
-                for k in yaml_dict['source']:
-                    if k in hashlib.algorithms_available:
-                        sub_graph['hash_type'] = k
-                        break
+                    'time': time.time(),
+                }
+                k = next(iter((set(yaml_dict['source'].keys())
+                                  & hashlib.algorithms_available)), None)
+                if k:
+                    sub_graph['hash_type'] = k
 
                 if name in new_names:
                     gx.add_node(name, **sub_graph)
