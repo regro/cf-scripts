@@ -78,8 +78,11 @@ try:
         r = requests.get('https://api.github.com/repos/conda-forge/'
                          '{}-feedstock/contents/recipe/meta.yaml'.format(name),
                          auth=(os.environ['USERNAME'], os.environ['PASSWORD']))
-        if r.status_code != 200:
+        if r.status_code == 403:
             raise github3.GitHubError(r)
+        elif r.status_code != 200:
+            raise RuntimeError('Something odd happened to this recipe '
+                               '{}'.format(r.status_code))
         meta_yaml = r.json()['content']
         if meta_yaml:
             text = codecs.decode(b64decode(meta_yaml))
