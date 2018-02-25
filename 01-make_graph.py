@@ -83,6 +83,8 @@ try:
         elif r.status_code != 200:
             print('Something odd happened to this recipe '
                                '{}'.format(r.status_code))
+            with open('bad.txt', 'a') as f:
+                f.write('{}\n'.format(name))
             continue
         meta_yaml = r.json()['content']
         if meta_yaml:
