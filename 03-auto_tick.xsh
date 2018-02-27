@@ -227,7 +227,7 @@ def run(feedstock=None, protocol='ssh',
     rm -rf @(feedstock_dir)
     return True
 
-# gx = nx.read_yaml('graph2.yml')
+# gx = nx.read_yaml('graph.yml')
 gx = nx.read_gpickle('graph.pkl')
 gx2 = copy.deepcopy(gx)
 
@@ -285,5 +285,5 @@ for node, attrs in gx2.node.items():
 
 # Race condition?
 print('writing out file')
-# nx.write_yaml(gx, 'graph2.yml')
+# nx.write_yaml(gx, 'graph.yml')
 nx.write_gpickle(gx, 'graph.pkl')
