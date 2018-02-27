@@ -111,7 +111,6 @@ for cn in checksum_names:
             more_patterns.append(('meta.yaml',
                                   base1.format(set=s, checkname=cn, d=d),
                                   base2.format(set=s, checkname=cn, d=d)))
-DEFAULT_PATTERNS += tuple(more_patterns)
 
 
 def run(feedstock=None, protocol='ssh',
@@ -148,6 +147,7 @@ def run(feedstock=None, protocol='ssh',
             msg += '. Do you have a personal fork of the feedstock?'
             return
     with indir(feedstock_dir):
+        git fetch @(origin)
         # make sure feedstock is up-to-date with origin
         git checkout master
         git pull @(origin) master
@@ -155,7 +155,7 @@ def run(feedstock=None, protocol='ssh',
         git pull @(upstream) master
         # make and modify version branch
         with ${...}.swap(RAISE_SUBPROC_ERROR=False):
-            git checkout -b $VERSION master or git checkout $VERSION
+            git checkout $VERSION or git checkout -b $VERSION master
     # Render with new version but nothing else
     with indir(recipe_dir):
         for f, p, n in patterns:
@@ -170,11 +170,12 @@ def run(feedstock=None, protocol='ssh',
     # now, update the feedstock to the new version
     source_url = eval_version(source_url)
     try:
-        hash = hash_url(source_url)
+        hash = hash_url(source_url, hash_type)
     except urllib.error.HTTPError:
         with open('upstream_bad', 'a') as f:
             f.write('{}: hash failed\n'.format(meta_yaml['name']))
 
+    patterns += tuple(more_patterns)
     with indir(recipe_dir), ${...}.swap(HASH_TYPE=hash_type, HASH=hash,
                                         SOURCE_URL=source_url):
         for f, p, n in patterns:
