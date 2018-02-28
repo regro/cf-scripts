@@ -11,6 +11,8 @@ import networkx as nx
 import requests
 import yaml
 from jinja2 import UndefinedError, Template
+from conda_build.metadata import parse
+from conda_build.config import Config
 
 
 def parsed_meta_yaml(text):
@@ -19,16 +21,16 @@ def parsed_meta_yaml(text):
     :return: `dict|None` -- parsed YAML dict if successful, None if not
     """
     try:
-        yaml_dict = yaml.load(Template(text).render())
+        yaml_dict = parse(Template(text).render(), Config())
     except UndefinedError:
         # assume we hit a RECIPE_DIR reference in the vars and can't parse it.
         # just erase for now
         try:
-            yaml_dict = yaml.load(
+            yaml_dict = parse(
                 Template(
                     re.sub('{{ (environ\[")?RECIPE_DIR("])? }}/', '',
                            text)
-                ).render())
+                ).render(), Config())
         except Exception as e:
             print(e)
             return None
