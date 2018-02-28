@@ -234,7 +234,7 @@ gx2 = copy.deepcopy(gx)
 # Prune graph to only things that need builds
 for node, attrs in gx.node.items():
     if not attrs['new_version']:
-        continue
+        gx2.remove_node(node)
     if parse_version(str(attrs['new_version'])) <= parse_version(str(attrs['version'])):
         gx2.remove_node(node)
 
@@ -250,10 +250,10 @@ for node, attrs in gx2.node.items():
     $PROJECT = attrs['name']
     $VERSION = attrs['new_version']
     # If there is a new version and (we haven't issued a PR or our prior PR is out of date)
-    if attrs['new_version'] and (not attrs.get('PRed', False) or parse_version(attrs['PRed']) < parse_version(attrs['new_version'])):
+    if not attrs.get('PRed', False) or parse_version(attrs['PRed']) < parse_version(attrs['new_version']):
         print('BUILDING', $PROJECT)
         pred = [(name, gx2.node[name]['new_version'])
-                for name in list(gx2.predecessors(node)) if gx2.node[name]['new_version']]
+                for name in list(gx2.predecessors(node))]
         try:
             # Don't bother running if we are at zero
             if gh.rate_limit()['resources']['core']['remaining'] == 0:
