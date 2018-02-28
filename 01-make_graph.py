@@ -90,47 +90,45 @@ try:
         meta_yaml = r.json()['content']
         if meta_yaml:
             text = codecs.decode(b64decode(meta_yaml))
-            a = parsed_meta_yaml(text)
-            if not a:
+            yaml_dict = parsed_meta_yaml(text)
+            if not yaml_dict:
                 with open('bad.txt', 'a') as f:
                     f.write('{}\n'.format(name))
                 continue
-            yaml_dict = a
             # TODO: Write schema for dict
-            if yaml_dict:
-                req = yaml_dict.get('requirements', set())
-                if req:
-                    build = req.get('build', []) if req.get(
-                        'build', []) is not None else []
-                    run = req.get('run', []) if req.get(
-                        'run', []) is not None else []
-                    req = build + run
-                    req = set([x.split()[0] for x in req])
+            req = yaml_dict.get('requirements', set())
+            if req:
+                build = req.get('build', []) if req.get(
+                    'build', []) is not None else []
+                run = req.get('run', []) if req.get(
+                    'run', []) is not None else []
+                req = build + run
+                req = set([x.split()[0] for x in req])
 
-                if not ('url' in yaml_dict.get('source', {})
-                        and 'name' in yaml_dict.get('package', {})
-                        and 'version' in yaml_dict.get('package', {})):
-                    with open('bad.txt', 'a') as f:
-                        f.write('{}\n'.format(name))
-                    continue
-                sub_graph = {
-                    'name': yaml_dict['package']['name'],
-                    'version': str(yaml_dict['package']['version']),
-                    'url': yaml_dict['source']['url'],
-                    'req': req,
-                    'time': time.time(),
-                }
-                k = next(iter((set(yaml_dict['source'].keys())
-                                  & hashlib.algorithms_available)), None)
-                if k:
-                    sub_graph['hash_type'] = k
+            if not ('url' in yaml_dict.get('source', {})
+                    and 'name' in yaml_dict.get('package', {})
+                    and 'version' in yaml_dict.get('package', {})):
+                with open('bad.txt', 'a') as f:
+                    f.write('{}\n'.format(name))
+                continue
+            sub_graph = {
+                'name': yaml_dict['package']['name'],
+                'version': str(yaml_dict['package']['version']),
+                'url': yaml_dict['source']['url'],
+                'req': req,
+                'time': time.time(),
+            }
+            k = next(iter((set(yaml_dict['source'].keys())
+                              & hashlib.algorithms_available)), None)
+            if k:
+                sub_graph['hash_type'] = k
 
-                if name in new_names:
-                    gx.add_node(name, **sub_graph)
-                else:
-                    gx.nodes[name].update(**sub_graph)
-                # nx.write_yaml(gx, 'graph.yml')
-                nx.write_gpickle(gx, 'graph.pkl')
+            if name in new_names:
+                gx.add_node(name, **sub_graph)
+            else:
+                gx.nodes[name].update(**sub_graph)
+            # nx.write_yaml(gx, 'graph.yml')
+            nx.write_gpickle(gx, 'graph.pkl')
 
 except github3.GitHubError as e:
     print(e)
