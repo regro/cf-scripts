@@ -235,7 +235,7 @@ gx2 = copy.deepcopy(gx)
 for node, attrs in gx.node.items():
     if not attrs['new_version']:
         gx2.remove_node(node)
-    if parse_version(str(attrs['new_version'])) <= parse_version(str(attrs['version'])):
+    elif parse_version(str(attrs['new_version'])) <= parse_version(str(attrs['version'])):
         gx2.remove_node(node)
 
 $REVER_DIR = './feedstocks/'
