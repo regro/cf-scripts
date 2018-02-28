@@ -227,8 +227,8 @@ def run(feedstock=None, protocol='ssh',
     rm -rf @(feedstock_dir)
     return True
 
-# gx = nx.read_yaml('graph2.yml')
-gx = nx.read_gpickle('graph2.pkl')
+# gx = nx.read_yaml('graph.yml')
+gx = nx.read_gpickle('graph.pkl')
 gx2 = copy.deepcopy(gx)
 
 # Prune graph to only things that need builds
@@ -279,11 +279,11 @@ for node, attrs in gx2.node.items():
                 f.write('{name}: {exception}'.format(name=$PROJECT, exception=str(e)))
         finally:
             # Write graph partially through
-            nx.write_gpickle(gx, 'graph2.pkl')
+            nx.write_gpickle(gx, 'graph.pkl')
             rm -rf $REVER_DIR + '/*'
             ![doctr deploy --token --built-docs . --deploy-repo regro/cf-graph --deploy-branch-name master .]
 
 # Race condition?
 print('writing out file')
-# nx.write_yaml(gx, 'graph2.yml')
-nx.write_gpickle(gx, 'graph2.pkl')
+# nx.write_yaml(gx, 'graph.yml')
+nx.write_gpickle(gx, 'graph.pkl')

@@ -93,5 +93,5 @@ for node, attrs in gx.node.items():
         pass
 print('writing out file')
 del parse_version
-# nx.write_yaml(gx, 'graph2.yml')
-nx.write_gpickle(gx, 'graph2.pkl')
+# nx.write_yaml(gx, 'graph.yml')
+nx.write_gpickle(gx, 'graph.pkl')
