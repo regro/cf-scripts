@@ -2,6 +2,7 @@ import datetime
 import os
 
 import github3
+import networkx as nx
 
 gh = github3.login(os.environ['USERNAME'], os.environ['PASSWORD'])
 org = gh.organization('conda-forge')
@@ -22,3 +23,6 @@ with open('names.txt', 'w') as f:
             print(datetime.datetime.utcfromtimestamp(ts)
                   .strftime('%Y-%m-%dT%H:%M:%SZ'))
         pass
+
+gx = nx.read_gpickle('graph.pkl')
+nx.write_yaml(gx, 'graph.yml')
