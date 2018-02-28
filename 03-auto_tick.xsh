@@ -279,11 +279,11 @@ for node, attrs in gx2.node.items():
                 f.write('{name}: {exception}'.format(name=$PROJECT, exception=str(e)))
         finally:
             # Write graph partially through
+            # Race condition?
+            # nx.write_yaml(gx, 'graph.yml')
             nx.write_gpickle(gx, 'graph.pkl')
             rm -rf $REVER_DIR + '/*'
             ![doctr deploy --token --built-docs . --deploy-repo regro/cf-graph --deploy-branch-name master .]
 
-# Race condition?
-print('writing out file')
-# nx.write_yaml(gx, 'graph.yml')
-nx.write_gpickle(gx, 'graph.pkl')
+print('API Calls Remaining:', gh.rate_limit()['resources']['core']['remaining'])
+print('Done')
