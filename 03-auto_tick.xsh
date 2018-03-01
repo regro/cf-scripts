@@ -102,7 +102,8 @@ DEFAULT_PATTERNS = (
     )
 
 more_patterns = []
-checksum_names = ['hash_value', 'hash', 'hash_val', 'sha256sum', 'checksum']
+checksum_names = ['hash_value', 'hash', 'hash_val', 'sha256sum', 'checksum',
+                  '$HASH_TYPE']
 delim = ["'", '"']
 sets = [' set', 'set']
 base1 = '''{{%{set} {checkname} = {d}[0-9A-Fa-f]+{d} %}}'''
