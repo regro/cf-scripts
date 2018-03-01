@@ -89,6 +89,7 @@ DEFAULT_PATTERNS = (
     # set the version
     ('meta.yaml', '  version:\s*[A-Za-z0-9._-]+', '  version: "$VERSION"'),
     ('meta.yaml', '{% set version = ".*" %}', '{% set version = "$VERSION" %}'),
+    ('meta.yaml', '{% set version = .* %}', '{% set version = "$VERSION" %}'),
     ('meta.yaml', '{%set version = ".*" %}', '{%set version = "$VERSION" %}'),
     # reset the build number to 0
     ('meta.yaml', '  number:.*', '  number: 0'),
@@ -265,6 +266,9 @@ for node, attrs in gx2.node.items():
         except github3.GitHubError as e:
             print('GITHUB ERROR ON FEEDSTOCK: {}'.format($PROJECT))
             print(e)
+            # carve out for PRs already submitted
+            if e.msg == 'Validation Failed':
+                gx.nodes[node]['PRed'] = attrs['new_version']
             c = gh.rate_limit()['resources']['core']
             if c['remaining'] == 0:
                 ts = c['reset']
