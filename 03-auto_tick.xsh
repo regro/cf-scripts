@@ -89,6 +89,7 @@ DEFAULT_PATTERNS = (
     # set the version
     ('meta.yaml', '  version:\s*[A-Za-z0-9._-]+', '  version: "$VERSION"'),
     ('meta.yaml', '{% set version = ".*" %}', '{% set version = "$VERSION" %}'),
+    ('meta.yaml', '{% set version = .* %}', '{% set version = "$VERSION" %}'),
     ('meta.yaml', '{%set version = ".*" %}', '{%set version = "$VERSION" %}'),
     # reset the build number to 0
     ('meta.yaml', '  number:.*', '  number: 0'),
