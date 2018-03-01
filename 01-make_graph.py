@@ -100,10 +100,10 @@ try:
             # TODO: Write schema for dict
             req = yaml_dict.get('requirements', set())
             if req:
-                build = req.get('build', []) if req.get(
-                    'build', []) is not None else []
-                run = req.get('run', []) if req.get(
-                    'run', []) is not None else []
+                build = list(req.get('build', []) if req.get(
+                    'build', []) is not None else [])
+                run = list(req.get('run', []) if req.get(
+                    'run', []) is not None else [])
                 req = build + run
                 req = set([x.split()[0] for x in req])
 
