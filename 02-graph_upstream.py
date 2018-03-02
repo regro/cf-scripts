@@ -28,7 +28,7 @@ def source_location(meta_yaml):
 def pypi_version(meta_yaml, gh):
     """Copyright (c) 2017, Peter M. Landwehr"""
     pypi_name = meta_yaml['url'].split('/')[6]
-    r = requests.get('https://pypi.python.org/pypi/{}/json'.format(
+    r = requests.get('https://pypi.org/pypi/{}/json'.format(
         pypi_name))
     if not r.ok:
         with open('upstream_bad', 'a') as f:
