@@ -1,10 +1,7 @@
 # cf-scripts
-Conda Forge dependency graph tracker and auto ticker
+Conda-Forge dependency graph tracker and auto ticker
 
 [regro-cf-autotick-bot's PRs](https://github.com/pulls?utf8=%E2%9C%93&q=is%3Aopen+is%3Apr+author%3Aregro-cf-autotick-bot+archived%3Afalse+) 
-
-Please note that the scripts in this repo have been moved to [cf-scripts](https://github.com/regro/cf-scripts) to avoid conflicts with the actively updated files.
-Please make all PRs to that repo, issues will be honored in either.
 
 ## Plan
 There are four scripts:
@@ -15,6 +12,4 @@ There are four scripts:
 
 These scripts will run on Travis from 4 different github repos as daily cron jobs and use `doctr` to write the output data (the list of all conda-forge packages and the dependency graph) to this repo. 
 
-GH rate limit may be a major concern for this as there are ~4000 feedstocks and only 5000 API calls per hour.
-This may require it's own conda-forge bot account to prevent it from taking all the API calls.
-
+GH rate limit is a major concern for this as there are ~4000 feedstocks and only 5000 API calls per hour.
