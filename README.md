@@ -3,6 +3,17 @@ Conda-Forge dependency graph tracker and auto ticker
 
 [regro-cf-autotick-bot's PRs](https://github.com/pulls?utf8=%E2%9C%93&q=is%3Aopen+is%3Apr+author%3Aregro-cf-autotick-bot+archived%3Afalse+) 
 
+# Dashboard
+
+| Script | Status |
+|:------:|:------:|
+| 00-find_feedstocks.py | [![Build Status](https://travis-ci.org/regro/00-find-feedstocks.svg?branch=master)](https://travis-ci.org/regro/00-find-feedstocks) |
+| 01-make_graph.py | [![Build Status](https://travis-ci.org/regro/make-cf-graph.svg?branch=master)](https://travis-ci.org/regro/make-cf-graph) |
+| 02-graph_upstream.py| [![Build Status](https://travis-ci.org/regro/graph-upstream.svg?branch=master)](https://travis-ci.org/regro/graph-upstream) |
+| 03-auto_tick.xsh | [![Build Status](https://travis-ci.org/regro/cf-auto-tick.svg?branch=master)](https://travis-ci.org/regro/cf-auto-tick) |
+
+
+
 ## Plan
 There are four scripts:
 1. `00-find-feedstocks.py` which finds all the names of the current feedstocks. (#feedstocks/30 GH api calls)
