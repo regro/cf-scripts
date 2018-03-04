@@ -67,7 +67,7 @@ def get_latest_version(meta_yaml, gh):
     sl = source_location(meta_yaml)
     if sl is None:
         with open('upstream_bad', 'a') as f:
-            f.write('{}: not on GitHub of pypi\n'.format(meta_yaml['name']))
+            f.write('{}: not on GitHub or pypi\n'.format(meta_yaml['name']))
         return False
     rv = sl_map[sl]['version'](meta_yaml, gh)
     return str(rv)
