@@ -32,7 +32,8 @@ def pypi_version(meta_yaml, gh):
         pypi_name))
     if not r.ok:
         with open('upstream_bad', 'a') as f:
-            f.write('{}: Could not find version on pypi\n'.format(meta_yaml['name']))
+            f.write('{}: Could not find version on pypi\n'.format(
+                meta_yaml['name']))
         return False
     return r.json()['info']['version'].strip()
 
@@ -93,7 +94,7 @@ for node, attrs in gx.node.items():
         pass
 print('Current number of out of date packages: '
       '{}'.format(str(len([n for n, a in gx.node.items()
-                       if a['new_version'] != a['version']]))))
+                           if a['new_version'] != a['version']]))))
 print('writing out file')
 del parse_version
 # nx.write_yaml(gx, 'graph.yml')
