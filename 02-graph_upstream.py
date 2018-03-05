@@ -91,6 +91,9 @@ for node, attrs in gx.node.items():
             print(datetime.datetime.utcfromtimestamp(ts)
                   .strftime('%Y-%m-%dT%H:%M:%SZ'))
         pass
+print('Current number of out of date packages: '
+      '{}'.format(len([n for n, a in gx.node.items()
+                       if a['new_version'] != a['version']])))
 print('writing out file')
 del parse_version
 # nx.write_yaml(gx, 'graph.yml')
