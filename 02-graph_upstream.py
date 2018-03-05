@@ -94,8 +94,10 @@ for node, attrs in gx.node.items():
         pass
 print('Current number of out of date packages not PRed: {}'.format(
     str(len([n for n, a in gx.node.items()
-             if a['new_version'] != a['version']
-             and a.get('PRed', '000') != a['new_version']]))))
+             if a['new_version']  # if we can ge a new version (sorry R)
+             and a['new_version'] != a['version']  # if we need a bump
+             and a.get('PRed', '000') != a['new_version']  # if not PRed
+             ]))))
 print('writing out file')
 del parse_version
 # nx.write_yaml(gx, 'graph.yml')
