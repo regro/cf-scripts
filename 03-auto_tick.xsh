@@ -283,7 +283,7 @@ for node, attrs in gx2.node.items():
         except Exception as e:
             print('NON GITHUB ERROR')
             print(e)
-            print(traceback.format_exc())
+            # print(traceback.format_exc())
             with open('exceptions.txt', 'a') as f:
                 f.write('{name}: {exception}'.format(name=$PROJECT, exception=str(e)))
         finally:
