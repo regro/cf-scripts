@@ -4,7 +4,7 @@ from pkg_resources import parse_version
 import feedparser
 
 class VersionFromFeed:
-    ver_suffix_remove = ['release-', 'releases%2F', 'v']
+    ver_prefix_remove = ['release-', 'releases%2F', 'v']
     dev_vers = ['rc', 'beta', 'alpha', 'dev']
 
     def get_version(self, url):
@@ -14,9 +14,9 @@ class VersionFromFeed:
         vers = []
         for entry in data['entries']:
             ver = entry['link'].split('/')[-1]
-            for suffix in self.ver_suffix_remove:
-                if ver.startswith(suffix):
-                    ver = ver[len(suffix):]
+            for prefix in self.ver_prefix_remove:
+                if ver.startswith(prefix):
+                    ver = ver[len(prefix):]
             if any(s in ver for s in self.dev_vers):
                 continue
             vers.append(ver)
