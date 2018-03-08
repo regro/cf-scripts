@@ -1,100 +1,110 @@
-import datetime
-import os
-
-import github3
 import networkx as nx
 import requests
 from pkg_resources import parse_version
+import feedparser
 
+class VersionFromFeed:
+    ver_prefix_remove = ['release-', 'releases%2F', 'v']
+    dev_vers = ['rc', 'beta', 'alpha', 'dev']
 
-def source_location(meta_yaml):
-    # TODO: use get
-    # TODO: have dict
-    try:
-        if 'github.com' in meta_yaml['url']:
-            return 'github'
-        elif 'pypi.python.org' in meta_yaml['url']:
-            return 'pypi'
-        elif 'pypi.org' in meta_yaml['url']:
-            return 'pypi'
-        elif 'pypi.io' in meta_yaml['url']:
-            return 'pypi'
+    def get_version(self, url):
+        data = feedparser.parse(url)
+        if data['bozo'] == 1:
+            return None
+        vers = []
+        for entry in data['entries']:
+            ver = entry['link'].split('/')[-1]
+            for prefix in self.ver_prefix_remove:
+                if ver.startswith(prefix):
+                    ver = ver[len(prefix):]
+            if any(s in ver for s in self.dev_vers):
+                continue
+            vers.append(ver)
+        if vers:
+            return max(vers, key=lambda x:parse_version(x.replace('-','.')))
         else:
             return None
-    except KeyError:
-        return None
+
+class Github(VersionFromFeed):
+    name = 'github'
+    def get_url(self, meta_yaml):
+        if not 'github.com' in meta_yaml['url']:
+            return
+        split_url = meta_yaml['url'].lower().split('/')
+        package_owner = split_url[split_url.index('github.com') + 1]
+        gh_package_name = split_url[split_url.index('github.com') + 2]
+        return "https://github.com/{}/{}/releases.atom".format(package_owner, gh_package_name)
 
 
-def pypi_version(meta_yaml, gh):
-    """Copyright (c) 2017, Peter M. Landwehr"""
-    pypi_name = meta_yaml['url'].split('/')[6]
-    r = requests.get('https://pypi.org/pypi/{}/json'.format(
-        pypi_name))
-    if not r.ok:
-        with open('upstream_bad', 'a') as f:
-            f.write('{}: Could not find version on pypi\n'.format(
-                meta_yaml['name']))
-        return False
-    return r.json()['info']['version'].strip()
+class LibrariesIO(VersionFromFeed):
+    def get_url(self, meta_yaml):
+        urls = meta_yaml['url']
+        if not isinstance(meta_yaml['url'], list):
+            urls = [urls]
+        for url in urls:
+            if not self.url_contains in url:
+                continue
+            pkg = self.package_name(url)
+            return "https://libraries.io/{}/{}/versions.atom".format(self.name, pkg)
 
 
-def gh_version(meta_yaml, gh):
-    split_url = meta_yaml['url'].lower().split('/')
-    package_owner = split_url[split_url.index('github.com') + 1]
-    gh_package_name = split_url[split_url.index('github.com') + 2]
+class PyPI:
+    name = 'pypi'
 
-    # get all the tags
-    repo = gh.repository(package_owner, gh_package_name)
-    if not repo:
-        with open('upstream_bad', 'a') as f:
-            f.write('{}: could not find repo\n'.format(meta_yaml['name']))
-        return False
+    def get_url(self, meta_yaml):
+        url_names = ['pypi.python.org', 'pypi.org', 'pypi.io']
+        source_url = meta_yaml['url']
+        if not any(s in source_url for s in url_names):
+            return None
+        pkg = meta_yaml['url'].split('/')[6]
+        return 'https://pypi.org/pypi/{}/json'.format(pkg)
 
-    rels = [parse_version(r.name) for r in
-            repo.iter_tags() if 'rc' not in r.name]
-    if len(rels) == 0:
-        with open('upstream_bad', 'a') as f:
-            f.write('{}: no tags found\n'.format(meta_yaml['name']))
-        return False
-
-    return max(rels)
+    def get_version(self, url):
+        r = requests.get(url)
+        if not r.ok:
+            return False
+        return r.json()['info']['version'].strip()
 
 
-sl_map = {'pypi': {'version': pypi_version},
-          'github': {'version': gh_version}}
+class CRAN(LibrariesIO):
+    name = 'cran'
+    url_contains = 'cran.r-project.org/src/contrib/Archive'
+    package_name = lambda self, url: url.split('/')[6]
+    def get_version(self, url):
+        ver = LibrariesIO.get_version(self, url)
+        return str(ver).replace('-', '_')
 
 
-def get_latest_version(meta_yaml, gh):
-    sl = source_location(meta_yaml)
-    if sl is None:
-        with open('upstream_bad', 'a') as f:
-            f.write('{}: not on GitHub or pypi\n'.format(meta_yaml['name']))
-        return False
-    rv = sl_map[sl]['version'](meta_yaml, gh)
-    return str(rv)
+sources = [PyPI(), CRAN(), Github()]
+
+
+def get_latest_version(meta_yaml):
+    for source in sources:
+        url = source.get_url(meta_yaml)
+        if url is None:
+            continue
+        ver = source.get_version(url)
+        if ver:
+            return ver
+        else:
+            with open('upstream_bad', 'a') as f:
+                f.write('{}: Could not find version on {}\n'.format(
+                    meta_yaml['name'], source.name))
+    with open('upstream_bad', 'a') as f:
+        f.write('{}: unknown source\n'.format(meta_yaml['name']))
+    return False
 
 
 # gx = nx.read_yaml('graph.yml')
 gx = nx.read_gpickle('graph.pkl')
 
-gh = github3.login(os.environ['USERNAME'], os.environ['PASSWORD'])
-
 for node, attrs in gx.node.items():
-    try:
-        attrs['new_version'] = get_latest_version(attrs, gh)
-        print(node, attrs['version'], attrs['new_version'])
-    except github3.GitHubError as e:
-        print(e)
-        c = gh.rate_limit()['resources']['core']
-        if c['remaining'] == 0:
-            ts = c['reset']
-            print('API timeout, API returns at')
-            print(datetime.datetime.utcfromtimestamp(ts)
-                  .strftime('%Y-%m-%dT%H:%M:%SZ'))
-        pass
+    attrs['new_version'] = get_latest_version(attrs)
+    print(node, attrs['version'], attrs['new_version'])
+
 print('Current number of out of date packages not PRed: {}'.format(
     str(len([n for n, a in gx.node.items()
-             if a['new_version']  # if we can ge a new version (sorry R)
+             if a['new_version']  # if we can get a new version
              and a['new_version'] != a['version']  # if we need a bump
              and a.get('PRed', '000') != a['new_version']  # if not PRed
              ]))))
