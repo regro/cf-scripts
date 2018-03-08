@@ -4,15 +4,22 @@ from pkg_resources import parse_version
 import feedparser
 
 class VersionFromFeed:
+    ver_suffix_remove = ['release-', 'releases%2F', 'v']
+    dev_vers = ['rc', 'beta', 'alpha', 'dev']
+
     def get_version(self, url):
         data = feedparser.parse(url)
         if data['bozo'] == 1:
-            raise None
+            return None
         vers = []
         for entry in data['entries']:
             ver = entry['link'].split('/')[-1]
-            if ('.rc' not in ver):
-                vers.append(ver)
+            for suffix in self.ver_suffix_remove:
+                if ver.startswith(suffix):
+                    ver = ver[len(suffix):]
+            if any(s in ver for s in self.dev_vers):
+                continue
+            vers.append(ver)
         if vers:
             return max(vers, key=lambda x:parse_version(x.replace('-','.')))
         else:
@@ -97,7 +104,7 @@ for node, attrs in gx.node.items():
 
 print('Current number of out of date packages not PRed: {}'.format(
     str(len([n for n, a in gx.node.items()
-             if a['new_version']  # if we can ge a new version (sorry R)
+             if a['new_version']  # if we can get a new version
              and a['new_version'] != a['version']  # if we need a bump
              and a.get('PRed', '000') != a['new_version']  # if not PRed
              ]))))
