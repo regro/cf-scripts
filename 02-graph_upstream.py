@@ -72,15 +72,12 @@ sources = [PyPI(), CRAN(), Github()]
 
 
 def get_latest_version(meta_yaml):
-    from time import time
-    start = time()
     for source in sources:
         url = source.get_url(meta_yaml)
         if url is None:
             continue
         ver = source.get_version(url)
         if ver:
-            print(time() - start)
             return ver
         else:
             with open('upstream_bad', 'a') as f:
