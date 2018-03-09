@@ -175,6 +175,13 @@ def run(feedstock=None, protocol='ssh',
             text = f.read()
         # If we can't parse the meta_yaml then jump out
         meta_yaml = parsed_meta_yaml(text)
+        # If the parser returns None, then we didn't read the meta.yaml
+        # TODO: How we didn't fail at 01 on this recipe is mysterious
+        if meta_yaml is None:
+            with open('upstream_bad', 'a') as f:
+                f.write('{}: failed to read meta.yaml\n'.format($PROJECT))
+            rm - rf @ (feedstock_dir)
+            return False
         source_url = meta_yaml['source']['url']
         if isinstance(source_url, list):
             for url in source_url:
