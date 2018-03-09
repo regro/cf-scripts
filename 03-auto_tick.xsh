@@ -181,6 +181,8 @@ def run(feedstock=None, protocol='ssh',
                 if 'Archive' not in url:
                     source_url = url
                     break
+        if 'cran.r-project.org/src/contrib' in source_url:
+            $VERSION = $VERSION.replace('_', '-')
 
     # now, update the feedstock to the new version
     source_url = eval_version(source_url)
