@@ -170,7 +170,12 @@ def run(feedstock=None, protocol='ssh',
             replace_in_file(p, n, f)
         with open('meta.yaml', 'r') as f:
             text = f.read()
+        # If we can't parse the meta_yaml then jump out
         meta_yaml = parsed_meta_yaml(text)
+        if meta_yaml is None:
+            with open('bad.txt', 'a') as f:
+                f.write('{}\n'.format($PROJECT))
+            return False
         source_url = meta_yaml['source']['url']
 
     # now, update the feedstock to the new version
@@ -294,6 +299,7 @@ for node, attrs in gx2.node.items():
             # nx.write_yaml(gx, 'graph.yml')
             nx.write_gpickle(gx, 'graph.pkl')
             rm -rf $REVER_DIR + '/*'
+            print(![pwd])
             ![doctr deploy --token --built-docs . --deploy-repo regro/cf-graph --deploy-branch-name master .]
 
 print('API Calls Remaining:', gh.rate_limit()['resources']['core']['remaining'])
