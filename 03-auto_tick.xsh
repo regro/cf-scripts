@@ -292,7 +292,7 @@ for node, attrs in gx2.node.items():
             print(e)
             # print(traceback.format_exc())
             with open('exceptions.txt', 'a') as f:
-                f.write('{name}: {exception}'.format(name=$PROJECT, exception=str(e)))
+                f.write('{name}: {exception}\n'.format(name=$PROJECT, exception=str(e)))
         finally:
             # Write graph partially through
             # Race condition?
