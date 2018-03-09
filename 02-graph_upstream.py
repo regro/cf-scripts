@@ -88,10 +88,11 @@ def get_latest_version(meta_yaml):
             return ver
         else:
             with open('upstream_bad', 'a') as f:
-                f.write('{}: Could not find version on {}\n'.format(
-                    meta_yaml['name'], source.name))
+                f.write('{}: Could not find version on {} at {}\n'.format(
+                    meta_yaml['name'], source.name, url))
     with open('upstream_bad', 'a') as f:
-        f.write('{}: unknown source\n'.format(meta_yaml['name']))
+        f.write('{}: unknown source at {}\n'.format(meta_yaml['name'],
+                                                    meta_yaml['url']))
     return False
 
 
