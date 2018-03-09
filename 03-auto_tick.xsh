@@ -17,6 +17,10 @@ from rever.tools import (eval_version, indir, hash_url, replace_in_file)
 from conda_build.metadata import parse
 from conda_build.config import Config
 
+# TODO: handle this more elegantly (most likely make this a true library
+# and pull all the needed info from the various source classes
+URL_CONTAINS = 'cran.r-project.org/src/contrib/Archive'
+
 
 def parsed_meta_yaml(text):
     """
@@ -172,11 +176,12 @@ def run(feedstock=None, protocol='ssh',
             text = f.read()
         # If we can't parse the meta_yaml then jump out
         meta_yaml = parsed_meta_yaml(text)
-        if meta_yaml is None:
-            with open('bad.txt', 'a') as f:
-                f.write('{}\n'.format($PROJECT))
-            return False
         source_url = meta_yaml['source']['url']
+        if isinstance(source_url, list):
+            for url in source_url:
+                if URL_CONTAINS in url:
+                    source_url = url
+                    break
 
     # now, update the feedstock to the new version
     source_url = eval_version(source_url)
