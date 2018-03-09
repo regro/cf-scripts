@@ -295,9 +295,11 @@ for node, attrs in gx2.node.items():
         except Exception as e:
             print('NON GITHUB ERROR')
             print(e)
-            # print(traceback.format_exc())
-            with open('exceptions.txt', 'a') as f:
-                f.write('{name}: {exception}\n'.format(name=$PROJECT, exception=str(e)))
+            with open('exceptions.md', 'a') as f:
+                f.write('#{name}\n##{exception}\n{tb}\n\n'.format(
+                    name=$PROJECT,
+                          exception=str(e),
+                                    tb=str(traceback.format_exc())))
         finally:
             # Write graph partially through
             # Race condition?
