@@ -136,6 +136,12 @@ def run(feedstock=None, protocol='ssh',
 
     if pull_request or fork:
         repo = gh.repository('conda-forge', feedstock_reponame)
+        if repo is None:
+            with open('upstream_bad', 'a') as f:
+                f.write('{}: does not match feedstock name\n'.format(
+                $PROJECT))
+            rm - rf @ (feedstock_dir)
+            return False
 
     # Check if fork exists
     if fork:
