@@ -189,7 +189,9 @@ def run(feedstock=None, protocol='ssh',
         hash = hash_url(source_url, hash_type)
     except urllib.error.HTTPError:
         with open('upstream_bad', 'a') as f:
-            f.write('{}: hash failed\n'.format(meta_yaml['name']))
+            f.write('{}: hash failed\n'.format(meta_yaml['package']['name']))
+        rm -rf @(feedstock_dir)
+        return False
 
     patterns += tuple(more_patterns)
     with indir(recipe_dir), ${...}.swap(HASH_TYPE=hash_type, HASH=hash,
