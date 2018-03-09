@@ -140,7 +140,7 @@ def run(feedstock=None, protocol='ssh',
             with open('upstream_bad', 'a') as f:
                 f.write('{}: does not match feedstock name\n'.format(
                 $PROJECT))
-            rm -rf @ (feedstock_dir)
+            rm -rf @(feedstock_dir)
             return False
 
     # Check if fork exists
@@ -186,7 +186,7 @@ def run(feedstock=None, protocol='ssh',
         if meta_yaml is None:
             with open('upstream_bad', 'a') as f:
                 f.write('{}: failed to read meta.yaml\n'.format($PROJECT))
-            rm -rf @ (feedstock_dir)
+            rm -rf @(feedstock_dir)
             return False
         source_url = meta_yaml['source']['url']
         if isinstance(source_url, list):
