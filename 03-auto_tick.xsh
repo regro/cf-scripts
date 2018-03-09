@@ -17,9 +17,8 @@ from rever.tools import (eval_version, indir, hash_url, replace_in_file)
 from conda_build.metadata import parse
 from conda_build.config import Config
 
-# TODO: handle this more elegantly (most likely make this a true library
-# and pull all the needed info from the various source classes
-URL_CONTAINS = 'cran.r-project.org/src/contrib/Archive'
+# TODO: handle the URLs more elegantly (most likely make this a true library
+# and pull all the needed info from the various source classes)
 
 
 def parsed_meta_yaml(text):
@@ -179,7 +178,7 @@ def run(feedstock=None, protocol='ssh',
         source_url = meta_yaml['source']['url']
         if isinstance(source_url, list):
             for url in source_url:
-                if URL_CONTAINS in url:
+                if 'Archive' not in url:
                     source_url = url
                     break
 
@@ -189,7 +188,8 @@ def run(feedstock=None, protocol='ssh',
         hash = hash_url(source_url, hash_type)
     except urllib.error.HTTPError:
         with open('upstream_bad', 'a') as f:
-            f.write('{}: hash failed\n'.format(meta_yaml['package']['name']))
+            f.write('{}: hash failed at {}\n'.format(
+                meta_yaml['package']['name'], source_url))
         rm -rf @(feedstock_dir)
         return False
 
