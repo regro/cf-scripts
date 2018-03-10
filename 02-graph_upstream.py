@@ -2,6 +2,11 @@ import networkx as nx
 import requests
 from pkg_resources import parse_version
 import feedparser
+import os
+import jinja2
+import io
+import ruamel.yaml
+import subprocess
 
 class VersionFromFeed:
     ver_prefix_remove = ['release-', 'releases%2F', 'v']
@@ -24,6 +29,7 @@ class VersionFromFeed:
             return max(vers, key=lambda x:parse_version(x.replace('-','.')))
         else:
             return None
+
 
 class Github(VersionFromFeed):
     name = 'github'
@@ -75,7 +81,78 @@ class CRAN(LibrariesIO):
         return str(ver).replace('-', '_')
 
 
-sources = [PyPI(), CRAN(), Github()]
+class NullUndefined(jinja2.Undefined):
+    def __unicode__(self):
+        return self._undefined_name
+
+    def __getattr__(self, name):
+        return '{}.{}'.format(self, name)
+
+    def __getitem__(self, name):
+        return '{}["{}"]'.format(self, name)
+
+
+def next_version(ver):
+    ver_split = []
+    ver_dot_split = ver.split('.')
+    for s in ver_dot_split:
+        ver_dash_split = s.split('_')
+        for j in ver_dash_split:
+            ver_split.append(j)
+            ver_split.append('_')
+        ver_split[-1] = '.'
+    del ver_split[-1]
+    for j in reversed(range(len(ver_split))):
+        try:
+            t = int(ver_split[j])
+        except:
+            continue
+        else:
+            ver_split[j] = str(t + 1)
+            yield ''.join(ver_split)
+            ver_split[j] = '0'
+
+
+class RawURL:
+    name = 'RawURL'
+    def get_url(self, meta_yaml):
+        pkg = meta_yaml['name']
+        url_template = "https://raw.githubusercontent.com/conda-forge/{}-feedstock/master/recipe/meta.yaml"
+        try:
+            content = requests.get(url_template.format(pkg)).content
+            content = content.decode('utf-8')
+        except Exception:
+            return None
+
+        env = jinja2.Environment(undefined=NullUndefined)
+
+        current_ver = meta_yaml['version']
+        orig_ver = current_ver
+        found = True
+        while found:
+            found = False
+            for next_ver in next_version(current_ver):
+                new_content = content.replace(orig_ver, next_ver)
+                meta = ruamel.yaml.load(env.from_string(new_content).render(os=os), ruamel.yaml.RoundTripLoader)
+                url = str(meta['source']['url'])
+                if str(meta['package']['version']) != next_ver:
+                    continue
+                with open(os.devnull, 'w') as devnull:
+                    try:
+                        subprocess.check_call(["wget", "--spider", url], stdout=devnull, stderr=subprocess.STDOUT)
+                    except:
+                        continue
+                    found = True
+                    current_ver = next_ver
+                    break
+        if current_ver != orig_ver:
+            return current_ver
+
+    def get_version(self, url):
+        return url
+
+
+sources = [PyPI(), CRAN(), Github(), RawURL()]
 
 
 def get_latest_version(meta_yaml):
