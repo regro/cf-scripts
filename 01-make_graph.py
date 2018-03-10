@@ -49,13 +49,15 @@ print('reading bad')
 with open('bad.txt', 'r') as f:
     bad = set(f.read().split())
 
+new_bad = []
+
 print(bad)
 print('reading graph')
 gx = nx.read_gpickle('graph.pkl')
 # gx = nx.read_yaml('graph.yml')
 
 new_names = [name for name in names if
-             name not in gx.nodes and name not in bad]
+             name not in gx.nodes]
 old_names = [name for name in names if name in gx.nodes]
 old_names = sorted(old_names, key=lambda n: gx.nodes[n]['time'])
 
@@ -69,15 +71,13 @@ for i, name in enumerate(total_names):
     if r.status_code != 200:
         print('Something odd happened to this recipe '
               '{}'.format(r.status_code))
-        with open('bad.txt', 'a') as f:
-            f.write('{}\n'.format(name))
+        new_bad.append(name)
         continue
 
     text = r.content.decode('utf-8')
     yaml_dict = parsed_meta_yaml(text)
     if not yaml_dict:
-        with open('bad.txt', 'a') as f:
-            f.write('{}\n'.format(name))
+        new_bad.append(name)
         continue
     # TODO: Write schema for dict
     req = yaml_dict.get('requirements', set())
@@ -92,8 +92,7 @@ for i, name in enumerate(total_names):
     if not ('url' in yaml_dict.get('source', {})
             and 'name' in yaml_dict.get('package', {})
             and 'version' in yaml_dict.get('package', {})):
-        with open('bad.txt', 'a') as f:
-            f.write('{}\n'.format(name))
+        new_bad.append(name)
         continue
     sub_graph = {
         'name': yaml_dict['package']['name'],
@@ -122,5 +121,7 @@ for node, attrs in gx.node.items():
         if dep in gx.nodes:
             gx.add_edge(dep, node)
 print('writing out file')
+with open('bad.txt', 'w') as f:
+    f.write('\n'.join(new_bad))
 # nx.write_yaml(gx, 'graph.yml')
 nx.write_gpickle(gx, 'graph.pkl')
