@@ -101,6 +101,7 @@ for i, name in enumerate(total_names):
         'url': yaml_dict['source']['url'],
         'req': req,
         'time': time.time(),
+        'meta_yaml': text,
     }
     k = next(iter((set(yaml_dict['source'].keys())
                       & hashlib.algorithms_available)), None)
