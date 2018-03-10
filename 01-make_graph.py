@@ -101,7 +101,7 @@ for i, name in enumerate(total_names):
         'url': yaml_dict['source']['url'],
         'req': req,
         'time': time.time(),
-        'feedstock_name', name,
+        'feedstock_name': name,
         'meta_yaml': yaml_dict,
         'raw_meta_yaml': text,
     }
