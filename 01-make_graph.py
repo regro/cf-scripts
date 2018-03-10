@@ -47,7 +47,6 @@ with open('names.txt', 'r') as f:
 
 new_bad = []
 
-print(bad)
 print('reading graph')
 gx = nx.read_gpickle('graph.pkl')
 # gx = nx.read_yaml('graph.yml')
