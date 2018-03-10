@@ -92,8 +92,6 @@ class RawURL:
         except Exception:
             return None
 
-        env = jinja2.Environment(undefined=NullUndefined)
-
         current_ver = meta_yaml['version']
         orig_ver = current_ver
         found = True
@@ -138,7 +136,7 @@ def get_latest_version(meta_yaml, sources):
     return False
 
 
-def update_upstream_versions(gx, sources=[PyPI(), CRAN(), Github()]):
+def update_upstream_versions(gx, sources=(PyPI(), CRAN(), Github(), RawURL())):
 
     for node, attrs in gx.node.items():
         attrs['new_version'] = get_latest_version(attrs, sources)
