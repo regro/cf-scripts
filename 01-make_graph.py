@@ -5,6 +5,7 @@ import os
 import re
 import time
 from base64 import b64decode
+from collections import defaultdict
 
 import networkx as nx
 import requests
@@ -33,7 +34,7 @@ def parsed_meta_yaml(text):
     :return: `dict|None` -- parsed YAML dict if successful, None if not
     """
     try:
-        content = env.from_string(text).render(os=os)
+        content = env.from_string(text).render(os=os, environ=defaultdict(lambda : ''))
         return parse(content, Config())
     except:
         return {}
