@@ -45,10 +45,6 @@ print('reading names')
 with open('names.txt', 'r') as f:
     names = f.read().split()
 
-print('reading bad')
-with open('bad.txt', 'r') as f:
-    bad = set(f.read().split())
-
 new_bad = []
 
 print(bad)
