@@ -6,14 +6,26 @@ import re
 import time
 from base64 import b64decode
 
-import github3
 import networkx as nx
 import requests
-import yaml
-from jinja2 import UndefinedError, Template
+import jinja2
+
 from conda_build.metadata import parse
 from conda_build.config import Config
 
+
+class NullUndefined(jinja2.Undefined):
+    def __unicode__(self):
+        return self._undefined_name
+
+    def __getattr__(self, name):
+        return '{}.{}'.format(self, name)
+
+    def __getitem__(self, name):
+        return '{}["{}"]'.format(self, name)
+
+
+env = jinja2.Environment(undefined=NullUndefined)
 
 def parsed_meta_yaml(text):
     """
@@ -21,36 +33,10 @@ def parsed_meta_yaml(text):
     :return: `dict|None` -- parsed YAML dict if successful, None if not
     """
     try:
-        yaml_dict = parse(Template(text).render(), Config())
-    except UndefinedError:
-        # assume we hit a RECIPE_DIR reference in the vars and can't parse it.
-        # just erase for now
-        try:
-            yaml_dict = parse(
-                Template(
-                    re.sub('{{ (environ\[")?RECIPE_DIR("])? }}/', '',
-                           text)
-                ).render(), Config())
-        except Exception as e:
-            print(e)
-            return None
-    except Exception as e:
-        print(e)
-        return None
-
-    return yaml_dict
-
-
-def source_location(meta_yaml):
-    try:
-        if 'github.com' in meta_yaml['source']['url']:
-            return 'github'
-        elif 'pypi.python.org' in meta_yaml['source']['url']:
-            return 'pypi'
-        else:
-            return None
-    except KeyError:
-        return None
+        content = env.from_string(text).render(os=os)
+        return parse(content, Config())
+    except:
+        return {}
 
 
 # TODO: with names in a graph
@@ -74,73 +60,59 @@ old_names = sorted(old_names, key=lambda n: gx.nodes[n]['time'])
 
 total_names = new_names + old_names
 print('start loop')
-gh = github3.login(os.environ['USERNAME'], os.environ['PASSWORD'])
-try:
-    for i, name in enumerate(total_names):
-        print(i, name, gh.rate_limit()['resources']['core']['remaining'])
-        r = requests.get('https://api.github.com/repos/conda-forge/'
-                         '{}-feedstock/contents/recipe/meta.yaml'.format(name),
-                         auth=(os.environ['USERNAME'], os.environ['PASSWORD']))
-        if r.status_code == 403:
-            raise github3.GitHubError(r)
-        elif r.status_code != 200:
-            print('Something odd happened to this recipe '
-                  '{}'.format(r.status_code))
-            with open('bad.txt', 'a') as f:
-                f.write('{}\n'.format(name))
-            continue
-        meta_yaml = r.json()['content']
-        if meta_yaml:
-            text = codecs.decode(b64decode(meta_yaml))
-            yaml_dict = parsed_meta_yaml(text)
-            if not yaml_dict:
-                with open('bad.txt', 'a') as f:
-                    f.write('{}\n'.format(name))
-                continue
-            # TODO: Write schema for dict
-            req = yaml_dict.get('requirements', set())
-            if req:
-                build = list(req.get('build', []) if req.get(
-                    'build', []) is not None else [])
-                run = list(req.get('run', []) if req.get(
-                    'run', []) is not None else [])
-                req = build + run
-                req = set([x.split()[0] for x in req])
 
-            if not ('url' in yaml_dict.get('source', {})
-                    and 'name' in yaml_dict.get('package', {})
-                    and 'version' in yaml_dict.get('package', {})):
-                with open('bad.txt', 'a') as f:
-                    f.write('{}\n'.format(name))
-                continue
-            sub_graph = {
-                'name': yaml_dict['package']['name'],
-                'version': str(yaml_dict['package']['version']),
-                'url': yaml_dict['source']['url'],
-                'req': req,
-                'time': time.time(),
-            }
-            k = next(iter((set(yaml_dict['source'].keys())
-                              & hashlib.algorithms_available)), None)
-            if k:
-                sub_graph['hash_type'] = k
+for i, name in enumerate(total_names):
+    print(i, name)
+    r = requests.get('https://raw.githubusercontent.com/conda-forge/'
+                     '{}-feedstock/master/recipe/meta.yaml'.format(name))
+    if r.status_code != 200:
+        print('Something odd happened to this recipe '
+              '{}'.format(r.status_code))
+        with open('bad.txt', 'a') as f:
+            f.write('{}\n'.format(name))
+        continue
 
-            if name in new_names:
-                gx.add_node(name, **sub_graph)
-            else:
-                gx.nodes[name].update(**sub_graph)
-            # nx.write_yaml(gx, 'graph.yml')
-            nx.write_gpickle(gx, 'graph.pkl')
+    text = r.content.decode('utf-8')
+    yaml_dict = parsed_meta_yaml(text)
+    if not yaml_dict:
+        with open('bad.txt', 'a') as f:
+            f.write('{}\n'.format(name))
+        continue
+    # TODO: Write schema for dict
+    req = yaml_dict.get('requirements', set())
+    if req:
+        build = list(req.get('build', []) if req.get(
+            'build', []) is not None else [])
+        run = list(req.get('run', []) if req.get(
+            'run', []) is not None else [])
+        req = build + run
+        req = set([x.split()[0] for x in req])
 
-except github3.GitHubError as e:
-    print(e)
-    c = gh.rate_limit()['resources']['core']
-    if c['remaining'] == 0:
-        ts = c['reset']
-        print('API timeout, API returns at')
-        print(datetime.datetime.utcfromtimestamp(ts)
-              .strftime('%Y-%m-%dT%H:%M:%SZ'))
-    pass
+    if not ('url' in yaml_dict.get('source', {})
+            and 'name' in yaml_dict.get('package', {})
+            and 'version' in yaml_dict.get('package', {})):
+        with open('bad.txt', 'a') as f:
+            f.write('{}\n'.format(name))
+        continue
+    sub_graph = {
+        'name': yaml_dict['package']['name'],
+        'version': str(yaml_dict['package']['version']),
+        'url': yaml_dict['source']['url'],
+        'req': req,
+        'time': time.time(),
+    }
+    k = next(iter((set(yaml_dict['source'].keys())
+                      & hashlib.algorithms_available)), None)
+    if k:
+        sub_graph['hash_type'] = k
+
+    if name in new_names:
+        gx.add_node(name, **sub_graph)
+    else:
+        gx.nodes[name].update(**sub_graph)
+    # nx.write_yaml(gx, 'graph.yml')
+    nx.write_gpickle(gx, 'graph.pkl')
+
 for node, attrs in gx.node.items():
     for dep in attrs['req']:
         if dep in gx.nodes:
