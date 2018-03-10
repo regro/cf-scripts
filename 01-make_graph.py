@@ -103,6 +103,7 @@ for i, name in enumerate(total_names):
         'time': time.time(),
         'feedstock_name', name,
         'meta_yaml': yaml_dict,
+        'raw_meta_yaml': text,
     }
     k = next(iter((set(yaml_dict['source'].keys())
                       & hashlib.algorithms_available)), None)
