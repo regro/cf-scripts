@@ -84,7 +84,7 @@ class CRAN(LibrariesIO):
 class RawURL:
     name = 'RawURL'
     def get_url(self, meta_yaml):
-        pkg = meta_yaml['name']
+        pkg = meta_yaml['feedstock_name']
         url_template = "https://raw.githubusercontent.com/conda-forge/{}-feedstock/master/recipe/meta.yaml"
         try:
             content = requests.get(url_template.format(pkg)).content
