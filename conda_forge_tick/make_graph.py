@@ -57,10 +57,13 @@ def make_graph(names, gx=None):
             req = build + run
             req = set([x.split()[0] for x in req])
 
-        if not ('url' in yaml_dict.get('source', {})
-                and 'name' in yaml_dict.get('package', {})
-                and 'version' in yaml_dict.get('package', {})):
-            logger.warn("Recipe {} doesn't have a url".format(name))
+        keys = [('source', 'url'), ('package', 'name'),
+                ('package', 'version')]
+        missing_keys = [k[1] for k in keys if k[1] not in
+                yaml_dict.get(k[0], {})]
+        if missing_keys:
+            logger.warn("Recipe {} doesn't have a {}".format(name,
+                ', '.join(missing_keys)))
             bad.append(name)
             continue
         sub_graph = {
