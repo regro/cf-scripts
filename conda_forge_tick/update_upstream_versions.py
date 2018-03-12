@@ -2,6 +2,11 @@ import networkx as nx
 import requests
 from pkg_resources import parse_version
 import feedparser
+from .utils import parsed_meta_yaml
+
+import logging
+
+logger = logging.getLogger("conda_forge_tick.update_upstream_versions")
 
 class VersionFromFeed:
     ver_prefix_remove = ['release-', 'releases%2F', 'v']
@@ -75,10 +80,46 @@ class CRAN(LibrariesIO):
         return str(ver).replace('-', '_')
 
 
-sources = [PyPI(), CRAN(), Github()]
+
+class RawURL:
+    name = 'RawURL'
+    def get_url(self, meta_yaml):
+        pkg = meta_yaml['feedstock_name']
+        url_template = "https://raw.githubusercontent.com/conda-forge/{}-feedstock/master/recipe/meta.yaml"
+        try:
+            content = requests.get(url_template.format(pkg)).content
+            content = content.decode('utf-8')
+        except Exception:
+            return None
+
+        current_ver = meta_yaml['version']
+        orig_ver = current_ver
+        found = True
+        while found:
+            found = False
+            for next_ver in next_version(current_ver):
+                new_content = content.replace(orig_ver, next_ver)
+                meta = parsed_meta_yaml(new_content)
+                url = str(meta['source']['url'])
+                if str(meta['package']['version']) != next_ver:
+                    continue
+                with open(os.devnull, 'w') as devnull:
+                    try:
+                        subprocess.check_call(["wget", "--spider", url], stdout=devnull, stderr=subprocess.STDOUT)
+                    except:
+                        continue
+                    found = True
+                    current_ver = next_ver
+                    break
+        if current_ver != orig_ver:
+            return current_ver
+
+    def get_version(self, url):
+        return url
 
 
-def get_latest_version(meta_yaml):
+
+def get_latest_version(meta_yaml, sources):
     for source in sources:
         url = source.get_url(meta_yaml)
         if url is None:
@@ -88,28 +129,39 @@ def get_latest_version(meta_yaml):
             return ver
         else:
             with open('upstream_bad', 'a') as f:
-                f.write('{}: Could not find version on {} at {}\n'.format(
-                    meta_yaml['name'], source.name, url))
+                f.write('{}: Could not find version on {}\n'.format(
+                    meta_yaml['name'], source.name))
     with open('upstream_bad', 'a') as f:
-        f.write('{}: unknown source at {}\n'.format(meta_yaml['name'],
-                                                    meta_yaml['url']))
+        f.write('{}: unknown source\n'.format(meta_yaml['name']))
     return False
 
 
-# gx = nx.read_yaml('graph.yml')
-gx = nx.read_gpickle('graph.pkl')
+def update_upstream_versions(gx, sources=(PyPI(), CRAN(), Github(), RawURL())):
 
-for node, attrs in gx.node.items():
-    attrs['new_version'] = get_latest_version(attrs)
-    print(node, attrs['version'], attrs['new_version'])
+    for node, attrs in gx.node.items():
+        attrs['new_version'] = get_latest_version(attrs, sources)
+        print(node, attrs['version'], attrs['new_version'])
 
-print('Current number of out of date packages not PRed: {}'.format(
-    str(len([n for n, a in gx.node.items()
-             if a['new_version']  # if we can get a new version
-             and a['new_version'] != a['version']  # if we need a bump
-             and a.get('PRed', '000') != a['new_version']  # if not PRed
-             ]))))
-print('writing out file')
-del parse_version
-# nx.write_yaml(gx, 'graph.yml')
-nx.write_gpickle(gx, 'graph.pkl')
+    log.info('Current number of out of date packages not PRed: {}'.format(
+        str(len([n for n, a in gx.node.items()
+                 if a['new_version']  # if we can get a new version
+                 and a['new_version'] != a['version']  # if we need a bump
+                 and a.get('PRed', '000') != a['new_version']  # if not PRed
+                 ]))))
+
+
+def main(*args, **kwargs):
+    logging.basicConfig(level=logging.ERROR)
+    logger.setLevel(logging.INFO)
+
+    logger.info('Reading graph')
+    gx = nx.read_gpickle('graph.pkl')
+
+    update_upstream_versions(gx)
+
+    logger.info('writing out file')
+    nx.write_gpickle(gx, 'graph.pkl')
+
+
+if __name__ == "__main__":
+    main()
