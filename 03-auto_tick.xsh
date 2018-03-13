@@ -279,7 +279,7 @@ t0 = time.time()
 for node, attrs in gx2.node.items():
     # Don't let travis timeout, break ahead of the timeout so we make certain
     # to write to the repo
-    if time.time() - $START_TIME > $TIMEOUT:
+    if time.time() - int($START_TIME) > int($TIMEOUT):
         break
     $PROJECT = attrs['feedstock_name']
     $VERSION = attrs['new_version']
