@@ -1,3 +1,5 @@
+import os
+import subprocess
 import networkx as nx
 import requests
 from pkg_resources import parse_version
@@ -7,6 +9,27 @@ from .utils import parsed_meta_yaml
 import logging
 
 logger = logging.getLogger("conda_forge_tick.update_upstream_versions")
+
+def next_version(ver):
+    ver_split = []
+    ver_dot_split = ver.split('.')
+    for s in ver_dot_split:
+        ver_dash_split = s.split('_')
+        for j in ver_dash_split:
+            ver_split.append(j)
+            ver_split.append('_')
+        ver_split[-1] = '.'
+    del ver_split[-1]
+    for j in reversed(range(len(ver_split))):
+        try:
+            t = int(ver_split[j])
+        except:
+            continue
+        else:
+            ver_split[j] = str(t + 1)
+            yield ''.join(ver_split)
+            ver_split[j] = '0'
+
 
 class VersionFromFeed:
     ver_prefix_remove = ['release-', 'releases%2F', 'v']
@@ -26,19 +49,22 @@ class VersionFromFeed:
                 continue
             vers.append(ver)
         if vers:
-            return max(vers, key=lambda x:parse_version(x.replace('-','.')))
+            return max(vers, key=lambda x: parse_version(x.replace('-', '.')))
         else:
             return None
 
+
 class Github(VersionFromFeed):
     name = 'github'
+
     def get_url(self, meta_yaml):
         if not 'github.com' in meta_yaml['url']:
             return
         split_url = meta_yaml['url'].lower().split('/')
         package_owner = split_url[split_url.index('github.com') + 1]
         gh_package_name = split_url[split_url.index('github.com') + 2]
-        return "https://github.com/{}/{}/releases.atom".format(package_owner, gh_package_name)
+        return "https://github.com/{}/{}/releases.atom".format(package_owner,
+                                                               gh_package_name)
 
 
 class LibrariesIO(VersionFromFeed):
@@ -50,7 +76,8 @@ class LibrariesIO(VersionFromFeed):
             if not self.url_contains in url:
                 continue
             pkg = self.package_name(url)
-            return "https://libraries.io/{}/{}/versions.atom".format(self.name, pkg)
+            return "https://libraries.io/{}/{}/versions.atom".format(self.name,
+                                                                     pkg)
 
 
 class PyPI:
@@ -75,14 +102,15 @@ class CRAN(LibrariesIO):
     name = 'cran'
     url_contains = 'cran.r-project.org/src/contrib/Archive'
     package_name = lambda self, url: url.split('/')[6]
+
     def get_version(self, url):
         ver = LibrariesIO.get_version(self, url)
         return str(ver).replace('-', '_')
 
 
-
 class RawURL:
     name = 'RawURL'
+
     def get_url(self, meta_yaml):
         pkg = meta_yaml['feedstock_name']
         url_template = "https://raw.githubusercontent.com/conda-forge/{}-feedstock/master/recipe/meta.yaml"
@@ -105,7 +133,9 @@ class RawURL:
                     continue
                 with open(os.devnull, 'w') as devnull:
                     try:
-                        subprocess.check_call(["wget", "--spider", url], stdout=devnull, stderr=subprocess.STDOUT)
+                        subprocess.check_call(["wget", "--spider", url],
+                                              stdout=devnull,
+                                              stderr=subprocess.STDOUT)
                     except:
                         continue
                     found = True
@@ -116,7 +146,6 @@ class RawURL:
 
     def get_version(self, url):
         return url
-
 
 
 def get_latest_version(meta_yaml, sources):
@@ -137,12 +166,11 @@ def get_latest_version(meta_yaml, sources):
 
 
 def update_upstream_versions(gx, sources=(PyPI(), CRAN(), Github(), RawURL())):
-
     for node, attrs in gx.node.items():
         attrs['new_version'] = get_latest_version(attrs, sources)
         print(node, attrs['version'], attrs['new_version'])
 
-    log.info('Current number of out of date packages not PRed: {}'.format(
+    logger.info('Current number of out of date packages not PRed: {}'.format(
         str(len([n for n, a in gx.node.items()
                  if a['new_version']  # if we can get a new version
                  and a['new_version'] != a['version']  # if we need a bump
