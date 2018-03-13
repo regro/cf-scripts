@@ -98,7 +98,7 @@ def main(*args, **kwargs):
     logger.setLevel(logging.INFO)
     names = get_all_feedstocks(cached=True)
     gx = nx.read_gpickle('graph.pkl')
-    bad, gx = make_graph(names, gx)
+    gx, bad = make_graph(names, gx)
 
     logger.info('writing out file')
     with open('bad.txt', 'w') as f:
