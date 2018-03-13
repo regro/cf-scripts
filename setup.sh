@@ -16,6 +16,5 @@ conda install --file requirements/run
 python setup.py develop
 cd ..
 git clone https://github.com/regro/cf-graph.git
-cd cf-graph
 
 set -e

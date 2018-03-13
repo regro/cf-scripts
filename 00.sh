@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
 ./setup.sh
+cd ../cf-graph
 export PATH=~/mc/bin:$PATH
 conda-forge-tick --run 0
 conda-forge-tick --run 1
