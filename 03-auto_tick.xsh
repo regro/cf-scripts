@@ -279,9 +279,9 @@ t0 = time.time()
 for node, attrs in gx2.node.items():
     # Don't let travis timeout, break ahead of the timeout so we make certain
     # to write to the repo
-    if time.time() - t0 > (40 * 60):
+    if time.time() - $START_TIME > $TIMEOUT:
         break
-    $PROJECT = attrs['name']
+    $PROJECT = attrs['feedstock_name']
     $VERSION = attrs['new_version']
     # If there is a new version and (we haven't issued a PR or our prior PR is out of date)
     if not attrs.get('PRed', False) or parse_version(attrs['PRed']) < parse_version(attrs['new_version']):
