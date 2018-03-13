@@ -10,6 +10,7 @@ import logging
 
 logger = logging.getLogger("conda_forge_tick.update_upstream_versions")
 
+
 def next_version(ver):
     ver_split = []
     ver_dot_split = ver.split('.')
@@ -155,6 +156,10 @@ def get_latest_version(meta_yaml, sources):
             continue
         ver = source.get_version(url)
         if ver:
+            logger.info('Successfully found upstream version for {} on'
+                        '{}'.format(
+                meta_yaml['name'], source.name
+            ))
             return ver
         else:
             with open('upstream_bad', 'a') as f:
@@ -162,6 +167,8 @@ def get_latest_version(meta_yaml, sources):
                     meta_yaml['name'], source.name))
     with open('upstream_bad', 'a') as f:
         f.write('{}: unknown source\n'.format(meta_yaml['name']))
+    logger.info('Could not find upstream version for {} '.format(
+        meta_yaml['name']))
     return False
 
 
