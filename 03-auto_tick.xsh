@@ -240,6 +240,7 @@ def run(feedstock=None, protocol='ssh',
     body = ('Merge only after success.\n\n'
             'This PR was created by [regro auto-tick](https://github.com/regro/cf-scripts). '
             'Please let the devs know if there are any [issues](https://github.com/regro/cf-scripts/issues). '
+            'Please check that the dependencies have not changed. \n'
             "Please feel free to push to the bot's branch to update this PR. \n\n")
     # Statement here
     template = '|{name}|{new_version}|[![Anaconda-Server Badge](https://anaconda.org/conda-forge/{name}/badges/version.svg)](https://anaconda.org/conda-forge/{name})|\n'
