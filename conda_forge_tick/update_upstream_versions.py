@@ -113,10 +113,16 @@ class RawURL:
     name = 'RawURL'
 
     def get_url(self, meta_yaml):
+        if 'feedstock_name' not in meta_yaml:
+            return None
+        if 'version' not in meta_yaml:
+            return None
         pkg = meta_yaml['feedstock_name']
         url_template = "https://raw.githubusercontent.com/conda-forge/{}-feedstock/master/recipe/meta.yaml"
         try:
-            content = requests.get(url_template.format(pkg)).content
+            resp = requests.get(url_template.format(pkg))
+            resp.raise_for_status()
+            content = resp.content
             content = content.decode('utf-8')
         except Exception:
             return None
@@ -124,24 +130,33 @@ class RawURL:
         current_ver = meta_yaml['version']
         orig_ver = current_ver
         found = True
-        while found:
+        count = 0
+        max_count = 10
+        while found and count < max_count:
             found = False
             for next_ver in next_version(current_ver):
                 new_content = content.replace(orig_ver, next_ver)
                 meta = parsed_meta_yaml(new_content)
                 url = str(meta['source']['url'])
-                if str(meta['package']['version']) != next_ver:
+                if str(meta['package']['version']) != next_ver or meta_yaml['url'] == url:
                     continue
-                with open(os.devnull, 'w') as devnull:
-                    try:
-                        subprocess.check_call(["wget", "--spider", url],
-                                              stdout=devnull,
-                                              stderr=subprocess.STDOUT)
-                    except:
-                        continue
-                    found = True
-                    current_ver = next_ver
-                    break
+                try:
+                    output = subprocess.check_output(["wget", "--spider", url],
+                                stderr=subprocess.STDOUT, timeout=1)
+                except:
+                    continue
+                # For FTP servers an exception is not thrown
+                if 'No such file' in output.decode('utf-8'):
+                    continue
+                if 'not retrieving' in output.decode('utf-8'):
+                    continue
+                found = True
+                count = count + 1
+                current_ver = next_ver
+                break
+
+        if count == max_count:
+            return None
         if current_ver != orig_ver:
             return current_ver
 
@@ -150,7 +165,6 @@ class RawURL:
 
 
 def get_latest_version(meta_yaml, sources):
-    logger.info('Getting upstream version for {}'.format(meta_yaml['name']))
     for source in sources:
         url = source.get_url(meta_yaml)
         if url is None:
@@ -168,11 +182,12 @@ def get_latest_version(meta_yaml, sources):
 
 
 def update_upstream_versions(gx, sources=(PyPI(), CRAN(), Github(),
-                                          # RawURL()
+                                          RawURL()
                                           )):
     for node, attrs in gx.node.items():
         attrs['new_version'] = get_latest_version(attrs, sources)
-        print(node, attrs['version'], attrs['new_version'])
+        logger.info('{} - {} - {}'.format(node,
+                    attrs['version'], attrs['new_version']))
 
     logger.info('Current number of out of date packages not PRed: {}'.format(
         str(len([n for n, a in gx.node.items()
