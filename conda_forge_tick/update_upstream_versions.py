@@ -137,7 +137,11 @@ class RawURL:
             for next_ver in next_version(current_ver):
                 new_content = content.replace(orig_ver, next_ver)
                 meta = parsed_meta_yaml(new_content)
-                url = str(meta['source']['url'])
+                url = str(meta['source'].get('url', None))
+                if url is None:
+                    with open('upstream_bad', 'a') as f:
+                        f.write('{}: no url in yaml\n'.format(meta_yaml['name']))
+                        return None
                 if str(meta['package']['version']) != next_ver or meta_yaml['url'] == url:
                     continue
                 try:
