@@ -34,18 +34,20 @@ def make_graph(names, gx=None):
     for i, name in enumerate(total_names):
         try:
             logger.info((i, name))
-            r = requests.get('https://raw.githubusercontent.com/conda-forge/'
-                             '{}-feedstock/master/recipe/meta.yaml'.format(name))
+            r = requests.get('https://raw.githubusercontent.com/'
+                             'conda-forge/{}-feedstock/master/recipe/'
+                             'meta.yaml'.format(name))
             if r.status_code != 200:
-                logger.warn('Something odd happened when fetching recipe {}: '
-                      '{}'.format(name, r.status_code))
+                logger.warn('Something odd happened when fetching recipe '
+                            '{}: {}'.format(name, r.status_code))
                 bad.append(name)
                 continue
 
             text = r.content.decode('utf-8')
             yaml_dict = parsed_meta_yaml(text)
             if not yaml_dict:
-                logger.warn('Something odd happened when parsing recipe {}'.format(name))
+                logger.warn('Something odd happened when parsing recipe '
+                            '{}'.format(name))
                 bad.append(name)
                 continue
             # TODO: Write schema for dict
@@ -87,7 +89,7 @@ def make_graph(names, gx=None):
             else:
                 gx.nodes[name].update(**sub_graph)
         except Exception as e:
-            print(e)
+            logger.warn('Error adding {} to the graph: {}'.format(name, e)
 
     for node, attrs in gx.node.items():
         for dep in attrs['req']:
