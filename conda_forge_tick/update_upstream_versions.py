@@ -197,8 +197,9 @@ def update_upstream_versions(gx, sources=(PyPI(), CRAN(), Github(),
             with open('upstream_bad', 'a') as f:
                 f.write('{}: Error getting upstream version\n'.format(node)
             attrs['new_version'] = False
-        logger.info('{} - {} - {}'.format(node,
-                    attrs['version'], attrs['new_version']))
+        else:
+            logger.info('{} - {} - {}'.format(node,
+                        attrs['version'], attrs['new_version']))
 
     logger.info('Current number of out of date packages not PRed: {}'.format(
         str(len([n for n, a in gx.node.items()
