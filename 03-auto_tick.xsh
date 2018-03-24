@@ -16,35 +16,10 @@ from pkg_resources import parse_version
 from rever.tools import (eval_version, indir, hash_url, replace_in_file)
 from conda_build.metadata import parse
 from conda_build.config import Config
+from conda_forge_tick.utils import parsed_meta_yaml
 
 # TODO: handle the URLs more elegantly (most likely make this a true library
 # and pull all the needed info from the various source classes)
-
-
-def parsed_meta_yaml(text):
-    """
-    :param str text: The raw text in conda-forge feedstock meta.yaml file
-    :return: `dict|None` -- parsed YAML dict if successful, None if not
-    """
-    try:
-        yaml_dict = parse(Template(text).render(), Config())
-    except UndefinedError:
-        # assume we hit a RECIPE_DIR reference in the vars and can't parse it.
-        # just erase for now
-        try:
-            yaml_dict = parse(
-                Template(
-                    re.sub('{{ (environ\[")?RECIPE_DIR("])? }}/', '',
-                           text)
-                ).render(), Config())
-        except Exception as e:
-            print(e)
-            return None
-    except Exception as e:
-        print(e)
-        return None
-
-    return yaml_dict
 
 
 def feedstock_url(feedstock, protocol='ssh'):
