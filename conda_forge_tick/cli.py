@@ -3,6 +3,7 @@ from .all_feedstocks import main as main0
 from .make_graph import main as main1
 from .update_upstream_versions import main as main2
 
+
 def main(*args, **kwargs):
     parser = argparse.ArgumentParser("a tool to help update feedstocks.")
     parser.add_argument('--run')

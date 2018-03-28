@@ -146,7 +146,8 @@ class RawURL:
                     continue
                 try:
                     output = subprocess.check_output(["wget", "--spider", url],
-                                stderr=subprocess.STDOUT, timeout=1)
+                                                     stderr=subprocess.STDOUT,
+                                                     timeout=1)
                 except:
                     continue
                 # For FTP servers an exception is not thrown

@@ -15,6 +15,7 @@ import logging
 
 logger = logging.getLogger("conda_forge_tick.make_graph")
 
+
 def make_graph(names, gx=None):
 
     bad = []
@@ -63,10 +64,10 @@ def make_graph(names, gx=None):
             keys = [('source', 'url'), ('package', 'name'),
                     ('package', 'version')]
             missing_keys = [k[1] for k in keys if k[1] not in
-                    yaml_dict.get(k[0], {})]
+                            yaml_dict.get(k[0], {})]
             if missing_keys:
                 logger.warn("Recipe {} doesn't have a {}".format(name,
-                    ', '.join(missing_keys)))
+                            ', '.join(missing_keys)))
                 bad.append(name)
                 continue
             sub_graph = {
@@ -79,8 +80,8 @@ def make_graph(names, gx=None):
                 'meta_yaml': yaml_dict,
                 'raw_meta_yaml': text,
             }
-            k = next(iter((set(yaml_dict['source'].keys())
-                              & hashlib.algorithms_available)), None)
+            k = next(iter((set(yaml_dict['source'].keys()) &
+                           hashlib.algorithms_available)), None)
             if k:
                 sub_graph['hash_type'] = k
 
