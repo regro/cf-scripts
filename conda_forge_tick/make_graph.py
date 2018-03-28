@@ -89,7 +89,7 @@ def make_graph(names, gx=None):
             else:
                 gx.nodes[name].update(**sub_graph)
         except Exception as e:
-            logger.warn('Error adding {} to the graph: {}'.format(name, e)
+            logger.warn('Error adding {} to the graph: {}'.format(name, e))
 
     for node, attrs in gx.node.items():
         for dep in attrs['req']:
