@@ -195,7 +195,7 @@ def update_upstream_versions(gx, sources=(PyPI(), CRAN(), Github(),
             logger.warn('Error getting uptream version of {}: '
                         '{}'.format(node, e))
             with open('upstream_bad', 'a') as f:
-                f.write('{}: Error getting upstream version\n'.format(node)
+                f.write('{}: Error getting upstream version\n'.format(node))
             attrs['new_version'] = False
         else:
             logger.info('{} - {} - {}'.format(node,
