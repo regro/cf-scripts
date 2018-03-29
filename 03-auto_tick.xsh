@@ -114,7 +114,7 @@ def run(feedstock=None, protocol='ssh',
         if repo is None:
             with open('upstream_bad', 'a') as f:
                 f.write('{}: does not match feedstock name\n'.format(
-                $PROJECT))
+                        $PROJECT))
             rm -rf @(feedstock_dir)
             return False
 
@@ -201,9 +201,8 @@ def run(feedstock=None, protocol='ssh',
         token = $PASSWORD
         deploy_repo = $USERNAME + '/' + $PROJECT + '-feedstock'
         doctr_run(['git', 'remote', 'add', 'regro_remote',
-             'https://{token}@github.com/{deploy_repo}.git'.format(
-                 token=token,
-                 deploy_repo=deploy_repo)])
+                   'https://{token}@github.com/{deploy_repo}.git'.format(
+                       token=token, deploy_repo=deploy_repo)])
 
         git push --set-upstream regro_remote $VERSION
     # lastly make a PR for the feedstock
