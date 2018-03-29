@@ -1,13 +1,7 @@
-import codecs
-import datetime
 import hashlib
-import os
-import re
 import time
-from collections import defaultdict
 import networkx as nx
 import requests
-import jinja2
 from .utils import parsed_meta_yaml
 from .all_feedstocks import get_all_feedstocks
 
