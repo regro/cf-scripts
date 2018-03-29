@@ -5,6 +5,7 @@ import logging
 
 logger = logging.getLogger("conda_forge_tick.all-feedstocks")
 
+
 def get_all_feedstocks_from_github():
     gh = github3.login(os.environ['USERNAME'], os.environ['PASSWORD'])
     org = gh.organization('conda-forge')
@@ -23,7 +24,7 @@ def get_all_feedstocks_from_github():
             ts = c['reset']
             msg.append('API timeout, API returns at')
             msg.append(datetime.datetime.utcfromtimestamp(ts)
-                  .strftime('%Y-%m-%dT%H:%M:%SZ'))
+                       .strftime('%Y-%m-%dT%H:%M:%SZ'))
         logger.warn(" ".join(msg))
         raise e
     return names
@@ -42,10 +43,12 @@ def get_all_feedstocks(cached=False):
             f.write(name)
             f.write('\n')
 
+
 def main(*args, **kwargs):
     logging.basicConfig(level=logging.ERROR)
     logger.setLevel(logging.INFO)
     get_all_feedstocks(cached=False)
+
 
 if __name__ == "__main__":
     main()

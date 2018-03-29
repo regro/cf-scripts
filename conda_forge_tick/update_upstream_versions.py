@@ -1,4 +1,3 @@
-import os
 import subprocess
 import networkx as nx
 import requests
@@ -118,7 +117,8 @@ class RawURL:
         if 'version' not in meta_yaml:
             return None
         pkg = meta_yaml['feedstock_name']
-        url_template = "https://raw.githubusercontent.com/conda-forge/{}-feedstock/master/recipe/meta.yaml"
+        url_template = 'https://raw.githubusercontent.com/conda-forge/' \
+            '{}-feedstock/master/recipe/meta.yaml'
         try:
             resp = requests.get(url_template.format(pkg))
             resp.raise_for_status()
@@ -140,13 +140,15 @@ class RawURL:
                 url = str(meta['source'].get('url', None))
                 if url is None:
                     with open('upstream_bad', 'a') as f:
-                        f.write('{}: no url in yaml\n'.format(meta_yaml['name']))
+                        f.write('{}: no url in yaml\n'
+                                .format(meta_yaml['name']))
                         return None
                 if str(meta['package']['version']) != next_ver or meta_yaml['url'] == url:
                     continue
                 try:
                     output = subprocess.check_output(["wget", "--spider", url],
-                                stderr=subprocess.STDOUT, timeout=1)
+                                                     stderr=subprocess.STDOUT,
+                                                     timeout=1)
                 except:
                     continue
                 # For FTP servers an exception is not thrown
