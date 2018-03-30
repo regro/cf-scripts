@@ -211,11 +211,16 @@ def run(feedstock=None, protocol='ssh',
     print('Creating conda-forge feedstock pull request...')
     title = $PROJECT + ' v' + $VERSION
     head = $USERNAME + ':' + $VERSION
-    body = ('Merge only after success.\n\n'
-            'This PR was created by [regro auto-tick](https://github.com/regro/cf-scripts). '
-            'Please let the devs know if there are any [issues](https://github.com/regro/cf-scripts/issues). '
-            'Please check that the dependencies have not changed. \n'
-            "Please feel free to push to the bot's branch to update this PR. \n\n")
+    body = ('This PR was created by the [cf-regro-autotick-bot](https://github.com/regro/cf-scripts).\n\n'
+            'The **cf-regro-autotick-bot** is a service to automatically track the dependency graph '
+            'and propose package version updates for conda-forge. It is very likely that the current 
+            'package version for this feedstock is out of date.\n\n'
+            'Notes and instructions for merging this PR:\n'
+            '1. Please check that the dependencies have not changed. \n'
+            '2. Please merge the PR only after the tests have passed. \n'
+            '3. Feel free to push to the bot's branch to update this PR if needed. \n\n'
+            'Finally, feel free to drop us a line if there are any '
+            '[issues](https://github.com/regro/cf-scripts/issues)! ')
     # Statement here
     template = '|{name}|{new_version}|[![Anaconda-Server Badge](https://anaconda.org/conda-forge/{name}/badges/version.svg)](https://anaconda.org/conda-forge/{name})|\n'
     if len(pred) > 0:
