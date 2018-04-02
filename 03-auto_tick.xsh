@@ -163,7 +163,12 @@ def run(feedstock=None, protocol='ssh',
                 f.write('{}: failed to read meta.yaml\n'.format($PROJECT))
             rm -rf @(feedstock_dir)
             return False
-        source_url = meta_yaml['source']['url']
+        source_url = meta_yaml['source'].get('url')
+        if not source_url:
+            with open('upstream_bad', 'a') as f:
+                f.write('{}: missing url\n'.format($PROJECT))
+                rm - rf @ (feedstock_dir)
+                return False
         if isinstance(source_url, list):
             for url in source_url:
                 if 'Archive' not in url:
