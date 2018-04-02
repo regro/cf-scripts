@@ -251,6 +251,8 @@ for node, attrs in gx.node.items():
         gx2.remove_node(node)
     elif parse_version(str(attrs['new_version'])) <= parse_version(str(attrs['version'])):
         gx2.remove_node(node)
+    if attrs.get('archived', False):
+        gx2.remove_node(node)
 
 $REVER_DIR = './feedstocks/'
 gh = github3.login($USERNAME, $PASSWORD)
@@ -282,6 +284,8 @@ for node, attrs in gx2.node.items():
             # carve out for PRs already submitted
             if e.msg == 'Validation Failed':
                 gx.nodes[node]['PRed'] = attrs['new_version']
+            elif e.msg == '403 Repository was archived so is read-only.':
+                gx.nodes[node]['archived'] = True
             c = gh.rate_limit()['resources']['core']
             if c['remaining'] == 0:
                 ts = c['reset']
