@@ -284,7 +284,7 @@ for node, attrs in gx2.node.items():
             # carve out for PRs already submitted
             if e.msg == 'Validation Failed':
                 gx.nodes[node]['PRed'] = attrs['new_version']
-            elif e.msg == '403 Repository was archived so is read-only.':
+            elif e.msg == 'Repository was archived so is read-only.':
                 gx.nodes[node]['archived'] = True
             c = gh.rate_limit()['resources']['core']
             if c['remaining'] == 0:
