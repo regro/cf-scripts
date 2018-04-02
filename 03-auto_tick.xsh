@@ -213,12 +213,12 @@ def run(feedstock=None, protocol='ssh',
     head = $USERNAME + ':' + $VERSION
     body = ('This PR was created by the [cf-regro-autotick-bot](https://github.com/regro/cf-scripts).\n\n'
             'The **cf-regro-autotick-bot** is a service to automatically track the dependency graph '
-            'and propose package version updates for conda-forge. It is very likely that the current 
+            'and propose package version updates for conda-forge. It is very likely that the current ' 
             'package version for this feedstock is out of date.\n\n'
             'Notes and instructions for merging this PR:\n'
             '1. Please check that the dependencies have not changed. \n'
             '2. Please merge the PR only after the tests have passed. \n'
-            '3. Feel free to push to the bot's branch to update this PR if needed. \n\n'
+            "3. Feel free to push to the bot's branch to update this PR if needed. \n\n"
             'Finally, feel free to drop us a line if there are any '
             '[issues](https://github.com/regro/cf-scripts/issues)! ')
     # Statement here
