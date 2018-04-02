@@ -256,6 +256,7 @@ $REVER_DIR = './feedstocks/'
 gh = github3.login($USERNAME, $PASSWORD)
 
 t0 = time.time()
+smithy_version = ![conda smithy --version].output.strip()
 for node, attrs in gx2.node.items():
     # Don't let travis timeout, break ahead of the timeout so we make certain
     # to write to the repo
@@ -273,9 +274,14 @@ for node, attrs in gx2.node.items():
             if gh.rate_limit()['resources']['core']['remaining'] == 0:
                 break
             else:
-                run(pred=pred, gh=gh, rerender=True, protocol='https',
-                    hash_type=attrs.get('hash_type', 'sha256'))
-                gx.nodes[node]['PRed'] = attrs['new_version']
+                if gx.nodes[node].get('smithy_version') != smithy_version:
+                    run(pred=pred, gh=gh, rerender=True, protocol='https',
+                        hash_type=attrs.get('hash_type', 'sha256'))
+                else:
+                    run(pred=pred, gh=gh, rerender=False, protocol='https',
+                        hash_type=attrs.get('hash_type', 'sha256'))
+                gx.nodes[node].update({'PRed': attrs['new_version'],
+                                       'smithy_version': smithy_version})
         except github3.GitHubError as e:
             print('GITHUB ERROR ON FEEDSTOCK: {}'.format($PROJECT))
             print(e)
