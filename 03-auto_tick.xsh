@@ -167,7 +167,7 @@ def run(feedstock=None, protocol='ssh',
         if not source_url:
             with open('upstream_bad', 'a') as f:
                 f.write('{}: missing url\n'.format($PROJECT))
-                rm - rf @ (feedstock_dir)
+                rm -rf @(feedstock_dir)
                 return False
         if isinstance(source_url, list):
             for url in source_url:
