@@ -107,7 +107,7 @@ class CRAN(LibrariesIO):
 
     def get_version(self, url):
         ver = LibrariesIO.get_version(self, url)
-        return str(ver).replace('-', '_')
+        return str(ver)
 
 
 class RawURL:
