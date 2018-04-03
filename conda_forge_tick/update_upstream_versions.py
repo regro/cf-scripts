@@ -93,7 +93,9 @@ class PyPI:
 
     def get_version(self, url):
         r = requests.get(url)
-        if not r.ok:
+        # If it is a pre-release don't give back the pre-release version
+        if not r.ok or parse_version(r.json()['info']['version'].strip()
+                                     ).is_prerelease:
             return False
         return r.json()['info']['version'].strip()
 
@@ -105,7 +107,7 @@ class CRAN(LibrariesIO):
 
     def get_version(self, url):
         ver = LibrariesIO.get_version(self, url)
-        return str(ver).replace('-', '_')
+        return str(ver)
 
 
 class RawURL:
@@ -187,9 +189,7 @@ def get_latest_version(meta_yaml, sources):
     return False
 
 
-def update_upstream_versions(gx, sources=(PyPI(), CRAN(), Github(),
-                                          RawURL()
-                                          )):
+def update_upstream_versions(gx, sources=(PyPI(), CRAN(), Github(), RawURL())):
     for node, attrs in gx.node.items():
         try:
             attrs['new_version'] = get_latest_version(attrs, sources)
