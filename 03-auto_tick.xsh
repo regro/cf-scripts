@@ -229,7 +229,7 @@ def run(feedstock=None, protocol='ssh',
     # Statement here
     template = '|{name}|{new_version}|[![Anaconda-Server Badge](https://anaconda.org/conda-forge/{name}/badges/version.svg)](https://anaconda.org/conda-forge/{name})|\n'
     if len(pred) > 0:
-        body += ('\nHere is a list of all the pending dependencies (and their '
+        body += ('\n\nHere is a list of all the pending dependencies (and their '
                  'versions) for this repo. '
                  'Please double check all dependencies before merging.\n\n')
         # Only add the header row if we have content. Otherwise the rendered table in the github comment
