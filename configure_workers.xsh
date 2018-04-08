@@ -23,7 +23,10 @@ for k, ctx in configurations.items():
     with indir(d):
         with open(output, 'r') as f:
             print(f.name)
-            # f.write(result)
-        # git commit -am "update worker"
-        # git push origin master
-
+            f.write(result)
+        git fetch --all
+        # make sure local is up-to-date with origin
+        git checkout master
+        git pull origin master or git pull upstream master
+        git commit -am "update worker"
+        git push origin master
