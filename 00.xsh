@@ -1,10 +1,8 @@
-#!/usr/bin/env bash
-
-export START_TIME="$(date +%s)"
-export TIMEOUT=2700
-./setup.sh
+$START_TIME = int("$(date +%s)")
+$TIMEOUT = 2700
+sh setup.sh
 cd ../cf-graph
-export PATH=~/mc/bin:$PATH
+$PATH.insert(0, '~/mc/bin')
 conda-forge-tick --run 0
 conda-forge-tick --run 1
 conda-forge-tick --run 2

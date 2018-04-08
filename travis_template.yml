@@ -1,0 +1,15 @@
+language: python
+sudo: false
+
+env:
+  global:
+    # Doctr deploy key for regro/cf-graph
+    - secure: "{{ doctr_key }}"
+
+install:
+  - set -e
+  - git clone https://github.com/regro/cf-scripts.git
+  - cd cf-scripts
+  - ./setup.sh
+script:
+  - xonsh {{ script_number }}.xsh
