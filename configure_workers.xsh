@@ -1,3 +1,8 @@
+"""Script for configuring autotick workers based off of a configuration and
+jinja2 variables in a template ``.travis.yml``.
+
+This script requires $BOT_ROOT be set to the dir which contains all the
+bot worker repos."""
 import os
 from jinja2 import Environment, FileSystemLoader
 from rever.tools import indir
@@ -11,17 +16,16 @@ configurations = {'all-feedstock-names': {'doctr_key': 'SmAP2f1JN0n2NM6c4QFipx/6
                   'make-cf-graph': {'doctr_key': 'kUlHJeVjxNf/dt9XSSV+mgHH/9qp30zqABjwdeDe1Nbs5JPVCuLjD7yqL/Pln7jQdzGaTksEIUoFggGSKpXi1SCIZCOlzBax/wAIPTSvJEvUIzFs6Vws7J/mV147tyoNanOHvNw6CvicNhEuWD8HCWUw36kF93yhePwuFvNRWgIof8Ua54d3l2sGTCEHSbIiSvx6eF5WVsIKOWVyjKGu5H3y6HSoOGkFlezw+d9Y2owkx99KPKgDRFRt1BCuKxjhi8Yuv5HTKzCwDuQFC6Ak8uriVTQfMv44Tssl3SP4bDu+1x+zr7mMHTTOHqlYFSOlBtSkDAf6Cctfk903kFQI5TkiDLCSe86tlUiiC2qcFtgL4kll4SMQ5Eu1nmoCjQk457KUb5nkIpWFS5g/TxM8qy0CZF/KHsz2n9M76iDg8V2qS5xyb2hglt51HCGb94tnuR6oBPx+yDzBTGm38c4I8vpzT+8uDEr9bbjh7pO0hzssNCSc/XZld8ctcA5l1M+9Ib/W7QwqK0uelh2VEwpnd8JeMEXGw5jaT+1EA3FUnNTBBOGzJXK3SzG8LAJdQjChSl8vdDvuug2VN04433oZ+PhWv9YrPc+XBs++X/re4pYK7t1dXFBx7qlyMFRWTCYhiPhzgBwbeojuB/MuL6jGld9UqMews+NjdFIyY3j0W6o=',
                                     'script_number': '03'}}
 
-r = '/home/christopher/dev/'
 env = Environment(loader=FileSystemLoader(
     [os.path.expanduser('.')]))
 
 for k, ctx in configurations.items():
-    d = os.path.join(r, k)
+    d = os.path.join($BOT_ROOT, k)
     output = os.path.join(d, '.travis.yml')
     template = env.get_template('travis_template.yml')
     result = template.render(ctx)
     with indir(d):
-        with open(output, 'r') as f:
+        with open(output, 'w') as f:
             print(f.name)
             f.write(result)
         git fetch --all
