@@ -2,7 +2,6 @@
 
 $START_TIME = int("$(date +%s)")
 $TIMEOUT = 2700
-sh setup.sh
 cd ../cf-graph
 $PATH.insert(0, '~/mc/bin')
 conda-forge-tick --run 0
