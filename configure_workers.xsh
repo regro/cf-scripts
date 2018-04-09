@@ -26,7 +26,6 @@ for k, ctx in configurations.items():
     result = template.render(ctx)
     with indir(d):
         with open(output, 'w') as f:
-            print(f.name)
             f.write(result)
         git fetch --all
         # make sure local is up-to-date with origin
