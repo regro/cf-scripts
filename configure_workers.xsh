@@ -1,3 +1,5 @@
+#!/usr/bin/env xonsh
+
 """Script for configuring autotick workers based off of a configuration and
 jinja2 variables in a template ``.travis.yml``.
 
