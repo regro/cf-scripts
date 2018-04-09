@@ -9,7 +9,7 @@ conda config --add channels conda-forge
 conda update conda --yes
 
 export GIT_FULL_HASH=`git rev-parse HEAD`
-conda install python=$TRAVIS_PYTHON_VERSION conda=4.3
+conda install python=3.6 conda=4.3
 conda install --file requirements/run
 python setup.py develop
 cd ..
