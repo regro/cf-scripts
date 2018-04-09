@@ -38,4 +38,5 @@ for k, ctx in configurations.items():
         git checkout master
         git pull origin master or git pull upstream master
         git commit -am "update worker"
-        git push git@github.com:@(ctx['repo']).git master
+        a = 'git@github.com:regro/{}.git'.format(ctx['repo'])
+        git push @(a) master
