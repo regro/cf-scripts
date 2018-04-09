@@ -34,4 +34,4 @@ for k, ctx in configurations.items():
         git checkout master
         git pull origin master or git pull upstream master
         git commit -am "update worker"
-        git push origin master
+        git push upstream master or git push origin master
