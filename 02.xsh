@@ -1,7 +1,4 @@
 #!/usr/bin/env xonsh
-
-$START_TIME = int("$(date +%s)")
-$TIMEOUT = 2700
 cd ../cf-graph
 $PATH.insert(0, '~/mc/bin')
 conda-forge-tick --run 0
