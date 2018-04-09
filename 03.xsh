@@ -1,3 +1,5 @@
+#!/usr/bin/env xonsh
+
 $START_TIME = int("$(date +%s)")
 $TIMEOUT = 2700
 sh setup.sh
