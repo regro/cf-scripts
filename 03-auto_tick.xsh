@@ -260,6 +260,7 @@ for node, attrs in gx.node.items():
         gx2.remove_node(node)
 
 $REVER_DIR = './feedstocks/'
+$REVER_QUIET = True
 gh = github3.login($USERNAME, $PASSWORD)
 
 t0 = time.time()
