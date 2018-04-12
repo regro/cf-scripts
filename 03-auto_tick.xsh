@@ -223,7 +223,8 @@ def run(feedstock=None, protocol='ssh',
             'Notes and instructions for merging this PR:\n'
             '1. Please check that the dependencies have not changed. \n'
             '2. Please merge the PR only after the tests have passed. \n'
-            "3. Feel free to push to the bot's branch to update this PR if needed. \n\n"
+            "3. Feel free to push to the bot's branch to update this PR if needed. \n"
+            "4. The bot will almost always only open one PR per version. \n\n"
             'Finally, feel free to drop us a line if there are any '
             '[issues](https://github.com/regro/cf-scripts/issues)! ')
     # Statement here
