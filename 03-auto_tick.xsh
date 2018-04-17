@@ -174,6 +174,8 @@ def run(feedstock=None, protocol='ssh',
                 if 'Archive' not in url:
                     source_url = url
                     break
+        if isinstance(source_url, list):
+            source_url = source_url[0]
         if 'cran.r-project.org/src/contrib' in source_url:
             $VERSION = $VERSION.replace('_', '-')
 
