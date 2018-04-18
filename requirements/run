@@ -11,3 +11,4 @@ conda-smithy
 requests
 feedparser
 conda ==4.3.34
+conda-forge-pinning
