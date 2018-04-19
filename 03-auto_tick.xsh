@@ -183,8 +183,10 @@ def run(feedstock=None, protocol='ssh',
         hash = hash_url(source_url, hash_type)
     except urllib.error.HTTPError:
         with open('upstream_bad', 'a') as f:
-            f.write('{}: hash failed at {}\n'.format(
-                meta_yaml['package']['name'], source_url))
+            t = '{}: hash failed at {}\n'.format(
+                meta_yaml.get('package', {}).get('name', 'UNKOWN'), source_url)
+            print(t)
+            f.write(t)
         rm -rf @(feedstock_dir)
         return False
 
