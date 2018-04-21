@@ -231,7 +231,7 @@ def run(feedstock=None, protocol='ssh',
             "[rever](https://regro.github.io/rever-docs/). "
             "Rever is a tool for automating software releases and forms the "
             "backbone of the bot's conda-forge PRing capability. Rever is both "
-            "conda (`conda install -c conda-forge rever`)and pip "
+            "conda (`conda install -c conda-forge rever`) and pip "
             "(`pip install re-ver`) installable.\n\n"
             'Finally, feel free to drop us a line if there are any '
             '[issues](https://github.com/regro/cf-scripts/issues)! ')
