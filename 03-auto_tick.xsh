@@ -163,7 +163,7 @@ def run(feedstock=None, protocol='ssh',
                 f.write('{}: failed to read meta.yaml\n'.format($PROJECT))
             rm -rf @(feedstock_dir)
             return False
-        source_url = meta_yaml['source'].get('url')
+        source_url = meta_yaml.get('source', {}).get('url')
         if not source_url:
             with open('upstream_bad', 'a') as f:
                 f.write('{}: missing url\n'.format($PROJECT))
@@ -283,7 +283,7 @@ for node, attrs in gx2.node.items():
     $VERSION = attrs['new_version']
     # If there is a new version and (we haven't issued a PR or our prior PR is out of date)
     if not attrs.get('PRed', False) or parse_version(attrs['PRed']) < parse_version(attrs['new_version']):
-        print('BUILDING', $PROJECT)
+        print('BOT IS BUILDING', $PROJECT)
         pred = [(name, gx2.node[name]['new_version'])
                 for name in list(gx2.predecessors(node))]
         try:
