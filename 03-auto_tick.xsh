@@ -236,7 +236,7 @@ def run(feedstock=None, protocol='ssh',
             'Finally, feel free to drop us a line if there are any '
             '[issues](https://github.com/regro/cf-scripts/issues)! ')
     # Statement here
-    template = '|{name}|{new_version}|[![Anaconda-Server Badge](https://anaconda.org/conda-forge/{name}/badges/version.svg)](https://anaconda.org/conda-forge/{name})|\n'
+    template = '|{name}|{new_version}|[![Anaconda-Server Badge](https://img.shields.io/conda/vn/conda-forge/{name}.svg)](https://anaconda.org/conda-forge/{name})|\n'
     if len(pred) > 0:
         body += ('\n\nHere is a list of all the pending dependencies (and their '
                  'versions) for this repo. '
