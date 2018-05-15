@@ -75,7 +75,7 @@ DEFAULT_PATTERNS = (
     ('meta.yaml', '{%set version = ".*" %}', '{%set version = "$VERSION" %}'),
     # reset the build number to 0
     ('meta.yaml', '  number:\s*[0-9]+', '  number: 0'),
-    ('meta.yaml', '{%\s*set build_number\s*=\s*".*"\s*%}, {% set build_number = "0" %}),
+    ('meta.yaml', '{%\s*set build_number\s*=\s*".*"\s*%}', '{% set build_number = "0" %}'),
     # set the hash
     ('meta.yaml', '{% set $HASH_TYPE = "[0-9A-Fa-f]+" %}',
                   '{% set $HASH_TYPE = "$HASH" %}'),
