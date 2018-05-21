@@ -41,11 +41,11 @@ def make_graph(names, gx=None):
                 logger.warn('Something odd happened when fetching recipe '
                             '{}: {}'.format(name, r.status_code))
                 bad.append(name)
-		sub_graph['bad'] = r.status_code
-            	if name in new_names:
-            	    gx.add_node(name, **sub_graph)
-            	else:
-            	    gx.nodes[name].update(**sub_graph)
+                sub_graph['bad'] = r.status_code
+                if name in new_names:
+                    gx.add_node(name, **sub_graph)
+                else:
+                    gx.nodes[name].update(**sub_graph)
                 continue
 
             text = r.content.decode('utf-8')
@@ -54,11 +54,11 @@ def make_graph(names, gx=None):
                 logger.warn('Something odd happened when parsing recipe '
                             '{}'.format(name))
                 bad.append(name)
-		sub_graph['bad'] = 'Could not parse'
-            	if name in new_names:
-            	    gx.add_node(name, **sub_graph)
-            	else:
-            	    gx.nodes[name].update(**sub_graph)
+                sub_graph['bad'] = 'Could not parse'
+                if name in new_names:
+                    gx.add_node(name, **sub_graph)
+                else:
+                    gx.nodes[name].update(**sub_graph)
                 continue
             # TODO: Write schema for dict
             req = yaml_dict.get('requirements', set())
@@ -78,7 +78,7 @@ def make_graph(names, gx=None):
                 logger.warn("Recipe {} doesn't have a {}".format(name,
                             ', '.join(missing_keys)))
                 bad.append(name)
-		sub_graph['bad'] = ', '.join(missing_keys)
+                sub_graph['bad'] = ', '.join(missing_keys)
             sub_graph.update({
                 'name': yaml_dict.get('package').get('name'),
                 'version': str(yaml_dict.get('package').get('version')),
