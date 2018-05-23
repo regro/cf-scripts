@@ -101,7 +101,7 @@ def make_graph(names, gx=None):
                 gx.nodes[name].update(**sub_graph)
 
     for node, attrs in gx.node.items():
-        for dep in attrs['req']:
+        for dep in attrs.get('req', []):
             if dep in gx.nodes:
                 gx.add_edge(dep, node)
     return gx, bad
