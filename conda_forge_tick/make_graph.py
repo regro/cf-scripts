@@ -54,7 +54,6 @@ def get_attrs(name, i, bad):
                     ', '.join(missing_keys)))
         bad.append(name)
         sub_graph['bad'] = missing_keys
-        return sub_graph
     sub_graph.update({
         'name': yaml_dict.get('package').get('name'),
         'version': str(yaml_dict.get('package').get('version')),
