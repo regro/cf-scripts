@@ -28,6 +28,7 @@ def get_attrs(name, i, bad):
         return sub_graph
 
     text = r.content.decode('utf-8')
+    sub_graph['raw_meta_yaml'] = text
     yaml_dict = parsed_meta_yaml(text)
     if not yaml_dict:
         logger.warn('Something odd happened when parsing recipe '
@@ -35,6 +36,7 @@ def get_attrs(name, i, bad):
         bad.append(name)
         sub_graph['bad'] = 'Could not parse'
         return sub_graph
+    sub_graph['meta_yaml'] = yaml_dict
     # TODO: Write schema for dict
     req = yaml_dict.get('requirements', set())
     if req:
@@ -44,6 +46,7 @@ def get_attrs(name, i, bad):
             'run', []) is not None else [])
         req = build + run
         req = set([x.split()[0] for x in req])
+    sub_graph['req'] = req
 
     keys = [('source', 'url'), ('package', 'name'),
             ('package', 'version')]
@@ -54,16 +57,9 @@ def get_attrs(name, i, bad):
                     ', '.join(missing_keys)))
         bad.append(name)
         sub_graph['bad'] = missing_keys
-    sub_graph.update({
-        'name': yaml_dict.get('package').get('name'),
-        'version': str(yaml_dict.get('package').get('version')),
-        'url': yaml_dict.get('source').get('url'),
-        'req': req,
-        'time': time.time(),
-        'feedstock_name': name,
-        'meta_yaml': yaml_dict,
-        'raw_meta_yaml': text,
-    })
+    for k in keys:
+        if k[1] not in missing_keys:
+            sub_graph[k[1]] = yaml_dict[k[0]][k[1]]
     k = next(iter((set(yaml_dict['source'].keys()) &
                    hashlib.algorithms_available)), None)
     if k:
