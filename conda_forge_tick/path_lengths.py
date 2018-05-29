@@ -1,6 +1,5 @@
 import networkx as nx
 from copy import deepcopy
-from pprint import pprint
 
 
 def cyclic_topological_sort(graph, source):
@@ -36,6 +35,6 @@ def get_levels(graph_file, source):
     for node in g.node:
         if (node not in desc and node != source):
             g2.remove_node(node)
-    
+
     dist = get_longest_paths(g2, source)
-    return {val: [key for key in dist if dist[key] == val] for val in dist.values()}
+    return {v: [k for k in dist if dist[k] == v] for v in dist.values()}
