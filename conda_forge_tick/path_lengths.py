@@ -1,5 +1,6 @@
-import networkx as nx
 from copy import deepcopy
+
+import networkx as nx
 
 
 def cyclic_topological_sort(graph, source):
