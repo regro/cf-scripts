@@ -9,7 +9,7 @@ def cyclic_topological_sort(graph, source):
     return reversed(order)
 
 
-def visit(graph, node, order):
+def _visit(graph, node, order):
     if graph.node[node].get('visited', False):
         return
     graph.node[node]['visited'] = True
