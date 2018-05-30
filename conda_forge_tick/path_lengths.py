@@ -1,11 +1,12 @@
 from copy import deepcopy
+from collections import defaultdict
 
 import networkx as nx
 
 
 def cyclic_topological_sort(graph, source):
     order = []
-    visit(graph, source, order)
+    _visit(graph, source, order)
     return reversed(order)
 
 
@@ -14,7 +15,7 @@ def _visit(graph, node, order):
         return
     graph.node[node]['visited'] = True
     for n in graph.neighbors(node):
-        visit(graph, n, order)
+        _visit(graph, n, order)
     order.append(node)
 
 
@@ -38,4 +39,7 @@ def get_levels(graph_file, source):
             g2.remove_node(node)
 
     dist = get_longest_paths(g2, source)
-    return {v: [k for k in dist if dist[k] == v] for v in dist.values()}
+    levels = defaultdict(list)
+    for k, v in dist.items():
+        levels[v].append(k)
+    return levels
