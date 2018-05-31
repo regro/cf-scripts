@@ -1,3 +1,7 @@
+"""
+Functions to find the longest paths between nodes in a graph.
+
+"""
 from copy import deepcopy
 from collections import defaultdict
 
@@ -5,6 +9,27 @@ import networkx as nx
 
 
 def cyclic_topological_sort(graph, source):
+    """Return a list of nodes in a graph with cycles in topological order.
+
+    Performs a topological sort of `graph` starting from the node `source`.
+    This is not a true topological sort if `graph` contains cycles, but
+    any nodes that are not part of a cycle are given in correct topological
+    order.
+
+    Parameters
+    ----------
+    graph : networkx.classes.digraph.DiGraph
+        A directed graph.
+    source : str
+        The name of the source node.
+
+    Returns
+    -------
+    list
+        The nodes of `graph` in topological sort order.
+
+    """
+
     order = []
     _visit(graph, source, order)
     return reversed(order)
@@ -20,6 +45,23 @@ def _visit(graph, node, order):
 
 
 def get_longest_paths(graph, source):
+    """Get the length of the longest path to each node from a source node.
+    
+    Parameters
+    ----------
+    graph : networkx.classes.digraph.DiGraph
+        A directed graph.
+    source : str
+        The name of the source node.
+
+    Returns
+    -------
+    dict
+        A dictionary where keys are the names of the nodes in `graph` and
+        values are the lengths of the longest path from `source`.
+
+    """
+
     dist = {node: -float('inf') for node in graph}
     dist[source] = 0
     for u in cyclic_topological_sort(graph, source):
@@ -31,6 +73,24 @@ def get_longest_paths(graph, source):
 
 
 def get_levels(graph_file, source):
+    """Get the nodes in each level of a topological sort of a graph starting
+    from a specified source node.
+    
+    Parameters
+    ----------
+    graph_file : str
+        The filename of a pickle file containing the graph data.
+    source : str
+        The name of the source node.
+
+    Returns
+    -------
+    dict
+        A dictionary where keys are integers and values are the names of the
+        nodes in `graph` with longest path length equal to the key.
+
+    """
+
     g = nx.read_gpickle(graph_file)
     g2 = deepcopy(g)
     desc = nx.algorithms.descendants(g, source)
