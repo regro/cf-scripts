@@ -46,7 +46,7 @@ def _visit(graph, node, order):
 
 def get_longest_paths(graph, source):
     """Get the length of the longest path to each node from a source node.
-    
+
     Parameters
     ----------
     graph : networkx.classes.digraph.DiGraph
@@ -75,7 +75,7 @@ def get_longest_paths(graph, source):
 def get_levels(graph_file, source):
     """Get the nodes in each level of a topological sort of a graph starting
     from a specified source node.
-    
+
     Parameters
     ----------
     graph_file : str
