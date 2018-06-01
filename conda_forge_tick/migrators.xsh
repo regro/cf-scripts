@@ -5,7 +5,7 @@ from conda.models.version import VersionOrder
 
 from rever.tools import (eval_version, indir, hash_url, replace_in_file)
 
-from conda_forge_tick.utils import parsed_meta_yaml
+from conda_forge_tick.utils import (parsed_meta_yaml, rendered_meta_yaml)
 
 
 class Migrator:
@@ -107,11 +107,6 @@ class Version(Migrator):
          '{% set build_number = 0 %}'),
         ('meta.yaml', '{%\s*set build\s*=\s*"?[0-9]+"?\s*%}',
          '{% set build = 0 %}'),
-        # set the hash
-        ('meta.yaml', '{% set $HASH_TYPE = "[0-9A-Fa-f]+" %}',
-         '{% set $HASH_TYPE = "$HASH" %}'),
-        ('meta.yaml', '  $HASH_TYPE:\s*[0-9A-Fa-f]+', '  $HASH_TYPE: $HASH'),
-
     )
 
     more_patterns = []
@@ -130,15 +125,25 @@ class Version(Migrator):
                                       base2.format(set=s, checkname=cn, d=d)))
 
     def find_urls(text):
-    """Get the URLs and platforms in a meta.yaml."""
-    pat = re.compile('  url:\s*(.+?)\s*(?:(#.*)?\[([^\[\]]+)\])?(?(2)[^\(\)]*)$')
-    urls = []
-    lines = text.splitlines()
-    for line in lines:
-        m = pat.match(line)
-        if m is not None:
-            urls.append((m.group(1), m.group(3)))
-    return urls
+        """Get the URLs and platforms in a meta.yaml."""
+        pat = re.compile('  url:\s*(.+?)\s*(?:(#.*)?\[([^\[\]]+)\])?(?(2)[^\(\)]*)$')
+        urls = []
+        lines = text.splitlines()
+        for line in lines:
+            m = pat.match(line)
+            if m is not None:
+                urls.append((m.group(1), m.group(3)))
+        return urls
+
+    def get_hash_patterns(filename, urls, hash_type):
+        """Get the patterns to replace hash for each platform."""
+        patterns = ()
+        for url, platform in urls:
+            hash = hash_url(url, hash_type)
+            p = '  {}:\s*[0-9A-Fa-f]+\s*(#.*)\[{}\](?(1)[^\(\)]*)$'.format(hash_type, platform)
+            n = '  {}: {}  # \[{}\]'.format(hash_type, hash, platform)
+            patterns += ((filename, p, n),)
+        return patterns
 
     def filter(self, attrs):
         conditional = super().filter(attrs)
@@ -158,9 +163,11 @@ class Version(Migrator):
                 replace_in_file(p, n, f)
             with open('meta.yaml', 'r') as f:
                 text = f.read()
-            # Replace URLs and checksums
+
+            # Get patterns to replace checksum for each platform
             rendered_text = rendered_meta_yaml(text)
             urls = find_urls(rendered_text)
+            patterns += get_hash_patterns('meta.yaml', urls, hash_type)
 
             # If we can't parse the meta_yaml then jump out
             meta_yaml = parsed_meta_yaml(text)
