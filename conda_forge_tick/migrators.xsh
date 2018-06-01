@@ -140,8 +140,11 @@ class Version(Migrator):
         patterns = ()
         for url, platform in urls:
             hash = hash_url(url, hash_type)
-            p = '  {}:\s*[0-9A-Fa-f]+\s*(#.*)\[{}\](?(1)[^\(\)]*)$'.format(hash_type, platform)
-            n = '  {}: {}  # \[{}\]'.format(hash_type, hash, platform)
+            p = '  {}:\s*[0-9A-Fa-f]+'.format(hash_type)
+            n = '  {}: {}'.format(hash_type, hash)
+            if platform is not None:
+                p += '\s*(#.*)\[{}\](?(1)[^\(\)]*)$'.format(platform)
+                n = '  # \[{}\]'.format(platform)
             patterns += ((filename, p, n),)
         return patterns
 
