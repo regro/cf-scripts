@@ -189,7 +189,7 @@ def get_latest_version(meta_yaml, sources):
     return False
 
 
-def update_upstream_versions(gx, sources=(PyPI(), CRAN(), Github(), RawURL())):
+def update_upstream_versions(gx, sources=(PyPI(), CRAN(), RawURL(), Github())):
     for node, attrs in gx.node.items():
         if attrs.get('bad'):
             attrs['new_version'] = False
