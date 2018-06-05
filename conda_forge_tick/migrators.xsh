@@ -26,7 +26,7 @@ class Migrator:
         # never run on archived feedstocks
         return bool(attrs.get('archived', False))
 
-    def migrate(self, recipe_dir, attrs):
+    def migrate(self, recipe_dir, attrs, **kwargs):
         """Perform the migration, updating the ``meta.yaml``
 
         Parameters
@@ -129,7 +129,7 @@ class Version(Migrator):
     def migrate(self, recipe_dir, attrs, hash_type='sha256'):
         # Render with new version but nothing else
         with indir(recipe_dir):
-            for f, p, n in patterns:
+            for f, p, n in self.patterns:
                 p = eval_version(p)
                 n = eval_version(n)
                 replace_in_file(p, n, f)
@@ -163,9 +163,9 @@ class Version(Migrator):
                 meta_yaml.get('package', {}).get('name', 'UNKOWN'), source_url)
             return False
 
-        patterns += tuple(more_patterns)
+        new_patterns = tuple(self.patterns) + tuple(self.more_patterns)
         with indir(recipe_dir), ${...}.swap(HASH_TYPE=hash_type, HASH=hash, SOURCE_URL=source_url):
-            for f, p, n in patterns:
+            for f, p, n in new_patterns:
                 p = eval_version(p)
                 n = eval_version(n)
                 replace_in_file(p, n, f)
@@ -214,9 +214,9 @@ class JS(Migrator):
                (attrs.get('build', {}).get('noarch') != 'generic')
                 or (attrs.get('build', {}).get('script') != 'npm install -g .'))
 
-    def migrate(self, recipe_dir):
+    def migrate(self, recipe_dir, attrs, **kwargs):
         with indir(recipe_dir):
-            for f, p, n in patterns:
+            for f, p, n in self.patterns:
                 p = eval_version(p)
                 n = eval_version(n)
                 replace_in_file(p, n, f)
