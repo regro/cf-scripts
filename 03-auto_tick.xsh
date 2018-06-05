@@ -82,10 +82,10 @@ for migrator in $MIGRATORS:
             else:
                 if (gx.nodes[node].get('smithy_version') != smithy_version and
                     gx.nodes[node].get('pinning_version') != pinning_version):
-                    run(attrs=attrs, migrator, gh=gh, rerender=True, protocol='https',
+                    run(attrs=attrs, migrator=migrator, gh=gh, rerender=True, protocol='https',
                         hash_type=attrs.get('hash_type', 'sha256'))
                 else:
-                    run(attrs=attrs, migrator, gh=gh, rerender=False, protocol='https',
+                    run(attrs=attrs, migrator=migrator, gh=gh, rerender=False, protocol='https',
                         hash_type=attrs.get('hash_type', 'sha256'))
                 # TODO: capture pinning here too!
                 gx.nodes[node].update({'PRed': attrs['new_version'],
