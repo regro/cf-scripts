@@ -53,7 +53,7 @@ $REVER_QUIET = True
 gh = github3.login($USERNAME, $PASSWORD)
 t0 = time.time()
 
-smithy_version = ![conda smithy - -version].output.strip()
+smithy_version = ![conda smithy --version].output.strip()
 # TODO: need to also capture pinning version, maybe it is in the graph?
 
 for migrator in migrators:

@@ -1,3 +1,4 @@
+"""Utilities for managing github repos"""
 import copy
 import datetime
 import os
