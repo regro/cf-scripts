@@ -124,10 +124,10 @@ def get_repo(attrs, feedstock=None, protocol='ssh',
         # make and modify version branch
         with ${...}.swap(RAISE_SUBPROC_ERROR=False):
             git checkout $VERSION or git checkout -b $VERSION master
-    return feedstock_dir
+    return feedstock_dir, repo
 
 
-def push_repo(feedstock_dir, body, pull_request=True):
+def push_repo(feedstock_dir, body, repo, pull_request=True):
     """Push a repo up to github
 
     Parameters

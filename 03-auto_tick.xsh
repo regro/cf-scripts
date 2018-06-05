@@ -21,8 +21,9 @@ def run(attrs, migrator, feedstock=None, protocol='ssh',
         pull_request=True, rerender=True, fork=True, gh=None,
         **kwargs):
     # get the repo
-    feedstock_dir = get_repo(attrs, feedstock=feedstock, protocol=protocol,
-             pull_request=pull_request, fork=fork, gh=gh)
+    feedstock_dir, repo = get_repo(attrs, feedstock=feedstock,
+                                   protocol=protocol,
+                                   pull_request=pull_request, fork=fork, gh=gh)
 
     # migrate the `meta.yaml`
     recipe_dir = os.path.join(feedstock_dir, 'recipe')
@@ -38,7 +39,7 @@ def run(attrs, migrator, feedstock=None, protocol='ssh',
             conda smithy rerender -c auto
 
     # push up
-    push_repo(feedstock_dir, migrator.pr_body())
+    push_repo(feedstock_dir, migrator.pr_body(), repo)
     # If we've gotten this far then the node is good
     attrs['bad'] = False
     print('Removing feedstock dir')
