@@ -127,7 +127,7 @@ def get_repo(attrs, feedstock=None, protocol='ssh',
     return feedstock_dir
 
 
-def push_repo(feedstock_dir, body):
+def push_repo(feedstock_dir, body, pull_request=True):
     """Push a repo up to github
 
     Parameters
@@ -136,6 +136,8 @@ def push_repo(feedstock_dir, body):
         The feedstock directory
     body : str
         The PR body
+    pull_request : bool, optional
+        If True issue pull request, defaults to True
     """
     with indir(feedstock_dir), ${...}.swap(RAISE_SUBPROC_ERROR=False):
         # Setup push from doctr
