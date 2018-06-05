@@ -1,8 +1,8 @@
 #!/usr/bin/env xonsh
 import time
 
-cd ../cf-graph
 source bot.xsh
+cd ../cf-graph
 $PATH.insert(0, '~/mc/bin')
 
 xonsh ../cf-scripts/03-auto_tick.xsh
