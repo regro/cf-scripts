@@ -203,10 +203,10 @@ class Version(Migrator):
 
 class JS(Migrator):
     """Migrator for JavaScript syntax"""
-    PATTERNS = [('meta.yaml', '  script: *',
+    patterns = [('meta.yaml', '  script: *',
                  '''  script: |
                         tgz=$(npm pack)
-                        npm install -g $tgz'''),]
+                        npm install -g $tgz'''), ]
     def filter(self, attrs):
         conditional = super().filter(attrs)
         return bool(conditional or
@@ -215,7 +215,7 @@ class JS(Migrator):
 
     def migrate(self, recipe_dir):
         with indir(recipe_dir):
-            for f, p, n in PATTERNS:
+            for f, p, n in patterns:
                 p = eval_version(p)
                 n = eval_version(n)
                 replace_in_file(p, n, f)
