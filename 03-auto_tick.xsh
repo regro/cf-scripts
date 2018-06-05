@@ -1,20 +1,15 @@
 """Copyright (c) 2017, Anthony Scopatz"""
 import copy
-import datetime
+import json
 import os
 import time
-import traceback
-import urllib.error
 
+import datetime
 import github3
 import networkx as nx
-from doctr.travis import run as doctr_run
-from pkg_resources import parse_version
-from rever.tools import (eval_version, indir, hash_url, replace_in_file)
+from rever.tools import indir
 
-from conda_forge_tick.git_utils import (feedstock_url, feedstock_repo, fork_url,
-                                        get_repo, push_repo)
-from conda_forge_tick.utils import parsed_meta_yaml
+from conda_forge_tick.git_utils import (get_repo, push_repo)
 
 
 def run(attrs, migrator, feedstock=None, protocol='ssh',
@@ -52,6 +47,7 @@ gh = github3.login($USERNAME, $PASSWORD)
 t0 = time.time()
 
 smithy_version = ![conda smithy --version].output.strip()
+pinning_version = json.loads(![conda list conda-forge-pinning --json].output.strip())[0]['version']
 # TODO: need to also capture pinning version, maybe it is in the graph?
 
 for migrator in $MIGRATORS:
@@ -77,7 +73,8 @@ for migrator in $MIGRATORS:
             if gh.rate_limit()['resources']['core']['remaining'] == 0:
                 break
             else:
-                if gx.nodes[node].get('smithy_version') != smithy_version:
+                if (gx.nodes[node].get('smithy_version') != smithy_version and
+                    gx.nodes[node].get('pinning_version') != pinning_version):
                     run(attrs=attrs, gh=gh, rerender=True, protocol='https',
                         hash_type=attrs.get('hash_type', 'sha256'))
                 else:
@@ -85,7 +82,8 @@ for migrator in $MIGRATORS:
                         hash_type=attrs.get('hash_type', 'sha256'))
                 # TODO: capture pinning here too!
                 gx.nodes[node].update({'PRed': attrs['new_version'],
-                                       'smithy_version': smithy_version})
+                                       'smithy_version': smithy_version,
+                                       'pinning_version': pinning_version})
         except github3.GitHubError as e:
             print('GITHUB ERROR ON FEEDSTOCK: {}'.format($PROJECT))
             print(e)
