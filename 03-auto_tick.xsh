@@ -28,7 +28,8 @@ def run(attrs, migrator, feedstock=None, protocol='ssh',
     # migrate the `meta.yaml`
     recipe_dir = os.path.join(feedstock_dir, 'recipe')
     if not migrator.migrate(recipe_dir, attrs, **kwargs):
-        rm -rf @ (feedstock_dir)
+        print($PROJECT, attrs.get('bad'))
+        rm -rf @(feedstock_dir)
         return False
 
     # rerender, maybe
@@ -112,7 +113,7 @@ for migrator in $MIGRATORS:
             print('NON GITHUB ERROR')
             print(e)
             with open('exceptions.md', 'a') as f:
-                f.write('#{name}\n##{exception}\n{tb}\n\n'.format(
+                f.write('#{name}\n\n##{exception}\n\n```python{tb}```\n\n'.format(
                     name=$PROJECT, exception=str(e),
                     tb=str(traceback.format_exc())))
         finally:
