@@ -38,7 +38,7 @@ def run(attrs, migrator, feedstock=None, protocol='ssh',
             conda smithy rerender -c auto
 
     # push up
-    push_repo(feedstock_dir, migrator)
+    push_repo(feedstock_dir, migrator.pr_body())
     print('Removing feedstock dir')
     rm -rf @(feedstock_dir)
     return True
@@ -46,8 +46,6 @@ def run(attrs, migrator, feedstock=None, protocol='ssh',
 # gx = nx.read_yaml('graph.yml')
 gx = nx.read_gpickle('graph.pkl')
 # TODO: this needs to be sourced from somewhere better (top level?)
-migrators = []
-
 $REVER_DIR = './feedstocks/'
 $REVER_QUIET = True
 gh = github3.login($USERNAME, $PASSWORD)
@@ -56,7 +54,7 @@ t0 = time.time()
 smithy_version = ![conda smithy --version].output.strip()
 # TODO: need to also capture pinning version, maybe it is in the graph?
 
-for migrator in migrators:
+for migrator in $MIGRATORS:
     gx2 = copy.deepcopy(gx)
 
     # Prune graph to only things that need builds

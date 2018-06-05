@@ -1,3 +1,4 @@
+"""Classes for migrating repos"""
 import copy
 import datetime
 import os
@@ -17,6 +18,7 @@ from conda_forge_tick.utils import parsed_meta_yaml
 
 
 class Migrator:
+    """Base class for Migrators"""
     def filter(self, attrs):
         """ If true don't act upon node
 
@@ -42,10 +44,6 @@ class Migrator:
             The directory of the recipe
         attrs : dict
             The node attributes
-
-        Returns
-        -------
-
         """
         pass
 
@@ -204,6 +202,7 @@ class Version(Migrator):
 
 
 class JS(Migrator):
+    """Migrator for JavaScript syntax"""
     PATTERNS = [('meta.yaml', '  script: *',
                  '''  script: |
                         tgz=$(npm pack)

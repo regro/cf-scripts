@@ -61,6 +61,29 @@ def fork_url(feedstock_url, username):
 
 def get_repo(attrs, feedstock=None, protocol='ssh',
              pull_request=True, fork=True, gh=None):
+    """Get the feedstock repo
+
+    Parameters
+    ----------
+    attrs : dict
+        The node attributes
+    feedstock : str, optional
+        The feedstock to clone if None use $FEEDSTOCK
+    protocol : str, optional
+        The git protocol to use, defaults to ``ssh``
+    pull_request : bool, optional
+        If true issue pull request, defaults to true
+    fork : bool
+        If true create a fork, defaults to true
+    gh : github3.GitHub instance, optional
+        Object for communicating with GitHub, if None build from $USERNAME
+        and $PASSWORD, defaults to None
+
+    Returns
+    -------
+    recipe_dir : str
+        The recipe directory
+    """
     if gh is None:
         gh = github3.login($USERNAME, $PASSWORD)
     # first, let's grab the feedstock locally
@@ -105,10 +128,19 @@ def get_repo(attrs, feedstock=None, protocol='ssh',
     return recipe_dir
 
 
-def push_repo(feedstock_dir, migrator):
+def push_repo(feedstock_dir, body):
+    """Push a repo up to github
+
+    Parameters
+    ----------
+    feedstock_dir : str
+        The feedstock directory
+    body : str
+        The PR body
+    """
     with indir(feedstock_dir), ${...}.swap(RAISE_SUBPROC_ERROR=False):
         # Setup push from doctr
-        '''Copyright (c) 2016 Aaron Meurer, Gil Forsyth '''
+        # Copyright (c) 2016 Aaron Meurer, Gil Forsyth
         token = $PASSWORD
         deploy_repo = $USERNAME + '/' + $PROJECT + '-feedstock'
         doctr_run(['git', 'remote', 'add', 'regro_remote',
@@ -122,7 +154,7 @@ def push_repo(feedstock_dir, migrator):
     print('Creating conda-forge feedstock pull request...')
     title = $PROJECT + ' v' + $VERSION
     head = $USERNAME + ':' + $VERSION
-    pr = repo.create_pull(title, 'master', head, body=migrator.pr_body())
+    pr = repo.create_pull(title, 'master', head, body=body)
     if pr is None:
         print('Failed to create pull request!')
     else:
