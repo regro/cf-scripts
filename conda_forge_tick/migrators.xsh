@@ -1,19 +1,10 @@
 """Classes for migrating repos"""
-import copy
-import datetime
-import os
-import time
-import traceback
 import urllib.error
 
-import github3
-import networkx as nx
-from doctr.travis import run as doctr_run
 from pkg_resources import parse_version
+
 from rever.tools import (eval_version, indir, hash_url, replace_in_file)
 
-from conda_forge_tick.git_utils import (feedstock_url, feedstock_repo, fork_url,
-                                        get_repo)
 from conda_forge_tick.utils import parsed_meta_yaml
 
 
@@ -44,8 +35,13 @@ class Migrator:
             The directory of the recipe
         attrs : dict
             The node attributes
+
+        Returns
+        -------
+        bool:
+            If True continue with PR, if False scrap local folder
         """
-        pass
+        return True
 
     def pr_body(self):
         """Create a PR message body
@@ -185,14 +181,18 @@ class Version(Migrator):
             "3. Feel free to push to the bot's branch to update this PR if needed. \n"
             "4. The bot will almost always only open one PR per version. \n\n")
         # Statement here
-        template = '|{name}|{new_version}|[![Anaconda-Server Badge](https://img.shields.io/conda/vn/conda-forge/{name}.svg)](https://anaconda.org/conda-forge/{name})|\n'
+        template = ('|{name}|{new_version}|[![Anaconda-Server Badge]'
+                    '(https://img.shields.io/conda/vn/conda-forge/{name}.svg)]'
+                    '(https://anaconda.org/conda-forge/{name})|\n')
         if len(pred) > 0:
             body += ('\n\nHere is a list of all the pending dependencies (and their '
                      'versions) for this repo. '
                      'Please double check all dependencies before merging.\n\n')
-            # Only add the header row if we have content. Otherwise the rendered table in the github comment
+            # Only add the header row if we have content.
+            # Otherwise the rendered table in the github comment
             # is empty which is confusing
-            body += '''| Name | Upstream Version | Current Version |\n|:----:|:----------------:|:---------------:|\n'''
+            body += ('| Name | Upstream Version | Current Version |\n'
+                     '|:----:|:----------------:|:---------------:|\n')
         for p in pred:
             body += template.format(name=p[0], new_version=p[1])
         return body
