@@ -76,12 +76,12 @@ class Migrator:
 
     def commit_message(self):
         """Create a commit message"""
-        pass
+        return 'migration: ' + self.__class__.__name__
 
 
 class Version(Migrator):
     """Migrator for version bumping of packages"""
-    PATTERNS = (
+    patterns = (
         # filename, pattern, new
         # set the version
         ('meta.yaml', '  version:\s*[A-Za-z0-9._-]+', '  version: "$VERSION"'),
@@ -106,7 +106,7 @@ class Version(Migrator):
 
     )
 
-    MORE_PATTERNS = []
+    more_patterns = []
     checksum_names = ['hash_value', 'hash', 'hash_val', 'sha256sum',
                       'checksum',
                       '$HASH_TYPE']
@@ -117,7 +117,7 @@ class Version(Migrator):
     for cn in checksum_names:
         for s in sets:
             for d in delim:
-                MORE_PATTERNS.append(('meta.yaml',
+                more_patterns.append(('meta.yaml',
                                       base1.format(set=s, checkname=cn, d=d),
                                       base2.format(set=s, checkname=cn, d=d)))
 
@@ -133,7 +133,7 @@ class Version(Migrator):
     def migrate(self, recipe_dir, attrs, hash_type='sha256'):
         # Render with new version but nothing else
         with indir(recipe_dir):
-            for f, p, n in PATTERNS:
+            for f, p, n in patterns:
                 p = eval_version(p)
                 n = eval_version(n)
                 replace_in_file(p, n, f)
@@ -167,7 +167,7 @@ class Version(Migrator):
                 meta_yaml.get('package', {}).get('name', 'UNKOWN'), source_url)
             return False
 
-        patterns += tuple(MORE_PATTERNS)
+        patterns += tuple(more_patterns)
         with indir(recipe_dir), ${...}.swap(HASH_TYPE=hash_type, HASH=hash, SOURCE_URL=source_url):
             for f, p, n in patterns:
                 p = eval_version(p)
@@ -221,11 +221,11 @@ class JS(Migrator):
                 replace_in_file(p, n, f)
         return True
 
-    def commit_message(self):
-        return "migrated to new JS syntax"
-
     def pr_body(self):
         body = super().pr_body()
         body.format('Notes and instructions for merging this PR:\n'
             '1. Please merge the PR only after the tests have passed. \n'
             "2. Feel free to push to the bot's branch to update this PR if needed. \n")
+
+    def commit_message(self):
+        return "migrated to new JS syntax"
