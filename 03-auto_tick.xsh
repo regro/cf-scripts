@@ -46,7 +46,6 @@ def run(attrs, migrator, feedstock=None, protocol='ssh',
 
 # gx = nx.read_yaml('graph.yml')
 gx = nx.read_gpickle('graph.pkl')
-# TODO: this needs to be sourced from somewhere better (top level?)
 $REVER_DIR = './feedstocks/'
 $REVER_QUIET = True
 gh = github3.login($USERNAME, $PASSWORD)
@@ -64,6 +63,8 @@ for migrator in $MIGRATORS:
         if migrator.filter(attrs):
             gx2.remove_node(node)
     $SUBGRAPH = gx2
+    print('Total migrations for {}: {}'.format(migrator.__class__.__name__,
+                                               len(gx2.node)))
 
     for node, attrs in gx2.node.items():
         # Don't let travis timeout, break ahead of the timeout so we make certain
@@ -81,10 +82,10 @@ for migrator in $MIGRATORS:
             else:
                 if (gx.nodes[node].get('smithy_version') != smithy_version and
                     gx.nodes[node].get('pinning_version') != pinning_version):
-                    run(attrs=attrs, gh=gh, rerender=True, protocol='https',
+                    run(attrs=attrs, migrator, gh=gh, rerender=True, protocol='https',
                         hash_type=attrs.get('hash_type', 'sha256'))
                 else:
-                    run(attrs=attrs, gh=gh, rerender=False, protocol='https',
+                    run(attrs=attrs, migrator, gh=gh, rerender=False, protocol='https',
                         hash_type=attrs.get('hash_type', 'sha256'))
                 # TODO: capture pinning here too!
                 gx.nodes[node].update({'PRed': attrs['new_version'],
