@@ -27,7 +27,7 @@ def run(attrs, migrator, feedstock=None, protocol='ssh',
     # migrate the `meta.yaml`
     recipe_dir = os.path.join(feedstock_dir, 'recipe')
     if not migrator.migrate(recipe_dir, attrs, **kwargs):
-        rm - rf @ (feedstock_dir)
+        rm -rf @ (feedstock_dir)
         return False
 
     # rerender, maybe
