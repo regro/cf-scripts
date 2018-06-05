@@ -228,4 +228,4 @@ class JS(Migrator):
             "2. Feel free to push to the bot's branch to update this PR if needed. \n")
 
     def commit_message(self):
-        return "migrated to new JS syntax"
+        return "migrated to new npm build"
