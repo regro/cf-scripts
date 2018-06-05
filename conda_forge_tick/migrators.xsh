@@ -32,6 +32,7 @@ class Migrator:
         """
         # never run on archived feedstocks
         return bool(attrs.get('archived', False))
+
     def migrate(self, recipe_dir, attrs):
         """Perform the migration, updating the ``meta.yaml``
 
@@ -47,6 +48,7 @@ class Migrator:
 
         """
         pass
+
     def pr_body(self):
         """Create a PR message body
 
@@ -73,6 +75,7 @@ class Migrator:
             'Finally, feel free to drop us a line if there are any '
             '[issues](https://github.com/regro/cf-scripts/issues)! ')
         return body
+
     def commit_message(self):
         """Create a commit message"""
         pass
@@ -210,6 +213,7 @@ class JS(Migrator):
         return bool(conditional or
                (attrs.get('build', {}).get('noarch') =! 'generic')
                 or (attrs.get('build', {}).get('script') =! 'npm install-g .'))
+
     def migrate(self, recipe_dir):
         with indir(recipe_dir):
             for f, p, n in PATTERNS:
