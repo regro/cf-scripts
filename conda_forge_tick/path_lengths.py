@@ -99,7 +99,7 @@ def get_levels(graph_file, source):
             g2.remove_node(node)
 
     dist = get_longest_paths(g2, source)
-    levels = defaultdict(list)
+    levels = defaultdict(set)
     for k, v in dist.items():
-        levels[v].append(k)
+        levels[v].add(k)
     return levels
