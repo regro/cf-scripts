@@ -203,7 +203,7 @@ class Version(Migrator):
 
 class JS(Migrator):
     """Migrator for JavaScript syntax"""
-    patterns = [('meta.yaml', '  script: *',
+    patterns = [('meta.yaml', ' script: npm install -g \.',
                  '''  script: |
        tgz=$(npm pack)
        npm install -g $tgz'''), ]
