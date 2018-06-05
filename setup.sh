@@ -13,4 +13,4 @@ conda install python=3.6 conda=4.3
 conda install --file requirements/run
 python setup.py develop
 cd ..
-git clone https://github.com/regro/cf-graph.git
+git clone --depth=1 https://github.com/regro/cf-graph.git
