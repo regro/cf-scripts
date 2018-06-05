@@ -34,6 +34,8 @@ def run(attrs, migrator, feedstock=None, protocol='ssh',
 
     # push up
     push_repo(feedstock_dir, migrator.pr_body())
+    # If we've gotten this far then the node is good
+    attrs['bad'] = False
     print('Removing feedstock dir')
     rm -rf @(feedstock_dir)
     return True
