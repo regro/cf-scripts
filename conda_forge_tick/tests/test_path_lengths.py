@@ -6,10 +6,8 @@ def test_get_levels():
     assert get_levels('test_graph1.pkl', 'a') == levels
 
     levels = {0: {'a'}, 1: {'b'}, 2: {'d', 'e'}, 3: {'f', 'g', 'h'}}
-    print(get_levels('test_graph2.pkl', 'a'))
     assert get_levels('test_graph2.pkl', 'a') == levels
 
     levels = {0: {'a'}, 1: {'b'}, 2: {'d'}, 3: {'c', 'f'},
               4: {'e', 'h'}, 5: {'g'}}
-    print(get_levels('test_graph3.pkl', 'a'))
     assert get_levels('test_graph3.pkl', 'a') == levels
