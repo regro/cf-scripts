@@ -205,8 +205,8 @@ class JS(Migrator):
     """Migrator for JavaScript syntax"""
     patterns = [('meta.yaml', '  script: *',
                  '''  script: |
-                        tgz=$(npm pack)
-                        npm install -g $tgz'''), ]
+       tgz=$(npm pack)
+       npm install -g $tgz'''), ]
 
     def filter(self, attrs):
         conditional = super().filter(attrs)
