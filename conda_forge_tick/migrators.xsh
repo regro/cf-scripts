@@ -204,15 +204,15 @@ class Version(Migrator):
 class JS(Migrator):
     """Migrator for JavaScript syntax"""
     patterns = [('meta.yaml', ' script: npm install -g \.',
-                 ('  script: |\n'
-                  '    tgz=$(npm pack)\n'
-                  '    npm install -g $tgz'), ]
+                 '  script: |\n'
+                 '    tgz=$(npm pack)\n'
+                 '    npm install -g $tgz')]
 
     def filter(self, attrs):
         conditional = super().filter(attrs)
         return bool(conditional or
-               (attrs.get('build', {}).get('noarch') =! 'generic')
-                or (attrs.get('build', {}).get('script') =! 'npm install -g .'))
+               (attrs.get('build', {}).get('noarch') != 'generic')
+                or (attrs.get('build', {}).get('script') != 'npm install -g .'))
 
     def migrate(self, recipe_dir):
         with indir(recipe_dir):

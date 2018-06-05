@@ -6,9 +6,7 @@ setup(
     description='',
     author='Conda-forge-tick Development Team',
     author_email='',
-    entry_points={
-        'console_scripts': ['conda-forge-tick=conda_forge_tick.cli:main'],
-    },
+    scripts=['scripts/conda-forge-tick'],
     url='https://github.com/regro/cf-scripts',
     include_package_data=True,
     packages=['conda_forge_tick'],
