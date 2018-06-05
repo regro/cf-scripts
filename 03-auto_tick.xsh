@@ -11,6 +11,10 @@ from rever.tools import indir
 
 from conda_forge_tick.git_utils import (get_repo, push_repo)
 
+# TODO: move this back to the bot file as soon as the source issue is sorted
+# https://travis-ci.org/regro/00-find-feedstocks/jobs/388387895#L1870
+from conda_forge_tick.migrators import *
+$MIGRATORS = [Version(), JS()]
 
 def run(attrs, migrator, feedstock=None, protocol='ssh',
         pull_request=True, rerender=True, fork=True, gh=None,
