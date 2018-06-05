@@ -3,6 +3,7 @@ import copy
 import json
 import os
 import time
+import traceback
 
 import datetime
 import github3
@@ -20,7 +21,7 @@ def run(attrs, migrator, feedstock=None, protocol='ssh',
         pull_request=True, rerender=True, fork=True, gh=None,
         **kwargs):
     # get the repo
-    feedstock_dir = get_repo(feedstock=feedstock, protocol=protocol,
+    feedstock_dir = get_repo(attrs, feedstock=feedstock, protocol=protocol,
              pull_request=pull_request, fork=fork, gh=gh)
 
     # migrate the `meta.yaml`
