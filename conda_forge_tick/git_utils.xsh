@@ -108,7 +108,6 @@ def get_repo(attrs, feedstock=None, protocol='ssh',
             time.sleep(5)
 
     feedstock_dir = os.path.join($REVER_DIR, $PROJECT + '-feedstock')
-    recipe_dir = os.path.join(feedstock_dir, 'recipe')
     if not os.path.isdir(feedstock_dir):
         p = ![git clone @(origin) @(feedstock_dir)]
         if p.rtn != 0:
@@ -125,7 +124,7 @@ def get_repo(attrs, feedstock=None, protocol='ssh',
         # make and modify version branch
         with ${...}.swap(RAISE_SUBPROC_ERROR=False):
             git checkout $VERSION or git checkout -b $VERSION master
-    return recipe_dir
+    return feedstock_dir
 
 
 def push_repo(feedstock_dir, body):
