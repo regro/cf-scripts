@@ -18,12 +18,41 @@ from conda_forge_tick.utils import parsed_meta_yaml
 
 class Migrator:
     def filter(self, attrs):
-        """If true don't act upon node"""
+        """ If true don't act upon node
+
+        Parameters
+        ----------
+        attrs: dict
+            The node attributes
+
+        Returns
+        -------
+        bool:
+            True if node is to be skipped
+        """
         # never run on archived feedstocks
-        return attrs.get('archived', False)
-    def migrate(self):
+        return bool(attrs.get('archived', False))
+    def migrate(self, recipe_dir):
+        """Perform the migration, updating the ``meta.yaml``
+
+        Parameters
+        ----------
+        recipe_dir: str
+            The directory of the recipe
+
+        Returns
+        -------
+
+        """
         pass
     def pr_body(self):
+        """Create a PR message body
+
+        Returns
+        -------
+        body: str
+            The body of the PR message
+        """
         body = (
             'This PR was created by the [cf-regro-autotick-bot](https://github.com/regro/cf-scripts).\n\n'
             'The **cf-regro-autotick-bot** is a service to automatically '
@@ -43,11 +72,13 @@ class Migrator:
             '[issues](https://github.com/regro/cf-scripts/issues)! ')
         return body
     def commit_message(self):
+        """Create a commit message"""
         pass
 
 
 
 class Version(Migrator):
+    """Migrator for version bumping of packages"""
     PATTERNS = (
         # filename, pattern, new
         # set the version
@@ -90,7 +121,7 @@ class Version(Migrator):
 
     def filter(self, attrs):
         conditional = super().filter(attrs)
-        return (conditional  # if archived
+        return bool(conditional  # if archived
                 or not attrs.get('new_version')  # if no new version
                 # if new version is less than current version
                 or parse_version(str(attrs['new_version'])) <= parse_version(str(attrs['version']))
@@ -171,3 +202,30 @@ class Version(Migrator):
 
     def commit_message(self):
         return "updated v" + $VERSION
+
+class JS(Migrator):
+    PATTERNS = [('meta.yaml', '  script: *',
+                 '''  script: |
+                        tgz=$(npm pack)
+                        npm install -g $tgz'''),]
+    def filter(self, attrs):
+        conditional = super().filter(attrs)
+        return bool(conditional or
+               (attrs.get('build', {}).get('noarch') =! 'generic')
+                or (attrs.get('build', {}).get('script') =! 'npm install-g .'))
+    def migrate(self, recipe_dir):
+        with indir(recipe_dir):
+            for f, p, n in PATTERNS:
+                p = eval_version(p)
+                n = eval_version(n)
+                replace_in_file(p, n, f)
+        return True
+
+    def commit_message(self):
+        return "migrated to new JS syntax"
+
+    def pr_body(self):
+        body = super().pr_body()
+        body.format('Notes and instructions for merging this PR:\n'
+            '1. Please merge the PR only after the tests have passed. \n'
+            "2. Feel free to push to the bot's branch to update this PR if needed. \n")

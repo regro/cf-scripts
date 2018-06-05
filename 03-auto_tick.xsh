@@ -45,13 +45,16 @@ def run(migrator, feedstock=None, protocol='ssh',
 
 # gx = nx.read_yaml('graph.yml')
 gx = nx.read_gpickle('graph.pkl')
+# TODO: this needs to be sourced from somewhere better (top level?)
 migrators = []
+
 $REVER_DIR = './feedstocks/'
 $REVER_QUIET = True
 gh = github3.login($USERNAME, $PASSWORD)
 t0 = time.time()
 
 smithy_version = ![conda smithy - -version].output.strip()
+# TODO: need to also capture pinning version, maybe it is in the graph?
 
 for migrator in migrators:
     gx2 = copy.deepcopy(gx)
@@ -82,6 +85,7 @@ for migrator in migrators:
                 else:
                     run(gh=gh, rerender=False, protocol='https',
                         hash_type=attrs.get('hash_type', 'sha256'))
+                # TODO: capture pinning here too!
                 gx.nodes[node].update({'PRed': attrs['new_version'],
                                        'smithy_version': smithy_version})
         except github3.GitHubError as e:
