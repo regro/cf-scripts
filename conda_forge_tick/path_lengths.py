@@ -76,14 +76,14 @@ def get_longest_paths(graph, source):
     return dist
 
 
-def get_levels(graph_file, source):
+def get_levels(graph, source):
     """Get the nodes in each level of a topological sort of a graph starting
     from a specified source node.
 
     Parameters
     ----------
-    graph_file : str
-        The filename of a pickle file containing the graph data.
+    graph : networkx.classes.digraph.DiGraph
+        A directed graph.
     source : str
         The name of the source node.
 
@@ -95,10 +95,9 @@ def get_levels(graph_file, source):
 
     """
 
-    g = nx.read_gpickle(graph_file)
-    g2 = deepcopy(g)
-    desc = nx.algorithms.descendants(g, source)
-    for node in g.node:
+    g2 = deepcopy(graph)
+    desc = nx.algorithms.descendants(graph, source)
+    for node in graph.node:
         if (node not in desc and node != source):
             g2.remove_node(node)
 
