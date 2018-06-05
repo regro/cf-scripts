@@ -17,7 +17,7 @@ from conda_forge_tick.git_utils import (feedstock_url, feedstock_repo, fork_url,
 from conda_forge_tick.utils import parsed_meta_yaml
 
 
-def run(migrator, feedstock=None, protocol='ssh',
+def run(attrs, migrator, feedstock=None, protocol='ssh',
         pull_request=True, rerender=True, fork=True, gh=None,
         **kwargs):
     # get the repo
@@ -26,7 +26,7 @@ def run(migrator, feedstock=None, protocol='ssh',
 
     # migrate the `meta.yaml`
     recipe_dir = os.path.join(feedstock_dir, 'recipe')
-    if not migrator.migrate(recipe_dir, **kwargs):
+    if not migrator.migrate(recipe_dir, attrs, **kwargs):
         rm - rf @ (feedstock_dir)
         return False
 
@@ -80,10 +80,10 @@ for migrator in migrators:
                 break
             else:
                 if gx.nodes[node].get('smithy_version') != smithy_version:
-                    run(gh=gh, rerender=True, protocol='https',
+                    run(attrs=attrs, gh=gh, rerender=True, protocol='https',
                         hash_type=attrs.get('hash_type', 'sha256'))
                 else:
-                    run(gh=gh, rerender=False, protocol='https',
+                    run(attrs=attrs, gh=gh, rerender=False, protocol='https',
                         hash_type=attrs.get('hash_type', 'sha256'))
                 # TODO: capture pinning here too!
                 gx.nodes[node].update({'PRed': attrs['new_version'],

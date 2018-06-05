@@ -22,23 +22,25 @@ class Migrator:
 
         Parameters
         ----------
-        attrs: dict
+        attrs : dict
             The node attributes
 
         Returns
         -------
-        bool:
+        bool :
             True if node is to be skipped
         """
         # never run on archived feedstocks
         return bool(attrs.get('archived', False))
-    def migrate(self, recipe_dir):
+    def migrate(self, recipe_dir, attrs):
         """Perform the migration, updating the ``meta.yaml``
 
         Parameters
         ----------
-        recipe_dir: str
+        recipe_dir : str
             The directory of the recipe
+        attrs : dict
+            The node attributes
 
         Returns
         -------
@@ -74,7 +76,6 @@ class Migrator:
     def commit_message(self):
         """Create a commit message"""
         pass
-
 
 
 class Version(Migrator):
@@ -128,7 +129,7 @@ class Version(Migrator):
                 # if PRed version is greater than newest version
                 or attrs.get('PRed', '0.0.0') >= parse_version(attrs['new_version']))
 
-    def migrate(self, recipe_dir, hash_type='sha256'):
+    def migrate(self, recipe_dir, attrs, hash_type='sha256'):
         # Render with new version but nothing else
         with indir(recipe_dir):
             for f, p, n in PATTERNS:
@@ -142,14 +143,12 @@ class Version(Migrator):
             # If the parser returns None, then we didn't read the meta.yaml
             # TODO: How we didn't fail at 01 on this recipe is mysterious
             if meta_yaml is None:
-                with open('upstream_bad', 'a') as f:
-                    f.write('{}: failed to read meta.yaml\n'.format($PROJECT))
+                attrs['bad'] = '{}: failed to read meta.yaml\n'.format($PROJECT)
                 return False
             source_url = meta_yaml.get('source', {}).get('url')
             if not source_url:
-                with open('upstream_bad', 'a') as f:
-                    f.write('{}: missing url\n'.format($PROJECT))
-                    return False
+                attrs['bad'] = '{}: missing url\n'.format($PROJECT)
+                return False
             if isinstance(source_url, list):
                 for url in source_url:
                     if 'Archive' not in url:
@@ -163,11 +162,8 @@ class Version(Migrator):
         try:
             hash = hash_url(source_url, hash_type)
         except urllib.error.HTTPError:
-            with open('upstream_bad', 'a') as f:
-                t = '{}: hash failed at {}\n'.format(
-                    meta_yaml.get('package', {}).get('name', 'UNKOWN'), source_url)
-                print(t)
-                f.write(t)
+            attrs['bad'] = '{}: hash failed at {}\n'.format(
+                meta_yaml.get('package', {}).get('name', 'UNKOWN'), source_url)
             return False
 
         patterns += tuple(MORE_PATTERNS)
@@ -202,6 +198,7 @@ class Version(Migrator):
 
     def commit_message(self):
         return "updated v" + $VERSION
+
 
 class JS(Migrator):
     PATTERNS = [('meta.yaml', '  script: *',

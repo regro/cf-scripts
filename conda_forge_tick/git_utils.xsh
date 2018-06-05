@@ -58,7 +58,7 @@ def fork_url(feedstock_url, username):
     return url
 
 
-def get_repo(feedstock=None, protocol='ssh',
+def get_repo(attrs, feedstock=None, protocol='ssh',
              pull_request=True, fork=True, gh=None):
     if gh is None:
         gh = github3.login($USERNAME, $PASSWORD)
@@ -70,9 +70,7 @@ def get_repo(feedstock=None, protocol='ssh',
     if pull_request or fork:
         repo = gh.repository('conda-forge', feedstock_reponame)
         if repo is None:
-            # TODO: write into attrs
-            with open('upstream_bad', 'a') as f:
-                f.write('{}: does not match feedstock name\n'.format($PROJECT))
+            attrs['bad'] = '{}: does not match feedstock name\n'.format($PROJECT)
             return False
 
     # Check if fork exists
