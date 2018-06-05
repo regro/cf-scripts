@@ -1,7 +1,7 @@
 import subprocess
 import networkx as nx
 import requests
-from pkg_resources import parse_version
+from conda.models.version import VersionOrder
 import feedparser
 from .utils import parsed_meta_yaml
 
@@ -49,7 +49,7 @@ class VersionFromFeed:
                 continue
             vers.append(ver)
         if vers:
-            return max(vers, key=lambda x: parse_version(x.replace('-', '.')))
+            return max(vers, key=lambda x: VersionOrder(x.replace('-', '.')))
         else:
             return None
 
@@ -94,7 +94,7 @@ class PyPI:
     def get_version(self, url):
         r = requests.get(url)
         # If it is a pre-release don't give back the pre-release version
-        if not r.ok or parse_version(r.json()['info']['version'].strip()
+        if not r.ok or VersionOrder(r.json()['info']['version'].strip()
                                      ).is_prerelease:
             return False
         return r.json()['info']['version'].strip()

@@ -1,5 +1,6 @@
 #!/usr/bin/env xonsh
 cd ../cf-graph
+source bot.xsh
 $PATH.insert(0, '~/mc/bin')
 conda-forge-tick --run 0
 conda-forge-tick --run 1
