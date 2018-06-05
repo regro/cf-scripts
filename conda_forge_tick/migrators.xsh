@@ -1,7 +1,7 @@
 """Classes for migrating repos"""
 import urllib.error
 
-from pkg_resources import parse_version
+from conda.models.version import VersionOrder
 
 from rever.tools import (eval_version, indir, hash_url, replace_in_file)
 
@@ -122,9 +122,9 @@ class Version(Migrator):
         return bool(conditional  # if archived
                 or not attrs.get('new_version')  # if no new version
                 # if new version is less than current version
-                or parse_version(str(attrs['new_version'])) <= parse_version(str(attrs['version']))
+                or VersionOrder(str(attrs['new_version'])) <= VersionOrder(str(attrs['version']))
                 # if PRed version is greater than newest version
-                or attrs.get('PRed', '0.0.0') >= parse_version(attrs['new_version']))
+                or VersionOrder(attrs.get('PRed', '0.0.0')) >= VersionOrder(attrs['new_version']))
 
     def migrate(self, recipe_dir, attrs, hash_type='sha256'):
         # Render with new version but nothing else
