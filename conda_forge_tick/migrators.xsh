@@ -211,8 +211,12 @@ class JS(Migrator):
     def filter(self, attrs):
         conditional = super().filter(attrs)
         return bool(conditional or
-               (attrs.get('build', {}).get('noarch') != 'generic')
-                or (attrs.get('build', {}).get('script') != 'npm install -g .'))
+               (attrs.get('meta_yaml', {})
+                .get('build', {})
+                .get('noarch') != 'generic')
+                or (attrs.get('meta_yaml', {})
+                    .get('build', {})
+                    .get('script') != 'npm install -g .'))
 
     def migrate(self, recipe_dir, attrs, **kwargs):
         with indir(recipe_dir):
