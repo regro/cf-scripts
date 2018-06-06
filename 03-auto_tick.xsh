@@ -21,7 +21,8 @@ def run(attrs, migrator, feedstock=None, protocol='ssh',
         pull_request=True, rerender=True, fork=True, gh=None,
         **kwargs):
     # get the repo
-    feedstock_dir, repo = get_repo(attrs, feedstock=feedstock,
+    feedstock_dir, repo = get_repo(attrs, branch=migrator.remote_branch(),
+                                   feedstock=feedstock,
                                    protocol=protocol,
                                    pull_request=pull_request, fork=fork, gh=gh)
 

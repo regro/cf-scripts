@@ -59,7 +59,7 @@ def fork_url(feedstock_url, username):
     return url
 
 
-def get_repo(attrs, feedstock=None, protocol='ssh',
+def get_repo(attrs, branch=$VERSION, feedstock=None, protocol='ssh',
              pull_request=True, fork=True, gh=None):
     """Get the feedstock repo
 
@@ -123,7 +123,7 @@ def get_repo(attrs, feedstock=None, protocol='ssh',
         git pull @(upstream) master
         # make and modify version branch
         with ${...}.swap(RAISE_SUBPROC_ERROR=False):
-            git checkout $VERSION or git checkout -b $VERSION master
+            git checkout @(branch) or git checkout -b @(branch) master
     return feedstock_dir, repo
 
 

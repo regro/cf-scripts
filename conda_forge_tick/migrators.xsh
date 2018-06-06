@@ -83,6 +83,7 @@ class Migrator:
         return $USERNAME + ':' + 'bot-pr'
 
     def remote_branch(self):
+        """Branch to use on local and remote"""
         return 'bot-pr'
 
 
