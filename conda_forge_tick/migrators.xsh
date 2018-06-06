@@ -173,7 +173,7 @@ class Version(Migrator):
             # Get patterns to replace checksum for each platform
             rendered_text = rendered_meta_yaml(text)
             urls = self.find_urls(rendered_text)
-            self.patterns += self.get_hash_patterns('meta.yaml', urls, hash_type)
+            new_patterns = self.patterns + self.get_hash_patterns('meta.yaml', urls, hash_type)
 
             # If we can't parse the meta_yaml then jump out
             meta_yaml = parsed_meta_yaml(text)
@@ -203,7 +203,7 @@ class Version(Migrator):
                 meta_yaml.get('package', {}).get('name', 'UNKOWN'), source_url)
             return False
 
-        new_patterns = tuple(self.patterns) + tuple(self.more_patterns)
+        new_patterns += tuple(self.more_patterns)
         with indir(recipe_dir), ${...}.swap(HASH_TYPE=hash_type, HASH=hash, SOURCE_URL=source_url):
             for f, p, n in new_patterns:
                 p = eval_version(p)
