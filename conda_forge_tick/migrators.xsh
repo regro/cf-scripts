@@ -206,7 +206,9 @@ class JS(Migrator):
     patterns = [('meta.yaml', '  script: npm install -g \.',
                  '  script: |\n'
                  '    tgz=$(npm pack)\n'
-                 '    npm install -g $tgz')]
+                 '    npm install -g $tgz'),
+                # Fix our own error :(
+                ('meta.yaml', '   script: |', '  script: |')]
 
     def filter(self, attrs):
         conditional = super().filter(attrs)
