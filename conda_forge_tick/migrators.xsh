@@ -161,6 +161,7 @@ class Version(Migrator):
 
     def migrate(self, recipe_dir, attrs, hash_type='sha256'):
         # Render with new version but nothing else
+        $VERSION = attrs['new_version']
         with indir(recipe_dir):
             for f, p, n in self.patterns:
                 p = eval_version(p)
