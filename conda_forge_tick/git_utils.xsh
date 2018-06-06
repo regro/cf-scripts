@@ -59,7 +59,7 @@ def fork_url(feedstock_url, username):
     return url
 
 
-def get_repo(attrs, branch=$VERSION, feedstock=None, protocol='ssh',
+def get_repo(attrs, branch, feedstock=None, protocol='ssh',
              pull_request=True, fork=True, gh=None):
     """Get the feedstock repo
 
