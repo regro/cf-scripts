@@ -127,7 +127,7 @@ class Version(Migrator):
 
     url_pat = re.compile('  url:\s*(.+?)\s*(?:(#.*)?\[([^\[\]]+)\])?(?(2)[^\(\)]*)$')
 
-    def find_urls(text):
+    def find_urls(self, text):
         """Get the URLs and platforms in a meta.yaml."""
         urls = []
         lines = text.splitlines()
@@ -137,9 +137,9 @@ class Version(Migrator):
                 urls.append((m.group(1), m.group(3)))
         return urls
 
-    def get_hash_patterns(filename, urls, hash_type):
+    def get_hash_patterns(self, filename, urls, hash_type):
         """Get the patterns to replace hash for each platform."""
-        patterns = ()
+        pats = ()
         for url, platform in urls:
             hash = hash_url(url, hash_type)
             p = '  {}:\s*[0-9A-Fa-f]+'.format(hash_type)
@@ -147,8 +147,8 @@ class Version(Migrator):
             if platform is not None:
                 p += '\s*(#.*)\[{}\](?(1)[^\(\)]*)$'.format(platform)
                 n = '  # \[{}\]'.format(platform)
-            patterns += ((filename, p, n),)
-        return patterns
+            pats += ((filename, p, n),)
+        return pats
 
     def filter(self, attrs):
         conditional = super().filter(attrs)
@@ -171,8 +171,8 @@ class Version(Migrator):
 
             # Get patterns to replace checksum for each platform
             rendered_text = rendered_meta_yaml(text)
-            urls = find_urls(rendered_text)
-            patterns += get_hash_patterns('meta.yaml', urls, hash_type)
+            urls = self.find_urls(rendered_text)
+            self.patterns += self.get_hash_patterns('meta.yaml', urls, hash_type)
 
             # If we can't parse the meta_yaml then jump out
             meta_yaml = parsed_meta_yaml(text)
