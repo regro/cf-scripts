@@ -371,10 +371,11 @@ def test_js_migration2(tmpdir):
 
 
 def test_version_migration(tmpdir):
+    v = Version()
+
     # Test meta.yaml with one url
     with open(os.path.join(tmpdir, 'meta.yaml'), 'w') as f:
         f.write(one_source)
-    v = Version()
     v.migrate(tmpdir, {'new_version': '2.4.1'})
     with open(os.path.join(tmpdir, 'meta.yaml'), 'r') as f:
         assert f.read() == updated_one_source
@@ -382,7 +383,6 @@ def test_version_migration(tmpdir):
     # Test meta.yaml with jinja variable for sha
     with open(os.path.join(tmpdir, 'meta.yaml'), 'w') as f:
         f.write(jinja_sha)
-    v = Version()
     v.migrate(tmpdir, {'new_version': '2.4.1'})
     with open(os.path.join(tmpdir, 'meta.yaml'), 'r') as f:
         assert f.read() == updated_jinja_sha
@@ -390,7 +390,6 @@ def test_version_migration(tmpdir):
     # Test meta.yaml with separate url for each platform
     with open(os.path.join(tmpdir, 'meta.yaml'), 'w') as f:
         f.write(multi_source)
-    v = Version()
     v.migrate(tmpdir, {'new_version': '2.4.1'})
     with open(os.path.join(tmpdir, 'meta.yaml'), 'r') as f:
         assert f.read() == updated_multi_source
