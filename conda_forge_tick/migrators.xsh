@@ -175,7 +175,7 @@ class Version(Migrator):
             urls = self.find_urls(rendered_text)
             new_patterns = self.patterns + self.get_hash_patterns('meta.yaml', urls, hash_type)
 
-        with indir(recipe_dir):#, ${...}.swap(HASH_TYPE=hash_type, HASH=hash, SOURCE_URL=source_url):
+        with indir(recipe_dir):
             for f, p, n in new_patterns:
                 p = eval_version(p)
                 n = eval_version(n)
