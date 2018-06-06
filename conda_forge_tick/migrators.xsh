@@ -256,6 +256,7 @@ class JS(Migrator):
         body.format('Notes and instructions for merging this PR:\n'
             '1. Please merge the PR only after the tests have passed. \n'
             "2. Feel free to push to the bot's branch to update this PR if needed. \n")
+        return body
 
     def commit_message(self):
         return "migrated to new npm build"
