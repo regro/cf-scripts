@@ -146,7 +146,7 @@ class Version(Migrator):
             n = '  {}: {}'.format(hash_type, hash)
             if platform is not None:
                 p += '\s*(#.*)\[{}\](?(1)[^\(\)]*)$'.format(platform)
-                n = '  # \[{}\]'.format(platform)
+                n += '  # [{}]'.format(platform)
             pats += ((filename, p, n),)
         return pats
 
