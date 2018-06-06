@@ -80,7 +80,7 @@ class Migrator:
 
     def pr_head(self):
         """Head for PR"""
-        return $USERNAME + ':' + 'bot-pr'
+        return $USERNAME + ':' + self.remote_branch()
 
     def remote_branch(self):
         """Branch to use on local and remote"""
@@ -216,7 +216,7 @@ class Version(Migrator):
         return $PROJECT + ' v' + $VERSION
 
     def pr_head(self):
-        return $USERNAME + ':' + $VERSION
+        return $USERNAME + ':' + self.remote_branch()
 
     def remote_branch(self):
         return $VERSION
@@ -264,7 +264,7 @@ class JS(Migrator):
         return 'Migrate to new npm build'
 
     def pr_head(self):
-        return $USERNAME + ':' + 'npm migration'
+        return $USERNAME + ':' + self.remote_branch()
 
     def remote_branch(self):
         return 'npm_migration'

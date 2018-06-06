@@ -99,6 +99,7 @@ for migrator in $MIGRATORS:
         except github3.GitHubError as e:
             print('GITHUB ERROR ON FEEDSTOCK: {}'.format($PROJECT))
             print(e)
+            print(e.response)
             # carve out for PRs already submitted
             if e.msg == 'Validation Failed':
                 gx.nodes[node]['PRed'] = attrs['new_version']
