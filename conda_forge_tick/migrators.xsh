@@ -222,10 +222,13 @@ class Version(Migrator):
 
 class JS(Migrator):
     """Migrator for JavaScript syntax"""
-    patterns = [('meta.yaml', '  script: npm install -g \.',
-                 '  script: |\n'
-                 '    tgz=$(npm pack)\n'
-                 '    npm install -g $tgz'),]
+    patterns = [
+        ('meta.yaml', '  script: npm install -g \.',
+         '  script: |\n'
+         '    tgz=$(npm pack)\n'
+         '    npm install -g $tgz'),
+        ('meta.yaml', '   script: |\n', '  script: |')
+    ]
 
     def filter(self, attrs):
         conditional = super().filter(attrs)
@@ -242,7 +245,9 @@ class JS(Migrator):
             for f, p, n in self.patterns:
                 p = eval_version(p)
                 n = eval_version(n)
-                replace_in_file(p, n, f)
+                replace_in_file(p, n, f,
+                                leading_whitespace=False
+                                )
         return True
 
     def pr_body(self):
