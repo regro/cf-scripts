@@ -127,7 +127,8 @@ def get_repo(attrs, feedstock=None, protocol='ssh',
     return feedstock_dir, repo
 
 
-def push_repo(feedstock_dir, body, repo, pull_request=True):
+def push_repo(feedstock_dir, body, repo, title, head, branch,
+              pull_request=True):
     """Push a repo up to github
 
     Parameters
@@ -148,13 +149,11 @@ def push_repo(feedstock_dir, body, repo, pull_request=True):
                    'https://{token}@github.com/{deploy_repo}.git'.format(
                        token=token, deploy_repo=deploy_repo)])
 
-        git push --set-upstream regro_remote $VERSION
+        git push --set-upstream regro_remote @(branch)
     # lastly make a PR for the feedstock
     if not pull_request:
         return
     print('Creating conda-forge feedstock pull request...')
-    title = $PROJECT + ' v' + $VERSION
-    head = $USERNAME + ':' + $VERSION
     pr = repo.create_pull(title, 'master', head, body=body)
     if pr is None:
         print('Failed to create pull request!')

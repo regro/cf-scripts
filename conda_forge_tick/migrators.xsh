@@ -74,6 +74,17 @@ class Migrator:
         """Create a commit message"""
         return 'migration: ' + self.__class__.__name__
 
+    def pr_title(self):
+        """Title for PR"""
+        return 'PR from Regro-cf-autotick-bot'
+
+    def pr_head(self):
+        """Head for PR"""
+        return $USERNAME + ':' + 'bot-pr'
+
+    def remote_branch(self):
+        return 'bot-pr'
+
 
 class Version(Migrator):
     """Migrator for version bumping of packages"""
@@ -200,15 +211,21 @@ class Version(Migrator):
     def commit_message(self):
         return "updated v" + $VERSION
 
+    def pr_title(self):
+        return $PROJECT + ' v' + $VERSION
+
+    def pr_head(self):
+        return $USERNAME + ':' + $VERSION
+
+    def remote_branch(self):
+        return $VERSION
 
 class JS(Migrator):
     """Migrator for JavaScript syntax"""
     patterns = [('meta.yaml', '  script: npm install -g \.',
                  '  script: |\n'
                  '    tgz=$(npm pack)\n'
-                 '    npm install -g $tgz'),
-                # Fix our own error :(
-                ('meta.yaml', '   script: |', '  script: |')]
+                 '    npm install -g $tgz'),]
 
     def filter(self, attrs):
         conditional = super().filter(attrs)
@@ -236,3 +253,12 @@ class JS(Migrator):
 
     def commit_message(self):
         return "migrated to new npm build"
+
+    def pr_title(self):
+        return 'Migrate to new npm build'
+
+    def pr_head(self):
+        return $USERNAME + ':' + 'npm migration'
+
+    def remote_branch(self):
+        return 'npm_migration'

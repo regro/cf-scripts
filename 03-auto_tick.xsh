@@ -40,7 +40,8 @@ def run(attrs, migrator, feedstock=None, protocol='ssh',
             conda smithy rerender -c auto
 
     # push up
-    push_repo(feedstock_dir, migrator.pr_body(), repo)
+    push_repo(feedstock_dir, migrator.pr_body(), repo, migrator.pr_title(),
+              migrator.pr_head(), migrator.remote_branch())
     # If we've gotten this far then the node is good
     attrs['bad'] = False
     print('Removing feedstock dir')
