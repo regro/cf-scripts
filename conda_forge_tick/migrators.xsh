@@ -124,13 +124,14 @@ class Version(Migrator):
                                       base1.format(set=s, checkname=cn, d=d),
                                       base2.format(set=s, checkname=cn, d=d)))
 
+    url_pat = re.compile('  url:\s*(.+?)\s*(?:(#.*)?\[([^\[\]]+)\])?(?(2)[^\(\)]*)$')
+
     def find_urls(text):
         """Get the URLs and platforms in a meta.yaml."""
-        pat = re.compile('  url:\s*(.+?)\s*(?:(#.*)?\[([^\[\]]+)\])?(?(2)[^\(\)]*)$')
         urls = []
         lines = text.splitlines()
         for line in lines:
-            m = pat.match(line)
+            m = self.url_pat.match(line)
             if m is not None:
                 urls.append((m.group(1), m.group(3)))
         return urls
