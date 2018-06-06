@@ -15,7 +15,7 @@ before_install:
 
 install:
   - export GIT_FULL_HASH=`git rev-parse HEAD`
-  - conda create --yes -n testenv --file requirements/run.txt --quiet
+  - conda create --yes -n testenv --file requirements/run --quiet
   - source activate testenv
   - python setup.py install
 
