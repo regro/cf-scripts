@@ -17,10 +17,20 @@ class NullUndefined(jinja2.Undefined):
 
 
 def rendered_meta_yaml(text):
+    """Render the meta.yaml with Jinja2 variables.
+
+    Parameters
+    ----------
+    text : str 
+        The raw text in conda-forge feedstock meta.yaml file
+
+    Returns
+    -------
+    str
+        The text of the meta.yaml with Jinja2 variables replaced.
+
     """
-    :param str text: The raw text in conda-forge feedstock meta.yaml file
-    :return: `str` -- the raw text rendered with Jinja variables
-    """
+
     env = jinja2.Environment(undefined=NullUndefined)
     content = env.from_string(text).render(
                             os=os,
@@ -32,10 +42,20 @@ def rendered_meta_yaml(text):
     return content
 
 def parsed_meta_yaml(text):
+    """Parse the meta.yaml.
+
+    Parameters
+    ----------
+    text : str 
+        The raw text in conda-forge feedstock meta.yaml file
+
+    Returns
+    -------
+    dict :
+        The parsed YAML dict. If parseing fails, returns an empty dict.
+
     """
-    :param str text: The raw text in conda-forge feedstock meta.yaml file
-    :return: `dict|None` -- parsed YAML dict if successful, None if not
-    """
+
     try:
         content = rendered_meta_yaml(text)
         return parse(content, Config())
