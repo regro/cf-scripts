@@ -180,7 +180,7 @@ extra:
     - willirath
 '''
 
-correct_one_source = '''{% set version = "2.4.1" %}
+updated_one_source = '''{% set version = "2.4.1" %}
 {% set download_url = "https://github.com/git-lfs/git-lfs/releases/download" %}
 
 package:
@@ -211,6 +211,69 @@ extra:
     - willirath
 '''
 
+jinja_sha = '''{% set version = "2.4.0" %}
+{% set download_url = "https://github.com/git-lfs/git-lfs/releases/download" %}
+{% set sha256 = "56728ec9219c1a9339e1e6166f551459d74d300a29b51031851759cee4d7d710" %}
+
+package:
+  name: git-lfs
+  version: {{ version }}
+
+source:
+  url: {{ download_url }}/v{{ version }}/git-lfs-linux-amd64-{{ version }}.tar.gz
+  fn: git-lfs-linux-amd64-{{ version }}.tar.gz
+  sha256: {{ sha256 }}
+
+build:
+  number: 0
+
+test:
+  commands:
+    - git-lfs --help
+
+about:
+  home: https://git-lfs.github.com/
+  license: MIT
+  license_file: '{{ environ["RECIPE_DIR"] }}/LICENSE.md'
+  summary: An open source Git extension for versioning large files
+
+extra:
+  recipe-maintainers:
+    - dfroger
+    - willirath
+'''
+
+updated_jinja_sha = '''{% set version = "2.4.1" %}
+{% set download_url = "https://github.com/git-lfs/git-lfs/releases/download" %}
+{% set sha256 = "97e2bd8b7b4dde393eef3dd37013629dadebddefcdf27649b441659bdf4bb636" %}
+
+package:
+  name: git-lfs
+  version: {{ version }}
+
+source:
+  url: {{ download_url }}/v{{ version }}/git-lfs-linux-amd64-{{ version }}.tar.gz
+  fn: git-lfs-linux-amd64-{{ version }}.tar.gz
+  sha256: {{ sha256 }}
+
+build:
+  number: 0
+
+test:
+  commands:
+    - git-lfs --help
+
+about:
+  home: https://git-lfs.github.com/
+  license: MIT
+  license_file: '{{ environ["RECIPE_DIR"] }}/LICENSE.md'
+  summary: An open source Git extension for versioning large files
+
+extra:
+  recipe-maintainers:
+    - dfroger
+    - willirath
+'''
 multi_source = '''{% set version = "2.4.0" %}
 {% set download_url = "https://github.com/git-lfs/git-lfs/releases/download" %}
 
@@ -250,7 +313,7 @@ extra:
     - willirath
 '''
 
-correct_multi_source = '''{% set version = "2.4.1" %}
+updated_multi_source = '''{% set version = "2.4.1" %}
 {% set download_url = "https://github.com/git-lfs/git-lfs/releases/download" %}
 
 package:
@@ -314,7 +377,15 @@ def test_version_migration(tmpdir):
     v = Version()
     v.migrate(tmpdir, {'new_version': '2.4.1'})
     with open(os.path.join(tmpdir, 'meta.yaml'), 'r') as f:
-        assert f.read() == correct_one_source
+        assert f.read() == updated_one_source
+
+    # Test meta.yaml with jinja variable for sha
+    with open(os.path.join(tmpdir, 'meta.yaml'), 'w') as f:
+        f.write(jinja_sha)
+    v = Version()
+    v.migrate(tmpdir, {'new_version': '2.4.1'})
+    with open(os.path.join(tmpdir, 'meta.yaml'), 'r') as f:
+        assert f.read() == updated_jinja_sha
 
     # Test meta.yaml with separate url for each platform
     with open(os.path.join(tmpdir, 'meta.yaml'), 'w') as f:
@@ -322,4 +393,4 @@ def test_version_migration(tmpdir):
     v = Version()
     v.migrate(tmpdir, {'new_version': '2.4.1'})
     with open(os.path.join(tmpdir, 'meta.yaml'), 'r') as f:
-        assert f.read() == correct_multi_source
+        assert f.read() == updated_multi_source
