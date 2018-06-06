@@ -84,18 +84,14 @@ for migrator in $MIGRATORS:
             # Don't bother running if we are at zero
             if gh.rate_limit()['resources']['core']['remaining'] == 0:
                 break
-            else:
-                if (gx.nodes[node].get('smithy_version') != smithy_version and
-                    gx.nodes[node].get('pinning_version') != pinning_version):
-                    run(attrs=attrs, migrator=migrator, gh=gh, rerender=True, protocol='https',
-                        hash_type=attrs.get('hash_type', 'sha256'))
-                else:
-                    run(attrs=attrs, migrator=migrator, gh=gh, rerender=False, protocol='https',
-                        hash_type=attrs.get('hash_type', 'sha256'))
-                # TODO: capture pinning here too!
-                gx.nodes[node].update({'PRed': attrs['new_version'],
-                                       'smithy_version': smithy_version,
-                                       'pinning_version': pinning_version})
+            rerender = (gx.nodes[node].get('smithy_version') != smithy_version or
+                        gx.nodes[node].get('pinning_version') != pinning_version)
+            run(attrs=attrs, migrator=migrator, gh=gh, rerender=rerender, protocol='https',
+                hash_type=attrs.get('hash_type', 'sha256'))
+            # TODO: capture pinning here too!
+            gx.nodes[node].update({'PRed': attrs['new_version'],
+                                   'smithy_version': smithy_version,
+                                   'pinning_version': pinning_version})
         except github3.GitHubError as e:
             print('GITHUB ERROR ON FEEDSTOCK: {}'.format($PROJECT))
             print(e)
