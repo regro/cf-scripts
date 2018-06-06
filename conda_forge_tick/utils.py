@@ -24,7 +24,7 @@ def rendered_meta_yaml(text):
     env = jinja2.Environment(undefined=NullUndefined)
     content = env.from_string(text).render(
                             os=os,
-                            environ=defaultdict(lambda: ''),
+                            environ=defaultdict(str),
                             compiler=lambda x: x + '_compiler_stub',
                             pin_subpackage=lambda *args, **kwargs: 'subpackage_stub',
                             pin_compatible=lambda *args, **kwargs: 'compatible_pin_stub',
