@@ -110,21 +110,6 @@ class Version(Migrator):
          '{% set build = 0 %}'),
     )
 
-    more_patterns = []
-    checksum_names = ['hash_value', 'hash', 'hash_val', 'sha256sum',
-                      'checksum',
-                      '$HASH_TYPE']
-    delim = ["'", '"']
-    sets = [' set', 'set']
-    base1 = '''{{%{set} {checkname} = {d}[0-9A-Fa-f]+{d} %}}'''
-    base2 = '''{{%{set} {checkname} = {d}$HASH{d} %}}'''
-    for cn in checksum_names:
-        for s in sets:
-            for d in delim:
-                more_patterns.append(('meta.yaml',
-                                      base1.format(set=s, checkname=cn, d=d),
-                                      base2.format(set=s, checkname=cn, d=d)))
-
     url_pat = re.compile('  url:\s*(.+?)\s*(?:(#.*)?\[([^\[\]]+)\])?(?(2)[^\(\)]*)$')
 
     def find_urls(self, text):
@@ -140,7 +125,15 @@ class Version(Migrator):
     def get_hash_patterns(self, filename, urls, hash_type):
         """Get the patterns to replace hash for each platform."""
         pats = ()
+        checksum_names = ['hash_value', 'hash', 'hash_val', 'sha256sum',
+                          'checksum', hash_type]
         for url, platform in urls:
+            if isinstance(url, list):
+                for u in url:
+                    if 'Archive' not in u:
+                        url = u
+                        break
+
             hash = hash_url(url, hash_type)
             p = '  {}:\s*[0-9A-Fa-f]+'.format(hash_type)
             n = '  {}: {}'.format(hash_type, hash)
@@ -148,6 +141,13 @@ class Version(Migrator):
                 p += '\s*(#.*)\[{}\](?(1)[^\(\)]*)$'.format(platform)
                 n += '  # [{}]'.format(platform)
             pats += ((filename, p, n),)
+
+            base1 = '''{{%\s*set {checkname} = ['"][0-9A-Fa-f]+['"] %}}'''
+            base2 = '{{% set {checkname} = "{h}" %}}'
+            for cn in checksum_names:
+                pats += (('meta.yaml',
+                          base1.format(checkname=cn),
+                          base2.format(checkname=cn, h=hash)),)
         return pats
 
     def filter(self, attrs):
@@ -175,36 +175,7 @@ class Version(Migrator):
             urls = self.find_urls(rendered_text)
             new_patterns = self.patterns + self.get_hash_patterns('meta.yaml', urls, hash_type)
 
-            # If we can't parse the meta_yaml then jump out
-            meta_yaml = parsed_meta_yaml(text)
-            # If the parser returns None, then we didn't read the meta.yaml
-            # TODO: How we didn't fail at 01 on this recipe is mysterious
-            if meta_yaml is None:
-                attrs['bad'] = '{}: failed to read meta.yaml\n'.format($PROJECT)
-                return False
-            source_url = meta_yaml.get('source', {}).get('url')
-            if not source_url:
-                attrs['bad'] = '{}: missing url\n'.format($PROJECT)
-                return False
-            if isinstance(source_url, list):
-                for url in source_url:
-                    if 'Archive' not in url:
-                        source_url = url
-                        break
-            if 'cran.r-project.org/src/contrib' in source_url:
-                $VERSION = $VERSION.replace('_', '-')
-
-        # now, update the feedstock to the new version
-        source_url = eval_version(source_url)
-        try:
-            hash = hash_url(source_url, hash_type)
-        except urllib.error.HTTPError:
-            attrs['bad'] = '{}: hash failed at {}\n'.format(
-                meta_yaml.get('package', {}).get('name', 'UNKOWN'), source_url)
-            return False
-
-        new_patterns += tuple(self.more_patterns)
-        with indir(recipe_dir), ${...}.swap(HASH_TYPE=hash_type, HASH=hash, SOURCE_URL=source_url):
+        with indir(recipe_dir):#, ${...}.swap(HASH_TYPE=hash_type, HASH=hash, SOURCE_URL=source_url):
             for f, p, n in new_patterns:
                 p = eval_version(p)
                 n = eval_version(n)
