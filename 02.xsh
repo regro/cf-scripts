@@ -1,12 +1,5 @@
 #!/usr/bin/env xonsh
 import time
-
-$XONSH_SHOW_TRACEBACK = True
-
-ls -lart
-
-source bot.xsh
-
 cd ../cf-graph
 $PATH.insert(0, '~/mc/bin')
 
