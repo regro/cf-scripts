@@ -1,4 +1,5 @@
 """Classes for migrating repos"""
+import re
 import urllib.error
 
 from conda.models.version import VersionOrder
