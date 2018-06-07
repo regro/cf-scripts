@@ -111,8 +111,8 @@ class Version(Migrator):
     )
 
     url_pat = re.compile('  url:\s*([^\s#]+?)\s*(?:(#.*)?\[([^\[\]]+)\])?(?(2)[^\(\)]*)$')
-    r_url_pat = re.compile('  url:\s*(?:(#.*)?\[([^\[\]]+)\])?(?(1)[^\(\)]*?)\s*\n(    -.*(\s*\n)?)*')
-    r_urls = re.compile('    -\s*(.+?)\s*(?:#.*)?$', flags=re.M)
+    r_url_pat = re.compile('  url:\s*(?:(#.*)?\[([^\[\]]+)\])?(?(1)[^\(\)]*?)\n(    -.*\n?)*')
+    r_urls = re.compile('    -(.+?)(?:#.*)?$', flags=re.M)
 
     def find_urls(self, text):
         """Get the URLs and platforms in a meta.yaml."""
