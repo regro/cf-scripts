@@ -170,6 +170,12 @@ class Version(Migrator):
         # Render with new version but nothing else
         $VERSION = attrs['new_version']
         with indir(recipe_dir):
+            with open('meta.yaml', 'r') as f:
+                text = f.read()
+        url = re.search('  url:.*?\n(    -.*\n?)*', text).group()
+        if 'cran.r-project.org/src/contrib' in url:
+            $VERSION = $VERSION.replace('_', '-')
+        with indir(recipe_dir):
             for f, p, n in self.patterns:
                 p = eval_version(p)
                 n = eval_version(n)
