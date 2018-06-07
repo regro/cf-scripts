@@ -137,11 +137,13 @@ class Version(Migrator):
         for url, platform in urls:
             if isinstance(url, list):
                 for u in url:
-                    if 'Archive' not in u:
-                        url = u
+                    try:
+                        hash = hash_url(u, hash_type)
                         break
-
-            hash = hash_url(url, hash_type)
+                    except urllib.error.HTTPError:
+                        continue
+            else:
+                hash = hash_url(url, hash_type)
             p = '  {}:\s*[0-9A-Fa-f]+'.format(hash_type)
             n = '  {}: {}'.format(hash_type, hash)
             if platform is not None:
