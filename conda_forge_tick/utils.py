@@ -21,7 +21,7 @@ def render_meta_yaml(text):
 
     Parameters
     ----------
-    text : str 
+    text : str
         The raw text in conda-forge feedstock meta.yaml file
 
     Returns
@@ -41,12 +41,13 @@ def render_meta_yaml(text):
                             cdt=lambda *args, **kwargs: 'cdt_stub',)
     return content
 
+
 def parse_meta_yaml(text):
     """Parse the meta.yaml.
 
     Parameters
     ----------
-    text : str 
+    text : str
         The raw text in conda-forge feedstock meta.yaml file
 
     Returns
