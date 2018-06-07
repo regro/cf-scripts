@@ -111,6 +111,8 @@ class Version(Migrator):
     )
 
     url_pat = re.compile('  url:\s*(.+?)\s*(?:(#.*)?\[([^\[\]]+)\])?(?(2)[^\(\)]*)$')
+    r_url_pat = re.compile('  url:\s*(?:(#.*)?\[([^\[\]]+)\])?(?(1)[^\(\)]*)\s*\n(    -.*(\s*\n)?)*')
+    r_urls = re.compile('    -\s*(.*)(?:\s*\n)?')
 
     def find_urls(self, text):
         """Get the URLs and platforms in a meta.yaml."""
@@ -120,6 +122,10 @@ class Version(Migrator):
             m = self.url_pat.match(line)
             if m is not None:
                 urls.append((m.group(1), m.group(3)))
+        s = self.r_url_pat.search(text)
+        if s is not None:
+            r = self.r_urls.findall(s.group())
+            urls.append((r, s.group(2)))
         return urls
 
     def get_hash_patterns(self, filename, urls, hash_type):
