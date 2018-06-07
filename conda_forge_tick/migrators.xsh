@@ -168,14 +168,14 @@ class Version(Migrator):
 
     def migrate(self, recipe_dir, attrs, hash_type='sha256'):
         # Render with new version but nothing else
-        $VERSION = attrs['new_version']
+        version = attrs['new_version']
         with indir(recipe_dir):
             with open('meta.yaml', 'r') as f:
                 text = f.read()
         url = re.search('  url:.*?\n(    -.*\n?)*', text).group()
         if 'cran.r-project.org/src/contrib' in url:
-            $VERSION = $VERSION.replace('_', '-')
-        with indir(recipe_dir):
+            version = version.replace('_', '-')
+        with indir(recipe_dir), ${...}.swap(VERSION=version):
             for f, p, n in self.patterns:
                 p = eval_version(p)
                 n = eval_version(n)
@@ -186,7 +186,7 @@ class Version(Migrator):
         # Get patterns to replace checksum for each platform
         rendered_text = render_meta_yaml(text)
         urls = self.find_urls(rendered_text)
-        new_patterns = self.patterns + self.get_hash_patterns('meta.yaml', urls, hash_type)
+        new_patterns = self.get_hash_patterns('meta.yaml', urls, hash_type)
 
         with indir(recipe_dir):
             for f, p, n in new_patterns:
