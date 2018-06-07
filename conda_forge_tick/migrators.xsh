@@ -6,7 +6,7 @@ from conda.models.version import VersionOrder
 
 from rever.tools import (eval_version, indir, hash_url, replace_in_file)
 
-from conda_forge_tick.utils import (parsed_meta_yaml, rendered_meta_yaml)
+from conda_forge_tick.utils import render_meta_yaml
 
 
 class Migrator:
@@ -184,7 +184,7 @@ class Version(Migrator):
                 text = f.read()
 
         # Get patterns to replace checksum for each platform
-        rendered_text = rendered_meta_yaml(text)
+        rendered_text = render_meta_yaml(text)
         urls = self.find_urls(rendered_text)
         new_patterns = self.patterns + self.get_hash_patterns('meta.yaml', urls, hash_type)
 

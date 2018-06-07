@@ -2,7 +2,7 @@ import hashlib
 import time
 import networkx as nx
 import requests
-from .utils import parsed_meta_yaml
+from .utils import parse_meta_yaml
 from .all_feedstocks import get_all_feedstocks
 
 import logging
@@ -29,7 +29,7 @@ def get_attrs(name, i, bad):
 
     text = r.content.decode('utf-8')
     sub_graph['raw_meta_yaml'] = text
-    yaml_dict = parsed_meta_yaml(text)
+    yaml_dict = parse_meta_yaml(text)
     if not yaml_dict:
         logger.warn('Something odd happened when parsing recipe '
                     '{}'.format(name))

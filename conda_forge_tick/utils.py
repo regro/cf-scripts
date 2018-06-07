@@ -16,7 +16,7 @@ class NullUndefined(jinja2.Undefined):
         return '{}["{}"]'.format(self, name)
 
 
-def rendered_meta_yaml(text):
+def render_meta_yaml(text):
     """Render the meta.yaml with Jinja2 variables.
 
     Parameters
@@ -41,7 +41,7 @@ def rendered_meta_yaml(text):
                             cdt=lambda *args, **kwargs: 'cdt_stub',)
     return content
 
-def parsed_meta_yaml(text):
+def parse_meta_yaml(text):
     """Parse the meta.yaml.
 
     Parameters
@@ -57,7 +57,7 @@ def parsed_meta_yaml(text):
     """
 
     try:
-        content = rendered_meta_yaml(text)
+        content = render_meta_yaml(text)
         return parse(content, Config())
     except:
         return {}
