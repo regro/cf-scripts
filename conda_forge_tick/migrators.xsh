@@ -177,10 +177,10 @@ class Version(Migrator):
             with open('meta.yaml', 'r') as f:
                 text = f.read()
 
-            # Get patterns to replace checksum for each platform
-            rendered_text = rendered_meta_yaml(text)
-            urls = self.find_urls(rendered_text)
-            new_patterns = self.patterns + self.get_hash_patterns('meta.yaml', urls, hash_type)
+        # Get patterns to replace checksum for each platform
+        rendered_text = rendered_meta_yaml(text)
+        urls = self.find_urls(rendered_text)
+        new_patterns = self.patterns + self.get_hash_patterns('meta.yaml', urls, hash_type)
 
         with indir(recipe_dir):
             for f, p, n in new_patterns:
