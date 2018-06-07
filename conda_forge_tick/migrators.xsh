@@ -122,10 +122,11 @@ class Version(Migrator):
             m = self.url_pat.match(line)
             if m is not None:
                 urls.append((m.group(1), m.group(3)))
-        s = self.r_url_pat.search(text)
-        if s is not None:
-            r = self.r_urls.findall(s.group())
-            urls.append((r, s.group(2)))
+        matches = self.r_url_pat.finditer(text)
+        for m in matches:
+            if m is not None:
+                r = self.r_urls.findall(m.group())
+                urls.append((r, m.group(2)))
         return urls
 
     def get_hash_patterns(self, filename, urls, hash_type):
