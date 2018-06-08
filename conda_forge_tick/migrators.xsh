@@ -44,16 +44,6 @@ class Migrator:
         """
         return True
 
-    def set_attrs(self, attrs):
-        """Set the attributes of the node currently being migrated.
-
-        Parameters
-        ----------
-        attrs: dict
-            The attributes.
-        """
-        self.attrs = attrs
-
     def pr_body(self):
         """Create a PR message body
 
@@ -180,7 +170,7 @@ class Version(Migrator):
 
     def migrate(self, recipe_dir, attrs, hash_type='sha256'):
         # Render with new version but nothing else
-        self.set_attrs(attrs)
+        self.version = attrs['new_version']
         with indir(recipe_dir):
             with open('meta.yaml', 'r') as f:
                 text = f.read()
@@ -247,6 +237,7 @@ class Version(Migrator):
         return $USERNAME + ':' + self.remote_branch()
 
     def remote_branch(self):
+        self.version = self.attrs['new_version']
         return self.version
 
 class JS(Migrator):
