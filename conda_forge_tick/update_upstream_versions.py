@@ -6,7 +6,7 @@ from pkg_resources import parse_version
 from conda.models.version import VersionOrder
 import feedparser
 
-from .utils import parsed_meta_yaml
+from .utils import parse_meta_yaml
 
 import logging
 
@@ -141,7 +141,7 @@ class RawURL:
             found = False
             for next_ver in next_version(current_ver):
                 new_content = content.replace(orig_ver, next_ver)
-                meta = parsed_meta_yaml(new_content)
+                meta = parse_meta_yaml(new_content)
                 url = str(meta['source'].get('url', None))
                 if url is None:
                     with open('upstream_bad', 'a') as f:

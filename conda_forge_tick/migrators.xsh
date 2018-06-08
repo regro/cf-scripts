@@ -1,11 +1,12 @@
 """Classes for migrating repos"""
+import re
 import urllib.error
 
 from conda.models.version import VersionOrder
 
 from rever.tools import (eval_version, indir, hash_url, replace_in_file)
 
-from conda_forge_tick.utils import parsed_meta_yaml
+from conda_forge_tick.utils import render_meta_yaml
 
 
 class Migrator:
@@ -107,27 +108,56 @@ class Version(Migrator):
          '{% set build_number = 0 %}'),
         ('meta.yaml', '{%\s*set build\s*=\s*"?[0-9]+"?\s*%}',
          '{% set build = 0 %}'),
-        # set the hash
-        ('meta.yaml', '{% set $HASH_TYPE = "[0-9A-Fa-f]+" %}',
-         '{% set $HASH_TYPE = "$HASH" %}'),
-        ('meta.yaml', '  $HASH_TYPE:\s*[0-9A-Fa-f]+', '  $HASH_TYPE: $HASH'),
-
     )
 
-    more_patterns = []
-    checksum_names = ['hash_value', 'hash', 'hash_val', 'sha256sum',
-                      'checksum',
-                      '$HASH_TYPE']
-    delim = ["'", '"']
-    sets = [' set', 'set']
-    base1 = '''{{%{set} {checkname} = {d}[0-9A-Fa-f]+{d} %}}'''
-    base2 = '''{{%{set} {checkname} = {d}$HASH{d} %}}'''
-    for cn in checksum_names:
-        for s in sets:
-            for d in delim:
-                more_patterns.append(('meta.yaml',
-                                      base1.format(set=s, checkname=cn, d=d),
-                                      base2.format(set=s, checkname=cn, d=d)))
+    url_pat = re.compile('  url:\s*([^\s#]+?)\s*(?:(#.*)?\[([^\[\]]+)\])?(?(2)[^\(\)]*)$')
+    r_url_pat = re.compile('  url:\s*(?:(#.*)?\[([^\[\]]+)\])?(?(1)[^\(\)]*?)\n(    -.*\n?)*')
+    r_urls = re.compile('    -(.+?)(?:#.*)?$', flags=re.M)
+
+    def find_urls(self, text):
+        """Get the URLs and platforms in a meta.yaml."""
+        urls = []
+        lines = text.splitlines()
+        for line in lines:
+            m = self.url_pat.match(line)
+            if m is not None:
+                urls.append((m.group(1), m.group(3)))
+        matches = self.r_url_pat.finditer(text)
+        for m in matches:
+            if m is not None:
+                r = self.r_urls.findall(m.group())
+                urls.append((r, m.group(2)))
+        return urls
+
+    def get_hash_patterns(self, filename, urls, hash_type):
+        """Get the patterns to replace hash for each platform."""
+        pats = ()
+        checksum_names = ['hash_value', 'hash', 'hash_val', 'sha256sum',
+                          'checksum', hash_type]
+        for url, platform in urls:
+            if isinstance(url, list):
+                for u in url:
+                    try:
+                        hash = hash_url(u, hash_type)
+                        break
+                    except urllib.error.HTTPError:
+                        continue
+            else:
+                hash = hash_url(url, hash_type)
+            p = '  {}:\s*[0-9A-Fa-f]+'.format(hash_type)
+            n = '  {}: {}'.format(hash_type, hash)
+            if platform is not None:
+                p += '\s*(#.*)\[{}\](?(1)[^\(\)]*)$'.format(platform)
+                n += '  # [{}]'.format(platform)
+            pats += ((filename, p, n),)
+
+            base1 = '''{{%\s*set {checkname} = ['"][0-9A-Fa-f]+['"] %}}'''
+            base2 = '{{% set {checkname} = "{h}" %}}'
+            for cn in checksum_names:
+                pats += (('meta.yaml',
+                          base1.format(checkname=cn),
+                          base2.format(checkname=cn, h=hash)),)
+        return pats
 
     def filter(self, attrs):
         conditional = super().filter(attrs)
@@ -140,43 +170,27 @@ class Version(Migrator):
 
     def migrate(self, recipe_dir, attrs, hash_type='sha256'):
         # Render with new version but nothing else
+        version = attrs['new_version']
         with indir(recipe_dir):
+            with open('meta.yaml', 'r') as f:
+                text = f.read()
+        url = re.search('  url:.*?\n(    -.*\n?)*', text).group()
+        if 'cran.r-project.org/src/contrib' in url:
+            version = version.replace('_', '-')
+        with indir(recipe_dir), ${...}.swap(VERSION=version):
             for f, p, n in self.patterns:
                 p = eval_version(p)
                 n = eval_version(n)
                 replace_in_file(p, n, f)
             with open('meta.yaml', 'r') as f:
                 text = f.read()
-            # If we can't parse the meta_yaml then jump out
-            meta_yaml = parsed_meta_yaml(text)
-            # If the parser returns None, then we didn't read the meta.yaml
-            # TODO: How we didn't fail at 01 on this recipe is mysterious
-            if meta_yaml is None:
-                attrs['bad'] = '{}: failed to read meta.yaml\n'.format($PROJECT)
-                return False
-            source_url = meta_yaml.get('source', {}).get('url')
-            if not source_url:
-                attrs['bad'] = '{}: missing url\n'.format($PROJECT)
-                return False
-            if isinstance(source_url, list):
-                for url in source_url:
-                    if 'Archive' not in url:
-                        source_url = url
-                        break
-            if 'cran.r-project.org/src/contrib' in source_url:
-                $VERSION = $VERSION.replace('_', '-')
 
-        # now, update the feedstock to the new version
-        source_url = eval_version(source_url)
-        try:
-            hash = hash_url(source_url, hash_type)
-        except urllib.error.HTTPError:
-            attrs['bad'] = '{}: hash failed at {}\n'.format(
-                meta_yaml.get('package', {}).get('name', 'UNKOWN'), source_url)
-            return False
+        # Get patterns to replace checksum for each platform
+        rendered_text = render_meta_yaml(text)
+        urls = self.find_urls(rendered_text)
+        new_patterns = self.get_hash_patterns('meta.yaml', urls, hash_type)
 
-        new_patterns = tuple(self.patterns) + tuple(self.more_patterns)
-        with indir(recipe_dir), ${...}.swap(HASH_TYPE=hash_type, HASH=hash, SOURCE_URL=source_url):
+        with indir(recipe_dir):
             for f, p, n in new_patterns:
                 p = eval_version(p)
                 n = eval_version(n)

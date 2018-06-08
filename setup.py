@@ -11,5 +11,6 @@ setup(
     include_package_data=True,
     packages=['conda_forge_tick'],
     package_data={'conda_forge_tick': ['*.xsh']},
-    package_dir={'conda_forge_tick': 'conda_forge_tick'}
+    package_dir={'conda_forge_tick': 'conda_forge_tick'},
+    zip_safe=False
 )

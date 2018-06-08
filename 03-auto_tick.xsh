@@ -77,7 +77,6 @@ for migrator in $MIGRATORS:
         if time.time() - int($START_TIME) > int($TIMEOUT):
             break
         $PROJECT = attrs['feedstock_name']
-        $VERSION = attrs['new_version']
         $NODE = node
         print('BOT IS MIGRATING', $PROJECT)
         try:
