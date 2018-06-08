@@ -197,10 +197,6 @@ class Version(Migrator):
                 replace_in_file(p, n, f)
         return True
 
-    def set_attrs(self, attrs):
-        super().set_attrs(attrs)
-        self.version = attrs['new_version']
-
     def pr_body(self):
         pred = [(name, $SUBGRAPH.node[name]['new_version'])
                 for name in list($SUBGRAPH.predecessors($NODE))]
