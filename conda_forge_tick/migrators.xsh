@@ -44,6 +44,16 @@ class Migrator:
         """
         return True
 
+    def set_attrs(self, attrs):
+        """Set the attributes of the node currently being migrated.
+
+        Parameters
+        ----------
+        attrs: dict
+            The attributes.
+        """
+        self.attrs = attrs
+
     def pr_body(self):
         """Create a PR message body
 
@@ -170,7 +180,7 @@ class Version(Migrator):
 
     def migrate(self, recipe_dir, attrs, hash_type='sha256'):
         # Render with new version but nothing else
-        self.version = attrs['new_version']
+        self.set_attrs(attrs)
         with indir(recipe_dir):
             with open('meta.yaml', 'r') as f:
                 text = f.read()
@@ -196,6 +206,10 @@ class Version(Migrator):
                 n = eval_version(n)
                 replace_in_file(p, n, f)
         return True
+
+    def set_attrs(self, attrs):
+        super().set_attrs()
+        self.version = attrs['new_version']
 
     def pr_body(self):
         pred = [(name, $SUBGRAPH.node[name]['new_version'])
