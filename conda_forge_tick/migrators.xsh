@@ -208,7 +208,7 @@ class Version(Migrator):
         return True
 
     def set_attrs(self, attrs):
-        super().set_attrs()
+        super().set_attrs(attrs)
         self.version = attrs['new_version']
 
     def pr_body(self):
