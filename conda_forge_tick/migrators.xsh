@@ -170,14 +170,14 @@ class Version(Migrator):
 
     def migrate(self, recipe_dir, attrs, hash_type='sha256'):
         # Render with new version but nothing else
-        self.version = attrs['new_version']
+        version = attrs['new_version']
         with indir(recipe_dir):
             with open('meta.yaml', 'r') as f:
                 text = f.read()
         url = re.search('  url:.*?\n(    -.*\n?)*', text).group()
         if 'cran.r-project.org/src/contrib' in url:
-            self.version = self.version.replace('_', '-')
-        with indir(recipe_dir), ${...}.swap(VERSION=self.version):
+            version = version.replace('_', '-')
+        with indir(recipe_dir), ${...}.swap(VERSION=version):
             for f, p, n in self.patterns:
                 p = eval_version(p)
                 n = eval_version(n)
@@ -224,17 +224,16 @@ class Version(Migrator):
         return body
 
     def commit_message(self):
-        return "updated v" + self.version
+        return "updated v" + self.attrs['new_version']
 
     def pr_title(self):
-        return $PROJECT + ' v' + self.version
+        return $PROJECT + ' v' + self.attrs['new_version']
 
     def pr_head(self):
         return $USERNAME + ':' + self.remote_branch()
 
     def remote_branch(self):
-        self.version = self.attrs['new_version']
-        return self.version
+        return self.attrs['new_version']
 
 class JS(Migrator):
     """Migrator for JavaScript syntax"""
