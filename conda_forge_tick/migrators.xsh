@@ -224,19 +224,16 @@ class Version(Migrator):
         return body
 
     def commit_message(self):
-        with ${...}.swap(VERSION=self.version):
-            return "updated v" + $VERSION
+        return "updated v" + self.version
 
     def pr_title(self):
-        with ${...}.swap(VERSION=self.version):
-            return $PROJECT + ' v' + $VERSION
+        return $PROJECT + ' v' + self.version
 
     def pr_head(self):
         return $USERNAME + ':' + self.remote_branch()
 
     def remote_branch(self):
-        with ${...}.swap(VERSION=self.version):
-            return $VERSION
+        return self.version
 
 class JS(Migrator):
     """Migrator for JavaScript syntax"""
