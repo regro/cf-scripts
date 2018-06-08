@@ -177,7 +177,7 @@ class Version(Migrator):
         url = re.search('  url:.*?\n(    -.*\n?)*', text).group()
         if 'cran.r-project.org/src/contrib' in url:
             self.version = version.replace('_', '-')
-        with indir(recipe_dir), ${...}.swap(VERSION=version):
+        with indir(recipe_dir), ${...}.swap(VERSION=self.version):
             for f, p, n in self.patterns:
                 p = eval_version(p)
                 n = eval_version(n)
