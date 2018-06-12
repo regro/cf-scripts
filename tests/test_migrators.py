@@ -475,6 +475,157 @@ extra:
     - cbrueffer
 '''
 
+cb3_multi = '''{% set name = "pypy3.5" %}
+{% set version = "5.9.0" %}
+
+package:
+  name: {{ name }}
+  version: {{ version }}
+
+source:
+  - url: https://bitbucket.org/pypy/pypy/downloads/pypy3-v{{ version }}-src.tar.bz2
+    fn: pypy3-v{{ version }}-src.tar.bz2
+    sha256: a014f47f50a1480f871a0b82705f904b38c93c4ca069850eb37653fedafb1b97
+    folder: pypy3
+    patches:
+      - tklib_build.patch
+
+  - url: https://bitbucket.org/pypy/pypy/downloads/pypy2-v5.9.0-osx64.tar.bz2  # [osx]
+    fn: pypy2-v5.9.0-osx64.tar.bz2  # [osx]
+    sha256: 94de50ed80c7f6392ed356c03fd54cdc84858df43ad21e9e971d1b6da0f6b867  # [osx]
+    folder: pypy2-osx  # [osx]
+
+build:
+  number: 0
+  skip: True  # [win]
+  skip_compile_pyc:
+    - lib*
+
+requirements:
+  build:
+    - {{ compiler('c') }}
+    - python >=2.7,<3
+  host:
+    - python >=2.7,<3
+    - libunwind  # [osx]
+    - pkg-config
+    - pycparser
+    - openssl
+    - libffi
+    - sqlite
+    - tk
+    - zlib
+    - bzip2
+    - expat
+    - ncurses >=6.0
+    - gdbm
+    - xz
+    - tk
+  run:
+    - libunwind  # [osx]
+    - openssl
+    - libffi
+    - sqlite
+    - tk
+    - zlib
+    - bzip2
+    - ncurses >=6.0
+    - gdbm
+    - xz
+    - expat
+
+test:
+  commands:
+    - pypy3 --help
+
+about:
+    home: http://pypy.org/
+    license: MIT
+    license_family: MIT
+    license_file: pypy3/LICENSE
+    summary: PyPy is a Python interpreter and just-in-time compiler.
+
+extra:
+  recipe-maintainers:
+    - omerbenamram
+    - ohadravid
+'''
+
+updated_cb3_multi = '''{% set name = "pypy3.5" %}
+{% set version = "6.0.0" %}
+
+package:
+  name: {{ name }}
+  version: {{ version }}
+
+source:
+  - url: https://bitbucket.org/pypy/pypy/downloads/pypy3-v{{ version }}-src.tar.bz2
+    fn: pypy3-v{{ version }}-src.tar.bz2
+    sha256: ed8005202b46d6fc6831df1d13a4613bc40084bfa42f275068edadf8954034a3
+    folder: pypy3
+    patches:
+      - tklib_build.patch
+
+  - url: https://bitbucket.org/pypy/pypy/downloads/pypy2-v5.9.0-osx64.tar.bz2  # [osx]
+    fn: pypy2-v5.9.0-osx64.tar.bz2  # [osx]
+    sha256: 94de50ed80c7f6392ed356c03fd54cdc84858df43ad21e9e971d1b6da0f6b867  # [osx]
+    folder: pypy2-osx  # [osx]
+
+build:
+  number: 0
+  skip: True  # [win]
+  skip_compile_pyc:
+    - lib*
+
+requirements:
+  build:
+    - {{ compiler('c') }}
+    - python >=2.7,<3
+  host:
+    - python >=2.7,<3
+    - libunwind  # [osx]
+    - pkg-config
+    - pycparser
+    - openssl
+    - libffi
+    - sqlite
+    - tk
+    - zlib
+    - bzip2
+    - expat
+    - ncurses >=6.0
+    - gdbm
+    - xz
+    - tk
+  run:
+    - libunwind  # [osx]
+    - openssl
+    - libffi
+    - sqlite
+    - tk
+    - zlib
+    - bzip2
+    - ncurses >=6.0
+    - gdbm
+    - xz
+    - expat
+
+test:
+  commands:
+    - pypy3 --help
+
+about:
+    home: http://pypy.org/
+    license: MIT
+    license_family: MIT
+    license_file: pypy3/LICENSE
+    summary: PyPy is a Python interpreter and just-in-time compiler.
+
+extra:
+  recipe-maintainers:
+    - omerbenamram
+    - ohadravid
+'''
 
 def test_js_migration(tmpdir):
     with open(os.path.join(tmpdir, 'meta.yaml'), 'w') as f:
@@ -497,6 +648,7 @@ def test_js_migration2(tmpdir):
 def test_version_migration(tmpdir):
     v = Version()
 
+    '''
     # Test meta.yaml with one url
     with open(os.path.join(tmpdir, 'meta.yaml'), 'w') as f:
         f.write(one_source)
@@ -524,3 +676,11 @@ def test_version_migration(tmpdir):
     v.migrate(tmpdir, {'new_version': '1.3_2'})
     with open(os.path.join(tmpdir, 'meta.yaml'), 'r') as f:
         assert f.read() == updated_sample_r
+        '''
+
+    # Test conda-build 3 style multiple sources
+    with open(os.path.join(tmpdir, 'meta.yaml'), 'w') as f:
+        f.write(cb3_multi)
+    v.migrate(tmpdir, {'new_version': '6.0.0'})
+    with open(os.path.join(tmpdir, 'meta.yaml'), 'r') as f:
+        assert f.read() == updated_cb3_multi
