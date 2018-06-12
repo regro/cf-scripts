@@ -110,9 +110,9 @@ class Version(Migrator):
          '{% set build = 0 %}'),
     )
 
-    url_pat = re.compile('  url:\s*([^\s#]+?)\s*(?:(#.*)?\[([^\[\]]+)\])?(?(2)[^\(\)]*)$')
-    r_url_pat = re.compile('  url:\s*(?:(#.*)?\[([^\[\]]+)\])?(?(1)[^\(\)]*?)\n(    -.*\n?)*')
-    r_urls = re.compile('    -(.+?)(?:#.*)?$', flags=re.M)
+    url_pat = re.compile('\s*-?\s*url:\s*([^\s#]+?)\s*(?:(#.*)?\[([^\[\]]+)\])?(?(2)[^\(\)]*)$')
+    r_url_pat = re.compile(r'^(\s*)(-)?(\s*)url:\s*(?:(#.*)?\[([^\[\]]+)\])?(?(4)[^\(\)]*?)\n(\1(?(2) \3)  -.*\n?)*', flags=re.M)
+    r_urls = re.compile('\s*-(.+?)(?:#.*)?$', flags=re.M)
 
     def find_urls(self, text):
         """Get the URLs and platforms in a meta.yaml."""
@@ -174,7 +174,7 @@ class Version(Migrator):
         with indir(recipe_dir):
             with open('meta.yaml', 'r') as f:
                 text = f.read()
-        url = re.search('  url:.*?\n(    -.*\n?)*', text).group()
+        url = re.search('\s*-?\s*url:.*?\n(    -.*\n?)*', text).group()
         if 'cran.r-project.org/src/contrib' in url:
             version = version.replace('_', '-')
         with indir(recipe_dir), ${...}.swap(VERSION=version):
