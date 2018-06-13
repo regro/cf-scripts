@@ -144,11 +144,13 @@ class Version(Migrator):
                         continue
             else:
                 hash = hash_url(url, hash_type)
-            p = '  {}:\s*[0-9A-Fa-f]+'.format(hash_type)
-            n = '  {}: {}'.format(hash_type, hash)
+            p = '{}:\s*[0-9A-Fa-f]+'.format(hash_type)
+            n = '{}: {}'.format(hash_type, hash)
             if platform is not None:
                 p += '\s*(#.*)\[{}\](?(1)[^\(\)]*)$'.format(platform)
                 n += '  # [{}]'.format(platform)
+            else:
+                p += '$'
             pats += ((filename, p, n),)
 
             base1 = '''{{%\s*set {checkname} = ['"][0-9A-Fa-f]+['"] %}}'''

@@ -648,7 +648,6 @@ def test_js_migration2(tmpdir):
 def test_version_migration(tmpdir):
     v = Version()
 
-    '''
     # Test meta.yaml with one url
     with open(os.path.join(tmpdir, 'meta.yaml'), 'w') as f:
         f.write(one_source)
@@ -676,7 +675,6 @@ def test_version_migration(tmpdir):
     v.migrate(tmpdir, {'new_version': '1.3_2'})
     with open(os.path.join(tmpdir, 'meta.yaml'), 'r') as f:
         assert f.read() == updated_sample_r
-        '''
 
     # Test conda-build 3 style multiple sources
     with open(os.path.join(tmpdir, 'meta.yaml'), 'w') as f:
