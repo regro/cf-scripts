@@ -490,10 +490,10 @@ source:
     patches:
       - tklib_build.patch
 
-  - url: https://bitbucket.org/pypy/pypy/downloads/pypy2-v5.9.0-osx64.tar.bz2  # [osx]
-    fn: pypy2-v5.9.0-osx64.tar.bz2  # [osx]
-    sha256: 94de50ed80c7f6392ed356c03fd54cdc84858df43ad21e9e971d1b6da0f6b867  # [osx]
-    folder: pypy2-osx  # [osx]
+  - url: https://bitbucket.org/pypy/pypy/downloads/pypy2-v5.9.0-osx64.tar.bz2
+    fn: pypy2-v5.9.0-osx64.tar.bz2
+    sha256: 94de50ed80c7f6392ed356c03fd54cdc84858df43ad21e9e971d1b6da0f6b867
+    folder: pypy2-osx
 
 build:
   number: 0
@@ -566,10 +566,10 @@ source:
     patches:
       - tklib_build.patch
 
-  - url: https://bitbucket.org/pypy/pypy/downloads/pypy2-v5.9.0-osx64.tar.bz2  # [osx]
-    fn: pypy2-v5.9.0-osx64.tar.bz2  # [osx]
-    sha256: 94de50ed80c7f6392ed356c03fd54cdc84858df43ad21e9e971d1b6da0f6b867  # [osx]
-    folder: pypy2-osx  # [osx]
+  - url: https://bitbucket.org/pypy/pypy/downloads/pypy2-v5.9.0-osx64.tar.bz2
+    fn: pypy2-v5.9.0-osx64.tar.bz2
+    sha256: 94de50ed80c7f6392ed356c03fd54cdc84858df43ad21e9e971d1b6da0f6b867
+    folder: pypy2-osx
 
 build:
   number: 0
