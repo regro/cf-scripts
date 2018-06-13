@@ -142,7 +142,13 @@ class RawURL:
             for next_ver in next_version(current_ver):
                 new_content = content.replace(orig_ver, next_ver)
                 meta = parse_meta_yaml(new_content)
-                url = str(meta['source'].get('url', None))
+                source = meta['source']
+                if not isinstance(source, list):
+                    source = [source]
+                url = None
+                for s in source:
+                    if next_ver in s.get('url', ''):
+                        url = s['url']
                 if url is None:
                     with open('upstream_bad', 'a') as f:
                         f.write('{}: no url in yaml\n'
