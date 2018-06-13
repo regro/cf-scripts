@@ -48,10 +48,19 @@ def get_attrs(name, i, bad):
         req = set([x.split()[0] for x in req])
     sub_graph['req'] = req
 
-    keys = [('source', 'url'), ('package', 'name'),
-            ('package', 'version')]
+    keys = [('package', 'name'), ('package', 'version')]
     missing_keys = [k[1] for k in keys if k[1] not in
                     yaml_dict.get(k[0], {})]
+    source = yaml_dict.get('source', [])
+    if not isinstance(source, list):
+        source = [source]
+    source_keys = set()
+    for s in source:
+        if not sub_graph.get('url'):
+            sub_graph['url'] = s.get('url')
+        source_keys |= s.keys()
+    if 'url' not in source_keys:
+        missing_keys.append('url')
     if missing_keys:
         logger.warn("Recipe {} doesn't have a {}".format(name,
                     ', '.join(missing_keys)))
@@ -60,8 +69,7 @@ def get_attrs(name, i, bad):
     for k in keys:
         if k[1] not in missing_keys:
             sub_graph[k[1]] = yaml_dict[k[0]][k[1]]
-    k = next(iter((set(yaml_dict.get('source', {}).keys()) &
-                   hashlib.algorithms_available)), None)
+    k = next(iter((source_keys & hashlib.algorithms_available)), None)
     if k:
         sub_graph['hash_type'] = k
 
