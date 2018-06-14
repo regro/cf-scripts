@@ -1,4 +1,5 @@
 import hashlib
+import collections.abc
 import time
 import networkx as nx
 import requests
@@ -52,7 +53,7 @@ def get_attrs(name, i, bad):
     missing_keys = [k[1] for k in keys if k[1] not in
                     yaml_dict.get(k[0], {})]
     source = yaml_dict.get('source', [])
-    if not isinstance(source, list):
+    if isinstance(source, collections.abc.Mapping):
         source = [source]
     source_keys = set()
     for s in source:

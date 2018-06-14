@@ -1,4 +1,5 @@
 import subprocess
+import collections.abc
 import networkx as nx
 import requests
 from pkg_resources import parse_version
@@ -143,7 +144,7 @@ class RawURL:
                 new_content = content.replace(orig_ver, next_ver)
                 meta = parse_meta_yaml(new_content)
                 source = meta['source']
-                if not isinstance(source, list):
+                if isinstance(source, collections.abc.Mapping):
                     source = [source]
                 url = None
                 for s in source:
