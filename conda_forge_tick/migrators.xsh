@@ -141,14 +141,14 @@ class Version(Migrator):
             else:
                 hash = hash_url(url, hash_type)
             m = re.search('\s*{}:(.+)'.format(hash_type), line)
-            if m is not None:
-                p = '{}:{}$'.format(hash_type, m.group(1))
-            else:
+            if m is None:
                 p = '{}:\s*[0-9A-Fa-f]+'.format(hash_type)
                 if platform:
                     p += '\s*(#.*)\[{}\](?(1)[^\(\)]*)$'.format(platform)
                 else:
                     p += '$'
+            else:
+                p = '{}:{}$'.format(hash_type, m.group(1))
             n = '{}: {}'.format(hash_type, hash)
             if platform:
                 n += '  # [{}]'.format(platform)
