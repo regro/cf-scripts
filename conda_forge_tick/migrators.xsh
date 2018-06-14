@@ -286,3 +286,32 @@ class JS(Migrator):
 
     def remote_branch(self):
         return 'npm_migration'
+
+
+class Compiler(Migrator):
+    """Migrator for Jinja2 comiler syntax."""
+
+    def filter(self, attrs):
+        return 'toolchain' in attrs.get('req', [])
+
+    def migrate(self, recipe_dir, attrs, **kwargs):
+        conda-smithy update-cb3 --recipe_directory @(recipe_dir)
+
+    def pr_body(self):
+        body = super().pr_body()
+        body.format('Notes and instructions for merging this PR:\n'
+            '1. Please merge the PR only after the tests have passed. \n'
+            "2. Feel free to push to the bot's branch to update this PR if needed. \n")
+        return body
+
+    def commit_message(self):
+        return "migrated to Jinja2 compiler syntax build"
+
+    def pr_title(self):
+        return 'Migrate to Jinja2 compiler syntax'
+
+    def pr_head(self):
+        return $USERNAME + ':' + self.remote_branch()
+
+    def remote_branch(self):
+        return 'compiler_migration'
