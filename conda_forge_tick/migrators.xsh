@@ -144,16 +144,16 @@ class Version(Migrator):
                 hash = hash_url(url, hash_type)
             m = re.search('\s*{}:(.+)'.format(hash_type), line)
             if m is not None:
-                p = '{}:{}'.format(hash_type, m.group(1))
+                p = '{}:{}$'.format(hash_type, m.group(1))
             else:
                 p = '{}:\s*[0-9A-Fa-f]+'.format(hash_type)
                 if platform:
                     p += '\s*(#.*)\[{}\](?(1)[^\(\)]*)$'.format(platform)
+                else:
+                    p += '$'
             n = '{}: {}'.format(hash_type, hash)
             if platform:
                 n += '  # [{}]'.format(platform)
-            else:
-                p += '$'
             pats += ((filename, p, n),)
 
             base1 = '''{{%\s*set {checkname} = ['"][0-9A-Fa-f]+['"] %}}'''
