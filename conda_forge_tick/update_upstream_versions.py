@@ -149,6 +149,7 @@ class RawURL:
                 for s in source:
                     if next_ver in s.get('url', ''):
                         url = s['url']
+                        break
                 if url is None:
                     with open('upstream_bad', 'a') as f:
                         f.write('{}: no url in yaml\n'
