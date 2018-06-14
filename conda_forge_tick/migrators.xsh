@@ -117,11 +117,9 @@ class Version(Migrator):
     def find_urls(self, text):
         """Get the URLs and platforms in a meta.yaml."""
         urls = []
-        matches = self.url_pat.finditer(text)
-        for m in matches:
+        for m in self.url_pat.finditer(text):
             urls.append((m.group(4), m.group(6), m.group()))
-        matches = self.r_url_pat.finditer(text)
-        for m in matches:
+        for m in self.r_url_pat.finditer(text):
             if m is not None:
                 r = self.r_urls.findall(m.group())
                 urls.append((r, m.group(2), m.group()))
