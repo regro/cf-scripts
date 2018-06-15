@@ -110,23 +110,19 @@ class Version(Migrator):
          '{% set build = 0 %}'),
     )
 
-    url_pat = re.compile('  url:\s*([^\s#]+?)\s*(?:(#.*)?\[([^\[\]]+)\])?(?(2)[^\(\)]*)$')
-    r_url_pat = re.compile('  url:\s*(?:(#.*)?\[([^\[\]]+)\])?(?(1)[^\(\)]*?)\n(    -.*\n?)*')
-    r_urls = re.compile('    -(.+?)(?:#.*)?$', flags=re.M)
+    url_pat = re.compile(r'^( *)(-)?(\s*)url:\s*([^\s#]+?)\s*(?:(#.*)?\[([^\[\]]+)\])?(?(5)[^\(\)\n]*)(?(2)\n\1 \3.*)*$', flags=re.M)
+    r_url_pat = re.compile(r'^(\s*)(-)?(\s*)url:\s*(?:(#.*)?\[([^\[\]]+)\])?(?(4)[^\(\)]*?)\n(\1(?(2) \3)  -.*\n?)*', flags=re.M)
+    r_urls = re.compile('\s*-(.+?)(?:#.*)?$', flags=re.M)
 
     def find_urls(self, text):
         """Get the URLs and platforms in a meta.yaml."""
         urls = []
-        lines = text.splitlines()
-        for line in lines:
-            m = self.url_pat.match(line)
-            if m is not None:
-                urls.append((m.group(1), m.group(3)))
-        matches = self.r_url_pat.finditer(text)
-        for m in matches:
+        for m in self.url_pat.finditer(text):
+            urls.append((m.group(4), m.group(6), m.group()))
+        for m in self.r_url_pat.finditer(text):
             if m is not None:
                 r = self.r_urls.findall(m.group())
-                urls.append((r, m.group(2)))
+                urls.append((r, m.group(2), m.group()))
         return urls
 
     def get_hash_patterns(self, filename, urls, hash_type):
@@ -134,7 +130,7 @@ class Version(Migrator):
         pats = ()
         checksum_names = ['hash_value', 'hash', 'hash_val', 'sha256sum',
                           'checksum', hash_type]
-        for url, platform in urls:
+        for url, platform, line in urls:
             if isinstance(url, list):
                 for u in url:
                     try:
@@ -144,10 +140,17 @@ class Version(Migrator):
                         continue
             else:
                 hash = hash_url(url, hash_type)
-            p = '  {}:\s*[0-9A-Fa-f]+'.format(hash_type)
-            n = '  {}: {}'.format(hash_type, hash)
-            if platform is not None:
-                p += '\s*(#.*)\[{}\](?(1)[^\(\)]*)$'.format(platform)
+            m = re.search('\s*{}:(.+)'.format(hash_type), line)
+            if m is None:
+                p = '{}:\s*[0-9A-Fa-f]+'.format(hash_type)
+                if platform:
+                    p += '\s*(#.*)\[{}\](?(1)[^\(\)]*)$'.format(platform)
+                else:
+                    p += '$'
+            else:
+                p = '{}:{}$'.format(hash_type, m.group(1))
+            n = '{}: {}'.format(hash_type, hash)
+            if platform:
                 n += '  # [{}]'.format(platform)
             pats += ((filename, p, n),)
 
@@ -174,7 +177,7 @@ class Version(Migrator):
         with indir(recipe_dir):
             with open('meta.yaml', 'r') as f:
                 text = f.read()
-        url = re.search('  url:.*?\n(    -.*\n?)*', text).group()
+        url = re.search('\s*-?\s*url:.*?\n(    -.*\n?)*', text).group()
         if 'cran.r-project.org/src/contrib' in url:
             version = version.replace('_', '-')
         with indir(recipe_dir), ${...}.swap(VERSION=version):
