@@ -292,7 +292,8 @@ class Compiler(Migrator):
     """Migrator for Jinja2 comiler syntax."""
 
     def filter(self, attrs):
-        return 'toolchain' in attrs.get('req', [])
+        conditional = super().filter(attrs)
+        return conditional or 'toolchain' not in attrs.get('req', [])
 
     def migrate(self, recipe_dir, attrs, **kwargs):
         self.out = $(conda-smithy update-cb3 --recipe_directory @(recipe_dir))
