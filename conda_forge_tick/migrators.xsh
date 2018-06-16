@@ -6,7 +6,7 @@ from conda.models.version import VersionOrder
 
 from rever.tools import (eval_version, indir, hash_url, replace_in_file)
 
-from conda_forge_tick.utils import render_meta_yaml
+from .utils import render_meta_yaml
 
 
 class Migrator:

@@ -2,6 +2,7 @@ import argparse
 from .all_feedstocks import main as main0
 from .make_graph import main as main1
 from .update_upstream_versions import main as main2
+from .auto_tick import main as main3
 
 
 def main(*args, **kwargs):
@@ -15,5 +16,7 @@ def main(*args, **kwargs):
         main1()
     elif script == 2:
         main2()
+    elif script == 3:
+        main3()
     else:
         raise RuntimeError("Unknown script number")
