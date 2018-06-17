@@ -57,8 +57,9 @@ def get_attrs(name, i, bad):
         source = [source]
     source_keys = set()
     for s in source:
-        if not sub_graph.get('url'):
-            sub_graph['url'] = s.get('url')
+        if s.get('url'):
+            sub_graph['url'] = s['url']
+            break
         source_keys |= s.keys()
     if 'url' not in source_keys:
         missing_keys.append('url')
