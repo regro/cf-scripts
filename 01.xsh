@@ -3,10 +3,8 @@ import time
 cd ../cf-graph
 $PATH.insert(0, '~/mc/bin')
 
-stages = [3, 0, 1, 2, 3]
+stage = 1
 start = time.time()
-for i in stages:
-    conda-forge-tick --run @(i)
-    print('FINISHED STAGE {} IN {} SECONDS'.format(i, time.time() - start))
-    start = time.time()
+conda-forge-tick --run @(stage)
+print('FINISHED STAGE {} IN {} SECONDS'.format(stage, time.time() - start))
 doctr deploy --token --built-docs . --deploy-repo regro/cf-graph --deploy-branch-name master .
