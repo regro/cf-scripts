@@ -11,6 +11,8 @@ from .utils import render_meta_yaml
 
 class Migrator:
     """Base class for Migrators"""
+    rerender = False
+
     def filter(self, attrs):
         """ If true don't act upon node
 
@@ -290,6 +292,8 @@ class JS(Migrator):
 
 class Compiler(Migrator):
     """Migrator for Jinja2 comiler syntax."""
+
+    rerender = True
 
     def filter(self, attrs):
         conditional = super().filter(attrs)
