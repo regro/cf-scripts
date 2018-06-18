@@ -1,6 +1,6 @@
 import os
 
-from conda_forge_tick.migrators import (JS, Version)
+from conda_forge_tick.migrators import (JS, Version, Compiler)
 
 
 sample_js = '''{% set name = "jstz" %}
@@ -627,6 +627,133 @@ extra:
     - ohadravid
 '''
 
+sample_cb3 = '''{% set version = "1.14.5" %}
+{% set build_number = 0 %}
+
+{% set variant = "openblas" %}
+{% set build_number = build_number + 200 %}
+
+package:
+  name: numpy
+  version: {{ version }}
+
+source:
+  url: https://github.com/numpy/numpy/releases/download/v{{ version }}/numpy-{{ version }}.tar.gz
+  sha256: 1b4a02758fb68a65ea986d808867f1d6383219c234aef553a8741818e795b529
+
+build:
+  number: {{ build_number }}
+  skip: true  # [win32 or (win and py27)]
+  features:
+    - blas_{{ variant }}
+
+requirements:
+  build:
+    - python
+    - pip
+    - cython
+    - toolchain
+    - blas 1.1 {{ variant }}
+    - openblas 0.2.20|0.2.20.*
+  run:
+    - python
+    - blas 1.1 {{ variant }}
+    - openblas 0.2.20|0.2.20.*
+
+test:
+  requires:
+    - nose
+  commands:
+    - f2py -h
+    - conda inspect linkages -p $PREFIX $PKG_NAME  # [not win]
+    - conda inspect objects -p $PREFIX $PKG_NAME  # [osx]
+  imports:
+    - numpy
+    - numpy.linalg.lapack_lite
+
+about:
+  home: http://numpy.scipy.org/
+  license: BSD 3-Clause
+  license_file: LICENSE.txt
+  summary: 'Array processing for numbers, strings, records, and objects.'
+  doc_url: https://docs.scipy.org/doc/numpy/reference/
+  dev_url: https://github.com/numpy/numpy
+
+extra:
+  recipe-maintainers:
+    - jakirkham
+    - msarahan
+    - pelson
+    - rgommers
+    - ocefpaf
+'''
+
+
+correct_cb3 = '''{% set version = "1.14.5" %}
+{% set build_number = 0 %}
+
+{% set variant = "openblas" %}
+{% set build_number = build_number + 200 %}
+
+package:
+  name: numpy
+  version: {{ version }}
+
+source:
+  url: https://github.com/numpy/numpy/releases/download/v{{ version }}/numpy-{{ version }}.tar.gz
+  sha256: 1b4a02758fb68a65ea986d808867f1d6383219c234aef553a8741818e795b529
+
+build:
+  number: {{ build_number }}
+  skip: true  # [win32 or (win and py27)]
+  features:
+    - blas_{{ variant }}
+
+requirements:
+  build:
+    - {{ compiler('fortran') }}
+    - {{ compiler('c') }}
+    - {{ compiler('cxx') }}
+  host:
+    - python
+    - pip
+    - cython
+    - blas 1.1 {{ variant }}
+    - openblas
+  run:
+    - python
+    - blas 1.1 {{ variant }}
+    - openblas
+
+test:
+  requires:
+    - nose
+  commands:
+    - f2py -h
+    - conda inspect linkages -p $PREFIX $PKG_NAME  # [not win]
+    - conda inspect objects -p $PREFIX $PKG_NAME  # [osx]
+  imports:
+    - numpy
+    - numpy.linalg.lapack_lite
+
+about:
+  home: http://numpy.scipy.org/
+  license: BSD 3-Clause
+  license_file: LICENSE.txt
+  summary: 'Array processing for numbers, strings, records, and objects.'
+  doc_url: https://docs.scipy.org/doc/numpy/reference/
+  dev_url: https://github.com/numpy/numpy
+
+extra:
+  recipe-maintainers:
+    - jakirkham
+    - msarahan
+    - pelson
+    - rgommers
+    - ocefpaf
+'''
+
+
 def test_js_migration(tmpdir):
     with open(os.path.join(tmpdir, 'meta.yaml'), 'w') as f:
         f.write(sample_js)
@@ -682,3 +809,12 @@ def test_version_migration(tmpdir):
     v.migrate(tmpdir, {'new_version': '6.0.0'})
     with open(os.path.join(tmpdir, 'meta.yaml'), 'r') as f:
         assert f.read() == updated_cb3_multi
+
+
+def test_compiler_migration(tmpdir):
+    with open(os.path.join(tmpdir, 'meta.yaml'), 'w') as f:
+        f.write(sample_cb3)
+    c = Compiler()
+    c.migrate(tmpdir, {})
+    with open(os.path.join(tmpdir, 'meta.yaml'), 'r') as f:
+        assert f.read() == correct_cb3
