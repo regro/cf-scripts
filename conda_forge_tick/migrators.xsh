@@ -325,4 +325,4 @@ class Compiler(Migrator):
         return $USERNAME + ':' + self.remote_branch()
 
     def remote_branch(self):
-        return 'compiler_migration'
+        return 'compiler_migration2'
