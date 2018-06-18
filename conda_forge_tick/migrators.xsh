@@ -297,6 +297,7 @@ class Compiler(Migrator):
 
     def migrate(self, recipe_dir, attrs, **kwargs):
         self.out = $(conda-smithy update-cb3 --recipe_directory @(recipe_dir))
+        return True
 
     def pr_body(self):
         body = super().pr_body()
