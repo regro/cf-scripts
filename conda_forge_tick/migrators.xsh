@@ -272,7 +272,7 @@ class JS(Migrator):
 
     def pr_body(self):
         body = super().pr_body()
-        body.format('Notes and instructions for merging this PR:\n'
+        body = body.format('Notes and instructions for merging this PR:\n'
             '1. Please merge the PR only after the tests have passed. \n'
             "2. Feel free to push to the bot's branch to update this PR if needed. \n")
         return body
@@ -305,7 +305,10 @@ class Compiler(Migrator):
 
     def pr_body(self):
         body = super().pr_body()
-        body.format('{}\n'
+        body = body.format('{}\n'
+                    '*If you have recived a `Migrate to Jinja2 compiler '
+                    'syntax` PR from me recently please close that one and use '
+                    'this one*.\n'
                     'Notes and instructions for merging this PR:\n'
                     '1. Please merge the PR only after the tests have passed. \n'
                     "2. Feel free to push to the bot's branch to update this PR if needed. \n"
@@ -322,4 +325,4 @@ class Compiler(Migrator):
         return $USERNAME + ':' + self.remote_branch()
 
     def remote_branch(self):
-        return 'compiler_migration'
+        return 'compiler_migration2'

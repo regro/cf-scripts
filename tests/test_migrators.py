@@ -1,5 +1,7 @@
 import os
 
+import pytest
+
 from conda_forge_tick.migrators import (JS, Version, Compiler)
 
 
@@ -754,67 +756,37 @@ extra:
 '''
 
 
-def test_js_migration(tmpdir):
+test_list = [
+    (JS, sample_js, correct_js, {},
+     'Please merge the PR only after the tests have passed.'),
+    (JS, sample_js2, correct_js, {},
+     'Please merge the PR only after the tests have passed.'),
+    (Version, one_source, updated_one_source, {'new_version': '2.4.1'},
+     'Please check that the dependencies have not changed.'),
+    (Version, jinja_sha, updated_jinja_sha, {'new_version': '2.4.1'},
+     'Please check that the dependencies have not changed.'),
+    (Version, multi_source, updated_multi_source, {'new_version': '2.4.1'},
+     'Please check that the dependencies have not changed.'),
+    (Version, sample_r, updated_sample_r, {'new_version': '1.3_2'},
+     'Please check that the dependencies have not changed.'),
+    (Version, cb3_multi, updated_cb3_multi, {'new_version': '6.0.0'},
+     'Please check that the dependencies have not changed.'),
+    (Compiler, sample_cb3, correct_cb3, {}, 'N/A')
+]
+
+
+@pytest.mark.parametrize("migrator, inp, output, kwargs, prb", test_list)
+def test_migration(migrator, inp, output, kwargs, prb, tmpdir):
     with open(os.path.join(tmpdir, 'meta.yaml'), 'w') as f:
-        f.write(sample_js)
-    js = JS()
-    js.migrate(tmpdir, {})
+        f.write(inp)
+    m = migrator()
+    m.migrate(tmpdir, kwargs)
     with open(os.path.join(tmpdir, 'meta.yaml'), 'r') as f:
-        assert f.read() == correct_js
-
-
-def test_js_migration2(tmpdir):
-    with open(os.path.join(tmpdir, 'meta.yaml'), 'w') as f:
-        f.write(sample_js2)
-    js = JS()
-    js.migrate(tmpdir, {})
-    with open(os.path.join(tmpdir, 'meta.yaml'), 'r') as f:
-        assert f.read() == correct_js
-
-
-def test_version_migration(tmpdir):
-    v = Version()
-
-    # Test meta.yaml with one url
-    with open(os.path.join(tmpdir, 'meta.yaml'), 'w') as f:
-        f.write(one_source)
-    v.migrate(tmpdir, {'new_version': '2.4.1'})
-    with open(os.path.join(tmpdir, 'meta.yaml'), 'r') as f:
-        assert f.read() == updated_one_source
-
-    # Test meta.yaml with jinja variable for sha
-    with open(os.path.join(tmpdir, 'meta.yaml'), 'w') as f:
-        f.write(jinja_sha)
-    v.migrate(tmpdir, {'new_version': '2.4.1'})
-    with open(os.path.join(tmpdir, 'meta.yaml'), 'r') as f:
-        assert f.read() == updated_jinja_sha
-
-    # Test meta.yaml with separate url for each platform
-    with open(os.path.join(tmpdir, 'meta.yaml'), 'w') as f:
-        f.write(multi_source)
-    v.migrate(tmpdir, {'new_version': '2.4.1'})
-    with open(os.path.join(tmpdir, 'meta.yaml'), 'r') as f:
-        assert f.read() == updated_multi_source
-
-    # Test R feedstock
-    with open(os.path.join(tmpdir, 'meta.yaml'), 'w') as f:
-        f.write(sample_r)
-    v.migrate(tmpdir, {'new_version': '1.3_2'})
-    with open(os.path.join(tmpdir, 'meta.yaml'), 'r') as f:
-        assert f.read() == updated_sample_r
-
-    # Test conda-build 3 style multiple sources
-    with open(os.path.join(tmpdir, 'meta.yaml'), 'w') as f:
-        f.write(cb3_multi)
-    v.migrate(tmpdir, {'new_version': '6.0.0'})
-    with open(os.path.join(tmpdir, 'meta.yaml'), 'r') as f:
-        assert f.read() == updated_cb3_multi
-
-
-def test_compiler_migration(tmpdir):
-    with open(os.path.join(tmpdir, 'meta.yaml'), 'w') as f:
-        f.write(sample_cb3)
-    c = Compiler()
-    c.migrate(tmpdir, {})
-    with open(os.path.join(tmpdir, 'meta.yaml'), 'r') as f:
-        assert f.read() == correct_cb3
+        assert f.read() == output
+    if isinstance(m, Compiler):
+        assert m.out in m.pr_body()
+    # TODO: fix subgraph here (need this to be xsh file)
+    elif isinstance(m, Version):
+        pass
+    else:
+        assert prb in m.pr_body()
