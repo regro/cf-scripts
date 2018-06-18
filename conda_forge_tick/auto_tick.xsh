@@ -86,7 +86,8 @@ def main():
                 if gh.rate_limit()['resources']['core']['remaining'] == 0:
                     break
                 rerender = (gx.nodes[node].get('smithy_version') != smithy_version or
-                            gx.nodes[node].get('pinning_version') != pinning_version)
+                            gx.nodes[node].get('pinning_version') != pinning_version or
+                            migrator.rerender)
                 run(attrs=attrs, migrator=migrator, gh=gh, rerender=rerender, protocol='https',
                     hash_type=attrs.get('hash_type', 'sha256'))
                 # TODO: capture pinning here too!
