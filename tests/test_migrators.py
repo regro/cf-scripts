@@ -785,6 +785,7 @@ def test_migration(migrator, inp, output, kwargs, prb, tmpdir):
         assert f.read() == output
     if isinstance(m, Compiler):
         assert m.out in m.pr_body()
+    # TODO: fix subgraph here (need this to be xsh file)
     elif isinstance(m, Version):
         pass
     else:
