@@ -778,7 +778,7 @@ test_list = [
      'Please check that the dependencies have not changed.',
      f'Version_{Version._class_version}_6.0.0'),
     (Compiler, sample_cb3, correct_cb3, {}, 'N/A',
-     f'Version_{Compiler._class_version}')
+     f'Compiler_{Compiler._class_version}')
 ]
 
 
