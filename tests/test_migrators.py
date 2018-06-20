@@ -755,32 +755,40 @@ extra:
     - ocefpaf
 '''
 
-
 test_list = [
     (JS, sample_js, correct_js, {},
-     'Please merge the PR only after the tests have passed.'),
+     'Please merge the PR only after the tests have passed.',
+     f'JS_{JS._class_version}'),
     (JS, sample_js2, correct_js, {},
-     'Please merge the PR only after the tests have passed.'),
+     'Please merge the PR only after the tests have passed.',
+     f'JS_{JS._class_version}'),
     (Version, one_source, updated_one_source, {'new_version': '2.4.1'},
-     'Please check that the dependencies have not changed.'),
+     'Please check that the dependencies have not changed.',
+     f'Version_{Version._class_version}_2.4.1'),
     (Version, jinja_sha, updated_jinja_sha, {'new_version': '2.4.1'},
-     'Please check that the dependencies have not changed.'),
+     'Please check that the dependencies have not changed.',
+     f'Version_{Version._class_version}_2.4.1'),
     (Version, multi_source, updated_multi_source, {'new_version': '2.4.1'},
-     'Please check that the dependencies have not changed.'),
+     'Please check that the dependencies have not changed.',
+     f'Version_{Version._class_version}_2.4.1'),
     (Version, sample_r, updated_sample_r, {'new_version': '1.3_2'},
-     'Please check that the dependencies have not changed.'),
+     'Please check that the dependencies have not changed.',
+     f'Version_{Version._class_version}_1.3-2'),
     (Version, cb3_multi, updated_cb3_multi, {'new_version': '6.0.0'},
-     'Please check that the dependencies have not changed.'),
-    (Compiler, sample_cb3, correct_cb3, {}, 'N/A')
+     'Please check that the dependencies have not changed.',
+     f'Version_{Version._class_version}_6.0.0'),
+    (Compiler, sample_cb3, correct_cb3, {}, 'N/A',
+     f'Version_{Compiler._class_version}')
 ]
 
 
-@pytest.mark.parametrize("migrator, inp, output, kwargs, prb", test_list)
-def test_migration(migrator, inp, output, kwargs, prb, tmpdir):
+@pytest.mark.parametrize("migrator, inp, output, kwargs, prb, mr_out", test_list)
+def test_migration(migrator, inp, output, kwargs, prb, mr_out, tmpdir):
     with open(os.path.join(tmpdir, 'meta.yaml'), 'w') as f:
         f.write(inp)
     m = migrator()
-    m.migrate(tmpdir, kwargs)
+    mr = m.migrate(tmpdir, kwargs)
+    assert mr_out in mr
     with open(os.path.join(tmpdir, 'meta.yaml'), 'r') as f:
         assert f.read() == output
     if isinstance(m, Compiler):

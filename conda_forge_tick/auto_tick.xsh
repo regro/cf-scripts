@@ -31,7 +31,8 @@ def run(attrs, migrator, feedstock=None, protocol='ssh',
 
     # migrate the `meta.yaml`
     recipe_dir = os.path.join(feedstock_dir, 'recipe')
-    if not migrator.migrate(recipe_dir, attrs, **kwargs):
+    migrate_return = migrator.migrate(recipe_dir, attrs, **kwargs)
+    if not migrate_return:
         print($PROJECT, attrs.get('bad'))
         rm -rf @(feedstock_dir)
         return False
@@ -44,13 +45,19 @@ def run(attrs, migrator, feedstock=None, protocol='ssh',
             conda smithy rerender -c auto
 
     # push up
-    push_repo(feedstock_dir, migrator.pr_body(), repo, migrator.pr_title(),
-              migrator.pr_head(), migrator.remote_branch())
+    try:
+        push_repo(feedstock_dir, migrator.pr_body(), repo, migrator.pr_title(),
+                  migrator.pr_head(), migrator.remote_branch())
+    except github3.GitHubError as e:
+        if e.msg != 'Validation Failed':
+            raise e
+        else:
+            pass
     # If we've gotten this far then the node is good
     attrs['bad'] = False
     print('Removing feedstock dir')
     rm -rf @(feedstock_dir)
-    return True
+    return migrate_return
 
 
 def main():
@@ -101,9 +108,7 @@ def main():
                 print(e)
                 print(e.response)
                 # carve out for PRs already submitted
-                if e.msg == 'Validation Failed':
-                    gx.nodes[node]['PRed'] = attrs['new_version']
-                elif e.msg == 'Repository was archived so is read-only.':
+                if e.msg == 'Repository was archived so is read-only.':
                     gx.nodes[node]['archived'] = True
                 c = gh.rate_limit()['resources']['core']
                 if c['remaining'] == 0:

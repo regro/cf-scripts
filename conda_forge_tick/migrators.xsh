@@ -13,6 +13,8 @@ class Migrator:
     """Base class for Migrators"""
     rerender = False
 
+    _class_version = 0
+
     def filter(self, attrs):
         """ If true don't act upon node
 
@@ -44,7 +46,7 @@ class Migrator:
         bool:
             If True continue with PR, if False scrap local folder
         """
-        return True
+        return f'{self.__class__.__name__}_{self._class_version}'
 
     def pr_body(self):
         """Create a PR message body
@@ -115,6 +117,8 @@ class Version(Migrator):
     url_pat = re.compile(r'^( *)(-)?(\s*)url:\s*([^\s#]+?)\s*(?:(#.*)?\[([^\[\]]+)\])?(?(5)[^\(\)\n]*)(?(2)\n\1 \3.*)*$', flags=re.M)
     r_url_pat = re.compile(r'^(\s*)(-)?(\s*)url:\s*(?:(#.*)?\[([^\[\]]+)\])?(?(4)[^\(\)]*?)\n(\1(?(2) \3)  -.*\n?)*', flags=re.M)
     r_urls = re.compile('\s*-(.+?)(?:#.*)?$', flags=re.M)
+
+    _class_version = 0
 
     def find_urls(self, text):
         """Get the URLs and platforms in a meta.yaml."""
@@ -200,7 +204,7 @@ class Version(Migrator):
                 p = eval_version(p)
                 n = eval_version(n)
                 replace_in_file(p, n, f)
-        return True
+        return f'{super().migrate(recipe_dir, attrs)}_{version}'
 
     def pr_body(self):
         pred = [(name, $SUBGRAPH.node[name]['new_version'])
@@ -240,6 +244,11 @@ class Version(Migrator):
     def remote_branch(self):
         return self.attrs['new_version']
 
+    def migration_hash(self):
+        n = super().migration_hash()
+        return f'{n}_{self.version}'
+
+
 class JS(Migrator):
     """Migrator for JavaScript syntax"""
     patterns = [
@@ -249,6 +258,8 @@ class JS(Migrator):
          '    npm install -g $tgz'),
         ('meta.yaml', '   script: |\n', '  script: |')
     ]
+
+    _class_version = 0
 
     def filter(self, attrs):
         conditional = super().filter(attrs)
@@ -268,7 +279,7 @@ class JS(Migrator):
                 replace_in_file(p, n, f,
                                 leading_whitespace=False
                                 )
-        return True
+        return f'{super().migrate(recipe_dir, attrs)}'
 
     def pr_body(self):
         body = super().pr_body()
@@ -292,6 +303,7 @@ class JS(Migrator):
 
 class Compiler(Migrator):
     """Migrator for Jinja2 comiler syntax."""
+    _class_version = 0
 
     rerender = True
 
@@ -301,7 +313,7 @@ class Compiler(Migrator):
 
     def migrate(self, recipe_dir, attrs, **kwargs):
         self.out = $(conda-smithy update-cb3 --recipe_directory @(recipe_dir))
-        return True
+        return f'{super().migrate(recipe_dir, attrs)}'
 
     def pr_body(self):
         body = super().pr_body()
