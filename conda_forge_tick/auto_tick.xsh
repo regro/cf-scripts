@@ -11,6 +11,7 @@ import networkx as nx
 from rever.tools import indir
 
 from .git_utils import (get_repo, push_repo)
+from .utils import convert_dict_to_nt
 
 # TODO: move this back to the bot file as soon as the source issue is sorted
 # https://travis-ci.org/regro/00-find-feedstocks/jobs/388387895#L1870
@@ -130,12 +131,11 @@ def main():
                                     rerender=rerender, protocol='https',
                                     hash_type=attrs.get('hash_type', 'sha256'))
 
-                # TODO: convert this list to set and use something other
-                # than dict for the hash (namedtuple?)
-                gx.nodes[node].setdefault('PRed', []).append(migrator_hash)
+                converted_hash = convert_dict_to_nt(migrator_hash)
+                gx.nodes[node].setdefault('PRed', set()).update(converted_hash)
                 # Stash the pr json data so we can access it later
                 gx.nodes[node].setdefault('PRed_json', {}).update(
-                    {tuple(migrator_hash.values()): pr_json})
+                    {converted_hash: pr_json})
                 gx.nodes[node].update({'smithy_version': smithy_version,
                                        'pinning_version': pinning_version})
             except github3.GitHubError as e:

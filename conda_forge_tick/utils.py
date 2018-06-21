@@ -2,7 +2,7 @@ import jinja2
 from conda_build.metadata import parse
 from conda_build.config import Config
 import os
-from collections import defaultdict
+from collections import defaultdict, namedtuple
 
 
 class NullUndefined(jinja2.Undefined):
@@ -62,3 +62,8 @@ def parse_meta_yaml(text):
         return parse(content, Config())
     except:
         return {}
+
+
+def convert_dict_to_nt(d):
+    """Convert dict to namedtuple"""
+    return namedtuple('converted', d.keys())(**d)

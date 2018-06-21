@@ -3,7 +3,8 @@ import os
 import pytest
 
 from conda_forge_tick.migrators import JS, Version, Compiler
-from conda_forge_tick.utils import parse_meta_yaml
+from conda_forge_tick.utils import parse_meta_yaml, convert_dict_to_nt
+
 
 sample_js = """{% set name = "jstz" %}
 {% set version = "1.0.11" %}
@@ -754,7 +755,7 @@ test_list = [
         correct_js,
         {},
         "Please merge the PR only after the tests have passed.",
-        {"class": "JS", "class_version": JS._class_version},
+        {'class_name': "JS", "class_version": JS._class_version},
     ),
     (
         version,
@@ -763,7 +764,7 @@ test_list = [
         {"new_version": "2.4.1"},
         "Please check that the dependencies have not changed.",
         {
-            "class": "Version",
+            'class_name': "Version",
             "class_version": Version._class_version,
             "version": "2.4.1",
         },
@@ -775,7 +776,7 @@ test_list = [
         {"new_version": "2.4.1"},
         "Please check that the dependencies have not changed.",
         {
-            "class": "Version",
+            'class_name': "Version",
             "class_version": Version._class_version,
             "version": "2.4.1",
         },
@@ -787,7 +788,7 @@ test_list = [
         {"new_version": "2.4.1"},
         "Please check that the dependencies have not changed.",
         {
-            "class": "Version",
+            'class_name': "Version",
             "class_version": Version._class_version,
             "version": "2.4.1",
         },
@@ -799,7 +800,7 @@ test_list = [
         {"new_version": "1.3_2"},
         "Please check that the dependencies have not changed.",
         {
-            "class": "Version",
+            'class_name': "Version",
             "class_version": Version._class_version,
             "version": "1.3_2",
         },
@@ -811,7 +812,7 @@ test_list = [
         {"new_version": "6.0.0"},
         "Please check that the dependencies have not changed.",
         {
-            "class": "Version",
+            'class_name': "Version",
             "class_version": Version._class_version,
             "version": "6.0.0",
         },
@@ -822,7 +823,7 @@ test_list = [
         correct_cb3,
         {},
         "N/A",
-        {"class": "Compiler", "class_version": Compiler._class_version},
+        {'class_name': "Compiler", "class_version": Compiler._class_version},
     ),
     # It seems this injects some bad state somewhere, mostly because it isn't
     # valid yaml
@@ -832,7 +833,7 @@ test_list = [
         correct_js,
         {},
         "Please merge the PR only after the tests have passed.",
-        {"class": "JS", "class_version": JS._class_version},
+        {'class_name': "JS", "class_version": JS._class_version},
     ),
 ]
 
@@ -857,7 +858,7 @@ def test_migration(m, inp, output, kwargs, prb, mr_out, tmpdir):
     mr = m.migrate(tmpdir, pmy)
     assert mr_out == mr
 
-    pmy.update(PRed=[mr])
+    pmy.update(PRed={convert_dict_to_nt(mr)})
     with open(os.path.join(tmpdir, "meta.yaml"), "r") as f:
         assert f.read() == output
     if isinstance(m, Compiler):

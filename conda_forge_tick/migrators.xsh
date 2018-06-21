@@ -6,7 +6,7 @@ from conda.models.version import VersionOrder
 
 from rever.tools import (eval_version, indir, hash_url, replace_in_file)
 
-from .utils import render_meta_yaml
+from .utils import render_meta_yaml, convert_dict_to_nt
 
 
 class Migrator:
@@ -32,7 +32,8 @@ class Migrator:
         # don't run on things we've already done
         # don't run on bad nodes
         return (bool(attrs.get('archived', False)
-                or self.migrator_hash(attrs) in attrs.get('PRed', []))
+                or convert_dict_to_nt(self.migrator_hash(attrs))
+                     in attrs.get('PRed', set()))
                 or attrs.get('bad', False))
 
     def migrate(self, recipe_dir, attrs, **kwargs):
@@ -96,7 +97,7 @@ class Migrator:
         return 'bot-pr'
 
     def migrator_hash(self, attrs):
-        return {'class': self.__class__.__name__,
+        return {'class_name': self.__class__.__name__,
                 'class_version': self._class_version}
 
 
