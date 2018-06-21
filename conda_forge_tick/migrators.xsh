@@ -30,8 +30,10 @@ class Migrator:
         """
         # never run on archived feedstocks
         # don't run on things we've already done
+        # don't run on bad nodes
         return (bool(attrs.get('archived', False)
-                or self.migrator_hash(attrs) in attrs.get('PRed', [])))
+                or self.migrator_hash(attrs) in attrs.get('PRed', []))
+                or attrs.get('bad', False))
 
     def migrate(self, recipe_dir, attrs, **kwargs):
         """Perform the migration, updating the ``meta.yaml``
