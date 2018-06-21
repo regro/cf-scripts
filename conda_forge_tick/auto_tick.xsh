@@ -48,7 +48,7 @@ def run(attrs, migrator, feedstock=None, protocol='ssh',
     -------
     migrate_return: dict
         The migration return dict used for tracking finished migrations
-    pr: str
+    pr_json: str
         The PR json object for recreating the PR as needed
 
     """
@@ -76,7 +76,7 @@ def run(attrs, migrator, feedstock=None, protocol='ssh',
 
     # push up
     try:
-        pr = push_repo(feedstock_dir, migrator.pr_body(), repo, migrator.pr_title(),
+        pr_json = push_repo(feedstock_dir, migrator.pr_body(), repo, migrator.pr_title(),
                   migrator.pr_head(), migrator.remote_branch())
     # This shouldn't happen too often any more since we won't double PR
     except github3.GitHubError as e:
@@ -86,7 +86,7 @@ def run(attrs, migrator, feedstock=None, protocol='ssh',
     attrs['bad'] = False
     print('Removing feedstock dir')
     rm -rf @(feedstock_dir)
-    return migrate_return, pr
+    return migrate_return, pr_json
 
 
 def main():
@@ -126,13 +126,16 @@ def main():
                 rerender = (gx.nodes[node].get('smithy_version') != smithy_version or
                             gx.nodes[node].get('pinning_version') != pinning_version or
                             migrator.rerender)
-                migrator_hash = run(attrs=attrs, migrator=migrator, gh=gh,
+                migrator_hash, pr_json = run(attrs=attrs, migrator=migrator, gh=gh,
                                     rerender=rerender, protocol='https',
                                     hash_type=attrs.get('hash_type', 'sha256'))
 
                 # TODO: convert this list to set and use something other
                 # than dict for the hash (namedtuple?)
                 gx.nodes[node].setdefault('PRed', []).append(migrator_hash)
+                # Stash the pr json data so we can access it later
+                gx.nodes[node].setdefault('PRed_json', {}).update(
+                    {tuple(migrator_hash.keys()): pr_json})
                 gx.nodes[node].update({'smithy_version': smithy_version,
                                        'pinning_version': pinning_version})
             except github3.GitHubError as e:
