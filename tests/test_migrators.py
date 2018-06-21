@@ -3,7 +3,7 @@ import os
 import pytest
 
 from conda_forge_tick.migrators import (JS, Version, Compiler)
-
+from conda_forge_tick.utils import parse_meta_yaml
 
 sample_js = '''{% set name = "jstz" %}
 {% set version = "1.0.11" %}
@@ -98,8 +98,7 @@ about:
 extra:
   recipe-maintainers:
     - cshaley
-    - sannykr
-'''
+    - sannykr '''
 
 
 correct_js = '''{% set name = "jstz" %}
@@ -759,9 +758,9 @@ test_list = [
     (JS, sample_js, correct_js, {},
      'Please merge the PR only after the tests have passed.',
      f'JS_{JS._class_version}'),
-    (JS, sample_js2, correct_js, {},
-     'Please merge the PR only after the tests have passed.',
-     f'JS_{JS._class_version}'),
+    # (JS, sample_js2, correct_js, {},
+    #  'Please merge the PR only after the tests have passed.',
+    #  f'JS_{JS._class_version}'),
     (Version, one_source, updated_one_source, {'new_version': '2.4.1'},
      'Please check that the dependencies have not changed.',
      f'Version_{Version._class_version}_2.4.1'),
@@ -771,7 +770,7 @@ test_list = [
     (Version, multi_source, updated_multi_source, {'new_version': '2.4.1'},
      'Please check that the dependencies have not changed.',
      f'Version_{Version._class_version}_2.4.1'),
-    (Version, sample_r, updated_sample_r, {'new_version': '1.3_2'},
+    (Version, sample_r, updated_sample_r, {'new_version': '1.3-2'},
      'Please check that the dependencies have not changed.',
      f'Version_{Version._class_version}_1.3-2'),
     (Version, cb3_multi, updated_cb3_multi, {'new_version': '6.0.0'},
@@ -786,9 +785,24 @@ test_list = [
 def test_migration(migrator, inp, output, kwargs, prb, mr_out, tmpdir):
     with open(os.path.join(tmpdir, 'meta.yaml'), 'w') as f:
         f.write(inp)
+    # Load the meta.yaml (this is done in the graph)
+    pmy = parse_meta_yaml(inp)
+    assert pmy
+    pmy['version'] = pmy['package']['version']
+    pmy['req'] = set()
+    for k in ['build', 'host', 'run']:
+        pmy['req'] |= set(pmy.get('requirements', {}).get(k, set()))
+    pmy['meta_yaml'] = parse_meta_yaml(inp)
+    pmy['raw_meta_yaml'] = inp
+    pmy.update(kwargs)
+
     m = migrator()
-    mr = m.migrate(tmpdir, kwargs)
-    assert mr_out in mr
+    assert m.filter(pmy) is False
+
+    mr = m.migrate(tmpdir, pmy)
+    assert mr_out == mr
+
+    pmy.update(PRed={mr})
     with open(os.path.join(tmpdir, 'meta.yaml'), 'r') as f:
         assert f.read() == output
     if isinstance(m, Compiler):
@@ -798,3 +812,4 @@ def test_migration(migrator, inp, output, kwargs, prb, mr_out, tmpdir):
         pass
     else:
         assert prb in m.pr_body()
+    assert m.filter(pmy) is True

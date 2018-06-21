@@ -29,7 +29,9 @@ class Migrator:
             True if node is to be skipped
         """
         # never run on archived feedstocks
-        return bool(attrs.get('archived', False))
+        # don't run on things we've already done
+        return (bool(attrs.get('archived', False)
+                or self.migrator_hash(attrs) in attrs.get('PRed', [])))
 
     def migrate(self, recipe_dir, attrs, **kwargs):
         """Perform the migration, updating the ``meta.yaml``
@@ -46,7 +48,7 @@ class Migrator:
         bool:
             If True continue with PR, if False scrap local folder
         """
-        return f'{self.__class__.__name__}_{self._class_version}'
+        return self.migrator_hash(attrs)
 
     def pr_body(self):
         """Create a PR message body
@@ -90,6 +92,9 @@ class Migrator:
     def remote_branch(self):
         """Branch to use on local and remote"""
         return 'bot-pr'
+
+    def migrator_hash(self, attrs):
+        return f'{self.__class__.__name__}_{self._class_version}'
 
 
 class Version(Migrator):
@@ -170,12 +175,16 @@ class Version(Migrator):
 
     def filter(self, attrs):
         conditional = super().filter(attrs)
-        return bool(conditional  # if archived
-                or not attrs.get('new_version')  # if no new version
-                # if new version is less than current version
-                or VersionOrder(str(attrs['new_version'])) <= VersionOrder(str(attrs['version']))
-                # if PRed version is greater than newest version
-                or VersionOrder(attrs.get('PRed', '0.0.0')) >= VersionOrder(attrs['new_version']))
+        return bool(
+            conditional  # if archived/finished
+            or not attrs.get('new_version')  # if no new version
+            # if new version is less than current version
+            or (VersionOrder(str(attrs['new_version'])) <=
+                VersionOrder(str(attrs['version'])))
+            # if PRed version is greater than newest version
+            or any(VersionOrder(self._extract_version_from_hash(h)) >=
+                   VersionOrder(attrs['new_version']
+                                ) for h in attrs.get('PRed', [])))
 
     def migrate(self, recipe_dir, attrs, hash_type='sha256'):
         # Render with new version but nothing else
@@ -204,7 +213,7 @@ class Version(Migrator):
                 p = eval_version(p)
                 n = eval_version(n)
                 replace_in_file(p, n, f)
-        return f'{super().migrate(recipe_dir, attrs)}_{version}'
+        return self.migrator_hash(attrs)
 
     def pr_body(self):
         pred = [(name, $SUBGRAPH.node[name]['new_version'])
@@ -244,9 +253,12 @@ class Version(Migrator):
     def remote_branch(self):
         return self.attrs['new_version']
 
-    def migration_hash(self):
-        n = super().migration_hash()
-        return f'{n}_{self.version}'
+    def migrator_hash(self, attrs):
+        n = super().migrator_hash(attrs)
+        return f'{n}_{attrs["new_version"]}'
+
+    def _extract_version_from_hash(self, h):
+        return h.split('_')[-1]
 
 
 class JS(Migrator):
@@ -264,12 +276,14 @@ class JS(Migrator):
     def filter(self, attrs):
         conditional = super().filter(attrs)
         return bool(conditional or
-               (attrs.get('meta_yaml', {})
+                ((attrs.get('meta_yaml', {})
                 .get('build', {})
                 .get('noarch') != 'generic')
                 or (attrs.get('meta_yaml', {})
                     .get('build', {})
                     .get('script') != 'npm install -g .'))
+                and '  script: |' in attrs.get('raw_meta_yaml', '').split('\n')
+                    )
 
     def migrate(self, recipe_dir, attrs, **kwargs):
         with indir(recipe_dir):
@@ -279,7 +293,7 @@ class JS(Migrator):
                 replace_in_file(p, n, f,
                                 leading_whitespace=False
                                 )
-        return f'{super().migrate(recipe_dir, attrs)}'
+        return self.migrator_hash(attrs)
 
     def pr_body(self):
         body = super().pr_body()
@@ -313,7 +327,7 @@ class Compiler(Migrator):
 
     def migrate(self, recipe_dir, attrs, **kwargs):
         self.out = $(conda-smithy update-cb3 --recipe_directory @(recipe_dir))
-        return f'{super().migrate(recipe_dir, attrs)}'
+        return self.migrator_hash(attrs)
 
     def pr_body(self):
         body = super().pr_body()
