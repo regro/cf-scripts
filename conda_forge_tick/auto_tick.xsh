@@ -50,9 +50,7 @@ def run(attrs, migrator, feedstock=None, protocol='ssh',
                   migrator.pr_head(), migrator.remote_branch())
     except github3.GitHubError as e:
         if e.msg != 'Validation Failed':
-            raise e
-        else:
-            pass
+            raise
     # If we've gotten this far then the node is good
     attrs['bad'] = False
     print('Removing feedstock dir')
@@ -97,11 +95,14 @@ def main():
                 rerender = (gx.nodes[node].get('smithy_version') != smithy_version or
                             gx.nodes[node].get('pinning_version') != pinning_version or
                             migrator.rerender)
-                run(attrs=attrs, migrator=migrator, gh=gh, rerender=rerender, protocol='https',
-                    hash_type=attrs.get('hash_type', 'sha256'))
+                migrator_hash = run(attrs=attrs, migrator=migrator, gh=gh,
+                                    rerender=rerender, protocol='https',
+                                    hash_type=attrs.get('hash_type', 'sha256'))
                 # TODO: capture pinning here too!
-                gx.nodes[node].update({'PRed': attrs['new_version'],
-                                       'smithy_version': smithy_version,
+                if 'PRed' not in gx.nodes[node]:
+                    gx.nodes[node]['PRed'] = set()
+                gx.nodes[node]['PRed'].add(migrator_hash)
+                gx.nodes[node].update({'smithy_version': smithy_version,
                                        'pinning_version': pinning_version})
             except github3.GitHubError as e:
                 print('GITHUB ERROR ON FEEDSTOCK: {}'.format($PROJECT))
