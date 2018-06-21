@@ -15,24 +15,60 @@ from .git_utils import (get_repo, push_repo)
 # TODO: move this back to the bot file as soon as the source issue is sorted
 # https://travis-ci.org/regro/00-find-feedstocks/jobs/388387895#L1870
 from .migrators import *
-$MIGRATORS = [Version(), Compiler()]
+$MIGRATORS = [Version(), 
+# Compiler()
+]
 
 def run(attrs, migrator, feedstock=None, protocol='ssh',
         pull_request=True, rerender=True, fork=True, gh=None,
         **kwargs):
+    """For a given feedstock and migration run the migration
+
+    Parameters
+    ----------
+    attrs: dict
+        The node attributes
+    migrator: Migrator instance
+        The migrator to run on the feedstock
+    feedstock : str, optional
+        The feedstock to clone if None use $FEEDSTOCK
+    protocol : str, optional
+        The git protocol to use, defaults to ``ssh``
+    pull_request : bool, optional
+        If true issue pull request, defaults to true
+    fork : bool
+        If true create a fork, defaults to true
+    gh : github3.GitHub instance, optional
+        Object for communicating with GitHub, if None build from $USERNAME
+        and $PASSWORD, defaults to None
+    kwargs: dict
+        The key word arguments to pass to the migrator
+
+    Returns
+    -------
+    migrate_return: namedtuple
+        The migration return dict used for tracking finished migrations
+    pr_json: str
+        The PR json object for recreating the PR as needed
+
+    """
     # get the repo
     migrator.attrs = attrs
-    feedstock_dir, repo = get_repo(attrs, branch=migrator.remote_branch(),
+    feedstock_dir, repo = get_repo(attrs,
+                                   branch=migrator.remote_branch(),
                                    feedstock=feedstock,
                                    protocol=protocol,
-                                   pull_request=pull_request, fork=fork, gh=gh)
+                                   pull_request=pull_request,
+                                   fork=fork,
+                                   gh=gh)
 
     # migrate the `meta.yaml`
     recipe_dir = os.path.join(feedstock_dir, 'recipe')
-    if not migrator.migrate(recipe_dir, attrs, **kwargs):
+    migrate_return = migrator.migrate(recipe_dir, attrs, **kwargs)
+    if not migrate_return:
         print($PROJECT, attrs.get('bad'))
         rm -rf @(feedstock_dir)
-        return False
+        return False, False
 
     # rerender, maybe
     with indir(feedstock_dir), ${...}.swap(RAISE_SUBPROC_ERROR=False):
@@ -42,17 +78,30 @@ def run(attrs, migrator, feedstock=None, protocol='ssh',
             conda smithy rerender -c auto
 
     # push up
-    push_repo(feedstock_dir, migrator.pr_body(), repo, migrator.pr_title(),
-              migrator.pr_head(), migrator.remote_branch())
+    try:
+        pr_json = push_repo(feedstock_dir,
+                            migrator.pr_body(),
+                            repo,
+                            migrator.pr_title(),
+                            migrator.pr_head(),
+                            migrator.remote_branch())
+
+    # This shouldn't happen too often any more since we won't double PR
+    except github3.GitHubError as e:
+        if e.msg != 'Validation Failed':
+            raise
+        else:
+            # If we just push to the existing PR then do nothing to the json
+            pr_json = False
+
     # If we've gotten this far then the node is good
     attrs['bad'] = False
     print('Removing feedstock dir')
     rm -rf @(feedstock_dir)
-    return True
+    return migrate_return, pr_json
 
 
 def main():
-    # gx = nx.read_yaml('graph.yml')
     gx = nx.read_gpickle('graph.pkl')
     $REVER_DIR = './feedstocks/'
     $REVER_QUIET = True
@@ -61,7 +110,7 @@ def main():
     smithy_version = ![conda smithy --version].output.strip()
     pinning_version = json.loads(![conda list conda-forge-pinning --json].output.strip())[0]['version']
     # TODO: need to also capture pinning version, maybe it is in the graph?
-    
+
     for migrator in $MIGRATORS:
         gx2 = copy.deepcopy(gx)
     
@@ -69,6 +118,7 @@ def main():
         for node, attrs in gx.node.items():
             if migrator.filter(attrs):
                 gx2.remove_node(node)
+
         $SUBGRAPH = gx2
         print('Total migrations for {}: {}'.format(migrator.__class__.__name__,
                                                    len(gx2.node)))
@@ -88,35 +138,39 @@ def main():
                 rerender = (gx.nodes[node].get('smithy_version') != smithy_version or
                             gx.nodes[node].get('pinning_version') != pinning_version or
                             migrator.rerender)
-                run(attrs=attrs, migrator=migrator, gh=gh, rerender=rerender, protocol='https',
-                    hash_type=attrs.get('hash_type', 'sha256'))
-                # TODO: capture pinning here too!
-                gx.nodes[node].update({'PRed': attrs['new_version'],
-                                       'smithy_version': smithy_version,
-                                       'pinning_version': pinning_version})
+                migrator_uid, pr_json = run(attrs=attrs, migrator=migrator, gh=gh,
+                                            rerender=rerender, protocol='https',
+                                            hash_type=attrs.get('hash_type', 'sha256'))
+                if migrator_uid:
+                    gx.nodes[node].setdefault('PRed', []).append(migrator_uid)
+                    gx.nodes[node].update({'smithy_version': smithy_version,
+                                           'pinning_version': pinning_version})
+
+                # Stash the pr json data so we can access it later
+                if pr_json:
+                    gx.nodes[node].setdefault('PRed_json', {}).update(
+                        {(migrator_uid): pr_json})
+
             except github3.GitHubError as e:
-                print('GITHUB ERROR ON FEEDSTOCK: {}'.format($PROJECT))
-                print(e)
-                print(e.response)
-                # carve out for PRs already submitted
-                if e.msg == 'Validation Failed':
-                    gx.nodes[node]['PRed'] = attrs['new_version']
-                elif e.msg == 'Repository was archived so is read-only.':
+                if e.msg == 'Repository was archived so is read-only.':
                     gx.nodes[node]['archived'] = True
-                c = gh.rate_limit()['resources']['core']
-                if c['remaining'] == 0:
-                    ts = c['reset']
-                    print('API timeout, API returns at')
-                    print(datetime.datetime.utcfromtimestamp(ts)
-                          .strftime('%Y-%m-%dT%H:%M:%SZ'))
-                    break
+                else:
+                    print('GITHUB ERROR ON FEEDSTOCK: {}'.format($PROJECT))
+                    print(e)
+                    print(e.response)
+
+                    c = gh.rate_limit()['resources']['core']
+                    if c['remaining'] == 0:
+                        ts = c['reset']
+                        print('API timeout, API returns at')
+                        print(datetime.datetime.utcfromtimestamp(ts)
+                              .strftime('%Y-%m-%dT%H:%M:%SZ'))
+                        break
             except Exception as e:
                 print('NON GITHUB ERROR')
                 print(e)
-                with open('exceptions.md', 'a') as f:
-                    f.write('#{name}\n\n##{exception}\n\n```python{tb}```\n\n'.format(
-                        name=$PROJECT, exception=str(e),
-                        tb=str(traceback.format_exc())))
+                attrs['bad'] = {'exception': str(e),
+                                'traceback': str(traceback.format_exc())}
             finally:
                 # Write graph partially through
                 # Race condition?

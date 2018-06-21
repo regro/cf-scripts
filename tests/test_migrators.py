@@ -2,10 +2,11 @@ import os
 
 import pytest
 
-from conda_forge_tick.migrators import (JS, Version, Compiler)
+from conda_forge_tick.migrators import JS, Version, Compiler
+from conda_forge_tick.utils import parse_meta_yaml
 
 
-sample_js = '''{% set name = "jstz" %}
+sample_js = """{% set name = "jstz" %}
 {% set version = "1.0.11" %}
 {% set sha256 = "985d5fd8705930aab9cc59046e99c1f512d05109c9098039f880df5f5df2bf24" %}
 
@@ -49,10 +50,9 @@ about:
 extra:
   recipe-maintainers:
     - cshaley
-    - sannykr'''
+    - sannykr"""
 
-
-sample_js2 = '''{% set name = "jstz" %}
+sample_js2 = """{% set name = "jstz" %}
 {% set version = "1.0.11" %}
 {% set sha256 = "985d5fd8705930aab9cc59046e99c1f512d05109c9098039f880df5f5df2bf24" %}
 
@@ -98,11 +98,9 @@ about:
 extra:
   recipe-maintainers:
     - cshaley
-    - sannykr
-'''
+    - sannykr"""
 
-
-correct_js = '''{% set name = "jstz" %}
+correct_js = """{% set name = "jstz" %}
 {% set version = "1.0.11" %}
 {% set sha256 = "985d5fd8705930aab9cc59046e99c1f512d05109c9098039f880df5f5df2bf24" %}
 
@@ -149,10 +147,9 @@ extra:
   recipe-maintainers:
     - cshaley
     - sannykr
-'''
+"""
 
-
-one_source = '''{% set version = "2.4.0" %}
+one_source = """{% set version = "2.4.0" %}
 {% set download_url = "https://github.com/git-lfs/git-lfs/releases/download" %}
 
 package:
@@ -181,10 +178,9 @@ extra:
   recipe-maintainers:
     - dfroger
     - willirath
-'''
+"""
 
-
-updated_one_source = '''{% set version = "2.4.1" %}
+updated_one_source = """{% set version = "2.4.1" %}
 {% set download_url = "https://github.com/git-lfs/git-lfs/releases/download" %}
 
 package:
@@ -213,10 +209,9 @@ extra:
   recipe-maintainers:
     - dfroger
     - willirath
-'''
+"""
 
-
-jinja_sha = '''{% set version = "2.4.0" %}
+jinja_sha = """{% set version = "2.4.0" %}
 {% set download_url = "https://github.com/git-lfs/git-lfs/releases/download" %}
 {% set sha256 = "56728ec9219c1a9339e1e6166f551459d74d300a29b51031851759cee4d7d710" %}
 
@@ -246,10 +241,9 @@ extra:
   recipe-maintainers:
     - dfroger
     - willirath
-'''
+"""
 
-
-updated_jinja_sha = '''{% set version = "2.4.1" %}
+updated_jinja_sha = """{% set version = "2.4.1" %}
 {% set download_url = "https://github.com/git-lfs/git-lfs/releases/download" %}
 {% set sha256 = "97e2bd8b7b4dde393eef3dd37013629dadebddefcdf27649b441659bdf4bb636" %}
 
@@ -279,10 +273,9 @@ extra:
   recipe-maintainers:
     - dfroger
     - willirath
-'''
+"""
 
-
-multi_source = '''{% set version = "2.4.0" %}
+multi_source = """{% set version = "2.4.0" %}
 {% set download_url = "https://github.com/git-lfs/git-lfs/releases/download" %}
 
 package:
@@ -319,10 +312,9 @@ extra:
   recipe-maintainers:
     - dfroger
     - willirath
-'''
+"""
 
-
-updated_multi_source = '''{% set version = "2.4.1" %}
+updated_multi_source = """{% set version = "2.4.1" %}
 {% set download_url = "https://github.com/git-lfs/git-lfs/releases/download" %}
 
 package:
@@ -359,10 +351,9 @@ extra:
   recipe-maintainers:
     - dfroger
     - willirath
-'''
+"""
 
-
-sample_r = '''{% set version = '1.3-1' %}
+sample_r = """{% set version = '1.3-1' %}
 
 {% set posix = 'm2-' if win else '' %}
 {% set native = 'm2w64-' if win else '' %}
@@ -417,10 +408,9 @@ extra:
     - daler
     - jdblischak
     - cbrueffer
-'''
+"""
 
-
-updated_sample_r = '''{% set version = "1.3-2" %}
+updated_sample_r = """{% set version = "1.3-2" %}
 
 {% set posix = 'm2-' if win else '' %}
 {% set native = 'm2w64-' if win else '' %}
@@ -475,9 +465,9 @@ extra:
     - daler
     - jdblischak
     - cbrueffer
-'''
+"""
 
-cb3_multi = '''{% set name = "pypy3.5" %}
+cb3_multi = """{% set name = "pypy3.5" %}
 {% set version = "5.9.0" %}
 
 package:
@@ -551,9 +541,9 @@ extra:
   recipe-maintainers:
     - omerbenamram
     - ohadravid
-'''
+"""
 
-updated_cb3_multi = '''{% set name = "pypy3.5" %}
+updated_cb3_multi = """{% set name = "pypy3.5" %}
 {% set version = "6.0.0" %}
 
 package:
@@ -627,9 +617,9 @@ extra:
   recipe-maintainers:
     - omerbenamram
     - ohadravid
-'''
+"""
 
-sample_cb3 = '''{% set version = "1.14.5" %}
+sample_cb3 = """{% set version = "1.14.5" %}
 {% set build_number = 0 %}
 
 {% set variant = "openblas" %}
@@ -688,10 +678,9 @@ extra:
     - pelson
     - rgommers
     - ocefpaf
-'''
+"""
 
-
-correct_cb3 = '''{% set version = "1.14.5" %}
+correct_cb3 = """{% set version = "1.14.5" %}
 {% set build_number = 0 %}
 
 {% set variant = "openblas" %}
@@ -753,35 +742,124 @@ extra:
     - pelson
     - rgommers
     - ocefpaf
-'''
+"""
 
+js = JS()
+version = Version()
+compiler = Compiler()
 
 test_list = [
-    (JS, sample_js, correct_js, {},
-     'Please merge the PR only after the tests have passed.'),
-    (JS, sample_js2, correct_js, {},
-     'Please merge the PR only after the tests have passed.'),
-    (Version, one_source, updated_one_source, {'new_version': '2.4.1'},
-     'Please check that the dependencies have not changed.'),
-    (Version, jinja_sha, updated_jinja_sha, {'new_version': '2.4.1'},
-     'Please check that the dependencies have not changed.'),
-    (Version, multi_source, updated_multi_source, {'new_version': '2.4.1'},
-     'Please check that the dependencies have not changed.'),
-    (Version, sample_r, updated_sample_r, {'new_version': '1.3_2'},
-     'Please check that the dependencies have not changed.'),
-    (Version, cb3_multi, updated_cb3_multi, {'new_version': '6.0.0'},
-     'Please check that the dependencies have not changed.'),
-    (Compiler, sample_cb3, correct_cb3, {}, 'N/A')
+    (
+        js,
+        sample_js,
+        correct_js,
+        {},
+        "Please merge the PR only after the tests have passed.",
+        {'migrator_name': "JS", 'migrator_version': JS.migrator_version},
+    ),
+    (
+        version,
+        one_source,
+        updated_one_source,
+        {"new_version": "2.4.1"},
+        "Please check that the dependencies have not changed.",
+        {
+            'migrator_name': "Version",
+            'migrator_version': Version.migrator_version,
+            "version": "2.4.1",
+        },
+    ),
+    (
+        version,
+        jinja_sha,
+        updated_jinja_sha,
+        {"new_version": "2.4.1"},
+        "Please check that the dependencies have not changed.",
+        {
+            'migrator_name': "Version",
+            'migrator_version': Version.migrator_version,
+            "version": "2.4.1",
+        },
+    ),
+    (
+        version,
+        multi_source,
+        updated_multi_source,
+        {"new_version": "2.4.1"},
+        "Please check that the dependencies have not changed.",
+        {
+            'migrator_name': "Version",
+            'migrator_version': Version.migrator_version,
+            "version": "2.4.1",
+        },
+    ),
+    (
+        version,
+        sample_r,
+        updated_sample_r,
+        {"new_version": "1.3_2"},
+        "Please check that the dependencies have not changed.",
+        {
+            'migrator_name': "Version",
+            'migrator_version': Version.migrator_version,
+            "version": "1.3_2",
+        },
+    ),
+    (
+        version,
+        cb3_multi,
+        updated_cb3_multi,
+        {"new_version": "6.0.0"},
+        "Please check that the dependencies have not changed.",
+        {
+            'migrator_name': "Version",
+            'migrator_version': Version.migrator_version,
+            "version": "6.0.0",
+        },
+    ),
+    (
+        compiler,
+        sample_cb3,
+        correct_cb3,
+        {},
+        "N/A",
+        {'migrator_name': "Compiler", 'migrator_version': Compiler.migrator_version},
+    ),
+    # It seems this injects some bad state somewhere, mostly because it isn't
+    # valid yaml
+    (
+        js,
+        sample_js2,
+        correct_js,
+        {},
+        "Please merge the PR only after the tests have passed.",
+        {'migrator_name': "JS", 'migrator_version': JS.migrator_version},
+    ),
 ]
 
 
-@pytest.mark.parametrize("migrator, inp, output, kwargs, prb", test_list)
-def test_migration(migrator, inp, output, kwargs, prb, tmpdir):
-    with open(os.path.join(tmpdir, 'meta.yaml'), 'w') as f:
+@pytest.mark.parametrize("m, inp, output, kwargs, prb, mr_out", test_list)
+def test_migration(m, inp, output, kwargs, prb, mr_out, tmpdir):
+    with open(os.path.join(tmpdir, "meta.yaml"), "w") as f:
         f.write(inp)
-    m = migrator()
-    m.migrate(tmpdir, kwargs)
-    with open(os.path.join(tmpdir, 'meta.yaml'), 'r') as f:
+    # Load the meta.yaml (this is done in the graph)
+    pmy = parse_meta_yaml(inp)
+    if pmy:
+        pmy["version"] = pmy["package"]["version"]
+        pmy["req"] = set()
+        for k in ["build", "host", "run"]:
+            pmy["req"] |= set(pmy.get("requirements", {}).get(k, set()))
+        pmy["meta_yaml"] = parse_meta_yaml(inp)
+    pmy["raw_meta_yaml"] = inp
+    pmy.update(kwargs)
+
+    assert m.filter(pmy) is False
+
+    mr = m.migrate(tmpdir, pmy)
+    assert mr_out == mr
+
+    pmy.update(PRed=[mr])
+    with open(os.path.join(tmpdir, "meta.yaml"), "r") as f:
         assert f.read() == output
     if isinstance(m, Compiler):
         assert m.out in m.pr_body()
@@ -790,3 +868,4 @@ def test_migration(migrator, inp, output, kwargs, prb, tmpdir):
         pass
     else:
         assert prb in m.pr_body()
+    assert m.filter(pmy) is True

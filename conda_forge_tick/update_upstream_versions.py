@@ -122,6 +122,7 @@ class RawURL:
             return None
         if 'version' not in meta_yaml:
             return None
+        # TODO: pull this from the graph itself
         pkg = meta_yaml['feedstock_name']
         url_template = 'https://raw.githubusercontent.com/conda-forge/' \
             '{}-feedstock/master/recipe/meta.yaml'

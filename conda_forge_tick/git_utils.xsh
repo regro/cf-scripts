@@ -138,6 +138,12 @@ def push_repo(feedstock_dir, body, repo, title, head, branch,
         The PR body
     pull_request : bool, optional
         If True issue pull request, defaults to True
+
+    Returns
+    -------
+    pr_json: str
+        The json object representing the PR, can be used with `from_json`
+        to create a PR instance.
     """
     with indir(feedstock_dir), ${...}.swap(RAISE_SUBPROC_ERROR=False):
         # Setup push from doctr
@@ -158,3 +164,5 @@ def push_repo(feedstock_dir, body, repo, title, head, branch,
         print('Failed to create pull request!')
     else:
         print('Pull request created at ' + pr.html_url)
+    # Return a json object so we can remake the PR if needed
+    return pr.to_json()

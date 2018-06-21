@@ -1,8 +1,9 @@
-import jinja2
-from conda_build.metadata import parse
-from conda_build.config import Config
 import os
 from collections import defaultdict
+
+import jinja2
+from conda_build.config import Config
+from conda_build.metadata import parse
 
 
 class NullUndefined(jinja2.Undefined):

@@ -1,9 +1,8 @@
 """Classes for migrating repos"""
-import re
 import urllib.error
 
+import re
 from conda.models.version import VersionOrder
-
 from rever.tools import (eval_version, indir, hash_url, replace_in_file)
 
 from .utils import render_meta_yaml
@@ -12,6 +11,8 @@ from .utils import render_meta_yaml
 class Migrator:
     """Base class for Migrators"""
     rerender = False
+
+    migrator_version = 0
 
     def filter(self, attrs):
         """ If true don't act upon node
@@ -27,7 +28,12 @@ class Migrator:
             True if node is to be skipped
         """
         # never run on archived feedstocks
-        return bool(attrs.get('archived', False))
+        # don't run on things we've already done
+        # don't run on bad nodes
+        return bool(bool(attrs.get('archived', False)
+                or self.migrator_uid(attrs)
+                     in attrs.get('PRed', []))
+                or attrs.get('bad', False))
 
     def migrate(self, recipe_dir, attrs, **kwargs):
         """Perform the migration, updating the ``meta.yaml``
@@ -41,10 +47,10 @@ class Migrator:
 
         Returns
         -------
-        bool:
-            If True continue with PR, if False scrap local folder
+        namedtuple or bool:
+            If namedtuple continue with PR, if False scrap local folder
         """
-        return True
+        return self.migrator_uid(attrs)
 
     def pr_body(self):
         """Create a PR message body
@@ -89,6 +95,22 @@ class Migrator:
         """Branch to use on local and remote"""
         return 'bot-pr'
 
+    def migrator_uid(self, attrs):
+        """Make a unique id for this migrator and node attrs
+
+        Parameters
+        ----------
+        attrs: dict
+            Node attrs
+
+        Returns
+        -------
+        nt: namedtuple
+            The unique id as a namedtuple
+        """
+        return {'migrator_name': self.__class__.__name__,
+             'migrator_version': self.migrator_version}
+
 
 class Version(Migrator):
     """Migrator for version bumping of packages"""
@@ -115,6 +137,8 @@ class Version(Migrator):
     url_pat = re.compile(r'^( *)(-)?(\s*)url:\s*([^\s#]+?)\s*(?:(#.*)?\[([^\[\]]+)\])?(?(5)[^\(\)\n]*)(?(2)\n\1 \3.*)*$', flags=re.M)
     r_url_pat = re.compile(r'^(\s*)(-)?(\s*)url:\s*(?:(#.*)?\[([^\[\]]+)\])?(?(4)[^\(\)]*?)\n(\1(?(2) \3)  -.*\n?)*', flags=re.M)
     r_urls = re.compile('\s*-(.+?)(?:#.*)?$', flags=re.M)
+
+    migrator_version = 0
 
     def find_urls(self, text):
         """Get the URLs and platforms in a meta.yaml."""
@@ -166,12 +190,16 @@ class Version(Migrator):
 
     def filter(self, attrs):
         conditional = super().filter(attrs)
-        return bool(conditional  # if archived
-                or not attrs.get('new_version')  # if no new version
-                # if new version is less than current version
-                or VersionOrder(str(attrs['new_version'])) <= VersionOrder(str(attrs['version']))
-                # if PRed version is greater than newest version
-                or VersionOrder(attrs.get('PRed', '0.0.0')) >= VersionOrder(attrs['new_version']))
+        return bool(
+            conditional  # if archived/finished
+            or not attrs.get('new_version')  # if no new version
+            # if new version is less than current version
+            or (VersionOrder(str(attrs['new_version'])) <=
+                VersionOrder(str(attrs['version'])))
+            # if PRed version is greater than newest version
+            or any(VersionOrder(self._extract_version_from_hash(h)) >=
+                   VersionOrder(attrs['new_version']
+                                ) for h in attrs.get('PRed', set())))
 
     def migrate(self, recipe_dir, attrs, hash_type='sha256'):
         # Render with new version but nothing else
@@ -200,7 +228,7 @@ class Version(Migrator):
                 p = eval_version(p)
                 n = eval_version(n)
                 replace_in_file(p, n, f)
-        return True
+        return self.migrator_uid(attrs)
 
     def pr_body(self):
         pred = [(name, $SUBGRAPH.node[name]['new_version'])
@@ -240,6 +268,15 @@ class Version(Migrator):
     def remote_branch(self):
         return self.attrs['new_version']
 
+    def migrator_uid(self, attrs):
+        n = super().migrator_uid(attrs)
+        n.update({'version': attrs["new_version"]})
+        return n
+
+    def _extract_version_from_hash(self, h):
+        return h.get('version', '0.0.0')
+
+
 class JS(Migrator):
     """Migrator for JavaScript syntax"""
     patterns = [
@@ -250,15 +287,19 @@ class JS(Migrator):
         ('meta.yaml', '   script: |\n', '  script: |')
     ]
 
+    migrator_version = 0
+
     def filter(self, attrs):
         conditional = super().filter(attrs)
         return bool(conditional or
-               (attrs.get('meta_yaml', {})
+                ((attrs.get('meta_yaml', {})
                 .get('build', {})
                 .get('noarch') != 'generic')
                 or (attrs.get('meta_yaml', {})
                     .get('build', {})
                     .get('script') != 'npm install -g .'))
+                and '  script: |' in attrs.get('raw_meta_yaml', '').split('\n')
+                    )
 
     def migrate(self, recipe_dir, attrs, **kwargs):
         with indir(recipe_dir):
@@ -268,7 +309,7 @@ class JS(Migrator):
                 replace_in_file(p, n, f,
                                 leading_whitespace=False
                                 )
-        return True
+        return self.migrator_uid(attrs)
 
     def pr_body(self):
         body = super().pr_body()
@@ -292,6 +333,7 @@ class JS(Migrator):
 
 class Compiler(Migrator):
     """Migrator for Jinja2 comiler syntax."""
+    migrator_version = 0
 
     rerender = True
 
@@ -301,7 +343,7 @@ class Compiler(Migrator):
 
     def migrate(self, recipe_dir, attrs, **kwargs):
         self.out = $(conda-smithy update-cb3 --recipe_directory @(recipe_dir))
-        return True
+        return self.migrator_uid(attrs)
 
     def pr_body(self):
         body = super().pr_body()
