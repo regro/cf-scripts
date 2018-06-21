@@ -11,7 +11,6 @@ import networkx as nx
 from rever.tools import indir
 
 from .git_utils import (get_repo, push_repo)
-from .utils import convert_dict_to_nt
 
 # TODO: move this back to the bot file as soon as the source issue is sorted
 # https://travis-ci.org/regro/00-find-feedstocks/jobs/388387895#L1870
@@ -111,7 +110,7 @@ def main():
     smithy_version = ![conda smithy --version].output.strip()
     pinning_version = json.loads(![conda list conda-forge-pinning --json].output.strip())[0]['version']
     # TODO: need to also capture pinning version, maybe it is in the graph?
-    
+
     for migrator in $MIGRATORS:
         gx2 = copy.deepcopy(gx)
     
@@ -143,7 +142,7 @@ def main():
                                             rerender=rerender, protocol='https',
                                             hash_type=attrs.get('hash_type', 'sha256'))
                 if migrator_uid:
-                    gx.nodes[node].setdefault('PRed', set()).add(migrator_uid)
+                    gx.nodes[node].setdefault('PRed', []).append(migrator_uid)
                     gx.nodes[node].update({'smithy_version': smithy_version,
                                            'pinning_version': pinning_version})
 

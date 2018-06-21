@@ -3,7 +3,7 @@ import os
 import pytest
 
 from conda_forge_tick.migrators import JS, Version, Compiler
-from conda_forge_tick.utils import parse_meta_yaml, convert_dict_to_nt
+from conda_forge_tick.utils import parse_meta_yaml
 
 
 sample_js = """{% set name = "jstz" %}
@@ -856,9 +856,9 @@ def test_migration(m, inp, output, kwargs, prb, mr_out, tmpdir):
     assert m.filter(pmy) is False
 
     mr = m.migrate(tmpdir, pmy)
-    assert convert_dict_to_nt(mr_out) == mr
+    assert mr_out == mr
 
-    pmy.update(PRed={mr})
+    pmy.update(PRed=[mr])
     with open(os.path.join(tmpdir, "meta.yaml"), "r") as f:
         assert f.read() == output
     if isinstance(m, Compiler):

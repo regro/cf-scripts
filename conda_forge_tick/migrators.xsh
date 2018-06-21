@@ -1,12 +1,11 @@
 """Classes for migrating repos"""
-import re
 import urllib.error
 
+import re
 from conda.models.version import VersionOrder
-
 from rever.tools import (eval_version, indir, hash_url, replace_in_file)
 
-from .utils import render_meta_yaml, convert_dict_to_nt
+from .utils import render_meta_yaml
 
 
 class Migrator:
@@ -33,7 +32,7 @@ class Migrator:
         # don't run on bad nodes
         return bool(bool(attrs.get('archived', False)
                 or self.migrator_uid(attrs)
-                     in attrs.get('PRed', set()))
+                     in attrs.get('PRed', []))
                 or attrs.get('bad', False))
 
     def migrate(self, recipe_dir, attrs, **kwargs):
@@ -109,9 +108,8 @@ class Migrator:
         nt: namedtuple
             The unique id as a namedtuple
         """
-        return convert_dict_to_nt(
-            {'migrator_name': self.__class__.__name__,
-             'migrator_version': self.migrator_version})
+        return {'migrator_name': self.__class__.__name__,
+             'migrator_version': self.migrator_version}
 
 
 class Version(Migrator):
@@ -272,12 +270,11 @@ class Version(Migrator):
 
     def migrator_uid(self, attrs):
         n = super().migrator_uid(attrs)
-        d = n._asdict()
-        d.update({'version': attrs["new_version"]})
-        return convert_dict_to_nt(d)
+        n.update({'version': attrs["new_version"]})
+        return n
 
     def _extract_version_from_hash(self, h):
-        return getattr(h, 'version', '0.0.0')
+        return h.get('version', '0.0.0')
 
 
 class JS(Migrator):
