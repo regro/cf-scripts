@@ -15,6 +15,8 @@ def get_attrs(name, i, bad):
     sub_graph = {
         'time': time.time(),
         'feedstock_name': name,
+        # All feedstocks start out as good
+        'bad': False
     }
 
     logger.info((i, name))

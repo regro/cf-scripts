@@ -22,6 +22,36 @@ $MIGRATORS = [Version(),
 def run(attrs, migrator, feedstock=None, protocol='ssh',
         pull_request=True, rerender=True, fork=True, gh=None,
         **kwargs):
+    """For a given feedstock and migration run the migration
+
+    Parameters
+    ----------
+    attrs: dict
+        The node attributes
+    migrator: Migrator instance
+        The migrator to run on the feedstock
+    feedstock : str, optional
+        The feedstock to clone if None use $FEEDSTOCK
+    protocol : str, optional
+        The git protocol to use, defaults to ``ssh``
+    pull_request : bool, optional
+        If true issue pull request, defaults to true
+    fork : bool
+        If true create a fork, defaults to true
+    gh : github3.GitHub instance, optional
+        Object for communicating with GitHub, if None build from $USERNAME
+        and $PASSWORD, defaults to None
+    kwargs: dict
+        The key word arguments to pass to the migrator
+
+    Returns
+    -------
+    migrate_return: dict
+        The migration return dict used for tracking finished migrations
+    pr: str
+        The PR json object for recreating the PR as needed
+
+    """
     # get the repo
     migrator.attrs = attrs
     feedstock_dir, repo = get_repo(attrs, branch=migrator.remote_branch(),
@@ -46,8 +76,9 @@ def run(attrs, migrator, feedstock=None, protocol='ssh',
 
     # push up
     try:
-        push_repo(feedstock_dir, migrator.pr_body(), repo, migrator.pr_title(),
+        pr = push_repo(feedstock_dir, migrator.pr_body(), repo, migrator.pr_title(),
                   migrator.pr_head(), migrator.remote_branch())
+    # This shouldn't happen too often any more since we won't double PR
     except github3.GitHubError as e:
         if e.msg != 'Validation Failed':
             raise
@@ -55,7 +86,7 @@ def run(attrs, migrator, feedstock=None, protocol='ssh',
     attrs['bad'] = False
     print('Removing feedstock dir')
     rm -rf @(feedstock_dir)
-    return migrate_return
+    return migrate_return, pr
 
 
 def main():
