@@ -135,7 +135,7 @@ def main():
                 gx.nodes[node].setdefault('PRed', []).append(migrator_hash)
                 # Stash the pr json data so we can access it later
                 gx.nodes[node].setdefault('PRed_json', {}).update(
-                    {tuple(migrator_hash.keys()): pr_json})
+                    {tuple(migrator_hash.values()): pr_json})
                 gx.nodes[node].update({'smithy_version': smithy_version,
                                        'pinning_version': pinning_version})
             except github3.GitHubError as e:
