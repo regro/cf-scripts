@@ -98,10 +98,8 @@ def main():
                 migrator_hash = run(attrs=attrs, migrator=migrator, gh=gh,
                                     rerender=rerender, protocol='https',
                                     hash_type=attrs.get('hash_type', 'sha256'))
-                # TODO: capture pinning here too!
-                if 'PRed' not in gx.nodes[node]:
-                    gx.nodes[node]['PRed'] = set()
-                gx.nodes[node]['PRed'].add(migrator_hash)
+
+                gx.nodes[node].setdefault('PRed', set()).add(migrator_hash)
                 gx.nodes[node].update({'smithy_version': smithy_version,
                                        'pinning_version': pinning_version})
             except github3.GitHubError as e:

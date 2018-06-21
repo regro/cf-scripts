@@ -51,7 +51,6 @@ extra:
     - cshaley
     - sannykr'''
 
-
 sample_js2 = '''{% set name = "jstz" %}
 {% set version = "1.0.11" %}
 {% set sha256 = "985d5fd8705930aab9cc59046e99c1f512d05109c9098039f880df5f5df2bf24" %}
@@ -98,8 +97,7 @@ about:
 extra:
   recipe-maintainers:
     - cshaley
-    - sannykr '''
-
+    - sannykr'''
 
 correct_js = '''{% set name = "jstz" %}
 {% set version = "1.0.11" %}
@@ -150,7 +148,6 @@ extra:
     - sannykr
 '''
 
-
 one_source = '''{% set version = "2.4.0" %}
 {% set download_url = "https://github.com/git-lfs/git-lfs/releases/download" %}
 
@@ -182,7 +179,6 @@ extra:
     - willirath
 '''
 
-
 updated_one_source = '''{% set version = "2.4.1" %}
 {% set download_url = "https://github.com/git-lfs/git-lfs/releases/download" %}
 
@@ -213,7 +209,6 @@ extra:
     - dfroger
     - willirath
 '''
-
 
 jinja_sha = '''{% set version = "2.4.0" %}
 {% set download_url = "https://github.com/git-lfs/git-lfs/releases/download" %}
@@ -247,7 +242,6 @@ extra:
     - willirath
 '''
 
-
 updated_jinja_sha = '''{% set version = "2.4.1" %}
 {% set download_url = "https://github.com/git-lfs/git-lfs/releases/download" %}
 {% set sha256 = "97e2bd8b7b4dde393eef3dd37013629dadebddefcdf27649b441659bdf4bb636" %}
@@ -279,7 +273,6 @@ extra:
     - dfroger
     - willirath
 '''
-
 
 multi_source = '''{% set version = "2.4.0" %}
 {% set download_url = "https://github.com/git-lfs/git-lfs/releases/download" %}
@@ -320,7 +313,6 @@ extra:
     - willirath
 '''
 
-
 updated_multi_source = '''{% set version = "2.4.1" %}
 {% set download_url = "https://github.com/git-lfs/git-lfs/releases/download" %}
 
@@ -359,7 +351,6 @@ extra:
     - dfroger
     - willirath
 '''
-
 
 sample_r = '''{% set version = '1.3-1' %}
 
@@ -417,7 +408,6 @@ extra:
     - jdblischak
     - cbrueffer
 '''
-
 
 updated_sample_r = '''{% set version = "1.3-2" %}
 
@@ -689,7 +679,6 @@ extra:
     - ocefpaf
 '''
 
-
 correct_cb3 = '''{% set version = "1.14.5" %}
 {% set build_number = 0 %}
 
@@ -754,49 +743,55 @@ extra:
     - ocefpaf
 '''
 
+js = JS()
+version = Version()
+compiler = Compiler()
+
 test_list = [
-    (JS, sample_js, correct_js, {},
+    (js, sample_js, correct_js, {},
      'Please merge the PR only after the tests have passed.',
      f'JS_{JS._class_version}'),
-    # (JS, sample_js2, correct_js, {},
-    #  'Please merge the PR only after the tests have passed.',
-    #  f'JS_{JS._class_version}'),
-    (Version, one_source, updated_one_source, {'new_version': '2.4.1'},
+    (version, one_source, updated_one_source, {'new_version': '2.4.1'},
      'Please check that the dependencies have not changed.',
      f'Version_{Version._class_version}_2.4.1'),
-    (Version, jinja_sha, updated_jinja_sha, {'new_version': '2.4.1'},
+    (version, jinja_sha, updated_jinja_sha, {'new_version': '2.4.1'},
      'Please check that the dependencies have not changed.',
      f'Version_{Version._class_version}_2.4.1'),
-    (Version, multi_source, updated_multi_source, {'new_version': '2.4.1'},
+    (version, multi_source, updated_multi_source, {'new_version': '2.4.1'},
      'Please check that the dependencies have not changed.',
      f'Version_{Version._class_version}_2.4.1'),
-    (Version, sample_r, updated_sample_r, {'new_version': '1.3-2'},
+    (version, sample_r, updated_sample_r, {'new_version': '1.3_2'},
      'Please check that the dependencies have not changed.',
-     f'Version_{Version._class_version}_1.3-2'),
-    (Version, cb3_multi, updated_cb3_multi, {'new_version': '6.0.0'},
+     f'Version_{Version._class_version}_1.3_2'),
+    (version, cb3_multi, updated_cb3_multi, {'new_version': '6.0.0'},
      'Please check that the dependencies have not changed.',
      f'Version_{Version._class_version}_6.0.0'),
-    (Compiler, sample_cb3, correct_cb3, {}, 'N/A',
-     f'Compiler_{Compiler._class_version}')
+    (compiler, sample_cb3, correct_cb3, {}, 'N/A',
+     f'Compiler_{Compiler._class_version}'),
+    # It seems this injects some bad state somewhere, mostly because it isn't
+    # valid yaml
+    (js, sample_js2, correct_js, {},
+     'Please merge the PR only after the tests have passed.',
+     f'JS_{JS._class_version}'
+     )
 ]
 
 
-@pytest.mark.parametrize("migrator, inp, output, kwargs, prb, mr_out", test_list)
-def test_migration(migrator, inp, output, kwargs, prb, mr_out, tmpdir):
+@pytest.mark.parametrize("m, inp, output, kwargs, prb, mr_out", test_list)
+def test_migration(m, inp, output, kwargs, prb, mr_out, tmpdir):
     with open(os.path.join(tmpdir, 'meta.yaml'), 'w') as f:
         f.write(inp)
     # Load the meta.yaml (this is done in the graph)
     pmy = parse_meta_yaml(inp)
-    assert pmy
-    pmy['version'] = pmy['package']['version']
-    pmy['req'] = set()
-    for k in ['build', 'host', 'run']:
-        pmy['req'] |= set(pmy.get('requirements', {}).get(k, set()))
-    pmy['meta_yaml'] = parse_meta_yaml(inp)
+    if pmy:
+        pmy['version'] = pmy['package']['version']
+        pmy['req'] = set()
+        for k in ['build', 'host', 'run']:
+            pmy['req'] |= set(pmy.get('requirements', {}).get(k, set()))
+        pmy['meta_yaml'] = parse_meta_yaml(inp)
     pmy['raw_meta_yaml'] = inp
     pmy.update(kwargs)
 
-    m = migrator()
     assert m.filter(pmy) is False
 
     mr = m.migrate(tmpdir, pmy)
