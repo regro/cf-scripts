@@ -94,7 +94,8 @@ class Migrator:
         return 'bot-pr'
 
     def migrator_hash(self, attrs):
-        return f'{self.__class__.__name__}_{self._class_version}'
+        return {'class': self.__class__.__name__,
+                'class_version': self._class_version}
 
 
 class Version(Migrator):
@@ -255,14 +256,11 @@ class Version(Migrator):
 
     def migrator_hash(self, attrs):
         n = super().migrator_hash(attrs)
-        return f'{n}_{attrs["new_version"]}'
+        n.update({'version': attrs["new_version"]})
+        return n
 
     def _extract_version_from_hash(self, h):
-        if h:
-            # format is `class_class#_version#`
-            return h.split('_', 2)[-1]
-        else:
-            return '0.0.0'
+        return h.get('version', '0.0.0')
 
 
 class JS(Migrator):

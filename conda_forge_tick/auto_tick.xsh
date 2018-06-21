@@ -99,7 +99,9 @@ def main():
                                     rerender=rerender, protocol='https',
                                     hash_type=attrs.get('hash_type', 'sha256'))
 
-                gx.nodes[node].setdefault('PRed', set()).add(migrator_hash)
+                # I'd rather have this as a set but migrator_hash is a dict so
+                #  no dice there
+                gx.nodes[node].setdefault('PRed', []).append(migrator_hash)
                 gx.nodes[node].update({'smithy_version': smithy_version,
                                        'pinning_version': pinning_version})
             except github3.GitHubError as e:
