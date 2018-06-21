@@ -55,10 +55,13 @@ def run(attrs, migrator, feedstock=None, protocol='ssh',
     """
     # get the repo
     migrator.attrs = attrs
-    feedstock_dir, repo = get_repo(attrs, branch=migrator.remote_branch(),
+    feedstock_dir, repo = get_repo(attrs,
+                                   branch=migrator.remote_branch(),
                                    feedstock=feedstock,
                                    protocol=protocol,
-                                   pull_request=pull_request, fork=fork, gh=gh)
+                                   pull_request=pull_request,
+                                   fork=fork,
+                                   gh=gh)
 
     # migrate the `meta.yaml`
     recipe_dir = os.path.join(feedstock_dir, 'recipe')
@@ -77,13 +80,21 @@ def run(attrs, migrator, feedstock=None, protocol='ssh',
 
     # push up
     try:
-        pr_json = push_repo(feedstock_dir, migrator.pr_body(), repo,
+        pr_json = push_repo(feedstock_dir,
+                            migrator.pr_body(),
+                            repo,
                             migrator.pr_title(),
-                            migrator.pr_head(), migrator.remote_branch())
+                            migrator.pr_head(),
+                            migrator.remote_branch())
+
     # This shouldn't happen too often any more since we won't double PR
     except github3.GitHubError as e:
         if e.msg != 'Validation Failed':
             raise
+        else:
+            # If we just push to the existing PR then do nothing to the json
+            pr_json = False
+
     # If we've gotten this far then the node is good
     attrs['bad'] = False
     print('Removing feedstock dir')
@@ -92,7 +103,6 @@ def run(attrs, migrator, feedstock=None, protocol='ssh',
 
 
 def main():
-    # gx = nx.read_yaml('graph.yml')
     gx = nx.read_gpickle('graph.pkl')
     $REVER_DIR = './feedstocks/'
     $REVER_QUIET = True
@@ -109,6 +119,7 @@ def main():
         for node, attrs in gx.node.items():
             if migrator.filter(attrs):
                 gx2.remove_node(node)
+
         $SUBGRAPH = gx2
         print('Total migrations for {}: {}'.format(migrator.__class__.__name__,
                                                    len(gx2.node)))
@@ -129,36 +140,38 @@ def main():
                             gx.nodes[node].get('pinning_version') != pinning_version or
                             migrator.rerender)
                 migrator_uid, pr_json = run(attrs=attrs, migrator=migrator, gh=gh,
-                                    rerender=rerender, protocol='https',
-                                    hash_type=attrs.get('hash_type', 'sha256'))
+                                            rerender=rerender, protocol='https',
+                                            hash_type=attrs.get('hash_type', 'sha256'))
                 if migrator_uid:
                     gx.nodes[node].setdefault('PRed', set()).add(migrator_uid)
-                    # Stash the pr json data so we can access it later
-                    gx.nodes[node].setdefault('PRed_json', {}).update(
-                        {(migrator_uid): pr_json})
                     gx.nodes[node].update({'smithy_version': smithy_version,
                                            'pinning_version': pinning_version})
+
+                # Stash the pr json data so we can access it later
+                if pr_json:
+                    gx.nodes[node].setdefault('PRed_json', {}).update(
+                        {(migrator_uid): pr_json})
+
             except github3.GitHubError as e:
-                print('GITHUB ERROR ON FEEDSTOCK: {}'.format($PROJECT))
-                print(e)
-                print(e.response)
-                # carve out for PRs already submitted
                 if e.msg == 'Repository was archived so is read-only.':
                     gx.nodes[node]['archived'] = True
-                c = gh.rate_limit()['resources']['core']
-                if c['remaining'] == 0:
-                    ts = c['reset']
-                    print('API timeout, API returns at')
-                    print(datetime.datetime.utcfromtimestamp(ts)
-                          .strftime('%Y-%m-%dT%H:%M:%SZ'))
-                    break
+                else:
+                    print('GITHUB ERROR ON FEEDSTOCK: {}'.format($PROJECT))
+                    print(e)
+                    print(e.response)
+
+                    c = gh.rate_limit()['resources']['core']
+                    if c['remaining'] == 0:
+                        ts = c['reset']
+                        print('API timeout, API returns at')
+                        print(datetime.datetime.utcfromtimestamp(ts)
+                              .strftime('%Y-%m-%dT%H:%M:%SZ'))
+                        break
             except Exception as e:
                 print('NON GITHUB ERROR')
                 print(e)
-                with open('exceptions.md', 'a') as f:
-                    f.write('#{name}\n\n##{exception}\n\n```python{tb}```\n\n'.format(
-                        name=$PROJECT, exception=str(e),
-                        tb=str(traceback.format_exc())))
+                attrs['bad'] = {'exception': str(e),
+                                'traceback': str(traceback.format_exc())}
             finally:
                 # Write graph partially through
                 # Race condition?
