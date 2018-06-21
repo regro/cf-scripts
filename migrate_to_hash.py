@@ -24,3 +24,5 @@ last_compiler_index = compiler_migrations.index(last_compiler_pr)
 for i in range(last_compiler_index):
     g.nodes[compiler_migrations[i]]['PRed'] = {
         'class': 'Compiler', 'class_version': 0}
+
+nx.write_gpickle(g, '../cf-graph/graph.pkl')
