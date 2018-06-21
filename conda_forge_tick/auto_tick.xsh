@@ -132,7 +132,7 @@ def main():
                                     hash_type=attrs.get('hash_type', 'sha256'))
 
                 converted_hash = convert_dict_to_nt(migrator_hash)
-                gx.nodes[node].setdefault('PRed', set()).update(converted_hash)
+                gx.nodes[node].setdefault('PRed', set()).add(converted_hash)
                 # Stash the pr json data so we can access it later
                 gx.nodes[node].setdefault('PRed_json', {}).update(
                     {converted_hash: pr_json})

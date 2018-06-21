@@ -31,7 +31,7 @@ class Migrator:
         # never run on archived feedstocks
         # don't run on things we've already done
         # don't run on bad nodes
-        return (bool(attrs.get('archived', False)
+        return bool(bool(attrs.get('archived', False)
                 or convert_dict_to_nt(self.migrator_hash(attrs))
                      in attrs.get('PRed', set()))
                 or attrs.get('bad', False))
@@ -188,7 +188,7 @@ class Version(Migrator):
             # if PRed version is greater than newest version
             or any(VersionOrder(self._extract_version_from_hash(h)) >=
                    VersionOrder(attrs['new_version']
-                                ) for h in attrs.get('PRed', [])))
+                                ) for h in attrs.get('PRed', set())))
 
     def migrate(self, recipe_dir, attrs, hash_type='sha256'):
         # Render with new version but nothing else
@@ -263,7 +263,7 @@ class Version(Migrator):
         return n
 
     def _extract_version_from_hash(self, h):
-        return h.get('version', '0.0.0')
+        return getattr(h, 'version', '0.0.0')
 
 
 class JS(Migrator):
