@@ -127,11 +127,11 @@ def main():
                 rerender = (gx.nodes[node].get('smithy_version') != smithy_version or
                             gx.nodes[node].get('pinning_version') != pinning_version or
                             migrator.rerender)
-                migrator_hash, pr_json = run(attrs=attrs, migrator=migrator, gh=gh,
+                migrator_uid, pr_json = run(attrs=attrs, migrator=migrator, gh=gh,
                                     rerender=rerender, protocol='https',
                                     hash_type=attrs.get('hash_type', 'sha256'))
 
-                converted_hash = convert_dict_to_nt(migrator_hash)
+                converted_hash = migrator_uid
                 gx.nodes[node].setdefault('PRed', set()).add(converted_hash)
                 # Stash the pr json data so we can access it later
                 gx.nodes[node].setdefault('PRed_json', {}).update(
