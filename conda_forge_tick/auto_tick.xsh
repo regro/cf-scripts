@@ -148,8 +148,8 @@ def main():
 
                 # Stash the pr json data so we can access it later
                 if pr_json:
-                    gx.nodes[node].setdefault('PRed_json', {}).update(
-                        {(migrator_uid): pr_json})
+                    gx.nodes[node].setdefault('PRed_json', []).append(
+                        (migrator_uid, pr_json))
 
             except github3.GitHubError as e:
                 if e.msg == 'Repository was archived so is read-only.':
@@ -169,8 +169,8 @@ def main():
             except Exception as e:
                 print('NON GITHUB ERROR')
                 print(e)
-                attrs['bad'] = {'exception': str(e),
-                                'traceback': str(traceback.format_exc())}
+                gx.nodes[node]['bad'] = {'exception': str(e),
+                                         'traceback': str(traceback.format_exc())}
             finally:
                 # Write graph partially through
                 # Race condition?
