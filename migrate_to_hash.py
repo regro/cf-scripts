@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 import networkx as nx
 
 from conda_forge_tick.migrators import Compiler

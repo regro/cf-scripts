@@ -755,7 +755,7 @@ test_list = [
         correct_js,
         {},
         "Please merge the PR only after the tests have passed.",
-        {'class_name': "JS", "class_version": JS._class_version},
+        {'migrator_name': "JS", 'migrator_version': JS.migrator_version},
     ),
     (
         version,
@@ -764,8 +764,8 @@ test_list = [
         {"new_version": "2.4.1"},
         "Please check that the dependencies have not changed.",
         {
-            'class_name': "Version",
-            "class_version": Version._class_version,
+            'migrator_name': "Version",
+            'migrator_version': Version.migrator_version,
             "version": "2.4.1",
         },
     ),
@@ -776,8 +776,8 @@ test_list = [
         {"new_version": "2.4.1"},
         "Please check that the dependencies have not changed.",
         {
-            'class_name': "Version",
-            "class_version": Version._class_version,
+            'migrator_name': "Version",
+            'migrator_version': Version.migrator_version,
             "version": "2.4.1",
         },
     ),
@@ -788,8 +788,8 @@ test_list = [
         {"new_version": "2.4.1"},
         "Please check that the dependencies have not changed.",
         {
-            'class_name': "Version",
-            "class_version": Version._class_version,
+            'migrator_name': "Version",
+            'migrator_version': Version.migrator_version,
             "version": "2.4.1",
         },
     ),
@@ -800,8 +800,8 @@ test_list = [
         {"new_version": "1.3_2"},
         "Please check that the dependencies have not changed.",
         {
-            'class_name': "Version",
-            "class_version": Version._class_version,
+            'migrator_name': "Version",
+            'migrator_version': Version.migrator_version,
             "version": "1.3_2",
         },
     ),
@@ -812,8 +812,8 @@ test_list = [
         {"new_version": "6.0.0"},
         "Please check that the dependencies have not changed.",
         {
-            'class_name': "Version",
-            "class_version": Version._class_version,
+            'migrator_name': "Version",
+            'migrator_version': Version.migrator_version,
             "version": "6.0.0",
         },
     ),
@@ -823,7 +823,7 @@ test_list = [
         correct_cb3,
         {},
         "N/A",
-        {'class_name': "Compiler", "class_version": Compiler._class_version},
+        {'migrator_name': "Compiler", 'migrator_version': Compiler.migrator_version},
     ),
     # It seems this injects some bad state somewhere, mostly because it isn't
     # valid yaml
@@ -833,7 +833,7 @@ test_list = [
         correct_js,
         {},
         "Please merge the PR only after the tests have passed.",
-        {'class_name': "JS", "class_version": JS._class_version},
+        {'migrator_name': "JS", 'migrator_version': JS.migrator_version},
     ),
 ]
 
@@ -856,9 +856,9 @@ def test_migration(m, inp, output, kwargs, prb, mr_out, tmpdir):
     assert m.filter(pmy) is False
 
     mr = m.migrate(tmpdir, pmy)
-    assert mr_out == mr
+    assert convert_dict_to_nt(mr_out) == mr
 
-    pmy.update(PRed={convert_dict_to_nt(mr)})
+    pmy.update(PRed={mr})
     with open(os.path.join(tmpdir, "meta.yaml"), "r") as f:
         assert f.read() == output
     if isinstance(m, Compiler):

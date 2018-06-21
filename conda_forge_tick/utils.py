@@ -65,5 +65,14 @@ def parse_meta_yaml(text):
 
 
 def convert_dict_to_nt(d):
-    """Convert dict to namedtuple"""
+    """Convert dict to namedtuple
+
+    Parameters
+    ----------
+    d: dict
+
+    Returns
+    -------
+    nt: namedtuple
+    """
     return namedtuple('converted', d.keys())(**d)

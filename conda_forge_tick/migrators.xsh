@@ -13,7 +13,7 @@ class Migrator:
     """Base class for Migrators"""
     rerender = False
 
-    _class_version = 0
+    migrator_version = 0
 
     def filter(self, attrs):
         """ If true don't act upon node
@@ -32,7 +32,7 @@ class Migrator:
         # don't run on things we've already done
         # don't run on bad nodes
         return bool(bool(attrs.get('archived', False)
-                or convert_dict_to_nt(self.migrator_hash(attrs))
+                or self.migrator_uid(attrs)
                      in attrs.get('PRed', set()))
                 or attrs.get('bad', False))
 
@@ -51,7 +51,7 @@ class Migrator:
         bool:
             If True continue with PR, if False scrap local folder
         """
-        return self.migrator_hash(attrs)
+        return self.migrator_uid(attrs)
 
     def pr_body(self):
         """Create a PR message body
@@ -96,9 +96,22 @@ class Migrator:
         """Branch to use on local and remote"""
         return 'bot-pr'
 
-    def migrator_hash(self, attrs):
-        return {'class_name': self.__class__.__name__,
-                'class_version': self._class_version}
+    def migrator_uid(self, attrs):
+        """Make a unique id for this migrator and node attrs
+
+        Parameters
+        ----------
+        attrs: dict
+            Node attrs
+
+        Returns
+        -------
+        nt: namedtuple
+            The unique id as a namedtuple
+        """
+        return convert_dict_to_nt(
+            {'migrator_name': self.__class__.__name__,
+             'migrator_version': self.migrator_version})
 
 
 class Version(Migrator):
@@ -127,7 +140,7 @@ class Version(Migrator):
     r_url_pat = re.compile(r'^(\s*)(-)?(\s*)url:\s*(?:(#.*)?\[([^\[\]]+)\])?(?(4)[^\(\)]*?)\n(\1(?(2) \3)  -.*\n?)*', flags=re.M)
     r_urls = re.compile('\s*-(.+?)(?:#.*)?$', flags=re.M)
 
-    _class_version = 0
+    migrator_version = 0
 
     def find_urls(self, text):
         """Get the URLs and platforms in a meta.yaml."""
@@ -217,7 +230,7 @@ class Version(Migrator):
                 p = eval_version(p)
                 n = eval_version(n)
                 replace_in_file(p, n, f)
-        return self.migrator_hash(attrs)
+        return self.migrator_uid(attrs)
 
     def pr_body(self):
         pred = [(name, $SUBGRAPH.node[name]['new_version'])
@@ -257,10 +270,11 @@ class Version(Migrator):
     def remote_branch(self):
         return self.attrs['new_version']
 
-    def migrator_hash(self, attrs):
-        n = super().migrator_hash(attrs)
-        n.update({'version': attrs["new_version"]})
-        return n
+    def migrator_uid(self, attrs):
+        n = super().migrator_uid(attrs)
+        d = n._asdict()
+        d.update({'version': attrs["new_version"]})
+        return convert_dict_to_nt(d)
 
     def _extract_version_from_hash(self, h):
         return getattr(h, 'version', '0.0.0')
@@ -276,7 +290,7 @@ class JS(Migrator):
         ('meta.yaml', '   script: |\n', '  script: |')
     ]
 
-    _class_version = 0
+    migrator_version = 0
 
     def filter(self, attrs):
         conditional = super().filter(attrs)
@@ -298,7 +312,7 @@ class JS(Migrator):
                 replace_in_file(p, n, f,
                                 leading_whitespace=False
                                 )
-        return self.migrator_hash(attrs)
+        return self.migrator_uid(attrs)
 
     def pr_body(self):
         body = super().pr_body()
@@ -322,7 +336,7 @@ class JS(Migrator):
 
 class Compiler(Migrator):
     """Migrator for Jinja2 comiler syntax."""
-    _class_version = 0
+    migrator_version = 0
 
     rerender = True
 
@@ -332,7 +346,7 @@ class Compiler(Migrator):
 
     def migrate(self, recipe_dir, attrs, **kwargs):
         self.out = $(conda-smithy update-cb3 --recipe_directory @(recipe_dir))
-        return self.migrator_hash(attrs)
+        return self.migrator_uid(attrs)
 
     def pr_body(self):
         body = super().pr_body()
