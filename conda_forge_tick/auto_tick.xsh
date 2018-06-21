@@ -99,8 +99,8 @@ def main():
                                     rerender=rerender, protocol='https',
                                     hash_type=attrs.get('hash_type', 'sha256'))
 
-                # I'd rather have this as a set but migrator_hash is a dict so
-                #  no dice there
+                # TODO: convert this list to set and use something other
+                # than dict for the hash (namedtuple?)
                 gx.nodes[node].setdefault('PRed', []).append(migrator_hash)
                 gx.nodes[node].update({'smithy_version': smithy_version,
                                        'pinning_version': pinning_version})
