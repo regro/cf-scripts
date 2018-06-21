@@ -258,7 +258,8 @@ class Version(Migrator):
         return f'{n}_{attrs["new_version"]}'
 
     def _extract_version_from_hash(self, h):
-        return h.split('_')[-1]
+        # format is `class_class#_version#`
+        return h.split('_', 2)[-1]
 
 
 class JS(Migrator):
