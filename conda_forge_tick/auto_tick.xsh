@@ -47,7 +47,7 @@ def run(attrs, migrator, feedstock=None, protocol='ssh',
 
     Returns
     -------
-    migrate_return: dict
+    migrate_return: namedtuple
         The migration return dict used for tracking finished migrations
     pr_json: str
         The PR json object for recreating the PR as needed
@@ -66,7 +66,7 @@ def run(attrs, migrator, feedstock=None, protocol='ssh',
     if not migrate_return:
         print($PROJECT, attrs.get('bad'))
         rm -rf @(feedstock_dir)
-        return False
+        return False, False
 
     # rerender, maybe
     with indir(feedstock_dir), ${...}.swap(RAISE_SUBPROC_ERROR=False):
@@ -77,8 +77,9 @@ def run(attrs, migrator, feedstock=None, protocol='ssh',
 
     # push up
     try:
-        pr_json = push_repo(feedstock_dir, migrator.pr_body(), repo, migrator.pr_title(),
-                  migrator.pr_head(), migrator.remote_branch())
+        pr_json = push_repo(feedstock_dir, migrator.pr_body(), repo,
+                            migrator.pr_title(),
+                            migrator.pr_head(), migrator.remote_branch())
     # This shouldn't happen too often any more since we won't double PR
     except github3.GitHubError as e:
         if e.msg != 'Validation Failed':
@@ -130,14 +131,13 @@ def main():
                 migrator_uid, pr_json = run(attrs=attrs, migrator=migrator, gh=gh,
                                     rerender=rerender, protocol='https',
                                     hash_type=attrs.get('hash_type', 'sha256'))
-
-                converted_hash = migrator_uid
-                gx.nodes[node].setdefault('PRed', set()).add(converted_hash)
-                # Stash the pr json data so we can access it later
-                gx.nodes[node].setdefault('PRed_json', {}).update(
-                    {converted_hash: pr_json})
-                gx.nodes[node].update({'smithy_version': smithy_version,
-                                       'pinning_version': pinning_version})
+                if migrator_uid:
+                    gx.nodes[node].setdefault('PRed', set()).add(migrator_uid)
+                    # Stash the pr json data so we can access it later
+                    gx.nodes[node].setdefault('PRed_json', {}).update(
+                        {(migrator_uid): pr_json})
+                    gx.nodes[node].update({'smithy_version': smithy_version,
+                                           'pinning_version': pinning_version})
             except github3.GitHubError as e:
                 print('GITHUB ERROR ON FEEDSTOCK: {}'.format($PROJECT))
                 print(e)

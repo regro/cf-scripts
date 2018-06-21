@@ -48,8 +48,8 @@ class Migrator:
 
         Returns
         -------
-        bool:
-            If True continue with PR, if False scrap local folder
+        namedtuple or bool:
+            If namedtuple continue with PR, if False scrap local folder
         """
         return self.migrator_uid(attrs)
 
