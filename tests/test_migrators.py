@@ -983,7 +983,7 @@ test_list = [
                 "xpdconf",
             ]
         },
-        "I think this feedstock should be built with noarch.\n"
+        "I think this feedstock could be built with noarch.\n"
         "This means that the package only needs to be built "
         "once, drastically reducing CI usage.\n",
         {"migrator_name": "Noarch", "migrator_version": Noarch.migrator_version},
