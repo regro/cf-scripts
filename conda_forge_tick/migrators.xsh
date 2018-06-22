@@ -374,13 +374,21 @@ class Noarch(Migrator):
 
     compiler_pat = re.compile('.*_compiler_stub')
     sel_pat = re.compile('(.+?)\s*(#.*)?\[([^\[\]]+)\](?(2)[^\(\)]*)$')
+    python_pat = re.compile('python .*')
 
     def filter(self, attrs):
         if super().filter(attrs):
             return True
+        if attrs.get('build', {}).get('noarch'):
+            return True
+        python = False
         for req in attrs.get('req', []):
             if self.compiler_pat.match(req) or req == 'toolchain':
                 return True
+            if self.python_pat.match(req):
+                python = True
+        if not python:
+            return True
         for line in attrs.get('raw_meta_yaml', '').splitlines():
             if self.sel_pat.match(line):
                 return True
