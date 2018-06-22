@@ -384,7 +384,7 @@ class Noarch(Migrator):
 
     def filter(self, attrs):
         conditional = (super().filter(attrs) or
-                       attrs.get('meta_yaml', {}).get('build', {}).get('noarch') or
+                       attrs.get('meta_yaml', {}).get('outputs') or
                        attrs.get('meta_yaml', {}).get('build', {}).get('noarch')
                       )
         if conditional:
