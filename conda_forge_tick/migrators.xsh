@@ -388,7 +388,7 @@ class Noarch(Migrator):
 
     def migrate(self, recipe_dir, attrs, **kwargs):
         with indir(recipe_dir):
-            replace_in_file('meta.yaml', 'build:', 'build:\n  noarch:python', leading_whitespace=False)
+            replace_in_file('build:', 'build:\n  noarch:python', 'meta.yaml', leading_whitespace=False)
         return self.migrator_uid(attrs)
 
     def pr_body(self):
