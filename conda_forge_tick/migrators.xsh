@@ -403,7 +403,21 @@ class Noarch(Migrator):
 
     def migrate(self, recipe_dir, attrs, **kwargs):
         with indir(recipe_dir):
-            replace_in_file('build:', 'build:\n  noarch: python', 'meta.yaml', leading_whitespace=False)
+            replace_in_file(
+                    'build:',
+                    'build:\n  noarch: python',
+                    'meta.yaml',
+                    leading_whitespace=False)
+            replace_in_file(
+                    'script:.+?',
+                    'script: python -m pip install --no-deps --ignore-installed .',
+                    'meta.yaml')
+            if 'pip' not in attrs['req']:
+                replace_in_file(
+                        '  build:',
+                        '  build:\n    - pip',
+                        'meta.yaml',
+                        leading_whitespace=False)
         return self.migrator_uid(attrs)
 
     def pr_body(self):
