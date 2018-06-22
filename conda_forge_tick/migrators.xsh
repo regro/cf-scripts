@@ -60,14 +60,12 @@ class Migrator:
             The body of the PR message
         """
         body = (
-            'This PR was created by the [cf-regro-autotick-bot](https://github.com/regro/cf-scripts).\n\n'
+            '{}'
+            '<sub>'
+            'This PR was created by the [cf-regro-autotick-bot](https://github.com/regro/cf-scripts).\n'
             'The **cf-regro-autotick-bot** is a service to automatically '
             'track the dependency graph, migrate packages, and '
             'propose package version updates for conda-forge. '
-            'It is very '
-            'likely that the current package version for this feedstock is '
-            'out of date or needed migration.\n\n'
-            '{}'
             "If you would like a local version of this bot, you might consider using "
             "[rever](https://regro.github.io/rever-docs/). "
             "Rever is a tool for automating software releases and forms the "
@@ -75,7 +73,8 @@ class Migrator:
             "conda (`conda install -c conda-forge rever`) and pip "
             "(`pip install re-ver`) installable.\n\n"
             'Finally, feel free to drop us a line if there are any '
-            '[issues](https://github.com/regro/cf-scripts/issues)! ')
+            '[issues](https://github.com/regro/cf-scripts/issues)!'
+            '</sub>')
         return body
 
     def commit_message(self):
@@ -232,7 +231,10 @@ class Version(Migrator):
         pred = [(name, $SUBGRAPH.node[name]['new_version'])
                 for name in list($SUBGRAPH.predecessors($NODE))]
         body = super().pr_body()
-        body = body.format('Notes and instructions for merging this PR:\n'
+        body = body.format(
+            'It is very likely that the current package version for this '
+            'feedstock is out of date.\n'
+            'Notes and instructions for merging this PR:\n'
             '1. Please check that the dependencies have not changed. \n'
             '2. Please merge the PR only after the tests have passed. \n'
             "3. Feel free to push to the bot's branch to update this PR if needed. \n"
@@ -311,7 +313,9 @@ class JS(Migrator):
 
     def pr_body(self):
         body = super().pr_body()
-        body = body.format('Notes and instructions for merging this PR:\n'
+        body = body.format(
+            'It is very likely that this feedstock is in need of migration.\n'
+            'Notes and instructions for merging this PR:\n'
             '1. Please merge the PR only after the tests have passed. \n'
             "2. Feel free to push to the bot's branch to update this PR if needed. \n")
         return body
@@ -349,6 +353,7 @@ class Compiler(Migrator):
                     '*If you have recived a `Migrate to Jinja2 compiler '
                     'syntax` PR from me recently please close that one and use '
                     'this one*.\n'
+                    'It is very likely that this feedstock is in need of migration.\n'
                     'Notes and instructions for merging this PR:\n'
                     '1. Please merge the PR only after the tests have passed. \n'
                     "2. Feel free to push to the bot's branch to update this PR if needed. \n"
@@ -405,9 +410,26 @@ class Noarch(Migrator):
     def pr_body(self):
         body = super().pr_body()
         body = body.format(
+                    'I think this feedstock should be built with noarch.\n'
+                    'This means that the package only needs to be built '
+                    'once, drastically reducing CI usage.\n'
+                    'See [here](https://conda-forge.org/docs/meta.html#building-noarch-packages)'
+                    'for more information about building noarch packages.'
+                    'Before merging this PR make sure:\n'
+                    '- [] toolchain, cython, gcc, clangdev are not in requirements\n'
+                    '- [] nothing of the form {{ compiler(*) }} is in requirements\n'
+                    '- [] there are no [selectors](https://conda.io/docs/user-guide/tasks/build-packages/define-metadata.html#preprocess-selectors)\n'
+                    '- [] there are no post-link, pre-link or pre-unlink scripts in the recipe\n'
+                    '- [] there are no build.sh or bld.bat scripts\n'
+                    '- [] there is no outputs section in the meta.yaml\n'
+                    '- [] 2to3 is not used\n'
+                    '- [] there are no compiled extensions\n'
+                    '- [] there are no platform specific files installed\n'
                     'Notes and instructions for merging this PR:\n'
-                    '1. Merge only if tests pass. If tests fail, this '
-                    'recipe most likely cannot be noarch and this PR should be closed'
+                    '1. If all items in the above checklist are not satisfied, '
+                    'please close this PR. Do not merge.'
+                    '2. Please merge the PR only after the tests have passed. \n'
+                    "3. Feel free to push to the bot's branch to update this PR if needed. \n"
                     )
         return body
 
