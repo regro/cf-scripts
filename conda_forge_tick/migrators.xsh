@@ -379,10 +379,10 @@ class Noarch(Migrator):
         if super().filter(attrs):
             return True
         for req in attrs.get('req', []):
-            if compiler_pat.match(req) or req == 'toolchain':
+            if self.compiler_pat.match(req) or req == 'toolchain':
                 return True
         for line in attrs.get('raw_recipe', '').splitlines():
-            if sel_pat.match(line):
+            if self.sel_pat.match(line):
                 return True
         return False
 
