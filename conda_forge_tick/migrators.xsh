@@ -366,3 +366,48 @@ class Compiler(Migrator):
 
     def remote_branch(self):
         return 'compiler_migration2'
+
+
+class Noarch(Migrator):
+    """Migrator for adding noarch."""
+    migrator_version = 0
+
+    compiler_pat = re.compile('*._compiler_stub')
+    sel_pat = re.compile('(.+?)\s*(#.*)?\[([^\[\]]+)\](?(2)[^\(\)]*)$')
+
+    def filter(self, attrs):
+        if super().filter(attrs):
+            return True
+        for req in attrs.get('req', []):
+            if compiler_pat.match(req) or req == 'toolchain':
+                return True
+        for line in attrs.get('raw_recipe', '').splitlines():
+            if sel_pat.match(line):
+                return True
+        return False
+
+    def migrate(self, recipe_dir, attrs, **kwargs):
+        with indir(recipe_dir):
+            replace_in_file('meta.yaml', 'build:', 'build:\n  noarch:python', leading_whitespace=False)
+        return self.migrator_uid(attrs)
+
+    def pr_body(self):
+        body = super().pr_body()
+        body = body.format(
+                    'Notes and instructions for merging this PR:\n'
+                    '1. Please merge the PR only after the tests have passed. \n'
+                    "2. Feel free to push to the bot's branch to update this PR if needed. \n"
+                    )
+        return body
+
+    def commit_message(self):
+        return "add noarch"
+
+    def pr_title(self):
+        return 'Add noarch'
+
+    def pr_head(self):
+        return $USERNAME + ':' + self.remote_branch()
+
+    def remote_branch(self):
+        return 'noarch_migration'
