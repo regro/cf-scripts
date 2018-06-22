@@ -380,6 +380,15 @@ class Noarch(Migrator):
     compiler_pat = re.compile('.*_compiler_stub')
     sel_pat = re.compile('(.+?)\s*(#.*)?\[([^\[\]]+)\](?(2)[^\(\)]*)$')
     unallowed_reqs = ['toolchain', 'gcc', 'cython', 'clangdev']
+    checklist = ['No compiled extensions',
+                 'No post-link or pre-link or pre-unlink scripts',
+                 'No OS specific build scripts',
+                 'No python version specific requirements',
+                 'No skips except for python version. (If the recipe is py3 only, remove skip statement and add version constraint on python)',
+                 '2to3 is not used',
+                 'Scripts argument in setup.py is not used',
+                 'If entrypoints are in setup.py, they are listed in meta.yaml',
+                ]
 
     def filter(self, attrs):
         conditional = (super().filter(attrs) or
@@ -423,26 +432,19 @@ class Noarch(Migrator):
     def pr_body(self):
         body = super().pr_body()
         body = body.format(
-                    'I think this feedstock should be built with noarch.\n'
+                    'I think this feedstock could be built with noarch.\n'
                     'This means that the package only needs to be built '
                     'once, drastically reducing CI usage.\n'
                     'See [here](https://conda-forge.org/docs/meta.html#building-noarch-packages)'
                     'for more information about building noarch packages.'
                     'Before merging this PR make sure:\n'
-                    '- [ ] No compiled extensions\n'
-                    '- [ ] No post-link or pre-link or pre-unlink scripts\n'
-                    '- [ ] No OS specific build scripts\n'
-                    '- [ ] No python version specific requirements\n'
-                    '- [ ] No skips except for python version. (If the recipe is py3 only, remove skip statement and add version constraint on python)\n'
-                    '- [ ] 2to3 is not used\n'
-                    '- [ ] scripts argument in setup.py is not used\n'
-                    '- [ ] if entrypoints are in setup.py, they are listed in meta.yaml\n'
-                    'Notes and instructions for merging this PR:\n'
+                    'Notes and instructions for merging this PR:\n{}'
                     '1. If any items in the above checklist are not satisfied, '
                     'please close this PR. Do not merge.'
                     '2. Please merge the PR only after the tests have passed. \n'
                     "3. Feel free to push to the bot's branch to update this PR if needed. \n"
                     )
+        body = body.format('\n'.join(['- [] ' + item for item in self.checklist]))
         return body
 
     def commit_message(self):
