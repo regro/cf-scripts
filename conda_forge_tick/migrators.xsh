@@ -381,7 +381,7 @@ class Noarch(Migrator):
         for req in attrs.get('req', []):
             if self.compiler_pat.match(req) or req == 'toolchain':
                 return True
-        for line in attrs.get('raw_recipe', '').splitlines():
+        for line in attrs.get('raw_meta_yaml', '').splitlines():
             if self.sel_pat.match(line):
                 return True
         return False
