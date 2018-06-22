@@ -372,7 +372,7 @@ class Noarch(Migrator):
     """Migrator for adding noarch."""
     migrator_version = 0
 
-    compiler_pat = re.compile('*._compiler_stub')
+    compiler_pat = re.compile('.*_compiler_stub')
     sel_pat = re.compile('(.+?)\s*(#.*)?\[([^\[\]]+)\](?(2)[^\(\)]*)$')
 
     def filter(self, attrs):
