@@ -963,7 +963,7 @@ test_list = [
         updated_noarch,
         {
             "req": [
-                "python >=3",
+                "python",
                 "pip",
                 "numpy",
                 "scipy",

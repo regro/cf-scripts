@@ -379,7 +379,6 @@ class Noarch(Migrator):
 
     compiler_pat = re.compile('.*_compiler_stub')
     sel_pat = re.compile('(.+?)\s*(#.*)?\[([^\[\]]+)\](?(2)[^\(\)]*)$')
-    python_pat = re.compile('python( )?(?(1).*)')
     unallowed_reqs = ['toolchain', 'gcc', 'cython', 'clangdev']
 
     def filter(self, attrs):
@@ -393,7 +392,7 @@ class Noarch(Migrator):
         for req in attrs.get('req', []):
             if self.compiler_pat.match(req) or req in self.unallowed_reqs:
                 return True
-            if self.python_pat.match(req):
+            if req == 'python':
                 python = True
         if not python:
             return True
