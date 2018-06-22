@@ -395,8 +395,8 @@ class Noarch(Migrator):
         body = super().pr_body()
         body = body.format(
                     'Notes and instructions for merging this PR:\n'
-                    '1. Please merge the PR only after the tests have passed. \n'
-                    "2. Feel free to push to the bot's branch to update this PR if needed. \n"
+                    '1. Merge only if tests pass. If tests fail, this '
+                    'recipe most likely cannot be noarch and this PR should be closed'
                     )
         return body
 

@@ -983,7 +983,8 @@ test_list = [
                 "xpdconf",
             ]
         },
-        "Please merge the PR only after the tests have passed.",
+        "1. Merge only if tests pass. If tests fail, this "
+        "recipe most likely cannot be noarch and this PR should be closed",
         {"migrator_name": "Noarch", "migrator_version": Noarch.migrator_version},
     ),
 ]
