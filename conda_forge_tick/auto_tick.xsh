@@ -16,9 +16,10 @@ from .path_lengths import cyclic_topological_sort
 # TODO: move this back to the bot file as soon as the source issue is sorted
 # https://travis-ci.org/regro/00-find-feedstocks/jobs/388387895#L1870
 from .migrators import *
-$MIGRATORS = [Version(), 
-Compiler()
-]
+$MIGRATORS = [Version(),
+              Noarch(),
+              #Compiler(),
+             ]
 
 def run(attrs, migrator, feedstock=None, protocol='ssh',
         pull_request=True, rerender=True, fork=True, gh=None,
