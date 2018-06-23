@@ -205,7 +205,7 @@ def get_latest_version(meta_yaml, sources):
 
 def update_upstream_versions(gx, sources=(PyPI(), CRAN(), RawURL(), Github())):
     for node, attrs in gx.node.items():
-        if attrs.get("bad"):
+        if attrs.get("bad") or attrs.get("archived"):
             attrs["new_version"] = False
             continue
         try:
