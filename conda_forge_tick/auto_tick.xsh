@@ -16,7 +16,7 @@ from .git_utils import (get_repo, push_repo)
 # https://travis-ci.org/regro/00-find-feedstocks/jobs/388387895#L1870
 from .migrators import *
 $MIGRATORS = [Version(), 
-# Compiler()
+Compiler()
 ]
 
 def run(attrs, migrator, feedstock=None, protocol='ssh',
