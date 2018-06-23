@@ -154,9 +154,8 @@ class RawURL:
                         url = s["url"]
                         break
                 if url is None:
-                    with open("upstream_bad", "a") as f:
-                        f.write("{}: no url in yaml\n".format(meta_yaml["name"]))
-                        return None
+                    meta_yaml["bad"] = "Upstream: no url in yaml"
+                    return None
                 if (
                     str(meta["package"]["version"]) != next_ver
                     or meta_yaml["url"] == url
@@ -196,14 +195,9 @@ def get_latest_version(meta_yaml, sources):
         if ver:
             return ver
         else:
-            with open("upstream_bad", "a") as f:
-                f.write(
-                    "{}: Could not find version on {}\n".format(
-                        meta_yaml["name"], source.name
-                    )
-                )
-    with open("upstream_bad", "a") as f:
-        f.write("{}: unknown source\n".format(meta_yaml["name"]))
+            meta_yaml["bad"] = "Upstream: Could not find version on {}".format(source.name)
+    if not meta_yaml.get("bad"):
+        meta_yaml["bad"] = "Upstream: unknown source"
     return False
 
 
@@ -215,9 +209,8 @@ def update_upstream_versions(gx, sources=(PyPI(), CRAN(), RawURL(), Github())):
         try:
             attrs["new_version"] = get_latest_version(attrs, sources)
         except Exception as e:
-            logger.warn("Error getting uptream version of {}: " "{}".format(node, e))
-            with open("upstream_bad", "a") as f:
-                f.write("{}: Error getting upstream version\n".format(node))
+            logger.warn("Error getting uptream version of {}: {}".format(node, e))
+            attrs["bad"] = "Upstream: Error getting upstream version"
             attrs["new_version"] = False
         else:
             logger.info(
