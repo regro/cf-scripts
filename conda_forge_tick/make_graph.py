@@ -11,7 +11,7 @@ import logging
 logger = logging.getLogger("conda_forge_tick.make_graph")
 
 
-def get_attrs(name, i, bad):
+def get_attrs(name, i):
     sub_graph = {
         "time": time.time(),
         "feedstock_name": name,
@@ -30,7 +30,6 @@ def get_attrs(name, i, bad):
             "Something odd happened when fetching recipe "
             "{}: {}".format(name, r.status_code)
         )
-        bad.append(name)
         sub_graph["bad"] = r.status_code
         return sub_graph
 
@@ -39,7 +38,6 @@ def get_attrs(name, i, bad):
     yaml_dict = parse_meta_yaml(text)
     if not yaml_dict:
         logger.warn("Something odd happened when parsing recipe " "{}".format(name))
-        bad.append(name)
         sub_graph["bad"] = "Could not parse"
         return sub_graph
     sub_graph["meta_yaml"] = yaml_dict
@@ -66,7 +64,6 @@ def get_attrs(name, i, bad):
         missing_keys.append("url")
     if missing_keys:
         logger.warn("Recipe {} doesn't have a {}".format(name, ", ".join(missing_keys)))
-        bad.append(name)
         sub_graph["bad"] = missing_keys
     for k in keys:
         if k[1] not in missing_keys:
@@ -79,9 +76,6 @@ def get_attrs(name, i, bad):
 
 
 def make_graph(names, gx=None):
-
-    bad = []
-
     logger.info("reading graph")
 
     if gx is None:
@@ -96,7 +90,7 @@ def make_graph(names, gx=None):
 
     for i, name in enumerate(total_names):
         try:
-            sub_graph = get_attrs(name, i, bad)
+            sub_graph = get_attrs(name, i)
         except Exception as e:
             logger.warn("Error adding {} to the graph: {}".format(name, e))
         else:
@@ -109,7 +103,7 @@ def make_graph(names, gx=None):
         for dep in attrs.get("req", []):
             if dep in gx.nodes:
                 gx.add_edge(dep, node)
-    return gx, bad
+    return gx
 
 
 def main(*args, **kwargs):
@@ -117,11 +111,9 @@ def main(*args, **kwargs):
     logger.setLevel(logging.INFO)
     names = get_all_feedstocks(cached=True)
     gx = nx.read_gpickle("graph.pkl")
-    gx, bad = make_graph(names, gx)
+    gx = make_graph(names, gx)
 
     logger.info("writing out file")
-    with open("bad.txt", "w") as f:
-        f.write("\n".join(bad))
     nx.write_gpickle(gx, "graph.pkl")
 
 
