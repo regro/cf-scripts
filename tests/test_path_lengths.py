@@ -23,12 +23,5 @@ def test_get_levels():
     assert get_levels(g, "a") == levels
 
     g.add_edge("d", "c")
-    levels = {
-        0: {"a"},
-        1: {"b"},
-        2: {"d"},
-        3: {"c", "f"},
-        4: {"e", "h"},
-        5: {"g"},
-    }
+    levels = {0: {"a"}, 1: {"b"}, 2: {"d"}, 3: {"c", "f"}, 4: {"e", "h"}, 5: {"g"}}
     assert get_levels(g, "a") == levels
