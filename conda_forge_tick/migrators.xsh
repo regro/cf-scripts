@@ -189,6 +189,9 @@ class Version(Migrator):
         return pats
 
     def filter(self, attrs):
+        # if no new version do nothing
+        if "new_version" not in attrs:
+            return True
         conditional = super().filter(attrs)
         return bool(
             conditional  # if archived/finished
