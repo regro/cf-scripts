@@ -27,7 +27,7 @@ def get_all_feedstocks_from_github():
                 datetime.datetime.utcfromtimestamp(ts).strftime("%Y-%m-%dT%H:%M:%SZ")
             )
         logger.warn(" ".join(msg))
-        raise e
+        raise
     return names
 
 
@@ -39,16 +39,17 @@ def get_all_feedstocks(cached=False):
         return names
 
     names = get_all_feedstocks_from_github()
-    with open("names.txt", "w") as f:
-        for name in names:
-            f.write(name)
-            f.write("\n")
+    return names
 
 
 def main(*args, **kwargs):
     logging.basicConfig(level=logging.ERROR)
     logger.setLevel(logging.INFO)
-    get_all_feedstocks(cached=False)
+    names = get_all_feedstocks(cached=False)
+    with open("names.txt", "w") as f:
+        for name in names:
+            f.write(name)
+            f.write("\n")
 
 
 if __name__ == "__main__":

@@ -101,7 +101,7 @@ def run(attrs, migrator, feedstock=None, protocol='ssh',
     return migrate_return, pr_json
 
 
-def main():
+def main(*args, **kwargs):
     gx = nx.read_gpickle('graph.pkl')
     $REVER_DIR = './feedstocks/'
     $REVER_QUIET = True
@@ -182,3 +182,7 @@ def main():
 
     print('API Calls Remaining:', gh.rate_limit()['resources']['core']['remaining'])
     print('Done')
+
+
+if __name__ == "__main__":
+    main()
