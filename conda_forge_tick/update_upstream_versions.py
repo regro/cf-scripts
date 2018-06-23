@@ -236,7 +236,7 @@ def update_upstream_versions(gx, sources=(PyPI(), CRAN(), RawURL(), Github())):
     )
 
 
-def main(*args, **kwargs):
+def main(args=None):
     logging.basicConfig(level=logging.ERROR)
     logger.setLevel(logging.INFO)
 

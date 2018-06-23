@@ -42,7 +42,7 @@ def get_all_feedstocks(cached=False):
     return names
 
 
-def main(*args, **kwargs):
+def main(args=None):
     logging.basicConfig(level=logging.ERROR)
     logger.setLevel(logging.INFO)
     names = get_all_feedstocks(cached=False)

@@ -101,7 +101,7 @@ def run(attrs, migrator, feedstock=None, protocol='ssh',
     return migrate_return, pr_json
 
 
-def main(*args, **kwargs):
+def main(args=None):
     gx = nx.read_gpickle('graph.pkl')
     $REVER_DIR = './feedstocks/'
     $REVER_QUIET = True

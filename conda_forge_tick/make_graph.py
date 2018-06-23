@@ -106,7 +106,7 @@ def make_graph(names, gx=None):
     return gx
 
 
-def main(*args, **kwargs):
+def main(args=None):
     logging.basicConfig(level=logging.ERROR)
     logger.setLevel(logging.INFO)
     names = get_all_feedstocks(cached=True)
