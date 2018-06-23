@@ -30,7 +30,7 @@ def get_attrs(name, i):
             "Something odd happened when fetching recipe "
             "{}: {}".format(name, r.status_code)
         )
-        sub_graph["bad"] = r.status_code
+        sub_graph["bad"] = "make_graph: {}".format(r.status_code)
         return sub_graph
 
     text = r.content.decode("utf-8")
@@ -38,7 +38,7 @@ def get_attrs(name, i):
     yaml_dict = parse_meta_yaml(text)
     if not yaml_dict:
         logger.warn("Something odd happened when parsing recipe " "{}".format(name))
-        sub_graph["bad"] = "Could not parse"
+        sub_graph["bad"] = "make_graph: Could not parse"
         return sub_graph
     sub_graph["meta_yaml"] = yaml_dict
     # TODO: Write schema for dict
@@ -64,7 +64,7 @@ def get_attrs(name, i):
         missing_keys.append("url")
     if missing_keys:
         logger.warn("Recipe {} doesn't have a {}".format(name, ", ".join(missing_keys)))
-        sub_graph["bad"] = missing_keys
+        sub_graph["bad"] = "make_graph: missing {}".format(", ".join(missing_keys))
     for k in keys:
         if k[1] not in missing_keys:
             sub_graph[k[1]] = yaml_dict[k[0]][k[1]]
