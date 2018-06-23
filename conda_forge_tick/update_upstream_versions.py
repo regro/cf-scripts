@@ -195,7 +195,9 @@ def get_latest_version(meta_yaml, sources):
         if ver:
             return ver
         else:
-            meta_yaml["bad"] = "Upstream: Could not find version on {}".format(source.name)
+            meta_yaml["bad"] = "Upstream: Could not find version on {}".format(
+                source.name
+            )
     if not meta_yaml.get("bad"):
         meta_yaml["bad"] = "Upstream: unknown source"
     return False
