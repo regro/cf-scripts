@@ -116,15 +116,9 @@ class Version(Migrator):
     patterns = (
         # filename, pattern, new
         # set the version
-        ('meta.yaml', '  version:\s*[A-Za-z0-9._-]+', '  version: "$VERSION"'),
-        ('meta.yaml', '{% set version = ".*" %}',
-         '{% set version = "$VERSION" %}'),
-        ('meta.yaml', "{% set version = '.*' %}",
-         '{% set version = "$VERSION" %}'),
-        ('meta.yaml', '{% set version = .* %}',
-         '{% set version = "$VERSION" %}'),
-        ('meta.yaml', '{%set version = ".*" %}',
-         '{%set version = "$VERSION" %}'),
+        ('meta.yaml', 'version:\s*[A-Za-z0-9._-]+', 'version: "$VERSION"'),
+        ('meta.yaml', '{%\s*set\s+version\s*=\s*[^\s]*\s*%}',
+            '{% set version = "$VERSION" %}'),
         # reset the build number to 0
         ('meta.yaml', '  number:\s*[0-9]+', '  number: 0'),
         ('meta.yaml', '{%\s*set build_number\s*=\s*"?[0-9]+"?\s*%}',
