@@ -7,7 +7,7 @@ from .auto_tick import main as main3
 
 def main(*args, **kwargs):
     parser = argparse.ArgumentParser("a tool to help update feedstocks.")
-    parser.add_argument('--run')
+    parser.add_argument("--run")
     args = parser.parse_args()
     script = int(args.run)
     if script == 0:

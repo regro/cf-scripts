@@ -30,9 +30,8 @@ class Migrator:
         # never run on archived feedstocks
         # don't run on things we've already done
         # don't run on bad nodes
-        return bool(bool(attrs.get('archived', False)
-                or self.migrator_uid(attrs)
-                     in attrs.get('PRed', []))
+        return (attrs.get('archived', False)
+                or self.migrator_uid(attrs) in attrs.get('PRed', [])
                 or attrs.get('bad', False))
 
     def migrate(self, recipe_dir, attrs, **kwargs):
@@ -109,7 +108,7 @@ class Migrator:
             The unique id as a namedtuple
         """
         return {'migrator_name': self.__class__.__name__,
-             'migrator_version': self.migrator_version}
+                'migrator_version': self.migrator_version}
 
 
 class Version(Migrator):
@@ -117,15 +116,9 @@ class Version(Migrator):
     patterns = (
         # filename, pattern, new
         # set the version
-        ('meta.yaml', '  version:\s*[A-Za-z0-9._-]+', '  version: "$VERSION"'),
-        ('meta.yaml', '{% set version = ".*" %}',
-         '{% set version = "$VERSION" %}'),
-        ('meta.yaml', "{% set version = '.*' %}",
-         '{% set version = "$VERSION" %}'),
-        ('meta.yaml', '{% set version = .* %}',
-         '{% set version = "$VERSION" %}'),
-        ('meta.yaml', '{%set version = ".*" %}',
-         '{%set version = "$VERSION" %}'),
+        ('meta.yaml', 'version:\s*[A-Za-z0-9._-]+', 'version: "$VERSION"'),
+        ('meta.yaml', '{%\s*set\s+version\s*=\s*[^\s]*\s*%}',
+            '{% set version = "$VERSION" %}'),
         # reset the build number to 0
         ('meta.yaml', '  number:\s*[0-9]+', '  number: 0'),
         ('meta.yaml', '{%\s*set build_number\s*=\s*"?[0-9]+"?\s*%}',

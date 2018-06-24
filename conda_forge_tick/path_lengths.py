@@ -36,9 +36,9 @@ def cyclic_topological_sort(graph, source):
 
 
 def _visit(graph, node, order):
-    if graph.node[node].get('visited', False):
+    if graph.node[node].get("visited", False):
         return
-    graph.node[node]['visited'] = True
+    graph.node[node]["visited"] = True
     for n in graph.neighbors(node):
         _visit(graph, n, order)
     order.append(node)
@@ -62,7 +62,7 @@ def get_longest_paths(graph, source):
 
     """
 
-    dist = {node: -float('inf') for node in graph}
+    dist = {node: -float("inf") for node in graph}
     dist[source] = 0
     visited = []
     for u in cyclic_topological_sort(graph, source):
@@ -98,7 +98,7 @@ def get_levels(graph, source):
     g2 = deepcopy(graph)
     desc = nx.algorithms.descendants(graph, source)
     for node in graph.node:
-        if (node not in desc and node != source):
+        if node not in desc and node != source:
             g2.remove_node(node)
 
     dist = get_longest_paths(g2, source)

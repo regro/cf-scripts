@@ -101,19 +101,19 @@ def run(attrs, migrator, feedstock=None, protocol='ssh',
     return migrate_return, pr_json
 
 
-def main():
+def main(args=None):
     gx = nx.read_gpickle('graph.pkl')
     $REVER_DIR = './feedstocks/'
     $REVER_QUIET = True
     gh = github3.login($USERNAME, $PASSWORD)
-    
+
     smithy_version = ![conda smithy --version].output.strip()
     pinning_version = json.loads(![conda list conda-forge-pinning --json].output.strip())[0]['version']
     # TODO: need to also capture pinning version, maybe it is in the graph?
 
     for migrator in $MIGRATORS:
         gx2 = copy.deepcopy(gx)
-    
+
         # Prune graph to only things that need builds
         for node, attrs in gx.node.items():
             if migrator.filter(attrs):
@@ -122,7 +122,7 @@ def main():
         $SUBGRAPH = gx2
         print('Total migrations for {}: {}'.format(migrator.__class__.__name__,
                                                    len(gx2.node)))
-    
+
         for node, attrs in gx2.node.items():
             # Don't let travis timeout, break ahead of the timeout so we make certain
             # to write to the repo
@@ -179,6 +179,10 @@ def main():
                 rm -rf $REVER_DIR + '/*'
                 print(![pwd])
                 ![doctr deploy --token --built-docs . --deploy-repo regro/cf-graph --deploy-branch-name master .]
-    
+
     print('API Calls Remaining:', gh.rate_limit()['resources']['core']['remaining'])
     print('Done')
+
+
+if __name__ == "__main__":
+    main()
