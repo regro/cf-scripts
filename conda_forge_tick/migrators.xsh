@@ -159,7 +159,7 @@ class Version(Migrator):
                     except urllib.error.HTTPError:
                         continue
             else:
-                url = u.strip("'\"")
+                url = url.strip("'\"")
                 hash = hash_url(url, hash_type)
             m = re.search('\s*{}:(.+)'.format(hash_type), line)
             if m is None:
