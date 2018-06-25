@@ -152,12 +152,14 @@ class Version(Migrator):
         for url, platform, line in urls:
             if isinstance(url, list):
                 for u in url:
+                    u = u.strip("'\"")
                     try:
                         hash = hash_url(u, hash_type)
                         break
                     except urllib.error.HTTPError:
                         continue
             else:
+                url = url.strip("'\"")
                 hash = hash_url(url, hash_type)
             m = re.search('\s*{}:(.+)'.format(hash_type), line)
             if m is None:
