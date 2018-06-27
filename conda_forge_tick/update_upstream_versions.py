@@ -150,7 +150,7 @@ class RawURL:
                     source = [source]
                 url = None
                 for s in source:
-                    if next_ver in s.get("url", ""):
+                    if 'url' in s and s['url'] != meta_yaml["source"]["url"]:
                         url = s["url"]
                         break
                 if url is None:
