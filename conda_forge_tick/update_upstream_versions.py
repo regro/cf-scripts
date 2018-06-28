@@ -136,15 +136,7 @@ class RawURL:
             return None
         # TODO: pull this from the graph itself
         pkg = meta_yaml["feedstock_name"]
-        url_template = "https://raw.githubusercontent.com/conda-forge/" \
-                       "{}-feedstock/master/recipe/meta.yaml"
-        try:
-            resp = requests.get(url_template.format(pkg))
-            resp.raise_for_status()
-            content = resp.content
-            content = content.decode("utf-8")
-        except Exception:
-            return None
+        content = meta_yaml["raw_meta_yaml"]
 
         orig_urls = urls_from_meta(meta_yaml["meta_yaml"])
         current_ver = meta_yaml["version"]
