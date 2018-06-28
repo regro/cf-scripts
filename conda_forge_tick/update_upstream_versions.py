@@ -14,6 +14,17 @@ import logging
 logger = logging.getLogger("conda_forge_tick.update_upstream_versions")
 
 
+def urls_from_meta(meta_yaml):
+    source = meta_yaml["source"]
+    if isinstance(source, collections.abc.Mapping):
+        source = [source]
+    urls = set()
+    for s in source:
+        if "url" in s:
+            urls.add(s["url"])
+    return urls
+
+
 def next_version(ver):
     ver_split = []
     ver_dot_split = ver.split(".")
@@ -135,6 +146,7 @@ class RawURL:
         except Exception:
             return None
 
+        orig_urls = urls_from_meta(meta_yaml)
         current_ver = meta_yaml["version"]
         orig_ver = current_ver
         found = True
@@ -145,13 +157,10 @@ class RawURL:
             for next_ver in next_version(current_ver):
                 new_content = content.replace(orig_ver, next_ver)
                 meta = parse_meta_yaml(new_content)
-                source = meta["source"]
-                if isinstance(source, collections.abc.Mapping):
-                    source = [source]
                 url = None
-                for s in source:
-                    if 'url' in s and s['url'] != meta_yaml["source"]["url"]:
-                        url = s["url"]
+                for u in urls_from_meta(meta_yaml):
+                    if u not in orig_urls:
+                        url = u
                         break
                 if url is None:
                     meta_yaml["bad"] = "Upstream: no url in yaml"
