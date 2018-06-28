@@ -17,5 +17,5 @@ print('/tmp/*')
 du -hs /tmp/* | sort -hr
 for dir in g`/tmp/*`:
     if os.path.isdir(dir):
-        print(os.path.join('/tmp', dir)
+        print(os.path.join('/tmp', dir))
         du -hs @(os.path.join('/tmp', dir) + '/*') | sort -hr
