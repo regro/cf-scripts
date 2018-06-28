@@ -146,7 +146,7 @@ class RawURL:
         except Exception:
             return None
 
-        orig_urls = urls_from_meta(meta_yaml)
+        orig_urls = urls_from_meta(meta_yaml["meta_yaml"])
         current_ver = meta_yaml["version"]
         orig_ver = current_ver
         found = True
@@ -158,7 +158,7 @@ class RawURL:
                 new_content = content.replace(orig_ver, next_ver)
                 meta = parse_meta_yaml(new_content)
                 url = None
-                for u in urls_from_meta(meta_yaml):
+                for u in urls_from_meta(meta):
                     if u not in orig_urls:
                         url = u
                         break
