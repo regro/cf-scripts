@@ -10,9 +10,9 @@ for i in stages:
     print('FINISHED STAGE {} IN {} SECONDS'.format(i, time.time() - start))
     start = time.time()
 doctr deploy --token --built-docs . --deploy-repo regro/cf-graph --deploy-branch-name master .
-du -hs .
-du -hs /tmp
+du -hs * | sort -h
+du -hs /tmp/* | sort -h
 import os
 for dir in g`/tmp/`:
     if os.path.isdir(dir):
-        du -hs @(os.path.join('/tmp', dir))
+        du -hs @(os.path.join('/tmp', dir) + '/*') | sort -h
