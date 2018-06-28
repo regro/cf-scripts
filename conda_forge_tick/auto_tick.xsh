@@ -130,7 +130,7 @@ def main(args=None):
                 break
             $PROJECT = attrs['feedstock_name']
             $NODE = node
-            print('{} IS MIGRATING'.format(migrator.__class__.__name__),
+            print('{} IS MIGRATING'.format(migrator.__class__.__name__.upper()),
                   $PROJECT)
             try:
                 # Don't bother running if we are at zero
