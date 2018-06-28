@@ -130,7 +130,8 @@ def main(args=None):
                 break
             $PROJECT = attrs['feedstock_name']
             $NODE = node
-            print('BOT IS MIGRATING', $PROJECT)
+            print('{} IS MIGRATING'.format(migrator.__class__.__name__.upper()),
+                  $PROJECT)
             try:
                 # Don't bother running if we are at zero
                 if gh.rate_limit()['resources']['core']['remaining'] == 0:
