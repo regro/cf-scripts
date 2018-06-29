@@ -45,8 +45,9 @@ def get_attrs(name, i):
     req = yaml_dict.get("requirements", set())
     if req:
         build = list(req.get("build", []) if req.get("build", []) is not None else [])
+        host = list(req.get("host", []) if req.get("host", []) is not None else [])
         run = list(req.get("run", []) if req.get("run", []) is not None else [])
-        req = build + run
+        req = build + host + run
         req = set([x.split()[0] for x in req])
     sub_graph["req"] = req
 
