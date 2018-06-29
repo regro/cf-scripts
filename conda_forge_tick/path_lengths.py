@@ -67,7 +67,7 @@ def get_longest_paths(graph, source):
     dist = {node: -float("inf") for node in graph}
     dist[source] = 0
     visited = []
-    for u in cyclic_topological_sort(graph, source):
+    for u in cyclic_topological_sort(graph, [source]):
         visited.append(u)
         for v in graph.neighbors(u):
             if v in visited:
