@@ -1,6 +1,8 @@
 #!/usr/bin/env xonsh
 import os
 import time
+from rever.tools import indir
+
 cd ../cf-graph
 $PATH.insert(0, '~/mc/bin')
 
@@ -18,4 +20,5 @@ du -hs /tmp/* | sort -hr
 for dir in g`/tmp/*`:
     if os.path.isdir(dir):
         print(os.path.join('/tmp', dir))
-        du -hs @(os.path.join('/tmp', dir) + '/*') | sort -hr
+        with indir(os.path.join('/tmp', dir)):
+            du -hs * | sort -hr
