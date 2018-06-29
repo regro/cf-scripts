@@ -17,8 +17,8 @@ from .path_lengths import cyclic_topological_sort
 # https://travis-ci.org/regro/00-find-feedstocks/jobs/388387895#L1870
 from .migrators import *
 $MIGRATORS = [Version(),
-              Noarch(),
-              #Compiler(),
+              Compiler(),
+              #Noarch(),
              ]
 
 def run(attrs, migrator, feedstock=None, protocol='ssh',
