@@ -681,7 +681,7 @@ extra:
 """
 
 correct_cb3 = """{% set version = "1.14.5" %}
-{% set build_number = 0 %}
+{% set build_number = 1 %}
 
 {% set variant = "openblas" %}
 {% set build_number = build_number + 200 %}

@@ -7,6 +7,26 @@ from rever.tools import (eval_version, indir, hash_url, replace_in_file)
 
 from .utils import render_meta_yaml
 
+build_patterns = ((re.compile('(\s*?)number:\s*([0-9]+)'),
+                   'number: {}'),
+                  (re.compile('(\s*?){%\s*set build_number\s*=\s*"?([0-9]+)"?\s*%}'),
+                   '{{% set build_number = {} %}}'),
+                  (re.compile('(\s*?){%\s*set build\s*=\s*"?([0-9]+)"?\s*%}'),
+                   '{{% set build = {} %}}')
+                 )
+
+def bump_build_number(filename):
+    for p, n in build_patterns:
+        with open(filename, 'r') as f:
+            raw = f.read()
+        lines = raw.splitlines()
+        for i, line in enumerate(lines):
+            m = p.match(line)
+            if m is not None:
+                lines[i] = m.group(1) + n.format(int(m.group(2)) + 1)
+        upd = '\n'.join(lines) + '\n'
+        with open(filename, 'w') as f:
+            f.write(upd)
 
 class Migrator:
     """Base class for Migrators"""
@@ -340,12 +360,6 @@ class Compiler(Migrator):
     rerender = True
 
     compilers = {'toolchain', 'gcc'}
-    patterns = (('meta.yaml', '  number:\s*[0-9]+', '  number: $BUILDNUM'),
-                ('meta.yaml', '{%\s*set build_number\s*=\s*"?[0-9]+"?\s*%}',
-                 '{% set build_number = $BUILDNUM %}'),
-                ('meta.yaml', '{%\s*set build\s*=\s*"?[0-9]+"?\s*%}',
-                 '{% set build = $BUILDNUM %}')
-               )
 
     def filter(self, attrs):
         conditional = super().filter(attrs)
@@ -356,12 +370,8 @@ class Compiler(Migrator):
 
     def migrate(self, recipe_dir, attrs, **kwargs):
         self.out = $(conda-smithy update-cb3 --recipe_directory @(recipe_dir))
-        buildnum = attrs["build"]["number"] + 1
-        with indir(recipe_dir), ${...}.swap(BUILDNUM=buildnum):
-            for f, p, n in self.patterns:
-                eval_version(p)
-                eval_version(n)
-                replace_in_file(p, n, f)
+        with indir(recipe_dir):
+            bump_build_number('meta.yaml')
         return self.migrator_uid(attrs)
 
     def pr_body(self):
