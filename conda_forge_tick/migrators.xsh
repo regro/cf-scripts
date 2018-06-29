@@ -453,7 +453,7 @@ class Noarch(Migrator):
         return "add noarch"
 
     def pr_title(self):
-        return 'Add noarch'
+        return 'Suggestion: add noarch'
 
     def pr_head(self):
         return $USERNAME + ':' + self.remote_branch()
