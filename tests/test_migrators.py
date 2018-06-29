@@ -113,7 +113,7 @@ source:
   sha256: {{ sha256 }}
 
 build:
-  number: 0
+  number: 1
   noarch: generic
   script: |
     tgz=$(npm pack)

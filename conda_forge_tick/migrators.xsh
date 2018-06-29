@@ -329,6 +329,7 @@ class JS(Migrator):
                 replace_in_file(p, n, f,
                                 leading_whitespace=False
                                 )
+            bump_build_number('meta.yaml')
         return self.migrator_uid(attrs)
 
     def pr_body(self):
