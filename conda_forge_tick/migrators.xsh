@@ -60,14 +60,12 @@ class Migrator:
             The body of the PR message
         """
         body = (
-            'This PR was created by the [cf-regro-autotick-bot](https://github.com/regro/cf-scripts).\n\n'
+            '{}'
+            '<sub>'
+            'This PR was created by the [cf-regro-autotick-bot](https://github.com/regro/cf-scripts).\n'
             'The **cf-regro-autotick-bot** is a service to automatically '
             'track the dependency graph, migrate packages, and '
             'propose package version updates for conda-forge. '
-            'It is very '
-            'likely that the current package version for this feedstock is '
-            'out of date or needed migration.\n\n'
-            '{}'
             "If you would like a local version of this bot, you might consider using "
             "[rever](https://regro.github.io/rever-docs/). "
             "Rever is a tool for automating software releases and forms the "
@@ -75,7 +73,8 @@ class Migrator:
             "conda (`conda install -c conda-forge rever`) and pip "
             "(`pip install re-ver`) installable.\n\n"
             'Finally, feel free to drop us a line if there are any '
-            '[issues](https://github.com/regro/cf-scripts/issues)! ')
+            '[issues](https://github.com/regro/cf-scripts/issues)!'
+            '</sub>')
         return body
 
     def commit_message(self):
@@ -232,7 +231,10 @@ class Version(Migrator):
         pred = [(name, $SUBGRAPH.node[name]['new_version'])
                 for name in list($SUBGRAPH.predecessors($NODE))]
         body = super().pr_body()
-        body = body.format('Notes and instructions for merging this PR:\n'
+        body = body.format(
+            'It is very likely that the current package version for this '
+            'feedstock is out of date.\n'
+            'Notes and instructions for merging this PR:\n'
             '1. Please check that the dependencies have not changed. \n'
             '2. Please merge the PR only after the tests have passed. \n'
             "3. Feel free to push to the bot's branch to update this PR if needed. \n"
@@ -311,7 +313,9 @@ class JS(Migrator):
 
     def pr_body(self):
         body = super().pr_body()
-        body = body.format('Notes and instructions for merging this PR:\n'
+        body = body.format(
+            'It is very likely that this feedstock is in need of migration.\n'
+            'Notes and instructions for merging this PR:\n'
             '1. Please merge the PR only after the tests have passed. \n'
             "2. Feel free to push to the bot's branch to update this PR if needed. \n")
         return body
@@ -349,6 +353,7 @@ class Compiler(Migrator):
                     '*If you have recived a `Migrate to Jinja2 compiler '
                     'syntax` PR from me recently please close that one and use '
                     'this one*.\n'
+                    'It is very likely that this feedstock is in need of migration.\n'
                     'Notes and instructions for merging this PR:\n'
                     '1. Please merge the PR only after the tests have passed. \n'
                     "2. Feel free to push to the bot's branch to update this PR if needed. \n"
@@ -366,3 +371,92 @@ class Compiler(Migrator):
 
     def remote_branch(self):
         return 'compiler_migration2'
+
+
+class Noarch(Migrator):
+    """Migrator for adding noarch."""
+    migrator_version = 0
+
+    compiler_pat = re.compile('.*_compiler_stub')
+    sel_pat = re.compile('(.+?)\s*(#.*)?\[([^\[\]]+)\](?(2)[^\(\)]*)$')
+    unallowed_reqs = ['toolchain', 'gcc', 'cython', 'clangdev']
+    checklist = ['No compiled extensions',
+                 'No post-link or pre-link or pre-unlink scripts',
+                 'No OS specific build scripts',
+                 'No python version specific requirements',
+                 'No skips except for python version. (If the recipe is py3 only, remove skip statement and add version constraint on python)',
+                 '2to3 is not used',
+                 'Scripts argument in setup.py is not used',
+                 'If entrypoints are in setup.py, they are listed in meta.yaml',
+                 'No activate scripts',
+                 'Not a dependency of `conda`',
+                ]
+
+    def filter(self, attrs):
+        conditional = (super().filter(attrs) or
+                       attrs.get('meta_yaml', {}).get('outputs') or
+                       attrs.get('meta_yaml', {}).get('build', {}).get('noarch')
+                      )
+        if conditional:
+            return True
+        python = False
+        for req in attrs.get('req', []):
+            if self.compiler_pat.match(req) or req in self.unallowed_reqs:
+                return True
+            if req == 'python':
+                python = True
+        if not python:
+            return True
+        for line in attrs.get('raw_meta_yaml', '').splitlines():
+            if self.sel_pat.match(line):
+                return True
+        return False
+
+    def migrate(self, recipe_dir, attrs, **kwargs):
+        with indir(recipe_dir):
+            replace_in_file(
+                    'build:',
+                    'build:\n  noarch: python',
+                    'meta.yaml',
+                    leading_whitespace=False)
+            replace_in_file(
+                    'script:.+?',
+                    'script: python -m pip install --no-deps --ignore-installed .',
+                    'meta.yaml')
+            if 'pip' not in attrs['req']:
+                replace_in_file(
+                        '  build:',
+                        '  build:\n    - pip',
+                        'meta.yaml',
+                        leading_whitespace=False)
+        return self.migrator_uid(attrs)
+
+    def pr_body(self):
+        body = super().pr_body()
+        body = body.format(
+                    'I think this feedstock could be built with noarch.\n'
+                    'This means that the package only needs to be built '
+                    'once, drastically reducing CI usage.\n'
+                    'See [here](https://conda-forge.org/docs/meta.html#building-noarch-packages)'
+                    'for more information about building noarch packages.'
+                    'Before merging this PR make sure:\n'
+                    'Notes and instructions for merging this PR:\n{}'
+                    '1. If any items in the above checklist are not satisfied, '
+                    'please close this PR. Do not merge.'
+                    '2. Please merge the PR only after the tests have passed. \n'
+                    "3. Feel free to push to the bot's branch to update this PR if needed. \n"
+                    )
+        body = body.format('\n'.join(['- [] ' + item for item in self.checklist]))
+        return body
+
+    def commit_message(self):
+        return "add noarch"
+
+    def pr_title(self):
+        return 'Suggestion: add noarch'
+
+    def pr_head(self):
+        return $USERNAME + ':' + self.remote_branch()
+
+    def remote_branch(self):
+        return 'noarch_migration'

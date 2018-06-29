@@ -2,7 +2,7 @@ import os
 
 import pytest
 
-from conda_forge_tick.migrators import JS, Version, Compiler
+from conda_forge_tick.migrators import JS, Version, Compiler, Noarch
 from conda_forge_tick.utils import parse_meta_yaml
 
 
@@ -744,9 +744,131 @@ extra:
     - ocefpaf
 """
 
+
+sample_noarch = """{% set name = "xpdan" %}
+{% set version = "0.3.3" %}
+{% set sha256 = "3f1a84f35471aa8e383da3cf4436492d0428da8ff5b02e11074ff65d400dd076" %}
+
+package:
+  name: {{ name|lower }}
+  version: {{ version }}
+
+source:
+  fn: {{ name }}-{{ version }}.tar.gz
+  url: https://github.com/xpdAcq/{{ name }}/releases/download/{{ version }}/{{ version }}.tar.gz
+  sha256: {{ sha256 }}
+
+build:
+  number: 0
+  script: python -m pip install --no-deps --ignore-installed .
+
+requirements:
+  build:
+    - python >=3
+    - pip
+  run:
+    - python >=3
+    - numpy
+    - scipy
+    - matplotlib
+    - pyyaml
+    - scikit-beam
+    - pyfai
+    - pyxdameraulevenshtein
+    - xray-vision
+    - databroker
+    - bluesky
+    - streamz_ext
+    - xpdsim
+    - shed
+    - xpdview
+    - ophyd
+    - xpdconf
+
+test:
+  imports:
+    - xpdan
+    - xpdan.pipelines
+
+about:
+  home: http://github.com/xpdAcq/xpdAn
+  license: BSD-3-Clause
+  license_family: BSD
+  license_file: LICENSE
+  summary: 'Analysis Tools for XPD'
+  doc_url: http://xpdacq.github.io/xpdAn/
+  dev_url: http://github.com/xpdAcq/xpdAn
+
+extra:
+  recipe-maintainers:
+    - CJ-Wright
+"""
+
+
+updated_noarch = """{% set name = "xpdan" %}
+{% set version = "0.3.3" %}
+{% set sha256 = "3f1a84f35471aa8e383da3cf4436492d0428da8ff5b02e11074ff65d400dd076" %}
+
+package:
+  name: {{ name|lower }}
+  version: {{ version }}
+
+source:
+  fn: {{ name }}-{{ version }}.tar.gz
+  url: https://github.com/xpdAcq/{{ name }}/releases/download/{{ version }}/{{ version }}.tar.gz
+  sha256: {{ sha256 }}
+
+build:
+  noarch: python
+  number: 0
+  script: python -m pip install --no-deps --ignore-installed .
+
+requirements:
+  build:
+    - python >=3
+    - pip
+  run:
+    - python >=3
+    - numpy
+    - scipy
+    - matplotlib
+    - pyyaml
+    - scikit-beam
+    - pyfai
+    - pyxdameraulevenshtein
+    - xray-vision
+    - databroker
+    - bluesky
+    - streamz_ext
+    - xpdsim
+    - shed
+    - xpdview
+    - ophyd
+    - xpdconf
+
+test:
+  imports:
+    - xpdan
+    - xpdan.pipelines
+
+about:
+  home: http://github.com/xpdAcq/xpdAn
+  license: BSD-3-Clause
+  license_family: BSD
+  license_file: LICENSE
+  summary: 'Analysis Tools for XPD'
+  doc_url: http://xpdacq.github.io/xpdAn/
+  dev_url: http://github.com/xpdAcq/xpdAn
+
+extra:
+  recipe-maintainers:
+    - CJ-Wright
+"""
+
 js = JS()
 version = Version()
 compiler = Compiler()
+noarch = Noarch()
 
 test_list = [
     (
@@ -834,6 +956,37 @@ test_list = [
         {},
         "Please merge the PR only after the tests have passed.",
         {"migrator_name": "JS", "migrator_version": JS.migrator_version},
+    ),
+    (
+        noarch,
+        sample_noarch,
+        updated_noarch,
+        {
+            "req": [
+                "python",
+                "pip",
+                "numpy",
+                "scipy",
+                "matplotlib",
+                "pyyaml",
+                "scikit-beam",
+                "pyfai",
+                "pyxdameraulevenshtein",
+                "xray-vision",
+                "databroker",
+                "bluesky",
+                "streamz_ext",
+                "xpdsim",
+                "shed",
+                "xpdview",
+                "ophyd",
+                "xpdconf",
+            ]
+        },
+        "I think this feedstock could be built with noarch.\n"
+        "This means that the package only needs to be built "
+        "once, drastically reducing CI usage.\n",
+        {"migrator_name": "Noarch", "migrator_version": Noarch.migrator_version},
     ),
 ]
 
