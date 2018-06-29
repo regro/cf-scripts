@@ -7,6 +7,26 @@ from rever.tools import (eval_version, indir, hash_url, replace_in_file)
 
 from .utils import render_meta_yaml
 
+build_patterns = ((re.compile('(\s*?)number:\s*([0-9]+)'),
+                   'number: {}'),
+                  (re.compile('(\s*?){%\s*set build_number\s*=\s*"?([0-9]+)"?\s*%}'),
+                   '{{% set build_number = {} %}}'),
+                  (re.compile('(\s*?){%\s*set build\s*=\s*"?([0-9]+)"?\s*%}'),
+                   '{{% set build = {} %}}')
+                 )
+
+def bump_build_number(filename):
+    for p, n in build_patterns:
+        with open(filename, 'r') as f:
+            raw = f.read()
+        lines = raw.splitlines()
+        for i, line in enumerate(lines):
+            m = p.match(line)
+            if m is not None:
+                lines[i] = m.group(1) + n.format(int(m.group(2)) + 1)
+        upd = '\n'.join(lines) + '\n'
+        with open(filename, 'w') as f:
+            f.write(upd)
 
 class Migrator:
     """Base class for Migrators"""
@@ -309,6 +329,7 @@ class JS(Migrator):
                 replace_in_file(p, n, f,
                                 leading_whitespace=False
                                 )
+            bump_build_number('meta.yaml')
         return self.migrator_uid(attrs)
 
     def pr_body(self):
@@ -339,12 +360,19 @@ class Compiler(Migrator):
 
     rerender = True
 
+    compilers = {'toolchain', 'gcc'}
+
     def filter(self, attrs):
         conditional = super().filter(attrs)
-        return conditional or 'toolchain' not in attrs.get('req', [])
+        return (conditional
+                or not any(x in attrs.get('req', []) for x in self.compilers)
+                or 'r-base' in attrs.get('req', [])
+               )
 
     def migrate(self, recipe_dir, attrs, **kwargs):
         self.out = $(conda-smithy update-cb3 --recipe_directory @(recipe_dir))
+        with indir(recipe_dir):
+            bump_build_number('meta.yaml')
         return self.migrator_uid(attrs)
 
     def pr_body(self):
@@ -429,6 +457,7 @@ class Noarch(Migrator):
                         '  build:\n    - pip',
                         'meta.yaml',
                         leading_whitespace=False)
+            bump_build_number('meta.yaml')
         return self.migrator_uid(attrs)
 
     def pr_body(self):

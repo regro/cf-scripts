@@ -113,7 +113,7 @@ source:
   sha256: {{ sha256 }}
 
 build:
-  number: 0
+  number: 1
   noarch: generic
   script: |
     tgz=$(npm pack)
@@ -681,7 +681,7 @@ extra:
 """
 
 correct_cb3 = """{% set version = "1.14.5" %}
-{% set build_number = 0 %}
+{% set build_number = 1 %}
 
 {% set variant = "openblas" %}
 {% set build_number = build_number + 200 %}
@@ -820,7 +820,7 @@ source:
 
 build:
   noarch: python
-  number: 0
+  number: 1
   script: python -m pip install --no-deps --ignore-installed .
 
 requirements:
