@@ -339,7 +339,7 @@ class Compiler(Migrator):
 
     rerender = True
 
-    compilers = set('toolchain', 'gcc')
+    compilers = {'toolchain', 'gcc'}
 
     def filter(self, attrs):
         conditional = super().filter(attrs)
