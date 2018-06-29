@@ -104,6 +104,7 @@ def run(attrs, migrator, feedstock=None, protocol='ssh',
 
 
 def main(args=None):
+    temp = g`/tmp/*`
     gx = nx.read_gpickle('graph.pkl')
     $REVER_DIR = './feedstocks/'
     $REVER_QUIET = True
@@ -184,6 +185,9 @@ def main(args=None):
                 rm -rf $REVER_DIR + '/*'
                 print(![pwd])
                 ![doctr deploy --token --built-docs . --deploy-repo regro/cf-graph --deploy-branch-name master .]
+                for f in g`/tmp/*`:
+                    if f not in temp:
+                        rm -rf f
 
     print('API Calls Remaining:', gh.rate_limit()['resources']['core']['remaining'])
     print('Done')
