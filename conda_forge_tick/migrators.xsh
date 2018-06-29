@@ -388,6 +388,8 @@ class Noarch(Migrator):
                  '2to3 is not used',
                  'Scripts argument in setup.py is not used',
                  'If entrypoints are in setup.py, they are listed in meta.yaml',
+                 'No activate scripts',
+                 'Not a dependency of `conda`',
                 ]
 
     def filter(self, attrs):
