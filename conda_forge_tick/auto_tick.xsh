@@ -187,7 +187,7 @@ def main(args=None):
                 ![doctr deploy --token --built-docs . --deploy-repo regro/cf-graph --deploy-branch-name master .]
                 for f in g`/tmp/*`:
                     if f not in temp:
-                        rm -rf f
+                        rm -rf @(f)
 
     print('API Calls Remaining:', gh.rate_limit()['resources']['core']['remaining'])
     print('Done')
