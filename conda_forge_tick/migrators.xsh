@@ -457,6 +457,7 @@ class Noarch(Migrator):
                         '  build:\n    - pip',
                         'meta.yaml',
                         leading_whitespace=False)
+            bump_build_number('meta.yaml')
         return self.migrator_uid(attrs)
 
     def pr_body(self):
