@@ -340,6 +340,12 @@ class Compiler(Migrator):
     rerender = True
 
     compilers = {'toolchain', 'gcc'}
+    patterns = (('meta.yaml', '  number:\s*[0-9]+', '  number: $BUILDNUM'),
+                ('meta.yaml', '{%\s*set build_number\s*=\s*"?[0-9]+"?\s*%}',
+                 '{% set build_number = $BUILDNUM %}'),
+                ('meta.yaml', '{%\s*set build\s*=\s*"?[0-9]+"?\s*%}',
+                 '{% set build = $BUILDNUM %}')
+               )
 
     def filter(self, attrs):
         conditional = super().filter(attrs)
@@ -350,6 +356,12 @@ class Compiler(Migrator):
 
     def migrate(self, recipe_dir, attrs, **kwargs):
         self.out = $(conda-smithy update-cb3 --recipe_directory @(recipe_dir))
+        buildnum = attrs["build"]["number"] + 1
+        with indir(recipe_dir), ${...}.swap(BUILDNUM=buildnum):
+            for f, p, n in self.patterns:
+                eval_version(p)
+                eval_version(n)
+                replace_in_file(p, n, f)
         return self.migrator_uid(attrs)
 
     def pr_body(self):
