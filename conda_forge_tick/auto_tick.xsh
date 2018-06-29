@@ -11,6 +11,7 @@ import networkx as nx
 from rever.tools import indir
 
 from .git_utils import (get_repo, push_repo)
+from .path_lengths import cyclic_topological_sort
 
 # TODO: move this back to the bot file as soon as the source issue is sorted
 # https://travis-ci.org/regro/00-find-feedstocks/jobs/388387895#L1870
@@ -123,7 +124,9 @@ def main(args=None):
         print('Total migrations for {}: {}'.format(migrator.__class__.__name__,
                                                    len(gx2.node)))
 
-        for node, attrs in gx2.node.items():
+        top_level = set(node for node in gx2 if not list(gx2.predecessors(node)))
+        for node in cyclic_topological_sort(gx2, top_level):
+            attrs = gx2.nodes[node]
             # Don't let travis timeout, break ahead of the timeout so we make certain
             # to write to the repo
             if time.time() - int($START_TIME) > int($TIMEOUT):
