@@ -6,6 +6,7 @@ import time
 import traceback
 
 import datetime
+from doctr.travis import run_command_hiding_token as doctr_run
 import github3
 import networkx as nx
 from rever.tools import indir
@@ -188,7 +189,13 @@ def main(args=None):
                 nx.write_gpickle(gx, 'graph.pkl')
                 rm -rf $REVER_DIR + '/*'
                 print(![pwd])
-                ![doctr deploy --token --built-docs . --deploy-repo regro/cf-graph --deploy-branch-name master .]
+                doctr_run(
+                    ['git',
+                     'push',
+                     'https://{token}@github.com/{deploy_repo}.git'.format(
+                         token=$PASSWORD, deploy_repo = 'regro/cf-graph'),
+                'master'],
+                token =$PASSWORD)
                 for f in g`/tmp/*`:
                     if f not in temp:
                         rm -rf @(f)
