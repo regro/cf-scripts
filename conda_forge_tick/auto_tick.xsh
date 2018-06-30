@@ -6,6 +6,7 @@ import time
 import traceback
 
 import datetime
+from doctr.travis import run_command_hiding_token as doctr_run
 import github3
 import networkx as nx
 from rever.tools import indir
@@ -112,6 +113,7 @@ def main(args=None):
 
     smithy_version = ![conda smithy --version].output.strip()
     pinning_version = json.loads(![conda list conda-forge-pinning --json].output.strip())[0]['version']
+    good_prs = 0
     # TODO: need to also capture pinning version, maybe it is in the graph?
 
     for migrator in $MIGRATORS:
@@ -131,7 +133,7 @@ def main(args=None):
             attrs = gx2.nodes[node]
             # Don't let travis timeout, break ahead of the timeout so we make certain
             # to write to the repo
-            if time.time() - int($START_TIME) > int($TIMEOUT):
+            if time.time() - int($START_TIME) > int($TIMEOUT) or good_prs >= ${...}.get('MAX_PRS', int(1e6)):
                 break
             $PROJECT = attrs['feedstock_name']
             $NODE = node
@@ -177,6 +179,9 @@ def main(args=None):
                 print(e)
                 gx.nodes[node]['bad'] = {'exception': str(e),
                                          'traceback': str(traceback.format_exc())}
+            else:
+                # On successful PR add to our counter
+                good_prs += 1
             finally:
                 # Write graph partially through
                 # Race condition?
@@ -184,7 +189,13 @@ def main(args=None):
                 nx.write_gpickle(gx, 'graph.pkl')
                 rm -rf $REVER_DIR + '/*'
                 print(![pwd])
-                ![doctr deploy --token --built-docs . --deploy-repo regro/cf-graph --deploy-branch-name master .]
+                doctr_run(
+                    ['git',
+                     'push',
+                     'https://{token}@github.com/{deploy_repo}.git'.format(
+                         token=$PASSWORD, deploy_repo = 'regro/cf-graph'),
+                'master'],
+                token =$PASSWORD)
                 for f in g`/tmp/*`:
                     if f not in temp:
                         rm -rf @(f)
