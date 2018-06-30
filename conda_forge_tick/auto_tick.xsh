@@ -133,7 +133,7 @@ def main(args=None):
             attrs = gx2.nodes[node]
             # Don't let travis timeout, break ahead of the timeout so we make certain
             # to write to the repo
-            if time.time() - int($START_TIME) > int($TIMEOUT) or good_prs >= ${...}.get('MAX_PRS', int(1e6)):
+            if time.time() - int($START_TIME) > int($TIMEOUT) or good_prs >= int(${...}.get('MAX_PRS', 1e6)):
                 break
             $PROJECT = attrs['feedstock_name']
             $NODE = node
