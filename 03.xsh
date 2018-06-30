@@ -6,8 +6,9 @@ from doctr.travis import run_command_hiding_token as doctr_run
 
 cd ../cf-graph
 $PATH.insert(0, '~/mc/bin')
+$MAX_PRS = 15
 
-stages = [3]
+stages = [0, 1, 2, 3]
 start = time.time()
 for i in stages:
     conda-forge-tick --run @(i)
