@@ -153,10 +153,10 @@ def push_repo(feedstock_dir, body, repo, title, head, branch,
         doctr_run(['git', 'remote', 'add', 'regro_remote',
                    'https://{token}@github.com/{deploy_repo}.git'.format(
                        token=token, deploy_repo=deploy_repo)],
-                  token=token)
+                  token=token.encode('utf-8'))
 
         doctr_run(['git', 'push', '--set-upstream', 'regro_remote', branch],
-                  token=token)
+                  token=token.encode('utf-8'))
     # lastly make a PR for the feedstock
     if not pull_request:
         return

@@ -195,7 +195,7 @@ def main(args=None):
                      'https://{token}@github.com/{deploy_repo}.git'.format(
                          token=$PASSWORD, deploy_repo = 'regro/cf-graph'),
                 'master'],
-                token =$PASSWORD)
+                token=$PASSWORD.encode('utf-8'))
                 for f in g`/tmp/*`:
                     if f not in temp:
                         rm -rf @(f)
