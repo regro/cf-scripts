@@ -3,7 +3,7 @@ import time
 cd ../cf-graph
 $PATH.insert(0, '~/mc/bin')
 
-stages = [1]
+stages = [2, 3]
 start = time.time()
 for i in stages:
     conda-forge-tick --run @(i)
