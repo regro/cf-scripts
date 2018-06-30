@@ -8,7 +8,7 @@ import urllib.error
 
 import github3
 import networkx as nx
-from doctr.travis import run as doctr_run
+from doctr.travis import run_command_hiding_token as doctr_run
 from pkg_resources import parse_version
 from rever.tools import (eval_version, indir, hash_url, replace_in_file)
 
@@ -152,7 +152,8 @@ def push_repo(feedstock_dir, body, repo, title, head, branch,
         deploy_repo = $USERNAME + '/' + $PROJECT + '-feedstock'
         doctr_run(['git', 'remote', 'add', 'regro_remote',
                    'https://{token}@github.com/{deploy_repo}.git'.format(
-                       token=token, deploy_repo=deploy_repo)])
+                       token=token, deploy_repo=deploy_repo)],
+                  token=token)
 
         git push --set-upstream regro_remote @(branch)
     # lastly make a PR for the feedstock
