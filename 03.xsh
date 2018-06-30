@@ -8,7 +8,7 @@ cd ../cf-graph
 $PATH.insert(0, '~/mc/bin')
 $MAX_PRS = 15
 
-stages = [0, 1, 2, 3]
+stages = [3]
 start = time.time()
 for i in stages:
     conda-forge-tick --run @(i)
@@ -21,7 +21,3 @@ doctr_run(
          token=$PASSWORD, deploy_repo='regro/cf-graph'),
      'master'],
      token=$PASSWORD)
-pwd
-du -hs * | sort -hr
-print('/tmp/*')
-du -h /tmp/* | sort -hr
