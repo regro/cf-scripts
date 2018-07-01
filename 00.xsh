@@ -14,6 +14,7 @@ for i in stages:
     conda-forge-tick --run @(i)
     print('FINISHED STAGE {} IN {} SECONDS'.format(i, time.time() - start))
     start = time.time()
+    git commit -am @("Finished stage {}".format(i))
     doctr_run(
         ['git',
          'push',
