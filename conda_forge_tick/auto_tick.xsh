@@ -189,7 +189,10 @@ def main(args=None):
                 nx.write_gpickle(gx, 'graph.pkl')
                 rm -rf $REVER_DIR + '/*'
                 print(![pwd])
-                p = ![git commit -am @("Migrated {}".format($PROJECT))]
+                try:
+                    git commit -am @("Migrated {}".format($PROJECT))
+                except Exception as e:
+                    print(e)
                 doctr_run(
                     ['git',
                      'push',

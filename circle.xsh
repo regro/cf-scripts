@@ -14,7 +14,10 @@ for i in stages:
     conda-forge-tick --run @(i)
     print('FINISHED STAGE {} IN {} SECONDS'.format(i, time.time() - start))
     start = time.time()
-    p = ![git commit -am @("Finished stage {}".format(i))]
+    try:
+        git commit -am @("Finished stage {}".format(i))
+    except Exception as e:
+        print(e)
     doctr_run(
         ['git',
          'push',
