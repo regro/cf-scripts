@@ -6,7 +6,7 @@ from doctr.travis import run_command_hiding_token as doctr_run
 
 cd ../cf-graph
 $PATH.insert(0, '~/mc/bin')
-$MAX_PRS = 1
+$MAX_PRS = 10
 
 stages = [3]
 start = time.time()
