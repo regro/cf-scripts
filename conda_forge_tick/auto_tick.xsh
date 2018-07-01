@@ -189,9 +189,7 @@ def main(args=None):
                 nx.write_gpickle(gx, 'graph.pkl')
                 rm -rf $REVER_DIR + '/*'
                 print(![pwd])
-                ls -lart
-                git status
-                git commit -am @("Migrated {}".format($PROJECT))
+                p = ![git commit -am @("Migrated {}".format($PROJECT))]
                 doctr_run(
                     ['git',
                      'push',
