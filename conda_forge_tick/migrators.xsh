@@ -420,6 +420,8 @@ class Noarch(Migrator):
                  'Not a dependency of `conda`',
                 ]
 
+    rerender = True
+
     def filter(self, attrs):
         conditional = (super().filter(attrs) or
                        attrs.get('meta_yaml', {}).get('outputs') or
