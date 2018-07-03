@@ -1,14 +1,14 @@
+import collections.abc
 import hashlib
+import logging
+import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
-import collections.abc
-import time
 import networkx as nx
 import requests
-from .utils import parse_meta_yaml
-from .all_feedstocks import get_all_feedstocks
 
-import logging
+from .all_feedstocks import get_all_feedstocks
+from .utils import parse_meta_yaml
 
 logger = logging.getLogger("conda_forge_tick.make_graph")
 

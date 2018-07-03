@@ -1,16 +1,15 @@
-from concurrent.futures import as_completed, ThreadPoolExecutor
-import subprocess
 import collections.abc
+import logging
+import subprocess
+from concurrent.futures import as_completed, ThreadPoolExecutor
+
+import feedparser
 import networkx as nx
 import requests
+from conda.models.version import VersionOrder
 from pkg_resources import parse_version
 
-from conda.models.version import VersionOrder
-import feedparser
-
 from .utils import parse_meta_yaml
-
-import logging
 
 logger = logging.getLogger("conda_forge_tick.update_upstream_versions")
 
