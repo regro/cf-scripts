@@ -96,7 +96,7 @@ def make_graph(names, gx=None):
         for f in as_completed(futures):
             name = futures[f]
             try:
-                name, sub_graph = f.result()
+                sub_graph = f.result()
             except Exception as e:
                 logger.warn("Error adding {} to the graph: {}".format(name, e))
             else:
