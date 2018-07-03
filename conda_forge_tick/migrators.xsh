@@ -34,6 +34,9 @@ class Migrator:
 
     migrator_version = 0
 
+    def __init__(self, pr_limit=0):
+        self.pr_limit = pr_limit
+
     def filter(self, attrs):
         """ If true don't act upon node
 

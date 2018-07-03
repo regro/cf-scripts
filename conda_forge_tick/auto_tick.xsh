@@ -18,9 +18,9 @@ from .path_lengths import cyclic_topological_sort
 # https://travis-ci.org/regro/00-find-feedstocks/jobs/388387895#L1870
 from .migrators import *
 $MIGRATORS = [
-    # Version(),
-    # Compiler(),
-    Noarch(),
+    Version(pr_limit=0),
+    Compiler(pr_limit=0),
+    Noarch(pr_limit=1),
 ]
 
 def run(attrs, migrator, feedstock=None, protocol='ssh',
@@ -134,7 +134,7 @@ def main(args=None):
             attrs = gx2.nodes[node]
             # Don't let travis timeout, break ahead of the timeout so we make certain
             # to write to the repo
-            if time.time() - int($START_TIME) > int($TIMEOUT) or good_prs >= int(${...}.get('MAX_PRS', 1e6)):
+            if time.time() - int($START_TIME) > int($TIMEOUT) or good_prs >= migrator.pr_limit:
                 break
             $PROJECT = attrs['feedstock_name']
             $NODE = node
