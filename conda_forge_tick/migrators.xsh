@@ -468,7 +468,7 @@ class Noarch(Migrator):
                     'I think this feedstock could be built with noarch.\n'
                     'This means that the package only needs to be built '
                     'once, drastically reducing CI usage.\n'
-                    'See [here](https://conda-forge.org/docs/meta.html#building-noarch-packages)'
+                    'See [here](https://conda-forge.org/docs/meta.html#building-noarch-packages) '
                     'for more information about building noarch packages.'
                     'Before merging this PR make sure:\n'
                     'Notes and instructions for merging this PR:\n{}\n'
