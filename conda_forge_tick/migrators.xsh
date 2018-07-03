@@ -469,7 +469,7 @@ class Noarch(Migrator):
                     'This means that the package only needs to be built '
                     'once, drastically reducing CI usage.\n'
                     'See [here](https://conda-forge.org/docs/meta.html#building-noarch-packages) '
-                    'for more information about building noarch packages.'
+                    'for more information about building noarch packages.\n'
                     'Before merging this PR make sure:\n{}\n'
                     'Notes and instructions for merging this PR:\n'
                     '1. If any items in the above checklist are not satisfied, '
