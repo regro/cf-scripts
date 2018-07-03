@@ -189,22 +189,22 @@ class RawURL:
 
 
 def get_latest_version(name, meta_yaml, sources):
-        for source in sources:
-            url = source.get_url(meta_yaml)
-            if url is None:
-                continue
-            ver = source.get_version(url)
-            if ver:
-                meta_yaml["new_version"] = ver
-                return name, meta_yaml
-            else:
-                meta_yaml["bad"] = "Upstream: Could not find version on {}".format(
-                    source.name
-                )
-        if not meta_yaml.get("bad"):
-            meta_yaml["bad"] = "Upstream: unknown source"
-        meta_yaml["new_version"] = False
-        return name, meta_yaml
+    for source in sources:
+        url = source.get_url(meta_yaml)
+        if url is None:
+            continue
+        ver = source.get_version(url)
+        if ver:
+            meta_yaml["new_version"] = ver
+            return name, meta_yaml
+        else:
+            meta_yaml["bad"] = "Upstream: Could not find version on {}".format(
+                source.name
+            )
+    if not meta_yaml.get("bad"):
+        meta_yaml["bad"] = "Upstream: unknown source"
+    meta_yaml["new_version"] = False
+    return name, meta_yaml
 
 
 def update_upstream_versions(gx, sources=(PyPI(), CRAN(), RawURL(), Github())):
