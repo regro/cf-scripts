@@ -1,3 +1,4 @@
+from concurrent.futures import as_completed, ThreadPoolExecutor
 import subprocess
 import collections.abc
 import networkx as nx
@@ -59,7 +60,7 @@ class VersionFromFeed:
             ver = entry["link"].split("/")[-1]
             for prefix in self.ver_prefix_remove:
                 if ver.startswith(prefix):
-                    ver = ver[len(prefix):]
+                    ver = ver[len(prefix) :]
             if any(s in ver for s in self.dev_vers):
                 continue
             vers.append(ver)
@@ -187,38 +188,45 @@ class RawURL:
         return url
 
 
-def get_latest_version(meta_yaml, sources):
-    for source in sources:
-        url = source.get_url(meta_yaml)
-        if url is None:
-            continue
-        ver = source.get_version(url)
-        if ver:
-            return ver
-        else:
-            meta_yaml["bad"] = "Upstream: Could not find version on {}".format(
-                source.name
-            )
-    if not meta_yaml.get("bad"):
-        meta_yaml["bad"] = "Upstream: unknown source"
-    return False
+def get_latest_version(name, meta_yaml, sources):
+    try:
+        for source in sources:
+            url = source.get_url(meta_yaml)
+            if url is None:
+                continue
+            ver = source.get_version(url)
+            if ver:
+                meta_yaml["new_version"] = ver
+                return name, meta_yaml
+            else:
+                meta_yaml["bad"] = "Upstream: Could not find version on {}".format(
+                    source.name
+                )
+        if not meta_yaml.get("bad"):
+            meta_yaml["bad"] = "Upstream: unknown source"
+        meta_yaml["new_version"] = False
+        return name, meta_yaml
+    except Exception as e:
+        logger.warn("Error getting uptream version of {}: {}".format(name, e))
+        meta_yaml["bad"] = "Upstream: Error getting upstream version"
+        meta_yaml["new_version"] = False
+        return name, meta_yaml
 
 
 def update_upstream_versions(gx, sources=(PyPI(), CRAN(), RawURL(), Github())):
-    for node, attrs in gx.node.items():
-        if attrs.get("bad") or attrs.get("archived"):
-            attrs["new_version"] = False
-            continue
-        try:
-            attrs["new_version"] = get_latest_version(attrs, sources)
-        except Exception as e:
-            logger.warn("Error getting uptream version of {}: {}".format(node, e))
-            attrs["bad"] = "Upstream: Error getting upstream version"
-            attrs["new_version"] = False
-        else:
-            logger.info(
-                "{} - {} - {}".format(node, attrs["version"], attrs["new_version"])
-            )
+    futures = []
+    with ThreadPoolExecutor(max_workers=20) as pool:
+        for node, attrs in gx.node.items():
+            if attrs.get("bad") or attrs.get("archived"):
+                attrs["new_version"] = False
+                continue
+            futures.append(pool.submit(get_latest_version(attrs, sources)))
+        for f in as_completed(futures):
+            node, attrs = f.result()
+            if not attrs["bad"]:
+                logger.info(
+                    "{} - {} - {}".format(node, attrs["version"], attrs["new_version"])
+                )
 
     logger.info(
         "Current number of out of date packages not PRed: {}".format(
