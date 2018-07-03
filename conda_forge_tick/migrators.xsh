@@ -473,7 +473,7 @@ class Noarch(Migrator):
                     'Before merging this PR make sure:\n'
                     'Notes and instructions for merging this PR:\n{}\n'
                     '1. If any items in the above checklist are not satisfied, '
-                    'please close this PR. Do not merge.'
+                    'please close this PR. Do not merge. \n'
                     '2. Please merge the PR only after the tests have passed. \n'
                     "3. Feel free to push to the bot's branch to update this PR if needed. \n"
                     )
