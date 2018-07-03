@@ -189,7 +189,6 @@ class RawURL:
 
 
 def get_latest_version(name, meta_yaml, sources):
-    try:
         for source in sources:
             url = source.get_url(meta_yaml)
             if url is None:
@@ -206,23 +205,25 @@ def get_latest_version(name, meta_yaml, sources):
             meta_yaml["bad"] = "Upstream: unknown source"
         meta_yaml["new_version"] = False
         return name, meta_yaml
-    except Exception as e:
-        logger.warn("Error getting uptream version of {}: {}".format(name, e))
-        meta_yaml["bad"] = "Upstream: Error getting upstream version"
-        meta_yaml["new_version"] = False
-        return name, meta_yaml
 
 
 def update_upstream_versions(gx, sources=(PyPI(), CRAN(), RawURL(), Github())):
-    futures = []
+    futures = {}
     with ThreadPoolExecutor(max_workers=20) as pool:
         for node, attrs in gx.node.items():
             if attrs.get("bad") or attrs.get("archived"):
                 attrs["new_version"] = False
                 continue
-            futures.append(pool.submit(get_latest_version(attrs, sources)))
+            futures.update({pool.submit(get_latest_version(attrs, sources)): (node, attrs)})
         for f in as_completed(futures):
-            node, attrs = f.result()
+            node, attrs = futures[f]
+            try:
+                f.result()
+            except Exception as e:
+                logger.warn(
+                    "Error getting uptream version of {}: {}".format(node, e))
+                attrs["bad"] = "Upstream: Error getting upstream version"
+                attrs["new_version"] = False
             if not attrs["bad"]:
                 logger.info(
                     "{} - {} - {}".format(node, attrs["version"], attrs["new_version"])
