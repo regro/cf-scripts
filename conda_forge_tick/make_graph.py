@@ -91,7 +91,7 @@ def make_graph(names, gx=None):
     logger.info("start loop")
 
     with ThreadPoolExecutor(max_workers=20) as pool:
-        futures = {pool.submit(get_attrs(name, i)): name for i, name in enumerate(total_names)}
+        futures = {pool.submit(get_attrs, name, i): name for i, name in enumerate(total_names)}
 
         for f in as_completed(futures):
             name = futures[f]

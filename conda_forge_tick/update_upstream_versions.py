@@ -211,7 +211,7 @@ def update_upstream_versions(gx, sources=(PyPI(), CRAN(), RawURL(), Github())):
             if attrs.get("bad") or attrs.get("archived"):
                 attrs["new_version"] = False
                 continue
-            futures.update({pool.submit(get_latest_version(attrs, sources)): (node, attrs)})
+            futures.update({pool.submit(get_latest_version, attrs, sources): (node, attrs)})
         for f in as_completed(futures):
             node, attrs = futures[f]
             try:
