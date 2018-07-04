@@ -488,9 +488,22 @@ class Rebuild(Migrator):
                       (re.compile('(\s*?){%\s*set build\s*=\s*"?([0-9]+)"?\s*%}'),
                        '{{% set build = {} %}}')
                      )
+
+    def __init__(self, pr_limit=0, graph):
+        super().__init__(pr_limit)
+        self.graph = graph
     
     @classmethod
     def bump_build_number(cls, filename):
+        """Bump the build number of the specified recipe.
+
+        Parameters
+        ----------
+        filename : str
+            Path the the meta.yaml
+
+        """
+
         for p, n in cls.build_patterns:
             with open(filename, 'r') as f:
                 raw = f.read()
@@ -506,8 +519,9 @@ class Rebuild(Migrator):
     def filter(self, attrs):
         if attrs.get('archived', False) or attrs.get('bad', False):
             return True
-        for node in g.predecessors(attrs['name']):
-            if self.migrator_uid(attrs) in attrs.get('PRed', []):
+        for node in self.graph.predecessors(attrs['name']):
+            att = self.graph.node[node]
+            if self.migrator_uid(att) in att.get('PRed', []):
                 return True
         return False
 
