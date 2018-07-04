@@ -519,7 +519,7 @@ class Rebuild(Migrator):
     def filter(self, attrs):
         if attrs.get('archived', False) or attrs.get('bad', False):
             return True
-        for node in self.graph.predecessors(attrs['name']):
+        for node in self.graph.predecessors(attrs['feedstock_name']):
             att = self.graph.node[node]
             if self.migrator_uid(att) in att.get('PRed', []):
                 return True
