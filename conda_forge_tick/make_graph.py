@@ -1,12 +1,14 @@
-import hashlib
 import collections.abc
+import hashlib
+import logging
 import time
+from concurrent.futures import ThreadPoolExecutor, as_completed
+
 import networkx as nx
 import requests
-from .utils import parse_meta_yaml
-from .all_feedstocks import get_all_feedstocks
 
-import logging
+from .all_feedstocks import get_all_feedstocks
+from .utils import parse_meta_yaml
 
 logger = logging.getLogger("conda_forge_tick.make_graph")
 
@@ -72,7 +74,6 @@ def get_attrs(name, i):
     k = next(iter((source_keys & hashlib.algorithms_available)), None)
     if k:
         sub_graph["hash_type"] = k
-
     return sub_graph
 
 
@@ -89,16 +90,20 @@ def make_graph(names, gx=None):
     total_names = new_names + old_names
     logger.info("start loop")
 
-    for i, name in enumerate(total_names):
-        try:
-            sub_graph = get_attrs(name, i)
-        except Exception as e:
-            logger.warn("Error adding {} to the graph: {}".format(name, e))
-        else:
-            if name in new_names:
-                gx.add_node(name, **sub_graph)
+    with ThreadPoolExecutor(max_workers=20) as pool:
+        futures = {pool.submit(get_attrs(name, i)): name for i, name in enumerate(total_names)}
+
+        for f in as_completed(futures):
+            name = futures[f]
+            try:
+                sub_graph = f.result()
+            except Exception as e:
+                logger.warn("Error adding {} to the graph: {}".format(name, e))
             else:
-                gx.nodes[name].update(**sub_graph)
+                if name in new_names:
+                    gx.add_node(name, **sub_graph)
+                else:
+                    gx.nodes[name].update(**sub_graph)
 
     for node, attrs in gx.node.items():
         for dep in attrs.get("req", []):

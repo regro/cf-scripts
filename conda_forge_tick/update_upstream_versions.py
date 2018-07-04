@@ -1,15 +1,15 @@
-import subprocess
 import collections.abc
+import logging
+import subprocess
+from concurrent.futures import as_completed, ThreadPoolExecutor
+
+import feedparser
 import networkx as nx
 import requests
+from conda.models.version import VersionOrder
 from pkg_resources import parse_version
 
-from conda.models.version import VersionOrder
-import feedparser
-
 from .utils import parse_meta_yaml
-
-import logging
 
 logger = logging.getLogger("conda_forge_tick.update_upstream_versions")
 
@@ -59,7 +59,7 @@ class VersionFromFeed:
             ver = entry["link"].split("/")[-1]
             for prefix in self.ver_prefix_remove:
                 if ver.startswith(prefix):
-                    ver = ver[len(prefix):]
+                    ver = ver[len(prefix) :]
             if any(s in ver for s in self.dev_vers):
                 continue
             vers.append(ver)
@@ -205,20 +205,26 @@ def get_latest_version(meta_yaml, sources):
 
 
 def update_upstream_versions(gx, sources=(PyPI(), CRAN(), RawURL(), Github())):
-    for node, attrs in gx.node.items():
-        if attrs.get("bad") or attrs.get("archived"):
-            attrs["new_version"] = False
-            continue
-        try:
-            attrs["new_version"] = get_latest_version(attrs, sources)
-        except Exception as e:
-            logger.warn("Error getting uptream version of {}: {}".format(node, e))
-            attrs["bad"] = "Upstream: Error getting upstream version"
-            attrs["new_version"] = False
-        else:
-            logger.info(
-                "{} - {} - {}".format(node, attrs["version"], attrs["new_version"])
-            )
+    futures = {}
+    with ThreadPoolExecutor(max_workers=20) as pool:
+        for node, attrs in gx.node.items():
+            if attrs.get("bad") or attrs.get("archived"):
+                attrs["new_version"] = False
+                continue
+            futures.update({pool.submit(get_latest_version(attrs, sources)): (node, attrs)})
+        for f in as_completed(futures):
+            node, attrs = futures[f]
+            try:
+                attrs['new_version'] = f.result()
+            except Exception as e:
+                logger.warn(
+                    "Error getting uptream version of {}: {}".format(node, e))
+                attrs["bad"] = "Upstream: Error getting upstream version"
+                attrs["new_version"] = False
+            else:
+                logger.info(
+                    "{} - {} - {}".format(node, attrs["version"], attrs["new_version"])
+                )
 
     logger.info(
         "Current number of out of date packages not PRed: {}".format(
