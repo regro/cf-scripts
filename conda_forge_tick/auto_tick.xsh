@@ -68,13 +68,12 @@ def run(attrs, migrator, feedstock=None, protocol='ssh',
 
     recipe_dir = os.path.join(feedstock_dir, 'recipe')
     # if postscript/activate no noarch
-    suffixs = ['pre-unlink', 'post-link', 'pre-link']
+    script_names = ['pre-unlink', 'post-link', 'pre-link', 'activate']
     exts = ['.bat', '.sh']
     no_noarch_files = [
-        '{}.{}'.format(suffix, ext)
-        for suffix in suffixs for ext in exts
+        '{}.{}'.format(script_name, ext)
+        for script_names in suffixs for ext in exts
         ]
-    no_noarch_files.extend(['activate.sh', 'activate.bat'])
     if migrator.__class__.__name__ == 'Noarch' and any(
             x in os.listdir(recipe_dir) for x in no_noarch_files):
         rm -rf @(feedstock_dir)
