@@ -66,8 +66,15 @@ def run(attrs, migrator, feedstock=None, protocol='ssh',
                                    fork=fork,
                                    gh=gh)
 
-    # migrate the `meta.yaml`
     recipe_dir = os.path.join(feedstock_dir, 'recipe')
+    # if postscript/activate no noarch
+    if migrator.__class__.__name__ == 'Noarch' and not any(
+            x in os.listdir(recipe_dir) for x in [
+                '{}-post-link'.format(attrs['feedstock_name']),
+                'activate.sh']):
+        rm - rf @ (feedstock_dir)
+        return False, False
+    # migrate the `meta.yaml`
     migrate_return = migrator.migrate(recipe_dir, attrs, **kwargs)
     if not migrate_return:
         print($PROJECT, attrs.get('bad'))

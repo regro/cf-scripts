@@ -442,7 +442,9 @@ class Noarch(Migrator):
                         '  build:\n    - pip',
                         'meta.yaml',
                         leading_whitespace=False)
-            if 'host' not in attrs['meta_yaml'].get('requirements', {}):
+            # If no host section run cb3 update (if don't know do nothing)
+            if 'host' not in attrs.get('meta_yaml',{}).get('requirements',
+                                                           {'host': 'maybe'}):
                 $(conda-smithy update-cb3 --recipe_directory @(recipe_dir))
             Rebuild.bump_build_number('meta.yaml')
         return self.migrator_uid(attrs)

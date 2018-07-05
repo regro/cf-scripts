@@ -824,7 +824,7 @@ build:
   script: python -m pip install --no-deps --ignore-installed .
 
 requirements:
-  build:
+  host:
     - python >=3
     - pip
   run:
