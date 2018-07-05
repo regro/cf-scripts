@@ -1,7 +1,7 @@
 import collections.abc
 import logging
 import subprocess
-from concurrent.futures import as_completed, ThreadPoolExecutor
+from concurrent.futures import as_completed, ProcessPoolExecutor
 
 import feedparser
 import networkx as nx
@@ -206,7 +206,7 @@ def get_latest_version(meta_yaml, sources):
 
 def update_upstream_versions(gx, sources=(PyPI(), CRAN(), RawURL(), Github())):
     futures = {}
-    with ThreadPoolExecutor(max_workers=20) as pool:
+    with ProcessPoolExecutor(max_workers=20) as pool:
         for node, attrs in gx.node.items():
             if attrs.get("bad") or attrs.get("archived"):
                 attrs["new_version"] = False
