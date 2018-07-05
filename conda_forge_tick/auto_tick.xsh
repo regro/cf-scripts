@@ -68,12 +68,15 @@ def run(attrs, migrator, feedstock=None, protocol='ssh',
 
     recipe_dir = os.path.join(feedstock_dir, 'recipe')
     # if postscript/activate no noarch
+    suffixs = ['pre-unlink', 'post-link', 'pre-link']
+    exts = ['.bat', '.sh']
+    no_noarch_files = [
+        '{}-{}.{}'.format(attrs['feedstock_name'], suffix, ext)
+        for suffix in suffixs for ext in exts
+        ]
+    no_noarch_files.extend(['activate.sh', 'activate.bat'])
     if migrator.__class__.__name__ == 'Noarch' and any(
-            x in os.listdir(recipe_dir) for x in [
-                '{}-pre-unlink'.format(attrs['feedstock_name']),
-                '{}-pre-link'.format(attrs['feedstock_name']),
-                '{}-post-link'.format(attrs['feedstock_name']),
-                'activate.sh']):
+            x in os.listdir(recipe_dir) for x in no_noarch_files):
         rm -rf @(feedstock_dir)
         return False, False
     # migrate the `meta.yaml`
