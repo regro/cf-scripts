@@ -114,10 +114,10 @@ def main(args=None):
 
     smithy_version = ![conda smithy --version].output.strip()
     pinning_version = json.loads(![conda list conda-forge-pinning --json].output.strip())[0]['version']
-    good_prs = 0
     # TODO: need to also capture pinning version, maybe it is in the graph?
 
     for migrator in $MIGRATORS:
+        good_prs = 0
         gx2 = copy.deepcopy(gx)
 
         # Prune graph to only things that need builds
