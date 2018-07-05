@@ -2,7 +2,7 @@ import collections.abc
 import hashlib
 import logging
 import time
-from concurrent.futures import ThreadPoolExecutor, as_completed
+from concurrent.futures import ProcessPoolExecutor, as_completed
 
 import networkx as nx
 import requests
@@ -90,7 +90,7 @@ def make_graph(names, gx=None):
     total_names = new_names + old_names
     logger.info("start loop")
 
-    with ThreadPoolExecutor(max_workers=20) as pool:
+    with ProcessPoolExecutor(max_workers=20) as pool:
         futures = {pool.submit(get_attrs, name, i): name for i, name in enumerate(total_names)}
 
         for f in as_completed(futures):

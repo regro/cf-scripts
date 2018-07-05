@@ -996,13 +996,19 @@ def test_migration(m, inp, output, kwargs, prb, mr_out, tmpdir):
     with open(os.path.join(tmpdir, "meta.yaml"), "w") as f:
         f.write(inp)
     # Load the meta.yaml (this is done in the graph)
-    pmy = parse_meta_yaml(inp)
+    try:
+        pmy = parse_meta_yaml(inp)
+    except Exception:
+        pmy = {}
     if pmy:
         pmy["version"] = pmy["package"]["version"]
         pmy["req"] = set()
         for k in ["build", "host", "run"]:
             pmy["req"] |= set(pmy.get("requirements", {}).get(k, set()))
-        pmy["meta_yaml"] = parse_meta_yaml(inp)
+        try:
+            pmy["meta_yaml"] = parse_meta_yaml(inp)
+        except Exception:
+            pmy["meta_yaml"] = {}
     pmy["raw_meta_yaml"] = inp
     pmy.update(kwargs)
 
