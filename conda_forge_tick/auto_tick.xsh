@@ -18,8 +18,8 @@ from .path_lengths import cyclic_topological_sort
 # https://travis-ci.org/regro/00-find-feedstocks/jobs/388387895#L1870
 from .migrators import *
 $MIGRATORS = [
-    Version(pr_limit=0),
-    Compiler(pr_limit=0),
+    Version(pr_limit=3),
+    Compiler(pr_limit=2),
     Noarch(pr_limit=1),
 ]
 
