@@ -439,14 +439,14 @@ class Noarch(Migrator):
             if 'pip' not in attrs['req']:
                 replace_in_file(
                         '  build:',
-                        '  host:\n    - pip',
+                        '  build:\n    - pip',
                         'meta.yaml',
                         leading_whitespace=False)
-                replace_in_file(
-                    '  host:',
-                    '  host:\n    - pip',
-                    'meta.yaml',
-                    leading_whitespace=False)
+            replace_in_file(
+                '  build:',
+                '  host:',
+                'meta.yaml',
+                leading_whitespace=False)
             Rebuild.bump_build_number('meta.yaml')
         return self.migrator_uid(attrs)
 
