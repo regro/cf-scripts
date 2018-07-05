@@ -70,6 +70,8 @@ def run(attrs, migrator, feedstock=None, protocol='ssh',
     # if postscript/activate no noarch
     if migrator.__class__.__name__ == 'Noarch' and any(
             x in os.listdir(recipe_dir) for x in [
+                '{}-pre-unlink'.format(attrs['feedstock_name']),
+                '{}-pre-link'.format(attrs['feedstock_name']),
                 '{}-post-link'.format(attrs['feedstock_name']),
                 'activate.sh']):
         rm -rf @(feedstock_dir)
