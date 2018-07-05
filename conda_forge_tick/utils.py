@@ -63,4 +63,5 @@ def parse_meta_yaml(text):
         content = render_meta_yaml(text)
         return parse(content, Config())
     except Exception:
-        return {}
+        raise
+        #return {}
