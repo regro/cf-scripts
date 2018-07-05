@@ -20,7 +20,7 @@ from .migrators import *
 $MIGRATORS = [
     Version(pr_limit=3),
     Compiler(pr_limit=2),
-    Noarch(pr_limit=1),
+    Noarch(pr_limit=5),
 ]
 
 def run(attrs, migrator, feedstock=None, protocol='ssh',
@@ -66,8 +66,19 @@ def run(attrs, migrator, feedstock=None, protocol='ssh',
                                    fork=fork,
                                    gh=gh)
 
-    # migrate the `meta.yaml`
     recipe_dir = os.path.join(feedstock_dir, 'recipe')
+    # if postscript/activate no noarch
+    script_names = ['pre-unlink', 'post-link', 'pre-link', 'activate']
+    exts = ['.bat', '.sh']
+    no_noarch_files = [
+        '{}.{}'.format(script_name, ext)
+        for script_name in script_names for ext in exts
+        ]
+    if isinstance(migrator, Noarch) and any(
+            x in os.listdir(recipe_dir) for x in no_noarch_files):
+        rm -rf @(feedstock_dir)
+        return False, False
+    # migrate the `meta.yaml`
     migrate_return = migrator.migrate(recipe_dir, attrs, **kwargs)
     if not migrate_return:
         print($PROJECT, attrs.get('bad'))

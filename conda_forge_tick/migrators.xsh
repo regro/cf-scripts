@@ -436,10 +436,15 @@ class Noarch(Migrator):
                     'script:.+?',
                     'script: python -m pip install --no-deps --ignore-installed .',
                     'meta.yaml')
+            replace_in_file(
+                '  build:',
+                '  host:',
+                'meta.yaml',
+                leading_whitespace=False)
             if 'pip' not in attrs['req']:
                 replace_in_file(
-                        '  build:',
-                        '  build:\n    - pip',
+                        '  host:',
+                        '  host:\n    - pip',
                         'meta.yaml',
                         leading_whitespace=False)
             Rebuild.bump_build_number('meta.yaml')
