@@ -71,7 +71,7 @@ def run(attrs, migrator, feedstock=None, protocol='ssh',
     suffixs = ['pre-unlink', 'post-link', 'pre-link']
     exts = ['.bat', '.sh']
     no_noarch_files = [
-        '{}-{}.{}'.format(attrs['feedstock_name'], suffix, ext)
+        '{}.{}'.format(suffix, ext)
         for suffix in suffixs for ext in exts
         ]
     no_noarch_files.extend(['activate.sh', 'activate.bat'])
