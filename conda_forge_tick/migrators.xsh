@@ -392,7 +392,6 @@ class Noarch(Migrator):
     sel_pat = re.compile('(.+?)\s*(#.*)?\[([^\[\]]+)\](?(2)[^\(\)]*)$')
     unallowed_reqs = ['toolchain', 'gcc', 'cython', 'clangdev']
     checklist = ['No compiled extensions',
-                 'No post-link or pre-link or pre-unlink scripts',
                  'No OS specific build scripts',
                  'No python version specific requirements',
                  'No skips except for python version. (If the recipe is py3 only, remove skip statement and add version constraint on python)',
