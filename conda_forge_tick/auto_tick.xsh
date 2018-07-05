@@ -74,7 +74,7 @@ def run(attrs, migrator, feedstock=None, protocol='ssh',
         '{}.{}'.format(script_name, ext)
         for script_name in script_names for ext in exts
         ]
-    if migrator.__class__.__name__ == 'Noarch' and any(
+    if isinstance(migrator, Noarch) and any(
             x in os.listdir(recipe_dir) for x in no_noarch_files):
         rm -rf @(feedstock_dir)
         return False, False
