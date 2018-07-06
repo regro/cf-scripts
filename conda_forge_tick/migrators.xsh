@@ -427,7 +427,8 @@ class Noarch(Migrator):
 
     def migrate(self, recipe_dir, attrs, **kwargs):
         with indir(recipe_dir):
-            build_idx = attrs['raw_meta_yaml'].split('\n').index('build:')
+            build_idx = [l.rstrip() for l in
+                         attrs['raw_meta_yaml'].split('\n')].index('build:')
             line = attrs['raw_meta_yaml'].split('\n')[build_idx + 1]
             spaces = len(line) - len(line.lstrip())
             replace_in_file(
