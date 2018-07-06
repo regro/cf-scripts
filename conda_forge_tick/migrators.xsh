@@ -427,7 +427,14 @@ class Noarch(Migrator):
 
     def migrate(self, recipe_dir, attrs, **kwargs):
         with indir(recipe_dir):
-            replace_in_file(
+            if '    script:' in attrs['raw_meta_yaml']:
+                replace_in_file(
+                        'build:',
+                        'build:\n    noarch: python',
+                        'meta.yaml',
+                        leading_whitespace=False)
+            else:
+                replace_in_file(
                     'build:',
                     'build:\n  noarch: python',
                     'meta.yaml',
