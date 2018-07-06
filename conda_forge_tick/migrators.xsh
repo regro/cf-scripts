@@ -427,11 +427,15 @@ class Noarch(Migrator):
 
     def migrate(self, recipe_dir, attrs, **kwargs):
         with indir(recipe_dir):
+            build_idx = [l.rstrip() for l in
+                         attrs['raw_meta_yaml'].split('\n')].index('build:')
+            line = attrs['raw_meta_yaml'].split('\n')[build_idx + 1]
+            spaces = len(line) - len(line.lstrip())
             replace_in_file(
-                    'build:',
-                    'build:\n  noarch: python',
-                    'meta.yaml',
-                    leading_whitespace=False)
+                'build:',
+                'build:\n{}noarch: python'.format(' '*spaces),
+                'meta.yaml',
+                leading_whitespace=False)
             replace_in_file(
                     'script:.+?',
                     'script: python -m pip install --no-deps --ignore-installed .',
