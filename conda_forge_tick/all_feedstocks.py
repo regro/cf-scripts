@@ -28,7 +28,7 @@ def get_all_feedstocks_from_github():
             msg.append(
                 datetime.datetime.utcfromtimestamp(ts).strftime("%Y-%m-%dT%H:%M:%SZ")
             )
-        logger.warn(" ".join(msg))
+        logger.warning(" ".join(msg))
         raise
     return names
 

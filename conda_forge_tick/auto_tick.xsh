@@ -184,8 +184,8 @@ def main(args=None):
                     if is_github_api_limit_reached(e, gh):
                         break
             except Exception as e:
-                print('NON GITHUB ERROR')
-                print(e)
+                logger.critical('NON GITHUB ERROR')
+                logger.critical(str(e))
                 gx.nodes[node]['bad'] = {'exception': str(e),
                                          'traceback': str(traceback.format_exc())}
             else:
