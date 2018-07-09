@@ -135,7 +135,6 @@ def refresh_pr(pr_json, gh=None):
         return pr_json
     else:
         pr_obj = github3.pulls.PullRequest(pr_json, gh)
-        try:
         pr_obj.refresh()
         return pr_json.as_dict()
 
