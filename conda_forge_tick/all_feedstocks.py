@@ -11,8 +11,8 @@ def get_all_feedstocks_from_github():
     org = gh.organization("conda-forge")
     names = []
     try:
-        for repo in org.iter_repos():
-            name = repo.full_name.split("conda-forge/")[-1]
+        for repo in org.repositories():
+            name = repo.name
             if name.endswith("-feedstock"):
                 name = name.split("-feedstock")[0]
                 logger.info(name)
