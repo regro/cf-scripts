@@ -123,7 +123,7 @@ def update_graph_pr_status(gx: nx.DiGraph) -> nx.DiGraph:
     for node_id in gx.nodes:
         try:
             node = gx.nodes[node_id]
-            prs = node.get('PRed', [])
+            prs = node.get('PRed_json', [])
             out_prs = []
             for migrator, pr_json in prs:
                 pr_json = refresh_pr(pr_json, gh)
