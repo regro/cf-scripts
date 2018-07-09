@@ -3,6 +3,8 @@ import os
 import github3
 import logging
 
+from .utils import setup_logger
+
 logger = logging.getLogger("conda_forge_tick.all-feedstocks")
 
 
@@ -43,8 +45,7 @@ def get_all_feedstocks(cached=False):
 
 
 def main(args=None):
-    logging.basicConfig(level=logging.ERROR)
-    logger.setLevel(logging.INFO)
+    setup_logger(logger)
     names = get_all_feedstocks(cached=False)
     with open("names.txt", "w") as f:
         for name in names:

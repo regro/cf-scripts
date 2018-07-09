@@ -9,7 +9,7 @@ import requests
 from conda.models.version import VersionOrder
 from pkg_resources import parse_version
 
-from .utils import parse_meta_yaml
+from .utils import parse_meta_yaml, setup_logger
 
 logger = logging.getLogger("conda_forge_tick.update_upstream_versions")
 
@@ -244,8 +244,7 @@ def update_upstream_versions(gx, sources=(PyPI(), CRAN(), RawURL(), Github())):
 
 
 def main(args=None):
-    logging.basicConfig(level=logging.ERROR)
-    logger.setLevel(logging.INFO)
+    setup_logger(logger)
 
     logger.info("Reading graph")
     gx = nx.read_gpickle("graph.pkl")
