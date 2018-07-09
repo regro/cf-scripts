@@ -11,7 +11,7 @@ import github3
 import networkx as nx
 from rever.tools import indir
 
-from .git_utils import (get_repo, push_repo)
+from .git_utils import (get_repo, push_repo, is_github_api_limit_reached)
 from .path_lengths import cyclic_topological_sort
 
 # TODO: move this back to the bot file as soon as the source issue is sorted
@@ -176,15 +176,7 @@ def main(args=None):
                     gx.nodes[node]['archived'] = True
                 else:
                     print('GITHUB ERROR ON FEEDSTOCK: {}'.format($PROJECT))
-                    print(e)
-                    print(e.response)
-
-                    c = gh.rate_limit()['resources']['core']
-                    if c['remaining'] == 0:
-                        ts = c['reset']
-                        print('API timeout, API returns at')
-                        print(datetime.datetime.utcfromtimestamp(ts)
-                              .strftime('%Y-%m-%dT%H:%M:%SZ'))
+                    if is_github_api_limit_reached(e):
                         break
             except Exception as e:
                 print('NON GITHUB ERROR')
