@@ -131,7 +131,7 @@ class Version(Migrator):
 
     url_pat = re.compile(r'^( *)(-)?(\s*)url:\s*([^\s#]+?)\s*(?:(#.*)?\[([^\[\]]+)\])?(?(5)[^\(\)\n]*)(?(2)\n\1 \3.*)*$', flags=re.M)
     r_url_pat = re.compile(r'^(\s*)(-)?(\s*)url:\s*(?:(#.*)?\[([^\[\]]+)\])?(?(4)[^\(\)]*?)\n(\1(?(2) \3)  -.*\n?)*', flags=re.M)
-    r_urls = re.compile('\s*-(.+?)(?:#.*)?$', flags=re.M)
+    r_urls = re.compile('\s*-\s*(.+?)(?:#.*)?$', flags=re.M)
 
     migrator_version = 0
 
