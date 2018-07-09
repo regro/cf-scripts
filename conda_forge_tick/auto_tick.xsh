@@ -176,7 +176,7 @@ def main(args=None):
                     gx.nodes[node]['archived'] = True
                 else:
                     print('GITHUB ERROR ON FEEDSTOCK: {}'.format($PROJECT))
-                    if is_github_api_limit_reached(e):
+                    if is_github_api_limit_reached(e, gh):
                         break
             except Exception as e:
                 print('NON GITHUB ERROR')
