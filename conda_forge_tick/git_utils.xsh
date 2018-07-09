@@ -136,7 +136,7 @@ def refresh_pr(pr_json, gh=None):
     else:
         pr_obj = github3.pulls.PullRequest(pr_json, gh)
         pr_obj.refresh()
-        return pr_json.as_dict()
+        return pr_obj.as_dict()
 
 
 def push_repo(feedstock_dir, body, repo, title, head, branch,
