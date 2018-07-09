@@ -126,6 +126,17 @@ def get_repo(attrs, branch, feedstock=None, protocol='ssh',
     return feedstock_dir, repo
 
 
+def refresh_pr(pr_json, gh=None):
+    if gh is None:
+        gh = github3.login($USERNAME, $PASSWORD)
+    if pr_json['state'] == 'closed':
+        return pr_json
+    else:
+        pr_obj = github3.pulls.PullRequest(pr_json, gh)
+        pr_obj.refresh()
+        return pr_json.as_dict()
+
+
 def push_repo(feedstock_dir, body, repo, title, head, branch,
               pull_request=True):
     """Push a repo up to github
