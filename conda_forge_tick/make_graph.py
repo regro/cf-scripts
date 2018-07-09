@@ -1,14 +1,20 @@
+
 import collections.abc
+import datetime
 import hashlib
 import logging
+import os
 import time
+
 from concurrent.futures import ProcessPoolExecutor, as_completed
 
+import github3
 import networkx as nx
 import requests
 
 from .all_feedstocks import get_all_feedstocks
 from .utils import parse_meta_yaml
+from .git_utils import refresh_pr, is_github_api_limit_reached
 
 logger = logging.getLogger("conda_forge_tick.make_graph")
 
@@ -112,12 +118,31 @@ def make_graph(names, gx=None):
     return gx
 
 
+def update_graph_pr_status(gx: nx.DiGraph) -> nx.DiGraph:
+    gh = github3.login(os.environ["USERNAME"], os.environ["PASSWORD"])
+    for node_id in gx.nodes:
+        try:
+            node = gx.nodes[node_id]
+            prs = node.get('PRed', [])
+            out_prs = []
+            for migrator, pr_json in prs:
+                pr_json = refresh_pr(pr_json, gh)
+                out_prs.append((migrator, pr_json))
+            node['PRed'] = out_prs
+        except github3.GitHubError as e:
+            logger.critical('GITHUB ERROR ON FEEDSTOCK: {}'.format(node_id))
+            if is_github_api_limit_reached(e, gh):
+                break
+    return gx
+
+
 def main(args=None):
     logging.basicConfig(level=logging.ERROR)
     logger.setLevel(logging.INFO)
     names = get_all_feedstocks(cached=True)
     gx = nx.read_gpickle("graph.pkl")
     gx = make_graph(names, gx)
+    gx = update_graph_pr_status(gx)
 
     logger.info("writing out file")
     nx.write_gpickle(gx, "graph.pkl")

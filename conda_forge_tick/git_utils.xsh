@@ -7,6 +7,8 @@ import traceback
 import urllib.error
 
 import github3
+import github3.pulls
+
 import networkx as nx
 from doctr.travis import run_command_hiding_token as doctr_run
 from pkg_resources import parse_version
@@ -126,6 +128,17 @@ def get_repo(attrs, branch, feedstock=None, protocol='ssh',
     return feedstock_dir, repo
 
 
+def refresh_pr(pr_json, gh=None):
+    if gh is None:
+        gh = github3.login($USERNAME, $PASSWORD)
+    if pr_json['state'] == 'closed':
+        return pr_json
+    else:
+        pr_obj = github3.pulls.PullRequest(pr_json, gh)
+        pr_obj.refresh()
+        return pr_json.as_dict()
+
+
 def push_repo(feedstock_dir, body, repo, title, head, branch,
               pull_request=True):
     """Push a repo up to github
@@ -168,3 +181,24 @@ def push_repo(feedstock_dir, body, repo, title, head, branch,
         print('Pull request created at ' + pr.html_url)
     # Return a json object so we can remake the PR if needed
     return pr.to_json()
+
+
+def is_github_api_limit_reached(e: github3.GitHubError, gh: github3.GitHub) -> bool:
+    """Prints diagnostic information about a github exception.
+
+    Returns
+    -------
+    out_of_api_credits
+        A flag to indicate that the api limit has been exhausted
+    """
+    print(e)
+    print(e.response)
+
+    c = gh.rate_limit()['resources']['core']
+    if c['remaining'] == 0:
+        ts = c['reset']
+        print('API timeout, API returns at')
+        print(datetime.datetime.utcfromtimestamp(ts)
+              .strftime('%Y-%m-%dT%H:%M:%SZ'))
+        return True
+    return False
