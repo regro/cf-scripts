@@ -1,5 +1,6 @@
 import os
 from collections import defaultdict
+import logging
 
 import jinja2
 from conda_build.config import Config
@@ -61,3 +62,12 @@ def parse_meta_yaml(text):
 
     content = render_meta_yaml(text)
     return parse(content, Config())
+
+
+def setup_logger(logger):
+    """Basic configuration for logging
+
+    """
+    
+    logging.basicConfig(level=logging.ERROR, format='%(asctime)-15s %(levelname)s %(name) || %(message)s')
+    logger.setLevel(logging.INFO)
