@@ -423,6 +423,11 @@ class Noarch(Migrator):
         for line in attrs.get('raw_meta_yaml', '').splitlines():
             if self.sel_pat.match(line):
                 return True
+
+        # Not a dependency of `conda`
+        if attrs['feedstock_name'] in $GRAPH.node['conda']['reqs']):
+            return True
+
         return False
 
     def migrate(self, recipe_dir, attrs, **kwargs):

@@ -124,6 +124,7 @@ def main(args=None):
     setup_logger(logger)
     temp = g`/tmp/*`
     gx = nx.read_gpickle('graph.pkl')
+    $GRAPH = gx
     $REVER_DIR = './feedstocks/'
     $REVER_QUIET = True
     gh = github3.login($USERNAME, $PASSWORD)
