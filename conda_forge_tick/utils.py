@@ -69,5 +69,5 @@ def setup_logger(logger):
 
     """
     
-    logging.basicConfig(level=logging.ERROR, format='%(asctime)-15s %(levelname)s %(name) || %(message)s')
+    logging.basicConfig(level=logging.ERROR, format='%(asctime)-15s %(levelname)-8s %(name)s || %(message)s')
     logger.setLevel(logging.INFO)
