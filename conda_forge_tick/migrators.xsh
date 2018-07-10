@@ -2,6 +2,7 @@
 import urllib.error
 
 import re
+import networkx as nx
 from conda.models.version import VersionOrder
 from rever.tools import (eval_version, indir, hash_url, replace_in_file)
 
@@ -423,6 +424,11 @@ class Noarch(Migrator):
         for line in attrs.get('raw_meta_yaml', '').splitlines():
             if self.sel_pat.match(line):
                 return True
+
+        # Not a dependency of `conda`
+        if attrs['feedstock_name'] in nx.ancestors($GRAPH, 'conda'):
+            return True
+
         return False
 
     def migrate(self, recipe_dir, attrs, **kwargs):

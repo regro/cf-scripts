@@ -1,6 +1,8 @@
 import os
+import builtins
 
 import pytest
+import networkx as nx
 
 from conda_forge_tick.migrators import JS, Version, Compiler, Noarch
 from conda_forge_tick.utils import parse_meta_yaml
@@ -998,6 +1000,7 @@ test_list = [
         {},
         "Please merge the PR only after the tests have passed.",
         {"migrator_name": "JS", "migrator_version": JS.migrator_version},
+        False,
     ),
     (
         version,
@@ -1010,6 +1013,7 @@ test_list = [
             "migrator_version": Version.migrator_version,
             "version": "2.4.1",
         },
+        False,
     ),
     (
         version,
@@ -1022,6 +1026,7 @@ test_list = [
             "migrator_version": Version.migrator_version,
             "version": "2.4.1",
         },
+        False,
     ),
     (
         version,
@@ -1034,6 +1039,7 @@ test_list = [
             "migrator_version": Version.migrator_version,
             "version": "2.4.1",
         },
+        False,
     ),
     (
         version,
@@ -1046,6 +1052,7 @@ test_list = [
             "migrator_version": Version.migrator_version,
             "version": "1.3_2",
         },
+        False,
     ),
     (
         version,
@@ -1058,6 +1065,7 @@ test_list = [
             "migrator_version": Version.migrator_version,
             "version": "6.0.0",
         },
+        False,
     ),
     (
         compiler,
@@ -1066,6 +1074,7 @@ test_list = [
         {},
         "N/A",
         {"migrator_name": "Compiler", "migrator_version": Compiler.migrator_version},
+        False,
     ),
     # It seems this injects some bad state somewhere, mostly because it isn't
     # valid yaml
@@ -1076,12 +1085,14 @@ test_list = [
         {},
         "Please merge the PR only after the tests have passed.",
         {"migrator_name": "JS", "migrator_version": JS.migrator_version},
+        False,
     ),
     (
         noarch,
         sample_noarch,
         updated_noarch,
         {
+            "feedstock_name": "xpdan",
             "req": [
                 "python",
                 "pip",
@@ -1107,12 +1118,14 @@ test_list = [
         "This means that the package only needs to be built "
         "once, drastically reducing CI usage.\n",
         {"migrator_name": "Noarch", "migrator_version": Noarch.migrator_version},
+        False,
     ),
 (
         noarch,
         sample_noarch_space,
         updated_noarch_space,
         {
+            "feedstock_name": "xpdan",
             "req": [
                 "python",
                 "pip",
@@ -1138,12 +1151,30 @@ test_list = [
         "This means that the package only needs to be built "
         "once, drastically reducing CI usage.\n",
         {"migrator_name": "Noarch", "migrator_version": Noarch.migrator_version},
+        False,
+    ),
+(
+        noarch,
+        sample_noarch_space,
+        updated_noarch_space,
+        {
+            "feedstock_name": "python",
+        },
+        "I think this feedstock could be built with noarch.\n"
+        "This means that the package only needs to be built "
+        "once, drastically reducing CI usage.\n",
+        {"migrator_name": "Noarch", "migrator_version": Noarch.migrator_version},
+        True,
     ),
 ]
 
+G = nx.DiGraph()
+G.add_node('conda', reqs=['python'])
+env = builtins.__xonsh_env__
+env["GRAPH"] = G
 
-@pytest.mark.parametrize("m, inp, output, kwargs, prb, mr_out", test_list)
-def test_migration(m, inp, output, kwargs, prb, mr_out, tmpdir):
+@pytest.mark.parametrize("m, inp, output, kwargs, prb, mr_out, should_filter", test_list)
+def test_migration(m, inp, output, kwargs, prb, mr_out, should_filter, tmpdir):
     with open(os.path.join(tmpdir, "meta.yaml"), "w") as f:
         f.write(inp)
     # Load the meta.yaml (this is done in the graph)
@@ -1163,7 +1194,9 @@ def test_migration(m, inp, output, kwargs, prb, mr_out, tmpdir):
     pmy["raw_meta_yaml"] = inp
     pmy.update(kwargs)
 
-    assert m.filter(pmy) is False
+    assert m.filter(pmy) is should_filter
+    if should_filter:
+        return
 
     mr = m.migrate(tmpdir, pmy)
     assert mr_out == mr
