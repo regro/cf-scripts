@@ -425,7 +425,7 @@ class Noarch(Migrator):
                 return True
 
         # Not a dependency of `conda`
-        if attrs['feedstock_name'] in $GRAPH.node['conda']['reqs']):
+        if attrs['feedstock_name'] in $GRAPH.node['conda']['reqs']:
             return True
 
         return False
