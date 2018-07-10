@@ -1,6 +1,8 @@
 import os
+import builtins
 
 import pytest
+import networkx as nx
 
 from conda_forge_tick.migrators import JS, Version, Compiler, Noarch
 from conda_forge_tick.utils import parse_meta_yaml
@@ -1082,6 +1084,7 @@ test_list = [
         sample_noarch,
         updated_noarch,
         {
+            "feedstock_name": "xpdan",
             "req": [
                 "python",
                 "pip",
@@ -1113,6 +1116,7 @@ test_list = [
         sample_noarch_space,
         updated_noarch_space,
         {
+            "feedstock_name": "xpdan",
             "req": [
                 "python",
                 "pip",
@@ -1141,6 +1145,10 @@ test_list = [
     ),
 ]
 
+G = nx.DiGraph()
+G.add_node('conda', reqs=['python'])
+env = builtins.__xonsh_env__
+env["GRAPH"] = G
 
 @pytest.mark.parametrize("m, inp, output, kwargs, prb, mr_out", test_list)
 def test_migration(m, inp, output, kwargs, prb, mr_out, tmpdir):
