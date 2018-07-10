@@ -143,8 +143,8 @@ def main(args=None):
                 gx2.remove_node(node)
 
         $SUBGRAPH = gx2
-        logger.info('Total migrations for {}: {}'.format(migrator.__class__.__name__,
-                                                   len(gx2.node)))
+        logger.info('Total migrations for %s: %d', migrator.__class__.__name__,
+                    len(gx2.node))
 
         top_level = set(node for node in gx2 if not list(gx2.predecessors(node)))
         for node in cyclic_topological_sort(gx2, top_level):
@@ -155,8 +155,8 @@ def main(args=None):
                 break
             $PROJECT = attrs['feedstock_name']
             $NODE = node
-            logger.info('{} IS MIGRATING'.format(migrator.__class__.__name__.upper()),
-                  $PROJECT)
+            logger.info('%s IS MIGRATING %s', migrator.__class__.__name__.upper(),
+                        $PROJECT)
             try:
                 # Don't bother running if we are at zero
                 if gh.rate_limit()['resources']['core']['remaining'] == 0:
