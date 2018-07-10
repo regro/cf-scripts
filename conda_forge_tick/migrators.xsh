@@ -2,6 +2,7 @@
 import urllib.error
 
 import re
+import networkx as nx
 from conda.models.version import VersionOrder
 from rever.tools import (eval_version, indir, hash_url, replace_in_file)
 
@@ -425,7 +426,7 @@ class Noarch(Migrator):
                 return True
 
         # Not a dependency of `conda`
-        if attrs['feedstock_name'] in $GRAPH.node['conda']['reqs']:
+        if attrs['feedstock_name'] in nx.ancestors($GRAPH, 'conda'):
             return True
 
         return False
