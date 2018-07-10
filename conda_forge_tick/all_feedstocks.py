@@ -3,8 +3,6 @@ import os
 import github3
 import logging
 
-from .utils import setup_logger
-
 logger = logging.getLogger("conda_forge_tick.all-feedstocks")
 
 
@@ -28,7 +26,7 @@ def get_all_feedstocks_from_github():
             msg.append(
                 datetime.datetime.utcfromtimestamp(ts).strftime("%Y-%m-%dT%H:%M:%SZ")
             )
-        logger.warning(" ".join(msg))
+        logger.warn(" ".join(msg))
         raise
     return names
 
@@ -45,7 +43,8 @@ def get_all_feedstocks(cached=False):
 
 
 def main(args=None):
-    setup_logger(logger)
+    logging.basicConfig(level=logging.ERROR)
+    logger.setLevel(logging.INFO)
     names = get_all_feedstocks(cached=False)
     with open("names.txt", "w") as f:
         for name in names:

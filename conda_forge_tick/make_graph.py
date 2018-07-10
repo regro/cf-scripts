@@ -13,7 +13,7 @@ import networkx as nx
 import requests
 
 from .all_feedstocks import get_all_feedstocks
-from .utils import parse_meta_yaml, setup_logger
+from .utils import parse_meta_yaml
 from .git_utils import refresh_pr, is_github_api_limit_reached
 
 logger = logging.getLogger("conda_forge_tick.make_graph")
@@ -137,7 +137,8 @@ def update_graph_pr_status(gx: nx.DiGraph) -> nx.DiGraph:
 
 
 def main(args=None):
-    setup_logger(logger)
+    logging.basicConfig(level=logging.ERROR)
+    logger.setLevel(logging.INFO)
     names = get_all_feedstocks(cached=True)
     gx = nx.read_gpickle("graph.pkl")
     gx = make_graph(names, gx)

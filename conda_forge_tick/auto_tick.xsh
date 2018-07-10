@@ -4,7 +4,6 @@ import json
 import os
 import time
 import traceback
-import logging
 
 import datetime
 from doctr.travis import run_command_hiding_token as doctr_run
@@ -14,9 +13,6 @@ from rever.tools import indir
 
 from .git_utils import (get_repo, push_repo, is_github_api_limit_reached)
 from .path_lengths import cyclic_topological_sort
-from .utils import setup_logger
-
-logger = logging.getLogger("conda_forge_tick.auto_tick")
 
 # TODO: move this back to the bot file as soon as the source issue is sorted
 # https://travis-ci.org/regro/00-find-feedstocks/jobs/388387895#L1870
@@ -85,7 +81,7 @@ def run(attrs, migrator, feedstock=None, protocol='ssh',
     # migrate the `meta.yaml`
     migrate_return = migrator.migrate(recipe_dir, attrs, **kwargs)
     if not migrate_return:
-        logger.critical("Failed to migrate %s, %s", $PROJECT, attrs.get('bad'))
+        print($PROJECT, attrs.get('bad'))
         rm -rf @(feedstock_dir)
         return False, False
 
@@ -93,7 +89,7 @@ def run(attrs, migrator, feedstock=None, protocol='ssh',
     with indir(feedstock_dir), ${...}.swap(RAISE_SUBPROC_ERROR=False):
         git commit -am @(migrator.commit_message())
         if rerender:
-            logger.info('Rerendering the feedstock')
+            print('Rerendering the feedstock')
             conda smithy rerender -c auto
 
     # push up
@@ -115,13 +111,12 @@ def run(attrs, migrator, feedstock=None, protocol='ssh',
 
     # If we've gotten this far then the node is good
     attrs['bad'] = False
-    logger.info('Removing feedstock dir')
+    print('Removing feedstock dir')
     rm -rf @(feedstock_dir)
     return migrate_return, pr_json
 
 
 def main(args=None):
-    setup_logger(logger)
     temp = g`/tmp/*`
     gx = nx.read_gpickle('graph.pkl')
     $REVER_DIR = './feedstocks/'
@@ -142,7 +137,7 @@ def main(args=None):
                 gx2.remove_node(node)
 
         $SUBGRAPH = gx2
-        logger.info('Total migrations for {}: {}'.format(migrator.__class__.__name__,
+        print('Total migrations for {}: {}'.format(migrator.__class__.__name__,
                                                    len(gx2.node)))
 
         top_level = set(node for node in gx2 if not list(gx2.predecessors(node)))
@@ -154,7 +149,7 @@ def main(args=None):
                 break
             $PROJECT = attrs['feedstock_name']
             $NODE = node
-            logger.info('{} IS MIGRATING'.format(migrator.__class__.__name__.upper()),
+            print('{} IS MIGRATING'.format(migrator.__class__.__name__.upper()),
                   $PROJECT)
             try:
                 # Don't bother running if we are at zero
@@ -180,12 +175,12 @@ def main(args=None):
                 if e.msg == 'Repository was archived so is read-only.':
                     gx.nodes[node]['archived'] = True
                 else:
-                    logger.critical('GITHUB ERROR ON FEEDSTOCK: %s', $PROJECT)
+                    print('GITHUB ERROR ON FEEDSTOCK: {}'.format($PROJECT))
                     if is_github_api_limit_reached(e, gh):
                         break
             except Exception as e:
-                logger.critical('NON GITHUB ERROR')
-                logger.critical(str(e))
+                print('NON GITHUB ERROR')
+                print(e)
                 gx.nodes[node]['bad'] = {'exception': str(e),
                                          'traceback': str(traceback.format_exc())}
             else:
@@ -197,11 +192,11 @@ def main(args=None):
                 # nx.write_yaml(gx, 'graph.yml')
                 nx.write_gpickle(gx, 'graph.pkl')
                 rm -rf $REVER_DIR + '/*'
-                logger.info(![pwd])
+                print(![pwd])
                 try:
                     git commit -am @("Migrated {}".format($PROJECT))
                 except Exception as e:
-                    logger.error(str(e))
+                    print(e)
                 doctr_run(
                     ['git',
                      'push',
@@ -213,8 +208,8 @@ def main(args=None):
                     if f not in temp:
                         rm -rf @(f)
 
-    logger.info('API Calls Remaining: %d', gh.rate_limit()['resources']['core']['remaining'])
-    logger.info('Done')
+    print('API Calls Remaining:', gh.rate_limit()['resources']['core']['remaining'])
+    print('Done')
 
 
 if __name__ == "__main__":
