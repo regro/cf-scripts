@@ -5,6 +5,7 @@ import os
 import time
 import traceback
 import urllib.error
+import json
 
 import github3
 import github3.pulls
@@ -131,6 +132,8 @@ def get_repo(attrs, branch, feedstock=None, protocol='ssh',
 def refresh_pr(pr_json, gh=None):
     if gh is None:
         gh = github3.login($USERNAME, $PASSWORD)
+    if isinstance(pr_json, str):
+        pr_json = json.loads(pr_json)
     if pr_json['state'] == 'closed':
         return pr_json
     else:
@@ -180,7 +183,7 @@ def push_repo(feedstock_dir, body, repo, title, head, branch,
     else:
         print('Pull request created at ' + pr.html_url)
     # Return a json object so we can remake the PR if needed
-    return pr.as_json()
+    return pr.as_dict()
 
 
 def is_github_api_limit_reached(e: github3.GitHubError, gh: github3.GitHub) -> bool:
