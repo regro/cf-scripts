@@ -180,7 +180,7 @@ def push_repo(feedstock_dir, body, repo, title, head, branch,
     else:
         print('Pull request created at ' + pr.html_url)
     # Return a json object so we can remake the PR if needed
-    return pr.to_json()
+    return pr.as_json()
 
 
 def is_github_api_limit_reached(e: github3.GitHubError, gh: github3.GitHub) -> bool:
