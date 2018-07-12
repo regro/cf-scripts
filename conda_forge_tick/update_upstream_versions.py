@@ -217,8 +217,12 @@ def update_upstream_versions(gx, sources=(PyPI(), CRAN(), RawURL(), Github())):
             try:
                 attrs['new_version'] = f.result()
             except Exception as e:
+                try:
+                    se = str(e)
+                except Exception as ee:
+                    se = 'Bad exception string: {}'.format(ee)
                 logger.warn(
-                    "Error getting uptream version of {}: {}".format(node, e))
+                    "Error getting uptream version of {}: {}".format(node, se))
                 attrs["bad"] = "Upstream: Error getting upstream version"
                 attrs["new_version"] = False
             else:
