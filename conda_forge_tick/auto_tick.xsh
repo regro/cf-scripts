@@ -24,7 +24,7 @@ from .migrators import *
 $MIGRATORS = [
     Version(pr_limit=7),
     Noarch(pr_limit=10),
-    Compiler(pr_limit=7),
+    #Compiler(pr_limit=7),
 ]
 
 def run(attrs, migrator, feedstock=None, protocol='ssh',
