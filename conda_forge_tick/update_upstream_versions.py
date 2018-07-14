@@ -9,9 +9,61 @@ import requests
 from conda.models.version import VersionOrder
 from pkg_resources import parse_version
 
-from .utils import parse_meta_yaml, setup_logger
+from utils import parse_meta_yaml, setup_logger
+import os
 
 logger = logging.getLogger("conda_forge_tick.update_upstream_versions")
+
+
+class LibrariesIO:
+
+    def __init__(self):
+        self.libraries_io_api_key = os.getenv("LIBRARIES_IO_API_KEY")
+        self._data = None
+
+    def get_libraries_io_subscriptions(self):
+        if self.libraries_io_api_key == None:
+            return
+        l = []
+        for i in range(1, 2):
+            url = "https://libraries.io/api/subscriptions?api_key={}&page={}&per_page={}&include_prerelease=False"
+            url = url.format(self.libraries_io_api_key, i, 100)
+            print(url.replace(self.libraries_io_api_key, "<dummy>"))
+            r = retry_requests(requests.get, url)
+            if not r.ok or len(r.json()) == 0:
+                break
+            l.extend(r.json())
+        return l
+
+    @property
+    def data(self):
+        if self._data is not None:
+            return self._data
+        d = {'pypi':{}, 'cran':{}}
+        for proj in self.get_libraries_io_subscriptions():
+            platform = proj['project']['platform'].lower()
+            d[platform][proj['project']['name']] = proj
+        self._data = d
+        return d
+
+    def subscribe(self, platform, pkg):
+        post_url = "https://libraries.io/api/subscriptions/{}/{}?api_key={}&include_prerelease=false"
+        post_url = post_url.format(platform, pkg, self.libraries_io_api_key)
+        r = retry_requests(requests.post, post_url)
+        c = r.json()
+        platform = c['project']['platform'].lower()
+        self.data[platform][c['project']['name']] = c
+        return c
+
+    def get_package_versions(self, platform, pkg):
+        if pkg in self.data[platform]:
+            d = self.data[platform][pkg]
+        else:
+            d = self.subscribe(platform, pkg)
+        return [ver['number'] for ver in d['project']['versions']]
+
+
+libraries_io = LibrariesIO()
 
 
 def urls_from_meta(meta_yaml):
@@ -46,17 +98,21 @@ def next_version(ver):
             ver_split[j] = "0"
 
 
+def retry_requests(func, *args, **kwargs):
+    from time import sleep
+    for i in [5, 10, 20, 40]:
+        r = func(*args, **kwargs)
+        if r.status_code != 429:
+            return r
+        sleep(i)
+
+
 class VersionFromFeed:
     ver_prefix_remove = ["release-", "releases%2F", "v_", "v.", "v"]
     dev_vers = ["rc", "beta", "alpha", "dev", "a", "b"]
 
-    def get_version(self, url):
-        data = feedparser.parse(url)
-        if data["bozo"] == 1:
-            return None
-        vers = []
-        for entry in data["entries"]:
-            ver = entry["link"].split("/")[-1]
+    def get_newest_version(self, versions):
+        for ver in versions:
             for prefix in self.ver_prefix_remove:
                 if ver.startswith(prefix):
                     ver = ver[len(prefix) :]
@@ -72,64 +128,71 @@ class VersionFromFeed:
 class Github(VersionFromFeed):
     name = "github"
 
-    def get_url(self, meta_yaml):
+    def get_package_manager_info(self, meta_yaml):
         if "github.com" not in meta_yaml["url"]:
             return
         split_url = meta_yaml["url"].lower().split("/")
         package_owner = split_url[split_url.index("github.com") + 1]
         gh_package_name = split_url[split_url.index("github.com") + 2]
-        return "https://github.com/{}/{}/releases.atom".format(
+        return package_owner, gh_package_name
+
+
+    def get_version(self, info):
+        package_owner, gh_package_name = info
+        url = "https://github.com/{}/{}/releases.atom".format(
             package_owner, gh_package_name
         )
+        data = feedparser.parse(url)
+        if data["bozo"] == 1:
+            return None
+        vers = []
+        for entry in data["entries"]:
+            ver = entry["link"].split("/")[-1]
+            vers.append(ver)
+        return self.get_newest_version(vers)
 
 
-class LibrariesIO(VersionFromFeed):
-    def get_url(self, meta_yaml):
-        urls = meta_yaml["url"]
-        if not isinstance(meta_yaml["url"], list):
-            urls = [urls]
-        for url in urls:
-            if self.url_contains not in url:
-                continue
-            pkg = self.package_name(url)
-            return "https://libraries.io/{}/{}/versions.atom".format(self.name, pkg)
+class LibrariesIOFeed(VersionFromFeed):
+
+    def get_version(self, info):
+        vers = libraries_io.get_package_versions(self.name, info)
+        return self.get_newest_version(vers)
 
 
-class PyPI:
+class PyPI(LibrariesIOFeed):
     name = "pypi"
 
-    def get_url(self, meta_yaml):
+    def get_package_manager_info(self, meta_yaml):
         url_names = ["pypi.python.org", "pypi.org", "pypi.io"]
         source_url = meta_yaml["url"]
         if not any(s in source_url for s in url_names):
             return None
         pkg = meta_yaml["url"].split("/")[6]
-        return "https://pypi.org/pypi/{}/json".format(pkg)
-
-    def get_version(self, url):
-        r = requests.get(url)
-        # If it is a pre-release don't give back the pre-release version
-        if not r.ok or parse_version(r.json()["info"]["version"].strip()).is_prerelease:
-            return False
-        return r.json()["info"]["version"].strip()
+        return pkg
 
 
-class CRAN(LibrariesIO):
+class CRAN(LibrariesIOFeed):
     name = "cran"
-    url_contains = "cran.r-project.org/src/contrib/Archive"
 
-    def package_name(self, url):
-        return url.split("/")[6]
+    def get_package_manager_info(self, meta_yaml):
+        urls = meta_yaml["url"]
+        if not isinstance(meta_yaml["url"], list):
+            urls = [urls]
+        for url in urls:
+            if "cran.r-project.org/src/contrib/Archive" not in url:
+                continue
+            pkg = url.split("/")[6]
+            return pkg
 
-    def get_version(self, url):
-        ver = LibrariesIO.get_version(self, url)
+    def get_version(self, info):
+        ver = LibrariesIOFeed.get_version(self, info)
         return str(ver).replace("-", "_")
 
 
 class RawURL:
     name = "RawURL"
 
-    def get_url(self, meta_yaml):
+    def get_package_manager_info(self, meta_yaml):
         if "feedstock_name" not in meta_yaml:
             return None
         if "version" not in meta_yaml:
@@ -183,16 +246,16 @@ class RawURL:
         if current_ver != orig_ver:
             return current_ver
 
-    def get_version(self, url):
-        return url
+    def get_version(self, info):
+        return info
 
 
 def get_latest_version(meta_yaml, sources):
     for source in sources:
-        url = source.get_url(meta_yaml)
-        if url is None:
+        info = source.get_package_manager_info(meta_yaml)
+        if info is None:
             continue
-        ver = source.get_version(url)
+        ver = source.get_version(info)
         if ver:
             return ver
         else:
