@@ -1,6 +1,7 @@
 import collections.abc
 import logging
 import subprocess
+from collections import defaultdict
 from concurrent.futures import as_completed, ProcessPoolExecutor
 
 import feedparser
@@ -9,7 +10,7 @@ import requests
 from conda.models.version import VersionOrder
 from pkg_resources import parse_version
 
-from utils import parse_meta_yaml, setup_logger
+from .utils import parse_meta_yaml, setup_logger
 import os
 
 logger = logging.getLogger("conda_forge_tick.update_upstream_versions")
@@ -25,10 +26,10 @@ class LibrariesIO:
         if self.libraries_io_api_key == None:
             return
         l = []
-        for i in range(1, 2):
+        for i in range(1, 1000):
             url = "https://libraries.io/api/subscriptions?api_key={}&page={}&per_page={}&include_prerelease=False"
             url = url.format(self.libraries_io_api_key, i, 100)
-            print(url.replace(self.libraries_io_api_key, "<dummy>"))
+            logger.info(url.replace(self.libraries_io_api_key, "<dummy>"))
             r = retry_requests(requests.get, url)
             if not r.ok or len(r.json()) == 0:
                 break
@@ -39,7 +40,7 @@ class LibrariesIO:
     def data(self):
         if self._data is not None:
             return self._data
-        d = {'pypi':{}, 'cran':{}}
+        d = defaultdict(dict)
         for proj in self.get_libraries_io_subscriptions():
             platform = proj['project']['platform'].lower()
             d[platform][proj['project']['name']] = proj
