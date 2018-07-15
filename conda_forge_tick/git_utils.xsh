@@ -196,7 +196,7 @@ def is_github_api_limit_reached(e: github3.GitHubError, gh: github3.GitHub) -> b
     """
     print(e)
     print(e.response)
-    print(e.request)
+    print(e.response.url)
 
     c = gh.rate_limit()['resources']['core']
     if c['remaining'] == 0:
