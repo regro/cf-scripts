@@ -101,7 +101,10 @@ def get_repo(attrs, branch, feedstock=None, protocol='ssh',
 
     # Check if fork exists
     if fork:
-        fork_repo = gh.repository($USERNAME, feedstock_reponame)
+        try:
+            fork_repo = gh.repository($USERNAME, feedstock_reponame)
+        except github3.GitHubError:
+            fork_repo = None
         if fork_repo is None or (hasattr(fork_repo, 'is_null') and
                                  fork_repo.is_null()):
             print("Fork doesn't exist creating feedstock fork...")
