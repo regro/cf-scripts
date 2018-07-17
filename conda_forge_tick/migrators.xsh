@@ -344,7 +344,7 @@ class Compiler(Migrator):
 
     rerender = True
 
-    compilers = {'toolchain', 'gcc'}
+    compilers = {'toolchain', 'gcc', 'cython'}
 
     def filter(self, attrs):
         conditional = super().filter(attrs)
