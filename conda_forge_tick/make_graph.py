@@ -17,6 +17,7 @@ from .utils import parse_meta_yaml, setup_logger
 from .git_utils import refresh_pr, is_github_api_limit_reached
 
 logger = logging.getLogger("conda_forge_tick.make_graph")
+pin_sep_pat = re.compile(" |>|<|=")
 
 
 def get_attrs(name, i):
@@ -56,7 +57,7 @@ def get_attrs(name, i):
         host = list(req.get("host", []) if req.get("host", []) is not None else [])
         run = list(req.get("run", []) if req.get("run", []) is not None else [])
         req = build + host + run
-        req = set(re.split(" |=|>|<", x)[0].lower() for x in req if x is not None)
+        req = set(pin_sep_pat.split(x)[0].lower() for x in req if x is not None)
     sub_graph["req"] = req
 
     keys = [("package", "name"), ("package", "version")]
