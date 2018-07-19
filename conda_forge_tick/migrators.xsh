@@ -344,7 +344,7 @@ class Compiler(Migrator):
 
     rerender = True
 
-    compilers = {'toolchain', 'gcc'}
+    compilers = {'toolchain', 'gcc', 'cython'}
 
     def filter(self, attrs):
         conditional = super().filter(attrs)
@@ -369,6 +369,9 @@ class Compiler(Migrator):
                     'Notes and instructions for merging this PR:\n'
                     '1. Please merge the PR only after the tests have passed. \n'
                     "2. Feel free to push to the bot's branch to update this PR if needed. \n"
+                    "3. If this recipe has a `cython` dependency please note that only a `C`"
+                    " compiler has been added. If the project also needs a `C++` compiler"
+                    " please add it by adding `- {{ compiler('cxx') }}` to the build section"
                     .format(self.out))
         return body
 
