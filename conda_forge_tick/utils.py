@@ -7,6 +7,15 @@ from conda_build.config import Config
 from conda_build.metadata import parse
 
 
+class UniversalSet(set):
+    """The universal set, or identity of the set intersection operation."""
+
+    def __add__(self, other):
+        return other
+
+    def __radd__(self, other):
+        return other
+
 class NullUndefined(jinja2.Undefined):
     def __unicode__(self):
         return self._undefined_name
