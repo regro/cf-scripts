@@ -10,10 +10,10 @@ from conda_build.metadata import parse
 class UniversalSet(set):
     """The universal set, or identity of the set intersection operation."""
 
-    def __add__(self, other):
+    def __and__(self, other):
         return other
 
-    def __radd__(self, other):
+    def __rand__(self, other):
         return other
 
 class NullUndefined(jinja2.Undefined):
