@@ -17,7 +17,7 @@ from .utils import parse_meta_yaml, setup_logger
 from .git_utils import refresh_pr, is_github_api_limit_reached
 
 logger = logging.getLogger("conda_forge_tick.make_graph")
-pin_sep_pat = re.compile(" |>|<|=")
+pin_sep_pat = re.compile(" |>|<|=|[")
 
 
 def get_attrs(name, i):
@@ -114,8 +114,9 @@ def make_graph(names, gx=None):
 
     for node, attrs in gx.node.items():
         for dep in attrs.get("req", []):
-            if dep in gx.nodes:
-                gx.add_edge(dep, node)
+            if dep not in gx.nodes:
+                gx.add_node(dep, archived=True)
+            gx.add_edge(dep, node)
     return gx
 
 
