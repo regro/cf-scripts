@@ -1,5 +1,6 @@
 import os
 from collections import defaultdict
+import collections.abc
 import logging
 
 import jinja2
@@ -7,7 +8,7 @@ from conda_build.config import Config
 from conda_build.metadata import parse
 
 
-class UniversalSet(set):
+class UniversalSet(collections.abc.Set):
     """The universal set, or identity of the set intersection operation."""
 
     def __and__(self, other):
