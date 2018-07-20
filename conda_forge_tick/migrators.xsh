@@ -580,24 +580,25 @@ class Pinning(Migrator):
     def __init__(self, pr_limit=0, removals=None):
         super().__init__(pr_limit)
         if removals == None:
-            removals = UniversalSet()
-        self.removals = set(removals)
+            self.removals = UniversalSet()
+        else:
+            self.removals = set(removals)
 
     def filter(self, attrs):
         return (super().filter(attrs) or
-                len(attrs.get('req', set()) & self.removals) == 0)
+                len(attrs.get("req", set()) & self.removals) == 0)
                 
     def migrate(self, recipe_dir, attrs, **kwargs):
         remove_pins = attrs.get("req", set()) & self.removals
-        remove_pats = [f"{req}.*?(?:#(.*))?$" for req in remove_pins]
-        with open(os.path.join(recipe_dir, "meta.yaml") as f:
+        remove_pats = [re.compile(f"\s*-\s*{req}(.*?)(\s*#.*)?$") for req in remove_pins]
+        with open(os.path.join(recipe_dir, "meta.yaml")) as f:
             raw = f.read()
         lines = raw.splitlines()
         for i, line in enumerate(lines):
             for p in remove_pats:
                 m = p.match(line)
                 if m is not None:
-                    lines[i] = req + m.group(1) if m.group(1) else req
+                    lines[i] = lines[i].replace(m.group(1), "")
         upd = "\n".join(lines) + "\n"
         with open(os.path.join(recipe_dir, "meta.yaml"), "w") as f:
             f.write(upd)
