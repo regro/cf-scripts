@@ -17,7 +17,7 @@ from .utils import parse_meta_yaml, setup_logger
 from .git_utils import refresh_pr, is_github_api_limit_reached
 
 logger = logging.getLogger("conda_forge_tick.make_graph")
-pin_sep_pat = re.compile(" |>|<|=|[")
+pin_sep_pat = re.compile(" |>|<|=|\[")
 
 
 def get_attrs(name, i):
