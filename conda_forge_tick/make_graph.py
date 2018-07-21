@@ -5,6 +5,7 @@ import hashlib
 import logging
 import os
 import time
+from copy import deepcopy
 
 from concurrent.futures import ProcessPoolExecutor, as_completed
 
@@ -112,7 +113,8 @@ def make_graph(names, gx=None):
                 else:
                     gx.nodes[name].update(**sub_graph)
 
-    for node, attrs in gx.node.items():
+    gx2 = deepcopy(gx)
+    for node, attrs in gx2.node.items():
         for dep in attrs.get("req", []):
             if dep not in gx.nodes:
                 gx.add_node(dep, archived=True)
