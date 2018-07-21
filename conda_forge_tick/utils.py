@@ -17,6 +17,19 @@ class UniversalSet(collections.abc.Set):
     def __rand__(self, other):
         return other
 
+    def __contains__(self, item):
+        return True
+
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+        raise StopIteration
+
+    def __len__(self):
+        return float('inf')
+
+
 class NullUndefined(jinja2.Undefined):
     def __unicode__(self):
         return self._undefined_name
