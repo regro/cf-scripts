@@ -191,8 +191,9 @@ def main(args=None):
                 gx.nodes[node]['bad'] = {'exception': str(e),
                                          'traceback': str(traceback.format_exc())}
             else:
-                # On successful PR add to our counter
-                good_prs += 1
+                if migrator_uid:
+                    # On successful PR add to our counter
+                    good_prs += 1
             finally:
                 # Write graph partially through
                 # Race condition?
