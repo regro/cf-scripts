@@ -1324,7 +1324,7 @@ test_list = [
         sample_pinning,
         updated_pinning,
         {"req": {"toolchain3", "perl", "expat"}},
-        "I noticed that this recipe has version pinnings that may not be needed.",
+        "perl: 5.22.2.1",
         {"migrator_name": "Pinning", "migrator_version": Pinning.migrator_version},
         False,
     ),
