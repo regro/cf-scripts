@@ -587,7 +587,7 @@ class Pinning(Migrator):
     def filter(self, attrs):
         return (super().filter(attrs) or
                 len(attrs.get("req", set()) & self.removals) == 0)
-                
+
     def migrate(self, recipe_dir, attrs, **kwargs):
         remove_pins = attrs.get("req", set()) & self.removals
         remove_pats = {req: re.compile(f"\s*-\s*{req}(.*?)(\s*#.*)?$") for req in remove_pins}
@@ -595,15 +595,23 @@ class Pinning(Migrator):
         with open(os.path.join(recipe_dir, "meta.yaml")) as f:
             raw = f.read()
         lines = raw.splitlines()
+        n = False
         for i, line in enumerate(lines):
             for k, p in remove_pats.items():
                 m = p.match(line)
                 if m is not None:
                     lines[i] = lines[i].replace(m.group(1), "")
-                    self.removed[k] = m.group(1)
+                    removed_version = m.group(1).strip()
+                    if not n:
+                        n = bool(removed_version)
+                    if removed_version:
+                        self.removed[k] = removed_version
+        if not n:
+            return False
         upd = "\n".join(lines) + "\n"
         with open(os.path.join(recipe_dir, "meta.yaml"), "w") as f:
             f.write(upd)
+        Rebuild.bump_build_number(os.path.join(recipe_dir, "meta.yaml"))
         return self.migrator_uid(attrs)
 
     def pr_body(self):
@@ -617,7 +625,7 @@ class Pinning(Migrator):
                     '2. Please merge the PR only after the tests have passed. \n'
                     "3. Feel free to push to the bot's branch to update this PR if "
                     "needed. \n".format(
-                        '\n'.join(['{}: {}'.format(n, p.strip()) for n, p in self.removed.items()])
+                        '\n'.join(['{}: {}'.format(n, p) for n, p in self.removed.items()])
                     ))
         return body
 
