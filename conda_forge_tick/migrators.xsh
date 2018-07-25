@@ -601,9 +601,11 @@ class Pinning(Migrator):
                 m = p.match(line)
                 if m is not None:
                     lines[i] = lines[i].replace(m.group(1), "")
+                    removed_version = m.group(1).strip()
                     if not n:
-                        n = bool(m.group(1).strip())
-                    self.removed[k] = m.group(1).strip()
+                        n = bool(removed_version)
+                    if removed_version:
+                        self.removed[k] = removed_version
         if not n:
             return False
         upd = "\n".join(lines) + "\n"
