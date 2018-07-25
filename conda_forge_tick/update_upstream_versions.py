@@ -29,8 +29,10 @@ class LibrariesIO:
         for i in range(1, 1000):
             url = "https://libraries.io/api/subscriptions?api_key={}&page={}&per_page={}&include_prerelease=False"
             url = url.format(self.libraries_io_api_key, i, 100)
-            logger.info(url.replace(self.libraries_io_api_key, "<dummy>"))
+            # logger.info(url.replace(self.libraries_io_api_key, "<dummy>"))
             r = retry_requests(requests.get, url)
+            if r is None:
+                continue
             if not r.ok or len(r.json()) == 0:
                 break
             l.extend(r.json())
