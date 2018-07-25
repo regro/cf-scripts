@@ -20,7 +20,11 @@ class LibrariesIO:
 
     def __init__(self):
         self.libraries_io_api_key = os.getenv("LIBRARIES_IO_API_KEY")
-        self._data = None
+        d = defaultdict(dict)
+        for proj in self.get_libraries_io_subscriptions():
+            platform = proj['project']['platform'].lower()
+            d[platform][proj['project']['name']] = proj
+        self.data = d
 
     def get_libraries_io_subscriptions(self):
         if self.libraries_io_api_key == None:
@@ -37,17 +41,6 @@ class LibrariesIO:
                 break
             l.extend(r.json())
         return l
-
-    @property
-    def data(self):
-        if self._data is not None:
-            return self._data
-        d = defaultdict(dict)
-        for proj in self.get_libraries_io_subscriptions():
-            platform = proj['project']['platform'].lower()
-            d[platform][proj['project']['name']] = proj
-        self._data = d
-        return d
 
     def subscribe(self, platform, pkg):
         post_url = "https://libraries.io/api/subscriptions/{}/{}?api_key={}&include_prerelease=false"
