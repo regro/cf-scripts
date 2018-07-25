@@ -113,6 +113,7 @@ class VersionFromFeed:
     dev_vers = ["rc", "beta", "alpha", "dev", "a", "b"]
 
     def get_newest_version(self, versions):
+        vers = []
         for ver in versions:
             for prefix in self.ver_prefix_remove:
                 if ver.startswith(prefix):
