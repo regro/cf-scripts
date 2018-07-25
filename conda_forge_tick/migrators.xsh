@@ -1,4 +1,5 @@
 """Classes for migrating repos"""
+import os
 import urllib.error
 
 import re
@@ -6,7 +7,7 @@ import networkx as nx
 from conda.models.version import VersionOrder
 from rever.tools import (eval_version, indir, hash_url, replace_in_file)
 
-from .utils import render_meta_yaml
+from .utils import render_meta_yaml, UniversalSet
 
 
 class Migrator:
@@ -569,3 +570,65 @@ class Rebuild(Migrator):
 
     def remote_branch(self):
         return 'rebuild'
+
+
+class Pinning(Migrator):
+    """Migrator for remove pinnings for specified requirements."""
+    migrator_version = 0
+    rerender = True
+
+    def __init__(self, pr_limit=0, removals=None):
+        super().__init__(pr_limit)
+        if removals == None:
+            self.removals = UniversalSet()
+        else:
+            self.removals = set(removals)
+
+    def filter(self, attrs):
+        return (super().filter(attrs) or
+                len(attrs.get("req", set()) & self.removals) == 0)
+                
+    def migrate(self, recipe_dir, attrs, **kwargs):
+        remove_pins = attrs.get("req", set()) & self.removals
+        remove_pats = {req: re.compile(f"\s*-\s*{req}(.*?)(\s*#.*)?$") for req in remove_pins}
+        self.removed = {}
+        with open(os.path.join(recipe_dir, "meta.yaml")) as f:
+            raw = f.read()
+        lines = raw.splitlines()
+        for i, line in enumerate(lines):
+            for k, p in remove_pats.items():
+                m = p.match(line)
+                if m is not None:
+                    lines[i] = lines[i].replace(m.group(1), "")
+                    self.removed[k] = m.group(1)
+        upd = "\n".join(lines) + "\n"
+        with open(os.path.join(recipe_dir, "meta.yaml"), "w") as f:
+            f.write(upd)
+        return self.migrator_uid(attrs)
+
+    def pr_body(self):
+        body = super().pr_body()
+        body = body.format(
+                    'I noticed that this recipe has version pinnings that may not be needed.\n'
+                    'I have removed the following pinnings:\n'
+                    '{}\n'
+                    'Notes and instructions for merging this PR:\n'
+                    '1. Make sure that the removed pinnings are not needed. \n'
+                    '2. Please merge the PR only after the tests have passed. \n'
+                    "3. Feel free to push to the bot's branch to update this PR if "
+                    "needed. \n".format(
+                        '\n'.join(['{}: {}'.format(n, p.strip()) for n, p in self.removed.items()])
+                    ))
+        return body
+
+    def commit_message(self):
+        return "remove version pinnings"
+
+    def pr_title(self):
+        return 'Suggestion: remove version pinnings'
+
+    def pr_head(self):
+        return $USERNAME + ':' + self.remote_branch()
+
+    def remote_branch(self):
+        return 'pinning'

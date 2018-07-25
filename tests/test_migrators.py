@@ -4,7 +4,7 @@ import builtins
 import pytest
 import networkx as nx
 
-from conda_forge_tick.migrators import JS, Version, Compiler, Noarch
+from conda_forge_tick.migrators import JS, Version, Compiler, Noarch, Pinning
 from conda_forge_tick.utils import parse_meta_yaml
 
 
@@ -987,10 +987,156 @@ extra:
     - CJ-Wright
 """
 
+
+sample_pinning = """{% set version = "2.44_01" %}
+
+package:
+  name: perl-xml-parser
+  version: {{ version }}
+
+source:
+  fn: XML-Parser-{{ version }}.tar.gz
+  url: https://cpan.metacpan.org/authors/id/T/TO/TODDR/XML-Parser-{{ version }}.tar.gz
+  sha256: 5310ea5c8c707f387589bba8934ab9112463a452f828adf2755792d968b9ac7e
+
+build:
+  number: 0
+  skip: True  # [win]
+
+requirements:
+  build:
+    - toolchain3
+    - perl 5.22.2.1
+    - expat 2.2.*
+  run:
+    - perl 5.22.2.1
+    - expat 2.2.*
+
+test:
+  imports:
+    - XML::Parser
+    - XML::Parser::Expat
+    - XML::Parser::Style::Debug
+    - XML::Parser::Style::Objects
+    - XML::Parser::Style::Stream
+    - XML::Parser::Style::Subs
+    - XML::Parser::Style::Tree
+
+about:
+  home: https://metacpan.org/pod/XML::Parser
+  # According to http://dev.perl.org/licenses/ Perl5 is licensed either under
+  # GPL v1 or later or the Artistic License
+  license: GPL-3.0
+  license_family: GPL
+  summary: A perl module for parsing XML documents
+
+extra:
+  recipe-maintainers:
+    - kynan
+"""
+
+
+updated_perl = """{% set version = "2.44_01" %}
+
+package:
+  name: perl-xml-parser
+  version: {{ version }}
+
+source:
+  fn: XML-Parser-{{ version }}.tar.gz
+  url: https://cpan.metacpan.org/authors/id/T/TO/TODDR/XML-Parser-{{ version }}.tar.gz
+  sha256: 5310ea5c8c707f387589bba8934ab9112463a452f828adf2755792d968b9ac7e
+
+build:
+  number: 0
+  skip: True  # [win]
+
+requirements:
+  build:
+    - toolchain3
+    - perl
+    - expat 2.2.*
+  run:
+    - perl
+    - expat 2.2.*
+
+test:
+  imports:
+    - XML::Parser
+    - XML::Parser::Expat
+    - XML::Parser::Style::Debug
+    - XML::Parser::Style::Objects
+    - XML::Parser::Style::Stream
+    - XML::Parser::Style::Subs
+    - XML::Parser::Style::Tree
+
+about:
+  home: https://metacpan.org/pod/XML::Parser
+  # According to http://dev.perl.org/licenses/ Perl5 is licensed either under
+  # GPL v1 or later or the Artistic License
+  license: GPL-3.0
+  license_family: GPL
+  summary: A perl module for parsing XML documents
+
+extra:
+  recipe-maintainers:
+    - kynan
+"""
+
+
+updated_pinning = """{% set version = "2.44_01" %}
+
+package:
+  name: perl-xml-parser
+  version: {{ version }}
+
+source:
+  fn: XML-Parser-{{ version }}.tar.gz
+  url: https://cpan.metacpan.org/authors/id/T/TO/TODDR/XML-Parser-{{ version }}.tar.gz
+  sha256: 5310ea5c8c707f387589bba8934ab9112463a452f828adf2755792d968b9ac7e
+
+build:
+  number: 0
+  skip: True  # [win]
+
+requirements:
+  build:
+    - toolchain3
+    - perl
+    - expat
+  run:
+    - perl
+    - expat
+
+test:
+  imports:
+    - XML::Parser
+    - XML::Parser::Expat
+    - XML::Parser::Style::Debug
+    - XML::Parser::Style::Objects
+    - XML::Parser::Style::Stream
+    - XML::Parser::Style::Subs
+    - XML::Parser::Style::Tree
+
+about:
+  home: https://metacpan.org/pod/XML::Parser
+  # According to http://dev.perl.org/licenses/ Perl5 is licensed either under
+  # GPL v1 or later or the Artistic License
+  license: GPL-3.0
+  license_family: GPL
+  summary: A perl module for parsing XML documents
+
+extra:
+  recipe-maintainers:
+    - kynan
+"""
+
 js = JS()
 version = Version()
 compiler = Compiler()
 noarch = Noarch()
+perl = Pinning(removals={"perl"})
+pinning = Pinning()
 
 test_list = [
     (
@@ -1112,7 +1258,7 @@ test_list = [
                 "xpdview",
                 "ophyd",
                 "xpdconf",
-            ]
+            ],
         },
         "I think this feedstock could be built with noarch.\n"
         "This means that the package only needs to be built "
@@ -1120,7 +1266,7 @@ test_list = [
         {"migrator_name": "Noarch", "migrator_version": Noarch.migrator_version},
         False,
     ),
-(
+    (
         noarch,
         sample_noarch_space,
         updated_noarch_space,
@@ -1145,7 +1291,7 @@ test_list = [
                 "xpdview",
                 "ophyd",
                 "xpdconf",
-            ]
+            ],
         },
         "I think this feedstock could be built with noarch.\n"
         "This means that the package only needs to be built "
@@ -1153,27 +1299,46 @@ test_list = [
         {"migrator_name": "Noarch", "migrator_version": Noarch.migrator_version},
         False,
     ),
-(
+    (
         noarch,
         sample_noarch_space,
         updated_noarch_space,
-        {
-            "feedstock_name": "python",
-        },
+        {"feedstock_name": "python"},
         "I think this feedstock could be built with noarch.\n"
         "This means that the package only needs to be built "
         "once, drastically reducing CI usage.\n",
         {"migrator_name": "Noarch", "migrator_version": Noarch.migrator_version},
         True,
     ),
+    (
+        perl,
+        sample_pinning,
+        updated_perl,
+        {"req": {"toolchain3", "perl", "expat"}},
+        "I noticed that this recipe has version pinnings that may not be needed.",
+        {"migrator_name": "Pinning", "migrator_version": Pinning.migrator_version},
+        False,
+    ),
+    (
+        pinning,
+        sample_pinning,
+        updated_pinning,
+        {"req": {"toolchain3", "perl", "expat"}},
+        "perl: 5.22.2.1",
+        {"migrator_name": "Pinning", "migrator_version": Pinning.migrator_version},
+        False,
+    ),
 ]
 
 G = nx.DiGraph()
-G.add_node('conda', reqs=['python'])
+G.add_node("conda", reqs=["python"])
 env = builtins.__xonsh_env__
 env["GRAPH"] = G
 
-@pytest.mark.parametrize("m, inp, output, kwargs, prb, mr_out, should_filter", test_list)
+
+@pytest.mark.parametrize(
+    "m, inp, output, kwargs, prb, mr_out, should_filter", test_list
+)
 def test_migration(m, inp, output, kwargs, prb, mr_out, should_filter, tmpdir):
     with open(os.path.join(tmpdir, "meta.yaml"), "w") as f:
         f.write(inp)
