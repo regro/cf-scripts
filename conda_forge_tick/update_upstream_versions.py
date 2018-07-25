@@ -16,6 +16,15 @@ import os
 logger = logging.getLogger("conda_forge_tick.update_upstream_versions")
 
 
+def retry_requests(func, *args, **kwargs):
+    from time import sleep
+    for i in [5, 10, 20, 40]:
+        r = func(*args, **kwargs)
+        if r.status_code != 429:
+            return r
+        sleep(i)
+
+
 class LibrariesIO:
 
     def __init__(self):
@@ -92,15 +101,6 @@ def next_version(ver):
             ver_split[j] = str(t + 1)
             yield "".join(ver_split)
             ver_split[j] = "0"
-
-
-def retry_requests(func, *args, **kwargs):
-    from time import sleep
-    for i in [5, 10, 20, 40]:
-        r = func(*args, **kwargs)
-        if r.status_code != 429:
-            return r
-        sleep(i)
 
 
 class VersionFromFeed:
