@@ -590,15 +590,17 @@ class Pinning(Migrator):
                 
     def migrate(self, recipe_dir, attrs, **kwargs):
         remove_pins = attrs.get("req", set()) & self.removals
-        remove_pats = [re.compile(f"\s*-\s*{req}(.*?)(\s*#.*)?$") for req in remove_pins]
+        remove_pats = {req: re.compile(f"\s*-\s*{req}(.*?)(\s*#.*)?$") for req in remove_pins}
+        self.removed = {}
         with open(os.path.join(recipe_dir, "meta.yaml")) as f:
             raw = f.read()
         lines = raw.splitlines()
         for i, line in enumerate(lines):
-            for p in remove_pats:
+            for k, p in remove_pats.items():
                 m = p.match(line)
                 if m is not None:
                     lines[i] = lines[i].replace(m.group(1), "")
+                    self.removed[k] = m.group(1)
         upd = "\n".join(lines) + "\n"
         with open(os.path.join(recipe_dir, "meta.yaml"), "w") as f:
             f.write(upd)
@@ -608,11 +610,15 @@ class Pinning(Migrator):
         body = super().pr_body()
         body = body.format(
                     'I noticed that this recipe has version pinnings that may not be needed.\n'
+                    'I have removed the following pinnings:\n'
+                    '{}\n'
                     'Notes and instructions for merging this PR:\n'
                     '1. Make sure that the removed pinnings are not needed. \n'
                     '2. Please merge the PR only after the tests have passed. \n'
-                    "3. Feel free to push to the bot's branch to update this PR if needed. \n"
-                    )
+                    "3. Feel free to push to the bot's branch to update this PR if "
+                    "needed. \n".format(
+                        '\n'.join(['{}: {}'.format(n, p.strip()) for n, p in self.removed.items()])
+                    ))
         return body
 
     def commit_message(self):
