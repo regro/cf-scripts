@@ -585,29 +585,9 @@ class Pinning(Migrator):
             self.removals = set(removals)
 
     def filter(self, attrs):
-        b = (super().filter(attrs) or
+        return (super().filter(attrs) or
                 len(attrs.get("req", set()) & self.removals) == 0)
-        if b:
-            return b
-        remove_pins = attrs.get("req", set()) & self.removals
-        remove_pats = {req: re.compile(f"\s*-\s*{req}(.*?)(\s*#.*)?$") for req
-                       in remove_pins}
-        raw = attrs['raw_meta_yaml']
-        lines = raw.splitlines()
-        n = False
-        for i, line in enumerate(lines):
-            for k, p in remove_pats.items():
-                m = p.match(line)
-                if m:
-                    print(m.group(1).strip())
-                    n = bool(m.group(1).strip())
-                if n:
-                    break
-            if n:
-                break
-        # m is True when there is at least one match
-        return b or not n
-                
+
     def migrate(self, recipe_dir, attrs, **kwargs):
         remove_pins = attrs.get("req", set()) & self.removals
         remove_pats = {req: re.compile(f"\s*-\s*{req}(.*?)(\s*#.*)?$") for req in remove_pins}
@@ -615,15 +595,21 @@ class Pinning(Migrator):
         with open(os.path.join(recipe_dir, "meta.yaml")) as f:
             raw = f.read()
         lines = raw.splitlines()
+        n = False
         for i, line in enumerate(lines):
             for k, p in remove_pats.items():
                 m = p.match(line)
                 if m is not None:
                     lines[i] = lines[i].replace(m.group(1), "")
-                    self.removed[k] = m.group(1)
+                    if not n:
+                        n = bool(m.group(1).strip())
+                    self.removed[k] = m.group(1).strip()
+        if not n:
+            return False
         upd = "\n".join(lines) + "\n"
         with open(os.path.join(recipe_dir, "meta.yaml"), "w") as f:
             f.write(upd)
+        Rebuild.bump_build_number(os.path.join(recipe_dir, "meta.yaml"))
         return self.migrator_uid(attrs)
 
     def pr_body(self):
@@ -637,7 +623,7 @@ class Pinning(Migrator):
                     '2. Please merge the PR only after the tests have passed. \n'
                     "3. Feel free to push to the bot's branch to update this PR if "
                     "needed. \n".format(
-                        '\n'.join(['{}: {}'.format(n, p.strip()) for n, p in self.removed.items()])
+                        '\n'.join(['{}: {}'.format(n, p) for n, p in self.removed.items()])
                     ))
         return body
 
