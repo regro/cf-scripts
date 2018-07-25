@@ -585,8 +585,26 @@ class Pinning(Migrator):
             self.removals = set(removals)
 
     def filter(self, attrs):
-        return (super().filter(attrs) or
+        b = (super().filter(attrs) or
                 len(attrs.get("req", set()) & self.removals) == 0)
+        if b:
+            return b
+        remove_pins = attrs.get("req", set()) & self.removals
+        remove_pats = {req: re.compile(f"\s*-\s*{req}(.*?)(\s*#.*)?$") for req
+                       in remove_pins}
+        self.removed = {}
+        raw = attrs['raw_meta_yaml']
+        lines = raw.splitlines()
+        m = None
+        for i, line in enumerate(lines):
+            for k, p in remove_pats.items():
+                m = p.match(line)
+                if m:
+                    break
+            if m:
+                break
+        # m is True when there is at least one match
+        return b or ~bool(m)
                 
     def migrate(self, recipe_dir, attrs, **kwargs):
         remove_pins = attrs.get("req", set()) & self.removals
