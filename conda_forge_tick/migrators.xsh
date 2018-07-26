@@ -540,7 +540,9 @@ class Rebuild(Migrator):
             return True
         for node in self.graph.predecessors(attrs['feedstock_name']):
             att = self.graph.node[node]
-            if self.migrator_uid(att) not in att.get('PRed', []) or att.get('PRed_json', {}).get('state', '') == 'open':
+            muid = self.migrator_uid(att)
+            if (muid not in att.get('PRed', []) or
+                att.get('PRed_json', {}).get(muid, {}).get('state', '') == 'open'):
                 return True
         return False
 
