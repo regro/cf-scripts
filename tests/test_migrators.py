@@ -1010,6 +1010,7 @@ requirements:
     - expat 2.2.*
   run:
     - perl 5.22.2.1
+    - perl-xml-parser
     - expat 2.2.*
 
 test:
@@ -1058,6 +1059,7 @@ requirements:
     - expat 2.2.*
   run:
     - perl
+    - perl-xml-parser
     - expat 2.2.*
 
 test:
@@ -1106,6 +1108,7 @@ requirements:
     - expat
   run:
     - perl
+    - perl-xml-parser
     - expat
 
 test:

@@ -595,7 +595,7 @@ class Pinning(Migrator):
 
     def migrate(self, recipe_dir, attrs, **kwargs):
         remove_pins = attrs.get("req", set()) & self.removals
-        remove_pats = {req: re.compile(f"\s*-\s*{req}(.*?)(\s*#.*)?$") for req in remove_pins}
+        remove_pats = {req: re.compile(f"\s*-\s*{req}.*?(\s+.*?)(\s*#.*)?$") for req in remove_pins}
         self.removed = {}
         with open(os.path.join(recipe_dir, "meta.yaml")) as f:
             raw = f.read()
