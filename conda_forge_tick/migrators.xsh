@@ -350,7 +350,8 @@ class Compiler(Migrator):
     def filter(self, attrs):
         conditional = super().filter(attrs)
         return (conditional
-                or not any(x in attrs.get('req', []) for x in self.compilers)
+                or not any(x in attrs.get('req', []) or '_compiler_stub' in x
+                           for x in self.compilers)
                 or 'r-base' in attrs.get('req', [])
                )
 
@@ -577,8 +578,6 @@ class Pinning(Migrator):
     migrator_version = 0
     rerender = True
 
-    compiler_pat = re.compile('.*_compiler_stub')
-
     def __init__(self, pr_limit=0, removals=None):
         super().__init__(pr_limit)
         if removals == None:
@@ -587,9 +586,6 @@ class Pinning(Migrator):
             self.removals = set(removals)
 
     def filter(self, attrs):
-        for req in attrs.get('req', []):
-            if self.compiler_pat.match(req):
-                return True
         return (super().filter(attrs) or
                 len(attrs.get("req", set()) & self.removals) == 0)
 
