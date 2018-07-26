@@ -536,7 +536,7 @@ class Rebuild(Migrator):
                 f.write(upd)
 
     def filter(self, attrs):
-        if super().filter():
+        if super().filter(attrs):
             return True
         for node in self.graph.predecessors(attrs['feedstock_name']):
             att = self.graph.node[node]
