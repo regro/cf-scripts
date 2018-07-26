@@ -349,9 +349,10 @@ class Compiler(Migrator):
 
     def filter(self, attrs):
         for req in attrs.get('req', []):
-            if req.endswith('_compiler_stub') or req in self.compilers or req == 'r-base':
+            if req.endswith('_compiler_stub') or req == 'r-base':
                 return True
-        return super().filter(attrs)
+        conditional = super().filter(attrs)  
+        return (conditional or not any(x in attrs.get('req', []) for x in self.compilers))
 
     def migrate(self, recipe_dir, attrs, **kwargs):
         self.out = $(conda-smithy update-cb3 --recipe_directory @(recipe_dir))
