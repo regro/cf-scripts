@@ -536,11 +536,11 @@ class Rebuild(Migrator):
                 f.write(upd)
 
     def filter(self, attrs):
-        if attrs.get('archived', False) or attrs.get('bad', False):
+        if super().filter():
             return True
         for node in self.graph.predecessors(attrs['feedstock_name']):
             att = self.graph.node[node]
-            if self.migrator_uid(att) in att.get('PRed', []):
+            if self.migrator_uid(att) not in att.get('PRed', []) or att.get('PRed_json', {}).get('state', '') == 'open':
                 return True
         return False
 
