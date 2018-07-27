@@ -641,3 +641,8 @@ class Pinning(Migrator):
 
     def remote_branch(self):
         return 'pinning'
+
+    def migrator_uid(self, attrs):
+        n = super().migrator_uid(attrs)
+        n.update({'pins': self.removals})
+        return n
