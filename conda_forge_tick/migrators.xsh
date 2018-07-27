@@ -607,6 +607,7 @@ class Pinning(Migrator):
                     if removed_version:
                         self.removed[k] = removed_version
         if not n:
+            attrs.setdefault('PRed', []).append(migrator_uid)
             return False
         upd = "\n".join(lines) + "\n"
         with open(os.path.join(recipe_dir, "meta.yaml"), "w") as f:
