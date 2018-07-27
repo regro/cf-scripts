@@ -118,7 +118,7 @@ class NPM:
     name = "npm"
 
     def get_url(self, meta_yaml):
-        if "registry.npmjs.org" in meta_yaml["url"]:
+        if "registry.npmjs.org" not in meta_yaml["url"]:
             return None
         # might be namespaced
         pkg = meta_yaml["url"].split("/")[3:-2]
@@ -126,9 +126,11 @@ class NPM:
 
     def get_version(self, url):
         r = requests.get(url)
+        if not r.ok:
+            return False
         latest = r.json()["dist-tags"].get("latest", "").strip()
         # If it is a pre-release don't give back the pre-release version
-        if len(latest) and parse_version(latest).is_prerelease:
+        if not len(latest) or parse_version(latest).is_prerelease:
             return False
 
         return latest
