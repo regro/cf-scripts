@@ -5,7 +5,8 @@ import urllib.error
 import re
 import networkx as nx
 from conda.models.version import VersionOrder
-from rever.tools import (eval_version, indir, hash_url, replace_in_file)
+from rever.tools import (eval_version, hash_url, replace_in_file)
+from xonsh.lib.os import indir
 
 from .utils import render_meta_yaml, UniversalSet
 

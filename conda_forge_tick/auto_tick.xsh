@@ -10,7 +10,7 @@ import datetime
 from doctr.travis import run_command_hiding_token as doctr_run
 import github3
 import networkx as nx
-from rever.tools import indir
+from xonsh.lib.os import indir
 
 from .git_utils import (get_repo, push_repo, is_github_api_limit_reached)
 from .path_lengths import cyclic_topological_sort

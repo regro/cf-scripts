@@ -13,7 +13,8 @@ import github3.pulls
 import networkx as nx
 from doctr.travis import run_command_hiding_token as doctr_run
 from pkg_resources import parse_version
-from rever.tools import (eval_version, indir, hash_url, replace_in_file)
+from rever.tools import (eval_version, hash_url, replace_in_file)
+from xonsh.lib.os import indir
 
 
 # TODO: handle the URLs more elegantly (most likely make this a true library
