@@ -508,9 +508,10 @@ class Rebuild(Migrator):
                        '{{% set build = {} %}}')
                      )
 
-    def __init__(self, graph, pr_limit=0):
+    def __init__(self, graph, name, pr_limit=0):
         super().__init__(pr_limit)
         self.graph = graph
+        self.name = name
     
     @classmethod
     def bump_build_number(cls, filename):
@@ -565,13 +566,18 @@ class Rebuild(Migrator):
         return "bump build number"
 
     def pr_title(self):
-        return 'Rebuild'
+        return 'Rebuild for ' + self.name
 
     def pr_head(self):
         return $USERNAME + ':' + self.remote_branch()
 
     def remote_branch(self):
         return 'rebuild'
+
+    def migrator_uid(self, attrs):
+        n = super().migrator_uid(attrs)
+        n.update({'name': self.name})
+        return n
 
 
 class Pinning(Migrator):
