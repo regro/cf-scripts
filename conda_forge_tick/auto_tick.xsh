@@ -204,13 +204,14 @@ def main(args=None):
                 try:
                     git commit -am @("Migrated {}".format($PROJECT))
                 except Exception as e:
-                    logger.error(str(e))
+                    logger.critical('COMMIT FAILED' + str(e))
+                    raise
                 doctr_run(
                     ['git',
                      'push',
                      'https://{token}@github.com/{deploy_repo}.git'.format(
                          token=$PASSWORD, deploy_repo = 'regro/cf-graph'),
-                'master'],
+                     'master'],
                 token=$PASSWORD.encode('utf-8'))
                 for f in g`/tmp/*`:
                     if f not in temp:
