@@ -22,10 +22,10 @@ logger = logging.getLogger("conda_forge_tick.auto_tick")
 # https://travis-ci.org/regro/00-find-feedstocks/jobs/388387895#L1870
 from .migrators import *
 $MIGRATORS = [
-    #Version(pr_limit=7),
-    #Noarch(pr_limit=10),
-    #Pinning(pr_limit=1, removals={'perl'}),
-    #Compiler(pr_limit=7),
+    Version(pr_limit=7),
+    Noarch(pr_limit=10),
+    Pinning(pr_limit=1, removals={'perl'}),
+    Compiler(pr_limit=7),
 ]
 
 def run(attrs, migrator, feedstock=None, protocol='ssh',
@@ -204,13 +204,14 @@ def main(args=None):
                 try:
                     git commit -am @("Migrated {}".format($PROJECT))
                 except Exception as e:
-                    logger.error(str(e))
+                    logger.critical('COMMIT FAILED' + str(e))
+                    raise
                 doctr_run(
                     ['git',
                      'push',
                      'https://{token}@github.com/{deploy_repo}.git'.format(
                          token=$PASSWORD, deploy_repo = 'regro/cf-graph'),
-                'master'],
+                     'master'],
                 token=$PASSWORD.encode('utf-8'))
                 for f in g`/tmp/*`:
                     if f not in temp:
