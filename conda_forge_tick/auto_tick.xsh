@@ -205,7 +205,8 @@ def main(args=None):
                     git commit -am @("Migrated {}".format($PROJECT))
                 except Exception as e:
                     logger.critical('COMMIT FAILED' + str(e))
-                    raise
+                    if $(git ls-files -m):
+                        raise
                 doctr_run(
                     ['git',
                      'push',
