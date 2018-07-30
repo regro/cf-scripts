@@ -117,7 +117,7 @@ def make_graph(names, gx=None):
     for node, attrs in gx2.node.items():
         for dep in attrs.get("req", []):
             if dep not in gx.nodes:
-                gx.add_node(dep, archived=True)
+                gx.add_node(dep, archived=True, time=time.time())
             gx.add_edge(dep, node)
     return gx
 
