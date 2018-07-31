@@ -121,6 +121,25 @@ def run(attrs, migrator, feedstock=None, protocol='ssh',
     return migrate_return, pr_json
 
 
+def add_rebuild(migrators):
+    """Adds rebuild migrators.
+
+    Parameters
+    ----------
+    migrators : list of Migrator
+        The list of migrators to run.
+
+    """
+
+    pygraph = copy.deepcopy(gx)
+    for node, attrs in gx.node.items():
+        if 'python' not in attrs['req']:
+            pygraph.remove_node(node)
+        if attrs.get('meta_yaml', {}).get('build', {}).get('noarch') == 'python':
+            pygraph.remove_node(node)
+    migrators.append(Rebuild(graph=pygraph, pr_limit=1, name='Python 3.7'))
+
+
 def main(args=None):
     setup_logger(logger)
     temp = g`/tmp/*`
@@ -133,6 +152,8 @@ def main(args=None):
     smithy_version = ![conda smithy --version].output.strip()
     pinning_version = json.loads(![conda list conda-forge-pinning --json].output.strip())[0]['version']
     # TODO: need to also capture pinning version, maybe it is in the graph?
+
+    add_rebuilds($MIGRATORS)
 
     for migrator in $MIGRATORS:
         good_prs = 0
