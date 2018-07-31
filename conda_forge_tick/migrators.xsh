@@ -508,9 +508,12 @@ class Rebuild(Migrator):
                        '{{% set build = {} %}}')
                      )
 
-    def __init__(self, graph=$GRAPH, name=None, pr_limit=0):
+    def __init__(self, graph=None, name=None, pr_limit=0):
         super().__init__(pr_limit)
-        self.graph = graph
+        if graph == None:
+            self.graph = nx.DiGraph()
+        else:
+            self.graph = graph
         self.name = name
     
     @classmethod
@@ -537,6 +540,8 @@ class Rebuild(Migrator):
                 f.write(upd)
 
     def filter(self, attrs):
+        if attrs['feedstock_name'] not in self.graph:
+            return True
         if super().filter(attrs):
             return True
         for node in self.graph.predecessors(attrs['feedstock_name']):
