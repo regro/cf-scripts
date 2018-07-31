@@ -133,7 +133,7 @@ def add_rebuild(migrators):
 
     pygraph = copy.deepcopy(gx)
     for node, attrs in gx.node.items():
-        if 'python' not in attrs['req']:
+        if 'python' not in attrs.get('meta_yaml', {}).get('requirements', {}).get('host', []):
             pygraph.remove_node(node)
         if attrs.get('meta_yaml', {}).get('build', {}).get('noarch') == 'python':
             pygraph.remove_node(node)
