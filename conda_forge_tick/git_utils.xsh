@@ -115,7 +115,7 @@ def get_repo(attrs, branch, feedstock=None, protocol='ssh',
 
     feedstock_dir = os.path.join($REVER_DIR, $PROJECT + '-feedstock')
     if not os.path.isdir(feedstock_dir):
-        p = ![git clone @(origin) @(feedstock_dir)]
+        p = ![git clone -q @(origin) @(feedstock_dir)]
         if p.rtn != 0:
             msg = 'Could not clone ' + origin
             msg += '. Do you have a personal fork of the feedstock?'
