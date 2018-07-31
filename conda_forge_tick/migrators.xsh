@@ -350,7 +350,7 @@ class Compiler(Migrator):
 
     def filter(self, attrs):
         for req in attrs.get('req', []):
-            if req.endswith('_compiler_stub') or req == 'r-base':
+            if req.endswith('_compiler_stub'):
                 return True
         conditional = super().filter(attrs)  
         return (conditional or not any(x in attrs.get('req', []) for x in self.compilers))
