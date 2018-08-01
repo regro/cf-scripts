@@ -509,9 +509,13 @@ class Rebuild(Migrator):
                        '{{% set build = {} %}}')
                      )
 
-    def __init__(self, graph, pr_limit=0):
+    def __init__(self, graph=None, name=None, pr_limit=0):
         super().__init__(pr_limit)
-        self.graph = graph
+        if graph == None:
+            self.graph = nx.DiGraph()
+        else:
+            self.graph = graph
+        self.name = name
     
     @classmethod
     def bump_build_number(cls, filename):
@@ -537,11 +541,15 @@ class Rebuild(Migrator):
                 f.write(upd)
 
     def filter(self, attrs):
-        if attrs.get('archived', False) or attrs.get('bad', False):
+        if attrs['feedstock_name'] not in self.graph:
+            return True
+        if super().filter(attrs):
             return True
         for node in self.graph.predecessors(attrs['feedstock_name']):
             att = self.graph.node[node]
-            if self.migrator_uid(att) in att.get('PRed', []):
+            muid = self.migrator_uid(att)
+            if (muid not in att.get('PRed', []) or
+                att.get('PRed_json', {}).get(muid, {}).get('state', '') == 'open'):
                 return True
         return False
 
@@ -564,13 +572,21 @@ class Rebuild(Migrator):
         return "bump build number"
 
     def pr_title(self):
-        return 'Rebuild'
+        if self.name:
+            return 'Rebuild for ' + self.name
+        else:
+            return 'Bump build number'
 
     def pr_head(self):
         return $USERNAME + ':' + self.remote_branch()
 
     def remote_branch(self):
         return 'rebuild'
+
+    def migrator_uid(self, attrs):
+        n = super().migrator_uid(attrs)
+        n.update({'name': self.name})
+        return n
 
 
 class Pinning(Migrator):
