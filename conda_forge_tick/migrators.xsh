@@ -356,7 +356,10 @@ class Compiler(Migrator):
         return (conditional or not any(x in attrs.get('req', []) for x in self.compilers))
 
     def migrate(self, recipe_dir, attrs, **kwargs):
-        self.out = $(conda-smithy update-cb3 --recipe_directory @(recipe_dir))
+        rtn = ![conda-smithy update-cb3 --recipe_directory @(recipe_dir)]
+        if a.rtn != 0:
+            print(rtn.errors)
+            raise RuntimeError('update-cb3 failed')
         with indir(recipe_dir):
             Rebuild.bump_build_number('meta.yaml')
         return self.migrator_uid(attrs)
