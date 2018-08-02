@@ -1,6 +1,6 @@
 import os
 from collections import defaultdict
-import collections.abc
+from collections.abc import Set
 import logging
 
 import jinja2
@@ -8,7 +8,7 @@ from conda_build.config import Config
 from conda_build.metadata import parse
 
 
-class UniversalSet(collections.abc.Set):
+class UniversalSet(Set):
     """The universal set, or identity of the set intersection operation."""
 
     def __and__(self, other):
@@ -27,7 +27,13 @@ class UniversalSet(collections.abc.Set):
         raise StopIteration
 
     def __len__(self):
-        return float('inf')
+        return 0
+
+    def __eq__(self, other):
+        if not isinstance(other, UniversalSet):
+            return False
+        return True
+
 
 
 class NullUndefined(jinja2.Undefined):

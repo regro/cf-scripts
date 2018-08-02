@@ -585,8 +585,21 @@ class Pinning(Migrator):
             self.removals = set(removals)
 
     def filter(self, attrs):
-        return (super().filter(attrs) or
-                len(attrs.get("req", set()) & self.removals) == 0)
+        if super().filter(attrs) or len(attrs.get("req", set()) & self.removals) == 0:
+            return True
+        remove_pins = attrs.get("req", set()) & self.removals
+        remove_pats = {req: re.compile(f"\s*-\s*{req}(.*?)(\s*#.*)?$") for req in remove_pins}
+        raw = attrs['raw_meta_yaml']
+        lines = raw.splitlines()
+        n = False
+        for i, line in enumerate(lines):
+            for k, p in remove_pats.items():
+                m = p.match(line)
+                if m:
+                    n = bool(m.group(1).strip())
+            if n:
+                return False
+        return True
 
     def migrate(self, recipe_dir, attrs, **kwargs):
         remove_pins = attrs.get("req", set()) & self.removals
@@ -595,20 +608,14 @@ class Pinning(Migrator):
         with open(os.path.join(recipe_dir, "meta.yaml")) as f:
             raw = f.read()
         lines = raw.splitlines()
-        n = False
         for i, line in enumerate(lines):
             for k, p in remove_pats.items():
                 m = p.match(line)
                 if m is not None:
                     lines[i] = lines[i].replace(m.group(1), "")
                     removed_version = m.group(1).strip()
-                    if not n:
-                        n = bool(removed_version)
                     if removed_version:
                         self.removed[k] = removed_version
-        if not n:
-            attrs.setdefault('PRed', []).append(migrator_uid)
-            return False
         upd = "\n".join(lines) + "\n"
         with open(os.path.join(recipe_dir, "meta.yaml"), "w") as f:
             f.write(upd)

@@ -5,7 +5,7 @@ import pytest
 import networkx as nx
 
 from conda_forge_tick.migrators import JS, Version, Compiler, Noarch, Pinning
-from conda_forge_tick.utils import parse_meta_yaml
+from conda_forge_tick.utils import parse_meta_yaml, UniversalSet
 
 
 sample_js = """{% set name = "jstz" %}
@@ -1319,7 +1319,7 @@ test_list = [
         updated_perl,
         {"req": {"toolchain3", "perl", "expat"}},
         "I noticed that this recipe has version pinnings that may not be needed.",
-        {"migrator_name": "Pinning", "migrator_version": Pinning.migrator_version},
+        {"migrator_name": "Pinning", "migrator_version": Pinning.migrator_version, "pins": {"perl"}},
         False,
     ),
     (
@@ -1328,7 +1328,7 @@ test_list = [
         updated_pinning,
         {"req": {"toolchain3", "perl", "expat"}},
         "perl: 5.22.2.1",
-        {"migrator_name": "Pinning", "migrator_version": Pinning.migrator_version},
+        {"migrator_name": "Pinning", "migrator_version": Pinning.migrator_version, "pins": UniversalSet()},
         False,
     ),
 ]
