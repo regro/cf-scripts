@@ -7,6 +7,8 @@ import networkx as nx
 from conda.models.version import VersionOrder
 from rever.tools import (eval_version, hash_url, replace_in_file)
 from xonsh.lib.os import indir
+from conda_smithy.update_cb3 import update_cb3
+from conda_smithy.configure_feedstock import get_cfp_file_path
 
 from .utils import render_meta_yaml, UniversalSet
 
@@ -356,8 +358,10 @@ class Compiler(Migrator):
         return (conditional or not any(x in attrs.get('req', []) for x in self.compilers))
 
     def migrate(self, recipe_dir, attrs, **kwargs):
-        self.out = $(conda-smithy update-cb3 --recipe_directory @(recipe_dir))
         with indir(recipe_dir):
+            content, self.messages = update_cb3('meta.yaml', get_cfp_file_path()[0])
+            with open('meta.yaml', 'w') as f:
+                f.write(content)
             Rebuild.bump_build_number('meta.yaml')
         return self.migrator_uid(attrs)
 
@@ -374,7 +378,7 @@ class Compiler(Migrator):
                     "3. If this recipe has a `cython` dependency please note that only a `C`"
                     " compiler has been added. If the project also needs a `C++` compiler"
                     " please add it by adding `- {{ compiler('cxx') }}` to the build section \n"
-                    .format(self.out))
+                    .format(self.messages))
         return body
 
     def commit_message(self):
