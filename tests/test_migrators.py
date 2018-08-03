@@ -1373,7 +1373,7 @@ def test_migration(m, inp, output, kwargs, prb, mr_out, should_filter, tmpdir):
     with open(os.path.join(tmpdir, "meta.yaml"), "r") as f:
         assert f.read() == output
     if isinstance(m, Compiler):
-        assert m.out in m.pr_body()
+        assert m.messages in m.pr_body()
     # TODO: fix subgraph here (need this to be xsh file)
     elif isinstance(m, Version):
         pass
