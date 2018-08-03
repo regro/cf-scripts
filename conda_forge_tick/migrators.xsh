@@ -350,6 +350,10 @@ class Compiler(Migrator):
 
     compilers = {'toolchain', 'gcc', 'cython'}
 
+    def __init__(self, pr_limit=0):
+        super().__init__(pr_limit)
+        self.cfp = get_cfp_file_path()[0]
+
     def filter(self, attrs):
         for req in attrs.get('req', []):
             if req.endswith('_compiler_stub'):
@@ -359,7 +363,7 @@ class Compiler(Migrator):
 
     def migrate(self, recipe_dir, attrs, **kwargs):
         with indir(recipe_dir):
-            content, self.messages = update_cb3('meta.yaml', get_cfp_file_path()[0])
+            content, self.messages = update_cb3('meta.yaml', self.cfp)
             with open('meta.yaml', 'w') as f:
                 f.write(content)
             Rebuild.bump_build_number('meta.yaml')
