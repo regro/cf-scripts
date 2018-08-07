@@ -348,7 +348,9 @@ class Compiler(Migrator):
 
     rerender = True
 
-    compilers = {'toolchain', 'gcc', 'cython'}
+    compilers = {'toolchain', 'gcc', 'cython', 'pkg-config', 
+                 'autotools', 'make', 'cmake', 'autconf', 'libtool', 'm4', 
+                 'ninja', 'jom', 'libgcc', 'libgfortran'}
 
     def __init__(self, pr_limit=0):
         super().__init__(pr_limit)
