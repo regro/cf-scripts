@@ -41,7 +41,7 @@ class Migrator:
         return (attrs.get('archived', False)
                 or self.migrator_uid(attrs) in attrs.get('PRed', [])
                 or len([a for a in attrs.get('PRed_json')
-                        if a[0][1]['state'] =='open']
+                        if a[1]['state'] =='open']
                        ) > 3
                 or attrs.get('bad', False))
     def migrate(self, recipe_dir, attrs, **kwargs):
