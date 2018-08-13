@@ -121,7 +121,7 @@ def run(attrs, migrator, feedstock=None, protocol='ssh',
     return migrate_return, pr_json
 
 
-def add_rebuild(migrators):
+def add_rebuild(migrators, gx):
     """Adds rebuild migrators.
 
     Parameters
@@ -132,12 +132,30 @@ def add_rebuild(migrators):
     """
 
     pygraph = copy.deepcopy(gx)
+    r_graph = copy.deepcopy(gx)
+    compiler_graph = copy.deepcopy(gx)
+    openblas_graph = copy.deepcopy(gx)
     for node, attrs in gx.node.items():
-        if 'python' not in attrs.get('meta_yaml', {}).get('requirements', {}).get('host', []):
+        if (('python' not in (attrs.get('meta_yaml', {}).get('requirements', {}).get('host', []) or []))
+            and ('python' not in (attrs.get('meta_yaml', {}).get('requirements', {}).get('build', []) or []))
+            and ('python' not in (attrs.get('meta_yaml', {}).get('requirements', {}).get('run', []) or []))
+            or (attrs.get('meta_yaml', {}).get('build', {}).get('noarch') == 'python')):
             pygraph.remove_node(node)
-        if attrs.get('meta_yaml', {}).get('build', {}).get('noarch') == 'python':
-            pygraph.remove_node(node)
-    migrators.append(Rebuild(graph=pygraph, pr_limit=1, name='Python 3.7'))
+        if not any([req.endswith('_compiler_stub') for req in attrs.get('req', [])]):
+            compiler_graph.remove_node(node)
+        if 'r-base' not in (attrs.get('meta_yaml', {}).get('requirements',
+                                                          {}).get('host', []) or []):
+            r_graph.remove_node(node)
+        if 'openblas' not in (attrs.get('meta_yaml', {}).get('requirements',
+                                                          {}).get('host', []) or []):
+            openblas_graph.remove_node(node)
+    total_graph = nx.DiGraph()
+    for g in [pygraph, compiler_graph, r_graph, openblas_graph]:
+        total_graph = nx.compose(total_graph, g)
+    migrators.append(
+        Rebuild(graph=total_graph,
+                pr_limit=1,
+                name='Python 3.7, GCC 7, R 3.5.1, openBLAS 0.3.2'))
 
 
 def main(args=None):
