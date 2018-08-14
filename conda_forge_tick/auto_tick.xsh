@@ -136,18 +136,16 @@ def add_rebuild(migrators, gx):
     compiler_graph = copy.deepcopy(gx)
     openblas_graph = copy.deepcopy(gx)
     for node, attrs in gx.node.items():
-        if (('python' not in (attrs.get('meta_yaml', {}).get('requirements', {}).get('host', []) or []))
-            and ('python' not in (attrs.get('meta_yaml', {}).get('requirements', {}).get('build', []) or []))
-            and ('python' not in (attrs.get('meta_yaml', {}).get('requirements', {}).get('run', []) or []))
+        req = attrs.get('meta_yaml', {}).get('requirements', {})
+        if (('python' not in (req.get('host', []) or []))
+            and ('python' not in (req.get('build', []) or []))
             or (attrs.get('meta_yaml', {}).get('build', {}).get('noarch') == 'python')):
             pygraph.remove_node(node)
         if not any([req.endswith('_compiler_stub') for req in attrs.get('req', [])]):
             compiler_graph.remove_node(node)
-        if 'r-base' not in (attrs.get('meta_yaml', {}).get('requirements',
-                                                          {}).get('host', []) or []):
+        if 'r-base' not in (req.get('host', []) or []):
             r_graph.remove_node(node)
-        if 'openblas' not in (attrs.get('meta_yaml', {}).get('requirements',
-                                                          {}).get('host', []) or []):
+        if 'openblas' not in (req.get('host', []) or []):
             openblas_graph.remove_node(node)
     total_graph = nx.DiGraph()
     for g in [pygraph, compiler_graph, r_graph, openblas_graph]:
