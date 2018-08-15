@@ -511,6 +511,7 @@ class Rebuild(Migrator):
     """Migrator for bumping the build number."""
     migrator_version = 0
     rerender = True
+    bump_number = 1
 
     build_patterns = ((re.compile('(\s*?)number:\s*([0-9]+)'),
                        'number: {}'),
@@ -546,7 +547,7 @@ class Rebuild(Migrator):
             for i, line in enumerate(lines):
                 m = p.match(line)
                 if m is not None:
-                    lines[i] = m.group(1) + n.format(int(m.group(2)) + 1)
+                    lines[i] = m.group(1) + n.format(int(m.group(2)) + self.bump_number)
             upd = '\n'.join(lines) + '\n'
             with open(filename, 'w') as f:
                 f.write(upd)
@@ -598,6 +599,37 @@ class Rebuild(Migrator):
         n = super().migrator_uid(attrs)
         n.update({'name': self.name})
         return n
+
+
+class CompilerRebuild(Rebuild):
+    bump_number = 1000
+
+    def migrate(self, recipe_dir, attrs, **kwargs):
+        with indir(recipe_dir):
+            with indir('..'):
+                from ruamel.yaml import safe_load, safe_dump
+                with open('conda-forge.yml', 'rw') as f:
+                    y = safe_load(f)
+                    y.update({'compiler_stack': 'comp7',
+                              'max_py_ver': '37',
+                              'max_r_ver': '35'})
+                    safe_dump(y, f)
+        super().migrate(recipe_dir, attrs, **kwargs)
+
+    def pr_body(self):
+        body = super().pr_body()
+        body += body.format(
+                    "\n\n"
+                    "**Please note that if you close this PR we presume that "
+                    "the feedstock has been rebuilt, so if you are going to "
+                    "perform the rebuild yourself don't close this PR until "
+                    "the your rebuild has been merged.**\n\n"
+                    "This package has the following downstream children:\n"
+                    "{}\n"
+                    "And potentially more.".format('\n'.join(
+                        [a[1] for a in list(
+                            self.graph.out_edges($PROJECT))[:5]])))
+        return body
 
 
 class Pinning(Migrator):

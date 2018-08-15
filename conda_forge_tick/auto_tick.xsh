@@ -143,15 +143,17 @@ def add_rebuild(migrators, gx):
             pygraph.remove_node(node)
         if not any([req.endswith('_compiler_stub') for req in attrs.get('req', [])]):
             compiler_graph.remove_node(node)
-        if 'r-base' not in (req.get('host', []) or []):
+        if ('r-base' not in (req.get('host', []) or [])
+            and ('r-base' not in (req.get('build', []) or []))):
             r_graph.remove_node(node)
-        if 'openblas' not in (req.get('host', []) or []):
+        if ('openblas' not in (req.get('host', []) or [])
+            and 'openblas' not in (req.get('build', []) or [])):
             openblas_graph.remove_node(node)
     total_graph = nx.DiGraph()
     for g in [pygraph, compiler_graph, r_graph, openblas_graph]:
         total_graph = nx.compose(total_graph, g)
     migrators.append(
-        Rebuild(graph=total_graph,
+        CompilerRebuild(graph=total_graph,
                 pr_limit=1,
                 name='Python 3.7, GCC 7, R 3.5.1, openBLAS 0.3.2'))
 
