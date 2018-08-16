@@ -2,6 +2,7 @@ import os
 from collections import defaultdict
 import collections.abc
 import logging
+import itertools
 
 import jinja2
 from conda_build.config import Config
@@ -91,6 +92,18 @@ def setup_logger(logger):
     """Basic configuration for logging
 
     """
-    
-    logging.basicConfig(level=logging.ERROR, format='%(asctime)-15s %(levelname)-8s %(name)s || %(message)s')
+
+    logging.basicConfig(level=logging.ERROR,
+                        format='%(asctime)-15s %(levelname)-8s %(name)s || %(message)s')
     logger.setLevel(logging.INFO)
+
+
+def pluck(G, node_id):
+    if node_id in G.nodes:
+        new_edges = list(itertools.product(
+            {_in for (_in, _) in G.in_edges(node_id)} - {node_id},
+            {_out for (_, _out) in G.out_edges(node_id)} - {node_id},
+        ))
+        print(new_edges)
+        G.remove_node(node_id)
+        G.add_edges_from(new_edges)

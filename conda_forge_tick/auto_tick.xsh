@@ -14,7 +14,7 @@ from xonsh.lib.os import indir
 
 from .git_utils import (get_repo, push_repo, is_github_api_limit_reached)
 from .path_lengths import cyclic_topological_sort
-from .utils import setup_logger
+from .utils import setup_logger, pluck
 
 logger = logging.getLogger("conda_forge_tick.auto_tick")
 
@@ -151,14 +151,8 @@ def add_rebuild(migrators, gx):
                  or any([a in bh for a in Compiler.compilers]))
         r_c = 'r-base' in bh
         ob_c = 'openblas' in bh
-        if any([py_c, com_c, r_c, ob_c]):
-            total_graph.add_node(node, **attrs)
-    # rebuild edges
-    tg2 = copy.deepcopy(total_graph)
-    for node, attrs in tg2.node.items():
-        for dep in attrs.get("req", []):
-            if dep in tg2:
-                total_graph.add_edge(dep, node)
+        if not any([py_c, com_c, r_c, ob_c]):
+            pluck(total_graph, node)
 
     migrators.append(
         CompilerRebuild(graph=total_graph,
