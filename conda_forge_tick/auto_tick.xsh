@@ -157,7 +157,8 @@ def add_rebuild(migrators, gx):
     tg2 = copy.deepcopy(total_graph)
     for node, attrs in tg2.node.items():
         for dep in attrs.get("req", []):
-            total_graph.add_edge(dep, node)
+            if dep in tg2:
+                total_graph.add_edge(dep, node)
 
     migrators.append(
         CompilerRebuild(graph=total_graph,
