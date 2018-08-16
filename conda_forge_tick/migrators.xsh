@@ -547,7 +547,7 @@ class Rebuild(Migrator):
             for i, line in enumerate(lines):
                 m = p.match(line)
                 if m is not None:
-                    lines[i] = m.group(1) + n.format(int(m.group(2)) + self.bump_number)
+                    lines[i] = m.group(1) + n.format(int(m.group(2)) + cls.bump_number)
             upd = '\n'.join(lines) + '\n'
             with open(filename, 'w') as f:
                 f.write(upd)
