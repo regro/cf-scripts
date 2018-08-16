@@ -121,6 +121,16 @@ def run(attrs, migrator, feedstock=None, protocol='ssh',
     return migrate_return, pr_json
 
 
+def build_host(req):
+    rv = set(
+        (req.get('host', []) or []) +
+        (req.get('build', []) or [])
+    )
+    if None in rv:
+        rv.remove(None)
+    return rv
+
+
 def add_rebuild(migrators, gx):
     """Adds rebuild migrators.
 
@@ -131,27 +141,24 @@ def add_rebuild(migrators, gx):
 
     """
 
-    pygraph = copy.deepcopy(gx)
-    r_graph = copy.deepcopy(gx)
-    compiler_graph = copy.deepcopy(gx)
-    openblas_graph = copy.deepcopy(gx)
+    total_graph = nx.DiGraph()
     for node, attrs in gx.node.items():
         req = attrs.get('meta_yaml', {}).get('requirements', {})
-        if (('python' not in (req.get('host', []) or []))
-            and ('python' not in (req.get('build', []) or []))
-            or (attrs.get('meta_yaml', {}).get('build', {}).get('noarch') == 'python')):
-            pygraph.remove_node(node)
-        if not any([req.endswith('_compiler_stub') for req in attrs.get('req', [])]):
-            compiler_graph.remove_node(node)
-        if ('r-base' not in (req.get('host', []) or [])
-            and ('r-base' not in (req.get('build', []) or []))):
-            r_graph.remove_node(node)
-        if ('openblas' not in (req.get('host', []) or [])
-            and 'openblas' not in (req.get('build', []) or [])):
-            openblas_graph.remove_node(node)
-    total_graph = nx.DiGraph()
-    for g in [pygraph, compiler_graph, r_graph, openblas_graph]:
-        total_graph = nx.compose(total_graph, g)
+        bh = build_host(req)
+
+        py_c = ('python' in bh and (attrs.get('meta_yaml', {}).get('build', {}).get('noarch') == 'python'))
+        com_c = (any([req.endswith('_compiler_stub') for req in bh])
+                 or any([a in bh for a in Compiler.compilers]))
+        r_c = 'r-base' in bh
+        ob_c = 'openblas' in bh
+        if any([py_c, com_c, r_c, ob_c]):
+            total_graph.add_node(node, **attrs)
+    # rebuild edges
+    tg2 = copy.deepcopy(total_graph)
+    for node, attrs in tg2.node.items():
+        for dep in attrs.get("req", []):
+            total_graph.add_edge(dep, node)
+
     migrators.append(
         CompilerRebuild(graph=total_graph,
                 pr_limit=1,
