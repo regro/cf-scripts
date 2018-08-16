@@ -9,6 +9,7 @@ from rever.tools import (eval_version, hash_url, replace_in_file)
 from xonsh.lib.os import indir
 from conda_smithy.update_cb3 import update_cb3
 from conda_smithy.configure_feedstock import get_cfp_file_path
+from ruamel.yaml import safe_load, safe_dump
 
 from .utils import render_meta_yaml, UniversalSet
 
@@ -605,15 +606,13 @@ class CompilerRebuild(Rebuild):
     bump_number = 1000
 
     def migrate(self, recipe_dir, attrs, **kwargs):
-        with indir(recipe_dir):
-            with indir('..'):
-                from ruamel.yaml import safe_load, safe_dump
-                with open('conda-forge.yml', 'rw') as f:
-                    y = safe_load(f)
-                    y.update({'compiler_stack': 'comp7',
-                              'max_py_ver': '37',
-                              'max_r_ver': '35'})
-                    safe_dump(y, f)
+        with indir(recipe_dir + '/..'):
+            with open('conda-forge.yml', 'rw') as f:
+                y = safe_load(f)
+                y.update({'compiler_stack': 'comp7',
+                          'max_py_ver': '37',
+                          'max_r_ver': '35'})
+                safe_dump(y, f)
         super().migrate(recipe_dir, attrs, **kwargs)
 
     def pr_body(self):

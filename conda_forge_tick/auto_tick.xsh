@@ -121,7 +121,7 @@ def run(attrs, migrator, feedstock=None, protocol='ssh',
     return migrate_return, pr_json
 
 
-def build_host(req):
+def _build_host(req):
     rv = set(
         (req.get('host', []) or []) +
         (req.get('build', []) or [])
@@ -144,7 +144,7 @@ def add_rebuild(migrators, gx):
     total_graph = nx.DiGraph()
     for node, attrs in gx.node.items():
         req = attrs.get('meta_yaml', {}).get('requirements', {})
-        bh = build_host(req)
+        bh = _build_host(req)
 
         py_c = ('python' in bh and (attrs.get('meta_yaml', {}).get('build', {}).get('noarch') == 'python'))
         com_c = (any([req.endswith('_compiler_stub') for req in bh])
