@@ -99,6 +99,17 @@ def setup_logger(logger):
 
 
 def pluck(G, node_id):
+    """Remove a node from a graph preserving structure.
+    
+    This will fuse edges together so that connectivity of the graph is not affected by
+    removal of a node.  This function operates in-place.
+    
+    Parameters
+    ----------
+    G : networkx.Graph
+    node_id : hashable
+    
+    """
     if node_id in G.nodes:
         new_edges = list(itertools.product(
             {_in for (_in, _) in G.in_edges(node_id)} - {node_id},
