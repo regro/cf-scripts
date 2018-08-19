@@ -196,8 +196,8 @@ class Version(Migrator):
         conditional = super().filter(attrs)
         return bool(
             conditional  # if archived/finished
-            or len([a for a in attrs.get('PRed_json') if
-                    a[1]['state'] == 'open']) > 3
+            or len([a for a in attrs.get('PRed_json', [({}, {})]) if
+                    a[1].get('state') == 'open']) > 3
             or not attrs.get('new_version')  # if no new version
             # if new version is less than current version
             or (VersionOrder(str(attrs['new_version'])) <=
