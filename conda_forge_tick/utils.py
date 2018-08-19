@@ -27,7 +27,7 @@ class UniversalSet(collections.abc.Set):
         raise StopIteration
 
     def __len__(self):
-        return float('inf')
+        return float("inf")
 
 
 class NullUndefined(jinja2.Undefined):
@@ -91,6 +91,9 @@ def setup_logger(logger):
     """Basic configuration for logging
 
     """
-    
-    logging.basicConfig(level=logging.ERROR, format='%(asctime)-15s %(levelname)-8s %(name)s || %(message)s')
+
+    logging.basicConfig(
+        level=logging.ERROR,
+        format="%(asctime)-15s %(levelname)-8s %(name)s || %(message)s",
+    )
     logger.setLevel(logging.INFO)

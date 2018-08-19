@@ -148,10 +148,11 @@ sample_npm_response = """
 
 latest_url_test_list = [
     (
-        sample_npm, "3.1.1", NPM(), {
-            "https://registry.npmjs.org/configurable-http-proxy": sample_npm_response
-        }
-    ),
+        sample_npm,
+        "3.1.1",
+        NPM(),
+        {"https://registry.npmjs.org/configurable-http-proxy": sample_npm_response},
+    )
 ]
 
 

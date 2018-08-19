@@ -233,18 +233,19 @@ def update_upstream_versions(gx, sources=(PyPI(), NPM(), CRAN(), RawURL(), Githu
             if attrs.get("bad") or attrs.get("archived"):
                 attrs["new_version"] = False
                 continue
-            futures.update({pool.submit(get_latest_version, attrs, sources): (node, attrs)})
+            futures.update(
+                {pool.submit(get_latest_version, attrs, sources): (node, attrs)}
+            )
         for f in as_completed(futures):
             node, attrs = futures[f]
             try:
-                attrs['new_version'] = f.result()
+                attrs["new_version"] = f.result()
             except Exception as e:
                 try:
                     se = str(e)
                 except Exception as ee:
-                    se = 'Bad exception string: {}'.format(ee)
-                logger.warn(
-                    "Error getting uptream version of {}: {}".format(node, se))
+                    se = "Bad exception string: {}".format(ee)
+                logger.warn("Error getting uptream version of {}: {}".format(node, se))
                 attrs["bad"] = "Upstream: Error getting upstream version"
                 attrs["new_version"] = False
             else:
