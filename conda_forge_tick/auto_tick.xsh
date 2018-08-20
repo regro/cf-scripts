@@ -173,7 +173,7 @@ def main(args=None):
     pinning_version = json.loads(![conda list conda-forge-pinning --json].output.strip())[0]['version']
     # TODO: need to also capture pinning version, maybe it is in the graph?
 
-    add_rebuilds($MIGRATORS)
+    add_rebuild($MIGRATORS)
 
     for migrator in $MIGRATORS:
         good_prs = 0
