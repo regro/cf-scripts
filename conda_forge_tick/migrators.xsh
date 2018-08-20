@@ -554,6 +554,7 @@ class Rebuild(Migrator):
                 f.write(upd)
 
     def filter(self, attrs):
+        print(attrs)
         if attrs['feedstock_name'] not in self.graph:
             return True
         if super().filter(attrs):
