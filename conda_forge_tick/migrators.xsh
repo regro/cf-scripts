@@ -555,7 +555,10 @@ class Rebuild(Migrator):
 
     def filter(self, attrs):
         if not attrs.get('feedstock_name'):
+            print($PROJECT)
             print(list(attrs.keys()))
+        if super().filter(attrs):
+            return True
         if attrs['feedstock_name'] not in self.graph:
             return True
         if super().filter(attrs):
