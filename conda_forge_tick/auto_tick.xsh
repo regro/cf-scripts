@@ -14,7 +14,7 @@ from xonsh.lib.os import indir
 
 from .git_utils import (get_repo, push_repo, is_github_api_limit_reached)
 from .path_lengths import cyclic_topological_sort
-from .utils import setup_logger
+from .utils import setup_logger, pluck
 
 logger = logging.getLogger("conda_forge_tick.auto_tick")
 
@@ -121,6 +121,45 @@ def run(attrs, migrator, feedstock=None, protocol='ssh',
     return migrate_return, pr_json
 
 
+def _build_host(req):
+    rv = set(
+        (req.get('host', []) or []) +
+        (req.get('build', []) or [])
+    )
+    if None in rv:
+        rv.remove(None)
+    return rv
+
+
+def add_rebuild(migrators, gx):
+    """Adds rebuild migrators.
+
+    Parameters
+    ----------
+    migrators : list of Migrator
+        The list of migrators to run.
+
+    """
+
+    total_graph = nx.DiGraph()
+    for node, attrs in gx.node.items():
+        req = attrs.get('meta_yaml', {}).get('requirements', {})
+        bh = _build_host(req)
+
+        py_c = ('python' in bh and (attrs.get('meta_yaml', {}).get('build', {}).get('noarch') == 'python'))
+        com_c = (any([req.endswith('_compiler_stub') for req in bh])
+                 or any([a in bh for a in Compiler.compilers]))
+        r_c = 'r-base' in bh
+        ob_c = 'openblas' in bh
+        if not any([py_c, com_c, r_c, ob_c]):
+            pluck(total_graph, node)
+
+    migrators.append(
+        CompilerRebuild(graph=total_graph,
+                pr_limit=1,
+                name='Python 3.7, GCC 7, R 3.5.1, openBLAS 0.3.2'))
+
+
 def main(args=None):
     setup_logger(logger)
     temp = g`/tmp/*`
@@ -133,6 +172,8 @@ def main(args=None):
     smithy_version = ![conda smithy --version].output.strip()
     pinning_version = json.loads(![conda list conda-forge-pinning --json].output.strip())[0]['version']
     # TODO: need to also capture pinning version, maybe it is in the graph?
+
+    add_rebuilds($MIGRATORS)
 
     for migrator in $MIGRATORS:
         good_prs = 0

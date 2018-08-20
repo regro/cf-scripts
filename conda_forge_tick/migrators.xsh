@@ -9,6 +9,7 @@ from rever.tools import (eval_version, hash_url, replace_in_file)
 from xonsh.lib.os import indir
 from conda_smithy.update_cb3 import update_cb3
 from conda_smithy.configure_feedstock import get_cfp_file_path
+from ruamel.yaml import safe_load, safe_dump
 
 from .utils import render_meta_yaml, UniversalSet
 
@@ -196,8 +197,8 @@ class Version(Migrator):
         conditional = super().filter(attrs)
         return bool(
             conditional  # if archived/finished
-            or len([a for a in attrs.get('PRed_json') if
-                    a[1]['state'] == 'open']) > 3
+            or len([a for a in attrs.get('PRed_json', [((), {})]) if
+                    a[1].get('state') == 'open']) > 3
             or not attrs.get('new_version')  # if no new version
             # if new version is less than current version
             or (VersionOrder(str(attrs['new_version'])) <=
@@ -511,6 +512,7 @@ class Rebuild(Migrator):
     """Migrator for bumping the build number."""
     migrator_version = 0
     rerender = True
+    bump_number = 1
 
     build_patterns = ((re.compile('(\s*?)number:\s*([0-9]+)'),
                        'number: {}'),
@@ -546,7 +548,7 @@ class Rebuild(Migrator):
             for i, line in enumerate(lines):
                 m = p.match(line)
                 if m is not None:
-                    lines[i] = m.group(1) + n.format(int(m.group(2)) + 1)
+                    lines[i] = m.group(1) + n.format(int(m.group(2)) + cls.bump_number)
             upd = '\n'.join(lines) + '\n'
             with open(filename, 'w') as f:
                 f.write(upd)
@@ -598,6 +600,35 @@ class Rebuild(Migrator):
         n = super().migrator_uid(attrs)
         n.update({'name': self.name})
         return n
+
+
+class CompilerRebuild(Rebuild):
+    bump_number = 1000
+
+    def migrate(self, recipe_dir, attrs, **kwargs):
+        with indir(recipe_dir + '/..'):
+            with open('conda-forge.yml', 'rw') as f:
+                y = safe_load(f)
+                y.update({'compiler_stack': 'comp7',
+                          'max_py_ver': '37',
+                          'max_r_ver': '35'})
+                safe_dump(y, f)
+        super().migrate(recipe_dir, attrs, **kwargs)
+
+    def pr_body(self):
+        body = super().pr_body()
+        body += body.format(
+                    "\n\n"
+                    "**Please note that if you close this PR we presume that "
+                    "the feedstock has been rebuilt, so if you are going to "
+                    "perform the rebuild yourself don't close this PR until "
+                    "the your rebuild has been merged.**\n\n"
+                    "This package has the following downstream children:\n"
+                    "{}\n"
+                    "And potentially more.".format('\n'.join(
+                        [a[1] for a in list(
+                            self.graph.out_edges($PROJECT))[:5]])))
+        return body
 
 
 class Pinning(Migrator):
