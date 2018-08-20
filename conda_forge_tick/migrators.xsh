@@ -614,7 +614,7 @@ class CompilerRebuild(Rebuild):
                       'max_r_ver': '35'})
             with open('conda-forge.yml', 'w') as f:
                 safe_dump(y, f)
-        super().migrate(recipe_dir, attrs, **kwargs)
+        return super().migrate(recipe_dir, attrs, **kwargs)
 
     def pr_body(self):
         body = super().pr_body()
