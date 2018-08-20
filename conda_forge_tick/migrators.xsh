@@ -554,12 +554,11 @@ class Rebuild(Migrator):
                 f.write(upd)
 
     def filter(self, attrs):
-        print(attrs)
-        if attrs['feedstock_name'] not in self.graph:
+        if attrs['name'] not in self.graph:
             return True
         if super().filter(attrs):
             return True
-        for node in self.graph.predecessors(attrs['feedstock_name']):
+        for node in self.graph.predecessors(attrs['name']):
             att = self.graph.node[node]
             muid = self.migrator_uid(att)
             if (muid not in att.get('PRed', []) or
