@@ -607,11 +607,12 @@ class CompilerRebuild(Rebuild):
 
     def migrate(self, recipe_dir, attrs, **kwargs):
         with indir(recipe_dir + '/..'):
-            with open('conda-forge.yml', 'rw') as f:
+            with open('conda-forge.yml', 'r') as f:
                 y = safe_load(f)
-                y.update({'compiler_stack': 'comp7',
-                          'max_py_ver': '37',
-                          'max_r_ver': '35'})
+            y.update({'compiler_stack': 'comp7',
+                      'max_py_ver': '37',
+                      'max_r_ver': '35'})
+            with open('conda-forge.yml', 'w') as f:
                 safe_dump(y, f)
         super().migrate(recipe_dir, attrs, **kwargs)
 
