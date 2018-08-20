@@ -154,10 +154,13 @@ def add_rebuild(migrators, gx):
         if not any([py_c, com_c, r_c, ob_c]):
             pluck(total_graph, node)
 
+    top_level = set(node for node in total_graph if not list(
+        total_graph.predecessors(node)))
     migrators.append(
         CompilerRebuild(graph=total_graph,
                 pr_limit=1,
-                name='Python 3.7, GCC 7, R 3.5.1, openBLAS 0.3.2'))
+                name='Python 3.7, GCC 7, R 3.5.1, openBLAS 0.3.2',
+                        top_level=top_level))
 
 
 def main(args=None):
