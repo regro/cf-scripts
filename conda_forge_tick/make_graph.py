@@ -93,7 +93,7 @@ def make_graph(names, gx=None):
 
     new_names = [name for name in names if name not in gx.nodes]
     old_names = [name for name in names if name in gx.nodes]
-    old_names = sorted(old_names, key=lambda n: gx.nodes[n]["time"])
+    old_names = sorted(old_names, key=lambda n: gx.nodes[n].get("time", 0))
 
     total_names = new_names + old_names
     logger.info("start loop")
