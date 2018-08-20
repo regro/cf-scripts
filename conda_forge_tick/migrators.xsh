@@ -554,13 +554,9 @@ class Rebuild(Migrator):
                 f.write(upd)
 
     def filter(self, attrs):
-        if not attrs.get('feedstock_name'):
-            print(list(attrs.keys()))
         if super().filter(attrs):
             return True
         if attrs['feedstock_name'] not in self.graph:
-            return True
-        if super().filter(attrs):
             return True
         for node in self.graph.predecessors(attrs['feedstock_name']):
             att = self.graph.node[node]

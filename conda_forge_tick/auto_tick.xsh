@@ -141,7 +141,7 @@ def add_rebuild(migrators, gx):
 
     """
 
-    total_graph = nx.DiGraph()
+    total_graph = copy.deepcopy(gx)
     for node, attrs in gx.node.items():
         req = attrs.get('meta_yaml', {}).get('requirements', {})
         bh = _build_host(req)

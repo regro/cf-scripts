@@ -115,6 +115,5 @@ def pluck(G, node_id):
             {_in for (_in, _) in G.in_edges(node_id)} - {node_id},
             {_out for (_, _out) in G.out_edges(node_id)} - {node_id},
         ))
-        print(new_edges)
         G.remove_node(node_id)
         G.add_edges_from(new_edges)
