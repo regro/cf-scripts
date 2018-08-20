@@ -604,6 +604,7 @@ class Rebuild(Migrator):
 
 class CompilerRebuild(Rebuild):
     bump_number = 1000
+    migrator_version = 1
 
     def migrate(self, recipe_dir, attrs, **kwargs):
         with indir(recipe_dir + '/..'):
