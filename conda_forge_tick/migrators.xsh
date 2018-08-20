@@ -554,6 +554,8 @@ class Rebuild(Migrator):
                 f.write(upd)
 
     def filter(self, attrs):
+        if not attrs.get('name'):
+            print(list(attrs.keys()))
         if attrs['name'] not in self.graph:
             return True
         if super().filter(attrs):
