@@ -8,11 +8,9 @@ from .make_graph import main as main1
 from .update_upstream_versions import main as main2
 from .auto_tick import main as main3
 
-int_script_dict = {0: main0, 1: main1, 2: main2, 3: main3,
-                   -1: deploy}
-
 
 def deploy(script):
+    """Deploy the graph to github"""
     try:
         git commit -am @("Finished stage {}".format(script))
     except Exception as e:
@@ -25,6 +23,8 @@ def deploy(script):
          'master'],
          token =$PASSWORD.encode('utf-8'))
 
+
+int_script_dict = {0: main0, 1: main1, 2: main2, 3: main3, -1: deploy}
 
 
 def main(*args, **kwargs):
