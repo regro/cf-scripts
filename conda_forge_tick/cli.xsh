@@ -9,10 +9,10 @@ from .update_upstream_versions import main as main2
 from .auto_tick import main as main3
 
 
-def deploy(script):
+def deploy():
     """Deploy the graph to github"""
     try:
-        git commit -am @("Finished stage {}".format(script))
+        git commit -am Update Graph
     except Exception as e:
         print(e)
     doctr_run(
