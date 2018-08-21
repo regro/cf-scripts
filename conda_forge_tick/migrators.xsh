@@ -3,6 +3,8 @@ import os
 import urllib.error
 
 import re
+from itertools import chain
+
 import networkx as nx
 from conda.models.version import VersionOrder
 from rever.tools import (eval_version, hash_url, replace_in_file)
@@ -531,7 +533,7 @@ class Rebuild(Migrator):
             self.graph = graph
         self.name = name
         self.top_level = top_level
-        self.cycles = cycles
+        self.cycles = set(chain.from_iterable(cycles))
     
     @classmethod
     def bump_build_number(cls, filename):
