@@ -156,11 +156,14 @@ def add_rebuild(migrators, gx):
 
     top_level = set(node for node in total_graph if not list(
         total_graph.predecessors(node)))
+    cycles = list(nx.simple_cycles(total_graph))
+
     migrators.append(
         CompilerRebuild(graph=total_graph,
                 pr_limit=1,
                 name='Python 3.7, GCC 7, R 3.5.1, openBLAS 0.3.2',
-                        top_level=top_level))
+                        top_level=top_level,
+                        cycles=cycles))
 
 
 def main(args=None):

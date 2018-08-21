@@ -522,7 +522,8 @@ class Rebuild(Migrator):
                        '{{% set build = {} %}}')
                      )
 
-    def __init__(self, graph=None, name=None, pr_limit=0, top_level=None):
+    def __init__(self, graph=None, name=None, pr_limit=0, top_level=None,
+                 cycles=None):
         super().__init__(pr_limit)
         if graph == None:
             self.graph = nx.DiGraph()
@@ -530,6 +531,7 @@ class Rebuild(Migrator):
             self.graph = graph
         self.name = name
         self.top_level = top_level
+        self.cycles = cycles
     
     @classmethod
     def bump_build_number(cls, filename):
@@ -559,8 +561,9 @@ class Rebuild(Migrator):
             return True
         if attrs['feedstock_name'] not in self.graph:
             return True
-        # If in top level don't check for upstreams just build (cludge for cycles)
-        if self.top_level and attrs['feedstock_name'] in self.top_level:
+        # If in top level or in a cycle don't check for upstreams just build
+        if ((self.top_level and attrs['feedstock_name'] in self.top_level)
+            or (self.cycles and attrs['feedstock_name'] in self.cycles)):
             return False
         # Check if all upstreams have been built
         for node in self.graph.predecessors(attrs['feedstock_name']):
