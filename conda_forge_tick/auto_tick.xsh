@@ -253,13 +253,6 @@ def main(args=None):
                     logger.critical('COMMIT FAILED' + str(e))
                     if $(git ls-files -m):
                         raise
-                doctr_run(
-                    ['git',
-                     'push',
-                     'https://{token}@github.com/{deploy_repo}.git'.format(
-                         token=$PASSWORD, deploy_repo = 'regro/cf-graph'),
-                     'master'],
-                token=$PASSWORD.encode('utf-8'))
                 for f in g`/tmp/*`:
                     if f not in temp:
                         rm -rf @(f)
