@@ -584,6 +584,7 @@ class Rebuild(Migrator):
                     'Notes and instructions for merging this PR:\n'
                     '1. Please merge the PR only after the tests have passed. \n'
                     "2. Feel free to push to the bot's branch to update this PR if needed. \n"
+                    "{}\n"
                     )
         return body
 
@@ -625,8 +626,8 @@ class CompilerRebuild(Rebuild):
 
     def pr_body(self):
         body = super().pr_body()
-        body += body.format(
-                    "\n\n"
+        body = body.format(
+                    "\n"
                     "**Please note that if you close this PR we presume that "
                     "the feedstock has been rebuilt, so if you are going to "
                     "perform the rebuild yourself don't close this PR until "
