@@ -12,7 +12,7 @@ from .auto_tick import main as main3
 def deploy():
     """Deploy the graph to github"""
     try:
-        git commit -am Update Graph
+        git commit -am "Update Graph"
     except Exception as e:
         print(e)
     doctr_run(
