@@ -36,7 +36,5 @@ def main(*args, **kwargs):
         start = time.time()
         int_script_dict[script]()
         print('FINISHED STAGE {} IN {} SECONDS'.format(script, time.time() - start))
-        if script != -1:
-            deploy(script)
     else:
         raise RuntimeError("Unknown script number")
