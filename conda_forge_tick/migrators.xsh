@@ -286,7 +286,7 @@ class Version(Migrator):
 
     def migrator_uid(self, attrs):
         n = super().migrator_uid(attrs)
-        n = n.copy(**{'version': attrs["new_version"]})
+        n = n.copy(version=attrs["new_version"])
         return n
 
     def _extract_version_from_hash(self, h):
@@ -616,7 +616,7 @@ class Rebuild(Migrator):
 
     def migrator_uid(self, attrs):
         n = super().migrator_uid(attrs)
-        n = n.copy(**{'name': self.name})
+        n = n.copy(name=self.name)
         return n
 
 
