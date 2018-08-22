@@ -3,6 +3,7 @@ import os
 import urllib.error
 
 import re
+from frozendict import frozendict
 from itertools import chain
 
 import networkx as nx
@@ -25,7 +26,7 @@ class Migrator:
     def __init__(self, pr_limit=0):
         self.pr_limit = pr_limit
 
-    def filter(self, attrs):
+    def filter(self, attrs: dict) -> bool:
         """ If true don't act upon node
 
         Parameters
@@ -44,6 +45,7 @@ class Migrator:
         return (attrs.get('archived', False)
                 or self.migrator_uid(attrs) in attrs.get('PRed', [])
                 or attrs.get('bad', False))
+
     def migrate(self, recipe_dir, attrs, **kwargs):
         """Perform the migration, updating the ``meta.yaml``
 
@@ -103,7 +105,7 @@ class Migrator:
         """Branch to use on local and remote"""
         return 'bot-pr'
 
-    def migrator_uid(self, attrs):
+    def migrator_uid(self, attrs: dict) -> frozendict:
         """Make a unique id for this migrator and node attrs
 
         Parameters
@@ -113,11 +115,12 @@ class Migrator:
 
         Returns
         -------
-        nt: namedtuple
-            The unique id as a namedtuple
+        nt: frozendict
+            The unique id as a frozendict (so it can be used as keys in dicts)
         """
-        return {'migrator_name': self.__class__.__name__,
-                'migrator_version': self.migrator_version}
+        return frozendict(
+            {'migrator_name': self.__class__.__name__,
+             'migrator_version': self.migrator_version})
 
 
 class Version(Migrator):
@@ -199,8 +202,9 @@ class Version(Migrator):
         conditional = super().filter(attrs)
         return bool(
             conditional  # if archived/finished
-            or len([a for a in attrs.get('PRed_json', [((), {})]) if
-                    a[1].get('state') == 'open']) > 3
+            or len([k for k, v in attrs.get('PRed_json', {}) if
+                    k.get('migrator_name') == 'Version' and
+                    v.get('state') == 'open']) > 3
             or not attrs.get('new_version')  # if no new version
             # if new version is less than current version
             or (VersionOrder(str(attrs['new_version'])) <=
@@ -282,7 +286,7 @@ class Version(Migrator):
 
     def migrator_uid(self, attrs):
         n = super().migrator_uid(attrs)
-        n.update({'version': attrs["new_version"]})
+        n = n.copy(version=attrs["new_version"])
         return n
 
     def _extract_version_from_hash(self, h):
@@ -574,8 +578,8 @@ class Rebuild(Migrator):
             if muid not in att.get('PRed', []):
                 return True
             # This is due to some PRed_json loss due to bad graph deploy outage
-            m_pred_jsons = [a for a in att.get('PRed_json', [((), {})]) if a[0] == muid]
-            if m_pred_jsons and m_pred_jsons[0][1].get('state', '') == 'open':
+            m_pred_jsons = att.get('PRed_json').get(muid)
+            if m_pred_jsons and m_pred_jsons.get('state', '') == 'open':
                 return True
         return False
 
@@ -612,7 +616,7 @@ class Rebuild(Migrator):
 
     def migrator_uid(self, attrs):
         n = super().migrator_uid(attrs)
-        n.update({'name': self.name})
+        n = n.copy(name=self.name)
         return n
 
 
