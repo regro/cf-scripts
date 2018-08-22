@@ -1,6 +1,5 @@
 import os
 from collections import defaultdict
-from typing import _KT, Iterator, _T_co
 
 from collections.abc import Set, MutableMapping
 import logging
@@ -8,8 +7,6 @@ import itertools
 import json
 
 import jinja2
-from conda_build.config import Config
-from conda_build.metadata import parse
 
 
 class UniversalSet(Set):
@@ -60,11 +57,11 @@ class LazyJson(MutableMapping):
         self._load()
         return len(self.data)
 
-    def __iter__(self) -> Iterator[_T_co]:
+    def __iter__(self):
         self._load()
-        return self.data__iter__
+        return self.data.__iter__
 
-    def __delitem__(self, v: _KT) -> None:
+    def __delitem__(self, v):
         self._load()
         self.data.__delitem__(v)
         self._dump()
@@ -77,7 +74,7 @@ class LazyJson(MutableMapping):
     def _dump(self):
         self._load()
         with open(self.file_name, "w") as f:
-            json.dump({}, f)
+            json.dump(self.data, f)
 
     def __getitem__(self, item):
         self._load()
@@ -87,6 +84,11 @@ class LazyJson(MutableMapping):
         self._load()
         self.data.__setitem__(key, value)
         self._dump()
+
+    def __getstate__(self):
+        state = self.__dict__.copy()
+        state['data'] = None
+        return state
 
 
 def render_meta_yaml(text):
@@ -130,6 +132,8 @@ def parse_meta_yaml(text):
         The parsed YAML dict. If parseing fails, returns an empty dict.
 
     """
+    from conda_build.config import Config
+    from conda_build.metadata import parse
 
     content = render_meta_yaml(text)
     return parse(content, Config())
