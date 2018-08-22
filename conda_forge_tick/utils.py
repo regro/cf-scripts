@@ -44,6 +44,7 @@ class NullUndefined(jinja2.Undefined):
 
 class LazyJson(MutableMapping):
     """Lazy load a dict from a json file and save it when updated"""
+
     def __init__(self, file_name):
         self.file_name = file_name
         # If the file doesn't exist create an empty file
@@ -87,7 +88,7 @@ class LazyJson(MutableMapping):
 
     def __getstate__(self):
         state = self.__dict__.copy()
-        state['data'] = None
+        state["data"] = None
         return state
 
 
