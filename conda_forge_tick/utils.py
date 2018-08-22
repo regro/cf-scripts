@@ -64,7 +64,7 @@ class LazyJson(MutableMapping):
 
     def __delitem__(self, v):
         self._load()
-        self.data.__delitem__(v)
+        del self.data[v]
         self._dump()
 
     def _load(self):
@@ -79,11 +79,11 @@ class LazyJson(MutableMapping):
 
     def __getitem__(self, item):
         self._load()
-        return self.data.__getitem__(item)
+        return self.data[item]
 
     def __setitem__(self, key, value):
         self._load()
-        self.data.__setitem__(key, value)
+        self.data[key] = value
         self._dump()
 
     def __getstate__(self):
