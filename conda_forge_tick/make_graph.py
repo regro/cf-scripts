@@ -127,12 +127,10 @@ def update_graph_pr_status(gx: nx.DiGraph) -> nx.DiGraph:
     for node_id in gx.nodes:
         try:
             node = gx.nodes[node_id]
-            prs = node.get('PRed_json', [])
-            out_prs = []
+            prs = node.get('PRed_json', {})
             for migrator, pr_json in prs:
                 pr_json = refresh_pr(pr_json, gh)
-                out_prs.append((migrator, pr_json))
-            node['PRed_json'] = out_prs
+                prs[migrator] = pr_json
         except github3.GitHubError as e:
             logger.critical('GITHUB ERROR ON FEEDSTOCK: {}'.format(node_id))
             if is_github_api_limit_reached(e, gh):

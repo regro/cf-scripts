@@ -12,3 +12,4 @@ requests
 feedparser
 conda
 conda-forge-pinning
+frozendict

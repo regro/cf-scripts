@@ -222,8 +222,7 @@ def main(args=None):
 
                 # Stash the pr json data so we can access it later
                 if pr_json:
-                    gx.nodes[node].setdefault('PRed_json', []).append(
-                        (migrator_uid, pr_json))
+                    gx.nodes[node].setdefault('PRed_json', {}).update({migrator_uid: pr_json})
 
             except github3.GitHubError as e:
                 if e.msg == 'Repository was archived so is read-only.':
