@@ -142,7 +142,7 @@ def refresh_pr(pr_json: LazyJson, gh=None):
     if not pr_json['state'] == 'closed':
         pr_obj = github3.pulls.PullRequest(pr_json, gh)
         pr_obj.refresh()
-        pr_json.update(pr_obj.as_dict())
+        return pr_obj.as_dict()
 
 
 def push_repo(feedstock_dir, body, repo, title, head, branch,
