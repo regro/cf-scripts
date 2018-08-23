@@ -125,12 +125,10 @@ def make_graph(names, gx=None):
 def update_graph_pr_status(gx: nx.DiGraph) -> nx.DiGraph:
     gh = github3.login(os.environ["USERNAME"], os.environ["PASSWORD"])
     futures = []
-    # TODO: run this as a future
     with ProcessPoolExecutor(max_workers=20) as pool:
         for node_id in gx.nodes:
             node = gx.nodes[node_id]
             prs = node.get('PRed_json', {})
-            # TODO: this was kinda a one off, it can be retired soon
             for migrator, pr_json in prs.items():
                 # allow for false
                 if pr_json:
