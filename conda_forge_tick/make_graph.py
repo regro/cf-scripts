@@ -124,10 +124,12 @@ def make_graph(names, gx=None):
 
 def update_graph_pr_status(gx: nx.DiGraph) -> nx.DiGraph:
     gh = github3.login(os.environ["USERNAME"], os.environ["PASSWORD"])
+    # TODO: run this as a future
     for node_id in gx.nodes:
         try:
             node = gx.nodes[node_id]
             prs = node.get('PRed_json', {})
+            # TODO: this was kinda a one off, it can be retired soon
             if not prs:
                 prs = {}
                 node['PRed_json'] = {}

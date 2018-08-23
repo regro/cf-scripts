@@ -244,6 +244,7 @@ def main(args=None):
                 # Race condition?
                 # nx.write_yaml(gx, 'graph.yml')
                 nx.write_gpickle(gx, 'graph.pkl')
+                git add pr_json/
                 rm -rf $REVER_DIR + '/*'
                 logger.info(![pwd])
                 try:
