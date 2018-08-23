@@ -74,7 +74,6 @@ class LazyJson(MutableMapping):
 
     def _dump(self):
         self._load()
-        print('dumping json to disk')
         with open(self.file_name, "w") as f:
             json.dump(self.data, f, indent=4)
 
