@@ -19,6 +19,9 @@ from xonsh.lib.os import indir
 
 # TODO: handle the URLs more elegantly (most likely make this a true library
 # and pull all the needed info from the various source classes)
+from conda_forge_tick.utils import LazyJson
+
+
 def feedstock_url(feedstock, protocol='ssh'):
     """Returns the URL for a conda-forge feedstock."""
     if feedstock is None:
@@ -187,7 +190,10 @@ def push_repo(feedstock_dir, body, repo, title, head, branch,
     else:
         print('Pull request created at ' + pr.html_url)
     # Return a json object so we can remake the PR if needed
-    return pr.as_dict()
+    pr_dict = pr.as_dict()
+    ljpr = LazyJson('pr_jso/{}.json'.format(pr_dict['id']))
+    ljpr.update(**pr_dict)
+    return ljpr
 
 
 def is_github_api_limit_reached(e: github3.GitHubError, gh: github3.GitHub) -> bool:
