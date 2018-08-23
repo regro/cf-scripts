@@ -1,15 +1,15 @@
 import os
 from collections import defaultdict
-import collections.abc
+
+from collections.abc import Set, MutableMapping
 import logging
 import itertools
+import json
 
 import jinja2
-from conda_build.config import Config
-from conda_build.metadata import parse
 
 
-class UniversalSet(collections.abc.Set):
+class UniversalSet(Set):
     """The universal set, or identity of the set intersection operation."""
 
     def __and__(self, other):
@@ -28,7 +28,7 @@ class UniversalSet(collections.abc.Set):
         raise StopIteration
 
     def __len__(self):
-        return float('inf')
+        return float("inf")
 
 
 class NullUndefined(jinja2.Undefined):
@@ -40,6 +40,56 @@ class NullUndefined(jinja2.Undefined):
 
     def __getitem__(self, name):
         return '{}["{}"]'.format(self, name)
+
+
+class LazyJson(MutableMapping):
+    """Lazy load a dict from a json file and save it when updated"""
+
+    def __init__(self, file_name):
+        self.file_name = file_name
+        # If the file doesn't exist create an empty file
+        if not os.path.exists(self.file_name):
+            os.makedirs(os.path.split(self.file_name)[0], exist_ok=True)
+            with open(self.file_name, "w") as f:
+                json.dump({}, f)
+        self.data = None
+
+    def __len__(self) -> int:
+        self._load()
+        return len(self.data)
+
+    def __iter__(self):
+        self._load()
+        yield from self.data
+
+    def __delitem__(self, v):
+        self._load()
+        del self.data[v]
+        self._dump()
+
+    def _load(self):
+        if self.data is None:
+            with open(self.file_name, "r") as f:
+                self.data = json.load(f)
+
+    def _dump(self):
+        self._load()
+        with open(self.file_name, "w") as f:
+            json.dump(self.data, f)
+
+    def __getitem__(self, item):
+        self._load()
+        return self.data[item]
+
+    def __setitem__(self, key, value):
+        self._load()
+        self.data[key] = value
+        self._dump()
+
+    def __getstate__(self):
+        state = self.__dict__.copy()
+        state["data"] = None
+        return state
 
 
 def render_meta_yaml(text):
@@ -83,6 +133,8 @@ def parse_meta_yaml(text):
         The parsed YAML dict. If parseing fails, returns an empty dict.
 
     """
+    from conda_build.config import Config
+    from conda_build.metadata import parse
 
     content = render_meta_yaml(text)
     return parse(content, Config())
@@ -93,8 +145,10 @@ def setup_logger(logger):
 
     """
 
-    logging.basicConfig(level=logging.ERROR,
-                        format='%(asctime)-15s %(levelname)-8s %(name)s || %(message)s')
+    logging.basicConfig(
+        level=logging.ERROR,
+        format="%(asctime)-15s %(levelname)-8s %(name)s || %(message)s",
+    )
     logger.setLevel(logging.INFO)
 
 
@@ -111,9 +165,11 @@ def pluck(G, node_id):
     
     """
     if node_id in G.nodes:
-        new_edges = list(itertools.product(
-            {_in for (_in, _) in G.in_edges(node_id)} - {node_id},
-            {_out for (_, _out) in G.out_edges(node_id)} - {node_id},
-        ))
+        new_edges = list(
+            itertools.product(
+                {_in for (_in, _) in G.in_edges(node_id)} - {node_id},
+                {_out for (_, _out) in G.out_edges(node_id)} - {node_id},
+            )
+        )
         G.remove_node(node_id)
         G.add_edges_from(new_edges)
