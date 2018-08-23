@@ -7,7 +7,7 @@ import os
 import time
 from copy import deepcopy
 
-from concurrent.futures import ProcessPoolExecutor, as_completed
+from concurrent.futures import ProcessPoolExecutor, as_completed, ThreadPoolExecutor
 
 import github3
 import networkx as nx
@@ -125,7 +125,7 @@ def make_graph(names, gx=None):
 def update_graph_pr_status(gx: nx.DiGraph) -> nx.DiGraph:
     gh = github3.login(os.environ["USERNAME"], os.environ["PASSWORD"])
     futures = {}
-    with ProcessPoolExecutor(max_workers=20) as pool:
+    with ThreadPoolExecutor(max_workers=20) as pool:
         for node_id in gx.nodes:
             node = gx.nodes[node_id]
             prs = node.get('PRed_json', {})
