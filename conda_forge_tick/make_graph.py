@@ -128,7 +128,7 @@ def update_graph_pr_status(gx: nx.DiGraph) -> nx.DiGraph:
         try:
             node = gx.nodes[node_id]
             prs = node.get('PRed_json', {})
-            for migrator, pr_json in prs:
+            for migrator, pr_json in prs.items():
                 pr_json = refresh_pr(pr_json, gh)
                 prs[migrator] = pr_json
         except github3.GitHubError as e:
