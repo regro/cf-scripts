@@ -60,7 +60,7 @@ class LazyJson(MutableMapping):
 
     def __iter__(self):
         self._load()
-        yield from self.data.__iter__
+        yield from self.data
 
     def __delitem__(self, v):
         self._load()
