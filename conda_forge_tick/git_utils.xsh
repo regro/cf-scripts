@@ -191,7 +191,7 @@ def push_repo(feedstock_dir, body, repo, title, head, branch,
         print('Pull request created at ' + pr.html_url)
     # Return a json object so we can remake the PR if needed
     pr_dict = pr.as_dict()
-    ljpr = LazyJson('pr_jso/{}.json'.format(pr_dict['id']))
+    ljpr = LazyJson(os.path.join($PRJSON_DIR, str(pr_dict['id']) + '.json'))
     ljpr.update(**pr_dict)
     return ljpr
 

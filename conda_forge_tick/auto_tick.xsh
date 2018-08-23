@@ -173,6 +173,7 @@ def main(args=None):
     $GRAPH = gx
     $REVER_DIR = './feedstocks/'
     $REVER_QUIET = True
+    $PRJSON_DIR = os.path.join(![pwd].out.strip(), 'pr_json')
     gh = github3.login($USERNAME, $PASSWORD)
 
     smithy_version = ![conda smithy --version].output.strip()
