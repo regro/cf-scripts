@@ -130,12 +130,10 @@ def update_graph_pr_status(gx: nx.DiGraph) -> nx.DiGraph:
             node = gx.nodes[node_id]
             prs = node.get('PRed_json', {})
             # TODO: this was kinda a one off, it can be retired soon
-            if not prs:
-                prs = {}
-                node['PRed_json'] = {}
             for migrator, pr_json in prs.items():
-                pr_json = refresh_pr(pr_json, gh)
-                prs[migrator] = pr_json
+                # allow for false
+                if pr_json:
+                    refresh_pr(pr_json, gh)
         except github3.GitHubError as e:
             logger.critical('GITHUB ERROR ON FEEDSTOCK: {}'.format(node_id))
             if is_github_api_limit_reached(e, gh):

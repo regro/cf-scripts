@@ -136,17 +136,13 @@ def get_repo(attrs, branch, feedstock=None, protocol='ssh',
     return feedstock_dir, repo
 
 
-def refresh_pr(pr_json, gh=None):
+def refresh_pr(pr_json: LazyJson, gh=None):
     if gh is None:
         gh = github3.login($USERNAME, $PASSWORD)
-    if isinstance(pr_json, str):
-        pr_json = json.loads(pr_json)
-    if pr_json['state'] == 'closed':
-        return pr_json
-    else:
+    if not pr_json['state'] == 'closed':
         pr_obj = github3.pulls.PullRequest(pr_json, gh)
         pr_obj.refresh()
-        return pr_obj.as_dict()
+        pr_json.update(pr_obj.as_dict())
 
 
 def push_repo(feedstock_dir, body, repo, title, head, branch,
