@@ -20,7 +20,7 @@ def deploy():
         ['git',
          'push',
          'https://{token}@github.com/{deploy_repo}.git'.format(
-             token=$PASSWORD, deploy_repo='regro/cf-graph'),
+             token=$PASSWORD, deploy_repo='regro/cf-graph3'),
          'master'],
          token =$PASSWORD.encode('utf-8'))
 
