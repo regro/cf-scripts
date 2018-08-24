@@ -245,15 +245,15 @@ def main(args=None):
                 # Race condition?
                 # nx.write_yaml(gx, 'graph.yml')
                 nx.write_gpickle(gx, 'graph.pkl')
-                git add pr_json/
+                # git add pr_json/
                 rm -rf $REVER_DIR + '/*'
                 logger.info(![pwd])
-                try:
-                    git commit -am @("Migrated {}".format($PROJECT))
-                except Exception as e:
-                    logger.critical('COMMIT FAILED' + str(e))
-                    if $(git ls-files -m):
-                        raise
+                #try:
+                #    git commit -am @("Migrated {}".format($PROJECT))
+                #except Exception as e:
+                #    logger.critical('COMMIT FAILED' + str(e))
+                #    if $(git ls-files -m):
+                #        raise
                 for f in g`/tmp/*`:
                     if f not in temp:
                         rm -rf @(f)
