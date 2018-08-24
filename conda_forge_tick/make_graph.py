@@ -146,6 +146,9 @@ def update_graph_pr_status(gx: nx.DiGraph) -> nx.DiGraph:
             logger.critical('GITHUB ERROR ON FEEDSTOCK: {}'.format(node_id))
             if is_github_api_limit_reached(e, gh):
                 break
+        except Exception as e:
+            logger.critical('ERROR ON FEEDSTOCK: {}'.format(node_id))
+            raise
     return gx
 
 
