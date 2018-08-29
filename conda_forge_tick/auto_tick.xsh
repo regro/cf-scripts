@@ -194,6 +194,7 @@ def main(args=None):
         $SUBGRAPH = gx2
         logger.info('Total migrations for %s: %d', migrator.__class__.__name__,
                     len(gx2.node))
+        print(list(gx2.node))
 
         top_level = set(node for node in gx2 if not list(gx2.predecessors(node)))
         for node in cyclic_topological_sort(gx2, top_level):
