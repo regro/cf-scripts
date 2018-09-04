@@ -146,11 +146,17 @@ def add_rebuild(migrators, gx):
         req = attrs.get('meta_yaml', {}).get('requirements', {})
         bh = _build_host(req)
 
-        py_c = ('python' in bh and (attrs.get('meta_yaml', {}).get('build', {}).get('noarch') == 'python'))
+        py_c = ('python' in bh and (
+                    attrs.get('meta_yaml', {}).get('build', {}).get(
+                        'noarch') != 'python'))
         com_c = (any([req.endswith('_compiler_stub') for req in bh])
                  or any([a in bh for a in Compiler.compilers]))
         r_c = 'r-base' in bh
         ob_c = 'openblas' in bh
+        rq = req.get('host', None) or req.get('build', None) or []
+        for e in list(total_graph.in_edges(node)):
+            if e[0] not in rq:
+                total_graph.remove_edge(*e)
         if not any([py_c, com_c, r_c, ob_c]):
             pluck(total_graph, node)
 
