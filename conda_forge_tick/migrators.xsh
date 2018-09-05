@@ -728,3 +728,37 @@ class Pinning(Migrator):
 
     def remote_branch(self):
         return 'pinning'
+
+
+class La(Migrator):
+    LA_FEEDSTOCKS = []
+    LA_STR = "find $PREFIX -name '*.la' -delete"
+
+    def filter(self, attrs: dict):
+        if attrs['name'] in self.LA_FEEDSTOCKS and not super().filter(attrs):
+            return False
+        else:
+            return True
+
+    def migrate(self, recipe_dir, attrs, **kwargs):
+        with indir(recipe_dir):
+            for build_name in ['build' + ext for ext in ['.sh', '.bat']]:
+                if build_name in g`*`:
+                    with open(build_name, 'wa') as f:
+                        f.write(self.LA_STR)
+        # May need to do something to the recipe as well?
+        return super().migrate(recipe_dir, attrs, **kwargs)
+
+    def pr_body(self):
+        body = super().pr_body()
+        body = body.format('This feedstock may include `.la` files. '
+                           'This PR removes those files.')
+        return body
+
+    def pr_title(self):
+        """Title for PR"""
+        return 'Remove `.la` files'
+
+    def remote_branch(self):
+        """Branch to use on local and remote"""
+        return 'remove-la'

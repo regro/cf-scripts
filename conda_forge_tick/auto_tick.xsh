@@ -26,6 +26,7 @@ $MIGRATORS = [
    # Noarch(pr_limit=10),
    # Pinning(pr_limit=1, removals={'perl'}),
    # Compiler(pr_limit=7),
+    La(pr_limit=1)
 ]
 
 def run(attrs, migrator, feedstock=None, protocol='ssh',
