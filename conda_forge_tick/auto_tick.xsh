@@ -248,7 +248,7 @@ def main(args=None):
 
     for migrator in $MIGRATORS:
         good_prs = 0
-        gx2 = get_effective_graph(migrator_status, gx)
+        gx2 = get_effective_graph(migrator, gx)
 
         $SUBGRAPH = gx2
         logger.info('Total migrations for %s: %d', migrator.__class__.__name__,
