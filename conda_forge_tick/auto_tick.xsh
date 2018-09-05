@@ -179,7 +179,7 @@ def initialize_migrators():
     $GRAPH = gx
     $REVER_DIR = './feedstocks/'
     $REVER_QUIET = True
-    $PRJSON_DIR = os.path.join(![pwd].out.strip(), 'pr_json')
+    $PRJSON_DIR = 'pr_json'
 
     smithy_version = ![conda smithy --version].output.strip()
     pinning_version = json.loads(![conda list conda-forge-pinning --json].output.strip())[0]['version']
