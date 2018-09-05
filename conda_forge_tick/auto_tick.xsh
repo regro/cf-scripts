@@ -194,7 +194,7 @@ def get_effective_graph(migrator: Migrator, gx):
 
     # Prune graph to only things that need builds right now
     for node, attrs in gx.node.items():
-        if migrator.filter(attrs):
+        if node in gx2 and migrator.filter(attrs):
             gx2.remove_node(node)
     
     return gx2
