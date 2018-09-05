@@ -16,6 +16,15 @@ from ruamel.yaml import safe_load, safe_dump
 
 from .utils import render_meta_yaml, UniversalSet
 
+# frozendict serializes its own hash, If this is done then deserialized frozendicts can
+# have invalid hashes
+def fzd_getstate(self):
+    state = self.__dict__.copy()
+    state['_hash'] = None
+    return state
+
+frozendict.__getstate__ = fzd_getstate
+
 
 class Migrator:
     """Base class for Migrators"""
@@ -356,8 +365,8 @@ class Compiler(Migrator):
 
     rerender = True
 
-    compilers = {'toolchain', 'gcc', 'cython', 'pkg-config', 
-                 'autotools', 'make', 'cmake', 'autconf', 'libtool', 'm4', 
+    compilers = {'toolchain', 'gcc', 'cython', 'pkg-config',
+                 'autotools', 'make', 'cmake', 'autconf', 'libtool', 'm4',
                  'ninja', 'jom', 'libgcc', 'libgfortran'}
 
     def __init__(self, pr_limit=0):
@@ -368,7 +377,7 @@ class Compiler(Migrator):
         for req in attrs.get('req', []):
             if req.endswith('_compiler_stub'):
                 return True
-        conditional = super().filter(attrs)  
+        conditional = super().filter(attrs)
         return (conditional or not any(x in attrs.get('req', []) for x in self.compilers))
 
     def migrate(self, recipe_dir, attrs, **kwargs):
@@ -538,7 +547,7 @@ class Rebuild(Migrator):
         self.name = name
         self.top_level = top_level
         self.cycles = set(chain.from_iterable(cycles))
-    
+
     @classmethod
     def bump_build_number(cls, filename):
         """Bump the build number of the specified recipe.

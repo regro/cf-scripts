@@ -172,7 +172,7 @@ def add_rebuild(migrators, gx):
                         cycles=cycles))
 
 
-def main(args=None):
+def initialize_migrators():
     setup_logger(logger)
     temp = g`/tmp/*`
     gx = nx.read_gpickle('graph.pkl')
@@ -180,22 +180,75 @@ def main(args=None):
     $REVER_DIR = './feedstocks/'
     $REVER_QUIET = True
     $PRJSON_DIR = os.path.join(![pwd].out.strip(), 'pr_json')
-    gh = github3.login($USERNAME, $PASSWORD)
 
     smithy_version = ![conda smithy --version].output.strip()
     pinning_version = json.loads(![conda list conda-forge-pinning --json].output.strip())[0]['version']
     # TODO: need to also capture pinning version, maybe it is in the graph?
 
-    # add_rebuild($MIGRATORS, gx)
+    add_rebuild($MIGRATORS, gx)
+
+    return gx, $MIGRATORS
+
+
+def get_effective_graph(migrator: Migrator, gx):
+    gx2 = copy.deepcopy(getattr(migrator, 'graph', gx))
+
+    # Prune graph to only things that need builds right now
+    for node, attrs in gx.node.items():
+        if migrator.filter(attrs):
+            gx2.remove_node(node)
+    
+    return gx2
+
+    
+def migrator_status(migrator: Migrator, gx):
+    """Gets the migrator progress for a given migrator
+
+    Returns
+    -------
+    out : dict
+        Dictionary of statuses with the feedstocks in them
+    order : 
+        Build order for this migrator
+    """
+    out = {
+        'done': set(),
+        'in-pr': set(),
+        'awaiting-pr': set(),
+        'awaiting-parents': set(),
+    }
+    
+    gx2 = copy.deepcopy(getattr(migrator, 'graph', gx))
+
+    for node, attrs in gx2.node.items():
+        nuid = migrator.migrator_uid(attrs)
+        pr_json = attrs.get('PRed_json', {}).get(nuid, None)
+
+        buildable = migrator.filter(attrs)
+        
+        if pr_json is None:
+            if buildable:
+                out['awaiting-pr'].add(node)
+            else:
+                out['awaiting-parents'].add(node)
+        elif pr_json['state'] == 'closed':
+            out['done'].add(node)
+        else:
+            out['in-pr'].add(node)
+
+    top_level = set(node for node in gx2 if not list(gx2.predecessors(node)))
+    build_sequence = cyclic_topological_sort(gx2, top_level)
+
+    return out, list(build_sequence)
+
+
+def main(args=None):
+    gh = github3.login($USERNAME, $PASSWORD)
+    gx, $MIGRATORS = initialize_migrators()
 
     for migrator in $MIGRATORS:
         good_prs = 0
-        gx2 = copy.deepcopy(gx)
-
-        # Prune graph to only things that need builds
-        for node, attrs in gx.node.items():
-            if migrator.filter(attrs):
-                gx2.remove_node(node)
+        gx2 = get_effective_graph(migrator_status, gx)
 
         $SUBGRAPH = gx2
         logger.info('Total migrations for %s: %d', migrator.__class__.__name__,
