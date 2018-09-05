@@ -184,7 +184,7 @@ def initialize_migrators():
     smithy_version = ![conda smithy --version].output.strip()
     pinning_version = json.loads(![conda list conda-forge-pinning --json].output.strip())[0]['version']
 
-    add_rebuild($MIGRATORS, gx)
+    # add_rebuild($MIGRATORS, gx)
 
     return gx, smithy_version, pinning_version, temp
 
