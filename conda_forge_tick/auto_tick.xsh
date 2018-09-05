@@ -123,8 +123,8 @@ def run(attrs, migrator, feedstock=None, protocol='ssh',
 
 def _build_host(req):
     rv = set(
-        (req.get('host', []) or []) +
-        (req.get('build', []) or [])
+        ([r.split()[0] for r in req.get('host', []) or []]) +
+        ([r.split()[0] for r in req.get('build', []) or []])
     )
     if None in rv:
         rv.remove(None)
@@ -153,7 +153,7 @@ def add_rebuild(migrators, gx):
                  or any([a in bh for a in Compiler.compilers]))
         r_c = 'r-base' in bh
         ob_c = 'openblas' in bh
-        rq = req.get('host', None) or req.get('build', None) or []
+        rq = [r.split()[0] for r in req.get('host', None) or req.get('build', None) or [] if r is not None]
         for e in list(total_graph.in_edges(node)):
             if e[0] not in rq:
                 total_graph.remove_edge(*e)
@@ -197,10 +197,10 @@ def get_effective_graph(migrator: Migrator, gx):
     for node, attrs in gx.node.items():
         if migrator.filter(attrs):
             gx2.remove_node(node)
-    
+
     return gx2
 
-    
+
 def migrator_status(migrator: Migrator, gx):
     """Gets the migrator progress for a given migrator
 
@@ -208,7 +208,7 @@ def migrator_status(migrator: Migrator, gx):
     -------
     out : dict
         Dictionary of statuses with the feedstocks in them
-    order : 
+    order :
         Build order for this migrator
     """
     out = {
@@ -217,7 +217,7 @@ def migrator_status(migrator: Migrator, gx):
         'awaiting-pr': set(),
         'awaiting-parents': set(),
     }
-    
+
     gx2 = copy.deepcopy(getattr(migrator, 'graph', gx))
 
     for node, attrs in gx2.node.items():
@@ -225,7 +225,7 @@ def migrator_status(migrator: Migrator, gx):
         pr_json = attrs.get('PRed_json', {}).get(nuid, None)
 
         buildable = migrator.filter(attrs)
-        
+
         if pr_json is None:
             if buildable:
                 out['awaiting-pr'].add(node)
