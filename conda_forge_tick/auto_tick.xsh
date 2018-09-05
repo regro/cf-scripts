@@ -183,11 +183,10 @@ def initialize_migrators():
 
     smithy_version = ![conda smithy --version].output.strip()
     pinning_version = json.loads(![conda list conda-forge-pinning --json].output.strip())[0]['version']
-    # TODO: need to also capture pinning version, maybe it is in the graph?
 
     add_rebuild($MIGRATORS, gx)
 
-    return gx, $MIGRATORS
+    return gx, smithy_version, pinning_version, temp
 
 
 def get_effective_graph(migrator: Migrator, gx):
@@ -244,7 +243,7 @@ def migrator_status(migrator: Migrator, gx):
 
 def main(args=None):
     gh = github3.login($USERNAME, $PASSWORD)
-    gx, $MIGRATORS = initialize_migrators()
+    gx, smithy_version, pinning_version, temp = initialize_migrators()
 
     for migrator in $MIGRATORS:
         good_prs = 0
