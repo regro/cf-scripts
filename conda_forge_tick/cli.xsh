@@ -12,11 +12,13 @@ from .status_report import main as main4
 
 def deploy():
     """Deploy the graph to github"""
-    try:
-        git add pr_json/*
-        git commit -am "Update Graph"
-    except Exception as e:
-        print(e)
+    for cmd in [['git', 'add', 'pr_json/*'],
+                ['git', 'add', 'status/*'],
+                ['git', 'commit', '-am', '"Update Graph"']]:
+        try:
+            @(cmd)
+        except Exception as e:
+            print(e)
     doctr_run(
         ['git',
          'push',
