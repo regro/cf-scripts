@@ -228,7 +228,7 @@ def migrator_status(migrator: Migrator, gx):
         nuid = migrator.migrator_uid(attrs)
         pr_json = attrs.get('PRed_json', {}).get(nuid, None)
 
-        buildable = migrator.filter(attrs)
+        buildable = not migrator.filter(attrs)
 
         if pr_json is None:
             if buildable:
