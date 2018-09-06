@@ -153,7 +153,17 @@ def add_rebuild(migrators, gx):
                  or any([a in bh for a in Compiler.compilers]))
         r_c = 'r-base' in bh
         ob_c = 'openblas' in bh
-        rq = [r.split()[0] for r in req.get('host', None) or req.get('build', None) or [] if r is not None]
+
+        # There is a host and it has things; use those
+        if req.get('host'):
+            rq = [r.split()[0] for r in req.get('host') if r is not None]
+        # elif there is a host and it is None; no requirements
+        elif req.get('host', 'no host') is None:
+            rq = []
+        # there is no host; look at build
+        else:
+            rq = [r.split()[0] for r in req.get('build', []) if r is not None]
+
         for e in list(total_graph.in_edges(node)):
             if e[0] not in rq:
                 total_graph.remove_edge(*e)
