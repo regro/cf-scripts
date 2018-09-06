@@ -7,6 +7,7 @@ from .all_feedstocks import main as main0
 from .make_graph import main as main1
 from .update_upstream_versions import main as main2
 from .auto_tick import main as main3
+from .status_report import main as main4
 
 
 def deploy():
@@ -25,7 +26,7 @@ def deploy():
          token =$PASSWORD.encode('utf-8'))
 
 
-int_script_dict = {0: main0, 1: main1, 2: main2, 3: main3, -1: deploy}
+int_script_dict = {0: main0, 1: main1, 2: main2, 3: main3, 4: main4, -1: deploy}
 
 
 def main(*args, **kwargs):
