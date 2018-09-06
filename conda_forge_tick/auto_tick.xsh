@@ -123,7 +123,7 @@ def run(attrs, migrator, feedstock=None, protocol='ssh',
 
 def _build_host(req):
     rv = set(
-        ([r.split()[0] for r in req.get('host', []) or [] if r]) +
+        ([r.split()[0] for r in req.get('host', []) or [] if r]) or
         ([r.split()[0] for r in req.get('build', []) or [] if r])
     )
     if None in rv:
