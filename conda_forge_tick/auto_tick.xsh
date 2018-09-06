@@ -172,7 +172,7 @@ def add_rebuild(migrators, gx):
                         cycles=cycles))
 
 
-def initialize_migrators():
+def initialize_migrators(do_rebuild=False):
     setup_logger(logger)
     temp = g`/tmp/*`
     gx = nx.read_gpickle('graph.pkl')
@@ -185,7 +185,8 @@ def initialize_migrators():
     pinning_version = json.loads(![conda list conda-forge-pinning --json].output.strip())[0]['version']
 
     # TODO: reenable once graph order is correct
-    # add_rebuild($MIGRATORS, gx)
+    if do_rebuild:
+        add_rebuild($MIGRATORS, gx)
 
     return gx, smithy_version, pinning_version, temp, $MIGRATORS
 

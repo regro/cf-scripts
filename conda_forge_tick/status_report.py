@@ -5,7 +5,7 @@ import json
 
 
 def main(args=None):
-    gx, *_, migrators = initialize_migrators()
+    gx, *_, migrators = initialize_migrators(do_rebuild=True)
     if not os.path.exists('./status'):
         os.mkdir('./status')
 
