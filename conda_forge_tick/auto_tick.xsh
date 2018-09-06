@@ -184,9 +184,10 @@ def initialize_migrators():
     smithy_version = ![conda smithy --version].output.strip()
     pinning_version = json.loads(![conda list conda-forge-pinning --json].output.strip())[0]['version']
 
+    # TODO: reenable once graph order is correct
     # add_rebuild($MIGRATORS, gx)
 
-    return gx, smithy_version, pinning_version, temp
+    return gx, smithy_version, pinning_version, temp, $MIGRATORS
 
 
 def get_effective_graph(migrator: Migrator, gx):
@@ -218,6 +219,9 @@ def migrator_status(migrator: Migrator, gx):
     }
 
     gx2 = copy.deepcopy(getattr(migrator, 'graph', gx))
+    
+    top_level = set(node for node in gx2 if not list(gx2.predecessors(node)))
+    build_sequence = list(cyclic_topological_sort(gx2, top_level))
 
     for node, attrs in gx2.node.items():
         nuid = migrator.migrator_uid(attrs)
@@ -235,15 +239,15 @@ def migrator_status(migrator: Migrator, gx):
         else:
             out['in-pr'].add(node)
 
-    top_level = set(node for node in gx2 if not list(gx2.predecessors(node)))
-    build_sequence = cyclic_topological_sort(gx2, top_level)
+    for k in out.keys():
+        out[k] = list(sorted(out[k], key=lambda x: build_sequence.index(x)))
 
-    return out, list(build_sequence)
+    return out, build_sequence
 
 
 def main(args=None):
     gh = github3.login($USERNAME, $PASSWORD)
-    gx, smithy_version, pinning_version, temp = initialize_migrators()
+    gx, smithy_version, pinning_version, temp, $MIGRATORS = initialize_migrators()
 
     for migrator in $MIGRATORS:
         good_prs = 0
