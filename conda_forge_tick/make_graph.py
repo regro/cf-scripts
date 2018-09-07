@@ -14,6 +14,7 @@ import github3
 import networkx as nx
 import requests
 
+from conda_forge_tick.chained_db import ChainDB, _convert_to_dict
 from .all_feedstocks import get_all_feedstocks
 from .utils import parse_meta_yaml, setup_logger
 from .git_utils import refresh_pr, is_github_api_limit_reached, \
@@ -47,13 +48,16 @@ def get_attrs(name, i):
 
     text = r.content.decode("utf-8")
     sub_graph["raw_meta_yaml"] = text
-    yaml_dict = parse_meta_yaml(text)
+    yaml_dict = ChainDB(*[parse_meta_yaml(text, arch=arch) for arch in
+                       ['win', 'osx', 'linux']])
+    # yaml_dict = parse_meta_yaml(text)
     if not yaml_dict:
         logger.warn(
             "Something odd happened when parsing recipe " "{}".format(name))
         sub_graph["bad"] = "make_graph: Could not parse"
         return sub_graph
-    sub_graph["meta_yaml"] = yaml_dict
+    sub_graph["meta_yaml"] = _convert_to_dict(yaml_dict)
+
     # TODO: Write schema for dict
     req = yaml_dict.get("requirements", set())
     if req:
