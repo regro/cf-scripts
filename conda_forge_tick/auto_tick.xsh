@@ -162,7 +162,7 @@ def add_rebuild(migrators, gx):
             rq = []
         # there is no host; look at build
         else:
-            rq = [r.split()[0] for r in req.get('build', []) if r is not None]
+            rq = [r.split()[0] for r in req.get('build', []) or [] if r is not None]
 
         for e in list(total_graph.in_edges(node)):
             if e[0] not in rq:
