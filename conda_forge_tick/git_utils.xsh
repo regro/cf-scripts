@@ -145,6 +145,18 @@ def refresh_pr(pr_json: LazyJson, gh=None):
         return pr_obj.as_dict()
 
 
+def close_out_labels(pr_json: LazyJson, gh=None):
+    if gh is None:
+        gh = github3.login($USERNAME, $PASSWORD)
+        if not pr_json['state'] == 'closed' and 'bot-rerun' in pr_json['labels']:
+            pr_obj = github3.pulls.PullRequest(pr_json, gh)
+            pr_obj.create_comment("Due to the `bot-rerun` label I'm closing"
+                                  "this PR. I will make another one as"
+                                  " appropriate.")
+            pr_obj.close()
+            return pr_obj.as_dict()
+
+
 def push_repo(feedstock_dir, body, repo, title, head, branch,
               pull_request=True):
     """Push a repo up to github
