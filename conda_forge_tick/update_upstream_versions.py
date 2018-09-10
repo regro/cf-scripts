@@ -48,7 +48,7 @@ def next_version(ver):
 
 class VersionFromFeed:
     ver_prefix_remove = ["release-", "releases%2F", "v_", "v.", "v"]
-    dev_vers = ["rc", "beta", "alpha", "dev", "a", "b"]
+    dev_vers = ["rc", "beta", "alpha", "dev", "a", "b", "RC"]
 
     def get_version(self, url):
         data = feedparser.parse(url)
