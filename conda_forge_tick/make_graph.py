@@ -15,7 +15,7 @@ import requests
 
 from .all_feedstocks import get_all_feedstocks
 from .utils import parse_meta_yaml, setup_logger
-from .git_utils import refresh_pr, is_github_api_limit_reached
+from .git_utils import refresh_pr, is_github_api_limit_reached, close_out_labels
 
 logger = logging.getLogger("conda_forge_tick.make_graph")
 pin_sep_pat = re.compile(" |>|<|=|\[")
@@ -142,6 +142,37 @@ def update_graph_pr_status(gx: nx.DiGraph) -> nx.DiGraph:
             if res:
                 gx.nodes[name]['PRed_json'][muid].update(**res)
                 logger.info('Updated json for {}'.format(res['id']))
+        except github3.GitHubError as e:
+            logger.critical('GITHUB ERROR ON FEEDSTOCK: {}'.format(node_id))
+            if is_github_api_limit_reached(e, gh):
+                break
+        except Exception as e:
+            logger.critical('ERROR ON FEEDSTOCK: {}'.format(node_id))
+            raise
+    return gx
+
+
+def close_labels(gx: nx.DiGraph) -> nx.DiGraph:
+    gh = github3.login(os.environ["USERNAME"], os.environ["PASSWORD"])
+    futures = {}
+    with ThreadPoolExecutor(max_workers=20) as pool:
+        for node_id in gx.nodes:
+            node = gx.nodes[node_id]
+            prs = node.get('PRed_json', {})
+            for migrator, pr_json in prs.items():
+                # allow for false
+                if pr_json:
+                    future = pool.submit(close_out_labels, pr_json, gh)
+                    futures[future] = (node_id, migrator)
+
+    for f in as_completed(futures):
+        try:
+            name, muid = futures[f]
+            res = f.result()
+            if res:
+                gx.node[name]['PRed'].remove(muid)
+                del gx.nodes[name]['PRed_json'][muid]
+                logger.info('Closed and removed PR for {}'.format(res['id']))
         except github3.GitHubError as e:
             logger.critical('GITHUB ERROR ON FEEDSTOCK: {}'.format(node_id))
             if is_github_api_limit_reached(e, gh):
