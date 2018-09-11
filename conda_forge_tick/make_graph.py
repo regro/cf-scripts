@@ -132,8 +132,6 @@ def make_graph(names, gx=None):
     return gx
 
 
-
-
 def update_graph_pr_status(gx: nx.DiGraph) -> nx.DiGraph:
     gh = github3.login(os.environ["USERNAME"], os.environ["PASSWORD"])
     futures = {}
