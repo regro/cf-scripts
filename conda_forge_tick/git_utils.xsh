@@ -138,13 +138,15 @@ def get_repo(attrs, branch, feedstock=None, protocol='ssh',
 
 
 def delete_branch(pr_json: LazyJson):
+    ref = pr_json['ref']
+    name = pr_json['base']['name']
     with TemporaryDirectory() as d:
         with indir(d):
             git init
             token = $PASSWORD
-            deploy_repo = $USERNAME + '/' + pr_json['base']['name']
+            deploy_repo = $USERNAME + '/' + name
             doctr_run(['git', 'push', 'https://{token}@github.com/{deploy_repo}.git'.format(
-                           token=token, deploy_repo=deploy_repo), '--delete', pr_json['ref']],
+                           token=token, deploy_repo=deploy_repo), '--delete', ref],
                       token=token.encode('utf-8'))
 
 
