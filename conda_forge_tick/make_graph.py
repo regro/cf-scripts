@@ -130,6 +130,11 @@ def update_graph_pr_status(gx: nx.DiGraph) -> nx.DiGraph:
             node = gx.nodes[node_id]
             prs = node.get('PRed_json', {})
             for migrator, pr_json in prs.items():
+                try:
+                    bool(pr_json)
+                except FileNotFoundError:
+                    logger.critical('ERROR ON PR JSON: {}'.format(str(migrator))
+                    pr_json=None
                 # allow for false
                 if pr_json:
                     future = pool.submit(refresh_pr, pr_json, gh)
