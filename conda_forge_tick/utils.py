@@ -69,8 +69,13 @@ class LazyJson(MutableMapping):
 
     def _load(self):
         if self.data is None:
-            with open(self.file_name, "r") as f:
-                self.data = json.load(f)
+            try:
+                with open(self.file_name, "r") as f:
+                    self.data = json.load(f)
+            except FileNotFoundError:
+                print(os.getcwd())
+                print(os.listdir('.'))
+                raise
 
     def _dump(self):
         self._load()

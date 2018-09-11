@@ -132,7 +132,6 @@ def make_graph(names, gx=None):
     return gx
 
 
-import os
 
 
 def update_graph_pr_status(gx: nx.DiGraph) -> nx.DiGraph:
@@ -144,7 +143,6 @@ def update_graph_pr_status(gx: nx.DiGraph) -> nx.DiGraph:
             prs = node.get('PRed_json', {})
             for migrator, pr_json in prs.items():
                 # allow for false
-                print(os.getcwd())
                 if pr_json:
                     future = pool.submit(refresh_pr, pr_json, gh)
                     futures[future] = (node_id, migrator)
