@@ -141,14 +141,13 @@ def update_graph_pr_status(gx: nx.DiGraph) -> nx.DiGraph:
             res = f.result()
             if res:
                 gx.nodes[name]['PRed_json'][muid].update(**res)
-                logger.info('Updated json for {}'.format(res['id']))
+                logger.info('Updated json for {}: {}'.format(name, res['id']))
         except github3.GitHubError as e:
-            logger.critical('GITHUB ERROR ON FEEDSTOCK: {}'.format(node_id))
+            logger.critical('GITHUB ERROR ON FEEDSTOCK: {}'.format(name))
             if is_github_api_limit_reached(e, gh):
                 break
         except Exception as e:
-            logger.critical('ERROR ON FEEDSTOCK: {}'.format(node_id))
-            print(name, muid)
+            logger.critical('ERROR ON FEEDSTOCK: {}: {}'.format(name, muid))
             raise
     return gx
 
@@ -174,13 +173,13 @@ def close_labels(gx: nx.DiGraph) -> nx.DiGraph:
                 gx.node[name]['PRed'].remove(muid)
                 del gx.nodes[name]['PRed_json'][muid]
                 logger.info('Closed and removed PR and branch for '
-                            '{}'.format(res['id']))
+                            '{}: {}'.format(name, res['id']))
         except github3.GitHubError as e:
-            logger.critical('GITHUB ERROR ON FEEDSTOCK: {}'.format(node_id))
+            logger.critical('GITHUB ERROR ON FEEDSTOCK: {}'.format(name))
             if is_github_api_limit_reached(e, gh):
                 break
         except Exception as e:
-            logger.critical('ERROR ON FEEDSTOCK: {}'.format(node_id))
+            logger.critical('ERROR ON FEEDSTOCK: {}: {}'.format(name, muid))
             raise
     return gx
 
