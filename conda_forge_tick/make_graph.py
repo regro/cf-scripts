@@ -17,7 +17,7 @@ import github3
 import networkx as nx
 import requests
 
-from xonsh.lib import ChainDB, _convert_to_dict
+from xonsh.lib.collections import ChainDB, _convert_to_dict
 from .all_feedstocks import get_all_feedstocks
 from .utils import parse_meta_yaml, setup_logger
 from .git_utils import refresh_pr, is_github_api_limit_reached, \
@@ -55,7 +55,6 @@ def get_attrs(name, i):
         *[
             parse_meta_yaml(text, arch=arch)
             for arch in [
-                # 'win',
                 "osx",
                 "linux",
             ]
