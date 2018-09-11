@@ -6,6 +6,7 @@ import time
 import traceback
 import urllib.error
 import json
+from tempfile import TemporaryDirectory
 
 import github3
 import github3.pulls
@@ -137,11 +138,14 @@ def get_repo(attrs, branch, feedstock=None, protocol='ssh',
 
 
 def delete_branch(pr_json: LazyJson):
-    token = $PASSWORD
-    deploy_repo = $USERNAME + '/' + pr_json['base']['name']
-    doctr_run(['git', 'push', 'https://{token}@github.com/{deploy_repo}.git'.format(
-                   token=token, deploy_repo=deploy_repo), '--delete', pr_json['ref']],
-              token=token.encode('utf-8'))
+    with TemporaryDirectory() as d:
+        with indir(d):
+            git init
+            token = $PASSWORD
+            deploy_repo = $USERNAME + '/' + pr_json['base']['name']
+            doctr_run(['git', 'push', 'https://{token}@github.com/{deploy_repo}.git'.format(
+                           token=token, deploy_repo=deploy_repo), '--delete', pr_json['ref']],
+                      token=token.encode('utf-8'))
 
 
 def refresh_pr(pr_json: LazyJson, gh=None):
