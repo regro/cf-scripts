@@ -138,7 +138,7 @@ def get_repo(attrs, branch, feedstock=None, protocol='ssh',
 
 
 def delete_branch(pr_json: LazyJson):
-    ref = pr_json['ref']
+    ref = pr_json['head']['ref']
     name = pr_json['base']['name']
     with TemporaryDirectory() as d:
         with indir(d):
