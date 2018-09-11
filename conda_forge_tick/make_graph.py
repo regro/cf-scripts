@@ -7,14 +7,17 @@ import os
 import time
 from copy import deepcopy
 
-from concurrent.futures import ProcessPoolExecutor, as_completed, \
-    ThreadPoolExecutor
+from concurrent.futures import (
+    ProcessPoolExecutor,
+    as_completed,
+    ThreadPoolExecutor,
+)
 
 import github3
 import networkx as nx
 import requests
 
-from conda_forge_tick.chained_db import ChainDB, _convert_to_dict
+from xonsh.lib import ChainDB, _convert_to_dict
 from .all_feedstocks import get_all_feedstocks
 from .utils import parse_meta_yaml, setup_logger
 from .git_utils import refresh_pr, is_github_api_limit_reached, \
@@ -48,12 +51,20 @@ def get_attrs(name, i):
 
     text = r.content.decode("utf-8")
     sub_graph["raw_meta_yaml"] = text
-    yaml_dict = ChainDB(*[parse_meta_yaml(text, arch=arch) for arch in
-                       ['win', 'osx', 'linux']])
-    # yaml_dict = parse_meta_yaml(text)
+    yaml_dict = ChainDB(
+        *[
+            parse_meta_yaml(text, arch=arch)
+            for arch in [
+                # 'win',
+                "osx",
+                "linux",
+            ]
+        ]
+    )
     if not yaml_dict:
         logger.warn(
-            "Something odd happened when parsing recipe " "{}".format(name))
+            "Something odd happened when parsing recipe " "{}".format(name)
+        )
         sub_graph["bad"] = "make_graph: Could not parse"
         return sub_graph
     sub_graph["meta_yaml"] = _convert_to_dict(yaml_dict)
@@ -62,14 +73,18 @@ def get_attrs(name, i):
     req = yaml_dict.get("requirements", set())
     if req:
         build = list(
-            req.get("build", []) if req.get("build", []) is not None else [])
+            req.get("build", []) if req.get("build", []) is not None else []
+        )
         host = list(
-            req.get("host", []) if req.get("host", []) is not None else [])
+            req.get("host", []) if req.get("host", []) is not None else []
+        )
         run = list(
-            req.get("run", []) if req.get("run", []) is not None else [])
+            req.get("run", []) if req.get("run", []) is not None else []
+        )
         req = build + host + run
         req = set(
-            pin_sep_pat.split(x)[0].lower() for x in req if x is not None)
+            pin_sep_pat.split(x)[0].lower() for x in req if x is not None
+        )
     sub_graph["req"] = req
 
     keys = [("package", "name"), ("package", "version")]
@@ -85,10 +100,13 @@ def get_attrs(name, i):
     if "url" not in source_keys:
         missing_keys.append("url")
     if missing_keys:
-        logger.warn("Recipe {} doesn't have a {}".format(name, ", ".join(
-            missing_keys)))
+        logger.warn(
+            "Recipe {} doesn't have a {}".format(name, ", ".join(
+            missing_keys))
+        )
         sub_graph["bad"] = "make_graph: missing {}".format(
-            ", ".join(missing_keys))
+            ", ".join(missing_keys)
+        )
     for k in keys:
         if k[1] not in missing_keys:
             sub_graph[k[1]] = yaml_dict[k[0]][k[1]]
@@ -112,8 +130,11 @@ def make_graph(names, gx=None):
     logger.info("start loop")
 
     with ProcessPoolExecutor(max_workers=20) as pool:
-        futures = {pool.submit(get_attrs, name, i): name for i, name in
-                   enumerate(total_names)}
+        futures = {
+            pool.submit(get_attrs, name, i): name
+            for i, name in
+                   enumerate(total_names)
+        }
 
         for f in as_completed(futures):
             name = futures[f]
@@ -142,7 +163,7 @@ def update_graph_pr_status(gx: nx.DiGraph) -> nx.DiGraph:
     with ThreadPoolExecutor(max_workers=20) as pool:
         for node_id in gx.nodes:
             node = gx.nodes[node_id]
-            prs = node.get('PRed_json', {})
+            prs = node.get("PRed_json", {})
             for migrator, pr_json in prs.items():
                 # allow for false
                 if pr_json:
