@@ -190,6 +190,7 @@ def main(args=None):
     gx = nx.read_gpickle("graph.pkl")
     gx = make_graph(names, gx)
     gx = update_graph_pr_status(gx)
+    gx = close_labels(gx)
 
     logger.info("writing out file")
     nx.write_gpickle(gx, "graph.pkl")
