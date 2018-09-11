@@ -6,6 +6,7 @@ import time
 import traceback
 import urllib.error
 import json
+from tempfile import TemporaryDirectory
 
 import github3
 import github3.pulls
@@ -136,12 +137,27 @@ def get_repo(attrs, branch, feedstock=None, protocol='ssh',
     return feedstock_dir, repo
 
 
+def delete_branch(pr_json: LazyJson):
+    with TemporaryDirectory() as d:
+        with indir(d):
+            git init
+            token = $PASSWORD
+            deploy_repo = $USERNAME + '/' + pr_json['base']['name']
+            doctr_run(['git', 'push', 'https://{token}@github.com/{deploy_repo}.git'.format(
+                           token=token, deploy_repo=deploy_repo), '--delete', pr_json['ref']],
+                      token=token.encode('utf-8'))
+
+
 def refresh_pr(pr_json: LazyJson, gh=None):
     if gh is None:
         gh = github3.login($USERNAME, $PASSWORD)
     if not pr_json['state'] == 'closed':
         pr_obj = github3.pulls.PullRequest(pr_json, gh)
         pr_obj.refresh()
+        pr_obj_d = pr_obj.as_dict()
+        # if state passed from opened to closed delete the branch
+        if pr_obj_d['state'] == 'closed':
+            delete_branch(pr_json)
         return pr_obj.as_dict()
 
 
@@ -154,6 +170,7 @@ def close_out_labels(pr_json: LazyJson, gh=None):
                                   "this PR. I will make another one as"
                                   " appropriate.")
             pr_obj.close()
+            delete_branch(pr_json)
             return pr_obj.as_dict()
 
 

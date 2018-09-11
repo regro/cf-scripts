@@ -172,7 +172,8 @@ def close_labels(gx: nx.DiGraph) -> nx.DiGraph:
             if res:
                 gx.node[name]['PRed'].remove(muid)
                 del gx.nodes[name]['PRed_json'][muid]
-                logger.info('Closed and removed PR for {}'.format(res['id']))
+                logger.info('Closed and removed PR and branch for '
+                            '{}'.format(res['id']))
         except github3.GitHubError as e:
             logger.critical('GITHUB ERROR ON FEEDSTOCK: {}'.format(node_id))
             if is_github_api_limit_reached(e, gh):
