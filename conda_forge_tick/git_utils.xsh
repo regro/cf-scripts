@@ -155,7 +155,7 @@ def refresh_pr(pr_json: LazyJson, gh=None):
         pr_obj.refresh()
         pr_obj_d = pr_obj.as_dict()
         # if state passed from opened to closed delete the branch
-        if pr_obj_d['state'] == 'closed' and pr_obj_d.get('merged_at', None):
+        if pr_obj_d['state'] == 'closed' and pr_obj_d.get('merged_at', False):
             delete_branch(pr_json)
         return pr_obj.as_dict()
 
