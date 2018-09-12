@@ -170,8 +170,8 @@ def update_graph_pr_status(gx: nx.DiGraph) -> nx.DiGraph:
                     futures[future] = (node_id, migrator)
 
     for f in as_completed(futures):
+        name, muid = futures[f]
         try:
-            name, muid = futures[f]
             res = f.result()
             if res:
                 gx.nodes[name]['PRed_json'][muid].update(**res)
@@ -200,8 +200,8 @@ def close_labels(gx: nx.DiGraph) -> nx.DiGraph:
                     futures[future] = (node_id, migrator)
 
     for f in as_completed(futures):
+        name, muid = futures[f]
         try:
-            name, muid = futures[f]
             res = f.result()
             if res:
                 gx.node[name]['PRed'].remove(muid)
