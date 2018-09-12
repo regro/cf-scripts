@@ -20,8 +20,11 @@ import requests
 from xonsh.lib.collections import ChainDB, _convert_to_dict
 from .all_feedstocks import get_all_feedstocks
 from .utils import parse_meta_yaml, setup_logger
-from .git_utils import refresh_pr, is_github_api_limit_reached, \
-    close_out_labels
+from .git_utils import (
+    refresh_pr,
+    is_github_api_limit_reached,
+    close_out_labels,
+)
 
 logger = logging.getLogger("conda_forge_tick.make_graph")
 pin_sep_pat = re.compile(" |>|<|=|\[")
@@ -52,13 +55,7 @@ def get_attrs(name, i):
     text = r.content.decode("utf-8")
     sub_graph["raw_meta_yaml"] = text
     yaml_dict = ChainDB(
-        *[
-            parse_meta_yaml(text, arch=arch)
-            for arch in [
-                "osx",
-                "linux",
-            ]
-        ]
+        *[parse_meta_yaml(text, arch=arch) for arch in ["osx", "linux"]]
     )
     if not yaml_dict:
         logger.warn(
@@ -100,8 +97,7 @@ def get_attrs(name, i):
         missing_keys.append("url")
     if missing_keys:
         logger.warn(
-            "Recipe {} doesn't have a {}".format(name, ", ".join(
-            missing_keys))
+            "Recipe {} doesn't have a {}".format(name, ", ".join(missing_keys))
         )
         sub_graph["bad"] = "make_graph: missing {}".format(
             ", ".join(missing_keys)
@@ -131,8 +127,7 @@ def make_graph(names, gx=None):
     with ProcessPoolExecutor(max_workers=20) as pool:
         futures = {
             pool.submit(get_attrs, name, i): name
-            for i, name in
-                   enumerate(total_names)
+            for i, name in enumerate(total_names)
         }
 
         for f in as_completed(futures):
@@ -174,14 +169,14 @@ def update_graph_pr_status(gx: nx.DiGraph) -> nx.DiGraph:
         try:
             res = f.result()
             if res:
-                gx.nodes[name]['PRed_json'][muid].update(**res)
-                logger.info('Updated json for {}: {}'.format(name, res['id']))
+                gx.nodes[name]["PRed_json"][muid].update(**res)
+                logger.info("Updated json for {}: {}".format(name, res["id"]))
         except github3.GitHubError as e:
-            logger.critical('GITHUB ERROR ON FEEDSTOCK: {}'.format(name))
+            logger.critical("GITHUB ERROR ON FEEDSTOCK: {}".format(name))
             if is_github_api_limit_reached(e, gh):
                 break
         except Exception as e:
-            logger.critical('ERROR ON FEEDSTOCK: {}: {}'.format(name, muid))
+            logger.critical("ERROR ON FEEDSTOCK: {}: {}".format(name, muid))
             raise
     return gx
 
@@ -192,7 +187,7 @@ def close_labels(gx: nx.DiGraph) -> nx.DiGraph:
     with ThreadPoolExecutor(max_workers=20) as pool:
         for node_id in gx.nodes:
             node = gx.nodes[node_id]
-            prs = node.get('PRed_json', {})
+            prs = node.get("PRed_json", {})
             for migrator, pr_json in prs.items():
                 # allow for false
                 if pr_json:
@@ -204,16 +199,18 @@ def close_labels(gx: nx.DiGraph) -> nx.DiGraph:
         try:
             res = f.result()
             if res:
-                gx.node[name]['PRed'].remove(muid)
-                del gx.nodes[name]['PRed_json'][muid]
-                logger.info('Closed and removed PR and branch for '
-                            '{}: {}'.format(name, res['id']))
+                gx.node[name]["PRed"].remove(muid)
+                del gx.nodes[name]["PRed_json"][muid]
+                logger.info(
+                    "Closed and removed PR and branch for "
+                    "{}: {}".format(name, res["id"])
+                )
         except github3.GitHubError as e:
-            logger.critical('GITHUB ERROR ON FEEDSTOCK: {}'.format(name))
+            logger.critical("GITHUB ERROR ON FEEDSTOCK: {}".format(name))
             if is_github_api_limit_reached(e, gh):
                 break
         except Exception as e:
-            logger.critical('ERROR ON FEEDSTOCK: {}: {}'.format(name, muid))
+            logger.critical("ERROR ON FEEDSTOCK: {}: {}".format(name, muid))
             raise
     return gx
 
