@@ -84,7 +84,7 @@ class Migrator:
             '{}\n'
             'If this PR was opened in error or needs to be updated please add '
             'the `bot-rerun` label to this PR. The bot will close this PR and '
-            'schedule another one.'
+            'schedule another one.\n\n'
             '<sub>'
             'This PR was created by the [cf-regro-autotick-bot](https://github.com/regro/cf-scripts).\n'
             'The **cf-regro-autotick-bot** is a service to automatically '
