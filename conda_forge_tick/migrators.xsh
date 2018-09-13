@@ -14,6 +14,7 @@ from conda_smithy.update_cb3 import update_cb3
 from conda_smithy.configure_feedstock import get_cfp_file_path
 from ruamel.yaml import safe_load, safe_dump
 
+from conda_forge_tick.path_lengths import cyclic_topological_sort
 from .utils import render_meta_yaml, UniversalSet
 
 # frozendict serializes its own hash, If this is done then deserialized frozendicts can
@@ -133,6 +134,22 @@ class Migrator:
         return frozendict(
             {'migrator_name': self.__class__.__name__,
              'migrator_version': self.migrator_version})
+
+    def order(self, graph, top_level):
+        """Order to run migrations in
+
+        Parameters
+        ----------
+        graph : nx.DiGraph
+            The graph of migratable PRs
+        top_level : set
+            The top nodes in the graph
+
+        Returns
+        -------
+
+        """
+        return cyclic_topological_sort(graph, top_level)
 
 
 class Version(Migrator):
@@ -661,6 +678,11 @@ class CompilerRebuild(Rebuild):
                         [a[1] for a in list(
                             self.graph.out_edges($PROJECT))[:5]])))
         return body
+
+    def order(self, graph, top_level):
+        """Run the order by number of decendents"""
+        return sorted(graph, key=lambda x: nx.descendants(graph, x),
+                      reverse=True)
 
 
 class Pinning(Migrator):
