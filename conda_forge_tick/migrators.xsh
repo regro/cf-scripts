@@ -135,20 +135,20 @@ class Migrator:
             {'migrator_name': self.__class__.__name__,
              'migrator_version': self.migrator_version})
 
-    def order(self, graph, top_level):
+    def order(self, graph):
         """Order to run migrations in
 
         Parameters
         ----------
         graph : nx.DiGraph
             The graph of migratable PRs
-        top_level : set
-            The top nodes in the graph
 
         Returns
         -------
 
         """
+        top_level = set(
+            node for node in graph if not list(graph.predecessors(node)))
         return cyclic_topological_sort(graph, top_level)
 
 
@@ -648,6 +648,11 @@ class Rebuild(Migrator):
         n = n.copy(name=self.name)
         return n
 
+    def order(self, graph, top_level):
+        """Run the order by number of decendents"""
+        return sorted(graph, key=lambda x: nx.descendants(graph, x),
+                      reverse=True)
+
 
 class CompilerRebuild(Rebuild):
     bump_number = 1000
@@ -678,11 +683,6 @@ class CompilerRebuild(Rebuild):
                         [a[1] for a in list(
                             self.graph.out_edges($PROJECT))[:5]])))
         return body
-
-    def order(self, graph, top_level):
-        """Run the order by number of decendents"""
-        return sorted(graph, key=lambda x: nx.descendants(graph, x),
-                      reverse=True)
 
 
 class Pinning(Migrator):
