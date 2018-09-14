@@ -270,7 +270,7 @@ def main(args=None):
 
         top_level = set(node for node in gx2 if not list(gx2.predecessors(node)))
         print(list(cyclic_topological_sort(gx2, top_level)))
-        for node in cyclic_topological_sort(gx2, top_level):
+        for node in migrator.order(gx2):
             attrs = gx2.nodes[node]
             # Don't let travis timeout, break ahead of the timeout so we make certain
             # to write to the repo
