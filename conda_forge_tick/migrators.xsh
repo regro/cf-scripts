@@ -648,7 +648,7 @@ class Rebuild(Migrator):
         n = n.copy(name=self.name)
         return n
 
-    def order(self, graph, top_level):
+    def order(self, graph):
         """Run the order by number of decendents"""
         return sorted(graph, key=lambda x: nx.descendants(graph, x),
                       reverse=True)
