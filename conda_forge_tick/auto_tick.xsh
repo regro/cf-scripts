@@ -158,7 +158,7 @@ def add_rebuild(migrators, gx):
         if req.get('host'):
             rq = [r.split()[0] for r in req.get('host') if r is not None]
         # elif there is a host and it is None; no requirements
-        elif req.get('host', 'no host') is None:
+        elif req.get('host', 'no host') in [None, []]:
             rq = []
         # there is no host; look at build
         else:
