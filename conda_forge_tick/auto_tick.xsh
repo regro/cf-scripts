@@ -164,10 +164,6 @@ def add_rebuild(migrators, gx):
         else:
             rq = [r.split()[0] for r in req.get('build', []) or [] if r is not None]
 
-        rq += [r.split()[0] for r in req.get('run', []) or [] if r is not None]
-        rq += [r.split()[0] for r in req.get('test', {}).get('requirements', []) or [] if r is not None]
-        rq = set(rq)
-
         for e in list(total_graph.in_edges(node)):
             if e[0] not in rq:
                 total_graph.remove_edge(*e)
@@ -177,7 +173,6 @@ def add_rebuild(migrators, gx):
     top_level = set(node for node in total_graph if not list(
         total_graph.predecessors(node)))
     cycles = list(nx.simple_cycles(total_graph))
-    print('cycles are here:', cycles)
 
     migrators.append(
         CompilerRebuild(graph=total_graph,
