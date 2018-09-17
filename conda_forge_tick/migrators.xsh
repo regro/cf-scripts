@@ -385,7 +385,7 @@ class Compiler(Migrator):
 
     rerender = True
 
-    compilers = {'toolchain', 'gcc', 'cython', 'pkg-config',
+    compilers = {'toolchain', 'toolchain3', 'gcc', 'cython', 'pkg-config',
                  'autotools', 'make', 'cmake', 'autconf', 'libtool', 'm4',
                  'ninja', 'jom', 'libgcc', 'libgfortran'}
 
@@ -443,7 +443,7 @@ class Noarch(Migrator):
 
     compiler_pat = re.compile('.*_compiler_stub')
     sel_pat = re.compile('(.+?)\s*(#.*)?\[([^\[\]]+)\](?(2)[^\(\)]*)$')
-    unallowed_reqs = ['toolchain', 'gcc', 'cython', 'clangdev']
+    unallowed_reqs = ['toolchain', 'toolchain3', 'gcc', 'cython', 'clangdev']
     checklist = ['No compiled extensions',
                  'No post-link or pre-link or pre-unlink scripts',
                  'No OS specific build scripts',
