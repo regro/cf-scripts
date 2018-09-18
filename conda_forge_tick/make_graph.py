@@ -188,8 +188,11 @@ def update_graph_pr_status(gx: nx.DiGraph) -> nx.DiGraph:
 def close_labels(gx: nx.DiGraph) -> nx.DiGraph:
     gh = github3.login(os.environ["USERNAME"], os.environ["PASSWORD"])
     futures = {}
+    node_ids = list(gx.nodes)
+    # this makes sure that github rate limits are dispursed
+    random.shuffle(node_ids)
     with ThreadPoolExecutor(max_workers=20) as pool:
-        for node_id in gx.nodes:
+        for node_id in node_ids:
             node = gx.nodes[node_id]
             prs = node.get("PRed_json", {})
             for migrator, pr_json in prs.items():
