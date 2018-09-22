@@ -164,15 +164,23 @@ def add_rebuild(migrators, gx):
         else:
             rq = [r.split()[0] for r in req.get('build', []) or [] if r is not None]
 
+        rq += [r.split()[0] for r in req.get('run', []) or [] if r is not None]
+        rq += [r.split()[0] for r in req.get('test', {}).get('requirements', []) or [] if r is not None]
+        rq = set(rq)
+
         for e in list(total_graph.in_edges(node)):
             if e[0] not in rq:
                 total_graph.remove_edge(*e)
         if not any([py_c, com_c, r_c, ob_c]):
             pluck(total_graph, node)
 
+    # post plucking we can have several strange cases, lets remove all selfloops
+    total_graph.remove_edges_from(total_graph.selfloop_edges())
+
     top_level = set(node for node in total_graph if not list(
         total_graph.predecessors(node)))
     cycles = list(nx.simple_cycles(total_graph))
+    print('cycles are here:', cycles)
 
     migrators.append(
         CompilerRebuild(graph=total_graph,
