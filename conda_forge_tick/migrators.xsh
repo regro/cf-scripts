@@ -135,7 +135,7 @@ class Migrator:
             {'migrator_name': self.__class__.__name__,
              'migrator_version': self.migrator_version})
 
-    def order(self, graph):
+    def order(self, graph, total_graph):
         """Order to run migrations in
 
         Parameters
@@ -648,9 +648,9 @@ class Rebuild(Migrator):
         n = n.copy(name=self.name)
         return n
 
-    def order(self, graph):
+    def order(self, graph, total_graph):
         """Run the order by number of decendents"""
-        return sorted(graph, key=lambda x: nx.descendants(graph, x),
+        return sorted(graph, key=lambda x: len(nx.descendants(total_graph, x)),
                       reverse=True)
 
 
