@@ -25,5 +25,5 @@ script:
   - codecov
   - echo "REBUILD -- TEST"
   - git clone --depth 1 https://github.com/regro/cf-graph3
-  - cf cf-graph3
+  - cd cf-graph3
   - python -m conda_forge_tick.test_status
