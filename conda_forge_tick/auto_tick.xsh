@@ -174,6 +174,9 @@ def add_rebuild(migrators, gx):
         if not any([py_c, com_c, r_c, ob_c]):
             pluck(total_graph, node)
 
+    # post plucking we can have several strange cases, lets remove all selfloops
+    total_graph.remove_edges_from(total_graph.selfloop_edges())
+
     top_level = set(node for node in total_graph if not list(
         total_graph.predecessors(node)))
     cycles = list(nx.simple_cycles(total_graph))

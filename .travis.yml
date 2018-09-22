@@ -23,3 +23,5 @@ script:
   - coverage run run_tests.py
   - coverage report -m
   - codecov
+  - echo "REBUILD -- TEST"
+  - python -m conda_forge_tick.test_status
