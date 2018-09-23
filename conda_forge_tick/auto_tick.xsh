@@ -277,8 +277,8 @@ def main(args=None):
                     len(gx2.node))
 
         top_level = set(node for node in gx2 if not list(gx2.predecessors(node)))
-        print(list(migrator.order(gx2)))
-        for node in migrator.order(gx2):
+        print(list(migrator.order(gx2, gx)))
+        for node in migrator.order(gx2, gx):
             attrs = gx2.nodes[node]
             # Don't let travis timeout, break ahead of the timeout so we make certain
             # to write to the repo
