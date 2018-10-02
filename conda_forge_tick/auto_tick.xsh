@@ -242,7 +242,11 @@ def migrator_status(migrator: Migrator, gx):
     top_level = set(node for node in gx2 if not list(gx2.predecessors(node)))
     build_sequence = list(cyclic_topological_sort(gx2, top_level))
 
+    feedstock_metadata = dict()
+
     for node, attrs in gx2.node.items():
+        node_metadata = {}
+        feedstock_metadata[node] = node_metadata
         nuid = migrator.migrator_uid(attrs)
         pr_json = attrs.get('PRed_json', {}).get(nuid, None)
 
@@ -257,9 +261,16 @@ def migrator_status(migrator: Migrator, gx):
             out['done'].add(node)
         else:
             out['in-pr'].add(node)
+        # additional metadata for reporting
+        node_metadata['num_descendants'] = len(nx.descendants(gx2, node))
+        node_metadata['immediate_children'] = list(sorted(gx2.successors(node)))
+        if pr_json:
+            node_metadata['pr_url'] = pr_json['html_url']
 
     for k in out.keys():
         out[k] = list(sorted(out[k], key=lambda x: build_sequence.index(x)))
+
+    out['_feedstock_status'] = feedstock_metadata
 
     return out, build_sequence
 
