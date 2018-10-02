@@ -31,6 +31,9 @@ logger = logging.getLogger("conda_forge_tick.make_graph")
 pin_sep_pat = re.compile(" |>|<|=|\[")
 
 
+NUM_GITHUB_THREADS = 8
+
+
 def get_attrs(name, i):
     sub_graph = {
         "time": time.time(),
@@ -156,9 +159,9 @@ def update_graph_pr_status(gx: nx.DiGraph) -> nx.DiGraph:
     gh = github3.login(os.environ["USERNAME"], os.environ["PASSWORD"])
     futures = {}
     node_ids = list(gx.nodes)
-    # this makes sure that github rate limits are dispursed
+    # this makes sure that github rate limits are dispersed
     random.shuffle(node_ids)
-    with ThreadPoolExecutor(max_workers=20) as pool:
+    with ThreadPoolExecutor(max_workers=NUM_GITHUB_THREADS) as pool:
         for node_id in node_ids:
             node = gx.nodes[node_id]
             prs = node.get("PRed_json", {})
@@ -189,9 +192,9 @@ def close_labels(gx: nx.DiGraph) -> nx.DiGraph:
     gh = github3.login(os.environ["USERNAME"], os.environ["PASSWORD"])
     futures = {}
     node_ids = list(gx.nodes)
-    # this makes sure that github rate limits are dispursed
+    # this makes sure that github rate limits are dispersed
     random.shuffle(node_ids)
-    with ThreadPoolExecutor(max_workers=20) as pool:
+    with ThreadPoolExecutor(max_workers=NUM_GITHUB_THREADS) as pool:
         for node_id in node_ids:
             node = gx.nodes[node_id]
             prs = node.get("PRed_json", {})
