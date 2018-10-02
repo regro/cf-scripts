@@ -263,10 +263,9 @@ def migrator_status(migrator: Migrator, gx):
             out['in-pr'].add(node)
         # additional metadata for reporting
         node_metadata['num_descendants'] = len(nx.descendants(gx2, node))
-        node_metadata['immediate_children'] = list(gx2.successors(node))
+        node_metadata['immediate_children'] = list(sorted(gx2.successors(node)))
         if pr_json:
             node_metadata['pr_url'] = pr_json['html_url']
-
 
     for k in out.keys():
         out[k] = list(sorted(out[k], key=lambda x: build_sequence.index(x)))

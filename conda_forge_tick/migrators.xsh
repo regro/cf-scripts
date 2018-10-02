@@ -669,8 +669,8 @@ class Rebuild(Migrator):
         return n
 
     def order(self, graph, total_graph):
-        """Run the order by number of decendents"""
-        return sorted(graph, key=lambda x: len(nx.descendants(total_graph, x)),
+        """Run the order by number of decendents, ties are resolved by package name"""
+        return sorted(graph, key=lambda x: (len(nx.descendants(total_graph, x)), x),
                       reverse=True)
 
 
