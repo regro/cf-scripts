@@ -634,7 +634,7 @@ class Rebuild(Migrator):
 
     def migrate(self, recipe_dir, attrs, **kwargs):
         with indir(recipe_dir):
-            self.bump_build_number('meta.yaml')
+            self.set_build_number('meta.yaml')
         return self.migrator_uid(attrs)
 
     def pr_body(self):
