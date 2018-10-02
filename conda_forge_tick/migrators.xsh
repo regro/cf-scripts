@@ -366,7 +366,7 @@ class Version(Migrator):
         return h.get('version', '0.0.0')
 
     @classmethod
-    def new_build_number(cls, old_number: int):
+    def new_build_number(cls, old_build_number: int):
         if old_build_number > 1000:
             return 1000
         else:
