@@ -33,6 +33,14 @@ class Migrator:
 
     migrator_version = 0
 
+    build_patterns = ((re.compile('(\s*?)number:\s*([0-9]+)'),
+                       'number: {}'),
+                      (re.compile('(\s*?){%\s*set build_number\s*=\s*"?([0-9]+)"?\s*%}'),
+                       '{{% set build_number = {} %}}'),
+                      (re.compile('(\s*?){%\s*set build\s*=\s*"?([0-9]+)"?\s*%}'),
+                       '{{% set build = {} %}}')
+                     )
+
     def __init__(self, pr_limit=0):
         self.pr_limit = pr_limit
 
@@ -151,6 +159,47 @@ class Migrator:
             node for node in graph if not list(graph.predecessors(node)))
         return cyclic_topological_sort(graph, top_level)
 
+    @classmethod
+    def set_build_number(cls, filename):
+        """Bump the build number of the specified recipe.
+
+        Parameters
+        ----------
+        filename : str
+            Path the the meta.yaml
+
+        """
+
+        for p, n in cls.build_patterns:
+            with open(filename, 'r') as f:
+                raw = f.read()
+            lines = raw.splitlines()
+            for i, line in enumerate(lines):
+                m = p.match(line)
+                if m is not None:
+                    old_build_number = int(m.group(2))
+                    new_build_number = cls.new_build_number(old_build_number)
+                    lines[i] = m.group(1) + n.format(new_build_number)
+            upd = '\n'.join(lines) + '\n'
+            with open(filename, 'w') as f:
+                f.write(upd)
+
+    @classmethod
+    def new_build_number(cls, old_number: int):
+        """Determine the new build number to use.
+
+        Parameters
+        ----------
+        old_number : int
+            Old build number detected
+
+        Returns
+        -------
+        new_build_number
+        """
+        increment = getattr(cls, "bump_number", 1)
+        return old_number + increment
+
 
 class Version(Migrator):
     """Migrator for version bumping of packages"""
@@ -160,12 +209,6 @@ class Version(Migrator):
         ('meta.yaml', 'version:\s*[A-Za-z0-9._-]+', 'version: "$VERSION"'),
         ('meta.yaml', '{%\s*set\s+version\s*=\s*[^\s]*\s*%}',
             '{% set version = "$VERSION" %}'),
-        # reset the build number to 0
-        ('meta.yaml', '  number:\s*[0-9]+', '  number: 0'),
-        ('meta.yaml', '{%\s*set build_number\s*=\s*"?[0-9]+"?\s*%}',
-         '{% set build_number = 0 %}'),
-        ('meta.yaml', '{%\s*set build\s*=\s*"?[0-9]+"?\s*%}',
-         '{% set build = 0 %}'),
     )
 
     url_pat = re.compile(r'^( *)(-)?(\s*)url:\s*([^\s#]+?)\s*(?:(#.*)?\[([^\[\]]+)\])?(?(5)[^\(\)\n]*)(?(2)\n\1 \3.*)*$', flags=re.M)
@@ -270,6 +313,7 @@ class Version(Migrator):
                 p = eval_version(p)
                 n = eval_version(n)
                 replace_in_file(p, n, f)
+            self.set_build_number('meta.yaml')
         return self.migrator_uid(attrs)
 
     def pr_body(self):
@@ -321,6 +365,13 @@ class Version(Migrator):
     def _extract_version_from_hash(self, h):
         return h.get('version', '0.0.0')
 
+    @classmethod
+    def new_build_number(cls, old_number: int):
+        if old_build_number > 1000:
+            return 1000
+        else:
+            return 0
+
 
 class JS(Migrator):
     """Migrator for JavaScript syntax"""
@@ -354,7 +405,7 @@ class JS(Migrator):
                 replace_in_file(p, n, f,
                                 leading_whitespace=False
                                 )
-            Rebuild.bump_build_number('meta.yaml')
+            self.set_build_number('meta.yaml')
         return self.migrator_uid(attrs)
 
     def pr_body(self):
@@ -405,7 +456,7 @@ class Compiler(Migrator):
             content, self.messages = update_cb3('meta.yaml', self.cfp)
             with open('meta.yaml', 'w') as f:
                 f.write(content)
-            Rebuild.bump_build_number('meta.yaml')
+            self.set_build_number('meta.yaml')
         return self.migrator_uid(attrs)
 
     def pr_body(self):
@@ -509,7 +560,7 @@ class Noarch(Migrator):
                         '  host:\n    - pip',
                         'meta.yaml',
                         leading_whitespace=False)
-            Rebuild.bump_build_number('meta.yaml')
+            self.set_build_number('meta.yaml')
         return self.migrator_uid(attrs)
 
     def pr_body(self):
@@ -549,14 +600,6 @@ class Rebuild(Migrator):
     rerender = True
     bump_number = 1
 
-    build_patterns = ((re.compile('(\s*?)number:\s*([0-9]+)'),
-                       'number: {}'),
-                      (re.compile('(\s*?){%\s*set build_number\s*=\s*"?([0-9]+)"?\s*%}'),
-                       '{{% set build_number = {} %}}'),
-                      (re.compile('(\s*?){%\s*set build\s*=\s*"?([0-9]+)"?\s*%}'),
-                       '{{% set build = {} %}}')
-                     )
-
     def __init__(self, graph=None, name=None, pr_limit=0, top_level=None,
                  cycles=None):
         super().__init__(pr_limit)
@@ -567,29 +610,6 @@ class Rebuild(Migrator):
         self.name = name
         self.top_level = top_level
         self.cycles = set(chain.from_iterable(cycles))
-
-    @classmethod
-    def bump_build_number(cls, filename):
-        """Bump the build number of the specified recipe.
-
-        Parameters
-        ----------
-        filename : str
-            Path the the meta.yaml
-
-        """
-
-        for p, n in cls.build_patterns:
-            with open(filename, 'r') as f:
-                raw = f.read()
-            lines = raw.splitlines()
-            for i, line in enumerate(lines):
-                m = p.match(line)
-                if m is not None:
-                    lines[i] = m.group(1) + n.format(int(m.group(2)) + cls.bump_number)
-            upd = '\n'.join(lines) + '\n'
-            with open(filename, 'w') as f:
-                f.write(upd)
 
     def filter(self, attrs):
         if super().filter(attrs):
@@ -724,7 +744,7 @@ class Pinning(Migrator):
         upd = "\n".join(lines) + "\n"
         with open(os.path.join(recipe_dir, "meta.yaml"), "w") as f:
             f.write(upd)
-        Rebuild.bump_build_number(os.path.join(recipe_dir, "meta.yaml"))
+        self.set_build_number(os.path.join(recipe_dir, "meta.yaml"))
         return self.migrator_uid(attrs)
 
     def pr_body(self):
