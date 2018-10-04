@@ -166,6 +166,8 @@ def add_rebuild(migrators, gx):
 
         rq += [r.split()[0] for r in req.get('run', []) or [] if r is not None]
         rq += [r.split()[0] for r in req.get('test', {}).get('requirements', []) or [] if r is not None]
+        rq += [r.split()[0] for r in req.get('test', {}).get('requires', []) or [] if r is not None]
+        
         rq = set(rq)
 
         for e in list(total_graph.in_edges(node)):
