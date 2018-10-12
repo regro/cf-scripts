@@ -31,7 +31,7 @@ logger = logging.getLogger("conda_forge_tick.make_graph")
 pin_sep_pat = re.compile(" |>|<|=|\[")
 
 
-NUM_GITHUB_THREADS = 8
+NUM_GITHUB_THREADS = 4
 
 
 def get_attrs(name, i):
