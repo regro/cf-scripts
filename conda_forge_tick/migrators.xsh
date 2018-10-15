@@ -367,7 +367,7 @@ class Version(Migrator):
 
     @classmethod
     def new_build_number(cls, old_build_number: int):
-        if old_build_number > 1000:
+        if old_build_number >= 1000:
             return 1000
         else:
             return 0
