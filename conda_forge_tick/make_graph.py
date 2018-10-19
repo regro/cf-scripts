@@ -254,6 +254,7 @@ def ping_if_ready(gx: nx.DiGraph) -> nx.DiGraph:
             raise
     return gx
 
+
 def main(args=None):
     setup_logger(logger)
     names = get_all_feedstocks(cached=True)
