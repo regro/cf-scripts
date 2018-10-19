@@ -168,7 +168,7 @@ def update_graph_pr_status(gx: nx.DiGraph) -> nx.DiGraph:
             for migrator, pr_json in prs.items():
                 # allow for false
                 if pr_json:
-                    future = pool.submit(refresh_pr, pr_json, gh)
+                    future = pool.submit(ping_maintainers, pr_json, gh)
                     futures[future] = (node_id, migrator)
 
     for f in as_completed(futures):
@@ -224,6 +224,35 @@ def close_labels(gx: nx.DiGraph) -> nx.DiGraph:
             raise
     return gx
 
+
+def ping_if_ready(gx: nx.DiGraph) -> nx.DiGraph:
+    gh = github3.login(os.environ["USERNAME"], os.environ["PASSWORD"])
+    futures = {}
+    node_ids = list(gx.nodes)
+    # this makes sure that github rate limits are dispersed
+    random.shuffle(node_ids)
+    with ThreadPoolExecutor(max_workers=NUM_GITHUB_THREADS) as pool:
+        for node_id in node_ids:
+            node = gx.nodes[node_id]
+            prs = node.get("PRed_json", {})
+            for migrator, pr_json in prs.items():
+                # allow for false
+                if pr_json:
+                    future = pool.submit(ping_maintainers, pr_json, gh)
+                    futures[future] = (node_id, migrator)
+
+    for f in as_completed(futures):
+        name, muid = futures[f]
+        try:
+            res = f.result()
+        except github3.GitHubError as e:
+            logger.critical("GITHUB ERROR ON FEEDSTOCK: {}".format(name))
+            if is_github_api_limit_reached(e, gh):
+                break
+        except Exception as e:
+            logger.critical("ERROR ON FEEDSTOCK: {}: {}".format(name, muid))
+            raise
+    return gx
 
 def main(args=None):
     setup_logger(logger)
