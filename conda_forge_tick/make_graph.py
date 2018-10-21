@@ -217,7 +217,7 @@ def poke_gh(gx: nx.DiGraph, callbacks):
                     raise
             i += 1
             time.sleep(GH_SLEEP_TIME)
-        return gx
+    return gx
 
 
 def main(args=None):
