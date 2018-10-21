@@ -167,6 +167,8 @@ def ping_maintainers(pr_json: LazyJson, gh=None):
     if not pr_json['state'] == 'closed':
         r = requests.get(pr_json['statuses_url'],
                          auth=($USERNAME, $PASSWORD))
+        if r.status_code != 200:
+            return dict(pr_json)
         statuses_json = r.json()
         current_status = {i['context']: (i['state'], i['id']) for i in
              sorted(statuses_json, key=lambda x: x['updated_at'])}
