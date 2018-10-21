@@ -190,6 +190,9 @@ def poke_gh(gx: nx.DiGraph, callbacks):
         i = 0
         # Try 3 times to do the work
         while i < NUM_RERUNS and len(work) > 0:
+            logger.info(
+                "On rerun {}, {} items of work left for {}".format(
+                    i, len(work), cb.__name__))
             futures = {}
             with ThreadPoolExecutor(max_workers=NUM_GITHUB_THREADS) as pool:
                 for w in work:
