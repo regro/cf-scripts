@@ -216,6 +216,8 @@ def poke_gh(gx: nx.DiGraph, callbacks):
                         "ERROR ON FEEDSTOCK: {}: {}".format(name, muid))
                     raise
             i += 1
+            logger.info("Sleeping for {} to refresh API, {} calls left".format(
+                GH_SLEEP_TIME, work))
             time.sleep(GH_SLEEP_TIME)
     return gx
 
