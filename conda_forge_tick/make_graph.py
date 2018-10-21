@@ -24,7 +24,8 @@ from .utils import parse_meta_yaml, setup_logger
 from .git_utils import (
     refresh_pr,
     is_github_api_limit_reached,
-    close_out_labels, ping_maintainers
+    close_out_labels,
+    ping_maintainers,
 )
 
 logger = logging.getLogger("conda_forge_tick.make_graph")
@@ -203,21 +204,34 @@ def poke_gh(gx: nx.DiGraph, callbacks):
                     if res:
                         gx.nodes[name]["PRed_json"][muid].update(**res)
                         logger.info(
-                            "Ran {} for {}: {}".format(cb.__name__,
-                                                       name, res["id"]))
+                            "Ran {} for {}: {}, API calls {}".format(
+                                cb.__name__,
+                                name,
+                                res["id"],
+                                gh.rate_limit()["resources"]["core"][
+                                    "remaining"
+                                ],
+                            )
+                        )
                         # If work succeeds remove it from the list of work
                         work.pop(work.index((name, muid, pr_json)))
                 except github3.GitHubError as e:
-                    logger.critical("GITHUB ERROR ON FEEDSTOCK: {}".format(name))
+                    logger.critical(
+                        "GITHUB ERROR ON FEEDSTOCK: {}".format(name)
+                    )
                     if is_github_api_limit_reached(e, gh):
                         break
                 except Exception as e:
                     logger.critical(
-                        "ERROR ON FEEDSTOCK: {}: {}".format(name, muid))
+                        "ERROR ON FEEDSTOCK: {}: {}".format(name, muid)
+                    )
                     raise
             i += 1
-            logger.info("Sleeping for {} to refresh API, {} calls left".format(
-                GH_SLEEP_TIME, work))
+            logger.info(
+                "Sleeping for {} to refresh API, {} calls left".format(
+                    GH_SLEEP_TIME, work
+                )
+            )
             time.sleep(GH_SLEEP_TIME)
     return gx
 
