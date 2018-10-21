@@ -178,7 +178,6 @@ def poke_gh(gx: nx.DiGraph, callbacks):
         node_ids = list(gx.nodes)
         # this makes sure that github rate limits are dispersed
         random.shuffle(node_ids)
-        i = 0
         # Make a list of work to be done
         work = []
         for node_id in node_ids:
@@ -188,8 +187,9 @@ def poke_gh(gx: nx.DiGraph, callbacks):
                 # allow for false
                 if pr_json:
                     work.append((node_id, migrator, pr_json))
+        i = 0
         # Try 3 times to do the work
-        while i < NUM_RERUNS:
+        while i < NUM_RERUNS and len(work) > 0:
             futures = {}
             with ThreadPoolExecutor(max_workers=NUM_GITHUB_THREADS) as pool:
                 for w in work:
