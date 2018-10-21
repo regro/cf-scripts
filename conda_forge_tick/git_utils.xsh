@@ -12,6 +12,7 @@ import github3
 import github3.pulls
 
 import networkx as nx
+import requests
 from doctr.travis import run_command_hiding_token as doctr_run
 from pkg_resources import parse_version
 from rever.tools import (eval_version, hash_url, replace_in_file)
@@ -157,6 +158,26 @@ def refresh_pr(pr_json: LazyJson, gh=None):
         # if state passed from opened to closed delete the branch
         if pr_obj_d['state'] == 'closed' and pr_obj_d.get('merged_at', False):
             delete_branch(pr_json)
+        return pr_obj.as_dict()
+
+
+def ping_maintainers(pr_json: LazyJson, gh=None):
+    if gh is None:
+        gh = github3.login($USERNAME, $PASSWORD)
+    if not pr_json['state'] == 'closed':
+        r = requests.get(pr_json['statuses_url'],
+                         auth=($USERNAME, $PASSWORD))
+        statuses_json = r.json()
+        current_status = {i['context']: (i['state'], i['id']) for i in
+             sorted(statuses_json, key=lambda x: x['updated_at'])}
+        cached_status = LazyJson(
+            os.path.join('pr_status', '{}_status.json'.format(pr_json['id'] )))
+        # If the status has been updated, and none are pending
+        if current_status != cached_status and all(i['state'] != 'pending' for i in current_status):
+            pr_obj = github3.pulls.PullRequest(pr_json, gh)
+            if pr_obj.create_comment('''Hi {}, I think all the CI statuses have
+            come in. This PR is ready for review/merge'''.format('conda-forge/' + pr_json['head']['repo']['name'])):
+                cached_status.update(**current_status)
         return pr_obj.as_dict()
 
 

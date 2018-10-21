@@ -24,7 +24,7 @@ from .utils import parse_meta_yaml, setup_logger
 from .git_utils import (
     refresh_pr,
     is_github_api_limit_reached,
-    close_out_labels,
+    close_out_labels, ping_maintainers
 )
 
 logger = logging.getLogger("conda_forge_tick.make_graph")
@@ -32,6 +32,8 @@ pin_sep_pat = re.compile(" |>|<|=|\[")
 
 
 NUM_GITHUB_THREADS = 4
+NUM_RERUNS = 3
+GH_SLEEP_TIME = 60
 
 
 def get_attrs(name, i):
@@ -155,74 +157,66 @@ def make_graph(names, gx=None):
     return gx
 
 
-def update_graph_pr_status(gx: nx.DiGraph) -> nx.DiGraph:
+def poke_gh(gx: nx.DiGraph, callbacks):
+    """Access GitHub via API calls
+
+    Parameters
+    ----------
+    gx : nx.DiGraph
+        The graph
+    callbacks : iterable
+        An iterable of functions which take in pr_json and return the graph
+
+    Returns
+    -------
+    gx : nx.DiGraph
+        The new graph
+    """
     gh = github3.login(os.environ["USERNAME"], os.environ["PASSWORD"])
-    futures = {}
-    node_ids = list(gx.nodes)
-    # this makes sure that github rate limits are dispersed
-    random.shuffle(node_ids)
-    with ThreadPoolExecutor(max_workers=NUM_GITHUB_THREADS) as pool:
+    for cb in callbacks:
+        node_ids = list(gx.nodes)
+        # this makes sure that github rate limits are dispersed
+        random.shuffle(node_ids)
+        i = 0
+        # Make a list of work to be done
+        work = []
         for node_id in node_ids:
             node = gx.nodes[node_id]
             prs = node.get("PRed_json", {})
             for migrator, pr_json in prs.items():
                 # allow for false
                 if pr_json:
-                    future = pool.submit(refresh_pr, pr_json, gh)
-                    futures[future] = (node_id, migrator)
+                    work.append((node_id, migrator, pr_json))
+        # Try 3 times to do the work
+        while i < NUM_RERUNS:
+            futures = {}
+            with ThreadPoolExecutor(max_workers=NUM_GITHUB_THREADS) as pool:
+                for w in work:
+                    node_id, migrator, pr_json = w
+                    future = pool.submit(cb, pr_json, gh)
+                    futures[future] = w
 
-    for f in as_completed(futures):
-        name, muid = futures[f]
-        try:
-            res = f.result()
-            if res:
-                gx.nodes[name]["PRed_json"][muid].update(**res)
-                logger.info("Updated json for {}: {}".format(name, res["id"]))
-        except github3.GitHubError as e:
-            logger.critical("GITHUB ERROR ON FEEDSTOCK: {}".format(name))
-            if is_github_api_limit_reached(e, gh):
-                break
-        except Exception as e:
-            logger.critical("ERROR ON FEEDSTOCK: {}: {}".format(name, muid))
-            raise
-    return gx
-
-
-def close_labels(gx: nx.DiGraph) -> nx.DiGraph:
-    gh = github3.login(os.environ["USERNAME"], os.environ["PASSWORD"])
-    futures = {}
-    node_ids = list(gx.nodes)
-    # this makes sure that github rate limits are dispersed
-    random.shuffle(node_ids)
-    with ThreadPoolExecutor(max_workers=NUM_GITHUB_THREADS) as pool:
-        for node_id in node_ids:
-            node = gx.nodes[node_id]
-            prs = node.get("PRed_json", {})
-            for migrator, pr_json in prs.items():
-                # allow for false
-                if pr_json:
-                    future = pool.submit(close_out_labels, pr_json, gh)
-                    futures[future] = (node_id, migrator)
-
-    for f in as_completed(futures):
-        name, muid = futures[f]
-        try:
-            res = f.result()
-            if res:
-                gx.node[name]["PRed"].remove(muid)
-                del gx.nodes[name]["PRed_json"][muid]
-                logger.info(
-                    "Closed and removed PR and branch for "
-                    "{}: {}".format(name, res["id"])
-                )
-        except github3.GitHubError as e:
-            logger.critical("GITHUB ERROR ON FEEDSTOCK: {}".format(name))
-            if is_github_api_limit_reached(e, gh):
-                break
-        except Exception as e:
-            logger.critical("ERROR ON FEEDSTOCK: {}: {}".format(name, muid))
-            raise
-    return gx
+            for f in as_completed(futures):
+                name, muid, pr_json = futures[f]
+                try:
+                    res = f.result()
+                    if res:
+                        gx.nodes[name]["PRed_json"][muid].update(**res)
+                        logger.info(
+                            "Updated json for {}: {}".format(name, res["id"]))
+                        # If work succeeds remove it from the list of work
+                        work.pop(work.index((name, muid, pr_json)))
+                except github3.GitHubError as e:
+                    logger.critical("GITHUB ERROR ON FEEDSTOCK: {}".format(name))
+                    if is_github_api_limit_reached(e, gh):
+                        break
+                except Exception as e:
+                    logger.critical(
+                        "ERROR ON FEEDSTOCK: {}: {}".format(name, muid))
+                    raise
+            i += 1
+            time.sleep(GH_SLEEP_TIME)
+        return gx
 
 
 def main(args=None):
@@ -230,8 +224,7 @@ def main(args=None):
     names = get_all_feedstocks(cached=True)
     gx = nx.read_gpickle("graph.pkl")
     gx = make_graph(names, gx)
-    gx = update_graph_pr_status(gx)
-    gx = close_labels(gx)
+    gx = poke_gh(gx, (refresh_pr, close_out_labels, ping_maintainers))
 
     logger.info("writing out file")
     nx.write_gpickle(gx, "graph.pkl")
