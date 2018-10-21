@@ -9,10 +9,10 @@ logger = logging.getLogger("conda_forge_tick.all-feedstocks")
 
 
 def get_all_feedstocks_from_github():
-    gh = github3.login(os.environ["USERNAME"], os.environ["PASSWORD"])
-    org = gh.organization("conda-forge")
     names = []
     try:
+        gh = github3.login(os.environ["USERNAME"], os.environ["PASSWORD"])
+        org = gh.organization("conda-forge")
         for repo in org.repositories():
             name = repo.name
             if name.endswith("-feedstock"):
