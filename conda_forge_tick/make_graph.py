@@ -229,7 +229,7 @@ def poke_gh(gx: nx.DiGraph, callbacks):
             i += 1
             logger.info(
                 "Sleeping for {} to refresh API, {} calls left".format(
-                    GH_SLEEP_TIME, work
+                    GH_SLEEP_TIME, len(work)
                 )
             )
             time.sleep(GH_SLEEP_TIME)
