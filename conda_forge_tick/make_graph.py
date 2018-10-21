@@ -203,7 +203,8 @@ def poke_gh(gx: nx.DiGraph, callbacks):
                     if res:
                         gx.nodes[name]["PRed_json"][muid].update(**res)
                         logger.info(
-                            "Updated json for {}: {}".format(name, res["id"]))
+                            "Ran {} for {}: {}".format(cb.__name__,
+                                                       name, res["id"]))
                         # If work succeeds remove it from the list of work
                         work.pop(work.index((name, muid, pr_json)))
                 except github3.GitHubError as e:
