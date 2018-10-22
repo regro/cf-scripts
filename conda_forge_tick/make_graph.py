@@ -32,7 +32,7 @@ logger = logging.getLogger("conda_forge_tick.make_graph")
 pin_sep_pat = re.compile(" |>|<|=|\[")
 
 
-NUM_GITHUB_THREADS = 2
+NUM_GITHUB_THREADS = 4
 NUM_RERUNS = 3
 GH_SLEEP_TIME = 60
 
@@ -246,7 +246,9 @@ def main(args=None):
     names = get_all_feedstocks(cached=True)
     gx = nx.read_gpickle("graph.pkl")
     gx = make_graph(names, gx)
-    gx = poke_gh(gx, (refresh_pr, close_out_labels, ping_maintainers))
+    gx = poke_gh(gx, (refresh_pr, close_out_labels,
+                      # ping_maintainers
+                      ))
 
     logger.info("writing out file")
     nx.write_gpickle(gx, "graph.pkl")
