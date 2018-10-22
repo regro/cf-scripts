@@ -216,8 +216,6 @@ def poke_gh(gx: nx.DiGraph, callbacks):
                                 ],
                             )
                         )
-                        # If work succeeds remove it from the list of work
-                        work.pop(work.index((name, muid, pr_json)))
                 except github3.GitHubError as e:
                     logger.critical(
                         "GITHUB ERROR ON FEEDSTOCK: {}".format(name)
@@ -229,6 +227,9 @@ def poke_gh(gx: nx.DiGraph, callbacks):
                         "ERROR ON FEEDSTOCK: {}: {}".format(name, muid)
                     )
                     raise
+                else:
+                    # If work didn't error remove it from the list of work
+                    work.pop(work.index((name, muid, pr_json)))
             i += 1
             logger.info(
                 "Sleeping for {} to refresh API, {} items of work left".format(
