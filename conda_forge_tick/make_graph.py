@@ -32,7 +32,7 @@ logger = logging.getLogger("conda_forge_tick.make_graph")
 pin_sep_pat = re.compile(" |>|<|=|\[")
 
 
-NUM_GITHUB_THREADS = 4
+NUM_GITHUB_THREADS = 2
 NUM_RERUNS = 3
 GH_SLEEP_TIME = 60
 
@@ -207,13 +207,10 @@ def poke_gh(gx: nx.DiGraph, callbacks):
                     if res:
                         gx.nodes[name]["PRed_json"][muid].update(**res)
                         logger.info(
-                            "Ran {} for {}: {}, API calls {}".format(
+                            "Ran {} for {}: {}".format(
                                 cb.__name__,
                                 name,
                                 res["id"],
-                                gh.rate_limit()["resources"]["core"][
-                                    "remaining"
-                                ],
                             )
                         )
                 except github3.GitHubError as e:
@@ -232,8 +229,12 @@ def poke_gh(gx: nx.DiGraph, callbacks):
                     work.pop(work.index((name, muid, pr_json)))
             i += 1
             logger.info(
-                "Sleeping for {} to refresh API, {} items of work left".format(
-                    GH_SLEEP_TIME, len(work)
+                "Sleeping for {} to refresh API, "
+                "{} items of work left, "
+                "{} API calls left".format(
+                    GH_SLEEP_TIME,
+                    len(work),
+                    gh.rate_limit()["resources"]["core"]["remaining"]
                 )
             )
             time.sleep(GH_SLEEP_TIME)
