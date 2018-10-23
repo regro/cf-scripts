@@ -179,9 +179,14 @@ def ping_maintainers(pr_json: LazyJson, gh=None):
         if current_status != cached_status and all(
                 i[0] != 'pending' for i in current_status.values()):
             pr_obj = github3.pulls.PullRequest(pr_json, gh)
-            comment = pr_obj.create_comment('''Hi @{}, I think all the CI 
-            statuses have come in. This PR is ready for review/merge
-            '''.format('conda-forge/' + pr_json['head']['repo']['name']))
+            if any(i[0] != 'success' for i in current_status.values()):
+                msg = '''Hi @{}, I think all the CI statuses have come in. 
+                Some did not pass, please modify this PR so the CI can try again.'''
+            else:
+                msg = '''Hi @{}, I think all the CI statuses have come in. 
+                All the CIs have passed, please review/merge.''')
+            comment = pr_obj.create_comment(msg.format(
+                    'conda-forge/' + pr_json['head']['repo']['name'])
             print(comment)
             if comment:
                 cached_status.update(**current_status)

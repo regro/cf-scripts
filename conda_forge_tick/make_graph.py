@@ -247,7 +247,7 @@ def main(args=None):
     gx = nx.read_gpickle("graph.pkl")
     gx = make_graph(names, gx)
     gx = poke_gh(gx, (refresh_pr, close_out_labels,
-                      # ping_maintainers
+                      ping_maintainers
                       ))
 
     logger.info("writing out file")
