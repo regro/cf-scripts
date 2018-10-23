@@ -234,7 +234,7 @@ def poke_gh(gx: nx.DiGraph, callbacks):
                 "{} API calls left".format(
                     GH_SLEEP_TIME,
                     len(work),
-                    rate_limit()['remaining']
+                    rate_limit(gh)['remaining']
                 )
             )
             time.sleep(GH_SLEEP_TIME)

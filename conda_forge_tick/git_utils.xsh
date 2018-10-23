@@ -254,7 +254,7 @@ def push_repo(feedstock_dir, body, repo, title, head, branch,
     return ljpr
 
 
-def rate_limit():
+def rate_limit(gh):
     try:
         c = gh.rate_limit()['resources']['core']
     except github3.GitHubError:
@@ -276,7 +276,7 @@ def is_github_api_limit_reached(e: github3.GitHubError, gh: github3.GitHub) -> b
     if 'Retry-After' in e.response.headers:
         print('Retry-After {}'.format(e.response.headers['Retry-After']))
 
-    c = rate_limit()
+    c = rate_limit(gh)
     if c['remaining'] == 0:
         ts = c['reset']
         print('API timeout, API returns at')
