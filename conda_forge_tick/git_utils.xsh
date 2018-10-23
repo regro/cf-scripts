@@ -186,7 +186,8 @@ def ping_maintainers(pr_json: LazyJson, gh=None):
                 msg = '''Hi @{}, I think all the CI statuses have come in. 
                 All the CIs have passed, please review/merge.'''
             comment = pr_obj.create_comment(msg.format(
-                    'conda-forge/' + pr_json['head']['repo']['name']))
+                    'conda-forge/' + pr_json['head']['repo']['name'].split(
+                        '-feedstock')[0]))
             print(comment)
             if comment:
                 cached_status.update(**current_status)
