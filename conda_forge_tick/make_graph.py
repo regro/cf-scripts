@@ -34,7 +34,8 @@ pin_sep_pat = re.compile(" |>|<|=|\[")
 
 NUM_GITHUB_THREADS = 4
 NUM_RERUNS = 3
-GH_SLEEP_TIME = 60
+GH_SLEEP_TIME = 70
+ACTIONS_PER = 20
 
 
 def get_attrs(name, i):
@@ -187,59 +188,43 @@ def poke_gh(gx: nx.DiGraph, callbacks):
             prs = node.get("PRed_json", {})
             for migrator, pr_json in prs.items():
                 # allow for false
-                if pr_json:
+                if pr_json and pr_json['state'] != 'closed':
                     work.append((node_id, migrator, pr_json))
-        i = 0
-        # Try 3 times to do the work
-        while i < NUM_RERUNS and len(work) > 0:
-            logger.info(
-                "On rerun {}, {} items of work left for {}".format(
-                    i, len(work), cb.__name__))
-            futures = {}
-            with ThreadPoolExecutor(max_workers=NUM_GITHUB_THREADS) as pool:
-                for w in work:
-                    node_id, migrator, pr_json = w
-                    future = pool.submit(cb, pr_json, gh)
-                    futures[future] = w
-
-            for f in as_completed(futures):
-                name, muid, pr_json = futures[f]
-                try:
-                    res = f.result()
-                    if res:
-                        gx.nodes[name]["PRed_json"][muid].update(**res)
-                        logger.info(
-                            "Ran {} for {}: {}".format(
-                                cb.__name__,
-                                name,
-                                res["id"],
+        logger.info(
+            "On rerun {}, {} items of work left for {}".format(
+                i, len(work), cb.__name__))
+        futures = {}
+        with ThreadPoolExecutor(max_workers=NUM_GITHUB_THREADS) as pool:
+            for i, w in enumerate(work):
+                node_id, migrator, pr_json = w
+                future = pool.submit(cb, pr_json, gh)
+                futures[future] = w
+                if (i + 1) % ACTIONS_PER == 0:
+                    for f in as_completed(futures):
+                        name, muid, pr_json = futures[f]
+                        try:
+                            res = f.result()
+                            if res:
+                                gx.nodes[name]["PRed_json"][muid].update(**res)
+                                logger.info(
+                                    "Ran {} for {}: {}".format(
+                                        cb.__name__,
+                                        name,
+                                        res["id"],
+                                    )
+                                )
+                        except github3.GitHubError as e:
+                            logger.critical(
+                                "GITHUB ERROR ON FEEDSTOCK: {}".format(name)
                             )
-                        )
-                except github3.GitHubError as e:
-                    logger.critical(
-                        "GITHUB ERROR ON FEEDSTOCK: {}".format(name)
-                    )
-                    if is_github_api_limit_reached(e, gh):
-                        break
-                except Exception as e:
-                    logger.critical(
-                        "ERROR ON FEEDSTOCK: {}: {}".format(name, muid)
-                    )
-                    raise
-                else:
-                    # If work didn't error remove it from the list of work
-                    work.pop(work.index((name, muid, pr_json)))
-            i += 1
-            logger.info(
-                "Sleeping for {} to refresh API, "
-                "{} items of work left, "
-                "{} API calls left".format(
-                    GH_SLEEP_TIME,
-                    len(work),
-                    rate_limit(gh)['remaining']
-                )
-            )
-            time.sleep(GH_SLEEP_TIME)
+                            if is_github_api_limit_reached(e, gh):
+                                break
+                        except Exception as e:
+                            logger.critical(
+                                "ERROR ON FEEDSTOCK: {}: {}".format(name, muid)
+                            )
+                            raise
+                    time.sleep(GH_SLEEP_TIME)
     return gx
 
 
