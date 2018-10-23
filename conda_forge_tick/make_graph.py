@@ -35,7 +35,7 @@ pin_sep_pat = re.compile(" |>|<|=|\[")
 NUM_GITHUB_THREADS = 4
 NUM_RERUNS = 3
 GH_SLEEP_TIME = 70
-ACTIONS_PER = 20
+ACTIONS_PER_MINUTE = 20
 
 
 def get_attrs(name, i):
@@ -199,7 +199,7 @@ def poke_gh(gx: nx.DiGraph, callbacks):
                 node_id, migrator, pr_json = w
                 future = pool.submit(cb, pr_json, gh)
                 futures[future] = w
-                if (i + 1) % ACTIONS_PER == 0:
+                if (i + 1) % ACTIONS_PER_MINUTE == 0:
                     for f in as_completed(futures):
                         name, muid, pr_json = futures[f]
                         try:
