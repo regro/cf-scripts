@@ -175,6 +175,8 @@ def poke_gh(gx: nx.DiGraph, callbacks):
     """
     gh = github3.login(os.environ["USERNAME"], os.environ["PASSWORD"])
     for cb in callbacks:
+        logger.info(
+            "Running {}".format(cb.__name__))
         node_ids = list(gx.nodes)
         # this makes sure that github rate limits are dispersed
         random.shuffle(node_ids)
@@ -247,7 +249,7 @@ def main(args=None):
     gx = nx.read_gpickle("graph.pkl")
     gx = make_graph(names, gx)
     gx = poke_gh(gx, (refresh_pr, close_out_labels,
-                      ping_maintainers
+                      # ping_maintainers
                       ))
 
     logger.info("writing out file")
