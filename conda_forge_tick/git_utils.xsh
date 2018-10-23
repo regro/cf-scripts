@@ -184,9 +184,9 @@ def ping_maintainers(pr_json: LazyJson, gh=None):
                 Some did not pass, please modify this PR so the CI can try again.'''
             else:
                 msg = '''Hi @{}, I think all the CI statuses have come in. 
-                All the CIs have passed, please review/merge.''')
+                All the CIs have passed, please review/merge.'''
             comment = pr_obj.create_comment(msg.format(
-                    'conda-forge/' + pr_json['head']['repo']['name'])
+                    'conda-forge/' + pr_json['head']['repo']['name']))
             print(comment)
             if comment:
                 cached_status.update(**current_status)
@@ -254,6 +254,14 @@ def push_repo(feedstock_dir, body, repo, title, head, branch,
     return ljpr
 
 
+def rate_limit():
+    try:
+        c = gh.rate_limit()['resources']['core']
+    except github3.GitHubError:
+        c = -1
+    return c
+
+
 def is_github_api_limit_reached(e: github3.GitHubError, gh: github3.GitHub) -> bool:
     """Prints diagnostic information about a github exception.
 
@@ -268,7 +276,7 @@ def is_github_api_limit_reached(e: github3.GitHubError, gh: github3.GitHub) -> b
     if 'Retry-After' in e.response.headers:
         print('Retry-After {}'.format(e.response.headers['Retry-After']))
 
-    c = gh.rate_limit()['resources']['core']
+    c = rate_limit()
     if c['remaining'] == 0:
         ts = c['reset']
         print('API timeout, API returns at')

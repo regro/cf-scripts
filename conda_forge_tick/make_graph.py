@@ -25,7 +25,7 @@ from .git_utils import (
     refresh_pr,
     is_github_api_limit_reached,
     close_out_labels,
-    ping_maintainers,
+    ping_maintainers, rate_limit
 )
 
 logger = logging.getLogger("conda_forge_tick.make_graph")
@@ -234,7 +234,7 @@ def poke_gh(gx: nx.DiGraph, callbacks):
                 "{} API calls left".format(
                     GH_SLEEP_TIME,
                     len(work),
-                    gh.rate_limit()["resources"]["core"]["remaining"]
+                    rate_limit()['remaining']
                 )
             )
             time.sleep(GH_SLEEP_TIME)
