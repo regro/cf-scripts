@@ -131,6 +131,7 @@ def get_repo(attrs, branch, feedstock=None, protocol='ssh',
         git pull @(origin) master
         # make sure feedstock is up-to-date with upstream
         git pull @(upstream) master
+        git merge @(upstream) master --strategy-option theirs
         # make and modify version branch
         with ${...}.swap(RAISE_SUBPROC_ERROR=False):
             git checkout @(branch) or git checkout -b @(branch) master
