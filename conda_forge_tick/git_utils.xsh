@@ -129,6 +129,8 @@ def get_repo(attrs, branch, feedstock=None, protocol='ssh',
         # make sure feedstock is up-to-date with origin
         git checkout master
         git pull @(origin) master
+        # remove any uncommited changes?
+        git reset --hard HEAD
         # make sure feedstock is up-to-date with upstream
         git pull @(upstream) master -s recursive -X theirs --no-edit
         # make and modify version branch
