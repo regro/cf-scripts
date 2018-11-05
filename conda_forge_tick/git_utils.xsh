@@ -134,6 +134,7 @@ def get_repo(attrs, branch, feedstock=None, protocol='ssh',
         # make sure feedstock is up-to-date with upstream
         # git pull @(upstream) master -s recursive -X theirs --no-edit
         # always run upstream master
+        git fetch @(upstream)
         git reset --hard @(upstream)/master
         # make and modify version branch
         with ${...}.swap(RAISE_SUBPROC_ERROR=False):
