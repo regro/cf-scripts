@@ -136,7 +136,7 @@ def get_repo(attrs, branch, feedstock=None, protocol='ssh',
         # always run upstream master
         git fetch @(upstream)
         git remote add upstream @(upstream)
-        git reset --hard ups/master
+        git reset --hard upstream/master
         # make and modify version branch
         with ${...}.swap(RAISE_SUBPROC_ERROR=False):
             git checkout @(branch) or git checkout -b @(branch) master
