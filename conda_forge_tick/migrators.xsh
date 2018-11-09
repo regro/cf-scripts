@@ -773,3 +773,9 @@ class Pinning(Migrator):
 
     def remote_branch(self):
         return 'pinning'
+
+
+class LibjpegTurbo(Migrator):
+    """Migrator for swapping jpeg 9 with libjpeg-turbo."""
+    migrator_version = 0
+    rerender = True
