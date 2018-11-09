@@ -779,3 +779,9 @@ class LibjpegTurbo(Migrator):
     """Migrator for swapping jpeg 9 with libjpeg-turbo."""
     migrator_version = 0
     rerender = True
+
+    def commit_message(self):
+        return 'use libjpeg-turbo'
+
+    def pr_title(self):
+        return 'Use libjpeg-turbo'
