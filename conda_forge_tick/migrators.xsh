@@ -777,8 +777,12 @@ class Pinning(Migrator):
 
 class LibjpegTurbo(Migrator):
     """Migrator for swapping jpeg 9 with libjpeg-turbo."""
+
     migrator_version = 0
     rerender = True
+
+    def filter(self, attrs):
+        return 'jpeg' not in attrs.get('req', [])
 
     def commit_message(self):
         return 'use libjpeg-turbo'
