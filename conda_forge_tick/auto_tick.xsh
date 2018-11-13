@@ -279,7 +279,7 @@ def migrator_status(migrator: Migrator, gx):
 
 def main(args=None):
     gh = github3.login($USERNAME, $PASSWORD)
-    gx, smithy_version, pinning_version, temp, $MIGRATORS = initialize_migrators(False)
+    gx, smithy_version, pinning_version, temp, $MIGRATORS = initialize_migrators(True)
 
     for migrator in $MIGRATORS:
         good_prs = 0
