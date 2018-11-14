@@ -1523,7 +1523,7 @@ env["GRAPH"] = G
 
 
 @pytest.mark.parametrize(
-    "m, inp, output, kwargs, prb, mr_out, should_filter", test_list[-2:]
+    "m, inp, output, kwargs, prb, mr_out, should_filter", test_list
 )
 def test_migration(m, inp, output, kwargs, prb, mr_out, should_filter, tmpdir):
     with open(os.path.join(tmpdir, "meta.yaml"), "w") as f:
