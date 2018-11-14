@@ -44,13 +44,17 @@ class Migrator:
     def __init__(self, pr_limit=0):
         self.pr_limit = pr_limit
 
-    def filter(self, attrs: dict) -> bool:
+    def filter(self, attrs: dict, not_bad_str_start='') -> bool:
         """ If true don't act upon node
 
         Parameters
         ----------
         attrs : dict
             The node attributes
+        not_bad_str_start : str, optional
+            If the 'bad' notice starts with the string then it is not
+            to be excluded. For example, rebuild migrations don't need
+            to worry about if the upstream can be fetched. Defaults to ``''``
 
         Returns
         -------
@@ -62,7 +66,7 @@ class Migrator:
         # don't run on bad nodes
         return (attrs.get('archived', False)
                 or self.migrator_uid(attrs) in attrs.get('PRed', [])
-                or attrs.get('bad', False))
+                or (attrs.get('bad', False) and not attrs.get('bad').startswith(not_bad_str_start))
 
     def migrate(self, recipe_dir, attrs, **kwargs):
         """Perform the migration, updating the ``meta.yaml``
@@ -612,7 +616,7 @@ class Rebuild(Migrator):
         self.cycles = set(chain.from_iterable(cycles))
 
     def filter(self, attrs):
-        if super().filter(attrs):
+        if super().filter(attrs, 'Upstream:'):
             return True
         if attrs['feedstock_name'] not in self.graph:
             return True
