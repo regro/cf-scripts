@@ -662,15 +662,15 @@ class Rebuild(Migrator):
             new_text = ''
             with open('meta.yaml', 'r') as f:
                 lines = f.readlines()
-                lines = [line.rstrip() for line in lines]
-                if 'build:' in lines:
-                    index = lines.index('build:')
+                lines_stripped = [line.rstrip() for line in lines]
+                if 'build:' in lines_stripped:
+                    index = lines_stripped.index('build:')
                     spacing = 2
                     s = len(lines[index+1].lstrip()) - len(lines[index+1])
                     if s > 0:
                         spacing = s
-                    lines[index] = lines[index] + "\n" + " "*spacing + "noarch: generic  # [r_base != '3.4.1']"
-                new_text = '\n'.join(lines)
+                    lines[index] = lines[index] + " "*spacing + "noarch: generic\n"
+                new_text = ''.join(lines)
             if new_text:
                 with open('meta.yaml', 'w') as f:
                     f.writelines(new_text)
@@ -715,7 +715,7 @@ class Rebuild(Migrator):
 
 
 class CompilerRebuild(Rebuild):
-    bump_number = 1000
+    bump_number = 1001
     migrator_version = 1
 
     def migrate(self, recipe_dir, attrs, **kwargs):
