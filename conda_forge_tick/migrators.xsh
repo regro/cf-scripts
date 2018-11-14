@@ -5,6 +5,7 @@ import urllib.error
 import re
 from frozendict import frozendict
 from itertools import chain
+from textwrap import dedent
 
 import networkx as nx
 from conda.models.version import VersionOrder
@@ -633,7 +634,46 @@ class Rebuild(Migrator):
         return False
 
     def migrate(self, recipe_dir, attrs, **kwargs):
+        check_for = ['toolchain', 'libgcc', 'compiler']
+
+        if (not attrs['feedstock_name'].startswith("r-")) \
+                or any(c in attrs['raw_meta_yaml'] for c in check_for):
+            with indir(recipe_dir):
+                self.set_build_number('meta.yaml')
+            return self.migrator_uid(attrs)
+
+        r_pkg_name = attrs['feedstock_name'][2:]
+        r_noarch_build_sh = dedent("""#!/bin/bash
+
+        if [[ $target_platform =~ linux.* ]] || [[ $target_platform == win-32 ]] || [[ $target_platform == win-64 ]] || [[ $target_platform == osx-64 ]]; then
+          export DISABLE_AUTOBREW=1
+          mv DESCRIPTION DESCRIPTION.old
+          grep -v '^Priority: ' DESCRIPTION.old > DESCRIPTION
+          $R CMD INSTALL --build .
+        else
+          mkdir -p $PREFIX/lib/R/library/{r_pkg_name}
+          mv * $PREFIX/lib/R/library/{r_pkg_name}
+        fi
+        """.format(r_pkg_name=r_pkg_name))
+
         with indir(recipe_dir):
+            with open('build.sh', 'w') as f:
+                f.writelines(r_noarch_build_sh)
+            new_text = ''
+            with open('meta.yaml', 'r') as f:
+                lines = f.readlines()
+                lines_stripped = [line.rstrip() for line in lines]
+                if 'build:' in lines_stripped:
+                    index = lines_stripped.index('build:')
+                    spacing = 2
+                    s = len(lines[index+1].lstrip()) - len(lines[index+1])
+                    if s > 0:
+                        spacing = s
+                    lines[index] = lines[index] + " "*spacing + "noarch: generic\n"
+                new_text = ''.join(lines)
+            if new_text:
+                with open('meta.yaml', 'w') as f:
+                    f.writelines(new_text)
             self.set_build_number('meta.yaml')
         return self.migrator_uid(attrs)
 

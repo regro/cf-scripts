@@ -4,7 +4,7 @@ import builtins
 import pytest
 import networkx as nx
 
-from conda_forge_tick.migrators import JS, Version, Compiler, Noarch, Pinning
+from conda_forge_tick.migrators import JS, Version, Compiler, Noarch, Pinning, Rebuild
 from conda_forge_tick.utils import parse_meta_yaml
 
 
@@ -355,7 +355,7 @@ extra:
     - willirath
 """
 
-sample_r = """{% set version = '1.3-1' %}
+sample_r = r"""{% set version = '1.3-1' %}
 
 {% set posix = 'm2-' if win else '' %}
 {% set native = 'm2w64-' if win else '' %}
@@ -412,7 +412,7 @@ extra:
     - cbrueffer
 """
 
-updated_sample_r = """{% set version = "1.3-2" %}
+updated_sample_r = r"""{% set version = "1.3-2" %}
 
 {% set posix = 'm2-' if win else '' %}
 {% set native = 'm2w64-' if win else '' %}
@@ -746,6 +746,169 @@ extra:
     - ocefpaf
 """
 
+sample_r_base = """
+{% set version = '0.7-1' %}
+
+{% set posix = 'm2-' if win else '' %}
+{% set native = 'm2w64-' if win else '' %}
+
+package:
+  name: r-stabledist
+  version: {{ version|replace("-", "_") }}
+
+source:
+  fn: stabledist_{{ version }}.tar.gz
+  url:
+    - https://cran.r-project.org/src/contrib/stabledist_{{ version }}.tar.gz
+    - https://cran.r-project.org/src/contrib/Archive/stabledist/stabledist_{{ version }}.tar.gz
+
+
+  sha256: 06c5704d3a3c179fa389675c537c39a006867bc6e4f23dd7e406476ed2c88a69
+
+build:
+  number: 1
+
+  rpaths:
+    - lib/R/lib/
+    - lib/
+  skip: True  # [win32]
+
+requirements:
+  build:
+    - r-base
+
+  run:
+    - r-base
+
+test:
+  commands:
+    - $R -e "library('stabledist')"  # [not win]
+    - "\"%R%\" -e \"library('stabledist')\""  # [win]
+"""
+
+updated_r_base = """
+{% set version = '0.7-1' %}
+
+{% set posix = 'm2-' if win else '' %}
+{% set native = 'm2w64-' if win else '' %}
+
+package:
+  name: r-stabledist
+  version: {{ version|replace("-", "_") }}
+
+source:
+  fn: stabledist_{{ version }}.tar.gz
+  url:
+    - https://cran.r-project.org/src/contrib/stabledist_{{ version }}.tar.gz
+    - https://cran.r-project.org/src/contrib/Archive/stabledist/stabledist_{{ version }}.tar.gz
+
+
+  sha256: 06c5704d3a3c179fa389675c537c39a006867bc6e4f23dd7e406476ed2c88a69
+
+build:
+  noarch: generic
+  number: 2
+
+  rpaths:
+    - lib/R/lib/
+    - lib/
+  skip: True  # [win32]
+
+requirements:
+  build:
+    - r-base
+
+  run:
+    - r-base
+
+test:
+  commands:
+    - $R -e "library('stabledist')"  # [not win]
+    - "\"%R%\" -e \"library('stabledist')\""  # [win]
+"""
+
+
+sample_r_base2 = """
+{% set version = '0.7-1' %}
+
+{% set posix = 'm2-' if win else '' %}
+{% set native = 'm2w64-' if win else '' %}
+
+package:
+  name: r-stabledist
+  version: {{ version|replace("-", "_") }}
+
+source:
+  fn: stabledist_{{ version }}.tar.gz
+  url:
+    - https://cran.r-project.org/src/contrib/stabledist_{{ version }}.tar.gz
+    - https://cran.r-project.org/src/contrib/Archive/stabledist/stabledist_{{ version }}.tar.gz
+
+
+  sha256: 06c5704d3a3c179fa389675c537c39a006867bc6e4f23dd7e406476ed2c88a69
+
+build:
+  number: 1
+
+  rpaths:
+    - lib/R/lib/
+    - lib/
+  skip: True  # [win32]
+
+requirements:
+  build:
+    - r-base
+    - {{ compiler('c') }}
+
+  run:
+    - r-base
+
+test:
+  commands:
+    - $R -e "library('stabledist')"  # [not win]
+    - "\"%R%\" -e \"library('stabledist')\""  # [win]
+"""
+
+updated_r_base2 = """
+{% set version = '0.7-1' %}
+
+{% set posix = 'm2-' if win else '' %}
+{% set native = 'm2w64-' if win else '' %}
+
+package:
+  name: r-stabledist
+  version: {{ version|replace("-", "_") }}
+
+source:
+  fn: stabledist_{{ version }}.tar.gz
+  url:
+    - https://cran.r-project.org/src/contrib/stabledist_{{ version }}.tar.gz
+    - https://cran.r-project.org/src/contrib/Archive/stabledist/stabledist_{{ version }}.tar.gz
+
+
+  sha256: 06c5704d3a3c179fa389675c537c39a006867bc6e4f23dd7e406476ed2c88a69
+
+build:
+  number: 2
+
+  rpaths:
+    - lib/R/lib/
+    - lib/
+  skip: True  # [win32]
+
+requirements:
+  build:
+    - r-base
+    - {{ compiler('c') }}
+
+  run:
+    - r-base
+
+test:
+  commands:
+    - $R -e "library('stabledist')"  # [not win]
+    - "\"%R%\" -e \"library('stabledist')\""  # [win]
+"""
 
 sample_noarch = """{% set name = "xpdan" %}
 {% set version = "0.3.3" %}
@@ -1140,6 +1303,8 @@ compiler = Compiler()
 noarch = Noarch()
 perl = Pinning(removals={"perl"})
 pinning = Pinning()
+rebuild = Rebuild(name='rebuild', cycles=[])
+rebuild.filter = lambda x: False
 
 test_list = [
     (
@@ -1331,6 +1496,24 @@ test_list = [
         {"migrator_name": "Pinning", "migrator_version": Pinning.migrator_version},
         False,
     ),
+    (
+        rebuild,
+        sample_r_base,
+        updated_r_base,
+        {"feedstock_name": "r-stabledist"},
+        "It is likely this feedstock needs to be rebuilt.",
+        {"migrator_name": "Rebuild", "migrator_version": rebuild.migrator_version, "name":"rebuild"},
+        False,
+    ),
+    (
+        rebuild,
+        sample_r_base2,
+        updated_r_base2,
+        {"feedstock_name": "r-stabledist"},
+        "It is likely this feedstock needs to be rebuilt.",
+        {"migrator_name": "Rebuild", "migrator_version": rebuild.migrator_version, "name":"rebuild"},
+        False,
+    ),
 ]
 
 G = nx.DiGraph()
@@ -1377,6 +1560,8 @@ def test_migration(m, inp, output, kwargs, prb, mr_out, should_filter, tmpdir):
     # TODO: fix subgraph here (need this to be xsh file)
     elif isinstance(m, Version):
         pass
+    elif isinstance(m, Rebuild):
+        return
     else:
         assert prb in m.pr_body()
     assert m.filter(pmy) is True
