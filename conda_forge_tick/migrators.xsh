@@ -670,6 +670,10 @@ class Rebuild(Migrator):
                     if s > 0:
                         spacing = s
                     lines[index] = lines[index] + " "*spacing + "noarch: generic\n"
+                    for i, line in enumerate(lines_stripped):
+                        if line.lower().strip().startswith("skip: true"):
+                            lines[i] = ""
+
                 new_text = ''.join(lines)
             if new_text:
                 with open('meta.yaml', 'w') as f:
