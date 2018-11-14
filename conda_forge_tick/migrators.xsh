@@ -715,7 +715,7 @@ class Rebuild(Migrator):
 
 
 class CompilerRebuild(Rebuild):
-    bump_number = 1001
+    bump_number = 1000
     migrator_version = 1
 
     def migrate(self, recipe_dir, attrs, **kwargs):
