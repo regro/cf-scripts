@@ -66,7 +66,7 @@ class Migrator:
         # don't run on bad nodes
         return (attrs.get('archived', False)
                 or self.migrator_uid(attrs) in attrs.get('PRed', [])
-                or (attrs.get('bad', False) and not attrs.get('bad').startswith(not_bad_str_start))
+                or (attrs.get('bad', False) and not attrs.get('bad').startswith(not_bad_str_start)))
 
     def migrate(self, recipe_dir, attrs, **kwargs):
         """Perform the migration, updating the ``meta.yaml``
