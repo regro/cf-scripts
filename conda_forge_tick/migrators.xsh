@@ -676,11 +676,11 @@ class Rebuild(Migrator):
                         # Fix path to GPL licenses
                         if line.strip() == 'license_file: \'{{ environ["PREFIX"] }}/lib/R/share/licenses/GPL-2\'  # [unix]':
                             lines[i] = '  license_file: \'{{ environ["PREFIX"] }}/lib/R/share/licenses/GPL-2\'\n'
-                        if line.strip() == 'license_file: \'{{ environ["PREFIX"] }}\\\\R\\\\share\\\\licenses\\\\GPL-2\'  # [win]':
+                        if line.strip() == 'license_file: \'{{ environ["PREFIX"] }}\\R\\share\\licenses\\GPL-2\'  # [win]':
                             lines[i] = ''
                         if line.strip() == 'license_file: \'{{ environ["PREFIX"] }}/lib/R/share/licenses/GPL-3\'  # [unix]':
                             lines[i] = '  license_file: \'{{ environ["PREFIX"] }}/lib/R/share/licenses/GPL-3\'\n'
-                        if line.strip() == 'license_file: \'{{ environ["PREFIX"] }}\\\\R\\\\share\\\\licenses\\\\GPL-3\'  # [win]':
+                        if line.strip() == 'license_file: \'{{ environ["PREFIX"] }}\\R\\share\\licenses\\GPL-3\'  # [win]':
                             lines[i] = ''
 
                 new_text = ''.join(lines)
