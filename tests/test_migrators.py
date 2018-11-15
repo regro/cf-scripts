@@ -866,6 +866,15 @@ test:
   commands:
     - $R -e "library('stabledist')"  # [not win]
     - "\"%R%\" -e \"library('stabledist')\""  # [win]
+
+about:
+  home: http://www.rmetrics.org, https://r-forge.r-project.org/scm/viewvc.php/pkg/stabledist/?root=rmetrics
+  license: GPL (>= 2)
+  summary: Density, Probability and Quantile functions, and random number generation for (skew)
+    stable distributions, using the parametrizations of Nolan.
+  license_family: GPL3
+  license_file: '{{ environ["PREFIX"] }}/lib/R/share/licenses/GPL-3'  # [unix]
+  license_file: '{{ environ["PREFIX"] }}\R\share\licenses\GPL-3'  # [win]
 """
 
 updated_r_base2 = """
@@ -907,6 +916,14 @@ test:
   commands:
     - $R -e "library('stabledist')"  # [not win]
     - "\"%R%\" -e \"library('stabledist')\""  # [win]
+
+about:
+  home: http://www.rmetrics.org, https://r-forge.r-project.org/scm/viewvc.php/pkg/stabledist/?root=rmetrics
+  license: GPL (>= 2)
+  summary: Density, Probability and Quantile functions, and random number generation for (skew)
+    stable distributions, using the parametrizations of Nolan.
+  license_family: GPL3
+  license_file: '{{ environ["PREFIX"] }}/lib/R/share/licenses/GPL-3'
 """
 
 sample_noarch = """{% set name = "xpdan" %}
