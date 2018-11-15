@@ -636,11 +636,12 @@ class Rebuild(Migrator):
     def migrate(self, recipe_dir, attrs, **kwargs):
         check_for = ['toolchain', 'libgcc', 'compiler']
 
-        if (not attrs['feedstock_name'].startswith("r-")) \
-                or any(c in attrs['raw_meta_yaml'] for c in check_for):
+        if (not attrs['feedstock_name'].startswith("r-")):
             with indir(recipe_dir):
                 self.set_build_number('meta.yaml')
             return self.migrator_uid(attrs)
+
+        noarch = not any(c in attrs['raw_meta_yaml'] for c in check_for)
 
         r_pkg_name = attrs['feedstock_name'][2:]
         r_noarch_build_sh = dedent("""#!/bin/bash
@@ -657,32 +658,32 @@ class Rebuild(Migrator):
         """).format(r_pkg_name=r_pkg_name)
 
         with indir(recipe_dir):
-            with open('build.sh', 'w') as f:
-                f.writelines(r_noarch_build_sh)
+            if noarch:
+                with open('build.sh', 'w') as f:
+                    f.writelines(r_noarch_build_sh)
             new_text = ''
             with open('meta.yaml', 'r') as f:
                 lines = f.readlines()
                 lines_stripped = [line.rstrip() for line in lines]
-                if 'build:' in lines_stripped:
+                if noarch and 'build:' in lines_stripped:
                     index = lines_stripped.index('build:')
                     spacing = 2
                     s = len(lines[index+1].lstrip()) - len(lines[index+1])
                     if s > 0:
                         spacing = s
                     lines[index] = lines[index] + " "*spacing + "noarch: generic\n"
-                    for i, line in enumerate(lines_stripped):
-                        if line.lower().strip().startswith("skip: true"):
-                            lines[i] = ""
-                        # Fix path to GPL licenses
-                        if line.strip() == 'license_file: \'{{ environ["PREFIX"] }}/lib/R/share/licenses/GPL-2\'  # [unix]':
-                            lines[i] = '  license_file: \'{{ environ["PREFIX"] }}/lib/R/share/licenses/GPL-2\'\n'
-                        if line.strip() == 'license_file: \'{{ environ["PREFIX"] }}\\R\\share\\licenses\\GPL-2\'  # [win]':
-                            lines[i] = ''
-                        if line.strip() == 'license_file: \'{{ environ["PREFIX"] }}/lib/R/share/licenses/GPL-3\'  # [unix]':
-                            lines[i] = '  license_file: \'{{ environ["PREFIX"] }}/lib/R/share/licenses/GPL-3\'\n'
-                        if line.strip() == 'license_file: \'{{ environ["PREFIX"] }}\\R\\share\\licenses\\GPL-3\'  # [win]':
-                            lines[i] = ''
-
+                for i, line in enumerate(lines_stripped):
+                    if noarch and line.lower().strip().startswith("skip: true"):
+                        lines[i] = ""
+                    # Fix path to GPL licenses
+                    if line.strip() == 'license_file: \'{{ environ["PREFIX"] }}/lib/R/share/licenses/GPL-2\'  # [unix]':
+                        lines[i] = '  license_file: \'{{ environ["PREFIX"] }}/lib/R/share/licenses/GPL-2\'\n'
+                    if line.strip() == 'license_file: \'{{ environ["PREFIX"] }}\\R\\share\\licenses\\GPL-2\'  # [win]':
+                        lines[i] = ''
+                    if line.strip() == 'license_file: \'{{ environ["PREFIX"] }}/lib/R/share/licenses/GPL-3\'  # [unix]':
+                        lines[i] = '  license_file: \'{{ environ["PREFIX"] }}/lib/R/share/licenses/GPL-3\'\n'
+                    if line.strip() == 'license_file: \'{{ environ["PREFIX"] }}\\R\\share\\licenses\\GPL-3\'  # [win]':
+                        lines[i] = ''
                 new_text = ''.join(lines)
             if new_text:
                 with open('meta.yaml', 'w') as f:
