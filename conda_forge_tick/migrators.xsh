@@ -682,6 +682,12 @@ class Rebuild(Migrator):
                         if line.lower().strip().startswith("skip: true"):
                             lines[i] = ""
 
+                        # remove win and not win selectors
+                        if "# [win]" in line:
+                            lines[i] = ""
+                        if "# [not win]" in line:
+                            lines[i] = line.replace("# [not win]", "").rstrip()
+
                 new_text = ''.join(lines)
             if new_text:
                 with open('meta.yaml', 'w') as f:
