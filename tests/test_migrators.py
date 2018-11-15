@@ -768,6 +768,7 @@ source:
 build:
   number: 1
 
+  merge_build_host: True  # [win]
   rpaths:
     - lib/R/lib/
     - lib/
@@ -775,6 +776,7 @@ build:
 
 requirements:
   build:
+    - {{posix}}zip               # [win]
     - r-base
 
   run:
@@ -809,12 +811,14 @@ build:
   noarch: generic
   number: 2
 
+
   rpaths:
     - lib/R/lib/
     - lib/
 
 requirements:
   build:
+
     - r-base
 
   run:
@@ -822,8 +826,7 @@ requirements:
 
 test:
   commands:
-    - $R -e "library('stabledist')"  # [not win]
-    - "\"%R%\" -e \"library('stabledist')\""  # [win]
+    - $R -e "library('stabledist')"
 """
 
 
