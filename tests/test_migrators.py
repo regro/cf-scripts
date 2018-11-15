@@ -811,14 +811,12 @@ build:
   noarch: generic
   number: 2
 
-
   rpaths:
     - lib/R/lib/
     - lib/
 
 requirements:
   build:
-
     - r-base
 
   run:
