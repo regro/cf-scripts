@@ -926,6 +926,104 @@ about:
   license_file: '{{ environ["PREFIX"] }}/lib/R/share/licenses/GPL-3'
 """
 
+sample_r_base3 = """
+{% set version = '0.3' %}
+
+{% set posix = 'm2-' if win else '' %}
+{% set native = 'm2w64-' if win else '' %}
+
+package:
+  name: r-xfun
+  version: {{ version|replace("-", "_") }}
+
+source:
+  fn: xfun_{{ version }}.tar.gz
+  url:
+    - {{ cran_mirror }}/src/contrib/xfun_{{ version }}.tar.gz
+    - {{ cran_mirror }}/src/contrib/Archive/xfun/xfun_{{ version }}.tar.gz
+  sha256: 897211d135a7fc5f955e4c810e0a0d8fa12b034b0a89dde47ab23e9b486b21e4
+
+build:
+  merge_build_host: True  # [win]
+  number: 1
+
+  rpaths:
+    - lib/R/lib/
+    - lib/
+
+requirements:
+  build:
+    - {{posix}}zip               # [win]
+
+  host:
+    - r-base
+
+  run:
+    - r-base
+
+test:
+  commands:
+    - $R -e "library('xfun')"           # [not win]
+    - "\"%R%\" -e \"library('xfun')\""  # [win]
+
+about:
+  home: https://github.com/yihui/xfun
+  license: MIT
+  summary: Miscellaneous functions commonly used in other packages maintained by 'Yihui Xie'.
+  license_family: MIT
+  license_file: '{{ environ["PREFIX"] }}/lib/R/share/licenses/MIT'  # [unix]
+  license_file: '{{ environ["PREFIX"] }}\R\share\licenses\MIT'  # [win]
+"""
+
+updated_r_base3 = """
+{% set version = '0.3' %}
+
+{% set posix = 'm2-' if win else '' %}
+{% set native = 'm2w64-' if win else '' %}
+
+package:
+  name: r-xfun
+  version: {{ version|replace("-", "_") }}
+
+source:
+  fn: xfun_{{ version }}.tar.gz
+  url:
+    - {{ cran_mirror }}/src/contrib/xfun_{{ version }}.tar.gz
+    - {{ cran_mirror }}/src/contrib/Archive/xfun/xfun_{{ version }}.tar.gz
+  sha256: 897211d135a7fc5f955e4c810e0a0d8fa12b034b0a89dde47ab23e9b486b21e4
+
+build:
+  noarch: generic
+  merge_build_host: True  # [win]
+  number: 2
+
+  rpaths:
+    - lib/R/lib/
+    - lib/
+
+requirements:
+  build:
+    - {{posix}}zip               # [win]
+
+  host:
+    - r-base
+
+  run:
+    - r-base
+
+test:
+  commands:
+    - $R -e "library('xfun')"           # [not win]
+    - "\"%R%\" -e \"library('xfun')\""  # [win]
+
+about:
+  home: https://github.com/yihui/xfun
+  license: MIT
+  summary: Miscellaneous functions commonly used in other packages maintained by 'Yihui Xie'.
+  license_family: MIT
+  license_file: '{{ environ["PREFIX"] }}/lib/R/share/licenses/MIT'
+"""
+
 sample_noarch = """{% set name = "xpdan" %}
 {% set version = "0.3.3" %}
 {% set sha256 = "3f1a84f35471aa8e383da3cf4436492d0428da8ff5b02e11074ff65d400dd076" %}
@@ -1526,6 +1624,15 @@ test_list = [
         sample_r_base2,
         updated_r_base2,
         {"feedstock_name": "r-stabledist"},
+        "It is likely this feedstock needs to be rebuilt.",
+        {"migrator_name": "Rebuild", "migrator_version": rebuild.migrator_version, "name":"rebuild"},
+        False,
+    ),
+    (
+        rebuild,
+        sample_r_base3,
+        updated_r_base3,
+        {"feedstock_name": "r-xfun"},
         "It is likely this feedstock needs to be rebuilt.",
         {"migrator_name": "Rebuild", "migrator_version": rebuild.migrator_version, "name":"rebuild"},
         False,
