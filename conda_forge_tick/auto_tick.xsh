@@ -186,7 +186,7 @@ def add_rebuild(migrators, gx):
 
     migrators.append(
         CompilerRebuild(graph=total_graph,
-                pr_limit=5,
+                pr_limit=8,
                 name='Python 3.7, GCC 7, R 3.5.1, openBLAS 0.3.2',
                         top_level=top_level,
                         cycles=cycles))
