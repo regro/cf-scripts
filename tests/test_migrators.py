@@ -866,15 +866,6 @@ test:
   commands:
     - $R -e "library('stabledist')"  # [not win]
     - "\"%R%\" -e \"library('stabledist')\""  # [win]
-
-about:
-  home: http://www.rmetrics.org, https://r-forge.r-project.org/scm/viewvc.php/pkg/stabledist/?root=rmetrics
-  license: GPL (>= 2)
-  summary: Density, Probability and Quantile functions, and random number generation for (skew)
-    stable distributions, using the parametrizations of Nolan.
-  license_family: GPL3
-  license_file: '{{ environ["PREFIX"] }}/lib/R/share/licenses/GPL-3'  # [unix]
-  license_file: '{{ environ["PREFIX"] }}\R\share\licenses\GPL-3'  # [win]
 """
 
 updated_r_base2 = """
@@ -916,46 +907,38 @@ test:
   commands:
     - $R -e "library('stabledist')"  # [not win]
     - "\"%R%\" -e \"library('stabledist')\""  # [win]
-
-about:
-  home: http://www.rmetrics.org, https://r-forge.r-project.org/scm/viewvc.php/pkg/stabledist/?root=rmetrics
-  license: GPL (>= 2)
-  summary: Density, Probability and Quantile functions, and random number generation for (skew)
-    stable distributions, using the parametrizations of Nolan.
-  license_family: GPL3
-  license_file: '{{ environ["PREFIX"] }}/lib/R/share/licenses/GPL-3'
 """
 
-sample_r_base3 = """
-{% set version = '0.3' %}
+# Test that filepaths to various licenses are updated for a noarch recipe
+sample_r_licenses_noarch = """
+{% set version = '0.7-1' %}
 
 {% set posix = 'm2-' if win else '' %}
 {% set native = 'm2w64-' if win else '' %}
 
 package:
-  name: r-xfun
+  name: r-stabledist
   version: {{ version|replace("-", "_") }}
 
 source:
-  fn: xfun_{{ version }}.tar.gz
+  fn: stabledist_{{ version }}.tar.gz
   url:
-    - {{ cran_mirror }}/src/contrib/xfun_{{ version }}.tar.gz
-    - {{ cran_mirror }}/src/contrib/Archive/xfun/xfun_{{ version }}.tar.gz
-  sha256: 897211d135a7fc5f955e4c810e0a0d8fa12b034b0a89dde47ab23e9b486b21e4
+    - https://cran.r-project.org/src/contrib/stabledist_{{ version }}.tar.gz
+    - https://cran.r-project.org/src/contrib/Archive/stabledist/stabledist_{{ version }}.tar.gz
+
+
+  sha256: 06c5704d3a3c179fa389675c537c39a006867bc6e4f23dd7e406476ed2c88a69
 
 build:
-  merge_build_host: True  # [win]
   number: 1
 
   rpaths:
     - lib/R/lib/
     - lib/
+  skip: True  # [win32]
 
 requirements:
   build:
-    - {{posix}}zip               # [win]
-
-  host:
     - r-base
 
   run:
@@ -963,38 +946,42 @@ requirements:
 
 test:
   commands:
-    - $R -e "library('xfun')"           # [not win]
-    - "\"%R%\" -e \"library('xfun')\""  # [win]
+    - $R -e "library('stabledist')"  # [not win]
+    - "\"%R%\" -e \"library('stabledist')\""  # [win]
 
 about:
-  home: https://github.com/yihui/xfun
-  license: MIT
-  summary: Miscellaneous functions commonly used in other packages maintained by 'Yihui Xie'.
+  license_family: GPL3
+  license_file: '{{ environ["PREFIX"] }}/lib/R/share/licenses/GPL-3'  # [unix]
+  license_file: '{{ environ["PREFIX"] }}\R\share\licenses\GPL-3'  # [win]
   license_family: MIT
   license_file: '{{ environ["PREFIX"] }}/lib/R/share/licenses/MIT'  # [unix]
   license_file: '{{ environ["PREFIX"] }}\R\share\licenses\MIT'  # [win]
+  license_family: LGPL
+  license_file: '{{ environ["PREFIX"] }}/lib/R/share/licenses/LGPL-2'  # [unix]
+  license_file: '{{ environ["PREFIX"] }}\R\share\licenses\LGPL-2'  # [win]
 """
 
-updated_r_base3 = """
-{% set version = '0.3' %}
+updated_r_licenses_noarch = """
+{% set version = '0.7-1' %}
 
 {% set posix = 'm2-' if win else '' %}
 {% set native = 'm2w64-' if win else '' %}
 
 package:
-  name: r-xfun
+  name: r-stabledist
   version: {{ version|replace("-", "_") }}
 
 source:
-  fn: xfun_{{ version }}.tar.gz
+  fn: stabledist_{{ version }}.tar.gz
   url:
-    - {{ cran_mirror }}/src/contrib/xfun_{{ version }}.tar.gz
-    - {{ cran_mirror }}/src/contrib/Archive/xfun/xfun_{{ version }}.tar.gz
-  sha256: 897211d135a7fc5f955e4c810e0a0d8fa12b034b0a89dde47ab23e9b486b21e4
+    - https://cran.r-project.org/src/contrib/stabledist_{{ version }}.tar.gz
+    - https://cran.r-project.org/src/contrib/Archive/stabledist/stabledist_{{ version }}.tar.gz
+
+
+  sha256: 06c5704d3a3c179fa389675c537c39a006867bc6e4f23dd7e406476ed2c88a69
 
 build:
   noarch: generic
-  merge_build_host: True  # [win]
   number: 2
 
   rpaths:
@@ -1003,9 +990,6 @@ build:
 
 requirements:
   build:
-    - {{posix}}zip               # [win]
-
-  host:
     - r-base
 
   run:
@@ -1013,15 +997,118 @@ requirements:
 
 test:
   commands:
-    - $R -e "library('xfun')"           # [not win]
-    - "\"%R%\" -e \"library('xfun')\""  # [win]
+    - $R -e "library('stabledist')"  # [not win]
+    - "\"%R%\" -e \"library('stabledist')\""  # [win]
 
 about:
-  home: https://github.com/yihui/xfun
-  license: MIT
-  summary: Miscellaneous functions commonly used in other packages maintained by 'Yihui Xie'.
+  license_family: GPL3
+  license_file: '{{ environ["PREFIX"] }}/lib/R/share/licenses/GPL-3'
   license_family: MIT
   license_file: '{{ environ["PREFIX"] }}/lib/R/share/licenses/MIT'
+  license_family: LGPL
+  license_file: '{{ environ["PREFIX"] }}/lib/R/share/licenses/LGPL-2'
+"""
+
+# Test that filepaths to various licenses are updated for a compiled recipe
+sample_r_licenses_compiled = """
+{% set version = '0.7-1' %}
+
+{% set posix = 'm2-' if win else '' %}
+{% set native = 'm2w64-' if win else '' %}
+
+package:
+  name: r-stabledist
+  version: {{ version|replace("-", "_") }}
+
+source:
+  fn: stabledist_{{ version }}.tar.gz
+  url:
+    - https://cran.r-project.org/src/contrib/stabledist_{{ version }}.tar.gz
+    - https://cran.r-project.org/src/contrib/Archive/stabledist/stabledist_{{ version }}.tar.gz
+
+
+  sha256: 06c5704d3a3c179fa389675c537c39a006867bc6e4f23dd7e406476ed2c88a69
+
+build:
+  number: 1
+
+  rpaths:
+    - lib/R/lib/
+    - lib/
+  skip: True  # [win32]
+
+requirements:
+  build:
+    - r-base
+    - {{ compiler('c') }}
+
+  run:
+    - r-base
+
+test:
+  commands:
+    - $R -e "library('stabledist')"  # [not win]
+    - "\"%R%\" -e \"library('stabledist')\""  # [win]
+
+about:
+  license_family: GPL3
+  license_file: '{{ environ["PREFIX"] }}/lib/R/share/licenses/GPL-3'  # [unix]
+  license_file: '{{ environ["PREFIX"] }}\R\share\licenses\GPL-3'  # [win]
+  license_family: MIT
+  license_file: '{{ environ["PREFIX"] }}/lib/R/share/licenses/MIT'  # [unix]
+  license_file: '{{ environ["PREFIX"] }}\R\share\licenses\MIT'  # [win]
+  license_family: LGPL
+  license_file: '{{ environ["PREFIX"] }}/lib/R/share/licenses/LGPL-2'  # [unix]
+  license_file: '{{ environ["PREFIX"] }}\R\share\licenses\LGPL-2'  # [win]
+"""
+
+updated_r_licenses_compiled = """
+{% set version = '0.7-1' %}
+
+{% set posix = 'm2-' if win else '' %}
+{% set native = 'm2w64-' if win else '' %}
+
+package:
+  name: r-stabledist
+  version: {{ version|replace("-", "_") }}
+
+source:
+  fn: stabledist_{{ version }}.tar.gz
+  url:
+    - https://cran.r-project.org/src/contrib/stabledist_{{ version }}.tar.gz
+    - https://cran.r-project.org/src/contrib/Archive/stabledist/stabledist_{{ version }}.tar.gz
+
+
+  sha256: 06c5704d3a3c179fa389675c537c39a006867bc6e4f23dd7e406476ed2c88a69
+
+build:
+  number: 2
+
+  rpaths:
+    - lib/R/lib/
+    - lib/
+  skip: True  # [win32]
+
+requirements:
+  build:
+    - r-base
+    - {{ compiler('c') }}
+
+  run:
+    - r-base
+
+test:
+  commands:
+    - $R -e "library('stabledist')"  # [not win]
+    - "\"%R%\" -e \"library('stabledist')\""  # [win]
+
+about:
+  license_family: GPL3
+  license_file: '{{ environ["PREFIX"] }}/lib/R/share/licenses/GPL-3'
+  license_family: MIT
+  license_file: '{{ environ["PREFIX"] }}/lib/R/share/licenses/MIT'
+  license_family: LGPL
+  license_file: '{{ environ["PREFIX"] }}/lib/R/share/licenses/LGPL-2'
 """
 
 sample_noarch = """{% set name = "xpdan" %}
@@ -1630,9 +1717,18 @@ test_list = [
     ),
     (
         rebuild,
-        sample_r_base3,
-        updated_r_base3,
-        {"feedstock_name": "r-xfun"},
+        sample_r_licenses_noarch,
+        updated_r_licenses_noarch,
+        {"feedstock_name": "r-stabledist"},
+        "It is likely this feedstock needs to be rebuilt.",
+        {"migrator_name": "Rebuild", "migrator_version": rebuild.migrator_version, "name":"rebuild"},
+        False,
+    ),
+    (
+        rebuild,
+        sample_r_licenses_compiled,
+        updated_r_licenses_compiled,
+        {"feedstock_name": "r-stabledist"},
         "It is likely this feedstock needs to be rebuilt.",
         {"migrator_name": "Rebuild", "migrator_version": rebuild.migrator_version, "name":"rebuild"},
         False,
