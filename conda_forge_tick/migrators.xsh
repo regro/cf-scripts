@@ -680,8 +680,8 @@ class Rebuild(Migrator):
                     if s > 0:
                         spacing = s
                     lines[index] = lines[index] + " "*spacing + "noarch: generic\n"
-                regex_unix = re.compile('license_file: \'{{ environ\["PREFIX"\] }}/lib/R/share/licenses/(.+)\'\s+# \[unix\]')
-                regex_win = re.compile('license_file: \'{{ environ\["PREFIX"\] }}\\\R\\\share\\\licenses\\\(.+)\'\s+# \[win\]')
+                regex_unix = re.compile('license_file: \'{{ environ\["PREFIX"\] }}/lib/R/share/licenses/(\S+)\'\s+# \[unix\]')
+                regex_win = re.compile('license_file: \'{{ environ\["PREFIX"\] }}\\\R\\\share\\\licenses\\\(\S+)\'\s+# \[win\]')
                 for i, line in enumerate(lines_stripped):
                     if noarch and line.lower().strip().startswith("skip: true"):
                         lines[i] = ""

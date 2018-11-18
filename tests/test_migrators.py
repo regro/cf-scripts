@@ -959,6 +959,12 @@ about:
   license_family: LGPL
   license_file: '{{ environ["PREFIX"] }}/lib/R/share/licenses/LGPL-2'  # [unix]
   license_file: '{{ environ["PREFIX"] }}\R\share\licenses\LGPL-2'  # [win]
+  license_family: LGPL
+  license_file: '{{ environ["PREFIX"] }}/lib/R/share/licenses/LGPL-2.1'  # [unix]
+  license_file: '{{ environ["PREFIX"] }}\R\share\licenses\LGPL-2.1'  # [win]
+  license_family: BSD
+  license_file: '{{ environ["PREFIX"] }}/lib/R/share/licenses/BSD_3_clause'  # [unix]
+  license_file: '{{ environ["PREFIX"] }}\R\share\licenses\BSD_3_clause'  # [win]
 """
 
 updated_r_licenses_noarch = """
@@ -1007,6 +1013,10 @@ about:
   license_file: '{{ environ["PREFIX"] }}/lib/R/share/licenses/MIT'
   license_family: LGPL
   license_file: '{{ environ["PREFIX"] }}/lib/R/share/licenses/LGPL-2'
+  license_family: LGPL
+  license_file: '{{ environ["PREFIX"] }}/lib/R/share/licenses/LGPL-2.1'
+  license_family: BSD
+  license_file: '{{ environ["PREFIX"] }}/lib/R/share/licenses/BSD_3_clause'
 """
 
 # Test that filepaths to various licenses are updated for a compiled recipe
@@ -1060,6 +1070,12 @@ about:
   license_family: LGPL
   license_file: '{{ environ["PREFIX"] }}/lib/R/share/licenses/LGPL-2'  # [unix]
   license_file: '{{ environ["PREFIX"] }}\R\share\licenses\LGPL-2'  # [win]
+  license_family: LGPL
+  license_file: '{{ environ["PREFIX"] }}/lib/R/share/licenses/LGPL-2.1'  # [unix]
+  license_file: '{{ environ["PREFIX"] }}\R\share\licenses\LGPL-2.1'  # [win]
+  license_family: BSD
+  license_file: '{{ environ["PREFIX"] }}/lib/R/share/licenses/BSD_3_clause'  # [unix]
+  license_file: '{{ environ["PREFIX"] }}\R\share\licenses\BSD_3_clause'  # [win]
 """
 
 updated_r_licenses_compiled = """
@@ -1109,6 +1125,10 @@ about:
   license_file: '{{ environ["PREFIX"] }}/lib/R/share/licenses/MIT'
   license_family: LGPL
   license_file: '{{ environ["PREFIX"] }}/lib/R/share/licenses/LGPL-2'
+  license_family: LGPL
+  license_file: '{{ environ["PREFIX"] }}/lib/R/share/licenses/LGPL-2.1'
+  license_family: BSD
+  license_file: '{{ environ["PREFIX"] }}/lib/R/share/licenses/BSD_3_clause'
 """
 
 sample_noarch = """{% set name = "xpdan" %}
