@@ -680,18 +680,18 @@ class Rebuild(Migrator):
                     if s > 0:
                         spacing = s
                     lines[index] = lines[index] + " "*spacing + "noarch: generic\n"
+                regex_unix = re.compile('license_file: \'{{ environ\["PREFIX"\] }}/lib/R/share/licenses/(\S+)\'\s+# \[unix\]')
+                regex_win = re.compile('license_file: \'{{ environ\["PREFIX"\] }}\\\R\\\share\\\licenses\\\(\S+)\'\s+# \[win\]')
                 for i, line in enumerate(lines_stripped):
                     if noarch and line.lower().strip().startswith("skip: true"):
                         lines[i] = ""
-                    # Fix path to GPL licenses
-                    if line.strip() == 'license_file: \'{{ environ["PREFIX"] }}/lib/R/share/licenses/GPL-2\'  # [unix]':
-                        lines[i] = '  license_file: \'{{ environ["PREFIX"] }}/lib/R/share/licenses/GPL-2\'\n'
-                    if line.strip() == 'license_file: \'{{ environ["PREFIX"] }}\\R\\share\\licenses\\GPL-2\'  # [win]':
+                    # Fix path to licenses
+                    if regex_unix.match(line.strip()):
+                        lines[i] = regex_unix.sub('license_file: \'{{ environ["PREFIX"] }}/lib/R/share/licenses/\\1\'',
+                                                  lines[i])
+                    if regex_win.match(line.strip()):
                         lines[i] = ''
-                    if line.strip() == 'license_file: \'{{ environ["PREFIX"] }}/lib/R/share/licenses/GPL-3\'  # [unix]':
-                        lines[i] = '  license_file: \'{{ environ["PREFIX"] }}/lib/R/share/licenses/GPL-3\'\n'
-                    if line.strip() == 'license_file: \'{{ environ["PREFIX"] }}\\R\\share\\licenses\\GPL-3\'  # [win]':
-                        lines[i] = ''
+
                 new_text = ''.join(lines)
             if new_text:
                 with open('meta.yaml', 'w') as f:
