@@ -270,7 +270,8 @@ def migrator_status(migrator: Migrator, gx):
         node_metadata['num_descendants'] = len(nx.descendants(gx2, node))
         node_metadata['immediate_children'] = list(sorted(gx2.successors(node)))
         if pr_json:
-            node_metadata['pr_url'] = pr_json['html_url']
+            # I needed to fake some PRs they don't have html_urls though
+            node_metadata['pr_url'] = pr_json.get('html_url', '')
 
     for k in out.keys():
         out[k] = list(sorted(out[k], key=lambda x: build_sequence.index(x)))
