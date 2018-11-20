@@ -247,6 +247,9 @@ def migrator_status(migrator: Migrator, gx):
     feedstock_metadata = dict()
 
     for node, attrs in gx2.node.items():
+        # remove archived from status
+        if attrs.get('archived', False):
+            continue
         node_metadata = {}
         feedstock_metadata[node] = node_metadata
         nuid = migrator.migrator_uid(attrs)
