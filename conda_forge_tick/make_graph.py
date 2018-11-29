@@ -20,7 +20,7 @@ import requests
 
 from xonsh.lib.collections import ChainDB, _convert_to_dict
 from .all_feedstocks import get_all_feedstocks
-from .utils import parse_meta_yaml, setup_logger
+from .utils import parse_meta_yaml, setup_logger, get_requirements
 from .git_utils import (
     refresh_pr,
     is_github_api_limit_reached,
@@ -70,21 +70,7 @@ def get_attrs(name, i):
     sub_graph["meta_yaml"] = _convert_to_dict(yaml_dict)
 
     # TODO: Write schema for dict
-    req = yaml_dict.get("requirements", set())
-    if req:
-        build = list(
-            req.get("build", []) if req.get("build", []) is not None else []
-        )
-        host = list(
-            req.get("host", []) if req.get("host", []) is not None else []
-        )
-        run = list(
-            req.get("run", []) if req.get("run", []) is not None else []
-        )
-        req = build + host + run
-        req = set(
-            pin_sep_pat.split(x)[0].lower() for x in req if x is not None
-        )
+    req = get_requirements(yaml_dict)
     sub_graph["req"] = req
 
     keys = [("package", "name"), ("package", "version")]

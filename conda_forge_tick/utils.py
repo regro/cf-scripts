@@ -5,8 +5,11 @@ from collections.abc import Set, MutableMapping
 import logging
 import itertools
 import json
+import re
 
 import jinja2
+
+pin_sep_pat = re.compile(" |>|<|=|\[")
 
 
 class UniversalSet(Set):
@@ -178,3 +181,47 @@ def pluck(G, node_id):
         )
         G.remove_node(node_id)
         G.add_edges_from(new_edges)
+
+
+def get_requirements(meta_yaml, outputs=True, build=True, host=True, run=True):
+    """Get the list of recipe requirements from a meta.yaml dict
+
+    Parameters
+    ----------
+    meta_yaml: `dict`
+        a parsed meta YAML dict
+    outputs : `bool`
+        if `True` (default) return top-level requirements _and_ all
+        requirements in `outputs`, otherwise just return top-level
+        requirememts.
+    build, host, run : `bool`
+        include (`True`) or not (`False`) requirements from these sections
+
+    Returns
+    -------
+    reqs : `set`
+        the set of recipe requirements
+    """
+    kw = dict(build=build, host=host, run=run)
+    reqs = _parse_requirements(meta_yaml.get("requirements", {}), **kw)
+    outputs = meta_yaml.get("outputs", []) or [] if outputs else []
+    for output in outputs:
+        reqs.update(_parse_requirements(output.get("requirements", {}) or {}, **kw))
+    return reqs
+
+
+def _parse_requirements(req, build=True, host=True, run=True):
+    """Flatten a YAML requirements section into a list of names
+    """
+    if not req:  # handle None as empty
+        return set()
+    if isinstance(req, list):  # simple list goes to both host and run
+        reqlist = req if (host or run) else []
+    else:
+        build = req.get("build", []) or [] if build else []
+        host = req.get("host", []) or [] if host else []
+        run = req.get("run", []) or [] if run else []
+        reqlist = build + host + run
+    return set(
+        pin_sep_pat.split(x)[0].lower() for x in reqlist if x is not None
+    )
