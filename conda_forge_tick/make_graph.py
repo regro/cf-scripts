@@ -59,7 +59,7 @@ def get_attrs(name, i):
     text = r.content.decode("utf-8")
     sub_graph["raw_meta_yaml"] = text
     yaml_dict = ChainDB(
-        *[parse_meta_yaml(text, arch=arch) for arch in ["osx", "linux"]]
+        *[parse_meta_yaml(text, platform=plat) for plat in ["win", "osx", "linux"]]
     )
     if not yaml_dict:
         logger.warn(
