@@ -14,7 +14,7 @@ from xonsh.lib.os import indir
 
 from .git_utils import (get_repo, push_repo, is_github_api_limit_reached)
 from .path_lengths import cyclic_topological_sort
-from .utils import setup_logger, pluck
+from .utils import setup_logger, pluck, get_requirements
 
 logger = logging.getLogger("conda_forge_tick.auto_tick")
 
@@ -121,14 +121,36 @@ def run(attrs, migrator, feedstock=None, protocol='ssh',
     return migrate_return, pr_json
 
 
-def _build_host(req):
-    rv = set(
-        ([r.split()[0] for r in req.get('host', []) or [] if r]) +
-        ([r.split()[0] for r in req.get('build', []) or [] if r])
-    )
-    if None in rv:
-        rv.remove(None)
-    return rv
+def _requirement_names(reqlist):
+    """Parse requirement names from a list ignoring `None`
+    """
+    return [r.split()[0] for r in reqlist if r is not None]
+
+
+def _host_run_test_dependencies(meta_yaml):
+    """Parse the host/run/test dependencies of a recipe
+
+    This function parses top-level and `outputs` requirements sections.
+
+    The complicated logic here is mainly to support not including a
+    `host` section, and using `build` instead.
+    """
+    rq = set()
+    for block in [meta_yaml] + meta_yaml.get("outputs", []) or []:
+        req = block.get("requirements", {}) or {}
+        # if there is a host and it has things; use those
+        if req.get('host'):
+            rq.update(_requirement_names(req.get('host')))
+        # there is no host; look at build
+        elif req.get("host", "no host") not in [None, []]:
+            rq.update(_requirement_names(req.get('build', []) or []))
+        rq.update(_requirement_names(req.get('run', []) or []))
+
+    # add testing dependencies
+    for key in ('requirements', 'requires'):
+        rq.update(_requirement_names(req.get('test', {}).get(key, []) or []))
+
+    return rq
 
 
 def add_rebuild(migrators, gx):
@@ -143,8 +165,8 @@ def add_rebuild(migrators, gx):
 
     total_graph = copy.deepcopy(gx)
     for node, attrs in gx.node.items():
-        req = attrs.get('meta_yaml', {}).get('requirements', {})
-        bh = _build_host(req)
+        meta_yaml = attrs.get("meta_yaml", {}) or {}
+        bh = get_requirements(meta_yaml, run=False)
 
         py_c = ('python' in bh and (
                     attrs.get('meta_yaml', {}).get('build', {}).get(
@@ -154,21 +176,7 @@ def add_rebuild(migrators, gx):
         r_c = 'r-base' in bh
         ob_c = 'openblas' in bh
 
-        # There is a host and it has things; use those
-        if req.get('host'):
-            rq = [r.split()[0] for r in req.get('host') if r is not None]
-        # elif there is a host and it is None; no requirements
-        elif req.get('host', 'no host') in [None, []]:
-            rq = []
-        # there is no host; look at build
-        else:
-            rq = [r.split()[0] for r in req.get('build', []) or [] if r is not None]
-
-        rq += [r.split()[0] for r in req.get('run', []) or [] if r is not None]
-        rq += [r.split()[0] for r in req.get('test', {}).get('requirements', []) or [] if r is not None]
-        rq += [r.split()[0] for r in req.get('test', {}).get('requires', []) or [] if r is not None]
-        
-        rq = set(rq)
+        rq = _host_run_test_dependencies(meta_yaml)
 
         for e in list(total_graph.in_edges(node)):
             if e[0] not in rq:
