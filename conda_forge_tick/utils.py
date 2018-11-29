@@ -215,8 +215,8 @@ def _parse_requirements(req, build=True, host=True, run=True):
     """
     if not req:  # handle None as empty
         return set()
-    if isinstance(req, list):
-        reqlist = req
+    if isinstance(req, list):  # simple list goes to both host and run
+        reqlist = req if (host or run) else []
     else:
         build = req.get("build", []) or [] if build else []
         host = req.get("host", []) or [] if host else []
