@@ -138,6 +138,11 @@ def _host_run_test_dependencies(meta_yaml):
     rq = set()
     for block in [meta_yaml] + meta_yaml.get("outputs", []) or []:
         req = block.get("requirements", {}) or {}
+        # output requirements given as list (e.g. openmotif)
+        if isinstance(req, list):
+            rq.update(_requirement_names(req))
+            continue
+
         # if there is a host and it has things; use those
         if req.get('host'):
             rq.update(_requirement_names(req.get('host')))
@@ -148,7 +153,9 @@ def _host_run_test_dependencies(meta_yaml):
 
     # add testing dependencies
     for key in ('requirements', 'requires'):
-        rq.update(_requirement_names(req.get('test', {}).get(key, []) or []))
+        rq.update(_requirement_names(
+            meta_yaml.get('test', {}).get(key, []) or []
+        ))
 
     return rq
 
@@ -168,11 +175,10 @@ def add_rebuild(migrators, gx):
         meta_yaml = attrs.get("meta_yaml", {}) or {}
         bh = get_requirements(meta_yaml, run=False)
 
-        py_c = ('python' in bh and (
-                    attrs.get('meta_yaml', {}).get('build', {}).get(
-                        'noarch') != 'python'))
-        com_c = (any([req.endswith('_compiler_stub') for req in bh])
-                 or any([a in bh for a in Compiler.compilers]))
+        py_c = ('python' in bh and
+                meta_yaml.get('build', {}).get('noarch') != 'python')
+        com_c = (any([req.endswith('_compiler_stub') for req in bh]) or
+                 any([a in bh for a in Compiler.compilers]))
         r_c = 'r-base' in bh
         ob_c = 'openblas' in bh
 

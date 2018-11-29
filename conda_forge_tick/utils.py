@@ -215,10 +215,13 @@ def _parse_requirements(req, build=True, host=True, run=True):
     """
     if not req:  # handle None as empty
         return set()
-    build = req.get("build", []) or [] if build else []
-    host = req.get("host", []) or [] if host else []
-    run = req.get("run", []) or [] if run else []
-    req = build + host + run
+    if isinstance(req, list):
+        reqlist = req
+    else:
+        build = req.get("build", []) or [] if build else []
+        host = req.get("host", []) or [] if host else []
+        run = req.get("run", []) or [] if run else []
+        reqlist = build + host + run
     return set(
-        pin_sep_pat.split(x)[0].lower() for x in req if x is not None
+        pin_sep_pat.split(x)[0].lower() for x in reqlist if x is not None
     )
