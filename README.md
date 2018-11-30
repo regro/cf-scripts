@@ -24,3 +24,15 @@ There are four scripts:
 These scripts will run on Travis from 4 different github repos as daily cron jobs and use `doctr` to write the output data (the list of all conda-forge packages and the dependency graph) to the [cf-graph repo](https://github.com/regro/cf-graph3). 
 
 GH rate limit is a major concern for this as there are ~4000 feedstocks and only 5000 API calls per hour.
+
+## Setup
+
+Below are instructions for setting up a local installation for testing. They
+assume that you have conda installed and conda-forge is in your channel list.
+
+```
+conda create -y -n cf --file requirements/run --file requirements/test ipython
+source activate cf
+python setup.py install
+coverage run run_tests.py
+```
