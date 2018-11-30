@@ -965,6 +965,9 @@ about:
   license_family: BSD
   license_file: '{{ environ["PREFIX"] }}/lib/R/share/licenses/BSD_3_clause'  # [unix]
   license_file: '{{ environ["PREFIX"] }}\R\share\licenses\BSD_3_clause'  # [win]
+
+  license_file: '{{ environ["PREFIX"] }}\/lib\/R\/share\/licenses\/GPL-2'  # [unix]'
+  license_file: '{{ environ["PREFIX"] }}\/lib\/R\/share\/licenses\/BSD_3_clause'  # [unix]'
 """
 
 updated_r_licenses_noarch = """
@@ -1016,6 +1019,9 @@ about:
   license_family: LGPL
   license_file: '{{ environ["PREFIX"] }}/lib/R/share/licenses/LGPL-2.1'
   license_family: BSD
+  license_file: '{{ environ["PREFIX"] }}/lib/R/share/licenses/BSD_3_clause'
+
+  license_file: '{{ environ["PREFIX"] }}/lib/R/share/licenses/GPL-3'
   license_file: '{{ environ["PREFIX"] }}/lib/R/share/licenses/BSD_3_clause'
 """
 
@@ -1076,6 +1082,9 @@ about:
   license_family: BSD
   license_file: '{{ environ["PREFIX"] }}/lib/R/share/licenses/BSD_3_clause'  # [unix]
   license_file: '{{ environ["PREFIX"] }}\R\share\licenses\BSD_3_clause'  # [win]
+
+  license_file: '{{ environ["PREFIX"] }}\/lib\/R\/share\/licenses\/GPL-2'  # [unix]'
+  license_file: '{{ environ["PREFIX"] }}\/lib\/R\/share\/licenses\/BSD_3_clause'  # [unix]'
 """
 
 updated_r_licenses_compiled = """
@@ -1128,6 +1137,9 @@ about:
   license_family: LGPL
   license_file: '{{ environ["PREFIX"] }}/lib/R/share/licenses/LGPL-2.1'
   license_family: BSD
+  license_file: '{{ environ["PREFIX"] }}/lib/R/share/licenses/BSD_3_clause'
+
+  license_file: '{{ environ["PREFIX"] }}/lib/R/share/licenses/GPL-3'
   license_file: '{{ environ["PREFIX"] }}/lib/R/share/licenses/BSD_3_clause'
 """
 

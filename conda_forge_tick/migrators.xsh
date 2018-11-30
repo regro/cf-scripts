@@ -680,15 +680,19 @@ class Rebuild(Migrator):
                     if s > 0:
                         spacing = s
                     lines[index] = lines[index] + " "*spacing + "noarch: generic\n"
-                regex_unix = re.compile('license_file: \'{{ environ\["PREFIX"\] }}/lib/R/share/licenses/(\S+)\'\s+# \[unix\]')
+                regex_unix1 = re.compile('license_file: \'{{ environ\["PREFIX"\] }}/lib/R/share/licenses/(\S+)\'\s+# \[unix\]')
+		regex_unix2 = re.compile('license_file: \'{{ environ\["PREFIX"\] }}\\\/lib\\\/R\\\/share\\\/licenses\\\/(.+)\'\\s+# \[unix\]')
                 regex_win = re.compile('license_file: \'{{ environ\["PREFIX"\] }}\\\R\\\share\\\licenses\\\(\S+)\'\s+# \[win\]')
                 for i, line in enumerate(lines_stripped):
                     if noarch and line.lower().strip().startswith("skip: true"):
                         lines[i] = ""
                     # Fix path to licenses
-                    if regex_unix.match(line.strip()):
-                        lines[i] = regex_unix.sub('license_file: \'{{ environ["PREFIX"] }}/lib/R/share/licenses/\\1\'',
-                                                  lines[i])
+                    if regex_unix1.match(line.strip()):
+                        lines[i] = regex_unix1.sub('license_file: \'{{ environ["PREFIX"] }}/lib/R/share/licenses/\\1\'',
+                                                   lines[i])
+		    if regex_unix2.match(line.strip()):
+                        lines[i] = regex_unix2.sub('license_file: \'{{ environ["PREFIX"] }}/lib/R/share/licenses/\\1\'',
+                                                   lines[i])
                     if regex_win.match(line.strip()):
                         lines[i] = ''
 
