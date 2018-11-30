@@ -966,8 +966,8 @@ about:
   license_file: '{{ environ["PREFIX"] }}/lib/R/share/licenses/BSD_3_clause'  # [unix]
   license_file: '{{ environ["PREFIX"] }}\R\share\licenses\BSD_3_clause'  # [win]
 
-  license_file: '{{ environ["PREFIX"] }}\/lib\/R\/share\/licenses\/GPL-2'  # [unix]'
-  license_file: '{{ environ["PREFIX"] }}\/lib\/R\/share\/licenses\/BSD_3_clause'  # [unix]'
+  license_file: '{{ environ["PREFIX"] }}\/lib\/R\/share\/licenses\/GPL-2'  # [unix]
+  license_file: '{{ environ["PREFIX"] }}\/lib\/R\/share\/licenses\/BSD_3_clause'  # [unix]
 """
 
 updated_r_licenses_noarch = """
@@ -1083,8 +1083,8 @@ about:
   license_file: '{{ environ["PREFIX"] }}/lib/R/share/licenses/BSD_3_clause'  # [unix]
   license_file: '{{ environ["PREFIX"] }}\R\share\licenses\BSD_3_clause'  # [win]
 
-  license_file: '{{ environ["PREFIX"] }}\/lib\/R\/share\/licenses\/GPL-2'  # [unix]'
-  license_file: '{{ environ["PREFIX"] }}\/lib\/R\/share\/licenses\/BSD_3_clause'  # [unix]'
+  license_file: '{{ environ["PREFIX"] }}\/lib\/R\/share\/licenses\/GPL-2'  # [unix]
+  license_file: '{{ environ["PREFIX"] }}\/lib\/R\/share\/licenses\/BSD_3_clause'  # [unix]
 """
 
 updated_r_licenses_compiled = """
