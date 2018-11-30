@@ -1021,7 +1021,7 @@ about:
   license_family: BSD
   license_file: '{{ environ["PREFIX"] }}/lib/R/share/licenses/BSD_3_clause'
 
-  license_file: '{{ environ["PREFIX"] }}/lib/R/share/licenses/GPL-3'
+  license_file: '{{ environ["PREFIX"] }}/lib/R/share/licenses/GPL-2'
   license_file: '{{ environ["PREFIX"] }}/lib/R/share/licenses/BSD_3_clause'
 """
 
@@ -1139,7 +1139,7 @@ about:
   license_family: BSD
   license_file: '{{ environ["PREFIX"] }}/lib/R/share/licenses/BSD_3_clause'
 
-  license_file: '{{ environ["PREFIX"] }}/lib/R/share/licenses/GPL-3'
+  license_file: '{{ environ["PREFIX"] }}/lib/R/share/licenses/GPL-2'
   license_file: '{{ environ["PREFIX"] }}/lib/R/share/licenses/BSD_3_clause'
 """
 
