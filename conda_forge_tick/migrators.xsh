@@ -166,7 +166,7 @@ class Migrator:
         """
         top_level = set(
             node for node in graph if not list(graph.predecessors(node)) 
-                                      or list(graph.predecessors(node) == [node])
+                                      or list(graph.predecessors(node)) == [node]
         return cyclic_topological_sort(graph, top_level)
 
     @classmethod
