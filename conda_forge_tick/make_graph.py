@@ -89,9 +89,6 @@ def get_attrs(name, i):
         logger.warn(
             "Recipe {} doesn't have a {}".format(name, ", ".join(missing_keys))
         )
-        sub_graph["bad"] = "make_graph: missing {}".format(
-            ", ".join(missing_keys)
-        )
     for k in keys:
         if k[1] not in missing_keys:
             sub_graph[k[1]] = yaml_dict[k[0]][k[1]]
