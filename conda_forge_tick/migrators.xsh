@@ -738,18 +738,9 @@ class Rebuild(Migrator):
 
 
 class CompilerRebuild(Rebuild):
-    bump_number = 1000
     migrator_version = 1
 
     def migrate(self, recipe_dir, attrs, **kwargs):
-        with indir(recipe_dir + '/..'):
-            with open('conda-forge.yml', 'r') as f:
-                y = safe_load(f)
-            y.update({'compiler_stack': 'comp7',
-                      'max_py_ver': '37',
-                      'max_r_ver': '35'})
-            with open('conda-forge.yml', 'w') as f:
-                safe_dump(y, f)
         return super().migrate(recipe_dir, attrs, **kwargs)
 
     def pr_body(self):
