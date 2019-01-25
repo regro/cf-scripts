@@ -1,3 +1,4 @@
-import xonsh.imphooks
+from xonsh.main import setup
 
-xonsh.imphooks.install_import_hooks()
+setup()
+del setup
