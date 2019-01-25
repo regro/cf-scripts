@@ -6,13 +6,10 @@ import logging
 import os
 import time
 import random
+import builtins
 from copy import deepcopy
 
-from concurrent.futures import (
-    ProcessPoolExecutor,
-    as_completed,
-    ThreadPoolExecutor,
-)
+from concurrent.futures import ProcessPoolExecutor, as_completed, ThreadPoolExecutor
 
 import github3
 import networkx as nx
@@ -21,11 +18,7 @@ import requests
 from xonsh.lib.collections import ChainDB, _convert_to_dict
 from .all_feedstocks import get_all_feedstocks
 from .utils import parse_meta_yaml, setup_logger, get_requirements
-from .git_utils import (
-    refresh_pr,
-    is_github_api_limit_reached,
-    close_out_labels,
-)
+from .git_utils import refresh_pr, is_github_api_limit_reached, close_out_labels
 
 logger = logging.getLogger("conda_forge_tick.make_graph")
 pin_sep_pat = re.compile(" |>|<|=|\[")
@@ -62,9 +55,7 @@ def get_attrs(name, i):
         *[parse_meta_yaml(text, platform=plat) for plat in ["win", "osx", "linux"]]
     )
     if not yaml_dict:
-        logger.warn(
-            "Something odd happened when parsing recipe " "{}".format(name)
-        )
+        logger.warn("Something odd happened when parsing recipe " "{}".format(name))
         sub_graph["bad"] = "make_graph: Could not parse"
         return sub_graph
     sub_graph["meta_yaml"] = _convert_to_dict(yaml_dict)
@@ -86,9 +77,7 @@ def get_attrs(name, i):
     if "url" not in source_keys:
         missing_keys.append("url")
     if missing_keys:
-        logger.warn(
-            "Recipe {} doesn't have a {}".format(name, ", ".join(missing_keys))
-        )
+        logger.warn("Recipe {} doesn't have a {}".format(name, ", ".join(missing_keys)))
     for k in keys:
         if k[1] not in missing_keys:
             sub_graph[k[1]] = yaml_dict[k[0]][k[1]]
@@ -98,23 +87,10 @@ def get_attrs(name, i):
     return sub_graph
 
 
-def make_graph(names, gx=None):
-    logger.info("reading graph")
-
-    if gx is None:
-        gx = nx.DiGraph()
-
-    new_names = [name for name in names if name not in gx.nodes]
-    old_names = [name for name in names if name in gx.nodes]
-    old_names = sorted(old_names, key=lambda n: gx.nodes[n].get("time", 0))
-
-    total_names = new_names + old_names
-    logger.info("start loop")
-
+def _build_graph_process_pool(gx, names, new_names):
     with ProcessPoolExecutor(max_workers=20) as pool:
         futures = {
-            pool.submit(get_attrs, name, i): name
-            for i, name in enumerate(total_names)
+            pool.submit(get_attrs, name, i): name for i, name in enumerate(names)
         }
 
         for f in as_completed(futures):
@@ -129,12 +105,46 @@ def make_graph(names, gx=None):
                 else:
                     gx.nodes[name].update(**sub_graph)
 
+
+def _build_graph_sequential(gx, names, new_names):
+    for i, name in enumerate(names):
+        try:
+            sub_graph = get_attrs(name, i)
+        except Exception as e:
+            logger.warn("Error adding {} to the graph: {}".format(name, e))
+        else:
+            if name in new_names:
+                gx.add_node(name, **sub_graph)
+            else:
+                gx.nodes[name].update(**sub_graph)
+
+
+def make_graph(names, gx=None):
+    logger.info("reading graph")
+
+    if gx is None:
+        gx = nx.DiGraph()
+
+    new_names = [name for name in names if name not in gx.nodes]
+    old_names = [name for name in names if name in gx.nodes]
+    old_names = sorted(old_names, key=lambda n: gx.nodes[n].get("time", 0))
+
+    total_names = new_names + old_names
+    logger.info("start loop")
+    env = builtins.__xonsh__.env
+    dbug = env.get("CONDA_FORGE_TICK_DEBUG", False)
+    builder = _build_graph_sequential if debug else _build_graph_process_pool
+    builder(gx, total_names, new_names)
+    logger.info("loop completed")
+
     gx2 = deepcopy(gx)
+    logger.info("inferring nodes and edges")
     for node, attrs in gx2.node.items():
         for dep in attrs.get("req", []):
             if dep not in gx.nodes:
                 gx.add_node(dep, archived=True, time=time.time())
             gx.add_edge(dep, node)
+    logger.info("new nodes and edges infered")
     return gx
 
 
