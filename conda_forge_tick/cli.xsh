@@ -34,7 +34,10 @@ int_script_dict = {0: main0, 1: main1, 2: main2, 3: main3, 4: main4, -1: deploy}
 def main(*args, **kwargs):
     parser = argparse.ArgumentParser("a tool to help update feedstocks.")
     parser.add_argument("--run")
+    parser.add_argument("--debug", dest="debug", action="store_true", default=False,
+        help="Runs in debug mode, running paraellel parts sequentially and printing more info.")
     args = parser.parse_args()
+    $CONDA_FORGE_TICK_DEBUG = args.debug
     script = int(args.run)
     if script in int_script_dict:
         start = time.time()
