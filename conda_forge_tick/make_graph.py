@@ -132,7 +132,7 @@ def make_graph(names, gx=None):
     total_names = new_names + old_names
     logger.info("start loop")
     env = builtins.__xonsh__.env
-    dbug = env.get("CONDA_FORGE_TICK_DEBUG", False)
+    debug = env.get("CONDA_FORGE_TICK_DEBUG", False)
     builder = _build_graph_sequential if debug else _build_graph_process_pool
     builder(gx, total_names, new_names)
     logger.info("loop completed")
