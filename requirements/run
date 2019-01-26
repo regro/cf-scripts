@@ -13,3 +13,4 @@ feedparser
 conda
 conda-forge-pinning
 frozendict
+distributed
