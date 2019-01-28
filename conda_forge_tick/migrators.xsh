@@ -932,7 +932,7 @@ class ArchRebuild(Rebuild):
         if super().filter(attrs):
             return True
         for arch in self.arches:
-            configured_arch = attrs["conda_forge.yml"].get("provider", {}).get(arch)
+            configured_arch = attrs.get("conda-forge.yml", {}).get("provider", {}).get(arch)
             if configured_arch:
                 return True
 

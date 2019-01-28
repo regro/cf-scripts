@@ -70,7 +70,7 @@ def get_attrs(name, i):
     text, failed = fetch_file('conda-forge.yml')
     if failed:
         return sub_graph
-    sub_graph["conda_forge.yml"] = {k: v for k, v in  yaml.safe_load(text).items() if
+    sub_graph["conda-forge.yml"] = {k: v for k, v in  yaml.safe_load(text).items() if
         k in {'provider', 'max_py_ver', 'max_r_ver', 'compiler_stack'}}
 
     # TODO: Write schema for dict
