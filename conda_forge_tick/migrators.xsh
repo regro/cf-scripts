@@ -606,7 +606,7 @@ class NoarchR(Noarch):
     bump_number = 1
 
     def filter(self, attrs):
-        conditional = (super().filter(attrs) or
+        conditional = (Migrator.filter(self, attrs) or
                        attrs.get('meta_yaml', {}).get('outputs') or
                        attrs.get('meta_yaml', {}).get('build', {}).get('noarch')
                       )
@@ -708,11 +708,6 @@ class NoarchR(Noarch):
 
     def remote_branch(self):
         return 'r-noarch'
-
-    def migrator_uid(self, attrs):
-        n = super().migrator_uid(attrs)
-        n = n.copy(name=self.name)
-        return n
 
 
 class Rebuild(Migrator):

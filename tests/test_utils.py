@@ -39,6 +39,6 @@ def test_get_requirements():
         ],
     }
     assert get_requirements({}) == set()
-    assert get_requirements(meta_yaml) == set(["1", "2", "3", "4", "5", "6"])
-    assert get_requirements(meta_yaml, outputs=False) == set(["1", "2", "3"])
-    assert get_requirements(meta_yaml, host=False) == set(["1", "2", "5", "6"])
+    assert get_requirements(meta_yaml) == {"1", "2", "3", "4", "5", "6"}
+    assert get_requirements(meta_yaml, outputs=False) == {"1", "2", "3"}
+    assert get_requirements(meta_yaml, host=False) == {"1", "2", "5", "6"}

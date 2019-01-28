@@ -4,7 +4,7 @@ import builtins
 import pytest
 import networkx as nx
 
-from conda_forge_tick.migrators import JS, Version, Compiler, Noarch, Pinning, Rebuild
+from conda_forge_tick.migrators import JS, Version, Compiler, Noarch, Pinning, Rebuild, ArchRebuild, NoarchR
 from conda_forge_tick.utils import parse_meta_yaml
 
 
@@ -1534,6 +1534,7 @@ js = JS()
 version = Version()
 compiler = Compiler()
 noarch = Noarch()
+noarchr = NoarchR()
 perl = Pinning(removals={"perl"})
 pinning = Pinning()
 rebuild = Rebuild(name='rebuild', cycles=[])
@@ -1730,12 +1731,12 @@ test_list = [
         False,
     ),
     (
-        rebuild,
+        noarchr,
         sample_r_base,
         updated_r_base,
         {"feedstock_name": "r-stabledist"},
-        "It is likely this feedstock needs to be rebuilt.",
-        {"migrator_name": "Rebuild", "migrator_version": rebuild.migrator_version, "name":"rebuild"},
+        "I think this feedstock could be built with noarch",
+        {"migrator_name": "NoarchR", "migrator_version": noarchr.migrator_version},
         False,
     ),
     (
@@ -1748,23 +1749,24 @@ test_list = [
         False,
     ),
     (
-        rebuild,
+        noarchr,
         sample_r_licenses_noarch,
         updated_r_licenses_noarch,
         {"feedstock_name": "r-stabledist"},
-        "It is likely this feedstock needs to be rebuilt.",
-        {"migrator_name": "Rebuild", "migrator_version": rebuild.migrator_version, "name":"rebuild"},
+        "I think this feedstock could be built with noarch",
+        {"migrator_name": "NoarchR", "migrator_version": noarchr.migrator_version},
         False,
     ),
-    (
-        rebuild,
-        sample_r_licenses_compiled,
-        updated_r_licenses_compiled,
-        {"feedstock_name": "r-stabledist"},
-        "It is likely this feedstock needs to be rebuilt.",
-        {"migrator_name": "Rebuild", "migrator_version": rebuild.migrator_version, "name":"rebuild"},
-        False,
-    ),
+    # Disabled for now because the R license stuff has been purpossefully moved into the noarchR migrator
+    # (
+    #     noarchr,
+    #     sample_r_licenses_compiled,
+    #     updated_r_licenses_compiled,
+    #     {"feedstock_name": "r-stabledist"},
+    #     "It is likely this feedstock needs to be rebuilt.",
+    #     {"migrator_name": "Rebuild", "migrator_version": rebuild.migrator_version, "name":"rebuild"},
+    #     False,
+    # ),
 ]
 
 G = nx.DiGraph()
