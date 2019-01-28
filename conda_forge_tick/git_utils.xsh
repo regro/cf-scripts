@@ -238,7 +238,11 @@ def is_github_api_limit_reached(e: github3.GitHubError, gh: github3.GitHub) -> b
     print(e.response)
     print(e.response.url)
 
-    c = gh.rate_limit()['resources']['core']
+    try:
+        c = gh.rate_limit()['resources']['core']
+    except Exception:
+        # if we can't connect to the rate limit API, let's assume it has been reached
+        return True
     if c['remaining'] == 0:
         ts = c['reset']
         print('API timeout, API returns at')
