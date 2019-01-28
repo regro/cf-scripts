@@ -2,6 +2,9 @@ import os
 from collections import defaultdict
 
 from collections.abc import Set, MutableMapping
+from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor, as_completed
+
+import contextlib
 import logging
 import itertools
 import json
@@ -225,3 +228,22 @@ def _parse_requirements(req, build=True, host=True, run=True):
     return set(
         pin_sep_pat.split(x)[0].lower() for x in reqlist if x is not None
     )
+
+
+@contextlib.contextmanager
+def executor(kind, max_workers):
+    """General purpose utility to get an executor with its as_completed handler
+
+    This allows us to easily use other executors as needed.
+    """
+    if kind == 'thread':
+        with ThreadPoolExecutor(max_workers=max_workers) as pool:
+            yield pool, as_completed
+    if kind == 'process':
+        with ProcessPoolExecutor(max_workers=max_workers) as pool:
+            yield pool, as_completed
+    if kind == 'dask':
+        import distributed
+        with distributed.LocalCluster(n_workers=max_workers) as cluster:
+            with distributed.Client(cluster) as client:
+                yield client, distributed.as_completed

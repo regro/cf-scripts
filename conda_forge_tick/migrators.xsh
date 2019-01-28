@@ -706,9 +706,6 @@ class NoarchR(Noarch):
         else:
             return 'Bump build number'
 
-    def pr_head(self):
-        return $USERNAME + ':' + self.remote_branch()
-
     def remote_branch(self):
         return 'r-noarch'
 
@@ -733,7 +730,7 @@ class Rebuild(Migrator):
             self.graph = graph
         self.name = name
         self.top_level = top_level
-        self.cycles = set(chain.from_iterable(cycles))
+        self.cycles = set(chain.from_iterable(cycles or []))
 
     def filter(self, attrs):
         if super().filter(attrs, 'Upstream:'):

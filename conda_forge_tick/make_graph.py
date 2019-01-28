@@ -10,8 +10,6 @@ import builtins
 import contextlib
 from copy import deepcopy
 
-from concurrent.futures import ProcessPoolExecutor, as_completed, ThreadPoolExecutor
-
 import github3
 import networkx as nx
 import requests
@@ -19,7 +17,7 @@ import yaml
 
 from xonsh.lib.collections import ChainDB, _convert_to_dict
 from .all_feedstocks import get_all_feedstocks
-from .utils import parse_meta_yaml, setup_logger, get_requirements
+from .utils import parse_meta_yaml, setup_logger, get_requirements, executor
 from .git_utils import refresh_pr, is_github_api_limit_reached, close_out_labels
 
 logger = logging.getLogger("conda_forge_tick.make_graph")
@@ -238,25 +236,6 @@ def close_labels(gx: nx.DiGraph) -> nx.DiGraph:
                 logger.critical("ERROR ON FEEDSTOCK: {}: {}".format(name, muid))
                 raise
     return gx
-
-
-@contextlib.contextmanager
-def executor(kind, max_workers):
-    """General purpose utility to get an executor with its as_completed handler
-
-    This allows us to easily use other executors as needed.
-    """
-    if kind == 'thread':
-        with ThreadPoolExecutor(max_workers=max_workers) as pool:
-            yield pool, as_completed
-    if kind == 'process':
-        with ProcessPoolExecutor(max_workers=max_workers) as pool:
-            yield pool, as_completed
-    if kind == 'dask':
-        import distributed
-        with distributed.LocalCluster(n_workers=max_workers) as cluster:
-            with distributed.Client(cluster) as client:
-                yield client, distributed.as_completed
 
 
 def main(args=None):

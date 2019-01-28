@@ -1,7 +1,6 @@
 import collections.abc
 import logging
 import subprocess
-from concurrent.futures import as_completed, ProcessPoolExecutor
 
 import feedparser
 import networkx as nx
@@ -9,7 +8,7 @@ import requests
 from conda.models.version import VersionOrder
 from pkg_resources import parse_version
 
-from .utils import parse_meta_yaml, setup_logger
+from .utils import parse_meta_yaml, setup_logger, executor
 
 logger = logging.getLogger("conda_forge_tick.update_upstream_versions")
 
@@ -228,7 +227,7 @@ def get_latest_version(meta_yaml, sources):
 
 def update_upstream_versions(gx, sources=(PyPI(), NPM(), CRAN(), RawURL(), Github())):
     futures = {}
-    with ProcessPoolExecutor(max_workers=20) as pool:
+    with executor(kind='dask', max_workers=20) as (pool, as_completed):
         for node, attrs in gx.node.items():
             if attrs.get("bad") or attrs.get("archived"):
                 attrs["new_version"] = False
