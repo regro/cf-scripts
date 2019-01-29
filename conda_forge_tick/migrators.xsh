@@ -600,51 +600,37 @@ class Noarch(Migrator):
         return 'noarch_migration'
 
 
-class Rebuild(Migrator):
-    """Migrator for bumping the build number."""
+class NoarchR(Noarch):
     migrator_version = 0
     rerender = True
     bump_number = 1
 
-    def __init__(self, graph=None, name=None, pr_limit=0, top_level=None,
-                 cycles=None):
-        super().__init__(pr_limit)
-        if graph == None:
-            self.graph = nx.DiGraph()
-        else:
-            self.graph = graph
-        self.name = name
-        self.top_level = top_level
-        self.cycles = set(chain.from_iterable(cycles))
-
     def filter(self, attrs):
-        if super().filter(attrs, 'Upstream:'):
+        conditional = (Migrator.filter(self, attrs) or
+                       attrs.get('meta_yaml', {}).get('outputs') or
+                       attrs.get('meta_yaml', {}).get('build', {}).get('noarch')
+                      )
+        if conditional:
             return True
-        if attrs['feedstock_name'] not in self.graph:
+        r = False
+        for req in attrs.get('req', []):
+            if self.compiler_pat.match(req) or req in self.unallowed_reqs:
+                return True
+
+        if attrs['feedstock_name'].startswith("r-"):
+            r = True
+        if not r:
             return True
-        # If in top level or in a cycle don't check for upstreams just build
-        if ((self.top_level and attrs['feedstock_name'] in self.top_level)
-            or (self.cycles and attrs['feedstock_name'] in self.cycles)):
-            return False
-        # Check if all upstreams have been built
-        for node in self.graph.predecessors(attrs['feedstock_name']):
-            att = self.graph.node[node]
-            muid = self.migrator_uid(att)
-            if muid not in att.get('PRed', []):
-                return True
-            # This is due to some PRed_json loss due to bad graph deploy outage
-            m_pred_jsons = att.get('PRed_json').get(muid)
-            if m_pred_jsons and m_pred_jsons.get('state', '') == 'open':
-                return True
+
+        ## R recipes tend to have some things in their build / test that have selectors
+
+        # for line in attrs.get('raw_meta_yaml', '').splitlines():
+        #    if self.sel_pat.match(line):
+        #        return True
         return False
 
     def migrate(self, recipe_dir, attrs, **kwargs):
         check_for = ['toolchain', 'libgcc', 'compiler']
-
-        if (not attrs['feedstock_name'].startswith("r-")):
-            with indir(recipe_dir):
-                self.set_build_number('meta.yaml')
-            return self.migrator_uid(attrs)
 
         noarch = not any(c in attrs['raw_meta_yaml'] for c in check_for)
 
@@ -697,6 +683,75 @@ class Rebuild(Migrator):
             if new_text:
                 with open('meta.yaml', 'w') as f:
                     f.writelines(new_text)
+            self.set_build_number('meta.yaml')
+        return self.migrator_uid(attrs)
+
+    def pr_body(self):
+        body = super().pr_body()
+        body = body.format(
+                    'It is likely this feedstock needs to be rebuilt.\n'
+                    'Notes and instructions for merging this PR:\n'
+                    '1. Please merge the PR only after the tests have passed. \n'
+                    "2. Feel free to push to the bot's branch to update this PR if needed. \n"
+                    "{}\n"
+                    )
+        return body
+
+    def commit_message(self):
+        return "add noarch r"
+
+    def pr_title(self):
+        if self.name:
+            return 'Noarch R for ' + self.name
+        else:
+            return 'Bump build number'
+
+    def remote_branch(self):
+        return 'r-noarch'
+
+
+class Rebuild(Migrator):
+    """Migrator for bumping the build number."""
+    migrator_version = 0
+    rerender = True
+    bump_number = 1
+
+    def __init__(self, graph=None, name=None, pr_limit=0, top_level=None,
+                 cycles=None):
+        super().__init__(pr_limit)
+        if graph == None:
+            self.graph = nx.DiGraph()
+        else:
+            self.graph = graph
+        self.name = name
+        self.top_level = top_level
+        self.cycles = set(chain.from_iterable(cycles or []))
+
+    def filter(self, attrs):
+        if super().filter(attrs, 'Upstream:'):
+            return True
+        if attrs['feedstock_name'] not in self.graph:
+            return True
+        # If in top level or in a cycle don't check for upstreams just build
+        if ((self.top_level and attrs['feedstock_name'] in self.top_level)
+            or (self.cycles and attrs['feedstock_name'] in self.cycles)):
+            return False
+        # Check if all upstreams have been built
+        for node in self.graph.predecessors(attrs['feedstock_name']):
+            att = self.graph.node[node]
+            muid = self.migrator_uid(att)
+            if muid not in att.get('PRed', []):
+                return True
+            # This is due to some PRed_json loss due to bad graph deploy outage
+            m_pred_jsons = att.get('PRed_json').get(muid)
+            if m_pred_jsons and m_pred_jsons.get('state', '') == 'open':
+                return True
+        return False
+
+    def migrate(self, recipe_dir, attrs, **kwargs):
+        check_for = ['toolchain', 'libgcc', 'compiler']
+
+        with indir(recipe_dir):
             self.set_build_number('meta.yaml')
         return self.migrator_uid(attrs)
 
@@ -827,3 +882,82 @@ class Pinning(Migrator):
 
     def remote_branch(self):
         return 'pinning'
+
+
+class ArchRebuild(Rebuild):
+    """
+    A Migrator that add aarch64 and ppc64le builds to feedstocks
+    """
+    migrator_version = 1
+    rerender = True
+    # We purposefully don't want to bump build number for this migrator
+    bump_number = 0
+    # We are constraining the scope of this migrator
+    target_packages = {
+        'ncurses'
+        'conda-build',
+        'numpy',
+        'opencv',
+        'ipython',
+        'pandas',
+        'tornado',
+        'matplotlib',
+        'distributed',
+        'zeromq',
+        'notebook',
+        'scipy',
+        'libarchive',
+        'zstd',
+        'krb5',
+        'scikit-learn',
+        }
+    arches = {
+        "linux_aarch64": "azure",
+        "linux_ppc64le": "azure",
+    }
+
+    def __init__(self, graph=None, name=None, pr_limit=0, top_level=None,
+                 cycles=None):
+        super().__init__(graph=graph, name=name, pr_limit=pr_limit, top_level=top_level,
+                         cycles=cycles)
+        # filter the graph down to the target packages
+        if self.target_packages:
+            packages = self.target_packages.copy()
+            for target in self.target_packages:
+                if target in self.graph.nodes:
+                    packages.update(self.graph.predecessors(target))
+            self.graph.remove_nodes_from([n for n in self.graph if n not in packages])
+
+    def filter(self, attrs):
+        if super().filter(attrs):
+            return True
+        for arch in self.arches:
+            configured_arch = attrs.get("conda-forge.yml", {}).get("provider", {}).get(arch)
+            if configured_arch:
+                return True
+
+    def migrate(self, recipe_dir, attrs, **kwargs):
+        with indir(recipe_dir + '/..'):
+            with open('conda-forge.yml', 'r') as f:
+                y = safe_load(f)
+            if 'provider' not in y:
+                y['provider'] = {}
+            for k, v in self.arches.items():
+                if k not in y['provider']:
+                    y['provider'][k] = v
+
+            with open('conda-forge.yml', 'w') as f:
+                safe_dump(y, f)
+        return super().migrate(recipe_dir, attrs, **kwargs)
+
+    def pr_title(self):
+        return 'Arch Migrator'
+
+    def pr_body(self):
+        body = dedent("""This feedstock is being rebuilt as part of the aarch64/ppc64le migration
+
+        cc: @conda-forge/arm-arch
+
+        **Please don't close this PR without reaching out the the ARM migrators first**
+        """)
+        return body

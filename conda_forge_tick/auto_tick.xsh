@@ -206,6 +206,39 @@ def add_rebuild(migrators, gx):
                         cycles=cycles))
 
 
+def add_arch_migrate(migrators, gx):
+    """Adds rebuild migrators.
+
+    Parameters
+    ----------
+    migrators : list of Migrator
+        The list of migrators to run.
+
+    """
+    total_graph = copy.deepcopy(gx)
+
+    for node, attrs in gx.node.items():
+        meta_yaml = attrs.get("meta_yaml", {}) or {}
+        # no need to consider noarch packages for this rebuild
+        noarch = meta_yaml.get('build', {}).get('noarch')
+        if noarch:
+            pluck(total_graph, node)
+
+    # post plucking we can have several strange cases, lets remove all selfloops
+    total_graph.remove_edges_from(total_graph.selfloop_edges())
+
+    top_level = {node for node in total_graph if not set(total_graph.predecessors(node))}
+    cycles = list(nx.simple_cycles(total_graph))
+    print('cycles are here:', cycles)
+
+    migrators.append(
+        ArchRebuild(graph=total_graph,
+                pr_limit=5,
+                name='aarch64 and ppc64le addition',
+                        top_level=top_level,
+                        cycles=cycles))
+
+
 def initialize_migrators(do_rebuild=False):
     setup_logger(logger)
     temp = g`/tmp/*`
@@ -221,6 +254,7 @@ def initialize_migrators(do_rebuild=False):
     # TODO: reenable once graph order is correct
     if do_rebuild:
         add_rebuild($MIGRATORS, gx)
+    add_arch_migrate($MIGRATORS,gx)
 
     return gx, smithy_version, pinning_version, temp, $MIGRATORS
 

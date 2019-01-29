@@ -7,17 +7,17 @@ import os
 import time
 import random
 import builtins
+import contextlib
 from copy import deepcopy
-
-from concurrent.futures import ProcessPoolExecutor, as_completed, ThreadPoolExecutor
 
 import github3
 import networkx as nx
 import requests
+import yaml
 
 from xonsh.lib.collections import ChainDB, _convert_to_dict
 from .all_feedstocks import get_all_feedstocks
-from .utils import parse_meta_yaml, setup_logger, get_requirements
+from .utils import parse_meta_yaml, setup_logger, get_requirements, executor
 from .git_utils import refresh_pr, is_github_api_limit_reached, close_out_labels
 
 logger = logging.getLogger("conda_forge_tick.make_graph")
@@ -36,20 +36,26 @@ def get_attrs(name, i):
     }
 
     logger.info((i, name))
-    r = requests.get(
-        "https://raw.githubusercontent.com/"
-        "conda-forge/{}-feedstock/master/recipe/"
-        "meta.yaml".format(name)
-    )
-    if r.status_code != 200:
-        logger.warn(
-            "Something odd happened when fetching recipe "
-            "{}: {}".format(name, r.status_code)
+    def fetch_file(filepath):
+        r = requests.get(
+            "https://raw.githubusercontent.com/"
+            "conda-forge/{}-feedstock/master/{}".format(name, filepath)
         )
-        sub_graph["bad"] = "make_graph: {}".format(r.status_code)
-        return sub_graph
+        failed = False
+        if r.status_code != 200:
+            logger.warn(
+                "Something odd happened when fetching recipe "
+                "{}: {}".format(name, r.status_code)
+            )
+            sub_graph["bad"] = "make_graph: {}".format(r.status_code)
+            failed = True
 
-    text = r.content.decode("utf-8")
+        text = r.content.decode("utf-8")
+        return text, failed
+
+    text, failed = fetch_file('recipe/meta.yaml')
+    if failed:
+        return sub_graph
     sub_graph["raw_meta_yaml"] = text
     yaml_dict = ChainDB(
         *[parse_meta_yaml(text, platform=plat) for plat in ["win", "osx", "linux"]]
@@ -59,6 +65,13 @@ def get_attrs(name, i):
         sub_graph["bad"] = "make_graph: Could not parse"
         return sub_graph
     sub_graph["meta_yaml"] = _convert_to_dict(yaml_dict)
+
+    # Get the conda-forge.yml
+    text, failed = fetch_file('conda-forge.yml')
+    if failed:
+        return sub_graph
+    sub_graph["conda-forge.yml"] = {k: v for k, v in  yaml.safe_load(text).items() if
+        k in {'provider', 'max_py_ver', 'max_r_ver', 'compiler_stack'}}
 
     # TODO: Write schema for dict
     req = get_requirements(yaml_dict)
@@ -88,7 +101,7 @@ def get_attrs(name, i):
 
 
 def _build_graph_process_pool(gx, names, new_names):
-    with ProcessPoolExecutor(max_workers=20) as pool:
+    with executor('dask', max_workers=20) as (pool, as_completed):
         futures = {
             pool.submit(get_attrs, name, i): name for i, name in enumerate(names)
         }
@@ -148,13 +161,20 @@ def make_graph(names, gx=None):
     return gx
 
 
+def github_client():
+    if os.environ.get('GITHUB_TOKEN'):
+        return github3.login(token=os.environ['GITHUB_TOKEN'])
+    else:
+        return  github3.login(os.environ["USERNAME"], os.environ["PASSWORD"])
+
+
 def update_graph_pr_status(gx: nx.DiGraph) -> nx.DiGraph:
-    gh = github3.login(os.environ["USERNAME"], os.environ["PASSWORD"])
+    gh = github_client()
     futures = {}
     node_ids = list(gx.nodes)
     # this makes sure that github rate limits are dispersed
     random.shuffle(node_ids)
-    with ThreadPoolExecutor(max_workers=NUM_GITHUB_THREADS) as pool:
+    with executor('threads', NUM_GITHUB_THREADS) as (pool, as_completed):
         for node_id in node_ids:
             node = gx.nodes[node_id]
             prs = node.get("PRed_json", {})
@@ -164,30 +184,30 @@ def update_graph_pr_status(gx: nx.DiGraph) -> nx.DiGraph:
                     future = pool.submit(refresh_pr, pr_json, gh)
                     futures[future] = (node_id, migrator)
 
-    for f in as_completed(futures):
-        name, muid = futures[f]
-        try:
-            res = f.result()
-            if res:
-                gx.nodes[name]["PRed_json"][muid].update(**res)
-                logger.info("Updated json for {}: {}".format(name, res["id"]))
-        except github3.GitHubError as e:
-            logger.critical("GITHUB ERROR ON FEEDSTOCK: {}".format(name))
-            if is_github_api_limit_reached(e, gh):
-                break
-        except Exception as e:
-            logger.critical("ERROR ON FEEDSTOCK: {}: {}".format(name, muid))
-            raise
+        for f in as_completed(futures):
+            name, muid = futures[f]
+            try:
+                res = f.result()
+                if res:
+                    gx.nodes[name]["PRed_json"][muid].update(**res)
+                    logger.info("Updated json for {}: {}".format(name, res["id"]))
+            except github3.GitHubError as e:
+                logger.critical("GITHUB ERROR ON FEEDSTOCK: {}".format(name))
+                if is_github_api_limit_reached(e, gh):
+                    break
+            except Exception as e:
+                logger.critical("ERROR ON FEEDSTOCK: {}: {}".format(name, muid))
+                raise
     return gx
 
 
 def close_labels(gx: nx.DiGraph) -> nx.DiGraph:
-    gh = github3.login(os.environ["USERNAME"], os.environ["PASSWORD"])
+    gh = github_client()
     futures = {}
     node_ids = list(gx.nodes)
     # this makes sure that github rate limits are dispersed
     random.shuffle(node_ids)
-    with ThreadPoolExecutor(max_workers=NUM_GITHUB_THREADS) as pool:
+    with executor('thread', NUM_GITHUB_THREADS) as (pool, as_completed):
         for node_id in node_ids:
             node = gx.nodes[node_id]
             prs = node.get("PRed_json", {})
@@ -197,24 +217,24 @@ def close_labels(gx: nx.DiGraph) -> nx.DiGraph:
                     future = pool.submit(close_out_labels, pr_json, gh)
                     futures[future] = (node_id, migrator)
 
-    for f in as_completed(futures):
-        name, muid = futures[f]
-        try:
-            res = f.result()
-            if res:
-                gx.node[name]["PRed"].remove(muid)
-                del gx.nodes[name]["PRed_json"][muid]
-                logger.info(
-                    "Closed and removed PR and branch for "
-                    "{}: {}".format(name, res["id"])
-                )
-        except github3.GitHubError as e:
-            logger.critical("GITHUB ERROR ON FEEDSTOCK: {}".format(name))
-            if is_github_api_limit_reached(e, gh):
-                break
-        except Exception as e:
-            logger.critical("ERROR ON FEEDSTOCK: {}: {}".format(name, muid))
-            raise
+        for f in as_completed(futures):
+            name, muid = futures[f]
+            try:
+                res = f.result()
+                if res:
+                    gx.node[name]["PRed"].remove(muid)
+                    del gx.nodes[name]["PRed_json"][muid]
+                    logger.info(
+                        "Closed and removed PR and branch for "
+                        "{}: {}".format(name, res["id"])
+                    )
+            except github3.GitHubError as e:
+                logger.critical("GITHUB ERROR ON FEEDSTOCK: {}".format(name))
+                if is_github_api_limit_reached(e, gh):
+                    break
+            except Exception as e:
+                logger.critical("ERROR ON FEEDSTOCK: {}: {}".format(name, muid))
+                raise
     return gx
 
 
@@ -223,8 +243,11 @@ def main(args=None):
     names = get_all_feedstocks(cached=True)
     gx = nx.read_gpickle("graph.pkl")
     gx = make_graph(names, gx)
-    gx = update_graph_pr_status(gx)
-    gx = close_labels(gx)
+    # Utility flag for testing -- we don't need to always update GH
+    no_github_fetch = os.environ.get('CONDA_FORGE_TICK_NO_GITHUB_REQUESTS')
+    if not no_github_fetch:
+        gx = update_graph_pr_status(gx)
+        gx = close_labels(gx)
 
     logger.info("writing out file")
     nx.write_gpickle(gx, "graph.pkl")
