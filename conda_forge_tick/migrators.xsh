@@ -961,3 +961,6 @@ class ArchRebuild(Rebuild):
         **Please don't close this PR without reaching out the the ARM migrators first**
         """)
         return body
+
+    def remote_branch(self):
+        return super().remote_branch() + '_arch'
