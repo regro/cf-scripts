@@ -174,7 +174,7 @@ def update_graph_pr_status(gx: nx.DiGraph) -> nx.DiGraph:
     node_ids = list(gx.nodes)
     # this makes sure that github rate limits are dispersed
     random.shuffle(node_ids)
-    with executor('threads', NUM_GITHUB_THREADS) as (pool, as_completed):
+    with executor('thread', NUM_GITHUB_THREADS) as (pool, as_completed):
         for node_id in node_ids:
             node = gx.nodes[node_id]
             prs = node.get("PRed_json", {})

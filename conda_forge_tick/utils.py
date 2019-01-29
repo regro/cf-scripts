@@ -239,11 +239,13 @@ def executor(kind, max_workers):
     if kind == 'thread':
         with ThreadPoolExecutor(max_workers=max_workers) as pool:
             yield pool, as_completed
-    if kind == 'process':
+    elif kind == 'process':
         with ProcessPoolExecutor(max_workers=max_workers) as pool:
             yield pool, as_completed
-    if kind == 'dask':
+    elif kind == 'dask':
         import distributed
         with distributed.LocalCluster(n_workers=max_workers) as cluster:
             with distributed.Client(cluster) as client:
                 yield client, distributed.as_completed
+    else:
+        raise NotImplementedError('That kind is not implemented')
