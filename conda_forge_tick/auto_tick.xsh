@@ -12,7 +12,7 @@ import github3
 import networkx as nx
 from xonsh.lib.os import indir
 
-from .git_utils import (get_repo, push_repo, is_github_api_limit_reached)
+from .git_utils import (get_repo, push_repo, is_github_api_limit_reached, ensure_label_exists, label_pr)
 from .path_lengths import cyclic_topological_sort
 from .utils import setup_logger, pluck, get_requirements
 
@@ -27,6 +27,13 @@ $MIGRATORS = [
    # Pinning(pr_limit=1, removals={'perl'}),
    # Compiler(pr_limit=7),
 ]
+
+BOT_RERUN_LABEL = {
+    'name': 'bot-rerun',
+    'color': '#191970',
+    'description': 'Apply this label if you want the bot to retry issueing a particular pull-request'
+}
+
 
 def run(attrs, migrator, feedstock=None, protocol='ssh',
         pull_request=True, rerender=True, fork=True, gh=None,
@@ -105,6 +112,12 @@ def run(attrs, migrator, feedstock=None, protocol='ssh',
                             migrator.pr_title(),
                             migrator.pr_head(),
                             migrator.remote_branch())
+
+        # ensure that the bot-rerun label is around
+        ensure_label_exists(repo, BOT_RERUN_LABEL)
+
+        # make this clearly from the bot
+        label_pr(repo, pr_json, migrator.migrator_label())
 
     # This shouldn't happen too often any more since we won't double PR
     except github3.GitHubError as e:

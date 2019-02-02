@@ -209,6 +209,15 @@ class Migrator:
         increment = getattr(cls, "bump_number", 1)
         return old_number + increment
 
+    @classmethod
+    def migrator_label(cls):
+        # This is the label that the bot will attach to a pr made by the bot
+        return {
+            'name': f'bot-{cls.__name__.lower()}',
+            'description': cls.__doc__.strip(),
+            'color': '#6c64ff',
+        }
+
 
 class Version(Migrator):
     """Migrator for version bumping of packages"""

@@ -10,6 +10,8 @@ from tempfile import TemporaryDirectory
 
 import github3
 import github3.pulls
+import github3.repos
+import github3.exceptions
 
 import networkx as nx
 from doctr.travis import run_command_hiding_token as doctr_run
@@ -224,6 +226,19 @@ def push_repo(feedstock_dir, body, repo, title, head, branch,
     ljpr = LazyJson(os.path.join($PRJSON_DIR, str(pr_dict['id']) + '.json'))
     ljpr.update(**pr_dict)
     return ljpr
+
+
+def ensure_label_exists(repo: github3.repos.Repository, label_dict: dict):
+    try:
+        repo.label(label_dict['name'])
+    except github3.exceptions.NotFoundError:
+        repo.create_label(**label_dict)
+
+
+def label_pr(repo: github3.repos.Repository, pr_json: LazyJson, label_dict: dict):
+    ensure_label_exists(repo, label_dict)
+    iss = repo.issue(pr_json['number'])
+    iss.add_labels(label_dict['name'])
 
 
 def is_github_api_limit_reached(e: github3.GitHubError, gh: github3.GitHub) -> bool:
