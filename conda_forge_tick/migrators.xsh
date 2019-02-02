@@ -954,7 +954,8 @@ class ArchRebuild(Rebuild):
         return 'Arch Migrator'
 
     def pr_body(self):
-        body = dedent("""This feedstock is being rebuilt as part of the aarch64/ppc64le migration
+        body = dedent("""\
+        This feedstock is being rebuilt as part of the aarch64/ppc64le migration
 
         cc: @conda-forge/arm-arch
 
