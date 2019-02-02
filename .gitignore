@@ -3,3 +3,7 @@ build/
 dist/
 *.pyx
 __pycache__
+*.swp
+
+# editors
+.vscode
