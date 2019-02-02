@@ -224,7 +224,7 @@ def add_arch_migrate(migrators, gx):
         if noarch:
             pluck(total_graph, node)
         # since we aren't building the compilers themselves, remove
-        if node.endswith('_compiler_stub':
+        if node.endswith('_compiler_stub'):
             pluck(total_graph, node)
 
     # post plucking we can have several strange cases, lets remove all selfloops
