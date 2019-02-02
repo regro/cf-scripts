@@ -223,6 +223,9 @@ def add_arch_migrate(migrators, gx):
         noarch = meta_yaml.get('build', {}).get('noarch')
         if noarch:
             pluck(total_graph, node)
+        # since we aren't building the compilers themselves, remove
+        if node.endswith('_compiler_stub'):
+            pluck(total_graph, node)
 
     # post plucking we can have several strange cases, lets remove all selfloops
     total_graph.remove_edges_from(total_graph.selfloop_edges())
