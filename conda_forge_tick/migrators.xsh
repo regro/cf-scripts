@@ -936,14 +936,19 @@ class ArchRebuild(Rebuild):
                 if target in self.graph.nodes:
                     packages.update(self.graph.predecessors(target))
             self.graph.remove_nodes_from([n for n in self.graph if n not in packages])
+        # filter out stub packages
+        for node in list(self.graph.nodes):
+            if node.endswith('_stub') or (node == 'toolchain'):
+                self.graph.remove_node(node)
 
     def filter(self, attrs):
         if super().filter(attrs):
             return True
+        muid = self.migrator_uid(attrs)
         for arch in self.arches:
             configured_arch = attrs.get("conda-forge.yml", {}).get("provider", {}).get(arch)
             if configured_arch:
-                return True
+                return muid in attrs.get('PRed', [])
 
     def migrate(self, recipe_dir, attrs, **kwargs):
         with indir(recipe_dir + '/..'):
