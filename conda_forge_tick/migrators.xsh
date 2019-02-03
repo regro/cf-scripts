@@ -920,6 +920,7 @@ class ArchRebuild(Rebuild):
         'krb5',
         'scikit-learn',
         'su-exec',
+        'tini',
         }
     arches = {
         "linux_aarch64": "azure",
