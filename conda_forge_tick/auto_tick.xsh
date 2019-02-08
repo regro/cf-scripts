@@ -338,7 +338,7 @@ def migrator_status(migrator: Migrator, gx):
             node_metadata['pr_url'] = pr_json.get('html_url', '')
 
     for k in out.keys():
-        out[k] = list(sorted(out[k], key=lambda x: build_sequence.index(x)))
+        out[k] = list(sorted(out[k], key=lambda x: build_sequence.index(x) if x in build_sequence else -1))
 
     out['_feedstock_status'] = feedstock_metadata
 
