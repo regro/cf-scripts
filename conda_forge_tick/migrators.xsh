@@ -822,6 +822,27 @@ class CompilerRebuild(Rebuild):
                             self.graph.out_edges($PROJECT))[:5]])))
         return body
 
+class OpenSSLRebuild(Rebuild):
+    migrator_version = 1
+
+    def migrate(self, recipe_dir, attrs, **kwargs):
+        return super().migrate(recipe_dir, attrs, **kwargs)
+
+    def pr_body(self):
+        body = super().pr_body()
+        body = body.format(
+                    "\n"
+                    "**Please note that if you close this PR we presume that "
+                    "the feedstock has been rebuilt, so if you are going to "
+                    "perform the rebuild yourself don't close this PR until "
+                    "the your rebuild has been merged.**\n\n"
+                    "This package has the following downstream children:\n"
+                    "{}\n"
+                    "And potentially more.".format('\n'.join(
+                        [a[1] for a in list(
+                            self.graph.out_edges($PROJECT))[:5]])))
+        return body
+
 
 class Pinning(Migrator):
     """Migrator for remove pinnings for specified requirements."""
