@@ -22,6 +22,7 @@ logger = logging.getLogger("conda_forge_tick.auto_tick")
 # https://travis-ci.org/regro/00-find-feedstocks/jobs/388387895#L1870
 from .migrators import *
 $MIGRATORS = [
+   Version(pr_limit=7),
    OpenSSLRebuild(pr_limit=7),
    # Noarch(pr_limit=10),
    # Pinning(pr_limit=1, removals={'perl'}),
@@ -310,6 +311,7 @@ def initialize_migrators(do_rebuild=False):
     # TODO: reenable once graph order is correct
     if do_rebuild:
         add_rebuild($MIGRATORS, gx)
+    add_arch_migrate($MIGRATORS,gx)
     add_rebuild_openssl($MIGRATORS, gx)
 
     return gx, smithy_version, pinning_version, temp, $MIGRATORS
