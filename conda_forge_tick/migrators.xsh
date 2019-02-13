@@ -825,12 +825,11 @@ class CompilerRebuild(Rebuild):
 class OpenSSLRebuild(Rebuild):
     migrator_version = 1
 
-    def migrate(self, recipe_dir, attrs, **kwargs):
-        return super().migrate(recipe_dir, attrs, **kwargs)
-
     def pr_body(self):
         body = super().pr_body()
         body = body.format(
+                    "\n"
+                    "This PR has been triggered in an effort to update openSSL"
                     "\n"
                     "**Please note that if you close this PR we presume that "
                     "the feedstock has been rebuilt, so if you are going to "
