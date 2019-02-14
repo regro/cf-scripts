@@ -23,6 +23,7 @@ logger = logging.getLogger("conda_forge_tick.auto_tick")
 from .migrators import *
 $MIGRATORS = [
    Version(pr_limit=7),
+   OpenSSLRebuild(pr_limit=7),
    # Noarch(pr_limit=10),
    # Pinning(pr_limit=1, removals={'perl'}),
    # Compiler(pr_limit=7),
@@ -219,6 +220,46 @@ def add_rebuild(migrators, gx):
                         cycles=cycles))
 
 
+def add_rebuild_openssl(migrators, gx):
+    """Adds rebuild openssl migrators.
+
+    Parameters
+    ----------
+    migrators : list of Migrator
+        The list of migrators to run.
+
+    """
+
+    total_graph = copy.deepcopy(gx)
+
+    for node, attrs in gx.node.items():
+        meta_yaml = attrs.get("meta_yaml", {}) or {}
+        bh = get_requirements(meta_yaml)
+        openssl_c = 'openssl' in bh
+
+        rq = _host_run_test_dependencies(meta_yaml)
+
+        for e in list(total_graph.in_edges(node)):
+            if e[0] not in rq:
+                total_graph.remove_edge(*e)
+        if not any([openssl_c]):
+            pluck(total_graph, node)
+
+    # post plucking we can have several strange cases, lets remove all selfloops
+    total_graph.remove_edges_from(total_graph.selfloop_edges())
+
+    top_level = set(node for node in gx.successors("openssl"))
+    cycles = list(nx.simple_cycles(total_graph))
+    print('cycles are here:', cycles)
+
+    migrators.append(
+        OpenSSLRebuild(graph=total_graph,
+                pr_limit=5,
+                name='OpenSSL',
+                top_level=top_level,
+                cycles=cycles))
+
+
 def add_arch_migrate(migrators, gx):
     """Adds rebuild migrators.
 
@@ -271,6 +312,7 @@ def initialize_migrators(do_rebuild=False):
     if do_rebuild:
         add_rebuild($MIGRATORS, gx)
     add_arch_migrate($MIGRATORS,gx)
+    add_rebuild_openssl($MIGRATORS, gx)
 
     return gx, smithy_version, pinning_version, temp, $MIGRATORS
 
@@ -304,7 +346,7 @@ def migrator_status(migrator: Migrator, gx):
     }
 
     gx2 = copy.deepcopy(getattr(migrator, 'graph', gx))
-    
+
     top_level = set(node for node in gx2 if not list(gx2.predecessors(node)))
     build_sequence = list(cyclic_topological_sort(gx2, top_level))
 

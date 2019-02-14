@@ -241,7 +241,10 @@ def close_labels(gx: nx.DiGraph) -> nx.DiGraph:
 def main(args=None):
     setup_logger(logger)
     names = get_all_feedstocks(cached=True)
-    gx = nx.read_gpickle("graph.pkl")
+    if os.path.exists("graph.pkl"):
+        gx = nx.read_gpickle("graph.pkl")
+    else:
+        gx = None
     gx = make_graph(names, gx)
     # Utility flag for testing -- we don't need to always update GH
     no_github_fetch = os.environ.get('CONDA_FORGE_TICK_NO_GITHUB_REQUESTS')
