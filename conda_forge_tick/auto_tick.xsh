@@ -23,7 +23,6 @@ logger = logging.getLogger("conda_forge_tick.auto_tick")
 from .migrators import *
 $MIGRATORS = [
    Version(pr_limit=7),
-   OpenSSLRebuild(pr_limit=7),
    # Noarch(pr_limit=10),
    # Pinning(pr_limit=1, removals={'perl'}),
    # Compiler(pr_limit=7),
@@ -312,7 +311,7 @@ def initialize_migrators(do_rebuild=False):
     if do_rebuild:
         add_rebuild($MIGRATORS, gx)
     add_arch_migrate($MIGRATORS,gx)
-    add_rebuild_openssl($MIGRATORS, gx)
+    #add_rebuild_openssl($MIGRATORS, gx)
 
     return gx, smithy_version, pinning_version, temp, $MIGRATORS
 
