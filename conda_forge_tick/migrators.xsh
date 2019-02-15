@@ -788,7 +788,7 @@ class Rebuild(Migrator):
         return $USERNAME + ':' + self.remote_branch()
 
     def remote_branch(self):
-        return 'rebuild'
+        return 'rebuild'+self.name.lower().replace(' ', '_')
 
     def migrator_uid(self, attrs):
         n = super().migrator_uid(attrs)
