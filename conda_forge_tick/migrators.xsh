@@ -752,7 +752,7 @@ class Rebuild(Migrator):
             if muid not in att.get('PRed', []):
                 return True
             # This is due to some PRed_json loss due to bad graph deploy outage
-            m_pred_jsons = att.get('PRed_json').get(muid)
+            m_pred_jsons = att.get('PRed_json', {}).get(muid, None)
             if m_pred_jsons and m_pred_jsons.get('state', '') == 'open':
                 return True
         return False
