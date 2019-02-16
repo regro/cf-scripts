@@ -114,10 +114,10 @@ def run(attrs, migrator, feedstock=None, protocol='ssh',
                             migrator.remote_branch())
 
         # ensure that the bot-rerun label is around
-        ensure_label_exists(repo, BOT_RERUN_LABEL)
+        # ensure_label_exists(repo, BOT_RERUN_LABEL)
 
         # make this clearly from the bot
-        label_pr(repo, pr_json, migrator.migrator_label())
+        # label_pr(repo, pr_json, migrator.migrator_label())
 
     # This shouldn't happen too often any more since we won't double PR
     except github3.GitHubError as e:
