@@ -35,7 +35,7 @@ to be migrated, for instance only packages which require ``python``.
 This paired down graph is passed into the migrator, which is then added
 to the migrators list.
 
-Example:
+Example of migrator addition function:
 
   .. code-block:: xonsh
 
@@ -97,5 +97,3 @@ Example:
                 name='Python 3.7, GCC 7, R 3.5.1, openBLAS 0.3.2',
                         top_level=top_level,
                         cycles=cycles))
-
-
