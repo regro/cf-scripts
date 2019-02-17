@@ -7,3 +7,7 @@ __pycache__
 
 # editors
 .vscode
+
+# Sphinx documentation
+docs/_build/
+
