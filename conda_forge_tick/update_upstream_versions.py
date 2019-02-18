@@ -23,7 +23,7 @@ def urls_from_meta(meta_yaml):
         if "url" in s:
             # if it is a list for instance
             if not isinstance(s["url"], str):
-                urls.update(set(s['url']))
+                urls.update(s['url'])
             else:
                 urls.add(s["url"])
     return urls
