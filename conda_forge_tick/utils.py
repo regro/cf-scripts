@@ -126,6 +126,7 @@ def render_meta_yaml(text):
         pin_subpackage=lambda *args, **kwargs: "subpackage_stub",
         pin_compatible=lambda *args, **kwargs: "compatible_pin_stub",
         cdt=lambda *args, **kwargs: "cdt_stub",
+        cran_mirror='https://cran.r-project.org',
     )
     return content
 
