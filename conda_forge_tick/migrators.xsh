@@ -957,7 +957,7 @@ class ArchRebuild(Rebuild):
             packages = self.target_packages.copy()
             for target in self.target_packages:
                 if target in self.graph.nodes:
-                    packages.update(self.graph.predecessors(target))
+                    packages.update(nx.ancestors(self.graph, target))
             self.graph.remove_nodes_from([n for n in self.graph if n not in packages])
         # filter out stub packages and ignored packages
         for node in list(self.graph.nodes):
