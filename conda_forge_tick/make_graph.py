@@ -58,7 +58,7 @@ def get_attrs(name, i):
         return sub_graph
     sub_graph["raw_meta_yaml"] = text
     yaml_dict = ChainDB(
-        *[parse_meta_yaml(text, platform=plat) for plat in ["win", "osx", "linux"]]
+        *[parse_meta_yaml(text, platform=plat, cran_mirror='https://cran.r-project.org') for plat in ["win", "osx", "linux"]]
     )
     if not yaml_dict:
         logger.warn("Something odd happened when parsing recipe " "{}".format(name))
