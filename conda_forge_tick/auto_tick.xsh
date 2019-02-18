@@ -212,7 +212,7 @@ def add_rebuild(migrators, gx):
     print('cycles are here:', cycles)
 
     migrators.append(
-        CompilerRebuild(graph=total_graph,
+        Rebuild(graph=total_graph,
                 pr_limit=5,
                 name='Python 3.7, GCC 7, R 3.5.1, openBLAS 0.3.2',
                         top_level=top_level,
@@ -252,7 +252,7 @@ def add_rebuild_openssl(migrators, gx):
     print('cycles are here:', cycles)
 
     migrators.append(
-        OpenSSLRebuild(graph=total_graph,
+        Rebuild(graph=total_graph,
                 pr_limit=5,
                 name='OpenSSL',
                 top_level=top_level,

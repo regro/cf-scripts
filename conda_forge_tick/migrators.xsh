@@ -42,8 +42,9 @@ class Migrator:
                        '{{% set build = {} %}}')
                      )
 
-    def __init__(self, pr_limit=0):
+    def __init__(self, pr_limit=0, obj_version=None):
         self.pr_limit = pr_limit
+        self.obj_version=obj_version
 
     def filter(self, attrs: dict, not_bad_str_start='') -> bool:
         """ If true don't act upon node
@@ -148,9 +149,13 @@ class Migrator:
         nt: frozendict
             The unique id as a frozendict (so it can be used as keys in dicts)
         """
-        return frozendict(
-            {'migrator_name': self.__class__.__name__,
-             'migrator_version': self.migrator_version})
+        d = {'migrator_name': self.__class__.__name__,
+             'migrator_version': self.migrator_version,
+             }
+        # Carveout for old migrators w/o obj_versions
+        if self.obj_version:
+            d.update(migrator_object_version=self.obj_version)
+        return frozendict(d)
 
     def order(self, graph, total_graph):
         """Order to run migrations in
@@ -726,8 +731,8 @@ class Rebuild(Migrator):
     bump_number = 1
 
     def __init__(self, graph=None, name=None, pr_limit=0, top_level=None,
-                 cycles=None):
-        super().__init__(pr_limit)
+                 cycles=None, obj_version=None):
+        super().__init__(pr_limit, obj_version)
         if graph == None:
             self.graph = nx.DiGraph()
         else:
@@ -758,21 +763,27 @@ class Rebuild(Migrator):
         return False
 
     def migrate(self, recipe_dir, attrs, **kwargs):
-        check_for = ['toolchain', 'libgcc', 'compiler']
-
         with indir(recipe_dir):
             self.set_build_number('meta.yaml')
         return self.migrator_uid(attrs)
 
     def pr_body(self):
         body = super().pr_body()
-        body = body.format(
-                    'It is likely this feedstock needs to be rebuilt.\n'
-                    'Notes and instructions for merging this PR:\n'
-                    '1. Please merge the PR only after the tests have passed. \n'
-                    "2. Feel free to push to the bot's branch to update this PR if needed. \n"
-                    "{}\n"
-                    )
+        additional_body = ("This PR has been triggered in an effort to update {0}\n"
+                           "It is likely this feedstock needs to be rebuilt.\n"
+                           "Notes and instructions for merging this PR:\n"
+                           "1. Please merge the PR only after the tests have passed. \n"
+                           "2. Feel free to push to the bot's branch to update this PR if needed. \n"
+                           "**Please note that if you close this PR we presume that "
+                           "the feedstock has been rebuilt, so if you are going to "
+                           "perform the rebuild yourself don't close this PR until "
+                           "the your rebuild has been merged.**\n\n"
+                           "This package has the following downstream children:\n"
+                           "{1}\n"
+                           "And potentially more."
+                           "".format(self.name,
+                                     '\n'.join([a[1] for a in list(self.graph.out_edges($PROJECT))[: 5]])))
+        body = body.format(additional_body)
         return body
 
     def commit_message(self):
@@ -799,48 +810,6 @@ class Rebuild(Migrator):
         """Run the order by number of decendents, ties are resolved by package name"""
         return sorted(graph, key=lambda x: (len(nx.descendants(total_graph, x)), x),
                       reverse=True)
-
-
-class CompilerRebuild(Rebuild):
-    migrator_version = 1
-
-    def migrate(self, recipe_dir, attrs, **kwargs):
-        return super().migrate(recipe_dir, attrs, **kwargs)
-
-    def pr_body(self):
-        body = super().pr_body()
-        body = body.format(
-                    "\n"
-                    "**Please note that if you close this PR we presume that "
-                    "the feedstock has been rebuilt, so if you are going to "
-                    "perform the rebuild yourself don't close this PR until "
-                    "the your rebuild has been merged.**\n\n"
-                    "This package has the following downstream children:\n"
-                    "{}\n"
-                    "And potentially more.".format('\n'.join(
-                        [a[1] for a in list(
-                            self.graph.out_edges($PROJECT))[:5]])))
-        return body
-
-class OpenSSLRebuild(Rebuild):
-    migrator_version = 1
-
-    def pr_body(self):
-        body = super().pr_body()
-        body = body.format(
-                    "\n"
-                    "This PR has been triggered in an effort to update openSSL"
-                    "\n"
-                    "**Please note that if you close this PR we presume that "
-                    "the feedstock has been rebuilt, so if you are going to "
-                    "perform the rebuild yourself don't close this PR until "
-                    "the your rebuild has been merged.**\n\n"
-                    "This package has the following downstream children:\n"
-                    "{}\n"
-                    "And potentially more.".format('\n'.join(
-                        [a[1] for a in list(
-                            self.graph.out_edges($PROJECT))[:5]])))
-        return body
 
 
 class Pinning(Migrator):
