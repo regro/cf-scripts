@@ -256,7 +256,7 @@ def add_rebuild_openssl(migrators, gx):
                 pr_limit=5,
                 name='OpenSSL',
                 top_level=top_level,
-                cycles=cycles))
+                cycles=cycles, obj_version=1))
 
 
 def add_arch_migrate(migrators, gx):
