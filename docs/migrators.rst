@@ -14,13 +14,6 @@ Building a Migration
 Building a new ``Rebuild`` Migrator takes two steps, building the migrator,
 and adding it to ``auto_tick.xsh``.
 
-
-Building the ``Migrator`` class
--------------------------------
-If you need to rebuild a stack of packages (due to a pin move, instance)
-you need to create a new ``Rebuild`` Migrator class.
-This class will subclass from ``conda_forge_tick.migrators.Rebuild``.
-
 Adding to ``auto_tick.xsh``
 ---------------------------
 To have the bot run the migration we need to add the migrator to add it to the
@@ -34,6 +27,10 @@ The job of the function is to pair down the graph to the nodes which need
 to be migrated, for instance only packages which require ``python``.
 This paired down graph is passed into the migrator, which is then added
 to the migrators list.
+Many times one can use the ``Rebuild`` class without having to create
+a custom migrator.
+Custom migrators are used when the internals of the conda-forge system (the various
+yaml configuration files) need to be changed.
 
 Example of migrator addition function:
 
