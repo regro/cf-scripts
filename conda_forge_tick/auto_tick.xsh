@@ -209,7 +209,7 @@ def add_rebuild(migrators, gx):
     top_level = set(node for node in total_graph if not list(
         total_graph.predecessors(node)))
     cycles = list(nx.simple_cycles(total_graph))
-    print('cycles are here:', cycles)
+    # print('cycles are here:', cycles)
 
     migrators.append(
         Rebuild(graph=total_graph,
@@ -247,16 +247,18 @@ def add_rebuild_openssl(migrators, gx):
     # post plucking we can have several strange cases, lets remove all selfloops
     total_graph.remove_edges_from(total_graph.selfloop_edges())
 
-    top_level = set(node for node in gx.successors("openssl"))
+    top_level = {node for node in gx.successors("openssl") if
+                 (node in total_graph) and 
+                 len(list(total_graph.predecessors(node))) == 0}
     cycles = list(nx.simple_cycles(total_graph))
-    print('cycles are here:', cycles)
+    # print('cycles are here:', cycles)
 
     migrators.append(
         Rebuild(graph=total_graph,
                 pr_limit=5,
                 name='OpenSSL',
                 top_level=top_level,
-                cycles=cycles, obj_version=1))
+                cycles=cycles, obj_version=2))
 
 
 def add_arch_migrate(migrators, gx):
@@ -285,7 +287,7 @@ def add_arch_migrate(migrators, gx):
 
     top_level = {node for node in total_graph if not set(total_graph.predecessors(node))}
     cycles = list(nx.simple_cycles(total_graph))
-    print('cycles are here:', cycles)
+    # print('cycles are here:', cycles)
 
     migrators.append(
         ArchRebuild(graph=total_graph,
@@ -311,7 +313,7 @@ def initialize_migrators(do_rebuild=False):
     if do_rebuild:
         add_rebuild($MIGRATORS, gx)
     add_arch_migrate($MIGRATORS,gx)
-    # add_rebuild_openssl($MIGRATORS, gx)
+    add_rebuild_openssl($MIGRATORS, gx)
 
     return gx, smithy_version, pinning_version, temp, $MIGRATORS
 
@@ -399,7 +401,7 @@ def main(args=None):
                     len(gx2.node))
 
         top_level = set(node for node in gx2 if not list(gx2.predecessors(node)))
-        print(list(migrator.order(gx2, gx)))
+        # print(list(migrator.order(gx2, gx)))
         for node in migrator.order(gx2, gx):
             attrs = gx2.nodes[node]
             # Don't let travis timeout, break ahead of the timeout so we make certain

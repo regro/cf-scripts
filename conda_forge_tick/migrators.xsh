@@ -729,7 +729,7 @@ class Rebuild(Migrator):
     migrator_version = 0
     rerender = True
     bump_number = 1
-
+    # TODO: add a description kwarg for the status page at some point.
     def __init__(self, graph=None, name=None, pr_limit=0, top_level=None,
                  cycles=None, obj_version=None):
         super().__init__(pr_limit, obj_version)
