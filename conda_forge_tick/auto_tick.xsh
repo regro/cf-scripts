@@ -247,7 +247,8 @@ def add_rebuild_openssl(migrators, gx):
     # post plucking we can have several strange cases, lets remove all selfloops
     total_graph.remove_edges_from(total_graph.selfloop_edges())
 
-    top_level = set(node for node in gx.successors("openssl"))
+    top_level = {node for node in gx.successors("openssl") if
+                 len(list(total_graph.predecessors(node))) == 0}
     cycles = list(nx.simple_cycles(total_graph))
     print('cycles are here:', cycles)
 
@@ -256,7 +257,7 @@ def add_rebuild_openssl(migrators, gx):
                 pr_limit=5,
                 name='OpenSSL',
                 top_level=top_level,
-                cycles=cycles, obj_version=1))
+                cycles=cycles, obj_version=2))
 
 
 def add_arch_migrate(migrators, gx):
