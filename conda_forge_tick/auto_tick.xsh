@@ -410,7 +410,10 @@ def main(args=None):
                 break
             $PROJECT = attrs['feedstock_name']
             $NODE = node
-            logger.info('%s IS MIGRATING %s', migrator.__class__.__name__.upper(),
+            m_name = migrator.__class__.__name__.upper()
+            if m_name == 'REBUILD':
+                m_name = migrator.name.upper()
+            logger.info('%s IS MIGRATING %s', m_name,
                         $PROJECT)
             try:
                 # Don't bother running if we are at zero
