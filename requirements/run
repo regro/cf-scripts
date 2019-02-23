@@ -14,3 +14,4 @@ conda
 conda-forge-pinning
 frozendict
 distributed
+python-dateutil

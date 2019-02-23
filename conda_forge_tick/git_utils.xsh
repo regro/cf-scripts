@@ -7,6 +7,7 @@ import traceback
 import urllib.error
 import json
 from tempfile import TemporaryDirectory
+import dateutil.parser as dp
 
 import github3
 import github3.pulls
@@ -162,8 +163,9 @@ def refresh_pr(pr_json: LazyJson, gh=None):
         pr_obj = github3.pulls.PullRequest(pr_json, gh)
         pr_obj.refresh()
         pr_obj_d = pr_obj.as_dict()
-        # if state passed from opened to closed delete the branch
-        if pr_obj_d['state'] == 'closed' and pr_obj_d.get('merged_at', False):
+        # if state passed from opened to merged or if it
+        # closed for a day delete the branch
+        if pr_obj_d['state'] == 'closed' and (pr_obj_d.get('merged_at', False) or (time.time() - int(dp.parse(pr_obj_d['closed_at']).strftime('%s')) > 86400)):
             delete_branch(pr_json)
         return pr_obj.as_dict()
 
