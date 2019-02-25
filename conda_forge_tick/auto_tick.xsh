@@ -313,7 +313,7 @@ def initialize_migrators(do_rebuild=False):
     if do_rebuild:
         add_rebuild($MIGRATORS, gx)
     add_arch_migrate($MIGRATORS,gx)
-    add_rebuild_openssl($MIGRATORS, gx)
+    #add_rebuild_openssl($MIGRATORS, gx)
 
     return gx, smithy_version, pinning_version, temp, $MIGRATORS
 
