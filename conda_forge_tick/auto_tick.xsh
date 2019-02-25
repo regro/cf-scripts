@@ -258,7 +258,7 @@ def add_rebuild_openssl(migrators, gx):
                 pr_limit=5,
                 name='OpenSSL',
                 top_level=top_level,
-                cycles=cycles, obj_version=2))
+                cycles=cycles, obj_version=3))
 
 
 def add_arch_migrate(migrators, gx):
@@ -313,7 +313,7 @@ def initialize_migrators(do_rebuild=False):
     if do_rebuild:
         add_rebuild($MIGRATORS, gx)
     add_arch_migrate($MIGRATORS,gx)
-    #add_rebuild_openssl($MIGRATORS, gx)
+    add_rebuild_openssl($MIGRATORS, gx)
 
     return gx, smithy_version, pinning_version, temp, $MIGRATORS
 
