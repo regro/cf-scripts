@@ -154,6 +154,8 @@ def delete_branch(pr_json: LazyJson):
     doctr_run(['git', 'push', 'https://{token}@github.com/{deploy_repo}.git'.format(
                    token=token, deploy_repo=deploy_repo), '--delete', ref],
               token=token.encode('utf-8'))
+    # Replace ref so we know not to try again
+    pr_json['head']['ref'] = 'this_is_not_a_branch'
 
 
 def refresh_pr(pr_json: LazyJson, gh=None):
@@ -165,9 +167,14 @@ def refresh_pr(pr_json: LazyJson, gh=None):
         pr_obj_d = pr_obj.as_dict()
         # if state passed from opened to merged or if it
         # closed for a day delete the branch
-        if pr_obj_d['state'] == 'closed' and (pr_obj_d.get('merged_at', False) or (time.time() - int(dp.parse(pr_obj_d['closed_at']).strftime('%s')) > 86400)):
+        if pr_obj_d['state'] == 'closed' and pr_obj_d.get('merged_at', False):
             delete_branch(pr_json)
         return pr_obj.as_dict()
+    # If it is closed, we haven't deleted the branch, and the specified time has passed
+    # delete the branch
+    elif pr_json['head']['ref'] != 'this_is_not_a_branch' and (time.time() - int(dp.parse(pr_obj_d['closed_at']).strftime('%s')) > 86400):
+        delete_branch(pr_json)
+        return pr_json
 
 
 def close_out_labels(pr_json: LazyJson, gh=None):
