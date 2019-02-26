@@ -799,7 +799,7 @@ class Rebuild(Migrator):
 
     def remote_branch(self):
         s_obj = str(self.obj_version) if self.obj_version else ''
-        return 'rebuild'+self.name.lower().replace(' ', '_')+str(self.migrator_version)+s_obj
+        return 'rebuild' + self.name.lower().replace(' ', '_') + str(self.migrator_version) + s_obj
 
     def migrator_uid(self, attrs):
         n = super().migrator_uid(attrs)
