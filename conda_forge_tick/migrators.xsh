@@ -769,7 +769,7 @@ class Rebuild(Migrator):
 
     def pr_body(self):
         body = super().pr_body()
-        additional_body = ("This PR has been triggered in an effort to update *{0}*.\n\n"
+        additional_body = ("This PR has been triggered in an effort to update **{0}**.\n\n"
                            "Notes and instructions for merging this PR:\n"
                            "1. Please merge the PR only after the tests have passed. \n"
                            "2. Feel free to push to the bot's branch to update this PR if needed. \n"
@@ -798,7 +798,8 @@ class Rebuild(Migrator):
         return $USERNAME + ':' + self.remote_branch()
 
     def remote_branch(self):
-        return 'rebuild'+self.name.lower().replace(' ', '_')
+        s_obj = str(self.obj_version) if self.obj_version else ''
+        return 'rebuild' + self.name.lower().replace(' ', '_') + str(self.migrator_version) + s_obj
 
     def migrator_uid(self, attrs):
         n = super().migrator_uid(attrs)
