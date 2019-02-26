@@ -172,9 +172,9 @@ def refresh_pr(pr_json: LazyJson, gh=None):
         return pr_obj.as_dict()
     # If it is closed, we haven't deleted the branch, and the specified time has passed
     # delete the branch
-    elif pr_json.get('head', {}).get('ref', 'this_is_not_a_branch') != 'this_is_not_a_branch' and (time.time() - int(dp.parse(pr_json['closed_at']).strftime('%s')) > 86400):
-        delete_branch(pr_json)
-        return pr_json
+#    elif pr_json.get('head', {}).get('ref', 'this_is_not_a_branch') != 'this_is_not_a_branch' and (time.time() - int(dp.parse(pr_json['closed_at']).strftime('%s')) > 86400):
+ #       delete_branch(pr_json)
+  #      return pr_json
 
 
 def close_out_labels(pr_json: LazyJson, gh=None):
