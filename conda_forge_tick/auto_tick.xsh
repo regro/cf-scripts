@@ -258,7 +258,7 @@ def add_rebuild_openssl(migrators, gx):
                 pr_limit=5,
                 name='OpenSSL',
                 top_level=top_level,
-                cycles=cycles, obj_version=2))
+                cycles=cycles, obj_version=3))
 
 
 def add_arch_migrate(migrators, gx):
@@ -410,10 +410,7 @@ def main(args=None):
                 break
             $PROJECT = attrs['feedstock_name']
             $NODE = node
-            m_name = migrator.__class__.__name__.upper()
-            if m_name == 'REBUILD':
-                m_name = migrator.name.upper()
-            logger.info('%s IS MIGRATING %s', m_name,
+            logger.info('%s IS MIGRATING %s', migrator.__class__.__name__.upper(),
                         $PROJECT)
             try:
                 # Don't bother running if we are at zero
