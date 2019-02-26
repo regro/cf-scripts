@@ -900,6 +900,7 @@ class ArchRebuild(Rebuild):
         'pandas',
         'tornado',
         'matplotlib',
+        'dask',
         'distributed',
         'zeromq',
         'notebook',
