@@ -911,6 +911,9 @@ class ArchRebuild(Rebuild):
         'scikit-learn',
         'scikit-image'
         'su-exec',
+        'flask',
+        'sqlalchemy',
+        'psycopg2',
         'tini',
         }
     ignored_packages = {'make', 'perl', 'toolchain'}
