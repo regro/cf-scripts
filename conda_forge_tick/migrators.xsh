@@ -894,6 +894,7 @@ class ArchRebuild(Rebuild):
     target_packages = {
         'ncurses',
         'conda-build',
+        'conda-forge-ci-setup',
         'numpy',
         'opencv',
         'ipython',
