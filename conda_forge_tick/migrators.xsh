@@ -892,7 +892,7 @@ class ArchRebuild(Rebuild):
     bump_number = 0
     # We are constraining the scope of this migrator
     target_packages = {
-        'ncurses'
+        'ncurses',
         'conda-build',
         'numpy',
         'opencv',
@@ -909,6 +909,7 @@ class ArchRebuild(Rebuild):
         'zstd',
         'krb5',
         'scikit-learn',
+        'scikit-image'
         'su-exec',
         'tini',
         }
