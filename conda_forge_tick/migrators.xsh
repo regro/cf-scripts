@@ -936,7 +936,9 @@ class ArchRebuild(Rebuild):
             self.graph.remove_nodes_from([n for n in self.graph if n not in packages])
         # filter out stub packages and ignored packages
         for node in list(self.graph.nodes):
-            if node.endswith('_stub') or (node in self.ignored_packages):
+            if (node.endswith('_stub')
+                    or (node.startswith('m2-'))
+                    or (node in self.ignored_packages)):
                 self.graph.remove_node(node)
 
     def filter(self, attrs):
