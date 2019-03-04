@@ -917,7 +917,7 @@ class ArchRebuild(Rebuild):
         'psycopg2',
         'tini',
         }
-    ignored_packages = {'make', 'perl', 'toolchain'}
+    ignored_packages = {'make', 'perl', 'toolchain', 'posix'}
     arches = {
         "linux_aarch64": "azure",
         "linux_ppc64le": "azure",
