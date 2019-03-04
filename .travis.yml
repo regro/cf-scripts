@@ -35,6 +35,7 @@ script:
   - cd cf-graph3
   - python -m conda_forge_tick.test_status
   - set -e
+  - cd ..
   - cd docs
   - make html
   - cd ..
