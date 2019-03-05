@@ -70,8 +70,9 @@ one could replace ``openssl`` with the package which got pinned and things would
     top_level = {node for node in gx.successors("openssl") if
                  (node in total_graph) and
                  len(list(total_graph.predecessors(node))) == 0}
+    # Since we can't figure out what order to build packages in a cycle in
+    # we build them all at once
     cycles = list(nx.simple_cycles(total_graph))
-    # print('cycles are here:', cycles)
 
     migrators.append(
         Rebuild(graph=total_graph,
