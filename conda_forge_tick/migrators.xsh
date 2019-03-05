@@ -938,6 +938,7 @@ class ArchRebuild(Rebuild):
         for node in list(self.graph.nodes):
             if (node.endswith('_stub')
                     or (node.startswith('m2-'))
+                    or (node.startswith('m2w64-'))
                     or (node in self.ignored_packages)):
                 self.graph.remove_node(node)
 
