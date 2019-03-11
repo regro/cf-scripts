@@ -11,8 +11,7 @@ This document will teach you how to create new migrators
 
 Building a Migration
 ===========================
-Building a new ``Rebuild`` Migrator takes two steps, building the migrator,
-and adding it to ``auto_tick.xsh``.
+To build a ``Rebuild`` Migrator it must be added to ``auto_tick.xsh``.
 
 Adding to ``auto_tick.xsh``
 ---------------------------
