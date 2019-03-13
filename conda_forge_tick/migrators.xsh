@@ -754,7 +754,7 @@ class Rebuild(Migrator):
         for node in self.graph.predecessors(attrs['feedstock_name']):
             att = self.graph.node[node]
             muid = self.migrator_uid(att)
-            if muid not in att.get('PRed', []):
+            if muid not in att.get('PRed', []) and not att.get('archived', False):
                 return True
             # This is due to some PRed_json loss due to bad graph deploy outage
             m_pred_jsons = att.get('PRed_json', {}).get(muid, None)
