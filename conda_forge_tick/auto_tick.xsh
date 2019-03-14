@@ -298,7 +298,7 @@ def add_rebuild_libprotobuf(migrators, gx):
     migrators.append(
         Rebuild(graph=total_graph,
                 pr_limit=5,
-                name='libprotobuf',
+                name='libprotobuf-3.7',
                 top_level=top_level,
                 cycles=cycles, obj_version=3))
 
