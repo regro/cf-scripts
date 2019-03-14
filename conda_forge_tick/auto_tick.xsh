@@ -261,6 +261,48 @@ def add_rebuild_openssl(migrators, gx):
                 cycles=cycles, obj_version=3))
 
 
+def add_rebuild_libprotobuf(migrators, gx):
+    """Adds rebuild libprotobuf migrators.
+
+    Parameters
+    ----------
+    migrators : list of Migrator
+        The list of migrators to run.
+
+    """
+
+    total_graph = copy.deepcopy(gx)
+
+    for node, attrs in gx.node.items():
+        meta_yaml = attrs.get("meta_yaml", {}) or {}
+        bh = get_requirements(meta_yaml)
+        protobuf_c = 'libprotobuf' in bh
+
+        rq = _host_run_test_dependencies(meta_yaml)
+
+        for e in list(total_graph.in_edges(node)):
+            if e[0] not in rq:
+                total_graph.remove_edge(*e)
+        if not any([protobuf_c]):
+            pluck(total_graph, node)
+
+    # post plucking we can have several strange cases, lets remove all selfloops
+    total_graph.remove_edges_from(total_graph.selfloop_edges())
+
+    top_level = {node for node in gx.successors("libprotobuf") if
+                 (node in total_graph) and
+                 len(list(total_graph.predecessors(node))) == 0}
+    cycles = list(nx.simple_cycles(total_graph))
+    # print('cycles are here:', cycles)
+
+    migrators.append(
+        Rebuild(graph=total_graph,
+                pr_limit=5,
+                name='libprotobuf-3.7',
+                top_level=top_level,
+                cycles=cycles, obj_version=3))
+
+
 def add_arch_migrate(migrators, gx):
     """Adds rebuild migrators.
 
@@ -314,6 +356,7 @@ def initialize_migrators(do_rebuild=False):
         add_rebuild($MIGRATORS, gx)
     add_arch_migrate($MIGRATORS,gx)
     add_rebuild_openssl($MIGRATORS, gx)
+    add_rebuild_libprotobuf($MIGRATORS, gx)
 
     return gx, smithy_version, pinning_version, temp, $MIGRATORS
 
