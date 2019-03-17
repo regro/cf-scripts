@@ -303,6 +303,47 @@ def add_rebuild_libprotobuf(migrators, gx):
                 cycles=cycles, obj_version=3))
 
 
+def add_rebuild_blas(migrators, gx):
+    """Adds rebuild blas 2.0 migrators.
+
+    Parameters
+    ----------
+    migrators : list of Migrator
+        The list of migrators to run.
+
+    """
+    total_graph = copy.deepcopy(gx)
+
+    for node, attrs in gx.node.items():
+        meta_yaml = attrs.get("meta_yaml", {}) or {}
+        bh = get_requirements(meta_yaml)
+        pkgs = set(["openblas", "openblas-devel", "mkl", "mkl-devel", "blas", "lapack", "clapack"])
+        blas_c = pkg.intersection(bh).size() > 0
+
+        rq = _host_run_test_dependencies(meta_yaml)
+
+        for e in list(total_graph.in_edges(node)):
+            if e[0] not in rq:
+                total_graph.remove_edge(*e)
+        if not any([blas_c]):
+            pluck(total_graph, node)
+
+    # post plucking we can have several strange cases, lets remove all selfloops
+    total_graph.remove_edges_from(total_graph.selfloop_edges())
+
+    top_level = set(node for node in total_graph if not list(
+        total_graph.predecessors(node)))
+    cycles = list(nx.simple_cycles(total_graph))
+    # print('cycles are here:', cycles)
+
+    migrators.append(
+        Rebuild(graph=total_graph,
+                pr_limit=5,
+                name='blas-2.0',
+                top_level=top_level,
+                cycles=cycles, obj_version=3))
+
+
 def add_arch_migrate(migrators, gx):
     """Adds rebuild migrators.
 

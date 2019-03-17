@@ -982,3 +982,79 @@ class ArchRebuild(Rebuild):
 
     def remote_branch(self):
         return super().remote_branch() + '_arch'
+
+
+class BlasRebuild(Rebuild):
+    """Migrator for rebuilding for blas 2.0."""
+    migrator_version = 0
+    rerender = True
+    bump_number = 1
+
+    blas_patterns = [
+        re.compile('(\s*?)-\s*(blas|openblas|mkl|(c?)lapack)'),
+        re.compile('(\s*?){%\s*set variant\s*=\s*"openblas"?\s*%}'),
+    ]
+
+    def __init__(self, graph=None, name=None, pr_limit=0, top_level=None,
+                 cycles=None):
+        super().__init__(graph=graph, name="blas2", pr_limit=pr_limit, top_level=top_level,
+                         cycles=cycles)
+
+    def migrate(self, recipe_dir, attrs, **kwargs):
+        with indir(recipe_dir):
+            # Update build number
+            self.set_build_number('meta.yaml')
+            # Remove blas related packages and features
+            with open('meta.yaml', 'r') as f:
+                lines = f.readlines()
+            reqs_line = "build:"
+            for i, line in enumerate(lines):
+                if line.strip() == "host:":
+                    reqs_line = "host:"
+                for blas_pattern in self.blas_patterns:
+                    m = blas_pattern.match(line)
+                    if m is not None:
+                        lines[i] = ""
+                        break
+            for i, line in enumerate(lines):
+                sline = line.lstrip()
+                if len(sline) != len(line) and line.strip() == reqs_line:
+                    for dep in ["libblas", "libcblas"]:
+                        print(lines[i], len(line)-len(sline))
+                        lines[i] = lines[i] + " "*(len(line)-len(sline)) + "  - " + dep + "\n"
+            new_text = ''.join(lines)
+            with open('meta.yaml', 'w') as f:
+                f.write(new_text)
+        return self.migrator_uid(attrs)
+
+    def pr_body(self):
+        body = super().pr_body()
+        additional_body = ("This PR has been triggered in an effort to update for new BLAS scheme.\n\n"
+                           "New BLAS scheme builds conda packages against the Reference-LAPACK's libraries\n"
+                           "which allows to change the BLAS implementation at install time by the user.\n\n"
+                           "which allows to change the BLAS implementation at install time by the user.\n\n"
+                           "Checklist:\n"
+                           "1. Tests has passed. \n"
+                           "2. Added `liblapack, liblapacke` if they are needed. \n"
+                           "3. Removed `libcblas` if `cblas_*` API is not used. \n"
+                           "Feel free to push to the bot's branch to update this PR if needed. \n"
+                           "**Please note that if you close this PR we presume that "
+                           "the feedstock has been rebuilt, so if you are going to "
+                           "perform the rebuild yourself don't close this PR until "
+                           "the your rebuild has been merged.**\n\n"
+                           "This package has the following downstream children:\n"
+                           "{0}\n"
+                           "And potentially more."
+                           "".format('\n'.join([a[1] for a in list(self.graph.out_edges($PROJECT))[: 5]])))
+        body = body.format(additional_body)
+        return body
+
+    def commit_message(self):
+        return "bump build number"
+
+    def pr_title(self):
+        if self.name:
+            return 'Rebuild for new BLAS scheme'
+        else:
+            return 'Bump build number'
+

@@ -4,7 +4,8 @@ import builtins
 import pytest
 import networkx as nx
 
-from conda_forge_tick.migrators import JS, Version, Compiler, Noarch, Pinning, Rebuild, ArchRebuild, NoarchR
+from conda_forge_tick.migrators import (JS, Version, Compiler, Noarch, Pinning, Rebuild, \
+    ArchRebuild, NoarchR, BlasRebuild)
 from conda_forge_tick.utils import parse_meta_yaml
 
 
@@ -1530,6 +1531,88 @@ extra:
     - kynan
 """
 
+
+sample_blas = """
+{% set version = "1.2.1" %}
+{% set variant = "openblas" %}
+
+package:
+  name: scipy
+  version: {{ version }}
+
+source:
+  url: https://github.com/scipy/scipy/archive/v{{ version }}.tar.gz
+  sha256: d4b9c1c1dee37ffd1653fd62ea52587212d3b1570c927f16719fd7c4077c0d0a
+
+build:
+  number: 0
+  skip: true  # [win]
+  features:
+    - blas_{{ variant }}
+
+requirements:
+  build:
+    - {{ compiler('fortran') }}
+    - {{ compiler('c') }}
+    - {{ compiler('cxx') }}
+  host:
+    - python
+    - setuptools
+    - cython
+    - blas 1.1 {{ variant }}
+    - openblas
+    - numpy
+  run:
+    - python
+    - blas 1.1 {{ variant }}
+    - openblas
+    - {{ pin_compatible('numpy') }}
+
+test:
+  requires:
+    - pytest
+    - mpmath
+"""
+
+
+updated_blas = """
+{% set version = "1.2.1" %}
+
+package:
+  name: scipy
+  version: {{ version }}
+
+source:
+  url: https://github.com/scipy/scipy/archive/v{{ version }}.tar.gz
+  sha256: d4b9c1c1dee37ffd1653fd62ea52587212d3b1570c927f16719fd7c4077c0d0a
+
+build:
+  number: 1
+  skip: true  # [win]
+  features:
+
+requirements:
+  build:
+    - {{ compiler('fortran') }}
+    - {{ compiler('c') }}
+    - {{ compiler('cxx') }}
+  host:
+    - libblas
+    - libcblas
+    - python
+    - setuptools
+    - cython
+    - numpy
+  run:
+    - python
+    - {{ pin_compatible('numpy') }}
+
+test:
+  requires:
+    - pytest
+    - mpmath
+"""
+
 js = JS()
 version = Version()
 compiler = Compiler()
@@ -1537,8 +1620,12 @@ noarch = Noarch()
 noarchr = NoarchR()
 perl = Pinning(removals={"perl"})
 pinning = Pinning()
+
 rebuild = Rebuild(name='rebuild', cycles=[])
 rebuild.filter = lambda x: False
+
+blas_rebuild = BlasRebuild(cycles=[])
+blas_rebuild.filter = lambda x: False
 
 test_list = [
     (
@@ -1755,6 +1842,15 @@ test_list = [
         {"feedstock_name": "r-stabledist"},
         "I think this feedstock could be built with noarch",
         {"migrator_name": "NoarchR", "migrator_version": noarchr.migrator_version},
+        False,
+    ),
+    (
+        blas_rebuild,
+        sample_blas,
+        updated_blas,
+        {"feedstock_name": "scipy"},
+        "This PR has been triggered in an effort to update for new BLAS scheme.",
+        {"migrator_name": "BlasRebuild", "migrator_version": blas_rebuild.migrator_version, "name": "blas2"},
         False,
     ),
     # Disabled for now because the R license stuff has been purpossefully moved into the noarchR migrator
