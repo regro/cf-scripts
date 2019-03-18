@@ -334,7 +334,6 @@ def add_rebuild_blas(migrators, gx):
     top_level = set(node for node in total_graph if not list(
         total_graph.predecessors(node)))
     cycles = list(nx.simple_cycles(total_graph))
-    # print('cycles are here:', cycles)
 
     migrators.append(
         BlasRebuild(graph=total_graph,
