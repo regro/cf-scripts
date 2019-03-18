@@ -1009,9 +1009,9 @@ class BlasRebuild(Rebuild):
     ]
 
     def __init__(self, graph=None, name=None, pr_limit=0, top_level=None,
-                 cycles=None):
+                 cycles=None, obj_version=None):
         super().__init__(graph=graph, name="blas2", pr_limit=pr_limit, top_level=top_level,
-                         cycles=cycles)
+                         cycles=cycles, obj_version=obj_version)
 
     def migrate(self, recipe_dir, attrs, **kwargs):
         with indir(recipe_dir):
