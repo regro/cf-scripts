@@ -1052,8 +1052,5 @@ class BlasRebuild(Rebuild):
         return "Rebuild for new BLAS scheme"
 
     def pr_title(self):
-        if self.name:
-            return 'Rebuild for new BLAS scheme'
-        else:
-            return 'Bump build number'
+        return 'Rebuild for new BLAS scheme'
 
