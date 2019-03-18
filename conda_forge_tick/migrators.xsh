@@ -307,7 +307,7 @@ class Version(Migrator):
         try:
             version_filter = (
                 # if new version is less than current version
-                or (VersionOrder(str(attrs['new_version'])) <=
+                (VersionOrder(str(attrs['new_version'])) <=
                     VersionOrder(str(attrs['version'])))
                 # if PRed version is greater than newest version
                 or any(VersionOrder(self._extract_version_from_hash(h)) >=
