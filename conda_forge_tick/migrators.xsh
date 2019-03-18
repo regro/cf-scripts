@@ -926,6 +926,9 @@ class ArchRebuild(Rebuild):
         'sqlalchemy',
         'psycopg2',
         'tini',
+        # mpi variants
+        'openmpi',
+        'mpich',
         }
     ignored_packages = {'make', 'perl', 'toolchain', 'posix',
         'patchelf', # weird issue
