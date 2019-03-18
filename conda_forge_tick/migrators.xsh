@@ -1049,7 +1049,7 @@ class BlasRebuild(Rebuild):
         return body
 
     def commit_message(self):
-        return "bump build number"
+        return "Rebuild for new BLAS scheme"
 
     def pr_title(self):
         if self.name:
