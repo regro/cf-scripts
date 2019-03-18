@@ -6,8 +6,10 @@ import re
 from frozendict import frozendict
 from itertools import chain
 from textwrap import dedent
+import warnings
 
 import networkx as nx
+import conda.exceptions
 from conda.models.version import VersionOrder
 from rever.tools import (eval_version, hash_url, replace_in_file)
 from xonsh.lib.os import indir
@@ -295,19 +297,27 @@ class Version(Migrator):
         if "new_version" not in attrs:
             return True
         conditional = super().filter(attrs)
-        return bool(
+        result = bool(
             conditional  # if archived/finished
             or len([k for k, v in attrs.get('PRed_json', {}).items() if
                     k.get('migrator_name') == 'Version' and
                     v.get('state') == 'open']) > 3
             or not attrs.get('new_version')  # if no new version
-            # if new version is less than current version
-            or (VersionOrder(str(attrs['new_version'])) <=
-                VersionOrder(str(attrs['version'])))
-            # if PRed version is greater than newest version
-            or any(VersionOrder(self._extract_version_from_hash(h)) >=
-                   VersionOrder(attrs['new_version']
-                                ) for h in attrs.get('PRed', set())))
+        )
+        try:
+            version_filter = (
+                # if new version is less than current version
+                or (VersionOrder(str(attrs['new_version'])) <=
+                    VersionOrder(str(attrs['version'])))
+                # if PRed version is greater than newest version
+                or any(VersionOrder(self._extract_version_from_hash(h)) >=
+                    VersionOrder(attrs['new_version']
+                                    ) for h in attrs.get('PRed', set()))
+                )
+        except conda.exceptions.InvalidVersionSpec as e:
+            warnings.warn(f"Failed to filter to to invalid version for {attrs}\nException: {e}")
+            version_filter = True
+        return result or version_filter
 
     def migrate(self, recipe_dir, attrs, hash_type='sha256'):
         # Render with new version but nothing else
