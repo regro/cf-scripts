@@ -337,11 +337,11 @@ def add_rebuild_blas(migrators, gx):
     # print('cycles are here:', cycles)
 
     migrators.append(
-        Rebuild(graph=total_graph,
+        BlasRebuild(graph=total_graph,
                 pr_limit=5,
                 name='blas-2.0',
                 top_level=top_level,
-                cycles=cycles, obj_version=3))
+                cycles=cycles, obj_version=0))
 
 
 def add_arch_migrate(migrators, gx):

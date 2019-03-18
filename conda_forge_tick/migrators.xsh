@@ -1032,7 +1032,6 @@ class BlasRebuild(Rebuild):
         additional_body = ("This PR has been triggered in an effort to update for new BLAS scheme.\n\n"
                            "New BLAS scheme builds conda packages against the Reference-LAPACK's libraries\n"
                            "which allows to change the BLAS implementation at install time by the user.\n\n"
-                           "which allows to change the BLAS implementation at install time by the user.\n\n"
                            "Checklist:\n"
                            "1. Tests has passed. \n"
                            "2. Added `liblapack, liblapacke` if they are needed. \n"
