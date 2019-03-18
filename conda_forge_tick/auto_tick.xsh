@@ -318,7 +318,7 @@ def add_rebuild_blas(migrators, gx):
         meta_yaml = attrs.get("meta_yaml", {}) or {}
         bh = get_requirements(meta_yaml)
         pkgs = set(["openblas", "openblas-devel", "mkl", "mkl-devel", "blas", "lapack", "clapack"])
-        blas_c = pkg.intersection(bh).size() > 0
+        blas_c = pkgs.intersection(bh).size() > 0
 
         rq = _host_run_test_dependencies(meta_yaml)
 
