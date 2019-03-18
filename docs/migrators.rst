@@ -31,6 +31,8 @@ a custom migrator.
 Custom migrators are used when the internals of the conda-forge system (the various
 yaml configuration files) need to be changed.
 
+Once the ``add_rebuild...`` function is created it needs to be added to the ``initialize_migrators`` function so the migration will go forward.
+
 Example of migrator addition function for openssl, for most simple re-pinning migration
 one could replace ``openssl`` with the package which got pinned and things would work:
 
