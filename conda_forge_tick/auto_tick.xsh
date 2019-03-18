@@ -397,6 +397,7 @@ def initialize_migrators(do_rebuild=False):
     add_arch_migrate($MIGRATORS,gx)
     add_rebuild_openssl($MIGRATORS, gx)
     add_rebuild_libprotobuf($MIGRATORS, gx)
+    add_rebuild_blas($MIGRATORS, gx)
 
     return gx, smithy_version, pinning_version, temp, $MIGRATORS
 
