@@ -8,7 +8,7 @@ def main(args=None):
     gx, *_, migrators = initialize_migrators(do_rebuild=True)
     if not os.path.exists('./status'):
         os.mkdir('./status')
-   total_status = {} 
+    total_status = {} 
 
     for migrator in migrators:
         total_status[migrator] = f'{migrator.name} Migration Status'
