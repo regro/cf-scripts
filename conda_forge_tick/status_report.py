@@ -11,7 +11,7 @@ def main(args=None):
    total_status = {} 
 
     for migrator in migrators:
-        total_status[migrator] = 'active'
+        total_status[migrator] = f'{migrator.name} Migration Status'
         if isinstance(migrator, Rebuild):
             migrator_name = migrator.__class__.__name__.lower()
             if migrator_name == 'rebuild':
