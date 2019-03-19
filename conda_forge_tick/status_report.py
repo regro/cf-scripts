@@ -8,8 +8,10 @@ def main(args=None):
     gx, *_, migrators = initialize_migrators(do_rebuild=True)
     if not os.path.exists('./status'):
         os.mkdir('./status')
+   total_status = {} 
 
     for migrator in migrators:
+        total_status[migrator] = f'{migrator.name} Migration Status'
         if isinstance(migrator, Rebuild):
             migrator_name = migrator.__class__.__name__.lower()
             if migrator_name == 'rebuild':
@@ -21,6 +23,8 @@ def main(args=None):
                     fo,
                     indent=2
                 )
+    with open('.status/total_status.json', 'w') as f:
+        json.dump(total_status, f)
 
 if __name__ == '__main__':
     main()
