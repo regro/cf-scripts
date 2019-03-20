@@ -12,7 +12,7 @@ def main(args=None):
 
     for migrator in migrators:
         if isinstance(migrator, Rebuild):
-            total_status[migrator] = f'{migrator.name} Migration Status'
+            total_status[migrator.name] = f'{migrator.name} Migration Status'
             migrator_name = migrator.__class__.__name__.lower()
             if migrator_name == 'rebuild':
                 migrator_name = migrator.name.lower().replace(" ", "")
