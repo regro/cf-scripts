@@ -23,7 +23,7 @@ def main(args=None):
                     fo,
                     indent=2
                 )
-    with open('.status/total_status.json', 'w') as f:
+    with open('./status/total_status.json', 'w') as f:
         json.dump(total_status, f)
 
 if __name__ == '__main__':
