@@ -391,9 +391,6 @@ def initialize_migrators(do_rebuild=False):
     smithy_version = ![conda smithy --version].output.strip()
     pinning_version = json.loads(![conda list conda-forge-pinning --json].output.strip())[0]['version']
 
-    # TODO: reenable once graph order is correct
-    if do_rebuild:
-        add_rebuild($MIGRATORS, gx)
     add_arch_migrate($MIGRATORS,gx)
     add_rebuild_openssl($MIGRATORS, gx)
     add_rebuild_libprotobuf($MIGRATORS, gx)
