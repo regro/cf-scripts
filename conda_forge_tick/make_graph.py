@@ -178,26 +178,27 @@ def update_graph_pr_status(gx: nx.DiGraph) -> nx.DiGraph:
     with executor('thread', NUM_GITHUB_THREADS) as (pool, as_completed):
         for node_id in node_ids:
             node = gx.nodes[node_id]
-            prs = node.get("PRed_json", {})
-            for migrator, pr_json in prs.items():
+            prs = node.get("PRed_json", [])
+            for i, migration in enumerate(prs):
+                pr_json = migration['PR']
                 # allow for false
                 if pr_json:
                     future = pool.submit(refresh_pr, pr_json, gh)
-                    futures[future] = (node_id, migrator)
+                    futures[future] = (node_id, i)
 
         for f in as_completed(futures):
-            name, muid = futures[f]
+            name, i = futures[f]
             try:
                 res = f.result()
                 if res:
-                    gx.nodes[name]["PRed_json"][muid].update(**res)
+                    gx.nodes[name]["PRed_json"][i]['PR'].update(**res)
                     logger.info("Updated json for {}: {}".format(name, res["id"]))
             except github3.GitHubError as e:
                 logger.critical("GITHUB ERROR ON FEEDSTOCK: {}".format(name))
                 if is_github_api_limit_reached(e, gh):
                     break
             except Exception as e:
-                logger.critical("ERROR ON FEEDSTOCK: {}: {}".format(name, muid))
+                logger.critical("ERROR ON FEEDSTOCK: {}: {}".format(name, gx.nodes[name]["PRed_json"][i]['data']))
                 raise
     return gx
 
@@ -211,20 +212,21 @@ def close_labels(gx: nx.DiGraph) -> nx.DiGraph:
     with executor('thread', NUM_GITHUB_THREADS) as (pool, as_completed):
         for node_id in node_ids:
             node = gx.nodes[node_id]
-            prs = node.get("PRed_json", {})
-            for migrator, pr_json in prs.items():
+            prs = node.get("PRed_json", [])
+            for i, migration in prs:
+                pr_json = migration['PR']
                 # allow for false
                 if pr_json:
                     future = pool.submit(close_out_labels, pr_json, gh)
-                    futures[future] = (node_id, migrator)
+                    futures[future] = (node_id, i)
 
         for f in as_completed(futures):
-            name, muid = futures[f]
+            name, i = futures[f]
             try:
                 res = f.result()
                 if res:
-                    gx.node[name]["PRed"].remove(muid)
-                    del gx.nodes[name]["PRed_json"][muid]
+                    del gx.node[name]["PRed"][i]
+                    del gx.nodes[name]["PRed_json"][i]
                     logger.info(
                         "Closed and removed PR and branch for "
                         "{}: {}".format(name, res["id"])
@@ -234,7 +236,7 @@ def close_labels(gx: nx.DiGraph) -> nx.DiGraph:
                 if is_github_api_limit_reached(e, gh):
                     break
             except Exception as e:
-                logger.critical("ERROR ON FEEDSTOCK: {}: {}".format(name, muid))
+                logger.critical("ERROR ON FEEDSTOCK: {}: {}".format(name, gx.nodes[name]["PRed_json"][i]['data']))
                 raise
     return gx
 
