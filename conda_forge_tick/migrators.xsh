@@ -932,6 +932,10 @@ class ArchRebuild(Rebuild):
         'poetry',
         'flit',
         'constructor',
+        # py27 things
+        'typing',
+        'enum34',
+        'functools32',
         }
     ignored_packages = {'make', 'perl', 'toolchain', 'posix',
         'patchelf', # weird issue
