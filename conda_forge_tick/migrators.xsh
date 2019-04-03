@@ -147,7 +147,7 @@ class Migrator:
         # Carveout for old migrators w/o obj_versions
         if self.obj_version:
             d.update(migrator_object_version=self.obj_version)
-        return frozen_to_json_friendly(d)
+        return d
 
     def order(self, graph, total_graph):
         """Order to run migrations in
@@ -337,7 +337,7 @@ class Version(Migrator):
                 n = eval_version(n)
                 replace_in_file(p, n, f)
             self.set_build_number('meta.yaml')
-        return self.migrator_uid(attrs)
+        return frozen_to_json_friendly(self.migrator_uid(attrs))
 
     def pr_body(self):
         pred = [(name, $SUBGRAPH.node[name]['new_version'])
@@ -383,7 +383,7 @@ class Version(Migrator):
     def migrator_uid(self, attrs):
         n = super().migrator_uid(attrs)
         n = n.copy(version=attrs["new_version"])
-        return n
+        return frozen_to_json_friendly(n)
 
     def _extract_version_from_hash(self, h):
         return h.get('version', '0.0.0')

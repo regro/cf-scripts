@@ -2,7 +2,7 @@ import os
 import json
 import pickle
 
-from conda_forge_tick.utils import (LazyJson, get_requirements)
+from conda_forge_tick.utils import (LazyJson, get_requirements, dumps)
 
 
 def test_lazy_json(tmpdir):
@@ -11,15 +11,15 @@ def test_lazy_json(tmpdir):
     lj = LazyJson(f)
     assert os.path.exists(lj.file_name)
     with open(f, "r") as ff:
-        assert ff.read() == json.dumps({}, indent=4)
+        assert ff.read() == json.dumps({})
     lj["hi"] = "world"
     assert lj["hi"] == "world"
     assert os.path.exists(lj.file_name)
     with open(f, "r") as ff:
-        assert ff.read() == json.dumps({"hi": "world"}, indent=4)
+        assert ff.read() == dumps({"hi": "world"})
     lj.update({"hi": "globe"})
     with open(f, "r") as ff:
-        assert ff.read() == json.dumps({"hi": "globe"}, indent=4)
+        assert ff.read() == dumps({"hi": "globe"})
     p = pickle.dumps(lj)
     lj2 = pickle.loads(p)
     assert not getattr(lj2, "data", None)

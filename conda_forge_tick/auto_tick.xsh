@@ -505,7 +505,7 @@ def main(args=None):
                                             rerender=rerender, protocol='https',
                                             hash_type=attrs.get('hash_type', 'sha256'))
                 if migrator_uid:
-                    gx.nodes[node].setdefault('PRed', []).append(migrator_uid)
+                    gx.nodes[node].setdefault('PRed', []).append(frozen_to_json_friendly(migrator_uid))
                     gx.nodes[node].update({'smithy_version': smithy_version,
                                            'pinning_version': pinning_version})
 

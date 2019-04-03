@@ -58,7 +58,7 @@ class LazyJson(MutableMapping):
         if not os.path.exists(self.file_name):
             os.makedirs(os.path.split(self.file_name)[0], exist_ok=True)
             with open(self.file_name, "w") as f:
-                json.dump({}, f)
+                dump({}, f)
         self.data = None
 
     def __len__(self) -> int:
@@ -78,7 +78,7 @@ class LazyJson(MutableMapping):
         if self.data is None:
             try:
                 with open(self.file_name, "r") as f:
-                    self.data = json.load(f)
+                    self.data = load(f)
             except FileNotFoundError:
                 print(os.getcwd())
                 print(os.listdir('.'))
@@ -87,7 +87,7 @@ class LazyJson(MutableMapping):
     def _dump(self):
         self._load()
         with open(self.file_name, "w") as f:
-            json.dump(self.data, f, indent=4)
+            dump(self.data, f)
 
     def __getitem__(self, item):
         self._load()
@@ -257,6 +257,8 @@ def default(obj):
     """For custom object serialization."""
     if isinstance(obj, LazyJson):
         return {'__lazy_json__': obj.file_name}
+    elif isinstance(obj, Set):
+        return {"__set__": True, "elements": sorted(obj)}
     raise TypeError(repr(obj) + " is not JSON serializable")
 
 
@@ -264,20 +266,24 @@ def object_hook(dct):
     """For custom object deserialization."""
     if "__lazy_json__" in dct:
         return LazyJson(dct['__lazy_json__'])
+    elif "__set__" in dct:
+        return set(dct["elements"])
     return dct
 
 
 def dumps(obj, sort_keys=True, separators=(",", ":"), default=default, **kwargs):
     """Returns a JSON string from a Python object."""
     return json.dumps(
-        obj, sort_keys=sort_keys, separators=separators, default=default, **kwargs
+        obj, sort_keys=sort_keys, separators=separators, default=default, indent=1, **kwargs
     )
 
 
 def dump(obj, fp, sort_keys=True, separators=(",", ":"), default=default, **kwargs):
     """Returns a JSON string from a Python object."""
     return json.dump(
-        obj, fp, sort_keys=sort_keys, separators=separators, default=default, **kwargs
+        obj, fp, sort_keys=sort_keys, separators=separators, default=default,
+        indent=1,
+        **kwargs
     )
 
 
