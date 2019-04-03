@@ -282,6 +282,7 @@ def dump(obj, fp, sort_keys=True, separators=(",", ":"), default=default, **kwar
     """Returns a JSON string from a Python object."""
     return json.dump(
         obj, fp, sort_keys=sort_keys, separators=separators, default=default,
+        indent=1,
         **kwargs
     )
 
