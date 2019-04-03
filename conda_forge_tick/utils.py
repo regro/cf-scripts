@@ -266,7 +266,7 @@ def object_hook(dct):
     """For custom object deserialization."""
     if "__lazy_json__" in dct:
         return LazyJson(dct['__lazy_json__'])
-    if "__set__" in dct:
+    elif "__set__" in dct:
         return set(dct["elements"])
     return dct
 
