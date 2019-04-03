@@ -929,6 +929,9 @@ class ArchRebuild(Rebuild):
         # mpi variants
         'openmpi',
         'mpich',
+        'poetry',
+        'flit',
+        'constructor',
         }
     ignored_packages = {'make', 'perl', 'toolchain', 'posix',
         'patchelf', # weird issue
