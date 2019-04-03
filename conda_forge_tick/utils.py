@@ -87,7 +87,7 @@ class LazyJson(MutableMapping):
     def _dump(self):
         self._load()
         with open(self.file_name, "w") as f:
-            dump(self.data, f, indent=4)
+            dump(self.data, f, indent=1)
 
     def __getitem__(self, item):
         self._load()
