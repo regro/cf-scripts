@@ -3,7 +3,6 @@ import os
 import urllib.error
 
 import re
-from frozendict import frozendict
 from itertools import chain
 from textwrap import dedent
 import warnings
@@ -18,16 +17,7 @@ from conda_smithy.configure_feedstock import get_cfp_file_path
 from ruamel.yaml import safe_load, safe_dump
 
 from conda_forge_tick.path_lengths import cyclic_topological_sort
-from .utils import render_meta_yaml, UniversalSet
-
-# frozendict serializes its own hash, If this is done then deserialized frozendicts can
-# have invalid hashes
-def fzd_getstate(self):
-    state = self.__dict__.copy()
-    state['_hash'] = None
-    return state
-
-frozendict.__getstate__ = fzd_getstate
+from .utils import render_meta_yaml, UniversalSet, frozen_to_json_friendly
 
 
 class Migrator:
@@ -138,7 +128,7 @@ class Migrator:
         """Branch to use on local and remote"""
         return 'bot-pr'
 
-    def migrator_uid(self, attrs: dict) -> frozendict:
+    def migrator_uid(self, attrs: dict) -> frozen_to_json_friendly:
         """Make a unique id for this migrator and node attrs
 
         Parameters
@@ -148,8 +138,8 @@ class Migrator:
 
         Returns
         -------
-        nt: frozendict
-            The unique id as a frozendict (so it can be used as keys in dicts)
+        nt: frozen_to_json_friendly
+            The unique id as a frozen_to_json_friendly (so it can be used as keys in dicts)
         """
         d = {'migrator_name': self.__class__.__name__,
              'migrator_version': self.migrator_version,
@@ -157,7 +147,7 @@ class Migrator:
         # Carveout for old migrators w/o obj_versions
         if self.obj_version:
             d.update(migrator_object_version=self.obj_version)
-        return frozendict(d)
+        return frozen_to_json_friendly(d)
 
     def order(self, graph, total_graph):
         """Order to run migrations in

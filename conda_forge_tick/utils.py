@@ -11,6 +11,7 @@ import json
 import re
 
 import jinja2
+import networkx as nx
 
 pin_sep_pat = re.compile(" |>|<|=|\[")
 
@@ -250,3 +251,64 @@ def executor(kind, max_workers):
                 yield client, distributed.as_completed
     else:
         raise NotImplementedError('That kind is not implemented')
+
+
+def default(obj):
+    """For custom object serialization."""
+    if isinstance(obj, LazyJson):
+        return {'__lazy_json__': obj.file_name}
+    raise TypeError(repr(obj) + " is not JSON serializable")
+
+
+def object_hook(dct):
+    """For custom object deserialization."""
+    if "__lazy_json__" in dct:
+        return LazyJson(dct['__lazy_json__'])
+    return dct
+
+
+def dumps(obj, sort_keys=True, separators=(",", ":"), default=default, **kwargs):
+    """Returns a JSON string from a Python object."""
+    return json.dumps(
+        obj, sort_keys=sort_keys, separators=separators, default=default, **kwargs
+    )
+
+
+def dump(obj, fp, sort_keys=True, separators=(",", ":"), default=default, **kwargs):
+    """Returns a JSON string from a Python object."""
+    return json.dump(
+        obj, fp, sort_keys=sort_keys, separators=separators, default=default, **kwargs
+    )
+
+
+def loads(s, object_hook=object_hook, **kwargs):
+    """Loads a string as JSON, with approriate object hooks"""
+    return json.loads(s, object_hook=object_hook, **kwargs)
+
+
+def load(fp, object_hook=object_hook, **kwargs):
+    """Loads a file object as JSON, with appropriate object hooks."""
+    return json.load(fp, object_hook=object_hook, **kwargs)
+
+
+def dump_graph(gx, filename='graph.json'):
+    nld = nx.node_link_data(gx)
+    with open(filename, 'w') as f:
+        dump(nld, f)
+
+
+def load_graph(filename='graph.json'):
+    with open(filename, 'r') as f:
+        nld = load(f)
+    return nx.node_link_graph(nld)
+
+
+def frozen_to_json_friendly(fz: dict, PR: LazyJson=None):
+    keys = sorted(list(fz.keys()))
+    d = {
+        'keys': keys,
+        'data': dict(fz)
+    }
+    if PR:
+        d['PR'] = PR
+    return d

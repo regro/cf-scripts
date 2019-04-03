@@ -17,7 +17,8 @@ import yaml
 
 from xonsh.lib.collections import ChainDB, _convert_to_dict
 from .all_feedstocks import get_all_feedstocks
-from .utils import parse_meta_yaml, setup_logger, get_requirements, executor
+from .utils import parse_meta_yaml, setup_logger, get_requirements, executor, \
+    load_graph, dump_graph
 from .git_utils import refresh_pr, is_github_api_limit_reached, close_out_labels
 
 logger = logging.getLogger("conda_forge_tick.make_graph")
@@ -242,7 +243,7 @@ def main(args=None):
     setup_logger(logger)
     names = get_all_feedstocks(cached=True)
     if os.path.exists("graph.pkl"):
-        gx = nx.read_gpickle("graph.pkl")
+        gx = load_graph()
     else:
         gx = None
     gx = make_graph(names, gx)
@@ -253,7 +254,7 @@ def main(args=None):
         gx = close_labels(gx)
 
     logger.info("writing out file")
-    nx.write_gpickle(gx, "graph.pkl")
+    dump_graph()
 
 
 if __name__ == "__main__":

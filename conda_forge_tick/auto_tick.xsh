@@ -14,7 +14,8 @@ from xonsh.lib.os import indir
 
 from .git_utils import (get_repo, push_repo, is_github_api_limit_reached, ensure_label_exists, label_pr)
 from .path_lengths import cyclic_topological_sort
-from .utils import setup_logger, pluck, get_requirements
+from .utils import setup_logger, pluck, get_requirements, load_graph, \
+    dump_graph
 
 logger = logging.getLogger("conda_forge_tick.auto_tick")
 
@@ -382,7 +383,7 @@ def add_arch_migrate(migrators, gx):
 def initialize_migrators(do_rebuild=False):
     setup_logger(logger)
     temp = g`/tmp/*`
-    gx = nx.read_gpickle('graph.pkl')
+    gx = load_graph()
     $GRAPH = gx
     $REVER_DIR = './feedstocks/'
     $REVER_QUIET = True
@@ -510,7 +511,9 @@ def main(args=None):
 
                 # Stash the pr json data so we can access it later
                 if pr_json:
-                    gx.nodes[node].setdefault('PRed_json', {}).update({migrator_uid: pr_json})
+                    d = dict(migrator_uid)
+                    d.update(PR=pr_json)
+                    gx.nodes[node].setdefault('PRed_json', []).append(d)
 
             except github3.GitHubError as e:
                 if e.msg == 'Repository was archived so is read-only.':
@@ -529,7 +532,7 @@ def main(args=None):
                     good_prs += 1
             finally:
                 # Write graph partially through
-                nx.write_gpickle(gx, 'graph.pkl')
+                dump_graph(gx)
                 rm -rf $REVER_DIR + '/*'
                 logger.info(![pwd])
                 for f in g`/tmp/*`:
