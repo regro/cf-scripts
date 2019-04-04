@@ -213,7 +213,7 @@ def close_labels(gx: nx.DiGraph) -> nx.DiGraph:
         for node_id in node_ids:
             node = gx.nodes[node_id]
             prs = node.get("PRed_json", [])
-            for i, migration in prs:
+            for i, migration in enumerate(prs):
                 pr_json = migration.get('PR', None)
                 # allow for false
                 if pr_json:
