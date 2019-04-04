@@ -291,7 +291,7 @@ class Version(Migrator):
             conditional  # if archived/finished
             or len([k for k in attrs.get('PRed_json', []) if
                     k['data'].get('migrator_name') == 'Version' and
-                    k['PR'].get('state') == 'open']) > 3
+                    k.get('PR', {}).get('state', None) == 'open']) > 3
             or not attrs.get('new_version')  # if no new version
         )
         try:
@@ -382,7 +382,7 @@ class Version(Migrator):
 
     def migrator_uid(self, attrs):
         n = super().migrator_uid(attrs)
-        n = n.update(version=attrs["new_version"])
+        n.update(version=attrs["new_version"])
         return frozen_to_json_friendly(n)
 
     def _extract_version_from_hash(self, h):
@@ -807,7 +807,7 @@ class Rebuild(Migrator):
 
     def migrator_uid(self, attrs):
         n = super().migrator_uid(attrs)
-        n = n.update(name=self.name)
+        n.update(name=self.name)
         return n
 
     def order(self, graph, total_graph):

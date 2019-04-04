@@ -454,7 +454,7 @@ def migrator_status(migrator: Migrator, gx):
                 out['awaiting-pr'].add(node)
             else:
                 out['awaiting-parents'].add(node)
-        elif pr_json['state'] == 'closed':
+        elif pr_json['PR']['state'] == 'closed':
             out['done'].add(node)
         else:
             out['in-pr'].add(node)
