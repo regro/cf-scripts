@@ -443,7 +443,7 @@ def migrator_status(migrator: Migrator, gx):
         feedstock_metadata[node] = node_metadata
         nuid = migrator.migrator_uid(attrs)
         for pr_json in attrs.get('PRed_json', []):
-            if pr_json['data'] == frozen_to_json_friendly(nuid)['data']:
+            if pr_json and pr_json['data'] == frozen_to_json_friendly(nuid)['data']:
                 break
         else:
             pr_json = None
