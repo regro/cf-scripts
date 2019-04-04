@@ -322,7 +322,7 @@ def main(args=None):
     update_upstream_versions(gx)
 
     logger.info("writing out file")
-    dump_graph()
+    dump_graph(gx)
 
 
 if __name__ == "__main__":

@@ -256,7 +256,7 @@ def main(args=None):
         gx = close_labels(gx)
 
     logger.info("writing out file")
-    dump_graph()
+    dump_graph(gx)
 
 
 if __name__ == "__main__":
