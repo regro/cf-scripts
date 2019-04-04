@@ -337,7 +337,7 @@ class Version(Migrator):
                 n = eval_version(n)
                 replace_in_file(p, n, f)
             self.set_build_number('meta.yaml')
-        return frozen_to_json_friendly(self.migrator_uid(attrs))
+        return self.migrator_uid(attrs)
 
     def pr_body(self):
         pred = [(name, $SUBGRAPH.node[name]['new_version'])
@@ -383,7 +383,7 @@ class Version(Migrator):
     def migrator_uid(self, attrs):
         n = super().migrator_uid(attrs)
         n.update(version=attrs["new_version"])
-        return frozen_to_json_friendly(n)
+        return n
 
     def _extract_version_from_hash(self, h):
         return h.get('version', '0.0.0')
@@ -753,12 +753,12 @@ class Rebuild(Migrator):
         # Check if all upstreams have been built
         for node in self.graph.predecessors(attrs['feedstock_name']):
             att = self.graph.node[node]
-            muid = self.migrator_uid(att)
+            muid = frozen_to_json_friendly(self.migrator_uid(att))
             if muid not in att.get('PRed', []) and not att.get('archived', False):
                 return True
             # This is due to some PRed_json loss due to bad graph deploy outage
             for m_pred_json in att.get('PRed_json', []):
-                if m_pred_json['data'] == frozen_to_json_friendly(muid)['data']:
+                if m_pred_json['data'] == muid['data']:
                     break
             else:
                 m_pred_json = None
@@ -961,7 +961,7 @@ class ArchRebuild(Rebuild):
     def filter(self, attrs):
         if super().filter(attrs):
             return True
-        muid = self.migrator_uid(attrs)
+        muid = frozen_to_json_friendly(self.migrator_uid(attrs))
         for arch in self.arches:
             configured_arch = attrs.get("conda-forge.yml", {}).get("provider", {}).get(arch)
             if configured_arch:
