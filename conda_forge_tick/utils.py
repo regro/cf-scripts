@@ -310,6 +310,8 @@ def load_graph(filename='graph.json'):
 
 
 def frozen_to_json_friendly(fz: dict, PR: LazyJson=None):
+    if fz is None:
+        return None
     keys = sorted(list(fz.keys()))
     d = {
         'keys': keys,
