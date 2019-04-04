@@ -758,11 +758,11 @@ class Rebuild(Migrator):
                 return True
             # This is due to some PRed_json loss due to bad graph deploy outage
             for m_pred_json in att.get('PRed_json', []):
-                if m_pred_json['data'] = frozen_to_json_friendly(muid)['data']:
+                if m_pred_json['data'] == frozen_to_json_friendly(muid)['data']:
                     break
             else:
                 m_pred_json = None
-            if m_pred_jsons and m_pred_jsons['PR'].get('state', '') == 'open':
+            if m_pred_json and m_pred_json['PR'].get('state', '') == 'open':
                 return True
         return False
 
