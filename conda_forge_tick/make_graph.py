@@ -180,7 +180,7 @@ def update_graph_pr_status(gx: nx.DiGraph) -> nx.DiGraph:
             node = gx.nodes[node_id]
             prs = node.get("PRed_json", [])
             for i, migration in enumerate(prs):
-                pr_json = migration['PR']
+                pr_json = migration.get('PR', None)
                 # allow for false
                 if pr_json:
                     future = pool.submit(refresh_pr, pr_json, gh)
@@ -214,7 +214,7 @@ def close_labels(gx: nx.DiGraph) -> nx.DiGraph:
             node = gx.nodes[node_id]
             prs = node.get("PRed_json", [])
             for i, migration in prs:
-                pr_json = migration['PR']
+                pr_json = migration.get('PR', None)
                 # allow for false
                 if pr_json:
                     future = pool.submit(close_out_labels, pr_json, gh)
