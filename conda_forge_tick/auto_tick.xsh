@@ -442,8 +442,11 @@ def migrator_status(migrator: Migrator, gx):
         node_metadata = {}
         feedstock_metadata[node] = node_metadata
         nuid = migrator.migrator_uid(attrs)
-        pr_json = attrs.get('PRed_json', {}).get(nuid, None)
-
+        for pr_json in attrs.get('PRed_json', []):
+            if pr_json['data'] == frozen_to_json_friendly(nuid)['data']:
+                break
+        else:
+            pr_json = None
         buildable = not migrator.filter(attrs)
 
         if pr_json is None:
