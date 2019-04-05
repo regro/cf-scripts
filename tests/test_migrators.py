@@ -6,7 +6,7 @@ import networkx as nx
 
 from conda_forge_tick.migrators import (JS, Version, Compiler, Noarch, Pinning, Rebuild, \
     ArchRebuild, NoarchR, BlasRebuild)
-from conda_forge_tick.utils import parse_meta_yaml
+from conda_forge_tick.utils import parse_meta_yaml, frozen_to_json_friendly
 
 
 sample_js = """{% set name = "jstz" %}
@@ -1901,7 +1901,7 @@ def test_migration(m, inp, output, kwargs, prb, mr_out, should_filter, tmpdir):
     mr = m.migrate(tmpdir, pmy)
     assert mr_out == mr
 
-    pmy.update(PRed=[mr])
+    pmy.update(PRed=[frozen_to_json_friendly(mr)])
     with open(os.path.join(tmpdir, "meta.yaml"), "r") as f:
         assert f.read() == output
     if isinstance(m, Compiler):
