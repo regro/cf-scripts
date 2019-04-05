@@ -31,8 +31,8 @@ script:
   - coverage report -m
   - codecov
   - echo "REBUILD -- TEST"
-  - git clone --depth 1 https://github.com/regro/cf-graph3
-  - cd cf-graph3
+  - git clone --depth 1 https://github.com/regro/cf-graph-countyfair
+  - cd cf-graph-countyfair
   - python -m conda_forge_tick.test_status
   - set -e
   - cd ..
