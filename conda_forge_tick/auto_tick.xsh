@@ -321,7 +321,7 @@ def add_rebuild_successors(migrators, gx, package_name, pin_version, pr_limit=5,
         The number of PRs per hour, defaults to 5
     obj_version : int, optional
         The version of the migrator object (useful if there was an error) 
-        defaults ot 0
+        defaults to 0
     """
 
     total_graph = copy.deepcopy(gx)
