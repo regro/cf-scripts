@@ -516,7 +516,7 @@ def main(args=None):
                 if pr_json:
                     d = dict(migrator_uid)
                     d.update(PR=pr_json)
-                    gx.nodes[node].setdefault('PRed_json', []).append(d)
+                    gx.nodes[node].setdefault('PRed_json', []).append(frozen_to_json_friendly(d))
 
             except github3.GitHubError as e:
                 if e.msg == 'Repository was archived so is read-only.':
