@@ -15,7 +15,7 @@ The bot has various stages where it:
 1. gets the upstream versions `update_upstream_versions.py`
 1. issues PRs if packages are out of date, or need to be migrated `auto_tick.xsh`
 1. writes out the status of all active migrations `status_report.py`
-1. deploys the data back to [cf-graph](https://github.com/regro/cf-graph3) `cli.xsh`
+1. deploys the data back to [cf-graph](https://github.com/regro/cf-graph-countyfair) `cli.xsh`
 
 ## Setup
 
