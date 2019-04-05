@@ -10,12 +10,12 @@ Conda-Forge dependency graph tracker and auto ticker
 The auto-tick bot runs on circleCI via the [circle_worker](https://github.com/regro/circle_worker) repo.
 
 The bot has various stages where it:
-1. gets the names of all the conda-forge feedstocks
-1. pulls all the recipe `meta.yaml` data associated with the feedstocks
-1. gets the upstream versions
-1. issues PRs if packages are out of date, or need to be migrated
-1. writes out the status of all active migrations
-1. deploys the data back to [cf-graph](https://github.com/regro/cf-graph3)
+1. gets the names of all the conda-forge feedstocks `all_feedstocks.py`
+1. pulls all the recipe `meta.yaml` data associated with the feedstocks `make_graph.py`
+1. gets the upstream versions `update_upstream_versions.py`
+1. issues PRs if packages are out of date, or need to be migrated `auto_tick.xsh`
+1. writes out the status of all active migrations `status_report.py`
+1. deploys the data back to [cf-graph](https://github.com/regro/cf-graph3) `cli.xsh`
 
 ## Setup
 
