@@ -244,7 +244,7 @@ def close_labels(gx: nx.DiGraph) -> nx.DiGraph:
 def main(args=None):
     setup_logger(logger)
     names = get_all_feedstocks(cached=True)
-    if os.path.exists("graph.pkl"):
+    if os.path.exists("graph.json"):
         gx = load_graph()
     else:
         gx = None
