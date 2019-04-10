@@ -304,6 +304,57 @@ def add_rebuild_libprotobuf(migrators, gx):
                 cycles=cycles, obj_version=3))
 
 
+def add_rebuild_successors(migrators, gx, package_name, pin_version, pr_limit=5, obj_version=0):
+    """Adds rebuild migrator.
+
+    Parameters
+    ----------
+    migrators : list of Migrator
+        The list of migrators to run.
+    gx : networkx.DiGraph
+        The feedstock graph
+    package_name : str
+        The package who's pin was moved
+    pin_version : str
+        The new pin value
+    pr_limit : int, optional
+        The number of PRs per hour, defaults to 5
+    obj_version : int, optional
+        The version of the migrator object (useful if there was an error) 
+        defaults to 0
+    """
+
+    total_graph = copy.deepcopy(gx)
+
+    for node, attrs in gx.node.items():
+        meta_yaml = attrs.get("meta_yaml", {}) or {}
+        bh = get_requirements(meta_yaml)
+        criteria = package_name in bh
+
+        rq = _host_run_test_dependencies(meta_yaml)
+
+        for e in list(total_graph.in_edges(node)):
+            if e[0] not in rq:
+                total_graph.remove_edge(*e)
+        if not any([criteria]):
+            pluck(total_graph, node)
+
+    # post plucking we can have several strange cases, lets remove all selfloops
+    total_graph.remove_edges_from(total_graph.selfloop_edges())
+
+    top_level = {node for node in gx.successors(package_name) if
+                 (node in total_graph) and
+                 len(list(total_graph.predecessors(node))) == 0}
+    cycles = list(nx.simple_cycles(total_graph))
+    # print('cycles are here:', cycles)
+
+    migrators.append(
+        Rebuild(graph=total_graph,
+                pr_limit=pr_limit,
+                name=f'{package_name}-{pin_version}',
+                top_level=top_level,
+                cycles=cycles, obj_version=obj_version))
+
 def add_rebuild_blas(migrators, gx):
     """Adds rebuild blas 2.0 migrators.
 
