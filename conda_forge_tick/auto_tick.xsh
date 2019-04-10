@@ -447,7 +447,6 @@ def initialize_migrators(do_rebuild=False):
     add_rebuild_openssl($MIGRATORS, gx)
     add_rebuild_libprotobuf($MIGRATORS, gx)
     add_rebuild_blas($MIGRATORS, gx)
-    add_rebuild_successors($MIGRATORS, gx, 'freetype', '2.10')
 
     return gx, smithy_version, pinning_version, temp, $MIGRATORS
 
