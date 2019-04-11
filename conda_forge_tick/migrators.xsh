@@ -921,6 +921,7 @@ class ArchRebuild(Rebuild):
         'sqlalchemy',
         'psycopg2',
         'tini',
+        'clangdev',
         # mpi variants
         'openmpi',
         'mpich',
