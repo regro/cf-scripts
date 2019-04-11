@@ -355,6 +355,7 @@ def add_rebuild_successors(migrators, gx, package_name, pin_version, pr_limit=5,
                 top_level=top_level,
                 cycles=cycles, obj_version=obj_version))
 
+
 def add_rebuild_blas(migrators, gx):
     """Adds rebuild blas 2.0 migrators.
 
@@ -567,8 +568,9 @@ def main(args=None):
                 # Stash the pr json data so we can access it later
                 if pr_json:
                     d = dict(migrator_uid)
+                    d = frozen_to_json_friendly(d)
                     d.update(PR=pr_json)
-                    gx.nodes[node].setdefault('PRed_json', []).append(frozen_to_json_friendly(d))
+                    gx.nodes[node].setdefault('PRed_json', []).append(d)
 
             except github3.GitHubError as e:
                 if e.msg == 'Repository was archived so is read-only.':
