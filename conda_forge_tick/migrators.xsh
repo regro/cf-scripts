@@ -938,7 +938,7 @@ class ArchRebuild(Rebuild):
     }
     arches = {
         "linux_aarch64": "azure",
-        "linux_ppc64le": "azure",
+        "linux_ppc64le": "travis",
     }
 
     def __init__(self, graph=None, name=None, pr_limit=0, top_level=None,
