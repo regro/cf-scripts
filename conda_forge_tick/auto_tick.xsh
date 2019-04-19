@@ -448,7 +448,6 @@ def initialize_migrators(do_rebuild=False):
     add_rebuild_openssl($MIGRATORS, gx)
     add_rebuild_libprotobuf($MIGRATORS, gx)
     add_rebuild_blas($MIGRATORS, gx)
-    add_rebuild_successors($MIGRATORS, gx, 'proj4', '6.0.0')
     add_rebuild_successors($MIGRATORS, gx, 'lz4-c', '1.8.3')
     add_rebuild_successors($MIGRATORS, gx, 'zeromq', '4.3.1')
 
