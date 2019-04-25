@@ -937,8 +937,8 @@ class ArchRebuild(Rebuild):
         'patchelf', # weird issue
     }
     arches = {
-        "linux_aarch64": "azure",
-        "linux_ppc64le": "travis",
+        "linux_aarch64": "default",
+        "linux_ppc64le": "default",
     }
 
     def __init__(self, graph=None, name=None, pr_limit=0, top_level=None,
