@@ -900,6 +900,7 @@ class ArchRebuild(Rebuild):
         'conda-build',
         'conda-smithy',
         'conda-forge-ci-setup',
+        'conda-package-handling',
         'numpy',
         'opencv',
         'ipython',
