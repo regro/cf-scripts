@@ -451,6 +451,8 @@ def initialize_migrators(do_rebuild=False):
     add_rebuild_successors($MIGRATORS, gx, 'proj4', '6.1.0')
     add_rebuild_successors($MIGRATORS, gx, 'pyqt', '5.9.2')
     add_rebuild_successors($MIGRATORS, gx, 'glog', '0.4.0')
+    add_rebuild_successors($MIGRATORS, gx, 'boost-cpp', '1.70.0')
+    add_rebuild_successors($MIGRATORS, gx, 'boost', '1.70.0')
 
     return gx, smithy_version, pinning_version, temp, $MIGRATORS
 
