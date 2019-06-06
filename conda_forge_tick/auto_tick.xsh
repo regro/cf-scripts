@@ -452,6 +452,7 @@ def initialize_migrators(do_rebuild=False):
     add_rebuild_successors($MIGRATORS, gx, 'boost-cpp', '1.70.0')
     # add_rebuild_successors($MIGRATORS, gx, 'boost', '1.70.0')
     add_rebuild_successors($MIGRATORS, gx, 'zstd', '1.4.0')
+    add_rebuild_successors($MIGRATORS, gx, 'hdf5', '1.10.5')
 
     return gx, smithy_version, pinning_version, temp, $MIGRATORS
 
