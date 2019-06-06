@@ -1,4 +1,3 @@
-"""Copyright (c) 2017, Anthony Scopatz"""
 import copy
 import json
 import os
@@ -10,7 +9,9 @@ import datetime
 from doctr.travis import run_command_hiding_token as doctr_run
 import github3
 import networkx as nx
+import ruamel.yaml as yaml
 from xonsh.lib.os import indir
+from uuid import uuid4
 
 from .git_utils import (get_repo, push_repo, is_github_api_limit_reached, ensure_label_exists, label_pr)
 from .path_lengths import cyclic_topological_sort
@@ -92,6 +93,7 @@ def run(attrs, migrator, feedstock=None, protocol='ssh',
         rm -rf @(feedstock_dir)
         return False, False
     # migrate the `meta.yaml`
+    head_ref = $(git rev-parse HEAD).strip()
     migrate_return = migrator.migrate(recipe_dir, attrs, **kwargs)
     if not migrate_return:
         logger.critical("Failed to migrate %s, %s", $PROJECT, attrs.get('bad'))
@@ -105,28 +107,39 @@ def run(attrs, migrator, feedstock=None, protocol='ssh',
             logger.info('Rerendering the feedstock')
             conda smithy rerender -c auto
 
-    # push up
-    try:
-        pr_json = push_repo(feedstock_dir,
-                            migrator.pr_body(),
-                            repo,
-                            migrator.pr_title(),
-                            migrator.pr_head(),
-                            migrator.remote_branch())
+    # If we tried to run the MigrationYaml and rerender did nothing (we only
+    # bumped the build number and dropped a yaml file in migrations) bail
+    # for instance platform specific migrations
+    diffed_files = [_ for _ in $(git diff --name-only @(head_ref)...HEAD).split() if not (_.startswith('recipe') or _.startswith('migrators') or _.startswith('README'))]
 
-        # ensure that the bot-rerun label is around
-        # ensure_label_exists(repo, BOT_RERUN_LABEL)
+    if (isinstance(migrator, MigrationYaml) and not diffed_files:
+        # spoof this so it looks like the package is done
+        pr_json = {'state': 'closed', 'merged_at': 'never issued', 'id': str(uuid4())}
+        ljpr = LazyJson(os.path.join($PRJSON_DIR, str(pr_dict['id']) + '.json'))
+        ljpr.update(**pr_dict)
+    else:
+        # push up
+        try:
+            pr_json = push_repo(feedstock_dir,
+                                migrator.pr_body(),
+                                repo,
+                                migrator.pr_title(),
+                                migrator.pr_head(),
+                                migrator.remote_branch())
 
-        # make this clearly from the bot
-        # label_pr(repo, pr_json, migrator.migrator_label())
+            # ensure that the bot-rerun label is around
+            # ensure_label_exists(repo, BOT_RERUN_LABEL)
 
-    # This shouldn't happen too often any more since we won't double PR
-    except github3.GitHubError as e:
-        if e.msg != 'Validation Failed':
-            raise
-        else:
-            # If we just push to the existing PR then do nothing to the json
-            pr_json = False
+            # make this clearly from the bot
+            # label_pr(repo, pr_json, migrator.migrator_label())
+
+        # This shouldn't happen too often any more since we won't double PR
+        except github3.GitHubError as e:
+            if e.msg != 'Validation Failed':
+                raise
+            else:
+                # If we just push to the existing PR then do nothing to the json
+                pr_json = False
 
     # If we've gotten this far then the node is good
     attrs['bad'] = False
@@ -432,6 +445,71 @@ def add_arch_migrate(migrators, gx):
                         cycles=cycles))
 
 
+def add_rebuild_migration_yaml(migrators, gx, package_names, yaml_contents,
+                               migration_name,
+                               pr_limit=5, obj_version=0):
+    """Adds rebuild migrator.
+
+    Parameters
+    ----------
+    migrators : list of Migrator
+        The list of migrators to run.
+    gx : networkx.DiGraph
+        The feedstock graph
+    package_names : list of str
+        The package who's pin was moved
+    pr_limit : int, optional
+        The number of PRs per hour, defaults to 5
+    obj_version : int, optional
+        The version of the migrator object (useful if there was an error)
+        defaults to 0
+    """
+
+    total_graph = copy.deepcopy(gx)
+
+    for node, attrs in gx.node.items():
+        meta_yaml = attrs.get("meta_yaml", {}) or {}
+        bh = get_requirements(meta_yaml)
+        criteria = any(package_name in bh for package_name in package_names)
+
+        rq = _host_run_test_dependencies(meta_yaml)
+
+        for e in list(total_graph.in_edges(node)):
+            if e[0] not in rq:
+                total_graph.remove_edge(*e)
+        if not any([criteria]):
+            pluck(total_graph, node)
+
+    # post plucking we can have several strange cases, lets remove all selfloops
+    total_graph.remove_edges_from(total_graph.selfloop_edges())
+
+    top_level = {node for node in set(gx.successors(package_name) for package_name in package_names) if
+                 (node in total_graph) and
+                 len(list(total_graph.predecessors(node))) == 0}
+    cycles = list(nx.simple_cycles(total_graph))
+    # print('cycles are here:', cycles)
+
+    migrators.append(
+        MigrationYaml(yaml_contents=yaml_contents,
+                      graph=total_graph,
+                      pr_limit=pr_limit,
+                      name=migration_name,
+                      top_level=top_level,
+                      cycles=cycles, obj_version=obj_version))
+
+
+def migration_factory(migrators, gx, pr_limit=5):
+    with indir('../pinning/recipe/migrations'):
+        for yaml_file in g`*.y*ml`:
+            with open(yaml_file) as f:
+                yaml_contents = f.read()
+        loaded_yaml = yaml.safe_load(yaml_contents)
+        package_names = set(loaded_yaml)
+        add_rebuild_migration_yaml(migrators, gx, package_names, yaml_contents,
+                                   migration_name=os.path.splitext(yaml_file),
+                                   pr_limit=pr_limit,
+                                   obj_version=0)
+
 def initialize_migrators(do_rebuild=False):
     setup_logger(logger)
     temp = g`/tmp/*`
@@ -453,6 +531,7 @@ def initialize_migrators(do_rebuild=False):
     # add_rebuild_successors($MIGRATORS, gx, 'boost', '1.70.0')
     add_rebuild_successors($MIGRATORS, gx, 'zstd', '1.4.0')
     add_rebuild_successors($MIGRATORS, gx, 'hdf5', '1.10.5')
+    migration_factory($MIGRATORS, gx)
 
     return gx, smithy_version, pinning_version, temp, $MIGRATORS
 

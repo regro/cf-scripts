@@ -1071,3 +1071,104 @@ class BlasRebuild(Rebuild):
     def pr_title(self):
         return 'Rebuild for new BLAS scheme'
 
+
+# This may replace Rebuild
+class MigrationYaml(Migrator):
+    """Migrator for bumping the build number."""
+    migrator_version = 0
+    rerender = True
+    bump_number = 1
+    # TODO: add a description kwarg for the status page at some point.
+    # TODO: make yaml_contents an arg?
+    def __init__(self, yaml_contents='',
+                 graph=None, name=None, pr_limit=0, top_level=None,
+                 cycles=None, obj_version=None):
+        super().__init__(pr_limit, obj_version)
+        self.yaml_contents = yaml_contents
+        if graph == None:
+            self.graph = nx.DiGraph()
+        else:
+            self.graph = graph
+        self.name = name
+        self.top_level = top_level
+        self.cycles = set(chain.from_iterable(cycles or []))
+
+    def filter(self, attrs):
+        if super().filter(attrs, 'Upstream:'):
+            return True
+        if attrs['feedstock_name'] not in self.graph:
+            return True
+        # If in top level or in a cycle don't check for upstreams just build
+        if ((self.top_level and attrs['feedstock_name'] in self.top_level)
+            or (self.cycles and attrs['feedstock_name'] in self.cycles)):
+            return False
+        # Check if all upstreams have been built
+        for node in self.graph.predecessors(attrs['feedstock_name']):
+            att = self.graph.node[node]
+            muid = frozen_to_json_friendly(self.migrator_uid(att))
+            if muid not in att.get('PRed', []) and not att.get('archived', False):
+                return True
+            # This is due to some PRed_json loss due to bad graph deploy outage
+            for m_pred_json in att.get('PRed_json', []):
+                if m_pred_json['data'] == muid['data']:
+                    break
+            else:
+                m_pred_json = None
+            if m_pred_json and m_pred_json['PR'].get('state', '') == 'open':
+                return True
+        return False
+
+    def migrate(self, recipe_dir, attrs, **kwargs):
+        with indir(os.path.join(recipe_dir, '..')):
+            os.makedirs('migrations', exist_ok=True)
+            with indir('migrations'):
+                with open(os.path.join(self.name, '.yaml'), 'w') as f:
+                    f.write(self.yaml_contents)
+                git add .
+        with indir(recipe_dir):
+            self.set_build_number('meta.yaml')
+        return self.migrator_uid(attrs)
+
+    def pr_body(self):
+        body = super().pr_body()
+        additional_body = ("This PR has been triggered in an effort to update **{0}**.\n\n"
+                           "Notes and instructions for merging this PR:\n"
+                           "1. Please merge the PR only after the tests have passed. \n"
+                           "2. Feel free to push to the bot's branch to update this PR if needed. \n"
+                           "**Please note that if you close this PR we presume that "
+                           "the feedstock has been rebuilt, so if you are going to "
+                           "perform the rebuild yourself don't close this PR until "
+                           "the your rebuild has been merged.**\n\n"
+                           "This package has the following downstream children:\n"
+                           "{1}\n"
+                           "And potentially more."
+                           "".format(self.name,
+                                     '\n'.join([a[1] for a in list(self.graph.out_edges($PROJECT))[: 5]])))
+        body = body.format(additional_body)
+        return body
+
+    def commit_message(self):
+        return "bump build number"
+
+    def pr_title(self):
+        if self.name:
+            return 'Rebuild for ' + self.name
+        else:
+            return 'Bump build number'
+
+    def pr_head(self):
+        return $USERNAME + ':' + self.remote_branch()
+
+    def remote_branch(self):
+        s_obj = str(self.obj_version) if self.obj_version else ''
+        return 'rebuild' + self.name.lower().replace(' ', '_') + str(self.migrator_version) + s_obj
+
+    def migrator_uid(self, attrs):
+        n = super().migrator_uid(attrs)
+        n.update(name=self.name)
+        return n
+
+    def order(self, graph, total_graph):
+        """Run the order by number of decendents, ties are resolved by package name"""
+        return sorted(graph, key=lambda x: (len(nx.descendants(total_graph, x)), x),
+                      reverse=True)
