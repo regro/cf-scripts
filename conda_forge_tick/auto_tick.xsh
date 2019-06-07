@@ -16,7 +16,7 @@ from uuid import uuid4
 from .git_utils import (get_repo, push_repo, is_github_api_limit_reached, ensure_label_exists, label_pr)
 from .path_lengths import cyclic_topological_sort
 from .utils import setup_logger, pluck, get_requirements, load_graph, \
-    dump_graph
+    dump_graph, LazyJson
 
 logger = logging.getLogger("conda_forge_tick.auto_tick")
 
@@ -112,11 +112,11 @@ def run(attrs, migrator, feedstock=None, protocol='ssh',
     # for instance platform specific migrations
     diffed_files = [_ for _ in $(git diff --name-only @(head_ref)...HEAD).split() if not (_.startswith('recipe') or _.startswith('migrators') or _.startswith('README'))]
 
-    if (isinstance(migrator, MigrationYaml) and not diffed_files:
+    if isinstance(migrator, MigrationYaml) and not diffed_files:
         # spoof this so it looks like the package is done
         pr_json = {'state': 'closed', 'merged_at': 'never issued', 'id': str(uuid4())}
-        ljpr = LazyJson(os.path.join($PRJSON_DIR, str(pr_dict['id']) + '.json'))
-        ljpr.update(**pr_dict)
+        ljpr = LazyJson(os.path.join($PRJSON_DIR, str(pr_json['id']) + '.json'))
+        ljpr.update(**pr_json)
     else:
         # push up
         try:
@@ -126,12 +126,6 @@ def run(attrs, migrator, feedstock=None, protocol='ssh',
                                 migrator.pr_title(),
                                 migrator.pr_head(),
                                 migrator.remote_branch())
-
-            # ensure that the bot-rerun label is around
-            # ensure_label_exists(repo, BOT_RERUN_LABEL)
-
-            # make this clearly from the bot
-            # label_pr(repo, pr_json, migrator.migrator_label())
 
         # This shouldn't happen too often any more since we won't double PR
         except github3.GitHubError as e:
@@ -487,7 +481,6 @@ def add_rebuild_migration_yaml(migrators, gx, package_names, yaml_contents,
                  (node in total_graph) and
                  len(list(total_graph.predecessors(node))) == 0}
     cycles = list(nx.simple_cycles(total_graph))
-    # print('cycles are here:', cycles)
 
     migrators.append(
         MigrationYaml(yaml_contents=yaml_contents,
