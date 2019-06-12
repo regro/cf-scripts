@@ -923,6 +923,7 @@ class ArchRebuild(Rebuild):
         'psycopg2',
         'tini',
         'clangdev',
+        'pyarrow',
         # mpi variants
         'openmpi',
         'mpich',
