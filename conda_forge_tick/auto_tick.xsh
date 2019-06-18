@@ -455,6 +455,10 @@ def initialize_migrators(do_rebuild=False):
     add_rebuild_successors($MIGRATORS, gx, 'hdf5', '1.10.5')
     add_rebuild_successors($MIGRATORS, gx, 'pixman', '0.38')
     add_rebuild_successors($MIGRATORS, gx, 'libevent', '2.1.10')
+    add_rebuild_successors($MIGRATORS, gx, 'gsl', '2.5')
+    add_rebuild_successors($MIGRATORS, gx, 'ntl', '11.3.2')
+    add_rebuild_successors($MIGRATORS, gx, 'pari', '2.11')
+    add_rebuild_successors($MIGRATORS, gx, 'singular', '4.1.2')
 
     return gx, smithy_version, pinning_version, temp, $MIGRATORS
 
