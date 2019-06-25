@@ -446,11 +446,8 @@ def initialize_migrators(do_rebuild=False):
 
     add_arch_migrate($MIGRATORS,gx)
     add_rebuild_openssl($MIGRATORS, gx)
-    add_rebuild_libprotobuf($MIGRATORS, gx)
-    add_rebuild_blas($MIGRATORS, gx)
     add_rebuild_successors($MIGRATORS, gx, 'pyqt', '5.9.2')
-    add_rebuild_successors($MIGRATORS, gx, 'boost-cpp', '1.70.0')
-    # add_rebuild_successors($MIGRATORS, gx, 'boost', '1.70.0')
+    add_rebuild_successors($MIGRATORS, gx, 'boost', '1.70.0')
     add_rebuild_successors($MIGRATORS, gx, 'zstd', '1.4.0')
     add_rebuild_successors($MIGRATORS, gx, 'hdf5', '1.10.5')
     add_rebuild_successors($MIGRATORS, gx, 'gsl', '2.5')
