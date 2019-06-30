@@ -503,9 +503,16 @@ def migrator_status(migrator: Migrator, gx):
                 break
         else:
             pr_json = None
+
+        # No PR was ever issued but the migration was performed.
+        # This is only the case when the migration was done manually before the bot could issue any PR.
+        manually_done = pr_json is None and frozen_to_json_friendly(migrator.migrator_uid(attrs)) in attrs.get('PRed', [])
+
         buildable = not migrator.filter(attrs)
 
-        if pr_json is None:
+        if manually_done:
+            out['done'].add(node)
+        elif pr_json is None:
             if buildable:
                 out['awaiting-pr'].add(node)
             else:
