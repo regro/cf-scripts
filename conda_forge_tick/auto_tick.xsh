@@ -452,6 +452,7 @@ def initialize_migrators(do_rebuild=False):
     add_rebuild_successors($MIGRATORS, gx, 'hdf5', '1.10.5')
     add_rebuild_successors($MIGRATORS, gx, 'gsl', '2.5')
     add_rebuild_successors($MIGRATORS, gx, 'libprotobuf', '3.8')
+    add_rebuild_successors($MIGRATORS, gx, 'readline', '8.0')
 
     return gx, smithy_version, pinning_version, temp, $MIGRATORS
 
