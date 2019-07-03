@@ -346,11 +346,14 @@ class Version(Migrator):
         body = body.format(
             'It is very likely that the current package version for this '
             'feedstock is out of date.\n'
-            'Notes and instructions for merging this PR:\n'
-            '1. Please check that the dependencies have not changed. \n'
-            '2. Please merge the PR only after the tests have passed. \n'
-            "3. Feel free to push to the bot's branch to update this PR if needed. \n"
-            "4. The bot will almost always only open one PR per version. \n\n")
+            'Notes for merging this PR:\n'
+            "1. Feel free to push to the bot's branch to update this PR if needed.\n"
+            "2. The bot will almost always only open one PR per version.\n
+            "Checklist before merging this PR:\n"
+            "- [ ] Dependencies have been updated if changed\n"
+            "- [ ] Tests have passed \n"
+            "- [ ] Updated license if changed and `license_file` is packaged \n"
+            "\n")
         # Statement here
         template = ('|{name}|{new_version}|[![Anaconda-Server Badge]'
                     '(https://img.shields.io/conda/vn/conda-forge/{name}.svg)]'
