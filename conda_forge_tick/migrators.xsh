@@ -348,7 +348,7 @@ class Version(Migrator):
             'feedstock is out of date.\n'
             'Notes for merging this PR:\n'
             "1. Feel free to push to the bot's branch to update this PR if needed.\n"
-            "2. The bot will almost always only open one PR per version.\n
+            "2. The bot will almost always only open one PR per version.\n"
             "Checklist before merging this PR:\n"
             "- [ ] Dependencies have been updated if changed\n"
             "- [ ] Tests have passed \n"
