@@ -1642,7 +1642,7 @@ test_list = [
         one_source,
         updated_one_source,
         {"new_version": "2.4.1"},
-        "Please check that the dependencies have not changed.",
+        "Dependencies have been updated if changed",
         {
             "migrator_name": "Version",
             "migrator_version": Version.migrator_version,
@@ -1655,7 +1655,7 @@ test_list = [
         jinja_sha,
         updated_jinja_sha,
         {"new_version": "2.4.1"},
-        "Please check that the dependencies have not changed.",
+        "Dependencies have been updated if changed",
         {
             "migrator_name": "Version",
             "migrator_version": Version.migrator_version,
@@ -1668,7 +1668,7 @@ test_list = [
         multi_source,
         updated_multi_source,
         {"new_version": "2.4.1"},
-        "Please check that the dependencies have not changed.",
+        "Dependencies have been updated if changed",
         {
             "migrator_name": "Version",
             "migrator_version": Version.migrator_version,
@@ -1681,7 +1681,7 @@ test_list = [
         sample_r,
         updated_sample_r,
         {"new_version": "1.3_2"},
-        "Please check that the dependencies have not changed.",
+        "Dependencies have been updated if changed",
         {
             "migrator_name": "Version",
             "migrator_version": Version.migrator_version,
@@ -1694,7 +1694,7 @@ test_list = [
         cb3_multi,
         updated_cb3_multi,
         {"new_version": "6.0.0"},
-        "Please check that the dependencies have not changed.",
+        "Dependencies have been updated if changed",
         {
             "migrator_name": "Version",
             "migrator_version": Version.migrator_version,
