@@ -279,7 +279,7 @@ def _update_upstream_versions_process_pool(gx, sources):
                 attrs["new_version"] = False
             else:
                 logger.info(
-                    "{} - {} - {}".format(node, attrs["version"], attrs["new_version"])
+                    "{} - {} - {}".format(node, attrs.get("version", "<no-version>"), attrs["new_version"])
                 )
 
 
