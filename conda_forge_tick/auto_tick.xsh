@@ -449,6 +449,7 @@ def initialize_migrators(do_rebuild=False):
     add_rebuild_successors($MIGRATORS, gx, 'gsl', '2.5')
     add_rebuild_successors($MIGRATORS, gx, 'readline', '8.0')
     add_rebuild_successors($MIGRATORS, gx, 'geos', '3.7.2')
+    add_rebuild_successors($MIGRATORS, gx, 'r-base', '3.6.1')
 
     return gx, smithy_version, pinning_version, temp, $MIGRATORS
 
