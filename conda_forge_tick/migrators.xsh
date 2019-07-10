@@ -337,19 +337,6 @@ class Version(Migrator):
                 n = eval_version(n)
                 replace_in_file(p, n, f)
             self.set_build_number('meta.yaml')
-
-        # Set the provider to Azure only
-        with indir(recipe_dir + '/..'):
-            with open('conda-forge.yml', 'r') as f:
-                y = safe_load(f)
-            if 'provider' not in y:
-                y['provider'] = {}
-            for arch in ['linux', 'osx', 'win']:
-                y['provider'][arch] = 'azure'
-
-            with open('conda-forge.yml', 'w') as f:
-                safe_dump(y, f)
-
         return self.migrator_uid(attrs)
 
     def pr_body(self):
@@ -1088,4 +1075,25 @@ class BlasRebuild(Rebuild):
 
     def pr_title(self):
         return 'Rebuild for new BLAS scheme'
+
+
+class RBaseRebuild(Rebuild):
+    """Migrator for rebuilding all R packages."""
+    migrator_version = 0
+    rerender = True
+    bump_number = 1
+
+    def migrate(self, recipe_dir, attrs, **kwargs):
+        # Set the provider to Azure only
+        with indir(recipe_dir + '/..'):
+            with open('conda-forge.yml', 'r') as f:
+                y = safe_load(f)
+            if 'provider' not in y:
+                y['provider'] = {}
+            for arch in ['linux', 'osx', 'win']:
+                y['provider'][arch] = 'azure'
+
+            with open('conda-forge.yml', 'w') as f:
+                safe_dump(y, f)
+        return self.migrator_uid(attrs)
 
