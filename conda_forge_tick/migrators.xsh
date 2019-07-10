@@ -337,6 +337,19 @@ class Version(Migrator):
                 n = eval_version(n)
                 replace_in_file(p, n, f)
             self.set_build_number('meta.yaml')
+
+        # Set the provider to Azure only
+        with indir(recipe_dir + '/..'):
+            with open('conda-forge.yml', 'r') as f:
+                y = safe_load(f)
+            if 'provider' not in y:
+                y['provider'] = {}
+            for arch in ['linux', 'osx', 'win']:
+                y['provider'][arch] = 'azure'
+
+            with open('conda-forge.yml', 'w') as f:
+                safe_dump(y, f)
+
         return self.migrator_uid(attrs)
 
     def pr_body(self):
