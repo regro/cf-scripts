@@ -1086,8 +1086,11 @@ class RBaseRebuild(Rebuild):
     def migrate(self, recipe_dir, attrs, **kwargs):
         # Set the provider to Azure only
         with indir(recipe_dir + '/..'):
-            with open('conda-forge.yml', 'r') as f:
-                y = safe_load(f)
+            if os.path.exists('conda-forge.yml'):
+                with open('conda-forge.yml', 'r') as f:
+                    y = safe_load(f)
+            else:
+                y = {}
             if 'provider' not in y:
                 y['provider'] = {}
             for arch in ['linux', 'osx', 'win']:
