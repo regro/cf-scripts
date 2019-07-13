@@ -1093,10 +1093,22 @@ class RBaseRebuild(Rebuild):
                 y = {}
             if 'provider' not in y:
                 y['provider'] = {}
-            for arch in ['linux', 'osx', 'win']:
-                y['provider'][arch] = 'azure'
-
+            y['provider']['win'] = 'azure'
             with open('conda-forge.yml', 'w') as f:
                 safe_dump(y, f)
+
+            with open('meta.yaml', 'r') as f:
+                text = f.read()
+            
+            if attrs['feedstock_name'].startswith("r-") and "- conda-forge/r" not in text \
+                    and any(a in text for a in ["johanneskoester", "bgruening", "daler", "jdblischak", "cbrueffer", "dbast", "dpryan79"]):
+                lines = text.split("\n")
+                for i, line in enumerate(lines):
+                    if line.strip() == "recipe-maintainers:" and i + 1 < len(lines):
+                        lines[i] = line + "\n" + lines[i+1][:lines[i+1].index("-")] + "- conda-forge/r"
+
+                with open('meta.yaml', 'w') as f:
+                    f.write('\n'.join(lines))
+
         return self.migrator_uid(attrs)
 
