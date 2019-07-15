@@ -1099,14 +1099,30 @@ class RBaseRebuild(Rebuild):
 
             with open('meta.yaml', 'r') as f:
                 text = f.read()
+
+            changed = False
+            lines = text.split("\n")
             
             if attrs['feedstock_name'].startswith("r-") and "- conda-forge/r" not in text \
                     and any(a in text for a in ["johanneskoester", "bgruening", "daler", "jdblischak", "cbrueffer", "dbast", "dpryan79"]):
-                lines = text.split("\n")
                 for i, line in enumerate(lines):
                     if line.strip() == "recipe-maintainers:" and i + 1 < len(lines):
                         lines[i] = line + "\n" + lines[i+1][:lines[i+1].index("-")] + "- conda-forge/r"
 
+                changed = True
+
+            for i, line in enumerate(lines):
+                if line.lstrip().startswith("- {{native}}toolchain"):
+                    replaced_lines = []
+                    for comp in ['c', 'cxx', 'fortran']:
+                        if "compiler('"+ comp + "')" in text:
+                            replaced_lines.append(line.replace("- {{native}}toolchain", "- {{ compiler('m2w64_"+ comp + "') }}"))
+                    if len(replaced_lines) != 0:
+                        lines[i] = '\n'.join(replaced_lines)
+                        changed = True
+                        break
+
+            if changed:
                 with open('meta.yaml', 'w') as f:
                     f.write('\n'.join(lines))
 
