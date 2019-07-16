@@ -1097,6 +1097,7 @@ class RBaseRebuild(Rebuild):
             with open('conda-forge.yml', 'w') as f:
                 safe_dump(y, f)
 
+        with indir(recipe_dir):
             with open('meta.yaml', 'r') as f:
                 text = f.read()
 
