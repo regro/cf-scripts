@@ -1127,8 +1127,8 @@ class RBaseRebuild(Rebuild):
                 with open('meta.yaml', 'w') as f:
                     f.write('\n'.join(lines))
 
-        # Update build number
-        self.set_build_number('meta.yaml')
+            # Update build number
+            self.set_build_number('meta.yaml')
 
         return self.migrator_uid(attrs)
 
