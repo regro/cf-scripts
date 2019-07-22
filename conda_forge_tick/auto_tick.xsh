@@ -452,6 +452,7 @@ def initialize_migrators(do_rebuild=False):
     add_rebuild_successors($MIGRATORS, gx, 'cfitsio', '3.470')
     add_rebuild_successors($MIGRATORS, gx, 'pango', '1.42.4')
     add_rebuild_successors($MIGRATORS, gx, 'icu', '64.2')
+    add_rebuild_successors($MIGRATORS, gx, 'libxml2', '2.9.*')
 
     return gx, smithy_version, pinning_version, temp, $MIGRATORS
 
