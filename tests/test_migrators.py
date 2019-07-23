@@ -1867,7 +1867,7 @@ test_list = [
 
 G = nx.DiGraph()
 G.add_node("conda", reqs=["python"])
-env = builtins.__xonsh_env__
+env = builtins.__xonsh__.env
 env["GRAPH"] = G
 
 
