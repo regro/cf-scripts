@@ -448,6 +448,7 @@ def initialize_migrators(do_rebuild=False):
     add_rebuild_openssl($MIGRATORS, gx)
     add_rebuild_successors($MIGRATORS, gx, 'r-base', '3.6.1', rebuild_class=RBaseRebuild)
     add_rebuild_successors($MIGRATORS, gx, 'icu', '64.2')
+    add_rebuild_successors($MIGRATORS, gx, 'graphviz', '2.40')
 
     return gx, smithy_version, pinning_version, temp, $MIGRATORS
 
