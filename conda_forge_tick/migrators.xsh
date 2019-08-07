@@ -928,6 +928,7 @@ class ArchRebuild(Rebuild):
         'clangdev',
         'pyarrow',
         'numba',
+        'r-base',
         # mpi variants
         'openmpi',
         'mpich',
