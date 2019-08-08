@@ -446,6 +446,7 @@ def initialize_migrators(do_rebuild=False):
 
     add_arch_migrate($MIGRATORS, gx)
     add_rebuild_openssl($MIGRATORS, gx)
+    add_rebuild_successors($MIGRATORS, gx, 'qt', '5.12')
     add_rebuild_successors($MIGRATORS, gx, 'r-base', '3.6.1', rebuild_class=RBaseRebuild)
 
     return gx, smithy_version, pinning_version, temp, $MIGRATORS
