@@ -928,6 +928,7 @@ class ArchRebuild(Rebuild):
         'clangdev',
         'pyarrow',
         'numba',
+        'r-base',
         # mpi variants
         'openmpi',
         'mpich',
@@ -938,6 +939,8 @@ class ArchRebuild(Rebuild):
         'typing',
         'enum34',
         'functools32',
+        'jsoncpp',
+        'bcrypt',
         }
     ignored_packages = {'make', 'perl', 'toolchain', 'posix',
         'patchelf', # weird issue
@@ -1075,4 +1078,60 @@ class BlasRebuild(Rebuild):
 
     def pr_title(self):
         return 'Rebuild for new BLAS scheme'
+
+
+class RBaseRebuild(Rebuild):
+    """Migrator for rebuilding all R packages."""
+    migrator_version = 0
+    rerender = True
+    bump_number = 1
+
+    def migrate(self, recipe_dir, attrs, **kwargs):
+        # Set the provider to Azure only
+        with indir(recipe_dir + '/..'):
+            if os.path.exists('conda-forge.yml'):
+                with open('conda-forge.yml', 'r') as f:
+                    y = safe_load(f)
+            else:
+                y = {}
+            if 'provider' not in y:
+                y['provider'] = {}
+            y['provider']['win'] = 'azure'
+            with open('conda-forge.yml', 'w') as f:
+                safe_dump(y, f)
+
+        with indir(recipe_dir):
+            with open('meta.yaml', 'r') as f:
+                text = f.read()
+
+            changed = False
+            lines = text.split("\n")
+            
+            if attrs['feedstock_name'].startswith("r-") and "- conda-forge/r" not in text \
+                    and any(a in text for a in ["johanneskoester", "bgruening", "daler", "jdblischak", "cbrueffer", "dbast", "dpryan79"]):
+                for i, line in enumerate(lines):
+                    if line.strip() == "recipe-maintainers:" and i + 1 < len(lines):
+                        lines[i] = line + "\n" + lines[i+1][:lines[i+1].index("-")] + "- conda-forge/r"
+
+                changed = True
+
+            for i, line in enumerate(lines):
+                if line.lstrip().startswith("- {{native}}toolchain"):
+                    replaced_lines = []
+                    for comp in ['c', 'cxx', 'fortran']:
+                        if "compiler('"+ comp + "')" in text:
+                            replaced_lines.append(line.replace("- {{native}}toolchain", "- {{ compiler('m2w64_"+ comp + "') }}"))
+                    if len(replaced_lines) != 0:
+                        lines[i] = '\n'.join(replaced_lines)
+                        changed = True
+                        break
+
+            if changed:
+                with open('meta.yaml', 'w') as f:
+                    f.write('\n'.join(lines))
+
+            # Update build number
+            self.set_build_number('meta.yaml')
+
+        return self.migrator_uid(attrs)
 

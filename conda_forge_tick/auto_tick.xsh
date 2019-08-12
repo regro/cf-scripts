@@ -23,7 +23,7 @@ logger = logging.getLogger("conda_forge_tick.auto_tick")
 # https://travis-ci.org/regro/00-find-feedstocks/jobs/388387895#L1870
 from .migrators import *
 $MIGRATORS = [
-   Version(pr_limit=7),
+   Version(pr_limit=10),
    # Noarch(pr_limit=10),
    # Pinning(pr_limit=1, removals={'perl'}),
    # Compiler(pr_limit=7),
@@ -304,7 +304,7 @@ def add_rebuild_libprotobuf(migrators, gx):
                 cycles=cycles, obj_version=3))
 
 
-def add_rebuild_successors(migrators, gx, package_name, pin_version, pr_limit=5, obj_version=0):
+def add_rebuild_successors(migrators, gx, package_name, pin_version, pr_limit=5, obj_version=0, rebuild_class=Rebuild):
     """Adds rebuild migrator.
 
     Parameters
@@ -349,7 +349,7 @@ def add_rebuild_successors(migrators, gx, package_name, pin_version, pr_limit=5,
     # print('cycles are here:', cycles)
 
     migrators.append(
-        Rebuild(graph=total_graph,
+        rebuild_class(graph=total_graph,
                 pr_limit=pr_limit,
                 name=f'{package_name}-{pin_version}',
                 top_level=top_level,
@@ -444,13 +444,11 @@ def initialize_migrators(do_rebuild=False):
     smithy_version = ![conda smithy --version].output.strip()
     pinning_version = json.loads(![conda list conda-forge-pinning --json].output.strip())[0]['version']
 
-    add_arch_migrate($MIGRATORS,gx)
+    add_arch_migrate($MIGRATORS, gx)
     add_rebuild_openssl($MIGRATORS, gx)
-    add_rebuild_successors($MIGRATORS, gx, 'gsl', '2.5')
-    add_rebuild_successors($MIGRATORS, gx, 'readline', '8.0')
-    add_rebuild_successors($MIGRATORS, gx, 'cfitsio', '3.470')
-    add_rebuild_successors($MIGRATORS, gx, 'pango', '1.42.4')
     add_rebuild_successors($MIGRATORS, gx, 'fortran_compiler_stub', '7')
+    add_rebuild_successors($MIGRATORS, gx, 'gdal', '3.0.1')
+    add_rebuild_successors($MIGRATORS, gx, 'qt', '5.12')
 
     return gx, smithy_version, pinning_version, temp, $MIGRATORS
 
