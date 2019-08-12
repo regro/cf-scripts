@@ -1106,7 +1106,7 @@ class RBaseRebuild(Rebuild):
 
             changed = False
             lines = text.split("\n")
-            
+
             if attrs['feedstock_name'].startswith("r-") and "- conda-forge/r" not in text \
                     and any(a in text for a in ["johanneskoester", "bgruening", "daler", "jdblischak", "cbrueffer", "dbast", "dpryan79"]):
                 for i, line in enumerate(lines):
@@ -1135,3 +1135,32 @@ class RBaseRebuild(Rebuild):
 
         return self.migrator_uid(attrs)
 
+
+class GFortranOSXRebuild(Rebuild):
+    migrator_version = 0
+    rerender = True
+    bump_number = 1
+
+    def pr_body(self):
+        body = super().pr_body()
+        additional_body = ("This PR has been triggered in an effort to update **{0}**.\n\n"
+                           "Notes and instructions for merging this PR:\n"
+                           "1. Please merge the PR only after the tests have passed. \n"
+                           "2. Feel free to push to the bot's branch to update this PR if needed. \n"
+                           "**Please note that if you close this PR we presume that "
+                           "the feedstock has been rebuilt, so if you are going to "
+                           "perform the rebuild yourself don't close this PR until "
+                           "the your rebuild has been merged.**\n\n"
+                           "This package has the following downstream children:\n"
+                           "{1}\n"
+                           "And potentially more."
+                           "".format("to gfortran 7 for OSX",
+                                     '\n'.join([a[1] for a in list(self.graph.out_edges($PROJECT))[: 5]])))
+        body = body.format(additional_body)
+        return body
+
+    def commit_message(self):
+        return "Rebuild for gfortran 7 for OSX"
+
+    def pr_title(self):
+        return "Rebuild for gfortran 7 for OSX"
