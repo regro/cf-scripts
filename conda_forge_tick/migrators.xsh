@@ -1142,7 +1142,7 @@ class GFortranOSXRebuild(Rebuild):
     bump_number = 1
 
     def pr_body(self):
-        body = super().pr_body()
+        body = super(Rebuild, self).pr_body()
         additional_body = ("This PR has been triggered in an effort to update **{0}**.\n\n"
                            "Notes and instructions for merging this PR:\n"
                            "1. Please merge the PR only after the tests have passed. \n"
