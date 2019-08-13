@@ -447,6 +447,7 @@ def initialize_migrators(do_rebuild=False):
     add_arch_migrate($MIGRATORS, gx)
     add_rebuild_openssl($MIGRATORS, gx)
     add_rebuild_successors($MIGRATORS, gx, 'gdal', '3.0.1')
+    add_rebuild_successors($MIGRATORS, gx, 'proj4', '6.1.1')
     add_rebuild_successors($MIGRATORS, gx, 'qt', '5.12')
 
     return gx, smithy_version, pinning_version, temp, $MIGRATORS
