@@ -249,7 +249,7 @@ def add_rebuild_openssl(migrators, gx):
     total_graph.remove_edges_from(total_graph.selfloop_edges())
 
     top_level = {node for node in gx.successors("openssl") if
-                 (node in total_graph) and 
+                 (node in total_graph) and
                  len(list(total_graph.predecessors(node))) == 0}
     cycles = list(nx.simple_cycles(total_graph))
     # print('cycles are here:', cycles)
@@ -320,7 +320,7 @@ def add_rebuild_successors(migrators, gx, package_name, pin_version, pr_limit=5,
     pr_limit : int, optional
         The number of PRs per hour, defaults to 5
     obj_version : int, optional
-        The version of the migrator object (useful if there was an error) 
+        The version of the migrator object (useful if there was an error)
         defaults to 0
     """
 
@@ -446,6 +446,8 @@ def initialize_migrators(do_rebuild=False):
 
     add_arch_migrate($MIGRATORS, gx)
     add_rebuild_openssl($MIGRATORS, gx)
+    add_rebuild_successors($MIGRATORS, gx, 'fortran_compiler_stub', '7',
+                           rebuild_class=GFortranOSXRebuild)
     add_rebuild_successors($MIGRATORS, gx, 'proj4', '6.1.1')
     add_rebuild_successors($MIGRATORS, gx, 'qt', '5.12')
 
