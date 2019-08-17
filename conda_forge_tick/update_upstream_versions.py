@@ -303,7 +303,7 @@ def update_upstream_versions(gx, sources=None):
                     [
                         n
                         for n, a in gx.node.items()
-                        if a["new_version"]  # if we can get a new version
+                        if a.get("new_version") and a.get('version')  # if we can get a new version
                         and a["new_version"] != a["version"]  # if we need a bump
                         and a.get("PRed", "000") != a["new_version"]  # if not PRed
                     ]
