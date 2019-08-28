@@ -941,6 +941,7 @@ class ArchRebuild(Rebuild):
         'functools32',
         'jsoncpp',
         'bcrypt',
+        'root',
         }
     ignored_packages = {'make', 'perl', 'toolchain', 'posix',
         'patchelf', # weird issue
