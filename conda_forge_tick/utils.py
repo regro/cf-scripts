@@ -81,7 +81,7 @@ class LazyJson(MutableMapping):
                     self.data = load(f)
             except FileNotFoundError:
                 print(os.getcwd())
-                print(os.listdir('.'))
+                print(os.listdir("."))
                 raise
 
     def _dump(self):
@@ -127,7 +127,7 @@ def render_meta_yaml(text):
         pin_subpackage=lambda *args, **kwargs: "subpackage_stub",
         pin_compatible=lambda *args, **kwargs: "compatible_pin_stub",
         cdt=lambda *args, **kwargs: "cdt_stub",
-        cran_mirror='https://cran.r-project.org',
+        cran_mirror="https://cran.r-project.org",
     )
     return content
 
@@ -227,9 +227,7 @@ def _parse_requirements(req, build=True, host=True, run=True):
         host = req.get("host", []) or [] if host else []
         run = req.get("run", []) or [] if run else []
         reqlist = build + host + run
-    return set(
-        pin_sep_pat.split(x)[0].lower() for x in reqlist if x is not None
-    )
+    return set(pin_sep_pat.split(x)[0].lower() for x in reqlist if x is not None)
 
 
 @contextlib.contextmanager
@@ -238,25 +236,26 @@ def executor(kind, max_workers):
 
     This allows us to easily use other executors as needed.
     """
-    if kind == 'thread':
+    if kind == "thread":
         with ThreadPoolExecutor(max_workers=max_workers) as pool:
             yield pool, as_completed
-    elif kind == 'process':
+    elif kind == "process":
         with ProcessPoolExecutor(max_workers=max_workers) as pool:
             yield pool, as_completed
-    elif kind == 'dask':
+    elif kind == "dask":
         import distributed
+
         with distributed.LocalCluster(n_workers=max_workers) as cluster:
             with distributed.Client(cluster) as client:
                 yield client, distributed.as_completed
     else:
-        raise NotImplementedError('That kind is not implemented')
+        raise NotImplementedError("That kind is not implemented")
 
 
 def default(obj):
     """For custom object serialization."""
     if isinstance(obj, LazyJson):
-        return {'__lazy_json__': obj.file_name}
+        return {"__lazy_json__": obj.file_name}
     elif isinstance(obj, Set):
         return {"__set__": True, "elements": sorted(obj)}
     raise TypeError(repr(obj) + " is not JSON serializable")
@@ -265,7 +264,7 @@ def default(obj):
 def object_hook(dct):
     """For custom object deserialization."""
     if "__lazy_json__" in dct:
-        return LazyJson(dct['__lazy_json__'])
+        return LazyJson(dct["__lazy_json__"])
     elif "__set__" in dct:
         return set(dct["elements"])
     return dct
@@ -274,16 +273,25 @@ def object_hook(dct):
 def dumps(obj, sort_keys=True, separators=(",", ":"), default=default, **kwargs):
     """Returns a JSON string from a Python object."""
     return json.dumps(
-        obj, sort_keys=sort_keys, separators=separators, default=default, indent=1, **kwargs
+        obj,
+        sort_keys=sort_keys,
+        separators=separators,
+        default=default,
+        indent=1,
+        **kwargs,
     )
 
 
 def dump(obj, fp, sort_keys=True, separators=(",", ":"), default=default, **kwargs):
     """Returns a JSON string from a Python object."""
     return json.dump(
-        obj, fp, sort_keys=sort_keys, separators=separators, default=default,
+        obj,
+        fp,
+        sort_keys=sort_keys,
+        separators=separators,
+        default=default,
         indent=1,
-        **kwargs
+        **kwargs,
     )
 
 
@@ -297,29 +305,26 @@ def load(fp, object_hook=object_hook, **kwargs):
     return json.load(fp, object_hook=object_hook, **kwargs)
 
 
-def dump_graph(gx, filename='graph.json'):
+def dump_graph(gx, filename="graph.json"):
     nld = nx.node_link_data(gx)
-    links = nld['links']
-    links2 = sorted(links, key= lambda x: f'{x["source"]}{x["target"]')
-    ndl['links'] = links2
-    with open(filename, 'w') as f:
+    links = nld["links"]
+    links2 = sorted(links, key=lambda x: f'{x["source"]}{x["target"]}')
+    ndl["links"] = links2
+    with open(filename, "w") as f:
         dump(nld, f)
 
 
-def load_graph(filename='graph.json'):
-    with open(filename, 'r') as f:
+def load_graph(filename="graph.json"):
+    with open(filename, "r") as f:
         nld = load(f)
     return nx.node_link_graph(nld)
 
 
-def frozen_to_json_friendly(fz: dict, PR: LazyJson=None):
+def frozen_to_json_friendly(fz: dict, PR: LazyJson = None):
     if fz is None:
         return None
     keys = sorted(list(fz.keys()))
-    d = {
-        'keys': keys,
-        'data': dict(fz)
-    }
+    d = {"keys": keys, "data": dict(fz)}
     if PR:
-        d['PR'] = PR
+        d["PR"] = PR
     return d
