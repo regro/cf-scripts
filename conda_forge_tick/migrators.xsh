@@ -34,7 +34,10 @@ class Migrator:
                        '{{% set build = {} %}}')
                      )
 
-    def __init__(self, pr_limit=0, obj_version=None):
+    def __init__(self, pr_limit=0, obj_version=None, symbiotic_migrations=None):
+        if symbiotic_migrations is None:
+            symbiotic_migrations = []
+        self.symbiotic_migrations = symbiotic_migrations
         self.pr_limit = pr_limit
         self.obj_version=obj_version
 
@@ -81,6 +84,9 @@ class Migrator:
         namedtuple or bool:
             If namedtuple continue with PR, if False scrap local folder
         """
+        for migrate in self.symbiotic_migrations:
+            if not filter(attrs):
+                migrate(recipe_dir, attrs, **kwargs)
         return self.migrator_uid(attrs)
 
     def pr_body(self):
@@ -337,7 +343,7 @@ class Version(Migrator):
                 n = eval_version(n)
                 replace_in_file(p, n, f)
             self.set_build_number('meta.yaml')
-        return self.migrator_uid(attrs)
+        return super().migrate(recipe_dir, attrs)
 
     def pr_body(self):
         pred = [(name, $SUBGRAPH.node[name]['new_version'])
@@ -429,7 +435,7 @@ class JS(Migrator):
                                 leading_whitespace=False
                                 )
             self.set_build_number('meta.yaml')
-        return self.migrator_uid(attrs)
+        return super().migrate(recipe_dir, attrs)
 
     def pr_body(self):
         body = super().pr_body()
@@ -480,7 +486,7 @@ class Compiler(Migrator):
             with open('meta.yaml', 'w') as f:
                 f.write(content)
             self.set_build_number('meta.yaml')
-        return self.migrator_uid(attrs)
+        return super().migrate(recipe_dir, attrs)
 
     def pr_body(self):
         body = super().pr_body()
@@ -584,7 +590,7 @@ class Noarch(Migrator):
                         'meta.yaml',
                         leading_whitespace=False)
             self.set_build_number('meta.yaml')
-        return self.migrator_uid(attrs)
+        return super().migrate(recipe_dir, attrs)
 
     def pr_body(self):
         body = super().pr_body()
@@ -772,7 +778,7 @@ class Rebuild(Migrator):
     def migrate(self, recipe_dir, attrs, **kwargs):
         with indir(recipe_dir):
             self.set_build_number('meta.yaml')
-        return self.migrator_uid(attrs)
+        return super().migrate(recipe_dir, attrs)
 
     def pr_body(self):
         body = super().pr_body()
@@ -859,7 +865,7 @@ class Pinning(Migrator):
         with open(os.path.join(recipe_dir, "meta.yaml"), "w") as f:
             f.write(upd)
         self.set_build_number(os.path.join(recipe_dir, "meta.yaml"))
-        return self.migrator_uid(attrs)
+        return super().migrate(recipe_dir, attrs)
 
     def pr_body(self):
         body = super().pr_body()
@@ -1029,7 +1035,6 @@ class BlasRebuild(Rebuild):
     def migrate(self, recipe_dir, attrs, **kwargs):
         with indir(recipe_dir):
             # Update build number
-            self.set_build_number('meta.yaml')
             # Remove blas related packages and features
             with open('meta.yaml', 'r') as f:
                 lines = f.readlines()
@@ -1051,7 +1056,7 @@ class BlasRebuild(Rebuild):
             new_text = ''.join(lines)
             with open('meta.yaml', 'w') as f:
                 f.write(new_text)
-        return self.migrator_uid(attrs)
+        return super().migrate(recipe_dir, attrs)
 
     def pr_body(self):
         body = super().pr_body()
@@ -1131,10 +1136,7 @@ class RBaseRebuild(Rebuild):
                 with open('meta.yaml', 'w') as f:
                     f.write('\n'.join(lines))
 
-            # Update build number
-            self.set_build_number('meta.yaml')
-
-        return self.migrator_uid(attrs)
+        return super().migrate(recipe_dir, attrs)
 
 
 class GFortranOSXRebuild(Rebuild):
