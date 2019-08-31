@@ -309,7 +309,7 @@ def dump_graph(gx, filename="graph.json"):
     nld = nx.node_link_data(gx)
     links = nld["links"]
     links2 = sorted(links, key=lambda x: f'{x["source"]}{x["target"]}')
-    ndl["links"] = links2
+    nld["links"] = links2
     with open(filename, "w") as f:
         dump(nld, f)
 
