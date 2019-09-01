@@ -4,5 +4,6 @@ gx = load_graph()
 for k in gx.nodes.keys():
     lzj = LazyJson(f'node_attrs/{k}.json')
     lzj.update(**gx.nodes[k])
-    gx.nodes[k].update(lzj)
+    gx.nodes[k].clear()
+    gx.nodes[k].update({'payload': lzj})
 dump_graph(gx)
