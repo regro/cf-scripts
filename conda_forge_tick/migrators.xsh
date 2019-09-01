@@ -289,7 +289,7 @@ class Version(Migrator):
         conditional = super().filter(attrs)
         result = bool(
             conditional  # if archived/finished
-            or len([k for k in attrs.get('PRed_json', []) if
+            or len([k for k in attrs.get('PRed', []) if
                     k['data'].get('migrator_name') == 'Version' and
                     k.get('PR', {}).get('state', None) == 'open']) > 3
             or not attrs.get('new_version')  # if no new version
@@ -760,7 +760,7 @@ class Rebuild(Migrator):
             if muid not in att.get('PRed', []) and not att.get('archived', False):
                 return True
             # This is due to some PRed_json loss due to bad graph deploy outage
-            for m_pred_json in att.get('PRed_json', []):
+            for m_pred_json in att.get('PRed', []):
                 if m_pred_json['data'] == muid['data']:
                     break
             else:

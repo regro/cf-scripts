@@ -495,7 +495,7 @@ def migrator_status(migrator: Migrator, gx):
         node_metadata = {}
         feedstock_metadata[node] = node_metadata
         nuid = migrator.migrator_uid(attrs)
-        for pr_json in attrs.get('PRed_json', []):
+        for pr_json in attrs.get('PRed', []):
             if pr_json and pr_json['data'] == frozen_to_json_friendly(nuid)['data']:
                 break
         else:
@@ -577,7 +577,15 @@ def main(args=None):
                     d = dict(migrator_uid)
                     d = frozen_to_json_friendly(d)
                     d.update(PR=pr_json)
-                    gx.nodes[node].setdefault('PRed_json', []).append(d)
+                    gx.nodes[node]['PRed']['PR'] = pr_json
+                else:
+                    # If there was no pr_json then we made no PR, but
+                    # put in some empty info so the rest runs smoothly
+                    # we don't need lazy json since this is small
+                    gx.nodes[node]['PRed']['PR'] = {
+                        'state': 'closed',
+                        'head': {'ref': 'this_is_not_a_branch'}
+                    }
 
             except github3.GitHubError as e:
                 if e.msg == 'Repository was archived so is read-only.':
