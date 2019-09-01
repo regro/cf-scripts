@@ -18,7 +18,7 @@ import yaml
 from xonsh.lib.collections import ChainDB, _convert_to_dict
 from .all_feedstocks import get_all_feedstocks
 from .utils import parse_meta_yaml, setup_logger, get_requirements, executor, \
-    load_graph, dump_graph
+    load_graph, dump_graph, LazyJson
 from .git_utils import refresh_pr, is_github_api_limit_reached, close_out_labels
 
 logger = logging.getLogger("conda_forge_tick.make_graph")
@@ -29,12 +29,13 @@ NUM_GITHUB_THREADS = 4
 
 
 def get_attrs(name, i):
-    sub_graph = {
+    sub_graph = LazyJson(f'node_attrs/{name}')
+    sub_graph.update({
         "time": time.time(),
         "feedstock_name": name,
         # All feedstocks start out as good
         "bad": False,
-    }
+    })
 
     logger.info((i, name))
     def fetch_file(filepath):
@@ -110,7 +111,7 @@ def _build_graph_process_pool(gx, names, new_names):
         for f in as_completed(futures):
             name = futures[f]
             try:
-                sub_graph = f.result()
+                sub_graph = {'payload': f.result()}
             except Exception as e:
                 logger.warn("Error adding {} to the graph: {}".format(name, e))
             else:
@@ -123,7 +124,7 @@ def _build_graph_process_pool(gx, names, new_names):
 def _build_graph_sequential(gx, names, new_names):
     for i, name in enumerate(names):
         try:
-            sub_graph = get_attrs(name, i)
+            sub_graph = {'payload': get_attrs(name, i)}
         except Exception as e:
             logger.warn("Error adding {} to the graph: {}".format(name, e))
         else:
@@ -177,7 +178,7 @@ def update_graph_pr_status(gx: nx.DiGraph) -> nx.DiGraph:
     random.shuffle(node_ids)
     with executor('thread', NUM_GITHUB_THREADS) as (pool, as_completed):
         for node_id in node_ids:
-            node = gx.nodes[node_id]
+            node = gx.nodes[node_id]['payload']
             prs = node.get("PRed_json", [])
             for i, migration in enumerate(prs):
                 pr_json = migration.get('PR', None)
@@ -191,14 +192,14 @@ def update_graph_pr_status(gx: nx.DiGraph) -> nx.DiGraph:
             try:
                 res = f.result()
                 if res:
-                    gx.nodes[name]["PRed_json"][i]['PR'].update(**res)
+                    gx.nodes[name]['payload']["PRed_json"][i]['PR'].update(**res)
                     logger.info("Updated json for {}: {}".format(name, res["id"]))
             except github3.GitHubError as e:
                 logger.critical("GITHUB ERROR ON FEEDSTOCK: {}".format(name))
                 if is_github_api_limit_reached(e, gh):
                     break
             except Exception as e:
-                logger.critical("ERROR ON FEEDSTOCK: {}: {}".format(name, gx.nodes[name]["PRed_json"][i]['data']))
+                logger.critical("ERROR ON FEEDSTOCK: {}: {}".format(name, gx.nodes[name]['payload']["PRed_json"][i]['data']))
                 raise
     return gx
 
@@ -211,7 +212,7 @@ def close_labels(gx: nx.DiGraph) -> nx.DiGraph:
     random.shuffle(node_ids)
     with executor('thread', NUM_GITHUB_THREADS) as (pool, as_completed):
         for node_id in node_ids:
-            node = gx.nodes[node_id]
+            node = gx.nodes[node_id]['payload']
             prs = node.get("PRed_json", [])
             for i, migration in enumerate(prs):
                 pr_json = migration.get('PR', None)
@@ -225,8 +226,8 @@ def close_labels(gx: nx.DiGraph) -> nx.DiGraph:
             try:
                 res = f.result()
                 if res:
-                    del gx.node[name]["PRed"][i]
-                    del gx.nodes[name]["PRed_json"][i]
+                    del gx.node[name]['payload']["PRed"][i]
+                    del gx.nodes[name]['payload']["PRed_json"][i]
                     logger.info(
                         "Closed and removed PR and branch for "
                         "{}: {}".format(name, res["id"])
@@ -236,7 +237,8 @@ def close_labels(gx: nx.DiGraph) -> nx.DiGraph:
                 if is_github_api_limit_reached(e, gh):
                     break
             except Exception as e:
-                logger.critical("ERROR ON FEEDSTOCK: {}: {}".format(name, gx.nodes[name]["PRed_json"][i]['data']))
+                logger.critical("ERROR ON FEEDSTOCK: {}: {}".format(
+                    name, gx.nodes[name]['payload']["PRed_json"][i]['data']))
                 raise
     return gx
 
