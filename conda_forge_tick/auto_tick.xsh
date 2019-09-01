@@ -578,8 +578,10 @@ def main(args=None):
                     d = frozen_to_json_friendly(d)
                     d.update(PR=pr_json)
                     gx.nodes[node]['PRed']['PR'] = pr_json
-                else:
-                    # If there was no pr_json then we made no PR, but
+                elif not gx.nodes[node]['PRed']['PR']:
+                    # If the pr_json is false then we need to check if we
+                    # just pushed to a branch or if there was no PR needed.
+                    # If there was no pr needed
                     # put in some empty info so the rest runs smoothly
                     # we don't need lazy json since this is small
                     gx.nodes[node]['PRed']['PR'] = {
