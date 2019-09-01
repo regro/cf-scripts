@@ -234,11 +234,13 @@ def get_latest_version(meta_yaml, sources):
 def _update_upstream_versions_sequential(gx, sources):
     to_update = []
     for node, attrs in gx.node.items():
+        attrs = attrs['payload']
         if attrs.get("bad") or attrs.get("archived"):
             attrs["new_version"] = False
             continue
         to_update.append((node, attrs))
     for node, attrs in to_update:
+        attrs = attrs['payload']
         try:
             attrs["new_version"] = get_latest_version(attrs, sources)
         except Exception as e:
@@ -259,6 +261,7 @@ def _update_upstream_versions_process_pool(gx, sources):
     futures = {}
     with executor(kind='dask', max_workers=20) as (pool, as_completed):
         for node, attrs in gx.node.items():
+            attrs = attrs['payload']
             if attrs.get("bad") or attrs.get("archived"):
                 attrs["new_version"] = False
                 continue

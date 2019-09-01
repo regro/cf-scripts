@@ -1,13 +1,11 @@
 import re
 import collections.abc
-import datetime
 import hashlib
 import logging
 import os
 import time
 import random
 import builtins
-import contextlib
 from copy import deepcopy
 
 import github3
@@ -16,6 +14,8 @@ import requests
 import yaml
 
 from xonsh.lib.collections import ChainDB, _convert_to_dict
+
+from conda_forge_tick.utils import github_client
 from .all_feedstocks import get_all_feedstocks
 from .utils import parse_meta_yaml, setup_logger, get_requirements, executor, \
     load_graph, dump_graph, LazyJson
@@ -38,6 +38,7 @@ def get_attrs(name, i):
     })
 
     logger.info((i, name))
+
     def fetch_file(filepath):
         r = requests.get(
             "https://raw.githubusercontent.com/"
@@ -155,19 +156,12 @@ def make_graph(names, gx=None):
     gx2 = deepcopy(gx)
     logger.info("inferring nodes and edges")
     for node, attrs in gx2.node.items():
-        for dep in attrs.get("req", []):
+        for dep in attrs['payload'].get("req", []):
             if dep not in gx.nodes:
                 gx.add_node(dep, archived=True, time=time.time())
             gx.add_edge(dep, node)
     logger.info("new nodes and edges infered")
     return gx
-
-
-def github_client():
-    if os.environ.get('GITHUB_TOKEN'):
-        return github3.login(token=os.environ['GITHUB_TOKEN'])
-    else:
-        return  github3.login(os.environ["USERNAME"], os.environ["PASSWORD"])
 
 
 def update_graph_pr_status(gx: nx.DiGraph) -> nx.DiGraph:
@@ -199,7 +193,9 @@ def update_graph_pr_status(gx: nx.DiGraph) -> nx.DiGraph:
                 if is_github_api_limit_reached(e, gh):
                     break
             except Exception as e:
-                logger.critical("ERROR ON FEEDSTOCK: {}: {}".format(name, gx.nodes[name]['payload']["PRed_json"][i]['data']))
+                logger.critical("ERROR ON FEEDSTOCK: {}: {}".format(
+                    name,
+                    gx.nodes[name]['payload']["PRed_json"][i]['data']))
                 raise
     return gx
 

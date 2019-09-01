@@ -10,6 +10,7 @@ import itertools
 import json
 import re
 
+import github3
 import jinja2
 import networkx as nx
 
@@ -328,3 +329,10 @@ def frozen_to_json_friendly(fz: dict, PR: LazyJson = None):
     if PR:
         d["PR"] = PR
     return d
+
+
+def github_client():
+    if os.environ.get('GITHUB_TOKEN'):
+        return github3.login(token=os.environ['GITHUB_TOKEN'])
+    else:
+        return github3.login(os.environ["USERNAME"], os.environ["PASSWORD"])

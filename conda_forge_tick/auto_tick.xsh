@@ -14,8 +14,7 @@ from xonsh.lib.os import indir
 
 from .git_utils import (get_repo, push_repo, is_github_api_limit_reached, ensure_label_exists, label_pr)
 from .path_lengths import cyclic_topological_sort
-from .utils import setup_logger, pluck, get_requirements, load_graph, \
-    dump_graph
+from .utils import (setup_logger, pluck, get_requirements, load_graph, dump_graph)
 
 logger = logging.getLogger("conda_forge_tick.auto_tick")
 
@@ -186,6 +185,7 @@ def add_rebuild(migrators, gx):
 
     total_graph = copy.deepcopy(gx)
     for node, attrs in gx.node.items():
+        attrs = attrs['payload']
         meta_yaml = attrs.get("meta_yaml", {}) or {}
         bh = get_requirements(meta_yaml, run=False)
 
@@ -233,6 +233,7 @@ def add_rebuild_openssl(migrators, gx):
     total_graph = copy.deepcopy(gx)
 
     for node, attrs in gx.node.items():
+        attrs = attrs['payload']
         meta_yaml = attrs.get("meta_yaml", {}) or {}
         bh = get_requirements(meta_yaml)
         openssl_c = 'openssl' in bh
@@ -275,6 +276,7 @@ def add_rebuild_libprotobuf(migrators, gx):
     total_graph = copy.deepcopy(gx)
 
     for node, attrs in gx.node.items():
+        attrs = attrs['payload']
         meta_yaml = attrs.get("meta_yaml", {}) or {}
         bh = get_requirements(meta_yaml)
         protobuf_c = 'libprotobuf' in bh
@@ -327,6 +329,7 @@ def add_rebuild_successors(migrators, gx, package_name, pin_version, pr_limit=5,
     total_graph = copy.deepcopy(gx)
 
     for node, attrs in gx.node.items():
+        attrs = attrs['payload']
         meta_yaml = attrs.get("meta_yaml", {}) or {}
         bh = get_requirements(meta_yaml)
         criteria = package_name in bh
@@ -368,6 +371,7 @@ def add_rebuild_blas(migrators, gx):
     total_graph = copy.deepcopy(gx)
 
     for node, attrs in gx.node.items():
+        attrs = attrs['payload']
         meta_yaml = attrs.get("meta_yaml", {}) or {}
         bh = get_requirements(meta_yaml)
         pkgs = set(["openblas", "openblas-devel", "mkl", "mkl-devel", "blas", "lapack", "clapack"])
@@ -408,6 +412,7 @@ def add_arch_migrate(migrators, gx):
     total_graph = copy.deepcopy(gx)
 
     for node, attrs in gx.node.items():
+        attrs = attrs['payload']
         meta_yaml = attrs.get("meta_yaml", {}) or {}
         # no need to consider noarch packages for this rebuild
         noarch = meta_yaml.get('build', {}).get('noarch')
@@ -458,6 +463,7 @@ def get_effective_graph(migrator: Migrator, gx):
 
     # Prune graph to only things that need builds right now
     for node, attrs in gx.node.items():
+        attrs = attrs['payload']
         if node in gx2 and migrator.filter(attrs):
             gx2.remove_node(node)
 
@@ -489,6 +495,7 @@ def migrator_status(migrator: Migrator, gx):
     feedstock_metadata = dict()
 
     for node, attrs in gx2.node.items():
+        attrs = attrs['payload']
         # remove archived from status
         if attrs.get('archived', False):
             continue
@@ -539,16 +546,16 @@ def main(args=None):
 
     for migrator in $MIGRATORS:
         good_prs = 0
-        gx2 = get_effective_graph(migrator, gx)
+        effective_graph = get_effective_graph(migrator, gx)
 
-        $SUBGRAPH = gx2
+        $SUBGRAPH = effective_graph
         logger.info('Total migrations for %s: %d', migrator.__class__.__name__,
-                    len(gx2.node))
+                    len(effective_graph.node))
 
-        top_level = set(node for node in gx2 if not list(gx2.predecessors(node)))
-        # print(list(migrator.order(gx2, gx)))
-        for node in migrator.order(gx2, gx):
-            attrs = gx2.nodes[node]
+        top_level = set(node for node in effective_graph if not list(effective_graph.predecessors(node)))
+        # print(list(migrator.order(effective_graph, gx)))
+        for node in migrator.order(effective_graph, gx):
+            attrs = effective_graph.nodes[node]['payload']
             # Don't let travis timeout, break ahead of the timeout so we make certain
             # to write to the repo
             if time.time() - int($START_TIME) > int($TIMEOUT) or good_prs >= migrator.pr_limit:
@@ -561,34 +568,37 @@ def main(args=None):
                 # Don't bother running if we are at zero
                 if gh.rate_limit()['resources']['core']['remaining'] == 0:
                     break
-                rerender = (gx.nodes[node].get('smithy_version') != smithy_version or
-                            gx.nodes[node].get('pinning_version') != pinning_version or
+                rerender = (attrs.get('smithy_version') != smithy_version or
+                            attrs.get('pinning_version') != pinning_version or
                             migrator.rerender)
                 migrator_uid, pr_json = run(attrs=attrs, migrator=migrator, gh=gh,
                                             rerender=rerender, protocol='https',
                                             hash_type=attrs.get('hash_type', 'sha256'))
                 if migrator_uid:
-                    gx.nodes[node].setdefault('PRed', []).append(frozen_to_json_friendly(migrator_uid))
-                    gx.nodes[node].update({'smithy_version': smithy_version,
-                                           'pinning_version': pinning_version})
+                    # Note that both gx and effective_graph are linked to the
+                    # same lazyJson file so the it doesn't matter which
+                    # one gets changed (all set and gets load the data first)
+                    attrs.setdefault('PRed', []).append(frozen_to_json_friendly(migrator_uid))
+                    attrs.update({'smithy_version': smithy_version,
+                                  'pinning_version': pinning_version})
 
                 # Stash the pr json data so we can access it later
                 if pr_json:
                     d = dict(migrator_uid)
                     d = frozen_to_json_friendly(d)
                     d.update(PR=pr_json)
-                    gx.nodes[node].setdefault('PRed_json', []).append(d)
+                    attrs.setdefault('PRed_json', []).append(d)
 
             except github3.GitHubError as e:
                 if e.msg == 'Repository was archived so is read-only.':
-                    gx.nodes[node]['archived'] = True
+                    attrs['archived'] = True
                 else:
                     logger.critical('GITHUB ERROR ON FEEDSTOCK: %s', $PROJECT)
                     if is_github_api_limit_reached(e, gh):
                         break
             except Exception as e:
                 logger.exception('NON GITHUB ERROR')
-                gx.nodes[node]['bad'] = {'exception': str(e),
+                attrs['bad'] = {'exception': str(e),
                                          'traceback': str(traceback.format_exc())}
             else:
                 if migrator_uid:
