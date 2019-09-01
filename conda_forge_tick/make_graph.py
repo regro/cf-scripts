@@ -170,6 +170,7 @@ def github_client():
 
 
 def update_graph_pr_status(gx: nx.DiGraph) -> nx.DiGraph:
+    failed_refresh = 0
     gh = github_client()
     futures = {}
     node_ids = list(gx.nodes)
@@ -195,15 +196,18 @@ def update_graph_pr_status(gx: nx.DiGraph) -> nx.DiGraph:
                     logger.info("Updated json for {}: {}".format(name, res["id"]))
             except github3.GitHubError as e:
                 logger.critical("GITHUB ERROR ON FEEDSTOCK: {}".format(name))
+                failed_refresh += 1
                 if is_github_api_limit_reached(e, gh):
                     break
             except Exception as e:
                 logger.critical("ERROR ON FEEDSTOCK: {}: {}".format(name, gx.nodes[name]["PRed_json"][i]['data']))
                 raise
+    logger.info("JSON Refresh failed for {} PRs".format(failed_refresh))
     return gx
 
 
 def close_labels(gx: nx.DiGraph) -> nx.DiGraph:
+    failed_refresh = 0
     gh = github_client()
     futures = {}
     node_ids = list(gx.nodes)
@@ -233,11 +237,13 @@ def close_labels(gx: nx.DiGraph) -> nx.DiGraph:
                     )
             except github3.GitHubError as e:
                 logger.critical("GITHUB ERROR ON FEEDSTOCK: {}".format(name))
+                failed_refresh += 1
                 if is_github_api_limit_reached(e, gh):
                     break
             except Exception as e:
                 logger.critical("ERROR ON FEEDSTOCK: {}: {}".format(name, gx.nodes[name]["PRed_json"][i]['data']))
                 raise
+    logger.info("JSON Refresh failed for {} PRs".format(failed_refresh))
     return gx
 
 
