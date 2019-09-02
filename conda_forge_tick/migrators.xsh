@@ -143,6 +143,7 @@ class Migrator:
         """
         d = {'migrator_name': self.__class__.__name__,
              'migrator_version': self.migrator_version,
+             'bot_rerun': False
              }
         # Carveout for old migrators w/o obj_versions
         if self.obj_version:

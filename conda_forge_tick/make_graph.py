@@ -229,8 +229,13 @@ def close_labels(gx: nx.DiGraph) -> nx.DiGraph:
             try:
                 res = f.result()
                 if res:
-                    del gx.node[name]["PRed"][i]
-                    del gx.nodes[name]["PRed_json"][i]
+                    # add a piece of metadata which makes the muid matchup
+                    # fail
+                    for k in ['PRed', 'PRed_json']:
+                        gx.node[name][k][i]['data']['bot_rerun'] = time.time()
+                        if 'bot_rerun' not in gx.node[name]["PRed"][i]['keys']:
+                            gx.node[name][k][i]['keys'].append('bot_rerun')
+
                     logger.info(
                         "Closed and removed PR and branch for "
                         "{}: {}".format(name, res["id"])
