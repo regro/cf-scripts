@@ -184,8 +184,8 @@ def add_rebuild(migrators, gx):
     """
 
     total_graph = copy.deepcopy(gx)
-    for node, attrs in gx.node.items():
-        attrs = attrs['payload']
+    for node, node_attrs in gx.node.items():
+        attrs = node_attrs['payload']
         meta_yaml = attrs.get("meta_yaml", {}) or {}
         bh = get_requirements(meta_yaml, run=False)
 
@@ -232,8 +232,8 @@ def add_rebuild_openssl(migrators, gx):
 
     total_graph = copy.deepcopy(gx)
 
-    for node, attrs in gx.node.items():
-        attrs = attrs['payload']
+    for node, node_attrs in gx.node.items():
+        attrs = node_attrs['payload']
         meta_yaml = attrs.get("meta_yaml", {}) or {}
         bh = get_requirements(meta_yaml)
         openssl_c = 'openssl' in bh
@@ -275,8 +275,8 @@ def add_rebuild_libprotobuf(migrators, gx):
 
     total_graph = copy.deepcopy(gx)
 
-    for node, attrs in gx.node.items():
-        attrs = attrs['payload']
+    for node, node_attrs in gx.node.items():
+        attrs = node_attrs['payload']
         meta_yaml = attrs.get("meta_yaml", {}) or {}
         bh = get_requirements(meta_yaml)
         protobuf_c = 'libprotobuf' in bh
@@ -328,8 +328,8 @@ def add_rebuild_successors(migrators, gx, package_name, pin_version, pr_limit=5,
 
     total_graph = copy.deepcopy(gx)
 
-    for node, attrs in gx.node.items():
-        attrs = attrs['payload']
+    for node, node_attrs in gx.node.items():
+        attrs = node_attrs['payload']
         meta_yaml = attrs.get("meta_yaml", {}) or {}
         bh = get_requirements(meta_yaml)
         criteria = package_name in bh
@@ -370,8 +370,8 @@ def add_rebuild_blas(migrators, gx):
     """
     total_graph = copy.deepcopy(gx)
 
-    for node, attrs in gx.node.items():
-        attrs = attrs['payload']
+    for node, node_attrs in gx.node.items():
+        attrs = node_attrs['payload']
         meta_yaml = attrs.get("meta_yaml", {}) or {}
         bh = get_requirements(meta_yaml)
         pkgs = set(["openblas", "openblas-devel", "mkl", "mkl-devel", "blas", "lapack", "clapack"])
@@ -411,8 +411,8 @@ def add_arch_migrate(migrators, gx):
     """
     total_graph = copy.deepcopy(gx)
 
-    for node, attrs in gx.node.items():
-        attrs = attrs['payload']
+    for node, node_attrs in gx.node.items():
+        attrs = node_attrs['payload']
         meta_yaml = attrs.get("meta_yaml", {}) or {}
         # no need to consider noarch packages for this rebuild
         noarch = meta_yaml.get('build', {}).get('noarch')
@@ -462,8 +462,8 @@ def get_effective_graph(migrator: Migrator, gx):
     gx2 = copy.deepcopy(getattr(migrator, 'graph', gx))
 
     # Prune graph to only things that need builds right now
-    for node, attrs in gx.node.items():
-        attrs = attrs['payload']
+    for node, node_attrs in gx.node.items():
+        attrs = node_attrs['payload']
         if node in gx2 and migrator.filter(attrs):
             gx2.remove_node(node)
 
@@ -494,8 +494,8 @@ def migrator_status(migrator: Migrator, gx):
 
     feedstock_metadata = dict()
 
-    for node, attrs in gx2.node.items():
-        attrs = attrs['payload']
+    for node, node_attrs in gx2.node.items():
+        attrs = node_attrs['payload']
         # remove archived from status
         if attrs.get('archived', False):
             continue
