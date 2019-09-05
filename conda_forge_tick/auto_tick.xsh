@@ -445,7 +445,6 @@ def initialize_migrators(do_rebuild=False):
     pinning_version = json.loads(![conda list conda-forge-pinning --json].output.strip())[0]['version']
 
     add_arch_migrate($MIGRATORS, gx)
-    add_rebuild_openssl($MIGRATORS, gx)
     add_rebuild_successors($MIGRATORS, gx, 'qt', '5.12')
 
     return gx, smithy_version, pinning_version, temp, $MIGRATORS
