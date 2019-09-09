@@ -521,6 +521,7 @@ def migrator_status(migrator: Migrator, gx):
                 out['in-pr'].add(node)
         except KeyError:
             logger.critical("MISSING PR IN : {}".format(node))
+            raise
         # additional metadata for reporting
         node_metadata['num_descendants'] = len(nx.descendants(gx2, node))
         node_metadata['immediate_children'] = list(sorted(gx2.successors(node)))
