@@ -14,6 +14,7 @@ def deploy():
     """Deploy the graph to github"""
     for cmd in [['git', 'add', 'pr_json/*'],
                 ['git', 'add', 'status/*'],
+                ['git', 'add', 'node_attrs/*'],
                 ['git', 'commit', '-am', '"Update Graph"']]:
         try:
             @(cmd)
