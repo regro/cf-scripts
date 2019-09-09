@@ -26,11 +26,11 @@ class Migrator:
 
     migrator_version = 0
 
-    build_patterns = ((re.compile('(\s*?)number:\s*([0-9]+)'),
+    build_patterns = ((re.compile(r'(\s*?)number:\s*([0-9]+)'),
                        'number: {}'),
-                      (re.compile('(\s*?){%\s*set build_number\s*=\s*"?([0-9]+)"?\s*%}'),
+                      (re.compile(r'(\s*?){%\s*set build_number\s*=\s*"?([0-9]+)"?\s*%}'),
                        '{{% set build_number = {} %}}'),
-                      (re.compile('(\s*?){%\s*set build\s*=\s*"?([0-9]+)"?\s*%}'),
+                      (re.compile(r'(\s*?){%\s*set build\s*=\s*"?([0-9]+)"?\s*%}'),
                        '{{% set build = {} %}}')
                      )
 
@@ -221,14 +221,14 @@ class Version(Migrator):
     patterns = (
         # filename, pattern, new
         # set the version
-        ('meta.yaml', 'version:\s*[A-Za-z0-9._-]+', 'version: "$VERSION"'),
-        ('meta.yaml', '{%\s*set\s+version\s*=\s*[^\s]*\s*%}',
+        ('meta.yaml', r'version:\s*[A-Za-z0-9._-]+', 'version: "$VERSION"'),
+        ('meta.yaml', r'{%\s*set\s+version\s*=\s*[^\s]*\s*%}',
             '{% set version = "$VERSION" %}'),
     )
 
     url_pat = re.compile(r'^( *)(-)?(\s*)url:\s*([^\s#]+?)\s*(?:(#.*)?\[([^\[\]]+)\])?(?(5)[^\(\)\n]*)(?(2)\n\1 \3.*)*$', flags=re.M)
     r_url_pat = re.compile(r'^(\s*)(-)?(\s*)url:\s*(?:(#.*)?\[([^\[\]]+)\])?(?(4)[^\(\)]*?)\n(\1(?(2) \3)  -.*\n?)*', flags=re.M)
-    r_urls = re.compile('\s*-\s*(.+?)(?:#.*)?$', flags=re.M)
+    r_urls = re.compile(r'\s*-\s*(.+?)(?:#.*)?$', flags=re.M)
 
     migrator_version = 0
 
@@ -260,11 +260,11 @@ class Version(Migrator):
             else:
                 url = url.strip("'\"")
                 hash = hash_url(url, hash_type)
-            m = re.search('\s*{}:(.+)'.format(hash_type), line)
+            m = re.search(r'\s*{}:(.+)'.format(hash_type), line)
             if m is None:
-                p = '{}:\s*[0-9A-Fa-f]+'.format(hash_type)
+                p = r'{}:\s*[0-9A-Fa-f]+'.format(hash_type)
                 if platform:
-                    p += '\s*(#.*)\[{}\](?(1)[^\(\)]*)$'.format(platform)
+                    p += r'\s*(#.*)\[{}\](?(1)[^\(\)]*)$'.format(platform)
                 else:
                     p += '$'
             else:
@@ -274,7 +274,7 @@ class Version(Migrator):
                 n += '  # [{}]'.format(platform)
             pats += ((filename, p, n),)
 
-            base1 = '''{{%\s*set {checkname} = ['"][0-9A-Fa-f]+['"] %}}'''
+            base1 = r'''{{%\s*set {checkname} = ['"][0-9A-Fa-f]+['"] %}}'''
             base2 = '{{% set {checkname} = "{h}" %}}'
             for cn in checksum_names:
                 pats += (('meta.yaml',
@@ -315,7 +315,7 @@ class Version(Migrator):
         with indir(recipe_dir):
             with open('meta.yaml', 'r') as f:
                 text = f.read()
-        url = re.search('\s*-?\s*url:.*?\n(    -.*\n?)*', text).group()
+        url = re.search(r'\s*-?\s*url:.*?\n(    -.*\n?)*', text).group()
         if 'cran.r-project.org/src/contrib' in url:
             version = version.replace('_', '-')
         with indir(recipe_dir), ${...}.swap(VERSION=version):
@@ -399,7 +399,7 @@ class Version(Migrator):
 class JS(Migrator):
     """Migrator for JavaScript syntax"""
     patterns = [
-        ('meta.yaml', '  script: npm install -g \.',
+        ('meta.yaml', r'  script: npm install -g \.',
          '  script: |\n'
          '    tgz=$(npm pack)\n'
          '    npm install -g $tgz'),
@@ -516,7 +516,7 @@ class Noarch(Migrator):
     migrator_version = 0
 
     compiler_pat = re.compile('.*_compiler_stub')
-    sel_pat = re.compile('(.+?)\s*(#.*)?\[([^\[\]]+)\](?(2)[^\(\)]*)$')
+    sel_pat = re.compile(r'(.+?)\s*(#.*)?\[([^\[\]]+)\](?(2)[^\(\)]*)$')
     unallowed_reqs = ['toolchain', 'toolchain3', 'gcc', 'cython', 'clangdev']
     checklist = ['No compiled extensions',
                  'No post-link or pre-link or pre-unlink scripts',
@@ -680,9 +680,9 @@ class NoarchR(Noarch):
                     if s > 0:
                         spacing = s
                     lines[index] = lines[index] + " "*spacing + "noarch: generic\n"
-                regex_unix1 = re.compile('license_file: \'{{ environ\["PREFIX"\] }}/lib/R/share/licenses/(\S+)\'\s+# \[unix\]')
-                regex_unix2 = re.compile('license_file: \'{{ environ\["PREFIX"\] }}\\\/lib\\\/R\\\/share\\\/licenses\\\/(.+)\'\\s+# \[unix\]')
-                regex_win = re.compile('license_file: \'{{ environ\["PREFIX"\] }}\\\R\\\share\\\licenses\\\(\S+)\'\s+# \[win\]')
+                regex_unix1 = re.compile(r'license_file: \'{{ environ\["PREFIX"\] }}/lib/R/share/licenses/(\S+)\'\s+# \[unix\]')
+                regex_unix2 = re.compile(r'license_file: \'{{ environ\["PREFIX"\] }}\\\/lib\\\/R\\\/share\\\/licenses\\\/(.+)\'\\s+# \[unix\]')
+                regex_win = re.compile(r'license_file: \'{{ environ\["PREFIX"\] }}\\\R\\\share\\\licenses\\\(\S+)\'\s+# \[win\]')
                 for i, line in enumerate(lines_stripped):
                     if noarch and line.lower().strip().startswith("skip: true"):
                         lines[i] = ""
@@ -837,7 +837,7 @@ class Pinning(Migrator):
 
     def migrate(self, recipe_dir, attrs, **kwargs):
         remove_pins = attrs.get("req", set()) & self.removals
-        remove_pats = {req: re.compile(f"\s*-\s*{req}.*?(\s+.*?)(\s*#.*)?$") for req in remove_pins}
+        remove_pats = {req: re.compile(rf"\s*-\s*{req}.*?(\s+.*?)(\s*#.*)?$") for req in remove_pins}
         self.removed = {}
         with open(os.path.join(recipe_dir, "meta.yaml")) as f:
             raw = f.read()
@@ -1017,8 +1017,8 @@ class BlasRebuild(Rebuild):
     bump_number = 1
 
     blas_patterns = [
-        re.compile('(\s*?)-\s*(blas|openblas|mkl|(c?)lapack)'),
-        re.compile('(\s*?){%\s*set variant\s*=\s*"openblas"?\s*%}'),
+        re.compile(r'(\s*?)-\s*(blas|openblas|mkl|(c?)lapack)'),
+        re.compile(r'(\s*?){%\s*set variant\s*=\s*"openblas"?\s*%}'),
     ]
 
     def __init__(self, graph=None, name=None, pr_limit=0, top_level=None,
