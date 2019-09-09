@@ -569,27 +569,23 @@ def main(args=None):
                 migrator_uid, pr_json = run(attrs=attrs, migrator=migrator, gh=gh,
                                             rerender=rerender, protocol='https',
                                             hash_type=attrs.get('hash_type', 'sha256'))
+                # if migration successful
                 if migrator_uid:
-                    gx.nodes[node].setdefault('PRed', []).append(frozen_to_json_friendly(migrator_uid))
-                    gx.nodes[node].update({'smithy_version': smithy_version,
-                                           'pinning_version': pinning_version})
-
-                # Stash the pr json data so we can access it later
-                if pr_json:
-                    d = dict(migrator_uid)
-                    d = frozen_to_json_friendly(d)
-                    d.update(PR=pr_json)
-                    gx.nodes[node]['PRed']['PR'] = pr_json
-                elif not gx.nodes[node]['PRed']['PR']:
-                    # If the pr_json is false then we need to check if we
-                    # just pushed to a branch or if there was no PR needed.
-                    # If there was no pr needed
-                    # put in some empty info so the rest runs smoothly
-                    # we don't need lazy json since this is small
-                    gx.nodes[node]['PRed']['PR'] = {
-                        'state': 'closed',
-                        'head': {'ref': 'this_is_not_a_branch'}
-                    }
+                    d = frozen_to_json_friendly(migrator_uid)
+                    # if we have the PR already do nothing
+                    if d['data'] in [existing_pr['data'] for existing_pr in gx.nodes[node].get('PRed', [])]:
+                        pass
+                    else:
+                        if not pr_json:
+                            pr_json = {
+                            'state': 'closed',
+                            'head': {'ref': '<this_is_not_a_branch>'}
+                        }
+                        d.update(PR=pr_json)
+                        gx.nodes[node].setdefault('PRed', []).append(d)
+                    gx.nodes[node].update(
+                        {'smithy_version': smithy_version,
+                         'pinning_version': pinning_version})
 
             except github3.GitHubError as e:
                 if e.msg == 'Repository was archived so is read-only.':
