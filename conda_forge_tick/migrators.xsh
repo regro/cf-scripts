@@ -681,7 +681,7 @@ class NoarchR(Noarch):
                         spacing = s
                     lines[index] = lines[index] + " "*spacing + "noarch: generic\n"
                 regex_unix1 = re.compile(r'license_file: \'{{ environ\["PREFIX"\] }}/lib/R/share/licenses/(\S+)\'\s+# \[unix\]')
-                regex_unix2 = re.compile(r'license_file: \'{{ environ\["PREFIX"\] }}\\/lib\\/R\\/share\\/licenses\\/(.+)\'\\\s+# \[unix\]')
+                regex_unix2 = re.compile(r'license_file: \'{{ environ\["PREFIX"\] }}\/lib\/R\/share\/licenses\/(.+)\'\\\s+# \[unix\]')
                 regex_win = re.compile(r'license_file: \'{{ environ\["PREFIX"\] }}\\[R]\\share\\licenses\\(\S+)\'\s+# \[win\]')
                 for i, line in enumerate(lines_stripped):
                     if noarch and line.lower().strip().startswith("skip: true"):
