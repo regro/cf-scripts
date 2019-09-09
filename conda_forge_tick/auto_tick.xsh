@@ -507,17 +507,20 @@ def migrator_status(migrator: Migrator, gx):
 
         buildable = not migrator.filter(attrs)
 
-        if manually_done:
-            out['done'].add(node)
-        elif pr_json is None:
-            if buildable:
-                out['awaiting-pr'].add(node)
+        try:
+            if manually_done:
+                out['done'].add(node)
+            elif pr_json is None:
+                if buildable:
+                    out['awaiting-pr'].add(node)
+                else:
+                    out['awaiting-parents'].add(node)
+            elif pr_json['PR']['state'] == 'closed':
+                out['done'].add(node)
             else:
-                out['awaiting-parents'].add(node)
-        elif pr_json['PR']['state'] == 'closed':
-            out['done'].add(node)
-        else:
-            out['in-pr'].add(node)
+                out['in-pr'].add(node)
+        except KeyError:
+            logger.critical("MISSING PR IN : {}".format(node))
         # additional metadata for reporting
         node_metadata['num_descendants'] = len(nx.descendants(gx2, node))
         node_metadata['immediate_children'] = list(sorted(gx2.successors(node)))
