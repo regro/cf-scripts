@@ -34,10 +34,10 @@ class Migrator:
                        '{{% set build = {} %}}')
                      )
 
-    def __init__(self, pr_limit=0, obj_version=None, symbiotic_migrations=None):
-        if symbiotic_migrations is None:
-            symbiotic_migrations = []
-        self.symbiotic_migrations = symbiotic_migrations
+    def __init__(self, pr_limit=0, obj_version=None, piggy_back_migrations=None):
+        if piggy_back_migrations is None:
+            piggy_back_migrations = []
+        self.piggy_back_migrations = piggy_back_migrations
         self.pr_limit = pr_limit
         self.obj_version=obj_version
 
@@ -84,7 +84,7 @@ class Migrator:
         namedtuple or bool:
             If namedtuple continue with PR, if False scrap local folder
         """
-        for migrate in self.symbiotic_migrations:
+        for migrate in self.piggy_back_migrations:
             if not filter(attrs):
                 migrate(recipe_dir, attrs, **kwargs)
         return self.migrator_uid(attrs)
