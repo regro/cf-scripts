@@ -239,8 +239,8 @@ def _update_upstream_versions_sequential(gx, sources):
             attrs["new_version"] = False
             continue
         to_update.append((node, attrs))
-    for node, attrs in to_update:
-        with attrs['payload'] as attrs:
+    for node, node_attrs in to_update:
+        with node_attrs['payload'] as attrs:
             try:
                 attrs["new_version"] = get_latest_version(attrs, sources)
             except Exception as e:
@@ -269,8 +269,8 @@ def _update_upstream_versions_process_pool(gx, sources):
                     {pool.submit(get_latest_version, attrs, sources): (node, attrs)}
                 )
         for f in as_completed(futures):
-            node, attrs = futures[f]
-            with attrs['payload'] as attrs:
+            node, node_attrs = futures[f]
+            with node_attrs['payload'] as attrs:
                 try:
                     attrs["new_version"] = f.result()
                 except Exception as e:
