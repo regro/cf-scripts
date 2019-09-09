@@ -575,18 +575,14 @@ def main(args=None):
                     # if we have the PR already do nothing
                     if d['data'] in [existing_pr['data'] for existing_pr in gx.nodes[node].get('PRed', [])]:
                         pass
-                    else:
-                        # if pr
-                        if pr_json:
-                            d.update(PR=pr_json)
-                        # no pr since not needed but migration is successful
-                        # put in place holder
-                        else:
-                            d.update({
-                            'state': 'closed',
-                            'head': {'ref': 'this_is_not_a_branch'}
-                        })
-                        gx.nodes[node].setdefault('PRed', []).append(d)
+                    # if pr
+                    elif not pr_json:
+                        pr_json = {
+                        'state': 'closed',
+                        'head': {'ref': '<this_is_not_a_branch>'}
+                    }
+                    d.update(PR=pr_json)
+                    gx.nodes[node].setdefault('PRed', []).append(d)
                     gx.nodes[node].update(
                         {'smithy_version': smithy_version,
                          'pinning_version': pinning_version})
