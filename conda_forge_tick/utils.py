@@ -2,7 +2,8 @@ import os
 from collections import defaultdict
 
 from collections.abc import Set, MutableMapping
-from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor, as_completed
+from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor, \
+    as_completed
 
 import contextlib
 import logging
@@ -15,6 +16,37 @@ import jinja2
 import networkx as nx
 
 pin_sep_pat = re.compile(" |>|<|=|\[")
+
+from collections import Mapping, Set, Sequence
+
+# dual python 2/3 compatability, inspired by the "six" library
+string_types = (str, bytes)
+iteritems = lambda mapping: mapping.items()
+
+
+def wrap_mapping(mapping, loader, dumper):
+
+
+def objwalk(obj, loader, dumper, path=(), memo=None,):
+    if memo is None:
+        memo = set()
+    iterator = None
+    if isinstance(obj, Mapping):
+
+        iterator = iteritems
+    elif isinstance(obj, (Sequence, Set)) and not isinstance(obj,
+                                                             string_types):
+        iterator = enumerate
+    if iterator:
+        if id(obj) not in memo:
+            memo.add(id(obj))
+            for path_component, value in iterator(obj):
+                for result in objwalk(value, loader, dumper,
+                                      path + (path_component,), memo):
+                    yield result
+            memo.remove(id(obj))
+    else:
+        yield path, obj
 
 
 class UniversalSet(Set):
@@ -212,7 +244,8 @@ def get_requirements(meta_yaml, outputs=True, build=True, host=True, run=True):
     reqs = _parse_requirements(meta_yaml.get("requirements", {}), **kw)
     outputs = meta_yaml.get("outputs", []) or [] if outputs else []
     for output in outputs:
-        reqs.update(_parse_requirements(output.get("requirements", {}) or {}, **kw))
+        reqs.update(
+            _parse_requirements(output.get("requirements", {}) or {}, **kw))
     return reqs
 
 
@@ -228,7 +261,8 @@ def _parse_requirements(req, build=True, host=True, run=True):
         host = req.get("host", []) or [] if host else []
         run = req.get("run", []) or [] if run else []
         reqlist = build + host + run
-    return set(pin_sep_pat.split(x)[0].lower() for x in reqlist if x is not None)
+    return set(
+        pin_sep_pat.split(x)[0].lower() for x in reqlist if x is not None)
 
 
 @contextlib.contextmanager
@@ -271,7 +305,8 @@ def object_hook(dct):
     return dct
 
 
-def dumps(obj, sort_keys=True, separators=(",", ":"), default=default, **kwargs):
+def dumps(obj, sort_keys=True, separators=(",", ":"), default=default,
+          **kwargs):
     """Returns a JSON string from a Python object."""
     return json.dumps(
         obj,
@@ -283,7 +318,8 @@ def dumps(obj, sort_keys=True, separators=(",", ":"), default=default, **kwargs)
     )
 
 
-def dump(obj, fp, sort_keys=True, separators=(",", ":"), default=default, **kwargs):
+def dump(obj, fp, sort_keys=True, separators=(",", ":"), default=default,
+         **kwargs):
     """Returns a JSON string from a Python object."""
     return json.dump(
         obj,
