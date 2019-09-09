@@ -238,9 +238,9 @@ def _parse_requirements(req, build=True, host=True, run=True):
     if isinstance(req, list):  # simple list goes to both host and run
         reqlist = req if (host or run) else []
     else:
-        build = as_iterable(req.get("build", []) or [] if build else [])
-        host = as_iterable(req.get("host", []) or [] if host else [])
-        run = as_iterable(req.get("run", []) or [] if run else [])
+        build = list(as_iterable(req.get("build", []) or [] if build else []))
+        host = list(as_iterable(req.get("host", []) or [] if host else []))
+        run = list(as_iterable(req.get("run", []) or [] if run else []))
         reqlist = build + host + run
     return set(
         pin_sep_pat.split(x)[0].lower() for x in reqlist if x is not None)
