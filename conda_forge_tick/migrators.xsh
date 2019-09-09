@@ -59,7 +59,8 @@ class Migrator:
         # don't run on things we've already done
         # don't run on bad nodes
         return (attrs.get('archived', False)
-                or frozen_to_json_friendly(self.migrator_uid(attrs)) in attrs.get('PRed', [])
+                or frozen_to_json_friendly(self.migrator_uid(attrs)
+                                           )['data'] in (z['data'] for z in attrs.get('PRed', []))
                 or (attrs.get('bad', False)
                     # This could be a dict, but then we can't fix it
                     and isinstance(attrs.get('bad'), str)
