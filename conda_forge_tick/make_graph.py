@@ -156,11 +156,11 @@ def make_graph(names, gx=None):
     gx2 = deepcopy(gx)
     logger.info("inferring nodes and edges")
     for node, _attrs in gx2.node.items():
-        attrs = _attrs['payload']
-        for dep in attrs.get("req", []):
-            if dep not in gx.nodes:
-                gx.add_node(dep, archived=True, time=time.time())
-            gx.add_edge(dep, node)
+        with g_attrs['payload'] as attrs:
+            for dep in attrs.get("req", []):
+                if dep not in gx.nodes:
+                    gx.add_node(dep, archived=True, time=time.time())
+                gx.add_edge(dep, node)
     logger.info("new nodes and edges infered")
     return gx
 
@@ -188,7 +188,8 @@ def update_graph_pr_status(gx: nx.DiGraph) -> nx.DiGraph:
             try:
                 res = f.result()
                 if res:
-                    gx.nodes[name]['payload']["PRed"][i]['PR'].update(**res)
+                    with gx.node[node_id]['payload'] as node:
+                        node["PRed"][i]['PR'].update(**res)
                     logger.info("Updated json for {}: {}".format(name, res["id"]))
             except github3.GitHubError as e:
                 logger.critical("GITHUB ERROR ON FEEDSTOCK: {}".format(name))
@@ -229,9 +230,10 @@ def close_labels(gx: nx.DiGraph) -> nx.DiGraph:
                 if res:
                     # add a piece of metadata which makes the muid matchup
                     # fail
-                    gx.node[name]['payload']['PRed'][i]['data']['bot_rerun'] = time.time()
-                    if 'bot_rerun' not in gx.node[name]['payload']["PRed"][i]['keys']:
-                        gx.node[name]['payload']['PRed'][i]['keys'].append('bot_rerun')
+                    with gx.node[node_id]['payload'] as node:
+                        node['PRed'][i]['data']['bot_rerun'] = time.time()
+                        if 'bot_rerun' not in gx.node[name]['payload']["PRed"][i]['keys']:
+                            node['PRed'][i]['keys'].append('bot_rerun')
                     logger.info(
                         "Closed and removed PR and branch for "
                         "{}: {}".format(name, res["id"])

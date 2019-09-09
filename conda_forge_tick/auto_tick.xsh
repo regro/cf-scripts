@@ -557,66 +557,66 @@ def main(args=None):
         top_level = set(node for node in effective_graph if not list(effective_graph.predecessors(node)))
         # print(list(migrator.order(effective_graph, gx)))
         for node in migrator.order(effective_graph, gx):
-            attrs = effective_graph.nodes[node]['payload']
-            # Don't let travis timeout, break ahead of the timeout so we make certain
-            # to write to the repo
-            if time.time() - int($START_TIME) > int($TIMEOUT) or good_prs >= migrator.pr_limit:
-                break
-            $PROJECT = attrs['feedstock_name']
-            $NODE = node
-            logger.info('%s IS MIGRATING %s', migrator.__class__.__name__.upper(),
-                        $PROJECT)
-            try:
-                # Don't bother running if we are at zero
-                if gh.rate_limit()['resources']['core']['remaining'] == 0:
+            with gx.node[node_id]['payload'] as attrs:
+                # Don't let travis timeout, break ahead of the timeout so we make certain
+                # to write to the repo
+                if time.time() - int($START_TIME) > int($TIMEOUT) or good_prs >= migrator.pr_limit:
                     break
-                rerender = (attrs.get('smithy_version') != smithy_version or
-                            attrs.get('pinning_version') != pinning_version or
-                            migrator.rerender)
-                migrator_uid, pr_json = run(attrs=attrs, migrator=migrator, gh=gh,
-                                            rerender=rerender, protocol='https',
-                                            hash_type=attrs.get('hash_type', 'sha256'))
-                # if migration successful
-                if migrator_uid:
-                    d = frozen_to_json_friendly(migrator_uid)
-                    # if we have the PR already do nothing
-                    if d['data'] in [existing_pr['data'] for existing_pr in attrs.get('PRed', [])]:
-                        pass
-                    else:
-                        if not pr_json:
-                            pr_json = {
-                            'state': 'closed',
-                            'head': {'ref': '<this_is_not_a_branch>'}
-                        }
-                        d.update(PR=pr_json)
-                        attrs.setdefault('PRed', []).append(d)
-                    attrs.update(
-                        {'smithy_version': smithy_version,
-                         'pinning_version': pinning_version})
-
-            except github3.GitHubError as e:
-                if e.msg == 'Repository was archived so is read-only.':
-                    attrs['archived'] = True
-                else:
-                    logger.critical('GITHUB ERROR ON FEEDSTOCK: %s', $PROJECT)
-                    if is_github_api_limit_reached(e, gh):
+                $PROJECT = attrs['feedstock_name']
+                $NODE = node
+                logger.info('%s IS MIGRATING %s', migrator.__class__.__name__.upper(),
+                            $PROJECT)
+                try:
+                    # Don't bother running if we are at zero
+                    if gh.rate_limit()['resources']['core']['remaining'] == 0:
                         break
-            except Exception as e:
-                logger.exception('NON GITHUB ERROR')
-                attrs['bad'] = {'exception': str(e),
-                                         'traceback': str(traceback.format_exc())}
-            else:
-                if migrator_uid:
-                    # On successful PR add to our counter
-                    good_prs += 1
-            finally:
-                # Write graph partially through
-                dump_graph(gx)
-                rm -rf $REVER_DIR + '/*'
-                logger.info(![pwd])
-                for f in g`/tmp/*`:
-                    if f not in temp:
-                        rm -rf @(f)
+                    rerender = (attrs.get('smithy_version') != smithy_version or
+                                attrs.get('pinning_version') != pinning_version or
+                                migrator.rerender)
+                    migrator_uid, pr_json = run(attrs=attrs, migrator=migrator, gh=gh,
+                                                rerender=rerender, protocol='https',
+                                                hash_type=attrs.get('hash_type', 'sha256'))
+                    # if migration successful
+                    if migrator_uid:
+                        d = frozen_to_json_friendly(migrator_uid)
+                        # if we have the PR already do nothing
+                        if d['data'] in [existing_pr['data'] for existing_pr in attrs.get('PRed', [])]:
+                            pass
+                        else:
+                            if not pr_json:
+                                pr_json = {
+                                'state': 'closed',
+                                'head': {'ref': '<this_is_not_a_branch>'}
+                            }
+                            d.update(PR=pr_json)
+                            attrs.setdefault('PRed', []).append(d)
+                        attrs.update(
+                            {'smithy_version': smithy_version,
+                             'pinning_version': pinning_version})
+
+                except github3.GitHubError as e:
+                    if e.msg == 'Repository was archived so is read-only.':
+                        attrs['archived'] = True
+                    else:
+                        logger.critical('GITHUB ERROR ON FEEDSTOCK: %s', $PROJECT)
+                        if is_github_api_limit_reached(e, gh):
+                            break
+                except Exception as e:
+                    logger.exception('NON GITHUB ERROR')
+                    attrs['bad'] = {'exception': str(e),
+                                             'traceback': str(traceback.format_exc())}
+                else:
+                    if migrator_uid:
+                        # On successful PR add to our counter
+                        good_prs += 1
+                finally:
+                    # Write graph partially through
+                    dump_graph(gx)
+                    rm -rf $REVER_DIR + '/*'
+                    logger.info(![pwd])
+                    for f in g`/tmp/*`:
+                        if f not in temp:
+                            rm -rf @(f)
 
     logger.info('API Calls Remaining: %d', gh.rate_limit()['resources']['core']['remaining'])
     logger.info('Done')

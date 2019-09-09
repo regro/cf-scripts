@@ -24,31 +24,6 @@ string_types = (str, bytes)
 iteritems = lambda mapping: mapping.items()
 
 
-def wrap_mapping(mapping, loader, dumper):
-
-
-def objwalk(obj, loader, dumper, path=(), memo=None,):
-    if memo is None:
-        memo = set()
-    iterator = None
-    if isinstance(obj, Mapping):
-
-        iterator = iteritems
-    elif isinstance(obj, (Sequence, Set)) and not isinstance(obj,
-                                                             string_types):
-        iterator = enumerate
-    if iterator:
-        if id(obj) not in memo:
-            memo.add(id(obj))
-            for path_component, value in iterator(obj):
-                for result in objwalk(value, loader, dumper,
-                                      path + (path_component,), memo):
-                    yield result
-            memo.remove(id(obj))
-    else:
-        yield path, obj
-
-
 class UniversalSet(Set):
     """The universal set, or identity of the set intersection operation."""
 
@@ -135,6 +110,12 @@ class LazyJson(MutableMapping):
         state = self.__dict__.copy()
         state["data"] = None
         return state
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self._dump()
 
 
 def render_meta_yaml(text):
