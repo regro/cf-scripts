@@ -155,8 +155,9 @@ def make_graph(names, gx=None):
 
     gx2 = deepcopy(gx)
     logger.info("inferring nodes and edges")
-    for node, attrs in gx2.node.items():
-        for dep in attrs['payload'].get("req", []):
+    for node, _attrs in gx2.node.items():
+        attrs = _attrs['payload']
+        for dep in attrs.get("req", []):
             if dep not in gx.nodes:
                 gx.add_node(dep, archived=True, time=time.time())
             gx.add_edge(dep, node)
@@ -165,6 +166,7 @@ def make_graph(names, gx=None):
 
 
 def update_graph_pr_status(gx: nx.DiGraph) -> nx.DiGraph:
+    failed_refresh = 0
     gh = github_client()
     futures = {}
     node_ids = list(gx.nodes)
@@ -173,7 +175,7 @@ def update_graph_pr_status(gx: nx.DiGraph) -> nx.DiGraph:
     with executor('thread', NUM_GITHUB_THREADS) as (pool, as_completed):
         for node_id in node_ids:
             node = gx.nodes[node_id]['payload']
-            prs = node.get("PRed_json", [])
+            prs = node.get("PRed", [])
             for i, migration in enumerate(prs):
                 pr_json = migration.get('PR', None)
                 # allow for false
@@ -186,21 +188,24 @@ def update_graph_pr_status(gx: nx.DiGraph) -> nx.DiGraph:
             try:
                 res = f.result()
                 if res:
-                    gx.nodes[name]['payload']["PRed_json"][i]['PR'].update(**res)
+                    gx.nodes[name]['payload']["PRed"][i]['PR'].update(**res)
                     logger.info("Updated json for {}: {}".format(name, res["id"]))
             except github3.GitHubError as e:
                 logger.critical("GITHUB ERROR ON FEEDSTOCK: {}".format(name))
+                failed_refresh += 1
                 if is_github_api_limit_reached(e, gh):
                     break
             except Exception as e:
                 logger.critical("ERROR ON FEEDSTOCK: {}: {}".format(
                     name,
-                    gx.nodes[name]['payload']["PRed_json"][i]['data']))
+                    gx.nodes[name]['payload']["PRed"][i]['data']))
                 raise
+    logger.info("JSON Refresh failed for {} PRs".format(failed_refresh))
     return gx
 
 
 def close_labels(gx: nx.DiGraph) -> nx.DiGraph:
+    failed_refresh = 0
     gh = github_client()
     futures = {}
     node_ids = list(gx.nodes)
@@ -209,7 +214,7 @@ def close_labels(gx: nx.DiGraph) -> nx.DiGraph:
     with executor('thread', NUM_GITHUB_THREADS) as (pool, as_completed):
         for node_id in node_ids:
             node = gx.nodes[node_id]['payload']
-            prs = node.get("PRed_json", [])
+            prs = node.get("PRed", [])
             for i, migration in enumerate(prs):
                 pr_json = migration.get('PR', None)
                 # allow for false
@@ -223,19 +228,20 @@ def close_labels(gx: nx.DiGraph) -> nx.DiGraph:
                 res = f.result()
                 if res:
                     del gx.node[name]['payload']["PRed"][i]
-                    del gx.nodes[name]['payload']["PRed_json"][i]
                     logger.info(
                         "Closed and removed PR and branch for "
                         "{}: {}".format(name, res["id"])
                     )
             except github3.GitHubError as e:
                 logger.critical("GITHUB ERROR ON FEEDSTOCK: {}".format(name))
+                failed_refresh += 1
                 if is_github_api_limit_reached(e, gh):
                     break
             except Exception as e:
                 logger.critical("ERROR ON FEEDSTOCK: {}: {}".format(
-                    name, gx.nodes[name]['payload']["PRed_json"][i]['data']))
+                    name, gx.nodes[name]['payload']["PRed"][i]['data']))
                 raise
+    logger.info("JSON Refresh failed for {} PRs".format(failed_refresh))
     return gx
 
 
