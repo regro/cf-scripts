@@ -7,6 +7,8 @@ import traceback
 import logging
 
 import datetime
+from pprint import pprint
+
 from doctr.travis import run_command_hiding_token as doctr_run
 import github3
 import networkx as nx
@@ -445,9 +447,6 @@ def initialize_migrators(do_rebuild=False):
     pinning_version = json.loads(![conda list conda-forge-pinning --json].output.strip())[0]['version']
 
     add_arch_migrate($MIGRATORS, gx)
-    add_rebuild_openssl($MIGRATORS, gx)
-    add_rebuild_successors($MIGRATORS, gx, 'fortran_compiler_stub', '7',
-                           rebuild_class=GFortranOSXRebuild)
     add_rebuild_successors($MIGRATORS, gx, 'qt', '5.12')
 
     return gx, smithy_version, pinning_version, temp, $MIGRATORS
@@ -479,6 +478,7 @@ def migrator_status(migrator: Migrator, gx):
         'in-pr': set(),
         'awaiting-pr': set(),
         'awaiting-parents': set(),
+        'bot-error': set(),
     }
 
     gx2 = copy.deepcopy(getattr(migrator, 'graph', gx))
@@ -495,7 +495,7 @@ def migrator_status(migrator: Migrator, gx):
         node_metadata = {}
         feedstock_metadata[node] = node_metadata
         nuid = migrator.migrator_uid(attrs)
-        for pr_json in attrs.get('PRed_json', []):
+        for pr_json in attrs.get('PRed', []):
             if pr_json and pr_json['data'] == frozen_to_json_friendly(nuid)['data']:
                 break
         else:
@@ -514,6 +514,8 @@ def migrator_status(migrator: Migrator, gx):
                 out['awaiting-pr'].add(node)
             else:
                 out['awaiting-parents'].add(node)
+        elif 'PR' not in pr_json:
+            out['bot-error'].add(node)
         elif pr_json['PR']['state'] == 'closed':
             out['done'].add(node)
         else:
@@ -521,7 +523,7 @@ def migrator_status(migrator: Migrator, gx):
         # additional metadata for reporting
         node_metadata['num_descendants'] = len(nx.descendants(gx2, node))
         node_metadata['immediate_children'] = list(sorted(gx2.successors(node)))
-        if pr_json:
+        if pr_json and 'PR' in pr_json:
             # I needed to fake some PRs they don't have html_urls though
             node_metadata['pr_url'] = pr_json['PR'].get('html_url', '')
 
@@ -567,17 +569,23 @@ def main(args=None):
                 migrator_uid, pr_json = run(attrs=attrs, migrator=migrator, gh=gh,
                                             rerender=rerender, protocol='https',
                                             hash_type=attrs.get('hash_type', 'sha256'))
+                # if migration successful
                 if migrator_uid:
-                    gx.nodes[node].setdefault('PRed', []).append(frozen_to_json_friendly(migrator_uid))
-                    gx.nodes[node].update({'smithy_version': smithy_version,
-                                           'pinning_version': pinning_version})
-
-                # Stash the pr json data so we can access it later
-                if pr_json:
-                    d = dict(migrator_uid)
-                    d = frozen_to_json_friendly(d)
-                    d.update(PR=pr_json)
-                    gx.nodes[node].setdefault('PRed_json', []).append(d)
+                    d = frozen_to_json_friendly(migrator_uid)
+                    # if we have the PR already do nothing
+                    if d['data'] in [existing_pr['data'] for existing_pr in gx.nodes[node].get('PRed', [])]:
+                        pass
+                    else:
+                        if not pr_json:
+                            pr_json = {
+                            'state': 'closed',
+                            'head': {'ref': '<this_is_not_a_branch>'}
+                        }
+                        d.update(PR=pr_json)
+                        gx.nodes[node].setdefault('PRed', []).append(d)
+                    gx.nodes[node].update(
+                        {'smithy_version': smithy_version,
+                         'pinning_version': pinning_version})
 
             except github3.GitHubError as e:
                 if e.msg == 'Repository was archived so is read-only.':
