@@ -7,6 +7,8 @@ import traceback
 import logging
 
 import datetime
+from pprint import pprint
+
 from doctr.travis import run_command_hiding_token as doctr_run
 import github3
 import networkx as nx
@@ -479,6 +481,7 @@ def migrator_status(migrator: Migrator, gx):
         'in-pr': set(),
         'awaiting-pr': set(),
         'awaiting-parents': set(),
+        'bot-error': set(),
     }
 
     gx2 = copy.deepcopy(getattr(migrator, 'graph', gx))
@@ -507,25 +510,23 @@ def migrator_status(migrator: Migrator, gx):
 
         buildable = not migrator.filter(attrs)
 
-        try:
-            if manually_done:
-                out['done'].add(node)
-            elif pr_json is None:
-                if buildable:
-                    out['awaiting-pr'].add(node)
-                else:
-                    out['awaiting-parents'].add(node)
-            elif pr_json['PR']['state'] == 'closed':
-                out['done'].add(node)
+        if manually_done:
+            out['done'].add(node)
+        elif pr_json is None:
+            if buildable:
+                out['awaiting-pr'].add(node)
             else:
-                out['in-pr'].add(node)
-        except KeyError:
-            logger.critical("MISSING PR IN : {}".format(node))
-            raise
+                out['awaiting-parents'].add(node)
+        elif 'PR' not in pr_json:
+            out['bot-error'].add(node)
+        elif pr_json['PR']['state'] == 'closed':
+            out['done'].add(node)
+        else:
+            out['in-pr'].add(node)
         # additional metadata for reporting
         node_metadata['num_descendants'] = len(nx.descendants(gx2, node))
         node_metadata['immediate_children'] = list(sorted(gx2.successors(node)))
-        if pr_json:
+        if pr_json and 'PR' in pr_json:
             # I needed to fake some PRs they don't have html_urls though
             node_metadata['pr_url'] = pr_json['PR'].get('html_url', '')
 

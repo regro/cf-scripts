@@ -765,7 +765,9 @@ class Rebuild(Migrator):
                     break
             else:
                 m_pred_json = None
-            if m_pred_json and m_pred_json['PR'].get('state', '') == 'open':
+            # note that if the bot is missing the PR we assume it is open
+            # so that errors halt the migration and can be fixed
+            if m_pred_json and m_pred_json.get('PR', {'state': 'open'}).get('state', '') == 'open':
                 return True
         return False
 
