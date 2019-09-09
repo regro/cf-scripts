@@ -214,21 +214,22 @@ class RawURL:
         return url
 
 
-def get_latest_version(meta_yaml, sources):
-    for source in sources:
-        url = source.get_url(meta_yaml)
-        if url is None:
-            continue
-        ver = source.get_version(url)
-        if ver:
-            return ver
-        else:
-            meta_yaml["bad"] = "Upstream: Could not find version on {}".format(
-                source.name
-            )
-    if not meta_yaml.get("bad"):
-        meta_yaml["bad"] = "Upstream: unknown source"
-    return False
+def get_latest_version(payload_meta_yaml, sources):
+    with payload_meta_yaml as meta_yaml:
+        for source in sources:
+            url = source.get_url(meta_yaml)
+            if url is None:
+                continue
+            ver = source.get_version(url)
+            if ver:
+                return ver
+            else:
+                meta_yaml["bad"] = "Upstream: Could not find version on {}".format(
+                    source.name
+                )
+        if not meta_yaml.get("bad"):
+            meta_yaml["bad"] = "Upstream: unknown source"
+        return False
 
 
 def _update_upstream_versions_sequential(gx, sources):
@@ -270,7 +271,7 @@ def _update_upstream_versions_process_pool(gx, sources):
                 )
         for f in as_completed(futures):
             node, node_attrs = futures[f]
-            with node_attrs['payload'] as attrs:
+            with node_attrs as attrs:
                 try:
                     attrs["new_version"] = f.result()
                 except Exception as e:
