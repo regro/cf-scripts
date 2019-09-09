@@ -414,8 +414,7 @@ def add_arch_migrate(migrators, gx):
     total_graph = copy.deepcopy(gx)
 
     for node, node_attrs in gx.node.items():
-        attrs = node_attrs
-        # attrs = node_attrs['payload']
+        attrs = node_attrs['payload']
         meta_yaml = attrs.get("meta_yaml", {}) or {}
         # no need to consider noarch packages for this rebuild
         noarch = meta_yaml.get('build', {}).get('noarch')
