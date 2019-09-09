@@ -155,8 +155,8 @@ def make_graph(names, gx=None):
 
     gx2 = deepcopy(gx)
     logger.info("inferring nodes and edges")
-    for node, _attrs in gx2.node.items():
-        with g_attrs['payload'] as attrs:
+    for node, node_attrs in gx2.node.items():
+        with node_attrs['payload'] as attrs:
             for dep in attrs.get("req", []):
                 if dep not in gx.nodes:
                     gx.add_node(dep, archived=True, time=time.time())
