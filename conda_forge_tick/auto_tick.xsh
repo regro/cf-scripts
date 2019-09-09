@@ -556,14 +556,14 @@ def main(args=None):
 
         top_level = set(node for node in effective_graph if not list(effective_graph.predecessors(node)))
         # print(list(migrator.order(effective_graph, gx)))
-        for node in migrator.order(effective_graph, gx):
-            with node['payload'] as attrs:
+        for node_name in migrator.order(effective_graph, gx):
+            with gx.nodes[node_name]['payload'] as attrs:
                 # Don't let travis timeout, break ahead of the timeout so we make certain
                 # to write to the repo
                 if time.time() - int($START_TIME) > int($TIMEOUT) or good_prs >= migrator.pr_limit:
                     break
                 $PROJECT = attrs['feedstock_name']
-                $NODE = node
+                $NODE = node_name
                 logger.info('%s IS MIGRATING %s', migrator.__class__.__name__.upper(),
                             $PROJECT)
                 try:
