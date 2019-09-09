@@ -7,6 +7,8 @@ import traceback
 import logging
 
 import datetime
+from pprint import pprint
+
 from doctr.travis import run_command_hiding_token as doctr_run
 import github3
 import networkx as nx
@@ -476,6 +478,7 @@ def migrator_status(migrator: Migrator, gx):
         'in-pr': set(),
         'awaiting-pr': set(),
         'awaiting-parents': set(),
+        'bot-error': set(),
     }
 
     gx2 = copy.deepcopy(getattr(migrator, 'graph', gx))
@@ -492,7 +495,7 @@ def migrator_status(migrator: Migrator, gx):
         node_metadata = {}
         feedstock_metadata[node] = node_metadata
         nuid = migrator.migrator_uid(attrs)
-        for pr_json in attrs.get('PRed_json', []):
+        for pr_json in attrs.get('PRed', []):
             if pr_json and pr_json['data'] == frozen_to_json_friendly(nuid)['data']:
                 break
         else:
@@ -511,6 +514,8 @@ def migrator_status(migrator: Migrator, gx):
                 out['awaiting-pr'].add(node)
             else:
                 out['awaiting-parents'].add(node)
+        elif 'PR' not in pr_json:
+            out['bot-error'].add(node)
         elif pr_json['PR']['state'] == 'closed':
             out['done'].add(node)
         else:
@@ -518,7 +523,7 @@ def migrator_status(migrator: Migrator, gx):
         # additional metadata for reporting
         node_metadata['num_descendants'] = len(nx.descendants(gx2, node))
         node_metadata['immediate_children'] = list(sorted(gx2.successors(node)))
-        if pr_json:
+        if pr_json and 'PR' in pr_json:
             # I needed to fake some PRs they don't have html_urls though
             node_metadata['pr_url'] = pr_json['PR'].get('html_url', '')
 
@@ -574,7 +579,17 @@ def main(args=None):
                     d = dict(migrator_uid)
                     d = frozen_to_json_friendly(d)
                     d.update(PR=pr_json)
-                    gx.nodes[node].setdefault('PRed_json', []).append(d)
+                    gx.nodes[node]['PRed']['PR'] = pr_json
+                elif not gx.nodes[node]['PRed']['PR']:
+                    # If the pr_json is false then we need to check if we
+                    # just pushed to a branch or if there was no PR needed.
+                    # If there was no pr needed
+                    # put in some empty info so the rest runs smoothly
+                    # we don't need lazy json since this is small
+                    gx.nodes[node]['PRed']['PR'] = {
+                        'state': 'closed',
+                        'head': {'ref': 'this_is_not_a_branch'}
+                    }
 
             except github3.GitHubError as e:
                 if e.msg == 'Repository was archived so is read-only.':
