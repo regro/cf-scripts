@@ -155,6 +155,11 @@ class CRAN(LibrariesIO):
 
 def get_sha256(url):
     try:
+        from rever import hash_url
+        return hash_url(url, "sha256")
+    except ImportError:
+        pass
+    try:
         filename = hashlib.sha256(url.encode("utf-8")).hexdigest()
         output = subprocess.check_output(
             ["wget", url, "-O", filename], stderr=subprocess.STDOUT
