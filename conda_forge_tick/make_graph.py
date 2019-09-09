@@ -213,7 +213,7 @@ def close_labels(gx: nx.DiGraph) -> nx.DiGraph:
     random.shuffle(node_ids)
     with executor('thread', NUM_GITHUB_THREADS) as (pool, as_completed):
         for node_id in node_ids:
-            node = gx.nodes[node_id]['payload']
+            node = gx.nodes[node_id]
             prs = node.get("PRed", [])
             for i, migration in enumerate(prs):
                 pr_json = migration.get('PR', None)
@@ -227,7 +227,11 @@ def close_labels(gx: nx.DiGraph) -> nx.DiGraph:
             try:
                 res = f.result()
                 if res:
-                    del gx.node[name]['payload']["PRed"][i]
+                    # add a piece of metadata which makes the muid matchup
+                    # fail
+                    gx.node[name]['payload']['PRed'][i]['data']['bot_rerun'] = time.time()
+                    if 'bot_rerun' not in gx.node[name]['payload']["PRed"][i]['keys']:
+                        gx.node[name]['payload']['PRed'][i]['keys'].append('bot_rerun')
                     logger.info(
                         "Closed and removed PR and branch for "
                         "{}: {}".format(name, res["id"])
