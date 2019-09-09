@@ -15,7 +15,7 @@ import yaml
 
 from xonsh.lib.collections import ChainDB, _convert_to_dict
 
-from conda_forge_tick.utils import github_client
+from conda_forge_tick.utils import github_client, load
 from .all_feedstocks import get_all_feedstocks
 from .utils import parse_meta_yaml, setup_logger, get_requirements, executor, \
     load_graph, dump_graph, LazyJson
@@ -29,6 +29,8 @@ NUM_GITHUB_THREADS = 4
 
 
 def get_attrs(name, i):
+    with open(f'node_attrs/{name}.json', 'r') as f:
+        old = load(f.read())
     lzj = LazyJson(f'node_attrs/{name}.json')
     with lzj as sub_graph:
         sub_graph.update({
@@ -101,6 +103,14 @@ def get_attrs(name, i):
         k = next(iter((source_keys & hashlib.algorithms_available)), None)
         if k:
             sub_graph["hash_type"] = k
+        try:
+            t = sub_graph.pop('time')
+            del old['time']
+        except KeyError:
+            pass
+        # if new and old are same don't put in time
+        if dict(sub_graph) != dict(old):
+            sub_graph['time'] = t
     return lzj
 
 
