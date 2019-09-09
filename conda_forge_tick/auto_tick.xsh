@@ -495,44 +495,45 @@ def migrator_status(migrator: Migrator, gx):
     feedstock_metadata = dict()
 
     for node, node_attrs in gx2.node.items():
-        attrs = node_attrs['payload']
-        # remove archived from status
-        if attrs.get('archived', False):
-            continue
-        node_metadata = {}
-        feedstock_metadata[node] = node_metadata
-        nuid = migrator.migrator_uid(attrs)
-        for pr_json in attrs.get('PRed', []):
-            if pr_json and pr_json['data'] == frozen_to_json_friendly(nuid)['data']:
-                break
-        else:
-            pr_json = None
-
-        # No PR was ever issued but the migration was performed.
-        # This is only the case when the migration was done manually before the bot could issue any PR.
-        manually_done = pr_json is None and frozen_to_json_friendly(migrator.migrator_uid(attrs)) in attrs.get('PRed', [])
-
-        buildable = not migrator.filter(attrs)
-
-        if manually_done:
-            out['done'].add(node)
-        elif pr_json is None:
-            if buildable:
-                out['awaiting-pr'].add(node)
+        with node_attrs['payload'] as attrs:
+            # remove archived from status
+            if attrs.get('archived', False):
+                continue
+            node_metadata = {}
+            feedstock_metadata[node] = node_metadata
+            nuid = migrator.migrator_uid(attrs)
+            for pr_json in attrs.get('PRed', []):
+                if pr_json and pr_json['data'] == frozen_to_json_friendly(nuid)['data']:
+                    break
             else:
-                out['awaiting-parents'].add(node)
-        elif 'PR' not in pr_json:
-            out['bot-error'].add(node)
-        elif pr_json['PR']['state'] == 'closed':
-            out['done'].add(node)
-        else:
-            out['in-pr'].add(node)
-        # additional metadata for reporting
-        node_metadata['num_descendants'] = len(nx.descendants(gx2, node))
-        node_metadata['immediate_children'] = list(sorted(gx2.successors(node)))
-        if pr_json and 'PR' in pr_json:
-            # I needed to fake some PRs they don't have html_urls though
-            node_metadata['pr_url'] = pr_json['PR'].get('html_url', '')
+                pr_json = None
+
+            # No PR was ever issued but the migration was performed.
+            # This is only the case when the migration was done manually before the bot could issue any PR.
+            pprint(frozen_to_json_friendly(migrator.migrator_uid(attrs)))
+            manually_done = pr_json is None and frozen_to_json_friendly(nuid)['data'] in (z['data'] for z in attrs.get('PRed', []))
+
+            buildable = not migrator.filter(attrs)
+
+            if manually_done:
+                out['done'].add(node)
+            elif pr_json is None:
+                if buildable:
+                    out['awaiting-pr'].add(node)
+                else:
+                    out['awaiting-parents'].add(node)
+            elif 'PR' not in pr_json:
+                out['bot-error'].add(node)
+            elif pr_json['PR']['state'] == 'closed':
+                out['done'].add(node)
+            else:
+                out['in-pr'].add(node)
+            # additional metadata for reporting
+            node_metadata['num_descendants'] = len(nx.descendants(gx2, node))
+            node_metadata['immediate_children'] = list(sorted(gx2.successors(node)))
+            if pr_json and 'PR' in pr_json:
+                # I needed to fake some PRs they don't have html_urls though
+                node_metadata['pr_url'] = pr_json['PR'].get('html_url', '')
 
     for k in out.keys():
         out[k] = list(sorted(out[k], key=lambda x: build_sequence.index(x) if x in build_sequence else -1))
