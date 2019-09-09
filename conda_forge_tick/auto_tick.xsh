@@ -16,8 +16,7 @@ from xonsh.lib.os import indir
 
 from .git_utils import (get_repo, push_repo, is_github_api_limit_reached, ensure_label_exists, label_pr)
 from .path_lengths import cyclic_topological_sort
-from .utils import setup_logger, pluck, get_requirements, load_graph, \
-    dump_graph
+from .utils import (setup_logger, pluck, get_requirements, load_graph, dump_graph)
 
 logger = logging.getLogger("conda_forge_tick.auto_tick")
 
@@ -25,7 +24,7 @@ logger = logging.getLogger("conda_forge_tick.auto_tick")
 # https://travis-ci.org/regro/00-find-feedstocks/jobs/388387895#L1870
 from .migrators import *
 $MIGRATORS = [
-   Version(pr_limit=10),
+   Version(pr_limit=1),
    # Noarch(pr_limit=10),
    # Pinning(pr_limit=1, removals={'perl'}),
    # Compiler(pr_limit=7),
@@ -187,7 +186,8 @@ def add_rebuild(migrators, gx):
     """
 
     total_graph = copy.deepcopy(gx)
-    for node, attrs in gx.node.items():
+    for node, node_attrs in gx.node.items():
+        attrs = node_attrs['payload']
         meta_yaml = attrs.get("meta_yaml", {}) or {}
         bh = get_requirements(meta_yaml, run=False)
 
@@ -234,7 +234,8 @@ def add_rebuild_openssl(migrators, gx):
 
     total_graph = copy.deepcopy(gx)
 
-    for node, attrs in gx.node.items():
+    for node, node_attrs in gx.node.items():
+        attrs = node_attrs['payload']
         meta_yaml = attrs.get("meta_yaml", {}) or {}
         bh = get_requirements(meta_yaml)
         openssl_c = 'openssl' in bh
@@ -276,7 +277,8 @@ def add_rebuild_libprotobuf(migrators, gx):
 
     total_graph = copy.deepcopy(gx)
 
-    for node, attrs in gx.node.items():
+    for node, node_attrs in gx.node.items():
+        attrs = node_attrs['payload']
         meta_yaml = attrs.get("meta_yaml", {}) or {}
         bh = get_requirements(meta_yaml)
         protobuf_c = 'libprotobuf' in bh
@@ -328,7 +330,8 @@ def add_rebuild_successors(migrators, gx, package_name, pin_version, pr_limit=5,
 
     total_graph = copy.deepcopy(gx)
 
-    for node, attrs in gx.node.items():
+    for node, node_attrs in gx.node.items():
+        attrs = node_attrs['payload']
         meta_yaml = attrs.get("meta_yaml", {}) or {}
         bh = get_requirements(meta_yaml)
         criteria = package_name in bh
@@ -369,7 +372,8 @@ def add_rebuild_blas(migrators, gx):
     """
     total_graph = copy.deepcopy(gx)
 
-    for node, attrs in gx.node.items():
+    for node, node_attrs in gx.node.items():
+        attrs = node_attrs['payload']
         meta_yaml = attrs.get("meta_yaml", {}) or {}
         bh = get_requirements(meta_yaml)
         pkgs = set(["openblas", "openblas-devel", "mkl", "mkl-devel", "blas", "lapack", "clapack"])
@@ -409,7 +413,8 @@ def add_arch_migrate(migrators, gx):
     """
     total_graph = copy.deepcopy(gx)
 
-    for node, attrs in gx.node.items():
+    for node, node_attrs in gx.node.items():
+        attrs = node_attrs['payload']
         meta_yaml = attrs.get("meta_yaml", {}) or {}
         # no need to consider noarch packages for this rebuild
         noarch = meta_yaml.get('build', {}).get('noarch')
@@ -428,7 +433,7 @@ def add_arch_migrate(migrators, gx):
 
     migrators.append(
         ArchRebuild(graph=total_graph,
-                pr_limit=5,
+                pr_limit=1,
                 name='aarch64 and ppc64le addition',
                         top_level=top_level,
                         cycles=cycles))
@@ -447,7 +452,7 @@ def initialize_migrators(do_rebuild=False):
     pinning_version = json.loads(![conda list conda-forge-pinning --json].output.strip())[0]['version']
 
     add_arch_migrate($MIGRATORS, gx)
-    add_rebuild_successors($MIGRATORS, gx, 'qt', '5.12')
+    add_rebuild_successors($MIGRATORS, gx, 'qt', '5.12', pr_limit=1)
 
     return gx, smithy_version, pinning_version, temp, $MIGRATORS
 
@@ -456,7 +461,8 @@ def get_effective_graph(migrator: Migrator, gx):
     gx2 = copy.deepcopy(getattr(migrator, 'graph', gx))
 
     # Prune graph to only things that need builds right now
-    for node, attrs in gx.node.items():
+    for node, node_attrs in gx.node.items():
+        attrs = node_attrs['payload']
         if node in gx2 and migrator.filter(attrs):
             gx2.remove_node(node)
 
@@ -488,7 +494,8 @@ def migrator_status(migrator: Migrator, gx):
 
     feedstock_metadata = dict()
 
-    for node, attrs in gx2.node.items():
+    for node, node_attrs in gx2.node.items():
+        attrs = node_attrs['payload']
         # remove archived from status
         if attrs.get('archived', False):
             continue
@@ -503,7 +510,7 @@ def migrator_status(migrator: Migrator, gx):
 
         # No PR was ever issued but the migration was performed.
         # This is only the case when the migration was done manually before the bot could issue any PR.
-        manually_done = pr_json is None and frozen_to_json_friendly(migrator.migrator_uid(attrs)) in attrs.get('PRed', [])
+        manually_done = pr_json is None and frozen_to_json_friendly(nuid)['data'] in (z['data'] for z in attrs.get('PRed', []))
 
         buildable = not migrator.filter(attrs)
 
@@ -541,75 +548,75 @@ def main(args=None):
 
     for migrator in $MIGRATORS:
         good_prs = 0
-        gx2 = get_effective_graph(migrator, gx)
+        effective_graph = get_effective_graph(migrator, gx)
 
-        $SUBGRAPH = gx2
+        $SUBGRAPH = effective_graph
         logger.info('Total migrations for %s: %d', migrator.__class__.__name__,
-                    len(gx2.node))
+                    len(effective_graph.node))
 
-        top_level = set(node for node in gx2 if not list(gx2.predecessors(node)))
-        # print(list(migrator.order(gx2, gx)))
-        for node in migrator.order(gx2, gx):
-            attrs = gx2.nodes[node]
-            # Don't let travis timeout, break ahead of the timeout so we make certain
-            # to write to the repo
-            if time.time() - int($START_TIME) > int($TIMEOUT) or good_prs >= migrator.pr_limit:
-                break
-            $PROJECT = attrs['feedstock_name']
-            $NODE = node
-            logger.info('%s IS MIGRATING %s', migrator.__class__.__name__.upper(),
-                        $PROJECT)
-            try:
-                # Don't bother running if we are at zero
-                if gh.rate_limit()['resources']['core']['remaining'] == 0:
+        top_level = set(node for node in effective_graph if not list(effective_graph.predecessors(node)))
+        # print(list(migrator.order(effective_graph, gx)))
+        for node in migrator.order(effective_graph, gx):
+            with node['payload'] as attrs:
+                # Don't let travis timeout, break ahead of the timeout so we make certain
+                # to write to the repo
+                if time.time() - int($START_TIME) > int($TIMEOUT) or good_prs >= migrator.pr_limit:
                     break
-                rerender = (gx.nodes[node].get('smithy_version') != smithy_version or
-                            gx.nodes[node].get('pinning_version') != pinning_version or
-                            migrator.rerender)
-                migrator_uid, pr_json = run(attrs=attrs, migrator=migrator, gh=gh,
-                                            rerender=rerender, protocol='https',
-                                            hash_type=attrs.get('hash_type', 'sha256'))
-                # if migration successful
-                if migrator_uid:
-                    d = frozen_to_json_friendly(migrator_uid)
-                    # if we have the PR already do nothing
-                    if d['data'] in [existing_pr['data'] for existing_pr in gx.nodes[node].get('PRed', [])]:
-                        pass
-                    else:
-                        if not pr_json:
-                            pr_json = {
-                            'state': 'closed',
-                            'head': {'ref': '<this_is_not_a_branch>'}
-                        }
-                        d.update(PR=pr_json)
-                        gx.nodes[node].setdefault('PRed', []).append(d)
-                    gx.nodes[node].update(
-                        {'smithy_version': smithy_version,
-                         'pinning_version': pinning_version})
-
-            except github3.GitHubError as e:
-                if e.msg == 'Repository was archived so is read-only.':
-                    gx.nodes[node]['archived'] = True
-                else:
-                    logger.critical('GITHUB ERROR ON FEEDSTOCK: %s', $PROJECT)
-                    if is_github_api_limit_reached(e, gh):
+                $PROJECT = attrs['feedstock_name']
+                $NODE = node
+                logger.info('%s IS MIGRATING %s', migrator.__class__.__name__.upper(),
+                            $PROJECT)
+                try:
+                    # Don't bother running if we are at zero
+                    if gh.rate_limit()['resources']['core']['remaining'] == 0:
                         break
-            except Exception as e:
-                logger.exception('NON GITHUB ERROR')
-                gx.nodes[node]['bad'] = {'exception': str(e),
-                                         'traceback': str(traceback.format_exc())}
-            else:
-                if migrator_uid:
-                    # On successful PR add to our counter
-                    good_prs += 1
-            finally:
-                # Write graph partially through
-                dump_graph(gx)
-                rm -rf $REVER_DIR + '/*'
-                logger.info(![pwd])
-                for f in g`/tmp/*`:
-                    if f not in temp:
-                        rm -rf @(f)
+                    rerender = (attrs.get('smithy_version') != smithy_version or
+                                attrs.get('pinning_version') != pinning_version or
+                                migrator.rerender)
+                    migrator_uid, pr_json = run(attrs=attrs, migrator=migrator, gh=gh,
+                                                rerender=rerender, protocol='https',
+                                                hash_type=attrs.get('hash_type', 'sha256'))
+                    # if migration successful
+                    if migrator_uid:
+                        d = frozen_to_json_friendly(migrator_uid)
+                        # if we have the PR already do nothing
+                        if d['data'] in [existing_pr['data'] for existing_pr in attrs.get('PRed', [])]:
+                            pass
+                        else:
+                            if not pr_json:
+                                pr_json = {
+                                'state': 'closed',
+                                'head': {'ref': '<this_is_not_a_branch>'}
+                            }
+                            d.update(PR=pr_json)
+                            attrs.setdefault('PRed', []).append(d)
+                        attrs.update(
+                            {'smithy_version': smithy_version,
+                             'pinning_version': pinning_version})
+
+                except github3.GitHubError as e:
+                    if e.msg == 'Repository was archived so is read-only.':
+                        attrs['archived'] = True
+                    else:
+                        logger.critical('GITHUB ERROR ON FEEDSTOCK: %s', $PROJECT)
+                        if is_github_api_limit_reached(e, gh):
+                            break
+                except Exception as e:
+                    logger.exception('NON GITHUB ERROR')
+                    attrs['bad'] = {'exception': str(e),
+                                             'traceback': str(traceback.format_exc())}
+                else:
+                    if migrator_uid:
+                        # On successful PR add to our counter
+                        good_prs += 1
+                finally:
+                    # Write graph partially through
+                    dump_graph(gx)
+                    rm -rf $REVER_DIR + '/*'
+                    logger.info(![pwd])
+                    for f in g`/tmp/*`:
+                        if f not in temp:
+                            rm -rf @(f)
 
     logger.info('API Calls Remaining: %d', gh.rate_limit()['resources']['core']['remaining'])
     logger.info('Done')

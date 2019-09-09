@@ -233,42 +233,16 @@ def get_latest_version(meta_yaml, sources):
 
 def _update_upstream_versions_sequential(gx, sources):
     to_update = []
-    for node, attrs in gx.node.items():
+    for node, node_attrs in gx.node.items():
+        attrs = node_attrs['payload']
         if attrs.get("bad") or attrs.get("archived"):
             attrs["new_version"] = False
             continue
         to_update.append((node, attrs))
-    for node, attrs in to_update:
-        try:
-            attrs["new_version"] = get_latest_version(attrs, sources)
-        except Exception as e:
+    for node, node_attrs in to_update:
+        with node_attrs['payload'] as attrs:
             try:
-                se = str(e)
-            except Exception as ee:
-                se = "Bad exception string: {}".format(ee)
-            logger.warn("Error getting uptream version of {}: {}".format(node, se))
-            attrs["bad"] = "Upstream: Error getting upstream version"
-            attrs["new_version"] = False
-        else:
-            logger.info(
-                "{} - {} - {}".format(node, attrs["version"], attrs["new_version"])
-            )
-
-
-def _update_upstream_versions_process_pool(gx, sources):
-    futures = {}
-    with executor(kind='dask', max_workers=20) as (pool, as_completed):
-        for node, attrs in gx.node.items():
-            if attrs.get("bad") or attrs.get("archived"):
-                attrs["new_version"] = False
-                continue
-            futures.update(
-                {pool.submit(get_latest_version, attrs, sources): (node, attrs)}
-            )
-        for f in as_completed(futures):
-            node, attrs = futures[f]
-            try:
-                attrs["new_version"] = f.result()
+                attrs["new_version"] = get_latest_version(attrs, sources)
             except Exception as e:
                 try:
                     se = str(e)
@@ -279,8 +253,38 @@ def _update_upstream_versions_process_pool(gx, sources):
                 attrs["new_version"] = False
             else:
                 logger.info(
-                    "{} - {} - {}".format(node, attrs.get("version", "<no-version>"), attrs["new_version"])
+                    "{} - {} - {}".format(node, attrs["version"], attrs["new_version"])
                 )
+
+
+def _update_upstream_versions_process_pool(gx, sources):
+    futures = {}
+    with executor(kind='dask', max_workers=20) as (pool, as_completed):
+        for node, node_attrs in gx.node.items():
+            with node_attrs['payload'] as attrs:
+                if attrs.get("bad") or attrs.get("archived"):
+                    attrs["new_version"] = False
+                    continue
+                futures.update(
+                    {pool.submit(get_latest_version, attrs, sources): (node, attrs)}
+                )
+        for f in as_completed(futures):
+            node, node_attrs = futures[f]
+            with node_attrs['payload'] as attrs:
+                try:
+                    attrs["new_version"] = f.result()
+                except Exception as e:
+                    try:
+                        se = str(e)
+                    except Exception as ee:
+                        se = "Bad exception string: {}".format(ee)
+                    logger.warn("Error getting uptream version of {}: {}".format(node, se))
+                    attrs["bad"] = "Upstream: Error getting upstream version"
+                    attrs["new_version"] = False
+                else:
+                    logger.info(
+                        "{} - {} - {}".format(node, attrs.get("version", "<no-version>"), attrs["new_version"])
+                    )
 
 
 def update_upstream_versions(gx, sources=None):
@@ -303,9 +307,9 @@ def update_upstream_versions(gx, sources=None):
                     [
                         n
                         for n, a in gx.node.items()
-                        if a.get("new_version") and a.get('version')  # if we can get a new version
-                        and a["new_version"] != a["version"]  # if we need a bump
-                        and a.get("PRed", "000") != a["new_version"]  # if not PRed
+                        if a['payload'].get("new_version") and a['payload'].get('version')  # if we can get a new version
+                        and a['payload']["new_version"] != a['payload']["version"]  # if we need a bump
+                        and a['payload'].get("PRed", "000") != a['payload']["new_version"]  # if not PRed
                     ]
                 )
             )

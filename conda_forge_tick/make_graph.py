@@ -1,13 +1,11 @@
 import re
 import collections.abc
-import datetime
 import hashlib
 import logging
 import os
 import time
 import random
 import builtins
-import contextlib
 from copy import deepcopy
 
 import github3
@@ -16,9 +14,11 @@ import requests
 import yaml
 
 from xonsh.lib.collections import ChainDB, _convert_to_dict
+
+from conda_forge_tick.utils import github_client
 from .all_feedstocks import get_all_feedstocks
 from .utils import parse_meta_yaml, setup_logger, get_requirements, executor, \
-    load_graph, dump_graph
+    load_graph, dump_graph, LazyJson
 from .git_utils import refresh_pr, is_github_api_limit_reached, close_out_labels
 
 logger = logging.getLogger("conda_forge_tick.make_graph")
@@ -29,14 +29,16 @@ NUM_GITHUB_THREADS = 4
 
 
 def get_attrs(name, i):
-    sub_graph = {
+    sub_graph = LazyJson(f'node_attrs/{name}')
+    sub_graph.update({
         "time": time.time(),
         "feedstock_name": name,
         # All feedstocks start out as good
         "bad": False,
-    }
+    })
 
     logger.info((i, name))
+
     def fetch_file(filepath):
         r = requests.get(
             "https://raw.githubusercontent.com/"
@@ -110,7 +112,7 @@ def _build_graph_process_pool(gx, names, new_names):
         for f in as_completed(futures):
             name = futures[f]
             try:
-                sub_graph = f.result()
+                sub_graph = {'payload': f.result()}
             except Exception as e:
                 logger.warn("Error adding {} to the graph: {}".format(name, e))
             else:
@@ -123,7 +125,7 @@ def _build_graph_process_pool(gx, names, new_names):
 def _build_graph_sequential(gx, names, new_names):
     for i, name in enumerate(names):
         try:
-            sub_graph = get_attrs(name, i)
+            sub_graph = {'payload': get_attrs(name, i)}
         except Exception as e:
             logger.warn("Error adding {} to the graph: {}".format(name, e))
         else:
@@ -153,20 +155,14 @@ def make_graph(names, gx=None):
 
     gx2 = deepcopy(gx)
     logger.info("inferring nodes and edges")
-    for node, attrs in gx2.node.items():
-        for dep in attrs.get("req", []):
-            if dep not in gx.nodes:
-                gx.add_node(dep, archived=True, time=time.time())
-            gx.add_edge(dep, node)
+    for node, node_attrs in gx2.node.items():
+        with node_attrs['payload'] as attrs:
+            for dep in attrs.get("req", []):
+                if dep not in gx.nodes:
+                    gx.add_node(dep, archived=True, time=time.time())
+                gx.add_edge(dep, node)
     logger.info("new nodes and edges infered")
     return gx
-
-
-def github_client():
-    if os.environ.get('GITHUB_TOKEN'):
-        return github3.login(token=os.environ['GITHUB_TOKEN'])
-    else:
-        return  github3.login(os.environ["USERNAME"], os.environ["PASSWORD"])
 
 
 def update_graph_pr_status(gx: nx.DiGraph) -> nx.DiGraph:
@@ -178,7 +174,7 @@ def update_graph_pr_status(gx: nx.DiGraph) -> nx.DiGraph:
     random.shuffle(node_ids)
     with executor('thread', NUM_GITHUB_THREADS) as (pool, as_completed):
         for node_id in node_ids:
-            node = gx.nodes[node_id]
+            node = gx.nodes[node_id]['payload']
             prs = node.get("PRed", [])
             for i, migration in enumerate(prs):
                 pr_json = migration.get('PR', None)
@@ -192,7 +188,8 @@ def update_graph_pr_status(gx: nx.DiGraph) -> nx.DiGraph:
             try:
                 res = f.result()
                 if res:
-                    gx.nodes[name]["PRed"][i]['PR'].update(**res)
+                    with gx.node[node_id]['payload'] as node:
+                        node["PRed"][i]['PR'].update(**res)
                     logger.info("Updated json for {}: {}".format(name, res["id"]))
             except github3.GitHubError as e:
                 logger.critical("GITHUB ERROR ON FEEDSTOCK: {}".format(name))
@@ -200,7 +197,9 @@ def update_graph_pr_status(gx: nx.DiGraph) -> nx.DiGraph:
                 if is_github_api_limit_reached(e, gh):
                     break
             except Exception as e:
-                logger.critical("ERROR ON FEEDSTOCK: {}: {}".format(name, gx.nodes[name]["PRed"][i]['data']))
+                logger.critical("ERROR ON FEEDSTOCK: {}: {}".format(
+                    name,
+                    gx.nodes[name]['payload']["PRed"][i]['data']))
                 raise
     logger.info("JSON Refresh failed for {} PRs".format(failed_refresh))
     return gx
@@ -231,10 +230,10 @@ def close_labels(gx: nx.DiGraph) -> nx.DiGraph:
                 if res:
                     # add a piece of metadata which makes the muid matchup
                     # fail
-                    gx.node[name]['PRed'][i]['data']['bot_rerun'] = time.time()
-                    if 'bot_rerun' not in gx.node[name]["PRed"][i]['keys']:
-                        gx.node[name]['PRed'][i]['keys'].append('bot_rerun')
-
+                    with gx.node[node_id]['payload'] as node:
+                        node['PRed'][i]['data']['bot_rerun'] = time.time()
+                        if 'bot_rerun' not in gx.node[name]['payload']["PRed"][i]['keys']:
+                            node['PRed'][i]['keys'].append('bot_rerun')
                     logger.info(
                         "Closed and removed PR and branch for "
                         "{}: {}".format(name, res["id"])
@@ -245,7 +244,8 @@ def close_labels(gx: nx.DiGraph) -> nx.DiGraph:
                 if is_github_api_limit_reached(e, gh):
                     break
             except Exception as e:
-                logger.critical("ERROR ON FEEDSTOCK: {}: {}".format(name, gx.nodes[name]["PRed"][i]['data']))
+                logger.critical("ERROR ON FEEDSTOCK: {}: {}".format(
+                    name, gx.nodes[name]['payload']["PRed"][i]['data']))
                 raise
     logger.info("JSON Refresh failed for {} PRs".format(failed_refresh))
     return gx

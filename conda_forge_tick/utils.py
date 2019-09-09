@@ -2,7 +2,8 @@ import os
 from collections import defaultdict
 
 from collections.abc import Set, MutableMapping
-from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor, as_completed
+from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor, \
+    as_completed
 
 import contextlib
 import logging
@@ -10,10 +11,17 @@ import itertools
 import json
 import re
 
+import github3
 import jinja2
 import networkx as nx
 
 pin_sep_pat = re.compile(" |>|<|=|\[")
+
+from collections import Mapping, Set, Sequence
+
+# dual python 2/3 compatability, inspired by the "six" library
+string_types = (str, bytes)
+iteritems = lambda mapping: mapping.items()
 
 
 class UniversalSet(Set):
@@ -102,6 +110,12 @@ class LazyJson(MutableMapping):
         state = self.__dict__.copy()
         state["data"] = None
         return state
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self._dump()
 
 
 def render_meta_yaml(text):
@@ -211,7 +225,8 @@ def get_requirements(meta_yaml, outputs=True, build=True, host=True, run=True):
     reqs = _parse_requirements(meta_yaml.get("requirements", {}), **kw)
     outputs = meta_yaml.get("outputs", []) or [] if outputs else []
     for output in outputs:
-        reqs.update(_parse_requirements(output.get("requirements", {}) or {}, **kw))
+        reqs.update(
+            _parse_requirements(output.get("requirements", {}) or {}, **kw))
     return reqs
 
 
@@ -227,7 +242,8 @@ def _parse_requirements(req, build=True, host=True, run=True):
         host = req.get("host", []) or [] if host else []
         run = req.get("run", []) or [] if run else []
         reqlist = build + host + run
-    return set(pin_sep_pat.split(x)[0].lower() for x in reqlist if x is not None)
+    return set(
+        pin_sep_pat.split(x)[0].lower() for x in reqlist if x is not None)
 
 
 @contextlib.contextmanager
@@ -270,7 +286,8 @@ def object_hook(dct):
     return dct
 
 
-def dumps(obj, sort_keys=True, separators=(",", ":"), default=default, **kwargs):
+def dumps(obj, sort_keys=True, separators=(",", ":"), default=default,
+          **kwargs):
     """Returns a JSON string from a Python object."""
     return json.dumps(
         obj,
@@ -282,7 +299,8 @@ def dumps(obj, sort_keys=True, separators=(",", ":"), default=default, **kwargs)
     )
 
 
-def dump(obj, fp, sort_keys=True, separators=(",", ":"), default=default, **kwargs):
+def dump(obj, fp, sort_keys=True, separators=(",", ":"), default=default,
+         **kwargs):
     """Returns a JSON string from a Python object."""
     return json.dump(
         obj,
@@ -328,3 +346,10 @@ def frozen_to_json_friendly(fz: dict, PR: LazyJson = None):
     if PR:
         d["PR"] = PR
     return d
+
+
+def github_client():
+    if os.environ.get('GITHUB_TOKEN'):
+        return github3.login(token=os.environ['GITHUB_TOKEN'])
+    else:
+        return github3.login(os.environ["USERNAME"], os.environ["PASSWORD"])
