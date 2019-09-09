@@ -29,7 +29,7 @@ NUM_GITHUB_THREADS = 4
 
 
 def get_attrs(name, i):
-    lzj = LazyJson(f'node_attrs/{name}')
+    lzj = LazyJson(f'node_attrs/{name}.json')
     with lzj as sub_graph:
         sub_graph.update({
             "time": time.time(),
