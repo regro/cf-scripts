@@ -331,8 +331,7 @@ def add_rebuild_successors(migrators, gx, package_name, pin_version, pr_limit=5,
     total_graph = copy.deepcopy(gx)
 
     for node, node_attrs in gx.node.items():
-        attrs = node_attrs
-        # attrs = node_attrs['payload']
+        attrs = node_attrs['payload']
         meta_yaml = attrs.get("meta_yaml", {}) or {}
         bh = get_requirements(meta_yaml)
         criteria = package_name in bh
@@ -497,8 +496,7 @@ def migrator_status(migrator: Migrator, gx):
     feedstock_metadata = dict()
 
     for node, node_attrs in gx2.node.items():
-        attrs = node_attrs
-        # attrs = node_attrs['payload']
+        attrs = node_attrs['payload']
         # remove archived from status
         if attrs.get('archived', False):
             continue
@@ -560,7 +558,7 @@ def main(args=None):
         top_level = set(node for node in effective_graph if not list(effective_graph.predecessors(node)))
         # print(list(migrator.order(effective_graph, gx)))
         for node in migrator.order(effective_graph, gx):
-            with gx.node[node_id]['payload'] as attrs:
+            with node['payload'] as attrs:
                 # Don't let travis timeout, break ahead of the timeout so we make certain
                 # to write to the repo
                 if time.time() - int($START_TIME) > int($TIMEOUT) or good_prs >= migrator.pr_limit:
