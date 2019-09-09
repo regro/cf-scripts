@@ -575,7 +575,7 @@ def main(args=None):
                     # if we have the PR already do nothing
                     if d['data'] in [existing_pr['data'] for existing_pr in gx.nodes[node].get('PRed', [])]:
                         pass
-                    # if pr
+                    # if no pr
                     elif not pr_json:
                         pr_json = {
                         'state': 'closed',
