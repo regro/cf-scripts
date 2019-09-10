@@ -8,6 +8,7 @@ import logging
 
 import datetime
 from pprint import pprint
+from urllib.error import URLError
 
 from doctr.travis import run_command_hiding_token as doctr_run
 import github3
@@ -601,10 +602,20 @@ def main(args=None):
                         logger.critical('GITHUB ERROR ON FEEDSTOCK: %s', $PROJECT)
                         if is_github_api_limit_reached(e, gh):
                             break
+                except URLError as e:
+                    logger.exception('URLError ERROR')
+                    attrs['bad'] = {
+                        'exception': str(e),
+                        'traceback': str(traceback.format_exc()).split('\n'),
+                        'code': getattr(e, 'code'),
+                        'url': getattr(e, 'url'),
+                    }
                 except Exception as e:
                     logger.exception('NON GITHUB ERROR')
-                    attrs['bad'] = {'exception': str(e),
-                                             'traceback': str(traceback.format_exc())}
+                    attrs['bad'] = {
+                        'exception': str(e),
+                        'traceback': str(traceback.format_exc()).split('\n')
+                    }
                 else:
                     if migrator_uid:
                         # On successful PR add to our counter
