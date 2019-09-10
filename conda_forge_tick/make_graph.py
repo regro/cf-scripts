@@ -201,7 +201,7 @@ def update_graph_pr_status(gx: nx.DiGraph) -> nx.DiGraph:
                     with gx.node[name]['payload'] as node:
                         node["PRed"][i]['PR'].update(**res)
                     logger.info("Updated json for {}: {}".format(name, res["id"]))
-            except github3.GitHubError as e:
+            except (github3.GitHubError, github3.exceptions.ConnectionError) as e:
                 logger.critical("GITHUB ERROR ON FEEDSTOCK: {}".format(name))
                 failed_refresh += 1
                 if is_github_api_limit_reached(e, gh):
