@@ -84,9 +84,9 @@ class Migrator:
         namedtuple or bool:
             If namedtuple continue with PR, if False scrap local folder
         """
-        for migrate in self.piggy_back_migrations:
-            if not filter(attrs):
-                migrate(recipe_dir, attrs, **kwargs)
+        for mini_migrator in self.piggy_back_migrations:
+            if not mini_migrator.filter(attrs):
+                mini_migrator.migrate(recipe_dir, attrs, **kwargs)
         return self.migrator_uid(attrs)
 
     def pr_body(self):
