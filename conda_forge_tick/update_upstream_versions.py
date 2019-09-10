@@ -2,6 +2,7 @@ import collections.abc
 import logging
 import builtins
 import subprocess
+import hashlib
 
 import feedparser
 import networkx as nx
@@ -153,6 +154,23 @@ class CRAN(LibrariesIO):
         return str(ver).replace("-", "_")
 
 
+def get_sha256(url):
+    try:
+        from rever import hash_url
+        return hash_url(url, "sha256")
+    except ImportError:
+        pass
+    try:
+        filename = hashlib.sha256(url.encode("utf-8")).hexdigest()
+        output = subprocess.check_output(
+            ["wget", url, "-O", filename], stderr=subprocess.STDOUT
+        )
+        output = subprocess.check_output(["sha256sum", filename])
+        return output.decode("utf-8").split(" ")[0]
+    except Exception:
+        return None
+
+
 class RawURL:
     name = "RawURL"
 
@@ -167,6 +185,7 @@ class RawURL:
 
         orig_urls = urls_from_meta(meta_yaml["meta_yaml"])
         current_ver = meta_yaml["version"]
+        current_sha256 = None
         orig_ver = current_ver
         found = True
         count = 0
@@ -203,6 +222,10 @@ class RawURL:
                 found = True
                 count = count + 1
                 current_ver = next_ver
+                new_sha256 = get_sha256(url)
+                if new_sha256 == current_sha256 or new_sha256 in new_content:
+                    return None
+                current_sha256 = new_sha256
                 break
 
         if count == max_count:
