@@ -342,7 +342,7 @@ class Version(Migrator):
         return self.migrator_uid(attrs)
 
     def pr_body(self):
-        pred = [(name, $SUBGRAPH.node[name]['new_version'])
+        pred = [(name, $SUBGRAPH.node[name]['payload']['new_version'])
                 for name in list($SUBGRAPH.predecessors($NODE))]
         body = super().pr_body()
         body = body.format(
