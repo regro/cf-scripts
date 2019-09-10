@@ -1875,6 +1875,7 @@ env["GRAPH"] = G
     "m, inp, output, kwargs, prb, mr_out, should_filter", test_list
 )
 def test_migration(m, inp, output, kwargs, prb, mr_out, should_filter, tmpdir):
+    mr_out.update(bot_rerun=False)
     with open(os.path.join(tmpdir, "meta.yaml"), "w") as f:
         f.write(inp)
     # Load the meta.yaml (this is done in the graph)

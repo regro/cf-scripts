@@ -62,7 +62,8 @@ class Migrator:
         # don't run on things we've already done
         # don't run on bad nodes
         return (attrs.get('archived', False)
-                or frozen_to_json_friendly(self.migrator_uid(attrs)) in attrs.get('PRed', [])
+                or frozen_to_json_friendly(self.migrator_uid(attrs)
+                                           )['data'] in (z['data'] for z in attrs.get('PRed', []))
                 or (attrs.get('bad', False)
                     # This could be a dict, but then we can't fix it
                     and isinstance(attrs.get('bad'), str)
@@ -149,6 +150,7 @@ class Migrator:
         """
         d = {'migrator_name': self.__class__.__name__,
              'migrator_version': self.migrator_version,
+             'bot_rerun': False
              }
         # Carveout for old migrators w/o obj_versions
         if self.obj_version:
@@ -295,7 +297,7 @@ class Version(Migrator):
         conditional = super().filter(attrs)
         result = bool(
             conditional  # if archived/finished
-            or len([k for k in attrs.get('PRed_json', []) if
+            or len([k for k in attrs.get('PRed', []) if
                     k['data'].get('migrator_name') == 'Version' and
                     k.get('PR', {}).get('state', None) == 'open']) > 3
             or not attrs.get('new_version')  # if no new version
@@ -346,7 +348,7 @@ class Version(Migrator):
         return super().migrate(recipe_dir, attrs)
 
     def pr_body(self):
-        pred = [(name, $SUBGRAPH.node[name]['new_version'])
+        pred = [(name, $SUBGRAPH.node[name]['payload']['new_version'])
                 for name in list($SUBGRAPH.predecessors($NODE))]
         body = super().pr_body()
         body = body.format(
@@ -766,12 +768,14 @@ class Rebuild(Migrator):
             if muid not in att.get('PRed', []) and not att.get('archived', False):
                 return True
             # This is due to some PRed_json loss due to bad graph deploy outage
-            for m_pred_json in att.get('PRed_json', []):
+            for m_pred_json in att.get('PRed', []):
                 if m_pred_json['data'] == muid['data']:
                     break
             else:
                 m_pred_json = None
-            if m_pred_json and m_pred_json['PR'].get('state', '') == 'open':
+            # note that if the bot is missing the PR we assume it is open
+            # so that errors halt the migration and can be fixed
+            if m_pred_json and m_pred_json.get('PR', {'state': 'open'}).get('state', '') == 'open':
                 return True
         return False
 

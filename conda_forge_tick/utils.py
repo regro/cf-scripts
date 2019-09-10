@@ -2,7 +2,8 @@ import os
 from collections import defaultdict
 
 from collections.abc import Set, MutableMapping
-from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor, as_completed
+from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor, \
+    as_completed
 
 import contextlib
 import logging
@@ -10,10 +11,17 @@ import itertools
 import json
 import re
 
+import github3
 import jinja2
 import networkx as nx
 
 pin_sep_pat = re.compile(" |>|<|=|\[")
+
+from collections import Mapping, Set, Sequence
+
+# dual python 2/3 compatability, inspired by the "six" library
+string_types = (str, bytes)
+iteritems = lambda mapping: mapping.items()
 
 
 class UniversalSet(Set):
@@ -81,7 +89,7 @@ class LazyJson(MutableMapping):
                     self.data = load(f)
             except FileNotFoundError:
                 print(os.getcwd())
-                print(os.listdir('.'))
+                print(os.listdir("."))
                 raise
 
     def _dump(self):
@@ -102,6 +110,12 @@ class LazyJson(MutableMapping):
         state = self.__dict__.copy()
         state["data"] = None
         return state
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self._dump()
 
 
 def render_meta_yaml(text):
@@ -127,7 +141,7 @@ def render_meta_yaml(text):
         pin_subpackage=lambda *args, **kwargs: "subpackage_stub",
         pin_compatible=lambda *args, **kwargs: "compatible_pin_stub",
         cdt=lambda *args, **kwargs: "cdt_stub",
-        cran_mirror='https://cran.r-project.org',
+        cran_mirror="https://cran.r-project.org",
     )
     return content
 
@@ -211,7 +225,8 @@ def get_requirements(meta_yaml, outputs=True, build=True, host=True, run=True):
     reqs = _parse_requirements(meta_yaml.get("requirements", {}), **kw)
     outputs = meta_yaml.get("outputs", []) or [] if outputs else []
     for output in outputs:
-        reqs.update(_parse_requirements(output.get("requirements", {}) or {}, **kw))
+        reqs.update(
+            _parse_requirements(output.get("requirements", {}) or {}, **kw))
     return reqs
 
 
@@ -223,13 +238,12 @@ def _parse_requirements(req, build=True, host=True, run=True):
     if isinstance(req, list):  # simple list goes to both host and run
         reqlist = req if (host or run) else []
     else:
-        build = req.get("build", []) or [] if build else []
-        host = req.get("host", []) or [] if host else []
-        run = req.get("run", []) or [] if run else []
+        build = list(as_iterable(req.get("build", []) or [] if build else []))
+        host = list(as_iterable(req.get("host", []) or [] if host else []))
+        run = list(as_iterable(req.get("run", []) or [] if run else []))
         reqlist = build + host + run
     return set(
-        pin_sep_pat.split(x)[0].lower() for x in reqlist if x is not None
-    )
+        pin_sep_pat.split(x)[0].lower() for x in reqlist if x is not None)
 
 
 @contextlib.contextmanager
@@ -238,25 +252,26 @@ def executor(kind, max_workers):
 
     This allows us to easily use other executors as needed.
     """
-    if kind == 'thread':
+    if kind == "thread":
         with ThreadPoolExecutor(max_workers=max_workers) as pool:
             yield pool, as_completed
-    elif kind == 'process':
+    elif kind == "process":
         with ProcessPoolExecutor(max_workers=max_workers) as pool:
             yield pool, as_completed
-    elif kind == 'dask':
+    elif kind == "dask":
         import distributed
+
         with distributed.LocalCluster(n_workers=max_workers) as cluster:
             with distributed.Client(cluster) as client:
                 yield client, distributed.as_completed
     else:
-        raise NotImplementedError('That kind is not implemented')
+        raise NotImplementedError("That kind is not implemented")
 
 
 def default(obj):
     """For custom object serialization."""
     if isinstance(obj, LazyJson):
-        return {'__lazy_json__': obj.file_name}
+        return {"__lazy_json__": obj.file_name}
     elif isinstance(obj, Set):
         return {"__set__": True, "elements": sorted(obj)}
     raise TypeError(repr(obj) + " is not JSON serializable")
@@ -265,25 +280,36 @@ def default(obj):
 def object_hook(dct):
     """For custom object deserialization."""
     if "__lazy_json__" in dct:
-        return LazyJson(dct['__lazy_json__'])
+        return LazyJson(dct["__lazy_json__"])
     elif "__set__" in dct:
         return set(dct["elements"])
     return dct
 
 
-def dumps(obj, sort_keys=True, separators=(",", ":"), default=default, **kwargs):
+def dumps(obj, sort_keys=True, separators=(",", ":"), default=default,
+          **kwargs):
     """Returns a JSON string from a Python object."""
     return json.dumps(
-        obj, sort_keys=sort_keys, separators=separators, default=default, indent=1, **kwargs
+        obj,
+        sort_keys=sort_keys,
+        separators=separators,
+        default=default,
+        indent=1,
+        **kwargs,
     )
 
 
-def dump(obj, fp, sort_keys=True, separators=(",", ":"), default=default, **kwargs):
+def dump(obj, fp, sort_keys=True, separators=(",", ":"), default=default,
+         **kwargs):
     """Returns a JSON string from a Python object."""
     return json.dump(
-        obj, fp, sort_keys=sort_keys, separators=separators, default=default,
+        obj,
+        fp,
+        sort_keys=sort_keys,
+        separators=separators,
+        default=default,
         indent=1,
-        **kwargs
+        **kwargs,
     )
 
 
@@ -297,26 +323,70 @@ def load(fp, object_hook=object_hook, **kwargs):
     return json.load(fp, object_hook=object_hook, **kwargs)
 
 
-def dump_graph(gx, filename='graph.json'):
+def dump_graph(gx, filename="graph.json"):
     nld = nx.node_link_data(gx)
-    with open(filename, 'w') as f:
+    links = nld["links"]
+    links2 = sorted(links, key=lambda x: f'{x["source"]}{x["target"]}')
+    nld["links"] = links2
+    with open(filename, "w") as f:
         dump(nld, f)
 
 
-def load_graph(filename='graph.json'):
-    with open(filename, 'r') as f:
+def load_graph(filename="graph.json"):
+    with open(filename, "r") as f:
         nld = load(f)
     return nx.node_link_graph(nld)
 
 
-def frozen_to_json_friendly(fz: dict, PR: LazyJson=None):
+def frozen_to_json_friendly(fz: dict, PR: LazyJson = None):
     if fz is None:
         return None
     keys = sorted(list(fz.keys()))
-    d = {
-        'keys': keys,
-        'data': dict(fz)
-    }
+    d = {"keys": keys, "data": dict(fz)}
     if PR:
-        d['PR'] = PR
+        d["PR"] = PR
     return d
+
+
+def github_client():
+    if os.environ.get('GITHUB_TOKEN'):
+        return github3.login(token=os.environ['GITHUB_TOKEN'])
+    else:
+        return github3.login(os.environ["USERNAME"], os.environ["PASSWORD"])
+
+
+def as_iterable(iterable_or_scalar):
+    """Utility for converting an object to an iterable.
+   Parameters
+   ----------
+   iterable_or_scalar : anything
+   Returns
+   -------
+   l : iterable
+       If `obj` was None, return the empty tuple.
+       If `obj` was not iterable returns a 1-tuple containing `obj`.
+       Otherwise return `obj`
+   Notes
+   -----
+   Although both string types and dictionaries are iterable in Python, we are treating them as not iterable in this
+   method.  Thus, as_iterable(dict()) returns (dict, ) and as_iterable(string) returns (string, )
+   Examples
+   ---------
+   >>> as_iterable(1)
+   (1,)
+   >>> as_iterable([1, 2, 3])
+   [1, 2, 3]
+   >>> as_iterable("my string")
+   ("my string", )
+   >>> as_iterable({'a': 1})
+   ({'a': 1}, )
+   """
+
+    if iterable_or_scalar is None:
+        return ()
+    elif isinstance(iterable_or_scalar, (str, bytes)):
+        return iterable_or_scalar,
+    elif hasattr(iterable_or_scalar, "__iter__"):
+        return iterable_or_scalar
+    else:
+        return iterable_or_scalar,
