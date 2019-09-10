@@ -266,7 +266,8 @@ def _update_upstream_versions_sequential(gx, sources):
     for node, node_attrs in to_update:
         with node_attrs['payload'] as attrs:
             try:
-                attrs["new_version"] = get_latest_version(attrs, sources)
+                new_version = get_latest_version(attrs, sources)
+                attrs["new_version"] = new_version or attrs['new_version']
             except Exception as e:
                 try:
                     se = str(e)
@@ -274,7 +275,6 @@ def _update_upstream_versions_sequential(gx, sources):
                     se = "Bad exception string: {}".format(ee)
                 logger.warn("Error getting uptream version of {}: {}".format(node, se))
                 attrs["bad"] = "Upstream: Error getting upstream version"
-                attrs["new_version"] = False
             else:
                 logger.info(
                     "{} - {} - {}".format(node, attrs["version"], attrs["new_version"])
@@ -296,7 +296,8 @@ def _update_upstream_versions_process_pool(gx, sources):
             node, node_attrs = futures[f]
             with node_attrs as attrs:
                 try:
-                    attrs["new_version"] = f.result()
+                    new_version = f.result()
+                    attrs["new_version"] = new_version or attrs['new_version']
                 except Exception as e:
                     try:
                         se = str(e)
@@ -304,7 +305,6 @@ def _update_upstream_versions_process_pool(gx, sources):
                         se = "Bad exception string: {}".format(ee)
                     logger.warn("Error getting uptream version of {}: {}".format(node, se))
                     attrs["bad"] = "Upstream: Error getting upstream version"
-                    attrs["new_version"] = False
                 else:
                     logger.info(
                         "{} - {} - {}".format(node, attrs.get("version", "<no-version>"), attrs["new_version"])
