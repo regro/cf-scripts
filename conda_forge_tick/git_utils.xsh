@@ -162,8 +162,8 @@ def refresh_pr(pr_json: LazyJson, gh=None):
     if gh is None:
         gh = github3.login($USERNAME, $PASSWORD)
     if not pr_json['state'] == 'closed':
-        pr_obj = github3.pulls.PullRequest(pr_json, gh)
-        pr_obj.refresh()
+        pr_obj = github3.pulls.PullRequest(dict(pr_json), gh)
+        pr_obj.refresh(True)
         pr_obj_d = pr_obj.as_dict()
         # if state passed from opened to merged or if it
         # closed for a day delete the branch
@@ -176,7 +176,7 @@ def close_out_labels(pr_json: LazyJson, gh=None):
     if gh is None:
         gh = github3.login($USERNAME, $PASSWORD)
     if pr_json['state'] != 'closed' and 'bot-rerun' in [l['name'] for l in pr_json['labels']]:
-        pr_obj = github3.pulls.PullRequest(pr_json, gh)
+        pr_obj = github3.pulls.PullRequest(dict(pr_json), gh)
         pr_obj.create_comment("Due to the `bot-rerun` label I'm closing "
                               "this PR. I will make another one as"
                               " appropriate.")
