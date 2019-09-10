@@ -17,8 +17,52 @@ from conda_smithy.configure_feedstock import get_cfp_file_path
 from ruamel.yaml import safe_load, safe_dump
 
 from conda_forge_tick.path_lengths import cyclic_topological_sort
-from .utils import render_meta_yaml, UniversalSet, frozen_to_json_friendly
+from .utils import render_meta_yaml, UniversalSet, frozen_to_json_friendly, \
+    as_iterable
 
+
+class MiniMigrator:
+    def filter(self, attrs: dict) -> bool:
+        """ If true don't act upon node
+
+        Parameters
+        ----------
+        attrs : dict
+            The node attributes
+
+        Returns
+        -------
+        bool :
+            True if node is to be skipped
+        """
+        return True
+
+    def migrate(self, recipe_dir, attrs, **kwargs):
+        """Perform the migration, updating the ``meta.yaml``
+
+        Parameters
+        ----------
+        recipe_dir : str
+            The directory of the recipe
+        attrs : dict
+            The node attributes
+
+        Returns
+        -------
+        namedtuple or bool:
+            If namedtuple continue with PR, if False scrap local folder
+        """
+        return
+
+
+class PipMigrator(MiniMigrator):
+    def filter(self, attrs: dict) -> bool:
+        scripts = as_iterable(attrs.get('meta_yaml', {}).get('build', {}).get('script', []))
+        return 'python setup.py install' in scripts
+
+    def migrate(self, recipe_dir, attrs, **kwargs):
+        for b in ['python setup.py install', 'python -m pip install --no-deps --ignore-installed .']:
+            replace_in_file(b, "{{ PYTHON }} -m pip install . --no-deps -vv", 'meta.yaml')
 
 class Migrator:
     """Base class for Migrators"""
