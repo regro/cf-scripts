@@ -30,10 +30,8 @@ NUM_GITHUB_THREADS = 4
 
 def get_attrs(name, i):
     lzj = LazyJson(f'node_attrs/{name}.json')
-    old = dict(lzj)
     with lzj as sub_graph:
         sub_graph.update({
-            "time": time.time(),
             "feedstock_name": name,
             # All feedstocks start out as good
             "bad": False,
@@ -102,14 +100,6 @@ def get_attrs(name, i):
         k = next(iter((source_keys & hashlib.algorithms_available)), None)
         if k:
             sub_graph["hash_type"] = k
-        try:
-            t = sub_graph.pop('time')
-            del old['time']
-        except KeyError:
-            pass
-        # if new and old are same don't put in time
-        if dict(sub_graph) != dict(old):
-            sub_graph['time'] = t
     return lzj
 
 
