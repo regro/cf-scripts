@@ -35,7 +35,7 @@ def main(args=None):
         >= 3
     ]
     with open("./status/unmaintained.json", "w") as f:
-        json.dump(l, f)
+        json.dump(l, f, indent=2)
 
 
 if __name__ == "__main__":
