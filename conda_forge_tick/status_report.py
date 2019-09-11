@@ -21,20 +21,20 @@ def main(args=None):
                 json.dump(status, fo, indent=2)
     with open("./status/total_status.json", "w") as f:
         json.dump(total_status, f)
+    l = [
+        k
+        for k, v in gx.nodes.items()
+        if len(
+            [
+                z
+                for z in v.get("payload", {}).get("PRed", [])
+                if z.get("PR", {}).get("state", "closed") == "open"
+                and z.get("data", {}).get("migrator_name", "") == "Version"
+            ]
+        )
+        >= 3
+    ]
     with open("./status/unmaintained.json", "w") as f:
-        l = [
-            k
-            for k, v in gx.nodes.items()
-            if len(
-                [
-                    z
-                    for z in v.get("payload", {}).get("PRed", [])
-                    if z.get("PR", {}).get("state", "closed") == "open"
-                    and z.get("data", {}).get("migrator_name", "") == "Version"
-                ]
-            )
-            >= 3
-        ]
         json.dump(l, f)
 
 
