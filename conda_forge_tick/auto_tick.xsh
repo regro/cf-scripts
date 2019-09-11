@@ -504,12 +504,12 @@ def migration_factory(migrators, gx, pr_limit=5):
         for yaml_file in g`*.y*ml`:
             with open(yaml_file) as f:
                 yaml_contents = f.read()
-        loaded_yaml = yaml.safe_load(yaml_contents)
-        package_names = set(loaded_yaml)
-        add_rebuild_migration_yaml(migrators, gx, package_names, yaml_contents,
-                                   migration_name=os.path.splitext(yaml_file),
-                                   pr_limit=pr_limit,
-                                   obj_version=0)
+            loaded_yaml = yaml.safe_load(yaml_contents)
+            package_names = set(loaded_yaml)
+            add_rebuild_migration_yaml(migrators, gx, package_names, yaml_contents,
+                                       migration_name=os.path.splitext(yaml_file),
+                                       pr_limit=pr_limit,
+                                       obj_version=0)
 
 def initialize_migrators(do_rebuild=False):
     setup_logger(logger)
