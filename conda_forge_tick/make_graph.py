@@ -97,7 +97,7 @@ def get_attrs(name, i):
         for k in keys:
             if k[1] not in missing_keys:
                 sub_graph[k[1]] = yaml_dict[k[0]][k[1]]
-        k = next(iter((source_keys & hashlib.algorithms_available)), None)
+        k = next(sorted(iter((source_keys & hashlib.algorithms_available)), reverse=True), None)
         if k:
             sub_graph["hash_type"] = k
     return lzj
