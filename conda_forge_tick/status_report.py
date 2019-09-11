@@ -30,6 +30,7 @@ def main(args=None):
                     z
                     for z in v.get("payload", {}).get("PRed", [])
                     if z.get("PR", {}).get("state", "closed") == "open"
+                    and z.get("data", {}).get("migrator_name", "") == "Version"
                 ]
             )
             >= 3
