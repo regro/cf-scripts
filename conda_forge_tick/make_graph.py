@@ -167,6 +167,7 @@ def make_graph(names, gx=None):
 
 def update_graph_pr_status(gx: nx.DiGraph) -> nx.DiGraph:
     failed_refresh = 0
+    succeeded_refresh = 0
     gh = github_client()
     futures = {}
     node_ids = list(gx.nodes)
@@ -188,6 +189,7 @@ def update_graph_pr_status(gx: nx.DiGraph) -> nx.DiGraph:
             try:
                 res = f.result()
                 if res:
+                    succeeded_refresh += 1
                     with gx.node[name]['payload'] as node:
                         node["PRed"][i]['PR'].update(**res)
                     logger.info("Updated json for {}: {}".format(name, res["id"]))
@@ -205,11 +207,13 @@ def update_graph_pr_status(gx: nx.DiGraph) -> nx.DiGraph:
                     gx.nodes[name]['payload']["PRed"][i]['data']))
                 raise
     logger.info("JSON Refresh failed for {} PRs".format(failed_refresh))
+    logger.info("JSON Refresh succeed for {} PRs".format(failed_refresh))
     return gx
 
 
 def close_labels(gx: nx.DiGraph) -> nx.DiGraph:
     failed_refresh = 0
+    succeeded_refresh = 0
     gh = github_client()
     futures = {}
     node_ids = list(gx.nodes)
@@ -231,6 +235,7 @@ def close_labels(gx: nx.DiGraph) -> nx.DiGraph:
             try:
                 res = f.result()
                 if res:
+                    succeeded_refresh += 1
                     # add a piece of metadata which makes the muid matchup
                     # fail
                     with gx.node[name]['payload'] as node:
@@ -250,7 +255,8 @@ def close_labels(gx: nx.DiGraph) -> nx.DiGraph:
                 logger.critical("ERROR ON FEEDSTOCK: {}: {}".format(
                     name, gx.nodes[name]['payload']["PRed"][i]['data']))
                 raise
-    logger.info("JSON Refresh failed for {} PRs".format(failed_refresh))
+    logger.info("bot re-run failed for {} PRs".format(failed_refresh))
+    logger.info("JSON Refresh succeed for {} PRs".format(failed_refresh))
     return gx
 
 
