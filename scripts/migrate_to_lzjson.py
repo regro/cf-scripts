@@ -1,10 +1,9 @@
-from conda_forge_tick.utils import LazyJson
+from conda_forge_tick.utils import LazyJson, load_graph, dump_graph
 
-
-import networkx as nx
-gx = nx.read_gpickle('graph.pkl')
+gx = load_graph()
 for k in gx.nodes.keys():
     lzj = LazyJson(f'node_attrs/{k}.json')
     lzj.update(**gx.nodes[k])
-    gx.nodes[k] = lzj
-nx.write_gpickle(gx, 'graph.pkl')
+    gx.nodes[k].clear()
+    gx.nodes[k].update({'payload': lzj})
+dump_graph(gx)

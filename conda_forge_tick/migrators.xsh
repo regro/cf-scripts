@@ -59,7 +59,8 @@ class Migrator:
         # don't run on things we've already done
         # don't run on bad nodes
         return (attrs.get('archived', False)
-                or frozen_to_json_friendly(self.migrator_uid(attrs)) in attrs.get('PRed', [])
+                or frozen_to_json_friendly(self.migrator_uid(attrs)
+                                           )['data'] in (z['data'] for z in attrs.get('PRed', []))
                 or (attrs.get('bad', False)
                     # This could be a dict, but then we can't fix it
                     and isinstance(attrs.get('bad'), str)
@@ -143,6 +144,7 @@ class Migrator:
         """
         d = {'migrator_name': self.__class__.__name__,
              'migrator_version': self.migrator_version,
+             'bot_rerun': False
              }
         # Carveout for old migrators w/o obj_versions
         if self.obj_version:
@@ -289,7 +291,7 @@ class Version(Migrator):
         conditional = super().filter(attrs)
         result = bool(
             conditional  # if archived/finished
-            or len([k for k in attrs.get('PRed_json', []) if
+            or len([k for k in attrs.get('PRed', []) if
                     k['data'].get('migrator_name') == 'Version' and
                     k.get('PR', {}).get('state', None) == 'open']) > 3
             or not attrs.get('new_version')  # if no new version
@@ -340,17 +342,20 @@ class Version(Migrator):
         return self.migrator_uid(attrs)
 
     def pr_body(self):
-        pred = [(name, $SUBGRAPH.node[name]['new_version'])
+        pred = [(name, $SUBGRAPH.node[name]['payload']['new_version'])
                 for name in list($SUBGRAPH.predecessors($NODE))]
         body = super().pr_body()
         body = body.format(
             'It is very likely that the current package version for this '
             'feedstock is out of date.\n'
-            'Notes and instructions for merging this PR:\n'
-            '1. Please check that the dependencies have not changed. \n'
-            '2. Please merge the PR only after the tests have passed. \n'
-            "3. Feel free to push to the bot's branch to update this PR if needed. \n"
-            "4. The bot will almost always only open one PR per version. \n\n")
+            'Notes for merging this PR:\n'
+            "1. Feel free to push to the bot's branch to update this PR if needed.\n"
+            "2. The bot will almost always only open one PR per version.\n"
+            "Checklist before merging this PR:\n"
+            "- [ ] Dependencies have been updated if changed\n"
+            "- [ ] Tests have passed \n"
+            "- [ ] Updated license if changed and `license_file` is packaged \n"
+            "\n")
         # Statement here
         template = ('|{name}|{new_version}|[![Anaconda-Server Badge]'
                     '(https://img.shields.io/conda/vn/conda-forge/{name}.svg)]'
@@ -757,12 +762,14 @@ class Rebuild(Migrator):
             if muid not in att.get('PRed', []) and not att.get('archived', False):
                 return True
             # This is due to some PRed_json loss due to bad graph deploy outage
-            for m_pred_json in att.get('PRed_json', []):
+            for m_pred_json in att.get('PRed', []):
                 if m_pred_json['data'] == muid['data']:
                     break
             else:
                 m_pred_json = None
-            if m_pred_json and m_pred_json['PR'].get('state', '') == 'open':
+            # note that if the bot is missing the PR we assume it is open
+            # so that errors halt the migration and can be fixed
+            if m_pred_json and m_pred_json.get('PR', {'state': 'open'}).get('state', '') == 'open':
                 return True
         return False
 
@@ -923,6 +930,9 @@ class ArchRebuild(Rebuild):
         'psycopg2',
         'tini',
         'clangdev',
+        'pyarrow',
+        'numba',
+        'r-base',
         # mpi variants
         'openmpi',
         'mpich',
@@ -933,6 +943,9 @@ class ArchRebuild(Rebuild):
         'typing',
         'enum34',
         'functools32',
+        'jsoncpp',
+        'bcrypt',
+        'root',
         }
     ignored_packages = {'make', 'perl', 'toolchain', 'posix',
         'patchelf', # weird issue
@@ -1070,6 +1083,92 @@ class BlasRebuild(Rebuild):
 
     def pr_title(self):
         return 'Rebuild for new BLAS scheme'
+
+
+class RBaseRebuild(Rebuild):
+    """Migrator for rebuilding all R packages."""
+    migrator_version = 0
+    rerender = True
+    bump_number = 1
+
+    def migrate(self, recipe_dir, attrs, **kwargs):
+        # Set the provider to Azure only
+        with indir(recipe_dir + '/..'):
+            if os.path.exists('conda-forge.yml'):
+                with open('conda-forge.yml', 'r') as f:
+                    y = safe_load(f)
+            else:
+                y = {}
+            if 'provider' not in y:
+                y['provider'] = {}
+            y['provider']['win'] = 'azure'
+            with open('conda-forge.yml', 'w') as f:
+                safe_dump(y, f)
+
+        with indir(recipe_dir):
+            with open('meta.yaml', 'r') as f:
+                text = f.read()
+
+            changed = False
+            lines = text.split("\n")
+
+            if attrs['feedstock_name'].startswith("r-") and "- conda-forge/r" not in text \
+                    and any(a in text for a in ["johanneskoester", "bgruening", "daler", "jdblischak", "cbrueffer", "dbast", "dpryan79"]):
+                for i, line in enumerate(lines):
+                    if line.strip() == "recipe-maintainers:" and i + 1 < len(lines):
+                        lines[i] = line + "\n" + lines[i+1][:lines[i+1].index("-")] + "- conda-forge/r"
+
+                changed = True
+
+            for i, line in enumerate(lines):
+                if line.lstrip().startswith("- {{native}}toolchain"):
+                    replaced_lines = []
+                    for comp in ['c', 'cxx', 'fortran']:
+                        if "compiler('"+ comp + "')" in text:
+                            replaced_lines.append(line.replace("- {{native}}toolchain", "- {{ compiler('m2w64_"+ comp + "') }}"))
+                    if len(replaced_lines) != 0:
+                        lines[i] = '\n'.join(replaced_lines)
+                        changed = True
+                        break
+
+            if changed:
+                with open('meta.yaml', 'w') as f:
+                    f.write('\n'.join(lines))
+
+            # Update build number
+            self.set_build_number('meta.yaml')
+
+        return self.migrator_uid(attrs)
+
+
+class GFortranOSXRebuild(Rebuild):
+    migrator_version = 0
+    rerender = True
+    bump_number = 1
+
+    def pr_body(self):
+        body = super(Rebuild, self).pr_body()
+        additional_body = ("This PR has been triggered in an effort to update **{0}**.\n\n"
+                           "Notes and instructions for merging this PR:\n"
+                           "1. Please merge the PR only after the tests have passed. \n"
+                           "2. Feel free to push to the bot's branch to update this PR if needed. \n"
+                           "**Please note that if you close this PR we presume that "
+                           "the feedstock has been rebuilt, so if you are going to "
+                           "perform the rebuild yourself don't close this PR until "
+                           "the your rebuild has been merged.**\n\n"
+                           "This package has the following downstream children:\n"
+                           "{1}\n"
+                           "And potentially more."
+                           "".format("to gfortran 7 for OSX",
+                                     '\n'.join([a[1] for a in list(self.graph.out_edges($PROJECT))[: 5]])))
+        body = body.format(additional_body)
+        return body
+
+    def commit_message(self):
+        return "Rebuild for gfortran 7 for OSX"
+
+    def pr_title(self):
+        return "Rebuild for gfortran 7 for OSX"
 
 
 # This may replace Rebuild

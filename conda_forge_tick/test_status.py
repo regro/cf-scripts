@@ -1,7 +1,7 @@
 """
 Similar to test-status, but for reports
 """
-
+from conda_forge_tick.utils import setup_logger
 from .migrators import Rebuild
 from .auto_tick import initialize_migrators, migrator_status
 import os

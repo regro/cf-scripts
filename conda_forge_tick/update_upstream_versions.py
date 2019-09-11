@@ -2,6 +2,7 @@ import collections.abc
 import logging
 import builtins
 import subprocess
+import hashlib
 
 import feedparser
 import networkx as nx
@@ -153,6 +154,23 @@ class CRAN(LibrariesIO):
         return str(ver).replace("-", "_")
 
 
+def get_sha256(url):
+    try:
+        from rever import hash_url
+        return hash_url(url, "sha256")
+    except ImportError:
+        pass
+    try:
+        filename = hashlib.sha256(url.encode("utf-8")).hexdigest()
+        output = subprocess.check_output(
+            ["wget", url, "-O", filename], stderr=subprocess.STDOUT
+        )
+        output = subprocess.check_output(["sha256sum", filename])
+        return output.decode("utf-8").split(" ")[0]
+    except Exception:
+        return None
+
+
 class RawURL:
     name = "RawURL"
 
@@ -167,6 +185,7 @@ class RawURL:
 
         orig_urls = urls_from_meta(meta_yaml["meta_yaml"])
         current_ver = meta_yaml["version"]
+        current_sha256 = None
         orig_ver = current_ver
         found = True
         count = 0
@@ -203,6 +222,10 @@ class RawURL:
                 found = True
                 count = count + 1
                 current_ver = next_ver
+                new_sha256 = get_sha256(url)
+                if new_sha256 == current_sha256 or new_sha256 in new_content:
+                    return None
+                current_sha256 = new_sha256
                 break
 
         if count == max_count:
@@ -214,61 +237,37 @@ class RawURL:
         return url
 
 
-def get_latest_version(meta_yaml, sources):
-    for source in sources:
-        url = source.get_url(meta_yaml)
-        if url is None:
-            continue
-        ver = source.get_version(url)
-        if ver:
-            return ver
-        else:
-            meta_yaml["bad"] = "Upstream: Could not find version on {}".format(
-                source.name
-            )
-    if not meta_yaml.get("bad"):
-        meta_yaml["bad"] = "Upstream: unknown source"
-    return False
+def get_latest_version(payload_meta_yaml, sources):
+    with payload_meta_yaml as meta_yaml:
+        for source in sources:
+            url = source.get_url(meta_yaml)
+            if url is None:
+                continue
+            ver = source.get_version(url)
+            if ver:
+                return ver
+            else:
+                meta_yaml["bad"] = "Upstream: Could not find version on {}".format(
+                    source.name
+                )
+        if not meta_yaml.get("bad"):
+            meta_yaml["bad"] = "Upstream: unknown source"
+        return False
 
 
 def _update_upstream_versions_sequential(gx, sources):
     to_update = []
-    for node, attrs in gx.node.items():
+    for node, node_attrs in gx.node.items():
+        attrs = node_attrs['payload']
         if attrs.get("bad") or attrs.get("archived"):
             attrs["new_version"] = False
             continue
         to_update.append((node, attrs))
-    for node, attrs in to_update:
-        try:
-            attrs["new_version"] = get_latest_version(attrs, sources)
-        except Exception as e:
+    for node, node_attrs in to_update:
+        with node_attrs['payload'] as attrs:
             try:
-                se = str(e)
-            except Exception as ee:
-                se = "Bad exception string: {}".format(ee)
-            logger.warn("Error getting uptream version of {}: {}".format(node, se))
-            attrs["bad"] = "Upstream: Error getting upstream version"
-            attrs["new_version"] = False
-        else:
-            logger.info(
-                "{} - {} - {}".format(node, attrs["version"], attrs["new_version"])
-            )
-
-
-def _update_upstream_versions_process_pool(gx, sources):
-    futures = {}
-    with executor(kind='dask', max_workers=20) as (pool, as_completed):
-        for node, attrs in gx.node.items():
-            if attrs.get("bad") or attrs.get("archived"):
-                attrs["new_version"] = False
-                continue
-            futures.update(
-                {pool.submit(get_latest_version, attrs, sources): (node, attrs)}
-            )
-        for f in as_completed(futures):
-            node, attrs = futures[f]
-            try:
-                attrs["new_version"] = f.result()
+                new_version = get_latest_version(attrs, sources)
+                attrs["new_version"] = new_version or attrs['new_version']
             except Exception as e:
                 try:
                     se = str(e)
@@ -276,11 +275,40 @@ def _update_upstream_versions_process_pool(gx, sources):
                     se = "Bad exception string: {}".format(ee)
                 logger.warn("Error getting uptream version of {}: {}".format(node, se))
                 attrs["bad"] = "Upstream: Error getting upstream version"
-                attrs["new_version"] = False
             else:
                 logger.info(
                     "{} - {} - {}".format(node, attrs["version"], attrs["new_version"])
                 )
+
+
+def _update_upstream_versions_process_pool(gx, sources):
+    futures = {}
+    with executor(kind='dask', max_workers=20) as (pool, as_completed):
+        for node, node_attrs in gx.node.items():
+            with node_attrs['payload'] as attrs:
+                if attrs.get("bad") or attrs.get("archived"):
+                    attrs["new_version"] = False
+                    continue
+                futures.update(
+                    {pool.submit(get_latest_version, attrs, sources): (node, attrs)}
+                )
+        for f in as_completed(futures):
+            node, node_attrs = futures[f]
+            with node_attrs as attrs:
+                try:
+                    new_version = f.result()
+                    attrs["new_version"] = new_version or attrs['new_version']
+                except Exception as e:
+                    try:
+                        se = str(e)
+                    except Exception as ee:
+                        se = "Bad exception string: {}".format(ee)
+                    logger.warn("Error getting uptream version of {}: {}".format(node, se))
+                    attrs["bad"] = "Upstream: Error getting upstream version"
+                else:
+                    logger.info(
+                        "{} - {} - {}".format(node, attrs.get("version", "<no-version>"), attrs["new_version"])
+                    )
 
 
 def update_upstream_versions(gx, sources=None):
@@ -303,9 +331,9 @@ def update_upstream_versions(gx, sources=None):
                     [
                         n
                         for n, a in gx.node.items()
-                        if a["new_version"]  # if we can get a new version
-                        and a["new_version"] != a["version"]  # if we need a bump
-                        and a.get("PRed", "000") != a["new_version"]  # if not PRed
+                        if a['payload'].get("new_version") and a['payload'].get('version')  # if we can get a new version
+                        and a['payload']["new_version"] != a['payload']["version"]  # if we need a bump
+                        and a['payload'].get("PRed", "000") != a['payload']["new_version"]  # if not PRed
                     ]
                 )
             )
