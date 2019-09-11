@@ -207,7 +207,7 @@ def update_graph_pr_status(gx: nx.DiGraph) -> nx.DiGraph:
                     gx.nodes[name]['payload']["PRed"][i]['data']))
                 raise
     logger.info("JSON Refresh failed for {} PRs".format(failed_refresh))
-    logger.info("JSON Refresh succeed for {} PRs".format(failed_refresh))
+    logger.info("JSON Refresh succeed for {} PRs".format(succeeded_refresh))
     return gx
 
 
@@ -256,7 +256,7 @@ def close_labels(gx: nx.DiGraph) -> nx.DiGraph:
                     name, gx.nodes[name]['payload']["PRed"][i]['data']))
                 raise
     logger.info("bot re-run failed for {} PRs".format(failed_refresh))
-    logger.info("JSON Refresh succeed for {} PRs".format(failed_refresh))
+    logger.info("JSON Refresh succeed for {} PRs".format(succeeded_refresh))
     return gx
 
 
