@@ -1218,7 +1218,7 @@ class MigrationYaml(Migrator):
         return False
 
     def migrate(self, recipe_dir, attrs, **kwargs):
-        with indir(os.path.join(recipe_dir, '..')):
+        with indir(os.path.join(recipe_dir, '../.ci_support')):
             os.makedirs('migrations', exist_ok=True)
             with indir('migrations'):
                 with open(os.path.join(self.name, '.yaml'), 'w') as f:
