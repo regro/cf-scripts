@@ -271,8 +271,8 @@ def main(args=None):
     # Utility flag for testing -- we don't need to always update GH
     no_github_fetch = os.environ.get('CONDA_FORGE_TICK_NO_GITHUB_REQUESTS')
     if not no_github_fetch:
-        gx = update_graph_pr_status(gx)
         gx = close_labels(gx)
+        gx = update_graph_pr_status(gx)
 
     logger.info("writing out file")
     dump_graph(gx)
