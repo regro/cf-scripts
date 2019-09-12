@@ -95,7 +95,6 @@ def run(attrs, migrator, feedstock=None, protocol='ssh',
         rm -rf @(feedstock_dir)
         return False, False
     # migrate the `meta.yaml`
-    head_ref = $(git rev-parse HEAD).strip()
     migrate_return = migrator.migrate(recipe_dir, attrs, **kwargs)
     if not migrate_return:
         logger.critical("Failed to migrate %s, %s", $PROJECT, attrs.get('bad'))
@@ -103,16 +102,17 @@ def run(attrs, migrator, feedstock=None, protocol='ssh',
         return False, False
 
     # rerender, maybe
+    diffed_files = []
     with indir(feedstock_dir), ${...}.swap(RAISE_SUBPROC_ERROR=False):
         git commit -am @(migrator.commit_message())
         if rerender:
+            head_ref = $(git rev-parse HEAD).strip()
             logger.info('Rerendering the feedstock')
             conda smithy rerender -c auto
-
-    # If we tried to run the MigrationYaml and rerender did nothing (we only
-    # bumped the build number and dropped a yaml file in migrations) bail
-    # for instance platform specific migrations
-    diffed_files = [_ for _ in $(git diff --name-only @(head_ref)...HEAD).split() if not (_.startswith('recipe') or _.startswith('migrators') or _.startswith('README'))]
+        # If we tried to run the MigrationYaml and rerender did nothing (we only
+        # bumped the build number and dropped a yaml file in migrations) bail
+        # for instance platform specific migrations
+        diffed_files = [_ for _ in $(git diff --name-only @(head_ref)...HEAD).split() if not (_.startswith('recipe') or _.startswith('migrators') or _.startswith('README'))]
 
     if isinstance(migrator, MigrationYaml) and not diffed_files:
         # spoof this so it looks like the package is done
