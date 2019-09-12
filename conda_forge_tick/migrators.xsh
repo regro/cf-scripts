@@ -1221,7 +1221,7 @@ class MigrationYaml(Migrator):
         with indir(os.path.join(recipe_dir, '../.ci_support')):
             os.makedirs('migrations', exist_ok=True)
             with indir('migrations'):
-                with open(os.path.join(self.name, '.yaml'), 'w') as f:
+                with open(f'{self.name}.yaml', 'w') as f:
                     f.write(self.yaml_contents)
                 git add .
         with indir(recipe_dir):
