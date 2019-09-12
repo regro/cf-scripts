@@ -13,7 +13,7 @@ def main(args=None):
     for migrator in migrators:
         if isinstance(migrator, (Rebuild, MigrationYaml)):
             migrator_name = migrator.__class__.__name__.lower()
-            if migrator_name == "rebuild":
+            if migrator_name in ["rebuild", 'migrationyaml']:
                 migrator_name = migrator.name.lower().replace(" ", "")
             total_status[migrator_name] = f"{migrator.name} Migration Status"
             status, build_order = migrator_status(migrator, gx)
