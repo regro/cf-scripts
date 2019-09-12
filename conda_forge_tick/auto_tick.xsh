@@ -506,7 +506,7 @@ def migration_factory(migrators, gx, pr_limit=5):
             with open(yaml_file) as f:
                 yaml_contents = f.read()
             loaded_yaml = yaml.safe_load(yaml_contents)
-            package_names = set(loaded_yaml) & set(gx.nodes)
+            package_names = (set(loaded_yaml)|set(l.replace('_', '-') for l in loaded_yaml)) & set(gx.nodes)
             add_rebuild_migration_yaml(migrators, gx, package_names, yaml_contents,
                                        migration_name=os.path.splitext(yaml_file)[0],
                                        pr_limit=pr_limit,
