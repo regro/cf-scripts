@@ -526,6 +526,9 @@ def initialize_migrators(do_rebuild=False):
 
     add_arch_migrate($MIGRATORS, gx)
     add_rebuild_successors($MIGRATORS, gx, 'qt', '5.12', pr_limit=5)
+    add_rebuild_successors($MIGRATORS, gx, 'mpich', '3.3')
+    add_rebuild_successors($MIGRATORS, gx, 'scotch', '6.0.8')
+    add_rebuild_successors($MIGRATORS, gx, 'ptscotch', '6.0.8')
     migration_factory($MIGRATORS, gx)
 
     return gx, smithy_version, pinning_version, temp, $MIGRATORS
