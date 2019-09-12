@@ -221,7 +221,7 @@ def close_labels(gx: nx.DiGraph) -> nx.DiGraph:
     random.shuffle(node_ids)
     with executor('thread', NUM_GITHUB_THREADS) as (pool, as_completed):
         for node_id in node_ids:
-            node = gx.nodes[node_id]
+            node = gx.nodes[node_id]['payload']
             prs = node.get("PRed", [])
             for i, migration in enumerate(prs):
                 pr_json = migration.get('PR', None)
