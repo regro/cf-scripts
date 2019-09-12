@@ -1,4 +1,4 @@
-from .migrators import Rebuild
+from .migrators import Rebuild, MigrationYaml
 from .auto_tick import initialize_migrators, migrator_status
 import os
 import json
@@ -11,7 +11,7 @@ def main(args=None):
     total_status = {}
 
     for migrator in migrators:
-        if isinstance(migrator, Rebuild):
+        if isinstance(migrator, (Rebuild, MigrationYaml)):
             migrator_name = migrator.__class__.__name__.lower()
             if migrator_name == "rebuild":
                 migrator_name = migrator.name.lower().replace(" ", "")
