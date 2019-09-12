@@ -511,7 +511,7 @@ def migration_factory(migrators, gx, pr_limit=5):
             add_rebuild_migration_yaml(migrators, gx, package_names, yaml_contents,
                                        migration_name=os.path.splitext(yaml_file)[0],
                                        pr_limit=pr_limit,
-                                       obj_version=1)
+                                       obj_version=2)
 
 def initialize_migrators(do_rebuild=False):
     setup_logger(logger)
