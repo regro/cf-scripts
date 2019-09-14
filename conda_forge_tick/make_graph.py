@@ -30,10 +30,8 @@ NUM_GITHUB_THREADS = 4
 
 def get_attrs(name, i):
     lzj = LazyJson(f'node_attrs/{name}.json')
-    old = dict(lzj)
     with lzj as sub_graph:
         sub_graph.update({
-            "time": time.time(),
             "feedstock_name": name,
             # All feedstocks start out as good
             "bad": False,
@@ -99,17 +97,9 @@ def get_attrs(name, i):
         for k in keys:
             if k[1] not in missing_keys:
                 sub_graph[k[1]] = yaml_dict[k[0]][k[1]]
-        k = next(iter((source_keys & hashlib.algorithms_available)), None)
+        k = sorted(source_keys & hashlib.algorithms_available, reverse=True)
         if k:
-            sub_graph["hash_type"] = k
-        try:
-            t = sub_graph.pop('time')
-            del old['time']
-        except KeyError:
-            pass
-        # if new and old are same don't put in time
-        if dict(sub_graph) != dict(old):
-            sub_graph['time'] = t
+            sub_graph["hash_type"] = k[0]
     return lzj
 
 
@@ -177,6 +167,7 @@ def make_graph(names, gx=None):
 
 def update_graph_pr_status(gx: nx.DiGraph) -> nx.DiGraph:
     failed_refresh = 0
+    succeeded_refresh = 0
     gh = github_client()
     futures = {}
     node_ids = list(gx.nodes)
@@ -198,25 +189,31 @@ def update_graph_pr_status(gx: nx.DiGraph) -> nx.DiGraph:
             try:
                 res = f.result()
                 if res:
+                    succeeded_refresh += 1
                     with gx.node[name]['payload'] as node:
                         node["PRed"][i]['PR'].update(**res)
                     logger.info("Updated json for {}: {}".format(name, res["id"]))
-            except (github3.GitHubError, github3.exceptions.ConnectionError) as e:
+            except github3.GitHubError as e:
                 logger.critical("GITHUB ERROR ON FEEDSTOCK: {}".format(name))
                 failed_refresh += 1
                 if is_github_api_limit_reached(e, gh):
                     break
+            except github3.exceptions.ConnectionError as e:
+                logger.critical("GITHUB ERROR ON FEEDSTOCK: {}".format(name))
+                failed_refresh += 1
             except Exception as e:
                 logger.critical("ERROR ON FEEDSTOCK: {}: {}".format(
                     name,
                     gx.nodes[name]['payload']["PRed"][i]['data']))
                 raise
     logger.info("JSON Refresh failed for {} PRs".format(failed_refresh))
+    logger.info("JSON Refresh succeed for {} PRs".format(succeeded_refresh))
     return gx
 
 
 def close_labels(gx: nx.DiGraph) -> nx.DiGraph:
     failed_refresh = 0
+    succeeded_refresh = 0
     gh = github_client()
     futures = {}
     node_ids = list(gx.nodes)
@@ -224,7 +221,7 @@ def close_labels(gx: nx.DiGraph) -> nx.DiGraph:
     random.shuffle(node_ids)
     with executor('thread', NUM_GITHUB_THREADS) as (pool, as_completed):
         for node_id in node_ids:
-            node = gx.nodes[node_id]
+            node = gx.nodes[node_id]['payload']
             prs = node.get("PRed", [])
             for i, migration in enumerate(prs):
                 pr_json = migration.get('PR', None)
@@ -238,6 +235,7 @@ def close_labels(gx: nx.DiGraph) -> nx.DiGraph:
             try:
                 res = f.result()
                 if res:
+                    succeeded_refresh += 1
                     # add a piece of metadata which makes the muid matchup
                     # fail
                     with gx.node[name]['payload'] as node:
@@ -257,7 +255,8 @@ def close_labels(gx: nx.DiGraph) -> nx.DiGraph:
                 logger.critical("ERROR ON FEEDSTOCK: {}: {}".format(
                     name, gx.nodes[name]['payload']["PRed"][i]['data']))
                 raise
-    logger.info("JSON Refresh failed for {} PRs".format(failed_refresh))
+    logger.info("bot re-run failed for {} PRs".format(failed_refresh))
+    logger.info("bot re-run succeed for {} PRs".format(succeeded_refresh))
     return gx
 
 
@@ -272,8 +271,8 @@ def main(args=None):
     # Utility flag for testing -- we don't need to always update GH
     no_github_fetch = os.environ.get('CONDA_FORGE_TICK_NO_GITHUB_REQUESTS')
     if not no_github_fetch:
-        gx = update_graph_pr_status(gx)
         gx = close_labels(gx)
+        gx = update_graph_pr_status(gx)
 
     logger.info("writing out file")
     dump_graph(gx)
