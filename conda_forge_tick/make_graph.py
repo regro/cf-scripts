@@ -268,6 +268,7 @@ def main(args=None):
     else:
         gx = None
     gx = make_graph(names, gx)
+    print([k for k, v in gx.nodes.items() if 'payload' not in v])
     # Utility flag for testing -- we don't need to always update GH
     no_github_fetch = os.environ.get('CONDA_FORGE_TICK_NO_GITHUB_REQUESTS')
     if not no_github_fetch:
