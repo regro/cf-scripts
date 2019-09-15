@@ -159,7 +159,8 @@ def make_graph(names, gx=None):
         with node_attrs['payload'] as attrs:
             for dep in attrs.get("req", []):
                 if dep not in gx.nodes:
-                    gx.add_node(dep, archived=True, time=time.time())
+                    # for packages which aren't feedstocks (outputs!)
+                    gx.add_node(dep, payload=dict(archived=True))
                 gx.add_edge(dep, node)
     logger.info("new nodes and edges infered")
     return gx
