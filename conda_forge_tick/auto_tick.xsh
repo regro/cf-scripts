@@ -109,10 +109,10 @@ def run(attrs, migrator, feedstock=None, protocol='ssh',
             head_ref = $(git rev-parse HEAD).strip()
             logger.info('Rerendering the feedstock')
             conda smithy rerender -c auto
-        # If we tried to run the MigrationYaml and rerender did nothing (we only
-        # bumped the build number and dropped a yaml file in migrations) bail
-        # for instance platform specific migrations
-        diffed_files = [_ for _ in $(git diff --name-only @(head_ref)...HEAD).split() if not (_.startswith('recipe') or _.startswith('migrators') or _.startswith('README'))]
+            # If we tried to run the MigrationYaml and rerender did nothing (we only
+            # bumped the build number and dropped a yaml file in migrations) bail
+            # for instance platform specific migrations
+            diffed_files = [_ for _ in $(git diff --name-only @(head_ref)...HEAD).split() if not (_.startswith('recipe') or _.startswith('migrators') or _.startswith('README'))]
 
     if isinstance(migrator, MigrationYaml) and not diffed_files:
         # spoof this so it looks like the package is done
