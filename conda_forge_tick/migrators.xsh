@@ -59,10 +59,10 @@ class PipMigrator(MiniMigrator):
     bad_install = ('python setup.py install', 'python -m pip install --no-deps --ignore-installed .')
     def filter(self, attrs: dict) -> bool:
         scripts = as_iterable(attrs.get('meta_yaml', {}).get('build', {}).get('script', []))
-        return not bool(set(bad_install) & set(scripts))
+        return not bool(set(self.bad_install) & set(scripts))
 
     def migrate(self, recipe_dir, attrs, **kwargs):
-        for b in bad_install:
+        for b in self.bad_install:
             replace_in_file(b, "{{ PYTHON }} -m pip install . --no-deps -vv", 'meta.yaml')
 
 class Migrator:
