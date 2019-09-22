@@ -161,6 +161,7 @@ def make_graph(names, gx=None):
                 if dep not in gx.nodes:
                     # for packages which aren't feedstocks (outputs!)
                     lzj = LazyJson(f'node_attrs/{dep}.json')
+                    lzj.update(feedstock_name=dep, bad=False)
                     gx.add_node(dep, payload=lzj)
                 gx.add_edge(dep, node)
     logger.info("new nodes and edges infered")
