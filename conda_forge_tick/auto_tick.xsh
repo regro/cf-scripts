@@ -619,7 +619,8 @@ def migrator_status(migrator: Migrator, gx):
             out['in-pr'].add(node)
             fc = '#31688e'
             fntc = 'white'
-        gv.node(node, label=_clean_text(node), fillcolor=fc, style='filled', fontcolor=fntc)
+        if node not in out['done']:
+            gv.node(node, label=_clean_text(node), fillcolor=fc, style='filled', fontcolor=fntc)
 
         # additional metadata for reporting
         node_metadata['num_descendants'] = len(nx.descendants(gx2, node))
@@ -633,7 +634,8 @@ def migrator_status(migrator: Migrator, gx):
 
     out['_feedstock_status'] = feedstock_metadata
     for (e0, e1), edge_attrs in gx2.edges.items():
-        gv.edge(e0, e1)
+        if e0 not in out['done'] and e1 not in out['done']:
+            gv.edge(e0, e1)
 
     return out, build_sequence, gv
 
