@@ -815,12 +815,12 @@ class Rebuild(Migrator):
             return False
         # Check if all upstreams have been built
         for node in self.graph.predecessors(attrs['feedstock_name']):
-            att = self.graph.node[node]
+            att = self.graph.node[node]['payload']
             muid = frozen_to_json_friendly(self.migrator_uid(att))
             if muid not in _no_pr_pred(att.get('PRed', [])) and not att.get('archived', False):
                 return True
             # This is due to some PRed_json loss due to bad graph deploy outage
-            for m_pred_json in _no_pr_pred(att.get('PRed', [])):
+            for m_pred_json in att.get('PRed', []):
                 if m_pred_json['data'] == muid['data']:
                     break
             else:
@@ -1039,7 +1039,7 @@ class ArchRebuild(Rebuild):
         for arch in self.arches:
             configured_arch = attrs.get("conda-forge.yml", {}).get("provider", {}).get(arch)
             if configured_arch:
-                return muid in attrs.get('PRed', [])
+                return muid in _no_pr_pred(attrs.get('PRed', []))
 
     def migrate(self, recipe_dir, attrs, **kwargs):
         with indir(recipe_dir + '/..'):
@@ -1262,7 +1262,7 @@ class MigrationYaml(Migrator):
             if muid not in _no_pr_pred(att.get('PRed', [])) and not att.get('archived', False):
                 return True
             # This is due to some PRed_json loss due to bad graph deploy outage
-            for m_pred_json in _no_pr_pred(att.get('PRed', [])):
+            for m_pred_json in att.get('PRed', []):
                 if m_pred_json['data'] == muid['data']:
                     break
             else:
