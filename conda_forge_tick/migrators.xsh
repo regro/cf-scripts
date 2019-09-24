@@ -21,6 +21,12 @@ from .utils import render_meta_yaml, UniversalSet, frozen_to_json_friendly, \
     as_iterable
 
 
+def _no_pr_pred(pred):
+    l = []
+    for pr in pred:
+        l.append({'data': pr['data'], 'keys': pr['keys']})
+    return l
+
 class MiniMigrator:
     def filter(self, attrs: dict) -> bool:
         """ If true don't act upon node
@@ -811,10 +817,10 @@ class Rebuild(Migrator):
         for node in self.graph.predecessors(attrs['feedstock_name']):
             att = self.graph.node[node]
             muid = frozen_to_json_friendly(self.migrator_uid(att))
-            if muid not in att.get('PRed', []) and not att.get('archived', False):
+            if muid not in _no_pr_pred(att.get('PRed', [])) and not att.get('archived', False):
                 return True
             # This is due to some PRed_json loss due to bad graph deploy outage
-            for m_pred_json in att.get('PRed', []):
+            for m_pred_json in _no_pr_pred(att.get('PRed', [])):
                 if m_pred_json['data'] == muid['data']:
                     break
             else:
@@ -1253,10 +1259,10 @@ class MigrationYaml(Migrator):
         for node in self.graph.predecessors(attrs['feedstock_name']):
             att = self.graph.node[node]
             muid = frozen_to_json_friendly(self.migrator_uid(att))
-            if muid not in att.get('PRed', []) and not att.get('archived', False):
+            if muid not in _no_pr_pred(att.get('PRed', [])) and not att.get('archived', False):
                 return True
             # This is due to some PRed_json loss due to bad graph deploy outage
-            for m_pred_json in att.get('PRed_json', []):
+            for m_pred_json in _no_pr_pred(att.get('PRed', [])):
                 if m_pred_json['data'] == muid['data']:
                     break
             else:
