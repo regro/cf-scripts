@@ -575,6 +575,9 @@ def migrator_status(migrator: Migrator, gx):
 
     feedstock_metadata = dict()
 
+    import graphviz
+    from streamz.graph import _clean_text
+    gv = graphviz.Digraph()
     for node, node_attrs in gx2.node.items():
         attrs = node_attrs['payload']
         # remove archived from status
@@ -594,20 +597,33 @@ def migrator_status(migrator: Migrator, gx):
         manually_done = pr_json is None and frozen_to_json_friendly(nuid)['data'] in (z['data'] for z in attrs.get('PRed', []))
 
         buildable = not migrator.filter(attrs)
-
+        fntc = 'black'
         if manually_done:
             out['done'].add(node)
+            fc = '#440154'
+            fntc = 'white'
         elif pr_json is None:
             if buildable:
                 out['awaiting-pr'].add(node)
+                fc = '#35b779'
             else:
                 out['awaiting-parents'].add(node)
+                fc = '#fde725'
         elif 'PR' not in pr_json:
             out['bot-error'].add(node)
+            fc = '#000000'
+            fntc = 'white'
         elif pr_json['PR']['state'] == 'closed':
             out['done'].add(node)
+            fc = '#440154'
+            fntc = 'white'
         else:
             out['in-pr'].add(node)
+            fc = '#31688e'
+            fntc = 'white'
+        if node not in out['done']:
+            gv.node(node, label=_clean_text(node), fillcolor=fc, style='filled', fontcolor=fntc)
+
         # additional metadata for reporting
         node_metadata['num_descendants'] = len(nx.descendants(gx2, node))
         node_metadata['immediate_children'] = list(sorted(gx2.successors(node)))
@@ -619,8 +635,11 @@ def migrator_status(migrator: Migrator, gx):
         out[k] = list(sorted(out[k], key=lambda x: build_sequence.index(x) if x in build_sequence else -1))
 
     out['_feedstock_status'] = feedstock_metadata
+    for (e0, e1), edge_attrs in gx2.edges.items():
+        if e0 not in out['done'] and e1 not in out['done'] and not gx2.nodes[e0]['payload'].get('archived', False) and not gx2.nodes[e1]['payload'].get('archived', False):
+            gv.edge(e0, e1)
 
-    return out, build_sequence
+    return out, build_sequence, gv
 
 
 def main(args=None):

@@ -15,3 +15,5 @@ conda-forge-pinning
 frozendict
 distributed
 python-dateutil
+python-graphviz
+streamz
