@@ -634,7 +634,7 @@ def migrator_status(migrator: Migrator, gx):
 
     out['_feedstock_status'] = feedstock_metadata
     for (e0, e1), edge_attrs in gx2.edges.items():
-        if e0 not in out['done'] and e1 not in out['done']:
+        if e0 not in out['done'] and e1 not in out['done'] and not gx2.nodes[e0]['payload'].get('archived', False) and not gx2.nodes[e1]['payload'].get('archived', False):
             gv.edge(e0, e1)
 
     return out, build_sequence, gv
