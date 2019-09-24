@@ -16,7 +16,7 @@ def main(args=None):
             migrator_name = migrator.__class__.__name__.lower()
             print(migrator_name)
             print('=' * len(migrator_name))
-            status, build_order = migrator_status(migrator, gx)
+            status, build_order, gv = migrator_status(migrator, gx)
             o = yaml.safe_dump(status, default_flow_style=False)
             print(o)
             print('\n\n')

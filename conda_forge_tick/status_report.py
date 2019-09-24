@@ -16,9 +16,12 @@ def main(args=None):
             if migrator_name in ["rebuild", 'migrationyaml']:
                 migrator_name = migrator.name.lower().replace(" ", "")
             total_status[migrator_name] = f"{migrator.name} Migration Status"
-            status, build_order = migrator_status(migrator, gx)
+            status, build_order, gv = migrator_status(migrator, gx)
             with open(os.path.join(f"./status/{migrator_name}.json"), "w") as fo:
                 json.dump(status, fo, indent=2)
+            d = gv.pipe('svg')
+            with open(os.path.join(f"./status/{migrator_name}.svg"), "wb") as fo:
+                fo.write(d)
     with open("./status/total_status.json", "w") as f:
         json.dump(total_status, f)
     l = [
