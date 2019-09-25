@@ -134,6 +134,7 @@ def run(attrs, migrator, feedstock=None, protocol='ssh',
             if e.msg != 'Validation Failed':
                 raise
             else:
+                print(f'Error during push {e}')
                 # If we just push to the existing PR then do nothing to the json
                 pr_json = False
 
