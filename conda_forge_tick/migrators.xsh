@@ -70,7 +70,7 @@ class PipMigrator(MiniMigrator):
     def migrate(self, recipe_dir, attrs, **kwargs):
         with indir(recipe_dir):
             for b in self.bad_install:
-                replace_in_file(f'script: {b}', "{{ PYTHON }} -m pip install . --no-deps -vv", 'meta.yaml')
+                replace_in_file(f'script: {b}', "script: {{ PYTHON }} -m pip install . --no-deps -vv", 'meta.yaml')
 
 class Migrator:
     """Base class for Migrators"""
