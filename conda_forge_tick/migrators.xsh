@@ -991,6 +991,12 @@ class ArchRebuild(Rebuild):
         'pyarrow',
         'numba',
         'r-base',
+        'protobuf',
+        'cvxpy',
+        'gevent',
+        'gunicorn',
+        'sympy',
+        'tqdm',
         # mpi variants
         'openmpi',
         'mpich',
