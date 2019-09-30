@@ -26,6 +26,7 @@ Calculating migration impact
 The number of feedstocks which would be migrated by a particular migration can be calculated:
 
  .. code-block:: python
+
    from conda_forge_tick.auto_tick import initialize_migrators
    *_, migrators = initialize_migrators()
    migrator = migrators[-1]
