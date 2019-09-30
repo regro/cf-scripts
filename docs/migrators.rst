@@ -6,7 +6,9 @@ as simple as a yaml syntax change, or as complex as moving compiler stacks.
 Most migrations are due to a change in the global pinning, as packages change
 their pinning, the entire stack which depends directly on that package will
 need to be updated.
-This document will teach you how to create new migrators
+This document will teach you how to create new migrators.
+
+ .. note:: Unless you need to write a custom migrator, you can call for a migration by adding a yaml file to the ``recipe/migrations`` folder of ``conda-forge-pinning-feedstock`` and issuing a PR. Once merged the migration will start.
 
 
 Building a Migration
