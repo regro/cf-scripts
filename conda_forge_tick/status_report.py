@@ -39,7 +39,7 @@ def main(args=None):
         >= 3
     ]
     with open("./status/unmaintained.json", "w") as f:
-        json.dump(sorted(l, key=lambda z: len(nx.descendants(gx, z))), f, indent=2)
+        json.dump(sorted(l, key=lambda z: len(nx.descendants(gx, z)), reverse=True), f, indent=2)
 
 
 if __name__ == "__main__":
