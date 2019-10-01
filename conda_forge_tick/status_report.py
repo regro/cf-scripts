@@ -2,6 +2,7 @@ from .migrators import Rebuild, MigrationYaml
 from .auto_tick import initialize_migrators, migrator_status
 import os
 import json
+import networkx as nx
 
 
 def main(args=None):
@@ -38,7 +39,7 @@ def main(args=None):
         >= 3
     ]
     with open("./status/unmaintained.json", "w") as f:
-        json.dump(l, f, indent=2)
+        json.dump(sorted(l, key=lambda z: len(nx.descendants(gx, z))), f, indent=2)
 
 
 if __name__ == "__main__":
