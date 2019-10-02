@@ -182,6 +182,7 @@ def close_out_labels(pr_json: LazyJson, gh=None):
                               " appropriate.")
         pr_obj.close()
         delete_branch(pr_json)
+        pr_obj.refresh(True)
         return pr_obj.as_dict()
 
 
