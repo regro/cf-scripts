@@ -91,6 +91,9 @@ class LazyJson(MutableMapping):
                 print(os.getcwd())
                 print(os.listdir("."))
                 raise
+            except:
+                print(self.file_name)
+                raise
 
     def _dump(self):
         self._load()
