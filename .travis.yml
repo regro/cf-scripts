@@ -18,6 +18,7 @@ before_install:
   - conda config --add channels conda-forge
   - conda update conda --yes
   - export CONDARC=ci/condarc
+  - export CONDA_FORGE_TICK_NO_GITHUB_REQUESTS=true
 
 
 install:
