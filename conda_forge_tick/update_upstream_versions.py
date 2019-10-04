@@ -3,7 +3,6 @@ import logging
 import builtins
 import subprocess
 import hashlib
-import re
 
 import feedparser
 import networkx as nx
@@ -143,57 +142,16 @@ class NPM:
         return latest
 
 
-class CRAN:
-    """The CRAN versions source.
-
-    Uses a local CRAN index instead of one request per package.
-    """
+class CRAN(LibrariesIO):
     name = "cran"
     url_contains = "cran.r-project.org/src/contrib/Archive"
-    cran_url = "https://cran.r-project.org"
 
-    def __init__(self):
-        try:
-            session = requests.Session()
-            self.cran_index = self._get_cran_index(session)
-            logger.info("Cran source initialized")
-        except Exception:
-            logger.error("Cran initialization failed", exc_info=True)
-            self.cran_index = {}
-
-    def _get_cran_index(self, session):
-        # from conda_build/skeletons/cran.py:get_cran_index
-        logger.info("Fetching cran index from %s", self.cran_url)
-        r = session.get(self.cran_url + "/src/contrib/")
-        r.raise_for_status()
-        records = {}
-        for p in re.findall(r'<td><a href="([^"]+)">\1</a></td>', r.text):
-            if p.endswith(".tar.gz") and "_" in p:
-                name, version = p.rsplit(".", 2)[0].split("_", 1)
-                records[name.lower()] = (name, version)
-        r = session.get(self.cran_url + "/src/contrib/Archive/")
-        r.raise_for_status()
-        for p in re.findall(r'<td><a href="([^"]+)/">\1/</a></td>', r.text):
-            if re.match(r"^[A-Za-z]", p):
-                records.setdefault(p.lower(), (p, None))
-        return records
-
-    def get_url(self, meta_yaml):
-        urls = meta_yaml["url"]
-        if not isinstance(meta_yaml["url"], list):
-            urls = [urls]
-        for url in urls:
-            if self.url_contains not in url:
-                continue
-            # alternatively: pkg = meta_yaml["name"].split("r-", 1)[-1]
-            pkg = url.split("/")[6].lower()
-            if pkg in self.cran_index:
-                return self.cran_index[pkg]
-            else:
-                return None
+    def package_name(self, url):
+        return url.split("/")[6]
 
     def get_version(self, url):
-        return str(url[1]).replace("-", "_") if url[1] else None
+        ver = LibrariesIO.get_version(self, url)
+        return str(ver).replace("-", "_")
 
 
 def get_sha256(url):
