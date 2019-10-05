@@ -16,6 +16,8 @@ from .utils import parse_meta_yaml, setup_logger, executor, load_graph, \
 
 logger = logging.getLogger("conda_forge_tick.update_upstream_versions")
 
+CRAN_INDEX = None
+
 
 def urls_from_meta(meta_yaml):
     source = meta_yaml["source"]
@@ -147,19 +149,27 @@ class CRAN:
     """The CRAN versions source.
 
     Uses a local CRAN index instead of one request per package.
+
+    The index is lazy initialzed on first `get_url` call and kept in
+    memory on module level as `CRAN_INDEX` like a singelton. This way it
+    is shared on executor level and not serialized with every instance of
+    the CRAN class to allow efficient distributed execution with e.g.
+    dask.
     """
     name = "cran"
     url_contains = "cran.r-project.org/src/contrib/Archive"
     cran_url = "https://cran.r-project.org"
 
-    def __init__(self):
-        try:
-            session = requests.Session()
-            self.cran_index = self._get_cran_index(session)
-            logger.info("Cran source initialized")
-        except Exception:
-            logger.error("Cran initialization failed", exc_info=True)
-            self.cran_index = {}
+    def init(self):
+        global CRAN_INDEX
+        if not CRAN_INDEX:
+            try:
+                session = requests.Session()
+                CRAN_INDEX = self._get_cran_index(session)
+                logger.info("Cran source initialized")
+            except Exception:
+                logger.error("Cran initialization failed", exc_info=True)
+                CRAN_INDEX = {}
 
     def _get_cran_index(self, session):
         # from conda_build/skeletons/cran.py:get_cran_index
@@ -179,6 +189,7 @@ class CRAN:
         return records
 
     def get_url(self, meta_yaml):
+        self.init()
         urls = meta_yaml["url"]
         if not isinstance(meta_yaml["url"], list):
             urls = [urls]
@@ -187,8 +198,8 @@ class CRAN:
                 continue
             # alternatively: pkg = meta_yaml["name"].split("r-", 1)[-1]
             pkg = url.split("/")[6].lower()
-            if pkg in self.cran_index:
-                return self.cran_index[pkg]
+            if pkg in CRAN_INDEX:
+                return CRAN_INDEX[pkg]
             else:
                 return None
 
