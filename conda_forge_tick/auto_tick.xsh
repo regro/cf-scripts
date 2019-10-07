@@ -26,7 +26,7 @@ logger = logging.getLogger("conda_forge_tick.auto_tick")
 # https://travis-ci.org/regro/00-find-feedstocks/jobs/388387895#L1870
 from .migrators import *
 $MIGRATORS = [
-   Version(pr_limit=10, piggy_back_migrations=[PipMigrator()]),
+   Version(pr_limit=30, piggy_back_migrations=[PipMigrator()]),
    # Noarch(pr_limit=10),
    # Pinning(pr_limit=1, removals={'perl'}),
    # Compiler(pr_limit=7),
