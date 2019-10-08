@@ -14,7 +14,6 @@ from conda_build.source import provide
 from rever.tools import (eval_version, hash_url, replace_in_file)
 from xonsh.lib.os import indir
 from conda_smithy.update_cb3 import update_cb3
-from conda_smithy.lint_recipe import NEEDED_FAMILIES
 from conda_smithy.configure_feedstock import get_cfp_file_path
 
 from conda_build.metadata import MetaData
@@ -25,6 +24,12 @@ from ruamel.yaml import safe_load, safe_dump
 from conda_forge_tick.path_lengths import cyclic_topological_sort
 from .utils import render_meta_yaml, UniversalSet, frozen_to_json_friendly, \
     as_iterable
+
+
+try: 
+    from conda_smithy.lint_recipe import NEEDED_FAMILIES
+except ImportError:
+    NEEDED_FAMILIES = ["gpl", "bsd", "mit", "apache", "psf"]
 
 
 def _no_pr_pred(pred):
