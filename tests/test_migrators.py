@@ -1665,7 +1665,7 @@ package:
 
 source:
   url: https://pypi.io/packages/source/v/viscm/viscm-{{ version }}.tar.gz
-  sha256: c770e4b76f726e653d2b7c2c73f71941a88de6eb47ccf8fb8e984b55562d05a2 
+  sha256: c770e4b76f726e653d2b7c2c73f71941a88de6eb47ccf8fb8e984b55562d05a2
 
 build:
   number: 0
@@ -1688,7 +1688,7 @@ test:
     - viscm
 
 about:
-  license: License
+  license_file: License
   home: https://github.com/bids/viscm
   license: MIT
   license_family: MIT
@@ -1702,7 +1702,8 @@ extra:
 
 js = JS()
 version = Version()
-version_license_migrator = Version(piggy_back_migrations=[LicenseMigrator()])
+lm = LicenseMigrator()
+version_license_migrator = Version(piggy_back_migrations=[lm])
 compiler = Compiler()
 noarch = Noarch()
 noarchr = NoarchR()
@@ -2007,7 +2008,8 @@ def test_migration(m, inp, output, kwargs, prb, mr_out, should_filter, tmpdir):
 
     pmy.update(PRed=[frozen_to_json_friendly(mr)])
     with open(os.path.join(tmpdir, "meta.yaml"), "r") as f:
-        assert f.read() == output
+        actual_output = f.read()
+    assert actual_output == output
     if isinstance(m, Compiler):
         assert m.messages in m.pr_body()
     # TODO: fix subgraph here (need this to be xsh file)
