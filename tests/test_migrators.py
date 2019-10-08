@@ -1702,7 +1702,7 @@ extra:
 
 js = JS()
 version = Version()
-version_license = Version(piggy_back_migrations=[LicenseMigrator()])
+version_license_migrator = Version(piggy_back_migrations=[LicenseMigrator()])
 compiler = Compiler()
 noarch = Noarch()
 noarchr = NoarchR()
@@ -1717,7 +1717,7 @@ blas_rebuild.filter = lambda x: False
 
 test_list = [
      (
-        version,
+        version_license_migrator,
         version_license,
         version_license_correct,
         {"new_version": "0.9"},
