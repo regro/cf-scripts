@@ -6,6 +6,7 @@ import re
 from itertools import chain
 from textwrap import dedent
 import warnings
+from itertools import permutations
 
 import networkx as nx
 import conda.exceptions
