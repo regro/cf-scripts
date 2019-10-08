@@ -389,6 +389,16 @@ class Version(Migrator):
 
         # render the text and check that the URL exists, if it doesn't try variations
         # if variations then update url
+        rendered_text = render_meta_yaml(text)
+        if requests.get(rendered_text['source']['url']).status != 200:
+            with indir(recipe_dir):
+                for a, b in permutations(['.zip', '.tar.gz']):
+                    text = text.replace(a, b)
+                    rendered_text = render_meta_yaml(text)
+                    if requests.get(rendered_text['source']['url']).status == 200:
+                        with open('meta.yaml', 'w') as f:
+                            f.write(text)
+                        break
         # Get patterns to replace checksum for each platform
         rendered_text = render_meta_yaml(text)
         urls = self.find_urls(rendered_text)
