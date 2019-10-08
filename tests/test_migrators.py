@@ -1716,7 +1716,20 @@ blas_rebuild = BlasRebuild(cycles=[])
 blas_rebuild.filter = lambda x: False
 
 test_list = [
-    (
+     (
+        version,
+        version_license,
+        version_license_correct,
+        {"new_version": "0.9"},
+        "Dependencies have been updated if changed",
+        {
+            "migrator_name": "Version",
+            "migrator_version": Version.migrator_version,
+            "version": "0.9",
+        },
+        False,
+    ),
+   (
         js,
         sample_js,
         correct_js,
@@ -1939,19 +1952,6 @@ test_list = [
         {"feedstock_name": "scipy"},
         "This PR has been triggered in an effort to update for new BLAS scheme.",
         {"migrator_name": "BlasRebuild", "migrator_version": blas_rebuild.migrator_version, "name": "blas2"},
-        False,
-    ),
-    (
-        version,
-        version_license,
-        version_license_correct,
-        {"new_version": "0.9"},
-        "Dependencies have been updated if changed",
-        {
-            "migrator_name": "Version",
-            "migrator_version": Version.migrator_version,
-            "version": "0.9",
-        },
         False,
     ),
 
