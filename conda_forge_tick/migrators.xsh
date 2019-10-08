@@ -393,7 +393,7 @@ class Version(Migrator):
         # if variations then update url
         rendered = parse_meta_yaml(render_meta_yaml(text))
         # only run for single url recipes as the moment
-        if isinstance (rednered['source']['url'], str) and requests.get(rendered['source']['url']).status_code != 200:
+        if isinstance (rerendered['source']['url'], str) and requests.get(rendered['source']['url']).status_code != 200:
             with indir(recipe_dir):
                 for a, b in permutations(['.zip', '.tar.gz']):
                     text = text.replace(a, b)
