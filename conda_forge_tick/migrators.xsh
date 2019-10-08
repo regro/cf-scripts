@@ -387,6 +387,8 @@ class Version(Migrator):
             with open('meta.yaml', 'r') as f:
                 text = f.read()
 
+        # render the text and check that the URL exists, if it doesn't try variations
+        # if variations then update url
         # Get patterns to replace checksum for each platform
         rendered_text = render_meta_yaml(text)
         urls = self.find_urls(rendered_text)
