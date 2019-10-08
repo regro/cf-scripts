@@ -16,6 +16,8 @@ from conda_smithy.update_cb3 import update_cb3
 from conda_smithy.configure_feedstock import get_cfp_file_path
 from ruamel.yaml import safe_load, safe_dump
 
+import requests
+
 from conda_forge_tick.path_lengths import cyclic_topological_sort
 from .utils import render_meta_yaml, UniversalSet, frozen_to_json_friendly, \
     as_iterable
