@@ -95,7 +95,7 @@ class LicenseMigrator(MiniMigrator):
         cb_work_dir = provide(md)
         with indir(cb_work_dir):
             # look for a license file
-            license_files = [(s for s in os.listdir('.') if s.lower in ['license', 'copying', 'copyright'])]
+            license_files = [(s for s in os.listdir('.') if any(s.lower().startswith(k) for k in ['license', 'copying', 'copyright']))]
             # if there is a license file in tarball update things
         rm -r @(cb_work_dir)
         if license_files:
