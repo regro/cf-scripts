@@ -1688,7 +1688,7 @@ test:
     - viscm
 
 about:
-  license_file: License
+  license_file: LICENSE
   home: https://github.com/bids/viscm
   license: MIT
   license_family: MIT
@@ -2020,5 +2020,3 @@ def test_migration(m, inp, output, kwargs, prb, mr_out, should_filter, tmpdir):
     else:
         assert prb in m.pr_body()
     assert m.filter(pmy) is True
-    if pmy.get('package', {}).get('name', '') == 'viscm':
-        assert 'license_file' in pmy['about']

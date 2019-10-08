@@ -87,7 +87,7 @@ class PipMigrator(MiniMigrator):
 class LicenseMigrator(MiniMigrator):
     def filter(self, attrs: dict) -> bool:
         license = attrs.get('meta_yaml', {}).get('about', {}).get('license')
-        license_fam = (attrs.get('meta_yaml', {}).get('about', {}).get('license_family', '').lower or
+        license_fam = (attrs.get('meta_yaml', {}).get('about', {}).get('license_family', '').lower() or
                        license.lower.partition('-')[0].partition('v')[0])
         if license_fam in NEEDED_FAMILIES and 'license_file' not in attrs.get('meta_yaml', {}).get('about', {}):
             return False
@@ -118,7 +118,10 @@ class LicenseMigrator(MiniMigrator):
                    if m is not None:
                        break
                 ws = m.group(1)
-                replace_in_file("about:", "about:\n" + ws + f"license_file: {license_files}", 'meta.yaml')
+                if len(license_files) == 1:
+                    replace_in_file("about:", "about:\n" + ws + f"license_file: {next(iter(license_files))}", 'meta.yaml')
+                else:
+                    replace_in_file("about:", "about:\n" + ws + f"license_file: {license_files}", 'meta.yaml')
 
         # if license not in tarball do something!
         # check if
