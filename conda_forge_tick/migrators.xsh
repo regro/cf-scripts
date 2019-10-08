@@ -95,11 +95,10 @@ class LicenseMigrator(MiniMigrator):
         cb_work_dir = provide(md)
         with indir(cb_work_dir):
             # look for a license file
-            license_file = next((s for s in os.listdir('.') if
-                                 any([getattr('license', k)() in s for k in ['lower', 'upper', 'title']])), None)
+            license_files = [(s for s in os.listdir('.') if s.lower in ['license', 'copying', 'copyright'])]
             # if there is a license file in tarball update things
         rm -r @(cb_work_dir)
-        if license_file:
+        if license_files:
             with indir(recipe_dir):
                 '''BSD 3-Clause License
                   Copyright (c) 2017, Anthony Scopatz
@@ -114,7 +113,7 @@ class LicenseMigrator(MiniMigrator):
                    if m is not None:
                        break
                 ws = m.group(1)
-                replace_in_file("about:", "about:\n" + ws + f"license_file: {license_file}", 'meta.yaml')
+                replace_in_file("about:", "about:\n" + ws + f"license_file: {license_files}", 'meta.yaml')
 
         # if license not in tarball do something!
         # check if
