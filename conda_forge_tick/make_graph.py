@@ -59,8 +59,8 @@ def get_attrs(name, i):
         text, failed = fetch_file('recipe/meta.yaml')
         if failed:
             return sub_graph
-        for s in ['build.sh', 'build.bat']:
-            build, failed = fetch_file('recipe/build.sh')
+        for s in ['build.sh', 'bld.bat']:
+            build, failed = fetch_file(f'recipe/{s}')
             if not failed:
                 sub_graph[s] = build
         sub_graph["raw_meta_yaml"] = text
