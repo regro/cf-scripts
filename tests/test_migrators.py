@@ -5,7 +5,7 @@ import pytest
 import networkx as nx
 
 from conda_forge_tick.migrators import (JS, Version, Compiler, Noarch, Pinning, Rebuild, \
-    ArchRebuild, NoarchR, BlasRebuild)
+    ArchRebuild, NoarchR, BlasRebuild, LicenseMigrator)
 from conda_forge_tick.utils import parse_meta_yaml, frozen_to_json_friendly
 
 
@@ -1613,8 +1613,97 @@ test:
     - mpmath
 """
 
+version_license="""
+{% set version = "0.8" %}
+
+package:
+  name: viscm
+  version: {{ version }}
+
+source:
+  url: https://pypi.io/packages/source/v/viscm/viscm-{{ version }}.tar.gz
+  sha256: 5a9677fa4751c6dd18a5a74e7ec06848e4973d0ac0af3e4d795753b15a30c759
+
+build:
+  number: 0
+  noarch: python
+  script: python -m pip install --no-deps --ignore-installed .
+
+requirements:
+  host:
+    - python
+    - pip
+    - numpy
+  run:
+    - python
+    - numpy
+    - matplotlib
+    - colorspacious
+
+test:
+  imports:
+    - viscm
+
+about:
+  home: https://github.com/bids/viscm
+  license: MIT
+  license_family: MIT
+  # license_file: '' we need to an issue upstream to get a license in the source dist.
+  summary: A colormap tool
+
+extra:
+  recipe-maintainers:
+    - kthyng
+"""
+
+version_license_correct="""
+{% set version = "0.9" %}
+
+package:
+  name: viscm
+  version: {{ version }}
+
+source:
+  url: https://pypi.io/packages/source/v/viscm/viscm-{{ version }}.tar.gz
+  sha256: c770e4b76f726e653d2b7c2c73f71941a88de6eb47ccf8fb8e984b55562d05a2
+
+build:
+  number: 0
+  noarch: python
+  script: python -m pip install --no-deps --ignore-installed .
+
+requirements:
+  host:
+    - python
+    - pip
+    - numpy
+  run:
+    - python
+    - numpy
+    - matplotlib
+    - colorspacious
+
+test:
+  imports:
+    - viscm
+
+about:
+  home: https://github.com/bids/viscm
+  license: MIT
+  license_file: LICENSE
+  license_family: MIT
+  # license_file: '' we need to an issue upstream to get a license in the source dist.
+  summary: A colormap tool
+
+extra:
+  recipe-maintainers:
+    - kthyng
+"""
+
 js = JS()
 version = Version()
+lm = LicenseMigrator()
+version_license_migrator = Version(piggy_back_migrations=[lm])
 compiler = Compiler()
 noarch = Noarch()
 noarchr = NoarchR()
@@ -1628,7 +1717,20 @@ blas_rebuild = BlasRebuild(cycles=[])
 blas_rebuild.filter = lambda x: False
 
 test_list = [
-    (
+     (
+        version_license_migrator,
+        version_license,
+        version_license_correct,
+        {"new_version": "0.9"},
+        "Dependencies have been updated if changed",
+        {
+            "migrator_name": "Version",
+            "migrator_version": Version.migrator_version,
+            "version": "0.9",
+        },
+        False,
+    ),
+   (
         js,
         sample_js,
         correct_js,
@@ -1853,6 +1955,8 @@ test_list = [
         {"migrator_name": "BlasRebuild", "migrator_version": blas_rebuild.migrator_version, "name": "blas2"},
         False,
     ),
+
+
     # Disabled for now because the R license stuff has been purpossefully moved into the noarchR migrator
     # (
     #     noarchr,
@@ -1904,7 +2008,8 @@ def test_migration(m, inp, output, kwargs, prb, mr_out, should_filter, tmpdir):
 
     pmy.update(PRed=[frozen_to_json_friendly(mr)])
     with open(os.path.join(tmpdir, "meta.yaml"), "r") as f:
-        assert f.read() == output
+        actual_output = f.read()
+    assert actual_output == output
     if isinstance(m, Compiler):
         assert m.messages in m.pr_body()
     # TODO: fix subgraph here (need this to be xsh file)
