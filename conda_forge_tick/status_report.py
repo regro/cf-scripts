@@ -41,6 +41,7 @@ def main(args=None):
     with open("./status/unmaintained.json", "w") as f:
         json.dump(sorted(l, key=lambda z: len(nx.descendants(gx, z)), reverse=True), f, indent=2)
 
+    lm = LicenseMigrator()
     l = [k for k, v in gx.nodes.items() if not lm.filter(v.get('payload', {}))]
     with open("./status/unlicensed.json", "w") as f:
         json.dump(sorted(l, key=lambda z: len(nx.descendants(gx, z)), reverse=True), f, indent=2)

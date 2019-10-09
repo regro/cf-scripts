@@ -11,14 +11,14 @@ from itertools import permutations
 import networkx as nx
 import conda.exceptions
 from conda.models.version import VersionOrder
-from conda_build.source import provide
 from rever.tools import (eval_version, hash_url, replace_in_file)
 from xonsh.lib.os import indir
 from conda_smithy.update_cb3 import update_cb3
 from conda_smithy.configure_feedstock import get_cfp_file_path
 
-from conda_build.metadata import MetaData
 from conda_build.source import provide
+from conda_build.config import Config
+from conda_build.api import render
 
 from ruamel.yaml import safe_load, safe_dump
 
@@ -26,7 +26,7 @@ import requests
 
 from conda_forge_tick.path_lengths import cyclic_topological_sort
 from .utils import render_meta_yaml, UniversalSet, frozen_to_json_friendly, \
-    as_iterable, parse_meta_yaml
+    as_iterable, parse_meta_yaml, CB_CONFIG
 
 
 try: 
@@ -98,7 +98,7 @@ class LicenseMigrator(MiniMigrator):
 
     def migrate(self, recipe_dir, attrs, **kwargs):
         # Use conda build to do all the downloading/extracting bits
-        md = MetaData(recipe_dir)
+        md = render(recipe_dir, config=Config(**CB_CONFIG))[0][0]
         # go into source dir
         cb_work_dir = provide(md)
         with indir(cb_work_dir):
