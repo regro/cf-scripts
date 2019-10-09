@@ -2,8 +2,7 @@ import os
 from collections import defaultdict
 
 from collections import Set, MutableMapping
-from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor, \
-    as_completed
+from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor, as_completed
 
 import contextlib
 import logging
@@ -22,6 +21,17 @@ from collections import Mapping, Set, Sequence
 # dual python 2/3 compatability, inspired by the "six" library
 string_types = (str, bytes)
 iteritems = lambda mapping: mapping.items()
+
+
+CB_CONFIG = dict(
+    os=os,
+    environ=defaultdict(str),
+    compiler=lambda x: x + "_compiler_stub",
+    pin_subpackage=lambda *args, **kwargs: "subpackage_stub",
+    pin_compatible=lambda *args, **kwargs: "compatible_pin_stub",
+    cdt=lambda *args, **kwargs: "cdt_stub",
+    cran_mirror="https://cran.r-project.org",
+)
 
 
 class UniversalSet(Set):
@@ -134,15 +144,7 @@ def render_meta_yaml(text):
     """
 
     env = jinja2.Environment(undefined=NullUndefined)
-    content = env.from_string(text).render(
-        os=os,
-        environ=defaultdict(str),
-        compiler=lambda x: x + "_compiler_stub",
-        pin_subpackage=lambda *args, **kwargs: "subpackage_stub",
-        pin_compatible=lambda *args, **kwargs: "compatible_pin_stub",
-        cdt=lambda *args, **kwargs: "cdt_stub",
-        cran_mirror="https://cran.r-project.org",
-    )
+    content = env.from_string(text).render(**CB_CONFIG)
     return content
 
 
@@ -225,8 +227,7 @@ def get_requirements(meta_yaml, outputs=True, build=True, host=True, run=True):
     reqs = _parse_requirements(meta_yaml.get("requirements", {}), **kw)
     outputs = meta_yaml.get("outputs", []) or [] if outputs else []
     for output in outputs:
-        reqs.update(
-            _parse_requirements(output.get("requirements", {}) or {}, **kw))
+        reqs.update(_parse_requirements(output.get("requirements", {}) or {}, **kw))
     return reqs
 
 
@@ -242,8 +243,7 @@ def _parse_requirements(req, build=True, host=True, run=True):
         host = list(as_iterable(req.get("host", []) or [] if host else []))
         run = list(as_iterable(req.get("run", []) or [] if run else []))
         reqlist = build + host + run
-    return set(
-        pin_sep_pat.split(x)[0].lower() for x in reqlist if x is not None)
+    return set(pin_sep_pat.split(x)[0].lower() for x in reqlist if x is not None)
 
 
 @contextlib.contextmanager
@@ -286,8 +286,7 @@ def object_hook(dct):
     return dct
 
 
-def dumps(obj, sort_keys=True, separators=(",", ":"), default=default,
-          **kwargs):
+def dumps(obj, sort_keys=True, separators=(",", ":"), default=default, **kwargs):
     """Returns a JSON string from a Python object."""
     return json.dumps(
         obj,
@@ -299,8 +298,7 @@ def dumps(obj, sort_keys=True, separators=(",", ":"), default=default,
     )
 
 
-def dump(obj, fp, sort_keys=True, separators=(",", ":"), default=default,
-         **kwargs):
+def dump(obj, fp, sort_keys=True, separators=(",", ":"), default=default, **kwargs):
     """Returns a JSON string from a Python object."""
     return json.dump(
         obj,
@@ -349,8 +347,8 @@ def frozen_to_json_friendly(fz: dict, PR: LazyJson = None):
 
 
 def github_client():
-    if os.environ.get('GITHUB_TOKEN'):
-        return github3.login(token=os.environ['GITHUB_TOKEN'])
+    if os.environ.get("GITHUB_TOKEN"):
+        return github3.login(token=os.environ["GITHUB_TOKEN"])
     else:
         return github3.login(os.environ["USERNAME"], os.environ["PASSWORD"])
 
@@ -385,8 +383,8 @@ def as_iterable(iterable_or_scalar):
     if iterable_or_scalar is None:
         return ()
     elif isinstance(iterable_or_scalar, (str, bytes)):
-        return iterable_or_scalar,
+        return (iterable_or_scalar,)
     elif hasattr(iterable_or_scalar, "__iter__"):
         return iterable_or_scalar
     else:
-        return iterable_or_scalar,
+        return (iterable_or_scalar,)
