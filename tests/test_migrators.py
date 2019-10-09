@@ -1613,6 +1613,79 @@ test:
     - mpmath
 """
 
+compress="""
+{% set version = "0.8" %}
+package:
+  name: viscm
+  version: {{ version }}
+source:
+  url: https://pypi.io/packages/source/v/viscm/viscm-{{ version }}.zip
+  sha256: 5a9677fa4751c6dd18a5a74e7ec06848e4973d0ac0af3e4d795753b15a30c759
+build:
+  number: 0
+  noarch: python
+  script: python -m pip install --no-deps --ignore-installed .
+requirements:
+  host:
+    - python
+    - pip
+    - numpy
+  run:
+    - python
+    - numpy
+    - matplotlib
+    - colorspacious
+test:
+  imports:
+    - viscm
+about:
+  home: https://github.com/bids/viscm
+  license: MIT
+  license_family: MIT
+  # license_file: '' we need to an issue upstream to get a license in the source dist.
+  summary: A colormap tool
+extra:
+  recipe-maintainers:
+    - kthyng
+"""
+
+compress_correct="""
+{% set version = "0.9" %}
+package:
+  name: viscm
+  version: {{ version }}
+source:
+  url: https://pypi.io/packages/source/v/viscm/viscm-{{ version }}.tar.gz
+  sha256: c770e4b76f726e653d2b7c2c73f71941a88de6eb47ccf8fb8e984b55562d05a2
+build:
+  number: 0
+  noarch: python
+  script: python -m pip install --no-deps --ignore-installed .
+requirements:
+  host:
+    - python
+    - pip
+    - numpy
+  run:
+    - python
+    - numpy
+    - matplotlib
+    - colorspacious
+test:
+  imports:
+    - viscm
+about:
+  home: https://github.com/bids/viscm
+  license: MIT
+  license_family: MIT
+  # license_file: '' we need to an issue upstream to get a license in the source dist.
+  summary: A colormap tool
+extra:
+  recipe-maintainers:
+    - kthyng
+"""
+
+
 version_license="""
 {% set version = "0.8" %}
 
@@ -1718,6 +1791,19 @@ blas_rebuild.filter = lambda x: False
 
 test_list = [
      (
+        version,
+        compress,
+        compress_correct,
+        {"new_version": "0.9"},
+        "Dependencies have been updated if changed",
+        {
+            "migrator_name": "Version",
+            "migrator_version": Version.migrator_version,
+            "version": "0.9",
+        },
+        False,
+    ),
+    (
         version_license_migrator,
         version_license,
         version_license_correct,

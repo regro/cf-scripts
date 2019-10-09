@@ -6,6 +6,7 @@ import re
 from itertools import chain
 from textwrap import dedent
 import warnings
+from itertools import permutations
 
 import networkx as nx
 import conda.exceptions
@@ -21,9 +22,11 @@ from conda_build.api import render
 
 from ruamel.yaml import safe_load, safe_dump
 
+import requests
+
 from conda_forge_tick.path_lengths import cyclic_topological_sort
 from .utils import render_meta_yaml, UniversalSet, frozen_to_json_friendly, \
-    as_iterable, CB_CONFIG
+    as_iterable, parse_meta_yaml, CB_CONFIG
 
 
 try: 
@@ -441,6 +444,19 @@ class Version(Migrator):
             with open('meta.yaml', 'r') as f:
                 text = f.read()
 
+        # render the text and check that the URL exists, if it doesn't try variations
+        # if variations then update url
+        rendered = parse_meta_yaml(render_meta_yaml(text))
+        # only run for single url recipes as the moment
+        if isinstance(rendered['source'], dict) and isinstance(rendered['source'].get('url', []), str) and requests.get(rendered['source']['url']).status_code != 200:
+            with indir(recipe_dir):
+                for a, b in permutations(['.zip', '.tar.gz']):
+                    text = text.replace(a, b)
+                    rendered = parse_meta_yaml(render_meta_yaml(text))
+                    if requests.get(rendered['source']['url']).status_code == 200:
+                        with open('meta.yaml', 'w') as f:
+                            f.write(text)
+                        break
         # Get patterns to replace checksum for each platform
         rendered_text = render_meta_yaml(text)
         urls = self.find_urls(rendered_text)
