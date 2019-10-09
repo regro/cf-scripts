@@ -86,9 +86,9 @@ class PipMigrator(MiniMigrator):
 
 class LicenseMigrator(MiniMigrator):
     def filter(self, attrs: dict) -> bool:
-        license = attrs.get('meta_yaml', {}).get('about', {}).get('license')
+        license = attrs.get('meta_yaml', {}).get('about', {}).get('license', '')
         license_fam = (attrs.get('meta_yaml', {}).get('about', {}).get('license_family', '').lower() or
-                       license.lower.partition('-')[0].partition('v')[0])
+                       license.lower().partition('-')[0].partition('v')[0])
         if license_fam in NEEDED_FAMILIES and 'license_file' not in attrs.get('meta_yaml', {}).get('about', {}):
             return False
         return True
