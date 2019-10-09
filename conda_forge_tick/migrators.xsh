@@ -11,10 +11,15 @@ from itertools import permutations
 import networkx as nx
 import conda.exceptions
 from conda.models.version import VersionOrder
+from conda_build.source import provide
 from rever.tools import (eval_version, hash_url, replace_in_file)
 from xonsh.lib.os import indir
 from conda_smithy.update_cb3 import update_cb3
 from conda_smithy.configure_feedstock import get_cfp_file_path
+
+from conda_build.metadata import MetaData
+from conda_build.source import provide
+
 from ruamel.yaml import safe_load, safe_dump
 
 import requests
@@ -22,6 +27,12 @@ import requests
 from conda_forge_tick.path_lengths import cyclic_topological_sort
 from .utils import render_meta_yaml, UniversalSet, frozen_to_json_friendly, \
     as_iterable, parse_meta_yaml
+
+
+try: 
+    from conda_smithy.lint_recipe import NEEDED_FAMILIES
+except ImportError:
+    NEEDED_FAMILIES = ["gpl", "bsd", "mit", "apache", "psf"]
 
 
 def _no_pr_pred(pred):
@@ -74,6 +85,49 @@ class PipMigrator(MiniMigrator):
         with indir(recipe_dir):
             for b in self.bad_install:
                 replace_in_file(f'script: {b}', "script: {{ PYTHON }} -m pip install . --no-deps -vv", 'meta.yaml')
+
+
+class LicenseMigrator(MiniMigrator):
+    def filter(self, attrs: dict) -> bool:
+        license = attrs.get('meta_yaml', {}).get('about', {}).get('license', '')
+        license_fam = (attrs.get('meta_yaml', {}).get('about', {}).get('license_family', '').lower() or
+                       license.lower().partition('-')[0].partition('v')[0])
+        if license_fam in NEEDED_FAMILIES and 'license_file' not in attrs.get('meta_yaml', {}).get('about', {}):
+            return False
+        return True
+
+    def migrate(self, recipe_dir, attrs, **kwargs):
+        # Use conda build to do all the downloading/extracting bits
+        md = MetaData(recipe_dir)
+        # go into source dir
+        cb_work_dir = provide(md)
+        with indir(cb_work_dir):
+            # look for a license file
+            license_files = [(s for s in os.listdir('.') if any(s.lower().startswith(k) for k in ['license', 'copying', 'copyright']))]
+            # if there is a license file in tarball update things
+        rm -r @(cb_work_dir)
+        if license_files:
+            with indir(recipe_dir):
+                '''BSD 3-Clause License
+                  Copyright (c) 2017, Anthony Scopatz
+                  Copyright (c) 2018, The Regro Developers
+                  All rights reserved.'''
+                with open('meta.yaml', 'r') as f:
+                    raw = f.read()
+                lines = raw.splitlines()
+                ptn = re.compile(r'(\s*?)' + 'license:')
+                for i, line in enumerate(lines):
+                   m = ptn.match(line)
+                   if m is not None:
+                       break
+                ws = m.group(1)
+                if len(license_files) == 1:
+                    replace_in_file(line, line + "\n" + ws + f"license_file: {next(iter(license_files))}", 'meta.yaml')
+                else:
+                    replace_in_file(line, line + "\n" + ws + f"license_file: {license_files}", 'meta.yaml')
+
+        # if license not in tarball do something!
+        # check if
 
 class Migrator:
     """Base class for Migrators"""
@@ -1353,3 +1407,4 @@ class MigrationYaml(Migrator):
         """Run the order by number of decendents, ties are resolved by package name"""
         return sorted(graph, key=lambda x: (len(nx.descendants(total_graph, x)), x),
                       reverse=True)
+
