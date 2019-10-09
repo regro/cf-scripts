@@ -1,4 +1,4 @@
-from .migrators import Rebuild, MigrationYaml
+from .migrators import Rebuild, MigrationYaml, LicenseMigrator
 from .auto_tick import initialize_migrators, migrator_status
 import os
 import json
@@ -39,6 +39,10 @@ def main(args=None):
         >= 3
     ]
     with open("./status/unmaintained.json", "w") as f:
+        json.dump(sorted(l, key=lambda z: len(nx.descendants(gx, z)), reverse=True), f, indent=2)
+
+    l = [k for k, v in gx.nodes.items() if not lm.filter(v.get('payload', {}))]
+    with open("./status/unlicensed.json", "w") as f:
         json.dump(sorted(l, key=lambda z: len(nx.descendants(gx, z)), reverse=True), f, indent=2)
 
 
