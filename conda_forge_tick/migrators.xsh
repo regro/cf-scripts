@@ -119,9 +119,9 @@ class LicenseMigrator(MiniMigrator):
                        break
                 ws = m.group(1)
                 if len(license_files) == 1:
-                    replace_in_file("about:", "about:\n" + ws + f"license_file: {next(iter(license_files))}", 'meta.yaml')
+                    replace_in_file(line, line + "\n" + ws + f"license_file: {next(iter(license_files))}", 'meta.yaml')
                 else:
-                    replace_in_file("about:", "about:\n" + ws + f"license_file: {license_files}", 'meta.yaml')
+                    replace_in_file(line, line + "\n" + ws + f"license_file: {license_files}", 'meta.yaml')
 
         # if license not in tarball do something!
         # check if
