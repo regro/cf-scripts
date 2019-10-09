@@ -1688,9 +1688,9 @@ test:
     - viscm
 
 about:
-  license_file: LICENSE
   home: https://github.com/bids/viscm
   license: MIT
+  license_file: LICENSE
   license_family: MIT
   # license_file: '' we need to an issue upstream to get a license in the source dist.
   summary: A colormap tool
