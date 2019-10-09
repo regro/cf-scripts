@@ -59,6 +59,10 @@ def get_attrs(name, i):
         text, failed = fetch_file('recipe/meta.yaml')
         if failed:
             return sub_graph
+        for s in ['build.sh', 'build.bat']:
+            build, failed = fetch_file('recipe/build.sh')
+            if not failed:
+                sub_graph[s] = build
         sub_graph["raw_meta_yaml"] = text
         yaml_dict = ChainDB(
             *[parse_meta_yaml(text, platform=plat) for plat in ["win", "osx", "linux"]]
