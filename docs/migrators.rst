@@ -8,7 +8,8 @@ their pinning, the entire stack which depends directly on that package will
 need to be updated.
 This document will teach you how to create new migrators.
 
- .. note:: Unless you need to write a custom migrator, you can call for a migration by adding a yaml file to the ``recipe/migrations`` folder of ``conda-forge-pinning-feedstock`` and issuing a PR. Once merged the migration will start.
+ .. note:: Unless you need to write a custom migrator, you can call for a migration by adding a yaml file to the ``recipe/migrations`` folder of ``conda-forge-pinning-feedstock`` and issuing a PR. Once merged the migration will start. 
+ You can copy the ``recipe/migrations/example.exyaml`` example and modify it similar to the staged-recipes example recipe.
 
 
 Building a Migration
