@@ -1329,7 +1329,7 @@ class MigrationYaml(Migrator):
         self.cycles = set(chain.from_iterable(cycles or []))
 
         # auto set the pr_limit for initial things
-        number_pred = len([k for k, v in self.graph.nodes() if self.migration_uid(v.get('payload', {}) in [vv.get('data', {}) for vv in v.get('payload', {}).get('PRed', [])]])
+        number_pred = len([k for k, v in self.graph.nodes.items() if self.migrator_uid(v.get('payload', {})) in [vv.get('data', {}) for vv in v.get('payload', {}).get('PRed', [])]])
         if number_pred < 10:
             self.pr_limit = 2
 
