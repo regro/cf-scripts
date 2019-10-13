@@ -531,6 +531,7 @@ def initialize_migrators(do_rebuild=False):
 
     add_arch_migrate($MIGRATORS, gx)
     add_rebuild_successors($MIGRATORS, gx, 'qt', '5.12', pr_limit=5)
+    add_rebuild_successors($MIGRATORS, gx, 'ffmpeg', '4.1')
     migration_factory($MIGRATORS, gx)
     for m in $MIGRATORS:
         print(f'{getattr(m, "name", m)} graph size: {len(getattr(m, "graph", []))}')
