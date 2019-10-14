@@ -503,19 +503,22 @@ def add_rebuild_migration_yaml(migrators, gx, package_names, yaml_contents,
 
 
 def migration_factory(migrators, gx, pr_limit=50):
+    migration_yamls = []
     with indir('../conda-forge-pinning-feedstock/recipe/migrations'):
         for yaml_file in g`*.y*ml`:
             with open(yaml_file) as f:
                 yaml_contents = f.read()
-            loaded_yaml = yaml.safe_load(yaml_contents)
-            obj_version = loaded_yaml.get('__migrator', {}).get('migration_number', 0)
-            exclude_packages = set(loaded_yaml.get('__migrator', {}).get('exclude', []))
-            package_names = ((set(loaded_yaml)|set(l.replace('_', '-') for l in loaded_yaml)) & set(gx.nodes)) - exclude_packages
-            print(os.path.splitext(yaml_file)[0])
-            add_rebuild_migration_yaml(migrators, gx, package_names, yaml_contents,
-                                       migration_name=os.path.splitext(yaml_file)[0],
-                                       pr_limit=pr_limit,
-                                       obj_version=obj_version)
+            migration_yamls.append((yaml_file, yaml_contents))
+    for yaml_file, yaml_contents in migration_yamls:
+        loaded_yaml = yaml.safe_load(yaml_contents)
+        obj_version = loaded_yaml.get('__migrator', {}).get('migration_number', 0)
+        exclude_packages = set(loaded_yaml.get('__migrator', {}).get('exclude', []))
+        package_names = ((set(loaded_yaml)|set(l.replace('_', '-') for l in loaded_yaml)) & set(gx.nodes)) - exclude_packages
+        print(os.path.splitext(yaml_file)[0])
+        add_rebuild_migration_yaml(migrators, gx, package_names, yaml_contents,
+                                   migration_name=os.path.splitext(yaml_file)[0],
+                                   pr_limit=pr_limit,
+                                   obj_version=obj_version)
 
 
 def initialize_migrators(do_rebuild=False):
