@@ -501,7 +501,7 @@ def add_rebuild_migration_yaml(migrators, gx, package_names, yaml_contents,
                       cycles=cycles, obj_version=obj_version))
 
 
-def migration_factory(migrators, gx, pr_limit=5):
+def migration_factory(migrators, gx, pr_limit=50):
     with indir('../conda-forge-pinning-feedstock/recipe/migrations'):
         for yaml_file in g`*.y*ml`:
             with open(yaml_file) as f:
