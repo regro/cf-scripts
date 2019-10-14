@@ -11,12 +11,15 @@ This document will teach you how to create new migrators.
  .. note:: Unless you need to write a custom migrator, you should call for a migration using the ``conda-forge-pinning-feedstock``
 
 
-Building a Migration YAML
-=========================
+Building a Migration YAML Using CFEP9
+=====================================
 For most migrations a migration can be created by adding a new migration yaml file in the ``recipe/migrations`` folder of ``conda-forge-pinning-feedstock`` and issuing a PR. 
 Once merged the migration will start. 
 You can copy the ``recipe/migrations/example.exyaml`` example and modify it similar to the staged-recipes example recipe.
 Note that the ``migration_ts`` is the timestamp of the migration and can be created by copying the result of ``import time; print(time.time())`` from a python interpreter.
+
+Please see the `CFEP9 implementation<https://github.com/conda-forge/conda-forge-enhancement-proposals/blob/master/cfep-09.md#implementation-details>`_ information for the 
+different kinds of migrations that are available.
 
 
 Building a Migration
