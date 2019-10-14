@@ -15,7 +15,7 @@ def deploy():
     for cmd in [['git', 'add', 'pr_json/*'],
                 ['git', 'add', 'status/*'],
                 ['git', 'add', 'node_attrs/*'],
-                ['git', 'commit', '-am', '"Update Graph"']]:
+                ['git', 'commit', '-am', f'"Update Graph {$CIRCLE_BUILD_URL}"']]:
         try:
             @(cmd)
         except Exception as e:
