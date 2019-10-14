@@ -2059,6 +2059,7 @@ G = nx.DiGraph()
 G.add_node("conda", reqs=["python"])
 env = builtins.__xonsh__.env
 env["GRAPH"] = G
+env["CIRCLE_BUILD_URL"] = 'hi world'
 
 
 @pytest.mark.parametrize(
