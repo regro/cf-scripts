@@ -18,7 +18,7 @@ Once merged the migration will start.
 You can copy the ``recipe/migrations/example.exyaml`` example and modify it similar to the staged-recipes example recipe.
 Note that the ``migration_ts`` is the timestamp of the migration and can be created by copying the result of ``import time; print(time.time())`` from a python interpreter.
 
-Please see the `CFEP9 implementation<https://github.com/conda-forge/conda-forge-enhancement-proposals/blob/master/cfep-09.md#implementation-details>`_ information for the 
+Please see the `CFEP9 implementation <https://github.com/conda-forge/conda-forge-enhancement-proposals/blob/master/cfep-09.md#implementation-details>`_ information for the 
 different kinds of migrations that are available.
 
 
