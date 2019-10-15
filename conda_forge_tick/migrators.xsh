@@ -1318,7 +1318,7 @@ class MigrationYaml(Migrator):
     # TODO: add a description kwarg for the status page at some point.
     # TODO: make yaml_contents an arg?
     def __init__(self, yaml_contents='',
-                 graph=None, name=None, pr_limit=0, top_level=None,
+                 graph=None, name=None, pr_limit=50, top_level=None,
                  cycles=None, obj_version=None,
                  piggy_back_migrations=None):
         super().__init__(pr_limit, obj_version, piggy_back_migrations=piggy_back_migrations)
@@ -1333,8 +1333,10 @@ class MigrationYaml(Migrator):
 
         # auto set the pr_limit for initial things
         number_pred = len([k for k, v in self.graph.nodes.items() if self.migrator_uid(v.get('payload', {})) in [vv.get('data', {}) for vv in v.get('payload', {}).get('PRed', [])]])
-        if number_pred < 10:
+        if number_pred == 0 :
             self.pr_limit = 2
+        elif number_pred < 10:
+            self.pr_limit = 5
 
 
     def filter(self, attrs):
