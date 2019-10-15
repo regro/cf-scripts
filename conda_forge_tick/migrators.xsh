@@ -1335,7 +1335,7 @@ class MigrationYaml(Migrator):
         number_pred = len([k for k, v in self.graph.nodes.items() if self.migrator_uid(v.get('payload', {})) in [vv.get('data', {}) for vv in v.get('payload', {}).get('PRed', [])]])
         if number_pred == 0 :
             self.pr_limit = 2
-        elif number_pred < 10:
+        elif number_pred < 7:
             self.pr_limit = 5
 
 
@@ -1407,7 +1407,7 @@ class MigrationYaml(Migrator):
 
     def remote_branch(self):
         s_obj = str(self.obj_version) if self.obj_version else ''
-        return 'rebuild' + self.name.lower().replace(' ', '_') + str(self.migrator_version) + s_obj
+        return 'rebuild-' + self.name.lower().replace(' ', '_') + str(self.migrator_version) + s_obj
 
     def migrator_uid(self, attrs):
         n = super().migrator_uid(attrs)
