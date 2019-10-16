@@ -167,6 +167,7 @@ def make_graph(names, gx=None):
             for dep in attrs.get("req", []):
                 if dep in outputs_lut:
                     gx.add_edge(outputs_lut[dep], node)
+                    continue
                 elif dep not in gx.nodes:
                     # for packages which aren't feedstocks (outputs!)
                     lzj = LazyJson(f'node_attrs/{dep}.json')
