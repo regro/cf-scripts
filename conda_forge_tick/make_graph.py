@@ -71,7 +71,7 @@ def get_attrs(name, i):
 
         # handle multi outputs
         if 'outputs' in yaml_dict:
-            sub_graph['outputs_names'] = list(set(d.get('name', '') for d in yaml_dict['outputs']))
+            sub_graph['outputs_names'] = sorted(list(set(d.get('name', '') for d in yaml_dict['outputs'])))
 
         # Get the conda-forge.yml
         text, failed = fetch_file('conda-forge.yml')
