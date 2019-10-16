@@ -69,6 +69,10 @@ def get_attrs(name, i):
             return sub_graph
         sub_graph["meta_yaml"] = _convert_to_dict(yaml_dict)
 
+        # handle multi outputs
+        if 'outputs' in yaml_dict:
+            sub_graph['outputs_names'] = list(set([d.get('name', '') for d in yaml_dict['outputs']))
+
         # Get the conda-forge.yml
         text, failed = fetch_file('conda-forge.yml')
         if failed:
@@ -155,10 +159,16 @@ def make_graph(names, gx=None):
 
     gx2 = deepcopy(gx)
     logger.info("inferring nodes and edges")
+
+    # make the outputs look up table so we can link properly
+    outputs_lut = {k: node_name for k in node.get('payload', {}).get('outputs_names', []) for node_name, node in gx.nodes.items()}
     for node, node_attrs in gx2.node.items():
         with node_attrs['payload'] as attrs:
             for dep in attrs.get("req", []):
-                if dep not in gx.nodes:
+                if dep in outputs_lut:
+                    gx.add_edge(outputs_lut[dep], node)
+                    continue
+                elif dep not in gx.nodes:
                     # for packages which aren't feedstocks (outputs!)
                     lzj = LazyJson(f'node_attrs/{dep}.json')
                     lzj.update(feedstock_name=dep, bad=False)

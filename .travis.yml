@@ -16,6 +16,7 @@ before_install:
   - export PATH=~/mc/bin:$PATH
   - conda config --set always_yes yes --set changeps1 no
   - conda config --add channels conda-forge
+  - conda install pip
   - conda update conda --yes
   - export CONDARC=ci/condarc
 
