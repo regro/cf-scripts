@@ -1350,7 +1350,7 @@ class MigrationYaml(Migrator):
             return False
         # Check if all upstreams have been built
         for node in self.graph.predecessors(attrs['feedstock_name']):
-            att = self.graph.node[node]
+            att = self.graph.node[node]['payload']
             muid = frozen_to_json_friendly(self.migrator_uid(att))
             if muid not in _no_pr_pred(att.get('PRed', [])) and not att.get('archived', False):
                 return True
