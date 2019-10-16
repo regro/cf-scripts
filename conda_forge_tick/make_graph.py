@@ -161,7 +161,7 @@ def make_graph(names, gx=None):
     logger.info("inferring nodes and edges")
 
     # make the outputs look up table so we can link properly
-    outputs_lut = {k: node_name for k in node.get('payload', {}).get('outputs_names', []) for node_name, node in gx.nodes.items()}
+    outputs_lut = {k: node_name for node_name, node in gx.nodes.items() for k in node.get('payload', {}).get('outputs_names', []}) 
     for node, node_attrs in gx2.node.items():
         with node_attrs['payload'] as attrs:
             for dep in attrs.get("req", []):
