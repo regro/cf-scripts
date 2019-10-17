@@ -656,7 +656,7 @@ def main(args=None):
 
         $SUBGRAPH = effective_graph
         logger.info('Total migrations for %s: %d', migrator.__class__.__name__,
-                    len(effective_graph.node))
+                    len(effective_graph.nodes))
 
         top_level = set(node for node in effective_graph if not list(effective_graph.predecessors(node)))
         # print(list(migrator.order(effective_graph, gx)))
