@@ -38,9 +38,9 @@ def cyclic_topological_sort(graph, sources):
 
 
 def _visit(graph, node, order):
-    if graph.node[node].get("visited", False):
+    if graph.nodes[node].get("visited", False):
         return
-    graph.node[node]["visited"] = True
+    graph.nodes[node]["visited"] = True
     for n in graph.neighbors(node):
         _visit(graph, n, order)
     order.append(node)

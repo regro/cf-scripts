@@ -473,7 +473,7 @@ class Version(Migrator):
         return super().migrate(recipe_dir, attrs)
 
     def pr_body(self):
-        pred = [(name, $SUBGRAPH.node[name]['payload']['new_version'])
+        pred = [(name, $SUBGRAPH.nodes[name]['payload']['new_version'])
                 for name in list($SUBGRAPH.predecessors($NODE))]
         body = super().pr_body()
         body = body.format(
@@ -893,7 +893,7 @@ class Rebuild(Migrator):
             return False
         # Check if all upstreams have been built
         for node in self.graph.predecessors(attrs['feedstock_name']):
-            att = self.graph.node[node]['payload']
+            att = self.graph.nodes[node]['payload']
             muid = frozen_to_json_friendly(self.migrator_uid(att))
             if muid not in _no_pr_pred(att.get('PRed', [])) and not att.get('archived', False):
                 return True
@@ -1350,7 +1350,7 @@ class MigrationYaml(Migrator):
             return False
         # Check if all upstreams have been built
         for node in self.graph.predecessors(attrs['feedstock_name']):
-            att = self.graph.node[node]['payload']
+            att = self.graph.nodes[node]['payload']
             muid = frozen_to_json_friendly(self.migrator_uid(att))
             if muid not in _no_pr_pred(att.get('PRed', [])) and not att.get('archived', False):
                 return True
