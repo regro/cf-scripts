@@ -203,7 +203,7 @@ def update_graph_pr_status(gx: nx.DiGraph) -> nx.DiGraph:
                 res = f.result()
                 if res:
                     succeeded_refresh += 1
-                    with gx.node[name]['payload'] as node:
+                    with gx.nodes[name]['payload'] as node:
                         node["PRed"][i]['PR'].update(**res)
                     logger.info("Updated json for {}: {}".format(name, res["id"]))
             except github3.GitHubError as e:
@@ -251,9 +251,9 @@ def close_labels(gx: nx.DiGraph) -> nx.DiGraph:
                     succeeded_refresh += 1
                     # add a piece of metadata which makes the muid matchup
                     # fail
-                    with gx.node[name]['payload'] as node:
+                    with gx.nodes[name]['payload'] as node:
                         node['PRed'][i]['data']['bot_rerun'] = time.time()
-                        if 'bot_rerun' not in gx.node[name]['payload']["PRed"][i]['keys']:
+                        if 'bot_rerun' not in gx.nodes[name]['payload']["PRed"][i]['keys']:
                             node['PRed'][i]['keys'].append('bot_rerun')
                     logger.info(
                         "Closed and removed PR and branch for "
