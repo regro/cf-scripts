@@ -195,7 +195,7 @@ def add_rebuild(migrators, gx):
     """
 
     total_graph = copy.deepcopy(gx)
-    for node, node_attrs in gx.node.items():
+    for node, node_attrs in gx.nodes.items():
         attrs = node_attrs['payload']
         meta_yaml = attrs.get("meta_yaml", {}) or {}
         bh = get_requirements(meta_yaml, run=False)
@@ -243,7 +243,7 @@ def add_rebuild_openssl(migrators, gx):
 
     total_graph = copy.deepcopy(gx)
 
-    for node, node_attrs in gx.node.items():
+    for node, node_attrs in gx.nodes.items():
         attrs = node_attrs['payload']
         meta_yaml = attrs.get("meta_yaml", {}) or {}
         bh = get_requirements(meta_yaml)
@@ -286,7 +286,7 @@ def add_rebuild_libprotobuf(migrators, gx):
 
     total_graph = copy.deepcopy(gx)
 
-    for node, node_attrs in gx.node.items():
+    for node, node_attrs in gx.nodes.items():
         attrs = node_attrs['payload']
         meta_yaml = attrs.get("meta_yaml", {}) or {}
         bh = get_requirements(meta_yaml)
@@ -339,7 +339,7 @@ def add_rebuild_successors(migrators, gx, package_name, pin_version, pr_limit=5,
 
     total_graph = copy.deepcopy(gx)
 
-    for node, node_attrs in gx.node.items():
+    for node, node_attrs in gx.nodes.items():
         attrs = node_attrs['payload']
         meta_yaml = attrs.get("meta_yaml", {}) or {}
         bh = get_requirements(meta_yaml)
@@ -381,7 +381,7 @@ def add_rebuild_blas(migrators, gx):
     """
     total_graph = copy.deepcopy(gx)
 
-    for node, node_attrs in gx.node.items():
+    for node, node_attrs in gx.nodes.items():
         attrs = node_attrs['payload']
         meta_yaml = attrs.get("meta_yaml", {}) or {}
         bh = get_requirements(meta_yaml)
@@ -422,7 +422,7 @@ def add_arch_migrate(migrators, gx):
     """
     total_graph = copy.deepcopy(gx)
 
-    for node, node_attrs in gx.node.items():
+    for node, node_attrs in gx.nodes.items():
         attrs = node_attrs['payload']
         meta_yaml = attrs.get("meta_yaml", {}) or {}
         # no need to consider noarch packages for this rebuild
@@ -470,7 +470,7 @@ def add_rebuild_migration_yaml(migrators, gx, package_names, yaml_contents,
 
     total_graph = copy.deepcopy(gx)
 
-    for node, node_attrs in gx.node.items():
+    for node, node_attrs in gx.nodes.items():
         attrs = node_attrs['payload']
         meta_yaml = attrs.get("meta_yaml", {}) or {}
         bh = get_requirements(meta_yaml)
@@ -546,7 +546,7 @@ def get_effective_graph(migrator: Migrator, gx):
     gx2 = copy.deepcopy(getattr(migrator, 'graph', gx))
 
     # Prune graph to only things that need builds right now
-    for node, node_attrs in gx.node.items():
+    for node, node_attrs in gx.nodes.items():
         attrs = node_attrs['payload']
         if node in gx2 and migrator.filter(attrs):
             gx2.remove_node(node)
