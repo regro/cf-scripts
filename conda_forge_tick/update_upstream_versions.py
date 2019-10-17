@@ -310,7 +310,7 @@ def get_latest_version(payload_meta_yaml, sources):
 
 def _update_upstream_versions_sequential(gx, sources):
     to_update = []
-    for node, node_attrs in gx.node.items():
+    for node, node_attrs in gx.nodes.items():
         attrs = node_attrs['payload']
         if attrs.get("bad") or attrs.get("archived"):
             attrs["new_version"] = False
@@ -337,7 +337,7 @@ def _update_upstream_versions_sequential(gx, sources):
 def _update_upstream_versions_process_pool(gx, sources):
     futures = {}
     with executor(kind='dask', max_workers=20) as (pool, as_completed):
-        for node, node_attrs in gx.node.items():
+        for node, node_attrs in gx.nodes.items():
             with node_attrs['payload'] as attrs:
                 if attrs.get("bad") or attrs.get("archived"):
                     attrs["new_version"] = False
@@ -383,7 +383,7 @@ def update_upstream_versions(gx, sources=None):
                 len(
                     [
                         n
-                        for n, a in gx.node.items()
+                        for n, a in gx.nodes.items()
                         if a['payload'].get("new_version") and a['payload'].get('version')  # if we can get a new version
                         and a['payload']["new_version"] != a['payload']["version"]  # if we need a bump
                         and a['payload'].get("PRed", "000") != a['payload']["new_version"]  # if not PRed
