@@ -216,7 +216,7 @@ def add_rebuild(migrators, gx):
             pluck(total_graph, node)
 
     # post plucking we can have several strange cases, lets remove all selfloops
-    total_graph.remove_edges_from(total_graph.selfloop_edges())
+    total_graph.remove_edges_from(nx.selfloop_edges(total_graph))
 
     top_level = set(node for node in total_graph if not list(
         total_graph.predecessors(node)))
@@ -258,7 +258,7 @@ def add_rebuild_openssl(migrators, gx):
             pluck(total_graph, node)
 
     # post plucking we can have several strange cases, lets remove all selfloops
-    total_graph.remove_edges_from(total_graph.selfloop_edges())
+    total_graph.remove_edges_from(nx.selfloop_edges(total_graph))
 
     top_level = {node for node in gx.successors("openssl") if
                  (node in total_graph) and
@@ -301,7 +301,7 @@ def add_rebuild_libprotobuf(migrators, gx):
             pluck(total_graph, node)
 
     # post plucking we can have several strange cases, lets remove all selfloops
-    total_graph.remove_edges_from(total_graph.selfloop_edges())
+    total_graph.remove_edges_from(nx.selfloop_edges(total_graph))
 
     top_level = {node for node in gx.successors("libprotobuf") if
                  (node in total_graph) and
@@ -354,7 +354,7 @@ def add_rebuild_successors(migrators, gx, package_name, pin_version, pr_limit=5,
             pluck(total_graph, node)
 
     # post plucking we can have several strange cases, lets remove all selfloops
-    total_graph.remove_edges_from(total_graph.selfloop_edges())
+    total_graph.remove_edges_from(nx.selfloop_edges(total_graph))
 
     top_level = {node for node in gx.successors(package_name) if
                  (node in total_graph) and
@@ -397,7 +397,7 @@ def add_rebuild_blas(migrators, gx):
             pluck(total_graph, node)
 
     # post plucking we can have several strange cases, lets remove all selfloops
-    total_graph.remove_edges_from(total_graph.selfloop_edges())
+    total_graph.remove_edges_from(nx.selfloop_edges(total_graph))
 
     top_level = set(node for node in total_graph if not list(
         total_graph.predecessors(node)))
@@ -434,7 +434,7 @@ def add_arch_migrate(migrators, gx):
             pluck(total_graph, node)
 
     # post plucking we can have several strange cases, lets remove all selfloops
-    total_graph.remove_edges_from(total_graph.selfloop_edges())
+    total_graph.remove_edges_from(nx.selfloop_edges(total_graph))
 
     top_level = {node for node in total_graph if not set(total_graph.predecessors(node))}
     cycles = list(nx.simple_cycles(total_graph))
@@ -485,7 +485,7 @@ def add_rebuild_migration_yaml(migrators, gx, package_names, yaml_contents,
             pluck(total_graph, node)
 
     # post plucking we can have several strange cases, lets remove all selfloops
-    total_graph.remove_edges_from(total_graph.selfloop_edges())
+    total_graph.remove_edges_from(nx.selfloop_edges(total_graph))
 
     top_level = {node for node in set(gx.successors(package_name) for package_name in package_names) if
                  (node in total_graph) and
