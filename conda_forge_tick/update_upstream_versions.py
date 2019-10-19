@@ -164,29 +164,13 @@ class CRAN:
         global CRAN_INDEX
         if not CRAN_INDEX:
             try:
+                from conda_build.skeletons.cran import get_cran_index
                 session = requests.Session()
-                CRAN_INDEX = self._get_cran_index(session)
+                CRAN_INDEX = get_cran_index(self.cran_url, session)
                 logger.info("Cran source initialized")
             except Exception:
                 logger.error("Cran initialization failed", exc_info=True)
                 CRAN_INDEX = {}
-
-    def _get_cran_index(self, session):
-        # from conda_build/skeletons/cran.py:get_cran_index
-        logger.info("Fetching cran index from %s", self.cran_url)
-        r = session.get(self.cran_url + "/src/contrib/")
-        r.raise_for_status()
-        records = {}
-        for p in re.findall(r'<td><a href="([^"]+)">\1</a></td>', r.text):
-            if p.endswith(".tar.gz") and "_" in p:
-                name, version = p.rsplit(".", 2)[0].split("_", 1)
-                records[name.lower()] = (name, version)
-        r = session.get(self.cran_url + "/src/contrib/Archive/")
-        r.raise_for_status()
-        for p in re.findall(r'<td><a href="([^"]+)/">\1/</a></td>', r.text):
-            if re.match(r"^[A-Za-z]", p):
-                records.setdefault(p.lower(), (p, None))
-        return records
 
     def get_url(self, meta_yaml):
         self.init()
