@@ -99,7 +99,7 @@ def get_levels(graph, source):
 
     g2 = deepcopy(graph)
     desc = nx.algorithms.descendants(graph, source)
-    for node in graph.node:
+    for node in graph.nodes:
         if node not in desc and node != source:
             g2.remove_node(node)
 
