@@ -4,6 +4,7 @@ import builtins
 import subprocess
 import hashlib
 import re
+import yaml
 
 import feedparser
 import networkx as nx
@@ -206,6 +207,75 @@ class CRAN:
     def get_version(self, url):
         return str(url[1]).replace("-", "_") if url[1] else None
 
+ROS_DISTRO_INDEX = None
+
+class ROSDistro:
+    name = 'rosdistro'
+
+    def parse_idx(self, distro_name='melodic'):
+        session = requests.Session()
+        res = session.get('https://raw.githubusercontent.com/ros/rosdistro/master/{distro}/distribution.yaml'.format(distro=distro_name))
+        res.raise_for_status()
+        resd = yaml.load(res.text, Loader=yaml.SafeLoader)
+        repos = resd['repositories']
+
+        result_dict = {}
+        result_dict[distro_name] = {
+            'reverse': {},
+            'forward': {}
+        }
+        for k, v in repos.items():
+            if not v.get('release'):
+                continue
+            if v['release'].get('packages'):
+                for p in v['release']['packages']:
+                    result_dict[distro_name]['reverse'][self.encode_ros_name(p)] = (k, p)
+            else:
+                result_dict[distro_name]['reverse'][self.encode_ros_name(k)] = (k, k)
+        result_dict[distro_name]['forward'] = repos
+        return result_dict
+
+    def encode_ros_name(self, name):
+        new_name = name.replace('_', '-')
+        if new_name.startswith('ros-'):
+            return new_name
+        else:
+            return 'ros-' + new_name
+
+    def init(self):
+        global ROS_DISTRO_INDEX
+        if not ROS_DISTRO_INDEX:
+            self.version_url_cache = {}
+            try:
+                ROS_DISTRO_INDEX = self.parse_idx('melodic')
+                logger.info("ROS Distro source initialized")
+            except Exception:
+                logger.error("ROS Distro initialization failed", exc_info=True)
+                ROS_DISTRO_INDEX = {}
+
+    def get_url(self, meta_yaml):
+        if not meta_yaml['name'].startswith('ros-'):
+            return None
+
+        self.init()
+
+        toplevel_package, package = ROS_DISTRO_INDEX['melodic']['reverse'][meta_yaml['name']]
+
+        p_dict = ROS_DISTRO_INDEX['melodic']['forward'][toplevel_package]
+        version = p_dict['release']['version']
+        tag_url = p_dict['release']['tags']['release'].format(package=package, version=version)
+        url = p_dict['release']['url']
+
+        if url.endswith('.git'):
+            url = url[:-4]
+
+        final_url = "{url}/archive/{tag_url}.tar.gz".format(url=url, tag_url=tag_url)
+        self.version_url_cache[final_url] = version.split('-')[0]
+
+        return final_url
+
+    def get_version(self, url):
+        return self.version_url_cache[url]
 
 def get_sha256(url):
     try:
@@ -317,7 +387,7 @@ def _update_upstream_versions_sequential(gx, sources):
             continue
         to_update.append((node, attrs))
     for node, node_attrs in to_update:
-        with node_attrs['payload'] as attrs:
+        with node_attrs as attrs:
             try:
                 new_version = get_latest_version(attrs, sources)
                 attrs["new_version"] = new_version or attrs['new_version']
@@ -330,7 +400,7 @@ def _update_upstream_versions_sequential(gx, sources):
                 attrs["bad"] = "Upstream: Error getting upstream version"
             else:
                 logger.info(
-                    "{} - {} - {}".format(node, attrs["version"], attrs["new_version"])
+                    "{} - {} - {}".format(node, attrs.get("version"), attrs.get("new_version"))
                 )
 
 
@@ -366,7 +436,7 @@ def _update_upstream_versions_process_pool(gx, sources):
 
 def update_upstream_versions(gx, sources=None):
     sources = (
-        (PyPI(), NPM(), CRAN(), RawURL(), Github()) if sources is None else sources
+        (PyPI(), NPM(), CRAN(), ROSDistro(), RawURL(), Github()) if sources is None else sources
     )
     env = builtins.__xonsh__.env
     debug = env.get("CONDA_FORGE_TICK_DEBUG", False)
