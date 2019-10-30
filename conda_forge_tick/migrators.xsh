@@ -1088,7 +1088,11 @@ class ArchRebuild(Rebuild):
         'jsoncpp',
         'bcrypt',
         'root',
-        }
+        'pyopencl',
+        'pocl',
+        'oclgrind',
+        'sage',
+    }
     ignored_packages = {'make', 'perl', 'toolchain', 'posix',
         'patchelf', # weird issue
     }
