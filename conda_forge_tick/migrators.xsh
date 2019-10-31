@@ -1075,6 +1075,10 @@ class ArchRebuild(Rebuild):
         'gunicorn',
         'sympy',
         'tqdm',
+        'spacy',
+        'lime',
+        'shap',
+        'tesseract',
         # mpi variants
         'openmpi',
         'mpich',
