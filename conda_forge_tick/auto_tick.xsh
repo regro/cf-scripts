@@ -639,7 +639,7 @@ def migrator_status(migrator: Migrator, gx):
 
         # additional metadata for reporting
         node_metadata['num_descendants'] = len(nx.descendants(gx2, node))
-        node_metadata['immediate_children'] = list(sorted(gx2.successors(node)))
+        node_metadata['immediate_children'] = [k for k in sorted(gx2.successors(node)) if not gx2[k].get('payload', {}).get('archived', False)]
         if pr_json and 'PR' in pr_json:
             # I needed to fake some PRs they don't have html_urls though
             node_metadata['pr_url'] = pr_json['PR'].get('html_url', '')
