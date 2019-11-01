@@ -475,7 +475,12 @@ def add_rebuild_migration_yaml(migrators, gx, package_names, yaml_contents,
     for node, node_attrs in gx.nodes.items():
         attrs = node_attrs['payload']
         meta_yaml = attrs.get("meta_yaml", {}) or {}
-        bh = get_requirements(meta_yaml, run=False, build=False, host=True) or get_requirements(meta_yaml, build=Truerun=False, host=False)
+        if ('strong' in meta_yaml.get('build', {}) or 
+            any(['strong' in output.get('build', {}) for output in meta_yaml.get('outputs', []) if output.get('build')])):
+            bh = get_requirements(meta_yaml, run=False)
+        else:
+            bh = (get_requirements(meta_yaml, run=False, build=False, host=True) or 
+                  get_requirements(meta_yaml, build=True, run=False, host=False))
         criteria = any(package_name in bh for package_name in package_names) and ('noarch' not in meta_yaml.get('build', {}))
 
         rq = _host_run_test_dependencies(meta_yaml)
