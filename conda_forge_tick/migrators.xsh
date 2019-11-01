@@ -1322,7 +1322,7 @@ class MigrationYaml(Migrator):
     """Migrator for bumping the build number."""
     migrator_version = 0
     rerender = True
-    bump_number = 1
+    bump_number = 0
     # TODO: add a description kwarg for the status page at some point.
     # TODO: make yaml_contents an arg?
     def __init__(self, yaml_contents='',
