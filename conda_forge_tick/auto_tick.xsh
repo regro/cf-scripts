@@ -466,7 +466,7 @@ def add_rebuild_migration_yaml(migrators, gx, package_names, yaml_contents,
     obj_version : int, optional
         The version of the migrator object (useful if there was an error)
         defaults to 0
-    bump_number : int, optiona
+    bump_number : int, optional
         The build number bump, defaults to 1
     """
 
@@ -501,6 +501,7 @@ def add_rebuild_migration_yaml(migrators, gx, package_names, yaml_contents,
                   cycles=cycles, obj_version=obj_version, 
                   piggy_back_migrations=[PipMigrator(), LicenseMigrator()])
     migrator.bump_number = bump_number
+    print(f'bump number is {migrator.bump_number}`)
     migrators.append(migrator)
 
 
