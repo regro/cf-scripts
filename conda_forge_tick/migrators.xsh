@@ -1373,6 +1373,8 @@ class MigrationYaml(Migrator):
         return False
 
     def migrate(self, recipe_dir, attrs, **kwargs):
+        # in case the render is old
+        os.makedirs(os.path.join(recipe_dir, '../.ci_support'), exits_ok=True)
         with indir(os.path.join(recipe_dir, '../.ci_support')):
             os.makedirs('migrations', exist_ok=True)
             with indir('migrations'):
