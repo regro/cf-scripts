@@ -38,7 +38,7 @@ def main(args=None):
         )
         >= 3
     ]
-    with open("./status/unmaintained.json", "w") as f:
+    with open("./status/could_use_help.json", "w") as f:
         json.dump(sorted(l, key=lambda z: (len(nx.descendants(gx, z)), l), reverse=True), f, indent=2)
 
     lm = LicenseMigrator()
