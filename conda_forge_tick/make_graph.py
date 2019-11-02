@@ -34,7 +34,7 @@ pin_sep_pat = re.compile(" |>|<|=|\[")
 NUM_GITHUB_THREADS = 4
 
 
-def fetch_file(filepath, name):
+def fetch_github_file(filepath, name):
     """Fetch fil from github
 
     Parameters
@@ -67,7 +67,6 @@ def fetch_file(filepath, name):
     return text, failed
 
 
-# TODO: should we pass in lazy json maybe as a dict-like?
 def make_node_attributes_from_texts(
     node_attrs, name, raw_meta_yaml_text, raw_cf_yaml_text=None
 ):
@@ -76,7 +75,7 @@ def make_node_attributes_from_texts(
     Parameters
     ----------
     node_attrs : MutableMap
-        A dict like used to store the data
+        A dict like used to store the data, often LazyJson
     name : str
         The feedstock name
     raw_meta_yaml_text : str
@@ -117,12 +116,12 @@ def make_node_attributes_from_texts(
         node_attrs["bad"] = "make_graph: Could not parse"
         return node_attrs
 
-    node_attrs["meta_yaml"] = _convert_to_dict(yaml_dict)
+    node_attrs["meta_yaml"] = yaml_dict = _convert_to_dict(yaml_dict)
 
     # handle multi outputs, get the names so we can make the lookup table
     if "outputs" in yaml_dict:
         node_attrs["outputs_names"] = sorted(
-            list(set(d.get("name", "") for d in yaml_dict["outputs"]))
+            set(d["name"] for d in yaml_dict["outputs"] if "name" in d)
         )
 
     # TODO: Write schema for dict
@@ -165,27 +164,43 @@ def make_node_attributes_from_texts(
     return node_attrs
 
 
-def get_attrs(name, i):
+def get_attrs_from_github(name, i):
+    """Get node attributes from files on github
+
+    Parameters
+    ----------
+    name : str
+        Name of feedstock
+    i : int
+        Number of get, for logging
+
+    Returns
+    -------
+    lzj : LazyJson
+        The LazyJson representation of the node data
+
+    """
     logger.info((i, name))
     # read up the file from the web, replace this for local run
 
     # parse
     lzj = LazyJson(f"node_attrs/{name}.json")
     with lzj as sub_graph:
-        text, failed = fetch_file("recipe/meta.yaml", name)
+        text, failed = fetch_github_file("recipe/meta.yaml", name)
         if failed:
             sub_graph.update({"bad": f"make_graph: {failed}"})
             return sub_graph
-        cf_yaml_text, failed = fetch_file("conda-forge.yml", name)
+        cf_yaml_text, failed = fetch_github_file("conda-forge.yml", name)
         cf_yaml_text = cf_yaml_text if not failed else None
         make_node_attributes_from_texts(sub_graph, name, text, cf_yaml_text)
     return lzj
 
 
 def _build_graph_process_pool(gx, names, new_names):
+    """Run node attribute getter via dask"""
     with executor("dask", max_workers=20) as (pool, as_completed):
         futures = {
-            pool.submit(get_attrs, name, i): name for i, name in enumerate(names)
+            pool.submit(get_attrs_from_github, name, i): name for i, name in enumerate(names)
         }
 
         for f in as_completed(futures):
@@ -202,9 +217,10 @@ def _build_graph_process_pool(gx, names, new_names):
 
 
 def _build_graph_sequential(gx, names, new_names):
+    """Run node attribute getter in series (for debug)"""
     for i, name in enumerate(names):
         try:
-            sub_graph = {"payload": get_attrs(name, i)}
+            sub_graph = {"payload": get_attrs_from_github(name, i)}
         except Exception as e:
             logger.warn("Error adding {} to the graph: {}".format(name, e))
         else:
@@ -214,43 +230,83 @@ def _build_graph_sequential(gx, names, new_names):
                 gx.nodes[name].update(**sub_graph)
 
 
-def make_graph(names, gx=None):
-    logger.info("reading graph")
+def get_all_nodes(names, gx):
+    """Get all the nodes in the conda-forge graph (don't link edges though)
 
+    Parameters
+    ----------
+    names : list of str
+        The names of all the packages in the conda-forge graph
+    gx : nx.DiGraph or None
+        The graph to add nodes to, if None create empty graph
+
+    Returns
+    -------
+    gx : nx.DiGraph
+        The graph
+    """
+    logger.info("Make nodes with attributes")
     if gx is None:
         gx = nx.DiGraph()
-
     new_names = [name for name in names if name not in gx.nodes]
-    old_names = [name for name in names if name in gx.nodes]
-    old_names = sorted(old_names, key=lambda n: gx.nodes[n].get("time", 0))
+    old_names = sorted([name for name in names if name in gx.nodes],
+                       key=lambda n: gx.nodes[n].get("time", 0))
 
     total_names = new_names + old_names
     logger.info("start loop")
+
     env = builtins.__xonsh__.env
     debug = env.get("CONDA_FORGE_TICK_DEBUG", False)
+
     builder = _build_graph_sequential if debug else _build_graph_process_pool
     builder(gx, total_names, new_names)
+
     logger.info("loop completed")
+
+    return gx
+
+
+def make_edges(gx=None):
+    """Add edges to a graph
+
+    Parameters
+    ----------
+    gx : nx.DiGraph
+        The graph of all the conda-forge packages (without edges)
+
+    Returns
+    -------
+    gx : nx.DiGraph
+        The graph with edges
+    """
+    if gx is None:
+        gx = nx.DiGraph()
 
     gx2 = deepcopy(gx)
     logger.info("inferring nodes and edges")
 
-    # make the outputs look up table so we can link properly
+    # make the outputs look up table so we can link properly for packages
+    # with multiple outputs
     outputs_lut = {
         k: node_name
         for node_name, node in gx.nodes.items()
         for k in node.get("payload", {}).get("outputs_names", [])
     }
+
     for node, node_attrs in gx2.nodes.items():
         with node_attrs["payload"] as attrs:
             for dep in attrs.get("req", []):
+                # If this dep is an output of a feedstock (subpackage)
+                # create the feedstock to feedstock edge via the lut
                 if dep in outputs_lut:
                     gx.add_edge(outputs_lut[dep], node)
                     continue
+                # If the dep is not a package or subpackage it is a stub
+                # stubs are auto "archived" so we ignore them, since they
+                # have zero source code or binaries
                 elif dep not in gx.nodes:
-                    # for packages which aren't feedstocks (outputs!)
                     lzj = LazyJson(f"node_attrs/{dep}.json")
-                    lzj.update(feedstock_name=dep, bad=False)
+                    lzj.update(feedstock_name=dep, bad=False, archived=True)
                     gx.add_node(dep, payload=lzj)
                 gx.add_edge(dep, node)
     logger.info("new nodes and edges infered")
@@ -258,18 +314,36 @@ def make_graph(names, gx=None):
 
 
 def update_graph_pr_status(gx: nx.DiGraph) -> nx.DiGraph:
+    """Go ask GitHub about the status of each PR we have open
+
+    Parameters
+    ----------
+    gx : nx.DiGraph
+        The graph of packages
+
+    Returns
+    -------
+    gx : nx.DiGraph
+        The graph of packages
+    """
+    # For logging
     failed_refresh = 0
     succeeded_refresh = 0
+
     gh = github_client()
     futures = {}
     node_ids = list(gx.nodes)
+
     # this makes sure that github rate limits are dispersed
+    # TODO: make this less fair? Maybe weight migrations higher, number of
+    #  decendents?
+    # TODO: get rid of this eventually with GH actions
     random.shuffle(node_ids)
+
     with executor("thread", NUM_GITHUB_THREADS) as (pool, as_completed):
         for node_id in node_ids:
-            node = gx.nodes[node_id]["payload"]
-            prs = node.get("PRed", [])
-            for i, migration in enumerate(prs):
+            for i, migration in enumerate(
+                    gx.nodes[node_id]["payload"].get("PRed", [])):
                 pr_json = migration.get("PR", None)
                 # allow for false
                 if pr_json:
@@ -306,6 +380,18 @@ def update_graph_pr_status(gx: nx.DiGraph) -> nx.DiGraph:
 
 
 def close_labels(gx: nx.DiGraph) -> nx.DiGraph:
+    """Close out PRs that have requested a rerun
+
+    Parameters
+    ----------
+    gx : nx.DiGraph
+        The graph of packages
+
+    Returns
+    -------
+    gx : nx.DiGraph
+        The graph of packages
+    """
     failed_refresh = 0
     succeeded_refresh = 0
     gh = github_client()
@@ -315,8 +401,7 @@ def close_labels(gx: nx.DiGraph) -> nx.DiGraph:
     random.shuffle(node_ids)
     with executor("thread", NUM_GITHUB_THREADS) as (pool, as_completed):
         for node_id in node_ids:
-            node = gx.nodes[node_id]["payload"]
-            prs = node.get("PRed", [])
+            prs = gx.nodes[node_id]["payload"].get("PRed", [])
             for i, migration in enumerate(prs):
                 pr_json = migration.get("PR", None)
                 # allow for false
@@ -360,6 +445,15 @@ def close_labels(gx: nx.DiGraph) -> nx.DiGraph:
     return gx
 
 
+def load_single_local_feedstock():
+    # with indir(feedstock)
+    # get feedstock name
+    # load recipe/meta.yaml
+    # load conda-forge.yaml
+    # load lazy json
+    # pass into make_node_attributes_from_texts
+    make_node_attributes_from_texts()
+
 def main(args=None):
     setup_logger(logger)
     names = get_all_feedstocks(cached=True)
@@ -367,7 +461,10 @@ def main(args=None):
         gx = load_graph()
     else:
         gx = None
-    gx = make_graph(names, gx)
+    # TODO: when we move to upload based updates remove this line
+    gx = get_all_nodes(names, gx)
+
+    gx = make_edges(gx)
     print([k for k, v in gx.nodes.items() if "payload" not in v])
     # Utility flag for testing -- we don't need to always update GH
     no_github_fetch = os.environ.get("CONDA_FORGE_TICK_NO_GITHUB_REQUESTS")
