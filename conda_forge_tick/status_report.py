@@ -24,7 +24,7 @@ def main(args=None):
             with open(os.path.join(f"./status/{migrator_name}.svg"), "wb") as fo:
                 fo.write(d)
     with open("./status/total_status.json", "w") as f:
-        json.dump(total_status, f)
+        json.dump(total_status, f, sort_keys=True)
     l = [
         k
         for k, v in gx.nodes.items()
