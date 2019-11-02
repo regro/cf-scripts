@@ -7,6 +7,7 @@ import time
 import random
 import builtins
 from copy import deepcopy
+from math import ceil
 
 import github3
 import networkx as nx
@@ -26,7 +27,8 @@ pin_sep_pat = re.compile(" |>|<|=|\[")
 
 
 NUM_GITHUB_THREADS = 4
-
+BATCH_SIZE = 10
+SLEEP_TIME = 60
 
 def get_attrs(name, i):
     lzj = LazyJson(f'node_attrs/{name}.json')
@@ -154,14 +156,18 @@ def make_graph(names, gx=None):
     env = builtins.__xonsh__.env
     debug = env.get("CONDA_FORGE_TICK_DEBUG", False)
     builder = _build_graph_sequential if debug else _build_graph_process_pool
-    builder(gx, total_names, new_names)
+
+    for i in range(0, ceil(len(total_names)/BATCH_SIZE)):
+        names = total_names[i*BATCH_SIZE:(i+1)*BATCH_SIZE]
+        time.sleep(SLEEP_TIME)
+        builder(gx, names, new_names)
     logger.info("loop completed")
 
     gx2 = deepcopy(gx)
     logger.info("inferring nodes and edges")
 
     # make the outputs look up table so we can link properly
-    outputs_lut = {k: node_name for node_name, node in gx.nodes.items() for k in node.get('payload', {}).get('outputs_names', [])} 
+    outputs_lut = {k: node_name for node_name, node in gx.nodes.items() for k in node.get('payload', {}).get('outputs_names', [])}
     for node, node_attrs in gx2.nodes.items():
         with node_attrs['payload'] as attrs:
             for dep in attrs.get("req", []):
