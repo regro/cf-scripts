@@ -21,7 +21,7 @@ from rever.tools import (eval_version, hash_url, replace_in_file)
 from xonsh.lib.os import indir
 
 import backoff
-from request.exceptions import Timeout, RequestException
+from requests.exceptions import Timeout, RequestException
 
 # TODO: handle the URLs more elegantly (most likely make this a true library
 # and pull all the needed info from the various source classes)
@@ -162,7 +162,7 @@ def delete_branch(pr_json: LazyJson):
 
 
 @backoff.on_exception(backoff.expo,
-  (requests.exceptions.RequestException, requests.exceptions.Timeout),
+  (RequestException, Timeout),
   max_time=MAX_GITHUB_TIMEOUT)
 def refresh_pr(pr_json: LazyJson, gh=None):
     if gh is None:
@@ -178,7 +178,7 @@ def refresh_pr(pr_json: LazyJson, gh=None):
         return pr_obj.as_dict()
 
 @backoff.on_exception(backoff.expo,
-  (requests.exceptions.RequestException, requests.exceptions.Timeout),
+  (RequestException, Timeout),
   max_time=MAX_GITHUB_TIMEOUT)
 def close_out_labels(pr_json: LazyJson, gh=None):
     if gh is None:
@@ -247,7 +247,7 @@ def push_repo(feedstock_dir, body, repo, title, head, branch,
     return ljpr
 
 @backoff.on_exception(backoff.expo,
-  (requests.exceptions.RequestException, requests.exceptions.Timeout),
+  (RequestException, Timeout),
   max_time=MAX_GITHUB_TIMEOUT)
 def ensure_label_exists(repo: github3.repos.Repository, label_dict: dict):
     try:
