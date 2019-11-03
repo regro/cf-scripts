@@ -156,11 +156,7 @@ def make_graph(names, gx=None):
     env = builtins.__xonsh__.env
     debug = env.get("CONDA_FORGE_TICK_DEBUG", False)
     builder = _build_graph_sequential if debug else _build_graph_process_pool
-
-    for i in range(0, ceil(len(total_names)/BATCH_SIZE)):
-        names = total_names[i*BATCH_SIZE:(i+1)*BATCH_SIZE]
-        time.sleep(SLEEP_TIME)
-        builder(gx, names, new_names)
+    builder(gx, names, new_names)
     logger.info("loop completed")
 
     gx2 = deepcopy(gx)
@@ -193,15 +189,18 @@ def update_graph_pr_status(gx: nx.DiGraph) -> nx.DiGraph:
     # this makes sure that github rate limits are dispersed
     random.shuffle(node_ids)
     with executor('thread', NUM_GITHUB_THREADS) as (pool, as_completed):
-        for node_id in node_ids:
-            node = gx.nodes[node_id]['payload']
-            prs = node.get("PRed", [])
-            for i, migration in enumerate(prs):
-                pr_json = migration.get('PR', None)
-                # allow for false
-                if pr_json:
-                    future = pool.submit(refresh_pr, pr_json, gh)
-                    futures[future] = (node_id, i)
+        for i in range(0, ceil(len(node_ids)/BATCH_SIZE)):
+            nodes = node_ids[i*BATCH_SIZE:(i+1)*BATCH_SIZE]
+            time.sleep(SLEEP_TIME)
+            for node in nodes:
+                node = gx.nodes[node_id]['payload']
+                prs = node.get("PRed", [])
+                for i, migration in enumerate(prs):
+                    pr_json = migration.get('PR', None)
+                    # allow for false
+                    if pr_json:
+                        future = pool.submit(refresh_pr, pr_json, gh)
+                        futures[future] = (node_id, i)
 
         for f in as_completed(futures):
             name, i = futures[f]
