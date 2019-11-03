@@ -1383,7 +1383,7 @@ class MigrationYaml(Migrator):
                 git add .
         with indir(recipe_dir):
             self.set_build_number('meta.yaml')
-        return self.migrator_uid(attrs)
+        return super().migrate(recipe_dir, attrs)
 
     def pr_body(self):
         body = super().pr_body()
