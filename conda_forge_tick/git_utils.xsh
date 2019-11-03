@@ -20,11 +20,14 @@ from pkg_resources import parse_version
 from rever.tools import (eval_version, hash_url, replace_in_file)
 from xonsh.lib.os import indir
 
+import backoff
+from request.exceptions import Timeout, RequestException
 
 # TODO: handle the URLs more elegantly (most likely make this a true library
 # and pull all the needed info from the various source classes)
 from conda_forge_tick.utils import LazyJson
 
+MAX_GITHUB_TIMEOUT = 60
 
 def feedstock_url(feedstock, protocol='ssh'):
     """Returns the URL for a conda-forge feedstock."""
@@ -158,6 +161,9 @@ def delete_branch(pr_json: LazyJson):
     pr_json['head']['ref'] = 'this_is_not_a_branch'
 
 
+@backoff.on_exception(backoff.expo,
+  (requests.exceptions.RequestException, requests.exceptions.Timeout),
+  max_time=MAX_GITHUB_TIMEOUT)
 def refresh_pr(pr_json: LazyJson, gh=None):
     if gh is None:
         gh = github3.login($USERNAME, $PASSWORD)
@@ -171,7 +177,9 @@ def refresh_pr(pr_json: LazyJson, gh=None):
             delete_branch(pr_json)
         return pr_obj.as_dict()
 
-
+@backoff.on_exception(backoff.expo,
+  (requests.exceptions.RequestException, requests.exceptions.Timeout),
+  max_time=MAX_GITHUB_TIMEOUT)
 def close_out_labels(pr_json: LazyJson, gh=None):
     if gh is None:
         gh = github3.login($USERNAME, $PASSWORD)
@@ -238,7 +246,9 @@ def push_repo(feedstock_dir, body, repo, title, head, branch,
     ljpr.update(**pr_dict)
     return ljpr
 
-
+@backoff.on_exception(backoff.expo,
+  (requests.exceptions.RequestException, requests.exceptions.Timeout),
+  max_time=MAX_GITHUB_TIMEOUT)
 def ensure_label_exists(repo: github3.repos.Repository, label_dict: dict):
     try:
         repo.label(label_dict['name'])
