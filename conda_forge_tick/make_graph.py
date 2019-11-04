@@ -27,7 +27,6 @@ pin_sep_pat = re.compile(" |>|<|=|\[")
 
 NUM_GITHUB_THREADS = 4
 
-
 def get_attrs(name, i):
     lzj = LazyJson(f'node_attrs/{name}.json')
     with lzj as sub_graph:
@@ -161,7 +160,7 @@ def make_graph(names, gx=None):
     logger.info("inferring nodes and edges")
 
     # make the outputs look up table so we can link properly
-    outputs_lut = {k: node_name for node_name, node in gx.nodes.items() for k in node.get('payload', {}).get('outputs_names', [])} 
+    outputs_lut = {k: node_name for node_name, node in gx.nodes.items() for k in node.get('payload', {}).get('outputs_names', [])}
     for node, node_attrs in gx2.nodes.items():
         with node_attrs['payload'] as attrs:
             for dep in attrs.get("req", []):
