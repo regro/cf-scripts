@@ -1324,11 +1324,13 @@ class MigrationYaml(Migrator):
 
     # TODO: add a description kwarg for the status page at some point.
     # TODO: make yaml_contents an arg?
-    def __init__(self, yaml_contents={},
+    def __init__(self, yaml_contents=None,
                  graph=None, name=None, pr_limit=50, top_level=None,
                  cycles=None, obj_version=None,
                  piggy_back_migrations=None):
         super().__init__(pr_limit, obj_version, piggy_back_migrations=piggy_back_migrations)
+        if yaml_contents is None:
+            yaml_contents = {}
         self.yaml_contents = yaml_contents
         if graph is None:
             self.graph = nx.DiGraph()
