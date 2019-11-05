@@ -20,6 +20,12 @@ from pkg_resources import parse_version
 from rever.tools import (eval_version, hash_url, replace_in_file)
 from xonsh.lib.os import indir
 
+import backoff
+backoff._decorator._is_event_loop = lambda: False
+
+from requests.exceptions import Timeout, RequestException
+
+MAX_GITHUB_TIMEOUT = 60
 
 # TODO: handle the URLs more elegantly (most likely make this a true library
 # and pull all the needed info from the various source classes)
@@ -157,7 +163,9 @@ def delete_branch(pr_json: LazyJson):
     # Replace ref so we know not to try again
     pr_json['head']['ref'] = 'this_is_not_a_branch'
 
-
+@backoff.on_exception(backoff.expo,
+  (RequestException, Timeout),
+  max_time=MAX_GITHUB_TIMEOUT)
 def refresh_pr(pr_json: LazyJson, gh=None):
     if gh is None:
         gh = github3.login($USERNAME, $PASSWORD)
@@ -171,7 +179,9 @@ def refresh_pr(pr_json: LazyJson, gh=None):
             delete_branch(pr_json)
         return pr_obj.as_dict()
 
-
+@backoff.on_exception(backoff.expo,
+  (RequestException, Timeout),
+  max_time=MAX_GITHUB_TIMEOUT)
 def close_out_labels(pr_json: LazyJson, gh=None):
     if gh is None:
         gh = github3.login($USERNAME, $PASSWORD)
@@ -238,7 +248,9 @@ def push_repo(feedstock_dir, body, repo, title, head, branch,
     ljpr.update(**pr_dict)
     return ljpr
 
-
+@backoff.on_exception(backoff.expo,
+  (RequestException, Timeout),
+  max_time=MAX_GITHUB_TIMEOUT)
 def ensure_label_exists(repo: github3.repos.Repository, label_dict: dict):
     try:
         repo.label(label_dict['name'])
