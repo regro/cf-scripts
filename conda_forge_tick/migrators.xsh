@@ -1346,7 +1346,7 @@ class MigrationYaml(Migrator):
             self.pr_limit = 2
         elif number_pred < 7:
             self.pr_limit = 5
-        self.bump_number = yaml_contents.get("build_number", 0)
+        self.bump_number = yaml_contents.get("build_number", 1)
 
 
     def filter(self, attrs):
