@@ -2107,3 +2107,207 @@ def test_migration(m, inp, output, kwargs, prb, mr_out, should_filter, tmpdir):
     else:
         assert prb in m.pr_body()
     assert m.filter(pmy) is True
+
+
+sample_yaml_rebuild='''
+{% set version = "1.3.2" %}
+
+package:
+  name: scipy
+  version: {{ version }}
+
+source:
+  url: https://github.com/scipy/scipy/archive/v{{ version }}.tar.gz
+  sha256: ac0937d29a3f93cc26737fdf318c09408e9a48adee1648a25d0cdce5647b8eb4
+  patches:
+    - gh10591.patch
+    - relax_gmres_error_check.patch  # [aarch64]
+    - skip_problematic_boost_test.patch  # [aarch64 or ppc64le]
+    - skip_problematic_root_finding.patch  # [aarch64 or ppc64le]
+    - skip_TestIDCTIVFloat_aarch64.patch  # [aarch64]
+    - skip_white_tophat03.patch  # [aarch64 or ppc64le]
+    # remove this patch when updating to 1.3.3
+{% if version == "1.3.2" %}
+    - scipy-1.3.2-bad-tests.patch  # [osx and py == 38]
+    - gh11046.patch                # [ppc64le]
+{% endif %}
+
+
+build:
+  number: 0
+  skip: true  # [win or py2k]
+
+requirements:
+  build:
+    - {{ compiler('fortran') }}
+    - {{ compiler('c') }}
+    - {{ compiler('cxx') }}
+  host:
+    - libblas
+    - libcblas
+    - liblapack
+    - python
+    - setuptools
+    - cython
+    - numpy
+    - pip
+  run:
+    - python
+    - {{ pin_compatible('numpy') }}
+
+test:
+  requires:
+    - pytest
+    - pytest-xdist
+    - mpmath
+{% if version == "1.3.2" %}
+    - blas * netlib  # [ppc64le]
+{% endif %}
+
+about:
+  home: http://www.scipy.org/
+  license: BSD-3-Clause
+  license_file: LICENSE.txt
+  summary: Scientific Library for Python
+  description: |
+    SciPy is a Python-based ecosystem of open-source software for mathematics,
+    science, and engineering.
+  doc_url: http://www.scipy.org/docs.html
+  dev_url: https://github.com/scipy/scipy
+
+extra:
+  recipe-maintainers:
+    - jakirkham
+    - msarahan
+    - rgommers
+    - ocefpaf
+    - beckermr
+'''
+
+updated_yaml_rebuild='''
+{% set version = "1.3.2" %}
+
+package:
+  name: scipy
+  version: {{ version }}
+
+source:
+  url: https://github.com/scipy/scipy/archive/v{{ version }}.tar.gz
+  sha256: ac0937d29a3f93cc26737fdf318c09408e9a48adee1648a25d0cdce5647b8eb4
+  patches:
+    - gh10591.patch
+    - relax_gmres_error_check.patch  # [aarch64]
+    - skip_problematic_boost_test.patch  # [aarch64 or ppc64le]
+    - skip_problematic_root_finding.patch  # [aarch64 or ppc64le]
+    - skip_TestIDCTIVFloat_aarch64.patch  # [aarch64]
+    - skip_white_tophat03.patch  # [aarch64 or ppc64le]
+    # remove this patch when updating to 1.3.3
+{% if version == "1.3.2" %}
+    - scipy-1.3.2-bad-tests.patch  # [osx and py == 38]
+    - gh11046.patch                # [ppc64le]
+{% endif %}
+
+
+build:
+  number: 0
+  skip: true  # [win or py2k]
+
+requirements:
+  build:
+    - {{ compiler('fortran') }}
+    - {{ compiler('c') }}
+    - {{ compiler('cxx') }}
+  host:
+    - libblas
+    - libcblas
+    - liblapack
+    - python
+    - setuptools
+    - cython
+    - numpy
+    - pip
+  run:
+    - python
+    - {{ pin_compatible('numpy') }}
+
+test:
+  requires:
+    - pytest
+    - pytest-xdist
+    - mpmath
+{% if version == "1.3.2" %}
+    - blas * netlib  # [ppc64le]
+{% endif %}
+
+about:
+  home: http://www.scipy.org/
+  license: BSD-3-Clause
+  license_file: LICENSE.txt
+  summary: Scientific Library for Python
+  description: |
+    SciPy is a Python-based ecosystem of open-source software for mathematics,
+    science, and engineering.
+  doc_url: http://www.scipy.org/docs.html
+  dev_url: https://github.com/scipy/scipy
+
+extra:
+  recipe-maintainers:
+    - jakirkham
+    - msarahan
+    - rgommers
+    - ocefpaf
+    - beckermr
+'''
+
+yaml_rebuild = YamlMigrator(yaml_contents='hello world', name='hi')
+yaml_test_list =[(
+        yaml_rebuild,
+        sample_yaml_rebuild,
+        updated_yaml_rebuild,
+        {"feedstock_name": "scipy"},
+        "This PR has been triggered in an effort to update **hi**.",
+        {"migrator_name": "YamlMigrator", "migrator_version": yaml_rebuild.migrator_version, "name": "hi"},
+        False,
+    )]
+
+
+@pytest.mark.parametrize(
+    "m, inp, output, kwargs, prb, mr_out, should_filter", yaml_test_list
+)
+def test_yaml_migration(m, inp, output, kwargs, prb, mr_out, should_filter, tmpdir):
+    os.makedirs(os.path.join(tmpdir, 'recipe'), exist_ok=True)
+    # Load the meta.yaml (this is done in the graph)
+    try:
+        pmy = parse_meta_yaml(inp)
+    except Exception:
+        pmy = {}
+    if pmy:
+        pmy["version"] = pmy["package"]["version"]
+        pmy["req"] = set()
+        for k in ["build", "host", "run"]:
+            pmy["req"] |= set(pmy.get("requirements", {}).get(k, set()))
+        try:
+            pmy["meta_yaml"] = parse_meta_yaml(inp)
+        except Exception:
+            pmy["meta_yaml"] = {}
+    pmy["raw_meta_yaml"] = inp
+    pmy.update(kwargs)
+
+    assert m.filter(pmy) is should_filter
+    if should_filter:
+        return
+
+    mr = m.migrate(os.path.join(tmpdir, 'recipe'), pmy)
+    assert mr_out == mr
+
+    pmy.update(PRed=[frozen_to_json_friendly(mr)])
+    with open(os.path.join(tmpdir, "recipe/meta.yaml"), "r") as f:
+        actual_output = f.read()
+    assert actual_output == output
+    assert prb in m.pr_body()
+    assert m.filter(pmy) is True
+    assert os.path.exists(os.path.join(tmpdir, '.ci_support/hi.yaml'))
+    with open(os.path.join(tmpdir, '.ci_support/hi.yaml')) as f:
+        assert f.read() == m.yaml_contents
+
+
