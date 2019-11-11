@@ -5,7 +5,7 @@ import pytest
 import networkx as nx
 
 from conda_forge_tick.migrators import (JS, Version, Compiler, Noarch, Pinning, Rebuild, \
-    ArchRebuild, NoarchR, BlasRebuild, LicenseMigrator)
+    ArchRebuild, NoarchR, BlasRebuild, LicenseMigrator, MigrationYaml)
 from conda_forge_tick.utils import parse_meta_yaml, frozen_to_json_friendly
 
 
