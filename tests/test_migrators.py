@@ -4,11 +4,22 @@ import builtins
 import pytest
 import networkx as nx
 
-from conda_forge_tick.migrators import (JS, Version, Compiler, Noarch, Pinning, Rebuild, \
-    ArchRebuild, NoarchR, BlasRebuild, LicenseMigrator, MigrationYaml)
+from conda_forge_tick.migrators import (
+    JS,
+    Version,
+    Compiler,
+    Noarch,
+    Pinning,
+    Rebuild,
+    ArchRebuild,
+    NoarchR,
+    BlasRebuild,
+    LicenseMigrator,
+    MigrationYaml,
+)
 from conda_forge_tick.utils import parse_meta_yaml, frozen_to_json_friendly
 
-sample_yaml_rebuild='''
+sample_yaml_rebuild = """
 {% set version = "1.3.2" %}
 
 package:
@@ -81,9 +92,9 @@ extra:
     - rgommers
     - ocefpaf
     - beckermr
-'''
+"""
 
-updated_yaml_rebuild='''
+updated_yaml_rebuild = """
 {% set version = "1.3.2" %}
 
 package:
@@ -156,33 +167,41 @@ extra:
     - rgommers
     - ocefpaf
     - beckermr
-'''
+"""
 from xonsh.lib import subprocess
 from xonsh.lib.os import indir
-yaml_rebuild = MigrationYaml(yaml_contents='hello world', name='hi')
+
+yaml_rebuild = MigrationYaml(yaml_contents="hello world", name="hi")
 yaml_rebuild.cycles = []
 yaml_rebuild.filter = lambda x: False
-yaml_test_list =[(
+yaml_test_list = [
+    (
         yaml_rebuild,
         sample_yaml_rebuild,
         updated_yaml_rebuild,
         {"feedstock_name": "scipy"},
         "This PR has been triggered in an effort to update **hi**.",
-        {"migrator_name": "MigrationYaml", "migrator_version": yaml_rebuild.migrator_version, "name": "hi", "bot_rerun": False},
+        {
+            "migrator_name": "MigrationYaml",
+            "migrator_version": yaml_rebuild.migrator_version,
+            "name": "hi",
+            "bot_rerun": False,
+        },
         False,
-    )]
+    )
+]
 
 
 @pytest.mark.parametrize(
     "m, inp, output, kwargs, prb, mr_out, should_filter", yaml_test_list
 )
 def test_yaml_migration(m, inp, output, kwargs, prb, mr_out, should_filter, tmpdir):
-    os.makedirs(os.path.join(tmpdir, 'recipe'), exist_ok=True)
-    with open(os.path.join(tmpdir, 'recipe', "meta.yaml"), "w") as f:
+    os.makedirs(os.path.join(tmpdir, "recipe"), exist_ok=True)
+    with open(os.path.join(tmpdir, "recipe", "meta.yaml"), "w") as f:
         f.write(inp)
 
     with indir(tmpdir):
-        subprocess.run(['git', 'init'])
+        subprocess.run(["git", "init"])
     # Load the meta.yaml (this is done in the graph)
     try:
         pmy = parse_meta_yaml(inp)
@@ -204,15 +223,15 @@ def test_yaml_migration(m, inp, output, kwargs, prb, mr_out, should_filter, tmpd
     if should_filter:
         return
 
-    mr = m.migrate(os.path.join(tmpdir, 'recipe'), pmy)
+    mr = m.migrate(os.path.join(tmpdir, "recipe"), pmy)
     assert mr_out == mr
 
     pmy.update(PRed=[frozen_to_json_friendly(mr)])
     with open(os.path.join(tmpdir, "recipe/meta.yaml"), "r") as f:
         actual_output = f.read()
     assert actual_output == output
-    assert os.path.exists(os.path.join(tmpdir, '.ci_support/migrations/hi.yaml'))
-    with open(os.path.join(tmpdir, '.ci_support/migrations/hi.yaml')) as f:
+    assert os.path.exists(os.path.join(tmpdir, ".ci_support/migrations/hi.yaml"))
+    with open(os.path.join(tmpdir, ".ci_support/migrations/hi.yaml")) as f:
         assert f.read() == m.yaml_contents
 
 
@@ -1820,7 +1839,7 @@ test:
     - mpmath
 """
 
-compress="""
+compress = """
 {% set version = "0.8" %}
 package:
   name: viscm
@@ -1856,7 +1875,7 @@ extra:
     - kthyng
 """
 
-compress_correct="""
+compress_correct = """
 {% set version = "0.9" %}
 package:
   name: viscm
@@ -1893,7 +1912,7 @@ extra:
 """
 
 
-version_license="""
+version_license = """
 {% set version = "0.8" %}
 
 package:
@@ -1936,7 +1955,7 @@ extra:
     - kthyng
 """
 
-version_license_correct="""
+version_license_correct = """
 {% set version = "0.9" %}
 
 package:
@@ -1990,14 +2009,14 @@ noarchr = NoarchR()
 perl = Pinning(removals={"perl"})
 pinning = Pinning()
 
-rebuild = Rebuild(name='rebuild', cycles=[])
+rebuild = Rebuild(name="rebuild", cycles=[])
 rebuild.filter = lambda x: False
 
 blas_rebuild = BlasRebuild(cycles=[])
 blas_rebuild.filter = lambda x: False
 
 test_list = [
-     (
+    (
         version,
         compress,
         compress_correct,
@@ -2023,7 +2042,7 @@ test_list = [
         },
         False,
     ),
-   (
+    (
         js,
         sample_js,
         correct_js,
@@ -2227,7 +2246,11 @@ test_list = [
         updated_r_base2,
         {"feedstock_name": "r-stabledist"},
         "It is likely this feedstock needs to be rebuilt.",
-        {"migrator_name": "Rebuild", "migrator_version": rebuild.migrator_version, "name":"rebuild"},
+        {
+            "migrator_name": "Rebuild",
+            "migrator_version": rebuild.migrator_version,
+            "name": "rebuild",
+        },
         False,
     ),
     (
@@ -2245,11 +2268,13 @@ test_list = [
         updated_blas,
         {"feedstock_name": "scipy"},
         "This PR has been triggered in an effort to update for new BLAS scheme.",
-        {"migrator_name": "BlasRebuild", "migrator_version": blas_rebuild.migrator_version, "name": "blas2"},
+        {
+            "migrator_name": "BlasRebuild",
+            "migrator_version": blas_rebuild.migrator_version,
+            "name": "blas2",
+        },
         False,
     ),
-
-
     # Disabled for now because the R license stuff has been purpossefully moved into the noarchR migrator
     # (
     #     noarchr,
@@ -2266,7 +2291,7 @@ G = nx.DiGraph()
 G.add_node("conda", reqs=["python"])
 env = builtins.__xonsh__.env
 env["GRAPH"] = G
-env["CIRCLE_BUILD_URL"] = 'hi world'
+env["CIRCLE_BUILD_URL"] = "hi world"
 
 
 @pytest.mark.parametrize(
@@ -2314,6 +2339,3 @@ def test_migration(m, inp, output, kwargs, prb, mr_out, should_filter, tmpdir):
     else:
         assert prb in m.pr_body()
     assert m.filter(pmy) is True
-
-
-
