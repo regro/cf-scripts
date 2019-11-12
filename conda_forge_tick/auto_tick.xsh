@@ -522,7 +522,7 @@ def migration_factory(migrators, gx, pr_limit=50):
         print(os.path.splitext(yaml_file)[0])
 
         migrator_config = loaded_yaml.get('__migrator', {})
-        exclude_packages = set(yaml_config.get('exclude', []))
+        exclude_packages = set(migrator_config.get('exclude', []))
         package_names = ((set(loaded_yaml) | set(l.replace('_', '-') for l in loaded_yaml)) & set(
             gx.nodes)) - exclude_packages
 
