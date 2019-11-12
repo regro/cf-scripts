@@ -528,7 +528,7 @@ def migration_factory(migrators, gx, pr_limit=50):
 
         add_rebuild_migration_yaml(
             migrators, gx, package_names, migration_yaml=loaded_yaml,
-            migration_name=os.path.splitext(yaml_file)[0], config=yaml_config,
+            migration_name=os.path.splitext(yaml_file)[0], config=migrator_config,
             pr_limit=pr_limit
         )
 
