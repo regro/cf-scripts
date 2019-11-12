@@ -1327,10 +1327,10 @@ class MigrationYaml(Migrator):
     def __init__(self, 
                  yaml_contents,
                  graph=None, name=None, pr_limit=50, top_level=None,
-                 cycles=None, obj_version=None,
-                 build_number=1,
+                 cycles=None, migration_number=None,
+                 bump_number=1,
                  piggy_back_migrations=None, **kwargs):
-        super().__init__(pr_limit, obj_version, piggy_back_migrations=piggy_back_migrations)
+        super().__init__(pr_limit, migration_number, piggy_back_migrations=piggy_back_migrations)
         self.yaml_contents = yaml_contents
         if graph is None:
             self.graph = nx.DiGraph()
@@ -1346,7 +1346,7 @@ class MigrationYaml(Migrator):
             self.pr_limit = 2
         elif number_pred < 7:
             self.pr_limit = 5
-        self.bump_number = build_number
+        self.bump_number = bump_number
 
 
     def filter(self, attrs):
