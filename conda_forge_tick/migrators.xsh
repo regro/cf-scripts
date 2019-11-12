@@ -1328,7 +1328,7 @@ class MigrationYaml(Migrator):
                  yaml_contents,
                  graph=None, name=None, pr_limit=50, top_level=None,
                  cycles=None, obj_version=None,
-                 build_number=1
+                 build_number=1,
                  piggy_back_migrations=None, **kwargs):
         super().__init__(pr_limit, obj_version, piggy_back_migrations=piggy_back_migrations)
         self.yaml_contents = yaml_contents
