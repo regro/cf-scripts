@@ -448,8 +448,9 @@ def add_arch_migrate(migrators, gx):
                         cycles=cycles))
 
 
-def add_rebuild_migration_yaml(migrators, gx, package_names, config={},
-                               migration_name="", pr_limit=5):
+def add_rebuild_migration_yaml(migrators, gx, package_names, yaml_contents,
+                               migration_name,
+                               pr_limit=5, obj_version=0, bump_number=1):
     """Adds rebuild migrator.
 
     Parameters
@@ -460,17 +461,16 @@ def add_rebuild_migration_yaml(migrators, gx, package_names, config={},
         The feedstock graph
     package_names : list of str
         The package who's pin was moved
-    config: dict
-        The __migrator contents of the migration
-    migration_name: str
-        Name of the migration
     pr_limit : int, optional
         The number of PRs per hour, defaults to 5
+    obj_version : int, optional
+        The version of the migrator object (useful if there was an error)
+        defaults to 0
+    bump_number : int, optional
+        The build number bump, defaults to 1
     """
 
     total_graph = copy.deepcopy(gx)
-
-    obj_version = config.get('migration_number', 0)
 
     for node, node_attrs in gx.nodes.items():
         attrs = node_attrs['payload']
@@ -498,13 +498,14 @@ def add_rebuild_migration_yaml(migrators, gx, package_names, config={},
                  (node in total_graph) and
                  len(list(total_graph.predecessors(node))) == 0}
     cycles = list(nx.simple_cycles(total_graph))
-    migrator = MigrationYaml(config,
+    migrator = MigrationYaml(yaml_contents=yaml_contents,
                   graph=total_graph,
                   pr_limit=pr_limit,
                   name=migration_name,
                   top_level=top_level,
                   cycles=cycles, obj_version=obj_version, 
                   piggy_back_migrations=[PipMigrator(), LicenseMigrator()])
+    #migrator.bump_number = bump_number
     print(f'bump number is {migrator.bump_number}')
     migrators.append(migrator)
 
@@ -518,16 +519,15 @@ def migration_factory(migrators, gx, pr_limit=50):
             migration_yamls.append((yaml_file, yaml_contents))
     for yaml_file, yaml_contents in migration_yamls:
         loaded_yaml = yaml.safe_load(yaml_contents)
+        obj_version = loaded_yaml.get('__migrator', {}).get('migration_number', 0)
+        exclude_packages = set(loaded_yaml.get('__migrator', {}).get('exclude', []))
+        bump_number = loaded_yaml.get('__migrator', {}).get('bump_number', 1)
+        package_names = ((set(loaded_yaml)|set(l.replace('_', '-') for l in loaded_yaml)) & set(gx.nodes)) - exclude_packages
         print(os.path.splitext(yaml_file)[0])
-        yaml_config = loaded_yaml.get('__migrator', {})
-        exclude_packages = set(yaml_config.get('exclude', []))
-        package_names = ((set(loaded_yaml) | set(l.replace('_', '-') for l in loaded_yaml)) & set(
-            gx.nodes)) - exclude_packages
-        add_rebuild_migration_yaml(
-            migrators, gx, package_names,
-            migration_name=os.path.splitext(yaml_file)[0], config=yaml_config,
-            pr_limit=pr_limit
-        )
+        add_rebuild_migration_yaml(migrators, gx, package_names, yaml_contents,
+                                   migration_name=os.path.splitext(yaml_file)[0],
+                                   pr_limit=pr_limit,
+                                   obj_version=obj_version, bump_number=bump_number)
 
 
 def initialize_migrators(do_rebuild=False):
