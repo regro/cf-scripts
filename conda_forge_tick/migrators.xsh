@@ -151,6 +151,7 @@ class Migrator:
         self.pr_limit = pr_limit
         self.obj_version=obj_version
 
+
     def filter(self, attrs: dict, not_bad_str_start='') -> bool:
         """ If true don't act upon node
 
@@ -284,8 +285,7 @@ class Migrator:
             node for node in graph if not list(graph.predecessors(node)) or list(graph.predecessors(node)) == [node])
         return cyclic_topological_sort(graph, top_level)
 
-    @classmethod
-    def set_build_number(cls, filename):
+    def set_build_number(self, filename):
         """Bump the build number of the specified recipe.
 
         Parameters
@@ -295,7 +295,7 @@ class Migrator:
 
         """
 
-        for p, n in cls.build_patterns:
+        for p, n in self.build_patterns:
             with open(filename, 'r') as f:
                 raw = f.read()
             lines = raw.splitlines()
@@ -303,14 +303,13 @@ class Migrator:
                 m = p.match(line)
                 if m is not None:
                     old_build_number = int(m.group(2))
-                    new_build_number = cls.new_build_number(old_build_number)
+                    new_build_number = self.new_build_number(old_build_number)
                     lines[i] = m.group(1) + n.format(new_build_number)
             upd = '\n'.join(lines) + '\n'
             with open(filename, 'w') as f:
                 f.write(upd)
 
-    @classmethod
-    def new_build_number(cls, old_number: int):
+    def new_build_number(self, old_number: int):
         """Determine the new build number to use.
 
         Parameters
@@ -322,7 +321,7 @@ class Migrator:
         -------
         new_build_number
         """
-        increment = getattr(cls, "bump_number", 1)
+        increment = getattr(self, "bump_number", 1)
         return old_number + increment
 
     @classmethod
@@ -1322,16 +1321,18 @@ class MigrationYaml(Migrator):
     """Migrator for bumping the build number."""
     migrator_version = 0
     rerender = True
-    bump_number = 0
+
     # TODO: add a description kwarg for the status page at some point.
     # TODO: make yaml_contents an arg?
-    def __init__(self, yaml_contents='',
+    def __init__(self, 
+                 yaml_contents,
                  graph=None, name=None, pr_limit=50, top_level=None,
                  cycles=None, obj_version=None,
-                 piggy_back_migrations=None):
+                 build_number=1
+                 piggy_back_migrations=None, **kwargs):
         super().__init__(pr_limit, obj_version, piggy_back_migrations=piggy_back_migrations)
         self.yaml_contents = yaml_contents
-        if graph == None:
+        if graph is None:
             self.graph = nx.DiGraph()
         else:
             self.graph = graph
@@ -1345,6 +1346,7 @@ class MigrationYaml(Migrator):
             self.pr_limit = 2
         elif number_pred < 7:
             self.pr_limit = 5
+        self.bump_number = build_number
 
 
     def filter(self, attrs):
@@ -1379,7 +1381,7 @@ class MigrationYaml(Migrator):
             os.makedirs('migrations', exist_ok=True)
             with indir('migrations'):
                 with open(f'{self.name}.yaml', 'w') as f:
-                    f.write(self.yaml_contents)
+                    f.write(safe_dump(self.yaml_contents))
                 git add .
         with indir(recipe_dir):
             self.set_build_number('meta.yaml')
