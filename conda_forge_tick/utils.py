@@ -1,7 +1,7 @@
 import os
 from collections import defaultdict
 
-from collections.abc import Set, MutableMapping
+from collections import Set, MutableMapping
 from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor, as_completed
 
 import contextlib
