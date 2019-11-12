@@ -1381,7 +1381,7 @@ class MigrationYaml(Migrator):
             os.makedirs('migrations', exist_ok=True)
             with indir('migrations'):
                 with open(f'{self.name}.yaml', 'w') as f:
-                    f.write(safe_dump(self.yaml_contents))
+                    f.write(self.yaml_contents)
                 git add .
         with indir(recipe_dir):
             self.set_build_number('meta.yaml')

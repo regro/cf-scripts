@@ -461,7 +461,7 @@ def add_rebuild_migration_yaml(migrators, gx, package_names, migration_yaml,
         The feedstock graph
     package_names : list of str
         The package who's pin was moved
-    migration_yaml : dict
+    migration_yaml : str
         The full dict for the migration
     config: dict
         The __migrator contents of the migration
@@ -527,7 +527,7 @@ def migration_factory(migrators, gx, pr_limit=50):
             gx.nodes)) - exclude_packages
 
         add_rebuild_migration_yaml(
-            migrators, gx, package_names, migration_yaml=loaded_yaml,
+            migrators, gx, package_names, migration_yaml=yaml_contents,
             migration_name=os.path.splitext(yaml_file)[0], config=migrator_config,
             pr_limit=pr_limit
         )

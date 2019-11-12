@@ -18,7 +18,6 @@ from conda_forge_tick.migrators import (
     MigrationYaml,
 )
 from conda_forge_tick.utils import parse_meta_yaml, frozen_to_json_friendly
-from ruamel.yaml import safe_dump
 
 sample_yaml_rebuild = """
 {% set version = "1.3.2" %}
@@ -251,7 +250,7 @@ from xonsh.lib.os import indir
 yaml_rebuild = MigrationYaml(yaml_contents="hello world", name="hi")
 yaml_rebuild.cycles = []
 yaml_rebuild.filter = lambda x: False
-yaml_rebuild_no_build_number = MigrationYaml(yaml_contents="hello world", name="hi", build_number=0)
+yaml_rebuild_no_build_number = MigrationYaml(yaml_contents="hello world", name="hi", bump_number=0)
 yaml_rebuild_no_build_number.cycles = []
 yaml_rebuild_no_build_number.filter = lambda x: False
 
@@ -329,7 +328,7 @@ def test_yaml_migration(m, inp, output, kwargs, prb, mr_out, should_filter, tmpd
     assert os.path.exists(os.path.join(tmpdir, ".ci_support/migrations/hi.yaml"))
     with open(os.path.join(tmpdir, ".ci_support/migrations/hi.yaml")) as f:
         saved_migration = f.read()
-    assert saved_migration == safe_dump(m.yaml_contents)
+    assert saved_migration == m.yaml_contents
 
 
 sample_js = """{% set name = "jstz" %}
