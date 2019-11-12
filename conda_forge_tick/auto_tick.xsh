@@ -504,7 +504,7 @@ def add_rebuild_migration_yaml(migrators, gx, package_names, migration_yaml,
                   pr_limit=pr_limit,
                   name=migration_name,
                   top_level=top_level,
-                  cycles=cycles, obj_version=obj_version, 
+                  cycles=cycles, 
                   piggy_back_migrations=[PipMigrator(), LicenseMigrator()], **config)
     print(f'bump number is {migrator.bump_number}')
     migrators.append(migrator)
