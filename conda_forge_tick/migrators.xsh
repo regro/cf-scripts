@@ -98,7 +98,10 @@ class LicenseMigrator(MiniMigrator):
 
     def migrate(self, recipe_dir, attrs, **kwargs):
         # Use conda build to do all the downloading/extracting bits
-        md = render(recipe_dir, config=Config(**CB_CONFIG))[0][0]
+        md = render(recipe_dir, config=Config(**CB_CONFIG))
+        if not md:
+            return
+        md = md[0][0]
         # go into source dir
         cb_work_dir = provide(md)
         with indir(cb_work_dir):
