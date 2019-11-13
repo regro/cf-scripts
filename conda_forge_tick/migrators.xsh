@@ -1098,6 +1098,14 @@ class ArchRebuild(Rebuild):
         'pocl',
         'oclgrind',
         'sage',
+        'boost-histogram',
+        'uproot',
+        'iminuit',
+        'geant4',
+        'pythia8',
+        'hepmc3',
+        'root_pandas',
+        'lhcbdirac',
     }
     ignored_packages = {'make', 'perl', 'toolchain', 'posix',
         'patchelf', # weird issue
