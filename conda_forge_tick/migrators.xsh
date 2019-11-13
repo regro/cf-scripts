@@ -1106,6 +1106,7 @@ class ArchRebuild(Rebuild):
         'hepmc3',
         'root_pandas',
         'lhcbdirac',
+        'pytest-benchmark',
     }
     ignored_packages = {'make', 'perl', 'toolchain', 'posix',
         'patchelf', # weird issue
