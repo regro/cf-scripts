@@ -1,23 +1,16 @@
 import networkx as nx
 import copy
 from conda_forge_tick.path_lengths import cyclic_topological_sort, get_levels
-
-import itertools
+from conda_forge_tick.utils import pluck
 
 gx = nx.read_gpickle('graph.pkl')
-
-def pluck(G, node_id):
-    if node_id in G.nodes:
-        new_edges = list(itertools.product(
-            {_in for (_in, _) in G.in_edges(node_id)} - {node_id},
-            {_out for (_, _out) in G.out_edges(node_id)} - {node_id},
-        ))
-        G.remove_node(node_id)
-        G.add_edges_from(new_edges)
+total_graph = copy.deepcopy(gx)
 
 compilers = {'toolchain', 'gcc', 'cython', 'pkg-config',
              'autotools', 'make', 'cmake', 'autconf', 'libtool', 'm4',
              'ninja', 'jom', 'libgcc', 'libgfortran'}
+
+
 def _build_host(req):
     rv = set(
         (req.get('host', []) or []) +
@@ -27,7 +20,7 @@ def _build_host(req):
         rv.remove(None)
     return rv
 
-total_graph = copy.deepcopy(gx)
+
 for node, attrs in gx.node.items():
     req = attrs.get('meta_yaml', {}).get('requirements', {})
     bh = _build_host(req)

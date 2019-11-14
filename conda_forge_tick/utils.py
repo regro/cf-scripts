@@ -148,7 +148,7 @@ def render_meta_yaml(text):
     return content
 
 
-def parse_meta_yaml(text, **kwargs):
+def parse_meta_yaml(text: str, **kwargs):
     """Parse the meta.yaml.
 
     Parameters
@@ -181,7 +181,7 @@ def setup_logger(logger):
     logger.setLevel(logging.INFO)
 
 
-def pluck(G, node_id):
+def pluck(G: nx.DiGraph, node_id):
     """Remove a node from a graph preserving structure.
     
     This will fuse edges together so that connectivity of the graph is not affected by
@@ -247,7 +247,7 @@ def _parse_requirements(req, build=True, host=True, run=True):
 
 
 @contextlib.contextmanager
-def executor(kind, max_workers):
+def executor(kind: str, max_workers: int):
     """General purpose utility to get an executor with its as_completed handler
 
     This allows us to easily use other executors as needed.
@@ -321,7 +321,7 @@ def load(fp, object_hook=object_hook, **kwargs):
     return json.load(fp, object_hook=object_hook, **kwargs)
 
 
-def dump_graph(gx, filename="graph.json"):
+def dump_graph(gx: nx.DiGraph, filename="graph.json"):
     nld = nx.node_link_data(gx)
     links = nld["links"]
     links2 = sorted(links, key=lambda x: f'{x["source"]}{x["target"]}')
@@ -330,7 +330,7 @@ def dump_graph(gx, filename="graph.json"):
         dump(nld, f)
 
 
-def load_graph(filename="graph.json"):
+def load_graph(filename="graph.json") -> nx.DiGraph:
     with open(filename, "r") as f:
         nld = load(f)
     return nx.node_link_graph(nld)

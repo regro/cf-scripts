@@ -2426,12 +2426,12 @@ def test_migration(m, inp, output, kwargs, prb, mr_out, should_filter, tmpdir):
         actual_output = f.read()
     assert actual_output == output
     if isinstance(m, Compiler):
-        assert m.messages in m.pr_body()
+        assert m.messages in m.pr_body(None)
     # TODO: fix subgraph here (need this to be xsh file)
     elif isinstance(m, Version):
         pass
     elif isinstance(m, Rebuild):
         return
     else:
-        assert prb in m.pr_body()
+        assert prb in m.pr_body(None)
     assert m.filter(pmy) is True

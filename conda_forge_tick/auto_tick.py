@@ -1,31 +1,32 @@
 import copy
+import glob
 import json
-import os
 import time
 import traceback
 import logging
+import typing
 
-import datetime
-from pprint import pprint
 from urllib.error import URLError
 
-from doctr.travis import run_command_hiding_token as doctr_run
 import github3
-import networkx as nx
 import ruamel.yaml as yaml
-from xonsh.lib.os import indir
 from uuid import uuid4
 
+from conda_forge_tick.contexts import FeedstockContext
 from .git_utils import (get_repo, push_repo, is_github_api_limit_reached, ensure_label_exists, label_pr)
 from .path_lengths import cyclic_topological_sort
 from .utils import (setup_logger, pluck, get_requirements, load_graph, dump_graph, LazyJson)
+from .xonsh_utils import env, eval_xonsh
+from typing import MutableSequence, Sequence, Tuple, Dict
 
 logger = logging.getLogger("conda_forge_tick.auto_tick")
 
 # TODO: move this back to the bot file as soon as the source issue is sorted
 # https://travis-ci.org/regro/00-find-feedstocks/jobs/388387895#L1870
 from .migrators import *
-$MIGRATORS = [
+
+
+MIGRATORS: MutableSequence[Migrator] = [
    Version(pr_limit=30, piggy_back_migrations=[PipMigrator(), LicenseMigrator()]),
    # Noarch(pr_limit=10),
    # Pinning(pr_limit=1, removals={'perl'}),
@@ -39,23 +40,23 @@ BOT_RERUN_LABEL = {
 }
 
 
-def run(attrs, migrator, feedstock=None, protocol='ssh',
+def run(feedstock_ctx: FeedstockContext, migrator: Migrator, protocol='ssh',
         pull_request=True, rerender=True, fork=True, gh=None,
         **kwargs):
     """For a given feedstock and migration run the migration
 
     Parameters
     ----------
-    attrs: dict
+    feedstock_ctx: FeedstockContext
         The node attributes
     migrator: Migrator instance
         The migrator to run on the feedstock
-    feedstock : str, optional
-        The feedstock to clone if None use $FEEDSTOCK
     protocol : str, optional
         The git protocol to use, defaults to ``ssh``
     pull_request : bool, optional
         If true issue pull request, defaults to true
+    rerender : bool
+        Whether to rerender
     fork : bool
         If true create a fork, defaults to true
     gh : github3.GitHub instance, optional
@@ -73,10 +74,10 @@ def run(attrs, migrator, feedstock=None, protocol='ssh',
 
     """
     # get the repo
-    migrator.attrs = attrs
-    feedstock_dir, repo = get_repo(attrs,
+    migrator.attrs = feedstock_ctx.attrs
+    feedstock_dir, repo = get_repo(feedstock_ctx.attrs,
                                    branch=migrator.remote_branch(),
-                                   feedstock=feedstock,
+                                   feedstock=feedstock_ctx.feedstock_name,
                                    protocol=protocol,
                                    pull_request=pull_request,
                                    fork=fork,
@@ -92,40 +93,43 @@ def run(attrs, migrator, feedstock=None, protocol='ssh',
         ]
     if isinstance(migrator, Noarch) and any(
             x in os.listdir(recipe_dir) for x in no_noarch_files):
-        rm -rf @(feedstock_dir)
+        eval_xonsh(f'rm -rf {feedstock_dir}')
         return False, False
     # migrate the `meta.yaml`
-    migrate_return = migrator.migrate(recipe_dir, attrs, **kwargs)
+    migrate_return = migrator.migrate(recipe_dir, feedstock_ctx.attrs, **kwargs)
     if not migrate_return:
-        logger.critical("Failed to migrate %s, %s", $PROJECT, attrs.get('bad'))
-        rm -rf @(feedstock_dir)
+        logger.critical("Failed to migrate %s, %s", feedstock_ctx.package_name, feedstock_ctx.attrs.get('bad'))
+        eval_xonsh(f'rm -rf {feedstock_dir}')
         return False, False
 
     # rerender, maybe
     diffed_files = []
-    with indir(feedstock_dir), ${...}.swap(RAISE_SUBPROC_ERROR=False):
-        git commit -am @(migrator.commit_message())
+    with indir(feedstock_dir), env.swap(RAISE_SUBPROC_ERROR=False):
+        msg = migrator.commit_message()
+        eval_xonsh('git commit -am @(msg)')
         if rerender:
-            head_ref = $(git rev-parse HEAD).strip()
+            head_ref = eval_xonsh('git rev-parse HEAD')
             logger.info('Rerendering the feedstock')
-            conda smithy rerender -c auto
+            eval_xonsh('conda smithy rerender -c auto')
             # If we tried to run the MigrationYaml and rerender did nothing (we only
             # bumped the build number and dropped a yaml file in migrations) bail
             # for instance platform specific migrations
-            diffed_files = [_ for _ in $(git diff --name-only @(head_ref)...HEAD).split() if not (_.startswith('recipe') or _.startswith('migrators') or _.startswith('README'))]
+            gdiff = eval_xonsh('git diff --name-only @(head_ref)...HEAD')
+
+            diffed_files = [_ for _ in gdiff.split() if not (_.startswith('recipe') or _.startswith('migrators') or _.startswith('README'))]
 
     if isinstance(migrator, MigrationYaml) and not diffed_files:
         # spoof this so it looks like the package is done
         pr_json = {'state': 'closed', 'merged_at': 'never issued', 'id': str(uuid4())}
-        ljpr = LazyJson(os.path.join($PRJSON_DIR, str(pr_json['id']) + '.json'))
+        ljpr = LazyJson(os.path.join(migrator.ctx.parent.prjson_dir, str(pr_json['id']) + '.json'))
         ljpr.update(**pr_json)
     else:
         # push up
         try:
             pr_json = push_repo(feedstock_dir,
-                                migrator.pr_body(),
+                                migrator.pr_body(None),
                                 repo,
-                                migrator.pr_title(),
+                                migrator.pr_title(None),
                                 migrator.pr_head(),
                                 migrator.remote_branch())
 
@@ -139,9 +143,9 @@ def run(attrs, migrator, feedstock=None, protocol='ssh',
                 pr_json = False
 
     # If we've gotten this far then the node is good
-    attrs['bad'] = False
+    feedstock_ctx.attrs['bad'] = False
     logger.info('Removing feedstock dir')
-    rm -rf @(feedstock_dir)
+    eval_xonsh(f'rm -rf {feedstock_dir}')
     return migrate_return, pr_json
 
 
@@ -363,11 +367,12 @@ def add_rebuild_successors(migrators, gx, package_name, pin_version, pr_limit=5,
     # print('cycles are here:', cycles)
 
     migrators.append(
-        rebuild_class(graph=total_graph,
-                pr_limit=pr_limit,
-                name=f'{package_name}-{pin_version}',
-                top_level=top_level,
-                cycles=cycles, obj_version=obj_version))
+        rebuild_class(
+            graph=total_graph,
+            pr_limit=pr_limit,
+            name=f'{package_name}-{pin_version}',
+            top_level=top_level,
+            cycles=cycles, obj_version=obj_version))
 
 
 def add_rebuild_blas(migrators, gx):
@@ -411,7 +416,7 @@ def add_rebuild_blas(migrators, gx):
                 cycles=cycles, obj_version=0))
 
 
-def add_arch_migrate(migrators, gx):
+def add_arch_migrate(migrators: MutableSequence[Migrator], gx: nx.Graph):
     """Adds rebuild migrators.
 
     Parameters
@@ -448,9 +453,14 @@ def add_arch_migrate(migrators, gx):
                         cycles=cycles))
 
 
-def add_rebuild_migration_yaml(migrators, gx, package_names, migration_yaml, 
-                               config={},
-                               migration_name="", pr_limit=50):
+def add_rebuild_migration_yaml(
+        migrators: MutableSequence[Migrator],
+        gx: nx.DiGraph,
+        package_names: Sequence[str],
+        migration_yaml: str,
+        config={},
+        migration_name="",
+        pr_limit=50):
     """Adds rebuild migrator.
 
     Parameters
@@ -462,7 +472,7 @@ def add_rebuild_migration_yaml(migrators, gx, package_names, migration_yaml,
     package_names : list of str
         The package who's pin was moved
     migration_yaml : str
-        The full dict for the migration
+        The raw yaml for the migration variant dict
     config: dict
         The __migrator contents of the migration
     migration_name: str
@@ -513,7 +523,7 @@ def add_rebuild_migration_yaml(migrators, gx, package_names, migration_yaml,
 def migration_factory(migrators, gx, pr_limit=50):
     migration_yamls = []
     with indir('../conda-forge-pinning-feedstock/recipe/migrations'):
-        for yaml_file in g`*.y*ml`:
+        for yaml_file in glob.glob('*.y*ml'):
             with open(yaml_file) as f:
                 yaml_contents = f.read()
             migration_yamls.append((yaml_file, yaml_contents))
@@ -533,36 +543,32 @@ def migration_factory(migrators, gx, pr_limit=50):
         )
 
 
-def initialize_migrators(do_rebuild=False):
+def initialize_migrators(
+    do_rebuild=False,
+    github_username: str = '',
+    github_password: str = ''
+) -> Tuple[MigratorsContext, list, MutableSequence[Migrator]]:
     setup_logger(logger)
-    temp = g`/tmp/*`
+    temp = glob.glob('/tmp/*')
     gx = load_graph()
-    $GRAPH = gx
-    $REVER_DIR = './feedstocks/'
-    $REVER_QUIET = True
-    $PRJSON_DIR = 'pr_json'
+    smithy_version = eval_xonsh('conda smithy --version')
+    pinning_version = json.loads(eval_xonsh('conda list conda-forge-pinning --json'))[0]['version']
 
-    smithy_version = ![conda smithy --version].output.strip()
-    pinning_version = json.loads(![conda list conda-forge-pinning --json].output.strip())[0]['version']
-
-    add_arch_migrate($MIGRATORS, gx)
-    migration_factory($MIGRATORS, gx)
-    for m in $MIGRATORS:
+    add_arch_migrate(MIGRATORS, gx)
+    migration_factory(MIGRATORS, gx)
+    for m in MIGRATORS:
         print(f'{getattr(m, "name", m)} graph size: {len(getattr(m, "graph", []))}')
 
-    return gx, smithy_version, pinning_version, temp, $MIGRATORS
+    ctx = MigratorsContext(
+        circle_build_url='',
+        graph=gx,
+        smithy_version=smithy_version,
+        pinning_version=pinning_version,
+        github_username=github_username,
+        github_password=github_password
+    )
 
-
-def get_effective_graph(migrator: Migrator, gx):
-    gx2 = copy.deepcopy(getattr(migrator, 'graph', gx))
-
-    # Prune graph to only things that need builds right now
-    for node, node_attrs in gx.nodes.items():
-        attrs = node_attrs['payload']
-        if node in gx2 and migrator.filter(attrs):
-            gx2.remove_node(node)
-
-    return gx2
+    return ctx, temp, MIGRATORS
 
 
 def migrator_status(migrator: Migrator, gx):
@@ -658,37 +664,55 @@ def migrator_status(migrator: Migrator, gx):
 
 
 def main(args=None):
-    gh = github3.login($USERNAME, $PASSWORD)
-    gx, smithy_version, pinning_version, temp, $MIGRATORS = initialize_migrators(False)
+    github_username = env['USERNAME']
+    github_password = env['PASSWORD']
+    gh = github3.login(env['USERNAME'], env['PASSWORD'])
+    global MIGRATORS
+    mctx, temp, MIGRATORS = initialize_migrators(False, github_username=github_username, github_password=github_password)
 
-    for migrator in $MIGRATORS:
+    for migrator in MIGRATORS:
+
+        mmctx = MigratorContext(
+            parent=mctx,
+            migrator=migrator
+        )
+        migrator.bind_to_ctx(mmctx)
+
         good_prs = 0
-        effective_graph = get_effective_graph(migrator, gx)
+        effective_graph = mmctx.effective_graph
 
-        $SUBGRAPH = effective_graph
         logger.info('Total migrations for %s: %d', migrator.__class__.__name__,
                     len(effective_graph.nodes))
 
         top_level = set(node for node in effective_graph if not list(effective_graph.predecessors(node)))
         # print(list(migrator.order(effective_graph, gx)))
-        for node_name in migrator.order(effective_graph, gx):
-            with gx.nodes[node_name]['payload'] as attrs:
-                # Don't let travis timeout, break ahead of the timeout so we make certain
+        for node_name in migrator.order(effective_graph, mctx.graph):
+            with mctx.graph.nodes[node_name]['payload'] as attrs:
+                # Don't let CI timeout, break ahead of the timeout so we make certain
                 # to write to the repo
-                if time.time() - int($START_TIME) > int($TIMEOUT) or good_prs >= migrator.pr_limit:
+                # TODO: convert these env vars
+                if time.time() - int(env['START_TIME']) > int(env['TIMEOUT']) or good_prs >= migrator.pr_limit:
                     break
-                $PROJECT = attrs['feedstock_name']
-                $NODE = node_name
-                logger.info('%s IS MIGRATING %s', migrator.__class__.__name__.upper(),
-                            $PROJECT)
+
+                fctx = FeedstockContext(
+                    package_name=node_name,
+                    feedstock_name=attrs['feedstock_name'],
+                    attrs=attrs
+                )
+
+                logger.info(
+                    '%s IS MIGRATING %s',
+                    migrator.__class__.__name__.upper(),
+                    fctx.package_name
+                )
                 try:
                     # Don't bother running if we are at zero
                     if gh.rate_limit()['resources']['core']['remaining'] == 0:
                         break
-                    rerender = (attrs.get('smithy_version') != smithy_version or
-                                attrs.get('pinning_version') != pinning_version or
+                    rerender = (attrs.get('smithy_version') != mctx.smithy_version or
+                                attrs.get('pinning_version') != mctx.pinning_version or
                                 migrator.rerender)
-                    migrator_uid, pr_json = run(attrs=attrs, migrator=migrator, gh=gh,
+                    migrator_uid, pr_json = run(feedstock_ctx=fctx, migrator=migrator, gh=gh,
                                                 rerender=rerender, protocol='https',
                                                 hash_type=attrs.get('hash_type', 'sha256'))
                     # if migration successful
@@ -706,14 +730,14 @@ def main(args=None):
                             d.update(PR=pr_json)
                             attrs.setdefault('PRed', []).append(d)
                         attrs.update(
-                            {'smithy_version': smithy_version,
-                             'pinning_version': pinning_version})
+                            {'smithy_version': mctx.smithy_version,
+                             'pinning_version': mctx.pinning_version})
 
                 except github3.GitHubError as e:
                     if e.msg == 'Repository was archived so is read-only.':
                         attrs['archived'] = True
                     else:
-                        logger.critical('GITHUB ERROR ON FEEDSTOCK: %s', $PROJECT)
+                        logger.critical('GITHUB ERROR ON FEEDSTOCK: %s', fctx.feedstock_name)
                         if is_github_api_limit_reached(e, gh):
                             break
                 except URLError as e:
@@ -736,12 +760,13 @@ def main(args=None):
                         good_prs += 1
                 finally:
                     # Write graph partially through
-                    dump_graph(gx)
-                    rm -rf $REVER_DIR + '/*'
-                    logger.info(![pwd])
-                    for f in g`/tmp/*`:
+                    dump_graph(mctx.graph)
+
+                    eval_xonsh(f'rm -rf {mctx.rever_dir}/*')
+                    logger.info(eval_xonsh('![pwd]'))
+                    for f in glob.glob('/tmp/*'):
                         if f not in temp:
-                            rm -rf @(f)
+                            eval_xonsh(f'rm -rf {f}')
 
     logger.info('API Calls Remaining: %d', gh.rate_limit()['resources']['core']['remaining'])
     logger.info('Done')
