@@ -1166,7 +1166,7 @@ class ArchRebuild(Rebuild):
         This feedstock is being rebuilt as part of the aarch64/ppc64le migration.
 
         **Feel free to merge the PR if CI is all green, but please don't close it
-        without reaching out the the ARM migrators first at @conda-forge/arm-arch .**
+        without reaching out the the ARM migrators first at @conda-forge/arm-arch.**
         """)
         return body
 
