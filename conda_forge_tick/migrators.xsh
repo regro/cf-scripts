@@ -29,7 +29,7 @@ from .utils import render_meta_yaml, UniversalSet, frozen_to_json_friendly, \
     as_iterable, parse_meta_yaml, CB_CONFIG
 
 
-try: 
+try:
     from conda_smithy.lint_recipe import NEEDED_FAMILIES
 except ImportError:
     NEEDED_FAMILIES = ["gpl", "bsd", "mit", "apache", "psf"]
@@ -1163,11 +1163,10 @@ class ArchRebuild(Rebuild):
 
     def pr_body(self):
         body = dedent("""\
-        This feedstock is being rebuilt as part of the aarch64/ppc64le migration
+        This feedstock is being rebuilt as part of the aarch64/ppc64le migration.
 
-        cc: @conda-forge/arm-arch
-
-        **Please don't close this PR without reaching out the the ARM migrators first**
+        **Feel free to merge the PR if CI is all green, but please don't close it
+        without reaching out the the ARM migrators first at @conda-forge/arm-arch.**
         """)
         return body
 
@@ -1336,7 +1335,7 @@ class MigrationYaml(Migrator):
 
     # TODO: add a description kwarg for the status page at some point.
     # TODO: make yaml_contents an arg?
-    def __init__(self, 
+    def __init__(self,
                  yaml_contents,
                  graph=None, name=None, pr_limit=50, top_level=None,
                  cycles=None, migration_number=None,
@@ -1443,4 +1442,3 @@ class MigrationYaml(Migrator):
         """Run the order by number of decendents, ties are resolved by package name"""
         return sorted(graph, key=lambda x: (len(nx.descendants(total_graph, x)), x),
                       reverse=True)
-
