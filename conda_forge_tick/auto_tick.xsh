@@ -412,7 +412,7 @@ def add_rebuild_blas(migrators, gx):
 
 
 def add_replacement_migrator(migrators, gx, old_pkg, new_pkg, rationale):
-    """Adds matplotlib migrator
+    """Adds a migrator to replace one package with another.
 
     Parameters
     ----------

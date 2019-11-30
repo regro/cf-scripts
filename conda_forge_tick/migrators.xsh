@@ -1032,7 +1032,7 @@ class Pinning(Migrator):
 
 
 class Replacement(Migrator):
-    """Migrator for replacing on package with another.
+    """Migrator for replacing one package with another.
 
     Parameters
     ----------
@@ -1050,7 +1050,7 @@ class Replacement(Migrator):
         super().__init__(pr_limit)
         self.old_pkg = old_pkg
         self.new_pkg = new_pkg
-        self.pattern = re.compile("\s*-\s*(%s)(\s+|$)" % old_pkg
+        self.pattern = re.compile("\s*-\s*(%s)(\s+|$)" % old_pkg)
         self.packages = set([old_pkg])
         self.rationale = rationale
 
