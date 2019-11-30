@@ -411,6 +411,43 @@ def add_rebuild_blas(migrators, gx):
                 cycles=cycles, obj_version=0))
 
 
+def add_matplotlib(migrators, gx):
+    """Adds matplotlib migrator
+
+    Parameters
+    ----------
+    migrators : list of Migrator
+        The list of migrators to run.
+
+    """
+    total_graph = copy.deepcopy(gx)
+
+    for node, node_attrs in gx.nodes.items():
+        attrs = node_attrs['payload']
+        meta_yaml = attrs.get("meta_yaml", {}) or {}
+        bh = get_requirements(meta_yaml)
+        pkgs = set(["matplotlib"])
+        mpl_c = len(pkgs.intersection(bh)) > 0
+
+        rq = _host_run_test_dependencies(meta_yaml)
+
+        for e in list(total_graph.in_edges(node)):
+            if e[0] not in rq:
+                total_graph.remove_edge(*e)
+        if not any([mpl_c]):
+            pluck(total_graph, node)
+
+    # post plucking we can have several strange cases, lets remove all selfloops
+    total_graph.remove_edges_from(nx.selfloop_edges(total_graph))
+
+    top_level = set(node for node in total_graph if not list(
+        total_graph.predecessors(node)))
+    cycles = list(nx.simple_cycles(total_graph))
+
+    migrators.append(
+        Matplotlib(pr_limit=5))
+
+
 def add_arch_migrate(migrators, gx):
     """Adds rebuild migrators.
 
@@ -546,6 +583,7 @@ def initialize_migrators(do_rebuild=False):
     pinning_version = json.loads(![conda list conda-forge-pinning --json].output.strip())[0]['version']
 
     add_arch_migrate($MIGRATORS, gx)
+    add_matplotlib($MIGRATORS, gx)
     migration_factory($MIGRATORS, gx)
     for m in $MIGRATORS:
         print(f'{getattr(m, "name", m)} graph size: {len(getattr(m, "graph", []))}')
