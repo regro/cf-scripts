@@ -1031,6 +1031,66 @@ class Pinning(Migrator):
         return 'pinning'
 
 
+class Matplotlib(Migrator):
+    """Migrator for moving matplotlib to matplotlib-base."""
+    migrator_version = 0
+    rerender = True
+    mpl_pat = re.compile("\s*-\s*(matplotlib)(\s+|$)")
+    
+    def __init__(self, pr_limit=0):
+        super().__init__(pr_limit)
+        self.mpl = set(["matplotlib"])
+
+    def filter(self, attrs):
+        return (super().filter(attrs) or
+                len(attrs.get("req", set()) & self.mpl) == 0)
+
+    def migrate(self, recipe_dir, attrs, **kwargs):
+        with open(os.path.join(recipe_dir, "meta.yaml")) as f:
+            raw = f.read()
+        lines = raw.splitlines()
+        n = False
+        for i, line in enumerate(lines):
+            m = self.mpl_p.match(line)
+            if m is not None:
+                lines[i] = lines[i].replace(m.group(1), "matplotlib-base")
+                n = True
+        if not n:
+            return False
+        upd = "\n".join(lines) + "\n"
+        with open(os.path.join(recipe_dir, "meta.yaml"), "w") as f:
+            f.write(upd)
+        self.set_build_number(os.path.join(recipe_dir, "meta.yaml"))
+        return super().migrate(recipe_dir, attrs)
+
+    def pr_body(self):
+        body = super().pr_body()
+        body = body.format(
+                    'I noticed that this recipe depends on `matplotlib` instead of \n'
+                    '`matplotlib-base`. Unless you need `pyqt` in the environment for \n'
+                    'your recipe, the dependence should be on `matplotlib-base` instead. \n'
+                    'This PR makes this change.'
+                    '\n'
+                    'Notes and instructions for merging this PR:\n'
+                    '1. Make sure that the recipe can indeed only depend on `matplotlib-base`. \n'
+                    '2. Please merge the PR only after the tests have passed. \n'
+                    "3. Feel free to push to the bot's branch to update this PR if "
+                    "needed. \n")
+        return body
+
+    def commit_message(self):
+        return "use matplotlib-base instead of matplotlib"
+
+    def pr_title(self):
+        return 'Suggestion: depend on matplotlib-base instead of matplotlib'
+
+    def pr_head(self):
+        return $USERNAME + ':' + self.remote_branch()
+
+    def remote_branch(self):
+        return 'matplotlib-base-migration'
+
+
 class ArchRebuild(Rebuild):
     """
     A Migrator that add aarch64 and ppc64le builds to feedstocks
