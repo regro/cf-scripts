@@ -16,7 +16,7 @@ from conda_forge_tick.migrators import (
     BlasRebuild,
     LicenseMigrator,
     MigrationYaml,
-    Matplotlib,
+    Replacement,
 )
 from conda_forge_tick.utils import parse_meta_yaml, frozen_to_json_friendly
 
@@ -2200,7 +2200,11 @@ rebuild.filter = lambda x: False
 blas_rebuild = BlasRebuild(cycles=[])
 blas_rebuild.filter = lambda x: False
 
-matplotlib = Matplotlib()
+matplotlib = Replacement(
+    old_pkg='matplotlib', new_pkg='matplotlib-base',
+    rationale=('Unless you need `pyqt`, recipes should depend only on '
+               '`matplotlib-base`.'),
+    pr_limit=5)
 
 test_list = [
     (
@@ -2469,7 +2473,7 @@ test_list = [
         {},
         "I noticed that this recipe depends on `matplotlib` instead of ",
         {
-            "migrator_name": "Matplotlib",
+            "migrator_name": "Replacement",
             "migrator_version": matplotlib.migrator_version,
         },
         False,
