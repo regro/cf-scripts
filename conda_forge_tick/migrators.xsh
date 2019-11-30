@@ -1036,7 +1036,7 @@ class Matplotlib(Migrator):
     migrator_version = 0
     rerender = True
     mpl_pat = re.compile("\s*-\s*(matplotlib)(\s+|$)")
-    
+
     def __init__(self, pr_limit=0):
         super().__init__(pr_limit)
         self.mpl = set(["matplotlib"])
@@ -1051,7 +1051,7 @@ class Matplotlib(Migrator):
         lines = raw.splitlines()
         n = False
         for i, line in enumerate(lines):
-            m = self.mpl_p.match(line)
+            m = self.mpl_pat.match(line)
             if m is not None:
                 lines[i] = lines[i].replace(m.group(1), "matplotlib-base")
                 n = True
