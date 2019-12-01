@@ -134,14 +134,12 @@ class LicenseMigrator(MiniMigrator):
         with indir(cb_work_dir):
             # look for a license file
             license_files = [
-                [
-                    s
-                    for s in os.listdir(".")
-                    if any(
-                        s.lower().startswith(k)
-                        for k in ["license", "copying", "copyright"]
-                    )
-                ]
+                s
+                for s in os.listdir(".")
+                if any(
+                    s.lower().startswith(k)
+                    for k in ["license", "copying", "copyright"]
+                )
             ]
             # if there is a license file in tarball update things
         eval_xonsh(f"rm -r {cb_work_dir}")
@@ -190,13 +188,13 @@ class Migrator:
     migrator_version = 0
 
     build_patterns = (
-        (re.compile("(\s*?)number:\s*([0-9]+)"), "number: {}"),
+        (re.compile(r"(\s*?)number:\s*([0-9]+)"), "number: {}"),
         (
-            re.compile('(\s*?){%\s*set build_number\s*=\s*"?([0-9]+)"?\s*%}'),
+            re.compile(r'(\s*?){%\s*set build_number\s*=\s*"?([0-9]+)"?\s*%}'),
             "{{% set build_number = {} %}}",
         ),
         (
-            re.compile('(\s*?){%\s*set build\s*=\s*"?([0-9]+)"?\s*%}'),
+            re.compile(r'(\s*?){%\s*set build\s*=\s*"?([0-9]+)"?\s*%}'),
             "{{% set build = {} %}}",
         ),
     )
@@ -359,12 +357,12 @@ class Migrator:
         -------
 
         """
-        top_level = set(
+        top_level = {
             node
             for node in graph
             if not list(graph.predecessors(node))
             or list(graph.predecessors(node)) == [node]
-        )
+        }
         return cyclic_topological_sort(graph, top_level)
 
     def set_build_number(self, filename):
@@ -423,10 +421,10 @@ class Version(Migrator):
     patterns = (
         # filename, pattern, new
         # set the version
-        ("meta.yaml", "version:\s*[A-Za-z0-9._-]+", 'version: "$VERSION"'),
+        ("meta.yaml", r"version:\s*[A-Za-z0-9._-]+", 'version: "$VERSION"'),
         (
             "meta.yaml",
-            "{%\s*set\s+version\s*=\s*[^\s]*\s*%}",
+            r"{%\s*set\s+version\s*=\s*[^\s]*\s*%}",
             '{% set version = "$VERSION" %}',
         ),
     )
@@ -439,7 +437,7 @@ class Version(Migrator):
         r"^(\s*)(-)?(\s*)url:\s*(?:(#.*)?\[([^\[\]]+)\])?(?(4)[^\(\)]*?)\n(\1(?(2) \3)  -.*\n?)*",
         flags=re.M,
     )
-    r_urls = re.compile("\s*-\s*(.+?)(?:#.*)?$", flags=re.M)
+    r_urls = re.compile(r"\s*-\s*(.+?)(?:#.*)?$", flags=re.M)
 
     migrator_version = 0
 
@@ -470,35 +468,35 @@ class Version(Migrator):
                 for u in url:
                     u = u.strip("'\"")
                     try:
-                        hash = hash_url(u, hash_type)
+                        hash_ = hash_url(u, hash_type)
                         break
                     except urllib.error.HTTPError:
                         continue
             else:
                 url = url.strip("'\"")
-                hash = hash_url(url, hash_type)
-            m = re.search("\s*{}:(.+)".format(hash_type), line)
+                hash_ = hash_url(url, hash_type)
+            m = re.search(fr"\s*{hash_type}:(.+)", line)
             if m is None:
-                p = "{}:\s*[0-9A-Fa-f]+".format(hash_type)
+                p = fr"{hash_type}:\s*[0-9A-Fa-f]+"
                 if platform:
-                    p += "\s*(#.*)\[{}\](?(1)[^\(\)]*)$".format(platform)
+                    p += fr"\s*(#.*)\[{platform}\](?(1)[^\(\)]*)$"
                 else:
                     p += "$"
             else:
                 p = "{}:{}$".format(hash_type, m.group(1))
-            n = "{}: {}".format(hash_type, hash)
+            n = f"{hash_type}: {hash}"
             if platform:
-                n += "  # [{}]".format(platform)
+                n += f"  # [{platform}]"
             pats += ((filename, p, n),)
 
-            base1 = """{{%\s*set {checkname} = ['"][0-9A-Fa-f]+['"] %}}"""
+            base1 = r"""{{%\s*set {checkname} = ['"][0-9A-Fa-f]+['"] %}}"""
             base2 = '{{% set {checkname} = "{h}" %}}'
             for cn in checksum_names:
                 pats += (
                     (
                         "meta.yaml",
                         base1.format(checkname=cn),
-                        base2.format(checkname=cn, h=hash),
+                        base2.format(checkname=cn, h=hash_),
                     ),
                 )
         return pats
@@ -548,7 +546,7 @@ class Version(Migrator):
         with indir(recipe_dir):
             with open("meta.yaml", "r") as f:
                 text = f.read()
-        url = re.search("\s*-?\s*url:.*?\n(    -.*\n?)*", text).group()
+        url = re.search(r"\s*-?\s*url:.*?\n(    -.*\n?)*", text).group()
         if "cran.r-project.org/src/contrib" in url:
             version = version.replace("_", "-")
         with indir(recipe_dir), env.swap(VERSION=version):
@@ -667,7 +665,7 @@ class JS(Migrator):
     patterns = [
         (
             "meta.yaml",
-            "  script: npm install -g \.",
+            r"  script: npm install -g \.",
             "  script: |\n" "    tgz=$(npm pack)\n" "    npm install -g $tgz",
         ),
         ("meta.yaml", "   script: |\n", "  script: |"),
@@ -803,7 +801,7 @@ class Noarch(Migrator):
     migrator_version = 0
 
     compiler_pat = re.compile(".*_compiler_stub")
-    sel_pat = re.compile("(.+?)\s*(#.*)?\[([^\[\]]+)\](?(2)[^\(\)]*)$")
+    sel_pat = re.compile(r"(.+?)\s*(#.*)?\[([^\[\]]+)\](?(2)[^\(\)]*)$")
     unallowed_reqs = ["toolchain", "toolchain3", "gcc", "cython", "clangdev"]
     checklist = [
         "No compiled extensions",
@@ -931,7 +929,7 @@ class NoarchR(Noarch):
         if not r:
             return True
 
-        ## R recipes tend to have some things in their build / test that have selectors
+        # R recipes tend to have some things in their build / test that have selectors
 
         # for line in attrs.get('raw_meta_yaml', '').splitlines():
         #    if self.sel_pat.match(line):
@@ -975,13 +973,13 @@ class NoarchR(Noarch):
                         spacing = s
                     lines[index] = lines[index] + " " * spacing + "noarch: generic\n"
                 regex_unix1 = re.compile(
-                    "license_file: '{{ environ\[\"PREFIX\"\] }}/lib/R/share/licenses/(\S+)'\s+# \[unix\]"
+                    r"license_file: '{{ environ\[\"PREFIX\"\] }}/lib/R/share/licenses/(\S+)'\s+# \[unix\]"
                 )
                 regex_unix2 = re.compile(
-                    "license_file: '{{ environ\[\"PREFIX\"\] }}\\\/lib\\\/R\\\/share\\\/licenses\\\/(.+)'\\s+# \[unix\]"
+                    r"license_file: '{{ environ\[\"PREFIX\"\] }}\\\/lib\\\/R\\\/share\\\/licenses\\\/(.+)'\\s+# \[unix\]"
                 )
                 regex_win = re.compile(
-                    "license_file: '{{ environ\[\"PREFIX\"\] }}\\\R\\\share\\\licenses\\\(\S+)'\s+# \[win\]"
+                    r"license_file: '{{ environ\[\"PREFIX\"\] }}\\\R\\\share\\\licenses\\\(\S+)'\s+# \[win\]"
                 )
                 for i, line in enumerate(lines_stripped):
                     if noarch and line.lower().strip().startswith("skip: true"):
@@ -1037,6 +1035,7 @@ class Rebuild(Migrator):
     migrator_version = 0
     rerender = True
     bump_number = 1
+
     # TODO: add a description kwarg for the status page at some point.
     def __init__(
         self,
@@ -1048,7 +1047,8 @@ class Rebuild(Migrator):
         obj_version=None,
     ):
         super().__init__(pr_limit, obj_version)
-        if graph == None:
+        # TODO: Grab the graph from the migrator ctx
+        if graph is None:
             self.graph = nx.DiGraph()
         else:
             self.graph = graph
@@ -1097,7 +1097,7 @@ class Rebuild(Migrator):
     def pr_body(self, feedstock_ctx):
         body = super().pr_body(None)
         additional_body = (
-            "This PR has been triggered in an effort to update **{0}**.\n\n"
+            "This PR has been triggered in an effort to update **{}**.\n\n"
             "Notes and instructions for merging this PR:\n"
             "1. Please merge the PR only after the tests have passed. \n"
             "2. Feel free to push to the bot's branch to update this PR if needed. \n"
@@ -1106,7 +1106,7 @@ class Rebuild(Migrator):
             "perform the rebuild yourself don't close this PR until "
             "the your rebuild has been merged.**\n\n"
             "This package has the following downstream children:\n"
-            "{1}\n"
+            "{}\n"
             "And potentially more."
             "".format(self.name, "\n".join(self.downstream_children(feedstock_ctx)))
         )
@@ -1154,7 +1154,7 @@ class Pinning(Migrator):
 
     def __init__(self, pr_limit=0, removals=None):
         super().__init__(pr_limit)
-        if removals == None:
+        if removals is None:
             self.removals = UniversalSet()
         else:
             self.removals = set(removals)
@@ -1167,7 +1167,7 @@ class Pinning(Migrator):
     def migrate(self, recipe_dir, attrs, **kwargs):
         remove_pins = attrs.get("req", set()) & self.removals
         remove_pats = {
-            req: re.compile(f"\s*-\s*{req}.*?(\s+.*?)(\s*#.*)?$") for req in remove_pins
+            req: re.compile(rf"\s*-\s*{req}.*?(\s+.*?)(\s*#.*)?$") for req in remove_pins
         }
         self.removed = {}
         with open(os.path.join(recipe_dir, "meta.yaml")) as f:
@@ -1203,7 +1203,7 @@ class Pinning(Migrator):
             "2. Please merge the PR only after the tests have passed. \n"
             "3. Feel free to push to the bot's branch to update this PR if "
             "needed. \n".format(
-                "\n".join(["{}: {}".format(n, p) for n, p in self.removed.items()])
+                "\n".join([f"{n}: {p}" for n, p in self.removed.items()])
             )
         )
         return body
@@ -1386,8 +1386,8 @@ class BlasRebuild(Rebuild):
     bump_number = 1
 
     blas_patterns = [
-        re.compile("(\s*?)-\s*(blas|openblas|mkl|(c?)lapack)"),
-        re.compile('(\s*?){%\s*set variant\s*=\s*"openblas"?\s*%}'),
+        re.compile(r"(\s*?)-\s*(blas|openblas|mkl|(c?)lapack)"),
+        re.compile(r'(\s*?){%\s*set variant\s*=\s*"openblas"?\s*%}'),
     ]
 
     def __init__(

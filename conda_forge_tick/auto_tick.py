@@ -110,7 +110,7 @@ def run(
     script_names = ["pre-unlink", "post-link", "pre-link", "activate"]
     exts = [".bat", ".sh"]
     no_noarch_files = [
-        "{}.{}".format(script_name, ext) for script_name in script_names for ext in exts
+        f"{script_name}.{ext}" for script_name in script_names for ext in exts
     ]
     if isinstance(migrator, Noarch) and any(
         x in os.listdir(recipe_dir) for x in no_noarch_files
@@ -258,9 +258,9 @@ def add_rebuild(migrators, gx):
     # post plucking we can have several strange cases, lets remove all selfloops
     total_graph.remove_edges_from(nx.selfloop_edges(total_graph))
 
-    top_level = set(
+    top_level = {
         node for node in total_graph if not list(total_graph.predecessors(node))
-    )
+    }
     cycles = list(nx.simple_cycles(total_graph))
     # print('cycles are here:', cycles)
 
@@ -455,8 +455,7 @@ def add_rebuild_blas(migrators, gx):
         attrs = node_attrs["payload"]
         meta_yaml = attrs.get("meta_yaml", {}) or {}
         bh = get_requirements(meta_yaml)
-        pkgs = set(
-            [
+        pkgs = {
                 "openblas",
                 "openblas-devel",
                 "mkl",
@@ -464,8 +463,7 @@ def add_rebuild_blas(migrators, gx):
                 "blas",
                 "lapack",
                 "clapack",
-            ]
-        )
+        }
         blas_c = len(pkgs.intersection(bh)) > 0
 
         rq = _host_run_test_dependencies(meta_yaml)
@@ -479,9 +477,9 @@ def add_rebuild_blas(migrators, gx):
     # post plucking we can have several strange cases, lets remove all selfloops
     total_graph.remove_edges_from(nx.selfloop_edges(total_graph))
 
-    top_level = set(
+    top_level = {
         node for node in total_graph if not list(total_graph.predecessors(node))
-    )
+    }
     cycles = list(nx.simple_cycles(total_graph))
 
     migrators.append(
@@ -601,7 +599,7 @@ def add_rebuild_migration_yaml(
 
     top_level = {
         node
-        for node in set(gx.successors(package_name) for package_name in package_names)
+        for node in {gx.successors(package_name) for package_name in package_names}
         if (node in total_graph) and len(list(total_graph.predecessors(node))) == 0
     }
     cycles = list(nx.simple_cycles(total_graph))
@@ -633,7 +631,7 @@ def migration_factory(migrators, gx, pr_limit=50):
         migrator_config = loaded_yaml.get("__migrator", {})
         exclude_packages = set(migrator_config.get("exclude", []))
         package_names = (
-            (set(loaded_yaml) | set(l.replace("_", "-") for l in loaded_yaml))
+            (set(loaded_yaml) | {l.replace("_", "-") for l in loaded_yaml})
             & set(gx.nodes)
         ) - exclude_packages
 
@@ -696,7 +694,7 @@ def migrator_status(migrator: Migrator, gx):
 
     gx2 = copy.deepcopy(getattr(migrator, "graph", gx))
 
-    top_level = set(node for node in gx2 if not list(gx2.predecessors(node)))
+    top_level = {node for node in gx2 if not list(gx2.predecessors(node))}
     build_sequence = list(cyclic_topological_sort(gx2, top_level))
 
     feedstock_metadata = dict()
@@ -814,11 +812,11 @@ def main(args=None):
             len(effective_graph.nodes),
         )
 
-        top_level = set(
+        top_level = {
             node
             for node in effective_graph
             if not list(effective_graph.predecessors(node))
-        )
+        }
         # print(list(migrator.order(effective_graph, gx)))
         for node_name in migrator.order(effective_graph, mctx.graph):
             with mctx.graph.nodes[node_name]["payload"] as attrs:

@@ -14,7 +14,7 @@ import github3
 import jinja2
 import networkx as nx
 
-pin_sep_pat = re.compile(" |>|<|=|\[")
+pin_sep_pat = re.compile(r" |>|<|=|\[")
 
 from collections import Mapping, Set, Sequence
 
@@ -61,10 +61,10 @@ class NullUndefined(jinja2.Undefined):
         return self._undefined_name
 
     def __getattr__(self, name):
-        return "{}.{}".format(self, name)
+        return f"{self}.{name}"
 
     def __getitem__(self, name):
-        return '{}["{}"]'.format(self, name)
+        return f'{self}["{name}"]'
 
 
 class LazyJson(MutableMapping):
@@ -243,7 +243,7 @@ def _parse_requirements(req, build=True, host=True, run=True):
         host = list(as_iterable(req.get("host", []) or [] if host else []))
         run = list(as_iterable(req.get("run", []) or [] if run else []))
         reqlist = build + host + run
-    return set(pin_sep_pat.split(x)[0].lower() for x in reqlist if x is not None)
+    return {pin_sep_pat.split(x)[0].lower() for x in reqlist if x is not None}
 
 
 @contextlib.contextmanager
@@ -336,13 +336,13 @@ def load_graph(filename="graph.json") -> nx.DiGraph:
     return nx.node_link_graph(nld)
 
 
-def frozen_to_json_friendly(fz: dict, PR: LazyJson = None):
+def frozen_to_json_friendly(fz: dict, pr: LazyJson = None):
     if fz is None:
         return None
     keys = sorted(list(fz.keys()))
     d = {"keys": keys, "data": dict(fz)}
-    if PR:
-        d["PR"] = PR
+    if pr:
+        d["PR"] = pr
     return d
 
 
@@ -383,8 +383,8 @@ def as_iterable(iterable_or_scalar):
     if iterable_or_scalar is None:
         return ()
     elif isinstance(iterable_or_scalar, (str, bytes)):
-        return (iterable_or_scalar,)
+        return iterable_or_scalar,
     elif hasattr(iterable_or_scalar, "__iter__"):
         return iterable_or_scalar
     else:
-        return (iterable_or_scalar,)
+        return iterable_or_scalar,

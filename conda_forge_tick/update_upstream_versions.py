@@ -7,7 +7,6 @@ import re
 import yaml
 
 import feedparser
-import networkx as nx
 import requests
 from conda.models.version import VersionOrder
 from pkg_resources import parse_version
@@ -101,7 +100,7 @@ class LibrariesIO(VersionFromFeed):
             if self.url_contains not in url:
                 continue
             pkg = self.package_name(url)
-            return "https://libraries.io/{}/{}/versions.atom".format(self.name, pkg)
+            return f"https://libraries.io/{self.name}/{pkg}/versions.atom"
 
 
 class PyPI:
@@ -113,7 +112,7 @@ class PyPI:
         if not any(s in source_url for s in url_names):
             return None
         pkg = meta_yaml["url"].split("/")[6]
-        return "https://pypi.org/pypi/{}/json".format(pkg)
+        return f"https://pypi.org/pypi/{pkg}/json"
 
     def get_version(self, url):
         r = requests.get(url)
@@ -225,8 +224,7 @@ class ROSDistro:
         resd = yaml.load(res.text, Loader=yaml.SafeLoader)
         repos = resd["repositories"]
 
-        result_dict = {}
-        result_dict[distro_name] = {"reverse": {}, "forward": {}}
+        result_dict = {distro_name: {"reverse": {}, "forward": {}}}
         for k, v in repos.items():
             if not v.get("release"):
                 continue
@@ -279,7 +277,7 @@ class ROSDistro:
         if url.endswith(".git"):
             url = url[:-4]
 
-        final_url = "{url}/archive/{tag_url}.tar.gz".format(url=url, tag_url=tag_url)
+        final_url = f"{url}/archive/{tag_url}.tar.gz"
         self.version_url_cache[final_url] = version.split("-")[0]
 
         return final_url
@@ -407,8 +405,8 @@ def _update_upstream_versions_sequential(gx, sources):
                 try:
                     se = str(e)
                 except Exception as ee:
-                    se = "Bad exception string: {}".format(ee)
-                logger.warn("Error getting uptream version of {}: {}".format(node, se))
+                    se = f"Bad exception string: {ee}"
+                logger.warn(f"Error getting uptream version of {node}: {se}")
                 attrs["bad"] = "Upstream: Error getting upstream version"
             else:
                 logger.info(
@@ -439,9 +437,9 @@ def _update_upstream_versions_process_pool(gx, sources):
                     try:
                         se = str(e)
                     except Exception as ee:
-                        se = "Bad exception string: {}".format(ee)
+                        se = f"Bad exception string: {ee}"
                     logger.warn(
-                        "Error getting uptream version of {}: {}".format(node, se)
+                        f"Error getting uptream version of {node}: {se}"
                     )
                     attrs["bad"] = "Upstream: Error getting upstream version"
                 else:

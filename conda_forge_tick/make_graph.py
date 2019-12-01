@@ -29,7 +29,7 @@ from .utils import (
 from .git_utils import refresh_pr, is_github_api_limit_reached, close_out_labels
 
 logger = logging.getLogger("conda_forge_tick.make_graph")
-pin_sep_pat = re.compile(" |>|<|=|\[")
+pin_sep_pat = re.compile(r" |>|<|=|\[")
 
 
 NUM_GITHUB_THREADS = 4
@@ -59,7 +59,7 @@ def get_attrs(name, i):
                     "Something odd happened when fetching recipe "
                     "{}: {}".format(name, r.status_code)
                 )
-                sub_graph["bad"] = "make_graph: {}".format(r.status_code)
+                sub_graph["bad"] = f"make_graph: {r.status_code}"
                 failed = True
 
             text = r.content.decode("utf-8")
@@ -81,7 +81,7 @@ def get_attrs(name, i):
         # handle multi outputs
         if "outputs" in yaml_dict:
             sub_graph["outputs_names"] = sorted(
-                list(set(d.get("name", "") for d in yaml_dict["outputs"]))
+                list({d.get("name", "") for d in yaml_dict["outputs"]})
             )
 
         # Get the conda-forge.yml
@@ -134,7 +134,7 @@ def _build_graph_process_pool(gx, names, new_names):
             try:
                 sub_graph = {"payload": f.result()}
             except Exception as e:
-                logger.warn("Error adding {} to the graph: {}".format(name, e))
+                logger.warn(f"Error adding {name} to the graph: {e}")
             else:
                 if name in new_names:
                     gx.add_node(name, **sub_graph)
@@ -147,7 +147,7 @@ def _build_graph_sequential(gx, names, new_names):
         try:
             sub_graph = {"payload": get_attrs(name, i)}
         except Exception as e:
-            logger.warn("Error adding {} to the graph: {}".format(name, e))
+            logger.warn(f"Error adding {name} to the graph: {e}")
         else:
             if name in new_names:
                 gx.add_node(name, **sub_graph)
@@ -227,12 +227,12 @@ def update_graph_pr_status(gx: nx.DiGraph) -> nx.DiGraph:
                         node["PRed"][i]["PR"].update(**res)
                     logger.info("Updated json for {}: {}".format(name, res["id"]))
             except github3.GitHubError as e:
-                logger.critical("GITHUB ERROR ON FEEDSTOCK: {}".format(name))
+                logger.critical(f"GITHUB ERROR ON FEEDSTOCK: {name}")
                 failed_refresh += 1
                 if is_github_api_limit_reached(e, gh):
                     break
             except github3.exceptions.ConnectionError as e:
-                logger.critical("GITHUB ERROR ON FEEDSTOCK: {}".format(name))
+                logger.critical(f"GITHUB ERROR ON FEEDSTOCK: {name}")
                 failed_refresh += 1
             except Exception as e:
                 logger.critical(
@@ -241,8 +241,8 @@ def update_graph_pr_status(gx: nx.DiGraph) -> nx.DiGraph:
                     )
                 )
                 raise
-    logger.info("JSON Refresh failed for {} PRs".format(failed_refresh))
-    logger.info("JSON Refresh succeed for {} PRs".format(succeeded_refresh))
+    logger.info(f"JSON Refresh failed for {failed_refresh} PRs")
+    logger.info(f"JSON Refresh succeed for {succeeded_refresh} PRs")
     return gx
 
 
@@ -285,7 +285,7 @@ def close_labels(gx: nx.DiGraph) -> nx.DiGraph:
                         "{}: {}".format(name, res["id"])
                     )
             except github3.GitHubError as e:
-                logger.critical("GITHUB ERROR ON FEEDSTOCK: {}".format(name))
+                logger.critical(f"GITHUB ERROR ON FEEDSTOCK: {name}")
                 failed_refresh += 1
                 if is_github_api_limit_reached(e, gh):
                     break
@@ -296,8 +296,8 @@ def close_labels(gx: nx.DiGraph) -> nx.DiGraph:
                     )
                 )
                 raise
-    logger.info("bot re-run failed for {} PRs".format(failed_refresh))
-    logger.info("bot re-run succeed for {} PRs".format(succeeded_refresh))
+    logger.info(f"bot re-run failed for {failed_refresh} PRs")
+    logger.info(f"bot re-run succeed for {succeeded_refresh} PRs")
     return gx
 
 
