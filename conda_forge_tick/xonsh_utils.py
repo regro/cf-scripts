@@ -3,8 +3,8 @@ from xonsh.environ import Env
 from xonsh.__amalgam__ import CommandPipeline
 import builtins
 
-env: Env = builtins.__xonsh__.env
-execer: Execer = builtins.__xonsh__.execer
+env: Env = builtins.__xonsh__.env  # type: ignore
+execer: Execer = builtins.__xonsh__.execer  # type: ignore
 
 
 def eval_xonsh(inp: str) -> str:

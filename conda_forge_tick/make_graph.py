@@ -43,7 +43,7 @@ def get_attrs(name, i):
                 "feedstock_name": name,
                 # All feedstocks start out as good
                 "bad": False,
-            }
+            },
         )
 
         logger.info((i, name))
@@ -51,13 +51,13 @@ def get_attrs(name, i):
         def fetch_file(filepath):
             r = requests.get(
                 "https://raw.githubusercontent.com/"
-                "conda-forge/{}-feedstock/master/{}".format(name, filepath)
+                "conda-forge/{}-feedstock/master/{}".format(name, filepath),
             )
             failed = False
             if r.status_code != 200:
                 logger.warn(
                     "Something odd happened when fetching recipe "
-                    "{}: {}".format(name, r.status_code)
+                    "{}: {}".format(name, r.status_code),
                 )
                 sub_graph["bad"] = f"make_graph: {r.status_code}"
                 failed = True
@@ -81,7 +81,7 @@ def get_attrs(name, i):
         # handle multi outputs
         if "outputs" in yaml_dict:
             sub_graph["outputs_names"] = sorted(
-                list({d.get("name", "") for d in yaml_dict["outputs"]})
+                list({d.get("name", "") for d in yaml_dict["outputs"]}),
             )
 
         # Get the conda-forge.yml
@@ -112,7 +112,7 @@ def get_attrs(name, i):
             missing_keys.append("url")
         if missing_keys:
             logger.warn(
-                "Recipe {} doesn't have a {}".format(name, ", ".join(missing_keys))
+                "Recipe {} doesn't have a {}".format(name, ", ".join(missing_keys)),
             )
         for k in keys:
             if k[1] not in missing_keys:
@@ -237,8 +237,8 @@ def update_graph_pr_status(gx: nx.DiGraph) -> nx.DiGraph:
             except Exception as e:
                 logger.critical(
                     "ERROR ON FEEDSTOCK: {}: {}".format(
-                        name, gx.nodes[name]["payload"]["PRed"][i]["data"]
-                    )
+                        name, gx.nodes[name]["payload"]["PRed"][i]["data"],
+                    ),
                 )
                 raise
     logger.info(f"JSON Refresh failed for {failed_refresh} PRs")
@@ -282,7 +282,7 @@ def close_labels(gx: nx.DiGraph) -> nx.DiGraph:
                             node["PRed"][i]["keys"].append("bot_rerun")
                     logger.info(
                         "Closed and removed PR and branch for "
-                        "{}: {}".format(name, res["id"])
+                        "{}: {}".format(name, res["id"]),
                     )
             except github3.GitHubError as e:
                 logger.critical(f"GITHUB ERROR ON FEEDSTOCK: {name}")
@@ -292,8 +292,8 @@ def close_labels(gx: nx.DiGraph) -> nx.DiGraph:
             except Exception as e:
                 logger.critical(
                     "ERROR ON FEEDSTOCK: {}: {}".format(
-                        name, gx.nodes[name]["payload"]["PRed"][i]["data"]
-                    )
+                        name, gx.nodes[name]["payload"]["PRed"][i]["data"],
+                    ),
                 )
                 raise
     logger.info(f"bot re-run failed for {failed_refresh} PRs")

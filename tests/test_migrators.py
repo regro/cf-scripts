@@ -249,14 +249,22 @@ extra:
 from xonsh.lib import subprocess
 from xonsh.lib.os import indir
 
-yaml_rebuild = MigrationYaml(yaml_contents="hello world", name="hi")
+
+class NoFilter:
+    def filter(self, attrs: dict, not_bad_str_start="") -> bool:
+        return False
+
+
+class _MigrationYaml(NoFilter, MigrationYaml):
+    pass
+
+
+yaml_rebuild = _MigrationYaml(yaml_contents="hello world", name="hi")
 yaml_rebuild.cycles = []
-yaml_rebuild.filter = lambda x: False
-yaml_rebuild_no_build_number = MigrationYaml(
-    yaml_contents="hello world", name="hi", bump_number=0
+yaml_rebuild_no_build_number = _MigrationYaml(
+    yaml_contents="hello world", name="hi", bump_number=0,
 )
 yaml_rebuild_no_build_number.cycles = []
-yaml_rebuild_no_build_number.filter = lambda x: False
 
 yaml_test_list = [
     (
@@ -266,7 +274,7 @@ yaml_test_list = [
         {"feedstock_name": "scipy"},
         "This PR has been triggered in an effort to update **hi**.",
         {
-            "migrator_name": "MigrationYaml",
+            "migrator_name": yaml_rebuild.__class__.__name__,
             "migrator_version": yaml_rebuild.migrator_version,
             "name": "hi",
             "bot_rerun": False,
@@ -280,7 +288,7 @@ yaml_test_list = [
         {"feedstock_name": "scipy"},
         "This PR has been triggered in an effort to update **hi**.",
         {
-            "migrator_name": "MigrationYaml",
+            "migrator_name": yaml_rebuild.__class__.__name__,
             "migrator_version": yaml_rebuild.migrator_version,
             "name": "hi",
             "bot_rerun": False,
@@ -291,7 +299,7 @@ yaml_test_list = [
 
 
 @pytest.mark.parametrize(
-    "m, inp, output, kwargs, prb, mr_out, should_filter", yaml_test_list
+    "m, inp, output, kwargs, prb, mr_out, should_filter", yaml_test_list,
 )
 def test_yaml_migration(m, inp, output, kwargs, prb, mr_out, should_filter, tmpdir):
     os.makedirs(os.path.join(tmpdir, "recipe"), exist_ok=True)
@@ -795,7 +803,9 @@ extra:
     - cbrueffer
 """
 
-cb3_multi = """{% set name = "pypy3.5" %}
+cb3_multi = """
+{# cb3_multi #}
+{% set name = "pypy3.5" %}
 {% set version = "5.9.0" %}
 
 package:
@@ -871,7 +881,9 @@ extra:
     - ohadravid
 """
 
-updated_cb3_multi = """{% set name = "pypy3.5" %}
+updated_cb3_multi = """
+{# updated_cb3_multi #}
+{% set name = "pypy3.5" %}
 {% set version = "6.0.0" %}
 
 package:
@@ -947,7 +959,9 @@ extra:
     - ohadravid
 """
 
-sample_cb3 = """{% set version = "1.14.5" %}
+sample_cb3 = """
+{# sample_cb3 #}
+{% set version = "1.14.5" %}
 {% set build_number = 0 %}
 
 {% set variant = "openblas" %}
@@ -1008,7 +1022,9 @@ extra:
     - ocefpaf
 """
 
-correct_cb3 = """{% set version = "1.14.5" %}
+correct_cb3 = """
+{# correct_cb3 #}
+{% set version = "1.14.5" %}
 {% set build_number = 1 %}
 
 {% set variant = "openblas" %}
@@ -1073,6 +1089,7 @@ extra:
 """
 
 sample_r_base = """
+{# sample_r_base #}
 {% set version = '0.7-1' %}
 
 {% set posix = 'm2-' if win else '' %}
@@ -1278,22 +1295,22 @@ test:
 about:
   license_family: GPL3
   license_file: '{{ environ["PREFIX"] }}/lib/R/share/licenses/GPL-3'  # [unix]
-  license_file: '{{ environ["PREFIX"] }}\R\share\licenses\GPL-3'  # [win]
+  license_file: '{{ environ["PREFIX"] }}\\R\\share\\licenses\\GPL-3'  # [win]
   license_family: MIT
   license_file: '{{ environ["PREFIX"] }}/lib/R/share/licenses/MIT'  # [unix]
-  license_file: '{{ environ["PREFIX"] }}\R\share\licenses\MIT'  # [win]
+  license_file: '{{ environ["PREFIX"] }}\\R\\share\\licenses\\MIT'  # [win]
   license_family: LGPL
   license_file: '{{ environ["PREFIX"] }}/lib/R/share/licenses/LGPL-2'  # [unix]
-  license_file: '{{ environ["PREFIX"] }}\R\share\licenses\LGPL-2'  # [win]
+  license_file: '{{ environ["PREFIX"] }}\\R\\share\\licenses\\LGPL-2'  # [win]
   license_family: LGPL
   license_file: '{{ environ["PREFIX"] }}/lib/R/share/licenses/LGPL-2.1'  # [unix]
-  license_file: '{{ environ["PREFIX"] }}\R\share\licenses\LGPL-2.1'  # [win]
+  license_file: '{{ environ["PREFIX"] }}\\R\\share\\licenses\\LGPL-2.1'  # [win]
   license_family: BSD
   license_file: '{{ environ["PREFIX"] }}/lib/R/share/licenses/BSD_3_clause'  # [unix]
-  license_file: '{{ environ["PREFIX"] }}\R\share\licenses\BSD_3_clause'  # [win]
+  license_file: '{{ environ["PREFIX"] }}\\R\\share\\licenses\\BSD_3_clause'  # [win]
 
-  license_file: '{{ environ["PREFIX"] }}\/lib\/R\/share\/licenses\/GPL-2'  # [unix]
-  license_file: '{{ environ["PREFIX"] }}\/lib\/R\/share\/licenses\/BSD_3_clause'  # [unix]
+  license_file: '{{ environ["PREFIX"] }}/lib/R/share/licenses/GPL-2'  # [unix]
+  license_file: '{{ environ["PREFIX"] }}/lib/R/share/licenses/BSD_3_clause'  # [unix]
 """
 
 updated_r_licenses_noarch = """
@@ -1395,22 +1412,22 @@ test:
 about:
   license_family: GPL3
   license_file: '{{ environ["PREFIX"] }}/lib/R/share/licenses/GPL-3'  # [unix]
-  license_file: '{{ environ["PREFIX"] }}\R\share\licenses\GPL-3'  # [win]
+  license_file: '{{ environ["PREFIX"] }}\\R\\share\\licenses\\GPL-3'  # [win]
   license_family: MIT
   license_file: '{{ environ["PREFIX"] }}/lib/R/share/licenses/MIT'  # [unix]
-  license_file: '{{ environ["PREFIX"] }}\R\share\licenses\MIT'  # [win]
+  license_file: '{{ environ["PREFIX"] }}\\R\\share\\licenses\\MIT'  # [win]
   license_family: LGPL
   license_file: '{{ environ["PREFIX"] }}/lib/R/share/licenses/LGPL-2'  # [unix]
-  license_file: '{{ environ["PREFIX"] }}\R\share\licenses\LGPL-2'  # [win]
+  license_file: '{{ environ["PREFIX"] }}\\R\\share\\licenses\\LGPL-2'  # [win]
   license_family: LGPL
   license_file: '{{ environ["PREFIX"] }}/lib/R/share/licenses/LGPL-2.1'  # [unix]
-  license_file: '{{ environ["PREFIX"] }}\R\share\licenses\LGPL-2.1'  # [win]
+  license_file: '{{ environ["PREFIX"] }}\\R\\share\\licenses\\LGPL-2.1'  # [win]
   license_family: BSD
   license_file: '{{ environ["PREFIX"] }}/lib/R/share/licenses/BSD_3_clause'  # [unix]
-  license_file: '{{ environ["PREFIX"] }}\R\share\licenses\BSD_3_clause'  # [win]
+  license_file: '{{ environ["PREFIX"] }}\\R\\share\\licenses\\BSD_3_clause'  # [win]
 
-  license_file: '{{ environ["PREFIX"] }}\/lib\/R\/share\/licenses\/GPL-2'  # [unix]
-  license_file: '{{ environ["PREFIX"] }}\/lib\/R\/share\/licenses\/BSD_3_clause'  # [unix]
+  license_file: '{{ environ["PREFIX"] }}/lib/R/share/licenses/GPL-2'  # [unix]
+  license_file: '{{ environ["PREFIX"] }}/lib/R/share/licenses/BSD_3_clause'  # [unix]
 """
 
 updated_r_licenses_compiled = """
@@ -2128,11 +2145,19 @@ noarchr = NoarchR()
 perl = Pinning(removals={"perl"})
 pinning = Pinning()
 
-rebuild = Rebuild(name="rebuild", cycles=[])
-rebuild.filter = lambda x: False
 
-blas_rebuild = BlasRebuild(cycles=[])
-blas_rebuild.filter = lambda x: False
+class _Rebuild(NoFilter, Rebuild):
+    pass
+
+
+rebuild = _Rebuild(name="rebuild", cycles=[])
+
+
+class _BlasRebuild(NoFilter, BlasRebuild):
+    pass
+
+
+blas_rebuild = _BlasRebuild(cycles=[])
 
 test_list = [
     (
@@ -2366,7 +2391,7 @@ test_list = [
         {"feedstock_name": "r-stabledist"},
         "It is likely this feedstock needs to be rebuilt.",
         {
-            "migrator_name": "Rebuild",
+            "migrator_name": "_Rebuild",
             "migrator_version": rebuild.migrator_version,
             "name": "rebuild",
         },
@@ -2388,7 +2413,7 @@ test_list = [
         {"feedstock_name": "scipy"},
         "This PR has been triggered in an effort to update for new BLAS scheme.",
         {
-            "migrator_name": "BlasRebuild",
+            "migrator_name": "_BlasRebuild",
             "migrator_version": blas_rebuild.migrator_version,
             "name": "blas2",
         },
@@ -2408,13 +2433,13 @@ test_list = [
 
 G = nx.DiGraph()
 G.add_node("conda", reqs=["python"])
-env = builtins.__xonsh__.env
+env = builtins.__xonsh__.env  # type: ignore
 env["GRAPH"] = G
 env["CIRCLE_BUILD_URL"] = "hi world"
 
 
 @pytest.mark.parametrize(
-    "m, inp, output, kwargs, prb, mr_out, should_filter", test_list
+    "m, inp, output, kwargs, prb, mr_out, should_filter", test_list,
 )
 def test_migration(m, inp, output, kwargs, prb, mr_out, should_filter, tmpdir):
     mm_ctx = MigratorsContext(
@@ -2460,8 +2485,8 @@ def test_migration(m, inp, output, kwargs, prb, mr_out, should_filter, tmpdir):
         actual_output = f.read()
     # strip jinja comments
     pat = re.compile(r"{#.*#}")
-    actual_output = pat.sub('', actual_output)
-    output = pat.sub('', output)
+    actual_output = pat.sub("", actual_output)
+    output = pat.sub("", output)
     assert actual_output == output
     if isinstance(m, Compiler):
         assert m.messages in m.pr_body(None)

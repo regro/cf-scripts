@@ -52,7 +52,7 @@ def _no_pr_pred(pred):
 
 
 class MiniMigrator:
-    def filter(self, attrs: dict) -> bool:
+    def filter(self, attrs: dict, not_bad_str_start="") -> bool:
         """ If true don't act upon node
 
         Parameters
@@ -91,9 +91,9 @@ class PipMigrator(MiniMigrator):
         "python -m pip install --no-deps --ignore-installed .",
     )
 
-    def filter(self, attrs: dict) -> bool:
+    def filter(self, attrs: dict, not_bad_str_start="") -> bool:
         scripts = as_iterable(
-            attrs.get("meta_yaml", {}).get("build", {}).get("script", [])
+            attrs.get("meta_yaml", {}).get("build", {}).get("script", []),
         )
         return not bool(set(self.bad_install) & set(scripts))
 
@@ -108,7 +108,7 @@ class PipMigrator(MiniMigrator):
 
 
 class LicenseMigrator(MiniMigrator):
-    def filter(self, attrs: dict) -> bool:
+    def filter(self, attrs: dict, not_bad_str_start="") -> bool:
         license = attrs.get("meta_yaml", {}).get("about", {}).get("license", "")
         license_fam = (
             attrs.get("meta_yaml", {})
@@ -118,7 +118,7 @@ class LicenseMigrator(MiniMigrator):
             or license.lower().partition("-")[0].partition("v")[0]
         )
         if license_fam in NEEDED_FAMILIES and "license_file" not in attrs.get(
-            "meta_yaml", {}
+            "meta_yaml", {},
         ).get("about", {}):
             return False
         return True
@@ -137,8 +137,7 @@ class LicenseMigrator(MiniMigrator):
                 s
                 for s in os.listdir(".")
                 if any(
-                    s.lower().startswith(k)
-                    for k in ["license", "copying", "copyright"]
+                    s.lower().startswith(k) for k in ["license", "copying", "copyright"]
                 )
             ]
             # if there is a license file in tarball update things
@@ -215,7 +214,7 @@ class Migrator:
         return [
             a[1]
             for a in list(
-                self.ctx.effective_graph.out_edges(feedstock_ctx.package_name)
+                self.ctx.effective_graph.out_edges(feedstock_ctx.package_name),
             )
         ][:limit]
 
@@ -248,7 +247,7 @@ class Migrator:
                 # This could be a dict, but then we can't fix it
                 and isinstance(attrs.get("bad"), str)
                 # TODO: support a list of stings?
-                and not attrs.get("bad").startswith(not_bad_str_start)
+                and not attrs.get("bad", "").startswith(not_bad_str_start)
             )
         )
 
@@ -322,7 +321,7 @@ class Migrator:
         """Branch to use on local and remote"""
         return "bot-pr"
 
-    def migrator_uid(self, attrs: dict) -> frozen_to_json_friendly:
+    def migrator_uid(self, attrs: dict) -> dict:
         """Make a unique id for this migrator and node attrs
 
         Parameters
@@ -472,6 +471,8 @@ class Version(Migrator):
                         break
                     except urllib.error.HTTPError:
                         continue
+                else:
+                    raise ValueError("Could not determine hash from recipe!")
             else:
                 url = url.strip("'\"")
                 hash_ = hash_url(url, hash_type)
@@ -484,7 +485,7 @@ class Version(Migrator):
                     p += "$"
             else:
                 p = "{}:{}$".format(hash_type, m.group(1))
-            n = f"{hash_type}: {hash}"
+            n = f"{hash_type}: {hash_}"
             if platform:
                 n += f"  # [{platform}]"
             pats += ((filename, p, n),)
@@ -501,7 +502,7 @@ class Version(Migrator):
                 )
         return pats
 
-    def filter(self, attrs):
+    def filter(self, attrs: dict, not_bad_str_start="") -> bool:
         # if no new version do nothing
         if "new_version" not in attrs:
             return True
@@ -514,10 +515,10 @@ class Version(Migrator):
                     for k in attrs.get("PRed", [])
                     if k["data"].get("migrator_name") == "Version"
                     and k.get("PR", {}).get("state", None) == "open"
-                ]
+                ],
             )
             > self.max_num_prs
-            or not attrs.get("new_version")  # if no new version
+            or not attrs.get("new_version"),  # if no new version
         )
         try:
             version_filter = (
@@ -535,7 +536,7 @@ class Version(Migrator):
             )
         except conda.exceptions.InvalidVersionSpec as e:
             warnings.warn(
-                f"Failed to filter to to invalid version for {attrs}\nException: {e}"
+                f"Failed to filter to to invalid version for {attrs}\nException: {e}",
             )
             version_filter = True
         return result or version_filter
@@ -591,7 +592,7 @@ class Version(Migrator):
         pred = [
             (name, self.ctx.effective_graph.nodes[name]["payload"]["new_version"])
             for name in list(
-                self.ctx.effective_graph.predecessors(feedstock_ctx.package_name)
+                self.ctx.effective_graph.predecessors(feedstock_ctx.package_name),
             )
         ]
         body = super().pr_body(None)
@@ -609,7 +610,7 @@ class Version(Migrator):
             "Note that the bot will stop issuing PRs if more than {} Version bump PRs "
             "generated by the bot are open. If you don't want to package a particular "
             "version please close the PR\n"
-            "\n".format(self.max_num_prs)
+            "\n".format(self.max_num_prs),
         )
         # Statement here
         template = (
@@ -673,7 +674,7 @@ class JS(Migrator):
 
     migrator_version = 0
 
-    def filter(self, attrs):
+    def filter(self, attrs: dict, not_bad_str_start="") -> bool:
         conditional = super().filter(attrs)
         return bool(
             conditional
@@ -684,7 +685,7 @@ class JS(Migrator):
                     != "npm install -g ."
                 )
             )
-            and "  script: |" in attrs.get("raw_meta_yaml", "").split("\n")
+            and "  script: |" in attrs.get("raw_meta_yaml", "").split("\n"),
         )
 
     def migrate(self, recipe_dir, attrs, **kwargs):
@@ -702,7 +703,7 @@ class JS(Migrator):
             "It is very likely that this feedstock is in need of migration.\n"
             "Notes and instructions for merging this PR:\n"
             "1. Please merge the PR only after the tests have passed. \n"
-            "2. Feel free to push to the bot's branch to update this PR if needed. \n"
+            "2. Feel free to push to the bot's branch to update this PR if needed. \n",
         )
         return body
 
@@ -748,7 +749,7 @@ class Compiler(Migrator):
         super().__init__(pr_limit)
         self.cfp = get_cfp_file_path()[0]
 
-    def filter(self, attrs):
+    def filter(self, attrs: dict, not_bad_str_start="") -> bool:
         for req in attrs.get("req", []):
             if req.endswith("_compiler_stub"):
                 return True
@@ -777,8 +778,8 @@ class Compiler(Migrator):
             "3. If this recipe has a `cython` dependency please note that only a `C`"
             " compiler has been added. If the project also needs a `C++` compiler"
             " please add it by adding `- {{ compiler('cxx') }}` to the build section \n".format(
-                self.messages
-            )
+                self.messages,
+            ),
         )
         return body
 
@@ -818,7 +819,7 @@ class Noarch(Migrator):
 
     rerender = True
 
-    def filter(self, attrs):
+    def filter(self, attrs: dict, not_bad_str_start="") -> bool:
         conditional = (
             super().filter(attrs)
             or attrs.get("meta_yaml", {}).get("outputs")
@@ -847,7 +848,7 @@ class Noarch(Migrator):
     def migrate(self, recipe_dir, attrs, **kwargs):
         with indir(recipe_dir):
             build_idx = [l.rstrip() for l in attrs["raw_meta_yaml"].split("\n")].index(
-                "build:"
+                "build:",
             )
             line = attrs["raw_meta_yaml"].split("\n")[build_idx + 1]
             spaces = len(line) - len(line.lstrip())
@@ -863,7 +864,7 @@ class Noarch(Migrator):
                 "meta.yaml",
             )
             replace_in_file(
-                "  build:", "  host:", "meta.yaml", leading_whitespace=False
+                "  build:", "  host:", "meta.yaml", leading_whitespace=False,
             )
             if "pip" not in attrs["req"]:
                 replace_in_file(
@@ -888,7 +889,7 @@ class Noarch(Migrator):
             "1. If any items in the above checklist are not satisfied, "
             "please close this PR. Do not merge. \n"
             "2. Please merge the PR only after the tests have passed. \n"
-            "3. Feel free to push to the bot's branch to update this PR if needed. \n"
+            "3. Feel free to push to the bot's branch to update this PR if needed. \n",
         )
         body = body.format("\n".join(["- [ ] " + item for item in self.checklist]))
         return body
@@ -911,7 +912,7 @@ class NoarchR(Noarch):
     rerender = True
     bump_number = 1
 
-    def filter(self, attrs):
+    def filter(self, attrs: dict, not_bad_str_start="") -> bool:
         conditional = (
             Migrator.filter(self, attrs)
             or attrs.get("meta_yaml", {}).get("outputs")
@@ -973,13 +974,13 @@ class NoarchR(Noarch):
                         spacing = s
                     lines[index] = lines[index] + " " * spacing + "noarch: generic\n"
                 regex_unix1 = re.compile(
-                    r"license_file: '{{ environ\[\"PREFIX\"\] }}/lib/R/share/licenses/(\S+)'\s+# \[unix\]"
+                    r"license_file: '{{ environ\[\"PREFIX\"\] }}/lib/R/share/licenses/(\S+)'\s+# \[unix\]",
                 )
                 regex_unix2 = re.compile(
-                    r"license_file: '{{ environ\[\"PREFIX\"\] }}\\\/lib\\\/R\\\/share\\\/licenses\\\/(.+)'\\s+# \[unix\]"
+                    r"license_file: '{{ environ\[\"PREFIX\"\] }}/lib/R/share/licenses/(.+)'\s+# \[unix\]",
                 )
                 regex_win = re.compile(
-                    r"license_file: '{{ environ\[\"PREFIX\"\] }}\\\R\\\share\\\licenses\\\(\S+)'\s+# \[win\]"
+                    r"license_file: '{{ environ\[\"PREFIX\"\] }}\\R\\share\\licenses\\(\S+)'\s+# \[win\]",
                 )
                 for i, line in enumerate(lines_stripped):
                     if noarch and line.lower().strip().startswith("skip: true"):
@@ -1012,7 +1013,7 @@ class NoarchR(Noarch):
             "Notes and instructions for merging this PR:\n"
             "1. Please merge the PR only after the tests have passed. \n"
             "2. Feel free to push to the bot's branch to update this PR if needed. \n"
-            "{}\n"
+            "{}\n",
         )
         return body
 
@@ -1056,7 +1057,7 @@ class Rebuild(Migrator):
         self.top_level = top_level
         self.cycles = set(chain.from_iterable(cycles or []))
 
-    def filter(self, attrs):
+    def filter(self, attrs: dict, not_bad_str_start="") -> bool:
         if super().filter(attrs, "Upstream:"):
             return True
         if attrs["feedstock_name"] not in self.graph:
@@ -1071,7 +1072,7 @@ class Rebuild(Migrator):
             att = self.graph.nodes[node]["payload"]
             muid = frozen_to_json_friendly(self.migrator_uid(att))
             if muid not in _no_pr_pred(att.get("PRed", [])) and not att.get(
-                "archived", False
+                "archived", False,
             ):
                 return True
             # This is due to some PRed_json loss due to bad graph deploy outage
@@ -1142,7 +1143,7 @@ class Rebuild(Migrator):
     def order(self, graph, total_graph):
         """Run the order by number of decendents, ties are resolved by package name"""
         return sorted(
-            graph, key=lambda x: (len(nx.descendants(total_graph, x)), x), reverse=True
+            graph, key=lambda x: (len(nx.descendants(total_graph, x)), x), reverse=True,
         )
 
 
@@ -1159,7 +1160,7 @@ class Pinning(Migrator):
         else:
             self.removals = set(removals)
 
-    def filter(self, attrs):
+    def filter(self, attrs: dict, not_bad_str_start="") -> bool:
         return (
             super().filter(attrs) or len(attrs.get("req", set()) & self.removals) == 0
         )
@@ -1167,7 +1168,8 @@ class Pinning(Migrator):
     def migrate(self, recipe_dir, attrs, **kwargs):
         remove_pins = attrs.get("req", set()) & self.removals
         remove_pats = {
-            req: re.compile(rf"\s*-\s*{req}.*?(\s+.*?)(\s*#.*)?$") for req in remove_pins
+            req: re.compile(rf"\s*-\s*{req}.*?(\s+.*?)(\s*#.*)?$")
+            for req in remove_pins
         }
         self.removed = {}
         with open(os.path.join(recipe_dir, "meta.yaml")) as f:
@@ -1203,8 +1205,8 @@ class Pinning(Migrator):
             "2. Please merge the PR only after the tests have passed. \n"
             "3. Feel free to push to the bot's branch to update this PR if "
             "needed. \n".format(
-                "\n".join([f"{n}: {p}" for n, p in self.removed.items()])
-            )
+                "\n".join([f"{n}: {p}" for n, p in self.removed.items()]),
+            ),
         )
         return body
 
@@ -1335,7 +1337,7 @@ class ArchRebuild(Rebuild):
             ):
                 self.graph.remove_node(node)
 
-    def filter(self, attrs):
+    def filter(self, attrs: dict, not_bad_str_start="") -> bool:
         if super().filter(attrs):
             return True
         muid = frozen_to_json_friendly(self.migrator_uid(attrs))
@@ -1345,6 +1347,8 @@ class ArchRebuild(Rebuild):
             )
             if configured_arch:
                 return muid in _no_pr_pred(attrs.get("PRed", []))
+        else:
+            return False
 
     def migrate(self, recipe_dir, attrs, **kwargs):
         with indir(recipe_dir + "/.."):
@@ -1534,7 +1538,7 @@ class RBaseRebuild(Rebuild):
                                 line.replace(
                                     "- {{native}}toolchain",
                                     "- {{ compiler('m2w64_" + comp + "') }}",
-                                )
+                                ),
                             )
                     if len(replaced_lines) != 0:
                         lines[i] = "\n".join(replaced_lines)
@@ -1605,7 +1609,7 @@ class MigrationYaml(Migrator):
         **kwargs,
     ):
         super().__init__(
-            pr_limit, migration_number, piggy_back_migrations=piggy_back_migrations
+            pr_limit, migration_number, piggy_back_migrations=piggy_back_migrations,
         )
         self.yaml_contents = yaml_contents
         if graph is None:
@@ -1623,7 +1627,7 @@ class MigrationYaml(Migrator):
                 for k, v in self.graph.nodes.items()
                 if self.migrator_uid(v.get("payload", {}))
                 in [vv.get("data", {}) for vv in v.get("payload", {}).get("PRed", [])]
-            ]
+            ],
         )
         if number_pred == 0:
             self.pr_limit = 2
@@ -1632,7 +1636,7 @@ class MigrationYaml(Migrator):
         self.bump_number = bump_number
         print(self.yaml_contents)
 
-    def filter(self, attrs):
+    def filter(self, attrs: dict, not_bad_str_start="") -> bool:
         if super().filter(attrs, "Upstream:"):
             return True
         if attrs["feedstock_name"] not in self.graph:
@@ -1647,7 +1651,7 @@ class MigrationYaml(Migrator):
             att = self.graph.nodes[node]["payload"]
             muid = frozen_to_json_friendly(self.migrator_uid(att))
             if muid not in _no_pr_pred(att.get("PRed", [])) and not att.get(
-                "archived", False
+                "archived", False,
             ):
                 return True
             # This is due to some PRed_json loss due to bad graph deploy outage
@@ -1724,5 +1728,5 @@ class MigrationYaml(Migrator):
     def order(self, graph, total_graph):
         """Run the order by number of decendents, ties are resolved by package name"""
         return sorted(
-            graph, key=lambda x: (len(nx.descendants(total_graph, x)), x), reverse=True
+            graph, key=lambda x: (len(nx.descendants(total_graph, x)), x), reverse=True,
         )

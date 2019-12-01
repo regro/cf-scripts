@@ -13,12 +13,12 @@ This document will teach you how to create new migrators.
 
 Building a Migration YAML Using CFEP9
 =====================================
-For most migrations a migration can be created by adding a new migration yaml file in the ``recipe/migrations`` folder of ``conda-forge-pinning-feedstock`` and issuing a PR. 
-Once merged the migration will start. 
+For most migrations a migration can be created by adding a new migration yaml file in the ``recipe/migrations`` folder of ``conda-forge-pinning-feedstock`` and issuing a PR.
+Once merged the migration will start.
 You can copy the ``recipe/migrations/example.exyaml`` example and modify it similar to the staged-recipes example recipe.
 Note that the ``migration_ts`` is the timestamp of the migration and can be created by copying the result of ``import time; print(time.time())`` from a python interpreter.
 
-Please see the `CFEP9 implementation <https://github.com/conda-forge/conda-forge-enhancement-proposals/blob/master/cfep-09.md#implementation-details>`_ information for the 
+Please see the `CFEP9 implementation <https://github.com/conda-forge/conda-forge-enhancement-proposals/blob/master/cfep-09.md#implementation-details>`_ information for the
 different kinds of migrations that are available.
 
 
@@ -79,7 +79,7 @@ one could replace ``openssl`` with the package which got pinned and things would
     # post plucking we can have several strange cases, lets remove all selfloops
     total_graph.remove_edges_from(total_graph.selfloop_edges())
 
-    # everything which depends on openssl and has not predecessors in the 
+    # everything which depends on openssl and has not predecessors in the
     # openssl dependents graph
     top_level = {node for node in gx.successors("openssl") if
                  (node in total_graph) and
@@ -94,4 +94,3 @@ one could replace ``openssl`` with the package which got pinned and things would
                 name='OpenSSL',
                 top_level=top_level,
                 cycles=cycles, obj_version=0)
-

@@ -46,4 +46,3 @@ top_level = set(node for node in total_graph if not list(total_graph.predecessor
 z = cyclic_topological_sort(total_graph, top_level)
 
 levels = get_levels(total_graph, 'zlib')
-

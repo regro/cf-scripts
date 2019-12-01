@@ -28,11 +28,11 @@ def test_lazy_json(tmpdir):
 
 def test_get_requirements():
     meta_yaml = {
-        "requirements": {"build": ["1", "2"], "host": ["2", "3"],},
+        "requirements": {"build": ["1", "2"], "host": ["2", "3"]},
         "outputs": [
-            {"requirements": {"host": ["4"]},},
-            {"requirements": {"run": ["5"]},},
-            {"requirements": ["6"],},
+            {"requirements": {"host": ["4"]}},
+            {"requirements": {"run": ["5"]}},
+            {"requirements": ["6"]},
         ],
     }
     assert get_requirements({}) == set()

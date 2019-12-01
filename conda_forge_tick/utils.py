@@ -1,5 +1,5 @@
 import os
-from collections import defaultdict
+from collections import defaultdict, Callable
 
 from collections.abc import Set, MutableMapping
 from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor, as_completed
@@ -9,6 +9,7 @@ import logging
 import itertools
 import json
 import re
+from typing import Any, Tuple, Iterable
 
 import github3
 import jinja2
@@ -183,22 +184,22 @@ def setup_logger(logger):
 
 def pluck(G: nx.DiGraph, node_id):
     """Remove a node from a graph preserving structure.
-    
+
     This will fuse edges together so that connectivity of the graph is not affected by
     removal of a node.  This function operates in-place.
-    
+
     Parameters
     ----------
     G : networkx.Graph
     node_id : hashable
-    
+
     """
     if node_id in G.nodes:
         new_edges = list(
             itertools.product(
                 {_in for (_in, _) in G.in_edges(node_id)} - {node_id},
                 {_out for (_, _out) in G.out_edges(node_id)} - {node_id},
-            )
+            ),
         )
         G.remove_node(node_id)
         G.add_edges_from(new_edges)
@@ -253,11 +254,11 @@ def executor(kind: str, max_workers: int):
     This allows us to easily use other executors as needed.
     """
     if kind == "thread":
-        with ThreadPoolExecutor(max_workers=max_workers) as pool:
-            yield pool, as_completed
+        with ThreadPoolExecutor(max_workers=max_workers) as pool_t:
+            yield pool_t, as_completed
     elif kind == "process":
-        with ProcessPoolExecutor(max_workers=max_workers) as pool:
-            yield pool, as_completed
+        with ProcessPoolExecutor(max_workers=max_workers) as pool_p:
+            yield pool_p, as_completed
     elif kind == "dask":
         import distributed
 
@@ -336,7 +337,7 @@ def load_graph(filename="graph.json") -> nx.DiGraph:
     return nx.node_link_graph(nld)
 
 
-def frozen_to_json_friendly(fz: dict, pr: LazyJson = None):
+def frozen_to_json_friendly(fz: dict, pr: LazyJson = None) -> dict:
     if fz is None:
         return None
     keys = sorted(list(fz.keys()))
@@ -383,8 +384,8 @@ def as_iterable(iterable_or_scalar):
     if iterable_or_scalar is None:
         return ()
     elif isinstance(iterable_or_scalar, (str, bytes)):
-        return iterable_or_scalar,
+        return (iterable_or_scalar,)
     elif hasattr(iterable_or_scalar, "__iter__"):
         return iterable_or_scalar
     else:
-        return iterable_or_scalar,
+        return (iterable_or_scalar,)

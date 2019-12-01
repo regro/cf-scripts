@@ -21,11 +21,11 @@ a = [
 print("packages out of date and not PRed: {}".format(len(a)))
 for b in a:
     print(
-        b, g.node[b]["version"], g.node[b]["new_version"], g.node[b].get("PRed", None)
+        b, g.node[b]["version"], g.node[b]["new_version"], g.node[b].get("PRed", None),
     )
 
 print(
     "packages of unknown upstream: {}".format(
-        len([n for n, a in g.node.items() if a.get("new_version", True) == False])
-    )
+        len([n for n, a in g.node.items() if a.get("new_version", True) == False]),
+    ),
 )

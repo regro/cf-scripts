@@ -2,6 +2,7 @@
 import datetime
 import os
 import time
+from typing import Optional
 
 import github3
 import github3.pulls
@@ -76,14 +77,12 @@ def fork_url(feedstock_url, username):
     return url
 
 
-def get_repo(ctx: MigratorsContext, fctx: FeedstockContext, attrs, branch, feedstock=None, protocol='ssh',
+def get_repo(ctx: MigratorsContext, fctx: FeedstockContext, branch, feedstock=None, protocol='ssh',
              pull_request=True, fork=True, gh=None):
     """Get the feedstock repo
 
     Parameters
     ----------
-    attrs : dict
-        The node attributes
     feedstock : str, optional
         The feedstock to clone if None use $FEEDSTOCK
     protocol : str, optional
@@ -103,14 +102,14 @@ def get_repo(ctx: MigratorsContext, fctx: FeedstockContext, attrs, branch, feeds
     """
     gh = ensure_gh(ctx, gh)
     # first, let's grab the feedstock locally
-    upstream = feedstock_url(feedstock, protocol=protocol)
+    upstream = feedstock_url(fctx=fctx, feedstock=feedstock, protocol=protocol)
     origin = fork_url(upstream, ctx.github_username)
-    feedstock_reponame = feedstock_repo(feedstock)
+    feedstock_reponame = feedstock_repo(fctx=fctx, feedstock=feedstock)
 
     if pull_request or fork:
         repo = gh.repository('conda-forge', feedstock_reponame)
         if repo is None:
-            attrs['bad'] = '{}: does not match feedstock name\n'.format(fctx.package_name)
+            fctx.attrs['bad'] = '{}: does not match feedstock name\n'.format(fctx.package_name)
             return False
 
     # Check if fork exists
@@ -200,7 +199,7 @@ def close_out_labels(ctx: GithubContext, pr_json: LazyJson, gh=None):
 
 
 def push_repo(ctx: MigratorsContext, fctx: FeedstockContext, feedstock_dir, body, repo, title, head, branch,
-              pull_request=True):
+              pull_request=True) -> Optional[LazyJson]:
     """Push a repo up to github
 
     Parameters

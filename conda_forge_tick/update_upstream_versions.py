@@ -87,7 +87,7 @@ class Github(VersionFromFeed):
         package_owner = split_url[split_url.index("github.com") + 1]
         gh_package_name = split_url[split_url.index("github.com") + 2]
         return "https://github.com/{}/{}/releases.atom".format(
-            package_owner, gh_package_name
+            package_owner, gh_package_name,
         )
 
 
@@ -217,8 +217,8 @@ class ROSDistro:
         session = requests.Session()
         res = session.get(
             "https://raw.githubusercontent.com/ros/rosdistro/master/{distro}/distribution.yaml".format(
-                distro=distro_name
-            )
+                distro=distro_name,
+            ),
         )
         res.raise_for_status()
         resd = yaml.load(res.text, Loader=yaml.SafeLoader)
@@ -270,7 +270,7 @@ class ROSDistro:
         p_dict = ROS_DISTRO_INDEX["melodic"]["forward"][toplevel_package]
         version = p_dict["release"]["version"]
         tag_url = p_dict["release"]["tags"]["release"].format(
-            package=package, version=version
+            package=package, version=version,
         )
         url = p_dict["release"]["url"]
 
@@ -296,7 +296,7 @@ def get_sha256(url):
     try:
         filename = hashlib.sha256(url.encode("utf-8")).hexdigest()
         output = subprocess.check_output(
-            ["wget", url, "-O", filename], stderr=subprocess.STDOUT
+            ["wget", url, "-O", filename], stderr=subprocess.STDOUT,
         )
         output = subprocess.check_output(["sha256sum", filename])
         return output.decode("utf-8").split(" ")[0]
@@ -343,7 +343,7 @@ class RawURL:
                     continue
                 try:
                     output = subprocess.check_output(
-                        ["wget", "--spider", url], stderr=subprocess.STDOUT, timeout=1
+                        ["wget", "--spider", url], stderr=subprocess.STDOUT, timeout=1,
                     )
                 except Exception:
                     continue
@@ -381,7 +381,7 @@ def get_latest_version(payload_meta_yaml, sources):
                 return ver
             else:
                 meta_yaml["bad"] = "Upstream: Could not find version on {}".format(
-                    source.name
+                    source.name,
                 )
         if not meta_yaml.get("bad"):
             meta_yaml["bad"] = "Upstream: unknown source"
@@ -411,8 +411,8 @@ def _update_upstream_versions_sequential(gx, sources):
             else:
                 logger.info(
                     "{} - {} - {}".format(
-                        node, attrs.get("version"), attrs.get("new_version")
-                    )
+                        node, attrs.get("version"), attrs.get("new_version"),
+                    ),
                 )
 
 
@@ -425,7 +425,7 @@ def _update_upstream_versions_process_pool(gx, sources):
                     attrs["new_version"] = False
                     continue
                 futures.update(
-                    {pool.submit(get_latest_version, attrs, sources): (node, attrs)}
+                    {pool.submit(get_latest_version, attrs, sources): (node, attrs)},
                 )
         for f in as_completed(futures):
             node, node_attrs = futures[f]
@@ -438,9 +438,7 @@ def _update_upstream_versions_process_pool(gx, sources):
                         se = str(e)
                     except Exception as ee:
                         se = f"Bad exception string: {ee}"
-                    logger.warn(
-                        f"Error getting uptream version of {node}: {se}"
-                    )
+                    logger.warn(f"Error getting uptream version of {node}: {se}")
                     attrs["bad"] = "Upstream: Error getting upstream version"
                 else:
                     logger.info(
@@ -448,7 +446,7 @@ def _update_upstream_versions_process_pool(gx, sources):
                             node,
                             attrs.get("version", "<no-version>"),
                             attrs["new_version"],
-                        )
+                        ),
                     )
 
 
@@ -480,10 +478,10 @@ def update_upstream_versions(gx, sources=None):
                         != a["payload"]["version"]  # if we need a bump
                         and a["payload"].get("PRed", "000")
                         != a["payload"]["new_version"]  # if not PRed
-                    ]
-                )
-            )
-        )
+                    ],
+                ),
+            ),
+        ),
     )
 
 

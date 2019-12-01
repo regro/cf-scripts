@@ -30,7 +30,7 @@ from .utils import (
     LazyJson,
 )
 from .xonsh_utils import env, eval_xonsh
-from typing import MutableSequence, Sequence, Tuple, Dict
+from typing import MutableSequence, Sequence, Tuple, Dict, Set, Sized
 
 logger = logging.getLogger("conda_forge_tick.auto_tick")
 
@@ -94,9 +94,10 @@ def run(
 
     """
     # get the repo
-    migrator.attrs = feedstock_ctx.attrs
+    migrator.attrs = feedstock_ctx.attrs  # type: ignore
     feedstock_dir, repo = get_repo(
-        feedstock_ctx.attrs,
+        ctx=migrator.ctx.parent,
+        fctx=feedstock_ctx,
         branch=migrator.remote_branch(),
         feedstock=feedstock_ctx.feedstock_name,
         protocol=protocol,
@@ -129,7 +130,7 @@ def run(
         return False, False
 
     # rerender, maybe
-    diffed_files = []
+    diffed_files: typing.List[str] = []
     with indir(feedstock_dir), env.swap(RAISE_SUBPROC_ERROR=False):
         msg = migrator.commit_message()
         eval_xonsh("git commit -am @(msg)")
@@ -152,11 +153,12 @@ def run(
                 )
             ]
 
+    pr_json: typing.Union[dict, bool]
     if isinstance(migrator, MigrationYaml) and not diffed_files:
         # spoof this so it looks like the package is done
         pr_json = {"state": "closed", "merged_at": "never issued", "id": str(uuid4())}
         ljpr = LazyJson(
-            os.path.join(migrator.ctx.parent.prjson_dir, str(pr_json["id"]) + ".json")
+            os.path.join(migrator.ctx.parent.prjson_dir, str(pr_json["id"]) + ".json"),
         )
         ljpr.update(**pr_json)
     else:
@@ -164,9 +166,9 @@ def run(
         try:
             pr_json = push_repo(
                 feedstock_dir,
-                migrator.pr_body(None),
+                migrator.pr_body(feedstock_ctx),
                 repo,
-                migrator.pr_title(None),
+                migrator.pr_title(feedstock_ctx),
                 migrator.pr_head(),
                 migrator.remote_branch(),
             )
@@ -242,7 +244,7 @@ def add_rebuild(migrators, gx):
 
         py_c = "python" in bh and meta_yaml.get("build", {}).get("noarch") != "python"
         com_c = any([req.endswith("_compiler_stub") for req in bh]) or any(
-            [a in bh for a in Compiler.compilers]
+            [a in bh for a in Compiler.compilers],
         )
         r_c = "r-base" in bh
         ob_c = "openblas" in bh
@@ -271,7 +273,7 @@ def add_rebuild(migrators, gx):
             name="Python 3.7, GCC 7, R 3.5.1, openBLAS 0.3.2",
             top_level=top_level,
             cycles=cycles,
-        )
+        ),
     )
 
 
@@ -320,7 +322,7 @@ def add_rebuild_openssl(migrators, gx):
             top_level=top_level,
             cycles=cycles,
             obj_version=3,
-        )
+        ),
     )
 
 
@@ -369,7 +371,7 @@ def add_rebuild_libprotobuf(migrators, gx):
             top_level=top_level,
             cycles=cycles,
             obj_version=3,
-        )
+        ),
     )
 
 
@@ -436,7 +438,7 @@ def add_rebuild_successors(
             top_level=top_level,
             cycles=cycles,
             obj_version=obj_version,
-        )
+        ),
     )
 
 
@@ -456,13 +458,13 @@ def add_rebuild_blas(migrators, gx):
         meta_yaml = attrs.get("meta_yaml", {}) or {}
         bh = get_requirements(meta_yaml)
         pkgs = {
-                "openblas",
-                "openblas-devel",
-                "mkl",
-                "mkl-devel",
-                "blas",
-                "lapack",
-                "clapack",
+            "openblas",
+            "openblas-devel",
+            "mkl",
+            "mkl-devel",
+            "blas",
+            "lapack",
+            "clapack",
         }
         blas_c = len(pkgs.intersection(bh)) > 0
 
@@ -490,7 +492,7 @@ def add_rebuild_blas(migrators, gx):
             top_level=top_level,
             cycles=cycles,
             obj_version=0,
-        )
+        ),
     )
 
 
@@ -532,7 +534,7 @@ def add_arch_migrate(migrators: MutableSequence[Migrator], gx: nx.Graph):
             name="aarch64 and ppc64le addition",
             top_level=top_level,
             cycles=cycles,
-        )
+        ),
     )
 
 
@@ -575,12 +577,12 @@ def add_rebuild_migration_yaml(
                 "strong" in output.get("build", {})
                 for output in meta_yaml.get("outputs", [])
                 if output.get("build")
-            ]
+            ],
         ):
             bh = get_requirements(meta_yaml, run=False)
         else:
             bh = get_requirements(
-                meta_yaml, run=False, build=False, host=True
+                meta_yaml, run=False, build=False, host=True,
             ) or get_requirements(meta_yaml, build=True, run=False, host=False)
         criteria = any(package_name in bh for package_name in package_names) and (
             "noarch" not in meta_yaml.get("build", {})
@@ -647,7 +649,7 @@ def migration_factory(migrators, gx, pr_limit=50):
 
 
 def initialize_migrators(
-    do_rebuild=False, github_username: str = "", github_password: str = ""
+    do_rebuild=False, github_username: str = "", github_password: str = "",
 ) -> Tuple[MigratorsContext, list, MutableSequence[Migrator]]:
     setup_logger(logger)
     temp = glob.glob("/tmp/*")
@@ -684,7 +686,7 @@ def migrator_status(migrator: Migrator, gx):
     order :
         Build order for this migrator
     """
-    out = {
+    out: Dict[str, Set[str]] = {
         "done": set(),
         "in-pr": set(),
         "awaiting-pr": set(),
@@ -708,7 +710,7 @@ def migrator_status(migrator: Migrator, gx):
         # remove archived from status
         if attrs.get("archived", False):
             continue
-        node_metadata = {}
+        node_metadata: Dict = {}
         feedstock_metadata[node] = node_metadata
         nuid = migrator.migrator_uid(attrs)
         for pr_json in attrs.get("PRed", []):
@@ -768,15 +770,16 @@ def migrator_status(migrator: Migrator, gx):
             # I needed to fake some PRs they don't have html_urls though
             node_metadata["pr_url"] = pr_json["PR"].get("html_url", "")
 
+    out2: Dict = {}
     for k in out.keys():
-        out[k] = list(
+        out2[k] = list(
             sorted(
                 out[k],
                 key=lambda x: build_sequence.index(x) if x in build_sequence else -1,
-            )
+            ),
         )
 
-    out["_feedstock_status"] = feedstock_metadata
+    out2["_feedstock_status"] = feedstock_metadata
     for (e0, e1), edge_attrs in gx2.edges.items():
         if (
             e0 not in out["done"]
@@ -786,7 +789,7 @@ def migrator_status(migrator: Migrator, gx):
         ):
             gv.edge(e0, e1)
 
-    return out, build_sequence, gv
+    return out2, build_sequence, gv
 
 
 def main(args=None):
@@ -795,7 +798,7 @@ def main(args=None):
     gh = github3.login(env["USERNAME"], env["PASSWORD"])
     global MIGRATORS
     mctx, temp, MIGRATORS = initialize_migrators(
-        False, github_username=github_username, github_password=github_password
+        False, github_username=github_username, github_password=github_password,
     )
 
     for migrator in MIGRATORS:
@@ -877,7 +880,7 @@ def main(args=None):
                             {
                                 "smithy_version": mctx.smithy_version,
                                 "pinning_version": mctx.pinning_version,
-                            }
+                            },
                         )
 
                 except github3.GitHubError as e:
@@ -885,7 +888,7 @@ def main(args=None):
                         attrs["archived"] = True
                     else:
                         logger.critical(
-                            "GITHUB ERROR ON FEEDSTOCK: %s", fctx.feedstock_name
+                            "GITHUB ERROR ON FEEDSTOCK: %s", fctx.feedstock_name,
                         )
                         if is_github_api_limit_reached(e, gh):
                             break
@@ -918,7 +921,7 @@ def main(args=None):
                             eval_xonsh(f"rm -rf {f}")
 
     logger.info(
-        "API Calls Remaining: %d", gh.rate_limit()["resources"]["core"]["remaining"]
+        "API Calls Remaining: %d", gh.rate_limit()["resources"]["core"]["remaining"],
     )
     logger.info("Done")
 
