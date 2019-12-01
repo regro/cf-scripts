@@ -11,7 +11,7 @@ from itertools import permutations
 import networkx as nx
 import conda.exceptions
 from conda.models.version import VersionOrder
-from rever.tools import (eval_version, hash_url, replace_in_file)
+from rever.tools import eval_version, hash_url, replace_in_file
 from xonsh.lib.os import indir
 from conda_smithy.update_cb3 import update_cb3
 from conda_smithy.configure_feedstock import get_cfp_file_path
@@ -24,13 +24,18 @@ from ruamel.yaml import safe_load, safe_dump
 
 import requests
 
+from conda_forge_tick import xonsh_utils
 from conda_forge_tick.path_lengths import cyclic_topological_sort
 from conda_forge_tick.xonsh_utils import eval_xonsh, env
-from .utils import render_meta_yaml, UniversalSet, frozen_to_json_friendly, \
-    as_iterable, parse_meta_yaml, CB_CONFIG
-from .contexts import (
-    MigratorsContext, MigratorContext, FeedstockContext
+from .utils import (
+    render_meta_yaml,
+    UniversalSet,
+    frozen_to_json_friendly,
+    as_iterable,
+    parse_meta_yaml,
+    CB_CONFIG,
 )
+from .contexts import MigratorsContext, MigratorContext, FeedstockContext
 
 
 try:
@@ -42,7 +47,7 @@ except ImportError:
 def _no_pr_pred(pred):
     l = []
     for pr in pred:
-        l.append({'data': pr['data'], 'keys': pr['keys']})
+        l.append({"data": pr["data"], "keys": pr["keys"]})
     return l
 
 
@@ -81,23 +86,40 @@ class MiniMigrator:
 
 
 class PipMigrator(MiniMigrator):
-    bad_install = ('python setup.py install', 'python -m pip install --no-deps --ignore-installed .')
+    bad_install = (
+        "python setup.py install",
+        "python -m pip install --no-deps --ignore-installed .",
+    )
+
     def filter(self, attrs: dict) -> bool:
-        scripts = as_iterable(attrs.get('meta_yaml', {}).get('build', {}).get('script', []))
+        scripts = as_iterable(
+            attrs.get("meta_yaml", {}).get("build", {}).get("script", [])
+        )
         return not bool(set(self.bad_install) & set(scripts))
 
     def migrate(self, recipe_dir, attrs, **kwargs):
         with indir(recipe_dir):
             for b in self.bad_install:
-                replace_in_file(f'script: {b}', "script: {{ PYTHON }} -m pip install . --no-deps -vv", 'meta.yaml')
+                replace_in_file(
+                    f"script: {b}",
+                    "script: {{ PYTHON }} -m pip install . --no-deps -vv",
+                    "meta.yaml",
+                )
 
 
 class LicenseMigrator(MiniMigrator):
     def filter(self, attrs: dict) -> bool:
-        license = attrs.get('meta_yaml', {}).get('about', {}).get('license', '')
-        license_fam = (attrs.get('meta_yaml', {}).get('about', {}).get('license_family', '').lower() or
-                       license.lower().partition('-')[0].partition('v')[0])
-        if license_fam in NEEDED_FAMILIES and 'license_file' not in attrs.get('meta_yaml', {}).get('about', {}):
+        license = attrs.get("meta_yaml", {}).get("about", {}).get("license", "")
+        license_fam = (
+            attrs.get("meta_yaml", {})
+            .get("about", {})
+            .get("license_family", "")
+            .lower()
+            or license.lower().partition("-")[0].partition("v")[0]
+        )
+        if license_fam in NEEDED_FAMILIES and "license_file" not in attrs.get(
+            "meta_yaml", {}
+        ).get("about", {}):
             return False
         return True
 
@@ -111,63 +133,95 @@ class LicenseMigrator(MiniMigrator):
         cb_work_dir = provide(md)
         with indir(cb_work_dir):
             # look for a license file
-            license_files = [(s for s in os.listdir('.') if any(s.lower().startswith(k) for k in ['license', 'copying', 'copyright']))]
+            license_files = [
+                [
+                    s
+                    for s in os.listdir(".")
+                    if any(
+                        s.lower().startswith(k)
+                        for k in ["license", "copying", "copyright"]
+                    )
+                ]
+            ]
             # if there is a license file in tarball update things
-        eval_xonsh(f'rm -r {cb_work_dir}')
+        eval_xonsh(f"rm -r {cb_work_dir}")
         if license_files:
             with indir(recipe_dir):
-                '''BSD 3-Clause License
+                """BSD 3-Clause License
                   Copyright (c) 2017, Anthony Scopatz
                   Copyright (c) 2018, The Regro Developers
-                  All rights reserved.'''
-                with open('meta.yaml', 'r') as f:
+                  All rights reserved."""
+                with open("meta.yaml", "r") as f:
                     raw = f.read()
                 lines = raw.splitlines()
-                ptn = re.compile(r'(\s*?)' + 'license:')
+                ptn = re.compile(r"(\s*?)" + "license:")
                 for i, line in enumerate(lines):
-                   m = ptn.match(line)
-                   if m is not None:
-                       break
+                    m = ptn.match(line)
+                    if m is not None:
+                        break
                 ws = m.group(1)
                 if len(license_files) == 1:
-                    replace_in_file(line, line + "\n" + ws + f"license_file: {next(iter(license_files))}", 'meta.yaml')
+                    replace_in_file(
+                        line,
+                        line + "\n" + ws + f"license_file: {list(license_files)[0]}",
+                        "meta.yaml",
+                    )
                 else:
                     # note that this white space is not perfect but works for most of the situations
-                    replace_in_file(line, line + "\n" + ws + "license_file: \n" + ''.join(f"{ws*2}- {z} \n" for z in license_files), 'meta.yaml')
+                    replace_in_file(
+                        line,
+                        line
+                        + "\n"
+                        + ws
+                        + "license_file: \n"
+                        + "".join(f"{ws*2}- {z} \n" for z in license_files),
+                        "meta.yaml",
+                    )
 
         # if license not in tarball do something!
         # check if
 
+
 class Migrator:
     """Base class for Migrators"""
+
     rerender = False
 
     migrator_version = 0
 
-    build_patterns = ((re.compile('(\s*?)number:\s*([0-9]+)'),
-                       'number: {}'),
-                      (re.compile('(\s*?){%\s*set build_number\s*=\s*"?([0-9]+)"?\s*%}'),
-                       '{{% set build_number = {} %}}'),
-                      (re.compile('(\s*?){%\s*set build\s*=\s*"?([0-9]+)"?\s*%}'),
-                       '{{% set build = {} %}}')
-                     )
+    build_patterns = (
+        (re.compile("(\s*?)number:\s*([0-9]+)"), "number: {}"),
+        (
+            re.compile('(\s*?){%\s*set build_number\s*=\s*"?([0-9]+)"?\s*%}'),
+            "{{% set build_number = {} %}}",
+        ),
+        (
+            re.compile('(\s*?){%\s*set build\s*=\s*"?([0-9]+)"?\s*%}'),
+            "{{% set build = {} %}}",
+        ),
+    )
 
     def __init__(self, pr_limit=0, obj_version=None, piggy_back_migrations=None):
         if piggy_back_migrations is None:
             piggy_back_migrations = []
         self.piggy_back_migrations = piggy_back_migrations
         self.pr_limit = pr_limit
-        self.obj_version=obj_version
+        self.obj_version = obj_version
         self.ctx: MigratorContext = None
 
-    def bind_to_ctx(self, migrator_ctx):
+    def bind_to_ctx(self, migrator_ctx: MigratorContext):
         self.ctx = migrator_ctx
 
     def downstream_children(self, feedstock_ctx: FeedstockContext, limit=5):
         """Utility method for getting a list of follow on packages"""
-        return [a[1] for a in list(self.ctx.effective_graph.out_edges(feedstock_ctx.package_name))][:limit]
+        return [
+            a[1]
+            for a in list(
+                self.ctx.effective_graph.out_edges(feedstock_ctx.package_name)
+            )
+        ][:limit]
 
-    def filter(self, attrs: dict, not_bad_str_start='') -> bool:
+    def filter(self, attrs: dict, not_bad_str_start="") -> bool:
         """ If true don't act upon node
 
         Parameters
@@ -187,14 +241,18 @@ class Migrator:
         # never run on archived feedstocks
         # don't run on things we've already done
         # don't run on bad nodes
-        return (attrs.get('archived', False)
-                or frozen_to_json_friendly(self.migrator_uid(attrs)
-                                           )['data'] in (z['data'] for z in attrs.get('PRed', []))
-                or (attrs.get('bad', False)
-                    # This could be a dict, but then we can't fix it
-                    and isinstance(attrs.get('bad'), str)
-                    # TODO: support a list of stings?
-                    and not attrs.get('bad').startswith(not_bad_str_start)))
+        return (
+            attrs.get("archived", False)
+            or frozen_to_json_friendly(self.migrator_uid(attrs))["data"]
+            in (z["data"] for z in attrs.get("PRed", []))
+            or (
+                attrs.get("bad", False)
+                # This could be a dict, but then we can't fix it
+                and isinstance(attrs.get("bad"), str)
+                # TODO: support a list of stings?
+                and not attrs.get("bad").startswith(not_bad_str_start)
+            )
+        )
 
     def migrate(self, recipe_dir, attrs, **kwargs):
         """Perform the migration, updating the ``meta.yaml``
@@ -226,44 +284,45 @@ class Migrator:
             :param feedstock_ctx:
         """
         body = (
-            '{}\n'
-            'If this PR was opened in error or needs to be updated please add '
-            'the `bot-rerun` label to this PR. The bot will close this PR and '
-            'schedule another one.\n\n'
-            '<sub>'
-            'This PR was created by the [cf-regro-autotick-bot](https://github.com/regro/cf-scripts).\n'
-            'The **cf-regro-autotick-bot** is a service to automatically '
-            'track the dependency graph, migrate packages, and '
-            'propose package version updates for conda-forge. '
+            "{}\n"
+            "If this PR was opened in error or needs to be updated please add "
+            "the `bot-rerun` label to this PR. The bot will close this PR and "
+            "schedule another one.\n\n"
+            "<sub>"
+            "This PR was created by the [cf-regro-autotick-bot](https://github.com/regro/cf-scripts).\n"
+            "The **cf-regro-autotick-bot** is a service to automatically "
+            "track the dependency graph, migrate packages, and "
+            "propose package version updates for conda-forge. "
             "If you would like a local version of this bot, you might consider using "
             "[rever](https://regro.github.io/rever-docs/). "
             "Rever is a tool for automating software releases and forms the "
             "backbone of the bot's conda-forge PRing capability. Rever is both "
             "conda (`conda install -c conda-forge rever`) and pip "
             "(`pip install re-ver`) installable.\n"
-            'Finally, feel free to drop us a line if there are any '
-            '[issues](https://github.com/regro/cf-scripts/issues)!\n' +
-            f'This PR was generated by {self.ctx.parent.circle_build_url}, please use this URL for debugging' +
-            '</sub>')
+            "Finally, feel free to drop us a line if there are any "
+            "[issues](https://github.com/regro/cf-scripts/issues)!\n"
+            + f"This PR was generated by {self.ctx.parent.circle_build_url}, please use this URL for debugging"
+            + "</sub>"
+        )
         return body
 
     def commit_message(self):
         """Create a commit message"""
-        return 'migration: ' + self.__class__.__name__
+        return "migration: " + self.__class__.__name__
 
     def pr_title(self, feedstock_ctx: FeedstockContext):
         """Title for PR
         :param feedstock_ctx:
         """
-        return 'PR from Regro-cf-autotick-bot'
+        return "PR from Regro-cf-autotick-bot"
 
     def pr_head(self):
         """Head for PR"""
-        return self.ctx.github_username + ':' + self.remote_branch()
+        return self.ctx.github_username + ":" + self.remote_branch()
 
     def remote_branch(self):
         """Branch to use on local and remote"""
-        return 'bot-pr'
+        return "bot-pr"
 
     def migrator_uid(self, attrs: dict) -> frozen_to_json_friendly:
         """Make a unique id for this migrator and node attrs
@@ -278,10 +337,11 @@ class Migrator:
         nt: frozen_to_json_friendly
             The unique id as a frozen_to_json_friendly (so it can be used as keys in dicts)
         """
-        d = {'migrator_name': self.__class__.__name__,
-             'migrator_version': self.migrator_version,
-             'bot_rerun': False
-             }
+        d = {
+            "migrator_name": self.__class__.__name__,
+            "migrator_version": self.migrator_version,
+            "bot_rerun": False,
+        }
         # Carveout for old migrators w/o obj_versions
         if self.obj_version:
             d.update(migrator_object_version=self.obj_version)
@@ -300,7 +360,11 @@ class Migrator:
 
         """
         top_level = set(
-            node for node in graph if not list(graph.predecessors(node)) or list(graph.predecessors(node)) == [node])
+            node
+            for node in graph
+            if not list(graph.predecessors(node))
+            or list(graph.predecessors(node)) == [node]
+        )
         return cyclic_topological_sort(graph, top_level)
 
     def set_build_number(self, filename):
@@ -314,7 +378,7 @@ class Migrator:
         """
 
         for p, n in self.build_patterns:
-            with open(filename, 'r') as f:
+            with open(filename, "r") as f:
                 raw = f.read()
             lines = raw.splitlines()
             for i, line in enumerate(lines):
@@ -323,8 +387,8 @@ class Migrator:
                     old_build_number = int(m.group(2))
                     new_build_number = self.new_build_number(old_build_number)
                     lines[i] = m.group(1) + n.format(new_build_number)
-            upd = '\n'.join(lines) + '\n'
-            with open(filename, 'w') as f:
+            upd = "\n".join(lines) + "\n"
+            with open(filename, "w") as f:
                 f.write(upd)
 
     def new_build_number(self, old_number: int):
@@ -346,26 +410,36 @@ class Migrator:
     def migrator_label(cls):
         # This is the label that the bot will attach to a pr made by the bot
         return {
-            'name': f'bot-{cls.__name__.lower()}',
-            'description': cls.__doc__.strip(),
-            'color': '#6c64ff',
+            "name": f"bot-{cls.__name__.lower()}",
+            "description": cls.__doc__.strip(),
+            "color": "#6c64ff",
         }
 
 
 class Version(Migrator):
     """Migrator for version bumping of packages"""
+
     max_num_prs = 3
     patterns = (
         # filename, pattern, new
         # set the version
-        ('meta.yaml', 'version:\s*[A-Za-z0-9._-]+', 'version: "$VERSION"'),
-        ('meta.yaml', '{%\s*set\s+version\s*=\s*[^\s]*\s*%}',
-            '{% set version = "$VERSION" %}'),
+        ("meta.yaml", "version:\s*[A-Za-z0-9._-]+", 'version: "$VERSION"'),
+        (
+            "meta.yaml",
+            "{%\s*set\s+version\s*=\s*[^\s]*\s*%}",
+            '{% set version = "$VERSION" %}',
+        ),
     )
 
-    url_pat = re.compile(r'^( *)(-)?(\s*)url:\s*([^\s#]+?)\s*(?:(#.*)?\[([^\[\]]+)\])?(?(5)[^\(\)\n]*)(?(2)\n\1 \3.*)*$', flags=re.M)
-    r_url_pat = re.compile(r'^(\s*)(-)?(\s*)url:\s*(?:(#.*)?\[([^\[\]]+)\])?(?(4)[^\(\)]*?)\n(\1(?(2) \3)  -.*\n?)*', flags=re.M)
-    r_urls = re.compile('\s*-\s*(.+?)(?:#.*)?$', flags=re.M)
+    url_pat = re.compile(
+        r"^( *)(-)?(\s*)url:\s*([^\s#]+?)\s*(?:(#.*)?\[([^\[\]]+)\])?(?(5)[^\(\)\n]*)(?(2)\n\1 \3.*)*$",
+        flags=re.M,
+    )
+    r_url_pat = re.compile(
+        r"^(\s*)(-)?(\s*)url:\s*(?:(#.*)?\[([^\[\]]+)\])?(?(4)[^\(\)]*?)\n(\1(?(2) \3)  -.*\n?)*",
+        flags=re.M,
+    )
+    r_urls = re.compile("\s*-\s*(.+?)(?:#.*)?$", flags=re.M)
 
     migrator_version = 0
 
@@ -383,8 +457,14 @@ class Version(Migrator):
     def get_hash_patterns(self, filename, urls, hash_type):
         """Get the patterns to replace hash for each platform."""
         pats = ()
-        checksum_names = ['hash_value', 'hash', 'hash_val', 'sha256sum',
-                          'checksum', hash_type]
+        checksum_names = [
+            "hash_value",
+            "hash",
+            "hash_val",
+            "sha256sum",
+            "checksum",
+            hash_type,
+        ]
         for url, platform, line in urls:
             if isinstance(url, list):
                 for u in url:
@@ -397,26 +477,30 @@ class Version(Migrator):
             else:
                 url = url.strip("'\"")
                 hash = hash_url(url, hash_type)
-            m = re.search('\s*{}:(.+)'.format(hash_type), line)
+            m = re.search("\s*{}:(.+)".format(hash_type), line)
             if m is None:
-                p = '{}:\s*[0-9A-Fa-f]+'.format(hash_type)
+                p = "{}:\s*[0-9A-Fa-f]+".format(hash_type)
                 if platform:
-                    p += '\s*(#.*)\[{}\](?(1)[^\(\)]*)$'.format(platform)
+                    p += "\s*(#.*)\[{}\](?(1)[^\(\)]*)$".format(platform)
                 else:
-                    p += '$'
+                    p += "$"
             else:
-                p = '{}:{}$'.format(hash_type, m.group(1))
-            n = '{}: {}'.format(hash_type, hash)
+                p = "{}:{}$".format(hash_type, m.group(1))
+            n = "{}: {}".format(hash_type, hash)
             if platform:
-                n += '  # [{}]'.format(platform)
+                n += "  # [{}]".format(platform)
             pats += ((filename, p, n),)
 
-            base1 = '''{{%\s*set {checkname} = ['"][0-9A-Fa-f]+['"] %}}'''
+            base1 = """{{%\s*set {checkname} = ['"][0-9A-Fa-f]+['"] %}}"""
             base2 = '{{% set {checkname} = "{h}" %}}'
             for cn in checksum_names:
-                pats += (('meta.yaml',
-                          base1.format(checkname=cn),
-                          base2.format(checkname=cn, h=hash)),)
+                pats += (
+                    (
+                        "meta.yaml",
+                        base1.format(checkname=cn),
+                        base2.format(checkname=cn, h=hash),
+                    ),
+                )
         return pats
 
     def filter(self, attrs):
@@ -426,77 +510,97 @@ class Version(Migrator):
         conditional = super().filter(attrs)
         result = bool(
             conditional  # if archived/finished
-            or len([k for k in attrs.get('PRed', []) if
-                    k['data'].get('migrator_name') == 'Version' and
-                    k.get('PR', {}).get('state', None) == 'open']) > self.max_num_prs
-            or not attrs.get('new_version')  # if no new version
+            or len(
+                [
+                    k
+                    for k in attrs.get("PRed", [])
+                    if k["data"].get("migrator_name") == "Version"
+                    and k.get("PR", {}).get("state", None) == "open"
+                ]
+            )
+            > self.max_num_prs
+            or not attrs.get("new_version")  # if no new version
         )
         try:
             version_filter = (
                 # if new version is less than current version
-                (VersionOrder(str(attrs['new_version'])) <=
-                    VersionOrder(str(attrs.get('version', '0.0.0'))))
-                # if PRed version is greater than newest version
-                or any(VersionOrder(self._extract_version_from_hash(h)) >=
-                    VersionOrder(str(attrs['new_version'])
-                                    ) for h in attrs.get('PRed', set()))
+                (
+                    VersionOrder(str(attrs["new_version"]))
+                    <= VersionOrder(str(attrs.get("version", "0.0.0")))
                 )
+                # if PRed version is greater than newest version
+                or any(
+                    VersionOrder(self._extract_version_from_hash(h))
+                    >= VersionOrder(str(attrs["new_version"]))
+                    for h in attrs.get("PRed", set())
+                )
+            )
         except conda.exceptions.InvalidVersionSpec as e:
-            warnings.warn(f"Failed to filter to to invalid version for {attrs}\nException: {e}")
+            warnings.warn(
+                f"Failed to filter to to invalid version for {attrs}\nException: {e}"
+            )
             version_filter = True
         return result or version_filter
 
-    def migrate(self, recipe_dir, attrs, hash_type='sha256'):
+    def migrate(self, recipe_dir, attrs, hash_type="sha256"):
         # Render with new version but nothing else
-        version = attrs['new_version']
+        version = attrs["new_version"]
         with indir(recipe_dir):
-            with open('meta.yaml', 'r') as f:
+            with open("meta.yaml", "r") as f:
                 text = f.read()
-        url = re.search('\s*-?\s*url:.*?\n(    -.*\n?)*', text).group()
-        if 'cran.r-project.org/src/contrib' in url:
-            version = version.replace('_', '-')
+        url = re.search("\s*-?\s*url:.*?\n(    -.*\n?)*", text).group()
+        if "cran.r-project.org/src/contrib" in url:
+            version = version.replace("_", "-")
         with indir(recipe_dir), env.swap(VERSION=version):
             for f, p, n in self.patterns:
                 p = eval_version(p)
                 n = eval_version(n)
                 replace_in_file(p, n, f)
-            with open('meta.yaml', 'r') as f:
+            with open("meta.yaml", "r") as f:
                 text = f.read()
 
         # render the text and check that the URL exists, if it doesn't try variations
         # if variations then update url
         rendered = parse_meta_yaml(render_meta_yaml(text))
         # only run for single url recipes as the moment
-        if isinstance(rendered['source'], dict) and isinstance(rendered['source'].get('url', []), str) and requests.get(rendered['source']['url']).status_code != 200:
+        if (
+            isinstance(rendered["source"], dict)
+            and isinstance(rendered["source"].get("url", []), str)
+            and requests.get(rendered["source"]["url"]).status_code != 200
+        ):
             with indir(recipe_dir):
-                for a, b in permutations(['.zip', '.tar.gz']):
+                for a, b in permutations([".zip", ".tar.gz"]):
                     text = text.replace(a, b)
                     rendered = parse_meta_yaml(render_meta_yaml(text))
-                    if requests.get(rendered['source']['url']).status_code == 200:
-                        with open('meta.yaml', 'w') as f:
+                    if requests.get(rendered["source"]["url"]).status_code == 200:
+                        with open("meta.yaml", "w") as f:
                             f.write(text)
                         break
         # Get patterns to replace checksum for each platform
         rendered_text = render_meta_yaml(text)
         urls = self.find_urls(rendered_text)
-        new_patterns = self.get_hash_patterns('meta.yaml', urls, hash_type)
+        new_patterns = self.get_hash_patterns("meta.yaml", urls, hash_type)
 
         with indir(recipe_dir):
             for f, p, n in new_patterns:
                 p = eval_version(p)
                 n = eval_version(n)
                 replace_in_file(p, n, f)
-            self.set_build_number('meta.yaml')
+            self.set_build_number("meta.yaml")
         return super().migrate(recipe_dir, attrs)
 
     def pr_body(self, feedstock_ctx):
-        pred = [(name, self.ctx.effective_graph.nodes[name]['payload']['new_version'])
-                for name in list(self.ctx.effective_graph.predecessors(feedstock_ctx.package_name))]
+        pred = [
+            (name, self.ctx.effective_graph.nodes[name]["payload"]["new_version"])
+            for name in list(
+                self.ctx.effective_graph.predecessors(feedstock_ctx.package_name)
+            )
+        ]
         body = super().pr_body(None)
         body = body.format(
-            'It is very likely that the current package version for this '
-            'feedstock is out of date.\n'
-            'Notes for merging this PR:\n'
+            "It is very likely that the current package version for this "
+            "feedstock is out of date.\n"
+            "Notes for merging this PR:\n"
             "1. Feel free to push to the bot's branch to update this PR if needed.\n"
             "2. The bot will almost always only open one PR per version.\n"
             "Checklist before merging this PR:\n"
@@ -508,35 +612,41 @@ class Version(Migrator):
             "generated by the bot are open. If you don't want to package a particular "
             "version please close the PR\n"
             "\n".format(self.max_num_prs)
-            )
+        )
         # Statement here
-        template = ('|{name}|{new_version}|[![Anaconda-Server Badge]'
-                    '(https://img.shields.io/conda/vn/conda-forge/{name}.svg)]'
-                    '(https://anaconda.org/conda-forge/{name})|\n')
+        template = (
+            "|{name}|{new_version}|[![Anaconda-Server Badge]"
+            "(https://img.shields.io/conda/vn/conda-forge/{name}.svg)]"
+            "(https://anaconda.org/conda-forge/{name})|\n"
+        )
         if len(pred) > 0:
-            body += ('\n\nHere is a list of all the pending dependencies (and their '
-                     'versions) for this repo. '
-                     'Please double check all dependencies before merging.\n\n')
+            body += (
+                "\n\nHere is a list of all the pending dependencies (and their "
+                "versions) for this repo. "
+                "Please double check all dependencies before merging.\n\n"
+            )
             # Only add the header row if we have content.
             # Otherwise the rendered table in the github comment
             # is empty which is confusing
-            body += ('| Name | Upstream Version | Current Version |\n'
-                     '|:----:|:----------------:|:---------------:|\n')
+            body += (
+                "| Name | Upstream Version | Current Version |\n"
+                "|:----:|:----------------:|:---------------:|\n"
+            )
         for p in pred:
             body += template.format(name=p[0], new_version=p[1])
         return body
 
     def commit_message(self):
-        return "updated v" + self.attrs['new_version']
+        return "updated v" + self.attrs["new_version"]
 
     def pr_title(self, feedstock_ctx):
-        return feedstock_ctx.package_name + ' v' + self.attrs['new_version']
+        return feedstock_ctx.package_name + " v" + self.attrs["new_version"]
 
     def pr_head(self):
-        return self.ctx.github_username + ':' + self.remote_branch()
+        return self.ctx.github_username + ":" + self.remote_branch()
 
     def remote_branch(self):
-        return self.attrs['new_version']
+        return self.attrs["new_version"]
 
     def migrator_uid(self, attrs):
         n = super().migrator_uid(attrs)
@@ -544,7 +654,7 @@ class Version(Migrator):
         return n
 
     def _extract_version_from_hash(self, h):
-        return h.get('version', '0.0.0')
+        return h.get("version", "0.0.0")
 
     @classmethod
     def new_build_number(cls, old_build_number: int):
@@ -553,223 +663,249 @@ class Version(Migrator):
 
 class JS(Migrator):
     """Migrator for JavaScript syntax"""
+
     patterns = [
-        ('meta.yaml', '  script: npm install -g \.',
-         '  script: |\n'
-         '    tgz=$(npm pack)\n'
-         '    npm install -g $tgz'),
-        ('meta.yaml', '   script: |\n', '  script: |')
+        (
+            "meta.yaml",
+            "  script: npm install -g \.",
+            "  script: |\n" "    tgz=$(npm pack)\n" "    npm install -g $tgz",
+        ),
+        ("meta.yaml", "   script: |\n", "  script: |"),
     ]
 
     migrator_version = 0
 
     def filter(self, attrs):
         conditional = super().filter(attrs)
-        return bool(conditional or
-                ((attrs.get('meta_yaml', {})
-                .get('build', {})
-                .get('noarch') != 'generic')
-                or (attrs.get('meta_yaml', {})
-                    .get('build', {})
-                    .get('script') != 'npm install -g .'))
-                and '  script: |' in attrs.get('raw_meta_yaml', '').split('\n')
-                    )
+        return bool(
+            conditional
+            or (
+                (attrs.get("meta_yaml", {}).get("build", {}).get("noarch") != "generic")
+                or (
+                    attrs.get("meta_yaml", {}).get("build", {}).get("script")
+                    != "npm install -g ."
+                )
+            )
+            and "  script: |" in attrs.get("raw_meta_yaml", "").split("\n")
+        )
 
     def migrate(self, recipe_dir, attrs, **kwargs):
         with indir(recipe_dir):
             for f, p, n in self.patterns:
                 p = eval_version(p)
                 n = eval_version(n)
-                replace_in_file(p, n, f,
-                                leading_whitespace=False
-                                )
-            self.set_build_number('meta.yaml')
+                replace_in_file(p, n, f, leading_whitespace=False)
+            self.set_build_number("meta.yaml")
         return super().migrate(recipe_dir, attrs)
 
     def pr_body(self, feedstock_ctx):
         body = super().pr_body(None)
         body = body.format(
-            'It is very likely that this feedstock is in need of migration.\n'
-            'Notes and instructions for merging this PR:\n'
-            '1. Please merge the PR only after the tests have passed. \n'
-            "2. Feel free to push to the bot's branch to update this PR if needed. \n")
+            "It is very likely that this feedstock is in need of migration.\n"
+            "Notes and instructions for merging this PR:\n"
+            "1. Please merge the PR only after the tests have passed. \n"
+            "2. Feel free to push to the bot's branch to update this PR if needed. \n"
+        )
         return body
 
     def commit_message(self):
         return "migrated to new npm build"
 
     def pr_title(self, feedstock_ctx):
-        return 'Migrate to new npm build'
+        return "Migrate to new npm build"
 
     def pr_head(self):
-        return self.ctx.github_username + ':' + self.remote_branch()
+        return self.ctx.github_username + ":" + self.remote_branch()
 
     def remote_branch(self):
-        return 'npm_migration'
+        return "npm_migration"
 
 
 class Compiler(Migrator):
     """Migrator for Jinja2 comiler syntax."""
+
     migrator_version = 0
 
     rerender = True
 
-    compilers = {'toolchain', 'toolchain3', 'gcc', 'cython', 'pkg-config',
-                 'autotools', 'make', 'cmake', 'autconf', 'libtool', 'm4',
-                 'ninja', 'jom', 'libgcc', 'libgfortran'}
+    compilers = {
+        "toolchain",
+        "toolchain3",
+        "gcc",
+        "cython",
+        "pkg-config",
+        "autotools",
+        "make",
+        "cmake",
+        "autconf",
+        "libtool",
+        "m4",
+        "ninja",
+        "jom",
+        "libgcc",
+        "libgfortran",
+    }
 
     def __init__(self, pr_limit=0):
         super().__init__(pr_limit)
         self.cfp = get_cfp_file_path()[0]
 
     def filter(self, attrs):
-        for req in attrs.get('req', []):
-            if req.endswith('_compiler_stub'):
+        for req in attrs.get("req", []):
+            if req.endswith("_compiler_stub"):
                 return True
         conditional = super().filter(attrs)
-        return (conditional or not any(x in attrs.get('req', []) for x in self.compilers))
+        return conditional or not any(x in attrs.get("req", []) for x in self.compilers)
 
     def migrate(self, recipe_dir, attrs, **kwargs):
         with indir(recipe_dir):
-            content, self.messages = update_cb3('meta.yaml', self.cfp)
-            with open('meta.yaml', 'w') as f:
+            content, self.messages = update_cb3("meta.yaml", self.cfp)
+            with open("meta.yaml", "w") as f:
                 f.write(content)
-            self.set_build_number('meta.yaml')
+            self.set_build_number("meta.yaml")
         return super().migrate(recipe_dir, attrs)
 
     def pr_body(self, feedstock_ctx):
         body = super().pr_body(None)
-        body = body.format('{}\n'
-                    '*If you have recived a `Migrate to Jinja2 compiler '
-                    'syntax` PR from me recently please close that one and use '
-                    'this one*.\n'
-                    'It is very likely that this feedstock is in need of migration.\n'
-                    'Notes and instructions for merging this PR:\n'
-                    '1. Please merge the PR only after the tests have passed. \n'
-                    "2. Feel free to push to the bot's branch to update this PR if needed. \n"
-                    "3. If this recipe has a `cython` dependency please note that only a `C`"
-                    " compiler has been added. If the project also needs a `C++` compiler"
-                    " please add it by adding `- {{ compiler('cxx') }}` to the build section \n"
-                    .format(self.messages))
+        body = body.format(
+            "{}\n"
+            "*If you have recived a `Migrate to Jinja2 compiler "
+            "syntax` PR from me recently please close that one and use "
+            "this one*.\n"
+            "It is very likely that this feedstock is in need of migration.\n"
+            "Notes and instructions for merging this PR:\n"
+            "1. Please merge the PR only after the tests have passed. \n"
+            "2. Feel free to push to the bot's branch to update this PR if needed. \n"
+            "3. If this recipe has a `cython` dependency please note that only a `C`"
+            " compiler has been added. If the project also needs a `C++` compiler"
+            " please add it by adding `- {{ compiler('cxx') }}` to the build section \n".format(
+                self.messages
+            )
+        )
         return body
 
     def commit_message(self):
         return "migrated to Jinja2 compiler syntax build"
 
     def pr_title(self, feedstock_ctx):
-        return 'Migrate to Jinja2 compiler syntax'
+        return "Migrate to Jinja2 compiler syntax"
 
     def pr_head(self):
-        return self.ctx.github_username + ':' + self.remote_branch()
+        return self.ctx.github_username + ":" + self.remote_branch()
 
     def remote_branch(self):
-        return 'compiler_migration2'
+        return "compiler_migration2"
 
 
 class Noarch(Migrator):
     """Migrator for adding noarch."""
+
     migrator_version = 0
 
-    compiler_pat = re.compile('.*_compiler_stub')
-    sel_pat = re.compile('(.+?)\s*(#.*)?\[([^\[\]]+)\](?(2)[^\(\)]*)$')
-    unallowed_reqs = ['toolchain', 'toolchain3', 'gcc', 'cython', 'clangdev']
-    checklist = ['No compiled extensions',
-                 'No post-link or pre-link or pre-unlink scripts',
-                 'No OS specific build scripts',
-                 'No python version specific requirements',
-                 'No skips except for python version. (If the recipe is py3 only, remove skip statement and add version constraint on python)',
-                 '2to3 is not used',
-                 'Scripts argument in setup.py is not used',
-                 'If entrypoints are in setup.py, they are listed in meta.yaml',
-                 'No activate scripts',
-                 'Not a dependency of `conda`',
-                ]
+    compiler_pat = re.compile(".*_compiler_stub")
+    sel_pat = re.compile("(.+?)\s*(#.*)?\[([^\[\]]+)\](?(2)[^\(\)]*)$")
+    unallowed_reqs = ["toolchain", "toolchain3", "gcc", "cython", "clangdev"]
+    checklist = [
+        "No compiled extensions",
+        "No post-link or pre-link or pre-unlink scripts",
+        "No OS specific build scripts",
+        "No python version specific requirements",
+        "No skips except for python version. (If the recipe is py3 only, remove skip statement and add version constraint on python)",
+        "2to3 is not used",
+        "Scripts argument in setup.py is not used",
+        "If entrypoints are in setup.py, they are listed in meta.yaml",
+        "No activate scripts",
+        "Not a dependency of `conda`",
+    ]
 
     rerender = True
 
     def filter(self, attrs):
-        conditional = (super().filter(attrs) or
-                       attrs.get('meta_yaml', {}).get('outputs') or
-                       attrs.get('meta_yaml', {}).get('build', {}).get('noarch')
-                      )
+        conditional = (
+            super().filter(attrs)
+            or attrs.get("meta_yaml", {}).get("outputs")
+            or attrs.get("meta_yaml", {}).get("build", {}).get("noarch")
+        )
         if conditional:
             return True
         python = False
-        for req in attrs.get('req', []):
+        for req in attrs.get("req", []):
             if self.compiler_pat.match(req) or req in self.unallowed_reqs:
                 return True
-            if req == 'python':
+            if req == "python":
                 python = True
         if not python:
             return True
-        for line in attrs.get('raw_meta_yaml', '').splitlines():
+        for line in attrs.get("raw_meta_yaml", "").splitlines():
             if self.sel_pat.match(line):
                 return True
 
         # Not a dependency of `conda`
-        if attrs['feedstock_name'] in nx.ancestors(self.ctx.parent.graph, 'conda'):
+        if attrs["feedstock_name"] in nx.ancestors(self.ctx.parent.graph, "conda"):
             return True
 
         return False
 
     def migrate(self, recipe_dir, attrs, **kwargs):
         with indir(recipe_dir):
-            build_idx = [l.rstrip() for l in
-                         attrs['raw_meta_yaml'].split('\n')].index('build:')
-            line = attrs['raw_meta_yaml'].split('\n')[build_idx + 1]
+            build_idx = [l.rstrip() for l in attrs["raw_meta_yaml"].split("\n")].index(
+                "build:"
+            )
+            line = attrs["raw_meta_yaml"].split("\n")[build_idx + 1]
             spaces = len(line) - len(line.lstrip())
             replace_in_file(
-                'build:',
-                'build:\n{}noarch: python'.format(' '*spaces),
-                'meta.yaml',
-                leading_whitespace=False)
+                "build:",
+                "build:\n{}noarch: python".format(" " * spaces),
+                "meta.yaml",
+                leading_whitespace=False,
+            )
             replace_in_file(
-                    'script:.+?',
-                    'script: python -m pip install --no-deps --ignore-installed .',
-                    'meta.yaml')
+                "script:.+?",
+                "script: python -m pip install --no-deps --ignore-installed .",
+                "meta.yaml",
+            )
             replace_in_file(
-                '  build:',
-                '  host:',
-                'meta.yaml',
-                leading_whitespace=False)
-            if 'pip' not in attrs['req']:
+                "  build:", "  host:", "meta.yaml", leading_whitespace=False
+            )
+            if "pip" not in attrs["req"]:
                 replace_in_file(
-                        '  host:',
-                        '  host:\n    - pip',
-                        'meta.yaml',
-                        leading_whitespace=False)
-            self.set_build_number('meta.yaml')
+                    "  host:",
+                    "  host:\n    - pip",
+                    "meta.yaml",
+                    leading_whitespace=False,
+                )
+            self.set_build_number("meta.yaml")
         return super().migrate(recipe_dir, attrs)
 
     def pr_body(self, feedstock_ctx):
         body = super().pr_body(None)
         body = body.format(
-                    'I think this feedstock could be built with noarch.\n'
-                    'This means that the package only needs to be built '
-                    'once, drastically reducing CI usage.\n'
-                    'See [here](https://conda-forge.org/docs/meta.html#building-noarch-packages) '
-                    'for more information about building noarch packages.\n'
-                    'Before merging this PR make sure:\n{}\n'
-                    'Notes and instructions for merging this PR:\n'
-                    '1. If any items in the above checklist are not satisfied, '
-                    'please close this PR. Do not merge. \n'
-                    '2. Please merge the PR only after the tests have passed. \n'
-                    "3. Feel free to push to the bot's branch to update this PR if needed. \n"
-                    )
-        body = body.format('\n'.join(['- [ ] ' + item for item in self.checklist]))
+            "I think this feedstock could be built with noarch.\n"
+            "This means that the package only needs to be built "
+            "once, drastically reducing CI usage.\n"
+            "See [here](https://conda-forge.org/docs/meta.html#building-noarch-packages) "
+            "for more information about building noarch packages.\n"
+            "Before merging this PR make sure:\n{}\n"
+            "Notes and instructions for merging this PR:\n"
+            "1. If any items in the above checklist are not satisfied, "
+            "please close this PR. Do not merge. \n"
+            "2. Please merge the PR only after the tests have passed. \n"
+            "3. Feel free to push to the bot's branch to update this PR if needed. \n"
+        )
+        body = body.format("\n".join(["- [ ] " + item for item in self.checklist]))
         return body
 
     def commit_message(self):
         return "add noarch"
 
     def pr_title(self, feedstock_ctx):
-        return 'Suggestion: add noarch'
+        return "Suggestion: add noarch"
 
     def pr_head(self):
-        return self.ctx.github_username + ':' + self.remote_branch()
+        return self.ctx.github_username + ":" + self.remote_branch()
 
     def remote_branch(self):
-        return 'noarch_migration'
+        return "noarch_migration"
 
 
 class NoarchR(Noarch):
@@ -778,18 +914,19 @@ class NoarchR(Noarch):
     bump_number = 1
 
     def filter(self, attrs):
-        conditional = (Migrator.filter(self, attrs) or
-                       attrs.get('meta_yaml', {}).get('outputs') or
-                       attrs.get('meta_yaml', {}).get('build', {}).get('noarch')
-                      )
+        conditional = (
+            Migrator.filter(self, attrs)
+            or attrs.get("meta_yaml", {}).get("outputs")
+            or attrs.get("meta_yaml", {}).get("build", {}).get("noarch")
+        )
         if conditional:
             return True
         r = False
-        for req in attrs.get('req', []):
+        for req in attrs.get("req", []):
             if self.compiler_pat.match(req) or req in self.unallowed_reqs:
                 return True
 
-        if attrs['feedstock_name'].startswith("r-"):
+        if attrs["feedstock_name"].startswith("r-"):
             r = True
         if not r:
             return True
@@ -802,12 +939,13 @@ class NoarchR(Noarch):
         return False
 
     def migrate(self, recipe_dir, attrs, **kwargs):
-        check_for = ['toolchain', 'libgcc', 'compiler']
+        check_for = ["toolchain", "libgcc", "compiler"]
 
-        noarch = not any(c in attrs['raw_meta_yaml'] for c in check_for)
+        noarch = not any(c in attrs["raw_meta_yaml"] for c in check_for)
 
-        r_pkg_name = attrs['feedstock_name'][2:]
-        r_noarch_build_sh = dedent("""
+        r_pkg_name = attrs["feedstock_name"][2:]
+        r_noarch_build_sh = dedent(
+            """
         #!/bin/bash
         if [[ $target_platform =~ linux.* ]] || [[ $target_platform == win-32 ]] || [[ $target_platform == win-64 ]] || [[ $target_platform == osx-64 ]]; then
           export DISABLE_AUTOBREW=1
@@ -818,55 +956,66 @@ class NoarchR(Noarch):
           mkdir -p $PREFIX/lib/R/library/{r_pkg_name}
           mv * $PREFIX/lib/R/library/{r_pkg_name}
         fi
-        """).format(r_pkg_name=r_pkg_name)
+        """
+        ).format(r_pkg_name=r_pkg_name)
 
         with indir(recipe_dir):
             if noarch:
-                with open('build.sh', 'w') as f:
+                with open("build.sh", "w") as f:
                     f.writelines(r_noarch_build_sh)
-            new_text = ''
-            with open('meta.yaml', 'r') as f:
+            new_text = ""
+            with open("meta.yaml", "r") as f:
                 lines = f.readlines()
                 lines_stripped = [line.rstrip() for line in lines]
-                if noarch and 'build:' in lines_stripped:
-                    index = lines_stripped.index('build:')
+                if noarch and "build:" in lines_stripped:
+                    index = lines_stripped.index("build:")
                     spacing = 2
-                    s = len(lines[index+1].lstrip()) - len(lines[index+1])
+                    s = len(lines[index + 1].lstrip()) - len(lines[index + 1])
                     if s > 0:
                         spacing = s
-                    lines[index] = lines[index] + " "*spacing + "noarch: generic\n"
-                regex_unix1 = re.compile('license_file: \'{{ environ\["PREFIX"\] }}/lib/R/share/licenses/(\S+)\'\s+# \[unix\]')
-                regex_unix2 = re.compile('license_file: \'{{ environ\["PREFIX"\] }}\\\/lib\\\/R\\\/share\\\/licenses\\\/(.+)\'\\s+# \[unix\]')
-                regex_win = re.compile('license_file: \'{{ environ\["PREFIX"\] }}\\\R\\\share\\\licenses\\\(\S+)\'\s+# \[win\]')
+                    lines[index] = lines[index] + " " * spacing + "noarch: generic\n"
+                regex_unix1 = re.compile(
+                    "license_file: '{{ environ\[\"PREFIX\"\] }}/lib/R/share/licenses/(\S+)'\s+# \[unix\]"
+                )
+                regex_unix2 = re.compile(
+                    "license_file: '{{ environ\[\"PREFIX\"\] }}\\\/lib\\\/R\\\/share\\\/licenses\\\/(.+)'\\s+# \[unix\]"
+                )
+                regex_win = re.compile(
+                    "license_file: '{{ environ\[\"PREFIX\"\] }}\\\R\\\share\\\licenses\\\(\S+)'\s+# \[win\]"
+                )
                 for i, line in enumerate(lines_stripped):
                     if noarch and line.lower().strip().startswith("skip: true"):
                         lines[i] = ""
                     # Fix path to licenses
                     if regex_unix1.match(line.strip()):
-                        lines[i] = regex_unix1.sub('license_file: \'{{ environ["PREFIX"] }}/lib/R/share/licenses/\\1\'',
-                                                   lines[i])
+                        lines[i] = regex_unix1.sub(
+                            "license_file: '{{ environ[\"PREFIX\"] }}/lib/R/share/licenses/\\1'",
+                            lines[i],
+                        )
                     if regex_unix2.match(line.strip()):
-                        lines[i] = regex_unix2.sub('license_file: \'{{ environ["PREFIX"] }}/lib/R/share/licenses/\\1\'',
-                                                   lines[i])
+                        lines[i] = regex_unix2.sub(
+                            "license_file: '{{ environ[\"PREFIX\"] }}/lib/R/share/licenses/\\1'",
+                            lines[i],
+                        )
                     if regex_win.match(line.strip()):
-                        lines[i] = ''
+                        lines[i] = ""
 
-                new_text = ''.join(lines)
+                new_text = "".join(lines)
             if new_text:
-                with open('meta.yaml', 'w') as f:
+                with open("meta.yaml", "w") as f:
                     f.writelines(new_text)
-            self.set_build_number('meta.yaml')
+            self.set_build_number("meta.yaml")
         return self.migrator_uid(attrs)
 
     def pr_body(self, feedstock_ctx):
         body = super().pr_body(None)
         body = body.format(
-                    'It is likely this feedstock needs to be rebuilt.\n'
-                    'Notes and instructions for merging this PR:\n'
-                    '1. Please merge the PR only after the tests have passed. \n'
-                    "2. Feel free to push to the bot's branch to update this PR if needed. \n"
-                    "{}\n"
-                    )
+            "It is likely this feedstock needs to be rebuilt.\n"
+            "Notes and instructions for merging this PR:\n"
+            "1. Please merge the PR only after the tests have passed. \n"
+            "2. Feel free to push to the bot's branch to update this PR if needed. \n"
+            "{}\n"
+        )
         return body
 
     def commit_message(self):
@@ -874,22 +1023,30 @@ class NoarchR(Noarch):
 
     def pr_title(self, feedstock_ctx):
         if self.name:
-            return 'Noarch R for ' + self.name
+            return "Noarch R for " + self.name
         else:
-            return 'Bump build number'
+            return "Bump build number"
 
     def remote_branch(self):
-        return 'r-noarch'
+        return "r-noarch"
 
 
 class Rebuild(Migrator):
     """Migrator for bumping the build number."""
+
     migrator_version = 0
     rerender = True
     bump_number = 1
     # TODO: add a description kwarg for the status page at some point.
-    def __init__(self, graph=None, name=None, pr_limit=0, top_level=None,
-                 cycles=None, obj_version=None):
+    def __init__(
+        self,
+        graph=None,
+        name=None,
+        pr_limit=0,
+        top_level=None,
+        cycles=None,
+        obj_version=None,
+    ):
         super().__init__(pr_limit, obj_version)
         if graph == None:
             self.graph = nx.DiGraph()
@@ -900,52 +1057,59 @@ class Rebuild(Migrator):
         self.cycles = set(chain.from_iterable(cycles or []))
 
     def filter(self, attrs):
-        if super().filter(attrs, 'Upstream:'):
+        if super().filter(attrs, "Upstream:"):
             return True
-        if attrs['feedstock_name'] not in self.graph:
+        if attrs["feedstock_name"] not in self.graph:
             return True
         # If in top level or in a cycle don't check for upstreams just build
-        if ((self.top_level and attrs['feedstock_name'] in self.top_level)
-            or (self.cycles and attrs['feedstock_name'] in self.cycles)):
+        if (self.top_level and attrs["feedstock_name"] in self.top_level) or (
+            self.cycles and attrs["feedstock_name"] in self.cycles
+        ):
             return False
         # Check if all upstreams have been built
-        for node in self.graph.predecessors(attrs['feedstock_name']):
-            att = self.graph.nodes[node]['payload']
+        for node in self.graph.predecessors(attrs["feedstock_name"]):
+            att = self.graph.nodes[node]["payload"]
             muid = frozen_to_json_friendly(self.migrator_uid(att))
-            if muid not in _no_pr_pred(att.get('PRed', [])) and not att.get('archived', False):
+            if muid not in _no_pr_pred(att.get("PRed", [])) and not att.get(
+                "archived", False
+            ):
                 return True
             # This is due to some PRed_json loss due to bad graph deploy outage
-            for m_pred_json in att.get('PRed', []):
-                if m_pred_json['data'] == muid['data']:
+            for m_pred_json in att.get("PRed", []):
+                if m_pred_json["data"] == muid["data"]:
                     break
             else:
                 m_pred_json = None
             # note that if the bot is missing the PR we assume it is open
             # so that errors halt the migration and can be fixed
-            if m_pred_json and m_pred_json.get('PR', {'state': 'open'}).get('state', '') == 'open':
+            if (
+                m_pred_json
+                and m_pred_json.get("PR", {"state": "open"}).get("state", "") == "open"
+            ):
                 return True
         return False
 
     def migrate(self, recipe_dir, attrs, **kwargs):
         with indir(recipe_dir):
-            self.set_build_number('meta.yaml')
+            self.set_build_number("meta.yaml")
         return super().migrate(recipe_dir, attrs)
 
     def pr_body(self, feedstock_ctx):
         body = super().pr_body(None)
-        additional_body = ("This PR has been triggered in an effort to update **{0}**.\n\n"
-                           "Notes and instructions for merging this PR:\n"
-                           "1. Please merge the PR only after the tests have passed. \n"
-                           "2. Feel free to push to the bot's branch to update this PR if needed. \n"
-                           "**Please note that if you close this PR we presume that "
-                           "the feedstock has been rebuilt, so if you are going to "
-                           "perform the rebuild yourself don't close this PR until "
-                           "the your rebuild has been merged.**\n\n"
-                           "This package has the following downstream children:\n"
-                           "{1}\n"
-                           "And potentially more."
-                           "".format(self.name,
-                                     '\n'.join(self.downstream_children(feedstock_ctx))))
+        additional_body = (
+            "This PR has been triggered in an effort to update **{0}**.\n\n"
+            "Notes and instructions for merging this PR:\n"
+            "1. Please merge the PR only after the tests have passed. \n"
+            "2. Feel free to push to the bot's branch to update this PR if needed. \n"
+            "**Please note that if you close this PR we presume that "
+            "the feedstock has been rebuilt, so if you are going to "
+            "perform the rebuild yourself don't close this PR until "
+            "the your rebuild has been merged.**\n\n"
+            "This package has the following downstream children:\n"
+            "{1}\n"
+            "And potentially more."
+            "".format(self.name, "\n".join(self.downstream_children(feedstock_ctx)))
+        )
         body = body.format(additional_body)
         return body
 
@@ -954,16 +1118,21 @@ class Rebuild(Migrator):
 
     def pr_title(self, feedstock_ctx):
         if self.name:
-            return 'Rebuild for ' + self.name
+            return "Rebuild for " + self.name
         else:
-            return 'Bump build number'
+            return "Bump build number"
 
     def pr_head(self):
-        return self.ctx.github_username + ':' + self.remote_branch()
+        return self.ctx.github_username + ":" + self.remote_branch()
 
     def remote_branch(self):
-        s_obj = str(self.obj_version) if self.obj_version else ''
-        return 'rebuild' + self.name.lower().replace(' ', '_') + str(self.migrator_version) + s_obj
+        s_obj = str(self.obj_version) if self.obj_version else ""
+        return (
+            "rebuild"
+            + self.name.lower().replace(" ", "_")
+            + str(self.migrator_version)
+            + s_obj
+        )
 
     def migrator_uid(self, attrs):
         n = super().migrator_uid(attrs)
@@ -972,12 +1141,14 @@ class Rebuild(Migrator):
 
     def order(self, graph, total_graph):
         """Run the order by number of decendents, ties are resolved by package name"""
-        return sorted(graph, key=lambda x: (len(nx.descendants(total_graph, x)), x),
-                      reverse=True)
+        return sorted(
+            graph, key=lambda x: (len(nx.descendants(total_graph, x)), x), reverse=True
+        )
 
 
 class Pinning(Migrator):
     """Migrator for remove pinnings for specified requirements."""
+
     migrator_version = 0
     rerender = True
 
@@ -989,12 +1160,15 @@ class Pinning(Migrator):
             self.removals = set(removals)
 
     def filter(self, attrs):
-        return (super().filter(attrs) or
-                len(attrs.get("req", set()) & self.removals) == 0)
+        return (
+            super().filter(attrs) or len(attrs.get("req", set()) & self.removals) == 0
+        )
 
     def migrate(self, recipe_dir, attrs, **kwargs):
         remove_pins = attrs.get("req", set()) & self.removals
-        remove_pats = {req: re.compile(f"\s*-\s*{req}.*?(\s+.*?)(\s*#.*)?$") for req in remove_pins}
+        remove_pats = {
+            req: re.compile(f"\s*-\s*{req}.*?(\s+.*?)(\s*#.*)?$") for req in remove_pins
+        }
         self.removed = {}
         with open(os.path.join(recipe_dir, "meta.yaml")) as f:
             raw = f.read()
@@ -1021,120 +1195,129 @@ class Pinning(Migrator):
     def pr_body(self, feedstock_ctx):
         body = super().pr_body(None)
         body = body.format(
-                    'I noticed that this recipe has version pinnings that may not be needed.\n'
-                    'I have removed the following pinnings:\n'
-                    '{}\n'
-                    'Notes and instructions for merging this PR:\n'
-                    '1. Make sure that the removed pinnings are not needed. \n'
-                    '2. Please merge the PR only after the tests have passed. \n'
-                    "3. Feel free to push to the bot's branch to update this PR if "
-                    "needed. \n".format(
-                        '\n'.join(['{}: {}'.format(n, p) for n, p in self.removed.items()])
-                    ))
+            "I noticed that this recipe has version pinnings that may not be needed.\n"
+            "I have removed the following pinnings:\n"
+            "{}\n"
+            "Notes and instructions for merging this PR:\n"
+            "1. Make sure that the removed pinnings are not needed. \n"
+            "2. Please merge the PR only after the tests have passed. \n"
+            "3. Feel free to push to the bot's branch to update this PR if "
+            "needed. \n".format(
+                "\n".join(["{}: {}".format(n, p) for n, p in self.removed.items()])
+            )
+        )
         return body
 
     def commit_message(self):
         return "remove version pinnings"
 
     def pr_title(self, feedstock_ctx):
-        return 'Suggestion: remove version pinnings'
+        return "Suggestion: remove version pinnings"
 
     def pr_head(self):
-        return self.ctx.github_username + ':' + self.remote_branch()
+        return self.ctx.github_username + ":" + self.remote_branch()
 
     def remote_branch(self):
-        return 'pinning'
+        return "pinning"
 
 
 class ArchRebuild(Rebuild):
     """
     A Migrator that add aarch64 and ppc64le builds to feedstocks
     """
+
     migrator_version = 1
     rerender = True
     # We purposefully don't want to bump build number for this migrator
     bump_number = 0
     # We are constraining the scope of this migrator
     target_packages = {
-        'ncurses',
-        'conda-build',
-        'conda-smithy',
-        'conda-forge-ci-setup',
-        'conda-package-handling',
-        'numpy',
-        'opencv',
-        'ipython',
-        'pandas',
-        'tornado',
-        'matplotlib',
-        'dask',
-        'distributed',
-        'zeromq',
-        'notebook',
-        'scipy',
-        'libarchive',
-        'zstd',
-        'krb5',
-        'scikit-learn',
-        'scikit-image'
-        'su-exec',
-        'flask',
-        'sqlalchemy',
-        'psycopg2',
-        'tini',
-        'clangdev',
-        'pyarrow',
-        'numba',
-        'r-base',
-        'protobuf',
-        'cvxpy',
-        'gevent',
-        'gunicorn',
-        'sympy',
-        'tqdm',
-        'spacy',
-        'lime',
-        'shap',
-        'tesseract',
+        "ncurses",
+        "conda-build",
+        "conda-smithy",
+        "conda-forge-ci-setup",
+        "conda-package-handling",
+        "numpy",
+        "opencv",
+        "ipython",
+        "pandas",
+        "tornado",
+        "matplotlib",
+        "dask",
+        "distributed",
+        "zeromq",
+        "notebook",
+        "scipy",
+        "libarchive",
+        "zstd",
+        "krb5",
+        "scikit-learn",
+        "scikit-image" "su-exec",
+        "flask",
+        "sqlalchemy",
+        "psycopg2",
+        "tini",
+        "clangdev",
+        "pyarrow",
+        "numba",
+        "r-base",
+        "protobuf",
+        "cvxpy",
+        "gevent",
+        "gunicorn",
+        "sympy",
+        "tqdm",
+        "spacy",
+        "lime",
+        "shap",
+        "tesseract",
         # mpi variants
-        'openmpi',
-        'mpich',
-        'poetry',
-        'flit',
-        'constructor',
+        "openmpi",
+        "mpich",
+        "poetry",
+        "flit",
+        "constructor",
         # py27 things
-        'typing',
-        'enum34',
-        'functools32',
-        'jsoncpp',
-        'bcrypt',
-        'root',
-        'pyopencl',
-        'pocl',
-        'oclgrind',
-        'sage',
-        'boost-histogram',
-        'uproot',
-        'iminuit',
-        'geant4',
-        'pythia8',
-        'hepmc3',
-        'root_pandas',
-        'lhcbdirac',
-        'pytest-benchmark',
+        "typing",
+        "enum34",
+        "functools32",
+        "jsoncpp",
+        "bcrypt",
+        "root",
+        "pyopencl",
+        "pocl",
+        "oclgrind",
+        "sage",
+        "boost-histogram",
+        "uproot",
+        "iminuit",
+        "geant4",
+        "pythia8",
+        "hepmc3",
+        "root_pandas",
+        "lhcbdirac",
+        "pytest-benchmark",
     }
-    ignored_packages = {'make', 'perl', 'toolchain', 'posix',
-        'patchelf', # weird issue
+    ignored_packages = {
+        "make",
+        "perl",
+        "toolchain",
+        "posix",
+        "patchelf",  # weird issue
     }
     arches = {
         "linux_aarch64": "default",
         "linux_ppc64le": "default",
     }
 
-    def __init__(self, graph=None, name=None, pr_limit=0, top_level=None,
-                 cycles=None):
-        super().__init__(graph=graph, name=name, pr_limit=pr_limit, top_level=top_level,
-                         cycles=cycles)
+    def __init__(self, graph=None, name=None, pr_limit=0, top_level=None, cycles=None):
+        super().__init__(
+            graph=graph,
+            name=name,
+            pr_limit=pr_limit,
+            top_level=top_level,
+            cycles=cycles,
+        )
         # filter the graph down to the target packages
         if self.target_packages:
             packages = self.target_packages.copy()
@@ -1144,10 +1327,12 @@ class ArchRebuild(Rebuild):
             self.graph.remove_nodes_from([n for n in self.graph if n not in packages])
         # filter out stub packages and ignored packages
         for node in list(self.graph.nodes):
-            if (node.endswith('_stub')
-                    or (node.startswith('m2-'))
-                    or (node.startswith('m2w64-'))
-                    or (node in self.ignored_packages)):
+            if (
+                node.endswith("_stub")
+                or (node.startswith("m2-"))
+                or (node.startswith("m2w64-"))
+                or (node in self.ignored_packages)
+            ):
                 self.graph.remove_node(node)
 
     def filter(self, attrs):
@@ -1155,61 +1340,79 @@ class ArchRebuild(Rebuild):
             return True
         muid = frozen_to_json_friendly(self.migrator_uid(attrs))
         for arch in self.arches:
-            configured_arch = attrs.get("conda-forge.yml", {}).get("provider", {}).get(arch)
+            configured_arch = (
+                attrs.get("conda-forge.yml", {}).get("provider", {}).get(arch)
+            )
             if configured_arch:
-                return muid in _no_pr_pred(attrs.get('PRed', []))
+                return muid in _no_pr_pred(attrs.get("PRed", []))
 
     def migrate(self, recipe_dir, attrs, **kwargs):
-        with indir(recipe_dir + '/..'):
-            with open('conda-forge.yml', 'r') as f:
+        with indir(recipe_dir + "/.."):
+            with open("conda-forge.yml", "r") as f:
                 y = safe_load(f)
-            if 'provider' not in y:
-                y['provider'] = {}
+            if "provider" not in y:
+                y["provider"] = {}
             for k, v in self.arches.items():
-                if k not in y['provider']:
-                    y['provider'][k] = v
+                if k not in y["provider"]:
+                    y["provider"][k] = v
 
-            with open('conda-forge.yml', 'w') as f:
+            with open("conda-forge.yml", "w") as f:
                 safe_dump(y, f)
         return super().migrate(recipe_dir, attrs, **kwargs)
 
     def pr_title(self, feedstock_ctx):
-        return 'Arch Migrator'
+        return "Arch Migrator"
 
     def pr_body(self, feedstock_ctx):
-        body = dedent("""\
+        body = dedent(
+            """\
         This feedstock is being rebuilt as part of the aarch64/ppc64le migration.
 
         **Feel free to merge the PR if CI is all green, but please don't close it
         without reaching out the the ARM migrators first at @conda-forge/arm-arch.**
-        """)
+        """
+        )
         return body
 
     def remote_branch(self):
-        return super().remote_branch() + '_arch'
+        return super().remote_branch() + "_arch"
 
 
 class BlasRebuild(Rebuild):
     """Migrator for rebuilding for blas 2.0."""
+
     migrator_version = 0
     rerender = True
     bump_number = 1
 
     blas_patterns = [
-        re.compile('(\s*?)-\s*(blas|openblas|mkl|(c?)lapack)'),
+        re.compile("(\s*?)-\s*(blas|openblas|mkl|(c?)lapack)"),
         re.compile('(\s*?){%\s*set variant\s*=\s*"openblas"?\s*%}'),
     ]
 
-    def __init__(self, graph=None, name=None, pr_limit=0, top_level=None,
-                 cycles=None, obj_version=None):
-        super().__init__(graph=graph, name="blas2", pr_limit=pr_limit, top_level=top_level,
-                         cycles=cycles, obj_version=obj_version)
+    def __init__(
+        self,
+        graph=None,
+        name=None,
+        pr_limit=0,
+        top_level=None,
+        cycles=None,
+        obj_version=None,
+    ):
+        super().__init__(
+            graph=graph,
+            name="blas2",
+            pr_limit=pr_limit,
+            top_level=top_level,
+            cycles=cycles,
+            obj_version=obj_version,
+        )
 
     def migrate(self, recipe_dir, attrs, **kwargs):
         with indir(recipe_dir):
             # Update build number
             # Remove blas related packages and features
-            with open('meta.yaml', 'r') as f:
+            with open("meta.yaml", "r") as f:
                 lines = f.readlines()
             reqs_line = "build:"
             for i, line in enumerate(lines):
@@ -1224,31 +1427,39 @@ class BlasRebuild(Rebuild):
                 sline = line.lstrip()
                 if len(sline) != len(line) and line.strip() == reqs_line:
                     for dep in ["libblas", "libcblas"]:
-                        print(lines[i], len(line)-len(sline))
-                        lines[i] = lines[i] + " "*(len(line)-len(sline)) + "  - " + dep + "\n"
-            new_text = ''.join(lines)
-            with open('meta.yaml', 'w') as f:
+                        print(lines[i], len(line) - len(sline))
+                        lines[i] = (
+                            lines[i]
+                            + " " * (len(line) - len(sline))
+                            + "  - "
+                            + dep
+                            + "\n"
+                        )
+            new_text = "".join(lines)
+            with open("meta.yaml", "w") as f:
                 f.write(new_text)
         return super().migrate(recipe_dir, attrs)
 
     def pr_body(self, feedstock_ctx):
         body = super().pr_body(None)
-        additional_body = ("This PR has been triggered in an effort to update for new BLAS scheme.\n\n"
-                           "New BLAS scheme builds conda packages against the Reference-LAPACK's libraries\n"
-                           "which allows to change the BLAS implementation at install time by the user.\n\n"
-                           "Checklist:\n"
-                           "1. Tests has passed. \n"
-                           "2. Added `liblapack, liblapacke` if they are needed. \n"
-                           "3. Removed `libcblas` if `cblas_*` API is not used. \n"
-                           "Feel free to push to the bot's branch to update this PR if needed. \n"
-                           "**Please note that if you close this PR we presume that "
-                           "the feedstock has been rebuilt, so if you are going to "
-                           "perform the rebuild yourself don't close this PR until "
-                           "the your rebuild has been merged.**\n\n"
-                           "This package has the following downstream children:\n"
-                           "{children}\n"
-                           "And potentially more."
-                           "".format(children='\n'.join(self.downstream_children(feedstock_ctx))))
+        additional_body = (
+            "This PR has been triggered in an effort to update for new BLAS scheme.\n\n"
+            "New BLAS scheme builds conda packages against the Reference-LAPACK's libraries\n"
+            "which allows to change the BLAS implementation at install time by the user.\n\n"
+            "Checklist:\n"
+            "1. Tests has passed. \n"
+            "2. Added `liblapack, liblapacke` if they are needed. \n"
+            "3. Removed `libcblas` if `cblas_*` API is not used. \n"
+            "Feel free to push to the bot's branch to update this PR if needed. \n"
+            "**Please note that if you close this PR we presume that "
+            "the feedstock has been rebuilt, so if you are going to "
+            "perform the rebuild yourself don't close this PR until "
+            "the your rebuild has been merged.**\n\n"
+            "This package has the following downstream children:\n"
+            "{children}\n"
+            "And potentially more."
+            "".format(children="\n".join(self.downstream_children(feedstock_ctx)))
+        )
         body = body.format(additional_body)
         return body
 
@@ -1256,58 +1467,83 @@ class BlasRebuild(Rebuild):
         return "Rebuild for new BLAS scheme"
 
     def pr_title(self, feedstock_ctx):
-        return 'Rebuild for new BLAS scheme'
+        return "Rebuild for new BLAS scheme"
 
 
 class RBaseRebuild(Rebuild):
     """Migrator for rebuilding all R packages."""
+
     migrator_version = 0
     rerender = True
     bump_number = 1
 
     def migrate(self, recipe_dir, attrs, **kwargs):
         # Set the provider to Azure only
-        with indir(recipe_dir + '/..'):
-            if os.path.exists('conda-forge.yml'):
-                with open('conda-forge.yml', 'r') as f:
+        with indir(recipe_dir + "/.."):
+            if os.path.exists("conda-forge.yml"):
+                with open("conda-forge.yml", "r") as f:
                     y = safe_load(f)
             else:
                 y = {}
-            if 'provider' not in y:
-                y['provider'] = {}
-            y['provider']['win'] = 'azure'
-            with open('conda-forge.yml', 'w') as f:
+            if "provider" not in y:
+                y["provider"] = {}
+            y["provider"]["win"] = "azure"
+            with open("conda-forge.yml", "w") as f:
                 safe_dump(y, f)
 
         with indir(recipe_dir):
-            with open('meta.yaml', 'r') as f:
+            with open("meta.yaml", "r") as f:
                 text = f.read()
 
             changed = False
             lines = text.split("\n")
 
-            if attrs['feedstock_name'].startswith("r-") and "- conda-forge/r" not in text \
-                    and any(a in text for a in ["johanneskoester", "bgruening", "daler", "jdblischak", "cbrueffer", "dbast", "dpryan79"]):
+            if (
+                attrs["feedstock_name"].startswith("r-")
+                and "- conda-forge/r" not in text
+                and any(
+                    a in text
+                    for a in [
+                        "johanneskoester",
+                        "bgruening",
+                        "daler",
+                        "jdblischak",
+                        "cbrueffer",
+                        "dbast",
+                        "dpryan79",
+                    ]
+                )
+            ):
                 for i, line in enumerate(lines):
                     if line.strip() == "recipe-maintainers:" and i + 1 < len(lines):
-                        lines[i] = line + "\n" + lines[i+1][:lines[i+1].index("-")] + "- conda-forge/r"
+                        lines[i] = (
+                            line
+                            + "\n"
+                            + lines[i + 1][: lines[i + 1].index("-")]
+                            + "- conda-forge/r"
+                        )
 
                 changed = True
 
             for i, line in enumerate(lines):
                 if line.lstrip().startswith("- {{native}}toolchain"):
                     replaced_lines = []
-                    for comp in ['c', 'cxx', 'fortran']:
-                        if "compiler('"+ comp + "')" in text:
-                            replaced_lines.append(line.replace("- {{native}}toolchain", "- {{ compiler('m2w64_"+ comp + "') }}"))
+                    for comp in ["c", "cxx", "fortran"]:
+                        if "compiler('" + comp + "')" in text:
+                            replaced_lines.append(
+                                line.replace(
+                                    "- {{native}}toolchain",
+                                    "- {{ compiler('m2w64_" + comp + "') }}",
+                                )
+                            )
                     if len(replaced_lines) != 0:
-                        lines[i] = '\n'.join(replaced_lines)
+                        lines[i] = "\n".join(replaced_lines)
                         changed = True
                         break
 
             if changed:
-                with open('meta.yaml', 'w') as f:
-                    f.write('\n'.join(lines))
+                with open("meta.yaml", "w") as f:
+                    f.write("\n".join(lines))
 
         return super().migrate(recipe_dir, attrs)
 
@@ -1319,19 +1555,23 @@ class GFortranOSXRebuild(Rebuild):
 
     def pr_body(self, feedstock_ctx):
         body = super(Rebuild, self).pr_body(None)
-        additional_body = ("This PR has been triggered in an effort to update **{0}**.\n\n"
-                           "Notes and instructions for merging this PR:\n"
-                           "1. Please merge the PR only after the tests have passed. \n"
-                           "2. Feel free to push to the bot's branch to update this PR if needed. \n"
-                           "**Please note that if you close this PR we presume that "
-                           "the feedstock has been rebuilt, so if you are going to "
-                           "perform the rebuild yourself don't close this PR until "
-                           "the your rebuild has been merged.**\n\n"
-                           "This package has the following downstream children:\n"
-                           "{children}\n"
-                           "And potentially more."
-                           "".format("to gfortran 7 for OSX",
-                                     children='\n'.join(self.downstream_children(feedstock_ctx))))
+        additional_body = (
+            "This PR has been triggered in an effort to update **{0}**.\n\n"
+            "Notes and instructions for merging this PR:\n"
+            "1. Please merge the PR only after the tests have passed. \n"
+            "2. Feel free to push to the bot's branch to update this PR if needed. \n"
+            "**Please note that if you close this PR we presume that "
+            "the feedstock has been rebuilt, so if you are going to "
+            "perform the rebuild yourself don't close this PR until "
+            "the your rebuild has been merged.**\n\n"
+            "This package has the following downstream children:\n"
+            "{children}\n"
+            "And potentially more."
+            "".format(
+                "to gfortran 7 for OSX",
+                children="\n".join(self.downstream_children(feedstock_ctx)),
+            )
+        )
         body = body.format(additional_body)
         return body
 
@@ -1345,18 +1585,28 @@ class GFortranOSXRebuild(Rebuild):
 # This may replace Rebuild
 class MigrationYaml(Migrator):
     """Migrator for bumping the build number."""
+
     migrator_version = 0
     rerender = True
 
     # TODO: add a description kwarg for the status page at some point.
     # TODO: make yaml_contents an arg?
-    def __init__(self,
-                 yaml_contents,
-                 graph=None, name=None, pr_limit=50, top_level=None,
-                 cycles=None, migration_number=None,
-                 bump_number=1,
-                 piggy_back_migrations=None, **kwargs):
-        super().__init__(pr_limit, migration_number, piggy_back_migrations=piggy_back_migrations)
+    def __init__(
+        self,
+        yaml_contents,
+        graph=None,
+        name=None,
+        pr_limit=50,
+        top_level=None,
+        cycles=None,
+        migration_number=None,
+        bump_number=1,
+        piggy_back_migrations=None,
+        **kwargs,
+    ):
+        super().__init__(
+            pr_limit, migration_number, piggy_back_migrations=piggy_back_migrations
+        )
         self.yaml_contents = yaml_contents
         if graph is None:
             self.graph = nx.DiGraph()
@@ -1367,68 +1617,81 @@ class MigrationYaml(Migrator):
         self.cycles = set(chain.from_iterable(cycles or []))
 
         # auto set the pr_limit for initial things
-        number_pred = len([k for k, v in self.graph.nodes.items() if self.migrator_uid(v.get('payload', {})) in [vv.get('data', {}) for vv in v.get('payload', {}).get('PRed', [])]])
-        if number_pred == 0 :
+        number_pred = len(
+            [
+                k
+                for k, v in self.graph.nodes.items()
+                if self.migrator_uid(v.get("payload", {}))
+                in [vv.get("data", {}) for vv in v.get("payload", {}).get("PRed", [])]
+            ]
+        )
+        if number_pred == 0:
             self.pr_limit = 2
         elif number_pred < 7:
             self.pr_limit = 5
         self.bump_number = bump_number
         print(self.yaml_contents)
 
-
     def filter(self, attrs):
-        if super().filter(attrs, 'Upstream:'):
+        if super().filter(attrs, "Upstream:"):
             return True
-        if attrs['feedstock_name'] not in self.graph:
+        if attrs["feedstock_name"] not in self.graph:
             return True
         # If in top level or in a cycle don't check for upstreams just build
-        if ((self.top_level and attrs['feedstock_name'] in self.top_level)
-            or (self.cycles and attrs['feedstock_name'] in self.cycles)):
+        if (self.top_level and attrs["feedstock_name"] in self.top_level) or (
+            self.cycles and attrs["feedstock_name"] in self.cycles
+        ):
             return False
         # Check if all upstreams have been built
-        for node in self.graph.predecessors(attrs['feedstock_name']):
-            att = self.graph.nodes[node]['payload']
+        for node in self.graph.predecessors(attrs["feedstock_name"]):
+            att = self.graph.nodes[node]["payload"]
             muid = frozen_to_json_friendly(self.migrator_uid(att))
-            if muid not in _no_pr_pred(att.get('PRed', [])) and not att.get('archived', False):
+            if muid not in _no_pr_pred(att.get("PRed", [])) and not att.get(
+                "archived", False
+            ):
                 return True
             # This is due to some PRed_json loss due to bad graph deploy outage
-            for m_pred_json in att.get('PRed', []):
-                if m_pred_json['data'] == muid['data']:
+            for m_pred_json in att.get("PRed", []):
+                if m_pred_json["data"] == muid["data"]:
                     break
             else:
                 m_pred_json = None
-            if m_pred_json and m_pred_json['PR'].get('state', '') == 'open':
+            if m_pred_json and m_pred_json["PR"].get("state", "") == "open":
                 return True
         return False
 
     def migrate(self, recipe_dir, attrs, **kwargs):
         # in case the render is old
-        os.makedirs(os.path.join(recipe_dir, '../.ci_support'), exist_ok=True)
-        with indir(os.path.join(recipe_dir, '../.ci_support')):
-            os.makedirs('migrations', exist_ok=True)
-            with indir('migrations'):
-                with open(f'{self.name}.yaml', 'w') as f:
+        os.makedirs(os.path.join(recipe_dir, "../.ci_support"), exist_ok=True)
+        with indir(os.path.join(recipe_dir, "../.ci_support")):
+            os.makedirs("migrations", exist_ok=True)
+            with indir("migrations"):
+                with open(f"{self.name}.yaml", "w") as f:
                     f.write(self.yaml_contents)
-                eval_xonsh('git add .')
+                eval_xonsh("git add .")
         with indir(recipe_dir):
-            self.set_build_number('meta.yaml')
+            self.set_build_number("meta.yaml")
         return super().migrate(recipe_dir, attrs)
 
     def pr_body(self, feedstock_ctx):
         body = super().pr_body(None)
-        additional_body = ("This PR has been triggered in an effort to update **{name}**.\n\n"
-                           "Notes and instructions for merging this PR:\n"
-                           "1. Please merge the PR only after the tests have passed. \n"
-                           "2. Feel free to push to the bot's branch to update this PR if needed. \n"
-                           "**Please note that if you close this PR we presume that "
-                           "the feedstock has been rebuilt, so if you are going to "
-                           "perform the rebuild yourself don't close this PR until "
-                           "the your rebuild has been merged.**\n\n"
-                           "This package has the following downstream children:\n"
-                           "{children}\n"
-                           "And potentially more."
-                           "".format(name=self.name,
-                                     children='\n'.join(self.downstream_children(feedstock_ctx))))
+        additional_body = (
+            "This PR has been triggered in an effort to update **{name}**.\n\n"
+            "Notes and instructions for merging this PR:\n"
+            "1. Please merge the PR only after the tests have passed. \n"
+            "2. Feel free to push to the bot's branch to update this PR if needed. \n"
+            "**Please note that if you close this PR we presume that "
+            "the feedstock has been rebuilt, so if you are going to "
+            "perform the rebuild yourself don't close this PR until "
+            "the your rebuild has been merged.**\n\n"
+            "This package has the following downstream children:\n"
+            "{children}\n"
+            "And potentially more."
+            "".format(
+                name=self.name,
+                children="\n".join(self.downstream_children(feedstock_ctx)),
+            )
+        )
         body = body.format(additional_body)
         return body
 
@@ -1437,16 +1700,21 @@ class MigrationYaml(Migrator):
 
     def pr_title(self, feedstock_ctx):
         if self.name:
-            return 'Rebuild for ' + self.name
+            return "Rebuild for " + self.name
         else:
-            return 'Bump build number'
+            return "Bump build number"
 
     def pr_head(self):
-        return self.ctx.github_username + ':' + self.remote_branch()
+        return self.ctx.github_username + ":" + self.remote_branch()
 
     def remote_branch(self):
-        s_obj = str(self.obj_version) if self.obj_version else ''
-        return 'rebuild-' + self.name.lower().replace(' ', '_') + str(self.migrator_version) + s_obj
+        s_obj = str(self.obj_version) if self.obj_version else ""
+        return (
+            "rebuild-"
+            + self.name.lower().replace(" ", "_")
+            + str(self.migrator_version)
+            + s_obj
+        )
 
     def migrator_uid(self, attrs):
         n = super().migrator_uid(attrs)
@@ -1455,5 +1723,6 @@ class MigrationYaml(Migrator):
 
     def order(self, graph, total_graph):
         """Run the order by number of decendents, ties are resolved by package name"""
-        return sorted(graph, key=lambda x: (len(nx.descendants(total_graph, x)), x),
-                      reverse=True)
+        return sorted(
+            graph, key=lambda x: (len(nx.descendants(total_graph, x)), x), reverse=True
+        )
