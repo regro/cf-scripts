@@ -1,9 +1,11 @@
 import os
 import builtins
+import re
 
 import pytest
 import networkx as nx
 
+from conda_forge_tick.contexts import GithubContext, MigratorsContext, MigratorContext
 from conda_forge_tick.migrators import (
     JS,
     Version,
@@ -250,7 +252,9 @@ from xonsh.lib.os import indir
 yaml_rebuild = MigrationYaml(yaml_contents="hello world", name="hi")
 yaml_rebuild.cycles = []
 yaml_rebuild.filter = lambda x: False
-yaml_rebuild_no_build_number = MigrationYaml(yaml_contents="hello world", name="hi", bump_number=0)
+yaml_rebuild_no_build_number = MigrationYaml(
+    yaml_contents="hello world", name="hi", bump_number=0
+)
 yaml_rebuild_no_build_number.cycles = []
 yaml_rebuild_no_build_number.filter = lambda x: False
 
@@ -282,8 +286,7 @@ yaml_test_list = [
             "bot_rerun": False,
         },
         False,
-
-    )
+    ),
 ]
 
 
@@ -1466,7 +1469,9 @@ about:
   license_file: '{{ environ["PREFIX"] }}/lib/R/share/licenses/BSD_3_clause'
 """
 
-sample_noarch = """{% set name = "xpdan" %}
+sample_noarch = """
+{# sample_noarch #}
+{% set name = "xpdan" %}
 {% set version = "0.3.3" %}
 {% set sha256 = "3f1a84f35471aa8e383da3cf4436492d0428da8ff5b02e11074ff65d400dd076" %}
 
@@ -1526,7 +1531,9 @@ extra:
 """
 
 
-updated_noarch = """{% set name = "xpdan" %}
+updated_noarch = """
+{# updated_noarch #}
+{% set name = "xpdan" %}
 {% set version = "0.3.3" %}
 {% set sha256 = "3f1a84f35471aa8e383da3cf4436492d0428da8ff5b02e11074ff65d400dd076" %}
 
@@ -1586,7 +1593,9 @@ extra:
     - CJ-Wright
 """
 
-sample_noarch_space = """{% set name = "xpdan" %}
+sample_noarch_space = """
+{# sample_noarch_space #}
+{% set name = "xpdan" %}
 {% set version = "0.3.3" %}
 {% set sha256 = "3f1a84f35471aa8e383da3cf4436492d0428da8ff5b02e11074ff65d400dd076" %}
 
@@ -1646,7 +1655,9 @@ extra:
 """
 
 
-updated_noarch_space = """{% set name = "xpdan" %}
+updated_noarch_space = """
+{# updated_noarch_space #}
+{% set name = "xpdan" %}
 {% set version = "0.3.3" %}
 {% set sha256 = "3f1a84f35471aa8e383da3cf4436492d0428da8ff5b02e11074ff65d400dd076" %}
 
@@ -1707,7 +1718,9 @@ extra:
 """
 
 
-sample_pinning = """{% set version = "2.44_01" %}
+sample_pinning = """
+{# sample_pinning #}
+{% set version = "2.44_01" %}
 
 package:
   name: perl-xml-parser
@@ -1756,7 +1769,9 @@ extra:
 """
 
 
-updated_perl = """{% set version = "2.44_01" %}
+updated_perl = """
+{# updated_perl #}
+{% set version = "2.44_01" %}
 
 package:
   name: perl-xml-parser
@@ -1805,7 +1820,9 @@ extra:
 """
 
 
-updated_pinning = """{% set version = "2.44_01" %}
+updated_pinning = """
+{# updated_pinning #}
+{% set version = "2.44_01" %}
 
 package:
   name: perl-xml-parser
@@ -1855,6 +1872,7 @@ extra:
 
 
 sample_blas = """
+{# sample_blas #}
 {% set version = "1.2.1" %}
 {% set variant = "openblas" %}
 
@@ -1898,6 +1916,7 @@ test:
 
 
 updated_blas = """
+{# updated_blas #}
 {% set version = "1.2.1" %}
 
 package:
@@ -1936,6 +1955,7 @@ test:
 """
 
 compress = """
+{# compress #}
 {% set version = "0.8" %}
 package:
   name: viscm
@@ -1972,6 +1992,7 @@ extra:
 """
 
 compress_correct = """
+{# compress_correct #}
 {% set version = "0.9" %}
 package:
   name: viscm
@@ -2009,6 +2030,7 @@ extra:
 
 
 version_license = """
+{# version_license #}
 {% set version = "0.8" %}
 
 package:
@@ -2052,6 +2074,7 @@ extra:
 """
 
 version_license_correct = """
+{# version_license_correct #}
 {% set version = "0.9" %}
 
 package:
@@ -2394,6 +2417,17 @@ env["CIRCLE_BUILD_URL"] = "hi world"
     "m, inp, output, kwargs, prb, mr_out, should_filter", test_list
 )
 def test_migration(m, inp, output, kwargs, prb, mr_out, should_filter, tmpdir):
+    mm_ctx = MigratorsContext(
+        graph=G,
+        smithy_version="",
+        pinning_version="",
+        github_username="",
+        github_password="",
+        circle_build_url=env["CIRCLE_BUILD_URL"],
+    )
+    m_ctx = MigratorContext(mm_ctx, m)
+    m.bind_to_ctx(m_ctx)
+
     mr_out.update(bot_rerun=False)
     with open(os.path.join(tmpdir, "meta.yaml"), "w") as f:
         f.write(inp)
@@ -2424,6 +2458,10 @@ def test_migration(m, inp, output, kwargs, prb, mr_out, should_filter, tmpdir):
     pmy.update(PRed=[frozen_to_json_friendly(mr)])
     with open(os.path.join(tmpdir, "meta.yaml"), "r") as f:
         actual_output = f.read()
+    # strip jinja comments
+    pat = re.compile(r"{#.*#}")
+    actual_output = pat.sub('', actual_output)
+    output = pat.sub('', output)
     assert actual_output == output
     if isinstance(m, Compiler):
         assert m.messages in m.pr_body(None)
