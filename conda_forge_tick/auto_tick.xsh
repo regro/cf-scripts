@@ -442,7 +442,7 @@ def add_replacement_migrator(migrators, gx, old_pkg, new_pkg, rationale):
         for e in list(total_graph.in_edges(node)):
             if e[0] not in rq:
                 total_graph.remove_edge(*e)
-        if not any([old_pkg_c]):
+        if not old_pkg_c:
             pluck(total_graph, node)
 
     # post plucking we can have several strange cases, lets remove all selfloops
