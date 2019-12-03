@@ -44,12 +44,14 @@ def main(*args, **kwargs):
     parser.add_argument("--run")
     parser.add_argument("--debug", dest="debug", action="store_true", default=False,
         help="Runs in debug mode, running paraellel parts sequentially and printing more info.")
+    parser.add_argument("--dry-run", dest="dry_run", action="store_true", default=False,
+                        help="Don't push changes to PRs or graph to Github")
     args = parser.parse_args()
     $CONDA_FORGE_TICK_DEBUG = args.debug
     script = int(args.run)
     if script in int_script_dict:
         start = time.time()
-        int_script_dict[script]()
+        int_script_dict[script](args)
         print('FINISHED STAGE {} IN {} SECONDS'.format(script, time.time() - start))
     else:
         raise RuntimeError("Unknown script number")
