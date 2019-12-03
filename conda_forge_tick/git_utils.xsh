@@ -152,7 +152,10 @@ def get_repo(attrs, branch, feedstock=None, protocol='ssh',
     return feedstock_dir, repo
 
 
-def delete_branch(pr_json: LazyJson):
+def delete_branch(pr_json: LazyJson, dry_run=False):
+    if dry_run:
+        print("dry run: deleting ref %s" % ref)
+        return
     ref = pr_json['head']['ref']
     name = pr_json['base']['repo']['name']
     token = $PASSWORD
@@ -212,7 +215,7 @@ def close_out_labels(pr_json: LazyJson, gh=None, dry_run=False):
 
 
 def push_repo(feedstock_dir, body, repo, title, head, branch,
-              pull_request=True):
+              pull_request=True, dry_run=False):
     """Push a repo up to github
 
     Parameters
@@ -223,6 +226,8 @@ def push_repo(feedstock_dir, body, repo, title, head, branch,
         The PR body
     pull_request : bool, optional
         If True issue pull request, defaults to True
+    dry_run : bool, optional
+        If True, does not interact with git
 
     Returns
     -------
@@ -235,22 +240,30 @@ def push_repo(feedstock_dir, body, repo, title, head, branch,
         # Copyright (c) 2016 Aaron Meurer, Gil Forsyth
         token = $PASSWORD
         deploy_repo = $USERNAME + '/' + $PROJECT + '-feedstock'
-        doctr_run(['git', 'remote', 'add', 'regro_remote',
-                   'https://{token}@github.com/{deploy_repo}.git'.format(
-                       token=token, deploy_repo=deploy_repo)],
-                  token=token.encode('utf-8'))
+        if dry_run:
+            repo_url = 'https://github.com/{deploy_repo}.git'.format(deploy_repo=deploy_repo)
+            print("dry run: adding remote and pushing up branch for %s" % repo_url)
+        else:
+            doctr_run(['git', 'remote', 'add', 'regro_remote',
+                       'https://{token}@github.com/{deploy_repo}.git'.format(
+                           token=token, deploy_repo=deploy_repo)],
+                      token=token.encode('utf-8'))
 
-        doctr_run(['git', 'push', '--set-upstream', 'regro_remote', branch],
-                  token=token.encode('utf-8'))
+            doctr_run(['git', 'push', '--set-upstream', 'regro_remote', branch],
+                      token=token.encode('utf-8'))
     # lastly make a PR for the feedstock
     if not pull_request:
         return
     print('Creating conda-forge feedstock pull request...')
-    pr = repo.create_pull(title, 'master', head, body=body)
-    if pr is None:
-        print('Failed to create pull request!')
+    if dry_run:
+        print("dry run: create pr with title: %s" % title)
+        pr = {}
     else:
-        print('Pull request created at ' + pr.html_url)
+        pr = repo.create_pull(title, 'master', head, body=body)
+        if pr is None:
+            print('Failed to create pull request!')
+        else:
+            print('Pull request created at ' + pr.html_url)
     # Return a json object so we can remake the PR if needed
     pr_dict = pr.as_dict()
     ljpr = LazyJson(os.path.join($PRJSON_DIR, str(pr_dict['id']) + '.json'))
@@ -260,17 +273,22 @@ def push_repo(feedstock_dir, body, repo, title, head, branch,
 @backoff.on_exception(backoff.expo,
   (RequestException, Timeout),
   max_time=MAX_GITHUB_TIMEOUT)
-def ensure_label_exists(repo: github3.repos.Repository, label_dict: dict):
+def ensure_label_exists(repo: github3.repos.Repository, label_dict: dict, dry_run=False):
+    if dry_run:
+        print("dry run: ensure label exists %s" % label_dict["name"])
     try:
         repo.label(label_dict['name'])
     except github3.exceptions.NotFoundError:
         repo.create_label(**label_dict)
 
 
-def label_pr(repo: github3.repos.Repository, pr_json: LazyJson, label_dict: dict):
+def label_pr(repo: github3.repos.Repository, pr_json: LazyJson, label_dict: dict, dry_run=False):
     ensure_label_exists(repo, label_dict)
-    iss = repo.issue(pr_json['number'])
-    iss.add_labels(label_dict['name'])
+    if dry_run:
+        print("dry run: label pr %s with %s" % (pr_json['number'], label_dict["name"]))
+    else:
+        iss = repo.issue(pr_json['number'])
+        iss.add_labels(label_dict['name'])
 
 
 def is_github_api_limit_reached(e: github3.GitHubError, gh: github3.GitHub) -> bool:
