@@ -257,11 +257,12 @@ def push_repo(feedstock_dir, body, repo, title, head, branch,
     print('Creating conda-forge feedstock pull request...')
     if dry_run:
         print("dry run: create pr with title: %s" % title)
-        pr = {}
+        return False
     else:
         pr = repo.create_pull(title, 'master', head, body=body)
         if pr is None:
             print('Failed to create pull request!')
+            return False
         else:
             print('Pull request created at ' + pr.html_url)
     # Return a json object so we can remake the PR if needed
