@@ -592,12 +592,12 @@ def initialize_migrators(do_rebuild=False):
     pinning_version = json.loads(![conda list conda-forge-pinning --json].output.strip())[0]['version']
 
     add_arch_migrate($MIGRATORS, gx)
-    add_replacement_migrator(
-        $MIGRATORS, gx,
-        'matplotlib',
-        'matplotlib-base',
-        ('Unless you need `pyqt`, recipes should depend only on '
-         '`matplotlib-base`.'))
+    # add_replacement_migrator(
+    #     $MIGRATORS, gx,
+    #     'matplotlib',
+    #     'matplotlib-base',
+    #     ('Unless you need `pyqt`, recipes should depend only on '
+    #      '`matplotlib-base`.'))
     migration_factory($MIGRATORS, gx)
     for m in $MIGRATORS:
         print(f'{getattr(m, "name", m)} graph size: {len(getattr(m, "graph", []))}')
