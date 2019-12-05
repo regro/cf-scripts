@@ -1031,6 +1031,81 @@ class Pinning(Migrator):
         return 'pinning'
 
 
+class Replacement(Migrator):
+    """Migrator for replacing one package with another.
+
+    Parameters
+    ----------
+    old_pkg : str
+        The package to be replaced.
+    new_pkg : str
+        The package to replace the `old_pkg`.
+    rationale : str
+        The reason the for the migration. Should be a full statement.
+    """
+    migrator_version = 0
+    rerender = True
+
+    def __init__(self, *, old_pkg, new_pkg, rationale, pr_limit=0):
+        super().__init__(pr_limit)
+        self.old_pkg = old_pkg
+        self.new_pkg = new_pkg
+        self.pattern = re.compile("\s*-\s*(%s)(\s+|$)" % old_pkg)
+        self.packages = set([old_pkg])
+        self.rationale = rationale
+
+    def filter(self, attrs):
+        return (super().filter(attrs) or
+                len(attrs.get("req", set()) & self.packages) == 0)
+
+    def migrate(self, recipe_dir, attrs, **kwargs):
+        with open(os.path.join(recipe_dir, "meta.yaml")) as f:
+            raw = f.read()
+        lines = raw.splitlines()
+        n = False
+        for i, line in enumerate(lines):
+            m = self.pattern.match(line)
+            if m is not None:
+                lines[i] = lines[i].replace(m.group(1), self.new_pkg)
+                n = True
+        if not n:
+            return False
+        upd = "\n".join(lines) + "\n"
+        with open(os.path.join(recipe_dir, "meta.yaml"), "w") as f:
+            f.write(upd)
+        self.set_build_number(os.path.join(recipe_dir, "meta.yaml"))
+        return super().migrate(recipe_dir, attrs)
+
+    def pr_body(self):
+        body = super().pr_body()
+        body = body.format(
+                    'I noticed that this recipe depends on `%s` instead of \n'
+                    '`%s`. %s \n'
+                    'This PR makes this change.'
+                    '\n'
+                    'Notes and instructions for merging this PR:\n'
+                    '1. Make sure that the recipe can indeed only depend on `%s`. \n'
+                    '2. Please merge the PR only after the tests have passed. \n'
+                    "3. Feel free to push to the bot's branch to update this PR if "
+                    "needed. \n" % (
+                        self.old_pkg, self.new_pkg, self.rationale,
+                        self.new_pkg))
+        return body
+
+    def commit_message(self):
+        return "use %s instead of %s" % (self.new_pkg, self.old_pkg)
+
+    def pr_title(self):
+        return 'Suggestion: depend on %s instead of %s' % (
+            self.new_pkg, self.old_pkg)
+
+    def pr_head(self):
+        return $USERNAME + ':' + self.remote_branch()
+
+    def remote_branch(self):
+        return '%s-to-%s-migration' % (self.old_pkg, self.new_pkg)
+
+
 class ArchRebuild(Rebuild):
     """
     A Migrator that add aarch64 and ppc64le builds to feedstocks

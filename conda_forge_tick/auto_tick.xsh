@@ -411,6 +411,52 @@ def add_rebuild_blas(migrators, gx):
                 cycles=cycles, obj_version=0))
 
 
+def add_replacement_migrator(migrators, gx, old_pkg, new_pkg, rationale):
+    """Adds a migrator to replace one package with another.
+
+    Parameters
+    ----------
+    migrators : list of Migrator
+        The list of migrators to run.
+    gx : graph
+        The conda-forge dependency graph.
+    old_pkg : str
+        The package to be replaced.
+    new_pkg : str
+        The package to replace the `old_pkg`.
+    rationale : str
+        The reason the for the migration. Should be a full statement.
+
+    """
+    total_graph = copy.deepcopy(gx)
+
+    for node, node_attrs in gx.nodes.items():
+        attrs = node_attrs['payload']
+        meta_yaml = attrs.get("meta_yaml", {}) or {}
+        bh = get_requirements(meta_yaml)
+        pkgs = set([old_pkg])
+        old_pkg_c = len(pkgs.intersection(bh)) > 0
+
+        rq = _host_run_test_dependencies(meta_yaml)
+
+        for e in list(total_graph.in_edges(node)):
+            if e[0] not in rq:
+                total_graph.remove_edge(*e)
+        if not old_pkg_c:
+            pluck(total_graph, node)
+
+    # post plucking we can have several strange cases, lets remove all selfloops
+    total_graph.remove_edges_from(nx.selfloop_edges(total_graph))
+
+    top_level = set(node for node in total_graph if not list(
+        total_graph.predecessors(node)))
+    cycles = list(nx.simple_cycles(total_graph))
+
+    migrators.append(
+        Replacement(old_pkg=old_pkg, new_pkg=new_pkg, rationale=rationale,
+                    pr_limit=5))
+
+
 def add_arch_migrate(migrators, gx):
     """Adds rebuild migrators.
 
@@ -448,7 +494,7 @@ def add_arch_migrate(migrators, gx):
                         cycles=cycles))
 
 
-def add_rebuild_migration_yaml(migrators, gx, package_names, migration_yaml, 
+def add_rebuild_migration_yaml(migrators, gx, package_names, migration_yaml,
                                config={},
                                migration_name="", pr_limit=50):
     """Adds rebuild migrator.
@@ -476,11 +522,11 @@ def add_rebuild_migration_yaml(migrators, gx, package_names, migration_yaml,
     for node, node_attrs in gx.nodes.items():
         attrs = node_attrs['payload']
         meta_yaml = attrs.get("meta_yaml", {}) or {}
-        if ('strong' in meta_yaml.get('build', {}) or 
+        if ('strong' in meta_yaml.get('build', {}) or
             any(['strong' in output.get('build', {}) for output in meta_yaml.get('outputs', []) if output.get('build')])):
             bh = get_requirements(meta_yaml, run=False)
         else:
-            bh = (get_requirements(meta_yaml, run=False, build=False, host=True) or 
+            bh = (get_requirements(meta_yaml, run=False, build=False, host=True) or
                   get_requirements(meta_yaml, build=True, run=False, host=False))
         criteria = any(package_name in bh for package_name in package_names) and ('noarch' not in meta_yaml.get('build', {}))
 
@@ -499,12 +545,12 @@ def add_rebuild_migration_yaml(migrators, gx, package_names, migration_yaml,
                  (node in total_graph) and
                  len(list(total_graph.predecessors(node))) == 0}
     cycles = list(nx.simple_cycles(total_graph))
-    migrator = MigrationYaml(migration_yaml, 
+    migrator = MigrationYaml(migration_yaml,
                   graph=total_graph,
                   pr_limit=pr_limit,
                   name=migration_name,
                   top_level=top_level,
-                  cycles=cycles, 
+                  cycles=cycles,
                   piggy_back_migrations=[PipMigrator(), LicenseMigrator()], **config)
     print(f'bump number is {migrator.bump_number}')
     migrators.append(migrator)
@@ -546,6 +592,12 @@ def initialize_migrators(do_rebuild=False):
     pinning_version = json.loads(![conda list conda-forge-pinning --json].output.strip())[0]['version']
 
     add_arch_migrate($MIGRATORS, gx)
+    add_replacement_migrator(
+        $MIGRATORS, gx,
+        'matplotlib',
+        'matplotlib-base',
+        ('Unless you need `pyqt`, recipes should depend only on '
+         '`matplotlib-base`.'))
     migration_factory($MIGRATORS, gx)
     for m in $MIGRATORS:
         print(f'{getattr(m, "name", m)} graph size: {len(getattr(m, "graph", []))}')

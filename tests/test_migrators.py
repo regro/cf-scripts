@@ -16,6 +16,7 @@ from conda_forge_tick.migrators import (
     BlasRebuild,
     LicenseMigrator,
     MigrationYaml,
+    Replacement,
 )
 from conda_forge_tick.utils import parse_meta_yaml, frozen_to_json_friendly
 
@@ -2095,6 +2096,94 @@ extra:
     - kthyng
 """
 
+sample_matplotlib = """
+{% set version = "0.9" %}
+
+package:
+  name: viscm
+  version: {{ version }}
+
+source:
+  url: https://pypi.io/packages/source/v/viscm/viscm-{{ version }}.tar.gz
+  sha256: c770e4b76f726e653d2b7c2c73f71941a88de6eb47ccf8fb8e984b55562d05a2
+
+build:
+  number: 0
+  noarch: python
+  script: python -m pip install --no-deps --ignore-installed .
+
+requirements:
+  host:
+    - python
+    - pip
+    - numpy
+  run:
+    - python
+    - numpy
+    - matplotlib
+    - colorspacious
+
+test:
+  imports:
+    - viscm
+
+about:
+  home: https://github.com/bids/viscm
+  license: MIT
+  license_file: LICENSE
+  license_family: MIT
+  # license_file: '' we need to an issue upstream to get a license in the source dist.
+  summary: A colormap tool
+
+extra:
+  recipe-maintainers:
+    - kthyng
+"""
+
+sample_matplotlib_correct = """
+{% set version = "0.9" %}
+
+package:
+  name: viscm
+  version: {{ version }}
+
+source:
+  url: https://pypi.io/packages/source/v/viscm/viscm-{{ version }}.tar.gz
+  sha256: c770e4b76f726e653d2b7c2c73f71941a88de6eb47ccf8fb8e984b55562d05a2
+
+build:
+  number: 1
+  noarch: python
+  script: python -m pip install --no-deps --ignore-installed .
+
+requirements:
+  host:
+    - python
+    - pip
+    - numpy
+  run:
+    - python
+    - numpy
+    - matplotlib-base
+    - colorspacious
+
+test:
+  imports:
+    - viscm
+
+about:
+  home: https://github.com/bids/viscm
+  license: MIT
+  license_file: LICENSE
+  license_family: MIT
+  # license_file: '' we need to an issue upstream to get a license in the source dist.
+  summary: A colormap tool
+
+extra:
+  recipe-maintainers:
+    - kthyng
+"""
+
 js = JS()
 version = Version()
 lm = LicenseMigrator()
@@ -2110,6 +2199,12 @@ rebuild.filter = lambda x: False
 
 blas_rebuild = BlasRebuild(cycles=[])
 blas_rebuild.filter = lambda x: False
+
+matplotlib = Replacement(
+    old_pkg='matplotlib', new_pkg='matplotlib-base',
+    rationale=('Unless you need `pyqt`, recipes should depend only on '
+               '`matplotlib-base`.'),
+    pr_limit=5)
 
 test_list = [
     (
@@ -2368,6 +2463,18 @@ test_list = [
             "migrator_name": "BlasRebuild",
             "migrator_version": blas_rebuild.migrator_version,
             "name": "blas2",
+        },
+        False,
+    ),
+    (
+        matplotlib,
+        sample_matplotlib,
+        sample_matplotlib_correct,
+        {},
+        "I noticed that this recipe depends on `matplotlib` instead of ",
+        {
+            "migrator_name": "Replacement",
+            "migrator_version": matplotlib.migrator_version,
         },
         False,
     ),
