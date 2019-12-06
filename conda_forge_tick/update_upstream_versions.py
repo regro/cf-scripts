@@ -72,6 +72,8 @@ class VersionFromFeed:
                     ver = ver[len(prefix) :]
             if any(s in ver for s in self.dev_vers):
                 continue
+            # Extract vesion number starting at the first digit.
+            ver = re.search(r"(\d+[^\s]*)", ver).group(0)
             vers.append(ver)
         if vers:
             return max(vers, key=lambda x: VersionOrder(x.replace("-", ".")))
