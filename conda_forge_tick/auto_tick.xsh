@@ -41,7 +41,7 @@ BOT_RERUN_LABEL = {
 
 def run(attrs, migrator, feedstock=None, protocol='ssh',
         pull_request=True, rerender=True, fork=True, gh=None,
-        **kwargs):
+        dry_run=False, **kwargs):
     """For a given feedstock and migration run the migration
 
     Parameters
@@ -127,7 +127,8 @@ def run(attrs, migrator, feedstock=None, protocol='ssh',
                                 repo,
                                 migrator.pr_title(),
                                 migrator.pr_head(),
-                                migrator.remote_branch())
+                                migrator.remote_branch(),
+                                dry_run)
 
         # This shouldn't happen too often any more since we won't double PR
         except github3.GitHubError as e:
@@ -710,7 +711,10 @@ def migrator_status(migrator: Migrator, gx):
 
 
 def main(args=None):
-    gh = github3.login($USERNAME, $PASSWORD)
+    if args.dry_run:
+        gh = None
+    else:
+        gh = github3.login($USERNAME, $PASSWORD)
     gx, smithy_version, pinning_version, temp, $MIGRATORS = initialize_migrators(False)
 
     for migrator in $MIGRATORS:
@@ -735,14 +739,15 @@ def main(args=None):
                             $PROJECT)
                 try:
                     # Don't bother running if we are at zero
-                    if gh.rate_limit()['resources']['core']['remaining'] == 0:
+                    if not args.dry_run and gh.rate_limit()['resources']['core']['remaining'] == 0:
                         break
                     rerender = (attrs.get('smithy_version') != smithy_version or
                                 attrs.get('pinning_version') != pinning_version or
                                 migrator.rerender)
                     migrator_uid, pr_json = run(attrs=attrs, migrator=migrator, gh=gh,
                                                 rerender=rerender, protocol='https',
-                                                hash_type=attrs.get('hash_type', 'sha256'))
+                                                hash_type=attrs.get('hash_type', 'sha256'),
+                                                dry_run=args.dry_run)
                     # if migration successful
                     if migrator_uid:
                         d = frozen_to_json_friendly(migrator_uid)

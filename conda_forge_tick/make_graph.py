@@ -178,10 +178,10 @@ def make_graph(names, gx=None):
     return gx
 
 
-def update_graph_pr_status(gx: nx.DiGraph) -> nx.DiGraph:
+def update_graph_pr_status(gx: nx.DiGraph, dry_run=False) -> nx.DiGraph:
     failed_refresh = 0
     succeeded_refresh = 0
-    gh = github_client()
+    gh = "" if dry_run else github_client()
     futures = {}
     node_ids = list(gx.nodes)
     # this makes sure that github rate limits are dispersed
@@ -194,7 +194,7 @@ def update_graph_pr_status(gx: nx.DiGraph) -> nx.DiGraph:
                 pr_json = migration.get('PR', None)
                 # allow for false
                 if pr_json:
-                    future = pool.submit(refresh_pr, pr_json, gh)
+                    future = pool.submit(refresh_pr, pr_json, gh, dry_run)
                     futures[future] = (node_id, i)
 
         for f in as_completed(futures):
@@ -224,10 +224,10 @@ def update_graph_pr_status(gx: nx.DiGraph) -> nx.DiGraph:
     return gx
 
 
-def close_labels(gx: nx.DiGraph) -> nx.DiGraph:
+def close_labels(gx: nx.DiGraph, dry_run=False) -> nx.DiGraph:
     failed_refresh = 0
     succeeded_refresh = 0
-    gh = github_client()
+    gh = "" if dry_run else github_client()
     futures = {}
     node_ids = list(gx.nodes)
     # this makes sure that github rate limits are dispersed
@@ -240,7 +240,7 @@ def close_labels(gx: nx.DiGraph) -> nx.DiGraph:
                 pr_json = migration.get('PR', None)
                 # allow for false
                 if pr_json:
-                    future = pool.submit(close_out_labels, pr_json, gh)
+                    future = pool.submit(close_out_labels, pr_json, gh, dry_run)
                     futures[future] = (node_id, i)
 
         for f in as_completed(futures):
@@ -285,8 +285,8 @@ def main(args=None):
     # Utility flag for testing -- we don't need to always update GH
     no_github_fetch = os.environ.get('CONDA_FORGE_TICK_NO_GITHUB_REQUESTS')
     if not no_github_fetch:
-        gx = close_labels(gx)
-        gx = update_graph_pr_status(gx)
+        gx = close_labels(gx, args.dry_run)
+        gx = update_graph_pr_status(gx, args.dry_run)
 
     logger.info("writing out file")
     dump_graph(gx)
