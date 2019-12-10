@@ -1,22 +1,21 @@
-import os
-from collections import defaultdict
-
-from collections.abc import Set, MutableMapping
-from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor, as_completed
-
 import contextlib
-import logging
 import itertools
 import json
+import logging
+import os
 import re
+from collections import defaultdict
+from collections.abc import Mapping, MutableMapping, Sequence, Set
+from concurrent.futures import (ProcessPoolExecutor, ThreadPoolExecutor,
+                                as_completed,)
 
 import github3
 import jinja2
+
 import networkx as nx
 
 pin_sep_pat = re.compile(" |>|<|=|\[")
 
-from collections import Mapping, Set, Sequence
 
 # dual python 2/3 compatability, inspired by the "six" library
 string_types = (str, bytes)
