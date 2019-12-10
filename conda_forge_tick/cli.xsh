@@ -10,8 +10,11 @@ from .auto_tick import main as main_auto_tick
 from .status_report import main as main_status_report
 
 
-def deploy():
+def deploy(args=None):
     """Deploy the graph to github"""
+    if args.dry_run:
+        print("(dry run) deploying graph to github")
+        return
     for cmd in [['git', 'add', 'pr_json/*'],
                 ['git', 'add', 'status/*'],
                 ['git', 'add', 'node_attrs/*'],
