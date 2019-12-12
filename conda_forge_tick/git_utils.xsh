@@ -215,7 +215,7 @@ def close_out_labels(pr_json: LazyJson, gh=None, dry_run=False):
 
 
 def push_repo(feedstock_dir, body, repo, title, head, branch,
-              pull_request=True, dry_run=False):
+              dry_run=False):
     """Push a repo up to github
 
     Parameters
@@ -224,8 +224,6 @@ def push_repo(feedstock_dir, body, repo, title, head, branch,
         The feedstock directory
     body : str
         The PR body
-    pull_request : bool, optional
-        If True issue pull request, defaults to True
     dry_run : bool, optional
         If True, does not interact with git
 
@@ -252,8 +250,6 @@ def push_repo(feedstock_dir, body, repo, title, head, branch,
             doctr_run(['git', 'push', '--set-upstream', 'regro_remote', branch],
                       token=token.encode('utf-8'))
     # lastly make a PR for the feedstock
-    if not pull_request:
-        return
     print('Creating conda-forge feedstock pull request...')
     if dry_run:
         print("dry run: create pr with title: %s" % title)
