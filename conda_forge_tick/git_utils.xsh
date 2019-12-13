@@ -134,21 +134,21 @@ def get_repo(attrs, branch, feedstock=None, protocol='ssh',
             msg += '. Do you have a personal fork of the feedstock?'
             return
     with indir(feedstock_dir):
-        git fetch @(origin)
+        git fetch @(origin) --quiet
         # make sure feedstock is up-to-date with origin
         git checkout master
-        git pull @(origin) master
+        git pull @(origin) master --quiet
         # remove any uncommited changes?
         git reset --hard HEAD
         # make sure feedstock is up-to-date with upstream
         # git pull @(upstream) master -s recursive -X theirs --no-edit
         # always run upstream master
         git remote add upstream @(upstream)
-        git fetch upstream master
+        git fetch upstream master --quiet
         git reset --hard upstream/master
         # make and modify version branch
         with ${...}.swap(RAISE_SUBPROC_ERROR=False):
-            git checkout @(branch) or git checkout -b @(branch) master
+            git checkout @(branch) --quiet or git checkout -b @(branch) master --quiet
     return feedstock_dir, repo
 
 
