@@ -7,13 +7,11 @@ import re
 import yaml
 
 import feedparser
-import networkx as nx
 import requests
 from conda.models.version import VersionOrder
 from pkg_resources import parse_version
 
-from .utils import parse_meta_yaml, setup_logger, executor, load_graph, \
-    dump_graph
+from .utils import parse_meta_yaml, setup_logger, executor, load_graph, dump_graph
 
 logger = logging.getLogger("conda_forge_tick.update_upstream_versions")
 
@@ -29,7 +27,7 @@ def urls_from_meta(meta_yaml):
         if "url" in s:
             # if it is a list for instance
             if not isinstance(s["url"], str):
-                urls.update(s['url'])
+                urls.update(s["url"])
             else:
                 urls.add(s["url"])
     return urls
@@ -91,7 +89,7 @@ class Github(VersionFromFeed):
         package_owner = split_url[split_url.index("github.com") + 1]
         gh_package_name = split_url[split_url.index("github.com") + 2]
         return "https://github.com/{}/{}/releases.atom".format(
-            package_owner, gh_package_name
+            package_owner, gh_package_name,
         )
 
 
@@ -104,7 +102,7 @@ class LibrariesIO(VersionFromFeed):
             if self.url_contains not in url:
                 continue
             pkg = self.package_name(url)
-            return "https://libraries.io/{}/{}/versions.atom".format(self.name, pkg)
+            return f"https://libraries.io/{self.name}/{pkg}/versions.atom"
 
 
 class PyPI:
@@ -116,7 +114,7 @@ class PyPI:
         if not any(s in source_url for s in url_names):
             return None
         pkg = meta_yaml["url"].split("/")[6]
-        return "https://pypi.org/pypi/{}/json".format(pkg)
+        return f"https://pypi.org/pypi/{pkg}/json"
 
     def get_version(self, url):
         r = requests.get(url)
@@ -159,6 +157,7 @@ class CRAN:
     the CRAN class to allow efficient distributed execution with e.g.
     dask.
     """
+
     name = "cran"
     url_contains = "cran.r-project.org/src/contrib/Archive"
     cran_url = "https://cran.r-project.org"
@@ -209,86 +208,97 @@ class CRAN:
     def get_version(self, url):
         return str(url[1]).replace("-", "_") if url[1] else None
 
+
 ROS_DISTRO_INDEX = None
 
-class ROSDistro:
-    name = 'rosdistro'
 
-    def parse_idx(self, distro_name='melodic'):
+class ROSDistro:
+    name = "rosdistro"
+
+    def parse_idx(self, distro_name="melodic"):
         session = requests.Session()
-        res = session.get('https://raw.githubusercontent.com/ros/rosdistro/master/{distro}/distribution.yaml'.format(distro=distro_name))
+        res = session.get(
+            "https://raw.githubusercontent.com/ros/rosdistro/master/{distro}/distribution.yaml".format(
+                distro=distro_name,
+            ),
+        )
         res.raise_for_status()
         resd = yaml.load(res.text, Loader=yaml.SafeLoader)
-        repos = resd['repositories']
+        repos = resd["repositories"]
 
-        result_dict = {}
-        result_dict[distro_name] = {
-            'reverse': {},
-            'forward': {}
-        }
+        result_dict = {distro_name: {"reverse": {}, "forward": {}}}
         for k, v in repos.items():
-            if not v.get('release'):
+            if not v.get("release"):
                 continue
-            if v['release'].get('packages'):
-                for p in v['release']['packages']:
-                    result_dict[distro_name]['reverse'][self.encode_ros_name(p)] = (k, p)
+            if v["release"].get("packages"):
+                for p in v["release"]["packages"]:
+                    result_dict[distro_name]["reverse"][self.encode_ros_name(p)] = (
+                        k,
+                        p,
+                    )
             else:
-                result_dict[distro_name]['reverse'][self.encode_ros_name(k)] = (k, k)
-        result_dict[distro_name]['forward'] = repos
+                result_dict[distro_name]["reverse"][self.encode_ros_name(k)] = (k, k)
+        result_dict[distro_name]["forward"] = repos
         return result_dict
 
     def encode_ros_name(self, name):
-        new_name = name.replace('_', '-')
-        if new_name.startswith('ros-'):
+        new_name = name.replace("_", "-")
+        if new_name.startswith("ros-"):
             return new_name
         else:
-            return 'ros-' + new_name
+            return "ros-" + new_name
 
     def init(self):
         global ROS_DISTRO_INDEX
         if not ROS_DISTRO_INDEX:
             self.version_url_cache = {}
             try:
-                ROS_DISTRO_INDEX = self.parse_idx('melodic')
+                ROS_DISTRO_INDEX = self.parse_idx("melodic")
                 logger.info("ROS Distro source initialized")
             except Exception:
                 logger.error("ROS Distro initialization failed", exc_info=True)
                 ROS_DISTRO_INDEX = {}
 
     def get_url(self, meta_yaml):
-        if not meta_yaml['name'].startswith('ros-'):
+        if not meta_yaml["name"].startswith("ros-"):
             return None
 
         self.init()
 
-        toplevel_package, package = ROS_DISTRO_INDEX['melodic']['reverse'][meta_yaml['name']]
+        toplevel_package, package = ROS_DISTRO_INDEX["melodic"]["reverse"][
+            meta_yaml["name"]
+        ]
 
-        p_dict = ROS_DISTRO_INDEX['melodic']['forward'][toplevel_package]
-        version = p_dict['release']['version']
-        tag_url = p_dict['release']['tags']['release'].format(package=package, version=version)
-        url = p_dict['release']['url']
+        p_dict = ROS_DISTRO_INDEX["melodic"]["forward"][toplevel_package]
+        version = p_dict["release"]["version"]
+        tag_url = p_dict["release"]["tags"]["release"].format(
+            package=package, version=version,
+        )
+        url = p_dict["release"]["url"]
 
-        if url.endswith('.git'):
+        if url.endswith(".git"):
             url = url[:-4]
 
-        final_url = "{url}/archive/{tag_url}.tar.gz".format(url=url, tag_url=tag_url)
-        self.version_url_cache[final_url] = version.split('-')[0]
+        final_url = f"{url}/archive/{tag_url}.tar.gz"
+        self.version_url_cache[final_url] = version.split("-")[0]
 
         return final_url
 
     def get_version(self, url):
         return self.version_url_cache[url]
 
+
 def get_sha256(url):
     try:
         from rever import hash_url
+
         return hash_url(url, "sha256")
     except ImportError:
         pass
     try:
         filename = hashlib.sha256(url.encode("utf-8")).hexdigest()
         output = subprocess.check_output(
-            ["wget", url, "-O", filename], stderr=subprocess.STDOUT
+            ["wget", url, "-O", filename], stderr=subprocess.STDOUT,
         )
         output = subprocess.check_output(["sha256sum", filename])
         return output.decode("utf-8").split(" ")[0]
@@ -335,7 +345,7 @@ class RawURL:
                     continue
                 try:
                     output = subprocess.check_output(
-                        ["wget", "--spider", url], stderr=subprocess.STDOUT, timeout=1
+                        ["wget", "--spider", url], stderr=subprocess.STDOUT, timeout=1,
                     )
                 except Exception:
                     continue
@@ -373,7 +383,7 @@ def get_latest_version(payload_meta_yaml, sources):
                 return ver
             else:
                 meta_yaml["bad"] = "Upstream: Could not find version on {}".format(
-                    source.name
+                    source.name,
                 )
         if not meta_yaml.get("bad"):
             meta_yaml["bad"] = "Upstream: unknown source"
@@ -383,7 +393,7 @@ def get_latest_version(payload_meta_yaml, sources):
 def _update_upstream_versions_sequential(gx, sources):
     to_update = []
     for node, node_attrs in gx.nodes.items():
-        attrs = node_attrs['payload']
+        attrs = node_attrs["payload"]
         if attrs.get("bad") or attrs.get("archived"):
             attrs["new_version"] = False
             continue
@@ -392,53 +402,61 @@ def _update_upstream_versions_sequential(gx, sources):
         with node_attrs as attrs:
             try:
                 new_version = get_latest_version(attrs, sources)
-                attrs["new_version"] = new_version or attrs['new_version']
+                attrs["new_version"] = new_version or attrs["new_version"]
             except Exception as e:
                 try:
                     se = str(e)
                 except Exception as ee:
-                    se = "Bad exception string: {}".format(ee)
-                logger.warn("Error getting uptream version of {}: {}".format(node, se))
+                    se = f"Bad exception string: {ee}"
+                logger.warn(f"Error getting uptream version of {node}: {se}")
                 attrs["bad"] = "Upstream: Error getting upstream version"
             else:
                 logger.info(
-                    "{} - {} - {}".format(node, attrs.get("version"), attrs.get("new_version"))
+                    "{} - {} - {}".format(
+                        node, attrs.get("version"), attrs.get("new_version"),
+                    ),
                 )
 
 
 def _update_upstream_versions_process_pool(gx, sources):
     futures = {}
-    with executor(kind='dask', max_workers=20) as (pool, as_completed):
+    with executor(kind="dask", max_workers=20) as (pool, as_completed):
         for node, node_attrs in gx.nodes.items():
-            with node_attrs['payload'] as attrs:
+            with node_attrs["payload"] as attrs:
                 if attrs.get("bad") or attrs.get("archived"):
                     attrs["new_version"] = False
                     continue
                 futures.update(
-                    {pool.submit(get_latest_version, attrs, sources): (node, attrs)}
+                    {pool.submit(get_latest_version, attrs, sources): (node, attrs)},
                 )
         for f in as_completed(futures):
             node, node_attrs = futures[f]
             with node_attrs as attrs:
                 try:
                     new_version = f.result()
-                    attrs["new_version"] = new_version or attrs['new_version']
+                    attrs["new_version"] = new_version or attrs["new_version"]
                 except Exception as e:
                     try:
                         se = str(e)
                     except Exception as ee:
-                        se = "Bad exception string: {}".format(ee)
-                    logger.warn("Error getting uptream version of {}: {}".format(node, se))
+                        se = f"Bad exception string: {ee}"
+                    logger.warn(f"Error getting uptream version of {node}: {se}")
                     attrs["bad"] = "Upstream: Error getting upstream version"
                 else:
                     logger.info(
-                        "{} - {} - {}".format(node, attrs.get("version", "<no-version>"), attrs["new_version"])
+                        "{} - {} - {}".format(
+                            node,
+                            attrs.get("version", "<no-version>"),
+                            attrs["new_version"],
+                        ),
                     )
 
 
 def update_upstream_versions(gx, sources=None):
     sources = (
-        (PyPI(), NPM(), CRAN(), ROSDistro(), RawURL(), Github()) if sources is None else sources
+        (PyPI(), NPM(), CRAN(), ROSDistro(), RawURL(), Github())
+        if sources is None
+        else sources
     )
     env = builtins.__xonsh__.env
     debug = env.get("CONDA_FORGE_TICK_DEBUG", False)
@@ -456,13 +474,16 @@ def update_upstream_versions(gx, sources=None):
                     [
                         n
                         for n, a in gx.nodes.items()
-                        if a['payload'].get("new_version") and a['payload'].get('version')  # if we can get a new version
-                        and a['payload']["new_version"] != a['payload']["version"]  # if we need a bump
-                        and a['payload'].get("PRed", "000") != a['payload']["new_version"]  # if not PRed
-                    ]
-                )
-            )
-        )
+                        if a["payload"].get("new_version")
+                        and a["payload"].get("version")  # if we can get a new version
+                        and a["payload"]["new_version"]
+                        != a["payload"]["version"]  # if we need a bump
+                        and a["payload"].get("PRed", "000")
+                        != a["payload"]["new_version"]  # if not PRed
+                    ],
+                ),
+            ),
+        ),
     )
 
 

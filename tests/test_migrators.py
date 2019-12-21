@@ -1,9 +1,11 @@
 import os
 import builtins
+import re
 
 import pytest
 import networkx as nx
 
+from conda_forge_tick.contexts import GithubContext, MigratorsContext, MigratorContext
 from conda_forge_tick.migrators import (
     JS,
     Version,
@@ -248,12 +250,22 @@ extra:
 from xonsh.lib import subprocess
 from xonsh.lib.os import indir
 
-yaml_rebuild = MigrationYaml(yaml_contents="hello world", name="hi")
+
+class NoFilter:
+    def filter(self, attrs: dict, not_bad_str_start="") -> bool:
+        return False
+
+
+class _MigrationYaml(NoFilter, MigrationYaml):
+    pass
+
+
+yaml_rebuild = _MigrationYaml(yaml_contents="hello world", name="hi")
 yaml_rebuild.cycles = []
-yaml_rebuild.filter = lambda x: False
-yaml_rebuild_no_build_number = MigrationYaml(yaml_contents="hello world", name="hi", bump_number=0)
+yaml_rebuild_no_build_number = _MigrationYaml(
+    yaml_contents="hello world", name="hi", bump_number=0,
+)
 yaml_rebuild_no_build_number.cycles = []
-yaml_rebuild_no_build_number.filter = lambda x: False
 
 yaml_test_list = [
     (
@@ -263,7 +275,7 @@ yaml_test_list = [
         {"feedstock_name": "scipy"},
         "This PR has been triggered in an effort to update **hi**.",
         {
-            "migrator_name": "MigrationYaml",
+            "migrator_name": yaml_rebuild.__class__.__name__,
             "migrator_version": yaml_rebuild.migrator_version,
             "name": "hi",
             "bot_rerun": False,
@@ -277,19 +289,18 @@ yaml_test_list = [
         {"feedstock_name": "scipy"},
         "This PR has been triggered in an effort to update **hi**.",
         {
-            "migrator_name": "MigrationYaml",
+            "migrator_name": yaml_rebuild.__class__.__name__,
             "migrator_version": yaml_rebuild.migrator_version,
             "name": "hi",
             "bot_rerun": False,
         },
         False,
-
-    )
+    ),
 ]
 
 
 @pytest.mark.parametrize(
-    "m, inp, output, kwargs, prb, mr_out, should_filter", yaml_test_list
+    "m, inp, output, kwargs, prb, mr_out, should_filter", yaml_test_list,
 )
 def test_yaml_migration(m, inp, output, kwargs, prb, mr_out, should_filter, tmpdir):
     os.makedirs(os.path.join(tmpdir, "recipe"), exist_ok=True)
@@ -793,7 +804,9 @@ extra:
     - cbrueffer
 """
 
-cb3_multi = """{% set name = "pypy3.5" %}
+cb3_multi = """
+{# cb3_multi #}
+{% set name = "pypy3.5" %}
 {% set version = "5.9.0" %}
 
 package:
@@ -869,7 +882,9 @@ extra:
     - ohadravid
 """
 
-updated_cb3_multi = """{% set name = "pypy3.5" %}
+updated_cb3_multi = """
+{# updated_cb3_multi #}
+{% set name = "pypy3.5" %}
 {% set version = "6.0.0" %}
 
 package:
@@ -945,7 +960,9 @@ extra:
     - ohadravid
 """
 
-sample_cb3 = """{% set version = "1.14.5" %}
+sample_cb3 = """
+{# sample_cb3 #}
+{% set version = "1.14.5" %}
 {% set build_number = 0 %}
 
 {% set variant = "openblas" %}
@@ -1006,7 +1023,9 @@ extra:
     - ocefpaf
 """
 
-correct_cb3 = """{% set version = "1.14.5" %}
+correct_cb3 = """
+{# correct_cb3 #}
+{% set version = "1.14.5" %}
 {% set build_number = 1 %}
 
 {% set variant = "openblas" %}
@@ -1071,6 +1090,7 @@ extra:
 """
 
 sample_r_base = """
+{# sample_r_base #}
 {% set version = '0.7-1' %}
 
 {% set posix = 'm2-' if win else '' %}
@@ -1276,22 +1296,22 @@ test:
 about:
   license_family: GPL3
   license_file: '{{ environ["PREFIX"] }}/lib/R/share/licenses/GPL-3'  # [unix]
-  license_file: '{{ environ["PREFIX"] }}\R\share\licenses\GPL-3'  # [win]
+  license_file: '{{ environ["PREFIX"] }}\\R\\share\\licenses\\GPL-3'  # [win]
   license_family: MIT
   license_file: '{{ environ["PREFIX"] }}/lib/R/share/licenses/MIT'  # [unix]
-  license_file: '{{ environ["PREFIX"] }}\R\share\licenses\MIT'  # [win]
+  license_file: '{{ environ["PREFIX"] }}\\R\\share\\licenses\\MIT'  # [win]
   license_family: LGPL
   license_file: '{{ environ["PREFIX"] }}/lib/R/share/licenses/LGPL-2'  # [unix]
-  license_file: '{{ environ["PREFIX"] }}\R\share\licenses\LGPL-2'  # [win]
+  license_file: '{{ environ["PREFIX"] }}\\R\\share\\licenses\\LGPL-2'  # [win]
   license_family: LGPL
   license_file: '{{ environ["PREFIX"] }}/lib/R/share/licenses/LGPL-2.1'  # [unix]
-  license_file: '{{ environ["PREFIX"] }}\R\share\licenses\LGPL-2.1'  # [win]
+  license_file: '{{ environ["PREFIX"] }}\\R\\share\\licenses\\LGPL-2.1'  # [win]
   license_family: BSD
   license_file: '{{ environ["PREFIX"] }}/lib/R/share/licenses/BSD_3_clause'  # [unix]
-  license_file: '{{ environ["PREFIX"] }}\R\share\licenses\BSD_3_clause'  # [win]
+  license_file: '{{ environ["PREFIX"] }}\\R\\share\\licenses\\BSD_3_clause'  # [win]
 
-  license_file: '{{ environ["PREFIX"] }}\/lib\/R\/share\/licenses\/GPL-2'  # [unix]
-  license_file: '{{ environ["PREFIX"] }}\/lib\/R\/share\/licenses\/BSD_3_clause'  # [unix]
+  license_file: '{{ environ["PREFIX"] }}/lib/R/share/licenses/GPL-2'  # [unix]
+  license_file: '{{ environ["PREFIX"] }}/lib/R/share/licenses/BSD_3_clause'  # [unix]
 """
 
 updated_r_licenses_noarch = """
@@ -1393,22 +1413,22 @@ test:
 about:
   license_family: GPL3
   license_file: '{{ environ["PREFIX"] }}/lib/R/share/licenses/GPL-3'  # [unix]
-  license_file: '{{ environ["PREFIX"] }}\R\share\licenses\GPL-3'  # [win]
+  license_file: '{{ environ["PREFIX"] }}\\R\\share\\licenses\\GPL-3'  # [win]
   license_family: MIT
   license_file: '{{ environ["PREFIX"] }}/lib/R/share/licenses/MIT'  # [unix]
-  license_file: '{{ environ["PREFIX"] }}\R\share\licenses\MIT'  # [win]
+  license_file: '{{ environ["PREFIX"] }}\\R\\share\\licenses\\MIT'  # [win]
   license_family: LGPL
   license_file: '{{ environ["PREFIX"] }}/lib/R/share/licenses/LGPL-2'  # [unix]
-  license_file: '{{ environ["PREFIX"] }}\R\share\licenses\LGPL-2'  # [win]
+  license_file: '{{ environ["PREFIX"] }}\\R\\share\\licenses\\LGPL-2'  # [win]
   license_family: LGPL
   license_file: '{{ environ["PREFIX"] }}/lib/R/share/licenses/LGPL-2.1'  # [unix]
-  license_file: '{{ environ["PREFIX"] }}\R\share\licenses\LGPL-2.1'  # [win]
+  license_file: '{{ environ["PREFIX"] }}\\R\\share\\licenses\\LGPL-2.1'  # [win]
   license_family: BSD
   license_file: '{{ environ["PREFIX"] }}/lib/R/share/licenses/BSD_3_clause'  # [unix]
-  license_file: '{{ environ["PREFIX"] }}\R\share\licenses\BSD_3_clause'  # [win]
+  license_file: '{{ environ["PREFIX"] }}\\R\\share\\licenses\\BSD_3_clause'  # [win]
 
-  license_file: '{{ environ["PREFIX"] }}\/lib\/R\/share\/licenses\/GPL-2'  # [unix]
-  license_file: '{{ environ["PREFIX"] }}\/lib\/R\/share\/licenses\/BSD_3_clause'  # [unix]
+  license_file: '{{ environ["PREFIX"] }}/lib/R/share/licenses/GPL-2'  # [unix]
+  license_file: '{{ environ["PREFIX"] }}/lib/R/share/licenses/BSD_3_clause'  # [unix]
 """
 
 updated_r_licenses_compiled = """
@@ -1467,7 +1487,9 @@ about:
   license_file: '{{ environ["PREFIX"] }}/lib/R/share/licenses/BSD_3_clause'
 """
 
-sample_noarch = """{% set name = "xpdan" %}
+sample_noarch = """
+{# sample_noarch #}
+{% set name = "xpdan" %}
 {% set version = "0.3.3" %}
 {% set sha256 = "3f1a84f35471aa8e383da3cf4436492d0428da8ff5b02e11074ff65d400dd076" %}
 
@@ -1527,7 +1549,9 @@ extra:
 """
 
 
-updated_noarch = """{% set name = "xpdan" %}
+updated_noarch = """
+{# updated_noarch #}
+{% set name = "xpdan" %}
 {% set version = "0.3.3" %}
 {% set sha256 = "3f1a84f35471aa8e383da3cf4436492d0428da8ff5b02e11074ff65d400dd076" %}
 
@@ -1587,7 +1611,9 @@ extra:
     - CJ-Wright
 """
 
-sample_noarch_space = """{% set name = "xpdan" %}
+sample_noarch_space = """
+{# sample_noarch_space #}
+{% set name = "xpdan" %}
 {% set version = "0.3.3" %}
 {% set sha256 = "3f1a84f35471aa8e383da3cf4436492d0428da8ff5b02e11074ff65d400dd076" %}
 
@@ -1647,7 +1673,9 @@ extra:
 """
 
 
-updated_noarch_space = """{% set name = "xpdan" %}
+updated_noarch_space = """
+{# updated_noarch_space #}
+{% set name = "xpdan" %}
 {% set version = "0.3.3" %}
 {% set sha256 = "3f1a84f35471aa8e383da3cf4436492d0428da8ff5b02e11074ff65d400dd076" %}
 
@@ -1708,7 +1736,9 @@ extra:
 """
 
 
-sample_pinning = """{% set version = "2.44_01" %}
+sample_pinning = """
+{# sample_pinning #}
+{% set version = "2.44_01" %}
 
 package:
   name: perl-xml-parser
@@ -1757,7 +1787,9 @@ extra:
 """
 
 
-updated_perl = """{% set version = "2.44_01" %}
+updated_perl = """
+{# updated_perl #}
+{% set version = "2.44_01" %}
 
 package:
   name: perl-xml-parser
@@ -1806,7 +1838,9 @@ extra:
 """
 
 
-updated_pinning = """{% set version = "2.44_01" %}
+updated_pinning = """
+{# updated_pinning #}
+{% set version = "2.44_01" %}
 
 package:
   name: perl-xml-parser
@@ -1856,6 +1890,7 @@ extra:
 
 
 sample_blas = """
+{# sample_blas #}
 {% set version = "1.2.1" %}
 {% set variant = "openblas" %}
 
@@ -1899,6 +1934,7 @@ test:
 
 
 updated_blas = """
+{# updated_blas #}
 {% set version = "1.2.1" %}
 
 package:
@@ -1937,6 +1973,7 @@ test:
 """
 
 compress = """
+{# compress #}
 {% set version = "0.8" %}
 package:
   name: viscm
@@ -1973,6 +2010,7 @@ extra:
 """
 
 compress_correct = """
+{# compress_correct #}
 {% set version = "0.9" %}
 package:
   name: viscm
@@ -2010,6 +2048,7 @@ extra:
 
 
 version_license = """
+{# version_license #}
 {% set version = "0.8" %}
 
 package:
@@ -2053,6 +2092,7 @@ extra:
 """
 
 version_license_correct = """
+{# version_license_correct #}
 {% set version = "0.9" %}
 
 package:
@@ -2194,11 +2234,19 @@ noarchr = NoarchR()
 perl = Pinning(removals={"perl"})
 pinning = Pinning()
 
-rebuild = Rebuild(name="rebuild", cycles=[])
-rebuild.filter = lambda x: False
 
-blas_rebuild = BlasRebuild(cycles=[])
-blas_rebuild.filter = lambda x: False
+class _Rebuild(NoFilter, Rebuild):
+    pass
+
+
+rebuild = _Rebuild(name="rebuild", cycles=[])
+
+
+class _BlasRebuild(NoFilter, BlasRebuild):
+    pass
+
+
+blas_rebuild = _BlasRebuild(cycles=[])
 
 matplotlib = Replacement(
     old_pkg='matplotlib', new_pkg='matplotlib-base',
@@ -2438,7 +2486,7 @@ test_list = [
         {"feedstock_name": "r-stabledist"},
         "It is likely this feedstock needs to be rebuilt.",
         {
-            "migrator_name": "Rebuild",
+            "migrator_name": "_Rebuild",
             "migrator_version": rebuild.migrator_version,
             "name": "rebuild",
         },
@@ -2460,7 +2508,7 @@ test_list = [
         {"feedstock_name": "scipy"},
         "This PR has been triggered in an effort to update for new BLAS scheme.",
         {
-            "migrator_name": "BlasRebuild",
+            "migrator_name": "_BlasRebuild",
             "migrator_version": blas_rebuild.migrator_version,
             "name": "blas2",
         },
@@ -2492,15 +2540,26 @@ test_list = [
 
 G = nx.DiGraph()
 G.add_node("conda", reqs=["python"])
-env = builtins.__xonsh__.env
+env = builtins.__xonsh__.env  # type: ignore
 env["GRAPH"] = G
 env["CIRCLE_BUILD_URL"] = "hi world"
 
 
 @pytest.mark.parametrize(
-    "m, inp, output, kwargs, prb, mr_out, should_filter", test_list
+    "m, inp, output, kwargs, prb, mr_out, should_filter", test_list,
 )
 def test_migration(m, inp, output, kwargs, prb, mr_out, should_filter, tmpdir):
+    mm_ctx = MigratorsContext(
+        graph=G,
+        smithy_version="",
+        pinning_version="",
+        github_username="",
+        github_password="",
+        circle_build_url=env["CIRCLE_BUILD_URL"],
+    )
+    m_ctx = MigratorContext(mm_ctx, m)
+    m.bind_to_ctx(m_ctx)
+
     mr_out.update(bot_rerun=False)
     with open(os.path.join(tmpdir, "meta.yaml"), "w") as f:
         f.write(inp)
@@ -2531,14 +2590,18 @@ def test_migration(m, inp, output, kwargs, prb, mr_out, should_filter, tmpdir):
     pmy.update(PRed=[frozen_to_json_friendly(mr)])
     with open(os.path.join(tmpdir, "meta.yaml"), "r") as f:
         actual_output = f.read()
+    # strip jinja comments
+    pat = re.compile(r"{#.*#}")
+    actual_output = pat.sub("", actual_output)
+    output = pat.sub("", output)
     assert actual_output == output
     if isinstance(m, Compiler):
-        assert m.messages in m.pr_body()
+        assert m.messages in m.pr_body(None)
     # TODO: fix subgraph here (need this to be xsh file)
     elif isinstance(m, Version):
         pass
     elif isinstance(m, Rebuild):
         return
     else:
-        assert prb in m.pr_body()
+        assert prb in m.pr_body(None)
     assert m.filter(pmy) is True

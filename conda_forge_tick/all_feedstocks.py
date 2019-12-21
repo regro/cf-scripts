@@ -26,7 +26,7 @@ def get_all_feedstocks_from_github():
             ts = c["reset"]
             msg.append("API timeout, API returns at")
             msg.append(
-                datetime.datetime.utcfromtimestamp(ts).strftime("%Y-%m-%dT%H:%M:%SZ")
+                datetime.datetime.utcfromtimestamp(ts).strftime("%Y-%m-%dT%H:%M:%SZ"),
             )
         logger.warning(" ".join(msg))
         raise

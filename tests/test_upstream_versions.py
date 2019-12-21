@@ -147,16 +147,17 @@ sample_npm_response = """
 
 latest_url_test_list = [
     (
-        sample_npm, "3.1.1", NPM(), {
-            "https://registry.npmjs.org/configurable-http-proxy": sample_npm_response
-        }
+        sample_npm,
+        "3.1.1",
+        NPM(),
+        {"https://registry.npmjs.org/configurable-http-proxy": sample_npm_response},
     ),
 ]
 
 
 @pytest.mark.parametrize("inp, ver, source, urls", latest_url_test_list)
 def test_latest_version(inp, ver, source, urls, requests_mock, tmpdir):
-    pmy = LazyJson(tmpdir.join('cf-scripts-test.json'))
+    pmy = LazyJson(tmpdir.join("cf-scripts-test.json"))
     pmy.update(parse_meta_yaml(inp)["source"])
     [requests_mock.get(url, text=text) for url, text in urls.items()]
     assert ver == get_latest_version(pmy, [source])

@@ -1,10 +1,11 @@
+from collections import defaultdict, Callable
 import contextlib
 import itertools
 import json
 import logging
 import os
 import re
-from collections import defaultdict
+from typing import Any, Tuple, Iterable
 from collections.abc import Mapping, MutableMapping, Sequence, Set
 from concurrent.futures import (ProcessPoolExecutor, ThreadPoolExecutor,
                                 as_completed,)
@@ -14,7 +15,7 @@ import jinja2
 
 import networkx as nx
 
-pin_sep_pat = re.compile(" |>|<|=|\[")
+pin_sep_pat = re.compile(r" |>|<|=|\[")
 
 
 # dual python 2/3 compatability, inspired by the "six" library
@@ -60,10 +61,10 @@ class NullUndefined(jinja2.Undefined):
         return self._undefined_name
 
     def __getattr__(self, name):
-        return "{}.{}".format(self, name)
+        return f"{self}.{name}"
 
     def __getitem__(self, name):
-        return '{}["{}"]'.format(self, name)
+        return f'{self}["{name}"]'
 
 
 class LazyJson(MutableMapping):
@@ -147,7 +148,7 @@ def render_meta_yaml(text):
     return content
 
 
-def parse_meta_yaml(text, **kwargs):
+def parse_meta_yaml(text: str, **kwargs):
     """Parse the meta.yaml.
 
     Parameters
@@ -180,24 +181,24 @@ def setup_logger(logger):
     logger.setLevel(logging.INFO)
 
 
-def pluck(G, node_id):
+def pluck(G: nx.DiGraph, node_id):
     """Remove a node from a graph preserving structure.
-    
+
     This will fuse edges together so that connectivity of the graph is not affected by
     removal of a node.  This function operates in-place.
-    
+
     Parameters
     ----------
     G : networkx.Graph
     node_id : hashable
-    
+
     """
     if node_id in G.nodes:
         new_edges = list(
             itertools.product(
                 {_in for (_in, _) in G.in_edges(node_id)} - {node_id},
                 {_out for (_, _out) in G.out_edges(node_id)} - {node_id},
-            )
+            ),
         )
         G.remove_node(node_id)
         G.add_edges_from(new_edges)
@@ -242,21 +243,21 @@ def _parse_requirements(req, build=True, host=True, run=True):
         host = list(as_iterable(req.get("host", []) or [] if host else []))
         run = list(as_iterable(req.get("run", []) or [] if run else []))
         reqlist = build + host + run
-    return set(pin_sep_pat.split(x)[0].lower() for x in reqlist if x is not None)
+    return {pin_sep_pat.split(x)[0].lower() for x in reqlist if x is not None}
 
 
 @contextlib.contextmanager
-def executor(kind, max_workers):
+def executor(kind: str, max_workers: int):
     """General purpose utility to get an executor with its as_completed handler
 
     This allows us to easily use other executors as needed.
     """
     if kind == "thread":
-        with ThreadPoolExecutor(max_workers=max_workers) as pool:
-            yield pool, as_completed
+        with ThreadPoolExecutor(max_workers=max_workers) as pool_t:
+            yield pool_t, as_completed
     elif kind == "process":
-        with ProcessPoolExecutor(max_workers=max_workers) as pool:
-            yield pool, as_completed
+        with ProcessPoolExecutor(max_workers=max_workers) as pool_p:
+            yield pool_p, as_completed
     elif kind == "dask":
         import distributed
 
@@ -320,7 +321,7 @@ def load(fp, object_hook=object_hook, **kwargs):
     return json.load(fp, object_hook=object_hook, **kwargs)
 
 
-def dump_graph(gx, filename="graph.json"):
+def dump_graph(gx: nx.DiGraph, filename="graph.json"):
     nld = nx.node_link_data(gx)
     links = nld["links"]
     links2 = sorted(links, key=lambda x: f'{x["source"]}{x["target"]}')
@@ -329,19 +330,19 @@ def dump_graph(gx, filename="graph.json"):
         dump(nld, f)
 
 
-def load_graph(filename="graph.json"):
+def load_graph(filename="graph.json") -> nx.DiGraph:
     with open(filename, "r") as f:
         nld = load(f)
     return nx.node_link_graph(nld)
 
 
-def frozen_to_json_friendly(fz: dict, PR: LazyJson = None):
+def frozen_to_json_friendly(fz: dict, pr: LazyJson = None) -> dict:
     if fz is None:
         return None
     keys = sorted(list(fz.keys()))
     d = {"keys": keys, "data": dict(fz)}
-    if PR:
-        d["PR"] = PR
+    if pr:
+        d["PR"] = pr
     return d
 
 

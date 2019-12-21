@@ -43,4 +43,3 @@ script:
   - make html
   - cd ..
   - doctr deploy . --built-docs ./docs/_build/html;
-
