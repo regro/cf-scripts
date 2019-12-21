@@ -228,57 +228,6 @@ def _host_run_test_dependencies(meta_yaml):
     return rq
 
 
-def add_rebuild(migrators, gx):
-    """Adds rebuild migrators.
-
-    Parameters
-    ----------
-    migrators : list of Migrator
-        The list of migrators to run.
-
-    """
-
-    total_graph = copy.deepcopy(gx)
-    for node, node_attrs in gx.nodes.items():
-        attrs = node_attrs["payload"]
-        meta_yaml = attrs.get("meta_yaml", {}) or {}
-        bh = get_requirements(meta_yaml, run=False)
-
-        py_c = "python" in bh and meta_yaml.get("build", {}).get("noarch") != "python"
-        com_c = any([req.endswith("_compiler_stub") for req in bh]) or any(
-            [a in bh for a in Compiler.compilers],
-        )
-        r_c = "r-base" in bh
-        ob_c = "openblas" in bh
-
-        rq = _host_run_test_dependencies(meta_yaml)
-
-        for e in list(total_graph.in_edges(node)):
-            if e[0] not in rq:
-                total_graph.remove_edge(*e)
-        if not any([py_c, com_c, r_c, ob_c]):
-            pluck(total_graph, node)
-
-    # post plucking we can have several strange cases, lets remove all selfloops
-    total_graph.remove_edges_from(nx.selfloop_edges(total_graph))
-
-    top_level = {
-        node for node in total_graph if not list(total_graph.predecessors(node))
-    }
-    cycles = list(nx.simple_cycles(total_graph))
-    # print('cycles are here:', cycles)
-
-    migrators.append(
-        Rebuild(
-            graph=total_graph,
-            pr_limit=5,
-            name="Python 3.7, GCC 7, R 3.5.1, openBLAS 0.3.2",
-            top_level=top_level,
-            cycles=cycles,
-        ),
-    )
-
-
 def add_rebuild_openssl(migrators, gx):
     """Adds rebuild openssl migrators.
 
@@ -620,6 +569,7 @@ def add_rebuild_migration_yaml(
     for node, node_attrs in gx.nodes.items():
         attrs = node_attrs["payload"]
         meta_yaml = attrs.get("meta_yaml", {}) or {}
+        # TODO: fix this, since it doesn't fully apply the strong constraints
         if "strong" in meta_yaml.get("build", {}) or any(
             [
                 "strong" in output.get("build", {})
