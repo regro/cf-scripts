@@ -1131,6 +1131,7 @@ test:
 """
 
 updated_r_base = """
+{# updated_r_base #}
 {% set version = '0.7-1' %}
 
 {% set posix = 'm2-' if win else '' %}

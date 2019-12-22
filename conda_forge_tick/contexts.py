@@ -4,6 +4,7 @@ from networkx import DiGraph
 import typing
 import threading
 
+
 if typing.TYPE_CHECKING:
     from .migrators import Migrator
 
@@ -12,11 +13,10 @@ if typing.TYPE_CHECKING:
 class GithubContext:
     github_username: str
     github_password: str
-    github_token: typing.Optional[str]
     circle_build_url: str
-    dry_run: bool
-
-    _tl = threading.local()
+    github_token: typing.Optional[str] = ''
+    dry_run: bool = True
+    _tl: threading.local = threading.local()
 
     def gh(self):
         if getattr(self._tl, "gh") is None:
@@ -32,12 +32,12 @@ class GithubContext:
 
 @dataclass
 class MigratorsContext(GithubContext):
-    graph: DiGraph
-    smithy_version: str
-    pinning_version: str
-    quiet = True
+    graph: DiGraph = None
+    smithy_version: str = ''
+    pinning_version: str = ''
     prjson_dir = "pr_json"
     rever_dir: str = "./feedstocks/"
+    quiet = True
 
 
 @dataclass

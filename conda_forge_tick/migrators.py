@@ -1270,8 +1270,8 @@ class Replacement(Migrator):
         self.set_build_number(os.path.join(recipe_dir, "meta.yaml"))
         return super().migrate(recipe_dir, attrs)
 
-    def pr_body(self):
-        body = super().pr_body()
+    def pr_body(self, feedstock_ctx):
+        body = super().pr_body(feedstock_ctx)
         body = body.format(
             "I noticed that this recipe depends on `%s` instead of \n"
             "`%s`. %s \n"
@@ -1288,7 +1288,7 @@ class Replacement(Migrator):
     def commit_message(self):
         return f"use {self.new_pkg} instead of {self.old_pkg}"
 
-    def pr_title(self):
+    def pr_title(self, feedstock_ctx):
         return f"Suggestion: depend on {self.new_pkg} instead of {self.old_pkg}"
 
     def pr_head(self):
