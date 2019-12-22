@@ -76,10 +76,10 @@ class NullUndefined(jinja2.Undefined):
     def __unicode__(self) -> str:
         return self._undefined_name
 
-    def __getattr__(self, name) -> str:
+    def __getattr__(self, name: Any) -> str:
         return f"{self}.{name}"
 
-    def __getitem__(self, name) -> str:
+    def __getitem__(self, name: Any) -> str:
         return f'{self}["{name}"]'
 
 
@@ -142,7 +142,7 @@ class LazyJson(MutableMapping):
         state["data"] = None
         return state
 
-    def __enter__(self) -> 'LazyJson':
+    def __enter__(self) -> "LazyJson":
         return self
 
     def __exit__(self, *args: Any) -> Any:
@@ -169,7 +169,7 @@ def render_meta_yaml(text: str) -> str:
     return content
 
 
-def parse_meta_yaml(text: str, **kwargs: Any) -> 'MetaYamlTypedDict':
+def parse_meta_yaml(text: str, **kwargs: Any) -> "MetaYamlTypedDict":
     """Parse the meta.yaml.
 
     Parameters
@@ -227,7 +227,7 @@ def pluck(G: nx.DiGraph, node_id: Any) -> None:
 
 def get_requirements(
     meta_yaml: "MetaYamlTypedDict", outputs=True, build=True, host=True, run=True,
-) -> Set['PackageName']:
+) -> Set["PackageName"]:
     """Get the list of recipe requirements from a meta.yaml dict
 
     Parameters
@@ -260,7 +260,7 @@ def _parse_requirements(
     build=True,
     host=True,
     run=True,
-) -> typing.MutableSet['PackageName']:
+) -> typing.MutableSet["PackageName"]:
     """Flatten a YAML requirements section into a list of names
     """
     if not req:  # handle None as empty
@@ -274,7 +274,7 @@ def _parse_requirements(
         reqlist = _build + _host + _run
 
     packages = (pin_sep_pat.split(x)[0].lower() for x in reqlist if x is not None)
-    return {typing.cast('PackageName', pkg) for pkg in packages}
+    return {typing.cast("PackageName", pkg) for pkg in packages}
 
 
 @contextlib.contextmanager
@@ -300,7 +300,7 @@ def executor(kind: str, max_workers: int) -> typing.Iterator[Executor]:
         raise NotImplementedError("That kind is not implemented")
 
 
-def default(obj):
+def default(obj: Any) -> Any:
     """For custom object serialization."""
     if isinstance(obj, LazyJson):
         return {"__lazy_json__": obj.file_name}
@@ -318,7 +318,13 @@ def object_hook(dct: dict) -> Union[LazyJson, Set, dict]:
     return dct
 
 
-def dumps(obj, sort_keys=True, separators=(",", ":"), default=default, **kwargs):
+def dumps(
+    obj,
+    sort_keys=True,
+    separators=(",", ":"),
+    default: Callable[[Any], Any] = default,
+    **kwargs,
+):
     """Returns a JSON string from a Python object."""
     return json.dumps(
         obj,
@@ -331,7 +337,12 @@ def dumps(obj, sort_keys=True, separators=(",", ":"), default=default, **kwargs)
 
 
 def dump(
-    obj, fp: IO[str], sort_keys=True, separators=(",", ":"), default=default, **kwargs
+    obj,
+    fp: IO[str],
+    sort_keys=True,
+    separators=(",", ":"),
+    default: Callable[[Any], Any] = default,
+    **kwargs,
 ):
     """Returns a JSON string from a Python object."""
     return json.dump(
@@ -355,7 +366,7 @@ def load(fp: IO[str], object_hook=object_hook, **kwargs) -> dict:
     return json.load(fp, object_hook=object_hook, **kwargs)
 
 
-def dump_graph(gx: nx.DiGraph, filename="graph.json") -> None:
+def dump_graph(gx: nx.DiGraph, filename: str = "graph.json") -> None:
     nld = nx.node_link_data(gx)
     links = nld["links"]
     links2 = sorted(links, key=lambda x: f'{x["source"]}{x["target"]}')
@@ -364,7 +375,7 @@ def dump_graph(gx: nx.DiGraph, filename="graph.json") -> None:
         dump(nld, f)
 
 
-def load_graph(filename: str="graph.json") -> nx.DiGraph:
+def load_graph(filename: str = "graph.json") -> nx.DiGraph:
     with open(filename, "r") as f:
         nld = load(f)
     return nx.node_link_graph(nld)
@@ -373,6 +384,7 @@ def load_graph(filename: str="graph.json") -> nx.DiGraph:
 # TODO: This type doe not support generics yet sadly
 # cc https://github.com/python/mypy/issues/3863
 if typing.TYPE_CHECKING:
+
     class JsonFriendly(TypedDict, total=False):
         keys: typing.List[str]
         data: dict
@@ -385,7 +397,7 @@ def frozen_to_json_friendly(fz: None, pr: Optional[LazyJson] = None) -> None:
 
 
 @typing.overload
-def frozen_to_json_friendly(fz: Any, pr: Optional[LazyJson] = None) -> 'JsonFriendly':
+def frozen_to_json_friendly(fz: Any, pr: Optional[LazyJson] = None) -> "JsonFriendly":
     pass
 
 

@@ -252,7 +252,7 @@ from xonsh.lib.os import indir
 
 
 class NoFilter:
-    def filter(self, attrs: "AttrsTypedDict", not_bad_str_start: str="") -> bool:
+    def filter(self, attrs: "AttrsTypedDict", not_bad_str_start: str = "") -> bool:
         return False
 
 

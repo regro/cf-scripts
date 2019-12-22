@@ -89,12 +89,12 @@ BOT_RERUN_LABEL = {
 def run(
     feedstock_ctx: FeedstockContext,
     migrator: Migrator,
-    protocol: str="ssh",
-    pull_request: bool=True,
-    rerender: bool=True,
-    fork: bool=True,
+    protocol: str = "ssh",
+    pull_request: bool = True,
+    rerender: bool = True,
+    fork: bool = True,
     **kwargs: typing.Any,
-) -> Tuple['MigrationUidTypedDict', dict]:
+) -> Tuple["MigrationUidTypedDict", dict]:
     """For a given feedstock and migration run the migration
 
     Parameters
@@ -232,7 +232,7 @@ def _requirement_names(reqlist: Optional[Sequence[Optional[str]]]) -> List[str]:
         return [r.split()[0] for r in reqlist if r is not None]
 
 
-def _host_run_test_dependencies(meta_yaml: "MetaYamlTypedDict") -> Set['PackageName']:
+def _host_run_test_dependencies(meta_yaml: "MetaYamlTypedDict") -> Set["PackageName"]:
     """Parse the host/run/test dependencies of a recipe
 
     This function parses top-level and `outputs` requirements sections.
@@ -261,7 +261,7 @@ def _host_run_test_dependencies(meta_yaml: "MetaYamlTypedDict") -> Set['PackageN
     rq.update(_requirement_names(test.get("requirements")))
     rq.update(_requirement_names(test.get("requires")))
 
-    return typing.cast('Set[PackageName]', rq)
+    return typing.cast("Set[PackageName]", rq)
 
 
 def add_rebuild_openssl(migrators: MutableSequence[Migrator], gx: nx.DiGraph) -> None:
@@ -313,7 +313,9 @@ def add_rebuild_openssl(migrators: MutableSequence[Migrator], gx: nx.DiGraph) ->
     )
 
 
-def add_rebuild_libprotobuf(migrators: MutableSequence[Migrator], gx: nx.DiGraph) -> None:
+def add_rebuild_libprotobuf(
+    migrators: MutableSequence[Migrator], gx: nx.DiGraph,
+) -> None:
     """Adds rebuild libprotobuf migrators.
 
     Parameters
@@ -393,7 +395,7 @@ def add_rebuild_successors(
     total_graph = copy.deepcopy(gx)
 
     for node, node_attrs in gx.nodes.items():
-        attrs: 'AttrsTypedDict' = node_attrs["payload"]
+        attrs: "AttrsTypedDict" = node_attrs["payload"]
         meta_yaml = attrs.get("meta_yaml", {}) or {}
         bh = get_requirements(meta_yaml)
         criteria = package_name in bh
@@ -441,7 +443,7 @@ def add_rebuild_blas(migrators, gx):
     total_graph = copy.deepcopy(gx)
 
     for node, node_attrs in gx.nodes.items():
-        attrs: 'AttrsTypedDict' = node_attrs["payload"]
+        attrs: "AttrsTypedDict" = node_attrs["payload"]
         meta_yaml = attrs.get("meta_yaml", {}) or {}
         bh = get_requirements(meta_yaml)
         pkgs = {
@@ -483,7 +485,13 @@ def add_rebuild_blas(migrators, gx):
     )
 
 
-def add_replacement_migrator(migrators: MutableSequence[Migrator], gx: nx.DiGraph, old_pkg: 'PackageName', new_pkg: 'PackageName', rationale: str):
+def add_replacement_migrator(
+    migrators: MutableSequence[Migrator],
+    gx: nx.DiGraph,
+    old_pkg: "PackageName",
+    new_pkg: "PackageName",
+    rationale: str,
+):
     """Adds a migrator to replace one package with another.
 
     Parameters
@@ -503,7 +511,7 @@ def add_replacement_migrator(migrators: MutableSequence[Migrator], gx: nx.DiGrap
     total_graph = copy.deepcopy(gx)
 
     for node, node_attrs in gx.nodes.items():
-        attrs: 'AttrsTypedDict' = node_attrs["payload"]
+        attrs: "AttrsTypedDict" = node_attrs["payload"]
         meta_yaml = attrs.get("meta_yaml", {}) or {}
         bh = get_requirements(meta_yaml)
         pkgs = {old_pkg}
@@ -577,9 +585,9 @@ def add_rebuild_migration_yaml(
     gx: nx.DiGraph,
     package_names: Sequence[str],
     migration_yaml: str,
-    config: dict={},
-    migration_name: str="",
-    pr_limit: int=50,
+    config: dict = {},
+    migration_name: str = "",
+    pr_limit: int = 50,
 ) -> None:
     """Adds rebuild migrator.
 
@@ -686,11 +694,11 @@ def migration_factory(
 
 
 def initialize_migrators(
-    do_rebuild=False,
+    do_rebuild: bool = False,
     github_username: str = "",
     github_password: str = "",
-    github_token: Optional[str]=None,
-    dry_run: bool=False,
+    github_token: Optional[str] = None,
+    dry_run: bool = False,
 ) -> Tuple[MigratorsContext, list, MutableSequence[Migrator]]:
     setup_logger(logger)
     temp = glob.glob("/tmp/*")
@@ -725,7 +733,9 @@ def initialize_migrators(
     return ctx, temp, MIGRATORS
 
 
-def migrator_status(migrator: Migrator, gx):
+def migrator_status(
+    migrator: Migrator, gx: nx.DiGraph,
+) -> Tuple[dict, list, nx.DiGraph]:
     """Gets the migrator progress for a given migrator
 
     Returns
@@ -841,7 +851,7 @@ def migrator_status(migrator: Migrator, gx):
     return out2, build_sequence, gv
 
 
-def main(args: 'CLIArgs') -> None:
+def main(args: "CLIArgs") -> None:
     github_username = env.get("USERNAME", "")
     github_password = env.get("PASSWORD", "")
     github_token = env.get("GITHUB_TOKEN")
@@ -984,4 +994,4 @@ def main(args: 'CLIArgs') -> None:
 
 if __name__ == "__main__":
 
-    pass #  main()
+    pass  #  main()

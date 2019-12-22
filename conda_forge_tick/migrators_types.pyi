@@ -115,3 +115,5 @@ class AttrsTypedDict(TypedDict, total=False):
     PRed: List[PEedElementTypedDict]
     # Legacy types in here
     bad: Union[bool, str]
+    # TODO: ADD in
+    #  "conda-forge.yml":

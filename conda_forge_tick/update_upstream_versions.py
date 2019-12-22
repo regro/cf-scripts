@@ -15,6 +15,7 @@ import networkx as nx
 import feedparser
 import requests
 from conda.models.version import VersionOrder
+
 # TODO: parse_version has bad type annotations
 from pkg_resources import parse_version
 
@@ -22,6 +23,7 @@ from .utils import parse_meta_yaml, setup_logger, executor, load_graph, dump_gra
 
 import typing
 from typing import Set, Iterator
+
 if typing.TYPE_CHECKING:
     from .migrators_types import MetaYamlTypedDict, SourceTypedDict
 
@@ -30,9 +32,9 @@ logger = logging.getLogger("conda_forge_tick.update_upstream_versions")
 CRAN_INDEX: Optional[dict] = None
 
 
-def urls_from_meta(meta_yaml: 'MetaYamlTypedDict') -> Set[str]:
-    source: 'SourceTypedDict' = meta_yaml["source"]
-    sources: typing.List['SourceTypedDict']
+def urls_from_meta(meta_yaml: "MetaYamlTypedDict") -> Set[str]:
+    source: "SourceTypedDict" = meta_yaml["source"]
+    sources: typing.List["SourceTypedDict"]
     if isinstance(source, collections.abc.Mapping):
         sources = [source]
     else:
@@ -71,9 +73,11 @@ def next_version(ver: str) -> Iterator[str]:
 
 class AbstractSource(abc.ABC):
     name: str
+
     @abc.abstractmethod
     def get_version(self, url: str) -> Optional[str]:
         pass
+
     @abc.abstractmethod
     def get_url(self, url: str) -> Optional[str]:
         pass
@@ -241,7 +245,7 @@ ROS_DISTRO_INDEX: Optional[dict] = None
 class ROSDistro(AbstractSource):
     name = "rosdistro"
 
-    def parse_idx(self, distro_name: str="melodic") -> dict:
+    def parse_idx(self, distro_name: str = "melodic") -> dict:
         session = requests.Session()
         res = session.get(
             "https://raw.githubusercontent.com/ros/rosdistro/master/{distro}/distribution.yaml".format(
@@ -285,7 +289,7 @@ class ROSDistro(AbstractSource):
                 logger.error("ROS Distro initialization failed", exc_info=True)
                 ROS_DISTRO_INDEX = {}
 
-    def get_url(self, meta_yaml: 'MetaYamlTypedDict') -> Optional[str]:
+    def get_url(self, meta_yaml: "MetaYamlTypedDict") -> Optional[str]:
         if not meta_yaml["name"].startswith("ros-"):
             return None
 
@@ -416,7 +420,9 @@ def get_latest_version(payload_meta_yaml: Any, sources: Iterable[AbstractSource]
         return False
 
 
-def _update_upstream_versions_sequential(gx: nx.DiGraph, sources: Iterable[AbstractSource]) -> None:
+def _update_upstream_versions_sequential(
+    gx: nx.DiGraph, sources: Iterable[AbstractSource],
+) -> None:
     to_update = []
     for node, node_attrs in gx.nodes.items():
         attrs = node_attrs["payload"]
@@ -444,7 +450,9 @@ def _update_upstream_versions_sequential(gx: nx.DiGraph, sources: Iterable[Abstr
                 )
 
 
-def _update_upstream_versions_process_pool(gx: nx.DiGraph, sources: Iterable[AbstractSource]) -> None:
+def _update_upstream_versions_process_pool(
+    gx: nx.DiGraph, sources: Iterable[AbstractSource],
+) -> None:
     futures = {}
     with executor(kind="dask", max_workers=20) as pool:
         for node, node_attrs in gx.nodes.items():
@@ -478,7 +486,9 @@ def _update_upstream_versions_process_pool(gx: nx.DiGraph, sources: Iterable[Abs
                     )
 
 
-def update_upstream_versions(gx: nx.DiGraph, sources: Iterable[AbstractSource]=None) -> None:
+def update_upstream_versions(
+    gx: nx.DiGraph, sources: Iterable[AbstractSource] = None,
+) -> None:
     sources = (
         (PyPI(), NPM(), CRAN(), ROSDistro(), RawURL(), Github())
         if sources is None
@@ -513,7 +523,7 @@ def update_upstream_versions(gx: nx.DiGraph, sources: Iterable[AbstractSource]=N
     )
 
 
-def main(args: Any=None) -> None:
+def main(args: Any = None) -> None:
     setup_logger(logger)
 
     logger.info("Reading graph")

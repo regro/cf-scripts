@@ -41,7 +41,7 @@ pin_sep_pat = re.compile(r" |>|<|=|\[")
 NUM_GITHUB_THREADS = 4
 
 
-def get_attrs(name: str, i: int):
+def get_attrs(name: str, i: int) -> LazyJson:
     lzj = LazyJson(f"node_attrs/{name}.json")
     with lzj as sub_graph:
         sub_graph.update(
@@ -129,7 +129,9 @@ def get_attrs(name: str, i: int):
     return lzj
 
 
-def _build_graph_process_pool(gx: nx.DiGraph, names: List[str], new_names: List[str]) -> None:
+def _build_graph_process_pool(
+    gx: nx.DiGraph, names: List[str], new_names: List[str],
+) -> None:
     with executor("dask", max_workers=20) as pool:
         futures = {
             pool.submit(get_attrs, name, i): name for i, name in enumerate(names)
@@ -148,7 +150,9 @@ def _build_graph_process_pool(gx: nx.DiGraph, names: List[str], new_names: List[
                     gx.nodes[name].update(**sub_graph)
 
 
-def _build_graph_sequential(gx: nx.DiGraph, names: List[str], new_names: List[str]) -> None:
+def _build_graph_sequential(
+    gx: nx.DiGraph, names: List[str], new_names: List[str],
+) -> None:
     for i, name in enumerate(names):
         try:
             sub_graph = {"payload": get_attrs(name, i)}
@@ -207,7 +211,7 @@ def make_graph(names: List[str], gx: Optional[nx.DiGraph] = None) -> nx.DiGraph:
 
 
 # TODO Share code with close_labels
-def update_graph_pr_status(gx: nx.DiGraph, dry_run: bool=False) -> nx.DiGraph:
+def update_graph_pr_status(gx: nx.DiGraph, dry_run: bool = False) -> nx.DiGraph:
     failed_refresh = 0
     succeeded_refresh = 0
     gh = "" if dry_run else github_client()
@@ -255,7 +259,7 @@ def update_graph_pr_status(gx: nx.DiGraph, dry_run: bool=False) -> nx.DiGraph:
     return gx
 
 
-def close_labels(gx: nx.DiGraph, dry_run: bool=False) -> nx.DiGraph:
+def close_labels(gx: nx.DiGraph, dry_run: bool = False) -> nx.DiGraph:
     failed_refresh = 0
     succeeded_refresh = 0
     gh = "" if dry_run else github_client()
@@ -311,7 +315,7 @@ def close_labels(gx: nx.DiGraph, dry_run: bool=False) -> nx.DiGraph:
     return gx
 
 
-def main(args: 'CLIArgs') -> None:
+def main(args: "CLIArgs") -> None:
     setup_logger(logger)
     names = get_all_feedstocks(cached=True)
     if os.path.exists("graph.json"):
@@ -332,4 +336,4 @@ def main(args: 'CLIArgs') -> None:
 
 if __name__ == "__main__":
     pass
-    #main()
+    # main()

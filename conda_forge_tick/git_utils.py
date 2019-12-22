@@ -8,6 +8,7 @@ import github3
 import github3.pulls
 import github3.repos
 import github3.exceptions
+import github3.repos
 
 from doctr.travis import run_command_hiding_token as doctr_run
 from .xonsh_utils import env, indir
@@ -32,7 +33,9 @@ def ensure_gh(ctx: GithubContext, gh: Optional[github3.Github]) -> github3.GitHu
     return gh
 
 
-def feedstock_url(fctx: FeedstockContext, feedstock: Optional[str], protocol="ssh") -> str:
+def feedstock_url(
+    fctx: FeedstockContext, feedstock: Optional[str], protocol: str = "ssh",
+) -> str:
     """Returns the URL for a conda-forge feedstock."""
     if feedstock is None:
         feedstock = fctx.package_name + "-feedstock"
@@ -80,10 +83,10 @@ def get_repo(
     fctx: FeedstockContext,
     branch: str,
     feedstock: Optional[str] = None,
-    protocol="ssh",
-    pull_request=True,
-    fork=True,
-) -> Tuple[str, str]:
+    protocol: str = "ssh",
+    pull_request: bool = True,
+    fork: bool = True,
+) -> Tuple[str, github3.repos.Repository]:
     """Get the feedstock repo
 
     Parameters
@@ -142,7 +145,7 @@ def get_repo(
         return None
 
 
-def delete_branch(ctx: GithubContext, pr_json: LazyJson, dry_run: bool=False) -> None:
+def delete_branch(ctx: GithubContext, pr_json: LazyJson, dry_run: bool = False) -> None:
     ref = pr_json["head"]["ref"]
     if dry_run:
         print("dry run: deleting ref %s" % ref)
@@ -169,7 +172,12 @@ def delete_branch(ctx: GithubContext, pr_json: LazyJson, dry_run: bool=False) ->
 @backoff.on_exception(
     backoff.expo, (RequestException, Timeout), max_time=MAX_GITHUB_TIMEOUT,
 )
-def refresh_pr(ctx: GithubContext, pr_json: LazyJson, gh: Optional[github3.GitHub]=None, dry_run: bool=False) -> Optional[dict]:
+def refresh_pr(
+    ctx: GithubContext,
+    pr_json: LazyJson,
+    gh: Optional[github3.GitHub] = None,
+    dry_run: bool = False,
+) -> Optional[dict]:
     gh = ensure_gh(ctx, gh)
     if not pr_json["state"] == "closed":
         if dry_run:
@@ -183,12 +191,18 @@ def refresh_pr(ctx: GithubContext, pr_json: LazyJson, gh: Optional[github3.GitHu
             if pr_obj_d["state"] == "closed" and pr_obj_d.get("merged_at", False):
                 delete_branch(ctx=ctx, pr_json=pr_json, dry_run=dry_run)
         return pr_obj.as_dict()
+    return None
 
 
 @backoff.on_exception(
     backoff.expo, (RequestException, Timeout), max_time=MAX_GITHUB_TIMEOUT,
 )
-def close_out_labels(ctx: GithubContext, pr_json: LazyJson, gh: Optional[github3.GitHub]=None, dry_run: bool=False) -> Optional[dict]:
+def close_out_labels(
+    ctx: GithubContext,
+    pr_json: LazyJson,
+    gh: Optional[github3.GitHub] = None,
+    dry_run: bool = False,
+) -> Optional[dict]:
     gh = ensure_gh(ctx, gh)
     # run this twice so we always have the latest info (eg a thing was already closed)
     if pr_json["state"] != "closed" and "bot-rerun" in [
@@ -217,6 +231,7 @@ def close_out_labels(ctx: GithubContext, pr_json: LazyJson, gh: Optional[github3
             delete_branch(ctx=ctx, pr_json=pr_json, dry_run=dry_run)
             pr_obj.refresh(True)
         return pr_obj.as_dict()
+    return None
 
 
 def push_repo(
@@ -224,11 +239,11 @@ def push_repo(
     fctx: FeedstockContext,
     feedstock_dir: str,
     body: str,
-    repo: str,
+    repo: github3.repos.Repository,
     title: str,
     head: str,
     branch: str,
-    pull_request=True,
+    pull_request: bool = True,
 ) -> Union[LazyJson, bool, None]:
     """Push a repo up to github
 
@@ -298,7 +313,7 @@ def push_repo(
     backoff.expo, (RequestException, Timeout), max_time=MAX_GITHUB_TIMEOUT,
 )
 def ensure_label_exists(
-    repo: github3.repos.Repository, label_dict: dict, dry_run: bool=False,
+    repo: github3.repos.Repository, label_dict: dict, dry_run: bool = False,
 ) -> None:
     if dry_run:
         print("dry run: ensure label exists %s" % label_dict["name"])
@@ -309,8 +324,11 @@ def ensure_label_exists(
 
 
 def label_pr(
-    repo: github3.repos.Repository, pr_json: LazyJson, label_dict: dict, dry_run: bool=False,
-)  -> None:
+    repo: github3.repos.Repository,
+    pr_json: LazyJson,
+    label_dict: dict,
+    dry_run: bool = False,
+) -> None:
     ensure_label_exists(repo, label_dict, dry_run)
     if dry_run:
         print(
