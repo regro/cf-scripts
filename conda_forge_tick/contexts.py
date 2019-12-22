@@ -2,6 +2,7 @@ import copy
 from dataclasses import dataclass
 from networkx import DiGraph
 import typing
+import threading
 
 if typing.TYPE_CHECKING:
     from .migrators import Migrator
@@ -11,7 +12,22 @@ if typing.TYPE_CHECKING:
 class GithubContext:
     github_username: str
     github_password: str
+    github_token: typing.Optional[str]
     circle_build_url: str
+    dry_run: bool
+
+    _tl = threading.local()
+
+    def gh(self):
+        if getattr(self._tl, "gh") is None:
+            import github3
+
+            if self.github_token:
+                gh = github3.login(token=self.github_token)
+            else:
+                gh = github3.login(self.github_username, self.github_password)
+            setattr(self._tl, "gh", gh)
+        return self._tl.gh
 
 
 @dataclass

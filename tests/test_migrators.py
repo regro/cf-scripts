@@ -2249,10 +2249,13 @@ class _BlasRebuild(NoFilter, BlasRebuild):
 blas_rebuild = _BlasRebuild(cycles=[])
 
 matplotlib = Replacement(
-    old_pkg='matplotlib', new_pkg='matplotlib-base',
-    rationale=('Unless you need `pyqt`, recipes should depend only on '
-               '`matplotlib-base`.'),
-    pr_limit=5)
+    old_pkg="matplotlib",
+    new_pkg="matplotlib-base",
+    rationale=(
+        "Unless you need `pyqt`, recipes should depend only on " "`matplotlib-base`."
+    ),
+    pr_limit=5,
+)
 
 test_list = [
     (

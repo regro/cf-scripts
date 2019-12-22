@@ -60,8 +60,6 @@ def run(
     pull_request=True,
     rerender=True,
     fork=True,
-    gh=None,
-    dry_run=True,
     **kwargs,
 ):
     """For a given feedstock and migration run the migration
@@ -104,7 +102,6 @@ def run(
         protocol=protocol,
         pull_request=pull_request,
         fork=fork,
-        gh=gh,
     )
 
     recipe_dir = os.path.join(feedstock_dir, "recipe")
@@ -172,7 +169,6 @@ def run(
                 migrator.pr_title(feedstock_ctx),
                 migrator.pr_head(),
                 migrator.remote_branch(),
-                dry_run=dry_run,
             )
 
         # This shouldn't happen too often any more since we won't double PR
@@ -467,10 +463,10 @@ def add_replacement_migrator(migrators, gx, old_pkg, new_pkg, rationale):
     total_graph = copy.deepcopy(gx)
 
     for node, node_attrs in gx.nodes.items():
-        attrs = node_attrs['payload']
+        attrs = node_attrs["payload"]
         meta_yaml = attrs.get("meta_yaml", {}) or {}
         bh = get_requirements(meta_yaml)
-        pkgs = set([old_pkg])
+        pkgs = {old_pkg}
         old_pkg_c = len(pkgs.intersection(bh)) > 0
 
         rq = _host_run_test_dependencies(meta_yaml)
@@ -484,13 +480,14 @@ def add_replacement_migrator(migrators, gx, old_pkg, new_pkg, rationale):
     # post plucking we can have several strange cases, lets remove all selfloops
     total_graph.remove_edges_from(nx.selfloop_edges(total_graph))
 
-    top_level = set(node for node in total_graph if not list(
-        total_graph.predecessors(node)))
+    top_level = {
+        node for node in total_graph if not list(total_graph.predecessors(node))
+    }
     cycles = list(nx.simple_cycles(total_graph))
 
     migrators.append(
-        Replacement(old_pkg=old_pkg, new_pkg=new_pkg, rationale=rationale,
-                    pr_limit=5))
+        Replacement(old_pkg=old_pkg, new_pkg=new_pkg, rationale=rationale, pr_limit=5),
+    )
 
 
 def add_arch_migrate(migrators, gx):
@@ -647,7 +644,11 @@ def migration_factory(migrators, gx, pr_limit=50):
 
 
 def initialize_migrators(
-    do_rebuild=False, github_username: str = "", github_password: str = "",
+    do_rebuild=False,
+    github_username: str = "",
+    github_password: str = "",
+    github_token=None,
+    dry_run=False,
 ) -> Tuple[MigratorsContext, list, MutableSequence[Migrator]]:
     setup_logger(logger)
     temp = glob.glob("/tmp/*")
@@ -660,12 +661,12 @@ def initialize_migrators(
     add_arch_migrate(MIGRATORS, gx)
     migration_factory(MIGRATORS, gx)
     for m in MIGRATORS:
-    # add_replacement_migrator(
-    #     $MIGRATORS, gx,
-    #     'matplotlib',
-    #     'matplotlib-base',
-    #     ('Unless you need `pyqt`, recipes should depend only on '
-    #      '`matplotlib-base`.'))
+        # add_replacement_migrator(
+        #     $MIGRATORS, gx,
+        #     'matplotlib',
+        #     'matplotlib-base',
+        #     ('Unless you need `pyqt`, recipes should depend only on '
+        #      '`matplotlib-base`.'))
         print(f'{getattr(m, "name", m)} graph size: {len(getattr(m, "graph", []))}')
 
     ctx = MigratorsContext(
@@ -675,6 +676,8 @@ def initialize_migrators(
         pinning_version=pinning_version,
         github_username=github_username,
         github_password=github_password,
+        github_token=github_token,
+        dry_run=dry_run,
     )
 
     return ctx, temp, MIGRATORS
@@ -797,15 +800,16 @@ def migrator_status(migrator: Migrator, gx):
 
 
 def main(args=None):
-    if args.dry_run:
-        gh = None
-    else:
-        github_username = env["USERNAME"]
-        github_password = env["PASSWORD"]
-        gh = github3.login(env["USERNAME"], env["PASSWORD"])
+    github_username = env.get("USERNAME", "")
+    github_password = env.get("PASSWORD", "")
+    github_token = env.get("GITHUB_TOKEN")
     global MIGRATORS
     mctx, temp, MIGRATORS = initialize_migrators(
-        False, github_username=github_username, github_password=github_password,
+        do_rebuild=False,
+        github_username=github_username,
+        github_password=github_password,
+        dry_run=args.dry_run,
+        github_token=github_token,
     )
 
     for migrator in MIGRATORS:
@@ -852,7 +856,10 @@ def main(args=None):
                 )
                 try:
                     # Don't bother running if we are at zero
-                    if not args.dry_run and gh.rate_limit()['resources']['core']['remaining'] == 0:
+                    if (
+                        not args.dry_run
+                        and gh.rate_limit()["resources"]["core"]["remaining"] == 0
+                    ):
                         break
                     rerender = (
                         attrs.get("smithy_version") != mctx.smithy_version
@@ -862,11 +869,9 @@ def main(args=None):
                     migrator_uid, pr_json = run(
                         feedstock_ctx=fctx,
                         migrator=migrator,
-                        gh=gh,
                         rerender=rerender,
                         protocol="https",
                         hash_type=attrs.get("hash_type", "sha256"),
-                        dry_run=args.dry_run,
                     )
                     # if migration successful
                     if migrator_uid:

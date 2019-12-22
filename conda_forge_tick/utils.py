@@ -7,8 +7,11 @@ import os
 import re
 from typing import Any, Tuple, Iterable
 from collections.abc import Mapping, MutableMapping, Sequence, Set
-from concurrent.futures import (ProcessPoolExecutor, ThreadPoolExecutor,
-                                as_completed,)
+from concurrent.futures import (
+    ProcessPoolExecutor,
+    ThreadPoolExecutor,
+    as_completed,
+)
 
 import github3
 import jinja2

@@ -78,7 +78,7 @@ def fork_url(feedstock_url, username):
 
 
 def get_repo(ctx: MigratorsContext, fctx: FeedstockContext, branch, feedstock=None, protocol='ssh',
-             pull_request=True, fork=True, gh=None):
+             pull_request=True, fork=True):
     """Get the feedstock repo
 
     Parameters
@@ -100,7 +100,7 @@ def get_repo(ctx: MigratorsContext, fctx: FeedstockContext, branch, feedstock=No
     recipe_dir : str
         The recipe directory
     """
-    gh = ensure_gh(ctx, gh)
+    gh = ctx.gh()
     # first, let's grab the feedstock locally
     upstream = feedstock_url(fctx=fctx, feedstock=feedstock, protocol=protocol)
     origin = fork_url(upstream, ctx.github_username)
@@ -126,35 +126,18 @@ def get_repo(ctx: MigratorsContext, fctx: FeedstockContext, branch, feedstock=No
             time.sleep(5)
 
     feedstock_dir = os.path.join(ctx.rever_dir, fctx.package_name + '-feedstock')
-    if not os.path.isdir(feedstock_dir):
-        p = ![git clone -q @(origin) @(feedstock_dir)]
-        if p.rtn != 0:
-            msg = 'Could not clone ' + origin
-            msg += '. Do you have a personal fork of the feedstock?'
-            return
-    with indir(feedstock_dir):
-        git fetch @(origin) --quiet
-        # make sure feedstock is up-to-date with origin
-        git checkout master
-        git pull @(origin) master --quiet
-        # remove any uncommited changes?
-        git reset --hard HEAD
-        # make sure feedstock is up-to-date with upstream
-        # git pull @(upstream) master -s recursive -X theirs --no-edit
-        # always run upstream master
-        git remote add upstream @(upstream)
-        git fetch upstream master --quiet
-        git reset --hard upstream/master
-        # make and modify version branch
-        with ${...}.swap(RAISE_SUBPROC_ERROR=False):
-            git checkout @(branch) --quiet or git checkout -b @(branch) master --quiet
-    return feedstock_dir, repo
+    from .git_xonsh_utils import fetch_repo
+    if fetch_repo(feedstock_dir=feedstock_dir, origin=origin, upstream=upstream, branch=branch):
+        return feedstock_dir, repo
+    else:
+        return
+
 
 def delete_branch(ctx: GithubContext, pr_json: LazyJson, dry_run=False):
+    ref = pr_json['head']['ref']
     if dry_run:
         print("dry run: deleting ref %s" % ref)
         return
-    ref = pr_json['head']['ref']
     name = pr_json['base']['repo']['name']
     token = ctx.github_password
     deploy_repo = ctx.github_username + '/' + name
@@ -211,7 +194,7 @@ def close_out_labels(ctx: GithubContext, pr_json: LazyJson, gh=None, dry_run=Fal
 
 
 def push_repo(ctx: MigratorsContext, fctx: FeedstockContext, feedstock_dir, body, repo, title, head, branch,
-              dry_run=False, pull_request=True) -> Optional[LazyJson]:
+              pull_request=True) -> Optional[LazyJson]:
     """Push a repo up to github
 
     Parameters
@@ -234,7 +217,7 @@ def push_repo(ctx: MigratorsContext, fctx: FeedstockContext, feedstock_dir, body
         # Copyright (c) 2016 Aaron Meurer, Gil Forsyth
         token = ctx.github_password
         deploy_repo = ctx.github_username + '/' + fctx.feedstock_name + '-feedstock'
-        if dry_run:
+        if ctx.dry_run:
             repo_url = 'https://github.com/{deploy_repo}.git'.format(deploy_repo=deploy_repo)
             print("dry run: adding remote and pushing up branch for %s" % repo_url)
         else:
@@ -247,7 +230,7 @@ def push_repo(ctx: MigratorsContext, fctx: FeedstockContext, feedstock_dir, body
                       token=token.encode('utf-8'))
     # lastly make a PR for the feedstock
     print('Creating conda-forge feedstock pull request...')
-    if dry_run:
+    if ctx.dry_run:
         print("dry run: create pr with title: %s" % title)
         return False
     else:
