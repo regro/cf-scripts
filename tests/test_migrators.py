@@ -5,21 +5,24 @@ import re
 import pytest
 import networkx as nx
 
-from conda_forge_tick.contexts import GithubContext, MigratorsContext, MigratorContext
+from conda_forge_tick.contexts import MigratorsContext, MigratorContext
 from conda_forge_tick.migrators import (
-    JS,
     Version,
-    Compiler,
-    Noarch,
-    Pinning,
     Rebuild,
-    ArchRebuild,
-    NoarchR,
-    BlasRebuild,
     LicenseMigrator,
     MigrationYaml,
     Replacement,
 )
+# Legacy THINGS
+from conda_forge_tick.migrators.disabled.legacy import (
+    JS,
+    Compiler,
+    Noarch,
+    Pinning,
+    NoarchR,
+    BlasRebuild,
+)
+
 from conda_forge_tick.utils import parse_meta_yaml, frozen_to_json_friendly
 
 sample_yaml_rebuild = """
