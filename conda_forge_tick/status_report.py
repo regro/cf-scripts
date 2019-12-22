@@ -1,11 +1,11 @@
-from .migrators import Rebuild, MigrationYaml, LicenseMigrator
+from .migrators import Rebuild, MigrationYaml, LicenseMigrator, Any
 from .auto_tick import initialize_migrators, migrator_status
 import os
 import json
 import networkx as nx
 
 
-def main(args=None):
+def main(args: Any = None) -> None:
     mctx, *_, migrators = initialize_migrators(do_rebuild=True)
     if not os.path.exists("./status"):
         os.mkdir("./status")
@@ -15,6 +15,7 @@ def main(args=None):
         if isinstance(migrator, (Rebuild, MigrationYaml)):
             migrator_name = migrator.__class__.__name__.lower()
             if migrator_name in ["rebuild", "migrationyaml"]:
+                assert isinstance(migrator.name, str)
                 migrator_name = migrator.name.lower().replace(" ", "")
             total_status[migrator_name] = f"{migrator.name} Migration Status"
             status, build_order, gv = migrator_status(migrator, mctx.graph)

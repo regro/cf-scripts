@@ -4,14 +4,16 @@ import json
 import time
 import traceback
 import logging
+import os
 import typing
+import networkx as nx
 
 from urllib.error import URLError
 
 import github3
 import ruamel.yaml as yaml
 from uuid import uuid4
-from .xonsh_utils import indir
+from .xonsh_utils import indir, eval_xonsh
 
 from conda_forge_tick.contexts import FeedstockContext
 from .git_utils import (
@@ -31,13 +33,40 @@ from .utils import (
     LazyJson,
 )
 from .xonsh_utils import env
-from typing import MutableSequence, Sequence, Tuple, Dict, Set, Sized, MutableMapping
+from typing import (
+    List,
+    Optional,
+    MutableSequence,
+    Sequence,
+    Tuple,
+    Dict,
+    Set,
+    Sized,
+    MutableMapping,
+)
 
 logger = logging.getLogger("conda_forge_tick.auto_tick")
 
 # TODO: move this back to the bot file as soon as the source issue is sorted
 # https://travis-ci.org/regro/00-find-feedstocks/jobs/388387895#L1870
-from .migrators import *
+from .utils import frozen_to_json_friendly
+from .migrators import (
+    MigratorsContext,
+    Migrator,
+    Version,
+    PipMigrator,
+    LicenseMigrator,
+    Noarch,
+    NoarchR,
+    MigrationYaml,
+    MigratorContext,
+    Rebuild,
+    BlasRebuild,
+    Replacement,
+    ArchRebuild,
+)
+
+from .migrators_types import *
 
 
 MIGRATORS: MutableSequence[Migrator] = [
@@ -191,13 +220,16 @@ def run(
     return migrate_return, pr_json
 
 
-def _requirement_names(reqlist):
+def _requirement_names(reqlist: Optional[Sequence[Optional[str]]]) -> List[str]:
     """Parse requirement names from a list ignoring `None`
     """
-    return [r.split()[0] for r in reqlist if r is not None]
+    if reqlist is None:
+        return []
+    else:
+        return [r.split()[0] for r in reqlist if r is not None]
 
 
-def _host_run_test_dependencies(meta_yaml):
+def _host_run_test_dependencies(meta_yaml: "MetaYamlTypedDict"):
     """Parse the host/run/test dependencies of a recipe
 
     This function parses top-level and `outputs` requirements sections.
@@ -207,7 +239,7 @@ def _host_run_test_dependencies(meta_yaml):
     """
     rq = set()
     for block in [meta_yaml] + meta_yaml.get("outputs", []) or []:
-        req = block.get("requirements", {}) or {}
+        req: "RequirementsTypedDict" = block.get("requirements", {}) or {}
         # output requirements given as list (e.g. openmotif)
         if isinstance(req, list):
             rq.update(_requirement_names(req))
@@ -215,20 +247,21 @@ def _host_run_test_dependencies(meta_yaml):
 
         # if there is a host and it has things; use those
         if req.get("host"):
-            rq.update(_requirement_names(req.get("host")))
+            rq.update(_requirement_names(req.get("host", [])))
         # there is no host; look at build
         elif req.get("host", "no host") not in [None, []]:
             rq.update(_requirement_names(req.get("build", []) or []))
         rq.update(_requirement_names(req.get("run", []) or []))
 
     # add testing dependencies
-    for key in ("requirements", "requires"):
-        rq.update(_requirement_names(meta_yaml.get("test", {}).get(key, []) or []))
+    test: "TestTypedDict" = meta_yaml.get("test", {})
+    rq.update(_requirement_names(test.get("requirements")))
+    rq.update(_requirement_names(test.get("requires")))
 
     return rq
 
 
-def add_rebuild_openssl(migrators, gx):
+def add_rebuild_openssl(migrators: MutableSequence[Migrator], gx: nx.DiGraph):
     """Adds rebuild openssl migrators.
 
     Parameters
@@ -241,7 +274,7 @@ def add_rebuild_openssl(migrators, gx):
     total_graph = copy.deepcopy(gx)
 
     for node, node_attrs in gx.nodes.items():
-        attrs = node_attrs["payload"]
+        attrs: "AttrsTypedDict" = node_attrs["payload"]
         meta_yaml = attrs.get("meta_yaml", {}) or {}
         bh = get_requirements(meta_yaml)
         openssl_c = "openssl" in bh
@@ -277,7 +310,7 @@ def add_rebuild_openssl(migrators, gx):
     )
 
 
-def add_rebuild_libprotobuf(migrators, gx):
+def add_rebuild_libprotobuf(migrators: MutableSequence[Migrator], gx: nx.DiGraph):
     """Adds rebuild libprotobuf migrators.
 
     Parameters
@@ -290,7 +323,7 @@ def add_rebuild_libprotobuf(migrators, gx):
     total_graph = copy.deepcopy(gx)
 
     for node, node_attrs in gx.nodes.items():
-        attrs = node_attrs["payload"]
+        attrs: "AttrsTypedDict" = node_attrs["payload"]
         meta_yaml = attrs.get("meta_yaml", {}) or {}
         bh = get_requirements(meta_yaml)
         protobuf_c = "libprotobuf" in bh
@@ -494,7 +527,7 @@ def add_replacement_migrator(migrators, gx, old_pkg, new_pkg, rationale):
     )
 
 
-def add_arch_migrate(migrators, gx):
+def add_arch_migrate(migrators: MutableSequence[Migrator], gx: nx.DiGraph):
     """Adds rebuild migrators.
 
     Parameters
@@ -568,7 +601,7 @@ def add_rebuild_migration_yaml(
     total_graph = copy.deepcopy(gx)
 
     for node, node_attrs in gx.nodes.items():
-        attrs = node_attrs["payload"]
+        attrs: "AttrsTypedDict" = node_attrs["payload"]
         meta_yaml = attrs.get("meta_yaml", {}) or {}
         # TODO: fix this, since it doesn't fully apply the strong constraints
         if "strong" in meta_yaml.get("build", {}) or any(
@@ -618,7 +651,9 @@ def add_rebuild_migration_yaml(
     migrators.append(migrator)
 
 
-def migration_factory(migrators, gx, pr_limit=50):
+def migration_factory(
+    migrators: MutableSequence[Migrator], gx: nx.DiGraph, pr_limit=50,
+):
     migration_yamls = []
     with indir("../conda-forge-pinning-feedstock/recipe/migrations"):
         for yaml_file in glob.glob("*.y*ml"):
@@ -637,9 +672,9 @@ def migration_factory(migrators, gx, pr_limit=50):
         ) - exclude_packages
 
         add_rebuild_migration_yaml(
-            migrators,
-            gx,
-            package_names,
+            migrators=migrators,
+            gx=gx,
+            package_names=list(package_names),
             migration_yaml=yaml_contents,
             migration_name=os.path.splitext(yaml_file)[0],
             config=migrator_config,
@@ -803,7 +838,7 @@ def migrator_status(migrator: Migrator, gx):
     return out2, build_sequence, gv
 
 
-def main(args=None):
+def main(args: typing.Any = None) -> None:
     github_username = env.get("USERNAME", "")
     github_password = env.get("PASSWORD", "")
     github_token = env.get("GITHUB_TOKEN")

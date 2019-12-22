@@ -35,12 +35,15 @@ from .utils import (
     as_iterable,
     parse_meta_yaml,
     CB_CONFIG,
+
 )
 from .contexts import MigratorsContext, MigratorContext, FeedstockContext
 
+from typing import *
 
 if typing.TYPE_CHECKING:
     from .migrators_types import *
+    from .utils import JsonFriendly
 
 try:
     from conda_smithy.lint_recipe import NEEDED_FAMILIES
@@ -48,15 +51,16 @@ except ImportError:
     NEEDED_FAMILIES = ["gpl", "bsd", "mit", "apache", "psf"]
 
 
-def _no_pr_pred(pred):
+def _no_pr_pred(pred) -> List['JsonFriendly']:
     l = []
     for pr in pred:
-        l.append({"data": pr["data"], "keys": pr["keys"]})
+        d: 'JsonFriendly' = {"data": pr["data"], "keys": pr["keys"]}
+        l.append(d)
     return l
 
 
 class MiniMigrator:
-    def filter(self, attrs: AttrsTypedDict, not_bad_str_start="") -> bool:
+    def filter(self, attrs: "AttrsTypedDict", not_bad_str_start="") -> bool:
         """ If true don't act upon node
 
         Parameters
@@ -71,7 +75,7 @@ class MiniMigrator:
         """
         return True
 
-    def migrate(self, recipe_dir, attrs: AttrsTypedDict, **kwargs):
+    def migrate(self, recipe_dir, attrs: "AttrsTypedDict", **kwargs):
         """Perform the migration, updating the ``meta.yaml``
 
         Parameters
@@ -101,7 +105,7 @@ class PipMigrator(MiniMigrator):
         )
         return not bool(set(self.bad_install) & set(scripts))
 
-    def migrate(self, recipe_dir, attrs: AttrsTypedDict, **kwargs):
+    def migrate(self, recipe_dir, attrs: "AttrsTypedDict", **kwargs):
         with indir(recipe_dir):
             for b in self.bad_install:
                 replace_in_file(
@@ -112,7 +116,7 @@ class PipMigrator(MiniMigrator):
 
 
 class LicenseMigrator(MiniMigrator):
-    def filter(self, attrs: AttrsTypedDict, not_bad_str_start="") -> bool:
+    def filter(self, attrs: "AttrsTypedDict", not_bad_str_start="") -> bool:
         license = attrs.get("meta_yaml", {}).get("about", {}).get("license", "")
         license_fam = (
             attrs.get("meta_yaml", {})
@@ -127,7 +131,7 @@ class LicenseMigrator(MiniMigrator):
             return False
         return True
 
-    def migrate(self, recipe_dir, attrs: AttrsTypedDict, **kwargs):
+    def migrate(self, recipe_dir, attrs: "AttrsTypedDict", **kwargs):
         # Use conda build to do all the downloading/extracting bits
         md = render(recipe_dir, config=Config(**CB_CONFIG))
         if not md:
@@ -204,7 +208,13 @@ class Migrator:
         ),
     )
 
-    def __init__(self, pr_limit=0, obj_version=None, piggy_back_migrations=None):
+    def __init__(
+        self,
+        pr_limit: int = 0,
+        # TODO: Validate this?
+        obj_version: Optional[int] = None,
+        piggy_back_migrations: Optional[Sequence[MiniMigrator]] = None,
+    ):
         if piggy_back_migrations is None:
             piggy_back_migrations = []
         self.piggy_back_migrations = piggy_back_migrations
@@ -224,7 +234,7 @@ class Migrator:
             )
         ][:limit]
 
-    def filter(self, attrs: AttrsTypedDict, not_bad_str_start="") -> bool:
+    def filter(self, attrs: "AttrsTypedDict", not_bad_str_start="") -> bool:
         """ If true don't act upon node
 
         Parameters
@@ -246,7 +256,7 @@ class Migrator:
         # don't run on bad nodes
 
         def parse_bad_attr() -> bool:
-            bad = bool(attrs.get("bad", False))
+            bad = attrs.get("bad", False)
             if isinstance(bad, str):
                 return not bad.startswith(not_bad_str_start)
             else:
@@ -264,7 +274,7 @@ class Migrator:
 
         return attrs.get("archived", False) or parse_already_pred() or parse_bad_attr()
 
-    def migrate(self, recipe_dir, attrs: AttrsTypedDict, **kwargs):
+    def migrate(self, recipe_dir, attrs: "AttrsTypedDict", **kwargs):
         """Perform the migration, updating the ``meta.yaml``
 
         Parameters
@@ -316,25 +326,25 @@ class Migrator:
         )
         return body
 
-    def commit_message(self):
+    def commit_message(self) -> str:
         """Create a commit message"""
         return "migration: " + self.__class__.__name__
 
-    def pr_title(self, feedstock_ctx: FeedstockContext):
+    def pr_title(self, feedstock_ctx: FeedstockContext) -> str:
         """Title for PR
         :param feedstock_ctx:
         """
         return "PR from Regro-cf-autotick-bot"
 
-    def pr_head(self):
+    def pr_head(self) -> str:
         """Head for PR"""
         return self.ctx.github_username + ":" + self.remote_branch()
 
-    def remote_branch(self):
+    def remote_branch(self) -> str:
         """Branch to use on local and remote"""
         return "bot-pr"
 
-    def migrator_uid(self, attrs: AttrsTypedDict) -> dict:
+    def migrator_uid(self, attrs: "AttrsTypedDict") -> "MigrationUidTypedDict":
         """Make a unique id for this migrator and node attrs
 
         Parameters
@@ -347,14 +357,14 @@ class Migrator:
         nt: frozen_to_json_friendly
             The unique id as a frozen_to_json_friendly (so it can be used as keys in dicts)
         """
-        d = {
+        d: "MigrationUidTypedDict" = {
             "migrator_name": self.__class__.__name__,
             "migrator_version": self.migrator_version,
             "bot_rerun": False,
         }
         # Carveout for old migrators w/o obj_versions
         if self.obj_version:
-            d.update(migrator_object_version=self.obj_version)
+            d["migrator_object_version"] = self.obj_version
         return d
 
     def order(self, graph: nx.DiGraph, total_graph: nx.DiGraph):
@@ -377,7 +387,7 @@ class Migrator:
         }
         return cyclic_topological_sort(graph, top_level)
 
-    def set_build_number(self, filename):
+    def set_build_number(self, filename: str) -> None:
         """Bump the build number of the specified recipe.
 
         Parameters
@@ -453,9 +463,10 @@ class Version(Migrator):
 
     migrator_version = 0
 
-    def find_urls(self, text):
+    # TODO: replace these types with a namedtuple so that it is clear what this is
+    def find_urls(self, text: str) -> List[Tuple[Union[str, List[str]], str, str]]:
         """Get the URLs and platforms in a meta.yaml."""
-        urls = []
+        urls: List[Tuple[Union[str, List[str]], str, str]] = []
         for m in self.url_pat.finditer(text):
             urls.append((m.group(4), m.group(6), m.group()))
         for m in self.r_url_pat.finditer(text):
@@ -464,9 +475,14 @@ class Version(Migrator):
                 urls.append((r, m.group(2), m.group()))
         return urls
 
-    def get_hash_patterns(self, filename, urls, hash_type):
+    def get_hash_patterns(
+        self,
+        filename: str,
+        urls: List[Tuple[Union[str, List[str]], str, str]],
+        hash_type: str,
+    ) -> Sequence[Tuple[str, str, str]]:
         """Get the patterns to replace hash for each platform."""
-        pats = ()
+        pats: MutableSequence[Tuple[str, str, str]] = []
         checksum_names = [
             "hash_value",
             "hash",
@@ -501,12 +517,12 @@ class Version(Migrator):
             n = f"{hash_type}: {hash_}"
             if platform:
                 n += f"  # [{platform}]"
-            pats += ((filename, p, n),)
+            pats.append((filename, p, n))
 
             base1 = r"""{{%\s*set {checkname} = ['"][0-9A-Fa-f]+['"] %}}"""
             base2 = '{{% set {checkname} = "{h}" %}}'
             for cn in checksum_names:
-                pats += (
+                pats.append(
                     (
                         "meta.yaml",
                         base1.format(checkname=cn),
@@ -560,7 +576,7 @@ class Version(Migrator):
         with indir(recipe_dir):
             with open("meta.yaml", "r") as f:
                 text = f.read()
-        url = re.search(r"\s*-?\s*url:.*?\n(    -.*\n?)*", text).group()
+        url = re.search(r"\s*-?\s*url:.*?\n( {4}-.*\n?)*", text).group()
         if "cran.r-project.org/src/contrib" in url:
             version = version.replace("_", "-")
         with indir(recipe_dir), env.swap(VERSION=version):
@@ -601,14 +617,14 @@ class Version(Migrator):
             self.set_build_number("meta.yaml")
         return super().migrate(recipe_dir, attrs)
 
-    def pr_body(self, feedstock_ctx):
+    def pr_body(self, feedstock_ctx: FeedstockContext):
         pred = [
             (name, self.ctx.effective_graph.nodes[name]["payload"]["new_version"])
             for name in list(
                 self.ctx.effective_graph.predecessors(feedstock_ctx.package_name),
             )
         ]
-        body = super().pr_body(None)
+        body = super().pr_body(feedstock_ctx)
         body = body.format(
             "It is very likely that the current package version for this "
             "feedstock is out of date.\n"
@@ -665,7 +681,7 @@ class Version(Migrator):
         n.update(version=attrs["new_version"])
         return n
 
-    def _extract_version_from_hash(self, h):
+    def _extract_version_from_hash(self, h) -> str:
         return h.get("version", "0.0.0")
 
     @classmethod
@@ -1043,43 +1059,23 @@ class NoarchR(Noarch):
         return "r-noarch"
 
 
-class Rebuild(Migrator):
-    """Migrator for bumping the build number."""
-
-    migrator_version = 0
-    rerender = True
-    bump_number = 1
-
-    # TODO: add a description kwarg for the status page at some point.
+class GraphMigrator(Migrator):
     def __init__(
         self,
-        graph=None,
-        name=None,
-        pr_limit=0,
-        top_level=None,
-        cycles=None,
-        obj_version=None,
+        *,
+        graph: nx.DiGraph = None,
+        pr_limit: int = 0,
+        obj_version: Optional[int] = None,
+        piggy_back_migrations: Optional[Sequence[MiniMigrator]] = None,
     ):
-        super().__init__(pr_limit, obj_version)
+        super().__init__(pr_limit, obj_version, piggy_back_migrations)
         # TODO: Grab the graph from the migrator ctx
         if graph is None:
             self.graph = nx.DiGraph()
         else:
             self.graph = graph
-        self.name = name
-        self.top_level = top_level
-        self.cycles = set(chain.from_iterable(cycles or []))
 
-    def filter(self, attrs, not_bad_str_start="") -> bool:
-        if super().filter(attrs, "Upstream:"):
-            return True
-        if attrs["feedstock_name"] not in self.graph:
-            return True
-        # If in top level or in a cycle don't check for upstreams just build
-        if (self.top_level and attrs["feedstock_name"] in self.top_level) or (
-            self.cycles and attrs["feedstock_name"] in self.cycles
-        ):
-            return False
+    def predecessors_already_built(self, attrs: "AttrsTypedDict"):
         # Check if all upstreams have been built
         for node in self.graph.predecessors(attrs["feedstock_name"]):
             att = self.graph.nodes[node]["payload"]
@@ -1101,7 +1097,29 @@ class Rebuild(Migrator):
                 and m_pred_json.get("PR", {"state": "open"}).get("state", "") == "open"
             ):
                 return True
-        return False
+
+
+class Rebuild(GraphMigrator):
+    """Migrator for bumping the build number."""
+
+    migrator_version = 0
+    rerender = True
+    bump_number = 1
+
+    # TODO: add a description kwarg for the status page at some point.
+    def __init__(
+        self,
+        graph: nx.DiGraph = None,
+        name: Optional[str] = None,
+        pr_limit=0,
+        top_level: Set["PackageName"] = None,
+        cycles: Optional[List["PackageName"]] = None,
+        obj_version: Optional[int] = None,
+    ):
+        super().__init__(pr_limit=pr_limit, obj_version=obj_version, graph=graph)
+        self.name = name
+        self.top_level = top_level
+        self.cycles = set(chain.from_iterable(cycles or []))
 
     def migrate(self, recipe_dir, attrs, **kwargs):
         with indir(recipe_dir):
@@ -1148,12 +1166,13 @@ class Rebuild(Migrator):
             + s_obj
         )
 
-    def migrator_uid(self, attrs):
+    def migrator_uid(self, attrs) -> "MigrationUidTypedDict":
         n = super().migrator_uid(attrs)
-        n.update(name=self.name)
+        if isinstance(self.name, str):
+            n["name"] = self.name
         return n
 
-    def order(self, graph, total_graph):
+    def order(self, graph: nx.DiGraph, total_graph: nx.DiGraph) -> List["PackageName"]:
         """Run the order by number of decendents, ties are resolved by package name"""
         return sorted(
             graph, key=lambda x: (len(nx.descendants(total_graph, x)), x), reverse=True,
@@ -1400,7 +1419,14 @@ class ArchRebuild(Rebuild):
         "linux_ppc64le": "default",
     }
 
-    def __init__(self, graph=None, name=None, pr_limit=0, top_level=None, cycles=None):
+    def __init__(
+        self,
+        graph: nx.DiGraph = None,
+        name: Optional[str] = None,
+        pr_limit=0,
+        top_level: Set["PackageName"] = None,
+        cycles: Optional[List["PackageName"]] = None,
+    ):
         super().__init__(
             graph=graph,
             name=name,
@@ -1675,7 +1701,7 @@ class GFortranOSXRebuild(Rebuild):
 
 
 # This may replace Rebuild
-class MigrationYaml(Migrator):
+class MigrationYaml(GraphMigrator):
     """Migrator for bumping the build number."""
 
     migrator_version = 0
@@ -1685,26 +1711,26 @@ class MigrationYaml(Migrator):
     # TODO: make yaml_contents an arg?
     def __init__(
         self,
-        yaml_contents,
-        graph=None,
-        name=None,
+        yaml_contents: str,
+        graph: nx.DiGraph = None,
+        name: Optional[str] = None,
         pr_limit=50,
-        top_level=None,
-        cycles=None,
-        migration_number=None,
+        top_level: Set["PackageName"] = None,
+        cycles: Optional[Sequence["PackageName"]] = None,
+        migration_number: Optional[int] = None,
         bump_number=1,
-        piggy_back_migrations=None,
+        piggy_back_migrations: Optional[Sequence[MiniMigrator]] = None,
         **kwargs,
     ):
         super().__init__(
-            pr_limit, migration_number, piggy_back_migrations=piggy_back_migrations,
+            graph=graph,
+            pr_limit=pr_limit,
+            obj_version=migration_number,
+            piggy_back_migrations=piggy_back_migrations,
         )
         self.yaml_contents = yaml_contents
-        if graph is None:
-            self.graph = nx.DiGraph()
-        else:
-            self.graph = graph
-        self.name = name
+        assert isinstance(name, str)
+        self.name: str = name
         self.top_level = top_level
         self.cycles = set(chain.from_iterable(cycles or []))
 
@@ -1735,24 +1761,11 @@ class MigrationYaml(Migrator):
         ):
             return False
         # Check if all upstreams have been built
-        for node in self.graph.predecessors(attrs["feedstock_name"]):
-            att = self.graph.nodes[node]["payload"]
-            muid = frozen_to_json_friendly(self.migrator_uid(att))
-            if muid not in _no_pr_pred(att.get("PRed", [])) and not att.get(
-                "archived", False,
-            ):
-                return True
-            # This is due to some PRed_json loss due to bad graph deploy outage
-            for m_pred_json in att.get("PRed", []):
-                if m_pred_json["data"] == muid["data"]:
-                    break
-            else:
-                m_pred_json = None
-            if m_pred_json and m_pred_json["PR"].get("state", "") == "open":
-                return True
+        if self.predecessors_already_built(attrs=attrs):
+            return True
         return False
 
-    def migrate(self, recipe_dir, attrs, **kwargs):
+    def migrate(self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs):
         # in case the render is old
         os.makedirs(os.path.join(recipe_dir, "../.ci_support"), exist_ok=True)
         with indir(os.path.join(recipe_dir, "../.ci_support")):
@@ -1765,8 +1778,8 @@ class MigrationYaml(Migrator):
             self.set_build_number("meta.yaml")
         return super().migrate(recipe_dir, attrs)
 
-    def pr_body(self, feedstock_ctx):
-        body = super().pr_body(None)
+    def pr_body(self, feedstock_ctx: "FeedstockContext") -> str:
+        body = super().pr_body(feedstock_ctx)
         additional_body = (
             "This PR has been triggered in an effort to update **{name}**.\n\n"
             "Notes and instructions for merging this PR:\n"
@@ -1787,19 +1800,19 @@ class MigrationYaml(Migrator):
         body = body.format(additional_body)
         return body
 
-    def commit_message(self):
+    def commit_message(self) -> str:
         return "bump build number"
 
-    def pr_title(self, feedstock_ctx):
+    def pr_title(self, feedstock_ctx) -> str:
         if self.name:
             return "Rebuild for " + self.name
         else:
             return "Bump build number"
 
-    def pr_head(self):
+    def pr_head(self) -> str:
         return self.ctx.github_username + ":" + self.remote_branch()
 
-    def remote_branch(self):
+    def remote_branch(self) -> str:
         s_obj = str(self.obj_version) if self.obj_version else ""
         return (
             "rebuild-"
@@ -1808,12 +1821,12 @@ class MigrationYaml(Migrator):
             + s_obj
         )
 
-    def migrator_uid(self, attrs):
+    def migrator_uid(self, attrs: "AttrsTypedDict") -> "MigrationUidTypedDict":
         n = super().migrator_uid(attrs)
-        n.update(name=self.name)
+        n["name"] = self.name
         return n
 
-    def order(self, graph, total_graph):
+    def order(self, graph: nx.DiGraph, total_graph: nx.DiGraph):
         """Run the order by number of decendents, ties are resolved by package name"""
         return sorted(
             graph, key=lambda x: (len(nx.descendants(total_graph, x)), x), reverse=True,

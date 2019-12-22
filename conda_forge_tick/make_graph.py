@@ -7,6 +7,7 @@ import time
 import random
 import builtins
 from copy import deepcopy
+from typing import List, Optional, Any, Tuple, Set
 
 import github3
 import networkx as nx
@@ -35,7 +36,7 @@ pin_sep_pat = re.compile(r" |>|<|=|\[")
 NUM_GITHUB_THREADS = 4
 
 
-def get_attrs(name, i):
+def get_attrs(name: str, i: int):
     lzj = LazyJson(f"node_attrs/{name}.json")
     with lzj as sub_graph:
         sub_graph.update(
@@ -48,7 +49,7 @@ def get_attrs(name, i):
 
         logger.info((i, name))
 
-        def fetch_file(filepath):
+        def fetch_file(filepath: str) -> Tuple[str, bool]:
             r = requests.get(
                 "https://raw.githubusercontent.com/"
                 "conda-forge/{}-feedstock/master/{}".format(name, filepath),
@@ -103,7 +104,7 @@ def get_attrs(name, i):
         source = yaml_dict.get("source", [])
         if isinstance(source, collections.abc.Mapping):
             source = [source]
-        source_keys = set()
+        source_keys: Set[str] = set()
         for s in source:
             if not sub_graph.get("url"):
                 sub_graph["url"] = s.get("url")
@@ -123,7 +124,7 @@ def get_attrs(name, i):
     return lzj
 
 
-def _build_graph_process_pool(gx, names, new_names):
+def _build_graph_process_pool(gx: nx.DiGraph, names: List[str], new_names: List[str]):
     with executor("dask", max_workers=20) as (pool, as_completed):
         futures = {
             pool.submit(get_attrs, name, i): name for i, name in enumerate(names)
@@ -142,7 +143,7 @@ def _build_graph_process_pool(gx, names, new_names):
                     gx.nodes[name].update(**sub_graph)
 
 
-def _build_graph_sequential(gx, names, new_names):
+def _build_graph_sequential(gx: nx.DiGraph, names: List[str], new_names: List[str]):
     for i, name in enumerate(names):
         try:
             sub_graph = {"payload": get_attrs(name, i)}
@@ -155,7 +156,7 @@ def _build_graph_sequential(gx, names, new_names):
                 gx.nodes[name].update(**sub_graph)
 
 
-def make_graph(names, gx=None):
+def make_graph(names: List[str], gx: Optional[nx.DiGraph] = None):
     logger.info("reading graph")
 
     if gx is None:
@@ -163,6 +164,8 @@ def make_graph(names, gx=None):
 
     new_names = [name for name in names if name not in gx.nodes]
     old_names = [name for name in names if name in gx.nodes]
+    # silly typing force
+    assert isinstance(gx, nx.DiGraph)
     old_names = sorted(old_names, key=lambda n: gx.nodes[n].get("time", 0))
 
     total_names = new_names + old_names
@@ -301,7 +304,7 @@ def close_labels(gx: nx.DiGraph, dry_run=False) -> nx.DiGraph:
     return gx
 
 
-def main(args=None):
+def main(args: Any = None) -> None:
     setup_logger(logger)
     names = get_all_feedstocks(cached=True)
     if os.path.exists("graph.json"):

@@ -67,7 +67,7 @@ def feedstock_repo(fctx: FeedstockContext, feedstock):
     return repo
 
 
-def fork_url(feedstock_url, username):
+def fork_url(feedstock_url: str, username: str) -> str:
     """Creates the URL of the user's fork."""
     beg, end = feedstock_url.rsplit("/", 1)
     beg = beg[:-11]  # chop off 'conda-forge'
@@ -78,8 +78,8 @@ def fork_url(feedstock_url, username):
 def get_repo(
     ctx: MigratorsContext,
     fctx: FeedstockContext,
-    branch,
-    feedstock=None,
+    branch: str,
+    feedstock: Optional[str] = None,
     protocol="ssh",
     pull_request=True,
     fork=True,

@@ -24,7 +24,7 @@ repos:
     hooks:
       - id: mypy
         args:
-          - --
+          - --strict
         exclude: >
             (?x)^(
                 docs/.*

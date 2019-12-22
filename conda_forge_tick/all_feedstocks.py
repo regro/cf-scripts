@@ -1,5 +1,7 @@
 import datetime
 import os
+from typing import Any, List
+
 import github3
 import logging
 
@@ -8,7 +10,7 @@ from .utils import setup_logger
 logger = logging.getLogger("conda_forge_tick.all-feedstocks")
 
 
-def get_all_feedstocks_from_github():
+def get_all_feedstocks_from_github() -> List[str]:
     gh = github3.login(os.environ["USERNAME"], os.environ["PASSWORD"])
     org = gh.organization("conda-forge")
     names = []
@@ -33,7 +35,7 @@ def get_all_feedstocks_from_github():
     return names
 
 
-def get_all_feedstocks(cached=False):
+def get_all_feedstocks(cached: bool = False) -> List[str]:
     if cached:
         logger.info("reading names")
         with open("names.txt", "r") as f:
@@ -44,7 +46,7 @@ def get_all_feedstocks(cached=False):
     return names
 
 
-def main(args=None):
+def main(args: Any = None) -> None:
     setup_logger(logger)
     names = get_all_feedstocks(cached=False)
     with open("names.txt", "w") as f:

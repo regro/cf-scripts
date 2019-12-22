@@ -19,6 +19,16 @@ import jinja2
 
 import networkx as nx
 
+if typing.TYPE_CHECKING:
+    from mypy_extensions import TypedDict
+    from conda_forge_tick.migrators_types import (
+        MetaYamlTypedDict,
+        RequirementsTypedDict,
+    )
+
+T = typing.TypeVar("T")
+TD = typing.TypeVar("TD", bound=dict, covariant=True)
+
 pin_sep_pat = re.compile(r" |>|<|=|\[")
 
 
@@ -176,7 +186,7 @@ def parse_meta_yaml(text: str, **kwargs) -> dict:
     return parse(content, Config(**kwargs))
 
 
-def setup_logger(logger):
+def setup_logger(logger: logging.Logger):
     """Basic configuration for logging
 
     """
@@ -211,7 +221,9 @@ def pluck(G: nx.DiGraph, node_id):
         G.add_edges_from(new_edges)
 
 
-def get_requirements(meta_yaml, outputs=True, build=True, host=True, run=True):
+def get_requirements(
+    meta_yaml: "MetaYamlTypedDict", outputs=True, build=True, host=True, run=True,
+):
     """Get the list of recipe requirements from a meta.yaml dict
 
     Parameters
@@ -238,7 +250,12 @@ def get_requirements(meta_yaml, outputs=True, build=True, host=True, run=True):
     return reqs
 
 
-def _parse_requirements(req, build=True, host=True, run=True):
+def _parse_requirements(
+    req: Union[None, typing.List[str], "RequirementsTypedDict"],
+    build=True,
+    host=True,
+    run=True,
+):
     """Flatten a YAML requirements section into a list of names
     """
     if not req:  # handle None as empty
@@ -345,13 +362,22 @@ def load_graph(filename="graph.json") -> nx.DiGraph:
     return nx.node_link_graph(nld)
 
 
+# TODO: This type doe not support generics yet sadly
+# cc https://github.com/python/mypy/issues/3863
+if typing.TYPE_CHECKING:
+    class JsonFriendly(TypedDict, total=False):
+        keys: typing.List[str]
+        data: dict
+        PR: dict
+
+
 @typing.overload
 def frozen_to_json_friendly(fz: None, pr: Optional[LazyJson] = None) -> None:
     pass
 
 
 @typing.overload
-def frozen_to_json_friendly(fz: dict, pr: Optional[LazyJson] = None) -> dict:
+def frozen_to_json_friendly(fz: Any, pr: Optional[LazyJson] = None) -> 'JsonFriendly':
     pass
 
 
@@ -370,6 +396,26 @@ def github_client() -> github3.GitHub:
         return github3.login(token=os.environ["GITHUB_TOKEN"])
     else:
         return github3.login(os.environ["USERNAME"], os.environ["PASSWORD"])
+
+
+@typing.overload
+def as_iterable(x: dict) -> Tuple[dict]:
+    ...
+
+
+@typing.overload
+def as_iterable(x: str) -> Tuple[str]:
+    ...
+
+
+@typing.overload
+def as_iterable(x: Iterable[T]) -> Iterable[T]:
+    ...
+
+
+@typing.overload
+def as_iterable(x: T) -> Tuple[T]:
+    ...
 
 
 def as_iterable(iterable_or_scalar):

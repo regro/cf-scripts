@@ -1,9 +1,5 @@
-from conda_forge_tick.contexts import (
-    FeedstockContext,
-    MigratorContext,
-)
 from mypy_extensions import TypedDict
-from py._path.local import LocalPath
+import typing
 from typing import (
     Any,
     Dict,
@@ -12,6 +8,9 @@ from typing import (
     Tuple,
     Union,
     Optional)
+
+
+PackageName = typing.NewType('PackageName', str)
 
 
 class AboutTypedDict(TypedDict, total=False):
@@ -52,6 +51,9 @@ ExtraTypedDict = TypedDict(
 #     keys: List[str]
 
 
+MetaYamlOutputs = Any
+
+
 class MetaYamlTypedDict(TypedDict, total=False):
     about: 'AboutTypedDict'
     build: 'BuildTypedDict'
@@ -60,6 +62,7 @@ class MetaYamlTypedDict(TypedDict, total=False):
     requirements: 'RequirementsTypedDict'
     source: 'SourceTypedDict'
     test: 'TestTypedDict'
+    outputs: MetaYamlOutputs
 
 
 class MigrationUidTypedDict(TypedDict, total=False):
@@ -67,7 +70,7 @@ class MigrationUidTypedDict(TypedDict, total=False):
     migrator_name: str
     migrator_version: int
     name: str
-    migrator_object_version: str
+    migrator_object_version: int
 
 
 class PackageTypedDict(TypedDict):
@@ -81,17 +84,18 @@ class RequirementsTypedDict(TypedDict, total=False):
     run: List[str]
 
 
-class SourceTypedDict(TypedDict):
+class SourceTypedDict(TypedDict, total=False):
     fn: str
     patches: List[str]
     sha256: str
     url: str
 
 
-class TestTypedDict(TypedDict):
+class TestTypedDict(TypedDict, total=False):
     commands: List[str]
     imports: List[str]
     requires: List[str]
+    requirements: List[str]
 
 
 class AttrsTypedDict(TypedDict, total=False):

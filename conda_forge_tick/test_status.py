@@ -1,6 +1,8 @@
 """
 Similar to test-status, but for reports
 """
+from typing import Any
+
 from conda_forge_tick.utils import setup_logger
 from .migrators import Rebuild
 from .auto_tick import initialize_migrators, migrator_status
@@ -8,7 +10,7 @@ import os
 import yaml
 
 
-def main(args=None):
+def main(args: Any = None) -> None:
     gx, *_, migrators = initialize_migrators(do_rebuild=True)
 
     for migrator in migrators:
