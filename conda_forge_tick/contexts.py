@@ -7,6 +7,7 @@ import github3
 
 if typing.TYPE_CHECKING:
     from .migrators import Migrator
+    from .migrators_types import AttrsTypedDict
 
 
 @dataclass
@@ -68,4 +69,4 @@ class FeedstockContext:
 
     package_name: str
     feedstock_name: str
-    attrs: dict
+    attrs: "AttrsTypedDict"

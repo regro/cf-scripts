@@ -20,5 +20,3 @@ def eval_xonsh(inp: str) -> str:
         return res.output.strip()
     else:
         return res
-
-

@@ -7,6 +7,7 @@ from itertools import chain
 from textwrap import dedent
 import warnings
 from itertools import permutations
+import typing
 
 import networkx as nx
 import conda.exceptions
@@ -38,6 +39,9 @@ from .utils import (
 from .contexts import MigratorsContext, MigratorContext, FeedstockContext
 
 
+if typing.TYPE_CHECKING:
+    from .migrators_types import *
+
 try:
     from conda_smithy.lint_recipe import NEEDED_FAMILIES
 except ImportError:
@@ -52,7 +56,7 @@ def _no_pr_pred(pred):
 
 
 class MiniMigrator:
-    def filter(self, attrs: dict, not_bad_str_start="") -> bool:
+    def filter(self, attrs: AttrsTypedDict, not_bad_str_start="") -> bool:
         """ If true don't act upon node
 
         Parameters
@@ -67,7 +71,7 @@ class MiniMigrator:
         """
         return True
 
-    def migrate(self, recipe_dir, attrs, **kwargs):
+    def migrate(self, recipe_dir, attrs: AttrsTypedDict, **kwargs):
         """Perform the migration, updating the ``meta.yaml``
 
         Parameters
@@ -91,13 +95,13 @@ class PipMigrator(MiniMigrator):
         "python -m pip install --no-deps --ignore-installed .",
     )
 
-    def filter(self, attrs: dict, not_bad_str_start="") -> bool:
+    def filter(self, attrs, not_bad_str_start="") -> bool:
         scripts = as_iterable(
             attrs.get("meta_yaml", {}).get("build", {}).get("script", []),
         )
         return not bool(set(self.bad_install) & set(scripts))
 
-    def migrate(self, recipe_dir, attrs, **kwargs):
+    def migrate(self, recipe_dir, attrs: AttrsTypedDict, **kwargs):
         with indir(recipe_dir):
             for b in self.bad_install:
                 replace_in_file(
@@ -108,7 +112,7 @@ class PipMigrator(MiniMigrator):
 
 
 class LicenseMigrator(MiniMigrator):
-    def filter(self, attrs: dict, not_bad_str_start="") -> bool:
+    def filter(self, attrs: AttrsTypedDict, not_bad_str_start="") -> bool:
         license = attrs.get("meta_yaml", {}).get("about", {}).get("license", "")
         license_fam = (
             attrs.get("meta_yaml", {})
@@ -123,7 +127,7 @@ class LicenseMigrator(MiniMigrator):
             return False
         return True
 
-    def migrate(self, recipe_dir, attrs, **kwargs):
+    def migrate(self, recipe_dir, attrs: AttrsTypedDict, **kwargs):
         # Use conda build to do all the downloading/extracting bits
         md = render(recipe_dir, config=Config(**CB_CONFIG))
         if not md:
@@ -156,6 +160,8 @@ class LicenseMigrator(MiniMigrator):
                     m = ptn.match(line)
                     if m is not None:
                         break
+                # TODO: Sketchy type assertion
+                assert m is not None
                 ws = m.group(1)
                 if len(license_files) == 1:
                     replace_in_file(
@@ -206,7 +212,7 @@ class Migrator:
         self.obj_version = obj_version
         self.ctx: MigratorContext = None
 
-    def bind_to_ctx(self, migrator_ctx: MigratorContext):
+    def bind_to_ctx(self, migrator_ctx: MigratorContext) -> None:
         self.ctx = migrator_ctx
 
     def downstream_children(self, feedstock_ctx: FeedstockContext, limit=5):
@@ -218,7 +224,7 @@ class Migrator:
             )
         ][:limit]
 
-    def filter(self, attrs: dict, not_bad_str_start="") -> bool:
+    def filter(self, attrs: AttrsTypedDict, not_bad_str_start="") -> bool:
         """ If true don't act upon node
 
         Parameters
@@ -238,20 +244,27 @@ class Migrator:
         # never run on archived feedstocks
         # don't run on things we've already done
         # don't run on bad nodes
-        return (
-            attrs.get("archived", False)
-            or frozen_to_json_friendly(self.migrator_uid(attrs))["data"]
-            in (z["data"] for z in attrs.get("PRed", []))
-            or (
-                attrs.get("bad", False)
-                # This could be a dict, but then we can't fix it
-                and isinstance(attrs.get("bad"), str)
-                # TODO: support a list of stings?
-                and not attrs.get("bad", "").startswith(not_bad_str_start)
-            )
-        )
 
-    def migrate(self, recipe_dir, attrs, **kwargs):
+        def parse_bad_attr() -> bool:
+            bad = bool(attrs.get("bad", False))
+            if isinstance(bad, str):
+                return not bad.startswith(not_bad_str_start)
+            else:
+                return bad
+
+        def parse_already_pred() -> bool:
+            migrator_uid: MigrationUidTypedDict = typing.cast(
+                "MigrationUidTypedDict",
+                frozen_to_json_friendly(self.migrator_uid(attrs))["data"],
+            )
+            already_migrated_uids: typing.Iterable[MigrationUidTypedDict] = (
+                z["data"] for z in attrs.get("PRed", [])
+            )
+            return migrator_uid in already_migrated_uids
+
+        return attrs.get("archived", False) or parse_already_pred() or parse_bad_attr()
+
+    def migrate(self, recipe_dir, attrs: AttrsTypedDict, **kwargs):
         """Perform the migration, updating the ``meta.yaml``
 
         Parameters
@@ -321,12 +334,12 @@ class Migrator:
         """Branch to use on local and remote"""
         return "bot-pr"
 
-    def migrator_uid(self, attrs: dict) -> dict:
+    def migrator_uid(self, attrs: AttrsTypedDict) -> dict:
         """Make a unique id for this migrator and node attrs
 
         Parameters
         ----------
-        attrs: dict
+        attrs
             Node attrs
 
         Returns
@@ -388,7 +401,7 @@ class Migrator:
             with open(filename, "w") as f:
                 f.write(upd)
 
-    def new_build_number(self, old_number: int):
+    def new_build_number(self, old_number: int) -> int:
         """Determine the new build number to use.
 
         Parameters
@@ -502,7 +515,7 @@ class Version(Migrator):
                 )
         return pats
 
-    def filter(self, attrs: dict, not_bad_str_start="") -> bool:
+    def filter(self, attrs, not_bad_str_start="") -> bool:
         # if no new version do nothing
         if "new_version" not in attrs:
             return True
@@ -674,7 +687,7 @@ class JS(Migrator):
 
     migrator_version = 0
 
-    def filter(self, attrs: dict, not_bad_str_start="") -> bool:
+    def filter(self, attrs, not_bad_str_start="") -> bool:
         conditional = super().filter(attrs)
         return bool(
             conditional
@@ -749,7 +762,7 @@ class Compiler(Migrator):
         super().__init__(pr_limit)
         self.cfp = get_cfp_file_path()[0]
 
-    def filter(self, attrs: dict, not_bad_str_start="") -> bool:
+    def filter(self, attrs, not_bad_str_start="") -> bool:
         for req in attrs.get("req", []):
             if req.endswith("_compiler_stub"):
                 return True
@@ -819,7 +832,7 @@ class Noarch(Migrator):
 
     rerender = True
 
-    def filter(self, attrs: dict, not_bad_str_start="") -> bool:
+    def filter(self, attrs, not_bad_str_start="") -> bool:
         conditional = (
             super().filter(attrs)
             or attrs.get("meta_yaml", {}).get("outputs")
@@ -912,7 +925,7 @@ class NoarchR(Noarch):
     rerender = True
     bump_number = 1
 
-    def filter(self, attrs: dict, not_bad_str_start="") -> bool:
+    def filter(self, attrs, not_bad_str_start="") -> bool:
         conditional = (
             Migrator.filter(self, attrs)
             or attrs.get("meta_yaml", {}).get("outputs")
@@ -1057,7 +1070,7 @@ class Rebuild(Migrator):
         self.top_level = top_level
         self.cycles = set(chain.from_iterable(cycles or []))
 
-    def filter(self, attrs: dict, not_bad_str_start="") -> bool:
+    def filter(self, attrs, not_bad_str_start="") -> bool:
         if super().filter(attrs, "Upstream:"):
             return True
         if attrs["feedstock_name"] not in self.graph:
@@ -1160,7 +1173,7 @@ class Pinning(Migrator):
         else:
             self.removals = set(removals)
 
-    def filter(self, attrs: dict, not_bad_str_start="") -> bool:
+    def filter(self, attrs, not_bad_str_start="") -> bool:
         return (
             super().filter(attrs) or len(attrs.get("req", set()) & self.removals) == 0
         )
@@ -1412,7 +1425,7 @@ class ArchRebuild(Rebuild):
             ):
                 self.graph.remove_node(node)
 
-    def filter(self, attrs: dict, not_bad_str_start="") -> bool:
+    def filter(self, attrs, not_bad_str_start="") -> bool:
         if super().filter(attrs):
             return True
         muid = frozen_to_json_friendly(self.migrator_uid(attrs))
@@ -1711,7 +1724,7 @@ class MigrationYaml(Migrator):
         self.bump_number = bump_number
         print(self.yaml_contents)
 
-    def filter(self, attrs: dict, not_bad_str_start="") -> bool:
+    def filter(self, attrs, not_bad_str_start="") -> bool:
         if super().filter(attrs, "Upstream:"):
             return True
         if attrs["feedstock_name"] not in self.graph:

@@ -1,3 +1,4 @@
+import typing
 from collections import defaultdict, Callable
 import contextlib
 import itertools
@@ -5,7 +6,7 @@ import json
 import logging
 import os
 import re
-from typing import Any, Tuple, Iterable
+from typing import Any, Tuple, Iterable, Union, Optional, IO
 from collections.abc import Mapping, MutableMapping, Sequence, Set
 from concurrent.futures import (
     ProcessPoolExecutor,
@@ -40,16 +41,16 @@ CB_CONFIG = dict(
 class UniversalSet(Set):
     """The universal set, or identity of the set intersection operation."""
 
-    def __and__(self, other):
+    def __and__(self, other) -> Set:
         return other
 
-    def __rand__(self, other):
+    def __rand__(self, other) -> Set:
         return other
 
-    def __contains__(self, item):
+    def __contains__(self, item) -> bool:
         return True
 
-    def __iter__(self):
+    def __iter__(self) -> typing.Iterator[Any]:
         return self
 
     def __next__(self):
@@ -73,25 +74,28 @@ class NullUndefined(jinja2.Undefined):
 class LazyJson(MutableMapping):
     """Lazy load a dict from a json file and save it when updated"""
 
-    def __init__(self, file_name):
+    def __init__(self, file_name: str):
         self.file_name = file_name
         # If the file doesn't exist create an empty file
         if not os.path.exists(self.file_name):
             os.makedirs(os.path.split(self.file_name)[0], exist_ok=True)
             with open(self.file_name, "w") as f:
                 dump({}, f)
-        self.data = None
+        self.data: Optional[dict] = None
 
     def __len__(self) -> int:
         self._load()
+        assert self.data is not None
         return len(self.data)
 
     def __iter__(self):
         self._load()
+        assert self.data is not None
         yield from self.data
 
     def __delitem__(self, v):
         self._load()
+        assert self.data is not None
         del self.data[v]
         self._dump()
 
@@ -131,7 +135,7 @@ class LazyJson(MutableMapping):
         self._dump()
 
 
-def render_meta_yaml(text):
+def render_meta_yaml(text: str) -> str:
     """Render the meta.yaml with Jinja2 variables.
 
     Parameters
@@ -151,7 +155,7 @@ def render_meta_yaml(text):
     return content
 
 
-def parse_meta_yaml(text: str, **kwargs):
+def parse_meta_yaml(text: str, **kwargs) -> dict:
     """Parse the meta.yaml.
 
     Parameters
@@ -280,7 +284,7 @@ def default(obj):
     raise TypeError(repr(obj) + " is not JSON serializable")
 
 
-def object_hook(dct):
+def object_hook(dct: dict) -> Union[LazyJson, Set, dict]:
     """For custom object deserialization."""
     if "__lazy_json__" in dct:
         return LazyJson(dct["__lazy_json__"])
@@ -301,7 +305,9 @@ def dumps(obj, sort_keys=True, separators=(",", ":"), default=default, **kwargs)
     )
 
 
-def dump(obj, fp, sort_keys=True, separators=(",", ":"), default=default, **kwargs):
+def dump(
+    obj, fp: IO[str], sort_keys=True, separators=(",", ":"), default=default, **kwargs
+):
     """Returns a JSON string from a Python object."""
     return json.dump(
         obj,
@@ -314,12 +320,12 @@ def dump(obj, fp, sort_keys=True, separators=(",", ":"), default=default, **kwar
     )
 
 
-def loads(s, object_hook=object_hook, **kwargs):
+def loads(s, object_hook=object_hook, **kwargs) -> dict:
     """Loads a string as JSON, with approriate object hooks"""
     return json.loads(s, object_hook=object_hook, **kwargs)
 
 
-def load(fp, object_hook=object_hook, **kwargs):
+def load(fp: IO[str], object_hook=object_hook, **kwargs) -> dict:
     """Loads a file object as JSON, with appropriate object hooks."""
     return json.load(fp, object_hook=object_hook, **kwargs)
 
@@ -339,7 +345,17 @@ def load_graph(filename="graph.json") -> nx.DiGraph:
     return nx.node_link_graph(nld)
 
 
-def frozen_to_json_friendly(fz: dict, pr: LazyJson = None) -> dict:
+@typing.overload
+def frozen_to_json_friendly(fz: None, pr: Optional[LazyJson] = None) -> None:
+    pass
+
+
+@typing.overload
+def frozen_to_json_friendly(fz: dict, pr: Optional[LazyJson] = None) -> dict:
+    pass
+
+
+def frozen_to_json_friendly(fz, pr: Optional[LazyJson] = None):
     if fz is None:
         return None
     keys = sorted(list(fz.keys()))
@@ -349,7 +365,7 @@ def frozen_to_json_friendly(fz: dict, pr: LazyJson = None) -> dict:
     return d
 
 
-def github_client():
+def github_client() -> github3.GitHub:
     if os.environ.get("GITHUB_TOKEN"):
         return github3.login(token=os.environ["GITHUB_TOKEN"])
     else:

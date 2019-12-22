@@ -40,7 +40,9 @@ def main(args=None):
     ]
     with open("./status/could_use_help.json", "w") as f:
         json.dump(
-            sorted(l, key=lambda z: (len(nx.descendants(mctx.graph, z)), l), reverse=True),
+            sorted(
+                l, key=lambda z: (len(nx.descendants(mctx.graph, z)), l), reverse=True,
+            ),
             f,
             indent=2,
         )
@@ -49,7 +51,9 @@ def main(args=None):
     l = [k for k, v in mctx.graph.nodes.items() if not lm.filter(v.get("payload", {}))]
     with open("./status/unlicensed.json", "w") as f:
         json.dump(
-            sorted(l, key=lambda z: (len(nx.descendants(mctx.graph, z)), l), reverse=True),
+            sorted(
+                l, key=lambda z: (len(nx.descendants(mctx.graph, z)), l), reverse=True,
+            ),
             f,
             indent=2,
         )
