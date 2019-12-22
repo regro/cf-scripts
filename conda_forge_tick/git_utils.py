@@ -2,7 +2,7 @@
 import datetime
 import os
 import time
-from typing import Optional
+from typing import Optional, Union
 
 import github3
 import github3.pulls
@@ -34,25 +34,25 @@ def ensure_gh(ctx: GithubContext, gh):
     return gh
 
 
-def feedstock_url(fctx: FeedstockContext, feedstock, protocol='ssh'):
+def feedstock_url(fctx: FeedstockContext, feedstock, protocol="ssh"):
     """Returns the URL for a conda-forge feedstock."""
     if feedstock is None:
-        feedstock = fctx.package_name + '-feedstock'
-    elif feedstock.startswith('http://github.com/'):
+        feedstock = fctx.package_name + "-feedstock"
+    elif feedstock.startswith("http://github.com/"):
         return feedstock
-    elif feedstock.startswith('https://github.com/'):
+    elif feedstock.startswith("https://github.com/"):
         return feedstock
-    elif feedstock.startswith('git@github.com:'):
+    elif feedstock.startswith("git@github.com:"):
         return feedstock
     protocol = protocol.lower()
-    if protocol == 'http':
-        url = 'http://github.com/conda-forge/' + feedstock + '.git'
-    elif protocol == 'https':
-        url = 'https://github.com/conda-forge/' + feedstock + '.git'
-    elif protocol == 'ssh':
-        url = 'git@github.com:conda-forge/' + feedstock + '.git'
+    if protocol == "http":
+        url = "http://github.com/conda-forge/" + feedstock + ".git"
+    elif protocol == "https":
+        url = "https://github.com/conda-forge/" + feedstock + ".git"
+    elif protocol == "ssh":
+        url = "git@github.com:conda-forge/" + feedstock + ".git"
     else:
-        msg = 'Unrecognized github protocol {0!r}, must be ssh, http, or https.'
+        msg = "Unrecognized github protocol {0!r}, must be ssh, http, or https."
         raise ValueError(msg.format(protocol))
     return url
 
@@ -60,25 +60,32 @@ def feedstock_url(fctx: FeedstockContext, feedstock, protocol='ssh'):
 def feedstock_repo(fctx: FeedstockContext, feedstock):
     """Gets the name of the feedstock repository."""
     if feedstock is None:
-        repo = fctx.package_name + '-feedstock'
+        repo = fctx.package_name + "-feedstock"
     else:
         repo = feedstock
-    repo = repo.rsplit('/', 1)[-1]
-    if repo.endswith('.git'):
+    repo = repo.rsplit("/", 1)[-1]
+    if repo.endswith(".git"):
         repo = repo[:-4]
     return repo
 
 
 def fork_url(feedstock_url, username):
     """Creates the URL of the user's fork."""
-    beg, end = feedstock_url.rsplit('/', 1)
+    beg, end = feedstock_url.rsplit("/", 1)
     beg = beg[:-11]  # chop off 'conda-forge'
-    url = beg + username + '/' + end
+    url = beg + username + "/" + end
     return url
 
 
-def get_repo(ctx: MigratorsContext, fctx: FeedstockContext, branch, feedstock=None, protocol='ssh',
-             pull_request=True, fork=True):
+def get_repo(
+    ctx: MigratorsContext,
+    fctx: FeedstockContext,
+    branch,
+    feedstock=None,
+    protocol="ssh",
+    pull_request=True,
+    fork=True,
+):
     """Get the feedstock repo
 
     Parameters
@@ -107,9 +114,11 @@ def get_repo(ctx: MigratorsContext, fctx: FeedstockContext, branch, feedstock=No
     feedstock_reponame = feedstock_repo(fctx=fctx, feedstock=feedstock)
 
     if pull_request or fork:
-        repo = gh.repository('conda-forge', feedstock_reponame)
+        repo = gh.repository("conda-forge", feedstock_reponame)
         if repo is None:
-            fctx.attrs['bad'] = '{}: does not match feedstock name\n'.format(fctx.package_name)
+            fctx.attrs["bad"] = "{}: does not match feedstock name\n".format(
+                fctx.package_name,
+            )
             return False
 
     # Check if fork exists
@@ -118,41 +127,53 @@ def get_repo(ctx: MigratorsContext, fctx: FeedstockContext, branch, feedstock=No
             fork_repo = gh.repository(ctx.github_username, feedstock_reponame)
         except github3.GitHubError:
             fork_repo = None
-        if fork_repo is None or (hasattr(fork_repo, 'is_null') and
-                                 fork_repo.is_null()):
+        if fork_repo is None or (hasattr(fork_repo, "is_null") and fork_repo.is_null()):
             print("Fork doesn't exist creating feedstock fork...")
             repo.create_fork()
             # Sleep to make sure the fork is created before we go after it
             time.sleep(5)
 
-    feedstock_dir = os.path.join(ctx.rever_dir, fctx.package_name + '-feedstock')
-    from .git_xonsh_utils import fetch_repo
-    if fetch_repo(feedstock_dir=feedstock_dir, origin=origin, upstream=upstream, branch=branch):
+    feedstock_dir = os.path.join(ctx.rever_dir, fctx.package_name + "-feedstock")
+    from conda_forge_tick.git_xonsh_utils import fetch_repo
+
+    if fetch_repo(
+        feedstock_dir=feedstock_dir, origin=origin, upstream=upstream, branch=branch,
+    ):
         return feedstock_dir, repo
     else:
         return
 
 
 def delete_branch(ctx: GithubContext, pr_json: LazyJson, dry_run=False):
-    ref = pr_json['head']['ref']
+    ref = pr_json["head"]["ref"]
     if dry_run:
         print("dry run: deleting ref %s" % ref)
         return
-    name = pr_json['base']['repo']['name']
+    name = pr_json["base"]["repo"]["name"]
     token = ctx.github_password
-    deploy_repo = ctx.github_username + '/' + name
-    doctr_run(['git', 'push', 'https://{token}@github.com/{deploy_repo}.git'.format(
-                   token=token, deploy_repo=deploy_repo), '--delete', ref],
-              token=token.encode('utf-8'))
+    deploy_repo = ctx.github_username + "/" + name
+    doctr_run(
+        [
+            "git",
+            "push",
+            "https://{token}@github.com/{deploy_repo}.git".format(
+                token=token, deploy_repo=deploy_repo,
+            ),
+            "--delete",
+            ref,
+        ],
+        token=token.encode("utf-8"),
+    )
     # Replace ref so we know not to try again
-    pr_json['head']['ref'] = 'this_is_not_a_branch'
+    pr_json["head"]["ref"] = "this_is_not_a_branch"
 
-@backoff.on_exception(backoff.expo,
-  (RequestException, Timeout),
-  max_time=MAX_GITHUB_TIMEOUT)
+
+@backoff.on_exception(
+    backoff.expo, (RequestException, Timeout), max_time=MAX_GITHUB_TIMEOUT,
+)
 def refresh_pr(ctx: GithubContext, pr_json: LazyJson, gh=None, dry_run=False):
     gh = ensure_gh(ctx, gh)
-    if not pr_json['state'] == 'closed':
+    if not pr_json["state"] == "closed":
         if dry_run:
             print("dry run: refresh pr %s" % dict(pr_json))
         else:
@@ -161,17 +182,20 @@ def refresh_pr(ctx: GithubContext, pr_json: LazyJson, gh=None, dry_run=False):
             pr_obj_d = pr_obj.as_dict()
             # if state passed from opened to merged or if it
             # closed for a day delete the branch
-            if pr_obj_d['state'] == 'closed' and pr_obj_d.get('merged_at', False):
-                delete_branch(pr_json, dry_run)
+            if pr_obj_d["state"] == "closed" and pr_obj_d.get("merged_at", False):
+                delete_branch(ctx=ctx, pr_json=pr_json, dry_run=dry_run)
         return pr_obj.as_dict()
 
-@backoff.on_exception(backoff.expo,
-  (RequestException, Timeout),
-  max_time=MAX_GITHUB_TIMEOUT)
+
+@backoff.on_exception(
+    backoff.expo, (RequestException, Timeout), max_time=MAX_GITHUB_TIMEOUT,
+)
 def close_out_labels(ctx: GithubContext, pr_json: LazyJson, gh=None, dry_run=False):
     gh = ensure_gh(ctx, gh)
     # run this twice so we always have the latest info (eg a thing was already closed)
-    if pr_json['state'] != 'closed' and 'bot-rerun' in [l['name'] for l in pr_json['labels']]:
+    if pr_json["state"] != "closed" and "bot-rerun" in [
+        l["name"] for l in pr_json["labels"]
+    ]:
         # update
         if dry_run:
             print("dry run: checking pr %s" % dict(pr_json))
@@ -180,21 +204,34 @@ def close_out_labels(ctx: GithubContext, pr_json: LazyJson, gh=None, dry_run=Fal
             pr_obj.refresh(True)
             pr_json = pr_obj.as_dict()
 
-    if pr_json['state'] != 'closed' and 'bot-rerun' in [l['name'] for l in pr_json['labels']]:
+    if pr_json["state"] != "closed" and "bot-rerun" in [
+        l["name"] for l in pr_json["labels"]
+    ]:
         if dry_run:
             print("dry run: comment and close pr %s" % dict(pr_json))
         else:
-            pr_obj.create_comment("Due to the `bot-rerun` label I'm closing "
-                                  "this PR. I will make another one as"
-                              " appropriate. This was generated by {}".format(ctx.circle_build_url))
+            pr_obj.create_comment(
+                "Due to the `bot-rerun` label I'm closing "
+                "this PR. I will make another one as"
+                " appropriate. This was generated by {}".format(ctx.circle_build_url),
+            )
             pr_obj.close()
-            delete_branch(pr_json, dry_run)
+            delete_branch(ctx=ctx, pr_json=pr_json, dry_run=dry_run)
             pr_obj.refresh(True)
         return pr_obj.as_dict()
 
 
-def push_repo(ctx: MigratorsContext, fctx: FeedstockContext, feedstock_dir, body, repo, title, head, branch,
-              pull_request=True) -> Optional[LazyJson]:
+def push_repo(
+    ctx: MigratorsContext,
+    fctx: FeedstockContext,
+    feedstock_dir,
+    body,
+    repo,
+    title,
+    head,
+    branch,
+    pull_request=True,
+) -> Union[LazyJson, bool, None]:
     """Push a repo up to github
 
     Parameters
@@ -216,55 +253,76 @@ def push_repo(ctx: MigratorsContext, fctx: FeedstockContext, feedstock_dir, body
         # Setup push from doctr
         # Copyright (c) 2016 Aaron Meurer, Gil Forsyth
         token = ctx.github_password
-        deploy_repo = ctx.github_username + '/' + fctx.feedstock_name + '-feedstock'
+        deploy_repo = ctx.github_username + "/" + fctx.feedstock_name + "-feedstock"
         if ctx.dry_run:
-            repo_url = 'https://github.com/{deploy_repo}.git'.format(deploy_repo=deploy_repo)
+            repo_url = "https://github.com/{deploy_repo}.git".format(
+                deploy_repo=deploy_repo,
+            )
             print("dry run: adding remote and pushing up branch for %s" % repo_url)
         else:
-            doctr_run(['git', 'remote', 'add', 'regro_remote',
-                       'https://{token}@github.com/{deploy_repo}.git'.format(
-                           token=token, deploy_repo=deploy_repo)],
-                      token=token.encode('utf-8'))
+            doctr_run(
+                [
+                    "git",
+                    "remote",
+                    "add",
+                    "regro_remote",
+                    "https://{token}@github.com/{deploy_repo}.git".format(
+                        token=token, deploy_repo=deploy_repo,
+                    ),
+                ],
+                token=token.encode("utf-8"),
+            )
 
-            doctr_run(['git', 'push', '--set-upstream', 'regro_remote', branch],
-                      token=token.encode('utf-8'))
+            doctr_run(
+                ["git", "push", "--set-upstream", "regro_remote", branch],
+                token=token.encode("utf-8"),
+            )
     # lastly make a PR for the feedstock
-    print('Creating conda-forge feedstock pull request...')
+    print("Creating conda-forge feedstock pull request...")
     if ctx.dry_run:
         print("dry run: create pr with title: %s" % title)
         return False
     else:
-        pr = repo.create_pull(title, 'master', head, body=body)
+        pr = repo.create_pull(title, "master", head, body=body)
         if pr is None:
-            print('Failed to create pull request!')
+            print("Failed to create pull request!")
             return False
         else:
-            print('Pull request created at ' + pr.html_url)
+            print("Pull request created at " + pr.html_url)
     # Return a json object so we can remake the PR if needed
     pr_dict = pr.as_dict()
-    ljpr = LazyJson(os.path.join(ctx.prjson_dir, str(pr_dict['id']) + '.json'))
+    ljpr = LazyJson(os.path.join(ctx.prjson_dir, str(pr_dict["id"]) + ".json"))
     ljpr.update(**pr_dict)
     return ljpr
 
-@backoff.on_exception(backoff.expo,
-  (RequestException, Timeout),
-  max_time=MAX_GITHUB_TIMEOUT)
-def ensure_label_exists(repo: github3.repos.Repository, label_dict: dict, dry_run=False):
+
+@backoff.on_exception(
+    backoff.expo, (RequestException, Timeout), max_time=MAX_GITHUB_TIMEOUT,
+)
+def ensure_label_exists(
+    repo: github3.repos.Repository, label_dict: dict, dry_run=False,
+):
     if dry_run:
         print("dry run: ensure label exists %s" % label_dict["name"])
     try:
-        repo.label(label_dict['name'])
+        repo.label(label_dict["name"])
     except github3.exceptions.NotFoundError:
         repo.create_label(**label_dict)
 
 
-def label_pr(repo: github3.repos.Repository, pr_json: LazyJson, label_dict: dict, dry_run=False):
+def label_pr(
+    repo: github3.repos.Repository, pr_json: LazyJson, label_dict: dict, dry_run=False,
+):
     ensure_label_exists(repo, label_dict, dry_run)
     if dry_run:
-        print("dry run: label pr %s with %s" % (pr_json['number'], label_dict["name"]))
+        print(
+            "dry run: label pr {} with {}".format(
+                pr_json["number"], label_dict["name"],
+            ),
+        )
     else:
-        iss = repo.issue(pr_json['number'])
-        iss.add_labels(label_dict['name'])
+        iss = repo.issue(pr_json["number"])
+        iss.add_labels(label_dict["name"])
 
 
 def is_github_api_limit_reached(e: github3.GitHubError, gh: github3.GitHub) -> bool:
@@ -280,14 +338,13 @@ def is_github_api_limit_reached(e: github3.GitHubError, gh: github3.GitHub) -> b
     print(e.response.url)
 
     try:
-        c = gh.rate_limit()['resources']['core']
+        c = gh.rate_limit()["resources"]["core"]
     except Exception:
         # if we can't connect to the rate limit API, let's assume it has been reached
         return True
-    if c['remaining'] == 0:
-        ts = c['reset']
-        print('API timeout, API returns at')
-        print(datetime.datetime.utcfromtimestamp(ts)
-              .strftime('%Y-%m-%dT%H:%M:%SZ'))
+    if c["remaining"] == 0:
+        ts = c["reset"]
+        print("API timeout, API returns at")
+        print(datetime.datetime.utcfromtimestamp(ts).strftime("%Y-%m-%dT%H:%M:%SZ"))
         return True
     return False

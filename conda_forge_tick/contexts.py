@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from networkx import DiGraph
 import typing
 import threading
-
+import github3
 
 if typing.TYPE_CHECKING:
     from .migrators import Migrator
@@ -14,14 +14,13 @@ class GithubContext:
     github_username: str
     github_password: str
     circle_build_url: str
-    github_token: typing.Optional[str] = ''
+    github_token: typing.Optional[str] = ""
     dry_run: bool = True
     _tl: threading.local = threading.local()
 
-    def gh(self):
+    @property
+    def gh(self) -> github3.GitHub:
         if getattr(self._tl, "gh") is None:
-            import github3
-
             if self.github_token:
                 gh = github3.login(token=self.github_token)
             else:
@@ -33,8 +32,8 @@ class GithubContext:
 @dataclass
 class MigratorsContext(GithubContext):
     graph: DiGraph = None
-    smithy_version: str = ''
-    pinning_version: str = ''
+    smithy_version: str = ""
+    pinning_version: str = ""
     prjson_dir = "pr_json"
     rever_dir: str = "./feedstocks/"
     quiet = True

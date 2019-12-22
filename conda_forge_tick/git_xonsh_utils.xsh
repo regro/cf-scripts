@@ -3,6 +3,7 @@ import sys
 
 from xonsh.lib.os import indir
 
+
 def fetch_repo(*, feedstock_dir, origin, upstream, branch) -> bool:
     if not os.path.isdir(feedstock_dir):
         p = ![git clone -q @(origin) @(feedstock_dir)]

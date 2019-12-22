@@ -11,6 +11,7 @@ from urllib.error import URLError
 import github3
 import ruamel.yaml as yaml
 from uuid import uuid4
+from xonsh.lib.os import indir
 
 from conda_forge_tick.contexts import FeedstockContext
 from .git_utils import (
@@ -29,8 +30,8 @@ from .utils import (
     dump_graph,
     LazyJson,
 )
-from .xonsh_utils import env, eval_xonsh
-from typing import MutableSequence, Sequence, Tuple, Dict, Set, Sized
+from .xonsh_utils import env
+from typing import MutableSequence, Sequence, Tuple, Dict, Set, Sized, MutableMapping
 
 logger = logging.getLogger("conda_forge_tick.auto_tick")
 
@@ -151,7 +152,8 @@ def run(
                 )
             ]
 
-    pr_json: typing.Union[dict, bool]
+    # TODO: Better annotation here
+    pr_json: typing.Union[MutableMapping, None, bool]
     if isinstance(migrator, MigrationYaml) and not diffed_files:
         # spoof this so it looks like the package is done
         pr_json = {"state": "closed", "merged_at": "never issued", "id": str(uuid4())}
@@ -163,12 +165,14 @@ def run(
         # push up
         try:
             pr_json = push_repo(
-                feedstock_dir,
-                migrator.pr_body(feedstock_ctx),
-                repo,
-                migrator.pr_title(feedstock_ctx),
-                migrator.pr_head(),
-                migrator.remote_branch(),
+                ctx=migrator.ctx.parent,
+                fctx=feedstock_ctx,
+                feedstock_dir=feedstock_dir,
+                body=migrator.pr_body(feedstock_ctx),
+                repo=repo,
+                title=migrator.pr_title(feedstock_ctx),
+                head=migrator.pr_head(),
+                branch=migrator.remote_branch(),
             )
 
         # This shouldn't happen too often any more since we won't double PR
@@ -858,7 +862,7 @@ def main(args=None):
                     # Don't bother running if we are at zero
                     if (
                         not args.dry_run
-                        and gh.rate_limit()["resources"]["core"]["remaining"] == 0
+                        and mctx.gh.rate_limit()["resources"]["core"]["remaining"] == 0
                     ):
                         break
                     rerender = (
@@ -903,7 +907,7 @@ def main(args=None):
                         logger.critical(
                             "GITHUB ERROR ON FEEDSTOCK: %s", fctx.feedstock_name,
                         )
-                        if is_github_api_limit_reached(e, gh):
+                        if is_github_api_limit_reached(e, mctx.gh):
                             break
                 except URLError as e:
                     logger.exception("URLError ERROR")
@@ -934,7 +938,8 @@ def main(args=None):
                             eval_xonsh(f"rm -rf {f}")
 
     logger.info(
-        "API Calls Remaining: %d", gh.rate_limit()["resources"]["core"]["remaining"],
+        "API Calls Remaining: %d",
+        mctx.gh.rate_limit()["resources"]["core"]["remaining"],
     )
     logger.info("Done")
 
