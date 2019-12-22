@@ -37,13 +37,13 @@ def cyclic_topological_sort(graph: DiGraph, sources: Iterable[T]) -> Sequence[T]
     """
 
     g2 = deepcopy(graph)
-    order: list = []
+    order: List[T] = []
     for source in sources:
         _visit(g2, source, order)
     return reversed(order)
 
 
-def _visit(graph: DiGraph, node: str, order: List[str]) -> None:
+def _visit(graph: DiGraph, node: T, order: List[T]) -> None:
     if graph.nodes[node].get("visited", False):
         return
     graph.nodes[node]["visited"] = True

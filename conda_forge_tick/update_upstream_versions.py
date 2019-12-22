@@ -38,7 +38,7 @@ def urls_from_meta(meta_yaml: "MetaYamlTypedDict") -> Set[str]:
     if isinstance(source, collections.abc.Mapping):
         sources = [source]
     else:
-        sources = source
+        sources = typing.cast('typing.List[SourceTypedDict]', source)
     urls = set()
     for s in sources:
         if "url" in s:
@@ -398,7 +398,7 @@ class RawURL(AbstractSource):
         if current_ver != orig_ver:
             return current_ver
 
-    def get_version(self, url):
+    def get_version(self, url: str)-> str:
         return url
 
 

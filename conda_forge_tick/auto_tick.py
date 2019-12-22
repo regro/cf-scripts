@@ -46,9 +46,9 @@ logger = logging.getLogger("conda_forge_tick.auto_tick")
 
 # TODO: move this back to the bot file as soon as the source issue is sorted
 # https://travis-ci.org/regro/00-find-feedstocks/jobs/388387895#L1870
-from .utils import frozen_to_json_friendly
-from .contexts import MigratorsContext
-from .migrators import (
+from conda_forge_tick.utils import frozen_to_json_friendly
+from conda_forge_tick.contexts import MigratorsContext
+from conda_forge_tick.migrators import (
     Migrator,
     Version,
     PipMigrator,
@@ -359,6 +359,7 @@ def add_rebuild_libprotobuf(
     )
 
 
+@typing.no_type_check
 def add_rebuild_successors(
     migrators,
     gx,
@@ -426,58 +427,59 @@ def add_rebuild_successors(
     )
 
 
-# def add_rebuild_blas(migrators, gx):
-#     """Adds rebuild blas 2.0 migrators.
-#
-#     Parameters
-#     ----------
-#     migrators : list of Migrator
-#         The list of migrators to run.
-#
-#     """
-#     total_graph = copy.deepcopy(gx)
-#
-#     for node, node_attrs in gx.nodes.items():
-#         attrs: "AttrsTypedDict" = node_attrs["payload"]
-#         meta_yaml = attrs.get("meta_yaml", {}) or {}
-#         bh = get_requirements(meta_yaml)
-#         pkgs = {
-#             "openblas",
-#             "openblas-devel",
-#             "mkl",
-#             "mkl-devel",
-#             "blas",
-#             "lapack",
-#             "clapack",
-#         }
-#         blas_c = len(pkgs.intersection(bh)) > 0
-#
-#         rq = _host_run_test_dependencies(meta_yaml)
-#
-#         for e in list(total_graph.in_edges(node)):
-#             if e[0] not in rq:
-#                 total_graph.remove_edge(*e)
-#         if not any([blas_c]):
-#             pluck(total_graph, node)
-#
-#     # post plucking we can have several strange cases, lets remove all selfloops
-#     total_graph.remove_edges_from(nx.selfloop_edges(total_graph))
-#
-#     top_level = {
-#         node for node in total_graph if not list(total_graph.predecessors(node))
-#     }
-#     cycles = list(nx.simple_cycles(total_graph))
-#
-#     migrators.append(
-#         BlasRebuild(
-#             graph=total_graph,
-#             pr_limit=5,
-#             name="blas-2.0",
-#             top_level=top_level,
-#             cycles=cycles,
-#             obj_version=0,
-#         ),
-#     )
+@typing.no_type_check
+def add_rebuild_blas(migrators, gx):
+    """Adds rebuild blas 2.0 migrators.
+
+    Parameters
+    ----------
+    migrators : list of Migrator
+        The list of migrators to run.
+
+    """
+    total_graph = copy.deepcopy(gx)
+
+    for node, node_attrs in gx.nodes.items():
+        attrs: "AttrsTypedDict" = node_attrs["payload"]
+        meta_yaml = attrs.get("meta_yaml", {}) or {}
+        bh = get_requirements(meta_yaml)
+        pkgs = {
+            "openblas",
+            "openblas-devel",
+            "mkl",
+            "mkl-devel",
+            "blas",
+            "lapack",
+            "clapack",
+        }
+        blas_c = len(pkgs.intersection(bh)) > 0
+
+        rq = _host_run_test_dependencies(meta_yaml)
+
+        for e in list(total_graph.in_edges(node)):
+            if e[0] not in rq:
+                total_graph.remove_edge(*e)
+        if not any([blas_c]):
+            pluck(total_graph, node)
+
+    # post plucking we can have several strange cases, lets remove all selfloops
+    total_graph.remove_edges_from(nx.selfloop_edges(total_graph))
+
+    top_level = {
+        node for node in total_graph if not list(total_graph.predecessors(node))
+    }
+    cycles = list(nx.simple_cycles(total_graph))
+
+    migrators.append(
+        BlasRebuild(
+            graph=total_graph,
+            pr_limit=5,
+            name="blas-2.0",
+            top_level=top_level,
+            cycles=cycles,
+            obj_version=0,
+        ),
+    )
 
 
 def add_replacement_migrator(
@@ -486,7 +488,7 @@ def add_replacement_migrator(
     old_pkg: "PackageName",
     new_pkg: "PackageName",
     rationale: str,
-):
+) -> None:
     """Adds a migrator to replace one package with another.
 
     Parameters
@@ -658,7 +660,7 @@ def add_rebuild_migration_yaml(
 
 
 def migration_factory(
-    migrators: MutableSequence[Migrator], gx: nx.DiGraph, pr_limit=50,
+    migrators: MutableSequence[Migrator], gx: nx.DiGraph, pr_limit: int=50,
 ) -> None:
     migration_yamls = []
     with indir("../conda-forge-pinning-feedstock/recipe/migrations"):

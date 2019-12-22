@@ -25,7 +25,8 @@ class JS(Migrator):
         (
             "meta.yaml",
             r"  script: npm install -g \.",
-            "  script: |\n" "    tgz=$(npm pack)\n" "    npm install -g $tgz",
+            "  script: |\n"
+            "    tgz=$(npm pack)\n" "    npm install -g $tgz",
         ),
         ("meta.yaml", "   script: |\n", "  script: |"),
     ]

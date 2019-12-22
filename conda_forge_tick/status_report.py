@@ -1,8 +1,9 @@
-from .migrators import Rebuild, MigrationYaml, LicenseMigrator, Any
 from .auto_tick import initialize_migrators, migrator_status
 import os
 import json
 import networkx as nx
+
+from conda_forge_tick.migrators import Rebuild, MigrationYaml, LicenseMigrator, Any
 
 
 def main(args: Any = None) -> None:

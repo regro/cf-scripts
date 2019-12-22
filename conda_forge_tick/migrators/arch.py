@@ -6,7 +6,7 @@ import networkx as nx
 from ruamel.yaml import safe_load, safe_dump
 
 from conda_forge_tick.contexts import FeedstockContext
-from conda_forge_tick.migrators.core import _no_pr_pred
+from conda_forge_tick.migrators.core import _no_pr_pred, GraphMigrator
 from conda_forge_tick.migrators.disabled.legacy import Rebuild
 from conda_forge_tick.utils import frozen_to_json_friendly
 from ..xonsh_utils import indir
@@ -16,7 +16,7 @@ if typing.TYPE_CHECKING:
     from ..migrators_types import *
 
 
-class ArchRebuild(Rebuild):
+class ArchRebuild(GraphMigrator):
     """
     A Migrator that add aarch64 and ppc64le builds to feedstocks
     """
@@ -109,17 +109,13 @@ class ArchRebuild(Rebuild):
         self,
         graph: nx.DiGraph = None,
         name: Optional[str] = None,
-        pr_limit: int = 0,
-        top_level: Set["PackageName"] = None,
-        cycles: Optional[List["PackageName"]] = None,
+        pr_limit: int = 0
     ):
         super().__init__(
             graph=graph,
-            name=name,
-            pr_limit=pr_limit,
-            top_level=top_level,
-            cycles=cycles,
+            pr_limit=pr_limit
         )
+        self.name = name
         # filter the graph down to the target packages
         if self.target_packages:
             packages = self.target_packages.copy()
@@ -154,6 +150,7 @@ class ArchRebuild(Rebuild):
         self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any
     ) -> "MigrationUidTypedDict":
         with indir(recipe_dir + "/.."):
+            self.set_build_number("meta.yaml")
             with open("conda-forge.yml", "r") as f:
                 y = safe_load(f)
             if "provider" not in y:
@@ -164,6 +161,7 @@ class ArchRebuild(Rebuild):
 
             with open("conda-forge.yml", "w") as f:
                 safe_dump(y, f)
+
         return super().migrate(recipe_dir, attrs, **kwargs)
 
     def pr_title(self, feedstock_ctx: FeedstockContext) -> str:

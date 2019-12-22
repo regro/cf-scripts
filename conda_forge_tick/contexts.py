@@ -6,8 +6,8 @@ import threading
 import github3
 
 if typing.TYPE_CHECKING:
-    from .migrators import Migrator
-    from .migrators_types import AttrsTypedDict
+    from conda_forge_tick.migrators import Migrator
+    from conda_forge_tick.migrators_types import AttrsTypedDict
 
 
 @dataclass
@@ -47,11 +47,11 @@ class MigratorContext:
     _effective_graph: DiGraph = None
 
     @property
-    def github_username(self):
+    def github_username(self) -> str:
         return self.parent.github_username
 
     @property
-    def effective_graph(self):
+    def effective_graph(self) -> DiGraph:
         if self._effective_graph is None:
             gx2 = copy.deepcopy(getattr(self.migrator, "graph", self.parent.graph))
 

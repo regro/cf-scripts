@@ -319,11 +319,11 @@ def object_hook(dct: dict) -> Union[LazyJson, Set, dict]:
 
 
 def dumps(
-    obj,
+    obj: Any,
     sort_keys=True,
     separators=(",", ":"),
     default: 'Callable[[Any], Any]' = default,
-    **kwargs,
+    **kwargs: Any,
 ):
     """Returns a JSON string from a Python object."""
     return json.dumps(
@@ -337,12 +337,12 @@ def dumps(
 
 
 def dump(
-    obj,
+    obj: Any,
     fp: IO[str],
     sort_keys=True,
     separators=(",", ":"),
     default: 'Callable[[Any], Any]' = default,
-    **kwargs,
+    **kwargs: Any,
 ):
     """Returns a JSON string from a Python object."""
     return json.dump(

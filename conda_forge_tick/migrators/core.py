@@ -742,6 +742,7 @@ class GraphMigrator(Migrator):
                 and m_pred_json.get("PR", {"state": "open"}).get("state", "") == "open"
             ):
                 return True
+        return False
 
 
 class Replacement(Migrator):

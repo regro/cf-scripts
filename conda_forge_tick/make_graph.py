@@ -174,8 +174,8 @@ def make_graph(names: List[str], gx: Optional[nx.DiGraph] = None) -> nx.DiGraph:
     new_names = [name for name in names if name not in gx.nodes]
     old_names = [name for name in names if name in gx.nodes]
     # silly typing force
-    assert isinstance(gx, nx.DiGraph)
-    old_names = sorted(old_names, key=lambda n: gx.nodes[n].get("time", 0))
+    assert gx is not None
+    old_names = sorted(old_names, key=lambda n: gx.nodes[n].get("time", 0))  # type: ignore
 
     total_names = new_names + old_names
     logger.info("start loop")
