@@ -6,7 +6,9 @@ import os
 import time
 import random
 import builtins
+from concurrent.futures import as_completed, Executor
 from copy import deepcopy
+import typing
 from typing import List, Optional, Any, Tuple, Set
 
 import github3
@@ -28,6 +30,9 @@ from .utils import (
     LazyJson,
 )
 from .git_utils import refresh_pr, is_github_api_limit_reached, close_out_labels
+
+if typing.TYPE_CHECKING:
+    from .cli import CLIArgs
 
 logger = logging.getLogger("conda_forge_tick.make_graph")
 pin_sep_pat = re.compile(r" |>|<|=|\[")
@@ -118,14 +123,14 @@ def get_attrs(name: str, i: int):
         for k in keys:
             if k[1] not in missing_keys:
                 sub_graph[k[1]] = yaml_dict[k[0]][k[1]]
-        k = sorted(source_keys & hashlib.algorithms_available, reverse=True)
-        if k:
-            sub_graph["hash_type"] = k[0]
+        kl = list(sorted(source_keys & hashlib.algorithms_available, reverse=True))
+        if kl:
+            sub_graph["hash_type"] = kl[0]
     return lzj
 
 
-def _build_graph_process_pool(gx: nx.DiGraph, names: List[str], new_names: List[str]):
-    with executor("dask", max_workers=20) as (pool, as_completed):
+def _build_graph_process_pool(gx: nx.DiGraph, names: List[str], new_names: List[str]) -> None:
+    with executor("dask", max_workers=20) as pool:
         futures = {
             pool.submit(get_attrs, name, i): name for i, name in enumerate(names)
         }
@@ -143,7 +148,7 @@ def _build_graph_process_pool(gx: nx.DiGraph, names: List[str], new_names: List[
                     gx.nodes[name].update(**sub_graph)
 
 
-def _build_graph_sequential(gx: nx.DiGraph, names: List[str], new_names: List[str]):
+def _build_graph_sequential(gx: nx.DiGraph, names: List[str], new_names: List[str]) -> None:
     for i, name in enumerate(names):
         try:
             sub_graph = {"payload": get_attrs(name, i)}
@@ -156,7 +161,7 @@ def _build_graph_sequential(gx: nx.DiGraph, names: List[str], new_names: List[st
                 gx.nodes[name].update(**sub_graph)
 
 
-def make_graph(names: List[str], gx: Optional[nx.DiGraph] = None):
+def make_graph(names: List[str], gx: Optional[nx.DiGraph] = None) -> nx.DiGraph:
     logger.info("reading graph")
 
     if gx is None:
@@ -201,7 +206,8 @@ def make_graph(names: List[str], gx: Optional[nx.DiGraph] = None):
     return gx
 
 
-def update_graph_pr_status(gx: nx.DiGraph, dry_run=False) -> nx.DiGraph:
+# TODO Share code with close_labels
+def update_graph_pr_status(gx: nx.DiGraph, dry_run: bool=False) -> nx.DiGraph:
     failed_refresh = 0
     succeeded_refresh = 0
     gh = "" if dry_run else github_client()
@@ -209,7 +215,7 @@ def update_graph_pr_status(gx: nx.DiGraph, dry_run=False) -> nx.DiGraph:
     node_ids = list(gx.nodes)
     # this makes sure that github rate limits are dispersed
     random.shuffle(node_ids)
-    with executor("thread", NUM_GITHUB_THREADS) as (pool, as_completed):
+    with executor("thread", NUM_GITHUB_THREADS) as pool:
         for node_id in node_ids:
             node = gx.nodes[node_id]["payload"]
             prs = node.get("PRed", [])
@@ -249,7 +255,7 @@ def update_graph_pr_status(gx: nx.DiGraph, dry_run=False) -> nx.DiGraph:
     return gx
 
 
-def close_labels(gx: nx.DiGraph, dry_run=False) -> nx.DiGraph:
+def close_labels(gx: nx.DiGraph, dry_run: bool=False) -> nx.DiGraph:
     failed_refresh = 0
     succeeded_refresh = 0
     gh = "" if dry_run else github_client()
@@ -257,7 +263,7 @@ def close_labels(gx: nx.DiGraph, dry_run=False) -> nx.DiGraph:
     node_ids = list(gx.nodes)
     # this makes sure that github rate limits are dispersed
     random.shuffle(node_ids)
-    with executor("thread", NUM_GITHUB_THREADS) as (pool, as_completed):
+    with executor("thread", NUM_GITHUB_THREADS) as pool:
         for node_id in node_ids:
             node = gx.nodes[node_id]["payload"]
             prs = node.get("PRed", [])
@@ -299,12 +305,13 @@ def close_labels(gx: nx.DiGraph, dry_run=False) -> nx.DiGraph:
                     ),
                 )
                 raise
+
     logger.info(f"bot re-run failed for {failed_refresh} PRs")
     logger.info(f"bot re-run succeed for {succeeded_refresh} PRs")
     return gx
 
 
-def main(args: Any = None) -> None:
+def main(args: 'CLIArgs') -> None:
     setup_logger(logger)
     names = get_all_feedstocks(cached=True)
     if os.path.exists("graph.json"):
@@ -324,4 +331,5 @@ def main(args: Any = None) -> None:
 
 
 if __name__ == "__main__":
-    main()
+    pass
+    #main()

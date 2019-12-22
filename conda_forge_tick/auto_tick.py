@@ -68,6 +68,9 @@ from .migrators import (
 
 from .migrators_types import *
 
+if typing.TYPE_CHECKING:
+    from .cli import CLIArgs
+
 
 MIGRATORS: MutableSequence[Migrator] = [
     Version(pr_limit=30, piggy_back_migrations=[PipMigrator(), LicenseMigrator()]),
@@ -86,12 +89,12 @@ BOT_RERUN_LABEL = {
 def run(
     feedstock_ctx: FeedstockContext,
     migrator: Migrator,
-    protocol="ssh",
-    pull_request=True,
-    rerender=True,
-    fork=True,
-    **kwargs,
-):
+    protocol: str="ssh",
+    pull_request: bool=True,
+    rerender: bool=True,
+    fork: bool=True,
+    **kwargs: typing.Any,
+) -> Tuple['MigrationUidTypedDict', dict]:
     """For a given feedstock and migration run the migration
 
     Parameters
@@ -127,7 +130,7 @@ def run(
     feedstock_dir, repo = get_repo(
         ctx=migrator.ctx.parent,
         fctx=feedstock_ctx,
-        branch=migrator.remote_branch(),
+        branch=migrator.remote_branch(feedstock_ctx),
         feedstock=feedstock_ctx.feedstock_name,
         protocol=protocol,
         pull_request=pull_request,
@@ -160,7 +163,7 @@ def run(
     # rerender, maybe
     diffed_files: typing.List[str] = []
     with indir(feedstock_dir), env.swap(RAISE_SUBPROC_ERROR=False):
-        msg = migrator.commit_message()
+        msg = migrator.commit_message(feedstock_ctx)
         eval_xonsh("git commit -am @(msg)")
         if rerender:
             head_ref = eval_xonsh("git rev-parse HEAD")
@@ -200,8 +203,8 @@ def run(
                 body=migrator.pr_body(feedstock_ctx),
                 repo=repo,
                 title=migrator.pr_title(feedstock_ctx),
-                head=migrator.pr_head(),
-                branch=migrator.remote_branch(),
+                head=migrator.pr_head(feedstock_ctx),
+                branch=migrator.remote_branch(feedstock_ctx),
             )
 
         # This shouldn't happen too often any more since we won't double PR
@@ -229,7 +232,7 @@ def _requirement_names(reqlist: Optional[Sequence[Optional[str]]]) -> List[str]:
         return [r.split()[0] for r in reqlist if r is not None]
 
 
-def _host_run_test_dependencies(meta_yaml: "MetaYamlTypedDict"):
+def _host_run_test_dependencies(meta_yaml: "MetaYamlTypedDict") -> Set['PackageName']:
     """Parse the host/run/test dependencies of a recipe
 
     This function parses top-level and `outputs` requirements sections.
@@ -258,10 +261,10 @@ def _host_run_test_dependencies(meta_yaml: "MetaYamlTypedDict"):
     rq.update(_requirement_names(test.get("requirements")))
     rq.update(_requirement_names(test.get("requires")))
 
-    return rq
+    return typing.cast('Set[PackageName]', rq)
 
 
-def add_rebuild_openssl(migrators: MutableSequence[Migrator], gx: nx.DiGraph):
+def add_rebuild_openssl(migrators: MutableSequence[Migrator], gx: nx.DiGraph) -> None:
     """Adds rebuild openssl migrators.
 
     Parameters
@@ -310,7 +313,7 @@ def add_rebuild_openssl(migrators: MutableSequence[Migrator], gx: nx.DiGraph):
     )
 
 
-def add_rebuild_libprotobuf(migrators: MutableSequence[Migrator], gx: nx.DiGraph):
+def add_rebuild_libprotobuf(migrators: MutableSequence[Migrator], gx: nx.DiGraph) -> None:
     """Adds rebuild libprotobuf migrators.
 
     Parameters
@@ -390,7 +393,7 @@ def add_rebuild_successors(
     total_graph = copy.deepcopy(gx)
 
     for node, node_attrs in gx.nodes.items():
-        attrs = node_attrs["payload"]
+        attrs: 'AttrsTypedDict' = node_attrs["payload"]
         meta_yaml = attrs.get("meta_yaml", {}) or {}
         bh = get_requirements(meta_yaml)
         criteria = package_name in bh
@@ -438,7 +441,7 @@ def add_rebuild_blas(migrators, gx):
     total_graph = copy.deepcopy(gx)
 
     for node, node_attrs in gx.nodes.items():
-        attrs = node_attrs["payload"]
+        attrs: 'AttrsTypedDict' = node_attrs["payload"]
         meta_yaml = attrs.get("meta_yaml", {}) or {}
         bh = get_requirements(meta_yaml)
         pkgs = {
@@ -480,7 +483,7 @@ def add_rebuild_blas(migrators, gx):
     )
 
 
-def add_replacement_migrator(migrators, gx, old_pkg, new_pkg, rationale):
+def add_replacement_migrator(migrators: MutableSequence[Migrator], gx: nx.DiGraph, old_pkg: 'PackageName', new_pkg: 'PackageName', rationale: str):
     """Adds a migrator to replace one package with another.
 
     Parameters
@@ -500,7 +503,7 @@ def add_replacement_migrator(migrators, gx, old_pkg, new_pkg, rationale):
     total_graph = copy.deepcopy(gx)
 
     for node, node_attrs in gx.nodes.items():
-        attrs = node_attrs["payload"]
+        attrs: 'AttrsTypedDict' = node_attrs["payload"]
         meta_yaml = attrs.get("meta_yaml", {}) or {}
         bh = get_requirements(meta_yaml)
         pkgs = {old_pkg}
@@ -527,7 +530,7 @@ def add_replacement_migrator(migrators, gx, old_pkg, new_pkg, rationale):
     )
 
 
-def add_arch_migrate(migrators: MutableSequence[Migrator], gx: nx.DiGraph):
+def add_arch_migrate(migrators: MutableSequence[Migrator], gx: nx.DiGraph) -> None:
     """Adds rebuild migrators.
 
     Parameters
@@ -574,10 +577,10 @@ def add_rebuild_migration_yaml(
     gx: nx.DiGraph,
     package_names: Sequence[str],
     migration_yaml: str,
-    config={},
-    migration_name="",
-    pr_limit=50,
-):
+    config: dict={},
+    migration_name: str="",
+    pr_limit: int=50,
+) -> None:
     """Adds rebuild migrator.
 
     Parameters
@@ -653,7 +656,7 @@ def add_rebuild_migration_yaml(
 
 def migration_factory(
     migrators: MutableSequence[Migrator], gx: nx.DiGraph, pr_limit=50,
-):
+) -> None:
     migration_yamls = []
     with indir("../conda-forge-pinning-feedstock/recipe/migrations"):
         for yaml_file in glob.glob("*.y*ml"):
@@ -686,8 +689,8 @@ def initialize_migrators(
     do_rebuild=False,
     github_username: str = "",
     github_password: str = "",
-    github_token=None,
-    dry_run=False,
+    github_token: Optional[str]=None,
+    dry_run: bool=False,
 ) -> Tuple[MigratorsContext, list, MutableSequence[Migrator]]:
     setup_logger(logger)
     temp = glob.glob("/tmp/*")
@@ -838,7 +841,7 @@ def migrator_status(migrator: Migrator, gx):
     return out2, build_sequence, gv
 
 
-def main(args: typing.Any = None) -> None:
+def main(args: 'CLIArgs') -> None:
     github_username = env.get("USERNAME", "")
     github_password = env.get("PASSWORD", "")
     github_token = env.get("GITHUB_TOKEN")
@@ -980,4 +983,5 @@ def main(args: typing.Any = None) -> None:
 
 
 if __name__ == "__main__":
-    main()
+
+    pass #  main()

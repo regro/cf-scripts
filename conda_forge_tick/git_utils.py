@@ -2,7 +2,7 @@
 import datetime
 import os
 import time
-from typing import Optional, Union
+from typing import Optional, Union, Tuple
 
 import github3
 import github3.pulls
@@ -26,13 +26,13 @@ MAX_GITHUB_TIMEOUT = 60
 from conda_forge_tick.utils import LazyJson
 
 
-def ensure_gh(ctx: GithubContext, gh):
+def ensure_gh(ctx: GithubContext, gh: Optional[github3.Github]) -> github3.GitHub:
     if gh is None:
         gh = github3.login(ctx.github_username, ctx.github_password)
     return gh
 
 
-def feedstock_url(fctx: FeedstockContext, feedstock, protocol="ssh"):
+def feedstock_url(fctx: FeedstockContext, feedstock: Optional[str], protocol="ssh") -> str:
     """Returns the URL for a conda-forge feedstock."""
     if feedstock is None:
         feedstock = fctx.package_name + "-feedstock"
@@ -55,7 +55,7 @@ def feedstock_url(fctx: FeedstockContext, feedstock, protocol="ssh"):
     return url
 
 
-def feedstock_repo(fctx: FeedstockContext, feedstock):
+def feedstock_repo(fctx: FeedstockContext, feedstock: Optional[str]) -> str:
     """Gets the name of the feedstock repository."""
     if feedstock is None:
         repo = fctx.package_name + "-feedstock"
@@ -83,7 +83,7 @@ def get_repo(
     protocol="ssh",
     pull_request=True,
     fork=True,
-):
+) -> Tuple[str, str]:
     """Get the feedstock repo
 
     Parameters
@@ -105,7 +105,7 @@ def get_repo(
     recipe_dir : str
         The recipe directory
     """
-    gh = ctx.gh()
+    gh = ctx.gh
     # first, let's grab the feedstock locally
     upstream = feedstock_url(fctx=fctx, feedstock=feedstock, protocol=protocol)
     origin = fork_url(upstream, ctx.github_username)
@@ -139,10 +139,10 @@ def get_repo(
     ):
         return feedstock_dir, repo
     else:
-        return
+        return None
 
 
-def delete_branch(ctx: GithubContext, pr_json: LazyJson, dry_run=False):
+def delete_branch(ctx: GithubContext, pr_json: LazyJson, dry_run: bool=False) -> None:
     ref = pr_json["head"]["ref"]
     if dry_run:
         print("dry run: deleting ref %s" % ref)
@@ -169,7 +169,7 @@ def delete_branch(ctx: GithubContext, pr_json: LazyJson, dry_run=False):
 @backoff.on_exception(
     backoff.expo, (RequestException, Timeout), max_time=MAX_GITHUB_TIMEOUT,
 )
-def refresh_pr(ctx: GithubContext, pr_json: LazyJson, gh=None, dry_run=False):
+def refresh_pr(ctx: GithubContext, pr_json: LazyJson, gh: Optional[github3.GitHub]=None, dry_run: bool=False) -> Optional[dict]:
     gh = ensure_gh(ctx, gh)
     if not pr_json["state"] == "closed":
         if dry_run:
@@ -188,7 +188,7 @@ def refresh_pr(ctx: GithubContext, pr_json: LazyJson, gh=None, dry_run=False):
 @backoff.on_exception(
     backoff.expo, (RequestException, Timeout), max_time=MAX_GITHUB_TIMEOUT,
 )
-def close_out_labels(ctx: GithubContext, pr_json: LazyJson, gh=None, dry_run=False):
+def close_out_labels(ctx: GithubContext, pr_json: LazyJson, gh: Optional[github3.GitHub]=None, dry_run: bool=False) -> Optional[dict]:
     gh = ensure_gh(ctx, gh)
     # run this twice so we always have the latest info (eg a thing was already closed)
     if pr_json["state"] != "closed" and "bot-rerun" in [
@@ -222,12 +222,12 @@ def close_out_labels(ctx: GithubContext, pr_json: LazyJson, gh=None, dry_run=Fal
 def push_repo(
     ctx: MigratorsContext,
     fctx: FeedstockContext,
-    feedstock_dir,
-    body,
-    repo,
-    title,
-    head,
-    branch,
+    feedstock_dir: str,
+    body: str,
+    repo: str,
+    title: str,
+    head: str,
+    branch: str,
     pull_request=True,
 ) -> Union[LazyJson, bool, None]:
     """Push a repo up to github
@@ -298,8 +298,8 @@ def push_repo(
     backoff.expo, (RequestException, Timeout), max_time=MAX_GITHUB_TIMEOUT,
 )
 def ensure_label_exists(
-    repo: github3.repos.Repository, label_dict: dict, dry_run=False,
-):
+    repo: github3.repos.Repository, label_dict: dict, dry_run: bool=False,
+) -> None:
     if dry_run:
         print("dry run: ensure label exists %s" % label_dict["name"])
     try:
@@ -309,8 +309,8 @@ def ensure_label_exists(
 
 
 def label_pr(
-    repo: github3.repos.Repository, pr_json: LazyJson, label_dict: dict, dry_run=False,
-):
+    repo: github3.repos.Repository, pr_json: LazyJson, label_dict: dict, dry_run: bool=False,
+)  -> None:
     ensure_label_exists(repo, label_dict, dry_run)
     if dry_run:
         print(

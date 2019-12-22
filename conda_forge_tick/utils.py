@@ -11,6 +11,7 @@ from collections.abc import Mapping, MutableMapping, Sequence, Set
 from concurrent.futures import (
     ProcessPoolExecutor,
     ThreadPoolExecutor,
+    Executor,
     as_completed,
 )
 
@@ -21,6 +22,7 @@ import networkx as nx
 
 if typing.TYPE_CHECKING:
     from mypy_extensions import TypedDict
+    from .migrators_types import PackageName
     from conda_forge_tick.migrators_types import (
         MetaYamlTypedDict,
         RequirementsTypedDict,
@@ -51,33 +53,33 @@ CB_CONFIG = dict(
 class UniversalSet(Set):
     """The universal set, or identity of the set intersection operation."""
 
-    def __and__(self, other) -> Set:
+    def __and__(self, other: Set) -> Set:
         return other
 
-    def __rand__(self, other) -> Set:
+    def __rand__(self, other: Set) -> Set:
         return other
 
-    def __contains__(self, item) -> bool:
+    def __contains__(self, item: Any) -> bool:
         return True
 
     def __iter__(self) -> typing.Iterator[Any]:
         return self
 
-    def __next__(self):
+    def __next__(self) -> typing.NoReturn:
         raise StopIteration
 
-    def __len__(self):
+    def __len__(self) -> int:
         return float("inf")
 
 
 class NullUndefined(jinja2.Undefined):
-    def __unicode__(self):
+    def __unicode__(self) -> str:
         return self._undefined_name
 
-    def __getattr__(self, name):
+    def __getattr__(self, name) -> str:
         return f"{self}.{name}"
 
-    def __getitem__(self, name):
+    def __getitem__(self, name) -> str:
         return f'{self}["{name}"]'
 
 
@@ -98,18 +100,18 @@ class LazyJson(MutableMapping):
         assert self.data is not None
         return len(self.data)
 
-    def __iter__(self):
+    def __iter__(self) -> Iterable[Any]:
         self._load()
         assert self.data is not None
         yield from self.data
 
-    def __delitem__(self, v):
+    def __delitem__(self, v: Any) -> None:
         self._load()
         assert self.data is not None
         del self.data[v]
         self._dump()
 
-    def _load(self):
+    def _load(self) -> None:
         if self.data is None:
             try:
                 with open(self.file_name, "r") as f:
@@ -119,29 +121,31 @@ class LazyJson(MutableMapping):
                 print(os.listdir("."))
                 raise
 
-    def _dump(self):
+    def _dump(self) -> None:
         self._load()
         with open(self.file_name, "w") as f:
             dump(self.data, f)
 
-    def __getitem__(self, item):
+    def __getitem__(self, item: Any) -> Any:
         self._load()
+        assert self.data is not None
         return self.data[item]
 
-    def __setitem__(self, key, value):
+    def __setitem__(self, key: Any, value: Any) -> None:
         self._load()
+        assert self.data is not None
         self.data[key] = value
         self._dump()
 
-    def __getstate__(self):
+    def __getstate__(self) -> dict:
         state = self.__dict__.copy()
         state["data"] = None
         return state
 
-    def __enter__(self):
+    def __enter__(self) -> 'LazyJson':
         return self
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
+    def __exit__(self, *args: Any) -> Any:
         self._dump()
 
 
@@ -165,7 +169,7 @@ def render_meta_yaml(text: str) -> str:
     return content
 
 
-def parse_meta_yaml(text: str, **kwargs) -> dict:
+def parse_meta_yaml(text: str, **kwargs: Any) -> 'MetaYamlTypedDict':
     """Parse the meta.yaml.
 
     Parameters
@@ -186,7 +190,7 @@ def parse_meta_yaml(text: str, **kwargs) -> dict:
     return parse(content, Config(**kwargs))
 
 
-def setup_logger(logger: logging.Logger):
+def setup_logger(logger: logging.Logger) -> None:
     """Basic configuration for logging
 
     """
@@ -198,7 +202,7 @@ def setup_logger(logger: logging.Logger):
     logger.setLevel(logging.INFO)
 
 
-def pluck(G: nx.DiGraph, node_id):
+def pluck(G: nx.DiGraph, node_id: Any) -> None:
     """Remove a node from a graph preserving structure.
 
     This will fuse edges together so that connectivity of the graph is not affected by
@@ -223,7 +227,7 @@ def pluck(G: nx.DiGraph, node_id):
 
 def get_requirements(
     meta_yaml: "MetaYamlTypedDict", outputs=True, build=True, host=True, run=True,
-):
+) -> Set['PackageName']:
     """Get the list of recipe requirements from a meta.yaml dict
 
     Parameters
@@ -246,7 +250,8 @@ def get_requirements(
     reqs = _parse_requirements(meta_yaml.get("requirements", {}), **kw)
     outputs = meta_yaml.get("outputs", []) or [] if outputs else []
     for output in outputs:
-        reqs.update(_parse_requirements(output.get("requirements", {}) or {}, **kw))
+        for req in _parse_requirements(output.get("requirements", {}) or {}, **kw):
+            reqs.add(req)
     return reqs
 
 
@@ -255,7 +260,7 @@ def _parse_requirements(
     build=True,
     host=True,
     run=True,
-):
+) -> typing.MutableSet['PackageName']:
     """Flatten a YAML requirements section into a list of names
     """
     if not req:  # handle None as empty
@@ -263,31 +268,34 @@ def _parse_requirements(
     if isinstance(req, list):  # simple list goes to both host and run
         reqlist = req if (host or run) else []
     else:
-        build = list(as_iterable(req.get("build", []) or [] if build else []))
-        host = list(as_iterable(req.get("host", []) or [] if host else []))
-        run = list(as_iterable(req.get("run", []) or [] if run else []))
-        reqlist = build + host + run
-    return {pin_sep_pat.split(x)[0].lower() for x in reqlist if x is not None}
+        _build = list(as_iterable(req.get("build", []) or [] if build else []))
+        _host = list(as_iterable(req.get("host", []) or [] if host else []))
+        _run = list(as_iterable(req.get("run", []) or [] if run else []))
+        reqlist = _build + _host + _run
+
+    packages = (pin_sep_pat.split(x)[0].lower() for x in reqlist if x is not None)
+    return {typing.cast('PackageName', pkg) for pkg in packages}
 
 
 @contextlib.contextmanager
-def executor(kind: str, max_workers: int):
+def executor(kind: str, max_workers: int) -> typing.Iterator[Executor]:
     """General purpose utility to get an executor with its as_completed handler
 
     This allows us to easily use other executors as needed.
     """
     if kind == "thread":
         with ThreadPoolExecutor(max_workers=max_workers) as pool_t:
-            yield pool_t, as_completed
+            yield pool_t
     elif kind == "process":
         with ProcessPoolExecutor(max_workers=max_workers) as pool_p:
-            yield pool_p, as_completed
+            yield pool_p
     elif kind == "dask":
         import distributed
+        from distributed.cfexecutor import ClientExecutor
 
         with distributed.LocalCluster(n_workers=max_workers) as cluster:
             with distributed.Client(cluster) as client:
-                yield client, distributed.as_completed
+                yield ClientExecutor(client)
     else:
         raise NotImplementedError("That kind is not implemented")
 
@@ -347,7 +355,7 @@ def load(fp: IO[str], object_hook=object_hook, **kwargs) -> dict:
     return json.load(fp, object_hook=object_hook, **kwargs)
 
 
-def dump_graph(gx: nx.DiGraph, filename="graph.json"):
+def dump_graph(gx: nx.DiGraph, filename="graph.json") -> None:
     nld = nx.node_link_data(gx)
     links = nld["links"]
     links2 = sorted(links, key=lambda x: f'{x["source"]}{x["target"]}')
@@ -356,7 +364,7 @@ def dump_graph(gx: nx.DiGraph, filename="graph.json"):
         dump(nld, f)
 
 
-def load_graph(filename="graph.json") -> nx.DiGraph:
+def load_graph(filename: str="graph.json") -> nx.DiGraph:
     with open(filename, "r") as f:
         nld = load(f)
     return nx.node_link_graph(nld)

@@ -1,29 +1,44 @@
+import abc
+
 import collections.abc
 import logging
 import builtins
 import subprocess
 import hashlib
 import re
+from concurrent.futures import as_completed
+from typing import Any, Optional, Iterable, Callable
+
 import yaml
+import networkx as nx
 
 import feedparser
 import requests
 from conda.models.version import VersionOrder
+# TODO: parse_version has bad type annotations
 from pkg_resources import parse_version
 
 from .utils import parse_meta_yaml, setup_logger, executor, load_graph, dump_graph
 
+import typing
+from typing import Set, Iterator
+if typing.TYPE_CHECKING:
+    from .migrators_types import MetaYamlTypedDict, SourceTypedDict
+
 logger = logging.getLogger("conda_forge_tick.update_upstream_versions")
 
-CRAN_INDEX = None
+CRAN_INDEX: Optional[dict] = None
 
 
-def urls_from_meta(meta_yaml):
-    source = meta_yaml["source"]
+def urls_from_meta(meta_yaml: 'MetaYamlTypedDict') -> Set[str]:
+    source: 'SourceTypedDict' = meta_yaml["source"]
+    sources: typing.List['SourceTypedDict']
     if isinstance(source, collections.abc.Mapping):
-        source = [source]
+        sources = [source]
+    else:
+        sources = source
     urls = set()
-    for s in source:
+    for s in sources:
         if "url" in s:
             # if it is a list for instance
             if not isinstance(s["url"], str):
@@ -33,7 +48,7 @@ def urls_from_meta(meta_yaml):
     return urls
 
 
-def next_version(ver):
+def next_version(ver: str) -> Iterator[str]:
     ver_split = []
     ver_dot_split = ver.split(".")
     for s in ver_dot_split:
@@ -43,22 +58,32 @@ def next_version(ver):
             ver_split.append("_")
         ver_split[-1] = "."
     del ver_split[-1]
-    for j in reversed(range(len(ver_split))):
+    for k in reversed(range(len(ver_split))):
         try:
-            t = int(ver_split[j])
+            t = int(ver_split[k])
         except Exception:
             continue
         else:
-            ver_split[j] = str(t + 1)
+            ver_split[k] = str(t + 1)
             yield "".join(ver_split)
-            ver_split[j] = "0"
+            ver_split[k] = "0"
 
 
-class VersionFromFeed:
+class AbstractSource(abc.ABC):
+    name: str
+    @abc.abstractmethod
+    def get_version(self, url: str) -> Optional[str]:
+        pass
+    @abc.abstractmethod
+    def get_url(self, url: str) -> Optional[str]:
+        pass
+
+
+class VersionFromFeed(AbstractSource):
     ver_prefix_remove = ["release-", "releases%2F", "v_", "v.", "v"]
     dev_vers = ["rc", "beta", "alpha", "dev", "a", "b", "RC"]
 
-    def get_version(self, url):
+    def get_version(self, url) -> Optional[str]:
         data = feedparser.parse(url)
         if data["bozo"] == 1:
             return None
@@ -82,7 +107,7 @@ class VersionFromFeed:
 class Github(VersionFromFeed):
     name = "github"
 
-    def get_url(self, meta_yaml):
+    def get_url(self, meta_yaml) -> Optional[str]:
         if "github.com" not in meta_yaml["url"]:
             return
         split_url = meta_yaml["url"].lower().split("/")
@@ -94,7 +119,7 @@ class Github(VersionFromFeed):
 
 
 class LibrariesIO(VersionFromFeed):
-    def get_url(self, meta_yaml):
+    def get_url(self, meta_yaml) -> Optional[str]:
         urls = meta_yaml["url"]
         if not isinstance(meta_yaml["url"], list):
             urls = [urls]
@@ -105,10 +130,10 @@ class LibrariesIO(VersionFromFeed):
             return f"https://libraries.io/{self.name}/{pkg}/versions.atom"
 
 
-class PyPI:
+class PyPI(AbstractSource):
     name = "pypi"
 
-    def get_url(self, meta_yaml):
+    def get_url(self, meta_yaml) -> Optional[str]:
         url_names = ["pypi.python.org", "pypi.org", "pypi.io"]
         source_url = meta_yaml["url"]
         if not any(s in source_url for s in url_names):
@@ -116,7 +141,7 @@ class PyPI:
         pkg = meta_yaml["url"].split("/")[6]
         return f"https://pypi.org/pypi/{pkg}/json"
 
-    def get_version(self, url):
+    def get_version(self, url) -> Optional[str]:
         r = requests.get(url)
         # If it is a pre-release don't give back the pre-release version
         if not r.ok or parse_version(r.json()["info"]["version"].strip()).is_prerelease:
@@ -124,17 +149,17 @@ class PyPI:
         return r.json()["info"]["version"].strip()
 
 
-class NPM:
+class NPM(AbstractSource):
     name = "npm"
 
-    def get_url(self, meta_yaml):
+    def get_url(self, meta_yaml) -> Optional[str]:
         if "registry.npmjs.org" not in meta_yaml["url"]:
             return None
         # might be namespaced
         pkg = meta_yaml["url"].split("/")[3:-2]
         return "https://registry.npmjs.org/{}".format("/".join(pkg))
 
-    def get_version(self, url):
+    def get_version(self, url: str) -> Optional[str]:
         r = requests.get(url)
         if not r.ok:
             return False
@@ -146,7 +171,7 @@ class NPM:
         return latest
 
 
-class CRAN:
+class CRAN(AbstractSource):
     """The CRAN versions source.
 
     Uses a local CRAN index instead of one request per package.
@@ -162,7 +187,7 @@ class CRAN:
     url_contains = "cran.r-project.org/src/contrib/Archive"
     cran_url = "https://cran.r-project.org"
 
-    def init(self):
+    def init(self) -> None:
         global CRAN_INDEX
         if not CRAN_INDEX:
             try:
@@ -173,7 +198,7 @@ class CRAN:
                 logger.error("Cran initialization failed", exc_info=True)
                 CRAN_INDEX = {}
 
-    def _get_cran_index(self, session):
+    def _get_cran_index(self, session: requests.Session) -> dict:
         # from conda_build/skeletons/cran.py:get_cran_index
         logger.info("Fetching cran index from %s", self.cran_url)
         r = session.get(self.cran_url + "/src/contrib/")
@@ -190,7 +215,7 @@ class CRAN:
                 records.setdefault(p.lower(), (p, None))
         return records
 
-    def get_url(self, meta_yaml):
+    def get_url(self, meta_yaml) -> Optional[str]:
         self.init()
         urls = meta_yaml["url"]
         if not isinstance(meta_yaml["url"], list):
@@ -204,18 +229,19 @@ class CRAN:
                 return CRAN_INDEX[pkg]
             else:
                 return None
+        return None
 
-    def get_version(self, url):
+    def get_version(self, url) -> Optional[str]:
         return str(url[1]).replace("-", "_") if url[1] else None
 
 
-ROS_DISTRO_INDEX = None
+ROS_DISTRO_INDEX: Optional[dict] = None
 
 
-class ROSDistro:
+class ROSDistro(AbstractSource):
     name = "rosdistro"
 
-    def parse_idx(self, distro_name="melodic"):
+    def parse_idx(self, distro_name: str="melodic") -> dict:
         session = requests.Session()
         res = session.get(
             "https://raw.githubusercontent.com/ros/rosdistro/master/{distro}/distribution.yaml".format(
@@ -226,7 +252,7 @@ class ROSDistro:
         resd = yaml.load(res.text, Loader=yaml.SafeLoader)
         repos = resd["repositories"]
 
-        result_dict = {distro_name: {"reverse": {}, "forward": {}}}
+        result_dict: dict = {distro_name: {"reverse": {}, "forward": {}}}
         for k, v in repos.items():
             if not v.get("release"):
                 continue
@@ -241,14 +267,14 @@ class ROSDistro:
         result_dict[distro_name]["forward"] = repos
         return result_dict
 
-    def encode_ros_name(self, name):
+    def encode_ros_name(self, name: str) -> str:
         new_name = name.replace("_", "-")
         if new_name.startswith("ros-"):
             return new_name
         else:
             return "ros-" + new_name
 
-    def init(self):
+    def init(self) -> None:
         global ROS_DISTRO_INDEX
         if not ROS_DISTRO_INDEX:
             self.version_url_cache = {}
@@ -259,7 +285,7 @@ class ROSDistro:
                 logger.error("ROS Distro initialization failed", exc_info=True)
                 ROS_DISTRO_INDEX = {}
 
-    def get_url(self, meta_yaml):
+    def get_url(self, meta_yaml: 'MetaYamlTypedDict') -> Optional[str]:
         if not meta_yaml["name"].startswith("ros-"):
             return None
 
@@ -288,7 +314,7 @@ class ROSDistro:
         return self.version_url_cache[url]
 
 
-def get_sha256(url):
+def get_sha256(url: str) -> Optional[str]:
     try:
         from rever import hash_url
 
@@ -306,10 +332,10 @@ def get_sha256(url):
         return None
 
 
-class RawURL:
+class RawURL(AbstractSource):
     name = "RawURL"
 
-    def get_url(self, meta_yaml):
+    def get_url(self, meta_yaml) -> Optional[str]:
         if "feedstock_name" not in meta_yaml:
             return None
         if "version" not in meta_yaml:
@@ -372,7 +398,7 @@ class RawURL:
         return url
 
 
-def get_latest_version(payload_meta_yaml, sources):
+def get_latest_version(payload_meta_yaml: Any, sources: Iterable[AbstractSource]):
     with payload_meta_yaml as meta_yaml:
         for source in sources:
             url = source.get_url(meta_yaml)
@@ -390,7 +416,7 @@ def get_latest_version(payload_meta_yaml, sources):
         return False
 
 
-def _update_upstream_versions_sequential(gx, sources):
+def _update_upstream_versions_sequential(gx: nx.DiGraph, sources: Iterable[AbstractSource]) -> None:
     to_update = []
     for node, node_attrs in gx.nodes.items():
         attrs = node_attrs["payload"]
@@ -408,7 +434,7 @@ def _update_upstream_versions_sequential(gx, sources):
                     se = str(e)
                 except Exception as ee:
                     se = f"Bad exception string: {ee}"
-                logger.warn(f"Error getting uptream version of {node}: {se}")
+                logger.warning(f"Error getting uptream version of {node}: {se}")
                 attrs["bad"] = "Upstream: Error getting upstream version"
             else:
                 logger.info(
@@ -418,9 +444,9 @@ def _update_upstream_versions_sequential(gx, sources):
                 )
 
 
-def _update_upstream_versions_process_pool(gx, sources):
+def _update_upstream_versions_process_pool(gx: nx.DiGraph, sources: Iterable[AbstractSource]) -> None:
     futures = {}
-    with executor(kind="dask", max_workers=20) as (pool, as_completed):
+    with executor(kind="dask", max_workers=20) as pool:
         for node, node_attrs in gx.nodes.items():
             with node_attrs["payload"] as attrs:
                 if attrs.get("bad") or attrs.get("archived"):
@@ -452,7 +478,7 @@ def _update_upstream_versions_process_pool(gx, sources):
                     )
 
 
-def update_upstream_versions(gx, sources=None):
+def update_upstream_versions(gx: nx.DiGraph, sources: Iterable[AbstractSource]=None) -> None:
     sources = (
         (PyPI(), NPM(), CRAN(), ROSDistro(), RawURL(), Github())
         if sources is None
@@ -487,7 +513,7 @@ def update_upstream_versions(gx, sources=None):
     )
 
 
-def main(args=None):
+def main(args: Any=None) -> None:
     setup_logger(logger)
 
     logger.info("Reading graph")
