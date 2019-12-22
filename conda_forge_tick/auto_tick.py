@@ -11,7 +11,7 @@ from urllib.error import URLError
 import github3
 import ruamel.yaml as yaml
 from uuid import uuid4
-from xonsh.lib.os import indir
+from .xonsh_utils import indir
 
 from conda_forge_tick.contexts import FeedstockContext
 from .git_utils import (

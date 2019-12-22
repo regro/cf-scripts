@@ -6,7 +6,7 @@ import networkx as nx
 
 
 def main(args=None):
-    gx, *_, migrators = initialize_migrators(do_rebuild=True)
+    mctx, *_, migrators = initialize_migrators(do_rebuild=True)
     if not os.path.exists("./status"):
         os.mkdir("./status")
     total_status = {}
@@ -17,7 +17,7 @@ def main(args=None):
             if migrator_name in ["rebuild", "migrationyaml"]:
                 migrator_name = migrator.name.lower().replace(" ", "")
             total_status[migrator_name] = f"{migrator.name} Migration Status"
-            status, build_order, gv = migrator_status(migrator, gx)
+            status, build_order, gv = migrator_status(migrator, mctx.graph)
             with open(os.path.join(f"./status/{migrator_name}.json"), "w") as fo:
                 json.dump(status, fo, indent=2)
             d = gv.pipe("svg")
@@ -27,7 +27,7 @@ def main(args=None):
         json.dump(total_status, f, sort_keys=True)
     l = [
         k
-        for k, v in gx.nodes.items()
+        for k, v in mctx.graph.nodes.items()
         if len(
             [
                 z
@@ -40,16 +40,16 @@ def main(args=None):
     ]
     with open("./status/could_use_help.json", "w") as f:
         json.dump(
-            sorted(l, key=lambda z: (len(nx.descendants(gx, z)), l), reverse=True),
+            sorted(l, key=lambda z: (len(nx.descendants(mctx.graph, z)), l), reverse=True),
             f,
             indent=2,
         )
 
     lm = LicenseMigrator()
-    l = [k for k, v in gx.nodes.items() if not lm.filter(v.get("payload", {}))]
+    l = [k for k, v in mctx.graph.nodes.items() if not lm.filter(v.get("payload", {}))]
     with open("./status/unlicensed.json", "w") as f:
         json.dump(
-            sorted(l, key=lambda z: (len(nx.descendants(gx, z)), l), reverse=True),
+            sorted(l, key=lambda z: (len(nx.descendants(mctx.graph, z)), l), reverse=True),
             f,
             indent=2,
         )

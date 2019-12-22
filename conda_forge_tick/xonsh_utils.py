@@ -1,5 +1,6 @@
 from xonsh.execer import Execer
 from xonsh.environ import Env
+from xonsh.lib.os import indir
 from xonsh.__amalgam__ import CommandPipeline
 import builtins
 
@@ -19,3 +20,5 @@ def eval_xonsh(inp: str) -> str:
         return res.output.strip()
     else:
         return res
+
+

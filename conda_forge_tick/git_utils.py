@@ -10,11 +10,9 @@ import github3.repos
 import github3.exceptions
 
 from doctr.travis import run_command_hiding_token as doctr_run
-from xonsh.lib.os import indir
+from .xonsh_utils import env, indir
 
 import backoff
-
-from conda_forge_tick.xonsh_utils import env
 
 backoff._decorator._is_event_loop = lambda: False
 
