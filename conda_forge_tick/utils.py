@@ -227,7 +227,7 @@ def pluck(G: nx.DiGraph, node_id: Any) -> None:
 
 def get_requirements(
     meta_yaml: "MetaYamlTypedDict", outputs=True, build=True, host=True, run=True,
-) -> Set["PackageName"]:
+) -> "Set[PackageName]":
     """Get the list of recipe requirements from a meta.yaml dict
 
     Parameters
@@ -322,7 +322,7 @@ def dumps(
     obj,
     sort_keys=True,
     separators=(",", ":"),
-    default: Callable[[Any], Any] = default,
+    default: 'Callable[[Any], Any]' = default,
     **kwargs,
 ):
     """Returns a JSON string from a Python object."""
@@ -341,7 +341,7 @@ def dump(
     fp: IO[str],
     sort_keys=True,
     separators=(",", ":"),
-    default: Callable[[Any], Any] = default,
+    default: 'Callable[[Any], Any]' = default,
     **kwargs,
 ):
     """Returns a JSON string from a Python object."""
