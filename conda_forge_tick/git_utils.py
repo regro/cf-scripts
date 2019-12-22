@@ -27,7 +27,7 @@ MAX_GITHUB_TIMEOUT = 60
 from conda_forge_tick.utils import LazyJson
 
 
-def ensure_gh(ctx: GithubContext, gh: Optional[github3.Github]) -> github3.GitHub:
+def ensure_gh(ctx: GithubContext, gh: Optional[github3.GitHub]) -> github3.GitHub:
     if gh is None:
         gh = github3.login(ctx.github_username, ctx.github_password)
     return gh
