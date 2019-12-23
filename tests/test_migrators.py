@@ -1942,7 +1942,7 @@ package:
   name: viscm
   version: {{ version }}
 source:
-  url: https://pypi.io/packages/source/v/viscm/viscm-{{ version }}.zip
+  url: https://pypi.io/packages/source/v/viscm/viscm-v{{ version }}.zip
   sha256: 5a9677fa4751c6dd18a5a74e7ec06848e4973d0ac0af3e4d795753b15a30c759
 build:
   number: 0

@@ -6,7 +6,7 @@ import re
 from itertools import chain
 from textwrap import dedent
 import warnings
-from itertools import permutations
+from itertools import permutations, product
 
 import networkx as nx
 import conda.exceptions
@@ -454,15 +454,13 @@ class Version(Migrator):
         # only run for single url recipes as the moment
         if isinstance(rendered['source'], dict) and isinstance(rendered['source'].get('url', []), str) and requests.get(rendered['source']['url']).status_code != 200:
             with indir(recipe_dir):
-                for a, b in permutations(['v{{ v', '{{ v']):
-                    text = text.replace(a, b)
-                    for a, b in permutations(['.zip', '.tar.gz']):
-                        text = text.replace(a, b)
-                        rendered = parse_meta_yaml(render_meta_yaml(text))
-                        if requests.get(rendered['source']['url']).status_code == 200:
-                            with open('meta.yaml', 'w') as f:
-                                f.write(text)
-                            break
+                for (a, b), (c, d) in product(permutations(['v{{ v', '{{ v']), permutations(['.zip', '.tar.gz'])):
+                    text = text.replace(a, b).replace(c, d)
+                    rendered = parse_meta_yaml(render_meta_yaml(text))
+                    if requests.get(rendered['source']['url']).status_code == 200:
+                        with open('meta.yaml', 'w') as f:
+                            f.write(text)
+                        break
         # Get patterns to replace checksum for each platform
         rendered_text = render_meta_yaml(text)
         urls = self.find_urls(rendered_text)
