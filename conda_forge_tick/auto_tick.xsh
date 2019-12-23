@@ -732,6 +732,7 @@ def main(args=None):
                 # Don't let travis timeout, break ahead of the timeout so we make certain
                 # to write to the repo
                 if time.time() - int($START_TIME) > int($TIMEOUT) or good_prs >= migrator.pr_limit:
+                    logger.info('Timeout or reached good PR limit')
                     break
                 $PROJECT = attrs['feedstock_name']
                 $NODE = node_name
