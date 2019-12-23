@@ -60,10 +60,9 @@ from conda_forge_tick.migrators import (
     ArchRebuild,
 )
 
-from .migrators_types import *
-
 if typing.TYPE_CHECKING:
     from .cli import CLIArgs
+    from .migrators_types import *
 
 
 MIGRATORS: MutableSequence[Migrator] = [
