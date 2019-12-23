@@ -31,7 +31,8 @@ class GithubContext:
 
 
 @dataclass
-class MigratorsContext(GithubContext):
+class MigratorSessionContext(GithubContext):
+    """Singleton session context.  There should generally only be one of these"""
     graph: DiGraph = None
     smithy_version: str = ""
     pinning_version: str = ""
@@ -42,21 +43,22 @@ class MigratorsContext(GithubContext):
 
 @dataclass
 class MigratorContext:
-    parent: MigratorsContext
+    """The context for a given migrator.  This houses the runtime information that a migrator needs"""
+    session: MigratorSessionContext
     migrator: "Migrator"
     _effective_graph: DiGraph = None
 
     @property
     def github_username(self) -> str:
-        return self.parent.github_username
+        return self.session.github_username
 
     @property
     def effective_graph(self) -> DiGraph:
         if self._effective_graph is None:
-            gx2 = copy.deepcopy(getattr(self.migrator, "graph", self.parent.graph))
+            gx2 = copy.deepcopy(getattr(self.migrator, "graph", self.session.graph))
 
             # Prune graph to only things that need builds right now
-            for node, node_attrs in self.parent.graph.nodes.items():
+            for node, node_attrs in self.session.graph.nodes.items():
                 attrs = node_attrs["payload"]
                 if node in gx2 and self.migrator.filter(attrs):
                     gx2.remove_node(node)
@@ -66,7 +68,6 @@ class MigratorContext:
 
 @dataclass
 class FeedstockContext:
-
     package_name: str
     feedstock_name: str
     attrs: "AttrsTypedDict"

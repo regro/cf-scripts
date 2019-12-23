@@ -5,7 +5,7 @@ import re
 import pytest
 import networkx as nx
 
-from conda_forge_tick.contexts import MigratorsContext, MigratorContext
+from conda_forge_tick.contexts import MigratorSessionContext, MigratorContext
 from conda_forge_tick.migrators import (
     Version,
     LicenseMigrator,
@@ -2557,7 +2557,7 @@ env["CIRCLE_BUILD_URL"] = "hi world"
     "m, inp, output, kwargs, prb, mr_out, should_filter", test_list,
 )
 def test_migration(m, inp, output, kwargs, prb, mr_out, should_filter, tmpdir):
-    mm_ctx = MigratorsContext(
+    mm_ctx = MigratorSessionContext(
         graph=G,
         smithy_version="",
         pinning_version="",

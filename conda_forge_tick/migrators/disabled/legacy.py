@@ -197,7 +197,7 @@ class Noarch(Migrator):
                 return True
 
         # Not a dependency of `conda`
-        if attrs["feedstock_name"] in nx.ancestors(self.ctx.parent.graph, "conda"):
+        if attrs["feedstock_name"] in nx.ancestors(self.ctx.session.graph, "conda"):
             return True
 
         return False

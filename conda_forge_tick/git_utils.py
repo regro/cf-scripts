@@ -18,7 +18,7 @@ import backoff
 backoff._decorator._is_event_loop = lambda: False
 
 from requests.exceptions import Timeout, RequestException
-from .contexts import GithubContext, FeedstockContext, MigratorsContext
+from .contexts import GithubContext, FeedstockContext, MigratorSessionContext
 
 MAX_GITHUB_TIMEOUT = 60
 
@@ -79,7 +79,7 @@ def fork_url(feedstock_url: str, username: str) -> str:
 
 
 def get_repo(
-    ctx: MigratorsContext,
+    ctx: MigratorSessionContext,
     fctx: FeedstockContext,
     branch: str,
     feedstock: Optional[str] = None,
@@ -235,7 +235,7 @@ def close_out_labels(
 
 
 def push_repo(
-    ctx: MigratorsContext,
+    ctx: MigratorSessionContext,
     fctx: FeedstockContext,
     feedstock_dir: str,
     body: str,

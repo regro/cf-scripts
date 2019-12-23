@@ -47,7 +47,7 @@ logger = logging.getLogger("conda_forge_tick.auto_tick")
 # TODO: move this back to the bot file as soon as the source issue is sorted
 # https://travis-ci.org/regro/00-find-feedstocks/jobs/388387895#L1870
 from conda_forge_tick.utils import frozen_to_json_friendly
-from conda_forge_tick.contexts import MigratorsContext
+from conda_forge_tick.contexts import MigratorSessionContext
 from conda_forge_tick.migrators import (
     Migrator,
     Version,
@@ -122,7 +122,7 @@ def run(
     # TODO: stop doing this.
     migrator.attrs = feedstock_ctx.attrs  # type: ignore
     feedstock_dir, repo = get_repo(
-        ctx=migrator.ctx.parent,
+        ctx=migrator.ctx.session,
         fctx=feedstock_ctx,
         branch=migrator.remote_branch(feedstock_ctx),
         feedstock=feedstock_ctx.feedstock_name,
@@ -185,14 +185,14 @@ def run(
         # spoof this so it looks like the package is done
         pr_json = {"state": "closed", "merged_at": "never issued", "id": str(uuid4())}
         ljpr = LazyJson(
-            os.path.join(migrator.ctx.parent.prjson_dir, str(pr_json["id"]) + ".json"),
+            os.path.join(migrator.ctx.session.prjson_dir, str(pr_json["id"]) + ".json"),
         )
         ljpr.update(**pr_json)
     else:
         # push up
         try:
             pr_json = push_repo(
-                ctx=migrator.ctx.parent,
+                ctx=migrator.ctx.session,
                 fctx=feedstock_ctx,
                 feedstock_dir=feedstock_dir,
                 body=migrator.pr_body(feedstock_ctx),
@@ -698,7 +698,7 @@ def initialize_migrators(
     github_password: str = "",
     github_token: Optional[str] = None,
     dry_run: bool = False,
-) -> Tuple[MigratorsContext, list, MutableSequence[Migrator]]:
+) -> Tuple[MigratorSessionContext, list, MutableSequence[Migrator]]:
     setup_logger(logger)
     temp = glob.glob("/tmp/*")
     gx = load_graph()
@@ -718,7 +718,7 @@ def initialize_migrators(
         #      '`matplotlib-base`.'))
         print(f'{getattr(m, "name", m)} graph size: {len(getattr(m, "graph", []))}')
 
-    ctx = MigratorsContext(
+    ctx = MigratorSessionContext(
         circle_build_url="",
         graph=gx,
         smithy_version=smithy_version,
