@@ -438,7 +438,7 @@ class Version(Migrator):
             with open('meta.yaml', 'r') as f:
                 text = f.read()
         url = re.search('\s*-?\s*url:.*?\n(    -.*\n?)*', text).group()
-        if 'cran.r-project.org/src/contrib' in url:
+        if 'cran.r-project.org/src/contrib' in url or 'cran_mirror' in url:
             version = version.replace('_', '-')
         with indir(recipe_dir), ${...}.swap(VERSION=version):
             for f, p, n in self.patterns:
