@@ -455,9 +455,10 @@ class Version(Migrator):
         if isinstance(rendered['source'], dict) and isinstance(rendered['source'].get('url', []), str) and requests.get(rendered['source']['url']).status_code != 200:
             with indir(recipe_dir):
                 for (a, b), (c, d) in product(permutations(['v{{ v', '{{ v']), permutations(['.zip', '.tar.gz'])):
-                    text = text.replace(a, b).replace(c, d)
-                    rendered = parse_meta_yaml(render_meta_yaml(text))
+                    inner_text = text.replace(a, b).replace(c, d)
+                    rendered = parse_meta_yaml(render_meta_yaml(inner_text))
                     if requests.get(rendered['source']['url']).status_code == 200:
+                        text = inner_text
                         with open('meta.yaml', 'w') as f:
                             f.write(text)
                         break
