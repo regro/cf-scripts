@@ -596,7 +596,7 @@ class Version(Migrator):
             url = res.group()
         else:
             raise ValueError("Could not match url")
-        if "cran.r-project.org/src/contrib" in url:
+        if "cran.r-project.org/src/contrib" in url or 'cran_mirror' in url:
             version = version.replace("_", "-")
         with indir(recipe_dir), env.swap(VERSION=version):
             for f, p, n in self.patterns:
