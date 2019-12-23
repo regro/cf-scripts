@@ -55,7 +55,7 @@ from conda_forge_tick.migrators import (
     LicenseMigrator,
     MigrationYaml,
     MigratorContext,
-    Rebuild,
+    GraphMigrator,
     Replacement,
     ArchRebuild,
 )
@@ -259,6 +259,7 @@ def _host_run_test_dependencies(meta_yaml: "MetaYamlTypedDict") -> Set["PackageN
     return typing.cast("Set[PackageName]", rq)
 
 
+@typing.no_type_check
 def add_rebuild_openssl(migrators: MutableSequence[Migrator], gx: nx.DiGraph) -> None:
     """Adds rebuild openssl migrators.
 
@@ -308,6 +309,7 @@ def add_rebuild_openssl(migrators: MutableSequence[Migrator], gx: nx.DiGraph) ->
     )
 
 
+@typing.no_type_check
 def add_rebuild_libprotobuf(
     migrators: MutableSequence[Migrator], gx: nx.DiGraph,
 ) -> None:

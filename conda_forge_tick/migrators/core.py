@@ -713,6 +713,7 @@ class GraphMigrator(Migrator):
     def __init__(
         self,
         *,
+        name: Optional[str] = None,
         graph: nx.DiGraph = None,
         pr_limit: int = 0,
         obj_version: Optional[int] = None,
@@ -724,6 +725,7 @@ class GraphMigrator(Migrator):
             self.graph = nx.DiGraph()
         else:
             self.graph = graph
+        self.name = name
 
     def predecessors_already_built(self, attrs: "AttrsTypedDict") -> bool:
         # Check if all upstreams have been built

@@ -495,7 +495,7 @@ def update_upstream_versions(
         if sources is None
         else sources
     )
-    env = builtins.__xonsh__.env
+    from .xonsh_utils import env
     debug = env.get("CONDA_FORGE_TICK_DEBUG", False)
     updater = (
         _update_upstream_versions_sequential

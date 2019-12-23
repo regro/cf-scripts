@@ -324,7 +324,7 @@ def dumps(
     separators: Any=(",", ":"),
     default: 'Callable[[Any], Any]' = default,
     **kwargs: Any,
-) -> None:
+) -> str:
     """Returns a JSON string from a Python object."""
     return json.dumps(
         obj,
@@ -356,7 +356,7 @@ def dump(
     )
 
 
-def loads(s, object_hook: 'Callable[[dict], Any]'=object_hook, **kwargs: Any) -> dict:
+def loads(s: str, object_hook: 'Callable[[dict], Any]'=object_hook, **kwargs: Any) -> dict:
     """Loads a string as JSON, with approriate object hooks"""
     return json.loads(s, object_hook=object_hook, **kwargs)
 
@@ -401,6 +401,7 @@ def frozen_to_json_friendly(fz: Any, pr: Optional[LazyJson] = None) -> "JsonFrie
     pass
 
 
+@typing.no_type_check
 def frozen_to_json_friendly(fz, pr: Optional[LazyJson] = None):
     if fz is None:
         return None
@@ -437,7 +438,7 @@ def as_iterable(x: Iterable[T]) -> Iterable[T]:
 def as_iterable(x: T) -> Tuple[T]:
     ...
 
-
+@typing.no_type_check
 def as_iterable(iterable_or_scalar):
     """Utility for converting an object to an iterable.
    Parameters

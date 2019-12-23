@@ -1,4 +1,3 @@
-from mypy_extensions import TypedDict, _TypedDictMeta
 import typing
 from typing import (
     Any,
@@ -8,6 +7,8 @@ from typing import (
     Tuple,
     Union,
     Optional)
+
+from mypy_extensions import TypedDict
 
 
 PackageName = typing.NewType('PackageName', str)
@@ -51,10 +52,15 @@ class BlasRebuildMigrateTypedDict(TypedDict):
     name: str
 
 
+class BuildRunExportsDict(TypedDict, total=False):
+    strong: List[PackageName]
+    weak: List[PackageName]
+
 class BuildTypedDict(TypedDict, total=False):
     noarch: str
     number: str
     script: str
+    run_exports: Union[List[PackageName], BuildRunExportsDict]
 
 
 ExtraTypedDict = TypedDict(
@@ -67,7 +73,12 @@ ExtraTypedDict = TypedDict(
 #     keys: List[str]
 
 
-MetaYamlOutputs = Any
+class MetaYamlOutputs(TypedDict, total=False):
+    name: str
+    requirements: 'RequirementsTypedDict'
+    test: 'TestTypedDict'
+    # TODO: Not entirely sure this is right
+    build: BuildRunExportsDict
 
 
 class MetaYamlTypedDict(TypedDict, total=False):
@@ -78,7 +89,7 @@ class MetaYamlTypedDict(TypedDict, total=False):
     requirements: 'RequirementsTypedDict'
     source: 'SourceTypedDict'
     test: 'TestTypedDict'
-    outputs: MetaYamlOutputs
+    outputs: List[MetaYamlOutputs]
 
 
 class MigrationUidTypedDict(TypedDict, total=False):

@@ -3,7 +3,7 @@ import os
 import json
 import networkx as nx
 
-from conda_forge_tick.migrators import Rebuild, MigrationYaml, LicenseMigrator, Any
+from conda_forge_tick.migrators import GraphMigrator, MigrationYaml, LicenseMigrator, Any
 
 
 def main(args: Any = None) -> None:
@@ -13,7 +13,7 @@ def main(args: Any = None) -> None:
     total_status = {}
 
     for migrator in migrators:
-        if isinstance(migrator, (Rebuild, MigrationYaml)):
+        if isinstance(migrator, (GraphMigrator, MigrationYaml)):
             migrator_name = migrator.__class__.__name__.lower()
             if migrator_name in ["rebuild", "migrationyaml"]:
                 assert isinstance(migrator.name, str)
