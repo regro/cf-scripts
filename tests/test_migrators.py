@@ -13,6 +13,7 @@ from conda_forge_tick.migrators import (
     MigrationYaml,
     Replacement,
 )
+
 # Legacy THINGS
 from conda_forge_tick.migrators.disabled.legacy import (
     JS,

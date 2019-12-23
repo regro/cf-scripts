@@ -38,7 +38,7 @@ def urls_from_meta(meta_yaml: "MetaYamlTypedDict") -> Set[str]:
     if isinstance(source, collections.abc.Mapping):
         sources = [source]
     else:
-        sources = typing.cast('typing.List[SourceTypedDict]', source)
+        sources = typing.cast("typing.List[SourceTypedDict]", source)
     urls = set()
     for s in sources:
         if "url" in s:
@@ -399,7 +399,7 @@ class RawURL(AbstractSource):
             return current_ver
         return None
 
-    def get_version(self, url: str)-> str:
+    def get_version(self, url: str) -> str:
         return url
 
 
@@ -496,6 +496,7 @@ def update_upstream_versions(
         else sources
     )
     from .xonsh_utils import env
+
     debug = env.get("CONDA_FORGE_TICK_DEBUG", False)
     updater = (
         _update_upstream_versions_sequential

@@ -226,7 +226,11 @@ def pluck(G: nx.DiGraph, node_id: Any) -> None:
 
 
 def get_requirements(
-    meta_yaml: "MetaYamlTypedDict", outputs:bool=True, build:bool=True, host:bool=True, run:bool=True,
+    meta_yaml: "MetaYamlTypedDict",
+    outputs: bool = True,
+    build: bool = True,
+    host: bool = True,
+    run: bool = True,
 ) -> "Set[PackageName]":
     """Get the list of recipe requirements from a meta.yaml dict
 
@@ -257,9 +261,9 @@ def get_requirements(
 
 def _parse_requirements(
     req: Union[None, typing.List[str], "RequirementsTypedDict"],
-    build:bool=True,
-    host:bool=True,
-    run:bool=True,
+    build: bool = True,
+    host: bool = True,
+    run: bool = True,
 ) -> typing.MutableSet["PackageName"]:
     """Flatten a YAML requirements section into a list of names
     """
@@ -320,9 +324,9 @@ def object_hook(dct: dict) -> Union[LazyJson, Set, dict]:
 
 def dumps(
     obj: Any,
-    sort_keys: bool=True,
-    separators: Any=(",", ":"),
-    default: 'Callable[[Any], Any]' = default,
+    sort_keys: bool = True,
+    separators: Any = (",", ":"),
+    default: "Callable[[Any], Any]" = default,
     **kwargs: Any,
 ) -> str:
     """Returns a JSON string from a Python object."""
@@ -339,9 +343,9 @@ def dumps(
 def dump(
     obj: Any,
     fp: IO[str],
-    sort_keys: bool=True,
-    separators: Any=(",", ":"),
-    default: 'Callable[[Any], Any]' = default,
+    sort_keys: bool = True,
+    separators: Any = (",", ":"),
+    default: "Callable[[Any], Any]" = default,
     **kwargs: Any,
 ) -> None:
     """Returns a JSON string from a Python object."""
@@ -356,12 +360,16 @@ def dump(
     )
 
 
-def loads(s: str, object_hook: 'Callable[[dict], Any]'=object_hook, **kwargs: Any) -> dict:
+def loads(
+    s: str, object_hook: "Callable[[dict], Any]" = object_hook, **kwargs: Any
+) -> dict:
     """Loads a string as JSON, with approriate object hooks"""
     return json.loads(s, object_hook=object_hook, **kwargs)
 
 
-def load(fp: IO[str], object_hook: 'Callable[[dict], Any]'=object_hook, **kwargs: Any) -> dict:
+def load(
+    fp: IO[str], object_hook: "Callable[[dict], Any]" = object_hook, **kwargs: Any
+) -> dict:
     """Loads a file object as JSON, with appropriate object hooks."""
     return json.load(fp, object_hook=object_hook, **kwargs)
 
@@ -437,6 +445,7 @@ def as_iterable(x: Iterable[T]) -> Iterable[T]:
 @typing.overload
 def as_iterable(x: T) -> Tuple[T]:
     ...
+
 
 @typing.no_type_check
 def as_iterable(iterable_or_scalar):

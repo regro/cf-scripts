@@ -570,9 +570,7 @@ def add_arch_migrate(migrators: MutableSequence[Migrator], gx: nx.DiGraph) -> No
 
     migrators.append(
         ArchRebuild(
-            graph=total_graph,
-            pr_limit=5,
-            name="aarch64 and ppc64le addition",
+            graph=total_graph, pr_limit=5, name="aarch64 and ppc64le addition",
         ),
     )
 
@@ -660,7 +658,7 @@ def add_rebuild_migration_yaml(
 
 
 def migration_factory(
-    migrators: MutableSequence[Migrator], gx: nx.DiGraph, pr_limit: int=50,
+    migrators: MutableSequence[Migrator], gx: nx.DiGraph, pr_limit: int = 50,
 ) -> None:
     migration_yamls = []
     with indir("../conda-forge-pinning-feedstock/recipe/migrations"):

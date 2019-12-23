@@ -3,7 +3,12 @@ import os
 import json
 import networkx as nx
 
-from conda_forge_tick.migrators import GraphMigrator, MigrationYaml, LicenseMigrator, Any
+from conda_forge_tick.migrators import (
+    GraphMigrator,
+    MigrationYaml,
+    LicenseMigrator,
+    Any,
+)
 
 
 def main(args: Any = None) -> None:

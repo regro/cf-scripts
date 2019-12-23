@@ -18,6 +18,7 @@ from conda_forge_tick.xonsh_utils import indir
 
 from rever.tools import eval_version, hash_url, replace_in_file
 
+
 class JS(Migrator):
     """Migrator for JavaScript syntax"""
 
@@ -25,8 +26,7 @@ class JS(Migrator):
         (
             "meta.yaml",
             r"  script: npm install -g \.",
-            "  script: |\n"
-            "    tgz=$(npm pack)\n" "    npm install -g $tgz",
+            "  script: |\n" "    tgz=$(npm pack)\n" "    npm install -g $tgz",
         ),
         ("meta.yaml", "   script: |\n", "  script: |"),
     ]

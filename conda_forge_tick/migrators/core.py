@@ -217,7 +217,7 @@ class Migrator:
         self.ctx = migrator_ctx
 
     def downstream_children(
-        self, feedstock_ctx: FeedstockContext, limit: int=5,
+        self, feedstock_ctx: FeedstockContext, limit: int = 5,
     ) -> List["PackageName"]:
         """Utility method for getting a list of follow on packages"""
         return [
@@ -256,11 +256,11 @@ class Migrator:
                 return bad
 
         def parse_already_pred() -> bool:
-            migrator_uid: 'MigrationUidTypedDict' = typing.cast(
+            migrator_uid: "MigrationUidTypedDict" = typing.cast(
                 "MigrationUidTypedDict",
                 frozen_to_json_friendly(self.migrator_uid(attrs))["data"],
             )
-            already_migrated_uids: typing.Iterable['MigrationUidTypedDict'] = (
+            already_migrated_uids: typing.Iterable["MigrationUidTypedDict"] = (
                 z["data"] for z in attrs.get("PRed", [])
             )
             return migrator_uid in already_migrated_uids
@@ -831,5 +831,3 @@ class Replacement(Migrator):
 
     def remote_branch(self, feedstock_ctx: FeedstockContext) -> str:
         return f"{self.old_pkg}-to-{self.new_pkg}-migration"
-
-

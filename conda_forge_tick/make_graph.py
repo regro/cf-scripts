@@ -180,6 +180,7 @@ def make_graph(names: List[str], gx: Optional[nx.DiGraph] = None) -> nx.DiGraph:
     total_names = new_names + old_names
     logger.info("start loop")
     from .xonsh_utils import env
+
     debug = env.get("CONDA_FORGE_TICK_DEBUG", False)
     builder = _build_graph_sequential if debug else _build_graph_process_pool
     builder(gx, total_names, new_names)
