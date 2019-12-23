@@ -217,7 +217,7 @@ class Migrator:
         self.ctx = migrator_ctx
 
     def downstream_children(
-        self, feedstock_ctx: FeedstockContext, limit=5,
+        self, feedstock_ctx: FeedstockContext, limit: int=5,
     ) -> List["PackageName"]:
         """Utility method for getting a list of follow on packages"""
         return [
@@ -268,7 +268,7 @@ class Migrator:
         return attrs.get("archived", False) or parse_already_pred() or parse_bad_attr()
 
     def migrate(
-        self, recipe_dir, attrs: "AttrsTypedDict", **kwargs: Any
+        self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any
     ) -> "MigrationUidTypedDict":
         """Perform the migration, updating the ``meta.yaml``
 
@@ -587,6 +587,7 @@ class Version(Migrator):
     ) -> "MigrationUidTypedDict":
         # Render with new version but nothing else
         version = attrs["new_version"]
+        assert isinstance(version, str)
         with indir(recipe_dir):
             with open("meta.yaml", "r") as fp:
                 text = fp.read()
@@ -683,16 +684,20 @@ class Version(Migrator):
         return body
 
     def commit_message(self, feedstock_ctx: FeedstockContext) -> str:
+        assert isinstance(feedstock_ctx.attrs["new_version"], str)
         return "updated v" + feedstock_ctx.attrs["new_version"]
 
     def pr_title(self, feedstock_ctx: FeedstockContext) -> str:
+        assert isinstance(feedstock_ctx.attrs["new_version"], str)
         return feedstock_ctx.package_name + " v" + feedstock_ctx.attrs["new_version"]
 
     def remote_branch(self, feedstock_ctx: FeedstockContext) -> str:
+        assert isinstance(feedstock_ctx.attrs["new_version"], str)
         return feedstock_ctx.attrs["new_version"]
 
     def migrator_uid(self, attrs: "AttrsTypedDict") -> "MigrationUidTypedDict":
         n = super().migrator_uid(attrs)
+        assert isinstance(attrs["new_version"], str)
         n["version"] = attrs["new_version"]
         return n
 

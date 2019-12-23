@@ -571,8 +571,6 @@ def add_arch_migrate(migrators: MutableSequence[Migrator], gx: nx.DiGraph) -> No
             graph=total_graph,
             pr_limit=5,
             name="aarch64 and ppc64le addition",
-            top_level=top_level,
-            cycles=cycles,
         ),
     )
 
@@ -936,7 +934,7 @@ def main(args: "CLIArgs") -> None:
                                     "state": "closed",
                                     "head": {"ref": "<this_is_not_a_branch>"},
                                 }
-                            d.update(PR=pr_json)
+                            d["PR"] = pr_json
                             attrs.setdefault("PRed", []).append(d)
                         attrs.update(
                             {

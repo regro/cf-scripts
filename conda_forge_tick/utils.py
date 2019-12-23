@@ -100,7 +100,7 @@ class LazyJson(MutableMapping):
         assert self.data is not None
         return len(self.data)
 
-    def __iter__(self) -> Iterable[Any]:
+    def __iter__(self) -> typing.Iterator[Any]:
         self._load()
         assert self.data is not None
         yield from self.data
@@ -226,7 +226,7 @@ def pluck(G: nx.DiGraph, node_id: Any) -> None:
 
 
 def get_requirements(
-    meta_yaml: "MetaYamlTypedDict", outputs=True, build=True, host=True, run=True,
+    meta_yaml: "MetaYamlTypedDict", outputs:bool=True, build:bool=True, host:bool=True, run:bool=True,
 ) -> "Set[PackageName]":
     """Get the list of recipe requirements from a meta.yaml dict
 
@@ -248,8 +248,8 @@ def get_requirements(
     """
     kw = dict(build=build, host=host, run=run)
     reqs = _parse_requirements(meta_yaml.get("requirements", {}), **kw)
-    outputs = meta_yaml.get("outputs", []) or [] if outputs else []
-    for output in outputs:
+    outputs_ = meta_yaml.get("outputs", []) or [] if outputs else []
+    for output in outputs_:
         for req in _parse_requirements(output.get("requirements", {}) or {}, **kw):
             reqs.add(req)
     return reqs
@@ -257,9 +257,9 @@ def get_requirements(
 
 def _parse_requirements(
     req: Union[None, typing.List[str], "RequirementsTypedDict"],
-    build=True,
-    host=True,
-    run=True,
+    build:bool=True,
+    host:bool=True,
+    run:bool=True,
 ) -> typing.MutableSet["PackageName"]:
     """Flatten a YAML requirements section into a list of names
     """
@@ -320,11 +320,11 @@ def object_hook(dct: dict) -> Union[LazyJson, Set, dict]:
 
 def dumps(
     obj: Any,
-    sort_keys=True,
-    separators=(",", ":"),
+    sort_keys: bool=True,
+    separators: Any=(",", ":"),
     default: 'Callable[[Any], Any]' = default,
     **kwargs: Any,
-):
+) -> None:
     """Returns a JSON string from a Python object."""
     return json.dumps(
         obj,
@@ -339,11 +339,11 @@ def dumps(
 def dump(
     obj: Any,
     fp: IO[str],
-    sort_keys=True,
-    separators=(",", ":"),
+    sort_keys: bool=True,
+    separators: Any=(",", ":"),
     default: 'Callable[[Any], Any]' = default,
     **kwargs: Any,
-):
+) -> None:
     """Returns a JSON string from a Python object."""
     return json.dump(
         obj,
@@ -356,12 +356,12 @@ def dump(
     )
 
 
-def loads(s, object_hook=object_hook, **kwargs) -> dict:
+def loads(s, object_hook: 'Callable[[dict], Any]'=object_hook, **kwargs: Any) -> dict:
     """Loads a string as JSON, with approriate object hooks"""
     return json.loads(s, object_hook=object_hook, **kwargs)
 
 
-def load(fp: IO[str], object_hook=object_hook, **kwargs) -> dict:
+def load(fp: IO[str], object_hook: 'Callable[[dict], Any]'=object_hook, **kwargs: Any) -> dict:
     """Loads a file object as JSON, with appropriate object hooks."""
     return json.load(fp, object_hook=object_hook, **kwargs)
 

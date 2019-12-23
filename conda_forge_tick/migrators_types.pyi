@@ -1,4 +1,4 @@
-from mypy_extensions import TypedDict
+from mypy_extensions import TypedDict, _TypedDictMeta
 import typing
 from typing import (
     Any,
@@ -23,9 +23,25 @@ class AboutTypedDict(TypedDict, total=False):
     license_file: str
     summary: str
 
+# PRStateOpen: Literal["open"]
+# PRStateClosed: Literal["closed"]
+# PRStateMerged: Literal["merged"]
 
-class PEedElementTypedDict(TypedDict):
+# PRState = Literal[PRStateClosed, PRStateMerged, PRStateOpen]
+PRState = typing.NewType("PRState", str)
+
+class PRHead_TD(TypedDict, tota=False):
+    ref: str
+
+
+class PR_TD(TypedDict, total=False):
+    state: PRState
+    head: PRHead_TD
+
+
+class PEedElementTypedDict(TypedDict, total=False):
     data: MigrationUidTypedDict
+    PR: PR_TD
 
 
 class BlasRebuildMigrateTypedDict(TypedDict):
@@ -71,6 +87,8 @@ class MigrationUidTypedDict(TypedDict, total=False):
     migrator_version: int
     name: str
     migrator_object_version: int
+    # Used by version migrators
+    version: str
 
 
 class PackageTypedDict(TypedDict):
@@ -98,7 +116,7 @@ class TestTypedDict(TypedDict, total=False):
     requirements: List[str]
 
 
-class AttrsTypedDict(TypedDict, total=False):
+class AttrsTypedDict_(TypedDict, total=False):
     about: AboutTypedDict
     build: BuildTypedDict
     extra: ExtraTypedDict
@@ -111,9 +129,20 @@ class AttrsTypedDict(TypedDict, total=False):
     source: SourceTypedDict
     test: TestTypedDict
     version: str
+    new_version: Union[str, bool]
     archived: bool
     PRed: List[PEedElementTypedDict]
     # Legacy types in here
     bad: Union[bool, str]
     # TODO: ADD in
     #  "conda-forge.yml":
+
+class CondaForgeYamlContents(TypedDict, total=False):
+    provider: Dict[str, str]
+
+
+CondaForgeYaml = TypedDict('CondaForgeYaml', {"conda-forge.yml": CondaForgeYamlContents})
+
+
+class AttrsTypedDict(AttrsTypedDict_, CondaForgeYaml):
+    pass

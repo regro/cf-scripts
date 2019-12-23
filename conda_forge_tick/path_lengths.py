@@ -40,7 +40,7 @@ def cyclic_topological_sort(graph: DiGraph, sources: Iterable[T]) -> Sequence[T]
     order: List[T] = []
     for source in sources:
         _visit(g2, source, order)
-    return reversed(order)
+    return list(reversed(order))
 
 
 def _visit(graph: DiGraph, node: T, order: List[T]) -> None:

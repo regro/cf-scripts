@@ -113,7 +113,7 @@ class Github(VersionFromFeed):
 
     def get_url(self, meta_yaml) -> Optional[str]:
         if "github.com" not in meta_yaml["url"]:
-            return
+            return None
         split_url = meta_yaml["url"].lower().split("/")
         package_owner = split_url[split_url.index("github.com") + 1]
         gh_package_name = split_url[split_url.index("github.com") + 2]
@@ -397,6 +397,7 @@ class RawURL(AbstractSource):
             return None
         if current_ver != orig_ver:
             return current_ver
+        return None
 
     def get_version(self, url: str)-> str:
         return url

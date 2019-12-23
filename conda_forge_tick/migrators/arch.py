@@ -7,7 +7,6 @@ from ruamel.yaml import safe_load, safe_dump
 
 from conda_forge_tick.contexts import FeedstockContext
 from conda_forge_tick.migrators.core import _no_pr_pred, GraphMigrator
-from conda_forge_tick.migrators.disabled.legacy import Rebuild
 from conda_forge_tick.utils import frozen_to_json_friendly
 from ..xonsh_utils import indir
 
