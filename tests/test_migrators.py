@@ -8,7 +8,6 @@ import networkx as nx
 from conda_forge_tick.contexts import MigratorsContext, MigratorContext
 from conda_forge_tick.migrators import (
     Version,
-    Rebuild,
     LicenseMigrator,
     MigrationYaml,
     Replacement,
@@ -22,6 +21,7 @@ from conda_forge_tick.migrators.disabled.legacy import (
     Pinning,
     NoarchR,
     BlasRebuild,
+    Rebuild
 )
 
 from conda_forge_tick.utils import parse_meta_yaml, frozen_to_json_friendly

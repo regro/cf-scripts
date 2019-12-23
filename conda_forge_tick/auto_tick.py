@@ -120,6 +120,7 @@ def run(
 
     """
     # get the repo
+    # TODO: stop doing this.
     migrator.attrs = feedstock_ctx.attrs  # type: ignore
     feedstock_dir, repo = get_repo(
         ctx=migrator.ctx.parent,
