@@ -259,6 +259,7 @@ def _host_run_test_dependencies(meta_yaml: "MetaYamlTypedDict") -> Set["PackageN
     return typing.cast("Set[PackageName]", rq)
 
 
+# TODO: REMOVE
 @typing.no_type_check
 def add_rebuild_openssl(migrators: MutableSequence[Migrator], gx: nx.DiGraph) -> None:
     """Adds rebuild openssl migrators.
@@ -309,6 +310,7 @@ def add_rebuild_openssl(migrators: MutableSequence[Migrator], gx: nx.DiGraph) ->
     )
 
 
+# TODO: REMOVE
 @typing.no_type_check
 def add_rebuild_libprotobuf(
     migrators: MutableSequence[Migrator], gx: nx.DiGraph,
@@ -361,6 +363,7 @@ def add_rebuild_libprotobuf(
     )
 
 
+# TODO: REMOVE
 @typing.no_type_check
 def add_rebuild_successors(
     migrators,
@@ -369,7 +372,7 @@ def add_rebuild_successors(
     pin_version,
     pr_limit=5,
     obj_version=0,
-    rebuild_class=Rebuild,
+    rebuild_class=None,
 ):
     """Adds rebuild migrator.
 
@@ -429,6 +432,7 @@ def add_rebuild_successors(
     )
 
 
+# TODO: REMOVE
 @typing.no_type_check
 def add_rebuild_blas(migrators, gx):
     """Adds rebuild blas 2.0 migrators.
