@@ -59,7 +59,7 @@ class MigratorContext:
 
             # Prune graph to only things that need builds right now
             for node, node_attrs in self.session.graph.nodes.items():
-                attrs = node_attrs["payload"]
+                attrs = node_attrs.get("payload", {})
                 if node in gx2 and self.migrator.filter(attrs):
                     gx2.remove_node(node)
             self._effective_graph = gx2
