@@ -1,3 +1,5 @@
+import copy
+
 from xonsh.execer import Execer
 from xonsh.environ import Env
 from xonsh.lib.os import indir
@@ -17,6 +19,6 @@ def eval_xonsh(inp: str) -> str:
 
     res = execer.eval(f"!({inp})", glbs=glbs, locs=locs)
     if isinstance(res, CommandPipeline):
-        return res.output.strip()
+        return copy.copy(res.out.strip())
     else:
         return res
