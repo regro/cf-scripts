@@ -354,6 +354,11 @@ class Version(Migrator):
 
     migrator_version = 0
 
+    def order(self, graph, total_graph):
+        """Run the order by number of decendents, ties are resolved by package name"""
+        return sorted(graph, key=lambda x: (len(nx.descendants(total_graph, x)), x),
+                      reverse=True)
+
     def find_urls(self, text):
         """Get the URLs and platforms in a meta.yaml."""
         urls = []
