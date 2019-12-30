@@ -717,8 +717,9 @@ class Version(Migrator):
     def order(
         self, graph: nx.DiGraph, total_graph: nx.DiGraph,
     ) -> Sequence["PackageName"]:
-        return sorted(graph, key=lambda x: (len(nx.descendants(total_graph, x)), x),
-                      reverse=True)
+        return sorted(
+            graph, key=lambda x: (len(nx.descendants(total_graph, x)), x), reverse=True
+        )
 
 
 class GraphMigrator(Migrator):
