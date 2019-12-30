@@ -7,9 +7,7 @@ from typing import Iterator
 env: Env
 execer: Execer
 
-def eval_xonsh(inp: str) -> str:
-    ...
-
+def eval_xonsh(inp: str) -> str: ...
 @contextmanager
 def indir(path: str) -> Iterator[None]:
     pass

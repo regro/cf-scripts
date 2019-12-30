@@ -4,7 +4,7 @@ import urllib.error
 
 import re
 import warnings
-from itertools import permutations
+from itertools import permutations, product
 import typing
 
 import networkx as nx
@@ -596,7 +596,7 @@ class Version(Migrator):
             url = res.group()
         else:
             raise ValueError("Could not match url")
-        if "cran.r-project.org/src/contrib" in url or 'cran_mirror' in url:
+        if "cran.r-project.org/src/contrib" in url or "cran_mirror" in url:
             version = version.replace("_", "-")
         with indir(recipe_dir), env.swap(VERSION=version):
             for f, p, n in self.patterns:
@@ -616,10 +616,16 @@ class Version(Migrator):
             and requests.get(rendered["source"]["url"]).status_code != 200
         ):
             with indir(recipe_dir):
-                for a, b in permutations([".zip", ".tar.gz"]):
-                    text = text.replace(a, b)
-                    rendered = parse_meta_yaml(render_meta_yaml(text))
+                for (a, b), (c, d) in product(
+                    permutations(["v{{ v", "{{ v"]), permutations([".zip", ".tar.gz"])
+                ):
+                    inner_text = text.replace(a, b).replace(c, d)
+                    rendered = parse_meta_yaml(render_meta_yaml(inner_text))
                     if requests.get(rendered["source"]["url"]).status_code == 200:
+                        text = inner_text
+                        # The above clauses could do bad things the version
+                        # itself
+                        text = text.replace("version: v{{ v", "version: {{ v")
                         with open("meta.yaml", "w") as fp:
                             fp.write(text)
                         break
@@ -707,6 +713,12 @@ class Version(Migrator):
     @classmethod
     def new_build_number(cls, old_build_number: int) -> int:
         return 0
+
+    def order(
+        self, graph: nx.DiGraph, total_graph: nx.DiGraph,
+    ) -> Sequence["PackageName"]:
+        return sorted(graph, key=lambda x: (len(nx.descendants(total_graph, x)), x),
+                      reverse=True)
 
 
 class GraphMigrator(Migrator):

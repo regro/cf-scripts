@@ -33,6 +33,7 @@ class GithubContext:
 @dataclass
 class MigratorSessionContext(GithubContext):
     """Singleton session context.  There should generally only be one of these"""
+
     graph: DiGraph = None
     smithy_version: str = ""
     pinning_version: str = ""
@@ -44,6 +45,7 @@ class MigratorSessionContext(GithubContext):
 @dataclass
 class MigratorContext:
     """The context for a given migrator.  This houses the runtime information that a migrator needs"""
+
     session: MigratorSessionContext
     migrator: "Migrator"
     _effective_graph: DiGraph = None
