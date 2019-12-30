@@ -237,10 +237,10 @@ def _host_run_test_dependencies(meta_yaml: "MetaYamlTypedDict") -> Set["PackageN
             rq.update(_requirement_names(req.get("build", []) or []))
         rq.update(_requirement_names(req.get("run", []) or []))
 
-    # add testing dependencies
-    test: "TestTypedDict" = meta_yaml.get("test", {})
-    rq.update(_requirement_names(test.get("requirements")))
-    rq.update(_requirement_names(test.get("requires")))
+        # add testing dependencies
+        test: "TestTypedDict" = block.get("test", {})
+        rq.update(_requirement_names(test.get("requirements")))
+        rq.update(_requirement_names(test.get("requires")))
 
     return typing.cast("Set[PackageName]", rq)
 
