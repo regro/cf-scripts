@@ -44,8 +44,6 @@ from typing import (
 
 logger = logging.getLogger("conda_forge_tick.auto_tick")
 
-# TODO: move this back to the bot file as soon as the source issue is sorted
-# https://travis-ci.org/regro/00-find-feedstocks/jobs/388387895#L1870
 from conda_forge_tick.utils import frozen_to_json_friendly
 from conda_forge_tick.contexts import MigratorSessionContext
 from conda_forge_tick.migrators import (
@@ -67,9 +65,6 @@ if typing.TYPE_CHECKING:
 
 MIGRATORS: MutableSequence[Migrator] = [
     Version(pr_limit=30, piggy_back_migrations=[PipMigrator(), LicenseMigrator()]),
-    # Noarch(pr_limit=10),
-    # Pinning(pr_limit=1, removals={'perl'}),
-    # Compiler(pr_limit=7),
 ]
 
 BOT_RERUN_LABEL = {
@@ -112,15 +107,17 @@ def run(
 
     Returns
     -------
-    migrate_return: namedtuple
+    migrate_return: MigrationUidTypedDict
         The migration return dict used for tracking finished migrations
-    pr_json: str
+    pr_json: dict
         The PR json object for recreating the PR as needed
 
     """
     # get the repo
     # TODO: stop doing this.
     migrator.attrs = feedstock_ctx.attrs  # type: ignore
+
+    # TODO: run this in parallel
     feedstock_dir, repo = get_repo(
         ctx=migrator.ctx.session,
         fctx=feedstock_ctx,
@@ -132,18 +129,7 @@ def run(
     )
 
     recipe_dir = os.path.join(feedstock_dir, "recipe")
-    # if postscript/activate no noarch
-    script_names = ["pre-unlink", "post-link", "pre-link", "activate"]
-    exts = [".bat", ".sh"]
-    no_noarch_files = [
-        f"{script_name}.{ext}" for script_name in script_names for ext in exts
-    ]
-    # TODO: Remove this
-    # if isinstance(migrator, Noarch) and any(
-    #     x in os.listdir(recipe_dir) for x in no_noarch_files
-    # ):
-    #     eval_xonsh(f"rm -rf {feedstock_dir}")
-    #     return False, False
+
     # migrate the `meta.yaml`
     migrate_return = migrator.migrate(recipe_dir, feedstock_ctx.attrs, **kwargs)
     if not migrate_return:
@@ -184,15 +170,11 @@ def run(
     if isinstance(migrator, MigrationYaml) and not diffed_files:
         # spoof this so it looks like the package is done
         pr_json = {"state": "closed", "merged_at": "never issued", "id": str(uuid4())}
-        ljpr = LazyJson(
-            os.path.join(migrator.ctx.session.prjson_dir, str(pr_json["id"]) + ".json"),
-        )
-        ljpr.update(**pr_json)
     else:
         # push up
         try:
             pr_json = push_repo(
-                ctx=migrator.ctx.session,
+                session_ctx=migrator.ctx.session,
                 fctx=feedstock_ctx,
                 feedstock_dir=feedstock_dir,
                 body=migrator.pr_body(feedstock_ctx),
@@ -210,7 +192,11 @@ def run(
                 print(f"Error during push {e}")
                 # If we just push to the existing PR then do nothing to the json
                 pr_json = False
-
+    if pr_json:
+        ljpr = LazyJson(
+            os.path.join(migrator.ctx.session.prjson_dir, str(pr_json["id"]) + ".json"),
+        )
+        ljpr.update(**pr_json)
     # If we've gotten this far then the node is good
     feedstock_ctx.attrs["bad"] = False
     logger.info("Removing feedstock dir")

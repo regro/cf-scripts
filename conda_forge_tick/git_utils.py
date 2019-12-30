@@ -235,7 +235,7 @@ def close_out_labels(
 
 
 def push_repo(
-    ctx: MigratorSessionContext,
+    session_ctx: MigratorSessionContext,
     fctx: FeedstockContext,
     feedstock_dir: str,
     body: str,
@@ -243,8 +243,7 @@ def push_repo(
     title: str,
     head: str,
     branch: str,
-    pull_request: bool = True,
-) -> Union[LazyJson, bool, None]:
+) -> Union[dict, bool, None]:
     """Push a repo up to github
 
     Parameters
@@ -253,21 +252,19 @@ def push_repo(
         The feedstock directory
     body : str
         The PR body
-    dry_run : bool, optional
-        If True, does not interact with git
 
     Returns
     -------
-    pr_json: str
-        The json object representing the PR, can be used with `from_json`
+    pr_json: dict
+        The dict representing the PR, can be used with `from_json`
         to create a PR instance.
     """
     with indir(feedstock_dir), env.swap(RAISE_SUBPROC_ERROR=False):
         # Setup push from doctr
         # Copyright (c) 2016 Aaron Meurer, Gil Forsyth
-        token = ctx.github_password
-        deploy_repo = ctx.github_username + "/" + fctx.feedstock_name + "-feedstock"
-        if ctx.dry_run:
+        token = session_ctx.github_password
+        deploy_repo = session_ctx.github_username + "/" + fctx.feedstock_name + "-feedstock"
+        if session_ctx.dry_run:
             repo_url = "https://github.com/{deploy_repo}.git".format(
                 deploy_repo=deploy_repo,
             )
@@ -292,7 +289,7 @@ def push_repo(
             )
     # lastly make a PR for the feedstock
     print("Creating conda-forge feedstock pull request...")
-    if ctx.dry_run:
+    if session_ctx.dry_run:
         print("dry run: create pr with title: %s" % title)
         return False
     else:
@@ -303,10 +300,8 @@ def push_repo(
         else:
             print("Pull request created at " + pr.html_url)
     # Return a json object so we can remake the PR if needed
-    pr_dict = pr.as_dict()
-    ljpr = LazyJson(os.path.join(ctx.prjson_dir, str(pr_dict["id"]) + ".json"))
-    ljpr.update(**pr_dict)
-    return ljpr
+    pr_dict: dict = pr.as_dict()
+    return pr_dict
 
 
 @backoff.on_exception(
