@@ -5,10 +5,7 @@ import networkx as nx
 
 from typing import Any
 
-from conda_forge_tick.migrators import (
-    GraphMigrator,
-    LicenseMigrator,
-    Version)
+from conda_forge_tick.migrators import GraphMigrator, LicenseMigrator, Version
 
 
 def main(args: Any = None) -> None:
