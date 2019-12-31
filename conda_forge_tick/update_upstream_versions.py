@@ -345,7 +345,6 @@ class RawURL(AbstractSource):
         if "version" not in meta_yaml:
             return None
         # TODO: pull this from the graph itself
-        pkg = meta_yaml["feedstock_name"]
         content = meta_yaml["raw_meta_yaml"]
 
         orig_urls = urls_from_meta(meta_yaml["meta_yaml"])
@@ -475,7 +474,7 @@ def _update_upstream_versions_process_pool(
                         se = str(e)
                     except Exception as ee:
                         se = f"Bad exception string: {ee}"
-                    logger.warn(f"Error getting uptream version of {node}: {se}")
+                    logger.error(f"Error getting upstream version of {node}: {se}")
                     attrs["bad"] = "Upstream: Error getting upstream version"
                 else:
                     logger.info(

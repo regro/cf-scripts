@@ -6,7 +6,7 @@ import networkx as nx
 from ruamel.yaml import safe_load, safe_dump
 
 from conda_forge_tick.contexts import FeedstockContext
-from conda_forge_tick.migrators.core import _no_pr_pred, GraphMigrator
+from conda_forge_tick.migrators.core import _sanitized_muids, GraphMigrator
 from conda_forge_tick.utils import frozen_to_json_friendly
 from ..xonsh_utils import indir
 
@@ -25,6 +25,7 @@ class ArchRebuild(GraphMigrator):
     # We purposefully don't want to bump build number for this migrator
     bump_number = 0
     # We are constraining the scope of this migrator
+    # TODO: pull this from file
     target_packages = {
         "ncurses",
         "conda-build",
@@ -135,7 +136,7 @@ class ArchRebuild(GraphMigrator):
                 attrs.get("conda-forge.yml", {}).get("provider", {}).get(arch)
             )
             if configured_arch:
-                return muid in _no_pr_pred(attrs.get("PRed", []))
+                return muid in _sanitized_muids(attrs.get("PRed", []))
         else:
             return False
 

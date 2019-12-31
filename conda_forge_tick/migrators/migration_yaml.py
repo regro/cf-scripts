@@ -43,7 +43,7 @@ class MigrationYaml(GraphMigrator):
         self.yaml_contents = yaml_contents
         assert isinstance(name, str)
         self.name: str = name
-        self.top_level = top_level
+        self.top_level = top_level or set()
         self.cycles = set(chain.from_iterable(cycles or []))
 
         # auto set the pr_limit for initial things
@@ -68,12 +68,12 @@ class MigrationYaml(GraphMigrator):
         if attrs["feedstock_name"] not in self.graph:
             return True
         # If in top level or in a cycle don't check for upstreams just build
-        if (self.top_level and attrs["feedstock_name"] in self.top_level) or (
-            self.cycles and attrs["feedstock_name"] in self.cycles
+        if (attrs["feedstock_name"] in self.top_level) or (
+            attrs["feedstock_name"] in self.cycles
         ):
             return False
         # Check if all upstreams have been built
-        if self.predecessors_already_built(attrs=attrs):
+        if self.predecessors_not_yet_built(attrs=attrs):
             return True
         return False
 
@@ -98,7 +98,7 @@ class MigrationYaml(GraphMigrator):
             "This PR has been triggered in an effort to update **{name}**.\n\n"
             "Notes and instructions for merging this PR:\n"
             "1. Please merge the PR only after the tests have passed. \n"
-            "2. Feel free to push to the bot's branch to update this PR if needed. \n"
+            "2. Feel free to push to the bot's branch to update this PR if needed. \n\n"
             "**Please note that if you close this PR we presume that "
             "the feedstock has been rebuilt, so if you are going to "
             "perform the rebuild yourself don't close this PR until "
@@ -115,7 +115,10 @@ class MigrationYaml(GraphMigrator):
         return body
 
     def commit_message(self, feedstock_ctx: FeedstockContext) -> str:
-        return "bump build number"
+        if self.name:
+            return "Rebuild for " + self.name
+        else:
+            return "Bump build number"
 
     def pr_title(self, feedstock_ctx: FeedstockContext) -> str:
         if self.name:
@@ -125,12 +128,7 @@ class MigrationYaml(GraphMigrator):
 
     def remote_branch(self, feedstock_ctx: FeedstockContext) -> str:
         s_obj = str(self.obj_version) if self.obj_version else ""
-        return (
-            "rebuild-"
-            + self.name.lower().replace(" ", "_")
-            + str(self.migrator_version)
-            + s_obj
-        )
+        return f"rebuild-{self.name.lower().replace(' ', '_')}-{self.migrator_version}-{s_obj}"
 
     def migrator_uid(self, attrs: "AttrsTypedDict") -> "MigrationUidTypedDict":
         n = super().migrator_uid(attrs)

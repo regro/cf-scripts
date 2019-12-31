@@ -213,6 +213,7 @@ def _requirement_names(reqlist: Optional[Sequence[Optional[str]]]) -> List[str]:
         return [r.split()[0] for r in reqlist if r is not None]
 
 
+# TODO: unify this with get_requirements
 def _host_run_test_dependencies(meta_yaml: "MetaYamlTypedDict") -> Set["PackageName"]:
     """Parse the host/run/test dependencies of a recipe
 
@@ -271,11 +272,9 @@ def add_replacement_migrator(
     total_graph = copy.deepcopy(gx)
 
     for node, node_attrs in gx.nodes.items():
-        attrs: "AttrsTypedDict" = node_attrs["payload"]
-        meta_yaml = attrs.get("meta_yaml", {}) or {}
-        bh = get_requirements(meta_yaml)
+        meta_yaml = node_attrs["payload"].get("meta_yaml", {}) or {}
         pkgs = {old_pkg}
-        old_pkg_c = len(pkgs.intersection(bh)) > 0
+        old_pkg_c = len(pkgs.intersection(get_requirements(meta_yaml))) > 0
 
         rq = _host_run_test_dependencies(meta_yaml)
 
@@ -305,14 +304,10 @@ def add_arch_migrate(migrators: MutableSequence[Migrator], gx: nx.DiGraph) -> No
     total_graph = copy.deepcopy(gx)
 
     for node, node_attrs in gx.nodes.items():
-        attrs = node_attrs["payload"]
-        meta_yaml = attrs.get("meta_yaml", {}) or {}
+        meta_yaml = node_attrs["payload"].get("meta_yaml", {}) or {}
         # no need to consider noarch packages for this rebuild
-        noarch = meta_yaml.get("build", {}).get("noarch")
-        if noarch:
-            pluck(total_graph, node)
-        # since we aren't building the compilers themselves, remove
-        if node.endswith("_compiler_stub"):
+        # since we aren't building the compilers themselves, remove them
+        if meta_yaml.get("build", {}).get("noarch") or node.endswith("_compiler_stub"):
             pluck(total_graph, node)
 
     # post plucking we can have several strange cases, lets remove all selfloops
@@ -465,7 +460,7 @@ def initialize_migrators(
         print(f'{getattr(m, "name", m)} graph size: {len(getattr(m, "graph", []))}')
 
     ctx = MigratorSessionContext(
-        circle_build_url=os.getenv('CIRCLE_BUILD_URL', ''),
+        circle_build_url=os.getenv("CIRCLE_BUILD_URL", ""),
         graph=gx,
         smithy_version=smithy_version,
         pinning_version=pinning_version,
@@ -652,6 +647,10 @@ def main(args: "CLIArgs") -> None:
                         and mctx.gh.rate_limit()["resources"]["core"]["remaining"] == 0
                     ):
                         break
+                    # FIXME: this causes the bot to not-rerender things when it
+                    #  should. For instance, if the bot rerenders but the PR is
+                    #  left open then we don't rerender again even though we should.
+                    #  This need logic to check if the rerender has been merged.
                     rerender = (
                         attrs.get("smithy_version") != mctx.smithy_version
                         or attrs.get("pinning_version") != mctx.pinning_version

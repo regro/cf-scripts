@@ -42,12 +42,21 @@ except ImportError:
     NEEDED_FAMILIES = ["gpl", "bsd", "mit", "apache", "psf"]
 
 
-def _no_pr_pred(pred: List[dict]) -> List["JsonFriendly"]:
+def _sanitized_muids(pred: List[dict]) -> List["JsonFriendly"]:
     l = []
     for pr in pred:
         d: "JsonFriendly" = {"data": pr["data"], "keys": pr["keys"]}
         l.append(d)
     return l
+
+
+def _parse_bad_attr(attrs: "AttrsTypedDict", not_bad_str_start: str) -> bool:
+    """Overlook some bad entries """
+    bad = attrs.get("bad", False)
+    if isinstance(bad, str):
+        return not bad.startswith(not_bad_str_start)
+    else:
+        return bad
 
 
 class MiniMigrator:
@@ -139,8 +148,8 @@ class LicenseMigrator(MiniMigrator):
                     s.lower().startswith(k) for k in ["license", "copying", "copyright"]
                 )
             ]
-            # if there is a license file in tarball update things
         eval_xonsh(f"rm -r {cb_work_dir}")
+        # if there is a license file in tarball update things
         if license_files:
             with indir(recipe_dir):
                 """BSD 3-Clause License
@@ -177,7 +186,7 @@ class LicenseMigrator(MiniMigrator):
                     )
 
         # if license not in tarball do something!
-        # check if
+        # check if github in dev url, then use that to get the license
 
 
 class Migrator:
@@ -185,6 +194,7 @@ class Migrator:
 
     rerender = False
 
+    # bump this if the migrator object needs a change mid migration
     migrator_version = 0
 
     build_patterns = (
@@ -248,13 +258,6 @@ class Migrator:
         # don't run on things we've already done
         # don't run on bad nodes
 
-        def parse_bad_attr() -> bool:
-            bad = attrs.get("bad", False)
-            if isinstance(bad, str):
-                return not bad.startswith(not_bad_str_start)
-            else:
-                return bad
-
         def parse_already_pred() -> bool:
             migrator_uid: "MigrationUidTypedDict" = typing.cast(
                 "MigrationUidTypedDict",
@@ -265,7 +268,11 @@ class Migrator:
             )
             return migrator_uid in already_migrated_uids
 
-        return attrs.get("archived", False) or parse_already_pred() or parse_bad_attr()
+        return (
+            attrs.get("archived", False)
+            or parse_already_pred()
+            or _parse_bad_attr(attrs, not_bad_str_start)
+        )
 
     def migrate(
         self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any
@@ -325,7 +332,7 @@ class Migrator:
         """Create a commit message
         :param feedstock_ctx:
         """
-        return "migration: " + self.__class__.__name__
+        return f"migration: {self.__class__.__name__}"
 
     def pr_title(self, feedstock_ctx: FeedstockContext) -> str:
         """Title for PR
@@ -337,11 +344,7 @@ class Migrator:
         """Head for PR
         :param feedstock_ctx:
         """
-        return (
-            self.ctx.github_username
-            + ":"
-            + self.remote_branch(feedstock_ctx=feedstock_ctx)
-        )
+        return f"{self.ctx.github_username}:{self.remote_branch(feedstock_ctx=feedstock_ctx)}"
 
     def remote_branch(self, feedstock_ctx: FeedstockContext) -> str:
         """Branch to use on local and remote
@@ -550,7 +553,7 @@ class Version(Migrator):
                     k
                     for k in attrs.get("PRed", [])
                     if k["data"].get("migrator_name") == "Version"
-                    # TODO: Possible error spotted by mypy, maybe this should be PRed ?
+                    # The PR is the actual PR itself
                     and k.get("PR", {}).get("state", None) == "open"
                 ],
             )
@@ -566,7 +569,7 @@ class Version(Migrator):
                 )
                 # if PRed version is greater than newest version
                 or any(
-                    VersionOrder(self._extract_version_from_hash(h))
+                    VersionOrder(self._extract_version_from_muid(h))
                     >= VersionOrder(str(attrs["new_version"]))
                     for h in attrs.get("PRed", set())
                 )
@@ -650,6 +653,7 @@ class Version(Migrator):
             )
         ]
         body = super().pr_body(feedstock_ctx)
+        # TODO: add closes clause for older open version PRs
         body = body.format(
             "It is very likely that the current package version for this "
             "feedstock is out of date.\n"
@@ -707,7 +711,7 @@ class Version(Migrator):
         n["version"] = attrs["new_version"]
         return n
 
-    def _extract_version_from_hash(self, h: dict) -> str:
+    def _extract_version_from_muid(self, h: dict) -> str:
         return h.get("version", "0.0.0")
 
     @classmethod
@@ -740,17 +744,17 @@ class GraphMigrator(Migrator):
             self.graph = graph
         self.name = name
 
-    def predecessors_already_built(self, attrs: "AttrsTypedDict") -> bool:
+    def predecessors_not_yet_built(self, attrs: "AttrsTypedDict") -> bool:
         # Check if all upstreams have been built
         for node in self.graph.predecessors(attrs["feedstock_name"]):
-            att = self.graph.nodes[node]["payload"]
-            muid = frozen_to_json_friendly(self.migrator_uid(att))
-            if muid not in _no_pr_pred(att.get("PRed", [])) and not att.get(
-                "archived", False,
-            ):
+            payload = self.graph.nodes[node]["payload"]
+            muid = frozen_to_json_friendly(self.migrator_uid(payload))
+            if muid not in _sanitized_muids(
+                payload.get("PRed", [])
+            ) and not payload.get("archived", False,):
                 return True
             # This is due to some PRed_json loss due to bad graph deploy outage
-            for m_pred_json in att.get("PRed", []):
+            for m_pred_json in payload.get("PRed", []):
                 if m_pred_json["data"] == muid["data"]:
                     break
             else:

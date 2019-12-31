@@ -263,7 +263,9 @@ def push_repo(
         # Setup push from doctr
         # Copyright (c) 2016 Aaron Meurer, Gil Forsyth
         token = session_ctx.github_password
-        deploy_repo = session_ctx.github_username + "/" + fctx.feedstock_name + "-feedstock"
+        deploy_repo = (
+            session_ctx.github_username + "/" + fctx.feedstock_name + "-feedstock"
+        )
         if session_ctx.dry_run:
             repo_url = "https://github.com/{deploy_repo}.git".format(
                 deploy_repo=deploy_repo,

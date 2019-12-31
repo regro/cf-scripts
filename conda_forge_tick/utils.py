@@ -202,6 +202,7 @@ def setup_logger(logger: logging.Logger) -> None:
     logger.setLevel(logging.INFO)
 
 
+# TODO: upstream this into networkx?
 def pluck(G: nx.DiGraph, node_id: Any) -> None:
     """Remove a node from a graph preserving structure.
 
