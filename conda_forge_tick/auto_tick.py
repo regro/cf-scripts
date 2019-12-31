@@ -245,235 +245,6 @@ def _host_run_test_dependencies(meta_yaml: "MetaYamlTypedDict") -> Set["PackageN
     return typing.cast("Set[PackageName]", rq)
 
 
-# TODO: REMOVE
-@typing.no_type_check
-def add_rebuild_openssl(migrators: MutableSequence[Migrator], gx: nx.DiGraph) -> None:
-    """Adds rebuild openssl migrators.
-
-    Parameters
-    ----------
-    migrators : list of Migrator
-        The list of migrators to run.
-
-    """
-
-    total_graph = copy.deepcopy(gx)
-
-    for node, node_attrs in gx.nodes.items():
-        attrs: "AttrsTypedDict" = node_attrs["payload"]
-        meta_yaml = attrs.get("meta_yaml", {}) or {}
-        bh = get_requirements(meta_yaml)
-        openssl_c = "openssl" in bh
-
-        rq = _host_run_test_dependencies(meta_yaml)
-
-        for e in list(total_graph.in_edges(node)):
-            if e[0] not in rq:
-                total_graph.remove_edge(*e)
-        if not any([openssl_c]):
-            pluck(total_graph, node)
-
-    # post plucking we can have several strange cases, lets remove all selfloops
-    total_graph.remove_edges_from(nx.selfloop_edges(total_graph))
-
-    top_level = {
-        node
-        for node in gx.successors("openssl")
-        if (node in total_graph) and len(list(total_graph.predecessors(node))) == 0
-    }
-    cycles = list(nx.simple_cycles(total_graph))
-    # print('cycles are here:', cycles)
-
-    migrators.append(
-        Rebuild(
-            graph=total_graph,
-            pr_limit=5,
-            name="OpenSSL",
-            top_level=top_level,
-            cycles=cycles,
-            obj_version=3,
-        ),
-    )
-
-
-# TODO: REMOVE
-@typing.no_type_check
-def add_rebuild_libprotobuf(
-    migrators: MutableSequence[Migrator], gx: nx.DiGraph,
-) -> None:
-    """Adds rebuild libprotobuf migrators.
-
-    Parameters
-    ----------
-    migrators : list of Migrator
-        The list of migrators to run.
-
-    """
-
-    total_graph = copy.deepcopy(gx)
-
-    for node, node_attrs in gx.nodes.items():
-        attrs: "AttrsTypedDict" = node_attrs["payload"]
-        meta_yaml = attrs.get("meta_yaml", {}) or {}
-        bh = get_requirements(meta_yaml)
-        protobuf_c = "libprotobuf" in bh
-
-        rq = _host_run_test_dependencies(meta_yaml)
-
-        for e in list(total_graph.in_edges(node)):
-            if e[0] not in rq:
-                total_graph.remove_edge(*e)
-        if not any([protobuf_c]):
-            pluck(total_graph, node)
-
-    # post plucking we can have several strange cases, lets remove all selfloops
-    total_graph.remove_edges_from(nx.selfloop_edges(total_graph))
-
-    top_level = {
-        node
-        for node in gx.successors("libprotobuf")
-        if (node in total_graph) and len(list(total_graph.predecessors(node))) == 0
-    }
-    cycles = list(nx.simple_cycles(total_graph))
-    # print('cycles are here:', cycles)
-
-    migrators.append(
-        Rebuild(
-            graph=total_graph,
-            pr_limit=5,
-            name="libprotobuf-3.7",
-            top_level=top_level,
-            cycles=cycles,
-            obj_version=3,
-        ),
-    )
-
-
-# TODO: REMOVE
-@typing.no_type_check
-def add_rebuild_successors(
-    migrators,
-    gx,
-    package_name,
-    pin_version,
-    pr_limit=5,
-    obj_version=0,
-    rebuild_class=None,
-):
-    """Adds rebuild migrator.
-
-    Parameters
-    ----------
-    migrators : list of Migrator
-        The list of migrators to run.
-    gx : networkx.DiGraph
-        The feedstock graph
-    package_name : str
-        The package who's pin was moved
-    pin_version : str
-        The new pin value
-    pr_limit : int, optional
-        The number of PRs per hour, defaults to 5
-    obj_version : int, optional
-        The version of the migrator object (useful if there was an error)
-        defaults to 0
-    """
-
-    total_graph = copy.deepcopy(gx)
-
-    for node, node_attrs in gx.nodes.items():
-        attrs: "AttrsTypedDict" = node_attrs["payload"]
-        meta_yaml = attrs.get("meta_yaml", {}) or {}
-        bh = get_requirements(meta_yaml)
-        criteria = package_name in bh
-
-        rq = _host_run_test_dependencies(meta_yaml)
-
-        for e in list(total_graph.in_edges(node)):
-            if e[0] not in rq:
-                total_graph.remove_edge(*e)
-        if not any([criteria]):
-            pluck(total_graph, node)
-
-    # post plucking we can have several strange cases, lets remove all selfloops
-    total_graph.remove_edges_from(nx.selfloop_edges(total_graph))
-
-    top_level = {
-        node
-        for node in gx.successors(package_name)
-        if (node in total_graph) and len(list(total_graph.predecessors(node))) == 0
-    }
-    cycles = list(nx.simple_cycles(total_graph))
-    # print('cycles are here:', cycles)
-
-    migrators.append(
-        rebuild_class(
-            graph=total_graph,
-            pr_limit=pr_limit,
-            name=f"{package_name}-{pin_version}",
-            top_level=top_level,
-            cycles=cycles,
-            obj_version=obj_version,
-        ),
-    )
-
-
-# TODO: REMOVE
-@typing.no_type_check
-def add_rebuild_blas(migrators, gx):
-    """Adds rebuild blas 2.0 migrators.
-
-    Parameters
-    ----------
-    migrators : list of Migrator
-        The list of migrators to run.
-
-    """
-    total_graph = copy.deepcopy(gx)
-
-    for node, node_attrs in gx.nodes.items():
-        attrs: "AttrsTypedDict" = node_attrs["payload"]
-        meta_yaml = attrs.get("meta_yaml", {}) or {}
-        bh = get_requirements(meta_yaml)
-        pkgs = {
-            "openblas",
-            "openblas-devel",
-            "mkl",
-            "mkl-devel",
-            "blas",
-            "lapack",
-            "clapack",
-        }
-        blas_c = len(pkgs.intersection(bh)) > 0
-
-        rq = _host_run_test_dependencies(meta_yaml)
-
-        for e in list(total_graph.in_edges(node)):
-            if e[0] not in rq:
-                total_graph.remove_edge(*e)
-        if not any([blas_c]):
-            pluck(total_graph, node)
-
-    # post plucking we can have several strange cases, lets remove all selfloops
-    total_graph.remove_edges_from(nx.selfloop_edges(total_graph))
-
-    top_level = {
-        node for node in total_graph if not list(total_graph.predecessors(node))
-    }
-    cycles = list(nx.simple_cycles(total_graph))
-
-    migrators.append(
-        BlasRebuild(
-            graph=total_graph,
-            pr_limit=5,
-            name="blas-2.0",
-            top_level=top_level,
-            cycles=cycles,
-            obj_version=0,
-        ),
-    )
-
-
 def add_replacement_migrator(
     migrators: MutableSequence[Migrator],
     gx: nx.DiGraph,
@@ -517,11 +288,6 @@ def add_replacement_migrator(
     # post plucking we can have several strange cases, lets remove all selfloops
     total_graph.remove_edges_from(nx.selfloop_edges(total_graph))
 
-    top_level = {
-        node for node in total_graph if not list(total_graph.predecessors(node))
-    }
-    cycles = list(nx.simple_cycles(total_graph))
-
     migrators.append(
         Replacement(old_pkg=old_pkg, new_pkg=new_pkg, rationale=rationale, pr_limit=5),
     )
@@ -551,12 +317,6 @@ def add_arch_migrate(migrators: MutableSequence[Migrator], gx: nx.DiGraph) -> No
 
     # post plucking we can have several strange cases, lets remove all selfloops
     total_graph.remove_edges_from(nx.selfloop_edges(total_graph))
-
-    top_level = {
-        node for node in total_graph if not set(total_graph.predecessors(node))
-    }
-    cycles = list(nx.simple_cycles(total_graph))
-    # print('cycles are here:', cycles)
 
     migrators.append(
         ArchRebuild(
@@ -695,17 +455,17 @@ def initialize_migrators(
 
     add_arch_migrate(MIGRATORS, gx)
     migration_factory(MIGRATORS, gx)
+    # add_replacement_migrator(
+    #     $MIGRATORS, gx,
+    #     'matplotlib',
+    #     'matplotlib-base',
+    #     ('Unless you need `pyqt`, recipes should depend only on '
+    #      '`matplotlib-base`.'))
     for m in MIGRATORS:
-        # add_replacement_migrator(
-        #     $MIGRATORS, gx,
-        #     'matplotlib',
-        #     'matplotlib-base',
-        #     ('Unless you need `pyqt`, recipes should depend only on '
-        #      '`matplotlib-base`.'))
         print(f'{getattr(m, "name", m)} graph size: {len(getattr(m, "graph", []))}')
 
     ctx = MigratorSessionContext(
-        circle_build_url="",
+        circle_build_url=os.getenv('CIRCLE_BUILD_URL', ''),
         graph=gx,
         smithy_version=smithy_version,
         pinning_version=pinning_version,
@@ -851,7 +611,7 @@ def main(args: "CLIArgs") -> None:
 
     for migrator in MIGRATORS:
 
-        mmctx = MigratorContext(parent=mctx, migrator=migrator)
+        mmctx = MigratorContext(session=mctx, migrator=migrator)
         migrator.bind_to_ctx(mmctx)
 
         good_prs = 0
@@ -863,12 +623,6 @@ def main(args: "CLIArgs") -> None:
             len(effective_graph.nodes),
         )
 
-        top_level = {
-            node
-            for node in effective_graph
-            if not list(effective_graph.predecessors(node))
-        }
-        # print(list(migrator.order(effective_graph, gx)))
         for node_name in migrator.order(effective_graph, mctx.graph):
             with mctx.graph.nodes[node_name]["payload"] as attrs:
                 # Don't let CI timeout, break ahead of the timeout so we make certain
