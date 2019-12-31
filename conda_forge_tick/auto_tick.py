@@ -519,7 +519,8 @@ def migrator_status(
             pr_json = None
 
         # No PR was ever issued but the migration was performed.
-        # This is only the case when the migration was done manually before the bot could issue any PR.
+        # This is only the case when the migration was done manually
+        # before the bot could issue any PR.
         manually_done = pr_json is None and frozen_to_json_friendly(nuid)["data"] in (
             z["data"] for z in attrs.get("PRed", [])
         )

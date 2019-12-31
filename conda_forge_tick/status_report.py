@@ -7,9 +7,8 @@ from typing import Any
 
 from conda_forge_tick.migrators import (
     GraphMigrator,
-    MigrationYaml,
     LicenseMigrator,
-)
+    Version)
 
 
 def main(args: Any = None) -> None:
@@ -19,7 +18,7 @@ def main(args: Any = None) -> None:
     total_status = {}
 
     for migrator in migrators:
-        if isinstance(migrator, (GraphMigrator, MigrationYaml)):
+        if isinstance(migrator, GraphMigrator):
             migrator_name = migrator.__class__.__name__.lower()
             if migrator_name in ["rebuild", "migrationyaml"]:
                 assert isinstance(migrator.name, str)
@@ -44,7 +43,7 @@ def main(args: Any = None) -> None:
                 and z.get("data", {}).get("migrator_name", "") == "Version"
             ],
         )
-        >= 3
+        >= Version.max_num_prs
     ]
     with open("./status/could_use_help.json", "w") as f:
         json.dump(
