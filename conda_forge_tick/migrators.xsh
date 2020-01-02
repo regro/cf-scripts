@@ -213,10 +213,13 @@ class Migrator:
             The body of the PR message
         """
         body = (
-            '{}\n'
+            '{}\n\n'
             'If this PR was opened in error or needs to be updated please add '
             'the `bot-rerun` label to this PR. The bot will close this PR and '
-            'schedule another one.\n\n'
+            'schedule another one. If you do not have permissions to add this '
+            ' label, you can use the phrase '
+            '<code>@<space/>conda-forge-admin, please rerun bot</code> '
+            'in a PR comment to have the `conda-forge-admin` add it for you.\n\n'
             '<sub>'
             'This PR was created by the [cf-regro-autotick-bot](https://github.com/regro/cf-scripts).\n'
             'The **cf-regro-autotick-bot** is a service to automatically '
