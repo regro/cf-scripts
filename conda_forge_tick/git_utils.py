@@ -58,13 +58,9 @@ def feedstock_url(
     return url
 
 
-def feedstock_repo(fctx: FeedstockContext, feedstock: Optional[str]) -> str:
+def feedstock_repo(fctx: FeedstockContext) -> str:
     """Gets the name of the feedstock repository."""
-    if feedstock is None:
-        repo = fctx.package_name + "-feedstock"
-    else:
-        repo = feedstock
-    repo = repo.rsplit("/", 1)[-1]
+    repo = fctx.feedstock_name + "-feedstock"
     if repo.endswith(".git"):
         repo = repo[:-4]
     return repo
