@@ -201,6 +201,7 @@ def close_out_labels(
 ) -> Optional[dict]:
     gh = ensure_gh(ctx, gh)
     # run this twice so we always have the latest info (eg a thing was already closed)
+    print(pr_json)
     if pr_json["state"] != "closed" and "bot-rerun" in [
         l["name"] for l in pr_json["labels"]
     ]:
