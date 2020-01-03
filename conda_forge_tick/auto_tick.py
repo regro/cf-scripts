@@ -622,7 +622,8 @@ def main(args: "CLIArgs") -> None:
                 # to write to the repo
                 # TODO: convert these env vars
                 if (
-                    time.time() - int(env["START_TIME"]) > int(env["TIMEOUT"])
+                    time.time() - int(env.get("START_TIME", time.time()))
+                    > int(env.get("TIMEOUT", 600))
                     or good_prs >= migrator.pr_limit
                 ):
                     break
@@ -641,8 +642,8 @@ def main(args: "CLIArgs") -> None:
                 try:
                     # Don't bother running if we are at zero
                     if (
-                        not args.dry_run
-                        and mctx.gh.rate_limit()["resources"]["core"]["remaining"] == 0
+                        args.dry_run
+                        or mctx.gh.rate_limit()["resources"]["core"]["remaining"] == 0
                     ):
                         break
                     # FIXME: this causes the bot to not-rerender things when it
@@ -716,15 +717,16 @@ def main(args: "CLIArgs") -> None:
                     dump_graph(mctx.graph)
 
                     eval_xonsh(f"rm -rf {mctx.rever_dir}/*")
-                    logger.info(eval_xonsh("![pwd]"))
+                    logger.info(os.getcwd())
                     for f in glob.glob("/tmp/*"):
                         if f not in temp:
                             eval_xonsh(f"rm -rf {f}")
 
-    logger.info(
-        "API Calls Remaining: %d",
-        mctx.gh.rate_limit()["resources"]["core"]["remaining"],
-    )
+    if not args.dry_run:
+        logger.info(
+            "API Calls Remaining: %d",
+            mctx.gh.rate_limit()["resources"]["core"]["remaining"],
+        )
     logger.info("Done")
 
 

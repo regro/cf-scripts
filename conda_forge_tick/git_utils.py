@@ -177,7 +177,7 @@ def refresh_pr(
     gh = ensure_gh(ctx, gh)
     if not pr_json["state"] == "closed":
         if dry_run:
-            print("dry run: refresh pr %s" % pr_json['id'])
+            print("dry run: refresh pr %s" % pr_json["id"])
             pr_dict = dict(pr_json)
         else:
             pr_obj = github3.pulls.PullRequest(dict(pr_json), gh)
@@ -208,7 +208,7 @@ def close_out_labels(
     ]:
         # update
         if dry_run:
-            print("dry run: checking pr %s" % pr_json['id'])
+            print("dry run: checking pr %s" % pr_json["id"])
         else:
             pr_obj = github3.pulls.PullRequest(dict(pr_json), gh)
             pr_obj.refresh(True)
@@ -218,7 +218,7 @@ def close_out_labels(
         l["name"] for l in pr_json.get("labels", [])
     ]:
         if dry_run:
-            print("dry run: comment and close pr %s" % pr_json['id'])
+            print("dry run: comment and close pr %s" % pr_json["id"])
         else:
             pr_obj.create_comment(
                 "Due to the `bot-rerun` label I'm closing "

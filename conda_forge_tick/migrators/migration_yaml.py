@@ -62,21 +62,6 @@ class MigrationYaml(GraphMigrator):
         self.bump_number = bump_number
         print(self.yaml_contents)
 
-    def filter(self, attrs: "AttrsTypedDict", not_bad_str_start: str = "") -> bool:
-        if super().filter(attrs, "Upstream:"):
-            return True
-        if attrs["feedstock_name"] not in self.graph:
-            return True
-        # If in top level or in a cycle don't check for upstreams just build
-        if (attrs["feedstock_name"] in self.top_level) or (
-            attrs["feedstock_name"] in self.cycles
-        ):
-            return False
-        # Check if all upstreams have been built
-        if self.predecessors_not_yet_built(attrs=attrs):
-            return True
-        return False
-
     def migrate(
         self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any
     ) -> "MigrationUidTypedDict":

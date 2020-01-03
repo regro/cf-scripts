@@ -6,7 +6,7 @@ import urllib.error
 
 import re
 import warnings
-from itertools import permutations, product
+from itertools import permutations, product, chain
 import typing
 
 import networkx as nx
@@ -549,7 +549,7 @@ class Version(Migrator):
 
     def filter(self, attrs: "AttrsTypedDict", not_bad_str_start: str = "") -> bool:
         # if no new version do nothing
-        if "new_version" not in attrs or attrs['new_version'] is None:
+        if "new_version" not in attrs or not attrs["new_version"]:
             return True
         conditional = super().filter(attrs)
         result = bool(
@@ -753,6 +753,8 @@ class GraphMigrator(Migrator):
         name: Optional[str] = None,
         graph: nx.DiGraph = None,
         pr_limit: int = 0,
+        top_level: Set["PackageName"] = None,
+        cycles: Optional[Sequence["packageName"]] = None,
         obj_version: Optional[int] = None,
         piggy_back_migrations: Optional[Sequence[MiniMigrator]] = None,
     ):
@@ -763,6 +765,8 @@ class GraphMigrator(Migrator):
         else:
             self.graph = graph
         self.name = name
+        self.top_level = top_level or set()
+        self.cycles = set(chain.from_iterable(cycles or []))
 
     def predecessors_not_yet_built(self, attrs: "AttrsTypedDict") -> bool:
         # Check if all upstreams have been built
@@ -787,6 +791,26 @@ class GraphMigrator(Migrator):
             ):
                 return True
         return False
+
+    def filter(self, attrs: "AttrsTypedDict", not_bad_str_start: str = "") -> bool:
+        if super().filter(attrs, "Upstream:"):
+            return True
+        if attrs["feedstock_name"] not in self.graph:
+            return True
+        # If in top level or in a cycle don't check for upstreams just build
+        if (attrs["feedstock_name"] in self.top_level) or (
+            attrs["feedstock_name"] in self.cycles
+        ):
+            return False
+        # Check if all upstreams have been built
+        if self.predecessors_not_yet_built(attrs=attrs):
+            return True
+        return False
+
+    def migrator_uid(self, attrs: "AttrsTypedDict") -> "MigrationUidTypedDict":
+        n = super().migrator_uid(attrs)
+        n["name"] = self.name
+        return n
 
 
 class Replacement(Migrator):

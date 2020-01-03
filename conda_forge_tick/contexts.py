@@ -21,7 +21,7 @@ class GithubContext:
 
     @property
     def gh(self) -> github3.GitHub:
-        if getattr(self._tl, "gh") is None:
+        if getattr(self._tl, "gh", None) is None:
             if self.github_token:
                 gh = github3.login(token=self.github_token)
             else:
