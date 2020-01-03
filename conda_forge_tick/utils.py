@@ -390,7 +390,7 @@ def load_graph(filename: str = "graph.json") -> nx.DiGraph:
     return nx.node_link_graph(nld)
 
 
-# TODO: This type doe not support generics yet sadly
+# TODO: This type does not support generics yet sadly
 # cc https://github.com/python/mypy/issues/3863
 if typing.TYPE_CHECKING:
 
