@@ -434,7 +434,6 @@ def migration_factory(
 
 
 def initialize_migrators(
-    do_rebuild: bool = False,
     github_username: str = "",
     github_password: str = "",
     github_token: Optional[str] = None,
@@ -598,7 +597,6 @@ def main(args: "CLIArgs") -> None:
     github_token = env.get("GITHUB_TOKEN")
     global MIGRATORS
     mctx, temp, MIGRATORS = initialize_migrators(
-        do_rebuild=False,
         github_username=github_username,
         github_password=github_password,
         dry_run=args.dry_run,
