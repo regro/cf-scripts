@@ -130,7 +130,7 @@ def run(
 
     recipe_dir = os.path.join(feedstock_dir, "recipe")
 
-    # migrate the `meta.yaml`
+    # migrate the feedstock
     migrate_return = migrator.migrate(recipe_dir, feedstock_ctx.attrs, **kwargs)
     if not migrate_return:
         logger.critical(
