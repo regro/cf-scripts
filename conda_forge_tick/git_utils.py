@@ -213,7 +213,7 @@ def close_out_labels(
             pr_json = pr_obj.as_dict()
 
     if pr_json["state"] != "closed" and "bot-rerun" in [
-        l["name"] for l in pr_json.get("labels", []]
+        l["name"] for l in pr_json.get("labels", [])]
     ]:
         if dry_run:
             print("dry run: comment and close pr %s" % dict(pr_json))
