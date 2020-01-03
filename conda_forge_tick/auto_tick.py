@@ -45,14 +45,13 @@ from typing import (
 logger = logging.getLogger("conda_forge_tick.auto_tick")
 
 from conda_forge_tick.utils import frozen_to_json_friendly
-from conda_forge_tick.contexts import MigratorSessionContext
+from conda_forge_tick.contexts import MigratorSessionContext, MigratorContext
 from conda_forge_tick.migrators import (
     Migrator,
     Version,
     PipMigrator,
     LicenseMigrator,
     MigrationYaml,
-    MigratorContext,
     GraphMigrator,
     Replacement,
     ArchRebuild,
