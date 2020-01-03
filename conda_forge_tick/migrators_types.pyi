@@ -29,7 +29,7 @@ class PR_TD(TypedDict, total=False):
     state: PRState
     head: PRHead_TD
 
-class PEedElementTypedDict(TypedDict, total=False):
+class PRedElementTypedDict(TypedDict, total=False):
     data: MigrationUidTypedDict
     PR: PR_TD
 
@@ -117,7 +117,7 @@ class AttrsTypedDict_(TypedDict, total=False):
     version: str
     new_version: Union[str, bool]
     archived: bool
-    PRed: List[PEedElementTypedDict]
+    PRed: List[PRedElementTypedDict]
     # Legacy types in here
     bad: Union[bool, str]
     # TODO: ADD in
