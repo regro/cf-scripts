@@ -34,11 +34,10 @@ def ensure_gh(ctx: GithubContext, gh: Optional[github3.GitHub]) -> github3.GitHu
 
 
 def feedstock_url(
-    fctx: FeedstockContext, feedstock: Optional[str], protocol: str = "ssh",
+    fctx: FeedstockContext, protocol: str = "ssh",
 ) -> str:
     """Returns the URL for a conda-forge feedstock."""
-    if feedstock is None:
-        feedstock = fctx.package_name + "-feedstock"
+    feedstock = fctx.feedstock_name + "-feedstock"
     elif feedstock.startswith("http://github.com/"):
         return feedstock
     elif feedstock.startswith("https://github.com/"):
@@ -106,7 +105,7 @@ def get_repo(
     """
     gh = ctx.gh
     # first, let's grab the feedstock locally
-    upstream = feedstock_url(fctx=fctx, feedstock=feedstock, protocol=protocol)
+    upstream = feedstock_url(fctx=fctx, protocol=protocol)
     origin = fork_url(upstream, ctx.github_username)
     feedstock_reponame = feedstock_repo(fctx=fctx)
 
