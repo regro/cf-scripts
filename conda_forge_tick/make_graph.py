@@ -247,6 +247,7 @@ def _update_pr(update_function, dry_run, gx):
                 pr_json = migration.get("PR", None)
                 # allow for false
                 if pr_json:
+                    print(pr_json['state'], pr_json['labels'])
                     future = pool.submit(update_function, pr_json, gh, dry_run)
                     futures[future] = (node_id, i)
 
