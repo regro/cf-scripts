@@ -549,7 +549,7 @@ class Version(Migrator):
 
     def filter(self, attrs: "AttrsTypedDict", not_bad_str_start: str = "") -> bool:
         # if no new version do nothing
-        if "new_version" not in attrs:
+        if "new_version" not in attrs or attrs['new_version'] is None:
             return True
         conditional = super().filter(attrs)
         result = bool(
