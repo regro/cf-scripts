@@ -49,8 +49,7 @@ def _fetch_file(name: str, filepath: str) -> typing.Union[str, Response]:
     )
     if r.status_code != 200:
         logger.error(
-            "Something odd happened when fetching recipe "
-            "{}: {}".format(name, r.status_code),
+            f"Something odd happened when fetching recipe {name}: {r.status_code}",
         )
         return r
 

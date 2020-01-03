@@ -117,9 +117,7 @@ def get_repo(
     if pull_request or fork:
         repo = gh.repository("conda-forge", feedstock_reponame)
         if repo is None:
-            fctx.attrs["bad"] = "{}: does not match feedstock name\n".format(
-                fctx.package_name,
-            )
+            fctx.attrs["bad"] = f"{fctx.package_name}: does not match feedstock name\n"
             return False
 
     # Check if fork exists
@@ -157,9 +155,7 @@ def delete_branch(ctx: GithubContext, pr_json: LazyJson, dry_run: bool = False) 
         [
             "git",
             "push",
-            "https://{token}@github.com/{deploy_repo}.git".format(
-                token=token, deploy_repo=deploy_repo,
-            ),
+            f"https://{token}@github.com/{deploy_repo}.git",
             "--delete",
             ref,
         ],
@@ -267,9 +263,7 @@ def push_repo(
             session_ctx.github_username + "/" + fctx.feedstock_name + "-feedstock"
         )
         if session_ctx.dry_run:
-            repo_url = "https://github.com/{deploy_repo}.git".format(
-                deploy_repo=deploy_repo,
-            )
+            repo_url = f"https://github.com/{deploy_repo}.git"
             print(f"dry run: adding remote and pushing up branch for {repo_url}")
         else:
             doctr_run(
@@ -278,9 +272,7 @@ def push_repo(
                     "remote",
                     "add",
                     "regro_remote",
-                    "https://{token}@github.com/{deploy_repo}.git".format(
-                        token=token, deploy_repo=deploy_repo,
-                    ),
+                    f"https://{token}@github.com/{deploy_repo}.git",
                 ],
                 token=token.encode("utf-8"),
             )
@@ -329,9 +321,7 @@ def label_pr(
     ensure_label_exists(repo, label_dict, dry_run)
     if dry_run:
         print(
-            "dry run: label pr {} with {}".format(
-                pr_json["number"], label_dict["name"],
-            ),
+            f"dry run: label pr {pr_json['number']} with {label_dict['name']}",
         )
     else:
         iss = repo.issue(pr_json["number"])

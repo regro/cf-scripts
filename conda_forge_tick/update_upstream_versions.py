@@ -117,9 +117,7 @@ class Github(VersionFromFeed):
         split_url = meta_yaml["url"].lower().split("/")
         package_owner = split_url[split_url.index("github.com") + 1]
         gh_package_name = split_url[split_url.index("github.com") + 2]
-        return "https://github.com/{}/{}/releases.atom".format(
-            package_owner, gh_package_name,
-        )
+        return f"https://github.com/{package_owner}/{gh_package_name}/releases.atom"
 
 
 class LibrariesIO(VersionFromFeed):
@@ -410,9 +408,7 @@ def get_latest_version(payload_meta_yaml: Any, sources: Iterable[AbstractSource]
             if ver:
                 return ver
             else:
-                meta_yaml["bad"] = "Upstream: Could not find version on {}".format(
-                    source.name,
-                )
+                meta_yaml["bad"] = f"Upstream: Could not find version on {source.name}"
         if not meta_yaml.get("bad"):
             meta_yaml["bad"] = "Upstream: unknown source"
         return False
@@ -442,9 +438,7 @@ def _update_upstream_versions_sequential(
                 attrs["bad"] = "Upstream: Error getting upstream version"
             else:
                 logger.info(
-                    "{} - {} - {}".format(
-                        node, attrs.get("version"), attrs.get("new_version"),
-                    ),
+                    f"{node} - {attrs.get('version')} - {attrs.get('new_version')}",
                 )
 
 
