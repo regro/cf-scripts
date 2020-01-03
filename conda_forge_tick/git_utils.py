@@ -38,7 +38,7 @@ def feedstock_url(
 ) -> str:
     """Returns the URL for a conda-forge feedstock."""
     feedstock = fctx.feedstock_name + "-feedstock"
-    elif feedstock.startswith("http://github.com/"):
+    if feedstock.startswith("http://github.com/"):
         return feedstock
     elif feedstock.startswith("https://github.com/"):
         return feedstock
