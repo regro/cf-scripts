@@ -177,7 +177,8 @@ def refresh_pr(
     gh = ensure_gh(ctx, gh)
     if not pr_json["state"] == "closed":
         if dry_run:
-            print("dry run: refresh pr %s" % dict(pr_json))
+            print("dry run: refresh pr %s" % pr_json['id'])
+            pr_dict = dict(pr_json)
         else:
             pr_obj = github3.pulls.PullRequest(dict(pr_json), gh)
             pr_obj.refresh(True)
@@ -186,7 +187,8 @@ def refresh_pr(
             # closed for a day delete the branch
             if pr_obj_d["state"] == "closed" and pr_obj_d.get("merged_at", False):
                 delete_branch(ctx=ctx, pr_json=pr_json, dry_run=dry_run)
-        return pr_obj.as_dict()
+            pr_dict = pr_obj.as_dict()
+        return pr_dict
     return None
 
 
@@ -206,7 +208,7 @@ def close_out_labels(
     ]:
         # update
         if dry_run:
-            print("dry run: checking pr %s" % dict(pr_json))
+            print("dry run: checking pr %s" % pr_json['id'])
         else:
             pr_obj = github3.pulls.PullRequest(dict(pr_json), gh)
             pr_obj.refresh(True)
@@ -216,7 +218,7 @@ def close_out_labels(
         l["name"] for l in pr_json.get("labels", [])
     ]:
         if dry_run:
-            print("dry run: comment and close pr %s" % dict(pr_json))
+            print("dry run: comment and close pr %s" % pr_json['id'])
         else:
             pr_obj.create_comment(
                 "Due to the `bot-rerun` label I'm closing "
