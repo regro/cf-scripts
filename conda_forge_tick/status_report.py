@@ -9,7 +9,7 @@ from conda_forge_tick.migrators import GraphMigrator, LicenseMigrator, Version
 
 
 def main(args: Any = None) -> None:
-    mctx, *_, migrators = initialize_migrators(do_rebuild=True)
+    mctx, *_, migrators = initialize_migrators()
     if not os.path.exists("./status"):
         os.mkdir("./status")
     total_status = {}

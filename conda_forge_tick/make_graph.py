@@ -76,9 +76,7 @@ def populate_feedstock_attributes(
     If the return is bad hand the response itself in so that it can be parsed
     for meaning.
     """
-    sub_graph.update(
-        {"feedstock_name": name, "bad": False,}
-    )
+    sub_graph.update({"feedstock_name": name, "bad": False})
     # handle all the raw strings
     if isinstance(meta_yaml, Response):
         sub_graph["bad"] = f"make_graph: {meta_yaml.status_code}"
@@ -125,9 +123,7 @@ def populate_feedstock_attributes(
     if "url" not in source_keys:
         missing_keys.append("url")
     if missing_keys:
-        logger.error(
-            f"Recipe {name} doesn't have a {', '.join(missing_keys)}",
-        )
+        logger.error(f"Recipe {name} doesn't have a {', '.join(missing_keys)}")
     for k in keys:
         if k[1] not in missing_keys:
             sub_graph[k[1]] = yaml_dict[k[0]][k[1]]
@@ -146,7 +142,7 @@ def get_attrs(name: str, i: int) -> LazyJson:
     lzj = LazyJson(f"node_attrs/{name}.json")
     with lzj as sub_graph:
         populate_feedstock_attributes(
-            name, sub_graph, meta_yaml=meta_yaml, conda_forge_yaml=conda_forge_yaml
+            name, sub_graph, meta_yaml=meta_yaml, conda_forge_yaml=conda_forge_yaml,
         )
     return lzj
 

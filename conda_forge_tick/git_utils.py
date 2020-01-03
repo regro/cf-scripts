@@ -320,9 +320,7 @@ def label_pr(
 ) -> None:
     ensure_label_exists(repo, label_dict, dry_run)
     if dry_run:
-        print(
-            f"dry run: label pr {pr_json['number']} with {label_dict['name']}",
-        )
+        print(f"dry run: label pr {pr_json['number']} with {label_dict['name']}")
     else:
         iss = repo.issue(pr_json["number"])
         iss.add_labels(label_dict["name"])

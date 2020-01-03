@@ -246,7 +246,7 @@ class ROSDistro(AbstractSource):
     def parse_idx(self, distro_name: str = "melodic") -> dict:
         session = requests.Session()
         res = session.get(
-            f"https://raw.githubusercontent.com/ros/rosdistro/master/{distro_name}/distribution.yaml"
+            f"https://raw.githubusercontent.com/ros/rosdistro/master/{distro_name}/distribution.yaml",
         )
         res.raise_for_status()
         resd = yaml.load(res.text, Loader=yaml.SafeLoader)
