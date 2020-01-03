@@ -8,7 +8,13 @@ from collections import defaultdict
 import networkx as nx
 
 
-def cyclic_topological_sort(graph, sources):
+from networkx.classes.digraph import DiGraph
+from typing import DefaultDict, Dict, List, Set, Iterable, Any, Sequence, TypeVar
+
+T = TypeVar("T")
+
+
+def cyclic_topological_sort(graph: DiGraph, sources: Iterable[T]) -> Sequence[T]:
     """Return a list of nodes in a graph with cycles in topological order.
 
     Performs a topological sort of `graph` starting from the node `source`.
@@ -31,13 +37,13 @@ def cyclic_topological_sort(graph, sources):
     """
 
     g2 = deepcopy(graph)
-    order = []
+    order: List[T] = []
     for source in sources:
         _visit(g2, source, order)
-    return reversed(order)
+    return list(reversed(order))
 
 
-def _visit(graph, node, order):
+def _visit(graph: DiGraph, node: T, order: List[T]) -> None:
     if graph.nodes[node].get("visited", False):
         return
     graph.nodes[node]["visited"] = True
@@ -46,7 +52,7 @@ def _visit(graph, node, order):
     order.append(node)
 
 
-def get_longest_paths(graph, source):
+def get_longest_paths(graph: DiGraph, source: str) -> Dict[str, float]:
     """Get the length of the longest path to each node from a source node.
 
     Parameters
@@ -78,7 +84,7 @@ def get_longest_paths(graph, source):
     return dist
 
 
-def get_levels(graph, source):
+def get_levels(graph: DiGraph, source: str) -> DefaultDict[float, Set[str]]:
     """Get the nodes in each level of a topological sort of a graph starting
     from a specified source node.
 
@@ -104,7 +110,7 @@ def get_levels(graph, source):
             g2.remove_node(node)
 
     dist = get_longest_paths(g2, source)
-    levels = defaultdict(set)
+    levels: DefaultDict[float, Set[str]] = defaultdict(set)
     for k, v in dist.items():
         levels[v].add(k)
     return levels

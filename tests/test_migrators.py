@@ -1,23 +1,29 @@
 import os
 import builtins
+import re
 
 import pytest
 import networkx as nx
 
+from conda_forge_tick.contexts import MigratorSessionContext, MigratorContext
 from conda_forge_tick.migrators import (
-    JS,
     Version,
-    Compiler,
-    Noarch,
-    Pinning,
-    Rebuild,
-    ArchRebuild,
-    NoarchR,
-    BlasRebuild,
     LicenseMigrator,
     MigrationYaml,
     Replacement,
 )
+
+# Legacy THINGS
+from conda_forge_tick.migrators.disabled.legacy import (
+    JS,
+    Compiler,
+    Noarch,
+    Pinning,
+    NoarchR,
+    BlasRebuild,
+    Rebuild,
+)
+
 from conda_forge_tick.utils import parse_meta_yaml, frozen_to_json_friendly
 
 sample_yaml_rebuild = """
@@ -248,50 +254,25 @@ extra:
 from xonsh.lib import subprocess
 from xonsh.lib.os import indir
 
-yaml_rebuild = MigrationYaml(yaml_contents="hello world", name="hi")
+
+class NoFilter:
+    def filter(self, attrs: "AttrsTypedDict", not_bad_str_start: str = "") -> bool:
+        return False
+
+
+class _MigrationYaml(NoFilter, MigrationYaml):
+    pass
+
+
+yaml_rebuild = _MigrationYaml(yaml_contents="hello world", name="hi")
 yaml_rebuild.cycles = []
-yaml_rebuild.filter = lambda x: False
-yaml_rebuild_no_build_number = MigrationYaml(yaml_contents="hello world", name="hi", bump_number=0)
-yaml_rebuild_no_build_number.cycles = []
-yaml_rebuild_no_build_number.filter = lambda x: False
-
-yaml_test_list = [
-    (
-        yaml_rebuild,
-        sample_yaml_rebuild,
-        updated_yaml_rebuild,
-        {"feedstock_name": "scipy"},
-        "This PR has been triggered in an effort to update **hi**.",
-        {
-            "migrator_name": "MigrationYaml",
-            "migrator_version": yaml_rebuild.migrator_version,
-            "name": "hi",
-            "bot_rerun": False,
-        },
-        False,
-    ),
-    (
-        yaml_rebuild_no_build_number,
-        sample_yaml_rebuild,
-        updated_yaml_rebuild_no_build_number,
-        {"feedstock_name": "scipy"},
-        "This PR has been triggered in an effort to update **hi**.",
-        {
-            "migrator_name": "MigrationYaml",
-            "migrator_version": yaml_rebuild.migrator_version,
-            "name": "hi",
-            "bot_rerun": False,
-        },
-        False,
-
-    )
-]
-
-
-@pytest.mark.parametrize(
-    "m, inp, output, kwargs, prb, mr_out, should_filter", yaml_test_list
+yaml_rebuild_no_build_number = _MigrationYaml(
+    yaml_contents="hello world", name="hi", bump_number=0,
 )
-def test_yaml_migration(m, inp, output, kwargs, prb, mr_out, should_filter, tmpdir):
+yaml_rebuild_no_build_number.cycles = []
+
+
+def run_test_yaml_migration(m, *, inp, output, kwargs, prb, mr_out, tmpdir, should_filter=False):
     os.makedirs(os.path.join(tmpdir, "recipe"), exist_ok=True)
     with open(os.path.join(tmpdir, "recipe", "meta.yaml"), "w") as f:
         f.write(inp)
@@ -330,6 +311,40 @@ def test_yaml_migration(m, inp, output, kwargs, prb, mr_out, should_filter, tmpd
     with open(os.path.join(tmpdir, ".ci_support/migrations/hi.yaml")) as f:
         saved_migration = f.read()
     assert saved_migration == m.yaml_contents
+
+
+def test_yaml_migration_rebuild(tmpdir):
+    run_test_yaml_migration(
+        m=yaml_rebuild,
+        inp=sample_yaml_rebuild,
+        output=updated_yaml_rebuild,
+        kwargs={"feedstock_name": "scipy"},
+        prb="This PR has been triggered in an effort to update **hi**.",
+        mr_out={
+            "migrator_name": yaml_rebuild.__class__.__name__,
+            "migrator_version": yaml_rebuild.migrator_version,
+            "name": "hi",
+            "bot_rerun": False,
+        },
+        tmpdir=tmpdir,
+    )
+
+
+def test_yaml_migration_rebuild_no_buildno(tmpdir):
+    run_test_yaml_migration(
+        m=yaml_rebuild_no_build_number,
+        inp=sample_yaml_rebuild,
+        output=updated_yaml_rebuild_no_build_number,
+        kwargs={"feedstock_name": "scipy"},
+        prb="This PR has been triggered in an effort to update **hi**.",
+        mr_out={
+            "migrator_name": yaml_rebuild.__class__.__name__,
+            "migrator_version": yaml_rebuild.migrator_version,
+            "name": "hi",
+            "bot_rerun": False,
+        },
+        tmpdir=tmpdir,
+    )
 
 
 sample_js = """{% set name = "jstz" %}
@@ -793,7 +808,9 @@ extra:
     - cbrueffer
 """
 
-cb3_multi = """{% set name = "pypy3.5" %}
+cb3_multi = """
+{# cb3_multi #}
+{% set name = "pypy3.5" %}
 {% set version = "5.9.0" %}
 
 package:
@@ -869,7 +886,9 @@ extra:
     - ohadravid
 """
 
-updated_cb3_multi = """{% set name = "pypy3.5" %}
+updated_cb3_multi = """
+{# updated_cb3_multi #}
+{% set name = "pypy3.5" %}
 {% set version = "6.0.0" %}
 
 package:
@@ -945,7 +964,9 @@ extra:
     - ohadravid
 """
 
-sample_cb3 = """{% set version = "1.14.5" %}
+sample_cb3 = """
+{# sample_cb3 #}
+{% set version = "1.14.5" %}
 {% set build_number = 0 %}
 
 {% set variant = "openblas" %}
@@ -1006,7 +1027,9 @@ extra:
     - ocefpaf
 """
 
-correct_cb3 = """{% set version = "1.14.5" %}
+correct_cb3 = """
+{# correct_cb3 #}
+{% set version = "1.14.5" %}
 {% set build_number = 1 %}
 
 {% set variant = "openblas" %}
@@ -1071,6 +1094,7 @@ extra:
 """
 
 sample_r_base = """
+{# sample_r_base #}
 {% set version = '0.7-1' %}
 
 {% set posix = 'm2-' if win else '' %}
@@ -1111,6 +1135,7 @@ test:
 """
 
 updated_r_base = """
+{# updated_r_base #}
 {% set version = '0.7-1' %}
 
 {% set posix = 'm2-' if win else '' %}
@@ -1276,22 +1301,22 @@ test:
 about:
   license_family: GPL3
   license_file: '{{ environ["PREFIX"] }}/lib/R/share/licenses/GPL-3'  # [unix]
-  license_file: '{{ environ["PREFIX"] }}\R\share\licenses\GPL-3'  # [win]
+  license_file: '{{ environ["PREFIX"] }}\\R\\share\\licenses\\GPL-3'  # [win]
   license_family: MIT
   license_file: '{{ environ["PREFIX"] }}/lib/R/share/licenses/MIT'  # [unix]
-  license_file: '{{ environ["PREFIX"] }}\R\share\licenses\MIT'  # [win]
+  license_file: '{{ environ["PREFIX"] }}\\R\\share\\licenses\\MIT'  # [win]
   license_family: LGPL
   license_file: '{{ environ["PREFIX"] }}/lib/R/share/licenses/LGPL-2'  # [unix]
-  license_file: '{{ environ["PREFIX"] }}\R\share\licenses\LGPL-2'  # [win]
+  license_file: '{{ environ["PREFIX"] }}\\R\\share\\licenses\\LGPL-2'  # [win]
   license_family: LGPL
   license_file: '{{ environ["PREFIX"] }}/lib/R/share/licenses/LGPL-2.1'  # [unix]
-  license_file: '{{ environ["PREFIX"] }}\R\share\licenses\LGPL-2.1'  # [win]
+  license_file: '{{ environ["PREFIX"] }}\\R\\share\\licenses\\LGPL-2.1'  # [win]
   license_family: BSD
   license_file: '{{ environ["PREFIX"] }}/lib/R/share/licenses/BSD_3_clause'  # [unix]
-  license_file: '{{ environ["PREFIX"] }}\R\share\licenses\BSD_3_clause'  # [win]
+  license_file: '{{ environ["PREFIX"] }}\\R\\share\\licenses\\BSD_3_clause'  # [win]
 
-  license_file: '{{ environ["PREFIX"] }}\/lib\/R\/share\/licenses\/GPL-2'  # [unix]
-  license_file: '{{ environ["PREFIX"] }}\/lib\/R\/share\/licenses\/BSD_3_clause'  # [unix]
+  license_file: '{{ environ["PREFIX"] }}/lib/R/share/licenses/GPL-2'  # [unix]
+  license_file: '{{ environ["PREFIX"] }}/lib/R/share/licenses/BSD_3_clause'  # [unix]
 """
 
 updated_r_licenses_noarch = """
@@ -1393,22 +1418,22 @@ test:
 about:
   license_family: GPL3
   license_file: '{{ environ["PREFIX"] }}/lib/R/share/licenses/GPL-3'  # [unix]
-  license_file: '{{ environ["PREFIX"] }}\R\share\licenses\GPL-3'  # [win]
+  license_file: '{{ environ["PREFIX"] }}\\R\\share\\licenses\\GPL-3'  # [win]
   license_family: MIT
   license_file: '{{ environ["PREFIX"] }}/lib/R/share/licenses/MIT'  # [unix]
-  license_file: '{{ environ["PREFIX"] }}\R\share\licenses\MIT'  # [win]
+  license_file: '{{ environ["PREFIX"] }}\\R\\share\\licenses\\MIT'  # [win]
   license_family: LGPL
   license_file: '{{ environ["PREFIX"] }}/lib/R/share/licenses/LGPL-2'  # [unix]
-  license_file: '{{ environ["PREFIX"] }}\R\share\licenses\LGPL-2'  # [win]
+  license_file: '{{ environ["PREFIX"] }}\\R\\share\\licenses\\LGPL-2'  # [win]
   license_family: LGPL
   license_file: '{{ environ["PREFIX"] }}/lib/R/share/licenses/LGPL-2.1'  # [unix]
-  license_file: '{{ environ["PREFIX"] }}\R\share\licenses\LGPL-2.1'  # [win]
+  license_file: '{{ environ["PREFIX"] }}\\R\\share\\licenses\\LGPL-2.1'  # [win]
   license_family: BSD
   license_file: '{{ environ["PREFIX"] }}/lib/R/share/licenses/BSD_3_clause'  # [unix]
-  license_file: '{{ environ["PREFIX"] }}\R\share\licenses\BSD_3_clause'  # [win]
+  license_file: '{{ environ["PREFIX"] }}\\R\\share\\licenses\\BSD_3_clause'  # [win]
 
-  license_file: '{{ environ["PREFIX"] }}\/lib\/R\/share\/licenses\/GPL-2'  # [unix]
-  license_file: '{{ environ["PREFIX"] }}\/lib\/R\/share\/licenses\/BSD_3_clause'  # [unix]
+  license_file: '{{ environ["PREFIX"] }}/lib/R/share/licenses/GPL-2'  # [unix]
+  license_file: '{{ environ["PREFIX"] }}/lib/R/share/licenses/BSD_3_clause'  # [unix]
 """
 
 updated_r_licenses_compiled = """
@@ -1467,7 +1492,9 @@ about:
   license_file: '{{ environ["PREFIX"] }}/lib/R/share/licenses/BSD_3_clause'
 """
 
-sample_noarch = """{% set name = "xpdan" %}
+sample_noarch = """
+{# sample_noarch #}
+{% set name = "xpdan" %}
 {% set version = "0.3.3" %}
 {% set sha256 = "3f1a84f35471aa8e383da3cf4436492d0428da8ff5b02e11074ff65d400dd076" %}
 
@@ -1527,7 +1554,9 @@ extra:
 """
 
 
-updated_noarch = """{% set name = "xpdan" %}
+updated_noarch = """
+{# updated_noarch #}
+{% set name = "xpdan" %}
 {% set version = "0.3.3" %}
 {% set sha256 = "3f1a84f35471aa8e383da3cf4436492d0428da8ff5b02e11074ff65d400dd076" %}
 
@@ -1587,7 +1616,9 @@ extra:
     - CJ-Wright
 """
 
-sample_noarch_space = """{% set name = "xpdan" %}
+sample_noarch_space = """
+{# sample_noarch_space #}
+{% set name = "xpdan" %}
 {% set version = "0.3.3" %}
 {% set sha256 = "3f1a84f35471aa8e383da3cf4436492d0428da8ff5b02e11074ff65d400dd076" %}
 
@@ -1647,7 +1678,9 @@ extra:
 """
 
 
-updated_noarch_space = """{% set name = "xpdan" %}
+updated_noarch_space = """
+{# updated_noarch_space #}
+{% set name = "xpdan" %}
 {% set version = "0.3.3" %}
 {% set sha256 = "3f1a84f35471aa8e383da3cf4436492d0428da8ff5b02e11074ff65d400dd076" %}
 
@@ -1708,7 +1741,9 @@ extra:
 """
 
 
-sample_pinning = """{% set version = "2.44_01" %}
+sample_pinning = """
+{# sample_pinning #}
+{% set version = "2.44_01" %}
 
 package:
   name: perl-xml-parser
@@ -1757,7 +1792,9 @@ extra:
 """
 
 
-updated_perl = """{% set version = "2.44_01" %}
+updated_perl = """
+{# updated_perl #}
+{% set version = "2.44_01" %}
 
 package:
   name: perl-xml-parser
@@ -1806,7 +1843,9 @@ extra:
 """
 
 
-updated_pinning = """{% set version = "2.44_01" %}
+updated_pinning = """
+{# updated_pinning #}
+{% set version = "2.44_01" %}
 
 package:
   name: perl-xml-parser
@@ -1856,6 +1895,7 @@ extra:
 
 
 sample_blas = """
+{# sample_blas #}
 {% set version = "1.2.1" %}
 {% set variant = "openblas" %}
 
@@ -1899,6 +1939,7 @@ test:
 
 
 updated_blas = """
+{# updated_blas #}
 {% set version = "1.2.1" %}
 
 package:
@@ -1937,6 +1978,7 @@ test:
 """
 
 compress = """
+{# compress #}
 {% set version = "0.8" %}
 package:
   name: viscm
@@ -1973,6 +2015,7 @@ extra:
 """
 
 compress_correct = """
+{# compress_correct #}
 {% set version = "0.9" %}
 package:
   name: viscm
@@ -2010,6 +2053,7 @@ extra:
 
 
 version_license = """
+{# version_license #}
 {% set version = "0.8" %}
 
 package:
@@ -2053,6 +2097,7 @@ extra:
 """
 
 version_license_correct = """
+{# version_license_correct #}
 {% set version = "0.9" %}
 
 package:
@@ -2194,313 +2239,50 @@ noarchr = NoarchR()
 perl = Pinning(removals={"perl"})
 pinning = Pinning()
 
-rebuild = Rebuild(name="rebuild", cycles=[])
-rebuild.filter = lambda x: False
 
-blas_rebuild = BlasRebuild(cycles=[])
-blas_rebuild.filter = lambda x: False
+class _Rebuild(NoFilter, Rebuild):
+    pass
+
+
+rebuild = _Rebuild(name="rebuild", cycles=[])
+
+
+class _BlasRebuild(NoFilter, BlasRebuild):
+    pass
+
+
+blas_rebuild = _BlasRebuild(cycles=[])
 
 matplotlib = Replacement(
-    old_pkg='matplotlib', new_pkg='matplotlib-base',
-    rationale=('Unless you need `pyqt`, recipes should depend only on '
-               '`matplotlib-base`.'),
-    pr_limit=5)
-
-test_list = [
-    (
-        version,
-        compress,
-        compress_correct,
-        {"new_version": "0.9"},
-        "Dependencies have been updated if changed",
-        {
-            "migrator_name": "Version",
-            "migrator_version": Version.migrator_version,
-            "version": "0.9",
-        },
-        False,
+    old_pkg="matplotlib",
+    new_pkg="matplotlib-base",
+    rationale=(
+        "Unless you need `pyqt`, recipes should depend only on " "`matplotlib-base`."
     ),
-    (
-        version_license_migrator,
-        version_license,
-        version_license_correct,
-        {"new_version": "0.9"},
-        "Dependencies have been updated if changed",
-        {
-            "migrator_name": "Version",
-            "migrator_version": Version.migrator_version,
-            "version": "0.9",
-        },
-        False,
-    ),
-    (
-        js,
-        sample_js,
-        correct_js,
-        {},
-        "Please merge the PR only after the tests have passed.",
-        {"migrator_name": "JS", "migrator_version": JS.migrator_version},
-        False,
-    ),
-    (
-        version,
-        one_source,
-        updated_one_source,
-        {"new_version": "2.4.1"},
-        "Dependencies have been updated if changed",
-        {
-            "migrator_name": "Version",
-            "migrator_version": Version.migrator_version,
-            "version": "2.4.1",
-        },
-        False,
-    ),
-    (
-        version,
-        jinja_sha,
-        updated_jinja_sha,
-        {"new_version": "2.4.1"},
-        "Dependencies have been updated if changed",
-        {
-            "migrator_name": "Version",
-            "migrator_version": Version.migrator_version,
-            "version": "2.4.1",
-        },
-        False,
-    ),
-    (
-        version,
-        multi_source,
-        updated_multi_source,
-        {"new_version": "2.4.1"},
-        "Dependencies have been updated if changed",
-        {
-            "migrator_name": "Version",
-            "migrator_version": Version.migrator_version,
-            "version": "2.4.1",
-        },
-        False,
-    ),
-    (
-        version,
-        sample_r,
-        updated_sample_r,
-        {"new_version": "1.3_2"},
-        "Dependencies have been updated if changed",
-        {
-            "migrator_name": "Version",
-            "migrator_version": Version.migrator_version,
-            "version": "1.3_2",
-        },
-        False,
-    ),
-    (
-        version,
-        cb3_multi,
-        updated_cb3_multi,
-        {"new_version": "6.0.0"},
-        "Dependencies have been updated if changed",
-        {
-            "migrator_name": "Version",
-            "migrator_version": Version.migrator_version,
-            "version": "6.0.0",
-        },
-        False,
-    ),
-    (
-        compiler,
-        sample_cb3,
-        correct_cb3,
-        {},
-        "N/A",
-        {"migrator_name": "Compiler", "migrator_version": Compiler.migrator_version},
-        False,
-    ),
-    # It seems this injects some bad state somewhere, mostly because it isn't
-    # valid yaml
-    (
-        js,
-        sample_js2,
-        correct_js,
-        {},
-        "Please merge the PR only after the tests have passed.",
-        {"migrator_name": "JS", "migrator_version": JS.migrator_version},
-        False,
-    ),
-    (
-        noarch,
-        sample_noarch,
-        updated_noarch,
-        {
-            "feedstock_name": "xpdan",
-            "req": [
-                "python",
-                "pip",
-                "numpy",
-                "scipy",
-                "matplotlib",
-                "pyyaml",
-                "scikit-beam",
-                "pyfai",
-                "pyxdameraulevenshtein",
-                "xray-vision",
-                "databroker",
-                "bluesky",
-                "streamz_ext",
-                "xpdsim",
-                "shed",
-                "xpdview",
-                "ophyd",
-                "xpdconf",
-            ],
-        },
-        "I think this feedstock could be built with noarch.\n"
-        "This means that the package only needs to be built "
-        "once, drastically reducing CI usage.\n",
-        {"migrator_name": "Noarch", "migrator_version": Noarch.migrator_version},
-        False,
-    ),
-    (
-        noarch,
-        sample_noarch_space,
-        updated_noarch_space,
-        {
-            "feedstock_name": "xpdan",
-            "req": [
-                "python",
-                "pip",
-                "numpy",
-                "scipy",
-                "matplotlib",
-                "pyyaml",
-                "scikit-beam",
-                "pyfai",
-                "pyxdameraulevenshtein",
-                "xray-vision",
-                "databroker",
-                "bluesky",
-                "streamz_ext",
-                "xpdsim",
-                "shed",
-                "xpdview",
-                "ophyd",
-                "xpdconf",
-            ],
-        },
-        "I think this feedstock could be built with noarch.\n"
-        "This means that the package only needs to be built "
-        "once, drastically reducing CI usage.\n",
-        {"migrator_name": "Noarch", "migrator_version": Noarch.migrator_version},
-        False,
-    ),
-    (
-        noarch,
-        sample_noarch_space,
-        updated_noarch_space,
-        {"feedstock_name": "python"},
-        "I think this feedstock could be built with noarch.\n"
-        "This means that the package only needs to be built "
-        "once, drastically reducing CI usage.\n",
-        {"migrator_name": "Noarch", "migrator_version": Noarch.migrator_version},
-        True,
-    ),
-    (
-        perl,
-        sample_pinning,
-        updated_perl,
-        {"req": {"toolchain3", "perl", "expat"}},
-        "I noticed that this recipe has version pinnings that may not be needed.",
-        {"migrator_name": "Pinning", "migrator_version": Pinning.migrator_version},
-        False,
-    ),
-    (
-        pinning,
-        sample_pinning,
-        updated_pinning,
-        {"req": {"toolchain3", "perl", "expat"}},
-        "perl: 5.22.2.1",
-        {"migrator_name": "Pinning", "migrator_version": Pinning.migrator_version},
-        False,
-    ),
-    (
-        noarchr,
-        sample_r_base,
-        updated_r_base,
-        {"feedstock_name": "r-stabledist"},
-        "I think this feedstock could be built with noarch",
-        {"migrator_name": "NoarchR", "migrator_version": noarchr.migrator_version},
-        False,
-    ),
-    (
-        rebuild,
-        sample_r_base2,
-        updated_r_base2,
-        {"feedstock_name": "r-stabledist"},
-        "It is likely this feedstock needs to be rebuilt.",
-        {
-            "migrator_name": "Rebuild",
-            "migrator_version": rebuild.migrator_version,
-            "name": "rebuild",
-        },
-        False,
-    ),
-    (
-        noarchr,
-        sample_r_licenses_noarch,
-        updated_r_licenses_noarch,
-        {"feedstock_name": "r-stabledist"},
-        "I think this feedstock could be built with noarch",
-        {"migrator_name": "NoarchR", "migrator_version": noarchr.migrator_version},
-        False,
-    ),
-    (
-        blas_rebuild,
-        sample_blas,
-        updated_blas,
-        {"feedstock_name": "scipy"},
-        "This PR has been triggered in an effort to update for new BLAS scheme.",
-        {
-            "migrator_name": "BlasRebuild",
-            "migrator_version": blas_rebuild.migrator_version,
-            "name": "blas2",
-        },
-        False,
-    ),
-    (
-        matplotlib,
-        sample_matplotlib,
-        sample_matplotlib_correct,
-        {},
-        "I noticed that this recipe depends on `matplotlib` instead of ",
-        {
-            "migrator_name": "Replacement",
-            "migrator_version": matplotlib.migrator_version,
-        },
-        False,
-    ),
-    # Disabled for now because the R license stuff has been purpossefully moved into the noarchR migrator
-    # (
-    #     noarchr,
-    #     sample_r_licenses_compiled,
-    #     updated_r_licenses_compiled,
-    #     {"feedstock_name": "r-stabledist"},
-    #     "It is likely this feedstock needs to be rebuilt.",
-    #     {"migrator_name": "Rebuild", "migrator_version": rebuild.migrator_version, "name":"rebuild"},
-    #     False,
-    # ),
-]
+    pr_limit=5,
+)
 
 G = nx.DiGraph()
 G.add_node("conda", reqs=["python"])
-env = builtins.__xonsh__.env
+env = builtins.__xonsh__.env  # type: ignore
 env["GRAPH"] = G
 env["CIRCLE_BUILD_URL"] = "hi world"
 
 
-@pytest.mark.parametrize(
-    "m, inp, output, kwargs, prb, mr_out, should_filter", test_list
-)
-def test_migration(m, inp, output, kwargs, prb, mr_out, should_filter, tmpdir):
+def run_test_migration(
+    m, inp, output, kwargs, prb, mr_out, should_filter=False, tmpdir=None,
+):
+    mm_ctx = MigratorSessionContext(
+        graph=G,
+        smithy_version="",
+        pinning_version="",
+        github_username="",
+        github_password="",
+        circle_build_url=env["CIRCLE_BUILD_URL"],
+    )
+    m_ctx = MigratorContext(mm_ctx, m)
+    m.bind_to_ctx(m_ctx)
+
     mr_out.update(bot_rerun=False)
     with open(os.path.join(tmpdir, "meta.yaml"), "w") as f:
         f.write(inp)
@@ -2531,14 +2313,370 @@ def test_migration(m, inp, output, kwargs, prb, mr_out, should_filter, tmpdir):
     pmy.update(PRed=[frozen_to_json_friendly(mr)])
     with open(os.path.join(tmpdir, "meta.yaml"), "r") as f:
         actual_output = f.read()
+    # strip jinja comments
+    pat = re.compile(r"{#.*#}")
+    actual_output = pat.sub("", actual_output)
+    output = pat.sub("", output)
     assert actual_output == output
     if isinstance(m, Compiler):
-        assert m.messages in m.pr_body()
+        assert m.messages in m.pr_body(None)
     # TODO: fix subgraph here (need this to be xsh file)
     elif isinstance(m, Version):
         pass
     elif isinstance(m, Rebuild):
         return
     else:
-        assert prb in m.pr_body()
+        assert prb in m.pr_body(None)
     assert m.filter(pmy) is True
+
+
+def test_version(tmpdir):
+    run_test_migration(
+        m=version,
+        inp=compress,
+        output=compress_correct,
+        kwargs={"new_version": "0.9"},
+        prb="Dependencies have been updated if changed",
+        mr_out={
+            "migrator_name": "Version",
+            "migrator_version": Version.migrator_version,
+            "version": "0.9",
+        },
+        tmpdir=tmpdir,
+    )
+
+
+def test_version_license_correct(tmpdir):
+    run_test_migration(
+        m=version_license_migrator,
+        inp=version_license,
+        output=version_license_correct,
+        kwargs={"new_version": "0.9"},
+        prb="Dependencies have been updated if changed",
+        mr_out={
+            "migrator_name": "Version",
+            "migrator_version": Version.migrator_version,
+            "version": "0.9",
+        },
+        tmpdir=tmpdir,
+    )
+
+
+@pytest.mark.skip
+def test_js_migrator(tmpdir):
+    run_test_migration(
+        m=js,
+        inp=sample_js,
+        output=correct_js,
+        kwargs={},
+        prb="Please merge the PR only after the tests have passed.",
+        mr_out={"migrator_name": "JS", "migrator_version": JS.migrator_version},
+        tmpdir=tmpdir,
+    )
+
+
+@pytest.mark.skip
+def test_js_migrator2(tmpdir):
+    run_test_migration(
+        m=js,
+        inp=sample_js2,
+        output=correct_js2,
+        kwargs={},
+        prb="Please merge the PR only after the tests have passed.",
+        mr_out={"migrator_name": "JS", "migrator_version": JS.migrator_version},
+        tmpdir=tmpdir,
+    )
+
+
+def test_version_one_source(tmpdir):
+    run_test_migration(
+        m=version,
+        inp=one_source,
+        output=updated_one_source,
+        kwargs={"new_version": "2.4.1"},
+        prb="Dependencies have been updated if changed",
+        mr_out={
+            "migrator_name": "Version",
+            "migrator_version": Version.migrator_version,
+            "version": "2.4.1",
+        },
+        tmpdir=tmpdir,
+    )
+
+
+def test_version_multi_source(tmpdir):
+    run_test_migration(
+        m=version,
+        inp=multi_source,
+        output=updated_multi_source,
+        kwargs={"new_version": "2.4.1"},
+        prb="Dependencies have been updated if changed",
+        mr_out={
+            "migrator_name": "Version",
+            "migrator_version": Version.migrator_version,
+            "version": "2.4.1",
+        },
+        tmpdir=tmpdir,
+    )
+
+
+def test_version_jinja_sha(tmpdir):
+    run_test_migration(
+        m=version,
+        inp=jinja_sha,
+        output=updated_jinja_sha,
+        kwargs={"new_version": "2.4.1"},
+        prb="Dependencies have been updated if changed",
+        mr_out={
+            "migrator_name": "Version",
+            "migrator_version": Version.migrator_version,
+            "version": "2.4.1",
+        },
+        tmpdir=tmpdir,
+    )
+
+
+def test_version_r_package(tmpdir):
+    run_test_migration(
+        m=version,
+        inp=sample_r,
+        output=updated_sample_r,
+        kwargs={"new_version": "1.3_2"},
+        prb="Dependencies have been updated if changed",
+        mr_out={
+            "migrator_name": "Version",
+            "migrator_version": Version.migrator_version,
+            "version": "1.3_2",
+        },
+        tmpdir=tmpdir,
+    )
+
+
+def test_version_cb3_multi(tmpdir):
+    run_test_migration(
+        m=version,
+        inp=cb3_multi,
+        output=updated_cb3_multi,
+        kwargs={"new_version": "6.0.0"},
+        prb="Dependencies have been updated if changed",
+        mr_out={
+            "migrator_name": "Version",
+            "migrator_version": Version.migrator_version,
+            "version": "6.0.0",
+        },
+        tmpdir=tmpdir,
+    )
+
+
+@pytest.mark.skip
+def test_version_cb3_multi(tmpdir):
+    run_test_migration(
+        m=compiler,
+        inp=sample_cb3,
+        output=correct_cb3,
+        kwargs={},
+        prb="N/A",
+        mr_out={
+            "migrator_name": "Compiler",
+            "migrator_version": Compiler.migrator_version,
+        },
+        tmpdir=tmpdir,
+    )
+
+
+def test_noarch(tmpdir):
+    # It seems this injects some bad state somewhere, mostly because it isn't
+    # valid yaml
+    run_test_migration(
+        m=noarch,
+        inp=sample_noarch,
+        output=updated_noarch,
+        kwargs={
+            "feedstock_name": "xpdan",
+            "req": [
+                "python",
+                "pip",
+                "numpy",
+                "scipy",
+                "matplotlib",
+                "pyyaml",
+                "scikit-beam",
+                "pyfai",
+                "pyxdameraulevenshtein",
+                "xray-vision",
+                "databroker",
+                "bluesky",
+                "streamz_ext",
+                "xpdsim",
+                "shed",
+                "xpdview",
+                "ophyd",
+                "xpdconf",
+            ],
+        },
+        prb="I think this feedstock could be built with noarch.\n"
+        "This means that the package only needs to be built "
+        "once, drastically reducing CI usage.\n",
+        mr_out={"migrator_name": "Noarch", "migrator_version": Noarch.migrator_version},
+        tmpdir=tmpdir,
+    )
+
+
+def test_noarch_space(tmpdir):
+    # It seems this injects some bad state somewhere, mostly because it isn't
+    # valid yaml
+    run_test_migration(
+        m=noarch,
+        inp=sample_noarch_space,
+        output=updated_noarch_space,
+        kwargs={
+            "feedstock_name": "xpdan",
+            "req": [
+                "python",
+                "pip",
+                "numpy",
+                "scipy",
+                "matplotlib",
+                "pyyaml",
+                "scikit-beam",
+                "pyfai",
+                "pyxdameraulevenshtein",
+                "xray-vision",
+                "databroker",
+                "bluesky",
+                "streamz_ext",
+                "xpdsim",
+                "shed",
+                "xpdview",
+                "ophyd",
+                "xpdconf",
+            ],
+        },
+        prb="I think this feedstock could be built with noarch.\n"
+        "This means that the package only needs to be built "
+        "once, drastically reducing CI usage.\n",
+        mr_out={"migrator_name": "Noarch", "migrator_version": Noarch.migrator_version},
+        tmpdir=tmpdir,
+    )
+
+
+def test_noarch_space_python(tmpdir):
+    run_test_migration(
+        m=noarch,
+        inp=sample_noarch_space,
+        output=updated_noarch_space,
+        kwargs={"feedstock_name": "python"},
+        prb="I think this feedstock could be built with noarch.\n"
+        "This means that the package only needs to be built "
+        "once, drastically reducing CI usage.\n",
+        mr_out={"migrator_name": "Noarch", "migrator_version": Noarch.migrator_version},
+        should_filter=True,
+        tmpdir=tmpdir,
+    )
+
+
+def test_perl(tmpdir):
+    run_test_migration(
+        m=perl,
+        inp=sample_pinning,
+        output=updated_perl,
+        kwargs={"req": {"toolchain3", "perl", "expat"}},
+        prb="I noticed that this recipe has version pinnings that may not be needed.",
+        mr_out={
+            "migrator_name": "Pinning",
+            "migrator_version": Pinning.migrator_version,
+        },
+        tmpdir=tmpdir,
+    )
+
+
+def test_perl_pinning(tmpdir):
+    run_test_migration(
+        m=pinning,
+        inp=sample_pinning,
+        output=updated_pinning,
+        kwargs={"req": {"toolchain3", "perl", "expat"}},
+        prb="perl: 5.22.2.1",
+        mr_out={
+            "migrator_name": "Pinning",
+            "migrator_version": Pinning.migrator_version,
+        },
+        tmpdir=tmpdir,
+    )
+
+
+def test_nnoarch_r(tmpdir):
+    run_test_migration(
+        m=noarchr,
+        inp=sample_r_base,
+        output=updated_r_base,
+        kwargs={"feedstock_name": "r-stabledist"},
+        prb="I think this feedstock could be built with noarch",
+        mr_out={
+            "migrator_name": "NoarchR",
+            "migrator_version": noarchr.migrator_version,
+        },
+        tmpdir=tmpdir,
+    )
+
+
+def test_rebuild_r(tmpdir):
+    run_test_migration(
+        m=rebuild,
+        inp=sample_r_base2,
+        output=updated_r_base2,
+        kwargs={"feedstock_name": "r-stabledist"},
+        prb="It is likely this feedstock needs to be rebuilt.",
+        mr_out={
+            "migrator_name": "_Rebuild",
+            "migrator_version": rebuild.migrator_version,
+            "name": "rebuild",
+        },
+        tmpdir=tmpdir,
+    )
+
+
+def test_nnoarch_r_licenses(tmpdir):
+    run_test_migration(
+        m=noarchr,
+        inp=sample_r_licenses_noarch,
+        output=updated_r_licenses_noarch,
+        kwargs={"feedstock_name": "r-stabledist"},
+        prb="I think this feedstock could be built with noarch",
+        mr_out={
+            "migrator_name": "NoarchR",
+            "migrator_version": noarchr.migrator_version,
+        },
+        tmpdir=tmpdir,
+    )
+
+
+def test_blas_rebuild(tmpdir):
+    run_test_migration(
+        m=blas_rebuild,
+        inp=sample_blas,
+        output=updated_blas,
+        kwargs={"feedstock_name": "scipy"},
+        prb="This PR has been triggered in an effort to update for new BLAS scheme.",
+        mr_out={
+            "migrator_name": "_BlasRebuild",
+            "migrator_version": blas_rebuild.migrator_version,
+            "name": "blas2",
+        },
+        tmpdir=tmpdir,
+    )
+
+
+def test_matplotlib_replacement(tmpdir):
+    run_test_migration(
+        m=matplotlib,
+        inp=sample_matplotlib,
+        output=sample_matplotlib_correct,
+        kwargs={},
+        prb="I noticed that this recipe depends on `matplotlib` instead of ",
+        mr_out={
+            "migrator_name": "Replacement",
+            "migrator_version": matplotlib.migrator_version,
+        },
+        tmpdir=tmpdir,
+    )

@@ -18,3 +18,4 @@ python-dateutil
 python-graphviz
 streamz
 backoff
+attrs

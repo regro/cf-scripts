@@ -13,7 +13,7 @@ def test_get_levels():
             ("d", "g"),
             ("d", "h"),
             ("e", "g"),
-        ]
+        ],
     )
     levels = {0: {"a"}, 1: {"d"}, 2: {"f", "g", "h"}}
     assert get_levels(g, "a") == levels

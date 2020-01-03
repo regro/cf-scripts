@@ -46,7 +46,7 @@ def main(*args, **kwargs):
     parser = argparse.ArgumentParser("a tool to help update feedstocks.")
     parser.add_argument("--run")
     parser.add_argument("--debug", dest="debug", action="store_true", default=False,
-        help="Runs in debug mode, running paraellel parts sequentially and printing more info.")
+        help="Runs in debug mode, running parallel parts sequentially and printing more info.")
     parser.add_argument("--dry-run", dest="dry_run", action="store_true", default=False,
                         help="Don't push changes to PRs or graph to Github")
     args = parser.parse_args()
