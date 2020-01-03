@@ -271,8 +271,22 @@ def _update_pr(update_function, dry_run, gx):
                 logger.critical(
                     "ERROR ON FEEDSTOCK: {}: {}".format(
                         name, gx.nodes[name]["payload"]["PRed"][i],
-                    ),
+                   ),
                 )
+                logger.critical(
+                    "ERROR ON FEEDSTOCK: {}: {}".format(
+                        name, 
+                        gx.nodes[name]["payload"]["PRed"][i]['PR']['state'],
+                   ),
+                )
+                logger.critical(
+                    "ERROR ON FEEDSTOCK: {}: {}".format(
+                        name, 
+                        gx.nodes[name]["payload"]["PRed"][i]['PR'].get('labels', []),
+                   ),
+                )
+
+
                 raise
     return succeeded_refresh, failed_refresh
 
