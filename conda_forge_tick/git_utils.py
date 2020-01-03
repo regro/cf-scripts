@@ -112,7 +112,7 @@ def get_repo(
     # first, let's grab the feedstock locally
     upstream = feedstock_url(fctx=fctx, feedstock=feedstock, protocol=protocol)
     origin = fork_url(upstream, ctx.github_username)
-    feedstock_reponame = feedstock_repo(fctx=fctx, feedstock=feedstock)
+    feedstock_reponame = feedstock_repo(fctx=fctx)
 
     if pull_request or fork:
         repo = gh.repository("conda-forge", feedstock_reponame)
