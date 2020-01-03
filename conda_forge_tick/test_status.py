@@ -9,7 +9,7 @@ import yaml
 
 
 def main(args: Any = None) -> None:
-    mctx, *_, migrators = initialize_migrators(do_rebuild=True)
+    mctx, *_, migrators = initialize_migrators()
 
     for migrator in migrators:
         if isinstance(migrator, GraphMigrator):
