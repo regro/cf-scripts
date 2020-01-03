@@ -191,6 +191,7 @@ def run(
                 print(f"Error during push {e}")
                 # If we just push to the existing PR then do nothing to the json
                 pr_json = False
+                ljpr = False
     if pr_json:
         ljpr = LazyJson(
             os.path.join(migrator.ctx.session.prjson_dir, str(pr_json["id"]) + ".json"),
@@ -200,7 +201,7 @@ def run(
     feedstock_ctx.attrs["bad"] = False
     logger.info("Removing feedstock dir")
     eval_xonsh(f"rm -rf {feedstock_dir}")
-    return migrate_return, pr_json
+    return migrate_return, ljpr
 
 
 def _requirement_names(reqlist: Optional[Sequence[Optional[str]]]) -> List[str]:
