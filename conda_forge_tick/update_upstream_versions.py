@@ -161,7 +161,7 @@ class NPM(AbstractSource):
             return None
         # might be namespaced
         pkg = meta_yaml["url"].split("/")[3:-2]
-        return "https://registry.npmjs.org/{}".format("/".join(pkg))
+        return f"https://registry.npmjs.org/{'/'.join(pkg)}"
 
     def get_version(self, url: str) -> Optional[str]:
         r = requests.get(url)
@@ -248,9 +248,7 @@ class ROSDistro(AbstractSource):
     def parse_idx(self, distro_name: str = "melodic") -> dict:
         session = requests.Session()
         res = session.get(
-            "https://raw.githubusercontent.com/ros/rosdistro/master/{distro}/distribution.yaml".format(
-                distro=distro_name,
-            ),
+            f"https://raw.githubusercontent.com/ros/rosdistro/master/{distro_name}/distribution.yaml"
         )
         res.raise_for_status()
         resd = yaml.load(res.text, Loader=yaml.SafeLoader)

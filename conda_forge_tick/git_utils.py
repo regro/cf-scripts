@@ -148,7 +148,7 @@ def get_repo(
 def delete_branch(ctx: GithubContext, pr_json: LazyJson, dry_run: bool = False) -> None:
     ref = pr_json["head"]["ref"]
     if dry_run:
-        print("dry run: deleting ref %s" % ref)
+        print(f"dry run: deleting ref {ref}")
         return
     name = pr_json["base"]["repo"]["name"]
     token = ctx.github_password
@@ -270,7 +270,7 @@ def push_repo(
             repo_url = "https://github.com/{deploy_repo}.git".format(
                 deploy_repo=deploy_repo,
             )
-            print("dry run: adding remote and pushing up branch for %s" % repo_url)
+            print(f"dry run: adding remote and pushing up branch for {repo_url}")
         else:
             doctr_run(
                 [
@@ -292,7 +292,7 @@ def push_repo(
     # lastly make a PR for the feedstock
     print("Creating conda-forge feedstock pull request...")
     if session_ctx.dry_run:
-        print("dry run: create pr with title: %s" % title)
+        print(f"dry run: create pr with title: {title}")
         return False
     else:
         pr = repo.create_pull(title, "master", head, body=body)
@@ -313,7 +313,7 @@ def ensure_label_exists(
     repo: github3.repos.Repository, label_dict: dict, dry_run: bool = False,
 ) -> None:
     if dry_run:
-        print("dry run: ensure label exists %s" % label_dict["name"])
+        print(f"dry run: ensure label exists {label_dict['name']}")
     try:
         repo.label(label_dict["name"])
     except github3.exceptions.NotFoundError:

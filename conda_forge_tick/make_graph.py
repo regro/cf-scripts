@@ -98,7 +98,7 @@ def populate_feedstock_attributes(
         *[parse_meta_yaml(meta_yaml, platform=plat) for plat in ["win", "osx", "linux"]]
     )
     if not yaml_dict:
-        logger.error("Something odd happened when parsing recipe " "{}".format(name))
+        logger.error(f"Something odd happened when parsing recipe {name}")
         sub_graph["bad"] = "make_graph: Could not parse"
         return sub_graph
     sub_graph["meta_yaml"] = _convert_to_dict(yaml_dict)
@@ -127,7 +127,7 @@ def populate_feedstock_attributes(
         missing_keys.append("url")
     if missing_keys:
         logger.error(
-            "Recipe {} doesn't have a {}".format(name, ", ".join(missing_keys)),
+            f"Recipe {name} doesn't have a {', '.join(missing_keys)}",
         )
     for k in keys:
         if k[1] not in missing_keys:
@@ -263,7 +263,7 @@ def _update_pr(update_function, dry_run, gx):
                     succeeded_refresh += 1
                     with gx.nodes[name]["payload"] as node:
                         node["PRed"][i]["PR"].update(**res)
-                    logger.info("Updated json for {}: {}".format(name, res["id"]))
+                    logger.info(f"Updated json for {name}: {res['id']}")
             except github3.GitHubError as e:
                 logger.error(f"GITHUB ERROR ON FEEDSTOCK: {name}")
                 failed_refresh += 1

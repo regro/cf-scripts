@@ -213,7 +213,7 @@ class Noarch(Migrator):
             spaces = len(line) - len(line.lstrip())
             replace_in_file(
                 "build:",
-                "build:\n{}noarch: python".format(" " * spaces),
+                f"build:\n{' ' * spaces}noarch: python",
                 "meta.yaml",
                 leading_whitespace=False,
             )

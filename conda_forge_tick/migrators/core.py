@@ -529,7 +529,7 @@ class Version(Migrator):
                 else:
                     p += "$"
             else:
-                p = "{}:{}$".format(hash_type, m.group(1))
+                p = f"{hash_type}: {m.group(1)}$"
             n = f"{hash_type}: {hash_}"
             if platform:
                 n += f"  # [{platform}]"
