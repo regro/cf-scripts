@@ -272,7 +272,7 @@ yaml_rebuild_no_build_number = _MigrationYaml(
 yaml_rebuild_no_build_number.cycles = []
 
 
-def run_test_yaml_migration(m, inp, output, kwargs, prb, mr_out, should_filter, tmpdir):
+def run_test_yaml_migration(m, *, inp, output, kwargs, prb, mr_out, tmpdir, should_filter=False):
     os.makedirs(os.path.join(tmpdir, "recipe"), exist_ok=True)
     with open(os.path.join(tmpdir, "recipe", "meta.yaml"), "w") as f:
         f.write(inp)
