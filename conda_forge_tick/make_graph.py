@@ -270,7 +270,7 @@ def _update_pr(update_function, dry_run, gx):
             except Exception as e:
                 logger.critical(
                     "ERROR ON FEEDSTOCK: {}: {}".format(
-                        name, gx.nodes[name]["payload"]["PRed"][i]["data"],
+                        name, gx.nodes[name]["payload"]["PRed"][i],
                     ),
                 )
                 raise
