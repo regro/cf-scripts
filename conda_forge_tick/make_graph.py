@@ -18,6 +18,7 @@ import requests
 import yaml
 
 from xonsh.lib.collections import ChainDB, _convert_to_dict
+from .xonsh_utils import env
 
 from conda_forge_tick.utils import github_client, load
 from .all_feedstocks import get_all_feedstocks
@@ -31,6 +32,7 @@ from .utils import (
     LazyJson,
 )
 from .git_utils import refresh_pr, is_github_api_limit_reached, close_out_labels
+from .contexts import GithubContext
 
 if typing.TYPE_CHECKING:
     from .cli import CLIArgs
@@ -40,6 +42,17 @@ pin_sep_pat = re.compile(r" |>|<|=|\[")
 
 
 NUM_GITHUB_THREADS = 4
+
+github_username = env.get("USERNAME", "")
+github_password = env.get("PASSWORD", "")
+github_token = env.get("GITHUB_TOKEN")
+
+ghctx = GithubContext(
+    github_username=github_username,
+    github_password=github_password,
+    github_token=github_token,
+    circle_build_url=os.getenv("CIRCLE_BUILD_URL", ""),
+)
 
 
 def _fetch_file(name: str, filepath: str) -> typing.Union[str, Response]:
@@ -247,7 +260,7 @@ def _update_pr(update_function, dry_run, gx):
                 pr_json = migration.get("PR", None)
                 # allow for false
                 if pr_json:
-                    future = pool.submit(update_function, pr_json, gh, dry_run)
+                    future = pool.submit(update_function, ghctx, pr_json, gh, dry_run)
                     futures[future] = (node_id, i)
 
         for f in as_completed(futures):
