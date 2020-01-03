@@ -33,9 +33,7 @@ def ensure_gh(ctx: GithubContext, gh: Optional[github3.GitHub]) -> github3.GitHu
     return gh
 
 
-def feedstock_url(
-    fctx: FeedstockContext, protocol: str = "ssh",
-) -> str:
+def feedstock_url(fctx: FeedstockContext, protocol: str = "ssh",) -> str:
     """Returns the URL for a conda-forge feedstock."""
     feedstock = fctx.feedstock_name + "-feedstock"
     if feedstock.startswith("http://github.com/"):

@@ -661,15 +661,14 @@ class Version(Migrator):
         body = super().pr_body(feedstock_ctx)
         # TODO: note that the closing logic needs to be modified when we
         #  issue PRs into other branches for backports
-        open_version_prs = (
-            [
-                muid["PR"]
-                for muid in feedstock_ctx.attrs.get("PRed", [])
-                if muid["data"].get("migrator_name") == "Version"
-                # The PR is the actual PR itself
-                and muid.get("PR", {}).get("state", None) == "open"
-            ],
-        )
+        open_version_prs = [
+            muid["PR"]
+            for muid in feedstock_ctx.attrs.get("PRed", [])
+            if muid["data"].get("migrator_name") == "Version"
+            # The PR is the actual PR itself
+            and muid.get("PR", {}).get("state", None) == "open"
+        ]
+
         muid: dict
         body = body.format(
             "It is very likely that the current package version for this "
