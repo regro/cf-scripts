@@ -66,6 +66,7 @@ class ArchRebuild(GraphMigrator):
         "lime",
         "shap",
         "tesseract",
+        "occt",
         # mpi variants
         "openmpi",
         "mpich",
