@@ -146,7 +146,7 @@ class ArchRebuild(GraphMigrator):
         self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any
     ) -> "MigrationUidTypedDict":
         with indir(recipe_dir + "/.."):
-            self.set_build_number("meta.yaml")
+            self.set_build_number("recipe/meta.yaml")
             with open("conda-forge.yml", "r") as f:
                 y = safe_load(f)
             if "provider" not in y:
