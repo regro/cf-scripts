@@ -24,9 +24,6 @@ class ArchRebuild(GraphMigrator):
     rerender = True
     # We purposefully don't want to bump build number for this migrator
     bump_number = 0
-    # We are constraining the scope of this migrator
-    with indir('../conda-forge-pinning-feedstock/recipe/migrations'), open('arch_rebuild.txt', 'r') as f:
-                target_packages = set(f.read().split())
     ignored_packages = {
         "make",
         "perl",
@@ -43,6 +40,10 @@ class ArchRebuild(GraphMigrator):
         self, graph: nx.DiGraph = None, name: Optional[str] = None, pr_limit: int = 0,
     ):
         super().__init__(graph=graph, pr_limit=pr_limit)
+        # We are constraining the scope of this migrator
+        with indir('../conda-forge-pinning-feedstock/recipe/migrations'), open('arch_rebuild.txt', 'r') as f:
+            self.target_packages = set(f.read().split())
+
         self.name = name
         # filter the graph down to the target packages
         if self.target_packages:
