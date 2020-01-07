@@ -24,77 +24,6 @@ class ArchRebuild(GraphMigrator):
     rerender = True
     # We purposefully don't want to bump build number for this migrator
     bump_number = 0
-    # We are constraining the scope of this migrator
-    # TODO: pull this from file
-    target_packages = {
-        "ncurses",
-        "conda-build",
-        "conda-smithy",
-        "conda-forge-ci-setup",
-        "conda-package-handling",
-        "numpy",
-        "opencv",
-        "ipython",
-        "pandas",
-        "tornado",
-        "matplotlib",
-        "dask",
-        "distributed",
-        "zeromq",
-        "notebook",
-        "scipy",
-        "libarchive",
-        "zstd",
-        "krb5",
-        "scikit-learn",
-        "scikit-image",
-        "su-exec",
-        "flask",
-        "sqlalchemy",
-        "psycopg2",
-        "tini",
-        "clangdev",
-        "pyarrow",
-        "numba",
-        "r-base",
-        "protobuf",
-        "cvxpy",
-        "gevent",
-        "gunicorn",
-        "sympy",
-        "tqdm",
-        "spacy",
-        "lime",
-        "shap",
-        "tesseract",
-        "occt",
-        # mpi variants
-        "openmpi",
-        "mpich",
-        "poetry",
-        "flit",
-        "constructor",
-        # py27 things
-        "typing",
-        "enum34",
-        "functools32",
-        "jsoncpp",
-        "bcrypt",
-        "root",
-        "pyopencl",
-        "pocl",
-        "oclgrind",
-        "sage",
-        "boost-histogram",
-        "uproot",
-        "iminuit",
-        "geant4",
-        "pythia8",
-        "hepmc3",
-        "root_pandas",
-        "lhcbdirac",
-        "pytest-benchmark",
-    }
     ignored_packages = {
         "make",
         "perl",
@@ -111,6 +40,10 @@ class ArchRebuild(GraphMigrator):
         self, graph: nx.DiGraph = None, name: Optional[str] = None, pr_limit: int = 0,
     ):
         super().__init__(graph=graph, pr_limit=pr_limit)
+        # We are constraining the scope of this migrator
+        with indir('../conda-forge-pinning-feedstock/recipe/migrations'), open('arch_rebuild.txt', 'r') as f:
+            self.target_packages = set(f.read().split())
+
         self.name = name
         # filter the graph down to the target packages
         if self.target_packages:
