@@ -98,7 +98,7 @@ class ArchRebuild(GraphMigrator):
 
     def pr_body(self, feedstock_ctx: FeedstockContext) -> str:
         body = super().pr_body(feedstock_ctx)
-        body.format(dedent(
+        body = body.format(dedent(
             """\
         This feedstock is being rebuilt as part of the aarch64/ppc64le migration.
 
