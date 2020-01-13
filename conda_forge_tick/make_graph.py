@@ -112,6 +112,31 @@ def populate_feedstock_attributes(
         sub_graph["bad"] = "make_graph: Could not parse"
         return sub_graph
     sub_graph["meta_yaml"] = _convert_to_dict(yaml_dict)
+    meta_yaml = sub_graph["meta_yaml"]
+
+    sub_graph["strong_exports"] = False
+    # TODO: make certain to remove None
+    requirements_dict = defaultdict(set)
+    for block in [meta_yaml] + output["meta_yaml"].get("outputs", []) or []:
+        req: "RequirementsTypedDict" = block.get("requirements", {}) or {}
+        if isinstance(req, list):
+            requirements_dict["run"].update(set(req))
+            continue
+        for section in ["build", "host", "run"]:
+            requirements_dict[section].update(
+                list(as_iterable(req.get(section, []) or []))
+            )
+        test: "TestTypedDict" = block.get("test", {})
+        req["test"].update(test.get("requirements"))
+        req["test"].update(test.get("requires"))
+        if block.get("build", {}).get("run_exports", {}).get("strong"):
+            sub_graph["strong_exports"] = True
+
+    sub_graph["total_requirements"] = dict(requirements_dict)
+    sub_graph["requirements"] = {
+        k: {pin_sep_pat.split(x)[0].lower() for x in v}
+        for k, v in sub_graph["total_requirements"].items()
+    }
 
     # handle multi outputs
     if "outputs" in yaml_dict:
@@ -120,6 +145,7 @@ def populate_feedstock_attributes(
         )
 
     # TODO: Write schema for dict
+    # TODO: remove this
     req = get_requirements(yaml_dict)
     sub_graph["req"] = req
 
@@ -226,14 +252,31 @@ def make_graph(names: List[str], gx: Optional[nx.DiGraph] = None) -> nx.DiGraph:
         for node_name, node in gx.nodes.items()
         for k in node.get("payload", {}).get("outputs_names", [])
     }
+    # add this as an attr so we can use later
+    gx["outputs_lut"] = outputs_lut
+    strong_exports = {
+        node_name
+        for node_name, node in gx.nodes.items()
+        if node.get("payload").get("strong_exports", False)
+    }
     # TODO: label these edges with the kind of dep they are and their platform
     for node, node_attrs in gx2.nodes.items():
         with node_attrs["payload"] as attrs:
-            for dep in attrs.get("req", []):
-                if dep in outputs_lut:
-                    gx.add_edge(outputs_lut[dep], node)
-                    continue
-                elif dep not in gx.nodes:
+            # replace output package names with feedstock names via LUT
+            deps = set(
+                map(
+                    lambda x: outputs_lut.get(x, x),
+                    set().union(*attrs["requirements"].values()),
+                )
+            )
+
+            # handle strong run exports
+            overlap = deps & strong_exports
+            attrs["requirements"]["host"].update(overlap)
+            attrs["requirements"]["run"].update(overlap)
+
+            for dep in deps:
+                if dep not in gx.nodes:
                     # for packages which aren't feedstocks and aren't outputs
                     # usually these are stubs
                     lzj = LazyJson(f"node_attrs/{dep}.json")

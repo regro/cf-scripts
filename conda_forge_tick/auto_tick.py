@@ -25,7 +25,6 @@ from .path_lengths import cyclic_topological_sort
 from .utils import (
     setup_logger,
     pluck,
-    get_requirements,
     load_graph,
     dump_graph,
     LazyJson,
@@ -204,16 +203,6 @@ def run(
     return migrate_return, ljpr
 
 
-def _requirement_names(reqlist: Optional[Sequence[Optional[str]]]) -> List[str]:
-    """Parse requirement names from a list ignoring `None`
-    """
-    if reqlist is None:
-        return []
-    else:
-        return [r.split()[0] for r in reqlist if r is not None]
-
-
-# TODO: unify this with get_requirements
 def _host_run_test_dependencies(meta_yaml: "MetaYamlTypedDict") -> Set["PackageName"]:
     """Parse the host/run/test dependencies of a recipe
 
@@ -222,27 +211,8 @@ def _host_run_test_dependencies(meta_yaml: "MetaYamlTypedDict") -> Set["PackageN
     The complicated logic here is mainly to support not including a
     `host` section, and using `build` instead.
     """
-    rq = set()
-    for block in [meta_yaml] + meta_yaml.get("outputs", []) or []:
-        req: "RequirementsTypedDict" = block.get("requirements", {}) or {}
-        # output requirements given as list (e.g. openmotif)
-        if isinstance(req, list):
-            rq.update(_requirement_names(req))
-            continue
-
-        # if there is a host and it has things; use those
-        if req.get("host"):
-            rq.update(_requirement_names(req.get("host", [])))
-        # there is no host; look at build
-        elif req.get("host", "no host") not in [None, []]:
-            rq.update(_requirement_names(req.get("build", []) or []))
-        rq.update(_requirement_names(req.get("run", []) or []))
-
-        # add testing dependencies
-        test: "TestTypedDict" = block.get("test", {})
-        rq.update(_requirement_names(test.get("requirements")))
-        rq.update(_requirement_names(test.get("requires")))
-
+    _ = meta_yaml["requirements"]
+    rq = (_["host"] or _["build"]) | _["run"] | _["test"]
     return typing.cast("Set[PackageName]", rq)
 
 
@@ -272,15 +242,11 @@ def add_replacement_migrator(
     total_graph = copy.deepcopy(gx)
 
     for node, node_attrs in gx.nodes.items():
-        meta_yaml = node_attrs["payload"].get("meta_yaml", {}) or {}
+        requirements = node_attrs["payload"]["requirements"]
+        rq = set().union([requirements[k] for k in ["build", "host", "run", "test"]])
         pkgs = {old_pkg}
-        old_pkg_c = len(pkgs.intersection(get_requirements(meta_yaml))) > 0
+        old_pkg_c = pkgs.intersection(rq)
 
-        rq = _host_run_test_dependencies(meta_yaml)
-
-        for e in list(total_graph.in_edges(node)):
-            if e[0] not in rq:
-                total_graph.remove_edge(*e)
         if not old_pkg_c:
             pluck(total_graph, node)
 
@@ -353,25 +319,21 @@ def add_rebuild_migration_yaml(
 
     for node, node_attrs in gx.nodes.items():
         attrs: "AttrsTypedDict" = node_attrs["payload"]
-        meta_yaml = attrs.get("meta_yaml", {}) or {}
-        # TODO: fix this, since it doesn't fully apply the strong constraints
-        if "strong" in meta_yaml.get("build", {}) or any(
-            [
-                "strong" in output.get("build", {})
-                for output in meta_yaml.get("outputs", [])
-                if output.get("build")
-            ],
-        ):
-            bh = get_requirements(meta_yaml, run=False)
-        else:
-            bh = get_requirements(
-                meta_yaml, run=False, build=False, host=True,
-            ) or get_requirements(meta_yaml, build=True, run=False, host=False)
-        criteria = any(package_name in bh for package_name in package_names) and (
+        requirements = attrs["requirements"]
+        bh = requirements["host"] or requirements["build"]
+        criteria = bh & set(package_names) and (
             "noarch" not in meta_yaml.get("build", {})
         )
-
-        rq = _host_run_test_dependencies(meta_yaml)
+        # get host/build, run and test and launder them through outputs
+        # this should fix outputs related issues (eg gdal)
+        rq = set(
+            map(
+                lambda x: gx["outputs_lut"].get(x, x),
+                (requirements["host"] or requirements["build"])
+                | requirements["run"]
+                | requirements["test"],
+            )
+        )
 
         for e in list(total_graph.in_edges(node)):
             if e[0] not in rq:
