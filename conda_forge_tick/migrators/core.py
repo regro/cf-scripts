@@ -721,7 +721,12 @@ class Version(Migrator):
 
     def pr_title(self, feedstock_ctx: FeedstockContext) -> str:
         assert isinstance(feedstock_ctx.attrs["new_version"], str)
-        return feedstock_ctx.package_name + " v" + feedstock_ctx.attrs["new_version"]
+        return (
+            "[bot-automerge] "
+            + feedstock_ctx.package_name
+            + " v"
+            + feedstock_ctx.attrs["new_version"]
+        )
 
     def remote_branch(self, feedstock_ctx: FeedstockContext) -> str:
         assert isinstance(feedstock_ctx.attrs["new_version"], str)
