@@ -41,7 +41,9 @@ class ArchRebuild(GraphMigrator):
     ):
         super().__init__(graph=graph, pr_limit=pr_limit)
         # We are constraining the scope of this migrator
-        with indir('../conda-forge-pinning-feedstock/recipe/migrations'), open('arch_rebuild.txt', 'r') as f:
+        with indir("../conda-forge-pinning-feedstock/recipe/migrations"), open(
+            "arch_rebuild.txt", "r"
+        ) as f:
             self.target_packages = set(f.read().split())
 
         self.name = name
@@ -98,14 +100,16 @@ class ArchRebuild(GraphMigrator):
 
     def pr_body(self, feedstock_ctx: FeedstockContext) -> str:
         body = super().pr_body(feedstock_ctx)
-        body = body.format(dedent(
-            """\
+        body = body.format(
+            dedent(
+                """\
         This feedstock is being rebuilt as part of the aarch64/ppc64le migration.
 
         **Feel free to merge the PR if CI is all green, but please don't close it
         without reaching out the the ARM migrators first at @conda-forge/arm-arch.**
         """
-        ))
+            )
+        )
         return body
 
     def remote_branch(self, feedstock_ctx: FeedstockContext) -> str:
