@@ -721,7 +721,18 @@ class Version(Migrator):
 
     def pr_title(self, feedstock_ctx: FeedstockContext) -> str:
         assert isinstance(feedstock_ctx.attrs["new_version"], str)
-        return feedstock_ctx.package_name + " v" + feedstock_ctx.attrs["new_version"]
+        # TODO: turn False to True when we default to automerge
+        if feedstock_ctx.attrs.get('conda-forge.yml', {}).get('bot', {}).get('automerge', False):
+            add_slug = "[bot-automerge] "
+        else:
+            add_slug = ""
+        
+        return (
+            add_slug    
+            + feedstock_ctx.package_name
+            + " v"
+            + feedstock_ctx.attrs["new_version"]
+        )
 
     def remote_branch(self, feedstock_ctx: FeedstockContext) -> str:
         assert isinstance(feedstock_ctx.attrs["new_version"], str)
