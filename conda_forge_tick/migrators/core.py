@@ -721,8 +721,7 @@ class Version(Migrator):
 
     def pr_title(self, feedstock_ctx: FeedstockContext) -> str:
         assert isinstance(feedstock_ctx.attrs["new_version"], str)
-        # TODO remove this later when we want to automerge everything
-         # TODO: turn False to True when we default to automerge
+        # TODO: turn False to True when we default to automerge
         if feedstock_ctx.attrs.get('conda-forge.yml', {}).get('bot', {}).get('automerge', False):
             add_slug = "[bot-automerge] "
         else:
