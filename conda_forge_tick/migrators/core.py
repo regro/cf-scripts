@@ -135,7 +135,7 @@ class LicenseMigrator(MiniMigrator):
             .get("about", {})
             .get("license_family", "")
             .lower()
-            or license.lower().partition("-")[0].partition("v")[0]
+            or license.lower().partition("-")[0].partition("v")[0].partition(" ")[0]
         )
         if license_fam in NEEDED_FAMILIES and "license_file" not in attrs.get(
             "meta_yaml", {},
