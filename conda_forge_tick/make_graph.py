@@ -271,6 +271,9 @@ def _update_pr(update_function, dry_run, gx):
                     succeeded_refresh += 1
                     with gx.nodes[name]["payload"] as node:
                         node["PRed"][i]["PR"].update(**res)
+                        # XXX: This is a bit of a hack
+                        if update_function == close_out_labels:
+                            node['PRed'][i]['bot_rerun'] = time.time()
                     logger.info(f"Updated json for {name}: {res['id']}")
             except github3.GitHubError as e:
                 logger.error(f"GITHUB ERROR ON FEEDSTOCK: {name}")
