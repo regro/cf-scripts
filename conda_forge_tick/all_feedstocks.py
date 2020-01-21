@@ -32,6 +32,9 @@ def get_all_feedstocks_from_github() -> List[str]:
             )
         logger.warning(" ".join(msg))
         raise
+    except: github3.exceptions.ConnectionError as e:
+        print(e)
+        pass
     return names
 
 
