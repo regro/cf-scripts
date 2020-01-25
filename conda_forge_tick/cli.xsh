@@ -15,7 +15,8 @@ def deploy(args):
     if args.dry_run:
         print("(dry run) deploying")
         return
-    for cmd in [['git', 'add', 'pr_json/*'],
+    for cmd in [['git', 'pull', '-s', 'recursive', '-X', 'theirs'],
+                ['git', 'add', 'pr_json/*'],
                 ['git', 'add', 'status/*'],
                 ['git', 'add', 'node_attrs/*'],
                 ['git', 'commit', '-am', f'"Update Graph {$CIRCLE_BUILD_URL}"']]:
