@@ -515,7 +515,7 @@ class Version(Migrator):
                 for u in url:
                     u = u.strip("'\"")
                     try:
-                        hash_ = hash_url(u, hash_type)
+                        hash_ = hash_url(u, hash_type, quiet=True)
                         break
                     except urllib.error.HTTPError:
                         continue
