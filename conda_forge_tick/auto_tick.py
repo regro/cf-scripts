@@ -556,7 +556,7 @@ def migrator_status(
                 fillcolor=fc,
                 style="filled",
                 fontcolor=fntc,
-                URL=(pr_json or {}).get("PR", {}).get("html_url", "")
+                URL=(pr_json or {}).get("PR", {}).get("html_url", ""),
             )
 
         # additional metadata for reporting
