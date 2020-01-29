@@ -502,7 +502,7 @@ def migrator_status(
     import graphviz
     from streamz.graph import _clean_text
 
-    gv = graphviz.Digraph()
+    gv = graphviz.Digraph(graph_attr={"packmode": "node"})
     for node, node_attrs in gx2.nodes.items():
         attrs = node_attrs["payload"]
         # remove archived from status
