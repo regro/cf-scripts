@@ -2,6 +2,10 @@ from .auto_tick import initialize_migrators, migrator_status
 import os
 import json
 import networkx as nx
+import subprocess
+
+from graphviz import Source
+import tempfile
 
 from typing import Any
 
@@ -24,9 +28,15 @@ def main(args: Any = None) -> None:
             status, build_order, gv = migrator_status(migrator, mctx.graph)
             with open(os.path.join(f"./status/{migrator_name}.json"), "w") as fo:
                 json.dump(status, fo, indent=2)
-            d = gv.pipe("svg")
+
+            d = gv.pipe("dot")
+            with tempfile.NamedTemporaryFile() as ntf, open(f"{ntf.name}.dot", "w") as f:
+                f.write(d.decode('utf-8'))
+                # make the graph a bit more compact
+                d = Source(subprocess.check_output(['unflatten', '-f', '-l', '5', '-c', '10', f"{ntf.name}.dot"])).pipe('svg')
             with open(os.path.join(f"./status/{migrator_name}.svg"), "wb") as fb:
                 fb.write(d)
+
     with open("./status/total_status.json", "w") as f:
         json.dump(total_status, f, sort_keys=True)
     l = [
