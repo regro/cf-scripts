@@ -16,3 +16,6 @@
   can be moved to the bot.
 - We still need to be planning for ways to quickly back out bad migrations or merges. A decentralized
   bot might pose issues in these cases.
+- Moving to `dynamodb` will help solve isses around multiple process interacting with the graph.
+- As we distribute things, I think we can move all work to github actions and have the autotick bot do
+  only tasks that relate to building the graph and planning migrations.
