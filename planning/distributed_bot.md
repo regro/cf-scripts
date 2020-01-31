@@ -19,3 +19,7 @@
 - Moving to `dynamodb` will help solve isses around multiple process interacting with the graph.
 - As we distribute things, I think we can move all work to github actions and have the autotick bot do
   only tasks that relate to building the graph and planning migrations.
+- The autotick bot could make migration issues with a unique hash in them that matches a key in the 
+  database. Then the github actions could go pull that key when the issue is made to see what it needs 
+  to do. This will help with API calls etc and enable the actions to do more complicated solves. The actions 
+  could also report data from their solves back to the main database for further use in the migration.
