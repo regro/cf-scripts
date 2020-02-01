@@ -61,7 +61,13 @@ class ArchRebuild(GraphMigrator):
                 or (node.startswith("m2-"))
                 or (node.startswith("m2w64-"))
                 or (node in self.ignored_packages)
-                or (self.graph.nodes[node].get('payload', {}).get('meta_yaml', {}).get('build', {}).get('noarch'))
+                or (
+                    self.graph.nodes[node]
+                    .get("payload", {})
+                    .get("meta_yaml", {})
+                    .get("build", {})
+                    .get("noarch")
+                )
             ):
                 pluck(self.graph, node)
         self.graph.remove_edges_from(nx.selfloop_edges(self.graph))
