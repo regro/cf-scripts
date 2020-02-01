@@ -136,7 +136,6 @@ def populate_feedstock_attributes(
     for k in list(requirements_dict.keys()):
         requirements_dict[k] = set(v for v in requirements_dict[k] if v)
 
-
     sub_graph["total_requirements"] = dict(requirements_dict)
     sub_graph["requirements"] = {
         k: {pin_sep_pat.split(x)[0].lower() for x in v}
@@ -277,7 +276,7 @@ def make_graph(names: List[str], gx: Optional[nx.DiGraph] = None) -> nx.DiGraph:
 
             # handle strong run exports
             overlap = deps & strong_exports
-            requirements = attrs.get('requirements')
+            requirements = attrs.get("requirements")
             if requirements:
                 requirements["host"].update(overlap)
                 requirements["run"].update(overlap)
