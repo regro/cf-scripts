@@ -401,7 +401,6 @@ def dump_graph_dynamo(
             item = {"node_id": node}
             if preds:
                 item["predecessors"] = preds
-            print(f"{item=}")
             batch.put_item(Item=item)
 
 
