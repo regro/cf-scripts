@@ -17,6 +17,7 @@ from concurrent.futures import (
 
 import github3
 import jinja2
+import boto3
 
 import networkx as nx
 
@@ -375,13 +376,34 @@ def load(
     return json.load(fp, object_hook=object_hook, **kwargs)
 
 
-def dump_graph(gx: nx.DiGraph, filename: str = "graph.json") -> None:
+def dump_graph_json(gx: nx.DiGraph, filename: str = "graph.json") -> None:
     nld = nx.node_link_data(gx)
     links = nld["links"]
     links2 = sorted(links, key=lambda x: f'{x["source"]}{x["target"]}')
     nld["links"] = links2
     with open(filename, "w") as f:
         dump(nld, f)
+
+
+def dump_graph_dynamo(
+    gx: nx.DiGraph, tablename: str = "graph", region: str = "us-east-2"
+) -> None:
+    ddb = boto3.resource("dynamodb", region=region)
+    table = ddb.Table(tablename)
+    for node in gx.nodes:
+        table.put_item(
+            Item={"node_id": node, "predecessors": list(gx.predecessors(node))}
+        )
+
+
+def dump_graph(
+    gx: nx.DiGraph,
+    filename: str = "graph.json",
+    tablename: str = "graph",
+    region: str = "us-east-2",
+) -> None:
+    dump_graph_json(gx, filename)
+    dump_graph_dynamo(gx, tablename, region)
 
 
 def load_graph(filename: str = "graph.json") -> nx.DiGraph:

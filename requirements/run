@@ -19,3 +19,4 @@ python-graphviz
 streamz
 backoff
 attrs
+boto3
