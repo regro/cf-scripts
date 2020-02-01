@@ -322,7 +322,7 @@ def add_rebuild_migration_yaml(
         requirements = attrs["requirements"]
         bh = requirements["host"] or requirements["build"]
         criteria = bh & set(package_names) and (
-            "noarch" not in attrs.get('meta_yaml', {}).get("build", {})
+            "noarch" not in attrs.get("meta_yaml", {}).get("build", {})
         )
         # get host/build, run and test and launder them through outputs
         # this should fix outputs related issues (eg gdal)
