@@ -20,3 +20,4 @@ streamz
 backoff
 attrs
 boto3
+tqdm

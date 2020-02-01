@@ -18,6 +18,7 @@ from concurrent.futures import (
 import github3
 import jinja2
 import boto3
+import tqdm
 
 import networkx as nx
 
@@ -388,12 +389,15 @@ def dump_graph_json(gx: nx.DiGraph, filename: str = "graph.json") -> None:
 def dump_graph_dynamo(
     gx: nx.DiGraph, tablename: str = "graph", region: str = "us-east-2"
 ) -> None:
-    ddb = boto3.resource("dynamodb", region=region)
+    ddb = boto3.resource("dynamodb", region_name=region)
     table = ddb.Table(tablename)
-    for node in gx.nodes:
-        table.put_item(
-            Item={"node_id": node, "predecessors": list(gx.predecessors(node))}
-        )
+    print(f"DynamoDB dump to {graph} in {region}")
+    for node in tqdm.tqdm(gx.nodes):
+        preds = sorted(gx.predecessors(node))
+        item={"node_id": node}
+        if preds:
+            item["predecessors"] = preds
+        table.update_item(Item=item)
 
 
 def dump_graph(
