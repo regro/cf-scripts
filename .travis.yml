@@ -36,7 +36,6 @@ script:
   - git clone --depth 1 https://github.com/regro/cf-graph-countyfair
   - git clone --depth 1 https://github.com/conda-forge/conda-forge-pinning-feedstock
   - cd cf-graph-countyfair
-  - conda-forge-tick --run 1
   - python -m conda_forge_tick.test_status
   - set -e
   - cd ..
