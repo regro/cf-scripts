@@ -319,8 +319,10 @@ def add_rebuild_migration_yaml(
 
     for node, node_attrs in gx.nodes.items():
         attrs: "AttrsTypedDict" = node_attrs["payload"]
-        requirements = attrs["requirements"]
-        bh = requirements["host"] or requirements["build"]
+        requirements = attrs.get("requirements", {})
+        host = requirements.get("host", set())
+        build = requirements.get("build", set())
+        bh = host or build
         criteria = bh & set(package_names) and (
             "noarch" not in attrs.get("meta_yaml", {}).get("build", {})
         )
@@ -328,10 +330,10 @@ def add_rebuild_migration_yaml(
         # this should fix outputs related issues (eg gdal)
         rq = set(
             map(
-                lambda x: gx["outputs_lut"].get(x, x),
-                (requirements["host"] or requirements["build"])
-                | requirements["run"]
-                | requirements["test"],
+                lambda x: gx.graph["outputs_lut"].get(x, x),
+                (host or build)
+                | requirements.get("run", set())
+                | requirements.get("test", set()),
             )
         )
 

@@ -6,6 +6,7 @@ import os
 import time
 import random
 import builtins
+from collections import defaultdict
 from concurrent.futures import as_completed, Executor
 from copy import deepcopy
 import typing
@@ -20,7 +21,7 @@ import yaml
 from xonsh.lib.collections import ChainDB, _convert_to_dict
 from .xonsh_utils import env
 
-from conda_forge_tick.utils import github_client, load
+from conda_forge_tick.utils import github_client, load, as_iterable
 from .all_feedstocks import get_all_feedstocks
 from .utils import (
     parse_meta_yaml,
@@ -117,7 +118,7 @@ def populate_feedstock_attributes(
     sub_graph["strong_exports"] = False
     # TODO: make certain to remove None
     requirements_dict = defaultdict(set)
-    for block in [meta_yaml] + output["meta_yaml"].get("outputs", []) or []:
+    for block in [meta_yaml] + meta_yaml.get("outputs", []) or []:
         req: "RequirementsTypedDict" = block.get("requirements", {}) or {}
         if isinstance(req, list):
             requirements_dict["run"].update(set(req))
@@ -127,10 +128,14 @@ def populate_feedstock_attributes(
                 list(as_iterable(req.get(section, []) or []))
             )
         test: "TestTypedDict" = block.get("test", {})
-        req["test"].update(test.get("requirements"))
-        req["test"].update(test.get("requires"))
-        if block.get("build", {}).get("run_exports", {}).get("strong"):
+        requirements_dict["test"].update(test.get("requirements", []) or [])
+        requirements_dict["test"].update(test.get("requires", []) or [])
+        run_exports = (block.get("build", {}) or {}).get("run_exports", {})
+        if isinstance(run_exports, dict) and run_exports.get("strong"):
             sub_graph["strong_exports"] = True
+    for k in list(requirements_dict.keys()):
+        requirements_dict[k] = set(v for v in requirements_dict[k] if v)
+
 
     sub_graph["total_requirements"] = dict(requirements_dict)
     sub_graph["requirements"] = {
@@ -253,7 +258,7 @@ def make_graph(names: List[str], gx: Optional[nx.DiGraph] = None) -> nx.DiGraph:
         for k in node.get("payload", {}).get("outputs_names", [])
     }
     # add this as an attr so we can use later
-    gx["outputs_lut"] = outputs_lut
+    gx.graph["outputs_lut"] = outputs_lut
     strong_exports = {
         node_name
         for node_name, node in gx.nodes.items()
@@ -266,23 +271,25 @@ def make_graph(names: List[str], gx: Optional[nx.DiGraph] = None) -> nx.DiGraph:
             deps = set(
                 map(
                     lambda x: outputs_lut.get(x, x),
-                    set().union(*attrs["requirements"].values()),
+                    set().union(*attrs.get("requirements", {}).values()),
                 )
             )
 
             # handle strong run exports
             overlap = deps & strong_exports
-            attrs["requirements"]["host"].update(overlap)
-            attrs["requirements"]["run"].update(overlap)
+            requirements = attrs.get('requirements')
+            if requirements:
+                requirements["host"].update(overlap)
+                requirements["run"].update(overlap)
 
-            for dep in deps:
-                if dep not in gx.nodes:
-                    # for packages which aren't feedstocks and aren't outputs
-                    # usually these are stubs
-                    lzj = LazyJson(f"node_attrs/{dep}.json")
-                    lzj.update(feedstock_name=dep, bad=False, archived=True)
-                    gx.add_node(dep, payload=lzj)
-                gx.add_edge(dep, node)
+        for dep in deps:
+            if dep not in gx.nodes:
+                # for packages which aren't feedstocks and aren't outputs
+                # usually these are stubs
+                lzj = LazyJson(f"node_attrs/{dep}.json")
+                lzj.update(feedstock_name=dep, bad=False, archived=True)
+                gx.add_node(dep, payload=lzj)
+            gx.add_edge(dep, node)
     logger.info("new nodes and edges infered")
     return gx
 
