@@ -303,16 +303,6 @@ def add_arch_migrate(migrators: MutableSequence[Migrator], gx: nx.DiGraph) -> No
     """
     total_graph = copy.deepcopy(gx)
 
-    for node, node_attrs in gx.nodes.items():
-        meta_yaml = node_attrs["payload"].get("meta_yaml", {}) or {}
-        # no need to consider noarch packages for this rebuild
-        # since we aren't building the compilers themselves, remove them
-        if meta_yaml.get("build", {}).get("noarch") or node.endswith("_compiler_stub"):
-            pluck(total_graph, node)
-
-    # post plucking we can have several strange cases, lets remove all selfloops
-    total_graph.remove_edges_from(nx.selfloop_edges(total_graph))
-
     migrators.append(
         ArchRebuild(
             graph=total_graph, pr_limit=5, name="aarch64 and ppc64le addition",

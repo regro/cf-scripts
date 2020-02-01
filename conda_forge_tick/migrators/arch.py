@@ -7,7 +7,7 @@ from ruamel.yaml import safe_load, safe_dump
 
 from conda_forge_tick.contexts import FeedstockContext
 from conda_forge_tick.migrators.core import _sanitized_muids, GraphMigrator
-from conda_forge_tick.utils import frozen_to_json_friendly
+from conda_forge_tick.utils import frozen_to_json_friendly, pluck
 from ..xonsh_utils import indir
 
 
@@ -61,8 +61,10 @@ class ArchRebuild(GraphMigrator):
                 or (node.startswith("m2-"))
                 or (node.startswith("m2w64-"))
                 or (node in self.ignored_packages)
+                or (self.graph.nodes[node].get('payload', {}).get('meta_yaml', {}).get('build', {}).get('noarch'))
             ):
-                self.graph.remove_node(node)
+                pluck(self.graph, node)
+        self.graph.remove_edges_from(nx.selfloop_edges(self.graph))
 
     def filter(self, attrs: "AttrsTypedDict", not_bad_str_start: str = "") -> bool:
         if super().filter(attrs):
