@@ -196,6 +196,10 @@ def run(
             os.path.join(migrator.ctx.session.prjson_dir, str(pr_json["id"]) + ".json"),
         )
         ljpr.update(**pr_json)
+
+        from .dynamo_models import PRJson
+
+        PRJson.dump(pr_json)
     # If we've gotten this far then the node is good
     feedstock_ctx.attrs["bad"] = False
     logger.info("Removing feedstock dir")
