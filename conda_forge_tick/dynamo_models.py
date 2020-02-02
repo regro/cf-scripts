@@ -10,19 +10,21 @@ from pynamodb.attributes import (
 class PRJson(Model):
     class Meta:
         table_name = "pr_json"
+        region = 'us-east-2'
 
     id = NumberAttribute(hash_key=True)
     state = UnicodeAttribute()
-    ETag = UnicodeAttribute()
-    merged_at = UnicodeAttribute()
+    ETag = UnicodeAttribute(null=True)
+    merged_at = UnicodeAttribute(null=True)
 
     @classmethod
     def dump(cls, pr_json: dict):
         """Dumps a PR JSON object to DynamoDB"""
-        attrs = dict(id=pr_json["id"], state=pr_json["state"], merged_at=pr_json["merged_at"],)
+        attrs = dict(id=pr_json["id"], state=pr_json["state"],
+                merged_at=pr_json.get("merged_at"),
+                ETag=pr_json.get("ETag"),
+                )
         if not isinstance(attrs["id"], int):
             attrs["id"] = -uuid.UUID(attrs["id"]).int
-        if "ETag" in pr_json:
-            attrs["ETag"] = pr_json["ETag"]
         item = cls(**attrs)
         item.save()
