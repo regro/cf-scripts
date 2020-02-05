@@ -39,7 +39,7 @@ Automerging PRs
 PRs from the regro-cf-autotick-bot are automatically merged when all of the
 following conditions are met
 
-1. all PR statuses must be passing, except maybe the linter
+1. all PR statuses must be passing, there must be at least one passing status, except maybe the linter
    (which is not fully reliable due to various bugs that need fixing)
 2. the PR must be from the regro-cf-autotick-bot user
 3. the feedstock must have ``bot: automerge: True`` set in the ``conda-forge.yml``
