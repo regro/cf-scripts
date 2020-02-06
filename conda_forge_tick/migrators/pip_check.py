@@ -29,17 +29,7 @@ def _adjust_test_dict(test):
 class PipCheckMigrator(MiniMigrator):
     def filter(self, attrs: "AttrsTypedDict", not_bad_str_start: str = "") -> bool:
         """run pip check if we see python in any host sections"""
-        host_reqs_list = (
-            attrs.get("meta_yaml", {}).get("requirements", {}).get("host", [])
-        )
-        _, host_reqs = _has_python_in_host(host_reqs_list)
-
-        if "outputs" in attrs.get("meta_yaml", {}):
-            for output in attrs.get("meta_yaml", {})["outputs"]:
-                _host_reqs_list = output.get("requirements", {}).get("host", [])
-                _, _host_reqs = _has_python_in_host(_host_reqs_list)
-                host_reqs |= _host_reqs
-        return not bool(host_reqs & set(["python"]))
+        return "python" not in attrs['requirements']['host']
 
     def migrate(self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any) -> None:
         with indir(recipe_dir):
