@@ -1,4 +1,6 @@
 import os
+import pytest
+
 from conda_forge_tick.migrators import (
     Version,
     PipCheckMigrator,
@@ -12,12 +14,15 @@ VERSION_PC = Version(piggy_back_migrations=[PC])
 YAML_PATH = os.path.join(os.path.dirname(__file__), 'test_yaml')
 
 
-def test_version_pipcheck_simple(tmpdir):
-    with open(os.path.join(YAML_PATH, 'version_pipcheck_simple.yaml'), 'r') as fp:
+@pytest.mark.parametrize(
+    'case',
+    ['simple', 'selector', 'selector_partial'])
+def test_version_pipcheck(case, tmpdir):
+    with open(os.path.join(YAML_PATH, 'version_pipcheck_%s.yaml' % case), 'r') as fp:
         in_yaml = fp.read()
 
     with open(
-            os.path.join(YAML_PATH, 'version_pipcheck_simple_correct.yaml'),
+            os.path.join(YAML_PATH, 'version_pipcheck_%s_correct.yaml' % case),
             'r',
     ) as fp:
         out_yaml = fp.read()

@@ -1,6 +1,8 @@
+import re
 import typing
 from typing import Any
 from ruamel.yaml import YAML
+import ruamel.yaml
 
 from conda_forge_tick.xonsh_utils import indir
 from conda_forge_tick.migrators.core import MiniMigrator
@@ -8,51 +10,182 @@ from conda_forge_tick.migrators.core import MiniMigrator
 if typing.TYPE_CHECKING:
     from ..migrators_types import AttrsTypedDict
 
+# matches lines like 'key: val  # [blah or blad]'
+# giving back key, val, "blah or blad" in the groups
+SELECTOR_RE = re.compile(r'^(\s*)(\S*):\s*(\S*)\s*#\s*\[(.*)\]')
+
+
+def _munge_key(key, selector):
+    return (
+        key
+        + '__conda-selector_'
+        + (
+            selector
+            .replace(' ', '_spc_')
+            .replace('(', '_lparens_')
+            .replace(')', '_rparens_')
+            .replace('<=', '_le_')
+            .replace('>=', '_ge_')
+            .replace('<', '_lt_')
+            .replace('>', '_gt_')
+            .replace('==', '_eq2_')
+            .replace('=', '_eq1_')
+            .replace('&&', '_andsym2_')
+            .replace('||', '_orsym2_')
+            .replace('&', '_andsym1_')
+            .replace('|', '_orsym1_')
+        )
+    )
+
+
+def _munge_line(line, mapping, groups):
+    m = SELECTOR_RE.match(line)
+    if m:
+        spc, key, val, selector = m.group(1, 2, 3, 4)
+        new_key = _munge_key(key, selector)
+        groups[new_key] = (spc, key, val, selector)
+        mapping[(spc, new_key, val, selector)] = line
+        return line.replace(key + ':', new_key + ':')
+    else:
+        return line
+
+
+def _unmunge_line(line, mapping):
+    m = SELECTOR_RE.match(line)
+    if m:
+        tup = m.group(1, 2, 3, 4)
+        return mapping.get(tup, line)
+    else:
+        return line
+
 
 def _has_python_in_host(host):
     host_set = {r.split(" ")[0] for r in host}
     return bool(host_set & set(["python"]))
 
 
-def _adjust_test_dict(test):
-    if 'requires' in test:
-        test['requires'].append('pip')
-    else:
-        test['requires'] = ['pip']
+def _gen_keys_selector(meta, base):
+    for key in meta.keys():
+        if key == base or key.startswith(base + '__conda-selector'):
+            yield key, meta[key]
 
-    if 'commands' in test:
-        test['commands'].append('{{ PYTHON }} -m pip check')
+
+def _has_key_selector(meta, base):
+    return len([val for val in _gen_keys_selector(meta, base)]) > 0
+
+
+def _adjust_test_dict(meta, key, mapping, groups, parent_group=None):
+    if _has_key_selector(meta[key], 'requires'):
+        for _key, val in _gen_keys_selector(meta[key], 'requires'):
+            val.append('pip')
+            if _key in groups:
+                val.yaml_add_eol_comment(
+                    '# [%s]' % groups[_key][3],
+                    len(val) - 1,
+                    column=2,
+                )
+    elif _has_key_selector(meta[key], 'requirements'):
+        for _key, val in _gen_keys_selector(meta[key], 'requirements'):
+            val.append('pip')
+            if _key in groups:
+                val.yaml_add_eol_comment(
+                    '# [%s]' % groups[_key][3],
+                    len(val) - 1,
+                    column=80,
+                )
     else:
-        test['commands'] = ['{{ PYTHON }} -m pip check']
+        new_seq = ruamel.yaml.comments.CommentedSeq()
+        new_seq.append('pip')
+        meta[key]['requires'] = new_seq
+        if parent_group is not None:
+            new_seq.yaml_add_eol_comment(
+                '# [%s]' % parent_group[3],
+                0,
+                column=80,
+            )
+            meta[key].yaml_add_eol_comment(
+                '# [%s]' % parent_group[3],
+                'requires',
+                column=80,
+            )
+
+    if _has_key_selector(meta[key], 'commands'):
+        for _key, val in _gen_keys_selector(meta[key], 'commands'):
+            val.append('{{ PYTHON }} -m pip check')
+            if _key in groups:
+                val.yaml_add_eol_comment(
+                    '# [%s]' % groups[_key][3],
+                    len(val) - 1,
+                    column=80,
+                )
+    else:
+        new_seq = ruamel.yaml.comments.CommentedSeq()
+        new_seq.append('{{ PYTHON }} -m pip check')
+        meta[key]['commands'] = new_seq
+        if parent_group is not None:
+            new_seq.yaml_add_eol_comment(
+                '# [%s]' % parent_group[3],
+                0,
+                column=80,
+            )
+            meta[key].yaml_add_eol_comment(
+                '# [%s]' % parent_group[3],
+                'commands',
+                column=80,
+            )
 
 
 class PipCheckMigrator(MiniMigrator):
     def filter(self, attrs: "AttrsTypedDict", not_bad_str_start: str = "") -> bool:
         """run pip check if we see python in any host sections"""
+        print(attrs['requirements']['host'])
         return "python" not in attrs['requirements'].get('host', set())
 
     def migrate(self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any) -> None:
         with indir(recipe_dir):
+            mapping = {}
+            groups = {}
+            with open('meta.yaml', 'r') as fp:
+                lines = []
+                for line in fp.readlines():
+                    lines.append(_munge_line(line, mapping, groups))
+
             yaml = YAML(typ='jinja2')
             yaml.indent(mapping=2, sequence=4, offset=2)
-            yaml.allow_duplicate_keys = True
 
-            with open('meta.yaml', 'r') as fp:
-                meta = yaml.load(fp)
+            meta = yaml.load(''.join(lines))
 
-            if "outputs" not in meta:
-                _adjust_test_dict(meta['test'])
-            else:
-                host_req = meta.get('requirements', {}).get('host', [])
-                has_python = _has_python_in_host(host_req)
-                if 'test' in meta and (has_python or 'imports' in meta['test']):
-                    _adjust_test_dict(meta['test'])
-
-                for output in meta['outputs']:
-                    host_req = output.get('requirements', {}).get('host', [])
-                    has_python = _has_python_in_host(host_req)
-                    if has_python and 'test' in output:
-                        _adjust_test_dict(output['test'])
+            if not _has_key_selector(meta, 'outputs'):
+                for key, _ in _gen_keys_selector(meta, 'test'):
+                    _adjust_test_dict(
+                        meta,
+                        key,
+                        mapping,
+                        groups,
+                        parent_group=groups.get(key, None),
+                    )
+            # FIXME process outputs here w/ new scheme
+            # else:
+            #     host_req = meta.get('requirements', {}).get('host', [])
+            #     has_python = _has_python_in_host(host_req)
+            #     if 'test' in meta and (has_python or 'imports' in meta['test']):
+            #         _adjust_test_dict(meta['test'])
+            #
+            #     for output in meta['outputs']:
+            #         host_req = output.get('requirements', {}).get('host', [])
+            #         has_python = _has_python_in_host(host_req)
+            #         if has_python and 'test' in output:
+            #             _adjust_test_dict(output['test'])
 
             with open('meta.yaml', 'w') as fp:
                 yaml.dump(meta, fp)
+
+            if mapping:
+                with open('meta.yaml', 'r') as fp:
+                    lines = []
+                    for line in fp.readlines():
+                        lines.append(_unmunge_line(line, mapping))
+
+                with open('meta.yaml', 'w') as fp:
+                    for line in lines:
+                        fp.write(line)
