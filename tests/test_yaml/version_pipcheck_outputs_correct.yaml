@@ -33,6 +33,10 @@ test:
     - test_pycamb.py
     - run_test.sh  # [win]
 
+  requires:
+    - pip
+  commands:
+    - '{{ PYTHON }} -m pip check'
 outputs:
   - name: camb
     script: install-pycamb.sh  # [not win]

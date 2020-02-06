@@ -24,7 +24,9 @@ from conda_forge_tick.migrators.disabled.legacy import (
     Rebuild,
 )
 
-from conda_forge_tick.utils import parse_meta_yaml, frozen_to_json_friendly
+from conda_forge_tick.utils import parse_meta_yaml, frozen_to_json_friendly, LazyJson
+from conda_forge_tick.make_graph import populate_feedstock_attributes
+
 
 sample_yaml_rebuild = """
 {% set version = "1.3.2" %}
@@ -1131,7 +1133,7 @@ requirements:
 test:
   commands:
     - $R -e "library('stabledist')"  # [not win]
-    - "\"%R%\" -e \"library('stabledist')\""  # [win]
+    - "\\"%R%\\" -e \\"library('stabledist')\\""  # [win]
 """
 
 updated_r_base = """
@@ -1172,7 +1174,7 @@ requirements:
 test:
   commands:
     - $R -e "library('stabledist')"  # [not win]
-    - "\"%R%\" -e \"library('stabledist')\""  # [win]
+    - "\\"%R%\\" -e \\"library('stabledist')\\""  # [win]
 """
 
 
@@ -1214,7 +1216,7 @@ requirements:
 test:
   commands:
     - $R -e "library('stabledist')"  # [not win]
-    - "\"%R%\" -e \"library('stabledist')\""  # [win]
+    - "\\"%R%\\" -e \\"library('stabledist')\\""  # [win]
 """
 
 updated_r_base2 = """
@@ -1255,7 +1257,7 @@ requirements:
 test:
   commands:
     - $R -e "library('stabledist')"  # [not win]
-    - "\"%R%\" -e \"library('stabledist')\""  # [win]
+    - "\\"%R%\\" -e \\"library('stabledist')\\""  # [win]
 """
 
 # Test that filepaths to various licenses are updated for a noarch recipe
@@ -1296,7 +1298,7 @@ requirements:
 test:
   commands:
     - $R -e "library('stabledist')"  # [not win]
-    - "\"%R%\" -e \"library('stabledist')\""  # [win]
+    - "\\"%R%\\" -e \\"library('stabledist')\\""  # [win]
 
 about:
   license_family: GPL3
@@ -1356,7 +1358,7 @@ requirements:
 test:
   commands:
     - $R -e "library('stabledist')"  # [not win]
-    - "\"%R%\" -e \"library('stabledist')\""  # [win]
+    - "\\"%R%\\" -e \\"library('stabledist')\\""  # [win]
 
 about:
   license_family: GPL3
@@ -1413,7 +1415,7 @@ requirements:
 test:
   commands:
     - $R -e "library('stabledist')"  # [not win]
-    - "\"%R%\" -e \"library('stabledist')\""  # [win]
+    - "\\"%R%\\" -e \\"library('stabledist')\\""  # [win]
 
 about:
   license_family: GPL3
@@ -1474,7 +1476,7 @@ requirements:
 test:
   commands:
     - $R -e "library('stabledist')"  # [not win]
-    - "\"%R%\" -e \"library('stabledist')\""  # [win]
+    - "\\"%R%\\" -e \\"library('stabledist')\\""  # [win]
 
 about:
   license_family: GPL3
@@ -2286,20 +2288,25 @@ def run_test_migration(
     mr_out.update(bot_rerun=False)
     with open(os.path.join(tmpdir, "meta.yaml"), "w") as f:
         f.write(inp)
+
     # Load the meta.yaml (this is done in the graph)
     try:
-        pmy = parse_meta_yaml(inp)
+        name = parse_meta_yaml(inp)['package']['name']
     except Exception:
-        pmy = {}
-    if pmy:
-        pmy["version"] = pmy["package"]["version"]
-        pmy["req"] = set()
-        for k in ["build", "host", "run"]:
-            pmy["req"] |= set(pmy.get("requirements", {}).get(k, set()))
-        try:
-            pmy["meta_yaml"] = parse_meta_yaml(inp)
-        except Exception:
-            pmy["meta_yaml"] = {}
+        name = 'blah'
+
+    pmy = populate_feedstock_attributes(
+        name,
+        {},
+        inp,
+        "{}",
+    )
+
+    # these are here for legacy migrators
+    pmy["version"] = pmy['meta_yaml']["package"]["version"]
+    pmy["req"] = set()
+    for k in ["build", "host", "run"]:
+        pmy["req"] |= set(pmy['meta_yaml'].get("requirements", {}).get(k, set()))
     pmy["raw_meta_yaml"] = inp
     pmy.update(kwargs)
 

@@ -11,7 +11,7 @@ if typing.TYPE_CHECKING:
 
 def _has_python_in_host(host):
     host_set = {r.split(" ")[0] for r in host}
-    return bool(host_set & set(["python"])), host_set
+    return bool(host_set & set(["python"]))
 
 
 def _adjust_test_dict(test):
@@ -29,7 +29,9 @@ def _adjust_test_dict(test):
 class PipCheckMigrator(MiniMigrator):
     def filter(self, attrs: "AttrsTypedDict", not_bad_str_start: str = "") -> bool:
         """run pip check if we see python in any host sections"""
-        return "python" not in attrs['requirements']['host']
+        filter_top_level = "python" not in attrs['requirements'].get('host', set())
+        # FIXME - check outputs too
+        return filter_top_level
 
     def migrate(self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any) -> None:
         with indir(recipe_dir):
@@ -44,13 +46,13 @@ class PipCheckMigrator(MiniMigrator):
                 _adjust_test_dict(meta['test'])
             else:
                 host_req = meta.get('requirements', {}).get('host', [])
-                has_python, _ = _has_python_in_host(host_req)
-                if has_python and 'test' in meta:
+                has_python = _has_python_in_host(host_req)
+                if 'test' in meta and (has_python or 'imports' in meta['test']):
                     _adjust_test_dict(meta['test'])
 
                 for output in meta['outputs']:
                     host_req = output.get('requirements', {}).get('host', [])
-                    has_python, _ = _has_python_in_host(host_req)
+                    has_python = _has_python_in_host(host_req)
                     if has_python and 'test' in output:
                         _adjust_test_dict(output['test'])
 
