@@ -29,9 +29,7 @@ def _adjust_test_dict(test):
 class PipCheckMigrator(MiniMigrator):
     def filter(self, attrs: "AttrsTypedDict", not_bad_str_start: str = "") -> bool:
         """run pip check if we see python in any host sections"""
-        filter_top_level = "python" not in attrs['requirements'].get('host', set())
-        # FIXME - check outputs too
-        return filter_top_level
+        return "python" not in attrs['requirements'].get('host', set())
 
     def migrate(self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any) -> None:
         with indir(recipe_dir):
