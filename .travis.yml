@@ -25,6 +25,8 @@ install:
   - export GIT_FULL_HASH=`git rev-parse HEAD`
   - export CICLE_BUILD_URL="https://www.youtube.com/watch?v=R7qT-C-0ajI"
   - conda install --file requirements/run --file requirements/test
+  # FIXME: conda package is broken
+  - python -m pip install --no-deps ruamel.yaml.jinja2
   - python -m pip install .
 
 
