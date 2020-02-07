@@ -65,7 +65,7 @@ if typing.TYPE_CHECKING:
 MIGRATORS: MutableSequence[Migrator] = [
     Version(
         pr_limit=30,
-        piggy_back_migrations=[PipMigrator(), LicenseMigrator(), PipCheckMigrator()],
+        piggy_back_migrations=[PipMigrator(), LicenseMigrator()],
     ),
 ]
 
@@ -357,7 +357,7 @@ def add_rebuild_migration_yaml(
         name=migration_name,
         top_level=top_level,
         cycles=cycles,
-        piggy_back_migrations=[PipMigrator(), LicenseMigrator(), PipCheckMigrator()],
+        piggy_back_migrations=[PipMigrator(), LicenseMigrator()],
         **config,
     )
     print(f"bump number is {migrator.bump_number}")
