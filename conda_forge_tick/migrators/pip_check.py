@@ -166,6 +166,7 @@ class PipCheckMigrator(MiniMigrator):
 
             yaml = YAML(typ='jinja2')
             yaml.indent(mapping=2, sequence=4, offset=2)
+            yaml.width = 120
 
             meta = yaml.load(''.join(lines))
 
