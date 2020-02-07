@@ -55,7 +55,7 @@ from conda_forge_tick.migrators import (
     Replacement,
     ArchRebuild,
     PipCheckMigrator,
-    MaxVerMigrator,
+    CondaForgeYAMLCleanup,
 )
 
 if typing.TYPE_CHECKING:
@@ -66,7 +66,7 @@ if typing.TYPE_CHECKING:
 MIGRATORS: MutableSequence[Migrator] = [
     Version(
         pr_limit=30,
-        piggy_back_migrations=[PipMigrator(), LicenseMigrator(), MaxVerMigrator()],
+        piggy_back_migrations=[PipMigrator(), LicenseMigrator(), CondaForgeYAMLCleanup()],
     ),
 ]
 
@@ -358,7 +358,7 @@ def add_rebuild_migration_yaml(
         name=migration_name,
         top_level=top_level,
         cycles=cycles,
-        piggy_back_migrations=[PipMigrator(), LicenseMigrator(), MaxVerMigrator()],
+        piggy_back_migrations=[PipMigrator(), LicenseMigrator(), CondaForgeYAMLCleanup()],
         **config,
     )
     print(f"bump number is {migrator.bump_number}")

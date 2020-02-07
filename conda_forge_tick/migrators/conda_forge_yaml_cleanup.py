@@ -10,13 +10,13 @@ if typing.TYPE_CHECKING:
     from ..migrators_types import AttrsTypedDict
 
 
-class MaxVerMigrator(MiniMigrator):
+class CondaForgeYAMLCleanup(MiniMigrator):
+    keys_to_remove = ['max_r_ver', 'max_py_ver', 'compiler_stack']
+
     def filter(self, attrs: "AttrsTypedDict", not_bad_str_start: str = "") -> bool:
         """only remove the keys if they are there"""
-        if (
-            'max_r_ver' in attrs.get("conda-forge.yml") or
-            'max_py_ver' in attrs.get("conda-forge.yml")
-        ):
+        cfy = attrs.get("conda-forge.yml")
+        if any(k in cfy for k in self.keys_to_remove):
             return False
         else:
             return True
@@ -30,10 +30,9 @@ class MaxVerMigrator(MiniMigrator):
             with open(cfg_path, 'r') as fp:
                 cfg = yaml.load(fp.read())
 
-            if 'max_r_ver' in cfg:
-                del cfg['max_r_ver']
-            if 'max_py_ver' in cfg:
-                del cfg['max_py_ver']
+            for k in self.keys_to_remove:
+                if k in cfg:
+                    del cfg[k]
 
             with open(cfg_path, 'w') as fp:
                 yaml.dump(cfg, fp)

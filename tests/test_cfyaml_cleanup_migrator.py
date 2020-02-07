@@ -4,37 +4,39 @@ from ruamel.yaml import YAML
 
 from conda_forge_tick.migrators import (
     Version,
-    MaxVerMigrator,
+    CondaForgeYAMLCleanup,
 )
 
 from test_migrators import run_test_migration
 
-VERSION_MV = Version(piggy_back_migrations=[MaxVerMigrator()])
+VERSION_CF = Version(piggy_back_migrations=[CondaForgeYAMLCleanup()])
 
 YAML_PATH = os.path.join(os.path.dirname(__file__), 'test_yaml')
 
 
 @pytest.mark.parametrize('cases', [
     tuple(),
-    ('r',),
-    ('py',),
-    ('r', 'py')
+    ('max_r_ver',),
+    ('max_py_ver',),
+    ('max_r_ver', 'max_py_ver'),
+    ('compiler_stack', 'max_r_ver'),
+    ('compiler_stack'),
 ])
-def test_version_maxver(cases, tmpdir):
+def test_version_cfyaml_cleanup(cases, tmpdir):
     yaml = YAML()
 
-    with open(os.path.join(YAML_PATH, 'version_maxver_simple.yaml'), 'r') as fp:
+    with open(os.path.join(YAML_PATH, 'version_cfyaml_cleanup_simple.yaml'), 'r') as fp:
         in_yaml = fp.read()
 
     with open(
-            os.path.join(YAML_PATH, 'version_maxver_simple_correct.yaml'),
+            os.path.join(YAML_PATH, 'version_cfyaml_cleanup_simple_correct.yaml'),
             'r',
     ) as fp:
         out_yaml = fp.read()
 
     cf_yml = {}
     for case in cases:
-        cf_yml['max_%s_ver' % case] = '10'
+        cf_yml[case] = '10'
     cf_yml['foo'] = 'bar'
 
     os.makedirs(os.path.join(tmpdir, 'recipe'), exist_ok=True)
@@ -43,7 +45,7 @@ def test_version_maxver(cases, tmpdir):
         yaml.dump(cf_yml, fp)
 
     run_test_migration(
-        m=VERSION_MV,
+        m=VERSION_CF,
         inp=in_yaml,
         output=out_yaml,
         kwargs={"new_version": "0.9"},
@@ -61,4 +63,5 @@ def test_version_maxver(cases, tmpdir):
 
     assert 'max_r_ver' not in new_cf_yml
     assert 'max_py_ver' not in new_cf_yml
+    assert 'compiler_stack' not in new_cf_yml
     assert cf_yml['foo'] == 'bar'
