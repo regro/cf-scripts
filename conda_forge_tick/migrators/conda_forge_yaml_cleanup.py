@@ -15,7 +15,7 @@ class CondaForgeYAMLCleanup(MiniMigrator):
 
     def filter(self, attrs: "AttrsTypedDict", not_bad_str_start: str = "") -> bool:
         """only remove the keys if they are there"""
-        cfy = attrs.get("conda-forge.yml")
+        cfy = attrs.get("conda-forge.yml", {})
         if any(k in cfy for k in self.keys_to_remove):
             return False
         else:
