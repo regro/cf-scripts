@@ -1,3 +1,4 @@
+{% set TEST_PYTHON = '${PYTHON}' %}
 {% set version = "0.9" %}
 package:
   name: viscm
@@ -9,6 +10,7 @@ build:
   number: 0
   noarch: python
   script: python -m pip install --no-deps --ignore-installed .
+  skip: True  # [win]
 requirements:
   host:
     - python
@@ -25,7 +27,7 @@ test:
   requires:
     - pip
   commands:
-    - '{{ PYTHON }} -m pip check'
+    - '{{ TEST_PYTHON }} -m pip check'
 about:
   home: https://github.com/bids/viscm
   license: MIT

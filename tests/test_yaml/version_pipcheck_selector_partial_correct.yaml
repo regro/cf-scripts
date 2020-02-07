@@ -1,3 +1,5 @@
+{% set TEST_PYTHON = '${PYTHON}' %}  # [not win]
+{% set TEST_PYTHON = '%PYTHON%' %}  # [win]
 {% set version = "0.9" %}
 package:
   name: viscm
@@ -29,7 +31,7 @@ test:
   commands:
     - echo '1'  # [not win]
     - echo '2'  # [win]
-    - '{{ PYTHON }} -m pip check'
+    - '{{ TEST_PYTHON }} -m pip check'
 about:
   home: https://github.com/bids/viscm
   license: MIT

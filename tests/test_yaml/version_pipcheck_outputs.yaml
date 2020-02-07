@@ -32,7 +32,10 @@ test:
     - params.ini
     - test_pycamb.py
     - run_test.sh  # [win]
-
+  commands:  # [not win]
+    - echo '1'  # [not win]
+  commands:  # [win]
+    - echo '2'  # [win]
 outputs:
   - name: camb
     script: install-pycamb.sh  # [not win]
@@ -55,9 +58,12 @@ outputs:
         - sympy >=1.0
         - scipy >=1.0
         - {{ compiler('fortran') }}  # [not win]
-    test:
-      imports:
-        - camb
+    test:  # [win]
+      imports:  # [win]
+        - camb  # [win]
+    test:  # [not win]
+      imports:  # [not win]
+        - camb  # [not win]
 
   - name: pycamb
     requirements:
