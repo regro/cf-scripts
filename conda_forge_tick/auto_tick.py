@@ -281,7 +281,6 @@ def add_arch_migrate(migrators: MutableSequence[Migrator], gx: nx.DiGraph) -> No
     migrators.append(
         ArchRebuild(
             graph=total_graph, pr_limit=5, name="aarch64 and ppc64le addition",
-            piggy_back_migrations=[MaxVerMigrator()]
         ),
     )
 
