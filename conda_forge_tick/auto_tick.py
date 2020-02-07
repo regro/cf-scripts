@@ -256,7 +256,12 @@ def add_replacement_migrator(
 
     for node, node_attrs in gx.nodes.items():
         requirements = node_attrs["payload"]["requirements"]
-        rq = set().union([requirements[k] for k in ["build", "host", "run", "test"]])
+        rq = (
+            requirements["build"] |
+            requirements["host"] |
+            requirements["run"] |
+            requirements["test"]
+        )
         pkgs = {old_pkg}
         old_pkg_c = pkgs.intersection(rq)
 
