@@ -39,6 +39,7 @@ from typing import (
     Dict,
     Set,
     MutableMapping,
+    Union,
 )
 
 logger = logging.getLogger("conda_forge_tick.auto_tick")
@@ -55,6 +56,7 @@ from conda_forge_tick.migrators import (
     Replacement,
     ArchRebuild,
     PipCheckMigrator,
+    MatplotlibBase,
 )
 
 if typing.TYPE_CHECKING:
@@ -230,6 +232,7 @@ def add_replacement_migrator(
     old_pkg: "PackageName",
     new_pkg: "PackageName",
     rationale: str,
+    alt_migrator: Union[Migrator, None] = None,
 ) -> None:
     """Adds a migrator to replace one package with another.
 
@@ -245,6 +248,8 @@ def add_replacement_migrator(
         The package to replace the `old_pkg`.
     rationale : str
         The reason the for the migration. Should be a full statement.
+    alt_migrator : Replacement migrator or a sublcass thereof
+        An alternate Replacement migrator to use for special tasks.
 
     """
     total_graph = copy.deepcopy(gx)
@@ -261,9 +266,24 @@ def add_replacement_migrator(
     # post plucking we can have several strange cases, lets remove all selfloops
     total_graph.remove_edges_from(nx.selfloop_edges(total_graph))
 
-    migrators.append(
-        Replacement(old_pkg=old_pkg, new_pkg=new_pkg, rationale=rationale, pr_limit=5),
-    )
+    if alt_migrator is not None:
+        migrators.append(
+            alt_migrator(
+                old_pkg=old_pkg,
+                new_pkg=new_pkg,
+                rationale=rationale,
+                pr_limit=5,
+            ),
+        )
+    else:
+        migrators.append(
+            Replacement(
+                old_pkg=old_pkg,
+                new_pkg=new_pkg,
+                rationale=rationale,
+                pr_limit=5,
+            ),
+        )
 
 
 def add_arch_migrate(migrators: MutableSequence[Migrator], gx: nx.DiGraph) -> None:
@@ -411,12 +431,15 @@ def initialize_migrators(
 
     add_arch_migrate(MIGRATORS, gx)
     migration_factory(MIGRATORS, gx)
-    # add_replacement_migrator(
-    #     $MIGRATORS, gx,
-    #     'matplotlib',
-    #     'matplotlib-base',
-    #     ('Unless you need `pyqt`, recipes should depend only on '
-    #      '`matplotlib-base`.'))
+    add_replacement_migrator(
+        MIGRATORS,
+        gx,
+        'matplotlib',
+        'matplotlib-base',
+        ('Unless you need `pyqt`, recipes should depend only on '
+         '`matplotlib-base`.'),
+        alt_migrator=MatplotlibBase,
+    )
     for m in MIGRATORS:
         print(f'{getattr(m, "name", m)} graph size: {len(getattr(m, "graph", []))}')
 

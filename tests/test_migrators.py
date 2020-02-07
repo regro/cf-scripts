@@ -2674,7 +2674,7 @@ def test_blas_rebuild(tmpdir):
     )
 
 
-def test_matplotlib_replacement(tmpdir):
+def test_generic_replacement(tmpdir):
     run_test_migration(
         m=matplotlib,
         inp=sample_matplotlib,
