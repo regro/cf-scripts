@@ -255,12 +255,12 @@ def add_replacement_migrator(
     total_graph = copy.deepcopy(gx)
 
     for node, node_attrs in gx.nodes.items():
-        requirements = node_attrs["payload"]["requirements"]
+        requirements = node_attrs["payload"].get("requirements", {})
         rq = (
-            requirements["build"] |
-            requirements["host"] |
-            requirements["run"] |
-            requirements["test"]
+            requirements.get("build", set()) |
+            requirements.get("host", set()) |
+            requirements.get("run", set()) |
+            requirements.get("test", set())
         )
         pkgs = {old_pkg}
         old_pkg_c = pkgs.intersection(rq)
