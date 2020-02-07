@@ -22,3 +22,5 @@ attrs
 boto3
 tqdm
 pynamodb
+ruamel.yaml
+ruamel.yaml.jinja2

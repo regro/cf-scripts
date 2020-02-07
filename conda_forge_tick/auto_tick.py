@@ -54,6 +54,7 @@ from conda_forge_tick.migrators import (
     GraphMigrator,
     Replacement,
     ArchRebuild,
+    PipCheckMigrator,
 )
 
 if typing.TYPE_CHECKING:
@@ -62,7 +63,10 @@ if typing.TYPE_CHECKING:
 
 
 MIGRATORS: MutableSequence[Migrator] = [
-    Version(pr_limit=30, piggy_back_migrations=[PipMigrator(), LicenseMigrator()]),
+    Version(
+        pr_limit=30,
+        piggy_back_migrations=[PipMigrator(), LicenseMigrator(), PipCheckMigrator()],
+    ),
 ]
 
 BOT_RERUN_LABEL = {
@@ -353,7 +357,7 @@ def add_rebuild_migration_yaml(
         name=migration_name,
         top_level=top_level,
         cycles=cycles,
-        piggy_back_migrations=[PipMigrator(), LicenseMigrator()],
+        piggy_back_migrations=[PipMigrator(), LicenseMigrator(), PipCheckMigrator()],
         **config,
     )
     print(f"bump number is {migrator.bump_number}")
