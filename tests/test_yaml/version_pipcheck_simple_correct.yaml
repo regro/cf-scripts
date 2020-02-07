@@ -1,4 +1,3 @@
-{% set TEST_PYTHON = '${PYTHON}' %}
 {% set version = "0.9" %}
 package:
   name: viscm
@@ -27,7 +26,7 @@ test:
   requires:
     - pip
   commands:
-    - '{{ TEST_PYTHON }} -m pip check'
+    - python -m pip check
 about:
   home: https://github.com/bids/viscm
   license: MIT

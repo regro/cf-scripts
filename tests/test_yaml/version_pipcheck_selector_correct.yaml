@@ -1,5 +1,3 @@
-{% set TEST_PYTHON = '${PYTHON}' %}  # [not win]
-{% set TEST_PYTHON = '%PYTHON%' %}  # [win]
 {% set version = "0.9" %}
 package:
   name: viscm
@@ -28,13 +26,13 @@ test:           # [not win]
     - blah      # [not win]
     - pip                                                                       # [not win]
   commands:                                                                     # [not win]
-    - '{{ TEST_PYTHON }} -m pip check'                                          # [not win]
+    - python -m pip check                                                       # [not win]
 test:           # [win]
   imports:      # [win]
     - viscm     # [win]
   commands:     # [win]
     - echo '1'  # [win]
-    - '{{ TEST_PYTHON }} -m pip check'                                          # [win]
+    - python -m pip check                                                       # [win]
   requires:                                                                     # [win]
     - pip                                                                       # [win]
 about:

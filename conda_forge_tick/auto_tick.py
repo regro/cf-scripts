@@ -357,7 +357,7 @@ def add_rebuild_migration_yaml(
         name=migration_name,
         top_level=top_level,
         cycles=cycles,
-        piggy_back_migrations=[PipMigrator(), LicenseMigrator()],
+        piggy_back_migrations=[PipMigrator(), LicenseMigrator(), PipCheckMigrator()],
         **config,
     )
     print(f"bump number is {migrator.bump_number}")

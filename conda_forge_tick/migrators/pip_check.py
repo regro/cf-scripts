@@ -7,7 +7,6 @@ import io
 
 from conda_forge_tick.xonsh_utils import indir
 from conda_forge_tick.migrators.core import MiniMigrator
-from conda_forge_tick.utils import parse_meta_yaml
 
 if typing.TYPE_CHECKING:
     from ..migrators_types import AttrsTypedDict
@@ -122,7 +121,7 @@ def _adjust_test_dict(meta, key, mapping, groups, parent_group=None):
 
     if _has_key_selector(meta[key], 'commands'):
         for _key, val in _gen_keys_selector(meta[key], 'commands'):
-            val.append('{{ TEST_PYTHON }} -m pip check')
+            val.append('python -m pip check')
             if _key in groups:
                 val.yaml_add_eol_comment(
                     '# [%s]' % groups[_key][3],
@@ -131,7 +130,7 @@ def _adjust_test_dict(meta, key, mapping, groups, parent_group=None):
                 )
     else:
         new_seq = ruamel.yaml.comments.CommentedSeq()
-        new_seq.append('{{ TEST_PYTHON }} -m pip check')
+        new_seq.append('python -m pip check')
         meta[key]['commands'] = new_seq
         if parent_group is not None:
             new_seq.yaml_add_eol_comment(
@@ -153,14 +152,6 @@ class PipCheckMigrator(MiniMigrator):
 
     def migrate(self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any) -> None:
         with indir(recipe_dir):
-            # do we care about win
-            with open('meta.yaml', 'r') as fp:
-                win_meta = parse_meta_yaml(fp.read(), platform='win')
-            if win_meta.get('build', {}).get('skip', False):
-                do_win = False
-            else:
-                do_win = True
-
             mapping = {}
             groups = {}
             with open('meta.yaml', 'r') as fp:
@@ -224,21 +215,11 @@ class PipCheckMigrator(MiniMigrator):
             with open('meta.yaml', 'w') as fp:
                 yaml.dump(meta, fp)
 
-            # now undo mapping and add TEST_PYTHON
+            # now undo mapping
             with open('meta.yaml', 'r') as fp:
                 lines = []
                 for line in fp.readlines():
                     lines.append(_unmunge_line(line, mapping))
-
-            if do_win:
-                lines = [
-                    "{% set TEST_PYTHON = '${PYTHON}' %}  # [not win]\n",
-                    "{% set TEST_PYTHON = '%PYTHON%' %}  # [win]\n",
-                ] + lines
-            else:
-                lines = [
-                    "{% set TEST_PYTHON = '${PYTHON}' %}\n",
-                ] + lines
 
             with open('meta.yaml', 'w') as fp:
                 for line in lines:
