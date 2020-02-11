@@ -254,7 +254,7 @@ def _replace_jinja2_vars(lines: List[str], jinja2_vars: dict) -> List[str]:
     if all_jinja2_keys != used_jinja2_keys:
         extra_lines = []
         extra_jinja2_keys = all_jinja2_keys - used_jinja2_keys
-        for key in extra_jinja2_keys:
+        for key in sorted(list(extra_jinja2_keys)):
             if CONDA_SELECTOR in key:
                 _key, selector = key.split(CONDA_SELECTOR)
                 extra_lines.append(

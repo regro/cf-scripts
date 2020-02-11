@@ -4,8 +4,111 @@ from conda_forge_tick.recipe_parser._parser import (
     _parse_jinja2_variables,
     _munge_line,
     _unmunge_line,
-    CONDA_SELECTOR
+    CONDA_SELECTOR,
+    _demunge_jinja2_vars,
+    _remunge_jinja2_vars,
+    _replace_jinja2_vars,
 )
+
+
+def test_replace_jinja2_vars():
+    lines = [
+        '{% set var1 = "val1" %}  # [sel]\n',
+        'blah\n',
+        '{% set var2 = 5 %} # a comment\n',
+        '{% set var3 = "none" %}#[sel2 and none and osx]\n',
+        '{% set var4 = "val4" %}\n',
+        '{% set var5 = "val5" %}\n',
+    ]
+
+    jinja2_vars = {
+        'var1' + CONDA_SELECTOR + 'sel': 'val4',
+        'var2': '4.5.6',
+        'var3' + CONDA_SELECTOR + 'sel2 and none and osx': 'None',
+        'var4': 'val4',
+        'var5': 3.5,
+        'new_var': 'new_val',
+        'new_var' + CONDA_SELECTOR + 'py3k and win': 'new_val',
+    }
+
+    new_lines_true = [
+        '{% set new_var = "new_val" %}\n',
+        '{% set new_var = "new_val" %}  # [py3k and win]\n',
+        '{% set var1 = "val4" %}  # [sel]\n',
+        'blah\n',
+        '{% set var2 = "4.5.6" %} # a comment\n',
+        '{% set var3 = "None" %}  # [sel2 and none and osx]\n',
+        '{% set var4 = "val4" %}\n',
+        '{% set var5 = 3.5 %}\n',
+    ]
+
+    new_lines = _replace_jinja2_vars(lines, jinja2_vars)
+
+    assert new_lines == new_lines_true
+
+
+def test_munge_jinja2_vars():
+    meta = {
+        'val': '<{ var }}',
+        'list': [
+            'val',
+            '<{ val_34 }}',
+            {
+                'fg': 2,
+                'str': 'valish',
+                'ab': '<{ val_again }}',
+                'dict': {'hello': '<{ val_45 }}', 'int': 4},
+                'list_again': [
+                    'hi',
+                    {'hello': '<{ val_12 }}', 'int': 5},
+                    '<{ val_56 }}'
+                ]
+            }
+        ]
+    }
+
+    demunged_meta_true = {
+        'val': '{{ var }}',
+        'list': [
+            'val',
+            '{{ val_34 }}',
+            {
+                'fg': 2,
+                'str': 'valish',
+                'ab': '{{ val_again }}',
+                'dict': {'hello': '{{ val_45 }}', 'int': 4},
+                'list_again': [
+                    'hi',
+                    {'hello': '{{ val_12 }}', 'int': 5},
+                    '{{ val_56 }}'
+                ],
+            },
+        ],
+    }
+
+    # dict
+    demunged_meta = _demunge_jinja2_vars(meta)
+    assert demunged_meta_true == demunged_meta
+    redemunged_meta = _remunge_jinja2_vars(demunged_meta)
+    assert redemunged_meta == meta
+
+    # start with list
+    demunged_meta = _demunge_jinja2_vars(meta['list'])
+    assert demunged_meta_true['list'] == demunged_meta
+    redemunged_meta = _remunge_jinja2_vars(demunged_meta)
+    assert redemunged_meta == meta['list']
+
+    # string only?
+    demunged_meta = _demunge_jinja2_vars('<{ val }}')
+    assert '{{ val }}' == demunged_meta
+    redemunged_meta = _remunge_jinja2_vars(demunged_meta)
+    assert redemunged_meta == '<{ val }}'
+
+    # an int
+    demunged_meta = _demunge_jinja2_vars(5)
+    assert 5 == demunged_meta
+    redemunged_meta = _remunge_jinja2_vars(demunged_meta)
+    assert redemunged_meta == 5
 
 
 @pytest.mark.parametrize('line,correct_line,formatted_line', [
