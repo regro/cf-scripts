@@ -2,7 +2,6 @@
 from .core import (
     Migrator,
     GraphMigrator,
-    Version,
     MiniMigrator,
     PipMigrator,
     LicenseMigrator,
@@ -11,3 +10,4 @@ from .core import (
 from .migration_yaml import MigrationYaml
 from .arch import ArchRebuild
 from .pip_check import PipCheckMigrator
+from .version import Version
