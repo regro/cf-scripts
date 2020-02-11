@@ -1,14 +1,85 @@
+import io
 import pytest
 
 from conda_forge_tick.recipe_parser._parser import (
     _parse_jinja2_variables,
     _munge_line,
     _unmunge_line,
-    CONDA_SELECTOR,
     _demunge_jinja2_vars,
     _remunge_jinja2_vars,
     _replace_jinja2_vars,
 )
+
+from conda_forge_tick.recipe_parser import CondaMetaYAML, CONDA_SELECTOR
+
+
+def test_parsing():
+    meta_yaml = """\
+{% set name = 'val1' %}  # [py2k]
+{% set name = 'val2' %}#[py3k and win]
+{% set version = '4.5.6' %}
+
+package:
+  name: {{ name|lower }}
+
+source:
+  url: foobar
+  sha256: 1  # [py2k]
+  sha256: 5#[py3k and win]
+
+build:
+  number: 10
+"""
+
+    cm = CondaMetaYAML(meta_yaml)
+
+    # check the jinja2 keys
+    assert cm.jinja2_vars['name__###conda-selector###__py2k'] == 'val1'
+    assert cm.jinja2_vars['name__###conda-selector###__py3k and win'] == 'val2'
+    assert cm.jinja2_vars['version'] == '4.5.6'
+
+    # check selectors
+    assert cm.meta['source']['sha256__###conda-selector###__py2k'] == 1
+    assert cm.meta['source']['sha256__###conda-selector###__py3k and win'] == 5
+
+    # check other keys
+    assert cm.meta['build']['number'] == 10
+    assert cm.meta['package']['name'] == '{{ name|lower }}'
+    assert cm.meta['source']['url'] == 'foobar'
+
+    # now add stuff and test outputs
+    cm.jinja2_vars['foo'] = 'bar'
+    cm.jinja2_vars['xfoo__###conda-selector###__win or osx'] = 10
+    cm.meta['about'] = 10
+    cm.meta['requirements__###conda-selector###__win'] = 'blah'
+    cm.meta['requirements__###conda-selector###__not win'] = 'not_win_blah'
+
+    s = io.StringIO()
+    cm.dump(s)
+    s.seek(0)
+    new_meta_yaml = s.read()
+
+    assert new_meta_yaml == """\
+{% set foo = "bar" %}
+{% set xfoo = 10 %}  # [win or osx]
+{% set name = "val1" %}  # [py2k]
+{% set name = "val2" %}  # [py3k and win]
+{% set version = "4.5.6" %}
+
+package:
+  name: {{ name|lower }}
+
+source:
+  url: foobar
+  sha256: 1  # [py2k]
+  sha256: 5  # [py3k and win]
+
+build:
+  number: 10
+about: 10
+requirements: blah  # [win]
+requirements: not_win_blah  # [not win]
+"""
 
 
 def test_replace_jinja2_vars():

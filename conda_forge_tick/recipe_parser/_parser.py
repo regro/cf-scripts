@@ -283,6 +283,44 @@ def _replace_jinja2_vars(lines: List[str], jinja2_vars: dict) -> List[str]:
 
 
 class CondaMetaYAML(object):
+    """Crude parsing of conda recipes.
+
+    NOTE: This parser does not handle any jinja2 constructs besides
+    referencing variables (e.g., `{{ var }}`) or setting variables
+    (e.g., `{% set var = val %}`).
+
+    Parameters
+    ----------
+    meta_yaml : str
+        The recipe as a string.
+
+    Attributes
+    ----------
+    meta : dict
+        The parsed recipe. Note that selectors for dictionary entries
+        get embedded into the dictionary key via the transformation
+
+            key: val  # [sel]
+
+        to
+
+            key__###conda-selector###__sel: val
+
+        If you use the `dump` method, this transformation is undone.
+    jinja2_vars : dict
+        A dictionary mapping the names of any set jinja2 variables to their
+        values. Any entries added to this dictionary are inserted at the
+        top of the recipe. You can use the mangling of the keys for selectors
+        to add selectors to values as well. Finally, any changes to existing
+        values are put into the recipe as well.
+
+    Methods
+    -------
+    dump(fp):
+        Dump the recipe to a file-like object. Note that the mangling of dictionary
+        keys for selectors is undone at this step. Dumping the raw `meta` attribute
+        will not produce the correct recipe.
+    """
     def __init__(self, meta_yaml: str):
         # get any variables set in the file by jinja2
         self.jinja2_vars = _parse_jinja2_variables(meta_yaml)
@@ -301,6 +339,13 @@ class CondaMetaYAML(object):
         self.meta = _demunge_jinja2_vars(self.meta)
 
     def dump(self, fp: Any):
+        """Dump the recipe to a file-like object.
+
+        Parameters
+        ----------
+        fp : file-like object
+            A file-like object with a `write` method that accepts strings.
+        """
         # redo jinja2 changes
         self.meta = _remunge_jinja2_vars(self.meta)
 
