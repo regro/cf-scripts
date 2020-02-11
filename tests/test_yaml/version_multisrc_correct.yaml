@@ -1,0 +1,37 @@
+{% set version = "2.4.1" %}
+{% set download_url = "https://github.com/git-lfs/git-lfs/releases/download" %}
+
+package:
+  name: git-lfs
+  version: {{ version }}
+
+source:
+  url: {{ download_url }}/v{{ version }}/git-lfs-linux-amd64-{{ version }}.tar.gz  # [linux]
+  fn: git-lfs-linux-amd64-{{ version }}.tar.gz  # [linux]
+  sha256: 97e2bd8b7b4dde393eef3dd37013629dadebddefcdf27649b441659bdf4bb636  # [linux]
+
+  url: {{ download_url }}/v{{ version }}/git-lfs-darwin-amd64-{{ version }}.tar.gz  # [osx]
+  fn: git-lfs-darwin-amd64-{{ version }}.tar.gz  # [osx]
+  sha256: e41ac4988bd6bd38faf7c17562273cb57099b3650e50f66013aa36d62aa7448a  # [osx]
+
+  url: {{ download_url }}/v{{ version }}/git-lfs-windows-amd64-{{ version }}.zip  # [win]
+  fn: git-lfs-windows-amd64-{{ version }}.zip  # [win]
+  sha256: ebbab07348dbe71a5c20bfbdfafe4dbbafc8deacea6e6bf4143556721c860821  # [win]
+
+build:
+  number: 0
+
+test:
+  commands:
+    - git-lfs --help
+
+about:
+  home: https://git-lfs.github.com/
+  license: MIT
+  license_file: '{{ environ["RECIPE_DIR"] }}/LICENSE.md'
+  summary: An open source Git extension for versioning large files
+
+extra:
+  recipe-maintainers:
+    - dfroger
+    - willirath

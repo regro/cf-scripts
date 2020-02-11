@@ -1,0 +1,29 @@
+{% set version = "2.4.0" %}
+{% set download_url = "https://github.com/git-lfs/git-lfs/releases/download" %}
+
+package:
+  name: git-lfs
+  version: {{ version }}
+
+source:
+  url: {{ download_url }}/v{{ version }}/git-lfs-linux-amd64-{{ version }}.tar.gz
+  fn: git-lfs-linux-amd64-{{ version }}.tar.gz
+  sha256: 56728ec9219c1a9339e1e6166f551459d74d300a29b51031851759cee4d7d710
+
+build:
+  number: 0
+
+test:
+  commands:
+    - git-lfs --help
+
+about:
+  home: https://git-lfs.github.com/
+  license: MIT
+  license_file: '{{ environ["RECIPE_DIR"] }}/LICENSE.md'
+  summary: An open source Git extension for versioning large files
+
+extra:
+  recipe-maintainers:
+    - dfroger
+    - willirath
