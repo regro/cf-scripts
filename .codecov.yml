@@ -8,12 +8,14 @@ codecov:
 
 coverage:
   status:
+
     patch:
       default:
         target: '80'
         if_no_uploads: error
         if_not_found: success
         if_ci_failed: failure
+
     project:
       default: false
       library:
@@ -21,11 +23,10 @@ coverage:
         if_no_uploads: error
         if_not_found: success
         if_ci_failed: failure
-        paths: '!tests/.*'
-
+        paths: '!tests/'
       tests:
         target: 97.9%
-        paths: 'tests/.*'
+        paths: 'tests/'
 
 flags:
   tests:
