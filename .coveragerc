@@ -1,6 +1,7 @@
 [run]
 source =
     conda_forge_tick
+    tests
 [report]
 omit =
     */python?.?/*
