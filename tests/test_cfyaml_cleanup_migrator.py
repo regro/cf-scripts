@@ -16,6 +16,8 @@ YAML_PATH = os.path.join(os.path.dirname(__file__), 'test_yaml')
 
 @pytest.mark.parametrize('cases', [
     tuple(),
+    ('min_r_ver',),
+    ('min_py_ver',),
     ('max_r_ver',),
     ('max_py_ver',),
     ('max_r_ver', 'max_py_ver'),
@@ -61,6 +63,8 @@ def test_version_cfyaml_cleanup(cases, tmpdir):
     with open(cf_yml_pth, 'r') as fp:
         new_cf_yml = yaml.load(fp)
 
+    assert 'min_r_ver' not in new_cf_yml
+    assert 'min_py_ver' not in new_cf_yml
     assert 'max_r_ver' not in new_cf_yml
     assert 'max_py_ver' not in new_cf_yml
     assert 'compiler_stack' not in new_cf_yml
