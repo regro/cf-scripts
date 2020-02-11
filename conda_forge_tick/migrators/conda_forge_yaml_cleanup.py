@@ -11,7 +11,13 @@ if typing.TYPE_CHECKING:
 
 
 class CondaForgeYAMLCleanup(MiniMigrator):
-    keys_to_remove = ['max_r_ver', 'max_py_ver', 'compiler_stack']
+    keys_to_remove = [
+        'min_r_ver',
+        'max_r_ver',
+        'min_py_ver',
+        'max_py_ver',
+        'compiler_stack',
+    ]
 
     def filter(self, attrs: "AttrsTypedDict", not_bad_str_start: str = "") -> bool:
         """only remove the keys if they are there"""
