@@ -2,7 +2,6 @@
 from .core import (
     Migrator,
     GraphMigrator,
-    Version,
     MiniMigrator,
     PipMigrator,
     LicenseMigrator,
