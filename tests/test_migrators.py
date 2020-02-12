@@ -1740,6 +1740,13 @@ def run_test_migration(
     with open(os.path.join(tmpdir, "meta.yaml"), "w") as f:
         f.write(inp)
 
+    # read the conda-forge.yml
+    if os.path.exists(os.path.join(tmpdir, '..', 'conda-forge.yml')):
+        with open(os.path.join(tmpdir, '..', 'conda-forge.yml'), 'r') as fp:
+            cf_yml = fp.read()
+    else:
+        cf_yml = "{}"
+
     # Load the meta.yaml (this is done in the graph)
     try:
         name = parse_meta_yaml(inp)['package']['name']
@@ -1750,7 +1757,7 @@ def run_test_migration(
         name,
         {},
         inp,
-        "{}",
+        cf_yml,
     )
 
     # these are here for legacy migrators
