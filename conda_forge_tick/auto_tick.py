@@ -150,6 +150,7 @@ def run(
     diffed_files: typing.List[str] = []
     with indir(feedstock_dir), env.swap(RAISE_SUBPROC_ERROR=False):
         msg = migrator.commit_message(feedstock_ctx)
+        eval_xonsh("git add --all .")
         eval_xonsh("git commit -am @(msg)")
         if rerender:
             head_ref = eval_xonsh("git rev-parse HEAD")
@@ -437,16 +438,15 @@ def initialize_migrators(
 
     add_arch_migrate(MIGRATORS, gx)
     migration_factory(MIGRATORS, gx)
-    if False:
-        add_replacement_migrator(
-            MIGRATORS,
-            gx,
-            'matplotlib',
-            'matplotlib-base',
-            ('Unless you need `pyqt`, recipes should depend only on '
-             '`matplotlib-base`.'),
-            alt_migrator=MatplotlibBase,
-        )
+    add_replacement_migrator(
+        MIGRATORS,
+        gx,
+        'matplotlib',
+        'matplotlib-base',
+        ('Unless you need `pyqt`, recipes should depend only on '
+         '`matplotlib-base`.'),
+        alt_migrator=MatplotlibBase,
+    )
     for m in MIGRATORS:
         print(f'{getattr(m, "name", m)} graph size: {len(getattr(m, "graph", []))}')
 
