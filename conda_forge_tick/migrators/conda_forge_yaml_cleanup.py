@@ -11,6 +11,8 @@ if typing.TYPE_CHECKING:
 
 
 class CondaForgeYAMLCleanup(MiniMigrator):
+    # if you add a key here, you need to add it to the set of
+    # keys kept in the graph in make_graph.py
     keys_to_remove = [
         'min_r_ver',
         'max_r_ver',
