@@ -437,15 +437,16 @@ def initialize_migrators(
 
     add_arch_migrate(MIGRATORS, gx)
     migration_factory(MIGRATORS, gx)
-    add_replacement_migrator(
-        MIGRATORS,
-        gx,
-        'matplotlib',
-        'matplotlib-base',
-        ('Unless you need `pyqt`, recipes should depend only on '
-         '`matplotlib-base`.'),
-        alt_migrator=MatplotlibBase,
-    )
+    if False:
+        add_replacement_migrator(
+            MIGRATORS,
+            gx,
+            'matplotlib',
+            'matplotlib-base',
+            ('Unless you need `pyqt`, recipes should depend only on '
+             '`matplotlib-base`.'),
+            alt_migrator=MatplotlibBase,
+        )
     for m in MIGRATORS:
         print(f'{getattr(m, "name", m)} graph size: {len(getattr(m, "graph", []))}')
 
