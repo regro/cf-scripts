@@ -102,7 +102,14 @@ def populate_feedstock_attributes(
         sub_graph["conda-forge.yml"] = {
             k: v
             for k, v in yaml.safe_load(conda_forge_yaml).items()
-            if k in {"provider", "max_py_ver", "max_r_ver", "compiler_stack", "bot"}
+            if k in {
+                "provider",
+                "min_r_ver",
+                "min_py_ver",
+                "max_py_ver",
+                "max_r_ver",
+                "compiler_stack",
+                "bot"}
         }
 
     yaml_dict = ChainDB(
