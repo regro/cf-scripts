@@ -534,6 +534,10 @@ class Replacement(Migrator):
         The package to replace the `old_pkg`.
     rationale : str
         The reason the for the migration. Should be a full statement.
+    graph : nx.DiGraph, optional
+        The graph of feedstocks.
+    pr_limit : int, optional
+        The maximum number of PRs made per run of the bot.
     """
 
     migrator_version = 0
@@ -545,6 +549,7 @@ class Replacement(Migrator):
         old_pkg: "PackageName",
         new_pkg: "PackageName",
         rationale: str,
+        graph: nx.DiGraph = None,
         pr_limit: int = 0,
     ):
         super().__init__(pr_limit)
@@ -553,6 +558,11 @@ class Replacement(Migrator):
         self.pattern = re.compile(r"\s*-\s*(%s)(\s+|$)" % old_pkg)
         self.packages = {old_pkg}
         self.rationale = rationale
+        self.name = "%s-to-%s" % (old_pkg, new_pkg)
+        if graph is None:
+            self.graph = nx.DiGraph()
+        else:
+            self.graph = graph
 
     def filter(self, attrs: "AttrsTypedDict", not_bad_str_start: str = "") -> bool:
         return (
@@ -602,3 +612,8 @@ class Replacement(Migrator):
 
     def remote_branch(self, feedstock_ctx: FeedstockContext) -> str:
         return f"{self.old_pkg}-to-{self.new_pkg}-migration"
+
+    def migrator_uid(self, attrs: "AttrsTypedDict") -> "MigrationUidTypedDict":
+        n = super().migrator_uid(attrs)
+        n["name"] = self.name
+        return n

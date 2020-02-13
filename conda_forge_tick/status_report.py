@@ -9,7 +9,12 @@ import tempfile
 
 from typing import Any
 
-from conda_forge_tick.migrators import GraphMigrator, LicenseMigrator, Version
+from conda_forge_tick.migrators import (
+    GraphMigrator,
+    LicenseMigrator,
+    Version,
+    Replacement,
+)
 
 
 def main(args: Any = None) -> None:
@@ -19,11 +24,12 @@ def main(args: Any = None) -> None:
     total_status = {}
 
     for migrator in migrators:
-        if isinstance(migrator, GraphMigrator):
-            migrator_name = migrator.__class__.__name__.lower()
-            if migrator_name in ["rebuild", "migrationyaml"]:
+        if isinstance(migrator, GraphMigrator) or isinstance(migrator, Replacement):
+            if hasattr(migrator, "name"):
                 assert isinstance(migrator.name, str)
                 migrator_name = migrator.name.lower().replace(" ", "")
+            else:
+                migrator_name = migrator.__class__.__name__.lower()
             total_status[migrator_name] = f"{migrator.name} Migration Status"
             status, build_order, gv = migrator_status(migrator, mctx.graph)
             with open(os.path.join(f"./status/{migrator_name}.json"), "w") as fo:
@@ -45,7 +51,8 @@ def main(args: Any = None) -> None:
 
     with open("./status/total_status.json", "w") as f:
         json.dump(total_status, f, sort_keys=True)
-    l = [
+
+    lst = [
         k
         for k, v in mctx.graph.nodes.items()
         if len(
@@ -61,18 +68,26 @@ def main(args: Any = None) -> None:
     with open("./status/could_use_help.json", "w") as f:
         json.dump(
             sorted(
-                l, key=lambda z: (len(nx.descendants(mctx.graph, z)), l), reverse=True,
+                lst,
+                key=lambda z: (len(nx.descendants(mctx.graph, z)), lst),
+                reverse=True,
             ),
             f,
             indent=2,
         )
 
     lm = LicenseMigrator()
-    l = [k for k, v in mctx.graph.nodes.items() if not lm.filter(v.get("payload", {}))]
+    lst = [
+        k
+        for k, v in mctx.graph.nodes.items()
+        if not lm.filter(v.get("payload", {}))
+    ]
     with open("./status/unlicensed.json", "w") as f:
         json.dump(
             sorted(
-                l, key=lambda z: (len(nx.descendants(mctx.graph, z)), l), reverse=True,
+                lst,
+                key=lambda z: (len(nx.descendants(mctx.graph, z)), lst),
+                reverse=True,
             ),
             f,
             indent=2,
