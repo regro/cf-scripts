@@ -2046,6 +2046,7 @@ def test_generic_replacement(tmpdir):
         mr_out={
             "migrator_name": "Replacement",
             "migrator_version": matplotlib.migrator_version,
+            "name": "matplotlib-to-matplotlib-base",
         },
         tmpdir=tmpdir,
     )

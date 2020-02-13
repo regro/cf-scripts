@@ -280,6 +280,7 @@ def add_replacement_migrator(
                 new_pkg=new_pkg,
                 rationale=rationale,
                 pr_limit=5,
+                graph=total_graph,
             ),
         )
     else:
@@ -289,6 +290,7 @@ def add_replacement_migrator(
                 new_pkg=new_pkg,
                 rationale=rationale,
                 pr_limit=5,
+                graph=total_graph,
             ),
         )
 

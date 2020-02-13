@@ -49,6 +49,7 @@ def test_matplotlib_base(existing_yums, tmpdir):
         mr_out={
             "migrator_name": "MatplotlibBase",
             "migrator_version": MPLB.migrator_version,
+            "name": "matplotlib-to-matplotlib-base",
         },
         tmpdir=tmpdir,
     )
