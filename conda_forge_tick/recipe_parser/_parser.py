@@ -225,7 +225,7 @@ def _replace_jinja2_vars(lines: List[str], jinja2_vars: dict) -> List[str]:
                 )
                 used_jinja2_keys.add(key)
             else:
-                assert False, "variable '%s' not in %s" % (key, jinja2_vars)
+                _new_line = None
         elif _re:
             # no selector
             spc, var, val, end = _re.group(1, 2, 3, 4)
@@ -241,14 +241,15 @@ def _replace_jinja2_vars(lines: List[str], jinja2_vars: dict) -> List[str]:
                 )
                 used_jinja2_keys.add(var.strip())
             else:
-                assert False, "variable '%s' not in %s" % (var.strip(), jinja2_vars)
+                _new_line = None
         else:
             _new_line = line
 
-        if _new_line[-1] != '\n':
-            _new_line = _new_line + '\n'
+        if _new_line is not None:
+            if _new_line[-1] != '\n':
+                _new_line = _new_line + '\n'
 
-        new_lines.append(_new_line)
+            new_lines.append(_new_line)
 
     # any unused keys, possibly with selectors, get added here
     if all_jinja2_keys != used_jinja2_keys:
