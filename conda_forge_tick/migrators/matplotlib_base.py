@@ -23,6 +23,10 @@ class MatplotlibBase(Replacement):
 
         if 'xorg-x11-server-Xorg\n' not in yum_lines:
             yum_lines.append('xorg-x11-server-Xorg\n')
+            
+        for i in range(len(yum_lines)):
+            if yum_lines[i][-1] != '\n':
+                yum_lines[i] = yum_lines[i] + '\n'
 
         with open(yum_pth, 'w') as fp:
             for line in yum_lines:
