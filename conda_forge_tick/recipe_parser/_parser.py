@@ -12,12 +12,13 @@ CONDA_SELECTOR = '__###conda-selector###__'
 # this regex pulls out lines like
 #  '   name: val # [sel]'
 # to groups ('   ', 'name', 'val ', 'sel')
-SPC_KEY_VAL_SELECTOR_RE = re.compile(r'^(\s*)(.*):(.*)#\s*\[(.*)\]')
+SPC_KEY_VAL_SELECTOR_RE = re.compile(r'^(\s*-?\s*)([^\s:]*):([^#]*)#\s*\[(.*)\]')
 
 # this regex pulls out lines like
 #  '   name__###conda-selector###__py3k and blah: val # comment'
 # to groups ('   ', 'name', 'py3k and blah', ' val # comment')
-MUNGED_LINE_RE = re.compile(r'^(\s*)(\S*)' + CONDA_SELECTOR + r'(.*):(.*)')
+MUNGED_LINE_RE = re.compile(
+    r'^(\s*-?\s*)([^\s:]*)' + CONDA_SELECTOR + r'([^:]*):(.*)')
 
 # this regex matches any line with a selector
 SELECTOR_RE = re.compile(r'^.*#\s*\[(.*)\]')
@@ -25,7 +26,7 @@ SELECTOR_RE = re.compile(r'^.*#\s*\[(.*)\]')
 # yaml parser that is jinja2 aware
 YAML_JINJA2 = YAML(typ='jinja2')
 YAML_JINJA2.indent(mapping=2, sequence=4, offset=2)
-YAML_JINJA2.width = 100
+YAML_JINJA2.width = 160
 
 
 def _config_has_key_with_selectors(cfg: dict, key: str):

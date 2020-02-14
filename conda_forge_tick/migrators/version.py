@@ -1,19 +1,13 @@
-import re
 import os
 import typing
-import pprint
 import jinja2
 import collections.abc
 import hashlib
 from typing import (
-    List,
-    Tuple,
-    Union,
     Sequence,
-    MutableSequence,
+    MutableMapping,
     Any,
 )
-import urllib.error
 import warnings
 from itertools import permutations, product
 
@@ -21,13 +15,10 @@ import requests
 import networkx as nx
 import conda.exceptions
 from conda.models.version import VersionOrder
-from rever.tools import eval_version, hash_url, replace_in_file
 
-from conda_forge_tick.xonsh_utils import env
 from conda_forge_tick.migrators.core import Migrator
 from conda_forge_tick.contexts import FeedstockContext
 from conda_forge_tick.xonsh_utils import indir
-from conda_forge_tick.utils import render_meta_yaml, parse_meta_yaml
 from conda_forge_tick.recipe_parser import CONDA_SELECTOR, CondaMetaYAML
 
 if typing.TYPE_CHECKING:
@@ -46,13 +37,13 @@ CHECKSUM_NAMES = [
 ]
 
 
-def _gen_key_selector(dct, key):
+def _gen_key_selector(dct: MutableMapping, key: str):
     for k in dct:
         if key in k:
             yield k
 
 
-def _is_r_url(url):
+def _is_r_url(url: str):
     if (
         "cran.r-project.org/src/contrib" in url or
         "cran_mirror" in url
@@ -62,7 +53,7 @@ def _is_r_url(url):
         return False
 
 
-def _has_r_url(curr_val):
+def _has_r_url(curr_val: Any):
     if isinstance(curr_val, collections.abc.MutableSequence):
         for i in range(len(curr_val)):
             return _has_r_url(curr_val[i])
@@ -75,7 +66,7 @@ def _has_r_url(curr_val):
         return False
 
 
-def _compile_all_selectors(cmeta, src):
+def _compile_all_selectors(cmeta: Any, src: str):
     selectors = [None]
     for key in cmeta.jinja2_vars:
         if CONDA_SELECTOR in key:
@@ -86,7 +77,7 @@ def _compile_all_selectors(cmeta, src):
     return set(selectors)
 
 
-def _try_url_and_hash_it(url, hash_type):
+def _try_url_and_hash_it(url: str, hash_type: str):
     print("    downloading url:", url)
 
     resp = requests.get(url)
@@ -100,7 +91,7 @@ def _try_url_and_hash_it(url, hash_type):
     return None
 
 
-def _get_new_url_tmpl_and_hash(url_tmpl, context, hash_type):
+def _get_new_url_tmpl_and_hash(url_tmpl: str, context: MutableMapping, hash_type: str):
     url = (
         jinja2
         .Template(url_tmpl)
@@ -134,7 +125,14 @@ def _get_new_url_tmpl_and_hash(url_tmpl, context, hash_type):
     return new_url_tmpl, new_hash
 
 
-def _try_replace_hash(hash_key, cmeta, src, selector, hash_type, new_hash):
+def _try_replace_hash(
+    hash_key: str,
+    cmeta: Any,
+    src: MutableMapping,
+    selector: str,
+    hash_type: str,
+    new_hash: str
+):
     _replaced_hash = False
     if '{{' in src[hash_key] and '}}' in src[hash_key]:
         # it's jinja2 :(
@@ -159,7 +157,7 @@ def _try_replace_hash(hash_key, cmeta, src, selector, hash_type, new_hash):
     return _replaced_hash
 
 
-def _try_to_update_version(cmeta, src, hash_type):
+def _try_to_update_version(cmeta: Any, src: str, hash_type: str):
     if not any('url' in k for k in src):
         return False
 
@@ -256,7 +254,9 @@ class Version(Migrator):
         # if no new version do nothing
         if "new_version" not in attrs or not attrs["new_version"]:
             return True
+
         conditional = super().filter(attrs)
+
         result = bool(
             conditional  # if archived/finished
             or len(
@@ -271,6 +271,7 @@ class Version(Migrator):
             > self.max_num_prs
             or not attrs.get("new_version"),  # if no new version
         )
+
         try:
             version_filter = (
                 # if new version is less than current version
@@ -290,6 +291,7 @@ class Version(Migrator):
                 f"Failed to filter to to invalid version for {attrs}\nException: {e}",
             )
             version_filter = True
+
         return result or version_filter
 
     def migrate(
@@ -307,7 +309,9 @@ class Version(Migrator):
         assert isinstance(version, str)
 
         # mangle the version if it is R
-        r_url = _has_r_url(cmeta.meta['source'])
+        r_url = False
+        for src_key in _gen_key_selector(cmeta.meta, 'source'):
+            r_url |= _has_r_url(cmeta.meta[src_key])
         for key, val in cmeta.jinja2_vars.items():
             if isinstance(val, str):
                 r_url |= _is_r_url(val)
@@ -315,18 +319,26 @@ class Version(Migrator):
             version = version.replace("_", "-")
 
         # replace the version
-        # FIXME: move to loop with selectors
         if 'version' in cmeta.jinja2_vars:
             cmeta.jinja2_vars['version'] = version
         else:
-            cmeta.meta['source']['version'] = version
+            print(
+                "Migrations do not work on versions "
+                "outside of jinja2 w/ selectors"
+            )
+            return super().migrate(recipe_dir, attrs)
 
-        if isinstance(cmeta.meta['source'], collections.abc.MutableSequence):
-            did_update = False
-            for src in cmeta.meta['source']:
-                did_update |= _try_to_update_version(cmeta, src, hash_type)
-        else:
-            did_update = _try_to_update_version(cmeta, cmeta.meta['source'], hash_type)
+        did_update = False
+        for src_key in _gen_key_selector(cmeta.meta, 'source'):
+            if isinstance(cmeta.meta[src_key], collections.abc.MutableSequence):
+                for src in cmeta.meta[src_key]:
+                    did_update |= _try_to_update_version(cmeta, src, hash_type)
+            else:
+                did_update |= _try_to_update_version(
+                    cmeta,
+                    cmeta.meta[src_key],
+                    hash_type,
+                )
 
         if did_update:
             with indir(recipe_dir):
