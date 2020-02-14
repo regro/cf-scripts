@@ -22,6 +22,7 @@ YAML_PATH = os.path.join(os.path.dirname(__file__), 'test_yaml')
     ('jinja2selsha', '4.7.2'),
     ('jinja2nameshasel', '4.7.2'),
     ('shaquotes', '0.6.0'),
+    ('cdiff', '0.15.0'),
 ])
 def test_version(case, new_ver, tmpdir):
     with open(os.path.join(YAML_PATH, 'version_%s.yaml' % case), 'r') as fp:
