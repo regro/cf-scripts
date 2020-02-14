@@ -1,0 +1,78 @@
+{% set version = "3.11.2" %}
+
+package:
+  name: libprotobuf
+  version: {{ version }}
+
+source:
+  - url: https://github.com/google/protobuf/archive/v{{ version }}/libprotobuf-v{{ version }}.tar.gz
+    sha256: e8c7601439dbd4489fe5069c33d374804990a56c2f710e00227ee5d8fd650e67
+    patches:
+      - 0001-remove-Werror-from-test-flags.patch  # [ppc64le or aarch64]
+  # these are git submodules from the 3.10.1 release
+  # https://github.com/google/protobuf/tree/v3.10.1/third_party
+  - url: https://github.com/google/benchmark/archive/5b7683f49e1e9223cf9927b24f6fd3d6bd82e3f8.tar.gz
+    sha256: 5dc92703f811f94e2aa63bdab07ab749f28a094befa6cdfd5fe177f947590a48
+    folder: third_party/benchmark
+  - url: https://github.com/google/googletest/archive/5ec7f0c4a113e2f18ac2c6cc7df51ad6afc24081.tar.gz
+    sha256: 0e2f36e8e403c125fd0ab02171bdb786d3b6b3875b6ccf3b2eb7969be8faecd0
+    folder: third_party/googletest
+
+build:
+  number: 0
+  # Requires C++ 11, VS 2008 is not supported
+  skip: true  # [win and vc<14]
+  run_exports:
+    # breaks backwards compatibility and new SONAME each minor release
+    # https://abi-laboratory.pro/tracker/timeline/protobuf/
+    # One exception was that 3.6.1 was incompatible with 3.6.0
+    - {{ pin_subpackage('libprotobuf', max_pin='x.x') }}
+
+requirements:
+  build:
+    - {{ compiler('c') }}
+    - {{ compiler('cxx') }}
+    - cmake  # [win]
+    - ninja  # [win]
+    - autoconf  # [not win]
+    - automake  # [not win]
+    - libtool  # [not win]
+    - pkg-config  # [not win]
+    - unzip  # [not win]
+    - make  # [not win]
+  host:
+    - zlib
+  run:
+    - zlib
+
+test:
+  commands:
+    - protoc --help
+    - test -f ${PREFIX}/lib/libprotobuf.a  # [not win]
+    - test -f ${PREFIX}/lib/libprotobuf${SHLIB_EXT}  # [not win]
+    - if not exist %PREFIX%\\Library\\lib\\libprotoc.lib exit 1  # [win]
+    - if not exist %PREFIX%\\Library\\lib\\libprotobuf.lib exit 1  # [win]
+    - if not exist %PREFIX%\\Library\\lib\\libprotobuf-lite.lib exit 1  # [win]
+
+about:
+  home: https://developers.google.com/protocol-buffers/
+  license: BSD-3-Clause
+  license_family: BSD
+  license_file: LICENSE
+  summary: Protocol Buffers - Google's data interchange format. C++ Libraries
+  description: |
+    Protocol buffers are Google's language-neutral,
+    platform-neutral, extensible mechanism for serializing structured data-
+    think XML, but smaller, faster, and simpler.
+  doc_url: https://developers.google.com/protocol-buffers/
+  doc_source_url: https://github.com/google/protobuf/releases
+
+extra:
+  recipe-maintainers:
+    - dopplershift
+    - jakirkham
+    - jjhelmus
+    - ocefpaf
+    - wesm
+    - hajapy
+    - xhochy
