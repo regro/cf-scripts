@@ -15,7 +15,6 @@ from conda_forge_tick.recipe_parser import CondaMetaYAML, CONDA_SELECTOR
 
 def test_parsing():
     meta_yaml = """\
-{% set bar = "delete me" %}
 {% set name = 'val1' %}  # [py2k]
 {% set name = 'val2' %}#[py3k and win]
 {% set version = '4.5.6' %}
@@ -38,7 +37,6 @@ build:
     assert cm.jinja2_vars['name__###conda-selector###__py2k'] == 'val1'
     assert cm.jinja2_vars['name__###conda-selector###__py3k and win'] == 'val2'
     assert cm.jinja2_vars['version'] == '4.5.6'
-    assert cm.jinja2_vars['bar'] == "delete me"
 
     # check selectors
     assert cm.meta['source']['sha256__###conda-selector###__py2k'] == 1
@@ -52,7 +50,6 @@ build:
     # now add stuff and test outputs
     cm.jinja2_vars['foo'] = 'bar'
     cm.jinja2_vars['xfoo__###conda-selector###__win or osx'] = 10
-    del cm.jinja2_vars['bar']
     cm.meta['about'] = 10
     cm.meta['requirements__###conda-selector###__win'] = 'blah'
     cm.meta['requirements__###conda-selector###__not win'] = 'not_win_blah'

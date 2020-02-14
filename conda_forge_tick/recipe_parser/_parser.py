@@ -25,7 +25,7 @@ SELECTOR_RE = re.compile(r'^.*#\s*\[(.*)\]')
 # yaml parser that is jinja2 aware
 YAML_JINJA2 = YAML(typ='jinja2')
 YAML_JINJA2.indent(mapping=2, sequence=4, offset=2)
-YAML_JINJA2.width = 256
+YAML_JINJA2.width = 100
 
 
 def _config_has_key_with_selectors(cfg: dict, key: str):
@@ -71,6 +71,9 @@ def _parse_jinja2_variables(meta_yaml: str) -> dict:
     jinja2_vals = {}
     for i, n in enumerate(all_nodes):
         if isinstance(n, jinja2.nodes.Assign):
+            if not hasattr(n.node, "value"):
+                continue
+
             if _config_has_key_with_selectors(jinja2_vals, n.target.name):
                 # selectors!
 
@@ -225,7 +228,7 @@ def _replace_jinja2_vars(lines: List[str], jinja2_vars: dict) -> List[str]:
                 )
                 used_jinja2_keys.add(key)
             else:
-                _new_line = None
+                _new_line = line
         elif _re:
             # no selector
             spc, var, val, end = _re.group(1, 2, 3, 4)
@@ -241,7 +244,7 @@ def _replace_jinja2_vars(lines: List[str], jinja2_vars: dict) -> List[str]:
                 )
                 used_jinja2_keys.add(var.strip())
             else:
-                _new_line = None
+                _new_line = line
         else:
             _new_line = line
 
