@@ -3,6 +3,7 @@ import typing
 import jinja2
 import collections.abc
 import hashlib
+import pprint
 from typing import (
     Sequence,
     MutableMapping,
@@ -92,12 +93,18 @@ def _try_url_and_hash_it(url: str, hash_type: str):
 
 
 def _get_new_url_tmpl_and_hash(url_tmpl: str, context: MutableMapping, hash_type: str):
-    url = (
-        jinja2
-        .Template(url_tmpl)
-        .render(**context)
-    )
-    new_hash = _try_url_and_hash_it(url, hash_type)
+    new_url_tmpl = None
+    new_hash = None
+
+    try:
+        url = (
+            jinja2
+            .Template(url_tmpl)
+            .render(**context)
+        )
+        new_hash = _try_url_and_hash_it(url, hash_type)
+    except jinja2.UndefinedError:
+        new_hash = None
 
     if new_hash is None:
         # try some stuff
@@ -105,18 +112,21 @@ def _get_new_url_tmpl_and_hash(url_tmpl: str, context: MutableMapping, hash_type
             permutations(["v{{ v", "{{ v"]),
             permutations(EXTS, 2),
         ):
-            new_url_tmpl = (
-                url_tmpl
-                .replace(vhave, vrep)
-                .replace(exthave, extrep)
-            )
+            try:
+                new_url_tmpl = (
+                    url_tmpl
+                    .replace(vhave, vrep)
+                    .replace(exthave, extrep)
+                )
+                url = (
+                    jinja2
+                    .Template(new_url_tmpl)
+                    .render(**context)
+                )
+                new_hash = _try_url_and_hash_it(url, hash_type)
+            except jinja2.UndefinedError:
+                new_hash = None
 
-            url = (
-                jinja2
-                .Template(new_url_tmpl)
-                .render(**context)
-            )
-            new_hash = _try_url_and_hash_it(url, hash_type)
             if new_hash is not None:
                 break
     else:
@@ -204,6 +214,13 @@ def _try_to_update_version(cmeta: Any, src: str, hash_type: str):
             else:
                 context[key] = val
 
+        print('    url key:', url_key)
+        print('    hash key:', hash_key)
+        print(
+            '    jinja2 context:\n        ',
+            "\n        ".join(pprint.pformat(context).split("\n")),
+        )
+
         # now try variations of the url to get the hash
         if isinstance(src[url_key], collections.abc.MutableSequence):
             for url_ind, url_tmpl in enumerate(src[url_key]):
@@ -240,6 +257,8 @@ def _try_to_update_version(cmeta: Any, src: str, hash_type: str):
                 new_hash = None
 
         updated_version |= (new_hash is not None)
+
+        print(" ")
 
     return updated_version
 

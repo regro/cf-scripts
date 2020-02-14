@@ -19,6 +19,8 @@ YAML_PATH = os.path.join(os.path.dirname(__file__), 'test_yaml')
     ('cb3multi', '6.0.0'),
     ('multisrclist', '2.25.0'),
     ('multisrclistnoup', '3.11.3'),
+    ('jinja2selsha', '4.7.2'),
+    ('jinja2nameshasel', '4.7.2'),
 ])
 def test_version(case, new_ver, tmpdir):
     with open(os.path.join(YAML_PATH, 'version_%s.yaml' % case), 'r') as fp:
