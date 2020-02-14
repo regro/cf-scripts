@@ -1738,6 +1738,13 @@ def run_test_migration(
     with open(os.path.join(tmpdir, "meta.yaml"), "w") as f:
         f.write(inp)
 
+    # read the conda-forge.yml
+    if os.path.exists(os.path.join(tmpdir, '..', 'conda-forge.yml')):
+        with open(os.path.join(tmpdir, '..', 'conda-forge.yml'), 'r') as fp:
+            cf_yml = fp.read()
+    else:
+        cf_yml = "{}"
+
     # Load the meta.yaml (this is done in the graph)
     try:
         name = parse_meta_yaml(inp)['package']['name']
@@ -1748,7 +1755,7 @@ def run_test_migration(
         name,
         {},
         inp,
-        "{}",
+        cf_yml,
     )
 
     # these are here for legacy migrators
@@ -2027,7 +2034,7 @@ def test_blas_rebuild(tmpdir):
     )
 
 
-def test_matplotlib_replacement(tmpdir):
+def test_generic_replacement(tmpdir):
     run_test_migration(
         m=matplotlib,
         inp=sample_matplotlib,
@@ -2037,6 +2044,7 @@ def test_matplotlib_replacement(tmpdir):
         mr_out={
             "migrator_name": "Replacement",
             "migrator_version": matplotlib.migrator_version,
+            "name": "matplotlib-to-matplotlib-base",
         },
         tmpdir=tmpdir,
     )
