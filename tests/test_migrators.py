@@ -1506,7 +1506,6 @@ test:
 """
 
 version_license = """
-{# version_license #}
 {% set version = "0.8" %}
 
 package:
@@ -1550,7 +1549,6 @@ extra:
 """
 
 version_license_correct = """
-{# version_license_correct #}
 {% set version = "0.9" %}
 
 package:
