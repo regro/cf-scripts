@@ -6,7 +6,15 @@ import hashlib
 import re
 from concurrent.futures import as_completed
 import typing
-from typing import Any, Optional, Iterable, Set, Iterator, List
+from typing import (
+    Any,
+    Optional,
+    Iterable,
+    Set,
+    Iterator,
+    List,
+)
+from itertools import permutations
 
 import yaml
 import networkx as nx
@@ -27,6 +35,8 @@ if typing.TYPE_CHECKING:
 logger = logging.getLogger("conda_forge_tick.update_upstream_versions")
 
 CRAN_INDEX: Optional[dict] = None
+
+EXTS: List[str] = ['.tar.gz', '.zip', '.tar.bz2', '.tar']
 
 
 def urls_from_meta(meta_yaml: "MetaYamlTypedDict") -> Set[str]:
@@ -330,6 +340,34 @@ def get_sha256(url: str) -> Optional[str]:
     return None
 
 
+def url_exists(url: str) -> bool:
+    try:
+        output = subprocess.check_output(
+            ["wget", "--spider", url], stderr=subprocess.STDOUT, timeout=1,
+        )
+    except Exception:
+        return False
+    # For FTP servers an exception is not thrown
+    if "No such file" in output.decode("utf-8"):
+        return False
+    if "not retrieving" in output.decode("utf-8"):
+        return False
+
+    return True
+
+
+def url_exists_swap_exts(url: str):
+    if url_exists(url):
+        return True, url
+
+    for (exthave, extrep) in permutations(EXTS, 2):
+        new_url = url.replace(exthave, extrep)
+        if url_exists(new_url):
+            return True, new_url
+
+    return False, None
+
+
 class RawURL(AbstractSource):
     name = "RawURL"
 
@@ -366,17 +404,13 @@ class RawURL(AbstractSource):
                     or meta_yaml["url"] == url
                 ):
                     continue
-                try:
-                    output = subprocess.check_output(
-                        ["wget", "--spider", url], stderr=subprocess.STDOUT, timeout=1,
-                    )
-                except Exception:
+
+                _exists, _url_to_use = url_exists_swap_exts(url)
+                if not _exists:
                     continue
-                # For FTP servers an exception is not thrown
-                if "No such file" in output.decode("utf-8"):
-                    continue
-                if "not retrieving" in output.decode("utf-8"):
-                    continue
+                else:
+                    url = _url_to_use
+
                 found = True
                 count = count + 1
                 current_ver = next_ver
