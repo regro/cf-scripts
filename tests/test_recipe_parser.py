@@ -31,6 +31,23 @@ build:
   number: 10
 """
 
+    meta_yaml_canonical = """\
+{% set name = "val1" %}  # [py2k]
+{% set name = "val2" %}  # [py3k and win]
+{% set version = "4.5.6" %}
+
+package:
+  name: {{ name|lower }}
+
+source:
+  url: foobar
+  sha256: 1  # [py2k]
+  sha256: 5  # [py3k and win]
+
+build:
+  number: 10
+"""
+
     cm = CondaMetaYAML(meta_yaml)
 
     # check the jinja2 keys
@@ -46,6 +63,11 @@ build:
     assert cm.meta['build']['number'] == 10
     assert cm.meta['package']['name'] == '{{ name|lower }}'
     assert cm.meta['source']['url'] == 'foobar'
+
+    s = io.StringIO()
+    cm.dump(s)
+    s.seek(0)
+    assert meta_yaml_canonical == s.read()
 
     # now add stuff and test outputs
     cm.jinja2_vars['foo'] = 'bar'

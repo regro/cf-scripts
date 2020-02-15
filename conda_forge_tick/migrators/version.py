@@ -11,6 +11,7 @@ from typing import (
 )
 import warnings
 from itertools import permutations, product
+import logging
 
 import requests
 import networkx as nx
@@ -36,6 +37,8 @@ CHECKSUM_NAMES = [
     "sha256sum",
     "checksum",
 ]
+
+logger = logging.getLogger("conda_forge_tick.migrators.version")
 
 
 def _gen_key_selector(dct: MutableMapping, key: str):
@@ -79,14 +82,14 @@ def _compile_all_selectors(cmeta: Any, src: str):
 
 
 def _try_url_and_hash_it(url: str, hash_type: str):
-    print("    downloading url:", url)
+    logger.debug("downloading url: %s", url)
 
     resp = requests.get(url)
-    print("    response:", resp.status_code)
+    logger.debug("response: %s", resp.status_code)
     if resp.status_code == 200:
         ha = getattr(hashlib, hash_type)
         new_hash = ha(resp.content).hexdigest()
-        print("    hash:", new_hash)
+        logger.debug("hash: %s", new_hash)
         return new_hash
 
     return None
@@ -187,7 +190,7 @@ def _try_to_update_version(cmeta: Any, src: str, hash_type: str):
     # these are then updated
 
     for selector in possible_selectors:
-        print("    selector:", selector)
+        logger.debug("selector: %s", selector)
         url_key = 'url'
         if selector is not None:
             for key in _gen_key_selector(src, 'url'):
@@ -214,10 +217,10 @@ def _try_to_update_version(cmeta: Any, src: str, hash_type: str):
             else:
                 context[key] = val
 
-        print('    url key:', url_key)
-        print('    hash key:', hash_key)
-        print(
-            '    jinja2 context:\n        ',
+        logger.debug('url key: %s', url_key)
+        logger.debug('hash key: %s', hash_key)
+        logger.debug(
+            "    jinja2 context:\n        %s",
             "\n        ".join(pprint.pformat(context).split("\n")),
         )
 
@@ -257,8 +260,6 @@ def _try_to_update_version(cmeta: Any, src: str, hash_type: str):
                 new_hash = None
 
         updated_version |= (new_hash is not None)
-
-        print(" ")
 
     return updated_version
 
@@ -341,7 +342,7 @@ class Version(Migrator):
         if 'version' in cmeta.jinja2_vars:
             cmeta.jinja2_vars['version'] = version
         else:
-            print(
+            logger.warning(
                 "Migrations do not work on versions "
                 "outside of jinja2 w/ selectors"
             )
