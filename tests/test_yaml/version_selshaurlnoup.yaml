@@ -1,0 +1,40 @@
+{% set name = "embree" %}
+{% set version = "2.14.0" %}
+
+package:
+  name: {{ name }}
+  version: {{ version }}
+
+source:
+  fn: {{ name }}-{{ version }}.tar.gz  # [unix]
+  url: https://github.com/{{ name }}/{{ name }}/releases/download/v{{ version }}/{{ name }}-{{ version }}.x86_64.linux.tar.gz  # [linux]
+  sha256: 8cca2d7ef6e3f18668246c9eed609e03e720e4033d069164c991c5feb078443c  # [linux]
+  url: https://github.com/{{ name }}/{{ name }}/releases/download/v{{ version }}/{{ name }}-{{ version }}.x86_64.macosx.tar.gz  # [osx]
+  sha256: f6113506bab9430f98773b0ab7776efe387f4d40c8785d8f8c427a91c36f4cfe  # [osx]
+  fn: {{ name }}-{{ version }}.zip  # [win]
+  url: https://github.com/{{ name }}/{{ name }}/releases/download/v{{ version }}/{{ name }}-{{ version }}.x64.windows.zip  # [win]
+  sha256: 6432449254f56b037f17d876403f919f6c136cc16ec91f7778001b10eea115ac  # [win]
+
+build:
+  number: 0
+  detect_binary_files_with_prefix: true
+
+requirements:
+  build:
+    - python # [win]
+
+test:
+  commands:
+    - test -f "${PREFIX}/lib/libembree.so"  # [linux]
+    - test -f "${PREFIX}/lib/libembree.dylib"  # [osx]
+
+about:
+  home: https://embree.github.io/
+  license: Apache 2.0
+  license_file: doc/LICENSE.txt
+  summary: High Performance Ray Tracing Kernels
+
+extra:
+  recipe-maintainers:
+    - scopatz
+    - Xarthisius

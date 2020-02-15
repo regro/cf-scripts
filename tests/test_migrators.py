@@ -1762,7 +1762,9 @@ def run_test_migration(
     pmy["version"] = pmy['meta_yaml']["package"]["version"]
     pmy["req"] = set()
     for k in ["build", "host", "run"]:
-        pmy["req"] |= set(pmy['meta_yaml'].get("requirements", {}).get(k, set()))
+        req = pmy['meta_yaml'].get("requirements", {}) or {}
+        _set = req.get(k) or set()
+        pmy["req"] |= set(_set)
     pmy["raw_meta_yaml"] = inp
     pmy.update(kwargs)
 

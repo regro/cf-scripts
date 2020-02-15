@@ -110,7 +110,47 @@ def _get_new_url_tmpl_and_hash(url_tmpl: str, context: MutableMapping, hash_type
         new_hash = None
 
     if new_hash is None:
-        # try some stuff
+        # replace ext only
+        for exthave, extrep in permutations(EXTS, 2):
+            try:
+                new_url_tmpl = (
+                    url_tmpl
+                    .replace(exthave, extrep)
+                )
+                url = (
+                    jinja2
+                    .Template(new_url_tmpl)
+                    .render(**context)
+                )
+                new_hash = _try_url_and_hash_it(url, hash_type)
+            except jinja2.UndefinedError:
+                new_hash = None
+
+            if new_hash is not None:
+                break
+
+    if new_hash is None:
+        # replace v's only
+        for vhave, vrep in permutations(["v{{ v", "{{ v"]):
+            try:
+                new_url_tmpl = (
+                    url_tmpl
+                    .replace(vhave, vrep)
+                )
+                url = (
+                    jinja2
+                    .Template(new_url_tmpl)
+                    .render(**context)
+                )
+                new_hash = _try_url_and_hash_it(url, hash_type)
+            except jinja2.UndefinedError:
+                new_hash = None
+
+            if new_hash is not None:
+                break
+
+    if new_hash is None:
+        # try both
         for (vhave, vrep), (exthave, extrep) in product(
             permutations(["v{{ v", "{{ v"]),
             permutations(EXTS, 2),
@@ -178,7 +218,7 @@ def _try_to_update_version(cmeta: Any, src: str, hash_type: str):
     if ha is None:
         return False
 
-    updated_version = False
+    updated_version = True
 
     # first we compile all selectors
     possible_selectors = _compile_all_selectors(cmeta, src)
@@ -190,7 +230,7 @@ def _try_to_update_version(cmeta: Any, src: str, hash_type: str):
     # these are then updated
 
     for selector in possible_selectors:
-        logger.debug("selector: %s", selector)
+        logger.info("selector: %s", selector)
         url_key = 'url'
         if selector is not None:
             for key in _gen_key_selector(src, 'url'):
@@ -217,12 +257,29 @@ def _try_to_update_version(cmeta: Any, src: str, hash_type: str):
             else:
                 context[key] = val
 
-        logger.debug('url key: %s', url_key)
-        logger.debug('hash key: %s', hash_key)
-        logger.debug(
-            "    jinja2 context:\n        %s",
-            "\n        ".join(pprint.pformat(context).split("\n")),
-        )
+        # if the url or hash cannot render, then we move on since we don't have
+        # a valid set of url, hash and context
+        if isinstance(src[url_key], collections.abc.MutableSequence):
+            try:
+                for url_tmpl in src[url_key]:
+                    jinja2.Template(url_tmpl).render(**context)
+            except jinja2.UndefinedError:
+                continue
+        else:
+            try:
+                jinja2.Template(src[url_key]).render(**context)
+            except jinja2.UndefinedError:
+                continue
+
+        try:
+            jinja2.Template(src[hash_key]).render(**context)
+        except jinja2.UndefinedError:
+            continue
+
+        logger.info('url key: %s', url_key)
+        logger.info('hash key: %s', hash_key)
+        logger.info(
+            "jinja2 context: %s", pprint.pformat(context))
 
         # now try variations of the url to get the hash
         if isinstance(src[url_key], collections.abc.MutableSequence):
@@ -259,7 +316,7 @@ def _try_to_update_version(cmeta: Any, src: str, hash_type: str):
             else:
                 new_hash = None
 
-        updated_version |= (new_hash is not None)
+        updated_version &= (new_hash is not None)
 
     return updated_version
 

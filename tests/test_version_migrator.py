@@ -1,4 +1,5 @@
 import os
+import logging
 import pytest
 
 from conda_forge_tick.migrators import Version
@@ -23,8 +24,15 @@ YAML_PATH = os.path.join(os.path.dirname(__file__), 'test_yaml')
     ('jinja2nameshasel', '4.7.2'),
     ('shaquotes', '0.6.0'),
     ('cdiff', '0.15.0'),
+    ('selshaurl', '3.8.0'),
+    ('selshaurlnoup', '3.8.0'),
 ])
-def test_version(case, new_ver, tmpdir):
+def test_version(case, new_ver, tmpdir, caplog):
+    caplog.set_level(
+        logging.DEBUG,
+        logger='conda_forge_tick.migrators.version',
+    )
+
     with open(os.path.join(YAML_PATH, 'version_%s.yaml' % case), 'r') as fp:
         in_yaml = fp.read()
 
