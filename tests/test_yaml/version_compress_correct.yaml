@@ -1,4 +1,3 @@
-{# compress_correct #}
 {% set version = "0.9" %}
 package:
   name: viscm
