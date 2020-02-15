@@ -19,7 +19,7 @@ source:
     folder: third_party/googletest
 
 build:
-  number: 0
+  number: 100
   # Requires C++ 11, VS 2008 is not supported
   skip: true  # [win and vc<14]
   run_exports:

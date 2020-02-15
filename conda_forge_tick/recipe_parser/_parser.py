@@ -197,8 +197,16 @@ def _replace_jinja2_vars(lines: List[str], jinja2_vars: dict) -> List[str]:
     pairs in `jinja2_vars` will be added as new statements at the top.
     """
     # these regex find jinja2 set statements without and with selectors
-    jinja2_re = re.compile(r'^(\s*){%\s*set\s*(.*)=\s*(.*)%}(.*)')
-    jinja2_re_selector = re.compile(r'^(\s*){%\s*set\s*(.*)=\s*(.*)%}\s*#\s*\[(.*)\]')
+    jinja2_re = re.compile(
+        r'^(\s*){%\s*set\s*([a-zA-Z0-9_]+)\s*=\s*(['
+        + "'"
+        + r'"a-zA-Z0-9_.\-:\\\/]+)\s*%}(.*)'
+    )
+    jinja2_re_selector = re.compile(
+        r'^(\s*){%\s*set\s*([a-zA-Z0-9_]+)\s*=\s*(['
+        + "'"
+        + r'"a-zA-Z0-9_.\-:\\\/]+)\s*%}\s*#\s*\[(.*)\]'
+    )
 
     all_jinja2_keys = set(list(jinja2_vars.keys()))
     used_jinja2_keys = set()

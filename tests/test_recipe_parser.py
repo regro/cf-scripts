@@ -19,6 +19,11 @@ def test_parsing():
 {% set name = 'val2' %}#[py3k and win]
 {% set version = '4.5.6' %}
 
+{% set build = 0 %}
+{% if False %}
+{% set build = build + 100 %}
+{% endif %}
+
 package:
   name: {{ name|lower }}
 
@@ -35,6 +40,11 @@ build:
 {% set name = "val1" %}  # [py2k]
 {% set name = "val2" %}  # [py3k and win]
 {% set version = "4.5.6" %}
+
+{% set build = 0 %}
+{% if False %}
+{% set build = build + 100 %}
+{% endif %}
 
 package:
   name: {{ name|lower }}
@@ -72,6 +82,7 @@ build:
     # now add stuff and test outputs
     cm.jinja2_vars['foo'] = 'bar'
     cm.jinja2_vars['xfoo__###conda-selector###__win or osx'] = 10
+    cm.jinja2_vars['build'] = 100
     cm.meta['about'] = 10
     cm.meta['requirements__###conda-selector###__win'] = 'blah'
     cm.meta['requirements__###conda-selector###__not win'] = 'not_win_blah'
@@ -87,6 +98,11 @@ build:
 {% set name = "val1" %}  # [py2k]
 {% set name = "val2" %}  # [py3k and win]
 {% set version = "4.5.6" %}
+
+{% set build = 100 %}
+{% if False %}
+{% set build = build + 100 %}
+{% endif %}
 
 package:
   name: {{ name|lower }}

@@ -19,7 +19,7 @@ source:
     folder: pypy2-osx
 
 build:
-  number: 0
+  number: 100
   skip: true  # [win]
   skip_compile_pyc:
     - lib*

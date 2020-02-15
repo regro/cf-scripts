@@ -19,7 +19,7 @@ source:
   sha256: e3dec7cd1316ef3dc5f0e99161aa2fe77aea82e1dd57a74e3ecbb1e7e459b10e  # [win]
 
 build:
-  number: 0
+  number: 100
 
 test:
   commands:

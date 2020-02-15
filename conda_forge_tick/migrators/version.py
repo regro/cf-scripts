@@ -1,5 +1,6 @@
 import os
 import typing
+import re
 import jinja2
 import collections.abc
 import hashlib
@@ -38,12 +39,15 @@ CHECKSUM_NAMES = [
     "checksum",
 ]
 
+# matches valid jinja2 vars
+JINJA2_VAR_RE = re.compile('{{ ((?:[a-zA-Z]|(?:_[a-zA-Z0-9]))[a-zA-Z0-9_]*) }}')
+
 logger = logging.getLogger("conda_forge_tick.migrators.version")
 
 
 def _gen_key_selector(dct: MutableMapping, key: str):
     for k in dct:
-        if key in k:
+        if k == key or (CONDA_SELECTOR in k and k.split(CONDA_SELECTOR)[0] == key):
             yield k
 
 
@@ -95,16 +99,16 @@ def _try_url_and_hash_it(url: str, hash_type: str):
     return None
 
 
+def _render_jinja2(tmpl, context):
+    return jinja2.Template(tmpl, undefined=jinja2.StrictUndefined).render(**context)
+
+
 def _get_new_url_tmpl_and_hash(url_tmpl: str, context: MutableMapping, hash_type: str):
     new_url_tmpl = None
     new_hash = None
 
     try:
-        url = (
-            jinja2
-            .Template(url_tmpl)
-            .render(**context)
-        )
+        url = _render_jinja2(url_tmpl, context)
         new_hash = _try_url_and_hash_it(url, hash_type)
     except jinja2.UndefinedError:
         new_hash = None
@@ -117,11 +121,7 @@ def _get_new_url_tmpl_and_hash(url_tmpl: str, context: MutableMapping, hash_type
                     url_tmpl
                     .replace(exthave, extrep)
                 )
-                url = (
-                    jinja2
-                    .Template(new_url_tmpl)
-                    .render(**context)
-                )
+                url = _render_jinja2(new_url_tmpl, context)
                 new_hash = _try_url_and_hash_it(url, hash_type)
             except jinja2.UndefinedError:
                 new_hash = None
@@ -137,11 +137,7 @@ def _get_new_url_tmpl_and_hash(url_tmpl: str, context: MutableMapping, hash_type
                     url_tmpl
                     .replace(vhave, vrep)
                 )
-                url = (
-                    jinja2
-                    .Template(new_url_tmpl)
-                    .render(**context)
-                )
+                url = _render_jinja2(new_url_tmpl, context)
                 new_hash = _try_url_and_hash_it(url, hash_type)
             except jinja2.UndefinedError:
                 new_hash = None
@@ -161,11 +157,7 @@ def _get_new_url_tmpl_and_hash(url_tmpl: str, context: MutableMapping, hash_type
                     .replace(vhave, vrep)
                     .replace(exthave, extrep)
                 )
-                url = (
-                    jinja2
-                    .Template(new_url_tmpl)
-                    .render(**context)
-                )
+                url = _render_jinja2(new_url_tmpl, context)
                 new_hash = _try_url_and_hash_it(url, hash_type)
             except jinja2.UndefinedError:
                 new_hash = None
@@ -257,23 +249,30 @@ def _try_to_update_version(cmeta: Any, src: str, hash_type: str):
             else:
                 context[key] = val
 
-        # if the url or hash cannot render, then we move on since we don't have
-        # a valid set of url, hash and context
+        # get all of the possible variables in the url
+        # if we do not have them or any selector versions, then
+        # we are not updating something so fail
+        jinja2_var_set = set()
         if isinstance(src[url_key], collections.abc.MutableSequence):
-            try:
-                for url_tmpl in src[url_key]:
-                    jinja2.Template(url_tmpl).render(**context)
-            except jinja2.UndefinedError:
-                continue
+            for url_tmpl in src[url_key]:
+                jinja2_var_set |= set(JINJA2_VAR_RE.findall(url_tmpl))
         else:
-            try:
-                jinja2.Template(src[url_key]).render(**context)
-            except jinja2.UndefinedError:
-                continue
+            jinja2_var_set |= set(JINJA2_VAR_RE.findall(src[url_key]))
 
-        try:
-            jinja2.Template(src[hash_key]).render(**context)
-        except jinja2.UndefinedError:
+        jinja2_var_set |= set(JINJA2_VAR_RE.findall(src[hash_key]))
+
+        skip_this_selector = False
+        for var in jinja2_var_set:
+            if len(list(_gen_key_selector(cmeta.jinja2_vars, var))) == 0:
+                updated_version = False
+                break
+
+            # we have a variable, but maybe not this selector?
+            # that's ok
+            if var not in context:
+                skip_this_selector = True
+
+        if skip_this_selector:
             continue
 
         logger.info('url key: %s', url_key)
@@ -315,6 +314,10 @@ def _try_to_update_version(cmeta: Any, src: str, hash_type: str):
                     src[url_key] = new_url_tmpl
             else:
                 new_hash = None
+
+        logger.info('new hash: %s', new_hash)
+        if new_hash is not None:
+            logger.info('new url tmpl: %s', new_url_tmpl)
 
         updated_version &= (new_hash is not None)
 
@@ -405,17 +408,20 @@ class Version(Migrator):
             )
             return super().migrate(recipe_dir, attrs)
 
-        did_update = False
-        for src_key in _gen_key_selector(cmeta.meta, 'source'):
-            if isinstance(cmeta.meta[src_key], collections.abc.MutableSequence):
-                for src in cmeta.meta[src_key]:
-                    did_update |= _try_to_update_version(cmeta, src, hash_type)
-            else:
-                did_update |= _try_to_update_version(
-                    cmeta,
-                    cmeta.meta[src_key],
-                    hash_type,
-                )
+        if len(list(_gen_key_selector(cmeta.meta, 'source'))) > 0:
+            did_update = True
+            for src_key in _gen_key_selector(cmeta.meta, 'source'):
+                if isinstance(cmeta.meta[src_key], collections.abc.MutableSequence):
+                    for src in cmeta.meta[src_key]:
+                        did_update &= _try_to_update_version(cmeta, src, hash_type)
+                else:
+                    did_update &= _try_to_update_version(
+                        cmeta,
+                        cmeta.meta[src_key],
+                        hash_type,
+                    )
+        else:
+            did_update = False
 
         if did_update:
             with indir(recipe_dir):

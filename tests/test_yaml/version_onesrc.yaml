@@ -11,7 +11,7 @@ source:
   sha256: 56728ec9219c1a9339e1e6166f551459d74d300a29b51031851759cee4d7d710
 
 build:
-  number: 0
+  number: 100
 
 test:
   commands:
