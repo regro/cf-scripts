@@ -1,20 +1,13 @@
 import abc
+
 import collections.abc
 import logging
+import builtins
 import subprocess
 import hashlib
 import re
 from concurrent.futures import as_completed
-import typing
-from typing import (
-    Any,
-    Optional,
-    Iterable,
-    Set,
-    Iterator,
-    List,
-)
-from itertools import permutations
+from typing import Any, Optional, Iterable, Callable
 
 import yaml
 import networkx as nx
@@ -28,6 +21,8 @@ from pkg_resources import parse_version
 
 from .utils import parse_meta_yaml, setup_logger, executor, load_graph, dump_graph
 
+import typing
+from typing import Set, Iterator
 
 if typing.TYPE_CHECKING:
     from .migrators_types import MetaYamlTypedDict, SourceTypedDict
@@ -35,8 +30,6 @@ if typing.TYPE_CHECKING:
 logger = logging.getLogger("conda_forge_tick.update_upstream_versions")
 
 CRAN_INDEX: Optional[dict] = None
-
-EXTS: List[str] = ['.tar.gz', '.zip', '.tar.bz2', '.tar']
 
 
 def urls_from_meta(meta_yaml: "MetaYamlTypedDict") -> Set[str]:
@@ -57,23 +50,13 @@ def urls_from_meta(meta_yaml: "MetaYamlTypedDict") -> Set[str]:
     return urls
 
 
-def _split_first_alpha(ver: str) -> List[str]:
-    for i, c in enumerate(ver):
-        if c.isalpha():
-            return [ver[0:i], ver[i:]]
-    return [ver]
-
-
 def next_version(ver: str) -> Iterator[str]:
     ver_split = []
     ver_dot_split = ver.split(".")
     for s in ver_dot_split:
         ver_dash_split = s.split("_")
         for j in ver_dash_split:
-            # sometimes a dev version marker is still appended here
-            # so split on any letters again, once
-            for h in _split_first_alpha(j):
-                ver_split.append(h)
+            ver_split.append(j)
             ver_split.append("_")
         ver_split[-1] = "."
     del ver_split[-1]
@@ -102,7 +85,7 @@ class AbstractSource(abc.ABC):
 
 class VersionFromFeed(AbstractSource):
     ver_prefix_remove = ["release-", "releases%2F", "v_", "v.", "v"]
-    dev_vers = ["rc", "beta", "alpha", "dev", "a", "b", 'init']
+    dev_vers = ["rc", "beta", "alpha", "dev", "a", "b", "RC"]
 
     def get_version(self, url) -> Optional[str]:
         data = feedparser.parse(url)
@@ -113,8 +96,8 @@ class VersionFromFeed(AbstractSource):
             ver = entry["link"].split("/")[-1]
             for prefix in self.ver_prefix_remove:
                 if ver.startswith(prefix):
-                    ver = ver[len(prefix):]
-            if any(s in ver.lower() for s in self.dev_vers):
+                    ver = ver[len(prefix) :]
+            if any(s in ver for s in self.dev_vers):
                 continue
             # Extract vesion number starting at the first digit.
             ver = re.search(r"(\d+[^\s]*)", ver).group(0)
@@ -212,14 +195,14 @@ class CRAN(AbstractSource):
             try:
                 session = requests.Session()
                 CRAN_INDEX = self._get_cran_index(session)
-                logger.debug("Cran source initialized")
+                logger.info("Cran source initialized")
             except Exception:
                 logger.error("Cran initialization failed", exc_info=True)
                 CRAN_INDEX = {}
 
     def _get_cran_index(self, session: requests.Session) -> dict:
         # from conda_build/skeletons/cran.py:get_cran_index
-        logger.debug("Fetching cran index from %s", self.cran_url)
+        logger.info("Fetching cran index from %s", self.cran_url)
         r = session.get(self.cran_url + "/src/contrib/")
         r.raise_for_status()
         records = {}
@@ -263,7 +246,7 @@ class ROSDistro(AbstractSource):
     def parse_idx(self, distro_name: str = "melodic") -> dict:
         session = requests.Session()
         res = session.get(
-            f"https://raw.githubusercontent.com/ros/rosdistro/master/{distro_name}/distribution.yaml",  # noqa
+            f"https://raw.githubusercontent.com/ros/rosdistro/master/{distro_name}/distribution.yaml",
         )
         res.raise_for_status()
         resd = yaml.load(res.text, Loader=yaml.SafeLoader)
@@ -332,39 +315,21 @@ class ROSDistro(AbstractSource):
 
 
 def get_sha256(url: str) -> Optional[str]:
-    resp = requests.get(url)
-    if resp.status_code == 200:
-        return hashlib.sha256(resp.content).hexdigest()
-
-    return None
-
-
-def url_exists(url: str) -> bool:
     try:
+        from rever import hash_url
+
+        return hash_url(url, "sha256")
+    except ImportError:
+        pass
+    try:
+        filename = hashlib.sha256(url.encode("utf-8")).hexdigest()
         output = subprocess.check_output(
-            ["wget", "--spider", url], stderr=subprocess.STDOUT, timeout=1,
+            ["wget", url, "-O", filename], stderr=subprocess.STDOUT,
         )
+        output = subprocess.check_output(["sha256sum", filename])
+        return output.decode("utf-8").split(" ")[0]
     except Exception:
-        return False
-    # For FTP servers an exception is not thrown
-    if "No such file" in output.decode("utf-8"):
-        return False
-    if "not retrieving" in output.decode("utf-8"):
-        return False
-
-    return True
-
-
-def url_exists_swap_exts(url: str):
-    if url_exists(url):
-        return True, url
-
-    for (exthave, extrep) in permutations(EXTS, 2):
-        new_url = url.replace(exthave, extrep)
-        if url_exists(new_url):
-            return True, new_url
-
-    return False, None
+        return None
 
 
 class RawURL(AbstractSource):
@@ -388,7 +353,6 @@ class RawURL(AbstractSource):
         while found and count < max_count:
             found = False
             for next_ver in next_version(current_ver):
-                logger.debug("trying version: %s", next_ver)
                 new_content = content.replace(orig_ver, next_ver)
                 meta = parse_meta_yaml(new_content)
                 url = None
@@ -404,14 +368,17 @@ class RawURL(AbstractSource):
                     or meta_yaml["url"] == url
                 ):
                     continue
-
-                _exists, _url_to_use = url_exists_swap_exts(url)
-                if not _exists:
-                    logger.debug("version %s does not exist", next_ver)
+                try:
+                    output = subprocess.check_output(
+                        ["wget", "--spider", url], stderr=subprocess.STDOUT, timeout=1,
+                    )
+                except Exception:
                     continue
-                else:
-                    url = _url_to_use
-
+                # For FTP servers an exception is not thrown
+                if "No such file" in output.decode("utf-8"):
+                    continue
+                if "not retrieving" in output.decode("utf-8"):
+                    continue
                 found = True
                 count = count + 1
                 current_ver = next_ver
@@ -419,13 +386,11 @@ class RawURL(AbstractSource):
                 if new_sha256 == current_sha256 or new_sha256 in new_content:
                     return None
                 current_sha256 = new_sha256
-                logger.debug("version %s is ok", current_ver)
                 break
 
         if count == max_count:
             return None
         if current_ver != orig_ver:
-            logger.debug("using version %s", current_ver)
             return current_ver
         return None
 
@@ -436,14 +401,11 @@ class RawURL(AbstractSource):
 def get_latest_version(payload_meta_yaml: Any, sources: Iterable[AbstractSource]):
     with payload_meta_yaml as meta_yaml:
         for source in sources:
-            logger.debug('source: %s', source.__class__.__name__)
             url = source.get_url(meta_yaml)
             if url is None:
                 continue
             ver = source.get_version(url)
             if ver:
-                logger.debug('url: %s', url)
-                logger.debug('ver: %s', ver)
                 return ver
             else:
                 meta_yaml["bad"] = f"Upstream: Could not find version on {source.name}"
