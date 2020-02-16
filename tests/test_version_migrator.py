@@ -58,6 +58,7 @@ def test_version(case, new_ver, tmpdir, caplog):
 
 
 @pytest.mark.parametrize('case,new_ver', [
+    ('badvernoup', '10.12.0'),
     ('selshaurlnoup', '3.8.0'),
     ('missingjinja2noup', '7.8.0'),
     ('nouphasurl', '3.11.3'),
