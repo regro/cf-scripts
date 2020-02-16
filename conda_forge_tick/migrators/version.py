@@ -1,6 +1,7 @@
 import os
 import typing
 import re
+import io
 import jinja2
 import collections.abc
 import hashlib
@@ -385,6 +386,12 @@ class Version(Migrator):
         with open(os.path.join(recipe_dir, "meta.yaml"), 'r') as fp:
             cmeta = CondaMetaYAML(fp.read())
 
+        # cache round-tripped yaml for testing later
+        s = io.StringIO()
+        cmeta.dump(s)
+        s.seek(0)
+        old_meta_yaml = s.read()
+
         version = attrs["new_version"]
         assert isinstance(version, str)
 
@@ -400,13 +407,15 @@ class Version(Migrator):
 
         # replace the version
         if 'version' in cmeta.jinja2_vars:
+            # cache old version for testing later
+            old_version = cmeta.jinja2_vars['version']
             cmeta.jinja2_vars['version'] = version
         else:
-            logger.warning(
+            logger.ciritical(
                 "Migrations do not work on versions "
-                "outside of jinja2 w/ selectors"
+                "not specified with jinja2!"
             )
-            return super().migrate(recipe_dir, attrs)
+            return {}
 
         if len(list(_gen_key_selector(cmeta.meta, 'source'))) > 0:
             did_update = True
@@ -424,12 +433,28 @@ class Version(Migrator):
             did_update = False
 
         if did_update:
+            # if the yaml did not change, then we did not migrate
+            cmeta.jinja2_vars['version'] = old_version
+            s = io.StringIO()
+            cmeta.dump(s)
+            s.seek(0)
+            if s.read() == old_meta_yaml:
+                logger.critical(
+                    "Recipe did not change in version migration!"
+                )
+                return {}
+
+            # put back version
+            cmeta.jinja2_vars['version'] = version
+
             with indir(recipe_dir):
                 with open('meta.yaml', 'w') as fp:
                     cmeta.dump(fp)
                 self.set_build_number("meta.yaml")
 
-        return super().migrate(recipe_dir, attrs)
+            return super().migrate(recipe_dir, attrs)
+        else:
+            return {}
 
     def pr_body(self, feedstock_ctx: FeedstockContext) -> str:
         pred = [

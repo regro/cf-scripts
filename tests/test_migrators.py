@@ -1734,7 +1734,8 @@ def run_test_migration(
     m_ctx = MigratorContext(mm_ctx, m)
     m.bind_to_ctx(m_ctx)
 
-    mr_out.update(bot_rerun=False)
+    if mr_out:
+        mr_out.update(bot_rerun=False)
     with open(os.path.join(tmpdir, "meta.yaml"), "w") as f:
         f.write(inp)
 
@@ -1774,6 +1775,8 @@ def run_test_migration(
 
     mr = m.migrate(tmpdir, pmy)
     assert mr_out == mr
+    if not mr:
+        return
 
     pmy.update(PRed=[frozen_to_json_friendly(mr)])
     with open(os.path.join(tmpdir, "meta.yaml"), "r") as f:
