@@ -61,8 +61,7 @@ def _split_first_alpha(ver: str) -> List[str]:
     for i, c in enumerate(ver):
         if c.isalpha():
             return [ver[0:i], ver[i:]]
-
-    return [str]
+    return [ver]
 
 
 def next_version(ver: str) -> Iterator[str]:
@@ -103,7 +102,7 @@ class AbstractSource(abc.ABC):
 
 class VersionFromFeed(AbstractSource):
     ver_prefix_remove = ["release-", "releases%2F", "v_", "v.", "v"]
-    dev_vers = ["rc", "beta", "alpha", "dev", "a", "b", "RC"]
+    dev_vers = ["rc", "beta", "alpha", "dev", "a", "b", 'init']
 
     def get_version(self, url) -> Optional[str]:
         data = feedparser.parse(url)
@@ -115,7 +114,7 @@ class VersionFromFeed(AbstractSource):
             for prefix in self.ver_prefix_remove:
                 if ver.startswith(prefix):
                     ver = ver[len(prefix):]
-            if any(s in ver for s in self.dev_vers):
+            if any(s in ver.lower() for s in self.dev_vers):
                 continue
             # Extract vesion number starting at the first digit.
             ver = re.search(r"(\d+[^\s]*)", ver).group(0)
@@ -213,14 +212,14 @@ class CRAN(AbstractSource):
             try:
                 session = requests.Session()
                 CRAN_INDEX = self._get_cran_index(session)
-                logger.info("Cran source initialized")
+                logger.debug("Cran source initialized")
             except Exception:
                 logger.error("Cran initialization failed", exc_info=True)
                 CRAN_INDEX = {}
 
     def _get_cran_index(self, session: requests.Session) -> dict:
         # from conda_build/skeletons/cran.py:get_cran_index
-        logger.info("Fetching cran index from %s", self.cran_url)
+        logger.debug("Fetching cran index from %s", self.cran_url)
         r = session.get(self.cran_url + "/src/contrib/")
         r.raise_for_status()
         records = {}
@@ -389,6 +388,7 @@ class RawURL(AbstractSource):
         while found and count < max_count:
             found = False
             for next_ver in next_version(current_ver):
+                logger.debug("trying version: %s", next_ver)
                 new_content = content.replace(orig_ver, next_ver)
                 meta = parse_meta_yaml(new_content)
                 url = None
@@ -407,6 +407,7 @@ class RawURL(AbstractSource):
 
                 _exists, _url_to_use = url_exists_swap_exts(url)
                 if not _exists:
+                    logger.debug("version %s does not exist", next_ver)
                     continue
                 else:
                     url = _url_to_use
@@ -418,11 +419,13 @@ class RawURL(AbstractSource):
                 if new_sha256 == current_sha256 or new_sha256 in new_content:
                     return None
                 current_sha256 = new_sha256
+                logger.debug("version %s is ok", current_ver)
                 break
 
         if count == max_count:
             return None
         if current_ver != orig_ver:
+            logger.debug("using version %s", current_ver)
             return current_ver
         return None
 
@@ -433,11 +436,14 @@ class RawURL(AbstractSource):
 def get_latest_version(payload_meta_yaml: Any, sources: Iterable[AbstractSource]):
     with payload_meta_yaml as meta_yaml:
         for source in sources:
+            logger.debug('source: %s', source.__class__.__name__)
             url = source.get_url(meta_yaml)
             if url is None:
                 continue
             ver = source.get_version(url)
             if ver:
+                logger.debug('url: %s', url)
+                logger.debug('ver: %s', ver)
                 return ver
             else:
                 meta_yaml["bad"] = f"Upstream: Could not find version on {source.name}"
