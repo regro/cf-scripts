@@ -433,20 +433,18 @@ class Version(Migrator):
             did_update = False
 
         if did_update:
-            # if the yaml did not change, then we did not migrate
+            # if the yaml did not change, then we did not migrate actually
             cmeta.jinja2_vars['version'] = old_version
             s = io.StringIO()
             cmeta.dump(s)
             s.seek(0)
             if s.read() == old_meta_yaml:
-                logger.critical(
-                    "Recipe did not change in version migration!"
-                )
-                return {}
+                did_update = False
 
             # put back version
             cmeta.jinja2_vars['version'] = version
 
+        if did_update:
             with indir(recipe_dir):
                 with open('meta.yaml', 'w') as fp:
                     cmeta.dump(fp)
@@ -454,6 +452,9 @@ class Version(Migrator):
 
             return super().migrate(recipe_dir, attrs)
         else:
+            logger.critical(
+                "Recipe did not change in version migration!"
+            )
             return {}
 
     def pr_body(self, feedstock_ctx: FeedstockContext) -> str:
