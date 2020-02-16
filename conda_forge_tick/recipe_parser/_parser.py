@@ -71,10 +71,10 @@ def _parse_jinja2_variables(meta_yaml: str) -> dict:
 
     jinja2_vals = {}
     for i, n in enumerate(all_nodes):
-        if isinstance(n, jinja2.nodes.Assign):
-            if not hasattr(n.node, "value"):
-                continue
-
+        if (
+            isinstance(n, jinja2.nodes.Assign) and
+            isinstance(n.node, jinja2.nodes.Const)
+        ):
             if _config_has_key_with_selectors(jinja2_vals, n.target.name):
                 # selectors!
 
@@ -191,22 +191,27 @@ def _remunge_jinja2_vars(meta: Union[dict, list]) -> Union[dict, list]:
         return meta
 
 
+def _is_simple_jinja2_set(line):
+    env = jinja2.Environment()
+    parsed_content = env.parse(line)
+    n = list(parsed_content.iter_child_nodes())[0]
+    if (
+        isinstance(n, jinja2.nodes.Assign) and
+        isinstance(n.node, jinja2.nodes.Const)
+    ):
+        return True
+    else:
+        return False
+
+
 def _replace_jinja2_vars(lines: List[str], jinja2_vars: dict) -> List[str]:
     """Find all instances of jinja2 vairable assignment via `set` in a recipe
     and replace the values with those in `jinja2_vars`. Any extra key-value
     pairs in `jinja2_vars` will be added as new statements at the top.
     """
     # these regex find jinja2 set statements without and with selectors
-    jinja2_re = re.compile(
-        r'^(\s*){%\s*set\s*([a-zA-Z0-9_]+)\s*=\s*(['
-        + "'"
-        + r'"a-zA-Z0-9_.\-:\\\/]+)\s*%}(.*)'
-    )
-    jinja2_re_selector = re.compile(
-        r'^(\s*){%\s*set\s*([a-zA-Z0-9_]+)\s*=\s*(['
-        + "'"
-        + r'"a-zA-Z0-9_.\-:\\\/]+)\s*%}\s*#\s*\[(.*)\]'
-    )
+    jinja2_re = re.compile(r'^(\s*){%\s*set\s*(.*)=\s*(.*)%}(.*)')
+    jinja2_re_selector = re.compile(r'^(\s*){%\s*set\s*(.*)=\s*(.*)%}\s*#\s*\[(.*)\]')
 
     all_jinja2_keys = set(list(jinja2_vars.keys()))
     used_jinja2_keys = set()
@@ -218,6 +223,11 @@ def _replace_jinja2_vars(lines: List[str], jinja2_vars: dict) -> List[str]:
     for line in lines:
         _re_sel = jinja2_re_selector.match(line)
         _re = jinja2_re.match(line)
+
+        # we only replace simple constant set statements
+        if (_re_sel or _re) and not _is_simple_jinja2_set(line):
+            new_lines.append(line)
+            continue
 
         if _re_sel:
             # if the line has a selector in it, then we need to pull
