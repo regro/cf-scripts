@@ -1,5 +1,6 @@
 import typing
-from collections import defaultdict, Callable
+from collections.abc import Callable
+from collections import defaultdict
 import contextlib
 import itertools
 import json
