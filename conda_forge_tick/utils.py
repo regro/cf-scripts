@@ -1,5 +1,6 @@
 import typing
-from collections import defaultdict, Callable
+from collections.abc import Callable
+from collections import defaultdict
 import contextlib
 import itertools
 import json
@@ -192,7 +193,7 @@ def parse_meta_yaml(text: str, **kwargs: Any) -> "MetaYamlTypedDict":
     return parse(content, Config(**kwargs))
 
 
-def setup_logger(logger: logging.Logger) -> None:
+def setup_logger(logger: logging.Logger, level: Optional[str] = 'INFO') -> None:
     """Basic configuration for logging
 
     """
@@ -201,7 +202,7 @@ def setup_logger(logger: logging.Logger) -> None:
         level=logging.ERROR,
         format="%(asctime)-15s %(levelname)-8s %(name)s || %(message)s",
     )
-    logger.setLevel(logging.INFO)
+    logger.setLevel(getattr(logging, level.upper()))
 
 
 # TODO: upstream this into networkx?
