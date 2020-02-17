@@ -543,7 +543,7 @@ def migrator_status(
             if buildable:
                 out["awaiting-pr"].add(node)
                 fc = "#35b779"
-            else:
+            elif not isinstance(migrator, Replacement):
                 out["awaiting-parents"].add(node)
                 fc = "#fde725"
         elif "PR" not in pr_json:
