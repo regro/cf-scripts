@@ -332,11 +332,14 @@ class ROSDistro(AbstractSource):
 
 
 def get_sha256(url: str) -> Optional[str]:
-    resp = requests.get(url)
-    if resp.status_code == 200:
-        return hashlib.sha256(resp.content).hexdigest()
-
-    return None
+    try:
+        r = requests.get(url, stream=True)
+        hash = hashlib.sha256(()
+        for line in r.iter_lines():
+            hash.update(line)
+        return hash.hexdigest()
+    except Exception:
+        return None
 
 
 def url_exists(url: str) -> bool:
