@@ -505,7 +505,23 @@ def migrator_status(
         node_metadata: Dict = {}
         feedstock_metadata[node] = node_metadata
         nuid = migrator.migrator_uid(attrs)
+        all_pr_jsons = []
         for pr_json in attrs.get("PRed", []):
+            all_pr_jsons.append(copy.deepcopy(pr_json))
+
+        # hack around bug in migrator vs graph data for this one
+        if isinstance(migrator, MatplotlibBase):
+            if 'name' in nuid['data']:
+                del nuid['data']['name']
+            for i in range(len(all_pr_jsons)):
+                if (
+                    all_pr_jsons[i] and
+                    'name' in all_pr_jsons[i]['data'] and
+                    all_pr_jsons[i]['data']['migrator_name'] == 'MatplotlibBase'
+                ):
+                    del all_pr_jsons[i]['data']['name']
+
+        for pr_json in all_pr_jsons:
             if pr_json and pr_json["data"] == frozen_to_json_friendly(nuid)["data"]:
                 break
         else:
@@ -515,8 +531,7 @@ def migrator_status(
         # This is only the case when the migration was done manually
         # before the bot could issue any PR.
         manually_done = pr_json is None and frozen_to_json_friendly(nuid)["data"] in (
-            z["data"] for z in attrs.get("PRed", [])
-        )
+            z["data"] for z in all_pr_jsons)
 
         buildable = not migrator.filter(attrs)
         fntc = "black"
@@ -710,7 +725,8 @@ def main(args: "CLIArgs") -> None:
                         good_prs += 1
                 finally:
                     # Write graph partially through
-                    dump_graph(mctx.graph)
+                    if not args.dry_run:
+                        dump_graph(mctx.graph)
 
                     eval_xonsh(f"rm -rf {mctx.rever_dir}/*")
                     logger.info(os.getcwd())
