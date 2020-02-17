@@ -487,7 +487,7 @@ def _update_upstream_versions_process_pool(
     gx: nx.DiGraph, sources: Iterable[AbstractSource],
 ) -> None:
     futures = {}
-    with executor(kind="dask", max_workers=10) as pool:
+    with executor(kind="dask", max_workers=20) as pool:
         for node, node_attrs in gx.nodes.items():
             with node_attrs["payload"] as attrs:
                 if attrs.get("bad") or attrs.get("archived"):
@@ -558,7 +558,12 @@ def update_upstream_versions(
 
 
 def main(args: Any = None) -> None:
-    setup_logger(logger)
+    from .xonsh_utils import env
+    debug = env.get("CONDA_FORGE_TICK_DEBUG", False)
+    if debug:
+        setup_logger(logger, level='debug')
+    else:
+        setup_logger(logger)
 
     logger.info("Reading graph")
     gx = load_graph()
