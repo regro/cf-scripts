@@ -511,8 +511,8 @@ def migrator_status(
 
         # hack around bug in migrator vs graph data for this one
         if isinstance(migrator, MatplotlibBase):
-            if 'name' in nuid['data']:
-                del nuid['data']['name']
+            if 'name' in nuid:
+                del nuid['name']
             for i in range(len(all_pr_jsons)):
                 if (
                     all_pr_jsons[i] and
