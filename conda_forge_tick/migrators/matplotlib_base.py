@@ -37,7 +37,15 @@ class MatplotlibBase(Replacement):
         _is_archived = attrs.get("archived", False)
         _is_pred = parse_already_pred()
         _is_bad = _parse_bad_attr(attrs, not_bad_str_start)
-        _no_dep = len(attrs.get("req", set()) & self.packages) == 0
+
+        requirements = attrs.get("requirements", {})
+        rq = (
+            requirements.get("build", set()) |
+            requirements.get("host", set()) |
+            requirements.get("run", set()) |
+            requirements.get("test", set())
+        )
+        _no_dep = len(rq & self.packages) == 0
 
         return (
             _is_archived
