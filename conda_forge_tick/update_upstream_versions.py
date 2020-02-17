@@ -332,12 +332,29 @@ class ROSDistro(AbstractSource):
 
 
 def get_sha256(url: str) -> Optional[str]:
+    # FIXME - this is causing issues
+    # try:
+    #     r = requests.get(url, stream=True)
+    #     hash = hashlib.sha256()
+    #     for line in r.iter_lines():
+    #         hash.update(line)
+    #     return hash.hexdigest()
+    # except Exception:
+    #     return None
+
     try:
-        r = requests.get(url, stream=True)
-        hash = hashlib.sha256()
-        for line in r.iter_lines():
-            hash.update(line)
-        return hash.hexdigest()
+        from rever import hash_url
+
+        return hash_url(url, "sha256")
+    except ImportError:
+        pass
+    try:
+        filename = hashlib.sha256(url.encode("utf-8")).hexdigest()
+        output = subprocess.check_output(
+            ["wget", url, "-O", filename], stderr=subprocess.STDOUT,
+        )
+        output = subprocess.check_output(["sha256sum", filename])
+        return output.decode("utf-8").split(" ")[0]
     except Exception:
         return None
 
