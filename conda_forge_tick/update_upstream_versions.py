@@ -436,7 +436,11 @@ class RawURL(AbstractSource):
         return url
 
 
-def get_latest_version(payload_meta_yaml: Any, sources: Iterable[AbstractSource]):
+def get_latest_version(
+    name: str,
+    payload_meta_yaml: Any,
+    sources: Iterable[AbstractSource]
+):
     with payload_meta_yaml as meta_yaml:
         for source in sources:
             logger.debug('source: %s', source.__class__.__name__)
@@ -468,11 +472,11 @@ def _update_upstream_versions_sequential(
     for node, node_attrs in to_update:
         with node_attrs as attrs:
             try:
-                new_version = get_latest_version(attrs, sources)
+                new_version = get_latest_version(node, attrs, sources)
                 attrs["new_version"] = new_version or attrs["new_version"]
             except Exception as e:
                 try:
-                    se = str(e)
+                    se = repr(e)
                 except Exception as ee:
                     se = f"Bad exception string: {ee}"
                 logger.warning(f"Error getting uptream version of {node}: {se}")
@@ -494,7 +498,8 @@ def _update_upstream_versions_process_pool(
                     attrs["new_version"] = False
                     continue
                 futures.update(
-                    {pool.submit(get_latest_version, attrs, sources): (node, attrs)},
+                    {pool.submit(get_latest_version, node, attrs, sources): (
+                        node, attrs)},
                 )
         for f in as_completed(futures):
             node, node_attrs = futures[f]
