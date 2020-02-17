@@ -514,7 +514,11 @@ def migrator_status(
             if 'name' in nuid['data']:
                 del nuid['data']['name']
             for i in range(len(all_pr_jsons)):
-                if all_pr_jsons[i] and 'name' in all_pr_jsons[i]['data']:
+                if (
+                    all_pr_jsons[i] and
+                    'name' in all_pr_jsons[i]['data'] and
+                    all_pr_jsons[i]['data']['migrator_name'] == 'MatplotlibBase'
+                ):
                     del all_pr_jsons[i]['data']['name']
 
         for pr_json in all_pr_jsons:
