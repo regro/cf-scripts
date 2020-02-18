@@ -9,7 +9,7 @@ source:
   fn: {{ name }}-{{ version }}.tar.gz  # [unix]
   url: https://github.com/{{ name }}/{{ name }}/releases/download/v{{ version }}/{{ name }}-{{ version }}.x86_64.linux.tar.gz  # [linux]
   sha256: 3153e32aca07b38b804353ae2f31ddc8d25201fcffb7b506aa7f2e8f36448fb7  # [linux]
-  url: https://github.com/{{ name }}/{{ name }}/releases/download/v{{ version }}/{{ name }}-{{ version }}.x86_64.macosx.tar.gz  # [osx]
+  url: https://github.com/{{ name }}/{{ name }}/releases/download/v{{ version }}/{{ name }}-{{ version }}.x86_64.macosx.zip  # [osx]
   sha256: d2d99344eda7274875ca08a2e02ae77da94b7cf879dfbe354ef5d47834311918  # [osx]
   fn: {{ name }}-{{ version }}.zip  # [win]
   url: https://github.com/{{ name }}/{{ name }}/releases/download/v{{ version }}/{{ name }}-{{ version }}.x64.vc14.windows.zip  # [win]

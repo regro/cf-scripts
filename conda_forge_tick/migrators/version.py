@@ -31,7 +31,7 @@ if typing.TYPE_CHECKING:
         AttrsTypedDict,
     )
 
-EXTS = ['.tar.gz', '.zip', '.tar.bz2', '.tar']
+EXTS = ['.tar.gz', '.zip', '.tar.bz2', '.tar', '.tar.xz']
 CHECKSUM_NAMES = [
     "hash_value",
     "hash",
@@ -89,15 +89,22 @@ def _compile_all_selectors(cmeta: Any, src: str):
 def _try_url_and_hash_it(url: str, hash_type: str):
     logger.debug("downloading url: %s", url)
 
-    resp = requests.get(url)
-    logger.debug("response: %s", resp.status_code)
-    if resp.status_code == 200:
-        ha = getattr(hashlib, hash_type)
-        new_hash = ha(resp.content).hexdigest()
+    try:
+        ha = getattr(hashlib, hash_type)()
+        resp = requests.get(url, stream=True)
+        if resp.status_code == 200:
+            for chunk in resp.iter_content(chunk_size=1024):
+                ha.update(chunk)
+        else:
+            logger.debug("url does not exist: %s", url)
+            return None
+
+        new_hash = ha.hexdigest()
         logger.debug("hash: %s", new_hash)
         return new_hash
-
-    return None
+    except Exception as e:
+        logger.debug("hashing url failed: %s", repr(e))
+        return None
 
 
 def _render_jinja2(tmpl, context):
@@ -165,7 +172,8 @@ def _get_new_url_tmpl_and_hash(url_tmpl: str, context: MutableMapping, hash_type
 
             if new_hash is not None:
                 break
-    else:
+
+    if new_url_tmpl is None:
         new_url_tmpl = url_tmpl
 
     return new_url_tmpl, new_hash
@@ -440,6 +448,10 @@ class Version(Migrator):
             s.seek(0)
             if s.read() == old_meta_yaml:
                 did_update = False
+                logger.critical(
+                    "Recipe did not change in version migration "
+                    "but the code indicates an update was done!"
+                )
 
             # put back version
             cmeta.jinja2_vars['version'] = version
