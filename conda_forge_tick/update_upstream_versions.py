@@ -2,6 +2,8 @@ import abc
 import collections.abc
 import logging
 import subprocess
+import random
+import time
 import hashlib
 import re
 from concurrent.futures import as_completed
@@ -385,10 +387,11 @@ def url_exists_swap_exts(url: str):
     if url_exists(url):
         return True, url
 
-    for (exthave, extrep) in permutations(EXTS, 2):
-        new_url = url.replace(exthave, extrep)
-        if url_exists(new_url):
-            return True, new_url
+    # TODO this is too expensive
+    # for (exthave, extrep) in permutations(EXTS, 2):
+    #     new_url = url.replace(exthave, extrep)
+    #     if url_exists(new_url):
+    #         return True, new_url
 
     return False, None
 
@@ -468,12 +471,12 @@ def get_latest_version(
         for source in sources:
             logger.debug('source: %s', source.__class__.__name__)
             url = source.get_url(meta_yaml)
+            logger.debug('url: %s', url)
             if url is None:
                 continue
             ver = source.get_version(url)
+            logger.debug('ver: %s', ver)
             if ver:
-                logger.debug('url: %s', url)
-                logger.debug('ver: %s', ver)
                 return ver
             else:
                 meta_yaml["bad"] = f"Upstream: Could not find version on {source.name}"
@@ -485,13 +488,17 @@ def get_latest_version(
 def _update_upstream_versions_sequential(
     gx: nx.DiGraph, sources: Iterable[AbstractSource],
 ) -> None:
+    _all_nodes = [t for t in gx.nodes.items()]
+    random.shuffle(_all_nodes)
+
     to_update = []
-    for node, node_attrs in gx.nodes.items():
+    for node, node_attrs in _all_nodes:
         attrs = node_attrs["payload"]
         if attrs.get("bad") or attrs.get("archived"):
             attrs["new_version"] = False
             continue
         to_update.append((node, attrs))
+
     for node, node_attrs in to_update:
         with node_attrs as attrs:
             try:
@@ -514,8 +521,10 @@ def _update_upstream_versions_process_pool(
     gx: nx.DiGraph, sources: Iterable[AbstractSource],
 ) -> None:
     futures = {}
-    with executor(kind="dask", max_workers=20) as pool:
-        for node, node_attrs in gx.nodes.items():
+    with executor(kind="dask", max_workers=15) as pool:
+        _all_nodes = [t for t in gx.nodes.items()]
+        random.shuffle(_all_nodes)
+        for node, node_attrs in _all_nodes:
             with node_attrs["payload"] as attrs:
                 if attrs.get("bad") or attrs.get("archived"):
                     attrs["new_version"] = False
@@ -524,7 +533,16 @@ def _update_upstream_versions_process_pool(
                     {pool.submit(get_latest_version, node, attrs, sources): (
                         node, attrs)},
                 )
+
+        n_tot = len(futures)
+        n_left = len(futures)
+        start = time.time()
+        eta = -1
         for f in as_completed(futures):
+            n_left -= 1
+            if n_left % 10 == 0:
+                eta = (time.time() - start) / (n_tot - n_left) * n_left
+
             node, node_attrs = futures[f]
             with node_attrs as attrs:
                 try:
@@ -532,14 +550,24 @@ def _update_upstream_versions_process_pool(
                     attrs["new_version"] = new_version or attrs["new_version"]
                 except Exception as e:
                     try:
-                        se = str(e)
+                        se = repr(e)
                     except Exception as ee:
                         se = f"Bad exception string: {ee}"
-                    logger.error(f"Error getting upstream version of {node}: {se}")
+                    logger.error(
+                        "itr % 5d - eta % 5ds: "
+                        "Error getting upstream version of %s: %s" % (
+                            n_left,
+                            eta,
+                            node,
+                            se,
+                        )
+                    )
                     attrs["bad"] = "Upstream: Error getting upstream version"
                 else:
                     logger.info(
-                        "{} - {} - {}".format(
+                        "itr % 5d - eta % 5ds: %s - %s - %s" % (
+                            n_left,
+                            eta,
                             node,
                             attrs.get("version", "<no-version>"),
                             attrs["new_version"],
@@ -551,7 +579,7 @@ def update_upstream_versions(
     gx: nx.DiGraph, sources: Iterable[AbstractSource] = None,
 ) -> None:
     sources = (
-        (PyPI(), NPM(), CRAN(), ROSDistro(), RawURL(), Github())
+        (PyPI(), CRAN(), Github(), NPM(), ROSDistro(), RawURL())
         if sources is None
         else sources
     )

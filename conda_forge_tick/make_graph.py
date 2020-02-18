@@ -184,7 +184,6 @@ def populate_feedstock_attributes(
 
 
 def get_attrs(name: str, i: int) -> LazyJson:
-    logger.info((i, name))
     # These fetches could be done via async/multiprocessing
     meta_yaml = _fetch_file(name, "recipe/meta.yaml")
     conda_forge_yaml = _fetch_file(name, "conda-forge.yml")
@@ -200,17 +199,32 @@ def get_attrs(name: str, i: int) -> LazyJson:
 def _build_graph_process_pool(
     gx: nx.DiGraph, names: List[str], new_names: List[str],
 ) -> None:
-    with executor("dask", max_workers=20) as pool:
+    with executor("thread", max_workers=20) as pool:
         futures = {
             pool.submit(get_attrs, name, i): name for i, name in enumerate(names)
         }
+        logger.info("submitted all nodes")
 
+        n_tot = len(futures)
+        n_left = len(futures)
+        start = time.time()
+        eta = -1
         for f in as_completed(futures):
+            n_left -= 1
+            if n_left % 10 == 0:
+                eta = (time.time() - start) / (n_tot - n_left) * n_left
             name = futures[f]
             try:
                 sub_graph = {"payload": f.result()}
+                logger.info("itr % 5d - eta % 5ds: finished %s", n_left, eta, name)
             except Exception as e:
-                logger.error(f"Error adding {name} to the graph: {e}")
+                logger.error(
+                    "itr % 5d - eta % 5ds: Error adding %s to the graph: %s",
+                    n_left,
+                    eta,
+                    name,
+                    repr(e),
+                )
             else:
                 if name in new_names:
                     gx.add_node(name, **sub_graph)
