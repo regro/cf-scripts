@@ -332,16 +332,6 @@ class ROSDistro(AbstractSource):
 
 
 def get_sha256(url: str) -> Optional[str]:
-    # FIXME - this is causing issues
-    # try:
-    #     r = requests.get(url, stream=True)
-    #     hash = hashlib.sha256()
-    #     for line in r.iter_lines():
-    #         hash.update(line)
-    #     return hash.hexdigest()
-    # except Exception:
-    #     return None
-
     try:
         from rever import hash_url
 
