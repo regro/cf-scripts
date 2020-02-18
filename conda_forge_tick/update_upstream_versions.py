@@ -57,7 +57,7 @@ def urls_from_meta(meta_yaml: "MetaYamlTypedDict") -> Set[str]:
     return urls
 
 
-def _split_first_alpha(ver: str) -> List[str]:
+def _split_alpha_num(ver: str) -> List[str]:
     for i, c in enumerate(ver):
         if c.isalpha():
             return [ver[0:i], ver[i:]]
@@ -66,17 +66,30 @@ def _split_first_alpha(ver: str) -> List[str]:
 
 def next_version(ver: str) -> Iterator[str]:
     ver_split = []
-    ver_dot_split = ver.split(".")
-    for s in ver_dot_split:
-        ver_dash_split = s.split("_")
-        for j in ver_dash_split:
-            # sometimes a dev version marker is still appended here
-            # so split on any letters again, once
-            for h in _split_first_alpha(j):
-                ver_split.append(h)
-            ver_split.append("_")
-        ver_split[-1] = "."
-    del ver_split[-1]
+    ver_dot_split = ver.split('.')
+    n_dot = len(ver_dot_split)
+    for idot, sdot in enumerate(ver_dot_split):
+
+        ver_under_split = sdot.split('_')
+        n_under = len(ver_under_split)
+        for iunder, sunder in enumerate(ver_under_split):
+
+            ver_dash_split = sunder.split("-")
+            n_dash = len(ver_dash_split)
+            for idash, sdash in enumerate(ver_dash_split):
+
+                for el in _split_alpha_num(sdash):
+                    ver_split.append(el)
+
+                if idash < n_dash - 1:
+                    ver_split.append("-")
+
+            if iunder < n_under - 1:
+                ver_split.append("_")
+
+        if idot < n_dot - 1:
+            ver_split.append('.')
+
     for k in reversed(range(len(ver_split))):
         try:
             t = int(ver_split[k])
@@ -102,7 +115,10 @@ class AbstractSource(abc.ABC):
 
 class VersionFromFeed(AbstractSource):
     ver_prefix_remove = ["release-", "releases%2F", "v_", "v.", "v"]
-    dev_vers = ["rc", "beta", "alpha", "dev", "a", "b", 'init']
+    dev_vers = [
+        "rc", "beta", "alpha", "dev", "a", "b", "init",
+        "testing", "test", "pre"
+    ]
 
     def get_version(self, url) -> Optional[str]:
         data = feedparser.parse(url)
@@ -498,7 +514,7 @@ def _update_upstream_versions_process_pool(
     gx: nx.DiGraph, sources: Iterable[AbstractSource],
 ) -> None:
     futures = {}
-    with executor(kind="process", max_workers=20) as pool:
+    with executor(kind="dask", max_workers=20) as pool:
         for node, node_attrs in gx.nodes.items():
             with node_attrs["payload"] as attrs:
                 if attrs.get("bad") or attrs.get("archived"):
