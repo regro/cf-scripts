@@ -13,7 +13,7 @@ feedparser
 conda
 conda-forge-pinning
 frozendict
-distributed
+distributed=2.9
 python-dateutil
 python-graphviz
 streamz
