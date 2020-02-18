@@ -13,7 +13,7 @@ feedparser
 conda
 conda-forge-pinning
 frozendict
-distributed=2.9
+distributed
 python-dateutil
 python-graphviz
 streamz
@@ -24,3 +24,4 @@ tqdm
 pynamodb
 ruamel.yaml
 ruamel.yaml.jinja2
+msgpack-python<1

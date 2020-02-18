@@ -446,7 +446,7 @@ def _update_upstream_versions_process_pool(
     gx: nx.DiGraph, sources: Iterable[AbstractSource],
 ) -> None:
     futures = {}
-    with executor(kind="dask", max_workers=20) as pool:
+    with executor(kind="dask", max_workers=10) as pool:
         for node, node_attrs in gx.nodes.items():
             with node_attrs["payload"] as attrs:
                 if attrs.get("bad") or attrs.get("archived"):
@@ -482,7 +482,7 @@ def update_upstream_versions(
     gx: nx.DiGraph, sources: Iterable[AbstractSource] = None,
 ) -> None:
     sources = (
-        (PyPI(), NPM(), CRAN(), ROSDistro(), RawURL(), Github())
+        (PyPI(), Github(), NPM(), CRAN(), ROSDistro(), RawURL())
         if sources is None
         else sources
     )

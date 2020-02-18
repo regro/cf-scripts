@@ -200,7 +200,7 @@ def get_attrs(name: str, i: int) -> LazyJson:
 def _build_graph_process_pool(
     gx: nx.DiGraph, names: List[str], new_names: List[str],
 ) -> None:
-    with executor("dask", max_workers=20) as pool:
+    with executor("thread", max_workers=20) as pool:
         futures = {
             pool.submit(get_attrs, name, i): name for i, name in enumerate(names)
         }
