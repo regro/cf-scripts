@@ -24,4 +24,3 @@ tqdm
 pynamodb
 ruamel.yaml
 ruamel.yaml.jinja2
-loky

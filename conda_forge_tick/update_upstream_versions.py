@@ -498,7 +498,7 @@ def _update_upstream_versions_process_pool(
     gx: nx.DiGraph, sources: Iterable[AbstractSource],
 ) -> None:
     futures = {}
-    with executor(kind="loky", max_workers=20) as pool:
+    with executor(kind="process", max_workers=20) as pool:
         for node, node_attrs in gx.nodes.items():
             with node_attrs["payload"] as attrs:
                 if attrs.get("bad") or attrs.get("archived"):
