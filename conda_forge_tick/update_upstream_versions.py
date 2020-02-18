@@ -102,7 +102,10 @@ class AbstractSource(abc.ABC):
 
 class VersionFromFeed(AbstractSource):
     ver_prefix_remove = ["release-", "releases%2F", "v_", "v.", "v"]
-    dev_vers = ["rc", "beta", "alpha", "dev", "a", "b", 'init']
+    dev_vers = [
+        "rc", "beta", "alpha", "dev", "a", "b",
+        "init", "test", "testing", "pre",
+    ]
 
     def get_version(self, url) -> Optional[str]:
         data = feedparser.parse(url)
