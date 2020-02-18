@@ -36,7 +36,7 @@ logger = logging.getLogger("conda_forge_tick.update_upstream_versions")
 
 CRAN_INDEX: Optional[dict] = None
 
-EXTS: List[str] = ['.tar.gz', '.zip', '.tar.bz2', '.tar']
+EXTS: List[str] = ['.tar.gz', '.zip', '.tar.bz2', '.tar', '.tar.xz']
 
 
 def urls_from_meta(meta_yaml: "MetaYamlTypedDict") -> Set[str]:
