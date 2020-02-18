@@ -297,6 +297,10 @@ def executor(kind: str, max_workers: int) -> typing.Iterator[Executor]:
     elif kind == "process":
         with ProcessPoolExecutor(max_workers=max_workers) as pool_p:
             yield pool_p
+    elif kind == 'loky':
+        from loky import get_reusable_executor
+        with get_reusable_executor(max_workers=max_workers) as pool_l:
+            yield pool_l
     elif kind == "dask":
         import distributed
         from distributed.cfexecutor import ClientExecutor
