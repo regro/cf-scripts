@@ -17,9 +17,3 @@ docs/_build/
 
 # coverage files
 .coverage
-
-node_attrs/*
-graph.json
-pr_json/*
-pr_status/*
-status/*
