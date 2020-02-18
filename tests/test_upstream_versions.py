@@ -162,4 +162,4 @@ def test_latest_version(inp, ver, source, urls, requests_mock, tmpdir):
     pmy = LazyJson(tmpdir.join("cf-scripts-test.json"))
     pmy.update(parse_meta_yaml(inp)["source"])
     [requests_mock.get(url, text=text) for url, text in urls.items()]
-    assert ver == get_latest_version('configurable-http-proxy', pmy, [source])
+    assert ver == get_latest_version(pmy, [source])
