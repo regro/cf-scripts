@@ -16,7 +16,6 @@ from typing import (
     Iterator,
     List,
 )
-from itertools import permutations
 
 import yaml
 import networkx as nx
@@ -388,6 +387,7 @@ def url_exists_swap_exts(url: str):
         return True, url
 
     # TODO this is too expensive
+    # from itertools import permutations
     # for (exthave, extrep) in permutations(EXTS, 2):
     #     new_url = url.replace(exthave, extrep)
     #     if url_exists(new_url):
@@ -521,7 +521,7 @@ def _update_upstream_versions_process_pool(
     gx: nx.DiGraph, sources: Iterable[AbstractSource],
 ) -> None:
     futures = {}
-    with executor(kind="dask", max_workers=15) as pool:
+    with executor(kind="dask", max_workers=10) as pool:
         _all_nodes = [t for t in gx.nodes.items()]
         random.shuffle(_all_nodes)
         for node, node_attrs in _all_nodes:
