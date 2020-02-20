@@ -579,7 +579,7 @@ def update_upstream_versions(
     gx: nx.DiGraph, sources: Iterable[AbstractSource] = None,
 ) -> None:
     sources = (
-        (PyPI(), CRAN(), Github(), NPM(), ROSDistro(), RawURL())
+        (PyPI(), CRAN(), NPM(), ROSDistro(), RawURL(), Github())
         if sources is None
         else sources
     )
