@@ -1,22 +1,40 @@
-import os
-from collections import defaultdict
-
-from collections import Set, MutableMapping
-from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor, as_completed
-
+import typing
+from collections import defaultdict, Callable
 import contextlib
-import logging
 import itertools
 import json
+import logging
+import os
 import re
+from typing import Any, Tuple, Iterable, Union, Optional, IO
+from collections.abc import Mapping, MutableMapping, Sequence, Set
+from concurrent.futures import (
+    ProcessPoolExecutor,
+    ThreadPoolExecutor,
+    Executor,
+    as_completed,
+)
 
 import github3
 import jinja2
+import boto3
+import tqdm
+
 import networkx as nx
 
-pin_sep_pat = re.compile(" |>|<|=|\[")
+if typing.TYPE_CHECKING:
+    from mypy_extensions import TypedDict
+    from .migrators_types import PackageName
+    from conda_forge_tick.migrators_types import (
+        MetaYamlTypedDict,
+        RequirementsTypedDict,
+    )
 
-from collections import Mapping, Set, Sequence
+T = typing.TypeVar("T")
+TD = typing.TypeVar("TD", bound=dict, covariant=True)
+
+pin_sep_pat = re.compile(r" |>|<|=|\[")
+
 
 # dual python 2/3 compatability, inspired by the "six" library
 string_types = (str, bytes)
@@ -37,62 +55,65 @@ CB_CONFIG = dict(
 class UniversalSet(Set):
     """The universal set, or identity of the set intersection operation."""
 
-    def __and__(self, other):
+    def __and__(self, other: Set) -> Set:
         return other
 
-    def __rand__(self, other):
+    def __rand__(self, other: Set) -> Set:
         return other
 
-    def __contains__(self, item):
+    def __contains__(self, item: Any) -> bool:
         return True
 
-    def __iter__(self):
+    def __iter__(self) -> typing.Iterator[Any]:
         return self
 
-    def __next__(self):
+    def __next__(self) -> typing.NoReturn:
         raise StopIteration
 
-    def __len__(self):
+    def __len__(self) -> int:
         return float("inf")
 
 
 class NullUndefined(jinja2.Undefined):
-    def __unicode__(self):
+    def __unicode__(self) -> str:
         return self._undefined_name
 
-    def __getattr__(self, name):
-        return "{}.{}".format(self, name)
+    def __getattr__(self, name: Any) -> str:
+        return f"{self}.{name}"
 
-    def __getitem__(self, name):
-        return '{}["{}"]'.format(self, name)
+    def __getitem__(self, name: Any) -> str:
+        return f'{self}["{name}"]'
 
 
 class LazyJson(MutableMapping):
     """Lazy load a dict from a json file and save it when updated"""
 
-    def __init__(self, file_name):
+    def __init__(self, file_name: str):
         self.file_name = file_name
         # If the file doesn't exist create an empty file
         if not os.path.exists(self.file_name):
             os.makedirs(os.path.split(self.file_name)[0], exist_ok=True)
             with open(self.file_name, "w") as f:
                 dump({}, f)
-        self.data = None
+        self.data: Optional[dict] = None
 
     def __len__(self) -> int:
         self._load()
+        assert self.data is not None
         return len(self.data)
 
-    def __iter__(self):
+    def __iter__(self) -> typing.Iterator[Any]:
         self._load()
+        assert self.data is not None
         yield from self.data
 
-    def __delitem__(self, v):
+    def __delitem__(self, v: Any) -> None:
         self._load()
+        assert self.data is not None
         del self.data[v]
         self._dump()
 
-    def _load(self):
+    def _load(self) -> None:
         if self.data is None:
             try:
                 with open(self.file_name, "r") as f:
@@ -102,33 +123,35 @@ class LazyJson(MutableMapping):
                 print(os.listdir("."))
                 raise
 
-    def _dump(self):
+    def _dump(self) -> None:
         self._load()
         with open(self.file_name, "w") as f:
             dump(self.data, f)
 
-    def __getitem__(self, item):
+    def __getitem__(self, item: Any) -> Any:
         self._load()
+        assert self.data is not None
         return self.data[item]
 
-    def __setitem__(self, key, value):
+    def __setitem__(self, key: Any, value: Any) -> None:
         self._load()
+        assert self.data is not None
         self.data[key] = value
         self._dump()
 
-    def __getstate__(self):
+    def __getstate__(self) -> dict:
         state = self.__dict__.copy()
         state["data"] = None
         return state
 
-    def __enter__(self):
+    def __enter__(self) -> "LazyJson":
         return self
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
+    def __exit__(self, *args: Any) -> Any:
         self._dump()
 
 
-def render_meta_yaml(text):
+def render_meta_yaml(text: str) -> str:
     """Render the meta.yaml with Jinja2 variables.
 
     Parameters
@@ -148,7 +171,7 @@ def render_meta_yaml(text):
     return content
 
 
-def parse_meta_yaml(text, **kwargs):
+def parse_meta_yaml(text: str, **kwargs: Any) -> "MetaYamlTypedDict":
     """Parse the meta.yaml.
 
     Parameters
@@ -169,7 +192,7 @@ def parse_meta_yaml(text, **kwargs):
     return parse(content, Config(**kwargs))
 
 
-def setup_logger(logger):
+def setup_logger(logger: logging.Logger) -> None:
     """Basic configuration for logging
 
     """
@@ -181,30 +204,37 @@ def setup_logger(logger):
     logger.setLevel(logging.INFO)
 
 
-def pluck(G, node_id):
+# TODO: upstream this into networkx?
+def pluck(G: nx.DiGraph, node_id: Any) -> None:
     """Remove a node from a graph preserving structure.
-    
+
     This will fuse edges together so that connectivity of the graph is not affected by
     removal of a node.  This function operates in-place.
-    
+
     Parameters
     ----------
     G : networkx.Graph
     node_id : hashable
-    
+
     """
     if node_id in G.nodes:
         new_edges = list(
             itertools.product(
                 {_in for (_in, _) in G.in_edges(node_id)} - {node_id},
                 {_out for (_, _out) in G.out_edges(node_id)} - {node_id},
-            )
+            ),
         )
         G.remove_node(node_id)
         G.add_edges_from(new_edges)
 
 
-def get_requirements(meta_yaml, outputs=True, build=True, host=True, run=True):
+def get_requirements(
+    meta_yaml: "MetaYamlTypedDict",
+    outputs: bool = True,
+    build: bool = True,
+    host: bool = True,
+    run: bool = True,
+) -> "Set[PackageName]":
     """Get the list of recipe requirements from a meta.yaml dict
 
     Parameters
@@ -225,13 +255,19 @@ def get_requirements(meta_yaml, outputs=True, build=True, host=True, run=True):
     """
     kw = dict(build=build, host=host, run=run)
     reqs = _parse_requirements(meta_yaml.get("requirements", {}), **kw)
-    outputs = meta_yaml.get("outputs", []) or [] if outputs else []
-    for output in outputs:
-        reqs.update(_parse_requirements(output.get("requirements", {}) or {}, **kw))
+    outputs_ = meta_yaml.get("outputs", []) or [] if outputs else []
+    for output in outputs_:
+        for req in _parse_requirements(output.get("requirements", {}) or {}, **kw):
+            reqs.add(req)
     return reqs
 
 
-def _parse_requirements(req, build=True, host=True, run=True):
+def _parse_requirements(
+    req: Union[None, typing.List[str], "RequirementsTypedDict"],
+    build: bool = True,
+    host: bool = True,
+    run: bool = True,
+) -> typing.MutableSet["PackageName"]:
     """Flatten a YAML requirements section into a list of names
     """
     if not req:  # handle None as empty
@@ -239,36 +275,39 @@ def _parse_requirements(req, build=True, host=True, run=True):
     if isinstance(req, list):  # simple list goes to both host and run
         reqlist = req if (host or run) else []
     else:
-        build = list(as_iterable(req.get("build", []) or [] if build else []))
-        host = list(as_iterable(req.get("host", []) or [] if host else []))
-        run = list(as_iterable(req.get("run", []) or [] if run else []))
-        reqlist = build + host + run
-    return set(pin_sep_pat.split(x)[0].lower() for x in reqlist if x is not None)
+        _build = list(as_iterable(req.get("build", []) or [] if build else []))
+        _host = list(as_iterable(req.get("host", []) or [] if host else []))
+        _run = list(as_iterable(req.get("run", []) or [] if run else []))
+        reqlist = _build + _host + _run
+
+    packages = (pin_sep_pat.split(x)[0].lower() for x in reqlist if x is not None)
+    return {typing.cast("PackageName", pkg) for pkg in packages}
 
 
 @contextlib.contextmanager
-def executor(kind, max_workers):
+def executor(kind: str, max_workers: int) -> typing.Iterator[Executor]:
     """General purpose utility to get an executor with its as_completed handler
 
     This allows us to easily use other executors as needed.
     """
     if kind == "thread":
-        with ThreadPoolExecutor(max_workers=max_workers) as pool:
-            yield pool, as_completed
+        with ThreadPoolExecutor(max_workers=max_workers) as pool_t:
+            yield pool_t
     elif kind == "process":
-        with ProcessPoolExecutor(max_workers=max_workers) as pool:
-            yield pool, as_completed
+        with ProcessPoolExecutor(max_workers=max_workers) as pool_p:
+            yield pool_p
     elif kind == "dask":
         import distributed
+        from distributed.cfexecutor import ClientExecutor
 
         with distributed.LocalCluster(n_workers=max_workers) as cluster:
             with distributed.Client(cluster) as client:
-                yield client, distributed.as_completed
+                yield ClientExecutor(client)
     else:
         raise NotImplementedError("That kind is not implemented")
 
 
-def default(obj):
+def default(obj: Any) -> Any:
     """For custom object serialization."""
     if isinstance(obj, LazyJson):
         return {"__lazy_json__": obj.file_name}
@@ -277,7 +316,7 @@ def default(obj):
     raise TypeError(repr(obj) + " is not JSON serializable")
 
 
-def object_hook(dct):
+def object_hook(dct: dict) -> Union[LazyJson, Set, dict]:
     """For custom object deserialization."""
     if "__lazy_json__" in dct:
         return LazyJson(dct["__lazy_json__"])
@@ -286,7 +325,13 @@ def object_hook(dct):
     return dct
 
 
-def dumps(obj, sort_keys=True, separators=(",", ":"), default=default, **kwargs):
+def dumps(
+    obj: Any,
+    sort_keys: bool = True,
+    separators: Any = (",", ":"),
+    default: "Callable[[Any], Any]" = default,
+    **kwargs: Any,
+) -> str:
     """Returns a JSON string from a Python object."""
     return json.dumps(
         obj,
@@ -298,7 +343,14 @@ def dumps(obj, sort_keys=True, separators=(",", ":"), default=default, **kwargs)
     )
 
 
-def dump(obj, fp, sort_keys=True, separators=(",", ":"), default=default, **kwargs):
+def dump(
+    obj: Any,
+    fp: IO[str],
+    sort_keys: bool = True,
+    separators: Any = (",", ":"),
+    default: "Callable[[Any], Any]" = default,
+    **kwargs: Any,
+) -> None:
     """Returns a JSON string from a Python object."""
     return json.dump(
         obj,
@@ -311,17 +363,21 @@ def dump(obj, fp, sort_keys=True, separators=(",", ":"), default=default, **kwar
     )
 
 
-def loads(s, object_hook=object_hook, **kwargs):
+def loads(
+    s: str, object_hook: "Callable[[dict], Any]" = object_hook, **kwargs: Any
+) -> dict:
     """Loads a string as JSON, with approriate object hooks"""
     return json.loads(s, object_hook=object_hook, **kwargs)
 
 
-def load(fp, object_hook=object_hook, **kwargs):
+def load(
+    fp: IO[str], object_hook: "Callable[[dict], Any]" = object_hook, **kwargs: Any
+) -> dict:
     """Loads a file object as JSON, with appropriate object hooks."""
     return json.load(fp, object_hook=object_hook, **kwargs)
 
 
-def dump_graph(gx, filename="graph.json"):
+def dump_graph_json(gx: nx.DiGraph, filename: str = "graph.json") -> None:
     nld = nx.node_link_data(gx)
     links = nld["links"]
     links2 = sorted(links, key=lambda x: f'{x["source"]}{x["target"]}')
@@ -330,29 +386,99 @@ def dump_graph(gx, filename="graph.json"):
         dump(nld, f)
 
 
-def load_graph(filename="graph.json"):
+def dump_graph_dynamo(
+    gx: nx.DiGraph, tablename: str = "graph", region: str = "us-east-2"
+) -> None:
+    print(f"DynamoDB dump to {tablename} in {region}")
+    ddb = boto3.resource("dynamodb", region_name=region)
+    table = ddb.Table(tablename)
+    with table.batch_writer() as batch:
+        for node in tqdm.tqdm(gx.nodes):
+            if not node:
+                continue
+            preds = [n for n in gx.predecessors(node) if n]
+            preds.sort()
+            item = {"node_id": node}
+            if preds:
+                item["predecessors"] = preds
+            batch.put_item(Item=item)
+
+
+def dump_graph(
+    gx: nx.DiGraph,
+    filename: str = "graph.json",
+    tablename: str = "graph",
+    region: str = "us-east-2",
+) -> None:
+    dump_graph_json(gx, filename)
+    dump_graph_dynamo(gx, tablename, region)
+
+
+def load_graph(filename: str = "graph.json") -> nx.DiGraph:
     with open(filename, "r") as f:
         nld = load(f)
     return nx.node_link_graph(nld)
 
 
-def frozen_to_json_friendly(fz: dict, PR: LazyJson = None):
+# TODO: This type does not support generics yet sadly
+# cc https://github.com/python/mypy/issues/3863
+if typing.TYPE_CHECKING:
+
+    class JsonFriendly(TypedDict, total=False):
+        keys: typing.List[str]
+        data: dict
+        PR: dict
+
+
+@typing.overload
+def frozen_to_json_friendly(fz: None, pr: Optional[LazyJson] = None) -> None:
+    pass
+
+
+@typing.overload
+def frozen_to_json_friendly(fz: Any, pr: Optional[LazyJson] = None) -> "JsonFriendly":
+    pass
+
+
+@typing.no_type_check
+def frozen_to_json_friendly(fz, pr: Optional[LazyJson] = None):
     if fz is None:
         return None
     keys = sorted(list(fz.keys()))
     d = {"keys": keys, "data": dict(fz)}
-    if PR:
-        d["PR"] = PR
+    if pr:
+        d["PR"] = pr
     return d
 
 
-def github_client():
+def github_client() -> github3.GitHub:
     if os.environ.get("GITHUB_TOKEN"):
         return github3.login(token=os.environ["GITHUB_TOKEN"])
     else:
         return github3.login(os.environ["USERNAME"], os.environ["PASSWORD"])
 
 
+@typing.overload
+def as_iterable(x: dict) -> Tuple[dict]:
+    ...
+
+
+@typing.overload
+def as_iterable(x: str) -> Tuple[str]:
+    ...
+
+
+@typing.overload
+def as_iterable(x: Iterable[T]) -> Iterable[T]:
+    ...
+
+
+@typing.overload
+def as_iterable(x: T) -> Tuple[T]:
+    ...
+
+
+@typing.no_type_check
 def as_iterable(iterable_or_scalar):
     """Utility for converting an object to an iterable.
    Parameters

@@ -13,7 +13,7 @@ for node, attrs in g.nodes.items():
                 "migrator_name": "Version",
                 "migrator_version": 0,
                 "version": attrs["PRed"],
-            }
+            },
         ]
     elif "PRed" in attrs:
         attrs["PRed"] = []
@@ -32,7 +32,7 @@ last_compiler_index = compiler_migrations.index(last_compiler_pr)
 for i in range(last_compiler_index):
     attrs = g.nodes[compiler_migrations[i]]
     attrs.setdefault("PRed", []).append(
-        {"migrator_name": "Compiler", "migrator_version": 0}
+        {"migrator_name": "Compiler", "migrator_version": 0},
     )
 
 nx.write_gpickle(g, "../cf-graph/graph.pkl")

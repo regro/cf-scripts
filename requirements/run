@@ -17,3 +17,11 @@ distributed
 python-dateutil
 python-graphviz
 streamz
+backoff
+attrs
+boto3
+tqdm
+pynamodb
+ruamel.yaml
+ruamel.yaml.jinja2
+msgpack-python<1

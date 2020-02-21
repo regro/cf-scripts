@@ -10,9 +10,13 @@ from .auto_tick import main as main_auto_tick
 from .status_report import main as main_status_report
 
 
-def deploy():
+def deploy(args):
     """Deploy the graph to github"""
-    for cmd in [['git', 'add', 'pr_json/*'],
+    if args.dry_run:
+        print("(dry run) deploying")
+        return
+    for cmd in [['git', 'pull', '-s', 'recursive', '-X', 'theirs'],
+                ['git', 'add', 'pr_json/*'],
                 ['git', 'add', 'status/*'],
                 ['git', 'add', 'node_attrs/*'],
                 ['git', 'commit', '-am', f'"Update Graph {$CIRCLE_BUILD_URL}"']]:
@@ -43,13 +47,15 @@ def main(*args, **kwargs):
     parser = argparse.ArgumentParser("a tool to help update feedstocks.")
     parser.add_argument("--run")
     parser.add_argument("--debug", dest="debug", action="store_true", default=False,
-        help="Runs in debug mode, running paraellel parts sequentially and printing more info.")
+        help="Runs in debug mode, running parallel parts sequentially and printing more info.")
+    parser.add_argument("--dry-run", dest="dry_run", action="store_true", default=False,
+                        help="Don't push changes to PRs or graph to Github")
     args = parser.parse_args()
     $CONDA_FORGE_TICK_DEBUG = args.debug
     script = int(args.run)
     if script in int_script_dict:
         start = time.time()
-        int_script_dict[script]()
+        int_script_dict[script](args)
         print('FINISHED STAGE {} IN {} SECONDS'.format(script, time.time() - start))
     else:
         raise RuntimeError("Unknown script number")
