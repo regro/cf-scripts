@@ -31,7 +31,6 @@ from .utils import (
 )
 from .xonsh_utils import env
 from typing import (
-    List,
     Optional,
     MutableSequence,
     Sequence,
@@ -42,8 +41,6 @@ from typing import (
     Union,
 )
 
-logger = logging.getLogger("conda_forge_tick.auto_tick")
-
 from conda_forge_tick.utils import frozen_to_json_friendly
 from conda_forge_tick.contexts import MigratorSessionContext, MigratorContext
 from conda_forge_tick.migrators import (
@@ -52,30 +49,41 @@ from conda_forge_tick.migrators import (
     PipMigrator,
     LicenseMigrator,
     MigrationYaml,
-    GraphMigrator,
     Replacement,
     ArchRebuild,
-    PipCheckMigrator,
     MatplotlibBase,
     CondaForgeYAMLCleanup,
 )
 
 if typing.TYPE_CHECKING:
     from .cli import CLIArgs
-    from .migrators_types import *
+    from .migrators_types import (
+        MetaYamlTypedDict,
+        PackageName,
+        AttrsTypedDict,
+    )
+
+logger = logging.getLogger("conda_forge_tick.auto_tick")
 
 
 MIGRATORS: MutableSequence[Migrator] = [
     Version(
-        pr_limit=30,
-        piggy_back_migrations=[PipMigrator(), LicenseMigrator(), CondaForgeYAMLCleanup()],
+        pr_limit=10,
+        piggy_back_migrations=[
+            PipMigrator(),
+            LicenseMigrator(),
+            CondaForgeYAMLCleanup(),
+        ],
     ),
 ]
 
 BOT_RERUN_LABEL = {
     "name": "bot-rerun",
     "color": "#191970",
-    "description": "Apply this label if you want the bot to retry issueing a particular pull-request",
+    "description": (
+        "Apply this label if you want the bot to retry "
+        "issueing a particular pull-request"
+    ),
 }
 
 
@@ -149,11 +157,11 @@ def run(
     # rerender, maybe
     diffed_files: typing.List[str] = []
     with indir(feedstock_dir), env.swap(RAISE_SUBPROC_ERROR=False):
-        msg = migrator.commit_message(feedstock_ctx)
+        msg = migrator.commit_message(feedstock_ctx)  # noqa
         eval_xonsh("git add --all .")
         eval_xonsh("git commit -am @(msg)")
         if rerender:
-            head_ref = eval_xonsh("git rev-parse HEAD")
+            head_ref = eval_xonsh("git rev-parse HEAD")  # noqa
             logger.info("Rerendering the feedstock")
             eval_xonsh("conda smithy rerender -c auto")
             # If we tried to run the MigrationYaml and rerender did nothing (we only
@@ -386,7 +394,11 @@ def add_rebuild_migration_yaml(
         name=migration_name,
         top_level=top_level,
         cycles=cycles,
-        piggy_back_migrations=[PipMigrator(), LicenseMigrator(), CondaForgeYAMLCleanup()],
+        piggy_back_migrations=[
+            PipMigrator(),
+            LicenseMigrator(),
+            CondaForgeYAMLCleanup(),
+        ],
         **config,
     )
     print(f"bump number is {migrator.bump_number}")
@@ -394,7 +406,7 @@ def add_rebuild_migration_yaml(
 
 
 def migration_factory(
-    migrators: MutableSequence[Migrator], gx: nx.DiGraph, pr_limit: int = 50,
+    migrators: MutableSequence[Migrator], gx: nx.DiGraph, pr_limit: int = 5,
 ) -> None:
     migration_yamls = []
     with indir("../conda-forge-pinning-feedstock/recipe/migrations"):
@@ -743,5 +755,4 @@ def main(args: "CLIArgs") -> None:
 
 
 if __name__ == "__main__":
-
-    pass  #  main()
+    pass  # main()
