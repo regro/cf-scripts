@@ -31,7 +31,6 @@ from .utils import (
 )
 from .xonsh_utils import env
 from typing import (
-    List,
     Optional,
     MutableSequence,
     Sequence,
@@ -42,8 +41,6 @@ from typing import (
     Union,
 )
 
-logger = logging.getLogger("conda_forge_tick.auto_tick")
-
 from conda_forge_tick.utils import frozen_to_json_friendly
 from conda_forge_tick.contexts import MigratorSessionContext, MigratorContext
 from conda_forge_tick.migrators import (
@@ -52,30 +49,41 @@ from conda_forge_tick.migrators import (
     PipMigrator,
     LicenseMigrator,
     MigrationYaml,
-    GraphMigrator,
     Replacement,
     ArchRebuild,
-    PipCheckMigrator,
     MatplotlibBase,
     CondaForgeYAMLCleanup,
 )
 
 if typing.TYPE_CHECKING:
     from .cli import CLIArgs
-    from .migrators_types import *
+    from .migrators_types import (
+        MetaYamlTypedDict,
+        PackageName,
+        AttrsTypedDict,
+    )
+
+logger = logging.getLogger("conda_forge_tick.auto_tick")
 
 
 MIGRATORS: MutableSequence[Migrator] = [
     Version(
         pr_limit=30,
-        piggy_back_migrations=[PipMigrator(), LicenseMigrator(), CondaForgeYAMLCleanup()],
+        piggy_back_migrations=[
+            PipMigrator(),
+            LicenseMigrator(),
+            CondaForgeYAMLCleanup(),
+        ],
     ),
 ]
 
 BOT_RERUN_LABEL = {
     "name": "bot-rerun",
     "color": "#191970",
-    "description": "Apply this label if you want the bot to retry issueing a particular pull-request",
+    "description": (
+        "Apply this label if you want the bot to retry "
+        "issueing a particular pull-request"
+    ),
 }
 
 
@@ -149,11 +157,11 @@ def run(
     # rerender, maybe
     diffed_files: typing.List[str] = []
     with indir(feedstock_dir), env.swap(RAISE_SUBPROC_ERROR=False):
-        msg = migrator.commit_message(feedstock_ctx)
+        msg = migrator.commit_message(feedstock_ctx)  # noqa
         eval_xonsh("git add --all .")
         eval_xonsh("git commit -am @(msg)")
         if rerender:
-            head_ref = eval_xonsh("git rev-parse HEAD")
+            head_ref = eval_xonsh("git rev-parse HEAD")  # noqa
             logger.info("Rerendering the feedstock")
             eval_xonsh("conda smithy rerender -c auto")
             # If we tried to run the MigrationYaml and rerender did nothing (we only
@@ -386,7 +394,11 @@ def add_rebuild_migration_yaml(
         name=migration_name,
         top_level=top_level,
         cycles=cycles,
-        piggy_back_migrations=[PipMigrator(), LicenseMigrator(), CondaForgeYAMLCleanup()],
+        piggy_back_migrations=[
+            PipMigrator(),
+            LicenseMigrator(),
+            CondaForgeYAMLCleanup(),
+        ],
         **config,
     )
     print(f"bump number is {migrator.bump_number}")
@@ -394,7 +406,7 @@ def add_rebuild_migration_yaml(
 
 
 def migration_factory(
-    migrators: MutableSequence[Migrator], gx: nx.DiGraph, pr_limit: int = 50,
+    migrators: MutableSequence[Migrator], gx: nx.DiGraph, pr_limit: int = 5,
 ) -> None:
     migration_yamls = []
     with indir("../conda-forge-pinning-feedstock/recipe/migrations"):
@@ -496,7 +508,7 @@ def migrator_status(
     import graphviz
     from streamz.graph import _clean_text
 
-    gv = graphviz.Digraph()
+    gv = graphviz.Digraph(graph_attr={"packmode": "array_3"})
     for node, node_attrs in gx2.nodes.items():
         attrs = node_attrs["payload"]
         # remove archived from status
@@ -505,7 +517,23 @@ def migrator_status(
         node_metadata: Dict = {}
         feedstock_metadata[node] = node_metadata
         nuid = migrator.migrator_uid(attrs)
+        all_pr_jsons = []
         for pr_json in attrs.get("PRed", []):
+            all_pr_jsons.append(copy.deepcopy(pr_json))
+
+        # hack around bug in migrator vs graph data for this one
+        if isinstance(migrator, MatplotlibBase):
+            if 'name' in nuid:
+                del nuid['name']
+            for i in range(len(all_pr_jsons)):
+                if (
+                    all_pr_jsons[i] and
+                    'name' in all_pr_jsons[i]['data'] and
+                    all_pr_jsons[i]['data']['migrator_name'] == 'MatplotlibBase'
+                ):
+                    del all_pr_jsons[i]['data']['name']
+
+        for pr_json in all_pr_jsons:
             if pr_json and pr_json["data"] == frozen_to_json_friendly(nuid)["data"]:
                 break
         else:
@@ -515,8 +543,7 @@ def migrator_status(
         # This is only the case when the migration was done manually
         # before the bot could issue any PR.
         manually_done = pr_json is None and frozen_to_json_friendly(nuid)["data"] in (
-            z["data"] for z in attrs.get("PRed", [])
-        )
+            z["data"] for z in all_pr_jsons)
 
         buildable = not migrator.filter(attrs)
         fntc = "black"
@@ -528,7 +555,7 @@ def migrator_status(
             if buildable:
                 out["awaiting-pr"].add(node)
                 fc = "#35b779"
-            else:
+            elif not isinstance(migrator, Replacement):
                 out["awaiting-parents"].add(node)
                 fc = "#fde725"
         elif "PR" not in pr_json:
@@ -613,6 +640,8 @@ def main(args: "CLIArgs") -> None:
         )
 
         for node_name in migrator.order(effective_graph, mctx.graph):
+            if isinstance(migrator, Version) and node_name == 'gmsh':
+                continue
             with mctx.graph.nodes[node_name]["payload"] as attrs:
                 # Don't let CI timeout, break ahead of the timeout so we make certain
                 # to write to the repo
@@ -710,7 +739,8 @@ def main(args: "CLIArgs") -> None:
                         good_prs += 1
                 finally:
                     # Write graph partially through
-                    dump_graph(mctx.graph)
+                    if not args.dry_run:
+                        dump_graph(mctx.graph)
 
                     eval_xonsh(f"rm -rf {mctx.rever_dir}/*")
                     logger.info(os.getcwd())
@@ -727,5 +757,4 @@ def main(args: "CLIArgs") -> None:
 
 
 if __name__ == "__main__":
-
-    pass  #  main()
+    pass  # main()

@@ -5,13 +5,12 @@ import logging
 import os
 import time
 import random
-import builtins
 from collections import defaultdict
-from concurrent.futures import as_completed, Executor
+from concurrent.futures import as_completed
 from copy import deepcopy
 import typing
 from requests import Response
-from typing import List, Optional, Any, Tuple, Set
+from typing import List, Optional, Set
 
 import github3
 import networkx as nx
@@ -21,7 +20,7 @@ import yaml
 from xonsh.lib.collections import ChainDB, _convert_to_dict
 from .xonsh_utils import env
 
-from conda_forge_tick.utils import github_client, load, as_iterable
+from conda_forge_tick.utils import github_client, as_iterable
 from .all_feedstocks import get_all_feedstocks
 from .utils import (
     parse_meta_yaml,
@@ -37,6 +36,7 @@ from .contexts import GithubContext
 
 if typing.TYPE_CHECKING:
     from .cli import CLIArgs
+    from .migrators_types import RequirementsTypedDict, TestTypedDict
 
 logger = logging.getLogger("conda_forge_tick.make_graph")
 pin_sep_pat = re.compile(r" |>|<|=|\[")
@@ -184,7 +184,6 @@ def populate_feedstock_attributes(
 
 
 def get_attrs(name: str, i: int) -> LazyJson:
-    logger.info((i, name))
     # These fetches could be done via async/multiprocessing
     meta_yaml = _fetch_file(name, "recipe/meta.yaml")
     conda_forge_yaml = _fetch_file(name, "conda-forge.yml")
@@ -200,17 +199,32 @@ def get_attrs(name: str, i: int) -> LazyJson:
 def _build_graph_process_pool(
     gx: nx.DiGraph, names: List[str], new_names: List[str],
 ) -> None:
-    with executor("dask", max_workers=20) as pool:
+    with executor("thread", max_workers=20) as pool:
         futures = {
             pool.submit(get_attrs, name, i): name for i, name in enumerate(names)
         }
+        logger.info("submitted all nodes")
 
+        n_tot = len(futures)
+        n_left = len(futures)
+        start = time.time()
+        eta = -1
         for f in as_completed(futures):
+            n_left -= 1
+            if n_left % 10 == 0:
+                eta = (time.time() - start) / (n_tot - n_left) * n_left
             name = futures[f]
             try:
                 sub_graph = {"payload": f.result()}
+                logger.info("itr % 5d - eta % 5ds: finished %s", n_left, eta, name)
             except Exception as e:
-                logger.error(f"Error adding {name} to the graph: {e}")
+                logger.error(
+                    "itr % 5d - eta % 5ds: Error adding %s to the graph: %s",
+                    n_left,
+                    eta,
+                    name,
+                    repr(e),
+                )
             else:
                 if name in new_names:
                     gx.add_node(name, **sub_graph)
@@ -243,7 +257,8 @@ def make_graph(names: List[str], gx: Optional[nx.DiGraph] = None) -> nx.DiGraph:
     old_names = [name for name in names if name in gx.nodes]
     # silly typing force
     assert gx is not None
-    old_names = sorted(old_names, key=lambda n: gx.nodes[n].get("time", 0))  # type: ignore
+    old_names = sorted(                                       # type: ignore
+        old_names, key=lambda n: gx.nodes[n].get("time", 0))  # type: ignore
 
     total_names = new_names + old_names
     logger.info("start feedstock fetch loop")
@@ -336,10 +351,10 @@ def _update_pr(update_function, dry_run, gx):
                 failed_refresh += 1
                 if is_github_api_limit_reached(e, gh):
                     break
-            except github3.exceptions.ConnectionError as e:
+            except github3.exceptions.ConnectionError:
                 logger.error(f"GITHUB ERROR ON FEEDSTOCK: {name}")
                 failed_refresh += 1
-            except Exception as e:
+            except Exception:
                 logger.critical(
                     "ERROR ON FEEDSTOCK: {}: {}".format(
                         name, gx.nodes[name]["payload"]["PRed"][i],

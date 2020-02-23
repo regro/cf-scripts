@@ -6,6 +6,7 @@ import jinja2
 import collections.abc
 import hashlib
 import pprint
+import random
 from typing import (
     Sequence,
     MutableMapping,
@@ -574,5 +575,9 @@ class Version(Migrator):
         self, graph: nx.DiGraph, total_graph: nx.DiGraph,
     ) -> Sequence["PackageName"]:
         return sorted(
-            graph, key=lambda x: (len(nx.descendants(total_graph, x)), x), reverse=True,
+            graph,
+            # FIXME - we should flag bad version PRs instead
+            # key=lambda x: (len(nx.descendants(total_graph, x)), x),
+            key=lambda x: random.uniform(0, 1),
+            reverse=True,
         )

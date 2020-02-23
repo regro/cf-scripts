@@ -1,13 +1,21 @@
 import abc
-
 import collections.abc
 import logging
-import builtins
 import subprocess
+import random
+import time
 import hashlib
 import re
 from concurrent.futures import as_completed
-from typing import Any, Optional, Iterable, Callable
+import typing
+from typing import (
+    Any,
+    Optional,
+    Iterable,
+    Set,
+    Iterator,
+    List,
+)
 
 import yaml
 import networkx as nx
@@ -21,8 +29,6 @@ from pkg_resources import parse_version
 
 from .utils import parse_meta_yaml, setup_logger, executor, load_graph, dump_graph
 
-import typing
-from typing import Set, Iterator
 
 if typing.TYPE_CHECKING:
     from .migrators_types import MetaYamlTypedDict, SourceTypedDict
@@ -30,6 +36,8 @@ if typing.TYPE_CHECKING:
 logger = logging.getLogger("conda_forge_tick.update_upstream_versions")
 
 CRAN_INDEX: Optional[dict] = None
+
+EXTS: List[str] = ['.tar.gz', '.zip', '.tar.bz2', '.tar', '.tar.xz']
 
 
 def urls_from_meta(meta_yaml: "MetaYamlTypedDict") -> Set[str]:
@@ -50,16 +58,39 @@ def urls_from_meta(meta_yaml: "MetaYamlTypedDict") -> Set[str]:
     return urls
 
 
+def _split_alpha_num(ver: str) -> List[str]:
+    for i, c in enumerate(ver):
+        if c.isalpha():
+            return [ver[0:i], ver[i:]]
+    return [ver]
+
+
 def next_version(ver: str) -> Iterator[str]:
     ver_split = []
-    ver_dot_split = ver.split(".")
-    for s in ver_dot_split:
-        ver_dash_split = s.split("_")
-        for j in ver_dash_split:
-            ver_split.append(j)
-            ver_split.append("_")
-        ver_split[-1] = "."
-    del ver_split[-1]
+    ver_dot_split = ver.split('.')
+    n_dot = len(ver_dot_split)
+    for idot, sdot in enumerate(ver_dot_split):
+
+        ver_under_split = sdot.split('_')
+        n_under = len(ver_under_split)
+        for iunder, sunder in enumerate(ver_under_split):
+
+            ver_dash_split = sunder.split("-")
+            n_dash = len(ver_dash_split)
+            for idash, sdash in enumerate(ver_dash_split):
+
+                for el in _split_alpha_num(sdash):
+                    ver_split.append(el)
+
+                if idash < n_dash - 1:
+                    ver_split.append("-")
+
+            if iunder < n_under - 1:
+                ver_split.append("_")
+
+        if idot < n_dot - 1:
+            ver_split.append('.')
+
     for k in reversed(range(len(ver_split))):
         try:
             t = int(ver_split[k])
@@ -85,7 +116,10 @@ class AbstractSource(abc.ABC):
 
 class VersionFromFeed(AbstractSource):
     ver_prefix_remove = ["release-", "releases%2F", "v_", "v.", "v"]
-    dev_vers = ["rc", "beta", "alpha", "dev", "a", "b", "RC"]
+    dev_vers = [
+        "rc", "beta", "alpha", "dev", "a", "b", "init",
+        "testing", "test", "pre"
+    ]
 
     def get_version(self, url) -> Optional[str]:
         data = feedparser.parse(url)
@@ -96,8 +130,8 @@ class VersionFromFeed(AbstractSource):
             ver = entry["link"].split("/")[-1]
             for prefix in self.ver_prefix_remove:
                 if ver.startswith(prefix):
-                    ver = ver[len(prefix) :]
-            if any(s in ver for s in self.dev_vers):
+                    ver = ver[len(prefix):]
+            if any(s in ver.lower() for s in self.dev_vers):
                 continue
             # Extract vesion number starting at the first digit.
             ver = re.search(r"(\d+[^\s]*)", ver).group(0)
@@ -195,14 +229,14 @@ class CRAN(AbstractSource):
             try:
                 session = requests.Session()
                 CRAN_INDEX = self._get_cran_index(session)
-                logger.info("Cran source initialized")
+                logger.debug("Cran source initialized")
             except Exception:
                 logger.error("Cran initialization failed", exc_info=True)
                 CRAN_INDEX = {}
 
     def _get_cran_index(self, session: requests.Session) -> dict:
         # from conda_build/skeletons/cran.py:get_cran_index
-        logger.info("Fetching cran index from %s", self.cran_url)
+        logger.debug("Fetching cran index from %s", self.cran_url)
         r = session.get(self.cran_url + "/src/contrib/")
         r.raise_for_status()
         records = {}
@@ -246,7 +280,7 @@ class ROSDistro(AbstractSource):
     def parse_idx(self, distro_name: str = "melodic") -> dict:
         session = requests.Session()
         res = session.get(
-            f"https://raw.githubusercontent.com/ros/rosdistro/master/{distro_name}/distribution.yaml",
+            f"https://raw.githubusercontent.com/ros/rosdistro/master/{distro_name}/distribution.yaml",  # noqa
         )
         res.raise_for_status()
         resd = yaml.load(res.text, Loader=yaml.SafeLoader)
@@ -332,6 +366,36 @@ def get_sha256(url: str) -> Optional[str]:
         return None
 
 
+def url_exists(url: str) -> bool:
+    try:
+        output = subprocess.check_output(
+            ["wget", "--spider", url], stderr=subprocess.STDOUT, timeout=1,
+        )
+    except Exception:
+        return False
+    # For FTP servers an exception is not thrown
+    if "No such file" in output.decode("utf-8"):
+        return False
+    if "not retrieving" in output.decode("utf-8"):
+        return False
+
+    return True
+
+
+def url_exists_swap_exts(url: str):
+    if url_exists(url):
+        return True, url
+
+    # TODO this is too expensive
+    # from itertools import permutations
+    # for (exthave, extrep) in permutations(EXTS, 2):
+    #     new_url = url.replace(exthave, extrep)
+    #     if url_exists(new_url):
+    #         return True, new_url
+
+    return False, None
+
+
 class RawURL(AbstractSource):
     name = "RawURL"
 
@@ -353,6 +417,7 @@ class RawURL(AbstractSource):
         while found and count < max_count:
             found = False
             for next_ver in next_version(current_ver):
+                logger.debug("trying version: %s", next_ver)
                 new_content = content.replace(orig_ver, next_ver)
                 meta = parse_meta_yaml(new_content)
                 url = None
@@ -368,17 +433,14 @@ class RawURL(AbstractSource):
                     or meta_yaml["url"] == url
                 ):
                     continue
-                try:
-                    output = subprocess.check_output(
-                        ["wget", "--spider", url], stderr=subprocess.STDOUT, timeout=1,
-                    )
-                except Exception:
+
+                _exists, _url_to_use = url_exists_swap_exts(url)
+                if not _exists:
+                    logger.debug("version %s does not exist", next_ver)
                     continue
-                # For FTP servers an exception is not thrown
-                if "No such file" in output.decode("utf-8"):
-                    continue
-                if "not retrieving" in output.decode("utf-8"):
-                    continue
+                else:
+                    url = _url_to_use
+
                 found = True
                 count = count + 1
                 current_ver = next_ver
@@ -386,11 +448,13 @@ class RawURL(AbstractSource):
                 if new_sha256 == current_sha256 or new_sha256 in new_content:
                     return None
                 current_sha256 = new_sha256
+                logger.debug("version %s is ok", current_ver)
                 break
 
         if count == max_count:
             return None
         if current_ver != orig_ver:
+            logger.debug("using version %s", current_ver)
             return current_ver
         return None
 
@@ -398,13 +462,20 @@ class RawURL(AbstractSource):
         return url
 
 
-def get_latest_version(payload_meta_yaml: Any, sources: Iterable[AbstractSource]):
+def get_latest_version(
+    name: str,
+    payload_meta_yaml: Any,
+    sources: Iterable[AbstractSource]
+):
     with payload_meta_yaml as meta_yaml:
         for source in sources:
+            logger.debug('source: %s', source.__class__.__name__)
             url = source.get_url(meta_yaml)
+            logger.debug('url: %s', url)
             if url is None:
                 continue
             ver = source.get_version(url)
+            logger.debug('ver: %s', ver)
             if ver:
                 return ver
             else:
@@ -417,21 +488,25 @@ def get_latest_version(payload_meta_yaml: Any, sources: Iterable[AbstractSource]
 def _update_upstream_versions_sequential(
     gx: nx.DiGraph, sources: Iterable[AbstractSource],
 ) -> None:
+    _all_nodes = [t for t in gx.nodes.items()]
+    random.shuffle(_all_nodes)
+
     to_update = []
-    for node, node_attrs in gx.nodes.items():
+    for node, node_attrs in _all_nodes:
         attrs = node_attrs["payload"]
         if attrs.get("bad") or attrs.get("archived"):
             attrs["new_version"] = False
             continue
         to_update.append((node, attrs))
+
     for node, node_attrs in to_update:
         with node_attrs as attrs:
             try:
-                new_version = get_latest_version(attrs, sources)
+                new_version = get_latest_version(node, attrs, sources)
                 attrs["new_version"] = new_version or attrs["new_version"]
             except Exception as e:
                 try:
-                    se = str(e)
+                    se = repr(e)
                 except Exception as ee:
                     se = f"Bad exception string: {ee}"
                 logger.warning(f"Error getting uptream version of {node}: {se}")
@@ -446,16 +521,28 @@ def _update_upstream_versions_process_pool(
     gx: nx.DiGraph, sources: Iterable[AbstractSource],
 ) -> None:
     futures = {}
-    with executor(kind="dask", max_workers=20) as pool:
-        for node, node_attrs in gx.nodes.items():
+    with executor(kind="dask", max_workers=10) as pool:
+        _all_nodes = [t for t in gx.nodes.items()]
+        random.shuffle(_all_nodes)
+        for node, node_attrs in _all_nodes:
             with node_attrs["payload"] as attrs:
                 if attrs.get("bad") or attrs.get("archived"):
                     attrs["new_version"] = False
                     continue
                 futures.update(
-                    {pool.submit(get_latest_version, attrs, sources): (node, attrs)},
+                    {pool.submit(get_latest_version, node, attrs, sources): (
+                        node, attrs)},
                 )
+
+        n_tot = len(futures)
+        n_left = len(futures)
+        start = time.time()
+        eta = -1
         for f in as_completed(futures):
+            n_left -= 1
+            if n_left % 10 == 0:
+                eta = (time.time() - start) / (n_tot - n_left) * n_left
+
             node, node_attrs = futures[f]
             with node_attrs as attrs:
                 try:
@@ -463,14 +550,24 @@ def _update_upstream_versions_process_pool(
                     attrs["new_version"] = new_version or attrs["new_version"]
                 except Exception as e:
                     try:
-                        se = str(e)
+                        se = repr(e)
                     except Exception as ee:
                         se = f"Bad exception string: {ee}"
-                    logger.error(f"Error getting upstream version of {node}: {se}")
+                    logger.error(
+                        "itr % 5d - eta % 5ds: "
+                        "Error getting upstream version of %s: %s" % (
+                            n_left,
+                            eta,
+                            node,
+                            se,
+                        )
+                    )
                     attrs["bad"] = "Upstream: Error getting upstream version"
                 else:
                     logger.info(
-                        "{} - {} - {}".format(
+                        "itr % 5d - eta % 5ds: %s - %s - %s" % (
+                            n_left,
+                            eta,
                             node,
                             attrs.get("version", "<no-version>"),
                             attrs["new_version"],
@@ -482,7 +579,7 @@ def update_upstream_versions(
     gx: nx.DiGraph, sources: Iterable[AbstractSource] = None,
 ) -> None:
     sources = (
-        (PyPI(), NPM(), CRAN(), ROSDistro(), RawURL(), Github())
+        (PyPI(), CRAN(), NPM(), ROSDistro(), RawURL(), Github())
         if sources is None
         else sources
     )
@@ -517,7 +614,12 @@ def update_upstream_versions(
 
 
 def main(args: Any = None) -> None:
-    setup_logger(logger)
+    from .xonsh_utils import env
+    debug = env.get("CONDA_FORGE_TICK_DEBUG", False)
+    if debug:
+        setup_logger(logger, level='debug')
+    else:
+        setup_logger(logger)
 
     logger.info("Reading graph")
     gx = load_graph()

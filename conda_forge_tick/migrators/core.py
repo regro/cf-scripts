@@ -564,6 +564,23 @@ class Replacement(Migrator):
         else:
             self.graph = graph
 
+    def order(
+        self, graph: nx.DiGraph, total_graph: nx.DiGraph,
+    ) -> Sequence["PackageName"]:
+        """Order to run migrations in
+
+        Parameters
+        ----------
+        graph : nx.DiGraph
+            The graph of migratable PRs
+
+        Returns
+        -------
+        graph : nx.DiGraph
+            The ordered graph.
+        """
+        return graph
+
     def filter(self, attrs: "AttrsTypedDict", not_bad_str_start: str = "") -> bool:
         return (
             super().filter(attrs) or len(attrs.get("req", set()) & self.packages) == 0
@@ -611,7 +628,7 @@ class Replacement(Migrator):
         return f"Suggestion: depend on {self.new_pkg} instead of {self.old_pkg}"
 
     def remote_branch(self, feedstock_ctx: FeedstockContext) -> str:
-        return f"{self.old_pkg}-to-{self.new_pkg}-migration"
+        return f"{self.old_pkg}-to-{self.new_pkg}-migration-{self.migrator_version}"
 
     def migrator_uid(self, attrs: "AttrsTypedDict") -> "MigrationUidTypedDict":
         n = super().migrator_uid(attrs)
