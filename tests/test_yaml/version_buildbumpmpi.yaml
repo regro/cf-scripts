@@ -1,0 +1,94 @@
+{% set version = "7.7.2" %}
+{% set xy = version.rsplit('.', 1)[0] %}
+{% set build = 100 %}
+
+{% if not mpi %}
+# conda-smithy misbehaves if mpi is unset
+{% set mpi = 'nompi' %}
+{% endif %}
+
+{% if mpi == 'nompi' %}
+# prioritize nompi variant via build number
+{% set build = build + 100 %}
+{% endif %}
+
+package:
+  name: neuron
+  version: {{ version }}
+
+source:
+  - url: https://github.com/neuronsimulator/nrn/archive/{{ version }}.tar.gz
+    sha256: a47a5cd8189f544bacfef52587d26ff941e592a0f5355bd524bb217c22b1bfa4
+    folder: github
+
+build:
+  number: {{ build }}
+  skip: true  # [win]
+
+  # there seem to be references to the build env in the output
+  # maybe this is the culprit for failed builds
+  merge_build_host: true  # [linux]
+
+  # add build string so packages can depend on
+  # mpi or nompi variants explicitly:
+  # `pkg * mpi_mpich_*` for mpich
+  # `pkg * mpi_*` for any mpi
+  # `pkg * nompi_*` for no mpi
+  {% if mpi == "nompi" %}
+  {% set mpi_prefix = "nompi" %}
+  {% else %}
+  {% set mpi_prefix = "mpi_" + mpi %}
+  {% endif %}
+  string: "{{ mpi_prefix }}_py{{ py }}h{{ PKG_HASH }}_{{ build }}"
+
+  run_exports:
+    {% if mpi == "nompi" %}
+    - {{ pin_compatible("neuron") }}
+    {% else %}
+    - {{ pin_compatible("neuron") }} {{ mpi_prefix }}_*
+    {% endif %}
+
+requirements:
+  build:
+    - {{ compiler('c') }}
+    - {{ compiler('cxx') }}
+    - autoconf
+    - automake
+    - bison
+    - flex
+    - pkg-config
+    - libtool
+  host:
+    - python
+    - cython
+    - numpy
+    - readline
+    - ncurses
+    - {{ mpi }}  # [mpi != "nompi"]
+  run:
+    - python
+    - numpy
+    - readline
+    - ncurses
+    - {{ mpi }}  # [mpi != "nompi"]
+
+test:
+  requires:
+    - {{ compiler('c') }}
+    - scipy
+  files:
+    - Nap_Et2.mod
+    - test_mpi.py
+  imports:
+    - neuron
+    - neuron.rxd
+
+about:
+  home: https://neuron.yale.edu
+  license: BSD 3-Clause
+  license_file: github/Copyright
+  summary: NEURON is a simulator for models of neurons and networks of neuron.
+
+extra:
+  recipe-maintainers:
+    - minrk

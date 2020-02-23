@@ -1,29 +1,30 @@
-import re
+import os
 import typing
+import re
+import io
+import jinja2
+import collections.abc
+import hashlib
+import pprint
 import random
 from typing import (
-    List,
-    Tuple,
-    Union,
     Sequence,
-    MutableSequence,
+    MutableMapping,
     Any,
 )
-import urllib.error
 import warnings
 from itertools import permutations, product
+import logging
 
 import requests
 import networkx as nx
 import conda.exceptions
 from conda.models.version import VersionOrder
-from rever.tools import eval_version, hash_url, replace_in_file
 
-from conda_forge_tick.xonsh_utils import env
 from conda_forge_tick.migrators.core import Migrator
 from conda_forge_tick.contexts import FeedstockContext
 from conda_forge_tick.xonsh_utils import indir
-from conda_forge_tick.utils import render_meta_yaml, parse_meta_yaml
+from conda_forge_tick.recipe_parser import CONDA_SELECTOR, CondaMetaYAML
 
 if typing.TYPE_CHECKING:
     from conda_forge_tick.migrators_types import (
@@ -31,107 +32,321 @@ if typing.TYPE_CHECKING:
         AttrsTypedDict,
     )
 
+EXTS = ['.tar.gz', '.zip', '.tar.bz2', '.tar', '.tar.xz']
+CHECKSUM_NAMES = [
+    "hash_value",
+    "hash",
+    "hash_val",
+    "sha256sum",
+    "checksum",
+]
+
+# matches valid jinja2 vars
+JINJA2_VAR_RE = re.compile('{{ ((?:[a-zA-Z]|(?:_[a-zA-Z0-9]))[a-zA-Z0-9_]*) }}')
+
+logger = logging.getLogger("conda_forge_tick.migrators.version")
+
+
+def _gen_key_selector(dct: MutableMapping, key: str):
+    for k in dct:
+        if k == key or (CONDA_SELECTOR in k and k.split(CONDA_SELECTOR)[0] == key):
+            yield k
+
+
+def _is_r_url(url: str):
+    if (
+        "cran.r-project.org/src/contrib" in url or
+        "cran_mirror" in url
+    ):
+        return True
+    else:
+        return False
+
+
+def _has_r_url(curr_val: Any):
+    if isinstance(curr_val, collections.abc.MutableSequence):
+        for i in range(len(curr_val)):
+            return _has_r_url(curr_val[i])
+    elif isinstance(curr_val, collections.abc.MutableMapping):
+        for key in _gen_key_selector(curr_val, 'url'):
+            return _has_r_url(curr_val[key])
+    elif isinstance(curr_val, str):
+        return _is_r_url(curr_val)
+    else:
+        return False
+
+
+def _compile_all_selectors(cmeta: Any, src: str):
+    selectors = [None]
+    for key in cmeta.jinja2_vars:
+        if CONDA_SELECTOR in key:
+            selectors.append(key.split(CONDA_SELECTOR)[1])
+    for key in src:
+        if CONDA_SELECTOR in key:
+            selectors.append(key.split(CONDA_SELECTOR)[1])
+    return set(selectors)
+
+
+def _try_url_and_hash_it(url: str, hash_type: str):
+    logger.debug("downloading url: %s", url)
+
+    try:
+        ha = getattr(hashlib, hash_type)()
+        resp = requests.get(url, stream=True)
+        if resp.status_code == 200:
+            for chunk in resp.iter_content(chunk_size=1024):
+                ha.update(chunk)
+        else:
+            logger.debug("url does not exist: %s", url)
+            return None
+
+        new_hash = ha.hexdigest()
+        logger.debug("hash: %s", new_hash)
+        return new_hash
+    except Exception as e:
+        logger.debug("hashing url failed: %s", repr(e))
+        return None
+
+
+def _render_jinja2(tmpl, context):
+    return jinja2.Template(tmpl, undefined=jinja2.StrictUndefined).render(**context)
+
+
+def _get_new_url_tmpl_and_hash(url_tmpl: str, context: MutableMapping, hash_type: str):
+    new_url_tmpl = None
+    new_hash = None
+
+    try:
+        url = _render_jinja2(url_tmpl, context)
+        new_hash = _try_url_and_hash_it(url, hash_type)
+    except jinja2.UndefinedError:
+        new_hash = None
+
+    if new_hash is None:
+        # replace ext only
+        for exthave, extrep in permutations(EXTS, 2):
+            try:
+                new_url_tmpl = (
+                    url_tmpl
+                    .replace(exthave, extrep)
+                )
+                url = _render_jinja2(new_url_tmpl, context)
+                new_hash = _try_url_and_hash_it(url, hash_type)
+            except jinja2.UndefinedError:
+                new_hash = None
+
+            if new_hash is not None:
+                break
+
+    if new_hash is None:
+        # replace v's only
+        for vhave, vrep in permutations(["v{{ v", "{{ v"]):
+            try:
+                new_url_tmpl = (
+                    url_tmpl
+                    .replace(vhave, vrep)
+                )
+                url = _render_jinja2(new_url_tmpl, context)
+                new_hash = _try_url_and_hash_it(url, hash_type)
+            except jinja2.UndefinedError:
+                new_hash = None
+
+            if new_hash is not None:
+                break
+
+    if new_hash is None:
+        # try both
+        for (vhave, vrep), (exthave, extrep) in product(
+            permutations(["v{{ v", "{{ v"]),
+            permutations(EXTS, 2),
+        ):
+            try:
+                new_url_tmpl = (
+                    url_tmpl
+                    .replace(vhave, vrep)
+                    .replace(exthave, extrep)
+                )
+                url = _render_jinja2(new_url_tmpl, context)
+                new_hash = _try_url_and_hash_it(url, hash_type)
+            except jinja2.UndefinedError:
+                new_hash = None
+
+            if new_hash is not None:
+                break
+
+    if new_url_tmpl is None:
+        new_url_tmpl = url_tmpl
+
+    return new_url_tmpl, new_hash
+
+
+def _try_replace_hash(
+    hash_key: str,
+    cmeta: Any,
+    src: MutableMapping,
+    selector: str,
+    hash_type: str,
+    new_hash: str
+):
+    _replaced_hash = False
+    if '{{' in src[hash_key] and '}}' in src[hash_key]:
+        # it's jinja2 :(
+        cnames = CHECKSUM_NAMES + [hash_type]
+        for cname in cnames:
+            if selector is not None:
+                key = cname + CONDA_SELECTOR + selector
+                if key in cmeta.jinja2_vars:
+                    cmeta.jinja2_vars[key] = new_hash
+                    _replaced_hash = True
+                    break
+
+            if cname in cmeta.jinja2_vars:
+                cmeta.jinja2_vars[cname] = new_hash
+                _replaced_hash = True
+                break
+
+    else:
+        _replaced_hash = True
+        src[hash_key] = new_hash
+
+    return _replaced_hash
+
+
+def _try_to_update_version(cmeta: Any, src: str, hash_type: str):
+    if not any('url' in k for k in src):
+        return False
+
+    ha = getattr(hashlib, hash_type, None)
+    if ha is None:
+        return False
+
+    updated_version = True
+
+    # first we compile all selectors
+    possible_selectors = _compile_all_selectors(cmeta, src)
+
+    # now loop through them and try to construct sets of
+    # 1. urls
+    # 2. hashes
+    # 3. jinja2 contexts
+    # these are then updated
+
+    for selector in possible_selectors:
+        logger.info("selector: %s", selector)
+        url_key = 'url'
+        if selector is not None:
+            for key in _gen_key_selector(src, 'url'):
+                if selector in key:
+                    url_key = key
+
+        if url_key not in src:
+            continue
+
+        hash_key = hash_type
+        if selector is not None:
+            for key in _gen_key_selector(src, hash_type):
+                if selector in key:
+                    hash_key = key
+
+        if hash_key not in src:
+            continue
+
+        context = {}
+        for key, val in cmeta.jinja2_vars.items():
+            if CONDA_SELECTOR in key:
+                if selector is not None and selector in key:
+                    context[key.split(CONDA_SELECTOR)[0]] = val
+            else:
+                context[key] = val
+
+        # get all of the possible variables in the url
+        # if we do not have them or any selector versions, then
+        # we are not updating something so fail
+        jinja2_var_set = set()
+        if isinstance(src[url_key], collections.abc.MutableSequence):
+            for url_tmpl in src[url_key]:
+                jinja2_var_set |= set(JINJA2_VAR_RE.findall(url_tmpl))
+        else:
+            jinja2_var_set |= set(JINJA2_VAR_RE.findall(src[url_key]))
+
+        jinja2_var_set |= set(JINJA2_VAR_RE.findall(src[hash_key]))
+
+        skip_this_selector = False
+        for var in jinja2_var_set:
+            if len(list(_gen_key_selector(cmeta.jinja2_vars, var))) == 0:
+                updated_version = False
+                break
+
+            # we have a variable, but maybe not this selector?
+            # that's ok
+            if var not in context:
+                skip_this_selector = True
+
+        if skip_this_selector:
+            continue
+
+        logger.info('url key: %s', url_key)
+        logger.info('hash key: %s', hash_key)
+        logger.info(
+            "jinja2 context: %s", pprint.pformat(context))
+
+        # now try variations of the url to get the hash
+        if isinstance(src[url_key], collections.abc.MutableSequence):
+            for url_ind, url_tmpl in enumerate(src[url_key]):
+                new_url_tmpl, new_hash = _get_new_url_tmpl_and_hash(
+                    url_tmpl,
+                    context,
+                    hash_type,
+                )
+                if new_hash is not None:
+                    break
+        else:
+            new_url_tmpl, new_hash = _get_new_url_tmpl_and_hash(
+                src[url_key],
+                context,
+                hash_type,
+            )
+
+        # now try to replace the hash
+        if new_hash is not None:
+            _replaced_hash = _try_replace_hash(
+                hash_key,
+                cmeta,
+                src,
+                selector,
+                hash_type,
+                new_hash,
+            )
+            if _replaced_hash:
+                if isinstance(src[url_key], collections.abc.MutableSequence):
+                    src[url_key][url_ind] = new_url_tmpl
+                else:
+                    src[url_key] = new_url_tmpl
+            else:
+                new_hash = None
+
+        logger.info('new hash: %s', new_hash)
+        if new_hash is not None:
+            logger.info('new url tmpl: %s', new_url_tmpl)
+
+        updated_version &= (new_hash is not None)
+
+    return updated_version
+
 
 class Version(Migrator):
     """Migrator for version bumping of packages"""
 
     max_num_prs = 3
-    patterns = (
-        # filename, pattern, new
-        # set the version
-        ("meta.yaml", r"version:\s*[A-Za-z0-9._-]+", 'version: "$VERSION"'),
-        (
-            "meta.yaml",
-            r"{%\s*set\s+version\s*=\s*[^\s]*\s*%}",
-            '{% set version = "$VERSION" %}',
-        ),
-    )
-
-    url_pat = re.compile(
-        r"^( *)(-)?(\s*)url:\s*([^\s#]+?)\s*(?:(#.*)?\[([^\[\]]+)\])?(?(5)[^\(\)\n]*)(?(2)\n\1 \3.*)*$",  # noqa
-        flags=re.M,
-    )
-    r_url_pat = re.compile(
-        r"^(\s*)(-)?(\s*)url:\s*(?:(#.*)?\[([^\[\]]+)\])?(?(4)[^\(\)]*?)\n(\1(?(2) \3)  -.*\n?)*",  # noqa
-        flags=re.M,
-    )
-    r_urls = re.compile(r"\s*-\s*(.+?)(?:#.*)?$", flags=re.M)
-
     migrator_version = 0
-
-    # TODO: replace these types with a namedtuple so that it is clear what this is
-    def find_urls(self, text: str) -> List[Tuple[Union[str, List[str]], str, str]]:
-        """Get the URLs and platforms in a meta.yaml."""
-        urls: List[Tuple[Union[str, List[str]], str, str]] = []
-        for m in self.url_pat.finditer(text):
-            urls.append((m.group(4), m.group(6), m.group()))
-        for m in self.r_url_pat.finditer(text):
-            if m is not None:
-                r = self.r_urls.findall(m.group())
-                urls.append((r, m.group(2), m.group()))
-        return urls
-
-    def get_hash_patterns(
-        self,
-        filename: str,
-        urls: List[Tuple[Union[str, List[str]], str, str]],
-        hash_type: str,
-    ) -> Sequence[Tuple[str, str, str]]:
-        """Get the patterns to replace hash for each platform."""
-        pats: MutableSequence[Tuple[str, str, str]] = []
-        checksum_names = [
-            "hash_value",
-            "hash",
-            "hash_val",
-            "sha256sum",
-            "checksum",
-            hash_type,
-        ]
-        for url, platform, line in urls:
-            if isinstance(url, list):
-                for u in url:
-                    u = u.strip("'\"")
-                    try:
-                        hash_ = hash_url(u, hash_type)
-                        break
-                    except urllib.error.HTTPError:
-                        continue
-                else:
-                    raise ValueError("Could not determine hash from recipe!")
-            else:
-                url = url.strip("'\"")
-                hash_ = hash_url(url, hash_type)
-            m = re.search(fr"\s*{hash_type}:(.+)", line)
-            if m is None:
-                p = fr"{hash_type}:\s*[0-9A-Fa-f]+"
-                if platform:
-                    p += fr"\s*(#.*)\[{platform}\](?(1)[^\(\)]*)$"
-                else:
-                    p += "$"
-            else:
-                p = f"{hash_type}: {m.group(1)}$"
-            n = f"{hash_type}: {hash_}"
-            if platform:
-                n += f"  # [{platform}]"
-            pats.append((filename, p, n))
-
-            base1 = r"""{{%\s*set {checkname} = ['"][0-9A-Fa-f]+['"] %}}"""
-            base2 = '{{% set {checkname} = "{h}" %}}'
-            for cn in checksum_names:
-                pats.append(
-                    (
-                        "meta.yaml",
-                        base1.format(checkname=cn),
-                        base2.format(checkname=cn, h=hash_),
-                    ),
-                )
-        return pats
 
     def filter(self, attrs: "AttrsTypedDict", not_bad_str_start: str = "") -> bool:
         # if no new version do nothing
         if "new_version" not in attrs or not attrs["new_version"]:
             return True
+
         conditional = super().filter(attrs)
+
         result = bool(
             conditional  # if archived/finished
             or len(
@@ -146,6 +361,7 @@ class Version(Migrator):
             > self.max_num_prs
             or not attrs.get("new_version"),  # if no new version
         )
+
         try:
             version_filter = (
                 # if new version is less than current version
@@ -165,6 +381,7 @@ class Version(Migrator):
                 f"Failed to filter to to invalid version for {attrs}\nException: {e}",
             )
             version_filter = True
+
         return result or version_filter
 
     def migrate(
@@ -174,62 +391,84 @@ class Version(Migrator):
         hash_type: str = "sha256",
         **kwargs: Any,
     ) -> "MigrationUidTypedDict":
-        # Render with new version but nothing else
+
+        with open(os.path.join(recipe_dir, "meta.yaml"), 'r') as fp:
+            cmeta = CondaMetaYAML(fp.read())
+
+        # cache round-tripped yaml for testing later
+        s = io.StringIO()
+        cmeta.dump(s)
+        s.seek(0)
+        old_meta_yaml = s.read()
+
         version = attrs["new_version"]
         assert isinstance(version, str)
-        with indir(recipe_dir):
-            with open("meta.yaml", "r") as fp:
-                text = fp.read()
-        res = re.search(r"\s*-?\s*url:.*?\n( {4}-.*\n?)*", text)
-        if res:
-            url = res.group()
-        else:
-            raise ValueError("Could not match url")
-        if "cran.r-project.org/src/contrib" in url or "cran_mirror" in url:
+
+        # mangle the version if it is R
+        r_url = False
+        for src_key in _gen_key_selector(cmeta.meta, 'source'):
+            r_url |= _has_r_url(cmeta.meta[src_key])
+        for key, val in cmeta.jinja2_vars.items():
+            if isinstance(val, str):
+                r_url |= _is_r_url(val)
+        if r_url:
             version = version.replace("_", "-")
-        with indir(recipe_dir), env.swap(VERSION=version):
-            for f, p, n in self.patterns:
-                p = eval_version(p)
-                n = eval_version(n)
-                replace_in_file(p, n, f)
-            with open("meta.yaml", "r") as fp:
-                text = fp.read()
 
-        # render the text and check that the URL exists, if it doesn't try variations
-        # if variations then update url
-        rendered = parse_meta_yaml(render_meta_yaml(text))
-        # only run for single url recipes as the moment
-        if (
-            isinstance(rendered["source"], dict)
-            and isinstance(rendered["source"].get("url", []), str)
-            and requests.get(rendered["source"]["url"]).status_code != 200
-        ):
+        # replace the version
+        if 'version' in cmeta.jinja2_vars:
+            # cache old version for testing later
+            old_version = cmeta.jinja2_vars['version']
+            cmeta.jinja2_vars['version'] = version
+        else:
+            logger.ciritical(
+                "Migrations do not work on versions "
+                "not specified with jinja2!"
+            )
+            return {}
+
+        if len(list(_gen_key_selector(cmeta.meta, 'source'))) > 0:
+            did_update = True
+            for src_key in _gen_key_selector(cmeta.meta, 'source'):
+                if isinstance(cmeta.meta[src_key], collections.abc.MutableSequence):
+                    for src in cmeta.meta[src_key]:
+                        did_update &= _try_to_update_version(cmeta, src, hash_type)
+                else:
+                    did_update &= _try_to_update_version(
+                        cmeta,
+                        cmeta.meta[src_key],
+                        hash_type,
+                    )
+        else:
+            did_update = False
+
+        if did_update:
+            # if the yaml did not change, then we did not migrate actually
+            cmeta.jinja2_vars['version'] = old_version
+            s = io.StringIO()
+            cmeta.dump(s)
+            s.seek(0)
+            if s.read() == old_meta_yaml:
+                did_update = False
+                logger.critical(
+                    "Recipe did not change in version migration "
+                    "but the code indicates an update was done!"
+                )
+
+            # put back version
+            cmeta.jinja2_vars['version'] = version
+
+        if did_update:
             with indir(recipe_dir):
-                for (a, b), (c, d) in product(
-                    permutations(["v{{ v", "{{ v"]), permutations([".zip", ".tar.gz"]),
-                ):
-                    inner_text = text.replace(a, b).replace(c, d)
-                    rendered = parse_meta_yaml(render_meta_yaml(inner_text))
-                    if requests.get(rendered["source"]["url"]).status_code == 200:
-                        text = inner_text
-                        # The above clauses could do bad things the version
-                        # itself
-                        text = text.replace("version: v{{ v", "version: {{ v")
-                        with open("meta.yaml", "w") as fp:
-                            fp.write(text)
-                        break
-        # Get patterns to replace checksum for each platform
-        rendered_text = render_meta_yaml(text)
-        urls = self.find_urls(rendered_text)
-        new_patterns = self.get_hash_patterns("meta.yaml", urls, hash_type)
+                with open('meta.yaml', 'w') as fp:
+                    cmeta.dump(fp)
+                self.set_build_number("meta.yaml")
 
-        with indir(recipe_dir):
-            for f, p, n in new_patterns:
-                p = eval_version(p)
-                n = eval_version(n)
-                replace_in_file(p, n, f)
-            self.set_build_number("meta.yaml")
-        return super().migrate(recipe_dir, attrs)
+            return super().migrate(recipe_dir, attrs)
+        else:
+            logger.critical(
+                "Recipe did not change in version migration!"
+            )
+            return {}
 
     def pr_body(self, feedstock_ctx: FeedstockContext) -> str:
         pred = [
