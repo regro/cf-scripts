@@ -68,7 +68,7 @@ logger = logging.getLogger("conda_forge_tick.auto_tick")
 
 MIGRATORS: MutableSequence[Migrator] = [
     Version(
-        pr_limit=10,
+        pr_limit=30,
         piggy_back_migrations=[
             PipMigrator(),
             LicenseMigrator(),
