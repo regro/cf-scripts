@@ -29,15 +29,12 @@ from pkg_resources import parse_version
 
 from .utils import parse_meta_yaml, setup_logger, executor, load_graph, dump_graph
 
-
 if typing.TYPE_CHECKING:
     from .migrators_types import MetaYamlTypedDict, SourceTypedDict
 
 logger = logging.getLogger("conda_forge_tick.update_upstream_versions")
 
 CRAN_INDEX: Optional[dict] = None
-
-EXTS: List[str] = ['.tar.gz', '.zip', '.tar.bz2', '.tar', '.tar.xz']
 
 
 def urls_from_meta(meta_yaml: "MetaYamlTypedDict") -> Set[str]:
@@ -387,9 +384,8 @@ def url_exists_swap_exts(url: str):
         return True, url
 
     # TODO this is too expensive
-    # from itertools import permutations
-    # for (exthave, extrep) in permutations(EXTS, 2):
-    #     new_url = url.replace(exthave, extrep)
+    # from conda_forge_tick.url_transforms import gen_transformed_urls
+    # for new_url in gen_transformed_urls(url):
     #     if url_exists(new_url):
     #         return True, new_url
 

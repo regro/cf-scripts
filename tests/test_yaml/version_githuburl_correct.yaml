@@ -1,0 +1,38 @@
+{% set name = "fitsio" %}
+{% set version = "1.1.0" %}
+
+package:
+  name: {{ name|lower }}
+  version: {{ version }}
+
+source:
+  url: https://github.com/esheldon/{{ name }}/archive/v{{ version }}.tar.gz
+  sha256: be5f44532b11d5cb2865c62fddacbf1cd1f041c8ce33e224e8bba9c69519ff17
+
+build:
+  number: 0
+  noarch: python
+  script: {{ PYTHON }} -m pip install . -vv
+
+requirements:
+  host:
+    - pip
+    - python
+    - setuptools
+  run:
+    - python
+
+test:
+  imports:
+    - fitsio
+
+about:
+  home: blah
+  license: Apache-2.0
+  license_family: APACHE
+  license_file: LICENSE
+  summary: blah
+
+extra:
+  recipe-maintainers:
+    - me

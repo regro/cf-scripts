@@ -13,7 +13,6 @@ from typing import (
     Any,
 )
 import warnings
-from itertools import permutations, product
 import logging
 
 import requests
@@ -25,6 +24,7 @@ from conda_forge_tick.migrators.core import Migrator
 from conda_forge_tick.contexts import FeedstockContext
 from conda_forge_tick.xonsh_utils import indir
 from conda_forge_tick.recipe_parser import CONDA_SELECTOR, CondaMetaYAML
+from conda_forge_tick.url_transforms import gen_transformed_urls
 
 if typing.TYPE_CHECKING:
     from conda_forge_tick.migrators_types import (
@@ -32,7 +32,6 @@ if typing.TYPE_CHECKING:
         AttrsTypedDict,
     )
 
-EXTS = ['.tar.gz', '.zip', '.tar.bz2', '.tar', '.tar.xz']
 CHECKSUM_NAMES = [
     "hash_value",
     "hash",
@@ -113,69 +112,39 @@ def _render_jinja2(tmpl, context):
 
 
 def _get_new_url_tmpl_and_hash(url_tmpl: str, context: MutableMapping, hash_type: str):
-    new_url_tmpl = None
-    new_hash = None
+    logger.info(
+        "hashing URL template: %s",
+        url_tmpl,
+    )
+    try:
+        logger.info(
+            "rendered URL: %s",
+            _render_jinja2(url_tmpl, context),
+        )
+    except jinja2.UndefinedError:
+        logger.info("initial URL template does not render")
+        pass
 
     try:
         url = _render_jinja2(url_tmpl, context)
         new_hash = _try_url_and_hash_it(url, hash_type)
+        if new_hash is not None:
+            return url_tmpl, new_hash
     except jinja2.UndefinedError:
-        new_hash = None
+        pass
 
-    if new_hash is None:
-        # replace ext only
-        for exthave, extrep in permutations(EXTS, 2):
-            try:
-                new_url_tmpl = (
-                    url_tmpl
-                    .replace(exthave, extrep)
-                )
-                url = _render_jinja2(new_url_tmpl, context)
-                new_hash = _try_url_and_hash_it(url, hash_type)
-            except jinja2.UndefinedError:
-                new_hash = None
+    new_url_tmpl = None
+    new_hash = None
 
-            if new_hash is not None:
-                break
+    for new_url_tmpl in gen_transformed_urls(url_tmpl):
+        try:
+            url = _render_jinja2(new_url_tmpl, context)
+            new_hash = _try_url_and_hash_it(url, hash_type)
+        except jinja2.UndefinedError:
+            new_hash = None
 
-    if new_hash is None:
-        # replace v's only
-        for vhave, vrep in permutations(["v{{ v", "{{ v"]):
-            try:
-                new_url_tmpl = (
-                    url_tmpl
-                    .replace(vhave, vrep)
-                )
-                url = _render_jinja2(new_url_tmpl, context)
-                new_hash = _try_url_and_hash_it(url, hash_type)
-            except jinja2.UndefinedError:
-                new_hash = None
-
-            if new_hash is not None:
-                break
-
-    if new_hash is None:
-        # try both
-        for (vhave, vrep), (exthave, extrep) in product(
-            permutations(["v{{ v", "{{ v"]),
-            permutations(EXTS, 2),
-        ):
-            try:
-                new_url_tmpl = (
-                    url_tmpl
-                    .replace(vhave, vrep)
-                    .replace(exthave, extrep)
-                )
-                url = _render_jinja2(new_url_tmpl, context)
-                new_hash = _try_url_and_hash_it(url, hash_type)
-            except jinja2.UndefinedError:
-                new_hash = None
-
-            if new_hash is not None:
-                break
-
-    if new_url_tmpl is None:
-        new_url_tmpl = url_tmpl
+        if new_hash is not None:
+            break
 
     return new_url_tmpl, new_hash
 
@@ -325,9 +294,10 @@ def _try_to_update_version(cmeta: Any, src: str, hash_type: str):
             else:
                 new_hash = None
 
-        logger.info('new hash: %s', new_hash)
         if new_hash is not None:
-            logger.info('new url tmpl: %s', new_url_tmpl)
+            logger.info('new URL template: %s', new_url_tmpl)
+
+        logger.info('new URL hash: %s', new_hash)
 
         updated_version &= (new_hash is not None)
 

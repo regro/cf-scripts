@@ -26,6 +26,8 @@ YAML_PATH = os.path.join(os.path.dirname(__file__), 'test_yaml')
     ('selshaurl', '3.8.0'),
     ('buildbumpmpi', '7.8.0'),
     ('multisrclistnoup', '3.11.3'),
+    ('pypiurl', '0.7.1'),
+    ('githuburl', '1.1.0'),
 ])
 def test_version(case, new_ver, tmpdir, caplog):
     caplog.set_level(
