@@ -48,14 +48,14 @@ def _github_munger(url):
     ]
     if 'github.com' in url:
         burl, eurl = url.rsplit('/', 1)
+        burl = burl + "/"
         for ghave, grep in permutations(names, 2):
             if ghave in url:
                 if ghave == "/archive/":
-                    yield burl.replace(ghave, grep) + "/{{ name }}-" + eurl
+                    yield burl.replace(ghave, grep) + "{{ name }}-" + eurl
                 else:
                     yield (
                         burl.replace(ghave, grep)
-                        + "/"
                         + eurl.replace("{{ name }}-", "")
                     )
 

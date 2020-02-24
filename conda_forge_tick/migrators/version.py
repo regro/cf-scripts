@@ -112,6 +112,19 @@ def _render_jinja2(tmpl, context):
 
 
 def _get_new_url_tmpl_and_hash(url_tmpl: str, context: MutableMapping, hash_type: str):
+    logger.info(
+        "hashing URL template: %s",
+        url_tmpl,
+    )
+    try:
+        logger.info(
+            "rendered URL: %s",
+            _render_jinja2(url_tmpl, context),
+        )
+    except jinja2.UndefinedError:
+        logger.info("initial URL template does not render")
+        pass
+
     try:
         url = _render_jinja2(url_tmpl, context)
         new_hash = _try_url_and_hash_it(url, hash_type)
@@ -281,9 +294,10 @@ def _try_to_update_version(cmeta: Any, src: str, hash_type: str):
             else:
                 new_hash = None
 
-        logger.info('new hash: %s', new_hash)
         if new_hash is not None:
-            logger.info('new url tmpl: %s', new_url_tmpl)
+            logger.info('new URL template: %s', new_url_tmpl)
+
+        logger.info('new URL hash: %s', new_hash)
 
         updated_version &= (new_hash is not None)
 

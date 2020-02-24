@@ -614,6 +614,14 @@ def migrator_status(
 
 
 def main(args: "CLIArgs") -> None:
+    # logging
+    from .xonsh_utils import env
+    debug = env.get("CONDA_FORGE_TICK_DEBUG", False)
+    if debug:
+        setup_logger(logging.getLogger("conda_forge_tick"), level='debug')
+    else:
+        setup_logger(logging.getLogger("conda_forge_tick"))
+
     github_username = env.get("USERNAME", "")
     github_password = env.get("PASSWORD", "")
     github_token = env.get("GITHUB_TOKEN")
