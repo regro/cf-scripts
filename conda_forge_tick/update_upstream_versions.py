@@ -593,24 +593,6 @@ def update_upstream_versions(
     )
     logger.info("Updating upstream versions")
     updater(gx, sources)
-    logger.info(
-        "Current number of out of date packages not PRed: {}".format(
-            str(
-                len(
-                    [
-                        n
-                        for n, a in gx.nodes.items()
-                        if a["payload"].get("new_version")
-                        and a["payload"].get("version")  # if we can get a new version
-                        and a["payload"]["new_version"]
-                        != a["payload"]["version"]  # if we need a bump
-                        and a["payload"].get("PRed", "000")
-                        != a["payload"]["new_version"]  # if not PRed
-                    ],
-                ),
-            ),
-        ),
-    )
 
 
 def main(args: Any = None) -> None:
