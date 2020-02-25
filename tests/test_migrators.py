@@ -1505,8 +1505,7 @@ test:
     - mpmath
 """
 
-version_license = """
-{# version_license #}
+version_license = """\
 {% set version = "0.8" %}
 
 package:
@@ -1549,8 +1548,7 @@ extra:
     - kthyng
 """
 
-version_license_correct = """
-{# version_license_correct #}
+version_license_correct = """\
 {% set version = "0.9" %}
 
 package:
@@ -1736,7 +1734,8 @@ def run_test_migration(
     m_ctx = MigratorContext(mm_ctx, m)
     m.bind_to_ctx(m_ctx)
 
-    mr_out.update(bot_rerun=False)
+    if mr_out:
+        mr_out.update(bot_rerun=False)
     with open(os.path.join(tmpdir, "meta.yaml"), "w") as f:
         f.write(inp)
 
@@ -1764,7 +1763,9 @@ def run_test_migration(
     pmy["version"] = pmy['meta_yaml']["package"]["version"]
     pmy["req"] = set()
     for k in ["build", "host", "run"]:
-        pmy["req"] |= set(pmy['meta_yaml'].get("requirements", {}).get(k, set()))
+        req = pmy['meta_yaml'].get("requirements", {}) or {}
+        _set = req.get(k) or set()
+        pmy["req"] |= set(_set)
     pmy["raw_meta_yaml"] = inp
     pmy.update(kwargs)
 
@@ -1774,6 +1775,8 @@ def run_test_migration(
 
     mr = m.migrate(tmpdir, pmy)
     assert mr_out == mr
+    if not mr:
+        return
 
     pmy.update(PRed=[frozen_to_json_friendly(mr)])
     with open(os.path.join(tmpdir, "meta.yaml"), "r") as f:

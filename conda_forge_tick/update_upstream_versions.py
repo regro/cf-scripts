@@ -36,8 +36,6 @@ logger = logging.getLogger("conda_forge_tick.update_upstream_versions")
 
 CRAN_INDEX: Optional[dict] = None
 
-EXTS: List[str] = ['.tar.gz', '.zip', '.tar.bz2', '.tar', '.tar.xz']
-
 
 def urls_from_meta(meta_yaml: "MetaYamlTypedDict") -> Set[str]:
     source: "SourceTypedDict" = meta_yaml["source"]
@@ -375,9 +373,8 @@ def url_exists_swap_exts(url: str):
         return True, url
 
     # TODO this is too expensive
-    # from itertools import permutations
-    # for (exthave, extrep) in permutations(EXTS, 2):
-    #     new_url = url.replace(exthave, extrep)
+    # from conda_forge_tick.url_transforms import gen_transformed_urls
+    # for new_url in gen_transformed_urls(url):
     #     if url_exists(new_url):
     #         return True, new_url
 
@@ -581,24 +578,6 @@ def update_upstream_versions(
     )
     logger.info("Updating upstream versions")
     updater(gx, sources)
-    logger.info(
-        "Current number of out of date packages not PRed: {}".format(
-            str(
-                len(
-                    [
-                        n
-                        for n, a in gx.nodes.items()
-                        if a["payload"].get("new_version")
-                        and a["payload"].get("version")  # if we can get a new version
-                        and a["payload"]["new_version"]
-                        != a["payload"]["version"]  # if we need a bump
-                        and a["payload"].get("PRed", "000")
-                        != a["payload"]["new_version"]  # if not PRed
-                    ],
-                ),
-            ),
-        ),
-    )
 
 
 def main(args: Any = None) -> None:

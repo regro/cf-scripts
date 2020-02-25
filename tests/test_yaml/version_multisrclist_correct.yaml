@@ -1,0 +1,99 @@
+{% set version = "2.25.0" %}
+
+package:
+  name: git
+  version: {{ version }}
+
+source:
+  - url: https://mirrors.edge.kernel.org/pub/software/scm/git/git-{{ version }}.tar.gz  # [not win]
+    folder: code  # [not win]
+    sha256: a98c9b96d91544b130f13bf846ff080dda2867e77fe08700b793ab14ba5346f6  # [not win]
+    patches:   # [not win]
+      - 0001-macOS-Do-not-use-the-system-Wish-urgh.patch  # [not win]
+  - url: https://mirrors.edge.kernel.org/pub/software/scm/git/git-manpages-{{ version }}.tar.gz  # [not win]
+    folder: manpages  # [not win]
+    sha256: 22b2380842ef75e9006c0358de250ead449e1376d7e5138070b9a3073ef61d44  # [not win]
+  - url: https://mirrors.edge.kernel.org/pub/software/scm/git/git-htmldocs-{{ version }}.tar.gz  # [not win]
+    folder: htmldocs  # [not win]
+    sha256: 8924991b3d8a6bcf15c17dea96be97a346db2c3c0ffdbf18bd6f68f31ce1ea3b  # [not win]
+
+  - url: https://github.com/git-for-windows/git/releases/download/v{{ version }}.windows.1/PortableGit-{{ version }}-64-bit.7z.exe  # [win64]
+    folder: .  # [win64]
+    sha256: c191542f68e788f614f8a676460281399af0c9d32f19a5d208e9621dd46264fb  # [win64]
+
+build:
+  number: 0
+  # git hardcodes paths to external utilities (e.g. curl)
+  detect_binary_files_with_prefix: true
+
+requirements:
+  build:
+    - {{ compiler('c') }}  # [unix]
+    - autoconf  # [unix]
+    - make      # [unix]
+    - 7za       # [win]
+  host:
+    - curl      # [unix]
+    - expat     # [unix]
+    - gettext   # [unix]
+    - libiconv  # [unix]
+    - openssl   # [unix]
+    - pcre      # [unix]
+    - perl      # [unix]
+    - tk        # [unix]
+    - zlib      # [unix]
+  run:
+    - curl      # [unix]
+    - expat     # [unix]
+    - gettext   # [unix]
+    - libiconv  # [unix]
+    - openssl   # [unix]
+    - pcre      # [unix]
+    - perl      # [unix]
+    - tk        # [unix]
+    - zlib      # [unix]
+
+test:
+  commands:
+    # Verify git location.
+    - test -f $PREFIX/bin/git                               # [unix]
+    - test -f $PREFIX/bin/gitk                              # [unix]
+    - test -f $PREFIX/bin/git-credential-osxkeychain        # [osx]
+    - if not exist %LIBRARY_PREFIX%\\bin\\git.exe exit 1    # [win]
+
+    # Verify interactive support.
+    - test -f $PREFIX/libexec/git-core/git-add--interactive  # [unix]
+
+    # Run git commands.
+    - git --version
+    - git clone https://github.com/conda-forge/git-feedstock
+
+    # Git credential commands
+    - git-credential-osxkeychain 2>&1 | grep -q usage  # [osx]
+
+    # test completions
+    - bash $PREFIX/share/bash-completion/completions/git  # [unix]
+    - conda inspect linkages -p $PREFIX $PKG_NAME  # [not win]
+    - conda inspect objects -p $PREFIX $PKG_NAME  # [osx]
+
+    # confirm toplevel manpage
+    - test -f $PREFIX/man/man1/git.1  # [not win]
+    - test -f $PREFIX/share/man/man1/git.1  # [osx]
+
+    # confirm toplevel html doc page
+    - test -f $PREFIX/share/doc/git/index.html  # [not win]
+
+about:
+  home: https://git-scm.com/
+  license: GPL v2 and LGPL 2.1
+  license_file: code/COPYING  # [not win]
+  summary: distributed version control system
+
+extra:
+  recipe-maintainers:
+    - jakirkham
+    - msarahan
+    - pelson
+    - scopatz
+    - ocefpaf
+    - dougalsutherland
