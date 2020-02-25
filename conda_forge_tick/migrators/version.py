@@ -93,7 +93,7 @@ def _try_url_and_hash_it(url: str, hash_type: str):
         new_hash = hash_url(url, timeout=120, hash_type=hash_type)
 
         if new_hash is None:
-            logger.debug("url does not exist or cannot be hashed: %s", url)
+            logger.debug("url does not exist or hashing took too long: %s", url)
             return None
 
         logger.debug("hash: %s", new_hash)
