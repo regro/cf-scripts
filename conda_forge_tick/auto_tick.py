@@ -442,7 +442,6 @@ def initialize_migrators(
     github_token: Optional[str] = None,
     dry_run: bool = False,
 ) -> Tuple[MigratorSessionContext, list, MutableSequence[Migrator]]:
-    setup_logger(logger)
     temp = glob.glob("/tmp/*")
     gx = load_graph()
     smithy_version = eval_xonsh("conda smithy --version")
