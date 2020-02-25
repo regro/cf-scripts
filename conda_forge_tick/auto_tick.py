@@ -68,7 +68,7 @@ logger = logging.getLogger("conda_forge_tick.auto_tick")
 
 MIGRATORS: MutableSequence[Migrator] = [
     Version(
-        pr_limit=30,
+        pr_limit=10,
         piggy_back_migrations=[
             PipMigrator(),
             LicenseMigrator(),
@@ -328,7 +328,7 @@ def add_rebuild_migration_yaml(
     migration_yaml: str,
     config: dict = {},
     migration_name: str = "",
-    pr_limit: int = 50,
+    pr_limit: int = 5,
 ) -> None:
     """Adds rebuild migrator.
 
