@@ -648,8 +648,6 @@ def main(args: "CLIArgs") -> None:
         )
 
         for node_name in migrator.order(effective_graph, mctx.graph):
-            if isinstance(migrator, Version) and node_name == 'gmsh':
-                continue
             with mctx.graph.nodes[node_name]["payload"] as attrs:
                 # Don't let CI timeout, break ahead of the timeout so we make certain
                 # to write to the repo

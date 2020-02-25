@@ -4,7 +4,6 @@ import logging
 import subprocess
 import random
 import time
-import hashlib
 import re
 from concurrent.futures import as_completed
 import typing
@@ -28,6 +27,7 @@ from conda.models.version import VersionOrder
 from pkg_resources import parse_version
 
 from .utils import parse_meta_yaml, setup_logger, executor, load_graph, dump_graph
+from conda_forge_tick.hashing import hash_url
 
 if typing.TYPE_CHECKING:
     from .migrators_types import MetaYamlTypedDict, SourceTypedDict
@@ -347,18 +347,7 @@ class ROSDistro(AbstractSource):
 
 def get_sha256(url: str) -> Optional[str]:
     try:
-        from rever import hash_url
-
-        return hash_url(url, "sha256")
-    except ImportError:
-        pass
-    try:
-        filename = hashlib.sha256(url.encode("utf-8")).hexdigest()
-        output = subprocess.check_output(
-            ["wget", url, "-O", filename], stderr=subprocess.STDOUT,
-        )
-        output = subprocess.check_output(["sha256sum", filename])
-        return output.decode("utf-8").split(" ")[0]
+        return hash_url(url, timeout=120, hash_type='sha256')
     except Exception:
         return None
 

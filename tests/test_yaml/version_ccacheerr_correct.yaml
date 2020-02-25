@@ -1,0 +1,48 @@
+{% set name = "ccache" %}
+{% set version = "3.7.7" %}
+
+package:
+  name: {{ name|lower }}
+  version: {{ version }}
+
+source:
+  url: https://github.com/ccache/ccache/releases/download/v{{ version }}/ccache-{{ version }}.tar.gz
+  sha256: 9b61f7fab2ec15305ee8382b03365503232dfb04b57414e7b0433768d530fa8a
+
+build:
+  number: 0
+  skip: true  # [win]
+
+requirements:
+  build:
+    - {{ compiler('c') }}
+    - {{ compiler('cxx') }}
+  host:
+    - zlib
+    - xz
+  run:
+    - zlib
+
+test:
+  commands:
+    - ccache --help
+    - ccache --version
+
+about:
+  home: https://ccache.samba.org/
+  license: GPL-3.0
+  license_family: GPL
+  license_file: GPL-3.0.txt
+  summary: A compiler cache
+
+  description: |
+    ccache is a compiler cache. It speeds up recompilation by caching
+    previous compilations and detecting when the same compilation is
+    being done again. Supported languages are C, C++, Objective-C and Objective-C++.
+  doc_url: https://ccache.samba.org/manual.html
+  dev_url: https://github.com/ccache/ccache
+
+extra:
+  recipe-maintainers:
+    - edisongustavo
+    - marcelotrevisani

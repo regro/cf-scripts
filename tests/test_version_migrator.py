@@ -28,6 +28,7 @@ YAML_PATH = os.path.join(os.path.dirname(__file__), 'test_yaml')
     ('multisrclistnoup', '3.11.3'),
     ('pypiurl', '0.7.1'),
     ('githuburl', '1.1.0'),
+    ('ccacheerr', '3.7.7'),
 ])
 def test_version(case, new_ver, tmpdir, caplog):
     caplog.set_level(
