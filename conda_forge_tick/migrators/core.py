@@ -198,7 +198,7 @@ class LicenseMigrator(MiniMigrator):
 class Migrator:
     """Base class for Migrators"""
 
-    rerender = False
+    rerender = True
 
     # bump this if the migrator object needs a change mid migration
     migrator_version = 0
