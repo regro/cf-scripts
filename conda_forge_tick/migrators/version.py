@@ -407,7 +407,7 @@ class Version(Migrator):
             old_version = cmeta.jinja2_vars['version']
             cmeta.jinja2_vars['version'] = version
         else:
-            logger.ciritical(
+            logger.critical(
                 "Migrations do not work on versions "
                 "not specified with jinja2!"
             )
