@@ -65,6 +65,7 @@ def test_version(case, new_ver, tmpdir, caplog):
     ('selshaurlnoup', '3.8.0'),
     ('missingjinja2noup', '7.8.0'),
     ('nouphasurl', '3.11.3'),
+    ('giturl', '7.0'),
 ])
 def test_version_noup(case, new_ver, tmpdir, caplog):
     caplog.set_level(

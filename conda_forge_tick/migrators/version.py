@@ -52,6 +52,22 @@ def _gen_key_selector(dct: MutableMapping, key: str):
             yield k
 
 
+def _recipe_has_git_url(cmeta):
+    found_git_url = False
+    for src_key in _gen_key_selector(cmeta.meta, 'source'):
+        if isinstance(cmeta.meta[src_key], collections.abc.MutableSequence):
+            for src in cmeta.meta[src_key]:
+                for git_url_key in _gen_key_selector(src, 'git_url'):
+                    found_git_url = True
+                    break
+        else:
+            for git_url_key in _gen_key_selector(cmeta.meta[src_key], 'git_url'):
+                found_git_url = True
+                break
+
+    return found_git_url
+
+
 def _is_r_url(url: str):
     if (
         "cran.r-project.org/src/contrib" in url or
@@ -369,6 +385,11 @@ class Version(Migrator):
 
         version = attrs["new_version"]
         assert isinstance(version, str)
+
+        # if is a git url, then we error
+        if _recipe_has_git_url(cmeta):
+            logger.critical("Migrations do not work on `git_url`s!")
+            return {}
 
         # mangle the version if it is R
         r_url = False
