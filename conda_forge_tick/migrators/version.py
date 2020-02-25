@@ -172,7 +172,10 @@ def _try_replace_hash(
     _replaced_hash = False
     if '{{' in src[hash_key] and '}}' in src[hash_key]:
         # it's jinja2 :(
-        cnames = CHECKSUM_NAMES + [hash_type]
+        cnames = set(
+            CHECKSUM_NAMES
+            + [hash_type]
+            + list(set(JINJA2_VAR_RE.findall(src[hash_key]))))
         for cname in cnames:
             if selector is not None:
                 key = cname + CONDA_SELECTOR + selector

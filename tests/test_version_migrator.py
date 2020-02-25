@@ -30,6 +30,7 @@ YAML_PATH = os.path.join(os.path.dirname(__file__), 'test_yaml')
     ('githuburl', '1.1.0'),
     ('ccacheerr', '3.7.7'),
     ('cranmirror', '0.3.3'),
+    ('sha1', '5.0.1'),
 ])
 def test_version(case, new_ver, tmpdir, caplog):
     caplog.set_level(
@@ -46,11 +47,15 @@ def test_version(case, new_ver, tmpdir, caplog):
     ) as fp:
         out_yaml = fp.read()
 
+    kwargs = {"new_version": new_ver}
+    if case == 'sha1':
+        kwargs['hash_type'] = 'sha1'
+
     run_test_migration(
         m=VERSION,
         inp=in_yaml,
         output=out_yaml,
-        kwargs={"new_version": new_ver},
+        kwargs=kwargs,
         prb="Dependencies have been updated if changed",
         mr_out={
             "migrator_name": "Version",
