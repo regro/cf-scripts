@@ -392,7 +392,7 @@ class Version(Migrator):
 
         # if is a git url, then we error
         if _recipe_has_git_url(cmeta):
-            logger.ciritical("Migrations do not work on `git_url`s!")
+            logger.critical("Migrations do not work on `git_url`s!")
             return {}
 
         # mangle the version if it is R
