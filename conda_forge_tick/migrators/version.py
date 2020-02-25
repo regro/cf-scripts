@@ -15,7 +15,6 @@ from typing import (
 import warnings
 import logging
 
-import requests
 import networkx as nx
 import conda.exceptions
 from conda.models.version import VersionOrder
@@ -25,6 +24,7 @@ from conda_forge_tick.contexts import FeedstockContext
 from conda_forge_tick.xonsh_utils import indir
 from conda_forge_tick.recipe_parser import CONDA_SELECTOR, CondaMetaYAML
 from conda_forge_tick.url_transforms import gen_transformed_urls
+from conda_forge_tick.hashing import hash_url
 
 if typing.TYPE_CHECKING:
     from conda_forge_tick.migrators_types import (
@@ -90,16 +90,12 @@ def _try_url_and_hash_it(url: str, hash_type: str):
     logger.debug("downloading url: %s", url)
 
     try:
-        ha = getattr(hashlib, hash_type)()
-        resp = requests.get(url, stream=True)
-        if resp.status_code == 200:
-            for chunk in resp.iter_content(chunk_size=1024):
-                ha.update(chunk)
-        else:
-            logger.debug("url does not exist: %s", url)
+        new_hash = hash_url(url, timeout=120, hash_type=hash_type)
+
+        if new_hash is None:
+            logger.debug("url does not exist or cannot be hashed: %s", url)
             return None
 
-        new_hash = ha.hexdigest()
         logger.debug("hash: %s", new_hash)
         return new_hash
     except Exception as e:
