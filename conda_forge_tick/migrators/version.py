@@ -255,8 +255,12 @@ def _try_to_update_version(cmeta: Any, src: str, hash_type: str):
         skip_this_selector = False
         for var in jinja2_var_set:
             if len(list(_gen_key_selector(cmeta.jinja2_vars, var))) == 0:
-                updated_version = False
-                break
+                if var == "cran_mirror":
+                    context["cran_mirror"] = "https://cran.r-project.org"
+                else:
+                    logger.critical("jinja2 variable %s is missing!", var)
+                    updated_version = False
+                    break
 
             # we have a variable, but maybe not this selector?
             # that's ok
