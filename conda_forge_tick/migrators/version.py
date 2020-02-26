@@ -328,6 +328,7 @@ class Version(Migrator):
 
     max_num_prs = 3
     migrator_version = 0
+    rerender = True
 
     def filter(self, attrs: "AttrsTypedDict", not_bad_str_start: str = "") -> bool:
         # if no new version do nothing

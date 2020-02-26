@@ -68,7 +68,7 @@ logger = logging.getLogger("conda_forge_tick.auto_tick")
 
 MIGRATORS: MutableSequence[Migrator] = [
     Version(
-        pr_limit=30,
+        pr_limit=10,
         piggy_back_migrations=[
             PipMigrator(),
             LicenseMigrator(),
@@ -328,7 +328,7 @@ def add_rebuild_migration_yaml(
     migration_yaml: str,
     config: dict = {},
     migration_name: str = "",
-    pr_limit: int = 50,
+    pr_limit: int = 5,
 ) -> None:
     """Adds rebuild migrator.
 
@@ -676,19 +676,10 @@ def main(args: "CLIArgs") -> None:
                         or mctx.gh.rate_limit()["resources"]["core"]["remaining"] == 0
                     ):
                         break
-                    # FIXME: this causes the bot to not-rerender things when it
-                    #  should. For instance, if the bot rerenders but the PR is
-                    #  left open then we don't rerender again even though we should.
-                    #  This need logic to check if the rerender has been merged.
-                    rerender = (
-                        attrs.get("smithy_version") != mctx.smithy_version
-                        or attrs.get("pinning_version") != mctx.pinning_version
-                        or migrator.rerender
-                    )
                     migrator_uid, pr_json = run(
                         feedstock_ctx=fctx,
                         migrator=migrator,
-                        rerender=rerender,
+                        rerender=migrator.rerender,
                         protocol="https",
                         hash_type=attrs.get("hash_type", "sha256"),
                     )
