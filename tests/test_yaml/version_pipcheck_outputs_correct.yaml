@@ -65,17 +65,17 @@ outputs:
     test:   # [win]
       imports:   # [win]
         - camb  # [win]
-      requires:                                                                 # [win]
+      requires:   # [win]
         - pip                                                                   # [win]
-      commands:                                                                 # [win]
+      commands:   # [win]
         - python -m pip check                                                   # [win]
     test:   # [not win]
       imports:   # [not win]
         - camb  # [not win]
 
-      requires:                                                                 # [not win]
+      requires:   # [not win]
         - pip                                                                   # [not win]
-      commands:                                                                 # [not win]
+      commands:   # [not win]
         - python -m pip check                                                   # [not win]
   - name: pycamb
     requirements:

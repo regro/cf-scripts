@@ -1514,7 +1514,7 @@ package:
 
 source:
   url: https://pypi.io/packages/source/v/viscm/viscm-{{ version }}.tar.gz
-  sha256: 5a9677fa4751c6dd18a5a74e7ec06848e4973d0ac0af3e4d795753b15a30c759
+  sha256: dca77e463c56d42bbf915197c9b95e98913c85bef150d2e1dd18626b8c2c9c32
 
 build:
   number: 0
