@@ -1778,6 +1778,7 @@ def run_test_migration(
     mr = m.migrate(tmpdir, pmy, hash_type=pmy.get("hash_type", "sha256"))
     m.run_post_piggyback_migrations(
         tmpdir, pmy, hash_type=pmy.get("hash_type", "sha256"))
+
     assert mr_out == mr
     if not mr:
         return
