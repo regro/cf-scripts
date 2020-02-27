@@ -144,7 +144,12 @@ def run(
     recipe_dir = os.path.join(feedstock_dir, "recipe")
 
     # migrate the feedstock
+    migrator.run_pre_piggyback_migrations(recipe_dir, feedstock_ctx.attrs, **kwargs)
+
+    # TODO - make a commit here if the repo changed
+
     migrate_return = migrator.migrate(recipe_dir, feedstock_ctx.attrs, **kwargs)
+
     if not migrate_return:
         logger.critical(
             "Failed to migrate %s, %s",
@@ -153,6 +158,12 @@ def run(
         )
         eval_xonsh(f"rm -rf {feedstock_dir}")
         return False, False
+
+    # TODO - commit main migration here
+
+    migrator.run_post_piggyback_migrations(recipe_dir, feedstock_ctx.attrs, **kwargs)
+
+    # TODO commit post migration here
 
     # rerender, maybe
     diffed_files: typing.List[str] = []
