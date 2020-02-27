@@ -280,6 +280,23 @@ class Migrator:
             or _parse_bad_attr(attrs, not_bad_str_start)
         )
 
+    def run_piggyback_migrations(
+        self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any
+    ) -> "MigrationUidTypedDict":
+        """Perform any piggyback migrations, updating the feedstock.
+
+        Parameters
+        ----------
+        recipe_dir : str
+            The directory of the recipe
+        attrs : dict
+            The node attributes
+
+        """
+        for mini_migrator in self.piggy_back_migrations:
+            if not mini_migrator.filter(attrs):
+                mini_migrator.migrate(recipe_dir, attrs, **kwargs)
+
     def migrate(
         self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any
     ) -> "MigrationUidTypedDict":
@@ -297,9 +314,6 @@ class Migrator:
         namedtuple or bool:
             If namedtuple continue with PR, if False scrap local folder
         """
-        for mini_migrator in self.piggy_back_migrations:
-            if not mini_migrator.filter(attrs):
-                mini_migrator.migrate(recipe_dir, attrs, **kwargs)
         return self.migrator_uid(attrs)
 
     def pr_body(self, feedstock_ctx: FeedstockContext) -> str:

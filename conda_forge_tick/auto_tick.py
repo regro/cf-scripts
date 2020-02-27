@@ -144,6 +144,8 @@ def run(
     recipe_dir = os.path.join(feedstock_dir, "recipe")
 
     # migrate the feedstock
+    migrator.run_piggyback_migrations(recipe_dir, feedstock_ctx.attrs, **kwargs)
+    # TODO - make a commit here if the repo changed
     migrate_return = migrator.migrate(recipe_dir, feedstock_ctx.attrs, **kwargs)
     if not migrate_return:
         logger.critical(
