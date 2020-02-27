@@ -71,6 +71,8 @@ def _get_source_code(recipe_dir):
 
 
 class MiniMigrator:
+    post_migration = False
+
     def filter(self, attrs: "AttrsTypedDict", not_bad_str_start: str = "") -> bool:
         """ If true don't act upon node
 
@@ -127,6 +129,8 @@ class PipMigrator(MiniMigrator):
 
 
 class LicenseMigrator(MiniMigrator):
+    post_migration = True
+
     def filter(self, attrs: "AttrsTypedDict", not_bad_str_start: str = "") -> bool:
         license = attrs.get("meta_yaml", {}).get("about", {}).get("license", "")
         license_fam = (
@@ -222,9 +226,7 @@ class Migrator:
         obj_version: Optional[int] = None,
         piggy_back_migrations: Optional[Sequence[MiniMigrator]] = None,
     ):
-        if piggy_back_migrations is None:
-            piggy_back_migrations = []
-        self.piggy_back_migrations = piggy_back_migrations
+        self.piggy_back_migrations = piggy_back_migrations or []
         self.pr_limit = pr_limit
         self.obj_version = obj_version
         self.ctx: MigratorContext = None
@@ -280,10 +282,10 @@ class Migrator:
             or _parse_bad_attr(attrs, not_bad_str_start)
         )
 
-    def run_piggyback_migrations(
+    def run_pre_piggyback_migrations(
         self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any
     ) -> "MigrationUidTypedDict":
-        """Perform any piggyback migrations, updating the feedstock.
+        """Perform any pre piggyback migrations, updating the feedstock.
 
         Parameters
         ----------
@@ -294,6 +296,27 @@ class Migrator:
 
         """
         for mini_migrator in self.piggy_back_migrations:
+            if mini_migrator.post_migration:
+                continue
+            if not mini_migrator.filter(attrs):
+                mini_migrator.migrate(recipe_dir, attrs, **kwargs)
+
+    def run_post_piggyback_migrations(
+        self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any
+    ) -> "MigrationUidTypedDict":
+        """Perform any post piggyback migrations, updating the feedstock.
+
+        Parameters
+        ----------
+        recipe_dir : str
+            The directory of the recipe
+        attrs : dict
+            The node attributes
+
+        """
+        for mini_migrator in self.piggy_back_migrations:
+            if not mini_migrator.post_migration:
+                continue
             if not mini_migrator.filter(attrs):
                 mini_migrator.migrate(recipe_dir, attrs, **kwargs)
 

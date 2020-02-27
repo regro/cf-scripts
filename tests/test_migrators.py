@@ -1722,7 +1722,6 @@ env["CIRCLE_BUILD_URL"] = "hi world"
 
 def run_test_migration(
     m, inp, output, kwargs, prb, mr_out, should_filter=False, tmpdir=None,
-    swap_piggyback=False,
 ):
     mm_ctx = MigratorSessionContext(
         graph=G,
@@ -1774,14 +1773,11 @@ def run_test_migration(
     if should_filter:
         return
 
-    if swap_piggyback:
-        mr = m.migrate(tmpdir, pmy, hash_type=pmy.get("hash_type", "sha256"))
-        m.run_piggyback_migrations(
-            tmpdir, pmy, hash_type=pmy.get("hash_type", "sha256"))
-    else:
-        m.run_piggyback_migrations(
-            tmpdir, pmy, hash_type=pmy.get("hash_type", "sha256"))
-        mr = m.migrate(tmpdir, pmy, hash_type=pmy.get("hash_type", "sha256"))
+    m.run_pre_piggyback_migrations(
+        tmpdir, pmy, hash_type=pmy.get("hash_type", "sha256"))
+    mr = m.migrate(tmpdir, pmy, hash_type=pmy.get("hash_type", "sha256"))
+    m.run_post_piggyback_migrations(
+        tmpdir, pmy, hash_type=pmy.get("hash_type", "sha256"))
     assert mr_out == mr
     if not mr:
         return
@@ -1819,7 +1815,6 @@ def test_version_license_correct(tmpdir):
             "version": "0.9",
         },
         tmpdir=tmpdir,
-        swap_piggyback=True,
     )
 
 
