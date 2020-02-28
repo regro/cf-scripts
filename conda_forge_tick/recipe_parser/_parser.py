@@ -155,38 +155,38 @@ def _unmunge_line(line: str) -> str:
         return line
 
 
-def _demunge_jinja2_vars(meta: Union[dict, list]) -> Union[dict, list]:
+def _demunge_jinja2_vars(meta: Union[dict, list], sentinel: str) -> Union[dict, list]:
     """recursively iterate through dictionary / list and replace any instance
     in any string of `<{` with '{{'
     """
     if isinstance(meta, collections.abc.MutableMapping):
         for key, val in meta.items():
-            meta[key] = _demunge_jinja2_vars(val)
+            meta[key] = _demunge_jinja2_vars(val, sentinel)
         return meta
     elif isinstance(meta, collections.abc.MutableSequence):
         for i in range(len(meta)):
-            meta[i] = _demunge_jinja2_vars(meta[i])
+            meta[i] = _demunge_jinja2_vars(meta[i], sentinel)
         return meta
     elif isinstance(meta, str):
-        return meta.replace('<{', '{{')
+        return meta.replace(sentinel + '{ ', '{{ ')
     else:
         return meta
 
 
-def _remunge_jinja2_vars(meta: Union[dict, list]) -> Union[dict, list]:
+def _remunge_jinja2_vars(meta: Union[dict, list], sentinel: str) -> Union[dict, list]:
     """recursively iterate through dictionary / list and replace any instance
     in any string of `{{` with '<{'
     """
     if isinstance(meta, collections.abc.MutableMapping):
         for key, val in meta.items():
-            meta[key] = _remunge_jinja2_vars(val)
+            meta[key] = _remunge_jinja2_vars(val, sentinel)
         return meta
     elif isinstance(meta, collections.abc.MutableSequence):
         for i in range(len(meta)):
-            meta[i] = _remunge_jinja2_vars(meta[i])
+            meta[i] = _remunge_jinja2_vars(meta[i], sentinel)
         return meta
     elif isinstance(meta, str):
-        return meta.replace('{{', '<{')
+        return meta.replace('{{ ', sentinel + '{ ')
     else:
         return meta
 
@@ -348,6 +348,11 @@ class CondaMetaYAML(object):
         # get any variables set in the file by jinja2
         self.jinja2_vars = _parse_jinja2_variables(meta_yaml)
 
+        if '<{{ ' in meta_yaml:
+            self._jinja2_sentinel = "<<"
+        else:
+            self._jinja2_sentinel = "<"
+
         # munge any duplicate keys
         in_data = io.StringIO(meta_yaml)
         in_data.seek(0)
@@ -359,7 +364,7 @@ class CondaMetaYAML(object):
         self.meta = YAML_JINJA2.load(''.join(lines))
 
         # undo munging of jinja2 variables '<{ var }}' -> '{{ var }}'
-        self.meta = _demunge_jinja2_vars(self.meta)
+        self.meta = _demunge_jinja2_vars(self.meta, self._jinja2_sentinel)
 
     def dump(self, fp: Any):
         """Dump the recipe to a file-like object.
@@ -370,7 +375,7 @@ class CondaMetaYAML(object):
             A file-like object with a `write` method that accepts strings.
         """
         # redo jinja2 changes
-        self.meta = _remunge_jinja2_vars(self.meta)
+        self.meta = _remunge_jinja2_vars(self.meta, self._jinja2_sentinel)
 
         try:
             # first dump to yaml
@@ -391,4 +396,4 @@ class CondaMetaYAML(object):
                 fp.write(line)
         finally:
             # always put things back!
-            self.meta = _demunge_jinja2_vars(self.meta)
+            self.meta = _demunge_jinja2_vars(self.meta, self._jinja2_sentinel)

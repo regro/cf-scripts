@@ -13,7 +13,8 @@ from conda_forge_tick.recipe_parser._parser import (
 from conda_forge_tick.recipe_parser import CondaMetaYAML, CONDA_SELECTOR
 
 
-def test_parsing():
+@pytest.mark.parametrize('add_extra_req', [True, False])
+def test_parsing(add_extra_req):
     meta_yaml = """\
 {% set name = 'val1' %}  # [py2k]
 {% set name = 'val2' %}#[py3k and win]
@@ -36,6 +37,13 @@ build:
   number: 10
 """
 
+    if add_extra_req:
+        meta_yaml += """\
+requirements:
+  host:
+    - blah <{{ blarg }}
+"""
+
     meta_yaml_canonical = """\
 {% set name = "val1" %}  # [py2k]
 {% set name = "val2" %}  # [py3k and win]
@@ -56,6 +64,13 @@ source:
 
 build:
   number: 10
+"""
+
+    if add_extra_req:
+        meta_yaml_canonical += """\
+requirements:
+  host:
+    - blah <{{ blarg }}
 """
 
     cm = CondaMetaYAML(meta_yaml)
@@ -84,15 +99,15 @@ build:
     cm.jinja2_vars['xfoo__###conda-selector###__win or osx'] = 10
     cm.jinja2_vars['build'] = 100
     cm.meta['about'] = 10
-    cm.meta['requirements__###conda-selector###__win'] = 'blah'
-    cm.meta['requirements__###conda-selector###__not win'] = 'not_win_blah'
+    cm.meta['extra__###conda-selector###__win'] = 'blah'
+    cm.meta['extra__###conda-selector###__not win'] = 'not_win_blah'
 
     s = io.StringIO()
     cm.dump(s)
     s.seek(0)
     new_meta_yaml = s.read()
 
-    assert new_meta_yaml == """\
+    true_new_meta_yaml = """\
 {% set foo = "bar" %}
 {% set xfoo = 10 %}  # [win or osx]
 {% set name = "val1" %}  # [py2k]
@@ -114,10 +129,22 @@ source:
 
 build:
   number: 10
-about: 10
-requirements: blah  # [win]
-requirements: not_win_blah  # [not win]
 """
+
+    if add_extra_req:
+        true_new_meta_yaml += """\
+requirements:
+  host:
+    - blah <{{ blarg }}
+"""
+
+    true_new_meta_yaml += """\
+about: 10
+extra: blah  # [win]
+extra: not_win_blah  # [not win]
+"""
+
+    assert new_meta_yaml == true_new_meta_yaml
 
 
 def test_replace_jinja2_vars():
@@ -196,27 +223,32 @@ def test_munge_jinja2_vars():
     }
 
     # dict
-    demunged_meta = _demunge_jinja2_vars(meta)
+    demunged_meta = _demunge_jinja2_vars(meta, "<")
     assert demunged_meta_true == demunged_meta
-    redemunged_meta = _remunge_jinja2_vars(demunged_meta)
+    redemunged_meta = _remunge_jinja2_vars(demunged_meta, "<")
     assert redemunged_meta == meta
 
     # start with list
-    demunged_meta = _demunge_jinja2_vars(meta['list'])
+    demunged_meta = _demunge_jinja2_vars(meta['list'], "<")
     assert demunged_meta_true['list'] == demunged_meta
-    redemunged_meta = _remunge_jinja2_vars(demunged_meta)
+    redemunged_meta = _remunge_jinja2_vars(demunged_meta, "<")
     assert redemunged_meta == meta['list']
 
     # string only?
-    demunged_meta = _demunge_jinja2_vars('<{ val }}')
+    demunged_meta = _demunge_jinja2_vars('<{ val }}', "<")
     assert '{{ val }}' == demunged_meta
-    redemunged_meta = _remunge_jinja2_vars(demunged_meta)
+    redemunged_meta = _remunge_jinja2_vars(demunged_meta, "<")
     assert redemunged_meta == '<{ val }}'
 
+    demunged_meta = _demunge_jinja2_vars('<<{ val }}', "<<")
+    assert '{{ val }}' == demunged_meta
+    redemunged_meta = _remunge_jinja2_vars(demunged_meta, "<<")
+    assert redemunged_meta == '<<{ val }}'
+
     # an int
-    demunged_meta = _demunge_jinja2_vars(5)
+    demunged_meta = _demunge_jinja2_vars(5, "<")
     assert 5 == demunged_meta
-    redemunged_meta = _remunge_jinja2_vars(demunged_meta)
+    redemunged_meta = _remunge_jinja2_vars(demunged_meta, "<")
     assert redemunged_meta == 5
 
 
