@@ -24,12 +24,18 @@ class ExtraJinja2KeysCleanup(MiniMigrator):
       It may also be causing trouble for the version migrator.
 
     """
+    vars_to_remove = (
+        'file_ext',
+        'hash_type',
+        'hash_value',
+    )
 
     def filter(self, attrs: "AttrsTypedDict", not_bad_str_start: str = "") -> bool:
         """Check the raw YAML to find jinja variables to deal with."""
         raw_yaml = attrs['raw_meta_yaml']
-        if '{% set file_ext' in raw_yaml or '{% set hash_type' in raw_yaml:
-            return False
+        for var_name in self.vars_to_remove:
+            if f'{{% set {var_name}' in raw_yaml:
+                return False
         return True
 
     def _replace_jinja_key(self, key_name, lines):
@@ -54,13 +60,8 @@ class ExtraJinja2KeysCleanup(MiniMigrator):
             with open('meta.yaml', 'r') as fp:
                 lines = fp.readlines()
 
-            lines = list(self._replace_jinja_key('file_ext', lines))
-            lines = list(self._replace_jinja_key('hash_type', lines))
-            lines = list(self._replace_jinja_key('hash_value', lines))
-
-            yaml = YAML(typ='jinja2')
-            yaml.indent(mapping=2, sequence=4, offset=2)
-            yaml.width = 120
+            for var_name in self.vars_to_remove:
+                lines = list(self._replace_jinja_key(var_name, lines))
 
             # Rewrite the recipe file
             with open('meta.yaml', 'w') as fp:
