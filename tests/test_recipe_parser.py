@@ -88,6 +88,8 @@ requirements:
     assert cm.meta['build']['number'] == 10
     assert cm.meta['package']['name'] == '{{ name|lower }}'
     assert cm.meta['source']['url'] == 'foobar'
+    if add_extra_req:
+        assert cm.meta['requirements']['host'][0] == 'blah <{{ blarg }}'
 
     s = io.StringIO()
     cm.dump(s)
