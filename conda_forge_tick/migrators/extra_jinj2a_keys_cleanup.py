@@ -1,11 +1,9 @@
-import os
+import re
 import typing
 from typing import Any
-from ruamel.yaml import YAML
 
 from conda_forge_tick.xonsh_utils import indir
 from conda_forge_tick.migrators.core import MiniMigrator
-from conda_forge_tick.recipe_parser import CondaMetaYAML
 
 if typing.TYPE_CHECKING:
     from ..migrators_types import AttrsTypedDict
@@ -40,19 +38,20 @@ class ExtraJinja2KeysCleanup(MiniMigrator):
 
     def _replace_jinja_key(self, key_name, lines):
         """Replace any usage of and the definition of a jinja2 variable."""
-        key_val = None
+        var_def_regex = re.compile(
+            fr'{{% set {key_name} = [\'\"]?(?P<var_value>.+?)[\'\"]? %}}')
         var_use = "{{ " + key_name + " }}"
-        var_def = "{% set " + key_name
+        var_value = None
         for line in lines:
-            if line.startswith(var_def):
-                quote1_idx = line.find('"')
-                quote2_idx = line.rfind('"')
-                key_val = line[quote1_idx+1:quote2_idx]
-                continue
-            if key_val is not None:
-                # in a string literal
-                line = line.replace("'" + var_use + "'", key_val)
-                line = line.replace(var_use, key_val)
+            if var_value is None:
+                match = var_def_regex.match(line)
+                if match is not None:
+                    var_value = match.groupdict()['var_value']
+                    # we found this variable definition
+                    # don't include it in the output
+                    continue
+            if var_value is not None:
+                line = line.replace(var_use, var_value)
             yield line
 
     def migrate(self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any) -> None:
@@ -61,7 +60,7 @@ class ExtraJinja2KeysCleanup(MiniMigrator):
                 lines = fp.readlines()
 
             for var_name in self.vars_to_remove:
-                lines = list(self._replace_jinja_key(var_name, lines))
+                lines = self._replace_jinja_key(var_name, lines)
 
             # Rewrite the recipe file
             with open('meta.yaml', 'w') as fp:
