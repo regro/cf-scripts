@@ -53,6 +53,7 @@ from conda_forge_tick.migrators import (
     ArchRebuild,
     MatplotlibBase,
     CondaForgeYAMLCleanup,
+    ExtraJinja2KeysCleanup,
 )
 
 if typing.TYPE_CHECKING:
@@ -73,6 +74,7 @@ MIGRATORS: MutableSequence[Migrator] = [
             PipMigrator(),
             LicenseMigrator(),
             CondaForgeYAMLCleanup(),
+            ExtraJinja2KeysCleanup(),
         ],
     ),
 ]
@@ -409,6 +411,7 @@ def add_rebuild_migration_yaml(
             PipMigrator(),
             LicenseMigrator(),
             CondaForgeYAMLCleanup(),
+            ExtraJinja2KeysCleanup(),
         ],
         **config,
     )
