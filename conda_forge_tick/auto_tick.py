@@ -428,15 +428,22 @@ def migration_factory(
             with open(yaml_file) as f:
                 yaml_contents = f.read()
             migration_yamls.append((yaml_file, yaml_contents))
+
+    all_package_names = set(gx.nodes) | set(sum(
+        [node.get("payload", {}).get("outputs_names", [])
+         for node in gx.nodes.values()],
+        []
+    ))
     for yaml_file, yaml_contents in migration_yamls:
         loaded_yaml = yaml.safe_load(yaml_contents)
         print(os.path.splitext(yaml_file)[0])
 
         migrator_config = loaded_yaml.get("__migrator", {})
         exclude_packages = set(migrator_config.get("exclude", []))
+
         package_names = (
             (set(loaded_yaml) | {l.replace("_", "-") for l in loaded_yaml})
-            & set(gx.nodes)
+            & all_package_names
         ) - exclude_packages
 
         add_rebuild_migration_yaml(
