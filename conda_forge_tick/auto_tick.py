@@ -429,6 +429,11 @@ def migration_factory(
                 yaml_contents = f.read()
             migration_yamls.append((yaml_file, yaml_contents))
 
+    output_to_recipe = {
+        output: name
+        for name, node in gx.nodes.items()
+        for output in node.get("payload", {}).get("outputs_names", [])
+    }
     all_package_names = set(gx.nodes) | set(sum(
         [node.get("payload", {}).get("outputs_names", [])
          for node in gx.nodes.values()],
@@ -445,6 +450,7 @@ def migration_factory(
             (set(loaded_yaml) | {l.replace("_", "-") for l in loaded_yaml})
             & all_package_names
         ) - exclude_packages
+        package_names = {p if p in gx.nodes else output_to_recipe for p in package_names}
 
         add_rebuild_migration_yaml(
             migrators=migrators,
