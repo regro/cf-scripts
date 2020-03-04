@@ -12,6 +12,7 @@ Welcome to cf-scripts's documentation!
    migrators
    usage
    github_actions_infrastructure
+   version_migrator
 
    :caption: Contents:
 
