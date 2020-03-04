@@ -450,7 +450,7 @@ def migration_factory(
             (set(loaded_yaml) | {l.replace("_", "-") for l in loaded_yaml})
             & all_package_names
         ) - exclude_packages
-        package_names = {p if p in gx.nodes else output_to_recipe for p in package_names}
+        package_names = {p if p in gx.nodes else output_to_recipe[p] for p in package_names} - exclude_packages
 
         add_rebuild_migration_yaml(
             migrators=migrators,
