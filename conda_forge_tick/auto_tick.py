@@ -37,6 +37,7 @@ from typing import (
     Tuple,
     Dict,
     Set,
+    Mapping,
     MutableMapping,
     Union,
 )
@@ -338,6 +339,7 @@ def add_rebuild_migration_yaml(
     migrators: MutableSequence[Migrator],
     gx: nx.DiGraph,
     package_names: Sequence[str],
+    output_to_recipe: Mapping[str, str],
     migration_yaml: str,
     config: dict = {},
     migration_name: str = "",
@@ -393,6 +395,11 @@ def add_rebuild_migration_yaml(
 
     # post plucking we can have several strange cases, lets remove all selfloops
     total_graph.remove_edges_from(nx.selfloop_edges(total_graph))
+
+    package_names = {
+        p if p in gx.nodes else output_to_recipe[p]
+        for p in package_names
+    }
 
     top_level = {
         node
@@ -450,12 +457,12 @@ def migration_factory(
             (set(loaded_yaml) | {l.replace("_", "-") for l in loaded_yaml})
             & all_package_names
         ) - exclude_packages
-        package_names = {p if p in gx.nodes else output_to_recipe[p] for p in package_names} - exclude_packages
 
         add_rebuild_migration_yaml(
             migrators=migrators,
             gx=gx,
             package_names=list(package_names),
+            output_to_recipe=output_to_recipe,
             migration_yaml=yaml_contents,
             migration_name=os.path.splitext(yaml_file)[0],
             config=migrator_config,
