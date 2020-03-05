@@ -33,6 +33,7 @@ from .xonsh_utils import env
 from typing import (
     Optional,
     MutableSequence,
+    MutableSet,
     Sequence,
     Tuple,
     Dict,
@@ -339,7 +340,8 @@ def add_rebuild_migration_yaml(
     migrators: MutableSequence[Migrator],
     gx: nx.DiGraph,
     package_names: Sequence[str],
-    output_to_recipe: Mapping[str, str],
+    output_to_feedstock: Mapping[str, str],
+    excluded_feedstocks: MutableSet[str],
     migration_yaml: str,
     config: dict = {},
     migration_name: str = "",
@@ -355,6 +357,10 @@ def add_rebuild_migration_yaml(
         The feedstock graph
     package_names : list of str
         The package who's pin was moved
+    output_to_feedstock : dict of str
+        Mapping of output name to feedstock name
+    excluded_feedstocks : set of str
+        Feedstock names which should never be included in the migration
     migration_yaml : str
         The raw yaml for the migration variant dict
     config: dict
@@ -397,9 +403,9 @@ def add_rebuild_migration_yaml(
     total_graph.remove_edges_from(nx.selfloop_edges(total_graph))
 
     package_names = {
-        p if p in gx.nodes else output_to_recipe[p]
+        p if p in gx.nodes else output_to_feedstock[p]
         for p in package_names
-    }
+    } - excluded_feedstocks
 
     top_level = {
         node
@@ -436,7 +442,7 @@ def migration_factory(
                 yaml_contents = f.read()
             migration_yamls.append((yaml_file, yaml_contents))
 
-    output_to_recipe = {
+    output_to_feedstock = {
         output: name
         for name, node in gx.nodes.items()
         for output in node.get("payload", {}).get("outputs_names", [])
@@ -451,18 +457,19 @@ def migration_factory(
         print(os.path.splitext(yaml_file)[0])
 
         migrator_config = loaded_yaml.get("__migrator", {})
-        exclude_packages = set(migrator_config.get("exclude", []))
+        excluded_feedstocks = set(migrator_config.get("exclude", []))
 
         package_names = (
             (set(loaded_yaml) | {l.replace("_", "-") for l in loaded_yaml})
             & all_package_names
-        ) - exclude_packages
+        ) - excluded_feedstocks
 
         add_rebuild_migration_yaml(
             migrators=migrators,
             gx=gx,
             package_names=list(package_names),
-            output_to_recipe=output_to_recipe,
+            output_to_feedstock=output_to_feedstock,
+            excluded_feedstocks=excluded_feedstocks,
             migration_yaml=yaml_contents,
             migration_name=os.path.splitext(yaml_file)[0],
             config=migrator_config,
