@@ -46,8 +46,8 @@ CB_CONFIG = dict(
     os=os,
     environ=defaultdict(str),
     compiler=lambda x: x + "_compiler_stub",
-    pin_subpackage=lambda *args, **kwargs: "subpackage_stub",
-    pin_compatible=lambda *args, **kwargs: "compatible_pin_stub",
+    pin_subpackage=lambda *args, max_pin="x", **kwargs: f"max_pin, {max_pin}",
+    pin_compatible=lambda *args, max_pin="x", **kwargs: f"max_pin, {max_pin}",
     cdt=lambda *args, **kwargs: "cdt_stub",
     cran_mirror="https://cran.r-project.org",
 )
@@ -152,7 +152,7 @@ class LazyJson(MutableMapping):
         self._dump()
 
 
-def render_meta_yaml(text: str) -> str:
+def render_meta_yaml(text: str, **kwargs) -> str:
     """Render the meta.yaml with Jinja2 variables.
 
     Parameters
@@ -168,7 +168,7 @@ def render_meta_yaml(text: str) -> str:
     """
 
     env = jinja2.Environment(undefined=NullUndefined)
-    content = env.from_string(text).render(**CB_CONFIG)
+    content = env.from_string(text).render(**kwargs, **CB_CONFIG)
     return content
 
 

@@ -33,7 +33,7 @@ from .utils import (
     load_graph,
     dump_graph,
     LazyJson,
-    CB_CONFIG)
+    CB_CONFIG, parse_meta_yaml)
 from .xonsh_utils import env
 from typing import (
     Optional,
@@ -482,6 +482,20 @@ def migration_factory(
         )
 
 
+def _outside_pin_range(pin_spec, current_pin, new_version):
+
+    pin_level = len(pin_spec.split('.'))
+    current_split = current_pin.split('.')
+    new_split = new_version.split('.')
+    # if our pin spec is more exact than our current pin then rebuild more precisely
+    if pin_level > len(current_split):
+        return True
+    for i in range(pin_level):
+        if current_split[i] != new_split[i]:
+            return True
+    return False
+
+
 def create_migration_yaml_creator(migrators: MutableSequence[Migrator], gx: nx.DiGraph):
     with indir("../conda-forge-pinning-feedstock/recipe"):
         pinnings = parse_config_file('conda_build_config.yaml',
@@ -489,10 +503,30 @@ def create_migration_yaml_creator(migrators: MutableSequence[Migrator], gx: nx.D
     # exclude non-package information
     for k, v in pinnings.items():
         # check if an actual package
-        if k in gx.nodes:
-            current_pins = map(str, v)
+        if k not in gx.nodes:
+            k = k.replace('_', '-')
+        if (k in gx.nodes) and not gx.nodes[k]['payload'].get('archived', False) and gx.nodes[k]['payload'].get('version'):
+            current_pins = list(map(str, v))
             current_version = str(gx.nodes[k]['payload']['version'])
-            if VersionOrder(current_version) > max(map(VersionOrder(current_pins))):
+            # find the most stringent max pin for this feedstock if any
+            # fall back to the pinning file or "x"
+            # XXX: temp fix, remove once we render all the yamls again
+            meta_yaml = parse_meta_yaml(gx.nodes[k]['payload']['raw_meta_yaml'])
+            pin_spec = ''
+            for block in [meta_yaml] + meta_yaml.get("outputs", []) or []:
+                build = block.get('build', {}) or {}
+                max_pin = next(iter(build.get('run_exports', [''])))
+                if len(max_pin) > len(pin_spec):
+                    pin_spec = max_pin
+            if not pin_spec:
+                pin_spec = "max_pin, "+ pinnings['pin_run_as_build'].get(k, {}).get('max_pin', "x") or "x"
+            if 'max_pin' not in pin_spec:
+                print(f"ERROR: BAD PIN FOR {k}, {pin_spec}")
+                continue
+            pin_spec = pin_spec.split('max_pin, ')[1]
+            current_pin = str(max(map(VersionOrder, current_pins)))
+            if _outside_pin_range(pin_spec, current_pin, current_version):
+                print(k, pin_spec, current_pin, current_version)
                 migrators.append(MigrationYamlCreator(k, current_version))
 
 
