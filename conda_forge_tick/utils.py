@@ -46,6 +46,8 @@ CB_CONFIG = dict(
     os=os,
     environ=defaultdict(str),
     compiler=lambda x: x + "_compiler_stub",
+    # The `max_pin, ` stub is so we know when people used the functions
+    # to create the pins
     pin_subpackage=lambda *args, max_pin="x", **kwargs: f"max_pin, {max_pin}",
     pin_compatible=lambda *args, max_pin="x", **kwargs: f"max_pin, {max_pin}",
     cdt=lambda *args, **kwargs: "cdt_stub",
