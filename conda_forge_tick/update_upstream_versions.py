@@ -26,7 +26,13 @@ from conda.models.version import VersionOrder
 # TODO: parse_version has bad type annotations
 from pkg_resources import parse_version
 
-from .utils import parse_meta_yaml, setup_logger, executor, load_graph, dump_graph
+from .utils import (
+    parse_meta_yaml,
+    setup_logger,
+    executor,
+    load_graph,
+    dump_graph,
+)
 from conda_forge_tick.hashing import hash_url
 
 if typing.TYPE_CHECKING:
@@ -64,11 +70,11 @@ def _split_alpha_num(ver: str) -> List[str]:
 
 def next_version(ver: str) -> Iterator[str]:
     ver_split = []
-    ver_dot_split = ver.split('.')
+    ver_dot_split = ver.split(".")
     n_dot = len(ver_dot_split)
     for idot, sdot in enumerate(ver_dot_split):
 
-        ver_under_split = sdot.split('_')
+        ver_under_split = sdot.split("_")
         n_under = len(ver_under_split)
         for iunder, sunder in enumerate(ver_under_split):
 
@@ -86,7 +92,7 @@ def next_version(ver: str) -> Iterator[str]:
                 ver_split.append("_")
 
         if idot < n_dot - 1:
-            ver_split.append('.')
+            ver_split.append(".")
 
     for k in reversed(range(len(ver_split))):
         try:
@@ -114,8 +120,16 @@ class AbstractSource(abc.ABC):
 class VersionFromFeed(AbstractSource):
     ver_prefix_remove = ["release-", "releases%2F", "v_", "v.", "v"]
     dev_vers = [
-        "rc", "beta", "alpha", "dev", "a", "b", "init",
-        "testing", "test", "pre"
+        "rc",
+        "beta",
+        "alpha",
+        "dev",
+        "a",
+        "b",
+        "init",
+        "testing",
+        "test",
+        "pre",
     ]
 
     def get_version(self, url) -> Optional[str]:
@@ -127,7 +141,7 @@ class VersionFromFeed(AbstractSource):
             ver = entry["link"].split("/")[-1]
             for prefix in self.ver_prefix_remove:
                 if ver.startswith(prefix):
-                    ver = ver[len(prefix):]
+                    ver = ver[len(prefix) :]
             if any(s in ver.lower() for s in self.dev_vers):
                 continue
             # Extract vesion number starting at the first digit.
@@ -177,7 +191,10 @@ class PyPI(AbstractSource):
     def get_version(self, url) -> Optional[str]:
         r = requests.get(url)
         # If it is a pre-release don't give back the pre-release version
-        if not r.ok or parse_version(r.json()["info"]["version"].strip()).is_prerelease:
+        if (
+            not r.ok
+            or parse_version(r.json()["info"]["version"].strip()).is_prerelease
+        ):
             return False
         return r.json()["info"]["version"].strip()
 
@@ -289,12 +306,16 @@ class ROSDistro(AbstractSource):
                 continue
             if v["release"].get("packages"):
                 for p in v["release"]["packages"]:
-                    result_dict[distro_name]["reverse"][self.encode_ros_name(p)] = (
+                    result_dict[distro_name]["reverse"][
+                        self.encode_ros_name(p)
+                    ] = (
                         k,
                         p,
                     )
             else:
-                result_dict[distro_name]["reverse"][self.encode_ros_name(k)] = (k, k)
+                result_dict[distro_name]["reverse"][
+                    self.encode_ros_name(k)
+                ] = (k, k)
         result_dict[distro_name]["forward"] = repos
         return result_dict
 
@@ -347,7 +368,7 @@ class ROSDistro(AbstractSource):
 
 def get_sha256(url: str) -> Optional[str]:
     try:
-        return hash_url(url, timeout=120, hash_type='sha256')
+        return hash_url(url, timeout=120, hash_type="sha256")
     except Exception:
         return None
 
@@ -448,23 +469,23 @@ class RawURL(AbstractSource):
 
 
 def get_latest_version(
-    name: str,
-    payload_meta_yaml: Any,
-    sources: Iterable[AbstractSource]
+    name: str, payload_meta_yaml: Any, sources: Iterable[AbstractSource]
 ):
     with payload_meta_yaml as meta_yaml:
         for source in sources:
-            logger.debug('source: %s', source.__class__.__name__)
+            logger.debug("source: %s", source.__class__.__name__)
             url = source.get_url(meta_yaml)
-            logger.debug('url: %s', url)
+            logger.debug("url: %s", url)
             if url is None:
                 continue
             ver = source.get_version(url)
-            logger.debug('ver: %s', ver)
+            logger.debug("ver: %s", ver)
             if ver:
                 return ver
             else:
-                meta_yaml["bad"] = f"Upstream: Could not find version on {source.name}"
+                meta_yaml[
+                    "bad"
+                ] = f"Upstream: Could not find version on {source.name}"
         if not meta_yaml.get("bad"):
             meta_yaml["bad"] = "Upstream: unknown source"
         return False
@@ -494,7 +515,9 @@ def _update_upstream_versions_sequential(
                     se = repr(e)
                 except Exception as ee:
                     se = f"Bad exception string: {ee}"
-                logger.warning(f"Error getting uptream version of {node}: {se}")
+                logger.warning(
+                    f"Error getting uptream version of {node}: {se}"
+                )
                 attrs["bad"] = "Upstream: Error getting upstream version"
             else:
                 logger.info(
@@ -515,8 +538,11 @@ def _update_upstream_versions_process_pool(
                     attrs["new_version"] = False
                     continue
                 futures.update(
-                    {pool.submit(get_latest_version, node, attrs, sources): (
-                        node, attrs)},
+                    {
+                        pool.submit(
+                            get_latest_version, node, attrs, sources
+                        ): (node, attrs)
+                    },
                 )
 
         n_tot = len(futures)
@@ -540,17 +566,14 @@ def _update_upstream_versions_process_pool(
                         se = f"Bad exception string: {ee}"
                     logger.error(
                         "itr % 5d - eta % 5ds: "
-                        "Error getting upstream version of %s: %s" % (
-                            n_left,
-                            eta,
-                            node,
-                            se,
-                        )
+                        "Error getting upstream version of %s: %s"
+                        % (n_left, eta, node, se,)
                     )
                     attrs["bad"] = "Upstream: Error getting upstream version"
                 else:
                     logger.info(
-                        "itr % 5d - eta % 5ds: %s - %s - %s" % (
+                        "itr % 5d - eta % 5ds: %s - %s - %s"
+                        % (
                             n_left,
                             eta,
                             node,
@@ -582,9 +605,10 @@ def update_upstream_versions(
 
 def main(args: Any = None) -> None:
     from .xonsh_utils import env
+
     debug = env.get("CONDA_FORGE_TICK_DEBUG", False)
     if debug:
-        setup_logger(logger, level='debug')
+        setup_logger(logger, level="debug")
     else:
         setup_logger(logger)
 

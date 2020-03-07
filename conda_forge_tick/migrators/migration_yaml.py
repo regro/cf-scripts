@@ -52,7 +52,10 @@ class MigrationYaml(GraphMigrator):
                 k
                 for k, v in self.graph.nodes.items()
                 if self.migrator_uid(v.get("payload", {}))
-                in [vv.get("data", {}) for vv in v.get("payload", {}).get("PRed", [])]
+                in [
+                    vv.get("data", {})
+                    for vv in v.get("payload", {}).get("PRed", [])
+                ]
             ],
         )
         if number_pred == 0:
@@ -125,5 +128,7 @@ class MigrationYaml(GraphMigrator):
     ) -> Sequence["PackageName"]:
         """Run the order by number of decendents, ties are resolved by package name"""
         return sorted(
-            graph, key=lambda x: (len(nx.descendants(total_graph, x)), x), reverse=True,
+            graph,
+            key=lambda x: (len(nx.descendants(total_graph, x)), x),
+            reverse=True,
         )

@@ -1,12 +1,12 @@
 from itertools import permutations
 
-EXTS = ['.tar.gz', '.zip', '.tar', '.tar.bz2', '.tar.xz', '.tgz']
+EXTS = [".tar.gz", ".zip", ".tar", ".tar.bz2", ".tar.xz", ".tgz"]
 
 
 def _ext_munger(url):
     for old_ext, new_ext in permutations(EXTS, 2):
         if url.endswith(old_ext):
-            yield url[:-len(old_ext)] + new_ext
+            yield url[: -len(old_ext)] + new_ext
 
 
 def _v_munger(url):
@@ -29,8 +29,8 @@ def _pypi_munger(url):
             '{{ name|replace("_","-") }}',
         ),
     ]
-    if '/pypi.' in url:
-        burl, eurl = url.rsplit('/', 1)
+    if "/pypi." in url:
+        burl, eurl = url.rsplit("/", 1)
         for vhave, vrep in permutations(names, 2):
             if isinstance(vhave, tuple):
                 for _v in vhave:
@@ -42,12 +42,9 @@ def _pypi_munger(url):
 
 
 def _github_munger(url):
-    names = [
-        "/releases/download/v{{ version }}/",
-        "/archive/"
-    ]
-    if 'github.com' in url:
-        burl, eurl = url.rsplit('/', 1)
+    names = ["/releases/download/v{{ version }}/", "/archive/"]
+    if "github.com" in url:
+        burl, eurl = url.rsplit("/", 1)
         burl = burl + "/"
         for ghave, grep in permutations(names, 2):
             if ghave in url:
@@ -81,6 +78,5 @@ def gen_transformed_urls(url):
         The URL to transform.
     """
     yield from _gen_new_urls(
-        url,
-        [_ext_munger, _v_munger, _pypi_munger, _github_munger],
+        url, [_ext_munger, _v_munger, _pypi_munger, _github_munger],
     )

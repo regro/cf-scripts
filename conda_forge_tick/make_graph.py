@@ -31,7 +31,11 @@ from .utils import (
     dump_graph,
     LazyJson,
 )
-from .git_utils import refresh_pr, is_github_api_limit_reached, close_out_labels
+from .git_utils import (
+    refresh_pr,
+    is_github_api_limit_reached,
+    close_out_labels,
+)
 from .contexts import GithubContext
 
 if typing.TYPE_CHECKING:
@@ -102,18 +106,23 @@ def populate_feedstock_attributes(
         sub_graph["conda-forge.yml"] = {
             k: v
             for k, v in yaml.safe_load(conda_forge_yaml).items()
-            if k in {
+            if k
+            in {
                 "provider",
                 "min_r_ver",
                 "min_py_ver",
                 "max_py_ver",
                 "max_r_ver",
                 "compiler_stack",
-                "bot"}
+                "bot",
+            }
         }
 
     yaml_dict = ChainDB(
-        *[parse_meta_yaml(meta_yaml, platform=plat) for plat in ["win", "osx", "linux"]]
+        *[
+            parse_meta_yaml(meta_yaml, platform=plat)
+            for plat in ["win", "osx", "linux"]
+        ]
     )
     if not yaml_dict:
         logger.error(f"Something odd happened when parsing recipe {name}")
@@ -191,7 +200,10 @@ def get_attrs(name: str, i: int) -> LazyJson:
     lzj = LazyJson(f"node_attrs/{name}.json")
     with lzj as sub_graph:
         populate_feedstock_attributes(
-            name, sub_graph, meta_yaml=meta_yaml, conda_forge_yaml=conda_forge_yaml,
+            name,
+            sub_graph,
+            meta_yaml=meta_yaml,
+            conda_forge_yaml=conda_forge_yaml,
         )
     return lzj
 
@@ -201,7 +213,8 @@ def _build_graph_process_pool(
 ) -> None:
     with executor("thread", max_workers=20) as pool:
         futures = {
-            pool.submit(get_attrs, name, i): name for i, name in enumerate(names)
+            pool.submit(get_attrs, name, i): name
+            for i, name in enumerate(names)
         }
         logger.info("submitted all nodes")
 
@@ -216,7 +229,9 @@ def _build_graph_process_pool(
             name = futures[f]
             try:
                 sub_graph = {"payload": f.result()}
-                logger.info("itr % 5d - eta % 5ds: finished %s", n_left, eta, name)
+                logger.info(
+                    "itr % 5d - eta % 5ds: finished %s", n_left, eta, name
+                )
             except Exception as e:
                 logger.error(
                     "itr % 5d - eta % 5ds: Error adding %s to the graph: %s",
@@ -247,7 +262,9 @@ def _build_graph_sequential(
                 gx.nodes[name].update(**sub_graph)
 
 
-def make_graph(names: List[str], gx: Optional[nx.DiGraph] = None) -> nx.DiGraph:
+def make_graph(
+    names: List[str], gx: Optional[nx.DiGraph] = None
+) -> nx.DiGraph:
     logger.info("reading graph")
 
     if gx is None:
@@ -257,8 +274,9 @@ def make_graph(names: List[str], gx: Optional[nx.DiGraph] = None) -> nx.DiGraph:
     old_names = [name for name in names if name in gx.nodes]
     # silly typing force
     assert gx is not None
-    old_names = sorted(                                       # type: ignore
-        old_names, key=lambda n: gx.nodes[n].get("time", 0))  # type: ignore
+    old_names = sorted(  # type: ignore
+        old_names, key=lambda n: gx.nodes[n].get("time", 0)
+    )  # type: ignore
 
     total_names = new_names + old_names
     logger.info("start feedstock fetch loop")
@@ -331,7 +349,9 @@ def _update_pr(update_function, dry_run, gx):
                 pr_json = migration.get("PR", None)
                 # allow for false
                 if pr_json:
-                    future = pool.submit(update_function, ghctx, pr_json, gh, dry_run)
+                    future = pool.submit(
+                        update_function, ghctx, pr_json, gh, dry_run
+                    )
                     futures[future] = (node_id, i)
 
         for f in as_completed(futures):
@@ -364,7 +384,9 @@ def _update_pr(update_function, dry_run, gx):
     return succeeded_refresh, failed_refresh
 
 
-def update_graph_pr_status(gx: nx.DiGraph, dry_run: bool = False) -> nx.DiGraph:
+def update_graph_pr_status(
+    gx: nx.DiGraph, dry_run: bool = False
+) -> nx.DiGraph:
     succeeded_refresh, failed_refresh = _update_pr(refresh_pr, dry_run, gx)
 
     logger.info(f"JSON Refresh failed for {failed_refresh} PRs")
@@ -373,7 +395,9 @@ def update_graph_pr_status(gx: nx.DiGraph, dry_run: bool = False) -> nx.DiGraph:
 
 
 def close_labels(gx: nx.DiGraph, dry_run: bool = False) -> nx.DiGraph:
-    succeeded_refresh, failed_refresh = _update_pr(close_out_labels, dry_run, gx)
+    succeeded_refresh, failed_refresh = _update_pr(
+        close_out_labels, dry_run, gx
+    )
 
     logger.info(f"bot re-run failed for {failed_refresh} PRs")
     logger.info(f"bot re-run succeed for {succeeded_refresh} PRs")

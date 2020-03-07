@@ -193,7 +193,9 @@ def parse_meta_yaml(text: str, **kwargs: Any) -> "MetaYamlTypedDict":
     return parse(content, Config(**kwargs))
 
 
-def setup_logger(logger: logging.Logger, level: Optional[str] = 'INFO') -> None:
+def setup_logger(
+    logger: logging.Logger, level: Optional[str] = "INFO"
+) -> None:
     """Basic configuration for logging
 
     """
@@ -258,7 +260,9 @@ def get_requirements(
     reqs = _parse_requirements(meta_yaml.get("requirements", {}), **kw)
     outputs_ = meta_yaml.get("outputs", []) or [] if outputs else []
     for output in outputs_:
-        for req in _parse_requirements(output.get("requirements", {}) or {}, **kw):
+        for req in _parse_requirements(
+            output.get("requirements", {}) or {}, **kw
+        ):
             reqs.add(req)
     return reqs
 
@@ -281,7 +285,9 @@ def _parse_requirements(
         _run = list(as_iterable(req.get("run", []) or [] if run else []))
         reqlist = _build + _host + _run
 
-    packages = (pin_sep_pat.split(x)[0].lower() for x in reqlist if x is not None)
+    packages = (
+        pin_sep_pat.split(x)[0].lower() for x in reqlist if x is not None
+    )
     return {typing.cast("PackageName", pkg) for pkg in packages}
 
 
@@ -372,7 +378,9 @@ def loads(
 
 
 def load(
-    fp: IO[str], object_hook: "Callable[[dict], Any]" = object_hook, **kwargs: Any
+    fp: IO[str],
+    object_hook: "Callable[[dict], Any]" = object_hook,
+    **kwargs: Any,
 ) -> dict:
     """Loads a file object as JSON, with appropriate object hooks."""
     return json.load(fp, object_hook=object_hook, **kwargs)
@@ -437,7 +445,9 @@ def frozen_to_json_friendly(fz: None, pr: Optional[LazyJson] = None) -> None:
 
 
 @typing.overload
-def frozen_to_json_friendly(fz: Any, pr: Optional[LazyJson] = None) -> "JsonFriendly":
+def frozen_to_json_friendly(
+    fz: Any, pr: Optional[LazyJson] = None
+) -> "JsonFriendly":
     pass
 
 

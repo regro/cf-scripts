@@ -37,7 +37,10 @@ class ArchRebuild(GraphMigrator):
     }
 
     def __init__(
-        self, graph: nx.DiGraph = None, name: Optional[str] = None, pr_limit: int = 0,
+        self,
+        graph: nx.DiGraph = None,
+        name: Optional[str] = None,
+        pr_limit: int = 0,
     ):
         super().__init__(graph=graph, pr_limit=pr_limit)
         # We are constraining the scope of this migrator
@@ -53,7 +56,9 @@ class ArchRebuild(GraphMigrator):
             for target in self.target_packages:
                 if target in self.graph.nodes:
                     packages.update(nx.ancestors(self.graph, target))
-            self.graph.remove_nodes_from([n for n in self.graph if n not in packages])
+            self.graph.remove_nodes_from(
+                [n for n in self.graph if n not in packages]
+            )
         # filter out stub packages and ignored packages
         for node in list(self.graph.nodes):
             if (
@@ -72,7 +77,9 @@ class ArchRebuild(GraphMigrator):
                 pluck(self.graph, node)
         self.graph.remove_edges_from(nx.selfloop_edges(self.graph))
 
-    def filter(self, attrs: "AttrsTypedDict", not_bad_str_start: str = "") -> bool:
+    def filter(
+        self, attrs: "AttrsTypedDict", not_bad_str_start: str = ""
+    ) -> bool:
         if super().filter(attrs):
             return True
         muid = frozen_to_json_friendly(self.migrator_uid(attrs))

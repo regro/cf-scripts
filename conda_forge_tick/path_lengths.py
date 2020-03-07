@@ -9,12 +9,23 @@ import networkx as nx
 
 
 from networkx.classes.digraph import DiGraph
-from typing import DefaultDict, Dict, List, Set, Iterable, Any, Sequence, TypeVar
+from typing import (
+    DefaultDict,
+    Dict,
+    List,
+    Set,
+    Iterable,
+    Any,
+    Sequence,
+    TypeVar,
+)
 
 T = TypeVar("T")
 
 
-def cyclic_topological_sort(graph: DiGraph, sources: Iterable[T]) -> Sequence[T]:
+def cyclic_topological_sort(
+    graph: DiGraph, sources: Iterable[T]
+) -> Sequence[T]:
     """Return a list of nodes in a graph with cycles in topological order.
 
     Performs a topological sort of `graph` starting from the node `source`.

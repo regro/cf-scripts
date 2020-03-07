@@ -24,7 +24,9 @@ def main(args: Any = None) -> None:
     total_status = {}
 
     for migrator in migrators:
-        if isinstance(migrator, GraphMigrator) or isinstance(migrator, Replacement):
+        if isinstance(migrator, GraphMigrator) or isinstance(
+            migrator, Replacement
+        ):
             if hasattr(migrator, "name"):
                 assert isinstance(migrator.name, str)
                 migrator_name = migrator.name.lower().replace(" ", "")
@@ -32,7 +34,9 @@ def main(args: Any = None) -> None:
                 migrator_name = migrator.__class__.__name__.lower()
             total_status[migrator_name] = f"{migrator.name} Migration Status"
             status, build_order, gv = migrator_status(migrator, mctx.graph)
-            with open(os.path.join(f"./status/{migrator_name}.json"), "w") as fo:
+            with open(
+                os.path.join(f"./status/{migrator_name}.json"), "w"
+            ) as fo:
                 json.dump(status, fo, indent=2)
 
             d = gv.pipe("dot")
@@ -43,10 +47,20 @@ def main(args: Any = None) -> None:
                 # make the graph a bit more compact
                 d = Source(
                     subprocess.check_output(
-                        ["unflatten", "-f", "-l", "5", "-c", "10", f"{ntf.name}.dot"]
+                        [
+                            "unflatten",
+                            "-f",
+                            "-l",
+                            "5",
+                            "-c",
+                            "10",
+                            f"{ntf.name}.dot",
+                        ]
                     ).decode("utf-8")
                 ).pipe("svg")
-            with open(os.path.join(f"./status/{migrator_name}.svg"), "wb") as fb:
+            with open(
+                os.path.join(f"./status/{migrator_name}.svg"), "wb"
+            ) as fb:
                 fb.write(d)
 
     with open("./status/total_status.json", "w") as f:

@@ -73,7 +73,9 @@ def _get_source_code(recipe_dir):
 class MiniMigrator:
     post_migration = False
 
-    def filter(self, attrs: "AttrsTypedDict", not_bad_str_start: str = "") -> bool:
+    def filter(
+        self, attrs: "AttrsTypedDict", not_bad_str_start: str = ""
+    ) -> bool:
         """ If true don't act upon node
 
         Parameters
@@ -88,7 +90,9 @@ class MiniMigrator:
         """
         return True
 
-    def migrate(self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any) -> None:
+    def migrate(
+        self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any
+    ) -> None:
         """Perform the migration, updating the ``meta.yaml``
 
         Parameters
@@ -112,13 +116,17 @@ class PipMigrator(MiniMigrator):
         "python -m pip install --no-deps --ignore-installed .",
     )
 
-    def filter(self, attrs: "AttrsTypedDict", not_bad_str_start: str = "") -> bool:
+    def filter(
+        self, attrs: "AttrsTypedDict", not_bad_str_start: str = ""
+    ) -> bool:
         scripts = as_iterable(
             attrs.get("meta_yaml", {}).get("build", {}).get("script", []),
         )
         return not bool(set(self.bad_install) & set(scripts))
 
-    def migrate(self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any) -> None:
+    def migrate(
+        self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any
+    ) -> None:
         with indir(recipe_dir):
             for b in self.bad_install:
                 replace_in_file(
@@ -131,14 +139,21 @@ class PipMigrator(MiniMigrator):
 class LicenseMigrator(MiniMigrator):
     post_migration = True
 
-    def filter(self, attrs: "AttrsTypedDict", not_bad_str_start: str = "") -> bool:
-        license = attrs.get("meta_yaml", {}).get("about", {}).get("license", "")
+    def filter(
+        self, attrs: "AttrsTypedDict", not_bad_str_start: str = ""
+    ) -> bool:
+        license = (
+            attrs.get("meta_yaml", {}).get("about", {}).get("license", "")
+        )
         license_fam = (
             attrs.get("meta_yaml", {})
             .get("about", {})
             .get("license_family", "")
             .lower()
-            or license.lower().partition("-")[0].partition("v")[0].partition(" ")[0]
+            or license.lower()
+            .partition("-")[0]
+            .partition("v")[0]
+            .partition(" ")[0]
         )
         if license_fam in NEEDED_FAMILIES and "license_file" not in attrs.get(
             "meta_yaml", {},
@@ -146,7 +161,9 @@ class LicenseMigrator(MiniMigrator):
             return False
         return True
 
-    def migrate(self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any) -> None:
+    def migrate(
+        self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any
+    ) -> None:
         cb_work_dir = _get_source_code(recipe_dir)
         with indir(cb_work_dir):
             # look for a license file
@@ -154,7 +171,8 @@ class LicenseMigrator(MiniMigrator):
                 s
                 for s in os.listdir(".")
                 if any(
-                    s.lower().startswith(k) for k in ["license", "copying", "copyright"]
+                    s.lower().startswith(k)
+                    for k in ["license", "copying", "copyright"]
                 )
             ]
         eval_xonsh(f"rm -r {cb_work_dir}")
@@ -179,7 +197,10 @@ class LicenseMigrator(MiniMigrator):
                 if len(license_files) == 1:
                     replace_in_file(
                         line,
-                        line + "\n" + ws + f"license_file: {list(license_files)[0]}",
+                        line
+                        + "\n"
+                        + ws
+                        + f"license_file: {list(license_files)[0]}",
                         "meta.yaml",
                     )
                 else:
@@ -245,7 +266,9 @@ class Migrator:
             )
         ][:limit]
 
-    def filter(self, attrs: "AttrsTypedDict", not_bad_str_start: str = "") -> bool:
+    def filter(
+        self, attrs: "AttrsTypedDict", not_bad_str_start: str = ""
+    ) -> bool:
         """ If true don't act upon node
 
         Parameters
@@ -534,12 +557,15 @@ class GraphMigrator(Migrator):
             # so that errors halt the migration and can be fixed
             if (
                 m_pred_json
-                and m_pred_json.get("PR", {"state": "open"}).get("state", "") == "open"
+                and m_pred_json.get("PR", {"state": "open"}).get("state", "")
+                == "open"
             ):
                 return True
         return False
 
-    def filter(self, attrs: "AttrsTypedDict", not_bad_str_start: str = "") -> bool:
+    def filter(
+        self, attrs: "AttrsTypedDict", not_bad_str_start: str = ""
+    ) -> bool:
         if super().filter(attrs, "Upstream:"):
             return True
         if attrs["feedstock_name"] not in self.graph:
@@ -618,9 +644,12 @@ class Replacement(Migrator):
         """
         return graph
 
-    def filter(self, attrs: "AttrsTypedDict", not_bad_str_start: str = "") -> bool:
+    def filter(
+        self, attrs: "AttrsTypedDict", not_bad_str_start: str = ""
+    ) -> bool:
         return (
-            super().filter(attrs) or len(attrs.get("req", set()) & self.packages) == 0
+            super().filter(attrs)
+            or len(attrs.get("req", set()) & self.packages) == 0
         )
 
     def migrate(
@@ -654,7 +683,8 @@ class Replacement(Migrator):
             "1. Make sure that the recipe can indeed only depend on `%s`. \n"
             "2. Please merge the PR only after the tests have passed. \n"
             "3. Feel free to push to the bot's branch to update this PR if "
-            "needed. \n" % (self.old_pkg, self.new_pkg, self.rationale, self.new_pkg),
+            "needed. \n"
+            % (self.old_pkg, self.new_pkg, self.rationale, self.new_pkg),
         )
         return body
 
@@ -662,7 +692,9 @@ class Replacement(Migrator):
         return f"use {self.new_pkg} instead of {self.old_pkg}"
 
     def pr_title(self, feedstock_ctx: FeedstockContext) -> str:
-        return f"Suggestion: depend on {self.new_pkg} instead of {self.old_pkg}"
+        return (
+            f"Suggestion: depend on {self.new_pkg} instead of {self.old_pkg}"
+        )
 
     def remote_branch(self, feedstock_ctx: FeedstockContext) -> str:
         return f"{self.old_pkg}-to-{self.new_pkg}-migration-{self.migrator_version}"
