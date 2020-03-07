@@ -519,7 +519,7 @@ def initialize_migrators(
          '`matplotlib-base`.'),
         alt_migrator=MatplotlibBase,
     )
-    create_migration_yaml_creator(migrators=MIGRATORS, gx=x)
+    create_migration_yaml_creator(migrators=MIGRATORS, gx=gx)
     for m in MIGRATORS:
         print(f'{getattr(m, "name", m)} graph size: {len(getattr(m, "graph", []))}')
 
