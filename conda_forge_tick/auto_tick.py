@@ -540,6 +540,7 @@ def create_migration_yaml_creator(migrators: MutableSequence[Migrator], gx: nx.D
 
             pin_spec = pin_spec.split('max_pin, ')[1]
             current_pins = list(map(lambda x: re.sub('[^0-9.]', '', x).rstrip('.'), current_pins))
+            current_version = re.sub('[^0-9.]', '', current_version).rstrip('.')
             if current_pins == ['']:
                 continue
 
