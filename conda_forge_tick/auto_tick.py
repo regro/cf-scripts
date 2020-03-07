@@ -481,7 +481,7 @@ def migration_factory(
 
 
 def create_migration_yaml_creator(migrators: MutableSequence[Migrator], gx: nx.DiGraph):
-    with indir("../conda-forge-pinning-feedstock"):
+    with indir("../conda-forge-pinning-feedstock/recipe"):
         with open('conda_build_config.yaml') as f:
             yaml_contents = f.read()
     pinnings = yaml.safe_load(yaml_contents)
