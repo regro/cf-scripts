@@ -7,12 +7,15 @@ import logging
 import os
 import typing
 import networkx as nx
+from conda.models.version import VersionOrder
 
 from urllib.error import URLError
 
 import github3
 import ruamel.yaml as yaml
 from uuid import uuid4
+
+from conda_forge_tick.migrators.migration_yaml import MigrationYamlCreator
 from .xonsh_utils import indir, eval_xonsh
 
 from conda_forge_tick.contexts import FeedstockContext
@@ -477,6 +480,21 @@ def migration_factory(
         )
 
 
+def create_migration_yaml_creator(migrators: MutableSequence[Migrator], gx: nx.DiGraph):
+    with indir("../conda-forge-pinning-feedstock"):
+        with open('conda_build_config.yaml') as f:
+            yaml_contents = f.read()
+    pinnings = yaml.safe_load(yaml_contents)
+    # exclude non-package information
+    for k, v in pinnings.items():
+        # check if an actual package
+        if k in gx.nodes:
+            current_pins = map(str, v)
+            current_version = str(gx.nodes[k]['payload']['version'])
+            if VersionOrder(current_version) > max(map(VersionOrder(current_pins))):
+                migrators.append(MigrationYamlCreator(k, current_version))
+
+
 def initialize_migrators(
     github_username: str = "",
     github_password: str = "",
@@ -501,6 +519,7 @@ def initialize_migrators(
          '`matplotlib-base`.'),
         alt_migrator=MatplotlibBase,
     )
+    create_migration_yaml_creator(migrators=MIGRATORS, gx=x)
     for m in MIGRATORS:
         print(f'{getattr(m, "name", m)} graph size: {len(getattr(m, "graph", []))}')
 
