@@ -21,9 +21,7 @@ class CondaForgeYAMLCleanup(MiniMigrator):
         "compiler_stack",
     ]
 
-    def filter(
-        self, attrs: "AttrsTypedDict", not_bad_str_start: str = ""
-    ) -> bool:
+    def filter(self, attrs: "AttrsTypedDict", not_bad_str_start: str = "") -> bool:
         """only remove the keys if they are there"""
         cfy = attrs.get("conda-forge.yml", {})
         if any(k in cfy for k in self.keys_to_remove):
@@ -31,9 +29,7 @@ class CondaForgeYAMLCleanup(MiniMigrator):
         else:
             return True
 
-    def migrate(
-        self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any
-    ) -> None:
+    def migrate(self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any) -> None:
         with indir(recipe_dir):
             cfg_path = os.path.join("..", "conda-forge.yml")
             yaml = YAML()

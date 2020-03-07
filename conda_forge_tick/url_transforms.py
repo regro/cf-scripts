@@ -51,10 +51,7 @@ def _github_munger(url):
                 if ghave == "/archive/":
                     yield burl.replace(ghave, grep) + "{{ name }}-" + eurl
                 else:
-                    yield (
-                        burl.replace(ghave, grep)
-                        + eurl.replace("{{ name }}-", "")
-                    )
+                    yield (burl.replace(ghave, grep) + eurl.replace("{{ name }}-", ""))
 
 
 def _gen_new_urls(url, mungers):

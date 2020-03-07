@@ -23,9 +23,7 @@ from typing import (
 T = TypeVar("T")
 
 
-def cyclic_topological_sort(
-    graph: DiGraph, sources: Iterable[T]
-) -> Sequence[T]:
+def cyclic_topological_sort(graph: DiGraph, sources: Iterable[T]) -> Sequence[T]:
     """Return a list of nodes in a graph with cycles in topological order.
 
     Performs a topological sort of `graph` starting from the node `source`.

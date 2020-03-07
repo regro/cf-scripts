@@ -13,9 +13,7 @@ if typing.TYPE_CHECKING:
 class MatplotlibBase(Replacement):
     migrator_version = 0
 
-    def filter(
-        self, attrs: "AttrsTypedDict", not_bad_str_start: str = ""
-    ) -> bool:
+    def filter(self, attrs: "AttrsTypedDict", not_bad_str_start: str = "") -> bool:
         # I shipped a bug where I added an entry to the migrator uid and now the
         # graph is corrupted - this is being fixed here
         def parse_already_pred() -> bool:
@@ -23,9 +21,9 @@ class MatplotlibBase(Replacement):
                 "MigrationUidTypedDict",
                 frozen_to_json_friendly(self.migrator_uid(attrs))["data"],
             )
-            already_migrated_uids: typing.Iterable[
-                "MigrationUidTypedDict"
-            ] = list(copy.deepcopy(z["data"]) for z in attrs.get("PRed", []))
+            already_migrated_uids: typing.Iterable["MigrationUidTypedDict"] = list(
+                copy.deepcopy(z["data"]) for z in attrs.get("PRed", [])
+            )
 
             # we shipped a bug, so fixing this here -
             # need to ignore name in uuid

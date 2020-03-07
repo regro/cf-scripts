@@ -191,10 +191,7 @@ class PyPI(AbstractSource):
     def get_version(self, url) -> Optional[str]:
         r = requests.get(url)
         # If it is a pre-release don't give back the pre-release version
-        if (
-            not r.ok
-            or parse_version(r.json()["info"]["version"].strip()).is_prerelease
-        ):
+        if not r.ok or parse_version(r.json()["info"]["version"].strip()).is_prerelease:
             return False
         return r.json()["info"]["version"].strip()
 
@@ -306,16 +303,12 @@ class ROSDistro(AbstractSource):
                 continue
             if v["release"].get("packages"):
                 for p in v["release"]["packages"]:
-                    result_dict[distro_name]["reverse"][
-                        self.encode_ros_name(p)
-                    ] = (
+                    result_dict[distro_name]["reverse"][self.encode_ros_name(p)] = (
                         k,
                         p,
                     )
             else:
-                result_dict[distro_name]["reverse"][
-                    self.encode_ros_name(k)
-                ] = (k, k)
+                result_dict[distro_name]["reverse"][self.encode_ros_name(k)] = (k, k)
         result_dict[distro_name]["forward"] = repos
         return result_dict
 
@@ -483,9 +476,7 @@ def get_latest_version(
             if ver:
                 return ver
             else:
-                meta_yaml[
-                    "bad"
-                ] = f"Upstream: Could not find version on {source.name}"
+                meta_yaml["bad"] = f"Upstream: Could not find version on {source.name}"
         if not meta_yaml.get("bad"):
             meta_yaml["bad"] = "Upstream: unknown source"
         return False
@@ -515,9 +506,7 @@ def _update_upstream_versions_sequential(
                     se = repr(e)
                 except Exception as ee:
                     se = f"Bad exception string: {ee}"
-                logger.warning(
-                    f"Error getting uptream version of {node}: {se}"
-                )
+                logger.warning(f"Error getting uptream version of {node}: {se}")
                 attrs["bad"] = "Upstream: Error getting upstream version"
             else:
                 logger.info(
@@ -539,9 +528,10 @@ def _update_upstream_versions_process_pool(
                     continue
                 futures.update(
                     {
-                        pool.submit(
-                            get_latest_version, node, attrs, sources
-                        ): (node, attrs)
+                        pool.submit(get_latest_version, node, attrs, sources): (
+                            node,
+                            attrs,
+                        )
                     },
                 )
 

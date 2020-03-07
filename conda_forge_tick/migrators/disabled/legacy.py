@@ -33,17 +33,12 @@ class JS(Migrator):
 
     migrator_version = 0
 
-    def filter(
-        self, attrs: "AttrsTypedDict", not_bad_str_start: str = ""
-    ) -> bool:
+    def filter(self, attrs: "AttrsTypedDict", not_bad_str_start: str = "") -> bool:
         conditional = super().filter(attrs)
         return bool(
             conditional
             or (
-                (
-                    attrs.get("meta_yaml", {}).get("build", {}).get("noarch")
-                    != "generic"
-                )
+                (attrs.get("meta_yaml", {}).get("build", {}).get("noarch") != "generic")
                 or (
                     attrs.get("meta_yaml", {}).get("build", {}).get("script")
                     != "npm install -g ."
@@ -112,16 +107,12 @@ class Compiler(Migrator):
         super().__init__(pr_limit)
         self.cfp = get_cfp_file_path()[0]
 
-    def filter(
-        self, attrs: "AttrsTypedDict", not_bad_str_start: str = ""
-    ) -> bool:
+    def filter(self, attrs: "AttrsTypedDict", not_bad_str_start: str = "") -> bool:
         for req in attrs.get("req", []):
             if req.endswith("_compiler_stub"):
                 return True
         conditional = super().filter(attrs)
-        return conditional or not any(
-            x in attrs.get("req", []) for x in self.compilers
-        )
+        return conditional or not any(x in attrs.get("req", []) for x in self.compilers)
 
     def migrate(
         self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any
@@ -185,9 +176,7 @@ class Noarch(Migrator):
 
     rerender = True
 
-    def filter(
-        self, attrs: "AttrsTypedDict", not_bad_str_start: str = ""
-    ) -> bool:
+    def filter(self, attrs: "AttrsTypedDict", not_bad_str_start: str = "") -> bool:
         conditional = (
             super().filter(attrs)
             or attrs.get("meta_yaml", {}).get("outputs")
@@ -208,9 +197,7 @@ class Noarch(Migrator):
                 return True
 
         # Not a dependency of `conda`
-        if attrs["feedstock_name"] in nx.ancestors(
-            self.ctx.session.graph, "conda"
-        ):
+        if attrs["feedstock_name"] in nx.ancestors(self.ctx.session.graph, "conda"):
             return True
 
         return False
@@ -219,9 +206,9 @@ class Noarch(Migrator):
         self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any
     ) -> "MigrationUidTypedDict":
         with indir(recipe_dir):
-            build_idx = [
-                l.rstrip() for l in attrs["raw_meta_yaml"].split("\n")
-            ].index("build:",)
+            build_idx = [l.rstrip() for l in attrs["raw_meta_yaml"].split("\n")].index(
+                "build:",
+            )
             line = attrs["raw_meta_yaml"].split("\n")[build_idx + 1]
             spaces = len(line) - len(line.lstrip())
             replace_in_file(
@@ -263,9 +250,7 @@ class Noarch(Migrator):
             "2. Please merge the PR only after the tests have passed. \n"
             "3. Feel free to push to the bot's branch to update this PR if needed. \n",
         )
-        body = body.format(
-            "\n".join(["- [ ] " + item for item in self.checklist])
-        )
+        body = body.format("\n".join(["- [ ] " + item for item in self.checklist]))
         return body
 
     def commit_message(self, feedstock_ctx: FeedstockContext) -> str:
@@ -283,9 +268,7 @@ class NoarchR(Noarch):
     rerender = True
     bump_number = 1
 
-    def filter(
-        self, attrs: "AttrsTypedDict", not_bad_str_start: str = ""
-    ) -> bool:
+    def filter(self, attrs: "AttrsTypedDict", not_bad_str_start: str = "") -> bool:
         conditional = (
             Migrator.filter(self, attrs)
             or attrs.get("meta_yaml", {}).get("outputs")
@@ -347,9 +330,7 @@ class NoarchR(Noarch):
                     s = len(lines[index + 1].lstrip()) - len(lines[index + 1])
                     if s > 0:
                         spacing = s
-                    lines[index] = (
-                        lines[index] + " " * spacing + "noarch: generic\n"
-                    )
+                    lines[index] = lines[index] + " " * spacing + "noarch: generic\n"
                 regex_unix1 = re.compile(
                     r"license_file: '{{ environ\[\"PREFIX\"\] }}/lib/R/share/licenses/(\S+)'\s+# \[unix\]",
                 )
@@ -360,9 +341,7 @@ class NoarchR(Noarch):
                     r"license_file: '{{ environ\[\"PREFIX\"\] }}\\R\\share\\licenses\\(\S+)'\s+# \[win\]",
                 )
                 for i, line in enumerate(lines_stripped):
-                    if noarch and line.lower().strip().startswith(
-                        "skip: true"
-                    ):
+                    if noarch and line.lower().strip().startswith("skip: true"):
                         lines[i] = ""
                     # Fix path to licenses
                     if regex_unix1.match(line.strip()):
@@ -426,9 +405,7 @@ class Rebuild(GraphMigrator):
         cycles: Optional[List["PackageName"]] = None,
         obj_version: Optional[int] = None,
     ):
-        super().__init__(
-            pr_limit=pr_limit, obj_version=obj_version, graph=graph
-        )
+        super().__init__(pr_limit=pr_limit, obj_version=obj_version, graph=graph)
         self.name = name
         self.top_level = top_level
         self.cycles = set(chain.from_iterable(cycles or []))
@@ -454,9 +431,7 @@ class Rebuild(GraphMigrator):
             "This package has the following downstream children:\n"
             "{}\n"
             "And potentially more."
-            "".format(
-                self.name, "\n".join(self.downstream_children(feedstock_ctx))
-            )
+            "".format(self.name, "\n".join(self.downstream_children(feedstock_ctx)))
         )
         body = body.format(additional_body)
         return body
@@ -485,14 +460,10 @@ class Rebuild(GraphMigrator):
             n["name"] = self.name
         return n
 
-    def order(
-        self, graph: nx.DiGraph, total_graph: nx.DiGraph
-    ) -> List["PackageName"]:
+    def order(self, graph: nx.DiGraph, total_graph: nx.DiGraph) -> List["PackageName"]:
         """Run the order by number of decendents, ties are resolved by package name"""
         return sorted(
-            graph,
-            key=lambda x: (len(nx.descendants(total_graph, x)), x),
-            reverse=True,
+            graph, key=lambda x: (len(nx.descendants(total_graph, x)), x), reverse=True,
         )
 
 
@@ -512,12 +483,9 @@ class Pinning(Migrator):
         else:
             self.removals = set(removals)
 
-    def filter(
-        self, attrs: "AttrsTypedDict", not_bad_str_start: str = ""
-    ) -> bool:
+    def filter(self, attrs: "AttrsTypedDict", not_bad_str_start: str = "") -> bool:
         return (
-            super().filter(attrs)
-            or len(attrs.get("req", set()) & self.removals) == 0
+            super().filter(attrs) or len(attrs.get("req", set()) & self.removals) == 0
         )
 
     def migrate(
@@ -657,9 +625,7 @@ class BlasRebuild(Rebuild):
             "This package has the following downstream children:\n"
             "{children}\n"
             "And potentially more."
-            "".format(
-                children="\n".join(self.downstream_children(feedstock_ctx))
-            )
+            "".format(children="\n".join(self.downstream_children(feedstock_ctx)))
         )
         body = body.format(additional_body)
         return body
@@ -716,9 +682,7 @@ class RBaseRebuild(Rebuild):
                 )
             ):
                 for i, line in enumerate(lines):
-                    if line.strip() == "recipe-maintainers:" and i + 1 < len(
-                        lines
-                    ):
+                    if line.strip() == "recipe-maintainers:" and i + 1 < len(lines):
                         lines[i] = (
                             line
                             + "\n"

@@ -29,9 +29,7 @@ class ExtraJinja2KeysCleanup(MiniMigrator):
         "hash_value",
     )
 
-    def filter(
-        self, attrs: "AttrsTypedDict", not_bad_str_start: str = ""
-    ) -> bool:
+    def filter(self, attrs: "AttrsTypedDict", not_bad_str_start: str = "") -> bool:
         """Check the raw YAML to find jinja variables to deal with."""
         raw_yaml = attrs["raw_meta_yaml"]
         for var_name in self.vars_to_remove:
@@ -58,9 +56,7 @@ class ExtraJinja2KeysCleanup(MiniMigrator):
                 line = line.replace(var_use, var_value)
             yield line
 
-    def migrate(
-        self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any
-    ) -> None:
+    def migrate(self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any) -> None:
         with indir(recipe_dir):
             with open("meta.yaml", "r") as fp:
                 lines = fp.readlines()

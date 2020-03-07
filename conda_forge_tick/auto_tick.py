@@ -148,15 +148,11 @@ def run(
     recipe_dir = os.path.join(feedstock_dir, "recipe")
 
     # migrate the feedstock
-    migrator.run_pre_piggyback_migrations(
-        recipe_dir, feedstock_ctx.attrs, **kwargs
-    )
+    migrator.run_pre_piggyback_migrations(recipe_dir, feedstock_ctx.attrs, **kwargs)
 
     # TODO - make a commit here if the repo changed
 
-    migrate_return = migrator.migrate(
-        recipe_dir, feedstock_ctx.attrs, **kwargs
-    )
+    migrate_return = migrator.migrate(recipe_dir, feedstock_ctx.attrs, **kwargs)
 
     if not migrate_return:
         logger.critical(
@@ -169,9 +165,7 @@ def run(
 
     # TODO - commit main migration here
 
-    migrator.run_post_piggyback_migrations(
-        recipe_dir, feedstock_ctx.attrs, **kwargs
-    )
+    migrator.run_post_piggyback_migrations(recipe_dir, feedstock_ctx.attrs, **kwargs)
 
     # TODO commit post migration here
 
@@ -234,9 +228,7 @@ def run(
                 ljpr = False
     if pr_json:
         ljpr = LazyJson(
-            os.path.join(
-                migrator.ctx.session.prjson_dir, str(pr_json["id"]) + ".json"
-            ),
+            os.path.join(migrator.ctx.session.prjson_dir, str(pr_json["id"]) + ".json"),
         )
         ljpr.update(**pr_json)
 
@@ -250,9 +242,7 @@ def run(
     return migrate_return, ljpr
 
 
-def _host_run_test_dependencies(
-    meta_yaml: "MetaYamlTypedDict",
-) -> Set["PackageName"]:
+def _host_run_test_dependencies(meta_yaml: "MetaYamlTypedDict",) -> Set["PackageName"]:
     """Parse the host/run/test dependencies of a recipe
 
     This function parses top-level and `outputs` requirements sections.
@@ -332,9 +322,7 @@ def add_replacement_migrator(
         )
 
 
-def add_arch_migrate(
-    migrators: MutableSequence[Migrator], gx: nx.DiGraph
-) -> None:
+def add_arch_migrate(migrators: MutableSequence[Migrator], gx: nx.DiGraph) -> None:
     """Adds rebuild migrators.
 
     Parameters
@@ -424,11 +412,8 @@ def add_rebuild_migration_yaml(
 
     top_level = {
         node
-        for node in {
-            gx.successors(package_name) for package_name in package_names
-        }
-        if (node in total_graph)
-        and len(list(total_graph.predecessors(node))) == 0
+        for node in {gx.successors(package_name) for package_name in package_names}
+        if (node in total_graph) and len(list(total_graph.predecessors(node))) == 0
     }
     cycles = list(nx.simple_cycles(total_graph))
     migrator = MigrationYaml(
@@ -508,9 +493,9 @@ def initialize_migrators(
     temp = glob.glob("/tmp/*")
     gx = load_graph()
     smithy_version = eval_xonsh("conda smithy --version")
-    pinning_version = json.loads(
-        eval_xonsh("conda list conda-forge-pinning --json")
-    )[0]["version"]
+    pinning_version = json.loads(eval_xonsh("conda list conda-forge-pinning --json"))[
+        0
+    ]["version"]
 
     add_arch_migrate(MIGRATORS, gx)
     migration_factory(MIGRATORS, gx)
@@ -519,16 +504,11 @@ def initialize_migrators(
         gx,
         "matplotlib",
         "matplotlib-base",
-        (
-            "Unless you need `pyqt`, recipes should depend only on "
-            "`matplotlib-base`."
-        ),
+        ("Unless you need `pyqt`, recipes should depend only on " "`matplotlib-base`."),
         alt_migrator=MatplotlibBase,
     )
     for m in MIGRATORS:
-        print(
-            f'{getattr(m, "name", m)} graph size: {len(getattr(m, "graph", []))}'
-        )
+        print(f'{getattr(m, "name", m)} graph size: {len(getattr(m, "graph", []))}')
 
     ctx = MigratorSessionContext(
         circle_build_url=os.getenv("CIRCLE_BUILD_URL", ""),
@@ -595,16 +575,12 @@ def migrator_status(
                 if (
                     all_pr_jsons[i]
                     and "name" in all_pr_jsons[i]["data"]
-                    and all_pr_jsons[i]["data"]["migrator_name"]
-                    == "MatplotlibBase"
+                    and all_pr_jsons[i]["data"]["migrator_name"] == "MatplotlibBase"
                 ):
                     del all_pr_jsons[i]["data"]["name"]
 
         for pr_json in all_pr_jsons:
-            if (
-                pr_json
-                and pr_json["data"] == frozen_to_json_friendly(nuid)["data"]
-            ):
+            if pr_json and pr_json["data"] == frozen_to_json_friendly(nuid)["data"]:
                 break
         else:
             pr_json = None
@@ -612,9 +588,9 @@ def migrator_status(
         # No PR was ever issued but the migration was performed.
         # This is only the case when the migration was done manually
         # before the bot could issue any PR.
-        manually_done = pr_json is None and frozen_to_json_friendly(nuid)[
-            "data"
-        ] in (z["data"] for z in all_pr_jsons)
+        manually_done = pr_json is None and frozen_to_json_friendly(nuid)["data"] in (
+            z["data"] for z in all_pr_jsons
+        )
 
         buildable = not migrator.filter(attrs)
         fntc = "black"
@@ -667,9 +643,7 @@ def migrator_status(
         out2[k] = list(
             sorted(
                 out[k],
-                key=lambda x: build_sequence.index(x)
-                if x in build_sequence
-                else -1,
+                key=lambda x: build_sequence.index(x) if x in build_sequence else -1,
             ),
         )
 
@@ -748,10 +722,7 @@ def main(args: "CLIArgs") -> None:
                     # Don't bother running if we are at zero
                     if (
                         args.dry_run
-                        or mctx.gh.rate_limit()["resources"]["core"][
-                            "remaining"
-                        ]
-                        == 0
+                        or mctx.gh.rate_limit()["resources"]["core"]["remaining"] == 0
                     ):
                         break
                     migrator_uid, pr_json = run(
@@ -766,8 +737,7 @@ def main(args: "CLIArgs") -> None:
                         d = frozen_to_json_friendly(migrator_uid)
                         # if we have the PR already do nothing
                         if d["data"] in [
-                            existing_pr["data"]
-                            for existing_pr in attrs.get("PRed", [])
+                            existing_pr["data"] for existing_pr in attrs.get("PRed", [])
                         ]:
                             pass
                         else:
@@ -790,8 +760,7 @@ def main(args: "CLIArgs") -> None:
                         attrs["archived"] = True
                     else:
                         logger.critical(
-                            "GITHUB ERROR ON FEEDSTOCK: %s",
-                            fctx.feedstock_name,
+                            "GITHUB ERROR ON FEEDSTOCK: %s", fctx.feedstock_name,
                         )
                         if is_github_api_limit_reached(e, mctx.gh):
                             break

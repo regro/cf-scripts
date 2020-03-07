@@ -28,20 +28,12 @@ def _hash_url(url, hash_type, progress=False, conn=None):
             loc = 0
             for itr, chunk in enumerate(resp.iter_content(chunk_size=8192)):
                 ha.update(chunk)
-                if (
-                    num is not None
-                    and int((itr + 1) / num * 25) > loc
-                    and progress
-                ):
+                if num is not None and int((itr + 1) / num * 25) > loc and progress:
                     eta = (time.time() - t0) / (itr + 1) * (num - (itr + 1))
                     loc = int((itr + 1) / num * 25)
                     print(
                         "eta % 7.2fs: [%s%s]"
-                        % (
-                            eta,
-                            "".join(["=" * loc]),
-                            "".join([" " * (25 - loc)]),
-                        )
+                        % (eta, "".join(["=" * loc]), "".join([" " * (25 - loc)]),)
                     )
 
             _hash = ha.hexdigest()

@@ -12,16 +12,12 @@ CONDA_SELECTOR = "__###conda-selector###__"
 # this regex pulls out lines like
 #  '   name: val # [sel]'
 # to groups ('   ', 'name', 'val ', 'sel')
-SPC_KEY_VAL_SELECTOR_RE = re.compile(
-    r"^(\s*-?\s*)([^\s:]*):([^#]*)#\s*\[(.*)\]"
-)
+SPC_KEY_VAL_SELECTOR_RE = re.compile(r"^(\s*-?\s*)([^\s:]*):([^#]*)#\s*\[(.*)\]")
 
 # this regex pulls out lines like
 #  '   name__###conda-selector###__py3k and blah: val # comment'
 # to groups ('   ', 'name', 'py3k and blah', ' val # comment')
-MUNGED_LINE_RE = re.compile(
-    r"^(\s*-?\s*)([^\s:]*)" + CONDA_SELECTOR + r"([^:]*):(.*)"
-)
+MUNGED_LINE_RE = re.compile(r"^(\s*-?\s*)([^\s:]*)" + CONDA_SELECTOR + r"([^:]*):(.*)")
 
 # this regex matches any line with a selector
 SELECTOR_RE = re.compile(r"^.*#\s*\[(.*)\]")
@@ -86,9 +82,7 @@ def _parse_jinja2_variables(meta_yaml: str) -> dict:
                     # we need to adjust the previous key
                     # first get the data right after the key we have
                     jinja2_data = (
-                        all_nodes[jinja2_vals[n.target.name][1] + 1]
-                        .nodes[0]
-                        .data
+                        all_nodes[jinja2_vals[n.target.name][1] + 1].nodes[0].data
                     )
 
                     # now pull out the selector and reset the key
@@ -157,9 +151,7 @@ def _unmunge_line(line: str) -> str:
         return line
 
 
-def _demunge_jinja2_vars(
-    meta: Union[dict, list], sentinel: str
-) -> Union[dict, list]:
+def _demunge_jinja2_vars(meta: Union[dict, list], sentinel: str) -> Union[dict, list]:
     """recursively iterate through dictionary / list and replace any instance
     in any string of `<{` with '{{'
     """
@@ -177,9 +169,7 @@ def _demunge_jinja2_vars(
         return meta
 
 
-def _remunge_jinja2_vars(
-    meta: Union[dict, list], sentinel: str
-) -> Union[dict, list]:
+def _remunge_jinja2_vars(meta: Union[dict, list], sentinel: str) -> Union[dict, list]:
     """recursively iterate through dictionary / list and replace any instance
     in any string of `{{` with '<{'
     """
@@ -201,9 +191,7 @@ def _is_simple_jinja2_set(line):
     env = jinja2.Environment()
     parsed_content = env.parse(line)
     n = list(parsed_content.iter_child_nodes())[0]
-    if isinstance(n, jinja2.nodes.Assign) and isinstance(
-        n.node, jinja2.nodes.Const
-    ):
+    if isinstance(n, jinja2.nodes.Assign) and isinstance(n.node, jinja2.nodes.Const):
         return True
     else:
         return False
@@ -216,9 +204,7 @@ def _replace_jinja2_vars(lines: List[str], jinja2_vars: dict) -> List[str]:
     """
     # these regex find jinja2 set statements without and with selectors
     jinja2_re = re.compile(r"^(\s*){%\s*set\s*(.*)=\s*(.*)%}(.*)")
-    jinja2_re_selector = re.compile(
-        r"^(\s*){%\s*set\s*(.*)=\s*(.*)%}\s*#\s*\[(.*)\]"
-    )
+    jinja2_re_selector = re.compile(r"^(\s*){%\s*set\s*(.*)=\s*(.*)%}\s*#\s*\[(.*)\]")
 
     all_jinja2_keys = set(list(jinja2_vars.keys()))
     used_jinja2_keys = set()

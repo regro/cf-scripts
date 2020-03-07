@@ -57,9 +57,7 @@ class MigratorContext:
     @property
     def effective_graph(self) -> DiGraph:
         if self._effective_graph is None:
-            gx2 = copy.deepcopy(
-                getattr(self.migrator, "graph", self.session.graph)
-            )
+            gx2 = copy.deepcopy(getattr(self.migrator, "graph", self.session.graph))
 
             # Prune graph to only things that need builds right now
             for node, node_attrs in self.session.graph.nodes.items():

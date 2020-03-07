@@ -41,18 +41,14 @@ CHECKSUM_NAMES = [
 ]
 
 # matches valid jinja2 vars
-JINJA2_VAR_RE = re.compile(
-    "{{ ((?:[a-zA-Z]|(?:_[a-zA-Z0-9]))[a-zA-Z0-9_]*) }}"
-)
+JINJA2_VAR_RE = re.compile("{{ ((?:[a-zA-Z]|(?:_[a-zA-Z0-9]))[a-zA-Z0-9_]*) }}")
 
 logger = logging.getLogger("conda_forge_tick.migrators.version")
 
 
 def _gen_key_selector(dct: MutableMapping, key: str):
     for k in dct:
-        if k == key or (
-            CONDA_SELECTOR in k and k.split(CONDA_SELECTOR)[0] == key
-        ):
+        if k == key or (CONDA_SELECTOR in k and k.split(CONDA_SELECTOR)[0] == key):
             yield k
 
 
@@ -65,9 +61,7 @@ def _recipe_has_git_url(cmeta):
                     found_git_url = True
                     break
         else:
-            for git_url_key in _gen_key_selector(
-                cmeta.meta[src_key], "git_url"
-            ):
+            for git_url_key in _gen_key_selector(cmeta.meta[src_key], "git_url"):
                 found_git_url = True
                 break
 
@@ -112,9 +106,7 @@ def _try_url_and_hash_it(url: str, hash_type: str):
         new_hash = hash_url(url, timeout=120, hash_type=hash_type)
 
         if new_hash is None:
-            logger.debug(
-                "url does not exist or hashing took too long: %s", url
-            )
+            logger.debug("url does not exist or hashing took too long: %s", url)
             return None
 
         logger.debug("hash: %s", new_hash)
@@ -125,14 +117,10 @@ def _try_url_and_hash_it(url: str, hash_type: str):
 
 
 def _render_jinja2(tmpl, context):
-    return jinja2.Template(tmpl, undefined=jinja2.StrictUndefined).render(
-        **context
-    )
+    return jinja2.Template(tmpl, undefined=jinja2.StrictUndefined).render(**context)
 
 
-def _get_new_url_tmpl_and_hash(
-    url_tmpl: str, context: MutableMapping, hash_type: str
-):
+def _get_new_url_tmpl_and_hash(url_tmpl: str, context: MutableMapping, hash_type: str):
     logger.info(
         "hashing URL template: %s", url_tmpl,
     )
@@ -328,9 +316,7 @@ class Version(Migrator):
     migrator_version = 0
     rerender = True
 
-    def filter(
-        self, attrs: "AttrsTypedDict", not_bad_str_start: str = ""
-    ) -> bool:
+    def filter(self, attrs: "AttrsTypedDict", not_bad_str_start: str = "") -> bool:
         # if no new version do nothing
         if "new_version" not in attrs or not attrs["new_version"]:
             return True
@@ -416,21 +402,16 @@ class Version(Migrator):
             cmeta.jinja2_vars["version"] = version
         else:
             logger.critical(
-                "Migrations do not work on versions "
-                "not specified with jinja2!"
+                "Migrations do not work on versions " "not specified with jinja2!"
             )
             return {}
 
         if len(list(_gen_key_selector(cmeta.meta, "source"))) > 0:
             did_update = True
             for src_key in _gen_key_selector(cmeta.meta, "source"):
-                if isinstance(
-                    cmeta.meta[src_key], collections.abc.MutableSequence
-                ):
+                if isinstance(cmeta.meta[src_key], collections.abc.MutableSequence):
                     for src in cmeta.meta[src_key]:
-                        did_update &= _try_to_update_version(
-                            cmeta, src, hash_type
-                        )
+                        did_update &= _try_to_update_version(cmeta, src, hash_type)
                 else:
                     did_update &= _try_to_update_version(
                         cmeta, cmeta.meta[src_key], hash_type,
@@ -467,14 +448,9 @@ class Version(Migrator):
 
     def pr_body(self, feedstock_ctx: FeedstockContext) -> str:
         pred = [
-            (
-                name,
-                self.ctx.effective_graph.nodes[name]["payload"]["new_version"],
-            )
+            (name, self.ctx.effective_graph.nodes[name]["payload"]["new_version"],)
             for name in list(
-                self.ctx.effective_graph.predecessors(
-                    feedstock_ctx.package_name
-                ),
+                self.ctx.effective_graph.predecessors(feedstock_ctx.package_name),
             )
         ]
         body = super().pr_body(feedstock_ctx)
@@ -505,9 +481,7 @@ class Version(Migrator):
             "version please close the PR.\n\n"
             "{}".format(
                 self.max_num_prs,
-                "\n".join(
-                    [f"Closes: #{muid['number']}" for muid in open_version_prs]
-                ),
+                "\n".join([f"Closes: #{muid['number']}" for muid in open_version_prs]),
             ),
         )
         # Statement here

@@ -131,9 +131,7 @@ def _adjust_test_dict(meta, key, mapping, groups, parent_group=None):
 
 
 class PipCheckMigrator(MiniMigrator):
-    def filter(
-        self, attrs: "AttrsTypedDict", not_bad_str_start: str = ""
-    ) -> bool:
+    def filter(self, attrs: "AttrsTypedDict", not_bad_str_start: str = "") -> bool:
         """run pip check if we see python in any host sections"""
         build_host = (
             attrs["requirements"].get("host", set())
@@ -142,9 +140,7 @@ class PipCheckMigrator(MiniMigrator):
         )
         return "python" not in build_host
 
-    def migrate(
-        self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any
-    ) -> None:
+    def migrate(self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any) -> None:
         with indir(recipe_dir):
             mapping = {}
             groups = {}
@@ -162,11 +158,7 @@ class PipCheckMigrator(MiniMigrator):
             if not _has_key_selector(meta, "outputs"):
                 for key, _ in _gen_keys_selector(meta, "test"):
                     _adjust_test_dict(
-                        meta,
-                        key,
-                        mapping,
-                        groups,
-                        parent_group=groups.get(key, None),
+                        meta, key, mapping, groups, parent_group=groups.get(key, None),
                     )
             else:
                 # do top level
@@ -193,9 +185,7 @@ class PipCheckMigrator(MiniMigrator):
                 for _, outputs in _gen_keys_selector(meta, "outputs"):
                     for output in outputs:
                         has_python = False
-                        for _, val in _gen_keys_selector(
-                            output, "requirements"
-                        ):
+                        for _, val in _gen_keys_selector(output, "requirements"):
                             for _key, reqs in _gen_keys_selector(val, "host"):
                                 has_python |= _has_python_in_host(reqs)
 
