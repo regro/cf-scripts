@@ -483,7 +483,6 @@ def migration_factory(
 
 
 def _outside_pin_range(pin_spec, current_pin, new_version):
-
     pin_level = len(pin_spec.split('.'))
     current_split = current_pin.split('.')
     new_split = new_version.split('.')
@@ -525,7 +524,7 @@ def create_migration_yaml_creator(migrators: MutableSequence[Migrator], gx: nx.D
                 continue
             pin_spec = pin_spec.split('max_pin, ')[1]
             current_pin = str(max(map(VersionOrder, current_pins)))
-            if _outside_pin_range(pin_spec, current_pin, current_version):
+            if current_pin != current_version and _outside_pin_range(pin_spec, current_pin, current_version):
                 print(k, pin_spec, current_pin, current_version)
                 migrators.append(MigrationYamlCreator(k, current_version))
 
