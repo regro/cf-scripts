@@ -155,8 +155,8 @@ class MigrationYamlCreator(Migrator):
 
     def filter(self, attrs: "AttrsTypedDict", not_bad_str_start: str = "") -> bool:
         if attrs['name'] == 'conda-forge-pinning':
-            return True
-        return False
+            return False
+        return True
 
     def migrate(
             self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any

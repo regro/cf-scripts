@@ -8,6 +8,8 @@ import os
 import typing
 import networkx as nx
 from conda.models.version import VersionOrder
+from conda_build.config import Config
+from conda_build.variants import parse_config_file
 
 from urllib.error import URLError
 
@@ -31,7 +33,7 @@ from .utils import (
     load_graph,
     dump_graph,
     LazyJson,
-)
+    CB_CONFIG)
 from .xonsh_utils import env
 from typing import (
     Optional,
@@ -482,9 +484,8 @@ def migration_factory(
 
 def create_migration_yaml_creator(migrators: MutableSequence[Migrator], gx: nx.DiGraph):
     with indir("../conda-forge-pinning-feedstock/recipe"):
-        with open('conda_build_config.yaml') as f:
-            yaml_contents = f.read()
-    pinnings = yaml.safe_load(yaml_contents)
+        pinnings = parse_config_file('conda_build_config.yaml',
+                                     config=Config(**CB_CONFIG))
     # exclude non-package information
     for k, v in pinnings.items():
         # check if an actual package
