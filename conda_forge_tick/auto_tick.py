@@ -1,6 +1,8 @@
 import copy
 import glob
 import json
+import re
+
 import time
 import traceback
 import logging
@@ -499,13 +501,16 @@ def create_migration_yaml_creator(migrators: MutableSequence[Migrator], gx: nx.D
     with indir("../conda-forge-pinning-feedstock/recipe"):
         pinnings = parse_config_file('conda_build_config.yaml',
                                      config=Config(**CB_CONFIG))
+    feedstocks_to_be_repinned = []
     for k, package_pin_list in pinnings.items():
         # exclude non-package keys
-        if k not in gx.nodes:
+        if k not in gx.nodes and k not in gx.graph['outputs_lut']:
             # conda_build_config.yaml can't have `-` unlike our package names
             k = k.replace('_', '-')
+        # replace sub-packages with their feedstock names
+        k = gx.graph['outputs_lut'].get(k, k)
 
-        if (k in gx.nodes) and not gx.nodes[k]['payload'].get('archived', False) and gx.nodes[k]['payload'].get('version'):
+        if (k in gx.nodes) and not gx.nodes[k]['payload'].get('archived', False) and gx.nodes[k]['payload'].get('version') and k not in feedstocks_to_be_repinned:
 
             current_pins = list(map(str, package_pin_list))
             current_version = str(gx.nodes[k]['payload']['version'])
@@ -520,7 +525,8 @@ def create_migration_yaml_creator(migrators: MutableSequence[Migrator], gx: nx.D
             pin_spec = ''
             for block in [meta_yaml] + meta_yaml.get("outputs", []) or []:
                 build = block.get('build', {}) or {}
-                max_pin = next(iter(build.get('run_exports', [''])))
+                # get the most stringent pin spec from the recipe block
+                max_pin = max(build.get('run_exports', ['']), key=len)
                 if len(max_pin) > len(pin_spec):
                     pin_spec = max_pin
 
@@ -533,11 +539,16 @@ def create_migration_yaml_creator(migrators: MutableSequence[Migrator], gx: nx.D
                 continue
 
             pin_spec = pin_spec.split('max_pin, ')[1]
+            current_pins = list(map(lambda x: re.sub('[^0-9.]', '', x).rstrip('.'), current_pins))
+            if current_pins == ['']:
+                continue
+
             current_pin = str(max(map(VersionOrder, current_pins)))
             # If the current pin and the current version is the same nothing
             # to do even if the pin isn't accurate to the spec
             if current_pin != current_version and _outside_pin_range(pin_spec, current_pin, current_version):
-                migrators.append(MigrationYamlCreator(k, current_version))
+                feedstocks_to_be_repinned.append(k)
+                migrators.append(MigrationYamlCreator(k, current_version, current_pin, pin_spec))
 
 
 def initialize_migrators(

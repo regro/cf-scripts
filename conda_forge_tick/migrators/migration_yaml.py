@@ -143,14 +143,18 @@ class MigrationYamlCreator(Migrator):
     def __init__(
             self,
             package_name: str,
-            pin_version: str,
+            new_pin_version: str,
+            current_pin: str,
+            pin_spec: str,
             pr_limit: int = 1,
             **kwargs: Any,
     ):
         super().__init__(
             pr_limit=pr_limit,
         )
-        self.pin_version = pin_version
+        self.pin_spec = pin_spec
+        self.current_pin = current_pin
+        self.new_pin_version = new_pin_version
         self.package_name = package_name
 
     def filter(self, attrs: "AttrsTypedDict", not_bad_str_start: str = "") -> bool:
@@ -164,10 +168,10 @@ class MigrationYamlCreator(Migrator):
         migration_yaml_dict = {'__migrator': {'build_number': 1,
                                               'kind': 'version',
                                               'migration_number': 1},
-                               self.package_name: [self.pin_version],
+                               self.package_name: [self.new_pin_version],
                                'migrator_ts': f'{time.time():.0f}'}
         with indir(os.path.join(recipe_dir, "migrations")):
-            with open(f"{self.package_name}{self.pin_version}.yaml", "w") as f:
+            with open(f"{self.package_name}{self.new_pin_version}.yaml", "w") as f:
                 yaml.dump(migration_yaml_dict, f)
                 eval_xonsh("git add .")
         return super().migrate(recipe_dir, attrs)
@@ -200,12 +204,12 @@ class MigrationYamlCreator(Migrator):
     def remote_branch(self, feedstock_ctx: FeedstockContext) -> str:
         s_obj = str(self.obj_version) if self.obj_version else ""
         return f"new_pin-{self.package_name.lower().replace(' ', '_')}-" \
-               f"{self.pin_version}-{self.migrator_version}-{s_obj}"
+               f"{self.new_pin_version}-{self.migrator_version}-{s_obj}"
 
     def migrator_uid(self, attrs: "AttrsTypedDict") -> "MigrationUidTypedDict":
         n = super().migrator_uid(attrs)
         n["name"] = self.package_name
-        n["pin_version"] = self.pin_version
+        n["pin_version"] = self.new_pin_version
         return n
 
     def order(
