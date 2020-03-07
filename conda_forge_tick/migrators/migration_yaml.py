@@ -167,8 +167,8 @@ class MigrationYamlCreator(Migrator):
                                self.package_name: [self.pin_version],
                                'migrator_ts': f'{time.time():.0f}'}
         with indir(os.path.join(recipe_dir, "migrations")):
-            with open(f"{self.package_name}{self.pin_version}", "w") as f:
-                f.write(yaml.dump(migration_yaml_dict, f))
+            with open(f"{self.package_name}{self.pin_version}.yaml", "w") as f:
+                yaml.dump(migration_yaml_dict, f)
                 eval_xonsh("git add .")
         return super().migrate(recipe_dir, attrs)
 
