@@ -7,24 +7,23 @@ from typing import Union, List, Any
 
 from ruamel.yaml import YAML
 
-CONDA_SELECTOR = '__###conda-selector###__'
+CONDA_SELECTOR = "__###conda-selector###__"
 
 # this regex pulls out lines like
 #  '   name: val # [sel]'
 # to groups ('   ', 'name', 'val ', 'sel')
-SPC_KEY_VAL_SELECTOR_RE = re.compile(r'^(\s*-?\s*)([^\s:]*):([^#]*)#\s*\[(.*)\]')
+SPC_KEY_VAL_SELECTOR_RE = re.compile(r"^(\s*-?\s*)([^\s:]*):([^#]*)#\s*\[(.*)\]")
 
 # this regex pulls out lines like
 #  '   name__###conda-selector###__py3k and blah: val # comment'
 # to groups ('   ', 'name', 'py3k and blah', ' val # comment')
-MUNGED_LINE_RE = re.compile(
-    r'^(\s*-?\s*)([^\s:]*)' + CONDA_SELECTOR + r'([^:]*):(.*)')
+MUNGED_LINE_RE = re.compile(r"^(\s*-?\s*)([^\s:]*)" + CONDA_SELECTOR + r"([^:]*):(.*)")
 
 # this regex matches any line with a selector
-SELECTOR_RE = re.compile(r'^.*#\s*\[(.*)\]')
+SELECTOR_RE = re.compile(r"^.*#\s*\[(.*)\]")
 
 # yaml parser that is jinja2 aware
-YAML_JINJA2 = YAML(typ='jinja2')
+YAML_JINJA2 = YAML(typ="jinja2")
 YAML_JINJA2.indent(mapping=2, sequence=4, offset=2)
 YAML_JINJA2.width = 160
 
@@ -71,9 +70,8 @@ def _parse_jinja2_variables(meta_yaml: str) -> dict:
 
     jinja2_vals = {}
     for i, n in enumerate(all_nodes):
-        if (
-            isinstance(n, jinja2.nodes.Assign) and
-            isinstance(n.node, jinja2.nodes.Const)
+        if isinstance(n, jinja2.nodes.Assign) and isinstance(
+            n.node, jinja2.nodes.Const
         ):
             if _config_has_key_with_selectors(jinja2_vals, n.target.name):
                 # selectors!
@@ -84,9 +82,7 @@ def _parse_jinja2_variables(meta_yaml: str) -> dict:
                     # we need to adjust the previous key
                     # first get the data right after the key we have
                     jinja2_data = (
-                        all_nodes[jinja2_vals[n.target.name][1]+1]
-                        .nodes[0]
-                        .data
+                        all_nodes[jinja2_vals[n.target.name][1] + 1].nodes[0].data
                     )
 
                     # now pull out the selector and reset the key
@@ -100,7 +96,7 @@ def _parse_jinja2_variables(meta_yaml: str) -> dict:
                         assert False, jinja2_data
 
                 # now insert this key - selector is the next thing
-                jinja2_data = all_nodes[i+1].nodes[0].data
+                jinja2_data = all_nodes[i + 1].nodes[0].data
                 selector_re = SELECTOR_RE.match(jinja2_data)
                 if selector_re is not None:
                     selector = selector_re.group(1)
@@ -131,7 +127,7 @@ def _munge_line(line: str) -> str:
     if m:
         spc, key, val, selector = m.group(1, 2, 3, 4)
         new_key = key + CONDA_SELECTOR + selector
-        return spc + new_key + ':' + val + '\n'
+        return spc + new_key + ":" + val + "\n"
     else:
         return line
 
@@ -150,7 +146,7 @@ def _unmunge_line(line: str) -> str:
     m = MUNGED_LINE_RE.match(line)
     if m:
         spc, key, selector, val = m.group(1, 2, 3, 4)
-        return spc + key + ': ' + val.strip() + '  # [' + selector + ']\n'
+        return spc + key + ": " + val.strip() + "  # [" + selector + "]\n"
     else:
         return line
 
@@ -168,7 +164,7 @@ def _demunge_jinja2_vars(meta: Union[dict, list], sentinel: str) -> Union[dict, 
             meta[i] = _demunge_jinja2_vars(meta[i], sentinel)
         return meta
     elif isinstance(meta, str):
-        return meta.replace(sentinel + '{ ', '{{ ')
+        return meta.replace(sentinel + "{ ", "{{ ")
     else:
         return meta
 
@@ -186,7 +182,7 @@ def _remunge_jinja2_vars(meta: Union[dict, list], sentinel: str) -> Union[dict, 
             meta[i] = _remunge_jinja2_vars(meta[i], sentinel)
         return meta
     elif isinstance(meta, str):
-        return meta.replace('{{ ', sentinel + '{ ')
+        return meta.replace("{{ ", sentinel + "{ ")
     else:
         return meta
 
@@ -195,10 +191,7 @@ def _is_simple_jinja2_set(line):
     env = jinja2.Environment()
     parsed_content = env.parse(line)
     n = list(parsed_content.iter_child_nodes())[0]
-    if (
-        isinstance(n, jinja2.nodes.Assign) and
-        isinstance(n.node, jinja2.nodes.Const)
-    ):
+    if isinstance(n, jinja2.nodes.Assign) and isinstance(n.node, jinja2.nodes.Const):
         return True
     else:
         return False
@@ -210,8 +203,8 @@ def _replace_jinja2_vars(lines: List[str], jinja2_vars: dict) -> List[str]:
     pairs in `jinja2_vars` will be added as new statements at the top.
     """
     # these regex find jinja2 set statements without and with selectors
-    jinja2_re = re.compile(r'^(\s*){%\s*set\s*(.*)=\s*(.*)%}(.*)')
-    jinja2_re_selector = re.compile(r'^(\s*){%\s*set\s*(.*)=\s*(.*)%}\s*#\s*\[(.*)\]')
+    jinja2_re = re.compile(r"^(\s*){%\s*set\s*(.*)=\s*(.*)%}(.*)")
+    jinja2_re_selector = re.compile(r"^(\s*){%\s*set\s*(.*)=\s*(.*)%}\s*#\s*\[(.*)\]")
 
     all_jinja2_keys = set(list(jinja2_vars.keys()))
     used_jinja2_keys = set()
@@ -237,13 +230,13 @@ def _replace_jinja2_vars(lines: List[str], jinja2_vars: dict) -> List[str]:
             if key in jinja2_vars:
                 _new_line = (
                     spc
-                    + '{% set '
+                    + "{% set "
                     + var.strip()
-                    + ' = '
+                    + " = "
                     + json.dumps(jinja2_vars[key])
-                    + ' %}  # ['
+                    + " %}  # ["
                     + sel
-                    + ']\n'
+                    + "]\n"
                 )
                 used_jinja2_keys.add(key)
             else:
@@ -254,11 +247,11 @@ def _replace_jinja2_vars(lines: List[str], jinja2_vars: dict) -> List[str]:
             if var.strip() in jinja2_vars:
                 _new_line = (
                     spc
-                    + '{% set '
+                    + "{% set "
                     + var.strip()
-                    + ' = '
+                    + " = "
                     + json.dumps(jinja2_vars[var.strip()])
-                    + ' %}'
+                    + " %}"
                     + end
                 )
                 used_jinja2_keys.add(var.strip())
@@ -268,8 +261,8 @@ def _replace_jinja2_vars(lines: List[str], jinja2_vars: dict) -> List[str]:
             _new_line = line
 
         if _new_line is not None:
-            if _new_line[-1] != '\n':
-                _new_line = _new_line + '\n'
+            if _new_line[-1] != "\n":
+                _new_line = _new_line + "\n"
 
             new_lines.append(_new_line)
 
@@ -281,23 +274,23 @@ def _replace_jinja2_vars(lines: List[str], jinja2_vars: dict) -> List[str]:
             if CONDA_SELECTOR in key:
                 _key, selector = key.split(CONDA_SELECTOR)
                 extra_lines.append(
-                    '{% set '
+                    "{% set "
                     + _key
-                    + ' = '
+                    + " = "
                     + json.dumps(jinja2_vars[key])
-                    + ' %}'
-                    + '  # ['
+                    + " %}"
+                    + "  # ["
                     + selector
-                    + ']\n'
+                    + "]\n"
                 )
             else:
                 extra_lines.append(
-                    '{% set '
+                    "{% set "
                     + key
-                    + ' = '
+                    + " = "
                     + json.dumps(jinja2_vars[key])
-                    + ' %}'
-                    + '\n'
+                    + " %}"
+                    + "\n"
                 )
 
         new_lines = extra_lines + new_lines
@@ -344,11 +337,12 @@ class CondaMetaYAML(object):
         keys for selectors is undone at this step. Dumping the raw `meta` attribute
         will not produce the correct recipe.
     """
+
     def __init__(self, meta_yaml: str):
         # get any variables set in the file by jinja2
         self.jinja2_vars = _parse_jinja2_variables(meta_yaml)
 
-        if '<{{ ' in meta_yaml:
+        if "<{{ " in meta_yaml:
             self._jinja2_sentinel = "<<"
         else:
             self._jinja2_sentinel = "<"
@@ -361,7 +355,7 @@ class CondaMetaYAML(object):
             lines.append(_munge_line(line))
 
         # parse with yaml
-        self.meta = YAML_JINJA2.load(''.join(lines))
+        self.meta = YAML_JINJA2.load("".join(lines))
 
         # undo munging of jinja2 variables '<{ var }}' -> '{{ var }}'
         self.meta = _demunge_jinja2_vars(self.meta, self._jinja2_sentinel)

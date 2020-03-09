@@ -12,13 +12,13 @@ def _hash_url(url, hash_type, progress=False, conn=None):
         ha = getattr(hashlib, hash_type)()
         resp = requests.get(url, stream=True)
         if resp.status_code == 200:
-            if 'Content-length' in resp.headers:
-                num = math.ceil(float(resp.headers['Content-length']) / 8192)
+            if "Content-length" in resp.headers:
+                num = math.ceil(float(resp.headers["Content-length"]) / 8192)
             elif resp.url != url:
                 # redirect for download
                 h = requests.head(resp.url).headers
-                if 'Content-length' in h:
-                    num = math.ceil(float(h['Content-length']) / 8192)
+                if "Content-length" in h:
+                    num = math.ceil(float(h["Content-length"]) / 8192)
                 else:
                     num = None
             else:
@@ -28,14 +28,13 @@ def _hash_url(url, hash_type, progress=False, conn=None):
             loc = 0
             for itr, chunk in enumerate(resp.iter_content(chunk_size=8192)):
                 ha.update(chunk)
-                if num is not None and int((itr+1) / num * 25) > loc and progress:
-                    eta = (time.time() - t0) / (itr+1) * (num - (itr+1))
-                    loc = int((itr+1) / num * 25)
-                    print("eta % 7.2fs: [%s%s]" % (
-                        eta,
-                        "".join(["=" * loc]),
-                        "".join([" " * (25 - loc)]),
-                        ))
+                if num is not None and int((itr + 1) / num * 25) > loc and progress:
+                    eta = (time.time() - t0) / (itr + 1) * (num - (itr + 1))
+                    loc = int((itr + 1) / num * 25)
+                    print(
+                        "eta % 7.2fs: [%s%s]"
+                        % (eta, "".join(["=" * loc]), "".join([" " * (25 - loc)]),)
+                    )
 
             _hash = ha.hexdigest()
         else:
@@ -50,7 +49,7 @@ def _hash_url(url, hash_type, progress=False, conn=None):
             return _hash
 
 
-def hash_url(url, timeout=None, progress=False, hash_type='sha256'):
+def hash_url(url, timeout=None, progress=False, hash_type="sha256"):
     """Hash a url with a timeout.
 
     Parameters
@@ -78,10 +77,7 @@ def hash_url(url, timeout=None, progress=False, hash_type='sha256'):
     p = Process(
         target=_hash_url,
         args=(url, hash_type),
-        kwargs={
-            'progress': progress,
-            'conn': child_conn,
-        },
+        kwargs={"progress": progress, "conn": child_conn,},
     )
     p.start()
     if parent_conn.poll(timeout):

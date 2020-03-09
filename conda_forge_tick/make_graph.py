@@ -31,7 +31,11 @@ from .utils import (
     dump_graph,
     LazyJson,
 )
-from .git_utils import refresh_pr, is_github_api_limit_reached, close_out_labels
+from .git_utils import (
+    refresh_pr,
+    is_github_api_limit_reached,
+    close_out_labels,
+)
 from .contexts import GithubContext
 
 if typing.TYPE_CHECKING:
@@ -102,14 +106,16 @@ def populate_feedstock_attributes(
         sub_graph["conda-forge.yml"] = {
             k: v
             for k, v in yaml.safe_load(conda_forge_yaml).items()
-            if k in {
+            if k
+            in {
                 "provider",
                 "min_r_ver",
                 "min_py_ver",
                 "max_py_ver",
                 "max_r_ver",
                 "compiler_stack",
-                "bot"}
+                "bot",
+            }
         }
 
     yaml_dict = ChainDB(
@@ -257,8 +263,9 @@ def make_graph(names: List[str], gx: Optional[nx.DiGraph] = None) -> nx.DiGraph:
     old_names = [name for name in names if name in gx.nodes]
     # silly typing force
     assert gx is not None
-    old_names = sorted(                                       # type: ignore
-        old_names, key=lambda n: gx.nodes[n].get("time", 0))  # type: ignore
+    old_names = sorted(  # type: ignore
+        old_names, key=lambda n: gx.nodes[n].get("time", 0)
+    )  # type: ignore
 
     total_names = new_names + old_names
     logger.info("start feedstock fetch loop")

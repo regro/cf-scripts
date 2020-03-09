@@ -9,7 +9,16 @@ import networkx as nx
 
 
 from networkx.classes.digraph import DiGraph
-from typing import DefaultDict, Dict, List, Set, Iterable, Any, Sequence, TypeVar
+from typing import (
+    DefaultDict,
+    Dict,
+    List,
+    Set,
+    Iterable,
+    Any,
+    Sequence,
+    TypeVar,
+)
 
 T = TypeVar("T")
 

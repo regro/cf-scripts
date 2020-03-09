@@ -43,7 +43,7 @@ def main(args: Any = None) -> None:
                 # make the graph a bit more compact
                 d = Source(
                     subprocess.check_output(
-                        ["unflatten", "-f", "-l", "5", "-c", "10", f"{ntf.name}.dot"]
+                        ["unflatten", "-f", "-l", "5", "-c", "10", f"{ntf.name}.dot",]
                     ).decode("utf-8")
                 ).pipe("svg")
             with open(os.path.join(f"./status/{migrator_name}.svg"), "wb") as fb:
@@ -78,9 +78,7 @@ def main(args: Any = None) -> None:
 
     lm = LicenseMigrator()
     lst = [
-        k
-        for k, v in mctx.graph.nodes.items()
-        if not lm.filter(v.get("payload", {}))
+        k for k, v in mctx.graph.nodes.items() if not lm.filter(v.get("payload", {}))
     ]
     with open("./status/unlicensed.json", "w") as f:
         json.dump(

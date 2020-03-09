@@ -193,7 +193,7 @@ def parse_meta_yaml(text: str, **kwargs: Any) -> "MetaYamlTypedDict":
     return parse(content, Config(**kwargs))
 
 
-def setup_logger(logger: logging.Logger, level: Optional[str] = 'INFO') -> None:
+def setup_logger(logger: logging.Logger, level: Optional[str] = "INFO") -> None:
     """Basic configuration for logging
 
     """
@@ -372,7 +372,7 @@ def loads(
 
 
 def load(
-    fp: IO[str], object_hook: "Callable[[dict], Any]" = object_hook, **kwargs: Any
+    fp: IO[str], object_hook: "Callable[[dict], Any]" = object_hook, **kwargs: Any,
 ) -> dict:
     """Loads a file object as JSON, with appropriate object hooks."""
     return json.load(fp, object_hook=object_hook, **kwargs)
