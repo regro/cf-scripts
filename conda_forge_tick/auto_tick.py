@@ -465,7 +465,7 @@ def migration_factory(
 
         migrator_config = loaded_yaml.get("__migrator", {})
         excluded_feedstocks = set(migrator_config.get("exclude", []))
-        pr_limit = min(migrator_config.get("pr_limit", pr_limit), pr_limit)
+        pr_limit = min(migrator_config.pop("pr_limit", pr_limit), pr_limit)
 
         package_names = (
             (set(loaded_yaml) | {l.replace("_", "-") for l in loaded_yaml})
