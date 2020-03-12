@@ -174,12 +174,17 @@ class MigrationYamlCreator(Migrator):
             "migrator_ts": f"{time.time():.0f}",
         }
         with indir(os.path.join(recipe_dir, "migrations")):
-            with open(f"{self.package_name}{self.new_pin_version}.yaml", "w") as f:
-                yaml.dump(migration_yaml_dict, f)
+            mig_fname = "%s%s.yaml" % (
+                self.package_name,
+                self.new_pin_version.replace(".", "")
+            )
+            with open(mig_fname, "w") as f:
+                yaml.dump(
+                    migration_yaml_dict,
+                    f,
+                    default_flow_style=False,
+                )
             eval_xonsh("git add .")
-
-        with indir(recipe_dir):
-            self.set_build_number("meta.yaml")
 
         with indir(recipe_dir):
             with open("meta.yaml", "r") as fp:
@@ -187,22 +192,38 @@ class MigrationYamlCreator(Migrator):
                 found_ver = False
                 for line in fp.readlines():
                     if line.startswith("{% set version = "):
+                        curr_now = (
+                            line
+                            .split("=")[1]
+                            .replace("%", "")
+                            .replace("}", "")
+                            .replace("\"", "")
+                            .replace("'", "")
+                            .strip()
+                        )
                         now = datetime.datetime.now().strftime("%Y.%m.%d")
                         found_ver = True
-                        new_lines.append("{% set version = \"" + now + "\" %}")
+                        if curr_now != now:
+                            new_lines.append("{% set version = \"" + now + "\" %}\n")
+                        else:
+                            new_lines.append(line)
                     else:
-                        new_lines.append(line.strip())
+                        new_lines.append(line)
 
-            with open("meta_yaml", "w") as fp:
+            with open("meta.yaml", "w") as fp:
                 for line in new_lines:
-                    fp.write("%s\n" % line)
+                    fp.write(line)
 
             eval_xonsh("git add .")
 
         if not found_ver:
             return False
-        else:
-            return super().migrate(recipe_dir, attrs)
+
+        with indir(recipe_dir):
+            if curr_now == now:
+                self.set_build_number("meta.yaml")
+
+        return super().migrate(recipe_dir, attrs)
 
     def pr_body(self, feedstock_ctx: "FeedstockContext") -> str:
         body = super().pr_body(feedstock_ctx)
@@ -213,7 +234,10 @@ class MigrationYamlCreator(Migrator):
             "1. Please merge the PR only if this new version is to be a "
             "supported pin. \n"
             "2. Feel free to push to the bot's branch to update this PR if "
-            "needed. \n\n"
+            "needed. \n"
+            "3. Please make sure to properly bump the version and build number "
+            "of the pinnings package. \n"
+            "\n"
             "**Please note that if you close this PR we presume that "
             "the new pin has been rejected."
             "".format(name=self.package_name,)
