@@ -292,6 +292,8 @@ def make_graph(names: List[str], gx: Optional[nx.DiGraph] = None) -> nx.DiGraph:
         for node_name, node in gx.nodes.items()
         if node.get("payload").get("strong_exports", False)
     }
+    # This drops all the edge data and only keeps the node data
+    gx = nx.create_empty_copy(gx)
     # TODO: label these edges with the kind of dep they are and their platform
     for node, node_attrs in gx2.nodes.items():
         with node_attrs["payload"] as attrs:
