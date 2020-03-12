@@ -35,7 +35,9 @@ from .utils import (
     load_graph,
     dump_graph,
     LazyJson,
-    CB_CONFIG, parse_meta_yaml)
+    CB_CONFIG,
+    parse_meta_yaml,
+)
 from .xonsh_utils import env
 from typing import (
     Optional,
@@ -289,10 +291,10 @@ def add_replacement_migrator(
     for node, node_attrs in gx.nodes.items():
         requirements = node_attrs["payload"].get("requirements", {})
         rq = (
-            requirements.get("build", set()) |
-            requirements.get("host", set()) |
-            requirements.get("run", set()) |
-            requirements.get("test", set())
+            requirements.get("build", set())
+            | requirements.get("host", set())
+            | requirements.get("run", set())
+            | requirements.get("test", set())
         )
         pkgs = {old_pkg}
         old_pkg_c = pkgs.intersection(rq)
@@ -410,8 +412,7 @@ def add_rebuild_migration_yaml(
     total_graph.remove_edges_from(nx.selfloop_edges(total_graph))
 
     package_names = {
-        p if p in gx.nodes else output_to_feedstock[p]
-        for p in package_names
+        p if p in gx.nodes else output_to_feedstock[p] for p in package_names
     } - excluded_feedstocks
 
     top_level = {
@@ -454,11 +455,15 @@ def migration_factory(
         for name, node in gx.nodes.items()
         for output in node.get("payload", {}).get("outputs_names", [])
     }
-    all_package_names = set(gx.nodes) | set(sum(
-        [node.get("payload", {}).get("outputs_names", [])
-         for node in gx.nodes.values()],
-        []
-    ))
+    all_package_names = set(gx.nodes) | set(
+        sum(
+            [
+                node.get("payload", {}).get("outputs_names", [])
+                for node in gx.nodes.values()
+            ],
+            [],
+        )
+    )
     for yaml_file, yaml_contents in migration_yamls:
         loaded_yaml = yaml.safe_load(yaml_contents)
         print(os.path.splitext(yaml_file)[0])
@@ -485,9 +490,9 @@ def migration_factory(
 
 
 def _outside_pin_range(pin_spec, current_pin, new_version):
-    pin_level = len(pin_spec.split('.'))
-    current_split = current_pin.split('.')
-    new_split = new_version.split('.')
+    pin_level = len(pin_spec.split("."))
+    current_split = current_pin.split(".")
+    new_split = new_version.split(".")
     # if our pin spec is more exact than our current pin then rebuild more precisely
     if pin_level > len(current_split):
         return True
@@ -499,57 +504,78 @@ def _outside_pin_range(pin_spec, current_pin, new_version):
 
 def create_migration_yaml_creator(migrators: MutableSequence[Migrator], gx: nx.DiGraph):
     with indir("../conda-forge-pinning-feedstock/recipe"):
-        pinnings = parse_config_file('conda_build_config.yaml',
-                                     config=Config(**CB_CONFIG))
+        pinnings = parse_config_file(
+            "conda_build_config.yaml", config=Config(**CB_CONFIG)
+        )
     feedstocks_to_be_repinned = []
     for k, package_pin_list in pinnings.items():
         # exclude non-package keys
-        if k not in gx.nodes and k not in gx.graph['outputs_lut']:
+        if k not in gx.nodes and k not in gx.graph["outputs_lut"]:
             # conda_build_config.yaml can't have `-` unlike our package names
-            k = k.replace('_', '-')
+            k = k.replace("_", "-")
         # replace sub-packages with their feedstock names
-        k = gx.graph['outputs_lut'].get(k, k)
+        k = gx.graph["outputs_lut"].get(k, k)
 
-        if (k in gx.nodes) and not gx.nodes[k]['payload'].get('archived', False) and gx.nodes[k]['payload'].get('version') and k not in feedstocks_to_be_repinned:
+        if (
+            (k in gx.nodes)
+            and not gx.nodes[k]["payload"].get("archived", False)
+            and gx.nodes[k]["payload"].get("version")
+            and k not in feedstocks_to_be_repinned
+        ):
 
             current_pins = list(map(str, package_pin_list))
-            current_version = str(gx.nodes[k]['payload']['version'])
+            current_version = str(gx.nodes[k]["payload"]["version"])
 
             # XXX: uncomment following line and remove the one after once graph
             # has been re-loaded with the pins properly
 
             # meta_yaml = gx.nodes[k]['payload']['meta_yaml']
-            meta_yaml = parse_meta_yaml(gx.nodes[k]['payload']['raw_meta_yaml'])
+            meta_yaml = parse_meta_yaml(gx.nodes[k]["payload"]["raw_meta_yaml"])
 
             # find the most stringent max pin for this feedstock if any
-            pin_spec = ''
+            pin_spec = ""
             for block in [meta_yaml] + meta_yaml.get("outputs", []) or []:
-                build = block.get('build', {}) or {}
+                build = block.get("build", {}) or {}
+                # and check the exported package is within the feedstock
+                exports = [
+                    p.get("max_pin", "")
+                    for p in build.get("run_exports", [{}])
+                    # if the pinned package is in an output of the parent feedstock
+                    if gx.graph["outputs_lut"].get(p.get("package_name", ""), "") == k
+                    # if the pinned package is the feedstock itself
+                    or p.get("package_name", "") == k
+                ]
+                if not exports:
+                    continue
                 # get the most stringent pin spec from the recipe block
-                max_pin = max(build.get('run_exports', ['']), key=len)
+                max_pin = max(exports, key=len)
                 if len(max_pin) > len(pin_spec):
                     pin_spec = max_pin
 
             # fall back to the pinning file or "x"
             if not pin_spec:
-                pin_spec = "max_pin, " + pinnings['pin_run_as_build'].get(k, {}).get('max_pin', "x") or "x"
+                pin_spec = (
+                    pinnings["pin_run_as_build"].get(k, {}).get("max_pin", "x") or "x"
+                )
 
-            if 'max_pin' not in pin_spec:
-                print(f"ERROR: BAD PIN FOR {k}, {pin_spec}")
-                continue
-
-            pin_spec = pin_spec.split('max_pin, ')[1]
-            current_pins = list(map(lambda x: re.sub('[^0-9.]', '', x).rstrip('.'), current_pins))
-            current_version = re.sub('[^0-9.]', '', current_version).rstrip('.')
-            if current_pins == ['']:
+            current_pins = list(
+                map(lambda x: re.sub("[^0-9.]", "", x).rstrip("."), current_pins)
+            )
+            current_version = re.sub("[^0-9.]", "", current_version).rstrip(".")
+            if current_pins == [""]:
                 continue
 
             current_pin = str(max(map(VersionOrder, current_pins)))
             # If the current pin and the current version is the same nothing
             # to do even if the pin isn't accurate to the spec
-            if current_pin != current_version and _outside_pin_range(pin_spec, current_pin, current_version):
+            if current_pin != current_version and _outside_pin_range(
+                pin_spec, current_pin, current_version
+            ):
                 feedstocks_to_be_repinned.append(k)
-                migrators.append(MigrationYamlCreator(k, current_version, current_pin, pin_spec))
+                print(k, current_version, current_pin, pin_spec)
+                migrators.append(
+                    MigrationYamlCreator(k, current_version, current_pin, pin_spec)
+                )
 
 
 def initialize_migrators(
@@ -570,10 +596,9 @@ def initialize_migrators(
     add_replacement_migrator(
         MIGRATORS,
         gx,
-        'matplotlib',
-        'matplotlib-base',
-        ('Unless you need `pyqt`, recipes should depend only on '
-         '`matplotlib-base`.'),
+        "matplotlib",
+        "matplotlib-base",
+        ("Unless you need `pyqt`, recipes should depend only on " "`matplotlib-base`."),
         alt_migrator=MatplotlibBase,
     )
     create_migration_yaml_creator(migrators=MIGRATORS, gx=gx)
@@ -639,15 +664,15 @@ def migrator_status(
 
         # hack around bug in migrator vs graph data for this one
         if isinstance(migrator, MatplotlibBase):
-            if 'name' in nuid:
-                del nuid['name']
+            if "name" in nuid:
+                del nuid["name"]
             for i in range(len(all_pr_jsons)):
                 if (
-                    all_pr_jsons[i] and
-                    'name' in all_pr_jsons[i]['data'] and
-                    all_pr_jsons[i]['data']['migrator_name'] == 'MatplotlibBase'
+                    all_pr_jsons[i]
+                    and "name" in all_pr_jsons[i]["data"]
+                    and all_pr_jsons[i]["data"]["migrator_name"] == "MatplotlibBase"
                 ):
-                    del all_pr_jsons[i]['data']['name']
+                    del all_pr_jsons[i]["data"]["name"]
 
         for pr_json in all_pr_jsons:
             if pr_json and pr_json["data"] == frozen_to_json_friendly(nuid)["data"]:
@@ -659,7 +684,8 @@ def migrator_status(
         # This is only the case when the migration was done manually
         # before the bot could issue any PR.
         manually_done = pr_json is None and frozen_to_json_friendly(nuid)["data"] in (
-            z["data"] for z in all_pr_jsons)
+            z["data"] for z in all_pr_jsons
+        )
 
         buildable = not migrator.filter(attrs)
         fntc = "black"
@@ -732,9 +758,10 @@ def migrator_status(
 def main(args: "CLIArgs") -> None:
     # logging
     from .xonsh_utils import env
+
     debug = env.get("CONDA_FORGE_TICK_DEBUG", False)
     if debug:
-        setup_logger(logging.getLogger("conda_forge_tick"), level='debug')
+        setup_logger(logging.getLogger("conda_forge_tick"), level="debug")
     else:
         setup_logger(logging.getLogger("conda_forge_tick"))
 

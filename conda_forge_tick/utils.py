@@ -48,8 +48,8 @@ CB_CONFIG = dict(
     compiler=lambda x: x + "_compiler_stub",
     # The `max_pin, ` stub is so we know when people used the functions
     # to create the pins
-    pin_subpackage=lambda *args, max_pin="x", **kwargs: f"max_pin, {max_pin}",
-    pin_compatible=lambda *args, max_pin="x", **kwargs: f"max_pin, {max_pin}",
+    pin_subpackage=lambda *args, **kwargs: {"package_name": args[0], **kwargs},
+    pin_compatible=lambda *args, **kwargs: {"package_name": args[0], **kwargs},
     cdt=lambda *args, **kwargs: "cdt_stub",
     cran_mirror="https://cran.r-project.org",
 )
@@ -195,7 +195,7 @@ def parse_meta_yaml(text: str, **kwargs: Any) -> "MetaYamlTypedDict":
     return parse(content, Config(**kwargs))
 
 
-def setup_logger(logger: logging.Logger, level: Optional[str] = 'INFO') -> None:
+def setup_logger(logger: logging.Logger, level: Optional[str] = "INFO") -> None:
     """Basic configuration for logging
 
     """
