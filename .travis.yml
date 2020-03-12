@@ -13,23 +13,22 @@ python:
 before_install:
   - wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh
   - bash miniconda.sh -b -p ~/mc
-  - export PATH=~/mc/bin:$PATH
   - conda config --set always_yes yes --set changeps1 no
   - conda config --add channels conda-forge
   - conda install pip
   - conda update conda --yes
   - export CONDARC=ci/condarc
+  - source ~/mc/etc/profile.d/conda.sh
 
 
 install:
   - export GIT_FULL_HASH=`git rev-parse HEAD`
   - export CICLE_BUILD_URL="https://www.youtube.com/watch?v=R7qT-C-0ajI"
   - conda install --file requirements/run --file requirements/test
-  - python -m pip install .
+  - python -m pip install -e .
 
 
 script:
-  - conda actviate
   - env | grep CONDA
   - coverage run run_tests.py
   - coverage report -m
