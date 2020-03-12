@@ -448,7 +448,13 @@ def migration_factory(
     migrators: MutableSequence[Migrator], gx: nx.DiGraph, pr_limit: int = 5,
 ) -> None:
     migration_yamls = []
-    with indir("../conda-forge-pinning-feedstock/recipe/migrations"):
+    migrations_loc = os.path.join(
+        os.environ["CONDA_PREFIX"],
+        "share",
+        "conda-forge",
+        "migrations",
+    )
+    with indir(migrations_loc):
         for yaml_file in glob.glob("*.y*ml"):
             with open(yaml_file) as f:
                 yaml_contents = f.read()
