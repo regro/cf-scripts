@@ -541,9 +541,12 @@ def create_migration_yaml_creator(migrators: MutableSequence[Migrator], gx: nx.D
                     p.get("max_pin", "")
                     for p in build.get("run_exports", [{}])
                     # if the pinned package is in an output of the parent feedstock
-                    if isinstance(p, MutableMapping) and (gx.graph["outputs_lut"].get(p.get("package_name", ""), "") == k
-                    # if the pinned package is the feedstock itself
-                    or p.get("package_name", "") == k)
+                    if isinstance(p, MutableMapping)
+                    and (
+                        gx.graph["outputs_lut"].get(p.get("package_name", ""), "") == k
+                        # if the pinned package is the feedstock itself
+                        or p.get("package_name", "") == k
+                    )
                 ]
                 if not exports:
                     continue
