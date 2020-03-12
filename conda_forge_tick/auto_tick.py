@@ -514,7 +514,7 @@ def _outside_pin_range(pin_spec, current_pin, new_version):
 
 
 def create_migration_yaml_creator(migrators: MutableSequence[Migrator], gx: nx.DiGraph):
-    with indir("../conda-forge-pinning-feedstock/recipe"):
+    with indir(os.environ["CONDA_PREFIX"]):
         pinnings = parse_config_file(
             "conda_build_config.yaml", config=Config(**CB_CONFIG)
         )
