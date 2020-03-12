@@ -29,6 +29,7 @@ install:
 
 
 script:
+  - env | grep CONDA
   - coverage run run_tests.py
   - coverage report -m
   - codecov
