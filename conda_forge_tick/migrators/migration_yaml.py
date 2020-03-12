@@ -3,17 +3,20 @@ from itertools import chain
 import typing
 from typing import Optional, Set, Sequence, Any
 import time
+import datetime
 
 import networkx as nx
 import ruamel.yaml as yaml
 
 from conda_forge_tick.contexts import FeedstockContext
-from conda_forge_tick.migrators.core import GraphMigrator, MiniMigrator, \
-    Migrator
+from conda_forge_tick.migrators.core import GraphMigrator, MiniMigrator, Migrator
 from conda_forge_tick.xonsh_utils import eval_xonsh, indir
 
 if typing.TYPE_CHECKING:
-    from ..migrators_types import *
+    from ..migrators_types import (
+        MigrationUidTypedDict,
+        AttrsTypedDict,
+    )
 
 
 class MigrationYaml(GraphMigrator):
@@ -116,7 +119,7 @@ class MigrationYaml(GraphMigrator):
 
     def remote_branch(self, feedstock_ctx: FeedstockContext) -> str:
         s_obj = str(self.obj_version) if self.obj_version else ""
-        return f"rebuild-{self.name.lower().replace(' ', '_')}-{self.migrator_version}-{s_obj}"
+        return f"rebuild-{self.name.lower().replace(' ', '_')}-{self.migrator_version}-{s_obj}"  # noqa
 
     def migrator_uid(self, attrs: "AttrsTypedDict") -> "MigrationUidTypedDict":
         n = super().migrator_uid(attrs)
@@ -141,40 +144,65 @@ class MigrationYamlCreator(Migrator):
     # TODO: add a description kwarg for the status page at some point.
     # TODO: make yaml_contents an arg?
     def __init__(
-            self,
-            package_name: str,
-            new_pin_version: str,
-            current_pin: str,
-            pin_spec: str,
-            pr_limit: int = 1,
-            **kwargs: Any,
+        self,
+        package_name: str,
+        new_pin_version: str,
+        current_pin: str,
+        pin_spec: str,
+        pr_limit: int = 1,
+        bump_number: int = 1,
+        **kwargs: Any,
     ):
-        super().__init__(
-            pr_limit=pr_limit,
-        )
+        super().__init__(pr_limit=pr_limit,)
         self.pin_spec = pin_spec
         self.current_pin = current_pin
         self.new_pin_version = new_pin_version
         self.package_name = package_name
+        self.bump_number = bump_number
 
     def filter(self, attrs: "AttrsTypedDict", not_bad_str_start: str = "") -> bool:
-        if attrs['name'] == 'conda-forge-pinning':
+        if attrs["name"] == "conda-forge-pinning":
             return False
         return True
 
     def migrate(
-            self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any
+        self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any
     ) -> "MigrationUidTypedDict":
-        migration_yaml_dict = {'__migrator': {'build_number': 1,
-                                              'kind': 'version',
-                                              'migration_number': 1},
-                               self.package_name: [self.new_pin_version],
-                               'migrator_ts': f'{time.time():.0f}'}
+        migration_yaml_dict = {
+            "__migrator": {"build_number": 1, "kind": "version", "migration_number": 1},
+            self.package_name: [self.new_pin_version],
+            "migrator_ts": f"{time.time():.0f}",
+        }
         with indir(os.path.join(recipe_dir, "migrations")):
             with open(f"{self.package_name}{self.new_pin_version}.yaml", "w") as f:
                 yaml.dump(migration_yaml_dict, f)
-                eval_xonsh("git add .")
-        return super().migrate(recipe_dir, attrs)
+            eval_xonsh("git add .")
+
+        with indir(recipe_dir):
+            self.set_build_number("meta.yaml")
+
+        with indir(recipe_dir):
+            with open("meta.yaml", "r") as fp:
+                new_lines = []
+                found_ver = False
+                for line in fp.readlines():
+                    if line.startswith("{% set version = "):
+                        now = datetime.datetime.now().strftime("%Y.%m.%d")
+                        found_ver = True
+                        new_lines.append("{% set version = \"" + now + "\" %}")
+                    else:
+                        new_lines.append(line.strip())
+
+            with open("meta_yaml", "w") as fp:
+                for line in new_lines:
+                    fp.write("%s\n" % line)
+
+            eval_xonsh("git add .")
+
+        if not found_ver:
+            return False
+        else:
+            return super().migrate(recipe_dir, attrs)
 
     def pr_body(self, feedstock_ctx: "FeedstockContext") -> str:
         body = super().pr_body(feedstock_ctx)
@@ -188,9 +216,7 @@ class MigrationYamlCreator(Migrator):
             "needed. \n\n"
             "**Please note that if you close this PR we presume that "
             "the new pin has been rejected."
-            "".format(
-                name=self.package_name,
-            )
+            "".format(name=self.package_name,)
         )
         body = body.format(additional_body)
         return body
@@ -203,8 +229,10 @@ class MigrationYamlCreator(Migrator):
 
     def remote_branch(self, feedstock_ctx: FeedstockContext) -> str:
         s_obj = str(self.obj_version) if self.obj_version else ""
-        return f"new_pin-{self.package_name.lower().replace(' ', '_')}-" \
-               f"{self.new_pin_version}-{self.migrator_version}-{s_obj}"
+        return (
+            f"new_pin-{self.package_name.lower().replace(' ', '_')}-"
+            f"{self.new_pin_version}-{self.migrator_version}-{s_obj}"
+        )
 
     def migrator_uid(self, attrs: "AttrsTypedDict") -> "MigrationUidTypedDict":
         n = super().migrator_uid(attrs)
@@ -213,10 +241,9 @@ class MigrationYamlCreator(Migrator):
         return n
 
     def order(
-            self, graph: nx.DiGraph, total_graph: nx.DiGraph,
+        self, graph: nx.DiGraph, total_graph: nx.DiGraph,
     ) -> Sequence["PackageName"]:
         """Run the order by number of decendents, ties are resolved by package name"""
         return sorted(
-            graph, key=lambda x: (len(nx.descendants(total_graph, x)), x),
-            reverse=True,
+            graph, key=lambda x: (len(nx.descendants(total_graph, x)), x), reverse=True,
         )
