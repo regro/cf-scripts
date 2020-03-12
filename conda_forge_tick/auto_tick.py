@@ -1,18 +1,25 @@
 import copy
 import glob
 import json
+import re
+
 import time
 import traceback
 import logging
 import os
 import typing
 import networkx as nx
+from conda.models.version import VersionOrder
+from conda_build.config import Config
+from conda_build.variants import parse_config_file
 
 from urllib.error import URLError
 
 import github3
 import ruamel.yaml as yaml
 from uuid import uuid4
+
+from conda_forge_tick.migrators.migration_yaml import MigrationYamlCreator
 from .xonsh_utils import indir, eval_xonsh
 
 from conda_forge_tick.contexts import FeedstockContext
@@ -28,6 +35,8 @@ from .utils import (
     load_graph,
     dump_graph,
     LazyJson,
+    CB_CONFIG,
+    parse_meta_yaml,
 )
 from .xonsh_utils import env
 from typing import (
@@ -485,6 +494,99 @@ def migration_factory(
         )
 
 
+def _outside_pin_range(pin_spec, current_pin, new_version):
+    pin_level = len(pin_spec.split("."))
+    current_split = current_pin.split(".")
+    new_split = new_version.split(".")
+    # if our pin spec is more exact than our current pin then rebuild more precisely
+    if pin_level > len(current_split):
+        return True
+    for i in range(pin_level):
+        if current_split[i] != new_split[i]:
+            return True
+    return False
+
+
+def create_migration_yaml_creator(migrators: MutableSequence[Migrator], gx: nx.DiGraph):
+    with indir("../conda-forge-pinning-feedstock/recipe"):
+        pinnings = parse_config_file(
+            "conda_build_config.yaml", config=Config(**CB_CONFIG)
+        )
+    feedstocks_to_be_repinned = []
+    for k, package_pin_list in pinnings.items():
+        # exclude non-package keys
+        if k not in gx.nodes and k not in gx.graph["outputs_lut"]:
+            # conda_build_config.yaml can't have `-` unlike our package names
+            k = k.replace("_", "-")
+        # replace sub-packages with their feedstock names
+        k = gx.graph["outputs_lut"].get(k, k)
+
+        if (
+            (k in gx.nodes)
+            and not gx.nodes[k]["payload"].get("archived", False)
+            and gx.nodes[k]["payload"].get("version")
+            and k not in feedstocks_to_be_repinned
+        ):
+
+            current_pins = list(map(str, package_pin_list))
+            current_version = str(gx.nodes[k]["payload"]["version"])
+
+            # XXX: uncomment following line and remove the one after once graph
+            # has been re-loaded with the pins properly
+
+            # meta_yaml = gx.nodes[k]['payload']['meta_yaml']
+            meta_yaml = parse_meta_yaml(gx.nodes[k]["payload"]["raw_meta_yaml"])
+
+            # find the most stringent max pin for this feedstock if any
+            pin_spec = ""
+            for block in [meta_yaml] + meta_yaml.get("outputs", []) or []:
+                build = block.get("build", {}) or {}
+                # and check the exported package is within the feedstock
+                exports = [
+                    p.get("max_pin", "")
+                    for p in build.get("run_exports", [{}])
+                    # make certain not direct hard pin
+                    if isinstance(p, MutableMapping)
+                    # if the pinned package is in an output of the parent feedstock
+                    and (
+                        gx.graph["outputs_lut"].get(p.get("package_name", ""), "") == k
+                        # if the pinned package is the feedstock itself
+                        or p.get("package_name", "") == k
+                    )
+                ]
+                if not exports:
+                    continue
+                # get the most stringent pin spec from the recipe block
+                max_pin = max(exports, key=len)
+                if len(max_pin) > len(pin_spec):
+                    pin_spec = max_pin
+
+            # fall back to the pinning file or "x"
+            if not pin_spec:
+                pin_spec = (
+                    pinnings["pin_run_as_build"].get(k, {}).get("max_pin", "x") or "x"
+                )
+
+            current_pins = list(
+                map(lambda x: re.sub("[^0-9.]", "", x).rstrip("."), current_pins)
+            )
+            current_version = re.sub("[^0-9.]", "", current_version).rstrip(".")
+            if current_pins == [""]:
+                continue
+
+            current_pin = str(max(map(VersionOrder, current_pins)))
+            # If the current pin and the current version is the same nothing
+            # to do even if the pin isn't accurate to the spec
+            if current_pin != current_version and _outside_pin_range(
+                pin_spec, current_pin, current_version
+            ):
+                feedstocks_to_be_repinned.append(k)
+                print(k, current_version, current_pin, pin_spec)
+                migrators.append(
+                    MigrationYamlCreator(k, current_version, current_pin, pin_spec)
+                )
+
+
 def initialize_migrators(
     github_username: str = "",
     github_password: str = "",
@@ -508,6 +610,7 @@ def initialize_migrators(
         ("Unless you need `pyqt`, recipes should depend only on " "`matplotlib-base`."),
         alt_migrator=MatplotlibBase,
     )
+    create_migration_yaml_creator(migrators=MIGRATORS, gx=gx)
     for m in MIGRATORS:
         print(f'{getattr(m, "name", m)} graph size: {len(getattr(m, "graph", []))}')
 
