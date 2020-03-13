@@ -547,6 +547,14 @@ class GraphMigrator(Migrator):
             else:
                 return False
 
+            if (
+                node not in self.graph.nodes and
+                node not in self.graph.predecessors(attrs["feedstock_name"])
+            ):
+                # this is ok because we would not have looked at it before
+                # anyways
+                continue
+
             # check to see if node has been built
             payload = self.graph.nodes[node]["payload"]
             muid = frozen_to_json_friendly(self.migrator_uid(payload))
