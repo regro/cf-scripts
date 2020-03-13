@@ -300,7 +300,7 @@ def make_graph(names: List[str], gx: Optional[nx.DiGraph] = None) -> nx.DiGraph:
             # replace output package names with feedstock names via LUT
             deps = set(
                 map(
-                    lambda x: outputs_lut.get(x, x),
+                    lambda x: x if x in gx else outputs_lut.get(x, x),
                     set().union(*attrs.get("requirements", {}).values()),
                 )
             )
