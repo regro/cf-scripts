@@ -69,9 +69,11 @@ if typing.TYPE_CHECKING:
 logger = logging.getLogger("conda_forge_tick.auto_tick")
 
 
+PR_LIMIT = 5
+
 MIGRATORS: MutableSequence[Migrator] = [
     Version(
-        pr_limit=1,
+        pr_limit=PR_LIMIT * 2,
         piggy_back_migrations=[
             PipMigrator(),
             LicenseMigrator(),
@@ -306,7 +308,7 @@ def add_replacement_migrator(
                 old_pkg=old_pkg,
                 new_pkg=new_pkg,
                 rationale=rationale,
-                pr_limit=5,
+                pr_limit=PR_LIMIT,
                 graph=total_graph,
             ),
         )
@@ -316,7 +318,7 @@ def add_replacement_migrator(
                 old_pkg=old_pkg,
                 new_pkg=new_pkg,
                 rationale=rationale,
-                pr_limit=5,
+                pr_limit=PR_LIMIT,
                 graph=total_graph,
             ),
         )
@@ -335,7 +337,7 @@ def add_arch_migrate(migrators: MutableSequence[Migrator], gx: nx.DiGraph) -> No
 
     migrators.append(
         ArchRebuild(
-            graph=total_graph, pr_limit=1, name="aarch64 and ppc64le addition",
+            graph=total_graph, pr_limit=PR_LIMIT, name="aarch64 and ppc64le addition",
         ),
     )
 
@@ -349,7 +351,7 @@ def add_rebuild_migration_yaml(
     migration_yaml: str,
     config: dict = {},
     migration_name: str = "",
-    pr_limit: int = 1,
+    pr_limit: int = PR_LIMIT,
 ) -> None:
     """Adds rebuild migrator.
 
@@ -436,7 +438,7 @@ def add_rebuild_migration_yaml(
 
 
 def migration_factory(
-    migrators: MutableSequence[Migrator], gx: nx.DiGraph, pr_limit: int = 1,
+    migrators: MutableSequence[Migrator], gx: nx.DiGraph, pr_limit: int = PR_LIMIT,
 ) -> None:
     migration_yamls = []
     with indir("../conda-forge-pinning-feedstock/recipe/migrations"):
