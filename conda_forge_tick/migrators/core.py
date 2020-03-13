@@ -588,7 +588,10 @@ class GraphMigrator(Migrator):
 
             nodes_built = []
             for node in potential_nodes:
-                nodes_built.append(_test_node_built(node))
+                if node not in self.graph.nodes:
+                    nodes_built.append(False)
+                else:
+                    nodes_built.append(_test_node_built(node))
 
             all_deps_built = all_deps_built and any(nodes_built)
 
