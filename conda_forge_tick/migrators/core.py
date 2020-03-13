@@ -513,11 +513,14 @@ class GraphMigrator(Migrator):
             self.graph = graph
 
         # IDK if this will be there so I am going to make it
-        self.outputs_lut = {
-            k: node_name
-            for node_name, node in self.graph.nodes.items()
-            for k in node.get("payload", {}).get("outputs_names", [])
-        }
+        if 'outputs_lut' in self.graph.graph:
+            self.outputs_lut = self.graph.graph['outputs_lut']
+        else:
+            self.outputs_lut = {
+                k: node_name
+                for node_name, node in self.graph.nodes.items()
+                for k in node.get("payload", {}).get("outputs_names", [])
+            }
 
         self.name = name
         self.top_level = top_level or set()
