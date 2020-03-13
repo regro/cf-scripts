@@ -511,13 +511,51 @@ class GraphMigrator(Migrator):
             self.graph = nx.DiGraph()
         else:
             self.graph = graph
+
+        # IDK if this will be there so I am going to make it if needed
+        if 'outputs_lut' in self.graph.graph:
+            self.outputs_lut = self.graph.graph['outputs_lut']
+        else:
+            self.outputs_lut = {
+                k: node_name
+                for node_name, node in self.graph.nodes.items()
+                for k in node.get("payload", {}).get("outputs_names", [])
+            }
+
         self.name = name
         self.top_level = top_level or set()
         self.cycles = set(chain.from_iterable(cycles or []))
 
     def predecessors_not_yet_built(self, attrs: "AttrsTypedDict") -> bool:
-        # Check if all upstreams have been built
-        for node in self.graph.predecessors(attrs["feedstock_name"]):
+        # check deps directly instead of using the graph
+        # this breaks cycles in cases where a dep comes from more than
+        # one package
+        all_deps = set().union(*attrs.get("requirements", {}).values())
+
+        for dep in all_deps:
+            if (
+                dep in self.graph.nodes and
+                len(
+                    self.graph.nodes[dep]
+                    .get("payload", {})
+                    .get("outputs_names", [])
+                ) == 0
+            ):
+                node = dep
+            elif dep in self.outputs_lut:
+                node = self.outputs_lut[dep]
+            else:
+                return False
+
+            if (
+                node not in self.graph.nodes and
+                node not in self.graph.predecessors(attrs["feedstock_name"])
+            ):
+                # this is ok because we would not have looked at it before
+                # anyways
+                continue
+
+            # check to see if node has been built
             payload = self.graph.nodes[node]["payload"]
             muid = frozen_to_json_friendly(self.migrator_uid(payload))
             if muid not in _sanitized_muids(
