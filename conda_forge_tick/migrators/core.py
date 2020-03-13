@@ -527,41 +527,23 @@ class GraphMigrator(Migrator):
         self.cycles = set(chain.from_iterable(cycles or []))
 
     def predecessors_not_yet_built(self, attrs: "AttrsTypedDict") -> bool:
-        # check deps directly instead of using the graph
-        # this breaks cycles in cases where a dep comes from more than
-        # one package
-        all_deps = set().union(*attrs.get("requirements", {}).values())
-
-        for dep in all_deps:
+        def _node_skipped(_node):
             if (
-                dep in self.graph.nodes and
-                len(
-                    self.graph.nodes[dep]
-                    .get("payload", {})
-                    .get("outputs_names", [])
-                ) == 0
+                _node not in self.graph.nodes and
+                _node not in self.graph.predecessors(attrs["feedstock_name"])
             ):
-                node = dep
-            elif dep in self.outputs_lut:
-                node = self.outputs_lut[dep]
+                return True
             else:
                 return False
 
-            if (
-                node not in self.graph.nodes and
-                node not in self.graph.predecessors(attrs["feedstock_name"])
-            ):
-                # this is ok because we would not have looked at it before
-                # anyways
-                continue
-
+        def _test_node_built(node):
             # check to see if node has been built
             payload = self.graph.nodes[node]["payload"]
             muid = frozen_to_json_friendly(self.migrator_uid(payload))
             if muid not in _sanitized_muids(
                 payload.get("PRed", []),
             ) and not payload.get("archived", False):
-                return True
+                return False
             # This is due to some PRed_json loss due to bad graph deploy outage
             for m_pred_json in payload.get("PRed", []):
                 if m_pred_json["data"] == muid["data"]:
@@ -572,10 +554,55 @@ class GraphMigrator(Migrator):
             # so that errors halt the migration and can be fixed
             if (
                 m_pred_json
-                and m_pred_json.get("PR", {"state": "open"}).get("state", "") == "open"
+                and (
+                    m_pred_json
+                    .get("PR", {"state": "open"})
+                    .get("state", "")
+                ) == "open"
             ):
+                return False
+
+            return True
+
+        # check deps directly instead of using the graph
+        # this breaks cycles in cases where a dep comes from more than
+        # one package
+        all_deps = set().union(*attrs.get("requirements", {}).values())
+        all_deps_built = True
+        for dep in all_deps:
+            if dep.endswith('_compiler_stub'):
+                continue
+
+            # get all potential nodes for a dep
+            potential_nodes = []
+
+            if (
+                dep in self.graph.nodes and
+                len(
+                    self.graph.nodes[dep]
+                    .get("payload", {})
+                    .get("outputs_names", [])
+                ) == 0
+            ):
+                if not _node_skipped(dep):
+                    potential_nodes.append(dep)
+
+            if dep in self.outputs_lut:
+                _node = self.outputs_lut[dep]
+                if not _node_skipped(_node):
+                    potential_nodes.append(_node)
+
+            if len(potential_nodes) == 0:
+                # some dep cannot be done, so we cannot build this feedstock
                 return True
-        return False
+
+            nodes_built = []
+            for node in potential_nodes:
+                nodes_built.append(_test_node_built(node))
+
+            all_deps_built = all_deps_built and any(nodes_built)
+
+        return not all_deps_built
 
     def filter(self, attrs: "AttrsTypedDict", not_bad_str_start: str = "") -> bool:
         if super().filter(attrs, "Upstream:"):
