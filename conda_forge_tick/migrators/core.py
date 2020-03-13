@@ -512,7 +512,7 @@ class GraphMigrator(Migrator):
         else:
             self.graph = graph
 
-        # IDK if this will be there so I am going to make it
+        # IDK if this will be there so I am going to make it if needed
         if 'outputs_lut' in self.graph.graph:
             self.outputs_lut = self.graph.graph['outputs_lut']
         else:
@@ -527,7 +527,9 @@ class GraphMigrator(Migrator):
         self.cycles = set(chain.from_iterable(cycles or []))
 
     def predecessors_not_yet_built(self, attrs: "AttrsTypedDict") -> bool:
-        # replace output package names with feedstock names via LUT
+        # check deps directly instead of using the graph
+        # this breaks cycles in cases where a dep comes from more than
+        # one package
         all_deps = set().union(*attrs.get("requirements", {}).values())
 
         for dep in all_deps:
