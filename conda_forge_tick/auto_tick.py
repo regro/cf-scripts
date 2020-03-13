@@ -537,11 +537,11 @@ def create_migration_yaml_creator(migrators: MutableSequence[Migrator], gx: nx.D
             current_pins = list(map(str, package_pin_list))
             current_version = str(gx.nodes[k]["payload"]["version"])
 
-            # XXX: uncomment following line and remove the one after once graph
-            # has been re-loaded with the pins properly
-
-            # meta_yaml = gx.nodes[k]['payload']['meta_yaml']
-            meta_yaml = parse_meta_yaml(gx.nodes[k]["payload"]["raw_meta_yaml"])
+            # we need a special parsing for pinning stuff
+            meta_yaml = parse_meta_yaml(
+                gx.nodes[k]["payload"]["raw_meta_yaml"],
+                for_pinning=True,
+            )
 
             # find the most stringent max pin for this feedstock if any
             pin_spec = ""

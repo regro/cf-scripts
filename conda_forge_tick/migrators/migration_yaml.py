@@ -159,6 +159,7 @@ class MigrationYamlCreator(Migrator):
         self.new_pin_version = new_pin_version
         self.package_name = package_name
         self.bump_number = bump_number
+        self.name = package_name + " pinning"
 
     def filter(self, attrs: "AttrsTypedDict", not_bad_str_start: str = "") -> bool:
         if attrs["name"] == "conda-forge-pinning":
