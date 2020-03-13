@@ -41,6 +41,12 @@ pin_sep_pat = re.compile(r" |>|<|=|\[")
 string_types = (str, bytes)
 iteritems = lambda mapping: mapping.items()
 
+PACKAGE_STUBS = [
+    "_compiler_stub",
+    "subpackage_stub",
+    "compatible_pin_stub",
+    "cdt_stub",
+]
 
 CB_CONFIG = dict(
     os=os,

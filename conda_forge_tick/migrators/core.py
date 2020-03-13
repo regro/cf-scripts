@@ -26,6 +26,7 @@ from conda_forge_tick.utils import (
     frozen_to_json_friendly,
     as_iterable,
     CB_CONFIG,
+    PACKAGE_STUBS,
 )
 from conda_forge_tick.contexts import MigratorContext, FeedstockContext
 
@@ -527,15 +528,6 @@ class GraphMigrator(Migrator):
         self.cycles = set(chain.from_iterable(cycles or []))
 
     def predecessors_not_yet_built(self, attrs: "AttrsTypedDict") -> bool:
-        def _node_skipped(_node):
-            if (
-                _node not in self.graph.nodes and
-                _node not in self.graph.predecessors(attrs["feedstock_name"])
-            ):
-                return True
-            else:
-                return False
-
         def _test_node_built(node):
             # check to see if node has been built
             payload = self.graph.nodes[node]["payload"]
@@ -570,7 +562,7 @@ class GraphMigrator(Migrator):
         all_deps = set().union(*attrs.get("requirements", {}).values())
         all_deps_built = True
         for dep in all_deps:
-            if dep.endswith('_compiler_stub'):
+            if any(dep.endswith(stub) for stub in PACKAGE_STUBS):
                 continue
 
             # get all potential nodes for a dep
@@ -584,13 +576,11 @@ class GraphMigrator(Migrator):
                     .get("outputs_names", [])
                 ) == 0
             ):
-                if not _node_skipped(dep):
-                    potential_nodes.append(dep)
+                potential_nodes.append(dep)
 
             if dep in self.outputs_lut:
                 _node = self.outputs_lut[dep]
-                if not _node_skipped(_node):
-                    potential_nodes.append(_node)
+                potential_nodes.append(_node)
 
             if len(potential_nodes) == 0:
                 # some dep cannot be done, so we cannot build this feedstock
