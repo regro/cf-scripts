@@ -1,6 +1,6 @@
 from textwrap import dedent
 import typing
-from typing import Optional, Set, List, Any
+from typing import Optional, Any
 
 import networkx as nx
 from ruamel.yaml import safe_load, safe_dump
@@ -12,7 +12,7 @@ from ..xonsh_utils import indir
 
 
 if typing.TYPE_CHECKING:
-    from ..migrators_types import *
+    from ..migrators_types import AttrsTypedDict, MigrationUidTypedDict
 
 
 class ArchRebuild(GraphMigrator):
@@ -49,6 +49,7 @@ class ArchRebuild(GraphMigrator):
         self.name = name
         # filter the graph down to the target packages
         if self.target_packages:
+            self.target_packages.add("python")  # hack that is ~harmless?
             packages = self.target_packages.copy()
             for target in self.target_packages:
                 if target in self.graph.nodes:
