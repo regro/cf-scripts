@@ -115,7 +115,7 @@ __migrator:
   migration_number: 1
 boost:
 - 1.99.0
-migrator_ts: '12345.2'
+migrator_ts: 12345.2
 """
 
 

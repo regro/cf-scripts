@@ -583,8 +583,9 @@ class GraphMigrator(Migrator):
                 potential_nodes.append(_node)
 
             if len(potential_nodes) == 0:
-                # some dep cannot be done, so we cannot build this feedstock
-                return True
+                # some dep cannot be done, so keep moving since
+                # it could be outside this graph
+                continue
 
             nodes_built = []
             for node in potential_nodes:
