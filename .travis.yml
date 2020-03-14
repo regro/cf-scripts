@@ -1,32 +1,27 @@
-language: python
-sudo: false
+language: generic
+sudo: true
 
 env:
   global:
     # Doctr deploy key for regro/cf-scripts
     - secure: "BMHTWzfNVm3fgT/jvcoFcQXvJ4xbQi7vs8DluDdAUXxW0zm7TgZ+mG1VDJPCrAQXhdlxL7N73D2PeoNuPGA8wALVc00lGPrrFl6MR1a3tKI5FEE7UWxX3kQrousgd3AkCPMnmZGCYJnBBvj1SN4V3x9OCePu45tdok8T5Si/gABzPgSDAYurFp4AsG4PIrQgsrOPioSyBk6KFul0KnuH4YjW3c+SEauNqt7gjxTROHo9oUNqLuj2nUVl6fdu1LuEtCvVbFeJXtFCgTsKroNdg+4P0UmMn8HOzlLxpfeVs2llRd2eiwxJBFv7ovgmVW3YIHdT3QE8dVT0LASQdjrvx0O8n5CM+sA6gHmtiVeKi7IXihVDBsckzic08L5aKf5qbUylX9ICt2PcW308udLQe7eZIGA2xjrepDnCzAQkSxHD1qeGz0KPr+av04sekUnSMRB0UOtTAMYMXDytNTy0x5htdpoHtVMkbdmCC6ldUlnBKKinrYCO8++rwgYV128a8f6Q53GuRxW7bOIU6us4bBb1ERn9Dwkxr3Zn9rLHahJG6dGUj38Jian2uwe5p5Gh8/Tecmbd3rgLB0CwYM9pYH4NkcOXKOpTEqDIJ8U9RjPnitQbnH6cNyzbAj6c9qid2Bpu98/GR2YXIwoW7VBEmRe/P9k9TatjFJkiKnZoUbQ="
 
-
-
-python:
-  - 3.6
 before_install:
-  - wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh
+  - wget -q https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh
   - bash miniconda.sh -b -p ~/mc
-  - export PATH=~/mc/bin:$PATH
-  - conda config --set always_yes yes --set changeps1 no
+  - source ~/mc/etc/profile.d/conda.sh
+  - conda activate
+  - conda config --set always_yes yes
   - conda config --add channels conda-forge
-  - conda install pip
-  - conda update conda --yes
+  - conda install --quiet pip
+  - conda update --quiet conda --yes
   - export CONDARC=ci/condarc
-
 
 install:
   - export GIT_FULL_HASH=`git rev-parse HEAD`
   - export CICLE_BUILD_URL="https://www.youtube.com/watch?v=R7qT-C-0ajI"
-  - conda install --file requirements/run --file requirements/test
-  - python -m pip install .
-
+  - conda install --quiet --file requirements/run --file requirements/test
+  - python -m pip install -e .
 
 script:
   - coverage run run_tests.py
