@@ -172,7 +172,7 @@ class MigrationYamlCreator(Migrator):
         migration_yaml_dict = {
             "__migrator": {"build_number": 1, "kind": "version", "migration_number": 1},
             self.package_name: [self.new_pin_version],
-            "migrator_ts": time.time(),
+            "migrator_ts": float(time.time()),
         }
         with indir(os.path.join(recipe_dir, "migrations")):
             mig_fname = "%s%s.yaml" % (
