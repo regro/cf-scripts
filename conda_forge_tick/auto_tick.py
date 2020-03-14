@@ -462,6 +462,7 @@ def migration_factory(
                 yaml_contents = f.read()
             migration_yamls.append((yaml_file, yaml_contents))
 
+    # TODO: use the inbuilt LUT in the graph
     output_to_feedstock = {
         output: name
         for name, node in gx.nodes.items()
@@ -522,6 +523,9 @@ def create_migration_yaml_creator(migrators: MutableSequence[Migrator], gx: nx.D
         )
     feedstocks_to_be_repinned = []
     for k, package_pin_list in pinnings.items():
+        # we need the package names for the migrator itself but need the
+        # feedstock for everything else
+        package_name = k
         # exclude non-package keys
         if k not in gx.nodes and k not in gx.graph["outputs_lut"]:
             # conda_build_config.yaml can't have `-` unlike our package names
@@ -589,9 +593,9 @@ def create_migration_yaml_creator(migrators: MutableSequence[Migrator], gx: nx.D
                 pin_spec, current_pin, current_version
             ):
                 feedstocks_to_be_repinned.append(k)
-                print(k, current_version, current_pin, pin_spec)
+                print(package_name, current_version, current_pin, pin_spec)
                 migrators.append(
-                    MigrationYamlCreator(k, current_version, current_pin, pin_spec)
+                    MigrationYamlCreator(package_name, current_version, current_pin, pin_spec)
                 )
 
 
