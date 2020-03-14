@@ -41,22 +41,26 @@ def audit_feedstock(fctx: FeedstockContext, ctx: MigratorSessionContext):
     return deps
 
 
-def main():
+def main(args):
     gx = load_graph()
-    ctx = MigratorSessionContext()
-    for node, attrs in sorted(
-            gx, key=lambda x: (len(nx.descendants(gx, x)), x), reverse=True,
+    ctx = MigratorSessionContext('', '', '')
+    start_time = time.time()
+    # limit graph to things that depend on python
+    python_des = nx.descendants(gx, 'python')
+    for node in sorted(
+            python_des, key=lambda x: (len(nx.descendants(gx, x)), x), reverse=True,
     ):
         if (
                 time.time() - int(
-            env.get("START_TIME", time.time()))
-                > int(env.get("TIMEOUT", 600))
+            env.get("START_TIME", start_time))
+                > int(env.get("TIMEOUT", 60))
         ):
             break
         # depfinder only work on python at the moment so only work on things
         # with python as runtime dep
-        with attrs['payload'] as payload:
-            if 'python' in attrs['payload']['requirements']['run']:
+        with gx.nodes[node]['payload'] as payload:
+            if not payload.get('archived', False) and 'python' in payload['requirements']['run'] and 'depfinder_audit' not in payload:
+                print(node)
                 fctx = FeedstockContext(package_name=node,
                                         feedstock_name=payload['name'],
                                         attrs=payload)
@@ -64,7 +68,7 @@ def main():
                     deps = audit_feedstock(fctx, ctx)
                 except Exception as e:
                     deps = {"exception": str(e),
-                        "traceback": str(traceback.format_exc()).split("\n"),}
+                            "traceback": str(traceback.format_exc()).split("\n"),}
                 finally:
                     payload['depfinder_audit'] = deps
 
