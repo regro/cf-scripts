@@ -37,7 +37,8 @@ def audit_feedstock(fctx: FeedstockContext, ctx: MigratorSessionContext):
     with indir(cb_work_dir):
         # run depfinder on source code
         deps = simple_import_search(cb_work_dir, remap=True)
-
+        for k in list(deps):
+            deps[k] = set(deps[k])
     return deps
 
 
