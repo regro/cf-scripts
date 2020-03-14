@@ -162,7 +162,7 @@ class MigrationYamlCreator(Migrator):
         self.name = package_name + " pinning"
 
     def filter(self, attrs: "AttrsTypedDict", not_bad_str_start: str = "") -> bool:
-        if attrs["name"] == "conda-forge-pinning":
+        if attrs.get("name", '') == "conda-forge-pinning":
             return False
         return True
 
