@@ -352,7 +352,7 @@ def _get_last_updated_prs():
     """)  # noqa
     headers = {"Authorization": f"token {github_token}"}
     # Try several times because this times out
-    for i in range(0):
+    for i in range(10):
         logger.info("graphQL request try %d", i+1)
         resp = requests.post(
             'https://api.github.com/graphql',
