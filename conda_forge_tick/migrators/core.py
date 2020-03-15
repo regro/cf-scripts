@@ -3,6 +3,7 @@ import os
 import re
 from itertools import chain
 import typing
+import logging
 from typing import (
     List,
     Any,
@@ -42,6 +43,9 @@ try:
     from conda_smithy.lint_recipe import NEEDED_FAMILIES
 except ImportError:
     NEEDED_FAMILIES = ["gpl", "bsd", "mit", "apache", "psf"]
+
+
+LOGGER = logging.getLogger("conda_forge_tick.migrators.core")
 
 
 def _sanitized_muids(pred: List[dict]) -> List["JsonFriendly"]:
@@ -528,6 +532,8 @@ class GraphMigrator(Migrator):
         self.cycles = set(chain.from_iterable(cycles or []))
 
     def predecessors_not_yet_built(self, attrs: "AttrsTypedDict") -> bool:
+        __name = attrs.get("name", "")
+
         def _test_node_built(node):
             # check to see if node has been built
             payload = self.graph.nodes[node]["payload"]
@@ -580,12 +586,15 @@ class GraphMigrator(Migrator):
 
             if dep in self.outputs_lut:
                 _node = self.outputs_lut[dep]
-                potential_nodes.append(_node)
+                if _node in self.graph.nodes:
+                    potential_nodes.append(_node)
 
             if len(potential_nodes) == 0:
                 # some dep cannot be done, so keep moving since
                 # it could be outside this graph
                 continue
+
+            LOGGER.debug("%s: dep %s: nodes: %s", __name, dep, potential_nodes)
 
             nodes_built = []
             for node in potential_nodes:
@@ -594,14 +603,19 @@ class GraphMigrator(Migrator):
                 else:
                     nodes_built.append(_test_node_built(node))
 
+            LOGGER.debug("%s: dep %s: nodes: %s", __name, dep, nodes_built)
+
             all_deps_built = all_deps_built and any(nodes_built)
 
         return not all_deps_built
 
     def filter(self, attrs: "AttrsTypedDict", not_bad_str_start: str = "") -> bool:
+        name = attrs.get("name", "")
         if super().filter(attrs, "Upstream:"):
+            LOGGER.debug("filter %s: archived or done", name)
             return True
         if attrs["feedstock_name"] not in self.graph:
+            LOGGER.debug("filter %s: no feedstock name", name)
             return True
         # If in top level or in a cycle don't check for upstreams just build
         if (attrs["feedstock_name"] in self.top_level) or (
@@ -610,6 +624,7 @@ class GraphMigrator(Migrator):
             return False
         # Check if all upstreams have been built
         if self.predecessors_not_yet_built(attrs=attrs):
+            LOGGER.debug("filter %s: parents not built", name)
             return True
         return False
 
