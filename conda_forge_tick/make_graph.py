@@ -11,6 +11,7 @@ from copy import deepcopy
 import typing
 from requests import Response
 from typing import List, Optional, Set
+import re
 
 import github3
 import networkx as nx
@@ -381,6 +382,7 @@ def _update_pr(update_function, dry_run, gx):
     for pr_id in last_prs:
         pr_info_ordered[pr_id] = None
 
+    pr_json_regex = re.compile(r"^pr_json/([0-9]*).json$")
     with executor("thread", NUM_GITHUB_THREADS) as pool:
         for node_id in node_ids:
             node = gx.nodes[node_id]["payload"]
@@ -389,8 +391,12 @@ def _update_pr(update_function, dry_run, gx):
                 pr_json = migration.get("PR", None)
                 # allow for false
                 if pr_json:
-                    if '__lazy_json__' in pr_json and pr_json['__lazy_json__'].startswith("pr_json/"):
-                        pr_id = int(pr_json['__lazy_json__'].split("/")[1].split(".")[0])
+                    if '__lazy_json__' in pr_json:
+                        m = pr_json_regex.match(pr_json['__lazy_json__']):
+                        if m:
+                            pr_id = int(m.group(1))
+                        else:
+                            pr_id = object()
                     else:
                         pr_id = object()
                     pr_info_ordered[pr_id] = (pr_json, node_id, i)
