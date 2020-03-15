@@ -5,17 +5,19 @@ import logging
 import os
 import time
 import random
-from collections import defaultdict
+from collections import defaultdict, OrderedDict
 from concurrent.futures import as_completed
 from copy import deepcopy
 import typing
 from requests import Response
 from typing import List, Optional, Set
+import re
 
 import github3
 import networkx as nx
 import requests
 import yaml
+import textwrap
 
 from xonsh.lib.collections import ChainDB, _convert_to_dict
 from .xonsh_utils import env
@@ -324,6 +326,44 @@ def make_graph(names: List[str], gx: Optional[nx.DiGraph] = None) -> nx.DiGraph:
     return gx
 
 
+def _get_last_updated_prs():
+    query = textwrap.dedent("""
+        {
+          user(login: "regro-cf-autotick-bot") {
+            pullRequests(first: 100, states: [CLOSED, MERGED], orderBy: {field: UPDATED_AT, direction: DESC} ) {
+              totalCount
+              nodes {
+                closedAt
+                createdAt
+                number
+                title
+                databaseId
+                baseRepository {
+                  name
+                }
+              }
+              pageInfo {
+                hasNextPage
+                endCursor
+              }
+            }
+          }
+        }
+    """)
+    headers = {"Authorization": f"token {github_token}"}
+    # Try several times because this times out
+    for i in range(10):
+        resp = requests.post('https://api.github.com/graphql', json={'query': query}, headers=headers)
+        if resp.status_code == 200:
+            data = resp.json()
+            pr_ids = []
+            for node in data['data']['user']['pullRequests']['nodes']:
+                pr_ids.append(node['databaseId'])
+            return pr_ids
+        time.sleep(10)
+    return []
+
+
 def _update_pr(update_function, dry_run, gx):
     failed_refresh = 0
     succeeded_refresh = 0
@@ -332,6 +372,17 @@ def _update_pr(update_function, dry_run, gx):
     node_ids = list(gx.nodes)
     # this makes sure that github rate limits are dispersed
     random.shuffle(node_ids)
+
+    pr_info_ordered = OrderedDict()
+    if not dry_run:
+        last_prs = _get_last_updated_prs()
+    else:
+        last_prs = []
+    # Setting them here first gives them the highest priority in the OrderedDict
+    for pr_id in last_prs:
+        pr_info_ordered[pr_id] = None
+
+    pr_json_regex = re.compile(r"^pr_json/([0-9]*).json$")
     with executor("thread", NUM_GITHUB_THREADS) as pool:
         for node_id in node_ids:
             node = gx.nodes[node_id]["payload"]
@@ -340,8 +391,21 @@ def _update_pr(update_function, dry_run, gx):
                 pr_json = migration.get("PR", None)
                 # allow for false
                 if pr_json:
-                    future = pool.submit(update_function, ghctx, pr_json, gh, dry_run)
-                    futures[future] = (node_id, i)
+                    if '__lazy_json__' in pr_json:
+                        m = pr_json_regex.match(pr_json['__lazy_json__'])
+                        if m:
+                            pr_id = int(m.group(1))
+                        else:
+                            pr_id = object()
+                    else:
+                        pr_id = object()
+                    pr_info_ordered[pr_id] = (pr_json, node_id, i)
+
+        for pr_id, v in pr_info_ordered.items():
+            if v:
+                (pr_json, node_id, i) = v
+                future = pool.submit(update_function, ghctx, pr_json, gh, dry_run)
+                futures[future] = (node_id, i)
 
         for f in as_completed(futures):
             name, i = futures[f]
