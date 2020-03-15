@@ -392,7 +392,7 @@ def _update_pr(update_function, dry_run, gx):
                 # allow for false
                 if pr_json:
                     if '__lazy_json__' in pr_json:
-                        m = pr_json_regex.match(pr_json['__lazy_json__']):
+                        m = pr_json_regex.match(pr_json['__lazy_json__'])
                         if m:
                             pr_id = int(m.group(1))
                         else:
