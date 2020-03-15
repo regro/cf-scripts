@@ -8,12 +8,11 @@ import logging
 import os
 import re
 from typing import Any, Tuple, Iterable, Union, Optional, IO
-from collections.abc import Mapping, MutableMapping, Sequence, Set
+from collections.abc import MutableMapping, Set
 from concurrent.futures import (
     ProcessPoolExecutor,
     ThreadPoolExecutor,
     Executor,
-    as_completed,
 )
 
 import github3
@@ -28,7 +27,6 @@ if typing.TYPE_CHECKING:
     from .migrators_types import PackageName
     from conda_forge_tick.migrators_types import (
         MetaYamlTypedDict,
-        RequirementsTypedDict,
     )
 
 T = typing.TypeVar("T")
@@ -36,10 +34,6 @@ TD = typing.TypeVar("TD", bound=dict, covariant=True)
 
 pin_sep_pat = re.compile(r" |>|<|=|\[")
 
-
-# dual python 2/3 compatability, inspired by the "six" library
-string_types = (str, bytes)
-iteritems = lambda mapping: mapping.items()
 
 PACKAGE_STUBS = [
     "_compiler_stub",
@@ -518,8 +512,10 @@ def as_iterable(iterable_or_scalar):
        Otherwise return `obj`
    Notes
    -----
-   Although both string types and dictionaries are iterable in Python, we are treating them as not iterable in this
-   method.  Thus, as_iterable(dict()) returns (dict, ) and as_iterable(string) returns (string, )
+   Although both string types and dictionaries are iterable in Python, we are
+   treating them as not iterable in this method.  Thus, as_iterable(dict())
+   returns (dict, ) and as_iterable(string) returns (string, )
+
    Examples
    ---------
    >>> as_iterable(1)

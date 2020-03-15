@@ -13,18 +13,18 @@ import github3.repos
 from doctr.travis import run_command_hiding_token as doctr_run
 from .xonsh_utils import env, indir
 
-import backoff
-
-backoff._decorator._is_event_loop = lambda: False
-
 from requests.exceptions import Timeout, RequestException
 from .contexts import GithubContext, FeedstockContext, MigratorSessionContext
 
-MAX_GITHUB_TIMEOUT = 60
+import backoff
 
 # TODO: handle the URLs more elegantly (most likely make this a true library
 # and pull all the needed info from the various source classes)
 from conda_forge_tick.utils import LazyJson
+
+backoff._decorator._is_event_loop = lambda: False
+
+MAX_GITHUB_TIMEOUT = 60
 
 
 def ensure_gh(ctx: GithubContext, gh: Optional[github3.GitHub]) -> github3.GitHub:

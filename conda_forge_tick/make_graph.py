@@ -11,13 +11,13 @@ from copy import deepcopy
 import typing
 from requests import Response
 from typing import List, Optional, Set
-import re
 
 import github3
 import networkx as nx
 import requests
 import yaml
 import textwrap
+import tqdm
 
 from xonsh.lib.collections import ChainDB, _convert_to_dict
 from .xonsh_utils import env
@@ -48,7 +48,7 @@ logger = logging.getLogger("conda_forge_tick.make_graph")
 pin_sep_pat = re.compile(r" |>|<|=|\[")
 
 
-NUM_GITHUB_THREADS = 4
+NUM_GITHUB_THREADS = 2
 
 github_username = env.get("USERNAME", "")
 github_password = env.get("PASSWORD", "")
@@ -349,12 +349,17 @@ def _get_last_updated_prs():
             }
           }
         }
-    """)
+    """)  # noqa
     headers = {"Authorization": f"token {github_token}"}
     # Try several times because this times out
-    for i in range(10):
-        resp = requests.post('https://api.github.com/graphql', json={'query': query}, headers=headers)
-        if resp.status_code == 200:
+    for i in range(0):
+        logger.info("graphQL request try %d", i+1)
+        resp = requests.post(
+            'https://api.github.com/graphql',
+            json={'query': query},
+            headers=headers,
+        )
+        if resp.status_code == 200 and 'data' in resp.json():
             data = resp.json()
             pr_ids = []
             for node in data['data']['user']['pullRequests']['nodes']:
@@ -384,7 +389,7 @@ def _update_pr(update_function, dry_run, gx):
 
     pr_json_regex = re.compile(r"^pr_json/([0-9]*).json$")
     with executor("thread", NUM_GITHUB_THREADS) as pool:
-        for node_id in node_ids:
+        for node_id in tqdm.tqdm(node_ids, desc='ordering PRs', leave=False):
             node = gx.nodes[node_id]["payload"]
             prs = node.get("PRed", [])
             for i, migration in enumerate(prs):
@@ -455,13 +460,17 @@ def close_labels(gx: nx.DiGraph, dry_run: bool = False) -> nx.DiGraph:
 
 def main(args: "CLIArgs") -> None:
     setup_logger(logger)
+
     names = get_all_feedstocks(cached=True)
     if os.path.exists("graph.json"):
         gx = load_graph()
     else:
         gx = None
     gx = make_graph(names, gx)
-    print([k for k, v in gx.nodes.items() if "payload" not in v])
+    print(
+        "nodes w/o payload:",
+        [k for k, v in gx.nodes.items() if "payload" not in v],
+    )
     # Utility flag for testing -- we don't need to always update GH
     no_github_fetch = os.environ.get("CONDA_FORGE_TICK_NO_GITHUB_REQUESTS")
     if not no_github_fetch:
