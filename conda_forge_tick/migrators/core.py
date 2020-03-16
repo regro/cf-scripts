@@ -603,7 +603,7 @@ class GraphMigrator(Migrator):
                 else:
                     nodes_built.append(_test_node_built(node))
 
-            LOGGER.debug("%s: dep %s: nodes: %s", __name, dep, nodes_built)
+            LOGGER.debug("%s: dep %s: built: %s", __name, dep, nodes_built)
 
             all_deps_built = all_deps_built and any(nodes_built)
 
