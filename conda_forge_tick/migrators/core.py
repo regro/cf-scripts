@@ -287,14 +287,15 @@ class Migrator:
                 ind = already_migrated_uids.index(migrator_uid)
                 LOGGER.debug("%s: already PRed: uid: %s" % (
                     __name, migrator_uid))
-                LOGGER.debug("%s: already PRed: PR file: %s" % (
-                    __name, attrs.get("PRed", [])[ind]["PR"].file_name))
+                if "PR" in attrs.get("PRed", [])[ind]:
+                    LOGGER.debug("%s: already PRed: PR file: %s" % (
+                        __name, attrs.get("PRed", [])[ind]["PR"].file_name))
 
-                with attrs.get("PRed", [])[ind]["PR"] as mg_attrs:
-                    html_url = mg_attrs.get("html_url", "no url")
+                    with attrs.get("PRed", [])[ind]["PR"] as mg_attrs:
+                        html_url = mg_attrs.get("html_url", "no url")
 
-                LOGGER.debug("%s: already PRed: url: %s" % (
-                    __name, html_url))
+                    LOGGER.debug("%s: already PRed: url: %s" % (
+                        __name, html_url))
 
             return already_pred
 
