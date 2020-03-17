@@ -595,7 +595,10 @@ def create_migration_yaml_creator(migrators: MutableSequence[Migrator], gx: nx.D
                 feedstocks_to_be_repinned.append(k)
                 print(package_name, current_version, current_pin, pin_spec)
                 migrators.append(
-                    MigrationYamlCreator(package_name, current_version, current_pin, pin_spec)
+                    MigrationYamlCreator(
+                        package_name, current_version, current_pin,
+                        pin_spec,
+                    )
                 )
 
 
@@ -797,17 +800,26 @@ def main(args: "CLIArgs") -> None:
         github_token=github_token,
     )
 
+    time_per = float(env.get("TIMEOUT", 600)) / len(MIGRATORS)
+
     for migrator in MIGRATORS:
 
         mmctx = MigratorContext(session=mctx, migrator=migrator)
         migrator.bind_to_ctx(mmctx)
 
         good_prs = 0
+        _mg_start = time.time()
         effective_graph = mmctx.effective_graph
 
+        if hasattr(migrator, "name"):
+            extra_name = "-%s" % migrator.name
+        else:
+            extra_name = ""
+
         logger.info(
-            "Total migrations for %s: %d",
+            "Total migrations for %s%s: %d",
             migrator.__class__.__name__,
+            extra_name,
             len(effective_graph.nodes),
         )
 
@@ -816,10 +828,14 @@ def main(args: "CLIArgs") -> None:
                 # Don't let CI timeout, break ahead of the timeout so we make certain
                 # to write to the repo
                 # TODO: convert these env vars
+                _now = time.time()
                 if (
-                    time.time() - int(env.get("START_TIME", time.time()))
-                    > int(env.get("TIMEOUT", 600))
-                    or good_prs >= migrator.pr_limit
+                    (
+                        _now - int(env.get("START_TIME", time.time())) >
+                        int(env.get("TIMEOUT", 600))
+                    ) or
+                    good_prs >= migrator.pr_limit or
+                    (_now - _mg_start) > time_per
                 ):
                     break
 
@@ -830,8 +846,9 @@ def main(args: "CLIArgs") -> None:
                 )
 
                 logger.info(
-                    "%s IS MIGRATING %s",
+                    "%s%s IS MIGRATING %s",
                     migrator.__class__.__name__.upper(),
+                    extra_name,
                     fctx.package_name,
                 )
                 try:
