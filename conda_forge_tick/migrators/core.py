@@ -28,6 +28,7 @@ from conda_forge_tick.utils import (
     as_iterable,
     CB_CONFIG,
     PACKAGE_STUBS,
+    LazyJson,
 )
 from conda_forge_tick.contexts import MigratorContext, FeedstockContext
 
@@ -288,14 +289,16 @@ class Migrator:
                 LOGGER.debug("%s: already PRed: uid: %s" % (
                     __name, migrator_uid))
                 if "PR" in attrs.get("PRed", [])[ind]:
-                    LOGGER.debug("%s: already PRed: PR file: %s" % (
-                        __name, attrs.get("PRed", [])[ind]["PR"].file_name))
+                    if isinstance(attrs.get("PRed", [])[ind]["PR"], LazyJson):
+                        with attrs.get("PRed", [])[ind]["PR"] as mg_attrs:
 
-                    with attrs.get("PRed", [])[ind]["PR"] as mg_attrs:
-                        html_url = mg_attrs.get("html_url", "no url")
+                            LOGGER.debug("%s: already PRed: PR file: %s" % (
+                                __name, mg_attrs.file_name))
 
-                    LOGGER.debug("%s: already PRed: url: %s" % (
-                        __name, html_url))
+                            html_url = mg_attrs.get("html_url", "no url")
+
+                            LOGGER.debug("%s: already PRed: url: %s" % (
+                                __name, html_url))
 
             return already_pred
 
