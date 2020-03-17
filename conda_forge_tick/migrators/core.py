@@ -271,20 +271,44 @@ class Migrator:
         # don't run on things we've already done
         # don't run on bad nodes
 
+        __name = attrs.get("name", "")
+
         def parse_already_pred() -> bool:
+            pr_data = frozen_to_json_friendly(self.migrator_uid(attrs))
             migrator_uid: "MigrationUidTypedDict" = typing.cast(
                 "MigrationUidTypedDict",
-                frozen_to_json_friendly(self.migrator_uid(attrs))["data"],
+                pr_data["data"],
             )
-            already_migrated_uids: typing.Iterable["MigrationUidTypedDict"] = (
+            already_migrated_uids: typing.Iterable["MigrationUidTypedDict"] = list(
                 z["data"] for z in attrs.get("PRed", [])
             )
-            return migrator_uid in already_migrated_uids
+            already_pred = migrator_uid in already_migrated_uids
+            if already_pred:
+                ind = already_migrated_uids.index(migrator_uid)
+                LOGGER.debug("%s: already PRed: uid: %s" % (
+                    __name, migrator_uid))
+                LOGGER.debug("%s: already PRed: PR file: %s" % (
+                    __name, attrs.get("PRed", [])[ind]["PR"].file_name))
+
+                with attrs.get("PRed", [])[ind]["PR"] as mg_attrs:
+                    html_url = mg_attrs.get("html_url", "no url")
+
+                LOGGER.debug("%s: already PRed: url: %s" % (
+                    __name, html_url))
+
+            return already_pred
+
+        if attrs.get("archived", False):
+            LOGGER.debug("%s: archived" % __name)
+
+        bad_attr = _parse_bad_attr(attrs, not_bad_str_start)
+        if bad_attr:
+            LOGGER.debug("%s: bnad attr" % __name)
 
         return (
             attrs.get("archived", False)
             or parse_already_pred()
-            or _parse_bad_attr(attrs, not_bad_str_start)
+            or bad_attr
         )
 
     def run_pre_piggyback_migrations(
