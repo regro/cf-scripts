@@ -800,7 +800,13 @@ def main(args: "CLIArgs") -> None:
         github_token=github_token,
     )
 
-    time_per = float(env.get("TIMEOUT", 600)) / len(MIGRATORS)
+    num_nodes = 0
+    for migrator in MIGRATORS:
+        mmctx = MigratorContext(session=mctx, migrator=migrator)
+        migrator.bind_to_ctx(mmctx)
+        num_nodes += len(mmctx.effective_graph.nodes)
+
+    time_per_node = float(env.get("TIMEOUT", 600)) / num_nodes
 
     for migrator in MIGRATORS:
 
@@ -810,6 +816,7 @@ def main(args: "CLIArgs") -> None:
         good_prs = 0
         _mg_start = time.time()
         effective_graph = mmctx.effective_graph
+        time_per = len(effective_graph.nodes) * time_per_node
 
         if hasattr(migrator, "name"):
             extra_name = "-%s" % migrator.name
