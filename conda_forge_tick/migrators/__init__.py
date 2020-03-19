@@ -3,7 +3,6 @@ from .core import (
     Migrator,
     GraphMigrator,
     MiniMigrator,
-    PipMigrator,
     LicenseMigrator,
     Replacement,
 )
@@ -14,3 +13,4 @@ from .pip_check import PipCheckMigrator
 from .matplotlib_base import MatplotlibBase
 from .extra_jinj2a_keys_cleanup import ExtraJinja2KeysCleanup
 from .version import Version
+from .use_pip import PipMigrator

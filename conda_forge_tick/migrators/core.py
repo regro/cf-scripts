@@ -15,17 +15,15 @@ from typing import (
 
 import networkx as nx
 from rever.tools import replace_in_file
-from ..xonsh_utils import indir
 
 from conda_build.source import provide
 from conda_build.config import Config
 from conda_build.api import render
 
 from conda_forge_tick.path_lengths import cyclic_topological_sort
-from conda_forge_tick.xonsh_utils import eval_xonsh
+from conda_forge_tick.xonsh_utils import eval_xonsh, indir
 from conda_forge_tick.utils import (
     frozen_to_json_friendly,
-    as_iterable,
     CB_CONFIG,
     PACKAGE_STUBS,
     LazyJson,
@@ -110,28 +108,6 @@ class MiniMigrator:
             If namedtuple continue with PR, if False scrap local folder
         """
         return
-
-
-class PipMigrator(MiniMigrator):
-    bad_install = (
-        "python setup.py install",
-        "python -m pip install --no-deps --ignore-installed .",
-    )
-
-    def filter(self, attrs: "AttrsTypedDict", not_bad_str_start: str = "") -> bool:
-        scripts = as_iterable(
-            attrs.get("meta_yaml", {}).get("build", {}).get("script", []),
-        )
-        return not bool(set(self.bad_install) & set(scripts))
-
-    def migrate(self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any) -> None:
-        with indir(recipe_dir):
-            for b in self.bad_install:
-                replace_in_file(
-                    f"script: {b}",
-                    "script: {{ PYTHON }} -m pip install . --no-deps -vv",
-                    "meta.yaml",
-                )
 
 
 class LicenseMigrator(MiniMigrator):
