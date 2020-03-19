@@ -800,13 +800,30 @@ def main(args: "CLIArgs") -> None:
         github_token=github_token,
     )
 
-    num_nodes = 0
+    # compute the time per migrator
+    num_nodes = []
     for migrator in MIGRATORS:
         mmctx = MigratorContext(session=mctx, migrator=migrator)
         migrator.bind_to_ctx(mmctx)
-        num_nodes += len(mmctx.effective_graph.nodes)
+        num_nodes.append(len(mmctx.effective_graph.nodes))
 
-    time_per_node = float(env.get("TIMEOUT", 600)) / num_nodes
+    num_nodes_tot = sum(num_nodes)
+    time_per_node = float(env.get("TIMEOUT", 600)) / num_nodes_tot
+
+    for i, migrator in enumerate(MIGRATORS):
+        if hasattr(migrator, "name"):
+            extra_name = "-%s" % migrator.name
+        else:
+            extra_name = ""
+
+        logger.info(
+            "Total migrations for %s%s: %d - gets %f seconds (%f percent)",
+            migrator.__class__.__name__,
+            extra_name,
+            num_nodes[i],
+            num_nodes[i] * time_per_node,
+            num_nodes[i] / num_nodes_tot * 100,
+        )
 
     for migrator in MIGRATORS:
 
@@ -824,7 +841,7 @@ def main(args: "CLIArgs") -> None:
             extra_name = ""
 
         logger.info(
-            "Total migrations for %s%s: %d",
+            "Running migrations for %s%s: %d",
             migrator.__class__.__name__,
             extra_name,
             len(effective_graph.nodes),

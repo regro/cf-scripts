@@ -218,10 +218,9 @@ def setup_logger(logger: logging.Logger, level: Optional[str] = "INFO") -> None:
     """
 
     logging.basicConfig(
-        level=logging.ERROR,
+        level=level.upper(),
         format="%(asctime)-15s %(levelname)-8s %(name)s || %(message)s",
     )
-    logger.setLevel(level.upper())
 
 
 # TODO: upstream this into networkx?
