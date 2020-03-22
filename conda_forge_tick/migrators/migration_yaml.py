@@ -149,11 +149,13 @@ class MigrationYamlCreator(Migrator):
         new_pin_version: str,
         current_pin: str,
         pin_spec: str,
+        feedstock_name: str,
         pr_limit: int = 1,
         bump_number: int = 1,
         **kwargs: Any,
     ):
         super().__init__(pr_limit=pr_limit,)
+        self.feedstock_name = feedstock_name
         self.pin_spec = pin_spec
         self.current_pin = current_pin
         self.new_pin_version = new_pin_version
@@ -230,7 +232,9 @@ class MigrationYamlCreator(Migrator):
         body = super().pr_body(feedstock_ctx)
         additional_body = (
             "This PR has been triggered in an effort to update the pin for"
-            " **{name}**.\n\n"
+            " **{name}**. The current pinned version is {current_pin}, "
+            "the latest available version is {new_pin_version} and the max "
+            "pin pattern is {pin_spec}.\n\n"
             "Notes and instructions for merging this PR:\n"
             "1. Please merge the PR only if this new version is to be a "
             "supported pin. \n"
@@ -240,8 +244,9 @@ class MigrationYamlCreator(Migrator):
             "of the pinnings package. \n"
             "\n"
             "**Please note that if you close this PR we presume that "
-            "the new pin has been rejected."
-            "".format(name=self.package_name,)
+            "the new pin has been rejected.\n\n"
+            "@conda-forge-admin please ping {feedstock_name}"
+            "".format(name=self.package_name,pin_spec=self.pin_spec,current_pin=self.current_pin,new_pin_version=self.new_pin_version,feedstock_name=self.feedstock_name)
         )
         body = body.format(additional_body)
         return body

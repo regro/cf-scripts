@@ -597,7 +597,7 @@ def create_migration_yaml_creator(migrators: MutableSequence[Migrator], gx: nx.D
                 migrators.append(
                     MigrationYamlCreator(
                         package_name, current_version, current_pin,
-                        pin_spec,
+                        pin_spec, k
                     )
                 )
 
