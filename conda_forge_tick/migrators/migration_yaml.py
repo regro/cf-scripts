@@ -189,9 +189,6 @@ class MigrationYamlCreator(Migrator):
                 )
             eval_xonsh("git add .")
 
-        if not found_ver:
-            return False
-
         return super().migrate(recipe_dir, attrs)
 
     def pr_body(self, feedstock_ctx: "FeedstockContext") -> str:
