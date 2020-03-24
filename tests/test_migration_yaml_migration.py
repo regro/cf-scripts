@@ -22,7 +22,7 @@ env["CIRCLE_BUILD_URL"] = "hi world"
 
 
 IN_YAML = """\
-{% set version = datetime.datetime.now().strftime("%Y.%m.%d.%H.%M.%S") %}
+{% set version = datetime.datetime.utcnow().strftime("%Y.%m.%d.%H.%M.%S") %}
 
 package:
   name: conda-forge-pinning
@@ -44,7 +44,7 @@ build:
 
 
 OUT_YAML = """\
-{%% set version = datetime.datetime.now().strftime("%Y.%m.%d.%H.%M.%S") %%}
+{% set version = datetime.datetime.utcnow().strftime("%Y.%m.%d.%H.%M.%S") %}
 
 package:
   name: conda-forge-pinning
@@ -66,7 +66,7 @@ build:
 
 
 IN_YAML_TODAY = """\
-{%% set version = datetime.datetime.now().strftime("%Y.%m.%d.%H.%M.%S") %%}
+{% set version = datetime.datetime.utcnow().strftime("%Y.%m.%d.%H.%M.%S") %}
 
 package:
   name: conda-forge-pinning
@@ -88,7 +88,7 @@ build:
 
 
 OUT_YAML_TODAY = """\
-{%% set version = datetime.datetime.now().strftime("%Y.%m.%d.%H.%M.%S") %%}
+{% set version = datetime.datetime.utcnow().strftime("%Y.%m.%d.%H.%M.%S") %}
 
 package:
   name: conda-forge-pinning
@@ -98,7 +98,7 @@ source:
   path: .
 
 build:
-  number: 1
+  number: 0
   noarch: generic
   script:
     - cp conda_build_config.yaml $PREFIX                       # [unix]

@@ -1,3 +1,4 @@
+import datetime
 import typing
 from collections.abc import Callable
 from collections import defaultdict
@@ -50,6 +51,7 @@ CB_CONFIG = dict(
     pin_compatible=lambda *args, **kwargs: args[0],
     cdt=lambda *args, **kwargs: "cdt_stub",
     cran_mirror="https://cran.r-project.org",
+    datetime=datetime
 )
 
 
@@ -63,6 +65,7 @@ CB_CONFIG_PINNING = dict(
     pin_compatible=lambda *args, **kwargs: {"package_name": args[0], **kwargs},
     cdt=lambda *args, **kwargs: "cdt_stub",
     cran_mirror="https://cran.r-project.org",
+    datetime=datetime
 )
 
 
