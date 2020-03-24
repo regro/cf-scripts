@@ -189,43 +189,6 @@ class MigrationYamlCreator(Migrator):
                 )
             eval_xonsh("git add .")
 
-        with indir(recipe_dir):
-            with open("meta.yaml", "r") as fp:
-                new_lines = []
-                found_ver = False
-                for line in fp.readlines():
-                    if line.startswith("{% set version = "):
-                        curr_now = (
-                            line
-                            .split("=")[1]
-                            .replace("%", "")
-                            .replace("}", "")
-                            .replace("\"", "")
-                            .replace("'", "")
-                            .strip()
-                        )
-                        now = datetime.datetime.now().strftime("%Y.%m.%d")
-                        found_ver = True
-                        if curr_now != now:
-                            new_lines.append("{% set version = \"" + now + "\" %}\n")
-                        else:
-                            new_lines.append(line)
-                    else:
-                        new_lines.append(line)
-
-            with open("meta.yaml", "w") as fp:
-                for line in new_lines:
-                    fp.write(line)
-
-            eval_xonsh("git add .")
-
-        if not found_ver:
-            return False
-
-        with indir(recipe_dir):
-            if curr_now == now:
-                self.set_build_number("meta.yaml")
-
         return super().migrate(recipe_dir, attrs)
 
     def pr_body(self, feedstock_ctx: "FeedstockContext") -> str:
