@@ -22,7 +22,7 @@ env["CIRCLE_BUILD_URL"] = "hi world"
 
 
 IN_YAML = """\
-{% set version = "2020.03.10" %}
+{% set version = datetime.datetime.now().strftime("%Y.%m.%d.%H.%M.%S") %}
 
 package:
   name: conda-forge-pinning
@@ -44,7 +44,7 @@ build:
 
 
 OUT_YAML = """\
-{%% set version = "%s" %%}
+{%% set version = datetime.datetime.now().strftime("%Y.%m.%d.%H.%M.%S") %%}
 
 package:
   name: conda-forge-pinning
@@ -62,11 +62,11 @@ build:
     - cp migrations/* $PREFIX/share/conda-forge/migrations/    # [unix]
     - echo "This package can't be built on windows"            # [win]
     - exit 1                                                   # [win]
-""" % datetime.datetime.now().strftime("%Y.%m.%d")
+"""
 
 
 IN_YAML_TODAY = """\
-{%% set version = "%s" %%}
+{%% set version = datetime.datetime.now().strftime("%Y.%m.%d.%H.%M.%S") %%}
 
 package:
   name: conda-forge-pinning
@@ -84,11 +84,11 @@ build:
     - cp migrations/* $PREFIX/share/conda-forge/migrations/    # [unix]
     - echo "This package can't be built on windows"            # [win]
     - exit 1                                                   # [win]
-""" % datetime.datetime.now().strftime("%Y.%m.%d")
+"""
 
 
 OUT_YAML_TODAY = """\
-{%% set version = "%s" %%}
+{%% set version = datetime.datetime.now().strftime("%Y.%m.%d.%H.%M.%S") %%}
 
 package:
   name: conda-forge-pinning
@@ -106,7 +106,7 @@ build:
     - cp migrations/* $PREFIX/share/conda-forge/migrations/    # [unix]
     - echo "This package can't be built on windows"            # [win]
     - exit 1                                                   # [win]
-""" % datetime.datetime.now().strftime("%Y.%m.%d")
+"""
 
 BOOST_YAML = """\
 __migrator:
