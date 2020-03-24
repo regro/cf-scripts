@@ -8,7 +8,6 @@ doctr
 rever
 xonsh
 conda-smithy
-requests
 feedparser
 conda
 conda-forge-pinning
