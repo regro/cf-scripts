@@ -411,7 +411,7 @@ def add_rebuild_migration_yaml(
         for e in list(total_graph.in_edges(node)):
             if e[0] not in rq:
                 total_graph.remove_edge(*e)
-        if not any([criteria]):
+        if not any([criteria]) or node in excluded_feedstocks:
             pluck(total_graph, node)
 
     # post plucking we can have several strange cases, lets remove all selfloops
