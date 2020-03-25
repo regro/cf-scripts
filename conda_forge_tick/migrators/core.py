@@ -602,7 +602,10 @@ class GraphMigrator(Migrator):
 
             nodes_built = []
             for node in potential_nodes:
-                if node not in self.graph.nodes:
+                if node == __name:
+                    # self-cycle is always built
+                    nodes_built.append(True)
+                elif node not in self.graph.nodes:
                     nodes_built.append(False)
                 else:
                     nodes_built.append(_test_node_built(node))
@@ -619,7 +622,7 @@ class GraphMigrator(Migrator):
             LOGGER.debug("filter %s: archived or done", name)
             return True
         if attrs["feedstock_name"] not in self.graph:
-            LOGGER.debug("filter %s: no feedstock name", name)
+            LOGGER.debug("filter %s: node not in graph", name)
             return True
         # If in top level or in a cycle don't check for upstreams just build
         if (attrs["feedstock_name"] in self.top_level) or (
