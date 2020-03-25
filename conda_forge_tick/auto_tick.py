@@ -779,6 +779,42 @@ def migrator_status(
     return out2, build_sequence, gv
 
 
+def _compute_time_per_migrator(mctx):
+    # we weight each migrator by the number of available nodes to migrate
+    num_nodes = []
+    for migrator in MIGRATORS:
+        mmctx = MigratorContext(session=mctx, migrator=migrator)
+        migrator.bind_to_ctx(mmctx)
+        num_nodes.append(len(mmctx.effective_graph.nodes))
+
+    num_nodes_tot = sum(num_nodes)
+    time_per_node = float(env.get("TIMEOUT", 600)) / num_nodes_tot
+
+    # also enforce a minimum of 300 seconds if any nodes can be migrated
+    time_per_migrator = []
+    for i, migrator in enumerate(MIGRATORS):
+        _time_per = num_nodes[i] * time_per_node
+
+        if num_nodes[i] > 0 and _time_per < 300:
+            _time_per = 300
+
+        time_per_migrator.append(_time_per)
+
+    # finally rescale to fit in the time we have
+    tot_time_per_migrator = sum(time_per_migrator)
+    if tot_time_per_migrator > 0:
+        time_fac = float(env.get("TIMEOUT", 600)) / tot_time_per_migrator
+    else:
+        time_fac = 1.0
+    for i in range(len(time_per_migrator)):
+        time_per_migrator[i] = time_per_migrator[i] * time_fac
+
+    # recompute the total here
+    tot_time_per_migrator = sum(time_per_migrator)
+
+    return num_nodes, time_per_migrator, tot_time_per_migrator
+
+
 def main(args: "CLIArgs") -> None:
     # logging
     from .xonsh_utils import env
@@ -801,26 +837,11 @@ def main(args: "CLIArgs") -> None:
     )
 
     # compute the time per migrator
-    num_nodes = []
-    for migrator in MIGRATORS:
-        mmctx = MigratorContext(session=mctx, migrator=migrator)
-        migrator.bind_to_ctx(mmctx)
-        num_nodes.append(len(mmctx.effective_graph.nodes))
-
-    num_nodes_tot = sum(num_nodes)
-    time_per_node = float(env.get("TIMEOUT", 600)) / num_nodes_tot
-
-    time_per_migrator = []
-    for i, migrator in enumerate(MIGRATORS):
-        _time_per = num_nodes[i] * time_per_node
-
-        if num_nodes[i] > 0 and _time_per < 300:
-            _time_per = 300
-
-        time_per_migrator.append(_time_per)
-
-    tot_time_per_migrator = sum(time_per_migrator)
-
+    (
+        num_nodes,
+        time_per_migrator,
+        tot_time_per_migrator,
+    ) = _compute_time_per_migrator(mctx)
     for i, migrator in enumerate(MIGRATORS):
         if hasattr(migrator, "name"):
             extra_name = "-%s" % migrator.name
