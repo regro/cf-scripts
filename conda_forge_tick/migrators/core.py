@@ -68,7 +68,7 @@ def _get_source_code(recipe_dir):
     # Use conda build to do all the downloading/extracting bits
     md = render(recipe_dir, config=Config(**CB_CONFIG))
     if not md:
-        return
+        return None
     md = md[0][0]
     # provide source dir
     return provide(md)
@@ -130,6 +130,8 @@ class LicenseMigrator(MiniMigrator):
 
     def migrate(self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any) -> None:
         cb_work_dir = _get_source_code(recipe_dir)
+        if cb_work_dir is None:
+            return
         with indir(cb_work_dir):
             # look for a license file
             license_files = [
