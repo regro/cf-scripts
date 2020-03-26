@@ -177,17 +177,22 @@ def _try_replace_hash(
                 key = cname + CONDA_SELECTOR + selector
                 if key in cmeta.jinja2_vars:
                     cmeta.jinja2_vars[key] = new_hash
+                    logger.info(
+                        "jinja2 w/ new hash: %s", pprint.pformat(cmeta.jinja2_vars))
                     _replaced_hash = True
                     break
 
             if cname in cmeta.jinja2_vars:
                 cmeta.jinja2_vars[cname] = new_hash
+                logger.info(
+                    "jinja2 w/ new hash: %s", pprint.pformat(cmeta.jinja2_vars))
                 _replaced_hash = True
                 break
 
     else:
         _replaced_hash = True
         src[hash_key] = new_hash
+        logger.info("source w/ new hash: %s", pprint.pformat(src))
 
     return _replaced_hash
 
@@ -294,8 +299,11 @@ def _try_to_update_version(cmeta: Any, src: str, hash_type: str):
             if _replaced_hash:
                 if isinstance(src[url_key], collections.abc.MutableSequence):
                     src[url_key][url_ind] = new_url_tmpl
+                    logger.info("source w/ new url: %s", pprint.pformat(src[url_key]))
+
                 else:
                     src[url_key] = new_url_tmpl
+                    logger.info("source w/ new url: %s", pprint.pformat(src))
             else:
                 new_hash = None
 
@@ -426,15 +434,15 @@ class Version(Migrator):
             s = io.StringIO()
             cmeta.dump(s)
             s.seek(0)
-            if s.read() == old_meta_yaml:
+            still_the_same = s.read() == old_meta_yaml
+            cmeta.jinja2_vars["version"] = version  # put back version
+
+            if still_the_same:
                 did_update = False
                 logger.critical(
                     "Recipe did not change in version migration "
                     "but the code indicates an update was done!"
                 )
-
-            # put back version
-            cmeta.jinja2_vars["version"] = version
 
         if did_update:
             with indir(recipe_dir):

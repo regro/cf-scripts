@@ -1,0 +1,59 @@
+{% set name = "bluesky" %}
+{% set version = "1.6.0" %}
+{% set sha256 = "bd9213ce0856c24a74d88455c57354b375924b6508ac71939352ff3c23f07724" %}
+
+package:
+  name: {{ name|lower }}
+  version: {{ version }}
+
+source:
+  url: https://pypi.io/packages/source/{{ name[0] }}/{{ name }}/{{ name }}-{{ version }}.tar.gz
+  sha256: {{ sha256 }}
+
+build:
+  noarch: python
+  number: 0
+  script: {{ PYTHON }} -m pip install . --no-deps -vv
+
+requirements:
+  host:
+    - python >=3.6
+    - pip
+
+  run:
+    - python >=3.6
+    - cycler
+    - databroker
+    - doct
+    - event-model >=1.10.0
+    - historydict
+    - ipython
+    - lmfit
+    - matplotlib
+    - numpy
+    - ophyd
+    - pyzmq
+    - super_state_machine
+    - toolz
+    - tqdm
+
+test:
+  imports:
+    - bluesky
+    - bluesky.plans
+    - bluesky.callbacks
+
+about:
+  home: https://blueskyproject.io
+  license: BSD-3-clause
+  license_family: BSD
+  license_file: LICENSE
+  summary: A Python data collection interface for experimental science
+
+  description: A Python data collection interface for experimental science
+  doc_url: https://blueskyproject.io/bluesky
+  dev_url: https://github.com/bluesky/bluesky
+
+extra:
+  recipe-maintainers:
+    - conda-forge/event-model
