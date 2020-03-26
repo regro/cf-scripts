@@ -437,7 +437,7 @@ class Version(Migrator):
             still_the_same = s.read() == old_meta_yaml
             cmeta.jinja2_vars["version"] = version  # put back version
 
-            if still_the_same:
+            if still_the_same and old_version != version:
                 did_update = False
                 logger.critical(
                     "Recipe did not change in version migration "
