@@ -12,6 +12,7 @@ YAML_PATH = os.path.join(os.path.dirname(__file__), 'test_yaml')
 
 
 @pytest.mark.parametrize('case,new_ver', [
+    ('jinja2expr', '1.1.1'),
     ('weird', '1.6.0'),
     ('compress', '0.9'),
     ('onesrc', '2.4.1'),
