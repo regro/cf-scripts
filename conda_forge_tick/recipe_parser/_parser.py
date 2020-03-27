@@ -26,7 +26,7 @@ SELECTOR_RE = re.compile(r"^.*#\s*\[(.*)\]")
 
 def _get_yaml_parser():
     """yaml parser that is jinja2 aware"""
-    # using a function here so settings are alwasy the same
+    # using a function here so settings are always the same
     parser = YAML(typ="jinja2")
     parser.indent(mapping=2, sequence=4, offset=2)
     parser.width = 160
