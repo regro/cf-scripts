@@ -217,6 +217,7 @@ def _try_to_update_version(cmeta: Any, src: str, hash_type: str):
     # these are then updated
 
     for selector in possible_selectors:
+        # url and hash keys
         logger.info("selector: %s", selector)
         url_key = "url"
         if selector is not None:
@@ -236,6 +237,7 @@ def _try_to_update_version(cmeta: Any, src: str, hash_type: str):
         if hash_key not in src:
             continue
 
+        # jinja2 stuff
         context = {}
         for key, val in cmeta.jinja2_vars.items():
             if CONDA_SELECTOR in key:
@@ -243,6 +245,13 @@ def _try_to_update_version(cmeta: Any, src: str, hash_type: str):
                     context[key.split(CONDA_SELECTOR)[0]] = val
             else:
                 context[key] = val
+        # this pulls out any jinja2 expressions that are not constans
+        # e.g. bits of jinja2 that extract version parts
+        evaled_context = cmeta.eval_jinja2_exprs(context)
+        logger.info("jinja2 context: %s", pprint.pformat(context))
+        logger.info("evaluated jinja2 vars: %s", pprint.pformat(evaled_context))
+        context.update(evaled_context)
+        logger.info("updated jinja2 context: %s", pprint.pformat(context))
 
         # get all of the possible variables in the url
         # if we do not have them or any selector versions, then
@@ -258,7 +267,11 @@ def _try_to_update_version(cmeta: Any, src: str, hash_type: str):
 
         skip_this_selector = False
         for var in jinja2_var_set:
-            if len(list(_gen_key_selector(cmeta.jinja2_vars, var))) == 0:
+            possible_keys = (
+                list(_gen_key_selector(cmeta.jinja2_vars, var))
+                + list(_gen_key_selector(evaled_context, var))
+            )
+            if len(possible_keys) == 0:
                 if var == "cran_mirror":
                     context["cran_mirror"] = "https://cran.r-project.org"
                 else:
@@ -276,7 +289,6 @@ def _try_to_update_version(cmeta: Any, src: str, hash_type: str):
 
         logger.info("url key: %s", url_key)
         logger.info("hash key: %s", hash_key)
-        logger.info("jinja2 context: %s", pprint.pformat(context))
 
         # now try variations of the url to get the hash
         if isinstance(src[url_key], collections.abc.MutableSequence):
