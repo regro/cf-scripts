@@ -33,7 +33,7 @@ for node, node_attrs in _all_nodes:
             print(
                 f"# {Node_count:<5} - {node:<30} - ver: {actual_ver:<10} - bad/archived"
             )
-            pass
+            continue
         # new version request
         try:
             new_version = get_latest_version(node, attrs, sources)
