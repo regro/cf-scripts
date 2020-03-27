@@ -330,6 +330,10 @@ class Version(Migrator):
         if "new_version" not in attrs or not attrs["new_version"]:
             return True
 
+        # if no jinja2 version, then move on
+        if "raw_meta_yaml" in attrs and "{% version" not in attrs["raw_meta_yaml"]:
+            return True
+
         conditional = super().filter(attrs)
 
         result = bool(
