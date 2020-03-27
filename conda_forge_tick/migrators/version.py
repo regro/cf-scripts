@@ -331,7 +331,7 @@ class Version(Migrator):
             return True
 
         # if no jinja2 version, then move on
-        if "raw_meta_yaml" in attrs and "{% version" not in attrs["raw_meta_yaml"]:
+        if "raw_meta_yaml" in attrs and "{% set version" not in attrs["raw_meta_yaml"]:
             return True
 
         conditional = super().filter(attrs)
