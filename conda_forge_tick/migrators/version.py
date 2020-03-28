@@ -494,7 +494,8 @@ class Version(Migrator):
         about = feedstock_ctx.attrs.get("meta_yaml", {}).get("about",  {})
         upstream_url = about.get("dev_url", "") or about.get("home", "")
         if upstream_url:
-            upstream_url_link = ": see [upstream]({upstream_url})".format(upstream_url)
+            upstream_url_link = ": see [upstream]({upstream_url})".format(
+                upstream_url=upstream_url)
         else:
             upstream_url_link = ""
 
