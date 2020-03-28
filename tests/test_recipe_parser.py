@@ -22,6 +22,7 @@ def test_parsing(add_extra_req):
 {% set version = '4.5.6' %}
 {% set major_ver = version.split('.')[0] %}
 {% set bad_ver = bad_version.split('.')[0] %}
+{% set vmajor,vminor,vpatch = version.split('.') %}
 
 {% set build = 0 %}
 {% if False %}
@@ -53,6 +54,7 @@ requirements:
 {% set version = "4.5.6" %}
 {% set major_ver = version.split('.')[0] %}
 {% set bad_ver = bad_version.split('.')[0] %}
+{% set vmajor,vminor,vpatch = version.split('.') %}
 
 {% set build = 0 %}
 {% if False %}
@@ -88,10 +90,25 @@ requirements:
     # check jinja2 expressions
     assert cm.jinja2_exprs["major_ver"] == "{% set major_ver = version.split('.')[0] %}"
     assert cm.jinja2_exprs["bad_ver"] == "{% set bad_ver = bad_version.split('.')[0] %}"
+    assert (
+        cm.jinja2_exprs["vmajor"]
+        == "{% set vmajor,vminor,vpatch = version.split('.') %}"
+    )
+    assert (
+        cm.jinja2_exprs["vminor"]
+        == "{% set vmajor,vminor,vpatch = version.split('.') %}"
+    )
+    assert (
+        cm.jinja2_exprs["vpatch"]
+        == "{% set vmajor,vminor,vpatch = version.split('.') %}"
+    )
 
     # check it when we eval
     jinja2_exprs_evaled = cm.eval_jinja2_exprs(cm.jinja2_vars)
     assert jinja2_exprs_evaled["major_ver"] == 4
+    assert jinja2_exprs_evaled["vmajor"] == 4
+    assert jinja2_exprs_evaled["vminor"] == 5
+    assert jinja2_exprs_evaled["vpatch"] == 6
 
     # check selectors
     assert cm.meta['source']['sha256__###conda-selector###__py2k'] == 1
@@ -130,6 +147,7 @@ requirements:
 {% set version = "4.5.6" %}
 {% set major_ver = version.split('.')[0] %}
 {% set bad_ver = bad_version.split('.')[0] %}
+{% set vmajor,vminor,vpatch = version.split('.') %}
 
 {% set build = 100 %}
 {% if False %}
