@@ -316,7 +316,7 @@ def _build_jinja2_expr_tmp(jinja2_exprs):
     exprs = []
     tmpls = []
     for var, expr in jinja2_exprs.items():
-        tmpl = "%s: {{ %s }}" % (var, var)
+        tmpl = "%s: >-\n  {{ %s }}" % (var, var)
         if tmpl not in tmpls:
             tmpls.append(tmpl)
         if expr.strip() not in exprs:

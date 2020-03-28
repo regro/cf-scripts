@@ -23,6 +23,10 @@ def test_parsing(add_extra_req):
 {% set major_ver = version.split('.')[0] %}
 {% set bad_ver = bad_version.split('.')[0] %}
 {% set vmajor,vminor,vpatch = version.split('.') %}
+{% set crazy_string1 = ">=5,<7" ~ version %}
+{% set crazy_string2 = '"' ~ version %}
+{% set crazy_string3 = "'" ~ version %}
+{% set crazy_string4 = "|" ~ version %}
 
 {% set build = 0 %}
 {% if False %}
@@ -55,6 +59,10 @@ requirements:
 {% set major_ver = version.split('.')[0] %}
 {% set bad_ver = bad_version.split('.')[0] %}
 {% set vmajor,vminor,vpatch = version.split('.') %}
+{% set crazy_string1 = ">=5,<7" ~ version %}
+{% set crazy_string2 = '"' ~ version %}
+{% set crazy_string3 = "'" ~ version %}
+{% set crazy_string4 = "|" ~ version %}
 
 {% set build = 0 %}
 {% if False %}
@@ -102,13 +110,33 @@ requirements:
         cm.jinja2_exprs["vpatch"]
         == "{% set vmajor,vminor,vpatch = version.split('.') %}"
     )
+    assert (
+        cm.jinja2_exprs["crazy_string1"]
+        == '{% set crazy_string1 = ">=5,<7" ~ version %}'
+    )
+    assert (
+        cm.jinja2_exprs["crazy_string2"]
+        == '{% set crazy_string2 = \'"\' ~ version %}'
+    )
+    assert (
+        cm.jinja2_exprs["crazy_string3"]
+        == '{% set crazy_string3 = "\'" ~ version %}'
+    )
+    assert (
+        cm.jinja2_exprs["crazy_string4"]
+        == '{% set crazy_string4 = "|" ~ version %}'
+    )
 
     # check it when we eval
     jinja2_exprs_evaled = cm.eval_jinja2_exprs(cm.jinja2_vars)
-    assert jinja2_exprs_evaled["major_ver"] == 4
-    assert jinja2_exprs_evaled["vmajor"] == 4
-    assert jinja2_exprs_evaled["vminor"] == 5
-    assert jinja2_exprs_evaled["vpatch"] == 6
+    assert jinja2_exprs_evaled["major_ver"] == '4'
+    assert jinja2_exprs_evaled["vmajor"] == '4'
+    assert jinja2_exprs_evaled["vminor"] == '5'
+    assert jinja2_exprs_evaled["vpatch"] == '6'
+    assert jinja2_exprs_evaled["crazy_string1"] == '>=5,<74.5.6'
+    assert jinja2_exprs_evaled["crazy_string2"] == '"4.5.6'
+    assert jinja2_exprs_evaled["crazy_string3"] == "'4.5.6"
+    assert jinja2_exprs_evaled["crazy_string4"] == '|4.5.6'
 
     # check selectors
     assert cm.meta['source']['sha256__###conda-selector###__py2k'] == 1
@@ -148,6 +176,10 @@ requirements:
 {% set major_ver = version.split('.')[0] %}
 {% set bad_ver = bad_version.split('.')[0] %}
 {% set vmajor,vminor,vpatch = version.split('.') %}
+{% set crazy_string1 = ">=5,<7" ~ version %}
+{% set crazy_string2 = '"' ~ version %}
+{% set crazy_string3 = "'" ~ version %}
+{% set crazy_string4 = "|" ~ version %}
 
 {% set build = 100 %}
 {% if False %}
@@ -354,5 +386,7 @@ gh:
     assert tmpl == """\
 {% set var5 = var3 + 10 %}
 {% set var7 = var1.replace('n', 'm') %}
-var5: {{ var5 }}
-var7: {{ var7 }}"""
+var5: >-
+  {{ var5 }}
+var7: >-
+  {{ var7 }}"""
