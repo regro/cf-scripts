@@ -114,7 +114,11 @@ def _parse_jinja2_variables(meta_yaml: str) -> dict:
             else:
                 jinja2_vals[n.target.name] = (n.node.value, i)
         elif isinstance(n, jinja2.nodes.Assign):
-            jinja2_exprs[n.target.name] = meta_yaml_lines[n.lineno-1]
+            if isinstance(n.target, jinja2.nodes.Tuple):
+                for __n in n.target.items:
+                    jinja2_exprs[__n.name] = meta_yaml_lines[n.lineno-1]
+            else:
+                jinja2_exprs[n.target.name] = meta_yaml_lines[n.lineno-1]
 
     # we don't need the indexes into the jinja2 node list anymore
     for key, val in jinja2_vals.items():
@@ -312,8 +316,11 @@ def _build_jinja2_expr_tmp(jinja2_exprs):
     exprs = []
     tmpls = []
     for var, expr in jinja2_exprs.items():
-        tmpls.append("%s: {{ %s }}" % (var, var))
-        exprs.append(expr.strip())
+        tmpl = "%s: {{ %s }}" % (var, var)
+        if tmpl not in tmpls:
+            tmpls.append(tmpl)
+        if expr.strip() not in exprs:
+            exprs.append(expr.strip())
 
     return "\n".join(exprs + tmpls)
 
