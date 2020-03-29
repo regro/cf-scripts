@@ -88,5 +88,5 @@ def gen_transformed_urls(url):
         The URL to transform.
     """
     yield from _gen_new_urls(
-        url, [_ext_munger, _jinja_munger, _v_munger, _pypi_munger, _github_munger],
+        url, [_ext_munger, _v_munger, _jinja_munger, _pypi_munger, _github_munger],
     )
