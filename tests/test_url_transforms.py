@@ -1,6 +1,17 @@
 from conda_forge_tick.url_transforms import gen_transformed_urls
 
 
+def test_url_transform_jinja():
+    urls = set(list(gen_transformed_urls("{{version}}")))
+    assert urls == {"v{{ version }}", "{{ version }}", "{{version}}"}
+
+    urls = set(list(gen_transformed_urls("<{version}}")))
+    assert urls == {"v{{ version }}", "{{ version }}", "<{version}}"}
+
+    urls = set(list(gen_transformed_urls("<<{version}}")))
+    assert urls == {"v{{ version }}", "{{ version }}", "<<{version}}"}
+
+
 def test_url_transform_version():
     urls = set(list(gen_transformed_urls("{{ version }}")))
     assert urls == {"v{{ version }}", "{{ version }}"}
