@@ -9,6 +9,19 @@ def _ext_munger(url):
             yield url[: -len(old_ext)] + new_ext
 
 
+def _jinja_munger(url):
+    fields = ["name", "version"]
+    for field in fields:
+        # the '<' are from ruamel.yaml.jinja2
+        # if the variable is '{{version}}'
+        # it comes out in the url as '<{version}' after 
+        # parsing so we allow for that too
+        for echar in ["{", "<", "<<"]:
+            curr = "%s{%s}}" % (echar, field)
+            new = "{{ %s }}" % field
+            yield url.replace(curr, new)
+
+
 def _v_munger(url):
     for vhave, vrep in permutations(["v{{ v", "{{ v"]):
         if vhave in url and (vrep in vhave or vrep not in url):
@@ -75,5 +88,5 @@ def gen_transformed_urls(url):
         The URL to transform.
     """
     yield from _gen_new_urls(
-        url, [_ext_munger, _v_munger, _pypi_munger, _github_munger],
+        url, [_ext_munger, _jinja_munger, _v_munger, _pypi_munger, _github_munger],
     )
