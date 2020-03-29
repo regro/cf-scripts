@@ -71,5 +71,7 @@ def main(args):
                     deps = {"exception": str(e),
                             "traceback": str(traceback.format_exc()).split("\n"),}
                 finally:
-                    payload['depfinder_audit'] = deps
+                    os.makedirs('audits', exist_ok=True)
+                    with open(f'audits/{node}.json', 'w') as f:
+                        json.dump(deps, f)
 
