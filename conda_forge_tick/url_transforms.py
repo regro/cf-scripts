@@ -14,11 +14,22 @@ def _jinja_munger(url):
     for field in fields:
         # the '<' are from ruamel.yaml.jinja2
         # if the variable is '{{version}}'
-        # it comes out in the url as '<{version}}' after 
+        # it comes out in the url as '<{version}}' after
         # parsing so we allow for that too
-        for echar in ["{", "<", "<<"]:
-            curr = "%s{%s}}" % (echar, field)
-            new = "{{ %s }}" % field
+        curr = "<{%s}}" % field
+        not_curr = "<<{%s}}" % field
+        new = "{{ %s }}" % field
+        if curr in url and not_curr not in url:
+            yield url.replace(curr, new)
+
+        curr = "<<{%s}}" % field
+        new = "{{ %s }}" % field
+        if curr in url:
+            yield url.replace(curr, new)
+
+        curr = "{{%s}}" % field
+        new = "{{ %s }}" % field
+        if curr in url:
             yield url.replace(curr, new)
 
 
