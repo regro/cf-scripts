@@ -14,7 +14,7 @@ def _jinja_munger(url):
     for field in fields:
         # the '<' are from ruamel.yaml.jinja2
         # if the variable is '{{version}}'
-        # it comes out in the url as '<{version}' after 
+        # it comes out in the url as '<{version}}' after 
         # parsing so we allow for that too
         for echar in ["{", "<", "<<"]:
             curr = "%s{%s}}" % (echar, field)
