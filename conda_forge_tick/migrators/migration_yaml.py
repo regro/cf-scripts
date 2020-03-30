@@ -23,30 +23,31 @@ if typing.TYPE_CHECKING:
 
 def merge_migrator_cbc(migrator_yaml: str, conda_build_config_yaml: str):
     """Merge a migrator_yaml with the conda_build_config_yaml"""
-    lines = migrator_yaml.split("\n")
-    sections = defaultdict(list)
+    migrator_keys = defaultdict(list)
     current_key = None
-    for line in lines:
+    for line in migrator_yaml.split("\n"):
+        if not line or line.isspace():
+            continue
         if re.match(r"\w", line) or line.startswith("_"):
             current_key = line.split()[0]
         # fix for bad indentation from bot's PRs
         if line.startswith('-'):
             line = '  ' + line
-        sections[current_key].append(line)
+        migrator_keys[current_key].append(line)
 
     outbound_cbc = []
-    current_section = None
+    current_cbc_key = None
     for line in conda_build_config_yaml.split("\n"):
         # if we start with a word/underscore we are starting a section
         if re.match(r'\w', line) or line.startswith('_') or line.startswith('#'):
-            current_section = line.split()[0]
+            current_cbc_key = line.split()[0]
             # if we are in a section from the migrator use the migrator data
-            if current_section in sections:
-                outbound_cbc.extend(sections[line.split()[0]])
+            if current_cbc_key in migrator_keys:
+                outbound_cbc.extend(migrator_keys[line.split()[0]])
             else:
                 outbound_cbc.append(line)
         # if in a section that we migrated, ignore
-        elif current_section not in sections:
+        elif current_cbc_key not in migrator_keys or line.isspace() or not line:
             outbound_cbc.append(line)
     return "\n".join(outbound_cbc)
 
