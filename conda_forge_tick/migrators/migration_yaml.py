@@ -25,10 +25,11 @@ def merge_migrator_cbc(migrator_yaml: str, conda_build_config_yaml: str):
     """Merge a migrator_yaml with the conda_build_config_yaml"""
     migrator_keys = defaultdict(list)
     current_key = None
+    regex = re.compile(r"\w")
     for line in migrator_yaml.split("\n"):
         if not line or line.isspace():
             continue
-        if re.match(r"\w", line) or line.startswith("_"):
+        if regex.match(line) or line.startswith("_"):
             current_key = line.split()[0]
         # fix for bad indentation from bot's PRs
         if line.startswith('-'):
@@ -39,7 +40,7 @@ def merge_migrator_cbc(migrator_yaml: str, conda_build_config_yaml: str):
     current_cbc_key = None
     for line in conda_build_config_yaml.split("\n"):
         # if we start with a word/underscore we are starting a section
-        if re.match(r'\w', line) or line.startswith('_') or line.startswith('#'):
+        if regex.match(line) or line.startswith('_') or line.startswith('#'):
             current_cbc_key = line.split()[0]
             # if we are in a section from the migrator use the migrator data
             if current_cbc_key in migrator_keys:
@@ -113,16 +114,14 @@ class MigrationYaml(GraphMigrator):
             with indir(os.path.join(recipe_dir, "migrations")):
                 os.remove(f"{self.name}.yaml")
             # replace the conda build config with the merged one
-            with indir(recipe_dir):
-                os.remove("conda_build_config.yaml")
-                with open("conda_build_config.yaml", "w") as f:
-                    f.write(merged_cbc)
+            with indir(recipe_dir), open("conda_build_config.yaml", "w") as f:
+                f.write(merged_cbc)
             # don't need to bump build number once we move to datetime
             # version numbers for pinning
             return super().migrate(recipe_dir, attrs)
 
-        # in case the render is old
         else:
+            # in case the render is old
             os.makedirs(os.path.join(recipe_dir, "../.ci_support"), exist_ok=True)
             with indir(os.path.join(recipe_dir, "../.ci_support")):
                 os.makedirs("migrations", exist_ok=True)
