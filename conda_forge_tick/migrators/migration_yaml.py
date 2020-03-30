@@ -46,7 +46,7 @@ def merge_migrator_cbc(migrator_yaml: str, conda_build_config_yaml: str):
                 outbound_cbc.extend(migrator_keys[line.split()[0]])
             else:
                 outbound_cbc.append(line)
-        # if in a section that we migrated, ignore
+        # if this is in a key we didn't migrate, add the line (or it is a space)
         elif current_cbc_key not in migrator_keys or line.isspace() or not line:
             outbound_cbc.append(line)
     return "\n".join(outbound_cbc)
@@ -104,7 +104,7 @@ class MigrationYaml(GraphMigrator):
     def migrate(
         self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any
     ) -> "MigrationUidTypedDict":
-        # if conda-forge-pinning do something special
+        # if conda-forge-pinning update the pins and close the migration
         if attrs.get("name", "") == "conda-forge-pinning":
             # read up the conda build config
             with indir(recipe_dir), open("conda_build_config.yaml") as f:
@@ -122,16 +122,17 @@ class MigrationYaml(GraphMigrator):
             return super().migrate(recipe_dir, attrs)
 
         # in case the render is old
-        os.makedirs(os.path.join(recipe_dir, "../.ci_support"), exist_ok=True)
-        with indir(os.path.join(recipe_dir, "../.ci_support")):
-            os.makedirs("migrations", exist_ok=True)
-            with indir("migrations"):
-                with open(f"{self.name}.yaml", "w") as f:
-                    f.write(self.yaml_contents)
-                eval_xonsh("git add .")
-        with indir(recipe_dir):
-            self.set_build_number("meta.yaml")
-        return super().migrate(recipe_dir, attrs)
+        else:
+            os.makedirs(os.path.join(recipe_dir, "../.ci_support"), exist_ok=True)
+            with indir(os.path.join(recipe_dir, "../.ci_support")):
+                os.makedirs("migrations", exist_ok=True)
+                with indir("migrations"):
+                    with open(f"{self.name}.yaml", "w") as f:
+                        f.write(self.yaml_contents)
+                    eval_xonsh("git add .")
+            with indir(recipe_dir):
+                self.set_build_number("meta.yaml")
+            return super().migrate(recipe_dir, attrs)
 
     def pr_body(self, feedstock_ctx: "FeedstockContext") -> str:
         body = super().pr_body(feedstock_ctx)

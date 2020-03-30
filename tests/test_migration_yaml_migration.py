@@ -245,7 +245,7 @@ def run_test_migration(
 
 
 with open(os.path.join(YAML_PATH, 'conda_build_config.yaml'), 'r') as fp:
-    cbc = fp.read()
+    CBC = fp.read()
 
 
 @pytest.mark.parametrize("migrator_name", ['pypy', 'krb', 'boost'])
@@ -254,4 +254,4 @@ def test_merge_migrator_cbc(migrator_name):
         migrator = fp.read()
     with open(os.path.join(YAML_PATH, f'{migrator_name}_out.yaml'), 'r') as fp:
         out = fp.read()
-    assert merge_migrator_cbc(migrator, cbc) == out
+    assert merge_migrator_cbc(migrator, CBC) == out
