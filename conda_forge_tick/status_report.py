@@ -37,7 +37,7 @@ def main(args: Any = None) -> None:
 
             d = gv.pipe("dot")
             with tempfile.NamedTemporaryFile(suffix='.dot') as ntf:
-                ntf.write(d.decode("utf-8"))
+                ntf.write(d)
                 # make the graph a bit more compact
                 d = Source(
                     subprocess.check_output(
