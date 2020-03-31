@@ -418,7 +418,7 @@ def add_rebuild_migration_yaml(
             pluck(total_graph, node)
 
     # all nodes have the conda-forge-pinning as child package
-    gx.add_edges_from([('conda-forge-pinning', n) for n in total_graph.nodes])
+    total_graph.add_edges_from([(n, 'conda-forge-pinning') for n in total_graph.nodes])
 
     # post plucking we can have several strange cases, lets remove all selfloops
     total_graph.remove_edges_from(nx.selfloop_edges(total_graph))

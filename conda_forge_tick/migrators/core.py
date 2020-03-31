@@ -568,10 +568,14 @@ class GraphMigrator(Migrator):
 
             return True
 
+        # Special case pinning so we don't need to add it as a dep for every feedstock
+        if attrs.get('name', '') == 'conda-forge-pinning':
+            all_deps = self.graph.predecessors('conda-forge-pinning')
         # check deps directly instead of using the graph
         # this breaks cycles in cases where a dep comes from more than
         # one package
-        all_deps = set().union(*attrs.get("requirements", {}).values())
+        else:
+            all_deps = set().union(*attrs.get("requirements", {}).values())
         all_deps_built = True
         for dep in all_deps:
             if any(dep.endswith(stub) for stub in PACKAGE_STUBS):
