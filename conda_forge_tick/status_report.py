@@ -47,7 +47,7 @@ def main(args: Any = None) -> None:
                     ).decode("utf-8")
                 ).pipe("svg")
             with open(os.path.join(f"./status/{migrator_name}.svg"), "wb") as fb:
-                fb.write(d)
+                fb.write(d or gv.pipe("svg"))
 
     with open("./status/total_status.json", "w") as f:
         json.dump(total_status, f, sort_keys=True)
