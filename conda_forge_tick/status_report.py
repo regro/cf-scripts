@@ -36,12 +36,14 @@ def main(args: Any = None) -> None:
                 json.dump(status, fo, indent=2)
 
             d = gv.pipe("dot")
-            with tempfile.NamedTemporaryFile(suffix='.dot') as ntf:
-                ntf.write(d.decode("utf-8"))
+            with tempfile.NamedTemporaryFile() as ntf, open(
+                f"{ntf.name}.dot", "w"
+            ) as f:
+                f.write(d.decode("utf-8"))
                 # make the graph a bit more compact
                 d = Source(
                     subprocess.check_output(
-                        ["unflatten", "-f", "-l", "5", "-c", "10", f"{ntf.name}",]
+                        ["unflatten", "-f", "-l", "5", "-c", "10", f"{ntf.name}.dot",]
                     ).decode("utf-8")
                 ).pipe("svg")
             with open(os.path.join(f"./status/{migrator_name}.svg"), "wb") as fb:
