@@ -207,7 +207,7 @@ def run(
 
     # TODO: Better annotation here
     pr_json: typing.Union[MutableMapping, None, bool]
-    if isinstance(migrator, MigrationYaml) and not diffed_files:
+    if isinstance(migrator, MigrationYaml) and not diffed_files and feedstock_ctx.attrs['name'] != 'conda-forge-pinning':
         # spoof this so it looks like the package is done
         pr_json = {
             "state": "closed",
