@@ -88,6 +88,12 @@ def main(args: Any = None) -> None:
             f,
             indent=2,
         )
+    lst = [
+        k
+        for k, v in mctx.graph.nodes.items()
+        if v.get('payload', {}).get('archived', False)]
+    with open('./status/archived.json', 'w') as f:
+        json.dump(sorted(lst), f, indent=2)
 
 
 if __name__ == "__main__":
