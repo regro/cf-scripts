@@ -145,11 +145,13 @@ def run(
     # TODO: stop doing this.
     migrator.attrs = feedstock_ctx.attrs  # type: ignore
 
+    branch_name = migrator.remote_branch(feedstock_ctx) + '_h' + uuid4().hex
+
     # TODO: run this in parallel
     feedstock_dir, repo = get_repo(
         ctx=migrator.ctx.session,
         fctx=feedstock_ctx,
-        branch=migrator.remote_branch(feedstock_ctx) + '_h' + uuid4().hex,
+        branch=branch_name,
         feedstock=feedstock_ctx.feedstock_name,
         protocol=protocol,
         pull_request=pull_request,
@@ -225,7 +227,7 @@ def run(
                 repo=repo,
                 title=migrator.pr_title(feedstock_ctx),
                 head=migrator.pr_head(feedstock_ctx),
-                branch=migrator.remote_branch(feedstock_ctx),
+                branch=branch_name,
             )
 
         # This shouldn't happen too often any more since we won't double PR
