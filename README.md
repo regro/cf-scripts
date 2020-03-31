@@ -1,10 +1,13 @@
 # cf-scripts
+[![Build Status](https://travis-ci.org/regro/cf-scripts.svg?branch=master)](https://travis-ci.org/regro/cf-scripts)
+
 Conda-Forge dependency graph tracker and auto ticker
 
-[regro-cf-autotick-bot's PRs](https://github.com/pulls?utf8=%E2%9C%93&q=is%3Aopen+is%3Apr+author%3Aregro-cf-autotick-bot+archived%3Afalse+)
 
-## Status
-[![CircleCI](https://circleci.com/gh/regro/circle_worker.svg?style=svg)](https://circleci.com/gh/regro/circle_worker)
+## Autotick Bot Status and PRs
+pull requests: [regro-cf-autotick-bot's PRs](https://github.com/pulls?utf8=%E2%9C%93&q=is%3Aopen+is%3Apr+author%3Aregro-cf-autotick-bot+archived%3Afalse+)
+
+autotick bot status: [![CircleCI](https://circleci.com/gh/regro/circle_worker.svg?style=svg)](https://circleci.com/gh/regro/circle_worker)
 
 ## Plan
 The auto-tick bot runs on circleCI via the [circle_worker](https://github.com/regro/circle_worker) repo.
