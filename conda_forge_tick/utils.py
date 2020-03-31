@@ -415,7 +415,7 @@ def dump_graph_dynamo(
     ddb = boto3.resource("dynamodb", region_name=region)
     table = ddb.Table(tablename)
     with table.batch_writer() as batch:
-        for node in tqdm.tqdm(gx.nodes):
+        for node in gx.nodes:
             if not node:
                 continue
             preds = [n for n in gx.predecessors(node) if n]
