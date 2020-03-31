@@ -149,7 +149,7 @@ def run(
     feedstock_dir, repo = get_repo(
         ctx=migrator.ctx.session,
         fctx=feedstock_ctx,
-        branch=migrator.remote_branch(feedstock_ctx),
+        branch=migrator.remote_branch(feedstock_ctx) + '_h' + uuid4().hex,
         feedstock=feedstock_ctx.feedstock_name,
         protocol=protocol,
         pull_request=pull_request,
