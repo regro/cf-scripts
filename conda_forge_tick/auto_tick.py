@@ -145,7 +145,7 @@ def run(
     # TODO: stop doing this.
     migrator.attrs = feedstock_ctx.attrs  # type: ignore
 
-    branch_name = migrator.remote_branch(feedstock_ctx) + '_h' + uuid4().hex
+    branch_name = migrator.remote_branch(feedstock_ctx) + '_h' + uuid4().hex[0:6]
 
     # TODO: run this in parallel
     feedstock_dir, repo = get_repo(
