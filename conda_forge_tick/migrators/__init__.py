@@ -7,7 +7,7 @@ from .core import (
     Replacement,
 )
 from .conda_forge_yaml_cleanup import CondaForgeYAMLCleanup
-from .migration_yaml import MigrationYaml, MigrationYamlCreator
+from .migration_yaml import MigrationYaml, MigrationYamlCreator, merge_migrator_cbc
 from .arch import ArchRebuild
 from .pip_check import PipCheckMigrator
 from .matplotlib_base import MatplotlibBase

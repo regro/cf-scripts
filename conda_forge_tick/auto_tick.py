@@ -389,6 +389,9 @@ def add_rebuild_migration_yaml(
     total_graph = copy.deepcopy(gx)
 
     for node, node_attrs in gx.nodes.items():
+        # always keep pinning
+        if node == 'conda-forge-pinning':
+            continue
         attrs: "AttrsTypedDict" = node_attrs["payload"]
         requirements = attrs.get("requirements", {})
         host = requirements.get("host", set())
@@ -413,6 +416,9 @@ def add_rebuild_migration_yaml(
                 total_graph.remove_edge(*e)
         if not any([criteria]) or node in excluded_feedstocks:
             pluck(total_graph, node)
+
+    # all nodes have the conda-forge-pinning as child package
+    gx.add_edges_from([('conda-forge-pinning', n) for n in total_graph.nodes])
 
     # post plucking we can have several strange cases, lets remove all selfloops
     total_graph.remove_edges_from(nx.selfloop_edges(total_graph))
@@ -675,6 +681,9 @@ def migrator_status(
 
     gv = graphviz.Digraph(graph_attr={"packmode": "array_3"})
     for node, node_attrs in gx2.nodes.items():
+        # pinning isn't actually in the migration
+        if node == 'conda-forge-pinning':
+            continue
         attrs = node_attrs["payload"]
         # remove archived from status
         if attrs.get("archived", False):

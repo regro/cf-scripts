@@ -11,7 +11,7 @@ import networkx as nx
 from conda_forge_tick.contexts import MigratorSessionContext, MigratorContext
 from conda_forge_tick.utils import parse_meta_yaml, frozen_to_json_friendly
 from conda_forge_tick.make_graph import populate_feedstock_attributes
-from conda_forge_tick.migrators import MigrationYamlCreator
+from conda_forge_tick.migrators import MigrationYamlCreator, merge_migrator_cbc
 from conda_forge_tick.xonsh_utils import eval_xonsh, indir
 
 G = nx.DiGraph()
@@ -20,6 +20,7 @@ env = builtins.__xonsh__.env  # type: ignore
 env["GRAPH"] = G
 env["CIRCLE_BUILD_URL"] = "hi world"
 
+YAML_PATH = os.path.join(os.path.dirname(__file__), 'test_yaml')
 
 IN_YAML = """\
 {% set version = datetime.datetime.utcnow().strftime("%Y.%m.%d.%H.%M.%S") %}
@@ -241,3 +242,16 @@ def run_test_migration(
     actual_output = pat.sub("", actual_output)
     output = pat.sub("", output)
     assert actual_output == output
+
+
+with open(os.path.join(YAML_PATH, 'conda_build_config.yaml'), 'r') as fp:
+    CBC = fp.read()
+
+
+@pytest.mark.parametrize("migrator_name", ['pypy', 'krb', 'boost'])
+def test_merge_migrator_cbc(migrator_name):
+    with open(os.path.join(YAML_PATH, f'{migrator_name}.yaml'), 'r') as fp:
+        migrator = fp.read()
+    with open(os.path.join(YAML_PATH, f'{migrator_name}_out.yaml'), 'r') as fp:
+        out = fp.read()
+    assert merge_migrator_cbc(migrator, CBC) == out

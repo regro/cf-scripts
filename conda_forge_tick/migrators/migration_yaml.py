@@ -4,6 +4,8 @@ import typing
 from typing import Optional, Set, Sequence, Any
 import time
 import datetime
+import re
+from collections import defaultdict
 
 import networkx as nx
 import ruamel.yaml as yaml
@@ -17,6 +19,38 @@ if typing.TYPE_CHECKING:
         MigrationUidTypedDict,
         AttrsTypedDict,
     )
+
+
+def merge_migrator_cbc(migrator_yaml: str, conda_build_config_yaml: str):
+    """Merge a migrator_yaml with the conda_build_config_yaml"""
+    migrator_keys = defaultdict(list)
+    current_key = None
+    regex = re.compile(r"\w")
+    for line in migrator_yaml.split("\n"):
+        if not line or line.isspace():
+            continue
+        if regex.match(line) or line.startswith("_"):
+            current_key = line.split()[0]
+        # fix for bad indentation from bot's PRs
+        if line.startswith('-'):
+            line = '  ' + line
+        migrator_keys[current_key].append(line)
+
+    outbound_cbc = []
+    current_cbc_key = None
+    for line in conda_build_config_yaml.split("\n"):
+        # if we start with a word/underscore we are starting a section
+        if regex.match(line) or line.startswith('_') or line.startswith('#'):
+            current_cbc_key = line.split()[0]
+            # if we are in a section from the migrator use the migrator data
+            if current_cbc_key in migrator_keys:
+                outbound_cbc.extend(migrator_keys[line.split()[0]])
+            else:
+                outbound_cbc.append(line)
+        # if this is in a key we didn't migrate, add the line (or it is a space)
+        elif current_cbc_key not in migrator_keys or line.isspace() or not line:
+            outbound_cbc.append(line)
+    return "\n".join(outbound_cbc)
 
 
 class MigrationYaml(GraphMigrator):
@@ -71,17 +105,33 @@ class MigrationYaml(GraphMigrator):
     def migrate(
         self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any
     ) -> "MigrationUidTypedDict":
-        # in case the render is old
-        os.makedirs(os.path.join(recipe_dir, "../.ci_support"), exist_ok=True)
-        with indir(os.path.join(recipe_dir, "../.ci_support")):
-            os.makedirs("migrations", exist_ok=True)
-            with indir("migrations"):
-                with open(f"{self.name}.yaml", "w") as f:
-                    f.write(self.yaml_contents)
-                eval_xonsh("git add .")
-        with indir(recipe_dir):
-            self.set_build_number("meta.yaml")
-        return super().migrate(recipe_dir, attrs)
+        # if conda-forge-pinning update the pins and close the migration
+        if attrs.get("name", "") == "conda-forge-pinning":
+            # read up the conda build config
+            with indir(recipe_dir), open("conda_build_config.yaml") as f:
+                cbc_contents = f.read()
+            merged_cbc = merge_migrator_cbc(self.yaml_contents, cbc_contents)
+            with indir(os.path.join(recipe_dir, "migrations")):
+                os.remove(f"{self.name}.yaml")
+            # replace the conda build config with the merged one
+            with indir(recipe_dir), open("conda_build_config.yaml", "w") as f:
+                f.write(merged_cbc)
+            # don't need to bump build number once we move to datetime
+            # version numbers for pinning
+            return super().migrate(recipe_dir, attrs)
+
+        else:
+            # in case the render is old
+            os.makedirs(os.path.join(recipe_dir, "../.ci_support"), exist_ok=True)
+            with indir(os.path.join(recipe_dir, "../.ci_support")):
+                os.makedirs("migrations", exist_ok=True)
+                with indir("migrations"):
+                    with open(f"{self.name}.yaml", "w") as f:
+                        f.write(self.yaml_contents)
+                    eval_xonsh("git add .")
+            with indir(recipe_dir):
+                self.set_build_number("meta.yaml")
+            return super().migrate(recipe_dir, attrs)
 
     def pr_body(self, feedstock_ctx: "FeedstockContext") -> str:
         body = super().pr_body(feedstock_ctx)
@@ -164,7 +214,10 @@ class MigrationYamlCreator(Migrator):
         self.name = package_name + " pinning"
 
     def filter(self, attrs: "AttrsTypedDict", not_bad_str_start: str = "") -> bool:
-        if not super().filter(attrs, not_bad_str_start) and attrs.get("name", '') == "conda-forge-pinning":
+        if (
+            not super().filter(attrs, not_bad_str_start)
+            and attrs.get("name", "") == "conda-forge-pinning"
+        ):
             return False
         return True
 
@@ -179,13 +232,11 @@ class MigrationYamlCreator(Migrator):
         with indir(os.path.join(recipe_dir, "migrations")):
             mig_fname = "%s%s.yaml" % (
                 self.package_name,
-                self.new_pin_version.replace(".", "")
+                self.new_pin_version.replace(".", ""),
             )
             with open(mig_fname, "w") as f:
                 yaml.dump(
-                    migration_yaml_dict,
-                    f,
-                    default_flow_style=False,
+                    migration_yaml_dict, f, default_flow_style=False, indent=2
                 )
             eval_xonsh("git add .")
 
@@ -209,7 +260,13 @@ class MigrationYamlCreator(Migrator):
             "**Please note that if you close this PR we presume that "
             "the new pin has been rejected.\n\n"
             "@conda-forge-admin please ping {feedstock_name}"
-            "".format(name=self.package_name,pin_spec=self.pin_spec,current_pin=self.current_pin,new_pin_version=self.new_pin_version,feedstock_name=self.feedstock_name)
+            "".format(
+                name=self.package_name,
+                pin_spec=self.pin_spec,
+                current_pin=self.current_pin,
+                new_pin_version=self.new_pin_version,
+                feedstock_name=self.feedstock_name,
+            )
         )
         body = body.format(additional_body)
         return body
