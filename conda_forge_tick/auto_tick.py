@@ -209,7 +209,11 @@ def run(
 
     # TODO: Better annotation here
     pr_json: typing.Union[MutableMapping, None, bool]
-    if isinstance(migrator, MigrationYaml) and not diffed_files and feedstock_ctx.attrs['name'] != 'conda-forge-pinning':
+    if (
+        isinstance(migrator, MigrationYaml)
+        and not diffed_files
+        and feedstock_ctx.attrs['name'] != 'conda-forge-pinning'
+    ):
         # spoof this so it looks like the package is done
         pr_json = {
             "state": "closed",
@@ -226,7 +230,7 @@ def run(
                 body=migrator.pr_body(feedstock_ctx),
                 repo=repo,
                 title=migrator.pr_title(feedstock_ctx),
-                head=migrator.pr_head(feedstock_ctx),
+                head="%s:%s" % (migrator.ctx.github_username, branch_name),
                 branch=branch_name,
             )
 

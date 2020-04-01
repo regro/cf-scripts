@@ -397,12 +397,6 @@ class Migrator:
         """
         return "PR from Regro-cf-autotick-bot"
 
-    def pr_head(self, feedstock_ctx: FeedstockContext) -> str:
-        """Head for PR
-        :param feedstock_ctx:
-        """
-        return f"{self.ctx.github_username}:{self.remote_branch(feedstock_ctx=feedstock_ctx)}"  # noqa
-
     def remote_branch(self, feedstock_ctx: FeedstockContext) -> str:
         """Branch to use on local and remote
         :param feedstock_context:
