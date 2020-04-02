@@ -568,7 +568,7 @@ class GraphMigrator(Migrator):
 
             return True
 
-        # Special case pinning so we don't need to add it as a dep for every feedstock
+        # Special case pinning so we don't need to add every feedstock as a dep
         if attrs.get('name', '') == 'conda-forge-pinning':
             all_deps = self.graph.predecessors('conda-forge-pinning')
         # check deps directly instead of using the graph
