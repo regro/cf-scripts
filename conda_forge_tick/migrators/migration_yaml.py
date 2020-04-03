@@ -32,15 +32,15 @@ def merge_migrator_cbc(migrator_yaml: str, conda_build_config_yaml: str):
         if regex.match(line) or line.startswith("_"):
             current_key = line.split()[0]
         # fix for bad indentation from bot's PRs
-        if line.startswith('-'):
-            line = '  ' + line
+        if line.startswith("-"):
+            line = "  " + line
         migrator_keys[current_key].append(line)
 
     outbound_cbc = []
     current_cbc_key = None
     for line in conda_build_config_yaml.split("\n"):
         # if we start with a word/underscore we are starting a section
-        if regex.match(line) or line.startswith('_') or line.startswith('#'):
+        if regex.match(line) or line.startswith("_") or line.startswith("#"):
             current_cbc_key = line.split()[0]
             # if we are in a section from the migrator use the migrator data
             if current_cbc_key in migrator_keys:
@@ -135,34 +135,57 @@ class MigrationYaml(GraphMigrator):
 
     def pr_body(self, feedstock_ctx: "FeedstockContext") -> str:
         body = super().pr_body(feedstock_ctx)
-        additional_body = (
-            "This PR has been triggered in an effort to update **{name}**.\n\n"
-            "Notes and instructions for merging this PR:\n"
-            "1. Please merge the PR only after the tests have passed. \n"
-            "2. Feel free to push to the bot's branch to update this PR if needed. \n\n"
-            "**Please note that if you close this PR we presume that "
-            "the feedstock has been rebuilt, so if you are going to "
-            "perform the rebuild yourself don't close this PR until "
-            "the your rebuild has been merged.**\n\n"
-            "This package has the following downstream children:\n"
-            "{children}\n"
-            "And potentially more."
-            "".format(
-                name=self.name,
-                children="\n".join(self.downstream_children(feedstock_ctx)),
+        if feedstock_ctx.package_name == "conda-forge-pinning":
+            additional_body = (
+                "This PR has been triggered in an effort to close out the migration for **{name}**.\n\n"
+                "Notes and instructions for merging this PR:\n"
+                "1. Please merge the PR only after the tests have passed. \n"
+                "2. Feel free to push to the bot's branch to update this PR if needed. \n\n"
+                "**Please note that if you close this PR we presume that "
+                "the feedstock has been rebuilt, so if you are going to "
+                "perform the rebuild yourself don't close this PR until "
+                "the your rebuild has been merged.**\n\n"
+                "This package has the following downstream children:\n"
+                "{children}\n"
+                "And potentially more."
+                "".format(
+                    name=self.name,
+                    children="\n".join(self.downstream_children(feedstock_ctx)),
+                )
             )
-        )
+        else:
+            additional_body = (
+                "This PR has been triggered in an effort to update **{name}**.\n\n"
+                "Notes and instructions for merging this PR:\n"
+                "1. Please merge the PR only after the tests have passed. \n"
+                "2. Feel free to push to the bot's branch to update this PR if needed. \n\n"
+                "**Please note that if you close this PR we presume that "
+                "the feedstock has been rebuilt, so if you are going to "
+                "perform the rebuild yourself don't close this PR until "
+                "the your rebuild has been merged.**\n\n"
+                "This package has the following downstream children:\n"
+                "{children}\n"
+                "And potentially more."
+                "".format(
+                    name=self.name,
+                    children="\n".join(self.downstream_children(feedstock_ctx)),
+                )
+            )
         body = body.format(additional_body)
         return body
 
     def commit_message(self, feedstock_ctx: FeedstockContext) -> str:
         if self.name:
+            if feedstock_ctx.package_name == "conda-forge-pinning":
+                return f"Close out migration for {self.name}"
             return "Rebuild for " + self.name
         else:
             return "Bump build number"
 
     def pr_title(self, feedstock_ctx: FeedstockContext) -> str:
         if self.name:
+            if feedstock_ctx.package_name == "conda-forge-pinning":
+                return f"Close out migration for {self.name}"
             return "Rebuild for " + self.name
         else:
             return "Bump build number"
@@ -235,9 +258,7 @@ class MigrationYamlCreator(Migrator):
                 self.new_pin_version.replace(".", ""),
             )
             with open(mig_fname, "w") as f:
-                yaml.dump(
-                    migration_yaml_dict, f, default_flow_style=False, indent=2
-                )
+                yaml.dump(migration_yaml_dict, f, default_flow_style=False, indent=2)
             eval_xonsh("git add .")
 
         return super().migrate(recipe_dir, attrs)
