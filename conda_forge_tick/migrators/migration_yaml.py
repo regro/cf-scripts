@@ -231,7 +231,7 @@ class MigrationYamlCreator(Migrator):
         self.feedstock_name = feedstock_name
         self.pin_spec = pin_spec
         self.current_pin = current_pin
-        self.new_pin_version = new_pin_version
+        self.new_pin_version = '.'.join(new_pin_version.split('.')[:len(pin_spec.split("."))])
         self.package_name = package_name
         self.bump_number = bump_number
         self.name = package_name + " pinning"
