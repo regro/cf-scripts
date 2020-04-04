@@ -115,7 +115,7 @@ __migrator:
   kind: version
   migration_number: 1
 boost:
-- 1.99.0
+- '1.99'
 migrator_ts: 12345.2
 """
 
@@ -159,12 +159,12 @@ def test_migration_yaml_migration(tmock, in_out_yaml, caplog, tmpdir):
             "migrator_name": "MigrationYamlCreator",
             "migrator_version": MYM.migrator_version,
             "name": pname,
-            "pin_version": pin_ver,
+            "pin_version": "1.99",
         },
         tmpdir=tmpdir,
     )
 
-    boost_file = os.path.join(tmpdir, "migrations", "boost1990.yaml")
+    boost_file = os.path.join(tmpdir, "migrations", "boost199.yaml")
     assert os.path.exists(boost_file)
     with open(boost_file, "r") as fp:
         bf_out = fp.read()
