@@ -132,9 +132,9 @@ def test_migration_yaml_migration(tmock, in_out_yaml, caplog, tmpdir):
     )
     tmock.return_value = 12345.2
     pname = "boost"
-    pin_ver = "1.99.0"
+    pin_ver = "1.99"
     curr_pin = "1.70.0"
-    pin_spec = "blah"
+    pin_spec = "x.x"
 
     MYM = MigrationYamlCreator(
         pname,

@@ -608,7 +608,10 @@ def create_migration_yaml_creator(migrators: MutableSequence[Migrator], gx: nx.D
                 print(package_name, current_version, current_pin, pin_spec)
                 migrators.append(
                     MigrationYamlCreator(
-                        package_name, current_version, current_pin,
+                        package_name,
+                        # Only pin down to the level of the spec
+                        '.'.join(current_version.split('.')[:len(pin_spec.split("."))]),
+                        current_pin,
                         pin_spec, k
                     )
                 )
