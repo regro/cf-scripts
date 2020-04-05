@@ -894,6 +894,24 @@ def main(args: "CLIArgs") -> None:
             len(effective_graph.nodes),
         )
 
+        # version debugging info
+        if isinstance(migrator, Version):
+            logger.info("possible version migrations:")
+            possible_nodes = list(migrator.order(effective_graph, mctx.graph))
+            for node_name in possible_nodes:
+                with effective_graph.nodes[node_name]["payload"] as attrs:
+                    logger.info(
+                        "    node|curr|new|attempts: %s|%s|%s|%d",
+                        node_name,
+                        attrs.get("version"),
+                        attrs.get("new_version"),
+                        (
+                            attrs
+                            .get("new_version_attempts", {})
+                            .get(attrs.get("new_version", ""), 0)
+                        ),
+                    )
+
         for node_name in migrator.order(effective_graph, mctx.graph):
             with mctx.graph.nodes[node_name]["payload"] as attrs:
                 # Don't let CI timeout, break ahead of the timeout so we make certain
