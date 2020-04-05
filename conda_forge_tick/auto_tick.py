@@ -935,7 +935,7 @@ def main(args: "CLIArgs") -> None:
                     attrs=attrs,
                 )
 
-                print("\n", flush=True)
+                print("\n", flush=True, end="")
                 logger.info(
                     "%s%s IS MIGRATING %s",
                     migrator.__class__.__name__.upper(),
