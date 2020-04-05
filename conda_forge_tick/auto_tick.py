@@ -903,8 +903,8 @@ def main(args: "CLIArgs") -> None:
                     logger.info(
                         "    node|curr|new: %s|%s|%s",
                         node_name,
-                        attrs["versoon"],
-                        attrs["new_version"],
+                        attrs.get("version"),
+                        attrs.get("new_version"),
                     )
 
         for node_name in migrator.order(effective_graph, mctx.graph):
