@@ -901,10 +901,15 @@ def main(args: "CLIArgs") -> None:
             for node_name in possible_nodes:
                 with effective_graph.nodes[node_name]["payload"] as attrs:
                     logger.info(
-                        "    node|curr|new: %s|%s|%s",
+                        "    node|curr|new|attempts: %s|%s|%s|%d",
                         node_name,
                         attrs.get("version"),
                         attrs.get("new_version"),
+                        (
+                            attrs
+                            .get("new_version_attempts", {})
+                            .get(attrs.get("new_version", ""), 0)
+                        ),
                     )
 
         for node_name in migrator.order(effective_graph, mctx.graph):
