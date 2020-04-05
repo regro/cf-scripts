@@ -600,13 +600,9 @@ class Version(Migrator):
         self, graph: nx.DiGraph, total_graph: nx.DiGraph,
     ) -> Sequence["PackageName"]:
         def _get_attemps(node):
-            new_version = graph.nodes[node]["payload"].get("new_version", "")
-            attempts = (
-                graph
-                .nodes[node]["payload"]
-                .get("new_version_attempts", {})
-                .get(new_version, 0)
-            )
+            with graph.nodes[node]["payload"] as attrs:
+                new_version = attrs.get("new_version", "")
+                attempts = attrs.get("new_version_attempts", {}).get(new_version, 0)
             # eventually we randomly sort the rest, but at first new things
             # get priority
             return min(attempts, 3)

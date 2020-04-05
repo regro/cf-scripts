@@ -894,10 +894,11 @@ def main(args: "CLIArgs") -> None:
             len(effective_graph.nodes),
         )
 
+        possible_nodes = list(migrator.order(effective_graph, mctx.graph))
+
         # version debugging info
         if isinstance(migrator, Version):
             logger.info("possible version migrations:")
-            possible_nodes = list(migrator.order(effective_graph, mctx.graph))
             for node_name in possible_nodes:
                 with effective_graph.nodes[node_name]["payload"] as attrs:
                     logger.info(
@@ -912,7 +913,7 @@ def main(args: "CLIArgs") -> None:
                         ),
                     )
 
-        for node_name in migrator.order(effective_graph, mctx.graph):
+        for node_name in possible_nodes:
             with mctx.graph.nodes[node_name]["payload"] as attrs:
                 # Don't let CI timeout, break ahead of the timeout so we make certain
                 # to write to the repo
