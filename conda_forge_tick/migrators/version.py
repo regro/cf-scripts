@@ -393,15 +393,6 @@ class Version(Migrator):
         **kwargs: Any,
     ) -> "MigrationUidTypedDict":
 
-        with open(os.path.join(recipe_dir, "meta.yaml"), "r") as fp:
-            cmeta = CondaMetaYAML(fp.read())
-
-        # cache round-tripped yaml for testing later
-        s = io.StringIO()
-        cmeta.dump(s)
-        s.seek(0)
-        old_meta_yaml = s.read()
-
         version = attrs["new_version"]
         assert isinstance(version, str)
 
@@ -411,6 +402,15 @@ class Version(Migrator):
         if version not in attrs["new_version_attempts"]:
             attrs["new_version_attempts"][version] = 0
         attrs["new_version_attempts"][version] += 1
+
+        with open(os.path.join(recipe_dir, "meta.yaml"), "r") as fp:
+            cmeta = CondaMetaYAML(fp.read())
+
+        # cache round-tripped yaml for testing later
+        s = io.StringIO()
+        cmeta.dump(s)
+        s.seek(0)
+        old_meta_yaml = s.read()
 
         # if is a git url, then we error
         if _recipe_has_git_url(cmeta):
