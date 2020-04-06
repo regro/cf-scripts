@@ -73,19 +73,26 @@ def hash_url(url, timeout=None, progress=False, hash_type="sha256"):
     """
     _hash = None
 
-    parent_conn, child_conn = Pipe()
-    p = Process(
-        target=_hash_url,
-        args=(url, hash_type),
-        kwargs={"progress": progress, "conn": child_conn},
-    )
-    p.start()
-    if parent_conn.poll(timeout):
-        _hash = parent_conn.recv()
+    try:
+        parent_conn, child_conn = Pipe()
+        p = Process(
+            target=_hash_url,
+            args=(url, hash_type),
+            kwargs={"progress": progress, "conn": child_conn},
+        )
+        p.start()
+        if parent_conn.poll(timeout):
+            _hash = parent_conn.recv()
 
-    p.join(timeout=0)
-    if p.exitcode != 0:
-        p.terminate()
+        p.join(timeout=0)
+        if p.exitcode != 0:
+            p.terminate()
+    except AssertionError as e:
+        # if launched in a process we cannot use another process
+        if "daemonic" in repr(e):
+            _hash = _hash_url(url, hash_type, progress=progress, conn=None)
+        else:
+            raise e
 
     if isinstance(_hash, tuple):
         raise eval(_hash[0])
