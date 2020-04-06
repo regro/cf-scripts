@@ -532,7 +532,7 @@ def _update_upstream_versions_process_pool(
     futures = {}
     # this has to be threads because the url hashing code uses a Pipe which
     # cannot be spawned from a process
-    with executor(kind="dask-threads", max_workers=20) as pool:
+    with executor(kind="dask-process", max_workers=10, daemon=False) as pool:
         _all_nodes = [t for t in gx.nodes.items()]
         random.shuffle(_all_nodes)
         for node, node_attrs in _all_nodes:
