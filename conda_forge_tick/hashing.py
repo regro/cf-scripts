@@ -6,12 +6,15 @@ import math
 import requests
 
 
-def _hash_url(url, hash_type, progress=False, conn=None):
+def _hash_url(url, hash_type, progress=False, conn=None, timeout=None):
     _hash = None
     try:
         ha = getattr(hashlib, hash_type)()
         resp = requests.get(url, stream=True)
         if resp.status_code == 200:
+            if timeout is not None:
+                t0 = time.time()
+
             if "Content-length" in resp.headers:
                 num = math.ceil(float(resp.headers["Content-length"]) / 8192)
             elif resp.url != url:
@@ -35,6 +38,9 @@ def _hash_url(url, hash_type, progress=False, conn=None):
                         "eta % 7.2fs: [%s%s]"
                         % (eta, "".join(["=" * loc]), "".join([" " * (25 - loc)]),)
                     )
+                if timeout is not None:
+                    if time.time() - t0 > timeout:
+                        return None
 
             _hash = ha.hexdigest()
         else:
@@ -90,7 +96,8 @@ def hash_url(url, timeout=None, progress=False, hash_type="sha256"):
     except AssertionError as e:
         # if launched in a process we cannot use another process
         if "daemonic" in repr(e):
-            _hash = _hash_url(url, hash_type, progress=progress, conn=None)
+            _hash = _hash_url(
+                url, hash_type, progress=progress, conn=None, timeout=timeout)
         else:
             raise e
 
