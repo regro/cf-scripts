@@ -1,6 +1,6 @@
 import pytest
 
-from conda_forge_tick.hashing import hash_url
+from conda_forge_tick.hashing import hash_url, _hash_url
 
 
 def test_hashing_smoke():
@@ -21,9 +21,21 @@ def test_hashing_timeout():
     assert hsh is None
 
 
+def test_hashing_timeout_noprocess():
+    url = "https://github.com/LSSTDESC/CLMM/archive/0.1.0.tar.gz"
+    hsh = _hash_url(url, "sha256", timeout=0)
+    assert hsh is None
+
+
 def test_hashing_timeout_long():
     url = "http://gmsh.info/src/gmsh-4.5.3-source.tgz"
     hsh = hash_url(url, timeout=1)
+    assert hsh is None
+
+
+def test_hashing_timeout_long_noprocess():
+    url = "http://gmsh.info/src/gmsh-4.5.3-source.tgz"
+    hsh = _hash_url(url, "sha256", timeout=1)
     assert hsh is None
 
 
