@@ -19,7 +19,6 @@ from concurrent.futures import (
 import github3
 import jinja2
 import boto3
-import tqdm
 
 import networkx as nx
 
@@ -219,11 +218,12 @@ def setup_logger(logger: logging.Logger, level: Optional[str] = "INFO") -> None:
     """Basic configuration for logging
 
     """
-
-    logging.basicConfig(
-        level=level.upper(),
-        format="%(asctime)-15s %(levelname)-8s %(name)s || %(message)s",
-    )
+    logger.setLevel(level.upper())
+    ch = logging.StreamHandler()
+    ch.setLevel(level.upper())
+    ch.setFormatter(logging.Formatter(
+        "%(asctime)-15s %(levelname)-8s %(name)s || %(message)s"))
+    logger.addHandler(ch)
 
 
 # TODO: upstream this into networkx?
@@ -318,11 +318,14 @@ def executor(kind: str, max_workers: int) -> typing.Iterator[Executor]:
     elif kind == "process":
         with ProcessPoolExecutor(max_workers=max_workers) as pool_p:
             yield pool_p
-    elif kind == "dask":
+    elif kind in ["dask", "dask-process", "dask-thread"]:
         import distributed
         from distributed.cfexecutor import ClientExecutor
 
-        with distributed.LocalCluster(n_workers=max_workers) as cluster:
+        processes = kind == "dask" or kind == "dask-process"
+
+        with distributed.LocalCluster(
+                n_workers=max_workers, processes=processes) as cluster:
             with distributed.Client(cluster) as client:
                 yield ClientExecutor(client)
     else:

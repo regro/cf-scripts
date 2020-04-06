@@ -77,7 +77,7 @@ def hash_url(url, timeout=None, progress=False, hash_type="sha256"):
     p = Process(
         target=_hash_url,
         args=(url, hash_type),
-        kwargs={"progress": progress, "conn": child_conn,},
+        kwargs={"progress": progress, "conn": child_conn},
     )
     p.start()
     if parent_conn.poll(timeout):

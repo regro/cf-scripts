@@ -1,6 +1,7 @@
 import abc
 import collections.abc
 import logging
+import os
 import subprocess
 import random
 import time
@@ -26,7 +27,7 @@ from conda.models.version import VersionOrder
 # TODO: parse_version has bad type annotations
 from pkg_resources import parse_version
 
-from .utils import (
+from conda_forge_tick.utils import (
     parse_meta_yaml,
     setup_logger,
     executor,
@@ -41,6 +42,8 @@ if typing.TYPE_CHECKING:
 logger = logging.getLogger("conda_forge_tick.update_upstream_versions")
 
 CRAN_INDEX: Optional[dict] = None
+
+CONDA_FORGE_TICK_DEBUG = os.environ.get("CONDA_FORGE_TICK_DEBUG", False)
 
 
 def urls_from_meta(meta_yaml: "MetaYamlTypedDict") -> Set[str]:
@@ -527,7 +530,9 @@ def _update_upstream_versions_process_pool(
     gx: nx.DiGraph, sources: Iterable[AbstractSource],
 ) -> None:
     futures = {}
-    with executor(kind="dask", max_workers=10) as pool:
+    # this has to be threads because the url hashing code uses a Pipe which
+    # cannot be spawned from a process
+    with executor(kind="dask-thread", max_workers=10) as pool:
         _all_nodes = [t for t in gx.nodes.items()]
         random.shuffle(_all_nodes)
         for node, node_attrs in _all_nodes:
@@ -590,12 +595,9 @@ def update_upstream_versions(
         if sources is None
         else sources
     )
-    from .xonsh_utils import env
-
-    debug = env.get("CONDA_FORGE_TICK_DEBUG", False)
     updater = (
         _update_upstream_versions_sequential
-        if debug
+        if CONDA_FORGE_TICK_DEBUG
         else _update_upstream_versions_process_pool
     )
     logger.info("Updating upstream versions")
@@ -603,10 +605,7 @@ def update_upstream_versions(
 
 
 def main(args: Any = None) -> None:
-    from .xonsh_utils import env
-
-    debug = env.get("CONDA_FORGE_TICK_DEBUG", False)
-    if debug:
+    if CONDA_FORGE_TICK_DEBUG:
         setup_logger(logger, level="debug")
     else:
         setup_logger(logger)
