@@ -141,7 +141,7 @@ class VersionFromFeed(AbstractSource):
             ver = entry["link"].split("/")[-1]
             for prefix in self.ver_prefix_remove:
                 if ver.startswith(prefix):
-                    ver = ver[len(prefix) :]
+                    ver = ver[len(prefix):]
             if any(s in ver.lower() for s in self.dev_vers):
                 continue
             # Extract vesion number starting at the first digit.
@@ -406,6 +406,8 @@ class RawURL(AbstractSource):
         # TODO: pull this from the graph itself
         content = meta_yaml["raw_meta_yaml"]
 
+        # this while statment runs until a bad version is found
+        # then it uses the previous one
         orig_urls = urls_from_meta(meta_yaml["meta_yaml"])
         current_ver = meta_yaml["version"]
         current_sha256 = None
@@ -417,38 +419,43 @@ class RawURL(AbstractSource):
             found = False
             for next_ver in next_version(current_ver):
                 logger.debug("trying version: %s", next_ver)
+
                 new_content = content.replace(orig_ver, next_ver)
-                meta = parse_meta_yaml(new_content)
-                url = None
-                for u in urls_from_meta(meta):
-                    if u not in orig_urls:
-                        url = u
-                        break
-                if url is None:
+                new_meta = parse_meta_yaml(new_content)
+                new_urls = urls_from_meta(new_meta)
+                if len(new_urls) == 0:
+                    logger.debug("No URL in meta.yaml")
                     meta_yaml["bad"] = "Upstream: no url in yaml"
                     return None
-                if (
-                    str(meta["package"]["version"]) != next_ver
-                    or meta_yaml["url"] == url
-                ):
-                    continue
 
-                _exists, _url_to_use = url_exists_swap_exts(url)
-                if not _exists:
-                    logger.debug("version %s does not exist", next_ver)
-                    continue
-                else:
-                    url = _url_to_use
+                url_to_use = None
+                for url in urls_from_meta(new_meta):
+                    # this URL looks bad if these things happen
+                    if (
+                        str(new_meta["package"]["version"]) != next_ver
+                        or meta_yaml["url"] == url
+                        or url in orig_urls
+                    ):
+                        continue
 
-                found = True
-                count = count + 1
-                current_ver = next_ver
-                new_sha256 = get_sha256(url)
-                if new_sha256 == current_sha256 or new_sha256 in new_content:
-                    return None
-                current_sha256 = new_sha256
-                logger.debug("version %s is ok", current_ver)
-                break
+                    _exists, _url_to_use = url_exists_swap_exts(url)
+                    if not _exists:
+                        logger.debug(
+                            "version %s does not exist for url %s", next_ver, url)
+                        continue
+                    else:
+                        url_to_use = _url_to_use
+
+                if url_to_use is not None:
+                    found = True
+                    count = count + 1
+                    current_ver = next_ver
+                    new_sha256 = get_sha256(url_to_use)
+                    if new_sha256 == current_sha256 or new_sha256 in new_content:
+                        return None
+                    current_sha256 = new_sha256
+                    logger.debug("version %s is ok for url %s", current_ver, url_to_use)
+                    break
 
         if count == max_count:
             return None
