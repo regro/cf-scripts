@@ -25,7 +25,7 @@ YAML_PATH = os.path.join(os.path.dirname(__file__), 'test_yaml')
     ('jinja2nameshasel', '4.7.2'),
     ('shaquotes', '0.6.0'),
     ('cdiff', '0.15.0'),
-    ('selshaurl', '3.8.0'),
+    ('selshaurl', '3.7.0'),
     ('buildbumpmpi', '7.8.0'),
     ('multisrclistnoup', '3.11.3'),
     ('pypiurl', '0.7.1'),
