@@ -19,6 +19,7 @@ from typing import (
 
 import yaml
 import networkx as nx
+import tqdm
 
 import feedparser
 import requests
@@ -532,10 +533,10 @@ def _update_upstream_versions_process_pool(
     futures = {}
     # this has to be threads because the url hashing code uses a Pipe which
     # cannot be spawned from a process
-    with executor(kind="dask-process", max_workers=10, daemon=False) as pool:
+    with executor(kind="dask-thread", max_workers=8) as pool:
         _all_nodes = [t for t in gx.nodes.items()]
         random.shuffle(_all_nodes)
-        for node, node_attrs in _all_nodes:
+        for node, node_attrs in tqdm.tqdm(_all_nodes):
             with node_attrs["payload"] as attrs:
                 if attrs.get("bad") or attrs.get("archived"):
                     attrs["new_version"] = False
