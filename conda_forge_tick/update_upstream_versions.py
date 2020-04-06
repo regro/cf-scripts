@@ -362,7 +362,8 @@ class ROSDistro(AbstractSource):
 def get_sha256(url: str) -> Optional[str]:
     try:
         return hash_url(url, timeout=120, hash_type="sha256")
-    except Exception:
+    except Exception as e:
+        logger.debug("url hashing exception: %s", repr(e))
         return None
 
 
@@ -438,6 +439,7 @@ class RawURL(AbstractSource):
                     ):
                         continue
 
+                    logger.debug("trying url: %s", url)
                     _exists, _url_to_use = url_exists_swap_exts(url)
                     if not _exists:
                         logger.debug(
