@@ -90,7 +90,7 @@ def test_version_noup(case, new_ver, tmpdir, caplog):
     ) as fp:
         out_yaml = fp.read()
 
-    run_test_migration(
+    attrs = run_test_migration(
         m=VERSION,
         inp=in_yaml,
         output=out_yaml,
@@ -99,3 +99,5 @@ def test_version_noup(case, new_ver, tmpdir, caplog):
         mr_out={},
         tmpdir=tmpdir,
     )
+
+    print("\n\n" + attrs["new_version_errors"][new_ver] + "\n\n")

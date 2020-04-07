@@ -1771,7 +1771,7 @@ def run_test_migration(
 
     assert m.filter(pmy) is should_filter
     if should_filter:
-        return
+        return pmy
 
     m.run_pre_piggyback_migrations(
         tmpdir, pmy, hash_type=pmy.get("hash_type", "sha256"))
@@ -1781,7 +1781,7 @@ def run_test_migration(
 
     assert mr_out == mr
     if not mr:
-        return
+        return pmy
 
     pmy.update(PRed=[frozen_to_json_friendly(mr)])
     with open(os.path.join(tmpdir, "meta.yaml"), "r") as f:
@@ -1797,10 +1797,12 @@ def run_test_migration(
     elif isinstance(m, Version):
         pass
     elif isinstance(m, Rebuild):
-        return
+        return pmy
     else:
         assert prb in m.pr_body(None)
     assert m.filter(pmy) is True
+
+    return pmy
 
 
 def test_version_license_correct(tmpdir):
