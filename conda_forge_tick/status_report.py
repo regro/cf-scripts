@@ -52,7 +52,7 @@ def write_version_migrator_status(migrator, mctx):
                 )
 
     with open("./status/version_status.json", "w") as f:
-        json.dump(out, f, sort_keys=True)
+        json.dump(out, f, sort_keys=True, indent=2)
 
 
 def graph_migrator_status(
