@@ -521,8 +521,8 @@ class Version(Migrator):
         else:
             logger.critical("Recipe did not change in version migration!")
             msg = (
-                "The recipe did not change in version migration, a URL did not hash, "
-                "or there is jinja2 syntax the bot cannot handle!\n\n"
+                "The recipe did not change in the version migration, a URL did "
+                "not hash, or there is jinja2 syntax the bot cannot handle!\n\n"
                 "Please check the urls in your recipe with version '%s' to make sure"
                 "they exist!\n\n" % version
             )
