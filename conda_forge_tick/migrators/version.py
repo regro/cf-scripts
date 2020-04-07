@@ -394,7 +394,11 @@ class Version(Migrator):
     ) -> "MigrationUidTypedDict":
 
         version = attrs["new_version"]
-        assert isinstance(version, str)
+        if not isinstance(version, str):
+            attrs["new_version_errors"][version] = (
+                "The version '%s' is not a string!" % version
+            )
+            return {}
 
         # record the attempt
         if "new_version_attempts" not in attrs:
@@ -402,9 +406,15 @@ class Version(Migrator):
         if version not in attrs["new_version_attempts"]:
             attrs["new_version_attempts"][version] = 0
         attrs["new_version_attempts"][version] += 1
+        if "new_version_errors" not in attrs:
+            attrs["new_version_errors"] = {}
 
-        with open(os.path.join(recipe_dir, "meta.yaml"), "r") as fp:
-            cmeta = CondaMetaYAML(fp.read())
+        try:
+            with open(os.path.join(recipe_dir, "meta.yaml"), "r") as fp:
+                cmeta = CondaMetaYAML(fp.read())
+        except Exception as e:
+            attrs["new_version_errors"][version] = str(e)
+            return {}
 
         # cache round-tripped yaml for testing later
         s = io.StringIO()
@@ -415,6 +425,9 @@ class Version(Migrator):
         # if is a git url, then we error
         if _recipe_has_git_url(cmeta):
             logger.critical("Migrations do not work on `git_url`s!")
+            attrs["new_version_errors"][version] = (
+                "Migrations do not work on `git_url`s!"
+            )
             return {}
 
         # mangle the version if it is R
@@ -434,7 +447,10 @@ class Version(Migrator):
             cmeta.jinja2_vars["version"] = version
         else:
             logger.critical(
-                "Migrations do not work on versions " "not specified with jinja2!"
+                "Migrations do not work on versions not specified with jinja2!"
+            )
+            attrs["new_version_errors"][version] = (
+                "Migrations do not work on versions not specified with jinja2!"
             )
             return {}
 
@@ -476,6 +492,12 @@ class Version(Migrator):
             return super().migrate(recipe_dir, attrs)
         else:
             logger.critical("Recipe did not change in version migration!")
+            attrs["new_version_errors"][version] = (
+                "Recipe did not change in version migration, a URL did not hash, or"
+                " there is jinja2 syntax the bot cannot handle!"
+                " Please check the urls in your recipe with version '%s' to make sure "
+                " they exist!" % version
+            )
             return {}
 
     def pr_body(self, feedstock_ctx: FeedstockContext) -> str:
