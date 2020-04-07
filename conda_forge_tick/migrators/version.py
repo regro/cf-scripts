@@ -413,7 +413,9 @@ class Version(Migrator):
             with open(os.path.join(recipe_dir, "meta.yaml"), "r") as fp:
                 cmeta = CondaMetaYAML(fp.read())
         except Exception as e:
-            attrs["new_version_errors"][version] = str(e)
+            attrs["new_version_errors"][version] = (
+                "Problem parsing the recipe: \n" + str(e)
+            )
             return {}
 
         # cache round-tripped yaml for testing later
