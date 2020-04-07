@@ -311,7 +311,7 @@ def _try_to_update_version(cmeta: Any, src: str, hash_type: str):
                 src[url_key], context, hash_type,
             )
             if new_hash is None:
-                errors.add("could not hash URL template '%s'" % url_tmpl)
+                errors.add("could not hash URL template '%s'" % src[url_key])
 
         # now try to replace the hash
         if new_hash is not None:
@@ -341,6 +341,23 @@ def _try_to_update_version(cmeta: Any, src: str, hash_type: str):
         updated_version &= new_hash is not None
 
     return updated_version, errors
+
+
+def _fmt_error_message(errors, version):
+    msg = (
+        "The recipe did not change in the version migration, a URL did "
+        "not hash, or there is jinja2 syntax the bot cannot handle!\n\n"
+        "Please check the URLs in your recipe with version '%s' to make sure "
+        "they exist!\n\n" % version
+    )
+    if len(errors) > 0:
+        msg += (
+            "We also found the following errors:\n\n - %s" % (
+                "\n - ".join(e for e in errors)
+            )
+        )
+        msg += "\n"
+    return msg
 
 
 class Version(Migrator):
@@ -406,6 +423,8 @@ class Version(Migrator):
         hash_type: str = "sha256",
         **kwargs: Any,
     ) -> "MigrationUidTypedDict":
+        errors = set()
+
         version = attrs["new_version"]
 
         # record the attempt
@@ -418,9 +437,10 @@ class Version(Migrator):
             attrs["new_version_errors"] = {}
 
         if not isinstance(version, str):
-            attrs["new_version_errors"][version] = (
-                "The version '%s' is not a string!" % version
+            errors.add(
+                "the version '%s' is not a string and must be for the bot" % version
             )
+            attrs["new_version_errors"][version] = _fmt_error_message(errors, version)
             return {}
 
         try:
@@ -441,9 +461,10 @@ class Version(Migrator):
         # if is a git url, then we error
         if _recipe_has_git_url(cmeta):
             logger.critical("Migrations do not work on `git_url`s!")
-            attrs["new_version_errors"][version] = (
-                "Migrations do not work on `git_url`s!"
+            errors.add(
+                "migrations do not work on `git_url`s"
             )
+            attrs["new_version_errors"][version] = _fmt_error_message(errors, version)
             return {}
 
         # mangle the version if it is R
@@ -465,12 +486,12 @@ class Version(Migrator):
             logger.critical(
                 "Migrations do not work on versions not specified with jinja2!"
             )
-            attrs["new_version_errors"][version] = (
-                "Migrations do not work on versions not specified with jinja2!"
+            errors.add(
+                "migrations do not work on versions not specified with jinja2"
             )
+            attrs["new_version_errors"][version] = _fmt_error_message(errors, version)
             return {}
 
-        errors = set()
         if len(list(_gen_key_selector(cmeta.meta, "source"))) > 0:
             did_update = True
             for src_key in _gen_key_selector(cmeta.meta, "source"):
@@ -520,20 +541,7 @@ class Version(Migrator):
             return super().migrate(recipe_dir, attrs)
         else:
             logger.critical("Recipe did not change in version migration!")
-            msg = (
-                "The recipe did not change in the version migration, a URL did "
-                "not hash, or there is jinja2 syntax the bot cannot handle!\n\n"
-                "Please check the urls in your recipe with version '%s' to make sure"
-                "they exist!\n\n" % version
-            )
-            if len(errors) > 0:
-                msg += (
-                    "We also found the following errors:\n%s" % (
-                        "\n - ".join(e for e in errors)
-                    )
-                )
-                msg += "\n"
-            attrs["new_version_errors"][version] = msg
+            attrs["new_version_errors"][version] = _fmt_error_message(errors, version)
             return {}
 
     def pr_body(self, feedstock_ctx: FeedstockContext) -> str:
