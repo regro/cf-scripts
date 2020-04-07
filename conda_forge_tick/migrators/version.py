@@ -198,8 +198,11 @@ def _try_replace_hash(
 
 
 def _try_to_update_version(cmeta: Any, src: str, hash_type: str):
+    errors = set()
+
     if not any("url" in k for k in src):
-        return False
+        errors.add("no URLs in the source section")
+        return False, errors
 
     ha = getattr(hashlib, hash_type, None)
     if ha is None:
@@ -276,6 +279,9 @@ def _try_to_update_version(cmeta: Any, src: str, hash_type: str):
                     context["cran_mirror"] = "https://cran.r-project.org"
                 else:
                     logger.critical("jinja2 variable %s is missing!", var)
+                    errors.add(
+                        "missing jinja2 variable '%s' for selector '%s'" % (
+                            var, selector))
                     updated_version = False
                     break
 
@@ -298,10 +304,14 @@ def _try_to_update_version(cmeta: Any, src: str, hash_type: str):
                 )
                 if new_hash is not None:
                     break
+                else:
+                    errors.add("could not hash URL template '%s'" % url_tmpl)
         else:
             new_url_tmpl, new_hash = _get_new_url_tmpl_and_hash(
                 src[url_key], context, hash_type,
             )
+            if new_hash is None:
+                errors.add("could not hash URL template '%s'" % url_tmpl)
 
         # now try to replace the hash
         if new_hash is not None:
@@ -318,6 +328,10 @@ def _try_to_update_version(cmeta: Any, src: str, hash_type: str):
                     logger.info("source w/ new url: %s", pprint.pformat(src))
             else:
                 new_hash = None
+                errors.add(
+                    "could not replace the hash in the recipe "
+                    "for URL template '%s'" % new_url_tmpl
+                )
 
         if new_hash is not None:
             logger.info("new URL template: %s", new_url_tmpl)
@@ -326,7 +340,7 @@ def _try_to_update_version(cmeta: Any, src: str, hash_type: str):
 
         updated_version &= new_hash is not None
 
-    return updated_version
+    return updated_version, errors
 
 
 class Version(Migrator):
@@ -414,7 +428,7 @@ class Version(Migrator):
                 cmeta = CondaMetaYAML(fp.read())
         except Exception as e:
             attrs["new_version_errors"][version] = (
-                "Problem parsing the recipe: \n" + str(e)
+                "We found a problem parsing the recipe: \n\n" + str(e)
             )
             return {}
 
@@ -456,18 +470,26 @@ class Version(Migrator):
             )
             return {}
 
+        errors = set()
         if len(list(_gen_key_selector(cmeta.meta, "source"))) > 0:
             did_update = True
             for src_key in _gen_key_selector(cmeta.meta, "source"):
                 if isinstance(cmeta.meta[src_key], collections.abc.MutableSequence):
                     for src in cmeta.meta[src_key]:
-                        did_update &= _try_to_update_version(cmeta, src, hash_type)
+                        _did_update, _errors = _try_to_update_version(
+                            cmeta, src, hash_type)
+                        did_update &= _did_update
+                        errors |= _errors
                 else:
-                    did_update &= _try_to_update_version(
+                    _did_update, _errors = _try_to_update_version(
                         cmeta, cmeta.meta[src_key], hash_type,
                     )
+                    did_update &= _did_update
+                    errors |= _errors
+
         else:
             did_update = False
+            errors.add("no source sections found in the recipe")
 
         if did_update:
             # if the yaml did not change, then we did not migrate actually
@@ -480,6 +502,10 @@ class Version(Migrator):
 
             if still_the_same and old_version != version:
                 did_update = False
+                errors.add(
+                    "recipe did not appear to change even "
+                    "though the bot said it should have"
+                )
                 logger.critical(
                     "Recipe did not change in version migration "
                     "but the code indicates an update was done!"
@@ -494,12 +520,20 @@ class Version(Migrator):
             return super().migrate(recipe_dir, attrs)
         else:
             logger.critical("Recipe did not change in version migration!")
-            attrs["new_version_errors"][version] = (
-                "Recipe did not change in version migration, a URL did not hash, or"
-                " there is jinja2 syntax the bot cannot handle!"
-                " Please check the urls in your recipe with version '%s' to make sure "
-                " they exist!" % version
+            msg = (
+                "The recipe did not change in version migration, a URL did not hash, "
+                "or there is jinja2 syntax the bot cannot handle!\n\n"
+                "Please check the urls in your recipe with version '%s' to make sure"
+                "they exist!\n\n" % version
             )
+            if len(errors) > 0:
+                msg += (
+                    "We also found the following errors:\n%s" % (
+                        "\n - ".join(e for e in errors)
+                    )
+                )
+                msg += "\n"
+            attrs["new_version_errors"][version] = msg
             return {}
 
     def pr_body(self, feedstock_ctx: FeedstockContext) -> str:
