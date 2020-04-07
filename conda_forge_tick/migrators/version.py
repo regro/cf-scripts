@@ -392,13 +392,7 @@ class Version(Migrator):
         hash_type: str = "sha256",
         **kwargs: Any,
     ) -> "MigrationUidTypedDict":
-
         version = attrs["new_version"]
-        if not isinstance(version, str):
-            attrs["new_version_errors"][version] = (
-                "The version '%s' is not a string!" % version
-            )
-            return {}
 
         # record the attempt
         if "new_version_attempts" not in attrs:
@@ -408,6 +402,12 @@ class Version(Migrator):
         attrs["new_version_attempts"][version] += 1
         if "new_version_errors" not in attrs:
             attrs["new_version_errors"] = {}
+
+        if not isinstance(version, str):
+            attrs["new_version_errors"][version] = (
+                "The version '%s' is not a string!" % version
+            )
+            return {}
 
         try:
             with open(os.path.join(recipe_dir, "meta.yaml"), "r") as fp:
