@@ -16,7 +16,7 @@ def get_all_feedstocks_from_github() -> List[str]:
     if r.status_code != 200:
         raise RuntimeError("could not get feedstocks!")
 
-    return r.json()["arctive"]
+    return r.json()["active"]
 
 
 def get_all_feedstocks(cached: bool = False) -> List[str]:
