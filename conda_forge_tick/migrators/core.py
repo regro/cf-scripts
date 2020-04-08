@@ -532,16 +532,14 @@ class GraphMigrator(Migrator):
         self.cycles = set(chain.from_iterable(cycles or []))
 
     def predecessors_not_yet_built(self, attrs: "AttrsTypedDict") -> bool:
-        __name = attrs.get("name", "")
-
-        def _test_node_built(node):
-            # check to see if node has been built
+        # Check if all upstreams have been built
+        for node in self.graph.predecessors(attrs["feedstock_name"]):
             payload = self.graph.nodes[node]["payload"]
             muid = frozen_to_json_friendly(self.migrator_uid(payload))
             if muid not in _sanitized_muids(
                 payload.get("PRed", []),
             ) and not payload.get("archived", False):
-                return False
+                return True
             # This is due to some PRed_json loss due to bad graph deploy outage
             for m_pred_json in payload.get("PRed", []):
                 if m_pred_json["data"] == muid["data"]:
@@ -552,69 +550,10 @@ class GraphMigrator(Migrator):
             # so that errors halt the migration and can be fixed
             if (
                 m_pred_json
-                and (
-                    m_pred_json
-                    .get("PR", {"state": "open"})
-                    .get("state", "")
-                ) == "open"
+                and m_pred_json.get("PR", {"state": "open"}).get("state", "") == "open"
             ):
-                return False
-
-            return True
-
-        # Special case pinning so we don't need to add every feedstock as a dep
-        if attrs.get('name', '') == 'conda-forge-pinning':
-            all_deps = self.graph.predecessors('conda-forge-pinning')
-        # check deps directly instead of using the graph
-        # this breaks cycles in cases where a dep comes from more than
-        # one package
-        else:
-            all_deps = set().union(*attrs.get("requirements", {}).values())
-        all_deps_built = True
-        for dep in all_deps:
-            if any(dep.endswith(stub) for stub in PACKAGE_STUBS):
-                continue
-
-            # get all potential nodes for a dep
-            potential_nodes = []
-
-            if (
-                dep in self.graph.nodes and
-                len(
-                    self.graph.nodes[dep]
-                    .get("payload", {})
-                    .get("outputs_names", [])
-                ) == 0
-            ):
-                potential_nodes.append(dep)
-
-            if dep in self.outputs_lut:
-                _node = self.outputs_lut[dep]
-                if _node in self.graph.nodes:
-                    potential_nodes.append(_node)
-
-            if len(potential_nodes) == 0:
-                # some dep cannot be done, so keep moving since
-                # it could be outside this graph
-                continue
-
-            LOGGER.debug("%s: dep %s: nodes: %s", __name, dep, potential_nodes)
-
-            nodes_built = []
-            for node in potential_nodes:
-                if node == __name:
-                    # self-cycle is always built
-                    nodes_built.append(True)
-                elif node not in self.graph.nodes:
-                    nodes_built.append(False)
-                else:
-                    nodes_built.append(_test_node_built(node))
-
-            LOGGER.debug("%s: dep %s: built: %s", __name, dep, nodes_built)
-
-            all_deps_built = all_deps_built and any(nodes_built)
-
-        return not all_deps_built
+                return True
+        return False
 
     def filter(self, attrs: "AttrsTypedDict", not_bad_str_start: str = "") -> bool:
         name = attrs.get("name", "")

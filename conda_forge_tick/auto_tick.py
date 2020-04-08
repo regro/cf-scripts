@@ -401,7 +401,7 @@ def add_rebuild_migration_yaml(
         host = requirements.get("host", set())
         build = requirements.get("build", set())
         bh = host or build
-        criteria = bh & set(package_names) and (
+        inclusion_criteria = bh & set(package_names) and (
             "noarch" not in attrs.get("meta_yaml", {}).get("build", {})
         )
         # get host/build, run and test and launder them through outputs
@@ -418,7 +418,9 @@ def add_rebuild_migration_yaml(
         for e in list(total_graph.in_edges(node)):
             if e[0] not in rq:
                 total_graph.remove_edge(*e)
-        if not any([criteria]) or node in excluded_feedstocks:
+        # if there isn't a strict dependency or if the feedstock is excluded,
+        # remove it while retaining the edges to its parents and children
+        if not inclusion_criteria or node in excluded_feedstocks:
             pluck(total_graph, node)
 
     # all nodes have the conda-forge-pinning as child package
@@ -426,6 +428,11 @@ def add_rebuild_migration_yaml(
 
     # post plucking we can have several strange cases, lets remove all selfloops
     total_graph.remove_edges_from(nx.selfloop_edges(total_graph))
+
+    # Note at this point the graph is made of all packages that have a
+    # dependency on the pinned package via Host, run, or test.
+    # Some packages don't have a host section so we use their
+    # build section in its place.
 
     package_names = {
         p if p in gx.nodes else output_to_feedstock[p] for p in package_names
