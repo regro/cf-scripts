@@ -327,7 +327,7 @@ class MigrationYamlCreator(Migrator):
 
 def create_rebuild_graph(gx: nx.DiGraph, package_names: Sequence[str], excluded_feedstocks: MutableSet[str] = None) -> nx.DiGraph:
     total_graph = copy.deepcopy(gx)
-    excluded_feedstocks = set() if excluded_feedstocks is None
+    excluded_feedstocks = set() if excluded_feedstocks is None else excluded_feedstocks
 
     for node, node_attrs in gx.nodes.items():
         # always keep pinning
