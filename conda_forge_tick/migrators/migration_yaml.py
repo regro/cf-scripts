@@ -291,7 +291,7 @@ class MigrationYamlCreator(Migrator):
                 current_pin=self.current_pin,
                 new_pin_version=self.new_pin_version,
                 feedstock_name=self.feedstock_name,
-                len_graph=len(create_rebuild_graph(self.graph, self.package_name))
+                len_graph=len(create_rebuild_graph(self.graph, (self.package_name, )))
             )
         )
         body = body.format(additional_body)
