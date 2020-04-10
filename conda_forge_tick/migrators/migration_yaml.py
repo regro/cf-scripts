@@ -1,7 +1,8 @@
+import copy
 import os
 from itertools import chain
 import typing
-from typing import Optional, Set, Sequence, Any
+from typing import Optional, Set, Sequence, Any, MutableSet
 import time
 import datetime
 import re
@@ -13,6 +14,7 @@ import ruamel.yaml as yaml
 from conda_forge_tick.contexts import FeedstockContext
 from conda_forge_tick.migrators.core import GraphMigrator, MiniMigrator, Migrator
 from conda_forge_tick.xonsh_utils import eval_xonsh, indir
+from ..utils import pluck
 
 if typing.TYPE_CHECKING:
     from ..migrators_types import (
@@ -223,6 +225,7 @@ class MigrationYamlCreator(Migrator):
         current_pin: str,
         pin_spec: str,
         feedstock_name: str,
+        graph: nx.DiGraph,
         pr_limit: int = 1,
         bump_number: int = 1,
         **kwargs: Any,
@@ -235,6 +238,7 @@ class MigrationYamlCreator(Migrator):
         self.package_name = package_name
         self.bump_number = bump_number
         self.name = package_name + " pinning"
+        self.graph = graph
 
     def filter(self, attrs: "AttrsTypedDict", not_bad_str_start: str = "") -> bool:
         if (
@@ -269,7 +273,7 @@ class MigrationYamlCreator(Migrator):
             "This PR has been triggered in an effort to update the pin for"
             " **{name}**. The current pinned version is {current_pin}, "
             "the latest available version is {new_pin_version} and the max "
-            "pin pattern is {pin_spec}.\n\n"
+            "pin pattern is {pin_spec}. This migration will impact {len_graph} feedstocks.\n\n"
             "Notes and instructions for merging this PR:\n"
             "1. Please merge the PR only if this new version is to be a "
             "supported pin. \n"
@@ -287,6 +291,7 @@ class MigrationYamlCreator(Migrator):
                 current_pin=self.current_pin,
                 new_pin_version=self.new_pin_version,
                 feedstock_name=self.feedstock_name,
+                len_graph=len(create_rebuild_graph(self.graph, self.package_name))
             )
         )
         body = body.format(additional_body)
@@ -318,3 +323,46 @@ class MigrationYamlCreator(Migrator):
         return sorted(
             graph, key=lambda x: (len(nx.descendants(total_graph, x)), x), reverse=True,
         )
+
+
+def create_rebuild_graph(gx: nx.DiGraph, package_names: Sequence[str], excluded_feedstocks: MutableSet[str] = None) -> nx.DiGraph:
+    total_graph = copy.deepcopy(gx)
+    excluded_feedstocks = set() if excluded_feedstocks is None else excluded_feedstocks
+
+    for node, node_attrs in gx.nodes.items():
+        # always keep pinning
+        if node == 'conda-forge-pinning':
+            continue
+        attrs: "AttrsTypedDict" = node_attrs["payload"]
+        requirements = attrs.get("requirements", {})
+        host = requirements.get("host", set())
+        build = requirements.get("build", set())
+        bh = host or build
+        inclusion_criteria = bh & set(package_names) and (
+                "noarch" not in attrs.get("meta_yaml", {}).get("build", {})
+        )
+        # get host/build, run and test and launder them through outputs
+        # this should fix outputs related issues (eg gdal)
+        rq = set(
+            map(
+                lambda x: gx.graph["outputs_lut"].get(x, x),
+                (host or build)
+                | requirements.get("run", set())
+                | requirements.get("test", set()),
+            )
+        )
+
+        for e in list(total_graph.in_edges(node)):
+            if e[0] not in rq:
+                total_graph.remove_edge(*e)
+        # if there isn't a strict dependency or if the feedstock is excluded,
+        # remove it while retaining the edges to its parents and children
+        if not inclusion_criteria or node in excluded_feedstocks:
+            pluck(total_graph, node)
+
+    # all nodes have the conda-forge-pinning as child package
+    total_graph.add_edges_from([(n, 'conda-forge-pinning') for n in total_graph.nodes])
+
+    # post plucking we can have several strange cases, lets remove all selfloops
+    total_graph.remove_edges_from(nx.selfloop_edges(total_graph))
+    return total_graph

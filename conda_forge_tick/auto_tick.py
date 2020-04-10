@@ -19,7 +19,7 @@ import github3
 import ruamel.yaml as yaml
 from uuid import uuid4
 
-from conda_forge_tick.migrators.migration_yaml import MigrationYamlCreator
+from conda_forge_tick.migrators.migration_yaml import MigrationYamlCreator, create_rebuild_graph
 from .xonsh_utils import indir, eval_xonsh
 
 from conda_forge_tick.contexts import FeedstockContext
@@ -70,7 +70,6 @@ if typing.TYPE_CHECKING:
     from .migrators_types import (
         MetaYamlTypedDict,
         PackageName,
-        AttrsTypedDict,
     )
 
 logger = logging.getLogger("conda_forge_tick.auto_tick")
@@ -390,44 +389,7 @@ def add_rebuild_migration_yaml(
         The number of PRs per hour, defaults to 5
     """
 
-    total_graph = copy.deepcopy(gx)
-
-    for node, node_attrs in gx.nodes.items():
-        # always keep pinning
-        if node == 'conda-forge-pinning':
-            continue
-        attrs: "AttrsTypedDict" = node_attrs["payload"]
-        requirements = attrs.get("requirements", {})
-        host = requirements.get("host", set())
-        build = requirements.get("build", set())
-        bh = host or build
-        inclusion_criteria = bh & set(package_names) and (
-            "noarch" not in attrs.get("meta_yaml", {}).get("build", {})
-        )
-        # get host/build, run and test and launder them through outputs
-        # this should fix outputs related issues (eg gdal)
-        rq = set(
-            map(
-                lambda x: gx.graph["outputs_lut"].get(x, x),
-                (host or build)
-                | requirements.get("run", set())
-                | requirements.get("test", set()),
-            )
-        )
-
-        for e in list(total_graph.in_edges(node)):
-            if e[0] not in rq:
-                total_graph.remove_edge(*e)
-        # if there isn't a strict dependency or if the feedstock is excluded,
-        # remove it while retaining the edges to its parents and children
-        if not inclusion_criteria or node in excluded_feedstocks:
-            pluck(total_graph, node)
-
-    # all nodes have the conda-forge-pinning as child package
-    total_graph.add_edges_from([(n, 'conda-forge-pinning') for n in total_graph.nodes])
-
-    # post plucking we can have several strange cases, lets remove all selfloops
-    total_graph.remove_edges_from(nx.selfloop_edges(total_graph))
+    total_graph = create_rebuild_graph(gx, package_names, excluded_feedstocks)
 
     # Note at this point the graph is made of all packages that have a
     # dependency on the pinned package via Host, run, or test.
@@ -614,7 +576,7 @@ def create_migration_yaml_creator(migrators: MutableSequence[Migrator], gx: nx.D
                 migrators.append(
                     MigrationYamlCreator(
                         package_name, current_version, current_pin,
-                        pin_spec, k
+                        pin_spec, k, gx
                     )
                 )
 
