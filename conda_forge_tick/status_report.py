@@ -20,8 +20,9 @@ from conda_forge_tick.migrators import (
     MatplotlibBase,
 )
 from conda_forge_tick.path_lengths import cyclic_topological_sort
-from conda_forge_tick.contexts import MigratorContext
+from conda_forge_tick.contexts import MigratorContext, FeedstockContext
 
+from .git_utils import feedstock_url
 
 def write_version_migrator_status(migrator, mctx):
     """write the status of the version migrator"""
@@ -157,7 +158,8 @@ def graph_migrator_status(
                 fillcolor=fc,
                 style="filled",
                 fontcolor=fntc,
-                URL=(pr_json or {}).get("PR", {}).get("html_url", ""),
+                URL=(pr_json or {}).get("PR", {}).get(
+                    "html_url", feedstock_url(fctx=feedstock_ctx, protocol="https").strip('.git')),
             )
 
         # additional metadata for reporting
@@ -169,7 +171,8 @@ def graph_migrator_status(
         ]
         if pr_json and "PR" in pr_json:
             # I needed to fake some PRs they don't have html_urls though
-            node_metadata["pr_url"] = pr_json["PR"].get("html_url", "")
+            node_metadata["pr_url"] = pr_json["PR"].get(
+                "html_url", feedstock_url(fctx=feedstock_ctx, protocol="https").strip('.git'))
 
     out2: Dict = {}
     for k in out.keys():
