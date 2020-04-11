@@ -94,6 +94,12 @@ def graph_migrator_status(
         for pr_json in attrs.get("PRed", []):
             all_pr_jsons.append(copy.deepcopy(pr_json))
 
+        feedstock_ctx = FeedstockContext(
+            package_name=node,
+            feedstock_name=attrs.get("feedstock_name", node),
+            attrs=attrs,
+        )
+
         # hack around bug in migrator vs graph data for this one
         if isinstance(migrator, MatplotlibBase):
             if "name" in nuid:
