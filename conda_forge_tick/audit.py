@@ -19,7 +19,7 @@ def audit_feedstock(fctx: FeedstockContext, ctx: MigratorSessionContext):
     """
     # get feedstock
     feedstock_dir = os.path.join(ctx.rever_dir, fctx.package_name + "-feedstock")
-    origin = feedstock_url(fctx=fctx)
+    origin = feedstock_url(fctx=fctx, protocol="https")
     fetch_repo(
         feedstock_dir=feedstock_dir, origin=origin, upstream=origin, branch="master"
     )
