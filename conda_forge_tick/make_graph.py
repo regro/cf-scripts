@@ -119,10 +119,10 @@ def populate_feedstock_attributes(
                 "bot",
             }
         }
-
-    yaml_dict = ChainDB(
-        *[parse_meta_yaml(meta_yaml, platform=plat) for plat in ["win", "osx", "linux"]]
-    )
+    arches = ["win", "osx", "linux"]
+    parsed_meta_yamls = [parse_meta_yaml(meta_yaml, platform=plat) for plat in arches]
+    sub_graph.update({k: v for k, v in zip(arches, parsed_meta_yamls)})
+    yaml_dict = ChainDB(*parsed_meta_yamls)
     if not yaml_dict:
         logger.error(f"Something odd happened when parsing recipe {name}")
         sub_graph["bad"] = "make_graph: Could not parse"

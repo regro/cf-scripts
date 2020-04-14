@@ -15,6 +15,7 @@ from concurrent.futures import (
     ThreadPoolExecutor,
     Executor,
 )
+import subprocess
 
 import github3
 import jinja2
@@ -543,3 +544,27 @@ def as_iterable(iterable_or_scalar):
         return iterable_or_scalar
     else:
         return (iterable_or_scalar,)
+
+
+def mamba_cant_solve(packages, os_arch):
+
+    subprocess_list = ['mamba', 'install'] + packages + ['-c', f'https://conda.anaconda.org/conda-forge/{os_arch}', '--override-channels']
+    results = subprocess.check_output(subprocess_list)
+    return 'Problem' in results.decode('utf-8')
+
+
+def extract_requirements(meta_yaml):
+    requirements_dict = defaultdict(set)
+    for block in [meta_yaml] + meta_yaml.get("outputs", []) or []:
+        req: "RequirementsTypedDict" = block.get("requirements", {}) or {}
+        if isinstance(req, list):
+            requirements_dict["run"].update(set(req))
+            continue
+        for section in ["build", "host", "run"]:
+            requirements_dict[section].update(
+                list(as_iterable(req.get(section, []) or []))
+            )
+        test: "TestTypedDict" = block.get("test", {})
+        requirements_dict["test"].update(test.get("requirements", []) or [])
+        requirements_dict["test"].update(test.get("requires", []) or [])
+    return requirements_dict

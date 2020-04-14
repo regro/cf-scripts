@@ -26,7 +26,7 @@ from conda_forge_tick.utils import (
     frozen_to_json_friendly,
     CB_CONFIG,
     PACKAGE_STUBS,
-    LazyJson,
+    LazyJson, mamba_cant_solve, extract_requirements,
 )
 from conda_forge_tick.contexts import MigratorContext, FeedstockContext
 
@@ -286,6 +286,19 @@ class Migrator:
         bad_attr = _parse_bad_attr(attrs, not_bad_str_start)
         if bad_attr:
             LOGGER.debug("%s: bnad attr" % __name)
+
+        # Check that all upstreams are installable
+        arch_packages = {}
+        # TODO: global variable this somewhere and add aarch and ppc
+        for arch in ['win-64', 'osx-64', 'linux-64']:
+            platform = arch.split('-')[0]
+            if attrs[platform].get('build', {}).get('skip', False):
+                continue
+            req = extract_requirements(attrs[platform])
+            # TODO: maybe throw in test?
+            arch_packages[arch] = set().union(req['host'], req['run'])
+        if any(mamba_cant_solve(packages=packages, os_arch=arch) for arch, packages in arch_packages.items()):
+            return True
 
         return (
             attrs.get("archived", False)
