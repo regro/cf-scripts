@@ -2,7 +2,9 @@ import os
 import json
 import pickle
 
-from conda_forge_tick.utils import LazyJson, get_requirements, dumps
+import pytest
+
+from conda_forge_tick.utils import LazyJson, get_requirements, dumps, mamba_cant_solve, extract_requirements
 
 
 def test_lazy_json(tmpdir):
@@ -39,3 +41,21 @@ def test_get_requirements():
     assert get_requirements(meta_yaml) == {"1", "2", "3", "4", "5", "6"}
     assert get_requirements(meta_yaml, outputs=False) == {"1", "2", "3"}
     assert get_requirements(meta_yaml, host=False) == {"1", "2", "5", "6"}
+
+
+def test_mamba_cant_solve():
+    assert mamba_cant_solve(['root==6.20.2', 'krb5=1.17.1'], os_arch='linux-64')
+    assert not mamba_cant_solve(['pykerberos=1.2.1', 'krb5=1.17.1'], os_arch='linux-64')
+
+
+@pytest.mark.parametrize('input_meta, expected_req', [
+    ({'requirements': ['a', 'b', 'c']},
+     {'run': {'a', 'b', 'c'}}),
+    ({'requirements': {'build': ['a'], 'host': ['b'], 'run': ['c']}, 'test': {'requirements': ['d']}},
+     {'build': {'a'}, 'host': {'b'}, 'run': {'c'}, 'test': {'d'}}),
+    ({'requirements': {'build': ['a'], 'host': ['b'], 'run': ['c']}, 'test': {'requirements': ['d']},
+      'outputs': [{'requirements': {'run': ['e']}, 'test': {'requires': ['f']}}]},
+     {'build': {'a'}, 'host': {'b'}, 'run': {'c', 'e'}, 'test': {'d', 'f'}})
+])
+def test_extract_requirements(input_meta, expected_req):
+    assert extract_requirements(input_meta) == expected_req

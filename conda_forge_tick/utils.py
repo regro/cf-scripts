@@ -43,6 +43,13 @@ PACKAGE_STUBS = [
     "cdt_stub",
 ]
 
+ALL_BUILD_SUBDIRS = {"linux-64", "osx-64", "win-64",
+                     # I'm not certain we build this currently?
+                     # "linux-armv7l",
+                     "linux-ppc64le", "linux-aarch64"}
+MAIN_SUBDIRS = {"linux-64", "osx-64", "win-64"}
+
+
 CB_CONFIG = dict(
     os=os,
     environ=defaultdict(str),
@@ -547,13 +554,38 @@ def as_iterable(iterable_or_scalar):
 
 
 def mamba_cant_solve(packages, os_arch):
+    """Test if mamba can solve for a list of packages given an os and arch
 
-    subprocess_list = ['mamba', 'install'] + packages + ['-c', f'https://conda.anaconda.org/conda-forge/{os_arch}', '--override-channels']
-    results = subprocess.check_output(subprocess_list)
-    return 'Problem' in results.decode('utf-8')
+    Parameters
+    ----------
+    packages : list
+        List of packages including pins to solve for
+    os_arch : str, {"linux-64", "osx-64", "win-32", "win-64", "linux-armv7l", "linux-ppc64le", "linux-aarch64"}
+        The operating system architecture pair to test against
+
+    Returns
+    -------
+
+    """
+    subprocess_list = ['mamba', 'install'] + [p for p in packages if '_stub' not in p] + ['-c', f'https://conda.anaconda.org/conda-forge/{os_arch}', '--override-channels', '-q']
+    results = subprocess.check_output(subprocess_list, universal_newlines=True)
+    return 'Problem' in results
 
 
-def extract_requirements(meta_yaml):
+def extract_requirements(meta_yaml) -> typing.Dict[str, Set]:
+    """Extract requirements from a meta yaml, including tests and outputs
+
+    Parameters
+    ----------
+    meta_yaml : dict
+        The meta yaml
+
+    Returns
+    -------
+    requirements_dict: dict of sets
+        The requirements
+
+    """
     requirements_dict = defaultdict(set)
     for block in [meta_yaml] + meta_yaml.get("outputs", []) or []:
         req: "RequirementsTypedDict" = block.get("requirements", {}) or {}

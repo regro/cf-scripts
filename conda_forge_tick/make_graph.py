@@ -22,7 +22,7 @@ import tqdm
 from xonsh.lib.collections import ChainDB, _convert_to_dict
 from .xonsh_utils import env
 
-from conda_forge_tick.utils import github_client, as_iterable
+from conda_forge_tick.utils import github_client, as_iterable, ALL_BUILD_SUBDIRS, MAIN_SUBDIRS
 from .all_feedstocks import get_all_feedstocks
 from .utils import (
     parse_meta_yaml,
@@ -119,10 +119,14 @@ def populate_feedstock_attributes(
                 "bot",
             }
         }
-    arches = ["win", "osx", "linux"]
-    parsed_meta_yamls = [parse_meta_yaml(meta_yaml, platform=plat) for plat in arches]
-    sub_graph.update({k: v for k, v in zip(arches, parsed_meta_yamls)})
-    yaml_dict = ChainDB(*parsed_meta_yamls)
+    build_subdirs = ALL_BUILD_SUBDIRS if 'provider' in sub_graph['conda-forge.yml'] else MAIN_SUBDIRS
+    parsed_meta_yamls = {subdir: parse_meta_yaml(meta_yaml, platform=subdir.rsplit('-', 1)[0], arch=subdir.rsplit('-', 1)[1]) for subdir in build_subdirs}
+    for subdir in list(parsed_meta_yamls.keys()):
+        if parsed_meta_yamls[subdir].get('build', {}).get('skip', False):
+            parsed_meta_yamls.pop(subdir)
+    sub_graph['parsed_meta_yamls'] = parsed_meta_yamls
+
+    yaml_dict = ChainDB(*parsed_meta_yamls.values())
     if not yaml_dict:
         logger.error(f"Something odd happened when parsing recipe {name}")
         sub_graph["bad"] = "make_graph: Could not parse"

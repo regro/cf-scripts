@@ -256,19 +256,6 @@ def run(
     return migrate_return, ljpr
 
 
-def _host_run_test_dependencies(meta_yaml: "MetaYamlTypedDict",) -> Set["PackageName"]:
-    """Parse the host/run/test dependencies of a recipe
-
-    This function parses top-level and `outputs` requirements sections.
-
-    The complicated logic here is mainly to support not including a
-    `host` section, and using `build` instead.
-    """
-    _ = meta_yaml["requirements"]
-    rq = (_["host"] or _["build"]) | _["run"] | _["test"]
-    return typing.cast("Set[PackageName]", rq)
-
-
 def add_replacement_migrator(
     migrators: MutableSequence[Migrator],
     gx: nx.DiGraph,
@@ -576,7 +563,7 @@ def create_migration_yaml_creator(migrators: MutableSequence[Migrator], gx: nx.D
                 migrators.append(
                     MigrationYamlCreator(
                         package_name, current_version, current_pin,
-                        pin_spec, k, gx
+                        pin_spec, k, gx, check_solvability=False
                     )
                 )
 

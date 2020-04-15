@@ -81,6 +81,7 @@ class MigrationYaml(GraphMigrator):
             pr_limit=pr_limit,
             obj_version=migration_number,
             piggy_back_migrations=piggy_back_migrations,
+            **kwargs
         )
         self.yaml_contents = yaml_contents
         assert isinstance(name, str)
@@ -230,7 +231,7 @@ class MigrationYamlCreator(Migrator):
         bump_number: int = 1,
         **kwargs: Any,
     ):
-        super().__init__(pr_limit=pr_limit,)
+        super().__init__(pr_limit=pr_limit, **kwargs)
         self.feedstock_name = feedstock_name
         self.pin_spec = pin_spec
         self.current_pin = current_pin

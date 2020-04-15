@@ -142,7 +142,8 @@ def test_migration_yaml_migration(tmock, in_out_yaml, caplog, tmpdir):
         curr_pin,
         pin_spec,
         'hi',
-        G
+        G,
+        check_solvability=False
     )
 
     with indir(tmpdir):

@@ -26,7 +26,7 @@ from conda_forge_tick.utils import (
     frozen_to_json_friendly,
     CB_CONFIG,
     PACKAGE_STUBS,
-    LazyJson, mamba_cant_solve, extract_requirements,
+    LazyJson, mamba_cant_solve, extract_requirements, ALL_BUILD_SUBDIRS,
 )
 from conda_forge_tick.contexts import MigratorContext, FeedstockContext
 
@@ -209,11 +209,13 @@ class Migrator:
         # TODO: Validate this?
         obj_version: Optional[int] = None,
         piggy_back_migrations: Optional[Sequence[MiniMigrator]] = None,
+        check_solvability: bool = True
     ):
         self.piggy_back_migrations = piggy_back_migrations or []
         self.pr_limit = pr_limit
         self.obj_version = obj_version
         self.ctx: MigratorContext = None
+        self.check_solvability = check_solvability
 
     def bind_to_ctx(self, migrator_ctx: MigratorContext) -> None:
         self.ctx = migrator_ctx
@@ -282,29 +284,30 @@ class Migrator:
 
         if attrs.get("archived", False):
             LOGGER.debug("%s: archived" % __name)
-
-        bad_attr = _parse_bad_attr(attrs, not_bad_str_start)
-        if bad_attr:
-            LOGGER.debug("%s: bnad attr" % __name)
-
-        # Check that all upstreams are installable
-        arch_packages = {}
-        # TODO: global variable this somewhere and add aarch and ppc
-        for arch in ['win-64', 'osx-64', 'linux-64']:
-            platform = arch.split('-')[0]
-            if attrs[platform].get('build', {}).get('skip', False):
-                continue
-            req = extract_requirements(attrs[platform])
-            # TODO: maybe throw in test?
-            arch_packages[arch] = set().union(req['host'], req['run'])
-        if any(mamba_cant_solve(packages=packages, os_arch=arch) for arch, packages in arch_packages.items()):
             return True
 
-        return (
-            attrs.get("archived", False)
-            or parse_already_pred()
-            or bad_attr
-        )
+        if _parse_bad_attr(attrs, not_bad_str_start):
+            LOGGER.debug("%s: bad attr" % __name)
+            return True
+
+        if parse_already_pred():
+            LOGGER.debug("%s: already PRed" % __name)
+            return True
+
+        # Check that all upstreams are installable
+        if self.check_solvability:
+            arch_packages = {}
+            for arch, meta_yaml in attrs['parsed_meta_yamls'].items():
+                req = extract_requirements(meta_yaml)
+
+                # TODO: maybe throw in test?
+                arch_packages[arch] = set().union(req['host'] or req['build'], req['run'])
+
+            if any(mamba_cant_solve(packages=packages, os_arch=arch) for arch, packages in arch_packages.items()):
+                LOGGER.debug("%s: req not solvable" % __name)
+                return True
+
+        return False
 
     def run_pre_piggyback_migrations(
         self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any
@@ -522,8 +525,9 @@ class GraphMigrator(Migrator):
         cycles: Optional[Sequence["packageName"]] = None,
         obj_version: Optional[int] = None,
         piggy_back_migrations: Optional[Sequence[MiniMigrator]] = None,
+        **kwargs
     ):
-        super().__init__(pr_limit, obj_version, piggy_back_migrations)
+        super().__init__(pr_limit, obj_version, piggy_back_migrations, **kwargs)
         # TODO: Grab the graph from the migrator ctx
         if graph is None:
             self.graph = nx.DiGraph()
@@ -621,8 +625,9 @@ class Replacement(Migrator):
         rationale: str,
         graph: nx.DiGraph = None,
         pr_limit: int = 0,
+        **kwargs
     ):
-        super().__init__(pr_limit)
+        super().__init__(pr_limit, **kwargs)
         self.old_pkg = old_pkg
         self.new_pkg = new_pkg
         self.pattern = re.compile(r"\s*-\s*(%s)(\s+|$)" % old_pkg)

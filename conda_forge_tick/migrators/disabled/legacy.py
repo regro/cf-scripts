@@ -474,9 +474,9 @@ class Pinning(Migrator):
     rerender = True
 
     def __init__(
-        self, pr_limit: int = 0, removals: Optional[Set["PackageName"]] = None,
+        self, pr_limit: int = 0, removals: Optional[Set["PackageName"]] = None, **kwargs
     ):
-        super().__init__(pr_limit)
+        super().__init__(pr_limit, **kwargs)
         self.removals: Set
         if removals is None:
             self.removals = UniversalSet()

@@ -1685,10 +1685,10 @@ version = Version()
 lm = LicenseMigrator()
 version_license_migrator = Version(piggy_back_migrations=[lm])
 compiler = Compiler()
-noarch = Noarch()
-noarchr = NoarchR()
-perl = Pinning(removals={"perl"})
-pinning = Pinning()
+noarch = Noarch(check_solvability=False)
+noarchr = NoarchR(check_solvability=False)
+perl = Pinning(removals={"perl"}, check_solvability=False)
+pinning = Pinning(check_solvability=False)
 
 
 class _Rebuild(NoFilter, Rebuild):
@@ -1711,6 +1711,7 @@ matplotlib = Replacement(
         "Unless you need `pyqt`, recipes should depend only on " "`matplotlib-base`."
     ),
     pr_limit=5,
+    check_solvability=False
 )
 
 G = nx.DiGraph()
