@@ -567,7 +567,8 @@ def mamba_cant_solve(packages, os_arch):
     -------
 
     """
-    subprocess_list = ['mamba', 'install'] + [p for p in packages if '_stub' not in p] + ['-c', f'https://conda.anaconda.org/conda-forge/{os_arch}', '--override-channels', '-q']
+    subprocess_list = ['mamba', 'install'] + [p for p in packages if '_stub' not in p] + ['-c', f'https://conda.anaconda.org/conda-forge/{os_arch}',
+                                                                                          '--override-channels', '-q', '--dry-run']
     results = subprocess.check_output(subprocess_list, universal_newlines=True)
     return 'Problem' in results
 
