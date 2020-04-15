@@ -450,7 +450,6 @@ def migration_factory(
         migrator_config = loaded_yaml.get("__migrator", {})
         excluded_feedstocks = set(migrator_config.get("exclude", []))
         pr_limit = min(migrator_config.pop("pr_limit", pr_limit), pr_limit)
-        check_solvability = migrator_config.get('check_solvability', True)
 
         package_names = (
             (set(loaded_yaml) | {l.replace("_", "-") for l in loaded_yaml})
@@ -467,7 +466,6 @@ def migration_factory(
             migration_name=os.path.splitext(yaml_file)[0],
             config=migrator_config,
             pr_limit=pr_limit,
-            check_solvability=check_solvability
         )
 
 
