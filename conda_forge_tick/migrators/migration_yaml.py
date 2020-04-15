@@ -4,7 +4,6 @@ from itertools import chain
 import typing
 from typing import Optional, Set, Sequence, Any, MutableSet
 import time
-import datetime
 import re
 from collections import defaultdict
 
@@ -74,6 +73,7 @@ class MigrationYaml(GraphMigrator):
         migration_number: Optional[int] = None,
         bump_number: int = 1,
         piggy_back_migrations: Optional[Sequence[MiniMigrator]] = None,
+        automerge: bool = False,
         **kwargs: Any,
     ):
         super().__init__(
@@ -87,6 +87,7 @@ class MigrationYaml(GraphMigrator):
         self.name: str = name
         self.top_level = top_level or set()
         self.cycles = set(chain.from_iterable(cycles or []))
+        self.automerge = automerge
 
         # auto set the pr_limit for initial things
         number_pred = len(
@@ -139,10 +140,12 @@ class MigrationYaml(GraphMigrator):
         body = super().pr_body(feedstock_ctx)
         if feedstock_ctx.package_name == "conda-forge-pinning":
             additional_body = (
-                "This PR has been triggered in an effort to close out the migration for **{name}**.\n\n"
+                "This PR has been triggered in an effort to close out the "
+                "migration for **{name}**.\n\n"
                 "Notes and instructions for merging this PR:\n"
                 "1. Please merge the PR only after the tests have passed. \n"
-                "2. Feel free to push to the bot's branch to update this PR if needed. \n\n"
+                "2. Feel free to push to the bot's branch to update this PR "
+                "if needed. \n\n"
                 "**Please note that if you close this PR we presume that "
                 "the feedstock has been rebuilt, so if you are going to "
                 "perform the rebuild yourself don't close this PR until "
@@ -160,7 +163,8 @@ class MigrationYaml(GraphMigrator):
                 "This PR has been triggered in an effort to update **{name}**.\n\n"
                 "Notes and instructions for merging this PR:\n"
                 "1. Please merge the PR only after the tests have passed. \n"
-                "2. Feel free to push to the bot's branch to update this PR if needed. \n\n"
+                "2. Feel free to push to the bot's branch to update this PR "
+                "if needed. \n\n"
                 "**Please note that if you close this PR we presume that "
                 "the feedstock has been rebuilt, so if you are going to "
                 "perform the rebuild yourself don't close this PR until "
@@ -185,12 +189,25 @@ class MigrationYaml(GraphMigrator):
             return "Bump build number"
 
     def pr_title(self, feedstock_ctx: FeedstockContext) -> str:
+        if (
+            (
+                feedstock_ctx.attrs.get("conda-forge.yml", {})
+                .get("bot", {})
+                .get("automerge", False)
+            )
+            and self.automerge
+        ):
+            add_slug = "[bot-automerge] "
+        else:
+            add_slug = ""
+
         if self.name:
             if feedstock_ctx.package_name == "conda-forge-pinning":
+                # we never automerge on pinnings
                 return f"Close out migration for {self.name}"
-            return "Rebuild for " + self.name
+            return add_slug + "Rebuild for " + self.name
         else:
-            return "Bump build number"
+            return add_slug + "Bump build number"
 
     def remote_branch(self, feedstock_ctx: FeedstockContext) -> str:
         s_obj = str(self.obj_version) if self.obj_version else ""
@@ -234,7 +251,8 @@ class MigrationYamlCreator(Migrator):
         self.feedstock_name = feedstock_name
         self.pin_spec = pin_spec
         self.current_pin = current_pin
-        self.new_pin_version = '.'.join(new_pin_version.split('.')[:len(pin_spec.split("."))])
+        self.new_pin_version = (
+            '.'.join(new_pin_version.split('.')[:len(pin_spec.split("."))]))
         self.package_name = package_name
         self.bump_number = bump_number
         self.name = package_name + " pinning"
@@ -273,7 +291,8 @@ class MigrationYamlCreator(Migrator):
             "This PR has been triggered in an effort to update the pin for"
             " **{name}**. The current pinned version is {current_pin}, "
             "the latest available version is {new_pin_version} and the max "
-            "pin pattern is {pin_spec}. This migration will impact {len_graph} feedstocks.\n\n"
+            "pin pattern is {pin_spec}. This migration will impact {len_graph} "
+            "feedstocks.\n\n"
             "Notes and instructions for merging this PR:\n"
             "1. Please merge the PR only if this new version is to be a "
             "supported pin. \n"
@@ -293,7 +312,7 @@ class MigrationYamlCreator(Migrator):
                 feedstock_name=self.feedstock_name,
                 len_graph=len(create_rebuild_graph(self.graph, (self.package_name, )))
             )
-        )
+        )  # noqa
         body = body.format(additional_body)
         return body
 
@@ -325,7 +344,11 @@ class MigrationYamlCreator(Migrator):
         )
 
 
-def create_rebuild_graph(gx: nx.DiGraph, package_names: Sequence[str], excluded_feedstocks: MutableSet[str] = None) -> nx.DiGraph:
+def create_rebuild_graph(
+    gx: nx.DiGraph,
+    package_names: Sequence[str],
+    excluded_feedstocks: MutableSet[str] = None
+) -> nx.DiGraph:
     total_graph = copy.deepcopy(gx)
     excluded_feedstocks = set() if excluded_feedstocks is None else excluded_feedstocks
 
