@@ -552,6 +552,25 @@ def as_iterable(iterable_or_scalar):
     else:
         return (iterable_or_scalar,)
 
+import mamba.mamba_api as api
+from mamba.mamba import context
+
+def _mamba_can_solve():
+    pool = api.Pool()
+    pool.set_debuglevel(context.verbosity)
+    repos = []
+
+    # add installed
+
+    for channel_name, cache_file, priority, subpriority in channel_json:
+        repo = api.Repo(pool, channel_name, cache_file)
+        repo.set_priority(priority, subpriority)
+        repos.append(repo)
+
+    solver = api.Solver(pool, solver_options)
+    solver.add_jobs(packages, api.SOLVER_INSTALL)
+    success = solver.solve()
+
 
 def mamba_cant_solve(packages, os_arch):
     """Test if mamba can solve for a list of packages given an os and arch

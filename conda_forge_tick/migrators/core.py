@@ -209,7 +209,7 @@ class Migrator:
         # TODO: Validate this?
         obj_version: Optional[int] = None,
         piggy_back_migrations: Optional[Sequence[MiniMigrator]] = None,
-        check_solvability: bool = True
+        check_solvability: bool = True,
     ):
         self.piggy_back_migrations = piggy_back_migrations or []
         self.pr_limit = pr_limit
