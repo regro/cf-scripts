@@ -1,3 +1,4 @@
+"""Audit the dependencies of the conda-forge ecosystem"""
 import json
 import os
 import traceback
