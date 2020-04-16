@@ -1,5 +1,6 @@
 import os
 import sys
+from subprocess import CalledProcessError
 
 from xonsh.lib.os import indir
 
@@ -21,8 +22,13 @@ def fetch_repo(*, feedstock_dir, origin, upstream, branch) -> bool:
         git reset --hard HEAD
         # make sure feedstock is up-to-date with upstream
         # git pull @(upstream) master -s recursive -X theirs --no-edit
-        # always run upstream master
-        git remote add upstream @(upstream)
+
+        # doesn't work if the upstream already exists
+        try:
+            # always run upstream master
+            git remote add upstream @(upstream)
+        except CalledProcessError:
+            pass
         git fetch upstream master --quiet
         git reset --hard upstream/master
         # make and modify version branch

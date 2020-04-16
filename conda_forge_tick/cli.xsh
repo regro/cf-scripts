@@ -8,6 +8,7 @@ from .make_graph import main as main_make_graph
 from .update_upstream_versions import main as main_update_upstream_versions
 from .auto_tick import main as main_auto_tick
 from .status_report import main as main_status_report
+from .audit import main as main_audit
 
 
 def deploy(args):
@@ -39,6 +40,7 @@ int_script_dict = {
   2: main_update_upstream_versions,
   3: main_auto_tick,
   4: main_status_report,
+  5: main_audit,
   -1: deploy
 }
 
