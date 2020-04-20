@@ -590,6 +590,8 @@ class Version(Migrator):
                         "Recipe did not change in version migration "
                         "but the code indicates an update was done!"
                     )
+
+            if did_update:
                 with indir(recipe_dir):
                    with open("meta.yaml", "w") as fp:
                        cmeta.dump(fp)
