@@ -549,7 +549,7 @@ class Version(Migrator):
                     fp.write(new_meta_yaml)
             did_update = True
 
-        else if len(list(_gen_key_selector(cmeta.meta, "source"))) > 0:
+        elif len(list(_gen_key_selector(cmeta.meta, "source"))) > 0:
             did_update = True
             for src_key in _gen_key_selector(cmeta.meta, "source"):
                 if isinstance(cmeta.meta[src_key], collections.abc.MutableSequence):
