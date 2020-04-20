@@ -445,18 +445,13 @@ class Version(Migrator):
 
         try:
             with open(os.path.join(recipe_dir, "meta.yaml"), "r") as fp:
-                cmeta = CondaMetaYAML(fp.read())
+                old_meta_yaml = fp.read()
+                cmeta = CondaMetaYAML(old_meta_yaml)
         except Exception as e:
             attrs["new_version_errors"][version] = (
                 "We found a problem parsing the recipe: \n\n" + str(e)
             )
             return {}
-
-        # cache round-tripped yaml for testing later
-        s = io.StringIO()
-        cmeta.dump(s)
-        s.seek(0)
-        old_meta_yaml = s.read()
 
         # if is a git url, then we error
         if _recipe_has_git_url(cmeta):
@@ -492,7 +487,69 @@ class Version(Migrator):
             attrs["new_version_errors"][version] = _fmt_error_message(errors, version)
             return {}
 
-        if len(list(_gen_key_selector(cmeta.meta, "source"))) > 0:
+        def _try_simple_update():
+            s = io.StringIO()
+            cmeta.dump(s)
+            s.seek(0)
+            new_meta_text_with_version = s.read()
+            try:
+                new_meta = parse_meta_yaml(new_meta_text_with_version)
+            except Exception:
+                msg = "the yaml couldn't be rendered easily."
+                return {}, msg
+            source = meta_yaml["source"]
+            if isinstance(source, collections.abc.Mapping):
+                sources = [source]
+            else:
+                sources = source
+
+            source_section = []
+            in_source = False
+            for line in new_meta_text_with_version.split("\n"):
+                if line.startswith("source:"):
+                    in_source = True
+                if in_source and len(line) != 0 and line[0] not in [" ", "\t"]:
+                    in_source = False
+                    break
+                if in_source:
+                    source_section.append(line)
+                    if '#' in line:
+                        return {}, "there's a selector"
+                    if '{%' in line:
+                        return {}, "there's complicated jinja {%"
+            source_section = "\n".join(source_section)
+
+            if source_section.count("url:") != len(sources):
+                return {}, "there are more URLs than expected"
+            if source_section.count(hash_type + ":") != len(sources):
+                return {}, "there are more hashes than expected"
+            changes = {}
+            for source in sources:
+                if hash_type not in source:
+                    return {}, "the hash type was not found"
+                if re.fullmatch(r"^[0-9a-fA-F]$", source[hash_type]) is not None:
+                    return {}, "unexpected hash value"
+                if "url" not in source:
+                    return {}, "a URL was not found"
+                new_hash = hash_url(source["url"], timeout=120, hash_type=hash_type)
+                old_hash = source[hash_type]
+                if old_hash in changes and changes[old_hash] != new_hash:
+                    return {}, "unexpected duplicate hash"
+                changes[old_hash] = new_hash
+            return changes, ""
+
+        changes, msg = _try_simple_update()
+
+        if len(changes) > 0:
+            new_meta_yaml = old_meta_yaml
+            for old_hash, new_hash in changes.items():
+                new_meta_yaml = new_meta_yaml.replace(old_hash, new_hash)
+            with indir(recipe_dir):
+                with open("meta.yaml", "w") as fp:
+                    fp.write(new_meta_yaml)
+            did_update = True
+
+        else if len(list(_gen_key_selector(cmeta.meta, "source"))) > 0:
             did_update = True
             for src_key in _gen_key_selector(cmeta.meta, "source"):
                 if isinstance(cmeta.meta[src_key], collections.abc.MutableSequence):
@@ -508,34 +565,35 @@ class Version(Migrator):
                     did_update &= _did_update
                     errors |= _errors
 
+            if did_update:
+                # if the yaml did not change, then we did not migrate actually
+                cmeta.jinja2_vars["version"] = old_version
+                s = io.StringIO()
+                cmeta.dump(s)
+                s.seek(0)
+                still_the_same = s.read() == old_meta_yaml
+                cmeta.jinja2_vars["version"] = version  # put back version
+
+                if still_the_same and old_version != version:
+                    did_update = False
+                    errors.add(
+                        "recipe did not appear to change even "
+                        "though the bot said it should have"
+                    )
+                    logger.critical(
+                        "Recipe did not change in version migration "
+                        "but the code indicates an update was done!"
+                    )
+                with indir(recipe_dir):
+                   with open("meta.yaml", "w") as fp:
+                       cmeta.dump(fp)
+
         else:
             did_update = False
             errors.add("no source sections found in the recipe")
 
         if did_update:
-            # if the yaml did not change, then we did not migrate actually
-            cmeta.jinja2_vars["version"] = old_version
-            s = io.StringIO()
-            cmeta.dump(s)
-            s.seek(0)
-            still_the_same = s.read() == old_meta_yaml
-            cmeta.jinja2_vars["version"] = version  # put back version
-
-            if still_the_same and old_version != version:
-                did_update = False
-                errors.add(
-                    "recipe did not appear to change even "
-                    "though the bot said it should have"
-                )
-                logger.critical(
-                    "Recipe did not change in version migration "
-                    "but the code indicates an update was done!"
-                )
-
-        if did_update:
             with indir(recipe_dir):
-                with open("meta.yaml", "w") as fp:
-                    cmeta.dump(fp)
                 self.set_build_number("meta.yaml")
 
             return super().migrate(recipe_dir, attrs)
