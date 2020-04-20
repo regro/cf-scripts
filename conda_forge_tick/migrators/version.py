@@ -445,13 +445,19 @@ class Version(Migrator):
 
         try:
             with open(os.path.join(recipe_dir, "meta.yaml"), "r") as fp:
-                old_meta_yaml = fp.read()
-                cmeta = CondaMetaYAML(old_meta_yaml)
+                orig_meta_yaml = fp.read()
+                cmeta = CondaMetaYAML(orig_meta_yaml)
         except Exception as e:
             attrs["new_version_errors"][version] = (
                 "We found a problem parsing the recipe: \n\n" + str(e)
             )
             return {}
+
+        # cache round-tripped yaml for testing later
+        s = io.StringIO()
+        cmeta.dump(s)
+        s.seek(0)
+        old_meta_yaml = s.read()
 
         # if is a git url, then we error
         if _recipe_has_git_url(cmeta):
@@ -541,7 +547,7 @@ class Version(Migrator):
         changes, msg = _try_simple_update()
 
         if len(changes) > 0:
-            new_meta_yaml = old_meta_yaml
+            new_meta_yaml = orig_meta_yaml
             for old_hash, new_hash in changes.items():
                 new_meta_yaml = new_meta_yaml.replace(old_hash, new_hash)
             with indir(recipe_dir):
