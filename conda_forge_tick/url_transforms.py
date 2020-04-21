@@ -9,28 +9,35 @@ def _ext_munger(url):
             yield url[: -len(old_ext)] + new_ext
 
 
-def _jinja_munger(url):
-    fields = ["name", "version"]
-    for field in fields:
+def _jinja2_munger_factory(field):
+    def _jinja_munger(url):
         # the '<' are from ruamel.yaml.jinja2
         # if the variable is '{{version}}'
         # it comes out in the url as '<{version}}' after
         # parsing so we allow for that too
-        curr = "<{%s}}" % field
-        not_curr = "<<{%s}}" % field
-        new = "{{ %s }}" % field
-        if curr in url and not_curr not in url:
-            yield url.replace(curr, new)
+        for spc in ["", " "]:
+            fs = field + spc
+            curr = "<{%s}}" % fs
+            not_curr = "<<{%s}}" % fs
+            new = "{{ %s }}" % field
+            if curr in url and not_curr not in url:
+                yield url.replace(curr, new)
 
-        curr = "<<{%s}}" % field
-        new = "{{ %s }}" % field
-        if curr in url:
-            yield url.replace(curr, new)
+        for spc in ["", " "]:
+            fs = field + spc
+            curr = "<<{%s}}" % fs
+            new = "{{ %s }}" % field
+            if curr in url:
+                yield url.replace(curr, new)
 
-        curr = "{{%s}}" % field
-        new = "{{ %s }}" % field
-        if curr in url:
-            yield url.replace(curr, new)
+        for spc in ["", " "]:
+            fs = field + spc
+            curr = "{{%s}}" % fs
+            new = "{{ %s }}" % field
+            if curr in url:
+                yield url.replace(curr, new)
+
+    return _jinja_munger
 
 
 def _v_munger(url):
@@ -99,5 +106,13 @@ def gen_transformed_urls(url):
         The URL to transform.
     """
     yield from _gen_new_urls(
-        url, [_ext_munger, _v_munger, _jinja_munger, _pypi_munger, _github_munger],
+        url, [
+            _ext_munger,
+            _v_munger,
+            _jinja2_munger_factory("name"),
+            _jinja2_munger_factory("version"),
+            _jinja2_munger_factory("name[0]"),
+            _pypi_munger,
+            _github_munger
+        ],
     )
