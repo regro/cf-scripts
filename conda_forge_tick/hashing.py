@@ -11,6 +11,7 @@ def _hash_url(url, hash_type, progress=False, conn=None, timeout=None):
     try:
         ha = getattr(hashlib, hash_type)()
 
+        timedout = False
         if timeout is not None:
             t0 = time.time()
 
@@ -18,9 +19,9 @@ def _hash_url(url, hash_type, progress=False, conn=None, timeout=None):
 
         if timeout is not None:
             if time.time() - t0 > timeout:
-                raise RuntimeError("timeout!")
+                timedout = True
 
-        if resp.status_code == 200:
+        if resp.status_code == 200 and not timedout:
             if "Content-length" in resp.headers:
                 num = math.ceil(float(resp.headers["Content-length"]) / 8192)
             elif resp.url != url:
@@ -45,9 +46,12 @@ def _hash_url(url, hash_type, progress=False, conn=None, timeout=None):
                     )
                 if timeout is not None:
                     if time.time() - t0 > timeout:
-                        raise RuntimeError("timeout!")
+                        timedout = True
 
-            _hash = ha.hexdigest()
+            if not timedout:
+                _hash = ha.hexdigest()
+            else:
+                _hash = None
         else:
             _hash = None
     except Exception as e:
