@@ -1,6 +1,6 @@
 """This module has code to use mamba to test if a given package can be solved.
 
-The basic work flow is for yaml file in .ci_support
+The basic workflow is for yaml file in .ci_support
 
 1. run the conda_build api to render the recipe
 2. pull out the host/build and run requirements, possibly for more than one output.
@@ -28,6 +28,11 @@ logger = logging.getLogger("conda_forge_tick.mamba_solver")
 def get_index(channel_urls=(), prepend=True, platform=None,
               use_local=False, use_cache=False, unknown=None, prefix=None,
               repodata_fn="repodata.json"):
+    """Get an index?
+
+    Function from @wolfv here:
+    https://gist.github.com/wolfv/cd12bd4a448c77ff02368e97ffdf495a.
+    """
     real_urls = calculate_channel_urls(channel_urls, prepend, platform, use_local)
     check_whitelist(real_urls)
 
