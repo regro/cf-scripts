@@ -81,9 +81,10 @@ class MambaSolver:
     >>> solver = MambaSolver(['conda-forge/linux-64', 'conda-forge/noarch'])
     >>> solver.solve(["xtensor 0.18"])
     """
-    def __init__(self, channels):
+    def __init__(self, channels, platform):
         self.channels = channels
-        index = get_index(channels)
+        self.platform = platform
+        index = get_index(channels, platform=platform)
 
         self.pool = api.Pool()
         self.repos = []
@@ -136,8 +137,8 @@ class MambaSolver:
 
 
 @functools.lru_cache(maxsize=32)
-def _mamba_factory(channels):
-    return MambaSolver(list(channels))
+def _mamba_factory(channels, platform):
+    return MambaSolver(list(channels), platform)
 
 
 def is_recipe_solvable(feedstock_dir):
@@ -160,7 +161,7 @@ def is_recipe_solvable(feedstock_dir):
         in the CI scripts.
     """
 
-    cbcs = glob.glob(os.path.join(feedstock_dir, ".ci_support", "*.yaml"))
+    cbcs = sorted(glob.glob(os.path.join(feedstock_dir, ".ci_support", "*.yaml")))
     if len(cbcs) == 0:
         return False
 
@@ -221,14 +222,10 @@ def _is_recipe_solvable_on_platform(recipe_dir, cbc_path, platform, arch):
 
     # now we loop through each one and check if we can solve it
     # we check run and host and ignore the rest
-    mamba_solver = _mamba_factory((
-        "conda-forge/%s-%s" % (platform, arch),
-        "conda-forge/noarch",
-        "https://repo.anaconda.com/pkgs/main/%s-%s" % (platform, arch),
-        "https://repo.anaconda.com/pkgs/main/noarch",
-        "https://repo.anaconda.com/pkgs/r/%s-%s" % (platform, arch),
-        "https://repo.anaconda.com/pkgs/r/noarch",
-    ))
+    mamba_solver = _mamba_factory(
+        ("conda-forge", "defaults"),
+        "%s-%s" % (platform, arch),
+    )
 
     solvable = True
     for m, _, _ in metas:
