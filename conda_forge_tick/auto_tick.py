@@ -65,6 +65,8 @@ from conda_forge_tick.migrators import (
     ExtraJinja2KeysCleanup,
 )
 
+from conda_forge_tick.mamba_solver import is_recipe_solvable
+
 if typing.TYPE_CHECKING:
     from .cli import CLIArgs
     from .migrators_types import (
@@ -203,6 +205,10 @@ def run(
                     or _.startswith("README")
                 )
             ]
+
+    if not is_recipe_solvable(feedstock_dir):
+        eval_xonsh(f"rm -rf {feedstock_dir}")
+        return False, False
 
     # TODO: Better annotation here
     pr_json: typing.Union[MutableMapping, None, bool]
