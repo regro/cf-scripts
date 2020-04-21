@@ -14,3 +14,4 @@ from .matplotlib_base import MatplotlibBase
 from .extra_jinj2a_keys_cleanup import ExtraJinja2KeysCleanup
 from .version import Version
 from .use_pip import PipMigrator
+from .jinja2_vars_cleanup import Jinja2VarsCleanup

@@ -19,7 +19,10 @@ import github3
 import ruamel.yaml as yaml
 from uuid import uuid4
 
-from conda_forge_tick.migrators.migration_yaml import MigrationYamlCreator, create_rebuild_graph
+from conda_forge_tick.migrators.migration_yaml import (
+    MigrationYamlCreator,
+    create_rebuild_graph,
+)
 from .xonsh_utils import indir, eval_xonsh
 
 from conda_forge_tick.contexts import FeedstockContext
@@ -63,6 +66,7 @@ from conda_forge_tick.migrators import (
     MatplotlibBase,
     CondaForgeYAMLCleanup,
     ExtraJinja2KeysCleanup,
+    Jinja2VarsCleanup,
 )
 
 if typing.TYPE_CHECKING:
@@ -85,6 +89,7 @@ MIGRATORS: MutableSequence[Migrator] = [
             LicenseMigrator(),
             CondaForgeYAMLCleanup(),
             ExtraJinja2KeysCleanup(),
+            Jinja2VarsCleanup(),
         ],
     ),
 ]
@@ -418,6 +423,7 @@ def add_rebuild_migration_yaml(
             LicenseMigrator(),
             CondaForgeYAMLCleanup(),
             ExtraJinja2KeysCleanup(),
+            Jinja2VarsCleanup(),
         ],
         **config,
     )
