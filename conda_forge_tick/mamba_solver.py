@@ -238,7 +238,7 @@ def _is_recipe_solvable_on_platform(recipe_dir, cbc_path, platform, arch):
         run_req = m.get_value('requirements/run', [])
         solvable &= mamba_solver.solve(run_req)
 
-        tst_req = m.get_values('test/requires', [])
+        tst_req = m.get_value('test/requires', [])
         solvable &= mamba_solver.solve(run_req + tst_req)
 
     return solvable
