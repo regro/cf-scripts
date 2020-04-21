@@ -206,7 +206,7 @@ def run(
                 )
             ]
 
-    if not is_recipe_solvable(feedstock_dir):
+    if migrator.check_solvable and not is_recipe_solvable(feedstock_dir):
         eval_xonsh(f"rm -rf {feedstock_dir}")
         return False, False
 
