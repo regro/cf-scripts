@@ -12,8 +12,7 @@ def _hash_url(url, hash_type, progress=False, conn=None, timeout=None):
         ha = getattr(hashlib, hash_type)()
 
         timedout = False
-        if timeout is not None:
-            t0 = time.time()
+        t0 = time.time()
 
         resp = requests.get(url, stream=True, timeout=timeout or 10)
 
@@ -54,6 +53,8 @@ def _hash_url(url, hash_type, progress=False, conn=None, timeout=None):
                 _hash = None
         else:
             _hash = None
+    except requests.ConnectionError:
+        _hash = None
     except Exception as e:
         _hash = (repr(e),)
     finally:
