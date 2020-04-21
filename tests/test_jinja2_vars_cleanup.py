@@ -39,9 +39,9 @@ def test_jinja2_vars_cleanup_should_filter(raw_yaml):
     ("{{name.replace('-', '_')}}", "{{ name.replace('-', '_') }}"),
     ("{{ name.replace('-', '_')}}", "{{ name.replace('-', '_') }}"),
     ("{{name.replace('-', '_') }}", "{{ name.replace('-', '_') }}"),
-    ("{{x.update({4:5})}}", "{{ x.update({4:5})}} "),
-    ("{{x.update({4:5}) }}", "{{ x.update({4:5})}} "),
-    ("{{ x.update({4:5})}}", "{{ x.update({4:5})}} "),    
+    ("{{x.update({4:5})}}", "{{ x.update({4:5}) }}"),
+    ("{{x.update({4:5}) }}", "{{ x.update({4:5}) }}"),
+    ("{{ x.update({4:5})}}", "{{ x.update({4:5}) }}"),    
 ])
 def test_jinja2_vars_cleanup_raw_yaml(raw_yaml, res):
     assert _cleanup_raw_yaml(raw_yaml).strip() == res
