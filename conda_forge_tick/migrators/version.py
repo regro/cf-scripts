@@ -368,6 +368,11 @@ class Version(Migrator):
     rerender = True
     name = "Version"
 
+    def __init__(self, *args, **kwargs):
+        if "check_solvable" in kwargs:
+            kwargs.pop("check_solvable")
+        super().__init__(*args, **kwargs, check_solvable=False)
+
     def filter(self, attrs: "AttrsTypedDict", not_bad_str_start: str = "") -> bool:
         # if no new version do nothing
         if "new_version" not in attrs or not attrs["new_version"]:

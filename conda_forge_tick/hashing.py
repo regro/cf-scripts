@@ -10,11 +10,17 @@ def _hash_url(url, hash_type, progress=False, conn=None, timeout=None):
     _hash = None
     try:
         ha = getattr(hashlib, hash_type)()
-        resp = requests.get(url, stream=True)
-        if resp.status_code == 200:
-            if timeout is not None:
-                t0 = time.time()
 
+        timedout = False
+        t0 = time.time()
+
+        resp = requests.get(url, stream=True, timeout=timeout or 10)
+
+        if timeout is not None:
+            if time.time() - t0 > timeout:
+                timedout = True
+
+        if resp.status_code == 200 and not timedout:
             if "Content-length" in resp.headers:
                 num = math.ceil(float(resp.headers["Content-length"]) / 8192)
             elif resp.url != url:
@@ -27,7 +33,6 @@ def _hash_url(url, hash_type, progress=False, conn=None, timeout=None):
             else:
                 num = None
 
-            t0 = time.time()
             loc = 0
             for itr, chunk in enumerate(resp.iter_content(chunk_size=8192)):
                 ha.update(chunk)
@@ -40,11 +45,16 @@ def _hash_url(url, hash_type, progress=False, conn=None, timeout=None):
                     )
                 if timeout is not None:
                     if time.time() - t0 > timeout:
-                        return None
+                        timedout = True
 
-            _hash = ha.hexdigest()
+            if not timedout:
+                _hash = ha.hexdigest()
+            else:
+                _hash = None
         else:
             _hash = None
+    except requests.ConnectionError:
+        _hash = None
     except Exception as e:
         _hash = (repr(e),)
     finally:

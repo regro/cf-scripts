@@ -25,7 +25,6 @@ from conda_forge_tick.xonsh_utils import eval_xonsh, indir
 from conda_forge_tick.utils import (
     frozen_to_json_friendly,
     CB_CONFIG,
-    PACKAGE_STUBS,
     LazyJson,
 )
 from conda_forge_tick.contexts import MigratorContext, FeedstockContext
@@ -209,11 +208,13 @@ class Migrator:
         # TODO: Validate this?
         obj_version: Optional[int] = None,
         piggy_back_migrations: Optional[Sequence[MiniMigrator]] = None,
+        check_solvable=True,
     ):
         self.piggy_back_migrations = piggy_back_migrations or []
         self.pr_limit = pr_limit
         self.obj_version = obj_version
         self.ctx: MigratorContext = None
+        self.check_solvable = check_solvable
 
     def bind_to_ctx(self, migrator_ctx: MigratorContext) -> None:
         self.ctx = migrator_ctx
@@ -509,8 +510,12 @@ class GraphMigrator(Migrator):
         cycles: Optional[Sequence["packageName"]] = None,
         obj_version: Optional[int] = None,
         piggy_back_migrations: Optional[Sequence[MiniMigrator]] = None,
+        check_solvable=True,
     ):
-        super().__init__(pr_limit, obj_version, piggy_back_migrations)
+        super().__init__(
+            pr_limit, obj_version, piggy_back_migrations,
+            check_solvable=check_solvable
+        )
         # TODO: Grab the graph from the migrator ctx
         if graph is None:
             self.graph = nx.DiGraph()
@@ -595,6 +600,8 @@ class Replacement(Migrator):
         The graph of feedstocks.
     pr_limit : int, optional
         The maximum number of PRs made per run of the bot.
+    check_solvable : bool, optional
+        If True, uses mamba to check if the final recipe is solvable.
     """
 
     migrator_version = 0
@@ -608,8 +615,9 @@ class Replacement(Migrator):
         rationale: str,
         graph: nx.DiGraph = None,
         pr_limit: int = 0,
+        check_solvable=True,
     ):
-        super().__init__(pr_limit)
+        super().__init__(pr_limit, check_solvable=check_solvable)
         self.old_pkg = old_pkg
         self.new_pkg = new_pkg
         self.pattern = re.compile(r"\s*-\s*(%s)(\s+|$)" % old_pkg)

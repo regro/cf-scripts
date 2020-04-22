@@ -39,7 +39,9 @@ class ArchRebuild(GraphMigrator):
     def __init__(
         self, graph: nx.DiGraph = None, name: Optional[str] = None, pr_limit: int = 0,
     ):
-        super().__init__(graph=graph, pr_limit=pr_limit)
+        super().__init__(graph=graph, pr_limit=pr_limit, check_solvable=False)
+
+        assert not self.check_solvable, "We don't want to check solvability for aarch!"
         # We are constraining the scope of this migrator
         with indir("../conda-forge-pinning-feedstock/recipe/migrations"), open(
             "arch_rebuild.txt", "r"

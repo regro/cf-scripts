@@ -74,6 +74,7 @@ class MigrationYaml(GraphMigrator):
         bump_number: int = 1,
         piggy_back_migrations: Optional[Sequence[MiniMigrator]] = None,
         automerge: bool = False,
+        check_solvable=True,
         **kwargs: Any,
     ):
         super().__init__(
@@ -81,6 +82,7 @@ class MigrationYaml(GraphMigrator):
             pr_limit=pr_limit,
             obj_version=migration_number,
             piggy_back_migrations=piggy_back_migrations,
+            check_solvable=check_solvable,
         )
         self.yaml_contents = yaml_contents
         assert isinstance(name, str)
