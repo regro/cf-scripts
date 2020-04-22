@@ -80,6 +80,7 @@ logger = logging.getLogger("conda_forge_tick.auto_tick")
 
 
 PR_LIMIT = 5
+MAX_PR_LIMIT = 50
 
 MIGRATORS: MutableSequence[Migrator] = [
     Version(
@@ -468,7 +469,7 @@ def migration_factory(
 
         migrator_config = loaded_yaml.get("__migrator", {})
         excluded_feedstocks = set(migrator_config.get("exclude", []))
-        pr_limit = min(migrator_config.pop("pr_limit", pr_limit), pr_limit)
+        pr_limit = min(migrator_config.pop("pr_limit", pr_limit), MAX_PR_LIMIT)
 
         package_names = (
             (set(loaded_yaml) | {l.replace("_", "-") for l in loaded_yaml})
