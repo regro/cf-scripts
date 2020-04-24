@@ -23,3 +23,6 @@ graph.json
 pr_json/*
 pr_status/*
 status/*
+feedstocks/*
+coverage.xml
+.coverage.*

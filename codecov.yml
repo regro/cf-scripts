@@ -23,12 +23,12 @@ coverage:
         if_no_uploads: error
         if_not_found: success
         if_ci_failed: failure
-        paths: '!tests'
+        paths:
+          - "!tests/*"
+          - "conda_forge_tick/*"
+
       tests:
         target: 95.0%
-        paths: '!conda_forge_tick'
-
-flags:
-  tests:
-    paths:
-      - tests/
+        paths:
+          - "tests/*"
+          - "!conda_forge_tick/*"
