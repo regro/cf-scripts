@@ -29,7 +29,7 @@ def _get_yaml_parser():
     # using a function here so settings are always the same
     parser = YAML(typ="jinja2")
     parser.indent(mapping=2, sequence=4, offset=2)
-    parser.width = 160
+    parser.width = 320
     return parser
 
 
