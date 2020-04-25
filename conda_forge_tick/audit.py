@@ -41,7 +41,7 @@ def main(args):
     ctx = MigratorSessionContext("", "", "")
     start_time = time.time()
     # limit graph to things that depend on python
-    python_des = nx.descendants(gx, "python")
+    python_des = nx.descendants(gx, "pypy-meta")
     for node in sorted(
         python_des, key=lambda x: (len(nx.descendants(gx, x)), x), reverse=True,
     ):
@@ -53,10 +53,11 @@ def main(args):
         # with python as runtime dep
         os.makedirs("audits", exist_ok=True)
         with gx.nodes[node]["payload"] as payload:
+            version = payload['version']
             if (
                 not payload.get("archived", False)
                 and "python" in payload["requirements"]["run"]
-                and f'{node}.json' not in os.listdir(audits)
+                and f'{node}_{version}.json' not in os.listdir("audits")
             ):
                 print(node)
                 fctx = FeedstockContext(
@@ -70,5 +71,5 @@ def main(args):
                         "traceback": str(traceback.format_exc()).split("\n"),
                     }
                 finally:
-                    with open(f"audits/{node}.json", "w") as f:
+                    with open(f"audits/{node}_{version}.json", "w") as f:
                         json.dump(deps, f)
