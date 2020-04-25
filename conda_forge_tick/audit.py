@@ -51,11 +51,12 @@ def main(args):
             break
         # depfinder only work on python at the moment so only work on things
         # with python as runtime dep
+        os.makedirs("audits", exist_ok=True)
         with gx.nodes[node]["payload"] as payload:
             if (
                 not payload.get("archived", False)
                 and "python" in payload["requirements"]["run"]
-                and "depfinder_audit" not in payload
+                and f'{node}.json' not in os.listdir(audits)
             ):
                 print(node)
                 fctx = FeedstockContext(
@@ -69,6 +70,5 @@ def main(args):
                         "traceback": str(traceback.format_exc()).split("\n"),
                     }
                 finally:
-                    os.makedirs("audits", exist_ok=True)
                     with open(f"audits/{node}.json", "w") as f:
                         json.dump(deps, f)
