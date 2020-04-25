@@ -11,7 +11,7 @@ from conda_forge_tick.contexts import MigratorSessionContext, FeedstockContext
 from conda_forge_tick.git_utils import feedstock_url
 from conda_forge_tick.git_xonsh_utils import fetch_repo
 from conda_forge_tick.migrators.core import _get_source_code
-from conda_forge_tick.utils import load_graph
+from conda_forge_tick.utils import load_graph, dump
 from conda_forge_tick.xonsh_utils import indir, env
 
 
@@ -41,7 +41,7 @@ def main(args):
     ctx = MigratorSessionContext("", "", "")
     start_time = time.time()
     # limit graph to things that depend on python
-    python_des = nx.descendants(gx, "python")
+    python_des = nx.descendants(gx, "pypy-meta")
     for node in sorted(
         python_des, key=lambda x: (len(nx.descendants(gx, x)), x), reverse=True,
     ):
@@ -53,10 +53,11 @@ def main(args):
         # with python as runtime dep
         os.makedirs("audits", exist_ok=True)
         with gx.nodes[node]["payload"] as payload:
+            version = payload['version']
             if (
                 not payload.get("archived", False)
                 and "python" in payload["requirements"]["run"]
-                and f'{node}.json' not in os.listdir(audits)
+                and f'{node}_{version}.json' not in os.listdir("audits")
             ):
                 print(node)
                 fctx = FeedstockContext(
@@ -70,5 +71,5 @@ def main(args):
                         "traceback": str(traceback.format_exc()).split("\n"),
                     }
                 finally:
-                    with open(f"audits/{node}.json", "w") as f:
-                        json.dump(deps, f)
+                    with open(f"audits/{node}_{version}.json", "w") as f:
+                        dump(deps, f)
