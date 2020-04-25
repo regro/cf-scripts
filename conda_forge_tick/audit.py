@@ -11,7 +11,7 @@ from conda_forge_tick.contexts import MigratorSessionContext, FeedstockContext
 from conda_forge_tick.git_utils import feedstock_url
 from conda_forge_tick.git_xonsh_utils import fetch_repo
 from conda_forge_tick.migrators.core import _get_source_code
-from conda_forge_tick.utils import load_graph
+from conda_forge_tick.utils import load_graph, dump
 from conda_forge_tick.xonsh_utils import indir, env
 
 
@@ -72,4 +72,4 @@ def main(args):
                     }
                 finally:
                     with open(f"audits/{node}_{version}.json", "w") as f:
-                        json.dump(deps, f, indent=2)
+                        dump(deps, f)
