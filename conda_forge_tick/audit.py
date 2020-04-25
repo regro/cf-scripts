@@ -72,4 +72,4 @@ def main(args):
                     }
                 finally:
                     with open(f"audits/{node}_{version}.json", "w") as f:
-                        json.dump(deps, f)
+                        json.dump(deps, f, indent=2)
