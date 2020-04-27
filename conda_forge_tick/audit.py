@@ -53,9 +53,10 @@ def main(args):
         # with python as runtime dep
         os.makedirs("audits", exist_ok=True)
         with gx.nodes[node]["payload"] as payload:
-            version = payload['version']
+            version = payload.get('version', None)
             if (
                 not payload.get("archived", False)
+                and version
                 and "python" in payload["requirements"]["run"]
                 and f'{node}_{version}.json' not in os.listdir("audits")
             ):
