@@ -88,11 +88,11 @@ MIGRATORS: MutableSequence[Migrator] = [
     Version(
         pr_limit=PR_LIMIT * 2,
         piggy_back_migrations=[
+            Jinja2VarsCleanup(),
             PipMigrator(),
             LicenseMigrator(),
             CondaForgeYAMLCleanup(),
             ExtraJinja2KeysCleanup(),
-            Jinja2VarsCleanup(),
         ],
     ),
 ]
@@ -426,11 +426,11 @@ def add_rebuild_migration_yaml(
         top_level=top_level,
         cycles=cycles,
         piggy_back_migrations=[
+            Jinja2VarsCleanup(),
             PipMigrator(),
             LicenseMigrator(),
             CondaForgeYAMLCleanup(),
             ExtraJinja2KeysCleanup(),
-            Jinja2VarsCleanup(),
         ],
         **config,
     )
