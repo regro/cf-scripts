@@ -68,6 +68,17 @@ CB_CONFIG_PINNING = dict(
 )
 
 
+# https://stackoverflow.com/questions/6194499/pushd-through-os-system
+@contextlib.contextmanager
+def pushd(new_dir):
+    previous_dir = os.getcwd()
+    os.chdir(new_dir)
+    try:
+        yield
+    finally:
+        os.chdir(previous_dir)
+
+
 class UniversalSet(Set):
     """The universal set, or identity of the set intersection operation."""
 

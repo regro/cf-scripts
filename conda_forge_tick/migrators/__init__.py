@@ -3,7 +3,6 @@ from .core import (
     Migrator,
     GraphMigrator,
     MiniMigrator,
-    LicenseMigrator,
     Replacement,
 )
 from .conda_forge_yaml_cleanup import CondaForgeYAMLCleanup
@@ -15,3 +14,4 @@ from .extra_jinj2a_keys_cleanup import ExtraJinja2KeysCleanup
 from .version import Version
 from .use_pip import PipMigrator
 from .jinja2_vars_cleanup import Jinja2VarsCleanup
+from .license import LicenseMigrator

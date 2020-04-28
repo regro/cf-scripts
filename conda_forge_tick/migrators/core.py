@@ -14,14 +14,12 @@ from typing import (
 
 
 import networkx as nx
-from rever.tools import replace_in_file
 
 from conda_build.source import provide
 from conda_build.config import Config
 from conda_build.api import render
 
 from conda_forge_tick.path_lengths import cyclic_topological_sort
-from conda_forge_tick.xonsh_utils import eval_xonsh, indir
 from conda_forge_tick.utils import (
     frozen_to_json_friendly,
     CB_CONFIG,
@@ -36,11 +34,6 @@ if typing.TYPE_CHECKING:
         PackageName,
     )
     from conda_forge_tick.utils import JsonFriendly
-
-try:
-    from conda_smithy.lint_recipe import NEEDED_FAMILIES
-except ImportError:
-    NEEDED_FAMILIES = ["gpl", "bsd", "mit", "apache", "psf"]
 
 
 LOGGER = logging.getLogger("conda_forge_tick.migrators.core")
@@ -107,79 +100,6 @@ class MiniMigrator:
             If namedtuple continue with PR, if False scrap local folder
         """
         return
-
-
-class LicenseMigrator(MiniMigrator):
-    post_migration = True
-
-    def filter(self, attrs: "AttrsTypedDict", not_bad_str_start: str = "") -> bool:
-        license = attrs.get("meta_yaml", {}).get("about", {}).get("license", "")
-        license_fam = (
-            attrs.get("meta_yaml", {})
-            .get("about", {})
-            .get("license_family", "")
-            .lower()
-            or license.lower().partition("-")[0].partition("v")[0].partition(" ")[0]
-        )
-        if license_fam in NEEDED_FAMILIES and "license_file" not in attrs.get(
-            "meta_yaml", {},
-        ).get("about", {}):
-            return False
-        return True
-
-    def migrate(self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any) -> None:
-        cb_work_dir = _get_source_code(recipe_dir)
-        if cb_work_dir is None:
-            return
-        with indir(cb_work_dir):
-            # look for a license file
-            license_files = [
-                s
-                for s in os.listdir(".")
-                if any(
-                    s.lower().startswith(k) for k in ["license", "copying", "copyright"]
-                )
-            ]
-        eval_xonsh(f"rm -r {cb_work_dir}")
-        # if there is a license file in tarball update things
-        if license_files:
-            with indir(recipe_dir):
-                """BSD 3-Clause License
-                  Copyright (c) 2017, Anthony Scopatz
-                  Copyright (c) 2018, The Regro Developers
-                  All rights reserved."""
-                with open("meta.yaml", "r") as f:
-                    raw = f.read()
-                lines = raw.splitlines()
-                ptn = re.compile(r"(\s*?)" + "license:")
-                for i, line in enumerate(lines):
-                    m = ptn.match(line)
-                    if m is not None:
-                        break
-                # TODO: Sketchy type assertion
-                assert m is not None
-                ws = m.group(1)
-                if len(license_files) == 1:
-                    replace_in_file(
-                        line,
-                        line + "\n" + ws + f"license_file: {list(license_files)[0]}",
-                        "meta.yaml",
-                    )
-                else:
-                    # note that this white space is not perfect but works for
-                    # most of the situations
-                    replace_in_file(
-                        line,
-                        line
-                        + "\n"
-                        + ws
-                        + "license_file: \n"
-                        + "".join(f"{ws*2}- {z} \n" for z in license_files),
-                        "meta.yaml",
-                    )
-
-        # if license not in tarball do something!
-        # check if github in dev url, then use that to get the license
 
 
 class Migrator:
