@@ -438,7 +438,7 @@ def dump_graph(
     region: str = "us-east-2",
 ) -> None:
     dump_graph_json(gx, filename)
-    dump_graph_dynamo(gx, tablename, region)
+    # dump_graph_dynamo(gx, tablename, region)
 
 
 def load_graph(filename: str = "graph.json") -> nx.DiGraph:
