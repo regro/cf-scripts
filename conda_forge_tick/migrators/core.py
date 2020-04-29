@@ -289,8 +289,8 @@ class Migrator:
             "<code>@<space/>conda-forge-admin, please rerun bot</code> "
             "in a PR comment to have the `conda-forge-admin` add it for you.\n\n"
             "<sub>"
-            "This PR was created by the [cf-regro-autotick-bot](https://github.com/regro/cf-scripts).\n"  # noqa
-            "The **cf-regro-autotick-bot** is a service to automatically "
+            "This PR was created by the [regro-cf-autotick-bot](https://github.com/regro/cf-scripts).\n"  # noqa
+            "The **regro-cf-autotick-bot** is a service to automatically "
             "track the dependency graph, migrate packages, and "
             "propose package version updates for conda-forge. "
             "If you would like a local version of this bot, you might consider using "
