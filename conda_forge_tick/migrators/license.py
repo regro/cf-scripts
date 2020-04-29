@@ -224,7 +224,7 @@ def _is_r(attrs):
 
 
 class LicenseMigrator(MiniMigrator):
-    post_migration = False
+    post_migration = True
 
     def filter(self, attrs: "AttrsTypedDict", not_bad_str_start: str = "") -> bool:
         license = attrs.get("meta_yaml", {}).get("about", {}).get("license", "")
