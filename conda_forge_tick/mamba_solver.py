@@ -217,7 +217,7 @@ def _is_recipe_solvable_on_platform(recipe_dir, cbc_path, platform, arch):
                 permit_undefined_jinja=True,
                 finalize=False,
                 bypass_env_check=True,
-                channel_urls=["conda-forge", "defaults"],
+                channel_urls=["conda-forge", "defaults", "msys2"],
             )
 
     # now we loop through each one and check if we can solve it
