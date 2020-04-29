@@ -215,7 +215,10 @@ def _is_r(attrs):
             attrs.get("feedstock_name", "").startswith("r-")
             or attrs.get("name", "").startswith("r-")
         )
-        and "r-base" in attrs["raw_meta_yaml"]
+        and (
+            "r-base" in attrs.get("raw_meta_yaml", "")
+            or "r-base" in attrs.get("requirements", {}).get("run", set())
+        )
     ):
         return True
     else:
