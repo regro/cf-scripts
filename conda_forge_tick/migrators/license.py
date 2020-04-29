@@ -10,7 +10,6 @@ from rever.tools import replace_in_file
 
 from conda_forge_tick.xonsh_utils import eval_xonsh, indir
 from conda_forge_tick.recipe_parser import CondaMetaYAML
-from conda_forge_tick.utils import pushd
 from conda_forge_tick.migrators.core import (
     MiniMigrator,
     _get_source_code,
@@ -140,7 +139,7 @@ def _scrape_license_string(pkg):
 
     LOGGER.info("LICENSE running cran skeleton for pkg %s" % pkg)
 
-    with tempfile.TemporaryDirectory() as tmpdir, pushd(tmpdir):
+    with tempfile.TemporaryDirectory() as tmpdir, indir(tmpdir):
 
         subprocess.run(
             ['conda', 'skeleton', 'cran', '--use-noarch-generic', pkg],
