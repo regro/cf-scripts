@@ -15,6 +15,8 @@ import glob
 import functools
 import pprint
 
+from ruamel.yaml import YAML
+
 from conda.models.match_spec import MatchSpec
 from conda.models.channel import Channel
 from conda.core.index import calculate_channel_urls, check_whitelist
@@ -194,6 +196,22 @@ def is_recipe_solvable(feedstock_dir):
 
 
 def _is_recipe_solvable_on_platform(recipe_dir, cbc_path, platform, arch):
+    # parse the channel sources from the CBC
+    parser = YAML(typ="jinja2")
+    parser.indent(mapping=2, sequence=4, offset=2)
+    parser.width = 320
+
+    with open(cbc_path, "r") as fp:
+        cbc_cfg = parser.load(fp.read())
+
+    if "channel_sources" in cbc_cfg:
+        channel_sources = cbc_cfg["channel_sources"][0].split(",")
+    else:
+        channel_sources = ["conda-forge", "defaults", "msys2"]
+
+    if "msys2" not in channel_sources:
+        channel_sources.append("msys2")
+
     # here we extract the conda build config in roughly the same way that
     # it would be used in a real build
     config = conda_build.config.get_or_merge_config(
@@ -217,7 +235,7 @@ def _is_recipe_solvable_on_platform(recipe_dir, cbc_path, platform, arch):
                 permit_undefined_jinja=True,
                 finalize=False,
                 bypass_env_check=True,
-                channel_urls=["conda-forge", "defaults", "msys2"],
+                channel_urls=channel_sources,
             )
 
     # now we loop through each one and check if we can solve it
