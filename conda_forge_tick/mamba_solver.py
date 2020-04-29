@@ -212,6 +212,11 @@ def _is_recipe_solvable_on_platform(recipe_dir, cbc_path, platform, arch):
     if "msys2" not in channel_sources:
         channel_sources.append("msys2")
 
+    logger.debug(
+        "MAMBA: using channels %s on platform-arch %s-%s",
+        channel_sources, platform, arch
+    )
+
     # here we extract the conda build config in roughly the same way that
     # it would be used in a real build
     config = conda_build.config.get_or_merge_config(
@@ -240,10 +245,7 @@ def _is_recipe_solvable_on_platform(recipe_dir, cbc_path, platform, arch):
 
     # now we loop through each one and check if we can solve it
     # we check run and host and ignore the rest
-    mamba_solver = _mamba_factory(
-        ("conda-forge", "defaults"),
-        "%s-%s" % (platform, arch),
-    )
+    mamba_solver = _mamba_factory(tuple(channel_sources), "%s-%s" % (platform, arch))
 
     solvable = True
     for m, _, _ in metas:
