@@ -28,8 +28,60 @@ from mamba import mamba_api as api
 logger = logging.getLogger("conda_forge_tick.mamba_solver")
 
 
+# these characters are in requirements that do not need to be munged from
+# 1.1 to 1.1.*
+REQ_LOG = ["!", "=", ">", "<", "~", "*"]
+
+
+def _munge_req_star(req):
+    # split on white space
+    parts = req.strip().split()
+
+    # exit early if we just have one item
+    if len(parts) == 1:
+        return parts[0]
+
+    # if the second item is a comment, do nothing
+    if parts[1][0] != '#':
+        reqs = []
+
+        # now we split on ',' and '|'
+        # once we have all of the parts, we then munge the star
+        csplit = parts[1].split(",")
+        ncs = len(csplit)
+        for ic, p in enumerate(csplit):
+
+            psplit = p.split("|")
+            nps = len(psplit)
+            for ip, pp in enumerate(psplit):
+
+                # finally add the star if we need it
+                if any(_r in REQ_LOG for _r in pp):
+                    reqs.append(pp)
+                else:
+                    reqs.append(pp + ".*")
+
+                # add | back on the way out
+                if ip != nps-1:
+                    reqs.append("|")
+
+            # add , back on the way out
+            if ic != ncs-1:
+                reqs.append(",")
+
+        # put it all together
+        parts[1] = "".join(reqs)
+
+    # add in extra space for comments
+    for i in range(len(parts)):
+        if parts[i][0] == "#":
+            parts[i] = " " + parts[i]
+
+    return " ".join(parts)
+
+
 def _norm_spec(myspec):
-    return MatchSpec(myspec).conda_build_form()
+    return _munge_req_star(MatchSpec(myspec).conda_build_form())
 
 
 def get_index(channel_urls=(), prepend=True, platform=None,
