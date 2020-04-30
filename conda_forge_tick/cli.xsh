@@ -46,8 +46,8 @@ def deploy(args):
         try += 1
 
     if status != 0:
-        _branch = "failed-circle-push-%s" % os.environ["CIRCLE_BUILD_NUM"
-        @(["git", "checkout", "-b", _branch]])
+        _branch = "failed-circle-push-%s" % os.environ["CIRCLE_BUILD_NUM"]
+        @(["git", "checkout", "-b", _branch])
         @(["git", "commit", "--allow-empty", "-am", '"help me @regro/auto-tick!"'])
 
         status = doctr_run(
