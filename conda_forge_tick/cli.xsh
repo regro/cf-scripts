@@ -46,7 +46,8 @@ def deploy(args):
         try += 1
 
     if status != 0:
-        @(["git", "checkout", "-b", "failed-circle-push-%s" % os.environ["CIRCLE_BUILD_NUM"]])
+        _branch = "failed-circle-push-%s" % os.environ["CIRCLE_BUILD_NUM"
+        @(["git", "checkout", "-b", _branch]])
         @(["git", "commit", "--allow-empty", "-am", '"help me @regro/auto-tick!"'])
 
         status = doctr_run(
@@ -54,7 +55,7 @@ def deploy(args):
              'push',
              'https://{token}@github.com/{deploy_repo}.git'.format(
                  token=$PASSWORD, deploy_repo='regro/cf-graph-countyfair'),
-             'master'],
+             _branch],
              token =$PASSWORD.encode('utf-8'))
 
         raise RuntimeError("bot did not push its data! stopping!")
