@@ -2,7 +2,7 @@ import os
 
 import pytest
 
-from conda_forge_tick.mamba_solver import is_recipe_solvable, _munge_req_star
+from conda_forge_tick.mamba_solver import is_recipe_solvable, _norm_spec
 
 
 FEEDSTOCK_DIR = os.path.join(os.path.dirname(__file__), 'test_feedstock')
@@ -110,17 +110,15 @@ extra:
 
 
 @pytest.mark.parametrize("inreq,outreq", [
-    ("blah  #", "blah  #"),
-    ("blah 1.1.*  #", "blah 1.1*  #"),
-    ("blah * *_osx  #", "blah * *_osx  #"),
-    ("blah 1.2 *_osx #", "blah 1.2* *_osx  #"),
-    ("blah 1.1", "blah 1.1*"),
-    ("blah =1.1", "blah 1.1*"),
+    ("blah 1.1*", "blah 1.1.*"),
     ("blah * *_osx", "blah * *_osx"),
-    ("blah 1.2 *_osx", "blah 1.2* *_osx"),
+    ("blah 1.1", "blah 1.1.*"),
+    ("blah =1.1", "blah 1.1.*"),
+    ("blah * *_osx", "blah * *_osx"),
+    ("blah 1.2 *_osx", "blah 1.2.* *_osx"),
     ("blah >=1.1", "blah >=1.1"),
-    ("blah >=1.1|5|>=5,<10|19.0", "blah >=1.1|5*|>=5,<10|19.0*"),
-    ("blah >=1.1|5| >=5 , <10 |19.0", "blah >=1.1|5*|>=5,<10|19.0*"),
+    ("blah >=1.1|5|>=5,<10|19.0", "blah >=1.1|5.*|>=5,<10|19.0.*"),
+    ("blah >=1.1|5| >=5 , <10 |19.0", "blah >=1.1|5.*|>=5,<10|19.0.*"),
 ])
-def test_munge_req_star(inreq, outreq):
-    assert _munge_req_star(inreq) == outreq
+def test_norm_spec(inreq, outreq):
+    assert _norm_spec(inreq) == outreq
