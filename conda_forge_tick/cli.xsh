@@ -1,5 +1,6 @@
 import argparse
 import time
+import os
 
 from doctr.travis import run_command_hiding_token as doctr_run
 
@@ -45,6 +46,17 @@ def deploy(args):
         try += 1
 
     if status != 0:
+        @(["git", "checkout", "-b", "failed-circle-push-%s" % os.environ["CIRCLE_BUILD_NUM"]])
+        @(["git", "commit", "--allow-empty", "-am", '"help me @regro/auto-tick!"'])
+
+        status = doctr_run(
+            ['git',
+             'push',
+             'https://{token}@github.com/{deploy_repo}.git'.format(
+                 token=$PASSWORD, deploy_repo='regro/cf-graph-countyfair'),
+             'master'],
+             token =$PASSWORD.encode('utf-8'))
+
         raise RuntimeError("bot did not push its data! stopping!")
 
 
