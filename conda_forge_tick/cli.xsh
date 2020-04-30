@@ -53,6 +53,7 @@ def deploy(args):
         status = doctr_run(
             ['git',
              'push',
+             '--set-upstream',
              'https://{token}@github.com/{deploy_repo}.git'.format(
                  token=$PASSWORD, deploy_repo='regro/cf-graph-countyfair'),
              _branch],
