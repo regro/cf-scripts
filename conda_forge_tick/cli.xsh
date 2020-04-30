@@ -30,7 +30,7 @@ def deploy(args):
 
     status = 1
     num_try = 0
-    while status != 0 and num_try < 10;
+    while status != 0 and num_try < 10:
         try:
             @(['git', 'pull', '-s', 'recursive', '-X', 'theirs'])
         except Exception:
