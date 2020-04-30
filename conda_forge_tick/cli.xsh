@@ -1,5 +1,6 @@
 import argparse
 import time
+import os
 
 from doctr.travis import run_command_hiding_token as doctr_run
 
@@ -26,13 +27,40 @@ def deploy(args):
             @(cmd)
         except Exception as e:
             print(e)
-    doctr_run(
-        ['git',
-         'push',
-         'https://{token}@github.com/{deploy_repo}.git'.format(
-             token=$PASSWORD, deploy_repo='regro/cf-graph-countyfair'),
-         'master'],
-         token =$PASSWORD.encode('utf-8'))
+
+    status = 1
+    try = 0
+    while status != 0 and try < 10;
+        try:
+            @(['git', 'pull', '-s', 'recursive', '-X', 'theirs'])
+        except Exception:
+            pass
+        status = doctr_run(
+            ['git',
+             'push',
+             'https://{token}@github.com/{deploy_repo}.git'.format(
+                 token=$PASSWORD, deploy_repo='regro/cf-graph-countyfair'),
+             'master'],
+             token =$PASSWORD.encode('utf-8'))
+
+        try += 1
+
+    if status != 0:
+        _branch = "failed-circle-push-%s" % os.environ["CIRCLE_BUILD_NUM"]
+        @(["git", "checkout", "-b", _branch])
+        @(["git", "commit", "--allow-empty", "-am", '"help me @regro/auto-tick!"'])
+
+        status = doctr_run(
+            ['git',
+             'push',
+             '--set-upstream',
+             'https://{token}@github.com/{deploy_repo}.git'.format(
+                 token=$PASSWORD, deploy_repo='regro/cf-graph-countyfair'),
+             _branch],
+             token =$PASSWORD.encode('utf-8'))
+
+        raise RuntimeError("bot did not push its data! stopping!")
+
 
 
 int_script_dict = {
