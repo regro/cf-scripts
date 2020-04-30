@@ -29,8 +29,8 @@ def deploy(args):
             print(e)
 
     status = 1
-    try = 0
-    while status != 0 and try < 10;
+    num_try = 0
+    while status != 0 and num_try < 10;
         try:
             @(['git', 'pull', '-s', 'recursive', '-X', 'theirs'])
         except Exception:
@@ -43,7 +43,7 @@ def deploy(args):
              'master'],
              token =$PASSWORD.encode('utf-8'))
 
-        try += 1
+        num_try += 1
 
     if status != 0:
         _branch = "failed-circle-push-%s" % os.environ["CIRCLE_BUILD_NUM"]
