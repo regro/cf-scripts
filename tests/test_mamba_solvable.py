@@ -111,14 +111,16 @@ extra:
 
 @pytest.mark.parametrize("inreq,outreq", [
     ("blah  #", "blah  #"),
-    ("blah 1.1.*  #", "blah 1.1.*  #"),
+    ("blah 1.1.*  #", "blah 1.1*  #"),
     ("blah * *_osx  #", "blah * *_osx  #"),
-    ("blah 1.2 *_osx #", "blah 1.2.* *_osx  #"),
-    ("blah 1.1", "blah 1.1.*"),
+    ("blah 1.2 *_osx #", "blah 1.2* *_osx  #"),
+    ("blah 1.1", "blah 1.1*"),
+    ("blah =1.1", "blah 1.1*"),
     ("blah * *_osx", "blah * *_osx"),
-    ("blah 1.2 *_osx", "blah 1.2.* *_osx"),
+    ("blah 1.2 *_osx", "blah 1.2* *_osx"),
     ("blah >=1.1", "blah >=1.1"),
-    ("blah >=1.1|5|>=5,<10|19.0", "blah >=1.1|5.*|>=5,<10|19.0.*"),
+    ("blah >=1.1|5|>=5,<10|19.0", "blah >=1.1|5*|>=5,<10|19.0*"),
+    ("blah >=1.1|5| >=5 , <10 |19.0", "blah >=1.1|5*|>=5,<10|19.0*"),
 ])
 def test_munge_req_star(inreq, outreq):
     assert _munge_req_star(inreq) == outreq

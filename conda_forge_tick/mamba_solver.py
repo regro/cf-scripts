@@ -28,9 +28,9 @@ from mamba import mamba_api as api
 logger = logging.getLogger("conda_forge_tick.mamba_solver")
 
 
-# these characters are in requirements that do not need to be munged from
+# these characters are start requirements that do not need to be munged from
 # 1.1 to 1.1.*
-REQ_LOG = ["!", "=", ">", "<", "~", "*"]
+REQ_START = ["!=", "==", ">", "<", ">=", "<="]
 
 
 def _munge_req_star(req):
@@ -54,12 +54,16 @@ def _munge_req_star(req):
             psplit = p.split("|")
             nps = len(psplit)
             for ip, pp in enumerate(psplit):
+                # clear white space
+                pp = pp.strip()
 
                 # finally add the star if we need it
-                if any(_r in REQ_LOG for _r in pp):
+                if any(pp.startswith(__v) for __v in REQ_START) or "*" in pp:
                     reqs.append(pp)
                 else:
-                    reqs.append(pp + ".*")
+                    if pp.startswith("="):
+                        pp = pp[1:]
+                    reqs.append(pp + "*")
 
                 # add | back on the way out
                 if ip != nps-1:
