@@ -8,6 +8,8 @@ import traceback
 import logging
 import os
 import typing
+from subprocess import CalledProcessError
+
 import networkx as nx
 from conda.models.version import VersionOrder
 from conda_build.config import Config
@@ -196,7 +198,11 @@ def run(
         if rerender:
             head_ref = eval_xonsh("git rev-parse HEAD")  # noqa
             logger.info("Rerendering the feedstock")
-            eval_xonsh("conda smithy rerender -c auto")
+            try:
+                eval_xonsh("conda smithy rerender -c auto")
+            # In the event we can't rerender just bail
+            except CalledProcessError:
+                return False, False
             # If we tried to run the MigrationYaml and rerender did nothing (we only
             # bumped the build number and dropped a yaml file in migrations) bail
             # for instance platform specific migrations
