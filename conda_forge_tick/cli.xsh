@@ -4,6 +4,8 @@ import os
 
 from doctr.travis import run_command_hiding_token as doctr_run
 
+from .utils import load_graoh
+
 from .all_feedstocks import main as main_all_feedstocks
 from .make_graph import main as main_make_graph
 from .update_upstream_versions import main as main_update_upstream_versions
@@ -28,9 +30,15 @@ def deploy(args):
         except Exception as e:
             print(e)
 
+    try:
+        load_graoh()
+        graph_ok = True
+    except Exception:
+        graph_ok = False
+
     status = 1
     num_try = 0
-    while status != 0 and num_try < 10:
+    while status != 0 and num_try < 10 and graph_ok:
         try:
             @(['git', 'pull', '-s', 'recursive', '-X', 'theirs'])
         except Exception:
@@ -45,8 +53,8 @@ def deploy(args):
 
         num_try += 1
 
-    if status != 0:
-        _branch = "failed-circle-push-%s" % os.environ["CIRCLE_BUILD_NUM"]
+    if status != 0 or not graph_ok:
+        _branch = "failed-circle-run-%s" % os.environ["CIRCLE_BUILD_NUM"]
         @(["git", "checkout", "-b", _branch])
         @(["git", "commit", "--allow-empty", "-am", '"help me @regro/auto-tick!"'])
 

@@ -477,9 +477,11 @@ def migration_factory(
     )
     for yaml_file, yaml_contents in migration_yamls:
         loaded_yaml = yaml.safe_load(yaml_contents)
-        print(os.path.splitext(yaml_file)[0])
+        __mname = os.path.splitext(os.path.basename(yaml_file))[0]
+        print(__mname)
 
         migrator_config = loaded_yaml.get("__migrator", {})
+        paused = migrator_config.pop("paused", False)
         excluded_feedstocks = set(migrator_config.get("exclude", []))
         pr_limit = min(migrator_config.pop("pr_limit", pr_limit), MAX_PR_LIMIT)
 
@@ -488,17 +490,20 @@ def migration_factory(
             & all_package_names
         ) - excluded_feedstocks
 
-        add_rebuild_migration_yaml(
-            migrators=migrators,
-            gx=gx,
-            package_names=list(package_names),
-            output_to_feedstock=output_to_feedstock,
-            excluded_feedstocks=excluded_feedstocks,
-            migration_yaml=yaml_contents,
-            migration_name=os.path.splitext(yaml_file)[0],
-            config=migrator_config,
-            pr_limit=pr_limit,
-        )
+        if not paused:
+            add_rebuild_migration_yaml(
+                migrators=migrators,
+                gx=gx,
+                package_names=list(package_names),
+                output_to_feedstock=output_to_feedstock,
+                excluded_feedstocks=excluded_feedstocks,
+                migration_yaml=yaml_contents,
+                migration_name=os.path.splitext(yaml_file)[0],
+                config=migrator_config,
+                pr_limit=pr_limit,
+            )
+        else:
+            logger.warning("skipping migration %s because it is paused", __mname)
 
 
 def _outside_pin_range(pin_spec, current_pin, new_version):

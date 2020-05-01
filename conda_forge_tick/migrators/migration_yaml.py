@@ -6,6 +6,7 @@ from typing import Optional, Set, Sequence, Any, MutableSet
 import time
 import re
 from collections import defaultdict
+import logging
 
 import networkx as nx
 import ruamel.yaml as yaml
@@ -20,6 +21,58 @@ if typing.TYPE_CHECKING:
         MigrationUidTypedDict,
         AttrsTypedDict,
     )
+
+logger = logging.getLogger("conda_forge_tick.migrators.migration_yaml")
+
+
+def _patch_dict(cfg, patches):
+    """Patch a dictionary using a set of patches.
+
+    Given a dict like
+
+        {"a": 10, "b": {"c": 15}}
+
+    a patch like this
+
+        {"a": [11, 12], "b.c": 20}
+
+    will produce
+
+        {"a": [11, 12], "b": {"c": 20}}
+
+    Note that whole keys are replaced wheras keys separated by periods
+    specify a path to a key.
+
+    Parameters
+    ----------
+    cfg : dict
+        The input dictionary to be patched in place.
+    patches : dict
+        The dictionary of patches.
+    """
+    for k, v in patches.items():
+        cfg_ref = cfg
+
+        # get the path and key
+        # note we reverse the path since we are popping off keys
+        # and need to use the first one in the input path
+        parts = k.split(".")
+        pth = parts[:-1][::-1]
+        last_key = parts[-1]
+
+        # go through the path, popping off keys and descending into the dict
+        while len(pth) > 0:
+            _k = pth.pop()
+            if _k in cfg_ref:
+                cfg_ref = cfg_ref[_k]
+            else:
+                break
+        # if it all worked, then pth is length zero and the last_key is in
+        # the dict, so replace
+        if len(pth) == 0:
+            cfg_ref[last_key] = v
+        else:
+            logger.warning("conda-forge.yml patch %s: %s did not work!", k, v)
 
 
 def merge_migrator_cbc(migrator_yaml: str, conda_build_config_yaml: str):
@@ -75,6 +128,7 @@ class MigrationYaml(GraphMigrator):
         piggy_back_migrations: Optional[Sequence[MiniMigrator]] = None,
         automerge: bool = False,
         check_solvable=True,
+        conda_forge_yml_patches=None,
         **kwargs: Any,
     ):
         super().__init__(
@@ -90,6 +144,7 @@ class MigrationYaml(GraphMigrator):
         self.top_level = top_level or set()
         self.cycles = set(chain.from_iterable(cycles or []))
         self.automerge = automerge
+        self.conda_forge_yml_patches = conda_forge_yml_patches
 
         # auto set the pr_limit for initial things
         number_pred = len(
@@ -134,8 +189,19 @@ class MigrationYaml(GraphMigrator):
                     with open(f"{self.name}.yaml", "w") as f:
                         f.write(self.yaml_contents)
                     eval_xonsh("git add .")
+
+            if self.conda_forge_yml_patches is not None:
+                with indir(os.path.join(recipe_dir, "..")):
+                    with open("conda-forge.yml", "r") as fp:
+                        cfg = yaml.safe_load(fp.read())
+                    _patch_dict(cfg, self.conda_forge_yml_patches)
+                    with open("conda-forge.yml", "w") as fp:
+                        yaml.dump(cfg, fp, default_flow_style=False, indent=2)
+                    eval_xonsh("git add conda-forge.yml")
+
             with indir(recipe_dir):
                 self.set_build_number("meta.yaml")
+
             return super().migrate(recipe_dir, attrs)
 
     def pr_body(self, feedstock_ctx: "FeedstockContext") -> str:
