@@ -69,7 +69,7 @@ def _patch_dict(cfg, patches):
                 break
         # if it all worked, then pth is length zero and the last_key is in
         # the dict, so replace
-        if len(pth) == 0 and last_key in cfg_ref:
+        if len(pth) == 0:
             cfg_ref[last_key] = v
         else:
             logger.warning("conda-forge.yml patch %s: %s did not work!", k, v)
