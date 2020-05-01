@@ -54,6 +54,7 @@ def deploy(args):
         num_try += 1
 
     if status != 0 or not graph_ok:
+        @(["git", "fetch", "--unshallow"])
         _branch = "failed-circle-run-%s" % os.environ["CIRCLE_BUILD_NUM"]
         @(["git", "checkout", "-b", _branch])
         @(["git", "commit", "--allow-empty", "-am", '"help me @regro/auto-tick!"'])

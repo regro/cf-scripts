@@ -13,7 +13,8 @@ import ruamel.yaml as yaml
 
 from conda_forge_tick.contexts import FeedstockContext
 from conda_forge_tick.migrators.core import GraphMigrator, MiniMigrator, Migrator
-from conda_forge_tick.xonsh_utils import eval_xonsh, indir
+from conda_forge_tick.xonsh_utils import indir
+from conda_forge_tick.utils import eval_cmd
 from ..utils import pluck
 
 if typing.TYPE_CHECKING:
@@ -188,7 +189,7 @@ class MigrationYaml(GraphMigrator):
                 with indir("migrations"):
                     with open(f"{self.name}.yaml", "w") as f:
                         f.write(self.yaml_contents)
-                    eval_xonsh("git add .")
+                    eval_cmd("git add .")
 
             if self.conda_forge_yml_patches is not None:
                 with indir(os.path.join(recipe_dir, "..")):
@@ -197,7 +198,7 @@ class MigrationYaml(GraphMigrator):
                     _patch_dict(cfg, self.conda_forge_yml_patches)
                     with open("conda-forge.yml", "w") as fp:
                         yaml.dump(cfg, fp, default_flow_style=False, indent=2)
-                    eval_xonsh("git add conda-forge.yml")
+                    eval_cmd("git add conda-forge.yml")
 
             with indir(recipe_dir):
                 self.set_build_number("meta.yaml")
@@ -349,7 +350,7 @@ class MigrationYamlCreator(Migrator):
             )
             with open(mig_fname, "w") as f:
                 yaml.dump(migration_yaml_dict, f, default_flow_style=False, indent=2)
-            eval_xonsh("git add .")
+            eval_cmd("git add .")
 
         return super().migrate(recipe_dir, attrs)
 

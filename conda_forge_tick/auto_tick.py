@@ -25,7 +25,7 @@ from conda_forge_tick.migrators.migration_yaml import (
     MigrationYamlCreator,
     create_rebuild_graph,
 )
-from .xonsh_utils import indir, eval_xonsh
+from .xonsh_utils import indir
 
 from conda_forge_tick.contexts import FeedstockContext
 from .git_utils import (
@@ -41,6 +41,7 @@ from .utils import (
     LazyJson,
     CB_CONFIG,
     parse_meta_yaml,
+    eval_cmd,
 )
 from .xonsh_utils import env
 from typing import (
@@ -180,7 +181,7 @@ def run(
             feedstock_ctx.package_name,
             feedstock_ctx.attrs.get("bad"),
         )
-        eval_xonsh(f"rm -rf {feedstock_dir}")
+        eval_cmd(f"rm -rf {feedstock_dir}")
         return False, False
 
     # TODO - commit main migration here
@@ -193,20 +194,20 @@ def run(
     diffed_files: typing.List[str] = []
     with indir(feedstock_dir), env.swap(RAISE_SUBPROC_ERROR=False):
         msg = migrator.commit_message(feedstock_ctx)  # noqa
-        eval_xonsh("git add --all .")
-        eval_xonsh("git commit -am @(msg)")
+        eval_cmd("git add --all .")
+        eval_cmd(f"git commit -am {msg}")
         if rerender:
-            head_ref = eval_xonsh("git rev-parse HEAD")  # noqa
+            head_ref = eval_cmd("git rev-parse HEAD")  # noqa
             logger.info("Rerendering the feedstock")
             try:
-                eval_xonsh("conda smithy rerender -c auto")
+                eval_cmd("conda smithy rerender -c auto")
             # In the event we can't rerender just bail
             except CalledProcessError:
                 return False, False
             # If we tried to run the MigrationYaml and rerender did nothing (we only
             # bumped the build number and dropped a yaml file in migrations) bail
             # for instance platform specific migrations
-            gdiff = eval_xonsh("git diff --name-only @(head_ref)...HEAD")
+            gdiff = eval_cmd(f"git diff --name-only {head_ref}...HEAD")
 
             diffed_files = [
                 _
@@ -219,7 +220,7 @@ def run(
             ]
 
     if migrator.check_solvable and not is_recipe_solvable(feedstock_dir):
-        eval_xonsh(f"rm -rf {feedstock_dir}")
+        eval_cmd(f"rm -rf {feedstock_dir}")
         return False, False
 
     # TODO: Better annotation here
@@ -270,7 +271,7 @@ def run(
     # If we've gotten this far then the node is good
     feedstock_ctx.attrs["bad"] = False
     logger.info("Removing feedstock dir")
-    eval_xonsh(f"rm -rf {feedstock_dir}")
+    eval_cmd(f"rm -rf {feedstock_dir}")
     return migrate_return, ljpr
 
 
@@ -613,8 +614,8 @@ def initialize_migrators(
 ) -> Tuple[MigratorSessionContext, list, MutableSequence[Migrator]]:
     temp = glob.glob("/tmp/*")
     gx = load_graph()
-    smithy_version = eval_xonsh("conda smithy --version")
-    pinning_version = json.loads(eval_xonsh("conda list conda-forge-pinning --json"))[
+    smithy_version = eval_cmd("conda smithy --version")
+    pinning_version = json.loads(eval_cmd("conda list conda-forge-pinning --json"))[
         0
     ]["version"]
 
@@ -863,11 +864,11 @@ def main(args: "CLIArgs") -> None:
                     if not args.dry_run:
                         dump_graph(mctx.graph)
 
-                    eval_xonsh(f"rm -rf {mctx.rever_dir}/*")
+                    eval_cmd(f"rm -rf {mctx.rever_dir}/*")
                     logger.info(os.getcwd())
                     for f in glob.glob("/tmp/*"):
                         if f not in temp:
-                            eval_xonsh(f"rm -rf {f}")
+                            eval_cmd(f"rm -rf {f}")
 
     if not args.dry_run:
         logger.info(
