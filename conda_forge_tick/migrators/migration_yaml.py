@@ -26,20 +26,51 @@ logger = logging.getLogger("conda_forge_tick.migrators.migration_yaml")
 
 
 def _patch_dict(cfg, patches):
+    """Patch a dictionary using a set of patches.
+
+    Given a dict like
+
+        {"a": 10, "b": {"c": 15}}
+
+    a patch like this
+
+        {"a": [11, 12], "b.c": 20}
+
+    will produce
+
+        {"a": [11, 12], "b": {"c": 20}}
+
+    Note that whole keys are replaced wheras keys separated by periods
+    specify a path to a key.
+
+    Parameters
+    ----------
+    cfg : dict
+        The input dictionary to be patched in place.
+    patches : dict
+        The dictionary of patches.
+    """
     for k, v in patches.items():
         cfg_ref = cfg
+
+        # get the path and key
+        # note we reverse the path since we are popping off keys
+        # and need to use the first one in the input path
         parts = k.split(".")
         pth = parts[:-1][::-1]
         last_key = parts[-1]
+
+        # go through the path, popping off keys and descending into the dict
         while len(pth) > 0:
             _k = pth.pop()
             if _k in cfg_ref:
                 cfg_ref = cfg_ref[_k]
             else:
                 break
-        if len(pth) == 0:
-            if last_key in cfg_ref:
-                cfg_ref[last_key] = v
+        # if it all worked, then pth is length zero and the last_key is in
+        # the dict, so replace
+        if len(pth) == 0 and last_key in cfg_ref:
+            cfg_ref[last_key] = v
         else:
             logger.warning("conda-forge.yml patch %s: %s did not work!", k, v)
 
