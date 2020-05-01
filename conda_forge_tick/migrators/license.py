@@ -8,7 +8,8 @@ import logging
 
 from rever.tools import replace_in_file
 
-from conda_forge_tick.xonsh_utils import eval_xonsh, indir
+from conda_forge_tick.xonsh_utils import indir
+from conda_forge_tick.utils import eval_cmd
 from conda_forge_tick.recipe_parser import CondaMetaYAML
 from conda_forge_tick.migrators.core import (
     MiniMigrator,
@@ -279,7 +280,7 @@ class LicenseMigrator(MiniMigrator):
                     s.lower().startswith(k) for k in ["license", "copying", "copyright"]
                 )
             ]
-        eval_xonsh(f"rm -r {cb_work_dir}")
+        eval_cmd(f"rm -r {cb_work_dir}")
         # if there is a license file in tarball update things
         if license_files:
             with indir(recipe_dir):

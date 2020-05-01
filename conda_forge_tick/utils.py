@@ -8,6 +8,7 @@ import json
 import logging
 import os
 import re
+import shlex
 from typing import Any, Tuple, Iterable, Union, Optional, IO
 from collections.abc import MutableMapping, Set
 from concurrent.futures import (
@@ -15,6 +16,7 @@ from concurrent.futures import (
     ThreadPoolExecutor,
     Executor,
 )
+import subprocess
 
 import github3
 import jinja2
@@ -66,6 +68,15 @@ CB_CONFIG_PINNING = dict(
     cran_mirror="https://cran.r-project.org",
     datetime=datetime
 )
+
+
+def eval_cmd(cmd):
+    """run a command capturing stdout
+
+    stderr is printed for debugging
+    """
+    c = subprocess.run(shlex.split(cmd), check=True, stdout=subprocess.PIPE)
+    return c.stdout.decode("utf-8")
 
 
 class UniversalSet(Set):
