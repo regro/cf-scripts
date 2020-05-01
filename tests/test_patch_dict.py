@@ -13,10 +13,9 @@ def test_patch_dict():
         {"a.c.d": 15, "e.f": {"k": 19}, "gh": 10, "x.y.z": 13, "new": 23}
     )
 
-    assert cfg["a"]["b"] == 1
-    assert cfg["a"]["c"]["d"] == 15
-    assert cfg["e"]["f"] == {"k": 19}
-    assert cfg["e"]["g"]["h"] == 18
-    assert cfg["gh"] == 10
-    assert "x.y.z" not in cfg
-    assert cfg["new"] == 23
+    assert cfg == {
+        "a": {"b": 1, "c": {"d": 15}},
+        "e": {"f": {"k": 19}, "g": {"h": 18}},
+        "gh": 10,
+        "new": 23,
+    }
