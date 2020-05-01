@@ -195,7 +195,7 @@ def run(
     with indir(feedstock_dir), env.swap(RAISE_SUBPROC_ERROR=False):
         msg = migrator.commit_message(feedstock_ctx)  # noqa
         eval_cmd("git add --all .")
-        eval_cmd(f"git commit -am {msg}")
+        eval_cmd(f"git commit -am '{msg}'")
         if rerender:
             head_ref = eval_cmd("git rev-parse HEAD")  # noqa
             logger.info("Rerendering the feedstock")
