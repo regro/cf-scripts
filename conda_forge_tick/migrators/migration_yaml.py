@@ -415,7 +415,8 @@ class MigrationYamlCreator(Migrator):
 def create_rebuild_graph(
     gx: nx.DiGraph,
     package_names: Sequence[str],
-    excluded_feedstocks: MutableSet[str] = None
+    excluded_feedstocks: MutableSet[str] = None,
+    include_noarch: bool = False
 ) -> nx.DiGraph:
     total_graph = copy.deepcopy(gx)
     excluded_feedstocks = set() if excluded_feedstocks is None else excluded_feedstocks
@@ -430,7 +431,7 @@ def create_rebuild_graph(
         build = requirements.get("build", set())
         bh = host or build
         inclusion_criteria = bh & set(package_names) and (
-                "noarch" not in attrs.get("meta_yaml", {}).get("build", {})
+                include_noarch or ("noarch" not in attrs.get("meta_yaml", {}).get("build", {}))
         )
         # get host/build, run and test and launder them through outputs
         # this should fix outputs related issues (eg gdal)

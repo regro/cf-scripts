@@ -407,7 +407,8 @@ def add_rebuild_migration_yaml(
         The number of PRs per hour, defaults to 5
     """
 
-    total_graph = create_rebuild_graph(gx, package_names, excluded_feedstocks)
+    total_graph = create_rebuild_graph(gx, package_names, excluded_feedstocks,
+                                       include_noarch=config.get('include_noarch', False))
 
     # Note at this point the graph is made of all packages that have a
     # dependency on the pinned package via Host, run, or test.
