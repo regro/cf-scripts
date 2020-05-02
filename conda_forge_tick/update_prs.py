@@ -114,16 +114,15 @@ def _update_pr(update_function, dry_run, gx):
             if v:
                 (pr_json, node_id, i) = v
                 future = pool.submit(update_function, ghctx, pr_json, gh, dry_run)
-                futures[future] = (node_id, i)
+                futures[future] = (node_id, i, pr_json)
 
         for f in as_completed(futures):
-            name, i = futures[f]
+            name, i, pr_json = futures[f]
             try:
                 res = f.result()
                 if res:
                     succeeded_refresh += 1
-                    with gx.nodes[name]["payload"] as node:
-                        node["PRed"][i]["PR"].update(**res)
+                    pr_json.update(**res)
                     logger.info(f"Updated json for {name}: {res['id']}")
             except github3.GitHubError as e:
                 logger.error(f"GITHUB ERROR ON FEEDSTOCK: {name}")
