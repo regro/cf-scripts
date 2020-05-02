@@ -12,6 +12,7 @@ from .update_upstream_versions import main as main_update_upstream_versions
 from .auto_tick import main as main_auto_tick
 from .status_report import main as main_status_report
 from .audit import main as main_audit
+from .update_prs import main as main_update_prs
 
 
 def deploy(args):
@@ -79,6 +80,7 @@ int_script_dict = {
   3: main_auto_tick,
   4: main_status_report,
   5: main_audit,
+  6: main_update_prs,
   -1: deploy
 }
 

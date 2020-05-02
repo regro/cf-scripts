@@ -471,13 +471,7 @@ def main(args: "CLIArgs") -> None:
         "nodes w/o payload:",
         [k for k, v in gx.nodes.items() if "payload" not in v],
     )
-    # Utility flag for testing -- we don't need to always update GH
-    no_github_fetch = os.environ.get("CONDA_FORGE_TICK_NO_GITHUB_REQUESTS")
-    if not no_github_fetch:
-        gx = close_labels(gx, args.dry_run)
-        gx = update_graph_pr_status(gx, args.dry_run)
 
-    logger.info("writing out file")
     dump_graph(gx)
 
 
