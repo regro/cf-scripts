@@ -172,7 +172,6 @@ def main(args: "CLIArgs") -> None:
         gx = update_graph_pr_status(gx, args.dry_run)
 
     logger.info("writing out file")
-    dump_graph(gx)
 
 
 if __name__ == "__main__":
