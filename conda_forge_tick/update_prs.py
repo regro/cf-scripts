@@ -14,7 +14,7 @@ import requests
 import tqdm
 
 from conda_forge_tick.git_utils import close_out_labels, is_github_api_limit_reached, refresh_pr
-from .make_graph import github_token, logger, NUM_GITHUB_THREADS, ghctx
+from .make_graph import github_token, logger, ghctx
 from .utils import (
     setup_logger,
     load_graph,
@@ -25,6 +25,7 @@ if typing.TYPE_CHECKING:
     from .cli import CLIArgs
 
 logger = logging.getLogger("conda_forge_tick.update_prs")
+NUM_GITHUB_THREADS = 1
 
 
 def _get_last_updated_prs():
@@ -123,9 +124,6 @@ def _update_pr(update_function, dry_run, gx):
                     succeeded_refresh += 1
                     with gx.nodes[name]["payload"] as node:
                         node["PRed"][i]["PR"].update(**res)
-                        # XXX: This is a bit of a hack
-                        if update_function == close_out_labels:
-                            node["PRed"][i]["data"]["bot_rerun"] = time.time()
                     logger.info(f"Updated json for {name}: {res['id']}")
             except github3.GitHubError as e:
                 logger.error(f"GITHUB ERROR ON FEEDSTOCK: {name}")
