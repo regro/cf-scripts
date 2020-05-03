@@ -171,7 +171,6 @@ def main(args: "CLIArgs") -> None:
         gx = close_labels(gx, args.dry_run)
         gx = update_graph_pr_status(gx, args.dry_run)
 
-
 if __name__ == "__main__":
     pass
     # main()
