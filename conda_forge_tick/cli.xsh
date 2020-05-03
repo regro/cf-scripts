@@ -4,7 +4,7 @@ import os
 
 from doctr.travis import run_command_hiding_token as doctr_run
 
-from .utils import load_graph
+from .utils import load_graph, LazyJson
 
 from .all_feedstocks import main as main_all_feedstocks
 from .make_graph import main as main_make_graph
@@ -31,7 +31,10 @@ def deploy(args):
             print(e)
 
     try:
-        load_graph()
+        gx = load_graph()
+        # TODO: be more selective about which json to check
+        for node, attrs in gx.nodes.items():
+            attrs._load()
         graph_ok = True
     except Exception:
         graph_ok = False
