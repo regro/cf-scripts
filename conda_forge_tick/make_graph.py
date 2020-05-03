@@ -324,7 +324,7 @@ def update_nodes_with_bot_rerun(gx):
         for migration in payload.get('PRed', []):
             pr_json = migration.get('PR', {})
             # if there is a valid PR and it isn't currently listed as rerun but the PR needs a rerun
-            if pr_json and not migration['bot-rerun'] and "bot-rerun" in [l["name"] for l in pr_json.get("labels", [])]:
+            if pr_json and not migration['data']['bot-rerun'] and "bot-rerun" in [l["name"] for l in pr_json.get("labels", [])]:
                 migration['data']['bot_rerun'] = time.time()
 
 
