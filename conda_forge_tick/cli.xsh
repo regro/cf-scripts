@@ -34,7 +34,7 @@ def deploy(args):
         gx = load_graph()
         # TODO: be more selective about which json to check
         for node, attrs in gx.nodes.items():
-            attrs._load()
+            attrs["payload"]._load()
         graph_ok = True
     except Exception:
         graph_ok = False
