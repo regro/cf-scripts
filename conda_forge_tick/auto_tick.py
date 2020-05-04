@@ -205,8 +205,8 @@ def run(
             try:
                 eval_cmd("conda smithy rerender -c auto")
             except CalledProcessError:
-                eval_cmd("conda update conda-forge-pinning -y")
                 try:
+                    eval_cmd("conda update conda-forge-pinning --freeze-installed -y")
                     eval_cmd("conda smithy rerender -c auto")
                 except CalledProcessError:
                     return False, False
