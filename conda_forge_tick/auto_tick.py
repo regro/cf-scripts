@@ -199,11 +199,18 @@ def run(
         if rerender:
             head_ref = eval_cmd("git rev-parse HEAD")  # noqa
             logger.info("Rerendering the feedstock")
+            
+            # In the event we can't rerender, try to update the pinnings, then bail if it 
+            # does not work again
             try:
                 eval_cmd("conda smithy rerender -c auto")
-            # In the event we can't rerender just bail
             except CalledProcessError:
-                return False, False
+                eval_cmd("conda update conda-forge-pinning -y")
+                try:
+                    eval_cmd("conda smithy rerender -c auto")
+                except CalledProcessError:
+                    return False, False
+            
             # If we tried to run the MigrationYaml and rerender did nothing (we only
             # bumped the build number and dropped a yaml file in migrations) bail
             # for instance platform specific migrations
