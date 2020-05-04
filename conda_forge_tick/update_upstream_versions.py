@@ -537,9 +537,11 @@ def _update_upstream_versions_process_pool(
         _all_nodes = [t for t in gx.nodes.items()]
         random.shuffle(_all_nodes)
         for node, node_attrs in tqdm.tqdm(_all_nodes):
-            if node == "ca-policy-lcg":
-                continue
             with node_attrs["payload"] as attrs:
+                if node == "ca-policy-lcg":
+                    attrs["new_version"] = False
+                    continue
+
                 if attrs.get("bad") or attrs.get("archived"):
                     attrs["new_version"] = False
                     continue
