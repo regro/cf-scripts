@@ -143,7 +143,7 @@ def _scrape_license_string(pkg):
     with tempfile.TemporaryDirectory() as tmpdir, indir(tmpdir):
 
         subprocess.run(
-            ['conda', 'skeleton', 'cran', '--use-noarch-generic', pkg],
+            ['conda', 'skeleton', 'cran', '--allow-archived', '--use-noarch-generic', pkg],
             check=True,
         )
         with open("r-%s/meta.yaml" % pkg, "r") as fp:
