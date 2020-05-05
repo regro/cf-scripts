@@ -203,11 +203,11 @@ def run(
             # In the event we can't rerender, try to update the pinnings, then bail if it 
             # does not work again
             try:
-                eval_cmd("conda smithy rerender -c auto")
+                eval_cmd("CONDA_UNSATISFIABLE_HINTS=False conda smithy rerender -c auto")
             except CalledProcessError:
                 try:
                     eval_cmd("conda update conda-forge-pinning --freeze-installed -y")
-                    eval_cmd("conda smithy rerender -c auto")
+                    eval_cmd("CONDA_UNSATISFIABLE_HINTS=False conda smithy rerender -c auto")
                 except CalledProcessError:
                     return False, False
             
