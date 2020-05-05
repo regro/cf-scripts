@@ -206,16 +206,20 @@ def run(
                 eval_cmd(
                     "conda smithy rerender -c auto",
                     CONDA_UNSATISFIABLE_HINTS="False",
+                    timeout=300,
                 )
             except SubprocessError as e:
                 if isinstance(e, CalledProcessError):
                     # we didn't timeout so let's try again
                     try:
                         eval_cmd(
-                            "conda update conda-forge-pinning --freeze-installed -y")
+                            "conda update conda-forge-pinning --freeze-installed -y",
+                            timeout=180,
+                        )
                         eval_cmd(
                             "conda smithy rerender -c auto",
                             CONDA_UNSATISFIABLE_HINTS="False",
+                            timeout=300,
                         )
                     except SubprocessError:
                         return False, False

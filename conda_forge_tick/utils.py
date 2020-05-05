@@ -78,14 +78,15 @@ def eval_cmd(cmd, **kwargs):
     any kwargs are added to the env
     """
     env = copy.deepcopy(os.environ)
+    timeout = kwargs.pop("timeout", None)
     env.update(kwargs)
     c = subprocess.run(
         shlex.split(cmd),
         check=True,
         stdout=subprocess.PIPE,
         env=env,
-        timeout=600,  # 5 mins
-        )
+        timeout=timeout,
+    )
     return c.stdout.decode("utf-8")
 
 
