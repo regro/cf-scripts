@@ -33,7 +33,7 @@ class ArchRebuild(GraphMigrator):
     }
     arches = {
         "linux_aarch64": "default",
-        "linux_ppc64le": "default",
+        "linux_ppc64le": "azure",
     }
 
     def __init__(
