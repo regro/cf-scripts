@@ -1,5 +1,6 @@
 import datetime
 import typing
+import copy
 from collections.abc import Callable
 from collections import defaultdict
 import contextlib
@@ -70,12 +71,19 @@ CB_CONFIG_PINNING = dict(
 )
 
 
-def eval_cmd(cmd):
+def eval_cmd(cmd, **kwargs):
     """run a command capturing stdout
 
     stderr is printed for debugging
+    any kwargs are added to the env
     """
-    c = subprocess.run(shlex.split(cmd), check=True, stdout=subprocess.PIPE)
+    env = copy.deepcopy(os.environ)
+    env.update(kwargs)
+    c = subprocess.run(
+        shlex.split(cmd),
+        check=True,
+        stdout=subprocess.PIPE,
+        env=env)
     return c.stdout.decode("utf-8")
 
 

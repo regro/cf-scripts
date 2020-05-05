@@ -199,18 +199,25 @@ def run(
         if rerender:
             head_ref = eval_cmd("git rev-parse HEAD")  # noqa
             logger.info("Rerendering the feedstock")
-            
-            # In the event we can't rerender, try to update the pinnings, then bail if it 
-            # does not work again
+
+            # In the event we can't rerender, try to update the pinnings,
+            # then bail if it does not work again
             try:
-                eval_cmd("CONDA_UNSATISFIABLE_HINTS=False conda smithy rerender -c auto")
+                eval_cmd(
+                    "conda smithy rerender -c auto",
+                    CONDA_UNSATISFIABLE_HINTS="False",
+                )
             except CalledProcessError:
                 try:
-                    eval_cmd("conda update conda-forge-pinning --freeze-installed -y")
-                    eval_cmd("CONDA_UNSATISFIABLE_HINTS=False conda smithy rerender -c auto")
+                    eval_cmd(
+                        "conda update conda-forge-pinning --freeze-installed -y")
+                    eval_cmd(
+                        "conda smithy rerender -c auto",
+                        CONDA_UNSATISFIABLE_HINTS="False",
+                    )
                 except CalledProcessError:
                     return False, False
-            
+
             # If we tried to run the MigrationYaml and rerender did nothing (we only
             # bumped the build number and dropped a yaml file in migrations) bail
             # for instance platform specific migrations
@@ -415,8 +422,9 @@ def add_rebuild_migration_yaml(
         The number of PRs per hour, defaults to 5
     """
 
-    total_graph = create_rebuild_graph(gx, package_names, excluded_feedstocks,
-                                       include_noarch=config.get('include_noarch', False))
+    total_graph = create_rebuild_graph(
+        gx, package_names, excluded_feedstocks,
+        include_noarch=config.get('include_noarch', False))
 
     # Note at this point the graph is made of all packages that have a
     # dependency on the pinned package via Host, run, or test.
