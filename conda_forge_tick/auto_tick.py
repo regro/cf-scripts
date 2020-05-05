@@ -8,7 +8,7 @@ import traceback
 import logging
 import os
 import typing
-from subprocess import CalledProcessError
+from subprocess import SubprocessError, CalledProcessError
 
 import networkx as nx
 from conda.models.version import VersionOrder
@@ -207,15 +207,19 @@ def run(
                     "conda smithy rerender -c auto",
                     CONDA_UNSATISFIABLE_HINTS="False",
                 )
-            except CalledProcessError:
-                try:
-                    eval_cmd(
-                        "conda update conda-forge-pinning --freeze-installed -y")
-                    eval_cmd(
-                        "conda smithy rerender -c auto",
-                        CONDA_UNSATISFIABLE_HINTS="False",
-                    )
-                except CalledProcessError:
+            except SubprocessError as e:
+                if isinstance(e, CalledProcessError):
+                    # we didn't timeout so let's try again
+                    try:
+                        eval_cmd(
+                            "conda update conda-forge-pinning --freeze-installed -y")
+                        eval_cmd(
+                            "conda smithy rerender -c auto",
+                            CONDA_UNSATISFIABLE_HINTS="False",
+                        )
+                    except SubprocessError:
+                        return False, False
+                else:
                     return False, False
 
             # If we tried to run the MigrationYaml and rerender did nothing (we only

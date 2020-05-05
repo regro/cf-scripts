@@ -83,7 +83,9 @@ def eval_cmd(cmd, **kwargs):
         shlex.split(cmd),
         check=True,
         stdout=subprocess.PIPE,
-        env=env)
+        env=env,
+        timeout=600,  # 5 mins
+        )
     return c.stdout.decode("utf-8")
 
 
