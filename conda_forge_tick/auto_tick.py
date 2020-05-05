@@ -209,22 +209,23 @@ def run(
                     timeout=300,
                 )
             except SubprocessError as e:
-                if isinstance(e, CalledProcessError):
-                    # we didn't timeout so let's try again
-                    try:
-                        eval_cmd(
-                            "conda update conda-forge-pinning --freeze-installed -y",
-                            timeout=180,
-                        )
-                        eval_cmd(
-                            "conda smithy rerender -c auto",
-                            CONDA_UNSATISFIABLE_HINTS="False",
-                            timeout=300,
-                        )
-                    except SubprocessError:
-                        return False, False
-                else:
-                    return False, False
+                # this may be causing issues
+                # if isinstance(e, CalledProcessError):
+                #     # we didn't timeout so let's try again
+                #     try:
+                #         eval_cmd(
+                #             "conda update conda-forge-pinning --freeze-installed -y",
+                #             timeout=180,
+                #         )
+                #         eval_cmd(
+                #             "conda smithy rerender -c auto",
+                #             CONDA_UNSATISFIABLE_HINTS="False",
+                #             timeout=300,
+                #         )
+                #     except SubprocessError:
+                #         return False, False
+                # else:
+                return False, False
 
             # If we tried to run the MigrationYaml and rerender did nothing (we only
             # bumped the build number and dropped a yaml file in migrations) bail
