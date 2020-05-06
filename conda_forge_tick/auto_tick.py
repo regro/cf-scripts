@@ -205,7 +205,6 @@ def run(
             try:
                 eval_cmd(
                     "conda smithy rerender -c auto --no-check-uptodate",
-                    CONDA_UNSATISFIABLE_HINTS="False",
                     timeout=300,
                 )
             except SubprocessError:
