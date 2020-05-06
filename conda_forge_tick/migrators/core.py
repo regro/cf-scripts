@@ -58,7 +58,12 @@ def _parse_bad_attr(attrs: "AttrsTypedDict", not_bad_str_start: str) -> bool:
 
 def _get_source_code(recipe_dir):
     # Use conda build to do all the downloading/extracting bits
-    md = render(recipe_dir, config=Config(**CB_CONFIG), finalize=False)
+    md = render(
+        recipe_dir,
+        config=Config(**CB_CONFIG),
+        finalize=False,
+        bypass_env_check=True,
+    )
     if not md:
         return None
     md = md[0][0]
