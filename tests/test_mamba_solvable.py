@@ -1,6 +1,8 @@
 import os
 
-from conda_forge_tick.mamba_solver import is_recipe_solvable
+import pytest
+
+from conda_forge_tick.mamba_solver import is_recipe_solvable, _norm_spec
 
 
 FEEDSTOCK_DIR = os.path.join(os.path.dirname(__file__), 'test_feedstock')
@@ -105,3 +107,18 @@ extra:
             os.remove(recipe_file)
         except Exception:
             pass
+
+
+@pytest.mark.parametrize("inreq,outreq", [
+    ("blah 1.1*", "blah 1.1.*"),
+    ("blah * *_osx", "blah * *_osx"),
+    ("blah 1.1", "blah 1.1.*"),
+    ("blah =1.1", "blah 1.1.*"),
+    ("blah * *_osx", "blah * *_osx"),
+    ("blah 1.2 *_osx", "blah 1.2.* *_osx"),
+    ("blah >=1.1", "blah >=1.1"),
+    ("blah >=1.1|5|>=5,<10|19.0", "blah >=1.1|5.*|>=5,<10|19.0.*"),
+    ("blah >=1.1|5| >=5 , <10 |19.0", "blah >=1.1|5.*|>=5,<10|19.0.*"),
+])
+def test_norm_spec(inreq, outreq):
+    assert _norm_spec(inreq) == outreq

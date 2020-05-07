@@ -28,8 +28,64 @@ from mamba import mamba_api as api
 logger = logging.getLogger("conda_forge_tick.mamba_solver")
 
 
+# these characters are start requirements that do not need to be munged from
+# 1.1 to 1.1.*
+REQ_START = ["!=", "==", ">", "<", ">=", "<="]
+
+
+def _munge_req_star(req):
+    reqs = []
+
+    # now we split on ',' and '|'
+    # once we have all of the parts, we then munge the star
+    csplit = req.split(",")
+    ncs = len(csplit)
+    for ic, p in enumerate(csplit):
+
+        psplit = p.split("|")
+        nps = len(psplit)
+        for ip, pp in enumerate(psplit):
+            # clear white space
+            pp = pp.strip()
+
+            # finally add the star if we need it
+            if any(pp.startswith(__v) for __v in REQ_START) or "*" in pp:
+                reqs.append(pp)
+            else:
+                if pp.startswith("="):
+                    pp = pp[1:]
+                reqs.append(pp + ".*")
+
+            # add | back on the way out
+            if ip != nps-1:
+                reqs.append("|")
+
+        # add , back on the way out
+        if ic != ncs-1:
+            reqs.append(",")
+
+    # put it all together
+    return "".join(reqs)
+
+
 def _norm_spec(myspec):
-    return MatchSpec(myspec).conda_build_form()
+    m = MatchSpec(myspec)
+
+    # this code looks like MatchSpec.conda_build_form() but munges stars in the
+    # middle
+    parts = [m.get_exact_value("name")]
+
+    version = m.get_raw_value("version")
+    build = m.get_raw_value('build')
+    if build and not version:
+        raise RuntimeError("spec '%s' has build but not version!" % myspec)
+
+    if version:
+        parts.append(_munge_req_star(m.version.spec_str))
+    if build:
+        parts.append(build)
+
+    return " ".join(parts)
 
 
 def get_index(channel_urls=(), prepend=True, platform=None,
