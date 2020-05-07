@@ -323,9 +323,19 @@ def update_nodes_with_bot_rerun(gx):
         payload = node['payload']
         for migration in payload.get('PRed', []):
             pr_json = migration.get('PR', {})
-            # if there is a valid PR and it isn't currently listed as rerun but the PR needs a rerun
-            if pr_json and not migration['data']['bot_rerun'] and "bot-rerun" in [l["name"] for l in pr_json.get("labels", [])]:
+            # if there is a valid PR and it isn't currently listed as rerun
+            # but the PR needs a rerun
+            if (
+                pr_json
+                and not migration['data']['bot_rerun']
+                and "bot-rerun" in [l["name"] for l in pr_json.get("labels", [])]
+            ):
                 migration['data']['bot_rerun'] = time.time()
+                logger.INFO(
+                    "BOT-RERUN %s: processing bot rerun label for migration %s",
+                    node,
+                    migration["data"],
+                )
 
 
 def main(args: "CLIArgs") -> None:
@@ -341,6 +351,8 @@ def main(args: "CLIArgs") -> None:
         "nodes w/o payload:",
         [k for k, v in gx.nodes.items() if "payload" not in v],
     )
+
+    update_nodes_with_bot_rerun(gx)
 
     dump_graph(gx)
 
