@@ -333,7 +333,7 @@ def update_nodes_with_bot_rerun(gx):
                     migration['data']['bot_rerun'] = time.time()
                     logger.info(
                         "BOT-RERUN %s: processing bot rerun label for migration %s",
-                        node,
+                        name,
                         migration["data"],
                     )
 
