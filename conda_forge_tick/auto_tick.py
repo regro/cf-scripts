@@ -661,7 +661,23 @@ def _compute_time_per_migrator(mctx):
     for migrator in MIGRATORS:
         mmctx = MigratorContext(session=mctx, migrator=migrator)
         migrator.bind_to_ctx(mmctx)
-        num_nodes.append(len(mmctx.effective_graph.nodes))
+
+        if isinstance(migrator, Version):
+            _num_nodes = 0
+            for node_name in mmctx.effective_graph.nodes:
+                with mmctx.effective_graph.nodes[node_name]["payload"] as attrs:
+                    _attempts = (
+                        attrs
+                        .get("new_version_attempts", {})
+                        .get(attrs.get("new_version", ""), 0)
+                    )
+                    if _attempts == 0:
+                        _num_nodes += 1
+            if _num_nodes == 0:
+                _num_nodes = 1  # will get the minimum time
+            num_nodes.append(_num_nodes)
+        else:
+            num_nodes.append(len(mmctx.effective_graph.nodes))
 
     num_nodes_tot = sum(num_nodes)
     time_per_node = float(env.get("TIMEOUT", 600)) / num_nodes_tot
