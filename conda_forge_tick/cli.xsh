@@ -44,6 +44,8 @@ def deploy(args):
     num_try = 0
     while status != 0 and num_try < 10 and graph_ok:
         try:
+            if num_try == 9:
+                @(["git", "fetch", "--unshallow"])
             @(['git', 'pull', '-s', 'recursive', '-X', 'theirs'])
         except Exception:
             pass
@@ -58,7 +60,8 @@ def deploy(args):
         num_try += 1
 
     if status != 0 or not graph_ok:
-        @(["git", "fetch", "--unshallow"])
+        if not graph_ok:
+            @(["git", "fetch", "--unshallow"])
         _branch = "failed-circle-run-%s" % os.environ["CIRCLE_BUILD_NUM"]
         @(["git", "checkout", "-b", _branch])
         @(["git", "commit", "--allow-empty", "-am", '"help me @regro/auto-tick!"'])
