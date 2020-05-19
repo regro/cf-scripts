@@ -14,18 +14,15 @@ from typing import (
 
 
 import networkx as nx
-from rever.tools import replace_in_file
 
 from conda_build.source import provide
 from conda_build.config import Config
 from conda_build.api import render
 
 from conda_forge_tick.path_lengths import cyclic_topological_sort
-from conda_forge_tick.xonsh_utils import eval_xonsh, indir
 from conda_forge_tick.utils import (
     frozen_to_json_friendly,
     CB_CONFIG,
-    PACKAGE_STUBS,
     LazyJson,
 )
 from conda_forge_tick.contexts import MigratorContext, FeedstockContext
@@ -37,11 +34,6 @@ if typing.TYPE_CHECKING:
         PackageName,
     )
     from conda_forge_tick.utils import JsonFriendly
-
-try:
-    from conda_smithy.lint_recipe import NEEDED_FAMILIES
-except ImportError:
-    NEEDED_FAMILIES = ["gpl", "bsd", "mit", "apache", "psf"]
 
 
 LOGGER = logging.getLogger("conda_forge_tick.migrators.core")
@@ -66,9 +58,14 @@ def _parse_bad_attr(attrs: "AttrsTypedDict", not_bad_str_start: str) -> bool:
 
 def _get_source_code(recipe_dir):
     # Use conda build to do all the downloading/extracting bits
-    md = render(recipe_dir, config=Config(**CB_CONFIG))
+    md = render(
+        recipe_dir,
+        config=Config(**CB_CONFIG),
+        finalize=False,
+        bypass_env_check=True,
+    )
     if not md:
-        return
+        return None
     md = md[0][0]
     # provide source dir
     return provide(md)
@@ -110,77 +107,6 @@ class MiniMigrator:
         return
 
 
-class LicenseMigrator(MiniMigrator):
-    post_migration = True
-
-    def filter(self, attrs: "AttrsTypedDict", not_bad_str_start: str = "") -> bool:
-        license = attrs.get("meta_yaml", {}).get("about", {}).get("license", "")
-        license_fam = (
-            attrs.get("meta_yaml", {})
-            .get("about", {})
-            .get("license_family", "")
-            .lower()
-            or license.lower().partition("-")[0].partition("v")[0].partition(" ")[0]
-        )
-        if license_fam in NEEDED_FAMILIES and "license_file" not in attrs.get(
-            "meta_yaml", {},
-        ).get("about", {}):
-            return False
-        return True
-
-    def migrate(self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any) -> None:
-        cb_work_dir = _get_source_code(recipe_dir)
-        with indir(cb_work_dir):
-            # look for a license file
-            license_files = [
-                s
-                for s in os.listdir(".")
-                if any(
-                    s.lower().startswith(k) for k in ["license", "copying", "copyright"]
-                )
-            ]
-        eval_xonsh(f"rm -r {cb_work_dir}")
-        # if there is a license file in tarball update things
-        if license_files:
-            with indir(recipe_dir):
-                """BSD 3-Clause License
-                  Copyright (c) 2017, Anthony Scopatz
-                  Copyright (c) 2018, The Regro Developers
-                  All rights reserved."""
-                with open("meta.yaml", "r") as f:
-                    raw = f.read()
-                lines = raw.splitlines()
-                ptn = re.compile(r"(\s*?)" + "license:")
-                for i, line in enumerate(lines):
-                    m = ptn.match(line)
-                    if m is not None:
-                        break
-                # TODO: Sketchy type assertion
-                assert m is not None
-                ws = m.group(1)
-                if len(license_files) == 1:
-                    replace_in_file(
-                        line,
-                        line + "\n" + ws + f"license_file: {list(license_files)[0]}",
-                        "meta.yaml",
-                    )
-                else:
-                    # note that this white space is not perfect but works for
-                    # most of the situations
-                    replace_in_file(
-                        line,
-                        line
-                        + "\n"
-                        + ws
-                        + "license_file: \n"
-                        + "".join(f"{ws*2}- {z} \n" for z in license_files),
-                        "meta.yaml",
-                    )
-
-        # if license not in tarball do something!
-        # check if github in dev url, then use that to get the license
-
-
 class Migrator:
     """Base class for Migrators"""
 
@@ -207,11 +133,13 @@ class Migrator:
         # TODO: Validate this?
         obj_version: Optional[int] = None,
         piggy_back_migrations: Optional[Sequence[MiniMigrator]] = None,
+        check_solvable=True,
     ):
         self.piggy_back_migrations = piggy_back_migrations or []
         self.pr_limit = pr_limit
         self.obj_version = obj_version
         self.ctx: MigratorContext = None
+        self.check_solvable = check_solvable
 
     def bind_to_ctx(self, migrator_ctx: MigratorContext) -> None:
         self.ctx = migrator_ctx
@@ -366,8 +294,8 @@ class Migrator:
             "<code>@<space/>conda-forge-admin, please rerun bot</code> "
             "in a PR comment to have the `conda-forge-admin` add it for you.\n\n"
             "<sub>"
-            "This PR was created by the [cf-regro-autotick-bot](https://github.com/regro/cf-scripts).\n"  # noqa
-            "The **cf-regro-autotick-bot** is a service to automatically "
+            "This PR was created by the [regro-cf-autotick-bot](https://github.com/regro/cf-scripts).\n"  # noqa
+            "The **regro-cf-autotick-bot** is a service to automatically "
             "track the dependency graph, migrate packages, and "
             "propose package version updates for conda-forge. "
             "If you would like a local version of this bot, you might consider using "
@@ -394,12 +322,6 @@ class Migrator:
         :param feedstock_ctx:
         """
         return "PR from Regro-cf-autotick-bot"
-
-    def pr_head(self, feedstock_ctx: FeedstockContext) -> str:
-        """Head for PR
-        :param feedstock_ctx:
-        """
-        return f"{self.ctx.github_username}:{self.remote_branch(feedstock_ctx=feedstock_ctx)}"  # noqa
 
     def remote_branch(self, feedstock_ctx: FeedstockContext) -> str:
         """Branch to use on local and remote
@@ -513,8 +435,12 @@ class GraphMigrator(Migrator):
         cycles: Optional[Sequence["packageName"]] = None,
         obj_version: Optional[int] = None,
         piggy_back_migrations: Optional[Sequence[MiniMigrator]] = None,
+        check_solvable=True,
     ):
-        super().__init__(pr_limit, obj_version, piggy_back_migrations)
+        super().__init__(
+            pr_limit, obj_version, piggy_back_migrations,
+            check_solvable=check_solvable
+        )
         # TODO: Grab the graph from the migrator ctx
         if graph is None:
             self.graph = nx.DiGraph()
@@ -536,16 +462,14 @@ class GraphMigrator(Migrator):
         self.cycles = set(chain.from_iterable(cycles or []))
 
     def predecessors_not_yet_built(self, attrs: "AttrsTypedDict") -> bool:
-        __name = attrs.get("name", "")
-
-        def _test_node_built(node):
-            # check to see if node has been built
+        # Check if all upstreams have been built
+        for node in self.graph.predecessors(attrs["feedstock_name"]):
             payload = self.graph.nodes[node]["payload"]
             muid = frozen_to_json_friendly(self.migrator_uid(payload))
             if muid not in _sanitized_muids(
                 payload.get("PRed", []),
             ) and not payload.get("archived", False):
-                return False
+                return True
             # This is due to some PRed_json loss due to bad graph deploy outage
             for m_pred_json in payload.get("PRed", []):
                 if m_pred_json["data"] == muid["data"]:
@@ -556,65 +480,10 @@ class GraphMigrator(Migrator):
             # so that errors halt the migration and can be fixed
             if (
                 m_pred_json
-                and (
-                    m_pred_json
-                    .get("PR", {"state": "open"})
-                    .get("state", "")
-                ) == "open"
+                and m_pred_json.get("PR", {"state": "open"}).get("state", "") == "open"
             ):
-                return False
-
-            return True
-
-        # check deps directly instead of using the graph
-        # this breaks cycles in cases where a dep comes from more than
-        # one package
-        all_deps = set().union(*attrs.get("requirements", {}).values())
-        all_deps_built = True
-        for dep in all_deps:
-            if any(dep.endswith(stub) for stub in PACKAGE_STUBS):
-                continue
-
-            # get all potential nodes for a dep
-            potential_nodes = []
-
-            if (
-                dep in self.graph.nodes and
-                len(
-                    self.graph.nodes[dep]
-                    .get("payload", {})
-                    .get("outputs_names", [])
-                ) == 0
-            ):
-                potential_nodes.append(dep)
-
-            if dep in self.outputs_lut:
-                _node = self.outputs_lut[dep]
-                if _node in self.graph.nodes:
-                    potential_nodes.append(_node)
-
-            if len(potential_nodes) == 0:
-                # some dep cannot be done, so keep moving since
-                # it could be outside this graph
-                continue
-
-            LOGGER.debug("%s: dep %s: nodes: %s", __name, dep, potential_nodes)
-
-            nodes_built = []
-            for node in potential_nodes:
-                if node == __name:
-                    # self-cycle is always built
-                    nodes_built.append(True)
-                elif node not in self.graph.nodes:
-                    nodes_built.append(False)
-                else:
-                    nodes_built.append(_test_node_built(node))
-
-            LOGGER.debug("%s: dep %s: built: %s", __name, dep, nodes_built)
-
-            all_deps_built = all_deps_built and any(nodes_built)
-
-        return not all_deps_built
+                return True
+        return False
 
     def filter(self, attrs: "AttrsTypedDict", not_bad_str_start: str = "") -> bool:
         name = attrs.get("name", "")
@@ -656,6 +525,8 @@ class Replacement(Migrator):
         The graph of feedstocks.
     pr_limit : int, optional
         The maximum number of PRs made per run of the bot.
+    check_solvable : bool, optional
+        If True, uses mamba to check if the final recipe is solvable.
     """
 
     migrator_version = 0
@@ -669,8 +540,9 @@ class Replacement(Migrator):
         rationale: str,
         graph: nx.DiGraph = None,
         pr_limit: int = 0,
+        check_solvable=True,
     ):
-        super().__init__(pr_limit)
+        super().__init__(pr_limit, check_solvable=check_solvable)
         self.old_pkg = old_pkg
         self.new_pkg = new_pkg
         self.pattern = re.compile(r"\s*-\s*(%s)(\s+|$)" % old_pkg)

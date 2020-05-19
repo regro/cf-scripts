@@ -1,10 +1,11 @@
-import jinja2
 import re
 import io
 import collections.abc
 import json
 from typing import Union, List, Any
 
+import jinja2
+import jinja2.meta
 from ruamel.yaml import YAML
 
 CONDA_SELECTOR = "__###conda-selector###__"
@@ -22,10 +23,14 @@ MUNGED_LINE_RE = re.compile(r"^(\s*-?\s*)([^\s:]*)" + CONDA_SELECTOR + r"([^:]*)
 # this regex matches any line with a selector
 SELECTOR_RE = re.compile(r"^.*#\s*\[(.*)\]")
 
-# yaml parser that is jinja2 aware
-YAML_JINJA2 = YAML(typ="jinja2")
-YAML_JINJA2.indent(mapping=2, sequence=4, offset=2)
-YAML_JINJA2.width = 160
+
+def _get_yaml_parser():
+    """yaml parser that is jinja2 aware"""
+    # using a function here so settings are always the same
+    parser = YAML(typ="jinja2")
+    parser.indent(mapping=2, sequence=4, offset=2)
+    parser.width = 320
+    return parser
 
 
 def _config_has_key_with_selectors(cfg: dict, key: str):
@@ -64,10 +69,12 @@ def _parse_jinja2_variables(meta_yaml: str) -> dict:
         Note that if a selector has been applied in the recipe, the
         name of the variable will be `<name>__###conda-selector###__<selector>`.
     """
+    meta_yaml_lines = meta_yaml.splitlines()
     env = jinja2.Environment()
     parsed_content = env.parse(meta_yaml)
     all_nodes = list(parsed_content.iter_child_nodes())
 
+    jinja2_exprs = {}
     jinja2_vals = {}
     for i, n in enumerate(all_nodes):
         if isinstance(n, jinja2.nodes.Assign) and isinstance(
@@ -106,12 +113,18 @@ def _parse_jinja2_variables(meta_yaml: str) -> dict:
                     assert False, jinja2_data
             else:
                 jinja2_vals[n.target.name] = (n.node.value, i)
+        elif isinstance(n, jinja2.nodes.Assign):
+            if isinstance(n.target, jinja2.nodes.Tuple):
+                for __n in n.target.items:
+                    jinja2_exprs[__n.name] = meta_yaml_lines[n.lineno-1]
+            else:
+                jinja2_exprs[n.target.name] = meta_yaml_lines[n.lineno-1]
 
     # we don't need the indexes into the jinja2 node list anymore
     for key, val in jinja2_vals.items():
         jinja2_vals[key] = jinja2_vals[key][0]
 
-    return jinja2_vals
+    return jinja2_vals, jinja2_exprs
 
 
 def _munge_line(line: str) -> str:
@@ -298,6 +311,20 @@ def _replace_jinja2_vars(lines: List[str], jinja2_vars: dict) -> List[str]:
     return new_lines
 
 
+def _build_jinja2_expr_tmp(jinja2_exprs):
+    """Build a template to evaluate jinja2 expressions."""
+    exprs = []
+    tmpls = []
+    for var, expr in jinja2_exprs.items():
+        tmpl = "%s: >-\n  {{ %s }}" % (var, var)
+        if tmpl not in tmpls:
+            tmpls.append(tmpl)
+        if expr.strip() not in exprs:
+            exprs.append(expr.strip())
+
+    return "\n".join(exprs + tmpls)
+
+
 class CondaMetaYAML(object):
     """Crude parsing of conda recipes.
 
@@ -329,6 +356,9 @@ class CondaMetaYAML(object):
         top of the recipe. You can use the mangling of the keys for selectors
         to add selectors to values as well. Finally, any changes to existing
         values are put into the recipe as well.
+    jinja2_exprs : dict
+        A dictionary mapping jinja2 vars to the jinja2 expressions that
+        evaluate them.
 
     Methods
     -------
@@ -340,7 +370,9 @@ class CondaMetaYAML(object):
 
     def __init__(self, meta_yaml: str):
         # get any variables set in the file by jinja2
-        self.jinja2_vars = _parse_jinja2_variables(meta_yaml)
+        v, e = _parse_jinja2_variables(meta_yaml)
+        self.jinja2_vars = v
+        self.jinja2_exprs = e
 
         if "<{{ " in meta_yaml:
             self._jinja2_sentinel = "<<"
@@ -355,10 +387,55 @@ class CondaMetaYAML(object):
             lines.append(_munge_line(line))
 
         # parse with yaml
-        self.meta = YAML_JINJA2.load("".join(lines))
+        self._parser = _get_yaml_parser()
+        self.meta = self._parser.load("".join(lines))
 
         # undo munging of jinja2 variables '<{ var }}' -> '{{ var }}'
         self.meta = _demunge_jinja2_vars(self.meta, self._jinja2_sentinel)
+
+    def eval_jinja2_exprs(self, jinja2_vars):
+        """Using a set of values for the jinja2 vars, evaluate the
+        jinja2 template to get any jinja2 expression values.
+
+        Parameters
+        ----------
+        jinja2_vars : dict
+            A dictionary mapping vairable names to their (constant) values.
+
+        Returns
+        -------
+        exprs : dict
+            A dictionary mapping variable names to their computed values.
+        """
+        tmpl = _build_jinja2_expr_tmp(self.jinja2_exprs)
+        if len(tmpl.strip()) == 0:
+            return {}
+
+        # look for undefined things
+        env = jinja2.Environment()
+        ast = env.parse(tmpl)
+        undefined = jinja2.meta.find_undeclared_variables(ast)
+        undefined = set([u for u in undefined if u not in jinja2_vars])
+
+        # if we found them, remove the offending statements
+        if len(undefined) > 0:
+            new_exprs = {}
+            for var, expr in self.jinja2_exprs.items():
+                if not any(u in expr for u in undefined):
+                    new_exprs[var] = expr
+        else:
+            new_exprs = self.jinja2_exprs
+
+        # rebuild the template and render
+        tmpl = _build_jinja2_expr_tmp(new_exprs)
+        if len(tmpl.strip()) == 0:
+            return {}
+
+        # get a new parser since it carries state about the jinja2 munging
+        # that we don't want to ruin
+        _parser = _get_yaml_parser()
+        return _parser.load(
+            jinja2.Template(tmpl).render(**jinja2_vars))
 
     def dump(self, fp: Any):
         """Dump the recipe to a file-like object.
@@ -374,7 +451,7 @@ class CondaMetaYAML(object):
         try:
             # first dump to yaml
             s = io.StringIO()
-            YAML_JINJA2.dump(self.meta, s)
+            self._parser.dump(self.meta, s)
             s.seek(0)
 
             # now unmunge

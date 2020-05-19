@@ -1,6 +1,7 @@
 import abc
 import collections.abc
 import logging
+import os
 import subprocess
 import random
 import time
@@ -18,6 +19,7 @@ from typing import (
 
 import yaml
 import networkx as nx
+import tqdm
 
 import feedparser
 import requests
@@ -26,7 +28,7 @@ from conda.models.version import VersionOrder
 # TODO: parse_version has bad type annotations
 from pkg_resources import parse_version
 
-from .utils import (
+from conda_forge_tick.utils import (
     parse_meta_yaml,
     setup_logger,
     executor,
@@ -41,6 +43,8 @@ if typing.TYPE_CHECKING:
 logger = logging.getLogger("conda_forge_tick.update_upstream_versions")
 
 CRAN_INDEX: Optional[dict] = None
+
+CONDA_FORGE_TICK_DEBUG = os.environ.get("CONDA_FORGE_TICK_DEBUG", False)
 
 
 def urls_from_meta(meta_yaml: "MetaYamlTypedDict") -> Set[str]:
@@ -141,7 +145,7 @@ class VersionFromFeed(AbstractSource):
             ver = entry["link"].split("/")[-1]
             for prefix in self.ver_prefix_remove:
                 if ver.startswith(prefix):
-                    ver = ver[len(prefix) :]
+                    ver = ver[len(prefix):]
             if any(s in ver.lower() for s in self.dev_vers):
                 continue
             # Extract vesion number starting at the first digit.
@@ -362,7 +366,8 @@ class ROSDistro(AbstractSource):
 def get_sha256(url: str) -> Optional[str]:
     try:
         return hash_url(url, timeout=120, hash_type="sha256")
-    except Exception:
+    except Exception as e:
+        logger.debug("url hashing exception: %s", repr(e))
         return None
 
 
@@ -406,6 +411,8 @@ class RawURL(AbstractSource):
         # TODO: pull this from the graph itself
         content = meta_yaml["raw_meta_yaml"]
 
+        # this while statment runs until a bad version is found
+        # then it uses the previous one
         orig_urls = urls_from_meta(meta_yaml["meta_yaml"])
         current_ver = meta_yaml["version"]
         current_sha256 = None
@@ -417,38 +424,44 @@ class RawURL(AbstractSource):
             found = False
             for next_ver in next_version(current_ver):
                 logger.debug("trying version: %s", next_ver)
+
                 new_content = content.replace(orig_ver, next_ver)
-                meta = parse_meta_yaml(new_content)
-                url = None
-                for u in urls_from_meta(meta):
-                    if u not in orig_urls:
-                        url = u
-                        break
-                if url is None:
+                new_meta = parse_meta_yaml(new_content)
+                new_urls = urls_from_meta(new_meta)
+                if len(new_urls) == 0:
+                    logger.debug("No URL in meta.yaml")
                     meta_yaml["bad"] = "Upstream: no url in yaml"
                     return None
-                if (
-                    str(meta["package"]["version"]) != next_ver
-                    or meta_yaml["url"] == url
-                ):
-                    continue
 
-                _exists, _url_to_use = url_exists_swap_exts(url)
-                if not _exists:
-                    logger.debug("version %s does not exist", next_ver)
-                    continue
-                else:
-                    url = _url_to_use
+                url_to_use = None
+                for url in urls_from_meta(new_meta):
+                    # this URL looks bad if these things happen
+                    if (
+                        str(new_meta["package"]["version"]) != next_ver
+                        or meta_yaml["url"] == url
+                        or url in orig_urls
+                    ):
+                        continue
 
-                found = True
-                count = count + 1
-                current_ver = next_ver
-                new_sha256 = get_sha256(url)
-                if new_sha256 == current_sha256 or new_sha256 in new_content:
-                    return None
-                current_sha256 = new_sha256
-                logger.debug("version %s is ok", current_ver)
-                break
+                    logger.debug("trying url: %s", url)
+                    _exists, _url_to_use = url_exists_swap_exts(url)
+                    if not _exists:
+                        logger.debug(
+                            "version %s does not exist for url %s", next_ver, url)
+                        continue
+                    else:
+                        url_to_use = _url_to_use
+
+                if url_to_use is not None:
+                    found = True
+                    count = count + 1
+                    current_ver = next_ver
+                    new_sha256 = get_sha256(url_to_use)
+                    if new_sha256 == current_sha256 or new_sha256 in new_content:
+                        return None
+                    current_sha256 = new_sha256
+                    logger.debug("version %s is ok for url %s", current_ver, url_to_use)
+                    break
 
         if count == max_count:
             return None
@@ -518,11 +531,17 @@ def _update_upstream_versions_process_pool(
     gx: nx.DiGraph, sources: Iterable[AbstractSource],
 ) -> None:
     futures = {}
-    with executor(kind="dask", max_workers=10) as pool:
+    # this has to be threads because the url hashing code uses a Pipe which
+    # cannot be spawned from a process
+    with executor(kind="dask", max_workers=20) as pool:
         _all_nodes = [t for t in gx.nodes.items()]
         random.shuffle(_all_nodes)
-        for node, node_attrs in _all_nodes:
+        for node, node_attrs in tqdm.tqdm(_all_nodes):
             with node_attrs["payload"] as attrs:
+                if node == "ca-policy-lcg":
+                    attrs["new_version"] = False
+                    continue
+
                 if attrs.get("bad") or attrs.get("archived"):
                     attrs["new_version"] = False
                     continue
@@ -581,12 +600,9 @@ def update_upstream_versions(
         if sources is None
         else sources
     )
-    from .xonsh_utils import env
-
-    debug = env.get("CONDA_FORGE_TICK_DEBUG", False)
     updater = (
         _update_upstream_versions_sequential
-        if debug
+        if CONDA_FORGE_TICK_DEBUG
         else _update_upstream_versions_process_pool
     )
     logger.info("Updating upstream versions")
@@ -594,10 +610,7 @@ def update_upstream_versions(
 
 
 def main(args: Any = None) -> None:
-    from .xonsh_utils import env
-
-    debug = env.get("CONDA_FORGE_TICK_DEBUG", False)
-    if debug:
+    if CONDA_FORGE_TICK_DEBUG:
         setup_logger(logger, level="debug")
     else:
         setup_logger(logger)

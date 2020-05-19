@@ -24,3 +24,5 @@ pynamodb
 ruamel.yaml
 ruamel.yaml.jinja2
 msgpack-python<1
+depfinder
+mamba

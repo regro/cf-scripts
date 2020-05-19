@@ -177,24 +177,32 @@ def _try_replace_hash(
                 key = cname + CONDA_SELECTOR + selector
                 if key in cmeta.jinja2_vars:
                     cmeta.jinja2_vars[key] = new_hash
+                    logger.info(
+                        "jinja2 w/ new hash: %s", pprint.pformat(cmeta.jinja2_vars))
                     _replaced_hash = True
                     break
 
             if cname in cmeta.jinja2_vars:
                 cmeta.jinja2_vars[cname] = new_hash
+                logger.info(
+                    "jinja2 w/ new hash: %s", pprint.pformat(cmeta.jinja2_vars))
                 _replaced_hash = True
                 break
 
     else:
         _replaced_hash = True
         src[hash_key] = new_hash
+        logger.info("source w/ new hash: %s", pprint.pformat(src))
 
     return _replaced_hash
 
 
 def _try_to_update_version(cmeta: Any, src: str, hash_type: str):
+    errors = set()
+
     if not any("url" in k for k in src):
-        return False
+        errors.add("no URLs in the source section")
+        return False, errors
 
     ha = getattr(hashlib, hash_type, None)
     if ha is None:
@@ -212,6 +220,7 @@ def _try_to_update_version(cmeta: Any, src: str, hash_type: str):
     # these are then updated
 
     for selector in possible_selectors:
+        # url and hash keys
         logger.info("selector: %s", selector)
         url_key = "url"
         if selector is not None:
@@ -231,6 +240,7 @@ def _try_to_update_version(cmeta: Any, src: str, hash_type: str):
         if hash_key not in src:
             continue
 
+        # jinja2 stuff
         context = {}
         for key, val in cmeta.jinja2_vars.items():
             if CONDA_SELECTOR in key:
@@ -238,6 +248,13 @@ def _try_to_update_version(cmeta: Any, src: str, hash_type: str):
                     context[key.split(CONDA_SELECTOR)[0]] = val
             else:
                 context[key] = val
+        # this pulls out any jinja2 expressions that are not constans
+        # e.g. bits of jinja2 that extract version parts
+        evaled_context = cmeta.eval_jinja2_exprs(context)
+        logger.info("jinja2 context: %s", pprint.pformat(context))
+        logger.info("evaluated jinja2 vars: %s", pprint.pformat(evaled_context))
+        context.update(evaled_context)
+        logger.info("updated jinja2 context: %s", pprint.pformat(context))
 
         # get all of the possible variables in the url
         # if we do not have them or any selector versions, then
@@ -253,11 +270,18 @@ def _try_to_update_version(cmeta: Any, src: str, hash_type: str):
 
         skip_this_selector = False
         for var in jinja2_var_set:
-            if len(list(_gen_key_selector(cmeta.jinja2_vars, var))) == 0:
+            possible_keys = (
+                list(_gen_key_selector(cmeta.jinja2_vars, var))
+                + list(_gen_key_selector(evaled_context, var))
+            )
+            if len(possible_keys) == 0:
                 if var == "cran_mirror":
                     context["cran_mirror"] = "https://cran.r-project.org"
                 else:
                     logger.critical("jinja2 variable %s is missing!", var)
+                    errors.add(
+                        "missing jinja2 variable '%s' for selector '%s'" % (
+                            var, selector))
                     updated_version = False
                     break
 
@@ -271,7 +295,6 @@ def _try_to_update_version(cmeta: Any, src: str, hash_type: str):
 
         logger.info("url key: %s", url_key)
         logger.info("hash key: %s", hash_key)
-        logger.info("jinja2 context: %s", pprint.pformat(context))
 
         # now try variations of the url to get the hash
         if isinstance(src[url_key], collections.abc.MutableSequence):
@@ -281,10 +304,14 @@ def _try_to_update_version(cmeta: Any, src: str, hash_type: str):
                 )
                 if new_hash is not None:
                     break
+                else:
+                    errors.add("could not hash URL template '%s'" % url_tmpl)
         else:
             new_url_tmpl, new_hash = _get_new_url_tmpl_and_hash(
                 src[url_key], context, hash_type,
             )
+            if new_hash is None:
+                errors.add("could not hash URL template '%s'" % src[url_key])
 
         # now try to replace the hash
         if new_hash is not None:
@@ -294,10 +321,17 @@ def _try_to_update_version(cmeta: Any, src: str, hash_type: str):
             if _replaced_hash:
                 if isinstance(src[url_key], collections.abc.MutableSequence):
                     src[url_key][url_ind] = new_url_tmpl
+                    logger.info("source w/ new url: %s", pprint.pformat(src[url_key]))
+
                 else:
                     src[url_key] = new_url_tmpl
+                    logger.info("source w/ new url: %s", pprint.pformat(src))
             else:
                 new_hash = None
+                errors.add(
+                    "could not replace the hash in the recipe "
+                    "for URL template '%s'" % new_url_tmpl
+                )
 
         if new_hash is not None:
             logger.info("new URL template: %s", new_url_tmpl)
@@ -306,7 +340,24 @@ def _try_to_update_version(cmeta: Any, src: str, hash_type: str):
 
         updated_version &= new_hash is not None
 
-    return updated_version
+    return updated_version, errors
+
+
+def _fmt_error_message(errors, version):
+    msg = (
+        "The recipe did not change in the version migration, a URL did "
+        "not hash, or there is jinja2 syntax the bot cannot handle!\n\n"
+        "Please check the URLs in your recipe with version '%s' to make sure "
+        "they exist!\n\n" % version
+    )
+    if len(errors) > 0:
+        msg += (
+            "We also found the following errors:\n\n - %s" % (
+                "\n - ".join(e for e in errors)
+            )
+        )
+        msg += "\n"
+    return msg
 
 
 class Version(Migrator):
@@ -317,9 +368,18 @@ class Version(Migrator):
     rerender = True
     name = "Version"
 
+    def __init__(self, *args, **kwargs):
+        if "check_solvable" in kwargs:
+            kwargs.pop("check_solvable")
+        super().__init__(*args, **kwargs, check_solvable=False)
+
     def filter(self, attrs: "AttrsTypedDict", not_bad_str_start: str = "") -> bool:
         # if no new version do nothing
         if "new_version" not in attrs or not attrs["new_version"]:
+            return True
+
+        # if no jinja2 version, then move on
+        if "raw_meta_yaml" in attrs and "{% set version" not in attrs["raw_meta_yaml"]:
             return True
 
         conditional = super().filter(attrs)
@@ -368,9 +428,34 @@ class Version(Migrator):
         hash_type: str = "sha256",
         **kwargs: Any,
     ) -> "MigrationUidTypedDict":
+        errors = set()
 
-        with open(os.path.join(recipe_dir, "meta.yaml"), "r") as fp:
-            cmeta = CondaMetaYAML(fp.read())
+        version = attrs["new_version"]
+
+        # record the attempt
+        if "new_version_attempts" not in attrs:
+            attrs["new_version_attempts"] = {}
+        if version not in attrs["new_version_attempts"]:
+            attrs["new_version_attempts"][version] = 0
+        attrs["new_version_attempts"][version] += 1
+        if "new_version_errors" not in attrs:
+            attrs["new_version_errors"] = {}
+
+        if not isinstance(version, str):
+            errors.add(
+                "the version '%s' is not a string and must be for the bot" % version
+            )
+            attrs["new_version_errors"][version] = _fmt_error_message(errors, version)
+            return {}
+
+        try:
+            with open(os.path.join(recipe_dir, "meta.yaml"), "r") as fp:
+                cmeta = CondaMetaYAML(fp.read())
+        except Exception as e:
+            attrs["new_version_errors"][version] = (
+                "We found a problem parsing the recipe: \n\n" + str(e)
+            )
+            return {}
 
         # cache round-tripped yaml for testing later
         s = io.StringIO()
@@ -378,12 +463,13 @@ class Version(Migrator):
         s.seek(0)
         old_meta_yaml = s.read()
 
-        version = attrs["new_version"]
-        assert isinstance(version, str)
-
         # if is a git url, then we error
         if _recipe_has_git_url(cmeta):
             logger.critical("Migrations do not work on `git_url`s!")
+            errors.add(
+                "migrations do not work on `git_url`s"
+            )
+            attrs["new_version_errors"][version] = _fmt_error_message(errors, version)
             return {}
 
         # mangle the version if it is R
@@ -403,8 +489,12 @@ class Version(Migrator):
             cmeta.jinja2_vars["version"] = version
         else:
             logger.critical(
-                "Migrations do not work on versions " "not specified with jinja2!"
+                "Migrations do not work on versions not specified with jinja2!"
             )
+            errors.add(
+                "migrations do not work on versions not specified with jinja2"
+            )
+            attrs["new_version_errors"][version] = _fmt_error_message(errors, version)
             return {}
 
         if len(list(_gen_key_selector(cmeta.meta, "source"))) > 0:
@@ -412,13 +502,20 @@ class Version(Migrator):
             for src_key in _gen_key_selector(cmeta.meta, "source"):
                 if isinstance(cmeta.meta[src_key], collections.abc.MutableSequence):
                     for src in cmeta.meta[src_key]:
-                        did_update &= _try_to_update_version(cmeta, src, hash_type)
+                        _did_update, _errors = _try_to_update_version(
+                            cmeta, src, hash_type)
+                        did_update &= _did_update
+                        errors |= _errors
                 else:
-                    did_update &= _try_to_update_version(
+                    _did_update, _errors = _try_to_update_version(
                         cmeta, cmeta.meta[src_key], hash_type,
                     )
+                    did_update &= _did_update
+                    errors |= _errors
+
         else:
             did_update = False
+            errors.add("no source sections found in the recipe")
 
         if did_update:
             # if the yaml did not change, then we did not migrate actually
@@ -426,15 +523,19 @@ class Version(Migrator):
             s = io.StringIO()
             cmeta.dump(s)
             s.seek(0)
-            if s.read() == old_meta_yaml:
+            still_the_same = s.read() == old_meta_yaml
+            cmeta.jinja2_vars["version"] = version  # put back version
+
+            if still_the_same and old_version != version:
                 did_update = False
+                errors.add(
+                    "recipe did not appear to change even "
+                    "though the bot said it should have"
+                )
                 logger.critical(
                     "Recipe did not change in version migration "
                     "but the code indicates an update was done!"
                 )
-
-            # put back version
-            cmeta.jinja2_vars["version"] = version
 
         if did_update:
             with indir(recipe_dir):
@@ -445,6 +546,7 @@ class Version(Migrator):
             return super().migrate(recipe_dir, attrs)
         else:
             logger.critical("Recipe did not change in version migration!")
+            attrs["new_version_errors"][version] = _fmt_error_message(errors, version)
             return {}
 
     def pr_body(self, feedstock_ctx: FeedstockContext) -> str:
@@ -465,6 +567,16 @@ class Version(Migrator):
             and muid.get("PR", {}).get("state", None) == "open"
         ]
 
+        # Display the url so that the maintainer can quickly click on it
+        # in the PR body.
+        about = feedstock_ctx.attrs.get("meta_yaml", {}).get("about",  {})
+        upstream_url = about.get("dev_url", "") or about.get("home", "")
+        if upstream_url:
+            upstream_url_link = ": see [upstream]({upstream_url})".format(
+                upstream_url=upstream_url)
+        else:
+            upstream_url_link = ""
+
         muid: dict
         body = body.format(
             "It is very likely that the current package version for this "
@@ -473,16 +585,23 @@ class Version(Migrator):
             "1. Feel free to push to the bot's branch to update this PR if needed.\n"
             "2. The bot will almost always only open one PR per version.\n"
             "Checklist before merging this PR:\n"
-            "- [ ] Dependencies have been updated if changed\n"
+            "- [ ] Dependencies have been updated if changed{upstream_url_link}\n"
             "- [ ] Tests have passed \n"
             "- [ ] Updated license if changed and `license_file` is packaged \n"
             "\n"
-            "Note that the bot will stop issuing PRs if more than {} Version bump PRs "
+            "Note that the bot will stop issuing PRs if more than {max_num_prs} "
+            "Version bump PRs "
             "generated by the bot are open. If you don't want to package a particular "
             "version please close the PR.\n\n"
-            "{}".format(
-                self.max_num_prs,
-                "\n".join([f"Closes: #{muid['number']}" for muid in open_version_prs]),
+            "**NEW: If you want these PRs to be merged automatically, make an issue "
+            "with <code>@conda-forge-admin,</code>`please add bot automerge` in the "
+            "title and merge the resulting PR. This command will add our new bot "
+            "automerge feature to your feedstock!**\n\n"
+            "{closes}".format(
+                upstream_url_link=upstream_url_link,
+                max_num_prs=self.max_num_prs,
+                closes="\n".join([f"Closes: #{muid['number']}"
+                                  for muid in open_version_prs]),
             ),
         )
         # Statement here
@@ -551,10 +670,20 @@ class Version(Migrator):
     def order(
         self, graph: nx.DiGraph, total_graph: nx.DiGraph,
     ) -> Sequence["PackageName"]:
+        def _get_attemps(node):
+            with graph.nodes[node]["payload"] as attrs:
+                new_version = attrs.get("new_version", "")
+                attempts = attrs.get("new_version_attempts", {}).get(new_version, 0)
+            # eventually we randomly sort the rest, but at first new things
+            # get priority
+            return min(attempts, 3)
+
+        random.seed()
+        nodes_to_sort = list(graph.nodes)
         return sorted(
-            graph,
-            # FIXME - we should flag bad version PRs instead
-            # key=lambda x: (len(nx.descendants(total_graph, x)), x),
-            key=lambda x: random.uniform(0, 1),
-            reverse=True,
+            sorted(
+                nodes_to_sort,
+                key=lambda x: random.uniform(0, 1),
+            ),
+            key=_get_attemps,
         )

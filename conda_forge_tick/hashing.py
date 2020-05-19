@@ -6,12 +6,21 @@ import math
 import requests
 
 
-def _hash_url(url, hash_type, progress=False, conn=None):
+def _hash_url(url, hash_type, progress=False, conn=None, timeout=None):
     _hash = None
     try:
         ha = getattr(hashlib, hash_type)()
-        resp = requests.get(url, stream=True)
-        if resp.status_code == 200:
+
+        timedout = False
+        t0 = time.time()
+
+        resp = requests.get(url, stream=True, timeout=timeout or 10)
+
+        if timeout is not None:
+            if time.time() - t0 > timeout:
+                timedout = True
+
+        if resp.status_code == 200 and not timedout:
             if "Content-length" in resp.headers:
                 num = math.ceil(float(resp.headers["Content-length"]) / 8192)
             elif resp.url != url:
@@ -24,7 +33,6 @@ def _hash_url(url, hash_type, progress=False, conn=None):
             else:
                 num = None
 
-            t0 = time.time()
             loc = 0
             for itr, chunk in enumerate(resp.iter_content(chunk_size=8192)):
                 ha.update(chunk)
@@ -35,10 +43,18 @@ def _hash_url(url, hash_type, progress=False, conn=None):
                         "eta % 7.2fs: [%s%s]"
                         % (eta, "".join(["=" * loc]), "".join([" " * (25 - loc)]),)
                     )
+                if timeout is not None:
+                    if time.time() - t0 > timeout:
+                        timedout = True
 
-            _hash = ha.hexdigest()
+            if not timedout:
+                _hash = ha.hexdigest()
+            else:
+                _hash = None
         else:
             _hash = None
+    except requests.ConnectionError:
+        _hash = None
     except Exception as e:
         _hash = (repr(e),)
     finally:
@@ -73,19 +89,27 @@ def hash_url(url, timeout=None, progress=False, hash_type="sha256"):
     """
     _hash = None
 
-    parent_conn, child_conn = Pipe()
-    p = Process(
-        target=_hash_url,
-        args=(url, hash_type),
-        kwargs={"progress": progress, "conn": child_conn,},
-    )
-    p.start()
-    if parent_conn.poll(timeout):
-        _hash = parent_conn.recv()
+    try:
+        parent_conn, child_conn = Pipe()
+        p = Process(
+            target=_hash_url,
+            args=(url, hash_type),
+            kwargs={"progress": progress, "conn": child_conn},
+        )
+        p.start()
+        if parent_conn.poll(timeout):
+            _hash = parent_conn.recv()
 
-    p.join(timeout=0)
-    if p.exitcode != 0:
-        p.terminate()
+        p.join(timeout=0)
+        if p.exitcode != 0:
+            p.terminate()
+    except AssertionError as e:
+        # if launched in a process we cannot use another process
+        if "daemonic" in repr(e):
+            _hash = _hash_url(
+                url, hash_type, progress=progress, conn=None, timeout=timeout)
+        else:
+            raise e
 
     if isinstance(_hash, tuple):
         raise eval(_hash[0])

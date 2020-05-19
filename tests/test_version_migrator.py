@@ -12,6 +12,8 @@ YAML_PATH = os.path.join(os.path.dirname(__file__), 'test_yaml')
 
 
 @pytest.mark.parametrize('case,new_ver', [
+    ('jinja2expr', '1.1.1'),
+    ('weird', '1.6.0'),
     ('compress', '0.9'),
     ('onesrc', '2.4.1'),
     ('multisrc', '2.4.1'),
@@ -23,7 +25,7 @@ YAML_PATH = os.path.join(os.path.dirname(__file__), 'test_yaml')
     ('jinja2nameshasel', '4.7.2'),
     ('shaquotes', '0.6.0'),
     ('cdiff', '0.15.0'),
-    ('selshaurl', '3.8.0'),
+    ('selshaurl', '3.7.0'),
     ('buildbumpmpi', '7.8.0'),
     ('multisrclistnoup', '3.11.3'),
     ('pypiurl', '0.7.1'),
@@ -88,7 +90,7 @@ def test_version_noup(case, new_ver, tmpdir, caplog):
     ) as fp:
         out_yaml = fp.read()
 
-    run_test_migration(
+    attrs = run_test_migration(
         m=VERSION,
         inp=in_yaml,
         output=out_yaml,
@@ -97,3 +99,5 @@ def test_version_noup(case, new_ver, tmpdir, caplog):
         mr_out={},
         tmpdir=tmpdir,
     )
+
+    print("\n\n" + attrs["new_version_errors"][new_ver] + "\n\n")

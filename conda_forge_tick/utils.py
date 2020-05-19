@@ -1,5 +1,6 @@
 import datetime
 import typing
+import copy
 from collections.abc import Callable
 from collections import defaultdict
 import contextlib
@@ -8,6 +9,7 @@ import json
 import logging
 import os
 import re
+import shlex
 from typing import Any, Tuple, Iterable, Union, Optional, IO
 from collections.abc import MutableMapping, Set
 from concurrent.futures import (
@@ -15,11 +17,11 @@ from concurrent.futures import (
     ThreadPoolExecutor,
     Executor,
 )
+import subprocess
 
 import github3
 import jinja2
 import boto3
-import tqdm
 
 import networkx as nx
 
@@ -67,6 +69,25 @@ CB_CONFIG_PINNING = dict(
     cran_mirror="https://cran.r-project.org",
     datetime=datetime
 )
+
+
+def eval_cmd(cmd, **kwargs):
+    """run a command capturing stdout
+
+    stderr is printed for debugging
+    any kwargs are added to the env
+    """
+    env = copy.deepcopy(os.environ)
+    timeout = kwargs.pop("timeout", None)
+    env.update(kwargs)
+    c = subprocess.run(
+        shlex.split(cmd),
+        check=True,
+        stdout=subprocess.PIPE,
+        env=env,
+        timeout=timeout,
+    )
+    return c.stdout.decode("utf-8")
 
 
 class UniversalSet(Set):
@@ -219,11 +240,12 @@ def setup_logger(logger: logging.Logger, level: Optional[str] = "INFO") -> None:
     """Basic configuration for logging
 
     """
-
-    logging.basicConfig(
-        level=level.upper(),
-        format="%(asctime)-15s %(levelname)-8s %(name)s || %(message)s",
-    )
+    logger.setLevel(level.upper())
+    ch = logging.StreamHandler()
+    ch.setLevel(level.upper())
+    ch.setFormatter(logging.Formatter(
+        "%(asctime)-15s %(levelname)-8s %(name)s || %(message)s"))
+    logger.addHandler(ch)
 
 
 # TODO: upstream this into networkx?
@@ -307,7 +329,7 @@ def _parse_requirements(
 
 
 @contextlib.contextmanager
-def executor(kind: str, max_workers: int) -> typing.Iterator[Executor]:
+def executor(kind: str, max_workers: int, daemon=True) -> typing.Iterator[Executor]:
     """General purpose utility to get an executor with its as_completed handler
 
     This allows us to easily use other executors as needed.
@@ -318,13 +340,18 @@ def executor(kind: str, max_workers: int) -> typing.Iterator[Executor]:
     elif kind == "process":
         with ProcessPoolExecutor(max_workers=max_workers) as pool_p:
             yield pool_p
-    elif kind == "dask":
+    elif kind in ["dask", "dask-process", "dask-thread"]:
+        import dask
         import distributed
         from distributed.cfexecutor import ClientExecutor
 
-        with distributed.LocalCluster(n_workers=max_workers) as cluster:
-            with distributed.Client(cluster) as client:
-                yield ClientExecutor(client)
+        processes = kind == "dask" or kind == "dask-process"
+
+        with dask.config.set({'distributed.worker.daemon': daemon}):
+            with distributed.LocalCluster(
+                    n_workers=max_workers, processes=processes) as cluster:
+                with distributed.Client(cluster) as client:
+                    yield ClientExecutor(client)
     else:
         raise NotImplementedError("That kind is not implemented")
 
@@ -415,7 +442,7 @@ def dump_graph_dynamo(
     ddb = boto3.resource("dynamodb", region_name=region)
     table = ddb.Table(tablename)
     with table.batch_writer() as batch:
-        for node in tqdm.tqdm(gx.nodes):
+        for node in gx.nodes:
             if not node:
                 continue
             preds = [n for n in gx.predecessors(node) if n]
@@ -433,7 +460,7 @@ def dump_graph(
     region: str = "us-east-2",
 ) -> None:
     dump_graph_json(gx, filename)
-    dump_graph_dynamo(gx, tablename, region)
+    # dump_graph_dynamo(gx, tablename, region)
 
 
 def load_graph(filename: str = "graph.json") -> nx.DiGraph:

@@ -11,7 +11,7 @@ import networkx as nx
 from conda_forge_tick.contexts import MigratorSessionContext, MigratorContext
 from conda_forge_tick.utils import parse_meta_yaml, frozen_to_json_friendly
 from conda_forge_tick.make_graph import populate_feedstock_attributes
-from conda_forge_tick.migrators import MigrationYamlCreator
+from conda_forge_tick.migrators import MigrationYamlCreator, merge_migrator_cbc
 from conda_forge_tick.xonsh_utils import eval_xonsh, indir
 
 G = nx.DiGraph()
@@ -20,6 +20,7 @@ env = builtins.__xonsh__.env  # type: ignore
 env["GRAPH"] = G
 env["CIRCLE_BUILD_URL"] = "hi world"
 
+YAML_PATH = os.path.join(os.path.dirname(__file__), 'test_yaml')
 
 IN_YAML = """\
 {% set version = datetime.datetime.utcnow().strftime("%Y.%m.%d.%H.%M.%S") %}
@@ -114,7 +115,7 @@ __migrator:
   kind: version
   migration_number: 1
 boost:
-- 1.99.0
+- '1.99'
 migrator_ts: 12345.2
 """
 
@@ -133,14 +134,15 @@ def test_migration_yaml_migration(tmock, in_out_yaml, caplog, tmpdir):
     pname = "boost"
     pin_ver = "1.99.0"
     curr_pin = "1.70.0"
-    pin_spec = "blah"
+    pin_spec = "x.x"
 
     MYM = MigrationYamlCreator(
         pname,
         pin_ver,
         curr_pin,
         pin_spec,
-        'hi'
+        'hi',
+        G
     )
 
     with indir(tmpdir):
@@ -158,12 +160,12 @@ def test_migration_yaml_migration(tmock, in_out_yaml, caplog, tmpdir):
             "migrator_name": "MigrationYamlCreator",
             "migrator_version": MYM.migrator_version,
             "name": pname,
-            "pin_version": pin_ver,
+            "pin_version": "1.99",
         },
         tmpdir=tmpdir,
     )
 
-    boost_file = os.path.join(tmpdir, "migrations", "boost1990.yaml")
+    boost_file = os.path.join(tmpdir, "migrations", "boost199.yaml")
     assert os.path.exists(boost_file)
     with open(boost_file, "r") as fp:
         bf_out = fp.read()
@@ -241,3 +243,16 @@ def run_test_migration(
     actual_output = pat.sub("", actual_output)
     output = pat.sub("", output)
     assert actual_output == output
+
+
+with open(os.path.join(YAML_PATH, 'conda_build_config.yaml'), 'r') as fp:
+    CBC = fp.read()
+
+
+@pytest.mark.parametrize("migrator_name", ['pypy', 'krb', 'boost'])
+def test_merge_migrator_cbc(migrator_name):
+    with open(os.path.join(YAML_PATH, f'{migrator_name}.yaml'), 'r') as fp:
+        migrator = fp.read()
+    with open(os.path.join(YAML_PATH, f'{migrator_name}_out.yaml'), 'r') as fp:
+        out = fp.read()
+    assert merge_migrator_cbc(migrator, CBC) == out

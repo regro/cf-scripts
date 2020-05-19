@@ -8,6 +8,7 @@ from conda_forge_tick.recipe_parser._parser import (
     _demunge_jinja2_vars,
     _remunge_jinja2_vars,
     _replace_jinja2_vars,
+    _build_jinja2_expr_tmp,
 )
 
 from conda_forge_tick.recipe_parser import CondaMetaYAML, CONDA_SELECTOR
@@ -19,6 +20,13 @@ def test_parsing(add_extra_req):
 {% set name = 'val1' %}  # [py2k]
 {% set name = 'val2' %}#[py3k and win]
 {% set version = '4.5.6' %}
+{% set major_ver = version.split('.')[0] %}
+{% set bad_ver = bad_version.split('.')[0] %}
+{% set vmajor,vminor,vpatch = version.split('.') %}
+{% set crazy_string1 = ">=5,<7" ~ version %}
+{% set crazy_string2 = '"' ~ version %}
+{% set crazy_string3 = "'" ~ version %}
+{% set crazy_string4 = "|" ~ version %}
 
 {% set build = 0 %}
 {% if False %}
@@ -48,6 +56,13 @@ requirements:
 {% set name = "val1" %}  # [py2k]
 {% set name = "val2" %}  # [py3k and win]
 {% set version = "4.5.6" %}
+{% set major_ver = version.split('.')[0] %}
+{% set bad_ver = bad_version.split('.')[0] %}
+{% set vmajor,vminor,vpatch = version.split('.') %}
+{% set crazy_string1 = ">=5,<7" ~ version %}
+{% set crazy_string2 = '"' ~ version %}
+{% set crazy_string3 = "'" ~ version %}
+{% set crazy_string4 = "|" ~ version %}
 
 {% set build = 0 %}
 {% if False %}
@@ -79,6 +94,49 @@ requirements:
     assert cm.jinja2_vars['name__###conda-selector###__py2k'] == 'val1'
     assert cm.jinja2_vars['name__###conda-selector###__py3k and win'] == 'val2'
     assert cm.jinja2_vars['version'] == '4.5.6'
+
+    # check jinja2 expressions
+    assert cm.jinja2_exprs["major_ver"] == "{% set major_ver = version.split('.')[0] %}"
+    assert cm.jinja2_exprs["bad_ver"] == "{% set bad_ver = bad_version.split('.')[0] %}"
+    assert (
+        cm.jinja2_exprs["vmajor"]
+        == "{% set vmajor,vminor,vpatch = version.split('.') %}"
+    )
+    assert (
+        cm.jinja2_exprs["vminor"]
+        == "{% set vmajor,vminor,vpatch = version.split('.') %}"
+    )
+    assert (
+        cm.jinja2_exprs["vpatch"]
+        == "{% set vmajor,vminor,vpatch = version.split('.') %}"
+    )
+    assert (
+        cm.jinja2_exprs["crazy_string1"]
+        == '{% set crazy_string1 = ">=5,<7" ~ version %}'
+    )
+    assert (
+        cm.jinja2_exprs["crazy_string2"]
+        == '{% set crazy_string2 = \'"\' ~ version %}'
+    )
+    assert (
+        cm.jinja2_exprs["crazy_string3"]
+        == '{% set crazy_string3 = "\'" ~ version %}'
+    )
+    assert (
+        cm.jinja2_exprs["crazy_string4"]
+        == '{% set crazy_string4 = "|" ~ version %}'
+    )
+
+    # check it when we eval
+    jinja2_exprs_evaled = cm.eval_jinja2_exprs(cm.jinja2_vars)
+    assert jinja2_exprs_evaled["major_ver"] == '4'
+    assert jinja2_exprs_evaled["vmajor"] == '4'
+    assert jinja2_exprs_evaled["vminor"] == '5'
+    assert jinja2_exprs_evaled["vpatch"] == '6'
+    assert jinja2_exprs_evaled["crazy_string1"] == '>=5,<74.5.6'
+    assert jinja2_exprs_evaled["crazy_string2"] == '"4.5.6'
+    assert jinja2_exprs_evaled["crazy_string3"] == "'4.5.6"
+    assert jinja2_exprs_evaled["crazy_string4"] == '|4.5.6'
 
     # check selectors
     assert cm.meta['source']['sha256__###conda-selector###__py2k'] == 1
@@ -115,6 +173,13 @@ requirements:
 {% set name = "val1" %}  # [py2k]
 {% set name = "val2" %}  # [py3k and win]
 {% set version = "4.5.6" %}
+{% set major_ver = version.split('.')[0] %}
+{% set bad_ver = bad_version.split('.')[0] %}
+{% set vmajor,vminor,vpatch = version.split('.') %}
+{% set crazy_string1 = ">=5,<7" ~ version %}
+{% set crazy_string2 = '"' ~ version %}
+{% set crazy_string3 = "'" ~ version %}
+{% set crazy_string4 = "|" ~ version %}
 
 {% set build = 100 %}
 {% if False %}
@@ -297,9 +362,12 @@ gh:
 {% set var4 = 'foo' %} #[py3k and win]
 
 {% set var4 = 'bar' %}#[win]
+
+{% set var5 = var3 + 10 %}
+{% set var7 = var1.replace('n', 'm') %}
 """
 
-    jinja2_vars = _parse_jinja2_variables(meta_yaml)
+    jinja2_vars, jinja2_exprs = _parse_jinja2_variables(meta_yaml)
 
     assert jinja2_vars == {
         'var1': 'name',
@@ -309,3 +377,16 @@ gh:
         'var4__###conda-selector###__py3k and win': 'foo',
         'var4__###conda-selector###__win': 'bar',
     }
+    assert jinja2_exprs == {
+        "var5": "{% set var5 = var3 + 10 %}",
+        "var7": "{% set var7 = var1.replace('n', 'm') %}",
+    }
+
+    tmpl = _build_jinja2_expr_tmp(jinja2_exprs)
+    assert tmpl == """\
+{% set var5 = var3 + 10 %}
+{% set var7 = var1.replace('n', 'm') %}
+var5: >-
+  {{ var5 }}
+var7: >-
+  {{ var7 }}"""

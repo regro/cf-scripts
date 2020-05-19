@@ -8,7 +8,6 @@ import networkx as nx
 from conda_forge_tick.contexts import MigratorSessionContext, MigratorContext
 from conda_forge_tick.migrators import (
     Version,
-    LicenseMigrator,
     MigrationYaml,
     Replacement,
 )
@@ -24,8 +23,11 @@ from conda_forge_tick.migrators.disabled.legacy import (
     Rebuild,
 )
 
-from conda_forge_tick.utils import parse_meta_yaml, frozen_to_json_friendly, LazyJson
+from conda_forge_tick.utils import parse_meta_yaml, frozen_to_json_friendly
 from conda_forge_tick.make_graph import populate_feedstock_attributes
+
+from xonsh.lib import subprocess
+from xonsh.lib.os import indir
 
 
 sample_yaml_rebuild = """
@@ -253,12 +255,10 @@ extra:
     - ocefpaf
     - beckermr
 """
-from xonsh.lib import subprocess
-from xonsh.lib.os import indir
 
 
 class NoFilter:
-    def filter(self, attrs: "AttrsTypedDict", not_bad_str_start: str = "") -> bool:
+    def filter(self, attrs, not_bad_str_start=""):
         return False
 
 
@@ -274,7 +274,9 @@ yaml_rebuild_no_build_number = _MigrationYaml(
 yaml_rebuild_no_build_number.cycles = []
 
 
-def run_test_yaml_migration(m, *, inp, output, kwargs, prb, mr_out, tmpdir, should_filter=False):
+def run_test_yaml_migration(
+    m, *, inp, output, kwargs, prb, mr_out, tmpdir, should_filter=False
+):
     os.makedirs(os.path.join(tmpdir, "recipe"), exist_ok=True)
     with open(os.path.join(tmpdir, "recipe", "meta.yaml"), "w") as f:
         f.write(inp)
@@ -553,7 +555,7 @@ extra:
     - pelson
     - rgommers
     - ocefpaf
-"""
+"""  # noqa
 
 correct_cb3 = """
 {# correct_cb3 #}
@@ -619,7 +621,7 @@ extra:
     - pelson
     - rgommers
     - ocefpaf
-"""
+"""  # noqa
 
 sample_r_base = """
 {# sample_r_base #}
@@ -660,7 +662,7 @@ test:
   commands:
     - $R -e "library('stabledist')"  # [not win]
     - "\\"%R%\\" -e \\"library('stabledist')\\""  # [win]
-"""
+"""  # noqa
 
 updated_r_base = """
 {# updated_r_base #}
@@ -701,7 +703,7 @@ test:
   commands:
     - $R -e "library('stabledist')"  # [not win]
     - "\\"%R%\\" -e \\"library('stabledist')\\""  # [win]
-"""
+"""  # noqa
 
 
 sample_r_base2 = """
@@ -743,7 +745,7 @@ test:
   commands:
     - $R -e "library('stabledist')"  # [not win]
     - "\\"%R%\\" -e \\"library('stabledist')\\""  # [win]
-"""
+"""  # noqa
 
 updated_r_base2 = """
 {% set version = '0.7-1' %}
@@ -784,7 +786,7 @@ test:
   commands:
     - $R -e "library('stabledist')"  # [not win]
     - "\\"%R%\\" -e \\"library('stabledist')\\""  # [win]
-"""
+"""  # noqa
 
 # Test that filepaths to various licenses are updated for a noarch recipe
 sample_r_licenses_noarch = """
@@ -845,7 +847,7 @@ about:
 
   license_file: '{{ environ["PREFIX"] }}/lib/R/share/licenses/GPL-2'  # [unix]
   license_file: '{{ environ["PREFIX"] }}/lib/R/share/licenses/BSD_3_clause'  # [unix]
-"""
+"""  # noqa
 
 updated_r_licenses_noarch = """
 {% set version = '0.7-1' %}
@@ -900,7 +902,7 @@ about:
 
   license_file: '{{ environ["PREFIX"] }}/lib/R/share/licenses/GPL-2'
   license_file: '{{ environ["PREFIX"] }}/lib/R/share/licenses/BSD_3_clause'
-"""
+"""  # noqa
 
 # Test that filepaths to various licenses are updated for a compiled recipe
 sample_r_licenses_compiled = """
@@ -962,7 +964,7 @@ about:
 
   license_file: '{{ environ["PREFIX"] }}/lib/R/share/licenses/GPL-2'  # [unix]
   license_file: '{{ environ["PREFIX"] }}/lib/R/share/licenses/BSD_3_clause'  # [unix]
-"""
+"""  # noqa
 
 updated_r_licenses_compiled = """
 {% set version = '0.7-1' %}
@@ -1018,7 +1020,7 @@ about:
 
   license_file: '{{ environ["PREFIX"] }}/lib/R/share/licenses/GPL-2'
   license_file: '{{ environ["PREFIX"] }}/lib/R/share/licenses/BSD_3_clause'
-"""
+"""  # noqa
 
 sample_noarch = """
 {# sample_noarch #}
@@ -1079,7 +1081,7 @@ about:
 extra:
   recipe-maintainers:
     - CJ-Wright
-"""
+"""  # noqa
 
 
 updated_noarch = """
@@ -1142,7 +1144,7 @@ about:
 extra:
   recipe-maintainers:
     - CJ-Wright
-"""
+"""  # noqa
 
 sample_noarch_space = """
 {# sample_noarch_space #}
@@ -1203,7 +1205,7 @@ about:
 extra:
   recipe-maintainers:
     - CJ-Wright
-"""
+"""  # noqa
 
 
 updated_noarch_space = """
@@ -1266,7 +1268,7 @@ about:
 extra:
   recipe-maintainers:
     - CJ-Wright
-"""
+"""  # noqa
 
 
 sample_pinning = """
@@ -1505,93 +1507,6 @@ test:
     - mpmath
 """
 
-version_license = """\
-{% set version = "0.8" %}
-
-package:
-  name: viscm
-  version: {{ version }}
-
-source:
-  url: https://pypi.io/packages/source/v/viscm/viscm-{{ version }}.tar.gz
-  sha256: dca77e463c56d42bbf915197c9b95e98913c85bef150d2e1dd18626b8c2c9c32
-
-build:
-  number: 0
-  noarch: python
-  script: python -m pip install --no-deps --ignore-installed .
-
-requirements:
-  host:
-    - python
-    - pip
-    - numpy
-  run:
-    - python
-    - numpy
-    - matplotlib
-    - colorspacious
-
-test:
-  imports:
-    - viscm
-
-about:
-  home: https://github.com/bids/viscm
-  license: MIT
-  license_family: MIT
-  # license_file: '' we need to an issue upstream to get a license in the source dist.
-  summary: A colormap tool
-
-extra:
-  recipe-maintainers:
-    - kthyng
-"""
-
-version_license_correct = """\
-{% set version = "0.9" %}
-
-package:
-  name: viscm
-  version: {{ version }}
-
-source:
-  url: https://pypi.io/packages/source/v/viscm/viscm-{{ version }}.tar.gz
-  sha256: c770e4b76f726e653d2b7c2c73f71941a88de6eb47ccf8fb8e984b55562d05a2
-
-build:
-  number: 0
-  noarch: python
-  script: python -m pip install --no-deps --ignore-installed .
-
-requirements:
-  host:
-    - python
-    - pip
-    - numpy
-  run:
-    - python
-    - numpy
-    - matplotlib
-    - colorspacious
-
-test:
-  imports:
-    - viscm
-
-about:
-  home: https://github.com/bids/viscm
-  license: MIT
-  license_file: LICENSE
-  license_family: MIT
-  # license_file: '' we need to an issue upstream to get a license in the source dist.
-  summary: A colormap tool
-
-extra:
-  recipe-maintainers:
-    - kthyng
-"""
-
 sample_matplotlib = """
 {% set version = "0.9" %}
 
@@ -1682,8 +1597,6 @@ extra:
 
 js = JS()
 version = Version()
-lm = LicenseMigrator()
-version_license_migrator = Version(piggy_back_migrations=[lm])
 compiler = Compiler()
 noarch = Noarch()
 noarchr = NoarchR()
@@ -1771,7 +1684,7 @@ def run_test_migration(
 
     assert m.filter(pmy) is should_filter
     if should_filter:
-        return
+        return pmy
 
     m.run_pre_piggyback_migrations(
         tmpdir, pmy, hash_type=pmy.get("hash_type", "sha256"))
@@ -1781,7 +1694,7 @@ def run_test_migration(
 
     assert mr_out == mr
     if not mr:
-        return
+        return pmy
 
     pmy.update(PRed=[frozen_to_json_friendly(mr)])
     with open(os.path.join(tmpdir, "meta.yaml"), "r") as f:
@@ -1797,26 +1710,12 @@ def run_test_migration(
     elif isinstance(m, Version):
         pass
     elif isinstance(m, Rebuild):
-        return
+        return pmy
     else:
         assert prb in m.pr_body(None)
     assert m.filter(pmy) is True
 
-
-def test_version_license_correct(tmpdir):
-    run_test_migration(
-        m=version_license_migrator,
-        inp=version_license,
-        output=version_license_correct,
-        kwargs={"new_version": "0.9"},
-        prb="Dependencies have been updated if changed",
-        mr_out={
-            "migrator_name": "Version",
-            "migrator_version": Version.migrator_version,
-            "version": "0.9",
-        },
-        tmpdir=tmpdir,
-    )
+    return pmy
 
 
 @pytest.mark.skip
@@ -1837,7 +1736,7 @@ def test_js_migrator2(tmpdir):
     run_test_migration(
         m=js,
         inp=sample_js2,
-        output=correct_js2,
+        output=correct_js2,  # noqa
         kwargs={},
         prb="Please merge the PR only after the tests have passed.",
         mr_out={"migrator_name": "JS", "migrator_version": JS.migrator_version},

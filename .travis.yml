@@ -26,7 +26,7 @@ install:
 script:
   - coverage run run_tests.py
   - coverage report -m
-  - codecov
+  - codecov -X gcov
   - echo "REBUILD -- TEST"
   - git clone --depth 1 https://github.com/regro/cf-graph-countyfair
   - git clone --depth 1 https://github.com/conda-forge/conda-forge-pinning-feedstock
