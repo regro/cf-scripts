@@ -81,7 +81,7 @@ def eval_cmd(cmd, **kwargs):
     timeout = kwargs.pop("timeout", None)
     env.update(kwargs)
     c = subprocess.run(
-        shlex.split(cmd),
+        shlex.split(cmd, posix=False),
         check=True,
         stdout=subprocess.PIPE,
         env=env,
