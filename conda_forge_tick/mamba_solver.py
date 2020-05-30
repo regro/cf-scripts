@@ -252,7 +252,7 @@ def is_recipe_solvable(feedstock_dir):
 
 
 def _clean_reqs(reqs, names):
-    return [r for r in reqs if not any(r.startswith(nm) for nm in names)]
+    return [r for r in reqs if not any(r.split(" ")[0] == nm for nm in names)]
 
 
 def _is_recipe_solvable_on_platform(recipe_dir, cbc_path, platform, arch):
