@@ -5,6 +5,7 @@ import re
 from itertools import chain
 from textwrap import dedent
 from typing import Any, Optional, Set, List
+import tempfile
 
 import networkx as nx
 from conda_smithy.configure_feedstock import get_cfp_file_path
@@ -105,7 +106,8 @@ class Compiler(Migrator):
 
     def __init__(self, pr_limit: int = 0):
         super().__init__(pr_limit)
-        self.cfp = get_cfp_file_path()[0]
+        with tempfile.TemporaryDirectory() as tmpdir:
+            self.cfp = get_cfp_file_path(tmpdir)[0]
 
     def filter(self, attrs: "AttrsTypedDict", not_bad_str_start: str = "") -> bool:
         for req in attrs.get("req", []):
