@@ -251,6 +251,10 @@ def is_recipe_solvable(feedstock_dir):
     return solvable
 
 
+def _clean_reqs(reqs, names):
+    return [r for r in reqs if not any(r.startswith(nm) for nm in names)]
+
+
 def _is_recipe_solvable_on_platform(recipe_dir, cbc_path, platform, arch):
     # parse the channel sources from the CBC
     parser = YAML(typ="jinja2")
@@ -304,14 +308,17 @@ def _is_recipe_solvable_on_platform(recipe_dir, cbc_path, platform, arch):
     mamba_solver = _mamba_factory(tuple(channel_sources), "%s-%s" % (platform, arch))
 
     solvable = True
+    outnames = [m.name() for m, _, _ in metas]
     for m, _, _ in metas:
         host_req = (
             m.get_value('requirements/host', [])
             or m.get_value('requirements/build', [])
         )
+        host_req = _clean_reqs(host_req, outnames)
         solvable &= mamba_solver.solve(host_req)
 
         run_req = m.get_value('requirements/run', [])
+        run_req = _clean_reqs(run_req, outnames)
         solvable &= mamba_solver.solve(run_req)
 
         tst_req = (
@@ -319,6 +326,7 @@ def _is_recipe_solvable_on_platform(recipe_dir, cbc_path, platform, arch):
             + m.get_value('test/requirements', [])
             + run_req
         )
+        tst_req = _clean_reqs(tst_req, outnames)
         solvable &= mamba_solver.solve(tst_req)
 
     return solvable
