@@ -221,9 +221,18 @@ def is_recipe_solvable(feedstock_dir):
 
     cbcs = sorted(glob.glob(os.path.join(feedstock_dir, ".ci_support", "*.yaml")))
     if len(cbcs) == 0:
+        logger.warning(
+            "No `.ci_support/*.yaml` files found! This can happen when a rerender "
+            "results in no builds for a recipe (e.g., a recipe is python 2.7 only). "
+            "This attempted migration is being reported as not solvable."
+        )
         return False
 
     if not os.path.exists(os.path.join(feedstock_dir, "recipe", "meta.yaml")):
+        logger.warning(
+            "No `recipe/meta.yaml` file found! This issue is quite weird and "
+            "someone should investigate!"
+        )
         return False
 
     solvable = True
