@@ -80,10 +80,12 @@ def graph_migrator_status(
     from streamz.graph import _clean_text
 
     gv = graphviz.Digraph(graph_attr={"packmode": "array_3"})
+
+    # pinning isn't actually in the migration
+    if 'conda-forge-pinning' in gx2.nodes():
+        gx2.remove_node('conda-forge-pinning')
+    
     for node, node_attrs in gx2.nodes.items():
-        # pinning isn't actually in the migration
-        if node == 'conda-forge-pinning':
-            continue
         attrs = node_attrs["payload"]
         # remove archived from status
         if attrs.get("archived", False):
