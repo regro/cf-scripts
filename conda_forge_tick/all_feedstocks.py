@@ -2,6 +2,7 @@ import datetime
 import os
 from typing import Any, List
 
+import requests
 import github3
 import logging
 
@@ -21,7 +22,7 @@ def get_all_feedstocks_from_github() -> List[str]:
                 name = name.split("-feedstock")[0]
                 logger.info(name)
                 names.append(name)
-    except github3.GitHubError as e:
+    except github3.GitHubError:
         msg = ["Github rate limited. "]
         c = gh.rate_limit()["resources"]["core"]
         if c["remaining"] == 0:
@@ -48,7 +49,25 @@ def get_all_feedstocks(cached: bool = False) -> List[str]:
 
 def main(args: Any = None) -> None:
     setup_logger(logger)
-    names = get_all_feedstocks(cached=False)
+    try:
+        logger.info("fetching active feedstocks from admin-migrations")
+        r = requests.get(
+            "https://raw.githubusercontent.com/conda-forge/admin-migrations/"
+            "master/data/all_feedstocks.json"
+        )
+        if r.status_code != 200:
+            r.raise_for_status()
+
+        names = r.json()["active"]
+        with open("names_are_active.flag", "w") as fp:
+            fp.write("yes")
+    except Exception as e:
+        logger.critical("admin-migrations all feedstocks failed: %s", repr(e))
+        logger.critical("defaulting to the local version")
+        names = get_all_feedstocks(cached=False)
+        with open("names_are_active.flag", "w") as fp:
+            fp.write("no")
+
     with open("names.txt", "w") as f:
         for name in names:
             f.write(name)

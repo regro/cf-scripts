@@ -74,6 +74,7 @@ def populate_feedstock_attributes(
     sub_graph: LazyJson,
     meta_yaml: typing.Union[str, Response] = "",
     conda_forge_yaml: typing.Union[str, Response] = "",
+    mark_not_archived=False,
     # build_sh: typing.Union[str, Response] = "",
     # pre_unlink: typing.Union[str, Response] = "",
     # post_link: typing.Union[str, Response] = "",
@@ -88,6 +89,10 @@ def populate_feedstock_attributes(
     for meaning.
     """
     sub_graph.update({"feedstock_name": name, "bad": False})
+
+    if mark_not_archived:
+        sub_graph.update({"archived": False})
+
     # handle all the raw strings
     if isinstance(meta_yaml, Response):
         sub_graph["bad"] = f"make_graph: {meta_yaml.status_code}"
@@ -182,7 +187,7 @@ def populate_feedstock_attributes(
     return sub_graph
 
 
-def get_attrs(name: str, i: int) -> LazyJson:
+def get_attrs(name: str, i: int, mark_not_archived=False) -> LazyJson:
     # These fetches could be done via async/multiprocessing
     meta_yaml = _fetch_file(name, "recipe/meta.yaml")
     conda_forge_yaml = _fetch_file(name, "conda-forge.yml")
@@ -191,16 +196,21 @@ def get_attrs(name: str, i: int) -> LazyJson:
     with lzj as sub_graph:
         populate_feedstock_attributes(
             name, sub_graph, meta_yaml=meta_yaml, conda_forge_yaml=conda_forge_yaml,
+            mark_not_archived=mark_not_archived,
         )
     return lzj
 
 
 def _build_graph_process_pool(
     gx: nx.DiGraph, names: List[str], new_names: List[str],
+    mark_not_archived=False
 ) -> None:
     with executor("thread", max_workers=20) as pool:
         futures = {
-            pool.submit(get_attrs, name, i): name for i, name in enumerate(names)
+            pool.submit(
+                get_attrs, name, i,
+                mark_not_archived=mark_not_archived
+            ): name for i, name in enumerate(names)
         }
         logger.info("submitted all nodes")
 
@@ -233,10 +243,12 @@ def _build_graph_process_pool(
 
 def _build_graph_sequential(
     gx: nx.DiGraph, names: List[str], new_names: List[str],
+    mark_not_archived=False
 ) -> None:
     for i, name in enumerate(names):
         try:
-            sub_graph = {"payload": get_attrs(name, i)}
+            sub_graph = {
+                "payload": get_attrs(name, i, mark_not_archived=mark_not_archived)}
         except Exception as e:
             logger.error(f"Error adding {name} to the graph: {e}")
         else:
@@ -246,7 +258,11 @@ def _build_graph_sequential(
                 gx.nodes[name].update(**sub_graph)
 
 
-def make_graph(names: List[str], gx: Optional[nx.DiGraph] = None) -> nx.DiGraph:
+def make_graph(
+    names: List[str],
+    gx: Optional[nx.DiGraph] = None,
+    mark_not_archived=False
+) -> nx.DiGraph:
     logger.info("reading graph")
 
     if gx is None:
@@ -266,7 +282,7 @@ def make_graph(names: List[str], gx: Optional[nx.DiGraph] = None) -> nx.DiGraph:
 
     debug = env.get("CONDA_FORGE_TICK_DEBUG", False)
     builder = _build_graph_sequential if debug else _build_graph_process_pool
-    builder(gx, total_names, new_names)
+    builder(gx, total_names, new_names, mark_not_archived=mark_not_archived)
     logger.info("feedstock fetch loop completed")
 
     gx2 = deepcopy(gx)
@@ -328,7 +344,7 @@ def update_nodes_with_bot_rerun(gx):
                 if (
                     pr_json
                     and not migration['data']['bot_rerun']
-                    and "bot-rerun" in [l["name"] for l in pr_json.get("labels", [])]
+                    and "bot-rerun" in [lb["name"] for lb in pr_json.get("labels", [])]
                 ):
                     migration['data']['bot_rerun'] = time.time()
                     logger.info(
@@ -341,12 +357,22 @@ def update_nodes_with_bot_rerun(gx):
 def main(args: "CLIArgs") -> None:
     setup_logger(logger)
 
+    mark_not_archived = False
+    if os.path.exists("names_are_active.flag"):
+        with open("names_are_active.flag", "r") as fp:
+            if fp.read().strip() == "yes":
+                mark_not_archived = True
+
     names = get_all_feedstocks(cached=True)
     if os.path.exists("graph.json"):
         gx = load_graph()
     else:
         gx = None
-    gx = make_graph(names, gx)
+    gx = make_graph(
+        names,
+        gx,
+        mark_not_archived=mark_not_archived,
+    )
     print(
         "nodes w/o payload:",
         [k for k, v in gx.nodes.items() if "payload" not in v],
