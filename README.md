@@ -1,5 +1,5 @@
 # cf-scripts
-[![Build Status](https://travis-ci.org/regro/cf-scripts.svg?branch=master)](https://travis-ci.org/regro/cf-scripts)
+[![Build Status](https://travis-ci.com/regro/cf-scripts.svg?branch=master)](https://travis-ci.com/regro/cf-scripts)
 
 Conda-Forge dependency graph tracker and auto ticker
 
