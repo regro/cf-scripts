@@ -857,14 +857,11 @@ def main(args: "CLIArgs") -> None:
                         )
 
                 except github3.GitHubError as e:
-                    if e.msg == "Repository was archived so is read-only.":
-                        attrs["archived"] = True
-                    else:
-                        logger.critical(
-                            "GITHUB ERROR ON FEEDSTOCK: %s", fctx.feedstock_name,
-                        )
-                        if is_github_api_limit_reached(e, mctx.gh):
-                            break
+                    logger.critical(
+                        "GITHUB ERROR ON FEEDSTOCK: %s", fctx.feedstock_name,
+                    )
+                    if is_github_api_limit_reached(e, mctx.gh):
+                        break
                 except URLError as e:
                     logger.exception("URLError ERROR")
                     attrs["bad"] = {
