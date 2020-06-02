@@ -39,12 +39,7 @@ def get_all_feedstocks_from_github() -> List[str]:
 def get_all_feedstocks(cached: bool = False) -> List[str]:
     if cached:
         logger.info("reading names")
-        if os.path.exists("active_feedstocks.txt"):
-            fname = "active_feedstocks.txt"
-        else:
-            fname = "names.txt"
-
-        with open(fname, "r") as f:
+        with open("names.txt", "r") as f:
             names = f.read().split()
         return names
 
@@ -64,14 +59,16 @@ def main(args: Any = None) -> None:
             r.raise_for_status()
 
         names = r.json()["active"]
-        fname = "active_feedstocks.txt"
+        with open("names_are_active.flag", "w") as fp:
+            fp.write("yes")
     except Exception as e:
         logger.critical("admin-migrations all feedstocks failed: %s", repr(e))
         logger.critical("defaulting to the local version")
         names = get_all_feedstocks(cached=False)
-        fname = "names.txt"
+        with open("names_are_active.flag", "w") as fp:
+            fp.write("no")
 
-    with open(fname, "w") as f:
+    with open("names.txt", "w") as f:
         for name in names:
             f.write(name)
             f.write("\n")

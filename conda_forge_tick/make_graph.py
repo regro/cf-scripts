@@ -357,6 +357,12 @@ def update_nodes_with_bot_rerun(gx):
 def main(args: "CLIArgs") -> None:
     setup_logger(logger)
 
+    mark_not_archived = False
+    if os.path.exists("names_are_active.flag"):
+        with open("names_are_active.flag", "r") as fp:
+            if fp.read().strip() == "yes":
+                mark_not_archived = True
+
     names = get_all_feedstocks(cached=True)
     if os.path.exists("graph.json"):
         gx = load_graph()
@@ -365,7 +371,7 @@ def main(args: "CLIArgs") -> None:
     gx = make_graph(
         names,
         gx,
-        mark_not_archived=os.path.exists("active_feedstocks.txt"),
+        mark_not_archived=mark_not_archived,
     )
     print(
         "nodes w/o payload:",
