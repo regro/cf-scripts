@@ -67,6 +67,7 @@ from conda_forge_tick.migrators import (
     Replacement,
     ArchRebuild,
     MatplotlibBase,
+    LibjpegTurbo,
     CondaForgeYAMLCleanup,
     ExtraJinja2KeysCleanup,
     Jinja2VarsCleanup,
@@ -636,6 +637,14 @@ def initialize_migrators(
         "matplotlib-base",
         ("Unless you need `pyqt`, recipes should depend only on " "`matplotlib-base`."),
         alt_migrator=MatplotlibBase,
+    )
+    add_replacement_migrator(
+        MIGRATORS,
+        gx,
+        "jpeg",
+        "libjpeg-turbo",
+        ("Unless you need `jpeg api v9`, recipes should depend only on " "`libjpeg-turbo`."),
+        alt_migrator=LibjpegTurbo,
     )
     create_migration_yaml_creator(migrators=MIGRATORS, gx=gx)
     for m in MIGRATORS:

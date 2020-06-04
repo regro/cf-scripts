@@ -18,6 +18,7 @@ from conda_forge_tick.migrators import (
     Version,
     Replacement,
     MatplotlibBase,
+    LibjpegTurbo,
 )
 from conda_forge_tick.path_lengths import cyclic_topological_sort
 from conda_forge_tick.contexts import MigratorContext, FeedstockContext
