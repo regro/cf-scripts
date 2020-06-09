@@ -24,8 +24,7 @@ from pkg_resources import parse_version
 
 CRAN_INDEX: Optional[dict] = None
 
-logger = logging.getLogger("cft._update_version.update_sources")
-
+logger = logging.getLogger("conda-forge-tick._update_version.update_sources")
 
 def urls_from_meta(meta_yaml: "MetaYamlTypedDict") -> Set[str]:
     source: "SourceTypedDict" = meta_yaml["source"]
