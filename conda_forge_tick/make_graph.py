@@ -338,6 +338,29 @@ def update_nodes_with_bot_rerun(gx):
                     )
 
 
+
+def update_nodes_with_new_versions(gx):
+    """Updates every node with it's new version (when available)"""
+    try:
+        with open('new_version.json') as file:
+            ver_attrs = json.load(file)
+    except FileNotFoundError as e:
+        logger.debug(f'Process interrupted with exeption: {e}')
+        return
+    
+    # Update graph according to ver_attrs
+    for node, vertrs in ver_attrs.items():
+        with gx.nodes[f'{node}']['payload'] as attrs:
+            if vertrs["bad"]:
+                attrs["bad"] = vertrs.get("bad")
+            elif vertrs["archived"]:
+                attrs["archived"] = vertrs.get("archived")
+            # Update with new information
+            attrs["new_version"] = vertrs.get("new_version")
+            attrs["new_version_attempts"] = vertrs.get("new_version_attempts")
+            attrs["new_version_errors"] = vertrs.get("new_version_errors")
+            
+
 def main(args: "CLIArgs") -> None:
     setup_logger(logger)
 
@@ -353,6 +376,7 @@ def main(args: "CLIArgs") -> None:
     )
 
     update_nodes_with_bot_rerun(gx)
+    update_nodes_with_new_versions(gx)
 
     dump_graph(gx)
 

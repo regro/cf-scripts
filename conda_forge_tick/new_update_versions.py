@@ -92,9 +92,7 @@ def new_update_upstream_versions(
             if node == "ca-policy-lcg":
                 up_to["ca-policy-lcg"] = {
                     "bad": attrs.get("bad"),
-                    "new_version": False,
-                    "new_version_attempts": attrs.get("new_version_attempts"),
-                    "new_version_errors": attrs.get("new_version_errors")
+                    "new_version": False
                 }
                 Node_count += 1
                 continue
@@ -118,9 +116,7 @@ def new_update_upstream_versions(
                 )
             up_to[f"{node}"] = {
                 "bad": attrs.get("bad"),
-                "new_version": attrs.get("new_version"),
-                "new_version_attempts": attrs.get("new_version_attempts"),
-                "new_version_errors": attrs.get("new_version_errors")
+                "new_version": attrs.get("new_version")
             }
             Node_count += 1
     return up_to
