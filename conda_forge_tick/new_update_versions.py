@@ -118,7 +118,7 @@ def new_update_upstream_versions(
                 "bad": attrs.get("bad"),
                 "new_version": attrs.get("new_version")
             }
-            logger.info("writing out file")
+            logger.debug("writing out file")
             with open(f"versions/{node}.json", "w") as outfile:
                 json.dump(to_update, outfile)
             Node_count += 1
