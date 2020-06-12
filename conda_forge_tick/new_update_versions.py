@@ -118,6 +118,9 @@ def new_update_upstream_versions(
                 "bad": attrs.get("bad"),
                 "new_version": attrs.get("new_version")
             }
+            logger.info("writing out file")
+            with open(f"versions/{node}.json", "w") as outfile:
+                json.dump(to_update, outfile)
             Node_count += 1
     return up_to
 
@@ -132,12 +135,10 @@ def main(args: Any = None) -> None:
     # Graph enabled for inspection
     gx = load_graph()
 
+    # Check if 'versions' folder exists or create a new one;
+    os.makedirs('versions', exist_ok=True)
     # call update
     to_update = new_update_upstream_versions(gx)
-
-    logger.info("writing out file")
-    with open("new_version.json", "w") as outfile:
-        json.dump(to_update, outfile)
 
 
 if __name__ == "__main__":
