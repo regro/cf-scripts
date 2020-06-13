@@ -13,7 +13,7 @@ from conda_forge_tick.contexts import MigratorSessionContext, FeedstockContext
 from conda_forge_tick.git_utils import feedstock_url
 from conda_forge_tick.git_xonsh_utils import fetch_repo
 from conda_forge_tick.migrators.core import _get_source_code
-from conda_forge_tick.utils import load_graph
+from conda_forge_tick.utils import load_graph, dump
 from conda_forge_tick.xonsh_utils import indir, env
 
 
@@ -64,8 +64,8 @@ def grayskull_audit_feedstock(fctx: FeedstockContext, ctx: MigratorSessionContex
 
 
 AUDIT_REGISTRY = {
-    "depfinder": depfinder_audit_feedstock,
-    "grayskull": grayskull_audit_feedstock,
+    "depfinder": {'run': depfinder_audit_feedstock, 'writer': dump, 'ext': '.json'},
+    "grayskull": {'run': grayskull_audit_feedstock, 'writer': yaml.dump, 'ext': '.yml'}
 }
 
 
@@ -91,25 +91,26 @@ def main(args):
         # depfinder only work on python at the moment so only work on things
         # with python as runtime dep
         with gx.nodes[node]["payload"] as payload:
-            version = payload.get("version", None)
-            if (
-                not payload.get("archived", False)
-                and version
-                and "python" in payload["requirements"]["run"]
-                and f"{node}_{version}.json" not in os.listdir("audits")
-            ):
-                print(node)
-                fctx = FeedstockContext(
-                    package_name=node, feedstock_name=payload["name"], attrs=payload
-                )
-                for k, v in AUDIT_REGISTRY.items():
+            for k, v in AUDIT_REGISTRY.items():
+                version = payload.get("version", None)
+                ext = v['ext']
+                if (
+                    not payload.get("archived", False)
+                    and version
+                    and "python" in payload["requirements"]["run"]
+                    and f"{node}_{version}.{ext}" not in os.listdir(f"audits/{k}")
+                ):
+                    print(node)
+                    fctx = FeedstockContext(
+                        package_name=node, feedstock_name=payload["name"], attrs=payload
+                    )
                     try:
-                        deps = v(fctx, ctx)
+                        deps = v['run'](fctx, ctx)
                     except Exception as e:
                         deps = {
                             "exception": str(e),
                             "traceback": str(traceback.format_exc()).split("\n"),
                         }
                     finally:
-                        with open(f"audits/{k}/{node}_{version}.yml", "w") as f:
-                            yaml.dump(deps, f)
+                        with open(f"audits/{k}/{node}_{version}.{ext}", "w") as f:
+                            v['writer'](deps, f)
