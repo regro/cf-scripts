@@ -76,7 +76,7 @@ def main(args):
 
     os.makedirs("audits", exist_ok=True)
     for k in AUDIT_REGISTRY:
-        os.makedirs(os.path.join('audits', k), exist_ok=True)
+        os.makedirs(os.path.join("audits", k), exist_ok=True)
 
     # TODO: generalize for cran skeleton
     # limit graph to things that depend on python
