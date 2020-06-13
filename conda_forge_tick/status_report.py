@@ -85,8 +85,7 @@ def graph_migrator_status(
     if 'conda-forge-pinning' in gx2.nodes():
         gx2.remove_node('conda-forge-pinning')
     
-    for node, node_attrs in gx2.nodes.items():
-        attrs = node_attrs["payload"]
+    for node, attrs in gx2.nodes(data="payload"):
         # remove archived from status
         if attrs.get("archived", False):
             continue
@@ -235,11 +234,11 @@ def main(args: Any = None) -> None:
 
     lst = [
         k
-        for k, v in mctx.graph.nodes.items()
+        for k, v in mctx.graph.nodes(data="payload")
         if len(
             [
                 z
-                for z in v.get("payload", {}).get("PRed", [])
+                for z in v.get("PRed", [])
                 if z.get("PR", {}).get("state", "closed") == "open"
                 and z.get("data", {}).get("migrator_name", "") == "Version"
             ],
@@ -259,7 +258,7 @@ def main(args: Any = None) -> None:
 
     lm = LicenseMigrator()
     lst = [
-        k for k, v in mctx.graph.nodes.items() if not lm.filter(v.get("payload", {}))
+        k for k, v in mctx.graph.nodes(data="payload") if not lm.filter(v)
     ]
     with open("./status/unlicensed.json", "w") as f:
         json.dump(

@@ -326,8 +326,8 @@ def add_replacement_migrator(
     """
     total_graph = copy.deepcopy(gx)
 
-    for node, node_attrs in gx.nodes.items():
-        requirements = node_attrs["payload"].get("requirements", {})
+    for node, node_attrs in gx.nodes(data='payload'):
+        requirements = node_attrs.get("requirements", {})
         rq = (
             requirements.get("build", set())
             | requirements.get("host", set())
@@ -476,14 +476,14 @@ def migration_factory(
     # TODO: use the inbuilt LUT in the graph
     output_to_feedstock = {
         output: name
-        for name, node in gx.nodes.items()
-        for output in node.get("payload", {}).get("outputs_names", [])
+        for name, node in gx.nodes(data='payload')
+        for output in node.get("outputs_names", [])
     }
     all_package_names = set(gx.nodes) | set(
         sum(
             [
-                node.get("payload", {}).get("outputs_names", [])
-                for node in gx.nodes.values()
+                node.get("outputs_names", [])
+                for _, node in gx.nodes(data='payload')
             ],
             [],
         )

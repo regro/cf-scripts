@@ -60,8 +60,7 @@ class MigratorContext:
             gx2 = copy.deepcopy(getattr(self.migrator, "graph", self.session.graph))
 
             # Prune graph to only things that need builds right now
-            for node, node_attrs in self.session.graph.nodes.items():
-                attrs = node_attrs.get("payload", {})
+            for node, attrs in self.session.graph.nodes(data="payload"):
                 if node in gx2 and self.migrator.filter(attrs):
                     gx2.remove_node(node)
             self._effective_graph = gx2

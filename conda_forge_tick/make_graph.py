@@ -291,21 +291,21 @@ def make_graph(
     # make the outputs look up table so we can link properly
     outputs_lut = {
         k: node_name
-        for node_name, node in gx.nodes.items()
-        for k in node.get("payload", {}).get("outputs_names", [])
+        for node_name, node in gx.nodes(data='payload')
+        for k in node.get("outputs_names", [])
     }
     # add this as an attr so we can use later
     gx.graph["outputs_lut"] = outputs_lut
     strong_exports = {
         node_name
-        for node_name, node in gx.nodes.items()
-        if node.get("payload").get("strong_exports", False)
+        for node_name, node in gx.nodes(data='payload')
+        if node.get("strong_exports", False)
     }
     # This drops all the edge data and only keeps the node data
     gx = nx.create_empty_copy(gx)
     # TODO: label these edges with the kind of dep they are and their platform
-    for node, node_attrs in gx2.nodes.items():
-        with node_attrs["payload"] as attrs:
+    for node, attrs in gx2.nodes(data='payload'):
+        with attrs:
             # replace output package names with feedstock names via LUT
             deps = set(
                 map(
@@ -335,8 +335,8 @@ def make_graph(
 
 def update_nodes_with_bot_rerun(gx):
     """Go through all the open PRs and check if they are rerun"""
-    for name, node in gx.nodes.items():
-        with node['payload'] as payload:
+    for name, payload in gx.nodes(data='payload'):
+        with payload:
             for migration in payload.get('PRed', []):
                 pr_json = migration.get('PR', {})
                 # if there is a valid PR and it isn't currently listed as rerun

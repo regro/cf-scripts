@@ -453,8 +453,8 @@ class GraphMigrator(Migrator):
         else:
             self.outputs_lut = {
                 k: node_name
-                for node_name, node in self.graph.nodes.items()
-                for k in node.get("payload", {}).get("outputs_names", [])
+                for node_name, node in self.graph.nodes(data='payload')
+                for k in node.get("outputs_names", [])
             }
 
         self.name = name
