@@ -111,7 +111,7 @@ test:
     - pip
 
 about:
-  home: https://pypi.org/project/depfinder/
+  home: http://github.com/ericdill/depfinder
   summary: Find all the imports in your library
   doc_url: https://pythonhosted.org/depfinder/
   license: BSD-3-Clause
