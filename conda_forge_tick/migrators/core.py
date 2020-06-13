@@ -59,10 +59,7 @@ def _parse_bad_attr(attrs: "AttrsTypedDict", not_bad_str_start: str) -> bool:
 def _get_source_code(recipe_dir):
     # Use conda build to do all the downloading/extracting bits
     md = render(
-        recipe_dir,
-        config=Config(**CB_CONFIG),
-        finalize=False,
-        bypass_env_check=True,
+        recipe_dir, config=Config(**CB_CONFIG), finalize=False, bypass_env_check=True,
     )
     if not md:
         return None
@@ -181,8 +178,7 @@ class Migrator:
         def parse_already_pred() -> bool:
             pr_data = frozen_to_json_friendly(self.migrator_uid(attrs))
             migrator_uid: "MigrationUidTypedDict" = typing.cast(
-                "MigrationUidTypedDict",
-                pr_data["data"],
+                "MigrationUidTypedDict", pr_data["data"],
             )
             already_migrated_uids: typing.Iterable["MigrationUidTypedDict"] = list(
                 z["data"] for z in attrs.get("PRed", [])
@@ -190,19 +186,21 @@ class Migrator:
             already_pred = migrator_uid in already_migrated_uids
             if already_pred:
                 ind = already_migrated_uids.index(migrator_uid)
-                LOGGER.debug("%s: already PRed: uid: %s" % (
-                    __name, migrator_uid))
+                LOGGER.debug("%s: already PRed: uid: %s" % (__name, migrator_uid))
                 if "PR" in attrs.get("PRed", [])[ind]:
                     if isinstance(attrs.get("PRed", [])[ind]["PR"], LazyJson):
                         with attrs.get("PRed", [])[ind]["PR"] as mg_attrs:
 
-                            LOGGER.debug("%s: already PRed: PR file: %s" % (
-                                __name, mg_attrs.file_name))
+                            LOGGER.debug(
+                                "%s: already PRed: PR file: %s"
+                                % (__name, mg_attrs.file_name)
+                            )
 
                             html_url = mg_attrs.get("html_url", "no url")
 
-                            LOGGER.debug("%s: already PRed: url: %s" % (
-                                __name, html_url))
+                            LOGGER.debug(
+                                "%s: already PRed: url: %s" % (__name, html_url)
+                            )
 
             return already_pred
 
@@ -213,11 +211,7 @@ class Migrator:
         if bad_attr:
             LOGGER.debug("%s: bnad attr" % __name)
 
-        return (
-            attrs.get("archived", False)
-            or parse_already_pred()
-            or bad_attr
-        )
+        return attrs.get("archived", False) or parse_already_pred() or bad_attr
 
     def run_pre_piggyback_migrations(
         self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any
@@ -438,8 +432,7 @@ class GraphMigrator(Migrator):
         check_solvable=True,
     ):
         super().__init__(
-            pr_limit, obj_version, piggy_back_migrations,
-            check_solvable=check_solvable
+            pr_limit, obj_version, piggy_back_migrations, check_solvable=check_solvable
         )
         # TODO: Grab the graph from the migrator ctx
         if graph is None:
@@ -448,8 +441,8 @@ class GraphMigrator(Migrator):
             self.graph = graph
 
         # IDK if this will be there so I am going to make it if needed
-        if 'outputs_lut' in self.graph.graph:
-            self.outputs_lut = self.graph.graph['outputs_lut']
+        if "outputs_lut" in self.graph.graph:
+            self.outputs_lut = self.graph.graph["outputs_lut"]
         else:
             self.outputs_lut = {
                 k: node_name

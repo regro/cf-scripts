@@ -9,16 +9,7 @@ def test_patch_dict():
         "z": {"a": 10},
     }
 
-    _patch_dict(
-        cfg,
-        {
-            "a.c.d": 15,
-            "e.f": {"k": 19},
-            "gh": 10,
-            "x.y.z": 13,
-            "z.f": 11,
-        }
-    )
+    _patch_dict(cfg, {"a.c.d": 15, "e.f": {"k": 19}, "gh": 10, "x.y.z": 13, "z.f": 11,})
 
     assert cfg == {
         "a": {"b": 1, "c": {"d": 15}},

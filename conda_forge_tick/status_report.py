@@ -24,6 +24,7 @@ from conda_forge_tick.contexts import MigratorContext, FeedstockContext
 
 from .git_utils import feedstock_url
 
+
 def write_version_migrator_status(migrator, mctx):
     """write the status of the version migrator"""
 
@@ -46,10 +47,8 @@ def write_version_migrator_status(migrator, mctx):
                 out["queued"].append(node)
             else:
                 out["errored"].append(node)
-                out["errors"][node] = (
-                    attrs
-                    .get("new_version_errors", {})
-                    .get(new_version, "no error information available")
+                out["errors"][node] = attrs.get("new_version_errors", {}).get(
+                    new_version, "no error information available"
                 )
 
     with open("./status/version_status.json", "w") as f:
@@ -82,9 +81,9 @@ def graph_migrator_status(
     gv = graphviz.Digraph(graph_attr={"packmode": "array_3"})
 
     # pinning isn't actually in the migration
-    if 'conda-forge-pinning' in gx2.nodes():
-        gx2.remove_node('conda-forge-pinning')
-    
+    if "conda-forge-pinning" in gx2.nodes():
+        gx2.remove_node("conda-forge-pinning")
+
     for node, node_attrs in gx2.nodes.items():
         attrs = node_attrs["payload"]
         # remove archived from status
@@ -160,8 +159,12 @@ def graph_migrator_status(
                 fillcolor=fc,
                 style="filled",
                 fontcolor=fntc,
-                URL=(pr_json or {}).get("PR", {}).get(
-                    "html_url", feedstock_url(fctx=feedstock_ctx, protocol="https").strip('.git')),
+                URL=(pr_json or {})
+                .get("PR", {})
+                .get(
+                    "html_url",
+                    feedstock_url(fctx=feedstock_ctx, protocol="https").strip(".git"),
+                ),
             )
 
         # additional metadata for reporting
@@ -174,7 +177,9 @@ def graph_migrator_status(
         if pr_json and "PR" in pr_json:
             # I needed to fake some PRs they don't have html_urls though
             node_metadata["pr_url"] = pr_json["PR"].get(
-                "html_url", feedstock_url(fctx=feedstock_ctx, protocol="https").strip('.git'))
+                "html_url",
+                feedstock_url(fctx=feedstock_ctx, protocol="https").strip(".git"),
+            )
 
     out2: Dict = {}
     for k in out.keys():
@@ -217,7 +222,7 @@ def main(args: Any = None) -> None:
                 json.dump(status, fo, indent=2)
 
             d = gv.pipe("dot")
-            with tempfile.NamedTemporaryFile(suffix='.dot') as ntf:
+            with tempfile.NamedTemporaryFile(suffix=".dot") as ntf:
                 ntf.write(d)
                 # make the graph a bit more compact
                 d = Source(

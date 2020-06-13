@@ -6,9 +6,7 @@ from .core import MiniMigrator
 from conda_forge_tick.utils import as_iterable
 
 if typing.TYPE_CHECKING:
-    from ..migrators_types import (
-        AttrsTypedDict,
-    )
+    from ..migrators_types import AttrsTypedDict
 
 
 class PipMigrator(MiniMigrator):

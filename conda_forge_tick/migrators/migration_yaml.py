@@ -259,13 +259,10 @@ class MigrationYaml(GraphMigrator):
 
     def pr_title(self, feedstock_ctx: FeedstockContext) -> str:
         if (
-            (
-                feedstock_ctx.attrs.get("conda-forge.yml", {})
-                .get("bot", {})
-                .get("automerge", False)
-            )
-            and self.automerge
-        ):
+            feedstock_ctx.attrs.get("conda-forge.yml", {})
+            .get("bot", {})
+            .get("automerge", False)
+        ) and self.automerge:
             add_slug = "[bot-automerge] "
         else:
             add_slug = ""
@@ -320,8 +317,9 @@ class MigrationYamlCreator(Migrator):
         self.feedstock_name = feedstock_name
         self.pin_spec = pin_spec
         self.current_pin = current_pin
-        self.new_pin_version = (
-            '.'.join(new_pin_version.split('.')[:len(pin_spec.split("."))]))
+        self.new_pin_version = ".".join(
+            new_pin_version.split(".")[: len(pin_spec.split("."))]
+        )
         self.package_name = package_name
         self.bump_number = bump_number
         self.name = package_name + " pinning"
@@ -379,7 +377,7 @@ class MigrationYamlCreator(Migrator):
                 current_pin=self.current_pin,
                 new_pin_version=self.new_pin_version,
                 feedstock_name=self.feedstock_name,
-                len_graph=len(create_rebuild_graph(self.graph, (self.package_name, )))
+                len_graph=len(create_rebuild_graph(self.graph, (self.package_name,))),
             )
         )  # noqa
         body = body.format(additional_body)
@@ -417,14 +415,14 @@ def create_rebuild_graph(
     gx: nx.DiGraph,
     package_names: Sequence[str],
     excluded_feedstocks: MutableSet[str] = None,
-    include_noarch: bool = False
+    include_noarch: bool = False,
 ) -> nx.DiGraph:
     total_graph = copy.deepcopy(gx)
     excluded_feedstocks = set() if excluded_feedstocks is None else excluded_feedstocks
 
     for node, node_attrs in gx.nodes.items():
         # always keep pinning
-        if node == 'conda-forge-pinning':
+        if node == "conda-forge-pinning":
             continue
         attrs: "AttrsTypedDict" = node_attrs["payload"]
         requirements = attrs.get("requirements", {})
@@ -432,7 +430,8 @@ def create_rebuild_graph(
         build = requirements.get("build", set())
         bh = host or build
         inclusion_criteria = bh & set(package_names) and (
-                include_noarch or ("noarch" not in attrs.get("meta_yaml", {}).get("build", {}))
+            include_noarch
+            or ("noarch" not in attrs.get("meta_yaml", {}).get("build", {}))
         )
         # get host/build, run and test and launder them through outputs
         # this should fix outputs related issues (eg gdal)
@@ -454,7 +453,7 @@ def create_rebuild_graph(
             pluck(total_graph, node)
 
     # all nodes have the conda-forge-pinning as child package
-    total_graph.add_edges_from([(n, 'conda-forge-pinning') for n in total_graph.nodes])
+    total_graph.add_edges_from([(n, "conda-forge-pinning") for n in total_graph.nodes])
 
     # post plucking we can have several strange cases, lets remove all selfloops
     total_graph.remove_edges_from(nx.selfloop_edges(total_graph))

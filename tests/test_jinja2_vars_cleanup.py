@@ -5,44 +5,50 @@ from conda_forge_tick.migrators.jinja2_vars_cleanup import (
 )
 
 
-@pytest.mark.parametrize("raw_yaml", [
-    "{{name}}",
-    "{{ name}}",
-    "{{name }}",
-    "{{name|lower}}",
-    "{{ name|lower}}",
-    "{{name|lower }}",
-    "{{name[0]}}",
-    "{{ name[0]}}",
-    "{{name[0] }}",
-    "{{name.replace('-', '_')}}",
-    "{{ name.replace('-', '_')}}",
-    "{{name.replace('-', '_') }}",
-    "{{x.update({4:5})}}",
-    "{{x.update({4:5}) }}",
-    "{{ x.update({4:5})}}",
-])
+@pytest.mark.parametrize(
+    "raw_yaml",
+    [
+        "{{name}}",
+        "{{ name}}",
+        "{{name }}",
+        "{{name|lower}}",
+        "{{ name|lower}}",
+        "{{name|lower }}",
+        "{{name[0]}}",
+        "{{ name[0]}}",
+        "{{name[0] }}",
+        "{{name.replace('-', '_')}}",
+        "{{ name.replace('-', '_')}}",
+        "{{name.replace('-', '_') }}",
+        "{{x.update({4:5})}}",
+        "{{x.update({4:5}) }}",
+        "{{ x.update({4:5})}}",
+    ],
+)
 def test_jinja2_vars_cleanup_should_filter(raw_yaml):
     assert not _should_filter(raw_yaml)
 
 
-@pytest.mark.parametrize("raw_yaml,res", [
-    ("{{name}}", "{{ name }}"),
-    ("{{ name}}", "{{ name }}"),
-    ("{{name }}", "{{ name }}"),
-    ("{{name|lower}}", "{{ name|lower }}"),
-    ("{{ name|lower}}", "{{ name|lower }}"),
-    ("{{name|lower }}", "{{ name|lower }}"),
-    ("{{name[0]}}", "{{ name[0] }}"),
-    ("{{ name[0]}}", "{{ name[0] }}"),
-    ("{{name[0] }}", "{{ name[0] }}"),
-    ("{{name.replace('-', '_')}}", "{{ name.replace('-', '_') }}"),
-    ("{{ name.replace('-', '_')}}", "{{ name.replace('-', '_') }}"),
-    ("{{name.replace('-', '_') }}", "{{ name.replace('-', '_') }}"),
-    ("{{x.update({4:5})}}", "{{ x.update({4:5}) }}"),
-    ("{{x.update({4:5}) }}", "{{ x.update({4:5}) }}"),
-    ("{{ x.update({4:5})}}", "{{ x.update({4:5}) }}"),    
-])
+@pytest.mark.parametrize(
+    "raw_yaml,res",
+    [
+        ("{{name}}", "{{ name }}"),
+        ("{{ name}}", "{{ name }}"),
+        ("{{name }}", "{{ name }}"),
+        ("{{name|lower}}", "{{ name|lower }}"),
+        ("{{ name|lower}}", "{{ name|lower }}"),
+        ("{{name|lower }}", "{{ name|lower }}"),
+        ("{{name[0]}}", "{{ name[0] }}"),
+        ("{{ name[0]}}", "{{ name[0] }}"),
+        ("{{name[0] }}", "{{ name[0] }}"),
+        ("{{name.replace('-', '_')}}", "{{ name.replace('-', '_') }}"),
+        ("{{ name.replace('-', '_')}}", "{{ name.replace('-', '_') }}"),
+        ("{{name.replace('-', '_') }}", "{{ name.replace('-', '_') }}"),
+        ("{{x.update({4:5})}}", "{{ x.update({4:5}) }}"),
+        ("{{x.update({4:5}) }}", "{{ x.update({4:5}) }}"),
+        ("{{ x.update({4:5})}}", "{{ x.update({4:5}) }}"),
+    ],
+)
 def test_jinja2_vars_cleanup_raw_yaml(raw_yaml, res):
     assert _cleanup_raw_yaml(raw_yaml).strip() == res
 

@@ -13,12 +13,18 @@ import networkx as nx
 import requests
 import tqdm
 
-from conda_forge_tick.git_utils import close_out_labels, is_github_api_limit_reached, refresh_pr
+from conda_forge_tick.git_utils import (
+    close_out_labels,
+    is_github_api_limit_reached,
+    refresh_pr,
+)
 from .make_graph import github_token, logger, ghctx
 from .utils import (
     setup_logger,
     load_graph,
-    dump_graph, github_client, executor,
+    dump_graph,
+    github_client,
+    executor,
 )
 
 if typing.TYPE_CHECKING:
@@ -29,7 +35,8 @@ NUM_GITHUB_THREADS = 1
 
 
 def _get_last_updated_prs():
-    query = textwrap.dedent("""
+    query = textwrap.dedent(
+        """
         {
           user(login: "regro-cf-autotick-bot") {
             pullRequests(first: 100, states: [CLOSED, MERGED], orderBy: {field: UPDATED_AT, direction: DESC} ) {
@@ -51,21 +58,20 @@ def _get_last_updated_prs():
             }
           }
         }
-    """)  # noqa
+    """
+    )  # noqa
     headers = {"Authorization": f"token {github_token}"}
     # Try several times because this times out
     for i in range(10):
         logger.info("graphQL request try %d", i + 1)
         resp = requests.post(
-            'https://api.github.com/graphql',
-            json={'query': query},
-            headers=headers,
+            "https://api.github.com/graphql", json={"query": query}, headers=headers,
         )
-        if resp.status_code == 200 and 'data' in resp.json():
+        if resp.status_code == 200 and "data" in resp.json():
             data = resp.json()
             pr_ids = []
-            for node in data['data']['user']['pullRequests']['nodes']:
-                pr_ids.append(node['databaseId'])
+            for node in data["data"]["user"]["pullRequests"]["nodes"]:
+                pr_ids.append(node["databaseId"])
             return pr_ids
         time.sleep(10)
     return []
@@ -93,15 +99,15 @@ def _update_pr(update_function, dry_run, gx):
         pr_info_ordered[pr_id] = None
 
     with executor("thread", NUM_GITHUB_THREADS) as pool:
-        for node_id in tqdm.tqdm(node_ids, desc='ordering PRs', leave=False):
+        for node_id in tqdm.tqdm(node_ids, desc="ordering PRs", leave=False):
             node = gx.nodes[node_id]["payload"]
             prs = node.get("PRed", [])
             for i, migration in enumerate(prs):
                 pr_json = migration.get("PR", None)
                 # allow for false
                 if pr_json:
-                    if '__lazy_json__' in pr_json:
-                        m = PR_JSON_REGEX.match(pr_json['__lazy_json__'])
+                    if "__lazy_json__" in pr_json:
+                        m = PR_JSON_REGEX.match(pr_json["__lazy_json__"])
                         if m:
                             pr_id = int(m.group(1))
                         else:
@@ -170,6 +176,7 @@ def main(args: "CLIArgs") -> None:
     if not no_github_fetch:
         gx = close_labels(gx, args.dry_run)
         gx = update_graph_pr_status(gx, args.dry_run)
+
 
 if __name__ == "__main__":
     pass

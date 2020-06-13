@@ -27,6 +27,7 @@ script:
   - coverage run run_tests.py
   - coverage report -m
   - codecov -X gcov
+  - black --check --verbose --diff --config=pyproject.toml .
   - echo "REBUILD -- TEST"
   - git clone --depth 1 https://github.com/regro/cf-graph-countyfair
   - git clone --depth 1 https://github.com/conda-forge/conda-forge-pinning-feedstock

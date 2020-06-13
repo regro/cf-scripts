@@ -106,13 +106,14 @@ def gen_transformed_urls(url):
         The URL to transform.
     """
     yield from _gen_new_urls(
-        url, [
+        url,
+        [
             _ext_munger,
             _v_munger,
             _jinja2_munger_factory("name"),
             _jinja2_munger_factory("version"),
             _jinja2_munger_factory("name[0]"),
             _pypi_munger,
-            _github_munger
+            _github_munger,
         ],
     )

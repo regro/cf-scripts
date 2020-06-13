@@ -1,4 +1,3 @@
-
 from conda_forge_tick.migrators import Version, LicenseMigrator
 from conda_forge_tick.migrators.license import _munge_licenses
 
@@ -293,8 +292,13 @@ def test_version_license_correct(tmpdir):
 
 
 def test_munge_licenses():
-    spdx = "".join(_munge_licenses(
-        ["MIT + file LICENSE | GPL (>= 2) + file LICENSE | file LICENSE + file BLAH"]))
+    spdx = "".join(
+        _munge_licenses(
+            [
+                "MIT + file LICENSE | GPL (>= 2) + file LICENSE | file LICENSE + file BLAH"
+            ]
+        )
+    )
     assert spdx == "MIT OR GPL-2.0-or-later"
 
 
