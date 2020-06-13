@@ -498,12 +498,11 @@ def get_latest_version(
 def _update_upstream_versions_sequential(
     gx: nx.DiGraph, sources: Iterable[AbstractSource],
 ) -> None:
-    _all_nodes = [t for t in gx.nodes.items()]
+    _all_nodes = [t for t in gx.nodes(data='payload')]
     random.shuffle(_all_nodes)
 
     to_update = []
-    for node, node_attrs in _all_nodes:
-        attrs = node_attrs["payload"]
+    for node, attrs in _all_nodes:
         if attrs.get("bad") or attrs.get("archived"):
             attrs["new_version"] = False
             continue
@@ -534,10 +533,10 @@ def _update_upstream_versions_process_pool(
     # this has to be threads because the url hashing code uses a Pipe which
     # cannot be spawned from a process
     with executor(kind="dask", max_workers=20) as pool:
-        _all_nodes = [t for t in gx.nodes.items()]
+        _all_nodes = [t for t in gx.nodes(data='payload')]
         random.shuffle(_all_nodes)
-        for node, node_attrs in tqdm.tqdm(_all_nodes):
-            with node_attrs["payload"] as attrs:
+        for node, attrs in tqdm.tqdm(_all_nodes):
+            with attrs:
                 if node == "ca-policy-lcg":
                     attrs["new_version"] = False
                     continue

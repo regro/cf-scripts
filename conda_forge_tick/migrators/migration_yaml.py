@@ -151,8 +151,8 @@ class MigrationYaml(GraphMigrator):
         number_pred = len(
             [
                 k
-                for k, v in self.graph.nodes.items()
-                if self.migrator_uid(v.get("payload", {}))
+                for k, v in self.graph.nodes(data='payload')
+                if self.migrator_uid(v)
                 in [vv.get("data", {}) for vv in v.get("payload", {}).get("PRed", [])]
             ],
         )
@@ -422,11 +422,11 @@ def create_rebuild_graph(
     total_graph = copy.deepcopy(gx)
     excluded_feedstocks = set() if excluded_feedstocks is None else excluded_feedstocks
 
-    for node, node_attrs in gx.nodes.items():
+    for node, attrs in gx.nodes(data='payload'):
         # always keep pinning
         if node == 'conda-forge-pinning':
             continue
-        attrs: "AttrsTypedDict" = node_attrs["payload"]
+        attrs: "AttrsTypedDict"
         requirements = attrs.get("requirements", {})
         host = requirements.get("host", set())
         build = requirements.get("build", set())
