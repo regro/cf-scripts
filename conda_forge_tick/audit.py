@@ -64,8 +64,8 @@ def grayskull_audit_feedstock(fctx: FeedstockContext, ctx: MigratorSessionContex
 
 
 AUDIT_REGISTRY = {
-    "depfinder": {'run': depfinder_audit_feedstock, 'writer': dump, 'ext': '.json'},
-    "grayskull": {'run': grayskull_audit_feedstock, 'writer': yaml.dump, 'ext': '.yml'}
+    "depfinder": {"run": depfinder_audit_feedstock, "writer": dump, "ext": ".json"},
+    "grayskull": {"run": grayskull_audit_feedstock, "writer": yaml.dump, "ext": ".yml"},
 }
 
 
@@ -93,7 +93,7 @@ def main(args):
         with gx.nodes[node]["payload"] as payload:
             for k, v in AUDIT_REGISTRY.items():
                 version = payload.get("version", None)
-                ext = v['ext']
+                ext = v["ext"]
                 if (
                     not payload.get("archived", False)
                     and version
@@ -105,7 +105,7 @@ def main(args):
                         package_name=node, feedstock_name=payload["name"], attrs=payload
                     )
                     try:
-                        deps = v['run'](fctx, ctx)
+                        deps = v["run"](fctx, ctx)
                     except Exception as e:
                         deps = {
                             "exception": str(e),
@@ -113,4 +113,4 @@ def main(args):
                         }
                     finally:
                         with open(f"audits/{k}/{node}_{version}.{ext}", "w") as f:
-                            v['writer'](deps, f)
+                            v["writer"](deps, f)
