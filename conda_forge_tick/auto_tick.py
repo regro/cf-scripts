@@ -224,7 +224,12 @@ def run(
                 )
             ]
 
-    if migrator.check_solvable and not is_recipe_solvable(feedstock_dir):
+    if (
+        migrator.check_solvable
+        or feedstock_ctx.attrs["conda-forge.yml"]
+        .get("bot", {})
+        .get("check_solvable", False)
+    ) and not is_recipe_solvable(feedstock_dir):
         eval_cmd(f"rm -rf {feedstock_dir}")
         return False, False
 
