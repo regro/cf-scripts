@@ -1,11 +1,12 @@
 """Audit the dependencies of the conda-forge ecosystem"""
-import json
 import os
 import traceback
+import tempfile
 
 import networkx as nx
 import time
 from depfinder.main import simple_import_search
+from grayskull.base.factory import GrayskullFactory
 
 from conda_forge_tick.contexts import MigratorSessionContext, FeedstockContext
 from conda_forge_tick.git_utils import feedstock_url
@@ -15,7 +16,7 @@ from conda_forge_tick.utils import load_graph, dump
 from conda_forge_tick.xonsh_utils import indir, env
 
 
-def audit_feedstock(fctx: FeedstockContext, ctx: MigratorSessionContext):
+def depfinder_audit_feedstock(fctx: FeedstockContext, ctx: MigratorSessionContext):
     """Uses Depfinder to audit the requirements for a python package
     """
     # get feedstock
@@ -36,12 +37,34 @@ def audit_feedstock(fctx: FeedstockContext, ctx: MigratorSessionContext):
     return deps
 
 
+def grayskull_audit_feedstock(fctx: FeedstockContext, ctx: MigratorSessionContext):
+    """Uses grayskull to audit the requirements for a python package
+    """
+    # TODO: come back to this, since CF <-> PyPI is not one-to-one and onto
+    pkg_name = fctx.attrs['name']
+    pkg_version = fctx.attrs['version']
+    recipe = GrayskullFactory.create_recipe("pypi", pkg_name, pkg_version, download=False)
+
+    with tempfile.TemporaryDirectory() as td:
+        recipe.generate_recipe(td, mantainers=list({m: None for m in fctx.attrs['meta_yaml']['extra']['recipe-maintainers']}))
+        with open(os.path.join(td, pkg_name, 'meta.yaml'), 'r') as f:
+            out = f.read()
+    return out
+
+
+AUDIT_REGISTRY = {
+    'depfinder': depfinder_audit_feedstock,
+    'grayskull': grayskull_audit_feedstock
+}
+
+
 def main(args):
     gx = load_graph()
     ctx = MigratorSessionContext("", "", "")
     start_time = time.time()
     # limit graph to things that depend on python
     python_des = nx.descendants(gx, "pypy-meta")
+    os.makedirs("audits", exist_ok=True)
     for node in sorted(
         python_des, key=lambda x: (len(nx.descendants(gx, x)), x), reverse=True,
     ):
@@ -51,7 +74,6 @@ def main(args):
             break
         # depfinder only work on python at the moment so only work on things
         # with python as runtime dep
-        os.makedirs("audits", exist_ok=True)
         with gx.nodes[node]["payload"] as payload:
             version = payload.get('version', None)
             if (
@@ -65,7 +87,7 @@ def main(args):
                     package_name=node, feedstock_name=payload["name"], attrs=payload
                 )
                 try:
-                    deps = audit_feedstock(fctx, ctx)
+                    deps = depfinder_audit_feedstock(fctx, ctx)
                 except Exception as e:
                     deps = {
                         "exception": str(e),
