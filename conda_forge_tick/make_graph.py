@@ -195,22 +195,22 @@ def get_attrs(name: str, i: int, mark_not_archived=False) -> LazyJson:
     lzj = LazyJson(f"node_attrs/{name}.json")
     with lzj as sub_graph:
         populate_feedstock_attributes(
-            name, sub_graph, meta_yaml=meta_yaml, conda_forge_yaml=conda_forge_yaml,
+            name,
+            sub_graph,
+            meta_yaml=meta_yaml,
+            conda_forge_yaml=conda_forge_yaml,
             mark_not_archived=mark_not_archived,
         )
     return lzj
 
 
 def _build_graph_process_pool(
-    gx: nx.DiGraph, names: List[str], new_names: List[str],
-    mark_not_archived=False
+    gx: nx.DiGraph, names: List[str], new_names: List[str], mark_not_archived=False
 ) -> None:
     with executor("thread", max_workers=20) as pool:
         futures = {
-            pool.submit(
-                get_attrs, name, i,
-                mark_not_archived=mark_not_archived
-            ): name for i, name in enumerate(names)
+            pool.submit(get_attrs, name, i, mark_not_archived=mark_not_archived): name
+            for i, name in enumerate(names)
         }
         logger.info("submitted all nodes")
 
@@ -242,13 +242,13 @@ def _build_graph_process_pool(
 
 
 def _build_graph_sequential(
-    gx: nx.DiGraph, names: List[str], new_names: List[str],
-    mark_not_archived=False
+    gx: nx.DiGraph, names: List[str], new_names: List[str], mark_not_archived=False
 ) -> None:
     for i, name in enumerate(names):
         try:
             sub_graph = {
-                "payload": get_attrs(name, i, mark_not_archived=mark_not_archived)}
+                "payload": get_attrs(name, i, mark_not_archived=mark_not_archived)
+            }
         except Exception as e:
             logger.error(f"Error adding {name} to the graph: {e}")
         else:
@@ -259,9 +259,7 @@ def _build_graph_sequential(
 
 
 def make_graph(
-    names: List[str],
-    gx: Optional[nx.DiGraph] = None,
-    mark_not_archived=False
+    names: List[str], gx: Optional[nx.DiGraph] = None, mark_not_archived=False
 ) -> nx.DiGraph:
     logger.info("reading graph")
 
@@ -336,17 +334,17 @@ def make_graph(
 def update_nodes_with_bot_rerun(gx):
     """Go through all the open PRs and check if they are rerun"""
     for name, node in gx.nodes.items():
-        with node['payload'] as payload:
-            for migration in payload.get('PRed', []):
-                pr_json = migration.get('PR', {})
+        with node["payload"] as payload:
+            for migration in payload.get("PRed", []):
+                pr_json = migration.get("PR", {})
                 # if there is a valid PR and it isn't currently listed as rerun
                 # but the PR needs a rerun
                 if (
                     pr_json
-                    and not migration['data']['bot_rerun']
+                    and not migration["data"]["bot_rerun"]
                     and "bot-rerun" in [lb["name"] for lb in pr_json.get("labels", [])]
                 ):
-                    migration['data']['bot_rerun'] = time.time()
+                    migration["data"]["bot_rerun"] = time.time()
                     logger.info(
                         "BOT-RERUN %s: processing bot rerun label for migration %s",
                         name,
@@ -368,14 +366,9 @@ def main(args: "CLIArgs") -> None:
         gx = load_graph()
     else:
         gx = None
-    gx = make_graph(
-        names,
-        gx,
-        mark_not_archived=mark_not_archived,
-    )
+    gx = make_graph(names, gx, mark_not_archived=mark_not_archived,)
     print(
-        "nodes w/o payload:",
-        [k for k, v in gx.nodes.items() if "payload" not in v],
+        "nodes w/o payload:", [k for k, v in gx.nodes.items() if "payload" not in v],
     )
 
     update_nodes_with_bot_rerun(gx)

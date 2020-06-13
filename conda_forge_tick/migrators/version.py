@@ -178,14 +178,14 @@ def _try_replace_hash(
                 if key in cmeta.jinja2_vars:
                     cmeta.jinja2_vars[key] = new_hash
                     logger.info(
-                        "jinja2 w/ new hash: %s", pprint.pformat(cmeta.jinja2_vars))
+                        "jinja2 w/ new hash: %s", pprint.pformat(cmeta.jinja2_vars)
+                    )
                     _replaced_hash = True
                     break
 
             if cname in cmeta.jinja2_vars:
                 cmeta.jinja2_vars[cname] = new_hash
-                logger.info(
-                    "jinja2 w/ new hash: %s", pprint.pformat(cmeta.jinja2_vars))
+                logger.info("jinja2 w/ new hash: %s", pprint.pformat(cmeta.jinja2_vars))
                 _replaced_hash = True
                 break
 
@@ -270,9 +270,8 @@ def _try_to_update_version(cmeta: Any, src: str, hash_type: str):
 
         skip_this_selector = False
         for var in jinja2_var_set:
-            possible_keys = (
-                list(_gen_key_selector(cmeta.jinja2_vars, var))
-                + list(_gen_key_selector(evaled_context, var))
+            possible_keys = list(_gen_key_selector(cmeta.jinja2_vars, var)) + list(
+                _gen_key_selector(evaled_context, var)
             )
             if len(possible_keys) == 0:
                 if var == "cran_mirror":
@@ -280,8 +279,9 @@ def _try_to_update_version(cmeta: Any, src: str, hash_type: str):
                 else:
                     logger.critical("jinja2 variable %s is missing!", var)
                     errors.add(
-                        "missing jinja2 variable '%s' for selector '%s'" % (
-                            var, selector))
+                        "missing jinja2 variable '%s' for selector '%s'"
+                        % (var, selector)
+                    )
                     updated_version = False
                     break
 
@@ -351,10 +351,8 @@ def _fmt_error_message(errors, version):
         "they exist!\n\n" % version
     )
     if len(errors) > 0:
-        msg += (
-            "We also found the following errors:\n\n - %s" % (
-                "\n - ".join(e for e in errors)
-            )
+        msg += "We also found the following errors:\n\n - %s" % (
+            "\n - ".join(e for e in errors)
         )
         msg += "\n"
     return msg
@@ -452,9 +450,9 @@ class Version(Migrator):
             with open(os.path.join(recipe_dir, "meta.yaml"), "r") as fp:
                 cmeta = CondaMetaYAML(fp.read())
         except Exception as e:
-            attrs["new_version_errors"][version] = (
-                "We found a problem parsing the recipe: \n\n" + str(e)
-            )
+            attrs["new_version_errors"][
+                version
+            ] = "We found a problem parsing the recipe: \n\n" + str(e)
             return {}
 
         # cache round-tripped yaml for testing later
@@ -466,9 +464,7 @@ class Version(Migrator):
         # if is a git url, then we error
         if _recipe_has_git_url(cmeta):
             logger.critical("Migrations do not work on `git_url`s!")
-            errors.add(
-                "migrations do not work on `git_url`s"
-            )
+            errors.add("migrations do not work on `git_url`s")
             attrs["new_version_errors"][version] = _fmt_error_message(errors, version)
             return {}
 
@@ -491,9 +487,7 @@ class Version(Migrator):
             logger.critical(
                 "Migrations do not work on versions not specified with jinja2!"
             )
-            errors.add(
-                "migrations do not work on versions not specified with jinja2"
-            )
+            errors.add("migrations do not work on versions not specified with jinja2")
             attrs["new_version_errors"][version] = _fmt_error_message(errors, version)
             return {}
 
@@ -503,7 +497,8 @@ class Version(Migrator):
                 if isinstance(cmeta.meta[src_key], collections.abc.MutableSequence):
                     for src in cmeta.meta[src_key]:
                         _did_update, _errors = _try_to_update_version(
-                            cmeta, src, hash_type)
+                            cmeta, src, hash_type
+                        )
                         did_update &= _did_update
                         errors |= _errors
                 else:
@@ -569,11 +564,12 @@ class Version(Migrator):
 
         # Display the url so that the maintainer can quickly click on it
         # in the PR body.
-        about = feedstock_ctx.attrs.get("meta_yaml", {}).get("about",  {})
+        about = feedstock_ctx.attrs.get("meta_yaml", {}).get("about", {})
         upstream_url = about.get("dev_url", "") or about.get("home", "")
         if upstream_url:
             upstream_url_link = ": see [upstream]({upstream_url})".format(
-                upstream_url=upstream_url)
+                upstream_url=upstream_url
+            )
         else:
             upstream_url_link = ""
 
@@ -600,8 +596,9 @@ class Version(Migrator):
             "{closes}".format(
                 upstream_url_link=upstream_url_link,
                 max_num_prs=self.max_num_prs,
-                closes="\n".join([f"Closes: #{muid['number']}"
-                                  for muid in open_version_prs]),
+                closes="\n".join(
+                    [f"Closes: #{muid['number']}" for muid in open_version_prs]
+                ),
             ),
         )
         # Statement here
@@ -681,9 +678,6 @@ class Version(Migrator):
         random.seed()
         nodes_to_sort = list(graph.nodes)
         return sorted(
-            sorted(
-                nodes_to_sort,
-                key=lambda x: random.uniform(0, 1),
-            ),
+            sorted(nodes_to_sort, key=lambda x: random.uniform(0, 1),),
             key=_get_attemps,
         )

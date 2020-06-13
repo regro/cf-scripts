@@ -116,9 +116,9 @@ def _parse_jinja2_variables(meta_yaml: str) -> dict:
         elif isinstance(n, jinja2.nodes.Assign):
             if isinstance(n.target, jinja2.nodes.Tuple):
                 for __n in n.target.items:
-                    jinja2_exprs[__n.name] = meta_yaml_lines[n.lineno-1]
+                    jinja2_exprs[__n.name] = meta_yaml_lines[n.lineno - 1]
             else:
-                jinja2_exprs[n.target.name] = meta_yaml_lines[n.lineno-1]
+                jinja2_exprs[n.target.name] = meta_yaml_lines[n.lineno - 1]
 
     # we don't need the indexes into the jinja2 node list anymore
     for key, val in jinja2_vals.items():
@@ -434,8 +434,7 @@ class CondaMetaYAML(object):
         # get a new parser since it carries state about the jinja2 munging
         # that we don't want to ruin
         _parser = _get_yaml_parser()
-        return _parser.load(
-            jinja2.Template(tmpl).render(**jinja2_vars))
+        return _parser.load(jinja2.Template(tmpl).render(**jinja2_vars))
 
     def dump(self, fp: Any):
         """Dump the recipe to a file-like object.

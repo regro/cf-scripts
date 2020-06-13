@@ -20,7 +20,7 @@ env = builtins.__xonsh__.env  # type: ignore
 env["GRAPH"] = G
 env["CIRCLE_BUILD_URL"] = "hi world"
 
-YAML_PATH = os.path.join(os.path.dirname(__file__), 'test_yaml')
+YAML_PATH = os.path.join(os.path.dirname(__file__), "test_yaml")
 
 IN_YAML = """\
 {% set version = datetime.datetime.utcnow().strftime("%Y.%m.%d.%H.%M.%S") %}
@@ -120,15 +120,13 @@ migrator_ts: 12345.2
 """
 
 
-@pytest.mark.parametrize("in_out_yaml", [
-    (IN_YAML, OUT_YAML),
-    (IN_YAML_TODAY, OUT_YAML_TODAY),
-])
+@pytest.mark.parametrize(
+    "in_out_yaml", [(IN_YAML, OUT_YAML), (IN_YAML_TODAY, OUT_YAML_TODAY),]
+)
 @mock.patch("time.time")
 def test_migration_yaml_migration(tmock, in_out_yaml, caplog, tmpdir):
     caplog.set_level(
-        logging.DEBUG,
-        logger='conda_forge_tick.migrators.migration_yaml',
+        logging.DEBUG, logger="conda_forge_tick.migrators.migration_yaml",
     )
     tmock.return_value = 12345.2
     pname = "boost"
@@ -136,14 +134,7 @@ def test_migration_yaml_migration(tmock, in_out_yaml, caplog, tmpdir):
     curr_pin = "1.70.0"
     pin_spec = "x.x"
 
-    MYM = MigrationYamlCreator(
-        pname,
-        pin_ver,
-        curr_pin,
-        pin_spec,
-        'hi',
-        G
-    )
+    MYM = MigrationYamlCreator(pname, pin_ver, curr_pin, pin_spec, "hi", G)
 
     with indir(tmpdir):
         eval_xonsh("git init .")
@@ -192,30 +183,25 @@ def run_test_migration(
         f.write(inp)
 
     # read the conda-forge.yml
-    if os.path.exists(os.path.join(tmpdir, '..', 'conda-forge.yml')):
-        with open(os.path.join(tmpdir, '..', 'conda-forge.yml'), 'r') as fp:
+    if os.path.exists(os.path.join(tmpdir, "..", "conda-forge.yml")):
+        with open(os.path.join(tmpdir, "..", "conda-forge.yml"), "r") as fp:
             cf_yml = fp.read()
     else:
         cf_yml = "{}"
 
     # Load the meta.yaml (this is done in the graph)
     try:
-        name = parse_meta_yaml(inp)['package']['name']
+        name = parse_meta_yaml(inp)["package"]["name"]
     except Exception:
-        name = 'blah'
+        name = "blah"
 
-    pmy = populate_feedstock_attributes(
-        name,
-        {},
-        inp,
-        cf_yml,
-    )
+    pmy = populate_feedstock_attributes(name, {}, inp, cf_yml,)
 
     # these are here for legacy migrators
-    pmy["version"] = pmy['meta_yaml']["package"]["version"]
+    pmy["version"] = pmy["meta_yaml"]["package"]["version"]
     pmy["req"] = set()
     for k in ["build", "host", "run"]:
-        req = pmy['meta_yaml'].get("requirements", {}) or {}
+        req = pmy["meta_yaml"].get("requirements", {}) or {}
         _set = req.get(k) or set()
         pmy["req"] |= set(_set)
     pmy["raw_meta_yaml"] = inp
@@ -226,10 +212,12 @@ def run_test_migration(
         return
 
     m.run_pre_piggyback_migrations(
-        tmpdir, pmy, hash_type=pmy.get("hash_type", "sha256"))
+        tmpdir, pmy, hash_type=pmy.get("hash_type", "sha256")
+    )
     mr = m.migrate(tmpdir, pmy, hash_type=pmy.get("hash_type", "sha256"))
     m.run_post_piggyback_migrations(
-        tmpdir, pmy, hash_type=pmy.get("hash_type", "sha256"))
+        tmpdir, pmy, hash_type=pmy.get("hash_type", "sha256")
+    )
 
     assert mr_out == mr
     if not mr:
@@ -245,14 +233,14 @@ def run_test_migration(
     assert actual_output == output
 
 
-with open(os.path.join(YAML_PATH, 'conda_build_config.yaml'), 'r') as fp:
+with open(os.path.join(YAML_PATH, "conda_build_config.yaml"), "r") as fp:
     CBC = fp.read()
 
 
-@pytest.mark.parametrize("migrator_name", ['pypy', 'krb', 'boost'])
+@pytest.mark.parametrize("migrator_name", ["pypy", "krb", "boost"])
 def test_merge_migrator_cbc(migrator_name):
-    with open(os.path.join(YAML_PATH, f'{migrator_name}.yaml'), 'r') as fp:
+    with open(os.path.join(YAML_PATH, f"{migrator_name}.yaml"), "r") as fp:
         migrator = fp.read()
-    with open(os.path.join(YAML_PATH, f'{migrator_name}_out.yaml'), 'r') as fp:
+    with open(os.path.join(YAML_PATH, f"{migrator_name}_out.yaml"), "r") as fp:
         out = fp.read()
     assert merge_migrator_cbc(migrator, CBC) == out

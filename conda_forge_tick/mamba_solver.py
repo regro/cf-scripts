@@ -57,11 +57,11 @@ def _munge_req_star(req):
                 reqs.append(pp + ".*")
 
             # add | back on the way out
-            if ip != nps-1:
+            if ip != nps - 1:
                 reqs.append("|")
 
         # add , back on the way out
-        if ic != ncs-1:
+        if ic != ncs - 1:
             reqs.append(",")
 
     # put it all together
@@ -76,7 +76,7 @@ def _norm_spec(myspec):
     parts = [m.get_exact_value("name")]
 
     version = m.get_raw_value("version")
-    build = m.get_raw_value('build')
+    build = m.get_raw_value("build")
     if build and not version:
         raise RuntimeError("spec '%s' has build but not version!" % myspec)
 
@@ -88,9 +88,16 @@ def _norm_spec(myspec):
     return " ".join(parts)
 
 
-def get_index(channel_urls=(), prepend=True, platform=None,
-              use_local=False, use_cache=False, unknown=None, prefix=None,
-              repodata_fn="repodata.json"):
+def get_index(
+    channel_urls=(),
+    prepend=True,
+    platform=None,
+    use_local=False,
+    use_cache=False,
+    unknown=None,
+    prefix=None,
+    repodata_fn="repodata.json",
+):
     """Get an index?
 
     Function from @wolfv here:
@@ -105,14 +112,14 @@ def get_index(channel_urls=(), prepend=True, platform=None,
     for idx, url in enumerate(real_urls):
         channel = Channel(url)
 
-        full_url = channel.url(with_credentials=True) + '/' + repodata_fn
+        full_url = channel.url(with_credentials=True) + "/" + repodata_fn
         full_path_cache = os.path.join(
-            create_cache_dir(),
-            cache_fn_url(full_url, repodata_fn))
+            create_cache_dir(), cache_fn_url(full_url, repodata_fn)
+        )
 
-        sd = api.SubdirData(channel.name + '/' + channel.subdir,
-                            full_url,
-                            full_path_cache)
+        sd = api.SubdirData(
+            channel.name + "/" + channel.subdir, full_url, full_path_cache
+        )
 
         sd.load()
         index.append((sd, channel))
@@ -139,6 +146,7 @@ class MambaSolver:
     >>> solver = MambaSolver(['conda-forge/linux-64', 'conda-forge/noarch'])
     >>> solver.solve(["xtensor 0.18"])
     """
+
     def __init__(self, channels, platform):
         self.channels = channels
         self.platform = platform
@@ -154,7 +162,7 @@ class MambaSolver:
                 self.pool,
                 str(channel),
                 subdir.cache_path(),
-                channel.url(with_credentials=True)
+                channel.url(with_credentials=True),
             )
             repo.set_priority(priority, subpriority)
             self.repos.append(repo)
@@ -188,7 +196,7 @@ class MambaSolver:
                 "\n\n%s\n\nThe reported errors are:\n\n%s",
                 pprint.pformat(_specs),
                 pprint.pformat(self.channels),
-                solver.problems_to_str()
+                solver.problems_to_str(),
             )
 
         return success
@@ -251,10 +259,7 @@ def is_recipe_solvable(feedstock_dir):
             arch = "64"
 
         solvable &= _is_recipe_solvable_on_platform(
-            os.path.join(feedstock_dir, "recipe"),
-            cbc_fname,
-            platform,
-            arch,
+            os.path.join(feedstock_dir, "recipe"), cbc_fname, platform, arch,
         )
 
     return solvable
@@ -283,34 +288,30 @@ def _is_recipe_solvable_on_platform(recipe_dir, cbc_path, platform, arch):
 
     logger.debug(
         "MAMBA: using channels %s on platform-arch %s-%s",
-        channel_sources, platform, arch
+        channel_sources,
+        platform,
+        arch,
     )
 
     # here we extract the conda build config in roughly the same way that
     # it would be used in a real build
     config = conda_build.config.get_or_merge_config(
-                None,
-                exclusive_config_file=cbc_path,
-                platform=platform,
-                arch=arch,
-            )
-    cbc, _ = conda_build.variants.get_package_combined_spec(
-        recipe_dir,
-        config=config
+        None, exclusive_config_file=cbc_path, platform=platform, arch=arch,
     )
+    cbc, _ = conda_build.variants.get_package_combined_spec(recipe_dir, config=config)
 
     # now we render the meta.yaml into an actual recipe
     metas = conda_build.api.render(
-                recipe_dir,
-                platform=platform,
-                arch=arch,
-                ignore_system_variants=True,
-                variants=cbc,
-                permit_undefined_jinja=True,
-                finalize=False,
-                bypass_env_check=True,
-                channel_urls=channel_sources,
-            )
+        recipe_dir,
+        platform=platform,
+        arch=arch,
+        ignore_system_variants=True,
+        variants=cbc,
+        permit_undefined_jinja=True,
+        finalize=False,
+        bypass_env_check=True,
+        channel_urls=channel_sources,
+    )
 
     # now we loop through each one and check if we can solve it
     # we check run and host and ignore the rest
@@ -319,20 +320,19 @@ def _is_recipe_solvable_on_platform(recipe_dir, cbc_path, platform, arch):
     solvable = True
     outnames = [m.name() for m, _, _ in metas]
     for m, _, _ in metas:
-        host_req = (
-            m.get_value('requirements/host', [])
-            or m.get_value('requirements/build', [])
+        host_req = m.get_value("requirements/host", []) or m.get_value(
+            "requirements/build", []
         )
         host_req = _clean_reqs(host_req, outnames)
         solvable &= mamba_solver.solve(host_req)
 
-        run_req = m.get_value('requirements/run', [])
+        run_req = m.get_value("requirements/run", [])
         run_req = _clean_reqs(run_req, outnames)
         solvable &= mamba_solver.solve(run_req)
 
         tst_req = (
-            m.get_value('test/requires', [])
-            + m.get_value('test/requirements', [])
+            m.get_value("test/requires", [])
+            + m.get_value("test/requirements", [])
             + run_req
         )
         tst_req = _clean_reqs(tst_req, outnames)

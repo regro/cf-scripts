@@ -20,7 +20,7 @@ def test_url_transform_jinja_mixed():
         "{{ version }}/{{ name }}",
         "{{ version }}/{{name }}",
         "{{version}}/{{name }}",
-        "{{version}}/{{ name }}"
+        "{{version}}/{{ name }}",
     }
 
     urls = set(list(gen_transformed_urls("{{version}}/<{name}}")))
@@ -30,7 +30,7 @@ def test_url_transform_jinja_mixed():
         "{{ version }}/{{ name }}",
         "{{ version }}/<{name}}",
         "{{version}}/<{name}}",
-        "{{version}}/{{ name }}"
+        "{{version}}/{{ name }}",
     }
 
 
@@ -48,55 +48,74 @@ def test_url_transform_exts():
         "blah.tar.bz2",
         "blah.zip",
         "blah.tar.xz",
-        }
+    }
 
 
 def test_url_transform_pypi():
-    urls = set(list(
-        gen_transformed_urls("https://pypi.io/{{ name }}/{{ name }}-barf")))
+    urls = set(list(gen_transformed_urls("https://pypi.io/{{ name }}/{{ name }}-barf")))
     assert urls == {
         "https://pypi.io/{{ name }}/{{ name }}-barf",
         "https://pypi.io/{{ name }}/{{ name.replace('_', '-') }}-barf",
     }
 
-    urls = set(list(
-        gen_transformed_urls(
-            "https://pypi.io/{{ name }}/{{ name.replace('_', '-') }}-barf")))
+    urls = set(
+        list(
+            gen_transformed_urls(
+                "https://pypi.io/{{ name }}/{{ name.replace('_', '-') }}-barf"
+            )
+        )
+    )
     assert urls == {
         "https://pypi.io/{{ name }}/{{ name }}-barf",
         "https://pypi.io/{{ name }}/{{ name.replace('_', '-') }}-barf",
     }
 
-    urls = set(list(
-        gen_transformed_urls(
-            "https://pypi.io/{{ name }}/{{ name.replace('_','-') }}-barf")))
+    urls = set(
+        list(
+            gen_transformed_urls(
+                "https://pypi.io/{{ name }}/{{ name.replace('_','-') }}-barf"
+            )
+        )
+    )
     assert urls == {
         "https://pypi.io/{{ name }}/{{ name }}-barf",
         "https://pypi.io/{{ name }}/{{ name.replace('_','-') }}-barf",
     }
 
-    urls = set(list(
-        gen_transformed_urls(
-            "https://pypi.io/{{ name }}/{{ name|replace('_','-') }}-barf")))
+    urls = set(
+        list(
+            gen_transformed_urls(
+                "https://pypi.io/{{ name }}/{{ name|replace('_','-') }}-barf"
+            )
+        )
+    )
     assert urls == {
         "https://pypi.io/{{ name }}/{{ name }}-barf",
         "https://pypi.io/{{ name }}/{{ name|replace('_','-') }}-barf",
     }
 
-    urls = set(list(
-        gen_transformed_urls(
-            "https://pypi.io/{{ name }}/{{ name.replace(\"_\", \"-\") }}-barf")))
+    urls = set(
+        list(
+            gen_transformed_urls(
+                'https://pypi.io/{{ name }}/{{ name.replace("_", "-") }}-barf'
+            )
+        )
+    )
     assert urls == {
         "https://pypi.io/{{ name }}/{{ name }}-barf",
-        "https://pypi.io/{{ name }}/{{ name.replace(\"_\", \"-\") }}-barf",
+        'https://pypi.io/{{ name }}/{{ name.replace("_", "-") }}-barf',
     }
 
 
 def test_url_transform_github():
-    urls = set(list(gen_transformed_urls(
-        "https://github.com/releases/download/"
-        "v{{ version }}/{{ name }}/{{ name }}-{{ version }}"
-    )))
+    urls = set(
+        list(
+            gen_transformed_urls(
+                "https://github.com/releases/download/"
+                "v{{ version }}/{{ name }}/{{ name }}-{{ version }}"
+            )
+        )
+    )
     assert urls == {
         "https://github.com/releases/download/v{{ version }}/"
         "{{ name }}/{{ name }}-{{ version }}",
@@ -123,13 +142,17 @@ def test_url_transform_complicated():
         "blah-v{{ version }}.tar.bz2",
         "blah-v{{ version }}.zip",
         "blah-v{{ version }}.tar.xz",
-        }
+    }
 
 
 def test_url_transform_complicated_pypi():
-    urls = set(list(gen_transformed_urls(
-        "https://pypi.io/{{ name }}/{{ name.replace('_', '-') }}-{{ version }}.tgz"
-    )))
+    urls = set(
+        list(
+            gen_transformed_urls(
+                "https://pypi.io/{{ name }}/{{ name.replace('_', '-') }}-{{ version }}.tgz"
+            )
+        )
+    )
     assert urls == {
         "https://pypi.io/{{ name }}/{{ name.replace('_', '-') }}-{{ version }}.tgz",
         "https://pypi.io/{{ name }}/{{ name.replace('_', '-') }}-{{ version }}.tar.gz",
@@ -159,9 +182,13 @@ def test_url_transform_complicated_pypi():
 
 
 def test_url_transform_complicated_github():
-    urls = set(list(gen_transformed_urls(
-        "https://github.com/archive/{{ name }}/v{{ version }}.tgz"
-    )))
+    urls = set(
+        list(
+            gen_transformed_urls(
+                "https://github.com/archive/{{ name }}/v{{ version }}.tgz"
+            )
+        )
+    )
     assert urls == {
         "https://github.com/archive/{{ name }}/v{{ version }}.tgz",
         "https://github.com/archive/{{ name }}/v{{ version }}.tar.gz",

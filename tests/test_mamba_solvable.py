@@ -5,7 +5,7 @@ import pytest
 from conda_forge_tick.mamba_solver import is_recipe_solvable, _norm_spec
 
 
-FEEDSTOCK_DIR = os.path.join(os.path.dirname(__file__), 'test_feedstock')
+FEEDSTOCK_DIR = os.path.join(os.path.dirname(__file__), "test_feedstock")
 
 
 def test_is_recipe_solvable_ok():
@@ -13,7 +13,8 @@ def test_is_recipe_solvable_ok():
     os.makedirs(os.path.dirname(recipe_file), exist_ok=True)
     try:
         with open(recipe_file, "w") as fp:
-            fp.write("""\
+            fp.write(
+                """\
 {% set name = "cf-autotick-bot-test-package" %}
 {% set version = "0.9" %}
 
@@ -49,7 +50,8 @@ extra:
   recipe-maintainers:
     - beckermr
     - conda-forge/bot
-""")
+"""
+            )
         assert is_recipe_solvable(FEEDSTOCK_DIR)
     finally:
         try:
@@ -63,7 +65,8 @@ def test_is_recipe_solvable_notok():
     os.makedirs(os.path.dirname(recipe_file), exist_ok=True)
     try:
         with open(recipe_file, "w") as fp:
-            fp.write("""\
+            fp.write(
+                """\
 {% set name = "cf-autotick-bot-test-package" %}
 {% set version = "0.9" %}
 
@@ -100,7 +103,8 @@ extra:
   recipe-maintainers:
     - beckermr
     - conda-forge/bot
-""")
+"""
+            )
         assert not is_recipe_solvable(FEEDSTOCK_DIR)
     finally:
         try:
@@ -109,16 +113,19 @@ extra:
             pass
 
 
-@pytest.mark.parametrize("inreq,outreq", [
-    ("blah 1.1*", "blah 1.1.*"),
-    ("blah * *_osx", "blah * *_osx"),
-    ("blah 1.1", "blah 1.1.*"),
-    ("blah =1.1", "blah 1.1.*"),
-    ("blah * *_osx", "blah * *_osx"),
-    ("blah 1.2 *_osx", "blah 1.2.* *_osx"),
-    ("blah >=1.1", "blah >=1.1"),
-    ("blah >=1.1|5|>=5,<10|19.0", "blah >=1.1|5.*|>=5,<10|19.0.*"),
-    ("blah >=1.1|5| >=5 , <10 |19.0", "blah >=1.1|5.*|>=5,<10|19.0.*"),
-])
+@pytest.mark.parametrize(
+    "inreq,outreq",
+    [
+        ("blah 1.1*", "blah 1.1.*"),
+        ("blah * *_osx", "blah * *_osx"),
+        ("blah 1.1", "blah 1.1.*"),
+        ("blah =1.1", "blah 1.1.*"),
+        ("blah * *_osx", "blah * *_osx"),
+        ("blah 1.2 *_osx", "blah 1.2.* *_osx"),
+        ("blah >=1.1", "blah >=1.1"),
+        ("blah >=1.1|5|>=5,<10|19.0", "blah >=1.1|5.*|>=5,<10|19.0.*"),
+        ("blah >=1.1|5| >=5 , <10 |19.0", "blah >=1.1|5.*|>=5,<10|19.0.*"),
+    ],
+)
 def test_norm_spec(inreq, outreq):
     assert _norm_spec(inreq) == outreq

@@ -1,7 +1,9 @@
 import pytest
 
 from conda_forge_tick.update_upstream_versions import (
-    NPM, get_latest_version, next_version
+    NPM,
+    get_latest_version,
+    next_version,
 )
 from conda_forge_tick.utils import parse_meta_yaml, LazyJson
 
@@ -162,22 +164,25 @@ def test_latest_version(inp, ver, source, urls, requests_mock, tmpdir):
     pmy = LazyJson(tmpdir.join("cf-scripts-test.json"))
     pmy.update(parse_meta_yaml(inp)["source"])
     [requests_mock.get(url, text=text) for url, text in urls.items()]
-    assert ver == get_latest_version('configurable-http-proxy', pmy, [source])
+    assert ver == get_latest_version("configurable-http-proxy", pmy, [source])
 
 
-@pytest.mark.parametrize('in_ver, ver_test', [
-    ('8.1', ['8.2', '9.0']),
-    ('8.1.5', ['8.1.6', '8.2.0', '9.0.0']),
-    ('8_1', ['8_2', '9_0']),
-    ('8_1_5', ['8_1_6', '8_2_0', '9_0_0']),
-    ('8-1', ['8-2', '9-0']),
-    ('8-1-5', ['8-1-6', '8-2-0', '9-0-0']),
-    ('8.1-10', ['8.1-11', '8.2-0', '9.0-0']),
-    ('8.1_10', ['8.1_11', '8.2_0', '9.0_0']),
-    ('10.8.1-10', ['10.8.1-11', '10.8.2-0', '10.9.0-0', '11.0.0-0']),
-    ('10-8.1_10', ['10-8.1_11', '10-8.2_0', '10-9.0_0', '11-0.0_0']),
-    ('8.1p1', ['8.2p1', '9.0p1']),
-])
+@pytest.mark.parametrize(
+    "in_ver, ver_test",
+    [
+        ("8.1", ["8.2", "9.0"]),
+        ("8.1.5", ["8.1.6", "8.2.0", "9.0.0"]),
+        ("8_1", ["8_2", "9_0"]),
+        ("8_1_5", ["8_1_6", "8_2_0", "9_0_0"]),
+        ("8-1", ["8-2", "9-0"]),
+        ("8-1-5", ["8-1-6", "8-2-0", "9-0-0"]),
+        ("8.1-10", ["8.1-11", "8.2-0", "9.0-0"]),
+        ("8.1_10", ["8.1_11", "8.2_0", "9.0_0"]),
+        ("10.8.1-10", ["10.8.1-11", "10.8.2-0", "10.9.0-0", "11.0.0-0"]),
+        ("10-8.1_10", ["10-8.1_11", "10-8.2_0", "10-9.0_0", "11-0.0_0"]),
+        ("8.1p1", ["8.2p1", "9.0p1"]),
+    ],
+)
 def test_next_version(in_ver, ver_test):
     next_vers = [v for v in next_version(in_ver)]
     assert next_vers == ver_test

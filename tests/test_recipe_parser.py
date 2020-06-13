@@ -14,7 +14,7 @@ from conda_forge_tick.recipe_parser._parser import (
 from conda_forge_tick.recipe_parser import CondaMetaYAML, CONDA_SELECTOR
 
 
-@pytest.mark.parametrize('add_extra_req', [True, False])
+@pytest.mark.parametrize("add_extra_req", [True, False])
 def test_parsing(add_extra_req):
     meta_yaml = """\
 {% set name = 'val1' %}  # [py2k]
@@ -91,9 +91,9 @@ requirements:
     cm = CondaMetaYAML(meta_yaml)
 
     # check the jinja2 keys
-    assert cm.jinja2_vars['name__###conda-selector###__py2k'] == 'val1'
-    assert cm.jinja2_vars['name__###conda-selector###__py3k and win'] == 'val2'
-    assert cm.jinja2_vars['version'] == '4.5.6'
+    assert cm.jinja2_vars["name__###conda-selector###__py2k"] == "val1"
+    assert cm.jinja2_vars["name__###conda-selector###__py3k and win"] == "val2"
+    assert cm.jinja2_vars["version"] == "4.5.6"
 
     # check jinja2 expressions
     assert cm.jinja2_exprs["major_ver"] == "{% set major_ver = version.split('.')[0] %}"
@@ -115,39 +115,34 @@ requirements:
         == '{% set crazy_string1 = ">=5,<7" ~ version %}'
     )
     assert (
-        cm.jinja2_exprs["crazy_string2"]
-        == '{% set crazy_string2 = \'"\' ~ version %}'
+        cm.jinja2_exprs["crazy_string2"] == "{% set crazy_string2 = '\"' ~ version %}"
     )
     assert (
-        cm.jinja2_exprs["crazy_string3"]
-        == '{% set crazy_string3 = "\'" ~ version %}'
+        cm.jinja2_exprs["crazy_string3"] == '{% set crazy_string3 = "\'" ~ version %}'
     )
-    assert (
-        cm.jinja2_exprs["crazy_string4"]
-        == '{% set crazy_string4 = "|" ~ version %}'
-    )
+    assert cm.jinja2_exprs["crazy_string4"] == '{% set crazy_string4 = "|" ~ version %}'
 
     # check it when we eval
     jinja2_exprs_evaled = cm.eval_jinja2_exprs(cm.jinja2_vars)
-    assert jinja2_exprs_evaled["major_ver"] == '4'
-    assert jinja2_exprs_evaled["vmajor"] == '4'
-    assert jinja2_exprs_evaled["vminor"] == '5'
-    assert jinja2_exprs_evaled["vpatch"] == '6'
-    assert jinja2_exprs_evaled["crazy_string1"] == '>=5,<74.5.6'
+    assert jinja2_exprs_evaled["major_ver"] == "4"
+    assert jinja2_exprs_evaled["vmajor"] == "4"
+    assert jinja2_exprs_evaled["vminor"] == "5"
+    assert jinja2_exprs_evaled["vpatch"] == "6"
+    assert jinja2_exprs_evaled["crazy_string1"] == ">=5,<74.5.6"
     assert jinja2_exprs_evaled["crazy_string2"] == '"4.5.6'
     assert jinja2_exprs_evaled["crazy_string3"] == "'4.5.6"
-    assert jinja2_exprs_evaled["crazy_string4"] == '|4.5.6'
+    assert jinja2_exprs_evaled["crazy_string4"] == "|4.5.6"
 
     # check selectors
-    assert cm.meta['source']['sha256__###conda-selector###__py2k'] == 1
-    assert cm.meta['source']['sha256__###conda-selector###__py3k and win'] == 5
+    assert cm.meta["source"]["sha256__###conda-selector###__py2k"] == 1
+    assert cm.meta["source"]["sha256__###conda-selector###__py3k and win"] == 5
 
     # check other keys
-    assert cm.meta['build']['number'] == 10
-    assert cm.meta['package']['name'] == '{{ name|lower }}'
-    assert cm.meta['source']['url'] == 'foobar'
+    assert cm.meta["build"]["number"] == 10
+    assert cm.meta["package"]["name"] == "{{ name|lower }}"
+    assert cm.meta["source"]["url"] == "foobar"
     if add_extra_req:
-        assert cm.meta['requirements']['host'][0] == 'blah <{{ blarg }}'
+        assert cm.meta["requirements"]["host"][0] == "blah <{{ blarg }}"
 
     s = io.StringIO()
     cm.dump(s)
@@ -155,12 +150,12 @@ requirements:
     assert meta_yaml_canonical == s.read()
 
     # now add stuff and test outputs
-    cm.jinja2_vars['foo'] = 'bar'
-    cm.jinja2_vars['xfoo__###conda-selector###__win or osx'] = 10
-    cm.jinja2_vars['build'] = 100
-    cm.meta['about'] = 10
-    cm.meta['extra__###conda-selector###__win'] = 'blah'
-    cm.meta['extra__###conda-selector###__not win'] = 'not_win_blah'
+    cm.jinja2_vars["foo"] = "bar"
+    cm.jinja2_vars["xfoo__###conda-selector###__win or osx"] = 10
+    cm.jinja2_vars["build"] = 100
+    cm.meta["about"] = 10
+    cm.meta["extra__###conda-selector###__win"] = "blah"
+    cm.meta["extra__###conda-selector###__not win"] = "not_win_blah"
 
     s = io.StringIO()
     cm.dump(s)
@@ -217,32 +212,32 @@ extra: not_win_blah  # [not win]
 def test_replace_jinja2_vars():
     lines = [
         '{% set var1 = "val1" %}  # [sel]\n',
-        'blah\n',
-        '{% set var2 = 5 %} # a comment\n',
+        "blah\n",
+        "{% set var2 = 5 %} # a comment\n",
         '{% set var3 = "none" %}#[sel2 and none and osx]\n',
         '{% set var4 = "val4" %}\n',
         '{% set var5 = "val5" %}\n',
     ]
 
     jinja2_vars = {
-        'var1' + CONDA_SELECTOR + 'sel': 'val4',
-        'var2': '4.5.6',
-        'var3' + CONDA_SELECTOR + 'sel2 and none and osx': 'None',
-        'var4': 'val4',
-        'var5': 3.5,
-        'new_var': 'new_val',
-        'new_var' + CONDA_SELECTOR + 'py3k and win': 'new_val',
+        "var1" + CONDA_SELECTOR + "sel": "val4",
+        "var2": "4.5.6",
+        "var3" + CONDA_SELECTOR + "sel2 and none and osx": "None",
+        "var4": "val4",
+        "var5": 3.5,
+        "new_var": "new_val",
+        "new_var" + CONDA_SELECTOR + "py3k and win": "new_val",
     }
 
     new_lines_true = [
         '{% set new_var = "new_val" %}\n',
         '{% set new_var = "new_val" %}  # [py3k and win]\n',
         '{% set var1 = "val4" %}  # [sel]\n',
-        'blah\n',
+        "blah\n",
         '{% set var2 = "4.5.6" %} # a comment\n',
         '{% set var3 = "None" %}  # [sel2 and none and osx]\n',
         '{% set var4 = "val4" %}\n',
-        '{% set var5 = 3.5 %}\n',
+        "{% set var5 = 3.5 %}\n",
     ]
 
     new_lines = _replace_jinja2_vars(lines, jinja2_vars)
@@ -252,38 +247,38 @@ def test_replace_jinja2_vars():
 
 def test_munge_jinja2_vars():
     meta = {
-        'val': '<{ var }}',
-        'list': [
-            'val',
-            '<{ val_34 }}',
+        "val": "<{ var }}",
+        "list": [
+            "val",
+            "<{ val_34 }}",
             {
-                'fg': 2,
-                'str': 'valish',
-                'ab': '<{ val_again }}',
-                'dict': {'hello': '<{ val_45 }}', 'int': 4},
-                'list_again': [
-                    'hi',
-                    {'hello': '<{ val_12 }}', 'int': 5},
-                    '<{ val_56 }}'
-                ]
-            }
-        ]
+                "fg": 2,
+                "str": "valish",
+                "ab": "<{ val_again }}",
+                "dict": {"hello": "<{ val_45 }}", "int": 4},
+                "list_again": [
+                    "hi",
+                    {"hello": "<{ val_12 }}", "int": 5},
+                    "<{ val_56 }}",
+                ],
+            },
+        ],
     }
 
     demunged_meta_true = {
-        'val': '{{ var }}',
-        'list': [
-            'val',
-            '{{ val_34 }}',
+        "val": "{{ var }}",
+        "list": [
+            "val",
+            "{{ val_34 }}",
             {
-                'fg': 2,
-                'str': 'valish',
-                'ab': '{{ val_again }}',
-                'dict': {'hello': '{{ val_45 }}', 'int': 4},
-                'list_again': [
-                    'hi',
-                    {'hello': '{{ val_12 }}', 'int': 5},
-                    '{{ val_56 }}'
+                "fg": 2,
+                "str": "valish",
+                "ab": "{{ val_again }}",
+                "dict": {"hello": "{{ val_45 }}", "int": 4},
+                "list_again": [
+                    "hi",
+                    {"hello": "{{ val_12 }}", "int": 5},
+                    "{{ val_56 }}",
                 ],
             },
         ],
@@ -296,21 +291,21 @@ def test_munge_jinja2_vars():
     assert redemunged_meta == meta
 
     # start with list
-    demunged_meta = _demunge_jinja2_vars(meta['list'], "<")
-    assert demunged_meta_true['list'] == demunged_meta
+    demunged_meta = _demunge_jinja2_vars(meta["list"], "<")
+    assert demunged_meta_true["list"] == demunged_meta
     redemunged_meta = _remunge_jinja2_vars(demunged_meta, "<")
-    assert redemunged_meta == meta['list']
+    assert redemunged_meta == meta["list"]
 
     # string only?
-    demunged_meta = _demunge_jinja2_vars('<{ val }}', "<")
-    assert '{{ val }}' == demunged_meta
+    demunged_meta = _demunge_jinja2_vars("<{ val }}", "<")
+    assert "{{ val }}" == demunged_meta
     redemunged_meta = _remunge_jinja2_vars(demunged_meta, "<")
-    assert redemunged_meta == '<{ val }}'
+    assert redemunged_meta == "<{ val }}"
 
-    demunged_meta = _demunge_jinja2_vars('<<{ val }}', "<<")
-    assert '{{ val }}' == demunged_meta
+    demunged_meta = _demunge_jinja2_vars("<<{ val }}", "<<")
+    assert "{{ val }}" == demunged_meta
     redemunged_meta = _remunge_jinja2_vars(demunged_meta, "<<")
-    assert redemunged_meta == '<<{ val }}'
+    assert redemunged_meta == "<<{ val }}"
 
     # an int
     demunged_meta = _demunge_jinja2_vars(5, "<")
@@ -319,21 +314,26 @@ def test_munge_jinja2_vars():
     assert redemunged_meta == 5
 
 
-@pytest.mark.parametrize('line,correct_line,formatted_line', [
-    ('  key1: val2\n', '  key1: val2\n', None),
-    ('key2: val2\n', 'key2: val2\n', None),
-    ('key3: val3#[sel3]\n',
-     'key3' + CONDA_SELECTOR + 'sel3: val3\n',
-     'key3: val3  # [sel3]\n'),
-    ('key4: val4 #[sel4]\n',
-     'key4' + CONDA_SELECTOR + 'sel4: val4 \n',
-     'key4: val4  # [sel4]\n'),
-    ('key5: val5  # [sel5]\n',
-     'key5' + CONDA_SELECTOR + 'sel5: val5  \n',
-     None),
-    ('blah\n', 'blah\n', None),
-    ('# [sel7]\n', '# [sel7]\n', None),
-])
+@pytest.mark.parametrize(
+    "line,correct_line,formatted_line",
+    [
+        ("  key1: val2\n", "  key1: val2\n", None),
+        ("key2: val2\n", "key2: val2\n", None),
+        (
+            "key3: val3#[sel3]\n",
+            "key3" + CONDA_SELECTOR + "sel3: val3\n",
+            "key3: val3  # [sel3]\n",
+        ),
+        (
+            "key4: val4 #[sel4]\n",
+            "key4" + CONDA_SELECTOR + "sel4: val4 \n",
+            "key4: val4  # [sel4]\n",
+        ),
+        ("key5: val5  # [sel5]\n", "key5" + CONDA_SELECTOR + "sel5: val5  \n", None),
+        ("blah\n", "blah\n", None),
+        ("# [sel7]\n", "# [sel7]\n", None),
+    ],
+)
 def test_munge_lines(line, correct_line, formatted_line):
     munged_line = _munge_line(line)
     assert munged_line == correct_line
@@ -370,12 +370,12 @@ gh:
     jinja2_vars, jinja2_exprs = _parse_jinja2_variables(meta_yaml)
 
     assert jinja2_vars == {
-        'var1': 'name',
-        'var2': 0.1,
-        'var3': 5,
-        'var4__###conda-selector###__py3k and win or (hi!)': 'foo',
-        'var4__###conda-selector###__py3k and win': 'foo',
-        'var4__###conda-selector###__win': 'bar',
+        "var1": "name",
+        "var2": 0.1,
+        "var3": 5,
+        "var4__###conda-selector###__py3k and win or (hi!)": "foo",
+        "var4__###conda-selector###__py3k and win": "foo",
+        "var4__###conda-selector###__win": "bar",
     }
     assert jinja2_exprs == {
         "var5": "{% set var5 = var3 + 10 %}",
@@ -383,10 +383,13 @@ gh:
     }
 
     tmpl = _build_jinja2_expr_tmp(jinja2_exprs)
-    assert tmpl == """\
+    assert (
+        tmpl
+        == """\
 {% set var5 = var3 + 10 %}
 {% set var7 = var1.replace('n', 'm') %}
 var5: >-
   {{ var5 }}
 var7: >-
   {{ var7 }}"""
+    )

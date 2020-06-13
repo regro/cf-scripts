@@ -48,4 +48,4 @@ def test_hashing_timeout_notexist():
 def test_hashing_badtype():
     url = "https://github.com/LSSTDESC/CLMM/archive/0.1.0.tar.gz"
     with pytest.raises(AttributeError):
-        hash_url(url, timeout=100, hash_type='blah')
+        hash_url(url, timeout=100, hash_type="blah")

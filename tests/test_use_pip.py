@@ -11,19 +11,16 @@ from test_migrators import run_test_migration
 PC = PipMigrator()
 VERSION_PC = Version(piggy_back_migrations=[PC])
 
-YAML_PATH = os.path.join(os.path.dirname(__file__), 'test_yaml')
+YAML_PATH = os.path.join(os.path.dirname(__file__), "test_yaml")
 
 
-@pytest.mark.parametrize(
-    'case',
-    ['simple', 'selector'])
+@pytest.mark.parametrize("case", ["simple", "selector"])
 def test_version_pipcheck(case, tmpdir):
-    with open(os.path.join(YAML_PATH, 'version_usepip_%s.yaml' % case), 'r') as fp:
+    with open(os.path.join(YAML_PATH, "version_usepip_%s.yaml" % case), "r") as fp:
         in_yaml = fp.read()
 
     with open(
-            os.path.join(YAML_PATH, 'version_usepip_%s_correct.yaml' % case),
-            'r',
+        os.path.join(YAML_PATH, "version_usepip_%s_correct.yaml" % case), "r",
     ) as fp:
         out_yaml = fp.read()
 

@@ -19,14 +19,12 @@ from conda_forge_tick.migrators.core import (
 try:
     from conda_smithy.lint_recipe import NEEDED_FAMILIES
 except ImportError:
-    NEEDED_FAMILIES = [
-        "gpl", "bsd", "mit", "apache", "psf", "agpl", "lgpl"
-    ]
+    NEEDED_FAMILIES = ["gpl", "bsd", "mit", "apache", "psf", "agpl", "lgpl"]
 
 if typing.TYPE_CHECKING:
     from ..migrators_types import AttrsTypedDict
 
-LICENSE_SPLIT = re.compile(r'\||\+')
+LICENSE_SPLIT = re.compile(r"\||\+")
 
 LOGGER = logging.getLogger("conda_forge_tick.migrators.license")
 
@@ -82,7 +80,6 @@ def _to_spdx(lic):
         "CeCILL-2": "CECILL-2.0",
         "CC BY-NC-SA 4.0": "CC-BY-NC-SA-4.0",
         "CC BY 4.0": "CC-BY-4.0",
-
     }
     return r_to_spdx.get(lic, lic)
 
@@ -100,8 +97,8 @@ def _remove_file_refs(_parts):
 def _munge_licenses(lparts):
     new_lparts = []
     for lpart in lparts:
-        if ' | ' in lpart:
-            _parts = _remove_file_refs(lpart.split(' | '))
+        if " | " in lpart:
+            _parts = _remove_file_refs(lpart.split(" | "))
             last = len(_parts) - 1
             for i, _p in enumerate(_parts):
                 _p = _munge_licenses([_p])
@@ -112,10 +109,10 @@ def _munge_licenses(lparts):
                     new_lparts.append(")")
 
                 if i != last:
-                    new_lparts.append(' OR ')
+                    new_lparts.append(" OR ")
 
-        elif ' + ' in lpart:
-            _parts = _remove_file_refs(lpart.split(' + '))
+        elif " + " in lpart:
+            _parts = _remove_file_refs(lpart.split(" + "))
             last = len(_parts) - 1
             for i, _p in enumerate(_parts):
                 _p = _munge_licenses([_p])
@@ -126,7 +123,7 @@ def _munge_licenses(lparts):
                     new_lparts.append(")")
 
                 if i != last:
-                    new_lparts.append(' AND ')
+                    new_lparts.append(" AND ")
         else:
             new_lparts.append(_to_spdx(lpart.strip()))
     return new_lparts
@@ -143,7 +140,14 @@ def _scrape_license_string(pkg):
     with tempfile.TemporaryDirectory() as tmpdir, indir(tmpdir):
 
         subprocess.run(
-            ['conda', 'skeleton', 'cran', '--allow-archived', '--use-noarch-generic', pkg],
+            [
+                "conda",
+                "skeleton",
+                "cran",
+                "--allow-archived",
+                "--use-noarch-generic",
+                pkg,
+            ],
             check=True,
         )
         with open("r-%s/meta.yaml" % pkg, "r") as fp:
@@ -159,12 +163,11 @@ def _scrape_license_string(pkg):
                     meta_yaml.append(line)
 
                 if line.startswith("# License:"):
-                    d["cran_license"] = line[len("# License:"):].strip()
+                    d["cran_license"] = line[len("# License:") :].strip()
 
     cmeta = CondaMetaYAML("".join(meta_yaml))
 
-    d["license_file"] = [
-        l for l in cmeta.meta.get("about", {}).get("license_file", [])]
+    d["license_file"] = [l for l in cmeta.meta.get("about", {}).get("license_file", [])]
     if len(d["license_file"]) == 0:
         d["license_file"] = None
 
@@ -212,14 +215,11 @@ def _do_r_license_munging(pkg, recipe_dir):
 
 def _is_r(attrs):
     if (
-        (
-            attrs.get("feedstock_name", "").startswith("r-")
-            or attrs.get("name", "").startswith("r-")
-        )
-        and (
-            "r-base" in attrs.get("raw_meta_yaml", "")
-            or "r-base" in attrs.get("requirements", {}).get("run", set())
-        )
+        attrs.get("feedstock_name", "").startswith("r-")
+        or attrs.get("name", "").startswith("r-")
+    ) and (
+        "r-base" in attrs.get("raw_meta_yaml", "")
+        or "r-base" in attrs.get("requirements", {}).get("run", set())
     ):
         return True
     else:
@@ -239,28 +239,22 @@ class LicenseMigrator(MiniMigrator):
             or license.lower().partition("-")[0].partition("v")[0].partition(" ")[0]
         )
         if (
-            (
-                license_fam in NEEDED_FAMILIES
-                or any(n in license_fam for n in NEEDED_FAMILIES)
-                or _is_r(attrs)
-            )
-            and "license_file" not in attrs.get("meta_yaml", {}).get("about", {})
-        ):
+            license_fam in NEEDED_FAMILIES
+            or any(n in license_fam for n in NEEDED_FAMILIES)
+            or _is_r(attrs)
+        ) and "license_file" not in attrs.get("meta_yaml", {}).get("about", {}):
             return False
         return True
 
     def migrate(self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any) -> None:
         # r- recipes have a special syntax here
         if (
-            (
-                attrs.get("feedstock_name", "").startswith("r-")
-                or attrs.get("name", "").startswith("r-")
-            )
-            and "r-base" in attrs["raw_meta_yaml"]
-        ):
+            attrs.get("feedstock_name", "").startswith("r-")
+            or attrs.get("name", "").startswith("r-")
+        ) and "r-base" in attrs["raw_meta_yaml"]:
             if attrs.get("feedstock_name", None) is not None:
                 if attrs.get("feedstock_name", None).endswith("-feedstock"):
-                    name = attrs.get("feedstock_name")[:-len("-feedstock")]
+                    name = attrs.get("feedstock_name")[: -len("-feedstock")]
                 else:
                     name = attrs.get("feedstock_name")
             else:

@@ -145,7 +145,7 @@ class VersionFromFeed(AbstractSource):
             ver = entry["link"].split("/")[-1]
             for prefix in self.ver_prefix_remove:
                 if ver.startswith(prefix):
-                    ver = ver[len(prefix):]
+                    ver = ver[len(prefix) :]
             if any(s in ver.lower() for s in self.dev_vers):
                 continue
             # Extract vesion number starting at the first digit.
@@ -447,7 +447,8 @@ class RawURL(AbstractSource):
                     _exists, _url_to_use = url_exists_swap_exts(url)
                     if not _exists:
                         logger.debug(
-                            "version %s does not exist for url %s", next_ver, url)
+                            "version %s does not exist for url %s", next_ver, url
+                        )
                         continue
                     else:
                         url_to_use = _url_to_use

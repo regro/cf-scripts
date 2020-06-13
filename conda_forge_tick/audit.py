@@ -46,19 +46,19 @@ def main(args):
         python_des, key=lambda x: (len(nx.descendants(gx, x)), x), reverse=True,
     ):
         if time.time() - int(env.get("START_TIME", start_time)) > int(
-            env.get("TIMEOUT", 60*30)
+            env.get("TIMEOUT", 60 * 30)
         ):
             break
         # depfinder only work on python at the moment so only work on things
         # with python as runtime dep
         os.makedirs("audits", exist_ok=True)
         with gx.nodes[node]["payload"] as payload:
-            version = payload.get('version', None)
+            version = payload.get("version", None)
             if (
                 not payload.get("archived", False)
                 and version
                 and "python" in payload["requirements"]["run"]
-                and f'{node}_{version}.json' not in os.listdir("audits")
+                and f"{node}_{version}.json" not in os.listdir("audits")
             ):
                 print(node)
                 fctx = FeedstockContext(

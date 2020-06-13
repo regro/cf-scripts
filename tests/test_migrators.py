@@ -1653,30 +1653,25 @@ def run_test_migration(
         f.write(inp)
 
     # read the conda-forge.yml
-    if os.path.exists(os.path.join(tmpdir, '..', 'conda-forge.yml')):
-        with open(os.path.join(tmpdir, '..', 'conda-forge.yml'), 'r') as fp:
+    if os.path.exists(os.path.join(tmpdir, "..", "conda-forge.yml")):
+        with open(os.path.join(tmpdir, "..", "conda-forge.yml"), "r") as fp:
             cf_yml = fp.read()
     else:
         cf_yml = "{}"
 
     # Load the meta.yaml (this is done in the graph)
     try:
-        name = parse_meta_yaml(inp)['package']['name']
+        name = parse_meta_yaml(inp)["package"]["name"]
     except Exception:
-        name = 'blah'
+        name = "blah"
 
-    pmy = populate_feedstock_attributes(
-        name,
-        {},
-        inp,
-        cf_yml,
-    )
+    pmy = populate_feedstock_attributes(name, {}, inp, cf_yml,)
 
     # these are here for legacy migrators
-    pmy["version"] = pmy['meta_yaml']["package"]["version"]
+    pmy["version"] = pmy["meta_yaml"]["package"]["version"]
     pmy["req"] = set()
     for k in ["build", "host", "run"]:
-        req = pmy['meta_yaml'].get("requirements", {}) or {}
+        req = pmy["meta_yaml"].get("requirements", {}) or {}
         _set = req.get(k) or set()
         pmy["req"] |= set(_set)
     pmy["raw_meta_yaml"] = inp
@@ -1687,10 +1682,12 @@ def run_test_migration(
         return pmy
 
     m.run_pre_piggyback_migrations(
-        tmpdir, pmy, hash_type=pmy.get("hash_type", "sha256"))
+        tmpdir, pmy, hash_type=pmy.get("hash_type", "sha256")
+    )
     mr = m.migrate(tmpdir, pmy, hash_type=pmy.get("hash_type", "sha256"))
     m.run_post_piggyback_migrations(
-        tmpdir, pmy, hash_type=pmy.get("hash_type", "sha256"))
+        tmpdir, pmy, hash_type=pmy.get("hash_type", "sha256")
+    )
 
     assert mr_out == mr
     if not mr:
