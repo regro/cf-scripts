@@ -59,7 +59,7 @@ def grayskull_audit_feedstock(fctx: FeedstockContext, ctx: MigratorSessionContex
             ),
         )
         with open(os.path.join(td, pkg_name, "meta.yaml"), "r") as f:
-            out = f.read()
+            out = yaml.load(f)
     return out
 
 
