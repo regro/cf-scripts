@@ -25,6 +25,8 @@ def deploy(args):
                 ['git', 'add', 'status/*'],
                 ['git', 'add', 'node_attrs/*'],
                 ['git', 'add', 'audits/*'],
+                ['git', 'add', 'audits/grayskull/*'],
+                ['git', 'add', 'audits/depfinder/*'],
                 ['git', 'commit', '-am', f'"Update Graph {$CIRCLE_BUILD_URL}"']]:
         try:
             @(cmd)

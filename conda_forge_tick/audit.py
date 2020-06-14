@@ -42,7 +42,7 @@ def grayskull_audit_feedstock(fctx: FeedstockContext, ctx: MigratorSessionContex
     """Uses grayskull to audit the requirements for a python package
     """
     # TODO: come back to this, since CF <-> PyPI is not one-to-one and onto
-    pkg_name = fctx.attrs["name"]
+    pkg_name = fctx.package_name
     pkg_version = fctx.attrs["version"]
     recipe = GrayskullFactory.create_recipe(
         "pypi", pkg_name, pkg_version, download=False
@@ -64,8 +64,8 @@ def grayskull_audit_feedstock(fctx: FeedstockContext, ctx: MigratorSessionContex
 
 
 AUDIT_REGISTRY = {
-    "depfinder": {"run": depfinder_audit_feedstock, "writer": dump, "ext": ".json"},
-    "grayskull": {"run": grayskull_audit_feedstock, "writer": yaml.dump, "ext": ".yml"},
+    "depfinder": {"run": depfinder_audit_feedstock, "writer": dump, "ext": "json"},
+    "grayskull": {"run": grayskull_audit_feedstock, "writer": yaml.dump, "ext": "yml"},
 }
 
 
