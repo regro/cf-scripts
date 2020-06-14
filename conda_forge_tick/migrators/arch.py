@@ -41,9 +41,9 @@ class ArchRebuild(GraphMigrator):
     ):
         # rebuild the graph to only use edges from the arm and power requirements
         graph2 = nx.create_empty_copy(graph)
-        for node, attrs in graph2.nodes(data='payload'):
+        for node, attrs in graph.nodes(data='payload'):
             for plat_arch in self.arches:
-                deps = set().union(*attrs[f"{plat_arch}_requirements"].values())
+                deps = set().union(*attrs.get(f"{plat_arch}_requirements", attrs.get('requirements', {})).values())
                 for dep in deps:
                     graph2.add_edge(dep, node)
 

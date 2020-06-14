@@ -160,10 +160,6 @@ def populate_feedstock_attributes(
         if not sub_graph.get("url"):
             sub_graph["url"] = s.get("url")
         source_keys |= s.keys()
-    if "url" not in source_keys:
-        missing_keys.append("url")
-    if missing_keys:
-        logger.error(f"Recipe {name} doesn't have a {', '.join(missing_keys)}")
     for k in keys:
         if k[1] not in missing_keys:
             sub_graph[k[1]] = yaml_dict[k[0]][k[1]]
@@ -211,7 +207,7 @@ def _build_graph_process_pool(
             name = futures[f]
             try:
                 sub_graph = {"payload": f.result()}
-                logger.info("itr % 5d - eta % 5ds: finished %s", n_left, eta, name)
+                # logger.info("itr % 5d - eta % 5ds: finished %s", n_left, eta, name)
             except Exception as e:
                 logger.error(
                     "itr % 5d - eta % 5ds: Error adding %s to the graph: %s",
