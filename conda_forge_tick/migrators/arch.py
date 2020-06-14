@@ -39,7 +39,15 @@ class ArchRebuild(GraphMigrator):
     def __init__(
         self, graph: nx.DiGraph = None, name: Optional[str] = None, pr_limit: int = 0,
     ):
-        super().__init__(graph=graph, pr_limit=pr_limit, check_solvable=False)
+        # rebuild the graph to only use edges from the arm and power requirements
+        graph2 = nx.create_empty_copy(graph)
+        for node, attrs in graph2.nodes(data='payload'):
+            for plat_arch in self.arches:
+                deps = set().union(*attrs[f"{plat_arch}_requirements"].values())
+                for dep in deps:
+                    graph2.add_edge(dep, node)
+
+        super().__init__(graph=graph2, pr_limit=pr_limit, check_solvable=False)
 
         assert not self.check_solvable, "We don't want to check solvability for aarch!"
         # We are constraining the scope of this migrator
@@ -57,6 +65,7 @@ class ArchRebuild(GraphMigrator):
                 if target in self.graph.nodes:
                     packages.update(nx.ancestors(self.graph, target))
             self.graph.remove_nodes_from([n for n in self.graph if n not in packages])
+
         # filter out stub packages and ignored packages
         for node in list(self.graph.nodes):
             if (

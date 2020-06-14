@@ -1,25 +1,23 @@
-import re
 import collections.abc
 import hashlib
 import logging
 import os
+import re
 import time
-from collections import defaultdict
+import typing
 from concurrent.futures import as_completed
 from copy import deepcopy
-import typing
-from requests import Response
 from typing import List, Optional, Set
 
 import networkx as nx
 import requests
 import yaml
-
+from requests import Response
 from xonsh.lib.collections import ChainDB, _convert_to_dict
-from .xonsh_utils import env
 
-from conda_forge_tick.utils import as_iterable
+from conda_forge_tick.utils import extract_requirements
 from .all_feedstocks import get_all_feedstocks
+from .contexts import GithubContext
 from .utils import (
     parse_meta_yaml,
     setup_logger,
@@ -29,11 +27,10 @@ from .utils import (
     dump_graph,
     LazyJson,
 )
-from .contexts import GithubContext
+from .xonsh_utils import env
 
 if typing.TYPE_CHECKING:
     from .cli import CLIArgs
-    from .migrators_types import RequirementsTypedDict, TestTypedDict
 
 logger = logging.getLogger("conda_forge_tick.make_graph")
 pin_sep_pat = re.compile(r" |>|<|=|\[")
@@ -116,42 +113,31 @@ def populate_feedstock_attributes(
             }
         }
 
-    yaml_dict = ChainDB(
-        *[parse_meta_yaml(meta_yaml, platform=plat) for plat in ["win", "osx", "linux"]]
-    )
+    plat_arch = [
+        ('win', '64'),
+        ('osx', '64'),
+        ('linux', '64')
+    ]
+    for k in set(sub_graph['conda-forge.yml'].get('provider', {})):
+        if '_' in k:
+            plat_arch.append(k.split('_'))
+    varient_yamls = [parse_meta_yaml(meta_yaml, platform=plat, arch=arch) for plat, arch in plat_arch]
+
+    yaml_dict = ChainDB(*varient_yamls)
     if not yaml_dict:
         logger.error(f"Something odd happened when parsing recipe {name}")
         sub_graph["bad"] = "make_graph: Could not parse"
         return sub_graph
+
     sub_graph["meta_yaml"] = _convert_to_dict(yaml_dict)
     meta_yaml = sub_graph["meta_yaml"]
 
-    sub_graph["strong_exports"] = False
-    # TODO: make certain to remove None
-    requirements_dict = defaultdict(set)
-    for block in [meta_yaml] + meta_yaml.get("outputs", []) or []:
-        req: "RequirementsTypedDict" = block.get("requirements", {}) or {}
-        if isinstance(req, list):
-            requirements_dict["run"].update(set(req))
-            continue
-        for section in ["build", "host", "run"]:
-            requirements_dict[section].update(
-                list(as_iterable(req.get(section, []) or []))
-            )
-        test: "TestTypedDict" = block.get("test", {})
-        requirements_dict["test"].update(test.get("requirements", []) or [])
-        requirements_dict["test"].update(test.get("requires", []) or [])
-        run_exports = (block.get("build", {}) or {}).get("run_exports", {})
-        if isinstance(run_exports, dict) and run_exports.get("strong"):
-            sub_graph["strong_exports"] = True
-    for k in list(requirements_dict.keys()):
-        requirements_dict[k] = set(v for v in requirements_dict[k] if v)
+    for k, v in zip(plat_arch, varient_yamls):
+        plat_arch_name = '_'.join(k)
+        sub_graph[f"{plat_arch_name}_meta_yaml"] = v
+        _, sub_graph[f"{plat_arch_name}_requirements"], _ = extract_requirements(v)
 
-    sub_graph["total_requirements"] = dict(requirements_dict)
-    sub_graph["requirements"] = {
-        k: {pin_sep_pat.split(x)[0].lower() for x in v}
-        for k, v in sub_graph["total_requirements"].items()
-    }
+    sub_graph["total_requirements"], sub_graph["requirements"], sub_graph["strong_exports"] = extract_requirements(meta_yaml)
 
     # handle multi outputs
     if "outputs" in yaml_dict:
