@@ -59,13 +59,15 @@ def grayskull_audit_feedstock(fctx: FeedstockContext, ctx: MigratorSessionContex
             ),
         )
         with open(os.path.join(td, pkg_name, "meta.yaml"), "r") as f:
-            out = yaml.load(f)
+            out = f.read()
     return out
 
 
 AUDIT_REGISTRY = {
     "depfinder": {"run": depfinder_audit_feedstock, "writer": dump, "ext": "json"},
-    "grayskull": {"run": grayskull_audit_feedstock, "writer": yaml.dump, "ext": "yml"},
+    # Grayskull produces a valid meta.yaml, there is no in memory representation for that so we just write out the
+    # string
+    "grayskull": {"run": grayskull_audit_feedstock, "writer": lambda x, f: f.write(x), "ext": "yml"},
 }
 
 
