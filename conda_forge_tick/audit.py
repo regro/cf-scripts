@@ -67,7 +67,11 @@ AUDIT_REGISTRY = {
     "depfinder": {"run": depfinder_audit_feedstock, "writer": dump, "ext": "json"},
     # Grayskull produces a valid meta.yaml, there is no in memory representation for that so we just write out the
     # string
-    "grayskull": {"run": grayskull_audit_feedstock, "writer": lambda x, f: f.write(x), "ext": "yml"},
+    "grayskull": {
+        "run": grayskull_audit_feedstock,
+        "writer": lambda x, f: f.write(x),
+        "ext": "yml",
+    },
 }
 
 
