@@ -90,10 +90,7 @@ def new_update_upstream_versions(
 
             # rude exception
             if node == "ca-policy-lcg":
-                up_to["ca-policy-lcg"] = {
-                    "bad": attrs.get("bad"),
-                    "new_version": False
-                }
+                up_to["ca-policy-lcg"] = {"bad": attrs.get("bad"), "new_version": False}
                 Node_count += 1
                 continue
 
@@ -116,7 +113,7 @@ def new_update_upstream_versions(
                 )
             up_to[f"{node}"] = {
                 "bad": attrs.get("bad"),
-                "new_version": attrs.get("new_version")
+                "new_version": attrs.get("new_version"),
             }
             logger.debug("writing out file")
             with open(f"versions/{node}.json", "w") as outfile:
@@ -136,7 +133,7 @@ def main(args: Any = None) -> None:
     gx = load_graph()
 
     # Check if 'versions' folder exists or create a new one;
-    os.makedirs('versions', exist_ok=True)
+    os.makedirs("versions", exist_ok=True)
     # call update
     to_update = new_update_upstream_versions(gx)
 

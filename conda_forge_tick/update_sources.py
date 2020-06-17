@@ -26,6 +26,7 @@ CRAN_INDEX: Optional[dict] = None
 
 logger = logging.getLogger("conda-forge-tick._update_version.update_sources")
 
+
 def urls_from_meta(meta_yaml: "MetaYamlTypedDict") -> Set[str]:
     source: "SourceTypedDict" = meta_yaml["source"]
     sources: typing.List["SourceTypedDict"]
@@ -124,7 +125,7 @@ class VersionFromFeed(AbstractSource):
             ver = entry["link"].split("/")[-1]
             for prefix in self.ver_prefix_remove:
                 if ver.startswith(prefix):
-                    ver = ver[len(prefix):]
+                    ver = ver[len(prefix) :]
             if any(s in ver.lower() for s in self.dev_vers):
                 continue
             # Extract vesion number starting at the first digit.
@@ -240,7 +241,9 @@ class CRAN(AbstractSource):
     def get_version(self, url) -> Optional[str]:
         return str(url[1]).replace("-", "_") if url[1] else None
 
+
 ROS_DISTRO_INDEX: Optional[dict] = None
+
 
 class ROSDistro(AbstractSource):
     name = "rosdistro"
@@ -315,6 +318,7 @@ class ROSDistro(AbstractSource):
     def get_version(self, url):
         return self.version_url_cache[url]
 
+
 def get_sha256(url: str) -> Optional[str]:
     try:
         return hash_url(url, timeout=120, hash_type="sha256")
@@ -350,6 +354,7 @@ def url_exists_swap_exts(url: str):
     #         return True, new_url
 
     return False, None
+
 
 class RawURL(AbstractSource):
     name = "RawURL"
@@ -398,7 +403,8 @@ class RawURL(AbstractSource):
                     _exists, _url_to_use = url_exists_swap_exts(url)
                     if not _exists:
                         logger.debug(
-                            "version %s does not exist for url %s", next_ver, url)
+                            "version %s does not exist for url %s", next_ver, url
+                        )
                         continue
                     else:
                         url_to_use = _url_to_use
@@ -447,4 +453,3 @@ class LibrariesIO(VersionFromFeed):
                 continue
             pkg = self.package_name(url)
             return f"https://libraries.io/{self.name}/{pkg}/versions.atom"
-
