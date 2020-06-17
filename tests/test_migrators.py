@@ -1597,7 +1597,7 @@ extra:
 
 js = JS()
 version = Version()
-compiler = Compiler()
+# compiler = Compiler()
 noarch = Noarch()
 noarchr = NoarchR()
 perl = Pinning(removals={"perl"})
