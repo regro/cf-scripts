@@ -447,7 +447,7 @@ class RawURL(AbstractSource):
                     _exists, _url_to_use = url_exists_swap_exts(url)
                     if not _exists:
                         logger.debug(
-                            "version %s does not exist for url %s", next_ver, url
+                            "version %s does not exist for url %s", next_ver, url,
                         )
                         continue
                     else:
@@ -476,7 +476,7 @@ class RawURL(AbstractSource):
 
 
 def get_latest_version(
-    name: str, payload_meta_yaml: Any, sources: Iterable[AbstractSource]
+    name: str, payload_meta_yaml: Any, sources: Iterable[AbstractSource],
 ):
     with payload_meta_yaml as meta_yaml:
         for source in sources:
@@ -551,7 +551,7 @@ def _update_upstream_versions_process_pool(
                         pool.submit(get_latest_version, node, attrs, sources): (
                             node,
                             attrs,
-                        )
+                        ),
                     },
                 )
 
@@ -577,7 +577,7 @@ def _update_upstream_versions_process_pool(
                     logger.error(
                         "itr % 5d - eta % 5ds: "
                         "Error getting upstream version of %s: %s"
-                        % (n_left, eta, node, se,)
+                        % (n_left, eta, node, se),
                     )
                     attrs["bad"] = "Upstream: Error getting upstream version"
                 else:

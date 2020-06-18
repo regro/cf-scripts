@@ -315,7 +315,7 @@ class NoarchR(Noarch):
           mkdir -p $PREFIX/lib/R/library/{r_pkg_name}
           mv * $PREFIX/lib/R/library/{r_pkg_name}
         fi
-        """
+        """,
         ).format(r_pkg_name=r_pkg_name)
 
         with indir(recipe_dir):

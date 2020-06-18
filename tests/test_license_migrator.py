@@ -295,9 +295,9 @@ def test_munge_licenses():
     spdx = "".join(
         _munge_licenses(
             [
-                "MIT + file LICENSE | GPL (>= 2) + file LICENSE | file LICENSE + file BLAH"
-            ]
-        )
+                "MIT + file LICENSE | GPL (>= 2) + file LICENSE | file LICENSE + file BLAH",
+            ],
+        ),
     )
     assert spdx == "MIT OR GPL-2.0-or-later"
 

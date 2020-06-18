@@ -40,7 +40,7 @@ class ExtraJinja2KeysCleanup(MiniMigrator):
     def _replace_jinja_key(self, key_name, lines):
         """Replace any usage of and the definition of a jinja2 variable."""
         var_def_regex = re.compile(
-            fr"{{% set {key_name} = [\'\"]?(?P<var_value>.+?)[\'\"]? %}}"
+            fr"{{% set {key_name} = [\'\"]?(?P<var_value>.+?)[\'\"]? %}}",
         )
         var_use = "{{ " + key_name + " }}"
         var_value = None

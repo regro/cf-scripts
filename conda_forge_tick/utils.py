@@ -238,7 +238,7 @@ def setup_logger(logger: logging.Logger, level: Optional[str] = "INFO") -> None:
     ch = logging.StreamHandler()
     ch.setLevel(level.upper())
     ch.setFormatter(
-        logging.Formatter("%(asctime)-15s %(levelname)-8s %(name)s || %(message)s")
+        logging.Formatter("%(asctime)-15s %(levelname)-8s %(name)s || %(message)s"),
     )
     logger.addHandler(ch)
 
@@ -344,7 +344,7 @@ def executor(kind: str, max_workers: int, daemon=True) -> typing.Iterator[Execut
 
         with dask.config.set({"distributed.worker.daemon": daemon}):
             with distributed.LocalCluster(
-                n_workers=max_workers, processes=processes
+                n_workers=max_workers, processes=processes,
             ) as cluster:
                 with distributed.Client(cluster) as client:
                     yield ClientExecutor(client)
@@ -432,7 +432,7 @@ def dump_graph_json(gx: nx.DiGraph, filename: str = "graph.json") -> None:
 
 
 def dump_graph_dynamo(
-    gx: nx.DiGraph, tablename: str = "graph", region: str = "us-east-2"
+    gx: nx.DiGraph, tablename: str = "graph", region: str = "us-east-2",
 ) -> None:
     print(f"DynamoDB dump to {tablename} in {region}")
     ddb = boto3.resource("dynamodb", region_name=region)

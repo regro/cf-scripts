@@ -70,7 +70,7 @@ def _unmunge_line(line, mapping):
 
 def _has_python_in_host(host):
     host_set = {r.split(" ")[0] for r in host}
-    return bool(host_set & set(["python"]))
+    return bool(host_set & {"python"})
 
 
 def _gen_keys_selector(meta, base):

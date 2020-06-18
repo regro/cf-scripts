@@ -50,7 +50,7 @@ extra:
   recipe-maintainers:
     - beckermr
     - conda-forge/bot
-"""
+""",
             )
         assert is_recipe_solvable(FEEDSTOCK_DIR)
     finally:
@@ -103,7 +103,7 @@ extra:
   recipe-maintainers:
     - beckermr
     - conda-forge/bot
-"""
+""",
             )
         assert not is_recipe_solvable(FEEDSTOCK_DIR)
     finally:

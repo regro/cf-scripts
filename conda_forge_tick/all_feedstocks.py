@@ -53,7 +53,7 @@ def main(args: Any = None) -> None:
         logger.info("fetching active feedstocks from admin-migrations")
         r = requests.get(
             "https://raw.githubusercontent.com/conda-forge/admin-migrations/"
-            "master/data/all_feedstocks.json"
+            "master/data/all_feedstocks.json",
         )
         if r.status_code != 200:
             r.raise_for_status()

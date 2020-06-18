@@ -186,21 +186,19 @@ class Migrator:
             already_pred = migrator_uid in already_migrated_uids
             if already_pred:
                 ind = already_migrated_uids.index(migrator_uid)
-                LOGGER.debug("%s: already PRed: uid: %s" % (__name, migrator_uid))
+                LOGGER.debug(f"{__name}: already PRed: uid: {migrator_uid}")
                 if "PR" in attrs.get("PRed", [])[ind]:
                     if isinstance(attrs.get("PRed", [])[ind]["PR"], LazyJson):
                         with attrs.get("PRed", [])[ind]["PR"] as mg_attrs:
 
                             LOGGER.debug(
                                 "%s: already PRed: PR file: %s"
-                                % (__name, mg_attrs.file_name)
+                                % (__name, mg_attrs.file_name),
                             )
 
                             html_url = mg_attrs.get("html_url", "no url")
 
-                            LOGGER.debug(
-                                "%s: already PRed: url: %s" % (__name, html_url)
-                            )
+                            LOGGER.debug(f"{__name}: already PRed: url: {html_url}")
 
             return already_pred
 
@@ -432,7 +430,7 @@ class GraphMigrator(Migrator):
         check_solvable=True,
     ):
         super().__init__(
-            pr_limit, obj_version, piggy_back_migrations, check_solvable=check_solvable
+            pr_limit, obj_version, piggy_back_migrations, check_solvable=check_solvable,
         )
         # TODO: Grab the graph from the migrator ctx
         if graph is None:
@@ -541,7 +539,7 @@ class Replacement(Migrator):
         self.pattern = re.compile(r"\s*-\s*(%s)(\s+|$)" % old_pkg)
         self.packages = {old_pkg}
         self.rationale = rationale
-        self.name = "%s-to-%s" % (old_pkg, new_pkg)
+        self.name = f"{old_pkg}-to-{new_pkg}"
         if graph is None:
             self.graph = nx.DiGraph()
         else:

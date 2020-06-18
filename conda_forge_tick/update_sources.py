@@ -403,7 +403,7 @@ class RawURL(AbstractSource):
                     _exists, _url_to_use = url_exists_swap_exts(url)
                     if not _exists:
                         logger.debug(
-                            "version %s does not exist for url %s", next_ver, url
+                            "version %s does not exist for url %s", next_ver, url,
                         )
                         continue
                     else:

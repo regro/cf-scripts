@@ -256,7 +256,7 @@ def run(
                 body=migrator.pr_body(feedstock_ctx),
                 repo=repo,
                 title=migrator.pr_title(feedstock_ctx),
-                head="%s:%s" % (migrator.ctx.github_username, branch_name),
+                head=f"{migrator.ctx.github_username}:{branch_name}",
                 branch=branch_name,
             )
 
@@ -285,7 +285,7 @@ def run(
     return migrate_return, ljpr
 
 
-def _host_run_test_dependencies(meta_yaml: "MetaYamlTypedDict",) -> Set["PackageName"]:
+def _host_run_test_dependencies(meta_yaml: "MetaYamlTypedDict") -> Set["PackageName"]:
     """Parse the host/run/test dependencies of a recipe
 
     This function parses top-level and `outputs` requirements sections.
@@ -486,7 +486,7 @@ def migration_factory(
                 for node in gx.nodes.values()
             ],
             [],
-        )
+        ),
     )
     for yaml_file, yaml_contents in migration_yamls:
         loaded_yaml = yaml.safe_load(yaml_contents)
@@ -535,7 +535,7 @@ def _outside_pin_range(pin_spec, current_pin, new_version):
 def create_migration_yaml_creator(migrators: MutableSequence[Migrator], gx: nx.DiGraph):
     with indir(os.environ["CONDA_PREFIX"]):
         pinnings = parse_config_file(
-            "conda_build_config.yaml", config=Config(**CB_CONFIG)
+            "conda_build_config.yaml", config=Config(**CB_CONFIG),
         )
     feedstocks_to_be_repinned = []
     for k, package_pin_list in pinnings.items():
@@ -595,7 +595,7 @@ def create_migration_yaml_creator(migrators: MutableSequence[Migrator], gx: nx.D
                 )
 
             current_pins = list(
-                map(lambda x: re.sub("[^0-9.]", "", x).rstrip("."), current_pins)
+                map(lambda x: re.sub("[^0-9.]", "", x).rstrip("."), current_pins),
             )
             current_version = re.sub("[^0-9.]", "", current_version).rstrip(".")
             if current_pins == [""]:
@@ -605,14 +605,14 @@ def create_migration_yaml_creator(migrators: MutableSequence[Migrator], gx: nx.D
             # If the current pin and the current version is the same nothing
             # to do even if the pin isn't accurate to the spec
             if current_pin != current_version and _outside_pin_range(
-                pin_spec, current_pin, current_version
+                pin_spec, current_pin, current_version,
             ):
                 feedstocks_to_be_repinned.append(k)
                 print(package_name, current_version, current_pin, pin_spec)
                 migrators.append(
                     MigrationYamlCreator(
-                        package_name, current_version, current_pin, pin_spec, k, gx
-                    )
+                        package_name, current_version, current_pin, pin_spec, k, gx,
+                    ),
                 )
 
 
@@ -669,7 +669,7 @@ def _compute_time_per_migrator(mctx):
             for node_name in mmctx.effective_graph.nodes:
                 with mmctx.effective_graph.nodes[node_name]["payload"] as attrs:
                     _attempts = attrs.get("new_version_attempts", {}).get(
-                        attrs.get("new_version", ""), 0
+                        attrs.get("new_version", ""), 0,
                     )
                     if _attempts == 0:
                         _num_nodes += 1
@@ -729,8 +729,8 @@ def main(args: "CLIArgs") -> None:
     )
 
     # compute the time per migrator
-    (num_nodes, time_per_migrator, tot_time_per_migrator,) = _compute_time_per_migrator(
-        mctx
+    (num_nodes, time_per_migrator, tot_time_per_migrator) = _compute_time_per_migrator(
+        mctx,
     )
     for i, migrator in enumerate(MIGRATORS):
         if hasattr(migrator, "name"):
@@ -783,7 +783,7 @@ def main(args: "CLIArgs") -> None:
                         attrs.get("new_version"),
                         (
                             attrs.get("new_version_attempts", {}).get(
-                                attrs.get("new_version", ""), 0
+                                attrs.get("new_version", ""), 0,
                             )
                         ),
                     )
