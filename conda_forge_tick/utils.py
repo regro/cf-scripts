@@ -217,7 +217,7 @@ def parse_meta_yaml(text: str, for_pinning=False, **kwargs: Any) -> "MetaYamlTyp
     Returns
     -------
     dict :
-        The parsed YAML dict. If parseing fails, returns an empty dict.
+        The parsed YAML dict. If parsing fails, returns an empty dict.
 
     """
     from conda_build.config import Config
@@ -411,7 +411,7 @@ def dump(
 def loads(
     s: str, object_hook: "Callable[[dict], Any]" = object_hook, **kwargs: Any
 ) -> dict:
-    """Loads a string as JSON, with approriate object hooks"""
+    """Loads a string as JSON, with appropriate object hooks"""
     return json.loads(s, object_hook=object_hook, **kwargs)
 
 

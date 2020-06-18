@@ -18,7 +18,7 @@ def fetch_repo(*, feedstock_dir, origin, upstream, branch) -> bool:
         # make sure feedstock is up-to-date with origin
         git checkout master
         git pull @(origin) master --quiet
-        # remove any uncommited changes?
+        # remove any uncommitted changes?
         git reset --hard HEAD
         # make sure feedstock is up-to-date with upstream
         # git pull @(upstream) master -s recursive -X theirs --no-edit

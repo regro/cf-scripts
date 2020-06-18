@@ -327,7 +327,7 @@ def make_graph(
                 lzj.update(feedstock_name=dep, bad=False, archived=True)
                 gx.add_node(dep, payload=lzj)
             gx.add_edge(dep, node)
-    logger.info("new nodes and edges infered")
+    logger.info("new nodes and edges inferred")
     return gx
 
 

@@ -94,7 +94,7 @@ def new_update_upstream_versions(
                 Node_count += 1
                 continue
 
-            # New verison request
+            # New version request
             try:
                 new_version = get_latest_version(node, attrs, sources)
                 attrs["new_version"] = new_version or attrs["new_version"]

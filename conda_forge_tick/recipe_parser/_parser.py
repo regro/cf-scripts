@@ -41,7 +41,7 @@ def _config_has_key_with_selectors(cfg: dict, key: str):
 
 
 def _parse_jinja2_variables(meta_yaml: str) -> dict:
-    """Parse all assignements of jinja2 variables in a recipe.
+    """Parse all assignments of jinja2 variables in a recipe.
 
     For example, the following file
 

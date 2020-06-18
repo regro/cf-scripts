@@ -105,7 +105,7 @@ BOT_RERUN_LABEL = {
     "color": "#191970",
     "description": (
         "Apply this label if you want the bot to retry "
-        "issueing a particular pull-request"
+        "issuing a particular pull-request"
     ),
 }
 

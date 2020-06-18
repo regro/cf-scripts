@@ -41,7 +41,7 @@ def _patch_dict(cfg, patches):
 
         {"a": [11, 12], "b": {"c": 20}}
 
-    Note that whole keys are replaced wheras keys separated by periods
+    Note that whole keys are replaced whereas keys separated by periods
     specify a path to a key.
 
     Parameters
@@ -287,7 +287,7 @@ class MigrationYaml(GraphMigrator):
     def order(
         self, graph: nx.DiGraph, total_graph: nx.DiGraph,
     ) -> Sequence["PackageName"]:
-        """Run the order by number of decendents, ties are resolved by package name"""
+        """Run the order by number of decedents, ties are resolved by package name"""
         return sorted(
             graph, key=lambda x: (len(nx.descendants(total_graph, x)), x), reverse=True,
         )
@@ -404,7 +404,7 @@ class MigrationYamlCreator(Migrator):
     def order(
         self, graph: nx.DiGraph, total_graph: nx.DiGraph,
     ) -> Sequence["PackageName"]:
-        """Run the order by number of decendents, ties are resolved by package name"""
+        """Run the order by number of decedents, ties are resolved by package name"""
         return sorted(
             graph, key=lambda x: (len(nx.descendants(total_graph, x)), x), reverse=True,
         )

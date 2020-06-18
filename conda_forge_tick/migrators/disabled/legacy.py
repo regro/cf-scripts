@@ -130,7 +130,7 @@ class Compiler(Migrator):
         body = super().pr_body(feedstock_ctx)
         body = body.format(
             "{}\n"
-            "*If you have recived a `Migrate to Jinja2 compiler "
+            "*If you have received a `Migrate to Jinja2 compiler "
             "syntax` PR from me recently please close that one and use "
             "this one*.\n"
             "It is very likely that this feedstock is in need of migration.\n"
@@ -463,7 +463,7 @@ class Rebuild(GraphMigrator):
         return n
 
     def order(self, graph: nx.DiGraph, total_graph: nx.DiGraph) -> List["PackageName"]:
-        """Run the order by number of decendents, ties are resolved by package name"""
+        """Run the order by number of decedents, ties are resolved by package name"""
         return sorted(
             graph, key=lambda x: (len(nx.descendants(total_graph, x)), x), reverse=True,
         )
