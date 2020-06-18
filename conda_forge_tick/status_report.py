@@ -218,8 +218,8 @@ def main(args: Any = None) -> None:
                 migrator_name = migrator.__class__.__name__.lower()
             total_status[migrator_name] = f"{migrator.name} Migration Status"
             status, build_order, gv = graph_migrator_status(migrator, mctx.graph)
-            with open(os.path.join(f"./status/{migrator_name}.json"), "w") as fo:
-                json.dump(status, fo, indent=2)
+            with open(os.path.join(f"./status/{migrator_name}.json"), "w") as fp:
+                json.dump(status, fp, indent=2)
 
             d = gv.pipe("dot")
             with tempfile.NamedTemporaryFile(suffix=".dot") as ntf:
