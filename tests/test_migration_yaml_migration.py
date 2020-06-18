@@ -121,7 +121,7 @@ migrator_ts: 12345.2
 
 
 @pytest.mark.parametrize(
-    "in_out_yaml", [(IN_YAML, OUT_YAML), (IN_YAML_TODAY, OUT_YAML_TODAY),]
+    "in_out_yaml", [(IN_YAML, OUT_YAML), (IN_YAML_TODAY, OUT_YAML_TODAY)],
 )
 @mock.patch("time.time")
 def test_migration_yaml_migration(tmock, in_out_yaml, caplog, tmpdir):
@@ -195,7 +195,7 @@ def run_test_migration(
     except Exception:
         name = "blah"
 
-    pmy = populate_feedstock_attributes(name, {}, inp, cf_yml,)
+    pmy = populate_feedstock_attributes(name, {}, inp, cf_yml)
 
     # these are here for legacy migrators
     pmy["version"] = pmy["meta_yaml"]["package"]["version"]
@@ -212,11 +212,11 @@ def run_test_migration(
         return
 
     m.run_pre_piggyback_migrations(
-        tmpdir, pmy, hash_type=pmy.get("hash_type", "sha256")
+        tmpdir, pmy, hash_type=pmy.get("hash_type", "sha256"),
     )
     mr = m.migrate(tmpdir, pmy, hash_type=pmy.get("hash_type", "sha256"))
     m.run_post_piggyback_migrations(
-        tmpdir, pmy, hash_type=pmy.get("hash_type", "sha256")
+        tmpdir, pmy, hash_type=pmy.get("hash_type", "sha256"),
     )
 
     assert mr_out == mr

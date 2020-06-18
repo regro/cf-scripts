@@ -128,7 +128,7 @@ class VersionFromFeed(AbstractSource):
                     ver = ver[len(prefix) :]
             if any(s in ver.lower() for s in self.dev_vers):
                 continue
-            # Extract vesion number starting at the first digit.
+            # Extract version number starting at the first digit.
             ver = re.search(r"(\d+[^\s]*)", ver).group(0)
             vers.append(ver)
         if vers:
@@ -183,8 +183,8 @@ class CRAN(AbstractSource):
 
     Uses a local CRAN index instead of one request per package.
 
-    The index is lazy initialzed on first `get_url` call and kept in
-    memory on module level as `CRAN_INDEX` like a singelton. This way it
+    The index is lazy initialized on first `get_url` call and kept in
+    memory on module level as `CRAN_INDEX` like a singleton. This way it
     is shared on executor level and not serialized with every instance of
     the CRAN class to allow efficient distributed execution with e.g.
     dask.
@@ -367,7 +367,7 @@ class RawURL(AbstractSource):
         # TODO: pull this from the graph itself
         content = meta_yaml["raw_meta_yaml"]
 
-        # this while statment runs until a bad version is found
+        # this while statement runs until a bad version is found
         # then it uses the previous one
         orig_urls = urls_from_meta(meta_yaml["meta_yaml"])
         current_ver = meta_yaml["version"]
@@ -403,7 +403,7 @@ class RawURL(AbstractSource):
                     _exists, _url_to_use = url_exists_swap_exts(url)
                     if not _exists:
                         logger.debug(
-                            "version %s does not exist for url %s", next_ver, url
+                            "version %s does not exist for url %s", next_ver, url,
                         )
                         continue
                     else:

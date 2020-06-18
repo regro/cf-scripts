@@ -24,7 +24,7 @@ def depfinder_audit_feedstock(fctx: FeedstockContext, ctx: MigratorSessionContex
     feedstock_dir = os.path.join(ctx.rever_dir, fctx.package_name + "-feedstock")
     origin = feedstock_url(fctx=fctx, protocol="https")
     fetch_repo(
-        feedstock_dir=feedstock_dir, origin=origin, upstream=origin, branch="master"
+        feedstock_dir=feedstock_dir, origin=origin, upstream=origin, branch="master",
     )
     recipe_dir = os.path.join(feedstock_dir, "recipe")
 
@@ -45,7 +45,7 @@ def grayskull_audit_feedstock(fctx: FeedstockContext, ctx: MigratorSessionContex
     pkg_name = fctx.package_name
     pkg_version = fctx.attrs["version"]
     recipe = GrayskullFactory.create_recipe(
-        "pypi", pkg_name, pkg_version, download=False
+        "pypi", pkg_name, pkg_version, download=False,
     )
 
     with tempfile.TemporaryDirectory() as td:
@@ -55,7 +55,7 @@ def grayskull_audit_feedstock(fctx: FeedstockContext, ctx: MigratorSessionContex
                 {
                     m: None
                     for m in fctx.attrs["meta_yaml"]["extra"]["recipe-maintainers"]
-                }
+                },
             ),
         )
         with open(os.path.join(td, pkg_name, "meta.yaml"), "r") as f:
@@ -91,7 +91,7 @@ def main(args):
         python_des, key=lambda x: (len(nx.descendants(gx, x)), x), reverse=True,
     ):
         if time.time() - int(env.get("START_TIME", start_time)) > int(
-            env.get("TIMEOUT", 60 * 30)
+            env.get("TIMEOUT", 60 * 30),
         ):
             break
         # depfinder only work on python at the moment so only work on things
@@ -108,7 +108,9 @@ def main(args):
                 ):
                     print(node)
                     fctx = FeedstockContext(
-                        package_name=node, feedstock_name=payload["name"], attrs=payload
+                        package_name=node,
+                        feedstock_name=payload["name"],
+                        attrs=payload,
                     )
                     try:
                         deps = v["run"](fctx, ctx)

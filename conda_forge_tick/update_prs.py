@@ -58,7 +58,7 @@ def _get_last_updated_prs():
             }
           }
         }
-    """
+    """,
     )  # noqa
     headers = {"Authorization": f"token {github_token}"}
     # Try several times because this times out
