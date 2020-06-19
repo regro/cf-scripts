@@ -41,7 +41,7 @@ def _patch_dict(cfg, patches):
 
         {"a": [11, 12], "b": {"c": 20}}
 
-    Note that whole keys are replaced wheras keys separated by periods
+    Note that whole keys are replaced whereas keys separated by periods
     specify a path to a key.
 
     Parameters
@@ -287,7 +287,7 @@ class MigrationYaml(GraphMigrator):
     def order(
         self, graph: nx.DiGraph, total_graph: nx.DiGraph,
     ) -> Sequence["PackageName"]:
-        """Run the order by number of decendents, ties are resolved by package name"""
+        """Run the order by number of decedents, ties are resolved by package name"""
         return sorted(
             graph, key=lambda x: (len(nx.descendants(total_graph, x)), x), reverse=True,
         )
@@ -313,12 +313,12 @@ class MigrationYamlCreator(Migrator):
         bump_number: int = 1,
         **kwargs: Any,
     ):
-        super().__init__(pr_limit=pr_limit,)
+        super().__init__(pr_limit=pr_limit)
         self.feedstock_name = feedstock_name
         self.pin_spec = pin_spec
         self.current_pin = current_pin
         self.new_pin_version = ".".join(
-            new_pin_version.split(".")[: len(pin_spec.split("."))]
+            new_pin_version.split(".")[: len(pin_spec.split("."))],
         )
         self.package_name = package_name
         self.bump_number = bump_number
@@ -342,9 +342,8 @@ class MigrationYamlCreator(Migrator):
             "migrator_ts": float(time.time()),
         }
         with indir(os.path.join(recipe_dir, "migrations")):
-            mig_fname = "%s%s.yaml" % (
-                self.package_name,
-                self.new_pin_version.replace(".", ""),
+            mig_fname = "{}{}.yaml".format(
+                self.package_name, self.new_pin_version.replace(".", ""),
             )
             with open(mig_fname, "w") as f:
                 yaml.dump(migration_yaml_dict, f, default_flow_style=False, indent=2)
@@ -405,7 +404,7 @@ class MigrationYamlCreator(Migrator):
     def order(
         self, graph: nx.DiGraph, total_graph: nx.DiGraph,
     ) -> Sequence["PackageName"]:
-        """Run the order by number of decendents, ties are resolved by package name"""
+        """Run the order by number of decedents, ties are resolved by package name"""
         return sorted(
             graph, key=lambda x: (len(nx.descendants(total_graph, x)), x), reverse=True,
         )
@@ -441,7 +440,7 @@ def create_rebuild_graph(
                 (host or build)
                 | requirements.get("run", set())
                 | requirements.get("test", set()),
-            )
+            ),
         )
 
         for e in list(total_graph.in_edges(node)):

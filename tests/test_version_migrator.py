@@ -45,7 +45,7 @@ def test_version(case, new_ver, tmpdir, caplog):
     with open(os.path.join(YAML_PATH, "version_%s.yaml" % case), "r") as fp:
         in_yaml = fp.read()
 
-    with open(os.path.join(YAML_PATH, "version_%s_correct.yaml" % case), "r",) as fp:
+    with open(os.path.join(YAML_PATH, "version_%s_correct.yaml" % case), "r") as fp:
         out_yaml = fp.read()
 
     kwargs = {"new_version": new_ver}
@@ -85,7 +85,7 @@ def test_version_noup(case, new_ver, tmpdir, caplog):
     with open(os.path.join(YAML_PATH, "version_%s.yaml" % case), "r") as fp:
         in_yaml = fp.read()
 
-    with open(os.path.join(YAML_PATH, "version_%s_correct.yaml" % case), "r",) as fp:
+    with open(os.path.join(YAML_PATH, "version_%s_correct.yaml" % case), "r") as fp:
         out_yaml = fp.read()
 
     attrs = run_test_migration(

@@ -25,19 +25,19 @@ different kinds of migrations that are available.
 Custom Migrations
 =================
 
-Custom migrators are used when 
+Custom migrators are used when
 
-1. the internals of the conda-forge system (e.g., the various yaml configuration files) 
+1. the internals of the conda-forge system (e.g., the various yaml configuration files)
    need to be changed
-2. the migration task falls outside of CFGEP-09 (e.g., renaming a package, swapping 
+2. the migration task falls outside of CFGEP-09 (e.g., renaming a package, swapping
    a dependency, etc.)
 
-To add a custom migration, follow the following steps. 
+To add a custom migration, follow the following steps.
 
 Write your Custom Migration Class
 ---------------------------------
 Your ``Migration`` instance should inherit from ``conda_forge_tick.migrations.core.Migration``.
-You should implement the ``migrate`` method and override any other methods in order to make 
+You should implement the ``migrate`` method and override any other methods in order to make
 a good looking pull request with a correct change to the feedstock.
 
 Add your ``Migration`` to ``auto_tick.py``
@@ -46,7 +46,7 @@ To have the bot run the migration, we need to add the migrator to add it to the
 ``auto_tick`` module.
 If the migrator needs no information about the graph (eg. version bumps) then
 it can be added to the ``MIGRATORS`` list directly.
-If the migrator needs graph information (eg it runs in topological order) then it 
+If the migrator needs graph information (eg it runs in topological order) then it
 needs to be added by a function (e.g., ``add_rebuild``).
 This function takes in the list of migrators and the entire package graph.
 The job of the function is to pair down the graph to the nodes which need
@@ -54,7 +54,7 @@ to be migrated, for instance only packages which require ``python``.
 This paired down graph is passed into the migrator, which is then added
 to the migrators list.
 
-Once the ``add_rebuild...`` function is created it needs to be added to the 
+Once the ``add_rebuild...`` function is created it needs to be added to the
 ``initialize_migrators`` function so the migration will go forward.
 
 See the ``auto_tick.py`` file for example ``add_rebuild...`` functions.

@@ -114,11 +114,11 @@ def get_index(
 
         full_url = channel.url(with_credentials=True) + "/" + repodata_fn
         full_path_cache = os.path.join(
-            create_cache_dir(), cache_fn_url(full_url, repodata_fn)
+            create_cache_dir(), cache_fn_url(full_url, repodata_fn),
         )
 
         sd = api.SubdirData(
-            channel.name + "/" + channel.subdir, full_url, full_path_cache
+            channel.name + "/" + channel.subdir, full_url, full_path_cache,
         )
 
         sd.load()
@@ -232,14 +232,14 @@ def is_recipe_solvable(feedstock_dir):
         logger.warning(
             "No `.ci_support/*.yaml` files found! This can happen when a rerender "
             "results in no builds for a recipe (e.g., a recipe is python 2.7 only). "
-            "This attempted migration is being reported as not solvable."
+            "This attempted migration is being reported as not solvable.",
         )
         return False
 
     if not os.path.exists(os.path.join(feedstock_dir, "recipe", "meta.yaml")):
         logger.warning(
             "No `recipe/meta.yaml` file found! This issue is quite weird and "
-            "someone should investigate!"
+            "someone should investigate!",
         )
         return False
 
@@ -315,13 +315,13 @@ def _is_recipe_solvable_on_platform(recipe_dir, cbc_path, platform, arch):
 
     # now we loop through each one and check if we can solve it
     # we check run and host and ignore the rest
-    mamba_solver = _mamba_factory(tuple(channel_sources), "%s-%s" % (platform, arch))
+    mamba_solver = _mamba_factory(tuple(channel_sources), f"{platform}-{arch}")
 
     solvable = True
     outnames = [m.name() for m, _, _ in metas]
     for m, _, _ in metas:
         host_req = m.get_value("requirements/host", []) or m.get_value(
-            "requirements/build", []
+            "requirements/build", [],
         )
         host_req = _clean_reqs(host_req, outnames)
         solvable &= mamba_solver.solve(host_req)

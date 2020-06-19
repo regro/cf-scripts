@@ -74,5 +74,5 @@ Monitoring
 A small ``flask`` app running on ``heroku`` counts the number of completed
 GitHub Actions across ``conda-forge``. The code for this app lives in the
 `conda-forge-status-monitor <https://github.com/conda-forge/conda-forge-status-monitor>`_ repo. This app
-serves a `report <https://conda-forge-status-monitor.herokuapp.com/>`_ whose data is 
+serves a `report <https://conda-forge-status-monitor.herokuapp.com/>`_ whose data is
 displayed on the ``conda-forge`` `status webpage <https://conda-forge.org/status/>`_.
