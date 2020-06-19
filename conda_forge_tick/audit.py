@@ -70,6 +70,7 @@ AUDIT_REGISTRY = {
     "grayskull": {
         "run": grayskull_audit_feedstock,
         "writer": lambda x, f: f.write(x),
+        "dumper": yaml.dump,
         "ext": "yml",
     },
 }
@@ -117,6 +118,8 @@ def main(args):
                             "exception": str(e),
                             "traceback": str(traceback.format_exc()).split("\n"),
                         }
+                        if 'dumper' in v:
+                            deps = v['dumper'](deps)
                     finally:
                         with open(f"audits/{k}/{node}_{version}.{ext}", "w") as f:
                             v["writer"](deps, f)
