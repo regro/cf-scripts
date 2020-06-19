@@ -21,7 +21,8 @@ from typing import (
     Iterable,
     Set,
     Iterator,
-    List, Dict,
+    List,
+    Dict,
 )
 
 # conda_forge_tick :: cft
