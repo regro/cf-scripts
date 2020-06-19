@@ -5,8 +5,8 @@ import json
 import os
 import tqdm
 
-from utils import setup_logger, load_graph
-from update_sources import (
+from .utils import setup_logger, load_graph
+from .update_sources import (
     AbstractSource,
     PyPI,
     CRAN,
@@ -21,7 +21,7 @@ from typing import (
     Iterable,
     Set,
     Iterator,
-    List,
+    List, Dict,
 )
 
 # conda_forge_tick :: cft
@@ -57,7 +57,7 @@ CONDA_FORGE_TICK_DEBUG = os.environ.get("CONDA_FORGE_TICK_DEBUG", False)
 
 def new_update_upstream_versions(
     gx: nx.DiGraph, sources: Iterable[AbstractSource] = None,
-) -> None:
+) -> Dict:
     sources = (
         (PyPI(), CRAN(), NPM(), ROSDistro(), RawURL(), Github())
         if sources is None
