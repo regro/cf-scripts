@@ -18,17 +18,13 @@ from .update_sources import (
     RawURL,
     Github,
 )
-from typing import (
-    Any,
-    Iterable
-)
+from typing import Any, Iterable
 
-# conda_forge_tick :: cft
 logger = logging.getLogger("conda-forge-tick._update_versions")
 
 
 def get_latest_version(
-        name: str, payload_meta_yaml: Any, sources: Iterable[AbstractSource],
+    name: str, payload_meta_yaml: Any, sources: Iterable[AbstractSource],
 ):
     with payload_meta_yaml as meta_yaml:
         for source in sources:
@@ -55,7 +51,7 @@ CONDA_FORGE_TICK_DEBUG = os.environ.get("CONDA_FORGE_TICK_DEBUG", False)
 
 
 def _update_upstream_versions_sequential(
-        gx: nx.DiGraph, sources: Iterable[AbstractSource] = None,
+    gx: nx.DiGraph, sources: Iterable[AbstractSource] = None,
 ) -> None:
     _all_nodes = [t for t in gx.nodes.items()]
     random.shuffle(_all_nodes)
@@ -109,8 +105,9 @@ def _update_upstream_versions_sequential(
             node_count += 1
 
 
-def _update_upstream_versions_process_pool(gx: nx.DiGraph, sources: Iterable[AbstractSource],
-                                           ) -> None:
+def _update_upstream_versions_process_pool(
+    gx: nx.DiGraph, sources: Iterable[AbstractSource],
+) -> None:
     futures = {}
     # this has to be threads because the url hashing code uses a Pipe which
     # cannot be spawned from a process
@@ -185,7 +182,7 @@ def _update_upstream_versions_process_pool(gx: nx.DiGraph, sources: Iterable[Abs
 
 
 def update_upstream_versions(
-        gx: nx.DiGraph, sources: Iterable[AbstractSource] = None,
+    gx: nx.DiGraph, sources: Iterable[AbstractSource] = None,
 ) -> None:
     sources = (
         (PyPI(), CRAN(), NPM(), ROSDistro(), RawURL(), Github())
