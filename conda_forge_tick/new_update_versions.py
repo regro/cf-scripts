@@ -30,9 +30,7 @@ logger = logging.getLogger("conda-forge-tick._update_versions")
 
 
 def get_latest_version(
-    name: str,
-    payload_meta_yaml: Any,
-    sources: Iterable[AbstractSource],
+    name: str, payload_meta_yaml: Any, sources: Iterable[AbstractSource],
 ) -> dict:
     version_data = {}
     with payload_meta_yaml as meta_yaml:
@@ -49,7 +47,9 @@ def get_latest_version(
                 return version_data
             else:
                 logger.debug(f"Upstream: Could not find version on {source.name}")
-                version_data["bad"] = f"Upstream: Could not find version on {source.name}"
+                version_data[
+                    "bad"
+                ] = f"Upstream: Could not find version on {source.name}"
         if not meta_yaml.get("bad"):
             logger.debug("Upstream: unknown source")
             version_data["bad"] = "Upstream: unknown source"
