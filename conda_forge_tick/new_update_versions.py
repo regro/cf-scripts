@@ -30,7 +30,7 @@ logger = logging.getLogger("conda-forge-tick._update_versions")
 
 
 def get_latest_version(
-        name: str, payload_meta_yaml: Any, sources: Iterable[AbstractSource], versions: dict
+    name: str, payload_meta_yaml: Any, sources: Iterable[AbstractSource], versions: dict,
 ):
     with payload_meta_yaml as meta_yaml:
         for source in sources:
@@ -57,7 +57,7 @@ CONDA_FORGE_TICK_DEBUG = os.environ.get("CONDA_FORGE_TICK_DEBUG", False)
 
 
 def new_update_upstream_versions(
-        gx: nx.DiGraph, sources: Iterable[AbstractSource] = None,
+    gx: nx.DiGraph, sources: Iterable[AbstractSource] = None,
 ) -> None:
     sources = (
         (PyPI(), CRAN(), NPM(), ROSDistro(), RawURL(), Github())
@@ -93,8 +93,11 @@ def new_update_upstream_versions(
             # New version request
             try:
                 # check for latest version
-                new_version = get_latest_version(node, attrs, sources, up_to) or attrs["new_version"]
-                up_to['new_version'] = new_version
+                new_version = (
+                    get_latest_version(node, attrs, sources, up_to)
+                    or attrs["new_version"]
+                )
+                up_to["new_version"] = new_version
             except Exception as e:
                 try:
                     se = repr(e)
