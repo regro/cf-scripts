@@ -70,15 +70,14 @@ def new_update_upstream_versions(
 
     # Inspection the graph object and node update:
     # print(f"Number of nodes: {len(gx.nodes)}")
-    Node_count = 0
-
+    node_count = 0
     to_update = []
     for node, node_attrs in tqdm.tqdm(_all_nodes):
-        attrs = node_attrs["payload"]
-        if attrs.get("bad") or attrs.get("archived"):
-            attrs["new_version"] = False
-            continue
-        to_update.append((node, attrs))
+        with node_attrs["payload"] as attrs:
+            if attrs.get("bad") or attrs.get("archived"):
+                attrs["new_version"] = False
+                continue
+            to_update.append((node, attrs))
 
     for node, node_attrs in to_update:
         # checking each node
@@ -88,7 +87,7 @@ def new_update_upstream_versions(
             # avoid
             if node == "ca-policy-lcg":
                 up_to["ca-policy-lcg"] = {"bad": attrs.get("bad"), "new_version": False}
-                Node_count += 1
+                node_count += 1
                 continue
 
             # New version request
@@ -106,7 +105,7 @@ def new_update_upstream_versions(
                 attrs["bad"] = "Upstream: Error getting upstream version"
             else:
                 logger.info(
-                    f"# {Node_count:<5} - {node} - {attrs.get('version')} - {attrs.get('new_version')}",
+                    f"# {node_count:<5} - {node} - {attrs.get('version')} - {attrs.get('new_version')}",
                 )
             up_to[f"{node}"] = {
                 "bad": attrs.get("bad"),
@@ -115,7 +114,7 @@ def new_update_upstream_versions(
             logger.debug("writing out file")
             with open(f"versions/{node}.json", "w") as outfile:
                 json.dump(to_update, outfile)
-            Node_count += 1
+            node_count += 1
     return up_to
 
 
