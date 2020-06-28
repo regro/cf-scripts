@@ -30,7 +30,10 @@ logger = logging.getLogger("conda-forge-tick._update_versions")
 
 
 def get_latest_version(
-    name: str, payload_meta_yaml: Any, sources: Iterable[AbstractSource], versions: dict,
+    name: str,
+    payload_meta_yaml: Any,
+    sources: Iterable[AbstractSource],
+    versions: dict,
 ):
     with payload_meta_yaml as meta_yaml:
         for source in sources:
