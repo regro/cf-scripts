@@ -30,7 +30,7 @@ logger = logging.getLogger("conda-forge-tick._update_versions")
 
 
 def get_latest_version(
-    name: str, payload_meta_yaml: Any, sources: Iterable[AbstractSource],
+        name: str, payload_meta_yaml: Any, sources: Iterable[AbstractSource],
 ):
     with payload_meta_yaml as meta_yaml:
         for source in sources:
@@ -45,10 +45,10 @@ def get_latest_version(
                 return ver
             else:
                 logger.debug(f"Upstream: Could not find version on {source.name}")
-                meta["bad"] = f"Upstream: Could not find version on {source.name}"
+                meta_yaml["bad"] = f"Upstream: Could not find version on {source.name}"
         if not meta_yaml.get("bad"):
             logger.debug("Upstream: unknown source")
-            meta["bad"] = "Upstream: unknown source"
+            meta_yaml["bad"] = "Upstream: unknown source"
         return False
 
 
@@ -57,7 +57,7 @@ CONDA_FORGE_TICK_DEBUG = os.environ.get("CONDA_FORGE_TICK_DEBUG", False)
 
 
 def new_update_upstream_versions(
-    gx: nx.DiGraph, sources: Iterable[AbstractSource] = None,
+        gx: nx.DiGraph, sources: Iterable[AbstractSource] = None,
 ) -> None:
     sources = (
         (PyPI(), CRAN(), NPM(), ROSDistro(), RawURL(), Github())
@@ -116,7 +116,6 @@ def new_update_upstream_versions(
                 }
                 json.dump(up_to, outfile)
             node_count += 1
-
 
 
 def main(args: Any = None) -> None:
