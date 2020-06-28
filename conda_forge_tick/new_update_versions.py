@@ -33,8 +33,8 @@ def get_latest_version(
     name: str,
     payload_meta_yaml: Any,
     sources: Iterable[AbstractSource],
-    versions: dict,
-):
+) -> dict:
+    version_data = {}
     with payload_meta_yaml as meta_yaml:
         for source in sources:
             logger.debug("source: %s", source.__class__.__name__)
@@ -45,14 +45,17 @@ def get_latest_version(
             ver = source.get_version(url)
             logger.debug("ver: %s", ver)
             if ver:
-                return ver
+                version_data["new_version"] = ver
+                return version_data
             else:
                 logger.debug(f"Upstream: Could not find version on {source.name}")
-                versions["bad"] = f"Upstream: Could not find version on {source.name}"
+                version_data["bad"] = f"Upstream: Could not find version on {source.name}"
         if not meta_yaml.get("bad"):
             logger.debug("Upstream: unknown source")
-            versions["bad"] = "Upstream: unknown source"
-        return False
+            version_data["bad"] = "Upstream: unknown source"
+
+        version_data["new_version"] = False
+        return version_data
 
 
 # It's expected that your environment provide this info.
@@ -78,29 +81,24 @@ def new_update_upstream_versions(
     for node, node_attrs in tqdm.tqdm(_all_nodes):
         with node_attrs["payload"] as attrs:
             if attrs.get("bad") or attrs.get("archived"):
-                # "new_version" = False
                 continue
             to_update.append((node, attrs))
 
     for node, node_attrs in to_update:
         # checking each node
         with node_attrs as attrs:
-            up_to = {}
+            version_data = {}
 
             # avoid
             if node == "ca-policy-lcg":
-                up_to["new_version"] = False
+                version_data["new_version"] = False
                 node_count += 1
                 continue
 
             # New version request
             try:
                 # check for latest version
-                new_version = (
-                    get_latest_version(node, attrs, sources, up_to)
-                    or attrs["new_version"]
-                )
-                up_to["new_version"] = new_version
+                version_data.update(get_latest_version(node, attrs, sources))
             except Exception as e:
                 try:
                     se = repr(e)
@@ -109,15 +107,15 @@ def new_update_upstream_versions(
                 logger.warning(
                     f"Warning: Error getting upstream version of {node}: {se}",
                 )
-                up_to["bad"] = "Upstream: Error getting upstream version"
+                version_data["bad"] = "Upstream: Error getting upstream version"
             else:
                 logger.info(
-                    f"# {node_count:<5} - {node} - {attrs.get('version')} - {new_version}",
+                    f"# {node_count:<5} - {node} - {attrs.get('version')} - {version_data.get('new_version')}",
                 )
 
             logger.debug("writing out file")
             with open(f"versions/{node}.json", "w") as outfile:
-                json.dump(up_to, outfile)
+                json.dump(version_data, outfile)
             node_count += 1
 
 
