@@ -58,7 +58,7 @@ CONDA_FORGE_TICK_DEBUG = os.environ.get("CONDA_FORGE_TICK_DEBUG", False)
 
 def new_update_upstream_versions(
     gx: nx.DiGraph, sources: Iterable[AbstractSource] = None,
-) -> Dict:
+) -> None:
     sources = (
         (PyPI(), CRAN(), NPM(), ROSDistro(), RawURL(), Github())
         if sources is None
@@ -116,7 +116,7 @@ def new_update_upstream_versions(
                 }
                 json.dump(up_to, outfile)
             node_count += 1
-    return up_to
+
 
 
 def main(args: Any = None) -> None:
@@ -132,7 +132,7 @@ def main(args: Any = None) -> None:
     # Check if 'versions' folder exists or create a new one;
     os.makedirs("versions", exist_ok=True)
     # call update
-    to_update = new_update_upstream_versions(gx)
+    new_update_upstream_versions(gx)
 
 
 if __name__ == "__main__":
