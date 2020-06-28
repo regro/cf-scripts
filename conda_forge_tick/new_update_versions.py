@@ -30,7 +30,7 @@ logger = logging.getLogger("conda-forge-tick._update_versions")
 
 
 def get_latest_version(
-        name: str, payload_meta_yaml: Any, sources: Iterable[AbstractSource],
+    name: str, payload_meta_yaml: Any, sources: Iterable[AbstractSource],
 ):
     with payload_meta_yaml as meta_yaml:
         for source in sources:
@@ -57,7 +57,7 @@ CONDA_FORGE_TICK_DEBUG = os.environ.get("CONDA_FORGE_TICK_DEBUG", False)
 
 
 def new_update_upstream_versions(
-        gx: nx.DiGraph, sources: Iterable[AbstractSource] = None,
+    gx: nx.DiGraph, sources: Iterable[AbstractSource] = None,
 ) -> None:
     sources = (
         (PyPI(), CRAN(), NPM(), ROSDistro(), RawURL(), Github())
