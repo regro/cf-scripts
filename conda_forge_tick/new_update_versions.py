@@ -30,7 +30,7 @@ logger = logging.getLogger("conda-forge-tick._update_versions")
 
 
 def get_latest_version(
-    name: str, payload_meta_yaml: Any, sources: Iterable[AbstractSource],
+        name: str, payload_meta_yaml: Any, sources: Iterable[AbstractSource],
 ):
     with payload_meta_yaml as meta_yaml:
         for source in sources:
@@ -57,7 +57,7 @@ CONDA_FORGE_TICK_DEBUG = os.environ.get("CONDA_FORGE_TICK_DEBUG", False)
 
 
 def new_update_upstream_versions(
-    gx: nx.DiGraph, sources: Iterable[AbstractSource] = None,
+        gx: nx.DiGraph, sources: Iterable[AbstractSource] = None,
 ) -> None:
     sources = (
         (PyPI(), CRAN(), NPM(), ROSDistro(), RawURL(), Github())
@@ -75,7 +75,7 @@ def new_update_upstream_versions(
     for node, node_attrs in tqdm.tqdm(_all_nodes):
         with node_attrs["payload"] as attrs:
             if attrs.get("bad") or attrs.get("archived"):
-                attrs["new_version"] = False
+                # "new_version" = False
                 continue
             to_update.append((node, attrs))
 
@@ -86,14 +86,15 @@ def new_update_upstream_versions(
 
             # avoid
             if node == "ca-policy-lcg":
-                up_to["ca-policy-lcg"] = {"bad": attrs.get("bad"), "new_version": False}
+                up_to["new_version"] = False
                 node_count += 1
                 continue
 
             # New version request
             try:
-                new_version = get_latest_version(node, attrs, sources)
-                attrs["new_version"] = new_version or attrs["new_version"]
+                # check for latest version
+                new_version = get_latest_version(node, attrs, sources) or attrs["new_version"]
+                up_to['new_version'] = new_version
             except Exception as e:
                 try:
                     se = repr(e)
@@ -102,18 +103,14 @@ def new_update_upstream_versions(
                 logger.warning(
                     f"Warning: Error getting upstream version of {node}: {se}",
                 )
-                attrs["bad"] = "Upstream: Error getting upstream version"
+                up_to["bad"] = "Upstream: Error getting upstream version"
             else:
                 logger.info(
-                    f"# {node_count:<5} - {node} - {attrs.get('version')} - {attrs.get('new_version')}",
+                    f"# {node_count:<5} - {node} - {attrs.get('version')} - {new_version}",
                 )
 
             logger.debug("writing out file")
             with open(f"versions/{node}.json", "w") as outfile:
-                up_to[f"{node}"] = {
-                    "bad": attrs.get("bad"),
-                    "new_version": attrs.get("new_version"),
-                }
                 json.dump(up_to, outfile)
             node_count += 1
 
