@@ -80,7 +80,6 @@ def new_update_upstream_versions(
             continue
         to_update.append((node, attrs))
 
-    up_to = {}
     for node, node_attrs in to_update:
         # checking each node
         with node_attrs as attrs:
@@ -89,7 +88,7 @@ def new_update_upstream_versions(
             # verify the actual situation of the package;
             actual_ver = str(attrs.get("version"))
 
-            # rude exception
+            # avoid
             if node == "ca-policy-lcg":
                 up_to["ca-policy-lcg"] = {"bad": attrs.get("bad"), "new_version": False}
                 Node_count += 1
