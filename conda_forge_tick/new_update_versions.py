@@ -85,9 +85,6 @@ def new_update_upstream_versions(
         with node_attrs as attrs:
             up_to = {}
 
-            # verify the actual situation of the package;
-            actual_ver = str(attrs.get("version"))
-
             # avoid
             if node == "ca-policy-lcg":
                 up_to["ca-policy-lcg"] = {"bad": attrs.get("bad"), "new_version": False}
