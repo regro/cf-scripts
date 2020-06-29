@@ -65,11 +65,6 @@ CONDA_FORGE_TICK_DEBUG = os.environ.get("CONDA_FORGE_TICK_DEBUG", False)
 def _update_upstream_versions_sequential(
     gx: nx.DiGraph, sources: Iterable[AbstractSource] = None,
 ) -> None:
-    sources = (
-        (PyPI(), CRAN(), NPM(), ROSDistro(), RawURL(), Github())
-        if sources is None
-        else sources
-    )
 
     _all_nodes = [t for t in gx.nodes.items()]
     random.shuffle(_all_nodes)
@@ -119,6 +114,20 @@ def _update_upstream_versions_sequential(
             node_count += 1
 
 
+def update_upstream_versions(
+    gx: nx.DiGraph, sources: Iterable[AbstractSource] = None,
+) -> None:
+    sources = (
+        (PyPI(), CRAN(), NPM(), ROSDistro(), RawURL(), Github())
+        if sources is None
+        else sources
+    )
+    updater = _update_upstream_versions_sequential
+
+    logger.info("Updating upstream versions")
+    updater(gx, sources)
+
+
 def main(args: Any = None) -> None:
     if CONDA_FORGE_TICK_DEBUG:
         setup_logger(logger, level="debug")
@@ -132,7 +141,7 @@ def main(args: Any = None) -> None:
     # Check if 'versions' folder exists or create a new one;
     os.makedirs("versions", exist_ok=True)
     # call update
-    _update_upstream_versions_sequential(gx)
+    update_upstream_versions(gx)
 
 
 if __name__ == "__main__":
