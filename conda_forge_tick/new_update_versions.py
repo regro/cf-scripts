@@ -17,15 +17,7 @@ from .update_sources import (
     RawURL,
     Github,
 )
-from typing import (
-    Any,
-    Optional,
-    Iterable,
-    Set,
-    Iterator,
-    List,
-    Dict,
-)
+from typing import Any, Iterable
 
 # conda_forge_tick :: cft
 logger = logging.getLogger("conda-forge-tick._update_versions")
