@@ -183,8 +183,11 @@ def update_upstream_versions(
         if sources is None
         else sources
     )
-    updater = _update_upstream_versions_sequential
-
+    updater = (
+        _update_upstream_versions_sequential
+        if CONDA_FORGE_TICK_DEBUG
+        else _update_upstream_versions_process_pool
+    )
     logger.info("Updating upstream versions")
     updater(gx, sources)
 
