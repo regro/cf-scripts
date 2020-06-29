@@ -62,7 +62,7 @@ def get_latest_version(
 CONDA_FORGE_TICK_DEBUG = os.environ.get("CONDA_FORGE_TICK_DEBUG", False)
 
 
-def new_update_upstream_versions(
+def _update_upstream_versions_sequential(
     gx: nx.DiGraph, sources: Iterable[AbstractSource] = None,
 ) -> None:
     sources = (
@@ -132,7 +132,7 @@ def main(args: Any = None) -> None:
     # Check if 'versions' folder exists or create a new one;
     os.makedirs("versions", exist_ok=True)
     # call update
-    new_update_upstream_versions(gx)
+    _update_upstream_versions_sequential(gx)
 
 
 if __name__ == "__main__":
