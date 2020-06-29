@@ -137,7 +137,6 @@ def _update_upstream_versions_process_pool(
         # eta :: elapsed time average
         eta = -1
         for f in as_completed(futures):
-            up_to = {}
 
             n_left -= 1
             if n_left % 10 == 0:
