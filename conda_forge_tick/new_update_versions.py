@@ -114,6 +114,77 @@ def _update_upstream_versions_sequential(
             node_count += 1
 
 
+def _update_upstream_versions_process_pool(
+    gx: nx.DiGraph, sources: Iterable[AbstractSource],
+) -> None:
+    futures = {}
+    # this has to be threads because the url hashing code uses a Pipe which
+    # cannot be spawned from a process
+    with executor(kind="dask", max_workers=20) as pool:
+        _all_nodes = [t for t in gx.nodes.items()]
+        random.shuffle(_all_nodes)
+
+        for node, node_attrs in tqdm.tqdm(_all_nodes):
+            with node_attrs["payload"] as attrs:
+                if attrs.get("bad") or attrs.get("archived"):
+                    continue
+                # avoid
+                if node == "ca-policy-lcg":
+                    attrs["new_version"] = False
+                    continue
+                futures.update(
+                    {
+                        pool.submit(get_latest_version, node, attrs, sources): (
+                            node,
+                            attrs,
+                        ),
+                    },
+                )
+
+        n_tot = len(futures)
+        n_left = len(futures)
+        start = time.time()
+        # eta :: elapsed time average
+        eta = -1
+        for f in as_completed(futures):
+
+            n_left -= 1
+            if n_left % 10 == 0:
+                eta = (time.time() - start) / (n_tot - n_left) * n_left
+
+            node, node_attrs = futures[f]
+            with node_attrs as attrs:
+                version_data = {}
+                try:
+                    # check for latest version
+                    version_data.update(f.result())
+                except Exception as e:
+                    try:
+                        se = repr(e)
+                    except Exception as ee:
+                        se = f"Bad exception string: {ee}"
+                    logger.error(
+                        "itr % 5d - eta % 5ds: "
+                        "Error getting upstream version of %s: %s"
+                        % (n_left, eta, node, se),
+                    )
+                    version_data["bad"] = "Upstream: Error getting upstream version"
+                else:
+                    logger.info(
+                        "itr % 5d - eta % 5ds: %s - %s - %s"
+                        % (
+                            n_left,
+                            eta,
+                            node,
+                            attrs.get("version", "<no-version>"),
+                            version_data["new_version"],
+                        ),
+                    )
+                # writing out file
+                with open(f"versions/{node}.json", "w") as outfile:
+                    json.dump(version_data, outfile)
+
+
 def update_upstream_versions(
     gx: nx.DiGraph, sources: Iterable[AbstractSource] = None,
 ) -> None:
