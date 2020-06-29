@@ -117,7 +117,6 @@ def _update_upstream_versions_process_pool(
         for node, node_attrs in tqdm.tqdm(_all_nodes):
             with node_attrs["payload"] as attrs:
                 if attrs.get("bad") or attrs.get("archived"):
-                    attrs["new_version"] = False
                     continue
                 # avoid
                 if node == "ca-policy-lcg":
@@ -146,9 +145,10 @@ def _update_upstream_versions_process_pool(
 
             node, node_attrs = futures[f]
             with node_attrs as attrs:
+                version_data = {}
                 try:
-                    new_version = f.result()
-                    attrs["new_version"] = new_version or attrs["new_version"]
+                    # check for latest version
+                    version_data.update(f.result())
                 except Exception as e:
                     try:
                         se = repr(e)
@@ -159,7 +159,7 @@ def _update_upstream_versions_process_pool(
                         "Error getting upstream version of %s: %s"
                         % (n_left, eta, node, se),
                     )
-                    attrs["bad"] = "Upstream: Error getting upstream version"
+                    version_data["bad"] = "Upstream: Error getting upstream version"
                 else:
                     logger.info(
                         "itr % 5d - eta % 5ds: %s - %s - %s"
@@ -168,16 +168,12 @@ def _update_upstream_versions_process_pool(
                             eta,
                             node,
                             attrs.get("version", "<no-version>"),
-                            attrs["new_version"],
+                            version_data["new_version"],
                         ),
                     )
                 # writing out file
                 with open(f"versions/{node}.json", "w") as outfile:
-                    up_to[f"{node}"] = {
-                        "bad": attrs.get("bad"),
-                        "new_version": attrs.get("new_version"),
-                    }
-                    json.dump(up_to, outfile)
+                    json.dump(version_data, outfile)
 
 
 def update_upstream_versions(
