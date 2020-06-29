@@ -76,14 +76,14 @@ def _update_upstream_versions_sequential(
 
             # avoid
             if node == "ca-policy-lcg":
-                version_data["ca-policy-lcg"] = {"bad": attrs.get("bad"), "new_version": False}
+                version_data["new_version"] = False
                 node_count += 1
                 continue
 
             # New version request
             try:
-                new_version = get_latest_version(node, attrs, sources)
-                attrs["new_version"] = new_version or attrs["new_version"]
+                # check for latest version
+                version_data.update(get_latest_version(node, attrs, sources))
             except Exception as e:
                 try:
                     se = repr(e)
@@ -92,18 +92,14 @@ def _update_upstream_versions_sequential(
                 logger.warning(
                     f"Warning: Error getting upstream version of {node}: {se}",
                 )
-                attrs["bad"] = "Upstream: Error getting upstream version"
+                version_data["bad"] = "Upstream: Error getting upstream version"
             else:
                 logger.info(
-                    f"# {node_count:<5} - {node} - {attrs.get('version')} - {attrs.get('new_version')}",
+                    f"# {node_count:<5} - {node} - {attrs.get('version')} - {version_data.get('new_version')}",
                 )
 
             logger.debug("writing out file")
             with open(f"versions/{node}.json", "w") as outfile:
-                version_data[f"{node}"] = {
-                    "bad": attrs.get("bad"),
-                    "new_version": attrs.get("new_version"),
-                }
                 json.dump(version_data, outfile)
             node_count += 1
 
