@@ -2,10 +2,12 @@ import networkx as nx
 import logging
 import random
 import json
+import time
 import os
 import tqdm
+from concurrent.futures import as_completed
 
-from .utils import setup_logger, load_graph
+from .utils import setup_logger, load_graph, executor
 from .update_sources import (
     AbstractSource,
     PyPI,
