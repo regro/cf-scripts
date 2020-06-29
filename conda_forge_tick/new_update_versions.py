@@ -78,7 +78,7 @@ def _update_upstream_versions_sequential(
     # print(f"Number of nodes: {len(gx.nodes)}")
     node_count = 0
     to_update = []
-    for node, node_attrs in tqdm.tqdm(_all_nodes):
+    for node, node_attrs in _all_nodes:
         with node_attrs["payload"] as attrs:
             if attrs.get("bad") or attrs.get("archived"):
                 continue
