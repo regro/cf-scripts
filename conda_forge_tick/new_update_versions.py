@@ -66,18 +66,17 @@ def _update_upstream_versions_sequential(
     for node, node_attrs in _all_nodes:
         with node_attrs["payload"] as attrs:
             if attrs.get("bad") or attrs.get("archived"):
-                attrs["new_version"] = False
                 continue
             to_update.append((node, attrs))
 
     for node, node_attrs in to_update:
         # checking each node
         with node_attrs as attrs:
-            up_to = {}
+            version_data = {}
 
             # avoid
             if node == "ca-policy-lcg":
-                up_to["ca-policy-lcg"] = {"bad": attrs.get("bad"), "new_version": False}
+                version_data["ca-policy-lcg"] = {"bad": attrs.get("bad"), "new_version": False}
                 node_count += 1
                 continue
 
@@ -101,11 +100,11 @@ def _update_upstream_versions_sequential(
 
             logger.debug("writing out file")
             with open(f"versions/{node}.json", "w") as outfile:
-                up_to[f"{node}"] = {
+                version_data[f"{node}"] = {
                     "bad": attrs.get("bad"),
                     "new_version": attrs.get("new_version"),
                 }
-                json.dump(up_to, outfile)
+                json.dump(version_data, outfile)
             node_count += 1
 
 
