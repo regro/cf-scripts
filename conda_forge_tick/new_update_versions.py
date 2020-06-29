@@ -27,6 +27,11 @@ def get_latest_version(
     name: str, payload_meta_yaml: Any, sources: Iterable[AbstractSource],
 ) -> dict:
     version_data = {}
+    # avoid
+    if name == "ca-policy-lcg":
+        version_data["new_version"] = False
+        return version_data
+
     with payload_meta_yaml as meta_yaml:
         for source in sources:
             logger.debug("source: %s", source.__class__.__name__)
@@ -78,12 +83,6 @@ def _update_upstream_versions_sequential(
         with node_attrs as attrs:
             version_data = {}
 
-            # avoid
-            if node == "ca-policy-lcg":
-                version_data["new_version"] = False
-                node_count += 1
-                continue
-
             # New version request
             try:
                 # check for latest version
@@ -122,10 +121,7 @@ def _update_upstream_versions_process_pool(
             with node_attrs["payload"] as attrs:
                 if attrs.get("bad") or attrs.get("archived"):
                     continue
-                # avoid
-                if node == "ca-policy-lcg":
-                    attrs["new_version"] = False
-                    continue
+
                 futures.update(
                     {
                         pool.submit(get_latest_version, node, attrs, sources): (
