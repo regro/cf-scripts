@@ -391,6 +391,7 @@ def main(args: "CLIArgs") -> None:
     )
 
     update_nodes_with_bot_rerun(gx)
+    update_nodes_with_new_versions(gx)
 
     dump_graph(gx)
 
