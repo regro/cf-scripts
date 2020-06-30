@@ -183,7 +183,7 @@ class LazyJson(MutableMapping):
     def __update__(self, data: dict) -> None:
         self._load()
         for key in data.items():
-            self.data[f'{key}'] = data[f'{key}']
+            self.data[f"{key}"] = data[f"{key}"]
 
 
 def render_meta_yaml(text: str, for_pinning=False, **kwargs) -> str:
@@ -271,11 +271,11 @@ def pluck(G: nx.DiGraph, node_id: Any) -> None:
 
 
 def get_requirements(
-        meta_yaml: "MetaYamlTypedDict",
-        outputs: bool = True,
-        build: bool = True,
-        host: bool = True,
-        run: bool = True,
+    meta_yaml: "MetaYamlTypedDict",
+    outputs: bool = True,
+    build: bool = True,
+    host: bool = True,
+    run: bool = True,
 ) -> "Set[PackageName]":
     """Get the list of recipe requirements from a meta.yaml dict
 
@@ -305,10 +305,10 @@ def get_requirements(
 
 
 def _parse_requirements(
-        req: Union[None, typing.List[str], "RequirementsTypedDict"],
-        build: bool = True,
-        host: bool = True,
-        run: bool = True,
+    req: Union[None, typing.List[str], "RequirementsTypedDict"],
+    build: bool = True,
+    host: bool = True,
+    run: bool = True,
 ) -> typing.MutableSet["PackageName"]:
     """Flatten a YAML requirements section into a list of names
     """
@@ -347,7 +347,7 @@ def executor(kind: str, max_workers: int, daemon=True) -> typing.Iterator[Execut
 
         with dask.config.set({"distributed.worker.daemon": daemon}):
             with distributed.LocalCluster(
-                    n_workers=max_workers, processes=processes,
+                n_workers=max_workers, processes=processes,
             ) as cluster:
                 with distributed.Client(cluster) as client:
                     yield ClientExecutor(client)
@@ -374,11 +374,11 @@ def object_hook(dct: dict) -> Union[LazyJson, Set, dict]:
 
 
 def dumps(
-        obj: Any,
-        sort_keys: bool = True,
-        separators: Any = (",", ":"),
-        default: "Callable[[Any], Any]" = default,
-        **kwargs: Any,
+    obj: Any,
+    sort_keys: bool = True,
+    separators: Any = (",", ":"),
+    default: "Callable[[Any], Any]" = default,
+    **kwargs: Any,
 ) -> str:
     """Returns a JSON string from a Python object."""
     return json.dumps(
@@ -392,12 +392,12 @@ def dumps(
 
 
 def dump(
-        obj: Any,
-        fp: IO[str],
-        sort_keys: bool = True,
-        separators: Any = (",", ":"),
-        default: "Callable[[Any], Any]" = default,
-        **kwargs: Any,
+    obj: Any,
+    fp: IO[str],
+    sort_keys: bool = True,
+    separators: Any = (",", ":"),
+    default: "Callable[[Any], Any]" = default,
+    **kwargs: Any,
 ) -> None:
     """Returns a JSON string from a Python object."""
     return json.dump(
@@ -412,14 +412,14 @@ def dump(
 
 
 def loads(
-        s: str, object_hook: "Callable[[dict], Any]" = object_hook, **kwargs: Any
+    s: str, object_hook: "Callable[[dict], Any]" = object_hook, **kwargs: Any
 ) -> dict:
     """Loads a string as JSON, with appropriate object hooks"""
     return json.loads(s, object_hook=object_hook, **kwargs)
 
 
 def load(
-        fp: IO[str], object_hook: "Callable[[dict], Any]" = object_hook, **kwargs: Any,
+    fp: IO[str], object_hook: "Callable[[dict], Any]" = object_hook, **kwargs: Any,
 ) -> dict:
     """Loads a file object as JSON, with appropriate object hooks."""
     return json.load(fp, object_hook=object_hook, **kwargs)
@@ -435,7 +435,7 @@ def dump_graph_json(gx: nx.DiGraph, filename: str = "graph.json") -> None:
 
 
 def dump_graph_dynamo(
-        gx: nx.DiGraph, tablename: str = "graph", region: str = "us-east-2",
+    gx: nx.DiGraph, tablename: str = "graph", region: str = "us-east-2",
 ) -> None:
     print(f"DynamoDB dump to {tablename} in {region}")
     ddb = boto3.resource("dynamodb", region_name=region)
@@ -453,10 +453,10 @@ def dump_graph_dynamo(
 
 
 def dump_graph(
-        gx: nx.DiGraph,
-        filename: str = "graph.json",
-        tablename: str = "graph",
-        region: str = "us-east-2",
+    gx: nx.DiGraph,
+    filename: str = "graph.json",
+    tablename: str = "graph",
+    region: str = "us-east-2",
 ) -> None:
     dump_graph_json(gx, filename)
     # dump_graph_dynamo(gx, tablename, region)
@@ -471,6 +471,7 @@ def load_graph(filename: str = "graph.json") -> nx.DiGraph:
 # TODO: This type does not support generics yet sadly
 # cc https://github.com/python/mypy/issues/3863
 if typing.TYPE_CHECKING:
+
     class JsonFriendly(TypedDict, total=False):
         keys: typing.List[str]
         data: dict
