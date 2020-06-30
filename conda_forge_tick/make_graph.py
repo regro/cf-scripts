@@ -356,10 +356,10 @@ def update_nodes_with_new_versions(gx):
     """Updates every node with it's new version (when available)"""
     # check if the versions folder is available
     if os.path.isdir("./versions"):
-        # get all the available node.json files
         pass
     else:
         return
+    # get all the available node.json files
     # TODO: I don't thing this is a good idea (8000+ entries)
     list_files = os.listdir("./versions/")
 
