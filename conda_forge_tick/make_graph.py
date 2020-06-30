@@ -3,6 +3,7 @@ import collections.abc
 import hashlib
 import logging
 import os
+import json
 import time
 from collections import defaultdict
 from concurrent.futures import as_completed
@@ -38,7 +39,6 @@ if typing.TYPE_CHECKING:
 logger = logging.getLogger("conda_forge_tick.make_graph")
 pin_sep_pat = re.compile(r" |>|<|=|\[")
 
-
 NUM_GITHUB_THREADS = 2
 
 github_username = env.get("USERNAME", "")
@@ -70,16 +70,16 @@ def _fetch_file(name: str, filepath: str) -> typing.Union[str, Response]:
 
 # TODO: include other files like build_sh
 def populate_feedstock_attributes(
-    name: str,
-    sub_graph: LazyJson,
-    meta_yaml: typing.Union[str, Response] = "",
-    conda_forge_yaml: typing.Union[str, Response] = "",
-    mark_not_archived=False,
-    # build_sh: typing.Union[str, Response] = "",
-    # pre_unlink: typing.Union[str, Response] = "",
-    # post_link: typing.Union[str, Response] = "",
-    # pre_link: typing.Union[str, Response] = "",
-    # activate: typing.Union[str, Response] = "",
+        name: str,
+        sub_graph: LazyJson,
+        meta_yaml: typing.Union[str, Response] = "",
+        conda_forge_yaml: typing.Union[str, Response] = "",
+        mark_not_archived=False,
+        # build_sh: typing.Union[str, Response] = "",
+        # pre_unlink: typing.Union[str, Response] = "",
+        # post_link: typing.Union[str, Response] = "",
+        # pre_link: typing.Union[str, Response] = "",
+        # activate: typing.Union[str, Response] = "",
 ) -> LazyJson:
     """Parse the various configuration information into something usable
 
@@ -105,15 +105,15 @@ def populate_feedstock_attributes(
             k: v
             for k, v in yaml.safe_load(conda_forge_yaml).items()
             if k
-            in {
-                "provider",
-                "min_r_ver",
-                "min_py_ver",
-                "max_py_ver",
-                "max_r_ver",
-                "compiler_stack",
-                "bot",
-            }
+               in {
+                   "provider",
+                   "min_r_ver",
+                   "min_py_ver",
+                   "max_py_ver",
+                   "max_r_ver",
+                   "compiler_stack",
+                   "bot",
+               }
         }
 
     yaml_dict = ChainDB(
@@ -205,7 +205,7 @@ def get_attrs(name: str, i: int, mark_not_archived=False) -> LazyJson:
 
 
 def _build_graph_process_pool(
-    gx: nx.DiGraph, names: List[str], new_names: List[str], mark_not_archived=False,
+        gx: nx.DiGraph, names: List[str], new_names: List[str], mark_not_archived=False,
 ) -> None:
     with executor("thread", max_workers=20) as pool:
         futures = {
@@ -242,7 +242,7 @@ def _build_graph_process_pool(
 
 
 def _build_graph_sequential(
-    gx: nx.DiGraph, names: List[str], new_names: List[str], mark_not_archived=False,
+        gx: nx.DiGraph, names: List[str], new_names: List[str], mark_not_archived=False,
 ) -> None:
     for i, name in enumerate(names):
         try:
@@ -259,7 +259,7 @@ def _build_graph_sequential(
 
 
 def make_graph(
-    names: List[str], gx: Optional[nx.DiGraph] = None, mark_not_archived=False,
+        names: List[str], gx: Optional[nx.DiGraph] = None, mark_not_archived=False,
 ) -> nx.DiGraph:
     logger.info("reading graph")
 
@@ -340,9 +340,9 @@ def update_nodes_with_bot_rerun(gx):
                 # if there is a valid PR and it isn't currently listed as rerun
                 # but the PR needs a rerun
                 if (
-                    pr_json
-                    and not migration["data"]["bot_rerun"]
-                    and "bot-rerun" in [lb["name"] for lb in pr_json.get("labels", [])]
+                        pr_json
+                        and not migration["data"]["bot_rerun"]
+                        and "bot-rerun" in [lb["name"] for lb in pr_json.get("labels", [])]
                 ):
                     migration["data"]["bot_rerun"] = time.time()
                     logger.info(
@@ -350,6 +350,25 @@ def update_nodes_with_bot_rerun(gx):
                         name,
                         migration["data"],
                     )
+
+
+def update_nodes_with_new_versions(gx):
+    """Updates every node with it's new version (when available)"""
+    # check if the versions folder is available
+    if os.path.isdir('./versions'):
+        # get all the available node.json files
+        pass
+    else:
+        return
+    list_files = os.listdir('./versions/')
+    for file in list_files:
+        node = str(file).replace('.json', '')
+        with open(f'./versions/{file}') as json_file:
+            version_data = json.load(json_file)
+        with gx.nodes[f'{node}']['payload'] as attrs:
+            attrs["new_version"] = version_data.get('new_version')
+            if 'bad' in version_data:
+                attrs['bad'] = version_data.get('bad')
 
 
 def main(args: "CLIArgs") -> None:
