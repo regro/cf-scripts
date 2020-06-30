@@ -360,15 +360,15 @@ def update_nodes_with_new_versions(gx):
         pass
     else:
         return
+    # TODO: I don't thing this is a good idea (8000+ entries)
     list_files = os.listdir("./versions/")
+
     for file in list_files:
         node = str(file).replace(".json", "")
         with open(f"./versions/{file}") as json_file:
             version_data = json.load(json_file)
         with gx.nodes[f"{node}"]["payload"] as attrs:
-            attrs["new_version"] = version_data.get("new_version")
-            if "bad" in version_data:
-                attrs["bad"] = version_data.get("bad")
+            attrs.update(version_data)
 
 
 def main(args: "CLIArgs") -> None:
