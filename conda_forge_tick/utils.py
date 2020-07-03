@@ -573,7 +573,7 @@ def extract_requirements(meta_yaml):
             continue
         for section in ["build", "host", "run"]:
             requirements_dict[section].update(
-                list(as_iterable(req.get(section, []) or []))
+                list(as_iterable(req.get(section, []) or [])),
             )
         test: "TestTypedDict" = block.get("test", {})
         requirements_dict["test"].update(test.get("requirements", []) or [])
@@ -582,7 +582,7 @@ def extract_requirements(meta_yaml):
         if isinstance(run_exports, dict) and run_exports.get("strong"):
             strong_exports = True
     for k in list(requirements_dict.keys()):
-        requirements_dict[k] = set(v for v in requirements_dict[k] if v)
+        requirements_dict[k] = {v for v in requirements_dict[k] if v}
     req_no_pins = {
         k: {pin_sep_pat.split(x)[0].lower() for x in v}
         for k, v in dict(requirements_dict).items()

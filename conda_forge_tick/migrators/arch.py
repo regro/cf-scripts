@@ -45,7 +45,7 @@ class ArchRebuild(GraphMigrator):
             for plat_arch in self.arches:
                 deps = set().union(
                     *attrs.get(
-                        f"{plat_arch}_requirements", attrs.get("requirements", {})
+                        f"{plat_arch}_requirements", attrs.get("requirements", {}),
                     ).values()
                 )
                 for dep in deps:
