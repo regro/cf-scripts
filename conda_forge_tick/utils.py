@@ -583,5 +583,8 @@ def extract_requirements(meta_yaml):
             strong_exports = True
     for k in list(requirements_dict.keys()):
         requirements_dict[k] = set(v for v in requirements_dict[k] if v)
-    req_no_pins = {k: {pin_sep_pat.split(x)[0].lower() for x in v} for k, v in dict(requirements_dict).items()}
+    req_no_pins = {
+        k: {pin_sep_pat.split(x)[0].lower() for x in v}
+        for k, v in dict(requirements_dict).items()
+    }
     return dict(requirements_dict), req_no_pins, strong_exports

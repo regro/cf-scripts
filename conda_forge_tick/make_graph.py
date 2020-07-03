@@ -113,15 +113,13 @@ def populate_feedstock_attributes(
             }
         }
 
-    plat_arch = [
-        ('win', '64'),
-        ('osx', '64'),
-        ('linux', '64')
+    plat_arch = [("win", "64"), ("osx", "64"), ("linux", "64")]
+    for k in set(sub_graph["conda-forge.yml"].get("provider", {})):
+        if "_" in k:
+            plat_arch.append(k.split("_"))
+    varient_yamls = [
+        parse_meta_yaml(meta_yaml, platform=plat, arch=arch) for plat, arch in plat_arch
     ]
-    for k in set(sub_graph['conda-forge.yml'].get('provider', {})):
-        if '_' in k:
-            plat_arch.append(k.split('_'))
-    varient_yamls = [parse_meta_yaml(meta_yaml, platform=plat, arch=arch) for plat, arch in plat_arch]
 
     yaml_dict = ChainDB(*varient_yamls)
     if not yaml_dict:
@@ -133,11 +131,15 @@ def populate_feedstock_attributes(
     meta_yaml = sub_graph["meta_yaml"]
 
     for k, v in zip(plat_arch, varient_yamls):
-        plat_arch_name = '_'.join(k)
+        plat_arch_name = "_".join(k)
         sub_graph[f"{plat_arch_name}_meta_yaml"] = v
         _, sub_graph[f"{plat_arch_name}_requirements"], _ = extract_requirements(v)
 
-    sub_graph["total_requirements"], sub_graph["requirements"], sub_graph["strong_exports"] = extract_requirements(meta_yaml)
+    (
+        sub_graph["total_requirements"],
+        sub_graph["requirements"],
+        sub_graph["strong_exports"],
+    ) = extract_requirements(meta_yaml)
 
     # handle multi outputs
     if "outputs" in yaml_dict:
