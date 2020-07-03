@@ -1,12 +1,8 @@
 import abc
 import collections.abc
-import logging
-import os
 import subprocess
-import random
-import time
 import re
-from concurrent.futures import as_completed
+import logging
 import typing
 from typing import (
     Any,
@@ -16,35 +12,19 @@ from typing import (
     Iterator,
     List,
 )
-
 import yaml
-import networkx as nx
-import tqdm
-
 import feedparser
 import requests
 from conda.models.version import VersionOrder
+from conda_forge_tick.utils import parse_meta_yaml
+from .hashing import hash_url
 
 # TODO: parse_version has bad type annotations
 from pkg_resources import parse_version
 
-from conda_forge_tick.utils import (
-    parse_meta_yaml,
-    setup_logger,
-    executor,
-    load_graph,
-    dump_graph,
-)
-from conda_forge_tick.hashing import hash_url
-
-if typing.TYPE_CHECKING:
-    from .migrators_types import MetaYamlTypedDict, SourceTypedDict
-
-logger = logging.getLogger("conda_forge_tick.update_upstream_versions")
-
 CRAN_INDEX: Optional[dict] = None
 
-CONDA_FORGE_TICK_DEBUG = os.environ.get("CONDA_FORGE_TICK_DEBUG", False)
+logger = logging.getLogger("conda-forge-tick._update_version.update_sources")
 
 
 def urls_from_meta(meta_yaml: "MetaYamlTypedDict") -> Set[str]:
@@ -155,30 +135,6 @@ class VersionFromFeed(AbstractSource):
             return max(vers, key=lambda x: VersionOrder(x.replace("-", ".")))
         else:
             return None
-
-
-class Github(VersionFromFeed):
-    name = "github"
-
-    def get_url(self, meta_yaml) -> Optional[str]:
-        if "github.com" not in meta_yaml["url"]:
-            return None
-        split_url = meta_yaml["url"].lower().split("/")
-        package_owner = split_url[split_url.index("github.com") + 1]
-        gh_package_name = split_url[split_url.index("github.com") + 2]
-        return f"https://github.com/{package_owner}/{gh_package_name}/releases.atom"
-
-
-class LibrariesIO(VersionFromFeed):
-    def get_url(self, meta_yaml) -> Optional[str]:
-        urls = meta_yaml["url"]
-        if not isinstance(meta_yaml["url"], list):
-            urls = [urls]
-        for url in urls:
-            if self.url_contains not in url:
-                continue
-            pkg = self.package_name(url)
-            return f"https://libraries.io/{self.name}/{pkg}/versions.atom"
 
 
 class PyPI(AbstractSource):
@@ -475,155 +431,25 @@ class RawURL(AbstractSource):
         return url
 
 
-def get_latest_version(
-    name: str, payload_meta_yaml: Any, sources: Iterable[AbstractSource],
-):
-    with payload_meta_yaml as meta_yaml:
-        for source in sources:
-            logger.debug("source: %s", source.__class__.__name__)
-            url = source.get_url(meta_yaml)
-            logger.debug("url: %s", url)
-            if url is None:
+class Github(VersionFromFeed):
+    name = "github"
+
+    def get_url(self, meta_yaml) -> Optional[str]:
+        if "github.com" not in meta_yaml["url"]:
+            return None
+        split_url = meta_yaml["url"].lower().split("/")
+        package_owner = split_url[split_url.index("github.com") + 1]
+        gh_package_name = split_url[split_url.index("github.com") + 2]
+        return f"https://github.com/{package_owner}/{gh_package_name}/releases.atom"
+
+
+class LibrariesIO(VersionFromFeed):
+    def get_url(self, meta_yaml) -> Optional[str]:
+        urls = meta_yaml["url"]
+        if not isinstance(meta_yaml["url"], list):
+            urls = [urls]
+        for url in urls:
+            if self.url_contains not in url:
                 continue
-            ver = source.get_version(url)
-            logger.debug("ver: %s", ver)
-            if ver:
-                return ver
-            else:
-                meta_yaml["bad"] = f"Upstream: Could not find version on {source.name}"
-        if not meta_yaml.get("bad"):
-            meta_yaml["bad"] = "Upstream: unknown source"
-        return False
-
-
-def _update_upstream_versions_sequential(
-    gx: nx.DiGraph, sources: Iterable[AbstractSource],
-) -> None:
-    _all_nodes = [t for t in gx.nodes.items()]
-    random.shuffle(_all_nodes)
-
-    to_update = []
-    for node, node_attrs in _all_nodes:
-        attrs = node_attrs["payload"]
-        if attrs.get("bad") or attrs.get("archived"):
-            attrs["new_version"] = False
-            continue
-        to_update.append((node, attrs))
-
-    for node, node_attrs in to_update:
-        with node_attrs as attrs:
-            try:
-                new_version = get_latest_version(node, attrs, sources)
-                attrs["new_version"] = new_version or attrs["new_version"]
-            except Exception as e:
-                try:
-                    se = repr(e)
-                except Exception as ee:
-                    se = f"Bad exception string: {ee}"
-                logger.warning(f"Error getting upstream version of {node}: {se}")
-                attrs["bad"] = "Upstream: Error getting upstream version"
-            else:
-                logger.info(
-                    f"{node} - {attrs.get('version')} - {attrs.get('new_version')}",
-                )
-
-
-def _update_upstream_versions_process_pool(
-    gx: nx.DiGraph, sources: Iterable[AbstractSource],
-) -> None:
-    futures = {}
-    # this has to be threads because the url hashing code uses a Pipe which
-    # cannot be spawned from a process
-    with executor(kind="dask", max_workers=10) as pool:
-        _all_nodes = [t for t in gx.nodes.items()]
-        random.shuffle(_all_nodes)
-        for node, node_attrs in tqdm.tqdm(_all_nodes):
-            with node_attrs["payload"] as attrs:
-                if node == "ca-policy-lcg":
-                    attrs["new_version"] = False
-                    continue
-
-                if attrs.get("bad") or attrs.get("archived"):
-                    attrs["new_version"] = False
-                    continue
-                futures.update(
-                    {
-                        pool.submit(get_latest_version, node, attrs, sources): (
-                            node,
-                            attrs,
-                        ),
-                    },
-                )
-
-        n_tot = len(futures)
-        n_left = len(futures)
-        start = time.time()
-        eta = -1
-        for f in as_completed(futures):
-            n_left -= 1
-            if n_left % 10 == 0:
-                eta = (time.time() - start) / (n_tot - n_left) * n_left
-
-            node, node_attrs = futures[f]
-            with node_attrs as attrs:
-                try:
-                    new_version = f.result()
-                    attrs["new_version"] = new_version or attrs["new_version"]
-                except Exception as e:
-                    try:
-                        se = repr(e)
-                    except Exception as ee:
-                        se = f"Bad exception string: {ee}"
-                    logger.error(
-                        "itr % 5d - eta % 5ds: "
-                        "Error getting upstream version of %s: %s"
-                        % (n_left, eta, node, se),
-                    )
-                    attrs["bad"] = "Upstream: Error getting upstream version"
-                else:
-                    logger.info(
-                        "itr % 5d - eta % 5ds: %s - %s - %s"
-                        % (
-                            n_left,
-                            eta,
-                            node,
-                            attrs.get("version", "<no-version>"),
-                            attrs["new_version"],
-                        ),
-                    )
-
-
-def update_upstream_versions(
-    gx: nx.DiGraph, sources: Iterable[AbstractSource] = None,
-) -> None:
-    sources = (
-        (PyPI(), CRAN(), NPM(), ROSDistro(), RawURL(), Github())
-        if sources is None
-        else sources
-    )
-    updater = (
-        _update_upstream_versions_sequential
-        if CONDA_FORGE_TICK_DEBUG
-        else _update_upstream_versions_process_pool
-    )
-    logger.info("Updating upstream versions")
-    updater(gx, sources)
-
-
-def main(args: Any = None) -> None:
-    if CONDA_FORGE_TICK_DEBUG:
-        setup_logger(logger, level="debug")
-    else:
-        setup_logger(logger)
-
-    logger.info("Reading graph")
-    gx = load_graph()
-
-    update_upstream_versions(gx)
-
-    logger.info("writing out file")
-    dump_graph(gx)
-
-
-if __name__ == "__main__":
-    main()
+            pkg = self.package_name(url)
+            return f"https://libraries.io/{self.name}/{pkg}/versions.atom"

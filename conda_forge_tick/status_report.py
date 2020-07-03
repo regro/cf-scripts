@@ -48,7 +48,7 @@ def write_version_migrator_status(migrator, mctx):
             else:
                 out["errored"].append(node)
                 out["errors"][node] = attrs.get("new_version_errors", {}).get(
-                    new_version, "no error information available"
+                    new_version, "no error information available",
                 )
 
     with open("./status/version_status.json", "w") as f:
@@ -218,8 +218,8 @@ def main(args: Any = None) -> None:
                 migrator_name = migrator.__class__.__name__.lower()
             total_status[migrator_name] = f"{migrator.name} Migration Status"
             status, build_order, gv = graph_migrator_status(migrator, mctx.graph)
-            with open(os.path.join(f"./status/{migrator_name}.json"), "w") as fo:
-                json.dump(status, fo, indent=2)
+            with open(os.path.join(f"./status/{migrator_name}.json"), "w") as fp:
+                json.dump(status, fp, indent=2)
 
             d = gv.pipe("dot")
             with tempfile.NamedTemporaryFile(suffix=".dot") as ntf:
@@ -227,8 +227,8 @@ def main(args: Any = None) -> None:
                 # make the graph a bit more compact
                 d = Source(
                     subprocess.check_output(
-                        ["unflatten", "-f", "-l", "5", "-c", "10", f"{ntf.name}"]
-                    ).decode("utf-8")
+                        ["unflatten", "-f", "-l", "5", "-c", "10", f"{ntf.name}"],
+                    ).decode("utf-8"),
                 ).pipe("svg")
             with open(os.path.join(f"./status/{migrator_name}.svg"), "wb") as fb:
                 fb.write(d or gv.pipe("svg"))

@@ -189,7 +189,7 @@ def get_attrs(name: str, i: int, mark_not_archived=False) -> LazyJson:
 
 
 def _build_graph_process_pool(
-    gx: nx.DiGraph, names: List[str], new_names: List[str], mark_not_archived=False
+    gx: nx.DiGraph, names: List[str], new_names: List[str], mark_not_archived=False,
 ) -> None:
     with executor("thread", max_workers=20) as pool:
         futures = {
@@ -226,12 +226,12 @@ def _build_graph_process_pool(
 
 
 def _build_graph_sequential(
-    gx: nx.DiGraph, names: List[str], new_names: List[str], mark_not_archived=False
+    gx: nx.DiGraph, names: List[str], new_names: List[str], mark_not_archived=False,
 ) -> None:
     for i, name in enumerate(names):
         try:
             sub_graph = {
-                "payload": get_attrs(name, i, mark_not_archived=mark_not_archived)
+                "payload": get_attrs(name, i, mark_not_archived=mark_not_archived),
             }
         except Exception as e:
             logger.error(f"Error adding {name} to the graph: {e}")
@@ -243,7 +243,7 @@ def _build_graph_sequential(
 
 
 def make_graph(
-    names: List[str], gx: Optional[nx.DiGraph] = None, mark_not_archived=False
+    names: List[str], gx: Optional[nx.DiGraph] = None, mark_not_archived=False,
 ) -> nx.DiGraph:
     logger.info("reading graph")
 
@@ -255,7 +255,7 @@ def make_graph(
     # silly typing force
     assert gx is not None
     old_names = sorted(  # type: ignore
-        old_names, key=lambda n: gx.nodes[n].get("time", 0)
+        old_names, key=lambda n: gx.nodes[n].get("time", 0),
     )  # type: ignore
 
     total_names = new_names + old_names
@@ -293,7 +293,7 @@ def make_graph(
                 map(
                     lambda x: outputs_lut.get(x, x),
                     set().union(*attrs.get("requirements", {}).values()),
-                )
+                ),
             )
 
             # handle strong run exports
@@ -311,7 +311,7 @@ def make_graph(
                 lzj.update(feedstock_name=dep, bad=False, archived=True)
                 gx.add_node(dep, payload=lzj)
             gx.add_edge(dep, node)
-    logger.info("new nodes and edges infered")
+    logger.info("new nodes and edges inferred")
     return gx
 
 
@@ -350,7 +350,7 @@ def main(args: "CLIArgs") -> None:
         gx = load_graph()
     else:
         gx = None
-    gx = make_graph(names, gx, mark_not_archived=mark_not_archived,)
+    gx = make_graph(names, gx, mark_not_archived=mark_not_archived)
     print(
         "nodes w/o payload:", [k for k, v in gx.nodes.items() if "payload" not in v],
     )

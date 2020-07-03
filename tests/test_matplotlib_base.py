@@ -25,7 +25,7 @@ def test_matplotlib_base(existing_yums, tmpdir):
     with open(os.path.join(YAML_PATH, "mplb.yaml"), "r") as fp:
         in_yaml = fp.read()
 
-    with open(os.path.join(YAML_PATH, "mplb_correct.yaml"), "r",) as fp:
+    with open(os.path.join(YAML_PATH, "mplb_correct.yaml"), "r") as fp:
         out_yaml = fp.read()
 
     yum_pth = os.path.join(tmpdir, "yum_requirements.txt")
@@ -52,7 +52,7 @@ def test_matplotlib_base(existing_yums, tmpdir):
     with open(yum_pth, "r") as fp:
         yums = fp.readlines()
 
-    yums = set([y.strip() for y in yums])
+    yums = {y.strip() for y in yums}
     assert "xorg-x11-server-Xorg" in yums
     for y in existing_yums:
         assert y in yums

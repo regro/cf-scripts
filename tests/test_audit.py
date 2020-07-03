@@ -20,7 +20,7 @@ def test_audit_feedstock():
         circle_build_url="",
     )
     with open(
-        os.path.join(os.path.dirname(__file__), "test_yaml", "depfinder.json"), "r"
+        os.path.join(os.path.dirname(__file__), "test_yaml", "depfinder.json"), "r",
     ) as f:
         attrs = load(f)
     fctx = FeedstockContext("depfinder", "depfinder", attrs)
@@ -65,7 +65,7 @@ def test_grayskull_audit_feedstock():
         circle_build_url="",
     )
     with open(
-        os.path.join(os.path.dirname(__file__), "test_yaml", "depfinder.json"), "r"
+        os.path.join(os.path.dirname(__file__), "test_yaml", "depfinder.json"), "r",
     ) as f:
         attrs = load(f)
     fctx = FeedstockContext("depfinder", "depfinder", attrs)

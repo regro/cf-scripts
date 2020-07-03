@@ -41,7 +41,7 @@ def _hash_url(url, hash_type, progress=False, conn=None, timeout=None):
                     loc = int((itr + 1) / num * 25)
                     print(
                         "eta % 7.2fs: [%s%s]"
-                        % (eta, "".join(["=" * loc]), "".join([" " * (25 - loc)]),)
+                        % (eta, "".join(["=" * loc]), "".join([" " * (25 - loc)])),
                     )
                 if timeout is not None:
                     if time.time() - t0 > timeout:
@@ -107,7 +107,7 @@ def hash_url(url, timeout=None, progress=False, hash_type="sha256"):
         # if launched in a process we cannot use another process
         if "daemonic" in repr(e):
             _hash = _hash_url(
-                url, hash_type, progress=progress, conn=None, timeout=timeout
+                url, hash_type, progress=progress, conn=None, timeout=timeout,
             )
         else:
             raise e

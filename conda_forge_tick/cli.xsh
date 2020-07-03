@@ -13,6 +13,7 @@ from .auto_tick import main as main_auto_tick
 from .status_report import main as main_status_report
 from .audit import main as main_audit
 from .update_prs import main as main_update_prs
+from .new_update_versions import main as main_populate_versions
 
 
 def deploy(args):
@@ -25,6 +26,9 @@ def deploy(args):
                 ['git', 'add', 'status/*'],
                 ['git', 'add', 'node_attrs/*'],
                 ['git', 'add', 'audits/*'],
+                ['git', 'add', 'audits/grayskull/*'],
+                ['git', 'add', 'audits/depfinder/*'],
+                ['git', 'add', 'versions/*'],
                 ['git', 'commit', '-am', f'"Update Graph {$CIRCLE_BUILD_URL}"']]:
         try:
             @(cmd)
@@ -87,6 +91,7 @@ int_script_dict = {
   4: main_status_report,
   5: main_audit,
   6: main_update_prs,
+  7: main_populate_versions,
   -1: deploy
 }
 

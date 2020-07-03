@@ -57,7 +57,7 @@ class ArchRebuild(GraphMigrator):
         assert not self.check_solvable, "We don't want to check solvability for aarch!"
         # We are constraining the scope of this migrator
         with indir("../conda-forge-pinning-feedstock/recipe/migrations"), open(
-            "arch_rebuild.txt", "r"
+            "arch_rebuild.txt", "r",
         ) as f:
             self.target_packages = set(f.read().split())
 
@@ -132,8 +132,8 @@ class ArchRebuild(GraphMigrator):
 
         **Feel free to merge the PR if CI is all green, but please don't close it
         without reaching out the the ARM migrators first at @conda-forge/arm-arch.**
-        """
-            )
+        """,
+            ),
         )
         return body
 

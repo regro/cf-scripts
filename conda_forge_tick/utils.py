@@ -217,7 +217,7 @@ def parse_meta_yaml(text: str, for_pinning=False, **kwargs: Any) -> "MetaYamlTyp
     Returns
     -------
     dict :
-        The parsed YAML dict. If parseing fails, returns an empty dict.
+        The parsed YAML dict. If parsing fails, returns an empty dict.
 
     """
     from conda_build.config import Config
@@ -238,7 +238,7 @@ def setup_logger(logger: logging.Logger, level: Optional[str] = "INFO") -> None:
     ch = logging.StreamHandler()
     ch.setLevel(level.upper())
     ch.setFormatter(
-        logging.Formatter("%(asctime)-15s %(levelname)-8s %(name)s || %(message)s")
+        logging.Formatter("%(asctime)-15s %(levelname)-8s %(name)s || %(message)s"),
     )
     logger.addHandler(ch)
 
@@ -344,7 +344,7 @@ def executor(kind: str, max_workers: int, daemon=True) -> typing.Iterator[Execut
 
         with dask.config.set({"distributed.worker.daemon": daemon}):
             with distributed.LocalCluster(
-                n_workers=max_workers, processes=processes
+                n_workers=max_workers, processes=processes,
             ) as cluster:
                 with distributed.Client(cluster) as client:
                     yield ClientExecutor(client)
@@ -411,7 +411,7 @@ def dump(
 def loads(
     s: str, object_hook: "Callable[[dict], Any]" = object_hook, **kwargs: Any
 ) -> dict:
-    """Loads a string as JSON, with approriate object hooks"""
+    """Loads a string as JSON, with appropriate object hooks"""
     return json.loads(s, object_hook=object_hook, **kwargs)
 
 
@@ -432,7 +432,7 @@ def dump_graph_json(gx: nx.DiGraph, filename: str = "graph.json") -> None:
 
 
 def dump_graph_dynamo(
-    gx: nx.DiGraph, tablename: str = "graph", region: str = "us-east-2"
+    gx: nx.DiGraph, tablename: str = "graph", region: str = "us-east-2",
 ) -> None:
     print(f"DynamoDB dump to {tablename} in {region}")
     ddb = boto3.resource("dynamodb", region_name=region)

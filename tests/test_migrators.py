@@ -1597,7 +1597,7 @@ extra:
 
 js = JS()
 version = Version()
-compiler = Compiler()
+# compiler = Compiler()
 noarch = Noarch()
 noarchr = NoarchR()
 perl = Pinning(removals={"perl"})
@@ -1665,7 +1665,7 @@ def run_test_migration(
     except Exception:
         name = "blah"
 
-    pmy = populate_feedstock_attributes(name, {}, inp, cf_yml,)
+    pmy = populate_feedstock_attributes(name, {}, inp, cf_yml)
 
     # these are here for legacy migrators
     pmy["version"] = pmy["meta_yaml"]["package"]["version"]
@@ -1682,11 +1682,11 @@ def run_test_migration(
         return pmy
 
     m.run_pre_piggyback_migrations(
-        tmpdir, pmy, hash_type=pmy.get("hash_type", "sha256")
+        tmpdir, pmy, hash_type=pmy.get("hash_type", "sha256"),
     )
     mr = m.migrate(tmpdir, pmy, hash_type=pmy.get("hash_type", "sha256"))
     m.run_post_piggyback_migrations(
-        tmpdir, pmy, hash_type=pmy.get("hash_type", "sha256")
+        tmpdir, pmy, hash_type=pmy.get("hash_type", "sha256"),
     )
 
     assert mr_out == mr
