@@ -27,7 +27,7 @@ import networkx as nx
 
 if typing.TYPE_CHECKING:
     from mypy_extensions import TypedDict
-    from .migrators_types import PackageName
+    from .migrators_types import PackageName, RequirementsTypedDict
     from conda_forge_tick.migrators_types import MetaYamlTypedDict
 
 T = typing.TypeVar("T")
@@ -561,3 +561,30 @@ def as_iterable(iterable_or_scalar):
         return iterable_or_scalar
     else:
         return (iterable_or_scalar,)
+
+
+def extract_requirements(meta_yaml):
+    strong_exports = False
+    requirements_dict = defaultdict(set)
+    for block in [meta_yaml] + meta_yaml.get("outputs", []) or []:
+        req: "RequirementsTypedDict" = block.get("requirements", {}) or {}
+        if isinstance(req, list):
+            requirements_dict["run"].update(set(req))
+            continue
+        for section in ["build", "host", "run"]:
+            requirements_dict[section].update(
+                list(as_iterable(req.get(section, []) or [])),
+            )
+        test: "TestTypedDict" = block.get("test", {})
+        requirements_dict["test"].update(test.get("requirements", []) or [])
+        requirements_dict["test"].update(test.get("requires", []) or [])
+        run_exports = (block.get("build", {}) or {}).get("run_exports", {})
+        if isinstance(run_exports, dict) and run_exports.get("strong"):
+            strong_exports = True
+    for k in list(requirements_dict.keys()):
+        requirements_dict[k] = {v for v in requirements_dict[k] if v}
+    req_no_pins = {
+        k: {pin_sep_pat.split(x)[0].lower() for x in v}
+        for k, v in dict(requirements_dict).items()
+    }
+    return dict(requirements_dict), req_no_pins, strong_exports
