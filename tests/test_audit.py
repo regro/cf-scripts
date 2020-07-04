@@ -171,7 +171,4 @@ def test_grayskull_audit_feedstock():
     fctx = FeedstockContext("depfinder", "depfinder", attrs)
 
     recipe = grayskull_audit_feedstock(fctx, mm_ctx)
-    assert (
-            recipe
-            == DEPFINDER_RECIPE
-    )
+    assert recipe == DEPFINDER_RECIPE
