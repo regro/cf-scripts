@@ -481,7 +481,7 @@ class GraphMigrator(Migrator):
         if super().filter(attrs, "Upstream:"):
             LOGGER.debug("filter %s: archived or done", name)
             return True
-        if attrs["feedstock_name"] not in self.graph:
+        if attrs.get("feedstock_name", None) not in self.graph:
             LOGGER.debug("filter %s: node not in graph", name)
             return True
         # If in top level or in a cycle don't check for upstreams just build
