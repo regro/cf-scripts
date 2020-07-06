@@ -35,7 +35,6 @@ TD = typing.TypeVar("TD", bound=dict, covariant=True)
 
 pin_sep_pat = re.compile(r" |>|<|=|\[")
 
-
 PACKAGE_STUBS = [
     "_compiler_stub",
     "subpackage_stub",
@@ -53,7 +52,6 @@ CB_CONFIG = dict(
     cran_mirror="https://cran.r-project.org",
     datetime=datetime,
 )
-
 
 CB_CONFIG_PINNING = dict(
     os=os,
@@ -180,6 +178,11 @@ class LazyJson(MutableMapping):
         return self
 
     def __exit__(self, *args: Any) -> Any:
+        self._dump()
+
+    def update(self, data: dict, **kwargs) -> None:
+        self._load()
+        self.data.update(data, **kwargs)
         self._dump()
 
 

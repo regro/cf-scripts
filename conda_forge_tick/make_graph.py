@@ -9,6 +9,7 @@ from concurrent.futures import as_completed
 from copy import deepcopy
 from typing import List, Optional, Set
 
+import json
 import networkx as nx
 import requests
 import yaml
@@ -34,7 +35,6 @@ if typing.TYPE_CHECKING:
 
 logger = logging.getLogger("conda_forge_tick.make_graph")
 pin_sep_pat = re.compile(r" |>|<|=|\[")
-
 
 NUM_GITHUB_THREADS = 2
 
@@ -336,6 +336,25 @@ def update_nodes_with_bot_rerun(gx):
                     )
 
 
+def update_nodes_with_new_versions(gx):
+    """Updates every node with it's new version (when available)"""
+    # check if the versions folder is available
+    if os.path.isdir("./versions"):
+        pass
+    else:
+        return
+    # get all the available node.json files
+    # TODO: I don't thing this is a good idea (8000+ entries)
+    list_files = os.listdir("./versions/")
+
+    for file in list_files:
+        node = str(file).replace(".json", "")
+        with open(f"./versions/{file}") as json_file:
+            version_data = json.load(json_file)
+        with gx.nodes[f"{node}"]["payload"] as attrs:
+            attrs.update(version_data)
+
+
 def main(args: "CLIArgs") -> None:
     setup_logger(logger)
 
@@ -354,8 +373,8 @@ def main(args: "CLIArgs") -> None:
     print(
         "nodes w/o payload:", [k for k, v in gx.nodes.items() if "payload" not in v],
     )
-
     update_nodes_with_bot_rerun(gx)
+    update_nodes_with_new_versions(gx)
 
     dump_graph(gx)
 
