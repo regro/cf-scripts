@@ -180,11 +180,6 @@ class LazyJson(MutableMapping):
     def __exit__(self, *args: Any) -> Any:
         self._dump()
 
-    def update(self, data: dict, **kwargs) -> None:
-        self._load()
-        self.data.update(data, **kwargs)
-        self._dump()
-
 
 def render_meta_yaml(text: str, for_pinning=False, **kwargs) -> str:
     """Render the meta.yaml with Jinja2 variables.
