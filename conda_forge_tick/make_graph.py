@@ -373,7 +373,6 @@ def main(args: "CLIArgs") -> None:
     print(
         "nodes w/o payload:", [k for k, v in gx.nodes.items() if "payload" not in v],
     )
-
     update_nodes_with_bot_rerun(gx)
     update_nodes_with_new_versions(gx)
 
