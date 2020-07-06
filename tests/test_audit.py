@@ -6,59 +6,6 @@ import networkx as nx
 
 from conda_forge_tick.utils import load
 
-# Grayskull seems to have a regression
-# DEPFINDER_RECIPE = """{% set name = "depfinder" %}
-# {% set version = 2.3.0 %}
-#
-#
-# package:
-#   name: {{ name|lower }}
-#   version: {{ version }}
-#
-# source:
-#   url: https://pypi.io/packages/source/{{ name[0] }}/{{ name }}/{{ name }}-{{ version }}.tar.gz
-#   sha256: 2694acbc8f7d94ca9bae55b8dc5b4860d5bc253c6a377b3b8ce63fb5bffa4000
-#
-# build:
-#   number: 0
-#   noarch: python
-#   entry_points:
-#     - depfinder = depfinder.cli:cli
-#   script: {{ PYTHON }} -m pip install . -vv
-#
-# requirements:
-#   host:
-#     - pip
-#     - python
-#   run:
-#     - python
-#     - pyyaml
-#     - stdlib-list
-#
-# test:
-#   imports:
-#     - depfinder
-#   commands:
-#     - pip check
-#     - depfinder --help
-#   requires:
-#     - pip
-#
-# about:
-#   home: http://github.com/ericdill/depfinder
-#   summary: Find all the imports in your library
-#   doc_url: https://pythonhosted.org/depfinder/
-#   license: BSD-3-Clause
-#   license_file: LICENSE
-#
-# extra:
-#   recipe-maintainers:
-#     - ericdill
-#     - mariusvniekerk
-#     - tonyfast
-#     - ocefpaf
-# """
-
 DEPFINDER_RECIPE = """{% set name = "depfinder" %}
 {% set version = 2.3.0 %}
 
@@ -74,6 +21,8 @@ source:
 build:
   number: 0
   noarch: python
+  entry_points:
+    - depfinder = depfinder.cli:cli
   script: {{ PYTHON }} -m pip install . -vv
 
 requirements:
@@ -82,12 +31,15 @@ requirements:
     - python
   run:
     - python
+    - pyyaml
+    - stdlib-list
 
 test:
   imports:
     - depfinder
   commands:
     - pip check
+    - depfinder --help
   requires:
     - pip
 
@@ -105,6 +57,53 @@ extra:
     - tonyfast
     - ocefpaf
 """
+
+# DEPFINDER_RECIPE = """{% set name = "depfinder" %}
+# {% set version = 2.3.0 %}
+#
+#
+# package:
+#   name: {{ name|lower }}
+#   version: {{ version }}
+#
+# source:
+#   url: https://pypi.io/packages/source/{{ name[0] }}/{{ name }}/{{ name }}-{{ version }}.tar.gz
+#   sha256: 2694acbc8f7d94ca9bae55b8dc5b4860d5bc253c6a377b3b8ce63fb5bffa4000
+#
+# build:
+#   number: 0
+#   noarch: python
+#   script: {{ PYTHON }} -m pip install . -vv
+#
+# requirements:
+#   host:
+#     - pip
+#     - python
+#   run:
+#     - python
+#
+# test:
+#   imports:
+#     - depfinder
+#   commands:
+#     - pip check
+#   requires:
+#     - pip
+#
+# about:
+#   home: http://github.com/ericdill/depfinder
+#   summary: Find all the imports in your library
+#   doc_url: https://pythonhosted.org/depfinder/
+#   license: BSD-3-Clause
+#   license_file: LICENSE
+#
+# extra:
+#   recipe-maintainers:
+#     - ericdill
+#     - mariusvniekerk
+#     - tonyfast
+#     - ocefpaf
+# """
 
 G = nx.DiGraph()
 G.add_node("conda", reqs=["python"])
