@@ -634,7 +634,7 @@ class Version(Migrator):
         if (
             feedstock_ctx.attrs.get("conda-forge.yml", {})
             .get("bot", {})
-            .get("automerge", False)
+            .get("automerge", False) in {'version', True}
         ):
             add_slug = "[bot-automerge] "
         else:

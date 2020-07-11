@@ -261,7 +261,7 @@ class MigrationYaml(GraphMigrator):
         if (
             feedstock_ctx.attrs.get("conda-forge.yml", {})
             .get("bot", {})
-            .get("automerge", False)
+            .get("automerge", False) in {'migration', True}
         ) and self.automerge:
             add_slug = "[bot-automerge] "
         else:
