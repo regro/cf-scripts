@@ -1,10 +1,7 @@
 import pytest
 
-from conda_forge_tick.update_upstream_versions import (
-    NPM,
-    get_latest_version,
-    next_version,
-)
+from conda_forge_tick.new_update_versions import get_latest_version
+from conda_forge_tick.update_sources import NPM, next_version
 from conda_forge_tick.utils import parse_meta_yaml, LazyJson
 
 sample_npm = """
@@ -164,7 +161,8 @@ def test_latest_version(inp, ver, source, urls, requests_mock, tmpdir):
     pmy = LazyJson(tmpdir.join("cf-scripts-test.json"))
     pmy.update(parse_meta_yaml(inp)["source"])
     [requests_mock.get(url, text=text) for url, text in urls.items()]
-    assert ver == get_latest_version("configurable-http-proxy", pmy, [source])
+    attempt = get_latest_version("configurable-http-proxy", pmy, [source])
+    assert ver == attempt['new_version']
 
 
 @pytest.mark.parametrize(
