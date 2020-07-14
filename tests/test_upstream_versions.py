@@ -162,7 +162,7 @@ def test_latest_version(inp, ver, source, urls, requests_mock, tmpdir):
     pmy.update(parse_meta_yaml(inp)["source"])
     [requests_mock.get(url, text=text) for url, text in urls.items()]
     attempt = get_latest_version("configurable-http-proxy", pmy, [source])
-    assert ver == attempt['new_version']
+    assert ver == attempt["new_version"]
 
 
 @pytest.mark.parametrize(
