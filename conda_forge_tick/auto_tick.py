@@ -110,13 +110,13 @@ BOT_RERUN_LABEL = {
 
 
 def run(
-        feedstock_ctx: FeedstockContext,
-        migrator: Migrator,
-        protocol: str = "ssh",
-        pull_request: bool = True,
-        rerender: bool = True,
-        fork: bool = True,
-        **kwargs: typing.Any,
+    feedstock_ctx: FeedstockContext,
+    migrator: Migrator,
+    protocol: str = "ssh",
+    pull_request: bool = True,
+    rerender: bool = True,
+    fork: bool = True,
+    **kwargs: typing.Any,
 ) -> Tuple["MigrationUidTypedDict", dict]:
     """For a given feedstock and migration run the migration
 
@@ -217,15 +217,20 @@ def run(
                 _
                 for _ in gdiff.split()
                 if not (
-                        _.startswith("recipe")
-                        or _.startswith("migrators")
-                        or _.startswith("README")
+                    _.startswith("recipe")
+                    or _.startswith("migrators")
+                    or _.startswith("README")
                 )
             ]
 
     if (
-            (migrator.check_solvable and feedstock_ctx.attrs["conda-forge.yml"].get("bot", {}).get('automerge'))
-            or feedstock_ctx.attrs["conda-forge.yml"].get("bot", {}).get("check_solvable", False)
+        (
+            migrator.check_solvable
+            and feedstock_ctx.attrs["conda-forge.yml"].get("bot", {}).get("automerge")
+        )
+        or feedstock_ctx.attrs["conda-forge.yml"]
+        .get("bot", {})
+        .get("check_solvable", False)
     ) and not is_recipe_solvable(feedstock_dir):
         eval_cmd(f"rm -rf {feedstock_dir}")
         return False, False
@@ -233,9 +238,9 @@ def run(
     # TODO: Better annotation here
     pr_json: typing.Union[MutableMapping, None, bool]
     if (
-            isinstance(migrator, MigrationYaml)
-            and not diffed_files
-            and feedstock_ctx.attrs["name"] != "conda-forge-pinning"
+        isinstance(migrator, MigrationYaml)
+        and not diffed_files
+        and feedstock_ctx.attrs["name"] != "conda-forge-pinning"
     ):
         # spoof this so it looks like the package is done
         pr_json = {
@@ -296,12 +301,12 @@ def _host_run_test_dependencies(meta_yaml: "MetaYamlTypedDict") -> Set["PackageN
 
 
 def add_replacement_migrator(
-        migrators: MutableSequence[Migrator],
-        gx: nx.DiGraph,
-        old_pkg: "PackageName",
-        new_pkg: "PackageName",
-        rationale: str,
-        alt_migrator: Union[Migrator, None] = None,
+    migrators: MutableSequence[Migrator],
+    gx: nx.DiGraph,
+    old_pkg: "PackageName",
+    new_pkg: "PackageName",
+    rationale: str,
+    alt_migrator: Union[Migrator, None] = None,
 ) -> None:
     """Adds a migrator to replace one package with another.
 
@@ -326,10 +331,10 @@ def add_replacement_migrator(
     for node, node_attrs in gx.nodes.items():
         requirements = node_attrs["payload"].get("requirements", {})
         rq = (
-                requirements.get("build", set())
-                | requirements.get("host", set())
-                | requirements.get("run", set())
-                | requirements.get("test", set())
+            requirements.get("build", set())
+            | requirements.get("host", set())
+            | requirements.get("run", set())
+            | requirements.get("test", set())
         )
         pkgs = {old_pkg}
         old_pkg_c = pkgs.intersection(rq)
@@ -381,15 +386,15 @@ def add_arch_migrate(migrators: MutableSequence[Migrator], gx: nx.DiGraph) -> No
 
 
 def add_rebuild_migration_yaml(
-        migrators: MutableSequence[Migrator],
-        gx: nx.DiGraph,
-        package_names: Sequence[str],
-        output_to_feedstock: Mapping[str, str],
-        excluded_feedstocks: MutableSet[str],
-        migration_yaml: str,
-        config: dict = {},
-        migration_name: str = "",
-        pr_limit: int = PR_LIMIT,
+    migrators: MutableSequence[Migrator],
+    gx: nx.DiGraph,
+    package_names: Sequence[str],
+    output_to_feedstock: Mapping[str, str],
+    excluded_feedstocks: MutableSet[str],
+    migration_yaml: str,
+    config: dict = {},
+    migration_name: str = "",
+    pr_limit: int = PR_LIMIT,
 ) -> None:
     """Adds rebuild migrator.
 
@@ -428,8 +433,8 @@ def add_rebuild_migration_yaml(
     # build section in its place.
 
     package_names = {
-                        p if p in gx.nodes else output_to_feedstock[p] for p in package_names
-                    } - excluded_feedstocks
+        p if p in gx.nodes else output_to_feedstock[p] for p in package_names
+    } - excluded_feedstocks
 
     top_level = {
         node
@@ -458,7 +463,7 @@ def add_rebuild_migration_yaml(
 
 
 def migration_factory(
-        migrators: MutableSequence[Migrator], gx: nx.DiGraph, pr_limit: int = PR_LIMIT,
+    migrators: MutableSequence[Migrator], gx: nx.DiGraph, pr_limit: int = PR_LIMIT,
 ) -> None:
     migration_yamls = []
     migrations_loc = os.path.join(
@@ -496,9 +501,9 @@ def migration_factory(
         pr_limit = min(migrator_config.pop("pr_limit", pr_limit), MAX_PR_LIMIT)
 
         package_names = (
-                                (set(loaded_yaml) | {l.replace("_", "-") for l in loaded_yaml})
-                                & all_package_names
-                        ) - excluded_feedstocks
+            (set(loaded_yaml) | {l.replace("_", "-") for l in loaded_yaml})
+            & all_package_names
+        ) - excluded_feedstocks
 
         if not paused:
             add_rebuild_migration_yaml(
@@ -547,10 +552,10 @@ def create_migration_yaml_creator(migrators: MutableSequence[Migrator], gx: nx.D
         k = gx.graph["outputs_lut"].get(k, k)
 
         if (
-                (k in gx.nodes)
-                and not gx.nodes[k]["payload"].get("archived", False)
-                and gx.nodes[k]["payload"].get("version")
-                and k not in feedstocks_to_be_repinned
+            (k in gx.nodes)
+            and not gx.nodes[k]["payload"].get("archived", False)
+            and gx.nodes[k]["payload"].get("version")
+            and k not in feedstocks_to_be_repinned
         ):
 
             current_pins = list(map(str, package_pin_list))
@@ -571,12 +576,12 @@ def create_migration_yaml_creator(migrators: MutableSequence[Migrator], gx: nx.D
                     for p in build.get("run_exports", [{}])
                     # make certain not direct hard pin
                     if isinstance(p, MutableMapping)
-                       # if the pinned package is in an output of the parent feedstock
-                       and (
-                               gx.graph["outputs_lut"].get(p.get("package_name", ""), "") == k
-                               # if the pinned package is the feedstock itself
-                               or p.get("package_name", "") == k
-                       )
+                    # if the pinned package is in an output of the parent feedstock
+                    and (
+                        gx.graph["outputs_lut"].get(p.get("package_name", ""), "") == k
+                        # if the pinned package is the feedstock itself
+                        or p.get("package_name", "") == k
+                    )
                 ]
                 if not exports:
                     continue
@@ -588,7 +593,7 @@ def create_migration_yaml_creator(migrators: MutableSequence[Migrator], gx: nx.D
             # fall back to the pinning file or "x"
             if not pin_spec:
                 pin_spec = (
-                        pinnings["pin_run_as_build"].get(k, {}).get("max_pin", "x") or "x"
+                    pinnings["pin_run_as_build"].get(k, {}).get("max_pin", "x") or "x"
                 )
 
             current_pins = list(
@@ -602,7 +607,7 @@ def create_migration_yaml_creator(migrators: MutableSequence[Migrator], gx: nx.D
             # If the current pin and the current version is the same nothing
             # to do even if the pin isn't accurate to the spec
             if current_pin != current_version and _outside_pin_range(
-                    pin_spec, current_pin, current_version,
+                pin_spec, current_pin, current_version,
             ):
                 feedstocks_to_be_repinned.append(k)
                 print(package_name, current_version, current_pin, pin_spec)
@@ -614,10 +619,10 @@ def create_migration_yaml_creator(migrators: MutableSequence[Migrator], gx: nx.D
 
 
 def initialize_migrators(
-        github_username: str = "",
-        github_password: str = "",
-        github_token: Optional[str] = None,
-        dry_run: bool = False,
+    github_username: str = "",
+    github_password: str = "",
+    github_token: Optional[str] = None,
+    dry_run: bool = False,
 ) -> Tuple[MigratorSessionContext, list, MutableSequence[Migrator]]:
     temp = glob.glob("/tmp/*")
     gx = load_graph()
@@ -792,12 +797,12 @@ def main(args: "CLIArgs") -> None:
                 # TODO: convert these env vars
                 _now = time.time()
                 if (
-                        (
-                                _now - int(env.get("START_TIME", time.time()))
-                                > int(env.get("TIMEOUT", 600))
-                        )
-                        or good_prs >= migrator.pr_limit
-                        or (_now - _mg_start) > time_per
+                    (
+                        _now - int(env.get("START_TIME", time.time()))
+                        > int(env.get("TIMEOUT", 600))
+                    )
+                    or good_prs >= migrator.pr_limit
+                    or (_now - _mg_start) > time_per
                 ):
                     break
 
@@ -817,8 +822,8 @@ def main(args: "CLIArgs") -> None:
                 try:
                     # Don't bother running if we are at zero
                     if (
-                            args.dry_run
-                            or mctx.gh.rate_limit()["resources"]["core"]["remaining"] == 0
+                        args.dry_run
+                        or mctx.gh.rate_limit()["resources"]["core"]["remaining"] == 0
                     ):
                         break
                     migrator_uid, pr_json = run(
