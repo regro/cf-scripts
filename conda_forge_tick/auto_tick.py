@@ -83,7 +83,6 @@ if typing.TYPE_CHECKING:
 
 logger = logging.getLogger("conda_forge_tick.auto_tick")
 
-
 PR_LIMIT = 5
 MAX_PR_LIMIT = 50
 
@@ -225,7 +224,10 @@ def run(
             ]
 
     if (
-        migrator.check_solvable
+        (
+            migrator.check_solvable
+            and feedstock_ctx.attrs["conda-forge.yml"].get("bot", {}).get("automerge")
+        )
         or feedstock_ctx.attrs["conda-forge.yml"]
         .get("bot", {})
         .get("check_solvable", False)
