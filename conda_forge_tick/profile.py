@@ -17,7 +17,7 @@ def profile_main(*args) -> None:
 
     # Get current time
     now = datetime.now()
-    current_time = now.strftime("%d-%m-%Y") + '_' + now.strftime("%H_%M_%S")
+    current_time = now.strftime("%d-%m-%Y") + "_" + now.strftime("%H_%M_%S")
 
     # TODO: add a check for the profile folder directory ?
 
