@@ -1,6 +1,6 @@
 import pytest
 
-from conda_forge_tick.new_update_versions import get_latest_version
+from conda_forge_tick.update_upstream_versions import get_latest_version
 from conda_forge_tick.update_sources import NPM, next_version
 from conda_forge_tick.utils import parse_meta_yaml, LazyJson
 
