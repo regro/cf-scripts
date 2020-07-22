@@ -320,9 +320,7 @@ def _is_recipe_solvable_on_platform(recipe_dir, cbc_path, platform, arch):
     solvable = True
     outnames = [m.name() for m, _, _ in metas]
     for m, _, _ in metas:
-        build_req = m.get_value(
-            "requirements/build", [],
-        )
+        build_req = m.get_value("requirements/build", [])
         if build_req:
             build_req = _clean_reqs(build_req, outnames)
             solvable &= mamba_solver.solve(build_req)
