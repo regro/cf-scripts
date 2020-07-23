@@ -320,11 +320,15 @@ def _is_recipe_solvable_on_platform(recipe_dir, cbc_path, platform, arch):
     solvable = True
     outnames = [m.name() for m, _, _ in metas]
     for m, _, _ in metas:
-        host_req = m.get_value("requirements/host", []) or m.get_value(
-            "requirements/build", [],
-        )
-        host_req = _clean_reqs(host_req, outnames)
-        solvable &= mamba_solver.solve(host_req)
+        build_req = m.get_value("requirements/build", [])
+        if build_req:
+            build_req = _clean_reqs(build_req, outnames)
+            solvable &= mamba_solver.solve(build_req)
+
+        host_req = m.get_value("requirements/host", [])
+        if host_req:
+            host_req = _clean_reqs(host_req, outnames)
+            solvable &= mamba_solver.solve(host_req)
 
         run_req = m.get_value("requirements/run", [])
         run_req = _clean_reqs(run_req, outnames)
