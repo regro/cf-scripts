@@ -28,4 +28,4 @@ def profile_main(*args) -> None:
 
 def main(*args):
     # run auto_tick
-    profile_main(args)
+    main_auto_tick(*args)
