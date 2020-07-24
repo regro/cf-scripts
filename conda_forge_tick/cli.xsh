@@ -9,7 +9,7 @@ from .utils import load_graph, LazyJson
 from .all_feedstocks import main as main_all_feedstocks
 from .make_graph import main as main_make_graph
 from .update_upstream_versions import main as main_update_upstream_versions
-from .auto_tick import main as main_auto_tick
+from .auto_tick import profile_main as main_auto_tick
 from .status_report import main as main_status_report
 from .audit import main as main_audit
 from .update_prs import main as main_update_prs
