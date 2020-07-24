@@ -74,7 +74,7 @@ def _update_upstream_versions_sequential(
     to_update = []
     for node, node_attrs in _all_nodes:
         with node_attrs["payload"] as attrs:
-            if (attrs.get("bad") and "Upstream" not in attrs["bad"]) or attrs.get(
+            if "Upstream" not in attrs.get("bad", []) or attrs.get(
                 "archived",
             ):
                 continue
