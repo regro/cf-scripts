@@ -196,7 +196,7 @@ def run(
         eval_cmd("git add --all .")
         eval_cmd(f"git commit -am '{msg}'")
         if rerender:
-            head_ref = eval_cmd("git rev-parse HEAD")  # noqa
+            head_ref = eval_cmd("git rev-parse HEAD").strip()
             logger.info("Rerendering the feedstock")
 
             # In the event we can't rerender, try to update the pinnings,
@@ -626,7 +626,7 @@ def initialize_migrators(
 ) -> Tuple[MigratorSessionContext, list, MutableSequence[Migrator]]:
     temp = glob.glob("/tmp/*")
     gx = load_graph()
-    smithy_version = eval_cmd("conda smithy --version")
+    smithy_version = eval_cmd("conda smithy --version").strip()
     pinning_version = json.loads(eval_cmd("conda list conda-forge-pinning --json"))[0][
         "version"
     ]
