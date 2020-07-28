@@ -211,7 +211,7 @@ def run(
             # If we tried to run the MigrationYaml and rerender did nothing (we only
             # bumped the build number and dropped a yaml file in migrations) bail
             # for instance platform specific migrations
-            gdiff = eval_cmd(f"git diff --name-only {head_ref}...HEAD")
+            gdiff = eval_cmd(f"git diff --name-only {head_ref.strip()}...HEAD")
 
             diffed_files = [
                 _
