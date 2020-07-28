@@ -90,7 +90,6 @@ int_script_dict = {
   4: main_status_report,
   5: main_audit,
   6: main_update_prs,
-  7: main_populate_versions,
   -1: deploy
 }
 
