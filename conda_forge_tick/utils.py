@@ -76,12 +76,7 @@ def eval_cmd(cmd, **kwargs):
     timeout = kwargs.pop("timeout", None)
     env.update(kwargs)
     c = subprocess.run(
-        cmd,
-        shell=True,
-        check=True,
-        stdout=subprocess.PIPE,
-        env=env,
-        timeout=timeout,
+        cmd, shell=True, check=True, stdout=subprocess.PIPE, env=env, timeout=timeout,
     )
     return c.stdout.decode("utf-8")
 
