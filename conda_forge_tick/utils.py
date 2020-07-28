@@ -81,7 +81,7 @@ def eval_cmd(cmd, **kwargs):
     if c.returncode != 0:
         print(c.stdout.decode("utf-8"), flush=True)
         raise subprocess.CalledProcessError(
-            "Command '%s' failed with return code %s!" % (cmd, c.returncode)
+             f"Command '{cmd}' failed with return code {c.returncode}!",
         )
 
     return c.stdout.decode("utf-8")
