@@ -77,12 +77,17 @@ def eval_cmd(cmd, **kwargs):
     env.update(kwargs)
     try:
         c = subprocess.run(
-            cmd, shell=True, check=True, stdout=subprocess.PIPE, env=env, timeout=timeout,
+            cmd,
+            shell=True,
+            check=True,
+            stdout=subprocess.PIPE,
+            env=env,
+            timeout=timeout,
         )
     except Exception as e:
         print(c.stdout.decode("utf-8"), flush=True)
         raise e
-    
+
     return c.stdout.decode("utf-8")
 
 
