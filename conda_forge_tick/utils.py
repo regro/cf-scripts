@@ -75,18 +75,14 @@ def eval_cmd(cmd, **kwargs):
     env = copy.deepcopy(os.environ)
     timeout = kwargs.pop("timeout", None)
     env.update(kwargs)
-    try:
-        c = subprocess.run(
-            cmd,
-            shell=True,
-            check=True,
-            stdout=subprocess.PIPE,
-            env=env,
-            timeout=timeout,
-        )
-    except Exception as e:
+    c = subprocess.run(
+        cmd, shell=True, stdout=subprocess.PIPE, env=env, timeout=timeout,
+    )
+    if c.returncode != 0:
         print(c.stdout.decode("utf-8"), flush=True)
-        raise e
+        raise subprocess.CalledProcessError(
+            "Command '%s' failed with return code %s!" % (cmd, c.returncode)
+        )
 
     return c.stdout.decode("utf-8")
 
