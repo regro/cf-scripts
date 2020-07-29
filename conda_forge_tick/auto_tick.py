@@ -917,7 +917,9 @@ def main(args: "CLIArgs") -> None:
     s_stream = io.StringIO()
 
     # TODO: There are other ways to do this, with more freedom
-    profile_stats = pstats.Stats(profile_profiler, stream=s_stream).sort_stats("tottime")
+    profile_stats = pstats.Stats(profile_profiler, stream=s_stream).sort_stats(
+        "tottime",
+    )
     profile_stats.print_stats()
 
     # get current time
