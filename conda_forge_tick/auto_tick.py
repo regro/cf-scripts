@@ -910,8 +910,12 @@ def main(args: "CLIArgs") -> None:
         )
     logger.info("Done")
 
+    # stop profiler
     pr.disable()
+
+    # human readable
     s = io.StringIO()
+    # TODO: There are other ways to do this, with more freedom
     ps = pstats.Stats(pr, stream=s).sort_stats("tottime")
     ps.print_stats()
 
@@ -919,6 +923,7 @@ def main(args: "CLIArgs") -> None:
     now = datetime.now()
     current_time = now.strftime("%d-%m-%Y") + "_" + now.strftime("%H_%M_%S")
 
+    # output to data
     with open(f"profiler/{current_time}.txt", "w+") as f:
         f.write(s.getvalue())
 
