@@ -9,7 +9,11 @@ import logging
 import os
 import typing
 from subprocess import SubprocessError
+
+import datetime
 import cProfile
+import pstats
+import io
 
 import networkx as nx
 from conda.models.version import VersionOrder
@@ -711,6 +715,10 @@ def _compute_time_per_migrator(mctx):
 
 
 def main(args: "CLIArgs") -> None:
+    # start profiler
+    pr = cProfile.Profile()
+    pr.enable()
+
     # logging
     from .xonsh_utils import env
 
@@ -902,9 +910,17 @@ def main(args: "CLIArgs") -> None:
         )
     logger.info("Done")
 
+    pr.disable()
+    s = io.StringIO()
+    ps = pstats.Stats(pr, stream=s).sort_stats('tottime')
+    ps.print_stats()
 
-def profile_main(args: "CLIArgs") -> None:
-    cProfile.run(f"main({args})")
+    # get current time
+    now = datetime.now()
+    current_time = now.strftime("%d-%m-%Y") + '_' + now.strftime("%H_%M_%S")
+
+    with open(f'profiler/{current_time}.txt', 'w+') as f:
+        f.write(s.getvalue())
 
 
 if __name__ == "__main__":
