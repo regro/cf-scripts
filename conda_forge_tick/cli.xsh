@@ -13,7 +13,6 @@ from .auto_tick import profile_main as main_auto_tick
 from .status_report import main as main_status_report
 from .audit import main as main_audit
 from .update_prs import main as main_update_prs
-from .new_update_versions import main as main_populate_versions
 
 
 def deploy(args):
@@ -91,7 +90,6 @@ int_script_dict = {
   4: main_status_report,
   5: main_audit,
   6: main_update_prs,
-  7: main_populate_versions,
   -1: deploy
 }
 

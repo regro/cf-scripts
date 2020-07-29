@@ -9,7 +9,6 @@ import json
 import logging
 import os
 import re
-import shlex
 from typing import Any, Tuple, Iterable, Union, Optional, IO
 from collections.abc import MutableMapping, Set
 from concurrent.futures import (
@@ -77,8 +76,12 @@ def eval_cmd(cmd, **kwargs):
     timeout = kwargs.pop("timeout", None)
     env.update(kwargs)
     c = subprocess.run(
-        shlex.split(cmd), check=True, stdout=subprocess.PIPE, env=env, timeout=timeout,
+        cmd, shell=True, stdout=subprocess.PIPE, env=env, timeout=timeout,
     )
+    if c.returncode != 0:
+        print(c.stdout.decode("utf-8"), flush=True)
+        c.check_returncode()
+
     return c.stdout.decode("utf-8")
 
 
