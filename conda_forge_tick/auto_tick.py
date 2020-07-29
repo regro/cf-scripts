@@ -716,8 +716,8 @@ def _compute_time_per_migrator(mctx):
 
 def main(args: "CLIArgs") -> None:
     # start profiler
-    pr = cProfile.Profile()
-    pr.enable()
+    profile_profiler = cProfile.Profile()
+    profile_profiler.enable()
 
     # logging
     from .xonsh_utils import env
@@ -911,13 +911,14 @@ def main(args: "CLIArgs") -> None:
     logger.info("Done")
 
     # stop profiler
-    pr.disable()
+    profile_profiler.disable()
 
     # human readable
-    s = io.StringIO()
+    s_stream = io.StringIO()
+
     # TODO: There are other ways to do this, with more freedom
-    ps = pstats.Stats(pr, stream=s).sort_stats("tottime")
-    ps.print_stats()
+    profile_stats = pstats.Stats(profile_profiler, stream=s_stream).sort_stats("tottime")
+    profile_stats.print_stats()
 
     # get current time
     now = datetime.now()
@@ -925,7 +926,7 @@ def main(args: "CLIArgs") -> None:
 
     # output to data
     with open(f"profiler/{current_time}.txt", "w+") as f:
-        f.write(s.getvalue())
+        f.write(s_stream.getvalue())
 
 
 if __name__ == "__main__":
