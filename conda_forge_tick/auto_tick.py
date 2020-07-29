@@ -10,7 +10,7 @@ import os
 import typing
 from subprocess import SubprocessError
 
-import datetime
+from datetime import datetime
 import cProfile
 import pstats
 import io
