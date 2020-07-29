@@ -912,14 +912,14 @@ def main(args: "CLIArgs") -> None:
 
     pr.disable()
     s = io.StringIO()
-    ps = pstats.Stats(pr, stream=s).sort_stats('tottime')
+    ps = pstats.Stats(pr, stream=s).sort_stats("tottime")
     ps.print_stats()
 
     # get current time
     now = datetime.now()
-    current_time = now.strftime("%d-%m-%Y") + '_' + now.strftime("%H_%M_%S")
+    current_time = now.strftime("%d-%m-%Y") + "_" + now.strftime("%H_%M_%S")
 
-    with open(f'profiler/{current_time}.txt', 'w+') as f:
+    with open(f"profiler/{current_time}.txt", "w+") as f:
         f.write(s.getvalue())
 
 
