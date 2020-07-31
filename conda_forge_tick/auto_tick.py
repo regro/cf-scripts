@@ -8,7 +8,7 @@ import traceback
 import logging
 import os
 import typing
-from subprocess import SubprocessError
+from subprocess import SubprocessError, CalledProcessError
 
 import networkx as nx
 from conda.models.version import VersionOrder
@@ -193,8 +193,14 @@ def run(
     diffed_files: typing.List[str] = []
     with indir(feedstock_dir), env.swap(RAISE_SUBPROC_ERROR=False):
         msg = migrator.commit_message(feedstock_ctx)  # noqa
-        eval_cmd("git add --all .")
-        eval_cmd(f"git commit -am '{msg}'")
+        try:
+            eval_cmd("git add --all .")
+            eval_cmd(f"git commit -am '{msg}'")
+        except CalledProcessError as e:
+            logger.info(
+                "could not commit to feedstock - "
+                "likely no changes - error is '%s'" % (repr(e)),
+            )
         if rerender:
             head_ref = eval_cmd("git rev-parse HEAD").strip()
             logger.info("Rerendering the feedstock")
