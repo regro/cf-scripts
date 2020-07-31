@@ -199,7 +199,7 @@ def run(
         except CalledProcessError as e:
             logger.info(
                 "could not commit to feedstock - "
-                "likely no changes - error is '%s'" % (repr(e))
+                "likely no changes - error is '%s'" % (repr(e)),
             )
         if rerender:
             head_ref = eval_cmd("git rev-parse HEAD").strip()
