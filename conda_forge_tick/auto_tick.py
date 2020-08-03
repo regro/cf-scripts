@@ -10,6 +10,11 @@ import os
 import typing
 from subprocess import SubprocessError, CalledProcessError
 
+from datetime import datetime
+import cProfile
+import pstats
+import io
+
 import networkx as nx
 from conda.models.version import VersionOrder
 from conda_build.config import Config
@@ -716,6 +721,10 @@ def _compute_time_per_migrator(mctx):
 
 
 def main(args: "CLIArgs") -> None:
+    # start profiler
+    profile_profiler = cProfile.Profile()
+    profile_profiler.enable()
+
     # logging
     from .xonsh_utils import env
 
@@ -906,6 +915,26 @@ def main(args: "CLIArgs") -> None:
             mctx.gh.rate_limit()["resources"]["core"]["remaining"],
         )
     logger.info("Done")
+
+    # stop profiler
+    profile_profiler.disable()
+
+    # human readable
+    s_stream = io.StringIO()
+
+    # TODO: There are other ways to do this, with more freedom
+    profile_stats = pstats.Stats(profile_profiler, stream=s_stream).sort_stats(
+        "tottime",
+    )
+    profile_stats.print_stats()
+
+    # get current time
+    now = datetime.now()
+    current_time = now.strftime("%d-%m-%Y") + "_" + now.strftime("%H_%M_%S")
+
+    # output to data
+    with open(f"profiler/{current_time}.txt", "w+") as f:
+        f.write(s_stream.getvalue())
 
 
 if __name__ == "__main__":
