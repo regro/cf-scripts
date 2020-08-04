@@ -213,10 +213,10 @@ def render_meta_yaml(text: str, for_pinning=False, **kwargs) -> str:
 def parse_meta_yaml(
     text: str,
     for_pinning=False,
-    recipe_dir=None,
-    cbc_path=None,
     platform=None,
     arch=None,
+    recipe_dir=None,
+    cbc_path=None,
     **kwargs: Any,
 ) -> "MetaYamlTypedDict":
     """Parse the meta.yaml.
@@ -252,7 +252,7 @@ def parse_meta_yaml(
             platform=platform,
             arch=arch,
             variant_config_files=[cbc_path],
-            no_download_source=True,
+            **kwargs,
         )
         _cfg_as_dict, _ = get_package_combined_spec(recipe_dir, config=cbc)
         cfg_as_dict = ns_cfg(cbc)
@@ -265,7 +265,13 @@ def parse_meta_yaml(
             },
         )
     else:
-        cbc = Config(**kwargs)
+        _cfg = {}
+        _cfg.update(kwargs)
+        if platform is not None:
+            _cfg["platform"] = platform
+        if arch is not None:
+            _cfg["arch"] = arch
+        cbc = Config(_cfg)
         cfg_as_dict = {}
 
     if for_pinning:
