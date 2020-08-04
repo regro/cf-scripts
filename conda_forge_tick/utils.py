@@ -271,7 +271,7 @@ def parse_meta_yaml(
             _cfg["platform"] = platform
         if arch is not None:
             _cfg["arch"] = arch
-        cbc = Config(_cfg)
+        cbc = Config(**_cfg)
         cfg_as_dict = {}
 
     if for_pinning:
