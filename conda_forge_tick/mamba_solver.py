@@ -296,7 +296,7 @@ def _is_recipe_solvable_on_platform(recipe_dir, cbc_path, platform, arch):
     # here we extract the conda build config in roughly the same way that
     # it would be used in a real build
     config = conda_build.config.get_or_merge_config(
-        None, exclusive_config_file=cbc_path, platform=platform, arch=arch,
+        None, platform=platform, arch=arch, variant_config_files=[cbc_path],
     )
     cbc, _ = conda_build.variants.get_package_combined_spec(recipe_dir, config=config)
 
