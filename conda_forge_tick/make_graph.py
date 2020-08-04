@@ -85,10 +85,7 @@ def _fetch_static_repo(name, dest):
 
     z = zipfile.ZipFile(zname)
     z.extractall(path=dest)
-    dest_dir = os.path.join(
-        dest,
-        os.path.split(z.namelist()[0])[0]
-    )
+    dest_dir = os.path.join(dest, os.path.split(z.namelist()[0])[0])
     return dest_dir
 
 

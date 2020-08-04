@@ -933,7 +933,7 @@ def main(args: "CLIArgs") -> None:
     current_time = now.strftime("%d-%m-%Y") + "_" + now.strftime("%H_%M_%S")
 
     # output to data
-    os.makedirs('profiler', exist_ok=True)
+    os.makedirs("profiler", exist_ok=True)
     with open(f"profiler/{current_time}.txt", "w+") as f:
         f.write(s_stream.getvalue())
 

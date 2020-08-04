@@ -217,7 +217,7 @@ def parse_meta_yaml(
     cbc_path=None,
     platform=None,
     arch=None,
-    **kwargs: Any
+    **kwargs: Any,
 ) -> "MetaYamlTypedDict":
     """Parse the meta.yaml.
 
@@ -248,15 +248,9 @@ def parse_meta_yaml(
         # here we extract the conda build config in roughly the same way that
         # it would be used in a real build
         cbc = get_or_merge_config(
-            None,
-            platform=platform,
-            arch=arch,
-            variant_config_files=[cbc_path],
+            None, platform=platform, arch=arch, variant_config_files=[cbc_path],
         )
-        _cfg_as_dict, _ = get_package_combined_spec(
-            recipe_dir,
-            config=cbc,
-        )
+        _cfg_as_dict, _ = get_package_combined_spec(recipe_dir, config=cbc,)
         cfg_as_dict = ns_cfg(cbc)
         cfg_as_dict.update(
             {
@@ -271,16 +265,9 @@ def parse_meta_yaml(
         cfg_as_dict = {}
 
     if for_pinning:
-        content = render_meta_yaml(
-            text,
-            for_pinning=for_pinning,
-            **cfg_as_dict,
-        )
+        content = render_meta_yaml(text, for_pinning=for_pinning, **cfg_as_dict,)
     else:
-        content = render_meta_yaml(
-            text,
-            **cfg_as_dict,
-        )
+        content = render_meta_yaml(text, **cfg_as_dict,)
     return parse(content, cbc)
 
 
