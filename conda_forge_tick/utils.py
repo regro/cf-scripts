@@ -248,7 +248,11 @@ def parse_meta_yaml(
         # here we extract the conda build config in roughly the same way that
         # it would be used in a real build
         cbc = get_or_merge_config(
-            None, platform=platform, arch=arch, variant_config_files=[cbc_path],
+            None,
+            platform=platform,
+            arch=arch,
+            variant_config_files=[cbc_path],
+            no_download_source=True,
         )
         _cfg_as_dict, _ = get_package_combined_spec(recipe_dir, config=cbc)
         cfg_as_dict = ns_cfg(cbc)
