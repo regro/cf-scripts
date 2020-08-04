@@ -267,7 +267,7 @@ def parse_meta_yaml(
     if for_pinning:
         content = render_meta_yaml(text, for_pinning=for_pinning, **cfg_as_dict)
     else:
-        content = render_meta_yaml(text, **cfg_as_dict,)
+        content = render_meta_yaml(text, **cfg_as_dict)
     return parse(content, cbc)
 
 
