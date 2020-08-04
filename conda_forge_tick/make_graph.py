@@ -147,6 +147,7 @@ def populate_feedstock_attributes(
             os.path.join(feedstock_dir, ".ci_support", "*.yaml")
         )
         varient_yamls = []
+        plat_arch = []
         for cbc_path in ci_support_files:
             cbc_name = os.path.basename(cbc_path)
             cbc_name_parts = cbc_name.replace(".yaml", "").split("_")
@@ -158,6 +159,7 @@ def populate_feedstock_attributes(
                     arch = cbc_name_parts[1]
                 else:
                     arch = "64"
+            plat_arch.append((plat, arch))
 
             varient_yamls.append(
                 parse_meta_yaml(
@@ -239,16 +241,16 @@ def get_attrs(name: str, i: int, mark_not_archived=False) -> LazyJson:
         with open(os.path.join(feedstock_dir, "conda-forge.yml"), "r") as fp:
             conda_forge_yaml = fp.read()
 
-    lzj = LazyJson(f"node_attrs/{name}.json")
-    with lzj as sub_graph:
-        populate_feedstock_attributes(
-            name,
-            sub_graph,
-            meta_yaml=meta_yaml,
-            conda_forge_yaml=conda_forge_yaml,
-            mark_not_archived=mark_not_archived,
-            feedstock_dir=feedstock_dir,
-        )
+        lzj = LazyJson(f"node_attrs/{name}.json")
+        with lzj as sub_graph:
+            populate_feedstock_attributes(
+                name,
+                sub_graph,
+                meta_yaml=meta_yaml,
+                conda_forge_yaml=conda_forge_yaml,
+                mark_not_archived=mark_not_archived,
+                feedstock_dir=feedstock_dir,
+            )
     return lzj
 
 

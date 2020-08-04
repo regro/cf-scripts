@@ -199,12 +199,15 @@ def render_meta_yaml(text: str, for_pinning=False, **kwargs) -> str:
 
     """
 
+    cfg = dict(**kwargs)
+
     env = jinja2.Environment(undefined=NullUndefined)
     if for_pinning:
-        content = env.from_string(text).render(**kwargs, **CB_CONFIG_PINNING)
+        cfg.update(**CB_CONFIG_PINNING)
     else:
-        content = env.from_string(text).render(**kwargs, **CB_CONFIG)
-    return content
+        cfg.update(**CB_CONFIG)
+
+    return env.from_string(text).render(**cfg)
 
 
 def parse_meta_yaml(
@@ -232,9 +235,9 @@ def parse_meta_yaml(
     from conda_build.config import (
         Config,
         get_or_merge_config,
-        get_package_combined_spec,
     )
     from conda_build.metadata import parse, ns_cfg
+    from conda_build.variants import get_package_combined_spec
 
     if (
         recipe_dir is not None
@@ -244,18 +247,27 @@ def parse_meta_yaml(
     ):
         # here we extract the conda build config in roughly the same way that
         # it would be used in a real build
-        config = get_or_merge_config(
+        cbc = get_or_merge_config(
             None,
-            exclusive_config_file=cbc_path,
             platform=platform,
             arch=arch,
+            variant_config_files=[cbc_path],
         )
-        cbc, _ = get_package_combined_spec(
+        _cfg_as_dict, _ = get_package_combined_spec(
             recipe_dir,
-            config=config,
+            config=cbc,
         )
         cfg_as_dict = ns_cfg(cbc)
+        cfg_as_dict.update(
+            {
+                k: v[0]
+                if isinstance(v, list) and not isinstance(v, str) and len(v) > 0
+                else v
+                for k, v in _cfg_as_dict.items()
+            }
+        )
     else:
+        cbc = Config(**kwargs)
         cfg_as_dict = {}
 
     if for_pinning:
@@ -269,7 +281,7 @@ def parse_meta_yaml(
             text,
             **cfg_as_dict,
         )
-    return parse(content, Config(**kwargs))
+    return parse(content, cbc)
 
 
 def setup_logger(logger: logging.Logger, level: Optional[str] = "INFO") -> None:
