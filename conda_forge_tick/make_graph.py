@@ -70,7 +70,7 @@ def _fetch_file(name: str, filepath: str) -> typing.Union[str, Response]:
 
 def _fetch_static_repo(name, dest):
     r = requests.get(
-        f"https://github.com/conda-forge/{name}-feedstock/archive/master.zip"
+        f"https://github.com/conda-forge/{name}-feedstock/archive/master.zip",
     )
     if r.status_code != 200:
         logger.error(
@@ -141,7 +141,7 @@ def populate_feedstock_attributes(
     if feedstock_dir is not None:
         recipe_dir = os.path.join(feedstock_dir, "recipe")
         ci_support_files = glob.glob(
-            os.path.join(feedstock_dir, ".ci_support", "*.yaml")
+            os.path.join(feedstock_dir, ".ci_support", "*.yaml"),
         )
         varient_yamls = []
         plat_arch = []
@@ -165,7 +165,7 @@ def populate_feedstock_attributes(
                     arch=arch,
                     recipe_dir=recipe_dir,
                     cbc_path=cbc_path,
-                )
+                ),
             )
 
             # collapse them down

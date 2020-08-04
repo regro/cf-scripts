@@ -250,7 +250,7 @@ def parse_meta_yaml(
         cbc = get_or_merge_config(
             None, platform=platform, arch=arch, variant_config_files=[cbc_path],
         )
-        _cfg_as_dict, _ = get_package_combined_spec(recipe_dir, config=cbc,)
+        _cfg_as_dict, _ = get_package_combined_spec(recipe_dir, config=cbc)
         cfg_as_dict = ns_cfg(cbc)
         cfg_as_dict.update(
             {
@@ -258,14 +258,14 @@ def parse_meta_yaml(
                 if isinstance(v, list) and not isinstance(v, str) and len(v) > 0
                 else v
                 for k, v in _cfg_as_dict.items()
-            }
+            },
         )
     else:
         cbc = Config(**kwargs)
         cfg_as_dict = {}
 
     if for_pinning:
-        content = render_meta_yaml(text, for_pinning=for_pinning, **cfg_as_dict,)
+        content = render_meta_yaml(text, for_pinning=for_pinning, **cfg_as_dict)
     else:
         content = render_meta_yaml(text, **cfg_as_dict,)
     return parse(content, cbc)
