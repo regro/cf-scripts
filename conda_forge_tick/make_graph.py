@@ -170,6 +170,21 @@ def populate_feedstock_attributes(
                     cbc_path=cbc_path,
                 )
             )
+
+            # collapse them down
+            final_cfgs = {}
+            for plat_arch, varyml in zip(plat_arch, varient_yamls):
+                if plat_arch not in final_cfgs:
+                    final_cfgs[plat_arch] = []
+                final_cfgs[plat_arch].append(varyml)
+            for k in final_cfgs:
+                ymls = final_cfgs[k]
+                final_cfgs[k] = _convert_to_dict(ChainDB(*ymls))
+            plat_arch = []
+            varient_yamls = []
+            for k, v in final_cfgs.items():
+                plat_arch.append(k)
+                varient_yamls.append(v)
     else:
         plat_arch = [("win", "64"), ("osx", "64"), ("linux", "64")]
         for k in set(sub_graph["conda-forge.yml"].get("provider", {})):
