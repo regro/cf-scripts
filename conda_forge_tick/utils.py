@@ -25,7 +25,7 @@ import boto3
 import networkx as nx
 
 if typing.TYPE_CHECKING:
-    from mypy_extensions import TypedDict
+    from mypy_extensions import TypedDict, TestTypedDict
     from .migrators_types import PackageName, RequirementsTypedDict
     from conda_forge_tick.migrators_types import MetaYamlTypedDict
 
@@ -207,7 +207,15 @@ def render_meta_yaml(text: str, for_pinning=False, **kwargs) -> str:
     return content
 
 
-def parse_meta_yaml(text: str, for_pinning=False, **kwargs: Any) -> "MetaYamlTypedDict":
+def parse_meta_yaml(
+    text: str,
+    for_pinning=False,
+    recipe_dir=None,
+    cbc_path=None,
+    platform=None,
+    arch=None,
+    **kwargs: Any
+) -> "MetaYamlTypedDict":
     """Parse the meta.yaml.
 
     Parameters
@@ -221,13 +229,46 @@ def parse_meta_yaml(text: str, for_pinning=False, **kwargs: Any) -> "MetaYamlTyp
         The parsed YAML dict. If parsing fails, returns an empty dict.
 
     """
-    from conda_build.config import Config
-    from conda_build.metadata import parse
+    from conda_build.config import (
+        Config,
+        get_or_merge_config,
+        get_package_combined_spec,
+    )
+    from conda_build.metadata import parse, ns_cfg
+
+    if (
+        recipe_dir is not None
+        and cbc_path is not None
+        and arch is not None
+        and platform is not None
+    ):
+        # here we extract the conda build config in roughly the same way that
+        # it would be used in a real build
+        config = get_or_merge_config(
+            None,
+            exclusive_config_file=cbc_path,
+            platform=platform,
+            arch=arch,
+        )
+        cbc, _ = get_package_combined_spec(
+            recipe_dir,
+            config=config,
+        )
+        cfg_as_dict = ns_cfg(cbc)
+    else:
+        cfg_as_dict = {}
 
     if for_pinning:
-        content = render_meta_yaml(text, for_pinning=for_pinning)
+        content = render_meta_yaml(
+            text,
+            for_pinning=for_pinning,
+            **cfg_as_dict,
+        )
     else:
-        content = render_meta_yaml(text)
+        content = render_meta_yaml(
+            text,
+            **cfg_as_dict,
+        )
     return parse(content, Config(**kwargs))
 
 
