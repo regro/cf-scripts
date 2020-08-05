@@ -254,7 +254,7 @@ def parse_meta_yaml(
                 if isinstance(v, list) and not isinstance(v, str) and len(v) > 0
                 else v
                 for k, v in _cfg_as_dict.items()
-            }
+            },
         )
     else:
         _cfg = {}
