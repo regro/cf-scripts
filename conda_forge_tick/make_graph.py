@@ -298,7 +298,7 @@ def _build_graph_process_pool(
 
     with executor("thread", max_workers=20) as pool:
         futures = {}
-        for i, name in tqdm.tqdm(enumerate(names), desc="submitting nodes"):
+        for i, name in enumerate(names):
             f = pool.submit(get_attrs, name, i, mark_not_archived=mark_not_archived)
             futures[f] = name
         logger.info("submitted all nodes")
