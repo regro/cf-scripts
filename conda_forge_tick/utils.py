@@ -21,12 +21,11 @@ import subprocess
 import github3
 import jinja2
 import boto3
-import yaml
 
 import networkx as nx
 
 if typing.TYPE_CHECKING:
-    from mypy_extensions import TypedDict, TestTypedDict
+    from mypy_extensions import TypedDict
     from .migrators_types import PackageName, RequirementsTypedDict
     from conda_forge_tick.migrators_types import MetaYamlTypedDict
 
@@ -200,26 +199,15 @@ def render_meta_yaml(text: str, for_pinning=False, **kwargs) -> str:
 
     """
 
-    cfg = dict(**kwargs)
-
     env = jinja2.Environment(undefined=NullUndefined)
     if for_pinning:
-        cfg.update(**CB_CONFIG_PINNING)
+        content = env.from_string(text).render(**kwargs, **CB_CONFIG_PINNING)
     else:
-        cfg.update(**CB_CONFIG)
+        content = env.from_string(text).render(**kwargs, **CB_CONFIG)
+    return content
 
-    return env.from_string(text).render(**cfg)
 
-
-def parse_meta_yaml(
-    text: str,
-    for_pinning=False,
-    platform=None,
-    arch=None,
-    recipe_dir=None,
-    cbc_path=None,
-    **kwargs: Any,
-) -> "MetaYamlTypedDict":
+def parse_meta_yaml(text: str, for_pinning=False, **kwargs: Any) -> "MetaYamlTypedDict":
     """Parse the meta.yaml.
 
     Parameters
@@ -234,43 +222,13 @@ def parse_meta_yaml(
 
     """
     from conda_build.config import Config
-    from conda_build.metadata import parse, ns_cfg
-
-    if (
-        recipe_dir is not None
-        and cbc_path is not None
-        and arch is not None
-        and platform is not None
-    ):
-        cbc = Config(
-            platform=platform, arch=arch, variant_config_files=[cbc_path], **kwargs,
-        )
-        cfg_as_dict = ns_cfg(cbc)
-        with open(cbc_path, "r") as fp:
-            _cfg_as_dict = yaml.load(fp, Loader=yaml.Loader)
-        cfg_as_dict.update(
-            {
-                k: v[0]
-                if isinstance(v, list) and not isinstance(v, str) and len(v) > 0
-                else v
-                for k, v in _cfg_as_dict.items()
-            },
-        )
-    else:
-        _cfg = {}
-        _cfg.update(kwargs)
-        if platform is not None:
-            _cfg["platform"] = platform
-        if arch is not None:
-            _cfg["arch"] = arch
-        cbc = Config(**_cfg)
-        cfg_as_dict = {}
+    from conda_build.metadata import parse
 
     if for_pinning:
-        content = render_meta_yaml(text, for_pinning=for_pinning, **cfg_as_dict)
+        content = render_meta_yaml(text, for_pinning=for_pinning)
     else:
-        content = render_meta_yaml(text, **cfg_as_dict)
-    return parse(content, cbc)
+        content = render_meta_yaml(text)
+    return parse(content, Config(**kwargs))
 
 
 def setup_logger(logger: logging.Logger, level: Optional[str] = "INFO") -> None:
