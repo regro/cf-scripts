@@ -245,17 +245,20 @@ def parse_meta_yaml(
         cbc = Config(
             platform=platform, arch=arch, variant_config_files=[cbc_path], **kwargs,
         )
+
         cfg_as_dict = ns_cfg(cbc)
         with open(cbc_path, "r") as fp:
             _cfg_as_dict = yaml.load(fp, Loader=yaml.Loader)
-        cfg_as_dict.update(
-            {
-                k: v[0]
-                if isinstance(v, list) and not isinstance(v, str) and len(v) > 0
-                else v
-                for k, v in _cfg_as_dict.items()
-            },
-        )
+        for k, v in _cfg_as_dict.items():
+            if (
+                isinstance(v, list)
+                and not isinstance(v, str)
+                and len(v) > 0
+                and k not in ["zip_keys", "pin_run_as_build"]
+            ):
+                v = v[0]
+
+            cfg_as_dict[k] = v
     else:
         _cfg = {}
         _cfg.update(kwargs)
