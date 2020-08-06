@@ -267,7 +267,7 @@ def get_attrs(name: str, i: int, mark_not_archived=False) -> LazyJson:
                 mark_not_archived=mark_not_archived,
                 feedstock_dir=feedstock_dir,
             )
-    return lzj
+        return lzj
 
 
 def _build_graph_process_pool(
