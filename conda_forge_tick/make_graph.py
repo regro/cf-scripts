@@ -275,10 +275,10 @@ def _build_graph_process_pool(
 ) -> None:
 
     with executor("thread", max_workers=20) as pool:
-        futures = {}
-        for i, name in enumerate(names):
-            f = pool.submit(get_attrs, name, i, mark_not_archived=mark_not_archived)
-            futures[f] = name
+        futures = {
+            pool.submit(get_attrs, name, i, mark_not_archived=mark_not_archived): name
+            for i, name in enumerate(names)
+        }
         logger.info("submitted all nodes")
 
         n_tot = len(futures)
