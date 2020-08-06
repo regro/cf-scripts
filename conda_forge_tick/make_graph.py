@@ -3,9 +3,13 @@ import hashlib
 import logging
 import os
 import re
+import tempfile
+import glob
+import zipfile
 import time
 import typing
 from concurrent.futures import as_completed
+
 from copy import deepcopy
 from typing import List, Optional, Set
 
@@ -65,6 +69,27 @@ def _fetch_file(name: str, filepath: str) -> typing.Union[str, Response]:
     return text
 
 
+def _fetch_static_repo(name, dest):
+    r = requests.get(
+        f"https://github.com/conda-forge/{name}-feedstock/archive/master.zip",
+    )
+    if r.status_code != 200:
+        logger.error(
+            f"Something odd happened when fetching feedstock {name}: {r.status_code}",
+        )
+        return r
+
+    zname = os.path.join(dest, f"{name}-feedstock-master.zip")
+
+    with open(zname, "wb") as fp:
+        fp.write(r.content)
+
+    z = zipfile.ZipFile(zname)
+    z.extractall(path=dest)
+    dest_dir = os.path.join(dest, os.path.split(z.namelist()[0])[0])
+    return dest_dir
+
+
 # TODO: include other files like build_sh
 def populate_feedstock_attributes(
     name: str,
@@ -72,6 +97,7 @@ def populate_feedstock_attributes(
     meta_yaml: typing.Union[str, Response] = "",
     conda_forge_yaml: typing.Union[str, Response] = "",
     mark_not_archived=False,
+    feedstock_dir=None,
     # build_sh: typing.Union[str, Response] = "",
     # pre_unlink: typing.Union[str, Response] = "",
     # post_link: typing.Union[str, Response] = "",
@@ -113,13 +139,62 @@ def populate_feedstock_attributes(
             }
         }
 
-    plat_arch = [("win", "64"), ("osx", "64"), ("linux", "64")]
-    for k in set(sub_graph["conda-forge.yml"].get("provider", {})):
-        if "_" in k:
-            plat_arch.append(k.split("_"))
-    varient_yamls = [
-        parse_meta_yaml(meta_yaml, platform=plat, arch=arch) for plat, arch in plat_arch
-    ]
+    if (
+        feedstock_dir is not None
+        and len(glob.glob(os.path.join(feedstock_dir, ".ci_support", "*.yaml"))) > 0
+    ):
+        recipe_dir = os.path.join(feedstock_dir, "recipe")
+        ci_support_files = glob.glob(
+            os.path.join(feedstock_dir, ".ci_support", "*.yaml"),
+        )
+        varient_yamls = []
+        plat_arch = []
+        for cbc_path in ci_support_files:
+            cbc_name = os.path.basename(cbc_path)
+            cbc_name_parts = cbc_name.replace(".yaml", "").split("_")
+            plat = cbc_name_parts[0]
+            if len(cbc_name_parts) == 1:
+                arch = "64"
+            else:
+                if cbc_name_parts[1] in ["64", "aarch64", "ppc64le"]:
+                    arch = cbc_name_parts[1]
+                else:
+                    arch = "64"
+            plat_arch.append((plat, arch))
+
+            varient_yamls.append(
+                parse_meta_yaml(
+                    meta_yaml,
+                    platform=plat,
+                    arch=arch,
+                    recipe_dir=recipe_dir,
+                    cbc_path=cbc_path,
+                ),
+            )
+
+            # collapse them down
+            final_cfgs = {}
+            for plat_arch, varyml in zip(plat_arch, varient_yamls):
+                if plat_arch not in final_cfgs:
+                    final_cfgs[plat_arch] = []
+                final_cfgs[plat_arch].append(varyml)
+            for k in final_cfgs:
+                ymls = final_cfgs[k]
+                final_cfgs[k] = _convert_to_dict(ChainDB(*ymls))
+            plat_arch = []
+            varient_yamls = []
+            for k, v in final_cfgs.items():
+                plat_arch.append(k)
+                varient_yamls.append(v)
+    else:
+        plat_arch = [("win", "64"), ("osx", "64"), ("linux", "64")]
+        for k in set(sub_graph["conda-forge.yml"].get("provider", {})):
+            if "_" in k:
+                plat_arch.append(k.split("_"))
+        varient_yamls = [
+            parse_meta_yaml(meta_yaml, platform=plat, arch=arch)
+            for plat, arch in plat_arch
+        ]
 
     yaml_dict = ChainDB(*varient_yamls)
     if not yaml_dict:
@@ -172,25 +247,33 @@ def populate_feedstock_attributes(
 
 
 def get_attrs(name: str, i: int, mark_not_archived=False) -> LazyJson:
-    # These fetches could be done via async/multiprocessing
-    meta_yaml = _fetch_file(name, "recipe/meta.yaml")
-    conda_forge_yaml = _fetch_file(name, "conda-forge.yml")
+    # pull down one copy of the repo
+    with tempfile.TemporaryDirectory() as tmpdir:
+        feedstock_dir = _fetch_static_repo(name, tmpdir)
 
-    lzj = LazyJson(f"node_attrs/{name}.json")
-    with lzj as sub_graph:
-        populate_feedstock_attributes(
-            name,
-            sub_graph,
-            meta_yaml=meta_yaml,
-            conda_forge_yaml=conda_forge_yaml,
-            mark_not_archived=mark_not_archived,
-        )
-    return lzj
+        with open(os.path.join(feedstock_dir, "recipe", "meta.yaml"), "r") as fp:
+            meta_yaml = fp.read()
+
+        with open(os.path.join(feedstock_dir, "conda-forge.yml"), "r") as fp:
+            conda_forge_yaml = fp.read()
+
+        lzj = LazyJson(f"node_attrs/{name}.json")
+        with lzj as sub_graph:
+            populate_feedstock_attributes(
+                name,
+                sub_graph,
+                meta_yaml=meta_yaml,
+                conda_forge_yaml=conda_forge_yaml,
+                mark_not_archived=mark_not_archived,
+                feedstock_dir=feedstock_dir,
+            )
+        return lzj
 
 
 def _build_graph_process_pool(
     gx: nx.DiGraph, names: List[str], new_names: List[str], mark_not_archived=False,
 ) -> None:
+
     with executor("thread", max_workers=20) as pool:
         futures = {
             pool.submit(get_attrs, name, i, mark_not_archived=mark_not_archived): name
@@ -209,7 +292,8 @@ def _build_graph_process_pool(
             name = futures[f]
             try:
                 sub_graph = {"payload": f.result()}
-                # logger.info("itr % 5d - eta % 5ds: finished %s", n_left, eta, name)
+                if n_left % 100 == 0:
+                    logger.info("itr % 5d - eta % 5ds: finished %s", n_left, eta, name)
             except Exception as e:
                 logger.error(
                     "itr % 5d - eta % 5ds: Error adding %s to the graph: %s",
