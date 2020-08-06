@@ -77,7 +77,7 @@ def _fetch_static_repo(name, dest):
         logger.error(
             f"Something odd happened when fetching feedstock {name}: {r.status_code}",
         )
-        r.raise_for_status()
+        return r
 
     zname = os.path.join(dest, f"{name}-feedstock-master.zip")
 
