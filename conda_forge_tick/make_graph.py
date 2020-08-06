@@ -10,7 +10,6 @@ import time
 import typing
 from concurrent.futures import as_completed
 
-# import joblib
 from copy import deepcopy
 from typing import List, Optional, Set
 
@@ -18,7 +17,6 @@ import json
 import networkx as nx
 import requests
 import yaml
-import tqdm
 from requests import Response
 from xonsh.lib.collections import ChainDB, _convert_to_dict
 
@@ -249,52 +247,32 @@ def populate_feedstock_attributes(
 
 
 def get_attrs(name: str, i: int, mark_not_archived=False) -> LazyJson:
-    try:
-        # pull down one copy of the repo
-        with tempfile.TemporaryDirectory() as tmpdir:
-            feedstock_dir = _fetch_static_repo(name, tmpdir)
+    # pull down one copy of the repo
+    with tempfile.TemporaryDirectory() as tmpdir:
+        feedstock_dir = _fetch_static_repo(name, tmpdir)
 
-            with open(os.path.join(feedstock_dir, "recipe", "meta.yaml"), "r") as fp:
-                meta_yaml = fp.read()
+        with open(os.path.join(feedstock_dir, "recipe", "meta.yaml"), "r") as fp:
+            meta_yaml = fp.read()
 
-            with open(os.path.join(feedstock_dir, "conda-forge.yml"), "r") as fp:
-                conda_forge_yaml = fp.read()
+        with open(os.path.join(feedstock_dir, "conda-forge.yml"), "r") as fp:
+            conda_forge_yaml = fp.read()
 
-            lzj = LazyJson(f"node_attrs/{name}.json")
-            with lzj as sub_graph:
-                populate_feedstock_attributes(
-                    name,
-                    sub_graph,
-                    meta_yaml=meta_yaml,
-                    conda_forge_yaml=conda_forge_yaml,
-                    mark_not_archived=mark_not_archived,
-                    feedstock_dir=feedstock_dir,
-                )
-        return lzj
-    except Exception:
-        return None
+        lzj = LazyJson(f"node_attrs/{name}.json")
+        with lzj as sub_graph:
+            populate_feedstock_attributes(
+                name,
+                sub_graph,
+                meta_yaml=meta_yaml,
+                conda_forge_yaml=conda_forge_yaml,
+                mark_not_archived=mark_not_archived,
+                feedstock_dir=feedstock_dir,
+            )
+    return lzj
 
 
 def _build_graph_process_pool(
     gx: nx.DiGraph, names: List[str], new_names: List[str], mark_not_archived=False,
 ) -> None:
-
-    # keeping this here for testing and posterity
-    # jobs = [
-    #     joblib.delayed(get_attrs)(name, i, mark_not_archived=mark_not_archived)
-    #     for i, name in enumerate(names)
-    # ]
-    #
-    # with joblib.Parallel(n_jobs=16, verbose=100) as p:
-    #     attrs = p(jobs)
-    #
-    # for name, payload in zip(names, attrs):
-    #     if payload is not None:
-    #         sub_graph = {"payload": payload}
-    #         if name in new_names:
-    #             gx.add_node(name, **sub_graph)
-    #         else:
-    #             gx.nodes[name].update(**sub_graph)
 
     with executor("thread", max_workers=20) as pool:
         futures = {}
@@ -313,9 +291,7 @@ def _build_graph_process_pool(
                 eta = (time.time() - start) / (n_tot - n_left) * n_left
             name = futures[f]
             try:
-                payload = f.result()
-                if payload is not None:
-                    sub_graph = {"payload": payload}
+                sub_graph = {"payload": f.result()}
                 if n_left % 100 == 0:
                     logger.info("itr % 5d - eta % 5ds: finished %s", n_left, eta, name)
             except Exception as e:
