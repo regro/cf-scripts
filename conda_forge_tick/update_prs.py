@@ -17,6 +17,7 @@ from conda_forge_tick.git_utils import (
     close_out_labels,
     is_github_api_limit_reached,
     refresh_pr,
+    close_out_dirty_prs,
 )
 from .make_graph import github_token, logger, ghctx
 from .utils import (
@@ -164,6 +165,14 @@ def close_labels(gx: nx.DiGraph, dry_run: bool = False) -> nx.DiGraph:
     return gx
 
 
+def close_dirty_prs(gx: nx.DiGraph, dry_run: bool = False) -> nx.DiGraph:
+    succeeded_refresh, failed_refresh = _update_pr(close_out_dirty_prs, dry_run, gx)
+
+    logger.info(f"bot re-run failed for {failed_refresh} PRs")
+    logger.info(f"bot re-run succeed for {succeeded_refresh} PRs")
+    return gx
+
+
 def main(args: "CLIArgs") -> None:
     setup_logger(logger)
 
@@ -176,6 +185,8 @@ def main(args: "CLIArgs") -> None:
     if not no_github_fetch:
         gx = close_labels(gx, args.dry_run)
         gx = update_graph_pr_status(gx, args.dry_run)
+        # This function needs to run last since it edits the actual pr json!
+        gx = close_dirty_prs(gx, args.dry_run)
 
 
 if __name__ == "__main__":
