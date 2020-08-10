@@ -26,6 +26,16 @@ backoff._decorator._is_event_loop = lambda: False
 
 MAX_GITHUB_TIMEOUT = 60
 
+DUMMY_BOT_RERUN_METADATA = {
+    "color": "191970",
+    "default": False,
+    "description": "Instruct the bot to retry the PR",
+    "id": 1,
+    "name": "bot-rerun",
+    "node_id": "hello",
+    "url": "world",
+}
+
 CF_BOT_NAMES = {"regro-cf-autotick-bot", "conda-forge-linter"}
 
 
@@ -386,6 +396,6 @@ def close_out_dirty_prs(
         # This will cause the update_nodes_with_bot_rerun to trigger properly and shouldn't be overridden since
         # this is the last function to run, the long term solution here is to add the bot to conda-forge and then
         # it should have label adding capability and we can just add the label properly
-        d["labels"].append("bot-rerun")
+        d["labels"].append(DUMMY_BOT_RERUN_METADATA)
         return d
     return None
