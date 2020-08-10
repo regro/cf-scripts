@@ -501,7 +501,9 @@ class GraphMigrator(Migrator):
         ):
             return False
         # once all PRs are issued (not merged) propose the change in pin
-        if name == 'conda-forge-pinning' and self.predecessors_not_yet_issued(attrs=attrs):
+        if name == "conda-forge-pinning" and self.predecessors_not_yet_issued(
+            attrs=attrs,
+        ):
             LOGGER.debug("filter %s: pinning parents not issued", name)
             return True
         # Check if all upstreams have been built
