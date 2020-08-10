@@ -380,7 +380,7 @@ def close_out_dirty_prs(
             print("dry run: comment and close pr %s" % pr_json["id"])
         else:
             if all(
-                c["commit"]["author"]["name"] in CF_BOT_NAMES for c in pr_obj.commits()
+                c.as_dict()["commit"]["author"]["name"] in CF_BOT_NAMES for c in pr_obj.commits()
             ):
                 pr_obj.create_comment(
                     "I see that this PR has conflicts and I'm the only committer"
