@@ -151,7 +151,7 @@ class OSXArm(GraphMigrator):
     # We purposefully don't want to bump build number for this migrator
     bump_number = 0
 
-    ignored_pacakges = {"gfortran"}
+    ignored_packages = {"gfortran"}
     excluded_dependencies = {"fortran_compiler_stub"}
 
     arches = ["osx_arm64"]
@@ -200,10 +200,11 @@ class OSXArm(GraphMigrator):
             self.graph.remove_nodes_from([n for n in self.graph if n not in packages])
 
         # filter out stub packages and ignored packages
-        for node in list(self.graph.nodes):
-            attrs = self.graph.nodes[node].get("payload")
-            if (
-                node.endswith("_stub")
+        for node, attrs in list(self.graph.nodes('payload')):
+            if not attrs:
+                print(node)
+            if (not attrs
+                or node.endswith("_stub")
                 or (node.startswith("m2-"))
                 or (node.startswith("m2w64-"))
                 or (node in self.ignored_packages)
@@ -211,7 +212,8 @@ class OSXArm(GraphMigrator):
             ):
                 pluck(self.graph, node)
         for name in self.excluded_dependencies:
-            self.graph.remove_nodes_from(nx.descendants(self.graph, name))
+            if name in self.graph:
+                self.graph.remove_nodes_from(nx.descendants(self.graph, name))
 
         self.graph.remove_edges_from(nx.selfloop_edges(self.graph))
 
