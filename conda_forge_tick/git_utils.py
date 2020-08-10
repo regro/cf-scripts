@@ -387,5 +387,5 @@ def close_out_dirty_prs(
         # this is the last function to run, the long term solution here is to add the bot to conda-forge and then
         # it should have label adding capability and we can just add the label properly
         d["labels"].append("bot-rerun")
-        return
+        return d
     return None
