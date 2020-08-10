@@ -152,7 +152,7 @@ class OSXArm(GraphMigrator):
     bump_number = 0
 
     ignored_pacakges = {"gfortran"}
-    excluded_dependencies = {"gfortran"}
+    excluded_dependencies = {"fortran_compiler_stub"}
 
     arches = ["osx_arm64"]
 
