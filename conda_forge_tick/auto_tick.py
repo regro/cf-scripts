@@ -395,7 +395,9 @@ def add_arch_migrate(migrators: MutableSequence[Migrator], gx: nx.DiGraph) -> No
             graph=total_graph, pr_limit=PR_LIMIT, name="aarch64 and ppc64le addition",
         ),
     )
-    migrators.append(OSXArm(graph=total_graph, pr_limit=PR_LIMIT, name="arm osx addition",))
+    migrators.append(
+        OSXArm(graph=total_graph, pr_limit=PR_LIMIT, name="arm osx addition"),
+    )
 
 
 def add_rebuild_migration_yaml(

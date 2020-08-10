@@ -455,7 +455,11 @@ class GraphMigrator(Migrator):
     def predecessors_not_yet_built(self, attrs: "AttrsTypedDict") -> bool:
         # Check if all upstreams have been built
         for node in self.graph.predecessors(attrs["feedstock_name"]):
-            payload = self.graph.nodes[node]["payload"]
+            try:
+                payload = self.graph.nodes[node]["payload"]
+            except KeyError as e:
+                print(node)
+                raise e
             muid = frozen_to_json_friendly(self.migrator_uid(payload))
             if muid not in _sanitized_muids(
                 payload.get("PRed", []),

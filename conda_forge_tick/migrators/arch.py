@@ -151,11 +151,15 @@ class OSXArm(GraphMigrator):
     # We purposefully don't want to bump build number for this migrator
     bump_number = 0
 
-    ignored_pacakges = {'gfortran'}
+    ignored_pacakges = {"gfortran"}
+    excluded_dependencies = {"gfortran"}
 
-    arches = ['osx_arm64']
+    arches = ["osx_arm64"]
 
-    additional_keys = {'build_platform': {'osx_arm64': 'osx_64'}, 'test_on_native_only': True}
+    additional_keys = {
+        "build_platform": {"osx_arm64": "osx_64"},
+        "test_on_native_only": True,
+    }
 
     def __init__(
         self, graph: nx.DiGraph = None, name: Optional[str] = None, pr_limit: int = 0,
@@ -167,7 +171,7 @@ class OSXArm(GraphMigrator):
                 deps = set().union(
                     *attrs.get(
                         f"{plat_arch}_requirements", attrs.get("requirements", {}),
-                    ).get('host', set())
+                    ).get("host", set())
                 )
                 for dep in deps:
                     dep = graph.graph["outputs_lut"].get(dep, dep)
@@ -175,7 +179,9 @@ class OSXArm(GraphMigrator):
 
         super().__init__(graph=graph2, pr_limit=pr_limit, check_solvable=False)
 
-        assert not self.check_solvable, "We don't want to check solvability for arm osx!"
+        assert (
+            not self.check_solvable
+        ), "We don't want to check solvability for arm osx!"
 
         # We are constraining the scope of this migrator
         with indir("../conda-forge-pinning-feedstock/recipe/migrations"), open(
@@ -195,20 +201,18 @@ class OSXArm(GraphMigrator):
 
         # filter out stub packages and ignored packages
         for node in list(self.graph.nodes):
+            attrs = self.graph.nodes[node].get("payload")
             if (
                 node.endswith("_stub")
                 or (node.startswith("m2-"))
                 or (node.startswith("m2w64-"))
                 or (node in self.ignored_packages)
-                or (
-                    self.graph.nodes[node]
-                    .get("payload", {})
-                    .get("meta_yaml", {})
-                    .get("build", {})
-                    .get("noarch")
-                )
+                or (attrs.get("meta_yaml", {}).get("build", {}).get("noarch"))
             ):
                 pluck(self.graph, node)
+        for name in self.excluded_dependencies:
+            self.graph.remove_nodes_from(nx.descendants(self.graph, name))
+
         self.graph.remove_edges_from(nx.selfloop_edges(self.graph))
 
     def filter(self, attrs: "AttrsTypedDict", not_bad_str_start: str = "") -> bool:
