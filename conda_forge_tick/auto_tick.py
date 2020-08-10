@@ -26,6 +26,7 @@ import github3
 import ruamel.yaml as yaml
 from uuid import uuid4
 
+from conda_forge_tick.migrators.arch import OSXArm
 from conda_forge_tick.migrators.migration_yaml import (
     MigrationYamlCreator,
     create_rebuild_graph,
@@ -394,6 +395,7 @@ def add_arch_migrate(migrators: MutableSequence[Migrator], gx: nx.DiGraph) -> No
             graph=total_graph, pr_limit=PR_LIMIT, name="aarch64 and ppc64le addition",
         ),
     )
+    migrators.append(OSXArm(graph=total_graph, pr_limit=PR_LIMIT, name="arm osx addition",))
 
 
 def add_rebuild_migration_yaml(
