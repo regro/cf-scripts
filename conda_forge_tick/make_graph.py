@@ -156,7 +156,7 @@ def populate_feedstock_attributes(
             if len(cbc_name_parts) == 1:
                 arch = "64"
             else:
-                if cbc_name_parts[1] in ["64", "aarch64", "ppc64le"]:
+                if cbc_name_parts[1] in ["64", "aarch64", "ppc64le", "arm64"]:
                     arch = cbc_name_parts[1]
                 else:
                     arch = "64"
