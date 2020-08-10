@@ -1,7 +1,9 @@
+import csv
 import os
 import json
 import subprocess
 import copy
+from collections import Counter
 
 import networkx as nx
 from graphviz import Source
@@ -9,7 +11,7 @@ import tempfile
 
 from typing import Any, Dict, Set, Tuple
 
-from conda_forge_tick.utils import frozen_to_json_friendly
+from conda_forge_tick.utils import frozen_to_json_friendly, load_graph
 from conda_forge_tick.auto_tick import initialize_migrators
 from conda_forge_tick.migrators import (
     Migrator,
@@ -23,6 +25,18 @@ from conda_forge_tick.path_lengths import cyclic_topological_sort
 from conda_forge_tick.contexts import MigratorContext, FeedstockContext
 
 from .git_utils import feedstock_url
+
+
+GH_MERGE_STATE_STATUS = [
+    "behind",
+    "blocked",
+    "clean",
+    "dirty",
+    "draft",
+    "has_hooks",
+    "unknown",
+    "unstable",
+]
 
 
 def write_version_migrator_status(migrator, mctx):
@@ -276,6 +290,16 @@ def main(args: Any = None) -> None:
             f,
             indent=2,
         )
+    open_prs = []
+    gx = load_graph()
+    for node, attrs in gx.nodes("payload"):
+        for pr in attrs.get("PRed", []):
+            if pr.get("PR", {}).get("state", "closed") != "closed":
+                open_prs.append(pr["PR"])
+    merge_state_count = Counter([o["mergeable_state"] for o in open_prs])
+    with open("./status/pr_state.csv", "a") as f:
+        writer = csv.writer(f)
+        writer.writerow([merge_state_count[k] for k in GH_MERGE_STATE_STATUS])
 
 
 if __name__ == "__main__":
