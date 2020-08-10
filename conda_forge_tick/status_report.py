@@ -28,7 +28,14 @@ from .git_utils import feedstock_url
 
 
 GH_MERGE_STATE_STATUS = [
-    'behind', 'blocked', 'clean', 'dirty', 'draft', 'has_hooks', 'unknown', 'unstable'
+    "behind",
+    "blocked",
+    "clean",
+    "dirty",
+    "draft",
+    "has_hooks",
+    "unknown",
+    "unstable",
 ]
 
 
@@ -253,10 +260,10 @@ def main(args: Any = None) -> None:
                 z
                 for z in v.get("payload", {}).get("PRed", [])
                 if z.get("PR", {}).get("state", "closed") == "open"
-                   and z.get("data", {}).get("migrator_name", "") == "Version"
+                and z.get("data", {}).get("migrator_name", "") == "Version"
             ],
         )
-           >= Version.max_num_prs
+        >= Version.max_num_prs
     ]
     with open("./status/could_use_help.json", "w") as f:
         json.dump(
@@ -285,11 +292,11 @@ def main(args: Any = None) -> None:
         )
     open_prs = []
     gx = load_graph()
-    for node, attrs in gx.nodes('payload'):
-        for pr in attrs.get('PRed', []):
-            if pr.get('PR', {}).get('state', 'closed') != 'closed':
-                open_prs.append(pr['PR'])
-    merge_state_count = Counter([o['mergeable_state'] for o in open_prs])
+    for node, attrs in gx.nodes("payload"):
+        for pr in attrs.get("PRed", []):
+            if pr.get("PR", {}).get("state", "closed") != "closed":
+                open_prs.append(pr["PR"])
+    merge_state_count = Counter([o["mergeable_state"] for o in open_prs])
     with open("./status/pr_state.csv", "w") as f:
         writer = csv.writer(f)
         writer.writerow([merge_state_count[k] for k in GH_MERGE_STATE_STATUS])
