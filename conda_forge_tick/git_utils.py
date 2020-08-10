@@ -376,6 +376,7 @@ def close_out_dirty_prs(
             pr_json = pr_obj.as_dict()
 
     if pr_json["state"] != "closed" and pr_json["mergeable_state"] == "dirty":
+        d = pr_obj.as_dict()
         if dry_run:
             print("dry run: comment and close pr %s" % pr_json["id"])
         else:
@@ -393,10 +394,12 @@ def close_out_dirty_prs(
                 pr_obj.close()
                 delete_branch(ctx=ctx, pr_json=pr_json, dry_run=dry_run)
                 pr_obj.refresh(True)
-        d = pr_obj.as_dict()
-        # This will cause the update_nodes_with_bot_rerun to trigger properly and shouldn't be overridden since
-        # this is the last function to run, the long term solution here is to add the bot to conda-forge and then
-        # it should have label adding capability and we can just add the label properly
-        d["labels"].append(DUMMY_BOT_RERUN_METADATA)
+                d = pr_obj.as_dict()
+                # This will cause the update_nodes_with_bot_rerun to trigger properly and shouldn't be overridden since
+                # this is the last function to run, the long term solution here is to add the bot to conda-forge and then
+                # it should have label adding capability and we can just add the label properly
+                d["labels"].append(DUMMY_BOT_RERUN_METADATA)
+            else:
+                d = pr_obj.as_dict()
         return d
     return None
