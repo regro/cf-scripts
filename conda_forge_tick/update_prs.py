@@ -16,7 +16,8 @@ import tqdm
 from conda_forge_tick.git_utils import (
     close_out_labels,
     is_github_api_limit_reached,
-    refresh_pr, close_out_dirty_prs,
+    refresh_pr,
+    close_out_dirty_prs,
 )
 from .make_graph import github_token, logger, ghctx
 from .utils import (
