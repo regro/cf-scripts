@@ -297,7 +297,7 @@ def main(args: Any = None) -> None:
             if pr.get("PR", {}).get("state", "closed") != "closed":
                 open_prs.append(pr["PR"])
     merge_state_count = Counter([o["mergeable_state"] for o in open_prs])
-    with open("./status/pr_state.csv", "w") as f:
+    with open("./status/pr_state.csv", "a") as f:
         writer = csv.writer(f)
         writer.writerow([merge_state_count[k] for k in GH_MERGE_STATE_STATUS])
 
