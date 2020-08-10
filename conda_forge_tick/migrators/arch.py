@@ -151,6 +151,8 @@ class OSXArm(GraphMigrator):
     # We purposefully don't want to bump build number for this migrator
     bump_number = 0
 
+    ignored_pacakges = {'gfortran'}
+
     arches = ['osx_arm64']
 
     additional_keys = {'build_platform': {'osx_arm64': 'osx_64'}, 'test_on_native_only': True}
@@ -158,7 +160,7 @@ class OSXArm(GraphMigrator):
     def __init__(
         self, graph: nx.DiGraph = None, name: Optional[str] = None, pr_limit: int = 0,
     ):
-        # rebuild the graph to only use edges from the arm and power requirements
+        # rebuild the graph to only use edges from the arm osx requirements
         graph2 = nx.create_empty_copy(graph)
         for node, attrs in graph.nodes(data="payload"):
             for plat_arch in self.arches:
@@ -197,6 +199,7 @@ class OSXArm(GraphMigrator):
                 node.endswith("_stub")
                 or (node.startswith("m2-"))
                 or (node.startswith("m2w64-"))
+                or (node in self.ignored_packages)
                 or (
                     self.graph.nodes[node]
                     .get("payload", {})
