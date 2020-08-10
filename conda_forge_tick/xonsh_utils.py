@@ -1,10 +1,10 @@
 import copy
+import builtins
 
 from xonsh.execer import Execer
 from xonsh.environ import Env
 from xonsh.lib.os import indir
-from xonsh.__amalgam__ import CommandPipeline
-import builtins
+from xonsh.proc import CommandPipeline
 
 env: Env = builtins.__xonsh__.env  # type: ignore
 execer: Execer = builtins.__xonsh__.execer  # type: ignore
