@@ -203,8 +203,8 @@ def main(args: "CLIArgs") -> None:
     prof.disable()
 
     # output to data
-    os.makedirs("profiler", exist_ok=True)
-    prof.dump_stats(f"profiler/update_prs_{current_time}.")
+    os.makedirs("profiler/update_prs", exist_ok=True)
+    prof.dump_stats(f"profiler/update_prs/{current_time}.")
 
 
 if __name__ == "__main__":
