@@ -109,9 +109,7 @@ def main(args):
             ):
                 print(node)
                 fctx = FeedstockContext(
-                    package_name=node,
-                    feedstock_name=payload["name"],
-                    attrs=payload,
+                    package_name=node, feedstock_name=payload["name"], attrs=payload,
                 )
                 try:
                     deps = v["run"](fctx, ctx)

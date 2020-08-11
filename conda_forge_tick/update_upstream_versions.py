@@ -88,9 +88,7 @@ def _update_upstream_versions_sequential(
                 se = repr(e)
             except Exception as ee:
                 se = f"Bad exception string: {ee}"
-            logger.warning(
-                f"Warning: Error getting upstream version of {node}: {se}",
-            )
+            logger.warning(f"Warning: Error getting upstream version of {node}: {se}")
             version_data["bad"] = "Upstream: Error getting upstream version"
         else:
             logger.info(
