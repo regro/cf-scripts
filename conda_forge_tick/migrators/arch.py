@@ -173,7 +173,9 @@ class OSXArm(GraphMigrator):
                         as_iterable(
                             attrs.get(
                                 f"{plat_arch}_requirements",
-                                attrs.get('osx_64_requirements', attrs.get("requirements", {})),
+                                attrs.get(
+                                    "osx_64_requirements", attrs.get("requirements", {}),
+                                ),
                             ).get("host", set()),
                         ),
                     ),
