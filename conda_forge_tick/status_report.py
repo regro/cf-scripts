@@ -143,6 +143,7 @@ def graph_migrator_status(
 
         buildable = not migrator.filter(attrs)
         fntc = "black"
+        status_icon = ''
         if manually_done:
             out["done"].add(node)
             fc = "#440154"
@@ -166,10 +167,15 @@ def graph_migrator_status(
             out["in-pr"].add(node)
             fc = "#31688e"
             fntc = "white"
+            pr_status = pr_json["PR"]['mergeable_state']
+            if pr_status == 'clean':
+                status_icon = ' ✓'
+            else:
+                status_icon = ' ❎'
         if node not in out["done"]:
             gv.node(
                 node,
-                label=_clean_text(node),
+                label=_clean_text(node) + status_icon,
                 fillcolor=fc,
                 style="filled",
                 fontcolor=fntc,
