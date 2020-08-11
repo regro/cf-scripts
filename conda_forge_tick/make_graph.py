@@ -17,6 +17,7 @@ import json
 import networkx as nx
 import requests
 import yaml
+from conda.models.version import VersionOrder
 from requests import Response
 from xonsh.lib.collections import ChainDB, _convert_to_dict
 
@@ -434,8 +435,13 @@ def update_nodes_with_new_versions(gx):
     for file in list_files:
         node = str(file).replace(".json", "")
         with open(f"./versions/{file}") as json_file:
-            version_data = json.load(json_file)
+            version_data: typing.Dict = json.load(json_file)
         with gx.nodes[f"{node}"]["payload"] as attrs:
+            # don't update the version if it isn't newer
+            if version_data['new_version']:
+                version_data['new_version'] = max([version_data['new_version'], attrs['new_version']], key=lambda x: VersionOrder(x.replace("-", ".")))
+            else:
+                version_data.pop('new_version')
             attrs.update(version_data)
 
 
