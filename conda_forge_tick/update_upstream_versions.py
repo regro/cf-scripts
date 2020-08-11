@@ -70,38 +70,37 @@ def _update_upstream_versions_sequential(
     node_count = 0
     to_update = []
     for node, node_attrs in _all_nodes:
-        with node_attrs["payload"] as attrs:
-            if "Upstream" not in attrs.get("bad", []) or attrs.get("archived"):
-                continue
-            to_update.append((node, attrs))
+        attrs = node_attrs["payload"]
+        if "Upstream" not in attrs.get("bad", []) or attrs.get("archived"):
+            continue
+        to_update.append((node, attrs))
 
-    for node, node_attrs in to_update:
+    for node, attrs in to_update:
         # checking each node
-        with node_attrs as attrs:
-            version_data = {}
+        version_data = {}
 
-            # New version request
+        # New version request
+        try:
+            # check for latest version
+            version_data.update(get_latest_version(node, attrs, sources))
+        except Exception as e:
             try:
-                # check for latest version
-                version_data.update(get_latest_version(node, attrs, sources))
-            except Exception as e:
-                try:
-                    se = repr(e)
-                except Exception as ee:
-                    se = f"Bad exception string: {ee}"
-                logger.warning(
-                    f"Warning: Error getting upstream version of {node}: {se}",
-                )
-                version_data["bad"] = "Upstream: Error getting upstream version"
-            else:
-                logger.info(
-                    f"# {node_count:<5} - {node} - {attrs.get('version')} - {version_data.get('new_version')}",
-                )
+                se = repr(e)
+            except Exception as ee:
+                se = f"Bad exception string: {ee}"
+            logger.warning(
+                f"Warning: Error getting upstream version of {node}: {se}",
+            )
+            version_data["bad"] = "Upstream: Error getting upstream version"
+        else:
+            logger.info(
+                f"# {node_count:<5} - {node} - {attrs.get('version')} - {version_data.get('new_version')}",
+            )
 
-            logger.debug("writing out file")
-            with open(f"versions/{node}.json", "w") as outfile:
-                json.dump(version_data, outfile)
-            node_count += 1
+        logger.debug("writing out file")
+        with open(f"versions/{node}.json", "w") as outfile:
+            json.dump(version_data, outfile)
+        node_count += 1
 
 
 def _update_upstream_versions_process_pool(
@@ -141,37 +140,36 @@ def _update_upstream_versions_process_pool(
             if n_left % 10 == 0:
                 eta = (time.time() - start) / (n_tot - n_left) * n_left
 
-            node, node_attrs = futures[f]
-            with node_attrs as attrs:
-                version_data = {}
+            node, attrs = futures[f]
+            version_data = {}
+            try:
+                # check for latest version
+                version_data.update(f.result())
+            except Exception as e:
                 try:
-                    # check for latest version
-                    version_data.update(f.result())
-                except Exception as e:
-                    try:
-                        se = repr(e)
-                    except Exception as ee:
-                        se = f"Bad exception string: {ee}"
-                    logger.error(
-                        "itr % 5d - eta % 5ds: "
-                        "Error getting upstream version of %s: %s"
-                        % (n_left, eta, node, se),
-                    )
-                    version_data["bad"] = "Upstream: Error getting upstream version"
-                else:
-                    logger.info(
-                        "itr % 5d - eta % 5ds: %s - %s - %s"
-                        % (
-                            n_left,
-                            eta,
-                            node,
-                            attrs.get("version", "<no-version>"),
-                            version_data["new_version"],
-                        ),
-                    )
-                # writing out file
-                with open(f"versions/{node}.json", "w") as outfile:
-                    json.dump(version_data, outfile)
+                    se = repr(e)
+                except Exception as ee:
+                    se = f"Bad exception string: {ee}"
+                logger.error(
+                    "itr % 5d - eta % 5ds: "
+                    "Error getting upstream version of %s: %s"
+                    % (n_left, eta, node, se),
+                )
+                version_data["bad"] = "Upstream: Error getting upstream version"
+            else:
+                logger.info(
+                    "itr % 5d - eta % 5ds: %s - %s - %s"
+                    % (
+                        n_left,
+                        eta,
+                        node,
+                        attrs.get("version", "<no-version>"),
+                        version_data["new_version"],
+                    ),
+                )
+            # writing out file
+            with open(f"versions/{node}.json", "w") as outfile:
+                json.dump(version_data, outfile)
 
 
 def update_upstream_versions(

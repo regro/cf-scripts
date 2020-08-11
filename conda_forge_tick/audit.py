@@ -97,31 +97,31 @@ def main(args):
             break
         # depfinder only work on python at the moment so only work on things
         # with python as runtime dep
-        with gx.nodes[node]["payload"] as payload:
-            for k, v in AUDIT_REGISTRY.items():
-                version = payload.get("version", None)
-                ext = v["ext"]
-                if (
-                    not payload.get("archived", False)
-                    and version
-                    and "python" in payload["requirements"]["run"]
-                    and f"{node}_{version}.{ext}" not in os.listdir(f"audits/{k}")
-                ):
-                    print(node)
-                    fctx = FeedstockContext(
-                        package_name=node,
-                        feedstock_name=payload["name"],
-                        attrs=payload,
-                    )
-                    try:
-                        deps = v["run"](fctx, ctx)
-                    except Exception as e:
-                        deps = {
-                            "exception": str(e),
-                            "traceback": str(traceback.format_exc()).split("\n"),
-                        }
-                        if "dumper" in v:
-                            deps = v["dumper"](deps)
-                    finally:
-                        with open(f"audits/{k}/{node}_{version}.{ext}", "w") as f:
-                            v["writer"](deps, f)
+        payload = gx.nodes[node]["payload"]
+        for k, v in AUDIT_REGISTRY.items():
+            version = payload.get("version", None)
+            ext = v["ext"]
+            if (
+                not payload.get("archived", False)
+                and version
+                and "python" in payload["requirements"]["run"]
+                and f"{node}_{version}.{ext}" not in os.listdir(f"audits/{k}")
+            ):
+                print(node)
+                fctx = FeedstockContext(
+                    package_name=node,
+                    feedstock_name=payload["name"],
+                    attrs=payload,
+                )
+                try:
+                    deps = v["run"](fctx, ctx)
+                except Exception as e:
+                    deps = {
+                        "exception": str(e),
+                        "traceback": str(traceback.format_exc()).split("\n"),
+                    }
+                    if "dumper" in v:
+                        deps = v["dumper"](deps)
+                finally:
+                    with open(f"audits/{k}/{node}_{version}.{ext}", "w") as f:
+                        v["writer"](deps, f)
