@@ -721,9 +721,13 @@ def _compute_time_per_migrator(mctx):
 
 
 def main(args: "CLIArgs") -> None:
+    # get current time
+    now = datetime.now()
+    current_time = now.strftime("%d-%m-%Y") + "_" + now.strftime("%H_%M_%S")
+
     # start profiler
-    profile_profiler = cProfile.Profile()
-    profile_profiler.enable()
+    prof = cProfile.Profile()
+    prof.enable()
 
     # logging
     from .xonsh_utils import env
@@ -917,25 +921,11 @@ def main(args: "CLIArgs") -> None:
     logger.info("Done")
 
     # stop profiler
-    profile_profiler.disable()
-
-    # human readable
-    s_stream = io.StringIO()
-
-    # TODO: There are other ways to do this, with more freedom
-    profile_stats = pstats.Stats(profile_profiler, stream=s_stream).sort_stats(
-        "tottime",
-    )
-    profile_stats.print_stats()
-
-    # get current time
-    now = datetime.now()
-    current_time = now.strftime("%d-%m-%Y") + "_" + now.strftime("%H_%M_%S")
+    prof.disable()
 
     # output to data
     os.makedirs("profiler", exist_ok=True)
-    with open(f"profiler/{current_time}.txt", "w+") as f:
-        f.write(s_stream.getvalue())
+    prof.dump_stats(f"profiler/auto_tick_{current_time}.")
 
 
 if __name__ == "__main__":
