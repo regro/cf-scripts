@@ -45,9 +45,7 @@ def get_latest_version(
             return version_data
         else:
             logger.debug(f"Upstream: Could not find version on {source.name}")
-            version_data[
-                "bad"
-            ] = f"Upstream: Could not find version on {source.name}"
+            version_data["bad"] = f"Upstream: Could not find version on {source.name}"
     if not meta_yaml.get("bad"):
         logger.debug("Upstream: unknown source")
         version_data["bad"] = "Upstream: unknown source"
@@ -117,7 +115,7 @@ def _update_upstream_versions_process_pool(
         random.shuffle(_all_nodes)
 
         for node, node_attrs in tqdm.tqdm(_all_nodes):
-            attrs = node_attrs['payload']
+            attrs = node_attrs["payload"]
             if (attrs.get("bad") and "Upstream" not in attrs["bad"]) or attrs.get(
                 "archived",
             ):
