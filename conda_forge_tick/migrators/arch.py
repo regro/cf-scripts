@@ -173,7 +173,7 @@ class OSXArm(GraphMigrator):
                         as_iterable(
                             attrs.get(
                                 f"{plat_arch}_requirements",
-                                attrs.get("requirements", {}),
+                                attrs.get('osx_64_requirements', attrs.get("requirements", {})),
                             ).get("host", set()),
                         ),
                     ),
@@ -204,6 +204,8 @@ class OSXArm(GraphMigrator):
                     packages.update(nx.ancestors(self.graph, target))
             self.graph.remove_nodes_from([n for n in self.graph if n not in packages])
 
+        for name in self.excluded_dependencies:
+            self.graph.remove_nodes_from(nx.descendants(graph, name))
         # filter out stub packages and ignored packages
         for node, attrs in list(self.graph.nodes("payload")):
             if not attrs:
@@ -217,9 +219,6 @@ class OSXArm(GraphMigrator):
                 or (attrs.get("meta_yaml", {}).get("build", {}).get("noarch"))
             ):
                 pluck(self.graph, node)
-        for name in self.excluded_dependencies:
-            if name in self.graph:
-                self.graph.remove_nodes_from(nx.descendants(self.graph, name))
 
         self.graph.remove_edges_from(nx.selfloop_edges(self.graph))
 
