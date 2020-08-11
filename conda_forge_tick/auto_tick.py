@@ -12,8 +12,6 @@ from subprocess import SubprocessError, CalledProcessError
 
 from datetime import datetime
 import cProfile
-import pstats
-import io
 
 import networkx as nx
 from conda.models.version import VersionOrder
