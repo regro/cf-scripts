@@ -24,7 +24,7 @@ logger = logging.getLogger("conda-forge-tick._update_versions")
 
 
 def get_latest_version(
-    name: str, payload_meta_yaml: Any, sources: Iterable[AbstractSource],
+    name: str, meta_yaml: Any, sources: Iterable[AbstractSource],
 ) -> dict:
     version_data = {}
     # avoid
@@ -32,29 +32,28 @@ def get_latest_version(
         version_data["new_version"] = False
         return version_data
 
-    with payload_meta_yaml as meta_yaml:
-        for source in sources:
-            logger.debug("source: %s", source.__class__.__name__)
-            url = source.get_url(meta_yaml)
-            logger.debug("url: %s", url)
-            if url is None:
-                continue
-            ver = source.get_version(url)
-            logger.debug("ver: %s", ver)
-            if ver:
-                version_data["new_version"] = ver
-                return version_data
-            else:
-                logger.debug(f"Upstream: Could not find version on {source.name}")
-                version_data[
-                    "bad"
-                ] = f"Upstream: Could not find version on {source.name}"
-        if not meta_yaml.get("bad"):
-            logger.debug("Upstream: unknown source")
-            version_data["bad"] = "Upstream: unknown source"
+    for source in sources:
+        logger.debug("source: %s", source.__class__.__name__)
+        url = source.get_url(meta_yaml)
+        logger.debug("url: %s", url)
+        if url is None:
+            continue
+        ver = source.get_version(url)
+        logger.debug("ver: %s", ver)
+        if ver:
+            version_data["new_version"] = ver
+            return version_data
+        else:
+            logger.debug(f"Upstream: Could not find version on {source.name}")
+            version_data[
+                "bad"
+            ] = f"Upstream: Could not find version on {source.name}"
+    if not meta_yaml.get("bad"):
+        logger.debug("Upstream: unknown source")
+        version_data["bad"] = "Upstream: unknown source"
 
-        version_data["new_version"] = False
-        return version_data
+    version_data["new_version"] = False
+    return version_data
 
 
 # It's expected that your environment provide this info.
@@ -118,20 +117,20 @@ def _update_upstream_versions_process_pool(
         random.shuffle(_all_nodes)
 
         for node, node_attrs in tqdm.tqdm(_all_nodes):
-            with node_attrs["payload"] as attrs:
-                if (attrs.get("bad") and "Upstream" not in attrs["bad"]) or attrs.get(
-                    "archived",
-                ):
-                    continue
+            attrs = node_attrs['payload']
+            if (attrs.get("bad") and "Upstream" not in attrs["bad"]) or attrs.get(
+                "archived",
+            ):
+                continue
 
-                futures.update(
-                    {
-                        pool.submit(get_latest_version, node, attrs, sources): (
-                            node,
-                            attrs,
-                        ),
-                    },
-                )
+            futures.update(
+                {
+                    pool.submit(get_latest_version, node, attrs, sources): (
+                        node,
+                        attrs,
+                    ),
+                },
+            )
 
         n_tot = len(futures)
         n_left = len(futures)
