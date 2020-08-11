@@ -143,7 +143,7 @@ def graph_migrator_status(
 
         buildable = not migrator.filter(attrs)
         fntc = "black"
-        status_icon = ''
+        status_icon = ""
         if manually_done:
             out["done"].add(node)
             fc = "#440154"
@@ -167,11 +167,11 @@ def graph_migrator_status(
             out["in-pr"].add(node)
             fc = "#31688e"
             fntc = "white"
-            pr_status = pr_json["PR"]['mergeable_state']
-            if pr_status == 'clean':
-                status_icon = ' ✓'
+            pr_status = pr_json["PR"]["mergeable_state"]
+            if pr_status == "clean":
+                status_icon = " ✓"
             else:
-                status_icon = ' ❎'
+                status_icon = " ❎"
         if node not in out["done"]:
             gv.node(
                 node,
@@ -200,7 +200,7 @@ def graph_migrator_status(
                 "html_url",
                 feedstock_url(fctx=feedstock_ctx, protocol="https").strip(".git"),
             )
-            node_metadata["pr_status"] = pr_json["PR"].get('mergeable_state')
+            node_metadata["pr_status"] = pr_json["PR"].get("mergeable_state")
 
     out2: Dict = {}
     for k in out.keys():
