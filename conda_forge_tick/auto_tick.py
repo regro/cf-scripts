@@ -922,8 +922,8 @@ def main(args: "CLIArgs") -> None:
     prof.disable()
 
     # output to data
-    os.makedirs("profiler", exist_ok=True)
-    prof.dump_stats(f"profiler/auto_tick_{current_time}.")
+    os.makedirs("profiler/auto_tick", exist_ok=True)
+    prof.dump_stats(f"profiler/auto_tick/{current_time}.")
 
 
 if __name__ == "__main__":
