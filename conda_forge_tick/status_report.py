@@ -194,6 +194,7 @@ def graph_migrator_status(
                 "html_url",
                 feedstock_url(fctx=feedstock_ctx, protocol="https").strip(".git"),
             )
+            node_metadata["pr_status"] = pr_json["PR"].get('mergeable_state')
 
     out2: Dict = {}
     for k in out.keys():
