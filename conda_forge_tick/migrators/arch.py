@@ -7,7 +7,7 @@ from ruamel.yaml import safe_load, safe_dump
 
 from conda_forge_tick.contexts import FeedstockContext
 from conda_forge_tick.migrators.core import _sanitized_muids, GraphMigrator
-from conda_forge_tick.utils import frozen_to_json_friendly, pluck
+from conda_forge_tick.utils import frozen_to_json_friendly, pluck, as_iterable
 from ..xonsh_utils import indir
 
 
@@ -168,11 +168,11 @@ class OSXArm(GraphMigrator):
         graph2 = nx.create_empty_copy(graph)
         for node, attrs in graph.nodes(data="payload"):
             for plat_arch in self.arches:
-                deps = set().union(
-                    *attrs.get(
+                deps = set().union(set(
+                    as_iterable(attrs.get(
                         f"{plat_arch}_requirements", attrs.get("requirements", {}),
                     ).get("host", set())
-                )
+                )))
                 for dep in deps:
                     dep = graph.graph["outputs_lut"].get(dep, dep)
                     graph2.add_edge(dep, node)
