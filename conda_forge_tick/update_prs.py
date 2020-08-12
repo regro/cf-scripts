@@ -204,7 +204,7 @@ def main(args: "CLIArgs") -> None:
 
     # output to data
     os.makedirs("profiler/update_prs", exist_ok=True)
-    prof.dump_stats(f"profiler/update_prs/{current_time}.")
+    prof.dump_stats(f"profiler/update_prs/{current_time}.txt")
 
 
 if __name__ == "__main__":
