@@ -298,8 +298,7 @@ def main(args: Any = None) -> None:
             indent=2,
         )
     open_prs = []
-    gx = load_graph()
-    for node, attrs in gx.nodes("payload"):
+    for node, attrs in mctxgraph.nodes("payload"):
         for pr in attrs.get("PRed", []):
             if pr.get("PR", {}).get("state", "closed") != "closed":
                 open_prs.append(pr["PR"])
