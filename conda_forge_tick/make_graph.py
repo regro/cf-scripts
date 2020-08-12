@@ -197,8 +197,8 @@ def populate_feedstock_attributes(
         ]
 
     # this makes certain that we have consistent ordering
-    varient_yamls = [x for _, x in sorted(zip(plat_arch, varient_yamls))]
-    yaml_dict = ChainDB(*varient_yamls)
+    sorted_varient_yamls = [x for _, x in sorted(zip(plat_arch, varient_yamls))]
+    yaml_dict = ChainDB(*sorted_varient_yamls)
     if not yaml_dict:
         logger.error(f"Something odd happened when parsing recipe {name}")
         sub_graph["bad"] = "make_graph: Could not parse"
