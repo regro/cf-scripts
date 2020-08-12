@@ -386,7 +386,6 @@ class RawURL(AbstractSource):
                 new_urls = urls_from_meta(new_meta)
                 if len(new_urls) == 0:
                     logger.debug("No URL in meta.yaml")
-                    meta_yaml["bad"] = "Upstream: no url in yaml"
                     return None
 
                 url_to_use = None

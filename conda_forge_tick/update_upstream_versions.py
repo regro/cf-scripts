@@ -48,7 +48,7 @@ def get_latest_version(
             version_data["bad"] = f"Upstream: Could not find version on {source.name}"
     if not meta_yaml.get("bad"):
         logger.debug("Upstream: unknown source")
-        version_data["bad"] = "Upstream: unknown source"
+        version_data["bad"] = "Upstream: unknown source or URL not in YAML"
 
     version_data["new_version"] = False
     return version_data
