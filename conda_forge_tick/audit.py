@@ -77,6 +77,53 @@ AUDIT_REGISTRY = {
 }
 
 
+def compare_grayskull_audits(gx):
+    grayskull_files = os.listdir("audits/grayskull")
+    bad_inspections = {}
+    if "_net_audit.json" in grayskull_files:
+        grayskull_files.pop(grayskull_files.index("_net_audit.json"))
+        with open("audits/grayskull/_net_audit.json", "w") as f:
+            bad_inspections = load(f)
+    for node, attrs in gx.nodes("payload"):
+        if not attrs.get("version"):
+            continue
+        node_version = f"{node}_{attrs['version']}"
+        if node_version in bad_inspections:
+            continue
+        # construct the expected filename
+        expected_filename = f"{node_version}.yml"
+        if expected_filename in grayskull_files:
+            # load the feedstock with the grayskull meta_yaml
+            try:
+                with open(
+                        os.path.join("audits/grayskull", expected_filename), "r",
+                ) as f:
+                    new_attrs = load_feedstock(node, {}, meta_yaml=f.read())
+            except Exception as e:
+                bad_inspections[node_version] = str(e)
+                continue
+            requirement_keys = [
+                k
+                for k in new_attrs
+                if "requirements" in k
+                   and k not in {"requirements", "total_requirements"}
+            ]
+            results = defaultdict(dict)
+            for k in requirement_keys:
+                for kk in attrs[k]:
+                    if attrs[k][kk] != new_attrs[k][kk] and (
+                            kk != "test" and new_attrs[k][kk] != set("pip")
+                    ):
+                        results[k][kk] = {
+                            "cf": attrs[k][kk],
+                            "grayskull": new_attrs[k][kk],
+                        }
+            bad_inspections[node_version] = dict(results) or False
+
+    with open("audits/grayskull/_net_audit.json", "w") as f:
+        dump(bad_inspections, f)
+
+
 def main(args):
     gx = load_graph()
     ctx = MigratorSessionContext("", "", "")
@@ -125,47 +172,4 @@ def main(args):
                     with open(f"audits/{k}/{node}_{version}.{ext}", "w") as f:
                         v["writer"](deps, f)
 
-    grayskull_files = os.listdir("audits/grayskull")
-    bad_inspections = {}
-    if "_net_audit.json" in grayskull_files:
-        grayskull_files.pop(grayskull_files.index("_net_audit.json"))
-        with open("audits/grayskull/_net_audit.json", "w") as f:
-            bad_inspections = load(f)
-    for node, attrs in gx.nodes("payload"):
-        if not attrs.get("version"):
-            continue
-        node_version = f"{node}_{attrs['version']}"
-        if node_version in bad_inspections:
-            continue
-        # construct the expected filename
-        expected_filename = f"{node_version}.yml"
-        if expected_filename in grayskull_files:
-            # load the feedstock with the grayskull meta_yaml
-            try:
-                with open(
-                    os.path.join("audits/grayskull", expected_filename), "r",
-                ) as f:
-                    new_attrs = load_feedstock(node, {}, meta_yaml=f.read())
-            except Exception as e:
-                bad_inspections[node_version] = str(e)
-                continue
-            requirement_keys = [
-                k
-                for k in new_attrs
-                if "requirements" in k
-                and k not in {"requirements", "total_requirements"}
-            ]
-            results = defaultdict(dict)
-            for k in requirement_keys:
-                for kk in attrs[k]:
-                    if attrs[k][kk] != new_attrs[k][kk] and (
-                        kk != "test" and new_attrs[k][kk] != set("pip")
-                    ):
-                        results[k][kk] = {
-                            "cf": attrs[k][kk],
-                            "grayskull": new_attrs[k][kk],
-                        }
-            bad_inspections[node_version] = dict(results) or False
-
-    with open("audits/grayskull/_net_audit.json", "w") as f:
-        dump(bad_inspections, f)
+    compare_grayskull_audits(gx)
