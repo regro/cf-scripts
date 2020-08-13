@@ -148,6 +148,7 @@ def compare_grayskull_audits(gx):
 
     with open("audits/grayskull/_net_audit.json", "w") as f:
         dump(bad_inspections, f)
+    return bad_inspections
 
 
 def compare_depfinder_audits(gx):
@@ -164,7 +165,7 @@ def compare_depfinder_audits(gx):
         # construct the expected filename
         expected_filename = f"{node_version}.json"
         if expected_filename in files:
-            with open(os.path.join("audits/depfinder", expected_filename, "r")) as f:
+            with open(os.path.join("audits/depfinder", expected_filename), "r") as f:
                 output = load(f)
             if isinstance(output, str):
                 bad_inspection[node_version] = output
@@ -173,19 +174,21 @@ def compare_depfinder_audits(gx):
             required_pkgs = output.get("required", set())
             d = {}
             run_req = attrs["requirements"]["run"]
+            excludes = {node, node.replace('-', '_'), node.replace('_', '-'), "python", "setuptools"}
             cf_minus_df = (
-                run_req - required_pkgs - {node, "python", "setuptools"} - quest
+                    run_req - required_pkgs - excludes - quest
             )
             if cf_minus_df:
                 d.update(cf_minus_df=cf_minus_df)
             df_minus_cf = (
-                required_pkgs - run_req - {node} - {node, "python", "setuptools"}
+                required_pkgs - run_req - {node, "python", "setuptools"}
             )
             if df_minus_cf:
                 d.update(df_minus_cf=df_minus_cf)
             bad_inspection[node_version] = d or False
     with open("audits/depfinder/_net_audit.json", "w") as f:
         dump(bad_inspection, f)
+    return bad_inspection
 
 
 def main(args):
