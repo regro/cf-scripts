@@ -170,10 +170,7 @@ class OSXArm(GraphMigrator):
             for plat_arch in self.arches:
                 reqs = attrs.get(
                     f"{plat_arch}_requirements",
-                    attrs.get(
-                        "osx_64_requirements",
-                        attrs.get("requirements", {}),
-                    ),
+                    attrs.get("osx_64_requirements", attrs.get("requirements", {})),
                 )
                 host_deps = set(as_iterable(reqs.get("host", set())))
                 run_deps = set(as_iterable(reqs.get("run", set())))
