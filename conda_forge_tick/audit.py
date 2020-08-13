@@ -152,7 +152,11 @@ def compare_grayskull_audits(gx):
 
 def compare_depfinder_audits(gx):
     bad_inspection = {}
-    files = os.listdir('audits/depfinder')
+    files = os.listdir("audits/depfinder")
+
+    if "_net_audit.json" in files:
+        files.pop(files.index("_net_audit.json"))
+
     for node, attrs in gx.nodes("payload"):
         if not attrs.get("version"):
             continue
@@ -160,19 +164,23 @@ def compare_depfinder_audits(gx):
         # construct the expected filename
         expected_filename = f"{node_version}.json"
         if expected_filename in files:
-            with open(os.path.join('audits/depfinder', expected_filename, "r")) as f:
+            with open(os.path.join("audits/depfinder", expected_filename, "r")) as f:
                 output = load(f)
             if isinstance(output, str):
                 bad_inspection[node_version] = output
                 continue
-            quest = output.get('questionable', set())
-            required_pkgs = output.get('required', set())
+            quest = output.get("questionable", set())
+            required_pkgs = output.get("required", set())
             d = {}
-            run_req = attrs['requirements']['run']
-            cf_minus_df = run_req - required_pkgs - {node, 'python', 'setuptools'} - quest
+            run_req = attrs["requirements"]["run"]
+            cf_minus_df = (
+                run_req - required_pkgs - {node, "python", "setuptools"} - quest
+            )
             if cf_minus_df:
                 d.update(cf_minus_df=cf_minus_df)
-            df_minus_cf = required_pkgs - run_req - {node} - {node, 'python', 'setuptools'}
+            df_minus_cf = (
+                required_pkgs - run_req - {node} - {node, "python", "setuptools"}
+            )
             if df_minus_cf:
                 d.update(df_minus_cf=df_minus_cf)
             bad_inspection[node_version] = d or False
