@@ -71,7 +71,7 @@ def get_attrs(name: str, i: int, mark_not_archived=False) -> LazyJson:
 
 
 def _build_graph_process_pool(
-        gx: nx.DiGraph, names: List[str], new_names: List[str], mark_not_archived=False,
+    gx: nx.DiGraph, names: List[str], new_names: List[str], mark_not_archived=False,
 ) -> None:
     with executor("thread", max_workers=20) as pool:
         futures = {
@@ -109,7 +109,7 @@ def _build_graph_process_pool(
 
 
 def _build_graph_sequential(
-        gx: nx.DiGraph, names: List[str], new_names: List[str], mark_not_archived=False,
+    gx: nx.DiGraph, names: List[str], new_names: List[str], mark_not_archived=False,
 ) -> None:
     for i, name in enumerate(names):
         try:
@@ -126,7 +126,7 @@ def _build_graph_sequential(
 
 
 def make_graph(
-        names: List[str], gx: Optional[nx.DiGraph] = None, mark_not_archived=False,
+    names: List[str], gx: Optional[nx.DiGraph] = None, mark_not_archived=False,
 ) -> nx.DiGraph:
     logger.info("reading graph")
 
@@ -207,9 +207,9 @@ def update_nodes_with_bot_rerun(gx):
                 # if there is a valid PR and it isn't currently listed as rerun
                 # but the PR needs a rerun
                 if (
-                        pr_json
-                        and not migration["data"]["bot_rerun"]
-                        and "bot-rerun" in [lb["name"] for lb in pr_json.get("labels", [])]
+                    pr_json
+                    and not migration["data"]["bot_rerun"]
+                    and "bot-rerun" in [lb["name"] for lb in pr_json.get("labels", [])]
                 ):
                     migration["data"]["bot_rerun"] = time.time()
                     logger.info(

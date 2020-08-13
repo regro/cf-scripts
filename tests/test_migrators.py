@@ -23,7 +23,11 @@ from conda_forge_tick.migrators.disabled.legacy import (
     Rebuild,
 )
 
-from conda_forge_tick.utils import parse_meta_yaml, frozen_to_json_friendly, populate_feedstock_attributes
+from conda_forge_tick.utils import (
+    parse_meta_yaml,
+    frozen_to_json_friendly,
+    populate_feedstock_attributes,
+)
 
 from xonsh.lib import subprocess
 from xonsh.lib.os import indir

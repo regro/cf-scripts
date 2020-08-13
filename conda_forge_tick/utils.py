@@ -669,12 +669,12 @@ def _fetch_static_repo(name, dest):
 
 
 def populate_feedstock_attributes(
-        name: str,
-        sub_graph: typing.MutableMapping,
-        meta_yaml: typing.Union[str, Response] = "",
-        conda_forge_yaml: typing.Union[str, Response] = "",
-        mark_not_archived=False,
-        feedstock_dir=None,
+    name: str,
+    sub_graph: typing.MutableMapping,
+    meta_yaml: typing.Union[str, Response] = "",
+    conda_forge_yaml: typing.Union[str, Response] = "",
+    mark_not_archived=False,
+    feedstock_dir=None,
 ) -> typing.MutableMapping:
     """Parse the various configuration information into something usable
 
@@ -700,20 +700,20 @@ def populate_feedstock_attributes(
             k: v
             for k, v in yaml.safe_load(conda_forge_yaml).items()
             if k
-               in {
-                   "provider",
-                   "min_r_ver",
-                   "min_py_ver",
-                   "max_py_ver",
-                   "max_r_ver",
-                   "compiler_stack",
-                   "bot",
-               }
+            in {
+                "provider",
+                "min_r_ver",
+                "min_py_ver",
+                "max_py_ver",
+                "max_r_ver",
+                "compiler_stack",
+                "bot",
+            }
         }
 
     if (
-            feedstock_dir is not None
-            and len(glob.glob(os.path.join(feedstock_dir, ".ci_support", "*.yaml"))) > 0
+        feedstock_dir is not None
+        and len(glob.glob(os.path.join(feedstock_dir, ".ci_support", "*.yaml"))) > 0
     ):
         recipe_dir = os.path.join(feedstock_dir, "recipe")
         ci_support_files = glob.glob(
@@ -820,8 +820,13 @@ def populate_feedstock_attributes(
     return sub_graph
 
 
-def load_feedstock(name: str, sub_graph: typing.MutableMapping, meta_yaml: Optional[str] = None,
-                   conda_forge_yaml: Optional[str] = None, mark_not_archived: bool = False):
+def load_feedstock(
+    name: str,
+    sub_graph: typing.MutableMapping,
+    meta_yaml: Optional[str] = None,
+    conda_forge_yaml: Optional[str] = None,
+    mark_not_archived: bool = False,
+):
     """Load a feedstock into subgraph based on its name, if meta_yaml and conda_forge_yaml are provided
 
     Parameters
