@@ -1,32 +1,23 @@
-import collections.abc
-import hashlib
 import logging
 import os
 import re
-import tempfile
-import glob
-import zipfile
 import time
 import typing
 from concurrent.futures import as_completed
 
 from copy import deepcopy
-from typing import List, Optional, Set
+from typing import List, Optional
 
 import json
 import networkx as nx
 import requests
-import yaml
 from requests import Response
-from xonsh.lib.collections import ChainDB, _convert_to_dict
 
-from conda_forge_tick.utils import extract_requirements
+from conda_forge_tick.utils import load_feedstock
 from .all_feedstocks import get_all_feedstocks
 from .contexts import GithubContext
 from .utils import (
-    parse_meta_yaml,
     setup_logger,
-    get_requirements,
     executor,
     load_graph,
     dump_graph,
@@ -69,213 +60,19 @@ def _fetch_file(name: str, filepath: str) -> typing.Union[str, Response]:
     return text
 
 
-def _fetch_static_repo(name, dest):
-    r = requests.get(
-        f"https://github.com/conda-forge/{name}-feedstock/archive/master.zip",
-    )
-    if r.status_code != 200:
-        logger.error(
-            f"Something odd happened when fetching feedstock {name}: {r.status_code}",
-        )
-        return r
-
-    zname = os.path.join(dest, f"{name}-feedstock-master.zip")
-
-    with open(zname, "wb") as fp:
-        fp.write(r.content)
-
-    z = zipfile.ZipFile(zname)
-    z.extractall(path=dest)
-    dest_dir = os.path.join(dest, os.path.split(z.namelist()[0])[0])
-    return dest_dir
-
-
 # TODO: include other files like build_sh
-def populate_feedstock_attributes(
-    name: str,
-    sub_graph: LazyJson,
-    meta_yaml: typing.Union[str, Response] = "",
-    conda_forge_yaml: typing.Union[str, Response] = "",
-    mark_not_archived=False,
-    feedstock_dir=None,
-    # build_sh: typing.Union[str, Response] = "",
-    # pre_unlink: typing.Union[str, Response] = "",
-    # post_link: typing.Union[str, Response] = "",
-    # pre_link: typing.Union[str, Response] = "",
-    # activate: typing.Union[str, Response] = "",
-) -> LazyJson:
-    """Parse the various configuration information into something usable
-
-    Notes
-    -----
-    If the return is bad hand the response itself in so that it can be parsed
-    for meaning.
-    """
-    sub_graph.update({"feedstock_name": name, "bad": False})
-
-    if mark_not_archived:
-        sub_graph.update({"archived": False})
-
-    # handle all the raw strings
-    if isinstance(meta_yaml, Response):
-        sub_graph["bad"] = f"make_graph: {meta_yaml.status_code}"
-        return sub_graph
-    sub_graph["raw_meta_yaml"] = meta_yaml
-
-    # Get the conda-forge.yml
-    if isinstance(conda_forge_yaml, str):
-        sub_graph["conda-forge.yml"] = {
-            k: v
-            for k, v in yaml.safe_load(conda_forge_yaml).items()
-            if k
-            in {
-                "provider",
-                "min_r_ver",
-                "min_py_ver",
-                "max_py_ver",
-                "max_r_ver",
-                "compiler_stack",
-                "bot",
-            }
-        }
-
-    if (
-        feedstock_dir is not None
-        and len(glob.glob(os.path.join(feedstock_dir, ".ci_support", "*.yaml"))) > 0
-    ):
-        recipe_dir = os.path.join(feedstock_dir, "recipe")
-        ci_support_files = glob.glob(
-            os.path.join(feedstock_dir, ".ci_support", "*.yaml"),
-        )
-        varient_yamls = []
-        plat_arch = []
-        for cbc_path in ci_support_files:
-            cbc_name = os.path.basename(cbc_path)
-            cbc_name_parts = cbc_name.replace(".yaml", "").split("_")
-            plat = cbc_name_parts[0]
-            if len(cbc_name_parts) == 1:
-                arch = "64"
-            else:
-                if cbc_name_parts[1] in ["64", "aarch64", "ppc64le", "arm64"]:
-                    arch = cbc_name_parts[1]
-                else:
-                    arch = "64"
-            plat_arch.append((plat, arch))
-
-            varient_yamls.append(
-                parse_meta_yaml(
-                    meta_yaml,
-                    platform=plat,
-                    arch=arch,
-                    recipe_dir=recipe_dir,
-                    cbc_path=cbc_path,
-                ),
-            )
-
-            # collapse them down
-            final_cfgs = {}
-            for plat_arch, varyml in zip(plat_arch, varient_yamls):
-                if plat_arch not in final_cfgs:
-                    final_cfgs[plat_arch] = []
-                final_cfgs[plat_arch].append(varyml)
-            for k in final_cfgs:
-                ymls = final_cfgs[k]
-                final_cfgs[k] = _convert_to_dict(ChainDB(*ymls))
-            plat_arch = []
-            varient_yamls = []
-            for k, v in final_cfgs.items():
-                plat_arch.append(k)
-                varient_yamls.append(v)
-    else:
-        plat_arch = [("win", "64"), ("osx", "64"), ("linux", "64")]
-        for k in set(sub_graph["conda-forge.yml"].get("provider", {})):
-            if "_" in k:
-                plat_arch.append(k.split("_"))
-        varient_yamls = [
-            parse_meta_yaml(meta_yaml, platform=plat, arch=arch)
-            for plat, arch in plat_arch
-        ]
-
-    # this makes certain that we have consistent ordering
-    sorted_varient_yamls = [x for _, x in sorted(zip(plat_arch, varient_yamls))]
-    yaml_dict = ChainDB(*sorted_varient_yamls)
-    if not yaml_dict:
-        logger.error(f"Something odd happened when parsing recipe {name}")
-        sub_graph["bad"] = "make_graph: Could not parse"
-        return sub_graph
-
-    sub_graph["meta_yaml"] = _convert_to_dict(yaml_dict)
-    meta_yaml = sub_graph["meta_yaml"]
-
-    for k, v in zip(plat_arch, varient_yamls):
-        plat_arch_name = "_".join(k)
-        sub_graph[f"{plat_arch_name}_meta_yaml"] = v
-        _, sub_graph[f"{plat_arch_name}_requirements"], _ = extract_requirements(v)
-
-    (
-        sub_graph["total_requirements"],
-        sub_graph["requirements"],
-        sub_graph["strong_exports"],
-    ) = extract_requirements(meta_yaml)
-
-    # handle multi outputs
-    if "outputs" in yaml_dict:
-        sub_graph["outputs_names"] = sorted(
-            list({d.get("name", "") for d in yaml_dict["outputs"]}),
-        )
-
-    # TODO: Write schema for dict
-    # TODO: remove this
-    req = get_requirements(yaml_dict)
-    sub_graph["req"] = req
-
-    keys = [("package", "name"), ("package", "version")]
-    missing_keys = [k[1] for k in keys if k[1] not in yaml_dict.get(k[0], {})]
-    source = yaml_dict.get("source", [])
-    if isinstance(source, collections.abc.Mapping):
-        source = [source]
-    source_keys: Set[str] = set()
-    for s in source:
-        if not sub_graph.get("url"):
-            sub_graph["url"] = s.get("url")
-        source_keys |= s.keys()
-    for k in keys:
-        if k[1] not in missing_keys:
-            sub_graph[k[1]] = yaml_dict[k[0]][k[1]]
-    kl = list(sorted(source_keys & hashlib.algorithms_available, reverse=True))
-    if kl:
-        sub_graph["hash_type"] = kl[0]
-    return sub_graph
 
 
 def get_attrs(name: str, i: int, mark_not_archived=False) -> LazyJson:
-    # pull down one copy of the repo
-    with tempfile.TemporaryDirectory() as tmpdir:
-        feedstock_dir = _fetch_static_repo(name, tmpdir)
-
-        with open(os.path.join(feedstock_dir, "recipe", "meta.yaml"), "r") as fp:
-            meta_yaml = fp.read()
-
-        with open(os.path.join(feedstock_dir, "conda-forge.yml"), "r") as fp:
-            conda_forge_yaml = fp.read()
-
-        lzj = LazyJson(f"node_attrs/{name}.json")
-        with lzj as sub_graph:
-            populate_feedstock_attributes(
-                name,
-                sub_graph,
-                meta_yaml=meta_yaml,
-                conda_forge_yaml=conda_forge_yaml,
-                mark_not_archived=mark_not_archived,
-                feedstock_dir=feedstock_dir,
-            )
-        return lzj
+    lzj = LazyJson(f"node_attrs/{name}.json")
+    with lzj as sub_graph:
+        load_feedstock(name, sub_graph, mark_not_archived=mark_not_archived)
+    return lzj
 
 
 def _build_graph_process_pool(
-    gx: nx.DiGraph, names: List[str], new_names: List[str], mark_not_archived=False,
+        gx: nx.DiGraph, names: List[str], new_names: List[str], mark_not_archived=False,
 ) -> None:
-
     with executor("thread", max_workers=20) as pool:
         futures = {
             pool.submit(get_attrs, name, i, mark_not_archived=mark_not_archived): name
@@ -312,7 +109,7 @@ def _build_graph_process_pool(
 
 
 def _build_graph_sequential(
-    gx: nx.DiGraph, names: List[str], new_names: List[str], mark_not_archived=False,
+        gx: nx.DiGraph, names: List[str], new_names: List[str], mark_not_archived=False,
 ) -> None:
     for i, name in enumerate(names):
         try:
@@ -329,7 +126,7 @@ def _build_graph_sequential(
 
 
 def make_graph(
-    names: List[str], gx: Optional[nx.DiGraph] = None, mark_not_archived=False,
+        names: List[str], gx: Optional[nx.DiGraph] = None, mark_not_archived=False,
 ) -> nx.DiGraph:
     logger.info("reading graph")
 
@@ -410,9 +207,9 @@ def update_nodes_with_bot_rerun(gx):
                 # if there is a valid PR and it isn't currently listed as rerun
                 # but the PR needs a rerun
                 if (
-                    pr_json
-                    and not migration["data"]["bot_rerun"]
-                    and "bot-rerun" in [lb["name"] for lb in pr_json.get("labels", [])]
+                        pr_json
+                        and not migration["data"]["bot_rerun"]
+                        and "bot-rerun" in [lb["name"] for lb in pr_json.get("labels", [])]
                 ):
                     migration["data"]["bot_rerun"] = time.time()
                     logger.info(
