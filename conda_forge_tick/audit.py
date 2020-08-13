@@ -3,6 +3,8 @@ import os
 import tempfile
 import time
 import traceback
+from collections import defaultdict
+from concurrent.futures._base import as_completed
 
 import networkx as nx
 from depfinder.main import simple_import_search
@@ -13,7 +15,7 @@ from conda_forge_tick.contexts import MigratorSessionContext, FeedstockContext
 from conda_forge_tick.git_utils import feedstock_url
 from conda_forge_tick.git_xonsh_utils import fetch_repo
 from conda_forge_tick.migrators.core import _get_source_code
-from conda_forge_tick.utils import load_graph, dump
+from conda_forge_tick.utils import load_graph, dump, load_feedstock, load, executor
 from conda_forge_tick.xonsh_utils import indir, env
 
 
@@ -76,6 +78,79 @@ AUDIT_REGISTRY = {
 }
 
 
+def inner_grayskull_comparison(meta_yaml, attrs, node):
+    # load the feedstock with the grayskull meta_yaml
+    try:
+        new_attrs = load_feedstock(node, {}, meta_yaml=meta_yaml)
+    except Exception as e:
+        return str(e)
+    requirement_keys = [
+        k
+        for k in new_attrs
+        if "requirements" in k and k not in {"requirements", "total_requirements"}
+    ]
+    results = defaultdict(dict)
+    for k in requirement_keys:
+        for kk in attrs[k]:
+            cf_attrs_k_kk = attrs[k][kk]
+            gs_attrs_k_kk = new_attrs[k][kk]
+            if cf_attrs_k_kk != gs_attrs_k_kk and (
+                kk != "test" and gs_attrs_k_kk != set("pip")
+            ):
+                results[k][kk] = {"cf": cf_attrs_k_kk, "grayskull": gs_attrs_k_kk}
+                cf_minus_gs = cf_attrs_k_kk - gs_attrs_k_kk
+                gs_minus_cf = gs_attrs_k_kk - cf_attrs_k_kk
+                if cf_minus_gs:
+                    results[k][kk].update({"cf_not_gs_diff": cf_minus_gs})
+                if gs_minus_cf:
+                    results[k][kk].update({"gs_not_cf_diff": gs_minus_cf})
+    return dict(results) or False
+
+
+def compare_grayskull_audits(gx):
+    grayskull_files = os.listdir("audits/grayskull")
+    bad_inspections = {}
+
+    if "_net_audit.json" in grayskull_files:
+        grayskull_files.pop(grayskull_files.index("_net_audit.json"))
+        with open("audits/grayskull/_net_audit.json", "r") as f:
+            bad_inspections = load(f)
+
+    futures = {}
+    with executor("dask", max_workers=20) as pool:
+
+        for node, attrs in gx.nodes("payload"):
+            if not attrs.get("version"):
+                continue
+            node_version = f"{node}_{attrs['version']}"
+            if node_version in bad_inspections:
+                continue
+            # construct the expected filename
+            expected_filename = f"{node_version}.yml"
+            if expected_filename in grayskull_files:
+                with open(
+                    os.path.join("audits/grayskull", expected_filename), "r",
+                ) as f:
+                    meta_yaml = f.read()
+                futures[
+                    pool.submit(
+                        inner_grayskull_comparison,
+                        meta_yaml=meta_yaml,
+                        attrs=attrs,
+                        node=node,
+                    )
+                ] = node_version
+        for future in as_completed(futures):
+            try:
+                bad_inspections[futures[future]] = future.result()
+            except Exception as e:
+                bad_inspections[futures[future]] = str(e)
+
+    with open("audits/grayskull/_net_audit.json", "w") as f:
+        dump(bad_inspections, f)
+    print("hi")
+
+
 def main(args):
     gx = load_graph()
     ctx = MigratorSessionContext("", "", "")
@@ -123,3 +198,5 @@ def main(args):
                 finally:
                     with open(f"audits/{k}/{node}_{version}.{ext}", "w") as f:
                         v["writer"](deps, f)
+
+    compare_grayskull_audits(gx)
