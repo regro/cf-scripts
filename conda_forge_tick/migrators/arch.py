@@ -168,19 +168,16 @@ class OSXArm(GraphMigrator):
         graph2 = nx.create_empty_copy(graph)
         for node, attrs in graph.nodes(data="payload"):
             for plat_arch in self.arches:
-                deps = set().union(
-                    set(
-                        as_iterable(
-                            attrs.get(
-                                f"{plat_arch}_requirements",
-                                attrs.get(
-                                    "osx_64_requirements",
-                                    attrs.get("requirements", {}),
-                                ),
-                            ).get("host", set()),
-                        ),
+                reqs = attrs.get(
+                    f"{plat_arch}_requirements",
+                    attrs.get(
+                        "osx_64_requirements",
+                        attrs.get("requirements", {}),
                     ),
                 )
+                host_deps = set(as_iterable(reqs.get("host", set())))
+                run_deps = set(as_iterable(reqs.get("run", set())))
+                deps = host_deps.union(run_deps)
                 for dep in deps:
                     dep = graph.graph["outputs_lut"].get(dep, dep)
                     graph2.add_edge(dep, node)
