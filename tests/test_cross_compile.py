@@ -87,6 +87,7 @@ extra:
     - croth1
 """
 
+
 def test_correct_config_sub(tmpdir):
     with open(os.path.join(tmpdir, "build.sh"), "w") as f:
         f.write(["#!/bin/bash\n", "./configure"])
