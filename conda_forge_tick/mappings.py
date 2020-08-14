@@ -1,4 +1,4 @@
-from pypi_name_mapping import main as main_pypi_name_mapping
+from .pypi_name_mapping import main as main_pypi_name_mapping
 
 
 def main():
