@@ -202,7 +202,12 @@ class OSXArm(GraphMigrator):
             self.graph.remove_nodes_from([n for n in self.graph if n not in packages])
 
         for name in self.excluded_dependencies:
-            self.graph.remove_nodes_from(nx.descendants(graph, name))
+            des = nx.descendants(graph, name)
+            for target in self.target_packages:
+                if target in des:
+                    print(f"excluding target package {target} because of {name} in excluded deps path is:"
+                          f"{'->'.join(nx.shortest_path(self.graph, name, target))}")
+            self.graph.remove_nodes_from(des)
         # filter out stub packages and ignored packages
         for node, attrs in list(self.graph.nodes("payload")):
             if not attrs:
