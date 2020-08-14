@@ -23,7 +23,7 @@ class UpdateConfigSubGuessMigrator(MiniMigrator):
     post_migration = True
 
     def filter(self, attrs: "AttrsTypedDict", not_bad_str_start: str = "") -> bool:
-        build_reqs = attrs.get("requirements"{}).get("build", set())
+        build_reqs = attrs.get("requirements", {}).get("build", set())
         needed = False
         for compiler in ["fortran_compiler_stub", "c_compiler_stub", "cxx_compiler_stub"]:
             if compiler in build_reqs:
