@@ -1,12 +1,11 @@
 """
 Builds and maintains mapping of pypi-names to conda-forge names
 
-1: Pacakges should be build from a `https://pypi.io/packages/` source
+1: Packages should be build from a `https://pypi.io/packages/` source
 2: Packages MUST have a test: imports section importing it
 """
 
 import glob
-import json
 import sys
 import yaml
 import pathlib
@@ -14,8 +13,11 @@ import pathlib
 from typing import Dict, List
 
 
+from .utils import load, as_iterable
+
+
 def load_node_meta_yaml(filename: str) -> List[Dict[str, str]]:
-    node_attr = json.load(open(filename))
+    node_attr = load(open(filename))
     meta_yaml = node_attr.get("meta_yaml")
     return meta_yaml
 
@@ -29,8 +31,7 @@ def extract_pypi_information(cf_graph: str) -> List[Dict[str, str]]:
         if "source" in meta_yaml:
             if "url" in meta_yaml["source"]:
                 src_urls = meta_yaml["source"]["url"]
-                if isinstance(src_urls, str):
-                    src_urls = [src_urls]
+                src_urls = as_iterable(src_urls)
                 for url in src_urls:
                     if url.startswith("https://pypi.io/packages/"):
                         break
@@ -51,12 +52,14 @@ def extract_pypi_information(cf_graph: str) -> List[Dict[str, str]]:
                             "conda_name": conda_name,
                             "import_name": import_name,
                             "mapping_source": "regro-bot",
-                        }
+                        },
                     )
     return package_mappings
 
 
-def convert_to_grayskull_style_yaml(package_mappings: List[Dict[str, str]]) -> Dict[str, Dict[str, str]]:
+def convert_to_grayskull_style_yaml(
+    package_mappings: List[Dict[str, str]],
+) -> Dict[str, Dict[str, str]]:
     """Convert our list style mapping to the pypi-centric version required by grayskull
     """
     mismatch = [x for x in package_mappings if x["pypi_name"] != x["conda_name"]]
@@ -70,33 +73,33 @@ def convert_to_grayskull_style_yaml(package_mappings: List[Dict[str, str]]) -> D
 
 def load_static_mappings() -> List[Dict[str, str]]:
     path = pathlib.Path(__file__).parent / "pypi_name_mapping_static.yaml"
-    with path.open("r") as fo:
-        mapping = yaml.safe_load(fo)
+    with path.open("r") as fp:
+        mapping = yaml.safe_load(fp)
     for d in mapping:
         d["mapping_source"] = "static"
     return mapping
 
 
-def main(cf_graph = '.'):
+def main(cf_graph="."):
     static_packager_mappings = load_static_mappings()
     pypi_package_mappings = extract_pypi_information(cf_graph=cf_graph)
     grayskull_style = convert_to_grayskull_yaml(
-        static_packager_mappings + pypi_package_mappings
+        static_packager_mappings + pypi_package_mappings,
     )
 
     dirname = pathlib.Path(cf_graph) / "mappings" / "pypi"
     dirname.mkdir(parents=True, exist_ok=True)
 
-    with (dirname / "grayskull_pypi_mapping.yaml").open("w") as fo:
-        yaml.dump(grayskull_style, fo, default_flow_style=True, sort_keys=True)
+    with (dirname / "grayskull_pypi_mapping.yaml").open("w") as fp:
+        yaml.dump(grayskull_style, fp, default_flow_style=True, sort_keys=True)
 
-    with (dirname / "name_mapping.yaml").open("w") as fo:
+    with (dirname / "name_mapping.yaml").open("w") as fp:
         yaml.dump(
             sorted(
                 static_packager_mappings + pypi_package_mappings,
                 key=lambda pkg: pkg["conda_name"],
             ),
-            fo,
+            fp,
             default_flow_style=True,
             sort_keys=True,
         )
