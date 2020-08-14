@@ -202,7 +202,7 @@ class OSXArm(GraphMigrator):
             self.graph.remove_nodes_from([n for n in self.graph if n not in packages])
 
         for name in self.excluded_dependencies:
-            des = nx.descendants(graph, name)
+            des = nx.descendants(self.graph, name)
             for target in self.target_packages:
                 if target in des:
                     print(
