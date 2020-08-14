@@ -174,15 +174,17 @@ def compare_depfinder_audits(gx):
             required_pkgs = output.get("required", set())
             d = {}
             run_req = attrs["requirements"]["run"]
-            excludes = {node, node.replace('-', '_'), node.replace('_', '-'), "python", "setuptools"}
-            cf_minus_df = (
-                    run_req - required_pkgs - excludes - quest
-            )
+            excludes = {
+                node,
+                node.replace("-", "_"),
+                node.replace("_", "-"),
+                "python",
+                "setuptools",
+            }
+            cf_minus_df = run_req - required_pkgs - excludes - quest
             if cf_minus_df:
                 d.update(cf_minus_df=cf_minus_df)
-            df_minus_cf = (
-                required_pkgs - run_req - {node, "python", "setuptools"}
-            )
+            df_minus_cf = required_pkgs - run_req - {node, "python", "setuptools"}
             if df_minus_cf:
                 d.update(df_minus_cf=df_minus_cf)
             bad_inspection[node_version] = d or False
