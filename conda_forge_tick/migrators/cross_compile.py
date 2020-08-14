@@ -66,7 +66,7 @@ class UpdateConfigSubGuessMigrator(MiniMigrator):
             for i, line in enumerate(lines):
                 if line.strip().startswith("- {{ compiler"):
                     new_line = " "*(len(line)-len(line.lstrip()))
-                    new_line += "- libtool"
+                    new_line += "- libtool  # [unix]"
                     lines.insert(i, new_line)
                     break
 
