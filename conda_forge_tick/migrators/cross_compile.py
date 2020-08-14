@@ -19,7 +19,7 @@ from conda_forge_tick.migrators.core import (
 LOGGER = logging.getLogger("conda_forge_tick.migrators.cross_compile")
 
 
-class LicenseMigrator(MiniMigrator):
+class UpdateConfigSubGuessMigrator(MiniMigrator):
     post_migration = True
 
     def filter(self, attrs: "AttrsTypedDict", not_bad_str_start: str = "") -> bool:
