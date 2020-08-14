@@ -25,7 +25,11 @@ class UpdateConfigSubGuessMigrator(MiniMigrator):
     def filter(self, attrs: "AttrsTypedDict", not_bad_str_start: str = "") -> bool:
         build_reqs = attrs.get("requirements", {}).get("build", set())
         needed = False
-        for compiler in ["fortran_compiler_stub", "c_compiler_stub", "cxx_compiler_stub"]:
+        for compiler in [
+            "fortran_compiler_stub",
+            "c_compiler_stub",
+            "cxx_compiler_stub",
+        ]:
             if compiler in build_reqs:
                 needed = True
                 break
@@ -56,7 +60,10 @@ class UpdateConfigSubGuessMigrator(MiniMigrator):
                 if lines[0].startswith("#"):
                     insert_at = 1
                 for d in directories:
-                    lines.insert(insert_at, f"cp $BUILD_PREFIX/share/libtool/build-aux/config.* {d}")
+                    lines.insert(
+                        insert_at,
+                        f"cp $BUILD_PREFIX/share/libtool/build-aux/config.* {d}",
+                    )
                 lines.insert(insert_at, "# Get an updated config.sub and config.guess")
             with open("build.sh", "w") as f:
                 f.write(lines)
@@ -65,7 +72,7 @@ class UpdateConfigSubGuessMigrator(MiniMigrator):
                 lines = f.splitlines()
             for i, line in enumerate(lines):
                 if line.strip().startswith("- {{ compiler"):
-                    new_line = " "*(len(line)-len(line.lstrip()))
+                    new_line = " " * (len(line) - len(line.lstrip()))
                     new_line += "- libtool  # [unix]"
                     lines.insert(i, new_line)
                     break
