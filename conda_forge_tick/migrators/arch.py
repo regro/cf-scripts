@@ -1,6 +1,6 @@
 from textwrap import dedent
 import typing
-from typing import Optional, Any
+from typing import Optional, Any, Sequence
 
 import networkx as nx
 from ruamel.yaml import safe_load, safe_dump
@@ -13,6 +13,8 @@ from ..xonsh_utils import indir
 
 if typing.TYPE_CHECKING:
     from ..migrators_types import AttrsTypedDict, MigrationUidTypedDict
+
+from .core import MiniMigrator
 
 
 class ArchRebuild(GraphMigrator):
@@ -37,7 +39,11 @@ class ArchRebuild(GraphMigrator):
     }
 
     def __init__(
-        self, graph: nx.DiGraph = None, name: Optional[str] = None, pr_limit: int = 0,
+        self,
+        graph: nx.DiGraph = None,
+        name: Optional[str] = None,
+        pr_limit: int = 0,
+        piggy_back_migrations: Optional[Sequence[MiniMigrator]] = None,
     ):
         # rebuild the graph to only use edges from the arm and power requirements
         graph2 = nx.create_empty_copy(graph)
@@ -52,7 +58,12 @@ class ArchRebuild(GraphMigrator):
                     dep = graph.graph["outputs_lut"].get(dep, dep)
                     graph2.add_edge(dep, node)
 
-        super().__init__(graph=graph2, pr_limit=pr_limit, check_solvable=False)
+        super().__init__(
+            graph=graph2,
+            pr_limit=pr_limit,
+            check_solvable=False,
+            piggy_back_migrations=piggy_back_migrations,
+        )
 
         assert not self.check_solvable, "We don't want to check solvability for aarch!"
         # We are constraining the scope of this migrator

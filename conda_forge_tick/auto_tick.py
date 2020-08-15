@@ -77,6 +77,8 @@ from conda_forge_tick.migrators import (
     ExtraJinja2KeysCleanup,
     Jinja2VarsCleanup,
     UpdateConfigSubGuessMigrator,
+    UpdateCMakeArgsMigrator,
+    GuardTestingMigrator,
 )
 
 from conda_forge_tick.mamba_solver import is_recipe_solvable
@@ -401,7 +403,12 @@ def add_arch_migrate(migrators: MutableSequence[Migrator], gx: nx.DiGraph) -> No
             graph=total_graph,
             pr_limit=PR_LIMIT,
             name="arm osx addition",
-            piggy_back_migrations=[UpdateConfigSubGuessMigrator()],
+            piggy_back_migrations=[
+                UpdateConfigSubGuessMigrator(),
+                CondaForgeYAMLCleanup(),
+                UpdateCMakeArgsMigrator(),
+                GuardTestingMigrator(),
+            ],
         ),
     )
 
