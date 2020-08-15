@@ -18,6 +18,7 @@ from conda_forge_tick.migrators.core import (
 
 LOGGER = logging.getLogger("conda_forge_tick.migrators.cross_compile")
 
+
 class CrossCompilationMigratorBase(MiniMigrator):
     post_migration = True
 
@@ -36,7 +37,6 @@ class CrossCompilationMigratorBase(MiniMigrator):
 
 
 class UpdateConfigSubGuessMigrator(CrossCompilationMigratorBase):
-
     def migrate(self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any) -> None:
         cb_work_dir = _get_source_code(recipe_dir)
         if cb_work_dir is None:
@@ -86,7 +86,6 @@ class UpdateConfigSubGuessMigrator(CrossCompilationMigratorBase):
 
 
 class GuardTestingMigrator(CrossCompilationMigratorBase):
-
     def migrate(self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any) -> None:
         with indir(recipe_dir):
             if not os.path.exists("build.sh"):
@@ -96,9 +95,13 @@ class GuardTestingMigrator(CrossCompilationMigratorBase):
 
             for i, line in enumerate(lines):
                 if line.startswith("make check") or line.startswith("ctest"):
-                    lines.insert(i, "if [[ ${CONDA_BUILD_CROSS_COMPILATION} != \"1\" ]]; then\n")
-                    insert_after = i+1
-                    while len(lines) > insert_after and lines[insert_after].endswith("\\\n"):
+                    lines.insert(
+                        i, 'if [[ "${CONDA_BUILD_CROSS_COMPILATION}" != "1" ]]; then\n'
+                    )
+                    insert_after = i + 1
+                    while len(lines) > insert_after and lines[insert_after].endswith(
+                        "\\\n"
+                    ):
                         insert_after += 1
                     if lines[insert_after][-1] != "\n":
                         lines[insert_after] += "\n"
@@ -111,7 +114,6 @@ class GuardTestingMigrator(CrossCompilationMigratorBase):
 
 
 class UpdateCMakeArgsMigrator(CrossCompilationMigratorBase):
-
     def filter(self, attrs: "AttrsTypedDict", not_bad_str_start: str = "") -> bool:
         build_reqs = attrs.get("requirements", {}).get("build", set())
         return "cmake" not in build_reqs
@@ -125,7 +127,10 @@ class UpdateCMakeArgsMigrator(CrossCompilationMigratorBase):
 
             for i, line in enumerate(lines):
                 if line.startswith("cmake "):
-                    lines[i] = "cmake ${CMAKE_ARGS} " + line[len("cmake "):]
+                    lines[i] = "cmake ${CMAKE_ARGS} " + line[len("cmake ") :]
                     break
             else:
                 return
+
+            with open("build.sh", "w") as f:
+                f.write("".join(lines))
