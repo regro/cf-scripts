@@ -1,6 +1,6 @@
 from textwrap import dedent
 import typing
-from typing import Optional, Any
+from typing import Optional, Any, Sequence
 
 import networkx as nx
 from ruamel.yaml import safe_load, safe_dump
