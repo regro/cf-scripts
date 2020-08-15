@@ -14,6 +14,8 @@ from ..xonsh_utils import indir
 if typing.TYPE_CHECKING:
     from ..migrators_types import AttrsTypedDict, MigrationUidTypedDict
 
+from .core import MiniMigrator
+
 
 class ArchRebuild(GraphMigrator):
     """
