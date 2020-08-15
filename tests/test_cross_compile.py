@@ -1,12 +1,15 @@
 import os
 
-from conda_forge_tick.migrators import UpdateConfigSubGuessMigrator, Version
+from conda_forge_tick.migrators import (UpdateConfigSubGuessMigrator, Version,
+    GuardTestingMigrator, UpdateCMakeArgsMigrator)
 
 from test_migrators import run_test_migration
 
-migrator = UpdateConfigSubGuessMigrator()
+config_migrator = UpdateConfigSubGuessMigrator()
+guard_testing_migrator = GuardTestingMigrator()
+cmake_migrator = UpdateCMakeArgsMigrator()
 
-version_migrator = Version(piggy_back_migrations=[migrator])
+version_migrator = Version(piggy_back_migrations=[config_migrator, cmake_migrator, guard_testing_migrator])
 
 config_recipe = """\
 {% set version = "7.0" %}
@@ -31,6 +34,7 @@ requirements:
     - pkg-config
     - {{ compiler('c') }}
     - make
+    - cmake
   host:
     - ncurses
   run:
@@ -71,6 +75,7 @@ requirements:
     - libtool  # [unix]
     - {{ compiler('c') }}
     - make
+    - cmake
   host:
     - ncurses
   run:
@@ -106,3 +111,32 @@ def test_correct_config_sub(tmpdir):
     )
     with open(os.path.join(tmpdir, "build.sh"), "r") as f:
         assert len(f.readlines()) == 4
+
+
+def test_make_check(tmpdir):
+    with open(os.path.join(tmpdir, "build.sh"), "w") as f:
+        f.write("#!/bin/bash\nmake check")
+    run_test_migration(
+        m=version_migrator,
+        inp=config_recipe,
+        output=config_recipe_correct,
+        prb="Dependencies have been updated if changed",
+        kwargs={"new_version": "8.0"},
+        mr_out={
+            "migrator_name": "Version",
+            "migrator_version": Version.migrator_version,
+            "version": "8.0",
+        },
+        tmpdir=tmpdir,
+    )
+    expected = [
+        "#!/bin/bash\n",
+        "# Get an updated config.sub and config.guess\n"
+        "cp $BUILD_PREFIX/share/libtool/build-aux/config.* support\n"
+        "if [[ \"$CONDA_BUILD_CROSS_COMPILATION\" != \"1\" ]]; then\n"
+        "make check\n",
+        "fi\n"
+    ]
+    with open(os.path.join(tmpdir, "build.sh"), "r") as f:
+        assert f.readlines() == expected
+
