@@ -69,7 +69,7 @@ class UpdateConfigSubGuessMigrator(MiniMigrator):
                 f.write("".join(lines))
 
             with open("meta.yaml") as f:
-                lines = f.splitlines()
+                lines = f.readlines()
             for i, line in enumerate(lines):
                 if line.strip().startswith("- {{ compiler"):
                     new_line = " " * (len(line) - len(line.lstrip()))
