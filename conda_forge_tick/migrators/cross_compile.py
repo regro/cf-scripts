@@ -64,8 +64,8 @@ class UpdateConfigSubGuessMigrator(MiniMigrator):
                         insert_at,
                         f"cp $BUILD_PREFIX/share/libtool/build-aux/config.* {d}\n",
                     )
-                lines.insert(insert_at,
-                    "# Get an updated config.sub and config.guess\n"
+                lines.insert(
+                    insert_at, "# Get an updated config.sub and config.guess\n",
                 )
             with open("build.sh", "w") as f:
                 f.write("".join(lines))
