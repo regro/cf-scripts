@@ -7,8 +7,8 @@ env:
     - secure: "BMHTWzfNVm3fgT/jvcoFcQXvJ4xbQi7vs8DluDdAUXxW0zm7TgZ+mG1VDJPCrAQXhdlxL7N73D2PeoNuPGA8wALVc00lGPrrFl6MR1a3tKI5FEE7UWxX3kQrousgd3AkCPMnmZGCYJnBBvj1SN4V3x9OCePu45tdok8T5Si/gABzPgSDAYurFp4AsG4PIrQgsrOPioSyBk6KFul0KnuH4YjW3c+SEauNqt7gjxTROHo9oUNqLuj2nUVl6fdu1LuEtCvVbFeJXtFCgTsKroNdg+4P0UmMn8HOzlLxpfeVs2llRd2eiwxJBFv7ovgmVW3YIHdT3QE8dVT0LASQdjrvx0O8n5CM+sA6gHmtiVeKi7IXihVDBsckzic08L5aKf5qbUylX9ICt2PcW308udLQe7eZIGA2xjrepDnCzAQkSxHD1qeGz0KPr+av04sekUnSMRB0UOtTAMYMXDytNTy0x5htdpoHtVMkbdmCC6ldUlnBKKinrYCO8++rwgYV128a8f6Q53GuRxW7bOIU6us4bBb1ERn9Dwkxr3Zn9rLHahJG6dGUj38Jian2uwe5p5Gh8/Tecmbd3rgLB0CwYM9pYH4NkcOXKOpTEqDIJ8U9RjPnitQbnH6cNyzbAj6c9qid2Bpu98/GR2YXIwoW7VBEmRe/P9k9TatjFJkiKnZoUbQ="
 
 before_install:
-  - wget -q https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh
-  - bash miniconda.sh -b -p ~/mc
+  - wget -q https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-Linux-x86_64.sh -O miniforge.sh
+  - bash miniforge.sh -b -p ~/mc
   - source ~/mc/etc/profile.d/conda.sh
   - conda activate
   - conda config --set always_yes yes
