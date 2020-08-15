@@ -94,7 +94,11 @@ class GuardTestingMigrator(CrossCompilationMigratorBase):
                 lines = list(f.readlines())
 
             for i, line in enumerate(lines):
-                if line.startswith("make check") or line.startswith("ctest"):
+                if (
+                    line.startswith("make check")
+                    or line.startswith("ctest")
+                    or line.startswith("make test")
+                ):
                     lines.insert(
                         i, 'if [[ "${CONDA_BUILD_CROSS_COMPILATION}" != "1" ]]; then\n',
                     )
