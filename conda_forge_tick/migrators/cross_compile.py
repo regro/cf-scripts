@@ -96,11 +96,11 @@ class GuardTestingMigrator(CrossCompilationMigratorBase):
             for i, line in enumerate(lines):
                 if line.startswith("make check") or line.startswith("ctest"):
                     lines.insert(
-                        i, 'if [[ "${CONDA_BUILD_CROSS_COMPILATION}" != "1" ]]; then\n'
+                        i, 'if [[ "${CONDA_BUILD_CROSS_COMPILATION}" != "1" ]]; then\n',
                     )
                     insert_after = i + 1
                     while len(lines) > insert_after and lines[insert_after].endswith(
-                        "\\\n"
+                        "\\\n",
                     ):
                         insert_after += 1
                     if lines[insert_after][-1] != "\n":
