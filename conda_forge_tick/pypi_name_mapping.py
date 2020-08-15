@@ -62,11 +62,15 @@ def convert_to_grayskull_style_yaml(
 ) -> Dict[str, Dict[str, str]]:
     """Convert our list style mapping to the pypi-centric version required by grayskull
     """
-    mismatch = [x for x in package_mappings if x["pypi_name"] != x["conda_name"]]
+    mismatch = [
+        x
+        for x in package_mappings
+        if x["pypi_name"] != x.get("conda_name", x.get("conda_forge"))
+    ]
     grayskull_fmt = {
         x["pypi_name"]: {k: v for k, v in x.items() if x != "pypi_name"}
         for x in sorted(mismatch, key=lambda x: x["pypi_name"])
-        if x["pypi_name"] != x["conda_name"]
+        if x["pypi_name"] != x.get("conda_name", x.get("conda_forge"))
     }
     return grayskull_fmt
 
@@ -98,7 +102,7 @@ def main(args: "CLIArgs") -> None:
         yaml.dump(
             sorted(
                 static_packager_mappings + pypi_package_mappings,
-                key=lambda pkg: pkg["conda_name"],
+                key=lambda pkg: pkg.get("conda_name", pkg.get("conda_forge")),
             ),
             fp,
             default_flow_style=True,
