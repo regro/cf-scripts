@@ -90,7 +90,7 @@ extra:
 
 def test_correct_config_sub(tmpdir):
     with open(os.path.join(tmpdir, "build.sh"), "w") as f:
-        f.write(["#!/bin/bash\n", "./configure"])
+        f.write("#!/bin/bash\n./configure")
     run_test_migration(
         m=migrator,
         inp=config_recipe,

@@ -62,20 +62,20 @@ class UpdateConfigSubGuessMigrator(MiniMigrator):
                 for d in directories:
                     lines.insert(
                         insert_at,
-                        f"cp $BUILD_PREFIX/share/libtool/build-aux/config.* {d}",
+                        f"cp $BUILD_PREFIX/share/libtool/build-aux/config.* {d}\n",
                     )
-                lines.insert(insert_at, "# Get an updated config.sub and config.guess")
+                lines.insert(insert_at, "# Get an updated config.sub and config.guess\n")
             with open("build.sh", "w") as f:
-                f.write(lines)
+                f.write("".join(lines))
 
             with open("meta.yaml") as f:
                 lines = f.splitlines()
             for i, line in enumerate(lines):
                 if line.strip().startswith("- {{ compiler"):
                     new_line = " " * (len(line) - len(line.lstrip()))
-                    new_line += "- libtool  # [unix]"
+                    new_line += "- libtool  # [unix]\n"
                     lines.insert(i, new_line)
                     break
 
             with open("meta.yaml", "w") as f:
-                f.write(lines)
+                f.write("".join(lines))
