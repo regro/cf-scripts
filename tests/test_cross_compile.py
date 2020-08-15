@@ -16,7 +16,7 @@ package:
   version: {{ version }}
 
 source:
-  url: ftp://ftp.gnu.org/gnu/readline/readline-{{ version }}.tar.gz
+  url: https://ftp.gnu.org/gnu/readline/readline-{{ version }}.tar.gz
   sha256: 750d437185286f40a369e1e4f4764eda932b9459b5ec9a731628393dd3d32334
 
 build:
@@ -55,7 +55,7 @@ package:
   version: {{ version }}
 
 source:
-  url: ftp://ftp.gnu.org/gnu/readline/readline-{{ version }}.tar.gz
+  url: https://ftp.gnu.org/gnu/readline/readline-{{ version }}.tar.gz
   sha256: e339f51971478d369f8a053a330a190781acb9864cf4c541060f12078948e461
 
 build:
