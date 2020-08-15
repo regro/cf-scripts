@@ -10,7 +10,6 @@ def profiling():
         @wraps(f)
         def __profiling(*rgs, **kwargs):
             with cProfile.Profile() as prof:
-                prof = cProfile.Profile()
                 prof.enable()
 
                 out_result = f(*rgs, **kwargs)
