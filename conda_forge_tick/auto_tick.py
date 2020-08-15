@@ -76,6 +76,7 @@ from conda_forge_tick.migrators import (
     CondaForgeYAMLCleanup,
     ExtraJinja2KeysCleanup,
     Jinja2VarsCleanup,
+    UpdateConfigSubGuessMigrator,
 )
 
 from conda_forge_tick.mamba_solver import is_recipe_solvable
@@ -396,7 +397,12 @@ def add_arch_migrate(migrators: MutableSequence[Migrator], gx: nx.DiGraph) -> No
         ),
     )
     migrators.append(
-        OSXArm(graph=total_graph, pr_limit=PR_LIMIT, name="arm osx addition"),
+        OSXArm(
+            graph=total_graph,
+            pr_limit=PR_LIMIT,
+            name="arm osx addition",
+            piggy_back_migrations=[UpdateConfigSubGuessMigrator()],
+        ),
     )
 
 

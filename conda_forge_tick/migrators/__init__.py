@@ -15,3 +15,4 @@ from .version import Version
 from .use_pip import PipMigrator
 from .jinja2_vars_cleanup import Jinja2VarsCleanup
 from .license import LicenseMigrator
+from .cross_compile import UpdateConfigSubGuessMigrator
