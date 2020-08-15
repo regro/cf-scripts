@@ -80,10 +80,11 @@ def load_static_mappings() -> List[Dict[str, str]]:
     return mapping
 
 
-def main(cf_graph="."):
+def main(args: "CLIArgs") -> None:
+    cf_graph = args.cf_graph
     static_packager_mappings = load_static_mappings()
     pypi_package_mappings = extract_pypi_information(cf_graph=cf_graph)
-    grayskull_style = convert_to_grayskull_yaml(
+    grayskull_style = convert_to_grayskull_style_yaml(
         static_packager_mappings + pypi_package_mappings,
     )
 
@@ -106,8 +107,5 @@ def main(cf_graph="."):
 
 
 if __name__ == "__main__":
-    if len(sys.argv) == 2:
-        cf_graph = sys.argv[1]
-        main(cf_graph=cf_graph)
-    else:
-        main()
+    # main()
+    pass

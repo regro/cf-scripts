@@ -106,6 +106,8 @@ def main(*args, **kwargs):
         help="Runs in debug mode, running parallel parts sequentially and printing more info.")
     parser.add_argument("--dry-run", dest="dry_run", action="store_true", default=False,
                         help="Don't push changes to PRs or graph to Github")
+    parser.add_argument("--cf-graph", dest="cf_graph", default='.',
+                        help="location of the graph")
     args = parser.parse_args()
     $CONDA_FORGE_TICK_DEBUG = args.debug
     script = int(args.run)
