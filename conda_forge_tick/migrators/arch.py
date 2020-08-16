@@ -213,6 +213,9 @@ class OSXArm(GraphMigrator):
             not self.check_solvable
         ), "We don't want to check solvability for arm osx!"
 
+        # Excluded dependencies need to be removed before no target_packages are
+        # filtered out so that if a target_package is excluded, its dependencies
+        # are not added to the graph
         for name in self.excluded_dependencies:
             self.graph.remove_nodes_from(nx.descendants(self.graph, name))
 
