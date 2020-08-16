@@ -194,11 +194,10 @@ class OSXArm(GraphMigrator):
                 # We are including the compiler stubs here so that
                 # excluded_dependencies work correctly.
                 # Edges to these compiler stubs are removed afterwards
-                build_deps = set(as_iterable(reqs.get("run", set())))
+                build_deps = set(as_iterable(reqs.get("build", set())))
                 for build_dep in build_deps:
                     if build_dep.endswith("_stub"):
                         deps.add(build_dep)
-
                 for dep in deps:
                     dep = graph.graph["outputs_lut"].get(dep, dep)
                     graph2.add_edge(dep, node)
@@ -213,6 +212,9 @@ class OSXArm(GraphMigrator):
         assert (
             not self.check_solvable
         ), "We don't want to check solvability for arm osx!"
+
+        for name in self.excluded_dependencies:
+            self.graph.remove_nodes_from(nx.descendants(self.graph, name))
 
         # We are constraining the scope of this migrator
         with indir("../conda-forge-pinning-feedstock/recipe/migrations"), open(
@@ -230,8 +232,6 @@ class OSXArm(GraphMigrator):
                     packages.update(nx.ancestors(self.graph, target))
             self.graph.remove_nodes_from([n for n in self.graph if n not in packages])
 
-        for name in self.excluded_dependencies:
-            self.graph.remove_nodes_from(nx.descendants(self.graph, name))
         # filter out stub packages and ignored packages
         for node, attrs in list(self.graph.nodes("payload")):
             if not attrs:
