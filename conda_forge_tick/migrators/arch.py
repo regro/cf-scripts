@@ -190,6 +190,15 @@ class OSXArm(GraphMigrator):
                 host_deps = set(as_iterable(reqs.get("host", set())))
                 run_deps = set(as_iterable(reqs.get("run", set())))
                 deps = host_deps.union(run_deps)
+
+                # We are including the compiler stubs here so that
+                # excluded_dependencies work correctly.
+                # Edges to these compiler stubs are removed afterwards
+                build_deps = set(as_iterable(reqs.get("run", set())))
+                for build_dep in build_deps:
+                    if build_dep.endswith("_stub"):
+                        deps.add(build_dep)
+
                 for dep in deps:
                     dep = graph.graph["outputs_lut"].get(dep, dep)
                     graph2.add_edge(dep, node)
