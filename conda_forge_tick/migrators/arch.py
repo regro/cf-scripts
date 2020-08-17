@@ -213,11 +213,13 @@ class OSXArm(GraphMigrator):
             not self.check_solvable
         ), "We don't want to check solvability for arm osx!"
 
+        self.name = name
+
         # Excluded dependencies need to be removed before no target_packages are
         # filtered out so that if a target_package is excluded, its dependencies
         # are not added to the graph
-        for name in self.excluded_dependencies:
-            self.graph.remove_nodes_from(nx.descendants(self.graph, name))
+        for excluded_dep in self.excluded_dependencies:
+            self.graph.remove_nodes_from(nx.descendants(self.graph, excluded_dep))
 
         # We are constraining the scope of this migrator
         with indir("../conda-forge-pinning-feedstock/recipe/migrations"), open(
@@ -225,7 +227,6 @@ class OSXArm(GraphMigrator):
         ) as f:
             self.target_packages = set(f.read().split())
 
-        self.name = name
         # filter the graph down to the target packages
         if self.target_packages:
             self.target_packages.add("python")  # hack that is ~harmless?
