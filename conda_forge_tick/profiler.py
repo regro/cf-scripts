@@ -10,13 +10,10 @@ def profiling():
         @wraps(f)
         def __profiling(*rgs, **kwargs):
             with cProfile.Profile() as prof:
-                prof.enable()
-
+                # Target process
                 out_result = f(*rgs, **kwargs)
-                f(*rgs, **kwargs)
 
-                prof.disable()
-
+                # Profile information
                 # get current time
                 now = datetime.now()
                 current_time = now.strftime("%d-%m-%Y") + "_" + now.strftime("%H_%M_%S")
