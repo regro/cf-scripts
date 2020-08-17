@@ -190,6 +190,14 @@ class OSXArm(GraphMigrator):
                 host_deps = set(as_iterable(reqs.get("host", set())))
                 run_deps = set(as_iterable(reqs.get("run", set())))
                 deps = host_deps.union(run_deps)
+
+                # We are including the compiler stubs here so that
+                # excluded_dependencies work correctly.
+                # Edges to these compiler stubs are removed afterwards
+                build_deps = set(as_iterable(reqs.get("build", set())))
+                for build_dep in build_deps:
+                    if build_dep.endswith("_stub"):
+                        deps.add(build_dep)
                 for dep in deps:
                     dep = graph.graph["outputs_lut"].get(dep, dep)
                     graph2.add_edge(dep, node)
@@ -205,13 +213,20 @@ class OSXArm(GraphMigrator):
             not self.check_solvable
         ), "We don't want to check solvability for arm osx!"
 
+        self.name = name
+
+        # Excluded dependencies need to be removed before no target_packages are
+        # filtered out so that if a target_package is excluded, its dependencies
+        # are not added to the graph
+        for excluded_dep in self.excluded_dependencies:
+            self.graph.remove_nodes_from(nx.descendants(self.graph, excluded_dep))
+
         # We are constraining the scope of this migrator
         with indir("../conda-forge-pinning-feedstock/recipe/migrations"), open(
             "osx_arm64.txt", "r",
         ) as f:
             self.target_packages = set(f.read().split())
 
-        self.name = name
         # filter the graph down to the target packages
         if self.target_packages:
             self.target_packages.add("python")  # hack that is ~harmless?
@@ -221,8 +236,6 @@ class OSXArm(GraphMigrator):
                     packages.update(nx.ancestors(self.graph, target))
             self.graph.remove_nodes_from([n for n in self.graph if n not in packages])
 
-        for name in self.excluded_dependencies:
-            self.graph.remove_nodes_from(nx.descendants(graph, name))
         # filter out stub packages and ignored packages
         for node, attrs in list(self.graph.nodes("payload")):
             if not attrs:
