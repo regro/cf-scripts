@@ -8,13 +8,12 @@ import typing
 from collections import OrderedDict
 from concurrent.futures._base import as_completed
 
-from datetime import datetime
-import cProfile
-
 import github3
 import networkx as nx
 import requests
 import tqdm
+
+from conda_forge_tick.profiler import profiling
 
 from conda_forge_tick.git_utils import (
     close_out_labels,
@@ -176,15 +175,8 @@ def close_dirty_prs(gx: nx.DiGraph, dry_run: bool = False) -> nx.DiGraph:
     return gx
 
 
+@profiling()
 def main(args: "CLIArgs") -> None:
-    # get current time
-    now = datetime.now()
-    current_time = now.strftime("%d-%m-%Y") + "_" + now.strftime("%H_%M_%S")
-
-    # start profiler
-    prof = cProfile.Profile()
-    prof.enable()
-
     setup_logger(logger)
 
     if os.path.exists("graph.json"):
@@ -198,13 +190,6 @@ def main(args: "CLIArgs") -> None:
         gx = update_graph_pr_status(gx, args.dry_run)
         # This function needs to run last since it edits the actual pr json!
         gx = close_dirty_prs(gx, args.dry_run)
-
-    # stop profiler
-    prof.disable()
-
-    # output to data
-    os.makedirs("profiler/update_prs", exist_ok=True)
-    prof.dump_stats(f"profiler/update_prs/{current_time}.txt")
 
 
 if __name__ == "__main__":
