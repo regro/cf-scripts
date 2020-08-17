@@ -19,7 +19,9 @@ from conda_forge_tick.utils import load_graph, dump, load_feedstock, load, execu
 from conda_forge_tick.xonsh_utils import indir, env
 
 
-def depfinder_audit_feedstock(fctx: FeedstockContext, ctx: MigratorSessionContext, import_cf_map=None):
+def depfinder_audit_feedstock(
+    fctx: FeedstockContext, ctx: MigratorSessionContext, import_cf_map=None,
+):
     """Uses Depfinder to audit the requirements for a python package
     """
     # get feedstock
@@ -36,15 +38,19 @@ def depfinder_audit_feedstock(fctx: FeedstockContext, ctx: MigratorSessionContex
     cb_work_dir = _get_source_code(recipe_dir)
     with indir(cb_work_dir):
         # run depfinder on source code
-        deps = simple_import_search(cb_work_dir,
-                                    # remap=True,
-                                    blacklist=['*/docs/*', '*/tests/*', '*/test/*', '*/doc/*'])
+        deps = simple_import_search(
+            cb_work_dir,
+            # remap=True,
+            blacklist=["*/docs/*", "*/tests/*", "*/test/*", "*/doc/*"],
+        )
         for k in list(deps):
-            deps[k] = set(import_cf_map.get(v, v) for v in deps[k])
+            deps[k] = {import_cf_map.get(v, v) for v in deps[k]}
     return deps
 
 
-def grayskull_audit_feedstock(fctx: FeedstockContext, ctx: MigratorSessionContext, import_cf_map=None):
+def grayskull_audit_feedstock(
+    fctx: FeedstockContext, ctx: MigratorSessionContext, import_cf_map=None,
+):
     """Uses grayskull to audit the requirements for a python package
     """
     # TODO: come back to this, since CF <-> PyPI is not one-to-one and onto
@@ -206,8 +212,8 @@ def main(args):
     for k in AUDIT_REGISTRY:
         os.makedirs(os.path.join("audits", k), exist_ok=True)
 
-    raw_import_map = yaml.load(open('mappings/pypi/name_mapping.yaml'))
-    import_map = {item['import_name']: item['conda_name'] for item in raw_import_map}
+    raw_import_map = yaml.load(open("mappings/pypi/name_mapping.yaml"))
+    import_map = {item["import_name"]: item["conda_name"] for item in raw_import_map}
 
     # TODO: generalize for cran skeleton
     # limit graph to things that depend on python
