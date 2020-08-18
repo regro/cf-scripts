@@ -26,6 +26,8 @@ import github3
 import ruamel.yaml as yaml
 from uuid import uuid4
 
+from conda_forge_tick.profiler import profiling
+
 from conda_forge_tick.migrators.arch import OSXArm
 from conda_forge_tick.migrators.migration_yaml import (
     MigrationYamlCreator,
@@ -737,10 +739,8 @@ def _compute_time_per_migrator(mctx):
     return num_nodes, time_per_migrator, tot_time_per_migrator
 
 
+@profiling()
 def main(args: "CLIArgs") -> None:
-    # start profiler
-    profile_profiler = cProfile.Profile()
-    profile_profiler.enable()
 
     # logging
     from .xonsh_utils import env
@@ -932,27 +932,6 @@ def main(args: "CLIArgs") -> None:
             mctx.gh.rate_limit()["resources"]["core"]["remaining"],
         )
     logger.info("Done")
-
-    # stop profiler
-    profile_profiler.disable()
-
-    # human readable
-    s_stream = io.StringIO()
-
-    # TODO: There are other ways to do this, with more freedom
-    profile_stats = pstats.Stats(profile_profiler, stream=s_stream).sort_stats(
-        "tottime",
-    )
-    profile_stats.print_stats()
-
-    # get current time
-    now = datetime.now()
-    current_time = now.strftime("%d-%m-%Y") + "_" + now.strftime("%H_%M_%S")
-
-    # output to data
-    os.makedirs("profiler", exist_ok=True)
-    with open(f"profiler/{current_time}.txt", "w+") as f:
-        f.write(s_stream.getvalue())
 
 
 if __name__ == "__main__":

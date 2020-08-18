@@ -13,6 +13,8 @@ import networkx as nx
 import requests
 from requests import Response
 
+from conda_forge_tick.profiler import profiling
+
 from conda_forge_tick.utils import load_feedstock
 from .all_feedstocks import get_all_feedstocks
 from .contexts import GithubContext
@@ -238,6 +240,7 @@ def update_nodes_with_new_versions(gx):
             attrs.update(version_data)
 
 
+@profiling()
 def main(args: "CLIArgs") -> None:
     setup_logger(logger)
 
