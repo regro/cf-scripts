@@ -18,6 +18,8 @@ from conda_forge_tick.migrators.core import _get_source_code
 from conda_forge_tick.utils import load_graph, dump, load_feedstock, load, executor
 from conda_forge_tick.xonsh_utils import indir, env
 
+DEFINDER_IGNORE = ["*/docs/*", "*/tests/*", "*/test/*", "*/doc/*", "*/testdir/*"]
+
 
 def depfinder_audit_feedstock(
     fctx: FeedstockContext, ctx: MigratorSessionContext, import_cf_map=None,
@@ -41,7 +43,7 @@ def depfinder_audit_feedstock(
         deps = simple_import_search(
             cb_work_dir,
             # remap=True,
-            ignore=["*/docs/*", "*/tests/*", "*/test/*", "*/doc/*"],
+            ignore=DEFINDER_IGNORE,
         )
         for k in list(deps):
             deps[k] = {import_cf_map.get(v, v) for v in deps[k]}

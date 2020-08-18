@@ -16,10 +16,38 @@ from typing import Dict, List
 from .utils import load, as_iterable
 
 
-def load_node_meta_yaml(filename: str) -> List[Dict[str, str]]:
+def load_node_meta_yaml(filename: str) -> Dict[str, str]:
     node_attr = load(open(filename))
     meta_yaml = node_attr.get("meta_yaml")
     return meta_yaml
+
+
+def extract_single_pypi_information(meta_yaml: Dict[str, str]) -> Dict[str, str]:
+    if "source" in meta_yaml:
+        if "url" in meta_yaml["source"]:
+            src_urls = meta_yaml["source"]["url"]
+            src_urls = as_iterable(src_urls)
+            for url in src_urls:
+                if url.startswith("https://pypi.io/packages/") or url.startswith("https://pypi.org/packages/"):
+                    break
+            else:
+                return {}
+
+            # now get the name
+            conda_name = meta_yaml["package"]["name"]
+            pypi_name = url.split("/")[-2]
+            # determine the import_name
+            imports = meta_yaml.get("test", {}).get("imports", []) or []
+            imports = {x for x in imports if "." not in x}
+            if len(imports) == 1:
+                import_name = list(imports)[0]
+                return {
+                        "pypi_name": pypi_name,
+                        "conda_name": conda_name,
+                        "import_name": import_name,
+                        "mapping_source": "regro-bot",
+                    }
+    return {}
 
 
 def extract_pypi_information(cf_graph: str) -> List[Dict[str, str]]:
@@ -28,32 +56,8 @@ def extract_pypi_information(cf_graph: str) -> List[Dict[str, str]]:
         meta_yaml = load_node_meta_yaml(f)
         if not meta_yaml:
             continue
-        if "source" in meta_yaml:
-            if "url" in meta_yaml["source"]:
-                src_urls = meta_yaml["source"]["url"]
-                src_urls = as_iterable(src_urls)
-                for url in src_urls:
-                    if url.startswith("https://pypi.io/packages/"):
-                        break
-                else:
-                    continue
+        package_mappings.append(extract_single_pypi_information(meta_yaml))
 
-                # now get the name
-                conda_name = meta_yaml["package"]["name"]
-                pypi_name = url.split("/")[-2]
-                # determine the import_name
-                imports = meta_yaml.get("test", {}).get("imports", []) or []
-                imports = {x for x in imports if "." not in x}
-                if len(imports) == 1:
-                    import_name = list(imports)[0]
-                    package_mappings.append(
-                        {
-                            "pypi_name": pypi_name,
-                            "conda_name": conda_name,
-                            "import_name": import_name,
-                            "mapping_source": "regro-bot",
-                        },
-                    )
     return package_mappings
 
 
