@@ -233,6 +233,8 @@ def main(args):
         item["import_name"]: item.get("conda_name", item.get("conda_forge"))
         for item in raw_import_map
     }
+    # tensorflow-estimator doesn't export numpy
+    import_map.pop('numpy')
 
     # TODO: generalize for cran skeleton
     # limit graph to things that depend on python
