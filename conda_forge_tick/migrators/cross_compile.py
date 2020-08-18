@@ -11,9 +11,7 @@ from rever.tools import replace_in_file
 from conda_forge_tick.xonsh_utils import indir
 from conda_forge_tick.utils import eval_cmd, _get_source_code
 from conda_forge_tick.recipe_parser import CondaMetaYAML
-from conda_forge_tick.migrators.core import (
-    MiniMigrator,
-)
+from conda_forge_tick.migrators.core import MiniMigrator
 
 LOGGER = logging.getLogger("conda_forge_tick.migrators.cross_compile")
 
