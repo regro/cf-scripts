@@ -21,6 +21,20 @@ from conda_forge_tick.xonsh_utils import indir, env
 DEPFINDER_IGNORE = ["*/docs/*", "*/tests/*", "*/test/*", "*/doc/*", "*/testdir/*"]
 
 
+def extract_deps_from_source(recipe_dir, import_cf_map):
+    cb_work_dir = _get_source_code(recipe_dir)
+    with indir(cb_work_dir):
+        # run depfinder on source code
+        deps = simple_import_search(
+            cb_work_dir,
+            # remap=True,
+            ignore=DEPFINDER_IGNORE,
+        )
+        for k in list(deps):
+            deps[k] = {import_cf_map.get(v, v) for v in deps[k]}
+    return deps
+
+
 def depfinder_audit_feedstock(
     fctx: FeedstockContext, ctx: MigratorSessionContext, import_cf_map=None,
 ):
@@ -37,17 +51,7 @@ def depfinder_audit_feedstock(
     recipe_dir = os.path.join(feedstock_dir, "recipe")
 
     # get source code
-    cb_work_dir = _get_source_code(recipe_dir)
-    with indir(cb_work_dir):
-        # run depfinder on source code
-        deps = simple_import_search(
-            cb_work_dir,
-            # remap=True,
-            ignore=DEPFINDER_IGNORE,
-        )
-        for k in list(deps):
-            deps[k] = {import_cf_map.get(v, v) for v in deps[k]}
-    return deps
+    return extract_deps_from_source(recipe_dir, import_cf_map)
 
 
 def grayskull_audit_feedstock(
@@ -163,6 +167,27 @@ def compare_grayskull_audits(gx):
     return bad_inspections
 
 
+def compare_depfinder_audit(output, attrs, node):
+    quest = output.get("questionable", set())
+    required_pkgs = output.get("required", set())
+    d = {}
+    run_req = attrs["requirements"]["run"]
+    excludes = {
+        node,
+        node.replace("-", "_"),
+        node.replace("_", "-"),
+        "python",
+        "setuptools",
+    }
+    cf_minus_df = run_req - required_pkgs - excludes - quest
+    if cf_minus_df:
+        d.update(cf_minus_df=cf_minus_df)
+    df_minus_cf = required_pkgs - run_req - excludes
+    if df_minus_cf:
+        d.update(df_minus_cf=df_minus_cf)
+    return d
+
+
 def compare_depfinder_audits(gx):
     bad_inspection = {}
     files = os.listdir("audits/depfinder")
@@ -182,23 +207,7 @@ def compare_depfinder_audits(gx):
             if isinstance(output, str):
                 bad_inspection[node_version] = output
                 continue
-            quest = output.get("questionable", set())
-            required_pkgs = output.get("required", set())
-            d = {}
-            run_req = attrs["requirements"]["run"]
-            excludes = {
-                node,
-                node.replace("-", "_"),
-                node.replace("_", "-"),
-                "python",
-                "setuptools",
-            }
-            cf_minus_df = run_req - required_pkgs - excludes - quest
-            if cf_minus_df:
-                d.update(cf_minus_df=cf_minus_df)
-            df_minus_cf = required_pkgs - run_req - excludes
-            if df_minus_cf:
-                d.update(df_minus_cf=df_minus_cf)
+            d = compare_depfinder_audit(output, attrs, node)
             bad_inspection[node_version] = d or False
     with open("audits/depfinder/_net_audit.json", "w") as f:
         dump(bad_inspection, f)

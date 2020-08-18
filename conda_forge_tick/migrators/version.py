@@ -19,6 +19,7 @@ import networkx as nx
 import conda.exceptions
 from conda.models.version import VersionOrder
 
+from conda_forge_tick.audit import extract_deps_from_source, compare_depfinder_audit
 from conda_forge_tick.migrators.core import Migrator
 from conda_forge_tick.contexts import FeedstockContext
 from conda_forge_tick.xonsh_utils import indir
@@ -533,6 +534,15 @@ class Version(Migrator):
                 )
 
         if did_update:
+            update_deps = attrs.get("conda-forge.yml", {}).get("bot", {}).get("update_deps", False)
+            if update_deps in {'add_and_subtract', 'add'}:
+                deps = extract_deps_from_source(recipe_dir, self.import_cf_map)
+                dep_comparison = compare_depfinder_audit(deps, attrs, attrs['name'])
+                if self.dep_comparison:
+                    if update_deps == 'add_and_subtract':
+                        cmeta.meta['requirements']['run'] = list(deps)
+                    elif update_deps == 'add':
+                        cmeta.meta['requirements']['run'] += list(dep_comparison['df_minus_cf'])
             with indir(recipe_dir):
                 with open("meta.yaml", "w") as fp:
                     cmeta.dump(fp)
@@ -622,6 +632,22 @@ class Version(Migrator):
             )
         for p in pred:
             body += template.format(name=p[0], new_version=p[1])
+
+        update_deps = feedstock_ctx.attrs.get("conda-forge.yml", {}).get("bot", {}).get("update_deps", False)
+        if update_deps == 'hint':
+            deps = extract_deps_from_source(os.path.join(feedstock_dir, 'recipe'), self.import_cf_map)
+            dep_comparison = compare_depfinder_audit(deps, feedstock_ctx.attrs, feedstock_ctx.attrs['name'])
+            if dep_comparison:
+                df_cf = "\n-".join(self.dep_comparison["df_minus_cf"])
+                cf_df = "\n-".join(self.dep_comparison["cf_minus_df"])
+                hint = f'\n\nDependency Analysis\n-------------' \
+                       f'Analysis of the source code by depfinder seems to show a discrepency between' \
+                       f'the libraries imported and the packages required in the meta.yaml.' \
+                       f'packages found by depfinder but not in the meta.yaml' \
+                       f'{df_cf}' \
+                       f'packages found in the meta.yaml but not found by depfinder' \
+                       f'{cf_df}'
+                body += hint
         return body
 
     def commit_message(self, feedstock_ctx: FeedstockContext) -> str:
