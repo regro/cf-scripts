@@ -292,7 +292,6 @@ def parse_meta_yaml_to_outputs_dicts(
     arch,
     recipe_dir,
     cbc_path,
-
 ):
     import conda_build.config
     import conda_build.variants
@@ -320,7 +319,9 @@ def parse_meta_yaml_to_outputs_dicts(
 
     yamls = []
     for m, _, _ in metas:
-        yamls.append(m.get_rendered_recipe_text())
+        _m = copy.deepcopy(m.meta)
+        _m.pop("outputs", None)
+        yamls.append(_m)
 
     return yamls
 
