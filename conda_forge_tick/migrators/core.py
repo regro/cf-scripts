@@ -15,14 +15,9 @@ from typing import (
 
 import networkx as nx
 
-from conda_build.source import provide
-from conda_build.config import Config
-from conda_build.api import render
-
 from conda_forge_tick.path_lengths import cyclic_topological_sort
 from conda_forge_tick.utils import (
     frozen_to_json_friendly,
-    CB_CONFIG,
     LazyJson,
 )
 from conda_forge_tick.contexts import MigratorContext, FeedstockContext
@@ -54,18 +49,6 @@ def _parse_bad_attr(attrs: "AttrsTypedDict", not_bad_str_start: str) -> bool:
         return not bad.startswith(not_bad_str_start)
     else:
         return bad
-
-
-def _get_source_code(recipe_dir):
-    # Use conda build to do all the downloading/extracting bits
-    md = render(
-        recipe_dir, config=Config(**CB_CONFIG), finalize=False, bypass_env_check=True,
-    )
-    if not md:
-        return None
-    md = md[0][0]
-    # provide source dir
-    return provide(md)
 
 
 class MiniMigrator:
