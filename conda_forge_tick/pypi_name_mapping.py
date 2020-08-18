@@ -58,7 +58,9 @@ def extract_pypi_information(cf_graph: str) -> List[Dict[str, str]]:
         meta_yaml = load_node_meta_yaml(f)
         if not meta_yaml:
             continue
-        package_mappings.append(extract_single_pypi_information(meta_yaml))
+        mapping = extract_single_pypi_information(meta_yaml)
+        if mapping:
+            package_mappings.append(mapping)
 
     return package_mappings
 
