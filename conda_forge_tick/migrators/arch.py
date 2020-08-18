@@ -7,7 +7,7 @@ from ruamel.yaml import safe_load, safe_dump
 
 from conda_forge_tick.contexts import FeedstockContext
 from conda_forge_tick.migrators.core import _sanitized_muids, GraphMigrator
-from conda_forge_tick.utils import frozen_to_json_friendly, pluck, as_iterable
+from conda_forge_tick.utils import frozen_to_json_friendly, pluck, as_iterable, get_deps_from_outputs_lut
 from ..xonsh_utils import indir
 
 
@@ -46,7 +46,7 @@ class ArchRebuild(GraphMigrator):
         piggy_back_migrations: Optional[Sequence[MiniMigrator]] = None,
     ):
         # rebuild the graph to only use edges from the arm and power requirements
-        graph2 = nx.create_empty_copy(graph)
+        graph2: nx.DiGraph = nx.create_empty_copy(graph)
         for node, attrs in graph.nodes(data="payload"):
             for plat_arch in self.arches:
                 deps = set().union(
@@ -54,9 +54,7 @@ class ArchRebuild(GraphMigrator):
                         f"{plat_arch}_requirements", attrs.get("requirements", {}),
                     ).values()
                 )
-                for dep in deps:
-                    dep = graph.graph["outputs_lut"].get(dep, dep)
-                    graph2.add_edge(dep, node)
+                graph2.add_edges_from([(dep, node) for dep in get_deps_from_outputs_lut(deps, graph.graph["outputs_lut"])])
 
         super().__init__(
             graph=graph2,
@@ -162,7 +160,7 @@ class OSXArm(GraphMigrator):
     # We purposefully don't want to bump build number for this migrator
     bump_number = 0
 
-    ignored_packages = {"gfortran"}
+    ignored_packages = {"gfortran", 'pypy3.6', 'pypy_meta'}
     excluded_dependencies = {"fortran_compiler_stub"}
 
     arches = ["osx_arm64"]
@@ -180,7 +178,7 @@ class OSXArm(GraphMigrator):
         piggy_back_migrations: Optional[Sequence[MiniMigrator]] = None,
     ):
         # rebuild the graph to only use edges from the arm osx requirements
-        graph2 = nx.create_empty_copy(graph)
+        graph2: nx.DiGraph = nx.create_empty_copy(graph)
         for node, attrs in graph.nodes(data="payload"):
             for plat_arch in self.arches:
                 reqs = attrs.get(
@@ -198,8 +196,7 @@ class OSXArm(GraphMigrator):
                 for build_dep in build_deps:
                     if build_dep.endswith("_stub"):
                         deps.add(build_dep)
-                for dep in deps:
-                    dep = graph.graph["outputs_lut"].get(dep, dep)
+                for dep in as_iterable(get_deps_from_outputs_lut(deps, graph.graph["outputs_lut"])):
                     graph2.add_edge(dep, node)
 
         super().__init__(
@@ -238,8 +235,6 @@ class OSXArm(GraphMigrator):
 
         # filter out stub packages and ignored packages
         for node, attrs in list(self.graph.nodes("payload")):
-            if not attrs:
-                print(node)
             if (
                 not attrs
                 or node.endswith("_stub")

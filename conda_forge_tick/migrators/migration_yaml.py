@@ -14,7 +14,7 @@ import ruamel.yaml as yaml
 from conda_forge_tick.contexts import FeedstockContext
 from conda_forge_tick.migrators.core import GraphMigrator, MiniMigrator, Migrator
 from conda_forge_tick.xonsh_utils import indir
-from conda_forge_tick.utils import eval_cmd
+from conda_forge_tick.utils import eval_cmd, get_deps_from_outputs_lut
 from ..utils import pluck
 
 if typing.TYPE_CHECKING:
@@ -435,14 +435,7 @@ def create_rebuild_graph(
         )
         # get host/build, run and test and launder them through outputs
         # this should fix outputs related issues (eg gdal)
-        rq = set(
-            map(
-                lambda x: gx.graph["outputs_lut"].get(x, x),
-                (host or build)
-                | requirements.get("run", set())
-                | requirements.get("test", set()),
-            ),
-        )
+        rq = get_deps_from_outputs_lut((host or build) | requirements.get("run", set()) | requirements.get("test", set()), gx.graph['outputs_lut'])
 
         for e in list(total_graph.in_edges(node)):
             if e[0] not in rq:

@@ -1,6 +1,7 @@
 """Classes for migrating repos"""
 import os
 import re
+from collections import defaultdict
 from itertools import chain
 import typing
 import logging
@@ -442,11 +443,10 @@ class GraphMigrator(Migrator):
         if "outputs_lut" in self.graph.graph:
             self.outputs_lut = self.graph.graph["outputs_lut"]
         else:
-            self.outputs_lut = {
-                k: node_name
-                for node_name, node in self.graph.nodes.items()
-                for k in node.get("payload", {}).get("outputs_names", [])
-            }
+            self.outputs_lut = defaultdict(set)
+            for node_name, node in self.graph.nodes.items():
+                for k in node.get("payload", {}).get("outputs_names", []):
+                    self.outputs_lut[k].add(node_name)
 
         self.name = name
         self.top_level = top_level or set()

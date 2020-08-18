@@ -792,9 +792,7 @@ def populate_feedstock_attributes(
 
     # handle multi outputs
     if "outputs" in yaml_dict:
-        sub_graph["outputs_names"] = sorted(
-            list({d.get("name", "") for d in yaml_dict["outputs"]}),
-        )
+        sub_graph["outputs_names"] = {d.get("name", "") for d in yaml_dict["outputs"]}
 
     # TODO: Write schema for dict
     # TODO: remove this
@@ -867,3 +865,11 @@ def load_feedstock(
             feedstock_dir=feedstock_dir,
         )
     return sub_graph
+
+
+def get_deps_from_outputs_lut(req_section: Iterable, outputs_lut: typing.Dict[str, set]) -> set:
+    deps = set()
+    for req in req_section:
+        i = as_iterable(outputs_lut.get(req, req))
+        deps.update(i)
+    return deps

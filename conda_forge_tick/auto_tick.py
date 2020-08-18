@@ -47,7 +47,7 @@ from .utils import (
     LazyJson,
     CB_CONFIG,
     parse_meta_yaml,
-    eval_cmd,
+    eval_cmd, get_deps_from_outputs_lut,
 )
 from .xonsh_utils import env
 from typing import (
@@ -578,6 +578,8 @@ def create_migration_yaml_creator(migrators: MutableSequence[Migrator], gx: nx.D
             k = k.replace("_", "-")
         # replace sub-packages with their feedstock names
         k = gx.graph["outputs_lut"].get(k, k)
+        # TODO: this is an escape hatch, I'm not certain what to do about multi-feedstock pins
+        k = next(iter(k))
 
         if (
             (k in gx.nodes)

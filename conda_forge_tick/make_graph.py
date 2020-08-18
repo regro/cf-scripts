@@ -3,6 +3,7 @@ import os
 import re
 import time
 import typing
+from collections import defaultdict
 from concurrent.futures import as_completed
 
 from copy import deepcopy
@@ -13,7 +14,7 @@ import networkx as nx
 import requests
 from requests import Response
 
-from conda_forge_tick.utils import load_feedstock
+from conda_forge_tick.utils import load_feedstock, get_deps_from_outputs_lut
 from .all_feedstocks import get_all_feedstocks
 from .contexts import GithubContext
 from .utils import (
@@ -125,6 +126,60 @@ def _build_graph_sequential(
                 gx.nodes[name].update(**sub_graph)
 
 
+def create_edges(gx: nx.DiGraph) -> nx.DiGraph:
+    gx2 = deepcopy(gx)
+    logger.info("inferring nodes and edges")
+
+    # make the outputs look up table so we can link properly
+    outputs_lut = defaultdict(set)
+    for node_name, node in gx.nodes('payload'):
+        output_names = node.get("payload", {}).get("outputs_names", set())
+        for k in output_names:
+            outputs_lut[k].add(node_name)
+        # a package always outputs itself, eg python outputs python as does pypy
+        outputs_lut[node_name].add(node_name)
+
+    # trim the outputs to only outputs with real entries
+    for k in list(outputs_lut):
+        if outputs_lut[k] == set(k):
+            del outputs_lut[k]
+    # add this as an attr so we can use later
+    gx.graph["outputs_lut"] = outputs_lut
+    strong_exports = {
+        node_name
+        for node_name, node in gx.nodes.items()
+        if node.get("payload").get("strong_exports", False)
+    }
+    # These compiler stubs should act as if they have strong run exports
+    strong_exports.update(['fortran_compiler_stub', 'c_compiler_stub', 'cxx_compiler_stub'])
+    # This drops all the edge data and only keeps the node data
+    gx = nx.create_empty_copy(gx)
+    # TODO: label these edges with the kind of dep they are and their platform
+    for node, node_attrs in gx2.nodes.items():
+        with node_attrs["payload"] as attrs:
+            # replace output package names with feedstock names via LUT
+            deps = set()
+            for req_section in attrs.get('requirements', {}).values():
+                deps.update(get_deps_from_outputs_lut(req_section, outputs_lut))
+            # handle strong run exports
+            overlap = deps & strong_exports
+            requirements = attrs.get("requirements")
+            if requirements:
+                requirements["host"].update(overlap)
+                requirements["run"].update(overlap)
+
+        for dep in deps:
+            if dep not in gx.nodes:
+                # for packages which aren't feedstocks and aren't outputs
+                # usually these are stubs
+                lzj = LazyJson(f"node_attrs/{dep}.json")
+                lzj.update(feedstock_name=dep, bad=False, archived=True)
+                gx.add_node(dep, payload=lzj)
+            gx.add_edge(dep, node)
+    logger.info("new nodes and edges inferred")
+    return gx
+
+
 def make_graph(
     names: List[str], gx: Optional[nx.DiGraph] = None, mark_not_archived=False,
 ) -> nx.DiGraph:
@@ -150,51 +205,7 @@ def make_graph(
     builder(gx, total_names, new_names, mark_not_archived=mark_not_archived)
     logger.info("feedstock fetch loop completed")
 
-    gx2 = deepcopy(gx)
-    logger.info("inferring nodes and edges")
-
-    # make the outputs look up table so we can link properly
-    outputs_lut = {
-        k: node_name
-        for node_name, node in gx.nodes.items()
-        for k in node.get("payload", {}).get("outputs_names", [])
-    }
-    # add this as an attr so we can use later
-    gx.graph["outputs_lut"] = outputs_lut
-    strong_exports = {
-        node_name
-        for node_name, node in gx.nodes.items()
-        if node.get("payload").get("strong_exports", False)
-    }
-    # This drops all the edge data and only keeps the node data
-    gx = nx.create_empty_copy(gx)
-    # TODO: label these edges with the kind of dep they are and their platform
-    for node, node_attrs in gx2.nodes.items():
-        with node_attrs["payload"] as attrs:
-            # replace output package names with feedstock names via LUT
-            deps = set(
-                map(
-                    lambda x: outputs_lut.get(x, x),
-                    set().union(*attrs.get("requirements", {}).values()),
-                ),
-            )
-
-            # handle strong run exports
-            overlap = deps & strong_exports
-            requirements = attrs.get("requirements")
-            if requirements:
-                requirements["host"].update(overlap)
-                requirements["run"].update(overlap)
-
-        for dep in deps:
-            if dep not in gx.nodes:
-                # for packages which aren't feedstocks and aren't outputs
-                # usually these are stubs
-                lzj = LazyJson(f"node_attrs/{dep}.json")
-                lzj.update(feedstock_name=dep, bad=False, archived=True)
-                gx.add_node(dep, payload=lzj)
-            gx.add_edge(dep, node)
-    logger.info("new nodes and edges inferred")
+    gx = create_edges(gx)
     return gx
 
 
