@@ -640,7 +640,7 @@ class Version(Migrator):
             hint += (
                 "Please note that this analysis is **highly experimental**. "
                 "The aim here is to make maintenance easier by inspecting when dependencies have moved. "
-                "If you do not want ever hinting of this kind please add `bot: inspection: false` to your `conda-forge.yml`. "
+                "If you do not want hinting of this kind ever please add `bot: inspection: false` to your `conda-forge.yml`. "
                 "If you encounter issues with this feature please ping the bot team `conda-forge/bot`.\n\n"
             )
             if dep_comparison:
