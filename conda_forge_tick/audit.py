@@ -41,7 +41,7 @@ def depfinder_audit_feedstock(
         deps = simple_import_search(
             cb_work_dir,
             # remap=True,
-            blacklist=["*/docs/*", "*/tests/*", "*/test/*", "*/doc/*"],
+            ignore=["*/docs/*", "*/tests/*", "*/test/*", "*/doc/*"],
         )
         for k in list(deps):
             deps[k] = {import_cf_map.get(v, v) for v in deps[k]}
