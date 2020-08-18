@@ -18,6 +18,8 @@ from conda_forge_tick.migrators.core import _get_source_code
 from conda_forge_tick.utils import load_graph, dump, load_feedstock, load, executor
 from conda_forge_tick.xonsh_utils import indir, env
 
+DEPFINDER_IGNORE = ["*/docs/*", "*/tests/*", "*/test/*", "*/doc/*", "*/testdir/*"]
+
 
 def depfinder_audit_feedstock(
     fctx: FeedstockContext, ctx: MigratorSessionContext, import_cf_map=None,
@@ -41,7 +43,7 @@ def depfinder_audit_feedstock(
         deps = simple_import_search(
             cb_work_dir,
             # remap=True,
-            ignore=["*/docs/*", "*/tests/*", "*/test/*", "*/doc/*"],
+            ignore=DEPFINDER_IGNORE,
         )
         for k in list(deps):
             deps[k] = {import_cf_map.get(v, v) for v in deps[k]}
@@ -213,7 +215,10 @@ def main(args):
         os.makedirs(os.path.join("audits", k), exist_ok=True)
 
     raw_import_map = yaml.load(open("mappings/pypi/name_mapping.yaml"))
-    import_map = {item["import_name"]: item.get("conda_name", "conda_forge") for item in raw_import_map}
+    import_map = {
+        item["import_name"]: item.get("conda_name", "conda_forge")
+        for item in raw_import_map
+    }
 
     # TODO: generalize for cran skeleton
     # limit graph to things that depend on python
