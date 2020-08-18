@@ -216,7 +216,7 @@ def main(args):
 
     raw_import_map = yaml.load(open("mappings/pypi/name_mapping.yaml"))
     import_map = {
-        item["import_name"]: item.get("conda_name", "conda_forge")
+        item["import_name"]: item.get("conda_name", item.get("conda_forge"))
         for item in raw_import_map
     }
 
