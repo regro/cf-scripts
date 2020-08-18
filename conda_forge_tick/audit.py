@@ -7,6 +7,8 @@ from collections import defaultdict
 from concurrent.futures._base import as_completed
 
 import networkx as nx
+from stdlib_list import stdlib_list
+
 from depfinder.main import simple_import_search
 from grayskull.base.factory import GrayskullFactory
 from ruamel import yaml
@@ -18,7 +20,23 @@ from conda_forge_tick.migrators.core import _get_source_code
 from conda_forge_tick.utils import load_graph, dump, load_feedstock, load, executor
 from conda_forge_tick.xonsh_utils import indir, env
 
-DEPFINDER_IGNORE = ["*/docs/*", "*/tests/*", "*/test/*", "*/doc/*", "*/testdir/*"]
+DEPFINDER_IGNORE = [
+    "*docs/*",
+    "*tests/*",
+    "*test/*",
+    "*doc/*",
+    "*testdir/*",
+    "test_*",
+    "*/docs/*",
+    "*/tests/*",
+    "*/test/*",
+    "*/doc/*",
+]
+
+STATIC_EXCLUDES = {"python", "setuptools", "pip", "versioneer", "StringIO"}.union(
+    # Some libs support older python versions, we don't want their std lib entries in our diff though
+    *[set(stdlib_list(k)) for k in ["2.7", "3.5", "3.6", "3.7"]]
+)
 
 
 def depfinder_audit_feedstock(
@@ -186,13 +204,9 @@ def compare_depfinder_audits(gx):
             required_pkgs = output.get("required", set())
             d = {}
             run_req = attrs["requirements"]["run"]
-            excludes = {
-                node,
-                node.replace("-", "_"),
-                node.replace("_", "-"),
-                "python",
-                "setuptools",
-            }
+            excludes = STATIC_EXCLUDES.union(
+                {node, node.replace("-", "_"), node.replace("_", "-")},
+            )
             cf_minus_df = run_req - required_pkgs - excludes - quest
             if cf_minus_df:
                 d.update(cf_minus_df=cf_minus_df)
