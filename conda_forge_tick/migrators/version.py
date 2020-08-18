@@ -534,15 +534,6 @@ class Version(Migrator):
                 )
 
         if did_update:
-            update_deps = attrs.get("conda-forge.yml", {}).get("bot", {}).get("update_deps", False)
-            if update_deps in {'add_and_subtract', 'add'}:
-                deps = extract_deps_from_source(recipe_dir, self.import_cf_map)
-                dep_comparison = compare_depfinder_audit(deps, attrs, attrs['name'])
-                if self.dep_comparison:
-                    if update_deps == 'add_and_subtract':
-                        cmeta.meta['requirements']['run'] = list(deps)
-                    elif update_deps == 'add':
-                        cmeta.meta['requirements']['run'] += list(dep_comparison['df_minus_cf'])
             with indir(recipe_dir):
                 with open("meta.yaml", "w") as fp:
                     cmeta.dump(fp)
@@ -633,21 +624,43 @@ class Version(Migrator):
         for p in pred:
             body += template.format(name=p[0], new_version=p[1])
 
-        update_deps = feedstock_ctx.attrs.get("conda-forge.yml", {}).get("bot", {}).get("update_deps", False)
-        if update_deps == 'hint':
-            deps = extract_deps_from_source(os.path.join(feedstock_dir, 'recipe'), self.import_cf_map)
-            dep_comparison = compare_depfinder_audit(deps, feedstock_ctx.attrs, feedstock_ctx.attrs['name'])
+        update_deps = (
+            feedstock_ctx.attrs.get("conda-forge.yml", {})
+            .get("bot", {})
+            .get("inspection", "hint")
+        )
+        if update_deps == "hint":
+            deps = extract_deps_from_source(
+                os.path.join(feedstock_ctx.feedstock_dir, "recipe"), self.import_cf_map,
+            )
+            dep_comparison = compare_depfinder_audit(
+                deps, feedstock_ctx.attrs, feedstock_ctx.attrs["name"],
+            )
+            hint = f"\n\nDependency Analysis\n--------------------\n\n"
+            hint += (
+                "Please note that this analysis is **highly experimental**. "
+                "The aim here is to make maintenance easier by inspecting when dependencies have moved. "
+                "If you do not want ever hinting of this kind please add `bot: inspection: false` to your `conda-forge.yml`. "
+                "If you encounter issues with this feature please ping the bot team `conda-forge/bot`.\n\n"
+            )
             if dep_comparison:
-                df_cf = "\n-".join(self.dep_comparison["df_minus_cf"])
-                cf_df = "\n-".join(self.dep_comparison["cf_minus_df"])
-                hint = f'\n\nDependency Analysis\n-------------' \
-                       f'Analysis of the source code by depfinder seems to show a discrepency between' \
-                       f'the libraries imported and the packages required in the meta.yaml.' \
-                       f'packages found by depfinder but not in the meta.yaml' \
-                       f'{df_cf}' \
-                       f'packages found in the meta.yaml but not found by depfinder' \
-                       f'{cf_df}'
-                body += hint
+                df_cf = "\n-".join(dep_comparison["df_minus_cf"])
+                cf_df = "\n-".join(dep_comparison["cf_minus_df"])
+                hint += (
+                    f"Analysis of the source code shows a discrepancy between"
+                    f"the library's imports and the package's stated requirements"
+                    f" in the meta.yaml.\n"
+                    f"packages found by inspection but not in the meta.yaml\n"
+                    f"{df_cf}"
+                    f"packages found in the meta.yaml but not found by inspection\n"
+                    f"{cf_df}"
+                )
+            else:
+                hint += (
+                    "Analysis of the source code shows **no** discrepancy between"
+                    "the library's imports and the package's stated requirements in the meta.yaml."
+                )
+            body += hint
         return body
 
     def commit_message(self, feedstock_ctx: FeedstockContext) -> str:

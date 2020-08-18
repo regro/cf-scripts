@@ -47,3 +47,7 @@
 - pypi_name: apache-airflow
   import_name: airflow
   conda_forge: airflow
+
+- pypi_name: setuptools
+  import_name: pkg_resources
+  conda_forge: setuptools

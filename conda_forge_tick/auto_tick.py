@@ -266,6 +266,8 @@ def run(
     else:
         # push up
         try:
+            # TODO: remove this hack, but for now this is the only way to get the feedstock dir into pr_body
+            feedstock_ctx.feedstock_dir = feedstock_dir
             pr_json = push_repo(
                 session_ctx=migrator.ctx.session,
                 fctx=feedstock_ctx,
