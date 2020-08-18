@@ -288,7 +288,6 @@ def parse_meta_yaml(
 
 
 def parse_meta_yaml_to_outputs_dicts(
-    text,
     platform,
     arch,
     recipe_dir,
