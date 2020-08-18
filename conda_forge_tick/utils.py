@@ -314,7 +314,7 @@ def parse_meta_yaml_to_outputs_dicts(
         ignore_system_variants=True,
         variants=cbc,
         permit_undefined_jinja=True,
-        finalize=False,
+        finalize=True,
         bypass_env_check=True,
         channel_urls=["conda-forge", "defaults"],
     )
