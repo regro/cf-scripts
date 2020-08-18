@@ -19,10 +19,14 @@ from conda_forge_tick.utils import load_graph, dump, load_feedstock, load, execu
 from conda_forge_tick.xonsh_utils import indir, env
 
 
-def depfinder_audit_feedstock(fctx: FeedstockContext, ctx: MigratorSessionContext):
+def depfinder_audit_feedstock(
+    fctx: FeedstockContext, ctx: MigratorSessionContext, import_cf_map=None,
+):
     """Uses Depfinder to audit the requirements for a python package
     """
     # get feedstock
+    if import_cf_map is None:
+        import_cf_map = {}
     feedstock_dir = os.path.join(ctx.rever_dir, fctx.package_name + "-feedstock")
     origin = feedstock_url(fctx=fctx, protocol="https")
     fetch_repo(
@@ -34,13 +38,19 @@ def depfinder_audit_feedstock(fctx: FeedstockContext, ctx: MigratorSessionContex
     cb_work_dir = _get_source_code(recipe_dir)
     with indir(cb_work_dir):
         # run depfinder on source code
-        deps = simple_import_search(cb_work_dir, remap=True)
+        deps = simple_import_search(
+            cb_work_dir,
+            # remap=True,
+            ignore=["*/docs/*", "*/tests/*", "*/test/*", "*/doc/*"],
+        )
         for k in list(deps):
-            deps[k] = set(deps[k])
+            deps[k] = {import_cf_map.get(v, v) for v in deps[k]}
     return deps
 
 
-def grayskull_audit_feedstock(fctx: FeedstockContext, ctx: MigratorSessionContext):
+def grayskull_audit_feedstock(
+    fctx: FeedstockContext, ctx: MigratorSessionContext, import_cf_map=None,
+):
     """Uses grayskull to audit the requirements for a python package
     """
     # TODO: come back to this, since CF <-> PyPI is not one-to-one and onto
@@ -202,6 +212,9 @@ def main(args):
     for k in AUDIT_REGISTRY:
         os.makedirs(os.path.join("audits", k), exist_ok=True)
 
+    raw_import_map = yaml.load(open("mappings/pypi/name_mapping.yaml"))
+    import_map = {item["import_name"]: item["conda_name"] for item in raw_import_map}
+
     # TODO: generalize for cran skeleton
     # limit graph to things that depend on python
     python_des = nx.descendants(gx, "pypy-meta")
@@ -224,12 +237,11 @@ def main(args):
                 and "python" in payload["requirements"]["run"]
                 and f"{node}_{version}.{ext}" not in os.listdir(f"audits/{k}")
             ):
-                print(node)
                 fctx = FeedstockContext(
                     package_name=node, feedstock_name=payload["name"], attrs=payload,
                 )
                 try:
-                    deps = v["run"](fctx, ctx)
+                    deps = v["run"](fctx, ctx, import_map)
                 except Exception as e:
                     deps = {
                         "exception": str(e),
