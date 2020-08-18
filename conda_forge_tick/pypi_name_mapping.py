@@ -28,7 +28,9 @@ def extract_single_pypi_information(meta_yaml: Dict[str, str]) -> Dict[str, str]
             src_urls = meta_yaml["source"]["url"]
             src_urls = as_iterable(src_urls)
             for url in src_urls:
-                if url.startswith("https://pypi.io/packages/") or url.startswith("https://pypi.org/packages/"):
+                if url.startswith("https://pypi.io/packages/") or url.startswith(
+                    "https://pypi.org/packages/",
+                ):
                     break
             else:
                 return {}
@@ -42,11 +44,11 @@ def extract_single_pypi_information(meta_yaml: Dict[str, str]) -> Dict[str, str]
             if len(imports) == 1:
                 import_name = list(imports)[0]
                 return {
-                        "pypi_name": pypi_name,
-                        "conda_name": conda_name,
-                        "import_name": import_name,
-                        "mapping_source": "regro-bot",
-                    }
+                    "pypi_name": pypi_name,
+                    "conda_name": conda_name,
+                    "import_name": import_name,
+                    "mapping_source": "regro-bot",
+                }
     return {}
 
 

@@ -215,7 +215,10 @@ def main(args):
         os.makedirs(os.path.join("audits", k), exist_ok=True)
 
     raw_import_map = yaml.load(open("mappings/pypi/name_mapping.yaml"))
-    import_map = {item["import_name"]: item.get("conda_name", "conda_forge") for item in raw_import_map}
+    import_map = {
+        item["import_name"]: item.get("conda_name", "conda_forge")
+        for item in raw_import_map
+    }
 
     # TODO: generalize for cran skeleton
     # limit graph to things that depend on python
