@@ -287,6 +287,45 @@ def parse_meta_yaml(
     return parse(content, cbc)
 
 
+def parse_meta_yaml_to_outputs_dicts(
+    text,
+    platform,
+    arch,
+    recipe_dir,
+    cbc_path,
+
+):
+    import conda_build.config
+    import conda_build.variants
+    import conda_build.api
+
+    # here we extract the conda build config in roughly the same way that
+    # it would be used in a real build
+    config = conda_build.config.get_or_merge_config(
+        None, platform=platform, arch=arch, variant_config_files=[cbc_path],
+    )
+    cbc, _ = conda_build.variants.get_package_combined_spec(recipe_dir, config=config)
+
+    # now we render the meta.yaml into an actual recipe
+    metas = conda_build.api.render(
+        recipe_dir,
+        platform=platform,
+        arch=arch,
+        ignore_system_variants=True,
+        variants=cbc,
+        permit_undefined_jinja=True,
+        finalize=False,
+        bypass_env_check=True,
+        channel_urls=["conda-forge", "defaults"],
+    )
+
+    yamls = []
+    for m, _, _ in metas:
+        yamls.append(m.get_rendered_recipe_text())
+
+    return yamls
+
+
 def setup_logger(logger: logging.Logger, level: Optional[str] = "INFO") -> None:
     """Basic configuration for logging
 
@@ -827,7 +866,8 @@ def load_feedstock(
     conda_forge_yaml: Optional[str] = None,
     mark_not_archived: bool = False,
 ):
-    """Load a feedstock into subgraph based on its name, if meta_yaml and conda_forge_yaml are provided
+    """Load a feedstock into subgraph based on its name, if meta_yaml and
+    conda_forge_yaml are provided.
 
     Parameters
     ----------
