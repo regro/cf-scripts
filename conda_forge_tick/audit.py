@@ -279,7 +279,7 @@ def main(args):
         python_des, key=lambda x: (len(nx.descendants(gx, x)), x), reverse=True,
     ):
         if time.time() - int(env.get("START_TIME", start_time)) > int(
-            env.get("TIMEOUT", 60 * 30),
+            env.get("TIMEOUT", 60 * 45),
         ):
             break
         # depfinder only work on python at the moment so only work on things
