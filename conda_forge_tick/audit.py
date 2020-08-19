@@ -33,10 +33,14 @@ DEPFINDER_IGNORE = [
     "*/doc/*",
 ]
 
-STATIC_EXCLUDES = {"python", "setuptools", "pip", "versioneer",
-                   # bad pypi mapping
-                   "futures"
-                   }.union(
+STATIC_EXCLUDES = {
+    "python",
+    "setuptools",
+    "pip",
+    "versioneer",
+    # bad pypi mapping
+    "futures",
+}.union(
     # Some libs support older python versions, we don't want their std lib entries in our diff though
     *[set(stdlib_list(k)) for k in ["2.7", "3.5", "3.6", "3.7"]]
 )
@@ -237,7 +241,7 @@ def main(args):
         for item in raw_import_map
     }
     # tensorflow-estimator doesn't export numpy
-    import_map.pop('numpy')
+    import_map.pop("numpy")
 
     # TODO: generalize for cran skeleton
     # limit graph to things that depend on python
