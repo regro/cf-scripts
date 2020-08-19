@@ -73,7 +73,7 @@ def depfinder_audit_feedstock(fctx: FeedstockContext, ctx: MigratorSessionContex
             # remap=True,
             ignore=DEPFINDER_IGNORE,
         )
-    return imports
+    return {k: set(v) for k, v in imports.items()}
 
 
 def grayskull_audit_feedstock(fctx: FeedstockContext, ctx: MigratorSessionContext):
