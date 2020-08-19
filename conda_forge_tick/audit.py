@@ -38,6 +38,7 @@ DEPFINDER_IGNORE = [
     "*/tests/*",
     "*/test/*",
     "*/doc/*",
+    "*conftest*",
 ]
 
 STATIC_EXCLUDES = {
@@ -194,43 +195,86 @@ def extract_missing_packages(
     package_by_import,
     import_by_package,
     node,
+    nodes,
 ):
     exclude_packages = STATIC_EXCLUDES.union(
         {node, node.replace("-", "_"), node.replace("_", "-")},
     )
 
     questionable_packages = set().union(
-        as_iterable(package_by_import.get(k, k)) for k in questionable_imports
+        *list(as_iterable(package_by_import.get(k, k)) for k in questionable_imports)
     )
     required_packages = set().union(
-        as_iterable(package_by_import.get(k, k)) for k in required_imports
+        *list(as_iterable(package_by_import.get(k, k)) for k in required_imports)
     )
 
     run_imports = set().union(
-        as_iterable(import_by_package.get(k, k)) for k in run_packages
+        *list(as_iterable(import_by_package.get(k, k)) for k in run_packages)
     )
     exclude_imports = set().union(
-        as_iterable(import_by_package.get(k, k)) for k in exclude_packages
+        *list(as_iterable(import_by_package.get(k, k)) for k in exclude_packages)
     )
 
     d = {}
     # These are all normalized to packages
+    # packages who's libraries are not imported
     cf_minus_df = (
         run_packages - required_packages - exclude_packages - questionable_packages
-    )
+    ) & nodes
     if cf_minus_df:
         d.update(cf_minus_df=cf_minus_df)
 
     # These are all normalized to imports
-    df_minus_cf = required_imports - run_imports - exclude_imports
+    # imports which have no associated package in the meta.yaml
+    df_minus_cf_imports = required_imports - run_imports - exclude_imports
     # Normalize to packages, the native interface for conda-forge
-    df_minus_cf = {package_by_import.get(k, k) for k in df_minus_cf}
+    # Note that the set overlap is a bit of a hack, sources could have imports we don't ship at all
+    df_minus_cf = (
+        set().union(
+            *list(as_iterable(package_by_import.get(k, k)) for k in df_minus_cf_imports)
+        )
+        & nodes
+    )
     if df_minus_cf:
         d.update(df_minus_cf=df_minus_cf)
     return d
 
 
-def compare_depfinder_audits(gx, packages_by_import, imports_by_package):
+def create_package_import_maps(nodes, mapping_yaml="mappings/pypi/name_mapping.yaml"):
+    raw_import_map = yaml.load(open(mapping_yaml))
+    packages_by_import = defaultdict(set)
+    imports_by_package = defaultdict(set)
+    for item in raw_import_map:
+        import_name = item["import_name"]
+        conda_name = item.get("conda_name", item.get("conda_forge"))
+        potential_conda_names = {
+            conda_name,
+            import_name,
+            import_name.replace("_", "-"),
+        } & nodes
+        packages_by_import[import_name].update(potential_conda_names)
+        imports_by_package[conda_name].update(
+            [import_name, conda_name.replace("-", "_")],
+        )
+    return imports_by_package, packages_by_import
+
+
+def compare_depfinder_audits(gx):
+    # This really needs to be all the python packages, since this doesn't cover outputs
+    python_nodes = {n for n, v in gx.nodes("payload") if "python" in v.get("req", "")}
+    python_nodes.update(
+        [
+            k
+            for node_name, node in gx.nodes("payload")
+            for k in node.get("outputs_names", [])
+            if node_name in python_nodes
+        ],
+    )
+    imports_by_package, packages_by_import = create_package_import_maps(
+        python_nodes,
+        # set(gx.nodes)
+    )
+
     bad_inspection = {}
     files = os.listdir("audits/depfinder")
 
@@ -256,6 +300,8 @@ def compare_depfinder_audits(gx, packages_by_import, imports_by_package):
                 package_by_import=packages_by_import,
                 import_by_package=imports_by_package,
                 node=node,
+                nodes=python_nodes,
+                # set(gx.nodes)
             )
             bad_inspection[node_version] = d or False
     with open("audits/depfinder/_net_audit.json", "w") as f:
@@ -311,14 +357,4 @@ def main(args):
                         v["writer"](deps, f)
 
     compare_grayskull_audits(gx)
-    raw_import_map = yaml.load(open("mappings/pypi/name_mapping.yaml"))
-    packages_by_import = defaultdict(set)
-    imports_by_package = defaultdict(set)
-    for item in raw_import_map:
-        import_name = item["import_name"]
-        conda_name = item.get("conda_name", item.get("conda_forge"))
-        packages_by_import[import_name].add(conda_name)
-        imports_by_package[conda_name].add(import_name)
-    compare_depfinder_audits(
-        gx, packages_by_import=packages_by_import, imports_by_package=imports_by_package,
-    )
+    compare_depfinder_audits(gx)

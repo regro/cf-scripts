@@ -17,13 +17,13 @@
   conda_forge: opencv
 
 - pypi_name: pyqt4
-  import_name: pyqt4
+  import_name: PyQt4
   conda_forge: pyqt
   delimiter_min: "4.0.0"
   delimiter_max: "5.0.0"
 
 - pypi_name: pyqt5
-  import_name: pyqt5
+  import_name: PyQt5
   conda_forge: pyqt
   delimiter_min: "5.0.0"
   delimiter_max: "6.0.0"
