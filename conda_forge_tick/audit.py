@@ -230,7 +230,7 @@ def extract_missing_packages(
     return d
 
 
-def compare_depfinder_audits(gx, package_by_import, import_by_package):
+def compare_depfinder_audits(gx, packages_by_import, imports_by_package):
     bad_inspection = {}
     files = os.listdir("audits/depfinder")
 
@@ -253,8 +253,8 @@ def compare_depfinder_audits(gx, package_by_import, import_by_package):
                 required_imports=output.get("required", set()),
                 questionable_imports=output.get("questionable", set()),
                 run_packages=attrs["requirements"]["run"],
-                package_by_import=package_by_import,
-                import_by_package=import_by_package,
+                package_by_import=packages_by_import,
+                import_by_package=imports_by_package,
                 node=node,
             )
             bad_inspection[node_version] = d or False
@@ -319,4 +319,6 @@ def main(args):
         conda_name = item.get("conda_name", item.get("conda_forge"))
         packages_by_import[import_name].add(conda_name)
         imports_by_package[conda_name].add(import_name)
-    compare_depfinder_audits(gx)
+    compare_depfinder_audits(
+        gx, packages_by_import=packages_by_import, imports_by_package=imports_by_package,
+    )
