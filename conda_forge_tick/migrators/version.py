@@ -17,6 +17,7 @@ import logging
 
 import networkx as nx
 import conda.exceptions
+import yaml
 from conda.models.version import VersionOrder
 
 from conda_forge_tick.audit import extract_deps_from_source, compare_depfinder_audit
@@ -371,6 +372,13 @@ class Version(Migrator):
         if "check_solvable" in kwargs:
             kwargs.pop("check_solvable")
         super().__init__(*args, **kwargs, check_solvable=False)
+        raw_import_map = yaml.load(open("mappings/pypi/name_mapping.yaml"))
+        self.import_cf_map = {
+            item["import_name"]: item.get("conda_name", item.get("conda_forge"))
+            for item in raw_import_map
+        }
+        # tensorflow-estimator doesn't export numpy
+        self.import_cf_map.pop("numpy")
 
     def filter(self, attrs: "AttrsTypedDict", not_bad_str_start: str = "") -> bool:
         # if no new version do nothing
@@ -640,7 +648,8 @@ class Version(Migrator):
             hint += (
                 "Please note that this analysis is **highly experimental**. "
                 "The aim here is to make maintenance easier by inspecting when dependencies have moved. "
-                "If you do not want hinting of this kind ever please add `bot: inspection: false` to your `conda-forge.yml`. "
+                "If you do not want hinting of this kind ever please add "
+                "`bot: inspection: false` to your `conda-forge.yml`. "
                 "If you encounter issues with this feature please ping the bot team `conda-forge/bot`.\n\n"
             )
             if dep_comparison:
