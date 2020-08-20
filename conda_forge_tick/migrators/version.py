@@ -668,12 +668,18 @@ class Version(Migrator):
                 hint += (
                     f"Analysis of the source code shows a discrepancy between"
                     f"the library's imports and the package's stated requirements"
-                    f" in the meta.yaml.\n"
-                    f"packages found by inspection but not in the meta.yaml:\n"
-                    f"{df_cf}"
-                    f"packages found in the meta.yaml but not found by inspection:\n"
-                    f"{cf_df}"
+                    f" in the meta.yaml."
                 )
+                if df_cf:
+                    hint += (
+                        f"\n\n### Packages found by inspection but not in the meta.yaml:\n"
+                        f"{df_cf}"
+                    )
+                if cf_df:
+                    hint += (
+                        f"\n\n### Packages found in the meta.yaml but not found by inspection:\n"
+                        f"{cf_df}"
+                    )
             else:
                 hint += (
                     "Analysis of the source code shows **no** discrepancy between"
