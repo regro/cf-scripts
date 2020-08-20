@@ -369,7 +369,9 @@ class Version(Migrator):
     rerender = True
     name = "Version"
 
-    def __init__(self, python_nodes, imports_by_package, packages_by_import, *args, **kwargs):
+    def __init__(
+        self, python_nodes, imports_by_package, packages_by_import, *args, **kwargs
+    ):
         self.packages_by_import = packages_by_import
         self.imports_by_package = imports_by_package
         self.python_nodes = python_nodes
