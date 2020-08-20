@@ -559,7 +559,6 @@ class Version(Migrator):
                 self.ctx.effective_graph.predecessors(feedstock_ctx.package_name),
             )
         ]
-        body = super().pr_body(feedstock_ctx)
         # TODO: note that the closing logic needs to be modified when we
         #  issue PRs into other branches for backports
         open_version_prs = [
@@ -582,8 +581,7 @@ class Version(Migrator):
             upstream_url_link = ""
 
         muid: dict
-        body = body.format(
-            "It is very likely that the current package version for this "
+        body = ("It is very likely that the current package version for this "
             "feedstock is out of date.\n"
             "Notes for merging this PR:\n"
             "1. Feel free to push to the bot's branch to update this PR if needed.\n"
@@ -607,8 +605,8 @@ class Version(Migrator):
                 closes="\n".join(
                     [f"Closes: #{muid['number']}" for muid in open_version_prs],
                 ),
-            ),
-        )
+            ))
+        
         # Statement here
         template = (
             "|{name}|{new_version}|[![Anaconda-Server Badge]"
@@ -692,6 +690,7 @@ class Version(Migrator):
                     " the library's imports and the package's stated requirements in the meta.yaml."
                 )
             body += hint
+        body = super().pr_body(feedstock_ctx).format(body)
         return body
 
     def commit_message(self, feedstock_ctx: FeedstockContext) -> str:
