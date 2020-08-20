@@ -28,7 +28,7 @@ def profiling(f):
         now = datetime.now()
         current_time = now.strftime("%d-%m-%Y") + "_" + now.strftime("%H_%M_%S")
         # process name -- aka profiler sub-folder
-        process_name = os.path.basename(inspect.getfile(f)).replace('.py', '')
+        process_name = os.path.basename(inspect.getfile(f)).replace(".py", "")
         # check dir
         os.makedirs(f"profiler/{process_name}", exist_ok=True)
 
