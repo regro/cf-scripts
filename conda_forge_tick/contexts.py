@@ -73,3 +73,4 @@ class FeedstockContext:
     package_name: str
     feedstock_name: str
     attrs: "AttrsTypedDict"
+    passed_dep_analysis = True
