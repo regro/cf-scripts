@@ -657,7 +657,7 @@ class Version(Migrator):
                 cf_df = "\n-".join(dep_comparison["cf_minus_df"])
                 hint += (
                     f"Analysis of the source code shows a discrepancy between"
-                    f"the library's imports and the package's stated requirements"
+                    f" the library's imports and the package's stated requirements"
                     f" in the meta.yaml.\n"
                     f"packages found by inspection but not in the meta.yaml\n"
                     f"{df_cf}"
@@ -667,7 +667,7 @@ class Version(Migrator):
             else:
                 hint += (
                     "Analysis of the source code shows **no** discrepancy between"
-                    "the library's imports and the package's stated requirements in the meta.yaml."
+                    " the library's imports and the package's stated requirements in the meta.yaml."
                 )
             body += hint
         return body
