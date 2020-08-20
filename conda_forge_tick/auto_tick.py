@@ -754,9 +754,7 @@ def main(args: "CLIArgs") -> None:
         github_token=github_token,
     )
     python_nodes = {
-        n
-        for n, v in mctx.graph.nodes("payload")
-        if "python" in v.get("req", "")
+        n for n, v in mctx.graph.nodes("payload") if "python" in v.get("req", "")
     }
     python_nodes.update(
         [
