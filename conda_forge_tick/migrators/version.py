@@ -668,9 +668,8 @@ class Version(Migrator):
             hint += (
                 "Please note that this analysis is **highly experimental**. "
                 "The aim here is to make maintenance easier by inspecting the package's dependencies. "
-                "Importantly this analysis does not support optional dependencies well. "
-                "If one of the dependencies in the meta.yaml is optional, please add it to the "
-                "`extras: requirements: optional:` section of the `meta.yaml` so the bot can handle them better. "
+                "Importantly this analysis does not support optional dependencies, "
+                "please double check those before making changes. "
                 "If you do not want hinting of this kind ever please add "
                 "`bot: inspection: false` to your `conda-forge.yml`. "
                 "If you encounter issues with this feature please ping the bot team `conda-forge/bot`.\n\n"
