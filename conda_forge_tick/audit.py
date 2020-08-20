@@ -34,7 +34,7 @@ DEPFINDER_IGNORE = [
     "*test/*",
     "*doc/*",
     "*testdir/*",
-    "test_*",
+    "*/test_*",
     "*/docs/*",
     "*/tests/*",
     "*/test/*",
