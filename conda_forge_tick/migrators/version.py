@@ -660,10 +660,10 @@ class Version(Migrator):
             )
             if dep_comparison:
                 df_cf = ""
-                for k in dep_comparison["df_minus_cf"]:
+                for k in dep_comparison.get("df_minus_cf", set()):
                     df_cf += f"- {k}" + "\n"
                 cf_df = ""
-                for k in dep_comparison["cf_minus_df"]:
+                for k in dep_comparison.get("cf_minus_df", set()):
                     cf_df += f"- {k}" + "\n"
                 hint += (
                     f"Analysis of the source code shows a discrepancy between"
