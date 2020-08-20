@@ -979,4 +979,3 @@ def main(args: "CLIArgs") -> None:
 
 if __name__ == "__main__":
     pass  # main()
-python_nodes, imports_by_package, packages_by_import
