@@ -369,7 +369,10 @@ class Version(Migrator):
     rerender = True
     name = "Version"
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, python_nodes, imports_by_package, packages_by_import, *args, **kwargs):
+        self.packages_by_import = packages_by_import
+        self.imports_by_package = imports_by_package
+        self.python_nodes = python_nodes
         if "check_solvable" in kwargs:
             kwargs.pop("check_solvable")
         super().__init__(*args, **kwargs, check_solvable=False)
@@ -632,37 +635,16 @@ class Version(Migrator):
             .get("inspection", "hint")
         )
         if update_deps == "hint":
-            package_name_table_header = (
-                "| Conda-Forge Package Name | Exported Libraries |\n"
-                "|:------------------------:|:------------------:|\n"
-            )
-            import_name_table_header = (
-                "| Library Import Name | Conda-Forge Packages Supplying Library |\n"
-                "|:-------------------:|:--------------------------------------:|\n"
-            )
-            table_body_template = "|{}|{}|\n"
             deps = extract_deps_from_source(
                 os.path.join(feedstock_ctx.feedstock_dir, "recipe"),
             )
-            # TODO: this is a bit of a hack, since the PR body hasn't required the graph previously
-            python_nodes = {
-                n
-                for n, v in self.graph.nodes("payload")
-                if "python" in v.get("req", "")
-            }
-            python_nodes.update(
-                [
-                    k
-                    for node_name, node in self.graph.nodes("payload")
-                    for k in node.get("outputs_names", [])
-                    if node_name in python_nodes
-                ],
-            )
-            not_needed_packages, missing_imports = compare_depfinder_audit(
+            dep_comparison = compare_depfinder_audit(
                 deps,
                 feedstock_ctx.attrs,
                 feedstock_ctx.attrs["name"],
-                python_nodes=python_nodes,
+                python_nodes=self.python_nodes,
+                imports_by_package=self.imports_by_package,
+                packages_by_import=self.packages_by_import
             )
             hint = f"\n\nDependency Analysis\n--------------------\n\n"
             hint += (
@@ -674,27 +656,21 @@ class Version(Migrator):
                 "`bot: inspection: false` to your `conda-forge.yml`. "
                 "If you encounter issues with this feature please ping the bot team `conda-forge/bot`.\n\n"
             )
-            if not_needed_packages or missing_imports:
+            if dep_comparison:
+                df_cf = ''
+                for k in dep_comparison["df_minus_cf"]:
+                    df_cf += f'- {k}' + '\n'
+                cf_df = ''
+                for k in dep_comparison["cf_minus_df"]:
+                    cf_df += f'- {k}' + '\n'
                 hint += (
                     f"Analysis of the source code shows a discrepancy between"
-                    f" the source's imports and the package's stated requirements"
+                    f"the library's imports and the package's stated requirements"
                     f" in the meta.yaml.\n"
-                )
-                if missing_imports:
-                    hint += (
-                        f"Libraries found by inspection but have no dependencies in the"
-                        f" meta.yaml that currently supplies those libraries:\n"
-                        f"{import_name_table_header}"
-                    )
-                    for k, v in missing_imports:
-                        hint += table_body_template.format(k, ",".join(as_iterable(v)))
-                if not_needed_packages:
-                    hint += (
-                        f"Packages found in the meta.yaml but who's imports were not found by inspection\n"
-                        f"{package_name_table_header}"
-                    )
-                    for k, v in not_needed_packages:
-                        hint += table_body_template.format(k, ",".join(as_iterable(v)))
+                    f"packages found by inspection but not in the meta.yaml:\n"
+                    f"{df_cf}"
+                    f"packages found in the meta.yaml but not found by inspection:\n"
+                    f"{cf_df}")
             else:
                 hint += (
                     "Analysis of the source code shows **no** discrepancy between"

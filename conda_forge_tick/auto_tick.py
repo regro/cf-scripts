@@ -26,6 +26,7 @@ import github3
 import ruamel.yaml as yaml
 from uuid import uuid4
 
+from conda_forge_tick.audit import create_package_import_maps
 from conda_forge_tick.migrators.arch import OSXArm
 from conda_forge_tick.migrators.migration_yaml import (
     MigrationYamlCreator,
@@ -752,7 +753,24 @@ def main(args: "CLIArgs") -> None:
         dry_run=args.dry_run,
         github_token=github_token,
     )
+    python_nodes = {
+        n
+        for n, v in mctx.graph.nodes("payload")
+        if "python" in v.get("req", "")
+    }
+    python_nodes.update(
+        [
+            k
+            for node_name, node in mctx.graph.nodes("payload")
+            for k in node.get("outputs_names", [])
+            if node_name in python_nodes
+        ],
+    )
+    imports_by_package, packages_by_import = create_package_import_maps(python_nodes)
     version_migrator = Version(
+        python_nodes=python_nodes,
+        imports_by_package=imports_by_package,
+        packages_by_import=packages_by_import,
         pr_limit=PR_LIMIT * 2,
         piggy_back_migrations=[
             Jinja2VarsCleanup(),
@@ -762,8 +780,7 @@ def main(args: "CLIArgs") -> None:
             ExtraJinja2KeysCleanup(),
         ],
     )
-    # TODO: this is a bit of a hack, since the PR body hasn't required the graph previously
-    version_migrator.graph = mctx.graph
+
     MIGRATORS = [version_migrator] + MIGRATORS
 
     # compute the time per migrator

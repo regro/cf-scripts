@@ -132,7 +132,7 @@ def inner_grayskull_comparison(meta_yaml, attrs, node):
             cf_attrs_k_kk = attrs[k][kk]
             gs_attrs_k_kk = new_attrs[k][kk]
             if cf_attrs_k_kk != gs_attrs_k_kk and (
-                kk != "test" and gs_attrs_k_kk != set("pip")
+                    kk != "test" and gs_attrs_k_kk != set("pip")
             ):
                 results[k][kk] = {"cf": cf_attrs_k_kk, "grayskull": gs_attrs_k_kk}
                 cf_minus_gs = cf_attrs_k_kk - gs_attrs_k_kk
@@ -166,7 +166,7 @@ def compare_grayskull_audits(gx):
             expected_filename = f"{node_version}.yml"
             if expected_filename in grayskull_files:
                 with open(
-                    os.path.join("audits/grayskull", expected_filename), "r",
+                        os.path.join("audits/grayskull", expected_filename), "r",
                 ) as f:
                     meta_yaml = f.read()
                 futures[
@@ -189,13 +189,13 @@ def compare_grayskull_audits(gx):
 
 
 def extract_missing_packages(
-    required_imports,
-    questionable_imports,
-    run_packages,
-    package_by_import,
-    import_by_package,
-    node,
-    nodes,
+        required_imports,
+        questionable_imports,
+        run_packages,
+        package_by_import,
+        import_by_package,
+        node,
+        nodes,
 ):
     exclude_packages = STATIC_EXCLUDES.union(
         {node, node.replace("-", "_"), node.replace("_", "-")},
@@ -219,8 +219,8 @@ def extract_missing_packages(
     # These are all normalized to packages
     # packages who's libraries are not imported
     cf_minus_df = (
-        run_packages - required_packages - exclude_packages - questionable_packages
-    ) & nodes
+                          run_packages - required_packages - exclude_packages - questionable_packages
+                  ) & nodes
     if cf_minus_df:
         d.update(cf_minus_df=cf_minus_df)
 
@@ -230,15 +230,25 @@ def extract_missing_packages(
     # Normalize to packages, the native interface for conda-forge
     # Note that the set overlap is a bit of a hack, sources could have imports we don't ship at all
     df_minus_cf = (
-        set().union(
-            *list(as_iterable(package_by_import.get(k, k)) for k in df_minus_cf_imports)
-        )
-        & nodes
+            set().union(
+                *list(as_iterable(package_by_import.get(k, k)) for k in df_minus_cf_imports)
+            )
+            & nodes
     )
     if df_minus_cf:
         d.update(df_minus_cf=df_minus_cf)
-        d.update(df_minus_cf_imports=df_minus_cf_imports)
     return d
+
+
+PREFERRED_IMPORT_BY_PACKAGE_MAP = {'numpy': 'numpy',
+                                   'matplotlib-base': 'matplotlib',
+                                   'theano': 'theano',
+                                   'tensorflow-estimator': 'tensorflow_estimator',
+                                   'skorch': 'skorch',
+                                   }
+
+IMPORTS_BY_PACKAGE_OVERRIDE = {k: {v} for k, v in PREFERRED_IMPORT_BY_PACKAGE_MAP.items()}
+PACKAGES_BY_IMPORT_OVERRIDE = {v: {k} for k, v in PREFERRED_IMPORT_BY_PACKAGE_MAP.items()}
 
 
 def create_package_import_maps(nodes, mapping_yaml="mappings/pypi/name_mapping.yaml"):
@@ -249,21 +259,23 @@ def create_package_import_maps(nodes, mapping_yaml="mappings/pypi/name_mapping.y
         import_name = item["import_name"]
         conda_name = item.get("conda_name", item.get("conda_forge"))
         potential_conda_names = {
-            conda_name,
-            import_name,
-            import_name.replace("_", "-"),
-        } & nodes
+                                    conda_name,
+                                    import_name,
+                                    import_name.replace("_", "-"),
+                                } & nodes
         packages_by_import[import_name].update(potential_conda_names)
         imports_by_package[conda_name].update(
             [import_name, conda_name.replace("-", "_")],
         )
+    imports_by_package.update(IMPORTS_BY_PACKAGE_OVERRIDE)
+    packages_by_import.update(PACKAGES_BY_IMPORT_OVERRIDE)
     return imports_by_package, packages_by_import
 
 
 def compare_depfinder_audit(
-    deps: Dict, attrs: Dict, node: str, python_nodes: set,
-) -> Tuple[Dict, Dict]:
-    imports_by_package, packages_by_import = create_package_import_maps(python_nodes)
+        deps: Dict, attrs: Dict, node: str, python_nodes: set,
+        imports_by_package, packages_by_import
+) -> Dict[str, set]:
     d = extract_missing_packages(
         required_imports=deps.get("required", set()),
         questionable_imports=deps.get("questionable", set()),
@@ -273,15 +285,7 @@ def compare_depfinder_audit(
         node=node,
         nodes=python_nodes,
     )
-    not_needed_packages = {
-        extra_package: imports_by_package.get(extra_package, extra_package)
-        for extra_package in d["cf_minus_df"]
-    }
-    missing_imports = {
-        missing_import: packages_by_import.get(missing_import, missing_import)
-        for missing_import in d["df_minus_cf_imports"]
-    }
-    return not_needed_packages, missing_imports
+    return d
 
 
 def compare_depfinder_audits(gx):
@@ -347,10 +351,10 @@ def main(args):
     # limit graph to things that depend on python
     python_des = nx.descendants(gx, "pypy-meta")
     for node in sorted(
-        python_des, key=lambda x: (len(nx.descendants(gx, x)), x), reverse=True,
+            python_des, key=lambda x: (len(nx.descendants(gx, x)), x), reverse=True,
     ):
         if time.time() - int(env.get("START_TIME", start_time)) > int(
-            env.get("TIMEOUT", 60 * 45),
+                env.get("TIMEOUT", 60 * 45),
         ):
             break
         # depfinder only work on python at the moment so only work on things
@@ -360,10 +364,10 @@ def main(args):
             version = payload.get("version", None)
             ext = v["ext"]
             if (
-                not payload.get("archived", False)
-                and version
-                and "python" in payload["requirements"]["run"]
-                and f"{node}_{version}.{ext}" not in os.listdir(f"audits/{k}")
+                    not payload.get("archived", False)
+                    and version
+                    and "python" in payload["requirements"]["run"]
+                    and f"{node}_{version}.{ext}" not in os.listdir(f"audits/{k}")
             ):
                 fctx = FeedstockContext(
                     package_name=node, feedstock_name=payload["name"], attrs=payload,
