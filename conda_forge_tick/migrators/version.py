@@ -667,7 +667,7 @@ class Version(Migrator):
                     cf_df += f"- {k}" + "\n"
                 hint += (
                     f"Analysis of the source code shows a discrepancy between"
-                    f"the library's imports and the package's stated requirements"
+                    f" the library's imports and the package's stated requirements"
                     f" in the meta.yaml."
                 )
                 if df_cf:
