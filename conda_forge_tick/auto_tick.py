@@ -15,6 +15,8 @@ import cProfile
 import pstats
 import io
 
+from conda_forge_tick.profiler import profiling
+
 import networkx as nx
 from conda.models.version import VersionOrder
 from conda_build.config import Config
@@ -729,6 +731,7 @@ def _compute_time_per_migrator(mctx):
     return num_nodes, time_per_migrator, tot_time_per_migrator
 
 
+@profiling
 def main(args: "CLIArgs") -> None:
     # start profiler
     profile_profiler = cProfile.Profile()

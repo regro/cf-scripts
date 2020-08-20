@@ -16,6 +16,8 @@ import networkx as nx
 import requests
 import tqdm
 
+from conda_forge_tick.profiler import profiling
+
 from conda_forge_tick.git_utils import (
     close_out_labels,
     is_github_api_limit_reached,
@@ -176,6 +178,7 @@ def close_dirty_prs(gx: nx.DiGraph, dry_run: bool = False) -> nx.DiGraph:
     return gx
 
 
+@profiling
 def main(args: "CLIArgs") -> None:
     # get current time
     now = datetime.now()
