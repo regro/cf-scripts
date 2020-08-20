@@ -765,19 +765,14 @@ def main(args: "CLIArgs") -> None:
         ],
     )
     imports_by_package, packages_by_import = create_package_import_maps(python_nodes)
-    version_migrator = Version(
-        python_nodes=python_nodes,
-        imports_by_package=imports_by_package,
-        packages_by_import=packages_by_import,
-        pr_limit=PR_LIMIT * 2,
-        piggy_back_migrations=[
+    version_migrator = Version(set(), dict(), dict(), python_nodes=python_nodes, imports_by_package=imports_by_package,
+                               packages_by_import=packages_by_import, pr_limit=PR_LIMIT * 2, piggy_back_migrations=[
             Jinja2VarsCleanup(),
             PipMigrator(),
             LicenseMigrator(),
             CondaForgeYAMLCleanup(),
             ExtraJinja2KeysCleanup(),
-        ],
-    )
+        ])
 
     MIGRATORS = [version_migrator] + MIGRATORS
 
@@ -976,3 +971,4 @@ def main(args: "CLIArgs") -> None:
 
 if __name__ == "__main__":
     pass  # main()
+python_nodes, imports_by_package, packages_by_import

@@ -1599,7 +1599,7 @@ extra:
 """
 
 js = JS()
-version = Version()
+version = Version(set(), dict(), dict())
 # compiler = Compiler()
 noarch = Noarch()
 noarchr = NoarchR()

@@ -13,12 +13,9 @@ config_migrator = UpdateConfigSubGuessMigrator()
 guard_testing_migrator = GuardTestingMigrator()
 cmake_migrator = UpdateCMakeArgsMigrator()
 
-version_migrator_autoconf = Version(
-    piggy_back_migrations=[config_migrator, cmake_migrator, guard_testing_migrator],
-)
-version_migrator_cmake = Version(
-    piggy_back_migrations=[cmake_migrator, guard_testing_migrator],
-)
+version_migrator_autoconf = Version(set(), dict(), dict(),
+                                    piggy_back_migrations=[config_migrator, cmake_migrator, guard_testing_migrator])
+version_migrator_cmake = Version(set(), dict(), dict(), piggy_back_migrations=[cmake_migrator, guard_testing_migrator])
 
 config_recipe = """\
 {% set version = "7.0" %}
