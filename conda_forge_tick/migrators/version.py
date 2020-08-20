@@ -23,6 +23,7 @@ from conda.models.version import VersionOrder
 from conda_forge_tick.audit import extract_deps_from_source, compare_depfinder_audit
 from conda_forge_tick.migrators.core import Migrator
 from conda_forge_tick.contexts import FeedstockContext
+from conda_forge_tick.utils import as_iterable
 from conda_forge_tick.xonsh_utils import indir
 from conda_forge_tick.recipe_parser import CONDA_SELECTOR, CondaMetaYAML
 from conda_forge_tick.url_transforms import gen_transformed_urls
@@ -372,13 +373,6 @@ class Version(Migrator):
         if "check_solvable" in kwargs:
             kwargs.pop("check_solvable")
         super().__init__(*args, **kwargs, check_solvable=False)
-        raw_import_map = yaml.load(open("mappings/pypi/name_mapping.yaml"))
-        self.import_cf_map = {
-            item["import_name"]: item.get("conda_name", item.get("conda_forge"))
-            for item in raw_import_map
-        }
-        # tensorflow-estimator doesn't export numpy
-        self.import_cf_map.pop("numpy")
 
     def filter(self, attrs: "AttrsTypedDict", not_bad_str_start: str = "") -> bool:
         # if no new version do nothing
@@ -638,32 +632,70 @@ class Version(Migrator):
             .get("inspection", "hint")
         )
         if update_deps == "hint":
-            deps = extract_deps_from_source(
-                os.path.join(feedstock_ctx.feedstock_dir, "recipe"), self.import_cf_map,
+            package_name_table_header = (
+                "| Conda-Forge Package Name | Exported Libraries |\n"
+                "|:------------------------:|:------------------:|\n"
             )
-            dep_comparison = compare_depfinder_audit(
-                deps, feedstock_ctx.attrs, feedstock_ctx.attrs["name"],
+            import_name_table_header = (
+                "| Library Import Name | Conda-Forge Packages Supplying Library |\n"
+                "|:-------------------:|:--------------------------------------:|\n"
+            )
+            table_body_template = "|{}|{}|\n"
+            deps = extract_deps_from_source(
+                os.path.join(feedstock_ctx.feedstock_dir, "recipe"),
+            )
+            # TODO: this is a bit of a hack, since the PR body hasn't required the graph previously
+            python_nodes = {
+                n
+                for n, v in self.graph.nodes("payload")
+                if "python" in v.get("req", "")
+            }
+            python_nodes.update(
+                [
+                    k
+                    for node_name, node in self.graph.nodes("payload")
+                    for k in node.get("outputs_names", [])
+                    if node_name in python_nodes
+                ],
+            )
+            not_needed_packages, missing_imports = compare_depfinder_audit(
+                deps,
+                feedstock_ctx.attrs,
+                feedstock_ctx.attrs["name"],
+                python_nodes=python_nodes,
             )
             hint = f"\n\nDependency Analysis\n--------------------\n\n"
             hint += (
                 "Please note that this analysis is **highly experimental**. "
-                "The aim here is to make maintenance easier by inspecting when dependencies have moved. "
+                "The aim here is to make maintenance easier by inspecting the package's dependencies. "
+                "Importantly this analysis does not support optional dependencies well. "
+                "If one of the dependencies in the meta.yaml is optional, please add it to the "
+                "`extras: requirements: optional:` section of the `meta.yaml` so the bot can handle them better. "
                 "If you do not want hinting of this kind ever please add "
                 "`bot: inspection: false` to your `conda-forge.yml`. "
                 "If you encounter issues with this feature please ping the bot team `conda-forge/bot`.\n\n"
             )
-            if dep_comparison:
-                df_cf = "\n-".join(dep_comparison["df_minus_cf"])
-                cf_df = "\n-".join(dep_comparison["cf_minus_df"])
+            if not_needed_packages or missing_imports:
                 hint += (
                     f"Analysis of the source code shows a discrepancy between"
-                    f" the library's imports and the package's stated requirements"
+                    f" the source's imports and the package's stated requirements"
                     f" in the meta.yaml.\n"
-                    f"packages found by inspection but not in the meta.yaml\n"
-                    f"{df_cf}"
-                    f"packages found in the meta.yaml but not found by inspection\n"
-                    f"{cf_df}"
                 )
+                if missing_imports:
+                    hint += (
+                        f"Libraries found by inspection but have no dependencies in the"
+                        f" meta.yaml that currently supplies those libraries:\n"
+                        f"{import_name_table_header}"
+                    )
+                    for k, v in missing_imports:
+                        hint += table_body_template.format(k, ",".join(as_iterable(v)))
+                if not_needed_packages:
+                    hint += (
+                        f"Packages found in the meta.yaml but who's imports were not found by inspection\n"
+                        f"{package_name_table_header}"
+                    )
+                    for k, v in not_needed_packages:
+                        hint += table_body_template.format(k, ",".join(as_iterable(v)))
             else:
                 hint += (
                     "Analysis of the source code shows **no** discrepancy between"

@@ -5,6 +5,7 @@ import time
 import traceback
 from collections import defaultdict
 from concurrent.futures._base import as_completed
+from typing import Dict, Tuple
 
 import networkx as nx
 from stdlib_list import stdlib_list
@@ -23,7 +24,7 @@ from conda_forge_tick.utils import (
     load,
     executor,
     as_iterable,
-    _get_source_code
+    _get_source_code,
 )
 from conda_forge_tick.xonsh_utils import indir, env
 
@@ -58,10 +59,7 @@ def extract_deps_from_source(recipe_dir):
     cb_work_dir = _get_source_code(recipe_dir)
     with indir(cb_work_dir):
         # run depfinder on source code
-        imports = simple_import_search(
-            cb_work_dir,
-            ignore=DEPFINDER_IGNORE,
-        )
+        imports = simple_import_search(cb_work_dir, ignore=DEPFINDER_IGNORE)
     return {k: set(v) for k, v in imports.items()}
 
 
@@ -239,6 +237,7 @@ def extract_missing_packages(
     )
     if df_minus_cf:
         d.update(df_minus_cf=df_minus_cf)
+        d.update(df_minus_cf_imports=df_minus_cf_imports)
     return d
 
 
@@ -259,6 +258,30 @@ def create_package_import_maps(nodes, mapping_yaml="mappings/pypi/name_mapping.y
             [import_name, conda_name.replace("-", "_")],
         )
     return imports_by_package, packages_by_import
+
+
+def compare_depfinder_audit(
+    deps: Dict, attrs: Dict, node: str, python_nodes: set,
+) -> Tuple[Dict, Dict]:
+    imports_by_package, packages_by_import = create_package_import_maps(python_nodes)
+    d = extract_missing_packages(
+        required_imports=deps.get("required", set()),
+        questionable_imports=deps.get("questionable", set()),
+        run_packages=attrs["requirements"]["run"],
+        package_by_import=packages_by_import,
+        import_by_package=imports_by_package,
+        node=node,
+        nodes=python_nodes,
+    )
+    not_needed_packages = {
+        extra_package: imports_by_package.get(extra_package, extra_package)
+        for extra_package in d["cf_minus_df"]
+    }
+    missing_imports = {
+        missing_import: packages_by_import.get(missing_import, missing_import)
+        for missing_import in d["df_minus_cf_imports"]
+    }
+    return not_needed_packages, missing_imports
 
 
 def compare_depfinder_audits(gx):

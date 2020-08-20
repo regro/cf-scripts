@@ -95,18 +95,7 @@ logger = logging.getLogger("conda_forge_tick.auto_tick")
 PR_LIMIT = 5
 MAX_PR_LIMIT = 50
 
-MIGRATORS: MutableSequence[Migrator] = [
-    Version(
-        pr_limit=PR_LIMIT * 2,
-        piggy_back_migrations=[
-            Jinja2VarsCleanup(),
-            PipMigrator(),
-            LicenseMigrator(),
-            CondaForgeYAMLCleanup(),
-            ExtraJinja2KeysCleanup(),
-        ],
-    ),
-]
+MIGRATORS: MutableSequence[Migrator] = []
 
 BOT_RERUN_LABEL = {
     "name": "bot-rerun",
@@ -763,6 +752,19 @@ def main(args: "CLIArgs") -> None:
         dry_run=args.dry_run,
         github_token=github_token,
     )
+    version_migrator = Version(
+        pr_limit=PR_LIMIT * 2,
+        piggy_back_migrations=[
+            Jinja2VarsCleanup(),
+            PipMigrator(),
+            LicenseMigrator(),
+            CondaForgeYAMLCleanup(),
+            ExtraJinja2KeysCleanup(),
+        ],
+    )
+    # TODO: this is a bit of a hack, since the PR body hasn't required the graph previously
+    version_migrator.graph = mctx.graph
+    MIGRATORS = [version_migrator] + MIGRATORS
 
     # compute the time per migrator
     (num_nodes, time_per_migrator, tot_time_per_migrator) = _compute_time_per_migrator(
