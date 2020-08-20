@@ -109,7 +109,7 @@ G = nx.DiGraph()
 G.add_node("conda", reqs=["python"])
 
 
-def test_audit_feedstock():
+def test_depfinder_audit_feedstock():
     mm_ctx = MigratorSessionContext(
         graph=G,
         smithy_version="",

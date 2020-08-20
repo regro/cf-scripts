@@ -22,7 +22,8 @@ from conda_forge_tick.utils import (
     load_feedstock,
     load,
     executor,
-    _get_source_code,
+    as_iterable,
+    _get_source_code
 )
 from conda_forge_tick.xonsh_utils import indir, env
 
@@ -37,6 +38,7 @@ DEPFINDER_IGNORE = [
     "*/tests/*",
     "*/test/*",
     "*/doc/*",
+    "*conftest*",
 ]
 
 STATIC_EXCLUDES = {
@@ -52,28 +54,21 @@ STATIC_EXCLUDES = {
 )
 
 
-def extract_deps_from_source(recipe_dir, import_cf_map):
+def extract_deps_from_source(recipe_dir):
     cb_work_dir = _get_source_code(recipe_dir)
     with indir(cb_work_dir):
         # run depfinder on source code
-        deps = simple_import_search(
+        imports = simple_import_search(
             cb_work_dir,
-            # remap=True,
             ignore=DEPFINDER_IGNORE,
         )
-        for k in list(deps):
-            deps[k] = {import_cf_map.get(v, v) for v in deps[k]}
-    return deps
+    return {k: set(v) for k, v in imports.items()}
 
 
-def depfinder_audit_feedstock(
-    fctx: FeedstockContext, ctx: MigratorSessionContext, import_cf_map=None,
-):
-    """Uses Depfinder to audit the requirements for a python package
+def depfinder_audit_feedstock(fctx: FeedstockContext, ctx: MigratorSessionContext):
+    """Uses Depfinder to audit the imports for a python package
     """
     # get feedstock
-    if import_cf_map is None:
-        import_cf_map = {}
     feedstock_dir = os.path.join(ctx.rever_dir, fctx.package_name + "-feedstock")
     origin = feedstock_url(fctx=fctx, protocol="https")
     fetch_repo(
@@ -81,13 +76,10 @@ def depfinder_audit_feedstock(
     )
     recipe_dir = os.path.join(feedstock_dir, "recipe")
 
-    # get source code
-    return extract_deps_from_source(recipe_dir, import_cf_map)
+    return extract_deps_from_source(recipe_dir)
 
 
-def grayskull_audit_feedstock(
-    fctx: FeedstockContext, ctx: MigratorSessionContext, import_cf_map=None,
-):
+def grayskull_audit_feedstock(fctx: FeedstockContext, ctx: MigratorSessionContext):
     """Uses grayskull to audit the requirements for a python package
     """
     # TODO: come back to this, since CF <-> PyPI is not one-to-one and onto
@@ -198,24 +190,93 @@ def compare_grayskull_audits(gx):
     return bad_inspections
 
 
-def compare_depfinder_audit(output, attrs, node):
-    quest = output.get("questionable", set())
-    required_pkgs = output.get("required", set())
-    d = {}
-    run_req = attrs["requirements"]["run"]
-    excludes = STATIC_EXCLUDES.union(
+def extract_missing_packages(
+    required_imports,
+    questionable_imports,
+    run_packages,
+    package_by_import,
+    import_by_package,
+    node,
+    nodes,
+):
+    exclude_packages = STATIC_EXCLUDES.union(
         {node, node.replace("-", "_"), node.replace("_", "-")},
     )
-    cf_minus_df = run_req - required_pkgs - excludes - quest
+
+    questionable_packages = set().union(
+        *list(as_iterable(package_by_import.get(k, k)) for k in questionable_imports)
+    )
+    required_packages = set().union(
+        *list(as_iterable(package_by_import.get(k, k)) for k in required_imports)
+    )
+
+    run_imports = set().union(
+        *list(as_iterable(import_by_package.get(k, k)) for k in run_packages)
+    )
+    exclude_imports = set().union(
+        *list(as_iterable(import_by_package.get(k, k)) for k in exclude_packages)
+    )
+
+    d = {}
+    # These are all normalized to packages
+    # packages who's libraries are not imported
+    cf_minus_df = (
+        run_packages - required_packages - exclude_packages - questionable_packages
+    ) & nodes
     if cf_minus_df:
         d.update(cf_minus_df=cf_minus_df)
-    df_minus_cf = required_pkgs - run_req - excludes
+
+    # These are all normalized to imports
+    # imports which have no associated package in the meta.yaml
+    df_minus_cf_imports = required_imports - run_imports - exclude_imports
+    # Normalize to packages, the native interface for conda-forge
+    # Note that the set overlap is a bit of a hack, sources could have imports we don't ship at all
+    df_minus_cf = (
+        set().union(
+            *list(as_iterable(package_by_import.get(k, k)) for k in df_minus_cf_imports)
+        )
+        & nodes
+    )
     if df_minus_cf:
         d.update(df_minus_cf=df_minus_cf)
     return d
 
 
+def create_package_import_maps(nodes, mapping_yaml="mappings/pypi/name_mapping.yaml"):
+    raw_import_map = yaml.load(open(mapping_yaml))
+    packages_by_import = defaultdict(set)
+    imports_by_package = defaultdict(set)
+    for item in raw_import_map:
+        import_name = item["import_name"]
+        conda_name = item.get("conda_name", item.get("conda_forge"))
+        potential_conda_names = {
+            conda_name,
+            import_name,
+            import_name.replace("_", "-"),
+        } & nodes
+        packages_by_import[import_name].update(potential_conda_names)
+        imports_by_package[conda_name].update(
+            [import_name, conda_name.replace("-", "_")],
+        )
+    return imports_by_package, packages_by_import
+
+
 def compare_depfinder_audits(gx):
+    # This really needs to be all the python packages, since this doesn't cover outputs
+    python_nodes = {n for n, v in gx.nodes("payload") if "python" in v.get("req", "")}
+    python_nodes.update(
+        [
+            k
+            for node_name, node in gx.nodes("payload")
+            for k in node.get("outputs_names", [])
+            if node_name in python_nodes
+        ],
+    )
+    imports_by_package, packages_by_import = create_package_import_maps(
+        python_nodes,
+        # set(gx.nodes)
+    )
+
     bad_inspection = {}
     files = os.listdir("audits/depfinder")
 
@@ -234,7 +295,16 @@ def compare_depfinder_audits(gx):
             if isinstance(output, str):
                 bad_inspection[node_version] = output
                 continue
-            d = compare_depfinder_audit(output, attrs, node)
+            d = extract_missing_packages(
+                required_imports=output.get("required", set()),
+                questionable_imports=output.get("questionable", set()),
+                run_packages=attrs["requirements"]["run"],
+                package_by_import=packages_by_import,
+                import_by_package=imports_by_package,
+                node=node,
+                nodes=python_nodes,
+                # set(gx.nodes)
+            )
             bad_inspection[node_version] = d or False
     with open("audits/depfinder/_net_audit.json", "w") as f:
         dump(bad_inspection, f)
@@ -250,14 +320,6 @@ def main(args):
     for k in AUDIT_REGISTRY:
         os.makedirs(os.path.join("audits", k), exist_ok=True)
 
-    raw_import_map = yaml.load(open("mappings/pypi/name_mapping.yaml"))
-    import_map = {
-        item["import_name"]: item.get("conda_name", item.get("conda_forge"))
-        for item in raw_import_map
-    }
-    # tensorflow-estimator doesn't export numpy
-    import_map.pop("numpy")
-
     # TODO: generalize for cran skeleton
     # limit graph to things that depend on python
     python_des = nx.descendants(gx, "pypy-meta")
@@ -265,7 +327,7 @@ def main(args):
         python_des, key=lambda x: (len(nx.descendants(gx, x)), x), reverse=True,
     ):
         if time.time() - int(env.get("START_TIME", start_time)) > int(
-            env.get("TIMEOUT", 60 * 30),
+            env.get("TIMEOUT", 60 * 45),
         ):
             break
         # depfinder only work on python at the moment so only work on things
@@ -284,7 +346,7 @@ def main(args):
                     package_name=node, feedstock_name=payload["name"], attrs=payload,
                 )
                 try:
-                    deps = v["run"](fctx, ctx, import_map)
+                    deps = v["run"](fctx, ctx)
                 except Exception as e:
                     deps = {
                         "exception": str(e),
