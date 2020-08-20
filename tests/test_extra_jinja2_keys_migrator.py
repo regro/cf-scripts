@@ -8,7 +8,9 @@ from conda_forge_tick.migrators import (
 
 from test_migrators import run_test_migration
 
-VERSION_CF = Version(piggy_back_migrations=[ExtraJinja2KeysCleanup()])
+VERSION_CF = Version(
+    set(), dict(), dict(), piggy_back_migrations=[ExtraJinja2KeysCleanup()],
+)
 
 YAML_PATH = os.path.join(os.path.dirname(__file__), "test_yaml")
 

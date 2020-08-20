@@ -867,3 +867,19 @@ def load_feedstock(
             feedstock_dir=feedstock_dir,
         )
     return sub_graph
+
+
+def _get_source_code(recipe_dir):
+    from conda_build.api import render
+    from conda_build.config import Config
+    from conda_build.source import provide
+
+    # Use conda build to do all the downloading/extracting bits
+    md = render(
+        recipe_dir, config=Config(**CB_CONFIG), finalize=False, bypass_env_check=True,
+    )
+    if not md:
+        return None
+    md = md[0][0]
+    # provide source dir
+    return provide(md)

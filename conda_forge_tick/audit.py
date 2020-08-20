@@ -5,6 +5,7 @@ import time
 import traceback
 from collections import defaultdict
 from concurrent.futures._base import as_completed
+from typing import Dict, Tuple
 
 import networkx as nx
 from stdlib_list import stdlib_list
@@ -16,7 +17,6 @@ from ruamel import yaml
 from conda_forge_tick.contexts import MigratorSessionContext, FeedstockContext
 from conda_forge_tick.git_utils import feedstock_url
 from conda_forge_tick.git_xonsh_utils import fetch_repo
-from conda_forge_tick.migrators.core import _get_source_code
 from conda_forge_tick.utils import (
     load_graph,
     dump,
@@ -24,6 +24,7 @@ from conda_forge_tick.utils import (
     load,
     executor,
     as_iterable,
+    _get_source_code,
 )
 from conda_forge_tick.xonsh_utils import indir, env
 
@@ -54,6 +55,14 @@ STATIC_EXCLUDES = {
 )
 
 
+def extract_deps_from_source(recipe_dir):
+    cb_work_dir = _get_source_code(recipe_dir)
+    with indir(cb_work_dir):
+        # run depfinder on source code
+        imports = simple_import_search(cb_work_dir, ignore=DEPFINDER_IGNORE)
+    return {k: set(v) for k, v in imports.items()}
+
+
 def depfinder_audit_feedstock(fctx: FeedstockContext, ctx: MigratorSessionContext):
     """Uses Depfinder to audit the imports for a python package
     """
@@ -65,16 +74,7 @@ def depfinder_audit_feedstock(fctx: FeedstockContext, ctx: MigratorSessionContex
     )
     recipe_dir = os.path.join(feedstock_dir, "recipe")
 
-    # get source code
-    cb_work_dir = _get_source_code(recipe_dir)
-    with indir(cb_work_dir):
-        # run depfinder on source code
-        imports = simple_import_search(
-            cb_work_dir,
-            # remap=True,
-            ignore=DEPFINDER_IGNORE,
-        )
-    return {k: set(v) for k, v in imports.items()}
+    return extract_deps_from_source(recipe_dir)
 
 
 def grayskull_audit_feedstock(fctx: FeedstockContext, ctx: MigratorSessionContext):
@@ -240,6 +240,22 @@ def extract_missing_packages(
     return d
 
 
+PREFERRED_IMPORT_BY_PACKAGE_MAP = {
+    "numpy": "numpy",
+    "matplotlib-base": "matplotlib",
+    "theano": "theano",
+    "tensorflow-estimator": "tensorflow_estimator",
+    "skorch": "skorch",
+}
+
+IMPORTS_BY_PACKAGE_OVERRIDE = {
+    k: {v} for k, v in PREFERRED_IMPORT_BY_PACKAGE_MAP.items()
+}
+PACKAGES_BY_IMPORT_OVERRIDE = {
+    v: {k} for k, v in PREFERRED_IMPORT_BY_PACKAGE_MAP.items()
+}
+
+
 def create_package_import_maps(nodes, mapping_yaml="mappings/pypi/name_mapping.yaml"):
     raw_import_map = yaml.load(open(mapping_yaml))
     packages_by_import = defaultdict(set)
@@ -256,7 +272,29 @@ def create_package_import_maps(nodes, mapping_yaml="mappings/pypi/name_mapping.y
         imports_by_package[conda_name].update(
             [import_name, conda_name.replace("-", "_")],
         )
+    imports_by_package.update(IMPORTS_BY_PACKAGE_OVERRIDE)
+    packages_by_import.update(PACKAGES_BY_IMPORT_OVERRIDE)
     return imports_by_package, packages_by_import
+
+
+def compare_depfinder_audit(
+    deps: Dict,
+    attrs: Dict,
+    node: str,
+    python_nodes: set,
+    imports_by_package,
+    packages_by_import,
+) -> Dict[str, set]:
+    d = extract_missing_packages(
+        required_imports=deps.get("required", set()),
+        questionable_imports=deps.get("questionable", set()),
+        run_packages=attrs["requirements"]["run"],
+        package_by_import=packages_by_import,
+        import_by_package=imports_by_package,
+        node=node,
+        nodes=python_nodes,
+    )
+    return d
 
 
 def compare_depfinder_audits(gx):

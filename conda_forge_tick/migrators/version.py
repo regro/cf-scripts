@@ -17,10 +17,13 @@ import logging
 
 import networkx as nx
 import conda.exceptions
+import yaml
 from conda.models.version import VersionOrder
 
+from conda_forge_tick.audit import extract_deps_from_source, compare_depfinder_audit
 from conda_forge_tick.migrators.core import Migrator
 from conda_forge_tick.contexts import FeedstockContext
+from conda_forge_tick.utils import as_iterable
 from conda_forge_tick.xonsh_utils import indir
 from conda_forge_tick.recipe_parser import CONDA_SELECTOR, CondaMetaYAML
 from conda_forge_tick.url_transforms import gen_transformed_urls
@@ -366,7 +369,12 @@ class Version(Migrator):
     rerender = True
     name = "Version"
 
-    def __init__(self, *args, **kwargs):
+    def __init__(
+        self, python_nodes, imports_by_package, packages_by_import, *args, **kwargs
+    ):
+        self.packages_by_import = packages_by_import
+        self.imports_by_package = imports_by_package
+        self.python_nodes = python_nodes
         if "check_solvable" in kwargs:
             kwargs.pop("check_solvable")
         super().__init__(*args, **kwargs, check_solvable=False)
@@ -622,6 +630,56 @@ class Version(Migrator):
             )
         for p in pred:
             body += template.format(name=p[0], new_version=p[1])
+
+        update_deps = (
+            feedstock_ctx.attrs.get("conda-forge.yml", {})
+            .get("bot", {})
+            .get("inspection", "hint")
+        )
+        if update_deps == "hint":
+            deps = extract_deps_from_source(
+                os.path.join(feedstock_ctx.feedstock_dir, "recipe"),
+            )
+            dep_comparison = compare_depfinder_audit(
+                deps,
+                feedstock_ctx.attrs,
+                feedstock_ctx.attrs["name"],
+                python_nodes=self.python_nodes,
+                imports_by_package=self.imports_by_package,
+                packages_by_import=self.packages_by_import,
+            )
+            hint = f"\n\nDependency Analysis\n--------------------\n\n"
+            hint += (
+                "Please note that this analysis is **highly experimental**. "
+                "The aim here is to make maintenance easier by inspecting the package's dependencies. "
+                "Importantly this analysis does not support optional dependencies, "
+                "please double check those before making changes. "
+                "If you do not want hinting of this kind ever please add "
+                "`bot: inspection: false` to your `conda-forge.yml`. "
+                "If you encounter issues with this feature please ping the bot team `conda-forge/bot`.\n\n"
+            )
+            if dep_comparison:
+                df_cf = ""
+                for k in dep_comparison["df_minus_cf"]:
+                    df_cf += f"- {k}" + "\n"
+                cf_df = ""
+                for k in dep_comparison["cf_minus_df"]:
+                    cf_df += f"- {k}" + "\n"
+                hint += (
+                    f"Analysis of the source code shows a discrepancy between"
+                    f"the library's imports and the package's stated requirements"
+                    f" in the meta.yaml.\n"
+                    f"packages found by inspection but not in the meta.yaml:\n"
+                    f"{df_cf}"
+                    f"packages found in the meta.yaml but not found by inspection:\n"
+                    f"{cf_df}"
+                )
+            else:
+                hint += (
+                    "Analysis of the source code shows **no** discrepancy between"
+                    " the library's imports and the package's stated requirements in the meta.yaml."
+                )
+            body += hint
         return body
 
     def commit_message(self, feedstock_ctx: FeedstockContext) -> str:

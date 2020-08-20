@@ -5,7 +5,7 @@ from test_migrators import run_test_migration
 
 
 LM = LicenseMigrator()
-VER_LM = Version(piggy_back_migrations=[LM])
+VER_LM = Version(set(), dict(), dict(), piggy_back_migrations=[LM])
 
 version_license = """\
 {% set version = "0.8" %}

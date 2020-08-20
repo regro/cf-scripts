@@ -6,7 +6,7 @@ from conda_forge_tick.migrators import Version
 
 from test_migrators import run_test_migration
 
-VERSION = Version()
+VERSION = Version(set(), dict(), dict())
 
 YAML_PATH = os.path.join(os.path.dirname(__file__), "test_yaml")
 
