@@ -581,7 +581,8 @@ class Version(Migrator):
             upstream_url_link = ""
 
         muid: dict
-        body = ("It is very likely that the current package version for this "
+        body = (
+            "It is very likely that the current package version for this "
             "feedstock is out of date.\n"
             "Notes for merging this PR:\n"
             "1. Feel free to push to the bot's branch to update this PR if needed.\n"
@@ -605,8 +606,9 @@ class Version(Migrator):
                 closes="\n".join(
                     [f"Closes: #{muid['number']}" for muid in open_version_prs],
                 ),
-            ))
-        
+            )
+        )
+
         # Statement here
         template = (
             "|{name}|{new_version}|[![Anaconda-Server Badge]"
@@ -679,11 +681,18 @@ class Version(Migrator):
                         f"\n\n### Packages found in the meta.yaml but not found by inspection:\n"
                         f"{cf_df}"
                     )
-                hint += f"\n\n @conda-forge-admin please ping {feedstock_ctx.attrs['name']} It seems that there are" \
-                        f"some discrepancies in the dependencies please address them if possible. "
-                if feedstock_ctx.attrs.get("conda-forge.yml", {}).get("bot", {}).get("automerge", False,) in {"version", True}:
-                    hint += "Note that automerge has been disabled for this PR because of the dependency issues. You can" \
-                            "restore automerge by disabling this feature in your `conda-forge.yml`"
+                hint += (
+                    f"\n\n @conda-forge-admin please ping {feedstock_ctx.attrs['name']} It seems that there are"
+                    f"some discrepancies in the dependencies please address them if possible. "
+                )
+                if feedstock_ctx.attrs.get("conda-forge.yml", {}).get("bot", {}).get(
+                    "automerge", False,
+                ) in {"version", True}:
+                    hint += (
+                        "Note that automerge has been disabled for this PR because of the dependency issues. You can"
+                        "restore automerge by disabling this feature by adding `bot: inspection: false` to your "
+                        "`conda-forge.yml`. "
+                    )
             else:
                 hint += (
                     "Analysis of the source code shows **no** discrepancy between"
@@ -700,9 +709,12 @@ class Version(Migrator):
     def pr_title(self, feedstock_ctx: FeedstockContext) -> str:
         assert isinstance(feedstock_ctx.attrs["new_version"], str)
         # TODO: turn False to True when we default to automerge
-        if (feedstock_ctx.attrs.get("conda-forge.yml", {}).get("bot", {}).get(
-            "automerge", False,
-        ) in {"version", True}) and feedstock_ctx.passed_dep_analysis:
+        if (
+            feedstock_ctx.attrs.get("conda-forge.yml", {})
+            .get("bot", {})
+            .get("automerge", False)
+            in {"version", True}
+        ) and feedstock_ctx.passed_dep_analysis:
             add_slug = "[bot-automerge] "
         else:
             add_slug = ""
