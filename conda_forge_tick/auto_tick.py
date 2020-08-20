@@ -766,9 +766,6 @@ def main(args: "CLIArgs") -> None:
     )
     imports_by_package, packages_by_import = create_package_import_maps(python_nodes)
     version_migrator = Version(
-        set(),
-        dict(),
-        dict(),
         python_nodes=python_nodes,
         imports_by_package=imports_by_package,
         packages_by_import=packages_by_import,
