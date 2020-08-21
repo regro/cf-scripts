@@ -104,7 +104,7 @@ def main(args: "CLIArgs") -> None:
     dirname.mkdir(parents=True, exist_ok=True)
 
     with (dirname / "grayskull_pypi_mapping.yaml").open("w") as fp:
-        yaml.dump(grayskull_style, fp, default_flow_style=True, sort_keys=True)
+        yaml.dump(grayskull_style, fp, default_flow_style=False, sort_keys=True)
 
     with (dirname / "name_mapping.yaml").open("w") as fp:
         yaml.dump(
@@ -113,7 +113,7 @@ def main(args: "CLIArgs") -> None:
                 key=lambda pkg: pkg.get("conda_name", pkg.get("conda_forge")),
             ),
             fp,
-            default_flow_style=True,
+            default_flow_style=False,
             sort_keys=True,
         )
 
