@@ -210,6 +210,7 @@ def update_nodes_with_bot_rerun(gx):
                     logger.error(
                         f"BOT-RERUN : could not proceed check with {node}, {e}",
                     )
+                    pr_json = None
                 # if there is a valid PR and it isn't currently listed as rerun
                 # but the PR needs a rerun
                 if (
