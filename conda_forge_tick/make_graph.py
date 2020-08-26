@@ -203,7 +203,11 @@ def update_nodes_with_bot_rerun(gx):
     for name, node in gx.nodes.items():
         with node["payload"] as payload:
             for migration in payload.get("PRed", []):
-                pr_json = migration.get("PR", {})
+                try:
+                    pr_json = migration.get("PR", {})
+                    # maybe add a pass check info here ? (if using DEBUG)
+                except Exception as e:
+                    logger.error(f'BOT-RERUN : could not proceed check with {node}, {e}')
                 # if there is a valid PR and it isn't currently listed as rerun
                 # but the PR needs a rerun
                 if (
