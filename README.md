@@ -29,5 +29,6 @@ assume that you have conda installed and conda-forge is in your channel list.
 conda create -y -n cf --file requirements/run --file requirements/test ipython
 source activate cf
 python setup.py install
+pre-commit run -a
 coverage run run_tests.py
 ```
