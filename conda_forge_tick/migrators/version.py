@@ -691,7 +691,8 @@ class Version(Migrator):
             hint = f"\n\nDependency Analysis\n--------------------\n\n"
             hint += (
                 "We couldn't run dependency analysis due to an error. Make sure the "
-                "recipe and the source code download URL are correct.\n"
+                "source code download URL is correct and any source code patches "
+                "apply correctly.\n"
             )
             body += hint
         return body
