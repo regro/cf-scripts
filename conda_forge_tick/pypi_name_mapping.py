@@ -10,7 +10,9 @@ import sys
 import yaml
 import pathlib
 
-from typing import Dict, List
+from collections import Counter
+from typing import Dict, List, Optional, Any
+from os.path import commonprefix
 
 
 from .utils import load, as_iterable
@@ -22,7 +24,13 @@ def load_node_meta_yaml(filename: str) -> Dict[str, str]:
     return meta_yaml
 
 
-def extract_single_pypi_information(meta_yaml: Dict[str, str]) -> Dict[str, str]:
+def extract_pypi_name_from_metadata_extras(meta_yaml: Dict[str, Any]) -> Optional[str]:
+    return meta_yaml.get("extra", {}).get("mappings", {}).get("python", {}).get("pypi")
+
+
+def extract_pypi_name_from_metadata_source_url(
+    meta_yaml: Dict[str, Any],
+) -> Optional[str]:
     if "source" in meta_yaml:
         if "url" in meta_yaml["source"]:
             src_urls = meta_yaml["source"]["url"]
@@ -31,24 +39,55 @@ def extract_single_pypi_information(meta_yaml: Dict[str, str]) -> Dict[str, str]
                 if url.startswith("https://pypi.io/packages/") or url.startswith(
                     "https://pypi.org/packages/",
                 ):
-                    break
-            else:
-                return {}
+                    return url.split("/")[-2]
+    return None
 
-            # now get the name
-            conda_name = meta_yaml["package"]["name"]
-            pypi_name = url.split("/")[-2]
-            # determine the import_name
-            imports = meta_yaml.get("test", {}).get("imports", []) or []
-            imports = {x for x in imports if "." not in x}
-            if len(imports) == 1:
-                import_name = list(imports)[0]
-                return {
-                    "pypi_name": pypi_name,
-                    "conda_name": conda_name,
-                    "import_name": import_name,
-                    "mapping_source": "regro-bot",
-                }
+
+def extract_import_name_from_metadata_extras(
+    meta_yaml: Dict[str, Any],
+) -> Optional[str]:
+    return (
+        meta_yaml.get("extra", {})
+        .get("mappings", {})
+        .get("python", {})
+        .get("import_name")
+    )
+
+
+def extract_import_name_from_test_imports(meta_yaml: Dict[str, Any]) -> Optional[str]:
+    imports = meta_yaml.get("test", {}).get("imports", []) or []
+    split_imports = [imp.split(".") for imp in imports]
+    prefix = commonprefix(split_imports)
+    # namespace common_prefixes
+    #   strategy should cover the case for things like zope
+    #       zope, zope.interface, zope.inferface.foo, zope.interface.bar
+    c = Counter(len(imp) for imp in split_imports)
+    if len(prefix) == 1 and c.get(1) == 1 and len(split_imports) > 3:
+        ns_prefix = commonprefix([imp[1:] for imp in split_imports if len(imp) > 1])
+        if prefix and ns_prefix:
+            prefix = list(prefix) + list(ns_prefix)
+        # print(prefix, ns_prefix)
+    if prefix:
+        return ".".join(prefix)
+    return None
+
+
+def extract_single_pypi_information(meta_yaml: Dict[str, Any]) -> Dict[str, str]:
+    pypi_name = extract_pypi_name_from_metadata_extras(
+        meta_yaml,
+    ) or extract_pypi_name_from_metadata_source_url(meta_yaml)
+    conda_name = meta_yaml["package"]["name"]
+    import_name = extract_import_name_from_metadata_extras(
+        meta_yaml,
+    ) or extract_import_name_from_test_imports(meta_yaml)
+
+    if import_name and conda_name and pypi_name:
+        return {
+            "pypi_name": pypi_name,
+            "conda_name": conda_name,
+            "import_name": import_name,
+            "mapping_source": "regro-bot",
+        }
     return {}
 
 
