@@ -690,9 +690,7 @@ class Version(Migrator):
         except Exception:
             hint = f"\n\nDependency Analysis\n--------------------\n\n"
             hint += (
-                "We couldn't run dependency analysis due to an error. Make sure the "
-                "source code download URL is correct and any source code patches "
-                "apply correctly.\n"
+                "We couldn't run dependency analysis due to an internal error in the bot. :(\n"
             )
             body += hint
         return body
