@@ -36,8 +36,10 @@ def extract_pypi_name_from_metadata_source_url(
             src_urls = meta_yaml["source"]["url"]
             src_urls = as_iterable(src_urls)
             for url in src_urls:
-                if url.startswith("https://pypi.io/packages/") or url.startswith(
-                    "https://pypi.org/packages/",
+                if (
+                    url.startswith("https://pypi.io/packages/")
+                    or url.startswith("https://pypi.org/packages/")
+                    or url.startswith("https://pypi.python.org/packages/")
                 ):
                     return url.split("/")[-2]
     return None
@@ -55,7 +57,7 @@ def extract_import_name_from_metadata_extras(
 
 
 def extract_import_name_from_test_imports(meta_yaml: Dict[str, Any]) -> Optional[str]:
-    imports = meta_yaml.get("test", {}).get("imports", []) or []
+    imports = set(meta_yaml.get("test", {}).get("imports", []) or [])
     split_imports = [imp.split(".") for imp in imports]
     prefix = commonprefix(split_imports)
     # namespace common_prefixes

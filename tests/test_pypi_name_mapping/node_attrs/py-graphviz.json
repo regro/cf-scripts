@@ -1,0 +1,72 @@
+{
+ "bad":{
+  "exception":"feedstock_repo() missing 1 required positional argument: 'feedstock'",
+  "traceback":[
+   "Traceback (most recent call last):",
+   "  File \"/root/repo/cf-scripts/conda_forge_tick/auto_tick.py\", line 658, in main",
+   "    migrator_uid, pr_json = run(",
+   "  File \"/root/repo/cf-scripts/conda_forge_tick/auto_tick.py\", line 120, in run",
+   "    feedstock_dir, repo = get_repo(",
+   "  File \"/root/repo/cf-scripts/conda_forge_tick/git_utils.py\", line 115, in get_repo",
+   "    feedstock_reponame = feedstock_repo(fctx=fctx)",
+   "TypeError: feedstock_repo() missing 1 required positional argument: 'feedstock'",
+   ""
+  ]
+ },
+ "feedstock_name":"py-graphviz",
+ "hash_type":"sha256",
+ "meta_yaml":{
+  "about":{
+   "home":"https://github.com/xflr6/graphviz",
+   "license":"MIT",
+   "license_family":"MIT",
+   "summary":"Simple Python interface for Graphviz"
+  },
+  "build":{
+   "noarch":"python",
+   "number":"0",
+   "script":"python -m pip install --no-deps --ignore-installed --no-cache-dir -vvv ."
+  },
+  "extra":{
+   "recipe-maintainers":[
+    "corburn",
+    "bgruening"
+   ]
+  },
+  "package":{
+   "name":"py-graphviz",
+   "version":"0.9"
+  },
+  "requirements":{
+   "host":[
+    "python",
+    "pip"
+   ],
+   "run":[
+    "python"
+   ]
+  },
+  "source":{
+   "sha256":"865afa6ab9775cf29db03abd8e571a164042c726c35a1b3c1e2b8c4c645e2993",
+   "url":"https://pypi.python.org/packages/source/g/graphviz/graphviz-0.9.zip"
+  },
+  "test":{
+   "imports":[
+    "graphviz"
+   ]
+  }
+ },
+ "name":"py-graphviz",
+ "new_version":false,
+ "raw_meta_yaml":"{% set version = \"0.9\" %}\n{% set sha256 = \"865afa6ab9775cf29db03abd8e571a164042c726c35a1b3c1e2b8c4c645e2993\" %}\n\npackage:\n  name: py-graphviz\n  version: '{{ version }}'\n\nsource:\n  url: https://pypi.python.org/packages/source/g/graphviz/graphviz-{{ version }}.zip\n  sha256: '{{ sha256 }}'\n\nbuild:\n  noarch: python\n  number: 0\n  script: python -m pip install --no-deps --ignore-installed --no-cache-dir -vvv .\n\nrequirements:\n  host:\n    - python\n    - pip\n  run:\n    - python\n\ntest:\n  imports:\n    - graphviz\n\nabout:\n  home: https://github.com/xflr6/graphviz\n  license: MIT\n  license_family: MIT\n  summary: Simple Python interface for Graphviz\n\nextra:\n  recipe-maintainers:\n    - corburn\n    - bgruening\n",
+ "req":{
+  "__set__":true,
+  "elements":[
+   "pip",
+   "python"
+  ]
+ },
+ "time":1534777505.8594637,
+ "url":"https://pypi.python.org/packages/source/g/graphviz/graphviz-0.9.zip",
+ "version":"0.9"
+}
