@@ -689,7 +689,10 @@ class Version(Migrator):
                 body += hint
         except Exception:
             hint = f"\n\nDependency Analysis\n--------------------\n\n"
-            hint += "We couldn't run dependency analysis due to an error.\n"
+            hint += (
+                "We couldn't run dependency analysis due to an error. Make sure the "
+                "recipe and the source code download URL are correct.\n"
+            )
             body += hint
         return body
 
