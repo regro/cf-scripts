@@ -636,8 +636,8 @@ class Version(Migrator):
             .get("bot", {})
             .get("inspection", "hint")
         )
-        if update_deps == "hint":
-            try:
+        try:
+            if update_deps == "hint":
                 deps = extract_deps_from_source(
                     os.path.join(feedstock_ctx.feedstock_dir, "recipe"),
                 )
@@ -687,10 +687,10 @@ class Version(Migrator):
                         " the library's imports and the package's stated requirements in the meta.yaml."
                     )
                 body += hint
-            except Exception:
-                hint = f"\n\nDependency Analysis\n--------------------\n\n"
-                hint += "We couldn't run dependency analysis due to an error.\n"
-                body += hint
+        except Exception:
+            hint = f"\n\nDependency Analysis\n--------------------\n\n"
+            hint += "We couldn't run dependency analysis due to an error.\n"
+            body += hint
         return body
 
     def commit_message(self, feedstock_ctx: FeedstockContext) -> str:
