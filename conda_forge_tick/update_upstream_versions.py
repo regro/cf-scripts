@@ -59,23 +59,17 @@ CONDA_FORGE_TICK_DEBUG = os.environ.get("CONDA_FORGE_TICK_DEBUG", False)
 
 
 def _update_upstream_versions_sequential(
-    gx: nx.DiGraph, sources: Iterable[AbstractSource] = None,
+    _all_nodes, sources: Iterable[AbstractSource] = None,
 ) -> None:
 
-    _all_nodes = [t for t in gx.nodes.items()]
-    random.shuffle(_all_nodes)
-
     # Inspection the graph object and node update:
-    # print(f"Number of nodes: {len(gx.nodes)}")
     node_count = 0
-    to_update = []
+
     for node, node_attrs in _all_nodes:
         attrs = node_attrs["payload"]
         if "Upstream" not in attrs.get("bad", []) or attrs.get("archived"):
             continue
-        to_update.append((node, attrs))
 
-    for node, attrs in to_update:
         # checking each node
         version_data = {}
 
@@ -102,15 +96,12 @@ def _update_upstream_versions_sequential(
 
 
 def _update_upstream_versions_process_pool(
-    gx: nx.DiGraph, sources: Iterable[AbstractSource],
+    _all_nodes, sources: Iterable[AbstractSource],
 ) -> None:
     futures = {}
     # this has to be threads because the url hashing code uses a Pipe which
     # cannot be spawned from a process
     with executor(kind="dask", max_workers=10) as pool:
-        _all_nodes = [t for t in gx.nodes.items()]
-        random.shuffle(_all_nodes)
-
         for node, node_attrs in tqdm.tqdm(_all_nodes):
             attrs = node_attrs["payload"]
             if (attrs.get("bad") and "Upstream" not in attrs["bad"]) or attrs.get(
@@ -184,7 +175,11 @@ def update_upstream_versions(
         else _update_upstream_versions_process_pool
     )
     logger.info("Updating upstream versions")
-    updater(gx, sources)
+
+    _all_nodes = [t for t in gx.nodes.items()]
+    random.shuffle(_all_nodes)
+
+    updater(_all_nodes, sources)
 
 
 def main(args: Any = None) -> None:
