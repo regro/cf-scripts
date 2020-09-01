@@ -180,7 +180,7 @@ def load_static_mappings() -> List[Dict[str, str]]:
     return mapping
 
 
-def determine_best_matches_for_pypi_import(mapping: List[Dict[Any]], cf_graph: str):
+def determine_best_matches_for_pypi_import(mapping: List[Dict[str, Any]], cf_graph: str):
     map_by_import_name = defaultdict(set)
     map_by_conda_name = dict()
     final_map = {}
