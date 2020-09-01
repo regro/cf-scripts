@@ -2,52 +2,56 @@
 
 - pypi_name: docker
   import_name: docker
-  conda_forge: docker-py
+  conda_name: docker-py
 
 - pypi_name: graphviz
   import_name: graphviz
-  conda_forge: python-graphviz
+  conda_name: python-graphviz
 
 - pypi_name: matplotlib
   import_name: matplotlib
-  conda_forge: matplotlib-base
+  conda_name: matplotlib-base
 
 - pypi_name: opencv-python
   import_name: cv2
-  conda_forge: opencv
+  conda_name: opencv
 
 - pypi_name: pyqt4
   import_name: PyQt4
-  conda_forge: pyqt
+  conda_name: pyqt
   delimiter_min: "4.0.0"
   delimiter_max: "5.0.0"
 
 - pypi_name: pyqt5
   import_name: PyQt5
-  conda_forge: pyqt
+  conda_name: pyqt
   delimiter_min: "5.0.0"
   delimiter_max: "6.0.0"
 
 - pypi_name: python-opencv
   import_name: cv2
-  conda_forge: opencv
+  conda_name: opencv
 
 - pypi_name: tables
   import_name: pytables
-  conda_forge: pytables
+  conda_name: pytables
 
 - pypi_name: xxhash
   import_name: xxhash
-  conda_forge: python-xxhash
+  conda_name: python-xxhash
 
 - pypi_name: docker
   import_name: docker
-  conda_forge: docker-py
+  conda_name: docker-py
 
 - pypi_name: apache-airflow
   import_name: airflow
-  conda_forge: airflow
+  conda_name: airflow
 
 - pypi_name: setuptools
   import_name: pkg_resources
-  conda_forge: setuptools
+  conda_name: setuptools
+
+- pypi_name: numpy
+  import_name: numpy
+  conda_name: numpy
