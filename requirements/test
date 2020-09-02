@@ -4,3 +4,4 @@ codecov
 requests-mock
 doctr
 sphinx
+scipy
