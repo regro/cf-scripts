@@ -1,6 +1,12 @@
 import pathlib
-from conda_forge_tick.pypi_name_mapping import extract_pypi_information
+from collections import defaultdict
 
+from conda_forge_tick.pypi_name_mapping import (
+    extract_pypi_information,
+    load_static_mappings,
+    imports_to_canonical_import,
+)
+from conda_forge_tick.utils import load_graph
 
 test_graph_dir = str(pathlib.Path(__file__).parent / "test_pypi_name_mapping")
 
@@ -35,3 +41,23 @@ def test_directory():
         "import_name": "graphviz",
         "mapping_source": "regro-bot",
     } in res
+
+
+def test_canonical_import_detection():
+    assert imports_to_canonical_import(["psutil"]) == "psutil"
+    assert imports_to_canonical_import(["a", "a.b", "a.c", "a.e.f"]) == "a"
+
+    assert imports_to_canonical_import(["a", "a.b", "a.b.c", "a.b.d"]) == "a.b"
+    assert (
+        imports_to_canonical_import(["a", "a.b", "a.b.c", "a.b.c.d", "a.b.c.e"])
+        == "a.b.c"
+    )
+
+    assert imports_to_canonical_import(["zope", "zope.interface"]) == "zope.interface"
+    assert (
+        imports_to_canonical_import(["google", "google.cloud", "google.cloud.some_svc"])
+        == "google.cloud.some_svc"
+    )
+
+    assert imports_to_canonical_import(["a", "b"]) == ""
+    assert imports_to_canonical_import(["a.b.c", "a.b.d"]) == "a.b"

@@ -27,3 +27,6 @@ status/*
 feedstocks/*
 coverage.xml
 .coverage.*
+
+cf-graph/
+tests/node_attrs/
