@@ -251,7 +251,7 @@ def update_nodes_with_new_versions(gx):
                     [version_data["new_version"], attrs["new_version"]],
                     key=lambda x: VersionOrder(x.replace("-", ".")),
                 )
-            else:
+            elif "new_version" in version_data:
                 version_data.pop("new_version")
             attrs.update(version_data)
 
