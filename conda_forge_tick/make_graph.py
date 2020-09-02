@@ -245,10 +245,11 @@ def update_nodes_with_new_versions(gx):
         with open(f"./versions/{file}") as json_file:
             version_data: typing.Dict = json.load(json_file)
         with gx.nodes[f"{node}"]["payload"] as attrs:
+            version_from_data = version_data.get("new_version", False)
             # don't update the version if it isn't newer
-            if "new_version" in version_data and version_data["new_version"]:
+            if version_from_data and isinstance(version_from_data, str):
                 version_data["new_version"] = max(
-                    [version_data["new_version"], attrs["new_version"]],
+                    [version_from_data["new_version"], attrs["new_version"]],
                     key=lambda x: VersionOrder(x.replace("-", ".")),
                 )
             elif "new_version" in version_data:
