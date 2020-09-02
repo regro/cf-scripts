@@ -249,7 +249,7 @@ def update_nodes_with_new_versions(gx):
             # don't update the version if it isn't newer
             if version_from_data and isinstance(version_from_data, str):
                 version_data["new_version"] = max(
-                    [version_from_data["new_version"], attrs["new_version"]],
+                    [version_from_data, attrs["new_version"]],
                     key=lambda x: VersionOrder(x.replace("-", ".")),
                 )
             elif "new_version" in version_data:
