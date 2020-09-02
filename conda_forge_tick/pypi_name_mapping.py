@@ -194,7 +194,7 @@ def determine_best_matches_for_pypi_import(
         map_by_conda_name[conda_name] = m
 
     graph_file = str(pathlib.Path(cf_graph) / "graph.json")
-    gx = load_graph(cf_graph)
+    gx = load_graph(graph_file)
     # TODO: filter out archived feedstocks?
 
     import networkx
