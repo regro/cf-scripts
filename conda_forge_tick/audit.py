@@ -262,7 +262,7 @@ def create_package_import_maps(nodes, mapping_yaml="mappings/pypi/name_mapping.y
     imports_by_package = defaultdict(set)
     for item in raw_import_map:
         import_name = item["import_name"]
-        conda_name = item.get("conda_name", item.get("conda_forge"))
+        conda_name = item["conda_name"]
         potential_conda_names = {
             conda_name,
             import_name,

@@ -161,12 +161,11 @@ def convert_to_grayskull_style_yaml(
     mismatch = [
         x
         for x in package_mappings
-        if x["pypi_name"] != x.get("conda_name", x.get("conda_forge"))
+        if (x["pypi_name"] != x["conda_name"] or x["pypi_name"] != x["import_name"])
     ]
     grayskull_fmt = {
         x["pypi_name"]: {k: v for k, v in x.items() if x != "pypi_name"}
         for x in sorted(mismatch, key=lambda x: x["pypi_name"])
-        if x["pypi_name"] != x.get("conda_name", x.get("conda_forge"))
     }
     return grayskull_fmt
 
@@ -189,7 +188,7 @@ def determine_best_matches_for_pypi_import(
 
     for m in mapping:
         # print(m)
-        conda_name = m.get("conda_name") or m.get("conda_forge")
+        conda_name = m["conda_name"]
         map_by_import_name[m["import_name"]].add(conda_name)
         map_by_conda_name[conda_name] = m
 
@@ -245,7 +244,7 @@ def main(args: "CLIArgs") -> None:
         yaml.dump(
             sorted(
                 static_packager_mappings + pypi_package_mappings,
-                key=lambda pkg: pkg.get("conda_name", pkg.get("conda_forge")),
+                key=lambda pkg: pkg["conda_name"],
             ),
             fp,
             default_flow_style=False,
