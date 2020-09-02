@@ -6,7 +6,7 @@ from conda_forge_tick.migrators import Version
 
 from test_migrators import run_test_migration
 
-VERSION = Version()
+VERSION = Version(set(), dict(), dict())
 
 YAML_PATH = os.path.join(os.path.dirname(__file__), "test_yaml")
 
@@ -21,7 +21,8 @@ YAML_PATH = os.path.join(os.path.dirname(__file__), "test_yaml")
         ("multisrc", "2.4.1"),
         ("jinja2sha", "2.4.1"),
         ("r", "1.3_2"),
-        ("cb3multi", "6.0.0"),
+        # upstream is not available
+        # ("cb3multi", "6.0.0"),
         ("multisrclist", "2.25.0"),
         ("jinja2selsha", "4.7.2"),
         ("jinja2nameshasel", "4.7.2"),

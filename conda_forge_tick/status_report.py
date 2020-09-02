@@ -52,18 +52,18 @@ def write_version_migrator_status(migrator, mctx):
     migrator.bind_to_ctx(mmctx)
 
     for node in mmctx.effective_graph.nodes:
-        with mmctx.effective_graph.nodes[node]["payload"] as attrs:
-            new_version = attrs.get("new_version", None)
-            if new_version is None:
-                continue
-            attempts = attrs.get("new_version_attempts", {}).get(new_version, 0)
-            if attempts == 0:
-                out["queued"].append(node)
-            else:
-                out["errored"].append(node)
-                out["errors"][node] = attrs.get("new_version_errors", {}).get(
-                    new_version, "no error information available",
-                )
+        attrs = mmctx.effective_graph.nodes[node]["payload"]
+        new_version = attrs.get("new_version", None)
+        if new_version is None:
+            continue
+        attempts = attrs.get("new_version_attempts", {}).get(new_version, 0)
+        if attempts == 0:
+            out["queued"].append(node)
+        else:
+            out["errored"].append(node)
+            out["errors"][node] = attrs.get("new_version_errors", {}).get(
+                new_version, "no error information available",
+            )
 
     with open("./status/version_status.json", "w") as f:
         json.dump(out, f, sort_keys=True, indent=2)
@@ -143,6 +143,7 @@ def graph_migrator_status(
 
         buildable = not migrator.filter(attrs)
         fntc = "black"
+        status_icon = ""
         if manually_done:
             out["done"].add(node)
             fc = "#440154"
@@ -166,10 +167,15 @@ def graph_migrator_status(
             out["in-pr"].add(node)
             fc = "#31688e"
             fntc = "white"
+            pr_status = pr_json["PR"]["mergeable_state"]
+            if pr_status == "clean":
+                status_icon = " ✓"
+            else:
+                status_icon = " ❎"
         if node not in out["done"]:
             gv.node(
                 node,
-                label=_clean_text(node),
+                label=_clean_text(node) + status_icon,
                 fillcolor=fc,
                 style="filled",
                 fontcolor=fntc,
@@ -194,6 +200,7 @@ def graph_migrator_status(
                 "html_url",
                 feedstock_url(fctx=feedstock_ctx, protocol="https").strip(".git"),
             )
+            node_metadata["pr_status"] = pr_json["PR"].get("mergeable_state")
 
     out2: Dict = {}
     for k in out.keys():
@@ -291,8 +298,7 @@ def main(args: Any = None) -> None:
             indent=2,
         )
     open_prs = []
-    gx = load_graph()
-    for node, attrs in gx.nodes("payload"):
+    for node, attrs in mctx.graph.nodes("payload"):
         for pr in attrs.get("PRed", []):
             if pr.get("PR", {}).get("state", "closed") != "closed":
                 open_prs.append(pr["PR"])

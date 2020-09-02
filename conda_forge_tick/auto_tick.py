@@ -15,6 +15,8 @@ import cProfile
 import pstats
 import io
 
+from conda_forge_tick.profiler import profiling
+
 import networkx as nx
 from conda.models.version import VersionOrder
 from conda_build.config import Config
@@ -26,6 +28,8 @@ import github3
 import ruamel.yaml as yaml
 from uuid import uuid4
 
+from conda_forge_tick.audit import create_package_import_maps
+from conda_forge_tick.migrators.arch import OSXArm
 from conda_forge_tick.migrators.migration_yaml import (
     MigrationYamlCreator,
     create_rebuild_graph,
@@ -75,6 +79,9 @@ from conda_forge_tick.migrators import (
     CondaForgeYAMLCleanup,
     ExtraJinja2KeysCleanup,
     Jinja2VarsCleanup,
+    UpdateConfigSubGuessMigrator,
+    UpdateCMakeArgsMigrator,
+    GuardTestingMigrator,
 )
 
 from conda_forge_tick.mamba_solver import is_recipe_solvable
@@ -91,18 +98,7 @@ logger = logging.getLogger("conda_forge_tick.auto_tick")
 PR_LIMIT = 5
 MAX_PR_LIMIT = 50
 
-MIGRATORS: MutableSequence[Migrator] = [
-    Version(
-        pr_limit=PR_LIMIT * 2,
-        piggy_back_migrations=[
-            Jinja2VarsCleanup(),
-            PipMigrator(),
-            LicenseMigrator(),
-            CondaForgeYAMLCleanup(),
-            ExtraJinja2KeysCleanup(),
-        ],
-    ),
-]
+MIGRATORS: MutableSequence[Migrator] = []
 
 BOT_RERUN_LABEL = {
     "name": "bot-rerun",
@@ -262,6 +258,8 @@ def run(
     else:
         # push up
         try:
+            # TODO: remove this hack, but for now this is the only way to get the feedstock dir into pr_body
+            feedstock_ctx.feedstock_dir = feedstock_dir
             pr_json = push_repo(
                 session_ctx=migrator.ctx.session,
                 fctx=feedstock_ctx,
@@ -392,6 +390,19 @@ def add_arch_migrate(migrators: MutableSequence[Migrator], gx: nx.DiGraph) -> No
     migrators.append(
         ArchRebuild(
             graph=total_graph, pr_limit=PR_LIMIT, name="aarch64 and ppc64le addition",
+        ),
+    )
+    migrators.append(
+        OSXArm(
+            graph=total_graph,
+            pr_limit=PR_LIMIT,
+            name="arm osx addition",
+            piggy_back_migrations=[
+                UpdateConfigSubGuessMigrator(),
+                CondaForgeYAMLCleanup(),
+                UpdateCMakeArgsMigrator(),
+                GuardTestingMigrator(),
+            ],
         ),
     )
 
@@ -720,6 +731,7 @@ def _compute_time_per_migrator(mctx):
     return num_nodes, time_per_migrator, tot_time_per_migrator
 
 
+@profiling
 def main(args: "CLIArgs") -> None:
     # start profiler
     profile_profiler = cProfile.Profile()
@@ -744,6 +756,33 @@ def main(args: "CLIArgs") -> None:
         dry_run=args.dry_run,
         github_token=github_token,
     )
+    python_nodes = {
+        n for n, v in mctx.graph.nodes("payload") if "python" in v.get("req", "")
+    }
+    python_nodes.update(
+        [
+            k
+            for node_name, node in mctx.graph.nodes("payload")
+            for k in node.get("outputs_names", [])
+            if node_name in python_nodes
+        ],
+    )
+    imports_by_package, packages_by_import = create_package_import_maps(python_nodes)
+    version_migrator = Version(
+        python_nodes=python_nodes,
+        imports_by_package=imports_by_package,
+        packages_by_import=packages_by_import,
+        pr_limit=PR_LIMIT * 2,
+        piggy_back_migrations=[
+            Jinja2VarsCleanup(),
+            PipMigrator(),
+            LicenseMigrator(),
+            CondaForgeYAMLCleanup(),
+            ExtraJinja2KeysCleanup(),
+        ],
+    )
+
+    MIGRATORS = [version_migrator] + MIGRATORS
 
     # compute the time per migrator
     (num_nodes, time_per_migrator, tot_time_per_migrator) = _compute_time_per_migrator(

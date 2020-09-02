@@ -13,6 +13,7 @@ from .auto_tick import main as main_auto_tick
 from .status_report import main as main_status_report
 from .audit import main as main_audit
 from .update_prs import main as main_update_prs
+from .mappings import main as main_mappings
 
 
 def deploy(args):
@@ -29,6 +30,8 @@ def deploy(args):
                 ['git', 'add', 'audits/depfinder/*'],
                 ['git', 'add', 'versions/*'],
                 ['git', 'add', 'profiler/*'],
+                ['git', 'add', 'mappings/*'],
+                ['git', 'add', 'mappings/pypi/*'],
                 ['git', 'commit', '-am', f'"Update Graph {$CIRCLE_BUILD_URL}"']]:
         try:
             @(cmd)
@@ -91,6 +94,7 @@ int_script_dict = {
   4: main_status_report,
   5: main_audit,
   6: main_update_prs,
+  7: main_mappings,
   -1: deploy
 }
 
@@ -102,6 +106,8 @@ def main(*args, **kwargs):
         help="Runs in debug mode, running parallel parts sequentially and printing more info.")
     parser.add_argument("--dry-run", dest="dry_run", action="store_true", default=False,
                         help="Don't push changes to PRs or graph to Github")
+    parser.add_argument("--cf-graph", dest="cf_graph", default='.',
+                        help="location of the graph")
     args = parser.parse_args()
     $CONDA_FORGE_TICK_DEBUG = args.debug
     script = int(args.run)

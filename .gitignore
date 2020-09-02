@@ -2,6 +2,7 @@ build/
 *.egg-info
 dist/
 *.pyx
+*.pyc
 __pycache__
 *.swp
 
@@ -26,3 +27,6 @@ status/*
 feedstocks/*
 coverage.xml
 .coverage.*
+
+cf-graph/
+tests/node_attrs/

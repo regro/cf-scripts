@@ -15,7 +15,7 @@ package:
   version: {{ version }}
 
 source:
-  url: https://pypi.io/packages/source/{{ name[0] }}/{{ name }}/{{ name }}-{{ version }}.tar.gz
+  url: https://pypi.io/packages/source/{{ name[0] }}/{{ name }}/depfinder-{{ version }}.tar.gz
   sha256: 2694acbc8f7d94ca9bae55b8dc5b4860d5bc253c6a377b3b8ce63fb5bffa4000
 
 build:
@@ -109,7 +109,7 @@ G = nx.DiGraph()
 G.add_node("conda", reqs=["python"])
 
 
-def test_audit_feedstock():
+def test_depfinder_audit_feedstock():
     mm_ctx = MigratorSessionContext(
         graph=G,
         smithy_version="",
