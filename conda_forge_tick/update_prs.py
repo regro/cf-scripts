@@ -96,10 +96,11 @@ def _update_pr(update_function, dry_run, gx):
     random.shuffle(node_ids)
 
     pr_info_ordered = OrderedDict()
-    if not dry_run:
-        last_prs = _get_last_updated_prs()
-    else:
-        last_prs = []
+    # if not dry_run:
+    #     last_prs = _get_last_updated_prs()
+    # else:
+    #     last_prs = []
+    last_prs = []
     # Setting them here first gives them the highest priority in the OrderedDict
     for pr_id in last_prs:
         pr_info_ordered[pr_id] = None
