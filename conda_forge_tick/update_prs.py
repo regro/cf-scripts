@@ -8,15 +8,15 @@ import typing
 from collections import OrderedDict
 from concurrent.futures._base import as_completed
 
-from datetime import datetime
-import cProfile
+# from datetime import datetime
+# import cProfile
 
 import github3
 import networkx as nx
 import requests
 import tqdm
 
-from conda_forge_tick.profiler import profiling
+# from conda_forge_tick.profiler import profiling
 
 from conda_forge_tick.git_utils import (
     close_out_labels,
@@ -24,11 +24,10 @@ from conda_forge_tick.git_utils import (
     refresh_pr,
     close_out_dirty_prs,
 )
-from .make_graph import github_token, logger, ghctx
+from .make_graph import github_token, ghctx
 from .utils import (
     setup_logger,
     load_graph,
-    dump_graph,
     github_client,
     executor,
 )
@@ -37,7 +36,9 @@ if typing.TYPE_CHECKING:
     from .cli import CLIArgs
 
 logger = logging.getLogger("conda_forge_tick.update_prs")
+
 NUM_GITHUB_THREADS = 1
+KEEP_PR_FRACTION = 0.5
 
 
 def _get_last_updated_prs():
@@ -64,8 +65,8 @@ def _get_last_updated_prs():
             }
           }
         }
-    """,
-    )  # noqa
+    """,  # noqa
+    )
     headers = {"Authorization": f"token {github_token}"}
     # Try several times because this times out
     for i in range(10):
@@ -110,7 +111,12 @@ def _update_pr(update_function, dry_run, gx):
             node = gx.nodes[node_id]["payload"]
             prs = node.get("PRed", [])
             for i, migration in enumerate(prs):
+
+                if random.uniform(0, 1) >= KEEP_PR_FRACTION:
+                    continue
+
                 pr_json = migration.get("PR", None)
+
                 # allow for false
                 if pr_json:
                     if "__lazy_json__" in pr_json:
@@ -152,6 +158,7 @@ def _update_pr(update_function, dry_run, gx):
                     ),
                 )
                 raise
+
     return succeeded_refresh, failed_refresh
 
 
@@ -179,15 +186,15 @@ def close_dirty_prs(gx: nx.DiGraph, dry_run: bool = False) -> nx.DiGraph:
     return gx
 
 
-@profiling
+# @profiling
 def main(args: "CLIArgs") -> None:
-    # get current time
-    now = datetime.now()
-    current_time = now.strftime("%d-%m-%Y") + "_" + now.strftime("%H_%M_%S")
+    # # get current time
+    # now = datetime.now()
+    # current_time = now.strftime("%d-%m-%Y") + "_" + now.strftime("%H_%M_%S")
 
-    # start profiler
-    prof = cProfile.Profile()
-    prof.enable()
+    # # start profiler
+    # prof = cProfile.Profile()
+    # prof.enable()
 
     setup_logger(logger)
 
@@ -203,12 +210,12 @@ def main(args: "CLIArgs") -> None:
         # This function needs to run last since it edits the actual pr json!
         gx = close_dirty_prs(gx, args.dry_run)
 
-    # stop profiler
-    prof.disable()
-
-    # output to data
-    os.makedirs("profiler/update_prs", exist_ok=True)
-    prof.dump_stats(f"profiler/update_prs/{current_time}.txt")
+    # # stop profiler
+    # prof.disable()
+    #
+    # # output to data
+    # os.makedirs("profiler/update_prs", exist_ok=True)
+    # prof.dump_stats(f"profiler/update_prs/{current_time}.txt")
 
 
 if __name__ == "__main__":
