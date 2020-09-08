@@ -30,6 +30,8 @@ def deploy(args):
                 ['git', 'add', 'audits/depfinder/*'],
                 ['git', 'add', 'versions/*'],
                 ['git', 'add', 'profiler/*'],
+                ['git', 'add', 'profiler/make_graph/*']
+                ['git', 'add', 'profiler/auto_tick/*']
                 ['git', 'add', 'mappings/*'],
                 ['git', 'add', 'mappings/pypi/*'],
                 ['git', 'commit', '-am', f'"Update Graph {$CIRCLE_BUILD_URL}"']]:

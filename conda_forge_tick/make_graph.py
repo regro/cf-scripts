@@ -259,7 +259,7 @@ def update_nodes_with_new_versions(gx):
             attrs.update(version_data)
 
 
-@profiling
+@profiling('make_graph')
 def main(args: "CLIArgs") -> None:
     setup_logger(logger)
 

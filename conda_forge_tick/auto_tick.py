@@ -731,7 +731,7 @@ def _compute_time_per_migrator(mctx):
     return num_nodes, time_per_migrator, tot_time_per_migrator
 
 
-@profiling
+@profiling('auto_tick')
 def main(args: "CLIArgs") -> None:
     # start profiler
     profile_profiler = cProfile.Profile()
