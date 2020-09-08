@@ -162,8 +162,8 @@ class OSXArm(GraphMigrator):
     # We purposefully don't want to bump build number for this migrator
     bump_number = 0
 
-    ignored_packages = {"gfortran"}
-    excluded_dependencies = {"fortran_compiler_stub"}
+    ignored_packages = set()
+    excluded_dependencies = set()
 
     arches = ["osx_arm64"]
 
