@@ -59,13 +59,13 @@ CONDA_FORGE_TICK_DEBUG = os.environ.get("CONDA_FORGE_TICK_DEBUG", False)
 
 
 def _update_upstream_versions_sequential(
-    _all_nodes, sources: Iterable[AbstractSource] = None,
+    all_nodes, sources: Iterable[AbstractSource] = None,
 ) -> None:
 
     # Inspection the graph object and node update:
     node_count = 0
 
-    for node, node_attrs in _all_nodes:
+    for node, node_attrs in all_nodes:
         attrs = node_attrs["payload"]
         if "Upstream" not in attrs.get("bad", []) or attrs.get("archived"):
             continue
@@ -96,13 +96,13 @@ def _update_upstream_versions_sequential(
 
 
 def _update_upstream_versions_process_pool(
-    _all_nodes, sources: Iterable[AbstractSource],
+    all_nodes, sources: Iterable[AbstractSource],
 ) -> None:
     futures = {}
     # this has to be threads because the url hashing code uses a Pipe which
     # cannot be spawned from a process
     with executor(kind="dask", max_workers=10) as pool:
-        for node, node_attrs in tqdm.tqdm(_all_nodes):
+        for node, node_attrs in tqdm.tqdm(all_nodes):
             attrs = node_attrs["payload"]
             if (attrs.get("bad") and "Upstream" not in attrs["bad"]) or attrs.get(
                 "archived",
@@ -176,10 +176,10 @@ def update_upstream_versions(
     )
     logger.info("Updating upstream versions")
 
-    _all_nodes = [t for t in gx.nodes.items()]
-    random.shuffle(_all_nodes)
+    all_nodes = [t for t in gx.nodes.items()]
+    random.shuffle(all_nodes)
 
-    updater(_all_nodes, sources)
+    updater(all_nodes, sources)
 
 
 def main(args: Any = None) -> None:
