@@ -8,6 +8,7 @@ Builds and maintains mapping of pypi-names to conda-forge names
 import glob
 import yaml
 import pathlib
+import functools
 
 from collections import Counter, defaultdict
 from typing import Dict, List, Optional, Any, Tuple, Set, Iterable
@@ -185,6 +186,7 @@ def determine_best_matches_for_pypi_import(
     map_by_import_name = defaultdict(set)
     map_by_conda_name = dict()
     final_map = {}
+    ordered_import_names = []
 
     for m in mapping:
         # print(m)
@@ -215,20 +217,31 @@ def determine_best_matches_for_pypi_import(
                 """
                 return hubs.get(conda_name, 0), -authorities.get(conda_name, 0)
 
-            winner = list(sorted(candidates, key=score))[-1]
+            ranked_candidates = list(sorted(candidates, key=score))
+            winner = ranked_candidates[-1]
             print(f"needs {import_name} <- provided_by: {candidates} : chosen {winner}")
             final_map[import_name] = map_by_conda_name[winner]
+            ordered_import_names.append(
+                {
+                    "import_name": import_name,
+                    "ranked_conda_names": reversed(ranked_candidates),
+                },
+            )
         else:
             candidate = list(candidates)[0]
             final_map[import_name] = map_by_conda_name[candidate]
-    return final_map
+            ordered_import_names.append(
+                {"import_name": import_name, "ranked_conda_names": [candidate]},
+            )
+
+    return final_map, ordered_import_names
 
 
 def main(args: "CLIArgs") -> None:
     cf_graph = args.cf_graph
     static_packager_mappings = load_static_mappings()
     pypi_package_mappings = extract_pypi_information(cf_graph=cf_graph)
-    best_imports = determine_best_matches_for_pypi_import(
+    best_imports, ordered_import_names = determine_best_matches_for_pypi_import(
         cf_graph=cf_graph, mapping=pypi_package_mappings + static_packager_mappings,
     )
 
@@ -237,18 +250,23 @@ def main(args: "CLIArgs") -> None:
     dirname = pathlib.Path(cf_graph) / "mappings" / "pypi"
     dirname.mkdir(parents=True, exist_ok=True)
 
+    yaml_dump = functools.partial(yaml.dump, default_flow_style=False, sort_keys=True)
+
     with (dirname / "grayskull_pypi_mapping.yaml").open("w") as fp:
-        yaml.dump(grayskull_style, fp, default_flow_style=False, sort_keys=True)
+        yaml_dump(grayskull_style, fp)
 
     with (dirname / "name_mapping.yaml").open("w") as fp:
-        yaml.dump(
+        yaml_dump(
             sorted(
                 static_packager_mappings + pypi_package_mappings,
                 key=lambda pkg: pkg["conda_name"],
             ),
             fp,
-            default_flow_style=False,
-            sort_keys=True,
+        )
+
+    with (dirname / "import_name_priority_mapping.yaml").open("w") as fp:
+        yaml_dump(
+            sorted(ordered_import_names, key=lambda entry: entry["import_name"]), fp,
         )
 
 
