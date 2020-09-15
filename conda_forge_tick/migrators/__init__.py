@@ -19,4 +19,5 @@ from .cross_compile import (
     UpdateConfigSubGuessMigrator,
     UpdateCMakeArgsMigrator,
     GuardTestingMigrator,
+    CrossPythonMigrator,
 )

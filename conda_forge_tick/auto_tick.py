@@ -82,6 +82,7 @@ from conda_forge_tick.migrators import (
     UpdateConfigSubGuessMigrator,
     UpdateCMakeArgsMigrator,
     GuardTestingMigrator,
+    CrossPythonMigrator,
 )
 
 from conda_forge_tick.mamba_solver import is_recipe_solvable

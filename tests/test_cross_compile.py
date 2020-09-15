@@ -5,6 +5,7 @@ from conda_forge_tick.migrators import (
     Version,
     GuardTestingMigrator,
     UpdateCMakeArgsMigrator,
+    CrossPythonMigrator,
 )
 
 from test_migrators import run_test_migration
@@ -12,6 +13,7 @@ from test_migrators import run_test_migration
 config_migrator = UpdateConfigSubGuessMigrator()
 guard_testing_migrator = GuardTestingMigrator()
 cmake_migrator = UpdateCMakeArgsMigrator()
+cross_python_migrator = CrossPythonMigrator()
 
 version_migrator_autoconf = Version(
     set(),
@@ -23,7 +25,7 @@ version_migrator_cmake = Version(
     set(),
     dict(),
     dict(),
-    piggy_back_migrations=[cmake_migrator, guard_testing_migrator],
+    piggy_back_migrations=[cmake_migrator, guard_testing_migrator, cross_python_migrator],
 )
 
 config_recipe = """\
@@ -92,6 +94,9 @@ requirements:
     - make
     - cmake
   host:
+    - python
+    - pip
+    - numpy
     - ncurses
   run:
     - ncurses
@@ -128,11 +133,17 @@ build:
 
 requirements:
   build:
+    - python         # [build_platform != target_platform]
+    - cross-python   # [build_platform != target_platform]
+    - numpy          # [build_platform != target_platform]
     - pkg-config
     - {{ compiler('c') }}
     - make
     - cmake
   host:
+    - python
+    - pip
+    - numpy
     - ncurses
   run:
     - ncurses
