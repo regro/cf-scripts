@@ -134,8 +134,6 @@ class CrossPythonMigrator(CrossCompilationMigratorBase):
     def migrate(self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any) -> None:
         host_reqs = attrs.get("requirements", {}).get("host", set())
         with indir(recipe_dir):
-            if not os.path.exists("build.sh"):
-                return
             with open("meta.yaml") as f:
                 lines = f.readlines()
             in_reqs = False
@@ -149,7 +147,7 @@ class CrossPythonMigrator(CrossCompilationMigratorBase):
                     continue
                 if line.strip().startswith("build:"):
                     j = i + 1
-                    while j < len(lines) and not line[j].strip().startswith("-"):
+                    while j < len(lines) and not lines[j].strip().startswith("-"):
                         j = j + 1
                     if j == len(lines):
                         j = i + 1
@@ -167,7 +165,7 @@ class CrossPythonMigrator(CrossCompilationMigratorBase):
                                 + pkg.ljust(15)
                                 + "  # [build_platform != target_platform]\n"
                             )
-                            lines.insert(i, new_line)
+                            lines.insert(i+1, new_line)
                     break
 
             with open("meta.yaml", "w") as f:

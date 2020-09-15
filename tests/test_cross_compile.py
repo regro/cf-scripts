@@ -158,7 +158,7 @@ extra:
 """
 
 
-python_recipe = """
+python_recipe = """\
 {% set version = "1.19.0" %}
 
 package:
@@ -219,7 +219,7 @@ extra:
     - ocefpaf
 """
 
-python_recipe_correct = """
+python_recipe_correct = """\
 {% set version = "1.19.1" %}
 
 package:
@@ -238,8 +238,9 @@ build:
 
 requirements:
   build:
-    - python         # [build_platform != target_platform]
-    - cross-python   # [build_platform != target_platform]
+    - python           # [build_platform != target_platform]
+    - cross-python     # [build_platform != target_platform]
+    - cython           # [build_platform != target_platform]
     - {{ compiler('c') }}
     # gcc 7.3 segfaults on aarch64
     - clangdev    # [aarch64]
