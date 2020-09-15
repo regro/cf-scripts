@@ -128,6 +128,7 @@ class GuardTestingMigrator(CrossCompilationMigratorBase):
 class CrossPythonMigrator(CrossCompilationMigratorBase):
     def filter(self, attrs: "AttrsTypedDict", not_bad_str_start: str = "") -> bool:
         host_reqs = attrs.get("requirements", {}).get("host", set())
+        build_reqs = attrs.get("requirements", {}).get("build", set())
         return "python" not in host_reqs or "python" in build_reqs
 
     def migrate(self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any) -> None:
