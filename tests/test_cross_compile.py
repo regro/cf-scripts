@@ -25,7 +25,11 @@ version_migrator_cmake = Version(
     set(),
     dict(),
     dict(),
-    piggy_back_migrations=[cmake_migrator, guard_testing_migrator, cross_python_migrator],
+    piggy_back_migrations=[
+        cmake_migrator,
+        guard_testing_migrator,
+        cross_python_migrator,
+    ],
 )
 
 config_recipe = """\
