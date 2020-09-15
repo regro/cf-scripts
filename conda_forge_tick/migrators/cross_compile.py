@@ -140,8 +140,9 @@ class CrossPythonMigrator(CrossCompilationMigratorBase):
                 lines = f.readlines()
             in_reqs = False
             for i, line in enumerate(lines):
-                if line.strip().startswith("requirements"):
+                if line.strip().startswith("requirements:"):
                     in_reqs = True
+                    continue
                 if in_reqs and len(line) > 0 and line[0] != " ":
                     in_reqs = False
                 if not in_reqs:
