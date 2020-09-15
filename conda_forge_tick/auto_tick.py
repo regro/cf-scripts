@@ -403,6 +403,7 @@ def add_arch_migrate(migrators: MutableSequence[Migrator], gx: nx.DiGraph) -> No
                 CondaForgeYAMLCleanup(),
                 UpdateCMakeArgsMigrator(),
                 GuardTestingMigrator(),
+                CrossPythonMigrator(),
             ],
         ),
     )
