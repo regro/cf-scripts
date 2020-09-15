@@ -165,7 +165,7 @@ class CrossPythonMigrator(CrossCompilationMigratorBase):
                                 + pkg.ljust(15)
                                 + "  # [build_platform != target_platform]\n"
                             )
-                            lines.insert(i+1, new_line)
+                            lines.insert(i + 1, new_line)
                     break
 
             with open("meta.yaml", "w") as f:
