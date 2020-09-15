@@ -220,7 +220,7 @@ extra:
 """
 
 python_recipe_correct = """
-{% set version = "1.19.0" %}
+{% set version = "1.19.1" %}
 
 package:
   name: numpy
@@ -228,7 +228,7 @@ package:
 
 source:
   url: https://github.com/numpy/numpy/releases/download/v{{ version }}/numpy-{{ version }}.tar.gz
-  sha256: 153cf8b0176e57a611931981acfe093d2f7fef623b48f91176efa199798a6b90
+  sha256: 1396e6c3d20cbfc119195303b0272e749610b7042cc498be4134f013e9a3215c
 
 build:
   number: 0
