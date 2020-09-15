@@ -28,7 +28,7 @@ def verify(version: str, next_version: str):
     """This function takes two versions strings and compare them.
     If either of these match, then the version bump is performed if they don't match, then it won't."""
 
-    pattern = r'\d+\.\d+\.[02468]'
+    pattern = r"\d+\.\d+\.[02468]"
     split_version = re.match(pattern, next_version)
     if split_version.group() > version:
         return True
@@ -96,8 +96,8 @@ def _update_upstream_versions_sequential(
             # check for latest version
             new_version = get_latest_version(node, attrs, sources)["new_version"]
             # if new_version is inferior or not totally released we set new_version value as version
-            if not verify(attrs.get('version'), new_version):
-                new_version = attrs.get('version')
+            if not verify(attrs.get("version"), new_version):
+                new_version = attrs.get("version")
             version_data.update(new_version)
         except Exception as e:
             try:
