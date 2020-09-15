@@ -57,6 +57,9 @@ requirements:
     - make
     - cmake
   host:
+    - python
+    - pip
+    - numpy
     - ncurses
   run:
     - ncurses
