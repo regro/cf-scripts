@@ -56,7 +56,9 @@ class UpdateConfigSubGuessMigrator(CrossCompilationMigratorBase):
             with open("build.sh", "r") as f:
                 lines = list(f.readlines())
                 for line in lines:
-                    if line.strip().startswith("cp $BUILD_PREFIX/share/libtool/build-aux/config"):
+                    if line.strip().startswith(
+                        "cp $BUILD_PREFIX/share/libtool/build-aux/config",
+                    ):
                         return
                     if line.strip().startswith("autoreconf"):
                         return
@@ -153,9 +155,16 @@ class CrossPythonMigrator(CrossCompilationMigratorBase):
                     else:
                         spaces = len(lines[j]) - len(lines[j].lstrip())
                     new_line = " " * spaces
-                    for pkg in reversed(["python", "cross-python", "cython", "numpy", "pybind11"]):
+                    for pkg in reversed(
+                        ["python", "cross-python", "cython", "numpy", "pybind11"],
+                    ):
                         if pkg in host_reqs or pkg == "cross-python":
-                            new_line = " " * spaces + "- " + pkg.ljust(15) + "  # [build_platform != target_platform]\n"
+                            new_line = (
+                                " " * spaces
+                                + "- "
+                                + pkg.ljust(15)
+                                + "  # [build_platform != target_platform]\n"
+                            )
                             lines.insert(i, new_line)
                     break
 
