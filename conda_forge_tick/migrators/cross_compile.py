@@ -148,7 +148,7 @@ class CrossPythonMigrator(CrossCompilationMigratorBase):
                     continue
                 if line.strip().startswith("build:"):
                     j = i + 1
-                    while j < len(lines) and not line[i].strip().startswith("-"):
+                    while j < len(lines) and not line[j].strip().startswith("-"):
                         j = j + 1
                     if j == len(lines):
                         j = i + 1
