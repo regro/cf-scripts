@@ -32,12 +32,7 @@ version_migrator_cmake = Version(
     ],
 )
 version_migrator_python = Version(
-    set(),
-    dict(),
-    dict(),
-    piggy_back_migrations=[
-        cross_python_migrator,
-    ],
+    set(), dict(), dict(), piggy_back_migrations=[cross_python_migrator],
 )
 
 config_recipe = """\
@@ -163,7 +158,7 @@ extra:
 """
 
 
-python_recipe="""
+python_recipe = """
 {% set version = "1.19.0" %}
 
 package:
@@ -224,7 +219,7 @@ extra:
     - ocefpaf
 """
 
-python_recipe_correct="""
+python_recipe_correct = """
 {% set version = "1.19.0" %}
 
 package:
