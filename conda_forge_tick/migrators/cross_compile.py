@@ -145,7 +145,9 @@ class CrossPythonMigrator(CrossCompilationMigratorBase):
                     in_reqs = False
                 if not in_reqs:
                     continue
-                if line.strip().startswith("build:"):
+                if line.strip().startswith("build:") or line.strip().startswith(
+                    "host:",
+                ):
                     j = i + 1
                     while j < len(lines) and not lines[j].strip().startswith("-"):
                         j = j + 1
@@ -155,6 +157,8 @@ class CrossPythonMigrator(CrossCompilationMigratorBase):
                     else:
                         spaces = len(lines[j]) - len(lines[j].lstrip())
                     new_line = " " * spaces
+                    if line.strip().startswith("host:"):
+                        lines.insert(i, line.replace("host", "build"))
                     for pkg in reversed(
                         ["python", "cross-python", "cython", "numpy", "pybind11"],
                     ):
