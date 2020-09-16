@@ -238,9 +238,9 @@ build:
 
 requirements:
   build:
-    - python           # [build_platform != target_platform]
-    - cross-python     # [build_platform != target_platform]
-    - cython           # [build_platform != target_platform]
+    - python                                 # [build_platform != target_platform]
+    - cross-python_{{ target_platform }}     # [build_platform != target_platform]
+    - cython                                 # [build_platform != target_platform]
     - {{ compiler('c') }}
     # gcc 7.3 segfaults on aarch64
     - clangdev    # [aarch64]
@@ -370,8 +370,8 @@ build:
 
 requirements:
   build:
-    - python           # [build_platform != target_platform]
-    - cross-python     # [build_platform != target_platform]
+    - python                                 # [build_platform != target_platform]
+    - cross-python_{{ target_platform }}     # [build_platform != target_platform]
   host:
     - python
   run:
