@@ -283,7 +283,7 @@ extra:
     - ocefpaf
 """
 
-python_no_build_recipe="""\
+python_no_build_recipe = """\
 {% set version = "2020.4.5.2" %}
 
 {% set pip_version = "19.1.1" %}
@@ -342,7 +342,7 @@ extra:
     - jjhelmus
 """
 
-python_no_build_recipe_correct="""\
+python_no_build_recipe_correct = """\
 {% set version = "2020.6.20" %}
 
 {% set pip_version = "19.1.1" %}
@@ -403,6 +403,7 @@ extra:
     - mingwandroid
     - jjhelmus
 """
+
 
 def test_correct_config_sub(tmpdir):
     with open(os.path.join(tmpdir, "build.sh"), "w") as f:

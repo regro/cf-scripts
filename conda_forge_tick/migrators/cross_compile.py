@@ -145,7 +145,9 @@ class CrossPythonMigrator(CrossCompilationMigratorBase):
                     in_reqs = False
                 if not in_reqs:
                     continue
-                if line.strip().startswith("build:") or line.strip().startswith("host:"):
+                if line.strip().startswith("build:") or line.strip().startswith(
+                    "host:",
+                ):
                     j = i + 1
                     while j < len(lines) and not lines[j].strip().startswith("-"):
                         j = j + 1
