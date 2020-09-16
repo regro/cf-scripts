@@ -160,7 +160,13 @@ class CrossPythonMigrator(CrossCompilationMigratorBase):
                     if line.strip().startswith("host:"):
                         lines.insert(i, line.replace("host", "build"))
                     for pkg in reversed(
-                        ["python", "cross-python_{{ target_platform }}", "cython", "numpy", "pybind11"],
+                        [
+                            "python",
+                            "cross-python_{{ target_platform }}",
+                            "cython",
+                            "numpy",
+                            "pybind11",
+                        ],
                     ):
                         if pkg in host_reqs or pkg.startswith("cross-python"):
                             new_line = (
