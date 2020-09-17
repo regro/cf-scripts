@@ -196,6 +196,10 @@ class UpdateCMakeArgsMigrator(CrossCompilationMigratorBase):
                 lines = list(f.readlines())
 
             for i, line in enumerate(lines):
+                if "${CMAKE_ARGS}" in line or "$CMAKE_ARGS" in line:
+                    return
+
+            for i, line in enumerate(lines):
                 if line.startswith("cmake "):
                     lines[i] = "cmake ${CMAKE_ARGS} " + line[len("cmake ") :]
                     break
