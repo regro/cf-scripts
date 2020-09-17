@@ -165,6 +165,7 @@ class CrossPythonMigrator(CrossCompilationMigratorBase):
                             "cross-python_{{ target_platform }}",
                             "cython",
                             "numpy",
+                            "cffi",
                             "pybind11",
                         ],
                     ):
