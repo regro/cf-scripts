@@ -82,6 +82,7 @@ from conda_forge_tick.migrators import (
     UpdateConfigSubGuessMigrator,
     UpdateCMakeArgsMigrator,
     GuardTestingMigrator,
+    CrossPythonMigrator,
 )
 
 from conda_forge_tick.mamba_solver import is_recipe_solvable
@@ -402,6 +403,7 @@ def add_arch_migrate(migrators: MutableSequence[Migrator], gx: nx.DiGraph) -> No
                 CondaForgeYAMLCleanup(),
                 UpdateCMakeArgsMigrator(),
                 GuardTestingMigrator(),
+                CrossPythonMigrator(),
             ],
         ),
     )

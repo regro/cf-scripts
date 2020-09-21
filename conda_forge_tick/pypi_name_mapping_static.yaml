@@ -44,6 +44,10 @@
   import_name: docker
   conda_name: docker-py
 
+- pypi_name: redis
+  import_name: redis
+  conda_name: redis-py
+
 - pypi_name: apache-airflow
   import_name: airflow
   conda_name: airflow
