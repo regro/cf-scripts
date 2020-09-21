@@ -7,7 +7,7 @@ from concurrent.futures import as_completed
 
 from copy import deepcopy
 from typing import List, Optional
-import psutils
+import psutil
 import json
 import networkx as nx
 import requests
