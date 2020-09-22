@@ -204,7 +204,8 @@ def make_graph(
 
 def update_nodes_with_bot_rerun(gx):
     """Go through all the open PRs and check if they are rerun"""
-    for name, node in gx.nodes.items():
+    for i, (name, node) in enumerate(gx.nodes.items()):
+        logger.info(f"node: {i} memory usage: {psutil.virtual_memory()}")
         with node["payload"] as payload:
             for migration in payload.get("PRed", []):
                 try:
