@@ -7,7 +7,7 @@ from concurrent.futures import as_completed
 
 from copy import deepcopy
 from typing import List, Optional
-
+import psutil
 import json
 import networkx as nx
 import requests
@@ -198,12 +198,14 @@ def make_graph(
                 gx.add_node(dep, payload=lzj)
             gx.add_edge(dep, node)
     logger.info("new nodes and edges inferred")
+    logger.info(f"memory usage: {psutil.virtual_memory()}")
     return gx
 
 
 def update_nodes_with_bot_rerun(gx):
     """Go through all the open PRs and check if they are rerun"""
-    for name, node in gx.nodes.items():
+    for i, (name, node) in enumerate(gx.nodes.items()):
+        logger.info(f"node: {i} memory usage: {psutil.Process().memory_info().rss // 1024 ** 2}MB")
         with node["payload"] as payload:
             for migration in payload.get("PRed", []):
                 try:

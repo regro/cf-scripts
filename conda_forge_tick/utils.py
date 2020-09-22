@@ -882,4 +882,7 @@ def _get_source_code(recipe_dir):
         return None
     md = md[0][0]
     # provide source dir
-    return provide(md)
+    try:
+        return provide(md)
+    except SystemExit:
+        raise RuntimeError(f"Could not download source for {recipe_dir}!")
