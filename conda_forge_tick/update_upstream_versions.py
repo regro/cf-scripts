@@ -24,14 +24,20 @@ from typing import Any, Iterable
 logger = logging.getLogger("conda-forge-tick._update_versions")
 
 
-def verify(version: str, next_version: str):
+def version_match(version, new_version: str, payload):
     """This function takes two versions strings and compare them.
-    If either of these match, then the version bump is performed if they don't match, then it won't."""
+        If either of these match, then the version bump is performed if they don't match, then it won't."""
+    # Example pattern \d+\.\d+\.[02468] TODO need to add an standard version parser when there isn't any given pattern
 
-    pattern = r"\d+\.\d+\.[02468]"
-    split_version = re.match(pattern, next_version)
-    if split_version.group() > version:
-        return True
+    yml = payload.__getitem__('conda-forge.yml')
+    with yml['bot'] as bot:
+        if bot['version_pattern']:
+            split_version = re.match(bot.get('version_pattern'), new_version)
+            if split_version.group() > version:
+                return True
+        else:
+            # If there isn't any pattern, then proceed
+            return True
     return False
 
 
@@ -73,7 +79,6 @@ CONDA_FORGE_TICK_DEBUG = os.environ.get("CONDA_FORGE_TICK_DEBUG", False)
 def _update_upstream_versions_sequential(
     gx: nx.DiGraph, sources: Iterable[AbstractSource] = None,
 ) -> None:
-
     _all_nodes = [t for t in gx.nodes.items()]
     random.shuffle(_all_nodes)
 
@@ -96,7 +101,8 @@ def _update_upstream_versions_sequential(
             # check for latest version
             new_version = get_latest_version(node, attrs, sources)["new_version"]
             # if new_version is inferior or not totally released we set new_version value as version
-            if not verify(attrs.get("version"), new_version):
+            # (or parse std pattern)
+            if not version_match(attrs.get("version"), new_version, attrs):
                 new_version = attrs.get("version")
             version_data.update(new_version)
         except Exception as e:
