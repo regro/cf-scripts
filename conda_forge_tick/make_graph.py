@@ -198,6 +198,7 @@ def make_graph(
                 gx.add_node(dep, payload=lzj)
             gx.add_edge(dep, node)
     logger.info("new nodes and edges inferred")
+    logger.debug(f"memory usage: {psutil.virtual_memory()}")
     return gx
 
 
