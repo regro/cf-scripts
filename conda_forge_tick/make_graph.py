@@ -198,15 +198,13 @@ def make_graph(
                 gx.add_node(dep, payload=lzj)
             gx.add_edge(dep, node)
     logger.info("new nodes and edges inferred")
-    logger.debug(f"memory usage: {psutil.virtual_memory()}")
+    logger.info(f"memory usage: {psutil.virtual_memory()}")
     return gx
 
 
 def update_nodes_with_bot_rerun(gx):
     """Go through all the open PRs and check if they are rerun"""
     for name, node in gx.nodes.items():
-        logger.debug(f"checking rerun for {name}")
-        logger.debug(f"memory usage: {psutil.virtual_memory()}")
         with node["payload"] as payload:
             for migration in payload.get("PRed", []):
                 try:
