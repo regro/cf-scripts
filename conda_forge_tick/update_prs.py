@@ -186,7 +186,16 @@ def close_dirty_prs(gx: nx.DiGraph, dry_run: bool = False) -> nx.DiGraph:
     return gx
 
 
-keep_keys = {"url", "ETag", "Last-Modified", "id", "labels", "state", "merged_at", "mergeable_state"}
+keep_keys = {
+    "url",
+    "ETag",
+    "Last-Modified",
+    "id",
+    "labels",
+    "state",
+    "merged_at",
+    "mergeable_state",
+}
 
 
 def cut_down_closed_prs(gx: nx.DiGraph, dry_run: bool = False) -> nx.DiGraph:
