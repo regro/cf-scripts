@@ -23,7 +23,6 @@ from conda_forge_tick.git_utils import (
     is_github_api_limit_reached,
     refresh_pr,
     close_out_dirty_prs,
-    clean_up_closed_prs,
 )
 from .make_graph import github_token, ghctx
 from .utils import (
@@ -187,7 +186,7 @@ def close_dirty_prs(gx: nx.DiGraph, dry_run: bool = False) -> nx.DiGraph:
     return gx
 
 
-keep_keys = {"url", "ETag", "Last-Modified", "id", "labels", "state", "merged_at"}
+keep_keys = {"url", "ETag", "Last-Modified", "id", "labels", "state", "merged_at", "mergeable_state"}
 
 
 def cut_down_closed_prs(gx: nx.DiGraph, dry_run: bool = False) -> nx.DiGraph:
