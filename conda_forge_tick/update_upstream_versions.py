@@ -29,10 +29,10 @@ def version_match(version, new_version: str, payload):
         If either of these match, then the version bump is performed if they don't match, then it won't."""
     # Example pattern \d+\.\d+\.[02468] TODO need to add an standard version parser when there isn't any given pattern
 
-    yml = payload.__getitem__('conda-forge.yml')
-    with yml['bot'] as bot:
-        if bot['version_pattern']:
-            split_version = re.match(bot.get('version_pattern'), new_version)
+    yml = payload.__getitem__("conda-forge.yml")
+    with yml["bot"] as bot:
+        if bot["version_pattern"]:
+            split_version = re.match(bot.get("version_pattern"), new_version)
             if split_version.group() > version:
                 return True
         else:
