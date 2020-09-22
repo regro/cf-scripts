@@ -23,6 +23,7 @@ from concurrent.futures import (
 )
 import subprocess
 
+import cachetools
 import github3
 import jinja2
 import boto3
@@ -130,8 +131,19 @@ class NullUndefined(jinja2.Undefined):
         return f'{self}["{name}"]'
 
 
+class LazyCache(cachetools.LRUCache):
+    """Companion cache for LazyJson that will write its value to disk when evicted"""
+
+    def popitem(self):
+        key, value = super().popitem()
+        with open(key, "w") as f:
+            dump(value, f)
+
+
 class LazyJson(MutableMapping):
     """Lazy load a dict from a json file and save it when updated"""
+
+    cache = LazyCache(1024)
 
     def __init__(self, file_name: str):
         self.file_name = file_name
@@ -140,53 +152,45 @@ class LazyJson(MutableMapping):
             os.makedirs(os.path.split(self.file_name)[0], exist_ok=True)
             with open(self.file_name, "w") as f:
                 dump({}, f)
-        self.data: Optional[dict] = None
+
+    @property
+    def data(self) -> dict:
+        if self.file_name not in self.cache:
+            self.cache[self.file_name] = self._load()
+        return self.cache[self.file_name]
 
     def __len__(self) -> int:
-        self._load()
-        assert self.data is not None
         return len(self.data)
 
     def __iter__(self) -> typing.Iterator[Any]:
-        self._load()
-        assert self.data is not None
         yield from self.data
 
     def __delitem__(self, v: Any) -> None:
-        self._load()
-        assert self.data is not None
         del self.data[v]
         self._dump()
 
-    def _load(self) -> None:
-        if self.data is None:
-            try:
-                with open(self.file_name, "r") as f:
-                    self.data = load(f)
-            except FileNotFoundError:
-                print(os.getcwd())
-                print(os.listdir("."))
-                raise
+    def _load(self) -> dict:
+        try:
+            with open(self.file_name, "r") as f:
+                return load(f)
+        except FileNotFoundError:
+            print(os.getcwd())
+            print(os.listdir("."))
+            raise
 
     def _dump(self) -> None:
-        self._load()
         with open(self.file_name, "w") as f:
             dump(self.data, f)
 
     def __getitem__(self, item: Any) -> Any:
-        self._load()
-        assert self.data is not None
         return self.data[item]
 
     def __setitem__(self, key: Any, value: Any) -> None:
-        self._load()
-        assert self.data is not None
         self.data[key] = value
         self._dump()
 
     def __getstate__(self) -> dict:
         state = self.__dict__.copy()
-        state["data"] = None
         return state
 
     def __enter__(self) -> "LazyJson":
