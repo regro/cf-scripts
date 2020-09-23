@@ -361,6 +361,19 @@ def _fmt_error_message(errors, version):
     return msg
 
 
+def check_version_matches_cadence(new_version: str, version: str, bot):
+    """This function takes two versions strings and compare them by using a given pattern."""
+    if "version_pattern" not in bot or not bot["version_pattern"]:
+        return False
+    pattern = bot.get("version_pattern")
+    if pattern is not None:
+        split_version = re.match(pattern, new_version)
+        # if version is greater then the new_version (~parsed) then we should not perform the PR
+        if version >= split_version.group():
+            return True
+    return False
+
+
 class Version(Migrator):
     """Migrator for version bumping of packages"""
 
@@ -418,6 +431,10 @@ class Version(Migrator):
                     >= VersionOrder(str(attrs["new_version"]))
                     for h in attrs.get("PRed", set())
                 )
+                # ...
+                or check_version_matches_cadence(str(attrs.get("version")),
+                                                 str(attrs["new_version"]),
+                                                 attrs["conda-forge.yml"].get("bot"))
             )
         except conda.exceptions.InvalidVersionSpec as e:
             warnings.warn(
