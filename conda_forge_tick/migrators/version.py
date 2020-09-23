@@ -435,7 +435,7 @@ class Version(Migrator):
                     for h in attrs.get("PRed", set())
                 )
                 # ...
-                or check_version_matches_cadence(
+                or not check_version_matches_cadence(
                     str(attrs.get("version")),
                     str(attrs["new_version"]),
                     attrs["conda-forge.yml"].get("bot"),
