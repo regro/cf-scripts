@@ -195,6 +195,8 @@ keep_keys = {
     "state",
     "merged_at",
     "mergeable_state",
+    "created_at",
+    "closed_at",
 }
 
 
