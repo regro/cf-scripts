@@ -3,6 +3,7 @@ import os
 import re
 import time
 import typing
+import random
 from concurrent.futures import as_completed
 
 from copy import deepcopy
@@ -205,9 +206,13 @@ def make_graph(
 def update_nodes_with_bot_rerun(gx):
     """Go through all the open PRs and check if they are rerun"""
     for i, (name, node) in enumerate(gx.nodes.items()):
-        logger.info(f"node: {i} memory usage: {psutil.Process().memory_info().rss // 1024 ** 2}MB")
+        logger.info(
+            f"node: {i} memory usage: {psutil.Process().memory_info().rss // 1024 ** 2}MB",
+        )
         with node["payload"] as payload:
             for migration in payload.get("PRed", []):
+                if random.random() >= 0.5:
+                    continue
                 try:
                     pr_json = migration.get("PR", {})
                     # maybe add a pass check info here ? (if using DEBUG)
