@@ -432,9 +432,11 @@ class Version(Migrator):
                     for h in attrs.get("PRed", set())
                 )
                 # ...
-                or check_version_matches_cadence(str(attrs.get("version")),
-                                                 str(attrs["new_version"]),
-                                                 attrs["conda-forge.yml"].get("bot"))
+                or check_version_matches_cadence(
+                    str(attrs.get("version")),
+                    str(attrs["new_version"]),
+                    attrs["conda-forge.yml"].get("bot"),
+                )
             )
         except conda.exceptions.InvalidVersionSpec as e:
             warnings.warn(
