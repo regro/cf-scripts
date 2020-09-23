@@ -367,10 +367,12 @@ def check_version_matches_cadence(new_version: str, version: str, bot):
         return False
     pattern = bot.get("version_pattern")
     if pattern is not None:
-        split_version = re.match(pattern, new_version)
         # if version is greater then the new_version (~parsed) then we should not perform the PR
-        if version >= split_version.group():
+        if version >= re.match(pattern, new_version).group():
             return True
+        else:
+            # if the new_version if greater then the current one, it's necessary to issue a new PR
+            return False
     return False
 
 
