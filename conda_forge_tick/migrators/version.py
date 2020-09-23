@@ -364,14 +364,15 @@ def _fmt_error_message(errors, version):
 def check_version_matches_cadence(new_version: str, version: str, bot):
     """This function takes two versions strings and compare them by using a given pattern."""
     if "version_pattern" not in bot or not bot["version_pattern"]:
-        return False
+        return True
     pattern = bot.get("version_pattern")
     if pattern is not None:
-        # if version is greater then the new_version (~parsed) then we should not perform the PR
-        if version >= re.match(pattern, new_version).group():
+        # if new_version is well conformed within it's pattern (like the stable versions)
+        # then we should perform the PR.
+        if version == re.match(pattern, new_version).group():
             return True
         else:
-            # if the new_version if greater then the current one, it's necessary to issue a new PR
+            # if the new_version differs from it's patter, it's not necessary to issue a new PR.
             return False
     return False
 
