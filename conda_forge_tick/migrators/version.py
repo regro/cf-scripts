@@ -369,7 +369,7 @@ def check_version_matches_cadence(new_version: str, version: str, bot):
     if pattern is not None:
         # if new_version is well conformed within it's pattern (like the stable versions)
         # then we should perform the PR.
-        if version == re.match(pattern, new_version).group():
+        if [k for k in version] == re.match(pattern, new_version).group():
             return True
         else:
             # if the new_version differs from it's patter, it's not necessary to issue a new PR.
