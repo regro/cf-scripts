@@ -2,7 +2,9 @@ import os
 import json
 import pickle
 
-from conda_forge_tick.utils import LazyJson, get_requirements, dumps
+import pytest
+
+from conda_forge_tick.utils import LazyJson, get_requirements, dumps, extract_canonical_imports
 
 
 def test_lazy_json(tmpdir):
@@ -39,3 +41,17 @@ def test_get_requirements():
     assert get_requirements(meta_yaml) == {"1", "2", "3", "4", "5", "6"}
     assert get_requirements(meta_yaml, outputs=False) == {"1", "2", "3"}
     assert get_requirements(meta_yaml, host=False) == {"1", "2", "5", "6"}
+
+
+xonsh_files = json.load(open(f'{os.path.dirname(__file__)}/file_listings/xonsh.json'))
+setuptools_files = json.load(open(f'{os.path.dirname(__file__)}/file_listings/setuptools.json'))
+google_cloud_sotrage_files = json.load(open(f'{os.path.dirname(__file__)}/file_listings/google_cloud_storage.json'))
+
+
+@pytest.mark.parametrize('files, expected_imports', [
+    (xonsh_files, {'xonsh'}),
+    (setuptools_files, {'_distutils_hack', 'setuptools', 'pkg_resources'}),
+    (google_cloud_sotrage_files, {'google.cloud.storage'})
+])
+def test_extract_canonical_imports(files, expected_imports):
+    assert extract_canonical_imports(files) == expected_imports

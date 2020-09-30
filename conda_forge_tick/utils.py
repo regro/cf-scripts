@@ -886,3 +886,17 @@ def _get_source_code(recipe_dir):
         return provide(md)
     except SystemExit:
         raise RuntimeError(f"Could not download source for {recipe_dir}!")
+
+
+def file_path_to_import(file_path: str):
+    return file_path.replace('/__init__.py', '').replace('/__main__.py', '').replace('.py', '').replace('/', '.')
+
+
+def extract_canonical_imports(list_of_files):
+    would_be_imports = defaultdict(set)
+    for file in list_of_files:
+        if 'site-packages/' in file and '__init__.py' in file:
+            leaf = file.split('site-packages/')[-1].split('.egg/')[-1]
+            sections = leaf.split('/')
+            would_be_imports[len(sections)].add(leaf)
+    return {file_path_to_import(fp) for fp in would_be_imports[min(would_be_imports)]}
