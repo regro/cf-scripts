@@ -52,10 +52,14 @@ def deploy(args):
     while status != 0 and num_try < 10 and graph_ok:
         try:
             if num_try == 9:
+                print("\n\n>>>>>>>>>>>> git unshallow for try %d\n\n" % num_try, flush=True)
                 @(["git", "fetch", "--unshallow"])
+            print("\n\n>>>>>>>>>>>> git pull try %d\n\n" % num_try, flush=True)
             @(['git', 'pull', '-s', 'recursive', '-X', 'theirs'])
-        except Exception:
+        except Exception as e:
+            print("\n\n>>>>>>>>>>>> git pull try %d failed: %s \n\n" % (num_try, e), flush=True)
             pass
+        print("\n\n>>>>>>>>>>>> git push try %d\n\n" % num_try, flush=True)
         status = doctr_run(
             ['git',
              'push',
@@ -67,7 +71,9 @@ def deploy(args):
         num_try += 1
 
     if status != 0 or not graph_ok:
+        print("\n\n>>>>>>>>>>>> failed deploy - pushing to branch\n\n", flush=True)
         if not graph_ok:
+            print("\n\n>>>>>>>>>>>> git unshallow graph bad\n\n", flush=True)
             @(["git", "fetch", "--unshallow"])
         _branch = "failed-circle-run-%s" % os.environ["CIRCLE_BUILD_NUM"]
         @(["git", "checkout", "-b", _branch])
