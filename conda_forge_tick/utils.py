@@ -795,6 +795,10 @@ def populate_feedstock_attributes(
         sub_graph["outputs_names"] = sorted(
             list({d.get("name", "") for d in yaml_dict["outputs"]}),
         )
+    # if the feedstock and meta.yaml disagree on the name count it as an output
+    # so the edges work properly
+    elif name != meta_yaml["package"]["name"]:
+        sub_graph.setdefault("outputs_names", [meta_yaml["package"]["name"]])
 
     # TODO: Write schema for dict
     # TODO: remove this
