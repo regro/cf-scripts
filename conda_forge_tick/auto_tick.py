@@ -461,7 +461,7 @@ def add_rebuild_migration_yaml(
 
     if "override_cbc_keys" not in config:
         # this will fail if we've not used keys in the cbc that are actual
-        # packages in the graph - this we skip it in that case
+        # packages in the graph - thus we skip it in that case
         package_names = {
             p if p in gx.nodes else output_to_feedstock[p] for p in package_names
         } - excluded_feedstocks
