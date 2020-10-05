@@ -534,7 +534,7 @@ def migration_factory(
         pr_limit = min(migrator_config.pop("pr_limit", pr_limit), MAX_PR_LIMIT)
 
         if "override_cbc_keys" in migrator_config:
-            package_names = set(migrator_config.get("package_names"))
+            package_names = set(migrator_config.get("override_cbc_keys"))
         else:
             package_names = (
                 (set(loaded_yaml) | {ly.replace("_", "-") for ly in loaded_yaml})
