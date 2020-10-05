@@ -537,9 +537,8 @@ def migration_factory(
             package_names = set(migrator_config.get("override_cbc_keys"))
         else:
             package_names = (
-                (set(loaded_yaml) | {ly.replace("_", "-") for ly in loaded_yaml})
-                & all_package_names
-            )
+                set(loaded_yaml) | {ly.replace("_", "-") for ly in loaded_yaml}
+            ) & all_package_names
         package_names = package_names - excluded_feedstocks
 
         if not paused:
