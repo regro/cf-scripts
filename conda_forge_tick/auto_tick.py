@@ -92,6 +92,7 @@ if typing.TYPE_CHECKING:
     from .migrators_types import (
         MetaYamlTypedDict,
         PackageName,
+        MigrationUidTypedDict,
     )
 
 logger = logging.getLogger("conda_forge_tick.auto_tick")
@@ -259,7 +260,8 @@ def run(
     else:
         # push up
         try:
-            # TODO: remove this hack, but for now this is the only way to get the feedstock dir into pr_body
+            # TODO: remove this hack, but for now this is the only way to get
+            # the feedstock dir into pr_body
             feedstock_ctx.feedstock_dir = feedstock_dir
             pr_json = push_repo(
                 session_ctx=migrator.ctx.session,
@@ -449,6 +451,7 @@ def add_rebuild_migration_yaml(
         package_names,
         excluded_feedstocks,
         include_noarch=config.get("include_noarch", False),
+        include_by_build_only=config.get("include_by_build_only", False),
     )
 
     # Note at this point the graph is made of all packages that have a
@@ -456,15 +459,21 @@ def add_rebuild_migration_yaml(
     # Some packages don't have a host section so we use their
     # build section in its place.
 
-    package_names = {
-        p if p in gx.nodes else output_to_feedstock[p] for p in package_names
-    } - excluded_feedstocks
+    if "override_cbc_keys" not in config:
+        # this will fail if we've not used keys in the cbc that are actual
+        # packages in the graph - this we skip it in that case
+        package_names = {
+            p if p in gx.nodes else output_to_feedstock[p] for p in package_names
+        } - excluded_feedstocks
 
-    top_level = {
-        node
-        for node in {gx.successors(package_name) for package_name in package_names}
-        if (node in total_graph) and len(list(total_graph.predecessors(node))) == 0
-    }
+        top_level = {
+            node
+            for node in {gx.successors(package_name) for package_name in package_names}
+            if (node in total_graph) and len(list(total_graph.predecessors(node))) == 0
+        }
+    else:
+        top_level = None
+
     cycles = list(nx.simple_cycles(total_graph))
     migrator = MigrationYaml(
         migration_yaml,
@@ -524,10 +533,14 @@ def migration_factory(
         excluded_feedstocks = set(migrator_config.get("exclude", []))
         pr_limit = min(migrator_config.pop("pr_limit", pr_limit), MAX_PR_LIMIT)
 
-        package_names = (
-            (set(loaded_yaml) | {l.replace("_", "-") for l in loaded_yaml})
-            & all_package_names
-        ) - excluded_feedstocks
+        if "override_cbc_keys" in migrator_config:
+            package_names = set(migrator_config.get("package_names"))
+        else:
+            package_names = (
+                (set(loaded_yaml) | {ly.replace("_", "-") for ly in loaded_yaml})
+                & all_package_names
+            )
+        package_names = package_names - excluded_feedstocks
 
         if not paused:
             add_rebuild_migration_yaml(

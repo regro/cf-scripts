@@ -21,6 +21,7 @@ if typing.TYPE_CHECKING:
     from ..migrators_types import (
         MigrationUidTypedDict,
         AttrsTypedDict,
+        PackageName,
     )
 
 logger = logging.getLogger("conda_forge_tick.migrators.migration_yaml")
@@ -416,6 +417,7 @@ def create_rebuild_graph(
     package_names: Sequence[str],
     excluded_feedstocks: MutableSet[str] = None,
     include_noarch: bool = False,
+    include_by_build_only: bool = False,
 ) -> nx.DiGraph:
     total_graph = copy.deepcopy(gx)
     excluded_feedstocks = set() if excluded_feedstocks is None else excluded_feedstocks
@@ -428,7 +430,10 @@ def create_rebuild_graph(
         requirements = attrs.get("requirements", {})
         host = requirements.get("host", set())
         build = requirements.get("build", set())
-        bh = host or build
+        if include_by_build_only:
+            bh = build
+        else:
+            bh = host or build
         inclusion_criteria = bh & set(package_names) and (
             include_noarch
             or ("noarch" not in attrs.get("meta_yaml", {}).get("build", {}))
