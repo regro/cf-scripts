@@ -15,7 +15,7 @@ import logging
 import os
 import re
 from typing import Any, Tuple, Iterable, Union, Optional, IO, Set
-from collections.abc import MutableMapping, Set
+from collections.abc import MutableMapping
 from concurrent.futures import (
     ProcessPoolExecutor,
     ThreadPoolExecutor,
@@ -831,7 +831,8 @@ def load_feedstock(
     conda_forge_yaml: Optional[str] = None,
     mark_not_archived: bool = False,
 ):
-    """Load a feedstock into subgraph based on its name, if meta_yaml and conda_forge_yaml are provided
+    """Load a feedstock into subgraph based on its name, if meta_yaml and
+    conda_forge_yaml are provided
 
     Parameters
     ----------
