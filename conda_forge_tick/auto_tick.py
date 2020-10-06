@@ -451,7 +451,6 @@ def add_rebuild_migration_yaml(
         package_names,
         excluded_feedstocks,
         include_noarch=config.get("include_noarch", False),
-        include_by_build_only=config.get("include_by_build_only", False),
     )
 
     # Note at this point the graph is made of all packages that have a
@@ -459,20 +458,15 @@ def add_rebuild_migration_yaml(
     # Some packages don't have a host section so we use their
     # build section in its place.
 
-    if "override_cbc_keys" not in config:
-        # this will fail if we've not used keys in the cbc that are actual
-        # packages in the graph - thus we skip it in that case
-        package_names = {
-            p if p in gx.nodes else output_to_feedstock[p] for p in package_names
-        } - excluded_feedstocks
+    package_names = {
+        p if p in gx.nodes else output_to_feedstock.get(p, p) for p in package_names
+    } - excluded_feedstocks
 
-        top_level = {
-            node
-            for node in {gx.successors(package_name) for package_name in package_names}
-            if (node in total_graph) and len(list(total_graph.predecessors(node))) == 0
-        }
-    else:
-        top_level = None
+    top_level = {
+        node
+        for node in {gx.successors(package_name) for package_name in package_names}
+        if (node in total_graph) and len(list(total_graph.predecessors(node))) == 0
+    }
 
     cycles = list(nx.simple_cycles(total_graph))
     migrator = MigrationYaml(
