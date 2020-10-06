@@ -6,7 +6,6 @@ import typing
 import random
 from concurrent.futures import as_completed
 
-from copy import deepcopy
 from typing import List, Optional
 import psutil
 import json
@@ -163,7 +162,6 @@ def make_graph(
     builder(gx, total_names, new_names, mark_not_archived=mark_not_archived)
     logger.info("feedstock fetch loop completed")
 
-    gx2 = deepcopy(gx)
     logger.info("inferring nodes and edges")
 
     # make the outputs look up table so we can link properly
@@ -188,8 +186,10 @@ def make_graph(
     gx = nx.create_empty_copy(gx)
 
     # TODO: label these edges with the kind of dep they are and their platform
-    for node, node_attrs in gx2.nodes.items():
-        with node_attrs["payload"] as attrs:
+    # use a list so we don't change an iterable that is iterating
+    all_nodes = list(gx.nodes.keys())
+    for node in all_nodes:
+        with gx.nodes[node]["payload"] as attrs:
             # replace output package names with feedstock names via LUT
             deps = set(
                 map(
@@ -199,9 +199,10 @@ def make_graph(
             )
 
             # handle strong run exports
+            # TODO: do this per platform
             overlap = deps & strong_exports
             requirements = attrs.get("requirements")
-            if requirements:
+            if requirements and overlap:
                 requirements["host"].update(overlap)
                 requirements["run"].update(overlap)
 
