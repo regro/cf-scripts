@@ -459,8 +459,7 @@ def add_rebuild_migration_yaml(
     top_level = {
         node
         for node in {
-            gx.successors(feedstock_name)
-            for feedstock_name in feedstock_names
+            gx.successors(feedstock_name) for feedstock_name in feedstock_names
         }
         if (node in total_graph) and len(list(total_graph.predecessors(node))) == 0
     }
