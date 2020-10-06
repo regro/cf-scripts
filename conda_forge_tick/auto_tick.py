@@ -454,7 +454,7 @@ def add_rebuild_migration_yaml(
     # build section in its place.
 
     feedstock_names = {output_to_feedstock.get(p, p) for p in package_names}
-    feedstock_names = {p for p in package_names if p in gx.nodes} - excluded_feedstocks
+    feedstock_names = {p for p in feedstock_names if p in gx.nodes} - excluded_feedstocks
 
     top_level = {
         node
