@@ -21,6 +21,7 @@ if typing.TYPE_CHECKING:
     from ..migrators_types import (
         MigrationUidTypedDict,
         AttrsTypedDict,
+        PackageName,
     )
 
 logger = logging.getLogger("conda_forge_tick.migrators.migration_yaml")

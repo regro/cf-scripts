@@ -10,12 +10,7 @@ import os
 import typing
 from subprocess import SubprocessError, CalledProcessError
 
-from datetime import datetime
-import cProfile
-import pstats
-import io
-
-from conda_forge_tick.profiler import profiling
+# from conda_forge_tick.profiler import profiling
 
 import networkx as nx
 from conda.models.version import VersionOrder
@@ -92,6 +87,7 @@ if typing.TYPE_CHECKING:
     from .migrators_types import (
         MetaYamlTypedDict,
         PackageName,
+        MigrationUidTypedDict,
     )
 
 logger = logging.getLogger("conda_forge_tick.auto_tick")
@@ -259,7 +255,8 @@ def run(
     else:
         # push up
         try:
-            # TODO: remove this hack, but for now this is the only way to get the feedstock dir into pr_body
+            # TODO: remove this hack, but for now this is the only way to get
+            # the feedstock dir into pr_body
             feedstock_ctx.feedstock_dir = feedstock_dir
             pr_json = push_repo(
                 session_ctx=migrator.ctx.session,
@@ -456,15 +453,19 @@ def add_rebuild_migration_yaml(
     # Some packages don't have a host section so we use their
     # build section in its place.
 
-    package_names = {
-        p if p in gx.nodes else output_to_feedstock[p] for p in package_names
+    feedstock_names = {output_to_feedstock.get(p, p) for p in package_names}
+    feedstock_names = {
+        p for p in feedstock_names if p in gx.nodes
     } - excluded_feedstocks
 
     top_level = {
         node
-        for node in {gx.successors(package_name) for package_name in package_names}
+        for node in {
+            gx.successors(feedstock_name) for feedstock_name in feedstock_names
+        }
         if (node in total_graph) and len(list(total_graph.predecessors(node))) == 0
     }
+
     cycles = list(nx.simple_cycles(total_graph))
     migrator = MigrationYaml(
         migration_yaml,
@@ -482,7 +483,7 @@ def add_rebuild_migration_yaml(
         ],
         **config,
     )
-    print(f"bump number is {migrator.bump_number}")
+    print(f"bump number is {migrator.bump_number}\n", flush=True)
     migrators.append(migrator)
 
 
@@ -517,17 +518,25 @@ def migration_factory(
     for yaml_file, yaml_contents in migration_yamls:
         loaded_yaml = yaml.safe_load(yaml_contents)
         __mname = os.path.splitext(os.path.basename(yaml_file))[0]
-        print(__mname)
+        print(
+            "========================================"
+            "========================================\n"
+            f"migrator: {__mname}",
+            flush=True,
+        )
 
         migrator_config = loaded_yaml.get("__migrator", {})
         paused = migrator_config.pop("paused", False)
         excluded_feedstocks = set(migrator_config.get("exclude", []))
         pr_limit = min(migrator_config.pop("pr_limit", pr_limit), MAX_PR_LIMIT)
 
-        package_names = (
-            (set(loaded_yaml) | {l.replace("_", "-") for l in loaded_yaml})
-            & all_package_names
-        ) - excluded_feedstocks
+        if "override_cbc_keys" in migrator_config:
+            package_names = set(migrator_config.get("override_cbc_keys"))
+        else:
+            package_names = (
+                set(loaded_yaml) | {ly.replace("_", "-") for ly in loaded_yaml}
+            ) & all_package_names
+        package_names = package_names - excluded_feedstocks
 
         if not paused:
             add_rebuild_migration_yaml(
@@ -733,11 +742,8 @@ def _compute_time_per_migrator(mctx):
     return num_nodes, time_per_migrator, tot_time_per_migrator
 
 
-@profiling
+# @profiling
 def main(args: "CLIArgs") -> None:
-    # start profiler
-    profile_profiler = cProfile.Profile()
-    profile_profiler.enable()
 
     # logging
     from .xonsh_utils import env
@@ -956,27 +962,6 @@ def main(args: "CLIArgs") -> None:
             mctx.gh.rate_limit()["resources"]["core"]["remaining"],
         )
     logger.info("Done")
-
-    # stop profiler
-    profile_profiler.disable()
-
-    # human readable
-    s_stream = io.StringIO()
-
-    # TODO: There are other ways to do this, with more freedom
-    profile_stats = pstats.Stats(profile_profiler, stream=s_stream).sort_stats(
-        "tottime",
-    )
-    profile_stats.print_stats()
-
-    # get current time
-    now = datetime.now()
-    current_time = now.strftime("%d-%m-%Y") + "_" + now.strftime("%H_%M_%S")
-
-    # output to data
-    os.makedirs("profiler", exist_ok=True)
-    with open(f"profiler/{current_time}.txt", "w+") as f:
-        f.write(s_stream.getvalue())
 
 
 if __name__ == "__main__":

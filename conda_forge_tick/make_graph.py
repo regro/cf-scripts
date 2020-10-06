@@ -6,7 +6,6 @@ import typing
 import random
 from concurrent.futures import as_completed
 
-from copy import deepcopy
 from typing import List, Optional
 import psutil
 import json
@@ -15,7 +14,7 @@ import requests
 from conda.models.version import VersionOrder
 from requests import Response
 
-from conda_forge_tick.profiler import profiling
+# from conda_forge_tick.profiler import profiling
 
 from conda_forge_tick.utils import load_feedstock
 from .all_feedstocks import get_all_feedstocks
@@ -47,6 +46,15 @@ ghctx = GithubContext(
     github_token=github_token,
     circle_build_url=os.getenv("CIRCLE_BUILD_URL", ""),
 )
+
+# AFAIK, go and rust do not have strong run exports and so do not need to
+# appear here
+COMPILER_STUBS_WITH_STRONG_EXPORTS = [
+    "c_compiler_stub",
+    "cxx_compiler_stub",
+    "fortran_compiler_stub",
+    "cuda_compiler_stub",
+]
 
 
 def _fetch_file(name: str, filepath: str) -> typing.Union[str, Response]:
@@ -154,27 +162,34 @@ def make_graph(
     builder(gx, total_names, new_names, mark_not_archived=mark_not_archived)
     logger.info("feedstock fetch loop completed")
 
-    gx2 = deepcopy(gx)
     logger.info("inferring nodes and edges")
 
     # make the outputs look up table so we can link properly
+    # and add this as an attr so we can use later
     outputs_lut = {
         k: node_name
         for node_name, node in gx.nodes.items()
         for k in node.get("payload", {}).get("outputs_names", [])
     }
-    # add this as an attr so we can use later
     gx.graph["outputs_lut"] = outputs_lut
+
+    # collect all of the strong run exports
+    # we add the compiler stubs so that we know when host and run
+    # envs will have compiler-related packages in them
     strong_exports = {
         node_name
         for node_name, node in gx.nodes.items()
         if node.get("payload").get("strong_exports", False)
-    }
+    } | set(COMPILER_STUBS_WITH_STRONG_EXPORTS)
+
     # This drops all the edge data and only keeps the node data
     gx = nx.create_empty_copy(gx)
+
     # TODO: label these edges with the kind of dep they are and their platform
-    for node, node_attrs in gx2.nodes.items():
-        with node_attrs["payload"] as attrs:
+    # use a list so we don't change an iterable that is iterating
+    all_nodes = list(gx.nodes.keys())
+    for node in all_nodes:
+        with gx.nodes[node]["payload"] as attrs:
             # replace output package names with feedstock names via LUT
             deps = set(
                 map(
@@ -184,9 +199,10 @@ def make_graph(
             )
 
             # handle strong run exports
+            # TODO: do this per platform
             overlap = deps & strong_exports
             requirements = attrs.get("requirements")
-            if requirements:
+            if requirements and overlap:
                 requirements["host"].update(overlap)
                 requirements["run"].update(overlap)
 
@@ -207,7 +223,8 @@ def update_nodes_with_bot_rerun(gx):
     """Go through all the open PRs and check if they are rerun"""
     for i, (name, node) in enumerate(gx.nodes.items()):
         logger.info(
-            f"node: {i} memory usage: {psutil.Process().memory_info().rss // 1024 ** 2}MB",
+            f"node: {i} memory usage: "
+            f"{psutil.Process().memory_info().rss // 1024 ** 2}MB",
         )
         with node["payload"] as payload:
             for migration in payload.get("PRed", []):
@@ -266,7 +283,7 @@ def update_nodes_with_new_versions(gx):
             attrs.update(version_data)
 
 
-@profiling
+# @profiling
 def main(args: "CLIArgs") -> None:
     setup_logger(logger)
 
