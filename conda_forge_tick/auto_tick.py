@@ -453,13 +453,15 @@ def add_rebuild_migration_yaml(
     # Some packages don't have a host section so we use their
     # build section in its place.
 
-    package_names = {
-        p if p in gx.nodes else output_to_feedstock.get(p, p) for p in package_names
-    } - excluded_feedstocks
+    feedstock_names = {output_to_feedstock.get(p, p) for p in package_names}
+    feedstock_names = {p for p in package_names if p in gx.nodes} - excluded_feedstocks
 
     top_level = {
         node
-        for node in {gx.successors(package_name) for package_name in package_names}
+        for node in {
+            gx.successors(feedstock_name)
+            for feedstock_name in feedstock_names
+        }
         if (node in total_graph) and len(list(total_graph.predecessors(node))) == 0
     }
 
@@ -480,7 +482,7 @@ def add_rebuild_migration_yaml(
         ],
         **config,
     )
-    print(f"bump number is {migrator.bump_number}")
+    print(f"bump number is {migrator.bump_number}\n", flush=True)
     migrators.append(migrator)
 
 
@@ -515,7 +517,12 @@ def migration_factory(
     for yaml_file, yaml_contents in migration_yamls:
         loaded_yaml = yaml.safe_load(yaml_contents)
         __mname = os.path.splitext(os.path.basename(yaml_file))[0]
-        print(__mname)
+        print(
+            "========================================"
+            "========================================\n"
+            f"migrator: {__mname}",
+            flush=True,
+        )
 
         migrator_config = loaded_yaml.get("__migrator", {})
         paused = migrator_config.pop("paused", False)
