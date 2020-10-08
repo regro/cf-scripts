@@ -15,7 +15,7 @@ from conda_forge_tick.contexts import FeedstockContext
 from conda_forge_tick.migrators.core import GraphMigrator, MiniMigrator, Migrator
 from conda_forge_tick.xonsh_utils import indir
 from conda_forge_tick.utils import eval_cmd
-from ..utils import pluck
+from ..utils import pluck, pin_sep_pat
 
 if typing.TYPE_CHECKING:
     from ..migrators_types import (
@@ -421,6 +421,47 @@ class MigrationYamlCreator(Migrator):
         )
 
 
+def _req_is_python(req):
+    return pin_sep_pat.split(req)[0].strip().lower() == "python"
+
+
+def _all_noarch(attrs, only_python=False):
+    meta_yaml = attrs.get("meta_yaml", {}) or {}
+
+    if not only_python:
+        all_noarch = "noarch" in meta_yaml.get("build", {})
+        for output in meta_yaml.get("outputs", []):
+            all_noarch = all_noarch and ("noarch" in output.get("build", {}))
+    else:
+        reqs = (
+            meta_yaml.get("requirements", {}).get("host", [])
+            or meta_yaml.get("requirements", {}).get("build", [])
+            or []
+        )
+        if any(_req_is_python(req) for req in reqs):
+            all_noarch = "python" == meta_yaml.get("build", {}).get("noarch", None)
+        else:
+            all_noarch = True
+
+        for output in meta_yaml.get("outputs", []):
+            # some nodes have None
+            _build = output.get("build", {}) or {}
+
+            # some nodes have a list here
+            _reqs = output.get("requirements", {})
+            if not isinstance(_reqs, list):
+                _reqs = _reqs.get("host", []) or _reqs.get("build", []) or []
+
+            if any(_req_is_python(req) for req in _reqs):
+                _all_noarch = "python" == _build.get("noarch", None)
+            else:
+                _all_noarch = True
+
+            all_noarch = all_noarch and _all_noarch
+
+    return all_noarch
+
+
 def create_rebuild_graph(
     gx: nx.DiGraph,
     package_names: Sequence[str],
@@ -439,9 +480,9 @@ def create_rebuild_graph(
         host = requirements.get("host", set())
         build = requirements.get("build", set())
         bh = host or build
+        only_python = "python" in package_names
         inclusion_criteria = bh & set(package_names) and (
-            include_noarch
-            or ("noarch" not in attrs.get("meta_yaml", {}).get("build", {}))
+            include_noarch or not _all_noarch(attrs, only_python=only_python)
         )
         # get host/build, run and test and launder them through outputs
         # this should fix outputs related issues (eg gdal)
