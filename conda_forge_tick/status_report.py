@@ -228,8 +228,6 @@ def graph_migrator_status(
 
     print("    len(gv):", num_viz, flush=True)
 
-    out2["_num_viz"] = num_viz
-
     return out2, build_sequence, gv
 
 
