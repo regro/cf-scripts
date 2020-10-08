@@ -227,6 +227,7 @@ def graph_migrator_status(
             gv.edge(e0, e1)
 
     print("    len(gv):", num_viz, flush=True)
+    out2["_num_viz"] = num_viz
 
     return out2, build_sequence, gv
 
@@ -262,10 +263,11 @@ def main(args: Any = None) -> None:
         if isinstance(migrator, GraphMigrator) or isinstance(migrator, Replacement):
             total_status[migrator_name] = f"{migrator.name} Migration Status"
             status, build_order, gv = graph_migrator_status(migrator, mctx.graph)
+            num_viz = status.pop("_num_viz", 0)
             with open(os.path.join(f"./status/{migrator_name}.json"), "w") as fp:
                 json.dump(status, fp, indent=2)
 
-            if status["_num_viz"] <= 500:
+            if num_viz <= 500:
                 d = gv.pipe("dot")
                 with tempfile.NamedTemporaryFile(suffix=".dot") as ntf:
                     ntf.write(d)
