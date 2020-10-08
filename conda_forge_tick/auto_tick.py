@@ -231,7 +231,8 @@ def run(
     if (
         (
             migrator.check_solvable
-            and feedstock_ctx.attrs["conda-forge.yml"].get("bot", {}).get("automerge")
+            # for solveability always assume automerge is on.
+            and feedstock_ctx.attrs["conda-forge.yml"].get("bot", {}).get("automerge", True)
         )
         or feedstock_ctx.attrs["conda-forge.yml"]
         .get("bot", {})
