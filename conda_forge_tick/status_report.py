@@ -235,9 +235,10 @@ def graph_migrator_status(
 
 def main(args: Any = None) -> None:
     import requests
+
     r = requests.get(
         "https://raw.githubusercontent.com/conda-forge/"
-        "conda-forge.github.io/master/img/anvil.svg"
+        "conda-forge.github.io/master/img/anvil.svg",
     )
 
     mctx, *_, migrators = initialize_migrators()
