@@ -51,7 +51,8 @@ class ArchRebuild(GraphMigrator):
             for plat_arch in self.arches:
                 deps = set().union(
                     *attrs.get(
-                        f"{plat_arch}_requirements", attrs.get("requirements", {}),
+                        f"{plat_arch}_requirements",
+                        attrs.get("requirements", {}),
                     ).values()
                 )
                 for dep in deps:
@@ -68,7 +69,7 @@ class ArchRebuild(GraphMigrator):
         assert not self.check_solvable, "We don't want to check solvability for aarch!"
         # We are constraining the scope of this migrator
         with indir("../conda-forge-pinning-feedstock/recipe/migrations"), open(
-            "arch_rebuild.txt", "r",
+            "arch_rebuild.txt",
         ) as f:
             self.target_packages = set(f.read().split())
 
@@ -118,7 +119,7 @@ class ArchRebuild(GraphMigrator):
     ) -> "MigrationUidTypedDict":
         with indir(recipe_dir + "/.."):
             self.set_build_number("recipe/meta.yaml")
-            with open("conda-forge.yml", "r") as f:
+            with open("conda-forge.yml") as f:
                 y = safe_load(f)
             if "provider" not in y:
                 y["provider"] = {}
@@ -223,7 +224,7 @@ class OSXArm(GraphMigrator):
 
         # We are constraining the scope of this migrator
         with indir("../conda-forge-pinning-feedstock/recipe/migrations"), open(
-            "osx_arm64.txt", "r",
+            "osx_arm64.txt",
         ) as f:
             self.target_packages = set(f.read().split())
 
@@ -270,7 +271,7 @@ class OSXArm(GraphMigrator):
     ) -> "MigrationUidTypedDict":
         with indir(recipe_dir + "/.."):
             self.set_build_number("recipe/meta.yaml")
-            with open("conda-forge.yml", "r") as f:
+            with open("conda-forge.yml") as f:
                 y = safe_load(f)
             y.update(self.additional_keys)
             with open("conda-forge.yml", "w") as f:

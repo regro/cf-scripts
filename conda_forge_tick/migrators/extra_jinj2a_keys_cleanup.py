@@ -58,7 +58,7 @@ class ExtraJinja2KeysCleanup(MiniMigrator):
 
     def migrate(self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any) -> None:
         with indir(recipe_dir):
-            with open("meta.yaml", "r") as fp:
+            with open("meta.yaml") as fp:
                 lines = fp.readlines()
 
             for var_name in self.vars_to_remove:

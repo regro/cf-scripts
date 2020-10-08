@@ -141,7 +141,10 @@ def get_repo(
     from conda_forge_tick.git_xonsh_utils import fetch_repo
 
     if fetch_repo(
-        feedstock_dir=feedstock_dir, origin=origin, upstream=upstream, branch=branch,
+        feedstock_dir=feedstock_dir,
+        origin=origin,
+        upstream=upstream,
+        branch=branch,
     ):
         return feedstock_dir, repo
     else:
@@ -171,7 +174,9 @@ def delete_branch(ctx: GithubContext, pr_json: LazyJson, dry_run: bool = False) 
 
 
 @backoff.on_exception(
-    backoff.expo, (RequestException, Timeout), max_time=MAX_GITHUB_TIMEOUT,
+    backoff.expo,
+    (RequestException, Timeout),
+    max_time=MAX_GITHUB_TIMEOUT,
 )
 def refresh_pr(
     ctx: GithubContext,
@@ -198,7 +203,9 @@ def refresh_pr(
 
 
 @backoff.on_exception(
-    backoff.expo, (RequestException, Timeout), max_time=MAX_GITHUB_TIMEOUT,
+    backoff.expo,
+    (RequestException, Timeout),
+    max_time=MAX_GITHUB_TIMEOUT,
 )
 def close_out_labels(
     ctx: GithubContext,
@@ -306,10 +313,14 @@ def push_repo(
 
 
 @backoff.on_exception(
-    backoff.expo, (RequestException, Timeout), max_time=MAX_GITHUB_TIMEOUT,
+    backoff.expo,
+    (RequestException, Timeout),
+    max_time=MAX_GITHUB_TIMEOUT,
 )
 def ensure_label_exists(
-    repo: github3.repos.Repository, label_dict: dict, dry_run: bool = False,
+    repo: github3.repos.Repository,
+    label_dict: dict,
+    dry_run: bool = False,
 ) -> None:
     if dry_run:
         print(f"dry run: ensure label exists {label_dict['name']}")

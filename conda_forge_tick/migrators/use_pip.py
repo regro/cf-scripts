@@ -23,7 +23,7 @@ class PipMigrator(MiniMigrator):
 
     def migrate(self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any) -> None:
         with indir(recipe_dir):
-            with open("meta.yaml", "r") as fp:
+            with open("meta.yaml") as fp:
                 lines = fp.readlines()
 
             new_lines = []

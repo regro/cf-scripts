@@ -194,7 +194,7 @@ class MigrationYaml(GraphMigrator):
 
             if self.conda_forge_yml_patches is not None:
                 with indir(os.path.join(recipe_dir, "..")):
-                    with open("conda-forge.yml", "r") as fp:
+                    with open("conda-forge.yml") as fp:
                         cfg = yaml.safe_load(fp.read())
                     _patch_dict(cfg, self.conda_forge_yml_patches)
                     with open("conda-forge.yml", "w") as fp:
@@ -287,11 +287,15 @@ class MigrationYaml(GraphMigrator):
         return n
 
     def order(
-        self, graph: nx.DiGraph, total_graph: nx.DiGraph,
+        self,
+        graph: nx.DiGraph,
+        total_graph: nx.DiGraph,
     ) -> Sequence["PackageName"]:
         """Run the order by number of decedents, ties are resolved by package name"""
         return sorted(
-            graph, key=lambda x: (len(nx.descendants(total_graph, x)), x), reverse=True,
+            graph,
+            key=lambda x: (len(nx.descendants(total_graph, x)), x),
+            reverse=True,
         )
 
 
@@ -345,7 +349,8 @@ class MigrationYamlCreator(Migrator):
         }
         with indir(os.path.join(recipe_dir, "migrations")):
             mig_fname = "{}{}.yaml".format(
-                self.package_name, self.new_pin_version.replace(".", ""),
+                self.package_name,
+                self.new_pin_version.replace(".", ""),
             )
             with open(mig_fname, "w") as f:
                 yaml.dump(migration_yaml_dict, f, default_flow_style=False, indent=2)
@@ -404,11 +409,15 @@ class MigrationYamlCreator(Migrator):
         return n
 
     def order(
-        self, graph: nx.DiGraph, total_graph: nx.DiGraph,
+        self,
+        graph: nx.DiGraph,
+        total_graph: nx.DiGraph,
     ) -> Sequence["PackageName"]:
         """Run the order by number of decedents, ties are resolved by package name"""
         return sorted(
-            graph, key=lambda x: (len(nx.descendants(total_graph, x)), x), reverse=True,
+            graph,
+            key=lambda x: (len(nx.descendants(total_graph, x)), x),
+            reverse=True,
         )
 
 

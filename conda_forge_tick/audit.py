@@ -64,13 +64,15 @@ def extract_deps_from_source(recipe_dir):
 
 
 def depfinder_audit_feedstock(fctx: FeedstockContext, ctx: MigratorSessionContext):
-    """Uses Depfinder to audit the imports for a python package
-    """
+    """Uses Depfinder to audit the imports for a python package"""
     # get feedstock
     feedstock_dir = os.path.join(ctx.rever_dir, fctx.package_name + "-feedstock")
     origin = feedstock_url(fctx=fctx, protocol="https")
     fetch_repo(
-        feedstock_dir=feedstock_dir, origin=origin, upstream=origin, branch="master",
+        feedstock_dir=feedstock_dir,
+        origin=origin,
+        upstream=origin,
+        branch="master",
     )
     recipe_dir = os.path.join(feedstock_dir, "recipe")
 
@@ -78,13 +80,15 @@ def depfinder_audit_feedstock(fctx: FeedstockContext, ctx: MigratorSessionContex
 
 
 def grayskull_audit_feedstock(fctx: FeedstockContext, ctx: MigratorSessionContext):
-    """Uses grayskull to audit the requirements for a python package
-    """
+    """Uses grayskull to audit the requirements for a python package"""
     # TODO: come back to this, since CF <-> PyPI is not one-to-one and onto
     pkg_name = fctx.package_name
     pkg_version = fctx.attrs["version"]
     recipe = GrayskullFactory.create_recipe(
-        "pypi", pkg_name, pkg_version, download=False,
+        "pypi",
+        pkg_name,
+        pkg_version,
+        download=False,
     )
 
     with tempfile.TemporaryDirectory() as td:
@@ -97,7 +101,7 @@ def grayskull_audit_feedstock(fctx: FeedstockContext, ctx: MigratorSessionContex
                 },
             ),
         )
-        with open(os.path.join(td, pkg_name, "meta.yaml"), "r") as f:
+        with open(os.path.join(td, pkg_name, "meta.yaml")) as f:
             out = f.read()
     return out
 
@@ -150,7 +154,7 @@ def compare_grayskull_audits(gx):
 
     if "_net_audit.json" in grayskull_files:
         grayskull_files.pop(grayskull_files.index("_net_audit.json"))
-        with open("audits/grayskull/_net_audit.json", "r") as f:
+        with open("audits/grayskull/_net_audit.json") as f:
             bad_inspections = load(f)
 
     futures = {}
@@ -166,7 +170,7 @@ def compare_grayskull_audits(gx):
             expected_filename = f"{node_version}.yml"
             if expected_filename in grayskull_files:
                 with open(
-                    os.path.join("audits/grayskull", expected_filename), "r",
+                    os.path.join("audits/grayskull", expected_filename),
                 ) as f:
                     meta_yaml = f.read()
                 futures[
@@ -326,7 +330,7 @@ def compare_depfinder_audits(gx):
         # construct the expected filename
         expected_filename = f"{node_version}.json"
         if expected_filename in files:
-            with open(os.path.join("audits/depfinder", expected_filename), "r") as f:
+            with open(os.path.join("audits/depfinder", expected_filename)) as f:
                 output = load(f)
             if isinstance(output, str):
                 bad_inspection[node_version] = output
@@ -360,7 +364,9 @@ def main(args):
     # limit graph to things that depend on python
     python_des = nx.descendants(gx, "pypy-meta")
     for node in sorted(
-        python_des, key=lambda x: (len(nx.descendants(gx, x)), x), reverse=True,
+        python_des,
+        key=lambda x: (len(nx.descendants(gx, x)), x),
+        reverse=True,
     ):
         if time.time() - int(env.get("START_TIME", start_time)) > int(
             env.get("TIMEOUT", 60 * 45),
@@ -379,7 +385,9 @@ def main(args):
                 and f"{node}_{version}.{ext}" not in os.listdir(f"audits/{k}")
             ):
                 fctx = FeedstockContext(
-                    package_name=node, feedstock_name=payload["name"], attrs=payload,
+                    package_name=node,
+                    feedstock_name=payload["name"],
+                    attrs=payload,
                 )
                 try:
                     deps = v["run"](fctx, ctx)

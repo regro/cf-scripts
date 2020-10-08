@@ -53,7 +53,7 @@ class UpdateConfigSubGuessMigrator(CrossCompilationMigratorBase):
         with indir(recipe_dir):
             if not os.path.exists("build.sh"):
                 return
-            with open("build.sh", "r") as f:
+            with open("build.sh") as f:
                 lines = list(f.readlines())
                 for line in lines:
                     if line.strip().startswith(
@@ -73,7 +73,8 @@ class UpdateConfigSubGuessMigrator(CrossCompilationMigratorBase):
                         f"cp $BUILD_PREFIX/share/libtool/build-aux/config.* {d}\n",
                     )
                 lines.insert(
-                    insert_at, "# Get an updated config.sub and config.guess\n",
+                    insert_at,
+                    "# Get an updated config.sub and config.guess\n",
                 )
             with open("build.sh", "w") as f:
                 f.write("".join(lines))
@@ -96,7 +97,7 @@ class GuardTestingMigrator(CrossCompilationMigratorBase):
         with indir(recipe_dir):
             if not os.path.exists("build.sh"):
                 return
-            with open("build.sh", "r") as f:
+            with open("build.sh") as f:
                 lines = list(f.readlines())
 
             for i, line in enumerate(lines):
@@ -108,7 +109,8 @@ class GuardTestingMigrator(CrossCompilationMigratorBase):
                     or line.startswith("make test")
                 ):
                     lines.insert(
-                        i, 'if [[ "${CONDA_BUILD_CROSS_COMPILATION}" != "1" ]]; then\n',
+                        i,
+                        'if [[ "${CONDA_BUILD_CROSS_COMPILATION}" != "1" ]]; then\n',
                     )
                     insert_after = i + 1
                     while len(lines) > insert_after and lines[insert_after].endswith(
@@ -192,7 +194,7 @@ class UpdateCMakeArgsMigrator(CrossCompilationMigratorBase):
         with indir(recipe_dir):
             if not os.path.exists("build.sh"):
                 return
-            with open("build.sh", "r") as f:
+            with open("build.sh") as f:
                 lines = list(f.readlines())
 
             for i, line in enumerate(lines):

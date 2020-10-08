@@ -78,7 +78,8 @@ def _parse_jinja2_variables(meta_yaml: str) -> dict:
     jinja2_vals = {}
     for i, n in enumerate(all_nodes):
         if isinstance(n, jinja2.nodes.Assign) and isinstance(
-            n.node, jinja2.nodes.Const,
+            n.node,
+            jinja2.nodes.Const,
         ):
             if _config_has_key_with_selectors(jinja2_vals, n.target.name):
                 # selectors!
@@ -211,7 +212,7 @@ def _is_simple_jinja2_set(line):
 
 
 def _replace_jinja2_vars(lines: List[str], jinja2_vars: dict) -> List[str]:
-    """Find all instances of jinja2 vairable assignment via `set` in a recipe
+    """Find all instances of jinja2 variable assignment via `set` in a recipe
     and replace the values with those in `jinja2_vars`. Any extra key-value
     pairs in `jinja2_vars` will be added as new statements at the top.
     """
@@ -400,7 +401,7 @@ class CondaMetaYAML:
         Parameters
         ----------
         jinja2_vars : dict
-            A dictionary mapping vairable names to their (constant) values.
+            A dictionary mapping variable names to their (constant) values.
 
         Returns
         -------

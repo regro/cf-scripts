@@ -1,26 +1,26 @@
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v2.4.0
+    rev: v3.2.0
     hooks:
       - id: end-of-file-fixer
       - id: trailing-whitespace
   - repo: https://github.com/psf/black
-    rev: stable
+    rev: 20.8b1
     hooks:
     - id: black
       language_version: python3
   - repo: https://github.com/asottile/pyupgrade
-    rev: v1.25.2
+    rev: v2.7.2
     hooks:
       - id: pyupgrade
         args:
           - --py36-plus
   - repo: https://github.com/asottile/add-trailing-comma
-    rev: v1.5.0
+    rev: v2.0.1
     hooks:
       - id: add-trailing-comma
   - repo: https://github.com/codespell-project/codespell
-    rev: v1.16.0
+    rev: v1.17.1
     hooks:
       - id: codespell
         args:

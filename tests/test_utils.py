@@ -10,15 +10,15 @@ def test_lazy_json(tmpdir):
     assert not os.path.exists(f)
     lj = LazyJson(f)
     assert os.path.exists(lj.file_name)
-    with open(f, "r") as ff:
+    with open(f) as ff:
         assert ff.read() == json.dumps({})
     lj["hi"] = "world"
     assert lj["hi"] == "world"
     assert os.path.exists(lj.file_name)
-    with open(f, "r") as ff:
+    with open(f) as ff:
         assert ff.read() == dumps({"hi": "world"})
     lj.update({"hi": "globe"})
-    with open(f, "r") as ff:
+    with open(f) as ff:
         assert ff.read() == dumps({"hi": "globe"})
     p = pickle.dumps(lj)
     lj2 = pickle.loads(p)

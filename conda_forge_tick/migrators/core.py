@@ -55,7 +55,7 @@ class MiniMigrator:
     post_migration = False
 
     def filter(self, attrs: "AttrsTypedDict", not_bad_str_start: str = "") -> bool:
-        """ If true don't act upon node
+        """If true don't act upon node
 
         Parameters
         ----------
@@ -125,7 +125,9 @@ class Migrator:
         self.ctx = migrator_ctx
 
     def downstream_children(
-        self, feedstock_ctx: FeedstockContext, limit: int = 5,
+        self,
+        feedstock_ctx: FeedstockContext,
+        limit: int = 5,
     ) -> List["PackageName"]:
         """Utility method for getting a list of follow on packages"""
         return [
@@ -136,7 +138,7 @@ class Migrator:
         ][:limit]
 
     def filter(self, attrs: "AttrsTypedDict", not_bad_str_start: str = "") -> bool:
-        """ If true don't act upon node
+        """If true don't act upon node
 
         Parameters
         ----------
@@ -161,7 +163,8 @@ class Migrator:
         def parse_already_pred() -> bool:
             pr_data = frozen_to_json_friendly(self.migrator_uid(attrs))
             migrator_uid: "MigrationUidTypedDict" = typing.cast(
-                "MigrationUidTypedDict", pr_data["data"],
+                "MigrationUidTypedDict",
+                pr_data["data"],
             )
             already_migrated_uids: typing.Iterable["MigrationUidTypedDict"] = list(
                 z["data"] for z in attrs.get("PRed", [])
@@ -329,7 +332,9 @@ class Migrator:
         return d
 
     def order(
-        self, graph: nx.DiGraph, total_graph: nx.DiGraph,
+        self,
+        graph: nx.DiGraph,
+        total_graph: nx.DiGraph,
     ) -> Sequence["PackageName"]:
         """Order to run migrations in
 
@@ -361,7 +366,7 @@ class Migrator:
         """
 
         for p, n in self.build_patterns:
-            with open(filename, "r") as f:
+            with open(filename) as f:
                 raw = f.read()
             lines = raw.splitlines()
             for i, line in enumerate(lines):
@@ -413,7 +418,10 @@ class GraphMigrator(Migrator):
         check_solvable=True,
     ):
         super().__init__(
-            pr_limit, obj_version, piggy_back_migrations, check_solvable=check_solvable,
+            pr_limit,
+            obj_version,
+            piggy_back_migrations,
+            check_solvable=check_solvable,
         )
         # TODO: Grab the graph from the migrator ctx
         if graph is None:
@@ -444,9 +452,13 @@ class GraphMigrator(Migrator):
                 print(node)
                 raise e
             muid = frozen_to_json_friendly(self.migrator_uid(payload))
-            if muid not in _sanitized_muids(
-                payload.get("PRed", []),
-            ) and not payload.get("archived", False):
+            if (
+                muid
+                not in _sanitized_muids(
+                    payload.get("PRed", []),
+                )
+                and not payload.get("archived", False)
+            ):
                 return True
             # This is due to some PRed_json loss due to bad graph deploy outage
             for m_pred_json in payload.get("PRed", []):
@@ -533,7 +545,9 @@ class Replacement(Migrator):
             self.graph = graph
 
     def order(
-        self, graph: nx.DiGraph, total_graph: nx.DiGraph,
+        self,
+        graph: nx.DiGraph,
+        total_graph: nx.DiGraph,
     ) -> Sequence["PackageName"]:
         """Order to run migrations in
 

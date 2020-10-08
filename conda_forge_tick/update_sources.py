@@ -303,7 +303,8 @@ class ROSDistro(AbstractSource):
         p_dict = ROS_DISTRO_INDEX["melodic"]["forward"][toplevel_package]
         version = p_dict["release"]["version"]
         tag_url = p_dict["release"]["tags"]["release"].format(
-            package=package, version=version,
+            package=package,
+            version=version,
         )
         url = p_dict["release"]["url"]
 
@@ -330,7 +331,9 @@ def get_sha256(url: str) -> Optional[str]:
 def url_exists(url: str) -> bool:
     try:
         output = subprocess.check_output(
-            ["wget", "--spider", url], stderr=subprocess.STDOUT, timeout=1,
+            ["wget", "--spider", url],
+            stderr=subprocess.STDOUT,
+            timeout=1,
         )
     except Exception:
         return False
@@ -402,7 +405,9 @@ class RawURL(AbstractSource):
                     _exists, _url_to_use = url_exists_swap_exts(url)
                     if not _exists:
                         logger.debug(
-                            "version %s does not exist for url %s", next_ver, url,
+                            "version %s does not exist for url %s",
+                            next_ver,
+                            url,
                         )
                         continue
                     else:
