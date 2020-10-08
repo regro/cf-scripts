@@ -38,7 +38,7 @@ class Jinja2VarsCleanup(MiniMigrator):
 
     def migrate(self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any) -> None:
         with indir(recipe_dir):
-            with open("meta.yaml", "r") as fp:
+            with open("meta.yaml") as fp:
                 raw_yaml = fp.read()
 
             raw_yaml = _cleanup_raw_yaml(raw_yaml)

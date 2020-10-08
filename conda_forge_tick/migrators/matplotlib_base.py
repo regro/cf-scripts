@@ -57,7 +57,7 @@ class MatplotlibBase(Replacement):
         if not os.path.exists(yum_pth):
             yum_lines = []
         else:
-            with open(yum_pth, "r") as fp:
+            with open(yum_pth) as fp:
                 yum_lines = fp.readlines()
 
         if "xorg-x11-server-Xorg\n" not in yum_lines:

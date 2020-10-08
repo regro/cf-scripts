@@ -207,7 +207,8 @@ def run(
             # then bail if it does not work again
             try:
                 eval_cmd(
-                    "conda smithy rerender -c auto --no-check-uptodate", timeout=300,
+                    "conda smithy rerender -c auto --no-check-uptodate",
+                    timeout=300,
                 )
             except SubprocessError:
                 return False, False
@@ -387,7 +388,9 @@ def add_arch_migrate(migrators: MutableSequence[Migrator], gx: nx.DiGraph) -> No
 
     migrators.append(
         ArchRebuild(
-            graph=total_graph, pr_limit=PR_LIMIT, name="aarch64 and ppc64le addition",
+            graph=total_graph,
+            pr_limit=PR_LIMIT,
+            name="aarch64 and ppc64le addition",
         ),
     )
     migrators.append(
@@ -488,11 +491,16 @@ def add_rebuild_migration_yaml(
 
 
 def migration_factory(
-    migrators: MutableSequence[Migrator], gx: nx.DiGraph, pr_limit: int = PR_LIMIT,
+    migrators: MutableSequence[Migrator],
+    gx: nx.DiGraph,
+    pr_limit: int = PR_LIMIT,
 ) -> None:
     migration_yamls = []
     migrations_loc = os.path.join(
-        os.environ["CONDA_PREFIX"], "share", "conda-forge", "migrations",
+        os.environ["CONDA_PREFIX"],
+        "share",
+        "conda-forge",
+        "migrations",
     )
     with indir(migrations_loc):
         for yaml_file in glob.glob("*.y*ml"):
@@ -570,7 +578,8 @@ def _outside_pin_range(pin_spec, current_pin, new_version):
 def create_migration_yaml_creator(migrators: MutableSequence[Migrator], gx: nx.DiGraph):
     with indir(os.environ["CONDA_PREFIX"]):
         pinnings = parse_config_file(
-            "conda_build_config.yaml", config=Config(**CB_CONFIG),
+            "conda_build_config.yaml",
+            config=Config(**CB_CONFIG),
         )
     feedstocks_to_be_repinned = []
     for k, package_pin_list in pinnings.items():
@@ -596,7 +605,8 @@ def create_migration_yaml_creator(migrators: MutableSequence[Migrator], gx: nx.D
 
             # we need a special parsing for pinning stuff
             meta_yaml = parse_meta_yaml(
-                gx.nodes[k]["payload"]["raw_meta_yaml"], for_pinning=True,
+                gx.nodes[k]["payload"]["raw_meta_yaml"],
+                for_pinning=True,
             )
 
             # find the most stringent max pin for this feedstock if any
@@ -640,13 +650,20 @@ def create_migration_yaml_creator(migrators: MutableSequence[Migrator], gx: nx.D
             # If the current pin and the current version is the same nothing
             # to do even if the pin isn't accurate to the spec
             if current_pin != current_version and _outside_pin_range(
-                pin_spec, current_pin, current_version,
+                pin_spec,
+                current_pin,
+                current_version,
             ):
                 feedstocks_to_be_repinned.append(k)
                 print(package_name, current_version, current_pin, pin_spec)
                 migrators.append(
                     MigrationYamlCreator(
-                        package_name, current_version, current_pin, pin_spec, k, gx,
+                        package_name,
+                        current_version,
+                        current_pin,
+                        pin_spec,
+                        k,
+                        gx,
                     ),
                 )
 
@@ -704,7 +721,8 @@ def _compute_time_per_migrator(mctx):
             for node_name in mmctx.effective_graph.nodes:
                 with mmctx.effective_graph.nodes[node_name]["payload"] as attrs:
                     _attempts = attrs.get("new_version_attempts", {}).get(
-                        attrs.get("new_version", ""), 0,
+                        attrs.get("new_version", ""),
+                        0,
                     )
                     if _attempts == 0:
                         _num_nodes += 1
@@ -847,7 +865,8 @@ def main(args: "CLIArgs") -> None:
                         attrs.get("new_version"),
                         (
                             attrs.get("new_version_attempts", {}).get(
-                                attrs.get("new_version", ""), 0,
+                                attrs.get("new_version", ""),
+                                0,
                             )
                         ),
                     )
@@ -923,7 +942,8 @@ def main(args: "CLIArgs") -> None:
                         attrs["archived"] = True
                     else:
                         logger.critical(
-                            "GITHUB ERROR ON FEEDSTOCK: %s", fctx.feedstock_name,
+                            "GITHUB ERROR ON FEEDSTOCK: %s",
+                            fctx.feedstock_name,
                         )
                         if is_github_api_limit_reached(e, mctx.gh):
                             break

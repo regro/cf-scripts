@@ -272,7 +272,9 @@ class _MigrationYaml(NoFilter, MigrationYaml):
 yaml_rebuild = _MigrationYaml(yaml_contents="hello world", name="hi")
 yaml_rebuild.cycles = []
 yaml_rebuild_no_build_number = _MigrationYaml(
-    yaml_contents="hello world", name="hi", bump_number=0,
+    yaml_contents="hello world",
+    name="hi",
+    bump_number=0,
 )
 yaml_rebuild_no_build_number.cycles = []
 
@@ -311,7 +313,7 @@ def run_test_yaml_migration(
     assert mr_out == mr
 
     pmy.update(PRed=[frozen_to_json_friendly(mr)])
-    with open(os.path.join(tmpdir, "recipe/meta.yaml"), "r") as f:
+    with open(os.path.join(tmpdir, "recipe/meta.yaml")) as f:
         actual_output = f.read()
     assert actual_output == output
     assert os.path.exists(os.path.join(tmpdir, ".ci_support/migrations/hi.yaml"))
@@ -1637,7 +1639,14 @@ env["CIRCLE_BUILD_URL"] = "hi world"
 
 
 def run_test_migration(
-    m, inp, output, kwargs, prb, mr_out, should_filter=False, tmpdir=None,
+    m,
+    inp,
+    output,
+    kwargs,
+    prb,
+    mr_out,
+    should_filter=False,
+    tmpdir=None,
 ):
     mm_ctx = MigratorSessionContext(
         graph=G,
@@ -1657,7 +1666,7 @@ def run_test_migration(
 
     # read the conda-forge.yml
     if os.path.exists(os.path.join(tmpdir, "..", "conda-forge.yml")):
-        with open(os.path.join(tmpdir, "..", "conda-forge.yml"), "r") as fp:
+        with open(os.path.join(tmpdir, "..", "conda-forge.yml")) as fp:
             cf_yml = fp.read()
     else:
         cf_yml = "{}"
@@ -1685,11 +1694,15 @@ def run_test_migration(
         return pmy
 
     m.run_pre_piggyback_migrations(
-        tmpdir, pmy, hash_type=pmy.get("hash_type", "sha256"),
+        tmpdir,
+        pmy,
+        hash_type=pmy.get("hash_type", "sha256"),
     )
     mr = m.migrate(tmpdir, pmy, hash_type=pmy.get("hash_type", "sha256"))
     m.run_post_piggyback_migrations(
-        tmpdir, pmy, hash_type=pmy.get("hash_type", "sha256"),
+        tmpdir,
+        pmy,
+        hash_type=pmy.get("hash_type", "sha256"),
     )
 
     assert mr_out == mr
@@ -1697,7 +1710,7 @@ def run_test_migration(
         return pmy
 
     pmy.update(PRed=[frozen_to_json_friendly(mr)])
-    with open(os.path.join(tmpdir, "meta.yaml"), "r") as f:
+    with open(os.path.join(tmpdir, "meta.yaml")) as f:
         actual_output = f.read()
     # strip jinja comments
     pat = re.compile(r"{#.*#}")

@@ -16,11 +16,11 @@ YAML_PATH = os.path.join(os.path.dirname(__file__), "test_yaml")
 
 @pytest.mark.parametrize("case", ["simple", "selector"])
 def test_version_pipcheck(case, tmpdir):
-    with open(os.path.join(YAML_PATH, "version_usepip_%s.yaml" % case), "r") as fp:
+    with open(os.path.join(YAML_PATH, "version_usepip_%s.yaml" % case)) as fp:
         in_yaml = fp.read()
 
     with open(
-        os.path.join(YAML_PATH, "version_usepip_%s_correct.yaml" % case), "r",
+        os.path.join(YAML_PATH, "version_usepip_%s_correct.yaml" % case),
     ) as fp:
         out_yaml = fp.read()
 

@@ -62,7 +62,8 @@ def write_version_migrator_status(migrator, mctx):
         else:
             out["errored"].append(node)
             out["errors"][node] = attrs.get("new_version_errors", {}).get(
-                new_version, "no error information available",
+                new_version,
+                "no error information available",
             )
 
     with open("./status/version_status.json", "w") as f:
@@ -70,7 +71,8 @@ def write_version_migrator_status(migrator, mctx):
 
 
 def graph_migrator_status(
-    migrator: Migrator, gx: nx.DiGraph,
+    migrator: Migrator,
+    gx: nx.DiGraph,
 ) -> Tuple[dict, list, nx.DiGraph]:
     """Gets the migrator progress for a given migrator"""
 

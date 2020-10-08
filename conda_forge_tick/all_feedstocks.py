@@ -39,7 +39,7 @@ def get_all_feedstocks_from_github() -> List[str]:
 def get_all_feedstocks(cached: bool = False) -> List[str]:
     if cached:
         logger.info("reading names")
-        with open("names.txt", "r") as f:
+        with open("names.txt") as f:
             names = f.read().split()
         return names
 

@@ -88,7 +88,11 @@ def eval_cmd(cmd, **kwargs):
     timeout = kwargs.pop("timeout", None)
     env.update(kwargs)
     c = subprocess.run(
-        cmd, shell=True, stdout=subprocess.PIPE, env=env, timeout=timeout,
+        cmd,
+        shell=True,
+        stdout=subprocess.PIPE,
+        env=env,
+        timeout=timeout,
     )
     if c.returncode != 0:
         print(c.stdout.decode("utf-8"), flush=True)
@@ -161,7 +165,7 @@ class LazyJson(MutableMapping):
     def _load(self) -> None:
         if self.data is None:
             try:
-                with open(self.file_name, "r") as f:
+                with open(self.file_name) as f:
                     self.data = load(f)
             except FileNotFoundError:
                 print(os.getcwd())
@@ -254,11 +258,14 @@ def parse_meta_yaml(
         and platform is not None
     ):
         cbc = Config(
-            platform=platform, arch=arch, variant_config_files=[cbc_path], **kwargs,
+            platform=platform,
+            arch=arch,
+            variant_config_files=[cbc_path],
+            **kwargs,
         )
 
         cfg_as_dict = ns_cfg(cbc)
-        with open(cbc_path, "r") as fp:
+        with open(cbc_path) as fp:
             _cfg_as_dict = yaml.load(fp, Loader=yaml.Loader)
         for k, v in _cfg_as_dict.items():
             if (
@@ -288,9 +295,7 @@ def parse_meta_yaml(
 
 
 def setup_logger(logger: logging.Logger, level: Optional[str] = "INFO") -> None:
-    """Basic configuration for logging
-
-    """
+    """Basic configuration for logging"""
     logger.setLevel(level.upper())
     ch = logging.StreamHandler()
     ch.setLevel(level.upper())
@@ -364,8 +369,7 @@ def _parse_requirements(
     host: bool = True,
     run: bool = True,
 ) -> typing.MutableSet["PackageName"]:
-    """Flatten a YAML requirements section into a list of names
-    """
+    """Flatten a YAML requirements section into a list of names"""
     if not req:  # handle None as empty
         return set()
     if isinstance(req, list):  # simple list goes to both host and run
@@ -401,7 +405,8 @@ def executor(kind: str, max_workers: int, daemon=True) -> typing.Iterator[Execut
 
         with dask.config.set({"distributed.worker.daemon": daemon}):
             with distributed.LocalCluster(
-                n_workers=max_workers, processes=processes,
+                n_workers=max_workers,
+                processes=processes,
             ) as cluster:
                 with distributed.Client(cluster) as client:
                     yield ClientExecutor(client)
@@ -473,7 +478,9 @@ def loads(
 
 
 def load(
-    fp: IO[str], object_hook: "Callable[[dict], Any]" = object_hook, **kwargs: Any,
+    fp: IO[str],
+    object_hook: "Callable[[dict], Any]" = object_hook,
+    **kwargs: Any,
 ) -> dict:
     """Loads a file object as JSON, with appropriate object hooks."""
     return json.load(fp, object_hook=object_hook, **kwargs)
@@ -489,7 +496,9 @@ def dump_graph_json(gx: nx.DiGraph, filename: str = "graph.json") -> None:
 
 
 def dump_graph_dynamo(
-    gx: nx.DiGraph, tablename: str = "graph", region: str = "us-east-2",
+    gx: nx.DiGraph,
+    tablename: str = "graph",
+    region: str = "us-east-2",
 ) -> None:
     print(f"DynamoDB dump to {tablename} in {region}")
     ddb = boto3.resource("dynamodb", region_name=region)
@@ -517,7 +526,7 @@ def dump_graph(
 
 
 def load_graph(filename: str = "graph.json") -> nx.DiGraph:
-    with open(filename, "r") as f:
+    with open(filename) as f:
         nld = load(f)
     return nx.node_link_graph(nld)
 
@@ -583,32 +592,32 @@ def as_iterable(x: T) -> Tuple[T]:
 @typing.no_type_check
 def as_iterable(iterable_or_scalar):
     """Utility for converting an object to an iterable.
-   Parameters
-   ----------
-   iterable_or_scalar : anything
-   Returns
-   -------
-   l : iterable
-       If `obj` was None, return the empty tuple.
-       If `obj` was not iterable returns a 1-tuple containing `obj`.
-       Otherwise return `obj`
-   Notes
-   -----
-   Although both string types and dictionaries are iterable in Python, we are
-   treating them as not iterable in this method.  Thus, as_iterable(dict())
-   returns (dict, ) and as_iterable(string) returns (string, )
+    Parameters
+    ----------
+    iterable_or_scalar : anything
+    Returns
+    -------
+    l : iterable
+        If `obj` was None, return the empty tuple.
+        If `obj` was not iterable returns a 1-tuple containing `obj`.
+        Otherwise return `obj`
+    Notes
+    -----
+    Although both string types and dictionaries are iterable in Python, we are
+    treating them as not iterable in this method.  Thus, as_iterable(dict())
+    returns (dict, ) and as_iterable(string) returns (string, )
 
-   Examples
-   ---------
-   >>> as_iterable(1)
-   (1,)
-   >>> as_iterable([1, 2, 3])
-   [1, 2, 3]
-   >>> as_iterable("my string")
-   ("my string", )
-   >>> as_iterable({'a': 1})
-   ({'a': 1}, )
-   """
+    Examples
+    ---------
+    >>> as_iterable(1)
+    (1,)
+    >>> as_iterable([1, 2, 3])
+    [1, 2, 3]
+    >>> as_iterable("my string")
+    ("my string", )
+    >>> as_iterable({'a': 1})
+    ({'a': 1}, )
+    """
 
     if iterable_or_scalar is None:
         return ()
@@ -856,11 +865,11 @@ def load_feedstock(
         feedstock_dir = _fetch_static_repo(name, tmpdir)
 
         if meta_yaml is None:
-            with open(os.path.join(feedstock_dir, "recipe", "meta.yaml"), "r") as fp:
+            with open(os.path.join(feedstock_dir, "recipe", "meta.yaml")) as fp:
                 meta_yaml = fp.read()
 
         if conda_forge_yaml is None:
-            with open(os.path.join(feedstock_dir, "conda-forge.yml"), "r") as fp:
+            with open(os.path.join(feedstock_dir, "conda-forge.yml")) as fp:
                 conda_forge_yaml = fp.read()
 
         populate_feedstock_attributes(
@@ -881,7 +890,10 @@ def _get_source_code(recipe_dir):
 
     # Use conda build to do all the downloading/extracting bits
     md = render(
-        recipe_dir, config=Config(**CB_CONFIG), finalize=False, bypass_env_check=True,
+        recipe_dir,
+        config=Config(**CB_CONFIG),
+        finalize=False,
+        bypass_env_check=True,
     )
     if not md:
         return None
