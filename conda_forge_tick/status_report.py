@@ -11,7 +11,7 @@ import tempfile
 
 from typing import Any, Dict, Set, Tuple
 
-from conda_forge_tick.utils import frozen_to_json_friendly, load_graph
+from conda_forge_tick.utils import frozen_to_json_friendly
 from conda_forge_tick.auto_tick import initialize_migrators
 from conda_forge_tick.migrators import (
     Migrator,
@@ -75,6 +75,8 @@ def graph_migrator_status(
     gx: nx.DiGraph,
 ) -> Tuple[dict, list, nx.DiGraph]:
     """Gets the migrator progress for a given migrator"""
+
+    num_viz = 0
 
     out: Dict[str, Set[str]] = {
         "done": set(),
@@ -175,6 +177,7 @@ def graph_migrator_status(
             else:
                 status_icon = " ❎"
         if node not in out["done"]:
+            num_viz += 1
             gv.node(
                 node,
                 label=_clean_text(node) + status_icon,
@@ -223,41 +226,69 @@ def graph_migrator_status(
         ):
             gv.edge(e0, e1)
 
+    print("    len(gv):", num_viz, flush=True)
+
+    out2["_num_viz"] = num_viz
+
     return out2, build_sequence, gv
 
 
 def main(args: Any = None) -> None:
+    import requests
+
+    r = requests.get(
+        "https://raw.githubusercontent.com/conda-forge/"
+        "conda-forge.github.io/master/img/anvil.svg",
+    )
+
     mctx, *_, migrators = initialize_migrators()
     if not os.path.exists("./status"):
         os.mkdir("./status")
     total_status = {}
 
+    print(" ", flush=True)
+
     for migrator in migrators:
+        if hasattr(migrator, "name"):
+            assert isinstance(migrator.name, str)
+            migrator_name = migrator.name.lower().replace(" ", "")
+        else:
+            migrator_name = migrator.__class__.__name__.lower()
+
+        print(
+            "================================================================",
+            flush=True,
+        )
+        print("name:", migrator_name, flush=True)
+
         if isinstance(migrator, GraphMigrator) or isinstance(migrator, Replacement):
-            if hasattr(migrator, "name"):
-                assert isinstance(migrator.name, str)
-                migrator_name = migrator.name.lower().replace(" ", "")
-            else:
-                migrator_name = migrator.__class__.__name__.lower()
             total_status[migrator_name] = f"{migrator.name} Migration Status"
             status, build_order, gv = graph_migrator_status(migrator, mctx.graph)
             with open(os.path.join(f"./status/{migrator_name}.json"), "w") as fp:
                 json.dump(status, fp, indent=2)
 
-            d = gv.pipe("dot")
-            with tempfile.NamedTemporaryFile(suffix=".dot") as ntf:
-                ntf.write(d)
-                # make the graph a bit more compact
-                d = Source(
-                    subprocess.check_output(
-                        ["unflatten", "-f", "-l", "5", "-c", "10", f"{ntf.name}"],
-                    ).decode("utf-8"),
-                ).pipe("svg")
-            with open(os.path.join(f"./status/{migrator_name}.svg"), "wb") as fb:
-                fb.write(d or gv.pipe("svg"))
+            if status["_num_viz"] <= 500:
+                d = gv.pipe("dot")
+                with tempfile.NamedTemporaryFile(suffix=".dot") as ntf:
+                    ntf.write(d)
+                    # make the graph a bit more compact
+                    d = Source(
+                        subprocess.check_output(
+                            ["unflatten", "-f", "-l", "5", "-c", "10", f"{ntf.name}"],
+                        ).decode("utf-8"),
+                    ).pipe("svg")
+                with open(os.path.join(f"./status/{migrator_name}.svg"), "wb") as fb:
+                    fb.write(d or gv.pipe("svg"))
+            else:
+                with open(os.path.join(f"./status/{migrator_name}.svg"), "wb") as fb:
+                    fb.write(r.content)
+
         elif isinstance(migrator, Version):
             write_version_migrator_status(migrator, mctx)
 
+    print(" ", flush=True)
+
+    print("writing data", flush=True)
     with open("./status/total_status.json", "w") as f:
         json.dump(total_status, f, sort_keys=True)
 
