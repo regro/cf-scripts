@@ -292,7 +292,6 @@ class MigrationYaml(GraphMigrator):
         total_graph: nx.DiGraph,
     ) -> Sequence["PackageName"]:
         """Run the order by number of decedents, ties are resolved by package name"""
-        # TODO exclude the base nodes?
         return sorted(
             graph,
             key=lambda x: (len(nx.descendants(total_graph, x)), x),
