@@ -292,6 +292,7 @@ class MigrationYaml(GraphMigrator):
         total_graph: nx.DiGraph,
     ) -> Sequence["PackageName"]:
         """Run the order by number of decedents, ties are resolved by package name"""
+        # TODO exclude the base nodes?
         return sorted(
             graph,
             key=lambda x: (len(nx.descendants(total_graph, x)), x),
@@ -471,6 +472,8 @@ def create_rebuild_graph(
     total_graph = copy.deepcopy(gx)
     excluded_feedstocks = set() if excluded_feedstocks is None else excluded_feedstocks
 
+    included_nodes = set()
+
     for node, node_attrs in gx.nodes.items():
         # always keep pinning
         if node == "conda-forge-pinning":
@@ -498,13 +501,18 @@ def create_rebuild_graph(
         for e in list(total_graph.in_edges(node)):
             if e[0] not in rq:
                 total_graph.remove_edge(*e)
-        # if there isn't a strict dependency or if the feedstock is excluded,
-        # remove it while retaining the edges to its parents and children
-        if not inclusion_criteria or node in excluded_feedstocks:
-            pluck(total_graph, node)
+        if inclusion_criteria:
+            included_nodes.add(node)
 
     # all nodes have the conda-forge-pinning as child package
     total_graph.add_edges_from([(n, "conda-forge-pinning") for n in total_graph.nodes])
+
+    # finally remove all nodes that should not be built from the graph
+    for node in list(total_graph.nodes):
+        # if there isn't a strict dependency or if the feedstock is excluded,
+        # remove it while retaining the edges to its parents and children
+        if (node not in included_nodes) or (node in excluded_feedstocks):
+            pluck(total_graph, node)
 
     # post plucking we can have several strange cases, lets remove all selfloops
     total_graph.remove_edges_from(nx.selfloop_edges(total_graph))
