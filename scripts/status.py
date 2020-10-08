@@ -21,7 +21,10 @@ a = [
 print("packages out of date and not PRed: {}".format(len(a)))
 for b in a:
     print(
-        b, g.node[b]["version"], g.node[b]["new_version"], g.node[b].get("PRed", None),
+        b,
+        g.node[b]["version"],
+        g.node[b]["new_version"],
+        g.node[b].get("PRed", None),
     )
 
 print(

@@ -10,7 +10,10 @@ from conda_forge_tick.migrators import (
 from test_migrators import run_test_migration
 
 VERSION_CF = Version(
-    set(), dict(), dict(), piggy_back_migrations=[CondaForgeYAMLCleanup()],
+    set(),
+    dict(),
+    dict(),
+    piggy_back_migrations=[CondaForgeYAMLCleanup()],
 )
 
 YAML_PATH = os.path.join(os.path.dirname(__file__), "test_yaml")
@@ -32,11 +35,11 @@ YAML_PATH = os.path.join(os.path.dirname(__file__), "test_yaml")
 def test_version_cfyaml_cleanup(cases, tmpdir):
     yaml = YAML()
 
-    with open(os.path.join(YAML_PATH, "version_cfyaml_cleanup_simple.yaml"), "r") as fp:
+    with open(os.path.join(YAML_PATH, "version_cfyaml_cleanup_simple.yaml")) as fp:
         in_yaml = fp.read()
 
     with open(
-        os.path.join(YAML_PATH, "version_cfyaml_cleanup_simple_correct.yaml"), "r",
+        os.path.join(YAML_PATH, "version_cfyaml_cleanup_simple_correct.yaml"),
     ) as fp:
         out_yaml = fp.read()
 
@@ -64,7 +67,7 @@ def test_version_cfyaml_cleanup(cases, tmpdir):
         tmpdir=os.path.join(tmpdir, "recipe"),
     )
 
-    with open(cf_yml_pth, "r") as fp:
+    with open(cf_yml_pth) as fp:
         new_cf_yml = yaml.load(fp)
 
     assert "min_r_ver" not in new_cf_yml

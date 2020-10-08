@@ -32,7 +32,10 @@ version_migrator_cmake = Version(
     ],
 )
 version_migrator_python = Version(
-    set(), dict(), dict(), piggy_back_migrations=[cross_python_migrator],
+    set(),
+    dict(),
+    dict(),
+    piggy_back_migrations=[cross_python_migrator],
 )
 
 config_recipe = """\
@@ -421,7 +424,7 @@ def test_correct_config_sub(tmpdir):
         },
         tmpdir=tmpdir,
     )
-    with open(os.path.join(tmpdir, "build.sh"), "r") as f:
+    with open(os.path.join(tmpdir, "build.sh")) as f:
         assert len(f.readlines()) == 4
 
 
@@ -449,7 +452,7 @@ def test_make_check(tmpdir):
         "make check\n",
         "fi\n",
     ]
-    with open(os.path.join(tmpdir, "build.sh"), "r") as f:
+    with open(os.path.join(tmpdir, "build.sh")) as f:
         lines = f.readlines()
         assert lines == expected
 
@@ -477,7 +480,7 @@ def test_cmake(tmpdir):
         "ctest\n",
         "fi\n",
     ]
-    with open(os.path.join(tmpdir, "build.sh"), "r") as f:
+    with open(os.path.join(tmpdir, "build.sh")) as f:
         lines = f.readlines()
         assert lines == expected
 

@@ -76,7 +76,8 @@ KNOWN_NAMESPACE_PACKAGES: Set[str] = {
 
 
 def _imports_to_canonical_import(
-    split_imports: Set[Tuple[str, ...]], parent_prefix=(),
+    split_imports: Set[Tuple[str, ...]],
+    parent_prefix=(),
 ) -> Tuple[str, ...]:
     """Extract the canonical import name from a list of imports
 
@@ -122,13 +123,19 @@ def extract_import_name_from_test_imports(meta_yaml: Dict[str, Any]) -> Optional
 
 
 def extract_single_pypi_information(meta_yaml: Dict[str, Any]) -> Dict[str, str]:
-    pypi_name = extract_pypi_name_from_metadata_extras(
-        meta_yaml,
-    ) or extract_pypi_name_from_metadata_source_url(meta_yaml)
+    pypi_name = (
+        extract_pypi_name_from_metadata_extras(
+            meta_yaml,
+        )
+        or extract_pypi_name_from_metadata_source_url(meta_yaml)
+    )
     conda_name = meta_yaml["package"]["name"]
-    import_name = extract_import_name_from_metadata_extras(
-        meta_yaml,
-    ) or extract_import_name_from_test_imports(meta_yaml)
+    import_name = (
+        extract_import_name_from_metadata_extras(
+            meta_yaml,
+        )
+        or extract_import_name_from_test_imports(meta_yaml)
+    )
 
     if import_name and conda_name and pypi_name:
         return {
@@ -157,8 +164,7 @@ def extract_pypi_information(cf_graph: str) -> List[Dict[str, str]]:
 def convert_to_grayskull_style_yaml(
     package_mappings: Iterable[Dict[str, str]],
 ) -> Dict[str, Dict[str, str]]:
-    """Convert our list style mapping to the pypi-centric version required by grayskull
-    """
+    """Convert our list style mapping to the pypi-centric version required by grayskull"""
     mismatch = [
         x
         for x in package_mappings
@@ -181,7 +187,8 @@ def load_static_mappings() -> List[Dict[str, str]]:
 
 
 def determine_best_matches_for_pypi_import(
-    mapping: List[Dict[str, Any]], cf_graph: str,
+    mapping: List[Dict[str, Any]],
+    cf_graph: str,
 ):
     map_by_import_name = defaultdict(set)
     map_by_conda_name = dict()
@@ -211,9 +218,9 @@ def determine_best_matches_for_pypi_import(
             def score(conda_name):
                 """Base the score on
 
-                    Packages that are hubs are preferred.
-                    In the event of ties, fall back to the one with the lower authority score
-                    which means in this case, fewer dependencies
+                Packages that are hubs are preferred.
+                In the event of ties, fall back to the one with the lower authority score
+                which means in this case, fewer dependencies
                 """
                 return hubs.get(conda_name, 0), -authorities.get(conda_name, 0)
 
@@ -242,7 +249,8 @@ def main(args: "CLIArgs") -> None:
     static_packager_mappings = load_static_mappings()
     pypi_package_mappings = extract_pypi_information(cf_graph=cf_graph)
     best_imports, ordered_import_names = determine_best_matches_for_pypi_import(
-        cf_graph=cf_graph, mapping=pypi_package_mappings + static_packager_mappings,
+        cf_graph=cf_graph,
+        mapping=pypi_package_mappings + static_packager_mappings,
     )
 
     grayskull_style = convert_to_grayskull_style_yaml(best_imports.values())
@@ -266,7 +274,8 @@ def main(args: "CLIArgs") -> None:
 
     with (dirname / "import_name_priority_mapping.yaml").open("w") as fp:
         yaml_dump(
-            sorted(ordered_import_names, key=lambda entry: entry["import_name"]), fp,
+            sorted(ordered_import_names, key=lambda entry: entry["import_name"]),
+            fp,
         )
 
 

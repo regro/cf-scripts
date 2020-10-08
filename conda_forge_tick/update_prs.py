@@ -72,7 +72,9 @@ def _get_last_updated_prs():
     for i in range(10):
         logger.info("graphQL request try %d", i + 1)
         resp = requests.post(
-            "https://api.github.com/graphql", json={"query": query}, headers=headers,
+            "https://api.github.com/graphql",
+            json={"query": query},
+            headers=headers,
         )
         if resp.status_code == 200 and "data" in resp.json():
             data = resp.json()
@@ -154,7 +156,8 @@ def _update_pr(update_function, dry_run, gx):
             except Exception:
                 logger.critical(
                     "ERROR ON FEEDSTOCK: {}: {}".format(
-                        name, gx.nodes[name]["payload"]["PRed"][i],
+                        name,
+                        gx.nodes[name]["payload"]["PRed"][i],
                     ),
                 )
                 raise

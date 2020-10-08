@@ -89,14 +89,18 @@ def _adjust_test_dict(meta, key, mapping, groups, parent_group=None):
             val.append("pip")
             if _key in groups:
                 val.yaml_add_eol_comment(
-                    "# [%s]" % groups[_key][3], len(val) - 1, column=2,
+                    "# [%s]" % groups[_key][3],
+                    len(val) - 1,
+                    column=2,
                 )
     elif _has_key_selector(meta[key], "requirements"):
         for _key, val in _gen_keys_selector(meta[key], "requirements"):
             val.append("pip")
             if _key in groups:
                 val.yaml_add_eol_comment(
-                    "# [%s]" % groups[_key][3], len(val) - 1, column=80,
+                    "# [%s]" % groups[_key][3],
+                    len(val) - 1,
+                    column=80,
                 )
     else:
         new_seq = ruamel.yaml.comments.CommentedSeq()
@@ -104,10 +108,14 @@ def _adjust_test_dict(meta, key, mapping, groups, parent_group=None):
         meta[key]["requires"] = new_seq
         if parent_group is not None:
             new_seq.yaml_add_eol_comment(
-                "# [%s]" % parent_group[3], 0, column=80,
+                "# [%s]" % parent_group[3],
+                0,
+                column=80,
             )
             meta[key].yaml_add_eol_comment(
-                "# [%s]" % parent_group[3], "requires", column=80,
+                "# [%s]" % parent_group[3],
+                "requires",
+                column=80,
             )
 
     if _has_key_selector(meta[key], "commands"):
@@ -115,7 +123,9 @@ def _adjust_test_dict(meta, key, mapping, groups, parent_group=None):
             val.append("python -m pip check")
             if _key in groups:
                 val.yaml_add_eol_comment(
-                    "# [%s]" % groups[_key][3], len(val) - 1, column=80,
+                    "# [%s]" % groups[_key][3],
+                    len(val) - 1,
+                    column=80,
                 )
     else:
         new_seq = ruamel.yaml.comments.CommentedSeq()
@@ -123,10 +133,14 @@ def _adjust_test_dict(meta, key, mapping, groups, parent_group=None):
         meta[key]["commands"] = new_seq
         if parent_group is not None:
             new_seq.yaml_add_eol_comment(
-                "# [%s]" % parent_group[3], 0, column=80,
+                "# [%s]" % parent_group[3],
+                0,
+                column=80,
             )
             meta[key].yaml_add_eol_comment(
-                "# [%s]" % parent_group[3], "commands", column=80,
+                "# [%s]" % parent_group[3],
+                "commands",
+                column=80,
             )
 
 
@@ -144,7 +158,7 @@ class PipCheckMigrator(MiniMigrator):
         with indir(recipe_dir):
             mapping = {}
             groups = {}
-            with open("meta.yaml", "r") as fp:
+            with open("meta.yaml") as fp:
                 lines = []
                 for line in fp.readlines():
                     lines.append(_munge_line(line, mapping, groups))
@@ -158,7 +172,11 @@ class PipCheckMigrator(MiniMigrator):
             if not _has_key_selector(meta, "outputs"):
                 for key, _ in _gen_keys_selector(meta, "test"):
                     _adjust_test_dict(
-                        meta, key, mapping, groups, parent_group=groups.get(key, None),
+                        meta,
+                        key,
+                        mapping,
+                        groups,
+                        parent_group=groups.get(key, None),
                     )
             else:
                 # do top level
@@ -203,7 +221,7 @@ class PipCheckMigrator(MiniMigrator):
                 yaml.dump(meta, fp)
 
             # now undo mapping
-            with open("meta.yaml", "r") as fp:
+            with open("meta.yaml") as fp:
                 lines = []
                 for line in fp.readlines():
                     lines.append(_unmunge_line(line, mapping))

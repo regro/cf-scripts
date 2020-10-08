@@ -114,11 +114,14 @@ def get_index(
 
         full_url = channel.url(with_credentials=True) + "/" + repodata_fn
         full_path_cache = os.path.join(
-            create_cache_dir(), cache_fn_url(full_url, repodata_fn),
+            create_cache_dir(),
+            cache_fn_url(full_url, repodata_fn),
         )
 
         sd = api.SubdirData(
-            channel.name + "/" + channel.subdir, full_url, full_path_cache,
+            channel.name + "/" + channel.subdir,
+            full_url,
+            full_path_cache,
         )
 
         sd.load()
@@ -259,7 +262,10 @@ def is_recipe_solvable(feedstock_dir):
             arch = "64"
 
         solvable &= _is_recipe_solvable_on_platform(
-            os.path.join(feedstock_dir, "recipe"), cbc_fname, platform, arch,
+            os.path.join(feedstock_dir, "recipe"),
+            cbc_fname,
+            platform,
+            arch,
         )
 
     return solvable
@@ -275,7 +281,7 @@ def _is_recipe_solvable_on_platform(recipe_dir, cbc_path, platform, arch):
     parser.indent(mapping=2, sequence=4, offset=2)
     parser.width = 320
 
-    with open(cbc_path, "r") as fp:
+    with open(cbc_path) as fp:
         cbc_cfg = parser.load(fp.read())
 
     if "channel_sources" in cbc_cfg:
@@ -296,7 +302,10 @@ def _is_recipe_solvable_on_platform(recipe_dir, cbc_path, platform, arch):
     # here we extract the conda build config in roughly the same way that
     # it would be used in a real build
     config = conda_build.config.get_or_merge_config(
-        None, platform=platform, arch=arch, variant_config_files=[cbc_path],
+        None,
+        platform=platform,
+        arch=arch,
+        variant_config_files=[cbc_path],
     )
     cbc, _ = conda_build.variants.get_package_combined_spec(recipe_dir, config=config)
 

@@ -125,11 +125,13 @@ def _render_jinja2(tmpl, context):
 
 def _get_new_url_tmpl_and_hash(url_tmpl: str, context: MutableMapping, hash_type: str):
     logger.info(
-        "hashing URL template: %s", url_tmpl,
+        "hashing URL template: %s",
+        url_tmpl,
     )
     try:
         logger.info(
-            "rendered URL: %s", _render_jinja2(url_tmpl, context),
+            "rendered URL: %s",
+            _render_jinja2(url_tmpl, context),
         )
     except jinja2.UndefinedError:
         logger.info("initial URL template does not render")
@@ -181,7 +183,8 @@ def _try_replace_hash(
                 if key in cmeta.jinja2_vars:
                     cmeta.jinja2_vars[key] = new_hash
                     logger.info(
-                        "jinja2 w/ new hash: %s", pprint.pformat(cmeta.jinja2_vars),
+                        "jinja2 w/ new hash: %s",
+                        pprint.pformat(cmeta.jinja2_vars),
                     )
                     _replaced_hash = True
                     break
@@ -303,7 +306,9 @@ def _try_to_update_version(cmeta: Any, src: str, hash_type: str):
         if isinstance(src[url_key], collections.abc.MutableSequence):
             for url_ind, url_tmpl in enumerate(src[url_key]):
                 new_url_tmpl, new_hash = _get_new_url_tmpl_and_hash(
-                    url_tmpl, context, hash_type,
+                    url_tmpl,
+                    context,
+                    hash_type,
                 )
                 if new_hash is not None:
                     break
@@ -311,7 +316,9 @@ def _try_to_update_version(cmeta: Any, src: str, hash_type: str):
                     errors.add("could not hash URL template '%s'" % url_tmpl)
         else:
             new_url_tmpl, new_hash = _get_new_url_tmpl_and_hash(
-                src[url_key], context, hash_type,
+                src[url_key],
+                context,
+                hash_type,
             )
             if new_hash is None:
                 errors.add("could not hash URL template '%s'" % src[url_key])
@@ -319,7 +326,12 @@ def _try_to_update_version(cmeta: Any, src: str, hash_type: str):
         # now try to replace the hash
         if new_hash is not None:
             _replaced_hash = _try_replace_hash(
-                hash_key, cmeta, src, selector, hash_type, new_hash,
+                hash_key,
+                cmeta,
+                src,
+                selector,
+                hash_type,
+                new_hash,
             )
             if _replaced_hash:
                 if isinstance(src[url_key], collections.abc.MutableSequence):
@@ -455,7 +467,7 @@ class Version(Migrator):
             return {}
 
         try:
-            with open(os.path.join(recipe_dir, "meta.yaml"), "r") as fp:
+            with open(os.path.join(recipe_dir, "meta.yaml")) as fp:
                 cmeta = CondaMetaYAML(fp.read())
         except Exception as e:
             attrs["new_version_errors"][
@@ -505,13 +517,17 @@ class Version(Migrator):
                 if isinstance(cmeta.meta[src_key], collections.abc.MutableSequence):
                     for src in cmeta.meta[src_key]:
                         _did_update, _errors = _try_to_update_version(
-                            cmeta, src, hash_type,
+                            cmeta,
+                            src,
+                            hash_type,
                         )
                         did_update &= _did_update
                         errors |= _errors
                 else:
                     _did_update, _errors = _try_to_update_version(
-                        cmeta, cmeta.meta[src_key], hash_type,
+                        cmeta,
+                        cmeta.meta[src_key],
+                        hash_type,
                     )
                     did_update &= _did_update
                     errors |= _errors
@@ -703,9 +719,15 @@ class Version(Migrator):
     def pr_title(self, feedstock_ctx: FeedstockContext) -> str:
         assert isinstance(feedstock_ctx.attrs["new_version"], str)
         # TODO: turn False to True when we default to automerge
-        if feedstock_ctx.attrs.get("conda-forge.yml", {}).get("bot", {}).get(
-            "automerge", False,
-        ) in {"version", True}:
+        if (
+            feedstock_ctx.attrs.get("conda-forge.yml", {})
+            .get("bot", {})
+            .get(
+                "automerge",
+                False,
+            )
+            in {"version", True}
+        ):
             add_slug = "[bot-automerge] "
         else:
             add_slug = ""
@@ -735,7 +757,9 @@ class Version(Migrator):
         return 0
 
     def order(
-        self, graph: nx.DiGraph, total_graph: nx.DiGraph,
+        self,
+        graph: nx.DiGraph,
+        total_graph: nx.DiGraph,
     ) -> Sequence["PackageName"]:
         def _get_attemps(node):
             with graph.nodes[node]["payload"] as attrs:
@@ -748,5 +772,6 @@ class Version(Migrator):
         random.seed()
         nodes_to_sort = list(graph.nodes)
         return sorted(
-            sorted(nodes_to_sort, key=lambda x: random.uniform(0, 1)), key=_get_attemps,
+            sorted(nodes_to_sort, key=lambda x: random.uniform(0, 1)),
+            key=_get_attemps,
         )

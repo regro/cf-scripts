@@ -147,7 +147,7 @@ def _scrape_license_string(pkg):
             ],
             check=True,
         )
-        with open("r-%s/meta.yaml" % pkg, "r") as fp:
+        with open("r-%s/meta.yaml" % pkg) as fp:
             in_about = False
             meta_yaml = []
             for line in fp.readlines():
@@ -191,7 +191,7 @@ def _do_r_license_munging(pkg, recipe_dir):
         d = _scrape_license_string(pkg)
         LOGGER.info("LICENSE R package license data: %s" % d)
 
-        with open(os.path.join(recipe_dir, "meta.yaml"), "r") as fp:
+        with open(os.path.join(recipe_dir, "meta.yaml")) as fp:
             cmeta = CondaMetaYAML(fp.read())
 
         if d["license_file"] is not None:
@@ -276,10 +276,10 @@ class LicenseMigrator(MiniMigrator):
         if license_files:
             with indir(recipe_dir):
                 """BSD 3-Clause License
-                  Copyright (c) 2017, Anthony Scopatz
-                  Copyright (c) 2018, The Regro Developers
-                  All rights reserved."""
-                with open("meta.yaml", "r") as f:
+                Copyright (c) 2017, Anthony Scopatz
+                Copyright (c) 2018, The Regro Developers
+                All rights reserved."""
+                with open("meta.yaml") as f:
                     raw = f.read()
                 lines = raw.splitlines()
                 ptn = re.compile(r"(\s*?)" + "license:")

@@ -124,12 +124,14 @@ migrator_ts: 12345.2
 
 
 @pytest.mark.parametrize(
-    "in_out_yaml", [(IN_YAML, OUT_YAML), (IN_YAML_TODAY, OUT_YAML_TODAY)],
+    "in_out_yaml",
+    [(IN_YAML, OUT_YAML), (IN_YAML_TODAY, OUT_YAML_TODAY)],
 )
 @mock.patch("time.time")
 def test_migration_yaml_migration(tmock, in_out_yaml, caplog, tmpdir):
     caplog.set_level(
-        logging.DEBUG, logger="conda_forge_tick.migrators.migration_yaml",
+        logging.DEBUG,
+        logger="conda_forge_tick.migrators.migration_yaml",
     )
     tmock.return_value = 12345.2
     pname = "boost"
@@ -161,13 +163,20 @@ def test_migration_yaml_migration(tmock, in_out_yaml, caplog, tmpdir):
 
     boost_file = os.path.join(tmpdir, "migrations", "boost199.yaml")
     assert os.path.exists(boost_file)
-    with open(boost_file, "r") as fp:
+    with open(boost_file) as fp:
         bf_out = fp.read()
     assert BOOST_YAML == bf_out
 
 
 def run_test_migration(
-    m, inp, output, kwargs, prb, mr_out, should_filter=False, tmpdir=None,
+    m,
+    inp,
+    output,
+    kwargs,
+    prb,
+    mr_out,
+    should_filter=False,
+    tmpdir=None,
 ):
     mm_ctx = MigratorSessionContext(
         graph=G,
@@ -187,7 +196,7 @@ def run_test_migration(
 
     # read the conda-forge.yml
     if os.path.exists(os.path.join(tmpdir, "..", "conda-forge.yml")):
-        with open(os.path.join(tmpdir, "..", "conda-forge.yml"), "r") as fp:
+        with open(os.path.join(tmpdir, "..", "conda-forge.yml")) as fp:
             cf_yml = fp.read()
     else:
         cf_yml = "{}"
@@ -215,11 +224,15 @@ def run_test_migration(
         return
 
     m.run_pre_piggyback_migrations(
-        tmpdir, pmy, hash_type=pmy.get("hash_type", "sha256"),
+        tmpdir,
+        pmy,
+        hash_type=pmy.get("hash_type", "sha256"),
     )
     mr = m.migrate(tmpdir, pmy, hash_type=pmy.get("hash_type", "sha256"))
     m.run_post_piggyback_migrations(
-        tmpdir, pmy, hash_type=pmy.get("hash_type", "sha256"),
+        tmpdir,
+        pmy,
+        hash_type=pmy.get("hash_type", "sha256"),
     )
 
     assert mr_out == mr
@@ -227,7 +240,7 @@ def run_test_migration(
         return
 
     pmy.update(PRed=[frozen_to_json_friendly(mr)])
-    with open(os.path.join(tmpdir, "meta.yaml"), "r") as f:
+    with open(os.path.join(tmpdir, "meta.yaml")) as f:
         actual_output = f.read()
     # strip jinja comments
     pat = re.compile(r"{#.*#}")
@@ -236,14 +249,14 @@ def run_test_migration(
     assert actual_output == output
 
 
-with open(os.path.join(YAML_PATH, "conda_build_config.yaml"), "r") as fp:
+with open(os.path.join(YAML_PATH, "conda_build_config.yaml")) as fp:
     CBC = fp.read()
 
 
 @pytest.mark.parametrize("migrator_name", ["pypy", "krb", "boost"])
 def test_merge_migrator_cbc(migrator_name):
-    with open(os.path.join(YAML_PATH, f"{migrator_name}.yaml"), "r") as fp:
+    with open(os.path.join(YAML_PATH, f"{migrator_name}.yaml")) as fp:
         migrator = fp.read()
-    with open(os.path.join(YAML_PATH, f"{migrator_name}_out.yaml"), "r") as fp:
+    with open(os.path.join(YAML_PATH, f"{migrator_name}_out.yaml")) as fp:
         out = fp.read()
     assert merge_migrator_cbc(migrator, CBC) == out

@@ -225,7 +225,10 @@ class Noarch(Migrator):
                 "meta.yaml",
             )
             replace_in_file(
-                "  build:", "  host:", "meta.yaml", leading_whitespace=False,
+                "  build:",
+                "  host:",
+                "meta.yaml",
+                leading_whitespace=False,
             )
             if "pip" not in attrs["req"]:
                 replace_in_file(
@@ -323,7 +326,7 @@ class NoarchR(Noarch):
                 with open("build.sh", "w") as f:
                     f.writelines(r_noarch_build_sh)
             new_text = ""
-            with open("meta.yaml", "r") as f:
+            with open("meta.yaml") as f:
                 lines = f.readlines()
                 lines_stripped = [line.rstrip() for line in lines]
                 if noarch and "build:" in lines_stripped:
@@ -465,7 +468,9 @@ class Rebuild(GraphMigrator):
     def order(self, graph: nx.DiGraph, total_graph: nx.DiGraph) -> List["PackageName"]:
         """Run the order by number of decedents, ties are resolved by package name"""
         return sorted(
-            graph, key=lambda x: (len(nx.descendants(total_graph, x)), x), reverse=True,
+            graph,
+            key=lambda x: (len(nx.descendants(total_graph, x)), x),
+            reverse=True,
         )
 
 
@@ -476,7 +481,9 @@ class Pinning(Migrator):
     rerender = True
 
     def __init__(
-        self, pr_limit: int = 0, removals: Optional[Set["PackageName"]] = None,
+        self,
+        pr_limit: int = 0,
+        removals: Optional[Set["PackageName"]] = None,
     ):
         super().__init__(pr_limit)
         self.removals: Set
@@ -581,7 +588,7 @@ class BlasRebuild(Rebuild):
         with indir(recipe_dir):
             # Update build number
             # Remove blas related packages and features
-            with open("meta.yaml", "r") as f:
+            with open("meta.yaml") as f:
                 lines = f.readlines()
             reqs_line = "build:"
             for i, line in enumerate(lines):
@@ -650,7 +657,7 @@ class RBaseRebuild(Rebuild):
         # Set the provider to Azure only
         with indir(recipe_dir + "/.."):
             if os.path.exists("conda-forge.yml"):
-                with open("conda-forge.yml", "r") as f:
+                with open("conda-forge.yml") as f:
                     y = safe_load(f)
             else:
                 y = {}
@@ -661,7 +668,7 @@ class RBaseRebuild(Rebuild):
                 safe_dump(y, f)
 
         with indir(recipe_dir):
-            with open("meta.yaml", "r") as f:
+            with open("meta.yaml") as f:
                 text = f.read()
 
             changed = False
