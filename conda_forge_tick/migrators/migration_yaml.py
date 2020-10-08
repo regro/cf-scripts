@@ -413,26 +413,35 @@ class MigrationYamlCreator(Migrator):
 
 
 def _all_noarch(attrs, only_python=False):
+    meta_yaml = attrs.get("meta_yaml", {}) or {}
+
     if not only_python:
-        all_noarch = "noarch" in attrs.get("meta_yaml", {}).get("build", {})
-        for output in attrs.get("meta_yaml", {}).get("outputs", []):
+        all_noarch = "noarch" in meta_yaml.get("build", {})
+        for output in meta_yaml.get("outputs", []):
             all_noarch = all_noarch and ("noarch" in output.get("build", {}))
     else:
-        all_noarch = "python" == attrs.get("meta_yaml", {}).get("build", {}).get(
-            "noarch", None,
-        ) and any(
+        if any(
             req.startswith("python")
-            for req in (
-                attrs.get("meta_yaml", {}).get("requirements", {}).get("host", [])
-            )
-        )
-        for output in attrs.get("meta_yaml", {}).get("outputs", []):
-            _all_noarch = "python" == output.get("build", {}).get(
-                "noarch", None,
-            ) and any(
-                req.startswith("python")
-                for req in (output.get("requirements", {}).get("host", []))
-            )
+            for req in (meta_yaml.get("requirements", {}).get("host", []) or [])
+        ):
+            all_noarch = "python" == meta_yaml.get("build", {}).get("noarch", None)
+        else:
+            all_noarch = True
+
+        for output in meta_yaml.get("outputs", []):
+            # some nodes have None
+            _build = output.get("build", {}) or {}
+
+            # some nodes have a list here
+            _reqs = output.get("requirements", {})
+            if not isinstance(_reqs, list):
+                _reqs = _reqs.get("host", []) or []
+
+            if any(req.startswith("python") for req in _reqs):
+                _all_noarch = "python" == _build.get("noarch", None)
+            else:
+                _all_noarch = True
+
             all_noarch = all_noarch and _all_noarch
 
     return all_noarch
@@ -458,7 +467,7 @@ def create_rebuild_graph(
         bh = host or build
         only_python = "python" in package_names
         inclusion_criteria = bh & set(package_names) and (
-            include_noarch or _all_noarch(attrs, only_python=only_python)
+            include_noarch or not _all_noarch(attrs, only_python=only_python)
         )
         # get host/build, run and test and launder them through outputs
         # this should fix outputs related issues (eg gdal)
