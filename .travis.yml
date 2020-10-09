@@ -27,6 +27,7 @@ install:
 script:
   - python -c "import numpy"
   - python -c "import rapidjson as json"
+  - ls -lah ~/mc/lib/python3.7/site-packages/rapidjson*
   - coverage run run_tests.py
   - coverage report -m
   - codecov -X gcov
