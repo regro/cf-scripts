@@ -977,7 +977,10 @@ def main(args: "CLIArgs") -> None:
                     logger.info(os.getcwd())
                     for f in glob.glob("/tmp/*"):
                         if f not in temp:
-                            eval_cmd(f"rm -rf {f}")
+                            try:
+                                eval_cmd(f"rm -rf {f}")
+                            except Exception:
+                                pass
 
     if not args.dry_run:
         logger.info(
