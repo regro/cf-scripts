@@ -25,6 +25,7 @@ install:
   - python -m pip install -e .
 
 script:
+  - python -c "import rapidjson as json"
   - coverage run run_tests.py
   - coverage report -m
   - codecov -X gcov
