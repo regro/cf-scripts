@@ -30,4 +30,4 @@ black
 grayskull
 scipy
 psutil
-rapidjson
+python-rapidjson
