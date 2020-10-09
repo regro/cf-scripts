@@ -205,12 +205,12 @@ def graph_migrator_status(
             for k in sorted(gx2.successors(node))
             if not gx2[k].get("payload", {}).get("archived", False)
         ]
-        if (
-            migrator_name in attrs.get("pre_pr_migrator_status", {})
-            and node in (out["awaiting-pr"] | out["awaiting-parents"])
+        if migrator_name in attrs.get("pre_pr_migrator_status", {}) and node in (
+            out["awaiting-pr"] | out["awaiting-parents"]
         ):
-            node_metadata["pre_pr_migrator_status"] \
-                = attrs["pre_pr_migrator_status"][migrator_name]
+            node_metadata["pre_pr_migrator_status"] = attrs["pre_pr_migrator_status"][
+                migrator_name
+            ]
         else:
             node_metadata["pre_pr_migrator_status"] = ""
 

@@ -235,24 +235,18 @@ def run(
             ]
 
     if (
-        (
-            migrator.check_solvable
-            # for solveability always assume automerge is on.
-            and feedstock_ctx.attrs["conda-forge.yml"]
-            .get("bot", {})
-            .get("automerge", True)
-        )
-        or feedstock_ctx.attrs["conda-forge.yml"]
-        .get("bot", {})
-        .get("check_solvable", False)
+        migrator.check_solvable
+        # for solveability always assume automerge is on.
+        and feedstock_ctx.attrs["conda-forge.yml"].get("bot", {}).get("automerge", True)
+    ) or feedstock_ctx.attrs["conda-forge.yml"].get("bot", {}).get(
+        "check_solvable", False,
     ):
         solvable, errors = is_recipe_solvable(feedstock_dir)
         if not solvable:
             pre_key = "pre_pr_migrator_status"
             if pre_key not in feedstock_ctx.attrs:
                 feedstock_ctx.attrs[pre_key] = {}
-            feedstock_ctx.attrs[pre_key][migrator_name] \
-                = "not solvable: %s" % errors
+            feedstock_ctx.attrs[pre_key][migrator_name] = "not solvable: %s" % errors
             eval_cmd(f"rm -rf {feedstock_dir}")
             return False, False
 
