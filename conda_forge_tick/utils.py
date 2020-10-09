@@ -443,7 +443,7 @@ def dumps(
     return json.dumps(
         obj,
         sort_keys=sort_keys,
-        separators=separators,
+        #separators=separators,
         default=default,
         indent=1,
         **kwargs,
@@ -463,7 +463,7 @@ def dump(
         obj,
         fp,
         sort_keys=sort_keys,
-        separators=separators,
+        #separators=separators,
         default=default,
         indent=1,
         **kwargs,
