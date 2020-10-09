@@ -28,6 +28,9 @@ from mamba import mamba_api as api
 logger = logging.getLogger("conda_forge_tick.mamba_solver")
 
 
+# turn off pip for python
+api.Context().add_pip_as_python_dependency = False
+
 # these characters are start requirements that do not need to be munged from
 # 1.1 to 1.1.*
 REQ_START = ["!=", "==", ">", "<", ">=", "<="]
