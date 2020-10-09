@@ -10,7 +10,7 @@ from collections.abc import Callable
 from collections import defaultdict
 import contextlib
 import itertools
-import json
+import rapidjson as json
 import logging
 import os
 import re
@@ -443,7 +443,7 @@ def dumps(
     return json.dumps(
         obj,
         sort_keys=sort_keys,
-        separators=separators,
+        # separators=separators,
         default=default,
         indent=1,
         **kwargs,
@@ -463,7 +463,7 @@ def dump(
         obj,
         fp,
         sort_keys=sort_keys,
-        separators=separators,
+        # separators=separators,
         default=default,
         indent=1,
         **kwargs,
