@@ -239,7 +239,8 @@ def run(
         # for solveability always assume automerge is on.
         and feedstock_ctx.attrs["conda-forge.yml"].get("bot", {}).get("automerge", True)
     ) or feedstock_ctx.attrs["conda-forge.yml"].get("bot", {}).get(
-        "check_solvable", False,
+        "check_solvable",
+        False,
     ):
         solvable, errors = is_recipe_solvable(feedstock_dir)
         if not solvable:
