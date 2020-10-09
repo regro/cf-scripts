@@ -10,7 +10,7 @@ from collections.abc import Callable
 from collections import defaultdict
 import contextlib
 import itertools
-import json
+import rapidjson as json
 import logging
 import os
 import re
