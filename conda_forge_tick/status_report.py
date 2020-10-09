@@ -76,6 +76,12 @@ def graph_migrator_status(
 ) -> Tuple[dict, list, nx.DiGraph]:
     """Gets the migrator progress for a given migrator"""
 
+    if hasattr(migrator, "name"):
+        assert isinstance(migrator.name, str)
+        migrator_name = migrator.name.lower().replace(" ", "")
+    else:
+        migrator_name = migrator.__class__.__name__.lower()
+
     num_viz = 0
 
     out: Dict[str, Set[str]] = {
@@ -199,6 +205,15 @@ def graph_migrator_status(
             for k in sorted(gx2.successors(node))
             if not gx2[k].get("payload", {}).get("archived", False)
         ]
+        if (
+            migrator_name in attrs.get("pre_pr_migrator_status", {})
+            and node in (out["awaiting-pr"] | out["awaiting-parents"])
+        ):
+            node_metadata["pre_pr_migrator_status"] \
+                = attrs["pre_pr_migrator_status"][migrator_name]
+        else:
+            node_metadata["pre_pr_migrator_status"] = ""
+
         if pr_json and "PR" in pr_json:
             # I needed to fake some PRs they don't have html_urls though
             node_metadata["pr_url"] = pr_json["PR"].get(
