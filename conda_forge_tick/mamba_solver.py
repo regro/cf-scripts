@@ -239,24 +239,26 @@ def is_recipe_solvable(feedstock_dir):
         A list of errors from mamba. Empty if recipe is solvable.
     """
 
+    errors = []
     cbcs = sorted(glob.glob(os.path.join(feedstock_dir, ".ci_support", "*.yaml")))
     if len(cbcs) == 0:
-        logger.warning(
+        errors.append(
             "No `.ci_support/*.yaml` files found! This can happen when a rerender "
             "results in no builds for a recipe (e.g., a recipe is python 2.7 only). "
             "This attempted migration is being reported as not solvable.",
         )
-        return False
+        logger.warning(errors[-1])
+        return False, errors
 
     if not os.path.exists(os.path.join(feedstock_dir, "recipe", "meta.yaml")):
-        logger.warning(
+        errors.append(
             "No `recipe/meta.yaml` file found! This issue is quite weird and "
             "someone should investigate!",
         )
-        return False
+        logger.warning(errors[-1])
+        return False, errors
 
     solvable = True
-    errors = []
     for cbc_fname in cbcs:
         # we need to extract the platform (e.g., osx, linux) and arch (e.g., 64, aarm64)
         # conda smithy forms a string that is
