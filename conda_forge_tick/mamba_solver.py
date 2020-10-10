@@ -187,6 +187,8 @@ class MambaSolver:
         -------
         solvable : bool
             True if the set of specs has a solution, False otherwise.
+        err : str
+            The errors as a string. If no errors, is None.
         """
         solver_options = [(api.SOLVER_FLAG_ALLOW_DOWNGRADE, 1)]
         solver = api.Solver(self.pool, solver_options)
@@ -196,6 +198,7 @@ class MambaSolver:
         solver.add_jobs(_specs, api.SOLVER_INSTALL)
         success = solver.solve()
 
+        err = None
         if not success:
             logger.warning(
                 "MAMBA failed to solve specs \n\n%s\n\nfor channels "
@@ -204,8 +207,9 @@ class MambaSolver:
                 pprint.pformat(self.channels),
                 solver.problems_to_str(),
             )
+            err = solver.problems_to_str()
 
-        return success
+        return success, err
 
 
 @functools.lru_cache(maxsize=32)
@@ -231,6 +235,8 @@ def is_recipe_solvable(feedstock_dir):
     solvable : bool
         The logical AND of the solvability of the recipe on all platforms
         in the CI scripts.
+    errors : list of str
+        A list of errors from mamba. Empty if recipe is solvable.
     """
 
     cbcs = sorted(glob.glob(os.path.join(feedstock_dir, ".ci_support", "*.yaml")))
@@ -250,6 +256,7 @@ def is_recipe_solvable(feedstock_dir):
         return False
 
     solvable = True
+    errors = []
     for cbc_fname in cbcs:
         # we need to extract the platform (e.g., osx, linux) and arch (e.g., 64, aarm64)
         # conda smithy forms a string that is
@@ -264,14 +271,16 @@ def is_recipe_solvable(feedstock_dir):
         if arch not in ["32", "aarch64", "ppc64le", "armv7l"]:
             arch = "64"
 
-        solvable &= _is_recipe_solvable_on_platform(
+        _solvable, _errors = _is_recipe_solvable_on_platform(
             os.path.join(feedstock_dir, "recipe"),
             cbc_fname,
             platform,
             arch,
         )
+        solvable = solvable and _solvable
+        errors.extend(_errors)
 
-    return solvable
+    return solvable, errors
 
 
 def _clean_reqs(reqs, names):
@@ -330,28 +339,43 @@ def _is_recipe_solvable_on_platform(recipe_dir, cbc_path, platform, arch):
     mamba_solver = _mamba_factory(tuple(channel_sources), f"{platform}-{arch}")
 
     solvable = True
+    errors = []
     outnames = [m.name() for m, _, _ in metas]
     for m, _, _ in metas:
         build_req = m.get_value("requirements/build", [])
         if build_req:
             build_req = _clean_reqs(build_req, outnames)
-            solvable &= mamba_solver.solve(build_req)
+            _solvable, _err = mamba_solver.solve(build_req)
+            solvable = solvable and _solvable
+            if _err is not None:
+                errors.append(_err)
 
         host_req = m.get_value("requirements/host", [])
         if host_req:
             host_req = _clean_reqs(host_req, outnames)
-            solvable &= mamba_solver.solve(host_req)
+            _solvable, _err = mamba_solver.solve(host_req)
+            solvable = solvable and _solvable
+            if _err is not None:
+                errors.append(_err)
 
         run_req = m.get_value("requirements/run", [])
-        run_req = _clean_reqs(run_req, outnames)
-        solvable &= mamba_solver.solve(run_req)
+        if run_req:
+            run_req = _clean_reqs(run_req, outnames)
+            _solvable, _err = mamba_solver.solve(run_req)
+            solvable = solvable and _solvable
+            if _err is not None:
+                errors.append(_err)
 
         tst_req = (
             m.get_value("test/requires", [])
             + m.get_value("test/requirements", [])
             + run_req
         )
-        tst_req = _clean_reqs(tst_req, outnames)
-        solvable &= mamba_solver.solve(tst_req)
+        if tst_req:
+            tst_req = _clean_reqs(tst_req, outnames)
+            _solvable, _err = mamba_solver.solve(tst_req)
+            solvable = solvable and _solvable
+            if _err is not None:
+                errors.append(_err)
 
-    return solvable
+    return solvable, errors

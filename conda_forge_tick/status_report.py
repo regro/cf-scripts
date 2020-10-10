@@ -76,12 +76,19 @@ def graph_migrator_status(
 ) -> Tuple[dict, list, nx.DiGraph]:
     """Gets the migrator progress for a given migrator"""
 
+    if hasattr(migrator, "name"):
+        assert isinstance(migrator.name, str)
+        migrator_name = migrator.name.lower().replace(" ", "")
+    else:
+        migrator_name = migrator.__class__.__name__.lower()
+
     num_viz = 0
 
     out: Dict[str, Set[str]] = {
         "done": set(),
         "in-pr": set(),
         "awaiting-pr": set(),
+        "not-solvable": set(),
         "awaiting-parents": set(),
         "bot-error": set(),
     }
@@ -154,8 +161,14 @@ def graph_migrator_status(
             fntc = "white"
         elif pr_json is None:
             if buildable:
-                out["awaiting-pr"].add(node)
-                fc = "#35b779"
+                if "not solvable" in (
+                    attrs.get("pre_pr_migrator_status", {}).get(migrator_name, "")
+                ):
+                    out["not-solvable"].add(node)
+                    fc = "#ff8c00"
+                else:
+                    out["awaiting-pr"].add(node)
+                    fc = "#35b779"
             elif not isinstance(migrator, Replacement):
                 out["awaiting-parents"].add(node)
                 fc = "#fde725"
@@ -199,6 +212,14 @@ def graph_migrator_status(
             for k in sorted(gx2.successors(node))
             if not gx2[k].get("payload", {}).get("archived", False)
         ]
+        if node in out["not-solvable"]:
+            node_metadata["pre_pr_migrator_status"] = attrs.get(
+                "pre_pr_migrator_status",
+                {},
+            ).get(migrator_name, "")
+        else:
+            node_metadata["pre_pr_migrator_status"] = ""
+
         if pr_json and "PR" in pr_json:
             # I needed to fake some PRs they don't have html_urls though
             node_metadata["pr_url"] = pr_json["PR"].get(

@@ -52,7 +52,7 @@ extra:
     - conda-forge/bot
 """,
             )
-        assert is_recipe_solvable(FEEDSTOCK_DIR)
+        assert is_recipe_solvable(FEEDSTOCK_DIR)[0]
     finally:
         try:
             os.remove(recipe_file)
@@ -105,7 +105,7 @@ extra:
     - conda-forge/bot
 """,
             )
-        assert not is_recipe_solvable(FEEDSTOCK_DIR)
+        assert not is_recipe_solvable(FEEDSTOCK_DIR)[0]
     finally:
         try:
             os.remove(recipe_file)

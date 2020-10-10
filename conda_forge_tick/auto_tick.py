@@ -152,6 +152,12 @@ def run(
 
     branch_name = migrator.remote_branch(feedstock_ctx) + "_h" + uuid4().hex[0:6]
 
+    if hasattr(migrator, "name"):
+        assert isinstance(migrator.name, str)
+        migrator_name = migrator.name.lower().replace(" ", "")
+    else:
+        migrator_name = migrator.__class__.__name__.lower()
+
     # TODO: run this in parallel
     feedstock_dir, repo = get_repo(
         ctx=migrator.ctx.session,
@@ -229,19 +235,21 @@ def run(
             ]
 
     if (
-        (
-            migrator.check_solvable
-            # for solveability always assume automerge is on.
-            and feedstock_ctx.attrs["conda-forge.yml"]
-            .get("bot", {})
-            .get("automerge", True)
-        )
-        or feedstock_ctx.attrs["conda-forge.yml"]
-        .get("bot", {})
-        .get("check_solvable", False)
-    ) and not is_recipe_solvable(feedstock_dir):
-        eval_cmd(f"rm -rf {feedstock_dir}")
-        return False, False
+        migrator.check_solvable
+        # for solveability always assume automerge is on.
+        and feedstock_ctx.attrs["conda-forge.yml"].get("bot", {}).get("automerge", True)
+    ) or feedstock_ctx.attrs["conda-forge.yml"].get("bot", {}).get(
+        "check_solvable",
+        False,
+    ):
+        solvable, errors = is_recipe_solvable(feedstock_dir)
+        if not solvable:
+            pre_key = "pre_pr_migrator_status"
+            if pre_key not in feedstock_ctx.attrs:
+                feedstock_ctx.attrs[pre_key] = {}
+            feedstock_ctx.attrs[pre_key][migrator_name] = "not solvable: %s" % errors
+            eval_cmd(f"rm -rf {feedstock_dir}")
+            return False, False
 
     # TODO: Better annotation here
     pr_json: typing.Union[MutableMapping, None, bool]
