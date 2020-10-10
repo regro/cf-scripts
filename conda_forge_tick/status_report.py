@@ -161,12 +161,8 @@ def graph_migrator_status(
             fntc = "white"
         elif pr_json is None:
             if buildable:
-                if (
-                    "not solvable" in (
-                        attrs
-                        .get("pre_pr_migrator_status", {})
-                        .get(migrator_name, "")
-                    )
+                if "not solvable" in (
+                    attrs.get("pre_pr_migrator_status", {}).get(migrator_name, "")
                 ):
                     out["not-solvable"].add(node)
                     fc = "#ff8c00"
@@ -217,11 +213,10 @@ def graph_migrator_status(
             if not gx2[k].get("payload", {}).get("archived", False)
         ]
         if node in out["not-solvable"]:
-            node_metadata["pre_pr_migrator_status"] = (
-                attrs
-                .get("pre_pr_migrator_status", {})
-                .get(migrator_name, "")
-            )
+            node_metadata["pre_pr_migrator_status"] = attrs.get(
+                "pre_pr_migrator_status",
+                {},
+            ).get(migrator_name, "")
         else:
             node_metadata["pre_pr_migrator_status"] = ""
 
