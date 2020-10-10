@@ -246,7 +246,7 @@ def is_recipe_solvable(feedstock_dir):
             "No `.ci_support/*.yaml` files found! This can happen when a rerender "
             "results in no builds for a recipe (e.g., a recipe is python 2.7 only). "
             "This attempted migration is being reported as not solvable.",
-        )            
+        )
         logger.warning(errors[-1])
         return False, errors
 
