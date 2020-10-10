@@ -247,7 +247,9 @@ def run(
             pre_key = "pre_pr_migrator_status"
             if pre_key not in feedstock_ctx.attrs:
                 feedstock_ctx.attrs[pre_key] = {}
-            feedstock_ctx.attrs[pre_key][migrator_name] = "not solvable: %s" % errors
+            feedstock_ctx.attrs[pre_key][migrator_name] = "not solvable: %s" % sorted(
+                set(errors),
+            )
             eval_cmd(f"rm -rf {feedstock_dir}")
             return False, False
 
