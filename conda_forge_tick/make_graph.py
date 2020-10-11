@@ -175,11 +175,14 @@ def make_graph(
 
     # make the outputs look up table so we can link properly
     # and add this as an attr so we can use later
-    outputs_lut = {
-        k: node_name
-        for node_name, node in gx.nodes.items()
-        for k in node.get("payload", {}).get("outputs_names", [])
-    }
+    outputs_lut = {}
+    for node_name, node in gx.nodes.items():
+        for k in node.get("payload", {}).get("outputs_names", []):
+            if node_name != "pypy-meta":
+                outputs_lut[k] = node_name
+            elif k == "pypy":
+                # for pypy-meta we only map to pypy and not python or cffi
+                outputs_lut[k] = node_name
     gx.graph["outputs_lut"] = outputs_lut
 
     # collect all of the strong run exports

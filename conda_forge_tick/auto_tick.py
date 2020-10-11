@@ -521,12 +521,7 @@ def migration_factory(
                 yaml_contents = f.read()
             migration_yamls.append((yaml_file, yaml_contents))
 
-    # TODO: use the inbuilt LUT in the graph
-    output_to_feedstock = {
-        output: name
-        for name, node in gx.nodes.items()
-        for output in node.get("payload", {}).get("outputs_names", [])
-    }
+    output_to_feedstock = gx.graph["outputs_lut"]
     all_package_names = set(gx.nodes) | set(
         sum(
             [
