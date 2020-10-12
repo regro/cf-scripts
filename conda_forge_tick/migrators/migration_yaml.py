@@ -505,6 +505,7 @@ def create_rebuild_graph(
 
     # all nodes have the conda-forge-pinning as child package
     total_graph.add_edges_from([(n, "conda-forge-pinning") for n in total_graph.nodes])
+    included_nodes.add("conda-forge-pinning")  # it does not get added above
 
     # finally remove all nodes that should not be built from the graph
     for node in list(total_graph.nodes):
