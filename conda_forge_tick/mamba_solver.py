@@ -385,5 +385,4 @@ def _is_recipe_solvable_on_platform(recipe_dir, cbc_path, platform, arch):
                 errors.append(_err)
     if platform == "linux":
         del os.environ["CONDA_OVERRIDE_GLIBC"]
- 
     return solvable, errors
