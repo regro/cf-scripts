@@ -290,6 +290,10 @@ def _clean_reqs(reqs, names):
 
 
 def _is_recipe_solvable_on_platform(recipe_dir, cbc_path, platform, arch):
+    # Make sure mamba doesn't choke on virtual package solving
+    if platform == "linux":
+        os.environ["CONDA_OVERRIDE_GLIBC"] = "2.31"
+
     # parse the channel sources from the CBC
     parser = YAML(typ="jinja2")
     parser.indent(mapping=2, sequence=4, offset=2)
@@ -379,5 +383,6 @@ def _is_recipe_solvable_on_platform(recipe_dir, cbc_path, platform, arch):
             solvable = solvable and _solvable
             if _err is not None:
                 errors.append(_err)
-
+    if platform == "linux":
+        del os.environ["CONDA_OVERRIDE_GLIBC"]
     return solvable, errors
