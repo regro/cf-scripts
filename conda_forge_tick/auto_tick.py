@@ -507,6 +507,7 @@ def migration_factory(
     migrators: MutableSequence[Migrator],
     gx: nx.DiGraph,
     pr_limit: int = PR_LIMIT,
+    only_keep=None,
 ) -> None:
     migration_yamls = []
     migrations_loc = os.path.join(
@@ -521,6 +522,12 @@ def migration_factory(
                 yaml_contents = f.read()
             migration_yamls.append((yaml_file, yaml_contents))
 
+    if only_keep is None:
+        only_keep = [
+            os.path.splitext(os.path.basename(yaml_file))[0]
+            for yaml_file, _ in migration_yamls
+        ]
+
     output_to_feedstock = gx.graph["outputs_lut"]
     all_package_names = set(gx.nodes) | set(
         sum(
@@ -534,6 +541,10 @@ def migration_factory(
     for yaml_file, yaml_contents in migration_yamls:
         loaded_yaml = yaml.safe_load(yaml_contents)
         __mname = os.path.splitext(os.path.basename(yaml_file))[0]
+
+        if __mname not in only_keep:
+            continue
+
         print(
             "========================================"
             "========================================\n"
@@ -552,7 +563,6 @@ def migration_factory(
             package_names = (
                 set(loaded_yaml) | {ly.replace("_", "-") for ly in loaded_yaml}
             ) & all_package_names
-        package_names = package_names - excluded_feedstocks
 
         if not paused:
             add_rebuild_migration_yaml(
