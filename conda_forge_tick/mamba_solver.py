@@ -280,7 +280,7 @@ def is_recipe_solvable(feedstock_dir):
             arch,
         )
         solvable = solvable and _solvable
-        errors.extend(_errors)
+        errors.extend(["f{cbc_fname}: {e}" for e in _errors])
 
     return solvable, errors
 
@@ -364,8 +364,21 @@ def _is_recipe_solvable_on_platform(recipe_dir, cbc_path, platform, arch):
             if _err is not None:
                 errors.append(_err)
 
+        def apply_pins(reqs):
+            from conda_build.render import get_pin_from_build
+
+            pin_deps = host_req if m.is_cross else build_req
+            full_build_dep_versions = {
+                dep.split()[0]: " ".join(dep.split()[1:]) for dep in pin_deps
+            }
+            pinned_req = [
+                get_pin_from_build(m, dep, full_build_dep_versions) for dep in reqs
+            ]
+            return pinned_req
+
         run_req = m.get_value("requirements/run", [])
         if run_req:
+            run_req = apply_pins(run_req)
             run_req = _clean_reqs(run_req, outnames)
             _solvable, _err = mamba_solver.solve(run_req)
             solvable = solvable and _solvable
