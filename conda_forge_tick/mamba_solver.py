@@ -384,4 +384,4 @@ def _is_recipe_solvable_on_platform(recipe_dir, cbc_path, platform, arch):
             if _err is not None:
                 errors.append(cbc_name + ": " + _err)
 
-        return solvable, errors
+    return solvable, errors
