@@ -238,6 +238,8 @@ def is_recipe_solvable(feedstock_dir) -> Tuple[bool, List[str], Dict[str, bool]]
         in the CI scripts.
     errors : list of str
         A list of errors from mamba. Empty if recipe is solvable.
+    solvable_by_variant : dict
+        A lookup by variant config that shows if a particular config is solvable
     """
 
     errors = []
@@ -249,7 +251,7 @@ def is_recipe_solvable(feedstock_dir) -> Tuple[bool, List[str], Dict[str, bool]]
             "This attempted migration is being reported as not solvable.",
         )
         logger.warning(errors[-1])
-        return False, errors
+        return False, errors, {}
 
     if not os.path.exists(os.path.join(feedstock_dir, "recipe", "meta.yaml")):
         errors.append(
@@ -257,7 +259,7 @@ def is_recipe_solvable(feedstock_dir) -> Tuple[bool, List[str], Dict[str, bool]]
             "someone should investigate!",
         )
         logger.warning(errors[-1])
-        return False, errors
+        return False, errors, {}
 
     solvable = True
     solvable_by_cbc = {}
