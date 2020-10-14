@@ -14,6 +14,7 @@ import logging
 import glob
 import functools
 import pprint
+from typing import Dict, Tuple, List
 
 from ruamel.yaml import YAML
 
@@ -217,7 +218,7 @@ def _mamba_factory(channels, platform):
     return MambaSolver(list(channels), platform)
 
 
-def is_recipe_solvable(feedstock_dir):
+def is_recipe_solvable(feedstock_dir) -> Tuple[bool, List[str], Dict[str, bool]]:
     """Compute if a recipe is solvable.
 
     We look through each of the conda build configs in the feedstock
@@ -259,6 +260,7 @@ def is_recipe_solvable(feedstock_dir):
         return False, errors
 
     solvable = True
+    solvable_by_cbc = {}
     for cbc_fname in cbcs:
         # we need to extract the platform (e.g., osx, linux) and arch (e.g., 64, aarm64)
         # conda smithy forms a string that is
@@ -282,8 +284,9 @@ def is_recipe_solvable(feedstock_dir):
         solvable = solvable and _solvable
         cbc_name = os.path.basename(cbc_fname).rsplit(".", maxsplit=1)[0]
         errors.extend([f"{cbc_name}: {e}" for e in _errors])
+        solvable_by_cbc[cbc_name] = _solvable
 
-    return solvable, errors
+    return solvable, errors, solvable_by_cbc
 
 
 def _clean_reqs(reqs, names):

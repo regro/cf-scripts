@@ -246,7 +246,7 @@ def run(
         "check_solvable",
         False,
     ):
-        solvable, errors = is_recipe_solvable(feedstock_dir)
+        solvable, errors, _ = is_recipe_solvable(feedstock_dir)
         if not solvable:
             pre_key = "pre_pr_migrator_status"
             if pre_key not in feedstock_ctx.attrs:
