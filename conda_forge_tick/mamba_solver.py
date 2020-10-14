@@ -370,9 +370,15 @@ def _is_recipe_solvable_on_platform(recipe_dir, cbc_path, platform, arch):
             full_build_dep_versions = {
                 dep.split()[0]: " ".join(dep.split()[1:]) for dep in pin_deps
             }
-            pinned_req = [
-                get_pin_from_build(m, dep, full_build_dep_versions) for dep in reqs
-            ]
+            pinned_req = []
+            for dep in reqs:
+                try:
+                    pinned_req.append(
+                        get_pin_from_build(m, dep, full_build_dep_versions),
+                    )
+                except:
+                    # in case we couldn't apply pins for whatever reason, fall back to the req
+                    pinned_req.append(dep)
             return pinned_req
 
         run_req = m.get_value("requirements/run", [])
