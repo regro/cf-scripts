@@ -14,6 +14,7 @@ import logging
 import glob
 import functools
 import pprint
+from typing import Dict, Tuple, List
 
 from ruamel.yaml import YAML
 
@@ -217,7 +218,7 @@ def _mamba_factory(channels, platform):
     return MambaSolver(list(channels), platform)
 
 
-def is_recipe_solvable(feedstock_dir):
+def is_recipe_solvable(feedstock_dir) -> Tuple[bool, List[str], Dict[str, bool]]:
     """Compute if a recipe is solvable.
 
     We look through each of the conda build configs in the feedstock
@@ -237,6 +238,8 @@ def is_recipe_solvable(feedstock_dir):
         in the CI scripts.
     errors : list of str
         A list of errors from mamba. Empty if recipe is solvable.
+    solvable_by_variant : dict
+        A lookup by variant config that shows if a particular config is solvable
     """
 
     errors = []
@@ -248,7 +251,7 @@ def is_recipe_solvable(feedstock_dir):
             "This attempted migration is being reported as not solvable.",
         )
         logger.warning(errors[-1])
-        return False, errors
+        return False, errors, {}
 
     if not os.path.exists(os.path.join(feedstock_dir, "recipe", "meta.yaml")):
         errors.append(
@@ -256,9 +259,10 @@ def is_recipe_solvable(feedstock_dir):
             "someone should investigate!",
         )
         logger.warning(errors[-1])
-        return False, errors
+        return False, errors, {}
 
     solvable = True
+    solvable_by_cbc = {}
     for cbc_fname in cbcs:
         # we need to extract the platform (e.g., osx, linux) and arch (e.g., 64, aarm64)
         # conda smithy forms a string that is
@@ -280,9 +284,11 @@ def is_recipe_solvable(feedstock_dir):
             arch,
         )
         solvable = solvable and _solvable
-        errors.extend(_errors)
+        cbc_name = os.path.basename(cbc_fname).rsplit(".", maxsplit=1)[0]
+        errors.extend([f"{cbc_name}: {e}" for e in _errors])
+        solvable_by_cbc[cbc_name] = _solvable
 
-    return solvable, errors
+    return solvable, errors, solvable_by_cbc
 
 
 def _clean_reqs(reqs, names):
@@ -299,8 +305,6 @@ def _is_recipe_solvable_on_platform(recipe_dir, cbc_path, platform, arch):
 
     with open(cbc_path) as fp:
         cbc_cfg = parser.load(fp.read())
-
-    cbc_name = os.path.basename(cbc_path).rsplit(".", maxsplit=1)[0]
 
     if "channel_sources" in cbc_cfg:
         channel_sources = cbc_cfg["channel_sources"][0].split(",")
@@ -354,7 +358,7 @@ def _is_recipe_solvable_on_platform(recipe_dir, cbc_path, platform, arch):
             _solvable, _err = mamba_solver.solve(build_req)
             solvable = solvable and _solvable
             if _err is not None:
-                errors.append(cbc_name + ": " + _err)
+                errors.append(_err)
 
         host_req = m.get_value("requirements/host", [])
         if host_req:
@@ -362,15 +366,34 @@ def _is_recipe_solvable_on_platform(recipe_dir, cbc_path, platform, arch):
             _solvable, _err = mamba_solver.solve(host_req)
             solvable = solvable and _solvable
             if _err is not None:
-                errors.append(cbc_name + ": " + _err)
+                errors.append(_err)
+
+        def apply_pins(reqs):
+            from conda_build.render import get_pin_from_build
+
+            pin_deps = host_req if m.is_cross else build_req
+            full_build_dep_versions = {
+                dep.split()[0]: " ".join(dep.split()[1:]) for dep in pin_deps
+            }
+            pinned_req = []
+            for dep in reqs:
+                try:
+                    pinned_req.append(
+                        get_pin_from_build(m, dep, full_build_dep_versions),
+                    )
+                except:
+                    # in case we couldn't apply pins for whatever reason, fall back to the req
+                    pinned_req.append(dep)
+            return pinned_req
 
         run_req = m.get_value("requirements/run", [])
         if run_req:
+            run_req = apply_pins(run_req)
             run_req = _clean_reqs(run_req, outnames)
             _solvable, _err = mamba_solver.solve(run_req)
             solvable = solvable and _solvable
             if _err is not None:
-                errors.append(cbc_name + ": " + _err)
+                errors.append(_err)
 
         tst_req = (
             m.get_value("test/requires", [])
@@ -382,6 +405,6 @@ def _is_recipe_solvable_on_platform(recipe_dir, cbc_path, platform, arch):
             _solvable, _err = mamba_solver.solve(tst_req)
             solvable = solvable and _solvable
             if _err is not None:
-                errors.append(cbc_name + ": " + _err)
+                errors.append(_err)
 
     return solvable, errors
