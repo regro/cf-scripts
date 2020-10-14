@@ -286,14 +286,12 @@ def is_recipe_solvable(feedstock_dir):
 
 
 def _clean_reqs(reqs, names):
-    return [r for r in reqs if not any(r.split(" ")[0] == nm for nm in names)]
+    reqs = [r for r in reqs if not any(r.split(" ")[0] == nm for nm in names)]
+    reqs = [r for r in reqs if not r.startswith("__")]
+    return reqs
 
 
 def _is_recipe_solvable_on_platform(recipe_dir, cbc_path, platform, arch):
-    # Make sure mamba doesn't choke on virtual package solving
-    if platform == "linux":
-        os.environ["CONDA_OVERRIDE_GLIBC"] = "2.31"
-
     # parse the channel sources from the CBC
     parser = YAML(typ="jinja2")
     parser.indent(mapping=2, sequence=4, offset=2)
@@ -301,6 +299,8 @@ def _is_recipe_solvable_on_platform(recipe_dir, cbc_path, platform, arch):
 
     with open(cbc_path) as fp:
         cbc_cfg = parser.load(fp.read())
+
+    cbc_name = os.path.basename(cbc_path).rsplit(".", maxsplit=1)[0]
 
     if "channel_sources" in cbc_cfg:
         channel_sources = cbc_cfg["channel_sources"][0].split(",")
@@ -354,7 +354,7 @@ def _is_recipe_solvable_on_platform(recipe_dir, cbc_path, platform, arch):
             _solvable, _err = mamba_solver.solve(build_req)
             solvable = solvable and _solvable
             if _err is not None:
-                errors.append(_err)
+                errors.append(cbc_name + ": " + _err)
 
         host_req = m.get_value("requirements/host", [])
         if host_req:
@@ -362,7 +362,7 @@ def _is_recipe_solvable_on_platform(recipe_dir, cbc_path, platform, arch):
             _solvable, _err = mamba_solver.solve(host_req)
             solvable = solvable and _solvable
             if _err is not None:
-                errors.append(_err)
+                errors.append(cbc_name + ": " + _err)
 
         run_req = m.get_value("requirements/run", [])
         if run_req:
@@ -370,7 +370,7 @@ def _is_recipe_solvable_on_platform(recipe_dir, cbc_path, platform, arch):
             _solvable, _err = mamba_solver.solve(run_req)
             solvable = solvable and _solvable
             if _err is not None:
-                errors.append(_err)
+                errors.append(cbc_name + ": " + _err)
 
         tst_req = (
             m.get_value("test/requires", [])
@@ -382,7 +382,6 @@ def _is_recipe_solvable_on_platform(recipe_dir, cbc_path, platform, arch):
             _solvable, _err = mamba_solver.solve(tst_req)
             solvable = solvable and _solvable
             if _err is not None:
-                errors.append(_err)
-    if platform == "linux":
-        del os.environ["CONDA_OVERRIDE_GLIBC"]
+                errors.append(cbc_name + ": " + _err)
+
     return solvable, errors
