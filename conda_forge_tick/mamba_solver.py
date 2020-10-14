@@ -280,7 +280,8 @@ def is_recipe_solvable(feedstock_dir):
             arch,
         )
         solvable = solvable and _solvable
-        errors.extend(["f{cbc_fname}: {e}" for e in _errors])
+        cbc_name = os.path.basename(cbc_fname).rsplit(".", maxsplit=1)[0]
+        errors.extend([f"{cbc_name}: {e}" for e in _errors])
 
     return solvable, errors
 
@@ -299,8 +300,6 @@ def _is_recipe_solvable_on_platform(recipe_dir, cbc_path, platform, arch):
 
     with open(cbc_path) as fp:
         cbc_cfg = parser.load(fp.read())
-
-    cbc_name = os.path.basename(cbc_path).rsplit(".", maxsplit=1)[0]
 
     if "channel_sources" in cbc_cfg:
         channel_sources = cbc_cfg["channel_sources"][0].split(",")
@@ -354,7 +353,7 @@ def _is_recipe_solvable_on_platform(recipe_dir, cbc_path, platform, arch):
             _solvable, _err = mamba_solver.solve(build_req)
             solvable = solvable and _solvable
             if _err is not None:
-                errors.append(cbc_name + ": " + _err)
+                errors.append(_err)
 
         host_req = m.get_value("requirements/host", [])
         if host_req:
@@ -362,7 +361,7 @@ def _is_recipe_solvable_on_platform(recipe_dir, cbc_path, platform, arch):
             _solvable, _err = mamba_solver.solve(host_req)
             solvable = solvable and _solvable
             if _err is not None:
-                errors.append(cbc_name + ": " + _err)
+                errors.append(_err)
 
         def apply_pins(reqs):
             from conda_build.render import get_pin_from_build
@@ -383,7 +382,7 @@ def _is_recipe_solvable_on_platform(recipe_dir, cbc_path, platform, arch):
             _solvable, _err = mamba_solver.solve(run_req)
             solvable = solvable and _solvable
             if _err is not None:
-                errors.append(cbc_name + ": " + _err)
+                errors.append(_err)
 
         tst_req = (
             m.get_value("test/requires", [])
@@ -395,6 +394,6 @@ def _is_recipe_solvable_on_platform(recipe_dir, cbc_path, platform, arch):
             _solvable, _err = mamba_solver.solve(tst_req)
             solvable = solvable and _solvable
             if _err is not None:
-                errors.append(cbc_name + ": " + _err)
+                errors.append(_err)
 
     return solvable, errors
