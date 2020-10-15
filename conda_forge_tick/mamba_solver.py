@@ -242,7 +242,7 @@ def is_recipe_solvable(feedstock_dir) -> Tuple[bool, List[str], Dict[str, bool]]
         A lookup by variant config that shows if a particular config is solvable
     """
 
-    os.environ['CONDA_OVERRIDE_GLIBC'] = '2.50'
+    os.environ["CONDA_OVERRIDE_GLIBC"] = "2.50"
 
     errors = []
     cbcs = sorted(glob.glob(os.path.join(feedstock_dir, ".ci_support", "*.yaml")))
