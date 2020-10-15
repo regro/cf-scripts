@@ -302,6 +302,30 @@ def _clean_reqs(reqs, names):
     return reqs
 
 
+def filter_problematic_reqs(reqs):
+    """There are some reqs that have issues when used in certain contexts"""
+    problem_reqs = {
+        # This causes a strange self-ref for arrow-cpp
+        "parquet-cpp",
+    }
+    reqs = [r for r in reqs if r.split(" ")[0] not in problem_reqs]
+    return reqs
+
+
+def filter_pin_deps(pin_deps: Dict[str, str]) -> Dict[str, str]:
+    """There are some packages that result in invalid pinning expressions"""
+    problem_reqs = {
+        # This is a problematic runtime req when pinning expressions are applied
+        # due to its non-standard versioning pattern
+        "openssl",
+    }
+    result = pin_deps.copy()
+    for key in problem_reqs:
+        if key in result:
+            del result[key]
+    return result
+
+
 def _is_recipe_solvable_on_platform(recipe_dir, cbc_path, platform, arch):
     # parse the channel sources from the CBC
     parser = YAML(typ="jinja2")
@@ -394,7 +418,6 @@ def _is_recipe_solvable_on_platform(recipe_dir, cbc_path, platform, arch):
                 errors.append(_err)
 
         def apply_pins(reqs):
-            return reqs
             from conda_build.render import get_pin_from_build, _categorize_deps
 
             pin_deps = host_req if m.is_cross else build_req
@@ -409,6 +432,7 @@ def _is_recipe_solvable_on_platform(recipe_dir, cbc_path, platform, arch):
             full_build_dep_versions = {
                 dep.split()[0]: " ".join(dep.split()[1:]) for dep in dependencies
             }
+            full_build_dep_versions = filter_pin_deps(full_build_dep_versions)
             pinned_req = []
             for dep in reqs:
                 try:
@@ -418,6 +442,8 @@ def _is_recipe_solvable_on_platform(recipe_dir, cbc_path, platform, arch):
                 except:
                     # in case we couldn't apply pins for whatever reason, fall back to the req
                     pinned_req.append(dep)
+
+            pinned_req = filter_problematic_reqs(pinned_req)
             return pinned_req
 
         run_req = m.get_value("requirements/run", [])
