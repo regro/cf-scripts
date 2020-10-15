@@ -119,6 +119,57 @@ extra:
     assert solvable_by_variant["linux_ppc64le_python3.6.____cpython"]
 
 
+def clone_and_checkout_repo(base_path: pathlib.Path, origin_url: str, ref: str):
+    from conda_forge_tick.git_xonsh_utils import fetch_repo
+
+    fetch_repo(
+        feedstock_dir=str(base_path / "repo"),
+        origin=origin_url,
+        upstream=origin_url,
+        branch=ref,
+    )
+    return str(base_path / "repo")
+
+
+def test_arrow_solvable(tmp_path):
+    feedstock_dir = clone_and_checkout_repo(
+        tmp_path,
+        "https://github.com/conda-forge/arrow-cpp-feedstock",
+        ref="master",
+    )
+    solvable, errors, solvable_by_variant = is_recipe_solvable(feedstock_dir)
+    print(solvable_by_variant)
+    assert solvable
+
+
+def test_grpcio_solvable(tmp_path):
+    """grpcio has a runtime dep on openssl which has strange pinning things in it"""
+    feedstock_dir = clone_and_checkout_repo(
+        tmp_path,
+        "https://github.com/conda-forge/grpcio-feedstock",
+        ref="master",
+    )
+    solvable, errors, solvable_by_variant = is_recipe_solvable(feedstock_dir)
+    import pprint
+
+    pprint.pprint(solvable_by_variant)
+    assert solvable
+
+
+def test_cupy_solvable(tmp_path):
+    """grpcio has a runtime dep on openssl which has strange pinning things in it"""
+    feedstock_dir = clone_and_checkout_repo(
+        tmp_path,
+        "https://github.com/conda-forge/cupy-feedstock",
+        ref="master",
+    )
+    solvable, errors, solvable_by_variant = is_recipe_solvable(feedstock_dir)
+    import pprint
+
+    pprint.pprint(solvable_by_variant)
+    assert solvable
+
+
 def test_is_recipe_solvable_notok(feedstock_dir):
     recipe_file = os.path.join(feedstock_dir, "recipe", "meta.yaml")
     os.makedirs(os.path.dirname(recipe_file), exist_ok=True)

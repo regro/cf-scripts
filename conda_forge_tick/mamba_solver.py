@@ -14,6 +14,7 @@ import logging
 import glob
 import functools
 import pprint
+import re
 from typing import Dict, Tuple, List
 
 from ruamel.yaml import YAML
@@ -352,6 +353,26 @@ def _is_recipe_solvable_on_platform(recipe_dir, cbc_path, platform, arch):
     errors = []
     outnames = [m.name() for m, _, _ in metas]
     for m, _, _ in metas:
+        from conda_build.render import finalize_metadata
+
+        # copied from conda_build.render.finalize_metadata
+        exclude_pattern = None
+        excludes = set(m.config.variant.get("ignore_version", []))
+
+        for key in m.config.variant.get("pin_run_as_build", {}).keys():
+            if key in excludes:
+                excludes.remove(key)
+
+        output_excludes = set()
+        if hasattr(m, "other_outputs"):
+            output_excludes = {name for (name, variant) in m.other_outputs.keys()}
+
+        if output_excludes:
+            exclude_pattern = re.compile(
+                r"|".join(fr"(?:^{exc}(?:\s|$|\Z))" for exc in output_excludes),
+            )
+        # end copy
+
         build_req = m.get_value("requirements/build", [])
         if build_req:
             build_req = _clean_reqs(build_req, outnames)
@@ -369,11 +390,20 @@ def _is_recipe_solvable_on_platform(recipe_dir, cbc_path, platform, arch):
                 errors.append(_err)
 
         def apply_pins(reqs):
-            from conda_build.render import get_pin_from_build
+            return reqs
+            from conda_build.render import get_pin_from_build, _categorize_deps
 
             pin_deps = host_req if m.is_cross else build_req
+
+            subpackages, dependencies, pass_through_deps = _categorize_deps(
+                m,
+                specs=pin_deps,
+                exclude_pattern=exclude_pattern,
+                variant=m.config.variant,
+            )
+
             full_build_dep_versions = {
-                dep.split()[0]: " ".join(dep.split()[1:]) for dep in pin_deps
+                dep.split()[0]: " ".join(dep.split()[1:]) for dep in dependencies
             }
             pinned_req = []
             for dep in reqs:
