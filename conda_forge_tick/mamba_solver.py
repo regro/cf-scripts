@@ -385,8 +385,9 @@ def _is_recipe_solvable_on_platform(recipe_dir, cbc_path, platform, arch):
                     pinned_req.append(
                         get_pin_from_build(m, dep, full_build_dep_versions),
                     )
-                except:
-                    # in case we couldn't apply pins for whatever reason, fall back to the req
+                except Exception:
+                    # in case we couldn't apply pins for whatever
+                    # reason, fall back to the req
                     pinned_req.append(dep)
             return pinned_req
 
