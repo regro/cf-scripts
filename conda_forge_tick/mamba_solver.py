@@ -290,7 +290,7 @@ def is_recipe_solvable(feedstock_dir) -> Tuple[bool, List[str], Dict[str, bool]]
         errors.extend([f"{cbc_name}: {e}" for e in _errors])
         solvable_by_cbc[cbc_name] = _solvable
 
-    del os.environ['CONDA_OVERRIDE_GLIBC']
+    del os.environ["CONDA_OVERRIDE_GLIBC"]
 
     return solvable, errors, solvable_by_cbc
 
