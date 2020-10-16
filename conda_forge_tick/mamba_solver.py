@@ -172,12 +172,12 @@ class FakePackage:
 
 class FakeRepoData:
     def __init__(self, base_dir: pathlib.Path):
-        self.base_dir = base_dir
+        self.base_path = base_dir
         self.packages_by_subdir: Dict[FakePackage, Set[str]] = defaultdict(set)
 
     @property
     def channel_url(self):
-        return f"file://{str(self.base_dir.absolute())}"
+        return f"file://{str(self.base_path.absolute())}"
 
     def add_package(self, package: FakePackage, subdirs: Iterable[str] = ()):
         subdirs = frozenset(subdirs)
@@ -195,8 +195,8 @@ class FakeRepoData:
             info_dict["subdir"] = subdir
             packages[fname] = info_dict
 
-        (self.base_dir / subdir).mkdir(exist_ok=True)
-        (self.base_dir / subdir / "repodata.json").write_text(json.dumps(out))
+        (self.base_path / subdir).mkdir(exist_ok=True)
+        (self.base_path / subdir / "repodata.json").write_text(json.dumps(out))
 
     def write(self):
         all_subdirs = {
@@ -213,6 +213,13 @@ class FakeRepoData:
 
         for subdir in all_subdirs:
             self._write_subdir(subdir)
+
+        logger.info("Wrote fake repodata to %s", self.base_path)
+        import glob
+
+        for filename in glob.iglob(str(self.base_path / "**"), recursive=True):
+            logger.info(filename)
+        logger.info("repo: %s", self.channel_url)
 
     def __enter__(self):
         return self
@@ -306,8 +313,16 @@ def virtual_package_repodata():
     import atexit
     import shutil
 
-    tmp_dir = tempfile.mkdtemp()
-    atexit.register(lambda: shutil.rmtree(tmp_dir, ignore_errors=True))
+    # tmp directory in github actions
+    runner_tmp = os.environ.get("RUNNER_TEMP")
+    tmp_dir = tempfile.mkdtemp(dir=runner_tmp)
+
+    if not runner_tmp:
+        # no need to bother cleaning up on CI
+        def clean():
+            shutil.rmtree(tmp_dir, ignore_errors=True)
+
+        atexit.register(clean)
 
     tmp_path = pathlib.Path(tmp_dir)
     repodata = FakeRepoData(tmp_path)
