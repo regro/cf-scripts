@@ -9,12 +9,18 @@ The basic workflow is for yaml file in .ci_support
 Most of the code here is due to @wolfv in this gist,
 https://gist.github.com/wolfv/cd12bd4a448c77ff02368e97ffdf495a.
 """
+import json
 import os
 import logging
 import glob
 import functools
+import pathlib
 import pprint
-from typing import Dict, Tuple, List
+import re
+import time
+from collections import defaultdict
+from dataclasses import dataclass, field
+from typing import Dict, Tuple, List, FrozenSet, Set, Iterable
 
 from ruamel.yaml import YAML
 
@@ -140,6 +146,81 @@ def get_index(
     return index
 
 
+@dataclass(frozen=True)
+class FakePackage:
+    name: str
+    version: str = "1.0"
+    build_string: str = ""
+    build_number: int = 0
+    noarch: str = ""
+    depends: FrozenSet[str] = field(default_factory=frozenset)
+    timestamp: int = field(
+        default_factory=lambda: int(time.mktime(time.gmtime()) * 1000),
+    )
+
+    def to_repodata_entry(self):
+        out = self.__dict__.copy()
+        if self.build_string:
+            build = f"{self.build_string}_{self.build_number}"
+        else:
+            build = f"{self.build_number}"
+        out["depends"] = list(out["depends"])
+        out["build"] = build
+        fname = f"{self.name}-{self.version}-{build}.tar.bz2"
+        return fname, out
+
+
+class FakeRepoData:
+    def __init__(self, base_dir: pathlib.Path):
+        self.base_dir = base_dir
+        self.packages_by_subdir: Dict[FakePackage, Set[str]] = defaultdict(set)
+
+    @property
+    def channel_url(self):
+        return f"file://{str(self.base_dir.absolute())}"
+
+    def add_package(self, package: FakePackage, subdirs: Iterable[str] = ()):
+        subdirs = frozenset(subdirs)
+        if not subdirs:
+            subdirs = frozenset(["noarch"])
+        self.packages_by_subdir[package].update(subdirs)
+
+    def _write_subdir(self, subdir):
+        packages = {}
+        out = {"info": {"subdir": subdir}, "packages": packages}
+        for pkg, subdirs in self.packages_by_subdir.items():
+            if subdir not in subdirs:
+                continue
+            fname, info_dict = pkg.to_repodata_entry()
+            info_dict["subdir"] = subdir
+            packages[fname] = info_dict
+
+        (self.base_dir / subdir).mkdir(exist_ok=True)
+        (self.base_dir / subdir / "repodata.json").write_text(json.dumps(out))
+
+    def write(self):
+        all_subdirs = {
+            "noarch",
+            "linux-aarch64",
+            "linux-ppc64le",
+            "linux-64",
+            "osx-64",
+            "osx-arm64",
+            "win-64",
+        }
+        for subdirs in self.packages_by_subdir.values():
+            all_subdirs.update(subdirs)
+
+        for subdir in all_subdirs:
+            self._write_subdir(subdir)
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.write()
+
+
 class MambaSolver:
     """Run the mamba solver.
 
@@ -174,7 +255,7 @@ class MambaSolver:
             repo.set_priority(priority, subpriority)
             self.repos.append(repo)
 
-    def solve(self, specs):
+    def solve(self, specs) -> Tuple[bool, List[str]]:
         """Solve given a set of specs.
 
         Parameters
@@ -218,7 +299,55 @@ def _mamba_factory(channels, platform):
     return MambaSolver(list(channels), platform)
 
 
-def is_recipe_solvable(feedstock_dir) -> Tuple[bool, List[str], Dict[str, bool]]:
+@functools.lru_cache(maxsize=1)
+def virtual_package_repodata():
+    # TODO: we might not want to use TemporaryDirectory
+    import tempfile
+    import atexit
+    import shutil
+
+    tmp_dir = tempfile.mkdtemp()
+    atexit.register(lambda: shutil.rmtree(tmp_dir, ignore_errors=True))
+
+    tmp_path = pathlib.Path(tmp_dir)
+    repodata = FakeRepoData(tmp_path)
+    fake_packages = [
+        FakePackage("__glibc", "2.12"),
+        FakePackage("__glibc", "2.17"),
+        FakePackage("__cuda", "9.2"),
+        FakePackage("__cuda", "10.0"),
+        FakePackage("__cuda", "10.1"),
+        FakePackage("__cuda", "10.2"),
+        FakePackage("__cuda", "11.0"),
+        FakePackage("__cuda", "11.1"),
+    ]
+    for pkg in fake_packages:
+        repodata.add_package(pkg)
+    for osx_ver in [
+        "10.9",
+        "10.10",
+        "10.11",
+        "10.12",
+        "10.13",
+        "10.14",
+        "10.15",
+        "10.16",
+    ]:
+        repodata.add_package(FakePackage("__osx", osx_ver), subdirs=["osx-64"])
+    for osx_ver in ["11.0"]:
+        repodata.add_package(
+            FakePackage("__osx", osx_ver),
+            subdirs=["osx-64", "osx-arm64"],
+        )
+    repodata.write()
+
+    return repodata.channel_url
+
+
+def is_recipe_solvable(
+    feedstock_dir,
+    additional_channels=(),
+) -> Tuple[bool, List[str], Dict[str, bool]]:
     """Compute if a recipe is solvable.
 
     We look through each of the conda build configs in the feedstock
@@ -242,6 +371,8 @@ def is_recipe_solvable(feedstock_dir) -> Tuple[bool, List[str], Dict[str, bool]]
         A lookup by variant config that shows if a particular config is solvable
     """
 
+    if not additional_channels:
+        additional_channels = [virtual_package_repodata()]
     os.environ["CONDA_OVERRIDE_GLIBC"] = "2.50"
 
     errors = []
@@ -284,6 +415,7 @@ def is_recipe_solvable(feedstock_dir) -> Tuple[bool, List[str], Dict[str, bool]]
             cbc_fname,
             platform,
             arch,
+            additional_channels=additional_channels,
         )
         solvable = solvable and _solvable
         cbc_name = os.path.basename(cbc_fname).rsplit(".", maxsplit=1)[0]
@@ -301,7 +433,37 @@ def _clean_reqs(reqs, names):
     return reqs
 
 
-def _is_recipe_solvable_on_platform(recipe_dir, cbc_path, platform, arch):
+def filter_problematic_reqs(reqs):
+    """There are some reqs that have issues when used in certain contexts"""
+    problem_reqs = {
+        # This causes a strange self-ref for arrow-cpp
+        "parquet-cpp",
+    }
+    reqs = [r for r in reqs if r.split(" ")[0] not in problem_reqs]
+    return reqs
+
+
+def filter_pin_deps(pin_deps: Dict[str, str]) -> Dict[str, str]:
+    """There are some packages that result in invalid pinning expressions"""
+    problem_reqs = {
+        # This is a problematic runtime req when pinning expressions are applied
+        # due to its non-standard versioning pattern
+        "openssl",
+    }
+    result = pin_deps.copy()
+    for key in problem_reqs:
+        if key in result:
+            del result[key]
+    return result
+
+
+def _is_recipe_solvable_on_platform(
+    recipe_dir,
+    cbc_path,
+    platform,
+    arch,
+    additional_channels=(),
+):
     # parse the channel sources from the CBC
     parser = YAML(typ="jinja2")
     parser.indent(mapping=2, sequence=4, offset=2)
@@ -317,6 +479,9 @@ def _is_recipe_solvable_on_platform(recipe_dir, cbc_path, platform, arch):
 
     if "msys2" not in channel_sources:
         channel_sources.append("msys2")
+
+    if additional_channels:
+        channel_sources = list(additional_channels) + channel_sources
 
     logger.debug(
         "MAMBA: using channels %s on platform-arch %s-%s",
@@ -376,9 +541,12 @@ def _is_recipe_solvable_on_platform(recipe_dir, cbc_path, platform, arch):
             from conda_build.render import get_pin_from_build
 
             pin_deps = host_req if m.is_cross else build_req
+
             full_build_dep_versions = {
-                dep.split()[0]: " ".join(dep.split()[1:]) for dep in pin_deps
+                dep.split()[0]: " ".join(dep.split()[1:])
+                for dep in _clean_reqs(pin_deps, outnames)
             }
+            full_build_dep_versions = filter_pin_deps(full_build_dep_versions)
             pinned_req = []
             for dep in reqs:
                 try:
@@ -389,6 +557,8 @@ def _is_recipe_solvable_on_platform(recipe_dir, cbc_path, platform, arch):
                     # in case we couldn't apply pins for whatever
                     # reason, fall back to the req
                     pinned_req.append(dep)
+
+            pinned_req = filter_problematic_reqs(pinned_req)
             return pinned_req
 
         run_req = m.get_value("requirements/run", [])
