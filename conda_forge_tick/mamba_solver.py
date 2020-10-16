@@ -255,7 +255,7 @@ class MambaSolver:
             repo.set_priority(priority, subpriority)
             self.repos.append(repo)
 
-    def solve(self, specs):
+    def solve(self, specs) -> Tuple[bool, List[str]]:
         """Solve given a set of specs.
 
         Parameters
