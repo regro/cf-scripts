@@ -550,8 +550,9 @@ def _is_recipe_solvable_on_platform(
                     pinned_req.append(
                         get_pin_from_build(m, dep, full_build_dep_versions),
                     )
-                except:
-                    # in case we couldn't apply pins for whatever reason, fall back to the req
+                except Exception:
+                    # in case we couldn't apply pins for whatever
+                    # reason, fall back to the req
                     pinned_req.append(dep)
 
             pinned_req = filter_problematic_reqs(pinned_req)

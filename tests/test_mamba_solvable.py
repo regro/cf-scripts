@@ -10,9 +10,16 @@ from conda_forge_tick.mamba_solver import (
     _norm_spec,
     FakeRepoData,
     FakePackage,
+    MambaSolver,
 )
 
 FEEDSTOCK_DIR = os.path.join(os.path.dirname(__file__), "test_feedstock")
+
+
+def test_mamba_solver_nvcc():
+    solver = MambaSolver(["conda-forge", "defaults"], "linux-64")
+    out = solver.solve(["gcc_linux-64 7.*", "gxx_linux-64 7.*", "nvcc_linux-64 11.0.*"])
+    assert out[0], out[1]
 
 
 @pytest.fixture()
