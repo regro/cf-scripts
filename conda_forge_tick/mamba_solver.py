@@ -314,15 +314,18 @@ def virtual_package_repodata():
     fake_packages = [
         FakePackage("__glibc", "2.12"),
         FakePackage("__glibc", "2.17"),
+        FakePackage("__cuda", "9.2"),        
         FakePackage("__cuda", "10.0"),
         FakePackage("__cuda", "10.1"),
+        FakePackage("__cuda", "10.2"),
         FakePackage("__cuda", "11.0"),
-        FakePackage("__cuda", "11.2"),
+        FakePackage("__cuda", "11.1"),
     ]
     for pkg in fake_packages:
         repodata.add_package(pkg)
     for osx_ver in [
-        "10.9" "10.10",
+        "10.9",
+        "10.10",
         "10.11",
         "10.12",
         "10.13",
