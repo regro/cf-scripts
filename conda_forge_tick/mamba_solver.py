@@ -314,7 +314,7 @@ def virtual_package_repodata():
     fake_packages = [
         FakePackage("__glibc", "2.12"),
         FakePackage("__glibc", "2.17"),
-        FakePackage("__cuda", "9.2"),        
+        FakePackage("__cuda", "9.2"),
         FakePackage("__cuda", "10.0"),
         FakePackage("__cuda", "10.1"),
         FakePackage("__cuda", "10.2"),
