@@ -28,8 +28,9 @@ if typing.TYPE_CHECKING:
         MigrationUidTypedDict,
         PackageName,
         FeedstockName,
-        PRedElementTypedDict, OutputsLUT,
-)
+        PRedElementTypedDict,
+        OutputsLUT,
+    )
     from conda_forge_tick.utils import JsonFriendly
 
 
@@ -465,11 +466,8 @@ class GraphMigrator(Migrator):
                 continue
 
             muid = frozen_to_json_friendly(self.migrator_uid(payload))
-            if (
-                muid
-                not in _sanitized_muids(
-                    payload.get("PRed", []),
-                )
+            if muid not in _sanitized_muids(
+                payload.get("PRed", []),
             ):
                 return True
 

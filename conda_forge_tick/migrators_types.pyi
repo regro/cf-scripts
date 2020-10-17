@@ -81,6 +81,8 @@ class MigrationUidTypedDict(TypedDict, total=False):
     migrator_object_version: int
     # Used by version migrators
     version: str
+    # Used by MigrationYamlCreator
+    pin_version: str
 
 class PackageTypedDict(TypedDict):
     name: str

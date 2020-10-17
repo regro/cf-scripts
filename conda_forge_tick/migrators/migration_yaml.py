@@ -13,21 +13,21 @@ import ruamel.yaml as yaml
 
 from conda_forge_tick.contexts import FeedstockContext
 from conda_forge_tick.migrators.core import GraphMigrator, MiniMigrator, Migrator
+from conda_forge_tick.utils import eval_cmd, pluck, pin_sep_pat
 from conda_forge_tick.xonsh_utils import indir
-from conda_forge_tick.utils import eval_cmd
-from ..utils import pluck, pin_sep_pat
 
 if typing.TYPE_CHECKING:
     from ..migrators_types import (
         MigrationUidTypedDict,
         AttrsTypedDict,
-        PackageName, RequirementsTypedDict,
-)
+        PackageName,
+        RequirementsTypedDict,
+    )
 
 logger = logging.getLogger("conda_forge_tick.migrators.migration_yaml")
 
 
-def _patch_dict(cfg, patches):
+def _patch_dict(cfg: dict, patches: dict) -> None:
     """Patch a dictionary using a set of patches.
 
     Given a dict like
@@ -77,7 +77,7 @@ def _patch_dict(cfg, patches):
             logger.warning("conda-forge.yml patch %s: %s did not work!", k, v)
 
 
-def merge_migrator_cbc(migrator_yaml: str, conda_build_config_yaml: str):
+def merge_migrator_cbc(migrator_yaml: str, conda_build_config_yaml: str) -> str:
     """Merge a migrator_yaml with the conda_build_config_yaml"""
     migrator_keys = defaultdict(list)
     current_key = None
@@ -129,8 +129,8 @@ class MigrationYaml(GraphMigrator):
         bump_number: int = 1,
         piggy_back_migrations: Optional[Sequence[MiniMigrator]] = None,
         automerge: bool = False,
-        check_solvable=True,
-        conda_forge_yml_patches=None,
+        check_solvable: bool = True,
+        conda_forge_yml_patches: dict = None,
         **kwargs: Any,
     ):
         super().__init__(
@@ -421,11 +421,11 @@ class MigrationYamlCreator(Migrator):
         )
 
 
-def _req_is_python(req):
+def _req_is_python(req: str) -> bool:
     return pin_sep_pat.split(req)[0].strip().lower() == "python"
 
 
-def _all_noarch(attrs: AttrsTypedDict, only_python: bool=False) -> bool:
+def _all_noarch(attrs: AttrsTypedDict, only_python: bool = False) -> bool:
     meta_yaml = attrs.get("meta_yaml", {}) or {}
 
     if not only_python:
@@ -478,7 +478,7 @@ def create_rebuild_graph(
         if node == "conda-forge-pinning":
             continue
         attrs: "AttrsTypedDict" = node_attrs["payload"]
-        requirements: RequirementsTypedDict = attrs.get("requirements", {})
+        requirements = attrs.get("requirements", {})
         host = requirements.get("host", set())
         build = requirements.get("build", set())
         bh = host or build
