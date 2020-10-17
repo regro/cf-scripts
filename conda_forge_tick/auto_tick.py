@@ -152,12 +152,6 @@ def run(
 
     branch_name = migrator.remote_branch(feedstock_ctx) + "_h" + uuid4().hex[0:6]
 
-    if hasattr(migrator, "name"):
-        assert isinstance(migrator.name, str)
-        migrator_name = migrator.name.lower().replace(" ", "")
-    else:
-        migrator_name = migrator.__class__.__name__.lower()
-
     # TODO: run this in parallel
     feedstock_dir, repo = get_repo(
         ctx=migrator.ctx.session,
@@ -173,9 +167,7 @@ def run(
 
     # migrate the feedstock
     migrator.run_pre_piggyback_migrations(recipe_dir, feedstock_ctx.attrs, **kwargs)
-
     # TODO - make a commit here if the repo changed
-
     migrate_return = migrator.migrate(recipe_dir, feedstock_ctx.attrs, **kwargs)
 
     if not migrate_return:
@@ -237,9 +229,11 @@ def run(
     if (
         migrator.check_solvable
         # we always let stuff in cycles go
-        and feedstock_ctx.attrs["name"] not in getattr(migrator, "cycles", set())
+        and feedstock_ctx.attrs["feedstock_name"]
+        not in getattr(migrator, "cycles", set())
         # we always let stuff at the top go
-        and feedstock_ctx.attrs["name"] not in getattr(migrator, "top_level", set())
+        and feedstock_ctx.attrs["feedstock_name"]
+        not in getattr(migrator, "top_level", set())
         # for solveability always assume automerge is on.
         and feedstock_ctx.attrs["conda-forge.yml"].get("bot", {}).get("automerge", True)
     ) or feedstock_ctx.attrs["conda-forge.yml"].get("bot", {}).get(
@@ -251,7 +245,9 @@ def run(
             pre_key = "pre_pr_migrator_status"
             if pre_key not in feedstock_ctx.attrs:
                 feedstock_ctx.attrs[pre_key] = {}
-            feedstock_ctx.attrs[pre_key][migrator_name] = "not solvable: %s" % sorted(
+            feedstock_ctx.attrs[pre_key][
+                migrator.sanitized_name
+            ] = "not solvable: %s" % sorted(
                 set(errors),
             )
             eval_cmd(f"rm -rf {feedstock_dir}")
@@ -262,7 +258,7 @@ def run(
     if (
         isinstance(migrator, MigrationYaml)
         and not diffed_files
-        and feedstock_ctx.attrs["name"] != "conda-forge-pinning"
+        and feedstock_ctx.attrs["feedstock_name"] != "conda-forge-pinning"
     ):
         # spoof this so it looks like the package is done
         pr_json = {
@@ -274,7 +270,7 @@ def run(
         # push up
         try:
             # TODO: remove this hack, but for now this is the only way to get
-            # the feedstock dir into pr_body
+            #  the feedstock dir into pr_body
             feedstock_ctx.feedstock_dir = feedstock_dir
             pr_json = push_repo(
                 session_ctx=migrator.ctx.session,
@@ -305,8 +301,6 @@ def run(
         # from .dynamo_models import PRJson
 
         # PRJson.dump(pr_json)
-    # If we've gotten this far then the node is good
-    feedstock_ctx.attrs["bad"] = False
     logger.info("Removing feedstock dir")
     eval_cmd(f"rm -rf {feedstock_dir}")
     return migrate_return, ljpr
@@ -331,7 +325,7 @@ def add_replacement_migrator(
     old_pkg: "PackageName",
     new_pkg: "PackageName",
     rationale: str,
-    alt_migrator: Union[Migrator, None] = None,
+    alt_migrator: Optional[Migrator] = None,
 ) -> None:
     """Adds a migrator to replace one package with another.
 
@@ -584,7 +578,7 @@ def migration_factory(
             logger.warning("skipping migration %s because it is paused", __mname)
 
 
-def _outside_pin_range(pin_spec, current_pin, new_version):
+def _outside_pin_range(pin_spec: str, current_pin: str, new_version: str) -> bool:
     pin_level = len(pin_spec.split("."))
     current_split = current_pin.split(".")
     new_split = new_version.split(".")
@@ -597,7 +591,10 @@ def _outside_pin_range(pin_spec, current_pin, new_version):
     return False
 
 
-def create_migration_yaml_creator(migrators: MutableSequence[Migrator], gx: nx.DiGraph):
+def create_migration_yaml_creator(
+    migrators: MutableSequence[Migrator],
+    gx: nx.DiGraph,
+) -> None:
     with indir(os.environ["CONDA_PREFIX"]):
         pinnings = parse_config_file(
             "conda_build_config.yaml",
@@ -710,7 +707,7 @@ def initialize_migrators(
         gx,
         "matplotlib",
         "matplotlib-base",
-        ("Unless you need `pyqt`, recipes should depend only on " "`matplotlib-base`."),
+        "Unless you need `pyqt`, recipes should depend only on " "`matplotlib-base`.",
         alt_migrator=MatplotlibBase,
     )
     create_migration_yaml_creator(migrators=MIGRATORS, gx=gx)

@@ -4,6 +4,7 @@ from typing import Any, Dict, List, Set, Tuple, Union, Optional
 from mypy_extensions import TypedDict
 
 PackageName = typing.NewType("PackageName", str)
+FeedstockName = typing.NewType("FeedstockName", str)
 
 class AboutTypedDict(TypedDict, total=False):
     description: str
@@ -86,9 +87,10 @@ class PackageTypedDict(TypedDict):
     version: str
 
 class RequirementsTypedDict(TypedDict, total=False):
-    build: List[str]
-    host: List[str]
-    run: List[str]
+    build: Set[PackageName]
+    host: Set[PackageName]
+    run: Set[PackageName]
+    test: Set[PackageName]
 
 class SourceTypedDict(TypedDict, total=False):
     fn: str
@@ -106,7 +108,7 @@ class AttrsTypedDict_(TypedDict, total=False):
     about: AboutTypedDict
     build: BuildTypedDict
     extra: ExtraTypedDict
-    feedstock_name: str
+    feedstock_name: FeedstockName
     meta_yaml: MetaYamlTypedDict
     package: PackageTypedDict
     raw_meta_yaml: str
@@ -122,9 +124,11 @@ class AttrsTypedDict_(TypedDict, total=False):
     bad: Union[bool, str]
     # TODO: ADD in
     #  "conda-forge.yml":
+    pre_pr_migrator_status: Dict[str, str]
 
 class CondaForgeYamlContents(TypedDict, total=False):
     provider: Dict[str, str]
+    bot: Dict[str, str]
 
 CondaForgeYaml = TypedDict(
     "CondaForgeYaml", {"conda-forge.yml": CondaForgeYamlContents}
@@ -132,3 +136,6 @@ CondaForgeYaml = TypedDict(
 
 class AttrsTypedDict(AttrsTypedDict_, CondaForgeYaml):
     pass
+
+
+OutputsLUT = Dict[PackageName, FeedstockName]

@@ -21,8 +21,8 @@ if typing.TYPE_CHECKING:
     from ..migrators_types import (
         MigrationUidTypedDict,
         AttrsTypedDict,
-        PackageName,
-    )
+        PackageName, RequirementsTypedDict,
+)
 
 logger = logging.getLogger("conda_forge_tick.migrators.migration_yaml")
 
@@ -425,7 +425,7 @@ def _req_is_python(req):
     return pin_sep_pat.split(req)[0].strip().lower() == "python"
 
 
-def _all_noarch(attrs, only_python=False):
+def _all_noarch(attrs: AttrsTypedDict, only_python: bool=False) -> bool:
     meta_yaml = attrs.get("meta_yaml", {}) or {}
 
     if not only_python:
@@ -478,7 +478,7 @@ def create_rebuild_graph(
         if node == "conda-forge-pinning":
             continue
         attrs: "AttrsTypedDict" = node_attrs["payload"]
-        requirements = attrs.get("requirements", {})
+        requirements: RequirementsTypedDict = attrs.get("requirements", {})
         host = requirements.get("host", set())
         build = requirements.get("build", set())
         bh = host or build

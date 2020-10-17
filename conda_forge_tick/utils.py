@@ -35,7 +35,7 @@ from xonsh.lib.collections import _convert_to_dict, ChainDB
 
 if typing.TYPE_CHECKING:
     from mypy_extensions import TypedDict, TestTypedDict
-    from .migrators_types import PackageName, RequirementsTypedDict
+    from .migrators_types import PackageName, RequirementsTypedDict, AttrsTypedDict_
     from conda_forge_tick.migrators_types import MetaYamlTypedDict
 
 
@@ -78,7 +78,7 @@ CB_CONFIG_PINNING = dict(
 )
 
 
-def eval_cmd(cmd, **kwargs):
+def eval_cmd(cmd: str, **kwargs: Any) -> str:
     """run a command capturing stdout
 
     stderr is printed for debugging
@@ -679,12 +679,12 @@ def _fetch_static_repo(name, dest):
 
 def populate_feedstock_attributes(
     name: str,
-    sub_graph: typing.MutableMapping,
+    sub_graph: AttrsTypedDict_,
     meta_yaml: typing.Union[str, Response] = "",
     conda_forge_yaml: typing.Union[str, Response] = "",
     mark_not_archived=False,
     feedstock_dir=None,
-) -> typing.MutableMapping:
+) -> AttrsTypedDict_:
     """Parse the various configuration information into something usable
 
     Notes

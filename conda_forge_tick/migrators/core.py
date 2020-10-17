@@ -27,7 +27,9 @@ if typing.TYPE_CHECKING:
         AttrsTypedDict,
         MigrationUidTypedDict,
         PackageName,
-    )
+        FeedstockName,
+        PRedElementTypedDict, OutputsLUT,
+)
     from conda_forge_tick.utils import JsonFriendly
 
 
@@ -113,13 +115,15 @@ class Migrator:
         # TODO: Validate this?
         obj_version: Optional[int] = None,
         piggy_back_migrations: Optional[Sequence[MiniMigrator]] = None,
-        check_solvable=True,
+        check_solvable: bool = True,
     ):
         self.piggy_back_migrations = piggy_back_migrations or []
         self.pr_limit = pr_limit
         self.obj_version = obj_version
         self.ctx: MigratorContext = None
         self.check_solvable = check_solvable
+        self.name = self.__class__.__name__.lower()
+        self.sanitized_name = self.name.lower().replace(" ", "")
 
     def bind_to_ctx(self, migrator_ctx: MigratorContext) -> None:
         self.ctx = migrator_ctx
@@ -405,17 +409,19 @@ class Migrator:
 
 
 class GraphMigrator(Migrator):
+    outputs_lut: OutputsLUT
+
     def __init__(
         self,
         *,
         name: Optional[str] = None,
         graph: nx.DiGraph = None,
         pr_limit: int = 0,
-        top_level: Set["PackageName"] = None,
-        cycles: Optional[Sequence["packageName"]] = None,
+        top_level: Set[FeedstockName] = None,
+        cycles: Optional[Sequence[FeedstockName]] = None,
         obj_version: Optional[int] = None,
         piggy_back_migrations: Optional[Sequence[MiniMigrator]] = None,
-        check_solvable=True,
+        check_solvable: bool = True,
     ):
         super().__init__(
             pr_limit,
@@ -439,7 +445,9 @@ class GraphMigrator(Migrator):
                 for k in node.get("payload", {}).get("outputs_names", [])
             }
 
-        self.name = name
+        if name:
+            self.name = name
+        self.sanitized_name = self.name.lower().replace(" ", "")
         self.top_level = top_level or set()
         self.cycles = set(chain.from_iterable(cycles or []))
 
@@ -451,27 +459,31 @@ class GraphMigrator(Migrator):
             except KeyError as e:
                 print(node)
                 raise e
+
+            # Any archived nodes don't count so we skip them
+            if payload.get("archived", False):
+                continue
+
             muid = frozen_to_json_friendly(self.migrator_uid(payload))
             if (
                 muid
                 not in _sanitized_muids(
                     payload.get("PRed", []),
                 )
-                and not payload.get("archived", False)
             ):
                 return True
+
             # This is due to some PRed_json loss due to bad graph deploy outage
+            m_pred_json: PRedElementTypedDict
             for m_pred_json in payload.get("PRed", []):
                 if m_pred_json["data"] == muid["data"]:
                     break
+            # If we can't find the uid data in the pred json then we haven't made the pr
             else:
-                m_pred_json = None
+                return False
             # note that if the bot is missing the PR we assume it is open
             # so that errors halt the migration and can be fixed
-            if (
-                m_pred_json
-                and m_pred_json.get("PR", {"state": "open"}).get("state", "") == "open"
-            ):
+            if m_pred_json.get("PR", {"state": "open"}).get("state", "") == "open":
                 return True
         return False
 
