@@ -986,8 +986,8 @@ def main(args: "CLIArgs") -> None:
                     pre_key = "pre_pr_migrator_status"
                     if pre_key not in attrs:
                         attrs[pre_key] = {}
-                    attrs[pre_key][migrator_name] = (
-                        "bot error: %s" % str(traceback.format_exc())
+                    attrs[pre_key][migrator_name] = "bot error: %s" % str(
+                        traceback.format_exc(),
                     )
                 except Exception as e:
                     logger.exception("NON GITHUB ERROR")
@@ -999,8 +999,8 @@ def main(args: "CLIArgs") -> None:
                     pre_key = "pre_pr_migrator_status"
                     if pre_key not in attrs:
                         attrs[pre_key] = {}
-                    attrs[pre_key][migrator_name] = (
-                        "bot error: %s" % str(traceback.format_exc())
+                    attrs[pre_key][migrator_name] = "bot error: %s" % str(
+                        traceback.format_exc(),
                     )
                 else:
                     if migrator_uid:
