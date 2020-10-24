@@ -176,8 +176,15 @@ def graph_migrator_status(
                     out["awaiting-pr"].add(node)
                     fc = "#35b779"
             elif not isinstance(migrator, Replacement):
-                out["awaiting-parents"].add(node)
-                fc = "#fde725"
+                if "bot error" in (
+                    attrs.get("pre_pr_migrator_status", {}).get(migrator_name, "")
+                ):
+                    out["bot-error"].add(node)
+                    fc = "#000000"
+                    fntc = "white"
+                else:
+                    out["awaiting-parents"].add(node)
+                    fc = "#fde725"
         elif "PR" not in pr_json:
             out["bot-error"].add(node)
             fc = "#000000"
