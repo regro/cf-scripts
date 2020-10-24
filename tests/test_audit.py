@@ -7,7 +7,7 @@ import networkx as nx
 from conda_forge_tick.utils import load
 
 DEPFINDER_RECIPE = """{% set name = "depfinder" %}
-{% set version = 2.3.0 %}
+{% set version = "2.3.0" %}
 
 
 package:
