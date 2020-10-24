@@ -253,7 +253,7 @@ def run(
             if pre_key not in feedstock_ctx.attrs:
                 feedstock_ctx.attrs[pre_key] = {}
             feedstock_ctx.attrs[pre_key][migrator_name] = sanitize_string(
-                "not solvable: %s: %s" % (base_branch, sorted(set(errors)))
+                "not solvable: {}: {}".format(base_branch, sorted(set(errors))),
             )
             eval_cmd(f"rm -rf {feedstock_dir}")
             return False, False
@@ -904,8 +904,7 @@ def main(args: "CLIArgs") -> None:
             with mctx.graph.nodes[node_name]["payload"] as attrs:
                 if not isinstance(migrator, Version):
                     base_branches = (
-                        attrs
-                        .get("conda-forge.yml", {})
+                        attrs.get("conda-forge.yml", {})
                         .get("bot", {})
                         .get("abi_migration_branches", ["master"])
                     )
@@ -944,13 +943,9 @@ def main(args: "CLIArgs") -> None:
                         )
                         try:
                             # Don't bother running if we are at zero
-                            if (
-                                args.dry_run
-                                or (
-                                    mctx.gh.rate_limit()["resources"][
-                                        "core"
-                                    ]["remaining"] == 0
-                                )
+                            if args.dry_run or (
+                                mctx.gh.rate_limit()["resources"]["core"]["remaining"]
+                                == 0
                             ):
                                 break
                             migrator_uid, pr_json = run(
@@ -1008,10 +1003,11 @@ def main(args: "CLIArgs") -> None:
                             if pre_key not in attrs:
                                 attrs[pre_key] = {}
                             attrs[pre_key][migrator_name] = sanitize_string(
-                                "bot error: %s: %s" % (
+                                "bot error: %s: %s"
+                                % (
                                     base_branch,
                                     str(traceback.format_exc()),
-                                )
+                                ),
                             )
                         except Exception as e:
                             logger.exception("NON GITHUB ERROR")
@@ -1024,10 +1020,11 @@ def main(args: "CLIArgs") -> None:
                             if pre_key not in attrs:
                                 attrs[pre_key] = {}
                             attrs[pre_key][migrator_name] = sanitize_string(
-                                "bot error: %s: %s" % (
+                                "bot error: %s: %s"
+                                % (
                                     base_branch,
                                     str(traceback.format_exc()),
-                                )
+                                ),
                             )
                         else:
                             if migrator_uid:
