@@ -253,7 +253,7 @@ def run(
             if pre_key not in feedstock_ctx.attrs:
                 feedstock_ctx.attrs[pre_key] = {}
             feedstock_ctx.attrs[pre_key][migrator_name] = sanitize_string(
-                "not solvable: %s" % sorted(set(errors)),
+                "not solvable: %s: %s" % (base_branch, sorted(set(errors)))
             )
             eval_cmd(f"rm -rf {feedstock_dir}")
             return False, False
@@ -902,6 +902,16 @@ def main(args: "CLIArgs") -> None:
 
         for node_name in possible_nodes:
             with mctx.graph.nodes[node_name]["payload"] as attrs:
+                if not isinstance(migrator, Version):
+                    base_branches = (
+                        attrs
+                        .get("conda-forge.yml", {})
+                        .get("bot", {})
+                        .get("abi_migration_branches", ["master"])
+                    )
+                else:
+                    base_branches = ["master"]
+
                 # Don't let CI timeout, break ahead of the timeout so we make certain
                 # to write to the repo
                 # TODO: convert these env vars
@@ -922,92 +932,107 @@ def main(args: "CLIArgs") -> None:
                     attrs=attrs,
                 )
 
-                print("\n", flush=True, end="")
-                logger.info(
-                    "%s%s IS MIGRATING %s",
-                    migrator.__class__.__name__.upper(),
-                    extra_name,
-                    fctx.package_name,
-                )
                 try:
-                    # Don't bother running if we are at zero
-                    if (
-                        args.dry_run
-                        or mctx.gh.rate_limit()["resources"]["core"]["remaining"] == 0
-                    ):
-                        break
-                    migrator_uid, pr_json = run(
-                        feedstock_ctx=fctx,
-                        migrator=migrator,
-                        rerender=migrator.rerender,
-                        protocol="https",
-                        hash_type=attrs.get("hash_type", "sha256"),
-                    )
-                    # if migration successful
-                    if migrator_uid:
-                        d = frozen_to_json_friendly(migrator_uid)
-                        # if we have the PR already do nothing
-                        if d["data"] in [
-                            existing_pr["data"] for existing_pr in attrs.get("PRed", [])
-                        ]:
-                            pass
+                    for base_branch in base_branches:
+                        print("\n", flush=True, end="")
+                        logger.info(
+                            "%s%s IS MIGRATING %s:%s",
+                            migrator.__class__.__name__.upper(),
+                            extra_name,
+                            fctx.package_name,
+                            base_branch,
+                        )
+                        try:
+                            # Don't bother running if we are at zero
+                            if (
+                                args.dry_run
+                                or (
+                                    mctx.gh.rate_limit()["resources"][
+                                        "core"
+                                    ]["remaining"] == 0
+                                )
+                            ):
+                                break
+                            migrator_uid, pr_json = run(
+                                feedstock_ctx=fctx,
+                                migrator=migrator,
+                                rerender=migrator.rerender,
+                                protocol="https",
+                                hash_type=attrs.get("hash_type", "sha256"),
+                                base_branch=base_branch,
+                            )
+                            # if migration successful
+                            if migrator_uid:
+                                d = frozen_to_json_friendly(migrator_uid)
+                                # if we have the PR already do nothing
+                                if d["data"] in [
+                                    existing_pr["data"]
+                                    for existing_pr in attrs.get("PRed", [])
+                                ]:
+                                    pass
+                                else:
+                                    if not pr_json:
+                                        pr_json = {
+                                            "state": "closed",
+                                            "head": {"ref": "<this_is_not_a_branch>"},
+                                        }
+                                    d["PR"] = pr_json
+                                    attrs.setdefault("PRed", []).append(d)
+                                attrs.update(
+                                    {
+                                        "smithy_version": mctx.smithy_version,
+                                        "pinning_version": mctx.pinning_version,
+                                    },
+                                )
+
+                        except github3.GitHubError as e:
+                            if e.msg == "Repository was archived so is read-only.":
+                                attrs["archived"] = True
+                            else:
+                                logger.critical(
+                                    "GITHUB ERROR ON FEEDSTOCK: %s",
+                                    fctx.feedstock_name,
+                                )
+                                if is_github_api_limit_reached(e, mctx.gh):
+                                    break
+                        except URLError as e:
+                            logger.exception("URLError ERROR")
+                            attrs["bad"] = {
+                                "exception": str(e),
+                                "traceback": str(traceback.format_exc()).split("\n"),
+                                "code": getattr(e, "code"),
+                                "url": getattr(e, "url"),
+                            }
+
+                            pre_key = "pre_pr_migrator_status"
+                            if pre_key not in attrs:
+                                attrs[pre_key] = {}
+                            attrs[pre_key][migrator_name] = sanitize_string(
+                                "bot error: %s: %s" % (
+                                    base_branch,
+                                    str(traceback.format_exc()),
+                                )
+                            )
+                        except Exception as e:
+                            logger.exception("NON GITHUB ERROR")
+                            attrs["bad"] = {
+                                "exception": str(e),
+                                "traceback": str(traceback.format_exc()).split("\n"),
+                            }
+
+                            pre_key = "pre_pr_migrator_status"
+                            if pre_key not in attrs:
+                                attrs[pre_key] = {}
+                            attrs[pre_key][migrator_name] = sanitize_string(
+                                "bot error: %s: %s" % (
+                                    base_branch,
+                                    str(traceback.format_exc()),
+                                )
+                            )
                         else:
-                            if not pr_json:
-                                pr_json = {
-                                    "state": "closed",
-                                    "head": {"ref": "<this_is_not_a_branch>"},
-                                }
-                            d["PR"] = pr_json
-                            attrs.setdefault("PRed", []).append(d)
-                        attrs.update(
-                            {
-                                "smithy_version": mctx.smithy_version,
-                                "pinning_version": mctx.pinning_version,
-                            },
-                        )
-
-                except github3.GitHubError as e:
-                    if e.msg == "Repository was archived so is read-only.":
-                        attrs["archived"] = True
-                    else:
-                        logger.critical(
-                            "GITHUB ERROR ON FEEDSTOCK: %s",
-                            fctx.feedstock_name,
-                        )
-                        if is_github_api_limit_reached(e, mctx.gh):
-                            break
-                except URLError as e:
-                    logger.exception("URLError ERROR")
-                    attrs["bad"] = {
-                        "exception": str(e),
-                        "traceback": str(traceback.format_exc()).split("\n"),
-                        "code": getattr(e, "code"),
-                        "url": getattr(e, "url"),
-                    }
-
-                    pre_key = "pre_pr_migrator_status"
-                    if pre_key not in attrs:
-                        attrs[pre_key] = {}
-                    attrs[pre_key][migrator_name] = sanitize_string(
-                        "bot error: %s" % str(traceback.format_exc()),
-                    )
-                except Exception as e:
-                    logger.exception("NON GITHUB ERROR")
-                    attrs["bad"] = {
-                        "exception": str(e),
-                        "traceback": str(traceback.format_exc()).split("\n"),
-                    }
-
-                    pre_key = "pre_pr_migrator_status"
-                    if pre_key not in attrs:
-                        attrs[pre_key] = {}
-                    attrs[pre_key][migrator_name] = sanitize_string(
-                        "bot error: %s" % str(traceback.format_exc()),
-                    )
-                else:
-                    if migrator_uid:
-                        # On successful PR add to our counter
-                        good_prs += 1
+                            if migrator_uid:
+                                # On successful PR add to our counter
+                                good_prs += 1
                 finally:
                     # Write graph partially through
                     if not args.dry_run:
@@ -1021,6 +1046,12 @@ def main(args: "CLIArgs") -> None:
                                 eval_cmd(f"rm -rf {f}")
                             except Exception:
                                 pass
+
+                if (
+                    args.dry_run
+                    or mctx.gh.rate_limit()["resources"]["core"]["remaining"] == 0
+                ):
+                    break
 
     if not args.dry_run:
         logger.info(
