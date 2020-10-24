@@ -114,6 +114,7 @@ def run(
     pull_request: bool = True,
     rerender: bool = True,
     fork: bool = True,
+    base_branch: str = "master",
     **kwargs: typing.Any,
 ) -> Tuple["MigrationUidTypedDict", dict]:
     """For a given feedstock and migration run the migration
@@ -132,9 +133,8 @@ def run(
         Whether to rerender
     fork : bool
         If true create a fork, defaults to true
-    gh : github3.GitHub instance, optional
-        Object for communicating with GitHub, if None build from $USERNAME
-        and $PASSWORD, defaults to None
+    base_branch : str, optional
+        The base branch to which the PR will be targeted.
     kwargs: dict
         The key word arguments to pass to the migrator
 
@@ -144,7 +144,6 @@ def run(
         The migration return dict used for tracking finished migrations
     pr_json: dict
         The PR json object for recreating the PR as needed
-
     """
     # get the repo
     # TODO: stop doing this.
@@ -167,6 +166,7 @@ def run(
         protocol=protocol,
         pull_request=pull_request,
         fork=fork,
+        base_branch=base_branch,
     )
 
     recipe_dir = os.path.join(feedstock_dir, "recipe")
@@ -285,6 +285,7 @@ def run(
                 title=migrator.pr_title(feedstock_ctx),
                 head=f"{migrator.ctx.github_username}:{branch_name}",
                 branch=branch_name,
+                base_branch=base_branch,
             )
 
         # This shouldn't happen too often any more since we won't double PR
