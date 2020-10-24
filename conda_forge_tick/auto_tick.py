@@ -906,10 +906,11 @@ def main(args: "CLIArgs") -> None:
                     base_branches = (
                         attrs.get("conda-forge.yml", {})
                         .get("bot", {})
-                        .get("abi_migration_branches", ["master"])
+                        .get("abi_migration_branches", [])
                     )
                 else:
-                    base_branches = ["master"]
+                    base_branches = []
+                base_branches += ["master"]
 
                 # Don't let CI timeout, break ahead of the timeout so we make certain
                 # to write to the repo
