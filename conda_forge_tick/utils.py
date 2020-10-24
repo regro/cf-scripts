@@ -900,3 +900,12 @@ def _get_source_code(recipe_dir):
     md = md[0][0]
     # provide source dir
     return provide(md)
+
+
+def sanitize_string(instr):
+    tokens = [os.environ.get("PASSWORD", None)]
+    for token in tokens:
+        if token is not None:
+            instr = instr.replace(token, "~" * len(token))
+
+    return instr
