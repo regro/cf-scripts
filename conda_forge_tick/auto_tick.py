@@ -135,7 +135,7 @@ def run(
     fork : bool
         If true create a fork, defaults to true
     base_branch : str, optional
-        The base branch to which the PR will be targeted.
+        The base branch to which the PR will be targeted. Defaults to "master".
     kwargs: dict
         The key word arguments to pass to the migrator
 
@@ -910,7 +910,7 @@ def main(args: "CLIArgs") -> None:
                     )
                 else:
                     base_branches = []
-                base_branches += ["master"]
+                base_branches = ["master"] + base_branches
 
                 # Don't let CI timeout, break ahead of the timeout so we make certain
                 # to write to the repo
