@@ -46,6 +46,7 @@ from .utils import (
     CB_CONFIG,
     parse_meta_yaml,
     eval_cmd,
+    sanitize_string,
 )
 from .xonsh_utils import env
 from typing import (
@@ -251,8 +252,8 @@ def run(
             pre_key = "pre_pr_migrator_status"
             if pre_key not in feedstock_ctx.attrs:
                 feedstock_ctx.attrs[pre_key] = {}
-            feedstock_ctx.attrs[pre_key][migrator_name] = "not solvable: %s" % sorted(
-                set(errors),
+            feedstock_ctx.attrs[pre_key][migrator_name] = sanitize_string(
+                "not solvable: %s" % sorted(set(errors)),
             )
             eval_cmd(f"rm -rf {feedstock_dir}")
             return False, False
@@ -986,8 +987,8 @@ def main(args: "CLIArgs") -> None:
                     pre_key = "pre_pr_migrator_status"
                     if pre_key not in attrs:
                         attrs[pre_key] = {}
-                    attrs[pre_key][migrator_name] = "bot error: %s" % str(
-                        traceback.format_exc(),
+                    attrs[pre_key][migrator_name] = sanitize_string(
+                        "bot error: %s" % str(traceback.format_exc()),
                     )
                 except Exception as e:
                     logger.exception("NON GITHUB ERROR")
@@ -999,8 +1000,8 @@ def main(args: "CLIArgs") -> None:
                     pre_key = "pre_pr_migrator_status"
                     if pre_key not in attrs:
                         attrs[pre_key] = {}
-                    attrs[pre_key][migrator_name] = "bot error: %s" % str(
-                        traceback.format_exc(),
+                    attrs[pre_key][migrator_name] = sanitize_string(
+                        "bot error: %s" % str(traceback.format_exc()),
                     )
                 else:
                     if migrator_uid:
