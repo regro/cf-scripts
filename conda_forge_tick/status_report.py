@@ -166,6 +166,12 @@ def graph_migrator_status(
                 ):
                     out["not-solvable"].add(node)
                     fc = "#ff8c00"
+                elif "bot error" in (
+                    attrs.get("pre_pr_migrator_status", {}).get(migrator_name, "")
+                ):
+                    out["bot-error"].add(node)
+                    fc = "#000000"
+                    fntc = "white"
                 else:
                     out["awaiting-pr"].add(node)
                     fc = "#35b779"
@@ -212,7 +218,7 @@ def graph_migrator_status(
             for k in sorted(gx2.successors(node))
             if not gx2[k].get("payload", {}).get("archived", False)
         ]
-        if node in out["not-solvable"]:
+        if node in out["not-solvable"] or node in out["bot-error"]:
             node_metadata["pre_pr_migrator_status"] = attrs.get(
                 "pre_pr_migrator_status",
                 {},

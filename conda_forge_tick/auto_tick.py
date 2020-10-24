@@ -852,6 +852,11 @@ def main(args: "CLIArgs") -> None:
         )
 
     for mg_ind, migrator in enumerate(MIGRATORS):
+        if hasattr(migrator, "name"):
+            assert isinstance(migrator.name, str)
+            migrator_name = migrator.name.lower().replace(" ", "")
+        else:
+            migrator_name = migrator.__class__.__name__.lower()
 
         mmctx = MigratorContext(session=mctx, migrator=migrator)
         migrator.bind_to_ctx(mmctx)
@@ -977,12 +982,26 @@ def main(args: "CLIArgs") -> None:
                         "code": getattr(e, "code"),
                         "url": getattr(e, "url"),
                     }
+
+                    pre_key = "pre_pr_migrator_status"
+                    if pre_key not in attrs:
+                        attrs[pre_key] = {}
+                    attrs[pre_key][migrator_name] = (
+                        "bot error: %s" % str(traceback.format_exc())
+                    )
                 except Exception as e:
                     logger.exception("NON GITHUB ERROR")
                     attrs["bad"] = {
                         "exception": str(e),
                         "traceback": str(traceback.format_exc()).split("\n"),
                     }
+
+                    pre_key = "pre_pr_migrator_status"
+                    if pre_key not in attrs:
+                        attrs[pre_key] = {}
+                    attrs[pre_key][migrator_name] = (
+                        "bot error: %s" % str(traceback.format_exc())
+                    )
                 else:
                     if migrator_uid:
                         # On successful PR add to our counter
