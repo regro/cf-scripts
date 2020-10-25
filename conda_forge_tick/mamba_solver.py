@@ -16,7 +16,6 @@ import glob
 import functools
 import pathlib
 import pprint
-import re
 import time
 from collections import defaultdict
 from dataclasses import dataclass, field
@@ -458,20 +457,6 @@ def filter_problematic_reqs(reqs):
     return reqs
 
 
-def filter_pin_deps(pin_deps: Dict[str, str]) -> Dict[str, str]:
-    """There are some packages that result in invalid pinning expressions"""
-    problem_reqs = {
-        # This is a problematic runtime req when pinning expressions are applied
-        # due to its non-standard versioning pattern
-        "openssl",
-    }
-    result = pin_deps.copy()
-    for key in problem_reqs:
-        if key in result:
-            del result[key]
-    return result
-
-
 def _is_recipe_solvable_on_platform(
     recipe_dir,
     cbc_path,
@@ -552,33 +537,9 @@ def _is_recipe_solvable_on_platform(
             if _err is not None:
                 errors.append(_err)
 
-        def apply_pins(reqs):
-            from conda_build.render import get_pin_from_build
-
-            pin_deps = host_req if m.is_cross else build_req
-
-            full_build_dep_versions = {
-                dep.split()[0]: " ".join(dep.split()[1:])
-                for dep in _clean_reqs(pin_deps, outnames)
-            }
-            full_build_dep_versions = filter_pin_deps(full_build_dep_versions)
-            pinned_req = []
-            for dep in reqs:
-                try:
-                    pinned_req.append(
-                        get_pin_from_build(m, dep, full_build_dep_versions),
-                    )
-                except Exception:
-                    # in case we couldn't apply pins for whatever
-                    # reason, fall back to the req
-                    pinned_req.append(dep)
-
-            pinned_req = filter_problematic_reqs(pinned_req)
-            return pinned_req
-
         run_req = m.get_value("requirements/run", [])
         if run_req:
-            run_req = apply_pins(run_req)
+            run_req = filter_problematic_reqs(run_req)
             run_req = _clean_reqs(run_req, outnames)
             _solvable, _err = mamba_solver.solve(run_req)
             solvable = solvable and _solvable
