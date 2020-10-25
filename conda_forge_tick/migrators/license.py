@@ -160,13 +160,12 @@ def _scrape_license_string(pkg):
                     meta_yaml.append(line)
 
                 if line.startswith("# License:"):
-                    d["cran_license"] = line[len("# License:"):].strip()
+                    d["cran_license"] = line[len("# License:") :].strip()
 
     cmeta = CondaMetaYAML("".join(meta_yaml))
 
     d["license_file"] = [
-        lf
-        for lf in cmeta.meta.get("about", {}).get("license_file", [])
+        lf for lf in cmeta.meta.get("about", {}).get("license_file", [])
     ]
     if len(d["license_file"]) == 0:
         d["license_file"] = None
