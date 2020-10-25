@@ -2,7 +2,6 @@ import os
 import pathlib
 import shutil
 from textwrap import dedent
-import subprocess
 
 import pytest
 
@@ -135,11 +134,14 @@ extra:
 
 
 def clone_and_checkout_repo(base_path: pathlib.Path, origin_url: str, ref: str):
-    subprocess.run(
-        f"cd {base_path} && git clone --depth=1 {origin_url} repo",
-        shell=True,
-    )
+    from conda_forge_tick.git_xonsh_utils import fetch_repo
 
+    fetch_repo(
+        feedstock_dir=str(base_path / "repo"),
+        origin=origin_url,
+        upstream=origin_url,
+        branch=ref,
+    )
     return str(base_path / "repo")
 
 
