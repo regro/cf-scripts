@@ -210,15 +210,10 @@ def run(
             head_ref = eval_cmd("git rev-parse HEAD").strip()
             logger.info("Rerendering the feedstock")
 
-            # In the event we can't rerender, try to update the pinnings,
-            # then bail if it does not work again
-            try:
-                eval_cmd(
-                    "conda smithy rerender -c auto --no-check-uptodate",
-                    timeout=300,
-                )
-            except SubprocessError:
-                return False, False
+            eval_cmd(
+                "conda smithy rerender -c auto --no-check-uptodate",
+                timeout=300,
+            )
 
             # If we tried to run the MigrationYaml and rerender did nothing (we only
             # bumped the build number and dropped a yaml file in migrations) bail
