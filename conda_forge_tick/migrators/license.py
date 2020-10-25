@@ -164,7 +164,9 @@ def _scrape_license_string(pkg):
 
     cmeta = CondaMetaYAML("".join(meta_yaml))
 
-    d["license_file"] = [l for l in cmeta.meta.get("about", {}).get("license_file", [])]
+    d["license_file"] = [
+        lf for lf in cmeta.meta.get("about", {}).get("license_file", [])
+    ]
     if len(d["license_file"]) == 0:
         d["license_file"] = None
 
@@ -259,7 +261,10 @@ class LicenseMigrator(MiniMigrator):
             _do_r_license_munging(name, recipe_dir)
             return
 
-        cb_work_dir = _get_source_code(recipe_dir)
+        try:
+            cb_work_dir = _get_source_code(recipe_dir)
+        except Exception:
+            return
         if cb_work_dir is None:
             return
         with indir(cb_work_dir):
