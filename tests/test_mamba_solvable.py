@@ -61,7 +61,7 @@ extra:
   recipe-maintainers:
     - beckermr
     - conda-forge/bot
-"""
+""",
         )
 
     with open(tmp_path / "conda_build_config.yaml", "w") as fp:
