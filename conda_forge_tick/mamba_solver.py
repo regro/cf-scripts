@@ -239,7 +239,7 @@ class FakeRepoData:
 def _get_run_exports(link_tuple):
     c, pkg, jdata = link_tuple
     if pkg.endswith(".conda"):
-        return link_tuple, {"weak": [], "strong": []}
+        return link_tuple, {"weak": set(), "strong": set()}
 
     with tempfile.TemporaryDirectory() as tmpdir:
         try:
@@ -271,7 +271,7 @@ def _get_run_exports(link_tuple):
             for key in ["weak", "strong"]:
                 run_exports[key] = set(run_exports[key])
         except Exception as e:
-            logger.debug("Could not get run exports for %s: %s", pkg, repr(e))
+            print("Could not get run exports for %s: %s", pkg, repr(e))
             run_exports = None
             pass
 
