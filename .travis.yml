@@ -25,7 +25,7 @@ install:
   - python -m pip install -e .
 
 script:
-  - coverage run run_tests.py -k test_mamba_solver_apply_pins -s
+  - coverage run run_tests.py
   - coverage report -m
   - codecov -X gcov
   - echo "REBUILD -- TEST"
