@@ -247,7 +247,7 @@ def _get_run_exports(link_tuple):
         try:
             # download
             subprocess.run(
-                f"cd {tmpdir} && curl -s -L {c}/{pkg} --output {pkg}",
+                f"cd {tmpdir} && curl -L {c}/{pkg} --output {pkg}",
                 shell=True,
             )
 
