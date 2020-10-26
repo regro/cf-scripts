@@ -73,7 +73,7 @@ pin_run_as_build:
     max_pin: x.x
 python:
 - 3.8.* *_cpython
-"""
+""",
         )
     import conda_build.api
 
