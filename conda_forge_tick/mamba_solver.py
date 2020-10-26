@@ -238,8 +238,10 @@ class FakeRepoData:
 
 def _get_run_exports(link_tuple):
     c, pkg, jdata = link_tuple
-    if pkg.endswith(".conda"):
-        return link_tuple, {"weak": set(), "strong": set()}
+    print(f"{c}/{pkg}", flush=True)
+
+    # if pkg.endswith(".conda"):
+    #     return link_tuple, {"weak": set(), "strong": set()}
 
     with tempfile.TemporaryDirectory() as tmpdir:
         try:
