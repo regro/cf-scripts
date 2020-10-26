@@ -33,6 +33,7 @@ from conda.models.channel import Channel
 from conda.core.index import calculate_channel_urls, check_whitelist
 from conda.core.subdir_data import cache_fn_url, create_cache_dir
 import conda_build.api
+import conda_package_handling.api
 
 from mamba import mamba_api as api
 
@@ -247,23 +248,20 @@ def _get_run_exports(link_tuple):
         try:
             # download
             subprocess.run(
-                f"cd {tmpdir} && curl -L {c}/{pkg} --output {pkg}",
-                shell=True,
-            )
-
-            subprocess.run(
-                f"cd {tmpdir} && ls -lah",
+                f"cd {tmpdir} && curl -s -L {c}/{pkg} --output {pkg}",
                 shell=True,
             )
 
             # unpack and read if it exists
             if os.path.exists(f"{tmpdir}/{pkg}"):
-                subprocess.run(
-                    f"cd {tmpdir} && tar -xzf {pkg}",
-                    shell=True,
-                )
+                conda_package_handling.api.extract(f"{tmpdir}/{pkg}")
 
-            rxpth = f"{tmpdir}/info/run_exports.json"
+            if pkg.endswith(".tar.bz2"):
+                pkg_nm = pkg[:-len(".tar.bz2")]
+            else:
+                pkg_nm = pkg[:-len(".conda")]
+
+            rxpth = f"{tmpdir}/{pkg_nm}/info/run_exports.json"
 
             if os.path.exists(rxpth):
                 with open(rxpth) as fp:
