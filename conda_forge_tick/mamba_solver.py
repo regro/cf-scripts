@@ -38,11 +38,15 @@ import conda_package_handling.api
 from mamba import mamba_api as api
 
 from conda_build.conda_interface import pkgs_dirs
+from conda_build.utils import download_channeldata
 
 PACKAGE_CACHE = api.MultiPackageCache(pkgs_dirs)
 
 logger = logging.getLogger("conda_forge_tick.mamba_solver")
 
+# set this to true to use the run exports from the channel data
+# this causes false negatives so we do not use it
+FAST_RUN_EXPORTS = False
 
 # turn off pip for python
 api.Context().add_pip_as_python_dependency = False
@@ -262,14 +266,14 @@ def _get_run_exports(link_tuple):
             if os.path.exists(rxpth):
                 with open(rxpth) as fp:
                     rxdata = json.load(fp)
-                for key in ["weak", "strong"]:
+                for key in ["weak", "strong", "noarch"]:
                     if key not in rxdata:
                         rxdata[key] = []
                 run_exports = rxdata
             else:
-                run_exports = {"weak": [], "strong": []}
+                run_exports = {"weak": [], "strong": [], "noarch": []}
 
-            for key in ["weak", "strong"]:
+            for key in ["weak", "strong", "noarch"]:
                 run_exports[key] = set(run_exports[key])
         except Exception as e:
             print("Could not get run exports for %s: %s", pkg, repr(e))
@@ -386,18 +390,41 @@ class MambaSolver:
             futures = []
             for link_tuple in link_tuples:
                 if link_tuple not in self.run_exports:
-                    futures.append(exe.submit(_get_run_exports, link_tuple))
-
+                    cd = download_channeldata(link_tuple[0].rsplit("/", maxsplit=1)[0])
+                    data = json.loads(link_tuple[2])
+                    name = data["name"]
+                    version = data["version"]
+                    if (
+                        cd.get("packages", {}).get(name, {}).get("run_exports", {})
+                    ):
+                        rx = cd.get("packages", {}).get(name, {}).get("run_exports", {})
+                        if version in rx and FAST_RUN_EXPORTS:
+                            # if we can find the run exports here, use them
+                            # they may not apply for this specific build, but that's ok
+                            self.run_exports[link_tuple] = {
+                                "weak": set(), "strong": set(), "noarch": set(),
+                            }
+                            for k, v in rx[version].items():
+                                if k not in self.run_exports[link_tuple]:
+                                    continue
+                                for _v in v:
+                                    self.run_exports[link_tuple][k].add(_v)
+                        else:
+                            futures.append(exe.submit(_get_run_exports, link_tuple))
+                    else:
+                        self.run_exports[link_tuple] = {
+                            "weak": set(), "strong": set(), "noarch": set()
+                        }
             if futures:
                 for fut in tqdm.tqdm(as_completed(futures), total=len(futures)):
                     lt, rx = fut.result()
                     if rx is not None:
                         self.run_exports[lt] = rx
 
-        run_exports = {"weak": set(), "strong": set()}
+        run_exports = {"weak": set(), "strong": set(), "noarch": set()}
         for link_tuple in link_tuples:
             if link_tuple in self.run_exports:
-                for key in ["weak", "strong"]:
+                for key in ["weak", "strong", "noarch"]:
                     run_exports[key] = (
                         run_exports[key] | self.run_exports[link_tuple][key]
                     )
@@ -651,9 +678,10 @@ def _is_recipe_solvable_on_platform(
         build_req = m.get_value("requirements/build", [])
         host_req = m.get_value("requirements/host", [])
         run_req = m.get_value("requirements/run", [])
+
         if build_req:
             build_req = _clean_reqs(build_req, outnames)
-            _solvable, _err, build_req, rx = solver.solve(
+            _solvable, _err, build_req, build_rx = solver.solve(
                 build_req,
                 get_run_exports=True,
             )
@@ -661,17 +689,36 @@ def _is_recipe_solvable_on_platform(
             if _err is not None:
                 errors.append(_err)
 
-            host_req = list(set(host_req) | rx["strong"])
-            run_req = list(set(run_req) | rx["strong"])
+            if m.is_cross:
+                host_req = list(set(host_req) | build_rx["strong"])
+                if not (m.noarch or m.noarch_python):
+                    run_req = list(set(run_req) | build_rx["strong"])
+            else:
+                if m.noarch or m.noarch_python:
+                    if m.build_is_host:
+                        run_req = list(set(run_req) | build_rx["noarch"])
+                else:
+                    run_req = list(set(run_req) | build_rx["strong"])
+                    if m.build_is_host:
+                        run_req = list(set(run_req) | build_rx["weak"])
+                    else:
+                        host_req = list(set(host_req) | build_rx["strong"])
 
         if host_req:
             host_req = _clean_reqs(host_req, outnames)
-            _solvable, _err, host_req, rx = solver.solve(host_req, get_run_exports=True)
+            _solvable, _err, host_req, host_rx = solver.solve(
+                host_req,
+                get_run_exports=True,
+            )
             solvable = solvable and _solvable
             if _err is not None:
                 errors.append(_err)
 
-            run_req = list(set(run_req) | rx["weak"])
+            if m.is_cross:
+                if m.noarch or m.noarch_python:
+                    run_req = list(set(run_req) | host_rx["noarch"])
+                else:
+                    run_req = list(set(run_req) | host_rx["weak"])
 
         if run_req:
             run_req = apply_pins(run_req, host_req or [], build_req or [], outnames, m)
