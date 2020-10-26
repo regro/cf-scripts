@@ -256,16 +256,16 @@ def test_arrow_solvable(tmp_path):
     assert solvable
 
 
-# def test_grpcio_solvable(tmp_path):
-#     """grpcio has a runtime dep on openssl which has strange pinning things in it"""
-#     feedstock_dir = clone_and_checkout_repo(
-#         tmp_path,
-#         "https://github.com/conda-forge/grpcio-feedstock",
-#         ref="master",
-#     )
-#     solvable, errors, solvable_by_variant = is_recipe_solvable(feedstock_dir)
-#     pprint.pprint(solvable_by_variant)
-#     assert solvable
+def test_grpcio_solvable(tmp_path):
+    """grpcio has a runtime dep on openssl which has strange pinning things in it"""
+    feedstock_dir = clone_and_checkout_repo(
+        tmp_path,
+        "https://github.com/conda-forge/grpcio-feedstock",
+        ref="master",
+    )
+    solvable, errors, solvable_by_variant = is_recipe_solvable(feedstock_dir)
+    pprint.pprint(solvable_by_variant)
+    assert solvable
 
 
 def test_cupy_solvable(tmp_path):

@@ -240,9 +240,6 @@ class FakeRepoData:
 def _get_run_exports(link_tuple):
     c, pkg, jdata = link_tuple
 
-    # if pkg.endswith(".conda"):
-    #     return link_tuple, {"weak": set(), "strong": set()}
-
     with tempfile.TemporaryDirectory() as tmpdir:
         try:
             # download
@@ -563,20 +560,6 @@ def _filter_problematic_reqs(reqs):
     return reqs
 
 
-def _filter_pin_deps(pin_deps: Dict[str, str]) -> Dict[str, str]:
-    """There are some packages that result in invalid pinning expressions"""
-    problem_reqs = {
-        # This is a problematic runtime req when pinning expressions are applied
-        # due to its non-standard versioning pattern
-        "openssl",
-    }
-    result = pin_deps.copy()
-    for key in problem_reqs:
-        if key in result:
-            del result[key]
-    return result
-
-
 def apply_pins(reqs, host_req, build_req, outnames, m):
     from conda_build.render import get_pin_from_build
 
@@ -586,7 +569,6 @@ def apply_pins(reqs, host_req, build_req, outnames, m):
         dep.split()[0]: " ".join(dep.split()[1:])
         for dep in _clean_reqs(pin_deps, outnames)
     }
-    # full_build_dep_versions = _filter_pin_deps(full_build_dep_versions)
 
     pinned_req = []
     for dep in reqs:
