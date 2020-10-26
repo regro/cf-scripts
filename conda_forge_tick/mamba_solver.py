@@ -256,9 +256,9 @@ def _get_run_exports(link_tuple):
                 conda_package_handling.api.extract(f"{tmpdir}/{pkg}")
 
             if pkg.endswith(".tar.bz2"):
-                pkg_nm = pkg[:-len(".tar.bz2")]
+                pkg_nm = pkg[: -len(".tar.bz2")]
             else:
-                pkg_nm = pkg[:-len(".conda")]
+                pkg_nm = pkg[: -len(".conda")]
 
             rxpth = f"{tmpdir}/{pkg_nm}/info/run_exports.json"
 
