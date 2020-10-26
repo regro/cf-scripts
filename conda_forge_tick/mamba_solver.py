@@ -239,7 +239,6 @@ class FakeRepoData:
 
 def _get_run_exports(link_tuple):
     c, pkg, jdata = link_tuple
-    print(f"{c}/{pkg}", flush=True)
 
     # if pkg.endswith(".conda"):
     #     return link_tuple, {"weak": set(), "strong": set()}
