@@ -256,7 +256,7 @@ def _get_run_exports(link_tuple):
             rxpth = f"{tmpdir}/info/run_exports.json"
 
             if os.path.exists(rxpth):
-                with open(rxpth, "r") as fp:
+                with open(rxpth) as fp:
                     rxdata = json.load(fp)
                 for key in ["weak", "strong"]:
                     if key not in rxdata:
@@ -362,7 +362,7 @@ class MambaSolver:
             for _, _, jdata in to_link:
                 data = json.loads(jdata)
                 solution.append(
-                    " ".join([data["name"], data["version"], data["build"]])
+                    " ".join([data["name"], data["version"], data["build"]]),
                 )
 
             if get_run_exports:
@@ -395,8 +395,7 @@ class MambaSolver:
             if link_tuple in self.run_exports:
                 for key in ["weak", "strong"]:
                     run_exports[key] = (
-                        run_exports[key]
-                        | self.run_exports[link_tuple][key]
+                        run_exports[key] | self.run_exports[link_tuple][key]
                     )
 
         return run_exports

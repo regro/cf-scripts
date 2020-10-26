@@ -61,7 +61,8 @@ extra:
   recipe-maintainers:
     - beckermr
     - conda-forge/bot
-""")
+"""
+        )
 
     with open(tmp_path / "conda_build_config.yaml", "w") as fp:
         fp.write(
@@ -72,7 +73,8 @@ pin_run_as_build:
     max_pin: x.x
 python:
 - 3.8.* *_cpython
-""")
+"""
+        )
     import conda_build.api
 
     config = conda_build.config.get_or_merge_config(
