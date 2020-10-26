@@ -238,6 +238,9 @@ class FakeRepoData:
 
 def _get_run_exports(link_tuple):
     c, pkg, jdata = link_tuple
+    if pkg.endswith(".conda"):
+        return link_tuple, {"weak": [], "strong": []}
+
     with tempfile.TemporaryDirectory() as tmpdir:
         try:
             # download
