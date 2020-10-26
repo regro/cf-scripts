@@ -382,7 +382,7 @@ class MambaSolver:
         dict with the weak and strong run exports for the packages.
         """
 
-        with ProcessPoolExecutor(max_workers=1) as exe:
+        with ProcessPoolExecutor(max_workers=None) as exe:
             futures = []
             for link_tuple in link_tuples:
                 if link_tuple not in self.run_exports:
