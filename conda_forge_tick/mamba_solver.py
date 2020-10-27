@@ -365,7 +365,7 @@ class MambaSolver:
             )
             err = solver.problems_to_str()
             solution = None
-            run_exports = {"weak": set(), "strong": set()}
+            run_exports = copy.deepcopy(DEFAULT_RUN_EXPORTS)
         else:
             t = api.Transaction(solver, PACKAGE_CACHE)
             solution = []
