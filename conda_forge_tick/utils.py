@@ -679,7 +679,7 @@ def _fetch_static_repo(name, dest):
 
 def populate_feedstock_attributes(
     name: str,
-    sub_graph: AttrsTypedDict_,
+    sub_graph: "AttrsTypedDict_",
     meta_yaml: typing.Union[str, Response] = "",
     conda_forge_yaml: typing.Union[str, Response] = "",
     mark_not_archived=False,
