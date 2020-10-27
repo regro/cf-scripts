@@ -400,17 +400,14 @@ class MambaSolver:
                     if cd.get("packages", {}).get(name, {}).get("run_exports", {}):
                         # channel data run exports
                         cd_rx = (
-                            cd
-                            .get("packages", {})
-                            .get(name, {})
-                            .get("run_exports", {})
+                            cd.get("packages", {}).get(name, {}).get("run_exports", {})
                         )
 
                         # libcfgraph location
                         if link_tuple[1].endswith(".tar.bz2"):
-                            pkg_nm = link_tuple[1][:-len(".tar.bz2")]
+                            pkg_nm = link_tuple[1][: -len(".tar.bz2")]
                         else:
-                            pkg_nm = link_tuple[1][:-len(".conda")]
+                            pkg_nm = link_tuple[1][: -len(".conda")]
                         channel_subdir = "/".join(link_tuple[0].split("/")[-2:])
                         libcfg_pth = (
                             f"../libcfgraph/artifacts/{name}/"
@@ -422,8 +419,7 @@ class MambaSolver:
                                 data = json.load(fp)
 
                             rx = (
-                                data
-                                .get("rendered_recipe", {})
+                                data.get("rendered_recipe", {})
                                 .get("build", {})
                                 .get("run_exports", {})
                             )
@@ -452,9 +448,9 @@ class MambaSolver:
 
                         # fall back to getting repodata shard if needed
                         if link_tuple not in self.run_exports:
-                            logger.debug(
-                                "Downloading package %s/%s to get run exports." %
-                                (link_tuple[0], link_tuple[1])
+                            logger.info(
+                                "RUN EXPORTS: downloading package %s/%s"
+                                % (link_tuple[0], link_tuple[1]),
                             )
                             futures.append(exe.submit(_get_run_exports, link_tuple))
                     else:
