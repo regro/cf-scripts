@@ -403,7 +403,7 @@ class MambaSolver:
                             # if we can find the run exports here, use them
                             # they may not apply for this specific build, but that's ok
                             self.run_exports[link_tuple] = copy.deepcopy(
-                                DEFAULT_RUN_EXPORTS
+                                DEFAULT_RUN_EXPORTS,
                             )
                             for k, v in rx[version].items():
                                 if k not in self.run_exports[link_tuple]:
@@ -414,7 +414,7 @@ class MambaSolver:
                             futures.append(exe.submit(_get_run_exports, link_tuple))
                     else:
                         self.run_exports[link_tuple] = copy.deepcopy(
-                            DEFAULT_RUN_EXPORTS
+                            DEFAULT_RUN_EXPORTS,
                         )
             if futures:
                 for fut in tqdm.tqdm(as_completed(futures), total=len(futures)):
