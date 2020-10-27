@@ -18,6 +18,7 @@ import pathlib
 import pprint
 import tempfile
 import tqdm
+import copy
 from concurrent.futures import ProcessPoolExecutor, as_completed
 import subprocess
 import atexit
@@ -47,6 +48,11 @@ logger = logging.getLogger("conda_forge_tick.mamba_solver")
 # set this to true to use the run exports from the channel data
 # this causes false negatives so we do not use it
 FAST_RUN_EXPORTS = False
+DEFAULT_RUN_EXPORTS = {
+    "weak": set(),
+    "strong": set(),
+    "noarch": set(),
+}
 
 # turn off pip for python
 api.Context().add_pip_as_python_dependency = False
@@ -265,16 +271,13 @@ def _get_run_exports(link_tuple):
 
             if os.path.exists(rxpth):
                 with open(rxpth) as fp:
-                    rxdata = json.load(fp)
-                for key in ["weak", "strong", "noarch"]:
-                    if key not in rxdata:
-                        rxdata[key] = []
-                run_exports = rxdata
+                    run_exports = json.load(fp)
             else:
-                run_exports = {"weak": [], "strong": [], "noarch": []}
+                run_exports = {}
 
-            for key in ["weak", "strong", "noarch"]:
-                run_exports[key] = set(run_exports[key])
+            for key in DEFAULT_RUN_EXPORTS:
+                run_exports[key] = set(run_exports.get(key, []))
+
         except Exception as e:
             print("Could not get run exports for %s: %s", pkg, repr(e))
             run_exports = None
@@ -399,11 +402,9 @@ class MambaSolver:
                         if version in rx and FAST_RUN_EXPORTS:
                             # if we can find the run exports here, use them
                             # they may not apply for this specific build, but that's ok
-                            self.run_exports[link_tuple] = {
-                                "weak": set(),
-                                "strong": set(),
-                                "noarch": set(),
-                            }
+                            self.run_exports[link_tuple] = copy.deepcopy(
+                                DEFAULT_RUN_EXPORTS
+                            )
                             for k, v in rx[version].items():
                                 if k not in self.run_exports[link_tuple]:
                                     continue
@@ -412,21 +413,19 @@ class MambaSolver:
                         else:
                             futures.append(exe.submit(_get_run_exports, link_tuple))
                     else:
-                        self.run_exports[link_tuple] = {
-                            "weak": set(),
-                            "strong": set(),
-                            "noarch": set(),
-                        }
+                        self.run_exports[link_tuple] = copy.deepcopy(
+                            DEFAULT_RUN_EXPORTS
+                        )
             if futures:
                 for fut in tqdm.tqdm(as_completed(futures), total=len(futures)):
                     lt, rx = fut.result()
                     if rx is not None:
                         self.run_exports[lt] = rx
 
-        run_exports = {"weak": set(), "strong": set(), "noarch": set()}
+        run_exports = copy.deepcopy(DEFAULT_RUN_EXPORTS)
         for link_tuple in link_tuples:
             if link_tuple in self.run_exports:
-                for key in ["weak", "strong", "noarch"]:
+                for key in DEFAULT_RUN_EXPORTS:
                     run_exports[key] = (
                         run_exports[key] | self.run_exports[link_tuple][key]
                     )
