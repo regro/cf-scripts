@@ -429,8 +429,7 @@ class MambaSolver:
                                 )
                                 for k in rx:
                                     if k in DEFAULT_RUN_EXPORTS:
-                                        for _k in rx[k]:
-                                            self.run_exports[link_tuple][k].add(_k)
+                                        self.run_exports[link_tuple][k].update(rx[k])
                                     else:
                                         self.run_exports[link_tuple]["weak"].add(k)
 
