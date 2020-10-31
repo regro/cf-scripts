@@ -25,15 +25,16 @@ install:
   - python -m pip install -e .
 
 script:
+  - git clone --depth 1 https://github.com/regro/libcflib.git
   - coverage run run_tests.py
   - coverage report -m
   - codecov -X gcov
-  - echo "REBUILD -- TEST"
-  - git clone --depth 1 https://github.com/regro/cf-graph-countyfair
-  - git clone --depth 1 https://github.com/conda-forge/conda-forge-pinning-feedstock
-  - cd cf-graph-countyfair
-  - set -e
-  - cd ..
+  # - echo "REBUILD -- TEST"
+  # - git clone --depth 1 https://github.com/regro/cf-graph-countyfair
+  # - git clone --depth 1 https://github.com/conda-forge/conda-forge-pinning-feedstock
+  # - cd cf-graph-countyfair
+  # - set -e
+  # - cd ..
   - cd docs
   - make html
   - cd ..

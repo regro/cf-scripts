@@ -9,14 +9,19 @@ The basic workflow is for yaml file in .ci_support
 Most of the code here is due to @wolfv in this gist,
 https://gist.github.com/wolfv/cd12bd4a448c77ff02368e97ffdf495a.
 """
-import json
+import rapidjson as json
 import os
 import logging
 import glob
 import functools
 import pathlib
 import pprint
-import re
+import tempfile
+import tqdm
+import copy
+from concurrent.futures import ProcessPoolExecutor, as_completed
+import subprocess
+import atexit
 import time
 from collections import defaultdict
 from dataclasses import dataclass, field
@@ -29,11 +34,25 @@ from conda.models.channel import Channel
 from conda.core.index import calculate_channel_urls, check_whitelist
 from conda.core.subdir_data import cache_fn_url, create_cache_dir
 import conda_build.api
+import conda_package_handling.api
 
 from mamba import mamba_api as api
 
+from conda_build.conda_interface import pkgs_dirs
+from conda_build.utils import download_channeldata
+
+PACKAGE_CACHE = api.MultiPackageCache(pkgs_dirs)
+
 logger = logging.getLogger("conda_forge_tick.mamba_solver")
 
+# set this to true to use the run exports from the channel data
+# this causes false negatives so we do not use it
+FAST_RUN_EXPORTS = False
+DEFAULT_RUN_EXPORTS = {
+    "weak": set(),
+    "strong": set(),
+    "noarch": set(),
+}
 
 # turn off pip for python
 api.Context().add_pip_as_python_dependency = False
@@ -228,6 +247,45 @@ class FakeRepoData:
         self.write()
 
 
+def _get_run_exports(link_tuple):
+    c, pkg, jdata = link_tuple
+
+    with tempfile.TemporaryDirectory() as tmpdir:
+        try:
+            # download
+            subprocess.run(
+                f"cd {tmpdir} && curl -s -L {c}/{pkg} --output {pkg}",
+                shell=True,
+            )
+
+            # unpack and read if it exists
+            if os.path.exists(f"{tmpdir}/{pkg}"):
+                conda_package_handling.api.extract(f"{tmpdir}/{pkg}")
+
+            if pkg.endswith(".tar.bz2"):
+                pkg_nm = pkg[: -len(".tar.bz2")]
+            else:
+                pkg_nm = pkg[: -len(".conda")]
+
+            rxpth = f"{tmpdir}/{pkg_nm}/info/run_exports.json"
+
+            if os.path.exists(rxpth):
+                with open(rxpth) as fp:
+                    run_exports = json.load(fp)
+            else:
+                run_exports = {}
+
+            for key in DEFAULT_RUN_EXPORTS:
+                run_exports[key] = set(run_exports.get(key, []))
+
+        except Exception as e:
+            print("Could not get run exports for %s: %s", pkg, repr(e))
+            run_exports = None
+            pass
+
+    return link_tuple, run_exports
+
+
 class MambaSolver:
     """Run the mamba solver.
 
@@ -262,7 +320,9 @@ class MambaSolver:
             repo.set_priority(priority, subpriority)
             self.repos.append(repo)
 
-    def solve(self, specs) -> Tuple[bool, List[str]]:
+        self.run_exports = {}
+
+    def solve(self, specs, get_run_exports=False) -> Tuple[bool, List[str]]:
         """Solve given a set of specs.
 
         Parameters
@@ -271,6 +331,8 @@ class MambaSolver:
             A list of package specs. You can use `conda.models.match_spec.MatchSpec`
             to get them to the right form by calling
             `MatchSpec(mypec).conda_build_form()`
+        get_run_exports : bool, optional
+            If True, return run exports else do not.
 
         Returns
         -------
@@ -278,6 +340,11 @@ class MambaSolver:
             True if the set of specs has a solution, False otherwise.
         err : str
             The errors as a string. If no errors, is None.
+        solution : list of str
+            A list of concrete package specs for the env.
+        run_exports : dict of list of str
+            A dictionary with the weak and strong run exports for the packages.
+            Only returned if get_run_exports is True.
         """
         solver_options = [(api.SOLVER_FLAG_ALLOW_DOWNGRADE, 1)]
         solver = api.Solver(self.pool, solver_options)
@@ -297,8 +364,113 @@ class MambaSolver:
                 solver.problems_to_str(),
             )
             err = solver.problems_to_str()
+            solution = None
+            run_exports = copy.deepcopy(DEFAULT_RUN_EXPORTS)
+        else:
+            t = api.Transaction(solver, PACKAGE_CACHE)
+            solution = []
+            _, to_link, _ = t.to_conda()
+            for _, _, jdata in to_link:
+                data = json.loads(jdata)
+                solution.append(
+                    " ".join([data["name"], data["version"], data["build"]]),
+                )
 
-        return success, err
+            if get_run_exports:
+                run_exports = self._get_run_exports(to_link)
+
+        if get_run_exports:
+            return success, err, solution, run_exports
+        else:
+            return success, err, solution
+
+    def _get_run_exports(self, link_tuples):
+        """Given tuples of (channel, file, json repodata shard) produce a
+        dict with the weak and strong run exports for the packages.
+        """
+
+        with ProcessPoolExecutor(max_workers=None) as exe:
+            futures = []
+            for link_tuple in link_tuples:
+                if link_tuple not in self.run_exports:
+                    cd = download_channeldata(link_tuple[0].rsplit("/", maxsplit=1)[0])
+                    data = json.loads(link_tuple[2])
+                    name = data["name"]
+                    version = data["version"]
+                    if cd.get("packages", {}).get(name, {}).get("run_exports", {}):
+                        # channel data run exports
+                        cd_rx = (
+                            cd.get("packages", {}).get(name, {}).get("run_exports", {})
+                        )
+
+                        # libcfgraph location
+                        if link_tuple[1].endswith(".tar.bz2"):
+                            pkg_nm = link_tuple[1][: -len(".tar.bz2")]
+                        else:
+                            pkg_nm = link_tuple[1][: -len(".conda")]
+                        channel_subdir = "/".join(link_tuple[0].split("/")[-2:])
+                        libcfg_pth = (
+                            f"../libcfgraph/artifacts/{name}/"
+                            f"{channel_subdir}/{pkg_nm}.json"
+                        )
+
+                        if os.path.exists(libcfg_pth):
+                            with open(libcfg_pth) as fp:
+                                data = json.load(fp)
+
+                            rx = (
+                                data.get("rendered_recipe", {})
+                                .get("build", {})
+                                .get("run_exports", {})
+                            )
+                            if rx:
+                                self.run_exports[link_tuple] = copy.deepcopy(
+                                    DEFAULT_RUN_EXPORTS,
+                                )
+                                for k in rx:
+                                    if k in DEFAULT_RUN_EXPORTS:
+                                        self.run_exports[link_tuple][k].update(rx[k])
+                                    else:
+                                        self.run_exports[link_tuple]["weak"].add(k)
+
+                        elif version in cd_rx and FAST_RUN_EXPORTS:
+                            # if we can find the run exports here, use them
+                            # they may not apply for this specific build, but that's ok
+                            self.run_exports[link_tuple] = copy.deepcopy(
+                                DEFAULT_RUN_EXPORTS,
+                            )
+                            for k, v in cd_rx[version].items():
+                                if k not in self.run_exports[link_tuple]:
+                                    continue
+                                for _v in v:
+                                    self.run_exports[link_tuple][k].add(_v)
+
+                        # fall back to getting repodata shard if needed
+                        if link_tuple not in self.run_exports:
+                            logger.info(
+                                "RUN EXPORTS: downloading package %s/%s"
+                                % (link_tuple[0], link_tuple[1]),
+                            )
+                            futures.append(exe.submit(_get_run_exports, link_tuple))
+                    else:
+                        self.run_exports[link_tuple] = copy.deepcopy(
+                            DEFAULT_RUN_EXPORTS,
+                        )
+            if futures:
+                for fut in tqdm.tqdm(as_completed(futures), total=len(futures)):
+                    lt, rx = fut.result()
+                    if rx is not None:
+                        self.run_exports[lt] = rx
+
+        run_exports = copy.deepcopy(DEFAULT_RUN_EXPORTS)
+        for link_tuple in link_tuples:
+            if link_tuple in self.run_exports:
+                for key in DEFAULT_RUN_EXPORTS:
+                    run_exports[key] = (
+                        run_exports[key] | self.run_exports[link_tuple][key]
+                    )
+
+        return run_exports
 
 
 @functools.lru_cache(maxsize=32)
@@ -310,7 +482,6 @@ def _mamba_factory(channels, platform):
 def virtual_package_repodata():
     # TODO: we might not want to use TemporaryDirectory
     import tempfile
-    import atexit
     import shutil
 
     # tmp directory in github actions
@@ -444,11 +615,10 @@ def is_recipe_solvable(
 
 def _clean_reqs(reqs, names):
     reqs = [r for r in reqs if not any(r.split(" ")[0] == nm for nm in names)]
-    reqs = [r for r in reqs if not r.startswith("__")]
     return reqs
 
 
-def filter_problematic_reqs(reqs):
+def _filter_problematic_reqs(reqs):
     """There are some reqs that have issues when used in certain contexts"""
     problem_reqs = {
         # This causes a strange self-ref for arrow-cpp
@@ -458,18 +628,29 @@ def filter_problematic_reqs(reqs):
     return reqs
 
 
-def filter_pin_deps(pin_deps: Dict[str, str]) -> Dict[str, str]:
-    """There are some packages that result in invalid pinning expressions"""
-    problem_reqs = {
-        # This is a problematic runtime req when pinning expressions are applied
-        # due to its non-standard versioning pattern
-        "openssl",
+def apply_pins(reqs, host_req, build_req, outnames, m):
+    from conda_build.render import get_pin_from_build
+
+    pin_deps = host_req if m.is_cross else build_req
+
+    full_build_dep_versions = {
+        dep.split()[0]: " ".join(dep.split()[1:])
+        for dep in _clean_reqs(pin_deps, outnames)
     }
-    result = pin_deps.copy()
-    for key in problem_reqs:
-        if key in result:
-            del result[key]
-    return result
+
+    pinned_req = []
+    for dep in reqs:
+        try:
+            pinned_req.append(
+                get_pin_from_build(m, dep, full_build_dep_versions),
+            )
+        except Exception:
+            # in case we couldn't apply pins for whatever
+            # reason, fall back to the req
+            pinned_req.append(dep)
+
+    pinned_req = _filter_problematic_reqs(pinned_req)
+    return pinned_req
 
 
 def _is_recipe_solvable_on_platform(
@@ -530,57 +711,60 @@ def _is_recipe_solvable_on_platform(
 
     # now we loop through each one and check if we can solve it
     # we check run and host and ignore the rest
-    mamba_solver = _mamba_factory(tuple(channel_sources), f"{platform}-{arch}")
-
+    solver = _mamba_factory(tuple(channel_sources), f"{platform}-{arch}")
     solvable = True
     errors = []
     outnames = [m.name() for m, _, _ in metas]
     for m, _, _ in metas:
         build_req = m.get_value("requirements/build", [])
+        host_req = m.get_value("requirements/host", [])
+        run_req = m.get_value("requirements/run", [])
+
         if build_req:
             build_req = _clean_reqs(build_req, outnames)
-            _solvable, _err = mamba_solver.solve(build_req)
+            _solvable, _err, build_req, build_rx = solver.solve(
+                build_req,
+                get_run_exports=True,
+            )
             solvable = solvable and _solvable
             if _err is not None:
                 errors.append(_err)
 
-        host_req = m.get_value("requirements/host", [])
+            if m.is_cross:
+                host_req = list(set(host_req) | build_rx["strong"])
+                if not (m.noarch or m.noarch_python):
+                    run_req = list(set(run_req) | build_rx["strong"])
+            else:
+                if m.noarch or m.noarch_python:
+                    if m.build_is_host:
+                        run_req = list(set(run_req) | build_rx["noarch"])
+                else:
+                    run_req = list(set(run_req) | build_rx["strong"])
+                    if m.build_is_host:
+                        run_req = list(set(run_req) | build_rx["weak"])
+                    else:
+                        host_req = list(set(host_req) | build_rx["strong"])
+
         if host_req:
             host_req = _clean_reqs(host_req, outnames)
-            _solvable, _err = mamba_solver.solve(host_req)
+            _solvable, _err, host_req, host_rx = solver.solve(
+                host_req,
+                get_run_exports=True,
+            )
             solvable = solvable and _solvable
             if _err is not None:
                 errors.append(_err)
 
-        def apply_pins(reqs):
-            from conda_build.render import get_pin_from_build
+            if m.is_cross:
+                if m.noarch or m.noarch_python:
+                    run_req = list(set(run_req) | host_rx["noarch"])
+                else:
+                    run_req = list(set(run_req) | host_rx["weak"])
 
-            pin_deps = host_req if m.is_cross else build_req
-
-            full_build_dep_versions = {
-                dep.split()[0]: " ".join(dep.split()[1:])
-                for dep in _clean_reqs(pin_deps, outnames)
-            }
-            full_build_dep_versions = filter_pin_deps(full_build_dep_versions)
-            pinned_req = []
-            for dep in reqs:
-                try:
-                    pinned_req.append(
-                        get_pin_from_build(m, dep, full_build_dep_versions),
-                    )
-                except Exception:
-                    # in case we couldn't apply pins for whatever
-                    # reason, fall back to the req
-                    pinned_req.append(dep)
-
-            pinned_req = filter_problematic_reqs(pinned_req)
-            return pinned_req
-
-        run_req = m.get_value("requirements/run", [])
         if run_req:
-            run_req = apply_pins(run_req)
+            run_req = apply_pins(run_req, host_req or [], build_req or [], outnames, m)
             run_req = _clean_reqs(run_req, outnames)
-            _solvable, _err = mamba_solver.solve(run_req)
+            _solvable, _err, _ = solver.solve(run_req)
             solvable = solvable and _solvable
             if _err is not None:
                 errors.append(_err)
@@ -592,7 +776,7 @@ def _is_recipe_solvable_on_platform(
         )
         if tst_req:
             tst_req = _clean_reqs(tst_req, outnames)
-            _solvable, _err = mamba_solver.solve(tst_req)
+            _solvable, _err, _ = solver.solve(tst_req)
             solvable = solvable and _solvable
             if _err is not None:
                 errors.append(_err)

@@ -1,6 +1,8 @@
 import os
 import pathlib
 import shutil
+import pprint
+import subprocess
 from textwrap import dedent
 
 import pytest
@@ -12,9 +14,112 @@ from conda_forge_tick.mamba_solver import (
     FakePackage,
     MambaSolver,
     virtual_package_repodata,
+    apply_pins,
+    _mamba_factory,
 )
 
 FEEDSTOCK_DIR = os.path.join(os.path.dirname(__file__), "test_feedstock")
+
+
+def test_mamba_solver_apply_pins(tmp_path):
+    with open(tmp_path / "meta.yaml", "w") as fp:
+        fp.write(
+            """\
+{% set name = "cf-autotick-bot-test-package" %}
+{% set version = "0.9" %}
+
+package:
+  name: {{ name|lower }}
+  version: {{ version }}
+
+source:
+  path: .
+
+build:
+  number: 8
+
+requirements:
+  host:
+    - python
+    - pip
+    - jpeg
+  run:
+    - python
+
+test:
+  commands:
+    - echo "works!"
+
+about:
+  home: https://github.com/regro/cf-scripts
+  license: BSD-3-Clause
+  license_family: BSD
+  license_file: LICENSE
+  summary: testing feedstock for the regro-cf-autotick-bot
+
+extra:
+  recipe-maintainers:
+    - beckermr
+    - conda-forge/bot
+""",
+        )
+
+    with open(tmp_path / "conda_build_config.yaml", "w") as fp:
+        fp.write(
+            """\
+pin_run_as_build:
+  python:
+    min_pin: x.x
+    max_pin: x.x
+python:
+- 3.8.* *_cpython
+""",
+        )
+    import conda_build.api
+
+    config = conda_build.config.get_or_merge_config(
+        None,
+        platform="linux",
+        arch="64",
+        variant_config_files=[],
+    )
+    cbc, _ = conda_build.variants.get_package_combined_spec(
+        str(tmp_path),
+        config=config,
+    )
+
+    solver = _mamba_factory(("conda-forge", "defaults"), "linux-64")
+
+    metas = conda_build.api.render(
+        str(tmp_path),
+        platform="linux",
+        arch="64",
+        ignore_system_variants=True,
+        variants=cbc,
+        permit_undefined_jinja=True,
+        finalize=False,
+        bypass_env_check=True,
+        channel_urls=("conda-forge", "defaults"),
+    )
+
+    m = metas[0][0]
+    outnames = [m.name() for m, _, _ in metas]
+    build_req = m.get_value("requirements/build", [])
+    host_req = m.get_value("requirements/host", [])
+    run_req = m.get_value("requirements/run", [])
+    _, _, build_req, rx = solver.solve(build_req, get_run_exports=True)
+    print("build req: %s" % pprint.pformat(build_req))
+    print("build rex: %s" % pprint.pformat(rx))
+    host_req = list(set(host_req) | rx["strong"])
+    run_req = list(set(run_req) | rx["strong"])
+    _, _, host_req, rx = solver.solve(host_req, get_run_exports=True)
+    print("host req: %s" % pprint.pformat(host_req))
+    print("host rex: %s" % pprint.pformat(rx))
+    run_req = list(set(run_req) | rx["weak"])
+    run_req = apply_pins(run_req, host_req, build_req, outnames, m)
+    print("run req: %s" % pprint.pformat(run_req))
+    assert any(r.startswith("python >=3.8") for r in run_req)
+    assert any(r.startswith("jpeg >=9d") for r in run_req)
 
 
 def test_mamba_solver_nvcc():
@@ -125,7 +230,6 @@ extra:
 """,
         )
     solvable, errors, solvable_by_variant = is_recipe_solvable(feedstock_dir)
-    print(solvable_by_variant)
     assert not solvable
     # we don't have asyncpg for this variant so this is an expected failure
     assert not solvable_by_variant["linux_aarch64_python3.6.____cpython"]
@@ -134,13 +238,9 @@ extra:
 
 
 def clone_and_checkout_repo(base_path: pathlib.Path, origin_url: str, ref: str):
-    from conda_forge_tick.git_xonsh_utils import fetch_repo
-
-    fetch_repo(
-        feedstock_dir=str(base_path / "repo"),
-        origin=origin_url,
-        upstream=origin_url,
-        branch=ref,
+    subprocess.run(
+        f"cd {base_path} && git clone --depth=1 {origin_url} repo",
+        shell=True,
     )
     return str(base_path / "repo")
 
@@ -152,7 +252,7 @@ def test_arrow_solvable(tmp_path):
         ref="master",
     )
     solvable, errors, solvable_by_variant = is_recipe_solvable(feedstock_dir)
-    print(solvable_by_variant)
+    pprint.pprint(solvable_by_variant)
     assert solvable
 
 
@@ -164,8 +264,6 @@ def test_grpcio_solvable(tmp_path):
         ref="master",
     )
     solvable, errors, solvable_by_variant = is_recipe_solvable(feedstock_dir)
-    import pprint
-
     pprint.pprint(solvable_by_variant)
     assert solvable
 
@@ -178,8 +276,6 @@ def test_cupy_solvable(tmp_path):
         ref="master",
     )
     solvable, errors, solvable_by_variant = is_recipe_solvable(feedstock_dir)
-    import pprint
-
     pprint.pprint(solvable_by_variant)
     assert solvable
 
