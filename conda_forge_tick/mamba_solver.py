@@ -423,14 +423,13 @@ class MambaSolver:
                             pkg_nm = link_tuple[1][: -len(".conda")]
                         channel_subdir = "/".join(link_tuple[0].split("/")[-2:])
                         libcfg_pth = (
-                            f"artifacts/{name}/"
-                            f"{channel_subdir}/{pkg_nm}.json"
+                            f"artifacts/{name}/" f"{channel_subdir}/{pkg_nm}.json"
                         )
                         if LIBCFGRAPH_INDEX is None:
                             logger.warning("downloading libcfgraph file index")
                             r = requests.get(
                                 "https://raw.githubusercontent.com/regro/libcfgraph"
-                                "/master/.file_listing.json"
+                                "/master/.file_listing.json",
                             )
                             LIBCFGRAPH_INDEX = r.json()
 
@@ -440,7 +439,7 @@ class MambaSolver:
                                     "https://raw.githubusercontent.com",
                                     "regro/libcfgraph/master",
                                     libcfg_pth,
-                                )
+                                ),
                             ).json()
 
                             rx = (
