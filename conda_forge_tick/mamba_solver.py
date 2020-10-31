@@ -427,6 +427,7 @@ class MambaSolver:
                             f"{channel_subdir}/{pkg_nm}.json"
                         )
                         if LIBCFGRAPH_INDEX is None:
+                            logger.warning("downloading libcfgraph file index")
                             r = requests.get(
                                 "https://raw.githubusercontent.com/regro/libcfgraph"
                                 "/master/.file_listing.json"
