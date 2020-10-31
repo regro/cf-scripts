@@ -14,6 +14,7 @@ import os
 import logging
 import glob
 import functools
+import requests
 import pathlib
 import pprint
 import tempfile
@@ -53,6 +54,8 @@ DEFAULT_RUN_EXPORTS = {
     "strong": set(),
     "noarch": set(),
 }
+LIBCFGRAPH_INDEX = None
+
 
 # turn off pip for python
 api.Context().add_pip_as_python_dependency = False
@@ -250,7 +253,7 @@ class FakeRepoData:
 def _get_run_exports(link_tuple):
     c, pkg, jdata = link_tuple
 
-    with tempfile.TemporaryDirectory() as tmpdir:
+    with tempfile.TemporaryDirectory(dir=os.environ.get("RUNNER_TEMP")) as tmpdir:
         try:
             # download
             subprocess.run(
@@ -293,17 +296,25 @@ class MambaSolver:
     ----------
     channels : list of str
         A list of the channels (e.g., `[conda-forge/linux-64]`, etc.)
+    platform : str
+        The platform to be used (e.g., `linux-64`).
+    max_workers : int or None, optional
+        The maximum number of workers to run when getting run exports. The default
+        of None uses the supported number of processes w/ multiprocessing on your
+        machine.
 
     Example
     -------
-    >>> solver = MambaSolver(['conda-forge/linux-64', 'conda-forge/noarch'])
+    >>> solver = MambaSolver(['conda-forge/linux-64', 'conda-forge/noarch'], "linux-64")
     >>> solver.solve(["xtensor 0.18"])
     """
 
-    def __init__(self, channels, platform):
+    def __init__(self, channels, platform, max_workers=None):
         self.channels = channels
         self.platform = platform
         index = get_index(channels, platform=platform)
+
+        self.max_workers = max_workers
 
         self.pool = api.Pool()
         self.repos = []
@@ -389,7 +400,9 @@ class MambaSolver:
         dict with the weak and strong run exports for the packages.
         """
 
-        with ProcessPoolExecutor(max_workers=None) as exe:
+        global LIBCFGRAPH_INDEX
+
+        with ProcessPoolExecutor(max_workers=self.max_workers) as exe:
             futures = []
             for link_tuple in link_tuples:
                 if link_tuple not in self.run_exports:
@@ -410,13 +423,24 @@ class MambaSolver:
                             pkg_nm = link_tuple[1][: -len(".conda")]
                         channel_subdir = "/".join(link_tuple[0].split("/")[-2:])
                         libcfg_pth = (
-                            f"../libcfgraph/artifacts/{name}/"
+                            f"artifacts/{name}/"
                             f"{channel_subdir}/{pkg_nm}.json"
                         )
+                        if LIBCFGRAPH_INDEX is None:
+                            r = requests.get(
+                                "https://raw.githubusercontent.com/regro/libcfgraph"
+                                "/master/.file_listing.json"
+                            )
+                            LIBCFGRAPH_INDEX = r.json()
 
-                        if os.path.exists(libcfg_pth):
-                            with open(libcfg_pth) as fp:
-                                data = json.load(fp)
+                        if libcfg_pth in LIBCFGRAPH_INDEX:
+                            data = requests.get(
+                                os.path.join(
+                                    "https://raw.githubusercontent.com",
+                                    "regro/libcfgraph/master",
+                                    libcfg_pth,
+                                )
+                            ).json()
 
                             rx = (
                                 data.get("rendered_recipe", {})
@@ -475,7 +499,7 @@ class MambaSolver:
 
 @functools.lru_cache(maxsize=32)
 def _mamba_factory(channels, platform):
-    return MambaSolver(list(channels), platform)
+    return MambaSolver(list(channels), platform, max_workers=2)
 
 
 @functools.lru_cache(maxsize=1)
