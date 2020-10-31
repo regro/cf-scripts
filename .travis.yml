@@ -25,7 +25,6 @@ install:
   - python -m pip install -e .
 
 script:
-  - git clone --depth 1 https://github.com/regro/libcflib.git
   - coverage run run_tests.py
   - coverage report -m
   - codecov -X gcov
