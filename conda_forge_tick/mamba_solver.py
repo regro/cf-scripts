@@ -18,9 +18,7 @@ import requests
 import pathlib
 import pprint
 import tempfile
-import tqdm
 import copy
-from concurrent.futures import ProcessPoolExecutor, as_completed
 import subprocess
 import atexit
 import time
@@ -46,9 +44,6 @@ PACKAGE_CACHE = api.MultiPackageCache(pkgs_dirs)
 
 logger = logging.getLogger("conda_forge_tick.mamba_solver")
 
-# set this to true to use the run exports from the channel data
-# this causes false negatives so we do not use it
-FAST_RUN_EXPORTS = False
 DEFAULT_RUN_EXPORTS = {
     "weak": set(),
     "strong": set(),
@@ -250,7 +245,7 @@ class FakeRepoData:
         self.write()
 
 
-def _get_run_exports(link_tuple):
+def _get_run_export_download(link_tuple):
     c, pkg, jdata = link_tuple
 
     with tempfile.TemporaryDirectory(dir=os.environ.get("RUNNER_TEMP")) as tmpdir:
@@ -296,6 +291,89 @@ def _get_run_exports(link_tuple):
     return link_tuple, run_exports
 
 
+@functools.lru_cache(maxsize=10240)
+def _get_run_export(link_tuple):
+
+    global LIBCFGRAPH_INDEX
+
+    run_exports = None
+
+    cd = download_channeldata(link_tuple[0].rsplit("/", maxsplit=1)[0])
+    data = json.loads(link_tuple[2])
+    name = data["name"]
+
+    if cd.get("packages", {}).get(name, {}).get("run_exports", {}):
+        # libcfgraph location
+        if link_tuple[1].endswith(".tar.bz2"):
+            pkg_nm = link_tuple[1][: -len(".tar.bz2")]
+        else:
+            pkg_nm = link_tuple[1][: -len(".conda")]
+        channel_subdir = "/".join(link_tuple[0].split("/")[-2:])
+        libcfg_pth = (
+            f"artifacts/{name}/" f"{channel_subdir}/{pkg_nm}.json"
+        )
+        if LIBCFGRAPH_INDEX is None:
+            logger.warning("downloading libcfgraph file index")
+            r = requests.get(
+                "https://raw.githubusercontent.com/regro/libcfgraph"
+                "/master/.file_listing.json",
+            )
+            LIBCFGRAPH_INDEX = r.json()
+
+        if libcfg_pth in LIBCFGRAPH_INDEX:
+            data = requests.get(
+                os.path.join(
+                    "https://raw.githubusercontent.com",
+                    "regro/libcfgraph/master",
+                    libcfg_pth,
+                ),
+            ).json()
+
+            rx = (
+                data.get("rendered_recipe", {})
+                .get("build", {})
+                .get("run_exports", {})
+            )
+            if rx:
+                run_exports = copy.deepcopy(
+                    DEFAULT_RUN_EXPORTS,
+                )
+                if isinstance(rx, str):
+                    # some packages have a single string
+                    # eg pyqt
+                    rx = [rx]
+
+                for k in rx:
+                    if k in DEFAULT_RUN_EXPORTS:
+                        logger.debug(
+                            "RUN EXPORT: %s %s %s",
+                            name,
+                            k,
+                            rx[k],
+                        )
+                        run_exports[k].update(rx[k])
+                    else:
+                        logger.debug(
+                            "RUN EXPORT: %s %s %s",
+                            name,
+                            "weak",
+                            [k],
+                        )
+                        run_exports["weak"].add(k)
+
+        # fall back to getting repodata shard if needed
+        if run_exports is None:
+            logger.info(
+                "RUN EXPORTS: downloading package %s/%s"
+                % (link_tuple[0], link_tuple[1]),
+            )
+            run_exports = _get_run_export_download(link_tuple)[1]
+    else:
+        run_exports = copy.deepcopy(DEFAULT_RUN_EXPORTS)
+
+    return run_exports
+
+
 class MambaSolver:
     """Run the mamba solver.
 
@@ -305,10 +383,6 @@ class MambaSolver:
         A list of the channels (e.g., `[conda-forge/linux-64]`, etc.)
     platform : str
         The platform to be used (e.g., `linux-64`).
-    max_workers : int or None, optional
-        The maximum number of workers to run when getting run exports. The default
-        of None uses the supported number of processes w/ multiprocessing on your
-        machine.
 
     Example
     -------
@@ -316,12 +390,10 @@ class MambaSolver:
     >>> solver.solve(["xtensor 0.18"])
     """
 
-    def __init__(self, channels, platform, max_workers=None):
+    def __init__(self, channels, platform):
         self.channels = channels
         self.platform = platform
         index = get_index(channels, platform=platform)
-
-        self.max_workers = max_workers
 
         self.pool = api.Pool()
         self.repos = []
@@ -337,8 +409,6 @@ class MambaSolver:
             )
             repo.set_priority(priority, subpriority)
             self.repos.append(repo)
-
-        self.run_exports = {}
 
     def solve(self, specs, get_run_exports=False) -> Tuple[bool, List[str]]:
         """Solve given a set of specs.
@@ -406,124 +476,18 @@ class MambaSolver:
         """Given tuples of (channel, file, json repodata shard) produce a
         dict with the weak and strong run exports for the packages.
         """
-
-        global LIBCFGRAPH_INDEX
-
-        with ProcessPoolExecutor(max_workers=self.max_workers) as exe:
-            futures = []
-            for link_tuple in link_tuples:
-                if link_tuple not in self.run_exports:
-                    cd = download_channeldata(link_tuple[0].rsplit("/", maxsplit=1)[0])
-                    data = json.loads(link_tuple[2])
-                    name = data["name"]
-                    version = data["version"]
-                    if cd.get("packages", {}).get(name, {}).get("run_exports", {}):
-                        # channel data run exports
-                        cd_rx = (
-                            cd.get("packages", {}).get(name, {}).get("run_exports", {})
-                        )
-
-                        # libcfgraph location
-                        if link_tuple[1].endswith(".tar.bz2"):
-                            pkg_nm = link_tuple[1][: -len(".tar.bz2")]
-                        else:
-                            pkg_nm = link_tuple[1][: -len(".conda")]
-                        channel_subdir = "/".join(link_tuple[0].split("/")[-2:])
-                        libcfg_pth = (
-                            f"artifacts/{name}/" f"{channel_subdir}/{pkg_nm}.json"
-                        )
-                        if LIBCFGRAPH_INDEX is None:
-                            logger.warning("downloading libcfgraph file index")
-                            r = requests.get(
-                                "https://raw.githubusercontent.com/regro/libcfgraph"
-                                "/master/.file_listing.json",
-                            )
-                            LIBCFGRAPH_INDEX = r.json()
-
-                        if libcfg_pth in LIBCFGRAPH_INDEX:
-                            data = requests.get(
-                                os.path.join(
-                                    "https://raw.githubusercontent.com",
-                                    "regro/libcfgraph/master",
-                                    libcfg_pth,
-                                ),
-                            ).json()
-
-                            rx = (
-                                data.get("rendered_recipe", {})
-                                .get("build", {})
-                                .get("run_exports", {})
-                            )
-                            if rx:
-                                self.run_exports[link_tuple] = copy.deepcopy(
-                                    DEFAULT_RUN_EXPORTS,
-                                )
-                                if isinstance(rx, str):
-                                    # some packages have a single string
-                                    # eg pyqt
-                                    rx = [rx]
-
-                                for k in rx:
-                                    if k in DEFAULT_RUN_EXPORTS:
-                                        logger.debug(
-                                            "RUN EXPORT: %s %s %s",
-                                            name,
-                                            k,
-                                            rx[k],
-                                        )
-                                        self.run_exports[link_tuple][k].update(rx[k])
-                                    else:
-                                        logger.debug(
-                                            "RUN EXPORT: %s %s %s",
-                                            name,
-                                            "weak",
-                                            [k],
-                                        )
-                                        self.run_exports[link_tuple]["weak"].add(k)
-
-                        elif version in cd_rx and FAST_RUN_EXPORTS:
-                            # if we can find the run exports here, use them
-                            # they may not apply for this specific build, but that's ok
-                            self.run_exports[link_tuple] = copy.deepcopy(
-                                DEFAULT_RUN_EXPORTS,
-                            )
-                            for k, v in cd_rx[version].items():
-                                if k not in self.run_exports[link_tuple]:
-                                    continue
-                                for _v in v:
-                                    self.run_exports[link_tuple][k].add(_v)
-
-                        # fall back to getting repodata shard if needed
-                        if link_tuple not in self.run_exports:
-                            logger.info(
-                                "RUN EXPORTS: downloading package %s/%s"
-                                % (link_tuple[0], link_tuple[1]),
-                            )
-                            futures.append(exe.submit(_get_run_exports, link_tuple))
-                    else:
-                        self.run_exports[link_tuple] = copy.deepcopy(
-                            DEFAULT_RUN_EXPORTS,
-                        )
-            if futures:
-                for fut in tqdm.tqdm(as_completed(futures), total=len(futures)):
-                    lt, rx = fut.result()
-                    if rx is not None:
-                        self.run_exports[lt] = rx
-
         run_exports = copy.deepcopy(DEFAULT_RUN_EXPORTS)
         for link_tuple in link_tuples:
-            if link_tuple in self.run_exports:
-                for key in DEFAULT_RUN_EXPORTS:
-                    run_exports[key] = (
-                        run_exports[key] | self.run_exports[link_tuple][key]
-                    )
+            rx = _get_run_export(link_tuple)
+            for key in DEFAULT_RUN_EXPORTS:
+                run_exports[key] |= rx[key]
 
         return run_exports
 
 
 @functools.lru_cache(maxsize=32)
 def _mamba_factory(channels, platform):
-    return MambaSolver(list(channels), platform, max_workers=2)
+    return MambaSolver(list(channels), platform)
 
 
 @functools.lru_cache(maxsize=1)
@@ -828,5 +792,7 @@ def _is_recipe_solvable_on_platform(
             solvable = solvable and _solvable
             if _err is not None:
                 errors.append(_err)
+
+    logger.info("RUN EXPORT cache status: %s", _get_run_export.cache_info())
 
     return solvable, errors
