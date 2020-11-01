@@ -279,6 +279,13 @@ def _get_run_exports(link_tuple):
                 run_exports = {}
 
             for key in DEFAULT_RUN_EXPORTS:
+                if key in run_exports:
+                    logger.debug(
+                        "RUN EXPORT: %s %s %s",
+                        pkg,
+                        key,
+                        run_exports.get(key, []),
+                    )
                 run_exports[key] = set(run_exports.get(key, []))
 
         except Exception as e:
@@ -451,10 +458,27 @@ class MambaSolver:
                                 self.run_exports[link_tuple] = copy.deepcopy(
                                     DEFAULT_RUN_EXPORTS,
                                 )
+                                if isinstance(rx, str):
+                                    # some packages have a single string
+                                    # eg pyqt
+                                    rx = [rx]
+
                                 for k in rx:
                                     if k in DEFAULT_RUN_EXPORTS:
+                                        logger.debug(
+                                            "RUN EXPORT: %s %s %s",
+                                            name,
+                                            k,
+                                            rx[k],
+                                        )
                                         self.run_exports[link_tuple][k].update(rx[k])
                                     else:
+                                        logger.debug(
+                                            "RUN EXPORT: %s %s %s",
+                                            name,
+                                            "weak",
+                                            [k],
+                                        )
                                         self.run_exports[link_tuple]["weak"].add(k)
 
                         elif version in cd_rx and FAST_RUN_EXPORTS:
