@@ -309,9 +309,7 @@ def _get_run_export(link_tuple):
         else:
             pkg_nm = link_tuple[1][: -len(".conda")]
         channel_subdir = "/".join(link_tuple[0].split("/")[-2:])
-        libcfg_pth = (
-            f"artifacts/{name}/" f"{channel_subdir}/{pkg_nm}.json"
-        )
+        libcfg_pth = f"artifacts/{name}/" f"{channel_subdir}/{pkg_nm}.json"
         if LIBCFGRAPH_INDEX is None:
             logger.warning("downloading libcfgraph file index")
             r = requests.get(
@@ -329,11 +327,7 @@ def _get_run_export(link_tuple):
                 ),
             ).json()
 
-            rx = (
-                data.get("rendered_recipe", {})
-                .get("build", {})
-                .get("run_exports", {})
-            )
+            rx = data.get("rendered_recipe", {}).get("build", {}).get("run_exports", {})
             if rx:
                 run_exports = copy.deepcopy(
                     DEFAULT_RUN_EXPORTS,
