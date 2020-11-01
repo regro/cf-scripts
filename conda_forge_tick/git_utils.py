@@ -91,11 +91,19 @@ def get_repo(
     protocol: str = "ssh",
     pull_request: bool = True,
     fork: bool = True,
+    base_branch: str = "master",
 ) -> Tuple[str, github3.repos.Repository]:
     """Get the feedstock repo
 
     Parameters
     ----------
+    ctx : MigratorSessionContext
+        Migrator context. Used to access the github3 object and other github
+        information.
+    fcts : FeedstockContext
+        Feedstock context used for constructing feedstock urls, etc.
+    branch : str
+        The branch to be made.
     feedstock : str, optional
         The feedstock to clone if None use $FEEDSTOCK
     protocol : str, optional
@@ -104,14 +112,15 @@ def get_repo(
         If true issue pull request, defaults to true
     fork : bool
         If true create a fork, defaults to true
-    gh : github3.GitHub instance, optional
-        Object for communicating with GitHub, if None build from $USERNAME
-        and $PASSWORD, defaults to None
+    base_branch : str, optional
+        The base branch from which to make the new branch.
 
     Returns
     -------
     recipe_dir : str
         The recipe directory
+    repo : github3 repository
+        The github3 repository object.
     """
     gh = ctx.gh
     # first, let's grab the feedstock locally
@@ -145,6 +154,7 @@ def get_repo(
         origin=origin,
         upstream=upstream,
         branch=branch,
+        base_branch=base_branch,
     ):
         return feedstock_dir, repo
     else:
@@ -216,7 +226,7 @@ def close_out_labels(
     gh = ensure_gh(ctx, gh)
     # run this twice so we always have the latest info (eg a thing was already closed)
     if pr_json["state"] != "closed" and "bot-rerun" in [
-        l["name"] for l in pr_json.get("labels", [])
+        lab["name"] for lab in pr_json.get("labels", [])
     ]:
         # update
         if dry_run:
@@ -227,7 +237,7 @@ def close_out_labels(
             pr_json = pr_obj.as_dict()
 
     if pr_json["state"] != "closed" and "bot-rerun" in [
-        l["name"] for l in pr_json.get("labels", [])
+        lab["name"] for lab in pr_json.get("labels", [])
     ]:
         if dry_run:
             print("dry run: comment and close pr %s" % pr_json["id"])
@@ -253,15 +263,31 @@ def push_repo(
     title: str,
     head: str,
     branch: str,
+    base_branch: str = "master",
 ) -> Union[dict, bool, None]:
     """Push a repo up to github
 
     Parameters
     ----------
+    ctx : MigratorSessionContext
+        Migrator context. Used to access the github3 object and other github
+        information.
+    fcts : FeedstockContext
+        Feedstock context used for constructing feedstock urls, etc.
     feedstock_dir : str
         The feedstock directory
     body : str
-        The PR body
+        The PR body.
+    repo : github3.repos.Repository
+        The feedstock repo as a github3 object.
+    title : str
+        The title of the PR.
+    head : str
+        The github head for the PR in the form `username:branch`.
+    branch : str
+        The head branch of the PR.
+    base_branch : str, optional
+        The base branch or target branch of the PR.
 
     Returns
     -------
@@ -301,7 +327,7 @@ def push_repo(
         print(f"dry run: create pr with title: {title}")
         return False
     else:
-        pr = repo.create_pull(title, "master", head, body=body)
+        pr = repo.create_pull(title, base_branch, head, body=body)
         if pr is None:
             print("Failed to create pull request!")
             return False
@@ -406,9 +432,12 @@ def close_out_dirty_prs(
                 delete_branch(ctx=ctx, pr_json=pr_json, dry_run=dry_run)
                 pr_obj.refresh(True)
                 d = pr_obj.as_dict()
-                # This will cause the update_nodes_with_bot_rerun to trigger properly and shouldn't be overridden since
-                # this is the last function to run, the long term solution here is to add the bot to conda-forge and then
-                # it should have label adding capability and we can just add the label properly
+                # This will cause the update_nodes_with_bot_rerun to trigger
+                # properly and shouldn't be overridden since
+                # this is the last function to run, the long term solution here
+                # is to add the bot to conda-forge and then
+                # it should have label adding capability and we can just add
+                # the label properly
                 d["labels"].append(DUMMY_BOT_RERUN_METADATA)
             else:
                 d = pr_obj.as_dict()

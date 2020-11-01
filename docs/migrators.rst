@@ -11,6 +11,20 @@ This document will teach you how to create new migrators.
  .. note:: Unless you need to write a custom migrator, you should call for a migration using the ``conda-forge-pinning-feedstock``
 
 
+Migrating Branches on Your Feedstock
+====================================
+
+If you'd like to have the bot apply migrations to branches on your feedstock,
+add the following to your ``conda-forge.yml``
+
+.. code:: yaml
+
+    bot:
+      abi_migration_branches:
+       - v1.10.x
+
+Note that ``master`` will always be included.
+
 Building a Migration YAML Using CFEP9
 =====================================
 For most migrations a migration can be created by adding a new migration yaml file in the ``recipe/migrations`` folder of ``conda-forge-pinning-feedstock`` and issuing a PR.

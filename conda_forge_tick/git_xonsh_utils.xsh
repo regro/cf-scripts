@@ -5,7 +5,7 @@ from subprocess import CalledProcessError
 from xonsh.lib.os import indir
 
 
-def fetch_repo(*, feedstock_dir, origin, upstream, branch) -> bool:
+def fetch_repo(*, feedstock_dir, origin, upstream, branch, base_branch="master") -> bool:
     if not os.path.isdir(feedstock_dir):
         p = ![git clone -q @(origin) @(feedstock_dir)]
         if p.rtn != 0:
@@ -16,22 +16,22 @@ def fetch_repo(*, feedstock_dir, origin, upstream, branch) -> bool:
     with indir(feedstock_dir):
         git fetch @(origin) --quiet
         # make sure feedstock is up-to-date with origin
-        git checkout master
-        git pull @(origin) master --quiet
+        git checkout @(base_branch)
+        git pull @(origin) @(base_branch) --quiet
         # remove any uncommitted changes?
         git reset --hard HEAD
         # make sure feedstock is up-to-date with upstream
-        # git pull @(upstream) master -s recursive -X theirs --no-edit
+        # git pull @(upstream) @(base_branch) -s recursive -X theirs --no-edit
 
         # doesn't work if the upstream already exists
         try:
-            # always run upstream master
+            # always run upstream
             git remote add upstream @(upstream)
         except CalledProcessError:
             pass
-        git fetch upstream master --quiet
-        git reset --hard upstream/master
+        git fetch upstream @(base_branch) --quiet
+        git reset --hard upstream/@(base_branch)
         # make and modify version branch
         with ${...}.swap(RAISE_SUBPROC_ERROR=False):
-            git checkout @(branch) --quiet or git checkout -b @(branch) master --quiet
+            git checkout @(branch) --quiet or git checkout -b @(branch) @(base_branch) --quiet
     return True
