@@ -257,7 +257,7 @@ def test_arrow_solvable(tmp_path):
 
 
 def test_guiqwt_solvable(tmp_path):
-    """this has been throwing errors so test it"""
+    """test for run exports as a single string in pyqt"""
     feedstock_dir = clone_and_checkout_repo(
         tmp_path,
         "https://github.com/conda-forge/guiqwt-feedstock",
