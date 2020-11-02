@@ -33,13 +33,12 @@ jobs:
           export GIT_FULL_HASH=`git rev-parse HEAD`
           export CICLE_BUILD_URL="https://www.youtube.com/watch?v=R7qT-C-0ajI"
           conda install --quiet --file requirements/run --file requirements/test
-          conda install --quiet --yes pre-commit
           python -m pip install -e .
 
       - name: test
         shell: bash -l {0}
         run: |
-          coverage run run_tests.py -k test_depfinder_audit_feedstock
+          coverage run run_tests.py
           coverage report -m
           codecov -X gcov
 

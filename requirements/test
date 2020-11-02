@@ -5,3 +5,5 @@ requests-mock
 doctr
 sphinx
 scipy
+pre-commit
+pip
