@@ -810,7 +810,6 @@ def populate_feedstock_attributes(
     else:
         sub_graph["outputs_names"] = [meta_yaml["package"]["name"]]
 
-
     # TODO: Write schema for dict
     # TODO: remove this
     req = get_requirements(yaml_dict)
