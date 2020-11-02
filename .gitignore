@@ -30,5 +30,3 @@ coverage.xml
 
 cf-graph/
 tests/node_attrs/
-
-.github/workflows/*
