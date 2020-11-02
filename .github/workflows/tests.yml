@@ -39,7 +39,7 @@ jobs:
       - name: test
         shell: bash -l {0}
         run: |
-          coverage run run_tests.py
+          coverage run run_tests.py -k test_depfinder_audit_feedstock
           coverage report -m
           codecov -X gcov
 
