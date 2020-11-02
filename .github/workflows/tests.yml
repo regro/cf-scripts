@@ -49,7 +49,7 @@ jobs:
           make html
           popd
 
-      - name: build docs
+      - name: deploy docs
         uses: JamesIves/github-pages-deploy-action@3.7.1
         if: github.ref == 'refs/heads/master' && success()
         with:
