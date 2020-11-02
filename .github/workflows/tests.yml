@@ -12,7 +12,7 @@ jobs:
       - name: cancel previous runs
         uses: styfle/cancel-workflow-action@0.6.0
         with:
-          access_token: ${{ github.token }} 
+          access_token: ${{ github.token }}
 
       - uses: actions/checkout@v2
 
@@ -28,7 +28,7 @@ jobs:
         run: |
           conda config --set always_yes yes
           conda config --add channels conda-forge
-          conda install --quiet pip        
+          conda install --quiet pip
           
           export GIT_FULL_HASH=`git rev-parse HEAD`
           export CICLE_BUILD_URL="https://www.youtube.com/watch?v=R7qT-C-0ajI"
@@ -57,4 +57,4 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           BRANCH: gh-pages            # The branch the action should deploy to.
           FOLDER: ./docs/_build/html  # The folder the action should deploy.
-          CLEAN: true                 # Automatically remove deleted files from the deploy branch 
+          CLEAN: true                 # Automatically remove deleted files from the deploy branch
