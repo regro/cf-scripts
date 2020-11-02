@@ -35,6 +35,8 @@ class CrossCompilationMigratorBase(MiniMigrator):
 
 class UpdateConfigSubGuessMigrator(CrossCompilationMigratorBase):
     def migrate(self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any) -> None:
+        if attrs["feedstock_name"] == "libtool-feedstock":
+            return
         cb_work_dir = _get_source_code(recipe_dir)
         if cb_work_dir is None:
             return
