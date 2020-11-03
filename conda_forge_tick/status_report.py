@@ -301,10 +301,8 @@ def main(args: Any = None) -> None:
 
         if isinstance(migrator, GraphMigrator) or isinstance(migrator, Replacement):
             if isinstance(migrator, GraphMigrator):
-                mgconf = (
-                    yaml
-                    .safe_load(getattr(migrator, "yaml_contents", "{}"))
-                    .get("__migrator")
+                mgconf = yaml.safe_load(getattr(migrator, "yaml_contents", "{}")).get(
+                    "__migrator",
                 )
                 if (
                     mgconf.get("longterm", False)
