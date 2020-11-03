@@ -53,6 +53,22 @@ def _parse_bad_attr(attrs: "AttrsTypedDict", not_bad_str_start: str) -> bool:
         return bad
 
 
+def _gen_active_feedstocks_payloads(nodes, gx):
+    for node in nodes:
+        try:
+            payload = gx.nodes[node]["payload"]
+        except KeyError as e:
+            print(node)
+            raise e
+
+        # we don't need to look at archived feedstocks
+        # they are always "migrated"
+        if payload.get("archived", False):
+            continue
+        else:
+            yield node, payload
+
+
 class MiniMigrator:
     post_migration = False
 
@@ -447,18 +463,10 @@ class GraphMigrator(Migrator):
 
     def all_predecessors_issued_and_stale(self, attrs: "AttrsTypedDict") -> bool:
         # Check if all upstreams have been issue and are stale
-        for node in self.graph.predecessors(attrs["feedstock_name"]):
-            try:
-                payload = self.graph.nodes[node]["payload"]
-            except KeyError as e:
-                print(node)
-                raise e
-
-            # we don't need to look at archived feedstocks
-            # they are always "migrated"
-            if payload.get("archived", False):
-                continue
-
+        for node, payload in _gen_active_feedstocks_payloads(
+            self.graph.predecessors(attrs["feedstock_name"]),
+            self.graph,
+        ):
             muid = frozen_to_json_friendly(self.migrator_uid(payload))
             pr_muids = _sanitized_muids(payload.get("PRed", []))
             if muid not in pr_muids:
@@ -492,18 +500,10 @@ class GraphMigrator(Migrator):
 
     def predecessors_not_yet_built(self, attrs: "AttrsTypedDict") -> bool:
         # Check if all upstreams have been built
-        for node in self.graph.predecessors(attrs["feedstock_name"]):
-            try:
-                payload = self.graph.nodes[node]["payload"]
-            except KeyError as e:
-                print(node)
-                raise e
-
-            # we don't need to look at archived feedstocks
-            # they are always "migrated"
-            if payload.get("archived", False):
-                continue
-
+        for node, payload in _gen_active_feedstocks_payloads(
+            self.graph.predecessors(attrs["feedstock_name"]),
+            self.graph,
+        ):
             muid = frozen_to_json_friendly(self.migrator_uid(payload))
 
             if muid not in _sanitized_muids(
