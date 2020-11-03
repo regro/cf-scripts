@@ -22,6 +22,8 @@ from conda_forge_tick.migrators import (
     Version,
     Replacement,
     MatplotlibBase,
+    ArchRebuild,
+    OSXArm,
 )
 from conda_forge_tick.path_lengths import cyclic_topological_sort
 from conda_forge_tick.contexts import MigratorContext, FeedstockContext
@@ -304,7 +306,11 @@ def main(args: Any = None) -> None:
                     .safe_load(getattr(migrator, "yaml_contents", "{}"))
                     .get("__migrator")
                 )
-                if mgconf.get("longterm", False):
+                if (
+                    mgconf.get("longterm", False)
+                    or isinstance(migrator, ArchRebuild)
+                    or isinstance(migrator, OSXArm)
+                ):
                     longterm_status[migrator_name] = f"{migrator.name} Migration Status"
                 else:
                     regular_status[migrator_name] = f"{migrator.name} Migration Status"
