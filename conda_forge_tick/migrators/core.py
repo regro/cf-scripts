@@ -412,7 +412,7 @@ class GraphMigrator(Migrator):
         graph: nx.DiGraph = None,
         pr_limit: int = 0,
         top_level: Set["PackageName"] = None,
-        cycles: Optional[Sequence["packageName"]] = None,
+        cycles: Optional[Sequence["PackageName"]] = None,
         obj_version: Optional[int] = None,
         piggy_back_migrations: Optional[Sequence[MiniMigrator]] = None,
         check_solvable=True,
@@ -459,6 +459,7 @@ class GraphMigrator(Migrator):
                 )
                 and not payload.get("archived", False)
             ):
+                LOGGER.debug("not yet built: %s" % node)
                 return True
             # This is due to some PRed_json loss due to bad graph deploy outage
             for m_pred_json in payload.get("PRed", []):
@@ -471,7 +472,9 @@ class GraphMigrator(Migrator):
             if (
                 m_pred_json
                 and m_pred_json.get("PR", {"state": "open"}).get("state", "") == "open"
+                and not payload.get("archived", False)
             ):
+                LOGGER.debug("not yet built dataloss: %s" % node)
                 return True
         return False
 

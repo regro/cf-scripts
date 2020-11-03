@@ -25,7 +25,6 @@ from .utils import (
     load_graph,
     dump_graph,
     LazyJson,
-    pluck,
 )
 from .xonsh_utils import env
 
@@ -173,11 +172,6 @@ def make_graph(
     logger.info("feedstock fetch loop completed")
 
     logger.info("inferring nodes and edges")
-
-    # pluck anything marked as archived
-    for name in list(gx.nodes):
-        if gx.nodes[name].get("payload", {}).get("archived", False):
-            pluck(gx, name)
 
     # make the outputs look up table so we can link properly
     # and add this as an attr so we can use later
