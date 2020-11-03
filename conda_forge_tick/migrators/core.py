@@ -412,7 +412,7 @@ class GraphMigrator(Migrator):
         graph: nx.DiGraph = None,
         pr_limit: int = 0,
         top_level: Set["PackageName"] = None,
-        cycles: Optional[Sequence["packageName"]] = None,
+        cycles: Optional[Sequence["PackageName"]] = None,
         obj_version: Optional[int] = None,
         piggy_back_migrations: Optional[Sequence[MiniMigrator]] = None,
         check_solvable=True,
@@ -451,28 +451,36 @@ class GraphMigrator(Migrator):
             except KeyError as e:
                 print(node)
                 raise e
+
+            # we don't need to look at archived feedstocks
+            # they are always "migrated"
+            if payload.get("archived", False):
+                continue
+
             muid = frozen_to_json_friendly(self.migrator_uid(payload))
-            if (
-                muid
-                not in _sanitized_muids(
-                    payload.get("PRed", []),
-                )
-                and not payload.get("archived", False)
+
+            if muid not in _sanitized_muids(
+                payload.get("PRed", []),
             ):
+                LOGGER.debug("not yet built: %s" % node)
                 return True
+
             # This is due to some PRed_json loss due to bad graph deploy outage
             for m_pred_json in payload.get("PRed", []):
                 if m_pred_json["data"] == muid["data"]:
                     break
             else:
                 m_pred_json = None
+
             # note that if the bot is missing the PR we assume it is open
             # so that errors halt the migration and can be fixed
             if (
                 m_pred_json
                 and m_pred_json.get("PR", {"state": "open"}).get("state", "") == "open"
             ):
+                LOGGER.debug("not yet built dataloss: %s" % node)
                 return True
+
         return False
 
     def filter(self, attrs: "AttrsTypedDict", not_bad_str_start: str = "") -> bool:
