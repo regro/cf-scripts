@@ -478,7 +478,7 @@ class GraphMigrator(Migrator):
                 ts = (
                     payload.get("PRed", [])[pr_index]
                     .get("PR", {})
-                    .get("updated_at", None)
+                    .get("created_at", None)
                 )
                 state = payload.get("PR", {"state": "open"}).get("state", "")
                 if ts is not None and state == "open":
