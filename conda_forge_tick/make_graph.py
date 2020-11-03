@@ -25,6 +25,7 @@ from .utils import (
     load_graph,
     dump_graph,
     LazyJson,
+    pluck,
 )
 from .xonsh_utils import env
 
@@ -173,6 +174,11 @@ def make_graph(
 
     logger.info("inferring nodes and edges")
 
+    # pluck anything marked as archived
+    for name in list(gx.nodes):
+        if gx.nodes[name].get("payload", {}).get("archived", False):
+            pluck(gx, name)
+
     # make the outputs look up table so we can link properly
     # and add this as an attr so we can use later
     outputs_lut = {}
@@ -234,10 +240,10 @@ def make_graph(
 def update_nodes_with_bot_rerun(gx):
     """Go through all the open PRs and check if they are rerun"""
     for i, (name, node) in enumerate(gx.nodes.items()):
-        logger.info(
-            f"node: {i} memory usage: "
-            f"{psutil.Process().memory_info().rss // 1024 ** 2}MB",
-        )
+        # logger.info(
+        #     f"node: {i} memory usage: "
+        #     f"{psutil.Process().memory_info().rss // 1024 ** 2}MB",
+        # )
         with node["payload"] as payload:
             for migration in payload.get("PRed", []):
                 if random.random() >= 0.5:
