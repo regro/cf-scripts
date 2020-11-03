@@ -8,7 +8,7 @@ import traceback
 import logging
 import os
 import typing
-from subprocess import SubprocessError, CalledProcessError
+from subprocess import CalledProcessError
 
 # from conda_forge_tick.profiler import profiling
 
