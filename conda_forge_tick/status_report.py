@@ -9,6 +9,8 @@ import networkx as nx
 from graphviz import Source
 import tempfile
 
+import yaml
+
 from typing import Any, Dict, Set, Tuple
 
 from conda_forge_tick.utils import frozen_to_json_friendly
@@ -277,7 +279,8 @@ def main(args: Any = None) -> None:
     mctx, *_, migrators = initialize_migrators()
     if not os.path.exists("./status"):
         os.mkdir("./status")
-    total_status = {}
+    regular_status = {}
+    longterm_status = {}
 
     print(" ", flush=True)
 
@@ -295,7 +298,18 @@ def main(args: Any = None) -> None:
         print("name:", migrator_name, flush=True)
 
         if isinstance(migrator, GraphMigrator) or isinstance(migrator, Replacement):
-            total_status[migrator_name] = f"{migrator.name} Migration Status"
+            if isinstance(migrator, GraphMigrator):
+                mgconf = (
+                    yaml
+                    .safe_load(getattr(migrator, "yaml_contents", "{}"))
+                    .get("__migrator")
+                )
+                if mgconf.get("longterm", False):
+                    longterm_status[migrator_name] = f"{migrator.name} Migration Status"
+                else:
+                    regular_status[migrator_name] = f"{migrator.name} Migration Status"
+            else:
+                regular_status[migrator_name] = f"{migrator.name} Migration Status"
             status, build_order, gv = graph_migrator_status(migrator, mctx.graph)
             num_viz = status.pop("_num_viz", 0)
             with open(os.path.join(f"./status/{migrator_name}.json"), "w") as fp:
@@ -323,8 +337,17 @@ def main(args: Any = None) -> None:
     print(" ", flush=True)
 
     print("writing data", flush=True)
+    with open("./status/regular_status.json", "w") as f:
+        json.dump(regular_status, f, sort_keys=True)
+
+    with open("./status/longterm_status.json", "w") as f:
+        json.dump(regular_status, f, sort_keys=True)
+
+    total_status = {}
+    total_status.update(regular_status)
+    total_status.update(longterm_status)
     with open("./status/total_status.json", "w") as f:
-        json.dump(total_status, f, sort_keys=True)
+        json.dump(regular_status, f, sort_keys=True)
 
     lst = [
         k
