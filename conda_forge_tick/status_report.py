@@ -345,7 +345,7 @@ def main(args: Any = None) -> None:
         json.dump(regular_status, f, sort_keys=True)
 
     with open("./status/longterm_status.json", "w") as f:
-        json.dump(regular_status, f, sort_keys=True)
+        json.dump(longterm_status, f, sort_keys=True)
 
     total_status = {}
     total_status.update(regular_status)
