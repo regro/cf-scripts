@@ -443,6 +443,17 @@ class GraphMigrator(Migrator):
         self.top_level = top_level or set()
         self.cycles = set(chain.from_iterable(cycles or []))
 
+    def predecessors_not_yet_issued(self, attrs: "AttrsTypedDict") -> bool:
+        # Check if all upstreams have been built
+        for node in self.graph.predecessors(attrs["feedstock_name"]):
+            payload = self.graph.nodes[node]["payload"]
+            muid = frozen_to_json_friendly(self.migrator_uid(payload))
+            if muid not in _sanitized_muids(
+                payload.get("PRed", []),
+            ) and not payload.get("archived", False):
+                return True
+        return False
+
     def predecessors_not_yet_built(self, attrs: "AttrsTypedDict") -> bool:
         # Check if all upstreams have been built
         for node in self.graph.predecessors(attrs["feedstock_name"]):
@@ -496,6 +507,12 @@ class GraphMigrator(Migrator):
             attrs["feedstock_name"] in self.cycles
         ):
             return False
+        # once all PRs are issued (not merged) propose the change in pin
+        if name == "conda-forge-pinning" and self.predecessors_not_yet_issued(
+            attrs=attrs,
+        ):
+            LOGGER.debug("filter %s: pinning parents not issued", name)
+            return True
         # Check if all upstreams have been built
         if self.predecessors_not_yet_built(attrs=attrs):
             LOGGER.debug("filter %s: parents not built", name)
