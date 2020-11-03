@@ -1,6 +1,8 @@
 """Classes for migrating repos"""
 import os
 import re
+import dateutil.parser
+import datetime
 from itertools import chain
 import typing
 import logging
@@ -49,6 +51,22 @@ def _parse_bad_attr(attrs: "AttrsTypedDict", not_bad_str_start: str) -> bool:
         return not bad.startswith(not_bad_str_start)
     else:
         return bad
+
+
+def _gen_active_feedstocks_payloads(nodes, gx):
+    for node in nodes:
+        try:
+            payload = gx.nodes[node]["payload"]
+        except KeyError as e:
+            print(node)
+            raise e
+
+        # we don't need to look at archived feedstocks
+        # they are always "migrated"
+        if payload.get("archived", False):
+            continue
+        else:
+            yield node, payload
 
 
 class MiniMigrator:
@@ -443,20 +461,49 @@ class GraphMigrator(Migrator):
         self.top_level = top_level or set()
         self.cycles = set(chain.from_iterable(cycles or []))
 
+    def all_predecessors_issued_and_stale(self, attrs: "AttrsTypedDict") -> bool:
+        # Check if all upstreams have been issue and are stale
+        for node, payload in _gen_active_feedstocks_payloads(
+            self.graph.predecessors(attrs["feedstock_name"]),
+            self.graph,
+        ):
+            muid = frozen_to_json_friendly(self.migrator_uid(payload))
+            pr_muids = _sanitized_muids(payload.get("PRed", []))
+            if muid not in pr_muids:
+                # not yet issued
+                return False
+            else:
+                # issued so check timestamp
+                pr_index = pr_muids.index(muid)
+                ts = (
+                    payload.get("PRed", [])[pr_index]
+                    .get("PR", {})
+                    .get("created_at", None)
+                )
+                state = payload.get("PR", {"state": "open"}).get("state", "")
+                if ts is not None and state == "open":
+                    now = datetime.datetime.now(datetime.timezone.utc)
+                    ts = dateutil.parser.parse(ts)
+                    if now - ts < datetime.timedelta(days=30):
+                        LOGGER.debug(
+                            "node %s has PR %s open for %s",
+                            node,
+                            muid.get("data", {}).get("name", None),
+                            now - ts,
+                        )
+                        return False
+                else:
+                    # no timestamp so keep things open
+                    return False
+
+        return True
+
     def predecessors_not_yet_built(self, attrs: "AttrsTypedDict") -> bool:
         # Check if all upstreams have been built
-        for node in self.graph.predecessors(attrs["feedstock_name"]):
-            try:
-                payload = self.graph.nodes[node]["payload"]
-            except KeyError as e:
-                print(node)
-                raise e
-
-            # we don't need to look at archived feedstocks
-            # they are always "migrated"
-            if payload.get("archived", False):
-                continue
-
+        for node, payload in _gen_active_feedstocks_payloads(
+            self.graph.predecessors(attrs["feedstock_name"]),
+            self.graph,
+        ):
             muid = frozen_to_json_friendly(self.migrator_uid(payload))
 
             if muid not in _sanitized_muids(
@@ -485,21 +532,33 @@ class GraphMigrator(Migrator):
 
     def filter(self, attrs: "AttrsTypedDict", not_bad_str_start: str = "") -> bool:
         name = attrs.get("name", "")
+
         if super().filter(attrs, "Upstream:"):
             LOGGER.debug("filter %s: archived or done", name)
             return True
+
         if attrs.get("feedstock_name", None) not in self.graph:
             LOGGER.debug("filter %s: node not in graph", name)
             return True
+
         # If in top level or in a cycle don't check for upstreams just build
         if (attrs["feedstock_name"] in self.top_level) or (
             attrs["feedstock_name"] in self.cycles
         ):
             return False
+
+        # once all PRs are issued (not merged) and old propose the change in pin
+        if name == "conda-forge-pinning" and self.all_predecessors_issued_and_stale(
+            attrs=attrs,
+        ):
+            LOGGER.debug("not filtered %s: pinning parents issued and stale", name)
+            return False
+
         # Check if all upstreams have been built
         if self.predecessors_not_yet_built(attrs=attrs):
             LOGGER.debug("filter %s: parents not built", name)
             return True
+
         return False
 
     def migrator_uid(self, attrs: "AttrsTypedDict") -> "MigrationUidTypedDict":
