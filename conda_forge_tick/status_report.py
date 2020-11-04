@@ -1,14 +1,16 @@
 import csv
 import os
-import json
+import rapidjson as json
 import subprocess
 import copy
 from collections import Counter
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 import networkx as nx
 from graphviz import Source
 import tempfile
 
+import tqdm
 import yaml
 
 from typing import Any, Dict, Set, Tuple
@@ -270,6 +272,18 @@ def graph_migrator_status(
     return out2, build_sequence, gv
 
 
+def _collect_items_from_nodes(gx, func):
+    futs = []
+    with ThreadPoolExecutor(max_workers=20) as exec:
+        for k in gx.nodes:
+            futs.append(exec.submit(func, k))
+    return [
+        fut.result()
+        for fut in tqdm.tqdm(as_completed(futs), total=len(futs))
+        if fut.result() is not None
+    ]
+
+
 def main(args: Any = None) -> None:
     import requests
 
@@ -303,6 +317,7 @@ def main(args: Any = None) -> None:
             if isinstance(migrator, GraphMigrator):
                 mgconf = yaml.safe_load(getattr(migrator, "yaml_contents", "{}")).get(
                     "__migrator",
+                    {},
                 )
                 if (
                     mgconf.get("longterm", False)
@@ -338,34 +353,41 @@ def main(args: Any = None) -> None:
         elif isinstance(migrator, Version):
             write_version_migrator_status(migrator, mctx)
 
-    print(" ", flush=True)
+        print(" ", flush=True)
 
     print("writing data", flush=True)
     with open("./status/regular_status.json", "w") as f:
-        json.dump(regular_status, f, sort_keys=True)
+        json.dump(regular_status, f, sort_keys=True, indent=2)
 
     with open("./status/longterm_status.json", "w") as f:
-        json.dump(longterm_status, f, sort_keys=True)
+        json.dump(longterm_status, f, sort_keys=True, indent=2)
 
     total_status = {}
     total_status.update(regular_status)
     total_status.update(longterm_status)
     with open("./status/total_status.json", "w") as f:
-        json.dump(total_status, f, sort_keys=True)
+        json.dump(total_status, f, sort_keys=True, indent=2)
 
-    lst = [
-        k
-        for k, v in mctx.graph.nodes.items()
-        if len(
-            [
-                z
-                for z in v.get("payload", {}).get("PRed", [])
-                if z.get("PR", {}).get("state", "closed") == "open"
-                and z.get("data", {}).get("migrator_name", "") == "Version"
-            ],
-        )
-        >= Version.max_num_prs
-    ]
+    print("\ncomputing feedstock and PR stats", flush=True)
+
+    def _get_needs_help(k):
+        v = mctx.graph.nodes[k]
+        if (
+            len(
+                [
+                    z
+                    for z in v.get("payload", {}).get("PRed", [])
+                    if z.get("PR", {}).get("state", "closed") == "open"
+                    and z.get("data", {}).get("migrator_name", "") == "Version"
+                ],
+            )
+            >= Version.max_num_prs
+        ):
+            return k
+        else:
+            return None
+
+    lst = _collect_items_from_nodes(mctx.graph, _get_needs_help)
     with open("./status/could_use_help.json", "w") as f:
         json.dump(
             sorted(
@@ -378,9 +400,15 @@ def main(args: Any = None) -> None:
         )
 
     lm = LicenseMigrator()
-    lst = [
-        k for k, v in mctx.graph.nodes.items() if not lm.filter(v.get("payload", {}))
-    ]
+
+    def _get_needs_license(k):
+        v = mctx.graph.nodes[k]
+        if not lm.filter(v.get("payload", {})):
+            return k
+        else:
+            return None
+
+    lst = _collect_items_from_nodes(mctx.graph, _get_needs_license)
     with open("./status/unlicensed.json", "w") as f:
         json.dump(
             sorted(
@@ -391,11 +419,19 @@ def main(args: Any = None) -> None:
             f,
             indent=2,
         )
-    open_prs = []
-    for node, attrs in mctx.graph.nodes("payload"):
+
+    def _get_open_pr_states(k):
+        attrs = mctx.graph.nodes[k]
+        _open_prs = []
         for pr in attrs.get("PRed", []):
             if pr.get("PR", {}).get("state", "closed") != "closed":
-                open_prs.append(pr["PR"])
+                _open_prs.append(pr["PR"])
+
+        return _open_prs
+
+    open_prs = []
+    for op in _collect_items_from_nodes(mctx.graph, _get_open_pr_states):
+        open_prs.extend(op)
     merge_state_count = Counter([o["mergeable_state"] for o in open_prs])
     with open("./status/pr_state.csv", "a") as f:
         writer = csv.writer(f)
