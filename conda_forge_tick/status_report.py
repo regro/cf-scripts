@@ -315,10 +315,9 @@ def main(args: Any = None) -> None:
 
         if isinstance(migrator, GraphMigrator) or isinstance(migrator, Replacement):
             if isinstance(migrator, GraphMigrator):
-                mgconf = (
-                    yaml
-                    .safe_load(getattr(migrator, "yaml_contents", "{}"))
-                    .get("__migrator", {})
+                mgconf = yaml.safe_load(getattr(migrator, "yaml_contents", "{}")).get(
+                    "__migrator",
+                    {},
                 )
                 if (
                     mgconf.get("longterm", False)
@@ -380,7 +379,9 @@ def main(args: Any = None) -> None:
                     for z in v.get("payload", {}).get("PRed", [])
                     if z.get("PR", {}).get("state", "closed") == "open"
                     and z.get("data", {}).get("migrator_name", "") == "Version"
-                ]) >= Version.max_num_prs
+                ],
+            )
+            >= Version.max_num_prs
         ):
             return k
         else:
