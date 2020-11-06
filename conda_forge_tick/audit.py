@@ -5,7 +5,7 @@ import time
 import traceback
 from collections import defaultdict
 from concurrent.futures._base import as_completed
-from typing import Dict, Tuple
+from typing import Dict
 
 import networkx as nx
 from stdlib_list import stdlib_list
@@ -15,8 +15,7 @@ from grayskull.base.factory import GrayskullFactory
 from ruamel import yaml
 
 from conda_forge_tick.contexts import MigratorSessionContext, FeedstockContext
-from conda_forge_tick.git_utils import feedstock_url
-from conda_forge_tick.git_xonsh_utils import fetch_repo
+from conda_forge_tick.git_utils import feedstock_url, fetch_repo
 from conda_forge_tick.utils import (
     load_graph,
     dump,
@@ -50,7 +49,8 @@ STATIC_EXCLUDES = {
     # bad pypi mapping
     "futures",
 }.union(
-    # Some libs support older python versions, we don't want their std lib entries in our diff though
+    # Some libs support older python versions, we don't want their std lib
+    # entries in our diff though
     *[set(stdlib_list(k)) for k in ["2.7", "3.5", "3.6", "3.7"]]
 )
 
@@ -108,8 +108,8 @@ def grayskull_audit_feedstock(fctx: FeedstockContext, ctx: MigratorSessionContex
 
 AUDIT_REGISTRY = {
     "depfinder": {"run": depfinder_audit_feedstock, "writer": dump, "ext": "json"},
-    # Grayskull produces a valid meta.yaml, there is no in memory representation for that so we just write out the
-    # string
+    # Grayskull produces a valid meta.yaml, there is no in memory representation
+    # for that so we just write out the string
     "grayskull": {
         "run": grayskull_audit_feedstock,
         "writer": lambda x, f: f.write(x),
@@ -232,7 +232,8 @@ def extract_missing_packages(
     # imports which have no associated package in the meta.yaml
     df_minus_cf_imports = required_imports - run_imports - exclude_imports
     # Normalize to packages, the native interface for conda-forge
-    # Note that the set overlap is a bit of a hack, sources could have imports we don't ship at all
+    # Note that the set overlap is a bit of a hack, sources could have imports we
+    # don't ship at all
     df_minus_cf = (
         set().union(
             *list(as_iterable(package_by_import.get(k, k)) for k in df_minus_cf_imports)
