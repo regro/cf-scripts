@@ -25,7 +25,7 @@ def test_version(tmpdir, caplog, env_setup):
       number: 0
       noarch: python
       script: python -m pip install --no-deps --ignore-installed .
-    
+
     requirements:
       host:
         - python
@@ -36,18 +36,18 @@ def test_version(tmpdir, caplog, env_setup):
         - numpy
         - matplotlib
         - colorspacious
-    
+
     test:
       imports:
         - viscm
-    
+
     about:
       home: https://github.com/bids/viscm
       license: MIT
       license_family: MIT
       # license_file: '' we need to an issue upstream to get a license in the source dist.
       summary: A colormap tool
-    
+
     extra:
       recipe-maintainers:
         - kthyng
@@ -65,8 +65,12 @@ def test_version(tmpdir, caplog, env_setup):
     with indir(tmpdir):
         subprocess.run(["git", "init"])
 
-    pmy = populate_feedstock_attributes('blah', {}, in_yaml, "{}")
+    pmy = populate_feedstock_attributes("blah", {}, in_yaml, "{}")
     # This url gets saved in https://github.com/regro/cf-graph-countyfair
-    assert pmy["url"] != "https://n/ot a password"
+    assert pmy["url"] != "https://u/npassword"
     pmy["new_version"] = "1"
-    mr = VERSION.migrate(os.path.join(tmpdir, "recipe"), pmy, hash_type=pmy.get("hash_type", "sha256"))
+    mr = VERSION.migrate(
+        os.path.join(tmpdir, "recipe"),
+        pmy,
+        hash_type=pmy.get("hash_type", "sha256"),
+    )

@@ -41,7 +41,7 @@ def deploy(args):
         print("(dry run) deploying")
         return
 
-    # TODO: have fucntion construct this
+    # TODO: have function construct this
     BUILD_URL = os.environ.get(BUILD_URL_KEY, "")
     for cmd in (
         ["git pull -s recursive -X theirs"]

@@ -11,4 +11,6 @@ def sensitive_env():
     in case any were updated inside the ctx"""
     os.environ.update(**SENSITIVE_ENVIRON)
     yield os.environ
-    SENSITIVE_ENVIRON.update({k: os.environ.pop(k, None) for k in list(SENSITIVE_ENVIRON)})
+    SENSITIVE_ENVIRON.update(
+        {k: os.environ.pop(k, None) for k in list(SENSITIVE_ENVIRON)},
+    )
