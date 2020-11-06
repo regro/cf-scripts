@@ -11,12 +11,17 @@ class SensitiveEnv:
     def hide_env_vars(self):
         """Remove sensitive env vars"""
         self.clasified_info.update(
-            {k: os.environ.pop(k, self.clasified_info.get(k, None)) for k in self.SENSITIVE_KEYS},
+            {
+                k: os.environ.pop(k, self.clasified_info.get(k, None))
+                for k in self.SENSITIVE_KEYS
+            },
         )
 
     def reveal_env_vars(self):
         """Restore sensitive env vars"""
-        os.environ.update(**{k: v for k, v in self.clasified_info.items() if v is not None})
+        os.environ.update(
+            **{k: v for k, v in self.clasified_info.items() if v is not None}
+        )
 
     @contextmanager
     def sensitive_env(self):
@@ -25,6 +30,3 @@ class SensitiveEnv:
         self.reveal_env_vars()
         yield os.environ
         self.hide_env_vars()
-
-
-
