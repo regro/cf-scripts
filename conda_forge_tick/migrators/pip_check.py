@@ -41,7 +41,7 @@ def _munge_key(key, selector):
 def _round_trip_value(val):
     yaml = YAML(typ="jinja2")
     s = io.StringIO()
-    yaml.dump({"key": yaml.safe_load(val)}, s)
+    yaml.dump({"key": yaml.load(val)}, s)
     s.seek(0)
     return s.read().split(":")[1].strip()
 
@@ -167,7 +167,7 @@ class PipCheckMigrator(MiniMigrator):
             yaml.indent(mapping=2, sequence=4, offset=2)
             yaml.width = 120
 
-            meta = yaml.safe_load("".join(lines))
+            meta = yaml.load("".join(lines))
 
             if not _has_key_selector(meta, "outputs"):
                 for key, _ in _gen_keys_selector(meta, "test"):

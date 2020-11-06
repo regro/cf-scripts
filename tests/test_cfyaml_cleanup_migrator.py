@@ -68,7 +68,7 @@ def test_version_cfyaml_cleanup(cases, tmpdir):
     )
 
     with open(cf_yml_pth) as fp:
-        new_cf_yml = yaml.safe_load(fp)
+        new_cf_yml = yaml.load(fp)
 
     assert "min_r_ver" not in new_cf_yml
     assert "min_py_ver" not in new_cf_yml
