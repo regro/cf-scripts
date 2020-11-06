@@ -17,14 +17,14 @@ from .update_prs import main as main_update_prs
 from .mappings import main as main_mappings
 
 INT_SCRIPT_DICT = {
-  0: main_all_feedstocks,
-  1: main_make_graph,
-  2: main_update_upstream_versions,
-  3: main_auto_tick,
-  4: main_status_report,
-  5: main_audit,
-  6: main_update_prs,
-  7: main_mappings,
+    0: main_all_feedstocks,
+    1: main_make_graph,
+    2: main_update_upstream_versions,
+    3: main_auto_tick,
+    4: main_status_report,
+    5: main_audit,
+    6: main_update_prs,
+    7: main_mappings,
 }
 
 
@@ -39,18 +39,20 @@ def deploy(args):
         return
 
     CIRCLE_BUILD_URL = os.environ.get("CIRCLE_BUILD_URL", "")
-    for cmd in [['git pull -s recursive -X theirs'],
-                ['git add pr_json/*'],
-                ['git add status/*'],
-                ['git add node_attrs/*'],
-                ['git add audits/*'],
-                ['git add audits/grayskull/*'],
-                ['git add audits/depfinder/*'],
-                ['git add versions/*'],
-                ['git add profiler/*'],
-                ['git add mappings/*'],
-                ['git add mappings/pypi/*'],
-                [f'git commit -am "Update Graph {CIRCLE_BUILD_URL}"']]:
+    for cmd in [
+        ["git pull -s recursive -X theirs"],
+        ["git add pr_json/*"],
+        ["git add status/*"],
+        ["git add node_attrs/*"],
+        ["git add audits/*"],
+        ["git add audits/grayskull/*"],
+        ["git add audits/depfinder/*"],
+        ["git add versions/*"],
+        ["git add profiler/*"],
+        ["git add mappings/*"],
+        ["git add mappings/pypi/*"],
+        [f'git commit -am "Update Graph {CIRCLE_BUILD_URL}"'],
+    ]:
         try:
             _run_git_cmd(cmd)
         except Exception as e:
@@ -76,7 +78,7 @@ def deploy(args):
                 )
                 _run_git_cmd("git fetch --unshallow")
             print("\n\n>>>>>>>>>>>> git pull try %d\n\n" % num_try, flush=True)
-            _run_git_cmd('git pull -s recursive -X theirs')
+            _run_git_cmd("git pull -s recursive -X theirs")
         except Exception as e:
             print(
                 "\n\n>>>>>>>>>>>> git pull try %d failed: %s \n\n" % (num_try, e),
@@ -86,15 +88,15 @@ def deploy(args):
         print("\n\n>>>>>>>>>>>> git push try %d\n\n" % num_try, flush=True)
         status = doctr_run(
             [
-                'git',
-                'push',
-                'https://{token}@github.com/{deploy_repo}.git'.format(
+                "git",
+                "push",
+                "https://{token}@github.com/{deploy_repo}.git".format(
                     token=os.environ.get("PASSWORD", ""),
-                    deploy_repo='regro/cf-graph-countyfair'
+                    deploy_repo="regro/cf-graph-countyfair",
                 ),
-                'master'
+                "master",
             ],
-            token=os.environ.get("PASSWORD", "").encode('utf-8'),
+            token=os.environ.get("PASSWORD", "").encode("utf-8"),
         )
         num_try += 1
 
@@ -109,15 +111,16 @@ def deploy(args):
 
         status = doctr_run(
             [
-                'git',
-                'push',
-                '--set-upstream',
-                'https://{token}@github.com/{deploy_repo}.git'.format(
+                "git",
+                "push",
+                "--set-upstream",
+                "https://{token}@github.com/{deploy_repo}.git".format(
                     token=os.environ.get("PASSWORD", ""),
-                    deploy_repo='regro/cf-graph-countyfair',
+                    deploy_repo="regro/cf-graph-countyfair",
                 ),
-                _branch],
-            token=os.environ.get("PASSWORD", "").encode('utf-8'),
+                _branch,
+            ],
+            token=os.environ.get("PASSWORD", "").encode("utf-8"),
         )
 
         raise RuntimeError("bot did not push its data! stopping!")
@@ -127,15 +130,28 @@ def main(*args, **kwargs):
     parser = argparse.ArgumentParser("a tool to help update feedstocks.")
     parser.add_argument("--run")
     parser.add_argument(
-        "--debug", dest="debug", action="store_true", default=False,
+        "--debug",
+        dest="debug",
+        action="store_true",
+        default=False,
         help=(
             "Runs in debug mode, running parallel parts "
-            "sequentially and printing more info.")
+            "sequentially and printing more info."
+        ),
     )
-    parser.add_argument("--dry-run", dest="dry_run", action="store_true", default=False,
-                        help="Don't push changes to PRs or graph to Github")
-    parser.add_argument("--cf-graph", dest="cf_graph", default='.',
-                        help="location of the graph")
+    parser.add_argument(
+        "--dry-run",
+        dest="dry_run",
+        action="store_true",
+        default=False,
+        help="Don't push changes to PRs or graph to Github",
+    )
+    parser.add_argument(
+        "--cf-graph",
+        dest="cf_graph",
+        default=".",
+        help="location of the graph",
+    )
     args = parser.parse_args()
 
     os.environ["CONDA_FORGE_TICK_DEBUG"] = args.debug
@@ -147,7 +163,7 @@ def main(*args, **kwargs):
             deploy(args)
         else:
             INT_SCRIPT_DICT[script](args)
-        print('FINISHED STAGE {} IN {} SECONDS'.format(script, time.time() - start))
+        print("FINISHED STAGE {} IN {} SECONDS".format(script, time.time() - start))
 
     else:
         raise RuntimeError("Unknown script number")
