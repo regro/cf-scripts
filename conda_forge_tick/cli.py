@@ -39,20 +39,25 @@ def deploy(args):
         return
 
     CIRCLE_BUILD_URL = os.environ.get("CIRCLE_BUILD_URL", "")
-    for cmd in [
-        ["git pull -s recursive -X theirs"],
-        ["git add pr_json/*"],
-        ["git add status/*"],
-        ["git add node_attrs/*"],
-        ["git add audits/*"],
-        ["git add audits/grayskull/*"],
-        ["git add audits/depfinder/*"],
-        ["git add versions/*"],
-        ["git add profiler/*"],
-        ["git add mappings/*"],
-        ["git add mappings/pypi/*"],
-        [f'git commit -am "Update Graph {CIRCLE_BUILD_URL}"'],
-    ]:
+    for cmd in (
+        ["git pull -s recursive -X theirs"]
+        + [
+            "git add " + v
+            for v in [
+                "pr_json/*",
+                "status/*",
+                "node_attrs/*",
+                "audits/*",
+                "audits/grayskull/*",
+                "audits/depfinder/*",
+                "versions/*",
+                "profiler/*",
+                "mappings/*",
+                "mappings/pypi/*",
+            ]
+        ]
+        + [f'git commit -am "Update Graph {CIRCLE_BUILD_URL}"'],
+    ):
         try:
             _run_git_cmd(cmd)
         except Exception as e:
