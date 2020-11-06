@@ -36,7 +36,7 @@ class CondaForgeYAMLCleanup(MiniMigrator):
             yaml.indent(mapping=2, sequence=4, offset=2)
 
             with open(cfg_path) as fp:
-                cfg = yaml.load(fp.read())
+                cfg = yaml.safe_load(fp.read())
 
             for k in self.keys_to_remove:
                 if k in cfg:

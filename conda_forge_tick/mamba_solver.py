@@ -672,7 +672,7 @@ def _is_recipe_solvable_on_platform(
     parser.width = 320
 
     with open(cbc_path) as fp:
-        cbc_cfg = parser.load(fp.read())
+        cbc_cfg = parser.safe_load(fp.read())
 
     if "channel_sources" in cbc_cfg:
         channel_sources = cbc_cfg["channel_sources"][0].split(",")

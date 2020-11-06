@@ -266,7 +266,7 @@ def parse_meta_yaml(
 
         cfg_as_dict = ns_cfg(cbc)
         with open(cbc_path) as fp:
-            _cfg_as_dict = yaml.load(fp, Loader=yaml.Loader)
+            _cfg_as_dict = yaml.safe_load(fp)
         for k, v in _cfg_as_dict.items():
             if (
                 isinstance(v, list)

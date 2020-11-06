@@ -389,7 +389,7 @@ class CondaMetaYAML:
 
         # parse with yaml
         self._parser = _get_yaml_parser()
-        self.meta = self._parser.load("".join(lines))
+        self.meta = self._parser.safe_load("".join(lines))
 
         # undo munging of jinja2 variables '<{ var }}' -> '{{ var }}'
         self.meta = _demunge_jinja2_vars(self.meta, self._jinja2_sentinel)
@@ -435,7 +435,7 @@ class CondaMetaYAML:
         # get a new parser since it carries state about the jinja2 munging
         # that we don't want to ruin
         _parser = _get_yaml_parser()
-        return _parser.load(jinja2.Template(tmpl).render(**jinja2_vars))
+        return _parser.safe_load(jinja2.Template(tmpl).render(**jinja2_vars))
 
     def dump(self, fp: Any):
         """Dump the recipe to a file-like object.

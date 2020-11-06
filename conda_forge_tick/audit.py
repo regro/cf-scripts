@@ -262,7 +262,7 @@ PACKAGES_BY_IMPORT_OVERRIDE = {
 
 
 def create_package_import_maps(nodes, mapping_yaml="mappings/pypi/name_mapping.yaml"):
-    raw_import_map = yaml.load(open(mapping_yaml))
+    raw_import_map = yaml.safe_load(open(mapping_yaml))
     packages_by_import = defaultdict(set)
     imports_by_package = defaultdict(set)
     for item in raw_import_map:
