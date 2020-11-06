@@ -1,7 +1,7 @@
 import os
 
 import pytest
-
+from conda_forge_tick import global_sensitive_env
 
 @pytest.fixture
 def env_setup():
@@ -9,7 +9,9 @@ def env_setup():
     os.environ["PASSWORD"] = "unpassword"
     old_pwd2 = os.environ.pop("pwd", None)
     os.environ["pwd"] = "pwd"
+    global_sensitive_env.hide_env_vars()
     yield
+    global_sensitive_env.reveal_env_vars()
     if old_pwd:
         os.environ["PASSWORD"] = old_pwd
     if old_pwd2:
