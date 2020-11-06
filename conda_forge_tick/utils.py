@@ -33,7 +33,7 @@ import networkx as nx
 from requests.models import Response
 from xonsh.lib.collections import _convert_to_dict, ChainDB
 
-from .env_management import sensitive_env
+from . import sensitive_env
 
 if typing.TYPE_CHECKING:
     from mypy_extensions import TypedDict, TestTypedDict

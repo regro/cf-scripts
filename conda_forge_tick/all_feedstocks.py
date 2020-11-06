@@ -6,7 +6,7 @@ import requests
 import github3
 import logging
 
-from conda_forge_tick.env_management import sensitive_env
+from conda_forge_tick import sensitive_env
 from .utils import setup_logger
 
 logger = logging.getLogger("conda_forge_tick.all-feedstocks")

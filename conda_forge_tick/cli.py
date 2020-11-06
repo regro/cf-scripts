@@ -5,7 +5,7 @@ import time
 
 from doctr.travis import run_command_hiding_token as doctr_run
 
-from .env_management import sensitive_env
+from . import sensitive_env
 
 from .all_feedstocks import main as main_all_feedstocks
 from .audit import main as main_audit
