@@ -66,9 +66,7 @@ def test_env_is_protected_against_malicious_recipes(tmpdir, caplog, env_setup):
     pmy = populate_feedstock_attributes("blah", {}, in_yaml, "{}")
 
     # This url gets saved in https://github.com/regro/cf-graph-countyfair
-    tst_url = (
-        f"https://{os.environ['TEST_PASSWORD_VAL'][0]}"
-        f"/{os.environ['TEST_PASSWORD_VAL'][1:]}"
-    )
+    pswd = os.environ.get("TEST_PASSWORD_VAL", "unpassword")
+    tst_url = f"https://{pswd[0]}/{pswd[1:]}"
     assert pmy["url"][0] != tst_url
     assert pmy["url"][1] == "pwd"
