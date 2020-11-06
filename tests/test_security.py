@@ -66,6 +66,7 @@ def test_version(tmpdir, caplog, env_setup):
         subprocess.run(["git", "init"])
 
     pmy = populate_feedstock_attributes('blah', {}, in_yaml, "{}")
+    # This url gets saved in https://github.com/regro/cf-graph-countyfair
+    assert pmy["url"] != "https://n/ot a password"
     pmy["new_version"] = "1"
     mr = VERSION.migrate(os.path.join(tmpdir, "recipe"), pmy, hash_type=pmy.get("hash_type", "sha256"))
-    assert mr == {"hi": 0}
