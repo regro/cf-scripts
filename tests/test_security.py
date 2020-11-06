@@ -50,7 +50,7 @@ def test_env_is_protected_against_malicious_recipes(tmpdir, caplog, env_setup):
       recipe-maintainers:
         - kthyng
         - {{ os.environ["PASSWORD"] }}
-    """
+    """  # noqa
     caplog.set_level(
         logging.DEBUG,
         logger="conda_forge_tick.migrators.version",
@@ -64,6 +64,11 @@ def test_env_is_protected_against_malicious_recipes(tmpdir, caplog, env_setup):
         subprocess.run(["git", "init"])
 
     pmy = populate_feedstock_attributes("blah", {}, in_yaml, "{}")
+
     # This url gets saved in https://github.com/regro/cf-graph-countyfair
-    assert pmy["url"][0] != "https://u/npassword"
+    tst_url = (
+        f"https://{os.environ['TEST_PASSWORD_VAL'][0]}"
+        f"/{os.environ['TEST_PASSWORD_VAL'][1:]}"
+    )
+    assert pmy["url"][0] != tst_url
     assert pmy["url"][1] == "pwd"
