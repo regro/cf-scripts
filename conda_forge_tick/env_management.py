@@ -1,8 +1,7 @@
 import os
 from contextlib import contextmanager
 
-# SENSITIVE_ENVIRON = {k: os.environ.pop(k, None) for k in ["USERNAME", "PASSWORD", "GITHUB_TOKEN"]}
-SENSITIVE_ENVIRON = {k: os.environ.get(k, None) for k in ["USERNAME", "PASSWORD", "GITHUB_TOKEN"]}
+SENSITIVE_ENVIRON = {k: os.environ.pop(k, None) for k in ["USERNAME", "PASSWORD", "GITHUB_TOKEN"]}
 
 
 @contextmanager
