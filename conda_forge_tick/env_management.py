@@ -1,7 +1,7 @@
 import os
 from contextlib import contextmanager
 
-SENSITIVE_KEYS = ["USERNAME", "PASSWORD", "GITHUB_TOKEN", "GH-TOKEN"]
+SENSITIVE_KEYS = ["USERNAME", "PASSWORD", "GITHUB_TOKEN", "GH_TOKEN"]
 SENSITIVE_ENVIRON = {k: os.environ.pop(k, None) for k in SENSITIVE_KEYS}
 
 
