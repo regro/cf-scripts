@@ -2,7 +2,9 @@
 import datetime
 import os
 import time
+import sys
 from typing import Optional, Union, Tuple
+import subprocess
 
 import github3
 import github3.pulls
@@ -83,6 +85,69 @@ def fork_url(feedstock_url: str, username: str) -> str:
     return url
 
 
+def fetch_repo(*, feedstock_dir, origin, upstream, branch, base_branch="master"):
+    """fetch a repo and make a PR branch
+
+    Parameters
+    ----------
+    feedstock_dir : str
+        The directory where you want to clone the feedstock.
+    origin : str
+        The origin to clone from.
+    upstream : str
+        The upstream repo to add as a remote named `upstream`.
+    branch : str
+        The branch to make and checkout.
+    base_branch : str, optional
+        The branch from which to branch from to make `branch`. Defaults to "master".
+
+    Returns
+    -------
+    success : bool
+        True if the fetch worked, False otherwise.
+    """
+    if not os.path.isdir(feedstock_dir):
+        p = subprocess.run(
+            f"git clone -q {origin} {feedstock_dir}",
+            shell=True,
+        )
+        if p.returncode != 0:
+            msg = "Could not clone " + origin
+            msg += ". Do you have a personal fork of the feedstock?"
+            print(msg, file=sys.stderr)
+            return False
+
+    def _run_git_cmd(cmd):
+        return subprocess.run(cmd, shell=True, check=True)
+
+    with indir(feedstock_dir):
+        _run_git_cmd(f"git fetch {origin} --quiet")
+
+        # make sure feedstock is up-to-date with origin
+        _run_git_cmd(f"git checkout {base_branch}")
+        _run_git_cmd(f"git pull {origin} {base_branch} --quiet")
+
+        # remove any uncommitted changes?
+        _run_git_cmd("git reset --hard HEAD")
+
+        # make sure feedstock is up-to-date with upstream
+        # doesn't work if the upstream already exists
+        try:
+            # always run upstream
+            _run_git_cmd(f"git remote add upstream {upstream}")
+        except subprocess.CalledProcessError:
+            pass
+        _run_git_cmd(f"git fetch upstream {base_branch} --quiet")
+        _run_git_cmd(f"git reset --hard upstream/{base_branch}")
+        # make and modify version branch
+        try:
+            _run_git_cmd(f"git checkout {branch} --quiet")
+        except subprocess.CalledProcessError:
+            _run_git_cmd(f"git checkout -b {branch} {base_branch} --quiet")
+
+    return True
+
+
 def get_repo(
     ctx: MigratorSessionContext,
     fctx: FeedstockContext,
@@ -147,7 +212,6 @@ def get_repo(
             time.sleep(5)
 
     feedstock_dir = os.path.join(ctx.rever_dir, fctx.package_name + "-feedstock")
-    from conda_forge_tick.git_xonsh_utils import fetch_repo
 
     if fetch_repo(
         feedstock_dir=feedstock_dir,

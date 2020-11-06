@@ -16,7 +16,7 @@ from ruamel import yaml
 
 from conda_forge_tick.contexts import MigratorSessionContext, FeedstockContext
 from conda_forge_tick.git_utils import feedstock_url
-from conda_forge_tick.git_xonsh_utils import fetch_repo
+from conda_forge_tick.git_utils import fetch_repo
 from conda_forge_tick.utils import (
     load_graph,
     dump,
