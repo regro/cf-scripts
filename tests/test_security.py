@@ -1,10 +1,9 @@
 import os
 import subprocess
 
-from conda_forge_tick.xonsh_utils import indir
-
 
 def test_version(tmpdir, caplog, env_setup):
+    from conda_forge_tick.xonsh_utils import indir
     import logging
 
     from conda_forge_tick.migrators import Version
