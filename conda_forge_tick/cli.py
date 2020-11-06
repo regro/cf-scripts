@@ -165,7 +165,8 @@ def main(*args, **kwargs):
     )
     args = parser.parse_args()
 
-    os.environ["CONDA_FORGE_TICK_DEBUG"] = args.debug
+    if args.debug:
+        os.environ["CONDA_FORGE_TICK_DEBUG"] = "1"
 
     script = int(args.run)
     if script in INT_SCRIPT_DICT or script == -1:
