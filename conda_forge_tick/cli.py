@@ -1,20 +1,23 @@
 import argparse
-import time
 import os
 import subprocess
+import time
 
 from doctr.travis import run_command_hiding_token as doctr_run
 
-from .utils import load_graph
+from . import sensitive_env
 
 from .all_feedstocks import main as main_all_feedstocks
-from .make_graph import main as main_make_graph
-from .update_upstream_versions import main as main_update_upstream_versions
-from .auto_tick import main as main_auto_tick
-from .status_report import main as main_status_report
 from .audit import main as main_audit
-from .update_prs import main as main_update_prs
+from .auto_tick import main as main_auto_tick
+from .make_graph import main as main_make_graph
 from .mappings import main as main_mappings
+from .status_report import main as main_status_report
+from .update_prs import main as main_update_prs
+from .update_upstream_versions import main as main_update_upstream_versions
+from .utils import load_graph
+
+BUILD_URL_KEY = "CIRCLE_BUILD_URL"
 
 INT_SCRIPT_DICT = {
     0: main_all_feedstocks,
@@ -38,7 +41,8 @@ def deploy(args):
         print("(dry run) deploying")
         return
 
-    CIRCLE_BUILD_URL = os.environ.get("CIRCLE_BUILD_URL", "")
+    # TODO: have function construct this
+    BUILD_URL = os.environ.get(BUILD_URL_KEY, "")
     for cmd in (
         ["git pull -s recursive -X theirs"]
         + [
@@ -56,7 +60,7 @@ def deploy(args):
                 "mappings/pypi/*",
             ]
         ]
-        + [f'git commit -am "Update Graph {CIRCLE_BUILD_URL}"'],
+        + [f'git commit -am "Update Graph {BUILD_URL}"'],
     ):
         try:
             _run_git_cmd(cmd)
@@ -91,18 +95,19 @@ def deploy(args):
             )
             pass
         print("\n\n>>>>>>>>>>>> git push try %d\n\n" % num_try, flush=True)
-        status = doctr_run(
-            [
-                "git",
-                "push",
-                "https://{token}@github.com/{deploy_repo}.git".format(
-                    token=os.environ.get("PASSWORD", ""),
-                    deploy_repo="regro/cf-graph-countyfair",
-                ),
-                "master",
-            ],
-            token=os.environ.get("PASSWORD", "").encode("utf-8"),
-        )
+        with sensitive_env() as env:
+            status = doctr_run(
+                [
+                    "git",
+                    "push",
+                    "https://{token}@github.com/{deploy_repo}.git".format(
+                        token=env.get("PASSWORD", ""),
+                        deploy_repo="regro/cf-graph-countyfair",
+                    ),
+                    "master",
+                ],
+                token=env.get("PASSWORD", "").encode("utf-8"),
+            )
         num_try += 1
 
     if status != 0 or not graph_ok:
@@ -114,19 +119,20 @@ def deploy(args):
         _run_git_cmd(f"git checkout -b {_branch}")
         _run_git_cmd("git commit --allow-empty -am 'help me!'")
 
-        status = doctr_run(
-            [
-                "git",
-                "push",
-                "--set-upstream",
-                "https://{token}@github.com/{deploy_repo}.git".format(
-                    token=os.environ.get("PASSWORD", ""),
-                    deploy_repo="regro/cf-graph-countyfair",
-                ),
-                _branch,
-            ],
-            token=os.environ.get("PASSWORD", "").encode("utf-8"),
-        )
+        with sensitive_env() as env:
+            status = doctr_run(
+                [
+                    "git",
+                    "push",
+                    "--set-upstream",
+                    "https://{token}@github.com/{deploy_repo}.git".format(
+                        token=env.get("PASSWORD", ""),
+                        deploy_repo="regro/cf-graph-countyfair",
+                    ),
+                    _branch,
+                ],
+                token=env.get("PASSWORD", "").encode("utf-8"),
+            )
 
         raise RuntimeError("bot did not push its data! stopping!")
 

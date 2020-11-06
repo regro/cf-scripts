@@ -38,6 +38,8 @@ jobs:
       - name: test
         shell: bash -l {0}
         run: |
+          export TEST_PASSWORD_VAL=unpassword
+          export PASSWORD=${TEST_PASSWORD_VAL}
           coverage run run_tests.py
           coverage report -m
           codecov -X gcov

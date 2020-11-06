@@ -6,13 +6,15 @@ import requests
 import github3
 import logging
 
+from conda_forge_tick import sensitive_env
 from .utils import setup_logger
 
 logger = logging.getLogger("conda_forge_tick.all-feedstocks")
 
 
 def get_all_feedstocks_from_github() -> List[str]:
-    gh = github3.login(os.environ["USERNAME"], os.environ["PASSWORD"])
+    with sensitive_env() as env:
+        gh = github3.login(env["USERNAME"], env["PASSWORD"])
     org = gh.organization("conda-forge")
     names = []
     try:

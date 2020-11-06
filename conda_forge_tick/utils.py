@@ -33,6 +33,8 @@ import networkx as nx
 from requests.models import Response
 from xonsh.lib.collections import _convert_to_dict, ChainDB
 
+from . import sensitive_env
+
 if typing.TYPE_CHECKING:
     from mypy_extensions import TypedDict, TestTypedDict
     from .migrators_types import PackageName, RequirementsTypedDict
@@ -563,10 +565,11 @@ def frozen_to_json_friendly(fz, pr: Optional[LazyJson] = None):
 
 
 def github_client() -> github3.GitHub:
-    if os.environ.get("GITHUB_TOKEN"):
-        return github3.login(token=os.environ["GITHUB_TOKEN"])
-    else:
-        return github3.login(os.environ["USERNAME"], os.environ["PASSWORD"])
+    with sensitive_env() as env:
+        if env.get("GITHUB_TOKEN"):
+            return github3.login(token=env["GITHUB_TOKEN"])
+        else:
+            return github3.login(env["USERNAME"], env["PASSWORD"])
 
 
 @typing.overload
@@ -904,7 +907,8 @@ def _get_source_code(recipe_dir):
 
 
 def sanitize_string(instr):
-    tokens = [os.environ.get("PASSWORD", None)]
+    with sensitive_env() as env:
+        tokens = [env.get("PASSWORD", None)]
     for token in tokens:
         if token is not None:
             instr = instr.replace(token, "~" * len(token))
