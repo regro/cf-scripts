@@ -96,8 +96,6 @@ logger = logging.getLogger("conda_forge_tick.auto_tick")
 PR_LIMIT = 5
 MAX_PR_LIMIT = 50
 
-MIGRATORS: MutableSequence[Migrator] = []
-
 BOT_RERUN_LABEL = {
     "name": "bot-rerun",
     "color": "#191970",
@@ -700,21 +698,23 @@ def initialize_migrators(
         "version"
     ]
 
-    add_arch_migrate(MIGRATORS, gx)
-    migration_factory(MIGRATORS, gx)
+    migrators = []
+
+    add_arch_migrate(migrators, gx)
+    migration_factory(migrators, gx)
     add_replacement_migrator(
-        MIGRATORS,
+        migrators,
         gx,
         "matplotlib",
         "matplotlib-base",
         ("Unless you need `pyqt`, recipes should depend only on " "`matplotlib-base`."),
         alt_migrator=MatplotlibBase,
     )
-    create_migration_yaml_creator(migrators=MIGRATORS, gx=gx)
-    for m in MIGRATORS:
+    create_migration_yaml_creator(migrators=migrators, gx=gx)
+    for m in migrators:
         print(f'{getattr(m, "name", m)} graph size: {len(getattr(m, "graph", []))}')
 
-    ctx = MigratorSessionContext(
+    mctx = MigratorSessionContext(
         circle_build_url=os.getenv("CIRCLE_BUILD_URL", ""),
         graph=gx,
         smithy_version=smithy_version,
@@ -725,13 +725,41 @@ def initialize_migrators(
         dry_run=dry_run,
     )
 
-    return ctx, temp, MIGRATORS
+    python_nodes = {
+        n for n, v in mctx.graph.nodes("payload") if "python" in v.get("req", "")
+    }
+    python_nodes.update(
+        [
+            k
+            for node_name, node in mctx.graph.nodes("payload")
+            for k in node.get("outputs_names", [])
+            if node_name in python_nodes
+        ],
+    )
+    imports_by_package, packages_by_import = create_package_import_maps(python_nodes)
+    version_migrator = Version(
+        python_nodes=python_nodes,
+        imports_by_package=imports_by_package,
+        packages_by_import=packages_by_import,
+        pr_limit=PR_LIMIT * 2,
+        piggy_back_migrations=[
+            Jinja2VarsCleanup(),
+            PipMigrator(),
+            LicenseMigrator(),
+            CondaForgeYAMLCleanup(),
+            ExtraJinja2KeysCleanup(),
+        ],
+    )
+
+    migrators = [version_migrator] + migrators
+
+    return mctx, temp, migrators
 
 
-def _compute_time_per_migrator(mctx):
+def _compute_time_per_migrator(mctx, migrators):
     # we weight each migrator by the number of available nodes to migrate
     num_nodes = []
-    for migrator in MIGRATORS:
+    for migrator in migrators:
         mmctx = MigratorContext(session=mctx, migrator=migrator)
         migrator.bind_to_ctx(mmctx)
 
@@ -756,7 +784,7 @@ def _compute_time_per_migrator(mctx):
 
     # also enforce a minimum of 300 seconds if any nodes can be migrated
     time_per_migrator = []
-    for i, migrator in enumerate(MIGRATORS):
+    for i, migrator in enumerate(migrators):
         _time_per = num_nodes[i] * time_per_node
 
         if num_nodes[i] > 0 and _time_per < 300:
@@ -794,46 +822,19 @@ def main(args: "CLIArgs") -> None:
     github_username = env.get("USERNAME", "")
     github_password = env.get("PASSWORD", "")
     github_token = env.get("GITHUB_TOKEN")
-    global MIGRATORS
-    mctx, temp, MIGRATORS = initialize_migrators(
+
+    mctx, temp, migrators = initialize_migrators(
         github_username=github_username,
         github_password=github_password,
         dry_run=args.dry_run,
         github_token=github_token,
     )
-    python_nodes = {
-        n for n, v in mctx.graph.nodes("payload") if "python" in v.get("req", "")
-    }
-    python_nodes.update(
-        [
-            k
-            for node_name, node in mctx.graph.nodes("payload")
-            for k in node.get("outputs_names", [])
-            if node_name in python_nodes
-        ],
-    )
-    imports_by_package, packages_by_import = create_package_import_maps(python_nodes)
-    version_migrator = Version(
-        python_nodes=python_nodes,
-        imports_by_package=imports_by_package,
-        packages_by_import=packages_by_import,
-        pr_limit=PR_LIMIT * 2,
-        piggy_back_migrations=[
-            Jinja2VarsCleanup(),
-            PipMigrator(),
-            LicenseMigrator(),
-            CondaForgeYAMLCleanup(),
-            ExtraJinja2KeysCleanup(),
-        ],
-    )
-
-    MIGRATORS = [version_migrator] + MIGRATORS
 
     # compute the time per migrator
     (num_nodes, time_per_migrator, tot_time_per_migrator) = _compute_time_per_migrator(
-        mctx,
+        mctx, migrators,
     )
-    for i, migrator in enumerate(MIGRATORS):
+    for i, migrator in enumerate(migrators):
         if hasattr(migrator, "name"):
             extra_name = "-%s" % migrator.name
         else:
@@ -848,7 +849,7 @@ def main(args: "CLIArgs") -> None:
             time_per_migrator[i] / tot_time_per_migrator * 100,
         )
 
-    for mg_ind, migrator in enumerate(MIGRATORS):
+    for mg_ind, migrator in enumerate(migrators):
         if hasattr(migrator, "name"):
             assert isinstance(migrator.name, str)
             migrator_name = migrator.name.lower().replace(" ", "")
