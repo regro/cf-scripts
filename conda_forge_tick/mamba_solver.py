@@ -26,7 +26,9 @@ from collections import defaultdict
 from dataclasses import dataclass, field
 from typing import Dict, Tuple, List, FrozenSet, Set, Iterable
 
+import psutil
 from ruamel.yaml import YAML
+import stopit
 
 from conda.models.match_spec import MatchSpec
 from conda.models.channel import Channel
@@ -608,6 +610,7 @@ def is_recipe_solvable(
             platform,
             arch,
             additional_channels=additional_channels,
+            timeout=600,
         )
         solvable = solvable and _solvable
         cbc_name = os.path.basename(cbc_fname).rsplit(".", maxsplit=1)[0]
@@ -659,6 +662,7 @@ def apply_pins(reqs, host_req, build_req, outnames, m):
     return pinned_req
 
 
+@stopit.threading_timeoutable(default=(False, ["mamba solver check timed out!"]))
 def _is_recipe_solvable_on_platform(
     recipe_dir,
     cbc_path,
@@ -788,5 +792,9 @@ def _is_recipe_solvable_on_platform(
                 errors.append(_err)
 
     logger.info("RUN EXPORT cache status: %s", _get_run_export.cache_info())
+    logger.info(
+        "MAMBA SOLVER MEM USAGE: %dMB",
+        psutil.Process().memory_info().rss // 1024 ** 2,
+    )
 
     return solvable, errors

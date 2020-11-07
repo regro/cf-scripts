@@ -29,6 +29,7 @@ ruamel.yaml
 ruamel.yaml.jinja2
 scipy
 setuptools
+stopit
 streamz
 tar
 tqdm
