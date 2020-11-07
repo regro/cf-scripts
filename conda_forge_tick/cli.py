@@ -72,7 +72,7 @@ def deploy(args):
     )
     n_added = 0
     for file in files_to_add:
-        if file is not None and len(file) > 0 and os.path.exists(file):
+        if file and os.path.exists(file):
             try:
                 print(f"committing: {file}", flush=True)
                 _run_git_cmd(f"git add {file}")
