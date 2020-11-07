@@ -832,7 +832,8 @@ def main(args: "CLIArgs") -> None:
 
     # compute the time per migrator
     (num_nodes, time_per_migrator, tot_time_per_migrator) = _compute_time_per_migrator(
-        mctx, migrators,
+        mctx,
+        migrators,
     )
     for i, migrator in enumerate(migrators):
         if hasattr(migrator, "name"):
