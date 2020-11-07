@@ -43,25 +43,25 @@ def deploy(args):
 
     # TODO: have function construct this
     BUILD_URL = os.environ.get(BUILD_URL_KEY, "")
-    for cmd in (
-        ["git pull -s recursive -X theirs"]
-        + [
-            "git add " + v
-            for v in [
-                "pr_json/*",
-                "status/*",
-                "node_attrs/*",
-                "audits/*",
-                "audits/grayskull/*",
-                "audits/depfinder/*",
-                "versions/*",
-                "profiler/*",
-                "mappings/*",
-                "mappings/pypi/*",
-            ]
+    cmds = ["git pull -s recursive -X theirs"]
+    cmds += [
+        "git add " + v
+        for v in [
+            "pr_json/*",
+            "status/*",
+            "node_attrs/*",
+            "audits/*",
+            "audits/grayskull/*",
+            "audits/depfinder/*",
+            "versions/*",
+            "profiler/*",
+            "mappings/*",
+            "mappings/pypi/*",
         ]
-        + [f'git commit -am "Update Graph {BUILD_URL}"'],
-    ):
+    ]
+    cmds += [f'git commit -am "Update Graph {BUILD_URL}"']
+
+    for cmd in cmds:
         try:
             _run_git_cmd(cmd)
         except Exception as e:
