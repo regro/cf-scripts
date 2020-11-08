@@ -610,7 +610,7 @@ def is_recipe_solvable(
             platform,
             arch,
             additional_channels=additional_channels,
-            timeout=600,
+            timeout=300,
         )
         solvable = solvable and _solvable
         cbc_name = os.path.basename(cbc_fname).rsplit(".", maxsplit=1)[0]
@@ -698,6 +698,8 @@ def _is_recipe_solvable_on_platform(
 
     # here we extract the conda build config in roughly the same way that
     # it would be used in a real build
+    logger.info("rendering recipe with conda build")
+
     config = conda_build.config.get_or_merge_config(
         None,
         platform=platform,
@@ -721,11 +723,14 @@ def _is_recipe_solvable_on_platform(
 
     # now we loop through each one and check if we can solve it
     # we check run and host and ignore the rest
+    logger.info("getting mamba solver")
     solver = _mamba_factory(tuple(channel_sources), f"{platform}-{arch}")
     solvable = True
     errors = []
     outnames = [m.name() for m, _, _ in metas]
     for m, _, _ in metas:
+        logger.info("checking recipe %s", m.name())
+
         build_req = m.get_value("requirements/build", [])
         host_req = m.get_value("requirements/host", [])
         run_req = m.get_value("requirements/run", [])
