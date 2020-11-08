@@ -299,36 +299,8 @@ def parse_meta_yaml(
     return parse(content, cbc)
 
 
-def reset_root_logger():
-    """Reset the root logger.
-
-    From https://stackoverflow.com/questions/12034393/import-side-effects-on-logging-how-to-reset-the-logging-module
-    """  # noqa
-    manager = logging.root.manager
-    manager.disabled = logging.NOTSET
-    for logger in manager.loggerDict.values():
-        if isinstance(logger, logging.Logger):
-            logger.setLevel(logging.NOTSET)
-            logger.propagate = True
-            logger.disabled = False
-            logger.filters.clear()
-            handlers = logger.handlers.copy()
-            for handler in handlers:
-                # Copied from `logging.shutdown`.
-                try:
-                    handler.acquire()
-                    handler.flush()
-                    handler.close()
-                except (OSError, ValueError):
-                    pass
-                finally:
-                    handler.release()
-                logger.removeHandler(handler)
-
-
 def setup_logger(logger: logging.Logger, level: Optional[str] = "INFO") -> None:
     """Basic configuration for logging"""
-    reset_root_logger()
     logger.setLevel(level.upper())
     ch = logging.StreamHandler()
     ch.setLevel(level.upper())
@@ -336,6 +308,8 @@ def setup_logger(logger: logging.Logger, level: Optional[str] = "INFO") -> None:
         logging.Formatter("%(asctime)-15s %(levelname)-8s %(name)s || %(message)s"),
     )
     logger.addHandler(ch)
+    # this prevents duplicate logging messages
+    logger.propagate = False
 
 
 # TODO: upstream this into networkx?
