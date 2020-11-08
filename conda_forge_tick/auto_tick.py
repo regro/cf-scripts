@@ -167,6 +167,13 @@ def run(
         fork=fork,
         base_branch=base_branch,
     )
+    if not feedstock_dir or not repo:
+        logger.critical(
+            "Failed to migrate %s, %s",
+            feedstock_ctx.package_name,
+            feedstock_ctx.attrs.get("bad"),
+        )
+        return False, False
 
     recipe_dir = os.path.join(feedstock_dir, "recipe")
 

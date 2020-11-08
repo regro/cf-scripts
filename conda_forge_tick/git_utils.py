@@ -198,7 +198,7 @@ def get_repo(
         if repo is None:
             print("could not fork conda-forge/%s!" % feedstock_reponame, flush=True)
             fctx.attrs["bad"] = f"{fctx.package_name}: does not match feedstock name\n"
-            return False
+            return False, False
 
     # Check if fork exists
     if fork:
@@ -223,7 +223,7 @@ def get_repo(
     ):
         return feedstock_dir, repo
     else:
-        return None
+        return False, False
 
 
 def delete_branch(ctx: GithubContext, pr_json: LazyJson, dry_run: bool = False) -> None:
