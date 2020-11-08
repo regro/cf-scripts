@@ -178,6 +178,9 @@ class LazyJson(MutableMapping):
         self._load()
         with open(self.file_name, "w") as f:
             dump(self.data, f)
+        # this evicts the josn from memory and trades i/o for mem
+        # the bot uses too much mem if we don't do this
+        self.data = None
 
     def __getitem__(self, item: Any) -> Any:
         self._load()
@@ -305,6 +308,8 @@ def setup_logger(logger: logging.Logger, level: Optional[str] = "INFO") -> None:
         logging.Formatter("%(asctime)-15s %(levelname)-8s %(name)s || %(message)s"),
     )
     logger.addHandler(ch)
+    # this prevents duplicate logging messages
+    logger.propagate = False
 
 
 # TODO: upstream this into networkx?
