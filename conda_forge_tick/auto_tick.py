@@ -353,7 +353,7 @@ def add_replacement_migrator(
         "========================================",
         flush=True,
     )
-    print("making replacement migrator for %s -> %s" % (old_pkg, new_pkg), flush=True)
+    print(f"making replacement migrator for {old_pkg} -> {new_pkg}", flush=True)
     total_graph = copy.deepcopy(gx)
 
     for node, node_attrs in gx.nodes.items():
@@ -688,10 +688,11 @@ def create_migration_yaml_creator(migrators: MutableSequence[Migrator], gx: nx.D
             ):
                 feedstocks_to_be_repinned.append(k)
                 print(
-                    "    %s:\n        curr version: %s\n        curr pin: %s"
-                    "\n        pin_spec: %s" % (
-                        package_name, current_version, current_pin, pin_spec
-                    ),
+                    "    %s:\n"
+                    "        curr version: %s\n"
+                    "        curr pin: %s\n"
+                    "        pin_spec: %s"
+                    % (package_name, current_version, current_pin, pin_spec),
                     flush=True,
                 )
                 migrators.append(
@@ -871,7 +872,8 @@ def main(args: "CLIArgs") -> None:
             extra_name = ""
 
         print(
-            "    %s%s: %d - gets %f seconds (%f percent)" % (
+            "    %s%s: %d - gets %f seconds (%f percent)"
+            % (
                 migrator.__class__.__name__,
                 extra_name,
                 num_nodes[i],

@@ -64,25 +64,37 @@ def deploy(args):
         "mappings/pypi",
     ]:
         # untracked
-        files_to_add |= set(subprocess.run(
-            f"git ls-files -o --exclude-standard {dr}",
-            shell=True,
-            capture_output=True,
-        ).stdout.decode("utf-8").splitlines())
+        files_to_add |= set(
+            subprocess.run(
+                f"git ls-files -o --exclude-standard {dr}",
+                shell=True,
+                capture_output=True,
+            )
+            .stdout.decode("utf-8")
+            .splitlines(),
+        )
 
         # changed
-        files_to_add |= set(subprocess.run(
-            f"git diff --name-only {dr}",
-            shell=True,
-            capture_output=True,
-        ).stdout.decode("utf-8").splitlines())
+        files_to_add |= set(
+            subprocess.run(
+                f"git diff --name-only {dr}",
+                shell=True,
+                capture_output=True,
+            )
+            .stdout.decode("utf-8")
+            .splitlines(),
+        )
 
         # modified and staged but not deleted
-        files_to_add |= set(subprocess.run(
-            f"git diff --name-only --cached --diff-filter=d {dr}",
-            shell=True,
-            capture_output=True,
-        ).stdout.decode("utf-8").splitlines())
+        files_to_add |= set(
+            subprocess.run(
+                f"git diff --name-only --cached --diff-filter=d {dr}",
+                shell=True,
+                capture_output=True,
+            )
+            .stdout.decode("utf-8")
+            .splitlines(),
+        )
 
     n_added = 0
     for file in files_to_add:
