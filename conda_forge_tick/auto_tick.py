@@ -47,6 +47,7 @@ from .utils import (
     parse_meta_yaml,
     eval_cmd,
     sanitize_string,
+    reset_root_logger,
 )
 from .xonsh_utils import env
 from typing import (
@@ -918,12 +919,15 @@ def main(args: "CLIArgs") -> None:
             "========================================",
             flush=True,
         )
-        logger.info(
-            "Running migrations for %s%s: %d",
-            migrator.__class__.__name__,
-            extra_name,
-            len(effective_graph.nodes),
+        print(
+            "Running migrations for %s%s: %d" % (
+                migrator.__class__.__name__,
+                extra_name,
+                len(effective_graph.nodes),
+            ),
+            flush=True,
         )
+        reset_root_logger()
 
         possible_nodes = list(migrator.order(effective_graph, mctx.graph))
 
