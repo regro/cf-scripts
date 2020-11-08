@@ -196,6 +196,7 @@ def get_repo(
     if pull_request or fork:
         repo = gh.repository("conda-forge", feedstock_reponame)
         if repo is None:
+            print("could not fork conda-forge/%s!" % feedstock_reponame, flush=True)
             fctx.attrs["bad"] = f"{fctx.package_name}: does not match feedstock name\n"
             return False
 

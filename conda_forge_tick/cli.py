@@ -50,26 +50,40 @@ def deploy(args):
     except Exception as e:
         print(e)
 
-    files_to_add = (
+    files_to_add = set()
+    for dr in [
+        "pr_json",
+        "status",
+        "node_attrs",
+        "audits",
+        "audits/grayskull",
+        "audits/depfinder",
+        "versions",
+        "profiler",
+        "mappings",
+        "mappings/pypi",
+    ]:
         # untracked
-        subprocess.run(
-            "git ls-files -o --exclude-standard",
+        files_to_add |= set(subprocess.run(
+            f"git ls-files -o --exclude-standard {dr}",
             shell=True,
             capture_output=True,
-        ).stdout.decode("utf-8").splitlines()
+        ).stdout.decode("utf-8").splitlines())
+
         # changed
-        + subprocess.run(
-            "git diff --name-only",
+        files_to_add |= set(subprocess.run(
+            f"git diff --name-only {dr}",
             shell=True,
             capture_output=True,
-        ).stdout.decode("utf-8").splitlines()
+        ).stdout.decode("utf-8").splitlines())
+
         # modified and staged but not deleted
-        + subprocess.run(
-            "git diff --name-only --cached --diff-filter=d",
+        files_to_add |= set(subprocess.run(
+            f"git diff --name-only --cached --diff-filter=d {dr}",
             shell=True,
             capture_output=True,
-        ).stdout.decode("utf-8").splitlines()
-    )
+        ).stdout.decode("utf-8").splitlines())
+
     n_added = 0
     for file in files_to_add:
         if file and os.path.exists(file):

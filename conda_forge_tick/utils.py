@@ -178,6 +178,9 @@ class LazyJson(MutableMapping):
         self._load()
         with open(self.file_name, "w") as f:
             dump(self.data, f)
+        # this evicts the josn from memory and trades i/o for mem
+        # the bot uses too much mem if we don't do this
+        self.data = None
 
     def __getitem__(self, item: Any) -> Any:
         self._load()

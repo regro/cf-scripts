@@ -298,8 +298,10 @@ def run(
         ljpr.update(**pr_json)
 
         # from .dynamo_models import PRJson
-
         # PRJson.dump(pr_json)
+    else:
+        ljpr = False
+
     # If we've gotten this far then the node is good
     feedstock_ctx.attrs["bad"] = False
     logger.info("Removing feedstock dir")
@@ -346,6 +348,12 @@ def add_replacement_migrator(
         An alternate Replacement migrator to use for special tasks.
 
     """
+    print(
+        "========================================"
+        "========================================",
+        flush=True,
+    )
+    print("making replacement migrator for %s -> %s" % (old_pkg, new_pkg), flush=True)
     total_graph = copy.deepcopy(gx)
 
     for node, node_attrs in gx.nodes.items():
@@ -396,6 +404,12 @@ def add_arch_migrate(migrators: MutableSequence[Migrator], gx: nx.DiGraph) -> No
         The list of migrators to run.
 
     """
+    print(
+        "========================================"
+        "========================================",
+        flush=True,
+    )
+    print("making aarch64+ppc64le and osx-arm64 migrations", flush=True)
     total_graph = copy.deepcopy(gx)
 
     migrators.append(
@@ -593,6 +607,7 @@ def _outside_pin_range(pin_spec, current_pin, new_version):
 
 
 def create_migration_yaml_creator(migrators: MutableSequence[Migrator], gx: nx.DiGraph):
+    print("pinning migrations", flush=True)
     with indir(os.environ["CONDA_PREFIX"]):
         pinnings = parse_config_file(
             "conda_build_config.yaml",
@@ -672,7 +687,13 @@ def create_migration_yaml_creator(migrators: MutableSequence[Migrator], gx: nx.D
                 current_version,
             ):
                 feedstocks_to_be_repinned.append(k)
-                print(package_name, current_version, current_pin, pin_spec)
+                print(
+                    "    %s:\n        curr version: %s\n        curr pin: %s"
+                    "\n        pin_spec: %s" % (
+                        package_name, current_version, current_pin, pin_spec
+                    ),
+                    flush=True,
+                )
                 migrators.append(
                     MigrationYamlCreator(
                         package_name,
@@ -683,6 +704,7 @@ def create_migration_yaml_creator(migrators: MutableSequence[Migrator], gx: nx.D
                         gx,
                     ),
                 )
+    print(" ", flush=True)
 
 
 def initialize_migrators(
@@ -711,8 +733,14 @@ def initialize_migrators(
         alt_migrator=MatplotlibBase,
     )
     create_migration_yaml_creator(migrators=migrators, gx=gx)
+    print("rebuild migration graph sizes:", flush=True)
     for m in migrators:
-        print(f'{getattr(m, "name", m)} graph size: {len(getattr(m, "graph", []))}')
+        print(
+            f'    {getattr(m, "name", m)} graph size: '
+            f'{len(getattr(m, "graph", []))}',
+            flush=True,
+        )
+    print(" ", flush=True)
 
     mctx = MigratorSessionContext(
         circle_build_url=os.getenv("CIRCLE_BUILD_URL", ""),
@@ -725,6 +753,7 @@ def initialize_migrators(
         dry_run=dry_run,
     )
 
+    print("building package import maps and version migrator", flush=True)
     python_nodes = {
         n for n, v in mctx.graph.nodes("payload") if "python" in v.get("req", "")
     }
@@ -752,6 +781,8 @@ def initialize_migrators(
     )
 
     migrators = [version_migrator] + migrators
+
+    print(" ", flush=True)
 
     return mctx, temp, migrators
 
@@ -811,10 +842,7 @@ def _compute_time_per_migrator(mctx, migrators):
 def main(args: "CLIArgs") -> None:
 
     # logging
-    from .xonsh_utils import env
-
-    debug = env.get("CONDA_FORGE_TICK_DEBUG", False)
-    if debug:
+    if args.debug:
         setup_logger(logging.getLogger("conda_forge_tick"), level="debug")
     else:
         setup_logger(logging.getLogger("conda_forge_tick"))
@@ -831,6 +859,7 @@ def main(args: "CLIArgs") -> None:
     )
 
     # compute the time per migrator
+    print("computing time per migration", flush=True)
     (num_nodes, time_per_migrator, tot_time_per_migrator) = _compute_time_per_migrator(
         mctx,
         migrators,
@@ -841,13 +870,15 @@ def main(args: "CLIArgs") -> None:
         else:
             extra_name = ""
 
-        logger.info(
-            "Total migrations for %s%s: %d - gets %f seconds (%f percent)",
-            migrator.__class__.__name__,
-            extra_name,
-            num_nodes[i],
-            time_per_migrator[i],
-            time_per_migrator[i] / tot_time_per_migrator * 100,
+        print(
+            "    %s%s: %d - gets %f seconds (%f percent)" % (
+                migrator.__class__.__name__,
+                extra_name,
+                num_nodes[i],
+                time_per_migrator[i],
+                time_per_migrator[i] / tot_time_per_migrator * 100,
+            ),
+            flush=True,
         )
 
     for mg_ind, migrator in enumerate(migrators):
@@ -870,6 +901,14 @@ def main(args: "CLIArgs") -> None:
         else:
             extra_name = ""
 
+        print(
+            "\n\n========================================"
+            "========================================"
+            "\n"
+            "========================================"
+            "========================================",
+            flush=True,
+        )
         logger.info(
             "Running migrations for %s%s: %d",
             migrator.__class__.__name__,
@@ -941,7 +980,7 @@ def main(args: "CLIArgs") -> None:
                         )
                         try:
                             # Don't bother running if we are at zero
-                            if args.dry_run or (
+                            if (
                                 mctx.gh.rate_limit()["resources"]["core"]["remaining"]
                                 == 0
                             ):
@@ -1042,17 +1081,15 @@ def main(args: "CLIArgs") -> None:
                             except Exception:
                                 pass
 
-                if (
-                    args.dry_run
-                    or mctx.gh.rate_limit()["resources"]["core"]["remaining"] == 0
-                ):
+                if mctx.gh.rate_limit()["resources"]["core"]["remaining"] == 0:
                     break
 
-    if not args.dry_run:
-        logger.info(
-            "API Calls Remaining: %d",
-            mctx.gh.rate_limit()["resources"]["core"]["remaining"],
-        )
+        print(" ", flush=True)
+
+    logger.info(
+        "API Calls Remaining: %d",
+        mctx.gh.rate_limit()["resources"]["core"]["remaining"],
+    )
     logger.info("Done")
 
 
