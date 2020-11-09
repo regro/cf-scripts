@@ -235,18 +235,25 @@ def run(
                 )
             ]
 
-    if ((
-        migrator.check_solvable
-        # we always let stuff in cycles go
-        and feedstock_ctx.attrs["name"] not in getattr(migrator, "cycles", set())
-        # we always let stuff at the top go
-        and feedstock_ctx.attrs["name"] not in getattr(migrator, "top_level", set())
-        # for solveability always assume automerge is on.
-        and feedstock_ctx.attrs["conda-forge.yml"].get("bot", {}).get("automerge", True)
-    ) or feedstock_ctx.attrs["conda-forge.yml"].get("bot", {}).get(
-        "check_solvable",
-        False,
-    )) and False:
+    if (
+        (
+            migrator.check_solvable
+            # we always let stuff in cycles go
+            and feedstock_ctx.attrs["name"] not in getattr(migrator, "cycles", set())
+            # we always let stuff at the top go
+            and feedstock_ctx.attrs["name"] not in getattr(migrator, "top_level", set())
+            # for solveability always assume automerge is on.
+            and feedstock_ctx.attrs["conda-forge.yml"]
+            .get("bot", {})
+            .get("automerge", True)
+        )
+        or feedstock_ctx.attrs["conda-forge.yml"]
+        .get("bot", {})
+        .get(
+            "check_solvable",
+            False,
+        )
+    ) and False:
         solvable, errors, _ = is_recipe_solvable(feedstock_dir)
         if not solvable:
             pre_key = "pre_pr_migrator_status"
