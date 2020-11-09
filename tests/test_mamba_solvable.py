@@ -410,3 +410,40 @@ def test_virtual_package(feedstock_dir, tmp_path_factory):
         additional_channels=[repodata.channel_url],
     )
     assert solvable
+
+
+def test_mamba_solver_hang(tmp_path):
+    channels = ["conda-forge", "defaults"]
+    platform = "linux-64"
+    specs = [
+        'gdal >=2.1.0', 'ncurses >=6.2,<7.0a0', 'geopandas', 'scikit-image >=0.16.0',
+        'pandas', 'pyproj >=2.2.0', 'libffi >=3.2.1,<4.0a0', 'six',
+        'tk >=8.6.10,<8.7.0a0', 'spectral', 'zlib >=1.2.11,<1.3.0a0', 'shapely',
+        'readline >=8.0,<9.0a0', 'python >=3.8,<3.9.0a0', 'numpy',
+        'python_abi 3.8.* *_cp38', 'xz >=5.2.5,<6.0a0', 'openssl >=1.1.1h,<1.1.2a',
+        'sqlite >=3.33.0,<4.0a0',
+    ]
+    solver = _mamba_factory(tuple(channels), platform)
+    success, _, _ = solver.solve(specs)
+
+    # data = dict(
+    #     channels=channels,
+    #     platform=platform,
+    #     specs=specs,
+    # )
+    # data_str = json.dumps(data)
+    # import subprocess
+    # proc = subprocess.Popen(
+    #     'mamba-is-solvable \'%s\'' % data_str,
+    #     shell=True,
+    # )
+    # try:
+    #     proc.wait(timeout=10)
+    # except subprocess.TimeoutExpired:
+    #     proc.kill()
+    # if proc.returncode is None or proc.returncode != 0:
+    #     success = False
+    # else:
+    #     success = True
+
+    assert not success

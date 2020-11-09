@@ -22,6 +22,7 @@ import copy
 import subprocess
 import atexit
 import time
+import subprocess
 from collections import defaultdict
 from dataclasses import dataclass, field
 from typing import Dict, Tuple, List, FrozenSet, Set, Iterable
@@ -370,6 +371,31 @@ def _get_run_export(link_tuple):
     return run_exports
 
 
+def prerun_solver(channels, platform, specs):
+    data = dict(
+        channels=channels,
+        platform=platform,
+        specs=specs,
+    )
+    data_str = json.dumps(data)
+    proc = subprocess.Popen(
+        'mamba-is-solvable \'%s\'' % data_str,
+        shell=True,
+    )
+
+    try:
+        proc.wait(timeout=10)
+    except subprocess.TimeoutExpired:
+        proc.kill()
+
+    if proc.returncode is None or proc.returncode != 0:
+        success = False
+    else:
+        success = True
+
+    return success
+
+
 class MambaSolver:
     """Run the mamba solver.
 
@@ -406,7 +432,7 @@ class MambaSolver:
             repo.set_priority(priority, subpriority)
             self.repos.append(repo)
 
-    def solve(self, specs, get_run_exports=False) -> Tuple[bool, List[str]]:
+    def solve(self, specs, get_run_exports=False, precheck=True):
         """Solve given a set of specs.
 
         Parameters
@@ -417,6 +443,8 @@ class MambaSolver:
             `MatchSpec(mypec).conda_build_form()`
         get_run_exports : bool, optional
             If True, return run exports else do not.
+        precheck : bool, optional
+            If True, run a pre-solving check to make sure mamba does not hang.
 
         Returns
         -------
@@ -436,6 +464,14 @@ class MambaSolver:
         _specs = [_norm_spec(s) for s in specs]
 
         logger.info("MAMBA running solver for specs \n\n%s", pprint.pformat(_specs))
+
+        # sometimes the solver hangs so we precheck it in another process
+        if precheck and not prerun_solver(self.channels, self.platform, _specs):
+            return (
+                False,
+                None,
+                copy.deepcopy(DEFAULT_RUN_EXPORTS),
+            )
 
         solver.add_jobs(_specs, api.SOLVER_INSTALL)
         success = solver.solve()
@@ -616,7 +652,6 @@ def is_recipe_solvable(
             platform,
             arch,
             additional_channels=additional_channels,
-            timeout=300,
         )
         solvable = solvable and _solvable
         cbc_name = os.path.basename(cbc_fname).rsplit(".", maxsplit=1)[0]
@@ -668,7 +703,6 @@ def apply_pins(reqs, host_req, build_req, outnames, m):
     return pinned_req
 
 
-@stopit.threading_timeoutable(default=(False, ["mamba solver check timed out!"]))
 def _is_recipe_solvable_on_platform(
     recipe_dir,
     cbc_path,

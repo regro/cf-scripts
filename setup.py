@@ -6,7 +6,7 @@ setup(
     description="",
     author="Conda-forge-tick Development Team",
     author_email="",
-    scripts=["bin/conda-forge-tick"],
+    scripts=["bin/conda-forge-tick", "bin/mamba-is-solvable"],
     url="https://github.com/regro/cf-scripts",
     include_package_data=True,
     packages=find_packages(exclude=["tests", "scripts", "doc"]),
