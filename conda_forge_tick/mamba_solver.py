@@ -435,7 +435,7 @@ class MambaSolver:
 
         _specs = [_norm_spec(s) for s in specs]
 
-        logger.info("MAMBA running solver for specs \n\n%s", specs)
+        logger.info("MAMBA running solver for specs \n\n%s", pprint.pformat(_specs))
 
         solver.add_jobs(_specs, api.SOLVER_INSTALL)
         success = solver.solve()
@@ -463,7 +463,10 @@ class MambaSolver:
                 )
 
             if get_run_exports:
-                logger.info("MAMBA getting run exports for \n\n%s", solution)
+                logger.info(
+                    "MAMBA getting run exports for \n\n%s",
+                    pprint.pformat(solution),
+                )
                 run_exports = self._get_run_exports(to_link)
 
         if get_run_exports:
