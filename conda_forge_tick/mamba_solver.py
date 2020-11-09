@@ -379,7 +379,7 @@ def prerun_solver(channels, platform, specs):
     )
     data_str = json.dumps(data)
     proc = subprocess.Popen(
-        'mamba-is-solvable \'%s\'' % data_str,
+        "mamba-is-solvable '%s'" % data_str,
         shell=True,
     )
 
