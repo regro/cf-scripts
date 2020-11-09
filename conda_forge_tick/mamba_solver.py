@@ -22,14 +22,12 @@ import copy
 import subprocess
 import atexit
 import time
-import subprocess
 from collections import defaultdict
 from dataclasses import dataclass, field
 from typing import Dict, Tuple, List, FrozenSet, Set, Iterable
 
 import psutil
 from ruamel.yaml import YAML
-import stopit
 
 from conda.models.match_spec import MatchSpec
 from conda.models.channel import Channel

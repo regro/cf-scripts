@@ -439,24 +439,4 @@ def test_mamba_solver_hang(tmp_path):
     solver = _mamba_factory(tuple(channels), platform)
     success, _, _ = solver.solve(specs)
 
-    # data = dict(
-    #     channels=channels,
-    #     platform=platform,
-    #     specs=specs,
-    # )
-    # data_str = json.dumps(data)
-    # import subprocess
-    # proc = subprocess.Popen(
-    #     'mamba-is-solvable \'%s\'' % data_str,
-    #     shell=True,
-    # )
-    # try:
-    #     proc.wait(timeout=10)
-    # except subprocess.TimeoutExpired:
-    #     proc.kill()
-    # if proc.returncode is None or proc.returncode != 0:
-    #     success = False
-    # else:
-    #     success = True
-
     assert not success
