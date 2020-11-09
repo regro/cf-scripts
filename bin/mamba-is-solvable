@@ -7,7 +7,7 @@ if __name__ == "__main__":
 
     data = json.loads(sys.argv[1])
     solver = MambaSolver(data["channels"], data["platform"])
-    success = solver.solve(data["specs"], precheck=False)
+    success, _, _ = solver.solve(data["specs"], precheck=False)
     if success:
         sys.exit(0)
     else:
