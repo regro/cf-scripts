@@ -6,7 +6,6 @@ Builds and maintains mapping of pypi-names to conda-forge names
 """
 
 import glob
-import json
 
 import yaml
 import pathlib
@@ -17,7 +16,7 @@ from typing import Dict, List, Optional, Any, Tuple, Set, Iterable
 from os.path import commonprefix
 
 
-from .utils import load, as_iterable, load_graph
+from .utils import load, as_iterable, load_graph, dump
 
 
 def load_node_meta_yaml(filename: str) -> Dict[str, str]:
@@ -221,16 +220,16 @@ def determine_best_matches_for_pypi_import(
         In the event of ties, fall back to the one with the lower authority score
         which means in this case, fewer dependencies
         """
-        return hubs.get(conda_name, 0), -authorities.get(conda_name, 0)
+        return -hubs.get(conda_name, 0), authorities.get(conda_name, 0), conda_name
 
-    ranked_list = sorted(gx.nodes, key=score)
+    ranked_list = list(sorted(gx.nodes, key=score))
     with open(pathlib.Path(cf_graph) / "ranked_hubs_authorities.json", 'w') as f:
-        json.dump(ranked_list, f)
+        dump(ranked_list, f)
 
     for import_name, candidates in sorted(map_by_import_name.items()):
         if len(candidates) > 1:
             ranked_candidates = list(sorted(candidates, key=score))
-            winner = ranked_candidates[-1]
+            winner = ranked_candidates[0]
             print(f"needs {import_name} <- provided_by: {candidates} : chosen {winner}")
             final_map[import_name] = map_by_conda_name[winner]
             ordered_import_names.append(
