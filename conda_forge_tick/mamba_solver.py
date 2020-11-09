@@ -38,6 +38,7 @@ import conda_build.api
 import conda_package_handling.api
 
 from mamba import mamba_api as api
+from mamba.utils import load_channels
 
 from conda_build.conda_interface import pkgs_dirs
 from conda_build.utils import download_channeldata
@@ -389,22 +390,16 @@ class MambaSolver:
     def __init__(self, channels, platform):
         self.channels = channels
         self.platform = platform
-        index = get_index(channels, platform=platform)
-
         self.pool = api.Pool()
-        self.repos = []
 
-        priority = 0
-        subpriority = 0  # wrong! :)
-        for subdir, channel in index:
-            repo = api.Repo(
-                self.pool,
-                str(channel),
-                subdir.cache_path(),
-                channel.url(with_credentials=True),
-            )
-            repo.set_priority(priority, subpriority)
-            self.repos.append(repo)
+        self.repos = []
+        self.index = load_channels(
+            self.pool,
+            self.channels,
+            self.repos,
+            platform=platform,
+            strict_priority=True,
+        )
 
     def solve(self, specs, get_run_exports=False) -> Tuple[bool, List[str]]:
         """Solve given a set of specs.
