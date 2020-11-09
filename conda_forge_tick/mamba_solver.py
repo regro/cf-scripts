@@ -386,7 +386,10 @@ def prerun_solver(channels, platform, specs):
     except subprocess.TimeoutExpired:
         proc.kill()
 
-    if proc.returncode is None or proc.returncode != 0:
+    if proc.returncode is None:
+        # if it hangs, call it a pass
+        success = None
+    elif proc.returncode != 0:
         success = False
     else:
         success = True
@@ -464,12 +467,36 @@ class MambaSolver:
         logger.info("MAMBA running solver for specs \n\n%s", pprint.pformat(_specs))
 
         # sometimes the solver hangs so we precheck it in another process
-        if precheck and not prerun_solver(self.channels, self.platform, _specs):
-            return (
-                False,
-                None,
-                copy.deepcopy(DEFAULT_RUN_EXPORTS),
-            )
+        if precheck:
+            rval = prerun_solver(self.channels, self.platform, _specs)
+            if rval is not None and not rval:
+                if get_run_exports:
+                    return (
+                        False,
+                        "mamba solver hangs on this env",
+                        None,
+                        copy.deepcopy(DEFAULT_RUN_EXPORTS),
+                    )
+                else:
+                    return (
+                        False,
+                        "mamba solver hangs on this env",
+                        None,
+                    )
+            elif rval is None:
+                if get_run_exports:
+                    return (
+                        True,
+                        "",
+                        _specs,
+                        copy.deepcopy(DEFAULT_RUN_EXPORTS),
+                    )
+                else:
+                    return (
+                        True,
+                        "",
+                        _specs,
+                    )
 
         solver.add_jobs(_specs, api.SOLVER_INSTALL)
         success = solver.solve()

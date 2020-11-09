@@ -437,6 +437,7 @@ def test_mamba_solver_hang(tmp_path):
         "sqlite >=3.33.0,<4.0a0",
     ]
     solver = _mamba_factory(tuple(channels), platform)
-    success, _, _ = solver.solve(specs)
+    success, _, solution = solver.solve(specs)
 
-    assert not success
+    assert success
+    assert solution == specs
