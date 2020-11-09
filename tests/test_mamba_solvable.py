@@ -16,6 +16,7 @@ from conda_forge_tick.mamba_solver import (
     virtual_package_repodata,
     apply_pins,
     _mamba_factory,
+    prerun_solver,
 )
 
 FEEDSTOCK_DIR = os.path.join(os.path.dirname(__file__), "test_feedstock")
@@ -436,8 +437,5 @@ def test_mamba_solver_hang(tmp_path):
         "openssl >=1.1.1h,<1.1.2a",
         "sqlite >=3.33.0,<4.0a0",
     ]
-    solver = _mamba_factory(tuple(channels), platform)
-    success, _, solution = solver.solve(specs)
-
-    assert success
-    assert solution == specs
+    solvable = prerun_solver(channels, platform, specs, timeout=600)
+    assert solvable is not None

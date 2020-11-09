@@ -369,7 +369,7 @@ def _get_run_export(link_tuple):
     return run_exports
 
 
-def prerun_solver(channels, platform, specs):
+def prerun_solver(channels, platform, specs, timeout=30):
     data = dict(
         channels=channels,
         platform=platform,
@@ -382,7 +382,7 @@ def prerun_solver(channels, platform, specs):
     )
 
     try:
-        proc.wait(timeout=10)
+        proc.wait(timeout=timeout)
     except subprocess.TimeoutExpired:
         proc.kill()
 
@@ -464,7 +464,7 @@ class MambaSolver:
 
         _specs = [_norm_spec(s) for s in specs]
 
-        logger.info("MAMBA running solver for specs \n\n%s", pprint.pformat(_specs))
+        print("MAMBA running solver for specs \n\n%s" % pprint.pformat(_specs))
 
         # sometimes the solver hangs so we precheck it in another process
         if precheck:
