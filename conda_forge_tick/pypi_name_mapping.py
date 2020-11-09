@@ -6,6 +6,8 @@ Builds and maintains mapping of pypi-names to conda-forge names
 """
 
 import glob
+import json
+
 import yaml
 import pathlib
 import functools
@@ -211,6 +213,8 @@ def determine_best_matches_for_pypi_import(
     # hubs are centralized sources (eg numpy)
     # whilst authorities are packages with many edges to them.
     hubs, authorities = networkx.hits_scipy(gx)
+    with open(pathlib.Path(cf_graph) / "hubs_authorities.json", 'w') as f:
+        json.dump({'hubs': hubs, 'authorities': authorities}, f)
 
     for import_name, candidates in sorted(map_by_import_name.items()):
         if len(candidates) > 1:
