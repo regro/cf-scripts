@@ -235,7 +235,7 @@ def run(
                 )
             ]
 
-    if (
+    if ((
         migrator.check_solvable
         # we always let stuff in cycles go
         and feedstock_ctx.attrs["name"] not in getattr(migrator, "cycles", set())
@@ -246,7 +246,7 @@ def run(
     ) or feedstock_ctx.attrs["conda-forge.yml"].get("bot", {}).get(
         "check_solvable",
         False,
-    ):
+    )) and False:
         solvable, errors, _ = is_recipe_solvable(feedstock_dir)
         if not solvable:
             pre_key = "pre_pr_migrator_status"
