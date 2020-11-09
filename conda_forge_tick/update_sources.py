@@ -254,7 +254,7 @@ class ROSDistro(AbstractSource):
             f"https://raw.githubusercontent.com/ros/rosdistro/master/{distro_name}/distribution.yaml",  # noqa
         )
         res.raise_for_status()
-        resd = yaml.load(res.text, Loader=yaml.SafeLoader)
+        resd = yaml.safe_load(res.text)
         repos = resd["repositories"]
 
         result_dict: dict = {distro_name: {"reverse": {}, "forward": {}}}
