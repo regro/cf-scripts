@@ -213,21 +213,22 @@ def determine_best_matches_for_pypi_import(
     # hubs are centralized sources (eg numpy)
     # whilst authorities are packages with many edges to them.
     hubs, authorities = networkx.hits_scipy(gx)
-    with open(pathlib.Path(cf_graph) / "hubs_authorities.json", 'w') as f:
-        json.dump({'hubs': hubs, 'authorities': authorities}, f)
+
+    def score(conda_name):
+        """Base the score on
+
+        Packages that are hubs are preferred.
+        In the event of ties, fall back to the one with the lower authority score
+        which means in this case, fewer dependencies
+        """
+        return hubs.get(conda_name, 0), -authorities.get(conda_name, 0)
+
+    ranked_list = sorted(gx.nodes, key=score)
+    with open(pathlib.Path(cf_graph) / "ranked_hubs_authorities.json", 'w') as f:
+        json.dump(ranked_list, f)
 
     for import_name, candidates in sorted(map_by_import_name.items()):
         if len(candidates) > 1:
-
-            def score(conda_name):
-                """Base the score on
-
-                Packages that are hubs are preferred.
-                In the event of ties, fall back to the one with the lower authority score
-                which means in this case, fewer dependencies
-                """
-                return hubs.get(conda_name, 0), -authorities.get(conda_name, 0)
-
             ranked_candidates = list(sorted(candidates, key=score))
             winner = ranked_candidates[-1]
             print(f"needs {import_name} <- provided_by: {candidates} : chosen {winner}")
