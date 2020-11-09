@@ -223,7 +223,7 @@ def determine_best_matches_for_pypi_import(
         return -hubs.get(conda_name, 0), authorities.get(conda_name, 0), conda_name
 
     ranked_list = list(sorted(gx.nodes, key=score))
-    with open(pathlib.Path(cf_graph) / "ranked_hubs_authorities.json", 'w') as f:
+    with open(pathlib.Path(cf_graph) / "ranked_hubs_authorities.json", "w") as f:
         dump(ranked_list, f)
 
     for import_name, candidates in sorted(map_by_import_name.items()):
