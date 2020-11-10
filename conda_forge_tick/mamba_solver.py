@@ -430,7 +430,7 @@ class MambaSolver:
 
         _specs = [_norm_spec(s) for s in specs]
 
-        logger.info("MAMBA running solver for specs \n\n%s", pprint.pformat(_specs))
+        logger.info("MAMBA running solver for specs \n\n%s\n", pprint.pformat(_specs))
 
         solver.add_jobs(_specs, api.SOLVER_INSTALL)
         success = solver.solve()
@@ -439,7 +439,7 @@ class MambaSolver:
         if not success:
             logger.warning(
                 "MAMBA failed to solve specs \n\n%s\n\nfor channels "
-                "\n\n%s\n\nThe reported errors are:\n\n%s",
+                "\n\n%s\n\nThe reported errors are:\n\n%s\n",
                 pprint.pformat(_specs),
                 pprint.pformat(self.channels),
                 solver.problems_to_str(),
@@ -459,7 +459,7 @@ class MambaSolver:
 
             if get_run_exports:
                 logger.info(
-                    "MAMBA getting run exports for \n\n%s",
+                    "MAMBA getting run exports for \n\n%s\n",
                     pprint.pformat(solution),
                 )
                 run_exports = self._get_run_exports(to_link)
@@ -797,7 +797,7 @@ def _is_recipe_solvable_on_platform(
 
     logger.info("RUN EXPORT cache status: %s", _get_run_export.cache_info())
     logger.info(
-        "MAMBA SOLVER MEM USAGE: %dMB",
+        "MAMBA SOLVER MEM USAGE: %d MB",
         psutil.Process().memory_info().rss // 1024 ** 2,
     )
 
