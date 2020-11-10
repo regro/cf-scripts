@@ -290,10 +290,7 @@ def _compute_recently_closed(total_status, old_closed_status, old_total_status):
     two_weeks = 14 * 24 * 60 * 60
 
     # grab any new stuff
-    closed_status = {
-        m: now
-        for m in set(old_total_status) - set(total_status)
-    }
+    closed_status = {m: now for m in set(old_total_status) - set(total_status)}
 
     # grab anything rcent from previous stuff
     for m, tm in old_closed_status.items():
@@ -313,12 +310,12 @@ def main(args: Any = None) -> None:
 
     # cache these for later
     if os.path.exists("status/closed_status.json"):
-        with open("status/closed_status.json", "r") as fp:
+        with open("status/closed_status.json") as fp:
             old_closed_status = json.load(fp)
     else:
         old_closed_status = {}
 
-    with open("status/total_status.json", "r") as fp:
+    with open("status/total_status.json") as fp:
         old_total_status = json.load(fp)
 
     mctx, *_, migrators = initialize_migrators()
@@ -398,7 +395,9 @@ def main(args: Any = None) -> None:
         json.dump(total_status, f, sort_keys=True, indent=2)
 
     closed_status = _compute_recently_closed(
-        total_status, old_closed_status, old_total_status
+        total_status,
+        old_closed_status,
+        old_total_status,
     )
     with open("./status/closed_status.json", "w") as f:
         json.dump(closed_status, f, sort_keys=True, indent=2)
