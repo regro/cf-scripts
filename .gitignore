@@ -30,4 +30,7 @@ coverage.xml
 
 cf-graph/
 tests/node_attrs/
-pkgs/*
+pkgs
+dask-worker-space
+cbr
+feedstocks
