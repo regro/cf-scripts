@@ -2,6 +2,7 @@ attrs
 backoff
 black
 boto3
+cachetools
 conda
 conda-forge-pinning
 conda-package-handling
@@ -16,7 +17,7 @@ github3.py
 grayskull
 jinja2
 mamba
-msgpack-python<1
+msgpack-python
 networkx
 psutil
 pynamodb

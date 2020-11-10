@@ -28,7 +28,7 @@ from typing import Dict, Tuple, List, FrozenSet, Set, Iterable
 
 import psutil
 from ruamel.yaml import YAML
-import stopit
+import cachetools.func
 
 from conda.models.match_spec import MatchSpec
 from conda.models.channel import Channel
@@ -482,7 +482,7 @@ class MambaSolver:
         return run_exports
 
 
-@functools.lru_cache(maxsize=32)
+@cachetools.func.ttl_cache(maxsize=8, ttl=300)
 def _mamba_factory(channels, platform):
     return MambaSolver(list(channels), platform)
 
@@ -611,7 +611,6 @@ def is_recipe_solvable(
             platform,
             arch,
             additional_channels=additional_channels,
-            timeout=300,
         )
         solvable = solvable and _solvable
         cbc_name = os.path.basename(cbc_fname).rsplit(".", maxsplit=1)[0]
@@ -663,7 +662,6 @@ def apply_pins(reqs, host_req, build_req, outnames, m):
     return pinned_req
 
 
-@stopit.threading_timeoutable(default=(False, ["mamba solver check timed out!"]))
 def _is_recipe_solvable_on_platform(
     recipe_dir,
     cbc_path,
