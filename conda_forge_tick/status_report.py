@@ -7,6 +7,8 @@ from collections import Counter
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import time
 
+import dateutil.parser
+import datetime
 import networkx as nx
 from graphviz import Source
 import tempfile
@@ -293,9 +295,20 @@ def _compute_recently_closed(total_status, old_closed_status, old_total_status):
     closed_status = {m: now for m in set(old_total_status) - set(total_status)}
 
     # grab anything rcent from previous stuff
-    for m, tm in old_closed_status.items():
+    for m, nm in old_closed_status.items():
+        tm = int(dateutil.parser.parse(nm.split(" closed at ", 1)[1]).timestamp())
         if m not in total_status and now - tm < two_weeks:
             closed_status[m] = tm
+
+    # now make it pretty
+    closed_status = {
+        k: (
+            k
+            + " closed at "
+            + datetime.datetime.fromtimestamp(v).isoformat().replace("T", " ") + " UTC"
+        )
+        for k, v in closed_status.items()
+    }
 
     return closed_status
 
