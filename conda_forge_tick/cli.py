@@ -62,7 +62,7 @@ def deploy(args):
         "profiler",
         "mappings",
         "mappings/pypi",
-        "ranked_hubs_authorities.json"
+        "ranked_hubs_authorities.json",
     ]:
         # untracked
         files_to_add |= set(
