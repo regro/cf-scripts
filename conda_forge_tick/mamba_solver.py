@@ -482,7 +482,7 @@ class MambaSolver:
         return run_exports
 
 
-@cachetools.func.ttl_cache(maxsize=8, ttl=120)
+@cachetools.func.ttl_cache(maxsize=8, ttl=60)
 def _mamba_factory(channels, platform):
     return MambaSolver(list(channels), platform)
 
