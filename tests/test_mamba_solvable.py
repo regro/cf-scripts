@@ -16,6 +16,7 @@ from conda_forge_tick.mamba_solver import (
     virtual_package_repodata,
     apply_pins,
     _mamba_factory,
+    _run_solver,
 )
 
 FEEDSTOCK_DIR = os.path.join(os.path.dirname(__file__), "test_feedstock")
@@ -413,63 +414,66 @@ def test_virtual_package(feedstock_dir, tmp_path_factory):
 
 
 def test_mamba_solver_hangs():
-    solver = _mamba_factory(("conda-forge", "defaults"), "osx-64")
-    res = solver.solve(
-        [
-            "pytest",
-            "selenium",
-            "requests-mock",
-            "ncurses >=6.2,<7.0a0",
-            "libffi >=3.2.1,<4.0a0",
-            "xz >=5.2.5,<6.0a0",
-            "nbconvert >=5.6",
-            "sqlalchemy",
-            "jsonschema",
-            "six >=1.11",
-            "python_abi 3.9.* *_cp39",
-            "tornado",
-            "jupyter",
-            "requests",
-            "jupyter_client",
-            "notebook >=4.2",
-            "tk >=8.6.10,<8.7.0a0",
-            "openssl >=1.1.1h,<1.1.2a",
-            "readline >=8.0,<9.0a0",
-            "fuzzywuzzy",
-            "python >=3.9,<3.10.0a0",
-            "traitlets",
-            "sqlite >=3.33.0,<4.0a0",
-            "alembic",
-            "zlib >=1.2.11,<1.3.0a0",
-            "python-dateutil",
-            "nbformat",
-            "jupyter_core",
-        ],
-    )
-    assert res[0]
+    print("doing OSX test!", flush=True)
+    channels = ("conda-forge", "defaults")
+    platform = "osx-64"
+    specs = [
+        "pytest",
+        "selenium",
+        "requests-mock",
+        "ncurses >=6.2,<7.0a0",
+        "libffi >=3.2.1,<4.0a0",
+        "xz >=5.2.5,<6.0a0",
+        "nbconvert >=5.6",
+        "sqlalchemy",
+        "jsonschema",
+        "six >=1.11",
+        "python_abi 3.9.* *_cp39",
+        "tornado",
+        "jupyter",
+        "requests",
+        "jupyter_client",
+        "notebook >=4.2",
+        "tk >=8.6.10,<8.7.0a0",
+        "openssl >=1.1.1h,<1.1.2a",
+        "readline >=8.0,<9.0a0",
+        "fuzzywuzzy",
+        "python >=3.9,<3.10.0a0",
+        "traitlets",
+        "sqlite >=3.33.0,<4.0a0",
+        "alembic",
+        "zlib >=1.2.11,<1.3.0a0",
+        "python-dateutil",
+        "nbformat",
+        "jupyter_core",
+    ]
+    res = _run_solver(channels, platform, specs, timeout=15)
+    assert res is True
 
-    solver = _mamba_factory(("conda-forge", "defaults"), "linux-64")
-    solver.solve(
-        [
-            "gdal >=2.1.0",
-            "ncurses >=6.2,<7.0a0",
-            "geopandas",
-            "scikit-image >=0.16.0",
-            "pandas",
-            "pyproj >=2.2.0",
-            "libffi >=3.2.1,<4.0a0",
-            "six",
-            "tk >=8.6.10,<8.7.0a0",
-            "spectral",
-            "zlib >=1.2.11,<1.3.0a0",
-            "shapely",
-            "readline >=8.0,<9.0a0",
-            "python >=3.8,<3.9.0a0",
-            "numpy",
-            "python_abi 3.8.* *_cp38",
-            "xz >=5.2.5,<6.0a0",
-            "openssl >=1.1.1h,<1.1.2a",
-            "sqlite >=3.33.0,<4.0a0",
-        ],
-    )
-    assert res[0]
+    print("doing GDAL test!", flush=True)
+    channels = ("conda-forge", "defaults")
+    platform = "linux-64"
+    specs = [
+        "gdal >=2.1.0",
+        "ncurses >=6.2,<7.0a0",
+        "geopandas",
+        "scikit-image >=0.16.0",
+        "pandas",
+        "pyproj >=2.2.0",
+        "libffi >=3.2.1,<4.0a0",
+        "six",
+        "tk >=8.6.10,<8.7.0a0",
+        "spectral",
+        "zlib >=1.2.11,<1.3.0a0",
+        "shapely",
+        "readline >=8.0,<9.0a0",
+        "python >=3.8,<3.9.0a0",
+        "numpy",
+        "python_abi 3.8.* *_cp38",
+        "xz >=5.2.5,<6.0a0",
+        "openssl >=1.1.1h,<1.1.2a",
+        "sqlite >=3.33.0,<4.0a0",
+    ]
+
+    res = _run_solver(channels, platform, specs, timeout=15)
+    assert res is None

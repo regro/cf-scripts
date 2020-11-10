@@ -9,6 +9,9 @@ The basic workflow is for yaml file in .ci_support
 Most of the code here is due to @wolfv in this gist,
 https://gist.github.com/wolfv/cd12bd4a448c77ff02368e97ffdf495a.
 """
+import multiprocessing
+import sys
+import atexit
 import rapidjson as json
 import os
 import logging
@@ -20,7 +23,6 @@ import pprint
 import tempfile
 import copy
 import subprocess
-import atexit
 import time
 from collections import defaultdict
 from dataclasses import dataclass, field
@@ -31,9 +33,6 @@ from ruamel.yaml import YAML
 import cachetools.func
 
 from conda.models.match_spec import MatchSpec
-from conda.models.channel import Channel
-from conda.core.index import calculate_channel_urls, check_whitelist
-from conda.core.subdir_data import cache_fn_url, create_cache_dir
 import conda_build.api
 import conda_package_handling.api
 
@@ -116,54 +115,6 @@ def _norm_spec(myspec):
         parts.append(build)
 
     return " ".join(parts)
-
-
-def get_index(
-    channel_urls=(),
-    prepend=True,
-    platform=None,
-    use_local=False,
-    use_cache=False,
-    unknown=None,
-    prefix=None,
-    repodata_fn="repodata.json",
-):
-    """Get an index?
-
-    Function from @wolfv here:
-    https://gist.github.com/wolfv/cd12bd4a448c77ff02368e97ffdf495a.
-    """
-    real_urls = calculate_channel_urls(channel_urls, prepend, platform, use_local)
-    check_whitelist(real_urls)
-
-    dlist = api.DownloadTargetList()
-
-    index = []
-    for idx, url in enumerate(real_urls):
-        channel = Channel(url)
-
-        full_url = channel.url(with_credentials=True) + "/" + repodata_fn
-        full_path_cache = os.path.join(
-            create_cache_dir(),
-            cache_fn_url(full_url, repodata_fn),
-        )
-
-        sd = api.SubdirData(
-            channel.name + "/" + channel.subdir,
-            full_url,
-            full_path_cache,
-        )
-
-        sd.load()
-        index.append((sd, channel))
-        dlist.add(sd)
-
-    is_downloaded = dlist.download(True)
-
-    if not is_downloaded:
-        raise RuntimeError("Error downloading repodata.")
-
-    return index
 
 
 @dataclass(frozen=True)
@@ -371,6 +322,40 @@ def _get_run_export(link_tuple):
     return run_exports
 
 
+def _run_solver_func(channels, platform, specs):
+    msolver = _mamba_factory(tuple(channels), platform)
+    solver_options = [(api.SOLVER_FLAG_ALLOW_DOWNGRADE, 1)]
+    solver = api.Solver(msolver.pool, solver_options)
+
+    _specs = [_norm_spec(s) for s in specs]
+
+    solver.add_jobs(_specs, api.SOLVER_INSTALL)
+    print("starting solver", flush=True)
+    success = solver.solve()
+    print("finished solver", flush=True)
+    if success:
+        sys.exit(0)
+    else:
+        sys.exit(1)
+
+
+def _run_solver(channels, platform, specs, timeout=30):
+    p = multiprocessing.Process(
+        target=_run_solver_func,
+        args=(channels, platform, specs),
+    )
+    p.start()
+    p.join(timeout)
+    ecode = p.exitcode
+    p.terminate()
+    p.kill()
+    try:
+        p.close()
+    except ValueError:
+        pass
+    return ecode if ecode is None else ecode == 0
+
+
 class MambaSolver:
     """Run the mamba solver.
 
@@ -425,6 +410,21 @@ class MambaSolver:
             A dictionary with the weak and strong run exports for the packages.
             Only returned if get_run_exports is True.
         """
+        solver_precheck = _run_solver(self.channels, self.platform, specs, timeout=30)
+        if solver_precheck is None:
+            if get_run_exports:
+                return (
+                    True,
+                    None,
+                    specs,
+                    copy.deepcopy(DEFAULT_RUN_EXPORTS),
+                )
+            else:
+                return (
+                    True,
+                    None,
+                    specs,
+                )
         solver_options = [(api.SOLVER_FLAG_ALLOW_DOWNGRADE, 1)]
         solver = api.Solver(self.pool, solver_options)
 
