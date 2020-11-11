@@ -481,10 +481,13 @@ def test_arrow_solvable_timeout(tmp_path):
         "https://github.com/conda-forge/arrow-cpp-feedstock",
         ref="master",
     )
-    solvable, errors, solvable_by_variant = is_recipe_solvable(
-        feedstock_dir,
-        timeout=10,
-    )
-    assert solvable
-    assert errors == []
-    assert solvable_by_variant == {}
+    # let's run this over and over again to make sure nothing weird is happening
+    # with the killed processes
+    for _ in range(6):
+        solvable, errors, solvable_by_variant = is_recipe_solvable(
+            feedstock_dir,
+            timeout=10,
+        )
+        assert solvable
+        assert errors == []
+        assert solvable_by_variant == {}
