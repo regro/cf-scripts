@@ -305,7 +305,8 @@ def _compute_recently_closed(total_status, old_closed_status, old_total_status):
         k: (
             k
             + " closed at "
-            + datetime.datetime.fromtimestamp(v).isoformat().replace("T", " ") + " UTC"
+            + datetime.datetime.fromtimestamp(v).isoformat().replace("T", " ")
+            + " UTC"
         )
         for k, v in closed_status.items()
     }
