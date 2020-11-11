@@ -5,7 +5,10 @@ import subprocess
 import copy
 from collections import Counter
 from concurrent.futures import ThreadPoolExecutor, as_completed
+import time
 
+import dateutil.parser
+import datetime
 import networkx as nx
 from graphviz import Source
 import tempfile
@@ -284,6 +287,33 @@ def _collect_items_from_nodes(gx, func):
     ]
 
 
+def _compute_recently_closed(total_status, old_closed_status, old_total_status):
+    now = int(time.time())
+    two_weeks = 14 * 24 * 60 * 60
+
+    # grab any new stuff
+    closed_status = {m: now for m in set(old_total_status) - set(total_status)}
+
+    # grab anything rcent from previous stuff
+    for m, nm in old_closed_status.items():
+        tm = int(dateutil.parser.parse(nm.split(" closed at ", 1)[1]).timestamp())
+        if m not in total_status and now - tm < two_weeks:
+            closed_status[m] = tm
+
+    # now make it pretty
+    closed_status = {
+        k: (
+            k
+            + " closed at "
+            + datetime.datetime.fromtimestamp(v).isoformat().replace("T", " ")
+            + " UTC"
+        )
+        for k, v in closed_status.items()
+    }
+
+    return closed_status
+
+
 def main(args: Any = None) -> None:
     import requests
 
@@ -291,6 +321,16 @@ def main(args: Any = None) -> None:
         "https://raw.githubusercontent.com/conda-forge/"
         "conda-forge.github.io/master/img/anvil.svg",
     )
+
+    # cache these for later
+    if os.path.exists("status/closed_status.json"):
+        with open("status/closed_status.json") as fp:
+            old_closed_status = json.load(fp)
+    else:
+        old_closed_status = {}
+
+    with open("status/total_status.json") as fp:
+        old_total_status = json.load(fp)
 
     mctx, *_, migrators = initialize_migrators()
     if not os.path.exists("./status"):
@@ -367,6 +407,14 @@ def main(args: Any = None) -> None:
     total_status.update(longterm_status)
     with open("./status/total_status.json", "w") as f:
         json.dump(total_status, f, sort_keys=True, indent=2)
+
+    closed_status = _compute_recently_closed(
+        total_status,
+        old_closed_status,
+        old_total_status,
+    )
+    with open("./status/closed_status.json", "w") as f:
+        json.dump(closed_status, f, sort_keys=True, indent=2)
 
     print("\ncomputing feedstock and PR stats", flush=True)
 
