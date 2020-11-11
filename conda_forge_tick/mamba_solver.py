@@ -118,54 +118,6 @@ def _norm_spec(myspec):
     return " ".join(parts)
 
 
-def get_index(
-    channel_urls=(),
-    prepend=True,
-    platform=None,
-    use_local=False,
-    use_cache=False,
-    unknown=None,
-    prefix=None,
-    repodata_fn="repodata.json",
-):
-    """Get an index?
-
-    Function from @wolfv here:
-    https://gist.github.com/wolfv/cd12bd4a448c77ff02368e97ffdf495a.
-    """
-    real_urls = calculate_channel_urls(channel_urls, prepend, platform, use_local)
-    check_whitelist(real_urls)
-
-    dlist = api.DownloadTargetList()
-
-    index = []
-    for idx, url in enumerate(real_urls):
-        channel = Channel(url)
-
-        full_url = channel.url(with_credentials=True) + "/" + repodata_fn
-        full_path_cache = os.path.join(
-            create_cache_dir(),
-            cache_fn_url(full_url, repodata_fn),
-        )
-
-        sd = api.SubdirData(
-            channel.name + "/" + channel.subdir,
-            full_url,
-            full_path_cache,
-        )
-
-        sd.load()
-        index.append((sd, channel))
-        dlist.add(sd)
-
-    is_downloaded = dlist.download(True)
-
-    if not is_downloaded:
-        raise RuntimeError("Error downloading repodata.")
-
-    return index
-
-
 @dataclass(frozen=True)
 class FakePackage:
     name: str
@@ -430,7 +382,7 @@ class MambaSolver:
 
         _specs = [_norm_spec(s) for s in specs]
 
-        logger.info("MAMBA running solver for specs \n\n%s\n", pprint.pformat(_specs))
+        logger.debug("MAMBA running solver for specs \n\n%s\n", pprint.pformat(_specs))
 
         solver.add_jobs(_specs, api.SOLVER_INSTALL)
         success = solver.solve()
@@ -458,7 +410,7 @@ class MambaSolver:
                 )
 
             if get_run_exports:
-                logger.info(
+                logger.debug(
                     "MAMBA getting run exports for \n\n%s\n",
                     pprint.pformat(solution),
                 )
@@ -539,9 +491,19 @@ def virtual_package_repodata():
     return repodata.channel_url
 
 
+def _func(feedstock_dir, additional_channels, conn):
+    res = _is_recipe_solvable(
+        feedstock_dir,
+        additional_channels=additional_channels,
+    )
+    conn.send(res)
+    conn.close()
+
+
 def is_recipe_solvable(
     feedstock_dir,
     additional_channels=(),
+    timeout=600,
 ) -> Tuple[bool, List[str], Dict[str, bool]]:
     """Compute if a recipe is solvable.
 
@@ -554,6 +516,12 @@ def is_recipe_solvable(
     ----------
     feedstock_dir : str
         The directory of the feedstock.
+    additional_channels : list of str, optional
+        If given, these channels will be used in addition to the main ones.
+    timeout : int, optional
+        If not None, then the work will be run in a separate process and
+        this function will return True if the work doesn't complete before `timeout`
+        seconds.
 
     Returns
     -------
@@ -565,6 +533,47 @@ def is_recipe_solvable(
     solvable_by_variant : dict
         A lookup by variant config that shows if a particular config is solvable
     """
+    if timeout:
+        from multiprocessing import Process, Pipe
+
+        parent_conn, child_conn = Pipe()
+        p = Process(
+            target=_func,
+            args=(feedstock_dir, additional_channels, child_conn),
+        )
+        p.start()
+        if parent_conn.poll(timeout):
+            res = parent_conn.recv()
+        else:
+            logger.warning("MAMBA SOLVER TIMEOUT for %s", feedstock_dir)
+            res = (
+                True,
+                [],
+                {},
+            )
+
+        parent_conn.close()
+
+        p.join(0)
+        p.terminate()
+        p.kill()
+        try:
+            p.close()
+        except ValueError:
+            pass
+    else:
+        res = _is_recipe_solvable(
+            feedstock_dir,
+            additional_channels=additional_channels,
+        )
+
+    return res
+
+
+def _is_recipe_solvable(
+    feedstock_dir,
+    additional_channels=(),
+) -> Tuple[bool, List[str], Dict[str, bool]]:
 
     if not additional_channels:
         additional_channels = [virtual_package_repodata()]
@@ -697,7 +706,7 @@ def _is_recipe_solvable_on_platform(
 
     # here we extract the conda build config in roughly the same way that
     # it would be used in a real build
-    logger.info("rendering recipe with conda build")
+    logger.debug("rendering recipe with conda build")
 
     config = conda_build.config.get_or_merge_config(
         None,
@@ -722,13 +731,13 @@ def _is_recipe_solvable_on_platform(
 
     # now we loop through each one and check if we can solve it
     # we check run and host and ignore the rest
-    logger.info("getting mamba solver")
+    logger.debug("getting mamba solver")
     solver = _mamba_factory(tuple(channel_sources), f"{platform}-{arch}")
     solvable = True
     errors = []
     outnames = [m.name() for m, _, _ in metas]
     for m, _, _ in metas:
-        logger.info("checking recipe %s", m.name())
+        logger.debug("checking recipe %s", m.name())
 
         build_req = m.get_value("requirements/build", [])
         host_req = m.get_value("requirements/host", [])

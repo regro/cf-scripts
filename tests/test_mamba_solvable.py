@@ -473,3 +473,18 @@ def test_mamba_solver_hangs():
         ],
     )
     assert res[0]
+
+
+def test_arrow_solvable_timeout(tmp_path):
+    feedstock_dir = clone_and_checkout_repo(
+        tmp_path,
+        "https://github.com/conda-forge/arrow-cpp-feedstock",
+        ref="master",
+    )
+    solvable, errors, solvable_by_variant = is_recipe_solvable(
+        feedstock_dir,
+        timeout=10,
+    )
+    assert solvable
+    assert errors == []
+    assert solvable_by_variant == {}
