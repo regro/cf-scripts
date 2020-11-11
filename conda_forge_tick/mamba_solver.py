@@ -22,6 +22,7 @@ import copy
 import subprocess
 import atexit
 import time
+import cachetools
 from collections import defaultdict
 from dataclasses import dataclass, field
 from typing import Dict, Tuple, List, FrozenSet, Set, Iterable
@@ -400,6 +401,7 @@ class MambaSolver:
             platform=platform,
             strict_priority=True,
         )
+        self.cache = cachetools.LRUCache(1024)
 
     def solve(self, specs, get_run_exports=False) -> Tuple[bool, List[str]]:
         """Solve given a set of specs.
@@ -425,6 +427,10 @@ class MambaSolver:
             A dictionary with the weak and strong run exports for the packages.
             Only returned if get_run_exports is True.
         """
+        return self._solve(tuple(specs), get_run_exports=get_run_exports)
+
+    @cachetools.cachedmethod(lambda self: self.cache)
+    def _solve(self, specs, get_run_exports=False) -> Tuple[bool, List[str]]:
         solver_options = [(api.SOLVER_FLAG_ALLOW_DOWNGRADE, 1)]
         solver = api.Solver(self.pool, solver_options)
 
