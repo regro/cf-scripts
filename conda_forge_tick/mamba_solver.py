@@ -31,9 +31,6 @@ from ruamel.yaml import YAML
 import cachetools.func
 
 from conda.models.match_spec import MatchSpec
-from conda.models.channel import Channel
-from conda.core.index import calculate_channel_urls, check_whitelist
-from conda.core.subdir_data import cache_fn_url, create_cache_dir
 import conda_build.api
 import conda_package_handling.api
 
