@@ -489,12 +489,16 @@ def virtual_package_repodata():
 
 
 def _func(feedstock_dir, additional_channels, conn):
-    res = _is_recipe_solvable(
-        feedstock_dir,
-        additional_channels=additional_channels,
-    )
-    conn.send(res)
-    conn.close()
+    try:
+        res = _is_recipe_solvable(
+            feedstock_dir,
+            additional_channels=additional_channels,
+        )
+        conn.send(res)
+    except Exception as e:
+        conn.send(e)
+    finally:
+        conn.close()
 
 
 def is_recipe_solvable(
