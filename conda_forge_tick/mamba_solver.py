@@ -545,6 +545,12 @@ def is_recipe_solvable(
         p.start()
         if parent_conn.poll(timeout):
             res = parent_conn.recv()
+            if isinstance(res, Exception):
+                res = (
+                    False,
+                    [repr(res)],
+                    {},
+                )
         else:
             logger.warning("MAMBA SOLVER TIMEOUT for %s", feedstock_dir)
             res = (
