@@ -220,7 +220,8 @@ class Build2HostMigrator(MiniMigrator):
         run_reqs = attrs.get("requirements", {}).get("run", set())
         if (
             len(attrs.get("outputs_names", [])) <= 1
-            and "python" in build_reqs and "python" in run_reqs
+            and "python" in build_reqs
+            and "python" in run_reqs
             and not host_reqs
             and "host" not in attrs.get("meta_yaml", {}).get("requirements", {})
             and not any(
