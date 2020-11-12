@@ -520,6 +520,7 @@ def add_rebuild_migration_yaml(
             LicenseMigrator(),
             CondaForgeYAMLCleanup(),
             ExtraJinja2KeysCleanup(),
+            Build2HostMigrator(),
         ],
         **config,
     )
@@ -789,6 +790,7 @@ def initialize_migrators(
             LicenseMigrator(),
             CondaForgeYAMLCleanup(),
             ExtraJinja2KeysCleanup(),
+            Build2HostMigrator(),
         ],
     )
 
