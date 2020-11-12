@@ -242,14 +242,11 @@ class Build2HostMigrator(MiniMigrator):
             new_lines = []
             in_req = False
             for line in meta_yaml:
-                print(line)
                 if "requirements:" in line:
                     in_req = True
-                    print("    in req")
                 if in_req and line.strip().startswith("build:"):
                     start, rest = line.split("build:", 1)
                     line = start + "host:" + rest
-                    print("    did change:\n", line)
                     in_req = False
                 new_lines.append(line)
 
