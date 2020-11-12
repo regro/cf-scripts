@@ -217,6 +217,7 @@ class Build2HostMigrator(MiniMigrator):
     def filter(self, attrs: "AttrsTypedDict", not_bad_str_start: str = "") -> bool:
         build_reqs = attrs.get("requirements", {}).get("build", set())
         host_reqs = attrs.get("requirements", {}).get("host", set())
+        run_reqs = attrs.get("requirements", {}).get("run", set())
         if (
             len(attrs.get("outputs_names", [])) <= 1
             and "python" in build_reqs and "python" in run_reqs
