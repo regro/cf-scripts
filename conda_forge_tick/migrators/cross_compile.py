@@ -221,6 +221,7 @@ class Build2HostMigrator(MiniMigrator):
             len(attrs.get("outputs_names", [])) <= 1
             and build_reqs
             and not host_reqs
+            and "host" not in attrs.get("meta_yaml", {}).get("requirements", {})
             and not any(
                 c in build_reqs
                 for c in [
