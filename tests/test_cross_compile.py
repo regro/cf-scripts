@@ -7,6 +7,7 @@ from conda_forge_tick.migrators import (
     UpdateCMakeArgsMigrator,
     CrossPythonMigrator,
     Build2HostMigrator,
+    NoCondaInspectMigrator,
 )
 
 from test_migrators import run_test_migration
@@ -16,6 +17,7 @@ guard_testing_migrator = GuardTestingMigrator()
 cmake_migrator = UpdateCMakeArgsMigrator()
 cross_python_migrator = CrossPythonMigrator()
 b2h_migrator = Build2HostMigrator()
+nci_migrator = NoCondaInspectMigrator()
 
 version_migrator_autoconf = Version(
     set(),
@@ -44,6 +46,12 @@ version_migrator_b2h = Version(
     dict(),
     dict(),
     piggy_back_migrations=[b2h_migrator],
+)
+version_migrator_nci = Version(
+    set(),
+    dict(),
+    dict(),
+    piggy_back_migrations=[nci_migrator],
 )
 
 config_recipe = """\
@@ -755,6 +763,124 @@ extra:
 """  # noqa
 
 
+python_recipe_nci = """\
+{% set version = "1.19.0" %}
+
+package:
+  name: numpy
+  version: {{ version }}
+
+source:
+  url: https://github.com/numpy/numpy/releases/download/v{{ version }}/numpy-{{ version }}.tar.gz
+  sha256: 153cf8b0176e57a611931981acfe093d2f7fef623b48f91176efa199798a6b90
+
+build:
+  number: 0
+  skip: true  # [py27]
+  entry_points:
+    - f2py = numpy.f2py.f2py2e:main  # [win]
+
+requirements:
+  host:
+    - python
+    - pip
+    - cython
+    - libblas
+    - libcblas
+    - liblapack
+  run:
+    - python
+
+test:
+  requires:
+    - pytest
+    - hypothesis
+  commands:
+    - f2py -h
+    - export OPENBLAS_NUM_THREADS=1  # [unix]
+    - set OPENBLAS_NUM_THREADS=1  # [win]
+    - conda inspect linkages  # comment
+    - conda inspect objects  # comment
+    - conda inspect cars  # comment
+  imports:
+    - numpy
+    - numpy.linalg.lapack_lite
+
+about:
+  home: http://numpy.scipy.org/
+  license: BSD-3-Clause
+  license_file: LICENSE.txt
+  summary: Array processing for numbers, strings, records, and objects.
+  doc_url: https://docs.scipy.org/doc/numpy/reference/
+  dev_url: https://github.com/numpy/numpy
+
+extra:
+  recipe-maintainers:
+    - jakirkham
+    - msarahan
+    - pelson
+    - rgommers
+    - ocefpaf
+"""  # noqa
+
+python_recipe_nci_correct = """\
+{% set version = "1.19.1" %}
+
+package:
+  name: numpy
+  version: {{ version }}
+
+source:
+  url: https://github.com/numpy/numpy/releases/download/v{{ version }}/numpy-{{ version }}.tar.gz
+  sha256: 1396e6c3d20cbfc119195303b0272e749610b7042cc498be4134f013e9a3215c
+
+build:
+  number: 0
+  skip: true  # [py27]
+  entry_points:
+    - f2py = numpy.f2py.f2py2e:main  # [win]
+
+requirements:
+  host:
+    - python
+    - pip
+    - cython
+    - libblas
+    - libcblas
+    - liblapack
+  run:
+    - python
+
+test:
+  requires:
+    - pytest
+    - hypothesis
+  commands:
+    - f2py -h
+    - export OPENBLAS_NUM_THREADS=1  # [unix]
+    - set OPENBLAS_NUM_THREADS=1  # [win]
+  imports:
+    - numpy
+    - numpy.linalg.lapack_lite
+
+about:
+  home: http://numpy.scipy.org/
+  license: BSD-3-Clause
+  license_file: LICENSE.txt
+  summary: Array processing for numbers, strings, records, and objects.
+  doc_url: https://docs.scipy.org/doc/numpy/reference/
+  dev_url: https://github.com/numpy/numpy
+
+extra:
+  recipe-maintainers:
+    - jakirkham
+    - msarahan
+    - pelson
+    - rgommers
+    - ocefpaf
+"""  # noqa
+
+
 def test_correct_config_sub(tmpdir):
     with open(os.path.join(tmpdir, "build.sh"), "w") as f:
         f.write("#!/bin/bash\n./configure")
@@ -901,6 +1027,22 @@ def test_build2host_bhskip(tmpdir):
         m=version_migrator_b2h,
         inp=python_recipe_b2h_bhskip,
         output=python_recipe_b2h_bhskip_correct,
+        prb="Dependencies have been updated if changed",
+        kwargs={"new_version": "1.19.1"},
+        mr_out={
+            "migrator_name": "Version",
+            "migrator_version": Version.migrator_version,
+            "version": "1.19.1",
+        },
+        tmpdir=tmpdir,
+    )
+
+
+def test_nocondainspect(tmpdir):
+    run_test_migration(
+        m=version_migrator_nci,
+        inp=python_recipe_nci,
+        output=python_recipe_nci_correct,
         prb="Dependencies have been updated if changed",
         kwargs={"new_version": "1.19.1"},
         mr_out={
