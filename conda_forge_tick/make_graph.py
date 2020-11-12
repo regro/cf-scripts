@@ -290,6 +290,8 @@ def update_nodes_with_new_versions(gx):
                         [version_from_data, version_from_attrs],
                         key=lambda x: VersionOrder(x.replace("-", ".")),
                     )
+                else:
+                    attrs["new_version"] = version_from_data
 
 
 # @profiling
