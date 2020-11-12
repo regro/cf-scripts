@@ -20,4 +20,5 @@ from .cross_compile import (
     UpdateCMakeArgsMigrator,
     GuardTestingMigrator,
     CrossPythonMigrator,
+    Build2HostMigrator,
 )

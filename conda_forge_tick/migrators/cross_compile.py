@@ -1,17 +1,14 @@
 import os
-import re
-import tempfile
-import subprocess
 import typing
 from typing import Any
 import logging
 
-from rever.tools import replace_in_file
-
 from conda_forge_tick.xonsh_utils import indir
-from conda_forge_tick.utils import eval_cmd, _get_source_code
-from conda_forge_tick.recipe_parser import CondaMetaYAML
+from conda_forge_tick.utils import _get_source_code
 from conda_forge_tick.migrators.core import MiniMigrator
+
+if typing.TYPE_CHECKING:
+    from ..migrators_types import AttrsTypedDict
 
 LOGGER = logging.getLogger("conda_forge_tick.migrators.cross_compile")
 
@@ -212,3 +209,49 @@ class UpdateCMakeArgsMigrator(CrossCompilationMigratorBase):
 
             with open("build.sh", "w") as f:
                 f.write("".join(lines))
+
+
+class Build2HostMigrator(MiniMigrator):
+    post_migration = False
+
+    def filter(self, attrs: "AttrsTypedDict", not_bad_str_start: str = "") -> bool:
+        build_reqs = attrs.get("requirements", {}).get("build", set())
+        host_reqs = attrs.get("requirements", {}).get("host", set())
+        run_reqs = attrs.get("requirements", {}).get("run", set())
+        if (
+            len(attrs.get("outputs_names", [])) <= 1
+            and "python" in build_reqs
+            and "python" in run_reqs
+            and not host_reqs
+            and "host" not in attrs.get("meta_yaml", {}).get("requirements", {})
+            and not any(
+                c in build_reqs
+                for c in [
+                    "fortran_compiler_stub",
+                    "c_compiler_stub",
+                    "cxx_compiler_stub",
+                ]
+            )
+        ):
+            return False
+        else:
+            return True
+
+    def migrate(self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any) -> None:
+        with indir(recipe_dir):
+            with open("meta.yaml") as fp:
+                meta_yaml = fp.readlines()
+
+            new_lines = []
+            in_req = False
+            for line in meta_yaml:
+                if "requirements:" in line:
+                    in_req = True
+                if in_req and line.strip().startswith("build:"):
+                    start, rest = line.split("build:", 1)
+                    line = start + "host:" + rest
+                    in_req = False
+                new_lines.append(line)
+
+            with open("meta.yaml", "w") as f:
+                f.write("".join(new_lines))

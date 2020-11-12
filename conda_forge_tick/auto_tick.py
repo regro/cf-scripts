@@ -79,6 +79,7 @@ from conda_forge_tick.migrators import (
     UpdateCMakeArgsMigrator,
     GuardTestingMigrator,
     CrossPythonMigrator,
+    Build2HostMigrator,
 )
 
 from conda_forge_tick.mamba_solver import is_recipe_solvable
@@ -432,6 +433,7 @@ def add_arch_migrate(migrators: MutableSequence[Migrator], gx: nx.DiGraph) -> No
             pr_limit=PR_LIMIT,
             name="arm osx addition",
             piggy_back_migrations=[
+                Build2HostMigrator(),
                 UpdateConfigSubGuessMigrator(),
                 CondaForgeYAMLCleanup(),
                 UpdateCMakeArgsMigrator(),
