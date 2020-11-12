@@ -21,4 +21,5 @@ from .cross_compile import (
     GuardTestingMigrator,
     CrossPythonMigrator,
     Build2HostMigrator,
+    NoInspectLinkeagesMigrator,
 )

@@ -255,3 +255,27 @@ class Build2HostMigrator(MiniMigrator):
 
             with open("meta.yaml", "w") as f:
                 f.write("".join(new_lines))
+
+
+class NoInspectLinkeagesMigrator(MiniMigrator):
+    post_migration = True
+
+    def filter(self, attrs: "AttrsTypedDict", not_bad_str_start: str = "") -> bool:
+        if "conda inspect linkages" in attrs.get("raw_meta_yaml", ""):
+            return False
+        else:
+            return True
+
+    def migrate(self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any) -> None:
+        with indir(recipe_dir):
+            with open("meta.yaml") as fp:
+                meta_yaml = fp.readlines()
+
+            new_lines = []
+            for line in meta_yaml:
+                if "conda inspect linkages" in line:
+                    continue
+                new_lines.append(line)
+
+            with open("meta.yaml", "w") as f:
+                f.write("".join(new_lines))
