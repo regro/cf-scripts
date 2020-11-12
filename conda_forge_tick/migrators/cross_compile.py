@@ -218,7 +218,7 @@ class Build2HostMigrator(MiniMigrator):
         build_reqs = attrs.get("requirements", {}).get("build", set())
         host_reqs = attrs.get("requirements", {}).get("host", set())
         if (
-            len(attrs.get("output_names", [])) <= 1
+            len(attrs.get("outputs_names", [])) <= 1
             and build_reqs
             and not host_reqs
             and not any(
