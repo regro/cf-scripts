@@ -290,7 +290,7 @@ def update_nodes_with_new_versions(gx):
                         "new_version": max(
                             [version_from_data, version_from_attrs],
                             key=lambda x: VersionOrder(x.replace("-", ".")),
-                        )
+                        ),
                     }
                     attrs.update(version_update_data)
 
