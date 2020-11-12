@@ -285,6 +285,8 @@ def update_nodes_with_new_versions(gx):
             version_from_attrs = attrs.get("new_version", False)
             # don't update the version if it isn't newer
             if version_from_data and isinstance(version_from_data, str):
+                # we only override the graph node if the version we found is newer
+                # or the graph doesn't have a valid version
                 if isinstance(version_from_attrs, str):
                     attrs["new_version"] = max(
                         [version_from_data, version_from_attrs],
