@@ -669,12 +669,6 @@ requirements:
   build:
     - {{ compiler('c') }}
   host:
-    - python
-    - pip
-    - cython
-    - libblas
-    - libcblas
-    - liblapack
   run:
     - python
 
@@ -728,12 +722,6 @@ requirements:
   build:
     - {{ compiler('c') }}
   host:
-    - python
-    - pip
-    - cython
-    - libblas
-    - libcblas
-    - liblapack
   run:
     - python
 
