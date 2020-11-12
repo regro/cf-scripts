@@ -202,9 +202,7 @@ class UpdateCMakeArgsMigrator(CrossCompilationMigratorBase):
 
             for i, line in enumerate(lines):
                 if line.startswith("cmake "):
-                    lines[i] = (
-                        "cmake ${CMAKE_ARGS} " + line[len("cmake ") :]
-                    )  # noqa: E203 E501
+                    lines[i] = "cmake ${CMAKE_ARGS} " + line[len("cmake ") :]
                     break
             else:
                 return
