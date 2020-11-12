@@ -202,7 +202,7 @@ class UpdateCMakeArgsMigrator(CrossCompilationMigratorBase):
 
             for i, line in enumerate(lines):
                 if line.startswith("cmake "):
-                    lines[i] = "cmake ${CMAKE_ARGS} " + line[len("cmake ") :]
+                    lines[i] = "cmake ${CMAKE_ARGS} " + line[len("cmake ") :]  # noqa: E203 E501
                     break
             else:
                 return
@@ -257,11 +257,11 @@ class Build2HostMigrator(MiniMigrator):
                 f.write("".join(new_lines))
 
 
-class NoInspectLinkeagesMigrator(MiniMigrator):
+class NoCondaInspectMigrator(MiniMigrator):
     post_migration = True
 
     def filter(self, attrs: "AttrsTypedDict", not_bad_str_start: str = "") -> bool:
-        if "conda inspect linkages" in attrs.get("raw_meta_yaml", ""):
+        if "conda inspect" in attrs.get("raw_meta_yaml", ""):
             return False
         else:
             return True
@@ -273,7 +273,7 @@ class NoInspectLinkeagesMigrator(MiniMigrator):
 
             new_lines = []
             for line in meta_yaml:
-                if "conda inspect linkages" in line:
+                if "conda inspect" in line:
                     continue
                 new_lines.append(line)
 

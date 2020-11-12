@@ -80,7 +80,7 @@ from conda_forge_tick.migrators import (
     GuardTestingMigrator,
     CrossPythonMigrator,
     Build2HostMigrator,
-    NoInspectLinkeagesMigrator,
+    NoCondaInspectMigrator,
 )
 
 from conda_forge_tick.mamba_solver import is_recipe_solvable
@@ -440,7 +440,7 @@ def add_arch_migrate(migrators: MutableSequence[Migrator], gx: nx.DiGraph) -> No
                 UpdateCMakeArgsMigrator(),
                 GuardTestingMigrator(),
                 CrossPythonMigrator(),
-                NoInspectLinkeagesMigrator(),
+                NoCondaInspectMigrator(),
             ],
         ),
     )

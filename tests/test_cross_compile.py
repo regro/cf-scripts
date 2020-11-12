@@ -7,7 +7,7 @@ from conda_forge_tick.migrators import (
     UpdateCMakeArgsMigrator,
     CrossPythonMigrator,
     Build2HostMigrator,
-    NoInspectLinkeagesMigrator,
+    NoCondaInspectMigrator,
 )
 
 from test_migrators import run_test_migration
@@ -17,7 +17,7 @@ guard_testing_migrator = GuardTestingMigrator()
 cmake_migrator = UpdateCMakeArgsMigrator()
 cross_python_migrator = CrossPythonMigrator()
 b2h_migrator = Build2HostMigrator()
-nil_migrator = NoInspectLinkeagesMigrator()
+nci_migrator = NoCondaInspectMigrator()
 
 version_migrator_autoconf = Version(
     set(),
@@ -47,11 +47,11 @@ version_migrator_b2h = Version(
     dict(),
     piggy_back_migrations=[b2h_migrator],
 )
-version_migrator_noinspectlinkages = Version(
+version_migrator_nci = Version(
     set(),
     dict(),
     dict(),
-    piggy_back_migrations=[nil_migrator],
+    piggy_back_migrations=[nci_migrator],
 )
 
 config_recipe = """\
@@ -763,7 +763,7 @@ extra:
 """  # noqa
 
 
-python_recipe_noinspectlinkages = """\
+python_recipe_nci = """\
 {% set version = "1.19.0" %}
 
 package:
@@ -800,6 +800,8 @@ test:
     - export OPENBLAS_NUM_THREADS=1  # [unix]
     - set OPENBLAS_NUM_THREADS=1  # [win]
     - conda inspect linkages  # comment
+    - conda inspect objects  # comment
+    - conda inspect cars  # comment
   imports:
     - numpy
     - numpy.linalg.lapack_lite
@@ -821,7 +823,7 @@ extra:
     - ocefpaf
 """  # noqa
 
-python_recipe_noinspectlinkages_correct = """\
+python_recipe_nci_correct = """\
 {% set version = "1.19.1" %}
 
 package:
@@ -1036,11 +1038,11 @@ def test_build2host_bhskip(tmpdir):
     )
 
 
-def test_noinspectlinkages(tmpdir):
+def test_nocondainspect(tmpdir):
     run_test_migration(
-        m=version_migrator_noinspectlinkages,
-        inp=python_recipe_noinspectlinkages,
-        output=python_recipe_noinspectlinkages_correct,
+        m=version_migrator_nci,
+        inp=python_recipe_nci,
+        output=python_recipe_nci_correct,
         prb="Dependencies have been updated if changed",
         kwargs={"new_version": "1.19.1"},
         mr_out={
