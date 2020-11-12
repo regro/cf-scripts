@@ -20,7 +20,7 @@ from .update_sources import (
 from typing import Any, Iterable
 
 # conda_forge_tick :: cft
-logger = logging.getLogger("conda-forge-tick._update_versions")
+logger = logging.getLogger("conda-forge-tick.update_upstream_versions")
 
 
 def get_latest_version(
@@ -28,10 +28,10 @@ def get_latest_version(
     meta_yaml: Any,
     sources: Iterable[AbstractSource],
 ) -> dict:
-    version_data = {}
-    # avoid
+    version_data = {"new_version": False}
+
+    # avoid this one since it runs too long and hangs the bot
     if name == "ca-policy-lcg":
-        version_data["new_version"] = False
         return version_data
 
     for source in sources:
@@ -44,20 +44,11 @@ def get_latest_version(
         logger.debug("ver: %s", ver)
         if ver:
             version_data["new_version"] = ver
-            return version_data
+            break
         else:
             logger.debug(f"Upstream: Could not find version on {source.name}")
-            version_data["bad"] = f"Upstream: Could not find version on {source.name}"
-    if not meta_yaml.get("bad"):
-        logger.debug("Upstream: unknown source")
-        version_data["bad"] = "Upstream: unknown source or URL not in YAML"
 
-    version_data["new_version"] = False
     return version_data
-
-
-# It's expected that your environment provide this info.
-CONDA_FORGE_TICK_DEBUG = os.environ.get("CONDA_FORGE_TICK_DEBUG", False)
 
 
 def _update_upstream_versions_sequential(
@@ -95,7 +86,8 @@ def _update_upstream_versions_sequential(
             version_data["bad"] = "Upstream: Error getting upstream version"
         else:
             logger.info(
-                f"# {node_count:<5} - {node} - {attrs.get('version')} - {version_data.get('new_version')}",
+                f"# {node_count:<5} - {node} - {attrs.get('version')} "
+                f"- {version_data.get('new_version')}",
             )
 
         logger.debug("writing out file")
@@ -177,6 +169,7 @@ def _update_upstream_versions_process_pool(
 def update_upstream_versions(
     gx: nx.DiGraph,
     sources: Iterable[AbstractSource] = None,
+    debug: bool = False,
 ) -> None:
     sources = (
         (PyPI(), CRAN(), NPM(), ROSDistro(), RawURL(), Github())
@@ -185,7 +178,7 @@ def update_upstream_versions(
     )
     updater = (
         _update_upstream_versions_sequential
-        if CONDA_FORGE_TICK_DEBUG
+        if debug
         else _update_upstream_versions_process_pool
     )
     logger.info("Updating upstream versions")
@@ -193,7 +186,7 @@ def update_upstream_versions(
 
 
 def main(args: Any = None) -> None:
-    if CONDA_FORGE_TICK_DEBUG:
+    if args.debug:
         setup_logger(logger, level="debug")
     else:
         setup_logger(logger)
@@ -205,7 +198,7 @@ def main(args: Any = None) -> None:
     # Check if 'versions' folder exists or create a new one;
     os.makedirs("versions", exist_ok=True)
     # call update
-    update_upstream_versions(gx)
+    update_upstream_versions(gx, debug=args.debug)
 
 
 if __name__ == "__main__":

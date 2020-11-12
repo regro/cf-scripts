@@ -285,14 +285,15 @@ def update_nodes_with_new_versions(gx):
             version_from_attrs = attrs.get("new_version", False)
             # don't update the version if it isn't newer
             if version_from_data and isinstance(version_from_data, str):
+                # we only override the graph node if the version we found is newer
+                # or the graph doesn't have a valid version
                 if isinstance(version_from_attrs, str):
-                    version_data["new_version"] = max(
+                    attrs["new_version"] = max(
                         [version_from_data, version_from_attrs],
                         key=lambda x: VersionOrder(x.replace("-", ".")),
                     )
-            elif "new_version" in version_data:
-                version_data.pop("new_version")
-            attrs.update(version_data)
+                else:
+                    attrs["new_version"] = version_from_data
 
 
 # @profiling
