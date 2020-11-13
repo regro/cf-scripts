@@ -5,6 +5,8 @@ import typing
 import threading
 import github3
 
+from typing import Union
+
 if typing.TYPE_CHECKING:
     from conda_forge_tick.migrators import Migrator
     from conda_forge_tick.migrators_types import AttrsTypedDict
@@ -29,6 +31,16 @@ class GithubContext:
             setattr(self._tl, "gh", gh)
         return self._tl.gh
 
+    @property
+    def gh_api_requests_left(self) -> Union[int, None]:
+        """The remaining API requests left. Returns None if there is an exception"""
+        try:
+            left = self.gh.rate_limit()["resources"]["core"]["remaining"]
+        except Exception:
+            left = None
+
+        return left
+
 
 @dataclass
 class MigratorSessionContext(GithubContext):
@@ -44,7 +56,9 @@ class MigratorSessionContext(GithubContext):
 
 @dataclass
 class MigratorContext:
-    """The context for a given migrator.  This houses the runtime information that a migrator needs"""
+    """The context for a given migrator.
+    This houses the runtime information that a migrator needs
+    """
 
     session: MigratorSessionContext
     migrator: "Migrator"

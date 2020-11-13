@@ -927,7 +927,7 @@ def main(args: "CLIArgs") -> None:
             flush=True,
         )
         print(
-            "Running migrations for %s%s: %d"
+            "Running migrations for %s%s: %d\n"
             % (
                 migrator.__class__.__name__,
                 extra_name,
@@ -1000,10 +1000,7 @@ def main(args: "CLIArgs") -> None:
                         )
                         try:
                             # Don't bother running if we are at zero
-                            if (
-                                mctx.gh.rate_limit()["resources"]["core"]["remaining"]
-                                == 0
-                            ):
+                            if mctx.gh_api_requests_left == 0:
                                 break
                             migrator_uid, pr_json = run(
                                 feedstock_ctx=fctx,
@@ -1101,15 +1098,12 @@ def main(args: "CLIArgs") -> None:
                             except Exception:
                                 pass
 
-                if mctx.gh.rate_limit()["resources"]["core"]["remaining"] == 0:
+                if mctx.gh_api_requests_left == 0:
                     break
 
-        print(" ", flush=True)
+        print("\n", flush=True)
 
-    logger.info(
-        "API Calls Remaining: %d",
-        mctx.gh.rate_limit()["resources"]["core"]["remaining"],
-    )
+    logger.info("API Calls Remaining: %d", mctx.gh_api_requests_left)
     logger.info("Done")
 
 
