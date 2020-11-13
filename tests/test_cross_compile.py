@@ -115,7 +115,7 @@ build:
 requirements:
   build:
     - pkg-config
-    - libtool  # [unix]
+    - gnuconfig  # [unix]
     - {{ compiler('c') }}
     - make
     - cmake
@@ -920,7 +920,7 @@ def test_make_check(tmpdir):
     expected = [
         "#!/bin/bash\n",
         "# Get an updated config.sub and config.guess\n",
-        "cp $BUILD_PREFIX/share/libtool/build-aux/config.* ./support\n",
+        "cp $BUILD_PREFIX/share/gnuconfig/config.* ./support\n",
         'if [[ "${CONDA_BUILD_CROSS_COMPILATION}" != "1" ]]; then\n',
         "make check\n",
         "fi\n",

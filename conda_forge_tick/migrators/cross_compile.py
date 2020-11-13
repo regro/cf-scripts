@@ -32,7 +32,10 @@ class CrossCompilationMigratorBase(MiniMigrator):
 
 class UpdateConfigSubGuessMigrator(CrossCompilationMigratorBase):
     def migrate(self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any) -> None:
-        if attrs["feedstock_name"] == "libtool" || attrs["feedstock_name"] == "gnuconfig":
+        if (
+            attrs["feedstock_name"] == "libtool"
+            or attrs["feedstock_name"] == "gnuconfig"
+        ):
             return
         cb_work_dir = _get_source_code(recipe_dir)
         if cb_work_dir is None:
@@ -67,7 +70,11 @@ class UpdateConfigSubGuessMigrator(CrossCompilationMigratorBase):
                         for word in line.split(" "):
                             if word == "--force":
                                 return
-                            if word.startwith("-") and not word.startwith("--") and "f" in word:
+                            if (
+                                word.startwith("-")
+                                and not word.startwith("--")
+                                and "f" in word
+                            ):
                                 return
                     if line.strip().startswith("./autogen.sh"):
                         return
