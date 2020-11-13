@@ -32,7 +32,7 @@ class CrossCompilationMigratorBase(MiniMigrator):
 
 class UpdateConfigSubGuessMigrator(CrossCompilationMigratorBase):
     def migrate(self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any) -> None:
-        if attrs["feedstock_name"] == "libtool":
+        if attrs["feedstock_name"] == "libtool" || attrs["feedstock_name"] == "gnuconfig":
             return
         cb_work_dir = _get_source_code(recipe_dir)
         if cb_work_dir is None:
@@ -56,11 +56,19 @@ class UpdateConfigSubGuessMigrator(CrossCompilationMigratorBase):
                 lines = list(f.readlines())
                 for line in lines:
                     if line.strip().startswith(
+                        "cp $BUILD_PREFIX/share/gnuconfig",
+                    ):
+                        return
+                    if line.strip().startswith(
                         "cp $BUILD_PREFIX/share/libtool/build-aux/config",
                     ):
                         return
                     if line.strip().startswith("autoreconf"):
-                        return
+                        for word in line.split(" "):
+                            if word == "--force":
+                                return
+                            if word.startwith("-") and not word.startwith("--") and "f" in word:
+                                return
                     if line.strip().startswith("./autogen.sh"):
                         return
                 insert_at = 0
@@ -69,7 +77,7 @@ class UpdateConfigSubGuessMigrator(CrossCompilationMigratorBase):
                 for d in directories:
                     lines.insert(
                         insert_at,
-                        f"cp $BUILD_PREFIX/share/libtool/build-aux/config.* {d}\n",
+                        f"cp $BUILD_PREFIX/share/gnuconfig/config.* {d}\n",
                     )
                 lines.insert(
                     insert_at,
@@ -83,7 +91,7 @@ class UpdateConfigSubGuessMigrator(CrossCompilationMigratorBase):
             for i, line in enumerate(lines):
                 if line.strip().startswith("- {{ compiler"):
                     new_line = " " * (len(line) - len(line.lstrip()))
-                    new_line += "- libtool  # [unix]\n"
+                    new_line += "- gnuconfig  # [unix]\n"
                     lines.insert(i, new_line)
                     break
 
@@ -103,9 +111,9 @@ class GuardTestingMigrator(CrossCompilationMigratorBase):
                 if "CONDA_BUILD_CROSS_COMPILATION" in line:
                     return
                 if (
-                    line.startswith("make check")
-                    or line.startswith("ctest")
-                    or line.startswith("make test")
+                    line.strip().startswith("make check")
+                    or line.strip().startswith("ctest")
+                    or line.strip().startswith("make test")
                 ):
                     lines.insert(
                         i,
