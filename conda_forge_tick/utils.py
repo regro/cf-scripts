@@ -765,8 +765,9 @@ def populate_feedstock_attributes(
             # aggregated meta_yaml
             if "requirements" in varient_yamls[-1]:
                 for section in ["build", "host", "run"]:
-                    val = varient_yamls[-1]["requirements"].get(section, [])
-                    varient_yamls[-1]["requirements"][section] = val or []
+                    if section in varient_yamls[-1]["requirements"]:
+                        val = varient_yamls[-1]["requirements"].get(section, [])
+                        varient_yamls[-1]["requirements"][section] = val or []
 
             # collapse them down
             final_cfgs = {}
