@@ -765,6 +765,9 @@ def populate_feedstock_attributes(
             # aggregated meta_yaml
             if "requirements" in varient_yamls[-1]:
                 for section in ["build", "host", "run"]:
+                    # We make sure to set a section only if it is actually in
+                    # the recipe. Adding a section when it is not there might
+                    # confuse migrators trying to move CB2 recipes to CB3.
                     if section in varient_yamls[-1]["requirements"]:
                         val = varient_yamls[-1]["requirements"].get(section, [])
                         varient_yamls[-1]["requirements"][section] = val or []
