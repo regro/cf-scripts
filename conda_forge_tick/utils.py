@@ -761,6 +761,13 @@ def populate_feedstock_attributes(
                 ),
             )
 
+            # sometimes the requirements come out to None and this ruins the
+            # aggregated meta_yaml
+            if "requirements" in varient_yamls[-1]:
+                for section in ["build", "host", "run"]:
+                    val = varient_yamls[-1]["requirements"].get(section, [])
+                    varient_yamls[-1]["requirements"][section] = val or []
+
             # collapse them down
             final_cfgs = {}
             for plat_arch, varyml in zip(plat_arch, varient_yamls):
