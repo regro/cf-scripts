@@ -349,7 +349,7 @@ class Migrator:
             d["migrator_object_version"] = self.obj_version
 
         branch = attrs.get("branch", "master")
-        if attrs.get("branch", "master") != "master":
+        if branch != "master":
             d["branch"] = branch
 
         return d
