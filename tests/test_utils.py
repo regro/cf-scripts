@@ -38,6 +38,15 @@ def test_lazy_json(tmpdir):
     with open(f) as ff:
         assert ff.read() == dumps({"hi": "globe", "lst": ["universe"] * 4})
 
+    with lj as attrs:
+        with lj as attrs_again:
+            attrs_again.setdefault("lst2", []).append("universe")
+            attrs.setdefault("lst2", []).append("universe")
+    with open(f) as ff:
+        assert ff.read() == dumps(
+            {"hi": "globe", "lst": ["universe"] * 4, "lst2": ["universe"] * 2},
+        )
+
 
 def test_get_requirements():
     meta_yaml = {
