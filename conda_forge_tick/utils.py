@@ -174,13 +174,14 @@ class LazyJson(MutableMapping):
                 print(os.listdir("."))
                 raise
 
-    def _dump(self) -> None:
+    def _dump(self, purge=False) -> None:
         self._load()
         with open(self.file_name, "w") as f:
             dump(self.data, f)
-        # this evicts the josn from memory and trades i/o for mem
-        # the bot uses too much mem if we don't do this
-        self.data = None
+        if purge:
+            # this evicts the josn from memory and trades i/o for mem
+            # the bot uses too much mem if we don't do this
+            self.data = None
 
     def __getitem__(self, item: Any) -> Any:
         self._load()
@@ -202,7 +203,7 @@ class LazyJson(MutableMapping):
         return self
 
     def __exit__(self, *args: Any) -> Any:
-        self._dump()
+        self._dump(purge=True)
 
 
 def render_meta_yaml(text: str, for_pinning=False, **kwargs) -> str:
