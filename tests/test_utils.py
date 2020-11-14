@@ -25,6 +25,28 @@ def test_lazy_json(tmpdir):
     assert not getattr(lj2, "data", None)
     assert lj2["hi"] == "globe"
 
+    with lj as attrs:
+        attrs.setdefault("lst", []).append("universe")
+    with open(f) as ff:
+        assert ff.read() == dumps({"hi": "globe", "lst": ["universe"]})
+
+    with lj as attrs:
+        attrs.setdefault("lst", []).append("universe")
+        with lj as attrs_again:
+            attrs_again.setdefault("lst", []).append("universe")
+            attrs.setdefault("lst", []).append("universe")
+    with open(f) as ff:
+        assert ff.read() == dumps({"hi": "globe", "lst": ["universe"] * 4})
+
+    with lj as attrs:
+        with lj as attrs_again:
+            attrs_again.setdefault("lst2", []).append("universe")
+            attrs.setdefault("lst2", []).append("universe")
+    with open(f) as ff:
+        assert ff.read() == dumps(
+            {"hi": "globe", "lst": ["universe"] * 4, "lst2": ["universe"] * 2},
+        )
+
 
 def test_get_requirements():
     meta_yaml = {
