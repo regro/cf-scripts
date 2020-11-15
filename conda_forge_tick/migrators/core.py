@@ -348,6 +348,11 @@ class Migrator:
         # Carveout for old migrators w/o obj_versions
         if self.obj_version:
             d["migrator_object_version"] = self.obj_version
+
+        branch = attrs.get("branch", "master")
+        if branch != "master":
+            d["branch"] = branch
+
         return d
 
     def order(
