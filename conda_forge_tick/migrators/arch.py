@@ -291,7 +291,7 @@ class OSXArm(GraphMigrator):
 
         **Feel free to merge the PR if CI is all green, but please don't close it
         without reaching out the the ARM OSX team first at @conda-forge/help-osx-arm64.**
-        """,
+        """,  # noqa
             ),
         )
         return body

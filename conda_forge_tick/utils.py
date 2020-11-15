@@ -701,7 +701,7 @@ def populate_feedstock_attributes(
     If the return is bad hand the response itself in so that it can be parsed
     for meaning.
     """
-    sub_graph.update({"feedstock_name": name, "bad": False})
+    sub_graph.update({"feedstock_name": name, "bad": False, "branch": "master"})
 
     if mark_not_archived:
         sub_graph.update({"archived": False})
