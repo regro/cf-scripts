@@ -71,8 +71,8 @@ class UpdateConfigSubGuessMigrator(CrossCompilationMigratorBase):
                             if word == "--force":
                                 return
                             if (
-                                word.startwith("-")
-                                and not word.startwith("--")
+                                word.startswith("-")
+                                and not word.startswith("--")
                                 and "f" in word
                             ):
                                 return
