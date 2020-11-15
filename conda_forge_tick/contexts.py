@@ -70,13 +70,35 @@ class MigratorContext:
 
     @property
     def effective_graph(self) -> DiGraph:
+        # guard this for circular imports
+        from conda_forge_tick.migrators import Version
+
         if self._effective_graph is None:
             gx2 = copy.deepcopy(getattr(self.migrator, "graph", self.session.graph))
 
             # Prune graph to only things that need builds right now
             for node, node_attrs in self.session.graph.nodes.items():
-                attrs = node_attrs.get("payload", {})
-                if node in gx2 and self.migrator.filter(attrs):
+                with node_attrs["payload"] as attrs:
+                    if not isinstance(self.migrator, Version):
+                        base_branches = (
+                            attrs.get("conda-forge.yml", {})
+                            .get("bot", {})
+                            .get("abi_migration_branches", [])
+                        )
+                    else:
+                        base_branches = []
+                    base_branches = ["master"] + base_branches
+
+                    filters = []
+                    try:
+                        orig_branch = attrs.get("branch", "master")
+                        for base_branch in base_branches:
+                            attrs["branch"] = base_branch
+                            filters.append(self.migrator.filter(attrs))
+                    finally:
+                        attrs["branch"] = orig_branch
+
+                if node in gx2 and filters and all(filters):
                     gx2.remove_node(node)
             self._effective_graph = gx2
         return self._effective_graph
