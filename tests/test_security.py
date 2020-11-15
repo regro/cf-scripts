@@ -6,7 +6,7 @@ def test_env_is_protected_against_malicious_recipes(tmpdir, caplog, env_setup):
     from conda_forge_tick.xonsh_utils import indir
     import logging
 
-    from conda_forge_tick.utils import populate_feedstock_attributes
+    from conda_forge_tick.feedstock_parser import populate_feedstock_attributes
 
     malicious_recipe = """\
     {% set version = "0" %}
