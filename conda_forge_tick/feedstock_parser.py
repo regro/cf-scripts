@@ -23,7 +23,7 @@ if typing.TYPE_CHECKING:
 
 from .utils import as_iterable, parse_meta_yaml
 
-LOOGER = logging.getLogger("conda_forge_tick.feedstock_parser")
+LOGGER = logging.getLogger("conda_forge_tick.feedstock_parser")
 
 PIN_SEP_PAT = re.compile(r" |>|<|=|\[")
 
@@ -47,7 +47,6 @@ def _get_requirements(
         requirememts.
     build, host, run : `bool`
         include (`True`) or not (`False`) requirements from these sections
-
     Returns
     -------
     reqs : `set`
@@ -115,7 +114,7 @@ def _fetch_static_repo(name, dest):
         f"https://github.com/conda-forge/{name}-feedstock/archive/master.zip",
     )
     if r.status_code != 200:
-        LOOGER.error(
+        LOGGER.error(
             f"Something odd happened when fetching feedstock {name}: {r.status_code}",
         )
         return r
@@ -146,7 +145,7 @@ def populate_feedstock_attributes(
     If the return is bad hand the response itself in so that it can be parsed
     for meaning.
     """
-    sub_graph.update({"feedstock_name": name, "bad": False})
+    sub_graph.update({"feedstock_name": name, "bad": False, "branch": "master"})
 
     if mark_not_archived:
         sub_graph.update({"archived": False})
@@ -246,7 +245,7 @@ def populate_feedstock_attributes(
     sorted_varient_yamls = [x for _, x in sorted(zip(plat_arch, varient_yamls))]
     yaml_dict = ChainDB(*sorted_varient_yamls)
     if not yaml_dict:
-        LOOGER.error(f"Something odd happened when parsing recipe {name}")
+        LOGGER.error(f"Something odd happened when parsing recipe {name}")
         sub_graph["bad"] = "make_graph: Could not parse"
         return sub_graph
 
@@ -269,7 +268,7 @@ def populate_feedstock_attributes(
         sub_graph["outputs_names"] = set(
             list({d.get("name", "") for d in yaml_dict["outputs"]}),
         )
-    # one output so grab its name
+    # add in single package name
     else:
         sub_graph["outputs_names"] = {meta_yaml["package"]["name"]}
 
