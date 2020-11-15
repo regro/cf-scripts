@@ -75,8 +75,18 @@ class MigratorContext:
 
             # Prune graph to only things that need builds right now
             for node, node_attrs in self.session.graph.nodes.items():
-                attrs = node_attrs.get("payload", {})
-                if node in gx2 and self.migrator.filter(attrs):
+                with node_attrs["payload"] as attrs:
+                    base_branches = self.migrator.get_possible_feedstock_branches(attrs)
+                    filters = []
+                    try:
+                        orig_branch = attrs.get("branch", "master")
+                        for base_branch in base_branches:
+                            attrs["branch"] = base_branch
+                            filters.append(self.migrator.filter(attrs))
+                    finally:
+                        attrs["branch"] = orig_branch
+
+                if node in gx2 and filters and all(filters):
                     gx2.remove_node(node)
             self._effective_graph = gx2
         return self._effective_graph

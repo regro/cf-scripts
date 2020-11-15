@@ -958,15 +958,7 @@ def main(args: "CLIArgs") -> None:
 
         for node_name in possible_nodes:
             with mctx.graph.nodes[node_name]["payload"] as attrs:
-                if not isinstance(migrator, Version):
-                    base_branches = (
-                        attrs.get("conda-forge.yml", {})
-                        .get("bot", {})
-                        .get("abi_migration_branches", [])
-                    )
-                else:
-                    base_branches = []
-                base_branches = ["master"] + base_branches
+                base_branches = migrator.get_possible_feedstock_branches(attrs)
                 orig_branch = attrs.get("branch", "master")
 
                 # Don't let CI timeout, break ahead of the timeout so we make certain
