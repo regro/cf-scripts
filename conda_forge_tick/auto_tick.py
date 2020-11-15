@@ -983,6 +983,10 @@ def main(args: "CLIArgs") -> None:
 
                 try:
                     for base_branch in base_branches:
+                        attrs["branch"] = base_branch
+                        if migrator.filter(attrs):
+                            continue
+
                         print("\n", flush=True, end="")
                         logger.info(
                             "%s%s IS MIGRATING %s:%s",
@@ -991,7 +995,6 @@ def main(args: "CLIArgs") -> None:
                             fctx.package_name,
                             base_branch,
                         )
-                        attrs["branch"] = base_branch
                         try:
                             # Don't bother running if we are at zero
                             if mctx.gh_api_requests_left == 0:
