@@ -37,7 +37,10 @@ class UpdateConfigSubGuessMigrator(CrossCompilationMigratorBase):
             or attrs["feedstock_name"] == "gnuconfig"
         ):
             return
-        cb_work_dir = _get_source_code(recipe_dir)
+        try:
+            cb_work_dir = _get_source_code(recipe_dir)
+        except RuntimeError:
+            return
         if cb_work_dir is None:
             return
         directories = set()
@@ -71,8 +74,8 @@ class UpdateConfigSubGuessMigrator(CrossCompilationMigratorBase):
                             if word == "--force":
                                 return
                             if (
-                                word.startwith("-")
-                                and not word.startwith("--")
+                                word.startswith("-")
+                                and not word.startswith("--")
                                 and "f" in word
                             ):
                                 return

@@ -983,6 +983,7 @@ def main(args: "CLIArgs") -> None:
                 else:
                     base_branches = []
                 base_branches = ["master"] + base_branches
+                orig_branch = attrs.get("branch", "master")
 
                 # Don't let CI timeout, break ahead of the timeout so we make certain
                 # to write to the repo
@@ -1014,6 +1015,7 @@ def main(args: "CLIArgs") -> None:
                             fctx.package_name,
                             base_branch,
                         )
+                        attrs["branch"] = base_branch
                         try:
                             # Don't bother running if we are at zero
                             if mctx.gh_api_requests_left == 0:
@@ -1101,6 +1103,9 @@ def main(args: "CLIArgs") -> None:
                                 # On successful PR add to our counter
                                 good_prs += 1
                 finally:
+                    # reset branch
+                    attrs["branch"] = orig_branch
+
                     # Write graph partially through
                     if not args.dry_run:
                         dump_graph(mctx.graph)
