@@ -120,11 +120,8 @@ def fetch_repo(*, feedstock_dir, origin, upstream, branch, base_branch="master")
     def _run_git_cmd(cmd):
         return subprocess.run(cmd, shell=True, check=True)
 
+    quiet = "--quiet"
     with indir(feedstock_dir):
-        # fetch remote changes
-        _run_git_cmd(f"git fetch {origin} --quiet")
-
-        # make sure feedstock is up-to-date with upstream
         # doesn't work if the upstream already exists
         try:
             # always run upstream
@@ -132,23 +129,24 @@ def fetch_repo(*, feedstock_dir, origin, upstream, branch, base_branch="master")
         except subprocess.CalledProcessError:
             pass
 
-        _run_git_cmd(f"git fetch {upstream} {base_branch} --quiet")
+        # fetch remote changes
+        _run_git_cmd(f"git fetch --all {quiet}")
         try:
-            _run_git_cmd(f"git checkout {base_branch} --quiet")
+            _run_git_cmd(f"git checkout {base_branch} {quiet}")
         except subprocess.CalledProcessError:
             _run_git_cmd(
-                f"git checkout -b {base_branch} upstream/{base_branch} --quiet",
+                f"git checkout -b {base_branch} upstream/{base_branch} {quiet}",
             )
-        _run_git_cmd(f"git pull {upstream} {base_branch} --quiet")
+        _run_git_cmd(f"git pull upstream {base_branch} {quiet}")
 
         # remove any uncommitted changes?
         _run_git_cmd("git reset --hard HEAD")
 
         # make and modify version branch
         try:
-            _run_git_cmd(f"git checkout {branch} --quiet")
+            _run_git_cmd(f"git checkout {branch} {quiet}")
         except subprocess.CalledProcessError:
-            _run_git_cmd(f"git checkout -b {branch} {base_branch} --quiet")
+            _run_git_cmd(f"git checkout -b {branch} {base_branch} {quiet}")
 
     return True
 
