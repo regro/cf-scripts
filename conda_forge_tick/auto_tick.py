@@ -8,6 +8,7 @@ import traceback
 import logging
 import os
 import typing
+import tqdm
 from subprocess import CalledProcessError
 
 # from conda_forge_tick.profiler import profiling
@@ -237,17 +238,26 @@ def run(
                 )
             ]
 
-    if (
-        migrator.check_solvable
-        # we always let stuff in cycles go
-        and feedstock_ctx.attrs["name"] not in getattr(migrator, "cycles", set())
-        # we always let stuff at the top go
-        and feedstock_ctx.attrs["name"] not in getattr(migrator, "top_level", set())
-        # for solveability always assume automerge is on.
-        and feedstock_ctx.attrs["conda-forge.yml"].get("bot", {}).get("automerge", True)
-    ) or feedstock_ctx.attrs["conda-forge.yml"].get("bot", {}).get(
-        "check_solvable",
-        False,
+    if base_branch == "master" and (
+        (
+            migrator.check_solvable
+            # we always let stuff in cycles go
+            and feedstock_ctx.attrs["name"] not in getattr(migrator, "cycles", set())
+            # we always let stuff at the top go
+            and feedstock_ctx.attrs["name"] not in getattr(migrator, "top_level", set())
+            # for solveability always assume automerge is on.
+            and (
+                feedstock_ctx.attrs["conda-forge.yml"]
+                .get("bot", {})
+                .get("automerge", True)
+            )
+        )
+        or feedstock_ctx.attrs["conda-forge.yml"]
+        .get("bot", {})
+        .get(
+            "check_solvable",
+            False,
+        )
     ):
         solvable, errors, _ = is_recipe_solvable(feedstock_dir)
         if not solvable:
@@ -620,6 +630,11 @@ def _outside_pin_range(pin_spec, current_pin, new_version):
 
 
 def create_migration_yaml_creator(migrators: MutableSequence[Migrator], gx: nx.DiGraph):
+    cfp_gx = copy.deepcopy(gx)
+    for node in list(cfp_gx.nodes):
+        if node != "conda-forge-pinning":
+            pluck(cfp_gx, node)
+
     print("pinning migrations", flush=True)
     with indir(os.environ["CONDA_PREFIX"]):
         pinnings = parse_config_file(
@@ -715,7 +730,7 @@ def create_migration_yaml_creator(migrators: MutableSequence[Migrator], gx: nx.D
                         current_pin,
                         pin_spec,
                         k,
-                        gx,
+                        cfp_gx,
                     ),
                 )
     print(" ", flush=True)
@@ -806,7 +821,7 @@ def initialize_migrators(
 def _compute_time_per_migrator(mctx, migrators):
     # we weight each migrator by the number of available nodes to migrate
     num_nodes = []
-    for migrator in migrators:
+    for migrator in tqdm.tqdm(migrators):
         mmctx = MigratorContext(session=mctx, migrator=migrator)
         migrator.bind_to_ctx(mmctx)
 
@@ -827,7 +842,8 @@ def _compute_time_per_migrator(mctx, migrators):
             num_nodes.append(len(mmctx.effective_graph.nodes))
 
     num_nodes_tot = sum(num_nodes)
-    time_per_node = float(env.get("TIMEOUT", 600)) / num_nodes_tot
+    # do not divide by zero
+    time_per_node = float(env.get("TIMEOUT", 600)) / max(num_nodes_tot, 1)
 
     # also enforce a minimum of 300 seconds if any nodes can be migrated
     time_per_migrator = []
@@ -893,7 +909,7 @@ def main(args: "CLIArgs") -> None:
                 extra_name,
                 num_nodes[i],
                 time_per_migrator[i],
-                time_per_migrator[i] / tot_time_per_migrator * 100,
+                time_per_migrator[i] / max(tot_time_per_migrator, 1) * 100,
             ),
             flush=True,
         )
