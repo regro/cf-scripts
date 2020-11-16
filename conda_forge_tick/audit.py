@@ -29,14 +29,13 @@ from conda_forge_tick.utils import (
 from conda_forge_tick.xonsh_utils import indir, env
 
 IGNORE_STUBS = ["doc", "example", "demo", "test"]
-IGNORE_TEMPLATES = ["*{z}/*", "*/{z}/*", "*{z}s/*", "*/{z}s/*"]
+IGNORE_TEMPLATES = ["*/{z}/*", "*/{z}s/*"]
 DEPFINDER_IGNORE = []
 for k in IGNORE_STUBS:
     for tmpl in IGNORE_TEMPLATES:
         DEPFINDER_IGNORE.append(tmpl.format(z=k))
 DEPFINDER_IGNORE += [
     "*testdir/*",
-    "*/test_*",
     "*conftest*",
 ]
 
