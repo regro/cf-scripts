@@ -13,6 +13,7 @@ from stdlib_list import stdlib_list
 from depfinder.main import simple_import_search
 from grayskull.base.factory import GrayskullFactory
 from ruamel import yaml
+import pandas as pd
 
 from conda_forge_tick.contexts import MigratorSessionContext, FeedstockContext
 from conda_forge_tick.git_utils import feedstock_url, fetch_repo
@@ -27,17 +28,14 @@ from conda_forge_tick.utils import (
 )
 from conda_forge_tick.xonsh_utils import indir, env
 
-DEPFINDER_IGNORE = [
-    "*docs/*",
-    "*tests/*",
-    "*test/*",
-    "*doc/*",
+IGNORE_STUBS = ["doc", "example", "demo", "test"]
+IGNORE_TEMPLATES = ["*/{z}/*", "*/{z}s/*"]
+DEPFINDER_IGNORE = []
+for k in IGNORE_STUBS:
+    for tmpl in IGNORE_TEMPLATES:
+        DEPFINDER_IGNORE.append(tmpl.format(z=k))
+DEPFINDER_IGNORE += [
     "*testdir/*",
-    "*/test_*",
-    "*/docs/*",
-    "*/tests/*",
-    "*/test/*",
-    "*/doc/*",
     "*conftest*",
 ]
 
@@ -352,6 +350,31 @@ def compare_depfinder_audits(gx):
     return bad_inspection
 
 
+def compute_depfinder_accuracy(bad_inspection):
+    count = {
+        "time": time.time(),
+        "accurate": 0,
+        "cf_over_specified": 0,
+        "cf_under_specified": 0,
+        "cf_over_and_under_specified": 0,
+    }
+    for k, v in bad_inspection.items():
+        if not v:
+            count["accurate"] += 1
+        elif "cf_minus_df" in v and "df_minus_cf" in v:
+            count["cf_over_and_under_specified"] += 1
+        elif "cf_minus_df" in v:
+            count["cf_under_specified"] += 1
+        else:
+            count["cf_over_specified"] += 1
+    df = pd.DataFrame.from_dict(count)
+    df.to_csv(
+        "audits/depfinder/_accuracy.csv",
+        mode="a",
+        header=not os.path.exists("audits/depfinder/_accuracy.csv"),
+    )
+
+
 def main(args):
     gx = load_graph()
     ctx = MigratorSessionContext("", "", "")
@@ -404,4 +427,5 @@ def main(args):
                         v["writer"](deps, f)
 
     compare_grayskull_audits(gx)
-    compare_depfinder_audits(gx)
+    depfinder_audit_outcome = compare_depfinder_audits(gx)
+    compute_depfinder_accuracy(depfinder_audit_outcome)
