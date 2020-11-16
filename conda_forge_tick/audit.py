@@ -371,7 +371,7 @@ def compute_depfinder_accuracy(bad_inspection):
     df.to_csv(
         "audits/depfinder/_accuracy.csv",
         mode="a",
-        header=not os.path.exists("audits/depfinder/_accuracy.csv"),
+        header=not os.path.exists("audits/depfinder_accuracy.csv"),
         index=False
     )
 
