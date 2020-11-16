@@ -134,9 +134,11 @@ def fetch_repo(*, feedstock_dir, origin, upstream, branch, base_branch="master")
 
         _run_git_cmd(f"git fetch {upstream} {base_branch} --quiet")
         try:
-            _run_git_cmd(f"git checkout {base_branch}")
+            _run_git_cmd(f"git checkout {base_branch} --quiet")
         except subprocess.CalledProcessError:
-            _run_git_cmd(f"git checkout -b {base_branch} upstream/{base_branch}")
+            _run_git_cmd(
+                f"git checkout -b {base_branch} upstream/{base_branch} --quiet",
+            )
         _run_git_cmd(f"git pull {upstream} {base_branch} --quiet")
 
         # remove any uncommitted changes?
@@ -144,9 +146,9 @@ def fetch_repo(*, feedstock_dir, origin, upstream, branch, base_branch="master")
 
         # make and modify version branch
         try:
-            _run_git_cmd(f"git checkout {branch}")
+            _run_git_cmd(f"git checkout {branch} --quiet")
         except subprocess.CalledProcessError:
-            _run_git_cmd(f"git checkout -b {branch} {base_branch}")
+            _run_git_cmd(f"git checkout -b {branch} {base_branch} --quiet")
 
     return True
 
