@@ -633,7 +633,7 @@ def create_migration_yaml_creator(migrators: MutableSequence[Migrator], gx: nx.D
         # pinning_name - entry in pinning file
         # package_name - the actual package, could differ via `-` -> `_`
         #                from pinning_name
-        # feedstock_name - the feedstock the outputs the package
+        # feedstock_name - the feedstock that outputs the package
         # we need the package names for the migrator itself but need the
         # feedstock for everything else
 
