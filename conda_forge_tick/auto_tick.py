@@ -835,8 +835,9 @@ def _compute_time_per_migrator(mctx, migrators):
         else:
             num_nodes.append(len(mmctx.effective_graph.nodes))
 
-    num_nodes_tot = max(sum(num_nodes), 1)
-    time_per_node = float(env.get("TIMEOUT", 600)) / num_nodes_tot
+    num_nodes_tot = sum(num_nodes)
+    # do not divide by zero
+    time_per_node = float(env.get("TIMEOUT", 600)) / max(num_nodes_tot, 1)
 
     # also enforce a minimum of 300 seconds if any nodes can be migrated
     time_per_migrator = []

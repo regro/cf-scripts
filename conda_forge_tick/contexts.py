@@ -74,21 +74,27 @@ class MigratorContext:
             gx2 = copy.deepcopy(getattr(self.migrator, "graph", self.session.graph))
 
             # Prune graph to only things that need builds right now
-            for node, node_attrs in self.session.graph.nodes.items():
-                with node_attrs["payload"] as attrs:
-                    base_branches = self.migrator.get_possible_feedstock_branches(attrs)
-                    filters = []
-                    try:
-                        orig_branch = attrs.get("branch", "master")
-                        for base_branch in base_branches:
-                            attrs["branch"] = base_branch
-                            filters.append(self.migrator.filter(attrs))
-                    finally:
-                        attrs["branch"] = orig_branch
+            for node in list(gx2.nodes):
+                if node not in self.session.graph.nodes:
+                    continue
 
-                if node in gx2 and filters and all(filters):
+                attrs = self.session.graph.nodes[node].get("payload", {})
+
+                base_branches = self.migrator.get_possible_feedstock_branches(attrs)
+                filters = []
+                try:
+                    orig_branch = attrs.get("branch", "master")
+                    for base_branch in base_branches:
+                        attrs["branch"] = base_branch
+                        filters.append(self.migrator.filter(attrs))
+                finally:
+                    attrs["branch"] = orig_branch
+
+                if filters and all(filters):
                     gx2.remove_node(node)
+
             self._effective_graph = gx2
+
         return self._effective_graph
 
 
