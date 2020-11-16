@@ -237,17 +237,26 @@ def run(
                 )
             ]
 
-    if (
-        migrator.check_solvable
-        # we always let stuff in cycles go
-        and feedstock_ctx.attrs["name"] not in getattr(migrator, "cycles", set())
-        # we always let stuff at the top go
-        and feedstock_ctx.attrs["name"] not in getattr(migrator, "top_level", set())
-        # for solveability always assume automerge is on.
-        and feedstock_ctx.attrs["conda-forge.yml"].get("bot", {}).get("automerge", True)
-    ) or feedstock_ctx.attrs["conda-forge.yml"].get("bot", {}).get(
-        "check_solvable",
-        False,
+    if base_branch == "master" and (
+        (
+            migrator.check_solvable
+            # we always let stuff in cycles go
+            and feedstock_ctx.attrs["name"] not in getattr(migrator, "cycles", set())
+            # we always let stuff at the top go
+            and feedstock_ctx.attrs["name"] not in getattr(migrator, "top_level", set())
+            # for solveability always assume automerge is on.
+            and (
+                feedstock_ctx.attrs["conda-forge.yml"]
+                .get("bot", {})
+                .get("automerge", True)
+            )
+        )
+        or feedstock_ctx.attrs["conda-forge.yml"]
+        .get("bot", {})
+        .get(
+            "check_solvable",
+            False,
+        )
     ):
         solvable, errors, _ = is_recipe_solvable(feedstock_dir)
         if not solvable:
@@ -826,7 +835,7 @@ def _compute_time_per_migrator(mctx, migrators):
         else:
             num_nodes.append(len(mmctx.effective_graph.nodes))
 
-    num_nodes_tot = sum(num_nodes)
+    num_nodes_tot = max(sum(num_nodes), 1)
     time_per_node = float(env.get("TIMEOUT", 600)) / num_nodes_tot
 
     # also enforce a minimum of 300 seconds if any nodes can be migrated
@@ -849,7 +858,7 @@ def _compute_time_per_migrator(mctx, migrators):
         time_per_migrator[i] = time_per_migrator[i] * time_fac
 
     # recompute the total here
-    tot_time_per_migrator = sum(time_per_migrator)
+    tot_time_per_migrator = max(sum(time_per_migrator), 1)
 
     return num_nodes, time_per_migrator, tot_time_per_migrator
 

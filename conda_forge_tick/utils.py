@@ -533,10 +533,17 @@ def dump_graph(
     # dump_graph_dynamo(gx, tablename, region)
 
 
-def load_graph(filename: str = "graph.json") -> nx.DiGraph:
+def load_graph(filename: str = "graph.json", reset_bad=False) -> nx.DiGraph:
     with open(filename) as f:
         nld = load(f)
-    return nx.node_link_graph(nld)
+    gx = nx.node_link_graph(nld)
+
+    if reset_bad:
+        for node in gx.nodes:
+            with gx.nodes[node]["payload"] as attrs:
+                attrs["bad"] = False
+
+    return gx
 
 
 # TODO: This type does not support generics yet sadly
