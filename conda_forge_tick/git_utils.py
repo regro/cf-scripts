@@ -132,7 +132,7 @@ def fetch_repo(*, feedstock_dir, origin, upstream, branch, base_branch="master")
         # fetch remote changes
         _run_git_cmd(f"git fetch --all {quiet}")
         try:
-            _run_git_cmd(f"git checkout {base_branch} {quiet}")
+            _run_git_cmd(f"git checkout --track upstream/{base_branch} {quiet}")
         except subprocess.CalledProcessError:
             _run_git_cmd(
                 f"git checkout -b {base_branch} upstream/{base_branch} {quiet}",
