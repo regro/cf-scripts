@@ -27,17 +27,15 @@ from conda_forge_tick.utils import (
 )
 from conda_forge_tick.xonsh_utils import indir, env
 
-DEPFINDER_IGNORE = [
-    "*docs/*",
-    "*tests/*",
-    "*test/*",
-    "*doc/*",
+IGNORE_STUBS = ['doc', 'example', 'demo', 'test']
+IGNORE_TEMPLATES = ['*{z}/*', '*/{z}/*', '*{z}s/*', '*/{z}s/*']
+DEPFINDER_IGNORE = []
+for k in IGNORE_STUBS:
+    for tmpl in IGNORE_TEMPLATES:
+        DEPFINDER_IGNORE.append(tmpl.format(z=k))
+DEPFINDER_IGNORE += [
     "*testdir/*",
     "*/test_*",
-    "*/docs/*",
-    "*/tests/*",
-    "*/test/*",
-    "*/doc/*",
     "*conftest*",
 ]
 
