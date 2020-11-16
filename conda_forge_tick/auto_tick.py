@@ -8,6 +8,7 @@ import traceback
 import logging
 import os
 import typing
+import tqdm
 from subprocess import CalledProcessError
 
 # from conda_forge_tick.profiler import profiling
@@ -629,6 +630,11 @@ def _outside_pin_range(pin_spec, current_pin, new_version):
 
 
 def create_migration_yaml_creator(migrators: MutableSequence[Migrator], gx: nx.DiGraph):
+    cfp_gx = copy.deepcopy(gx)
+    for node in list(cfp_gx.nodes):
+        if node != "conda-forge-pinning":
+            pluck(cfp_gx, node)
+
     print("pinning migrations", flush=True)
     with indir(os.environ["CONDA_PREFIX"]):
         pinnings = parse_config_file(
@@ -724,7 +730,7 @@ def create_migration_yaml_creator(migrators: MutableSequence[Migrator], gx: nx.D
                         current_pin,
                         pin_spec,
                         k,
-                        gx,
+                        cfp_gx,
                     ),
                 )
     print(" ", flush=True)
@@ -815,7 +821,7 @@ def initialize_migrators(
 def _compute_time_per_migrator(mctx, migrators):
     # we weight each migrator by the number of available nodes to migrate
     num_nodes = []
-    for migrator in migrators:
+    for migrator in tqdm.tqdm(migrators):
         mmctx = MigratorContext(session=mctx, migrator=migrator)
         migrator.bind_to_ctx(mmctx)
 
@@ -859,7 +865,7 @@ def _compute_time_per_migrator(mctx, migrators):
         time_per_migrator[i] = time_per_migrator[i] * time_fac
 
     # recompute the total here
-    tot_time_per_migrator = max(sum(time_per_migrator), 1)
+    tot_time_per_migrator = sum(time_per_migrator)
 
     return num_nodes, time_per_migrator, tot_time_per_migrator
 
@@ -903,7 +909,7 @@ def main(args: "CLIArgs") -> None:
                 extra_name,
                 num_nodes[i],
                 time_per_migrator[i],
-                time_per_migrator[i] / tot_time_per_migrator * 100,
+                time_per_migrator[i] / max(tot_time_per_migrator, 1) * 100,
             ),
             flush=True,
         )

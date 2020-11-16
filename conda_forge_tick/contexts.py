@@ -78,17 +78,13 @@ class MigratorContext:
                 if node not in self.session.graph.nodes:
                     continue
 
-                attrs = self.session.graph.nodes[node].get("payload", {})
-
+                # use a copy to avoid i/o
+                attrs = copy.deepcopy(self.session.graph.nodes[node].get("payload", {}))
                 base_branches = self.migrator.get_possible_feedstock_branches(attrs)
                 filters = []
-                try:
-                    orig_branch = attrs.get("branch", "master")
-                    for base_branch in base_branches:
-                        attrs["branch"] = base_branch
-                        filters.append(self.migrator.filter(attrs))
-                finally:
-                    attrs["branch"] = orig_branch
+                for base_branch in base_branches:
+                    attrs["branch"] = base_branch
+                    filters.append(self.migrator.filter(attrs))
 
                 if filters and all(filters):
                     gx2.remove_node(node)
