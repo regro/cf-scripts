@@ -477,6 +477,7 @@ def main(args):
                     with open(f"audits/{k}/{node}_{version}.{ext}", "w") as f:
                         v["writer"](deps, f)
 
-    compare_grayskull_audits(gx)
+    grayskull_audit_outcome = compare_grayskull_audits(gx)
+    compute_grayskull_accuracy(grayskull_audit_outcome)
     depfinder_audit_outcome = compare_depfinder_audits(gx)
     compute_depfinder_accuracy(depfinder_audit_outcome)
