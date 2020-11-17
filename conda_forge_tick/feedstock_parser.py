@@ -27,6 +27,16 @@ LOGGER = logging.getLogger("conda_forge_tick.feedstock_parser")
 
 PIN_SEP_PAT = re.compile(r" |>|<|=|\[")
 
+CONDA_FORGE_YML_KEYS_TO_KEEP = (
+    "provider",
+    "min_r_ver",
+    "min_py_ver",
+    "max_py_ver",
+    "max_r_ver",
+    "compiler_stack",
+    "bot",
+)
+
 
 def _get_requirements(
     meta_yaml: "MetaYamlTypedDict",
@@ -161,16 +171,7 @@ def populate_feedstock_attributes(
         sub_graph["conda-forge.yml"] = {
             k: v
             for k, v in yaml.safe_load(conda_forge_yaml).items()
-            if k
-            in {
-                "provider",
-                "min_r_ver",
-                "min_py_ver",
-                "max_py_ver",
-                "max_r_ver",
-                "compiler_stack",
-                "bot",
-            }
+            if k in CONDA_FORGE_YML_KEYS_TO_KEEP
         }
 
     if (
