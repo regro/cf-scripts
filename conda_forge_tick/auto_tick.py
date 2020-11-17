@@ -736,7 +736,7 @@ def create_migration_yaml_creator(migrators: MutableSequence[Migrator], gx: nx.D
                     "        curr version: %s\n"
                     "        curr pin: %s\n"
                     "        pin_spec: %s"
-                    % (package_name, current_version, current_pin, pin_spec),
+                    % (pinning_name, current_version, current_pin, pin_spec),
                     flush=True,
                 )
                 migrators.append(
