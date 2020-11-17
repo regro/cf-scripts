@@ -112,7 +112,7 @@ AUDIT_REGISTRY = {
         "writer": dump,
         "ext": "json",
         "version": depfinder_version,
-        "creation_version": '1'
+        "creation_version": "1",
     },
     # Grayskull produces a valid meta.yaml, there is no in memory representation
     # for that so we just write out the string
@@ -122,7 +122,7 @@ AUDIT_REGISTRY = {
         "dumper": yaml.dump,
         "ext": "yml",
         "version": grayskull_version,
-        "creation_version": '1'
+        "creation_version": "1",
     },
 }
 
@@ -368,7 +368,7 @@ def compute_depfinder_accuracy(bad_inspection):
         "cf_under_specified": 0,
         "cf_over_and_under_specified": 0,
         "definder_version": depfinder_version,
-        "audit_creation_version": AUDIT_REGISTRY['depfinder']['creation_version'],
+        "audit_creation_version": AUDIT_REGISTRY["depfinder"]["creation_version"],
     }
     for k, v in bad_inspection.items():
         if not v:
@@ -396,7 +396,7 @@ def compute_grayskull_accuracy(bad_inspection):
         "cf_under_specified": 0,
         "cf_over_and_under_specified": 0,
         "grayskull_version": grayskull_version,
-        "audit_creation_version": AUDIT_REGISTRY['grayskull']['creation_version'],
+        "audit_creation_version": AUDIT_REGISTRY["grayskull"]["creation_version"],
     }
     for k, v in bad_inspection.items():
         if not v:
@@ -425,7 +425,7 @@ def main(args):
     for k, v in AUDIT_REGISTRY.items():
         audit_dir = os.path.join("audits", k)
         version_path = os.path.join(audit_dir, "_version.json")
-        audit_version = "_".join([v["version"], v['creation_version']])
+        audit_version = "_".join([v["version"], v["creation_version"]])
         if os.path.exists(version_path):
             version = load(open(version_path))
             # if the version of the code generating the audits is different from our current audit data
@@ -437,7 +437,7 @@ def main(args):
 
     # TODO: generalize for cran skeleton
     # limit graph to things that depend on python
-    python_des = nx.descendants(gx, "pypy-meta")
+    python_des = nx.descendants(gx, "python")
     for node in sorted(
         python_des,
         key=lambda x: (len(nx.descendants(gx, x)), x),
