@@ -11,19 +11,18 @@ from typing import (
     Sequence,
     MutableMapping,
     Any,
+    List,
 )
 import warnings
 import logging
 
 import networkx as nx
 import conda.exceptions
-import yaml
 from conda.models.version import VersionOrder
 
 from conda_forge_tick.audit import extract_deps_from_source, compare_depfinder_audit
 from conda_forge_tick.migrators.core import Migrator
 from conda_forge_tick.contexts import FeedstockContext
-from conda_forge_tick.utils import as_iterable
 from conda_forge_tick.xonsh_utils import indir
 from conda_forge_tick.recipe_parser import CONDA_SELECTOR, CondaMetaYAML
 from conda_forge_tick.url_transforms import gen_transformed_urls
@@ -33,6 +32,7 @@ if typing.TYPE_CHECKING:
     from conda_forge_tick.migrators_types import (
         MigrationUidTypedDict,
         AttrsTypedDict,
+        PackageName,
     )
 
 CHECKSUM_NAMES = [
@@ -665,15 +665,15 @@ class Version(Migrator):
                     imports_by_package=self.imports_by_package,
                     packages_by_import=self.packages_by_import,
                 )
-                hint = f"\n\nDependency Analysis\n--------------------\n\n"
+                hint = "\n\nDependency Analysis\n--------------------\n\n"
                 hint += (
                     "Please note that this analysis is **highly experimental**. "
-                    "The aim here is to make maintenance easier by inspecting the package's dependencies. "
+                    "The aim here is to make maintenance easier by inspecting the package's dependencies. "  # noqa: E501
                     "Importantly this analysis does not support optional dependencies, "
                     "please double check those before making changes. "
                     "If you do not want hinting of this kind ever please add "
                     "`bot: inspection: false` to your `conda-forge.yml`. "
-                    "If you encounter issues with this feature please ping the bot team `conda-forge/bot`.\n\n"
+                    "If you encounter issues with this feature please ping the bot team `conda-forge/bot`.\n\n"  # noqa: E501
                 )
                 if dep_comparison:
                     df_cf = ""
@@ -683,28 +683,28 @@ class Version(Migrator):
                     for k in dep_comparison.get("cf_minus_df", set()):
                         cf_df += f"- {k}" + "\n"
                     hint += (
-                        f"Analysis of the source code shows a discrepancy between"
-                        f" the library's imports and the package's stated requirements"
-                        f" in the meta.yaml."
+                        "Analysis of the source code shows a discrepancy between"
+                        " the library's imports and the package's stated requirements"
+                        " in the meta.yaml."
                     )
                     if df_cf:
                         hint += (
-                            f"\n\n### Packages found by inspection but not in the meta.yaml:\n"
+                            "\n\n### Packages found by inspection but not in the meta.yaml:\n"  # noqa: E501
                             f"{df_cf}"
                         )
                     if cf_df:
                         hint += (
-                            f"\n\n### Packages found in the meta.yaml but not found by inspection:\n"
+                            "\n\n### Packages found in the meta.yaml but not found by inspection:\n"  # noqa: E501
                             f"{cf_df}"
                         )
                 else:
                     hint += (
                         "Analysis of the source code shows **no** discrepancy between"
-                        " the library's imports and the package's stated requirements in the meta.yaml."
+                        " the library's imports and the package's stated requirements in the meta.yaml."  # noqa: E501
                     )
                 body += hint
         except Exception:
-            hint = f"\n\nDependency Analysis\n--------------------\n\n"
+            hint = "\n\nDependency Analysis\n--------------------\n\n"
             hint += (
                 "We couldn't run dependency analysis due to an internal "
                 "error in the bot. :( Help is very welcome!\n"
@@ -775,3 +775,19 @@ class Version(Migrator):
             sorted(nodes_to_sort, key=lambda x: random.uniform(0, 1)),
             key=_get_attemps,
         )
+
+    def get_possible_feedstock_branches(self, attrs: "AttrsTypedDict") -> List[str]:
+        """Return the valid possible branches to which to apply this migration to
+        for the given attrs.
+
+        Parameters
+        ----------
+        attrs : dict
+            The node attributes
+
+        Returns
+        -------
+        branches : list of str
+            List if valid branches for this migration.
+        """
+        return [attrs.get("branch", "master")]

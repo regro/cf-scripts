@@ -212,9 +212,29 @@ class Migrator:
 
         bad_attr = _parse_bad_attr(attrs, not_bad_str_start)
         if bad_attr:
-            LOGGER.debug("%s: bnad attr" % __name)
+            LOGGER.debug("%s: bad attr" % __name)
 
         return attrs.get("archived", False) or parse_already_pred() or bad_attr
+
+    def get_possible_feedstock_branches(self, attrs: "AttrsTypedDict") -> List[str]:
+        """Return the valid possible branches to which to apply this migration to
+        for the given attrs.
+
+        Parameters
+        ----------
+        attrs : dict
+            The node attributes
+
+        Returns
+        -------
+        branches : list of str
+            List if valid branches for this migration.
+        """
+        return ["master"] + (
+            attrs.get("conda-forge.yml", {})
+            .get("bot", {})
+            .get("abi_migration_branches", [])
+        )
 
     def run_pre_piggyback_migrations(
         self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any
