@@ -8,11 +8,12 @@ from ruamel.yaml import safe_load, safe_dump
 from conda_forge_tick.contexts import FeedstockContext
 from conda_forge_tick.migrators.core import _sanitized_muids, GraphMigrator
 from conda_forge_tick.utils import frozen_to_json_friendly, pluck, as_iterable
-from ..xonsh_utils import indir
+from conda_forge_tick.xonsh_utils import indir
+from conda_forge_tick.make_graph import get_deps_from_outputs_lut
 
 
 if typing.TYPE_CHECKING:
-    from ..migrators_types import AttrsTypedDict, MigrationUidTypedDict
+    from conda_forge_tick.migrators_types import AttrsTypedDict, MigrationUidTypedDict
 
 from .core import MiniMigrator
 
@@ -55,8 +56,7 @@ class ArchRebuild(GraphMigrator):
                         attrs.get("requirements", {}),
                     ).values()
                 )
-                for dep in deps:
-                    dep = graph.graph["outputs_lut"].get(dep, dep)
+                for dep in get_deps_from_outputs_lut(deps, graph.graph["outputs_lut"]):
                     graph2.add_edge(dep, node)
 
         super().__init__(
@@ -199,8 +199,7 @@ class OSXArm(GraphMigrator):
                 for build_dep in build_deps:
                     if build_dep.endswith("_stub"):
                         deps.add(build_dep)
-                for dep in deps:
-                    dep = graph.graph["outputs_lut"].get(dep, dep)
+                for dep in get_deps_from_outputs_lut(deps, graph.graph["outputs_lut"]):
                     graph2.add_edge(dep, node)
 
         super().__init__(
@@ -239,8 +238,6 @@ class OSXArm(GraphMigrator):
 
         # filter out stub packages and ignored packages
         for node, attrs in list(self.graph.nodes("payload")):
-            if not attrs:
-                print(node)
             if (
                 not attrs
                 or node.endswith("_stub")
