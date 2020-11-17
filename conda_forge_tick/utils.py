@@ -201,7 +201,7 @@ class LazyJson(MutableMapping):
 
     def __getstate__(self) -> dict:
         state = self.__dict__.copy()
-        state["data"] = None
+        state["_data"] = None
         return state
 
     def __enter__(self) -> "LazyJson":
