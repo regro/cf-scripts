@@ -473,7 +473,7 @@ def create_rebuild_graph(
     excluded_feedstocks = set() if excluded_feedstocks is None else excluded_feedstocks
     # Always exclude the packages themselves from the migration
     for node in package_names:
-        excluded_feedstocks.update(gx.graph["outputs_lut"].get(node, node))
+        excluded_feedstocks.update(gx.graph["outputs_lut"].get(node, {node}))
 
     included_nodes = set()
 
