@@ -10,7 +10,7 @@ from typing import Dict
 import networkx as nx
 from stdlib_list import stdlib_list
 
-from depfinder.main import simple_import_search
+from depfinder.main import simple_import_search_conda_forge_import_map
 from depfinder import __version__ as depfinder_version
 from grayskull.base.factory import GrayskullFactory
 from grayskull import __version__ as grayskull_version
@@ -41,6 +41,12 @@ DEPFINDER_IGNORE += [
     "*conftest*",
 ]
 
+BUILTINS = set().union(
+    # Some libs support older python versions, we don't want their std lib
+    # entries in our diff though
+    *[set(stdlib_list(k)) for k in ["2.7", "3.5", "3.6", "3.7"]]
+)
+
 STATIC_EXCLUDES = {
     "python",
     "setuptools",
@@ -48,19 +54,19 @@ STATIC_EXCLUDES = {
     "versioneer",
     # bad pypi mapping
     "futures",
-}.union(
-    # Some libs support older python versions, we don't want their std lib
-    # entries in our diff though
-    *[set(stdlib_list(k)) for k in ["2.7", "3.5", "3.6", "3.7"]]
-)
+} | BUILTINS
 
 
 def extract_deps_from_source(recipe_dir):
     cb_work_dir = _get_source_code(recipe_dir)
     with indir(cb_work_dir):
-        # run depfinder on source code
-        imports = simple_import_search(cb_work_dir, ignore=DEPFINDER_IGNORE)
-    return {k: set(v) for k, v in imports.items()}
+        return {
+            k: set(v)
+            for k, v in simple_import_search_conda_forge_import_map(
+                cb_work_dir,
+                builtins=BUILTINS,
+            ).items()
+        }
 
 
 def depfinder_audit_feedstock(fctx: FeedstockContext, ctx: MigratorSessionContext):
