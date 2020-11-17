@@ -663,7 +663,9 @@ def create_migration_yaml_creator(migrators: MutableSequence[Migrator], gx: nx.D
         # TODO - we are grabbing one element almost at random here
         # the sorted call makes it stable at least?
         fs_name = next(
-            iter(sorted(gx.graph["outputs_lut"].get(package_name, {package_name}))),
+            iter(
+                sorted(gx.graph["outputs_lut"].get(package_name, {package_name})),
+            ),
         )
 
         if (
