@@ -566,10 +566,10 @@ def migration_factory(
         ]
 
     output_to_feedstock = gx.graph["outputs_lut"]
-    all_package_names = set(gx.nodes) | set(
+    all_package_names = set(
         sum(
             [
-                node.get("payload", {}).get("outputs_names", [])
+                list(node.get("payload", {}).get("outputs_names", set()))
                 for node in gx.nodes.values()
             ],
             [],
