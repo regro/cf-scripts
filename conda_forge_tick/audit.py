@@ -30,6 +30,8 @@ from conda_forge_tick.utils import (
 )
 from conda_forge_tick.xonsh_utils import indir, env
 
+AUDIT_CREATION_VERSION = "1"
+
 IGNORE_STUBS = ["doc", "example", "demo", "test"]
 IGNORE_TEMPLATES = ["*/{z}/*", "*/{z}s/*"]
 DEPFINDER_IGNORE = []
@@ -366,6 +368,7 @@ def compute_depfinder_accuracy(bad_inspection):
         "cf_under_specified": 0,
         "cf_over_and_under_specified": 0,
         "definder_version": depfinder_version,
+        "audit_creation_version": AUDIT_CREATION_VERSION,
     }
     for k, v in bad_inspection.items():
         if not v:
@@ -393,6 +396,7 @@ def compute_grayskull_accuracy(bad_inspection):
         "cf_under_specified": 0,
         "cf_over_and_under_specified": 0,
         "grayskull_version": grayskull_version,
+        "audit_creation_version": AUDIT_CREATION_VERSION,
     }
     for k, v in bad_inspection.items():
         if not v:
@@ -421,7 +425,7 @@ def main(args):
     for k, v in AUDIT_REGISTRY.items():
         audit_dir = os.path.join("audits", k)
         version_path = os.path.join(audit_dir, "_version.json")
-        audit_version = v["version"]
+        audit_version = "_".join([v["version"], AUDIT_CREATION_VERSION])
         if os.path.exists(version_path):
             version = load(open(version_path))
             # if the version of the code generating the audits is different from our current audit data
@@ -429,7 +433,7 @@ def main(args):
             if version != audit_version:
                 os.rmdir(audit_dir)
         os.makedirs(audit_dir, exist_ok=True)
-        dump(open(version_path, "w"), audit_version)
+        dump(audit_version, open(version_path, "w"))
 
     # TODO: generalize for cran skeleton
     # limit graph to things that depend on python
