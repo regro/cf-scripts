@@ -367,12 +367,12 @@ def compute_depfinder_accuracy(bad_inspection):
             count["cf_under_specified"] += 1
         else:
             count["cf_over_specified"] += 1
-    df = pd.DataFrame.from_dict(count, orient='index').T
+    df = pd.DataFrame.from_dict(count, orient="index").T
     df.to_csv(
         "audits/depfinder_accuracy.csv",
         mode="a",
         header=not os.path.exists("audits/depfinder_accuracy.csv"),
-        index=False
+        index=False,
     )
 
 

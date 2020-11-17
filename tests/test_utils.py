@@ -22,7 +22,7 @@ def test_lazy_json(tmpdir):
         assert ff.read() == dumps({"hi": "globe"})
     p = pickle.dumps(lj)
     lj2 = pickle.loads(p)
-    assert not getattr(lj2, "data", None)
+    assert not getattr(lj2, "_data", None)
     assert lj2["hi"] == "globe"
 
     with lj as attrs:

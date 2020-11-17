@@ -79,7 +79,7 @@ class MigratorContext:
                     continue
 
                 # use a copy to avoid i/o
-                attrs = copy.deepcopy(self.session.graph.nodes[node].get("payload", {}))
+                attrs = copy.deepcopy(self.session.graph.nodes[node]["payload"].data)
                 base_branches = self.migrator.get_possible_feedstock_branches(attrs)
                 filters = []
                 for base_branch in base_branches:
