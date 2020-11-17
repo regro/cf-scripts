@@ -504,7 +504,10 @@ def add_rebuild_migration_yaml(
     # Some packages don't have a host section so we use their
     # build section in its place.
 
-    feedstock_names = {output_to_feedstock.get(p, p) for p in package_names}
+    feedstock_names = set()
+    for p in package_names:
+        feedstock_names |= output_to_feedstock.get(p, {p})
+
     feedstock_names = {
         p for p in feedstock_names if p in gx.nodes
     } - excluded_feedstocks
