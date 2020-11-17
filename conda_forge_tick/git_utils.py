@@ -508,7 +508,7 @@ def close_out_dirty_prs(
                 delete_branch(ctx=ctx, pr_json=pr_json, dry_run=dry_run)
                 pr_obj.refresh(True)
                 d = pr_obj.as_dict()
-                # This will cause the update_nodes_with_bot_rerun to trigger
+                # This will cause the _update_nodes_with_bot_rerun to trigger
                 # properly and shouldn't be overridden since
                 # this is the last function to run, the long term solution here
                 # is to add the bot to conda-forge and then

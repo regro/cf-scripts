@@ -10,6 +10,25 @@ import os
 import typing
 import tqdm
 from subprocess import CalledProcessError
+from typing import (
+    Optional,
+    MutableSequence,
+    MutableSet,
+    Sequence,
+    Tuple,
+    Set,
+    Mapping,
+    MutableMapping,
+    Union,
+)
+
+if typing.TYPE_CHECKING:
+    from .cli import CLIArgs
+    from .migrators_types import (
+        MetaYamlTypedDict,
+        PackageName,
+        MigrationUidTypedDict,
+    )
 
 # from conda_forge_tick.profiler import profiling
 
@@ -25,20 +44,19 @@ import ruamel.yaml as yaml
 from uuid import uuid4
 
 from conda_forge_tick.audit import create_package_import_maps
-from conda_forge_tick.migrators.arch import OSXArm
-from conda_forge_tick.migrators.migration_yaml import (
-    MigrationYamlCreator,
-    create_rebuild_graph,
-)
-from .xonsh_utils import indir
+from conda_forge_tick.xonsh_utils import indir, env
 
-from conda_forge_tick.contexts import FeedstockContext
-from .git_utils import (
+from conda_forge_tick.contexts import (
+    FeedstockContext,
+    MigratorSessionContext,
+    MigratorContext,
+)
+from conda_forge_tick.git_utils import (
     get_repo,
     push_repo,
     is_github_api_limit_reached,
 )
-from .utils import (
+from conda_forge_tick.utils import (
     setup_logger,
     pluck,
     load_graph,
@@ -48,22 +66,13 @@ from .utils import (
     parse_meta_yaml,
     eval_cmd,
     sanitize_string,
+    frozen_to_json_friendly,
 )
-from .xonsh_utils import env
-from typing import (
-    Optional,
-    MutableSequence,
-    MutableSet,
-    Sequence,
-    Tuple,
-    Set,
-    Mapping,
-    MutableMapping,
-    Union,
+from conda_forge_tick.migrators.arch import OSXArm
+from conda_forge_tick.migrators.migration_yaml import (
+    MigrationYamlCreator,
+    create_rebuild_graph,
 )
-
-from conda_forge_tick.utils import frozen_to_json_friendly
-from conda_forge_tick.contexts import MigratorSessionContext, MigratorContext
 from conda_forge_tick.migrators import (
     Migrator,
     Version,
@@ -86,15 +95,7 @@ from conda_forge_tick.migrators import (
 
 from conda_forge_tick.mamba_solver import is_recipe_solvable
 
-if typing.TYPE_CHECKING:
-    from .cli import CLIArgs
-    from .migrators_types import (
-        MetaYamlTypedDict,
-        PackageName,
-        MigrationUidTypedDict,
-    )
-
-logger = logging.getLogger("conda_forge_tick.auto_tick")
+LOGGER = logging.getLogger("conda_forge_tick.auto_tick")
 
 PR_LIMIT = 5
 MAX_PR_LIMIT = 50
@@ -171,7 +172,7 @@ def run(
         base_branch=base_branch,
     )
     if not feedstock_dir or not repo:
-        logger.critical(
+        LOGGER.critical(
             "Failed to migrate %s, %s",
             feedstock_ctx.package_name,
             feedstock_ctx.attrs.get("bad"),
@@ -188,7 +189,7 @@ def run(
     migrate_return = migrator.migrate(recipe_dir, feedstock_ctx.attrs, **kwargs)
 
     if not migrate_return:
-        logger.critical(
+        LOGGER.critical(
             "Failed to migrate %s, %s",
             feedstock_ctx.package_name,
             feedstock_ctx.attrs.get("bad"),
@@ -210,13 +211,13 @@ def run(
             eval_cmd("git add --all .")
             eval_cmd(f"git commit -am '{msg}'")
         except CalledProcessError as e:
-            logger.info(
+            LOGGER.info(
                 "could not commit to feedstock - "
                 "likely no changes - error is '%s'" % (repr(e)),
             )
         if rerender:
             head_ref = eval_cmd("git rev-parse HEAD").strip()
-            logger.info("Rerendering the feedstock")
+            LOGGER.info("Rerendering the feedstock")
 
             eval_cmd(
                 "conda smithy rerender -c auto --no-check-uptodate",
@@ -323,7 +324,7 @@ def run(
 
     # If we've gotten this far then the node is good
     feedstock_ctx.attrs["bad"] = False
-    logger.info("Removing feedstock dir")
+    LOGGER.info("Removing feedstock dir")
     eval_cmd(f"rm -rf {feedstock_dir}")
     return migrate_return, ljpr
 
@@ -613,7 +614,7 @@ def migration_factory(
                 pr_limit=pr_limit,
             )
         else:
-            logger.warning("skipping migration %s because it is paused", __mname)
+            LOGGER.warning("skipping migration %s because it is paused", __mname)
 
 
 def _outside_pin_range(pin_spec, current_pin, new_version):
@@ -642,30 +643,44 @@ def create_migration_yaml_creator(migrators: MutableSequence[Migrator], gx: nx.D
             config=Config(**CB_CONFIG),
         )
     feedstocks_to_be_repinned = []
-    for k, package_pin_list in pinnings.items():
+    for pinning_name, package_pin_list in pinnings.items():
+        # there are three things:
+        # pinning_name - entry in pinning file
+        # package_name - the actual package, could differ via `-` -> `_`
+        #                from pinning_name
+        # feedstock_name - the feedstock that outputs the package
         # we need the package names for the migrator itself but need the
         # feedstock for everything else
-        package_name = k
+
         # exclude non-package keys
-        if k not in gx.nodes and k not in gx.graph["outputs_lut"]:
+        if pinning_name not in gx.graph["outputs_lut"]:
             # conda_build_config.yaml can't have `-` unlike our package names
-            k = k.replace("_", "-")
+            package_name = pinning_name.replace("_", "-")
+        else:
+            package_name = pinning_name
+
         # replace sub-packages with their feedstock names
-        k = gx.graph["outputs_lut"].get(k, k)
+        # TODO - we are grabbing one element almost at random here
+        # the sorted call makes it stable at least?
+        fs_name = next(
+            iter(
+                sorted(gx.graph["outputs_lut"].get(package_name, {package_name})),
+            ),
+        )
 
         if (
-            (k in gx.nodes)
-            and not gx.nodes[k]["payload"].get("archived", False)
-            and gx.nodes[k]["payload"].get("version")
-            and k not in feedstocks_to_be_repinned
+            (fs_name in gx.nodes)
+            and not gx.nodes[fs_name]["payload"].get("archived", False)
+            and gx.nodes[fs_name]["payload"].get("version")
+            and fs_name not in feedstocks_to_be_repinned
         ):
 
             current_pins = list(map(str, package_pin_list))
-            current_version = str(gx.nodes[k]["payload"]["version"])
+            current_version = str(gx.nodes[fs_name]["payload"]["version"])
 
             # we need a special parsing for pinning stuff
             meta_yaml = parse_meta_yaml(
-                gx.nodes[k]["payload"]["raw_meta_yaml"],
+                gx.nodes[fs_name]["payload"]["raw_meta_yaml"],
                 for_pinning=True,
             )
 
@@ -679,11 +694,12 @@ def create_migration_yaml_creator(migrators: MutableSequence[Migrator], gx: nx.D
                     for p in build.get("run_exports", [{}])
                     # make certain not direct hard pin
                     if isinstance(p, MutableMapping)
-                    # if the pinned package is in an output of the parent feedstock
+                    # ensure the export is for this package
+                    and p.get("package_name", "") == package_name
+                    # ensure the pinned package is in an output of the parent feedstock
                     and (
-                        gx.graph["outputs_lut"].get(p.get("package_name", ""), "") == k
-                        # if the pinned package is the feedstock itself
-                        or p.get("package_name", "") == k
+                        fs_name
+                        in gx.graph["outputs_lut"].get(p.get("package_name", ""), set())
                     )
                 ]
                 if not exports:
@@ -696,8 +712,10 @@ def create_migration_yaml_creator(migrators: MutableSequence[Migrator], gx: nx.D
             # fall back to the pinning file or "x"
             if not pin_spec:
                 pin_spec = (
-                    pinnings["pin_run_as_build"].get(k, {}).get("max_pin", "x") or "x"
-                )
+                    pinnings["pin_run_as_build"]
+                    .get(pinning_name, {})
+                    .get("max_pin", "x")
+                ) or "x"
 
             current_pins = list(
                 map(lambda x: re.sub("[^0-9.]", "", x).rstrip("."), current_pins),
@@ -714,22 +732,22 @@ def create_migration_yaml_creator(migrators: MutableSequence[Migrator], gx: nx.D
                 current_pin,
                 current_version,
             ):
-                feedstocks_to_be_repinned.append(k)
+                feedstocks_to_be_repinned.append(fs_name)
                 print(
                     "    %s:\n"
                     "        curr version: %s\n"
                     "        curr pin: %s\n"
                     "        pin_spec: %s"
-                    % (package_name, current_version, current_pin, pin_spec),
+                    % (pinning_name, current_version, current_pin, pin_spec),
                     flush=True,
                 )
                 migrators.append(
                     MigrationYamlCreator(
-                        package_name,
+                        pinning_name,
                         current_version,
                         current_pin,
                         pin_spec,
-                        k,
+                        fs_name,
                         cfp_gx,
                     ),
                 )
@@ -956,10 +974,10 @@ def main(args: "CLIArgs") -> None:
 
         # version debugging info
         if isinstance(migrator, Version):
-            logger.info("possible version migrations:")
+            LOGGER.info("possible version migrations:")
             for node_name in possible_nodes:
                 with effective_graph.nodes[node_name]["payload"] as attrs:
-                    logger.info(
+                    LOGGER.info(
                         "    node|curr|new|attempts: %s|%s|%s|%d",
                         node_name,
                         attrs.get("version"),
@@ -1004,7 +1022,7 @@ def main(args: "CLIArgs") -> None:
                             continue
 
                         print("\n", flush=True, end="")
-                        logger.info(
+                        LOGGER.info(
                             "%s%s IS MIGRATING %s:%s",
                             migrator.__class__.__name__.upper(),
                             extra_name,
@@ -1051,14 +1069,14 @@ def main(args: "CLIArgs") -> None:
                             if e.msg == "Repository was archived so is read-only.":
                                 attrs["archived"] = True
                             else:
-                                logger.critical(
+                                LOGGER.critical(
                                     "GITHUB ERROR ON FEEDSTOCK: %s",
                                     fctx.feedstock_name,
                                 )
                                 if is_github_api_limit_reached(e, mctx.gh):
                                     break
                         except URLError as e:
-                            logger.exception("URLError ERROR")
+                            LOGGER.exception("URLError ERROR")
                             attrs["bad"] = {
                                 "exception": str(e),
                                 "traceback": str(traceback.format_exc()).split("\n"),
@@ -1077,7 +1095,7 @@ def main(args: "CLIArgs") -> None:
                                 ),
                             )
                         except Exception as e:
-                            logger.exception("NON GITHUB ERROR")
+                            LOGGER.exception("NON GITHUB ERROR")
                             attrs["bad"] = {
                                 "exception": str(e),
                                 "traceback": str(traceback.format_exc()).split("\n"),
@@ -1106,7 +1124,7 @@ def main(args: "CLIArgs") -> None:
                         dump_graph(mctx.graph)
 
                     eval_cmd(f"rm -rf {mctx.rever_dir}/*")
-                    logger.info(os.getcwd())
+                    LOGGER.info(os.getcwd())
                     for f in glob.glob("/tmp/*"):
                         if f not in temp:
                             try:
@@ -1119,8 +1137,8 @@ def main(args: "CLIArgs") -> None:
 
         print("\n", flush=True)
 
-    logger.info("API Calls Remaining: %d", mctx.gh_api_requests_left)
-    logger.info("Done")
+    LOGGER.info("API Calls Remaining: %d", mctx.gh_api_requests_left)
+    LOGGER.info("Done")
 
 
 if __name__ == "__main__":

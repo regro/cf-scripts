@@ -12,8 +12,8 @@ from conda_forge_tick.contexts import MigratorSessionContext, MigratorContext
 from conda_forge_tick.utils import (
     parse_meta_yaml,
     frozen_to_json_friendly,
-    populate_feedstock_attributes,
 )
+from conda_forge_tick.feedstock_parser import populate_feedstock_attributes
 from conda_forge_tick.migrators import MigrationYamlCreator, merge_migrator_cbc
 from conda_forge_tick.xonsh_utils import eval_xonsh, indir
 

@@ -2,7 +2,7 @@ import os
 import json
 import pickle
 
-from conda_forge_tick.utils import LazyJson, get_requirements, dumps
+from conda_forge_tick.utils import LazyJson, dumps
 
 
 def test_lazy_json(tmpdir):
@@ -22,7 +22,7 @@ def test_lazy_json(tmpdir):
         assert ff.read() == dumps({"hi": "globe"})
     p = pickle.dumps(lj)
     lj2 = pickle.loads(p)
-    assert not getattr(lj2, "data", None)
+    assert not getattr(lj2, "_data", None)
     assert lj2["hi"] == "globe"
 
     with lj as attrs:
@@ -46,18 +46,3 @@ def test_lazy_json(tmpdir):
         assert ff.read() == dumps(
             {"hi": "globe", "lst": ["universe"] * 4, "lst2": ["universe"] * 2},
         )
-
-
-def test_get_requirements():
-    meta_yaml = {
-        "requirements": {"build": ["1", "2"], "host": ["2", "3"]},
-        "outputs": [
-            {"requirements": {"host": ["4"]}},
-            {"requirements": {"run": ["5"]}},
-            {"requirements": ["6"]},
-        ],
-    }
-    assert get_requirements({}) == set()
-    assert get_requirements(meta_yaml) == {"1", "2", "3", "4", "5", "6"}
-    assert get_requirements(meta_yaml, outputs=False) == {"1", "2", "3"}
-    assert get_requirements(meta_yaml, host=False) == {"1", "2", "5", "6"}
