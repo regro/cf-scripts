@@ -20,12 +20,12 @@ from conda_forge_tick.git_utils import feedstock_url, fetch_repo
 from conda_forge_tick.utils import (
     load_graph,
     dump,
-    load_feedstock,
     load,
     executor,
     as_iterable,
     _get_source_code,
 )
+from conda_forge_tick.feedstock_parser import load_feedstock
 from conda_forge_tick.xonsh_utils import indir, env
 
 IGNORE_STUBS = ["doc", "example", "demo", "test"]

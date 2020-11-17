@@ -25,3 +25,7 @@ repos:
       - id: codespell
         args:
           - --ignore-words-list=rever,pring,pullrequest,pullrequests
+  # - repo: https://gitlab.com/pycqa/flake8
+  #   rev: 3.8.4
+  #   hooks:
+  #     - id: flake8
