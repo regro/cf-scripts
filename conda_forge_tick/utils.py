@@ -146,29 +146,34 @@ class LazyJson(MutableMapping):
             os.makedirs(os.path.split(self.file_name)[0], exist_ok=True)
             with open(self.file_name, "w") as f:
                 dump({}, f)
-        self.data: Optional[dict] = None
+        self._data: Optional[dict] = None
+
+    @property
+    def data(self):
+        self._load()
+        return self._data
 
     def __len__(self) -> int:
         self._load()
-        assert self.data is not None
-        return len(self.data)
+        assert self._data is not None
+        return len(self._data)
 
     def __iter__(self) -> typing.Iterator[Any]:
         self._load()
-        assert self.data is not None
-        yield from self.data
+        assert self._data is not None
+        yield from self._data
 
     def __delitem__(self, v: Any) -> None:
         self._load()
-        assert self.data is not None
-        del self.data[v]
+        assert self._data is not None
+        del self._data[v]
         self._dump()
 
     def _load(self) -> None:
-        if self.data is None:
+        if self._data is None:
             try:
                 with open(self.file_name) as f:
-                    self.data = load(f)
+                    self._data = load(f)
             except FileNotFoundError:
                 print(os.getcwd())
                 print(os.listdir("."))
@@ -177,21 +182,21 @@ class LazyJson(MutableMapping):
     def _dump(self, purge=False) -> None:
         self._load()
         with open(self.file_name, "w") as f:
-            dump(self.data, f)
+            dump(self._data, f)
         if purge:
             # this evicts the josn from memory and trades i/o for mem
             # the bot uses too much mem if we don't do this
-            self.data = None
+            self._data = None
 
     def __getitem__(self, item: Any) -> Any:
         self._load()
-        assert self.data is not None
-        return self.data[item]
+        assert self._data is not None
+        return self._data[item]
 
     def __setitem__(self, key: Any, value: Any) -> None:
         self._load()
-        assert self.data is not None
-        self.data[key] = value
+        assert self._data is not None
+        self._data[key] = value
         self._dump()
 
     def __getstate__(self) -> dict:
