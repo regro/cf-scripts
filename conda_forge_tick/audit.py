@@ -11,7 +11,9 @@ import networkx as nx
 from stdlib_list import stdlib_list
 
 from depfinder.main import simple_import_search
+from depfinder import __version__ as depfinder_version
 from grayskull.base.factory import GrayskullFactory
+from grayskull import __version__ as grayskull_version
 from ruamel import yaml
 import pandas as pd
 
@@ -105,7 +107,13 @@ def grayskull_audit_feedstock(fctx: FeedstockContext, ctx: MigratorSessionContex
 
 
 AUDIT_REGISTRY = {
-    "depfinder": {"run": depfinder_audit_feedstock, "writer": dump, "ext": "json"},
+    "depfinder": {
+        "run": depfinder_audit_feedstock,
+        "writer": dump,
+        "ext": "json",
+        "version": depfinder_version,
+        "creation_version": "1",
+    },
     # Grayskull produces a valid meta.yaml, there is no in memory representation
     # for that so we just write out the string
     "grayskull": {
@@ -113,6 +121,8 @@ AUDIT_REGISTRY = {
         "writer": lambda x, f: f.write(x),
         "dumper": yaml.dump,
         "ext": "yml",
+        "version": grayskull_version,
+        "creation_version": "1",
     },
 }
 
@@ -357,13 +367,15 @@ def compute_depfinder_accuracy(bad_inspection):
         "cf_over_specified": 0,
         "cf_under_specified": 0,
         "cf_over_and_under_specified": 0,
+        "definder_version": depfinder_version,
+        "audit_creation_version": AUDIT_REGISTRY["depfinder"]["creation_version"],
     }
     for k, v in bad_inspection.items():
         if not v:
             count["accurate"] += 1
         elif "cf_minus_df" in v and "df_minus_cf" in v:
             count["cf_over_and_under_specified"] += 1
-        elif "cf_minus_df" in v:
+        elif "df_minus_cf" in v:
             count["cf_under_specified"] += 1
         else:
             count["cf_over_specified"] += 1
@@ -376,18 +388,56 @@ def compute_depfinder_accuracy(bad_inspection):
     )
 
 
+def compute_grayskull_accuracy(bad_inspection):
+    count = {
+        "time": time.time(),
+        "accurate": 0,
+        "cf_over_specified": 0,
+        "cf_under_specified": 0,
+        "cf_over_and_under_specified": 0,
+        "grayskull_version": grayskull_version,
+        "audit_creation_version": AUDIT_REGISTRY["grayskull"]["creation_version"],
+    }
+    for k, v in bad_inspection.items():
+        if not v:
+            count["accurate"] += 1
+        elif "cf_not_gs_diff" in v and "gs_not_cf_diff" in v:
+            count["cf_over_and_under_specified"] += 1
+        elif "gs_not_cf_diff" in v:
+            count["cf_under_specified"] += 1
+        else:
+            count["cf_over_specified"] += 1
+    df = pd.DataFrame.from_dict(count, orient="index").T
+    df.to_csv(
+        "audits/grayskull_accuracy.csv",
+        mode="a",
+        header=not os.path.exists("audits/grayskull_accuracy.csv"),
+        index=False,
+    )
+
+
 def main(args):
     gx = load_graph()
     ctx = MigratorSessionContext("", "", "")
     start_time = time.time()
 
     os.makedirs("audits", exist_ok=True)
-    for k in AUDIT_REGISTRY:
-        os.makedirs(os.path.join("audits", k), exist_ok=True)
+    for k, v in AUDIT_REGISTRY.items():
+        audit_dir = os.path.join("audits", k)
+        version_path = os.path.join(audit_dir, "_version.json")
+        audit_version = "_".join([v["version"], v["creation_version"]])
+        if os.path.exists(version_path):
+            version = load(open(version_path))
+            # if the version of the code generating the audits is different from our current audit data
+            # clear out the audit data so we always use the latest version
+            if version != audit_version:
+                os.rmdir(audit_dir)
+        os.makedirs(audit_dir, exist_ok=True)
+        dump(audit_version, open(version_path, "w"))
 
     # TODO: generalize for cran skeleton
     # limit graph to things that depend on python
-    python_des = nx.descendants(gx, "pypy-meta")
+    python_des = nx.descendants(gx, "python")
     for node in sorted(
         python_des,
         key=lambda x: (len(nx.descendants(gx, x)), x),
@@ -427,6 +477,7 @@ def main(args):
                     with open(f"audits/{k}/{node}_{version}.{ext}", "w") as f:
                         v["writer"](deps, f)
 
-    compare_grayskull_audits(gx)
+    grayskull_audit_outcome = compare_grayskull_audits(gx)
+    compute_grayskull_accuracy(grayskull_audit_outcome)
     depfinder_audit_outcome = compare_depfinder_audits(gx)
     compute_depfinder_accuracy(depfinder_audit_outcome)
