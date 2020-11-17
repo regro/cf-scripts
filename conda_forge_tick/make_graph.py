@@ -5,8 +5,9 @@ import time
 import typing
 import random
 from concurrent.futures import as_completed
+from collections import defaultdict
 
-from typing import List, Optional
+from typing import List, Optional, Iterable
 import psutil
 import json
 import networkx as nx
@@ -16,7 +17,7 @@ from requests import Response
 
 # from conda_forge_tick.profiler import profiling
 
-from conda_forge_tick.utils import load_feedstock
+from conda_forge_tick.feedstock_parser import load_feedstock
 from .all_feedstocks import get_all_feedstocks
 from .contexts import GithubContext
 from .utils import (
@@ -25,13 +26,14 @@ from .utils import (
     load_graph,
     dump_graph,
     LazyJson,
+    as_iterable,
 )
 from .xonsh_utils import env
 
 if typing.TYPE_CHECKING:
     from .cli import CLIArgs
 
-logger = logging.getLogger("conda_forge_tick.make_graph")
+LOGGER = logging.getLogger("conda_forge_tick.make_graph")
 pin_sep_pat = re.compile(r" |>|<|=|\[")
 
 NUM_GITHUB_THREADS = 2
@@ -57,13 +59,36 @@ COMPILER_STUBS_WITH_STRONG_EXPORTS = [
 ]
 
 
+def get_deps_from_outputs_lut(
+    req_section: Iterable,
+    outputs_lut: typing.Dict[str, set],
+) -> set:
+    deps = set()
+    for req in req_section:
+        i = as_iterable(outputs_lut.get(req, req))
+        deps.update(i)
+    return deps
+
+
+def make_outputs_lut_from_graph(gx):
+    outputs_lut = defaultdict(set)
+    for node_name, node in gx.nodes.items():
+        for k in node.get("payload", {}).get("outputs_names", []):
+            if node_name != "pypy-meta":
+                outputs_lut[k].add(node_name)
+            elif k == "pypy":
+                # for pypy-meta we only map to pypy and not python or cffi
+                outputs_lut[k].add(node_name)
+    return outputs_lut
+
+
 def _fetch_file(name: str, filepath: str) -> typing.Union[str, Response]:
     r = requests.get(
         "https://raw.githubusercontent.com/"
         "conda-forge/{}-feedstock/master/{}".format(name, filepath),
     )
     if r.status_code != 200:
-        logger.error(
+        LOGGER.error(
             f"Something odd happened when fetching recipe {name}: {r.status_code}",
         )
         return r
@@ -93,7 +118,7 @@ def _build_graph_process_pool(
             pool.submit(get_attrs, name, i, mark_not_archived=mark_not_archived): name
             for i, name in enumerate(names)
         }
-        logger.info("submitted all nodes")
+        LOGGER.info("submitted all nodes")
 
         n_tot = len(futures)
         n_left = len(futures)
@@ -107,9 +132,9 @@ def _build_graph_process_pool(
             try:
                 sub_graph = {"payload": f.result()}
                 if n_left % 100 == 0:
-                    logger.info("itr % 5d - eta % 5ds: finished %s", n_left, eta, name)
+                    LOGGER.info("itr % 5d - eta % 5ds: finished %s", n_left, eta, name)
             except Exception as e:
-                logger.error(
+                LOGGER.error(
                     "itr % 5d - eta % 5ds: Error adding %s to the graph: %s",
                     n_left,
                     eta,
@@ -135,7 +160,7 @@ def _build_graph_sequential(
                 "payload": get_attrs(name, i, mark_not_archived=mark_not_archived),
             }
         except Exception as e:
-            logger.error(f"Error adding {name} to the graph: {e}")
+            LOGGER.error(f"Error adding {name} to the graph: {e}")
         else:
             if name in new_names:
                 gx.add_node(name, **sub_graph)
@@ -143,47 +168,12 @@ def _build_graph_sequential(
                 gx.nodes[name].update(**sub_graph)
 
 
-def make_graph(
-    names: List[str],
-    gx: Optional[nx.DiGraph] = None,
-    mark_not_archived=False,
-) -> nx.DiGraph:
-    logger.info("reading graph")
-
-    if gx is None:
-        gx = nx.DiGraph()
-
-    new_names = [name for name in names if name not in gx.nodes]
-    old_names = [name for name in names if name in gx.nodes]
-    # silly typing force
-    assert gx is not None
-    old_names = sorted(  # type: ignore
-        old_names,
-        key=lambda n: gx.nodes[n].get("time", 0),
-    )  # type: ignore
-
-    total_names = new_names + old_names
-    logger.info("start feedstock fetch loop")
-    from .xonsh_utils import env
-
-    debug = env.get("CONDA_FORGE_TICK_DEBUG", False)
-    builder = _build_graph_sequential if debug else _build_graph_process_pool
-    builder(gx, total_names, new_names, mark_not_archived=mark_not_archived)
-    logger.info("feedstock fetch loop completed")
-
-    logger.info("inferring nodes and edges")
+def _create_edges(gx: nx.DiGraph) -> nx.DiGraph:
+    LOGGER.info("inferring nodes and edges")
 
     # make the outputs look up table so we can link properly
     # and add this as an attr so we can use later
-    outputs_lut = {}
-    for node_name, node in gx.nodes.items():
-        for k in node.get("payload", {}).get("outputs_names", []):
-            if node_name != "pypy-meta":
-                outputs_lut[k] = node_name
-            elif k == "pypy":
-                # for pypy-meta we only map to pypy and not python or cffi
-                outputs_lut[k] = node_name
-    gx.graph["outputs_lut"] = outputs_lut
+    gx.graph["outputs_lut"] = make_outputs_lut_from_graph(gx)
 
     # collect all of the strong run exports
     # we add the compiler stubs so that we know when host and run
@@ -203,12 +193,11 @@ def make_graph(
     for node in all_nodes:
         with gx.nodes[node]["payload"] as attrs:
             # replace output package names with feedstock names via LUT
-            deps = set(
-                map(
-                    lambda x: outputs_lut.get(x, x),
-                    set().union(*attrs.get("requirements", {}).values()),
-                ),
-            )
+            deps = set()
+            for req_section in attrs.get("requirements", {}).values():
+                deps.update(
+                    get_deps_from_outputs_lut(req_section, gx.graph["outputs_lut"]),
+                )
 
             # handle strong run exports
             # TODO: do this per platform
@@ -226,15 +215,47 @@ def make_graph(
                 lzj.update(feedstock_name=dep, bad=False, archived=True)
                 gx.add_node(dep, payload=lzj)
             gx.add_edge(dep, node)
-    logger.info("new nodes and edges inferred")
-    logger.info(f"memory usage: {psutil.virtual_memory()}")
+    LOGGER.info("new nodes and edges inferred")
+
     return gx
 
 
-def update_nodes_with_bot_rerun(gx):
+def make_graph(
+    names: List[str],
+    gx: Optional[nx.DiGraph] = None,
+    mark_not_archived=False,
+    debug=False,
+) -> nx.DiGraph:
+    LOGGER.info("reading graph")
+
+    if gx is None:
+        gx = nx.DiGraph()
+
+    new_names = [name for name in names if name not in gx.nodes]
+    old_names = [name for name in names if name in gx.nodes]
+    # silly typing force
+    assert gx is not None
+    old_names = sorted(  # type: ignore
+        old_names,
+        key=lambda n: gx.nodes[n].get("time", 0),
+    )  # type: ignore
+    total_names = new_names + old_names
+
+    LOGGER.info("start feedstock fetch loop")
+    builder = _build_graph_sequential if debug else _build_graph_process_pool
+    builder(gx, total_names, new_names, mark_not_archived=mark_not_archived)
+    LOGGER.info("feedstock fetch loop completed")
+
+    gx = _create_edges(gx)
+
+    LOGGER.info(f"memory usage: {psutil.virtual_memory()}")
+    return gx
+
+
+def _update_nodes_with_bot_rerun(gx):
     """Go through all the open PRs and check if they are rerun"""
     for i, (name, node) in enumerate(gx.nodes.items()):
-        # logger.info(
+        # LOGGER.info(
         #     f"node: {i} memory usage: "
         #     f"{psutil.Process().memory_info().rss // 1024 ** 2}MB",
         # )
@@ -246,7 +267,7 @@ def update_nodes_with_bot_rerun(gx):
                     pr_json = migration.get("PR", {})
                     # maybe add a pass check info here ? (if using DEBUG)
                 except Exception as e:
-                    logger.error(
+                    LOGGER.error(
                         f"BOT-RERUN : could not proceed check with {node}, {e}",
                     )
                     raise e
@@ -258,14 +279,14 @@ def update_nodes_with_bot_rerun(gx):
                     and "bot-rerun" in [lb["name"] for lb in pr_json.get("labels", [])]
                 ):
                     migration["data"]["bot_rerun"] = time.time()
-                    logger.info(
+                    LOGGER.info(
                         "BOT-RERUN %s: processing bot rerun label for migration %s",
                         name,
                         migration["data"],
                     )
 
 
-def update_nodes_with_new_versions(gx):
+def _update_nodes_with_new_versions(gx):
     """Updates every node with it's new version (when available)"""
     # check if the versions folder is available
     if os.path.isdir("./versions"):
@@ -298,7 +319,10 @@ def update_nodes_with_new_versions(gx):
 
 # @profiling
 def main(args: "CLIArgs") -> None:
-    setup_logger(logger)
+    if args.debug:
+        setup_logger(logging.getLogger("conda_forge_tick"), level="debug")
+    else:
+        setup_logger(logging.getLogger("conda_forge_tick"))
 
     mark_not_archived = False
     if os.path.exists("names_are_active.flag"):
@@ -311,13 +335,13 @@ def main(args: "CLIArgs") -> None:
         gx = load_graph()
     else:
         gx = None
-    gx = make_graph(names, gx, mark_not_archived=mark_not_archived)
-    print(
-        "nodes w/o payload:",
-        [k for k, v in gx.nodes.items() if "payload" not in v],
-    )
-    update_nodes_with_bot_rerun(gx)
-    update_nodes_with_new_versions(gx)
+    gx = make_graph(names, gx, mark_not_archived=mark_not_archived, debug=args.debug)
+    nodes_without_paylod = [k for k, v in gx.nodes.items() if "payload" not in v]
+    if nodes_without_paylod:
+        LOGGER.warning("nodes w/o payload: %s", nodes_without_paylod)
+
+    _update_nodes_with_bot_rerun(gx)
+    _update_nodes_with_new_versions(gx)
 
     dump_graph(gx)
 

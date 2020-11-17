@@ -22,6 +22,7 @@ from conda_forge_tick.utils import (
     frozen_to_json_friendly,
     LazyJson,
 )
+from conda_forge_tick.make_graph import make_outputs_lut_from_graph
 from conda_forge_tick.contexts import MigratorContext, FeedstockContext
 
 if typing.TYPE_CHECKING:
@@ -476,11 +477,7 @@ class GraphMigrator(Migrator):
         if "outputs_lut" in self.graph.graph:
             self.outputs_lut = self.graph.graph["outputs_lut"]
         else:
-            self.outputs_lut = {
-                k: node_name
-                for node_name, node in self.graph.nodes.items()
-                for k in node.get("payload", {}).get("outputs_names", [])
-            }
+            self.outputs_lut = make_outputs_lut_from_graph(self.graph)
 
         self.name = name
         self.top_level = top_level or set()
