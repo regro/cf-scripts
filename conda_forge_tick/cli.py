@@ -1,4 +1,5 @@
 import argparse
+import importlib
 import os
 import subprocess
 import time
@@ -6,28 +7,19 @@ import time
 from doctr.travis import run_command_hiding_token as doctr_run
 
 from . import sensitive_env
-
-from .all_feedstocks import main as main_all_feedstocks
-from .audit import main as main_audit
-from .auto_tick import main as main_auto_tick
-from .make_graph import main as main_make_graph
-from .mappings import main as main_mappings
-from .status_report import main as main_status_report
-from .update_prs import main as main_update_prs
-from .update_upstream_versions import main as main_update_upstream_versions
 from .utils import load_graph
 
 BUILD_URL_KEY = "CIRCLE_BUILD_URL"
 
 INT_SCRIPT_DICT = {
-    0: main_all_feedstocks,
-    1: main_make_graph,
-    2: main_update_upstream_versions,
-    3: main_auto_tick,
-    4: main_status_report,
-    5: main_audit,
-    6: main_update_prs,
-    7: main_mappings,
+    0: {'module': 'all_feedstocks', 'func': 'main'},
+    1: {'module': 'make_graph', 'func': 'main'},
+    2: {'module': 'update_upstream_versions', 'func': 'main'},
+    3: {'module': 'auto_tick', 'func': 'main'},
+    4: {'module': 'status_report', 'func': 'main'},
+    5: {'module': 'audit', 'func': 'main'},
+    6: {'module': 'update_prs', 'func': 'main'},
+    7: {'module': 'mappings', 'func': 'main'},
 }
 
 
@@ -223,7 +215,10 @@ def main(*args, **kwargs):
         if script == -1:
             deploy(args)
         else:
-            INT_SCRIPT_DICT[script](args)
+            script_md = INT_SCRIPT_DICT[script]
+            func = getattr(importlib.import_module(f"conda_forge_tick.{script_md['module']}"), script_md['func'])
+            func(args)
+
         print("FINISHED STAGE {} IN {} SECONDS".format(script, time.time() - start))
 
     else:
