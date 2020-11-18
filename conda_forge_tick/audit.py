@@ -1,5 +1,6 @@
 """Audit the dependencies of the conda-forge ecosystem"""
 import os
+import shutil
 import tempfile
 import time
 import traceback
@@ -437,7 +438,7 @@ def main(args):
             # if the version of the code generating the audits is different from our current audit data
             # clear out the audit data so we always use the latest version
             if version != audit_version:
-                os.rmdir(audit_dir)
+                shutil.rmtree(audit_dir)
         os.makedirs(audit_dir, exist_ok=True)
         dump(audit_version, open(version_path, "w"))
 
