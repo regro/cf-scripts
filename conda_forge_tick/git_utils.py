@@ -3,7 +3,7 @@ import datetime
 import os
 import time
 import sys
-from typing import Optional, Union, Tuple
+from typing import Optional, Union, Tuple, Dict
 import subprocess
 import copy
 
@@ -301,7 +301,27 @@ def delete_branch(ctx: GithubContext, pr_json: LazyJson, dry_run: bool = False) 
     pr_json["head"]["ref"] = "this_is_not_a_branch"
 
 
-def trim_pr_josn_keys(pr_json, src_pr_json=None):
+def trim_pr_josn_keys(
+    pr_json: Union[Dict, LazyJson],
+    src_pr_json=Optional[Union[Dict, LazyJson]],
+) -> Union[Dict, LazyJson]:
+    """Trim the set of keys in the PR json. The keys kept are defined by the global
+    PR_KEYS_TO_KEEP.
+
+    Parameters
+    ----------
+    pr_json : dict-like
+        A dict-like object with the current PR information.
+    src_pr_json : dict-like, optional
+        If this object is sent, the values for the trimmed keys are taken
+        from this object. Otherwise `pr_json` is used for the values.
+
+    Returns
+    -------
+    pr_json : dict-like
+        A dict-like object with the current PR information trimmed to the subset of
+        keys.
+    """
     # keep a subset of keys
     def _munge_dict(dest, src, keys):
         for k, v in keys.items():
@@ -319,9 +339,39 @@ def trim_pr_josn_keys(pr_json, src_pr_json=None):
     return pr_json
 
 
-def lazy_update_pr_json(pr_json, ctx: GithubContext, force=False):
+def lazy_update_pr_json(
+    pr_json: Union[Dict, LazyJson],
+    ctx: GithubContext,
+    force: bool = False,
+    trim: bool = True,
+) -> Union[Dict, LazyJson]:
+    """Lazily update a GitHub PR.
+
+    This function will use the ETag in the GitHub API to update PR information
+    lazily. It sends the ETag to github properly and if nothing is changed on their
+    end, it simply returns the PR. Otherwise the information is refershed.
+
+    Parameters
+    ----------
+    pr_json : dict-like
+        A dict-like object with the current PR information.
+    ctx : GithubContext
+        The context object with GitHub credential information.
+    force : bool, optional
+        If True, forcibly update the PR json even if it is not out of date
+        according to the ETag. Default is False.
+    trim : bool, optional
+        If True, trim the PR json keys to ones in the global PR_KEYS_TO_KEEP.
+        Default is True.
+
+    Returns
+    -------
+    pr_json : dict-like
+        A dict-like object with the current PR information.
+    """
     hdrs = {
         "Authorization": f"token {ctx.github_password}",
+        "Accept": "application/vnd.github.v3+json",
     }
     if not force:
         hdrs["If-None-Match"] = pr_json["ETag"]
@@ -333,7 +383,8 @@ def lazy_update_pr_json(pr_json, ctx: GithubContext, force=False):
     if r.status_code == 304:
         return pr_json
     elif r.status_code == 200:
-        pr_json = trim_pr_josn_keys(pr_json, src_pr_json=r.json())
+        if trim:
+            pr_json = trim_pr_josn_keys(pr_json, src_pr_json=r.json())
         pr_json["ETag"] = r.headers["ETag"]
     else:
         r.raise_for_status()
