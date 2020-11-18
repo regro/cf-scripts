@@ -468,7 +468,7 @@ def main(args):
             ):
                 fctx = FeedstockContext(
                     package_name=node,
-                    feedstock_name=payload["name"],
+                    feedstock_name=payload["feedstock_name"],
                     attrs=payload,
                 )
                 try:
