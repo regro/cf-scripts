@@ -31,7 +31,7 @@ from conda_forge_tick.utils import (
 from conda_forge_tick.feedstock_parser import load_feedstock
 from conda_forge_tick.xonsh_utils import indir, env
 
-IGNORE_STUBS = ["doc", "example", "demo", "test"]
+IGNORE_STUBS = ["doc", "example", "demo", "test", "unit_tests", "testing"]
 IGNORE_TEMPLATES = ["*/{z}/*", "*/{z}s/*"]
 DEPFINDER_IGNORE = []
 for k in IGNORE_STUBS:
@@ -40,6 +40,7 @@ for k in IGNORE_STUBS:
 DEPFINDER_IGNORE += [
     "*testdir/*",
     "*conftest*",
+    "*/test.py"
 ]
 
 BUILTINS = set().union(
@@ -53,8 +54,8 @@ STATIC_EXCLUDES = {
     "setuptools",
     "pip",
     "versioneer",
-    # bad pypi mapping
-    "futures",
+    # not a real dep
+    "cross-python"
 } | BUILTINS
 
 
@@ -122,14 +123,14 @@ AUDIT_REGISTRY = {
     },
     # Grayskull produces a valid meta.yaml, there is no in memory representation
     # for that so we just write out the string
-    "grayskull": {
-        "run": grayskull_audit_feedstock,
-        "writer": lambda x, f: f.write(x),
-        "dumper": yaml.dump,
-        "ext": "yml",
-        "version": grayskull_version,
-        "creation_version": "1",
-    },
+#    "grayskull": {
+#        "run": grayskull_audit_feedstock,
+#        "writer": lambda x, f: f.write(x),
+#        "dumper": yaml.dump,
+#        "ext": "yml",
+#        "version": grayskull_version,
+#        "creation_version": "1",
+#    },
 }
 
 
@@ -251,7 +252,7 @@ def extract_missing_packages(
     df_minus_cf = (
         set().union(
             *list(as_iterable(package_by_import.get(k, k)) for k in df_minus_cf_imports)
-        )
+        ) - exclude_packages
         & nodes
     )
     if df_minus_cf:
@@ -347,7 +348,7 @@ def compare_depfinder_audits(gx):
         if expected_filename in files:
             with open(os.path.join("audits/depfinder", expected_filename)) as f:
                 output = load(f)
-            if isinstance(output, str):
+            if isinstance(output, str) or "traceback" in output:
                 bad_inspection[node_version] = output
                 continue
             d = extract_missing_packages(
@@ -486,8 +487,9 @@ def main(args):
                     if "dumper" in v:
                         deps = v["dumper"](deps)
                 finally:
-                    with open(f"audits/{k}/{node}_{version}.{ext}", "w") as f:
-                        v["writer"](deps, f)
+                    if deps:
+                        with open(f"audits/{k}/{node}_{version}.{ext}", "w") as f:
+                            v["writer"](deps, f)
 
     # grayskull_audit_outcome = compare_grayskull_audits(gx)
     # compute_grayskull_accuracy(grayskull_audit_outcome)
