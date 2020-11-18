@@ -424,7 +424,24 @@ def refresh_pr(
     return None
 
 
-def get_pr_obj_from_pr_json(pr_json, gh):
+def get_pr_obj_from_pr_json(
+    pr_json: Union[Dict, LazyJson],
+    gh: github3.GitHub,
+) -> github3.pulls.PullRequest:
+    """Produce a github3 pull request object from pr_json.
+
+    Parameters
+    ----------
+    pr_json : dict-like
+        A dict-like object with the current PR information.
+    gh : github3 object
+        The github3 object for interacting with the GitHub API.
+
+    Returns
+    -------
+    pr_obj : github3.pulls.PullRequest
+        The pull request object.
+    """
     feedstock_reponame = pr_json["base"]["repo"]["name"]
     repo = gh.repository("conda-forge", feedstock_reponame)
     return repo.pull_request(pr_json["number"])
