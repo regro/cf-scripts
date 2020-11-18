@@ -42,6 +42,9 @@ DUMMY_BOT_RERUN_METADATA = {
 
 CF_BOT_NAMES = {"regro-cf-autotick-bot", "conda-forge-linter"}
 
+# these keys are kept from github PR json blobs
+# to add more keys to keep, put them in the right spot in the dict and
+# set them to None.
 PR_KEYS_TO_KEEP = {
     "id": None,
     "number": None,
