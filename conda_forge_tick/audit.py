@@ -66,6 +66,7 @@ def extract_deps_from_source(recipe_dir):
             for k, v in simple_import_search_conda_forge_import_map(
                 cb_work_dir,
                 builtins=BUILTINS,
+                ignore=DEPFINDER_IGNORE
             ).items()
         }
 
@@ -374,6 +375,7 @@ def compute_depfinder_accuracy(bad_inspection):
         "cf_over_specified": 0,
         "cf_under_specified": 0,
         "cf_over_and_under_specified": 0,
+        "errored": 0,
         "definder_version": depfinder_version,
         "audit_creation_version": AUDIT_REGISTRY["depfinder"]["creation_version"],
     }
@@ -384,8 +386,10 @@ def compute_depfinder_accuracy(bad_inspection):
             count["cf_over_and_under_specified"] += 1
         elif "df_minus_cf" in v:
             count["cf_under_specified"] += 1
-        else:
+        elif "cf_minus_df" in v:
             count["cf_over_specified"] += 1
+        else:
+            count['errored'] += 1
     df = pd.DataFrame.from_dict(count, orient="index").T
     df.to_csv(
         "audits/depfinder_accuracy.csv",
@@ -402,6 +406,7 @@ def compute_grayskull_accuracy(bad_inspection):
         "cf_over_specified": 0,
         "cf_under_specified": 0,
         "cf_over_and_under_specified": 0,
+        "errored": 0,
         "grayskull_version": grayskull_version,
         "audit_creation_version": AUDIT_REGISTRY["grayskull"]["creation_version"],
     }
@@ -412,8 +417,10 @@ def compute_grayskull_accuracy(bad_inspection):
             count["cf_over_and_under_specified"] += 1
         elif "gs_not_cf_diff" in v:
             count["cf_under_specified"] += 1
-        else:
+        elif 'cf_not_gs_diff' in v:
             count["cf_over_specified"] += 1
+        else:
+            count["errored"] += 1
     df = pd.DataFrame.from_dict(count, orient="index").T
     df.to_csv(
         "audits/grayskull_accuracy.csv",
