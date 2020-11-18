@@ -73,7 +73,7 @@ def extract_deps_from_source(recipe_dir):
 def depfinder_audit_feedstock(fctx: FeedstockContext, ctx: MigratorSessionContext):
     """Uses Depfinder to audit the imports for a python package"""
     # get feedstock
-    feedstock_dir = os.path.join(ctx.rever_dir, fctx.package_name + "-feedstock")
+    feedstock_dir = os.path.join(ctx.rever_dir, fctx.feedstock_name + "-feedstock")
     origin = feedstock_url(fctx=fctx, protocol="https")
     fetch_repo(
         feedstock_dir=feedstock_dir,
