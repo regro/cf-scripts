@@ -64,9 +64,7 @@ def extract_deps_from_source(recipe_dir):
         return {
             k: set(v)
             for k, v in simple_import_search_conda_forge_import_map(
-                cb_work_dir,
-                builtins=BUILTINS,
-                ignore=DEPFINDER_IGNORE
+                cb_work_dir, builtins=BUILTINS, ignore=DEPFINDER_IGNORE,
             ).items()
         }
 
@@ -389,7 +387,7 @@ def compute_depfinder_accuracy(bad_inspection):
         elif "cf_minus_df" in v:
             count["cf_over_specified"] += 1
         else:
-            count['errored'] += 1
+            count["errored"] += 1
     df = pd.DataFrame.from_dict(count, orient="index").T
     df.to_csv(
         "audits/depfinder_accuracy.csv",
@@ -417,7 +415,7 @@ def compute_grayskull_accuracy(bad_inspection):
             count["cf_over_and_under_specified"] += 1
         elif "gs_not_cf_diff" in v:
             count["cf_under_specified"] += 1
-        elif 'cf_not_gs_diff' in v:
+        elif "cf_not_gs_diff" in v:
             count["cf_over_specified"] += 1
         else:
             count["errored"] += 1

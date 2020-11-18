@@ -12,14 +12,14 @@ from .utils import load_graph
 BUILD_URL_KEY = "CIRCLE_BUILD_URL"
 
 INT_SCRIPT_DICT = {
-    0: {'module': 'all_feedstocks', 'func': 'main'},
-    1: {'module': 'make_graph', 'func': 'main'},
-    2: {'module': 'update_upstream_versions', 'func': 'main'},
-    3: {'module': 'auto_tick', 'func': 'main'},
-    4: {'module': 'status_report', 'func': 'main'},
-    5: {'module': 'audit', 'func': 'main'},
-    6: {'module': 'update_prs', 'func': 'main'},
-    7: {'module': 'mappings', 'func': 'main'},
+    0: {"module": "all_feedstocks", "func": "main"},
+    1: {"module": "make_graph", "func": "main"},
+    2: {"module": "update_upstream_versions", "func": "main"},
+    3: {"module": "auto_tick", "func": "main"},
+    4: {"module": "status_report", "func": "main"},
+    5: {"module": "audit", "func": "main"},
+    6: {"module": "update_prs", "func": "main"},
+    7: {"module": "mappings", "func": "main"},
 }
 
 
@@ -216,7 +216,10 @@ def main(*args, **kwargs):
             deploy(args)
         else:
             script_md = INT_SCRIPT_DICT[script]
-            func = getattr(importlib.import_module(f"conda_forge_tick.{script_md['module']}"), script_md['func'])
+            func = getattr(
+                importlib.import_module(f"conda_forge_tick.{script_md['module']}"),
+                script_md["func"],
+            )
             func(args)
 
         print("FINISHED STAGE {} IN {} SECONDS".format(script, time.time() - start))
