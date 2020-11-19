@@ -30,7 +30,7 @@ if typing.TYPE_CHECKING:
 
 logger = logging.getLogger("conda_forge_tick.update_prs")
 
-NUM_GITHUB_THREADS = 1
+NUM_GITHUB_THREADS = 4
 KEEP_PR_FRACTION = 0.5
 
 
