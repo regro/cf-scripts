@@ -52,9 +52,13 @@ PR_KEYS_TO_KEEP = {
     "created_at": None,
     "updated_at": None,
     "merged_at": None,
+    "closed_at": None,
     "state": None,
     "mergeable_state": None,
     "labels": None,
+    "merged": None,
+    "draft": None,
+    "mergeable": None,
     "head": {"ref": None},
     "base": {"repo": {"name": None}},
 }
