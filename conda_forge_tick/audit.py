@@ -31,16 +31,13 @@ from conda_forge_tick.utils import (
 from conda_forge_tick.feedstock_parser import load_feedstock
 from conda_forge_tick.xonsh_utils import indir, env
 
-IGNORE_STUBS = ["doc", "example", "demo", "test"]
+IGNORE_STUBS = ["doc", "example", "demo", "test", "unit_tests", "testing"]
 IGNORE_TEMPLATES = ["*/{z}/*", "*/{z}s/*"]
 DEPFINDER_IGNORE = []
 for k in IGNORE_STUBS:
     for tmpl in IGNORE_TEMPLATES:
         DEPFINDER_IGNORE.append(tmpl.format(z=k))
-DEPFINDER_IGNORE += [
-    "*testdir/*",
-    "*conftest*",
-]
+DEPFINDER_IGNORE += ["*testdir/*", "*conftest*", "*/test.py"]
 
 BUILTINS = set().union(
     # Some libs support older python versions, we don't want their std lib
@@ -53,8 +50,8 @@ STATIC_EXCLUDES = {
     "setuptools",
     "pip",
     "versioneer",
-    # bad pypi mapping
-    "futures",
+    # not a real dep
+    "cross-python",
 } | BUILTINS
 
 
@@ -66,6 +63,7 @@ def extract_deps_from_source(recipe_dir):
             for k, v in simple_import_search_conda_forge_import_map(
                 cb_work_dir,
                 builtins=BUILTINS,
+                ignore=DEPFINDER_IGNORE,
             ).items()
         }
 
@@ -123,14 +121,14 @@ AUDIT_REGISTRY = {
     },
     # Grayskull produces a valid meta.yaml, there is no in memory representation
     # for that so we just write out the string
-    "grayskull": {
-        "run": grayskull_audit_feedstock,
-        "writer": lambda x, f: f.write(x),
-        "dumper": yaml.dump,
-        "ext": "yml",
-        "version": grayskull_version,
-        "creation_version": "1",
-    },
+    #    "grayskull": {
+    #        "run": grayskull_audit_feedstock,
+    #        "writer": lambda x, f: f.write(x),
+    #        "dumper": yaml.dump,
+    #        "ext": "yml",
+    #        "version": grayskull_version,
+    #        "creation_version": "1",
+    #    },
 }
 
 
@@ -253,6 +251,7 @@ def extract_missing_packages(
         set().union(
             *list(as_iterable(package_by_import.get(k, k)) for k in df_minus_cf_imports)
         )
+        - exclude_packages
         & nodes
     )
     if df_minus_cf:
@@ -348,7 +347,7 @@ def compare_depfinder_audits(gx):
         if expected_filename in files:
             with open(os.path.join("audits/depfinder", expected_filename)) as f:
                 output = load(f)
-            if isinstance(output, str):
+            if isinstance(output, str) or "traceback" in output:
                 bad_inspection[node_version] = output
                 continue
             d = extract_missing_packages(
@@ -374,6 +373,7 @@ def compute_depfinder_accuracy(bad_inspection):
         "cf_over_specified": 0,
         "cf_under_specified": 0,
         "cf_over_and_under_specified": 0,
+        "errored": 0,
         "definder_version": depfinder_version,
         "audit_creation_version": AUDIT_REGISTRY["depfinder"]["creation_version"],
     }
@@ -384,8 +384,10 @@ def compute_depfinder_accuracy(bad_inspection):
             count["cf_over_and_under_specified"] += 1
         elif "df_minus_cf" in v:
             count["cf_under_specified"] += 1
-        else:
+        elif "cf_minus_df" in v:
             count["cf_over_specified"] += 1
+        else:
+            count["errored"] += 1
     df = pd.DataFrame.from_dict(count, orient="index").T
     df.to_csv(
         "audits/depfinder_accuracy.csv",
@@ -402,6 +404,7 @@ def compute_grayskull_accuracy(bad_inspection):
         "cf_over_specified": 0,
         "cf_under_specified": 0,
         "cf_over_and_under_specified": 0,
+        "errored": 0,
         "grayskull_version": grayskull_version,
         "audit_creation_version": AUDIT_REGISTRY["grayskull"]["creation_version"],
     }
@@ -412,8 +415,10 @@ def compute_grayskull_accuracy(bad_inspection):
             count["cf_over_and_under_specified"] += 1
         elif "gs_not_cf_diff" in v:
             count["cf_under_specified"] += 1
-        else:
+        elif "cf_not_gs_diff" in v:
             count["cf_over_specified"] += 1
+        else:
+            count["errored"] += 1
     df = pd.DataFrame.from_dict(count, orient="index").T
     df.to_csv(
         "audits/grayskull_accuracy.csv",
@@ -481,8 +486,9 @@ def main(args):
                     if "dumper" in v:
                         deps = v["dumper"](deps)
                 finally:
-                    with open(f"audits/{k}/{node}_{version}.{ext}", "w") as f:
-                        v["writer"](deps, f)
+                    if deps:
+                        with open(f"audits/{k}/{node}_{version}.{ext}", "w") as f:
+                            v["writer"](deps, f)
 
     # grayskull_audit_outcome = compare_grayskull_audits(gx)
     # compute_grayskull_accuracy(grayskull_audit_outcome)
