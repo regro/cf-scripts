@@ -37,7 +37,7 @@ DEPFINDER_IGNORE = []
 for k in IGNORE_STUBS:
     for tmpl in IGNORE_TEMPLATES:
         DEPFINDER_IGNORE.append(tmpl.format(z=k))
-DEPFINDER_IGNORE += ["*testdir/*", "*conftest*", "*/test.py"]
+DEPFINDER_IGNORE += ["*testdir/*", "*conftest*", "*/test.py", "*/versioneer.py"]
 
 BUILTINS = set().union(
     # Some libs support older python versions, we don't want their std lib
@@ -117,7 +117,7 @@ AUDIT_REGISTRY = {
         "writer": dump,
         "ext": "json",
         "version": depfinder_version,
-        "creation_version": "1",
+        "creation_version": "2",
     },
     # Grayskull produces a valid meta.yaml, there is no in memory representation
     # for that so we just write out the string
