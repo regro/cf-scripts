@@ -37,11 +37,7 @@ DEPFINDER_IGNORE = []
 for k in IGNORE_STUBS:
     for tmpl in IGNORE_TEMPLATES:
         DEPFINDER_IGNORE.append(tmpl.format(z=k))
-DEPFINDER_IGNORE += [
-    "*testdir/*",
-    "*conftest*",
-    "*/test.py"
-]
+DEPFINDER_IGNORE += ["*testdir/*", "*conftest*", "*/test.py"]
 
 BUILTINS = set().union(
     # Some libs support older python versions, we don't want their std lib
@@ -55,7 +51,7 @@ STATIC_EXCLUDES = {
     "pip",
     "versioneer",
     # not a real dep
-    "cross-python"
+    "cross-python",
 } | BUILTINS
 
 
@@ -65,7 +61,9 @@ def extract_deps_from_source(recipe_dir):
         return {
             k: set(v)
             for k, v in simple_import_search_conda_forge_import_map(
-                cb_work_dir, builtins=BUILTINS, ignore=DEPFINDER_IGNORE,
+                cb_work_dir,
+                builtins=BUILTINS,
+                ignore=DEPFINDER_IGNORE,
             ).items()
         }
 
@@ -123,14 +121,14 @@ AUDIT_REGISTRY = {
     },
     # Grayskull produces a valid meta.yaml, there is no in memory representation
     # for that so we just write out the string
-#    "grayskull": {
-#        "run": grayskull_audit_feedstock,
-#        "writer": lambda x, f: f.write(x),
-#        "dumper": yaml.dump,
-#        "ext": "yml",
-#        "version": grayskull_version,
-#        "creation_version": "1",
-#    },
+    #    "grayskull": {
+    #        "run": grayskull_audit_feedstock,
+    #        "writer": lambda x, f: f.write(x),
+    #        "dumper": yaml.dump,
+    #        "ext": "yml",
+    #        "version": grayskull_version,
+    #        "creation_version": "1",
+    #    },
 }
 
 
@@ -252,7 +250,8 @@ def extract_missing_packages(
     df_minus_cf = (
         set().union(
             *list(as_iterable(package_by_import.get(k, k)) for k in df_minus_cf_imports)
-        ) - exclude_packages
+        )
+        - exclude_packages
         & nodes
     )
     if df_minus_cf:
