@@ -46,6 +46,8 @@ CF_BOT_NAMES = {"regro-cf-autotick-bot", "conda-forge-linter"}
 # to add more keys to keep, put them in the right spot in the dict and
 # set them to None.
 PR_KEYS_TO_KEEP = {
+    "ETag": None,
+    "Last-Modified": None,
     "id": None,
     "number": None,
     "html_url": None,
@@ -310,7 +312,7 @@ def delete_branch(ctx: GithubContext, pr_json: LazyJson, dry_run: bool = False) 
 
 def trim_pr_josn_keys(
     pr_json: Union[Dict, LazyJson],
-    src_pr_json=Optional[Union[Dict, LazyJson]],
+    src_pr_json: Optional[Union[Dict, LazyJson]] = None,
 ) -> Union[Dict, LazyJson]:
     """Trim the set of keys in the PR json. The keys kept are defined by the global
     PR_KEYS_TO_KEEP.
@@ -332,11 +334,12 @@ def trim_pr_josn_keys(
     # keep a subset of keys
     def _munge_dict(dest, src, keys):
         for k, v in keys.items():
-            if v is None:
-                dest[k] = src[k]
-            else:
-                dest[k] = {}
-                _munge_dict(dest[k], src[k], v)
+            if k in src:
+                if v is None:
+                    dest[k] = src[k]
+                else:
+                    dest[k] = {}
+                    _munge_dict(dest[k], src[k], v)
 
     if src_pr_json is None:
         src_pr_json = copy.deepcopy(dict(pr_json))
@@ -380,21 +383,23 @@ def lazy_update_pr_json(
         "Authorization": f"token {ctx.github_password}",
         "Accept": "application/vnd.github.v3+json",
     }
-    if not force:
+    if not force and "ETag" in pr_json:
         hdrs["If-None-Match"] = pr_json["ETag"]
+
     r = requests.get(
         "https://api.github.com/repos/conda-forge/"
         f"{pr_json['base']['repo']['name']}/pulls/{pr_json['number']}",
         headers=hdrs,
     )
-    if r.status_code == 304:
-        return pr_json
-    elif r.status_code == 200:
+
+    if r.status_code == 200:
         if trim:
             pr_json = trim_pr_josn_keys(pr_json, src_pr_json=r.json())
         pr_json["ETag"] = r.headers["ETag"]
+        pr_json["Last-Modified"] = r.headers["Last-Modified"]
     else:
-        r.raise_for_status()
+        if trim:
+            pr_json = trim_pr_josn_keys(pr_json)
 
     return pr_json
 
@@ -415,7 +420,7 @@ def refresh_pr(
             print("dry run: refresh pr %s" % pr_json["id"])
             pr_dict = dict(pr_json)
         else:
-            pr_json = lazy_update_pr_json(pr_json, ctx)
+            pr_json = lazy_update_pr_json(copy.deepcopy(pr_json), ctx)
 
             # if state passed from opened to merged or if it
             # closed for a day delete the branch
