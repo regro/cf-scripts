@@ -7,6 +7,7 @@ Builds and maintains mapping of pypi-names to conda-forge names
 
 import glob
 
+import requests
 import yaml
 import pathlib
 import functools
@@ -206,6 +207,7 @@ def determine_best_matches_for_pypi_import(
     gx = load_graph(graph_file)
     # TODO: filter out archived feedstocks?
 
+    # clobberers = requests.get('...').json()
     import networkx
 
     # computes hubs and authorities.
@@ -213,16 +215,20 @@ def determine_best_matches_for_pypi_import(
     # whilst authorities are packages with many edges to them.
     hubs, authorities = networkx.hits_scipy(gx)
 
-    def score(conda_name):
+    def score(pkg_name):
         """Base the score on
 
         Packages that are hubs are preferred.
         In the event of ties, fall back to the one with the lower authority score
         which means in this case, fewer dependencies
         """
-        return -hubs.get(conda_name, 0), authorities.get(conda_name, 0), conda_name
+        conda_name = gx.graph['outputs_lut'][pkg_name]
+        return (
+            # int(pkg_name in clobberers),
+            -hubs.get(conda_name, 0), authorities.get(conda_name, 0), conda_name)
 
-    ranked_list = list(sorted(gx.nodes, key=score))
+    pkgs = list(gx.graph['outputs_lut'])
+    ranked_list = list(sorted(pkgs, key=score))
     with open(pathlib.Path(cf_graph) / "ranked_hubs_authorities.json", "w") as f:
         dump(ranked_list, f)
 
