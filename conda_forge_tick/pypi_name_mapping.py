@@ -222,12 +222,15 @@ def determine_best_matches_for_pypi_import(
         In the event of ties, fall back to the one with the lower authority score
         which means in this case, fewer dependencies
         """
-        conda_name = gx.graph['outputs_lut'][pkg_name]
+        conda_name = gx.graph["outputs_lut"][pkg_name]
         return (
             # int(pkg_name in clobberers),
-            -hubs.get(conda_name, 0), authorities.get(conda_name, 0), conda_name)
+            -hubs.get(conda_name, 0),
+            authorities.get(conda_name, 0),
+            conda_name,
+        )
 
-    pkgs = list(gx.graph['outputs_lut'])
+    pkgs = list(gx.graph["outputs_lut"])
     ranked_list = list(sorted(pkgs, key=score))
     with open(pathlib.Path(cf_graph) / "ranked_hubs_authorities.json", "w") as f:
         dump(ranked_list, f)
