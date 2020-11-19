@@ -230,7 +230,7 @@ def determine_best_matches_for_pypi_import(
         In the event of ties, fall back to the one with the lower authority score
         which means in this case, fewer dependencies
         """
-        conda_names = gx.graph["outputs_lut"][pkg_name]
+        conda_names = gx.graph["outputs_lut"].get(pkg_name, {pkg_name})
         return min(_score(conda_name) for conda_name in conda_names)
 
     pkgs = list(gx.graph["outputs_lut"])
