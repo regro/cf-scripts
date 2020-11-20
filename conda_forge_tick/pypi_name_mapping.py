@@ -215,11 +215,13 @@ def determine_best_matches_for_pypi_import(
     # whilst authorities are packages with many edges to them.
     hubs, authorities = networkx.hits_scipy(gx)
 
-    def _score(conda_name):
+    def _score(conda_name, conda_name_is_feedstock_name=True):
         return (
             # int(pkg_name in clobberers),
             -hubs.get(conda_name, 0),
             authorities.get(conda_name, 0),
+            # prefer pkgs that match feedstocks
+            -int(conda_name_is_feedstock_name),
             conda_name,
         )
 
@@ -231,7 +233,7 @@ def determine_best_matches_for_pypi_import(
         which means in this case, fewer dependencies
         """
         conda_names = gx.graph["outputs_lut"].get(pkg_name, {pkg_name})
-        return min(_score(conda_name) for conda_name in conda_names)
+        return min(_score(conda_name, conda_name_is_feedstock_name=(conda_name==pkg_name)) for conda_name in conda_names)
 
     pkgs = list(gx.graph["outputs_lut"])
     ranked_list = list(sorted(pkgs, key=score))

@@ -265,13 +265,18 @@ def populate_feedstock_attributes(
     ) = _extract_requirements(meta_yaml)
 
     # handle multi outputs
+    outputs_names = set()
     if "outputs" in yaml_dict:
-        sub_graph["outputs_names"] = set(
+        outputs_names.update(set(
             list({d.get("name", "") for d in yaml_dict["outputs"]}),
-        )
+        ))
+        # handle implicit meta packages 
+        if "run" in sub_graph['meta_yaml']['requirements']['run']:
+            outputs_names.add(meta_yaml["package"]["name"])
     # add in single package name
     else:
-        sub_graph["outputs_names"] = {meta_yaml["package"]["name"]}
+        outputs_names = {meta_yaml["package"]["name"]}
+    sub_graph["outputs_names"] = outputs_names
 
     # TODO: Write schema for dict
     # TODO: remove this
