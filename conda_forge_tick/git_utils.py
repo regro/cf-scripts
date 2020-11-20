@@ -397,6 +397,11 @@ def lazy_update_pr_json(
             pr_json["base"]["repo"] = {}
         pr_json["base"]["repo"]["name"] = repo_name
 
+    if "/pull/" in pr_json["base"]["repo"]["name"]:
+        pr_json["base"]["repo"]["name"] = pr_json["base"]["repo"]["name"].split(
+            "/pull/",
+        )[0]
+
     r = requests.get(
         "https://api.github.com/repos/conda-forge/"
         f"{pr_json['base']['repo']['name']}/pulls/{pr_json['number']}",
