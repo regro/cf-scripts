@@ -233,7 +233,10 @@ def determine_best_matches_for_pypi_import(
         which means in this case, fewer dependencies
         """
         conda_names = gx.graph["outputs_lut"].get(pkg_name, {pkg_name})
-        return min(_score(conda_name, conda_name_is_feedstock_name=(conda_name==pkg_name)) for conda_name in conda_names)
+        return min(
+            _score(conda_name, conda_name_is_feedstock_name=(conda_name == pkg_name))
+            for conda_name in conda_names
+        )
 
     pkgs = list(gx.graph["outputs_lut"])
     ranked_list = list(sorted(pkgs, key=score))
