@@ -386,6 +386,15 @@ def lazy_update_pr_json(
     if not force and "ETag" in pr_json:
         hdrs["If-None-Match"] = pr_json["ETag"]
 
+    if "repo" not in pr_json["base"] and "name" not in pr_json["base"]["repo"]:
+        # some pr json blobs never had this key so we backfill
+        repo_name = pr_json["html_url"].split("/conda-forge/")[1]
+        if repo_name[-1] == "/":
+            repo_name = repo_name[:-1]
+        if "repo" not in pr_json["base"]:
+            pr_json["base"]["repo"] = {}
+        pr_json["base"]["repo"]["name"] = repo_name
+
     r = requests.get(
         "https://api.github.com/repos/conda-forge/"
         f"{pr_json['base']['repo']['name']}/pulls/{pr_json['number']}",
