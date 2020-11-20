@@ -69,6 +69,7 @@ def _update_pr(update_function, dry_run, gx):
             as_completed(futures),
             total=len(futures),
             desc="gathering PR data",
+            leave=False,
         ):
             name, i, pr_json = futures[f]
             try:
