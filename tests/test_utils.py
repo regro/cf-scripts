@@ -46,3 +46,6 @@ def test_lazy_json(tmpdir):
         assert ff.read() == dumps(
             {"hi": "globe", "lst": ["universe"] * 4, "lst2": ["universe"] * 2},
         )
+    lj.clear()
+    with open(f) as ff:
+        assert ff.read() == dumps({})

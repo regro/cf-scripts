@@ -3,9 +3,11 @@ import datetime
 import os
 import time
 import sys
-from typing import Optional, Union, Tuple
+from typing import Optional, Union, Tuple, Dict
 import subprocess
+import copy
 
+import requests
 import github3
 import github3.pulls
 import github3.repos
@@ -40,11 +42,59 @@ DUMMY_BOT_RERUN_METADATA = {
 
 CF_BOT_NAMES = {"regro-cf-autotick-bot", "conda-forge-linter"}
 
+# these keys are kept from github PR json blobs
+# to add more keys to keep, put them in the right spot in the dict and
+# set them to None.
+PR_KEYS_TO_KEEP = {
+    "ETag": None,
+    "Last-Modified": None,
+    "id": None,
+    "number": None,
+    "html_url": None,
+    "created_at": None,
+    "updated_at": None,
+    "merged_at": None,
+    "closed_at": None,
+    "state": None,
+    "mergeable_state": None,
+    "labels": None,
+    "merged": None,
+    "draft": None,
+    "mergeable": None,
+    "head": {"ref": None},
+    "base": {"repo": {"name": None}},
+}
+
 
 def ensure_gh(ctx: GithubContext, gh: Optional[github3.GitHub]) -> github3.GitHub:
     if gh is None:
         gh = github3.login(ctx.github_username, ctx.github_password)
     return gh
+
+
+def is_github_api_limit_reached(e: github3.GitHubError, gh: github3.GitHub) -> bool:
+    """Prints diagnostic information about a github exception.
+
+    Returns
+    -------
+    out_of_api_credits
+        A flag to indicate that the api limit has been exhausted
+    """
+    print(e)
+    print(e.response)
+    print(e.response.url)
+
+    try:
+        c = gh.rate_limit()["resources"]["core"]
+    except Exception:
+        # if we can't connect to the rate limit API, let's assume it has been reached
+        return True
+    if c["remaining"] == 0:
+        ts = c["reset"]
+        print("API timeout, API returns at")
+        print(datetime.datetime.utcfromtimestamp(ts).strftime("%Y-%m-%dT%H:%M:%SZ"))
+        return True
+    return False
 
 
 def feedstock_url(fctx: FeedstockContext, protocol: str = "ssh") -> str:
@@ -199,6 +249,7 @@ def get_repo(
         The github3 repository object.
     """
     gh = ctx.gh
+
     # first, let's grab the feedstock locally
     upstream = feedstock_url(fctx=fctx, protocol=protocol)
     origin = fork_url(upstream, ctx.github_username)
@@ -259,6 +310,100 @@ def delete_branch(ctx: GithubContext, pr_json: LazyJson, dry_run: bool = False) 
     pr_json["head"]["ref"] = "this_is_not_a_branch"
 
 
+def trim_pr_josn_keys(
+    pr_json: Union[Dict, LazyJson],
+    src_pr_json: Optional[Union[Dict, LazyJson]] = None,
+) -> Union[Dict, LazyJson]:
+    """Trim the set of keys in the PR json. The keys kept are defined by the global
+    PR_KEYS_TO_KEEP.
+
+    Parameters
+    ----------
+    pr_json : dict-like
+        A dict-like object with the current PR information.
+    src_pr_json : dict-like, optional
+        If this object is sent, the values for the trimmed keys are taken
+        from this object. Otherwise `pr_json` is used for the values.
+
+    Returns
+    -------
+    pr_json : dict-like
+        A dict-like object with the current PR information trimmed to the subset of
+        keys.
+    """
+    # keep a subset of keys
+    def _munge_dict(dest, src, keys):
+        for k, v in keys.items():
+            if k in src:
+                if v is None:
+                    dest[k] = src[k]
+                else:
+                    dest[k] = {}
+                    _munge_dict(dest[k], src[k], v)
+
+    if src_pr_json is None:
+        src_pr_json = copy.deepcopy(dict(pr_json))
+
+    pr_json.clear()
+    _munge_dict(pr_json, src_pr_json, PR_KEYS_TO_KEEP)
+    return pr_json
+
+
+def lazy_update_pr_json(
+    pr_json: Union[Dict, LazyJson],
+    ctx: GithubContext,
+    force: bool = False,
+    trim: bool = True,
+) -> Union[Dict, LazyJson]:
+    """Lazily update a GitHub PR.
+
+    This function will use the ETag in the GitHub API to update PR information
+    lazily. It sends the ETag to github properly and if nothing is changed on their
+    end, it simply returns the PR. Otherwise the information is refershed.
+
+    Parameters
+    ----------
+    pr_json : dict-like
+        A dict-like object with the current PR information.
+    ctx : GithubContext
+        The context object with GitHub credential information.
+    force : bool, optional
+        If True, forcibly update the PR json even if it is not out of date
+        according to the ETag. Default is False.
+    trim : bool, optional
+        If True, trim the PR json keys to ones in the global PR_KEYS_TO_KEEP.
+        Default is True.
+
+    Returns
+    -------
+    pr_json : dict-like
+        A dict-like object with the current PR information.
+    """
+    hdrs = {
+        "Authorization": f"token {ctx.github_password}",
+        "Accept": "application/vnd.github.v3+json",
+    }
+    if not force and "ETag" in pr_json:
+        hdrs["If-None-Match"] = pr_json["ETag"]
+
+    r = requests.get(
+        "https://api.github.com/repos/conda-forge/"
+        f"{pr_json['base']['repo']['name']}/pulls/{pr_json['number']}",
+        headers=hdrs,
+    )
+
+    if r.status_code == 200:
+        if trim:
+            pr_json = trim_pr_josn_keys(pr_json, src_pr_json=r.json())
+        pr_json["ETag"] = r.headers["ETag"]
+        pr_json["Last-Modified"] = r.headers["Last-Modified"]
+    else:
+        if trim:
+            pr_json = trim_pr_josn_keys(pr_json)
+
+    return pr_json
+
+
 @backoff.on_exception(
     backoff.expo,
     (RequestException, Timeout),
@@ -270,22 +415,45 @@ def refresh_pr(
     gh: Optional[github3.GitHub] = None,
     dry_run: bool = False,
 ) -> Optional[dict]:
-    gh = ensure_gh(ctx, gh)
     if not pr_json["state"] == "closed":
         if dry_run:
             print("dry run: refresh pr %s" % pr_json["id"])
             pr_dict = dict(pr_json)
         else:
-            pr_obj = github3.pulls.PullRequest(dict(pr_json), gh)
-            pr_obj.refresh(True)
-            pr_obj_d = pr_obj.as_dict()
+            pr_json = lazy_update_pr_json(copy.deepcopy(pr_json), ctx)
+
             # if state passed from opened to merged or if it
             # closed for a day delete the branch
-            if pr_obj_d["state"] == "closed" and pr_obj_d.get("merged_at", False):
+            if pr_json["state"] == "closed" and pr_json.get("merged_at", False):
                 delete_branch(ctx=ctx, pr_json=pr_json, dry_run=dry_run)
-            pr_dict = pr_obj.as_dict()
+            pr_dict = dict(pr_json)
+
         return pr_dict
+
     return None
+
+
+def get_pr_obj_from_pr_json(
+    pr_json: Union[Dict, LazyJson],
+    gh: github3.GitHub,
+) -> github3.pulls.PullRequest:
+    """Produce a github3 pull request object from pr_json.
+
+    Parameters
+    ----------
+    pr_json : dict-like
+        A dict-like object with the current PR information.
+    gh : github3 object
+        The github3 object for interacting with the GitHub API.
+
+    Returns
+    -------
+    pr_obj : github3.pulls.PullRequest
+        The pull request object.
+    """
+    feedstock_reponame = pr_json["base"]["repo"]["name"]
+    repo = gh.repository("conda-forge", feedstock_reponame)
+    return repo.pull_request(pr_json["number"])
 
 
 @backoff.on_exception(
@@ -300,6 +468,7 @@ def close_out_labels(
     dry_run: bool = False,
 ) -> Optional[dict]:
     gh = ensure_gh(ctx, gh)
+
     # run this twice so we always have the latest info (eg a thing was already closed)
     if pr_json["state"] != "closed" and "bot-rerun" in [
         lab["name"] for lab in pr_json.get("labels", [])
@@ -308,9 +477,7 @@ def close_out_labels(
         if dry_run:
             print("dry run: checking pr %s" % pr_json["id"])
         else:
-            pr_obj = github3.pulls.PullRequest(dict(pr_json), gh)
-            pr_obj.refresh(True)
-            pr_json = pr_obj.as_dict()
+            pr_json = lazy_update_pr_json(pr_json, ctx)
 
     if pr_json["state"] != "closed" and "bot-rerun" in [
         lab["name"] for lab in pr_json.get("labels", [])
@@ -318,15 +485,19 @@ def close_out_labels(
         if dry_run:
             print("dry run: comment and close pr %s" % pr_json["id"])
         else:
+            pr_obj = get_pr_obj_from_pr_json(pr_json, gh)
             pr_obj.create_comment(
                 "Due to the `bot-rerun` label I'm closing "
                 "this PR. I will make another one as"
                 " appropriate. This was generated by {}".format(ctx.circle_build_url),
             )
             pr_obj.close()
+
             delete_branch(ctx=ctx, pr_json=pr_json, dry_run=dry_run)
-            pr_obj.refresh(True)
-        return pr_obj.as_dict()
+            pr_json = lazy_update_pr_json(pr_json, ctx)
+
+        return dict(pr_json)
+
     return None
 
 
@@ -409,9 +580,11 @@ def push_repo(
             return False
         else:
             print("Pull request created at " + pr.html_url)
+
     # Return a json object so we can remake the PR if needed
     pr_dict: dict = pr.as_dict()
-    return pr_dict
+
+    return trim_pr_josn_keys(pr_dict)
 
 
 @backoff.on_exception(
@@ -446,31 +619,6 @@ def label_pr(
         iss.add_labels(label_dict["name"])
 
 
-def is_github_api_limit_reached(e: github3.GitHubError, gh: github3.GitHub) -> bool:
-    """Prints diagnostic information about a github exception.
-
-    Returns
-    -------
-    out_of_api_credits
-        A flag to indicate that the api limit has been exhausted
-    """
-    print(e)
-    print(e.response)
-    print(e.response.url)
-
-    try:
-        c = gh.rate_limit()["resources"]["core"]
-    except Exception:
-        # if we can't connect to the rate limit API, let's assume it has been reached
-        return True
-    if c["remaining"] == 0:
-        ts = c["reset"]
-        print("API timeout, API returns at")
-        print(datetime.datetime.utcfromtimestamp(ts).strftime("%Y-%m-%dT%H:%M:%SZ"))
-        return True
-    return False
-
-
 def close_out_dirty_prs(
     ctx: GithubContext,
     pr_json: LazyJson,
@@ -484,15 +632,16 @@ def close_out_dirty_prs(
         if dry_run:
             print("dry run: checking pr %s" % pr_json["id"])
         else:
-            pr_obj = github3.pulls.PullRequest(dict(pr_json), gh)
-            pr_obj.refresh(True)
-            pr_json = pr_obj.as_dict()
+            pr_json = lazy_update_pr_json(pr_json, ctx)
 
     if pr_json["state"] != "closed" and pr_json["mergeable_state"] == "dirty":
-        d = pr_obj.as_dict()
+        d = dict(pr_json)
+
         if dry_run:
             print("dry run: comment and close pr %s" % pr_json["id"])
         else:
+            pr_obj = get_pr_obj_from_pr_json(pr_json, gh)
+
             if all(
                 c.as_dict()["commit"]["author"]["name"] in CF_BOT_NAMES
                 for c in pr_obj.commits()
@@ -505,9 +654,12 @@ def close_out_dirty_prs(
                     ),
                 )
                 pr_obj.close()
+
                 delete_branch(ctx=ctx, pr_json=pr_json, dry_run=dry_run)
-                pr_obj.refresh(True)
-                d = pr_obj.as_dict()
+
+                pr_json = lazy_update_pr_json(pr_json, ctx)
+                d = dict(pr_json)
+
                 # This will cause the _update_nodes_with_bot_rerun to trigger
                 # properly and shouldn't be overridden since
                 # this is the last function to run, the long term solution here
@@ -515,7 +667,7 @@ def close_out_dirty_prs(
                 # it should have label adding capability and we can just add
                 # the label properly
                 d["labels"].append(DUMMY_BOT_RERUN_METADATA)
-            else:
-                d = pr_obj.as_dict()
+
         return d
+
     return None

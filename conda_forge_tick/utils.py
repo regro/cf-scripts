@@ -235,6 +235,11 @@ class LazyJson(MutableMapping):
         self._load()
         return self._data
 
+    def clear(self):
+        self._load()
+        self._data.clear()
+        self._dump()
+
     def __len__(self) -> int:
         self._load()
         assert self._data is not None
