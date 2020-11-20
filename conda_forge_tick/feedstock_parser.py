@@ -273,7 +273,7 @@ def populate_feedstock_attributes(
             ),
         )
         # handle implicit meta packages
-        if "run" in sub_graph["meta_yaml"]["requirements"]:
+        if "run" in sub_graph["meta_yaml"].get("requirements", {}):
             outputs_names.add(meta_yaml["package"]["name"])
     # add in single package name
     else:
