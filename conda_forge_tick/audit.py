@@ -31,6 +31,8 @@ from conda_forge_tick.utils import (
 from conda_forge_tick.feedstock_parser import load_feedstock
 from conda_forge_tick.xonsh_utils import indir, env
 
+RUNTIME_MINUTES = 2
+
 IGNORE_STUBS = ["doc", "example", "demo", "test", "unit_tests", "testing"]
 IGNORE_TEMPLATES = ["*/{z}/*", "*/{z}s/*"]
 DEPFINDER_IGNORE = []
@@ -53,6 +55,22 @@ STATIC_EXCLUDES = {
     # not a real dep
     "cross-python",
 } | BUILTINS
+
+
+PREFERRED_IMPORT_BY_PACKAGE_MAP = {
+    "numpy": "numpy",
+    "matplotlib-base": "matplotlib",
+    "theano": "theano",
+    "tensorflow-estimator": "tensorflow_estimator",
+    "skorch": "skorch",
+}
+
+IMPORTS_BY_PACKAGE_OVERRIDE = {
+    k: {v} for k, v in PREFERRED_IMPORT_BY_PACKAGE_MAP.items()
+}
+PACKAGES_BY_IMPORT_OVERRIDE = {
+    v: {k} for k, v in PREFERRED_IMPORT_BY_PACKAGE_MAP.items()
+}
 
 
 def extract_deps_from_source(recipe_dir):
@@ -117,7 +135,7 @@ AUDIT_REGISTRY = {
         "writer": dump,
         "ext": "json",
         "version": depfinder_version,
-        "creation_version": "2",
+        "creation_version": "3",
     },
     # Grayskull produces a valid meta.yaml, there is no in memory representation
     # for that so we just write out the string
@@ -206,73 +224,28 @@ def compare_grayskull_audits(gx):
 
 
 def extract_missing_packages(
-    required_imports,
-    questionable_imports,
+    required_packages,
+    questionable_packages,
     run_packages,
-    package_by_import,
-    import_by_package,
-    node,
-    nodes,
+        node,
+        nodes,
 ):
     exclude_packages = STATIC_EXCLUDES.union(
         {node, node.replace("-", "_"), node.replace("_", "-")},
     )
 
-    questionable_packages = set().union(
-        *list(as_iterable(package_by_import.get(k, k)) for k in questionable_imports)
-    )
-    required_packages = set().union(
-        *list(as_iterable(package_by_import.get(k, k)) for k in required_imports)
-    )
-
-    run_imports = set().union(
-        *list(as_iterable(import_by_package.get(k, k)) for k in run_packages)
-    )
-    exclude_imports = set().union(
-        *list(as_iterable(import_by_package.get(k, k)) for k in exclude_packages)
-    )
-
     d = {}
-    # These are all normalized to packages
+
     # packages who's libraries are not imported
-    cf_minus_df = (
-        run_packages - required_packages - exclude_packages - questionable_packages
-    ) & nodes
+    cf_minus_df = (run_packages - required_packages - exclude_packages - questionable_packages) & nodes
     if cf_minus_df:
         d.update(cf_minus_df=cf_minus_df)
 
-    # These are all normalized to imports
-    # imports which have no associated package in the meta.yaml
-    df_minus_cf_imports = required_imports - run_imports - exclude_imports
-    # Normalize to packages, the native interface for conda-forge
-    # Note that the set overlap is a bit of a hack, sources could have imports we
-    # don't ship at all
-    df_minus_cf = (
-        set().union(
-            *list(as_iterable(package_by_import.get(k, k)) for k in df_minus_cf_imports)
-        )
-        - exclude_packages
-        & nodes
-    )
+    # packages for imported libraries which have no associated package in the meta.yaml
+    df_minus_cf = required_packages - run_packages - exclude_packages
     if df_minus_cf:
         d.update(df_minus_cf=df_minus_cf)
     return d
-
-
-PREFERRED_IMPORT_BY_PACKAGE_MAP = {
-    "numpy": "numpy",
-    "matplotlib-base": "matplotlib",
-    "theano": "theano",
-    "tensorflow-estimator": "tensorflow_estimator",
-    "skorch": "skorch",
-}
-
-IMPORTS_BY_PACKAGE_OVERRIDE = {
-    k: {v} for k, v in PREFERRED_IMPORT_BY_PACKAGE_MAP.items()
-}
-PACKAGES_BY_IMPORT_OVERRIDE = {
-    v: {k} for k, v in PREFERRED_IMPORT_BY_PACKAGE_MAP.items()
-}
 
 
 def create_package_import_maps(nodes, mapping_yaml="mappings/pypi/name_mapping.yaml"):
@@ -301,15 +274,11 @@ def compare_depfinder_audit(
     attrs: Dict,
     node: str,
     python_nodes: set,
-    imports_by_package,
-    packages_by_import,
 ) -> Dict[str, set]:
     d = extract_missing_packages(
-        required_imports=deps.get("required", set()),
-        questionable_imports=deps.get("questionable", set()),
+        required_packages=deps.get("required", set()),
+        questionable_packages=deps.get("questionable", set()),
         run_packages=attrs["requirements"]["run"],
-        package_by_import=packages_by_import,
-        import_by_package=imports_by_package,
         node=node,
         nodes=python_nodes,
     )
@@ -351,14 +320,11 @@ def compare_depfinder_audits(gx):
                 bad_inspection[node_version] = output
                 continue
             d = extract_missing_packages(
-                required_imports=output.get("required", set()),
-                questionable_imports=output.get("questionable", set()),
+                required_packages=output.get("required", set()),
+                questionable_packages=output.get("questionable", set()),
                 run_packages=attrs["requirements"]["run"],
-                package_by_import=packages_by_import,
-                import_by_package=imports_by_package,
                 node=node,
                 nodes=python_nodes,
-                # set(gx.nodes)
             )
             bad_inspection[node_version] = d or False
     with open("audits/depfinder/_net_audit.json", "w") as f:
@@ -456,7 +422,7 @@ def main(args):
         reverse=True,
     ):
         if time.time() - int(env.get("START_TIME", start_time)) > int(
-            env.get("TIMEOUT", 60 * 45),
+            env.get("TIMEOUT", 60 * RUNTIME_MINUTES),
         ):
             break
         # depfinder only work on python at the moment so only work on things

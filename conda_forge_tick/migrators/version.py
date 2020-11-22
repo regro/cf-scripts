@@ -662,8 +662,6 @@ class Version(Migrator):
                     feedstock_ctx.attrs,
                     feedstock_ctx.attrs["name"],
                     python_nodes=self.python_nodes,
-                    imports_by_package=self.imports_by_package,
-                    packages_by_import=self.packages_by_import,
                 )
                 hint = "\n\nDependency Analysis\n--------------------\n\n"
                 hint += (
