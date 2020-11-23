@@ -208,7 +208,11 @@ def determine_best_matches_for_pypi_import(
     # TODO: filter out archived feedstocks?
 
     try:
-        clobberers = loads(requests.get('https://raw.githubusercontent.com/regro/libcfgraph/master/clobbering_pkgs.json').text)
+        clobberers = loads(
+            requests.get(
+                "https://raw.githubusercontent.com/regro/libcfgraph/master/clobbering_pkgs.json",
+            ).text,
+        )
     except Exception as e:
         print(e)
         clobberers = set()
@@ -238,7 +242,11 @@ def determine_best_matches_for_pypi_import(
         """
         conda_names = gx.graph["outputs_lut"].get(pkg_name, {pkg_name})
         return min(
-            _score(conda_name, conda_name_is_feedstock_name=(conda_name == pkg_name), pkg_clobbers=pkg_name in clobberers)
+            _score(
+                conda_name,
+                conda_name_is_feedstock_name=(conda_name == pkg_name),
+                pkg_clobbers=pkg_name in clobberers,
+            )
             for conda_name in conda_names
         )
 
