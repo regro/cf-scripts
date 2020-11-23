@@ -65,6 +65,7 @@ G.add_node("conda", reqs=["python"])
 @pytest.mark.skip(reason="fails on linux but not locally on osx")
 def test_depfinder_audit_feedstock():
     from conda_forge_tick.audit import depfinder_audit_feedstock
+
     mm_ctx = MigratorSessionContext(
         graph=G,
         smithy_version="",
@@ -113,6 +114,7 @@ def test_depfinder_audit_feedstock():
 
 def test_grayskull_audit_feedstock():
     from conda_forge_tick.audit import grayskull_audit_feedstock
+
     mm_ctx = MigratorSessionContext(
         graph=G,
         smithy_version="",
