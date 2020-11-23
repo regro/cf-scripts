@@ -20,7 +20,6 @@ import networkx as nx
 import conda.exceptions
 from conda.models.version import VersionOrder
 
-from conda_forge_tick.audit import extract_deps_from_source, compare_depfinder_audit
 from conda_forge_tick.migrators.core import Migrator
 from conda_forge_tick.contexts import FeedstockContext
 from conda_forge_tick.xonsh_utils import indir
@@ -654,6 +653,7 @@ class Version(Migrator):
         )
         try:
             if update_deps == "hint":
+                from conda_forge_tick.audit import extract_deps_from_source, compare_depfinder_audit
                 deps = extract_deps_from_source(
                     os.path.join(feedstock_ctx.feedstock_dir, "recipe"),
                 )
