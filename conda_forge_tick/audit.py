@@ -227,8 +227,8 @@ def extract_missing_packages(
     required_packages,
     questionable_packages,
     run_packages,
-        node,
-        nodes,
+    node,
+    nodes,
 ):
     exclude_packages = STATIC_EXCLUDES.union(
         {node, node.replace("-", "_"), node.replace("_", "-")},
@@ -237,7 +237,9 @@ def extract_missing_packages(
     d = {}
 
     # packages who's libraries are not imported
-    cf_minus_df = (run_packages - required_packages - exclude_packages - questionable_packages) & nodes
+    cf_minus_df = (
+        run_packages - required_packages - exclude_packages - questionable_packages
+    ) & nodes
     if cf_minus_df:
         d.update(cf_minus_df=cf_minus_df)
 
