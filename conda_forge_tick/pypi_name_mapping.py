@@ -17,7 +17,7 @@ from typing import Dict, List, Optional, Any, Tuple, Set, Iterable
 from os.path import commonprefix
 
 
-from .utils import load, as_iterable, load_graph, dump
+from .utils import load, as_iterable, load_graph, dump, loads
 
 
 def load_node_meta_yaml(filename: str) -> Dict[str, str]:
@@ -207,7 +207,15 @@ def determine_best_matches_for_pypi_import(
     gx = load_graph(graph_file)
     # TODO: filter out archived feedstocks?
 
-    # clobberers = requests.get('...').json()
+    try:
+        clobberers = loads(
+            requests.get(
+                "https://raw.githubusercontent.com/regro/libcfgraph/master/clobbering_pkgs.json",
+            ).text,
+        )
+    except Exception as e:
+        print(e)
+        clobberers = set()
     import networkx
 
     # computes hubs and authorities.
@@ -215,9 +223,9 @@ def determine_best_matches_for_pypi_import(
     # whilst authorities are packages with many edges to them.
     hubs, authorities = networkx.hits_scipy(gx)
 
-    def _score(conda_name, conda_name_is_feedstock_name=True):
+    def _score(conda_name, conda_name_is_feedstock_name=True, pkg_clobbers=False):
         return (
-            # int(pkg_name in clobberers),
+            int(pkg_clobbers),
             -hubs.get(conda_name, 0),
             authorities.get(conda_name, 0),
             # prefer pkgs that match feedstocks
@@ -234,7 +242,11 @@ def determine_best_matches_for_pypi_import(
         """
         conda_names = gx.graph["outputs_lut"].get(pkg_name, {pkg_name})
         return min(
-            _score(conda_name, conda_name_is_feedstock_name=(conda_name == pkg_name))
+            _score(
+                conda_name,
+                conda_name_is_feedstock_name=(conda_name == pkg_name),
+                pkg_clobbers=pkg_name in clobberers,
+            )
             for conda_name in conda_names
         )
 
