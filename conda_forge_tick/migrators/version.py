@@ -653,7 +653,11 @@ class Version(Migrator):
         )
         try:
             if update_deps == "hint":
-                from conda_forge_tick.audit import extract_deps_from_source, compare_depfinder_audit
+                from conda_forge_tick.audit import (
+                    extract_deps_from_source,
+                    compare_depfinder_audit,
+                )
+
                 deps = extract_deps_from_source(
                     os.path.join(feedstock_ctx.feedstock_dir, "recipe"),
                 )
