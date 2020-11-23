@@ -261,8 +261,6 @@ def _update_nodes_with_bot_rerun(gx):
         # )
         with node["payload"] as payload:
             for migration in payload.get("PRed", []):
-                if random.random() >= 0.5:
-                    continue
                 try:
                     pr_json = migration.get("PR", {})
                     # maybe add a pass check info here ? (if using DEBUG)
