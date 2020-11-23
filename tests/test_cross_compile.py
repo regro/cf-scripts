@@ -21,14 +21,10 @@ nci_migrator = NoCondaInspectMigrator()
 
 version_migrator_autoconf = Version(
     set(),
-    dict(),
-    dict(),
     piggy_back_migrations=[config_migrator, cmake_migrator, guard_testing_migrator],
 )
 version_migrator_cmake = Version(
     set(),
-    dict(),
-    dict(),
     piggy_back_migrations=[
         cmake_migrator,
         guard_testing_migrator,
@@ -37,20 +33,14 @@ version_migrator_cmake = Version(
 )
 version_migrator_python = Version(
     set(),
-    dict(),
-    dict(),
     piggy_back_migrations=[cross_python_migrator],
 )
 version_migrator_b2h = Version(
     set(),
-    dict(),
-    dict(),
     piggy_back_migrations=[b2h_migrator],
 )
 version_migrator_nci = Version(
     set(),
-    dict(),
-    dict(),
     piggy_back_migrations=[nci_migrator],
 )
 

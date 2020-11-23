@@ -1600,7 +1600,7 @@ extra:
 """
 
 js = JS()
-version = Version(set(), dict(), dict())
+version = Version(set())
 # compiler = Compiler()
 noarch = Noarch()
 noarchr = NoarchR()

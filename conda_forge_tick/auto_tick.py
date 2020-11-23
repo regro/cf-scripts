@@ -43,7 +43,6 @@ import github3
 import ruamel.yaml as yaml
 from uuid import uuid4
 
-from conda_forge_tick.audit import create_package_import_maps
 from conda_forge_tick.xonsh_utils import indir, env
 
 from conda_forge_tick.contexts import (
@@ -815,11 +814,8 @@ def initialize_migrators(
             if node_name in python_nodes
         ],
     )
-    imports_by_package, packages_by_import = create_package_import_maps(python_nodes)
     version_migrator = Version(
         python_nodes=python_nodes,
-        imports_by_package=imports_by_package,
-        packages_by_import=packages_by_import,
         pr_limit=PR_LIMIT * 2,
         piggy_back_migrations=[
             Jinja2VarsCleanup(),

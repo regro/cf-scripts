@@ -9,7 +9,7 @@ from conda_forge_tick.migrators import (
 from test_migrators import run_test_migration
 
 PC = PipMigrator()
-VERSION_PC = Version(set(), dict(), dict(), piggy_back_migrations=[PC])
+VERSION_PC = Version(set(), piggy_back_migrations=[PC])
 
 YAML_PATH = os.path.join(os.path.dirname(__file__), "test_yaml")
 

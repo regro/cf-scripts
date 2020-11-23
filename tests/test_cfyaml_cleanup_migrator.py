@@ -11,8 +11,6 @@ from test_migrators import run_test_migration
 
 VERSION_CF = Version(
     set(),
-    dict(),
-    dict(),
     piggy_back_migrations=[CondaForgeYAMLCleanup()],
 )
 
