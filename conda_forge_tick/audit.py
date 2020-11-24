@@ -139,7 +139,7 @@ AUDIT_REGISTRY = {
         "writer": dump,
         "ext": "json",
         "version": depfinder_version,
-        "creation_version": "3",
+        "creation_version": "4",
     },
     # Grayskull produces a valid meta.yaml, there is no in memory representation
     # for that so we just write out the string
