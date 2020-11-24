@@ -50,14 +50,18 @@ BUILTINS = set().union(
     *[set(stdlib_list(k)) for k in ["2.7", "3.5", "3.6", "3.7"]]
 )
 
-STATIC_EXCLUDES = {
-    "python",
-    "setuptools",
-    "pip",
-    "versioneer",
-    # not a real dep
-    "cross-python",
-} | BUILTINS | set(COMPILER_STUBS_WITH_STRONG_EXPORTS)
+STATIC_EXCLUDES = (
+    {
+        "python",
+        "setuptools",
+        "pip",
+        "versioneer",
+        # not a real dep
+        "cross-python",
+    }
+    | BUILTINS
+    | set(COMPILER_STUBS_WITH_STRONG_EXPORTS)
+)
 
 
 PREFERRED_IMPORT_BY_PACKAGE_MAP = {
@@ -227,7 +231,11 @@ RANKINGS = load(open("ranked_hubs_authorities.json"))
 
 
 def extract_missing_packages(
-    required_packages, questionable_packages, run_packages, node, python_nodes,
+    required_packages,
+    questionable_packages,
+    run_packages,
+    node,
+    python_nodes,
 ):
     exclude_packages = STATIC_EXCLUDES.union(
         {node, node.replace("-", "_"), node.replace("_", "-")},
@@ -284,7 +292,10 @@ def create_package_import_maps(nodes, mapping_yaml="mappings/pypi/name_mapping.y
 
 
 def compare_depfinder_audit(
-    deps: Dict, attrs: Dict, node: str, python_nodes,
+    deps: Dict,
+    attrs: Dict,
+    node: str,
+    python_nodes,
 ) -> Dict[str, set]:
     d = extract_missing_packages(
         required_packages=deps.get("required", {}),
