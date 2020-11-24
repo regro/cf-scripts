@@ -11,7 +11,9 @@ from typing import Dict
 import networkx as nx
 from stdlib_list import stdlib_list
 
-from depfinder.main import simple_import_search_conda_forge_import_map
+from depfinder.main import (
+    simple_import_to_pkg_map,
+)
 from depfinder import __version__ as depfinder_version
 from grayskull.base.factory import GrayskullFactory
 from grayskull import __version__ as grayskull_version
@@ -54,6 +56,8 @@ STATIC_EXCLUDES = {
     "versioneer",
     # not a real dep
     "cross-python",
+    "c_compiler_stub",
+    "cxx_compiler_stub",
 } | BUILTINS
 
 
@@ -76,14 +80,11 @@ PACKAGES_BY_IMPORT_OVERRIDE = {
 def extract_deps_from_source(recipe_dir):
     cb_work_dir = _get_source_code(recipe_dir)
     with indir(cb_work_dir):
-        return {
-            k: set(v)
-            for k, v in simple_import_search_conda_forge_import_map(
-                cb_work_dir,
-                builtins=BUILTINS,
-                ignore=DEPFINDER_IGNORE,
-            ).items()
-        }
+        return simple_import_to_pkg_map(
+            cb_work_dir,
+            builtins=BUILTINS,
+            ignore=DEPFINDER_IGNORE,
+        )
 
 
 def depfinder_audit_feedstock(fctx: FeedstockContext, ctx: MigratorSessionContext):
@@ -223,28 +224,40 @@ def compare_grayskull_audits(gx):
     return bad_inspections
 
 
+RANKINGS = load(open("ranked_hubs_authorities.json"))
+
+
 def extract_missing_packages(
-    required_packages,
-    questionable_packages,
-    run_packages,
-    node,
-    nodes,
+    required_packages, questionable_packages, run_packages, node, python_nodes,
 ):
     exclude_packages = STATIC_EXCLUDES.union(
         {node, node.replace("-", "_"), node.replace("_", "-")},
     )
 
     d = {}
+    cf_minus_df = set(run_packages)
+    df_minus_cf = set()
+    for import_name, supplying_pkgs in required_packages.items():
+        # If there is any overlap in the cf requirements and the supplying pkgs remove from the cf_minus_df set
+        overlap = supplying_pkgs & run_packages
+        if overlap:
+            # XXX: This is particularly annoying with clobbers
+            cf_minus_df = cf_minus_df - overlap
+        else:
+            # TODO: sort by the rankings
+            df_minus_cf.add(next(iter(k for k in RANKINGS if k in supplying_pkgs)))
 
-    # packages who's libraries are not imported
-    cf_minus_df = (
-        run_packages - required_packages - exclude_packages - questionable_packages
-    ) & nodes
+    for import_name, supplying_pkgs in questionable_packages.items():
+        overlap = supplying_pkgs & run_packages
+        if overlap:
+            cf_minus_df = cf_minus_df - overlap
+
+    # Only report for python nodes, we don't inspect for other deps
+    cf_minus_df = (cf_minus_df - exclude_packages) & python_nodes
     if cf_minus_df:
         d.update(cf_minus_df=cf_minus_df)
 
-    # packages for imported libraries which have no associated package in the meta.yaml
-    df_minus_cf = required_packages - run_packages - exclude_packages
+    df_minus_cf = df_minus_cf - exclude_packages
     if df_minus_cf:
         d.update(df_minus_cf=df_minus_cf)
     return d
@@ -272,17 +285,14 @@ def create_package_import_maps(nodes, mapping_yaml="mappings/pypi/name_mapping.y
 
 
 def compare_depfinder_audit(
-    deps: Dict,
-    attrs: Dict,
-    node: str,
-    python_nodes: set,
+    deps: Dict, attrs: Dict, node: str, python_nodes,
 ) -> Dict[str, set]:
     d = extract_missing_packages(
-        required_packages=deps.get("required", set()),
-        questionable_packages=deps.get("questionable", set()),
+        required_packages=deps.get("required", {}),
+        questionable_packages=deps.get("questionable", {}),
         run_packages=attrs["requirements"]["run"],
         node=node,
-        nodes=python_nodes,
+        python_nodes=python_nodes,
     )
     return d
 
@@ -297,10 +307,6 @@ def compare_depfinder_audits(gx):
             for k in node.get("outputs_names", [])
             if node_name in python_nodes
         ],
-    )
-    imports_by_package, packages_by_import = create_package_import_maps(
-        python_nodes,
-        # set(gx.nodes)
     )
 
     bad_inspection = {}
@@ -322,11 +328,11 @@ def compare_depfinder_audits(gx):
                 bad_inspection[node_version] = output
                 continue
             d = extract_missing_packages(
-                required_packages=output.get("required", set()),
-                questionable_packages=output.get("questionable", set()),
+                required_packages=output.get("required", {}),
+                questionable_packages=output.get("questionable", {}),
                 run_packages=attrs["requirements"]["run"],
                 node=node,
-                nodes=python_nodes,
+                python_nodes=python_nodes,
             )
             bad_inspection[node_version] = d or False
     with open("audits/depfinder/_net_audit.json", "w") as f:
