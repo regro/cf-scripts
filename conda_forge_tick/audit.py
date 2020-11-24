@@ -11,6 +11,7 @@ from typing import Dict
 import networkx as nx
 from stdlib_list import stdlib_list
 
+from conda_forge_tick.make_graph import COMPILER_STUBS_WITH_STRONG_EXPORTS
 from depfinder.main import (
     simple_import_to_pkg_map,
 )
@@ -56,9 +57,7 @@ STATIC_EXCLUDES = {
     "versioneer",
     # not a real dep
     "cross-python",
-    "c_compiler_stub",
-    "cxx_compiler_stub",
-} | BUILTINS
+} | BUILTINS | set(COMPILER_STUBS_WITH_STRONG_EXPORTS)
 
 
 PREFERRED_IMPORT_BY_PACKAGE_MAP = {
