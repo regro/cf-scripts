@@ -255,7 +255,11 @@ def extract_missing_packages(
             cf_minus_df = cf_minus_df - overlap
         else:
             # TODO: sort by the rankings
-            df_minus_cf.add(next(iter(k for k in RANKINGS if k in supplying_pkgs)))
+            pkg_name = next(iter(k for k in RANKINGS if k in supplying_pkgs), None)
+            if pkg_name:
+                df_minus_cf.add(pkg_name)
+            else:
+                df_minus_cf.update(supplying_pkgs)
 
     for import_name, supplying_pkgs in questionable_packages.items():
         overlap = supplying_pkgs & run_packages
