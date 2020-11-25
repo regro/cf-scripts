@@ -34,7 +34,7 @@ from conda_forge_tick.utils import (
 from conda_forge_tick.feedstock_parser import load_feedstock
 from conda_forge_tick.xonsh_utils import indir, env
 
-RUNTIME_MINUTES = 45
+RUNTIME_MINUTES = 2
 
 IGNORE_STUBS = ["doc", "example", "demo", "test", "unit_tests", "testing"]
 IGNORE_TEMPLATES = ["*/{z}/*", "*/{z}s/*"]
@@ -227,7 +227,10 @@ def compare_grayskull_audits(gx):
     return bad_inspections
 
 
-RANKINGS = load(open("ranked_hubs_authorities.json"))
+try:
+    RANKINGS = load(open("ranked_hubs_authorities.json"))
+except FileNotFoundError:
+    RANKINGS = []
 
 
 def extract_missing_packages(
