@@ -220,10 +220,13 @@ def populate_feedstock_attributes(
 
             # collapse them down
             final_cfgs = {}
-            for plat_arch, varyml in zip(plat_arch, varient_yamls):
-                if plat_arch not in final_cfgs:
-                    final_cfgs[plat_arch] = []
-                final_cfgs[plat_arch].append(varyml)
+            for plat_arch_i, varyml in zip(plat_arch, varient_yamls):
+                if plat_arch_i not in final_cfgs:
+                    final_cfgs[plat_arch_i] = []
+                if plat_arch_i == "osx-arm64":
+                    # Don't consider build reqs for cross compiling platforms
+                    varyml["requirements"]["build"] = []
+                final_cfgs[plat_arch_i].append(varyml)
             for k in final_cfgs:
                 ymls = final_cfgs[k]
                 final_cfgs[k] = _convert_to_dict(ChainDB(*ymls))
