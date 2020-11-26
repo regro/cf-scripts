@@ -223,7 +223,7 @@ def populate_feedstock_attributes(
             for plat_arch_i, varyml in zip(plat_arch, varient_yamls):
                 if plat_arch_i not in final_cfgs:
                     final_cfgs[plat_arch_i] = []
-                if plat_arch_i == "osx-arm64":
+                if plat_arch_i == ("osx", "arm64"):
                     # Don't consider build reqs for cross compiling platforms
                     varyml["requirements"]["build"] = []
                 final_cfgs[plat_arch_i].append(varyml)
