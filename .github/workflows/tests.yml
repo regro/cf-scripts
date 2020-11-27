@@ -1,7 +1,9 @@
 name: tests
 
 on:
-  push: null
+  push:
+    branches: 
+      - master
   pull_request: null
 
 jobs:
