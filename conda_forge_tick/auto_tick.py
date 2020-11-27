@@ -1095,10 +1095,17 @@ def main(args: "CLIArgs") -> None:
                             )
                         except Exception as e:
                             LOGGER.exception("NON GITHUB ERROR")
-                            attrs["bad"] = {
-                                "exception": str(e),
-                                "traceback": str(traceback.format_exc()).split("\n"),
-                            }
+                            # we don't set bad for rerendering errors
+                            if (
+                                "conda smithy rerender -c auto --no-check-uptodate"
+                                not in str(e)
+                            ):
+                                attrs["bad"] = {
+                                    "exception": str(e),
+                                    "traceback": str(traceback.format_exc()).split(
+                                        "\n",
+                                    ),
+                                }
 
                             pre_key = "pre_pr_migrator_status"
                             if pre_key not in attrs:
