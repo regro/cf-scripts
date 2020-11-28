@@ -30,8 +30,8 @@ if typing.TYPE_CHECKING:
 
 logger = logging.getLogger("conda_forge_tick.update_prs")
 
-NUM_GITHUB_THREADS = 3
-KEEP_PR_FRACTION = 0.5
+NUM_GITHUB_THREADS = 2
+KEEP_PR_FRACTION = 1.5
 
 
 PR_JSON_REGEX = re.compile(r"^pr_json/([0-9]*).json$")
