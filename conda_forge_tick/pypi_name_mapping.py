@@ -20,8 +20,10 @@ from os.path import commonprefix
 from .utils import load, as_iterable, load_graph, dump, loads
 
 
-def load_node_meta_yaml(filename: str) -> Dict[str, str]:
+def load_node_meta_yaml(filename: str) -> Optional[Dict[str, str]]:
     node_attr = load(open(filename))
+    if node_attr.get("archived", False):
+        return None
     meta_yaml = node_attr.get("meta_yaml")
     return meta_yaml
 
@@ -154,6 +156,8 @@ def extract_pypi_information(cf_graph: str) -> List[Dict[str, str]]:
     # TODO: exclude archived node_attrs
     for f in list(glob.glob(f"{cf_graph}/node_attrs/*.json")):
         meta_yaml = load_node_meta_yaml(f)
+        if meta_yaml is None:
+            continue
         if not meta_yaml:
             continue
         mapping = extract_single_pypi_information(meta_yaml)
