@@ -299,8 +299,8 @@ def populate_feedstock_attributes(
             sub_graph[k[1]] = yaml_dict[k[0]][k[1]]
 
     # set the url and hash
-    sub_graph.pop("url")
-    sub_graph.pop("hash_type")
+    sub_graph.pop("url", None)
+    sub_graph.pop("hash_type", None)
 
     source = yaml_dict.get("source", [])
     if isinstance(source, collections.abc.Mapping):
