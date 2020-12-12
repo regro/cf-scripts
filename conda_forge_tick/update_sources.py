@@ -5,9 +5,7 @@ import re
 import logging
 import typing
 from typing import (
-    Any,
     Optional,
-    Iterable,
     Set,
     Iterator,
     List,
@@ -22,9 +20,16 @@ from .hashing import hash_url
 # TODO: parse_version has bad type annotations
 from pkg_resources import parse_version
 
+if typing.TYPE_CHECKING:
+    from conda_forge_tick.migrators_types import (
+        MetaYamlTypedDict,
+        SourceTypedDict,
+    )
+
+
 CRAN_INDEX: Optional[dict] = None
 
-logger = logging.getLogger("conda-forge-tick._update_version.update_sources")
+logger = logging.getLogger("conda_forge_tick._update_version.update_sources")
 
 
 def urls_from_meta(meta_yaml: "MetaYamlTypedDict") -> Set[str]:
@@ -97,7 +102,7 @@ class AbstractSource(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def get_url(self, url: str) -> Optional[str]:
+    def get_url(self, meta_yaml) -> Optional[str]:
         pass
 
 
@@ -457,3 +462,105 @@ class LibrariesIO(VersionFromFeed):
                 continue
             pkg = self.package_name(url)
             return f"https://libraries.io/{self.name}/{pkg}/versions.atom"
+
+
+def next_openssl_version(current_ver):
+    """openssl uses 1.1.1h -> 1.1.1i etc"""
+    curr_let = current_ver[-1]
+    for i in range(10):
+        next_let = chr(ord(curr_let) + i + 1)
+        yield current_ver[:-1] + next_let
+
+
+class OpenSSLSource(AbstractSource):
+    name = "RawURL"
+
+    def get_url(self, meta_yaml) -> Optional[str]:
+        if "feedstock_name" not in meta_yaml:
+            return None
+        if "version" not in meta_yaml:
+            return None
+
+        if meta_yaml["feedstock_name"] != "openssl":
+            return None
+
+        # TODO: pull this from the graph itself
+        content = meta_yaml["raw_meta_yaml"]
+
+        # this while statement runs until a bad version is found
+        # then it uses the previous one
+        orig_urls = urls_from_meta(meta_yaml["meta_yaml"])
+        logger.debug("orig urls: %s", orig_urls)
+        current_ver = meta_yaml["version"]
+        current_sha256 = None
+        orig_ver = current_ver
+        found = True
+        count = 0
+        max_count = 10
+
+        while found and count < max_count:
+            found = False
+            for next_ver in next_openssl_version(current_ver):
+                logger.debug("trying version: %s", next_ver)
+
+                new_content = content.replace(orig_ver, next_ver)
+                new_meta = parse_meta_yaml(new_content)
+                new_urls = urls_from_meta(new_meta)
+                if len(new_urls) == 0:
+                    logger.debug("No URL in meta.yaml")
+                    return None
+
+                logger.debug("parsed new version: %s", new_meta["package"]["version"])
+                url_to_use = None
+                for url in urls_from_meta(new_meta):
+                    # this URL looks bad if these things happen
+                    if (
+                        str(new_meta["package"]["version"]) != next_ver
+                        or meta_yaml["url"] == url
+                        or url in orig_urls
+                    ):
+                        logger.debug(
+                            "skipping url '%s' due to "
+                            "\n    %s = %s\n    %s = %s\n    %s = %s",
+                            url,
+                            'str(new_meta["package"]["version"]) != next_ver',
+                            str(new_meta["package"]["version"]) != next_ver,
+                            'meta_yaml["url"] == url',
+                            meta_yaml["url"] == url,
+                            "url in orig_urls",
+                            url in orig_urls,
+                        )
+                        continue
+
+                    logger.debug("trying url: %s", url)
+                    _exists, _url_to_use = url_exists_swap_exts(url)
+                    if not _exists:
+                        logger.debug(
+                            "version %s does not exist for url %s",
+                            next_ver,
+                            url,
+                        )
+                        continue
+                    else:
+                        url_to_use = _url_to_use
+
+                if url_to_use is not None:
+                    found = True
+                    count = count + 1
+                    current_ver = next_ver
+                    new_sha256 = get_sha256(url_to_use)
+                    if new_sha256 == current_sha256 or new_sha256 in new_content:
+                        return None
+                    current_sha256 = new_sha256
+                    logger.debug("version %s is ok for url %s", current_ver, url_to_use)
+                    break
+
+        if count == max_count:
+            return None
+        if current_ver != orig_ver:
+            logger.debug("using version %s", current_ver)
+            return current_ver
+        return None
+
+    def get_version(self, url: str) -> str:
+        return url
