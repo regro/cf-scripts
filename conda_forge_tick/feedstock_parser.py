@@ -165,7 +165,7 @@ def populate_feedstock_attributes(
         sub_graph["bad"] = f"make_graph: {meta_yaml.status_code}"
         return sub_graph
 
-    # strio out old keys - this removes old platforms when one gets disabled
+    # strip out old keys - this removes old platforms when one gets disabled
     for key in list(sub_graph.keys()):
         if key.endswith("meta_yaml") or key.endswith("requirements"):
             del sub_graph[key]
