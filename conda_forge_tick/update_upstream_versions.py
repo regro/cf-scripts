@@ -16,11 +16,12 @@ from .update_sources import (
     ROSDistro,
     RawURL,
     Github,
+    IncrementAlphaRawURL,
 )
 from typing import Any, Iterable
 
 # conda_forge_tick :: cft
-logger = logging.getLogger("conda-forge-tick.update_upstream_versions")
+logger = logging.getLogger("conda_forge_tick.update_upstream_versions")
 
 
 def get_latest_version(
@@ -65,7 +66,9 @@ def _update_upstream_versions_sequential(
     to_update = []
     for node, node_attrs in _all_nodes:
         attrs = node_attrs["payload"]
-        if "Upstream" not in attrs.get("bad", []) or attrs.get("archived"):
+        if (attrs.get("bad") and "Upstream" not in attrs.get("bad")) or attrs.get(
+            "archived",
+        ):
             continue
         to_update.append((node, attrs))
 
@@ -172,7 +175,7 @@ def update_upstream_versions(
     debug: bool = False,
 ) -> None:
     sources = (
-        (PyPI(), CRAN(), NPM(), ROSDistro(), RawURL(), Github())
+        (PyPI(), CRAN(), NPM(), ROSDistro(), RawURL(), Github(), IncrementAlphaRawURL())
         if sources is None
         else sources
     )

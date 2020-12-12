@@ -4,10 +4,9 @@ import subprocess
 import re
 import logging
 import typing
+import functools
 from typing import (
-    Any,
     Optional,
-    Iterable,
     Set,
     Iterator,
     List,
@@ -22,9 +21,16 @@ from .hashing import hash_url
 # TODO: parse_version has bad type annotations
 from pkg_resources import parse_version
 
+if typing.TYPE_CHECKING:
+    from conda_forge_tick.migrators_types import (
+        MetaYamlTypedDict,
+        SourceTypedDict,
+    )
+
+
 CRAN_INDEX: Optional[dict] = None
 
-logger = logging.getLogger("conda-forge-tick._update_version.update_sources")
+logger = logging.getLogger("conda_forge_tick._update_version.update_sources")
 
 
 def urls_from_meta(meta_yaml: "MetaYamlTypedDict") -> Set[str]:
@@ -52,7 +58,7 @@ def _split_alpha_num(ver: str) -> List[str]:
     return [ver]
 
 
-def next_version(ver: str) -> Iterator[str]:
+def next_version(ver: str, increment_alpha: bool = False) -> Iterator[str]:
     ver_split = []
     ver_dot_split = ver.split(".")
     n_dot = len(ver_dot_split)
@@ -81,12 +87,20 @@ def next_version(ver: str) -> Iterator[str]:
     for k in reversed(range(len(ver_split))):
         try:
             t = int(ver_split[k])
+            is_num = True
         except Exception:
-            continue
-        else:
+            is_num = False
+
+        if is_num:
             ver_split[k] = str(t + 1)
             yield "".join(ver_split)
             ver_split[k] = "0"
+        elif increment_alpha and ver_split[k].isalpha() and len(ver_split[k]) == 1:
+            ver_split[k] = chr(ord(ver_split[k]) + 1)
+            yield "".join(ver_split)
+            ver_split[k] = "a"
+        else:
+            continue
 
 
 class AbstractSource(abc.ABC):
@@ -97,7 +111,7 @@ class AbstractSource(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def get_url(self, url: str) -> Optional[str]:
+    def get_url(self, meta_yaml) -> Optional[str]:
         pass
 
 
@@ -359,29 +373,33 @@ def url_exists_swap_exts(url: str):
     return False, None
 
 
-class RawURL(AbstractSource):
-    name = "RawURL"
+class BaseRawURL(AbstractSource):
+    name = "BaseRawURL"
+    next_ver_func = None
 
     def get_url(self, meta_yaml) -> Optional[str]:
         if "feedstock_name" not in meta_yaml:
             return None
         if "version" not in meta_yaml:
             return None
+
         # TODO: pull this from the graph itself
         content = meta_yaml["raw_meta_yaml"]
 
         # this while statement runs until a bad version is found
         # then it uses the previous one
         orig_urls = urls_from_meta(meta_yaml["meta_yaml"])
+        logger.debug("orig urls: %s", orig_urls)
         current_ver = meta_yaml["version"]
         current_sha256 = None
         orig_ver = current_ver
         found = True
         count = 0
         max_count = 10
+
         while found and count < max_count:
             found = False
-            for next_ver in next_version(current_ver):
+            for next_ver in self.next_ver_func(current_ver):
                 logger.debug("trying version: %s", next_ver)
 
                 new_content = content.replace(orig_ver, next_ver)
@@ -391,6 +409,7 @@ class RawURL(AbstractSource):
                     logger.debug("No URL in meta.yaml")
                     return None
 
+                logger.debug("parsed new version: %s", new_meta["package"]["version"])
                 url_to_use = None
                 for url in urls_from_meta(new_meta):
                     # this URL looks bad if these things happen
@@ -399,6 +418,17 @@ class RawURL(AbstractSource):
                         or meta_yaml["url"] == url
                         or url in orig_urls
                     ):
+                        logger.debug(
+                            "skipping url '%s' due to "
+                            "\n    %s = %s\n    %s = %s\n    %s = %s",
+                            url,
+                            'str(new_meta["package"]["version"]) != next_ver',
+                            str(new_meta["package"]["version"]) != next_ver,
+                            'meta_yaml["url"] == url',
+                            meta_yaml["url"] == url,
+                            "url in orig_urls",
+                            url in orig_urls,
+                        )
                         continue
 
                     logger.debug("trying url: %s", url)
@@ -433,6 +463,26 @@ class RawURL(AbstractSource):
 
     def get_version(self, url: str) -> str:
         return url
+
+
+class RawURL(BaseRawURL):
+    name = "RawURL"
+    next_ver_func = functools.partial(next_version, increment_alpha=False)
+
+
+class IncrementAlphaRawURL(BaseRawURL):
+    name = "IncrementAlphaRawURL"
+    next_ver_func = functools.partial(next_version, increment_alpha=True)
+    feedstock_ok_list = ["openssl", "tzcode", "tzdata", "jpeg", "cddlib"]
+
+    def get_url(self, meta_yaml) -> Optional[str]:
+        if "feedstock_name" not in meta_yaml:
+            return None
+
+        if meta_yaml["feedstock_name"] not in self.feedstock_ok_list:
+            return None
+
+        return super().get_url(meta_yaml)
 
 
 class Github(VersionFromFeed):
