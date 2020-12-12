@@ -54,7 +54,7 @@ def _get_requirements(
     outputs : `bool`
         if `True` (default) return top-level requirements _and_ all
         requirements in `outputs`, otherwise just return top-level
-        requirememts.
+        requirements.
     build, host, run : `bool`
         include (`True`) or not (`False`) requirements from these sections
     Returns
@@ -164,6 +164,12 @@ def populate_feedstock_attributes(
     if isinstance(meta_yaml, Response):
         sub_graph["bad"] = f"make_graph: {meta_yaml.status_code}"
         return sub_graph
+
+    # strio out old keys - this removes old platforms when one gets disabled
+    for key in list(sub_graph.keys()):
+        if key.endswith("meta_yaml") or key.endswith("requirements"):
+            del sub_graph[key]
+
     sub_graph["raw_meta_yaml"] = meta_yaml
 
     # Get the conda-forge.yml
@@ -285,8 +291,17 @@ def populate_feedstock_attributes(
     req = _get_requirements(yaml_dict)
     sub_graph["req"] = req
 
+    # set name and version
     keys = [("package", "name"), ("package", "version")]
     missing_keys = [k[1] for k in keys if k[1] not in yaml_dict.get(k[0], {})]
+    for k in keys:
+        if k[1] not in missing_keys:
+            sub_graph[k[1]] = yaml_dict[k[0]][k[1]]
+
+    # set the url and hash
+    sub_graph.pop("url")
+    sub_graph.pop("hash_type")
+
     source = yaml_dict.get("source", [])
     if isinstance(source, collections.abc.Mapping):
         source = [source]
@@ -295,12 +310,11 @@ def populate_feedstock_attributes(
         if not sub_graph.get("url"):
             sub_graph["url"] = s.get("url")
         source_keys |= s.keys()
-    for k in keys:
-        if k[1] not in missing_keys:
-            sub_graph[k[1]] = yaml_dict[k[0]][k[1]]
+
     kl = list(sorted(source_keys & hashlib.algorithms_available, reverse=True))
     if kl:
         sub_graph["hash_type"] = kl[0]
+
     return sub_graph
 
 
@@ -336,12 +350,18 @@ def load_feedstock(
         feedstock_dir = _fetch_static_repo(name, tmpdir)
 
         if meta_yaml is None:
-            with open(os.path.join(feedstock_dir, "recipe", "meta.yaml")) as fp:
-                meta_yaml = fp.read()
+            if isinstance(feedstock_dir, Response):
+                meta_yaml = feedstock_dir
+            else:
+                with open(os.path.join(feedstock_dir, "recipe", "meta.yaml")) as fp:
+                    meta_yaml = fp.read()
 
         if conda_forge_yaml is None:
-            with open(os.path.join(feedstock_dir, "conda-forge.yml")) as fp:
-                conda_forge_yaml = fp.read()
+            if isinstance(feedstock_dir, Response):
+                conda_forge_yaml = Response
+            else:
+                with open(os.path.join(feedstock_dir, "conda-forge.yml")) as fp:
+                    conda_forge_yaml = fp.read()
 
         populate_feedstock_attributes(
             name,

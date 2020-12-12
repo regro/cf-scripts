@@ -4,6 +4,7 @@ import subprocess
 import re
 import logging
 import typing
+import functools
 from typing import (
     Optional,
     Set,
@@ -57,7 +58,7 @@ def _split_alpha_num(ver: str) -> List[str]:
     return [ver]
 
 
-def next_version(ver: str) -> Iterator[str]:
+def next_version(ver: str, increment_alpha: bool = False) -> Iterator[str]:
     ver_split = []
     ver_dot_split = ver.split(".")
     n_dot = len(ver_dot_split)
@@ -86,12 +87,20 @@ def next_version(ver: str) -> Iterator[str]:
     for k in reversed(range(len(ver_split))):
         try:
             t = int(ver_split[k])
+            is_num = True
         except Exception:
-            continue
-        else:
+            is_num = False
+
+        if is_num:
             ver_split[k] = str(t + 1)
             yield "".join(ver_split)
             ver_split[k] = "0"
+        elif increment_alpha and ver_split[k].isalpha() and len(ver_split[k]) == 1:
+            ver_split[k] = chr(ord(ver_split[k]) + 1)
+            yield "".join(ver_split)
+            ver_split[k] = "a"
+        else:
+            continue
 
 
 class AbstractSource(abc.ABC):
@@ -364,124 +373,14 @@ def url_exists_swap_exts(url: str):
     return False, None
 
 
-class RawURL(AbstractSource):
-    name = "RawURL"
+class BaseRawURL(AbstractSource):
+    name = "BaseRawURL"
+    next_ver_func = None
 
     def get_url(self, meta_yaml) -> Optional[str]:
         if "feedstock_name" not in meta_yaml:
             return None
         if "version" not in meta_yaml:
-            return None
-        # TODO: pull this from the graph itself
-        content = meta_yaml["raw_meta_yaml"]
-
-        # this while statement runs until a bad version is found
-        # then it uses the previous one
-        orig_urls = urls_from_meta(meta_yaml["meta_yaml"])
-        current_ver = meta_yaml["version"]
-        current_sha256 = None
-        orig_ver = current_ver
-        found = True
-        count = 0
-        max_count = 10
-        while found and count < max_count:
-            found = False
-            for next_ver in next_version(current_ver):
-                logger.debug("trying version: %s", next_ver)
-
-                new_content = content.replace(orig_ver, next_ver)
-                new_meta = parse_meta_yaml(new_content)
-                new_urls = urls_from_meta(new_meta)
-                if len(new_urls) == 0:
-                    logger.debug("No URL in meta.yaml")
-                    return None
-
-                url_to_use = None
-                for url in urls_from_meta(new_meta):
-                    # this URL looks bad if these things happen
-                    if (
-                        str(new_meta["package"]["version"]) != next_ver
-                        or meta_yaml["url"] == url
-                        or url in orig_urls
-                    ):
-                        continue
-
-                    logger.debug("trying url: %s", url)
-                    _exists, _url_to_use = url_exists_swap_exts(url)
-                    if not _exists:
-                        logger.debug(
-                            "version %s does not exist for url %s",
-                            next_ver,
-                            url,
-                        )
-                        continue
-                    else:
-                        url_to_use = _url_to_use
-
-                if url_to_use is not None:
-                    found = True
-                    count = count + 1
-                    current_ver = next_ver
-                    new_sha256 = get_sha256(url_to_use)
-                    if new_sha256 == current_sha256 or new_sha256 in new_content:
-                        return None
-                    current_sha256 = new_sha256
-                    logger.debug("version %s is ok for url %s", current_ver, url_to_use)
-                    break
-
-        if count == max_count:
-            return None
-        if current_ver != orig_ver:
-            logger.debug("using version %s", current_ver)
-            return current_ver
-        return None
-
-    def get_version(self, url: str) -> str:
-        return url
-
-
-class Github(VersionFromFeed):
-    name = "github"
-
-    def get_url(self, meta_yaml) -> Optional[str]:
-        if "github.com" not in meta_yaml["url"]:
-            return None
-        split_url = meta_yaml["url"].lower().split("/")
-        package_owner = split_url[split_url.index("github.com") + 1]
-        gh_package_name = split_url[split_url.index("github.com") + 2]
-        return f"https://github.com/{package_owner}/{gh_package_name}/releases.atom"
-
-
-class LibrariesIO(VersionFromFeed):
-    def get_url(self, meta_yaml) -> Optional[str]:
-        urls = meta_yaml["url"]
-        if not isinstance(meta_yaml["url"], list):
-            urls = [urls]
-        for url in urls:
-            if self.url_contains not in url:
-                continue
-            pkg = self.package_name(url)
-            return f"https://libraries.io/{self.name}/{pkg}/versions.atom"
-
-
-def next_openssl_version(current_ver):
-    """openssl uses 1.1.1h -> 1.1.1i etc"""
-    curr_let = current_ver[-1]
-    for i in range(10):
-        next_let = chr(ord(curr_let) + i + 1)
-        yield current_ver[:-1] + next_let
-
-
-class OpenSSLSource(AbstractSource):
-    name = "RawURL"
-
-    def get_url(self, meta_yaml) -> Optional[str]:
-        if "feedstock_name" not in meta_yaml:
-            return None
-        if "version" not in meta_yaml:
-            return None
-
-        if meta_yaml["feedstock_name"] != "openssl":
             return None
 
         # TODO: pull this from the graph itself
@@ -500,7 +399,7 @@ class OpenSSLSource(AbstractSource):
 
         while found and count < max_count:
             found = False
-            for next_ver in next_openssl_version(current_ver):
+            for next_ver in self.next_ver_func(current_ver):
                 logger.debug("trying version: %s", next_ver)
 
                 new_content = content.replace(orig_ver, next_ver)
@@ -564,3 +463,47 @@ class OpenSSLSource(AbstractSource):
 
     def get_version(self, url: str) -> str:
         return url
+
+
+class RawURL(BaseRawURL):
+    name = "RawURL"
+    next_ver_func = functools.partial(next_version, increment_alpha=False)
+
+
+class IncrementAlphaRawURL(BaseRawURL):
+    name = "IncrementAlphaRawURL"
+    next_ver_func = functools.partial(next_version, increment_alpha=True)
+    feedstock_ok_list = ["openssl", "tzcode", "tzdata", "jpeg", "cddlib"]
+
+    def get_url(self, meta_yaml) -> Optional[str]:
+        if "feedstock_name" not in meta_yaml:
+            return None
+
+        if meta_yaml["feedstock_name"] not in self.feedstock_ok_list:
+            return None
+
+        return super().get_url(meta_yaml)
+
+
+class Github(VersionFromFeed):
+    name = "github"
+
+    def get_url(self, meta_yaml) -> Optional[str]:
+        if "github.com" not in meta_yaml["url"]:
+            return None
+        split_url = meta_yaml["url"].lower().split("/")
+        package_owner = split_url[split_url.index("github.com") + 1]
+        gh_package_name = split_url[split_url.index("github.com") + 2]
+        return f"https://github.com/{package_owner}/{gh_package_name}/releases.atom"
+
+
+class LibrariesIO(VersionFromFeed):
+    def get_url(self, meta_yaml) -> Optional[str]:
+        urls = meta_yaml["url"]
+        if not isinstance(meta_yaml["url"], list):
+            urls = [urls]
+        for url in urls:
+            if self.url_contains not in url:
+                continue
+            pkg = self.package_name(url)
+            return f"https://libraries.io/{self.name}/{pkg}/versions.atom"

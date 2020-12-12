@@ -16,7 +16,7 @@ from .update_sources import (
     ROSDistro,
     RawURL,
     Github,
-    OpenSSLSource,
+    IncrementAlphaRawURL,
 )
 from typing import Any, Iterable
 
@@ -175,7 +175,7 @@ def update_upstream_versions(
     debug: bool = False,
 ) -> None:
     sources = (
-        (PyPI(), CRAN(), NPM(), ROSDistro(), RawURL(), Github(), OpenSSLSource())
+        (PyPI(), CRAN(), NPM(), ROSDistro(), RawURL(), Github(), IncrementAlphaRawURL())
         if sources is None
         else sources
     )

@@ -144,7 +144,7 @@ sample_npm_response = """
     }
   }
 }
-"""
+"""  # noqa
 
 latest_url_test_list = [
     (
@@ -183,4 +183,26 @@ def test_latest_version(inp, ver, source, urls, requests_mock, tmpdir):
 )
 def test_next_version(in_ver, ver_test):
     next_vers = [v for v in next_version(in_ver)]
+    assert next_vers == ver_test
+
+
+@pytest.mark.parametrize(
+    "in_ver, ver_test",
+    [
+        ("8.1", ["8.2", "9.0"]),
+        ("8.1.5", ["8.1.6", "8.2.0", "9.0.0"]),
+        ("8_1", ["8_2", "9_0"]),
+        ("8_1_5", ["8_1_6", "8_2_0", "9_0_0"]),
+        ("8-1", ["8-2", "9-0"]),
+        ("8-1-5", ["8-1-6", "8-2-0", "9-0-0"]),
+        ("8.1-10", ["8.1-11", "8.2-0", "9.0-0"]),
+        ("8.1_10", ["8.1_11", "8.2_0", "9.0_0"]),
+        ("10.8.1-10", ["10.8.1-11", "10.8.2-0", "10.9.0-0", "11.0.0-0"]),
+        ("10-8.1_10", ["10-8.1_11", "10-8.2_0", "10-9.0_0", "11-0.0_0"]),
+        ("1.1.1a", ["1.1.1b", "1.1.2a", "1.2.0a", "2.0.0a"]),
+        ("2020a", ["2020b", "2021a"]),
+    ],
+)
+def test_next_version_openssl(in_ver, ver_test):
+    next_vers = [v for v in next_version(in_ver, increment_alpha=True)]
     assert next_vers == ver_test
