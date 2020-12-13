@@ -256,6 +256,7 @@ def populate_feedstock_attributes(
             ]
     except Exception as e:
         import traceback
+
         trb = traceback.format_exc()
         sub_graph["bad"] = f"make_graph: render error {e}\n{trb}"
         return sub_graph
