@@ -333,7 +333,11 @@ def compare_depfinder_audits(gx):
         files.pop(files.index("_net_audit.json"))
 
     for node, attrs in gx.nodes("payload"):
-        if not attrs.get("version"):
+        if (
+            attrs.get("version", None) is None
+            or attrs.get("archived", False)
+            or attrs.get("bad", False)
+        ):
             continue
         node_version = f"{node}_{attrs['version']}"
         # construct the expected filename
