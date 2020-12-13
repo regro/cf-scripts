@@ -34,6 +34,7 @@ stopit
 streamz
 tar
 tqdm
+wurlitzer
 xonsh
 yaml
 pandas

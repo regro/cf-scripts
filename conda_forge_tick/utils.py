@@ -9,6 +9,8 @@ import itertools
 import rapidjson as json
 import logging
 import tempfile
+import io
+import contextlib
 import os
 from typing import Any, Tuple, Iterable, Union, Optional, IO, Set
 from collections.abc import MutableMapping
@@ -19,6 +21,7 @@ from concurrent.futures import (
 )
 import subprocess
 
+from wurlitzer import sys_pipes
 import github3
 import jinja2
 import boto3
@@ -144,27 +147,32 @@ def parse_meta_yaml(
             with open(os.path.join(tmpdir, "meta.yaml"), "w") as fp:
                 fp.write(text)
 
-            config = conda_build.config.get_or_merge_config(
-                None,
-                platform=platform,
-                arch=arch,
-                variant_config_files=[cbc_path],
-            )
-            _cbc, _ = conda_build.variants.get_package_combined_spec(
-                tmpdir,
-                config=config,
-            )
+            fout = io.StringIO()
+            ferr = io.StringIO()
+            with sys_pipes(), contextlib.redirect_stdout(
+                fout,
+            ), contextlib.redirect_stderr(ferr):
+                config = conda_build.config.get_or_merge_config(
+                    None,
+                    platform=platform,
+                    arch=arch,
+                    variant_config_files=[cbc_path],
+                )
+                _cbc, _ = conda_build.variants.get_package_combined_spec(
+                    tmpdir,
+                    config=config,
+                )
 
-            metas = conda_build.api.render(
-                tmpdir,
-                platform=platform,
-                arch=arch,
-                ignore_system_variants=True,
-                variants=_cbc,
-                permit_undefined_jinja=True,
-                finalize=False,
-                bypass_env_check=True,
-            )
+                metas = conda_build.api.render(
+                    tmpdir,
+                    platform=platform,
+                    arch=arch,
+                    ignore_system_variants=True,
+                    variants=_cbc,
+                    permit_undefined_jinja=True,
+                    finalize=False,
+                    bypass_env_check=True,
+                )
 
         cfg_as_dict = {}
         for m, _, _ in metas:
