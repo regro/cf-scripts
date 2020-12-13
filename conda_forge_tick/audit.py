@@ -458,6 +458,7 @@ def main(args):
             ext = v["ext"]
             if (
                 not payload.get("archived", False)
+                and not payload.get("bad", False)
                 and version
                 and "python" in payload["requirements"]["run"]
                 and f"{node}_{version}.{ext}" not in os.listdir(f"audits/{k}")
