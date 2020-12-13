@@ -10,7 +10,6 @@ import rapidjson as json
 import logging
 import tempfile
 import io
-import contextlib
 import os
 from typing import Any, Tuple, Iterable, Union, Optional, IO, Set
 from collections.abc import MutableMapping
