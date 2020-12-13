@@ -339,6 +339,10 @@ def compare_depfinder_audits(gx):
             or attrs.get("bad", False)
         ):
             continue
+        if "requirements" not in attrs:
+            print("node %s doesn't have requirements!" % node, flush=True)
+            continue
+
         node_version = f"{node}_{attrs['version']}"
         # construct the expected filename
         expected_filename = f"{node_version}.json"
