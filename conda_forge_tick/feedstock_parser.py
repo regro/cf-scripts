@@ -167,7 +167,7 @@ def populate_feedstock_attributes(
 
     # strip out old keys - this removes old platforms when one gets disabled
     for key in list(sub_graph.keys()):
-        if key.endswith("meta_yaml") or key.endswith("requirements"):
+        if key.endswith("meta_yaml") or key.endswith("requirements") or key == "req":
             del sub_graph[key]
 
     sub_graph["raw_meta_yaml"] = meta_yaml
@@ -255,7 +255,9 @@ def populate_feedstock_attributes(
                 for plat, arch in plat_arch
             ]
     except Exception as e:
-        sub_graph["bad"] = f"make_graph: render error {e}"
+        import traceback
+        trb = traceback.format_exc()
+        sub_graph["bad"] = f"make_graph: render error {e}\n{trb}"
         return sub_graph
 
     LOGGER.debug("platforms: %s", plat_arch)
