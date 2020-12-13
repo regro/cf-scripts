@@ -125,9 +125,10 @@ def parse_meta_yaml(
 
     """
     from conda_build.config import Config
-    from conda_build.metadata import parse
+    from conda_build.metadata import parse, MetaData
     import conda_build.api
     import conda_build.environ
+    from conda_build.variants import explode_variants
 
     if (
         recipe_dir is not None
@@ -155,29 +156,19 @@ def parse_meta_yaml(
                     None,
                     platform=platform,
                     arch=arch,
-                    variant_config_files=[cbc_path],
+                    exclusive_config_file=cbc_path,
                 )
                 _cbc, _ = conda_build.variants.get_package_combined_spec(
                     tmpdir,
                     config=config,
                 )
 
-                metas = conda_build.api.render(
-                    tmpdir,
-                    platform=platform,
-                    arch=arch,
-                    ignore_system_variants=True,
-                    variants=_cbc,
-                    permit_undefined_jinja=True,
-                    finalize=False,
-                    bypass_env_check=True,
-                )
+            cfg_as_dict = {}
+            for var in explode_variants(_cbc):
+                m = MetaData(tmpdir, config=config, variant=var)
+                cfg_as_dict.update(conda_build.environ.get_dict(m=m))
 
-        cfg_as_dict = {}
-        for m, _, _ in metas:
-            cfg_as_dict.update(conda_build.environ.get_dict(m=m))
-
-        logger.debug("jinja2 environmment:\n%s", pprint.pformat(cfg_as_dict))
+            logger.debug("jinja2 environmment:\n%s", pprint.pformat(cfg_as_dict))
     else:
         _cfg = {}
         _cfg.update(kwargs)
