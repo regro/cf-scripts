@@ -3,7 +3,7 @@ import os
 import re
 import time
 import typing
-import random
+import traceback
 from concurrent.futures import as_completed
 from collections import defaultdict
 
@@ -160,7 +160,8 @@ def _build_graph_sequential(
                 "payload": get_attrs(name, i, mark_not_archived=mark_not_archived),
             }
         except Exception as e:
-            LOGGER.error(f"Error adding {name} to the graph: {e}")
+            trb = traceback.format_exc()
+            LOGGER.error(f"Error adding {name} to the graph: {e}\n{trb}")
         else:
             if name in new_names:
                 gx.add_node(name, **sub_graph)

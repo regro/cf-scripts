@@ -180,73 +180,85 @@ def populate_feedstock_attributes(
             if k in CONDA_FORGE_YML_KEYS_TO_KEEP
         }
 
-    if (
-        feedstock_dir is not None
-        and len(glob.glob(os.path.join(feedstock_dir, ".ci_support", "*.yaml"))) > 0
-    ):
-        recipe_dir = os.path.join(feedstock_dir, "recipe")
-        ci_support_files = glob.glob(
-            os.path.join(feedstock_dir, ".ci_support", "*.yaml"),
+    if feedstock_dir is not None:
+        LOGGER.debug(
+            "# of ci support files: %s",
+            len(glob.glob(os.path.join(feedstock_dir, ".ci_support", "*.yaml"))),
         )
-        varient_yamls = []
-        plat_arch = []
-        for cbc_path in ci_support_files:
-            cbc_name = os.path.basename(cbc_path)
-            cbc_name_parts = cbc_name.replace(".yaml", "").split("_")
-            plat = cbc_name_parts[0]
-            if len(cbc_name_parts) == 1:
-                arch = "64"
-            else:
-                if cbc_name_parts[1] in ["64", "aarch64", "ppc64le", "arm64"]:
-                    arch = cbc_name_parts[1]
-                else:
-                    arch = "64"
-            plat_arch.append((plat, arch))
 
-            varient_yamls.append(
-                parse_meta_yaml(
-                    meta_yaml,
-                    platform=plat,
-                    arch=arch,
-                    recipe_dir=recipe_dir,
-                    cbc_path=cbc_path,
-                ),
+    try:
+        if (
+            feedstock_dir is not None
+            and len(glob.glob(os.path.join(feedstock_dir, ".ci_support", "*.yaml"))) > 0
+        ):
+            recipe_dir = os.path.join(feedstock_dir, "recipe")
+            ci_support_files = glob.glob(
+                os.path.join(feedstock_dir, ".ci_support", "*.yaml"),
             )
-
-            # sometimes the requirements come out to None and this ruins the
-            # aggregated meta_yaml
-            if "requirements" in varient_yamls[-1]:
-                for section in ["build", "host", "run"]:
-                    # We make sure to set a section only if it is actually in
-                    # the recipe. Adding a section when it is not there might
-                    # confuse migrators trying to move CB2 recipes to CB3.
-                    if section in varient_yamls[-1]["requirements"]:
-                        val = varient_yamls[-1]["requirements"].get(section, [])
-                        varient_yamls[-1]["requirements"][section] = val or []
-
-            # collapse them down
-            final_cfgs = {}
-            for plat_arch, varyml in zip(plat_arch, varient_yamls):
-                if plat_arch not in final_cfgs:
-                    final_cfgs[plat_arch] = []
-                final_cfgs[plat_arch].append(varyml)
-            for k in final_cfgs:
-                ymls = final_cfgs[k]
-                final_cfgs[k] = _convert_to_dict(ChainDB(*ymls))
-            plat_arch = []
             varient_yamls = []
-            for k, v in final_cfgs.items():
-                plat_arch.append(k)
-                varient_yamls.append(v)
-    else:
-        plat_arch = [("win", "64"), ("osx", "64"), ("linux", "64")]
-        for k in set(sub_graph["conda-forge.yml"].get("provider", {})):
-            if "_" in k:
-                plat_arch.append(k.split("_"))
-        varient_yamls = [
-            parse_meta_yaml(meta_yaml, platform=plat, arch=arch)
-            for plat, arch in plat_arch
-        ]
+            plat_arch = []
+            for cbc_path in ci_support_files:
+                cbc_name = os.path.basename(cbc_path)
+                cbc_name_parts = cbc_name.replace(".yaml", "").split("_")
+                plat = cbc_name_parts[0]
+                if len(cbc_name_parts) == 1:
+                    arch = "64"
+                else:
+                    if cbc_name_parts[1] in ["64", "aarch64", "ppc64le", "arm64"]:
+                        arch = cbc_name_parts[1]
+                    else:
+                        arch = "64"
+                plat_arch.append((plat, arch))
+
+                varient_yamls.append(
+                    parse_meta_yaml(
+                        meta_yaml,
+                        platform=plat,
+                        arch=arch,
+                        recipe_dir=recipe_dir,
+                        cbc_path=cbc_path,
+                    ),
+                )
+
+                # sometimes the requirements come out to None and this ruins the
+                # aggregated meta_yaml
+                if "requirements" in varient_yamls[-1]:
+                    for section in ["build", "host", "run"]:
+                        # We make sure to set a section only if it is actually in
+                        # the recipe. Adding a section when it is not there might
+                        # confuse migrators trying to move CB2 recipes to CB3.
+                        if section in varient_yamls[-1]["requirements"]:
+                            val = varient_yamls[-1]["requirements"].get(section, [])
+                            varient_yamls[-1]["requirements"][section] = val or []
+
+                # collapse them down
+                final_cfgs = {}
+                for plat_arch, varyml in zip(plat_arch, varient_yamls):
+                    if plat_arch not in final_cfgs:
+                        final_cfgs[plat_arch] = []
+                    final_cfgs[plat_arch].append(varyml)
+                for k in final_cfgs:
+                    ymls = final_cfgs[k]
+                    final_cfgs[k] = _convert_to_dict(ChainDB(*ymls))
+                plat_arch = []
+                varient_yamls = []
+                for k, v in final_cfgs.items():
+                    plat_arch.append(k)
+                    varient_yamls.append(v)
+        else:
+            plat_arch = [("win", "64"), ("osx", "64"), ("linux", "64")]
+            for k in set(sub_graph["conda-forge.yml"].get("provider", {})):
+                if "_" in k:
+                    plat_arch.append(k.split("_"))
+            varient_yamls = [
+                parse_meta_yaml(meta_yaml, platform=plat, arch=arch)
+                for plat, arch in plat_arch
+            ]
+    except Exception as e:
+        sub_graph["bad"] = f"make_graph: render error {e}"
+        return sub_graph
+
+    LOGGER.debug("platforms: %s", plat_arch)
 
     # this makes certain that we have consistent ordering
     sorted_varient_yamls = [x for _, x in sorted(zip(plat_arch, varient_yamls))]

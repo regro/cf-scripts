@@ -1,6 +1,7 @@
 import datetime
 import typing
 import copy
+import pprint
 from collections.abc import Callable
 from collections import defaultdict
 import contextlib
@@ -91,7 +92,12 @@ def render_meta_yaml(text: str, for_pinning=False, **kwargs) -> str:
     else:
         cfg.update(**CB_CONFIG)
 
-    return env.from_string(text).render(**cfg)
+    try:
+        return env.from_string(text).render(**cfg)
+    except Exception:
+        logger.debug("template: %s", text)
+        logger.debug("context:\n%s", pprint.pformat(cfg))
+        raise
 
 
 def parse_meta_yaml(
@@ -154,6 +160,12 @@ def parse_meta_yaml(
             _cfg["arch"] = arch
         cbc = Config(**_cfg)
         cfg_as_dict = {}
+
+    # TODO
+    # we apparently do not have all of the conda build env vars
+    # I added this one by hand, but I need to find where in conda build this happens
+    if "PY_VER" not in cfg_as_dict and "py" in cfg_as_dict:
+        cfg_as_dict["PY_VER"] = ".".join(c for c in str(cfg_as_dict["py"]))
 
     if for_pinning:
         content = render_meta_yaml(text, for_pinning=for_pinning, **cfg_as_dict)
