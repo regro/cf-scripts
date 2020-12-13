@@ -1,12 +1,14 @@
 import datetime
 import typing
 import copy
+import pprint
 from collections.abc import Callable
 from collections import defaultdict
 import contextlib
 import itertools
 import rapidjson as json
 import logging
+import tempfile
 import os
 from typing import Any, Tuple, Iterable, Union, Optional, IO, Set
 from collections.abc import MutableMapping
@@ -20,7 +22,6 @@ import subprocess
 import github3
 import jinja2
 import boto3
-import yaml
 
 import networkx as nx
 
@@ -91,7 +92,12 @@ def render_meta_yaml(text: str, for_pinning=False, **kwargs) -> str:
     else:
         cfg.update(**CB_CONFIG)
 
-    return env.from_string(text).render(**cfg)
+    try:
+        return env.from_string(text).render(**cfg)
+    except Exception:
+        logger.debug("template: %s", text)
+        logger.debug("context:\n%s", pprint.pformat(cfg))
+        raise
 
 
 def parse_meta_yaml(
@@ -117,7 +123,9 @@ def parse_meta_yaml(
 
     """
     from conda_build.config import Config
-    from conda_build.metadata import parse, ns_cfg
+    from conda_build.metadata import parse
+    import conda_build.api
+    import conda_build.environ
 
     if (
         recipe_dir is not None
@@ -132,19 +140,37 @@ def parse_meta_yaml(
             **kwargs,
         )
 
-        cfg_as_dict = ns_cfg(cbc)
-        with open(cbc_path) as fp:
-            _cfg_as_dict = yaml.safe_load(fp)
-        for k, v in _cfg_as_dict.items():
-            if (
-                isinstance(v, list)
-                and not isinstance(v, str)
-                and len(v) > 0
-                and k not in ["zip_keys", "pin_run_as_build"]
-            ):
-                v = v[0]
+        with tempfile.TemporaryDirectory() as tmpdir:
+            with open(os.path.join(tmpdir, "meta.yaml"), "w") as fp:
+                fp.write(text)
 
-            cfg_as_dict[k] = v
+            config = conda_build.config.get_or_merge_config(
+                None,
+                platform=platform,
+                arch=arch,
+                variant_config_files=[cbc_path],
+            )
+            _cbc, _ = conda_build.variants.get_package_combined_spec(
+                tmpdir,
+                config=config,
+            )
+
+            metas = conda_build.api.render(
+                tmpdir,
+                platform=platform,
+                arch=arch,
+                ignore_system_variants=True,
+                variants=_cbc,
+                permit_undefined_jinja=True,
+                finalize=False,
+                bypass_env_check=True,
+            )
+
+        cfg_as_dict = {}
+        for m, _, _ in metas:
+            cfg_as_dict.update(conda_build.environ.get_dict(m=m))
+
+        logger.debug("jinja2 environmment:\n%s", pprint.pformat(cfg_as_dict))
     else:
         _cfg = {}
         _cfg.update(kwargs)
@@ -159,7 +185,13 @@ def parse_meta_yaml(
         content = render_meta_yaml(text, for_pinning=for_pinning, **cfg_as_dict)
     else:
         content = render_meta_yaml(text, **cfg_as_dict)
-    return parse(content, cbc)
+
+    try:
+        return parse(content, cbc)
+    except Exception:
+        logger.debug("template: %s", text)
+        logger.debug("context:\n%s", pprint.pformat(cfg_as_dict))
+        raise
 
 
 def eval_cmd(cmd, **kwargs):
