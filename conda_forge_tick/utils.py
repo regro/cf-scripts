@@ -165,7 +165,10 @@ def parse_meta_yaml(
 
             cfg_as_dict = {}
             for var in explode_variants(_cbc):
-                m = MetaData(tmpdir, config=config, variant=var)
+                try:
+                    m = MetaData(tmpdir, config=config, variant=var)
+                except SystemExit as e:
+                    raise RuntimeError(str(e))
                 cfg_as_dict.update(conda_build.environ.get_dict(m=m))
 
             logger.debug("jinja2 environmment:\n%s", pprint.pformat(cfg_as_dict))
