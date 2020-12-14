@@ -259,7 +259,7 @@ def populate_feedstock_attributes(
 
         trb = traceback.format_exc()
         sub_graph["bad"] = f"make_graph: render error {e}\n{trb}"
-        return sub_graph
+        raise
 
     LOGGER.debug("platforms: %s", plat_arch)
 
