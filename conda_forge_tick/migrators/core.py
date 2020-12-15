@@ -230,11 +230,13 @@ class Migrator:
         branches : list of str
             List if valid branches for this migration.
         """
-        return ["master"] + (
+        branches = ["master"] + (
             attrs.get("conda-forge.yml", {})
             .get("bot", {})
             .get("abi_migration_branches", [])
         )
+        # make sure this is always a string
+        return [str(b) for b in branches]
 
     def run_pre_piggyback_migrations(
         self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any
