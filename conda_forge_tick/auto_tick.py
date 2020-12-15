@@ -218,10 +218,16 @@ def run(
             head_ref = eval_cmd("git rev-parse HEAD").strip()
             LOGGER.info("Rerendering the feedstock")
 
-            eval_cmd(
-                "conda smithy rerender -c auto --no-check-uptodate",
-                timeout=300,
-            )
+            try:
+                eval_cmd(
+                    "conda smithy rerender -c auto --no-check-uptodate",
+                    timeout=300,
+                )
+            except Exception as e:
+                # I am trying this bit of code to force these errors 
+                # to be surfaced in the logs at the right time.
+                print("RERENDER ERROR: {e}", flush=True)
+                raise
 
             # If we tried to run the MigrationYaml and rerender did nothing (we only
             # bumped the build number and dropped a yaml file in migrations) bail
