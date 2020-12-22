@@ -136,13 +136,6 @@ def parse_meta_yaml(
         and arch is not None
         and platform is not None
     ):
-        cbc = Config(
-            platform=platform,
-            arch=arch,
-            variant_config_files=[cbc_path],
-            **kwargs,
-        )
-
         with tempfile.TemporaryDirectory() as tmpdir:
             with open(os.path.join(tmpdir, "meta.yaml"), "w") as fp:
                 fp.write(text)
@@ -172,6 +165,13 @@ def parse_meta_yaml(
                 cfg_as_dict.update(conda_build.environ.get_dict(m=m))
 
             logger.debug("jinja2 environmment:\n%s", pprint.pformat(cfg_as_dict))
+
+        cbc = Config(
+            platform=platform,
+            arch=arch,
+            variant=cfg_as_dict,
+            **kwargs,
+        )
     else:
         _cfg = {}
         _cfg.update(kwargs)
