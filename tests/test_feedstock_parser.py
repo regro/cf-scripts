@@ -7,20 +7,28 @@ from conda_forge_tick.feedstock_parser import _get_requirements
 from conda_forge_tick.utils import parse_meta_yaml
 
 
-@pytest.mark.parametrize("plat,arch,cfg,has_cudnn", [
-        ("linux", "64", "linux_64_cuda_compiler_version10.2numpy1.19python3.9.____cpython.yaml", True),  # noqa
+@pytest.mark.parametrize(
+    "plat,arch,cfg,has_cudnn",
+    [
+        (
+            "linux",
+            "64",
+            "linux_64_cuda_compiler_version10.2numpy1.19python3.9.____cpython.yaml",
+            True,
+        ),
         ("osx", "64", "osx_64_numpy1.16python3.6.____cpython.yaml", False),
-])
+    ],
+)
 def test_parse_cudnn(plat, arch, cfg, has_cudnn):
     recipe_dir = os.path.abspath(
         os.path.join(
             os.path.dirname(__file__),
             "pytorch-cpu-feedstock",
             "recipe",
-        )
+        ),
     )
 
-    with open(os.path.join(recipe_dir, "meta.yaml"), "r") as fp:
+    with open(os.path.join(recipe_dir, "meta.yaml")) as fp:
         recipe_text = fp.read()
 
     meta = parse_meta_yaml(
