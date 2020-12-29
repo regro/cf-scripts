@@ -226,7 +226,7 @@ def run(
             except Exception as e:
                 # I am trying this bit of code to force these errors
                 # to be surfaced in the logs at the right time.
-                print("RERENDER ERROR: {e}", flush=True)
+                print(f"RERENDER ERROR: {e}", flush=True)
                 raise
 
             # If we tried to run the MigrationYaml and rerender did nothing (we only
@@ -728,8 +728,9 @@ def create_migration_yaml_creator(migrators: MutableSequence[Migrator], gx: nx.D
             current_pins = list(
                 map(lambda x: re.sub("[^0-9.]", "", x).rstrip("."), current_pins),
             )
+            current_pins = [cp.strip() for cp in current_pins if cp.strip() != ""]
             current_version = re.sub("[^0-9.]", "", current_version).rstrip(".")
-            if current_pins == [""]:
+            if not current_pins or current_version == "":
                 continue
 
             current_pin = str(max(map(VersionOrder, current_pins)))
