@@ -297,3 +297,48 @@ class NoCondaInspectMigrator(MiniMigrator):
 
             with open("meta.yaml", "w") as f:
                 f.write("".join(new_lines))
+
+
+CRAN_BUILD_SH="""
+#!/bin/bash
+
+export DISABLE_AUTOBREW=1
+
+# shellcheck disable=SC2086
+${R} CMD INSTALL --build . ${R_ARGS}
+"""
+
+class CrossRBaseMigrator(MiniMigrator):
+
+    def filter(self, attrs: "AttrsTypedDict", not_bad_str_start: str = "") -> bool:
+        host_reqs = attrs.get("requirements", {}).get("host", set())
+        if (
+            "r-base" in host_reqs or attrs.get("name", "").startswith("r-")
+        ):
+            return False
+        else:
+            return True
+
+    def migrate(self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any) -> None:
+        with indir(recipe_dir):
+            with open("meta.yaml") as fp:
+                meta_yaml = fp.readlines()
+
+            new_lines = []
+            in_req = False
+            for line in meta_yaml:
+                if "requirements:" in line:
+                    in_req = True
+                if in_req and line.strip().startswith("build:"):
+                    nspaces = len(line) - len(line.lstrip())
+                    line = " "*nspaces + "- cross-r-base {{ r_base }}  # [build_platform != target_platform]"
+                    in_req = False
+                new_lines.append(line)
+
+            with open("meta.yaml", "w") as f:
+                f.write("".join(new_lines))
+
+            if os.path.exists("build.sh"):
+                with open("build.sh", "w") as f:
+                    f.write(CRAN_BUILD_SH)
+
