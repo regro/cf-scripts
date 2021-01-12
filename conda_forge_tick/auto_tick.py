@@ -244,25 +244,31 @@ def run(
                 )
             ]
 
-    if feedstock_ctx.feedstock_name != "conda-forge-pinning" and base_branch == "master" and (
-        (
-            migrator.check_solvable
-            # we always let stuff in cycles go
-            and feedstock_ctx.attrs["name"] not in getattr(migrator, "cycles", set())
-            # we always let stuff at the top go
-            and feedstock_ctx.attrs["name"] not in getattr(migrator, "top_level", set())
-            # for solveability always assume automerge is on.
-            and (
-                feedstock_ctx.attrs["conda-forge.yml"]
-                .get("bot", {})
-                .get("automerge", True)
+    if (
+        feedstock_ctx.feedstock_name != "conda-forge-pinning"
+        and base_branch == "master"
+        and (
+            (
+                migrator.check_solvable
+                # we always let stuff in cycles go
+                and feedstock_ctx.attrs["name"]
+                not in getattr(migrator, "cycles", set())
+                # we always let stuff at the top go
+                and feedstock_ctx.attrs["name"]
+                not in getattr(migrator, "top_level", set())
+                # for solveability always assume automerge is on.
+                and (
+                    feedstock_ctx.attrs["conda-forge.yml"]
+                    .get("bot", {})
+                    .get("automerge", True)
+                )
             )
-        )
-        or feedstock_ctx.attrs["conda-forge.yml"]
-        .get("bot", {})
-        .get(
-            "check_solvable",
-            False,
+            or feedstock_ctx.attrs["conda-forge.yml"]
+            .get("bot", {})
+            .get(
+                "check_solvable",
+                False,
+            )
         )
     ):
         solvable, errors, _ = is_recipe_solvable(feedstock_dir)
