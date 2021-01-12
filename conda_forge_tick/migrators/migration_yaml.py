@@ -492,10 +492,11 @@ def create_rebuild_graph(
         )
         # get host/build, run and test and launder them through outputs
         # this should fix outputs related issues (eg gdal)
+        all_reqs = (host or build) | requirements.get("run", set())
+        if inclusion_criteria:
+            all_reqs = all_reqs | requirements.get("test", set())
         rq = get_deps_from_outputs_lut(
-            (host or build)
-            | requirements.get("run", set())
-            | requirements.get("test", set()),
+            all_reqs,
             gx.graph["outputs_lut"],
         )
 
