@@ -244,7 +244,7 @@ def run(
                 )
             ]
 
-    if base_branch == "master" and (
+    if feedstock_ctx.feedstock_name != "conda-forge-pinning" and base_branch == "master" and (
         (
             migrator.check_solvable
             # we always let stuff in cycles go
