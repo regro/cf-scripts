@@ -172,7 +172,8 @@ extra:
     - croth1
 """
 
-rbase_recipe = """{% set version = "2.0.0" %}
+rbase_recipe = """\
+{% set version = "2.0.0" %}
 {% set posix = 'm2-' if win else '' %}
 {% set native = 'm2w64-' if win else '' %}
 

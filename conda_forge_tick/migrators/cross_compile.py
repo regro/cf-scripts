@@ -299,7 +299,7 @@ class NoCondaInspectMigrator(MiniMigrator):
                 f.write("".join(new_lines))
 
 
-CRAN_BUILD_SH="""
+CRAN_BUILD_SH = """
 #!/bin/bash
 
 export DISABLE_AUTOBREW=1
@@ -308,13 +308,11 @@ export DISABLE_AUTOBREW=1
 ${R} CMD INSTALL --build . ${R_ARGS}
 """
 
-class CrossRBaseMigrator(MiniMigrator):
 
+class CrossRBaseMigrator(CrossCompilationMigratorBase):
     def filter(self, attrs: "AttrsTypedDict", not_bad_str_start: str = "") -> bool:
         host_reqs = attrs.get("requirements", {}).get("host", set())
-        if (
-            "r-base" in host_reqs or attrs.get("name", "").startswith("r-")
-        ):
+        if "r-base" in host_reqs or attrs.get("name", "").startswith("r-"):
             return False
         else:
             return True
@@ -326,13 +324,20 @@ class CrossRBaseMigrator(MiniMigrator):
 
             new_lines = []
             in_req = False
+            previous_was_build = False
             for line in meta_yaml:
+                if previous_was_build:
+                    nspaces = len(line) - len(line.lstrip())
+                    new_lines.append(
+                        " " * nspaces
+                        + "- cross-r-base {{ r_base }}  # [build_platform != target_platform]\n",
+                    )
+                    in_req = False
+                    previous_was_build = False
                 if "requirements:" in line:
                     in_req = True
                 if in_req and line.strip().startswith("build:"):
-                    nspaces = len(line) - len(line.lstrip())
-                    line = " "*nspaces + "- cross-r-base {{ r_base }}  # [build_platform != target_platform]"
-                    in_req = False
+                    previous_was_build = True
                 new_lines.append(line)
 
             with open("meta.yaml", "w") as f:
@@ -341,4 +346,3 @@ class CrossRBaseMigrator(MiniMigrator):
             if os.path.exists("build.sh"):
                 with open("build.sh", "w") as f:
                     f.write(CRAN_BUILD_SH)
-
