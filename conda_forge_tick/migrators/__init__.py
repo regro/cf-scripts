@@ -20,6 +20,7 @@ from .cross_compile import (
     UpdateCMakeArgsMigrator,
     GuardTestingMigrator,
     CrossPythonMigrator,
+    CrossRBaseMigrator,
     Build2HostMigrator,
     NoCondaInspectMigrator,
 )

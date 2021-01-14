@@ -5,6 +5,7 @@ from conda_forge_tick.migrators import (
     Version,
     GuardTestingMigrator,
     UpdateCMakeArgsMigrator,
+    CrossRBaseMigrator,
     CrossPythonMigrator,
     Build2HostMigrator,
     NoCondaInspectMigrator,
@@ -16,6 +17,7 @@ config_migrator = UpdateConfigSubGuessMigrator()
 guard_testing_migrator = GuardTestingMigrator()
 cmake_migrator = UpdateCMakeArgsMigrator()
 cross_python_migrator = CrossPythonMigrator()
+cross_rbase_migrator = CrossRBaseMigrator()
 b2h_migrator = Build2HostMigrator()
 nci_migrator = NoCondaInspectMigrator()
 
@@ -28,12 +30,17 @@ version_migrator_cmake = Version(
     piggy_back_migrations=[
         cmake_migrator,
         guard_testing_migrator,
+        cross_rbase_migrator,
         cross_python_migrator,
     ],
 )
 version_migrator_python = Version(
     set(),
     piggy_back_migrations=[cross_python_migrator],
+)
+version_migrator_rbase = Version(
+    set(),
+    piggy_back_migrations=[cross_rbase_migrator],
 )
 version_migrator_b2h = Version(
     set(),
@@ -164,6 +171,123 @@ about:
 extra:
   recipe-maintainers:
     - croth1
+"""
+
+rbase_recipe = """\
+{% set version = "2.0.0" %}
+{% set posix = 'm2-' if win else '' %}
+{% set native = 'm2w64-' if win else '' %}
+
+package:
+  name: r-magrittr
+  version: {{ version|replace("-", "_") }}
+
+source:
+  url:
+    - {{ cran_mirror }}/src/contrib/magrittr_{{ version }}.tar.gz
+    - {{ cran_mirror }}/src/contrib/Archive/magrittr/magrittr_{{ version }}.tar.gz
+  sha256: 05c45943ada9443134caa0ab24db4a962b629f00b755ccf039a2a2a7b2c92ae8
+
+build:
+  merge_build_host: true  # [win]
+  number: 1
+  rpaths:
+    - lib/R/lib/
+    - lib/
+
+requirements:
+  build:
+    - {{ compiler('c') }}              # [not win]
+    - {{ compiler('m2w64_c') }}        # [win]
+    - {{ posix }}filesystem        # [win]
+    - {{ posix }}make
+    - {{ posix }}sed               # [win]
+    - {{ posix }}coreutils         # [win]
+    - {{ posix }}zip               # [win]
+  host:
+    - r-base
+  run:
+    - r-base
+    - {{ native }}gcc-libs         # [win]
+
+test:
+  commands:
+    - $R -e "library('magrittr')"           # [not win]
+    - "\\"%R%\\" -e \\"library('magrittr')\\""  # [win]
+
+about:
+  home: https://magrittr.tidyverse.org, https://github.com/tidyverse/magrittr
+  license: MIT
+  summary: Provides a mechanism for chaining commands with a new forward-pipe operator, %>%. This operator will forward a value, or the result of an expression, into the next function call/expression. There is flexible support for the type of right-hand side expressions. For more information, see package vignette. To quote
+    Rene Magritte, "Ceci n'est pas un pipe."
+  license_family: MIT
+  license_file:
+    - {{ environ["PREFIX"] }}/lib/R/share/licenses/MIT
+    - LICENSE
+
+extra:
+  recipe-maintainers:
+    - conda-forge/r
+    - ocefpaf
+"""
+
+rbase_recipe_correct = """\
+{% set version = "2.0.1" %}
+{% set posix = 'm2-' if win else '' %}
+{% set native = 'm2w64-' if win else '' %}
+
+package:
+  name: r-magrittr
+  version: {{ version|replace("-", "_") }}
+
+source:
+  url:
+    - {{ cran_mirror }}/src/contrib/magrittr_{{ version }}.tar.gz
+    - {{ cran_mirror }}/src/contrib/Archive/magrittr/magrittr_{{ version }}.tar.gz
+  sha256: 75c265d51cc2b34beb27040edb09823c7b954d3990a7a931e40690b75d4aad5f
+
+build:
+  merge_build_host: true  # [win]
+  number: 0
+  rpaths:
+    - lib/R/lib/
+    - lib/
+
+requirements:
+  build:
+    - cross-r-base {{ r_base }}  # [build_platform != target_platform]
+    - {{ compiler('c') }}              # [not win]
+    - {{ compiler('m2w64_c') }}        # [win]
+    - {{ posix }}filesystem        # [win]
+    - {{ posix }}make
+    - {{ posix }}sed               # [win]
+    - {{ posix }}coreutils         # [win]
+    - {{ posix }}zip               # [win]
+  host:
+    - r-base
+  run:
+    - r-base
+    - {{ native }}gcc-libs         # [win]
+
+test:
+  commands:
+    - $R -e "library('magrittr')"           # [not win]
+    - "\\"%R%\\" -e \\"library('magrittr')\\""  # [win]
+
+about:
+  home: https://magrittr.tidyverse.org, https://github.com/tidyverse/magrittr
+  license: MIT
+  summary: Provides a mechanism for chaining commands with a new forward-pipe operator, %>%. This operator will forward a value, or the result of an expression, into the next function call/expression. There is flexible support for the type of right-hand side expressions. For more information, see package vignette. To quote
+    Rene Magritte, "Ceci n'est pas un pipe."
+  license_family: MIT
+  license_file:
+    - {{ environ["PREFIX"] }}/lib/R/share/licenses/MIT
+    - LICENSE
+
+extra:
+  recipe-maintainers:
+    - conda-forge/r
+    - ocefpaf
 """
 
 
@@ -942,6 +1066,51 @@ def test_cmake(tmpdir):
         'if [[ "${CONDA_BUILD_CROSS_COMPILATION}" != "1" ]]; then\n',
         "ctest\n",
         "fi\n",
+    ]
+    with open(os.path.join(tmpdir, "build.sh")) as f:
+        lines = f.readlines()
+        assert lines == expected
+
+
+def test_cross_rbase(tmpdir):
+    run_test_migration(
+        m=version_migrator_rbase,
+        inp=rbase_recipe,
+        output=rbase_recipe_correct,
+        prb="Dependencies have been updated if changed",
+        kwargs={"new_version": "2.0.1"},
+        mr_out={
+            "migrator_name": "Version",
+            "migrator_version": Version.migrator_version,
+            "version": "2.0.1",
+        },
+        tmpdir=tmpdir,
+    )
+
+
+def test_cross_rbase_build_sh(tmpdir):
+    with open(os.path.join(tmpdir, "build.sh"), "w") as f:
+        f.write("#!/bin/bash\nR CMD INSTALL --build .")
+    run_test_migration(
+        m=version_migrator_rbase,
+        inp=rbase_recipe,
+        output=rbase_recipe_correct,
+        prb="Dependencies have been updated if changed",
+        kwargs={"new_version": "2.0.1"},
+        mr_out={
+            "migrator_name": "Version",
+            "migrator_version": Version.migrator_version,
+            "version": "2.0.1",
+        },
+        tmpdir=tmpdir,
+    )
+    expected = [
+        "#!/bin/bash\n",
+        "\n",
+        "export DISABLE_AUTOBREW=1\n",
+        "\n",
+        "# shellcheck disable=SC2086\n",
+        "${R} CMD INSTALL --build . ${R_ARGS}\n",
     ]
     with open(os.path.join(tmpdir, "build.sh")) as f:
         lines = f.readlines()
