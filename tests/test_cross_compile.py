@@ -30,6 +30,7 @@ version_migrator_cmake = Version(
     piggy_back_migrations=[
         cmake_migrator,
         guard_testing_migrator,
+        cross_rbase_migrator,
         cross_python_migrator,
     ],
 )
