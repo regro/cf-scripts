@@ -299,7 +299,7 @@ class NoCondaInspectMigrator(MiniMigrator):
                 f.write("".join(new_lines))
 
 
-CRAN_BUILD_SH = """
+CRAN_BUILD_SH = """\
 #!/bin/bash
 
 export DISABLE_AUTOBREW=1

@@ -1087,6 +1087,35 @@ def test_cross_rbase(tmpdir):
     )
 
 
+def test_cross_rbase_build_sh(tmpdir):
+    with open(os.path.join(tmpdir, "build.sh"), "w") as f:
+        f.write("#!/bin/bash\nR CMD INSTALL --build .")
+    run_test_migration(
+        m=version_migrator_rbase,
+        inp=rbase_recipe,
+        output=rbase_recipe_correct,
+        prb="Dependencies have been updated if changed",
+        kwargs={"new_version": "2.0.1"},
+        mr_out={
+            "migrator_name": "Version",
+            "migrator_version": Version.migrator_version,
+            "version": "2.0.1",
+        },
+        tmpdir=tmpdir,
+    )
+    expected = [
+        "#!/bin/bash\n",
+        "\n",
+        "export DISABLE_AUTOBREW=1\n",
+        "\n",
+        "# shellcheck disable=SC2086\n",
+        "${R} CMD INSTALL --build . ${R_ARGS}\n",
+    ]
+    with open(os.path.join(tmpdir, "build.sh")) as f:
+        lines = f.readlines()
+        assert lines == expected
+
+
 def test_cross_python(tmpdir):
     run_test_migration(
         m=version_migrator_python,
