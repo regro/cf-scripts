@@ -230,7 +230,8 @@ extra:
     - ocefpaf
 """
 
-rbase_recipe_correct = """{% set version = "2.0.1" %}
+rbase_recipe_correct = """\
+{% set version = "2.0.1" %}
 {% set posix = 'm2-' if win else '' %}
 {% set native = 'm2w64-' if win else '' %}
 
@@ -270,7 +271,7 @@ requirements:
 test:
   commands:
     - $R -e "library('magrittr')"           # [not win]
-    - "\"%R%\" -e \"library('magrittr')\""  # [win]
+    - "\\"%R%\\" -e \\"library('magrittr')\\""  # [win]
 
 about:
   home: https://magrittr.tidyverse.org, https://github.com/tidyverse/magrittr
