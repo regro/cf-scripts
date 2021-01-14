@@ -185,7 +185,7 @@ source:
   url:
     - {{ cran_mirror }}/src/contrib/magrittr_{{ version }}.tar.gz
     - {{ cran_mirror }}/src/contrib/Archive/magrittr/magrittr_{{ version }}.tar.gz
-  sha256: 75c265d51cc2b34beb27040edb09823c7b954d3990a7a931e40690b75d4aad5f
+  sha256: 05c45943ada9443134caa0ab24db4a962b629f00b755ccf039a2a2a7b2c92ae8
 
 build:
   merge_build_host: true  # [win]
@@ -254,6 +254,7 @@ build:
 
 requirements:
   build:
+    - cross-r-base {{ r_base }}  # [build_platform != target_platform]
     - {{ compiler('c') }}              # [not win]
     - {{ compiler('m2w64_c') }}        # [win]
     - {{ posix }}filesystem        # [win]
@@ -261,7 +262,6 @@ requirements:
     - {{ posix }}sed               # [win]
     - {{ posix }}coreutils         # [win]
     - {{ posix }}zip               # [win]
-    - cross-r-base {{ r_base }}    # [build_platform != target_platform]
   host:
     - r-base
   run:
