@@ -618,7 +618,7 @@ def _is_recipe_solvable(
         _parts = os.path.basename(cbc_fname).split("_")
         platform = _parts[0]
         arch = _parts[1]
-        if arch not in ["32", "aarch64", "ppc64le", "armv7l"]:
+        if arch not in ["32", "aarch64", "ppc64le", "armv7l", "arm64"]:
             arch = "64"
 
         _solvable, _errors = _is_recipe_solvable_on_platform(
