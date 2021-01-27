@@ -373,6 +373,7 @@ class MigrationYamlCreator(Migrator):
             "\n"
             "**Please note that if you close this PR we presume that "
             "the new pin has been rejected.\n\n"
+            "@conda-forge-admin please ping {feedstock_name}\n"
             "{link}"
             "".format(
                 name=self.package_name,
