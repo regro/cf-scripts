@@ -1,6 +1,5 @@
 import abc
 import collections.abc
-import subprocess
 import re
 import logging
 import typing
@@ -344,27 +343,12 @@ def get_sha256(url: str) -> Optional[str]:
 
 def url_exists(url: str) -> bool:
     """
-    We use wget here, as opposed requests.head or something,
-    because github urls redirect with a 3XX code even if the file doesn't exist.
+    We use curl here, as opposed requests.head, because github urls redirect
+    with a 3XX code even if the file doesn't exist.
     """
     try:
-        output = subprocess.check_output(
-            ["wget", "--spider", url],
-            stderr=subprocess.STDOUT,
-            timeout=1,
-        )
-    except Exception:
-        return False
-    # For FTP servers an exception is not thrown
-    if "No such file" in output.decode("utf-8"):
-        return False
-    if (
-        "not retrieving"
-        in output.decode(
-            "utf-8",
-        )
-        and "Remote file exists" not in output.decode("utf-8")
-    ):
+        requests.head(url, allow_redirects=True).raise_for_status()
+    except requests.HTTPError:
         return False
 
     return True
