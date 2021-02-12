@@ -454,11 +454,10 @@ class BaseRawURL(AbstractSource):
                     logger.debug("version %s is ok for url %s", current_ver, url_to_use)
                     break
 
-        if count == max_count:
-            return None
         if current_ver != orig_ver:
             logger.debug("using version %s", current_ver)
             return current_ver
+
         return None
 
     def get_version(self, url: str) -> str:
