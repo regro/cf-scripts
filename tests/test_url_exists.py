@@ -33,6 +33,14 @@ from conda_forge_tick.update_sources import url_exists
             "https://github.com/Kitware/CMake/releases/download/v3.19.4435784/cmake-3.19.4435784.tar.gz",  # noqa
             False,
         ),
+        (
+            "ftp://ftp.info-zip.org/pub/infozip/src/zip30.tgz",
+            True,
+        ),
+        (
+            "ftp://ftp.info-zip.org/pub/infozip/src/zip33879130.tgz",
+            False,
+        ),
     ],
 )
 def test_url_exists(url, exists):

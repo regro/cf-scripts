@@ -1,5 +1,6 @@
 import abc
 import collections.abc
+import subprocess
 import re
 import logging
 import typing
@@ -347,8 +348,12 @@ def url_exists(url: str) -> bool:
     with a 3XX code even if the file doesn't exist.
     """
     try:
-        requests.head(url, allow_redirects=True).raise_for_status()
-    except requests.HTTPError:
+        subprocess.run(
+            ["curl", "-fsLI", url],
+            capture_output=True,
+            check=True,
+        )
+    except subprocess.CalledProcessError:
         return False
 
     return True
