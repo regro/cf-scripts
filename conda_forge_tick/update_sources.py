@@ -359,8 +359,11 @@ def url_exists(url: str) -> bool:
     if "No such file" in output.decode("utf-8"):
         return False
     if (
-        "not retrieving" in output.decode("utf-8") and
-        "Remote file exists" not in output.decode("utf-8")
+        "not retrieving"
+        in output.decode(
+            "utf-8",
+        )
+        and "Remote file exists" not in output.decode("utf-8")
     ):
         return False
 
