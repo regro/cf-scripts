@@ -109,6 +109,7 @@ def parse_meta_yaml(
     arch=None,
     recipe_dir=None,
     cbc_path=None,
+    log_debug=False,
     **kwargs: Any,
 ) -> "MetaYamlTypedDict":
     """Parse the meta.yaml.
@@ -140,11 +141,7 @@ def parse_meta_yaml(
             with open(os.path.join(tmpdir, "meta.yaml"), "w") as fp:
                 fp.write(text)
 
-            fout = io.StringIO()
-            ferr = io.StringIO()
-            with sys_pipes(), contextlib.redirect_stdout(
-                fout,
-            ), contextlib.redirect_stderr(ferr):
+            def _run_parsing():
                 config = conda_build.config.get_or_merge_config(
                     None,
                     platform=platform,
@@ -155,6 +152,17 @@ def parse_meta_yaml(
                     tmpdir,
                     config=config,
                 )
+                return config, _cbc
+
+            if not log_debug:
+                fout = io.StringIO()
+                ferr = io.StringIO()
+                with sys_pipes(), contextlib.redirect_stdout(
+                    fout,
+                ), contextlib.redirect_stderr(ferr):
+                    config, _cbc = _run_parsing()
+            else:
+                config, _cbc = _run_parsing()
 
             cfg_as_dict = {}
             for var in explode_variants(_cbc):
