@@ -765,7 +765,8 @@ def create_migration_yaml_creator(migrators: MutableSequence[Migrator], gx: nx.D
                         current_pin,
                         pin_spec,
                         fs_name,
-                        gx,
+                        cfp_gx,
+                        full_graph=gx
                     ),
                 )
     print(" ", flush=True)
