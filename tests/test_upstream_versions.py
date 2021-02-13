@@ -278,7 +278,18 @@ extra:
     - beckermr
 """  # noqa
 
-latest_url_test_list = [
+latest_url_npm_test_list = [
+    (
+        "configurable-http-proxy",
+        sample_npm,
+        "3.1.0",
+        "3.1.1",
+        NPM(),
+        {"https://registry.npmjs.org/configurable-http-proxy": sample_npm_response},
+    ),
+]
+
+latest_url_rawurl_test_list = [
     (
         "configurable-http-proxy",
         sample_npm,
@@ -308,8 +319,20 @@ latest_url_test_list = [
 ]
 
 
-@pytest.mark.parametrize("name, inp, curr_ver, ver, source, urls", latest_url_test_list)
-def test_latest_version(name, inp, curr_ver, ver, source, urls, requests_mock, tmpdir):
+@pytest.mark.parametrize(
+    "name, inp, curr_ver, ver, source, urls",
+    latest_url_npm_test_list,
+)
+def test_latest_version_npm(
+    name,
+    inp,
+    curr_ver,
+    ver,
+    source,
+    urls,
+    requests_mock,
+    tmpdir,
+):
     pmy = LazyJson(tmpdir.join("cf-scripts-test.json"))
     pmy.update(parse_meta_yaml(inp)["source"])
     pmy.update(
@@ -321,6 +344,32 @@ def test_latest_version(name, inp, curr_ver, ver, source, urls, requests_mock, t
         },
     )
     [requests_mock.get(url, text=text) for url, text in urls.items()]
+    attempt = get_latest_version(name, pmy, [source])
+    if ver is None:
+        assert not (attempt["new_version"] is False)
+        assert attempt["new_version"] != curr_ver
+        assert VersionOrder(attempt["new_version"]) > VersionOrder(curr_ver)
+    elif ver is False:
+        assert attempt["new_version"] is ver
+    else:
+        assert ver == attempt["new_version"]
+
+
+@pytest.mark.parametrize(
+    "name, inp, curr_ver, ver, source, urls",
+    latest_url_rawurl_test_list,
+)
+def test_latest_version_rawurl(name, inp, curr_ver, ver, source, urls, tmpdir):
+    pmy = LazyJson(tmpdir.join("cf-scripts-test.json"))
+    pmy.update(parse_meta_yaml(inp)["source"])
+    pmy.update(
+        {
+            "feedstock_name": name,
+            "version": curr_ver,
+            "raw_meta_yaml": inp,
+            "meta_yaml": parse_meta_yaml(inp),
+        },
+    )
     attempt = get_latest_version(name, pmy, [source])
     if ver is None:
         assert not (attempt["new_version"] is False)
