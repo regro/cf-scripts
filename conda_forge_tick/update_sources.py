@@ -349,7 +349,7 @@ def get_sha256(url: str) -> Optional[str]:
 
 def url_exists(url: str) -> bool:
     """
-    We use curl/wget here, as opposed requests.head, because 
+    We use curl/wget here, as opposed requests.head, because
      - github urls redirect with a 3XX code even if the file doesn't exist
      - requests cannot handle ftp
     """
