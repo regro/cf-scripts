@@ -32,6 +32,11 @@ CRAN_INDEX: Optional[dict] = None
 
 logger = logging.getLogger("conda_forge_tick._update_version.update_sources")
 
+CURL_ONLY_URL_SLUGS = [
+    "https://eups.lsst.codes/",
+    "ftp://ftp.info-zip.org/",
+]
+
 
 def urls_from_meta(meta_yaml: "MetaYamlTypedDict") -> Set[str]:
     source: "SourceTypedDict" = meta_yaml["source"]
@@ -343,21 +348,38 @@ def get_sha256(url: str) -> Optional[str]:
 
 
 def url_exists(url: str) -> bool:
-    try:
-        output = subprocess.check_output(
-            ["wget", "--spider", url],
-            stderr=subprocess.STDOUT,
-            timeout=1,
-        )
-    except Exception:
-        return False
-    # For FTP servers an exception is not thrown
-    if "No such file" in output.decode("utf-8"):
-        return False
-    if "not retrieving" in output.decode("utf-8"):
-        return False
+    """
+    We use curl/wget here, as opposed requests.head, because
+     - github urls redirect with a 3XX code even if the file doesn't exist
+     - requests cannot handle ftp
+    """
+    if not any(slug in url for slug in CURL_ONLY_URL_SLUGS):
+        try:
+            output = subprocess.check_output(
+                ["wget", "--spider", url],
+                stderr=subprocess.STDOUT,
+                timeout=1,
+            )
+        except Exception:
+            return False
+        # For FTP servers an exception is not thrown
+        if "No such file" in output.decode("utf-8"):
+            return False
+        if "not retrieving" in output.decode("utf-8"):
+            return False
 
-    return True
+        return True
+    else:
+        try:
+            subprocess.run(
+                ["curl", "-fsLI", url],
+                capture_output=True,
+                check=True,
+            )
+        except subprocess.CalledProcessError:
+            return False
+
+        return True
 
 
 def url_exists_swap_exts(url: str):
