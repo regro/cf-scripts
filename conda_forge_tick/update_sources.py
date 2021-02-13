@@ -34,7 +34,7 @@ logger = logging.getLogger("conda_forge_tick._update_version.update_sources")
 
 CURL_ONLY_URL_SLUGS = [
     "https://eups.lsst.codes/",
-    "ftp://ftp.info-zip.org",
+    "ftp://ftp.info-zip.org/",
 ]
 
 
