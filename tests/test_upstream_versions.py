@@ -291,14 +291,6 @@ latest_url_npm_test_list = [
 
 latest_url_rawurl_test_list = [
     (
-        "configurable-http-proxy",
-        sample_npm,
-        "3.1.0",
-        "3.1.1",
-        NPM(),
-        {"https://registry.npmjs.org/configurable-http-proxy": sample_npm_response},
-    ),
-    (
         "python-spams",
         sample_spams,
         "2.6.1",
