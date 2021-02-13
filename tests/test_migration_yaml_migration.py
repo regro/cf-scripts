@@ -18,7 +18,8 @@ from conda_forge_tick.migrators import MigrationYamlCreator, merge_migrator_cbc
 from conda_forge_tick.xonsh_utils import eval_xonsh, indir
 
 G = nx.DiGraph()
-G.add_node("conda", reqs=["python"])
+G.add_node("conda", reqs=["python"], payload={})
+G.graph["outputs_lut"] = {}
 env = builtins.__xonsh__.env  # type: ignore
 env["GRAPH"] = G
 env["CIRCLE_BUILD_URL"] = "hi world"
@@ -139,7 +140,7 @@ def test_migration_yaml_migration(tmock, in_out_yaml, caplog, tmpdir):
     curr_pin = "1.70.0"
     pin_spec = "x.x"
 
-    MYM = MigrationYamlCreator(pname, pin_ver, curr_pin, pin_spec, "hi", G)
+    MYM = MigrationYamlCreator(pname, pin_ver, curr_pin, pin_spec, "hi", G, G)
 
     with indir(tmpdir):
         eval_xonsh("git init .")
