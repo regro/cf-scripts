@@ -19,7 +19,7 @@ from conda_forge_tick.xonsh_utils import eval_xonsh, indir
 
 G = nx.DiGraph()
 G.add_node("conda", reqs=["python"], payload={})
-G.graph['outputs_lut'] = {}
+G.graph["outputs_lut"] = {}
 env = builtins.__xonsh__.env  # type: ignore
 env["GRAPH"] = G
 env["CIRCLE_BUILD_URL"] = "hi world"
