@@ -38,6 +38,7 @@ def test_parse_cudnn(plat, arch, cfg, has_cudnn):
         arch=arch,
         recipe_dir=recipe_dir,
         cbc_path=os.path.join(recipe_dir, "..", ".ci_support", cfg),
+        log_debug=True,
     )
 
     if has_cudnn:
