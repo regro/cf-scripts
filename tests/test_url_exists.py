@@ -22,7 +22,11 @@ from conda_forge_tick.update_sources import url_exists
             False,
         ),
         (
-            "http://spams-devel.gforge.inria.fr/hitcounter2.php?file/38351/spams-2.6.2.5.tar.gz",  # noqa
+            "http://spams-devel.gforge.inria.fr/hitcounter2.php?file/38351/spams-2.34832948372903465.tar.gz",  # noqa
+            False,
+        ),
+        (
+            "http://spams-devel.gforge.inria.fr/hitcounter2.php?file=37237/spams-python-v2.6.1-svn2017-12-08.tar.gz",  # noqa
             True,
         ),
         (
