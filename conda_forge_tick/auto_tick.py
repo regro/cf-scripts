@@ -91,6 +91,7 @@ from conda_forge_tick.migrators import (
     CrossPythonMigrator,
     Build2HostMigrator,
     NoCondaInspectMigrator,
+    DuplicateLinesCleanup,
 )
 
 from conda_forge_tick.mamba_solver import is_recipe_solvable
@@ -543,6 +544,7 @@ def add_rebuild_migration_yaml(
         cycles=cycles,
         piggy_back_migrations=[
             Jinja2VarsCleanup(),
+            DuplicateLinesCleanup(),
             PipMigrator(),
             LicenseMigrator(),
             CondaForgeYAMLCleanup(),
@@ -835,6 +837,7 @@ def initialize_migrators(
         pr_limit=PR_LIMIT * 2,
         piggy_back_migrations=[
             Jinja2VarsCleanup(),
+            DuplicateLinesCleanup(),
             PipMigrator(),
             LicenseMigrator(),
             CondaForgeYAMLCleanup(),
