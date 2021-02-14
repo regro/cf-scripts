@@ -40,10 +40,37 @@ source:
   sha256: 1  # [py2k]
   sha256: 5#[py3k and win]
 
+{% if (
+    True
+    and False
+) %}
+{% for i in [
+    1, 2, 3, 4
+] %}
+
+{% for blah in [2, 3] %}
+{% endfor %}
+{% if False %}
+{% endif %}
+{% endfor %}
+
+{% if False %}
+{% endif %}
+{% endif %}
+
 {% set list = [
     blah1,
     blah2,
 ] %}
+
+{% for i in [
+    1, 2, 3, 4
+] %}
+{% for blah in [2, 3] %}
+{% endfor %}
+{% if False %}
+{% endif %}
+{% endfor %}
 
 build:
   number: 10
@@ -74,10 +101,37 @@ source:
   sha256: 1  # [py2k]
   sha256: 5  # [py3k and win]
 
+{% if (
+    True
+    and False
+) %}
+{% for i in [
+    1, 2, 3, 4
+] %}
+
+{% for blah in [2, 3] %}
+{% endfor %}
+{% if False %}
+{% endif %}
+{% endfor %}
+
+{% if False %}
+{% endif %}
+{% endif %}
+
 {% set list = [
     blah1,
     blah2,
 ] %}
+
+{% for i in [
+    1, 2, 3, 4
+] %}
+{% for blah in [2, 3] %}
+{% endfor %}
+{% if False %}
+{% endif %}
+{% endfor %}
 
 build:
   number: 10
@@ -182,10 +236,37 @@ source:
   sha256: 1  # [py2k]
   sha256: 5  # [py3k and win]
 
+{% if (
+    True
+    and False
+) %}
+{% for i in [
+    1, 2, 3, 4
+] %}
+
+{% for blah in [2, 3] %}
+{% endfor %}
+{% if False %}
+{% endif %}
+{% endfor %}
+
+{% if False %}
+{% endif %}
+{% endif %}
+
 {% set list = [
     blah1,
     blah2,
 ] %}
+
+{% for i in [
+    1, 2, 3, 4
+] %}
+{% for blah in [2, 3] %}
+{% endfor %}
+{% if False %}
+{% endif %}
+{% endfor %}
 
 build:
   number: 10

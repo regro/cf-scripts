@@ -12,6 +12,12 @@ CONDA_SELECTOR = "__###conda-selector###__"
 
 JINJA2_ML_SLUG = "###jinja2-multiline### "
 
+# this regex matches any jinja2 for or if statement
+JINJA2_FOR_RE = re.compile(r"^\s*\{\%\s+for")
+JINJA2_ENDFOR_RE = re.compile(r"^\s*\{\%\s+endfor")
+JINJA2_IF_RE = re.compile(r"^\s*\{\%\s+if")
+JINJA2_ENDIF_RE = re.compile(r"^\s*\{\%\s+endif")
+
 # this regex pulls out lines like
 #  '   name: val # [sel]'
 # to groups ('   ', 'name', 'val ', 'sel')
@@ -170,17 +176,34 @@ def _unmunge_line(line: str) -> str:
 def _munge_multiline_jinja2(lines):
     """puts a comment slug in front of any multiline jinja2 statements"""
     in_statement = False
+    special_end_slug_re = []
     new_lines = []
     for line in lines:
         if line.strip().startswith("{%") and "%}" not in line:
             in_statement = True
 
         if in_statement:
+            if JINJA2_FOR_RE.match(line):
+                special_end_slug_re.append(JINJA2_ENDFOR_RE)
+            elif JINJA2_IF_RE.match(line):
+                special_end_slug_re.append(JINJA2_ENDIF_RE)
+            elif line.strip().startswith("{%") and "%}" not in line:
+                special_end_slug_re.append(None)
+
+        if in_statement:
             new_lines.append("# {# " + JINJA2_ML_SLUG + line[:-1] + " #}\n")
         else:
             new_lines.append(line)
 
-        if "%}" in line and "{%" not in line:
+        if len(special_end_slug_re) > 0:
+            if special_end_slug_re[-1] is not None:
+                if special_end_slug_re[-1].match(line):
+                    special_end_slug_re = special_end_slug_re[:-1]
+            else:
+                if "%}" in line and "{%" not in line:
+                    special_end_slug_re = special_end_slug_re[:-1]
+
+        if len(special_end_slug_re) == 0:
             in_statement = False
 
     return new_lines

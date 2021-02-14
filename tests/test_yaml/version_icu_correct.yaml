@@ -1,0 +1,85 @@
+{% set version = "68.1" %}
+{% set version_under = version.replace(".", "_") %}
+{% set version_hyphen = version.replace(".", "-") %}
+
+package:
+  name: icu
+  version: {{ version }}
+
+source:
+  - url: https://github.com/unicode-org/icu/releases/download/release-{{ version_hyphen }}/icu4c-{{ version_under }}-src.tgz
+    sha256: a9f2e3d8b4434b8e53878b4308bd1e6ee51c9c7042e2b1a376abefb6fbb29f2d
+    patches:
+      # Include an extra header when using mingw.
+      - icu4c-4_9_1-mingw-w64-mkdir-compatibility.patch  # [win]
+      # Omit lib prefix on libraries.
+      - icu-config.patch  # [win]
+      - mach-port-t.patch  # [osx]
+
+  - url: https://github.com/unicode-org/icu/releases/download/release-{{ version_hyphen }}/icu4c-{{ version_under }}-data.zip
+    sha256: 03ea8b4694155620548c8c0ba20444f1e7db246cc79e3b9c4fc7a960b160d510
+    folder: source/data
+
+build:
+  number: 0
+  run_exports:
+    # icu changes their file extension with each major rev.  Default pin OK.
+    - {{ pin_subpackage('icu') }}
+
+requirements:
+  build:
+    - m2-base  # [win]
+    - m2-make  # [win]
+    - libtool  # [unix]
+    - {{ compiler('c') }}
+    - {{ compiler('cxx') }}
+    - make     # [unix]
+  host:
+  run:
+
+test:
+  files:
+    # From http://source.icu-project.org/repos/icu/data/trunk/charset/data/ucm/gb-18030-2000.ucm
+    - gb-18030-2000.ucm
+    # From ICU's data folder.
+    - de.txt
+  commands:
+    # Libraries
+    {% set libs = [
+       "libicudata",
+       "libicui18n",
+       "libicuio",
+       "libicutest",
+       "libicutu",
+       "libicuuc"
+     ] %}
+    {% for each_lib in libs %}
+    - test -f $PREFIX/lib/{{ each_lib }}.a  # [not win]
+    - test -f $PREFIX/lib/{{ each_lib }}.{{ version }}.dylib   # [osx]
+    - test -f $PREFIX/lib/{{ each_lib }}.so.{{ version }}  # [linux]
+    {% endfor %}
+
+    # CLI tests
+    - genbrk --help
+    - gencfu --help
+    - gencnval --help
+    - gendict --help
+    - icuinfo --help
+    - icu-config --help  # [not win]
+    - makeconv gb-18030-2000.ucm
+    - conda inspect linkages -p $PREFIX $PKG_NAME  # [not win]
+    - conda inspect objects -p $PREFIX $PKG_NAME  # [osx]
+
+about:
+  home: http://site.icu-project.org/
+  license: MIT
+  license_file: LICENSE
+  summary: International Components for Unicode.
+
+extra:
+  recipe-maintainers:
+    - ccordoba12
+    - jakirkham
+    - msarahan
+    - ocefpaf
+    - xhochy

@@ -459,6 +459,10 @@ class Version(Migrator):
                 "the version '%s' is not a string and must be for the bot" % version,
             )
             attrs["new_version_errors"][version] = _fmt_error_message(errors, version)
+            logger.critical(
+                "the version '%s' is not a string and must be for the bot",
+                version,
+            )
             return {}
 
         try:
@@ -468,6 +472,7 @@ class Version(Migrator):
             attrs["new_version_errors"][
                 version
             ] = "We found a problem parsing the recipe: \n\n" + str(e)
+            logger.critical("We found a problem parsing the recipe: \n\n%s", str(e))
             return {}
 
         # cache round-tripped yaml for testing later
@@ -526,10 +531,12 @@ class Version(Migrator):
                     )
                     did_update &= _did_update
                     errors |= _errors
-
+                if _errors:
+                    logger.critical("%s", _errors)
         else:
             did_update = False
             errors.add("no source sections found in the recipe")
+            logger.critical("no source sections found in the recipe")
 
         if did_update:
             # if the yaml did not change, then we did not migrate actually
