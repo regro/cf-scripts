@@ -275,12 +275,17 @@ def run(
     ):
         solvable, errors, _ = is_recipe_solvable(feedstock_dir)
         if not solvable:
+            _solver_err_str = "not solvable ({}): {}: {}".format(
+                ('<a> href="' + os.getenv("CIRCLE_BUILD_URL", "") + '">bot CI job</a>'),
+                base_branch,
+                sorted(set(errors)),
+            )
+
             if isinstance(migrator, Version):
                 _new_ver = feedstock_ctx.attrs["new_version"]
-                _ver_solver_err = "\n - {}".format(
-                    "not solvable: {}: {}".format(base_branch, sorted(set(errors))),
+                feedstock_ctx.attrs["new_version_errors"][_new_ver] += "\n - {}".format(
+                    _solver_err_str,
                 )
-                feedstock_ctx.attrs["new_version_errors"][_new_ver] += _ver_solver_err
                 feedstock_ctx.attrs["new_version_errors"][_new_ver] = sanitize_string(
                     feedstock_ctx.attrs["new_version_errors"][_new_ver],
                 )
@@ -292,7 +297,7 @@ def run(
             if pre_key not in feedstock_ctx.attrs:
                 feedstock_ctx.attrs[pre_key] = {}
             feedstock_ctx.attrs[pre_key][migrator_name] = sanitize_string(
-                "not solvable: {}: {}".format(base_branch, sorted(set(errors))),
+                _solver_err_str,
             )
             eval_cmd(f"rm -rf {feedstock_dir}")
             return False, False
