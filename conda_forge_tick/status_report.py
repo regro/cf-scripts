@@ -72,7 +72,7 @@ def write_version_migrator_status(migrator, mctx):
             out["errored"].append(node)
             out["errors"][node] = attrs.get("new_version_errors", {}).get(
                 new_version,
-                "no error information available",
+                "No error information available for version '%s'." % new_version,
             )
 
     with open("./status/version_status.json", "w") as f:

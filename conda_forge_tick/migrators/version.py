@@ -7,6 +7,7 @@ import collections.abc
 import hashlib
 import pprint
 import random
+import traceback
 from typing import (
     Sequence,
     MutableMapping,
@@ -26,6 +27,7 @@ from conda_forge_tick.xonsh_utils import indir
 from conda_forge_tick.recipe_parser import CONDA_SELECTOR, CondaMetaYAML
 from conda_forge_tick.url_transforms import gen_transformed_urls
 from conda_forge_tick.hashing import hash_url
+from conda_forge_tick.utils import sanitize_string
 
 if typing.TYPE_CHECKING:
     from conda_forge_tick.migrators_types import (
@@ -369,7 +371,7 @@ def _fmt_error_message(errors, version):
             "\n - ".join(e for e in errors)
         )
         msg += "\n"
-    return msg
+    return sanitize_string(msg)
 
 
 class Version(Migrator):
@@ -469,10 +471,23 @@ class Version(Migrator):
             with open(os.path.join(recipe_dir, "meta.yaml")) as fp:
                 cmeta = CondaMetaYAML(fp.read())
         except Exception as e:
-            attrs["new_version_errors"][
-                version
-            ] = "We found a problem parsing the recipe: \n\n" + str(e)
-            logger.critical("We found a problem parsing the recipe: \n\n%s", str(e))
+            tb = io.StringIO()
+            traceback.print_tb(e.__traceback__, file=tb)
+            tb.seek(0)
+            tb = tb.read()
+            attrs["new_version_errors"][version] = sanitize_string(
+                "We found a problem parsing the recipe for version '"
+                + version
+                + "': \n\n"
+                + repr(e)
+                + "\n\ntraceback:\n"
+                + tb,
+            )
+            logger.critical(
+                "We found a problem parsing the recipe: \n\n%s\n\n%s",
+                str(e),
+                tb,
+            )
             return {}
 
         # cache round-tripped yaml for testing later

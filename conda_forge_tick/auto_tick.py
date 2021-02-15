@@ -275,11 +275,36 @@ def run(
     ):
         solvable, errors, _ = is_recipe_solvable(feedstock_dir)
         if not solvable:
+            _solver_err_str = "not solvable ({}): {}: {}".format(
+                ('<a> href="' + os.getenv("CIRCLE_BUILD_URL", "") + '">bot CI job</a>'),
+                base_branch,
+                sorted(set(errors)),
+            )
+
+            if isinstance(migrator, Version):
+                _new_ver = feedstock_ctx.attrs["new_version"]
+                if _new_ver in feedstock_ctx.attrs["new_version_errors"]:
+                    feedstock_ctx.attrs["new_version_errors"][
+                        _new_ver
+                    ] += "\n\nsolver error - {}".format(
+                        _solver_err_str,
+                    )
+                else:
+                    feedstock_ctx.attrs["new_version_errors"][
+                        _new_ver
+                    ] = _solver_err_str
+                feedstock_ctx.attrs["new_version_errors"][_new_ver] = sanitize_string(
+                    feedstock_ctx.attrs["new_version_errors"][_new_ver],
+                )
+                # remove half of a try for solver errors to make those slightly
+                # higher priority
+                feedstock_ctx.attrs["new_version_attempts"][_new_ver] -= 0.5
+
             pre_key = "pre_pr_migrator_status"
             if pre_key not in feedstock_ctx.attrs:
                 feedstock_ctx.attrs[pre_key] = {}
             feedstock_ctx.attrs[pre_key][migrator_name] = sanitize_string(
-                "not solvable: {}: {}".format(base_branch, sorted(set(errors))),
+                _solver_err_str,
             )
             eval_cmd(f"rm -rf {feedstock_dir}")
             return False, False
