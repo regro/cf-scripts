@@ -276,7 +276,7 @@ def run(
         solvable, errors, _ = is_recipe_solvable(feedstock_dir)
         if not solvable:
             _solver_err_str = "not solvable ({}): {}: {}".format(
-                ('<a> href="' + os.getenv("CIRCLE_BUILD_URL", "") + '">bot CI job</a>'),
+                ('<a href="' + os.getenv("CIRCLE_BUILD_URL", "") + '">bot CI job</a>'),
                 base_branch,
                 sorted(set(errors)),
             )
