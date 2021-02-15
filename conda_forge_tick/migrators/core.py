@@ -494,6 +494,11 @@ class GraphMigrator(Migrator):
             muid = frozen_to_json_friendly(self.migrator_uid(payload))
             pr_muids = _sanitized_muids(payload.get("PRed", []))
             if muid not in pr_muids:
+                LOGGER.debug(
+                    "node %s PR %s not yet issued!",
+                    node,
+                    muid.get("data", {}).get("name", None),
+                )
                 # not yet issued
                 return False
             else:
@@ -504,21 +509,32 @@ class GraphMigrator(Migrator):
                     .get("PR", {})
                     .get("created_at", None)
                 )
-                state = payload.get("PR", {"state": "open"}).get("state", "")
-                if ts is not None and state == "open":
-                    now = datetime.datetime.now(datetime.timezone.utc)
-                    ts = dateutil.parser.parse(ts)
-                    if now - ts < datetime.timedelta(days=30):
+                state = (
+                    payload.get("PRed", [])[pr_index]
+                    .get("PR", {"state": "open"})
+                    .get("state", "")
+                )
+                if state == "open":
+                    if ts is not None:
+                        now = datetime.datetime.now(datetime.timezone.utc)
+                        ts = dateutil.parser.parse(ts)
+                        if now - ts < datetime.timedelta(days=30):
+                            LOGGER.debug(
+                                "node %s has PR %s open for %s",
+                                node,
+                                muid.get("data", {}).get("name", None),
+                                now - ts,
+                            )
+                            return False
+                    else:
+                        # no timestamp so keep things open
                         LOGGER.debug(
-                            "node %s has PR %s open for %s",
+                            "node %s has PR %s:%s with no timestamp",
                             node,
                             muid.get("data", {}).get("name", None),
-                            now - ts,
+                            payload.get("PRed", [])[pr_index]["PR"].file_name,
                         )
                         return False
-                else:
-                    # no timestamp so keep things open
-                    return False
 
         return True
 
