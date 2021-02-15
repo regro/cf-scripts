@@ -283,9 +283,16 @@ def run(
 
             if isinstance(migrator, Version):
                 _new_ver = feedstock_ctx.attrs["new_version"]
-                feedstock_ctx.attrs["new_version_errors"][_new_ver] += "\n - {}".format(
-                    _solver_err_str,
-                )
+                if _new_ver in feedstock_ctx.attrs["new_version_errors"]:
+                    feedstock_ctx.attrs["new_version_errors"][
+                        _new_ver
+                    ] += "\n - {}".format(
+                        _solver_err_str,
+                    )
+                else:
+                    feedstock_ctx.attrs["new_version_errors"][
+                        _new_ver
+                    ] = _solver_err_str
                 feedstock_ctx.attrs["new_version_errors"][_new_ver] = sanitize_string(
                     feedstock_ctx.attrs["new_version_errors"][_new_ver],
                 )
