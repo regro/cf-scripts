@@ -859,7 +859,7 @@ def initialize_migrators(
     )
     version_migrator = Version(
         python_nodes=python_nodes,
-        pr_limit=PR_LIMIT * 2,
+        pr_limit=PR_LIMIT * 4,
         piggy_back_migrations=[
             Jinja2VarsCleanup(),
             DuplicateLinesCleanup(),
