@@ -286,7 +286,7 @@ def run(
                 if _new_ver in feedstock_ctx.attrs["new_version_errors"]:
                     feedstock_ctx.attrs["new_version_errors"][
                         _new_ver
-                    ] += "\n - {}".format(
+                    ] += "\n\nsolver error - {}".format(
                         _solver_err_str,
                     )
                 else:
