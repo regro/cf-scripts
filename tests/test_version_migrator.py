@@ -36,6 +36,11 @@ YAML_PATH = os.path.join(os.path.dirname(__file__), "test_yaml")
         ("ccacheerr", "3.7.7"),
         ("cranmirror", "0.3.3"),
         ("sha1", "5.0.1"),
+        ("icu", "68.1"),
+        ("libevent", "2.1.12"),
+        ("boost", "1.74.0"),
+        ("boostcpp", "1.74.0"),
+        ("mumps", "5.2.1"),
     ],
 )
 def test_version(case, new_ver, tmpdir, caplog):
