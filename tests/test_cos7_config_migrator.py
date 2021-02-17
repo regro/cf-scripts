@@ -17,8 +17,9 @@ VERSION_COS7 = Version(
 YAML_PATH = os.path.join(os.path.dirname(__file__), "test_yaml")
 
 
+@pytest.mark.parametrize("remove_quay", [False, True])
 @pytest.mark.parametrize("case", list(range(len(REQUIRED_RE_LINES))))
-def test_version_cos7_config(case, tmpdir):
+def test_version_cos7_config(case, remove_quay, tmpdir):
     with open(os.path.join(YAML_PATH, "version_cos7_config_simple.yaml")) as fp:
         in_yaml = fp.read()
 
@@ -34,7 +35,10 @@ def test_version_cos7_config(case, tmpdir):
         for i, (_, _, first, second) in enumerate(REQUIRED_RE_LINES):
             if i != case:
                 fp.write(first + "\n")
-                fp.write(second + "\n")
+                if "docker_image" in first and remove_quay:
+                    fp.write(
+                        second.replace("quay.io/condaforge/", "condaforge/") + "\n",
+                    )
 
     run_test_migration(
         m=VERSION_COS7,

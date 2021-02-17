@@ -25,8 +25,8 @@ REQUIRED_RE_LINES = [
     (
         re.compile(r"^docker_image:\s+#\s+\[linux64\]\s*\n$"),
         re.compile(
-            r"^  \s*- quay\.io\/condaforge\/linux-anvil-cos7-x86_64\s+#\s+\[linux64\]\s*\n$",
-        ),  # noqa
+            r"^  \s*- (quay\.io\/|)condaforge\/linux-anvil-cos7-x86_64\s+#\s+\[linux64\]\s*\n$",  # noqa
+        ),
         "docker_image:                                     # [linux64]",
         "  - quay.io/condaforge/linux-anvil-cos7-x86_64    # [linux64]",
     ),
