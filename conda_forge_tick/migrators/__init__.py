@@ -25,3 +25,4 @@ from .cross_compile import (
     NoCondaInspectMigrator,
 )
 from .duplicate_lines import DuplicateLinesCleanup
+from .cos7 import Cos7Config

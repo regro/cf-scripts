@@ -2,6 +2,7 @@ import hashlib
 from multiprocessing import Process, Pipe
 import time
 import math
+import functools
 
 import requests
 
@@ -65,6 +66,7 @@ def _hash_url(url, hash_type, progress=False, conn=None, timeout=None):
             return _hash
 
 
+@functools.lru_cache(maxsize=1024)
 def hash_url(url, timeout=None, progress=False, hash_type="sha256"):
     """Hash a url with a timeout.
 
