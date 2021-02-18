@@ -92,6 +92,7 @@ from conda_forge_tick.migrators import (
     Build2HostMigrator,
     NoCondaInspectMigrator,
     DuplicateLinesCleanup,
+    Cos7Config,
 )
 
 from conda_forge_tick.mamba_solver import is_recipe_solvable
@@ -576,6 +577,7 @@ def add_rebuild_migration_yaml(
             ExtraJinja2KeysCleanup(),
             Build2HostMigrator(),
             NoCondaInspectMigrator(),
+            Cos7Config(),
         ],
         **config,
     )
@@ -869,6 +871,7 @@ def initialize_migrators(
             ExtraJinja2KeysCleanup(),
             Build2HostMigrator(),
             NoCondaInspectMigrator(),
+            Cos7Config(),
         ],
     )
 
@@ -1131,8 +1134,11 @@ def main(args: "CLIArgs") -> None:
                             if pre_key not in attrs:
                                 attrs[pre_key] = {}
                             attrs[pre_key][migrator_name] = sanitize_string(
-                                "bot error: %s: %s"
+                                "bot error (%s): %s: %s"
                                 % (
+                                    '<a href="'
+                                    + os.getenv("CIRCLE_BUILD_URL", "")
+                                    + '">bot CI job</a>',
                                     base_branch,
                                     str(traceback.format_exc()),
                                 ),
@@ -1155,8 +1161,11 @@ def main(args: "CLIArgs") -> None:
                             if pre_key not in attrs:
                                 attrs[pre_key] = {}
                             attrs[pre_key][migrator_name] = sanitize_string(
-                                "bot error: %s: %s"
+                                "bot error (%s): %s: %s"
                                 % (
+                                    '<a href="'
+                                    + os.getenv("CIRCLE_BUILD_URL", "")
+                                    + '">bot CI job</a>',
                                     base_branch,
                                     str(traceback.format_exc()),
                                 ),

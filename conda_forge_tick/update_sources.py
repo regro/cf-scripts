@@ -358,7 +358,7 @@ def url_exists(url: str) -> bool:
             output = subprocess.check_output(
                 ["wget", "--spider", url],
                 stderr=subprocess.STDOUT,
-                timeout=1,
+                timeout=2,
             )
         except Exception:
             return False
