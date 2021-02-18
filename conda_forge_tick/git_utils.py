@@ -195,10 +195,7 @@ def fetch_repo(*, feedstock_dir, origin, upstream, branch, base_branch="master")
                 _run_git_cmd(
                     f"git checkout -b {base_branch} upstream/{base_branch} {quiet}",
                 )
-        _run_git_cmd(f"git pull upstream {base_branch} {quiet}")
-
-        # remove any uncommitted changes?
-        _run_git_cmd("git reset --hard HEAD")
+        _run_git_cmd(f"git reset --hard upstream/{base_branch} {quiet}")
 
         # make and modify version branch
         try:
