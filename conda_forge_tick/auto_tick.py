@@ -297,9 +297,9 @@ def run(
                 feedstock_ctx.attrs["new_version_errors"][_new_ver] = sanitize_string(
                     feedstock_ctx.attrs["new_version_errors"][_new_ver],
                 )
-                # remove half of a try for solver errors to make those slightly
+                # remove part of a try for solver errors to make those slightly
                 # higher priority
-                feedstock_ctx.attrs["new_version_attempts"][_new_ver] -= 0.5
+                feedstock_ctx.attrs["new_version_attempts"][_new_ver] -= 0.8
 
             pre_key = "pre_pr_migrator_status"
             if pre_key not in feedstock_ctx.attrs:
