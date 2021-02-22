@@ -10,7 +10,7 @@ from conda_forge_tick.migrators.core import _sanitized_muids, GraphMigrator
 from conda_forge_tick.utils import frozen_to_json_friendly, pluck, as_iterable
 from conda_forge_tick.xonsh_utils import indir
 from conda_forge_tick.make_graph import get_deps_from_outputs_lut
-from .migration_yaml import _all_noarch
+from .migration_yaml import all_noarch
 
 if typing.TYPE_CHECKING:
     from conda_forge_tick.migrators_types import AttrsTypedDict, MigrationUidTypedDict
@@ -90,7 +90,7 @@ class ArchRebuild(GraphMigrator):
                 or (node.startswith("m2-"))
                 or (node.startswith("m2w64-"))
                 or (node in self.ignored_packages)
-                or _all_noarch(attrs)
+                or all_noarch(attrs)
             ):
                 pluck(self.graph, node)
         self.graph.remove_edges_from(nx.selfloop_edges(self.graph))
@@ -238,7 +238,7 @@ class OSXArm(GraphMigrator):
                 or (node.startswith("m2-"))
                 or (node.startswith("m2w64-"))
                 or (node in self.ignored_packages)
-                or _all_noarch(attrs)
+                or all_noarch(attrs)
             ):
                 pluck(self.graph, node)
 

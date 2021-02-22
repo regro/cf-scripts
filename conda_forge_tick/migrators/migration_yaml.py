@@ -425,7 +425,7 @@ def _req_is_python(req):
     return PIN_SEP_PAT.split(req)[0].strip().lower() == "python"
 
 
-def _all_noarch(attrs, only_python=False):
+def all_noarch(attrs, only_python=False):
     meta_yaml = attrs.get("meta_yaml", {}) or {}
 
     if not only_python:
@@ -487,7 +487,7 @@ def create_rebuild_graph(
         bh = host or build
         only_python = "python" in package_names
         inclusion_criteria = bh & set(package_names) and (
-            include_noarch or not _all_noarch(attrs, only_python=only_python)
+            include_noarch or not all_noarch(attrs, only_python=only_python)
         )
         # get host/build, run and test and launder them through outputs
         # this should fix outputs related issues (eg gdal)
