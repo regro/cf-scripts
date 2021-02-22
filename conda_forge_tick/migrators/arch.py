@@ -10,7 +10,7 @@ from conda_forge_tick.migrators.core import _sanitized_muids, GraphMigrator
 from conda_forge_tick.utils import frozen_to_json_friendly, pluck, as_iterable
 from conda_forge_tick.xonsh_utils import indir
 from conda_forge_tick.make_graph import get_deps_from_outputs_lut
-
+from .migration_yaml import all_noarch
 
 if typing.TYPE_CHECKING:
     from conda_forge_tick.migrators_types import AttrsTypedDict, MigrationUidTypedDict
@@ -84,19 +84,13 @@ class ArchRebuild(GraphMigrator):
             self.graph.remove_nodes_from([n for n in self.graph if n not in packages])
 
         # filter out stub packages and ignored packages
-        for node in list(self.graph.nodes):
+        for node, attrs in list(self.graph.nodes("payload")):
             if (
                 node.endswith("_stub")
                 or (node.startswith("m2-"))
                 or (node.startswith("m2w64-"))
                 or (node in self.ignored_packages)
-                or (
-                    self.graph.nodes[node]
-                    .get("payload", {})
-                    .get("meta_yaml", {})
-                    .get("build", {})
-                    .get("noarch")
-                )
+                or all_noarch(attrs)
             ):
                 pluck(self.graph, node)
         self.graph.remove_edges_from(nx.selfloop_edges(self.graph))
@@ -244,7 +238,7 @@ class OSXArm(GraphMigrator):
                 or (node.startswith("m2-"))
                 or (node.startswith("m2w64-"))
                 or (node in self.ignored_packages)
-                or (attrs.get("meta_yaml", {}).get("build", {}).get("noarch"))
+                or all_noarch(attrs)
             ):
                 pluck(self.graph, node)
 
