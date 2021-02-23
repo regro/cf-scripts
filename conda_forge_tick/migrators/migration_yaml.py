@@ -429,9 +429,12 @@ def all_noarch(attrs, only_python=False):
     meta_yaml = attrs.get("meta_yaml", {}) or {}
 
     if not only_python:
-        all_noarch = "noarch" in meta_yaml.get("build", {})
-        for output in meta_yaml.get("outputs", []):
-            all_noarch = all_noarch and ("noarch" in output.get("build", {}))
+        outputs = meta_yaml.get("outputs", [])
+        if meta_yaml.get("outputs", []):
+            return all("noarch" in output.get("build", {}) for output in outputs)
+
+        return "noarch" in meta_yaml.get("build", {})
+
     else:
         reqs = (
             meta_yaml.get("requirements", {}).get("host", [])
