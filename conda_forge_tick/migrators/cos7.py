@@ -70,7 +70,7 @@ class Cos7Config(MiniMigrator):
 
             yaml = YAML()
             yaml.indent(mapping=2, sequence=4, offset=2)
-            with open("../conda-forge.yml", "r) as fp:
+            with open("../conda-forge.yml", "r") as fp:
                 cfyml = yaml.load(fp.read())
 
             if os.path.exists(cfg) and cfyml.get("os_version", {}).get("linux_64", None) != "cos7":
