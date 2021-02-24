@@ -1,6 +1,7 @@
 import re
 import typing
 from typing import Any
+from ruamel.yaml import YAML
 
 from conda_forge_tick.xonsh_utils import indir
 from conda_forge_tick.migrators.core import MiniMigrator
@@ -66,11 +67,17 @@ class Cos7Config(MiniMigrator):
     def migrate(self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any) -> None:
         with indir(recipe_dir):
             cfg = "conda_build_config.yaml"
+            
+            yaml = YAML()
+            yaml.indent(mapping=2, sequence=4, offset=2)
+            with open("../conda-forge.yml", "r) as fp:
+                cfyml = yaml.load(fp.read())
 
-            with open(cfg) as fp:
-                lines = fp.readlines()
+            if os.path.exists(cfg) and cfyml.get("os_version", {}).get("linux_64", None) != "cos7":
+                with open(cfg) as fp:
+                    lines = fp.readlines()
 
-            _munge_cos7_lines(lines)
+                _munge_cos7_lines(lines)
 
-            with open(cfg, "w") as fp:
-                fp.write("".join(lines))
+                with open(cfg, "w") as fp:
+                    fp.write("".join(lines))
