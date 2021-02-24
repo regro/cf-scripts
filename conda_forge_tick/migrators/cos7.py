@@ -70,8 +70,11 @@ class Cos7Config(MiniMigrator):
 
             yaml = YAML()
             yaml.indent(mapping=2, sequence=4, offset=2)
-            with open("../conda-forge.yml") as fp:
-                cfyml = yaml.load(fp.read())
+            if os.path.exists("../conda-forge.yml"):
+                with open("../conda-forge.yml") as fp:
+                    cfyml = yaml.load(fp.read())
+            else:
+                cfyml = {}
 
             if (
                 os.path.exists(cfg)
