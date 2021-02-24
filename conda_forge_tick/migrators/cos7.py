@@ -67,7 +67,7 @@ class Cos7Config(MiniMigrator):
     def migrate(self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any) -> None:
         with indir(recipe_dir):
             cfg = "conda_build_config.yaml"
-            
+
             yaml = YAML()
             yaml.indent(mapping=2, sequence=4, offset=2)
             with open("../conda-forge.yml", "r) as fp:
