@@ -107,3 +107,36 @@ def test_version_noup(case, new_ver, tmpdir, caplog):
     )
 
     print("\n\n" + attrs["new_version_errors"][new_ver] + "\n\n")
+
+
+def test_version_cupy(tmpdir, caplog):
+    case = "cupy"
+    new_ver = "8.5.0"
+    caplog.set_level(
+        logging.DEBUG,
+        logger="conda_forge_tick.migrators.version",
+    )
+
+    with open(os.path.join(YAML_PATH, "version_%s.yaml" % case)) as fp:
+        in_yaml = fp.read()
+
+    with open(os.path.join(YAML_PATH, "version_%s_correct.yaml" % case)) as fp:
+        out_yaml = fp.read()
+
+    kwargs = {"new_version": new_ver}
+    if case == "sha1":
+        kwargs["hash_type"] = "sha1"
+
+    run_test_migration(
+        m=VERSION,
+        inp=in_yaml,
+        output=out_yaml,
+        kwargs=kwargs,
+        prb="Dependencies have been updated if changed",
+        mr_out={
+            "migrator_name": "Version",
+            "migrator_version": Version.migrator_version,
+            "version": new_ver,
+        },
+        tmpdir=tmpdir,
+    )

@@ -1,0 +1,91 @@
+{% set name = "cupy" %}
+{% set version = "8.5.0" %}
+{% set sha256 = "fb3f8d3b3454beb249b9880502a45fe493c5a44efacc4c72914cbe1a5dbdf803" %}
+
+package:
+  name: {{ name|lower }}
+  version: {{ version }}
+
+source:
+  - url: https://pypi.io/packages/source/{{ name[0] }}/{{ name }}/{{ name }}-{{ version }}.tar.gz
+    sha256: {{ sha256 }}
+
+build:
+  number: 0
+  skip: true  # [win or not linux64 or cuda_compiler_version in (undefined, "None")]
+  script:
+    # CuPy default detects CUDA from nvcc, but on Conda-Forge's dockers nvcc lives in a different place...
+    - export NVCC=$(which nvcc)
+    # With conda-forge/nvcc-feedstock#58, CUDA_PATH is set correctly
+    - echo "nvcc is $NVCC, CUDA path is $CUDA_PATH"
+
+    - {{ PYTHON }} -m pip install . --no-deps -vv
+
+    # copy activate/deactivate scripts
+    - mkdir -p "${PREFIX}/etc/conda/activate.d"
+    - cp "${RECIPE_DIR}/activate.sh" "${PREFIX}/etc/conda/activate.d/cupy_activate.sh"
+    - mkdir -p "${PREFIX}/etc/conda/deactivate.d"
+    - cp "${RECIPE_DIR}/deactivate.sh" "${PREFIX}/etc/conda/deactivate.d/cupy_deactivate.sh"
+  missing_dso_whitelist:
+    - '*/libcuda.*'
+
+requirements:
+  build:
+    - {{ compiler("c") }}
+    - {{ compiler("cxx") }}
+    - {{ compiler("cuda") }}
+    - sysroot_linux-64 2.17  # [linux64 and cdt_name == "cos7"]
+
+  host:
+    - python
+    - pip
+    - setuptools
+    - cython >=0.24.0
+    - fastrlock >=0.3
+    - cudnn
+    - nccl
+    - cutensor  # [cuda_compiler_version in ("10.1", "10.2", "11.0", "11.1", "11.2") and cdt_name == "cos7"]
+
+  run:
+    - python
+    - setuptools
+    - fastrlock >=0.3
+    - numpy >=1.16
+    - six >=1.9.0
+    # - cudnn  <-- added via run_export
+    # - nccl   <-- added via run_export
+    # - cutensor  <-- added via run_export
+
+  run_constrained:
+    # Only GLIBC_2.17 or older symbols present
+    - __glibc >=2.17      # [linux64 and cdt_name == "cos7"]
+
+test:
+  requires:
+    - pytest
+    - mock
+    - {{ compiler("c") }}
+    - {{ compiler("cxx") }}
+    - {{ compiler("cuda") }}  # tests need nvcc
+    #- scipy >=1.0,<1.1  <-- cause error
+
+  source_files:
+    - tests
+
+about:
+  home: https://cupy.dev/
+  license: MIT
+  license_family: MIT
+  license_file: LICENSE
+  summary: CuPy is an implementation of a NumPy-compatible multi-dimensional array on CUDA.
+  dev_url: https://github.com/cupy/cupy/
+  doc_url: https://docs.cupy.dev/en/stable/
+
+extra:
+  recipe-maintainers:
+    - jakirkham
+    - leofang
+    - kmaehashi
+    - asi1024
+    - emcastillo
+    - toslunar
