@@ -235,7 +235,21 @@ def run(
                 if not isinstance(migrator, Version):
                     raise
                 else:
-                    make_rerender_comment = True
+                    # for check solvable or automerge, we always raise rerender errors
+                    if feedstock_ctx.attrs["conda-forge.yml"].get("bot", {}).get(
+                        "check_solvable",
+                        False,
+                    ) or (
+                        feedstock_ctx.attrs["conda-forge.yml"]
+                        .get("bot", {})
+                        .get(
+                            "automerge",
+                            False,
+                        )
+                    ):
+                        raise
+                    else:
+                        make_rerender_comment = True
 
             # If we tried to run the MigrationYaml and rerender did nothing (we only
             # bumped the build number and dropped a yaml file in migrations) bail
