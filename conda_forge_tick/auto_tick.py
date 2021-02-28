@@ -54,6 +54,7 @@ from conda_forge_tick.git_utils import (
     get_repo,
     push_repo,
     is_github_api_limit_reached,
+    comment_on_pr,
 )
 from conda_forge_tick.utils import (
     setup_logger,
@@ -226,11 +227,29 @@ def run(
                     "conda smithy rerender -c auto --no-check-uptodate",
                     timeout=300,
                 )
+                make_rerender_comment = False
             except Exception as e:
                 # I am trying this bit of code to force these errors
                 # to be surfaced in the logs at the right time.
                 print(f"RERENDER ERROR: {e}", flush=True)
-                raise
+                if not isinstance(migrator, Version):
+                    raise
+                else:
+                    # for check solvable or automerge, we always raise rerender errors
+                    if feedstock_ctx.attrs["conda-forge.yml"].get("bot", {}).get(
+                        "check_solvable",
+                        False,
+                    ) or (
+                        feedstock_ctx.attrs["conda-forge.yml"]
+                        .get("bot", {})
+                        .get(
+                            "automerge",
+                            False,
+                        )
+                    ):
+                        raise
+                    else:
+                        make_rerender_comment = True
 
             # If we tried to run the MigrationYaml and rerender did nothing (we only
             # bumped the build number and dropped a yaml file in migrations) bail
@@ -350,6 +369,19 @@ def run(
                 # If we just push to the existing PR then do nothing to the json
                 pr_json = False
                 ljpr = False
+
+    if pr_json and pr_json["state"] != "closed" and make_rerender_comment:
+        comment_on_pr(
+            pr_json,
+            """\
+Hi! This feedstock was not able to be rerendered after the version update changes. I
+have pushed the version update changes anyways and am trying to rerender again with this
+comment. Hopefully you all can fix this!
+
+@conda-forge-admin rerender""",
+            repo,
+        )
+
     if pr_json:
         ljpr = LazyJson(
             os.path.join(migrator.ctx.session.prjson_dir, str(pr_json["id"]) + ".json"),

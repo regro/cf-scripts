@@ -600,6 +600,22 @@ def push_repo(
     return trim_pr_josn_keys(pr_dict)
 
 
+def comment_on_pr(pr_json, comment, repo):
+    """Make a comment on a PR.
+
+    Parameters
+    ----------
+    pr_json : dict
+        A dict-like json blob with the PR information
+    comment : str
+        The comment to make.
+    repo : github3.repos.Repository
+        The feedstock repo as a github3 object.
+    """
+    pr_obj = repo.pull_request(pr_json["number"])
+    pr_obj.create_comment(comment)
+
+
 @backoff.on_exception(
     backoff.expo,
     (RequestException, Timeout),
