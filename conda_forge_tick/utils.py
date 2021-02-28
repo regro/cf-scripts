@@ -630,22 +630,25 @@ def as_iterable(iterable_or_scalar):
 
 
 def _get_source_code(recipe_dir):
-    from conda_build.api import render
-    from conda_build.config import Config
-    from conda_build.source import provide
+    try:
+        from conda_build.api import render
+        from conda_build.config import Config
+        from conda_build.source import provide
 
-    # Use conda build to do all the downloading/extracting bits
-    md = render(
-        recipe_dir,
-        config=Config(**CB_CONFIG),
-        finalize=False,
-        bypass_env_check=True,
-    )
-    if not md:
-        return None
-    md = md[0][0]
-    # provide source dir
-    return provide(md)
+        # Use conda build to do all the downloading/extracting bits
+        md = render(
+            recipe_dir,
+            config=Config(**CB_CONFIG),
+            finalize=False,
+            bypass_env_check=True,
+        )
+        if not md:
+            return None
+        md = md[0][0]
+        # provide source dir
+        return provide(md)
+    except (SystemExit, Exception) as e:
+        raise RuntimeError("conda build src exception:" + str(e))
 
 
 def sanitize_string(instr):
