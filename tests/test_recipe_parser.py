@@ -737,14 +737,10 @@ about:
     transitive closures on maps (which may encode infinite graphs),
     dependence analysis and bounds on piecewise step-polynomials.
 
-  doc_url: https://documen.tician.de/islpy
-  dev_url: https://github.com/inducer/islpy
-
 extra:
   recipe-maintainers:
     - inducer
 """  # noqa
-
 
     meta_yaml_notok = """\
 {% set name = "islpy" %}
@@ -820,9 +816,6 @@ about:
     It also includes an ILP solver based on generalized basis reduction,
     transitive closures on maps (which may encode infinite graphs),
     dependence analysis and bounds on piecewise step-polynomials.
-
-  doc_url: https://documen.tician.de/islpy
-  dev_url: https://github.com/inducer/islpy
 
 extra:
   recipe-maintainers:
