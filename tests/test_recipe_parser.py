@@ -660,3 +660,183 @@ var5: >-
 var7: >-
   {{ var7 }}"""
     )
+
+
+def test_recipe_parses_islpy():
+    meta_yaml_ok = """\
+{% set name = "islpy" %}
+{% set version = "2020.2.2" %}
+{% set sha256 = "7eb7dfa41d6a67d9ee4ea4bb9f08bdbcbee42b364502136b7882cfd80ff427e0" %}
+
+package:
+  name: {{ name|lower }}
+  version: {{ version }}
+
+source:
+  url: https://pypi.io/packages/source/{{ name[0] }}/{{ name }}/{{ name }}-{{ version }}.tar.gz
+  sha256: {{ sha256 }}
+
+build:
+  number: 0
+
+requirements:
+  build:
+    - python                                 # [build_platform != target_platform]
+    - cross-python_{{ target_platform }}     # [build_platform != target_platform]
+    - pybind11                               # [build_platform != target_platform]
+    - {{ compiler('cxx') }}
+  host:
+    - python
+    - setuptools
+    - six
+    - pybind11
+    - isl
+  run:
+    - python
+    - six
+    # Need the same version of isl we had when the package was built
+    - {{ pin_compatible("isl", max_pin="x.x.x") }}
+
+test:
+  requires:
+    - pytest
+  imports:
+    - islpy
+
+  source_files:
+    - test
+  commands:
+    - cd test && python -m pytest
+
+about:
+  home: http://github.com/inducer/islpy
+  license: MIT
+  license_file:
+    - doc/misc.rst
+  license_family: MIT
+  summary: Wrapper around isl, an integer set library
+
+  description: |
+    islpy is a Python wrapper around Sven Verdoolaege's
+    [isl](http://www.kotnet.org/~skimo/isl/), a library for manipulating
+    sets and relations of integer points bounded by linear constraints.
+
+    Supported operations on sets include
+
+    -   intersection, union, set difference,
+    -   emptiness check,
+    -   convex hull,
+    -   (integer) affine hull,
+    -   integer projection,
+    -   computing the lexicographic minimum using parametric integer
+        programming,
+    -   coalescing, and
+    -   parametric vertex enumeration.
+
+    It also includes an ILP solver based on generalized basis reduction,
+    transitive closures on maps (which may encode infinite graphs),
+    dependence analysis and bounds on piecewise step-polynomials.
+
+  doc_url: https://documen.tician.de/islpy
+  dev_url: https://github.com/inducer/islpy
+
+extra:
+  recipe-maintainers:
+    - inducer
+"""  # noqa
+
+
+    meta_yaml_notok = """\
+{% set name = "islpy" %}
+{% set version = "2020.2.2" %}
+{% set sha256 = "7eb7dfa41d6a67d9ee4ea4bb9f08bdbcbee42b364502136b7882cfd80ff427e0" %}
+
+package:
+  name: {{ name|lower }}
+  version: {{ version }}
+
+source:
+  url: https://pypi.io/packages/source/{{ name[0] }}/{{ name }}/{{ name }}-{{ version }}.tar.gz
+  sha256: {{ sha256 }}
+
+build:
+  number: 0
+
+requirements:
+  build:
+    - python                                 # [build_platform != target_platform]
+    - cross-python_{{ target_platform }}     # [build_platform != target_platform]
+    - pybind11                               # [build_platform != target_platform]
+    - {{ compiler('cxx') }}
+  host:
+    - python
+    - setuptools
+    - six
+    - pybind11
+    - isl
+  run:
+    - python
+    - six
+    # Need the same version of isl we had when the package was built
+    - {{ pin_compatible("isl", max_pin="x.x.x") }}
+
+test:
+  requires:
+    - pytest
+  imports:
+    - islpy
+
+  source_files:
+    - test
+  commands:
+    - cd test && python -m pytest
+
+about:
+  home: http://github.com/inducer/islpy
+  license: MIT
+  license_file:
+    - doc/misc.rst
+  license_family: MIT
+  summary: Wrapper around isl, an integer set library
+
+  description: |
+
+    islpy is a Python wrapper around Sven Verdoolaege's
+    [isl](http://www.kotnet.org/~skimo/isl/), a library for manipulating
+    sets and relations of integer points bounded by linear constraints.
+
+    Supported operations on sets include
+
+    -   intersection, union, set difference,
+    -   emptiness check,
+    -   convex hull,
+    -   (integer) affine hull,
+    -   integer projection,
+    -   computing the lexicographic minimum using parametric integer
+        programming,
+    -   coalescing, and
+    -   parametric vertex enumeration.
+
+    It also includes an ILP solver based on generalized basis reduction,
+    transitive closures on maps (which may encode infinite graphs),
+    dependence analysis and bounds on piecewise step-polynomials.
+
+  doc_url: https://documen.tician.de/islpy
+  dev_url: https://github.com/inducer/islpy
+
+extra:
+  recipe-maintainers:
+    - inducer
+"""  # noqa
+
+    cm = CondaMetaYAML(meta_yaml_ok)
+    s = io.StringIO()
+    cm.dump(s)
+    s.seek(0)
+    assert meta_yaml_ok == s.read()
+
+    cm = CondaMetaYAML(meta_yaml_notok)
+    s = io.StringIO()
+    cm.dump(s)
+    s.seek(0)
+    assert meta_yaml_notok != s.read()
