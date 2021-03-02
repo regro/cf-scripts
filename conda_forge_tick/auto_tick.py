@@ -265,6 +265,8 @@ def run(
                     or _.startswith("README")
                 )
             ]
+        else:
+            make_rerender_comment = False
 
     if (
         feedstock_ctx.feedstock_name != "conda-forge-pinning"
