@@ -431,9 +431,9 @@ def all_noarch(attrs, only_python=False):
     if not only_python:
         outputs = meta_yaml.get("outputs", [])
         if meta_yaml.get("outputs", []):
-            return all("noarch" in output.get("build", {}) for output in outputs)
+            return all("noarch" in (output.get("build", {}) or {}) for output in outputs)
 
-        return "noarch" in meta_yaml.get("build", {})
+        return "noarch" in (meta_yaml.get("build", {}) or {})
 
     else:
         reqs = (
