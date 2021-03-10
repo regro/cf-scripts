@@ -118,13 +118,50 @@ def parse_meta_yaml(
     ----------
     text : str
         The raw text in conda-forge feedstock meta.yaml file
+    platform : str, optional
+        The platform (e.g., 'linux', 'osx', 'win').
+    arch : str, optional
+        The CPU architecture (e.g., '64', 'aarch64').
+    recipe_dir : str, optional
+        The path to the recipe being parsed.
+    cbc_path : str, optional
+        The path to global pinning file.
+    log_debug : bool, optional
+        If True, print extra debugging info. Default is False.
+    **kwargs : glob for extra keyword arguments
+        These are passed to the conda_build.config.Config constructor.
 
     Returns
     -------
     dict :
-        The parsed YAML dict. If parsing fails, returns an empty dict.
-
+        The parsed YAML dict. If parsing fails, returns an empty dict. May raise
+        for some errors. Have fun.
     """
+    try:
+        return _parse_meta_yaml_impl(
+            text,
+            for_pinning=for_pinning,
+            platform=platform,
+            arch=arch,
+            recipe_dir=recipe_dir,
+            cbc_path=cbc_path,
+            log_debug=log_debug,
+            **kwargs,
+        )
+    except SystemExit as e:
+        raise RuntimeError("cond build error: %s" % str(e))
+
+
+def _parse_meta_yaml_impl(
+    text: str,
+    for_pinning=False,
+    platform=None,
+    arch=None,
+    recipe_dir=None,
+    cbc_path=None,
+    log_debug=False,
+    **kwargs: Any,
+) -> "MetaYamlTypedDict":
     from conda_build.config import Config
     from conda_build.metadata import parse, MetaData
     import conda_build.api
