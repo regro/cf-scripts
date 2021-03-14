@@ -298,7 +298,8 @@ def run(
         solvable, errors, _ = is_recipe_solvable(
             feedstock_dir,
             build_platform=feedstock_ctx.attrs["conda-forge.yml"].get(
-                "build_platform", None
+                "build_platform",
+                None,
             ),
         )
         if not solvable:
