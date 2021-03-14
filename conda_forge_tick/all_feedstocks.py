@@ -17,8 +17,8 @@ def get_all_feedstocks_from_github():
     org = gh.get_organization("conda-forge")
     archived = set()
     not_archived = set()
-    repos = org.get_repos(type='public')
-    for r in tqdm.tqdm(repos, total=org.public_repos, desc='getting all feedstocks'):
+    repos = org.get_repos(type="public")
+    for r in tqdm.tqdm(repos, total=org.public_repos, desc="getting all feedstocks"):
         if r.name.endswith("-feedstock"):
             # special casing for weird renaming in the api
             if r.name == "numpy-sugar-feedstock":
@@ -27,9 +27,9 @@ def get_all_feedstocks_from_github():
                 name = r.name
 
             if r.archived:
-                archived.add(name[:-len("-feedstock")])
+                archived.add(name[: -len("-feedstock")])
             else:
-                not_archived.add(name[:-len("-feedstock")])
+                not_archived.add(name[: -len("-feedstock")])
 
     return {"active": sorted(list(not_archived)), "archived": sorted(list(archived))}
 
