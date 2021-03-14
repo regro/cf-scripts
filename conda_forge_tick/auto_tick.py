@@ -295,7 +295,12 @@ def run(
             )
         )
     ):
-        solvable, errors, _ = is_recipe_solvable(feedstock_dir)
+        solvable, errors, _ = is_recipe_solvable(
+            feedstock_dir,
+            build_platform=feedstock_ctx.attrs["conda-forge.yml"].get(
+                "build_platform", None
+            ),
+        )
         if not solvable:
             _solver_err_str = "not solvable ({}): {}: {}".format(
                 ('<a href="' + os.getenv("CIRCLE_BUILD_URL", "") + '">bot CI job</a>'),
