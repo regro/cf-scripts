@@ -644,9 +644,8 @@ def _is_recipe_solvable(
             cbc_fname,
             platform,
             arch,
-            is_cross_compiled=(
+            build_platform_arch=(
                 build_platform.get(f"{platform}_{arch}", f"{platform}_{arch}")
-                != f"{platform}_{arch}"
             ),
             additional_channels=additional_channels,
         )
@@ -705,7 +704,7 @@ def _is_recipe_solvable_on_platform(
     cbc_path,
     platform,
     arch,
-    is_cross_compiled=False,
+    build_platform_arch=None,
     additional_channels=(),
 ):
     # parse the channel sources from the CBC
@@ -759,10 +758,20 @@ def _is_recipe_solvable_on_platform(
         channel_urls=channel_sources,
     )
 
+    # get build info
+    if build_platform_arch is not None:
+        build_platform, build_arch = build_platform_arch.split("_")
+    else:
+        build_platform, build_arch = platform, arch
+
     # now we loop through each one and check if we can solve it
     # we check run and host and ignore the rest
     logger.debug("getting mamba solver")
     solver = _mamba_factory(tuple(channel_sources), f"{platform}-{arch}")
+    build_solver = _mamba_factory(
+        tuple(channel_sources),
+        f"{build_platform}-{build_arch}",
+    )
     solvable = True
     errors = []
     outnames = [m.name() for m, _, _ in metas]
@@ -775,14 +784,13 @@ def _is_recipe_solvable_on_platform(
 
         if build_req:
             build_req = _clean_reqs(build_req, outnames)
-            _solvable, _err, build_req, build_rx = solver.solve(
+            _solvable, _err, build_req, build_rx = build_solver.solve(
                 build_req,
                 get_run_exports=True,
             )
-            if not is_cross_compiled:
-                solvable = solvable and _solvable
-                if _err is not None:
-                    errors.append(_err)
+            solvable = solvable and _solvable
+            if _err is not None:
+                errors.append(_err)
 
             if m.is_cross:
                 host_req = list(set(host_req) | build_rx["strong"])
