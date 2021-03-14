@@ -464,6 +464,9 @@ def virtual_package_repodata():
         FakePackage("__cuda", "10.2"),
         FakePackage("__cuda", "11.0"),
         FakePackage("__cuda", "11.1"),
+        FakePackage("__cuda", "11.2"),
+        FakePackage("__cuda", "11.3"),
+        FakePackage("__cuda", "11.4"),
     ]
     for pkg in fake_packages:
         repodata.add_package(pkg)
@@ -478,7 +481,16 @@ def virtual_package_repodata():
         "10.16",
     ]:
         repodata.add_package(FakePackage("__osx", osx_ver), subdirs=["osx-64"])
-    for osx_ver in ["11.0"]:
+    for osx_ver in [
+        "11.0",
+        "11.0.1",
+        "11.1",
+        "11.2",
+        "11.2.1",
+        "11.2.2",
+        "11.2.3",
+        "11.3",
+    ]:
         repodata.add_package(
             FakePackage("__osx", osx_ver),
             subdirs=["osx-64", "osx-arm64"],
@@ -488,11 +500,12 @@ def virtual_package_repodata():
     return repodata.channel_url
 
 
-def _func(feedstock_dir, additional_channels, conn):
+def _func(feedstock_dir, additional_channels, build_platform, conn):
     try:
         res = _is_recipe_solvable(
             feedstock_dir,
             additional_channels=additional_channels,
+            build_platform=build_platform,
         )
         conn.send(res)
     except Exception as e:
@@ -505,6 +518,7 @@ def is_recipe_solvable(
     feedstock_dir,
     additional_channels=(),
     timeout=600,
+    build_platform=None,
 ) -> Tuple[bool, List[str], Dict[str, bool]]:
     """Compute if a recipe is solvable.
 
@@ -540,7 +554,7 @@ def is_recipe_solvable(
         parent_conn, child_conn = Pipe()
         p = Process(
             target=_func,
-            args=(feedstock_dir, additional_channels, child_conn),
+            args=(feedstock_dir, additional_channels, build_platform, child_conn),
         )
         p.start()
         if parent_conn.poll(timeout):
@@ -572,6 +586,7 @@ def is_recipe_solvable(
         res = _is_recipe_solvable(
             feedstock_dir,
             additional_channels=additional_channels,
+            build_platform=build_platform,
         )
 
     return res
@@ -580,7 +595,10 @@ def is_recipe_solvable(
 def _is_recipe_solvable(
     feedstock_dir,
     additional_channels=(),
+    build_platform=None,
 ) -> Tuple[bool, List[str], Dict[str, bool]]:
+
+    build_platform = build_platform or {}
 
     if not additional_channels:
         additional_channels = [virtual_package_repodata()]
@@ -626,6 +644,10 @@ def _is_recipe_solvable(
             cbc_fname,
             platform,
             arch,
+            is_cross_compiled=(
+                build_platform.get(f"{platform}_{arch}", f"{platform}_{arch}")
+                != f"{platform}_{arch}"
+            ),
             additional_channels=additional_channels,
         )
         solvable = solvable and _solvable
@@ -683,6 +705,7 @@ def _is_recipe_solvable_on_platform(
     cbc_path,
     platform,
     arch,
+    is_cross_compiled=False,
     additional_channels=(),
 ):
     # parse the channel sources from the CBC
@@ -756,9 +779,10 @@ def _is_recipe_solvable_on_platform(
                 build_req,
                 get_run_exports=True,
             )
-            solvable = solvable and _solvable
-            if _err is not None:
-                errors.append(_err)
+            if not is_cross_compiled:
+                solvable = solvable and _solvable
+                if _err is not None:
+                    errors.append(_err)
 
             if m.is_cross:
                 host_req = list(set(host_req) | build_rx["strong"])

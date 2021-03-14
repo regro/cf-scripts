@@ -35,6 +35,7 @@ CONDA_FORGE_YML_KEYS_TO_KEEP = (
     "max_r_ver",
     "compiler_stack",
     "bot",
+    "build_platform",
 )
 
 
