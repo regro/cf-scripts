@@ -273,7 +273,7 @@ Mingw_w64_makefiles() {
         # be present!). This should not matter since the DLL dependencies have already been installed
         # when r-base itself was installed and will be on the PATH already. The alternative to this
         # is to patch R so that it doesn't look for Tcl executables in in Tcl/bin or Tcl/bin64 and
-        # instead looks in the same folder as the R executable which would be my prefered approach.
+        # instead looks in the same folder as the R executable which would be my preferred approach.
         #
         # The thing to is probably to make stub programs launching the right binaries in mingw-w64/bin
         # .. perhaps launcher.c can be generalized?
@@ -404,7 +404,7 @@ Mingw_w64_makefiles() {
     # Copy Tcl/Tk support files
     cp -rf ${SRC_DIR}/lib/R/Tcl ${PREFIX}/lib/R
 
-    # Remove the recommeded libraries, we package them separately as-per the other platforms now.
+    # Remove the recommended libraries, we package them separately as-per the other platforms now.
     rm -Rf "${PREFIX}"/lib/R/library/{MASS,lattice,Matrix,nlme,survival,boot,cluster,codetools,foreign,KernSmooth,rpart,class,nnet,spatial,mgcv}
     # * Here we force our MSYS2/mingw-w64 sysroot to be looked in for LOCAL_SOFT during r-packages builds (but actually this will not work since
     # R will append lib/$(R_ARCH) to this in various Makefiles. So long as we set build/merge_build_host then they will get found automatically)
