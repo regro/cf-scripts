@@ -1,79 +1,56 @@
-import datetime
-import os
 from typing import Any, List
 
-import requests
-import github3
+import tqdm
+import github
 import logging
 
 from conda_forge_tick import sensitive_env
-from .utils import setup_logger
+from .utils import setup_logger, load, dump
 
-logger = logging.getLogger("conda_forge_tick.all-feedstocks")
+logger = logging.getLogger("conda_forge_tick.all_feedstocks")
 
 
-def get_all_feedstocks_from_github() -> List[str]:
+def get_all_feedstocks_from_github():
     with sensitive_env() as env:
-        gh = github3.login(env["USERNAME"], env["PASSWORD"])
-    org = gh.organization("conda-forge")
-    names = []
-    try:
-        for repo in org.repositories():
-            name = repo.name
-            if name.endswith("-feedstock"):
-                name = name.split("-feedstock")[0]
-                logger.info(name)
-                names.append(name)
-    except github3.GitHubError:
-        msg = ["Github rate limited. "]
-        c = gh.rate_limit()["resources"]["core"]
-        if c["remaining"] == 0:
-            ts = c["reset"]
-            msg.append("API timeout, API returns at")
-            msg.append(
-                datetime.datetime.utcfromtimestamp(ts).strftime("%Y-%m-%dT%H:%M:%SZ"),
-            )
-        logger.warning(" ".join(msg))
-        raise
-    return names
+        gh = github.Github(env["PASSWORD"], per_page=100)
+
+    org = gh.get_organization("conda-forge")
+    archived = set()
+    not_archived = set()
+    repos = org.get_repos(type="public")
+    for r in tqdm.tqdm(repos, total=org.public_repos, desc="getting all feedstocks"):
+        if r.name.endswith("-feedstock"):
+            # special casing for weird renaming in the api
+            if r.name == "numpy-sugar-feedstock":
+                name = "numpy_sugar-feedstock"
+            else:
+                name = r.name
+
+            if r.archived:
+                archived.add(name[: -len("-feedstock")])
+            else:
+                not_archived.add(name[: -len("-feedstock")])
+
+    return {"active": sorted(list(not_archived)), "archived": sorted(list(archived))}
 
 
 def get_all_feedstocks(cached: bool = False) -> List[str]:
     if cached:
-        logger.info("reading names")
-        with open("names.txt") as f:
-            names = f.read().split()
-        return names
-
-    names = get_all_feedstocks_from_github()
+        logger.info("reading cached feedstocks")
+        with open("all_feedstocks.json") as f:
+            names = load(f)["active"]
+    else:
+        logger.info("getting feedstocks from github")
+        names = get_all_feedstocks_from_github()["active"]
     return names
 
 
 def main(args: Any = None) -> None:
     setup_logger(logger)
-    try:
-        logger.info("fetching active feedstocks from admin-migrations")
-        r = requests.get(
-            "https://raw.githubusercontent.com/conda-forge/admin-migrations/"
-            "master/data/all_feedstocks.json",
-        )
-        if r.status_code != 200:
-            r.raise_for_status()
-
-        names = r.json()["active"]
-        with open("names_are_active.flag", "w") as fp:
-            fp.write("yes")
-    except Exception as e:
-        logger.critical("admin-migrations all feedstocks failed: %s", repr(e))
-        logger.critical("defaulting to the local version")
-        names = get_all_feedstocks(cached=False)
-        with open("names_are_active.flag", "w") as fp:
-            fp.write("no")
-
-    with open("names.txt", "w") as f:
-        for name in names:
-            f.write(name)
-            f.write("\n")
+    logger.info("fetching active feedstocks from github")
+    data = get_all_feedstocks_from_github()
+    with open("all_feedstocks.json", "w") as fp:
+        dump(data, fp)
 
 
 if __name__ == "__main__":

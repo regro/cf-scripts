@@ -323,18 +323,12 @@ def main(args: "CLIArgs") -> None:
     else:
         setup_logger(logging.getLogger("conda_forge_tick"))
 
-    mark_not_archived = False
-    if os.path.exists("names_are_active.flag"):
-        with open("names_are_active.flag") as fp:
-            if fp.read().strip() == "yes":
-                mark_not_archived = True
-
     names = get_all_feedstocks(cached=True)
     if os.path.exists("graph.json"):
         gx = load_graph()
     else:
         gx = None
-    gx = make_graph(names, gx, mark_not_archived=mark_not_archived, debug=args.debug)
+    gx = make_graph(names, gx, mark_not_archived=True, debug=args.debug)
     nodes_without_paylod = [k for k, v in gx.nodes.items() if "payload" not in v]
     if nodes_without_paylod:
         LOGGER.warning("nodes w/o payload: %s", nodes_without_paylod)

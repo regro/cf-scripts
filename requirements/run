@@ -20,6 +20,7 @@ mamba
 msgpack-python
 networkx
 psutil
+pygithub
 pynamodb
 python-dateutil
 python-graphviz
