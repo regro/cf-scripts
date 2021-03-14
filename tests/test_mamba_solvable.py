@@ -237,6 +237,18 @@ extra:
     assert solvable_by_variant["linux_ppc64le_python3.6.____cpython"]
 
 
+def test_r_base_cross_solvable():
+    feedstock_dir = os.path.join(os.path.dirname(__file__), "r-base-feedstock")
+    solvable, errors, _ = is_recipe_solvable(feedstock_dir)
+    assert not solvable, pprint.pformat(errors)
+
+    solvable, errors, _ = is_recipe_solvable(
+        feedstock_dir,
+        build_platform={"osx_arm64": "osx_64"},
+    )
+    assert solvable, pprint.pformat(errors)
+
+
 def clone_and_checkout_repo(base_path: pathlib.Path, origin_url: str, ref: str):
     subprocess.run(
         f"cd {base_path} && git clone --depth=1 {origin_url} repo",

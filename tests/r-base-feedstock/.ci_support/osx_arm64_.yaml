@@ -1,0 +1,105 @@
+MACOSX_DEPLOYMENT_TARGET:
+- '11.0'
+bzip2:
+- '1'
+c_compiler:
+- clang
+c_compiler_version:
+- '11'
+cairo:
+- '1.16'
+channel_sources:
+- conda-forge/label/rust_dev,conda-forge
+channel_targets:
+- conda-forge main
+cxx_compiler:
+- clangxx
+cxx_compiler_version:
+- '11'
+fortran_compiler:
+- gfortran
+fortran_compiler_version:
+- '11'
+freetype:
+- '2'
+glib:
+- '2'
+gsl:
+- '2.6'
+icu:
+- '68'
+jpeg:
+- '9'
+krb5:
+- 1.17.1
+libblas:
+- 3.9 *netlib
+libcurl:
+- '7'
+libiconv:
+- '1.16'
+liblapack:
+- 3.9 *netlib
+libpng:
+- '1.6'
+libssh2:
+- '1'
+libtiff:
+- '4'
+libxml2:
+- '2.9'
+macos_machine:
+- arm64-apple-darwin20.0.0
+ncurses:
+- '6.2'
+pango:
+- '1.42'
+pcre2:
+- '10.36'
+pin_run_as_build:
+  bzip2:
+    max_pin: x
+  cairo:
+    max_pin: x.x
+  freetype:
+    max_pin: x
+  jpeg:
+    max_pin: x
+  krb5:
+    max_pin: x.x
+  libcurl:
+    max_pin: x
+  libiconv:
+    max_pin: x.x
+  libpng:
+    max_pin: x.x
+  libtiff:
+    max_pin: x
+  libxml2:
+    max_pin: x.x
+  ncurses:
+    max_pin: x.x
+  pango:
+    max_pin: x.x
+  readline:
+    max_pin: x
+  tk:
+    max_pin: x.x
+  xz:
+    max_pin: x.x
+  zlib:
+    max_pin: x.x
+readline:
+- '8.0'
+target_platform:
+- osx-arm64
+tk:
+- '8.6'
+xz:
+- '5.2'
+zip_keys:
+- - c_compiler_version
+  - cxx_compiler_version
+  - fortran_compiler_version
+zlib:
+- '1.2'

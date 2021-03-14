@@ -1,0 +1,227 @@
+{% set native = 'm2w64-' if win else '' %}
+{% set posix = 'm2-' if win else '' %}
+{% set version = "4.0.3" %}
+
+package:
+  name: r-base-split
+  version: {{ version }}
+
+source:
+  url: https://cran.r-project.org/src/base/R-4/R-{{ version }}.tar.gz
+  sha256: 09983a8a78d5fb6bc45d27b1c55f9ba5265f78fa54a55c13ae691f87c5bb9e0d
+  patches:
+    - 0001-Darwin-Remove-unicode-elipsis-character-from-grDevic.patch
+    - 0002-Fix-trio-config.h-include-depth-issue.patch
+    - 0003-Win32-Do-not-link-static-libgcc.patch
+    - 0004-Win32-Extend-sqrt-NA_real_-hack-to-all-GCC-versions.patch
+    - 0005-Win32-Prevent-conversion-of-R_ARCH-to-abs-Windows-pa.patch
+    - 0006-Darwin-Avoid-setting-DYLD_FALLBACK_LIBRARY_PATH.patch
+    - 0007-Use-AC_SEARCH_LIBS-to-search-for-ncursesw-then-ncurs.patch
+    - 0008-Linux-Do-not-modify-LD_LIBRARY_PATH.patch
+    - 0009-macOS-include-cairo.h-not-cairo-xlib.h.patch
+    - 0010-javareconf-Do-not-fail-on-compile-fail.patch
+    - 0011-Revert-part-of-9b818c6dc00143ff18775a4015a3f43b5196f.patch
+    - 0012-javareconf-macOS-Continue-to-allow-system-Java-lt-9-.patch
+    - 0013-Allow-rpath-in-tcltk-dylib-LC_LOAD_DYLIB-command.patch
+    - 0014-Add-luuid-to-X_PRE_LIBS.patch
+    - 0015-link-Xt-to-uuid.patch
+    - 0017-Check-for-changes-then-forcibly-mv-in-javareconf.in.patch
+    - 0018-Use-LAPACK_LDFLAGS-in-Rlapack_la_LIBADD.patch
+
+build:
+  number: 7
+
+outputs:
+  - name: r-base
+    script: build-r-base.sh  # [not win]
+    script: bld-r-base.bat  # [win]
+    build:
+      merge_build_host: true  # [win]
+      rpaths:
+        - lib/R/lib/
+        - lib/
+      no_link:
+        # These files are modified by R CMD javareconf and can
+        # point to different Java implementations in each env.
+        - lib/R/etc/Makeconf
+        - lib/R/etc/ldpaths
+        - lib/R/etc/javaconf
+        - lib/R/etc/x64/Makeconf
+        - lib/R/etc/x64/ldpaths
+        - lib/R/etc/x64/javaconf
+      detect_binary_files_with_prefix: true
+    requirements:
+      build:
+        - gnuconfig  # [unix]
+        - {{ compiler('c') }}                # [not win]
+        - {{ compiler('cxx') }}              # [not win]
+        - {{ compiler('fortran') }}          # [not win]
+        - gfortran_impl_osx-arm64 11.0.0.dev0 *_17  # [target_platform == "osx-arm64"]
+        - {{ compiler('m2w64_c') }}          # [win]
+        - {{ compiler('m2w64_cxx') }}        # [win]
+        - {{ compiler('m2w64_fortran') }}     # [win]
+        - {{ cdt('xorg-x11-proto-devel') }}  # [linux]
+        - {{ cdt('libxrender') }}            # [linux]
+        - {{ cdt('libxext') }}               # [linux]
+        - {{ cdt('libsm-devel') }}           # [linux]
+        - {{ cdt('libice-devel') }}          # [linux]
+        - {{ cdt('libx11-devel') }}          # [linux]
+        - {{ cdt('libxt') }}                 # [linux]
+        - {{ cdt('libxt-devel') }}           # [linux]
+        - {{ cdt('libxcb') }}                # [linux]
+        - {{ cdt('libxau') }}                # [linux]
+        - {{ cdt('java-1.7.0-openjdk') }}    # [linux]
+        - {{ posix }}pkg-config
+        - posix                              # [win]
+        - m2-texinfo-tex                     # [win]
+        - m2-texinfo                         # [win]
+        - m2-curl                            # [win]
+        - m2-p7zip                           # [win]
+        - texlive-core                       # [unix]
+        - openjdk
+        - {{ posix }}autoconf
+        - {{ posix }}automake-wrapper        # [win]
+        - {{ posix }}automake                # [not win]
+        - make                               # [not win]
+        - libcurl                            # [not win]
+      host:
+        # This is a hack, strong run_exports should cause this to be added
+        - llvm-openmp                        # [osx]
+        - freetype                           # [not win]
+        - readline                           # [not win]
+        - ncurses                            # [not win]
+        - libcurl                            # [not win]
+        - xz                                 # [not win]
+        - libpng                             # [not win]
+        - bzip2                              # [not win]
+        - {{ native }}bzip2                  # [win]
+        - cairo                              # [not win]
+        - {{ native }}libjpeg-turbo          # [win]
+        - jpeg                               # [not win]
+        - libiconv                           # [osx]
+        - {{ native }}libiconv               # [win]
+        - libuuid                            # [linux]
+        - {{ native }}gmp                    # [win]
+        - glib                               # [unix]
+        - {{ native }}fftw                   # [win]
+        - {{ native }}xz                     # [win]
+        - {{ native }}mpfr                   # [win]
+        - {{ native }}libsndfile             # [win]
+        - {{ native }}bwidget
+        - {{ native }}tktable
+        - {{ native }}libpng                 # [win]
+        - pango                              # [not win]
+        - {{ native }}icu                    # [win]
+        - icu                                # [not win]
+        - pcre2                              # [not win]
+        - {{ native }}pcre2                  # [win]
+        - tk                                 # [not win]
+        - {{ native }}tk                     # [win]
+        - {{ native }}zlib                   # [win]
+        - zlib                               # [not win]
+        - {{ native }}gsl                    # [win]
+        - gsl                                # [not win]
+        - {{ native }}libtiff                # [win]
+        - libtiff                            # [not win]
+        - {{ native }}libxml2                # [win]
+        - libxml2                            # [not win]
+        - libssh2                            # [not win]
+        - krb5                               # [not win]
+        - libblas
+        - liblapack
+        - sed                                # [linux]
+      run:
+        - _r-mutex 1.* anacondar_1
+        # Needed by R CMD javareconf
+        - make                               # [not win]
+        - {{ compiler('fortran') }}     # [not win]
+        - {{ c_compiler|default("blah") }}_{{ target_platform }} >={{ c_compiler_version|default("0") }}                 # [not win]
+        - {{ cxx_compiler|default("blah") }}_{{ target_platform }} >={{ cxx_compiler_version|default("0") }}             # [not win]
+        - {{ pin_compatible('llvm-openmp', max_pin=None) }}      # [osx]
+        - curl                                 # [not win]
+        - {{ native }}bzip2                    # [win]
+        - {{ native }}libjpeg-turbo            # [win]
+        - {{ native }}libiconv                 # [win]
+        - libuuid                              # [linux]
+        - xorg-libxt                           # [linux]
+        - {{ native }}gmp                      # [win]
+        - {{ native }}fftw                     # [win]
+        - {{ native }}xz                       # [win]
+        - {{ native }}mpfr                     # [win]
+        - {{ native }}libsndfile               # [win]
+        - {{ native }}bwidget
+        - {{ native }}tktable
+        - {{ native }}libpng                   # [win]
+        - {{ native }}pcre2                    # [win]
+        - {{ native }}tk                       # [win]
+        - {{ native }}zlib                     # [win]
+        - {{ native }}gsl                      # [win]
+        - {{ native }}libtiff                  # [win]
+        - {{ native }}libxml2                  # [win]
+        # Once run_exports are in place these will not be necessary:
+        - {{ pin_compatible('pango') }}      # [not win]
+        - {{ pin_compatible('bzip2') }}      # [not win]
+        - {{ pin_compatible('icu') }}        # [not win]
+        - sed                                # [linux]
+
+    test:
+      commands:
+        - R -h
+        - R --version
+        - R -e "library('tcltk')"            # [linux]
+        - R -e \"library('tcltk')\""         # [win]
+        - Rscript --version
+        - Rscript -e  'cat("ok\\n")'
+        # Report on the optional features compiled into this build of R.
+        - R -e "capabilities()"              # [not win]
+        - R -e \"capabilities()\""           # [win]
+        # Show third-party graphics software available
+        - R -e "grSoftVersion()"             # [not win]
+        - R -e \"grSoftVersion()\""          # [win]
+        # TODO does not work on windows, because winCairo.dll is missing
+        - Rscript test-svg.R                 # [not win]
+        - open                               # [win]
+         # There doesn't seem to be a way to test this one
+         # - RSetReg                         # [win]
+        - Rfe --help                         # [win]
+        - Rterm --help                       # [win]
+        - Rterm --version                    # [win]
+        # Prevent regression mentioned in https://github.com/conda-forge/r-base-feedstock/issues/50
+        - Rscript -e "stopifnot(capabilities('jpeg'), TRUE)"
+        - Rscript -e "stopifnot(capabilities('png'), TRUE)"
+        - if not exist %PREFIX%\\Lib\\R\\bin\\x64\\R.lib exit 1  # [win]
+      files:
+        - test-svg.R
+
+
+  - name: cross-r-base
+    build:
+      skip: True  # [win]
+    script: install-cross-activate.sh
+    requirements:
+      run:
+        - {{ pin_subpackage("r-base", exact=True) }}
+        - rsync
+    test:
+      commands:
+        - test -f $PREFIX/etc/conda/activate.d/activate-cross-r-base.sh
+
+about:
+  home: http://www.r-project.org/
+  license: GPL-2.0-or-later
+  license_family: GPL
+  license_file: COPYING
+  summary: R is a free software environment for statistical computing and graphics.
+
+extra:
+  feedstock-name: r-base
+  recipe-maintainers:
+    - bgruening
+    - johanneskoester
+    - isuruf
+    - mingwandroid
+    - ocefpaf
+    - sodre
+    - jdblischak
+    - dpryan79
+    - xhochy
