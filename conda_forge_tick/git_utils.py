@@ -663,7 +663,11 @@ def close_out_dirty_prs(
         else:
             pr_json = lazy_update_pr_json(pr_json, ctx)
 
-    if pr_json["state"] != "closed" and pr_json["mergeable_state"] == "dirty":
+    if (
+        pr_json["state"] != "closed"
+        and pr_json["mergeable_state"] == "dirty"
+        and not pr_json.get("draft", False)
+    ):
         d = dict(pr_json)
 
         if dry_run:
