@@ -210,7 +210,7 @@ requirements:
     - pip
     run:
     - python
-    - asyncpg
+    - galsim
 
 test:
     commands:
@@ -234,7 +234,8 @@ extra:
     # we don't have asyncpg for this variant so this is an expected failure
     assert not solvable_by_variant["linux_aarch64_python3.6.____cpython"]
     # But we do have this one
-    assert solvable_by_variant["linux_ppc64le_python3.6.____cpython"]
+    assert not solvable_by_variant["linux_ppc64le_python3.6.____cpython"]
+    assert solvable_by_variant["linux_python3.6.____cpython"]
 
 
 def test_r_base_cross_solvable():
