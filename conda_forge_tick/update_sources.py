@@ -133,6 +133,7 @@ class VersionFromFeed(AbstractSource):
         "testing",
         "test",
         "pre",
+        "git",
     ]
 
     def get_version(self, url) -> Optional[str]:
