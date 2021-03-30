@@ -763,81 +763,94 @@ def create_migration_yaml_creator(migrators: MutableSequence[Migrator], gx: nx.D
             current_pins = list(map(str, package_pin_list))
             current_version = str(gx.nodes[fs_name]["payload"]["version"])
 
-            # we need a special parsing for pinning stuff
-            meta_yaml = parse_meta_yaml(
-                gx.nodes[fs_name]["payload"]["raw_meta_yaml"],
-                for_pinning=True,
-            )
-
-            # find the most stringent max pin for this feedstock if any
-            pin_spec = ""
-            for block in [meta_yaml] + meta_yaml.get("outputs", []) or []:
-                build = block.get("build", {}) or {}
-                # and check the exported package is within the feedstock
-                exports = [
-                    p.get("max_pin", "")
-                    for p in build.get("run_exports", [{}])
-                    # make certain not direct hard pin
-                    if isinstance(p, MutableMapping)
-                    # ensure the export is for this package
-                    and p.get("package_name", "") == package_name
-                    # ensure the pinned package is in an output of the parent feedstock
-                    and (
-                        fs_name
-                        in gx.graph["outputs_lut"].get(p.get("package_name", ""), set())
-                    )
-                ]
-                if not exports:
-                    continue
-                # get the most stringent pin spec from the recipe block
-                max_pin = max(exports, key=len)
-                if len(max_pin) > len(pin_spec):
-                    pin_spec = max_pin
-
-            # fall back to the pinning file or "x"
-            if not pin_spec:
-                pin_spec = (
-                    pinnings["pin_run_as_build"]
-                    .get(pinning_name, {})
-                    .get("max_pin", "x")
-                ) or "x"
-
-            current_pins = list(
-                map(lambda x: re.sub("[^0-9.]", "", x).rstrip("."), current_pins),
-            )
-            current_pins = [cp.strip() for cp in current_pins if cp.strip() != ""]
-            current_version = re.sub("[^0-9.]", "", current_version).rstrip(".")
-            if not current_pins or current_version == "":
-                continue
-
-            current_pin = str(max(map(VersionOrder, current_pins)))
-            # If the current pin and the current version is the same nothing
-            # to do even if the pin isn't accurate to the spec
-            if current_pin != current_version and _outside_pin_range(
-                pin_spec,
-                current_pin,
-                current_version,
-            ):
-                feedstocks_to_be_repinned.append(fs_name)
-                print(
-                    "    %s:\n"
-                    "        curr version: %s\n"
-                    "        curr pin: %s\n"
-                    "        pin_spec: %s"
-                    % (pinning_name, current_version, current_pin, pin_spec),
-                    flush=True,
+            try:
+                # we need a special parsing for pinning stuff
+                meta_yaml = parse_meta_yaml(
+                    gx.nodes[fs_name]["payload"]["raw_meta_yaml"],
+                    for_pinning=True,
                 )
-                migrators.append(
-                    MigrationYamlCreator(
+
+                # find the most stringent max pin for this feedstock if any
+                pin_spec = ""
+                for block in [meta_yaml] + meta_yaml.get("outputs", []) or []:
+                    build = block.get("build", {}) or {}
+                    # and check the exported package is within the feedstock
+                    exports = [
+                        p.get("max_pin", "")
+                        for p in build.get("run_exports", [{}])
+                        # make certain not direct hard pin
+                        if isinstance(p, MutableMapping)
+                        # ensure the export is for this package
+                        and p.get("package_name", "") == package_name
+                        # ensure the pinned package is in an output of the
+                        # parent feedstock
+                        and (
+                            fs_name
+                            in gx.graph["outputs_lut"].get(
+                                p.get("package_name", ""),
+                                set(),
+                            )
+                        )
+                    ]
+                    if not exports:
+                        continue
+                    # get the most stringent pin spec from the recipe block
+                    max_pin = max(exports, key=len)
+                    if len(max_pin) > len(pin_spec):
+                        pin_spec = max_pin
+
+                # fall back to the pinning file or "x"
+                if not pin_spec:
+                    pin_spec = (
+                        pinnings["pin_run_as_build"]
+                        .get(pinning_name, {})
+                        .get("max_pin", "x")
+                    ) or "x"
+
+                current_pins = list(
+                    map(lambda x: re.sub("[^0-9.]", "", x).rstrip("."), current_pins),
+                )
+                current_pins = [cp.strip() for cp in current_pins if cp.strip() != ""]
+                current_version = re.sub("[^0-9.]", "", current_version).rstrip(".")
+                if not current_pins or current_version == "":
+                    continue
+
+                current_pin = str(max(map(VersionOrder, current_pins)))
+                # If the current pin and the current version is the same nothing
+                # to do even if the pin isn't accurate to the spec
+                if current_pin != current_version and _outside_pin_range(
+                    pin_spec,
+                    current_pin,
+                    current_version,
+                ):
+                    feedstocks_to_be_repinned.append(fs_name)
+                    print(
+                        "    %s:\n"
+                        "        curr version: %s\n"
+                        "        curr pin: %s\n"
+                        "        pin_spec: %s"
+                        % (pinning_name, current_version, current_pin, pin_spec),
+                        flush=True,
+                    )
+                    migrators.append(
+                        MigrationYamlCreator(
+                            pinning_name,
+                            current_version,
+                            current_pin,
+                            pin_spec,
+                            fs_name,
+                            cfp_gx,
+                            full_graph=gx,
+                        ),
+                    )
+            except Exception as e:
+                LOGGER.info(
+                    "failed to possibly generate pinning PR for {}: {}".format(
                         pinning_name,
-                        current_version,
-                        current_pin,
-                        pin_spec,
-                        fs_name,
-                        cfp_gx,
-                        full_graph=gx,
+                        repr(e),
                     ),
                 )
+                continue
     print(" ", flush=True)
 
 
