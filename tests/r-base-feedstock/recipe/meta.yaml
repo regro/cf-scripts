@@ -56,7 +56,7 @@ outputs:
         - {{ compiler('c') }}                # [not win]
         - {{ compiler('cxx') }}              # [not win]
         - {{ compiler('fortran') }}          # [not win]
-        - gfortran_impl_osx-arm64 11.0.0.dev0 *_17  # [target_platform == "osx-arm64"]
+        - gfortran_impl_osx-arm64 11.0.1.dev0 *_22  # [target_platform == "osx-arm64"]
         - {{ compiler('m2w64_c') }}          # [win]
         - {{ compiler('m2w64_cxx') }}        # [win]
         - {{ compiler('m2w64_fortran') }}     # [win]

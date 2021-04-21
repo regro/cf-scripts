@@ -16,7 +16,7 @@ frozendict
 github3.py
 grayskull
 jinja2
-mamba
+mamba>=0.11.0
 msgpack-python
 networkx
 psutil

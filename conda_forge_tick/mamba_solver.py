@@ -30,6 +30,7 @@ import psutil
 from ruamel.yaml import YAML
 import cachetools.func
 
+from conda.core.package_cache_data import PackageCacheData
 from conda.models.match_spec import MatchSpec
 import conda_build.api
 import conda_package_handling.api
@@ -397,7 +398,11 @@ class MambaSolver:
             solution = None
             run_exports = copy.deepcopy(DEFAULT_RUN_EXPORTS)
         else:
-            t = api.Transaction(solver, PACKAGE_CACHE)
+            t = api.Transaction(
+                solver,
+                PACKAGE_CACHE,
+                PackageCacheData.first_writable().pkgs_dir,
+            )
             solution = []
             _, to_link, _ = t.to_conda()
             for _, _, jdata in to_link:
