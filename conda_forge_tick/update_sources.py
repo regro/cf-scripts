@@ -3,6 +3,7 @@ import collections.abc
 import subprocess
 import re
 import logging
+import urllib.parse
 import typing
 import functools
 from typing import (
@@ -142,7 +143,7 @@ class VersionFromFeed(AbstractSource):
             return None
         vers = []
         for entry in data["entries"]:
-            ver = entry["link"].split("/")[-1]
+            ver = urllib.parse.unquote(entry["link"]).split("/")[-1]
             for prefix in self.ver_prefix_remove:
                 if ver.startswith(prefix):
                     ver = ver[len(prefix) :]
