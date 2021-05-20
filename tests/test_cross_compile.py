@@ -206,8 +206,10 @@ requirements:
     - {{ posix }}zip               # [win]
   host:
     - r-base
+    - r-rlang
   run:
     - r-base
+    - r-rlang
     - {{ native }}gcc-libs         # [win]
 
 test:
@@ -256,6 +258,7 @@ build:
 requirements:
   build:
     - cross-r-base {{ r_base }}  # [build_platform != target_platform]
+    - r-rlang                    # [build_platform != target_platform]
     - {{ compiler('c') }}              # [not win]
     - {{ compiler('m2w64_c') }}        # [win]
     - {{ posix }}filesystem        # [win]
@@ -265,8 +268,10 @@ requirements:
     - {{ posix }}zip               # [win]
   host:
     - r-base
+    - r-rlang
   run:
     - r-base
+    - r-rlang
     - {{ native }}gcc-libs         # [win]
 
 test:

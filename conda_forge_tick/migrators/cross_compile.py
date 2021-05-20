@@ -332,6 +332,23 @@ class CrossRBaseMigrator(CrossCompilationMigratorBase):
                         " " * nspaces
                         + "- cross-r-base {{ r_base }}  # [build_platform != target_platform]\n",
                     )
+                    # Add host R requirements to build
+                    host_reqs = attrs.get("requirements", {}).get("host", set())
+                    r_host_reqs = [
+                        req
+                        for req in host_reqs
+                        if req.startswith("r-") and req != "r-base"
+                    ]
+                    for r_req in r_host_reqs:
+                        # Ensure nice formatting
+                        post_nspaces = max(0, 25 - len(r_req))
+                        new_lines.append(
+                            " " * nspaces
+                            + "- "
+                            + r_req
+                            + " " * post_nspaces
+                            + "  # [build_platform != target_platform]\n",
+                        )
                     in_req = False
                     previous_was_build = False
                 if "requirements:" in line:
