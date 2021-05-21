@@ -281,6 +281,7 @@ def test_guiqwt_solvable(tmp_path):
     assert solvable
 
 
+@pytest.mark.xfail()
 def test_datalad_solvable(tmp_path):
     """has an odd thing where it hangs"""
     feedstock_dir = clone_and_checkout_repo(
