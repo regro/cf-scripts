@@ -414,9 +414,25 @@ class MigrationYamlCreator(Migrator):
         total_graph: nx.DiGraph,
     ) -> Sequence["PackageName"]:
         """Run the order by number of decedents, ties are resolved by package name"""
+
+        if hasattr(self, "name"):
+            assert isinstance(self.name, str)
+            migrator_name = self.name.lower().replace(" ", "")
+        else:
+            migrator_name = self.__class__.__name__.lower()
+
+        def _has_error(node):
+            if migrator_name in total_graph.nodes[node]["payload"].get(
+                "pre_pr_migrator_status",
+                {},
+            ):
+                return 0
+            else:
+                return 1
+
         return sorted(
             graph,
-            key=lambda x: (len(nx.descendants(total_graph, x)), x),
+            key=lambda x: (_has_error(x), len(nx.descendants(total_graph, x)), x),
             reverse=True,
         )
 
