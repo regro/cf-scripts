@@ -302,6 +302,7 @@ def run(
                 None,
             ),
         )
+        pre_key = "pre_pr_migrator_status"
         if not solvable:
             _solver_err_str = "not solvable ({}): {}: {}".format(
                 ('<a href="' + os.getenv("CIRCLE_BUILD_URL", "") + '">bot CI job</a>'),
@@ -319,7 +320,6 @@ def run(
                 # higher priority
                 feedstock_ctx.attrs["new_version_attempts"][_new_ver] -= 0.8
 
-            pre_key = "pre_pr_migrator_status"
             if pre_key not in feedstock_ctx.attrs:
                 feedstock_ctx.attrs[pre_key] = {}
             feedstock_ctx.attrs[pre_key][migrator_name] = sanitize_string(
@@ -327,6 +327,12 @@ def run(
             )
             eval_cmd(f"rm -rf {feedstock_dir}")
             return False, False
+        else:
+            if (
+                pre_key in feedstock_ctx.attrs
+                and migrator_name in feedstock_ctx.attrs[pre_key]
+            ):
+                feedstock_ctx.attrs[pre_key].pop(migrator_name)
 
     # TODO: Better annotation here
     pr_json: typing.Union[MutableMapping, None, bool]
