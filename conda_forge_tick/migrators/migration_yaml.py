@@ -165,6 +165,27 @@ class MigrationYaml(GraphMigrator):
         self.bump_number = bump_number
         print(self.yaml_contents)
 
+    def filter(self, attrs: "AttrsTypedDict", not_bad_str_start: str = "") -> bool:
+        loaded_yaml = yaml.safe_load(self.yaml_contents)
+        wait_for_migrators = loaded_yaml.get("__migrator", {}).get(
+            "wait_for_migrators",
+            [],
+        )
+        need_to_wait = False
+        if wait_for_migrators:
+            done_migrators = []
+            for migration in attrs.get("PRed", []):
+                if migration.get("name", "") not in wait_for_migrators:
+                    continue
+                state = migration.get("PR", {}).get("state", "")
+                if state != "closed":
+                    need_to_wait = True
+
+        return need_to_wait or super().filter(
+            attrs=attrs,
+            not_bad_str_start=not_bad_str_start,
+        )
+
     def migrate(
         self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any
     ) -> "MigrationUidTypedDict":
