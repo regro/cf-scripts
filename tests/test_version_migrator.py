@@ -21,8 +21,6 @@ YAML_PATH = os.path.join(os.path.dirname(__file__), "test_yaml")
         ("multisrc", "2.4.1"),
         ("jinja2sha", "2.4.1"),
         ("r", "1.3_2"),
-        # upstream is not available
-        # ("cb3multi", "6.0.0"),
         ("multisrclist", "2.25.0"),
         ("jinja2selsha", "4.7.2"),
         ("jinja2nameshasel", "4.7.2"),
@@ -41,6 +39,9 @@ YAML_PATH = os.path.join(os.path.dirname(__file__), "test_yaml")
         ("boost", "1.74.0"),
         ("boostcpp", "1.74.0"),
         ("mumps", "5.2.1"),
+        ('python', '3.9.5')
+        # upstream is not available
+        # ("cb3multi", "6.0.0"),
     ],
 )
 def test_version(case, new_ver, tmpdir, caplog):
