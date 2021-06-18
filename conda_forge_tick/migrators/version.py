@@ -263,12 +263,14 @@ def _try_to_update_version(cmeta: Any, src: str, hash_type: str):
                     if selector in key:
                         hash_key = key
                         hash_type = _hash_type
+                        break
+
+                if hash_key is not None:
+                    break
 
             if _hash_type in src:
                 hash_key = _hash_type
                 hash_type = _hash_type
-
-            if hash_key is not None:
                 break
 
         if hash_key is None:
