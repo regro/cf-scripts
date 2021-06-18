@@ -39,7 +39,7 @@ YAML_PATH = os.path.join(os.path.dirname(__file__), "test_yaml")
         ("boost", "1.74.0"),
         ("boostcpp", "1.74.0"),
         ("mumps", "5.2.1"),
-        ('python', '3.9.5')
+        ("python", "3.9.5"),
         # upstream is not available
         # ("cb3multi", "6.0.0"),
     ],

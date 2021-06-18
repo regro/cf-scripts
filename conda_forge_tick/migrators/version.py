@@ -257,7 +257,7 @@ def _try_to_update_version(cmeta: Any, src: str, hash_type: str):
             continue
 
         hash_key = None
-        for _hash_type in set(["md5", "sha256", hash_type]):
+        for _hash_type in {"md5", "sha256", hash_type}:
             if selector is not None:
                 for key in _gen_key_selector(src, _hash_type):
                     if selector in key:
