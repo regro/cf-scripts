@@ -72,6 +72,22 @@ def _recipe_has_git_url(cmeta):
     return found_git_url
 
 
+def _recipe_has_url(cmeta):
+    found_url = False
+    for src_key in _gen_key_selector(cmeta.meta, "source"):
+        if isinstance(cmeta.meta[src_key], collections.abc.MutableSequence):
+            for src in cmeta.meta[src_key]:
+                for url_key in _gen_key_selector(src, "url"):
+                    found_url = True
+                    break
+        else:
+            for url_key in _gen_key_selector(cmeta.meta[src_key], "url"):
+                found_url = True
+                break
+
+    return found_url
+
+
 def _is_r_url(url: str):
     if "cran.r-project.org/src/contrib" in url or "cran_mirror" in url:
         return True
@@ -80,16 +96,17 @@ def _is_r_url(url: str):
 
 
 def _has_r_url(curr_val: Any):
+    has_it = False
     if isinstance(curr_val, collections.abc.MutableSequence):
         for i in range(len(curr_val)):
-            return _has_r_url(curr_val[i])
+            has_it = has_it or _has_r_url(curr_val[i])
     elif isinstance(curr_val, collections.abc.MutableMapping):
         for key in _gen_key_selector(curr_val, "url"):
-            return _has_r_url(curr_val[key])
+            has_it = has_it or _has_r_url(curr_val[key])
     elif isinstance(curr_val, str):
-        return _is_r_url(curr_val)
-    else:
-        return False
+        has_it = has_it or _is_r_url(curr_val)
+
+    return has_it
 
 
 def _compile_all_selectors(cmeta: Any, src: str):
@@ -236,15 +253,28 @@ def _try_to_update_version(cmeta: Any, src: str, hash_type: str):
                     url_key = key
 
         if url_key not in src:
+            logger.info("src skipped url_key: %s", src)
             continue
 
-        hash_key = hash_type
-        if selector is not None:
-            for key in _gen_key_selector(src, hash_type):
-                if selector in key:
-                    hash_key = key
+        hash_key = None
+        for _hash_type in {"md5", "sha256", hash_type}:
+            if selector is not None:
+                for key in _gen_key_selector(src, _hash_type):
+                    if selector in key:
+                        hash_key = key
+                        hash_type = _hash_type
+                        break
 
-        if hash_key not in src:
+                if hash_key is not None:
+                    break
+
+            if _hash_type in src:
+                hash_key = _hash_type
+                hash_type = _hash_type
+                break
+
+        if hash_key is None:
+            logger.info("src skipped no hash key: %s %s", hash_type, src)
             continue
 
         # jinja2 stuff
@@ -497,7 +527,7 @@ class Version(Migrator):
         old_meta_yaml = s.read()
 
         # if is a git url, then we error
-        if _recipe_has_git_url(cmeta):
+        if _recipe_has_git_url(cmeta) and not _recipe_has_url(cmeta):
             logger.critical("Migrations do not work on `git_url`s!")
             errors.add("migrations do not work on `git_url`s")
             attrs["new_version_errors"][version] = _fmt_error_message(errors, version)
