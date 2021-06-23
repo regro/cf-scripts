@@ -63,7 +63,7 @@
 - pypi_name: psycopg2-binary
   import_name: psycopg2
   conda_name: psycopg2
- 
+
 - pypi_name: duckdb
   import_name: duckdb
   conda_name: python-duckdb
