@@ -279,10 +279,7 @@ class MigrationYaml(GraphMigrator):
             default_msg = "Rebuild for " + self.name
         else:
             default_msg = "Bump build number"
-        return self.loaded_yaml.get("__migrator", {}).get(
-            "commit_message",
-            default_msg
-        )
+        return self.loaded_yaml.get("__migrator", {}).get("commit_message", default_msg)
 
     def pr_title(self, feedstock_ctx: FeedstockContext) -> str:
         if (
