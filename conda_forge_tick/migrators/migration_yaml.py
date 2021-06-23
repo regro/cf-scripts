@@ -148,6 +148,7 @@ class MigrationYaml(GraphMigrator):
         self.cycles = set(chain.from_iterable(cycles or []))
         self.automerge = automerge
         self.conda_forge_yml_patches = conda_forge_yml_patches
+        self.loaded_yaml = yaml.safe_load(self.yaml_contents)
 
         # auto set the pr_limit for initial things
         number_pred = len(
@@ -166,8 +167,7 @@ class MigrationYaml(GraphMigrator):
         print(self.yaml_contents)
 
     def filter(self, attrs: "AttrsTypedDict", not_bad_str_start: str = "") -> bool:
-        loaded_yaml = yaml.safe_load(self.yaml_contents)
-        wait_for_migrators = loaded_yaml.get("__migrator", {}).get(
+        wait_for_migrators = self.loaded_yaml.get("__migrator", {}).get(
             "wait_for_migrators",
             [],
         )
@@ -275,9 +275,10 @@ class MigrationYaml(GraphMigrator):
         if self.name:
             if feedstock_ctx.package_name == "conda-forge-pinning":
                 return f"Close out migration for {self.name}"
-            return "Rebuild for " + self.name
+            default_msg = "Rebuild for " + self.name
         else:
-            return "Bump build number"
+            default_msg = "Bump build number"
+        return self.loaded_yaml.get("__migrator", {}).get("commit_message", default_msg)
 
     def pr_title(self, feedstock_ctx: FeedstockContext) -> str:
         if (
@@ -290,13 +291,7 @@ class MigrationYaml(GraphMigrator):
         else:
             add_slug = ""
 
-        if self.name:
-            if feedstock_ctx.package_name == "conda-forge-pinning":
-                # we never automerge on pinnings
-                return f"Close out migration for {self.name}"
-            return add_slug + "Rebuild for " + self.name
-        else:
-            return add_slug + "Bump build number"
+        return add_slug + self.commit_message(feedstock_ctx)
 
     def remote_branch(self, feedstock_ctx: FeedstockContext) -> str:
         s_obj = str(self.obj_version) if self.obj_version else ""
