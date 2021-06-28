@@ -174,7 +174,7 @@ class MigrationYaml(GraphMigrator):
         need_to_wait = False
         if wait_for_migrators:
             for migration in attrs.get("PRed", []):
-                if migration.get("name", "") not in wait_for_migrators:
+                if migration.get("data", {}).get("name", "") not in wait_for_migrators:
                     continue
                 state = migration.get("PR", {}).get("state", "")
                 if state != "closed":
