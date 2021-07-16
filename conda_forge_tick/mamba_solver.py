@@ -56,6 +56,9 @@ LIBCFGRAPH_INDEX = None
 # turn off pip for python
 api.Context().add_pip_as_python_dependency = False
 
+# set strict channel priority
+api.Context().channel_priority = api.ChannelPriority.kStrict
+
 # these characters are start requirements that do not need to be munged from
 # 1.1 to 1.1.*
 REQ_START = ["!=", "==", ">", "<", ">=", "<="]
@@ -348,7 +351,7 @@ class MambaSolver:
             self.channels,
             self.repos,
             platform=platform,
-            strict_priority=True,
+            has_priority=True,
         )
 
     def solve(self, specs, get_run_exports=False) -> Tuple[bool, List[str]]:
