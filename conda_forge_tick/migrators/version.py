@@ -224,13 +224,17 @@ def _try_replace_hash(
 def _try_to_update_version(cmeta: Any, src: str, hash_type: str):
     errors = set()
 
+    if len(src) == 1 and all("path" in k for k in src):
+        return None, errors
+
     if not any("url" in k for k in src):
         errors.add("no URLs in the source section")
         return False, errors
 
     ha = getattr(hashlib, hash_type, None)
     if ha is None:
-        return False
+        errors.add("invalid hash type %s" % hash_type)
+        return False, errors
 
     updated_version = True
 
@@ -566,16 +570,18 @@ class Version(Migrator):
                             src,
                             hash_type,
                         )
-                        did_update &= _did_update
-                        errors |= _errors
+                        if _did_update is not None:
+                            did_update &= _did_update
+                            errors |= _errors
                 else:
                     _did_update, _errors = _try_to_update_version(
                         cmeta,
                         cmeta.meta[src_key],
                         hash_type,
                     )
-                    did_update &= _did_update
-                    errors |= _errors
+                    if _did_update is not None:
+                        did_update &= _did_update
+                        errors |= _errors
                 if _errors:
                     logger.critical("%s", _errors)
         else:
