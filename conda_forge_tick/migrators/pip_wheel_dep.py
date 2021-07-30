@@ -27,19 +27,24 @@ class PipWheelMigrator(MiniMigrator):
             .get("run_deps_from_wheel", False)
         ):
             return True
-        return "python" not in run_reqs
 
-    def migrate(self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any) -> None:
-        source_url = attrs.get("url") or attrs.get("source", {}).get("url")
-        version = attrs.get("new_version", "")
-        if not version:
-            return None
+        if "python" not in run_reqs:
+            return True
+
+        version = attrs.get("new_version", "") or attrs.get("version", "")
+        wheel_url, wheel_file = self.determine_wheel(source_url, version)
+
+        if wheel_url is None:
+            return True
+        return False
+
+    def determine_wheel(self, source_url: str, version: str):
         pkg = source_url.split("/")[6]
         resp = requests.get(f"https://pypi.org/pypi/{pkg}/{version}/json")
         try:
             resp.raise_for_status()
         except:
-            return None
+            return None, None
         wheel_count = 0
         for artifact in resp.json()["urls"]:
             if artifact["packagetype"] == "bdist_wheel":
@@ -47,6 +52,17 @@ class PipWheelMigrator(MiniMigrator):
                 wheel_url = artifact["url"]
                 wheel_file = artifact["filename"]
         if wheel_count != 1:
+            return None, None
+        return wheel_url, wheel_file
+
+    def migrate(self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any) -> None:
+        source_url = attrs.get("url") or attrs.get("source", {}).get("url")
+        version = attrs.get("new_version", "") or attrs.get("version", "")
+        if not version:
+            return None
+
+        wheel_url, wheel_file = self.determine_wheel(source_url, version)
+        if wheel_url is None:
             return None
 
         # parse the versions from the wheel

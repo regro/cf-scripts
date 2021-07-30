@@ -1,4 +1,8 @@
-from test_migrators import run_test_migration
+import os
+
+import pytest
+
+from test_migrators import run_test_migration, run_minimigrator
 
 
 from conda_forge_tick.migrators import (
@@ -12,6 +16,8 @@ version_migrator_whl = Version(
     set(),
     piggy_back_migrations=[wheel_mig],
 )
+
+YAML_PATH = os.path.join(os.path.dirname(__file__), "test_yaml")
 
 opentelemetry_instrumentation = """\
 {% set name = "opentelemetry-instrumentation" %}
@@ -101,5 +107,65 @@ def test_migrate_opentelemetry(tmpdir):
             "migrator_version": Version.migrator_version,
             "version": "0.23b2",
         },
+        tmpdir=tmpdir,
+    )
+
+
+@pytest.mark.parametrize("package", ["icu", "pipcheck_simple"])
+def test_migrate_non_python(tmpdir, package):
+    """Shouldn't run for non-python recipes or recipes that
+    have not opted in to the wheel migrator.
+    """
+    with open(os.path.join(YAML_PATH, f"version_{package}.yaml")) as fp:
+        in_yaml = fp.read()
+
+    run_minimigrator(
+        migrator=wheel_mig,
+        inp=in_yaml,
+        output="",
+        mr_out=None,
+        should_filter=True,
+        tmpdir=tmpdir,
+    )
+
+
+def test_migrate_thrift(tmpdir):
+    """Packages without a wheel should be filtered out"""
+    import requests
+
+    url = "https://raw.githubusercontent.com/conda-forge/thrift-feedstock/e0327f2a8b75151428e22c722b311a4ac9fccf41/recipe/meta.yaml"
+    in_yaml = requests.get(url).text
+    in_yaml += """\
+  bot:
+    run_deps_from_wheel: true
+"""
+
+    run_minimigrator(
+        migrator=wheel_mig,
+        inp=in_yaml,
+        output="",
+        mr_out=None,
+        should_filter=True,
+        tmpdir=tmpdir,
+    )
+
+
+def test_migrate_psutil(tmpdir):
+    """Packages with many wheels should be filtered out"""
+    import requests
+
+    url = "https://raw.githubusercontent.com/conda-forge/psutil-feedstock/0cfe57ff0dd639ed872e6e1d220a297ddc3b9100/recipe/meta.yaml"
+    in_yaml = requests.get(url).text
+    in_yaml += """\
+  bot:
+    run_deps_from_wheel: true
+"""
+
+    run_minimigrator(
+        migrator=wheel_mig,
+        inp=in_yaml,
+        output="",
+        mr_out=None,
+        should_filter=True,
         tmpdir=tmpdir,
     )
