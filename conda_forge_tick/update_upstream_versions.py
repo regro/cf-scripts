@@ -35,19 +35,26 @@ def get_latest_version(
     if name == "ca-policy-lcg":
         return version_data
 
+    excs = []
     for source in sources:
-        logger.debug("source: %s", source.__class__.__name__)
-        url = source.get_url(meta_yaml)
-        logger.debug("url: %s", url)
-        if url is None:
-            continue
-        ver = source.get_version(url)
-        logger.debug("ver: %s", ver)
-        if ver:
-            version_data["new_version"] = ver
-            break
-        else:
-            logger.debug(f"Upstream: Could not find version on {source.name}")
+        try:
+            logger.debug("source: %s", source.__class__.__name__)
+            url = source.get_url(meta_yaml)
+            logger.debug("url: %s", url)
+            if url is None:
+                continue
+            ver = source.get_version(url)
+            logger.debug("ver: %s", ver)
+            if ver:
+                version_data["new_version"] = ver
+                break
+            else:
+                logger.debug(f"Upstream: Could not find version on {source.name}")
+        except Exception as e:
+            excs.append(e)
+
+    if version_data["new_version"] is False and len(excs) > 0:
+        raise excs[0]
 
     return version_data
 
