@@ -410,6 +410,11 @@ class BaseRawURL(AbstractSource):
         # TODO: pull this from the graph itself
         content = meta_yaml["raw_meta_yaml"]
 
+        if any(ln.startswith("{% set version") for ln in content.splitlines()):
+            has_version_jinja2 = True
+        else:
+            has_version_jinja2 = False
+
         # this while statement runs until a bad version is found
         # then it uses the previous one
         orig_urls = urls_from_meta(meta_yaml["meta_yaml"])
@@ -426,7 +431,21 @@ class BaseRawURL(AbstractSource):
             for next_ver in self.next_ver_func(current_ver):
                 logger.debug("trying version: %s", next_ver)
 
-                new_content = content.replace(orig_ver, next_ver)
+                if has_version_jinja2:
+                    _new_lines = []
+                    for ln in content.splitlines():
+                        if (
+                            ln.startswith("{% set version ")
+                            or ln.startswith("{% set version=")
+                        ):
+                            _new_lines.append(
+                                "{%% set version = \"%s\" %%}" % next_ver
+                            )
+                        else:
+                            _new_lines.append(ln)
+                    new_content = "\n".join(_new_lines)
+                else:
+                    new_content = content.replace(orig_ver, next_ver)
                 new_meta = parse_meta_yaml(new_content)
                 new_urls = urls_from_meta(new_meta)
                 if len(new_urls) == 0:
