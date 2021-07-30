@@ -434,13 +434,10 @@ class BaseRawURL(AbstractSource):
                 if has_version_jinja2:
                     _new_lines = []
                     for ln in content.splitlines():
-                        if (
-                            ln.startswith("{% set version ")
-                            or ln.startswith("{% set version=")
+                        if ln.startswith("{% set version ") or ln.startswith(
+                            "{% set version=",
                         ):
-                            _new_lines.append(
-                                "{%% set version = \"%s\" %%}" % next_ver
-                            )
+                            _new_lines.append('{%% set version = "%s" %%}' % next_ver)
                         else:
                             _new_lines.append(ln)
                     new_content = "\n".join(_new_lines)

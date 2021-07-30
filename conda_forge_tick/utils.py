@@ -98,6 +98,7 @@ def render_meta_yaml(text: str, for_pinning=False, **kwargs) -> str:
         return env.from_string(text).render(**cfg)
     except Exception:
         import traceback
+
         logger.debug("render failure:\n%s", traceback.format_exc())
         logger.debug("render template: %s", text)
         logger.debug("render context:\n%s", pprint.pformat(cfg))
@@ -238,6 +239,7 @@ def _parse_meta_yaml_impl(
         return parse(content, cbc)
     except Exception:
         import traceback
+
         logger.debug("parse failure:\n%s", traceback.format_exc())
         logger.debug("parse template: %s", text)
         logger.debug("parse context:\n%s", pprint.pformat(cfg_as_dict))
