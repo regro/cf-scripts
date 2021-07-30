@@ -88,6 +88,7 @@ extra:
     run_deps_from_wheel: true
 """
 
+
 def test_migrate_opentelemetry(tmpdir):
     run_test_migration(
         m=version_migrator_whl,

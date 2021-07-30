@@ -6,6 +6,7 @@ import requests
 
 from conda_forge_tick.migrators import MiniMigrator
 from conda_forge_tick.xonsh_utils import indir
+
 if typing.TYPE_CHECKING:
     from conda_forge_tick.migrators_types import AttrsTypedDict
 
@@ -19,7 +20,12 @@ class PipWheelMigrator(MiniMigrator):
         url_names = ["pypi.python.org", "pypi.org", "pypi.io"]
         if not any(s in source_url for s in url_names):
             return True
-        if not attrs.get("meta_yaml", {}).get("extra", {}).get("bot", {}).get("run_deps_from_wheel", False):
+        if (
+            not attrs.get("meta_yaml", {})
+            .get("extra", {})
+            .get("bot", {})
+            .get("run_deps_from_wheel", False)
+        ):
             return True
         return "python" not in run_reqs
 
@@ -36,10 +42,10 @@ class PipWheelMigrator(MiniMigrator):
             return None
         wheel_count = 0
         for artifact in resp.json()["urls"]:
-            if artifact['packagetype'] == 'bdist_wheel':
+            if artifact["packagetype"] == "bdist_wheel":
                 wheel_count += 1
-                wheel_url = artifact['url']
-                wheel_file = artifact['filename']
+                wheel_url = artifact["url"]
+                wheel_file = artifact["filename"]
         if wheel_count != 1:
             return None
 
@@ -47,11 +53,12 @@ class PipWheelMigrator(MiniMigrator):
         wheel_packages = {}
         with tempfile.TemporaryDirectory() as tmpdir, indir(tmpdir):
             resp = requests.get(wheel_url)
-            with open(wheel_file, 'wb') as fo:
+            with open(wheel_file, "wb") as fp:
                 for chunk in resp.iter_content(chunk_size=2 ** 16):
-                    fo.write(chunk)
+                    fp.write(chunk)
             import pkginfo
             import pkg_resources
+
             wheel_metadata = pkginfo.get_metadata(wheel_file)
             wheel_metadata.extractMetadata()
             for dep in wheel_metadata.requires_dist:
@@ -82,20 +89,20 @@ class PipWheelMigrator(MiniMigrator):
                     while j < len(lines):
                         if lines[j].strip().startswith("-"):
                             spaces = len(lines[j]) - len(lines[j].lstrip())
-                        elif lines[j].strip().startswith('#'):
+                        elif lines[j].strip().startswith("#"):
                             pass
-                        elif lines[j].strip().startswith('{%'):
+                        elif lines[j].strip().startswith("{%"):
                             pass
                         else:
                             break
                         j = j + 1
 
                     new_line = " " * spaces
-                    for line_index in range(i+1, j):
+                    for line_index in range(i + 1, j):
                         line = lines[line_index]
-                        if not line.strip().startswith('-'):
+                        if not line.strip().startswith("-"):
                             continue
-                        line = lines[line_index].strip().strip('-').strip()
+                        line = lines[line_index].strip().strip("-").strip()
                         pkg_name, *_ = line.split()
                         if pkg_name in wheel_packages:
                             lines[line_index] = (
@@ -113,12 +120,12 @@ class PipWheelMigrator(MiniMigrator):
                     for pkg_name in sorted(set(wheel_packages) - handled_packages):
                         # TODO: add to pr text saying that we discoved new deps
                         new_line = (
-                                " " * spaces
-                                + "# - "
-                                + pkg_name
-                                + " "
-                                + wheel_packages[pkg_name].replace("==", "=")
-                                + "\n"
+                            " " * spaces
+                            + "# - "
+                            + pkg_name
+                            + " "
+                            + wheel_packages[pkg_name].replace("==", "=")
+                            + "\n"
                         )
                         handled_packages.add(pkg_name)
                         lines.insert(j, new_line)
