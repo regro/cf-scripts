@@ -1,4 +1,5 @@
 import pytest
+from flaky import flaky
 
 from conda_forge_tick.update_sources import url_exists
 
@@ -47,5 +48,6 @@ from conda_forge_tick.update_sources import url_exists
         ),
     ],
 )
+@flaky
 def test_url_exists(url, exists):
     assert url_exists(url) is exists

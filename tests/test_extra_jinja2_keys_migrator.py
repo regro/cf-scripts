@@ -1,4 +1,6 @@
 import os
+
+from flaky import flaky
 from ruamel.yaml import YAML
 
 from conda_forge_tick.migrators import (
@@ -16,6 +18,7 @@ VERSION_CF = Version(
 YAML_PATH = os.path.join(os.path.dirname(__file__), "test_yaml")
 
 
+@flaky
 def test_version_extra_jinja2_keys_cleanup(tmpdir):
     with open(os.path.join(YAML_PATH, "version_extra_jinja2_keys.yaml")) as fp:
         in_yaml = fp.read()
