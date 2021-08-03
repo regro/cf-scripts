@@ -1,7 +1,14 @@
 import pytest
+import time
+import random
 from flaky import flaky
 
 from conda_forge_tick.update_sources import url_exists
+
+
+def delay_rerun(*args):
+    time.sleep(random.random() * 2)
+    return True
 
 
 @pytest.mark.parametrize(
@@ -48,6 +55,11 @@ from conda_forge_tick.update_sources import url_exists
         ),
     ],
 )
-@flaky
+@flaky(max_runs=4, rerun_filter=delay_rerun)
 def test_url_exists(url, exists):
-    assert url_exists(url) is exists
+    # sourceforge seems slow enough to time out in our tests?
+    if "sourceforge" in url:
+        kwargs = dict(timeout=5)
+    else:
+        kwargs = {}
+    assert url_exists(url, **kwargs) is exists
