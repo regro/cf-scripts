@@ -166,6 +166,7 @@ def test_migrate_psutil(tmp_dir_with_conf):
 
 
 def test_migrate_black(tmp_dir_with_conf):
+    """Black has a wheel so this minimigrator should attempt to run"""
     url = "https://raw.githubusercontent.com/conda-forge/black-feedstock/fc15d64cbd793b31a26cae5347dedcf42f562f1c/recipe/meta.yaml"
 
     in_yaml = requests.get(url).text
@@ -181,6 +182,7 @@ def test_migrate_black(tmp_dir_with_conf):
 
 
 def test_migrate_black_no_conf(tmpdir):
+    """Without enabling the feature, don't run for black"""
     url = "https://raw.githubusercontent.com/conda-forge/black-feedstock/fc15d64cbd793b31a26cae5347dedcf42f562f1c/recipe/meta.yaml"
 
     in_yaml = requests.get(url).text
