@@ -1,3 +1,5 @@
+from flaky import flaky
+
 from conda_forge_tick.migrators import Version, LicenseMigrator
 from conda_forge_tick.migrators.license import _munge_licenses
 
@@ -302,6 +304,7 @@ def test_munge_licenses():
     assert spdx == "MIT OR GPL-2.0-or-later"
 
 
+@flaky
 def test_version_license_correct_r(tmpdir):
     run_test_migration(
         m=VER_LM,
