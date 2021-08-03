@@ -94,6 +94,7 @@ from conda_forge_tick.migrators import (
     NoCondaInspectMigrator,
     DuplicateLinesCleanup,
     Cos7Config,
+    PipWheelMigrator,
 )
 
 from conda_forge_tick.mamba_solver import is_recipe_solvable
@@ -922,6 +923,7 @@ def initialize_migrators(
             Build2HostMigrator(),
             NoCondaInspectMigrator(),
             Cos7Config(),
+            PipWheelMigrator(),
         ],
     )
 

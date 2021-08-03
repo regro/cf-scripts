@@ -21,8 +21,7 @@ class PipWheelMigrator(MiniMigrator):
         if not any(s in source_url for s in url_names):
             return True
         if (
-            not attrs.get("meta_yaml", {})
-            .get("extra", {})
+            not attrs.get("conda-forge.yml", {})
             .get("bot", {})
             .get("run_deps_from_wheel", False)
         ):
@@ -134,7 +133,7 @@ class PipWheelMigrator(MiniMigrator):
                     # There are unhandled packages.  Since these might not be on conda-forge add them,
                     # but leave them commented out
                     for pkg_name in sorted(set(wheel_packages) - handled_packages):
-                        # TODO: add to pr text saying that we discoved new deps
+                        # TODO: add to pr text saying that we discovered new deps
                         new_line = (
                             " " * spaces
                             + "# - "

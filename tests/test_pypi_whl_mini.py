@@ -1,5 +1,6 @@
 import os
 
+import requests
 import pytest
 
 from test_migrators import run_test_migration, run_minimigrator
@@ -50,10 +51,6 @@ requirements:
 about:
   license: Apache-2.0
   license_file: LICENSE.txt
-
-extra:
-  bot:
-    run_deps_from_wheel: true
 """
 
 opentelemetry_instrumentation_expected = """\
@@ -88,14 +85,23 @@ requirements:
 about:
   license: Apache-2.0
   license_file: LICENSE.txt
-
-extra:
-  bot:
-    run_deps_from_wheel: true
 """
 
 
-def test_migrate_opentelemetry(tmpdir):
+@pytest.fixture()
+def tmp_dir_with_conf(tmp_path):
+    (tmp_path / "conda-forge.yml").write_text(
+        """\
+bot:
+    run_deps_from_wheel: true
+""",
+    )
+    recipe_path = tmp_path / "recipe"
+    recipe_path.mkdir()
+    return str(recipe_path)
+
+
+def test_migrate_opentelemetry(tmp_dir_with_conf):
     run_test_migration(
         m=version_migrator_whl,
         inp=opentelemetry_instrumentation,
@@ -107,12 +113,12 @@ def test_migrate_opentelemetry(tmpdir):
             "migrator_version": Version.migrator_version,
             "version": "0.23b2",
         },
-        tmpdir=tmpdir,
+        tmpdir=tmp_dir_with_conf,
     )
 
 
 @pytest.mark.parametrize("package", ["icu", "pipcheck_simple"])
-def test_migrate_non_python(tmpdir, package):
+def test_migrate_non_python(tmp_dir_with_conf, package):
     """Shouldn't run for non-python recipes or recipes that
     have not opted in to the wheel migrator.
     """
@@ -125,20 +131,14 @@ def test_migrate_non_python(tmpdir, package):
         output="",
         mr_out=None,
         should_filter=True,
-        tmpdir=tmpdir,
+        tmpdir=tmp_dir_with_conf,
     )
 
 
-def test_migrate_thrift(tmpdir):
+def test_migrate_thrift(tmp_dir_with_conf):
     """Packages without a wheel should be filtered out"""
-    import requests
-
     url = "https://raw.githubusercontent.com/conda-forge/thrift-feedstock/e0327f2a8b75151428e22c722b311a4ac9fccf41/recipe/meta.yaml"
     in_yaml = requests.get(url).text
-    in_yaml += """\
-  bot:
-    run_deps_from_wheel: true
-"""
 
     run_minimigrator(
         migrator=wheel_mig,
@@ -146,25 +146,49 @@ def test_migrate_thrift(tmpdir):
         output="",
         mr_out=None,
         should_filter=True,
-        tmpdir=tmpdir,
+        tmpdir=tmp_dir_with_conf,
     )
 
 
-def test_migrate_psutil(tmpdir):
+def test_migrate_psutil(tmp_dir_with_conf):
     """Packages with many wheels should be filtered out"""
-    import requests
-
     url = "https://raw.githubusercontent.com/conda-forge/psutil-feedstock/0cfe57ff0dd639ed872e6e1d220a297ddc3b9100/recipe/meta.yaml"
     in_yaml = requests.get(url).text
-    in_yaml += """\
-  bot:
-    run_deps_from_wheel: true
-"""
 
     run_minimigrator(
         migrator=wheel_mig,
         inp=in_yaml,
         output="",
+        mr_out=None,
+        should_filter=True,
+        tmpdir=tmp_dir_with_conf,
+    )
+
+
+def test_migrate_black(tmp_dir_with_conf):
+    url = "https://raw.githubusercontent.com/conda-forge/black-feedstock/fc15d64cbd793b31a26cae5347dedcf42f562f1c/recipe/meta.yaml"
+
+    in_yaml = requests.get(url).text
+
+    run_minimigrator(
+        migrator=wheel_mig,
+        inp=in_yaml,
+        output=in_yaml,
+        mr_out=None,
+        should_filter=False,
+        tmpdir=tmp_dir_with_conf,
+    )
+
+
+def test_migrate_black_no_conf(tmpdir):
+    url = "https://raw.githubusercontent.com/conda-forge/black-feedstock/fc15d64cbd793b31a26cae5347dedcf42f562f1c/recipe/meta.yaml"
+
+    in_yaml = requests.get(url).text
+
+    run_minimigrator(
+        migrator=wheel_mig,
+        inp=in_yaml,
+        output=in_yaml,
         mr_out=None,
         should_filter=True,
         tmpdir=tmpdir,
