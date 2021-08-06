@@ -1,5 +1,7 @@
 import tempfile
-from typing import Any
+from functools import memoize
+from typing import Any, Dict
+from ruamel.yaml import YAML
 import typing
 
 import requests
@@ -9,6 +11,21 @@ from conda_forge_tick.xonsh_utils import indir
 
 if typing.TYPE_CHECKING:
     from conda_forge_tick.migrators_types import AttrsTypedDict
+
+
+@memoize
+def pypi_conda_mapping() -> Dict[str, str]:
+    """Retrieves the most recent version of the pypi-conda name mapping dictionary.
+    
+    Result is a dictionary {pypi_name: conda_name}
+    """
+    yaml = YAML()
+    content = requests.get("https://raw.githubusercontent.com/regro/cf-graph-countyfair/master/mappings/pypi/grayskull_pypi_mapping.yaml").text
+    mappings = yaml.load(content)
+    return {
+        mapping['pypi_name']: mapping['conda_name']
+        for mapping in mappings.items()
+    }
 
 
 class PipWheelMigrator(MiniMigrator):
@@ -79,7 +96,9 @@ class PipWheelMigrator(MiniMigrator):
             for dep in wheel_metadata.requires_dist:
                 parsed_req = pkg_resources.Requirement.parse(dep)
                 # ignore extras, and markers
-                wheel_packages[parsed_req.name] = str(parsed_req.specifier)
+                # map pypi name to the conda name, with fallback to pypi name
+                conda_name = pypi_conda_mapping().get(parsed_req.name, parsed_req.name)
+                wheel_packages[conda_name] = str(parsed_req.specifier)
 
         if not wheel_packages:
             return None
