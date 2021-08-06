@@ -24,7 +24,9 @@ def pypi_conda_mapping() -> Dict[str, str]:
         "https://raw.githubusercontent.com/regro/cf-graph-countyfair/master/mappings/pypi/grayskull_pypi_mapping.yaml",
     ).text
     mappings = yaml.load(content)
-    return {mapping["pypi_name"]: mapping["conda_name"] for mapping in mappings.items()}
+    return {
+        mapping["pypi_name"]: mapping["conda_name"] for mapping in mappings.values()
+    }
 
 
 class PipWheelMigrator(MiniMigrator):
