@@ -16,16 +16,15 @@ if typing.TYPE_CHECKING:
 @memoize
 def pypi_conda_mapping() -> Dict[str, str]:
     """Retrieves the most recent version of the pypi-conda name mapping dictionary.
-    
+
     Result is a dictionary {pypi_name: conda_name}
     """
     yaml = YAML()
-    content = requests.get("https://raw.githubusercontent.com/regro/cf-graph-countyfair/master/mappings/pypi/grayskull_pypi_mapping.yaml").text
+    content = requests.get(
+        "https://raw.githubusercontent.com/regro/cf-graph-countyfair/master/mappings/pypi/grayskull_pypi_mapping.yaml",
+    ).text
     mappings = yaml.load(content)
-    return {
-        mapping['pypi_name']: mapping['conda_name']
-        for mapping in mappings.items()
-    }
+    return {mapping["pypi_name"]: mapping["conda_name"] for mapping in mappings.items()}
 
 
 class PipWheelMigrator(MiniMigrator):
