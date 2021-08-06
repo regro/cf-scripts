@@ -1,5 +1,5 @@
 import tempfile
-from functools import memoize
+import functools
 from typing import Any, Dict
 from ruamel.yaml import YAML
 import typing
@@ -13,7 +13,7 @@ if typing.TYPE_CHECKING:
     from conda_forge_tick.migrators_types import AttrsTypedDict
 
 
-@memoize
+@functools.lru_cache()
 def pypi_conda_mapping() -> Dict[str, str]:
     """Retrieves the most recent version of the pypi-conda name mapping dictionary.
 
