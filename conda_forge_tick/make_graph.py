@@ -297,9 +297,7 @@ def _update_nodes_with_new_versions(gx):
     list_files = os.listdir("./versions/")
 
     for file in list_files:
-        node = str(file).replace(".json", "")
-        if node not in gx.nodes:
-            continue
+        node = os.path.splitext(os.path.basename(str(file)))[0]
         with open(f"./versions/{file}") as json_file:
             version_data: typing.Dict = json.load(json_file)
         with gx.nodes[f"{node}"]["payload"] as attrs:
