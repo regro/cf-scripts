@@ -145,7 +145,7 @@ class PipWheelMigrator(MiniMigrator):
                                 + "- "
                                 + pkg_name
                                 + " "
-                                + wheel_packages[pkg_name].replace("==", "=")
+                                + wheel_packages[pkg_name]
                                 + "\n"
                             )
                             handled_packages.add(pkg_name)
@@ -159,7 +159,7 @@ class PipWheelMigrator(MiniMigrator):
                             + "# - "
                             + pkg_name
                             + " "
-                            + wheel_packages[pkg_name].replace("==", "=")
+                            + wheel_packages[pkg_name]
                             + "\n"
                         )
                         handled_packages.add(pkg_name)

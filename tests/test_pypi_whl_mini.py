@@ -79,7 +79,7 @@ requirements:
     - python >=3.5
   run:
     - python >=3.5
-    - opentelemetry-api =1.4.1
+    - opentelemetry-api ==1.4.1
     # - wrapt <2.0.0,>=1.0.0
 
 about:
