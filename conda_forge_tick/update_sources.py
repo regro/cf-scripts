@@ -172,9 +172,13 @@ class PyPI(AbstractSource):
     def get_version(self, url) -> Optional[str]:
         r = requests.get(url)
         # If it is a pre-release don't give back the pre-release version
-        if not r.ok or parse_version(r.json()["info"]["version"].strip()).is_prerelease:
+        most_recent_version = r.json()["info"]["version"].strip()
+        if not r.ok or parse_version(most_recent_version).is_prerelease:
+            # if ALL releases are prereleases return the version
+            if all(parse_version(v).is_prerelease for v in r.json()["releases"]):
+                return most_recent_version
             return False
-        return r.json()["info"]["version"].strip()
+        return most_recent_version
 
 
 class NPM(AbstractSource):
