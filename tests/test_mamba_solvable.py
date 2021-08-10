@@ -3,6 +3,7 @@ import pathlib
 import shutil
 import pprint
 import subprocess
+from flaky import flaky
 from textwrap import dedent
 
 import pytest
@@ -21,6 +22,7 @@ from conda_forge_tick.mamba_solver import (
 FEEDSTOCK_DIR = os.path.join(os.path.dirname(__file__), "test_feedstock")
 
 
+@flaky
 def test_mamba_solver_apply_pins(tmp_path):
     with open(tmp_path / "meta.yaml", "w") as fp:
         fp.write(
@@ -139,6 +141,7 @@ def feedstock_dir(tmp_path):
     return str(tmp_path)
 
 
+@flaky
 def test_is_recipe_solvable_ok(feedstock_dir):
     recipe_file = os.path.join(feedstock_dir, "recipe", "meta.yaml")
     os.makedirs(os.path.dirname(recipe_file), exist_ok=True)

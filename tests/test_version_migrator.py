@@ -1,6 +1,7 @@
 import os
 import logging
 import pytest
+from flaky import flaky
 
 from conda_forge_tick.migrators import Version
 
@@ -44,6 +45,7 @@ YAML_PATH = os.path.join(os.path.dirname(__file__), "test_yaml")
         # ("cb3multi", "6.0.0"),
     ],
 )
+@flaky
 def test_version(case, new_ver, tmpdir, caplog):
     caplog.set_level(
         logging.DEBUG,

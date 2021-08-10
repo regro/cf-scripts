@@ -7,3 +7,4 @@ sphinx
 scipy
 pre-commit
 pip
+flaky

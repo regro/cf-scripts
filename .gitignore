@@ -34,3 +34,5 @@ pkgs
 dask-worker-space
 cbr
 feedstocks
+
+.venv

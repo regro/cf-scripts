@@ -10,6 +10,8 @@ from conda_forge_tick.migrators import (
     Version,
     MigrationYaml,
     Replacement,
+    Migrator,
+    MiniMigrator,
 )
 
 # Legacy THINGS
@@ -1638,12 +1640,12 @@ env["CIRCLE_BUILD_URL"] = "hi world"
 
 
 def run_test_migration(
-    m,
-    inp,
-    output,
-    kwargs,
-    prb,
-    mr_out,
+    m: Migrator,
+    inp: str,
+    output: str,
+    kwargs: dict,
+    prb: dict,
+    mr_out: dict,
     should_filter=False,
     tmpdir=None,
 ):
@@ -1728,6 +1730,47 @@ def run_test_migration(
     assert m.filter(pmy) is True
 
     return pmy
+
+
+def run_minimigrator(
+    migrator: MiniMigrator,
+    inp: str,
+    output: str,
+    mr_out: dict,
+    should_filter: bool = False,
+    tmpdir=None,
+):
+    if mr_out:
+        mr_out.update(bot_rerun=False)
+    with open(os.path.join(tmpdir, "meta.yaml"), "w") as f:
+        f.write(inp)
+
+    # read the conda-forge.yml
+    if os.path.exists(os.path.join(tmpdir, "..", "conda-forge.yml")):
+        with open(os.path.join(tmpdir, "..", "conda-forge.yml")) as fp:
+            cf_yml = fp.read()
+    else:
+        cf_yml = "{}"
+
+    # Load the meta.yaml (this is done in the graph)
+    try:
+        name = parse_meta_yaml(inp)["package"]["name"]
+    except Exception:
+        name = "blah"
+
+    pmy = populate_feedstock_attributes(name, {}, inp, cf_yml)
+    filtered = migrator.filter(pmy)
+    if should_filter and filtered:
+        return migrator
+    assert filtered == should_filter
+
+    with open(os.path.join(tmpdir, "meta.yaml")) as f:
+        actual_output = f.read()
+    # strip jinja comments
+    pat = re.compile(r"{#.*#}")
+    actual_output = pat.sub("", actual_output)
+    output = pat.sub("", output)
+    assert actual_output == output
 
 
 @pytest.mark.skip

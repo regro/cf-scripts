@@ -353,7 +353,7 @@ def get_sha256(url: str) -> Optional[str]:
         return None
 
 
-def url_exists(url: str) -> bool:
+def url_exists(url: str, timeout=2) -> bool:
     """
     We use curl/wget here, as opposed requests.head, because
      - github urls redirect with a 3XX code even if the file doesn't exist
@@ -364,7 +364,7 @@ def url_exists(url: str) -> bool:
             output = subprocess.check_output(
                 ["wget", "--spider", url],
                 stderr=subprocess.STDOUT,
-                timeout=2,
+                timeout=timeout,
             )
         except Exception:
             return False
