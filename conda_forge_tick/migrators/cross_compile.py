@@ -127,7 +127,7 @@ class GuardTestingMigrator(CrossCompilationMigratorBase):
                 ):
                     lines.insert(
                         i,
-                        'if [[ "${CONDA_BUILD_CROSS_COMPILATION}" != "1" ]]; then\n',
+                        'if [[ "${CONDA_BUILD_CROSS_COMPILATION:-}" != "1" ]]; then\n',
                     )
                     insert_after = i + 1
                     while len(lines) > insert_after and lines[insert_after].endswith(

@@ -1040,7 +1040,7 @@ def test_make_check(tmpdir):
         "#!/bin/bash\n",
         "# Get an updated config.sub and config.guess\n",
         "cp $BUILD_PREFIX/share/gnuconfig/config.* ./support\n",
-        'if [[ "${CONDA_BUILD_CROSS_COMPILATION}" != "1" ]]; then\n',
+        'if [[ "${CONDA_BUILD_CROSS_COMPILATION:-}" != "1" ]]; then\n',
         "make check\n",
         "fi\n",
     ]
@@ -1068,7 +1068,7 @@ def test_cmake(tmpdir):
     expected = [
         "#!/bin/bash\n",
         "cmake ${CMAKE_ARGS} ..\n",
-        'if [[ "${CONDA_BUILD_CROSS_COMPILATION}" != "1" ]]; then\n',
+        'if [[ "${CONDA_BUILD_CROSS_COMPILATION:-}" != "1" ]]; then\n',
         "ctest\n",
         "fi\n",
     ]
