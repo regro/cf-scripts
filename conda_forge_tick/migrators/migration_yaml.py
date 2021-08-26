@@ -329,7 +329,7 @@ class MigrationYaml(GraphMigrator):
             graph,
             key=lambda x: (
                 _has_error(x),
-                random.uniform()
+                random.uniform(0, 1)
                 if _has_error(x)
                 else len(nx.descendants(total_graph, x)),
                 x,
