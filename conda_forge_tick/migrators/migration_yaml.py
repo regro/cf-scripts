@@ -7,6 +7,7 @@ import time
 import re
 from collections import defaultdict
 import logging
+import random
 
 import networkx as nx
 import ruamel.yaml as yaml
@@ -326,7 +327,13 @@ class MigrationYaml(GraphMigrator):
 
         return sorted(
             graph,
-            key=lambda x: (_has_error(x), len(nx.descendants(total_graph, x)), x),
+            key=lambda x: (
+                _has_error(x),
+                random.uniform()
+                if _has_error(x)
+                else len(nx.descendants(total_graph, x)),
+                x,
+            ),
             reverse=True,
         )
 
