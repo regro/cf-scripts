@@ -323,11 +323,15 @@ class MigrationYaml(GraphMigrator):
             ):
                 return 0
             else:
-                return random.uniform(0.1, 1)
+                return 1
 
         return sorted(
             graph,
-            key=lambda x: (_has_error(x), len(nx.descendants(total_graph, x)), x),
+            key=lambda x: (
+                _has_error(x),
+                random.uniform() if _has_error(x) else len(nx.descendants(total_graph, x)),
+                x
+            ),
             reverse=True,
         )
 
