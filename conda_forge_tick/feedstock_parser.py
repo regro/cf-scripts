@@ -152,9 +152,7 @@ def _clean_req_nones(reqs):
             if val is None:
                 val = []
             if isinstance(val, str):
-                raise RuntimeError(
-                    f"requirement string '{section}' cannot be a string '{val}'!",
-                )
+                val = [val]
             reqs[section] = [v for v in val if v is not None]
     return reqs
 
