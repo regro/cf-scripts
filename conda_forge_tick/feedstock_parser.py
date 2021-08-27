@@ -58,6 +58,7 @@ def _get_requirements(
         requirements.
     build, host, run : `bool`
         include (`True`) or not (`False`) requirements from these sections
+
     Returns
     -------
     reqs : `set`
@@ -141,6 +142,23 @@ def _fetch_static_repo(name, dest):
     return dest_dir
 
 
+def _clean_req_nones(reqs):
+    for section in ["build", "host", "run"]:
+        # We make sure to set a section only if it is actually in
+        # the recipe. Adding a section when it is not there might
+        # confuse migrators trying to move CB2 recipes to CB3.
+        if section in reqs:
+            val = reqs.get(section, [])
+            if val is None:
+                val = []
+            if isinstance(val, str):
+                raise RuntimeError(
+                    f"requirement string '{section}' cannot be a string '{val}'!",
+                )
+            reqs[section] = [v for v in val if v is not None]
+    return reqs
+
+
 def populate_feedstock_attributes(
     name: str,
     sub_graph: typing.MutableMapping,
@@ -221,16 +239,20 @@ def populate_feedstock_attributes(
                     ),
                 )
 
-                # sometimes the requirements come out to None and this ruins the
-                # aggregated meta_yaml
+                # sometimes the requirements come out to None or [None]
+                # and this ruins the aggregated meta_yaml / breaks stuff
                 if "requirements" in varient_yamls[-1]:
-                    for section in ["build", "host", "run"]:
-                        # We make sure to set a section only if it is actually in
-                        # the recipe. Adding a section when it is not there might
-                        # confuse migrators trying to move CB2 recipes to CB3.
-                        if section in varient_yamls[-1]["requirements"]:
-                            val = varient_yamls[-1]["requirements"].get(section, [])
-                            varient_yamls[-1]["requirements"][section] = val or []
+                    varient_yamls[-1]["requirements"] = _clean_req_nones(
+                        varient_yamls[-1]["requirements"],
+                    )
+                if "outputs" in varient_yamls[-1]:
+                    for iout in range(len(varient_yamls[-1]["outputs"])):
+                        if "requirements" in varient_yamls[-1]["outputs"][iout]:
+                            varient_yamls[-1]["outputs"][iout][
+                                "requirements"
+                            ] = _clean_req_nones(
+                                varient_yamls[-1]["outputs"][iout]["requirements"],
+                            )
 
                 # collapse them down
                 final_cfgs = {}
