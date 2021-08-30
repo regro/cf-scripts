@@ -462,6 +462,7 @@ class GraphMigrator(Migrator):
         obj_version: Optional[int] = None,
         piggy_back_migrations: Optional[Sequence[MiniMigrator]] = None,
         check_solvable=True,
+        ignored_deps_per_node=None,
     ):
         super().__init__(
             pr_limit,
@@ -484,6 +485,7 @@ class GraphMigrator(Migrator):
         self.name = name
         self.top_level = top_level or set()
         self.cycles = set(chain.from_iterable(cycles or []))
+        self.ignored_deps_per_node = ignored_deps_per_node or {}
 
     def all_predecessors_issued_and_stale(self, attrs: "AttrsTypedDict") -> bool:
         # Check if all upstreams have been issue and are stale
@@ -491,6 +493,12 @@ class GraphMigrator(Migrator):
             self.graph.predecessors(attrs["feedstock_name"]),
             self.graph,
         ):
+            if node in self.ignored_deps_per_node.get(
+                attrs.get("feedstock_name", None),
+                [],
+            ):
+                continue
+
             muid = frozen_to_json_friendly(self.migrator_uid(payload))
             pr_muids = _sanitized_muids(payload.get("PRed", []))
             if muid not in pr_muids:
@@ -544,6 +552,13 @@ class GraphMigrator(Migrator):
             self.graph.predecessors(attrs["feedstock_name"]),
             self.graph,
         ):
+
+            if node in self.ignored_deps_per_node.get(
+                attrs.get("feedstock_name", None),
+                [],
+            ):
+                continue
+
             muid = frozen_to_json_friendly(self.migrator_uid(payload))
 
             if muid not in _sanitized_muids(

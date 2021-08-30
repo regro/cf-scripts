@@ -133,6 +133,7 @@ class MigrationYaml(GraphMigrator):
         automerge: bool = False,
         check_solvable=True,
         conda_forge_yml_patches=None,
+        ignored_deps_per_node=None,
         **kwargs: Any,
     ):
         super().__init__(
@@ -141,6 +142,7 @@ class MigrationYaml(GraphMigrator):
             obj_version=migration_number,
             piggy_back_migrations=piggy_back_migrations,
             check_solvable=check_solvable,
+            ignored_deps_per_node=ignored_deps_per_node,
         )
         self.yaml_contents = yaml_contents
         assert isinstance(name, str)
