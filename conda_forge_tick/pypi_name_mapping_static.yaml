@@ -67,3 +67,7 @@
 - pypi_name: duckdb
   import_name: duckdb
   conda_name: python-duckdb
+
+- pypi_name: torch
+  import_name: torch
+  conda_name: pytorch
