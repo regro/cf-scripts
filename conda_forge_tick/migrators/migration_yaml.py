@@ -182,6 +182,11 @@ class MigrationYaml(GraphMigrator):
                 state = migration.get("PR", {}).get("state", "")
                 if state != "closed":
                     need_to_wait = True
+        logger.debug(
+            "filter %s: need to wait for %s",
+            attrs.get("name", ""),
+            wait_for_migrators,
+        )
 
         return need_to_wait or super().filter(
             attrs=attrs,
