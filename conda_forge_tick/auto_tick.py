@@ -949,7 +949,7 @@ def _compute_time_per_migrator(mctx, migrators):
                         attrs.get("new_version", ""),
                         0,
                     )
-                    if _attempts == 0:
+                    if _attempts < 3:
                         _num_nodes += 1
             if _num_nodes == 0:
                 _num_nodes = 1  # will get the minimum time
