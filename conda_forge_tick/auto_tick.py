@@ -1076,7 +1076,7 @@ def main(args: "CLIArgs") -> None:
             for node_name in possible_nodes:
                 with effective_graph.nodes[node_name]["payload"] as attrs:
                     LOGGER.info(
-                        "    node|curr|new|attempts: %s|%s|%s|%d",
+                        "    node|curr|new|attempts: %s|%s|%s|%f",
                         node_name,
                         attrs.get("version"),
                         attrs.get("new_version"),
