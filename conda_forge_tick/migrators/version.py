@@ -463,8 +463,9 @@ class Version(Migrator):
                 )
             )
         except conda.exceptions.InvalidVersionSpec as e:
+            name = attrs.get("name", "")
             warnings.warn(
-                f"Failed to filter to to invalid version for {attrs}\nException: {e}",
+                f"Failed to filter to to invalid version for {name}\nException: {e}",
             )
             version_filter = True
 
