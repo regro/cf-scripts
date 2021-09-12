@@ -2,6 +2,7 @@ attrs
 backoff
 black
 boto3
+cachecontrol
 cachetools
 conda
 conda-forge-pinning
@@ -16,6 +17,7 @@ frozendict
 github3.py
 grayskull
 jinja2
+lockfile
 mamba>=0.11.0
 msgpack-python
 networkx
