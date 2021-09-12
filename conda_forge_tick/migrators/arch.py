@@ -3,11 +3,12 @@ import typing
 from typing import Optional, Any, Sequence
 
 import networkx as nx
-from ruamel.yaml import safe_load, safe_dump
 
 from conda_forge_tick.contexts import FeedstockContext
 from conda_forge_tick.migrators.core import _sanitized_muids, GraphMigrator
-from conda_forge_tick.utils import frozen_to_json_friendly, pluck, as_iterable
+from conda_forge_tick.utils import (
+    frozen_to_json_friendly, pluck, as_iterable, yaml_safe_load, yaml_safe_dump
+)
 from conda_forge_tick.xonsh_utils import indir
 from conda_forge_tick.make_graph import get_deps_from_outputs_lut
 from .migration_yaml import all_noarch
@@ -114,7 +115,7 @@ class ArchRebuild(GraphMigrator):
         with indir(recipe_dir + "/.."):
             self.set_build_number("recipe/meta.yaml")
             with open("conda-forge.yml") as f:
-                y = safe_load(f)
+                y = yaml_safe_load(f)
             if "provider" not in y:
                 y["provider"] = {}
             for k, v in self.arches.items():
@@ -122,7 +123,7 @@ class ArchRebuild(GraphMigrator):
                     y["provider"][k] = v
 
             with open("conda-forge.yml", "w") as f:
-                safe_dump(y, f)
+                yaml_safe_dump(y, f)
 
         return super().migrate(recipe_dir, attrs, **kwargs)
 
@@ -263,7 +264,7 @@ class OSXArm(GraphMigrator):
         with indir(recipe_dir + "/.."):
             self.set_build_number("recipe/meta.yaml")
             with open("conda-forge.yml") as f:
-                y = safe_load(f)
+                y = yaml_safe_load(f)
             y.update(self.additional_keys)
             with open("conda-forge.yml", "w") as f:
                 safe_dump(y, f)

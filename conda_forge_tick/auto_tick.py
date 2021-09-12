@@ -40,7 +40,6 @@ from conda_build.variants import parse_config_file
 from urllib.error import URLError
 
 import github3
-import ruamel.yaml as yaml
 from uuid import uuid4
 
 from conda_forge_tick.xonsh_utils import indir, env
@@ -67,6 +66,7 @@ from conda_forge_tick.utils import (
     eval_cmd,
     sanitize_string,
     frozen_to_json_friendly,
+    yaml_safe_load,
 )
 from conda_forge_tick.migrators.arch import OSXArm
 from conda_forge_tick.migrators.migration_yaml import (
@@ -659,7 +659,7 @@ def migration_factory(
         ),
     )
     for yaml_file, yaml_contents in migration_yamls:
-        loaded_yaml = yaml.safe_load(yaml_contents)
+        loaded_yaml = yaml_safe_load(yaml_contents)
         __mname = os.path.splitext(os.path.basename(yaml_file))[0]
 
         if __mname not in only_keep:
