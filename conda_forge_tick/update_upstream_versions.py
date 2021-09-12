@@ -43,7 +43,7 @@ def get_latest_version(
             logger.debug("url: %s", url)
             if url is None:
                 continue
-            ver = source.get_version(url)
+            ver = source.get_version(url, meta_yaml)
             logger.debug("ver: %s", ver)
             if ver:
                 version_data["new_version"] = ver
