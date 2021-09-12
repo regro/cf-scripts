@@ -126,7 +126,7 @@ class AbstractSource(abc.ABC):
         conda_forge_yml = meta_yaml["conda-forge.yml"]
         # First check for the text for an early exit
         # to avoid parsing yaml if possible
-        if "bot" not conda_forge_yaml:
+        if "bot" not in conda_forge_yaml:
             return {}
         # Parse the yaml now
         parsed_yml = yaml.safe_load(conda_forge_yml)
