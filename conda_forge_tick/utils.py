@@ -77,9 +77,11 @@ def yaml_safe_load(stream):
     return ruamel.yaml.YAML(typ="safe", pure=True).load(stream)
 
 
-def yaml_safe_dump(data, stream=None, **kwargs):
+def yaml_safe_dump(data, stream=None):
     """Dump a yaml object"""
-    return ruamel.yaml.YAML(typ="safe", pure=True).dump(data, stream=stream, **kwargs)
+    yaml = ruamel.yaml.YAML(typ="safe", pure=True)
+    yaml.indent(mapping=2, sequence=4, offset=2)
+    return yaml.dump(data, stream=stream)
 
 
 def render_meta_yaml(text: str, for_pinning=False, **kwargs) -> str:

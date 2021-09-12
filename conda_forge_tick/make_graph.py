@@ -82,24 +82,6 @@ def make_outputs_lut_from_graph(gx):
     return outputs_lut
 
 
-def _fetch_file(name: str, filepath: str) -> typing.Union[str, Response]:
-    r = requests.get(
-        "https://raw.githubusercontent.com/"
-        "conda-forge/{}-feedstock/master/{}".format(name, filepath),
-    )
-    if r.status_code != 200:
-        LOGGER.error(
-            f"Something odd happened when fetching recipe {name}: {r.status_code}",
-        )
-        return r
-
-    text = r.content.decode("utf-8")
-    return text
-
-
-# TODO: include other files like build_sh
-
-
 def get_attrs(name: str, i: int, mark_not_archived=False) -> LazyJson:
     lzj = LazyJson(f"node_attrs/{name}.json")
     with lzj as sub_graph:

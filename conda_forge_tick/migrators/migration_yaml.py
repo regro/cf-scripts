@@ -226,7 +226,7 @@ class MigrationYaml(GraphMigrator):
                         cfg = yaml_safe_load(fp.read())
                     _patch_dict(cfg, self.conda_forge_yml_patches)
                     with open("conda-forge.yml", "w") as fp:
-                        yaml_safe_dump(cfg, fp, default_flow_style=False, indent=2)
+                        yaml_safe_dump(cfg, fp)
                     eval_cmd("git add conda-forge.yml")
 
             with indir(recipe_dir):
@@ -403,8 +403,6 @@ class MigrationYamlCreator(Migrator):
                 yaml_safe_dump(
                     migration_yaml_dict,
                     f,
-                    default_flow_style=False,
-                    indent=2,
                 )
             eval_cmd("git add .")
 
