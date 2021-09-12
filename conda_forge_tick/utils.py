@@ -74,12 +74,12 @@ CB_CONFIG_PINNING = dict(
 
 def yaml_safe_load(stream):
     """Load a yaml doc safely"""
-    return ruamel.yaml.YAML(typ='safe', pure=True).load(stream)
+    return ruamel.yaml.YAML(typ="safe", pure=True).load(stream)
 
 
 def yaml_safe_dump(data, stream=None, **kwargs):
     """Dump a yaml object"""
-    return ruamel.yaml.YAML(typ='safe', pure=True).dump(data, stream=stream, **kwargs)
+    return ruamel.yaml.YAML(typ="safe", pure=True).dump(data, stream=stream, **kwargs)
 
 
 def render_meta_yaml(text: str, for_pinning=False, **kwargs) -> str:

@@ -7,7 +7,11 @@ import networkx as nx
 from conda_forge_tick.contexts import FeedstockContext
 from conda_forge_tick.migrators.core import _sanitized_muids, GraphMigrator
 from conda_forge_tick.utils import (
-    frozen_to_json_friendly, pluck, as_iterable, yaml_safe_load, yaml_safe_dump
+    frozen_to_json_friendly,
+    pluck,
+    as_iterable,
+    yaml_safe_load,
+    yaml_safe_dump,
 )
 from conda_forge_tick.xonsh_utils import indir
 from conda_forge_tick.make_graph import get_deps_from_outputs_lut
