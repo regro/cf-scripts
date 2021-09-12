@@ -188,6 +188,7 @@ extra:
     assert is_recipe_solvable(feedstock_dir)[0]
 
 
+@flaky
 def test_unsolvable_for_particular_python(feedstock_dir):
     recipe_file = os.path.join(feedstock_dir, "recipe", "meta.yaml")
     os.makedirs(os.path.dirname(recipe_file), exist_ok=True)
