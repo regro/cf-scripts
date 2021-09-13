@@ -271,7 +271,7 @@ class OSXArm(GraphMigrator):
                 y = yaml_safe_load(f)
             y.update(self.additional_keys)
             with open("conda-forge.yml", "w") as f:
-                safe_dump(y, f)
+                yaml_safe_dump(y, f)
 
         return super().migrate(recipe_dir, attrs, **kwargs)
 
