@@ -112,4 +112,4 @@ class FeedstockContext:
 
     @property
     def default_branch(self):
-        return DEFAULT_BRANCHES.get(f"{self.feedstock_name}-feedstock", "master")
+        return DEFAULT_BRANCHES.get(f"{self.feedstock_name}", "master")

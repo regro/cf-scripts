@@ -32,7 +32,7 @@ def get_all_feedstocks_from_github():
             else:
                 not_archived.add(name[: -len("-feedstock")])
 
-            default_branches[str(r.name)] = r.default_branch
+            default_branches[name[: -len("-feedstock")]] = r.default_branch
 
     return {
         "active": sorted(list(not_archived)),
