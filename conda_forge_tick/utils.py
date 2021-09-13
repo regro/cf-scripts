@@ -80,7 +80,7 @@ def yaml_safe_load(stream):
 def yaml_safe_dump(data, stream=None):
     """Dump a yaml object"""
     yaml = ruamel.yaml.YAML(typ="safe", pure=True)
-    yaml.indent(mapping=2, sequence=4, offset=2)
+    yaml.default_flow_style = False
     return yaml.dump(data, stream=stream)
 
 
