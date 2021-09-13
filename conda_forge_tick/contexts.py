@@ -114,6 +114,6 @@ class FeedstockContext:
                         .default_branch
                     )
                 else:
-                    self._default_branch = "master"
+                    self._default_branch = "main"
 
         return self._default_branch
