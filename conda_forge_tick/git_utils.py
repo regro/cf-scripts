@@ -27,6 +27,8 @@ import backoff
 # and pull all the needed info from the various source classes)
 from conda_forge_tick.utils import LazyJson
 
+from conda_forge_tick import sensitive_env
+
 backoff._decorator._is_event_loop = lambda: False
 
 MAX_GITHUB_TIMEOUT = 60
@@ -65,6 +67,27 @@ PR_KEYS_TO_KEEP = {
     "head": {"ref": None},
     "base": {"repo": {"name": None}},
 }
+
+
+def get_default_branch(feedstock_name):
+    """Get the default branch for a feedstock
+
+    Parameters
+    ----------
+    feedstock_name : str
+        The feedstock without '-feedstock'.
+
+    Returns
+    -------
+    branch : str
+        The default branch (e.g., 'main').
+    """
+    with sensitive_env() as env:
+        return (
+            github.Github(env["PASSWORD"])
+            .get_repo(f"conda-forge/{feedstock_name}-feedstock")
+            .default_branch
+        )
 
 
 def ensure_gh(ctx: GithubContext, gh: Optional[github3.GitHub]) -> github3.GitHub:
