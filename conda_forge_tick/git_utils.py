@@ -167,12 +167,18 @@ def fetch_repo(*, feedstock_dir, origin, upstream, branch, base_branch="main"):
             msg += ". Do you have a personal fork of the feedstock?"
             print(msg, file=sys.stderr)
             return False
+        reset_hard = False
+    else:
+        reset_hard = True
 
     def _run_git_cmd(cmd):
         return subprocess.run(cmd, shell=True, check=True)
 
     quiet = "--quiet"
     with indir(feedstock_dir):
+        if reset_hard:
+            _run_git_cmd("git reset --hard HEAD")
+
         # doesn't work if the upstream already exists
         try:
             # always run upstream
