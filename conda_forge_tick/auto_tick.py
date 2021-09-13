@@ -271,7 +271,8 @@ def run(
         and (
             feedstock_ctx.default_branch == "master"
             or feedstock_ctx.default_branch == "main"
-        ) and (
+        )
+        and (
             (
                 migrator.check_solvable
                 # we always let stuff in cycles go
@@ -1118,8 +1119,7 @@ def main(args: "CLIArgs") -> None:
                 )
                 # map main to current default branch
                 base_branches = [
-                    br if br != "main" else fctx.default_branch
-                    for br in base_branches
+                    br if br != "main" else fctx.default_branch for br in base_branches
                 ]
 
                 try:
