@@ -305,7 +305,7 @@ def _sync_default_branches(reponame, forked_user, token):
             f"{reponame}/branches/{forked_default_branch}/rename",
             json={"new_name": default_branch},
             headers={
-                "Authorization": f"token {env['PASSWORD']}",
+                "Authorization": f"token {token}",
                 "Content-Type": "application/json",
                 "Accept": "application/vnd.github.v3+json",
             },
