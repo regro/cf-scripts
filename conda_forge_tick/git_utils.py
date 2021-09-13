@@ -20,7 +20,6 @@ from .xonsh_utils import env, indir
 from requests.exceptions import Timeout, RequestException
 from .contexts import GithubContext, FeedstockContext, MigratorSessionContext
 import github
-from conda_forge_tick import sensitive_env
 
 import backoff
 
@@ -277,6 +276,7 @@ def get_repo(
         _sync_default_branches(
             feedstock_reponame,
             ctx.github_username,
+            ctx.github_password,
         )
         # sleep to wait for branch name change
         time.sleep(5)
@@ -295,24 +295,23 @@ def get_repo(
         return False, False
 
 
-def _sync_default_branches(reponame, forked_user):
-    with sensitive_env() as env:
-        gh = github.Github(env["PASSWORD"])
-        default_branch = gh.get_repo(f"conda-forge/{reponame}").default_branch
-        forked_default_branch = gh.get_repo(f"{forked_user}/{reponame}").default_branch
-        if default_branch != forked_default_branch:
-            r = requests.post(
-                f"https://api.github.com/repos/{forked_user}/"
-                f"{reponame}/branches/{forked_default_branch}/rename",
-                json={"new_name": default_branch},
-                headers={
-                    "Authorization": f"token {env['PASSWORD']}",
-                    "Content-Type": "application/json",
-                    "Accept": "application/vnd.github.v3+json",
-                },
-            )
-            if r.status_code != 404:
-                r.raise_for_status()
+def _sync_default_branches(reponame, forked_user, token):
+    gh = github.Github(token)
+    default_branch = gh.get_repo(f"conda-forge/{reponame}").default_branch
+    forked_default_branch = gh.get_repo(f"{forked_user}/{reponame}").default_branch
+    if default_branch != forked_default_branch:
+        r = requests.post(
+            f"https://api.github.com/repos/{forked_user}/"
+            f"{reponame}/branches/{forked_default_branch}/rename",
+            json={"new_name": default_branch},
+            headers={
+                "Authorization": f"token {env['PASSWORD']}",
+                "Content-Type": "application/json",
+                "Accept": "application/vnd.github.v3+json",
+            },
+        )
+        if r.status_code != 404:
+            r.raise_for_status()
 
 
 def delete_branch(ctx: GithubContext, pr_json: LazyJson, dry_run: bool = False) -> None:
