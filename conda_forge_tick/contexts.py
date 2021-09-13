@@ -1,17 +1,24 @@
+import os
 import copy
 from dataclasses import dataclass
 from networkx import DiGraph
 import typing
 import threading
 import github3
-import github
-from conda_forge_tick import sensitive_env
+from conda_forge_tick.utils import load
 
 from typing import Union
 
 if typing.TYPE_CHECKING:
     from conda_forge_tick.migrators import Migrator
     from conda_forge_tick.migrators_types import AttrsTypedDict
+
+
+if os.path.exists("all_feedstocks.json"):
+    with open("all_feedstocks.json") as f:
+        DEFAULT_BRANCHES = load(f).get("default_branches", {})
+else:
+    DEFAULT_BRANCHES = {}
 
 
 @dataclass
@@ -105,19 +112,4 @@ class FeedstockContext:
 
     @property
     def default_branch(self):
-        if self._default_branch is None:
-            with sensitive_env() as env:
-                try:
-                    self._default_branch = (
-                        github.Github(env["PASSWORD"])
-                        .get_repo(f"conda-forge/{self.feedstock_name}-feedstock")
-                        .default_branch
-                    )
-                except Exception as e:
-                    print(
-                        "Could not get default branch for conda-forge"
-                        f"/{self.feedstock_name}-feedstock: {e}",
-                        flush=True,
-                    )
-                    self._default_branch = "master"
-        return self._default_branch
+        return DEFAULT_BRANCHES.get(f"{self.feedstock_name}-feedstock", "master")
