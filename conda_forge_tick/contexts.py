@@ -107,13 +107,10 @@ class FeedstockContext:
     def default_branch(self):
         if self._default_branch is None:
             with sensitive_env() as env:
-                if "PASSWORD" in env:
-                    self._default_branch = (
-                        github.Github(env["PASSWORD"])
-                        .get_repo(f"conda-forge/{self.feedstock_name}-feedstock")
-                        .default_branch
-                    )
-                else:
-                    self._default_branch = "main"
+                self._default_branch = (
+                    github.Github(env["PASSWORD"])
+                    .get_repo(f"conda-forge/{self.feedstock_name}-feedstock")
+                    .default_branch
+                )
 
         return self._default_branch
