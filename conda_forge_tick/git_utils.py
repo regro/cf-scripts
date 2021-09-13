@@ -278,8 +278,6 @@ def get_repo(
             ctx.github_username,
             ctx.github_password,
         )
-        # sleep to wait for branch name change
-        time.sleep(5)
 
     feedstock_dir = os.path.join(ctx.rever_dir, fctx.package_name + "-feedstock")
 
@@ -300,6 +298,7 @@ def _sync_default_branches(reponame, forked_user, token):
     default_branch = gh.get_repo(f"conda-forge/{reponame}").default_branch
     forked_default_branch = gh.get_repo(f"{forked_user}/{reponame}").default_branch
     if default_branch != forked_default_branch:
+        print("Fork's default branch doesn't match upstream, syncing...")
         r = requests.post(
             f"https://api.github.com/repos/{forked_user}/"
             f"{reponame}/branches/{forked_default_branch}/rename",
@@ -312,6 +311,9 @@ def _sync_default_branches(reponame, forked_user, token):
         )
         if r.status_code != 404:
             r.raise_for_status()
+
+        # sleep to wait for branch name change
+        time.sleep(5)
 
 
 def delete_branch(ctx: GithubContext, pr_json: LazyJson, dry_run: bool = False) -> None:
