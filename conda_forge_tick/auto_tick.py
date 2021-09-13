@@ -1118,9 +1118,6 @@ def main(args: "CLIArgs") -> None:
                     feedstock_name=attrs["feedstock_name"],
                     attrs=attrs,
                 )
-                # set this on the fly to be the most up to date
-                # the cached value will be used if this is not set
-                fctx.default_branch = get_default_branch(fctx.feedstock_name)
 
                 # map main to current default branch
                 base_branches = [
