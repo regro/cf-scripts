@@ -121,7 +121,6 @@ def run(
     pull_request: bool = True,
     rerender: bool = True,
     fork: bool = True,
-    base_branch: str = "master",
     **kwargs: typing.Any,
 ) -> Tuple["MigrationUidTypedDict", dict]:
     """For a given feedstock and migration run the migration
@@ -140,8 +139,6 @@ def run(
         Whether to rerender
     fork : bool
         If true create a fork, defaults to true
-    base_branch : str, optional
-        The base branch to which the PR will be targeted. Defaults to "master".
     kwargs: dict
         The key word arguments to pass to the migrator
 
@@ -173,7 +170,7 @@ def run(
         protocol=protocol,
         pull_request=pull_request,
         fork=fork,
-        base_branch=base_branch,
+        base_branch=feedstock_ctx.default_branch,
     )
     if not feedstock_dir or not repo:
         LOGGER.critical(
@@ -271,8 +268,10 @@ def run(
 
     if (
         feedstock_ctx.feedstock_name != "conda-forge-pinning"
-        and base_branch == "master"
         and (
+            feedstock_ctx.default_branch == "master"
+            or feedstock_ctx.default_branch == "main"
+        ) and (
             (
                 migrator.check_solvable
                 # we always let stuff in cycles go
@@ -307,7 +306,7 @@ def run(
         if not solvable:
             _solver_err_str = "not solvable ({}): {}: {}".format(
                 ('<a href="' + os.getenv("CIRCLE_BUILD_URL", "") + '">bot CI job</a>'),
-                base_branch,
+                feedstock_ctx.default_branch,
                 sorted(set(errors)),
             )
 
@@ -363,7 +362,7 @@ def run(
                 title=migrator.pr_title(feedstock_ctx),
                 head=f"{migrator.ctx.github_username}:{branch_name}",
                 branch=branch_name,
-                base_branch=base_branch,
+                base_branch=feedstock_ctx.default_branch,
             )
 
         # This shouldn't happen too often any more since we won't double PR
@@ -1090,9 +1089,6 @@ def main(args: "CLIArgs") -> None:
 
         for node_name in possible_nodes:
             with mctx.graph.nodes[node_name]["payload"] as attrs:
-                base_branches = migrator.get_possible_feedstock_branches(attrs)
-                orig_branch = attrs.get("branch", "master")
-
                 # Don't let CI timeout, break ahead of the timeout so we make certain
                 # to write to the repo
                 # TODO: convert these env vars
@@ -1107,11 +1103,24 @@ def main(args: "CLIArgs") -> None:
                 ):
                     break
 
+                base_branches = migrator.get_possible_feedstock_branches(attrs)
+                if "branch" in attrs:
+                    has_attrs_branch = True
+                    orig_branch = attrs.get("branch")
+                else:
+                    has_attrs_branch = False
+                    orig_branch = None
+
                 fctx = FeedstockContext(
                     package_name=node_name,
                     feedstock_name=attrs["feedstock_name"],
                     attrs=attrs,
                 )
+                # map main to current default branch
+                base_branches = [
+                    br if br != "main" else fctx.default_branch
+                    for br in base_branches
+                ]
 
                 try:
                     for base_branch in base_branches:
@@ -1228,7 +1237,8 @@ def main(args: "CLIArgs") -> None:
                                 good_prs += 1
                 finally:
                     # reset branch
-                    attrs["branch"] = orig_branch
+                    if has_attrs_branch:
+                        attrs["branch"] = orig_branch
 
                     # Write graph partially through
                     if not args.dry_run:

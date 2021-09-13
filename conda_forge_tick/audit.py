@@ -98,7 +98,7 @@ def depfinder_audit_feedstock(fctx: FeedstockContext, ctx: MigratorSessionContex
         feedstock_dir=feedstock_dir,
         origin=origin,
         upstream=origin,
-        branch="master",
+        branch=fctx.default_branch,
     )
     recipe_dir = os.path.join(feedstock_dir, "recipe")
 
