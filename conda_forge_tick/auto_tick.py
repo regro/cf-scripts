@@ -272,8 +272,8 @@ def run(
     if (
         feedstock_ctx.feedstock_name != "conda-forge-pinning"
         and (
-            feedstock_ctx.default_branch == "master"
-            or feedstock_ctx.default_branch == "main"
+            base_branch == "master"
+            or base_branch == "main"
         )
         and (
             (
