@@ -135,7 +135,7 @@ def fork_url(feedstock_url: str, username: str) -> str:
     return url
 
 
-def fetch_repo(*, feedstock_dir, origin, upstream, branch, base_branch="master"):
+def fetch_repo(*, feedstock_dir, origin, upstream, branch, base_branch="main"):
     """fetch a repo and make a PR branch
 
     Parameters
@@ -149,7 +149,7 @@ def fetch_repo(*, feedstock_dir, origin, upstream, branch, base_branch="master")
     branch : str
         The branch to make and checkout.
     base_branch : str, optional
-        The branch from which to branch from to make `branch`. Defaults to "master".
+        The branch from which to branch from to make `branch`. Defaults to "main".
 
     Returns
     -------
@@ -214,7 +214,7 @@ def get_repo(
     protocol: str = "ssh",
     pull_request: bool = True,
     fork: bool = True,
-    base_branch: str = "master",
+    base_branch: str = "main",
 ) -> Tuple[str, github3.repos.Repository]:
     """Get the feedstock repo
 
@@ -523,7 +523,7 @@ def push_repo(
     title: str,
     head: str,
     branch: str,
-    base_branch: str = "master",
+    base_branch: str = "main",
 ) -> Union[dict, bool, None]:
     """Push a repo up to github
 
