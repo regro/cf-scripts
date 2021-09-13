@@ -271,10 +271,7 @@ def run(
 
     if (
         feedstock_ctx.feedstock_name != "conda-forge-pinning"
-        and (
-            base_branch == "master"
-            or base_branch == "main"
-        )
+        and (base_branch == "master" or base_branch == "main")
         and (
             (
                 migrator.check_solvable
