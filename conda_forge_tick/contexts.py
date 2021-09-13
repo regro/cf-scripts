@@ -4,6 +4,8 @@ from networkx import DiGraph
 import typing
 import threading
 import github3
+import github
+from conda_forge_tick import sensitive_env
 
 from typing import Union
 
@@ -99,3 +101,16 @@ class FeedstockContext:
     package_name: str
     feedstock_name: str
     attrs: "AttrsTypedDict"
+    _default_branch: str = None
+
+    @property
+    def default_branch(self):
+        if self._default_branch is None:
+            with sensitive_env() as env:
+                self._default_branch = (
+                    github.Github(env["PASSWORD"])
+                    .get_repo(f"conda-forge/{self.feedstock_name}-feedstock")
+                    .default_branch
+                )
+
+        return self._default_branch

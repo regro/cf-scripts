@@ -230,7 +230,7 @@ class Migrator:
         branches : list of str
             List if valid branches for this migration.
         """
-        branches = ["master"] + (
+        branches = ["main"] + (
             attrs.get("conda-forge.yml", {})
             .get("bot", {})
             .get("abi_migration_branches", [])
@@ -371,8 +371,8 @@ class Migrator:
         if self.obj_version:
             d["migrator_object_version"] = self.obj_version
 
-        branch = attrs.get("branch", "master")
-        if branch != "master":
+        branch = attrs.get("branch", "main")
+        if branch != "main" and branch != "master":
             d["branch"] = branch
 
         return d

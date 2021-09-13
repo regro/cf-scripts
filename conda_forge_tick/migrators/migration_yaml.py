@@ -10,12 +10,11 @@ import logging
 import random
 
 import networkx as nx
-import ruamel.yaml as yaml
 
 from conda_forge_tick.contexts import FeedstockContext
 from conda_forge_tick.migrators.core import GraphMigrator, MiniMigrator, Migrator
 from conda_forge_tick.xonsh_utils import indir
-from conda_forge_tick.utils import eval_cmd, pluck
+from conda_forge_tick.utils import eval_cmd, pluck, yaml_safe_load, yaml_safe_dump
 from conda_forge_tick.make_graph import get_deps_from_outputs_lut
 from conda_forge_tick.feedstock_parser import PIN_SEP_PAT
 
@@ -151,7 +150,7 @@ class MigrationYaml(GraphMigrator):
         self.cycles = set(chain.from_iterable(cycles or []))
         self.automerge = automerge
         self.conda_forge_yml_patches = conda_forge_yml_patches
-        self.loaded_yaml = yaml.safe_load(self.yaml_contents)
+        self.loaded_yaml = yaml_safe_load(self.yaml_contents)
 
         # auto set the pr_limit for initial things
         number_pred = len(
@@ -224,10 +223,10 @@ class MigrationYaml(GraphMigrator):
             if self.conda_forge_yml_patches is not None:
                 with indir(os.path.join(recipe_dir, "..")):
                     with open("conda-forge.yml") as fp:
-                        cfg = yaml.safe_load(fp.read())
+                        cfg = yaml_safe_load(fp.read())
                     _patch_dict(cfg, self.conda_forge_yml_patches)
                     with open("conda-forge.yml", "w") as fp:
-                        yaml.dump(cfg, fp, default_flow_style=False, indent=2)
+                        yaml_safe_dump(cfg, fp)
                     eval_cmd("git add conda-forge.yml")
 
             with indir(recipe_dir):
@@ -401,7 +400,10 @@ class MigrationYamlCreator(Migrator):
                 self.new_pin_version.replace(".", ""),
             )
             with open(mig_fname, "w") as f:
-                yaml.dump(migration_yaml_dict, f, default_flow_style=False, indent=2)
+                yaml_safe_dump(
+                    migration_yaml_dict,
+                    f,
+                )
             eval_cmd("git add .")
 
         return super().migrate(recipe_dir, attrs)

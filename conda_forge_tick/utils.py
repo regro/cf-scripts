@@ -24,6 +24,7 @@ from wurlitzer import sys_pipes
 import github3
 import jinja2
 import boto3
+import ruamel.yaml
 
 import networkx as nx
 
@@ -69,6 +70,18 @@ CB_CONFIG_PINNING = dict(
     cran_mirror="https://cran.r-project.org",
     datetime=datetime,
 )
+
+
+def yaml_safe_load(stream):
+    """Load a yaml doc safely"""
+    return ruamel.yaml.YAML(typ="safe", pure=True).load(stream)
+
+
+def yaml_safe_dump(data, stream=None):
+    """Dump a yaml object"""
+    yaml = ruamel.yaml.YAML(typ="safe", pure=True)
+    yaml.default_flow_style = False
+    return yaml.dump(data, stream=stream)
 
 
 def render_meta_yaml(text: str, for_pinning=False, **kwargs) -> str:

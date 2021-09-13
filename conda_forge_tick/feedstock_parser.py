@@ -122,16 +122,25 @@ def _extract_requirements(meta_yaml):
 
 
 def _fetch_static_repo(name, dest):
-    r = requests.get(
-        f"https://github.com/conda-forge/{name}-feedstock/archive/master.zip",
-    )
+    found_branch = None
+    for branch in ["master", "main"]:
+        try:
+            r = requests.get(
+                f"https://github.com/conda-forge/{name}-feedstock/archive/{branch}.zip",
+            )
+            r.raise_for_status()
+            found_branch = branch
+            break
+        except Exception:
+            pass
+
     if r.status_code != 200:
         LOGGER.error(
             f"Something odd happened when fetching feedstock {name}: {r.status_code}",
         )
         return r
 
-    zname = os.path.join(dest, f"{name}-feedstock-master.zip")
+    zname = os.path.join(dest, f"{name}-feedstock-{found_branch}.zip")
 
     with open(zname, "wb") as fp:
         fp.write(r.content)
@@ -172,7 +181,7 @@ def populate_feedstock_attributes(
     If the return is bad hand the response itself in so that it can be parsed
     for meaning.
     """
-    sub_graph.update({"feedstock_name": name, "bad": False, "branch": "master"})
+    sub_graph.update({"feedstock_name": name, "bad": False, "branch": "main"})
 
     if mark_not_archived:
         sub_graph.update({"archived": False})

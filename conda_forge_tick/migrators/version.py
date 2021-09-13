@@ -848,4 +848,4 @@ class Version(Migrator):
             List if valid branches for this migration.
         """
         # make sure this is always a string
-        return [str(attrs.get("branch", "master"))]
+        return [str(attrs.get("branch", "main"))]

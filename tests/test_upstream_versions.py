@@ -1,4 +1,5 @@
 import pytest
+from flaky import flaky
 
 from conda.models.version import VersionOrder
 from conda_forge_tick.update_upstream_versions import get_latest_version
@@ -351,6 +352,7 @@ def test_latest_version_npm(
     "name, inp, curr_ver, ver, source, urls",
     latest_url_rawurl_test_list,
 )
+@flaky
 def test_latest_version_rawurl(name, inp, curr_ver, ver, source, urls, tmpdir):
     pmy = LazyJson(tmpdir.join("cf-scripts-test.json"))
     pmy.update(parse_meta_yaml(inp)["source"])

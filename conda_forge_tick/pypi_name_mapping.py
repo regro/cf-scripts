@@ -90,7 +90,8 @@ def _imports_to_canonical_import(
     1. If you have at least 4 imports and they follow a structure like
         'a', 'a.b', 'a.b.c', 'a.b.d'
         this is treated as a namespace package with a canonical import of `a.b`
-    2. If you have fewer imports but they have a prefix that is found in KNOWN_NAMESPACE_PACKAGES
+    2. If you have fewer imports but they have a prefix that is found in
+        KNOWN_NAMESPACE_PACKAGES
         you are also treated as a namespace package
     3. Otherwise return the commonprefix
 
@@ -170,7 +171,8 @@ def extract_pypi_information(cf_graph: str) -> List[Dict[str, str]]:
 def convert_to_grayskull_style_yaml(
     package_mappings: Iterable[Dict[str, str]],
 ) -> Dict[str, Dict[str, str]]:
-    """Convert our list style mapping to the pypi-centric version required by grayskull"""
+    """Convert our list style mapping to the pypi-centric version
+    required by grayskull"""
     mismatch = [
         x
         for x in package_mappings
@@ -214,7 +216,8 @@ def determine_best_matches_for_pypi_import(
     try:
         clobberers = loads(
             requests.get(
-                "https://raw.githubusercontent.com/regro/libcfgraph/master/clobbering_pkgs.json",
+                "https://raw.githubusercontent.com/regro/libcfgraph/master/"
+                "clobbering_pkgs.json",
             ).text,
         )
     except Exception as e:

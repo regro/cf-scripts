@@ -40,7 +40,6 @@ from conda_build.variants import parse_config_file
 from urllib.error import URLError
 
 import github3
-import ruamel.yaml as yaml
 from uuid import uuid4
 
 from conda_forge_tick.xonsh_utils import indir, env
@@ -67,6 +66,7 @@ from conda_forge_tick.utils import (
     eval_cmd,
     sanitize_string,
     frozen_to_json_friendly,
+    yaml_safe_load,
 )
 from conda_forge_tick.migrators.arch import OSXArm
 from conda_forge_tick.migrators.migration_yaml import (
@@ -121,7 +121,7 @@ def run(
     pull_request: bool = True,
     rerender: bool = True,
     fork: bool = True,
-    base_branch: str = "master",
+    base_branch: str = "main",
     **kwargs: typing.Any,
 ) -> Tuple["MigrationUidTypedDict", dict]:
     """For a given feedstock and migration run the migration
@@ -271,7 +271,7 @@ def run(
 
     if (
         feedstock_ctx.feedstock_name != "conda-forge-pinning"
-        and base_branch == "master"
+        and (base_branch == "master" or base_branch == "main")
         and (
             (
                 migrator.check_solvable
@@ -659,7 +659,7 @@ def migration_factory(
         ),
     )
     for yaml_file, yaml_contents in migration_yamls:
-        loaded_yaml = yaml.safe_load(yaml_contents)
+        loaded_yaml = yaml_safe_load(yaml_contents)
         __mname = os.path.splitext(os.path.basename(yaml_file))[0]
 
         if __mname not in only_keep:
@@ -1090,9 +1090,6 @@ def main(args: "CLIArgs") -> None:
 
         for node_name in possible_nodes:
             with mctx.graph.nodes[node_name]["payload"] as attrs:
-                base_branches = migrator.get_possible_feedstock_branches(attrs)
-                orig_branch = attrs.get("branch", "master")
-
                 # Don't let CI timeout, break ahead of the timeout so we make certain
                 # to write to the repo
                 # TODO: convert these env vars
@@ -1107,11 +1104,23 @@ def main(args: "CLIArgs") -> None:
                 ):
                     break
 
+                base_branches = migrator.get_possible_feedstock_branches(attrs)
+                if "branch" in attrs:
+                    has_attrs_branch = True
+                    orig_branch = attrs.get("branch")
+                else:
+                    has_attrs_branch = False
+                    orig_branch = None
+
                 fctx = FeedstockContext(
                     package_name=node_name,
                     feedstock_name=attrs["feedstock_name"],
                     attrs=attrs,
                 )
+                # map main to current default branch
+                base_branches = [
+                    br if br != "main" else fctx.default_branch for br in base_branches
+                ]
 
                 try:
                     for base_branch in base_branches:
@@ -1228,7 +1237,8 @@ def main(args: "CLIArgs") -> None:
                                 good_prs += 1
                 finally:
                     # reset branch
-                    attrs["branch"] = orig_branch
+                    if has_attrs_branch:
+                        attrs["branch"] = orig_branch
 
                     # Write graph partially through
                     if not args.dry_run:
