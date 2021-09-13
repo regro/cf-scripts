@@ -309,7 +309,7 @@ def _sync_default_branches(reponame, forked_user):
                     "Authorization": f"token {env['PASSWORD']}",
                     "Content-Type": "application/json",
                     "Accept": "application/vnd.github.v3+json",
-                }
+                },
             )
             if r.status_code != 404:
                 r.raise_for_status()
