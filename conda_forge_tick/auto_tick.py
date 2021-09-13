@@ -54,6 +54,7 @@ from conda_forge_tick.git_utils import (
     push_repo,
     is_github_api_limit_reached,
     comment_on_pr,
+    get_default_branch,
 )
 from conda_forge_tick.utils import (
     setup_logger,
@@ -1117,6 +1118,7 @@ def main(args: "CLIArgs") -> None:
                     feedstock_name=attrs["feedstock_name"],
                     attrs=attrs,
                 )
+
                 # map main to current default branch
                 base_branches = [
                     br if br != "main" else fctx.default_branch for br in base_branches

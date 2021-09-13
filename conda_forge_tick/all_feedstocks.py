@@ -17,6 +17,7 @@ def get_all_feedstocks_from_github():
     org = gh.get_organization("conda-forge")
     archived = set()
     not_archived = set()
+    default_branches = {}
     repos = org.get_repos(type="public")
     for r in tqdm.tqdm(repos, total=org.public_repos, desc="getting all feedstocks"):
         if r.name.endswith("-feedstock"):
@@ -31,7 +32,13 @@ def get_all_feedstocks_from_github():
             else:
                 not_archived.add(name[: -len("-feedstock")])
 
-    return {"active": sorted(list(not_archived)), "archived": sorted(list(archived))}
+            default_branches[name[: -len("-feedstock")]] = r.default_branch
+
+    return {
+        "active": sorted(list(not_archived)),
+        "archived": sorted(list(archived)),
+        "default_branches": default_branches,
+    }
 
 
 def get_all_feedstocks(cached: bool = False) -> List[str]:
