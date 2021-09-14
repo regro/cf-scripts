@@ -6,6 +6,7 @@ import jinja2
 import collections.abc
 import hashlib
 import pprint
+import functools
 import random
 import traceback
 from typing import (
@@ -818,19 +819,41 @@ class Version(Migrator):
         graph: nx.DiGraph,
         total_graph: nx.DiGraph,
     ) -> Sequence["PackageName"]:
-        def _get_attemps(node):
+        def _get_attemps_nr(node):
             with graph.nodes[node]["payload"] as attrs:
                 new_version = attrs.get("new_version", "")
                 attempts = attrs.get("new_version_attempts", {}).get(new_version, 0)
-            # eventually we randomly sort the rest, but at first new things
-            # get priority
             return min(attempts, 3)
+
+        def _get_attemps_r(node, seen):
+            seen |= {node}
+            attempts = _get_attemps_nr(node)
+            for d in nx.descendants(graph, node):
+                if d not in seen:
+                    attempts = min(attempts, _get_attemps_r(d, seen))
+            return attempts
+
+        @functools.lru_cache(maxsize=1024)
+        def _get_attemps(node):
+            seen = set()
+            return _get_attemps_r(node, seen)
+
+        def _desc_cmp(node1, node2):
+            if node1 in nx.descendants(graph, node2):
+                return 1
+            elif node2 in nx.descendants(graph, node1):
+                return -1
+            else:
+                return 0
 
         random.seed()
         nodes_to_sort = list(graph.nodes)
         return sorted(
-            sorted(nodes_to_sort, key=lambda x: random.uniform(0, 1)),
-            key=_get_attemps,
+            sorted(
+                sorted(nodes_to_sort, key=lambda x: random.uniform(0, 1)),
+                key=_get_attemps,
+            ),
+            key=functools.cmp_to_key(_desc_cmp),
         )
 
     def get_possible_feedstock_branches(self, attrs: "AttrsTypedDict") -> List[str]:
