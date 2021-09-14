@@ -54,7 +54,6 @@ from conda_forge_tick.git_utils import (
     push_repo,
     is_github_api_limit_reached,
     comment_on_pr,
-    get_default_branch,
 )
 from conda_forge_tick.utils import (
     setup_logger,
