@@ -61,7 +61,7 @@ api.Context().channel_priority = api.ChannelPriority.kStrict
 
 # these characters are start requirements that do not need to be munged from
 # 1.1 to 1.1.*
-REQ_START = ["!=", "==", ">", "<", ">=", "<="]
+REQ_START = ["!=", "==", ">", "<", ">=", "<=", "~="]
 
 
 def _munge_req_star(req):
