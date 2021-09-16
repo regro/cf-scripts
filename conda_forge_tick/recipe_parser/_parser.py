@@ -435,7 +435,7 @@ class CondaMetaYAML:
             if BAD_MULTILINE_STRING_WITH_SELECTOR.match(line):
                 raise RuntimeError(
                     "Could not parse meta.yaml due to multiline string '|' paired "
-                    "with a conda build selector! (offending line: '%s')" % line
+                    "with a conda build selector! (offending line: '%s')" % line,
                 )
 
         # remove multiline jinja2 statements

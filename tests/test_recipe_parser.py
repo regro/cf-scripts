@@ -1273,4 +1273,7 @@ extra:
 
     with pytest.raises(RuntimeError) as e:
         CondaMetaYAML(recipe)
-    assert "|                                                           # [not win]" in str(e.value)  # noqa
+    assert (
+        "|                                                           # [not win]"
+        in str(e.value)
+    )
