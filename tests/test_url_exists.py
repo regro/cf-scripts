@@ -59,7 +59,7 @@ def delay_rerun(*args):
 def test_url_exists(url, exists):
     # sourceforge seems slow enough to time out in our tests?
     if "sourceforge" in url:
-        kwargs = dict(timeout=5)
+        kwargs = dict(timeout=10)
     else:
         kwargs = {}
     assert url_exists(url, **kwargs) is exists
