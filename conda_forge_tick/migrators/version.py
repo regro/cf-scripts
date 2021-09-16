@@ -830,7 +830,7 @@ class Version(Migrator):
             attempts = _get_attemps_nr(node)
             for d in nx.descendants(graph, node):
                 if d not in seen:
-                    attempts = min(attempts, _get_attemps_r(d, seen))
+                    attempts = max(attempts, _get_attemps_r(d, seen))
             return attempts
 
         @functools.lru_cache(maxsize=1024)
