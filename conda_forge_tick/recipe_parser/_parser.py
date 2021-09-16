@@ -31,6 +31,9 @@ MUNGED_LINE_RE = re.compile(r"^(\s*-?\s*)([^\s:]*)" + CONDA_SELECTOR + r"([^:]*)
 # this regex matches any line with a selector
 SELECTOR_RE = re.compile(r"^.*#\s*\[(.*)\]")
 
+# this one matches bad yaml syntax with a selector on a multiline string start
+BAD_MULTILINE_STRING_WITH_SELECTOR = re.compile(r"[^|#]*\|\s+#")
+
 
 def _get_yaml_parser():
     """yaml parser that is jinja2 aware"""
@@ -428,6 +431,13 @@ class CondaMetaYAML:
     """
 
     def __init__(self, meta_yaml: str):
+        for line in meta_yaml.splitlines():
+            if BAD_MULTILINE_STRING_WITH_SELECTOR.match(line):
+                raise RuntimeError(
+                    "Could not parse meta.yaml due to multiline string '|' paired "
+                    "with a conda build selector! (offending line: '%s')" % line
+                )
+
         # remove multiline jinja2 statements
         lines = list(io.StringIO(meta_yaml).readlines())
         lines = _munge_multiline_jinja2(lines)

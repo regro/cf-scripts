@@ -166,7 +166,6 @@ class MigrationYaml(GraphMigrator):
         elif number_pred < 7:
             self.pr_limit = 5
         self.bump_number = bump_number
-        print(self.yaml_contents)
 
     def filter(self, attrs: "AttrsTypedDict", not_bad_str_start: str = "") -> bool:
         wait_for_migrators = self.loaded_yaml.get("__migrator", {}).get(

@@ -2,6 +2,7 @@ import copy
 import glob
 import json
 import re
+import sys
 
 import time
 import traceback
@@ -619,7 +620,8 @@ def add_rebuild_migration_yaml(
         ],
         **config,
     )
-    print(f"bump number is {migrator.bump_number}\n", flush=True)
+    print(f"migration yaml:\n {migration_yaml}", flush=True)
+    print(f"bump number: {migrator.bump_number}\n", flush=True)
     migrators.append(migrator)
 
 
@@ -1130,6 +1132,8 @@ def main(args: "CLIArgs") -> None:
                             continue
 
                         print("\n", flush=True, end="")
+                        sys.stderr.flush()
+                        sys.stdout.flush()
                         LOGGER.info(
                             "%s%s IS MIGRATING %s:%s",
                             migrator.__class__.__name__.upper(),
