@@ -833,3 +833,447 @@ extra:
     cm.dump(s)
     s.seek(0)
     assert meta_yaml_notok != s.read()
+
+
+def test_recipe_parses_fftw():
+    recipe = """\
+{% set version = "3.3.9" %}
+{% set build = 1 %}
+
+
+# ensure mpi is defined (needed for conda-smithy recipe-lint)
+{% set mpi = mpi or 'nompi' %}
+
+package:
+  name: fftw
+  version: {{ version }}
+
+source:
+  fn: fftw-{{ version }}.tar.gz
+  url: http://www.fftw.org/fftw-{{ version }}.tar.gz
+  sha256: bf2c7ce40b04ae811af714deb512510cc2c17b9ab9d6ddcf49fe4487eea7af3d
+
+build:
+  # prioritize nompi variant via build number
+  {% if mpi == 'nompi' %}
+  {% set build = build + 100 %}
+  {% endif %}
+  number: {{ build }}
+
+  # add build string so packages can depend on
+  # mpi or nompi variants explicitly:
+  # `pkg * mpi_mpich_*` for mpich
+  # `pkg * mpi_*` for any mpi
+  # `pkg * nompi_*` for no mpi
+  {% if mpi != 'nompi' %}
+  {% set mpi_prefix = "mpi_" + mpi %}
+  {% else %}
+  {% set mpi_prefix = "nompi" %}
+  {% endif %}
+  string: "{{ mpi_prefix }}_h{{ PKG_HASH }}_{{ build }}"
+
+  run_exports:
+    - {{ pin_compatible('fftw', max_pin='x') }}
+  {% if mpi != 'nompi' %}
+    - fftw * {{ mpi_prefix }}_*
+  {% endif %}
+
+requirements:
+  build:
+    - perl 5.*  # [not win]
+    - cmake  # [win]
+    - {{ compiler('c') }}
+    - {{ compiler('fortran') }}  # [not win]
+    - llvm-openmp >=4.0.1  # [osx]
+    - make      # [unix]
+    - autoconf  # [unix]
+    - automake  # [unix]
+    - gettext   # [unix]
+    - m4        # [unix]
+    - libtool   # [unix]
+    - {{ mpi }}  # [build_platform != target_platform and mpi == 'openmpi']
+  host:
+    - {{ mpi }}  # [mpi != 'nompi']
+    - llvm-openmp >=4.0.1  # [osx]
+  run:
+    - llvm-openmp >=4.0.1  # [osx]
+
+test:
+  requires:
+    - python
+  commands:
+    # Verify library contains Fortran symbols
+    - strings ${PREFIX}/lib/libfftw3.a | grep -q dfftw || exit 1  # [not win]
+
+    # Verify existence of library files
+    - test -f ${PREFIX}/lib/libfftw3f.a || exit 1           # [not win]
+    - test -f ${PREFIX}/lib/libfftw3.a || exit 1            # [not win]
+    - test -f ${PREFIX}/lib/libfftw3l.a || exit 1           # [not win]
+    - test -f ${PREFIX}/lib/libfftw3f_threads.a || exit 1   # [not win]
+    - test -f ${PREFIX}/lib/libfftw3_threads.a || exit 1    # [not win]
+    - test -f ${PREFIX}/lib/libfftw3l_threads.a || exit 1   # [not win]
+    - test -f ${PREFIX}/lib/libfftw3f_omp.a || exit 1       # [not win]
+    - test -f ${PREFIX}/lib/libfftw3_omp.a || exit 1        # [not win]
+    - test -f ${PREFIX}/lib/libfftw3l_omp.a || exit 1       # [not win]
+
+    # Verify headers are installed
+    - test -f ${PREFIX}/include/fftw3.h || exit 1           # [not win]
+    - if not exist %LIBRARY_INC%\\fftw3.h exit 1            # [win]
+
+    # Verify shared libraries are installed
+    {% set fftw_libs = [
+            "libfftw3",
+            "libfftw3_threads",
+            "libfftw3f",
+            "libfftw3f_threads",
+            "libfftw3l",
+            "libfftw3l_threads",
+    ] %}
+    {% set fftw_omp_libs = [
+            "libfftw3_omp",
+            "libfftw3f_omp",
+            "libfftw3l_omp",
+    ] %}
+    {% set fftw_mpi_libs = [
+            "libfftw3_mpi",
+            "libfftw3f_mpi",
+            "libfftw3l_mpi",
+    ] %}
+
+    {% for lib in fftw_libs %}
+    - python -c "import ctypes; ctypes.cdll[r'${PREFIX}/lib/{{ lib }}${SHLIB_EXT}']"  # [unix]
+    {% endfor %}
+
+    {% for lib in fftw_omp_libs %}
+    - python -c "import ctypes; ctypes.cdll[r'${PREFIX}/lib/{{ lib }}${SHLIB_EXT}']"  # [unix]
+    {% endfor %}
+
+    {% if mpi != 'nompi' %}
+    {% for lib in fftw_mpi_libs %}
+    # you need to link to the mpi libs to load the dll, so we just test
+    # if it exists
+    - test -f ${PREFIX}/lib/{{ lib }}${SHLIB_EXT} || exit 1  # [unix]
+    {% endfor %}
+    {% endif %}
+
+    {% set fftw_libs = ["fftw3f", "fftw3"] %}
+
+    {% for base in fftw_libs %}
+    - if not exist %LIBRARY_LIB%\\{{ base }}.lib exit 1  # [win]
+    - if not exist %LIBRARY_BIN%\\{{ base }}.dll exit 1  # [win]
+    {% endfor %}
+
+about:
+  home: http://fftw.org
+  license: GPL-2.0-or-later
+  license_file: COPYING
+  summary: "The fastest Fourier transform in the west."
+
+extra:
+  recipe-maintainers:
+    - alexbw
+    - jakirkham
+    - grlee77
+    - jschueller
+    - egpbos
+"""  # noqa
+
+    recipe_parsed = """\
+{% set version = "3.3.9" %}
+{% set build = 1 %}
+
+
+# ensure mpi is defined (needed for conda-smithy recipe-lint)
+{% set mpi = mpi or 'nompi' %}
+
+package:
+  name: fftw
+  version: {{ version }}
+
+source:
+  fn: fftw-{{ version }}.tar.gz
+  url: http://www.fftw.org/fftw-{{ version }}.tar.gz
+  sha256: bf2c7ce40b04ae811af714deb512510cc2c17b9ab9d6ddcf49fe4487eea7af3d
+
+build:
+  # prioritize nompi variant via build number
+  {% if mpi == 'nompi' %}
+  {% set build = build + 100 %}
+  {% endif %}
+  number: {{ build }}
+
+  # add build string so packages can depend on
+  # mpi or nompi variants explicitly:
+  # `pkg * mpi_mpich_*` for mpich
+  # `pkg * mpi_*` for any mpi
+  # `pkg * nompi_*` for no mpi
+  {% if mpi != 'nompi' %}
+  {% set mpi_prefix = "mpi_" + mpi %}
+  {% else %}
+  {% set mpi_prefix = "nompi" %}
+  {% endif %}
+  string: {{ mpi_prefix }}_h{{ PKG_HASH }}_{{ build }}
+
+  run_exports:
+    - {{ pin_compatible('fftw', max_pin='x') }}
+  {% if mpi != 'nompi' %}
+    - fftw * {{ mpi_prefix }}_*
+  {% endif %}
+
+requirements:
+  build:
+    - perl 5.*  # [not win]
+    - cmake  # [win]
+    - {{ compiler('c') }}
+    - {{ compiler('fortran') }}  # [not win]
+    - llvm-openmp >=4.0.1  # [osx]
+    - make      # [unix]
+    - autoconf  # [unix]
+    - automake  # [unix]
+    - gettext   # [unix]
+    - m4        # [unix]
+    - libtool   # [unix]
+    - {{ mpi }}  # [build_platform != target_platform and mpi == 'openmpi']
+  host:
+    - {{ mpi }}  # [mpi != 'nompi']
+    - llvm-openmp >=4.0.1  # [osx]
+  run:
+    - llvm-openmp >=4.0.1  # [osx]
+
+test:
+  requires:
+    - python
+  commands:
+    # Verify library contains Fortran symbols
+    - strings ${PREFIX}/lib/libfftw3.a | grep -q dfftw || exit 1  # [not win]
+
+    # Verify existence of library files
+    - test -f ${PREFIX}/lib/libfftw3f.a || exit 1           # [not win]
+    - test -f ${PREFIX}/lib/libfftw3.a || exit 1            # [not win]
+    - test -f ${PREFIX}/lib/libfftw3l.a || exit 1           # [not win]
+    - test -f ${PREFIX}/lib/libfftw3f_threads.a || exit 1   # [not win]
+    - test -f ${PREFIX}/lib/libfftw3_threads.a || exit 1    # [not win]
+    - test -f ${PREFIX}/lib/libfftw3l_threads.a || exit 1   # [not win]
+    - test -f ${PREFIX}/lib/libfftw3f_omp.a || exit 1       # [not win]
+    - test -f ${PREFIX}/lib/libfftw3_omp.a || exit 1        # [not win]
+    - test -f ${PREFIX}/lib/libfftw3l_omp.a || exit 1       # [not win]
+
+    # Verify headers are installed
+    - test -f ${PREFIX}/include/fftw3.h || exit 1           # [not win]
+    - if not exist %LIBRARY_INC%\\fftw3.h exit 1            # [win]
+
+    # Verify shared libraries are installed
+    {% set fftw_libs = [
+            "libfftw3",
+            "libfftw3_threads",
+            "libfftw3f",
+            "libfftw3f_threads",
+            "libfftw3l",
+            "libfftw3l_threads",
+    ] %}
+    {% set fftw_omp_libs = [
+            "libfftw3_omp",
+            "libfftw3f_omp",
+            "libfftw3l_omp",
+    ] %}
+    {% set fftw_mpi_libs = [
+            "libfftw3_mpi",
+            "libfftw3f_mpi",
+            "libfftw3l_mpi",
+    ] %}
+
+    {% for lib in fftw_libs %}
+    - python -c "import ctypes; ctypes.cdll[r'${PREFIX}/lib/{{ lib }}${SHLIB_EXT}']"  # [unix]
+    {% endfor %}
+
+    {% for lib in fftw_omp_libs %}
+    - python -c "import ctypes; ctypes.cdll[r'${PREFIX}/lib/{{ lib }}${SHLIB_EXT}']"  # [unix]
+    {% endfor %}
+
+    {% if mpi != 'nompi' %}
+    {% for lib in fftw_mpi_libs %}
+    # you need to link to the mpi libs to load the dll, so we just test
+    # if it exists
+    - test -f ${PREFIX}/lib/{{ lib }}${SHLIB_EXT} || exit 1  # [unix]
+    {% endfor %}
+    {% endif %}
+
+    {% set fftw_libs = ["fftw3f", "fftw3"] %}
+
+    {% for base in fftw_libs %}
+    - if not exist %LIBRARY_LIB%\\{{ base }}.lib exit 1  # [win]
+    - if not exist %LIBRARY_BIN%\\{{ base }}.dll exit 1  # [win]
+    {% endfor %}
+
+about:
+  home: http://fftw.org
+  license: GPL-2.0-or-later
+  license_file: COPYING
+  summary: The fastest Fourier transform in the west.
+
+extra:
+  recipe-maintainers:
+    - alexbw
+    - jakirkham
+    - grlee77
+    - jschueller
+    - egpbos
+"""  # noqa
+
+    cm = CondaMetaYAML(recipe)
+    s = io.StringIO()
+    cm.dump(s)
+    s.seek(0)
+    assert s.read() == recipe_parsed
+
+
+def test_recipe_parses_fftw_raises():
+    recipe = """\
+{% set version = "3.3.9" %}
+{% set build = 1 %}
+
+
+# ensure mpi is defined (needed for conda-smithy recipe-lint)
+{% set mpi = mpi or 'nompi' %}
+
+package:
+  name: fftw
+  version: {{ version }}
+
+source:
+  fn: fftw-{{ version }}.tar.gz
+  url: http://www.fftw.org/fftw-{{ version }}.tar.gz
+  sha256: bf2c7ce40b04ae811af714deb512510cc2c17b9ab9d6ddcf49fe4487eea7af3d
+
+build:
+  # prioritize nompi variant via build number
+  {% if mpi == 'nompi' %}
+  {% set build = build + 100 %}
+  {% endif %}
+  number: {{ build }}
+
+  # add build string so packages can depend on
+  # mpi or nompi variants explicitly:
+  # `pkg * mpi_mpich_*` for mpich
+  # `pkg * mpi_*` for any mpi
+  # `pkg * nompi_*` for no mpi
+  {% if mpi != 'nompi' %}
+  {% set mpi_prefix = "mpi_" + mpi %}
+  {% else %}
+  {% set mpi_prefix = "nompi" %}
+  {% endif %}
+  string: "{{ mpi_prefix }}_h{{ PKG_HASH }}_{{ build }}"
+
+  run_exports:
+    - {{ pin_compatible('fftw', max_pin='x') }}
+  {% if mpi != 'nompi' %}
+    - fftw * {{ mpi_prefix }}_*
+  {% endif %}
+
+requirements:
+  build:
+    - perl 5.*  # [not win]
+    - cmake  # [win]
+    - {{ compiler('c') }}
+    - {{ compiler('fortran') }}  # [not win]
+    - llvm-openmp >=4.0.1  # [osx]
+    - make      # [unix]
+    - autoconf  # [unix]
+    - automake  # [unix]
+    - gettext   # [unix]
+    - m4        # [unix]
+    - libtool   # [unix]
+    - {{ mpi }}  # [build_platform != target_platform and mpi == 'openmpi']
+  host:
+    - {{ mpi }}  # [mpi != 'nompi']
+    - llvm-openmp >=4.0.1  # [osx]
+  run:
+    - llvm-openmp >=4.0.1  # [osx]
+
+test:
+  requires:
+    - python
+  commands:
+    # Verify library contains Fortran symbols
+    - |                                                           # [not win]
+      strings ${PREFIX}/lib/libfftw3.a | grep -q dfftw || exit 1  # [not win]
+
+    # Verify existence of library files
+    - test -f ${PREFIX}/lib/libfftw3f.a || exit 1           # [not win]
+    - test -f ${PREFIX}/lib/libfftw3.a || exit 1            # [not win]
+    - test -f ${PREFIX}/lib/libfftw3l.a || exit 1           # [not win]
+    - test -f ${PREFIX}/lib/libfftw3f_threads.a || exit 1   # [not win]
+    - test -f ${PREFIX}/lib/libfftw3_threads.a || exit 1    # [not win]
+    - test -f ${PREFIX}/lib/libfftw3l_threads.a || exit 1   # [not win]
+    - test -f ${PREFIX}/lib/libfftw3f_omp.a || exit 1       # [not win]
+    - test -f ${PREFIX}/lib/libfftw3_omp.a || exit 1        # [not win]
+    - test -f ${PREFIX}/lib/libfftw3l_omp.a || exit 1       # [not win]
+
+    # Verify headers are installed
+    - test -f ${PREFIX}/include/fftw3.h || exit 1           # [not win]
+    - if not exist %LIBRARY_INC%\\fftw3.h exit 1            # [win]
+
+    # Verify shared libraries are installed
+    {% set fftw_libs = [
+            "libfftw3",
+            "libfftw3_threads",
+            "libfftw3f",
+            "libfftw3f_threads",
+            "libfftw3l",
+            "libfftw3l_threads",
+    ] %}
+    {% set fftw_omp_libs = [
+            "libfftw3_omp",
+            "libfftw3f_omp",
+            "libfftw3l_omp",
+    ] %}
+    {% set fftw_mpi_libs = [
+            "libfftw3_mpi",
+            "libfftw3f_mpi",
+            "libfftw3l_mpi",
+    ] %}
+
+    {% for lib in fftw_libs %}
+    - python -c "import ctypes; ctypes.cdll[r'${PREFIX}/lib/{{ lib }}${SHLIB_EXT}']"  # [unix]
+    {% endfor %}
+
+    {% for lib in fftw_omp_libs %}
+    - python -c "import ctypes; ctypes.cdll[r'${PREFIX}/lib/{{ lib }}${SHLIB_EXT}']"  # [unix]
+    {% endfor %}
+
+    {% if mpi != 'nompi' %}
+    {% for lib in fftw_mpi_libs %}
+    # you need to link to the mpi libs to load the dll, so we just test
+    # if it exists
+    - test -f ${PREFIX}/lib/{{ lib }}${SHLIB_EXT} || exit 1  # [unix]
+    {% endfor %}
+    {% endif %}
+
+    {% set fftw_libs = ["fftw3f", "fftw3"] %}
+
+    {% for base in fftw_libs %}
+    - if not exist %LIBRARY_LIB%\\{{ base }}.lib exit 1  # [win]
+    - if not exist %LIBRARY_BIN%\\{{ base }}.dll exit 1  # [win]
+    {% endfor %}
+
+about:
+  home: http://fftw.org
+  license: GPL-2.0-or-later
+  license_file: COPYING
+  summary: "The fastest Fourier transform in the west."
+
+extra:
+  recipe-maintainers:
+    - alexbw
+    - jakirkham
+    - grlee77
+    - jschueller
+    - egpbos
+"""  # noqa
+
+    with pytest.raises(RuntimeError) as e:
+        CondaMetaYAML(recipe)
+    assert (
+        "|                                                           # [not win]"
+        in str(e.value)
+    )
