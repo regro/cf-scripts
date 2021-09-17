@@ -819,6 +819,19 @@ class Version(Migrator):
         graph: nx.DiGraph,
         total_graph: nx.DiGraph,
     ) -> Sequence["PackageName"]:
+        @functools.lru_cache(maxsize=1024)
+        def _has_solver_checks(node):
+            with graph.nodes[node]["payload"] as attrs:
+                return (
+                    attrs["conda-forge.yml"]
+                    .get("bot", {})
+                    .get(
+                        "check_solvable",
+                        False,
+                    )
+                )
+
+        @functools.lru_cache(maxsize=1024)
         def _get_attemps_nr(node):
             with graph.nodes[node]["payload"] as attrs:
                 new_version = attrs.get("new_version", "")
@@ -835,14 +848,20 @@ class Version(Migrator):
 
         @functools.lru_cache(maxsize=1024)
         def _get_attemps(node):
-            seen = set()
-            return _get_attemps_r(node, seen)
+            if _has_solver_checks(node):
+                seen = set()
+                return _get_attemps_r(node, seen)
+            else:
+                return _get_attemps_nr(node)
 
         def _desc_cmp(node1, node2):
-            if node1 in nx.descendants(graph, node2):
-                return 1
-            elif node2 in nx.descendants(graph, node1):
-                return -1
+            if _has_solver_checks(node1) and _has_solver_checks(node2):
+                if node1 in nx.descendants(graph, node2):
+                    return 1
+                elif node2 in nx.descendants(graph, node1):
+                    return -1
+                else:
+                    return 0
             else:
                 return 0
 
