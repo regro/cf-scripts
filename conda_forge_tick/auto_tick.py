@@ -953,8 +953,7 @@ def _compute_time_per_migrator(mctx, migrators):
                     )
                     if _attempts < 3:
                         _num_nodes += 1
-            if _num_nodes == 0:
-                _num_nodes = 1  # will get the minimum time
+            _num_nodes = max(_num_nodes, min(PR_LIMIT*4,  mmctx.effective_graph.nodes))
             num_nodes.append(_num_nodes)
         else:
             num_nodes.append(len(mmctx.effective_graph.nodes))
