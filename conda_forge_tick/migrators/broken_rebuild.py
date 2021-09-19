@@ -297,8 +297,8 @@ def split_pkg(pkg):
         raise RuntimeError("Can only process packages that end in .tar.bz2")
     pkg = pkg[:-8]
     plat, pkg_name = pkg.split("/")
-    name_ver, build = pkg_name.rsplit('-', 1)
-    name, ver = name_ver.rsplit('-', 1)
+    name_ver, build = pkg_name.rsplit("-", 1)
+    name, ver = name_ver.rsplit("-", 1)
     return plat, name, ver, build
 
 
@@ -326,13 +326,11 @@ class RebuildBroken(Migrator):
         super().__init__(pr_limit, check_solvable=False)
         self.name = "rebuild-broken"
 
-        outputs_to_migrate = set([
-            split_pkg(pkg)[1] for pkg in BROKEN_PACKAGES
-        ])
+        outputs_to_migrate = {split_pkg(pkg)[1] for pkg in BROKEN_PACKAGES}
         self.feedstocks_to_migrate = set()
         for output in outputs_to_migrate:
             for fs in outputs_lut.get(output, {output}):
-                self.feedstocks_to_migrate |= set([fs])
+                self.feedstocks_to_migrate |= {fs}
 
     def order(
         self,
@@ -359,9 +357,7 @@ class RebuildBroken(Migrator):
             or attrs["feedstock_name"] not in self.feedstocks_to_migrate
         )
 
-    def migrate(
-        self, recipe_dir, attrs, **kwargs
-    ):
+    def migrate(self, recipe_dir, attrs, **kwargs):
         return super().migrate(recipe_dir, attrs)
 
     def pr_body(self, feedstock_ctx) -> str:
@@ -370,7 +366,7 @@ class RebuildBroken(Migrator):
             """\
 One or more outputs of this feedstock were marked broken due a security
 issue with Travis-CI. Please Merge this PR to rebuild the packages from this
-feedstock. Thank you!"""
+feedstock. Thank you!""",
         )
         return body
 
