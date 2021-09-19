@@ -27,3 +27,4 @@ from .cross_compile import (
 from .duplicate_lines import DuplicateLinesCleanup
 from .cos7 import Cos7Config
 from .pip_wheel_dep import PipWheelMigrator
+from .broken_rebuild import RebuildBroken
