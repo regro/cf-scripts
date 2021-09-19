@@ -96,6 +96,7 @@ from conda_forge_tick.migrators import (
     DuplicateLinesCleanup,
     Cos7Config,
     PipWheelMigrator,
+    RebuildBroken,
 )
 
 from conda_forge_tick.mamba_solver import is_recipe_solvable
@@ -418,6 +419,18 @@ def _host_run_test_dependencies(meta_yaml: "MetaYamlTypedDict") -> Set["PackageN
     _ = meta_yaml["requirements"]
     rq = (_["host"] or _["build"]) | _["run"] | _["test"]
     return typing.cast("Set[PackageName]", rq)
+
+
+def add_rebuild_broken_migrator(
+    migrators: MutableSequence[Migrator],
+    gx: nx.DiGraph,
+):
+    migrators.append(
+        RebuildBroken(
+            outputs_lut=gx.graph["outputs_lut"],
+            pr_limit=PR_LIMIT,
+        ),
+    )
 
 
 def add_replacement_migrator(
@@ -869,6 +882,7 @@ def initialize_migrators(
 
     migrators = []
 
+    add_rebuild_broken_migrator(migrators, gx)
     add_arch_migrate(migrators, gx)
     migration_factory(migrators, gx)
     add_replacement_migrator(
