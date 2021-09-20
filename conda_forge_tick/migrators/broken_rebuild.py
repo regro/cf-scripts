@@ -303,9 +303,9 @@ def split_pkg(pkg):
 
 
 class RebuildBroken(Migrator):
-    migrator_version = 1
+    migrator_version = 2
     rerender = False
-    bump_number = 0
+    bump_number = 1
     allow_empty_commits = True
 
     """Migrator for rebuilding packages marked as broken.
