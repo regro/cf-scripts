@@ -225,6 +225,12 @@ def run(
                 "could not commit to feedstock - "
                 "likely no changes - error is '%s'" % (repr(e)),
             )
+            # we bail here if we do not plan to rerender and we wanted an empty
+            # commit
+            # this prevents PRs that don't actually get made from getting marked as done
+            if migrator.allow_empty_commits and not rerender:
+                raise e
+
         if rerender:
             head_ref = eval_cmd("git rev-parse HEAD").strip()
             LOGGER.info("Rerendering the feedstock")
