@@ -217,7 +217,7 @@ def run(
         try:
             eval_cmd("git add --all .")
             if migrator.allow_empty_commits:
-                eval_cmd(f"git commit --allow-empthy -am '{msg}'")
+                eval_cmd(f"git commit --allow-empty -am '{msg}'")
             else:
                 eval_cmd(f"git commit -am '{msg}'")
         except CalledProcessError as e:
