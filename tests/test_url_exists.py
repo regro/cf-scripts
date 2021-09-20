@@ -46,9 +46,10 @@ def delay_rerun(*args):
             "https://github.com/Kitware/CMake/releases/download/v3.19.4435784/cmake-3.19.4435784.tar.gz",  # noqa
             False,
         ),
-        (
+        pytest.param(
             "ftp://ftp.info-zip.org/pub/infozip/src/zip30.tgz",
             True,
+            marks=pytest.mark.xfail(reason="sometimes this fails"),
         ),
         (
             "ftp://ftp.info-zip.org/pub/infozip/src/zip33879130.tgz",

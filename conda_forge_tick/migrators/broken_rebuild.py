@@ -303,7 +303,7 @@ def split_pkg(pkg):
 
 
 class RebuildBroken(Migrator):
-    migrator_version = 0
+    migrator_version = 1
     rerender = False
     bump_number = 0
     allow_empty_commits = True
