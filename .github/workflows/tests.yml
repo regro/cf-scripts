@@ -44,7 +44,7 @@ jobs:
           export TEST_PASSWORD_VAL=unpassword
           export PASSWORD=${TEST_PASSWORD_VAL}
           # coverage run run_tests.py --log-cli-level=DEBUG -x -vs
-          pytest --cov=conda_forge_tick -n 4 tests
+          pytest --cov=conda_forge_tick --cov=tests --cov-config=.coveragerc -n 4 tests
           # coverage run run_tests.py
           # coverage report -m
           codecov -X gcov
