@@ -114,6 +114,8 @@ class Migrator:
     # bump this if the migrator object needs a change mid migration
     migrator_version = 0
 
+    allow_empty_commits = False
+
     build_patterns = (
         (re.compile(r"(\s*?)number:\s*([0-9]+)"), "number: {}"),
         (

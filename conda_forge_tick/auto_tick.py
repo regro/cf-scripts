@@ -97,6 +97,7 @@ from conda_forge_tick.migrators import (
     Cos7Config,
     PipWheelMigrator,
     RebuildBroken,
+    GraphMigrator,
 )
 
 from conda_forge_tick.mamba_solver import is_recipe_solvable
@@ -215,7 +216,10 @@ def run(
         msg = migrator.commit_message(feedstock_ctx)  # noqa
         try:
             eval_cmd("git add --all .")
-            eval_cmd(f"git commit -am '{msg}'")
+            if migrator.allow_empty_commits:
+                eval_cmd(f"git commit --allow-empthy -am '{msg}'")
+            else:
+                eval_cmd(f"git commit -am '{msg}'")
         except CalledProcessError as e:
             LOGGER.info(
                 "could not commit to feedstock - "
@@ -896,11 +900,12 @@ def initialize_migrators(
     create_migration_yaml_creator(migrators=migrators, gx=gx)
     print("rebuild migration graph sizes:", flush=True)
     for m in migrators:
-        print(
-            f'    {getattr(m, "name", m)} graph size: '
-            f'{len(getattr(m, "graph", []))}',
-            flush=True,
-        )
+        if isinstance(m, GraphMigrator):
+            print(
+                f'    {getattr(m, "name", m)} graph size: '
+                f'{len(getattr(m, "graph", []))}',
+                flush=True,
+            )
     print(" ", flush=True)
 
     mctx = MigratorSessionContext(
@@ -967,7 +972,10 @@ def _compute_time_per_migrator(mctx, migrators):
                     )
                     if _attempts < 3:
                         _num_nodes += 1
-            _num_nodes = max(_num_nodes, min(PR_LIMIT * 4, len(mmctx.effective_graph.nodes)))
+            _num_nodes = max(
+                _num_nodes,
+                min(PR_LIMIT * 4, len(mmctx.effective_graph.nodes)),
+            )
             num_nodes.append(_num_nodes)
         else:
             num_nodes.append(len(mmctx.effective_graph.nodes))

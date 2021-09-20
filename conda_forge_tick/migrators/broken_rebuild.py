@@ -306,6 +306,7 @@ class RebuildBroken(Migrator):
     migrator_version = 0
     rerender = False
     bump_number = 0
+    allow_empty_commits = False
 
     """Migrator for rebuilding packages marked as broken.
 
