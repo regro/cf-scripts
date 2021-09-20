@@ -8,3 +8,4 @@ scipy
 pre-commit
 pip
 flaky
+pytest-xdist

@@ -3,7 +3,7 @@ import sys
 import pytest
 
 if __name__ == "__main__":
-    args = ["-v", "tests"]
+    args = ["-v", "tests", "-n", "2"]
     if len(sys.argv) > 1:
         args.extend(sys.argv[1:])
     print(f"pytest arguments: {args}")
