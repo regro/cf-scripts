@@ -324,7 +324,7 @@ class RebuildBroken(Migrator):
         outputs_lut,
         pr_limit: int = 0,
     ):
-        super().__init__(pr_limit, check_solvable=False)
+        super().__init__(1, check_solvable=False)
         self.name = "rebuild-broken"
 
         outputs_to_migrate = {split_pkg(pkg)[1] for pkg in BROKEN_PACKAGES}
