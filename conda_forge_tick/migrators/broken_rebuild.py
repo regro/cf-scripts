@@ -303,10 +303,9 @@ def split_pkg(pkg):
 
 
 class RebuildBroken(Migrator):
-    migrator_version = 2
+    migrator_version = 3
     rerender = False
     bump_number = 1
-    allow_empty_commits = True
 
     """Migrator for rebuilding packages marked as broken.
 
@@ -359,6 +358,7 @@ class RebuildBroken(Migrator):
         )
 
     def migrate(self, recipe_dir, attrs, **kwargs):
+        self.set_build_number(os.path.join(recipe_dir, "meta.yaml"))
         return super().migrate(recipe_dir, attrs)
 
     def pr_body(self, feedstock_ctx) -> str:
