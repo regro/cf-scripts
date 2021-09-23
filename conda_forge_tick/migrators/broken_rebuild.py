@@ -1,5 +1,8 @@
-from conda_forge_tick.migrators.core import Migrator
+import os
+
 import networkx as nx
+
+from conda_forge_tick.migrators.core import Migrator
 
 
 BROKEN_PACKAGES = """\
