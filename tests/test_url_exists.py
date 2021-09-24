@@ -34,9 +34,10 @@ def delay_rerun(*args):
             "http://spams-devel.gforge.inria.fr/hitcounter2.php?file/38351/spams-2.34832948372903465.tar.gz",  # noqa
             False,
         ),
-        (
+        pytest.param(
             "http://spams-devel.gforge.inria.fr/hitcounter2.php?file=37237/spams-python-v2.6.1-svn2017-12-08.tar.gz",  # noqa
             True,
+            marks=pytest.mark.xfail(reason="sourceforge changed something"),
         ),
         (
             "https://github.com/Kitware/CMake/releases/download/v3.19.4/cmake-3.19.4.tar.gz",  # noqa
