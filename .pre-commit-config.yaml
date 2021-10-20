@@ -4,11 +4,16 @@ repos:
     hooks:
       - id: end-of-file-fixer
       - id: trailing-whitespace
-  - repo: https://github.com/psf/black
-    rev: 21.9b0
+  - repo: local
     hooks:
     - id: black
-      language_version: python3
+      name: black
+      entry: black
+      additional_dependencies:
+        - black
+      language: conda
+      types:
+        - python
   - repo: https://github.com/asottile/pyupgrade
     rev: v2.29.0
     hooks:
@@ -25,6 +30,7 @@ repos:
       - id: codespell
         args:
           - --ignore-words-list=rever,pring,pullrequest,pullrequests
+          - --exclude-file=.codespellignorelines
   # - repo: https://gitlab.com/pycqa/flake8
   #   rev: 3.8.4
   #   hooks:
