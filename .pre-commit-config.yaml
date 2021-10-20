@@ -10,6 +10,9 @@ repos:
       name: black
       entry: black --line-length 88
       additional_dependencies:
+        - --override-channels
+        - --channel
+        - conda-forge
         - black=21.9b0
       language: conda
       types:
