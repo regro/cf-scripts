@@ -8,9 +8,9 @@ repos:
     hooks:
     - id: black
       name: black
-      entry: black
+      entry: black --line-length 88
       additional_dependencies:
-        - black
+        - black=21.9b0
       language: conda
       types:
         - python
