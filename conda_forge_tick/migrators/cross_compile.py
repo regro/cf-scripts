@@ -377,7 +377,7 @@ class CrossCompilationForARMAndPower(MiniMigrator):
             if not os.path.exists("../conda-forge.yml"):
                 return
 
-            with open("../conda-forge.yml", "r") as f:
+            with open("../conda-forge.yml") as f:
                 config = yaml_safe_load(f)
 
             build_platform = config.get("build_platform")
@@ -405,10 +405,13 @@ class CrossCompilationForARMAndPower(MiniMigrator):
             new_guard_line = 'if [[ "${CONDA_BUILD_CROSS_COMPILATION:-}" != "1" || "${CROSSCOMPILING_EMULATOR}" != "" ]]; then\n'
             for i, line in enumerate(lines):
                 if (
-                    (line.strip().startswith("make check")
-                     or line.strip().startswith("ctest")
-                     or line.strip().startswith("make test"))
-                    and i > 0 and lines[i - 1] in old_guard_lines
+                    (
+                        line.strip().startswith("make check")
+                        or line.strip().startswith("ctest")
+                        or line.strip().startswith("make test")
+                    )
+                    and i > 0
+                    and lines[i - 1] in old_guard_lines
                 ):
                     lines[i - 1] = new_guard_line
                     break
