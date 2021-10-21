@@ -98,6 +98,7 @@ from conda_forge_tick.migrators import (
     PipWheelMigrator,
     RebuildBroken,
     GraphMigrator,
+    CrossCompilationForARMAndPower,
 )
 
 from conda_forge_tick.mamba_solver import is_recipe_solvable
@@ -640,6 +641,7 @@ def add_rebuild_migration_yaml(
             Build2HostMigrator(),
             NoCondaInspectMigrator(),
             Cos7Config(),
+            CrossCompilationForARMAndPower(),
         ],
         **config,
     )
