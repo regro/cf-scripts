@@ -264,6 +264,7 @@ def clone_and_checkout_repo(base_path: pathlib.Path, origin_url: str, ref: str):
     return str(base_path / "repo")
 
 
+@flaky
 def test_arrow_solvable(tmp_path):
     feedstock_dir = clone_and_checkout_repo(
         tmp_path,
@@ -275,6 +276,8 @@ def test_arrow_solvable(tmp_path):
     assert solvable
 
 
+@pytest.mark.xfail()
+@flaky
 def test_guiqwt_solvable(tmp_path):
     """test for run exports as a single string in pyqt"""
     feedstock_dir = clone_and_checkout_repo(
@@ -300,6 +303,7 @@ def test_datalad_solvable(tmp_path):
     assert solvable
 
 
+@flaky
 def test_grpcio_solvable(tmp_path):
     """grpcio has a runtime dep on openssl which has strange pinning things in it"""
     feedstock_dir = clone_and_checkout_repo(
