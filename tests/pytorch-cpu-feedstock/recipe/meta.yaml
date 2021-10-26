@@ -16,7 +16,7 @@ source:
     # we should try to upstream again on the next version
     - cpp_extension.patch
     # It is unclear that upstream will allow us to integrate the
-    # shared linker path bellow until their intel compiler issues
+    # shared linker path below until their intel compiler issues
     # are resolved.
     - remove_shared_linker_flag_override.patch
     - nccl_socket.patch

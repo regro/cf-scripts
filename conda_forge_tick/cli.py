@@ -223,7 +223,7 @@ def main(*args, **kwargs):
             )
             func(args)
 
-        print("FINISHED STAGE {} IN {} SECONDS".format(script, time.time() - start))
+        print(f"FINISHED STAGE {script} IN {time.time() - start} SECONDS")
 
     else:
         raise RuntimeError("Unknown script number")
