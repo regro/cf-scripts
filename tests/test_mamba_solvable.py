@@ -276,6 +276,7 @@ def test_arrow_solvable(tmp_path):
     assert solvable
 
 
+@pytest.mark.xfail()
 @flaky
 def test_guiqwt_solvable(tmp_path):
     """test for run exports as a single string in pyqt"""
