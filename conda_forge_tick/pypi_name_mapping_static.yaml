@@ -71,3 +71,7 @@
 - pypi_name: torch
   import_name: torch
   conda_name: pytorch
+
+- pypi_name: typing-extensions
+  import_name: typing_extensions
+  conda_name: typing_extensions
