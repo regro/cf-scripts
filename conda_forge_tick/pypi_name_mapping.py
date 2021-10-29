@@ -230,10 +230,26 @@ def determine_best_matches_for_pypi_import(
     # whilst authorities are packages with many edges to them.
     hubs, authorities = networkx.hits_scipy(gx)
 
+    mapping_src_weights = {
+        "static": 1,
+        "regro-bot": 2,
+        "other": 3,
+    }
+
     def _score(conda_name, conda_name_is_feedstock_name=True, pkg_clobbers=False):
+        """A higher score means less preferred"""
+        mapping_src = map_by_conda_name.get(conda_name, {}).get(
+            "mapping_source",
+            "other",
+        )
+        mapping_src_weight = mapping_src_weights.get(mapping_src, 99)
         return (
+            # prefer static mapped packages over inferred
+            mapping_src_weight,
             int(pkg_clobbers),
+            # A higher hub score means more centrality in the graph
             -hubs.get(conda_name, 0),
+            # A lower authority score means fewer dependencies
             authorities.get(conda_name, 0),
             # prefer pkgs that match feedstocks
             -int(conda_name_is_feedstock_name),

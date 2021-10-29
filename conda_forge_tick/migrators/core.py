@@ -46,7 +46,7 @@ def _sanitized_muids(pred: List[dict]) -> List["JsonFriendly"]:
 
 
 def _parse_bad_attr(attrs: "AttrsTypedDict", not_bad_str_start: str) -> bool:
-    """Overlook some bad entries """
+    """Overlook some bad entries"""
     bad = attrs.get("bad", False)
     if isinstance(bad, str):
         return not bad.startswith(not_bad_str_start)
