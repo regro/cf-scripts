@@ -321,7 +321,7 @@ class MigrationYaml(GraphMigrator):
         else:
             migrator_name = self.__class__.__name__.lower()
 
-        def _has_error(node):
+        def _not_has_error(node):
             if migrator_name in total_graph.nodes[node]["payload"].get(
                 "pre_pr_migrator_status",
                 {},
@@ -333,9 +333,9 @@ class MigrationYaml(GraphMigrator):
         return sorted(
             graph,
             key=lambda x: (
-                _has_error(x),
+                _not_has_error(x),
                 random.uniform(0, 1)
-                if _has_error(x)
+                if not _not_has_error(x)
                 else len(nx.descendants(total_graph, x)),
                 x,
             ),
