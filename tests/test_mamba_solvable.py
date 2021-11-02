@@ -394,6 +394,7 @@ def test_norm_spec(inreq, outreq):
     assert _norm_spec(inreq) == outreq
 
 
+@flaky
 def test_virtual_package(feedstock_dir, tmp_path_factory):
     recipe_file = os.path.join(feedstock_dir, "recipe", "meta.yaml")
     os.makedirs(os.path.dirname(recipe_file), exist_ok=True)
