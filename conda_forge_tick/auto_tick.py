@@ -562,7 +562,7 @@ def add_rebuild_migration_yaml(
     package_names: Sequence[str],
     output_to_feedstock: Mapping[str, str],
     excluded_feedstocks: MutableSet[str],
-    exclude_pinned_pkgs: bool
+    exclude_pinned_pkgs: bool,
     migration_yaml: str,
     config: dict = {},
     migration_name: str = "",
