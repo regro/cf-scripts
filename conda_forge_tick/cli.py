@@ -52,7 +52,7 @@ def main(*args, **kwargs):
     if script in INT_SCRIPT_DICT or script == -1:
         start = time.time()
         if script == -1:
-            deploy(args)
+            deploy(dry_run=args.dry_run)
         else:
             script_md = INT_SCRIPT_DICT[script]
             func = getattr(
