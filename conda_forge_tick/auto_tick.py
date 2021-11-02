@@ -709,7 +709,7 @@ def migration_factory(
             package_names = (
                 set(loaded_yaml) | {ly.replace("_", "-") for ly in loaded_yaml}
             ) & all_package_names
-        exclude_pinned_pkgs = migrator_config.get("exclude_pinned_pkgs", False)
+        exclude_pinned_pkgs = migrator_config.get("exclude_pinned_pkgs", True)
 
         if not paused:
             add_rebuild_migration_yaml(
