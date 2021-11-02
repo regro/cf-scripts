@@ -517,13 +517,15 @@ def create_rebuild_graph(
     gx: nx.DiGraph,
     package_names: Sequence[str],
     excluded_feedstocks: MutableSet[str] = None,
+    exclude_pinned_pkgs: bool = True,
     include_noarch: bool = False,
 ) -> nx.DiGraph:
     total_graph = copy.deepcopy(gx)
     excluded_feedstocks = set() if excluded_feedstocks is None else excluded_feedstocks
-    # Always exclude the packages themselves from the migration
-    for node in package_names:
-        excluded_feedstocks.update(gx.graph["outputs_lut"].get(node, {node}))
+    # Exclude the packages themselves from the migration
+    if exclude_pinned_pkgs:
+        for node in package_names:
+            excluded_feedstocks.update(gx.graph["outputs_lut"].get(node, {node}))
 
     included_nodes = set()
 

@@ -562,6 +562,7 @@ def add_rebuild_migration_yaml(
     package_names: Sequence[str],
     output_to_feedstock: Mapping[str, str],
     excluded_feedstocks: MutableSet[str],
+    exclude_pinned_pkgs: bool
     migration_yaml: str,
     config: dict = {},
     migration_name: str = "",
@@ -581,6 +582,8 @@ def add_rebuild_migration_yaml(
         Mapping of output name to feedstock name
     excluded_feedstocks : set of str
         Feedstock names which should never be included in the migration
+    exclude_pinned_pkgs : bool
+        Whether pinned packages should be excluded from the migration
     migration_yaml : str
         The raw yaml for the migration variant dict
     config: dict
@@ -595,6 +598,7 @@ def add_rebuild_migration_yaml(
         gx,
         package_names,
         excluded_feedstocks,
+        exlcude_pinned_pkgs=exclude_pinned_pkgs,
         include_noarch=config.get("include_noarch", False),
     )
 
@@ -705,6 +709,7 @@ def migration_factory(
             package_names = (
                 set(loaded_yaml) | {ly.replace("_", "-") for ly in loaded_yaml}
             ) & all_package_names
+        exclude_pinned_pkgs = migrator_config.get("exclude_pinned_pkgs", False)
 
         if not paused:
             add_rebuild_migration_yaml(
@@ -713,6 +718,7 @@ def migration_factory(
                 package_names=list(package_names),
                 output_to_feedstock=output_to_feedstock,
                 excluded_feedstocks=excluded_feedstocks,
+                exclude_pinned_pkgs=exclude_pinned_pkgs,
                 migration_yaml=yaml_contents,
                 migration_name=os.path.splitext(yaml_file)[0],
                 config=migrator_config,
