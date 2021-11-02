@@ -598,7 +598,7 @@ def add_rebuild_migration_yaml(
         gx,
         package_names,
         excluded_feedstocks,
-        exlcude_pinned_pkgs=exclude_pinned_pkgs,
+        exclude_pinned_pkgs=exclude_pinned_pkgs,
         include_noarch=config.get("include_noarch", False),
     )
 
