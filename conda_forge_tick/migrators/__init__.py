@@ -23,6 +23,7 @@ from .cross_compile import (
     CrossRBaseMigrator,
     Build2HostMigrator,
     NoCondaInspectMigrator,
+    CrossCompilationForARMAndPower,
 )
 from .duplicate_lines import DuplicateLinesCleanup
 from .cos7 import Cos7Config
