@@ -1320,7 +1320,10 @@ def main(args: "CLIArgs") -> None:
             args.dry_run,
         )
         if good_prs > 0:
-            deploy(dry_run=args.dry_run)
+            pass
+            # this has been causing issues with bad deploys
+            # turning off for now
+            # deploy(dry_run=args.dry_run)
 
         print("\n", flush=True)
 
