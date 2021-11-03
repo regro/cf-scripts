@@ -3,6 +3,7 @@ import glob
 import json
 import re
 import sys
+import gc
 
 import time
 import traceback
@@ -102,6 +103,9 @@ from conda_forge_tick.migrators import (
 )
 
 from conda_forge_tick.mamba_solver import is_recipe_solvable
+
+from conda_forge_tick.deploy import deploy
+
 
 LOGGER = logging.getLogger("conda_forge_tick.auto_tick")
 
@@ -294,12 +298,6 @@ def run(
                 # we always let stuff at the top go
                 and feedstock_ctx.attrs["name"]
                 not in getattr(migrator, "top_level", set())
-                # for solveability always assume automerge is on.
-                and (
-                    feedstock_ctx.attrs["conda-forge.yml"]
-                    .get("bot", {})
-                    .get("automerge", True)
-                )
             )
             or feedstock_ctx.attrs["conda-forge.yml"]
             .get("bot", {})
@@ -566,6 +564,7 @@ def add_rebuild_migration_yaml(
     package_names: Sequence[str],
     output_to_feedstock: Mapping[str, str],
     excluded_feedstocks: MutableSet[str],
+    exclude_pinned_pkgs: bool,
     migration_yaml: str,
     config: dict = {},
     migration_name: str = "",
@@ -585,6 +584,8 @@ def add_rebuild_migration_yaml(
         Mapping of output name to feedstock name
     excluded_feedstocks : set of str
         Feedstock names which should never be included in the migration
+    exclude_pinned_pkgs : bool
+        Whether pinned packages should be excluded from the migration
     migration_yaml : str
         The raw yaml for the migration variant dict
     config: dict
@@ -599,6 +600,7 @@ def add_rebuild_migration_yaml(
         gx,
         package_names,
         excluded_feedstocks,
+        exclude_pinned_pkgs=exclude_pinned_pkgs,
         include_noarch=config.get("include_noarch", False),
     )
 
@@ -710,6 +712,7 @@ def migration_factory(
             package_names = (
                 set(loaded_yaml) | {ly.replace("_", "-") for ly in loaded_yaml}
             ) & all_package_names
+        exclude_pinned_pkgs = migrator_config.get("exclude_pinned_pkgs", True)
 
         if not paused:
             add_rebuild_migration_yaml(
@@ -718,6 +721,7 @@ def migration_factory(
                 package_names=list(package_names),
                 output_to_feedstock=output_to_feedstock,
                 excluded_feedstocks=excluded_feedstocks,
+                exclude_pinned_pkgs=exclude_pinned_pkgs,
                 migration_yaml=yaml_contents,
                 migration_name=os.path.splitext(yaml_file)[0],
                 config=migrator_config,
@@ -1017,8 +1021,247 @@ def _compute_time_per_migrator(mctx, migrators):
     return num_nodes, time_per_migrator, tot_time_per_migrator
 
 
+def _run_migrator(migrator, mctx, temp, time_per, dry_run):
+    if hasattr(migrator, "name"):
+        assert isinstance(migrator.name, str)
+        migrator_name = migrator.name.lower().replace(" ", "")
+    else:
+        migrator_name = migrator.__class__.__name__.lower()
+
+    mmctx = MigratorContext(session=mctx, migrator=migrator)
+    migrator.bind_to_ctx(mmctx)
+
+    good_prs = 0
+    _mg_start = time.time()
+    effective_graph = mmctx.effective_graph
+
+    if hasattr(migrator, "name"):
+        extra_name = "-%s" % migrator.name
+    else:
+        extra_name = ""
+
+    print(
+        "Running migrations for %s%s: %d\n"
+        % (
+            migrator.__class__.__name__,
+            extra_name,
+            len(effective_graph.nodes),
+        ),
+        flush=True,
+    )
+
+    possible_nodes = list(migrator.order(effective_graph, mctx.graph))
+
+    # version debugging info
+    if isinstance(migrator, Version):
+        LOGGER.info("possible version migrations:")
+        for node_name in possible_nodes:
+            with effective_graph.nodes[node_name]["payload"] as attrs:
+                LOGGER.info(
+                    "    node|curr|new|attempts: %s|%s|%s|%f",
+                    node_name,
+                    attrs.get("version"),
+                    attrs.get("new_version"),
+                    (
+                        attrs.get("new_version_attempts", {}).get(
+                            attrs.get("new_version", ""),
+                            0,
+                        )
+                    ),
+                )
+
+    for node_name in possible_nodes:
+        with mctx.graph.nodes[node_name]["payload"] as attrs:
+            # Don't let CI timeout, break ahead of the timeout so we make certain
+            # to write to the repo
+            # TODO: convert these env vars
+            _now = time.time()
+            if (
+                (
+                    _now - int(env.get("START_TIME", time.time()))
+                    > int(env.get("TIMEOUT", 600))
+                )
+                or good_prs >= migrator.pr_limit
+                or (_now - _mg_start) > time_per
+            ):
+                break
+
+            base_branches = migrator.get_possible_feedstock_branches(attrs)
+            if "branch" in attrs:
+                has_attrs_branch = True
+                orig_branch = attrs.get("branch")
+            else:
+                has_attrs_branch = False
+                orig_branch = None
+
+            fctx = FeedstockContext(
+                package_name=node_name,
+                feedstock_name=attrs["feedstock_name"],
+                attrs=attrs,
+            )
+
+            # map main to current default branch
+            base_branches = [
+                br if br != "main" else fctx.default_branch for br in base_branches
+            ]
+
+            try:
+                for base_branch in base_branches:
+                    attrs["branch"] = base_branch
+                    if migrator.filter(attrs):
+                        continue
+
+                    print("\n", flush=True, end="")
+                    sys.stderr.flush()
+                    sys.stdout.flush()
+                    LOGGER.info(
+                        "%s%s IS MIGRATING %s:%s",
+                        migrator.__class__.__name__.upper(),
+                        extra_name,
+                        fctx.package_name,
+                        base_branch,
+                    )
+                    try:
+                        # Don't bother running if we are at zero
+                        if mctx.gh_api_requests_left == 0:
+                            break
+                        migrator_uid, pr_json = run(
+                            feedstock_ctx=fctx,
+                            migrator=migrator,
+                            rerender=migrator.rerender,
+                            protocol="https",
+                            hash_type=attrs.get("hash_type", "sha256"),
+                            base_branch=base_branch,
+                        )
+                        # if migration successful
+                        if migrator_uid:
+                            d = frozen_to_json_friendly(migrator_uid)
+                            # if we have the PR already do nothing
+                            if d["data"] in [
+                                existing_pr["data"]
+                                for existing_pr in attrs.get("PRed", [])
+                            ]:
+                                pass
+                            else:
+                                if not pr_json:
+                                    pr_json = {
+                                        "state": "closed",
+                                        "head": {"ref": "<this_is_not_a_branch>"},
+                                    }
+                                d["PR"] = pr_json
+                                attrs.setdefault("PRed", []).append(d)
+                            attrs.update(
+                                {
+                                    "smithy_version": mctx.smithy_version,
+                                    "pinning_version": mctx.pinning_version,
+                                },
+                            )
+
+                    except github3.GitHubError as e:
+                        if e.msg == "Repository was archived so is read-only.":
+                            attrs["archived"] = True
+                        else:
+                            LOGGER.critical(
+                                "GITHUB ERROR ON FEEDSTOCK: %s",
+                                fctx.feedstock_name,
+                            )
+                            if is_github_api_limit_reached(e, mctx.gh):
+                                break
+                    except URLError as e:
+                        LOGGER.exception("URLError ERROR")
+                        attrs["bad"] = {
+                            "exception": str(e),
+                            "traceback": str(traceback.format_exc()).split("\n"),
+                            "code": getattr(e, "code"),
+                            "url": getattr(e, "url"),
+                        }
+
+                        pre_key = "pre_pr_migrator_status"
+                        if pre_key not in attrs:
+                            attrs[pre_key] = {}
+                        attrs[pre_key][migrator_name] = sanitize_string(
+                            "bot error (%s): %s: %s"
+                            % (
+                                '<a href="'
+                                + os.getenv("CIRCLE_BUILD_URL", "")
+                                + '">bot CI job</a>',
+                                base_branch,
+                                str(traceback.format_exc()),
+                            ),
+                        )
+                    except Exception as e:
+                        LOGGER.exception("NON GITHUB ERROR")
+                        # we don't set bad for rerendering errors
+                        if (
+                            "conda smithy rerender -c auto --no-check-uptodate"
+                            not in str(e)
+                        ):
+                            attrs["bad"] = {
+                                "exception": str(e),
+                                "traceback": str(traceback.format_exc()).split(
+                                    "\n",
+                                ),
+                            }
+
+                        pre_key = "pre_pr_migrator_status"
+                        if pre_key not in attrs:
+                            attrs[pre_key] = {}
+                        attrs[pre_key][migrator_name] = sanitize_string(
+                            "bot error (%s): %s: %s"
+                            % (
+                                '<a href="'
+                                + os.getenv("CIRCLE_BUILD_URL", "")
+                                + '">bot CI job</a>',
+                                base_branch,
+                                str(traceback.format_exc()),
+                            ),
+                        )
+                    else:
+                        if migrator_uid:
+                            # On successful PR add to our counter
+                            good_prs += 1
+            finally:
+                # reset branch
+                if has_attrs_branch:
+                    attrs["branch"] = orig_branch
+
+                # do this but it is crazy
+                gc.collect()
+
+                # Write graph partially through
+                if not dry_run:
+                    dump_graph(mctx.graph)
+
+                eval_cmd(f"rm -rf {mctx.rever_dir}/*")
+                LOGGER.info(os.getcwd())
+                for f in glob.glob("/tmp/*"):
+                    if f not in temp:
+                        try:
+                            eval_cmd(f"rm -rf {f}")
+                        except Exception:
+                            pass
+
+            if mctx.gh_api_requests_left == 0:
+                break
+
+    return good_prs
+
+
+def _setup_limits():
+    import resource
+
+    if "MEMORY_LIMIT_GB" in os.environ:
+        limit_gb = float(os.environ["MEMORY_LIMIT_GB"])
+        limit = limit_gb * 1e9
+        limit_int = int(int(limit) * 0.95)
+        print(f"limit read as {limit/1e9} GB")
+        print(f"Setting memory limit to {limit_int//1e9} GB")
+        resource.setrlimit(resource.RLIMIT_AS, (limit_int, limit_int))
+
+
 # @profiling
 def main(args: "CLIArgs") -> None:
+    _setup_limits()
 
     # logging
     if args.debug:
@@ -1062,25 +1305,6 @@ def main(args: "CLIArgs") -> None:
         )
 
     for mg_ind, migrator in enumerate(migrators):
-        if hasattr(migrator, "name"):
-            assert isinstance(migrator.name, str)
-            migrator_name = migrator.name.lower().replace(" ", "")
-        else:
-            migrator_name = migrator.__class__.__name__.lower()
-
-        mmctx = MigratorContext(session=mctx, migrator=migrator)
-        migrator.bind_to_ctx(mmctx)
-
-        good_prs = 0
-        _mg_start = time.time()
-        effective_graph = mmctx.effective_graph
-        time_per = time_per_migrator[mg_ind]
-
-        if hasattr(migrator, "name"):
-            extra_name = "-%s" % migrator.name
-        else:
-            extra_name = ""
-
         print(
             "\n========================================"
             "========================================"
@@ -1089,206 +1313,19 @@ def main(args: "CLIArgs") -> None:
             "========================================",
             flush=True,
         )
-        print(
-            "Running migrations for %s%s: %d\n"
-            % (
-                migrator.__class__.__name__,
-                extra_name,
-                len(effective_graph.nodes),
-            ),
-            flush=True,
+
+        good_prs = _run_migrator(
+            migrator,
+            mctx,
+            temp,
+            time_per_migrator[mg_ind],
+            args.dry_run,
         )
-
-        possible_nodes = list(migrator.order(effective_graph, mctx.graph))
-
-        # version debugging info
-        if isinstance(migrator, Version):
-            LOGGER.info("possible version migrations:")
-            for node_name in possible_nodes:
-                with effective_graph.nodes[node_name]["payload"] as attrs:
-                    LOGGER.info(
-                        "    node|curr|new|attempts: %s|%s|%s|%f",
-                        node_name,
-                        attrs.get("version"),
-                        attrs.get("new_version"),
-                        (
-                            attrs.get("new_version_attempts", {}).get(
-                                attrs.get("new_version", ""),
-                                0,
-                            )
-                        ),
-                    )
-
-        for node_name in possible_nodes:
-            with mctx.graph.nodes[node_name]["payload"] as attrs:
-                # Don't let CI timeout, break ahead of the timeout so we make certain
-                # to write to the repo
-                # TODO: convert these env vars
-                _now = time.time()
-                if (
-                    (
-                        _now - int(env.get("START_TIME", time.time()))
-                        > int(env.get("TIMEOUT", 600))
-                    )
-                    or good_prs >= migrator.pr_limit
-                    or (_now - _mg_start) > time_per
-                ):
-                    break
-
-                base_branches = migrator.get_possible_feedstock_branches(attrs)
-                if "branch" in attrs:
-                    has_attrs_branch = True
-                    orig_branch = attrs.get("branch")
-                else:
-                    has_attrs_branch = False
-                    orig_branch = None
-
-                fctx = FeedstockContext(
-                    package_name=node_name,
-                    feedstock_name=attrs["feedstock_name"],
-                    attrs=attrs,
-                )
-
-                # map main to current default branch
-                base_branches = [
-                    br if br != "main" else fctx.default_branch for br in base_branches
-                ]
-
-                try:
-                    for base_branch in base_branches:
-                        attrs["branch"] = base_branch
-                        if migrator.filter(attrs):
-                            continue
-
-                        print("\n", flush=True, end="")
-                        sys.stderr.flush()
-                        sys.stdout.flush()
-                        LOGGER.info(
-                            "%s%s IS MIGRATING %s:%s",
-                            migrator.__class__.__name__.upper(),
-                            extra_name,
-                            fctx.package_name,
-                            base_branch,
-                        )
-                        try:
-                            # Don't bother running if we are at zero
-                            if mctx.gh_api_requests_left == 0:
-                                break
-                            migrator_uid, pr_json = run(
-                                feedstock_ctx=fctx,
-                                migrator=migrator,
-                                rerender=migrator.rerender,
-                                protocol="https",
-                                hash_type=attrs.get("hash_type", "sha256"),
-                                base_branch=base_branch,
-                            )
-                            # if migration successful
-                            if migrator_uid:
-                                d = frozen_to_json_friendly(migrator_uid)
-                                # if we have the PR already do nothing
-                                if d["data"] in [
-                                    existing_pr["data"]
-                                    for existing_pr in attrs.get("PRed", [])
-                                ]:
-                                    pass
-                                else:
-                                    if not pr_json:
-                                        pr_json = {
-                                            "state": "closed",
-                                            "head": {"ref": "<this_is_not_a_branch>"},
-                                        }
-                                    d["PR"] = pr_json
-                                    attrs.setdefault("PRed", []).append(d)
-                                attrs.update(
-                                    {
-                                        "smithy_version": mctx.smithy_version,
-                                        "pinning_version": mctx.pinning_version,
-                                    },
-                                )
-
-                        except github3.GitHubError as e:
-                            if e.msg == "Repository was archived so is read-only.":
-                                attrs["archived"] = True
-                            else:
-                                LOGGER.critical(
-                                    "GITHUB ERROR ON FEEDSTOCK: %s",
-                                    fctx.feedstock_name,
-                                )
-                                if is_github_api_limit_reached(e, mctx.gh):
-                                    break
-                        except URLError as e:
-                            LOGGER.exception("URLError ERROR")
-                            attrs["bad"] = {
-                                "exception": str(e),
-                                "traceback": str(traceback.format_exc()).split("\n"),
-                                "code": getattr(e, "code"),
-                                "url": getattr(e, "url"),
-                            }
-
-                            pre_key = "pre_pr_migrator_status"
-                            if pre_key not in attrs:
-                                attrs[pre_key] = {}
-                            attrs[pre_key][migrator_name] = sanitize_string(
-                                "bot error (%s): %s: %s"
-                                % (
-                                    '<a href="'
-                                    + os.getenv("CIRCLE_BUILD_URL", "")
-                                    + '">bot CI job</a>',
-                                    base_branch,
-                                    str(traceback.format_exc()),
-                                ),
-                            )
-                        except Exception as e:
-                            LOGGER.exception("NON GITHUB ERROR")
-                            # we don't set bad for rerendering errors
-                            if (
-                                "conda smithy rerender -c auto --no-check-uptodate"
-                                not in str(e)
-                            ):
-                                attrs["bad"] = {
-                                    "exception": str(e),
-                                    "traceback": str(traceback.format_exc()).split(
-                                        "\n",
-                                    ),
-                                }
-
-                            pre_key = "pre_pr_migrator_status"
-                            if pre_key not in attrs:
-                                attrs[pre_key] = {}
-                            attrs[pre_key][migrator_name] = sanitize_string(
-                                "bot error (%s): %s: %s"
-                                % (
-                                    '<a href="'
-                                    + os.getenv("CIRCLE_BUILD_URL", "")
-                                    + '">bot CI job</a>',
-                                    base_branch,
-                                    str(traceback.format_exc()),
-                                ),
-                            )
-                        else:
-                            if migrator_uid:
-                                # On successful PR add to our counter
-                                good_prs += 1
-                finally:
-                    # reset branch
-                    if has_attrs_branch:
-                        attrs["branch"] = orig_branch
-
-                    # Write graph partially through
-                    if not args.dry_run:
-                        dump_graph(mctx.graph)
-
-                    eval_cmd(f"rm -rf {mctx.rever_dir}/*")
-                    LOGGER.info(os.getcwd())
-                    for f in glob.glob("/tmp/*"):
-                        if f not in temp:
-                            try:
-                                eval_cmd(f"rm -rf {f}")
-                            except Exception:
-                                pass
-
-                if mctx.gh_api_requests_left == 0:
-                    break
+        if good_prs > 0:
+            pass
+            # this has been causing issues with bad deploys
+            # turning off for now
+            # deploy(dry_run=args.dry_run)
 
         print("\n", flush=True)
 

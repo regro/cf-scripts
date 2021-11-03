@@ -25,6 +25,7 @@ jobs:
           show-channel-urls: true
           miniforge-version: latest
           miniforge-variant: Mambaforge
+          python-version: 3.9
 
       - name: configure conda and install code
         shell: bash -l {0}

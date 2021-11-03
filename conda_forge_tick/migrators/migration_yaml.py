@@ -321,7 +321,7 @@ class MigrationYaml(GraphMigrator):
         else:
             migrator_name = self.__class__.__name__.lower()
 
-        def _has_error(node):
+        def _not_has_error(node):
             if migrator_name in total_graph.nodes[node]["payload"].get(
                 "pre_pr_migrator_status",
                 {},
@@ -333,9 +333,9 @@ class MigrationYaml(GraphMigrator):
         return sorted(
             graph,
             key=lambda x: (
-                _has_error(x),
+                _not_has_error(x),
                 random.uniform(0, 1)
-                if _has_error(x)
+                if not _not_has_error(x)
                 else len(nx.descendants(total_graph, x)),
                 x,
             ),
@@ -517,13 +517,17 @@ def create_rebuild_graph(
     gx: nx.DiGraph,
     package_names: Sequence[str],
     excluded_feedstocks: MutableSet[str] = None,
+    exclude_pinned_pkgs: bool = True,
     include_noarch: bool = False,
 ) -> nx.DiGraph:
     total_graph = copy.deepcopy(gx)
     excluded_feedstocks = set() if excluded_feedstocks is None else excluded_feedstocks
-    # Always exclude the packages themselves from the migration
-    for node in package_names:
-        excluded_feedstocks.update(gx.graph["outputs_lut"].get(node, {node}))
+    # Generally, the packages themselves should be excluded from the migration;
+    # an example for exceptions are migrations for new python versions
+    # where numpy needs to be rebuilt despite being pinned.
+    if exclude_pinned_pkgs:
+        for node in package_names:
+            excluded_feedstocks.update(gx.graph["outputs_lut"].get(node, {node}))
 
     included_nodes = set()
 
