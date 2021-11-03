@@ -1244,12 +1244,13 @@ def _run_migrator(migrator, mctx, temp, time_per, dry_run):
 def _setup_limits():
     import resource
 
-    limit_gb = 7.0
-    limit = limit_gb * 1e9
-    limit_int = int(int(limit) * 0.95)
-    print(f"limit read as {limit/1e9} GB")
-    print(f"Setting memory limit to {limit_int//1e9} GB")
-    resource.setrlimit(resource.RLIMIT_AS, (limit_int, limit_int))
+    if "MEMORY_LIMIT_GB" in os.environ:
+        limit_gb = float(os.environ["MEMORY_LIMIT_GB"])
+        limit = limit_gb * 1e9
+        limit_int = int(int(limit) * 0.95)
+        print(f"limit read as {limit/1e9} GB")
+        print(f"Setting memory limit to {limit_int//1e9} GB")
+        resource.setrlimit(resource.RLIMIT_AS, (limit_int, limit_int))
 
 
 # @profiling
