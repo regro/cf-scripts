@@ -1243,6 +1243,7 @@ def _run_migrator(migrator, mctx, temp, time_per, dry_run):
 
 def _setup_limits():
     import resource
+
     limit_gb = 7.0
     limit = limit_gb * 1e9
     limit_int = int(int(limit) * 0.95)
