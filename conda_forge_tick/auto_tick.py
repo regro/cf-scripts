@@ -3,6 +3,7 @@ import glob
 import json
 import re
 import sys
+import gc
 
 import time
 import traceback
@@ -1221,6 +1222,9 @@ def _run_migrator(migrator, mctx, temp, time_per, dry_run):
                 # reset branch
                 if has_attrs_branch:
                     attrs["branch"] = orig_branch
+
+                # do this but it is crazy
+                gc.collect()
 
                 # Write graph partially through
                 if not dry_run:
