@@ -379,7 +379,7 @@ class CrossCompilationForARMAndPower(MiniMigrator):
         with indir(recipe_dir):
             if not os.path.exists("../conda-forge.yml"):
                 name = attrs.get("feedstock_name")
-                LOGGER.debug(f"no conda-forge.yml for {name}")
+                LOGGER.info(f"no conda-forge.yml for {name}")
                 return
 
             with open("../conda-forge.yml") as f:
@@ -394,7 +394,7 @@ class CrossCompilationForARMAndPower(MiniMigrator):
                         config["build_platform"][arch] = "linux_64"
                 with open("../conda-forge.yml", "w") as f:
                     name = attrs.get("feedstock_name")
-                    LOGGER.debug(f"new conda-forge.yml for {name}:={config}")
+                    LOGGER.info(f"new conda-forge.yml for {name}:={config}")
                     yaml_safe_dump(config, f)
 
             if not os.path.exists("build.sh"):
