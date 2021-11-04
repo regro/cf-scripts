@@ -372,6 +372,9 @@ class CrossRBaseMigrator(CrossCompilationMigratorBase):
 class CrossCompilationForARMAndPower(MiniMigrator):
     post_migration = True
 
+    def filter(self, attrs: "AttrsTypedDict", not_bad_str_start: str = "") -> bool:
+        return False
+
     def migrate(self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any) -> None:
         with indir(recipe_dir):
             if not os.path.exists("../conda-forge.yml"):
