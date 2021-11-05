@@ -378,19 +378,23 @@ class CrossCompilationForARMAndPower(MiniMigrator):
     def migrate(self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any) -> None:
         with indir(recipe_dir):
             if not os.path.exists("../conda-forge.yml"):
+                name = attrs.get("feedstock_name")
+                LOGGER.info(f"no conda-forge.yml for {name}")
                 return
 
             with open("../conda-forge.yml") as f:
                 config = yaml_safe_load(f)
 
-            build_platform = config.get("build_platform")
-            if build_platform is not None:
+            build_platform = config.get("build_platform", {})
+            if build_platform:
                 for arch in ["linux_aarch64", "linux_ppc64le"]:
                     if arch in build_platform:
                         continue
                     if config.get("provider", {}).get(arch) == "default":
                         config["build_platform"][arch] = "linux_64"
                 with open("../conda-forge.yml", "w") as f:
+                    name = attrs.get("feedstock_name")
+                    LOGGER.info(f"new conda-forge.yml for {name}:={config}")
                     yaml_safe_dump(config, f)
 
             if not os.path.exists("build.sh"):
