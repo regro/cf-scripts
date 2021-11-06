@@ -144,10 +144,7 @@ def _reset_pre_pr_migrator_fields(attrs, migrator_name):
     pre_key = "pre_pr_migrator_status"
     pre_key_att = "pre_pr_migrator_attempts"
     for _key in [pre_key, pre_key_att]:
-        if (
-            _key in attrs
-            and migrator_name in attrs[_key]
-        ):
+        if _key in attrs and migrator_name in attrs[_key]:
             attrs[_key].pop(migrator_name)
 
 
