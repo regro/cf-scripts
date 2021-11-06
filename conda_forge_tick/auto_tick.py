@@ -123,6 +123,34 @@ BOT_RERUN_LABEL = {
 }
 
 
+def _set_pre_pr_migrator_fields(attrs, migrator_name, error_str):
+    pre_key = "pre_pr_migrator_status"
+    pre_key_att = "pre_pr_migrator_attempts"
+
+    if pre_key not in attrs:
+        attrs[pre_key] = {}
+    attrs[pre_key][migrator_name] = sanitize_string(
+        error_str,
+    )
+
+    if pre_key_att not in attrs:
+        attrs[pre_key_att] = {}
+    if migrator_name not in attrs[pre_key_att]:
+        attrs[pre_key_att][migrator_name] = 0
+    attrs[pre_key_att][migrator_name] += 1
+
+
+def _reset_pre_pr_migrator_fields(attrs, migrator_name):
+    pre_key = "pre_pr_migrator_status"
+    pre_key_att = "pre_pr_migrator_attempts"
+    for _key in [pre_key, pre_key_att]:
+        if (
+            _key in attrs
+            and migrator_name in attrs[_key]
+        ):
+            attrs[_key].pop(migrator_name)
+
+
 def run(
     feedstock_ctx: FeedstockContext,
     migrator: Migrator,
@@ -315,8 +343,6 @@ def run(
                 None,
             ),
         )
-        pre_key = "pre_pr_migrator_status"
-        pre_key_att = "pre_pr_migrator_attempts"
         if not solvable:
             _solver_err_str = "not solvable ({}): {}: {}".format(
                 ('<a href="' + os.getenv("CIRCLE_BUILD_URL", "") + '">bot CI job</a>'),
@@ -334,27 +360,16 @@ def run(
                 # higher priority
                 feedstock_ctx.attrs["new_version_attempts"][_new_ver] -= 0.8
 
-            if pre_key not in feedstock_ctx.attrs:
-                feedstock_ctx.attrs[pre_key] = {}
-            feedstock_ctx.attrs[pre_key][migrator_name] = sanitize_string(
-                _solver_err_str,
+            _set_pre_pr_migrator_fields(
+                feedstock_ctx.attrs,
+                migrator_name,
+                sanitize_string(_solver_err_str),
             )
-
-            if pre_key_att not in feedstock_ctx.attrs:
-                feedstock_ctx.attrs[pre_key_att] = {}
-            if migrator_name not in feedstock_ctx.attrs[pre_key_att]:
-                feedstock_ctx.attrs[pre_key_att][migrator_name] = 0
-            feedstock_ctx.attrs[pre_key_att][migrator_name] += 1
 
             eval_cmd(f"rm -rf {feedstock_dir}")
             return False, False
         else:
-            for _key in [pre_key, pre_key_att]:
-                if (
-                    _key in feedstock_ctx.attrs
-                    and migrator_name in feedstock_ctx.attrs[_key]
-                ):
-                    feedstock_ctx.attrs[_key].pop(migrator_name)
+            _reset_pre_pr_migrator_fields(feedstock_ctx.attrs, migrator_name)
 
     # TODO: Better annotation here
     pr_json: typing.Union[MutableMapping, None, bool]
@@ -422,11 +437,7 @@ comment. Hopefully you all can fix this!
 
     # If we've gotten this far then the node is good
     feedstock_ctx.attrs["bad"] = False
-    pre_key = "pre_pr_migrator_status"
-    pre_key_att = "pre_pr_migrator_attempts"
-    for _key in [pre_key, pre_key_att]:
-        if _key in feedstock_ctx.attrs and migrator_name in feedstock_ctx.attrs[_key]:
-            feedstock_ctx.attrs[_key].pop(migrator_name)
+    _reset_pre_pr_migrator_fields(feedstock_ctx.attrs, migrator_name)
 
     LOGGER.info("Removing feedstock dir")
     eval_cmd(f"rm -rf {feedstock_dir}")
@@ -1192,17 +1203,18 @@ def _run_migrator(migrator, mctx, temp, time_per, dry_run):
                             "url": getattr(e, "url"),
                         }
 
-                        pre_key = "pre_pr_migrator_status"
-                        if pre_key not in attrs:
-                            attrs[pre_key] = {}
-                        attrs[pre_key][migrator_name] = sanitize_string(
-                            "bot error (%s): %s: %s"
-                            % (
-                                '<a href="'
-                                + os.getenv("CIRCLE_BUILD_URL", "")
-                                + '">bot CI job</a>',
-                                base_branch,
-                                str(traceback.format_exc()),
+                        _set_pre_pr_migrator_fields(
+                            attrs,
+                            migrator_name,
+                            sanitize_string(
+                                "bot error (%s): %s: %s"
+                                % (
+                                    '<a href="'
+                                    + os.getenv("CIRCLE_BUILD_URL", "")
+                                    + '">bot CI job</a>',
+                                    base_branch,
+                                    str(traceback.format_exc()),
+                                ),
                             ),
                         )
                     except Exception as e:
@@ -1219,27 +1231,20 @@ def _run_migrator(migrator, mctx, temp, time_per, dry_run):
                                 ),
                             }
 
-                        pre_key = "pre_pr_migrator_status"
-                        if pre_key not in attrs:
-                            attrs[pre_key] = {}
-                        attrs[pre_key][migrator_name] = sanitize_string(
-                            "bot error (%s): %s: %s"
-                            % (
-                                '<a href="'
-                                + os.getenv("CIRCLE_BUILD_URL", "")
-                                + '">bot CI job</a>',
-                                base_branch,
-                                str(traceback.format_exc()),
+                        _set_pre_pr_migrator_fields(
+                            attrs,
+                            migrator_name,
+                            sanitize_string(
+                                "bot error (%s): %s: %s"
+                                % (
+                                    '<a href="'
+                                    + os.getenv("CIRCLE_BUILD_URL", "")
+                                    + '">bot CI job</a>',
+                                    base_branch,
+                                    str(traceback.format_exc()),
+                                ),
                             ),
                         )
-
-                        pre_key_att = "pre_pr_migrator_attempts"
-                        if pre_key_att not in attrs:
-                            attrs[pre_key_att] = {}
-                        if migrator_name not in attrs[pre_key_att]:
-                            attrs[pre_key_att][migrator_name] = 0
-                        attrs[pre_key_att][migrator_name] += 1
-
                     else:
                         if migrator_uid:
                             # On successful PR add to our counter
