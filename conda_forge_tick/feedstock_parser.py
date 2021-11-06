@@ -416,4 +416,15 @@ def load_feedstock(
             mark_not_archived=mark_not_archived,
             feedstock_dir=feedstock_dir,
         )
+
+    # populate migrator attempts if they are not there
+    pre_key = "pre_pr_migrator_status"
+    pre_key_att = "pre_pr_migrator_attempts"
+    if pre_key in sub_graph:
+        if pre_key_att not in sub_graph:
+            sub_graph[pre_key_att] = {}
+        for mn in sub_graph[pre_key]:
+            if mn not in sub_graph[pre_key_att]:
+                sub_graph[pre_key_att][mn] = 1
+
     return sub_graph

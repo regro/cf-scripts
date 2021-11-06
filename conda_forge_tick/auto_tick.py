@@ -104,7 +104,8 @@ from conda_forge_tick.migrators import (
 
 from conda_forge_tick.mamba_solver import is_recipe_solvable
 
-from conda_forge_tick.deploy import deploy
+# not using this right now
+# from conda_forge_tick.deploy import deploy
 
 
 LOGGER = logging.getLogger("conda_forge_tick.auto_tick")
@@ -315,6 +316,7 @@ def run(
             ),
         )
         pre_key = "pre_pr_migrator_status"
+        pre_key_att = "pre_pr_migrator_attempts"
         if not solvable:
             _solver_err_str = "not solvable ({}): {}: {}".format(
                 ('<a href="' + os.getenv("CIRCLE_BUILD_URL", "") + '">bot CI job</a>'),
@@ -337,14 +339,22 @@ def run(
             feedstock_ctx.attrs[pre_key][migrator_name] = sanitize_string(
                 _solver_err_str,
             )
+
+            if pre_key_att not in feedstock_ctx.attrs:
+                feedstock_ctx.attrs[pre_key_att] = {}
+            if migrator_name not in feedstock_ctx.attrs[pre_key_att]:
+                feedstock_ctx.attrs[pre_key_att][migrator_name] = 0
+            feedstock_ctx.attrs[pre_key_att][migrator_name] += 1
+
             eval_cmd(f"rm -rf {feedstock_dir}")
             return False, False
         else:
-            if (
-                pre_key in feedstock_ctx.attrs
-                and migrator_name in feedstock_ctx.attrs[pre_key]
-            ):
-                feedstock_ctx.attrs[pre_key].pop(migrator_name)
+            for _key in [pre_key, pre_key_att]:
+                if (
+                    _key in feedstock_ctx.attrs
+                    and migrator_name in feedstock_ctx.attrs[_key]
+                ):
+                    feedstock_ctx.attrs[_key].pop(migrator_name)
 
     # TODO: Better annotation here
     pr_json: typing.Union[MutableMapping, None, bool]
@@ -412,6 +422,12 @@ comment. Hopefully you all can fix this!
 
     # If we've gotten this far then the node is good
     feedstock_ctx.attrs["bad"] = False
+    pre_key = "pre_pr_migrator_status"
+    pre_key_att = "pre_pr_migrator_attempts"
+    for _key in [pre_key, pre_key_att]:
+        if _key in feedstock_ctx.attrs and migrator_name in feedstock_ctx.attrs[_key]:
+            feedstock_ctx.attrs[_key].pop(migrator_name)
+
     LOGGER.info("Removing feedstock dir")
     eval_cmd(f"rm -rf {feedstock_dir}")
     return migrate_return, ljpr
@@ -1216,6 +1232,14 @@ def _run_migrator(migrator, mctx, temp, time_per, dry_run):
                                 str(traceback.format_exc()),
                             ),
                         )
+
+                        pre_key_att = "pre_pr_migrator_attempts"
+                        if pre_key_att not in attrs:
+                            attrs[pre_key_att] = {}
+                        if migrator_name not in attrs[pre_key_att]:
+                            attrs[pre_key_att][migrator_name] = 0
+                        attrs[pre_key_att][migrator_name] += 1
+
                     else:
                         if migrator_uid:
                             # On successful PR add to our counter
