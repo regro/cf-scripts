@@ -133,6 +133,7 @@ class MigrationYaml(GraphMigrator):
         check_solvable=True,
         conda_forge_yml_patches=None,
         ignored_deps_per_node=None,
+        max_solver_attempts=3,
         **kwargs: Any,
     ):
         super().__init__(
@@ -153,19 +154,24 @@ class MigrationYaml(GraphMigrator):
         self.loaded_yaml = yaml_safe_load(self.yaml_contents)
 
         # auto set the pr_limit for initial things
-        number_pred = len(
-            [
-                k
-                for k, v in self.graph.nodes.items()
-                if self.migrator_uid(v.get("payload", {}))
-                in [vv.get("data", {}) for vv in v.get("payload", {}).get("PRed", [])]
-            ],
-        )
-        if number_pred == 0:
-            self.pr_limit = 2
-        elif number_pred < 7:
-            self.pr_limit = 5
+        if self.pr_limit > 2:
+            number_pred = len(
+                [
+                    k
+                    for k, v in self.graph.nodes.items()
+                    if self.migrator_uid(v.get("payload", {}))
+                    in [
+                        vv.get("data", {})
+                        for vv in v.get("payload", {}).get("PRed", [])
+                    ]
+                ],
+            )
+            if number_pred == 0:
+                self.pr_limit = 2
+            elif number_pred < 7:
+                self.pr_limit = 5
         self.bump_number = bump_number
+        self.max_solver_attempts = 3
 
     def filter(self, attrs: "AttrsTypedDict", not_bad_str_start: str = "") -> bool:
         wait_for_migrators = self.loaded_yaml.get("__migrator", {}).get(
@@ -334,7 +340,7 @@ class MigrationYaml(GraphMigrator):
                     {},
                 )
                 .get(migrator_name, 3)
-                >= 3
+                >= getattr(self, "max_solver_attempts", 3)
             ):
                 return 0
             else:
