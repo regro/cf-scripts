@@ -124,6 +124,7 @@ python:
     assert any(r.startswith("jpeg >=9d") for r in run_req)
 
 
+@flaky
 def test_mamba_solver_nvcc():
     virtual_packages = virtual_package_repodata()
     solver = MambaSolver([virtual_packages, "conda-forge", "defaults"], "linux-64")
@@ -188,7 +189,6 @@ extra:
     assert is_recipe_solvable(feedstock_dir)[0]
 
 
-@pytest.mark.xfail()
 @flaky
 def test_unsolvable_for_particular_python(feedstock_dir):
     recipe_file = os.path.join(feedstock_dir, "recipe", "meta.yaml")
@@ -244,6 +244,7 @@ extra:
     assert solvable_by_variant["linux_python3.7.____cpython"]
 
 
+@flaky
 def test_r_base_cross_solvable():
     feedstock_dir = os.path.join(os.path.dirname(__file__), "r-base-feedstock")
     solvable, errors, _ = is_recipe_solvable(feedstock_dir)
@@ -258,7 +259,7 @@ def test_r_base_cross_solvable():
 
 def clone_and_checkout_repo(base_path: pathlib.Path, origin_url: str, ref: str):
     subprocess.run(
-        f"cd {base_path} && git clone --depth=1 {origin_url} repo",
+        f"cd {base_path} && git clone {origin_url} repo",
         shell=True,
     )
     return str(base_path / "repo")
@@ -273,10 +274,9 @@ def test_arrow_solvable(tmp_path):
     )
     solvable, errors, solvable_by_variant = is_recipe_solvable(feedstock_dir)
     pprint.pprint(solvable_by_variant)
-    assert solvable
+    assert solvable, pprint.pformat(errors)
 
 
-@pytest.mark.xfail()
 @flaky
 def test_guiqwt_solvable(tmp_path):
     """test for run exports as a single string in pyqt"""
@@ -287,10 +287,10 @@ def test_guiqwt_solvable(tmp_path):
     )
     solvable, errors, solvable_by_variant = is_recipe_solvable(feedstock_dir)
     pprint.pprint(solvable_by_variant)
-    assert solvable
+    assert solvable, pprint.pformat(errors)
 
 
-@pytest.mark.xfail()
+@flaky
 def test_datalad_solvable(tmp_path):
     """has an odd thing where it hangs"""
     feedstock_dir = clone_and_checkout_repo(
@@ -300,7 +300,7 @@ def test_datalad_solvable(tmp_path):
     )
     solvable, errors, solvable_by_variant = is_recipe_solvable(feedstock_dir)
     pprint.pprint(solvable_by_variant)
-    assert solvable
+    assert solvable, pprint.pformat(errors)
 
 
 @flaky
@@ -313,10 +313,10 @@ def test_grpcio_solvable(tmp_path):
     )
     solvable, errors, solvable_by_variant = is_recipe_solvable(feedstock_dir)
     pprint.pprint(solvable_by_variant)
-    assert solvable
+    assert solvable, pprint.pformat(errors)
 
 
-@pytest.mark.xfail()
+@flaky
 def test_cupy_solvable(tmp_path):
     """grpcio has a runtime dep on openssl which has strange pinning things in it"""
     feedstock_dir = clone_and_checkout_repo(
@@ -324,11 +324,17 @@ def test_cupy_solvable(tmp_path):
         "https://github.com/conda-forge/cupy-feedstock",
         ref="master",
     )
+    subprocess.run(
+        f"cd {feedstock_dir} && git checkout 72d6c5808ca79c9cd9a3eb4064a72586c73c3430",
+        shell=True,
+        check=True,
+    )
     solvable, errors, solvable_by_variant = is_recipe_solvable(feedstock_dir)
     pprint.pprint(solvable_by_variant)
-    assert solvable
+    assert solvable, pprint.pformat(errors)
 
 
+@flaky
 def test_is_recipe_solvable_notok(feedstock_dir):
     recipe_file = os.path.join(feedstock_dir, "recipe", "meta.yaml")
     os.makedirs(os.path.dirname(recipe_file), exist_ok=True)
@@ -438,6 +444,7 @@ def test_virtual_package(feedstock_dir, tmp_path_factory):
     assert solvable
 
 
+@flaky
 def test_mamba_solver_hangs():
     solver = _mamba_factory(("conda-forge", "defaults"), "osx-64")
     res = solver.solve(
@@ -501,6 +508,7 @@ def test_mamba_solver_hangs():
     assert res[0]
 
 
+@flaky
 def test_arrow_solvable_timeout(tmp_path):
     feedstock_dir = clone_and_checkout_repo(
         tmp_path,
@@ -517,3 +525,73 @@ def test_arrow_solvable_timeout(tmp_path):
         assert solvable
         assert errors == []
         assert solvable_by_variant == {}
+
+
+@flaky
+def test_pillow_solvable(tmp_path):
+    """pillow acted up for python310"""
+    feedstock_dir = clone_and_checkout_repo(
+        tmp_path,
+        "https://github.com/conda-forge/pillow-feedstock",
+        ref="master",
+    )
+
+    subprocess.run(
+        f"cd {feedstock_dir} && git checkout 0cae9b1b3450fd8862ac0f48f3389fc349702810",
+        shell=True,
+        check=True,
+    )
+
+    with open(
+        os.path.join(feedstock_dir, ".ci_support", "migrations", "python310.yaml"),
+        "w",
+    ) as fp:
+        fp.write(
+            """\
+migrator_ts: 1634137107
+__migrator:
+    migration_number: 1
+    operation: key_add
+    primary_key: python
+    ordering:
+        python:
+            - 3.6.* *_cpython
+            - 3.7.* *_cpython
+            - 3.8.* *_cpython
+            - 3.9.* *_cpython
+            - 3.10.* *_cpython  # new entry
+            - 3.6.* *_73_pypy
+            - 3.7.* *_73_pypy
+    paused: false
+    longterm: True
+    pr_limit: 40
+    max_solver_attempts: 10  # this will make the bot retry "not solvable" stuff 10 times
+    exclude:
+      # this shouldn't attempt to modify the python feedstocks
+      - python
+      - pypy3.6
+      - pypy-meta
+      - cross-python
+      - python_abi
+    exclude_pinned_pkgs: false
+
+python:
+  - 3.10.* *_cpython
+# additional entries to add for zip_keys
+numpy:
+  - 1.21
+python_impl:
+  - cpython
+""",
+        )  # noqa
+
+    subprocess.run(
+        f"cd {feedstock_dir} && conda smithy rerender --no-check-uptodate",
+        shell=True,
+        check=True,
+    )
+
+    solvable, errors, solvable_by_variant = is_recipe_solvable(feedstock_dir)
+    pprint.pprint(solvable_by_variant)
+    assert solvable, pprint.pformat(errors)
+    assert any("python3.10" in k for k in solvable_by_variant)

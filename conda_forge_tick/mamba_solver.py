@@ -251,6 +251,16 @@ def _get_run_export_download(link_tuple):
     return link_tuple, run_exports
 
 
+def _strip_anaconda_tokens(url):
+    if "/t/" in url:
+        parts = url.split("/")
+        tindex = parts.index("t")
+        new_parts = [p for i, p in enumerate(parts) if i != tindex and i != tindex + 1]
+        return "/".join(new_parts)
+    else:
+        return url
+
+
 @functools.lru_cache(maxsize=10240)
 def _get_run_export(link_tuple):
 
@@ -258,7 +268,18 @@ def _get_run_export(link_tuple):
 
     run_exports = None
 
-    cd = download_channeldata(link_tuple[0].rsplit("/", maxsplit=1)[0])
+    if "https://" in link_tuple[0]:
+        https = _strip_anaconda_tokens(link_tuple[0])
+        channel_url = https.rsplit("/", maxsplit=1)[0]
+        if "conda.anaconda.org" in channel_url:
+            channel_url = channel_url.replace(
+                "conda.anaconda.org",
+                "conda-static.anaconda.org",
+            )
+    else:
+        channel_url = link_tuple[0].rsplit("/", maxsplit=1)[0]
+
+    cd = download_channeldata(channel_url)
     data = json.loads(link_tuple[2])
     name = data["name"]
 
@@ -318,8 +339,8 @@ def _get_run_export(link_tuple):
         # fall back to getting repodata shard if needed
         if run_exports is None:
             logger.info(
-                "RUN EXPORTS: downloading package %s/%s"
-                % (link_tuple[0], link_tuple[1]),
+                "RUN EXPORTS: downloading package %s/%s/%s"
+                % (channel_url, link_tuple[0].split("/")[-1], link_tuple[1]),
             )
             run_exports = _get_run_export_download(link_tuple)[1]
     else:
@@ -358,7 +379,13 @@ class MambaSolver:
             has_priority=True,
         )
 
-    def solve(self, specs, get_run_exports=False) -> Tuple[bool, List[str]]:
+    def solve(
+        self,
+        specs,
+        get_run_exports=False,
+        ignore_run_exports_from=None,
+        ignore_run_exports=None,
+    ) -> Tuple[bool, List[str]]:
         """Solve given a set of specs.
 
         Parameters
@@ -369,6 +396,10 @@ class MambaSolver:
             `MatchSpec(mypec).conda_build_form()`
         get_run_exports : bool, optional
             If True, return run exports else do not.
+        ignore_run_exports_from : list, optional
+            A list of packages from which to ignore the run exports.
+        ignore_run_exports : list, optional
+            A list of things that should be ignore in the run exports.
 
         Returns
         -------
@@ -382,6 +413,9 @@ class MambaSolver:
             A dictionary with the weak and strong run exports for the packages.
             Only returned if get_run_exports is True.
         """
+        ignore_run_exports_from = ignore_run_exports_from or []
+        ignore_run_exports = ignore_run_exports or []
+
         solver_options = [(api.SOLVER_FLAG_ALLOW_DOWNGRADE, 1)]
         solver = api.Solver(self.pool, solver_options)
 
@@ -430,22 +464,45 @@ class MambaSolver:
                     "MAMBA getting run exports for \n\n%s\n",
                     pprint.pformat(solution),
                 )
-                run_exports = self._get_run_exports(to_link)
+                run_exports = self._get_run_exports(
+                    to_link,
+                    _specs,
+                    ignore_run_exports_from,
+                    ignore_run_exports,
+                )
 
         if get_run_exports:
             return success, err, solution, run_exports
         else:
             return success, err, solution
 
-    def _get_run_exports(self, link_tuples):
+    def _get_run_exports(
+        self,
+        link_tuples,
+        _specs,
+        ignore_run_exports_from,
+        ignore_run_exports,
+    ):
         """Given tuples of (channel, file, json repodata shard) produce a
         dict with the weak and strong run exports for the packages.
+
+        We only look up export data for things explicitly listed in the original
+        specs.
         """
+        names = {MatchSpec(s).get_exact_value("name") for s in _specs}
+        ign_rex_from = {
+            MatchSpec(s).get_exact_value("name") for s in ignore_run_exports_from
+        }
+        ign_rex = {MatchSpec(s).get_exact_value("name") for s in ignore_run_exports}
         run_exports = copy.deepcopy(DEFAULT_RUN_EXPORTS)
         for link_tuple in link_tuples:
-            rx = _get_run_export(link_tuple)
-            for key in DEFAULT_RUN_EXPORTS:
-                run_exports[key] |= rx[key]
+            lt_name = json.loads(link_tuple[-1])["name"]
+            if lt_name in names and lt_name not in ign_rex_from:
+                rx = _get_run_export(link_tuple)
+                for key in rx:
+                    rx[key] = {v for v in rx[key] if v not in ign_rex}
+                for key in DEFAULT_RUN_EXPORTS:
+                    run_exports[key] |= rx[key]
 
         return run_exports
 
@@ -756,13 +813,25 @@ def _is_recipe_solvable_on_platform(
     # it would be used in a real build
     logger.debug("rendering recipe with conda build")
 
-    config = conda_build.config.get_or_merge_config(
-        None,
-        platform=platform,
-        arch=arch,
-        variant_config_files=[cbc_path],
-    )
-    cbc, _ = conda_build.variants.get_package_combined_spec(recipe_dir, config=config)
+    for att in range(2):
+        try:
+            if att == 1:
+                os.system("rm -f %s/conda_build_config.yaml" % recipe_dir)
+            config = conda_build.config.get_or_merge_config(
+                None,
+                platform=platform,
+                arch=arch,
+                variant_config_files=[cbc_path],
+            )
+            cbc, _ = conda_build.variants.get_package_combined_spec(
+                recipe_dir,
+                config=config,
+            )
+        except Exception:
+            if att == 0:
+                pass
+            else:
+                raise
 
     # now we render the meta.yaml into an actual recipe
     metas = conda_build.api.render(
@@ -800,12 +869,16 @@ def _is_recipe_solvable_on_platform(
         build_req = m.get_value("requirements/build", [])
         host_req = m.get_value("requirements/host", [])
         run_req = m.get_value("requirements/run", [])
+        ign_runex = m.get_value("build/ignore_run_exports", [])
+        ign_runex_from = m.get_value("build/ignore_run_exports_from", [])
 
         if build_req:
             build_req = _clean_reqs(build_req, outnames)
             _solvable, _err, build_req, build_rx = build_solver.solve(
                 build_req,
                 get_run_exports=True,
+                ignore_run_exports_from=ign_runex_from,
+                ignore_run_exports=ign_runex,
             )
             solvable = solvable and _solvable
             if _err is not None:
@@ -831,6 +904,8 @@ def _is_recipe_solvable_on_platform(
             _solvable, _err, host_req, host_rx = solver.solve(
                 host_req,
                 get_run_exports=True,
+                ignore_run_exports_from=ign_runex_from,
+                ignore_run_exports=ign_runex,
             )
             solvable = solvable and _solvable
             if _err is not None:
