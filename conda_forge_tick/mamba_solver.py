@@ -256,11 +256,7 @@ def _strip_anaconda_tokens(url):
     if "/t/" in url:
         parts = url.split("/")
         tindex = parts.index("t")
-        new_parts = [
-            p
-            for i, p in enumerate(parts)
-            if i != tindex and i != tindex+1
-        ]
+        new_parts = [p for i, p in enumerate(parts) if i != tindex and i != tindex + 1]
         return "/".join(new_parts)
     else:
         return url
@@ -279,7 +275,7 @@ def _get_run_export(link_tuple):
         if "conda.anaconda.org" in channel_url:
             channel_url = channel_url.replace(
                 "conda.anaconda.org",
-                "conda-static.anaconda.org"
+                "conda-static.anaconda.org",
             )
     else:
         channel_url = link_tuple[0].rsplit("/", maxsplit=1)[0]
@@ -470,10 +466,7 @@ class MambaSolver:
         We only look up export data for things explicitly listed in the original
         specs.
         """
-        names = set(
-            MatchSpec(s).get_exact_value("name")
-            for s in _specs
-        )
+        names = {MatchSpec(s).get_exact_value("name") for s in _specs}
         run_exports = copy.deepcopy(DEFAULT_RUN_EXPORTS)
         for link_tuple in link_tuples:
             if json.loads(link_tuple[-1])["name"] in names:
@@ -801,7 +794,8 @@ def _is_recipe_solvable_on_platform(
                 variant_config_files=[cbc_path],
             )
             cbc, _ = conda_build.variants.get_package_combined_spec(
-                recipe_dir, config=config
+                recipe_dir,
+                config=config,
             )
         except Exception:
             if att == 0:

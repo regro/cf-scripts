@@ -307,6 +307,7 @@ def test_grpcio_solvable(tmp_path):
     assert solvable, pprint.pformat(errors)
 
 
+# this fails because we do not handle ignoring run exports
 @pytest.mark.xfail()
 def test_cupy_solvable(tmp_path):
     """grpcio has a runtime dep on openssl which has strange pinning things in it"""
@@ -532,7 +533,8 @@ def test_pillow_solvable(tmp_path):
         os.path.join(feedstock_dir, ".ci_support", "migrations", "python310.yaml"),
         "w",
     ) as fp:
-        fp.write("""\
+        fp.write(
+            """\
 migrator_ts: 1634137107
 __migrator:
     migration_number: 1
@@ -567,7 +569,8 @@ numpy:
   - 1.21
 python_impl:
   - cpython
-""")  # noqa
+""",
+        )  # noqa
 
     subprocess.run(
         f"cd {feedstock_dir} && conda smithy rerender --no-check-uptodate",
