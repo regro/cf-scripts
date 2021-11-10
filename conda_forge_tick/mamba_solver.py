@@ -116,8 +116,7 @@ def _norm_spec(myspec):
         raise RuntimeError("spec '%s' has build but not version!" % myspec)
 
     if version:
-        # parts.append(_munge_req_star(m.version.spec_str))
-        parts.append(m.version.spec_str)
+        parts.append(_munge_req_star(m.version.spec_str))
     if build:
         parts.append(build)
 
@@ -252,20 +251,6 @@ def _get_run_export_download(link_tuple):
     return link_tuple, run_exports
 
 
-def _strip_anaconda_tokens(url):
-    if "/t/" in url:
-        parts = url.split("/")
-        tindex = parts.index("t")
-        new_parts = [
-            p
-            for i, p in enumerate(parts)
-            if i != tindex and i != tindex+1
-        ]
-        return "/".join(new_parts)
-    else:
-        return url
-
-
 @functools.lru_cache(maxsize=10240)
 def _get_run_export(link_tuple):
 
@@ -273,18 +258,7 @@ def _get_run_export(link_tuple):
 
     run_exports = None
 
-    if "https://" in link_tuple[0]:
-        https = _strip_anaconda_tokens(link_tuple[0])
-        channel_url = https.rsplit("/", maxsplit=1)[0]
-        if "conda.anaconda.org" in channel_url:
-            channel_url = channel_url.replace(
-                "conda.anaconda.org",
-                "conda-static.anaconda.org"
-            )
-    else:
-        channel_url = link_tuple[0].rsplit("/", maxsplit=1)[0]
-
-    cd = download_channeldata(channel_url)
+    cd = download_channeldata(link_tuple[0].rsplit("/", maxsplit=1)[0])
     data = json.loads(link_tuple[2])
     name = data["name"]
 
@@ -344,8 +318,8 @@ def _get_run_export(link_tuple):
         # fall back to getting repodata shard if needed
         if run_exports is None:
             logger.info(
-                "RUN EXPORTS: downloading package %s/%s/%s"
-                % (channel_url, link_tuple[0].split("/")[-1], link_tuple[1]),
+                "RUN EXPORTS: downloading package %s/%s"
+                % (link_tuple[0], link_tuple[1]),
             )
             run_exports = _get_run_export_download(link_tuple)[1]
     else:
@@ -456,30 +430,22 @@ class MambaSolver:
                     "MAMBA getting run exports for \n\n%s\n",
                     pprint.pformat(solution),
                 )
-                run_exports = self._get_run_exports(to_link, _specs)
+                run_exports = self._get_run_exports(to_link)
 
         if get_run_exports:
             return success, err, solution, run_exports
         else:
             return success, err, solution
 
-    def _get_run_exports(self, link_tuples, _specs):
+    def _get_run_exports(self, link_tuples):
         """Given tuples of (channel, file, json repodata shard) produce a
         dict with the weak and strong run exports for the packages.
-
-        We only look up export data for things explicitly listed in the original
-        specs.
         """
-        names = set(
-            MatchSpec(s).get_exact_value("name")
-            for s in _specs
-        )
         run_exports = copy.deepcopy(DEFAULT_RUN_EXPORTS)
         for link_tuple in link_tuples:
-            if json.loads(link_tuple[-1])["name"] in names:
-                rx = _get_run_export(link_tuple)
-                for key in DEFAULT_RUN_EXPORTS:
-                    run_exports[key] |= rx[key]
+            rx = _get_run_export(link_tuple)
+            for key in DEFAULT_RUN_EXPORTS:
+                run_exports[key] |= rx[key]
 
         return run_exports
 
@@ -790,24 +756,13 @@ def _is_recipe_solvable_on_platform(
     # it would be used in a real build
     logger.debug("rendering recipe with conda build")
 
-    for att in range(2):
-        try:
-            if att == 1:
-                os.system("rm -f %s/conda_build_config.yaml" % recipe_dir)
-            config = conda_build.config.get_or_merge_config(
-                None,
-                platform=platform,
-                arch=arch,
-                variant_config_files=[cbc_path],
-            )
-            cbc, _ = conda_build.variants.get_package_combined_spec(
-                recipe_dir, config=config
-            )
-        except Exception:
-            if att == 0:
-                pass
-            else:
-                raise
+    config = conda_build.config.get_or_merge_config(
+        None,
+        platform=platform,
+        arch=arch,
+        variant_config_files=[cbc_path],
+    )
+    cbc, _ = conda_build.variants.get_package_combined_spec(recipe_dir, config=config)
 
     # now we render the meta.yaml into an actual recipe
     metas = conda_build.api.render(
