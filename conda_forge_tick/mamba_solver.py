@@ -116,8 +116,7 @@ def _norm_spec(myspec):
         raise RuntimeError("spec '%s' has build but not version!" % myspec)
 
     if version:
-        # parts.append(_munge_req_star(m.version.spec_str))
-        parts.append(m.version.spec_str)
+        parts.append(_munge_req_star(m.version.spec_str))
     if build:
         parts.append(build)
 
