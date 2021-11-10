@@ -307,8 +307,6 @@ def test_grpcio_solvable(tmp_path):
     assert solvable, pprint.pformat(errors)
 
 
-# this fails because we do not handle ignoring run exports
-@pytest.mark.xfail()
 def test_cupy_solvable(tmp_path):
     """grpcio has a runtime dep on openssl which has strange pinning things in it"""
     feedstock_dir = clone_and_checkout_repo(

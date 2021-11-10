@@ -380,7 +380,10 @@ class MambaSolver:
             has_priority=True,
         )
 
-    def solve(self, specs, get_run_exports=False) -> Tuple[bool, List[str]]:
+    def solve(
+        self, specs, get_run_exports=False,
+        ignore_run_exports_from=None, ignore_run_exports=None,
+    ) -> Tuple[bool, List[str]]:
         """Solve given a set of specs.
 
         Parameters
@@ -391,6 +394,10 @@ class MambaSolver:
             `MatchSpec(mypec).conda_build_form()`
         get_run_exports : bool, optional
             If True, return run exports else do not.
+        ignore_run_exports_from : list, optional
+            A list of packages from which to ignore the run exports.
+        ignore_run_exports : list, optional
+            A list of things that should be ignore in the run exports.
 
         Returns
         -------
@@ -404,6 +411,9 @@ class MambaSolver:
             A dictionary with the weak and strong run exports for the packages.
             Only returned if get_run_exports is True.
         """
+        ignore_run_exports_from = ignore_run_exports_from or []
+        ignore_run_exports = ignore_run_exports or []
+
         solver_options = [(api.SOLVER_FLAG_ALLOW_DOWNGRADE, 1)]
         solver = api.Solver(self.pool, solver_options)
 
@@ -452,14 +462,18 @@ class MambaSolver:
                     "MAMBA getting run exports for \n\n%s\n",
                     pprint.pformat(solution),
                 )
-                run_exports = self._get_run_exports(to_link, _specs)
+                run_exports = self._get_run_exports(
+                    to_link, _specs, ignore_run_exports_from, ignore_run_exports
+                )
 
         if get_run_exports:
             return success, err, solution, run_exports
         else:
             return success, err, solution
 
-    def _get_run_exports(self, link_tuples, _specs):
+    def _get_run_exports(
+        self, link_tuples, _specs, ignore_run_exports_from, ignore_run_exports
+    ):
         """Given tuples of (channel, file, json repodata shard) produce a
         dict with the weak and strong run exports for the packages.
 
@@ -467,10 +481,19 @@ class MambaSolver:
         specs.
         """
         names = {MatchSpec(s).get_exact_value("name") for s in _specs}
+        ign_rex_from = {
+            MatchSpec(s).get_exact_value("name") for s in ignore_run_exports_from
+        }
+        ign_rex = {
+            MatchSpec(s).get_exact_value("name") for s in ignore_run_exports
+        }
         run_exports = copy.deepcopy(DEFAULT_RUN_EXPORTS)
         for link_tuple in link_tuples:
-            if json.loads(link_tuple[-1])["name"] in names:
+            lt_name = json.loads(link_tuple[-1])["name"]
+            if lt_name in names and lt_name not in ign_rex_from:
                 rx = _get_run_export(link_tuple)
+                for key in rx:
+                    rx[key] = {v for v in rx[key] if v not in ign_rex}
                 for key in DEFAULT_RUN_EXPORTS:
                     run_exports[key] |= rx[key]
 
@@ -839,12 +862,16 @@ def _is_recipe_solvable_on_platform(
         build_req = m.get_value("requirements/build", [])
         host_req = m.get_value("requirements/host", [])
         run_req = m.get_value("requirements/run", [])
+        ign_runex = m.get_value("build/ignore_run_exports", [])
+        ign_runex_from = m.get_value("build/ignore_run_exports_from", [])
 
         if build_req:
             build_req = _clean_reqs(build_req, outnames)
             _solvable, _err, build_req, build_rx = build_solver.solve(
                 build_req,
                 get_run_exports=True,
+                ignore_run_exports_from=ign_runex_from,
+                ignore_run_exports=ign_runex,
             )
             solvable = solvable and _solvable
             if _err is not None:
@@ -870,6 +897,8 @@ def _is_recipe_solvable_on_platform(
             _solvable, _err, host_req, host_rx = solver.solve(
                 host_req,
                 get_run_exports=True,
+                ignore_run_exports_from=ign_runex_from,
+                ignore_run_exports=ign_runex,
             )
             solvable = solvable and _solvable
             if _err is not None:
