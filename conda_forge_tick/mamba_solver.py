@@ -381,8 +381,11 @@ class MambaSolver:
         )
 
     def solve(
-        self, specs, get_run_exports=False,
-        ignore_run_exports_from=None, ignore_run_exports=None,
+        self,
+        specs,
+        get_run_exports=False,
+        ignore_run_exports_from=None,
+        ignore_run_exports=None,
     ) -> Tuple[bool, List[str]]:
         """Solve given a set of specs.
 
@@ -463,7 +466,10 @@ class MambaSolver:
                     pprint.pformat(solution),
                 )
                 run_exports = self._get_run_exports(
-                    to_link, _specs, ignore_run_exports_from, ignore_run_exports
+                    to_link,
+                    _specs,
+                    ignore_run_exports_from,
+                    ignore_run_exports,
                 )
 
         if get_run_exports:
@@ -472,7 +478,11 @@ class MambaSolver:
             return success, err, solution
 
     def _get_run_exports(
-        self, link_tuples, _specs, ignore_run_exports_from, ignore_run_exports
+        self,
+        link_tuples,
+        _specs,
+        ignore_run_exports_from,
+        ignore_run_exports,
     ):
         """Given tuples of (channel, file, json repodata shard) produce a
         dict with the weak and strong run exports for the packages.
@@ -484,9 +494,7 @@ class MambaSolver:
         ign_rex_from = {
             MatchSpec(s).get_exact_value("name") for s in ignore_run_exports_from
         }
-        ign_rex = {
-            MatchSpec(s).get_exact_value("name") for s in ignore_run_exports
-        }
+        ign_rex = {MatchSpec(s).get_exact_value("name") for s in ignore_run_exports}
         run_exports = copy.deepcopy(DEFAULT_RUN_EXPORTS)
         for link_tuple in link_tuples:
             lt_name = json.loads(link_tuple[-1])["name"]
