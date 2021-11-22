@@ -11,14 +11,12 @@ from typing import List, Optional, Iterable
 import psutil
 import json
 import networkx as nx
-import requests
 from conda.models.version import VersionOrder
-from requests import Response
 
 # from conda_forge_tick.profiler import profiling
 
 from conda_forge_tick.feedstock_parser import load_feedstock
-from .all_feedstocks import get_all_feedstocks
+from .all_feedstocks import get_all_feedstocks, get_archived_feedstocks
 from .contexts import GithubContext
 from .utils import (
     setup_logger,
@@ -298,6 +296,14 @@ def _update_nodes_with_new_versions(gx):
                     attrs["new_version"] = version_from_data
 
 
+def _update_nodes_with_archived(gx, archived_names):
+    for name in archived_names:
+        if name in gx.nodes:
+            node = gx.nodes[name]
+            with node["payload"] as payload:
+                payload["archived"] = True
+
+
 # @profiling
 def main(args: "CLIArgs") -> None:
     if args.debug:
@@ -317,6 +323,9 @@ def main(args: "CLIArgs") -> None:
 
     _update_nodes_with_bot_rerun(gx)
     _update_nodes_with_new_versions(gx)
+
+    archived_names = get_archived_feedstocks(cached=True)
+    _update_nodes_with_archived(gx, archived_names)
 
     dump_graph(gx)
 
