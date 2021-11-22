@@ -52,6 +52,17 @@ def get_all_feedstocks(cached: bool = False) -> List[str]:
     return names
 
 
+def get_archived_feedstocks(cached: bool = False) -> List[str]:
+    if cached:
+        logger.info("reading cached archived feedstocks")
+        with open("all_feedstocks.json") as f:
+            names = load(f)["archived"]
+    else:
+        logger.info("getting archived feedstocks from github")
+        names = get_all_feedstocks_from_github()["archived"]
+    return names
+
+
 def main(args: Any = None) -> None:
     setup_logger(logger)
     logger.info("fetching active feedstocks from github")
