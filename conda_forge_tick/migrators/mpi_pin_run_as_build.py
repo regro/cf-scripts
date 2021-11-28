@@ -10,13 +10,7 @@ MPIS = ["mpich", "openmpi"]
 
 class MPIPinRunAsBuildCleanup(MiniMigrator):
     def filter(self, attrs, not_bad_str_start=""):
-        host_req = (
-            (
-                attrs.get("requirements", {})
-                or {}
-            ).get("host", set())
-            or set()
-        )
+        host_req = (attrs.get("requirements", {}) or {}).get("host", set()) or set()
 
         if any(mpi in host_req for mpi in MPIS):
             return False
@@ -26,7 +20,7 @@ class MPIPinRunAsBuildCleanup(MiniMigrator):
     def migrate(self, recipe_dir, attrs, **kwargs):
         fname = os.path.join(recipe_dir, "conda_build_config.yaml")
         if os.path.exists(fname):
-            with open(fname, "r") as fp:
+            with open(fname) as fp:
                 cbc = yaml_safe_load(fp)
 
             if "pin_run_as_build" in cbc:
