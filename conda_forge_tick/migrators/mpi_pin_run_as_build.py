@@ -1,9 +1,10 @@
 import os
 import subprocess
 
+from ruamel.yaml import YAML
+
 from conda_forge_tick.xonsh_utils import indir
 from conda_forge_tick.migrators.core import MiniMigrator
-from conda_forge_tick.utils import yaml_safe_dump, yaml_safe_load
 
 MPIS = ["mpich", "openmpi"]
 
@@ -20,8 +21,12 @@ class MPIPinRunAsBuildCleanup(MiniMigrator):
     def migrate(self, recipe_dir, attrs, **kwargs):
         fname = os.path.join(recipe_dir, "conda_build_config.yaml")
         if os.path.exists(fname):
+            parser = YAML(typ="rt")
+            parser.indent(mapping=2, sequence=4, offset=2)
+            parser.width = 320
+
             with open(fname) as fp:
-                cbc = yaml_safe_load(fp)
+                cbc = parser.load(fp.read())
 
             if "pin_run_as_build" in cbc:
                 for mpi in MPIS:
@@ -32,7 +37,7 @@ class MPIPinRunAsBuildCleanup(MiniMigrator):
 
             if len(cbc) > 0:
                 with open(fname, "w") as fp:
-                    yaml_safe_dump(cbc, fp)
+                    parser.dump(cbc, stream=fp)
             else:
                 with indir(recipe_dir):
                     subprocess.run("git rm -f conda_build_config.yaml", shell=True)
