@@ -528,7 +528,7 @@ class GraphMigrator(Migrator):
                     if ts is not None:
                         now = datetime.datetime.now(datetime.timezone.utc)
                         ts = dateutil.parser.parse(ts)
-                        if now - ts < datetime.timedelta(days=30):
+                        if now - ts < datetime.timedelta(days=14):
                             LOGGER.debug(
                                 "node %s has PR %s open for %s",
                                 node,
