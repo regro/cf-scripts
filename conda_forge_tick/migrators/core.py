@@ -582,7 +582,7 @@ class GraphMigrator(Migrator):
                 m_pred_json
                 and m_pred_json.get("PR", {"state": "open"}).get("state", "") == "open"
             ):
-                LOGGER.debug("not yet built dataloss: %s" % node)
+                LOGGER.debug("not yet built: %s" % node)
                 return True
 
         return False
