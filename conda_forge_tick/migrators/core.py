@@ -528,7 +528,7 @@ class GraphMigrator(Migrator):
                     if ts is not None:
                         now = datetime.datetime.now(datetime.timezone.utc)
                         ts = dateutil.parser.parse(ts)
-                        if now - ts < datetime.timedelta(days=30):
+                        if now - ts < datetime.timedelta(days=14):
                             LOGGER.debug(
                                 "node %s has PR %s open for %s",
                                 node,
@@ -582,7 +582,7 @@ class GraphMigrator(Migrator):
                 m_pred_json
                 and m_pred_json.get("PR", {"state": "open"}).get("state", "") == "open"
             ):
-                LOGGER.debug("not yet built dataloss: %s" % node)
+                LOGGER.debug("not yet built: %s" % node)
                 return True
 
         return False
