@@ -98,6 +98,7 @@ from conda_forge_tick.migrators import (
     PipWheelMigrator,
     GraphMigrator,
     CrossCompilationForARMAndPower,
+    MPIPinRunAsBuildCleanup,
 )
 
 from conda_forge_tick.mamba_solver import is_recipe_solvable
@@ -563,6 +564,7 @@ def add_arch_migrate(migrators: MutableSequence[Migrator], gx: nx.DiGraph) -> No
                 CrossRBaseMigrator(),
                 CrossPythonMigrator(),
                 NoCondaInspectMigrator(),
+                MPIPinRunAsBuildCleanup(),
             ],
         ),
     )
@@ -654,6 +656,7 @@ def add_rebuild_migration_yaml(
             NoCondaInspectMigrator(),
             Cos7Config(),
             CrossCompilationForARMAndPower(),
+            MPIPinRunAsBuildCleanup(),
         ],
         **config,
     )
@@ -958,6 +961,7 @@ def initialize_migrators(
             NoCondaInspectMigrator(),
             Cos7Config(),
             PipWheelMigrator(),
+            MPIPinRunAsBuildCleanup(),
         ],
     )
 
