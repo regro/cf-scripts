@@ -18,7 +18,7 @@ github3.py
 grayskull
 jinja2
 lockfile
-mamba>=0.11.0,<0.18
+mamba>=0.18
 msgpack-python
 networkx
 psutil

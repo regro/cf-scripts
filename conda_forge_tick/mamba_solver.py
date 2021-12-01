@@ -30,22 +30,17 @@ import psutil
 from ruamel.yaml import YAML
 import cachetools.func
 
-from conda.core.package_cache_data import PackageCacheData
 from conda.models.match_spec import MatchSpec
 import conda_build.api
 import conda_package_handling.api
 
-import mamba
-from mamba import mamba_api as api
+import libmambapy as api
 from mamba.utils import load_channels
 
 from conda_build.conda_interface import pkgs_dirs
 from conda_build.utils import download_channeldata
 
 PACKAGE_CACHE = api.MultiPackageCache(pkgs_dirs)
-
-MAMBA_17_UP = mamba.version_info >= (0, 17, 0)
-
 
 logger = logging.getLogger("conda_forge_tick.mamba_solver")
 
@@ -439,17 +434,10 @@ class MambaSolver:
             solution = None
             run_exports = copy.deepcopy(DEFAULT_RUN_EXPORTS)
         else:
-            if MAMBA_17_UP:
-                t = api.Transaction(
-                    solver,
-                    PACKAGE_CACHE,
-                )
-            else:
-                t = api.Transaction(
-                    solver,
-                    PACKAGE_CACHE,
-                    PackageCacheData.first_writable().pkgs_dir,
-                )
+            t = api.Transaction(
+                solver,
+                PACKAGE_CACHE,
+            )
 
             solution = []
             _, to_link, _ = t.to_conda()
