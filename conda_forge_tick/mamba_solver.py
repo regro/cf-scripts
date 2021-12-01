@@ -36,7 +36,7 @@ import conda_build.api
 import conda_package_handling.api
 
 import mamba
-from mamba import mamba_api as api
+import libmambapy as api
 from mamba.utils import load_channels
 
 from conda_build.conda_interface import pkgs_dirs
