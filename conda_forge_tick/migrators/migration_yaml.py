@@ -253,12 +253,8 @@ class MigrationYaml(GraphMigrator):
                 "the feedstock has been rebuilt, so if you are going to "
                 "perform the rebuild yourself don't close this PR until "
                 "the your rebuild has been merged.**\n\n"
-                "This package has the following downstream children:\n"
-                "{children}\n"
-                "And potentially more."
                 "".format(
                     name=self.name,
-                    children="\n".join(self.downstream_children(feedstock_ctx)),
                 )
             )
         else:
@@ -272,16 +268,22 @@ class MigrationYaml(GraphMigrator):
                 "the feedstock has been rebuilt, so if you are going to "
                 "perform the rebuild yourself don't close this PR until "
                 "the your rebuild has been merged.**\n\n"
-                "This package has the following downstream children:\n"
-                "{children}\n"
-                "And potentially more."
                 "".format(
                     name=self.name,
-                    children="\n".join(self.downstream_children(feedstock_ctx)),
                 )
             )
-        body = body.format(additional_body)
-        return body
+
+        children = "\n".join(
+            [" - %s" % ch for ch in self.downstream_children(feedstock_ctx)],
+        )
+        if len(children) > 0:
+            additional_body += (
+                "This package has the following downstream children:\n"
+                "{children}\n"
+                "and potentially more."
+            ).format(children=children)
+
+        return body.format(additional_body)
 
     def commit_message(self, feedstock_ctx: FeedstockContext) -> str:
         if self.name:
