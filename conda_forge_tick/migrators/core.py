@@ -317,8 +317,6 @@ class Migrator:
                 "<code>@<space/>conda-forge-admin, please rerun bot</code> "
                 "in a PR comment to have the `conda-forge-admin` add it for you.\n\n"
             )
-        else:
-            body += "\n\n"
 
         body += (
             "<sub>"
