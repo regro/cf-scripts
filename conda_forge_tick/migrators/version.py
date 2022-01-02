@@ -687,7 +687,7 @@ class Version(Migrator):
                 closes="\n".join(
                     [f"Closes: #{muid['number']}" for muid in open_version_prs],
                 ),
-            ),
+            )
         )
         # Statement here
         template = (
