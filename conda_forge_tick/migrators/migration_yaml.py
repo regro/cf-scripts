@@ -273,9 +273,9 @@ class MigrationYaml(GraphMigrator):
                 )
             )
 
-        children = "\n".join([
-            " - %s" % ch for ch in self.downstream_children(feedstock_ctx)
-        ])
+        children = "\n".join(
+            [" - %s" % ch for ch in self.downstream_children(feedstock_ctx)],
+        )
         if len(children) > 0:
             additional_body += (
                 "This package has the following downstream children:\n"

@@ -306,9 +306,7 @@ class Migrator:
             The body of the PR message
             :param feedstock_ctx:
         """
-        body = (
-            "{}\n\n"
-        )
+        body = "{}\n\n"
 
         if add_label_text:
             body += (
