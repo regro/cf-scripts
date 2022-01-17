@@ -232,11 +232,15 @@ class Migrator:
         branches : list of str
             List if valid branches for this migration.
         """
-        branches = ["main"] + (
-            attrs.get("conda-forge.yml", {})
-            .get("bot", {})
-            .get("abi_migration_branches", [])
-        )
+        branches = ["main"]
+        try:
+            branches += (
+                attrs.get("conda-forge.yml", {})
+                .get("bot", {})
+                .get("abi_migration_branches", [])
+            )
+        except Exception:
+            LOGGER.exception(f"Invalid value for {attrs.get('conda-forge.yml', {})=}")
         # make sure this is always a string
         return [str(b) for b in branches]
 
