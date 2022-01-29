@@ -1277,3 +1277,297 @@ extra:
         "|                                                           # [not win]"
         in str(e.value)
     )
+
+
+def test_recipe_parses_cupy():
+    recipe = r"""{% set name = "cupy" %}
+{% set version = "10.1.0" %}
+{% set sha256 = "ad28e7311b2023391f2278b7649828decdd9d9599848e18845eb4ab1b2d01936" %}
+
+{% if cuda_compiler_version in (None, "None", True, False) %}
+{% set cuda_major = 0 %}
+{% set cuda_minor = 0 %}
+{% set cuda_major_minor = (0, 0) %}
+{% else %}
+{% set cuda_major = environ.get("cuda_compiler_version", "11.2").split(".")[0]|int %}
+{% set cuda_minor = environ.get("cuda_compiler_version", "11.2").split(".")[1]|int %}
+{% set cuda_major_minor = (cuda_major, cuda_minor) %}
+{% endif %}
+
+package:
+  name: {{ name|lower }}
+  version: {{ version }}
+
+source:
+  - url: https://pypi.io/packages/source/{{ name[0] }}/{{ name }}/{{ name }}-{{ version }}.tar.gz
+    sha256: {{ sha256 }}
+
+build:
+  number: 0
+  skip: true  # [(not win64 and not linux64 and (ppc64le and cuda_compiler_version != "10.2") and not (aarch64 and arm_variant_type == "sbsa")) or cuda_compiler_version in (undefined, "None")]
+  script_env:
+    # for some reason /usr/local/cuda is not added to $PATH in the docker image
+    - CUDA_HOME  # [ppc64le or aarch64]
+  script:
+    # CuPy default detects CUDA from nvcc, but on Conda-Forge's dockers nvcc lives in a different place...
+    # With conda-forge/nvcc-feedstock#58, CUDA_PATH is set correctly
+    - export NVCC=$(which nvcc)                                                  # [linux]
+    - echo "nvcc is $NVCC, CUDA path is $CUDA_PATH"                              # [linux]
+    - for /f "tokens=* usebackq" %%f in (`where nvcc`) do (set "dummy=%%f" && call set "NVCC=%%dummy:\=\\%%")  # [win]
+    - echo "nvcc is %NVCC%, CUDA path is %CUDA_PATH%"                                                          # [win]
+    {% if cuda_major_minor >= (11, 2) %}
+    - export CUSPARSELT_PATH=$PREFIX  # [linux64 or win]
+    {% endif %}
+    # Workaround __ieee128 error; see https://github.com/LLNL/blt/issues/341
+    - export NVCC="$NVCC -Xcompiler -mno-float128"  # [ppc64le]
+
+    - {{ PYTHON }} -m pip install . --no-deps -vv
+    - if errorlevel 1 exit 1  # [win]
+
+    # copy activate/deactivate scripts
+    - mkdir -p "${PREFIX}/etc/conda/activate.d"                                               # [linux]
+    - cp "${RECIPE_DIR}/activate.sh" "${PREFIX}/etc/conda/activate.d/cupy_activate.sh"        # [linux]
+    - mkdir -p "${PREFIX}/etc/conda/deactivate.d"                                             # [linux]
+    - cp "${RECIPE_DIR}/deactivate.sh" "${PREFIX}/etc/conda/deactivate.d/cupy_deactivate.sh"  # [linux]
+    - if not exist %PREFIX%\etc\conda\activate.d mkdir %PREFIX%\etc\conda\activate.d          # [win]
+    - copy %RECIPE_DIR%\activate.bat %PREFIX%\etc\conda\activate.d\cupy_activate.bat          # [win]
+    - if not exist %PREFIX%\etc\conda\deactivate.d mkdir %PREFIX%\etc\conda\deactivate.d      # [win]
+    - copy %RECIPE_DIR%\deactivate.bat %PREFIX%\etc\conda\deactivate.d\cupy_deactivate.bat    # [win]
+
+    # enable CuPy's preload mechanism
+    - mkdir -p "${SP_DIR}/cupy/.data/"                                                                                     # [linux]
+    - if not exist %SP_DIR%\cupy\.data mkdir %SP_DIR%\cupy\.data                                                           # [win]
+    {% if cuda_major_minor >= (11, 2) %}
+    - cp ${RECIPE_DIR}/preload_config/linux64_cuda11_wheel.json ${SP_DIR}/cupy/.data/_wheel.json                           # [linux]
+    - copy %RECIPE_DIR%\preload_config\win64_cuda11_wheel.json %SP_DIR%\cupy\.data\_wheel.json                             # [win]
+    {% else %}
+    - cp ${RECIPE_DIR}/preload_config/linux64_cuda{{ cuda_compiler_version }}_wheel.json ${SP_DIR}/cupy/.data/_wheel.json  # [linux]
+    - copy %RECIPE_DIR%\preload_config\win64_cuda{{ cuda_compiler_version }}_wheel.json %SP_DIR%\cupy\.data\_wheel.json    # [win]
+    {% endif %}
+  missing_dso_whitelist:
+    - '*/libcuda.*'  # [linux]
+    - '*/nvcuda.dll'  # [win]
+  ignore_run_exports_from:
+    - cudnn  # [linux64 or ppc64le or win]
+    - nccl  # [linux64 or ppc64le]
+    - cutensor
+    {% if cuda_major_minor >= (11, 2) %}
+    - cusparselt  # [linux64 or win]
+    {% endif %}
+
+requirements:
+  build:
+    - {{ compiler("c") }}
+    - {{ compiler("cxx") }}
+    - {{ compiler("cuda") }}
+    - sysroot_linux-64 2.17  # [linux]
+
+  host:
+    - python
+    - pip
+    - setuptools
+    - cython >=0.29.22,<3
+    - fastrlock >=0.5
+    - cudnn  # [linux64 or ppc64le or win]
+    - nccl >=2.8  # [linux64 or ppc64le]
+    - cutensor
+    {% if cuda_major_minor >= (11, 2) %}
+    - cusparselt !=0.2.0.*  # [linux64 or win]
+    {% endif %}
+
+  run:
+    - python
+    - setuptools
+    - fastrlock >=0.5
+    - numpy >=1.18
+
+  run_constrained:
+    # Only GLIBC_2.17 or older symbols present
+    - __glibc >=2.17      # [linux]
+    - scipy >=1.4
+    - optuna >=2
+    - {{ pin_compatible('cudnn') }}  # [linux64 or ppc64le or win]
+    - {{ pin_compatible('nccl') }}  # [linux64 or ppc64le]
+    - {{ pin_compatible('cutensor', lower_bound='1.3') }}
+    {% if cuda_major_minor >= (11, 2) %}
+    - {{ pin_compatible('cusparselt', max_pin='x.x') }}  # [linux64 or win]
+    {% endif %}
+
+test:
+  requires:
+    - pytest
+    - {{ compiler("c") }}
+    - {{ compiler("cxx") }}
+    - {{ compiler("cuda") }}  # tests need nvcc
+
+  source_files:
+    - tests
+
+about:
+  home: https://cupy.dev/
+  license: MIT
+  license_family: MIT
+  license_file: LICENSE
+  summary: |
+    CuPy: NumPy & SciPy for GPU
+  dev_url: https://github.com/cupy/cupy/
+  doc_url: https://docs.cupy.dev/en/stable/
+
+extra:
+  recipe-maintainers:
+    - jakirkham
+    - leofang
+    - kmaehashi
+    - asi1024
+    - emcastillo
+    - toslunar
+"""  # noqa
+
+    recipe_parsed = r"""{% set name = "cupy" %}
+{% set version = "10.1.0" %}
+{% set sha256 = "ad28e7311b2023391f2278b7649828decdd9d9599848e18845eb4ab1b2d01936" %}
+
+{% if cuda_compiler_version in (None, "None", True, False) %}
+{% set cuda_major = 0 %}
+{% set cuda_minor = 0 %}
+{% set cuda_major_minor = (0, 0) %}
+{% else %}
+{% set cuda_major = environ.get("cuda_compiler_version", "11.2").split(".")[0]|int %}
+{% set cuda_minor = environ.get("cuda_compiler_version", "11.2").split(".")[1]|int %}
+{% set cuda_major_minor = (cuda_major, cuda_minor) %}
+{% endif %}
+
+package:
+  name: {{ name|lower }}
+  version: {{ version }}
+
+source:
+  - url: https://pypi.io/packages/source/{{ name[0] }}/{{ name }}/{{ name }}-{{ version }}.tar.gz
+    sha256: {{ sha256 }}
+
+build:
+  number: 0
+  skip: true  # [(not win64 and not linux64 and (ppc64le and cuda_compiler_version != "10.2") and not (aarch64 and arm_variant_type == "sbsa")) or cuda_compiler_version in (undefined, "None")]
+  script_env:
+    # for some reason /usr/local/cuda is not added to $PATH in the docker image
+    - CUDA_HOME  # [ppc64le or aarch64]
+  script:
+    # CuPy default detects CUDA from nvcc, but on Conda-Forge's dockers nvcc lives in a different place...
+    # With conda-forge/nvcc-feedstock#58, CUDA_PATH is set correctly
+    - export NVCC=$(which nvcc)                                                  # [linux]
+    - echo "nvcc is $NVCC, CUDA path is $CUDA_PATH"                              # [linux]
+    - for /f "tokens=* usebackq" %%f in (`where nvcc`) do (set "dummy=%%f" && call set "NVCC=%%dummy:\=\\%%")  # [win]
+    - echo "nvcc is %NVCC%, CUDA path is %CUDA_PATH%"                                                          # [win]
+    {% if cuda_major_minor >= (11, 2) %}
+    - export CUSPARSELT_PATH=$PREFIX  # [linux64 or win]
+    {% endif %}
+    # Workaround __ieee128 error; see https://github.com/LLNL/blt/issues/341
+    - export NVCC="$NVCC -Xcompiler -mno-float128"  # [ppc64le]
+
+    - {{ PYTHON }} -m pip install . --no-deps -vv
+    - if errorlevel 1 exit 1  # [win]
+
+    # copy activate/deactivate scripts
+    - mkdir -p "${PREFIX}/etc/conda/activate.d"                                               # [linux]
+    - cp "${RECIPE_DIR}/activate.sh" "${PREFIX}/etc/conda/activate.d/cupy_activate.sh"        # [linux]
+    - mkdir -p "${PREFIX}/etc/conda/deactivate.d"                                             # [linux]
+    - cp "${RECIPE_DIR}/deactivate.sh" "${PREFIX}/etc/conda/deactivate.d/cupy_deactivate.sh"  # [linux]
+    - if not exist %PREFIX%\etc\conda\activate.d mkdir %PREFIX%\etc\conda\activate.d          # [win]
+    - copy %RECIPE_DIR%\activate.bat %PREFIX%\etc\conda\activate.d\cupy_activate.bat          # [win]
+    - if not exist %PREFIX%\etc\conda\deactivate.d mkdir %PREFIX%\etc\conda\deactivate.d      # [win]
+    - copy %RECIPE_DIR%\deactivate.bat %PREFIX%\etc\conda\deactivate.d\cupy_deactivate.bat    # [win]
+
+    # enable CuPy's preload mechanism
+    - mkdir -p "${SP_DIR}/cupy/.data/"                                                                                     # [linux]
+    - if not exist %SP_DIR%\cupy\.data mkdir %SP_DIR%\cupy\.data                                                           # [win]
+    {% if cuda_major_minor >= (11, 2) %}
+    - cp ${RECIPE_DIR}/preload_config/linux64_cuda11_wheel.json ${SP_DIR}/cupy/.data/_wheel.json                           # [linux]
+    - copy %RECIPE_DIR%\preload_config\win64_cuda11_wheel.json %SP_DIR%\cupy\.data\_wheel.json                             # [win]
+    {% else %}
+    - cp ${RECIPE_DIR}/preload_config/linux64_cuda{{ cuda_compiler_version }}_wheel.json ${SP_DIR}/cupy/.data/_wheel.json  # [linux]
+    - copy %RECIPE_DIR%\preload_config\win64_cuda{{ cuda_compiler_version }}_wheel.json %SP_DIR%\cupy\.data\_wheel.json    # [win]
+    {% endif %}
+  missing_dso_whitelist:
+    - '*/libcuda.*'  # [linux]
+    - '*/nvcuda.dll'  # [win]
+  ignore_run_exports_from:
+    - cudnn  # [linux64 or ppc64le or win]
+    - nccl  # [linux64 or ppc64le]
+    - cutensor
+    {% if cuda_major_minor >= (11, 2) %}
+    - cusparselt  # [linux64 or win]
+    {% endif %}
+
+requirements:
+  build:
+    - {{ compiler("c") }}
+    - {{ compiler("cxx") }}
+    - {{ compiler("cuda") }}
+    - sysroot_linux-64 2.17  # [linux]
+
+  host:
+    - python
+    - pip
+    - setuptools
+    - cython >=0.29.22,<3
+    - fastrlock >=0.5
+    - cudnn  # [linux64 or ppc64le or win]
+    - nccl >=2.8  # [linux64 or ppc64le]
+    - cutensor
+    {% if cuda_major_minor >= (11, 2) %}
+    - cusparselt !=0.2.0.*  # [linux64 or win]
+    {% endif %}
+
+  run:
+    - python
+    - setuptools
+    - fastrlock >=0.5
+    - numpy >=1.18
+
+  run_constrained:
+    # Only GLIBC_2.17 or older symbols present
+    - __glibc >=2.17      # [linux]
+    - scipy >=1.4
+    - optuna >=2
+    - {{ pin_compatible('cudnn') }}  # [linux64 or ppc64le or win]
+    - {{ pin_compatible('nccl') }}  # [linux64 or ppc64le]
+    - {{ pin_compatible('cutensor', lower_bound='1.3') }}
+    {% if cuda_major_minor >= (11, 2) %}
+    - {{ pin_compatible('cusparselt', max_pin='x.x') }}  # [linux64 or win]
+    {% endif %}
+
+test:
+  requires:
+    - pytest
+    - {{ compiler("c") }}
+    - {{ compiler("cxx") }}
+    - {{ compiler("cuda") }}  # tests need nvcc
+
+  source_files:
+    - tests
+
+about:
+  home: https://cupy.dev/
+  license: MIT
+  license_family: MIT
+  license_file: LICENSE
+  summary: |
+    CuPy: NumPy & SciPy for GPU
+  dev_url: https://github.com/cupy/cupy/
+  doc_url: https://docs.cupy.dev/en/stable/
+
+extra:
+  recipe-maintainers:
+    - jakirkham
+    - leofang
+    - kmaehashi
+    - asi1024
+    - emcastillo
+    - toslunar
+"""  # noqa
+
+    cm = CondaMetaYAML(recipe)
+    s = io.StringIO()
+    cm.dump(s)
+    s.seek(0)
+    assert s.read() == recipe_parsed
