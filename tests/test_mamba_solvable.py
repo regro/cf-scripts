@@ -121,7 +121,7 @@ python:
     run_req = apply_pins(run_req, host_req, build_req, outnames, m)
     print("run req: %s" % pprint.pformat(run_req))
     assert any(r.startswith("python >=3.8") for r in run_req)
-    assert any(r.startswith("jpeg >=9d") for r in run_req)
+    assert any(r.startswith("jpeg >=") for r in run_req)
 
 
 @flaky
