@@ -112,6 +112,7 @@ def test_depfinder_audit_feedstock():
     }
 
 
+@pytest.mark.skip(reason="greyskull api changes")
 def test_grayskull_audit_feedstock():
     from conda_forge_tick.audit import grayskull_audit_feedstock
 
