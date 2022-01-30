@@ -178,7 +178,7 @@ def _unmunge_line(line: str) -> str:
         return line
 
 
-def _unumge_split_key_value_pairs_with_selectors(lines):
+def _unmunge_split_key_value_pairs_with_selectors(lines):
     # yaml likes to split key-value pairs over lines sometimes
     # this seems to happen when it inserts a question mark in front
     # of the key
@@ -557,7 +557,7 @@ class CondaMetaYAML:
             s.seek(0)
 
             # now unmunge
-            lines = _unumge_split_key_value_pairs_with_selectors(
+            lines = _unmunge_split_key_value_pairs_with_selectors(
                 [line for line in s.readlines()],
             )
             for i in range(len(lines)):
