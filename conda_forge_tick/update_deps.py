@@ -4,6 +4,32 @@ from conda_forge_tick.audit import (
 )
 
 
+def merge_dep_comparisons(dep_comparison, _dep_comparison):
+    if dep_comparison and _dep_comparison:
+        all_keys = set(dep_comparison) | set(_dep_comparison)
+        for k in all_keys:
+            v = dep_comparison.get(k, set())
+            v_nms = {
+                _v.split(" ")[0] for _v in v
+            }
+            for _v in _dep_comparison.get(k, set()):
+                _v_nm = _v.split(" ")[0]
+                if _v_nm not in v_nms:
+                    v.add(_v)
+            if v:
+                dep_comparison[k] = v
+
+        return dep_comparison
+    elif dep_comparison:
+        return dep_comparison
+    else:
+        return _dep_comparison
+
+
+def get_grayskull_comparison(recipe_dir, attrs):
+    return {}, ""
+
+
 def get_depfinder_comparison(recipe_dir, node_attrs, python_nodes):
     deps = extract_deps_from_source(recipe_dir)
     return compare_depfinder_audit(
@@ -51,3 +77,11 @@ def generate_dep_hint(dep_comparison, kind):
             f"Analysis by {kind} shows **no discrepancy** with the stated requirements in the meta.yaml."  # noqa: E501
         )
     return hint
+
+
+def apply_grayskull_update(recipe_dir, gs_recipe):
+    pass
+
+
+def apply_depfinder_update(recipe_dir, dep_comparison):
+    pass

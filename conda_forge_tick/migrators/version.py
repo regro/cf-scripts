@@ -1,4 +1,5 @@
 import os
+import copy
 import typing
 import re
 import io
@@ -33,6 +34,9 @@ from conda_forge_tick.update_deps import (
     get_depfinder_comparison,
     get_grayskull_comparison,
     generate_dep_hint,
+    merge_dep_comparisons,
+    apply_depfinder_update,
+    apply_grayskull_update,
 )
 
 if typing.TYPE_CHECKING:
@@ -717,46 +721,60 @@ class Version(Migrator):
         for p in pred:
             body += template.format(name=p[0], new_version=p[1])
 
+        body += self._hint_and_maybe_update_deps(feedstock_ctx)
+
+        return super().pr_body(feedstock_ctx, add_label_text=False).format(body)
+
+    def _hint_and_maybe_update_deps(self, feedstock_ctx):
         update_deps = (
             feedstock_ctx.attrs.get("conda-forge.yml", {})
             .get("bot", {})
-            .get("inspection", "hint-source")
+            .get("inspection", "hint")
         )
+        hint = ""
         try:
             if update_deps in ["hint-source", "update-source"]:
-                dep_comparison = get_depfinder_comparison(
+                df_dep_comparison = get_depfinder_comparison(
                     os.path.join(feedstock_ctx.feedstock_dir, "recipe"),
                     feedstock_ctx.attrs,
                     self.python_nodes,
                 )
                 kind = "source code inspection"
+                hint = generate_dep_hint(df_dep_comparison, kind)
             elif update_deps in ["hint-grayskull", "update-grayskull"]:
-                dep_comparison = get_grayskull_comparison(
-                    os.path.join(feedstock_ctx.feedstock_dir, "recipe")
+                dep_comparison, gs_recipe = get_grayskull_comparison(
+                    os.path.join(feedstock_ctx.feedstock_dir, "recipe"),
+                    feedstock_ctx.attrs,
                 )
                 kind = "grayskull"
+                hint = generate_dep_hint(dep_comparison, kind)
             elif update_deps in ["hint", "update"]:
-                _dep_comparison = get_depfinder_comparison(
+                df_dep_comparison = get_depfinder_comparison(
                     os.path.join(feedstock_ctx.feedstock_dir, "recipe"),
                     feedstock_ctx.attrs,
                     self.python_nodes,
                 )
-                dep_comparison = get_grayskull_comparison(
-                    os.path.join(feedstock_ctx.feedstock_dir, "recipe")
+                dep_comparison, gs_recipe = get_grayskull_comparison(
+                    os.path.join(feedstock_ctx.feedstock_dir, "recipe"),
+                    feedstock_ctx.attrs,
                 )
-                for k, v in dep_comparison.items():
-                    v_nms = {
-                        _v.split(" ")[0] for _v in v
-                    }
-                    for _v in _dep_comparison[k]:
-                        if _v not in v_nms:
-                            dep_comparison[k].add(_v)
+                dep_comparison = merge_dep_comparisons(
+                    copy.deepcopy(dep_comparison), copy.deepcopy(df_dep_comparison)
+                )
                 kind = "source code inspection+grayskull"
+                hint = generate_dep_hint(dep_comparison, kind)
 
-            if update_deps in ["hint", "hint-source", "hint-grayskull"]:
-                body += generate_dep_hint(dep_comparison, kind)
-            elif update_deps in ["update", "update-source", "update-grayskull"]:
-                pass
+            if update_deps in ["update", "update-source", "update-grayskull"]:
+                if update_deps in ["update", "update-grayskull"]:
+                    apply_grayskull_update(
+                        os.path.join(feedstock_ctx.feedstock_dir, "recipe"),
+                        gs_recipe,
+                    )
+                if update_deps in ["update", "update-source"]:
+                    apply_depfinder_update(
+                        os.path.join(feedstock_ctx.feedstock_dir, "recipe"),
+                        df_dep_comparison,
+                    )
 
         except Exception:
             hint = "\n\nDependency Analysis\n--------------------\n\n"
@@ -764,9 +782,8 @@ class Version(Migrator):
                 "We couldn't run dependency analysis due to an internal "
                 "error in the bot. :( Help is very welcome!"
             )
-            body += hint
 
-        return super().pr_body(feedstock_ctx, add_label_text=False).format(body)
+        return hint
 
     def commit_message(self, feedstock_ctx: FeedstockContext) -> str:
         assert isinstance(feedstock_ctx.attrs["new_version"], str)
