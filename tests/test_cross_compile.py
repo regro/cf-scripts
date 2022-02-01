@@ -134,6 +134,48 @@ extra:
 """
 
 
+config_recipe_correct_make_check = """\
+{% set version = "8.0" %}
+
+package:
+  name: readline
+  version: {{ version }}
+
+source:
+  url: https://ftp.gnu.org/gnu/readline/readline-{{ version }}.tar.gz
+  sha256: e339f51971478d369f8a053a330a190781acb9864cf4c541060f12078948e461
+
+build:
+  skip: true  # [win]
+  number: 0
+  run_exports:
+    # change soname at major ver: https://abi-laboratory.pro/tracker/timeline/readline/
+    - {{ pin_subpackage('readline') }}
+
+requirements:
+  build:
+    - pkg-config
+    - gnuconfig  # [unix]
+    - {{ compiler('c') }}
+    - make
+    - cmake
+  host:
+    - ncurses
+  run:
+    - ncurses
+
+about:
+  home: https://cnswww.cns.cwru.edu/php/chet/readline/rltop.html
+  license: GPL-3.0-only
+  license_file: COPYING
+  summary: library for editing command lines as they are typed in
+
+extra:
+  recipe-maintainers:
+    - croth1
+"""
+
+
 config_recipe_correct_cmake = """\
 {% set version = "8.0" %}
 
@@ -1029,7 +1071,7 @@ def test_make_check(tmpdir):
     run_test_migration(
         m=version_migrator_autoconf,
         inp=config_recipe,
-        output=config_recipe_correct,
+        output=config_recipe_correct_make_check,
         prb="Dependencies have been updated if changed",
         kwargs={"new_version": "8.0"},
         mr_out={
