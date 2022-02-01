@@ -730,6 +730,7 @@ class Version(Migrator):
             .get("bot", {})
             .get("inspection", "hint")
         )
+        logger.info("bot.inspection: %s", update_deps)
         hint = ""
         try:
             if update_deps in ["hint, " "hint-source", "update-source"]:
@@ -738,12 +739,14 @@ class Version(Migrator):
                     feedstock_ctx.attrs,
                     self.python_nodes,
                 )
+                logger.info("source dep. comp: %s", pprint.pformat(df_dep_comparison))
                 kind = "source code inspection"
                 hint = generate_dep_hint(df_dep_comparison, kind)
             elif update_deps in ["hint-grayskull", "update-grayskull"]:
                 dep_comparison, gs_recipe = get_grayskull_comparison(
                     feedstock_ctx.attrs,
                 )
+                logger.info("grayskull dep. comp: %s", pprint.pformat(dep_comparison))
                 kind = "grayskull"
                 hint = generate_dep_hint(dep_comparison, kind)
             elif update_deps in ["hint-all", "update-all"]:
@@ -752,24 +755,28 @@ class Version(Migrator):
                     feedstock_ctx.attrs,
                     self.python_nodes,
                 )
+                logger.info("source dep. comp: %s", pprint.pformat(df_dep_comparison))
                 dep_comparison, gs_recipe = get_grayskull_comparison(
-                    os.path.join(feedstock_ctx.feedstock_dir, "recipe"),
                     feedstock_ctx.attrs,
                 )
+                logger.info("grayskull dep. comp: %s", pprint.pformat(dep_comparison))
                 dep_comparison = merge_dep_comparisons(
                     copy.deepcopy(dep_comparison),
                     copy.deepcopy(df_dep_comparison),
                 )
+                logger.info("combined dep. comp: %s", pprint.pformat(dep_comparison))
                 kind = "source code inspection+grayskull"
                 hint = generate_dep_hint(dep_comparison, kind)
 
             if update_deps in ["update-all", "update-source", "update-grayskull"]:
                 if update_deps in ["update-all", "update-grayskull"]:
+                    logger.info("applying dep %s", update_deps)
                     apply_dep_update(
                         os.path.join(feedstock_ctx.feedstock_dir, "recipe"),
                         dep_comparison,
                     )
                 if update_deps in ["update-source"]:
+                    logger.info("applying dep %s", update_deps)
                     apply_dep_update(
                         os.path.join(feedstock_ctx.feedstock_dir, "recipe"),
                         df_dep_comparison,

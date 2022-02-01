@@ -228,7 +228,10 @@ def _update_sec_deps(recipe, dep_comparison, sections_to_update):
                 recipe.meta[rqkey][section] = []
 
             for seckey in _gen_key_selector(recipe.meta[rqkey], section):
-                for dep in dep_comparison[section]["df_minus_cf"]:
+                deps = sorted(list(
+                    dep_comparison.get(section, {}).get("df_minus_cf", set())
+                ))[::-1]
+                for dep in deps:
                     dep_pkg_nm = dep.split(" ", 1)[0]
 
                     # do not replace pin compatible keys
@@ -250,7 +253,7 @@ def _update_sec_deps(recipe, dep_comparison, sections_to_update):
                             loc = i
                             break
                     if loc is None:
-                        recipe.meta[rqkey][seckey].append(dep)
+                        recipe.meta[rqkey][seckey].insert(0, dep)
                     else:
                         recipe.meta[rqkey][seckey][loc] = dep
                     updated_deps = True
