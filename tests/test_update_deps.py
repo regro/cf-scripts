@@ -146,7 +146,7 @@ def test_get_depfinder_comparison():
             fp.write(attrs["raw_meta_yaml"])
 
         d = get_depfinder_comparison(tmpdir, attrs, {"conda"})
-    assert "run" not in d
+    assert len(d["run"]) == 0
     assert "host" not in d
 
 
