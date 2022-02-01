@@ -2,6 +2,8 @@ import os
 import tempfile
 import logging
 
+from flaky import flaky
+
 from conda_forge_tick.utils import load
 from conda_forge_tick.recipe_parser import CondaMetaYAML
 from conda_forge_tick.update_deps import (
@@ -131,6 +133,7 @@ def test_update_run_deps():
     assert "python >=3.6" in recipe.dumps()
 
 
+@flaky
 def test_get_depfinder_comparison():
     with open(
         os.path.join(os.path.dirname(__file__), "test_yaml", "depfinder.json"),
@@ -299,6 +302,7 @@ extra:
 """
 
 
+@flaky
 @pytest.mark.parametrize(
     "update_kind,out_yml",
     [
