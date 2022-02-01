@@ -732,7 +732,7 @@ class Version(Migrator):
         )
         hint = ""
         try:
-            if update_deps in ["hint-source", "update-source"]:
+            if update_deps in ["hint, ""hint-source", "update-source"]:
                 df_dep_comparison = get_depfinder_comparison(
                     os.path.join(feedstock_ctx.feedstock_dir, "recipe"),
                     feedstock_ctx.attrs,
@@ -746,7 +746,7 @@ class Version(Migrator):
                 )
                 kind = "grayskull"
                 hint = generate_dep_hint(dep_comparison, kind)
-            elif update_deps in ["hint", "update"]:
+            elif update_deps in ["hint-all", "update-all"]:
                 df_dep_comparison = get_depfinder_comparison(
                     os.path.join(feedstock_ctx.feedstock_dir, "recipe"),
                     feedstock_ctx.attrs,
@@ -763,8 +763,8 @@ class Version(Migrator):
                 kind = "source code inspection+grayskull"
                 hint = generate_dep_hint(dep_comparison, kind)
 
-            if update_deps in ["update", "update-source", "update-grayskull"]:
-                if update_deps in ["update", "update-grayskull"]:
+            if update_deps in ["update-all", "update-source", "update-grayskull"]:
+                if update_deps in ["update-all", "update-grayskull"]:
                     apply_dep_update(
                         os.path.join(feedstock_ctx.feedstock_dir, "recipe"),
                         dep_comparison,
@@ -784,7 +784,7 @@ class Version(Migrator):
 
             # we raise error supdating the deps since people rely on this
             # this will cause the version PR to error and show up on the status page
-            if update_deps in ["update", "update-source", "update-grayskull"]:
+            if update_deps in ["update-all", "update-source", "update-grayskull"]:
                 raise e
 
         return hint
