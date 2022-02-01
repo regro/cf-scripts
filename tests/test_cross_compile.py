@@ -114,7 +114,6 @@ build:
 requirements:
   build:
     - pkg-config
-    - gnuconfig  # [unix]
     - {{ compiler('c') }}
     - make
     - cmake
