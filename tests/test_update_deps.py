@@ -9,50 +9,53 @@ from conda_forge_tick.update_deps import (
     generate_dep_hint,
     make_grayskull_recipe,
     _update_sec_deps,
-    _merge_dep_comparisons_sec
+    _merge_dep_comparisons_sec,
 )
 
 import pytest
 
 
-@pytest.mark.parametrize("dp1,dp2,m", [
-    ({}, {}, {}),
-    (
-        {"df_minus_cf": set(["a"])},
-        {},
-        {"df_minus_cf": set(["a"])},
-    ),
-    (
-        {},
-        {"df_minus_cf": set(["a"])},
-        {"df_minus_cf": set(["a"])},
-    ),
-    (
-        {"df_minus_cf": set(["a"])},
-        {"cf_minus_df": set(["b"])},
-        {"df_minus_cf": set(["a"]), "cf_minus_df": set(["b"])},
-    ),
-    (
-        {"df_minus_cf": set(["a"])},
-        {"df_minus_cf": set(["c", "d"]), "cf_minus_df": set(["b"])},
-        {"df_minus_cf": set(["a", "c", "d"]), "cf_minus_df": set(["b"])},
-    ),
-    (
-        {"df_minus_cf": set(["c", "d"]), "cf_minus_df": set(["b"])},
-        {"df_minus_cf": set(["a"])},
-        {"df_minus_cf": set(["a", "c", "d"]), "cf_minus_df": set(["b"])},
-    ),
-    (
-        {"df_minus_cf": set(["a >=2"])},
-        {"df_minus_cf": set(["a"])},
-        {"df_minus_cf": set(["a >=2"])},
-    ),
-    (
-        {"df_minus_cf": set(["a"])},
-        {"df_minus_cf": set(["a >=2"])},
-        {"df_minus_cf": set(["a"])},
-    ),
-])
+@pytest.mark.parametrize(
+    "dp1,dp2,m",
+    [
+        ({}, {}, {}),
+        (
+            {"df_minus_cf": {"a"}},
+            {},
+            {"df_minus_cf": {"a"}},
+        ),
+        (
+            {},
+            {"df_minus_cf": {"a"}},
+            {"df_minus_cf": {"a"}},
+        ),
+        (
+            {"df_minus_cf": {"a"}},
+            {"cf_minus_df": {"b"}},
+            {"df_minus_cf": {"a"}, "cf_minus_df": {"b"}},
+        ),
+        (
+            {"df_minus_cf": {"a"}},
+            {"df_minus_cf": {"c", "d"}, "cf_minus_df": {"b"}},
+            {"df_minus_cf": {"a", "c", "d"}, "cf_minus_df": {"b"}},
+        ),
+        (
+            {"df_minus_cf": {"c", "d"}, "cf_minus_df": {"b"}},
+            {"df_minus_cf": {"a"}},
+            {"df_minus_cf": {"a", "c", "d"}, "cf_minus_df": {"b"}},
+        ),
+        (
+            {"df_minus_cf": {"a >=2"}},
+            {"df_minus_cf": {"a"}},
+            {"df_minus_cf": {"a >=2"}},
+        ),
+        (
+            {"df_minus_cf": {"a"}},
+            {"df_minus_cf": {"a >=2"}},
+            {"df_minus_cf": {"a"}},
+        ),
+    ],
+)
 def test_merge_dep_comparisons(dp1, dp2, m):
     assert m == _merge_dep_comparisons_sec(dp1, dp2)
 
@@ -64,21 +67,21 @@ def test_generate_dep_hint():
     assert "but not found by blahblahblah" not in hint
     assert "but not in the meta.yaml" not in hint
 
-    df = {"df_minus_cf": set(["a"]), "cf_minus_df": set(["b"])}
+    df = {"df_minus_cf": {"a"}, "cf_minus_df": {"b"}}
     hint = generate_dep_hint(df, "blahblahblah")
     assert "no discrepancy" not in hint
     assert "blahblahblah" in hint
     assert "but not found by blahblahblah" in hint
     assert "but not in the meta.yaml" in hint
 
-    df = {"df_minus_cf": set(["a"])}
+    df = {"df_minus_cf": {"a"}}
     hint = generate_dep_hint(df, "blahblahblah")
     assert "no discrepancy" not in hint
     assert "blahblahblah" in hint
     assert "but not found by blahblahblah" not in hint
     assert "but not in the meta.yaml" in hint
 
-    df = {"cf_minus_df": set(["b"])}
+    df = {"cf_minus_df": {"b"}}
     hint = generate_dep_hint(df, "blahblahblah")
     assert "no discrepancy" not in hint
     assert "blahblahblah" in hint
@@ -102,7 +105,7 @@ def test_get_grayskull_comparison():
         attrs = load(f)
     d, rs = get_grayskull_comparison(attrs)
     assert rs != ""
-    assert d["run"]["cf_minus_df"] == set(["python <3.9"])
+    assert d["run"]["cf_minus_df"] == {"python <3.9"}
     assert any(_d.startswith("python") for _d in d["run"]["df_minus_cf"])
 
 
@@ -133,6 +136,6 @@ def test_get_depfinder_comparison():
         with open(pth, "w") as fp:
             fp.write(attrs["raw_meta_yaml"])
 
-        d = get_depfinder_comparison(tmpdir, attrs, set(["conda"]))
+        d = get_depfinder_comparison(tmpdir, attrs, {"conda"})
     assert len(d["run"]["df_minus_cf"]) > 0
     assert "host" not in d

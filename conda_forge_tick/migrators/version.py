@@ -757,7 +757,8 @@ class Version(Migrator):
                     feedstock_ctx.attrs,
                 )
                 dep_comparison = merge_dep_comparisons(
-                    copy.deepcopy(dep_comparison), copy.deepcopy(df_dep_comparison)
+                    copy.deepcopy(dep_comparison),
+                    copy.deepcopy(df_dep_comparison),
                 )
                 kind = "source code inspection+grayskull"
                 hint = generate_dep_hint(dep_comparison, kind)

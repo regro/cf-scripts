@@ -16,9 +16,7 @@ def _merge_dep_comparisons_sec(dep_comparison, _dep_comparison):
         all_keys = set(dep_comparison) | set(_dep_comparison)
         for k in all_keys:
             v = dep_comparison.get(k, set())
-            v_nms = {
-                _v.split(" ")[0] for _v in v
-            }
+            v_nms = {_v.split(" ")[0] for _v in v}
             for _v in _dep_comparison.get(k, set()):
                 _v_nm = _v.split(" ")[0]
                 if _v_nm not in v_nms:
@@ -69,18 +67,14 @@ def get_grayskull_comparison(attrs):
     new_attrs = load_feedstock(attrs.get("feedstock_name"), {}, meta_yaml=gs_recipe)
     d = {}
     for section in ["host", "run"]:
-        gs_run = set([
-            c for c in new_attrs.get("total_requirements").get(section, set())
-        ])
+        gs_run = {c for c in new_attrs.get("total_requirements").get(section, set())}
 
         d[section] = {}
-        cf_minus_df = set([
-            c for c in attrs.get("total_requirements").get(section, set())
-        ])
+        cf_minus_df = {c for c in attrs.get("total_requirements").get(section, set())}
         df_minus_cf = set()
         for req in gs_run:
             if req in cf_minus_df:
-                cf_minus_df = cf_minus_df - set([req])
+                cf_minus_df = cf_minus_df - {req}
             else:
                 df_minus_cf.add(req)
 
@@ -98,7 +92,7 @@ def get_depfinder_comparison(recipe_dir, node_attrs, python_nodes):
             node_attrs,
             node_attrs["name"],
             python_nodes=python_nodes,
-        )
+        ),
     }
 
 
@@ -135,22 +129,13 @@ def generate_dep_hint(dep_comparison, kind):
                 f"{cf_df}"
             )
     else:
-        hint += (
-            f"Analysis by {kind} shows **no discrepancy** with the stated requirements in the meta.yaml."  # noqa: E501
-        )
+        hint += f"Analysis by {kind} shows **no discrepancy** with the stated requirements in the meta.yaml."  # noqa: E501
     return hint
 
 
 def _ok_for_dep_updates(lines):
-    is_multi_output = any(
-        ln.lstrip().startswith("outputs:")
-        for ln in lines
-    )
-    has_run_section = any(
-        ln.lstrip().startswith("run:")
-        for ln in lines
-    )
-    return has_run_section and (not is_multi_output)
+    is_multi_output = any(ln.lstrip().startswith("outputs:") for ln in lines)
+    return not is_multi_output
 
 
 def _update_sec_deps(recipe, dep_comparison, sections_to_update):
@@ -172,18 +157,12 @@ def _update_sec_deps(recipe, dep_comparison, sections_to_update):
                     dep_pkg_nm = dep.split(" ", 1)[0]
 
                     # do not replace pin compatible keys
-                    if (
-                        seckey.startswith("run")
-                        and any(
-                            (
-                                "pin_compatible" in rq
-                                and (
-                                    "'%s'" % dep_pkg_nm in rq
-                                    or '"%s"' % dep_pkg_nm in rq
-                                )
-                            )
-                            for rq in recipe.meta[rqkey][seckey]
+                    if seckey.startswith("run") and any(
+                        (
+                            "pin_compatible" in rq
+                            and ("'%s'" % dep_pkg_nm in rq or '"%s"' % dep_pkg_nm in rq)
                         )
+                        for rq in recipe.meta[rqkey][seckey]
                     ):
                         continue
 
@@ -212,16 +191,13 @@ def _gen_key_selector(dct, key):
 
 def apply_dep_update(recipe_dir, dep_comparison):
     recipe_pth = os.path.join(recipe_dir, "meta.yaml")
-    with open(recipe_pth, "r") as fp:
+    with open(recipe_pth) as fp:
         lines = fp.readlines()
 
     sections_to_update = ["host", "run"]
-    if (
-        _ok_for_dep_updates(lines)
-        and any(
-            len(dep_comparison.get(s, {}).get("df_minus_cf", set())) > 0
-            for s in sections_to_update
-        )
+    if _ok_for_dep_updates(lines) and any(
+        len(dep_comparison.get(s, {}).get("df_minus_cf", set())) > 0
+        for s in sections_to_update
     ):
         recipe = CondaMetaYAML("".join(lines))
         updated_deps = _update_sec_deps(
