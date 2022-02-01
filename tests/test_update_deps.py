@@ -146,7 +146,7 @@ def test_get_depfinder_comparison():
             fp.write(attrs["raw_meta_yaml"])
 
         d = get_depfinder_comparison(tmpdir, attrs, {"conda"})
-    assert len(d["run"]["df_minus_cf"]) > 0
+    assert "run" not in d
     assert "host" not in d
 
 
@@ -223,9 +223,6 @@ requirements:
     - python >=3.6
     - pip
   run:
-    - diffusioncma
-    - splauncher
-    - versioneer-518
     - python >=3.6
     - stdlib-list
     - pyyaml
@@ -274,9 +271,6 @@ requirements:
     - python <3.9
     - pip
   run:
-    - diffusioncma
-    - splauncher
-    - versioneer-518
     - python <3.9
     - stdlib-list
     - pyyaml

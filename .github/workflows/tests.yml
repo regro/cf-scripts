@@ -45,17 +45,13 @@ jobs:
           export TEST_PASSWORD_VAL=unpassword
           export PASSWORD=${TEST_PASSWORD_VAL}
           pytest \
-            -vvs \
-            tests/test_update_deps.py
-
-          # pytest \
-          #   -v \
-          #   --cov=conda_forge_tick \
-          #   --cov=tests \
-          #   --cov-config=.coveragerc \
-          #   --cov-report term \
-          #   -n 4 tests
-          # codecov -X gcov
+            -v \
+            --cov=conda_forge_tick \
+            --cov=tests \
+            --cov-config=.coveragerc \
+            --cov-report term \
+            -n 4 tests
+          codecov -X gcov
 
       - name: build docs
         shell: bash -l {0}
