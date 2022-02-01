@@ -1,4 +1,5 @@
 import os
+import copy
 import typing
 import re
 import io
@@ -29,6 +30,13 @@ from conda_forge_tick.recipe_parser import CONDA_SELECTOR, CondaMetaYAML
 from conda_forge_tick.url_transforms import gen_transformed_urls
 from conda_forge_tick.hashing import hash_url
 from conda_forge_tick.utils import sanitize_string
+from conda_forge_tick.update_deps import (
+    get_depfinder_comparison,
+    get_grayskull_comparison,
+    generate_dep_hint,
+    merge_dep_comparisons,
+    apply_dep_update,
+)
 
 if typing.TYPE_CHECKING:
     from conda_forge_tick.migrators_types import (
@@ -712,74 +720,81 @@ class Version(Migrator):
         for p in pred:
             body += template.format(name=p[0], new_version=p[1])
 
+        body += self._hint_and_maybe_update_deps(feedstock_ctx)
+
+        return super().pr_body(feedstock_ctx, add_label_text=False).format(body)
+
+    def _hint_and_maybe_update_deps(self, feedstock_ctx):
         update_deps = (
             feedstock_ctx.attrs.get("conda-forge.yml", {})
             .get("bot", {})
             .get("inspection", "hint")
         )
+        logger.info("bot.inspection: %s", update_deps)
+        hint = ""
         try:
-            if update_deps == "hint":
-                from conda_forge_tick.audit import (
-                    extract_deps_from_source,
-                    compare_depfinder_audit,
-                )
-
-                deps = extract_deps_from_source(
+            if update_deps in ["hint, " "hint-source", "update-source"]:
+                df_dep_comparison = get_depfinder_comparison(
                     os.path.join(feedstock_ctx.feedstock_dir, "recipe"),
-                )
-                dep_comparison = compare_depfinder_audit(
-                    deps,
                     feedstock_ctx.attrs,
-                    feedstock_ctx.attrs["name"],
-                    python_nodes=self.python_nodes,
+                    self.python_nodes,
                 )
-                hint = "\n\nDependency Analysis\n--------------------\n\n"
-                hint += (
-                    "Please note that this analysis is **highly experimental**. "
-                    "The aim here is to make maintenance easier by inspecting the package's dependencies. "  # noqa: E501
-                    "Importantly this analysis does not support optional dependencies, "
-                    "please double check those before making changes. "
-                    "If you do not want hinting of this kind ever please add "
-                    "`bot: inspection: false` to your `conda-forge.yml`. "
-                    "If you encounter issues with this feature please ping the bot team `conda-forge/bot`.\n\n"  # noqa: E501
+                logger.info("source dep. comp: %s", pprint.pformat(df_dep_comparison))
+                kind = "source code inspection"
+                hint = generate_dep_hint(df_dep_comparison, kind)
+            elif update_deps in ["hint-grayskull", "update-grayskull"]:
+                dep_comparison, gs_recipe = get_grayskull_comparison(
+                    feedstock_ctx.attrs,
                 )
-                if dep_comparison:
-                    df_cf = ""
-                    for k in dep_comparison.get("df_minus_cf", set()):
-                        df_cf += f"- {k}" + "\n"
-                    cf_df = ""
-                    for k in dep_comparison.get("cf_minus_df", set()):
-                        cf_df += f"- {k}" + "\n"
-                    hint += (
-                        "Analysis of the source code shows a discrepancy between"
-                        " the library's imports and the package's stated requirements"
-                        " in the meta.yaml."
+                logger.info("grayskull dep. comp: %s", pprint.pformat(dep_comparison))
+                kind = "grayskull"
+                hint = generate_dep_hint(dep_comparison, kind)
+            elif update_deps in ["hint-all", "update-all"]:
+                df_dep_comparison = get_depfinder_comparison(
+                    os.path.join(feedstock_ctx.feedstock_dir, "recipe"),
+                    feedstock_ctx.attrs,
+                    self.python_nodes,
+                )
+                logger.info("source dep. comp: %s", pprint.pformat(df_dep_comparison))
+                dep_comparison, gs_recipe = get_grayskull_comparison(
+                    feedstock_ctx.attrs,
+                )
+                logger.info("grayskull dep. comp: %s", pprint.pformat(dep_comparison))
+                dep_comparison = merge_dep_comparisons(
+                    copy.deepcopy(dep_comparison),
+                    copy.deepcopy(df_dep_comparison),
+                )
+                logger.info("combined dep. comp: %s", pprint.pformat(dep_comparison))
+                kind = "source code inspection+grayskull"
+                hint = generate_dep_hint(dep_comparison, kind)
+
+            if update_deps in ["update-all", "update-source", "update-grayskull"]:
+                if update_deps in ["update-all", "update-grayskull"]:
+                    logger.info("applying dep %s", update_deps)
+                    apply_dep_update(
+                        os.path.join(feedstock_ctx.feedstock_dir, "recipe"),
+                        dep_comparison,
                     )
-                    if df_cf:
-                        hint += (
-                            "\n\n### Packages found by inspection but not in the meta.yaml:\n"  # noqa: E501
-                            f"{df_cf}"
-                        )
-                    if cf_df:
-                        hint += (
-                            "\n\n### Packages found in the meta.yaml but not found by inspection:\n"  # noqa: E501
-                            f"{cf_df}"
-                        )
-                else:
-                    hint += (
-                        "Analysis of the source code shows **no** discrepancy between"
-                        " the library's imports and the package's stated requirements in the meta.yaml."  # noqa: E501
+                if update_deps in ["update-source"]:
+                    logger.info("applying dep %s", update_deps)
+                    apply_dep_update(
+                        os.path.join(feedstock_ctx.feedstock_dir, "recipe"),
+                        df_dep_comparison,
                     )
-                body += hint
-        except Exception:
+
+        except Exception as e:
             hint = "\n\nDependency Analysis\n--------------------\n\n"
             hint += (
                 "We couldn't run dependency analysis due to an internal "
                 "error in the bot. :( Help is very welcome!"
             )
-            body += hint
 
-        return super().pr_body(feedstock_ctx, add_label_text=False).format(body)
+            # we raise error if updating the deps since people rely on this
+            # this will cause the version PR to error and show up on the status page
+            if update_deps in ["update-all", "update-source", "update-grayskull"]:
+                raise e
+
+        return hint
 
     def commit_message(self, feedstock_ctx: FeedstockContext) -> str:
         assert isinstance(feedstock_ctx.attrs["new_version"], str)

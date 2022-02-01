@@ -16,7 +16,7 @@ from depfinder.main import (
     simple_import_to_pkg_map,
 )
 from depfinder import __version__ as depfinder_version
-from grayskull.base.factory import GrayskullFactory
+from grayskull.__main__ import create_python_recipe
 from grayskull import __version__ as grayskull_version
 import pandas as pd
 
@@ -108,26 +108,20 @@ def depfinder_audit_feedstock(fctx: FeedstockContext, ctx: MigratorSessionContex
 def grayskull_audit_feedstock(fctx: FeedstockContext, ctx: MigratorSessionContext):
     """Uses grayskull to audit the requirements for a python package"""
     # TODO: come back to this, since CF <-> PyPI is not one-to-one and onto
-    pkg_name = fctx.package_name
     pkg_version = fctx.attrs["version"]
-    recipe = GrayskullFactory.create_recipe(
-        "pypi",
-        pkg_name,
-        pkg_version,
+    pkg_name = fctx.package_name
+    recipe, _ = create_python_recipe(
+        pkg_name=pkg_name,
+        version=pkg_version,
         download=False,
+        is_strict_cf=True,
+        from_local_sdist=False,
     )
 
     with tempfile.TemporaryDirectory() as td:
-        recipe.generate_recipe(
-            td,
-            mantainers=list(
-                {
-                    m: None
-                    for m in fctx.attrs["meta_yaml"]["extra"]["recipe-maintainers"]
-                },
-            ),
-        )
-        with open(os.path.join(td, pkg_name, "meta.yaml")) as f:
+        pth = os.path.join(td, "meta.yaml")
+        recipe.save(pth)
+        with open(pth) as f:
             out = f.read()
     return out
 
