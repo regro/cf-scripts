@@ -782,7 +782,7 @@ class Version(Migrator):
                 "error in the bot. :( Help is very welcome!"
             )
 
-            # we raise error supdating the deps since people rely on this
+            # we raise error if updating the deps since people rely on this
             # this will cause the version PR to error and show up on the status page
             if update_deps in ["update-all", "update-source", "update-grayskull"]:
                 raise e
