@@ -6,7 +6,9 @@ import pytest
 import networkx as nx
 
 from conda_forge_tick.contexts import (
-    MigratorSessionContext, MigratorContext, FeedstockContext,
+    MigratorSessionContext,
+    MigratorContext,
+    FeedstockContext,
 )
 from conda_forge_tick.migrators import (
     Version,
@@ -1635,7 +1637,7 @@ matplotlib = Replacement(
 )
 
 
-class MockLazyJson():
+class MockLazyJson:
     def __init__(self, data):
         self.data = data
 

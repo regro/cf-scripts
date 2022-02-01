@@ -299,11 +299,17 @@ extra:
 """
 
 
-@pytest.mark.parametrize("update_kind,out_yml", [
-    ("update-grayskull", out_yml_gs),
-    ("update-all", out_yml_all),
-    ("update-source", out_yml_src,),
-])
+@pytest.mark.parametrize(
+    "update_kind,out_yml",
+    [
+        ("update-grayskull", out_yml_gs),
+        ("update-all", out_yml_all),
+        (
+            "update-source",
+            out_yml_src,
+        ),
+    ],
+)
 def test_update_deps_version(caplog, tmpdir, update_kind, out_yml):
     caplog.set_level(
         logging.DEBUG,
@@ -315,9 +321,9 @@ def test_update_deps_version(caplog, tmpdir, update_kind, out_yml):
     ) as f:
         attrs = load(f)
 
-    in_yaml = attrs["raw_meta_yaml"].replace(
-        "2.3.0", "2.2.0"
-    ).replace("2694acbc8f7", "")
+    in_yaml = (
+        attrs["raw_meta_yaml"].replace("2.3.0", "2.2.0").replace("2694acbc8f7", "")
+    )
     new_ver = "2.3.0"
 
     kwargs = {

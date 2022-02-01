@@ -228,9 +228,9 @@ def _update_sec_deps(recipe, dep_comparison, sections_to_update):
                 recipe.meta[rqkey][section] = []
 
             for seckey in _gen_key_selector(recipe.meta[rqkey], section):
-                deps = sorted(list(
-                    dep_comparison.get(section, {}).get("df_minus_cf", set())
-                ))[::-1]
+                deps = sorted(
+                    list(dep_comparison.get(section, {}).get("df_minus_cf", set())),
+                )[::-1]
                 for dep in deps:
                     dep_pkg_nm = dep.split(" ", 1)[0]
 
