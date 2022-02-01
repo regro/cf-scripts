@@ -143,6 +143,7 @@ def get_depfinder_comparison(recipe_dir, node_attrs, python_nodes):
         The dependency comparison with conda-forge.
     """
     deps = extract_deps_from_source(recipe_dir)
+    print("deps:", deps, flush=True)
     return {
         "run": compare_depfinder_audit(
             deps,
