@@ -32,6 +32,22 @@ def _merge_dep_comparisons_sec(dep_comparison, _dep_comparison):
 
 
 def merge_dep_comparisons(dep1, dep2):
+    """Merge two dep comparison dicts.
+
+    Parameters
+    ----------
+    dep1 : dict
+        The first one to be merged. Keys in this one take precedence over
+        keys in `dep2`.
+    dep2 : dict
+        The second one to be merged. Keys in this one are only added to `dep1`
+        if the package name is not in `dep1`.
+
+    Returns
+    -------
+    d : dict
+        The merged dep comparison.
+    """
     d = {}
     for section in ["host", "run"]:
         d[section] = _merge_dep_comparisons_sec(
@@ -42,6 +58,18 @@ def merge_dep_comparisons(dep1, dep2):
 
 
 def make_grayskull_recipe(attrs):
+    """Make a grayskull recipe given bot node attrs.
+
+    Parameters
+    ----------
+    attrs : dict or LazyJson
+        The node attrs.
+
+    Returns
+    -------
+    recipe : str
+        The generated grayskull recipe as a string.
+    """
     pkg_version = attrs["version"]
     pkg_name = attrs["name"]
     recipe, _ = create_python_recipe(
@@ -61,6 +89,18 @@ def make_grayskull_recipe(attrs):
 
 
 def get_grayskull_comparison(attrs):
+    """Get the dependency comparison between the recipe and grayskull.
+
+    Parameters
+    ----------
+    attrs : dict or LazyJson
+        The bot node attrs.
+
+    Returns
+    -------
+    d : dict
+        The dependency comparison with conda-forge.
+    """
     gs_recipe = make_grayskull_recipe(attrs)
 
     # load the feedstock with the grayskull meta_yaml
@@ -85,6 +125,23 @@ def get_grayskull_comparison(attrs):
 
 
 def get_depfinder_comparison(recipe_dir, node_attrs, python_nodes):
+    """Get the dependency comparison between the recipe and the source code.
+
+    Parameters
+    ----------
+    recipe_dir : str
+        The path to the recipe.
+    node_attrs : dict or LazyJson
+        The bot node attrs.
+    python_nodes : set
+        The set of nodes which are python packages. The comparison will be
+        restricted to these nodes.
+
+    Returns
+    -------
+    d : dict
+        The dependency comparison with conda-forge.
+    """
     deps = extract_deps_from_source(recipe_dir)
     return {
         "run": compare_depfinder_audit(
@@ -97,6 +154,20 @@ def get_depfinder_comparison(recipe_dir, node_attrs, python_nodes):
 
 
 def generate_dep_hint(dep_comparison, kind):
+    """Generate a dep hint.
+
+    Parameters
+    ----------
+    dep_comparison : dict
+        The dependency comparison.
+    kind : str
+        The kind of comparison (e.g., source code, grayskull, etc.)
+
+    Returns
+    -------
+    hint : str
+        The dependency hint string.
+    """
     hint = "\n\nDependency Analysis\n--------------------\n\n"
     hint += (
         "Please note that this analysis is **highly experimental**. "
@@ -107,13 +178,17 @@ def generate_dep_hint(dep_comparison, kind):
         "`bot: inspection: false` to your `conda-forge.yml`. "
         "If you encounter issues with this feature please ping the bot team `conda-forge/bot`.\n\n"  # noqa: E501
     )
-    if dep_comparison:
-        df_cf = ""
-        for k in dep_comparison.get("df_minus_cf", set()):
+
+    df_cf = ""
+    for sec in ["host", "run"]:
+        for k in dep_comparison.get(sec, {}).get("df_minus_cf", set()):
             df_cf += f"- {k}" + "\n"
-        cf_df = ""
-        for k in dep_comparison.get("cf_minus_df", set()):
+    cf_df = ""
+    for sec in ["host", "run"]:
+        for k in dep_comparison.get(sec, {}).get("cf_minus_df", set()):
             cf_df += f"- {k}" + "\n"
+
+    if len(df_cf) > 0 or len(cf_df) > 0:
         hint += (
             f"Analysis by {kind} shows a discrepancy between it and the"
             " the package's stated requirements in the meta.yaml."
@@ -190,6 +265,20 @@ def _gen_key_selector(dct, key):
 
 
 def apply_dep_update(recipe_dir, dep_comparison):
+    """Upodate a recipe given a dependency comparison.
+
+    Parameters
+    ----------
+    recipe_dir : str
+        The path to the recipe dir.
+    dep_comparison : dict
+        The dependency comparison.
+
+    Returns
+    -------
+    update_deps : bool
+        True if deps were updated, False otherwise.
+    """
     recipe_pth = os.path.join(recipe_dir, "meta.yaml")
     with open(recipe_pth) as fp:
         lines = fp.readlines()

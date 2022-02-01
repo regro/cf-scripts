@@ -67,21 +67,21 @@ def test_generate_dep_hint():
     assert "but not found by blahblahblah" not in hint
     assert "but not in the meta.yaml" not in hint
 
-    df = {"df_minus_cf": {"a"}, "cf_minus_df": {"b"}}
+    df = {"run": {"df_minus_cf": {"a"}, "cf_minus_df": {"b"}}}
     hint = generate_dep_hint(df, "blahblahblah")
     assert "no discrepancy" not in hint
     assert "blahblahblah" in hint
     assert "but not found by blahblahblah" in hint
     assert "but not in the meta.yaml" in hint
 
-    df = {"df_minus_cf": {"a"}}
+    df = {"host": {"df_minus_cf": {"a"}}}
     hint = generate_dep_hint(df, "blahblahblah")
     assert "no discrepancy" not in hint
     assert "blahblahblah" in hint
     assert "but not found by blahblahblah" not in hint
     assert "but not in the meta.yaml" in hint
 
-    df = {"cf_minus_df": {"b"}}
+    df = {"run": {"cf_minus_df": {"b"}}, "host": {}}
     hint = generate_dep_hint(df, "blahblahblah")
     assert "no discrepancy" not in hint
     assert "blahblahblah" in hint
