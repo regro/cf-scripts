@@ -35,8 +35,7 @@ from conda_forge_tick.update_deps import (
     get_grayskull_comparison,
     generate_dep_hint,
     merge_dep_comparisons,
-    apply_depfinder_update,
-    apply_grayskull_update,
+    apply_dep_update,
 )
 
 if typing.TYPE_CHECKING:
@@ -743,7 +742,6 @@ class Version(Migrator):
                 hint = generate_dep_hint(df_dep_comparison, kind)
             elif update_deps in ["hint-grayskull", "update-grayskull"]:
                 dep_comparison, gs_recipe = get_grayskull_comparison(
-                    os.path.join(feedstock_ctx.feedstock_dir, "recipe"),
                     feedstock_ctx.attrs,
                 )
                 kind = "grayskull"
@@ -766,22 +764,27 @@ class Version(Migrator):
 
             if update_deps in ["update", "update-source", "update-grayskull"]:
                 if update_deps in ["update", "update-grayskull"]:
-                    apply_grayskull_update(
+                    apply_dep_update(
                         os.path.join(feedstock_ctx.feedstock_dir, "recipe"),
-                        gs_recipe,
+                        dep_comparison,
                     )
-                if update_deps in ["update", "update-source"]:
-                    apply_depfinder_update(
+                if update_deps in ["update-source"]:
+                    apply_dep_update(
                         os.path.join(feedstock_ctx.feedstock_dir, "recipe"),
                         df_dep_comparison,
                     )
 
-        except Exception:
+        except Exception as e:
             hint = "\n\nDependency Analysis\n--------------------\n\n"
             hint += (
                 "We couldn't run dependency analysis due to an internal "
                 "error in the bot. :( Help is very welcome!"
             )
+
+            # we raise error supdating the deps since people rely on this
+            # this will cause the version PR to error and show up on the status page
+            if update_deps in ["update", "update-source", "update-grayskull"]:
+                raise e
 
         return hint
 

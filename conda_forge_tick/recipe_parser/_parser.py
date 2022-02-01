@@ -539,6 +539,13 @@ class CondaMetaYAML:
         _parser = _get_yaml_parser()
         return _parser.load(jinja2.Template(tmpl).render(**jinja2_vars))
 
+    def dumps(self):
+        """Dump the recipe to a string"""
+        buff = io.StringIO()
+        self.dump(buff)
+        buff.seek(0)
+        return buff.read()
+
     def dump(self, fp: Any):
         """Dump the recipe to a file-like object.
 

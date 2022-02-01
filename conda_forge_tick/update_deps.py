@@ -1,10 +1,17 @@
+import os
+import tempfile
+import copy
+
+from grayskull.__main__ import create_python_recipe
 from conda_forge_tick.audit import (
     extract_deps_from_source,
     compare_depfinder_audit,
 )
+from conda_forge_tick.feedstock_parser import load_feedstock
+from conda_forge_tick.recipe_parser import CondaMetaYAML, CONDA_SELECTOR
 
 
-def merge_dep_comparisons(dep_comparison, _dep_comparison):
+def _merge_dep_comparisons_sec(dep_comparison, _dep_comparison):
     if dep_comparison and _dep_comparison:
         all_keys = set(dep_comparison) | set(_dep_comparison)
         for k in all_keys:
@@ -26,18 +33,73 @@ def merge_dep_comparisons(dep_comparison, _dep_comparison):
         return _dep_comparison
 
 
-def get_grayskull_comparison(recipe_dir, attrs):
-    return {}, ""
+def merge_dep_comparisons(dep1, dep2):
+    d = {}
+    for section in ["host", "run"]:
+        d[section] = _merge_dep_comparisons_sec(
+            copy.deepcopy(dep1.get(section, {})),
+            copy.deepcopy(dep2.get(section, {})),
+        )
+    return d
+
+
+def make_grayskull_recipe(attrs):
+    pkg_version = attrs["version"]
+    pkg_name = attrs["name"]
+    recipe, _ = create_python_recipe(
+        pkg_name=pkg_name,
+        version=pkg_version,
+        download=False,
+        is_strict_cf=True,
+        from_local_sdist=False,
+    )
+
+    with tempfile.TemporaryDirectory() as td:
+        pth = os.path.join(td, "meta.yaml")
+        recipe.save(pth)
+        with open(pth) as f:
+            out = f.read()
+    return out
+
+
+def get_grayskull_comparison(attrs):
+    gs_recipe = make_grayskull_recipe(attrs)
+
+    # load the feedstock with the grayskull meta_yaml
+    new_attrs = load_feedstock(attrs.get("feedstock_name"), {}, meta_yaml=gs_recipe)
+    d = {}
+    for section in ["host", "run"]:
+        gs_run = set([
+            c for c in new_attrs.get("total_requirements").get(section, set())
+        ])
+
+        d[section] = {}
+        cf_minus_df = set([
+            c for c in attrs.get("total_requirements").get(section, set())
+        ])
+        df_minus_cf = set()
+        for req in gs_run:
+            if req in cf_minus_df:
+                cf_minus_df = cf_minus_df - set([req])
+            else:
+                df_minus_cf.add(req)
+
+        d[section]["cf_minus_df"] = cf_minus_df
+        d[section]["df_minus_cf"] = df_minus_cf
+
+    return d, gs_recipe
 
 
 def get_depfinder_comparison(recipe_dir, node_attrs, python_nodes):
     deps = extract_deps_from_source(recipe_dir)
-    return compare_depfinder_audit(
-        deps,
-        node_attrs,
-        node_attrs["name"],
-        python_nodes=python_nodes,
-    )
+    return {
+        "run": compare_depfinder_audit(
+            deps,
+            node_attrs,
+            node_attrs["name"],
+            python_nodes=python_nodes,
+        )
+    }
 
 
 def generate_dep_hint(dep_comparison, kind):
@@ -79,9 +141,94 @@ def generate_dep_hint(dep_comparison, kind):
     return hint
 
 
-def apply_grayskull_update(recipe_dir, gs_recipe):
-    pass
+def _ok_for_dep_updates(lines):
+    is_multi_output = any(
+        ln.lstrip().startswith("outputs:")
+        for ln in lines
+    )
+    has_run_section = any(
+        ln.lstrip().startswith("run:")
+        for ln in lines
+    )
+    return has_run_section and (not is_multi_output)
 
 
-def apply_depfinder_update(recipe_dir, dep_comparison):
-    pass
+def _update_sec_deps(recipe, dep_comparison, sections_to_update):
+    updated_deps = False
+
+    rqkeys = list(_gen_key_selector(recipe.meta, "requirements"))
+    if len(rqkeys) == 0:
+        recipe.meta["requirements"] = {}
+
+    for rqkey in _gen_key_selector(recipe.meta, "requirements"):
+        for section in ["host", "run"]:
+
+            seckeys = list(_gen_key_selector(recipe.meta[rqkey], section))
+            if len(seckeys) == 0:
+                recipe.meta[rqkey][section] = []
+
+            for seckey in _gen_key_selector(recipe.meta[rqkey], section):
+                for dep in dep_comparison[section]["df_minus_cf"]:
+                    dep_pkg_nm = dep.split(" ", 1)[0]
+
+                    # do not replace pin compatible keys
+                    if (
+                        seckey.startswith("run")
+                        and any(
+                            (
+                                "pin_compatible" in rq
+                                and (
+                                    "'%s'" % dep_pkg_nm in rq
+                                    or '"%s"' % dep_pkg_nm in rq
+                                )
+                            )
+                            for rq in recipe.meta[rqkey][seckey]
+                        )
+                    ):
+                        continue
+
+                    # find location of old dep
+                    # add if not found, otherwise replace
+                    loc = None
+                    for i, rq in enumerate(recipe.meta[rqkey][seckey]):
+                        pkg_nm = rq.split(" ", 1)[0]
+                        if dep_pkg_nm == pkg_nm:
+                            loc = i
+                            break
+                    if loc is None:
+                        recipe.meta[rqkey][seckey].append(dep)
+                    else:
+                        recipe.meta[rqkey][seckey][loc] = dep
+                    updated_deps = True
+
+    return updated_deps
+
+
+def _gen_key_selector(dct, key):
+    for k in dct:
+        if k == key or (CONDA_SELECTOR in k and k.split(CONDA_SELECTOR)[0] == key):
+            yield k
+
+
+def apply_dep_update(recipe_dir, dep_comparison):
+    recipe_pth = os.path.join(recipe_dir, "meta.yaml")
+    with open(recipe_pth, "r") as fp:
+        lines = fp.readlines()
+
+    sections_to_update = ["host", "run"]
+    if (
+        _ok_for_dep_updates(lines)
+        and any(
+            len(dep_comparison.get(s, {}).get("df_minus_cf", set())) > 0
+            for s in sections_to_update
+        )
+    ):
+        recipe = CondaMetaYAML("".join(lines))
+        updated_deps = _update_sec_deps(
+            recipe,
+            dep_comparison,
+            sections_to_update,
+        )
+        if updated_deps:
+            with open(recipe_pth, "w") as fp:
+                recipe.dump(fp)
