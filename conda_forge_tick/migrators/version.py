@@ -733,7 +733,7 @@ class Version(Migrator):
         logger.info("bot.inspection: %s", update_deps)
         hint = ""
         try:
-            if update_deps in ["hint, " "hint-source", "update-source"]:
+            if update_deps in ["hint", "hint-source", "update-source"]:
                 df_dep_comparison = get_depfinder_comparison(
                     os.path.join(feedstock_ctx.feedstock_dir, "recipe"),
                     feedstock_ctx.attrs,
