@@ -347,3 +347,170 @@ def test_update_deps_version(caplog, tmpdir, update_kind, out_yml):
         tmpdir=os.path.join(tmpdir, "recipe"),
         make_body=True,
     )
+
+
+in_yml_pyquil = """\
+{% set name = "pyquil" %}
+{% set version = "3.0.1" %}
+
+
+package:
+  name: {{ name|lower }}
+  version: {{ version }}
+
+source:
+  url: https://pypi.io/packages/source/{{ name[0] }}/{{ name }}/pyquil-{{ version }}.tar.gz
+  sha256: 5d7f1414c8bcaec6b86577ca1a75a020b0315845eaf3165ae4c0d3633987a387
+
+build:
+  number: 0
+  noarch: python
+  script: {{ PYTHON }} -m pip install . -vv
+
+requirements:
+  host:
+    - pip
+    - poetry-core >=1.0.0
+    - python >=3.7,<4.0
+  run:
+    - importlib-metadata >=3.7.3,<4.0.0
+    - lark >=0.11.1,<0.12.0
+    - networkx >=2.5,<3.0
+    - numpy >=1.20,<2.0
+    - python >=3.7,<4.0
+    - qcs-api-client >=0.8.0,<0.9.0
+    - retry >=0.9.2,<0.10.0
+    - rpcq >=3.6.0,<4.0.0
+    - scipy >=1.6.1,<2.0.0
+  run_constrained:
+    - ipython >=7.21.0,<8.0.0
+
+test:
+  imports:
+    - pyquil
+    - pyquil._parser
+    - pyquil.gates
+  commands:
+    - pip check
+  requires:
+    - pip
+
+about:
+  home: http://forest.rigetti.com
+  license: Apache-2.0
+  license_family: Apache
+  license_file: LICENSE
+  summary: A Python library for quantum programming using Quil
+  doc_url: http://pyquil.readthedocs.io/en/latest/
+  dev_url: https://github.com/rigetticomputing/pyquil
+
+extra:
+  recipe-maintainers:
+    - jmackeyrigetti
+    - kilimanjaro
+    - notmgsk
+    - BastianZim
+"""  # noqa
+
+out_yml_pyquil = """\
+{% set name = "pyquil" %}
+{% set version = "3.1.0" %}
+
+
+package:
+  name: {{ name|lower }}
+  version: {{ version }}
+
+source:
+  url: https://pypi.io/packages/source/{{ name[0] }}/{{ name }}/pyquil-{{ version }}.tar.gz
+  sha256: 8ca8b67fe1cc4dcbee06a061edf876df1c2172edf21e979d4bf1e8c640616db3
+
+build:
+  number: 0
+  noarch: python
+  script: {{ PYTHON }} -m pip install . -vv
+
+requirements:
+  host:
+    - pip
+    - poetry-core >=1.0.0
+    - python >=3.7,<4.0
+  run:
+    - importlib-metadata >=3.7.3,<4.0.0
+    - lark >=0.11.1,<0.12.0
+    - networkx >=2.5,<3.0
+    - numpy >=1.20,<2.0
+    - python >=3.7,<4.0
+    - qcs-api-client >=0.8.1,<0.21.0
+    - retry >=0.9.2,<0.10.0
+    - rpcq >=3.6.0,<4.0.0
+    - scipy >=1.6.1,<2.0.0
+  run_constrained:
+    - ipython >=7.21.0,<8.0.0
+
+test:
+  imports:
+    - pyquil
+    - pyquil._parser
+    - pyquil.gates
+  commands:
+    - pip check
+  requires:
+    - pip
+
+about:
+  home: http://forest.rigetti.com
+  license: Apache-2.0
+  license_family: Apache
+  license_file: LICENSE
+  summary: A Python library for quantum programming using Quil
+  doc_url: http://pyquil.readthedocs.io/en/latest/
+  dev_url: https://github.com/rigetticomputing/pyquil
+
+extra:
+  recipe-maintainers:
+    - jmackeyrigetti
+    - kilimanjaro
+    - notmgsk
+    - BastianZim
+"""  # noqa
+
+
+@flaky
+@pytest.mark.parametrize(
+    "update_kind,out_yml",
+    [
+        ("update-grayskull", out_yml_pyquil),
+    ],
+)
+def test_update_deps_version_pyquil(caplog, tmpdir, update_kind, out_yml):
+    caplog.set_level(
+        logging.DEBUG,
+        logger="conda_forge_tick.migrators.version",
+    )
+
+    new_ver = "3.1.0"
+
+    kwargs = {
+        "new_version": new_ver,
+        "conda-forge.yml": {"bot": {"inspection": update_kind}},
+    }
+
+    os.makedirs(os.path.join(tmpdir, "recipe"))
+    with open(os.path.join(tmpdir, "recipe", "meta.yaml"), "w") as fp:
+        fp.write(in_yml_pyquil)
+
+    run_test_migration(
+        m=VERSION,
+        inp=in_yml_pyquil,
+        output=out_yml,
+        kwargs=kwargs,
+        prb="Dependencies have been updated if changed",
+        mr_out={
+            "migrator_name": "Version",
+            "migrator_version": Version.migrator_version,
+            "version": new_ver,
+        },
+        tmpdir=os.path.join(tmpdir, "recipe"),
+        make_body=True,
+    )

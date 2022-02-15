@@ -1,6 +1,7 @@
 import os
 import tempfile
 import copy
+import logging
 
 from grayskull.__main__ import create_python_recipe
 from conda_forge_tick.audit import (
@@ -9,6 +10,12 @@ from conda_forge_tick.audit import (
 )
 from conda_forge_tick.feedstock_parser import load_feedstock
 from conda_forge_tick.recipe_parser import CondaMetaYAML, CONDA_SELECTOR
+
+logger = logging.getLogger("conda_forge_tick.update_deps")
+
+
+SECTIONS_TO_PARSE = ["host", "run"]
+SECTIONS_TO_UPDATE = ["run"]
 
 
 def _merge_dep_comparisons_sec(dep_comparison, _dep_comparison):
@@ -49,7 +56,7 @@ def merge_dep_comparisons(dep1, dep2):
         The merged dep comparison.
     """
     d = {}
-    for section in ["host", "run"]:
+    for section in SECTIONS_TO_PARSE:
         d[section] = _merge_dep_comparisons_sec(
             copy.deepcopy(dep1.get(section, {})),
             copy.deepcopy(dep2.get(section, {})),
@@ -57,27 +64,36 @@ def merge_dep_comparisons(dep1, dep2):
     return d
 
 
-def make_grayskull_recipe(attrs):
+def make_grayskull_recipe(attrs, version_key="version"):
     """Make a grayskull recipe given bot node attrs.
 
     Parameters
     ----------
     attrs : dict or LazyJson
         The node attrs.
+    version_key : str, optional
+        The version key to use from the attrs. Default is "version".
 
     Returns
     -------
     recipe : str
         The generated grayskull recipe as a string.
     """
-    pkg_version = attrs["version"]
+    pkg_version = attrs[version_key]
     pkg_name = attrs["name"]
+    is_noarch = "noarch: python" in attrs["raw_meta_yaml"]
+    logger.info(
+        "making grayskull recipe for pkg %s w/ version %s",
+        pkg_name,
+        pkg_version,
+    )
     recipe, _ = create_python_recipe(
         pkg_name=pkg_name,
         version=pkg_version,
         download=False,
         is_strict_cf=True,
         from_local_sdist=False,
+        is_arch=not is_noarch,
     )
 
     with tempfile.TemporaryDirectory() as td:
@@ -85,28 +101,38 @@ def make_grayskull_recipe(attrs):
         recipe.save(pth)
         with open(pth) as f:
             out = f.read()
+
+    # code around a grayskull bug
+    # see https://github.com/conda-incubator/grayskull/issues/295
+    if "[py>=40]" in out:
+        out = out.replace("[py>=40]", "[py>=400]")
+
+    logger.info("grayskull recipe:\n%s", out)
+
     return out
 
 
-def get_grayskull_comparison(attrs):
+def get_grayskull_comparison(attrs, version_key="version"):
     """Get the dependency comparison between the recipe and grayskull.
 
     Parameters
     ----------
     attrs : dict or LazyJson
         The bot node attrs.
+    version_key : str, optional
+        The version key to use from the attrs. Default is "version".
 
     Returns
     -------
     d : dict
         The dependency comparison with conda-forge.
     """
-    gs_recipe = make_grayskull_recipe(attrs)
+    gs_recipe = make_grayskull_recipe(attrs, version_key=version_key)
 
     # load the feedstock with the grayskull meta_yaml
     new_attrs = load_feedstock(attrs.get("feedstock_name"), {}, meta_yaml=gs_recipe)
     d = {}
-    for section in ["host", "run"]:
+    for section in SECTIONS_TO_PARSE:
         gs_run = {c for c in new_attrs.get("total_requirements").get(section, set())}
 
         d[section] = {}
@@ -180,11 +206,11 @@ def generate_dep_hint(dep_comparison, kind):
     )
 
     df_cf = ""
-    for sec in ["host", "run"]:
+    for sec in SECTIONS_TO_PARSE:
         for k in dep_comparison.get(sec, {}).get("df_minus_cf", set()):
             df_cf += f"- {k}" + "\n"
     cf_df = ""
-    for sec in ["host", "run"]:
+    for sec in SECTIONS_TO_PARSE:
         for k in dep_comparison.get(sec, {}).get("cf_minus_df", set()):
             cf_df += f"- {k}" + "\n"
 
@@ -221,7 +247,7 @@ def _update_sec_deps(recipe, dep_comparison, sections_to_update):
         recipe.meta["requirements"] = {}
 
     for rqkey in _gen_key_selector(recipe.meta, "requirements"):
-        for section in ["host", "run"]:
+        for section in sections_to_update:
 
             seckeys = list(_gen_key_selector(recipe.meta[rqkey], section))
             if len(seckeys) == 0:
@@ -233,6 +259,10 @@ def _update_sec_deps(recipe, dep_comparison, sections_to_update):
                 )[::-1]
                 for dep in deps:
                     dep_pkg_nm = dep.split(" ", 1)[0]
+
+                    # do not touch python itself - to finicky
+                    if dep_pkg_nm == "python":
+                        continue
 
                     # do not replace pin compatible keys
                     if seckey.startswith("run") and any(
@@ -286,16 +316,15 @@ def apply_dep_update(recipe_dir, dep_comparison):
     with open(recipe_pth) as fp:
         lines = fp.readlines()
 
-    sections_to_update = ["host", "run"]
     if _ok_for_dep_updates(lines) and any(
         len(dep_comparison.get(s, {}).get("df_minus_cf", set())) > 0
-        for s in sections_to_update
+        for s in SECTIONS_TO_UPDATE
     ):
         recipe = CondaMetaYAML("".join(lines))
         updated_deps = _update_sec_deps(
             recipe,
             dep_comparison,
-            sections_to_update,
+            SECTIONS_TO_UPDATE,
         )
         if updated_deps:
             with open(recipe_pth, "w") as fp:

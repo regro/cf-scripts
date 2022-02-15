@@ -224,6 +224,7 @@ def populate_feedstock_attributes(
             varient_yamls = []
             plat_arch = []
             for cbc_path in ci_support_files:
+                LOGGER.debug("parsing conda-build config: %s", cbc_path)
                 cbc_name = os.path.basename(cbc_path)
                 cbc_name_parts = cbc_name.replace(".yaml", "").split("_")
                 plat = cbc_name_parts[0]
@@ -248,6 +249,7 @@ def populate_feedstock_attributes(
 
                 # sometimes the requirements come out to None or [None]
                 # and this ruins the aggregated meta_yaml / breaks stuff
+                LOGGER.debug("getting reqs for config: %s", cbc_path)
                 if "requirements" in varient_yamls[-1]:
                     varient_yamls[-1]["requirements"] = _clean_req_nones(
                         varient_yamls[-1]["requirements"],
@@ -262,6 +264,7 @@ def populate_feedstock_attributes(
                             )
 
                 # collapse them down
+                LOGGER.debug("collapsing reqs for config: %s", cbc_path)
                 final_cfgs = {}
                 for plat_arch, varyml in zip(plat_arch, varient_yamls):
                     if plat_arch not in final_cfgs:
@@ -276,6 +279,7 @@ def populate_feedstock_attributes(
                     plat_arch.append(k)
                     varient_yamls.append(v)
         else:
+            LOGGER.debug("doing generic parsing")
             plat_arch = [("win", "64"), ("osx", "64"), ("linux", "64")]
             for k in set(sub_graph["conda-forge.yml"].get("provider", {})):
                 if "_" in k:
