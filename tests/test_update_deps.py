@@ -127,7 +127,12 @@ def test_update_run_deps():
     lines = [ln + "\n" for ln in lines]
     recipe = CondaMetaYAML("".join(lines))
 
-    updated_deps = _update_sec_deps(recipe, d, ["host", "run"])
+    updated_deps = _update_sec_deps(recipe, d, ["host", "run"], update_python=False)
+    print("\n" + recipe.dumps())
+    assert not updated_deps
+    assert "python <3.9" in recipe.dumps()
+
+    updated_deps = _update_sec_deps(recipe, d, ["host", "run"], update_python=True)
     print("\n" + recipe.dumps())
     assert updated_deps
     assert "python >=3.6" in recipe.dumps()
@@ -171,10 +176,10 @@ build:
 requirements:
   host:
     # Python version is limited by stdlib-list.
-    - python >=3.6
+    - python <3.9
     - pip
   run:
-    - python >=3.6
+    - python <3.9
     - stdlib-list
     - pyyaml
 
@@ -220,10 +225,10 @@ build:
 requirements:
   host:
     # Python version is limited by stdlib-list.
-    - python >=3.6
+    - python <3.9
     - pip
   run:
-    - python >=3.6
+    - python <3.9
     - stdlib-list
     - pyyaml
 

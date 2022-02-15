@@ -239,7 +239,7 @@ def _ok_for_dep_updates(lines):
     return not is_multi_output
 
 
-def _update_sec_deps(recipe, dep_comparison, sections_to_update):
+def _update_sec_deps(recipe, dep_comparison, sections_to_update, update_python=False):
     updated_deps = False
 
     rqkeys = list(_gen_key_selector(recipe.meta, "requirements"))
@@ -261,7 +261,7 @@ def _update_sec_deps(recipe, dep_comparison, sections_to_update):
                     dep_pkg_nm = dep.split(" ", 1)[0]
 
                     # do not touch python itself - to finicky
-                    if dep_pkg_nm == "python":
+                    if dep_pkg_nm == "python" and not update_python:
                         continue
 
                     # do not replace pin compatible keys
@@ -297,7 +297,7 @@ def _gen_key_selector(dct, key):
             yield k
 
 
-def apply_dep_update(recipe_dir, dep_comparison):
+def apply_dep_update(recipe_dir, dep_comparison, update_python=False):
     """Upodate a recipe given a dependency comparison.
 
     Parameters
@@ -306,6 +306,8 @@ def apply_dep_update(recipe_dir, dep_comparison):
         The path to the recipe dir.
     dep_comparison : dict
         The dependency comparison.
+    update_python : bool, optional
+        If True, udpate python deps. Default is False.
 
     Returns
     -------
