@@ -307,7 +307,7 @@ def apply_dep_update(recipe_dir, dep_comparison, update_python=False):
     dep_comparison : dict
         The dependency comparison.
     update_python : bool, optional
-        If True, udpate python deps. Default is False.
+        If True, update python deps. Default is False.
 
     Returns
     -------
