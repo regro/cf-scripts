@@ -14,13 +14,17 @@ from conda_forge_tick.update_deps import (
     _update_sec_deps,
     _merge_dep_comparisons_sec,
 )
-from conda_forge_tick.migrators import Version
+from conda_forge_tick.migrators import Version, DependencyUpdateMigrator
 
 import pytest
 
 from test_migrators import run_test_migration
 
-VERSION = Version(set())
+
+VERSION = Version(
+    set(),
+    piggy_back_migrations=[DependencyUpdateMigrator(set())],
+)
 
 
 @pytest.mark.parametrize(

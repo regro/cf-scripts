@@ -2,6 +2,7 @@ import os
 import tempfile
 import copy
 import logging
+import pprint
 
 from grayskull.__main__ import create_python_recipe
 from conda_forge_tick.audit import (
@@ -16,6 +17,76 @@ logger = logging.getLogger("conda_forge_tick.update_deps")
 
 SECTIONS_TO_PARSE = ["host", "run"]
 SECTIONS_TO_UPDATE = ["run"]
+
+
+def get_dep_updates_and_hints(
+    update_deps,
+    recipe_dir,
+    attrs,
+    python_nodes,
+    version_key,
+):
+    """Get updated deps and hints.
+
+    Parameters
+    ----------
+    update_deps : str
+        An update kind. See the code below for what is supported.
+    recipe_dir : str
+        The directory with the recipe.
+    attrs : dict-like
+        the bot node attrs for the feedstock.
+    python_nodes : set-like
+        A set of all bot python nodes.
+    version_key : str
+        The version key in the node attrs to use for grayskull.
+
+    Returns
+    -------
+    dep_comparison : dict of dicts of sets
+        A dictionary with the dep updates. See the hint generation code below
+        to understand its contents.
+    hint : str
+        The dependency update hint.
+    """
+    if update_deps in ["hint", "hint-source", "update-source"]:
+        dep_comparison = get_depfinder_comparison(
+            recipe_dir,
+            attrs,
+            python_nodes,
+        )
+        logger.info("source dep. comp: %s", pprint.pformat(dep_comparison))
+        kind = "source code inspection"
+        hint = generate_dep_hint(dep_comparison, kind)
+    elif update_deps in ["hint-grayskull", "update-grayskull"]:
+        dep_comparison, gs_recipe = get_grayskull_comparison(
+            attrs,
+            version_key=version_key,
+        )
+        logger.info("grayskull dep. comp: %s", pprint.pformat(dep_comparison))
+        kind = "grayskull"
+        hint = generate_dep_hint(dep_comparison, kind)
+    elif update_deps in ["hint-all", "update-all"]:
+        df_dep_comparison = get_depfinder_comparison(
+            recipe_dir,
+            attrs,
+            python_nodes,
+        )
+        logger.info("source dep. comp: %s", pprint.pformat(df_dep_comparison))
+        dep_comparison, gs_recipe = get_grayskull_comparison(
+            attrs,
+            version_key=version_key,
+        )
+        logger.info("grayskull dep. comp: %s", pprint.pformat(dep_comparison))
+        dep_comparison = merge_dep_comparisons(
+            copy.deepcopy(dep_comparison),
+            copy.deepcopy(df_dep_comparison),
+        )
+        logger.info("combined dep. comp: %s", pprint.pformat(dep_comparison))
+        kind = "source code inspection+grayskull"
+        hint = generate_dep_hint(dep_comparison, kind)
+
+    return dep_comparison, hint
 
 
 def _merge_dep_comparisons_sec(dep_comparison, _dep_comparison):
