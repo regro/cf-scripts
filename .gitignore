@@ -36,3 +36,5 @@ cbr
 feedstocks
 
 .venv
+.ipynb_checkpoints/
+Untitled.ipynb

@@ -745,6 +745,7 @@ class Version(Migrator):
             elif update_deps in ["hint-grayskull", "update-grayskull"]:
                 dep_comparison, gs_recipe = get_grayskull_comparison(
                     feedstock_ctx.attrs,
+                    version_key="new_version",
                 )
                 logger.info("grayskull dep. comp: %s", pprint.pformat(dep_comparison))
                 kind = "grayskull"
@@ -758,6 +759,7 @@ class Version(Migrator):
                 logger.info("source dep. comp: %s", pprint.pformat(df_dep_comparison))
                 dep_comparison, gs_recipe = get_grayskull_comparison(
                     feedstock_ctx.attrs,
+                    version_key="new_version",
                 )
                 logger.info("grayskull dep. comp: %s", pprint.pformat(dep_comparison))
                 dep_comparison = merge_dep_comparisons(
