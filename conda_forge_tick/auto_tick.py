@@ -99,6 +99,7 @@ from conda_forge_tick.migrators import (
     GraphMigrator,
     CrossCompilationForARMAndPower,
     MPIPinRunAsBuildCleanup,
+    DependencyUpdateMigrator,
 )
 
 from conda_forge_tick.mamba_solver import is_recipe_solvable
@@ -962,6 +963,7 @@ def initialize_migrators(
             Cos7Config(),
             PipWheelMigrator(),
             MPIPinRunAsBuildCleanup(),
+            DependencyUpdateMigrator(python_nodes),
         ],
     )
 

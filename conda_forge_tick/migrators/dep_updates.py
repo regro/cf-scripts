@@ -19,9 +19,7 @@ class DependencyUpdateMigrator(MiniMigrator):
 
     def filter(self, attrs: "AttrsTypedDict", not_bad_str_start: str = "") -> bool:
         update_deps = (
-            attrs.get("conda-forge.yml", {})
-            .get("bot", {})
-            .get("inspection", "hint")
+            attrs.get("conda-forge.yml", {}).get("bot", {}).get("inspection", "hint")
         )
         if update_deps in ["update-all", "update-source", "update-grayskull"]:
             return False
@@ -30,9 +28,7 @@ class DependencyUpdateMigrator(MiniMigrator):
 
     def migrate(self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any) -> None:
         update_deps = (
-            attrs.get("conda-forge.yml", {})
-            .get("bot", {})
-            .get("inspection", "hint")
+            attrs.get("conda-forge.yml", {}).get("bot", {}).get("inspection", "hint")
         )
         logger.info("bot.inspection: %s", update_deps)
         dep_comparison, _ = get_dep_updates_and_hints(

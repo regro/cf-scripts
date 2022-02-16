@@ -20,7 +20,11 @@ SECTIONS_TO_UPDATE = ["run"]
 
 
 def get_dep_updates_and_hints(
-    update_deps, recipe_dir, attrs, python_nodes, version_key
+    update_deps,
+    recipe_dir,
+    attrs,
+    python_nodes,
+    version_key,
 ):
     """Get updated deps and hints.
 
