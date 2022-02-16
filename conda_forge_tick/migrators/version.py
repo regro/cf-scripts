@@ -1,5 +1,4 @@
 import os
-import copy
 import typing
 import re
 import io
@@ -30,13 +29,7 @@ from conda_forge_tick.recipe_parser import CONDA_SELECTOR, CondaMetaYAML
 from conda_forge_tick.url_transforms import gen_transformed_urls
 from conda_forge_tick.hashing import hash_url
 from conda_forge_tick.utils import sanitize_string
-from conda_forge_tick.update_deps import (
-    get_depfinder_comparison,
-    get_grayskull_comparison,
-    generate_dep_hint,
-    merge_dep_comparisons,
-    apply_dep_update,
-)
+from conda_forge_tick.update_deps import get_dep_updates_and_hints
 
 if typing.TYPE_CHECKING:
     from conda_forge_tick.migrators_types import (
@@ -731,70 +724,20 @@ class Version(Migrator):
             .get("inspection", "hint")
         )
         logger.info("bot.inspection: %s", update_deps)
-        hint = ""
         try:
-            if update_deps in ["hint", "hint-source", "update-source"]:
-                df_dep_comparison = get_depfinder_comparison(
-                    os.path.join(feedstock_ctx.feedstock_dir, "recipe"),
-                    feedstock_ctx.attrs,
-                    self.python_nodes,
-                )
-                logger.info("source dep. comp: %s", pprint.pformat(df_dep_comparison))
-                kind = "source code inspection"
-                hint = generate_dep_hint(df_dep_comparison, kind)
-            elif update_deps in ["hint-grayskull", "update-grayskull"]:
-                dep_comparison, gs_recipe = get_grayskull_comparison(
-                    feedstock_ctx.attrs,
-                    version_key="new_version",
-                )
-                logger.info("grayskull dep. comp: %s", pprint.pformat(dep_comparison))
-                kind = "grayskull"
-                hint = generate_dep_hint(dep_comparison, kind)
-            elif update_deps in ["hint-all", "update-all"]:
-                df_dep_comparison = get_depfinder_comparison(
-                    os.path.join(feedstock_ctx.feedstock_dir, "recipe"),
-                    feedstock_ctx.attrs,
-                    self.python_nodes,
-                )
-                logger.info("source dep. comp: %s", pprint.pformat(df_dep_comparison))
-                dep_comparison, gs_recipe = get_grayskull_comparison(
-                    feedstock_ctx.attrs,
-                    version_key="new_version",
-                )
-                logger.info("grayskull dep. comp: %s", pprint.pformat(dep_comparison))
-                dep_comparison = merge_dep_comparisons(
-                    copy.deepcopy(dep_comparison),
-                    copy.deepcopy(df_dep_comparison),
-                )
-                logger.info("combined dep. comp: %s", pprint.pformat(dep_comparison))
-                kind = "source code inspection+grayskull"
-                hint = generate_dep_hint(dep_comparison, kind)
-
-            if update_deps in ["update-all", "update-source", "update-grayskull"]:
-                if update_deps in ["update-all", "update-grayskull"]:
-                    logger.info("applying dep %s", update_deps)
-                    apply_dep_update(
-                        os.path.join(feedstock_ctx.feedstock_dir, "recipe"),
-                        dep_comparison,
-                    )
-                if update_deps in ["update-source"]:
-                    logger.info("applying dep %s", update_deps)
-                    apply_dep_update(
-                        os.path.join(feedstock_ctx.feedstock_dir, "recipe"),
-                        df_dep_comparison,
-                    )
-
-        except Exception as e:
+            _, hint = get_dep_updates_and_hints(
+                update_deps,
+                os.path.join(feedstock_ctx.feedstock_dir, "recipe"),
+                feedstock_ctx.attrs,
+                self.python_nodes,
+                "new_version",
+            )
+        except Exception:
             hint = "\n\nDependency Analysis\n--------------------\n\n"
             hint += (
                 "We couldn't run dependency analysis due to an internal "
                 "error in the bot. :( Help is very welcome!"
             )
-
-            # we raise error if updating the deps since people rely on this
-            # this will cause the version PR to error and show up on the status page
-            if update_deps in ["update-all", "update-source", "update-grayskull"]:
-                raise e
 
         return hint
 
