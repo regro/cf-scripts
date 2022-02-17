@@ -173,14 +173,9 @@ def convert_to_grayskull_style_yaml(
 ) -> Dict[str, Dict[str, str]]:
     """Convert our list style mapping to the pypi-centric version
     required by grayskull"""
-    mismatch = [
-        x
-        for x in package_mappings
-        if (x["pypi_name"] != x["conda_name"] or x["pypi_name"] != x["import_name"])
-    ]
     grayskull_fmt = {
         x["pypi_name"]: {k: v for k, v in x.items() if x != "pypi_name"}
-        for x in sorted(mismatch, key=lambda x: x["pypi_name"])
+        for x in sorted(package_mappings, key=lambda x: x["pypi_name"])
     }
     return grayskull_fmt
 
