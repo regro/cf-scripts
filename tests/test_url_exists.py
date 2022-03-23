@@ -21,9 +21,10 @@ def delay_rerun(*args):
             True,
         ),
         ("https://eups.lsst.codes/stack/src/tags/w_2021_07.list", True),
-        (
+        pytest.param(
             "https://downloads.sourceforge.net/project/healpix/Healpix_3.31/Healpix_3.31_2016Aug26.tar.gz",  # noqa
             True,
+            marks=pytest.mark.xfail(reason="sourceforge changed something"),
         ),
         (
             "https://downloads.sourceforge.net/project/healpix/Healpix_3.345/Healpix_3.345_2016Aug26.tar.gz",  # noqa
@@ -33,9 +34,10 @@ def delay_rerun(*args):
             "http://spams-devel.gforge.inria.fr/hitcounter2.php?file/38351/spams-2.34832948372903465.tar.gz",  # noqa
             False,
         ),
-        (
+        pytest.param(
             "http://spams-devel.gforge.inria.fr/hitcounter2.php?file=37237/spams-python-v2.6.1-svn2017-12-08.tar.gz",  # noqa
             True,
+            marks=pytest.mark.xfail(reason="sourceforge changed something"),
         ),
         (
             "https://github.com/Kitware/CMake/releases/download/v3.19.4/cmake-3.19.4.tar.gz",  # noqa
@@ -45,9 +47,10 @@ def delay_rerun(*args):
             "https://github.com/Kitware/CMake/releases/download/v3.19.4435784/cmake-3.19.4435784.tar.gz",  # noqa
             False,
         ),
-        (
+        pytest.param(
             "ftp://ftp.info-zip.org/pub/infozip/src/zip30.tgz",
             True,
+            marks=pytest.mark.xfail(reason="sometimes this fails"),
         ),
         (
             "ftp://ftp.info-zip.org/pub/infozip/src/zip33879130.tgz",

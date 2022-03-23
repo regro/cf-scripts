@@ -2,6 +2,7 @@ import abc
 import collections.abc
 import subprocess
 import re
+import copy
 import logging
 import urllib.parse
 import typing
@@ -90,23 +91,45 @@ def next_version(ver: str, increment_alpha: bool = False) -> Iterator[str]:
         if idot < n_dot - 1:
             ver_split.append(".")
 
-    for k in reversed(range(len(ver_split))):
-        try:
-            t = int(ver_split[k])
-            is_num = True
-        except Exception:
-            is_num = False
+    def _yeild_splits_from_index(start, ver_split_start, num_bump):
+        if start < len(ver_split_start) and num_bump > 0:
+            ver_split = copy.deepcopy(ver_split_start)
+            for k in reversed(range(start, len(ver_split))):
+                try:
+                    t = int(ver_split[k])
+                    is_num = True
+                except Exception:
+                    is_num = False
 
-        if is_num:
-            ver_split[k] = str(t + 1)
-            yield "".join(ver_split)
-            ver_split[k] = "0"
-        elif increment_alpha and ver_split[k].isalpha() and len(ver_split[k]) == 1:
-            ver_split[k] = chr(ord(ver_split[k]) + 1)
-            yield "".join(ver_split)
-            ver_split[k] = "a"
-        else:
-            continue
+                if is_num:
+                    for kk in range(num_bump):
+                        ver_split[k] = str(t + 1 + kk)
+                        yield "".join(ver_split)
+                        yield from _yeild_splits_from_index(
+                            k + 1,
+                            ver_split,
+                            num_bump - 1,
+                        )
+                    ver_split[k] = "0"
+                elif (
+                    increment_alpha
+                    and ver_split[k].isalpha()
+                    and len(ver_split[k]) == 1
+                ):
+                    for kk in range(num_bump):
+                        ver_split[k] = chr(ord(ver_split[k]) + 1)
+                        yield "".join(ver_split)
+                        yield from _yeild_splits_from_index(
+                            k + 1,
+                            ver_split,
+                            num_bump - 1,
+                        )
+                    ver_split[k] = "a"
+                else:
+                    continue
+
+    for ver in _yeild_splits_from_index(0, ver_split, 2):
+        yield ver
 
 
 class AbstractSource(abc.ABC):

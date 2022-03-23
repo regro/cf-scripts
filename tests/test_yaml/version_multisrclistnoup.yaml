@@ -5,7 +5,7 @@ package:
   version: {{ version }}
 
 source:
-  - url: https://github.com/google/protobuf/archive/v{{ version }}/libprotobuf-v{{ version }}.tar.gz
+  - url: https://github.com/protocolbuffers/protobuf/releases/download/v{{ version }}/protobuf-all-{{ version }}.tar.gz
     sha256: e8c7601439dbd4489fe5069c33d374804990a56c2f710e00227ee5d8fd650e67
     patches:
       - 0001-remove-Werror-from-test-flags.patch  # [ppc64le or aarch64]

@@ -26,10 +26,15 @@ SPC_KEY_VAL_SELECTOR_RE = re.compile(r"^(\s*-?\s*)([^\s:]*):([^#]*)#\s*\[(.*)\]"
 # this regex pulls out lines like
 #  '   name__###conda-selector###__py3k and blah: val # comment'
 # to groups ('   ', 'name', 'py3k and blah', ' val # comment')
-MUNGED_LINE_RE = re.compile(r"^(\s*-?\s*)([^\s:]*)" + CONDA_SELECTOR + r"([^:]*):(.*)")
+MUNGED_LINE_RE = re.compile(
+    r"^(\s*-?\??\s*)([^\s:]*)" + CONDA_SELECTOR + r"([^:]*):(.*)",
+)
 
 # this regex matches any line with a selector
 SELECTOR_RE = re.compile(r"^.*#\s*\[(.*)\]")
+
+# this one matches bad yaml syntax with a selector on a multiline string start
+BAD_MULTILINE_STRING_WITH_SELECTOR = re.compile(r"[^|#]*\|\s+#")
 
 
 def _get_yaml_parser():
@@ -171,6 +176,33 @@ def _unmunge_line(line: str) -> str:
         return spc + key + ": " + val.strip() + "  # [" + selector + "]\n"
     else:
         return line
+
+
+def _unmunge_split_key_value_pairs_with_selectors(lines):
+    # yaml likes to split key-value pairs over lines sometimes
+    # this seems to happen when it inserts a question mark in front
+    # of the key
+    _lines = []
+    add_next = False
+    for line in lines:
+        if (
+            len(line.lstrip()) > 0
+            and line.lstrip()[0] == "?"
+            and ":" not in line
+            and CONDA_SELECTOR in line
+        ):
+            add_next = True
+            line = line.rstrip()
+            parts = line.split("?")
+            line = parts[0] + parts[1].lstrip()
+            _lines.append(line)
+        else:
+            if add_next:
+                _lines[-1] += line.lstrip()
+                add_next = False
+            else:
+                _lines.append(line)
+    return _lines
 
 
 def _munge_multiline_jinja2(lines):
@@ -428,6 +460,13 @@ class CondaMetaYAML:
     """
 
     def __init__(self, meta_yaml: str):
+        for line in meta_yaml.splitlines():
+            if BAD_MULTILINE_STRING_WITH_SELECTOR.match(line):
+                raise RuntimeError(
+                    "Could not parse meta.yaml due to multiline string '|' paired "
+                    "with a conda build selector! (offending line: '%s')" % line,
+                )
+
         # remove multiline jinja2 statements
         lines = list(io.StringIO(meta_yaml).readlines())
         lines = _munge_multiline_jinja2(lines)
@@ -500,6 +539,13 @@ class CondaMetaYAML:
         _parser = _get_yaml_parser()
         return _parser.load(jinja2.Template(tmpl).render(**jinja2_vars))
 
+    def dumps(self):
+        """Dump the recipe to a string"""
+        buff = io.StringIO()
+        self.dump(buff)
+        buff.seek(0)
+        return buff.read()
+
     def dump(self, fp: Any):
         """Dump the recipe to a file-like object.
 
@@ -518,9 +564,11 @@ class CondaMetaYAML:
             s.seek(0)
 
             # now unmunge
-            lines = []
-            for line in s.readlines():
-                lines.append(_unmunge_line(line))
+            lines = _unmunge_split_key_value_pairs_with_selectors(
+                [line for line in s.readlines()],
+            )
+            for i in range(len(lines)):
+                lines[i] = _unmunge_line(lines[i])
 
             # add multiline jinja2 statements
             lines = _unmunge_multiline_jinja2(lines)

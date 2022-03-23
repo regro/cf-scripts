@@ -5,7 +5,11 @@ import re
 import pytest
 import networkx as nx
 
-from conda_forge_tick.contexts import MigratorSessionContext, MigratorContext
+from conda_forge_tick.contexts import (
+    MigratorSessionContext,
+    MigratorContext,
+    FeedstockContext,
+)
 from conda_forge_tick.migrators import (
     Version,
     MigrationYaml,
@@ -1632,8 +1636,15 @@ matplotlib = Replacement(
     pr_limit=5,
 )
 
+
+class MockLazyJson:
+    def __init__(self, data):
+        self.data = data
+
+
 G = nx.DiGraph()
 G.add_node("conda", reqs=["python"])
+G.nodes["conda"]["payload"] = MockLazyJson({})
 env = builtins.__xonsh__.env  # type: ignore
 env["GRAPH"] = G
 env["CIRCLE_BUILD_URL"] = "hi world"
@@ -1648,6 +1659,7 @@ def run_test_migration(
     mr_out: dict,
     should_filter=False,
     tmpdir=None,
+    make_body=False,
 ):
     mm_ctx = MigratorSessionContext(
         graph=G,
@@ -1705,6 +1717,17 @@ def run_test_migration(
         pmy,
         hash_type=pmy.get("hash_type", "sha256"),
     )
+
+    if make_body:
+        fctx = FeedstockContext(
+            package_name=name,
+            feedstock_name=name,
+            attrs=pmy,
+        )
+        fctx.feedstock_dir = os.path.dirname(tmpdir)
+        m_ctx.effective_graph.add_node(name)
+        m_ctx.effective_graph.nodes[name]["payload"] = MockLazyJson({})
+        m.pr_body(fctx)
 
     assert mr_out == mr
     if not mr:

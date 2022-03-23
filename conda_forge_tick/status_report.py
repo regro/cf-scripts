@@ -319,7 +319,7 @@ def main(args: Any = None) -> None:
 
     r = requests.get(
         "https://raw.githubusercontent.com/conda-forge/"
-        "conda-forge.github.io/master/img/anvil.svg",
+        "conda-forge.github.io/main/img/anvil.svg",
     )
 
     # cache these for later

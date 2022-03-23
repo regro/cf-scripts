@@ -10,12 +10,11 @@ import logging
 import random
 
 import networkx as nx
-import ruamel.yaml as yaml
 
 from conda_forge_tick.contexts import FeedstockContext
 from conda_forge_tick.migrators.core import GraphMigrator, MiniMigrator, Migrator
 from conda_forge_tick.xonsh_utils import indir
-from conda_forge_tick.utils import eval_cmd, pluck
+from conda_forge_tick.utils import eval_cmd, pluck, yaml_safe_load, yaml_safe_dump
 from conda_forge_tick.make_graph import get_deps_from_outputs_lut
 from conda_forge_tick.feedstock_parser import PIN_SEP_PAT
 
@@ -134,6 +133,7 @@ class MigrationYaml(GraphMigrator):
         check_solvable=True,
         conda_forge_yml_patches=None,
         ignored_deps_per_node=None,
+        max_solver_attempts=3,
         **kwargs: Any,
     ):
         super().__init__(
@@ -151,23 +151,27 @@ class MigrationYaml(GraphMigrator):
         self.cycles = set(chain.from_iterable(cycles or []))
         self.automerge = automerge
         self.conda_forge_yml_patches = conda_forge_yml_patches
-        self.loaded_yaml = yaml.safe_load(self.yaml_contents)
+        self.loaded_yaml = yaml_safe_load(self.yaml_contents)
 
         # auto set the pr_limit for initial things
-        number_pred = len(
-            [
-                k
-                for k, v in self.graph.nodes.items()
-                if self.migrator_uid(v.get("payload", {}))
-                in [vv.get("data", {}) for vv in v.get("payload", {}).get("PRed", [])]
-            ],
-        )
-        if number_pred == 0:
-            self.pr_limit = 2
-        elif number_pred < 7:
-            self.pr_limit = 5
+        if self.pr_limit > 2:
+            number_pred = len(
+                [
+                    k
+                    for k, v in self.graph.nodes.items()
+                    if self.migrator_uid(v.get("payload", {}))
+                    in [
+                        vv.get("data", {})
+                        for vv in v.get("payload", {}).get("PRed", [])
+                    ]
+                ],
+            )
+            if number_pred == 0:
+                self.pr_limit = 2
+            elif number_pred < 7:
+                self.pr_limit = 5
         self.bump_number = bump_number
-        print(self.yaml_contents)
+        self.max_solver_attempts = 3
 
     def filter(self, attrs: "AttrsTypedDict", not_bad_str_start: str = "") -> bool:
         wait_for_migrators = self.loaded_yaml.get("__migrator", {}).get(
@@ -224,10 +228,10 @@ class MigrationYaml(GraphMigrator):
             if self.conda_forge_yml_patches is not None:
                 with indir(os.path.join(recipe_dir, "..")):
                     with open("conda-forge.yml") as fp:
-                        cfg = yaml.safe_load(fp.read())
+                        cfg = yaml_safe_load(fp.read())
                     _patch_dict(cfg, self.conda_forge_yml_patches)
                     with open("conda-forge.yml", "w") as fp:
-                        yaml.dump(cfg, fp, default_flow_style=False, indent=2)
+                        yaml_safe_dump(cfg, fp)
                     eval_cmd("git add conda-forge.yml")
 
             with indir(recipe_dir):
@@ -249,12 +253,8 @@ class MigrationYaml(GraphMigrator):
                 "the feedstock has been rebuilt, so if you are going to "
                 "perform the rebuild yourself don't close this PR until "
                 "the your rebuild has been merged.**\n\n"
-                "This package has the following downstream children:\n"
-                "{children}\n"
-                "And potentially more."
                 "".format(
                     name=self.name,
-                    children="\n".join(self.downstream_children(feedstock_ctx)),
                 )
             )
         else:
@@ -268,16 +268,22 @@ class MigrationYaml(GraphMigrator):
                 "the feedstock has been rebuilt, so if you are going to "
                 "perform the rebuild yourself don't close this PR until "
                 "the your rebuild has been merged.**\n\n"
-                "This package has the following downstream children:\n"
-                "{children}\n"
-                "And potentially more."
                 "".format(
                     name=self.name,
-                    children="\n".join(self.downstream_children(feedstock_ctx)),
                 )
             )
-        body = body.format(additional_body)
-        return body
+
+        children = "\n".join(
+            [" - %s" % ch for ch in self.downstream_children(feedstock_ctx)],
+        )
+        if len(children) > 0:
+            additional_body += (
+                "This package has the following downstream children:\n"
+                "{children}\n"
+                "and potentially more."
+            ).format(children=children)
+
+        return body.format(additional_body)
 
     def commit_message(self, feedstock_ctx: FeedstockContext) -> str:
         if self.name:
@@ -323,10 +329,20 @@ class MigrationYaml(GraphMigrator):
         else:
             migrator_name = self.__class__.__name__.lower()
 
-        def _has_error(node):
-            if migrator_name in total_graph.nodes[node]["payload"].get(
-                "pre_pr_migrator_status",
-                {},
+        def _not_has_error(node):
+            if (
+                migrator_name
+                in total_graph.nodes[node]["payload"].get(
+                    "pre_pr_migrator_status",
+                    {},
+                )
+                and total_graph.nodes[node]["payload"]
+                .get(
+                    "pre_pr_migrator_attempts",
+                    {},
+                )
+                .get(migrator_name, 3)
+                >= getattr(self, "max_solver_attempts", 3)
             ):
                 return 0
             else:
@@ -335,9 +351,9 @@ class MigrationYaml(GraphMigrator):
         return sorted(
             graph,
             key=lambda x: (
-                _has_error(x),
+                _not_has_error(x),
                 random.uniform(0, 1)
-                if _has_error(x)
+                if not _not_has_error(x)
                 else len(nx.descendants(total_graph, x)),
                 x,
             ),
@@ -401,7 +417,10 @@ class MigrationYamlCreator(Migrator):
                 self.new_pin_version.replace(".", ""),
             )
             with open(mig_fname, "w") as f:
-                yaml.dump(migration_yaml_dict, f, default_flow_style=False, indent=2)
+                yaml_safe_dump(
+                    migration_yaml_dict,
+                    f,
+                )
             eval_cmd("git add .")
 
         return super().migrate(recipe_dir, attrs)
@@ -516,13 +535,17 @@ def create_rebuild_graph(
     gx: nx.DiGraph,
     package_names: Sequence[str],
     excluded_feedstocks: MutableSet[str] = None,
+    exclude_pinned_pkgs: bool = True,
     include_noarch: bool = False,
 ) -> nx.DiGraph:
     total_graph = copy.deepcopy(gx)
     excluded_feedstocks = set() if excluded_feedstocks is None else excluded_feedstocks
-    # Always exclude the packages themselves from the migration
-    for node in package_names:
-        excluded_feedstocks.update(gx.graph["outputs_lut"].get(node, {node}))
+    # Generally, the packages themselves should be excluded from the migration;
+    # an example for exceptions are migrations for new python versions
+    # where numpy needs to be rebuilt despite being pinned.
+    if exclude_pinned_pkgs:
+        for node in package_names:
+            excluded_feedstocks.update(gx.graph["outputs_lut"].get(node, {node}))
 
     included_nodes = set()
 

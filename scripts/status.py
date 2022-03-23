@@ -18,7 +18,7 @@ a = [
     and pv(a.get("PRed", "0.0.0")) < pv(a["new_version"])
     and a.get("archived", False) is False
 ]
-print("packages out of date and not PRed: {}".format(len(a)))
+print(f"packages out of date and not PRed: {len(a)}")
 for b in a:
     print(
         b,

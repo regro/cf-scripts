@@ -11,14 +11,12 @@ from typing import List, Optional, Iterable
 import psutil
 import json
 import networkx as nx
-import requests
 from conda.models.version import VersionOrder
-from requests import Response
 
 # from conda_forge_tick.profiler import profiling
 
 from conda_forge_tick.feedstock_parser import load_feedstock
-from .all_feedstocks import get_all_feedstocks
+from .all_feedstocks import get_all_feedstocks, get_archived_feedstocks
 from .contexts import GithubContext
 from .utils import (
     setup_logger,
@@ -80,24 +78,6 @@ def make_outputs_lut_from_graph(gx):
                 # for pypy-meta we only map to pypy and not python or cffi
                 outputs_lut[k].add(node_name)
     return outputs_lut
-
-
-def _fetch_file(name: str, filepath: str) -> typing.Union[str, Response]:
-    r = requests.get(
-        "https://raw.githubusercontent.com/"
-        "conda-forge/{}-feedstock/master/{}".format(name, filepath),
-    )
-    if r.status_code != 200:
-        LOGGER.error(
-            f"Something odd happened when fetching recipe {name}: {r.status_code}",
-        )
-        return r
-
-    text = r.content.decode("utf-8")
-    return text
-
-
-# TODO: include other files like build_sh
 
 
 def get_attrs(name: str, i: int, mark_not_archived=False) -> LazyJson:
@@ -316,6 +296,14 @@ def _update_nodes_with_new_versions(gx):
                     attrs["new_version"] = version_from_data
 
 
+def _update_nodes_with_archived(gx, archived_names):
+    for name in archived_names:
+        if name in gx.nodes:
+            node = gx.nodes[name]
+            with node["payload"] as payload:
+                payload["archived"] = True
+
+
 # @profiling
 def main(args: "CLIArgs") -> None:
     if args.debug:
@@ -335,6 +323,9 @@ def main(args: "CLIArgs") -> None:
 
     _update_nodes_with_bot_rerun(gx)
     _update_nodes_with_new_versions(gx)
+
+    archived_names = get_archived_feedstocks(cached=True)
+    _update_nodes_with_archived(gx, archived_names)
 
     dump_graph(gx)
 

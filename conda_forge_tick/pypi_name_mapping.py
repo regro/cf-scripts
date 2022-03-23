@@ -90,7 +90,8 @@ def _imports_to_canonical_import(
     1. If you have at least 4 imports and they follow a structure like
         'a', 'a.b', 'a.b.c', 'a.b.d'
         this is treated as a namespace package with a canonical import of `a.b`
-    2. If you have fewer imports but they have a prefix that is found in KNOWN_NAMESPACE_PACKAGES
+    2. If you have fewer imports but they have a prefix that is found in
+        KNOWN_NAMESPACE_PACKAGES
         you are also treated as a namespace package
     3. Otherwise return the commonprefix
 
@@ -170,15 +171,11 @@ def extract_pypi_information(cf_graph: str) -> List[Dict[str, str]]:
 def convert_to_grayskull_style_yaml(
     package_mappings: Iterable[Dict[str, str]],
 ) -> Dict[str, Dict[str, str]]:
-    """Convert our list style mapping to the pypi-centric version required by grayskull"""
-    mismatch = [
-        x
-        for x in package_mappings
-        if (x["pypi_name"] != x["conda_name"] or x["pypi_name"] != x["import_name"])
-    ]
+    """Convert our list style mapping to the pypi-centric version
+    required by grayskull"""
     grayskull_fmt = {
         x["pypi_name"]: {k: v for k, v in x.items() if x != "pypi_name"}
-        for x in sorted(mismatch, key=lambda x: x["pypi_name"])
+        for x in sorted(package_mappings, key=lambda x: x["pypi_name"])
     }
     return grayskull_fmt
 
@@ -214,7 +211,8 @@ def determine_best_matches_for_pypi_import(
     try:
         clobberers = loads(
             requests.get(
-                "https://raw.githubusercontent.com/regro/libcfgraph/master/clobbering_pkgs.json",
+                "https://raw.githubusercontent.com/regro/libcfgraph/master/"
+                "clobbering_pkgs.json",
             ).text,
         )
     except Exception as e:
@@ -227,10 +225,26 @@ def determine_best_matches_for_pypi_import(
     # whilst authorities are packages with many edges to them.
     hubs, authorities = networkx.hits_scipy(gx)
 
+    mapping_src_weights = {
+        "static": 1,
+        "regro-bot": 2,
+        "other": 3,
+    }
+
     def _score(conda_name, conda_name_is_feedstock_name=True, pkg_clobbers=False):
+        """A higher score means less preferred"""
+        mapping_src = map_by_conda_name.get(conda_name, {}).get(
+            "mapping_source",
+            "other",
+        )
+        mapping_src_weight = mapping_src_weights.get(mapping_src, 99)
         return (
+            # prefer static mapped packages over inferred
+            mapping_src_weight,
             int(pkg_clobbers),
+            # A higher hub score means more centrality in the graph
             -hubs.get(conda_name, 0),
+            # A lower authority score means fewer dependencies
             authorities.get(conda_name, 0),
             # prefer pkgs that match feedstocks
             -int(conda_name_is_feedstock_name),

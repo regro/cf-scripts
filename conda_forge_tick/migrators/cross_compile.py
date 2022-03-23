@@ -2,6 +2,10 @@ import os
 import typing
 from typing import Any
 import logging
+from conda_forge_tick.utils import (
+    yaml_safe_load,
+    yaml_safe_dump,
+)
 
 from conda_forge_tick.xonsh_utils import indir
 from conda_forge_tick.utils import _get_source_code
@@ -127,7 +131,7 @@ class GuardTestingMigrator(CrossCompilationMigratorBase):
                 ):
                     lines.insert(
                         i,
-                        'if [[ "${CONDA_BUILD_CROSS_COMPILATION:-}" != "1" ]]; then\n',
+                        'if [[ "${CONDA_BUILD_CROSS_COMPILATION:-}" != "1" || "${CROSSCOMPILING_EMULATOR}" != "" ]]; then\n',
                     )
                     insert_after = i + 1
                     while len(lines) > insert_after and lines[insert_after].endswith(
@@ -363,3 +367,62 @@ class CrossRBaseMigrator(CrossCompilationMigratorBase):
             if os.path.exists("build.sh"):
                 with open("build.sh", "w") as f:
                     f.write(CRAN_BUILD_SH)
+
+
+class CrossCompilationForARMAndPower(MiniMigrator):
+    post_migration = True
+
+    def filter(self, attrs: "AttrsTypedDict", not_bad_str_start: str = "") -> bool:
+        return False
+
+    def migrate(self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any) -> None:
+        with indir(recipe_dir):
+            if not os.path.exists("../conda-forge.yml"):
+                name = attrs.get("feedstock_name")
+                LOGGER.info(f"no conda-forge.yml for {name}")
+                return
+
+            with open("../conda-forge.yml") as f:
+                config = yaml_safe_load(f)
+
+            build_platform = config.get("build_platform", {})
+            if build_platform:
+                for arch in ["linux_aarch64", "linux_ppc64le"]:
+                    if arch in build_platform:
+                        continue
+                    if config.get("provider", {}).get(arch) == "default":
+                        config["build_platform"][arch] = "linux_64"
+                with open("../conda-forge.yml", "w") as f:
+                    name = attrs.get("feedstock_name")
+                    LOGGER.info(f"new conda-forge.yml for {name}:={config}")
+                    yaml_safe_dump(config, f)
+
+            if not os.path.exists("build.sh"):
+                return
+            with open("build.sh") as f:
+                lines = list(f.readlines())
+
+            old_guard_lines = [
+                'if [[ "${CONDA_BUILD_CROSS_COMPILATION:-}" != "1" ]]; then\n',
+                'if [[ "${CONDA_BUILD_CROSS_COMPILATION}" != "1" ]]; then\n',
+                'if [[ "$CONDA_BUILD_CROSS_COMPILATION" != "1" ]]; then\n',
+                'if [[ "$CONDA_BUILD_CROSS_COMPILATION" == "0" ]]; then\n',
+                'if [[ "${CONDA_BUILD_CROSS_COMPILATION}" == "0" ]]; then\n',
+            ]
+            new_guard_line = 'if [[ "${CONDA_BUILD_CROSS_COMPILATION:-}" != "1" || "${CROSSCOMPILING_EMULATOR}" != "" ]]; then\n'
+            for i, line in enumerate(lines):
+                if (
+                    (
+                        line.strip().startswith("make check")
+                        or line.strip().startswith("ctest")
+                        or line.strip().startswith("make test")
+                    )
+                    and i > 0
+                    and lines[i - 1] in old_guard_lines
+                ):
+                    lines[i - 1] = new_guard_line
+                    break
+            else:
+                return
+            with open("build.sh", "w") as f:
+                f.write("".join(lines))

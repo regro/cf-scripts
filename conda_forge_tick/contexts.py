@@ -1,15 +1,24 @@
+import os
 import copy
 from dataclasses import dataclass
 from networkx import DiGraph
 import typing
 import threading
 import github3
+from conda_forge_tick.utils import load
 
 from typing import Union
 
 if typing.TYPE_CHECKING:
     from conda_forge_tick.migrators import Migrator
     from conda_forge_tick.migrators_types import AttrsTypedDict
+
+
+if os.path.exists("all_feedstocks.json"):
+    with open("all_feedstocks.json") as f:
+        DEFAULT_BRANCHES = load(f).get("default_branches", {})
+else:
+    DEFAULT_BRANCHES = {}
 
 
 @dataclass
@@ -99,3 +108,15 @@ class FeedstockContext:
     package_name: str
     feedstock_name: str
     attrs: "AttrsTypedDict"
+    _default_branch: str = None
+
+    @property
+    def default_branch(self):
+        if self._default_branch is None:
+            return DEFAULT_BRANCHES.get(f"{self.feedstock_name}", "master")
+        else:
+            return self._default_branch
+
+    @default_branch.setter
+    def default_branch(self, v):
+        self._default_branch = v

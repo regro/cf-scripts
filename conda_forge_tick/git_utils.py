@@ -19,12 +19,15 @@ from .xonsh_utils import env, indir
 
 from requests.exceptions import Timeout, RequestException
 from .contexts import GithubContext, FeedstockContext, MigratorSessionContext
+import github
 
 import backoff
 
 # TODO: handle the URLs more elegantly (most likely make this a true library
 # and pull all the needed info from the various source classes)
 from conda_forge_tick.utils import LazyJson
+
+from conda_forge_tick import sensitive_env
 
 backoff._decorator._is_event_loop = lambda: False
 
@@ -64,6 +67,27 @@ PR_KEYS_TO_KEEP = {
     "head": {"ref": None},
     "base": {"repo": {"name": None}},
 }
+
+
+def get_default_branch(feedstock_name):
+    """Get the default branch for a feedstock
+
+    Parameters
+    ----------
+    feedstock_name : str
+        The feedstock without '-feedstock'.
+
+    Returns
+    -------
+    branch : str
+        The default branch (e.g., 'main').
+    """
+    with sensitive_env() as env:
+        return (
+            github.Github(env["PASSWORD"])
+            .get_repo(f"conda-forge/{feedstock_name}-feedstock")
+            .default_branch
+        )
 
 
 def ensure_gh(ctx: GithubContext, gh: Optional[github3.GitHub]) -> github3.GitHub:
@@ -135,7 +159,7 @@ def fork_url(feedstock_url: str, username: str) -> str:
     return url
 
 
-def fetch_repo(*, feedstock_dir, origin, upstream, branch, base_branch="master"):
+def fetch_repo(*, feedstock_dir, origin, upstream, branch, base_branch="main"):
     """fetch a repo and make a PR branch
 
     Parameters
@@ -149,7 +173,7 @@ def fetch_repo(*, feedstock_dir, origin, upstream, branch, base_branch="master")
     branch : str
         The branch to make and checkout.
     base_branch : str, optional
-        The branch from which to branch from to make `branch`. Defaults to "master".
+        The branch from which to branch from to make `branch`. Defaults to "main".
 
     Returns
     -------
@@ -166,12 +190,18 @@ def fetch_repo(*, feedstock_dir, origin, upstream, branch, base_branch="master")
             msg += ". Do you have a personal fork of the feedstock?"
             print(msg, file=sys.stderr)
             return False
+        reset_hard = False
+    else:
+        reset_hard = True
 
     def _run_git_cmd(cmd):
         return subprocess.run(cmd, shell=True, check=True)
 
     quiet = "--quiet"
     with indir(feedstock_dir):
+        if reset_hard:
+            _run_git_cmd("git reset --hard HEAD")
+
         # doesn't work if the upstream already exists
         try:
             # always run upstream
@@ -214,7 +244,7 @@ def get_repo(
     protocol: str = "ssh",
     pull_request: bool = True,
     fork: bool = True,
-    base_branch: str = "master",
+    base_branch: str = "main",
 ) -> Tuple[str, github3.repos.Repository]:
     """Get the feedstock repo
 
@@ -271,6 +301,13 @@ def get_repo(
             # Sleep to make sure the fork is created before we go after it
             time.sleep(5)
 
+        # sync the default branches if needed
+        _sync_default_branches(
+            feedstock_reponame,
+            ctx.github_username,
+            ctx.github_password,
+        )
+
     feedstock_dir = os.path.join(ctx.rever_dir, fctx.package_name + "-feedstock")
 
     if fetch_repo(
@@ -283,6 +320,29 @@ def get_repo(
         return feedstock_dir, repo
     else:
         return False, False
+
+
+def _sync_default_branches(reponame, forked_user, token):
+    gh = github.Github(token)
+    default_branch = gh.get_repo(f"conda-forge/{reponame}").default_branch
+    forked_default_branch = gh.get_repo(f"{forked_user}/{reponame}").default_branch
+    if default_branch != forked_default_branch:
+        print("Fork's default branch doesn't match upstream, syncing...")
+        r = requests.post(
+            f"https://api.github.com/repos/{forked_user}/"
+            f"{reponame}/branches/{forked_default_branch}/rename",
+            json={"new_name": default_branch},
+            headers={
+                "Authorization": f"token {token}",
+                "Content-Type": "application/json",
+                "Accept": "application/vnd.github.v3+json",
+            },
+        )
+        if r.status_code != 404:
+            r.raise_for_status()
+
+        # sleep to wait for branch name change
+        time.sleep(5)
 
 
 def delete_branch(ctx: GithubContext, pr_json: LazyJson, dry_run: bool = False) -> None:
@@ -523,7 +583,7 @@ def push_repo(
     title: str,
     head: str,
     branch: str,
-    base_branch: str = "master",
+    base_branch: str = "main",
 ) -> Union[dict, bool, None]:
     """Push a repo up to github
 

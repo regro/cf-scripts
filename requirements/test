@@ -1,5 +1,4 @@
 pytest
-coverage
 codecov
 requests-mock
 doctr
@@ -8,3 +7,5 @@ scipy
 pre-commit
 pip
 flaky
+pytest-xdist
+pytest-cov

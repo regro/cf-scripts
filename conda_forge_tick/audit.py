@@ -16,9 +16,8 @@ from depfinder.main import (
     simple_import_to_pkg_map,
 )
 from depfinder import __version__ as depfinder_version
-from grayskull.base.factory import GrayskullFactory
+from grayskull.__main__ import create_python_recipe
 from grayskull import __version__ as grayskull_version
-from ruamel import yaml
 import pandas as pd
 
 from conda_forge_tick.contexts import MigratorSessionContext, FeedstockContext
@@ -28,8 +27,8 @@ from conda_forge_tick.utils import (
     dump,
     load,
     executor,
-    as_iterable,
     _get_source_code,
+    yaml_safe_load,
 )
 from conda_forge_tick.feedstock_parser import load_feedstock
 from conda_forge_tick.xonsh_utils import indir, env
@@ -99,7 +98,7 @@ def depfinder_audit_feedstock(fctx: FeedstockContext, ctx: MigratorSessionContex
         feedstock_dir=feedstock_dir,
         origin=origin,
         upstream=origin,
-        branch="master",
+        branch=fctx.default_branch,
     )
     recipe_dir = os.path.join(feedstock_dir, "recipe")
 
@@ -109,26 +108,20 @@ def depfinder_audit_feedstock(fctx: FeedstockContext, ctx: MigratorSessionContex
 def grayskull_audit_feedstock(fctx: FeedstockContext, ctx: MigratorSessionContext):
     """Uses grayskull to audit the requirements for a python package"""
     # TODO: come back to this, since CF <-> PyPI is not one-to-one and onto
-    pkg_name = fctx.package_name
     pkg_version = fctx.attrs["version"]
-    recipe = GrayskullFactory.create_recipe(
-        "pypi",
-        pkg_name,
-        pkg_version,
+    pkg_name = fctx.package_name
+    recipe, _ = create_python_recipe(
+        pkg_name=pkg_name,
+        version=pkg_version,
         download=False,
+        is_strict_cf=True,
+        from_local_sdist=False,
     )
 
     with tempfile.TemporaryDirectory() as td:
-        recipe.generate_recipe(
-            td,
-            mantainers=list(
-                {
-                    m: None
-                    for m in fctx.attrs["meta_yaml"]["extra"]["recipe-maintainers"]
-                },
-            ),
-        )
-        with open(os.path.join(td, pkg_name, "meta.yaml")) as f:
+        pth = os.path.join(td, "meta.yaml")
+        recipe.save(pth)
+        with open(pth) as f:
             out = f.read()
     return out
 
@@ -248,7 +241,8 @@ def extract_missing_packages(
     cf_minus_df = set(run_packages)
     df_minus_cf = set()
     for import_name, supplying_pkgs in required_packages.items():
-        # If there is any overlap in the cf requirements and the supplying pkgs remove from the cf_minus_df set
+        # If there is any overlap in the cf requirements and the supplying
+        # pkgs remove from the cf_minus_df set
         overlap = supplying_pkgs & run_packages
         if overlap:
             # XXX: This is particularly annoying with clobbers
@@ -278,7 +272,7 @@ def extract_missing_packages(
 
 
 def create_package_import_maps(nodes, mapping_yaml="mappings/pypi/name_mapping.yaml"):
-    raw_import_map = yaml.safe_load(open(mapping_yaml))
+    raw_import_map = yaml_safe_load(open(mapping_yaml))
     packages_by_import = defaultdict(set)
     imports_by_package = defaultdict(set)
     for item in raw_import_map:
@@ -439,7 +433,8 @@ def main(args):
         audit_version = "_".join([v["version"], v["creation_version"]])
         if os.path.exists(version_path):
             version = load(open(version_path))
-            # if the version of the code generating the audits is different from our current audit data
+            # if the version of the code generating the audits is different
+            # from our current audit data
             # clear out the audit data so we always use the latest version
             if version != audit_version:
                 shutil.rmtree(audit_dir)

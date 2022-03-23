@@ -122,16 +122,25 @@ def _extract_requirements(meta_yaml):
 
 
 def _fetch_static_repo(name, dest):
-    r = requests.get(
-        f"https://github.com/conda-forge/{name}-feedstock/archive/master.zip",
-    )
+    found_branch = None
+    for branch in ["master", "main"]:
+        try:
+            r = requests.get(
+                f"https://github.com/conda-forge/{name}-feedstock/archive/{branch}.zip",
+            )
+            r.raise_for_status()
+            found_branch = branch
+            break
+        except Exception:
+            pass
+
     if r.status_code != 200:
         LOGGER.error(
             f"Something odd happened when fetching feedstock {name}: {r.status_code}",
         )
         return r
 
-    zname = os.path.join(dest, f"{name}-feedstock-master.zip")
+    zname = os.path.join(dest, f"{name}-feedstock-{found_branch}.zip")
 
     with open(zname, "wb") as fp:
         fp.write(r.content)
@@ -172,7 +181,7 @@ def populate_feedstock_attributes(
     If the return is bad hand the response itself in so that it can be parsed
     for meaning.
     """
-    sub_graph.update({"feedstock_name": name, "bad": False, "branch": "master"})
+    sub_graph.update({"feedstock_name": name, "bad": False, "branch": "main"})
 
     if mark_not_archived:
         sub_graph.update({"archived": False})
@@ -215,6 +224,7 @@ def populate_feedstock_attributes(
             varient_yamls = []
             plat_arch = []
             for cbc_path in ci_support_files:
+                LOGGER.debug("parsing conda-build config: %s", cbc_path)
                 cbc_name = os.path.basename(cbc_path)
                 cbc_name_parts = cbc_name.replace(".yaml", "").split("_")
                 plat = cbc_name_parts[0]
@@ -239,6 +249,7 @@ def populate_feedstock_attributes(
 
                 # sometimes the requirements come out to None or [None]
                 # and this ruins the aggregated meta_yaml / breaks stuff
+                LOGGER.debug("getting reqs for config: %s", cbc_path)
                 if "requirements" in varient_yamls[-1]:
                     varient_yamls[-1]["requirements"] = _clean_req_nones(
                         varient_yamls[-1]["requirements"],
@@ -253,6 +264,7 @@ def populate_feedstock_attributes(
                             )
 
                 # collapse them down
+                LOGGER.debug("collapsing reqs for config: %s", cbc_path)
                 final_cfgs = {}
                 for plat_arch, varyml in zip(plat_arch, varient_yamls):
                     if plat_arch not in final_cfgs:
@@ -267,6 +279,7 @@ def populate_feedstock_attributes(
                     plat_arch.append(k)
                     varient_yamls.append(v)
         else:
+            LOGGER.debug("doing generic parsing")
             plat_arch = [("win", "64"), ("osx", "64"), ("linux", "64")]
             for k in set(sub_graph["conda-forge.yml"].get("provider", {})):
                 if "_" in k:
@@ -407,4 +420,15 @@ def load_feedstock(
             mark_not_archived=mark_not_archived,
             feedstock_dir=feedstock_dir,
         )
+
+    # populate migrator attempts if they are not there
+    pre_key = "pre_pr_migrator_status"
+    pre_key_att = "pre_pr_migrator_attempts"
+    if pre_key in sub_graph:
+        if pre_key_att not in sub_graph:
+            sub_graph[pre_key_att] = {}
+        for mn in sub_graph[pre_key]:
+            if mn not in sub_graph[pre_key_att]:
+                sub_graph[pre_key_att][mn] = 1
+
     return sub_graph

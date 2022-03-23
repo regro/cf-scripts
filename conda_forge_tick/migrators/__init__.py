@@ -6,6 +6,7 @@ from .core import (
     Replacement,
 )
 from .conda_forge_yaml_cleanup import CondaForgeYAMLCleanup
+from .mpi_pin_run_as_build import MPIPinRunAsBuildCleanup
 from .migration_yaml import MigrationYaml, MigrationYamlCreator, merge_migrator_cbc
 from .arch import ArchRebuild, OSXArm
 from .pip_check import PipCheckMigrator
@@ -23,7 +24,10 @@ from .cross_compile import (
     CrossRBaseMigrator,
     Build2HostMigrator,
     NoCondaInspectMigrator,
+    CrossCompilationForARMAndPower,
 )
 from .duplicate_lines import DuplicateLinesCleanup
 from .cos7 import Cos7Config
 from .pip_wheel_dep import PipWheelMigrator
+from .broken_rebuild import RebuildBroken
+from .dep_updates import DependencyUpdateMigrator

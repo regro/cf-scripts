@@ -1,5 +1,7 @@
 import os
 
+from flaky import flaky
+
 from conda_forge_tick.migrators import (
     UpdateConfigSubGuessMigrator,
     Version,
@@ -92,6 +94,48 @@ extra:
 """
 
 config_recipe_correct = """\
+{% set version = "8.0" %}
+
+package:
+  name: readline
+  version: {{ version }}
+
+source:
+  url: https://ftp.gnu.org/gnu/readline/readline-{{ version }}.tar.gz
+  sha256: e339f51971478d369f8a053a330a190781acb9864cf4c541060f12078948e461
+
+build:
+  skip: true  # [win]
+  number: 0
+  run_exports:
+    # change soname at major ver: https://abi-laboratory.pro/tracker/timeline/readline/
+    - {{ pin_subpackage('readline') }}
+
+requirements:
+  build:
+    - pkg-config
+    - gnuconfig  # [unix]
+    - {{ compiler('c') }}
+    - make
+    - cmake
+  host:
+    - ncurses
+  run:
+    - ncurses
+
+about:
+  home: https://cnswww.cns.cwru.edu/php/chet/readline/rltop.html
+  license: GPL-3.0-only
+  license_file: COPYING
+  summary: library for editing command lines as they are typed in
+
+extra:
+  recipe-maintainers:
+    - croth1
+"""
+
+
+config_recipe_correct_make_check = """\
 {% set version = "8.0" %}
 
 package:
@@ -1000,6 +1044,7 @@ extra:
 """  # noqa
 
 
+@flaky
 def test_correct_config_sub(tmpdir):
     with open(os.path.join(tmpdir, "build.sh"), "w") as f:
         f.write("#!/bin/bash\n./configure")
@@ -1020,13 +1065,14 @@ def test_correct_config_sub(tmpdir):
         assert len(f.readlines()) == 4
 
 
+@flaky
 def test_make_check(tmpdir):
     with open(os.path.join(tmpdir, "build.sh"), "w") as f:
         f.write("#!/bin/bash\nmake check")
     run_test_migration(
         m=version_migrator_autoconf,
         inp=config_recipe,
-        output=config_recipe_correct,
+        output=config_recipe_correct_make_check,
         prb="Dependencies have been updated if changed",
         kwargs={"new_version": "8.0"},
         mr_out={
@@ -1040,7 +1086,7 @@ def test_make_check(tmpdir):
         "#!/bin/bash\n",
         "# Get an updated config.sub and config.guess\n",
         "cp $BUILD_PREFIX/share/gnuconfig/config.* ./support\n",
-        'if [[ "${CONDA_BUILD_CROSS_COMPILATION:-}" != "1" ]]; then\n',
+        'if [[ "${CONDA_BUILD_CROSS_COMPILATION:-}" != "1" || "${CROSSCOMPILING_EMULATOR}" != "" ]]; then\n',
         "make check\n",
         "fi\n",
     ]
@@ -1049,6 +1095,7 @@ def test_make_check(tmpdir):
         assert lines == expected
 
 
+@flaky
 def test_cmake(tmpdir):
     with open(os.path.join(tmpdir, "build.sh"), "w") as f:
         f.write("#!/bin/bash\ncmake ..\nctest")
@@ -1068,7 +1115,7 @@ def test_cmake(tmpdir):
     expected = [
         "#!/bin/bash\n",
         "cmake ${CMAKE_ARGS} ..\n",
-        'if [[ "${CONDA_BUILD_CROSS_COMPILATION:-}" != "1" ]]; then\n',
+        'if [[ "${CONDA_BUILD_CROSS_COMPILATION:-}" != "1" || "${CROSSCOMPILING_EMULATOR}" != "" ]]; then\n',
         "ctest\n",
         "fi\n",
     ]
@@ -1077,6 +1124,7 @@ def test_cmake(tmpdir):
         assert lines == expected
 
 
+@flaky
 def test_cross_rbase(tmpdir):
     run_test_migration(
         m=version_migrator_rbase,
@@ -1093,6 +1141,7 @@ def test_cross_rbase(tmpdir):
     )
 
 
+@flaky
 def test_cross_rbase_build_sh(tmpdir):
     with open(os.path.join(tmpdir, "build.sh"), "w") as f:
         f.write("#!/bin/bash\nR CMD INSTALL --build .")
@@ -1122,6 +1171,7 @@ def test_cross_rbase_build_sh(tmpdir):
         assert lines == expected
 
 
+@flaky
 def test_cross_python(tmpdir):
     run_test_migration(
         m=version_migrator_python,
@@ -1138,6 +1188,7 @@ def test_cross_python(tmpdir):
     )
 
 
+@flaky
 def test_cross_python_no_build(tmpdir):
     run_test_migration(
         m=version_migrator_python,
@@ -1154,6 +1205,7 @@ def test_cross_python_no_build(tmpdir):
     )
 
 
+@flaky
 def test_build2host(tmpdir):
     run_test_migration(
         m=version_migrator_b2h,
@@ -1170,6 +1222,7 @@ def test_build2host(tmpdir):
     )
 
 
+@flaky
 def test_build2host_buildok(tmpdir):
     run_test_migration(
         m=version_migrator_b2h,
@@ -1186,6 +1239,7 @@ def test_build2host_buildok(tmpdir):
     )
 
 
+@flaky
 def test_build2host_bhskip(tmpdir):
     run_test_migration(
         m=version_migrator_b2h,
@@ -1202,6 +1256,7 @@ def test_build2host_bhskip(tmpdir):
     )
 
 
+@flaky
 def test_nocondainspect(tmpdir):
     run_test_migration(
         m=version_migrator_nci,
