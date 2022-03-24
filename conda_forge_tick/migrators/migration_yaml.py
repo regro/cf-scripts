@@ -180,12 +180,17 @@ class MigrationYaml(GraphMigrator):
         )
         need_to_wait = False
         if wait_for_migrators:
+            found_migrators = set()
             for migration in attrs.get("PRed", []):
-                if migration.get("data", {}).get("name", "") not in wait_for_migrators:
+                name = migration.get("data", {}).get("name", "")
+                if not name or name not in wait_for_migrators:
                     continue
+                found_migrators.add(name)
                 state = migration.get("PR", {}).get("state", "")
                 if state != "closed":
                     need_to_wait = True
+            if set(wait_for_migrators) - found_migrators:
+                need_to_wait = True
         logger.debug(
             "filter %s: need to wait for %s",
             attrs.get("name", ""),
