@@ -87,7 +87,7 @@ class PipWheelMigrator(MiniMigrator):
         with tempfile.TemporaryDirectory() as tmpdir, indir(tmpdir):
             resp = requests.get(wheel_url)
             with open(wheel_file, "wb") as fp:
-                for chunk in resp.iter_content(chunk_size=2 ** 16):
+                for chunk in resp.iter_content(chunk_size=2**16):
                     fp.write(chunk)
             import pkginfo
             import pkg_resources

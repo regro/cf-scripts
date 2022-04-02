@@ -929,7 +929,7 @@ def _is_recipe_solvable_on_platform(
     logger.info("RUN EXPORT cache status: %s", _get_run_export.cache_info())
     logger.info(
         "MAMBA SOLVER MEM USAGE: %d MB",
-        psutil.Process().memory_info().rss // 1024 ** 2,
+        psutil.Process().memory_info().rss // 1024**2,
     )
 
     return solvable, errors
