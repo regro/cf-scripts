@@ -128,19 +128,13 @@ def extract_import_name_from_test_imports(meta_yaml: Dict[str, Any]) -> Optional
 
 
 def extract_single_pypi_information(meta_yaml: Dict[str, Any]) -> Dict[str, str]:
-    pypi_name = (
-        extract_pypi_name_from_metadata_extras(
-            meta_yaml,
-        )
-        or extract_pypi_name_from_metadata_source_url(meta_yaml)
-    )
+    pypi_name = extract_pypi_name_from_metadata_extras(
+        meta_yaml,
+    ) or extract_pypi_name_from_metadata_source_url(meta_yaml)
     conda_name = meta_yaml["package"]["name"]
-    import_name = (
-        extract_import_name_from_metadata_extras(
-            meta_yaml,
-        )
-        or extract_import_name_from_test_imports(meta_yaml)
-    )
+    import_name = extract_import_name_from_metadata_extras(
+        meta_yaml,
+    ) or extract_import_name_from_test_imports(meta_yaml)
 
     if import_name and conda_name and pypi_name:
         return {

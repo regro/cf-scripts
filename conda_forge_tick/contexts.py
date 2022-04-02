@@ -113,7 +113,7 @@ class FeedstockContext:
     @property
     def default_branch(self):
         if self._default_branch is None:
-            return DEFAULT_BRANCHES.get(f"{self.feedstock_name}", "master")
+            return DEFAULT_BRANCHES.get(f"{self.feedstock_name}", "main")
         else:
             return self._default_branch
 
