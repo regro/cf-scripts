@@ -35,7 +35,7 @@ def _parse_cbc_mpi(lines):
 
                 if mpi_indent is None:
                     for mpi in MPIS:
-                        if mpi + ":" == line.strip():
+                        if mpi == line.split(":", 1)[0].strip():
                             mpi_indent = len(line) - len(line.lstrip())
                             break
 

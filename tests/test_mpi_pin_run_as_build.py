@@ -198,6 +198,29 @@ from conda_forge_tick.migrators.mpi_pin_run_as_build import _parse_cbc_mpi
                 "    max_pin: x.x",
             ],
         ),
+        (
+            [
+                "blah: blarg",
+                "blah:",
+                "  - ghghg",
+                "  - ghghg",
+                "pin_run_as_build:",
+                "  mpich: x.x",
+                "  openmpi:",
+                "    max_pin: x.x",
+                "  flarg:",
+                "    max_pin: x.x",
+            ],
+            [
+                "blah: blarg",
+                "blah:",
+                "  - ghghg",
+                "  - ghghg",
+                "pin_run_as_build:",
+                "  flarg:",
+                "    max_pin: x.x",
+            ],
+        ),
     ],
 )
 def test_parse_cbc_mpi(lines, new_lines):
