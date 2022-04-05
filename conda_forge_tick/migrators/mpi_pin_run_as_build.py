@@ -23,8 +23,9 @@ def _parse_cbc_mpi(lines):
 
             curr_indent = len(line) - len(line.lstrip())
 
-            if "pin_run_as_build" in line:
+            if "pin_run_as_build:" == line.strip():
                 in_prab = True
+                prab_indent = len(line) - len(line.lstrip())
             elif in_prab:
                 if mpi_indent is not None:
                     if curr_indent > mpi_indent:
@@ -34,16 +35,14 @@ def _parse_cbc_mpi(lines):
 
                 if mpi_indent is None:
                     for mpi in MPIS:
-                        if mpi + ":" in line:
+                        if mpi + ":" == line.strip():
                             mpi_indent = len(line) - len(line.lstrip())
                             break
 
                     if mpi_indent is not None:
                         continue
 
-                if prab_indent is None:
-                    prab_indent = len(line) - len(line.lstrip())
-                elif curr_indent <= prab_indent:
+                if curr_indent <= prab_indent:
                     in_prab = False
                     prab_indent = None
 
