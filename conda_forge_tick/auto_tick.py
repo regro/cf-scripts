@@ -1001,7 +1001,7 @@ def _compute_time_per_migrator(mctx, migrators):
                 min(
                     getattr(migrator, "pr_limit", PR_LIMIT) * 4,
                     len(mmctx.effective_graph.nodes),
-                )
+                ),
             )
 
     num_nodes_tot = sum(num_nodes)
