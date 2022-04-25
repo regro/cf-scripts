@@ -31,7 +31,8 @@ from conda_forge_tick.utils import (
     yaml_safe_load,
 )
 from conda_forge_tick.feedstock_parser import load_feedstock
-from conda_forge_tick.xonsh_utils import indir, env
+from conda_forge_tick.xonsh_utils import env
+from conda_forge_tick.utils import pushd
 
 RUNTIME_MINUTES = 45
 
@@ -81,7 +82,7 @@ PACKAGES_BY_IMPORT_OVERRIDE = {
 
 def extract_deps_from_source(recipe_dir):
     cb_work_dir = _get_source_code(recipe_dir)
-    with indir(cb_work_dir):
+    with pushd(cb_work_dir):
         return simple_import_to_pkg_map(
             cb_work_dir,
             builtins=BUILTINS,

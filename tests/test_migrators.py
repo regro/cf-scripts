@@ -35,7 +35,7 @@ from conda_forge_tick.utils import (
 )
 from conda_forge_tick.feedstock_parser import populate_feedstock_attributes
 from xonsh.lib import subprocess
-from xonsh.lib.os import indir
+from conda_forge_tick.utils import pushd
 
 
 sample_yaml_rebuild = """
@@ -291,7 +291,7 @@ def run_test_yaml_migration(
     with open(os.path.join(tmpdir, "recipe", "meta.yaml"), "w") as f:
         f.write(inp)
 
-    with indir(tmpdir):
+    with pushd(tmpdir):
         subprocess.run(["git", "init"])
     # Load the meta.yaml (this is done in the graph)
     try:

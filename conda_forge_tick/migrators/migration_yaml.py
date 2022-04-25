@@ -13,7 +13,7 @@ import networkx as nx
 
 from conda_forge_tick.contexts import FeedstockContext
 from conda_forge_tick.migrators.core import GraphMigrator, MiniMigrator, Migrator
-from conda_forge_tick.xonsh_utils import indir
+from conda_forge_tick.utils import pushd
 from conda_forge_tick.utils import eval_cmd, pluck, yaml_safe_load, yaml_safe_dump
 from conda_forge_tick.make_graph import get_deps_from_outputs_lut
 from conda_forge_tick.feedstock_parser import PIN_SEP_PAT
@@ -208,13 +208,13 @@ class MigrationYaml(GraphMigrator):
         # if conda-forge-pinning update the pins and close the migration
         if attrs.get("name", "") == "conda-forge-pinning":
             # read up the conda build config
-            with indir(recipe_dir), open("conda_build_config.yaml") as f:
+            with pushd(recipe_dir), open("conda_build_config.yaml") as f:
                 cbc_contents = f.read()
             merged_cbc = merge_migrator_cbc(self.yaml_contents, cbc_contents)
-            with indir(os.path.join(recipe_dir, "migrations")):
+            with pushd(os.path.join(recipe_dir, "migrations")):
                 os.remove(f"{self.name}.yaml")
             # replace the conda build config with the merged one
-            with indir(recipe_dir), open("conda_build_config.yaml", "w") as f:
+            with pushd(recipe_dir), open("conda_build_config.yaml", "w") as f:
                 f.write(merged_cbc)
             # don't need to bump build number once we move to datetime
             # version numbers for pinning
@@ -223,15 +223,15 @@ class MigrationYaml(GraphMigrator):
         else:
             # in case the render is old
             os.makedirs(os.path.join(recipe_dir, "../.ci_support"), exist_ok=True)
-            with indir(os.path.join(recipe_dir, "../.ci_support")):
+            with pushd(os.path.join(recipe_dir, "../.ci_support")):
                 os.makedirs("migrations", exist_ok=True)
-                with indir("migrations"):
+                with pushd("migrations"):
                     with open(f"{self.name}.yaml", "w") as f:
                         f.write(self.yaml_contents)
                     eval_cmd("git add .")
 
             if self.conda_forge_yml_patches is not None:
-                with indir(os.path.join(recipe_dir, "..")):
+                with pushd(os.path.join(recipe_dir, "..")):
                     with open("conda-forge.yml") as fp:
                         cfg = yaml_safe_load(fp.read())
                     _patch_dict(cfg, self.conda_forge_yml_patches)
@@ -239,7 +239,7 @@ class MigrationYaml(GraphMigrator):
                         yaml_safe_dump(cfg, fp)
                     eval_cmd("git add conda-forge.yml")
 
-            with indir(recipe_dir):
+            with pushd(recipe_dir):
                 self.set_build_number("meta.yaml")
 
             return super().migrate(recipe_dir, attrs)
@@ -416,7 +416,7 @@ class MigrationYamlCreator(Migrator):
             self.package_name: [self.new_pin_version],
             "migrator_ts": float(time.time()),
         }
-        with indir(os.path.join(recipe_dir, "migrations")):
+        with pushd(os.path.join(recipe_dir, "migrations")):
             mig_fname = "{}{}.yaml".format(
                 self.package_name,
                 self.new_pin_version.replace(".", ""),
