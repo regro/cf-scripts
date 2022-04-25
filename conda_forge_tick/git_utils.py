@@ -15,7 +15,8 @@ import github3.exceptions
 import github3.repos
 
 from doctr.travis import run_command_hiding_token as doctr_run
-from .xonsh_utils import env, indir
+from .xonsh_utils import env
+from .utils import pushd
 
 from requests.exceptions import Timeout, RequestException
 from .contexts import GithubContext, FeedstockContext, MigratorSessionContext
@@ -198,7 +199,7 @@ def fetch_repo(*, feedstock_dir, origin, upstream, branch, base_branch="main"):
         return subprocess.run(cmd, shell=True, check=True)
 
     quiet = "--quiet"
-    with indir(feedstock_dir):
+    with pushd(feedstock_dir):
         if reset_hard:
             _run_git_cmd("git reset --hard HEAD")
 
@@ -615,7 +616,7 @@ def push_repo(
         The dict representing the PR, can be used with `from_json`
         to create a PR instance.
     """
-    with indir(feedstock_dir), env.swap(RAISE_SUBPROC_ERROR=False):
+    with pushd(feedstock_dir), env.swap(RAISE_SUBPROC_ERROR=False):
         # Setup push from doctr
         # Copyright (c) 2016 Aaron Meurer, Gil Forsyth
         token = session_ctx.github_password

@@ -7,7 +7,7 @@ import typing
 import requests
 
 from conda_forge_tick.migrators import MiniMigrator
-from conda_forge_tick.xonsh_utils import indir
+from conda_forge_tick.utils import pushd
 
 if typing.TYPE_CHECKING:
     from conda_forge_tick.migrators_types import AttrsTypedDict
@@ -21,7 +21,7 @@ def pypi_conda_mapping() -> Dict[str, str]:
     """
     yaml = YAML()
     content = requests.get(
-        "https://raw.githubusercontent.com/regro/cf-graph-countyfair/master/mappings/pypi/grayskull_pypi_mapping.yaml",
+        "https://raw.githubusercontent.com/regro/cf-graph-countyfair/master/mappings/pypi/grayskull_pypi_mapping.yaml",  # noqa
     ).text
     mappings = yaml.load(content)
     return {
@@ -60,7 +60,7 @@ class PipWheelMigrator(MiniMigrator):
         resp = requests.get(f"https://pypi.org/pypi/{pkg}/{version}/json")
         try:
             resp.raise_for_status()
-        except:
+        except Exception:
             return None, None
         wheel_count = 0
         for artifact in resp.json()["urls"]:
@@ -84,7 +84,7 @@ class PipWheelMigrator(MiniMigrator):
 
         # parse the versions from the wheel
         wheel_packages = {}
-        with tempfile.TemporaryDirectory() as tmpdir, indir(tmpdir):
+        with tempfile.TemporaryDirectory() as tmpdir, pushd(tmpdir):
             resp = requests.get(wheel_url)
             with open(wheel_file, "wb") as fp:
                 for chunk in resp.iter_content(chunk_size=2**16):
@@ -105,7 +105,7 @@ class PipWheelMigrator(MiniMigrator):
             return None
         handled_packages = set()
 
-        with indir(recipe_dir):
+        with pushd(recipe_dir):
             with open("meta.yaml") as f:
                 lines = f.readlines()
             in_reqs = False
@@ -150,7 +150,8 @@ class PipWheelMigrator(MiniMigrator):
                             )
                             handled_packages.add(pkg_name)
 
-                    # There are unhandled packages.  Since these might not be on conda-forge add them,
+                    # There are unhandled packages.  Since these might not be on
+                    # conda-forge add them,
                     # but leave them commented out
                     for pkg_name in sorted(set(wheel_packages) - handled_packages):
                         # TODO: add to pr text saying that we discovered new deps

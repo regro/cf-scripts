@@ -24,7 +24,7 @@ from conda.models.version import VersionOrder
 
 from conda_forge_tick.migrators.core import Migrator
 from conda_forge_tick.contexts import FeedstockContext
-from conda_forge_tick.xonsh_utils import indir
+from conda_forge_tick.utils import pushd
 from conda_forge_tick.recipe_parser import CONDA_SELECTOR, CondaMetaYAML
 from conda_forge_tick.url_transforms import gen_transformed_urls
 from conda_forge_tick.hashing import hash_url
@@ -613,7 +613,7 @@ class Version(Migrator):
                 )
 
         if did_update:
-            with indir(recipe_dir):
+            with pushd(recipe_dir):
                 with open("meta.yaml", "w") as fp:
                     cmeta.dump(fp)
                 self.set_build_number("meta.yaml")

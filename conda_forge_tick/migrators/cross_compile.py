@@ -7,7 +7,7 @@ from conda_forge_tick.utils import (
     yaml_safe_dump,
 )
 
-from conda_forge_tick.xonsh_utils import indir
+from conda_forge_tick.utils import pushd
 from conda_forge_tick.utils import _get_source_code
 from conda_forge_tick.migrators.core import MiniMigrator
 
@@ -48,7 +48,7 @@ class UpdateConfigSubGuessMigrator(CrossCompilationMigratorBase):
         if cb_work_dir is None:
             return
         directories = set()
-        with indir(cb_work_dir):
+        with pushd(cb_work_dir):
             for dp, dn, fn in os.walk("."):
                 for f in fn:
                     if f != "config.sub":
@@ -59,7 +59,7 @@ class UpdateConfigSubGuessMigrator(CrossCompilationMigratorBase):
         if not directories:
             return
 
-        with indir(recipe_dir):
+        with pushd(recipe_dir):
             if not os.path.exists("build.sh"):
                 return
             with open("build.sh") as f:
@@ -115,7 +115,7 @@ class UpdateConfigSubGuessMigrator(CrossCompilationMigratorBase):
 
 class GuardTestingMigrator(CrossCompilationMigratorBase):
     def migrate(self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any) -> None:
-        with indir(recipe_dir):
+        with pushd(recipe_dir):
             if not os.path.exists("build.sh"):
                 return
             with open("build.sh") as f:
@@ -156,7 +156,7 @@ class CrossPythonMigrator(CrossCompilationMigratorBase):
 
     def migrate(self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any) -> None:
         host_reqs = attrs.get("requirements", {}).get("host", set())
-        with indir(recipe_dir):
+        with pushd(recipe_dir):
             with open("meta.yaml") as f:
                 lines = f.readlines()
             in_reqs = False
@@ -212,7 +212,7 @@ class UpdateCMakeArgsMigrator(CrossCompilationMigratorBase):
         return "cmake" not in build_reqs
 
     def migrate(self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any) -> None:
-        with indir(recipe_dir):
+        with pushd(recipe_dir):
             if not os.path.exists("build.sh"):
                 return
             with open("build.sh") as f:
@@ -260,7 +260,7 @@ class Build2HostMigrator(MiniMigrator):
             return True
 
     def migrate(self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any) -> None:
-        with indir(recipe_dir):
+        with pushd(recipe_dir):
             with open("meta.yaml") as fp:
                 meta_yaml = fp.readlines()
 
@@ -289,7 +289,7 @@ class NoCondaInspectMigrator(MiniMigrator):
             return True
 
     def migrate(self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any) -> None:
-        with indir(recipe_dir):
+        with pushd(recipe_dir):
             with open("meta.yaml") as fp:
                 meta_yaml = fp.readlines()
 
@@ -322,7 +322,7 @@ class CrossRBaseMigrator(CrossCompilationMigratorBase):
             return True
 
     def migrate(self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any) -> None:
-        with indir(recipe_dir):
+        with pushd(recipe_dir):
             with open("meta.yaml") as fp:
                 meta_yaml = fp.readlines()
 
@@ -376,7 +376,7 @@ class CrossCompilationForARMAndPower(MiniMigrator):
         return False
 
     def migrate(self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any) -> None:
-        with indir(recipe_dir):
+        with pushd(recipe_dir):
             if not os.path.exists("../conda-forge.yml"):
                 name = attrs.get("feedstock_name")
                 LOGGER.info(f"no conda-forge.yml for {name}")

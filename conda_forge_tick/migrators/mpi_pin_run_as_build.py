@@ -1,7 +1,7 @@
 import os
 import subprocess
 
-from conda_forge_tick.xonsh_utils import indir
+from conda_forge_tick.utils import pushd
 from conda_forge_tick.migrators.core import MiniMigrator
 
 MPIS = ["mpich", "openmpi"]
@@ -94,6 +94,6 @@ class MPIPinRunAsBuildCleanup(MiniMigrator):
                 with open(fname, "w") as fp:
                     fp.write("\n".join(new_lines))
             else:
-                with indir(recipe_dir):
+                with pushd(recipe_dir):
                     subprocess.run("git rm -f conda_build_config.yaml", shell=True)
                     subprocess.run("rm -f conda_build_config.yaml", shell=True)

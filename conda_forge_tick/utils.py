@@ -71,6 +71,17 @@ CB_CONFIG_PINNING = dict(
 )
 
 
+# https://stackoverflow.com/questions/6194499/pushd-through-os-system
+@contextlib.contextmanager
+def pushd(new_dir):
+    previous_dir = os.getcwd()
+    os.chdir(new_dir)
+    try:
+        yield
+    finally:
+        os.chdir(previous_dir)
+
+
 def yaml_safe_load(stream):
     """Load a yaml doc safely"""
     return ruamel.yaml.YAML(typ="safe", pure=True).load(stream)

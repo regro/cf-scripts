@@ -44,7 +44,8 @@ from urllib.error import URLError
 import github3
 from uuid import uuid4
 
-from conda_forge_tick.xonsh_utils import indir, env
+from conda_forge_tick.xonsh_utils import env
+from conda_forge_tick.utils import pushd
 
 from conda_forge_tick.contexts import (
     FeedstockContext,
@@ -243,7 +244,7 @@ def run(
 
     # rerender, maybe
     diffed_files: typing.List[str] = []
-    with indir(feedstock_dir), env.swap(RAISE_SUBPROC_ERROR=False):
+    with pushd(feedstock_dir), env.swap(RAISE_SUBPROC_ERROR=False):
         msg = migrator.commit_message(feedstock_ctx)  # noqa
         try:
             eval_cmd("git add --all .")
@@ -679,7 +680,7 @@ def migration_factory(
         "conda-forge",
         "migrations",
     )
-    with indir(migrations_loc):
+    with pushd(migrations_loc):
         for yaml_file in glob.glob("*.y*ml"):
             with open(yaml_file) as f:
                 yaml_contents = f.read()
@@ -765,7 +766,7 @@ def create_migration_yaml_creator(migrators: MutableSequence[Migrator], gx: nx.D
             pluck(cfp_gx, node)
 
     print("pinning migrations", flush=True)
-    with indir(os.environ["CONDA_PREFIX"]):
+    with pushd(os.environ["CONDA_PREFIX"]):
         pinnings = parse_config_file(
             "conda_build_config.yaml",
             config=Config(**CB_CONFIG),

@@ -14,7 +14,7 @@ from conda_smithy.update_cb3 import update_cb3
 from conda_forge_tick.contexts import FeedstockContext
 from conda_forge_tick.migrators.core import Migrator, GraphMigrator
 from conda_forge_tick.utils import UniversalSet, yaml_safe_load, yaml_safe_dump
-from conda_forge_tick.xonsh_utils import indir
+from conda_forge_tick.utils import pushd
 
 from rever.tools import eval_version, replace_in_file
 
@@ -50,7 +50,7 @@ class JS(Migrator):
     def migrate(
         self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any
     ) -> "MigrationUidTypedDict":
-        with indir(recipe_dir):
+        with pushd(recipe_dir):
             for f, p, n in self.patterns:
                 p = eval_version(p)
                 n = eval_version(n)
@@ -118,7 +118,7 @@ class Compiler(Migrator):
     def migrate(
         self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any
     ) -> "MigrationUidTypedDict":
-        with indir(recipe_dir):
+        with pushd(recipe_dir):
             content, self.messages = update_cb3("meta.yaml", self.cfp)
             with open("meta.yaml", "w") as f:
                 f.write(content)
@@ -206,7 +206,7 @@ class Noarch(Migrator):
     def migrate(
         self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any
     ) -> "MigrationUidTypedDict":
-        with indir(recipe_dir):
+        with pushd(recipe_dir):
             build_idx = [l.rstrip() for l in attrs["raw_meta_yaml"].split("\n")].index(
                 "build:",
             )
@@ -320,7 +320,7 @@ class NoarchR(Noarch):
         """,
         ).format(r_pkg_name=r_pkg_name)
 
-        with indir(recipe_dir):
+        with pushd(recipe_dir):
             if noarch:
                 with open("build.sh", "w") as f:
                     f.writelines(r_noarch_build_sh)
@@ -417,7 +417,7 @@ class Rebuild(GraphMigrator):
     def migrate(
         self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any
     ) -> "MigrationUidTypedDict":
-        with indir(recipe_dir):
+        with pushd(recipe_dir):
             self.set_build_number("meta.yaml")
         return super().migrate(recipe_dir, attrs)
 
@@ -584,7 +584,7 @@ class BlasRebuild(Rebuild):
         )
 
     def migrate(self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs):
-        with indir(recipe_dir):
+        with pushd(recipe_dir):
             # Update build number
             # Remove blas related packages and features
             with open("meta.yaml") as f:
@@ -654,7 +654,7 @@ class RBaseRebuild(Rebuild):
 
     def migrate(self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs):
         # Set the provider to Azure only
-        with indir(recipe_dir + "/.."):
+        with pushd(recipe_dir + "/.."):
             if os.path.exists("conda-forge.yml"):
                 with open("conda-forge.yml") as f:
                     y = yaml_safe_load(f)
@@ -666,7 +666,7 @@ class RBaseRebuild(Rebuild):
             with open("conda-forge.yml", "w") as f:
                 yaml_safe_dump(y, f)
 
-        with indir(recipe_dir):
+        with pushd(recipe_dir):
             with open("meta.yaml") as f:
                 text = f.read()
 

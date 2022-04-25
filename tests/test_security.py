@@ -3,7 +3,7 @@ import subprocess
 
 
 def test_env_is_protected_against_malicious_recipes(tmpdir, caplog, env_setup):
-    from conda_forge_tick.xonsh_utils import indir
+    from conda_forge_tick.utils import pushd
     import logging
 
     from conda_forge_tick.feedstock_parser import populate_feedstock_attributes
@@ -60,7 +60,7 @@ def test_env_is_protected_against_malicious_recipes(tmpdir, caplog, env_setup):
     os.makedirs(os.path.join(tmpdir, "recipe"), exist_ok=True)
     with open(os.path.join(tmpdir, "recipe", "meta.yaml"), "w") as f:
         f.write(in_yaml)
-    with indir(tmpdir):
+    with pushd(tmpdir):
         subprocess.run(["git", "init"])
 
     pmy = populate_feedstock_attributes("blah", {}, in_yaml, "{}")

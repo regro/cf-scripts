@@ -50,7 +50,7 @@ jobs:
             --cov=tests \
             --cov-config=.coveragerc \
             --cov-report term \
-            -n 4 tests
+            tests
           codecov -X gcov
 
       - name: build docs
