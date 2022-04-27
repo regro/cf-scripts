@@ -437,7 +437,6 @@ class MambaSolver:
             t = api.Transaction(
                 solver,
                 PACKAGE_CACHE,
-                self.repos,
             )
 
             solution = []
