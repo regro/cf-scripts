@@ -577,3 +577,68 @@ class LibrariesIO(VersionFromFeed):
                 continue
             pkg = self.package_name(url)
             return f"https://libraries.io/{self.name}/{pkg}/versions.atom"
+
+
+class NVIDIA(AbstractSource):
+    """ Like BaseRawURL but it has its own logic based on NVIDIA's packaging schema. """
+
+    name = "NVIDIA"
+    template = "https://developer.download.nvidia.com/compute/{name}/redist/redistrib_{version}.json"
+
+    def next_ver_func(self, name, current_ver):
+        """ Return an iterator over possible next versions to try. """
+        # Challenges:
+        # 1. Most libraries use SemVer, but some use CalVer
+        # 2. We don't know the build number in advance, so need to look it up
+
+        next_versions = next_version(current_ver)
+        r = None
+        for ver in next_versions:
+            to_try = [ver]
+            major, minor, patch = ver.split('.')
+            if int(minor) <= 9:
+                to_try.append(f'{major}.0{minor}.{patch}')  # for CalVer
+            for v in to_try:
+                r = requests.get(self.template.format(name=name, version=v))
+                if r.ok:
+                    break
+            else:
+                continue
+            break
+        else:
+            return None
+        assert r is not None
+
+        metadata = r.json()
+        next_ver = None
+        # hack: "name" may not be the library name here...
+        # but this loop should not be expensive since the convention is
+        # keys = {'release_date', 'library name'}
+        for k in metadata:
+            if k == 'release_date':
+                continue
+            try:
+                next_ver = metadata[k]['version']
+            except KeyError:
+                continue
+            else:
+                break
+        else:
+            return None
+        assert next_ver is not None
+        return next_ver
+
+    def get_url(self, meta_yaml) -> Optional[str]:
+        url =  meta_yaml["url"]
+        if 'nvidia.com' not in url:
+            return None
+        name = meta_yaml["name"]
+        # we need major.minor.patch
+        current_ver = meta_yaml["version"]
+        if current_ver.count('.') > 2:
+            current_ver = current_ver.split('.')
+            current_ver = '.'.join(current_ver[:3])
+        return self.next_ver_func(name, current_ver)
+
+    def get_version(self, url: str) -> Optional[str]:
+        return url  # = next version, same as in BaseRawURL
