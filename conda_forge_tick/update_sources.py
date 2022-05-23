@@ -586,7 +586,6 @@ class NVIDIA(AbstractSource):
     template = "https://developer.download.nvidia.com/compute/{name}/redist/redistrib_{version}.json"
 
     def next_ver_func(self, name, current_ver):
-        """ Return an iterator over possible next versions to try. """
         # Challenges:
         # 1. Most libraries use SemVer, but some use CalVer
         # 2. We don't know the build number in advance, so need to look it up
@@ -597,7 +596,7 @@ class NVIDIA(AbstractSource):
             to_try = [ver]
             major, minor, patch = ver.split('.')
             if int(minor) <= 9:
-                to_try.append(f'{major}.0{minor}.{patch}')  # for CalVer
+                to_try.append(f'{major}.0{int(minor)}.{patch}')  # for CalVer
             for v in to_try:
                 r = requests.get(self.template.format(name=name, version=v))
                 if r.ok:
