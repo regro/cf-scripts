@@ -580,7 +580,7 @@ class LibrariesIO(VersionFromFeed):
 
 
 class NVIDIA(AbstractSource):
-    """ Like BaseRawURL but it has its own logic based on NVIDIA's packaging schema. """
+    """ Like BaseRawURL but it embeds logic based on NVIDIA's packaging schema. """
 
     name = "NVIDIA"
     template = "https://developer.download.nvidia.com/compute/{name}/redist/redistrib_{version}.json"
@@ -608,22 +608,32 @@ class NVIDIA(AbstractSource):
             return None
         assert r is not None
 
-        metadata = r.json()
         next_ver = None
-        # hack: "name" may not be the library name here...
-        # but this loop should not be expensive since the convention is
-        # keys = {'release_date', 'library name'}
-        for k in metadata:
-            if k == 'release_date':
-                continue
-            try:
-                next_ver = metadata[k]['version']
-            except KeyError:
-                continue
-            else:
-                break
+        if name == "cuda":
+            # hack: the CUDA json contains a ton of components, none of which
+            # is versioned using the CTK version, so instead of looking up
+            # from the json we simply use its filename
+            #
+            # Note: the version string does not contain the build number
+            #
+            # TODO(leofang): discuss internally if we could avoid this hack
+            next_ver = v
         else:
-            return None
+            metadata = r.json()
+            # hack: "name" may not be the library name here...
+            # but this loop should not be expensive since the convention is
+            # keys = {'release_date', 'library name'}
+            for k in metadata:
+                if k == 'release_date':
+                    continue
+                try:
+                    next_ver = metadata[k]['version']
+                except KeyError:
+                    continue
+                else:
+                    break
+            else:
+                return None
         assert next_ver is not None
         return next_ver
 
@@ -631,7 +641,7 @@ class NVIDIA(AbstractSource):
         url =  meta_yaml["url"]
         if 'nvidia.com' not in url:
             return None
-        name = meta_yaml["name"]
+        name = meta_yaml["feedstock_name"]
         # we need major.minor.patch
         current_ver = meta_yaml["version"]
         if current_ver.count('.') > 2:
