@@ -588,7 +588,7 @@ class NVIDIA(AbstractSource):
         "cudatoolkit": "cuda",
     }
 
-    def next_ver_func(self, name, current_ver):
+    def next_ver_func(self, name: str, current_ver: str) -> Optional[str]:
         # Challenges:
         # 1. Most libraries use SemVer, but some use CalVer
         # 2. We don't know the build number in advance, so need to look it up
