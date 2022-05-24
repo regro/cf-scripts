@@ -20,7 +20,7 @@ jinja2
 lockfile
 mamba>=0.23
 msgpack-python
-networkx
+networkx!=2.8.1
 psutil
 pygithub
 pynamodb

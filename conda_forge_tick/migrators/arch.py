@@ -169,7 +169,7 @@ class OSXArm(GraphMigrator):
 
     additional_keys = {
         "build_platform": {"osx_arm64": "osx_64"},
-        "test_on_native_only": True,
+        "test": "native_and_emulated",
     }
 
     def __init__(
