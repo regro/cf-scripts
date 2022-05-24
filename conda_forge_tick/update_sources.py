@@ -651,6 +651,8 @@ class NVIDIA(AbstractSource):
         if current_ver.count(".") > 2:
             current_ver = current_ver.split(".")
             current_ver = ".".join(current_ver[:3])
+        elif current_ver.count(".") == 1:
+            current_ver = f"{current_ver}.0"
         return self.next_ver_func(name, current_ver)
 
     def get_version(self, url: str) -> Optional[str]:
