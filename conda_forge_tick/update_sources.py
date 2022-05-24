@@ -627,7 +627,7 @@ class NVIDIA(AbstractSource):
             # but this loop should not be expensive since the convention is
             # keys = {'release_date', 'library name'}
             for k in metadata:
-                if name not in k.lower().replace('_', ''):
+                if name not in k.lower().replace("_", ""):
                     continue
                 try:
                     next_ver = metadata[k]["version"]
