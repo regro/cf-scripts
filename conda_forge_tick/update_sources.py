@@ -580,7 +580,7 @@ class LibrariesIO(VersionFromFeed):
 
 
 class NVIDIA(AbstractSource):
-    """ Like BaseRawURL but it embeds logic based on NVIDIA's packaging schema. """
+    """Like BaseRawURL but it embeds logic based on NVIDIA's packaging schema."""
 
     name = "NVIDIA"
     template = "https://developer.download.nvidia.com/compute/{name}/redist/redistrib_{version}.json"
@@ -597,9 +597,9 @@ class NVIDIA(AbstractSource):
         r = None
         for ver in next_versions:
             to_try = [ver]
-            major, minor, patch = ver.split('.')
+            major, minor, patch = ver.split(".")
             if int(minor) <= 9:
-                to_try.append(f'{major}.0{int(minor)}.{patch}')  # for CalVer
+                to_try.append(f"{major}.0{int(minor)}.{patch}")  # for CalVer
             for v in to_try:
                 r = requests.get(self.template.format(name=name, version=v))
                 if r.ok:
@@ -630,7 +630,7 @@ class NVIDIA(AbstractSource):
                 if name not in k:
                     continue
                 try:
-                    next_ver = metadata[k]['version']
+                    next_ver = metadata[k]["version"]
                 except KeyError:
                     continue
                 else:
@@ -641,16 +641,16 @@ class NVIDIA(AbstractSource):
         return next_ver
 
     def get_url(self, meta_yaml) -> Optional[str]:
-        url =  meta_yaml["url"]
-        if 'nvidia.com' not in url:
+        url = meta_yaml["url"]
+        if "nvidia.com" not in url:
             return None
         feedstock_name = meta_yaml["feedstock_name"]
         name = self.feedstock_to_package.get(feedstock_name, feedstock_name)
         # we need major.minor.patch
         current_ver = meta_yaml["version"]
-        if current_ver.count('.') > 2:
-            current_ver = current_ver.split('.')
-            current_ver = '.'.join(current_ver[:3])
+        if current_ver.count(".") > 2:
+            current_ver = current_ver.split(".")
+            current_ver = ".".join(current_ver[:3])
         return self.next_ver_func(name, current_ver)
 
     def get_version(self, url: str) -> Optional[str]:
