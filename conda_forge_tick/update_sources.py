@@ -584,6 +584,9 @@ class NVIDIA(AbstractSource):
 
     name = "NVIDIA"
     template = "https://developer.download.nvidia.com/compute/{name}/redist/redistrib_{version}.json"
+    feedstock_to_package = {
+        "cudatoolkit": "cuda",
+    }
 
     def next_ver_func(self, name, current_ver):
         # Challenges:
@@ -624,7 +627,7 @@ class NVIDIA(AbstractSource):
             # but this loop should not be expensive since the convention is
             # keys = {'release_date', 'library name'}
             for k in metadata:
-                if k == 'release_date':
+                if name not in k:
                     continue
                 try:
                     next_ver = metadata[k]['version']
@@ -641,7 +644,8 @@ class NVIDIA(AbstractSource):
         url =  meta_yaml["url"]
         if 'nvidia.com' not in url:
             return None
-        name = meta_yaml["feedstock_name"]
+        feedstock_name = meta_yaml["feedstock_name"]
+        name = self.feedstock_to_package.get(feedstock_name, feedstock_name)
         # we need major.minor.patch
         current_ver = meta_yaml["version"]
         if current_ver.count('.') > 2:
