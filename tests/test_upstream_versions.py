@@ -3,7 +3,7 @@ from flaky import flaky
 
 from conda.models.version import VersionOrder
 from conda_forge_tick.update_upstream_versions import get_latest_version
-from conda_forge_tick.update_sources import NPM, next_version, RawURL
+from conda_forge_tick.update_sources import NPM, next_version, RawURL, NVIDIA
 from conda_forge_tick.utils import parse_meta_yaml, LazyJson
 
 sample_npm = """
@@ -698,3 +698,148 @@ def test_next_version_openssl(in_ver, ver_test):
     next_vers = [v for v in next_version(in_ver, increment_alpha=True)]
     print(next_vers)
     assert next_vers == ver_test
+
+
+sample_cutensor = """
+{% set version = "1.5.0" %}
+{% set patch_version = "3" %}
+
+package:
+  name: cutensor
+  version: {{ version }}.{{ patch_version }}
+
+source:
+  url: https://developer.download.nvidia.com/compute/cutensor/redist/libcutensor/linux-x86_64/libcutensor-linux-x86_64-{{ version }}.{{ patch_version }}-archive.tar.xz     # [linux64]
+  url: https://developer.download.nvidia.com/compute/cutensor/redist/libcutensor/linux-ppc64le/libcutensor-linux-ppc64le-{{ version }}.{{ patch_version }}-archive.tar.xz   # [ppc64le]
+  url: https://developer.download.nvidia.com/compute/cutensor/redist/libcutensor/linux-sbsa/libcutensor-linux-sbsa-{{ version }}.{{ patch_version }}-archive.tar.xz         # [aarch64]
+  url: https://developer.download.nvidia.com/compute/cutensor/redist/libcutensor/windows-x86_64/libcutensor-windows-x86_64-{{ version }}.{{ patch_version }}-archive.zip    # [win64]
+
+  sha256: 4fdebe94f0ba3933a422cff3dd05a0ef7a18552ca274dd12564056993f55471d  # [linux64]
+  sha256: ad736acc94e88673b04a3156d7d3a408937cac32d083acdfbd8435582cbe15db  # [ppc64le]
+  sha256: 5b9ac479b1dadaf40464ff3076e45f2ec92581c07df1258a155b5bcd142f6090  # [aarch64]
+  sha256: de76f7d92600dda87a14ac756e9d0b5733cbceb88bcd20b3935a82c99342e6cd  # [win64]
+
+build:
+  number: 2
+  # cuTENSOR v1.3.1 supports CUDA 10.2, 11.0, and 11.1+
+  skip: True  # [win32 or cuda_compiler_version not in ("10.2", "11.0", "11.1")]
+  script_env:
+    # for some reason /usr/local/cuda is not added to $PATH in ppc64le's docker image
+    - CUDA_HOME  # [ppc64le or aarch64]
+  script:
+    - mkdir -p $PREFIX/include                                             # [linux]
+    - mv include/* $PREFIX/include/                                        # [linux]
+    - mkdir -p $PREFIX/lib                                                 # [linux]
+    - mv lib/{{ cuda_compiler_version }}/*.so* $PREFIX/lib/                # [linux and cuda_compiler_version in ("10.2", "11.0")]
+    - mv lib/11/*.so* $PREFIX/lib/                                         # [linux and cuda_compiler_version == "11.1"]
+    - patchelf --add-needed libcudart.so $PREFIX/lib/libcutensor.so        # [ppc64le]
+
+    - copy include\\cutensor.h %LIBRARY_INC%\\                             # [win64]
+    - copy include\\cutensorMg.h %LIBRARY_INC%\\                           # [win64]
+    - mkdir %LIBRARY_INC%\\cutensor                                        # [win64]
+    - copy include\\cutensor\\types.h %LIBRARY_INC%\\cutensor              # [win64]
+    - del lib\\{{ cuda_compiler_version }}\\*static*                       # [win64 and cuda_compiler_version in ("10.2", "11.0")]
+    - copy lib\\{{ cuda_compiler_version }}\\*.dll %LIBRARY_BIN%\\         # [win64 and cuda_compiler_version in ("10.2", "11.0")]
+    - copy lib\\{{ cuda_compiler_version }}\\*.lib %LIBRARY_LIB%\\         # [win64 and cuda_compiler_version in ("10.2", "11.0")]
+    - del lib\\11\\*static*                                                # [win64 and cuda_compiler_version in ("11.1", )]
+    - copy lib\\11\\*.dll %LIBRARY_BIN%\\                                  # [win64 and cuda_compiler_version in ("11.1", )]
+    - copy lib\\11\\*.lib %LIBRARY_LIB%\\                                  # [win64 and cuda_compiler_version in ("11.1", )]
+  ignore_run_exports:
+    - cudatoolkit
+  run_exports:
+    - {{ pin_subpackage('cutensor') }}
+  missing_dso_whitelist:
+    # suppress warning, as these are included in the run dependency
+    - '*/libcublasLt.so*'  # [linux and cuda_compiler_version in ("11.0", "11.1")]
+    - '*/cublasLt64*.dll'  # [win64 and cuda_compiler_version in ("11.0", "11.1")]
+
+requirements:
+  build:
+    - {{ compiler('c') }}
+    - {{ compiler('cuda') }}
+    - sysroot_linux-64 2.17  # [linux64]
+  host:
+    - patchelf >=0.12  # [linux]
+  run:
+    - cudatoolkit {{ cuda_compiler_version }}  # [cuda_compiler_version in ("10.2", "11.0")]
+    - cudatoolkit >=11.1,<12                   # [cuda_compiler_version == "11.1"]
+  run_constrained:
+    # Only GLIBC_2.17 or older symbols present
+    - __glibc >=2.17      # [linux]
+
+test:
+  requires:
+    - git
+    - {{ compiler('c') }}
+    - {{ compiler('cxx') }}
+    - {{ compiler('cuda') }}
+    - sysroot_linux-64 2.17  # [linux]
+    # make sure we pick up the version matching the docker,
+    # or the linker would complain
+    - cudatoolkit {{ cuda_compiler_version }}
+  files:
+    - test_load_elf.c        # [linux]
+
+about:
+  home: https://developer.nvidia.com/cutensor
+  license: LicenseRef-cuTENSOR-Software-License-Agreement
+  license_url: https://docs.nvidia.com/cuda/cutensor/license.html
+  license_file: LICENSE
+  summary: "Tensor Linear Algebra on NVIDIA GPUs"
+  description: |
+    The cuTENSOR Library is a first-of-its-kind GPU-accelerated tensor linear
+    algebra library providing tensor contraction, reduction and elementwise
+    operations. cuTENSOR is used to accelerate applications in the areas of
+    deep learning training and inference, computer vision, quantum chemistry
+    and computational physics.
+    License Agreements:- The packages are governed by the NVIDIA cuTENSOR
+    Software License Agreement (EULA). By downloading and using the packages,
+    you accept the terms and conditions of the NVIDIA cuTENSOR EULA -
+    https://docs.nvidia.com/cuda/cutensor/license.html
+  doc_url: https://docs.nvidia.com/cuda/cutensor/index.html
+  dev_url: https://developer.nvidia.com/cutensor/downloads
+
+extra:
+  recipe-maintainers:
+    - leofang
+    - jakirkham
+    - mtjrider
+"""  # noqa
+
+
+latest_url_nvidia_test_list = [
+    (
+        "cutensor",
+        sample_cutensor,
+        "1.4.0.3",
+        "1.5.0.3",
+        NVIDIA(),
+        {},
+    ),
+]
+
+
+@pytest.mark.parametrize(
+    "name, inp, curr_ver, ver, source, urls",
+    latest_url_nvidia_test_list,
+)
+def test_latest_version_nvidia(name, inp, curr_ver, ver, source, urls, tmpdir):
+    pmy = LazyJson(tmpdir.join("cf-scripts-test.json"))
+    pmy.update(parse_meta_yaml(inp)["source"])
+    pmy.update(
+        {
+            "feedstock_name": name,
+            "version": curr_ver,
+            "raw_meta_yaml": inp,
+            "meta_yaml": parse_meta_yaml(inp),
+        },
+    )
+    attempt = get_latest_version(name, pmy, [source])
+    if ver is None:
+        assert not (attempt["new_version"] is False)
+        assert attempt["new_version"] != curr_ver
+        assert VersionOrder(attempt["new_version"]) > VersionOrder(curr_ver)
+    elif ver is False:
+        assert attempt["new_version"] is ver
+    else:
+        assert ver == attempt["new_version"]

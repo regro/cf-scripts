@@ -17,6 +17,7 @@ from .update_sources import (
     RawURL,
     Github,
     IncrementAlphaRawURL,
+    NVIDIA,
 )
 from typing import Any, Iterable
 
@@ -182,7 +183,16 @@ def update_upstream_versions(
     debug: bool = False,
 ) -> None:
     sources = (
-        (PyPI(), CRAN(), NPM(), ROSDistro(), RawURL(), Github(), IncrementAlphaRawURL())
+        (
+            PyPI(),
+            CRAN(),
+            NPM(),
+            ROSDistro(),
+            RawURL(),
+            Github(),
+            IncrementAlphaRawURL(),
+            NVIDIA(),
+        )
         if sources is None
         else sources
     )
