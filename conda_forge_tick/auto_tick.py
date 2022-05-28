@@ -101,6 +101,7 @@ from conda_forge_tick.migrators import (
     CrossCompilationForARMAndPower,
     MPIPinRunAsBuildCleanup,
     DependencyUpdateMigrator,
+    QtQtMainMigrator,
 )
 
 from conda_forge_tick.mamba_solver import is_recipe_solvable
@@ -965,6 +966,7 @@ def initialize_migrators(
             PipWheelMigrator(),
             MPIPinRunAsBuildCleanup(),
             DependencyUpdateMigrator(python_nodes),
+            QtQtMainMigrator(),
         ],
     )
 
