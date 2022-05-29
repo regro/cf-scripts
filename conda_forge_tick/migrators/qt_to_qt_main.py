@@ -8,5 +8,5 @@ class QtQtMainMigrator(Replacement):
             "If you require qt-webengine, you should add it to your dependencies"
         )
         super.__init__(
-            old_pkg="qt", new_pkg="qt-main",
-            rationale=rationale, pr_limit=pr_limit)
+            old_pkg="qt", new_pkg="qt-main", rationale=rationale, pr_limit=pr_limit,
+        )
