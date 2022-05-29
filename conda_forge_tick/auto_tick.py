@@ -660,6 +660,7 @@ def add_rebuild_migration_yaml(
             Cos7Config(),
             CrossCompilationForARMAndPower(),
             MPIPinRunAsBuildCleanup(),
+            QtQtMainMigrator(),
         ],
         **config,
     )
@@ -966,7 +967,6 @@ def initialize_migrators(
             PipWheelMigrator(),
             MPIPinRunAsBuildCleanup(),
             DependencyUpdateMigrator(python_nodes),
-            QtQtMainMigrator(),
         ],
     )
 
