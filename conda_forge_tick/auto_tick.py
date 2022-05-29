@@ -652,7 +652,7 @@ def add_rebuild_migration_yaml(
         CrossCompilationForARMAndPower(),
         MPIPinRunAsBuildCleanup(),
     ]
-    if migration_name == "qt515.yaml":
+    if migration_name == "qt515":
         piggy_back_migrations.append(QtQtMainMigrator())
     cycles = list(nx.simple_cycles(total_graph))
     migrator = MigrationYaml(
