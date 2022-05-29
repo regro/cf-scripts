@@ -12,10 +12,10 @@ YAML_PATH = os.path.join(os.path.dirname(__file__), "test_yaml")
 @pytest.mark.parametrize(
     "old_meta,new_meta",
     [
-        ("qtqtmain_octave_before_meta.yaml",  "qtqtmain_octave_after_meta.yaml"),
+        ("qtqtmain_octave_before_meta.yaml", "qtqtmain_octave_after_meta.yaml"),
         ("qtqtmain_qgis_before_meta.yaml", "qtqtmain_qgis_after_meta.yaml"),
         ("qtqtmain_opencv_before_meta.yaml", "qtqtmain_opencv_after_meta.yaml"),
-    ]
+    ],
 )
 def test_matplotlib_base(old_meta, new_meta, tmpdir):
     with open(os.path.join(YAML_PATH, old_meta)) as fp:
