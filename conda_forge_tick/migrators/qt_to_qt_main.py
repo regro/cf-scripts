@@ -2,6 +2,8 @@ from conda_forge_tick.migrators.core import Replacement
 
 
 class QtQtMainMigrator(Replacement):
+    migrator_version = 0
+
     def __init__(self, pr_limit: int = 0):
         rationale = (
             "We have split qt into two packages for ease of compilation. "

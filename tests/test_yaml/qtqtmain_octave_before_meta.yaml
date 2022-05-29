@@ -1,0 +1,142 @@
+{% set version = "7.1.0" %}
+
+package:
+  name: octave
+  version: {{ version }}
+
+source:
+  url: https://ftp.gnu.org/gnu/octave/octave-{{ version }}.tar.gz
+  sha256: d4a9d81f3f67b4a6e07cb7a80dcb10ad5e9176fcc30762c70a81580a64b8b0b6
+
+build:
+  number: 0
+  skip: true  # [win]
+  binary_has_prefix_files:   # [unix]
+    - bin/octave-{{ version }}  # [linux]
+
+requirements:
+  build:
+    - {{ compiler('c') }}
+    - {{ compiler('cxx') }}
+    - {{ compiler('fortran') }}
+    - make  # [linux]
+    - automake
+    - sed
+    - perl
+    - ghostscript
+    - pkg-config  # [linux]
+    - libgomp     # [linux]
+    - llvm-openmp  # [osx]
+    - bison
+    - gperf
+    - {{ cdt('mesa-libgl-devel') }}  # [linux]
+    - {{ cdt('mesa-dri-drivers') }}  # [linux]
+    - {{ cdt('libselinux') }}  # [linux]
+    - {{ cdt('libxdamage') }}  # [linux]
+    - {{ cdt('libxfixes') }}  # [linux]
+    - {{ cdt('libxxf86vm') }}  # [linux]
+    - {{ cdt('libxcb') }}  # [linux]
+    - {{ cdt('expat') }}  # [linux]
+    - {{ cdt('libxext') }}  # [linux]
+    - {{ cdt('libxrender') }}  # [linux]
+    - {{ cdt('libxt') }}  # [linux]
+    - {{ cdt('libxft') }}  # [linux]
+    - {{ cdt('libx11-devel') }}  # [linux]
+    - {{ cdt('xorg-x11-proto-devel') }}  # [linux]
+  host:
+    - libblas
+    - libcblas
+    - liblapack
+    - liblapacke
+    - libglu  # [linux]
+    - pcre
+    - ghostscript
+    - sundials
+    - readline
+    - arpack
+    - curl
+    - libcurl
+    - fftw
+    - fontconfig
+    - freetype
+    - glpk
+    - gnuplot
+    - hdf5
+    - suitesparse
+    - zlib
+    - bzip2
+    - portaudio
+    - libsndfile
+    - qscintilla2
+    - qhull
+    - graphicsmagick  # [linux]
+    # Following gets linked at the end.
+    - icu
+    - ncurses
+    - xz
+    - libxml2
+    - libpng
+    - glib
+    - qt
+    - openssl
+    - texinfo
+    - gl2ps
+    - fltk
+    - libiconv
+    - alsa-lib  # [linux]
+  run:
+    - ghostscript
+    - texinfo
+    - gl2ps
+    - libglu  # [linux]
+    - fltk
+    - pcre
+    - readline
+    - arpack
+    - curl
+    - sundials
+    - {{ pin_compatible("fftw", max_pin="x.x") }}
+    - fontconfig
+    - freetype
+    - glpk
+    - gnuplot
+    - hdf5
+    - {{ pin_compatible("suitesparse", max_pin="x.x") }}
+    - zlib
+    - bzip2
+    - {{ pin_compatible("portaudio") }}
+    - libsndfile
+    - {{ pin_compatible("qscintilla2", max_pin="x.x") }}
+    - qhull
+    - {{ pin_compatible("graphicsmagick") }}   # [linux]
+    # Following gets linked at the end.
+    - icu
+    - ncurses
+    - xz
+    - libxml2
+    - libpng
+    - glib
+    - qt
+    - openssl
+
+test:
+  requires:
+    - coreutils
+  commands:
+    - octave --version
+    - touch test_file.txt
+    - octave test_file.txt
+
+about:
+  home: https://www.gnu.org/software/octave/
+  license: GPL-3.0-or-later
+  license_file: COPYING
+  doc_url: https://www.gnu.org/software/octave/doc/interpreter/
+  summary: GNU Octave is a high-level language, primarily intended for numerical computations
+
+extra:
+  recipe-maintainers:
+    - isuruf
+    - ocefpaf
+    - izahn
+    - ngam
