@@ -1,28 +1,12 @@
-from conda_forge_tick.migrators.core import MiniMigrator
-import os
+from conda_forge_tick.migrators.core import Replacement
 
 
-def _parse_qt(lines):
-    new_lines = []
-    for line in lines:
-        if line.endswith(" qt"):
-            line = line.replace(" qt", " qt-main")
-        line = line.replace(" qt ", " qt-main ")
-        new_lines.append(line)
-
-
-class QtQtMainMigrator(MiniMigrator):
-    def filter(self, attrs, not_bad_str_start=""):
-        host_req = (attrs.get("requirements", {}) or {}).get("host", set()) or set()
-        return "qt" in host_req
-
-    def migrate(self, recipe_dir, attrs, **kwargs):
-        fname = os.path.join(recipe_dir, "conda_build_config.yaml")
-        if os.path.exists(fname):
-
-            with open(fname) as fp:
-                lines = fp.readlines()
-
-            new_lines = _parse_qt(lines)
-            with open(fname, "w") as fp:
-                fp.write("\n".join(new_lines))
+class QtQtMainMigrator(Replacement):
+    def __init__(self, pr_limit: int = 0):
+        rationale = (
+            "We have split qt into two packages for ease of compilation. "
+            "If you require qt-webengine, you should add it to your dependencies"
+        )
+        super.__init__(
+            old_pkg="qt", new_pkg="qt-main",
+            rationale=rationale, pr_limit=pr_limit)
