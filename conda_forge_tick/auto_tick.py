@@ -639,7 +639,21 @@ def add_rebuild_migration_yaml(
         }
         if (node in total_graph) and len(list(total_graph.predecessors(node))) == 0
     }
-
+    piggy_back_migrations = [
+        Jinja2VarsCleanup(),
+        DuplicateLinesCleanup(),
+        PipMigrator(),
+        LicenseMigrator(),
+        CondaForgeYAMLCleanup(),
+        ExtraJinja2KeysCleanup(),
+        Build2HostMigrator(),
+        NoCondaInspectMigrator(),
+        Cos7Config(),
+        CrossCompilationForARMAndPower(),
+        MPIPinRunAsBuildCleanup(),
+    ]
+    if migration_name == "qt515.yaml":
+        piggy_back_migrations.append(QtQtMainMigrator())
     cycles = list(nx.simple_cycles(total_graph))
     migrator = MigrationYaml(
         migration_yaml,
@@ -648,20 +662,7 @@ def add_rebuild_migration_yaml(
         name=migration_name,
         top_level=top_level,
         cycles=cycles,
-        piggy_back_migrations=[
-            Jinja2VarsCleanup(),
-            DuplicateLinesCleanup(),
-            PipMigrator(),
-            LicenseMigrator(),
-            CondaForgeYAMLCleanup(),
-            ExtraJinja2KeysCleanup(),
-            Build2HostMigrator(),
-            NoCondaInspectMigrator(),
-            Cos7Config(),
-            CrossCompilationForARMAndPower(),
-            MPIPinRunAsBuildCleanup(),
-            QtQtMainMigrator(),
-        ],
+        piggy_back_migrations=piggy_back_migrations,
         **config,
     )
     print(f"migration yaml:\n {migration_yaml}", flush=True)
