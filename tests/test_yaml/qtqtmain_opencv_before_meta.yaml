@@ -12,7 +12,7 @@
 # opencv is a backward compatible package, with no pinnings
 #
 # This approach is different than the one in defaults. Default's package
-# seperates well the files generated with python dependencies, from those
+# separates well the files generated with python dependencies, from those
 # generated without. Unfortunately, this isn't entirely supported by
 # upstream. Their hacks are quite elaborate, making it seem difficult to
 # maintain as opencv has been changing their build system recently.
@@ -207,7 +207,7 @@ outputs:
       string: py{{ PY_VER_MAJOR }}{{ PY_VER_MINOR }}h{{ PKG_HASH }}_{{ PKG_BUILDNUM }}
     requirements:
       host:
-        # Explicitely add a python requirement so that the hash changes between
+        # Explicitly add a python requirement so that the hash changes between
         # opencv    for pypy36 and python3.6
         # similarly for pypy37 and python3.7
         - python
