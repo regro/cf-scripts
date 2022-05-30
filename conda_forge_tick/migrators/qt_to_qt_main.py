@@ -5,9 +5,9 @@ import os
 def _parse_qt(lines):
     new_lines = []
     for line in lines:
-        if line.endswith(' qt'):
-            line = line.replace(' qt', ' qt-main')
-        line = line.replace(' qt ', ' qt-main ')
+        if line.endswith(" qt"):
+            line = line.replace(" qt", " qt-main")
+        line = line.replace(" qt ", " qt-main ")
         new_lines.append(line)
 
 
