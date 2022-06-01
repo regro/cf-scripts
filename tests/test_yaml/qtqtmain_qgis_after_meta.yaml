@@ -21,7 +21,7 @@ source:
     - Fix-building-with-llvm13.patch
 
 build:
-  number: 10
+  number: 0
   skip: true  # [py2k or py<38]
 
 requirements:

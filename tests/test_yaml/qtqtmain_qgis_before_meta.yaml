@@ -1,4 +1,4 @@
-{% set version = "3.18.3" %}
+{% set version = "3.18.2" %}
 
 package:
   name: qgis
@@ -6,7 +6,7 @@ package:
 
 source:
   url: https://qgis.org/downloads/qgis-{{ version }}.tar.bz2
-  sha256: 8935ba2a658aee44286b39af43d4e6ec7c389e780ed2f352cbea60f99ced0b9f
+  sha256: 8935ba2a658aee44286b39af43d4e6ec7c389e780ed2f352cbea60f99ced0b91
   patches:
     # backport of https://github.com/qgis/QGIS/pull/41774
     - proj8.patch

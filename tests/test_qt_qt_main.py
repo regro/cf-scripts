@@ -1,23 +1,27 @@
 import os
 import pytest
 
-from conda_forge_tick.migrators import QtQtMainMigrator
+from conda_forge_tick.migrators import QtQtMainMigrator, Version
 from test_migrators import run_test_migration
 
 QTQTMAIN = QtQtMainMigrator()
+VERSION_WITH_QTQTMAIN = Version(
+    set(),
+    piggy_back_migrations=[QTQTMAIN],
+)
 
 YAML_PATH = os.path.join(os.path.dirname(__file__), "test_yaml")
 
 
 @pytest.mark.parametrize(
-    "old_meta,new_meta",
+    "old_meta,new_meta,new_ver",
     [
-        ("qtqtmain_octave_before_meta.yaml", "qtqtmain_octave_after_meta.yaml"),
-        ("qtqtmain_qgis_before_meta.yaml", "qtqtmain_qgis_after_meta.yaml"),
-        ("qtqtmain_opencv_before_meta.yaml", "qtqtmain_opencv_after_meta.yaml"),
+        ("qtqtmain_octave_before_meta.yaml", "qtqtmain_octave_after_meta.yaml", "7.1.0"),
+        ("qtqtmain_qgis_before_meta.yaml", "qtqtmain_qgis_after_meta.yaml", "3.18.3"),
+        ("qtqtmain_opencv_before_meta.yaml", "qtqtmain_opencv_after_meta.yaml", "4.5.5"),
     ],
 )
-def test_matplotlib_base(old_meta, new_meta, tmpdir):
+def test_qt_main(old_meta, new_meta, new_ver, tmpdir):
     with open(os.path.join(YAML_PATH, old_meta)) as fp:
         in_yaml = fp.read()
 
@@ -25,15 +29,16 @@ def test_matplotlib_base(old_meta, new_meta, tmpdir):
         out_yaml = fp.read()
 
     run_test_migration(
-        m=QTQTMAIN,
+        m=VERSION_WITH_QTQTMAIN,
         inp=in_yaml,
         output=out_yaml,
-        kwargs={},
-        prb="I noticed that this recipe depends on `qt` instead of ",
+        kwargs={"new_version": new_ver},
+        prb="Dependencies have been updated if changed",
         mr_out={
-            "migrator_name": "QtQtMainMigrator",
-            "migrator_version": QTQTMAIN.migrator_version,
-            "name": "qt-to-qt-main",
+            "migrator_name": "Version",
+            "migrator_version": VERSION_WITH_QTQTMAIN.migrator_version,
+            "version": new_ver,
         },
         tmpdir=tmpdir,
+        should_filter=False,
     )

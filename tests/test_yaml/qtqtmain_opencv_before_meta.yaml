@@ -19,7 +19,7 @@
 #
 # By putting all the generated files in 1 package, this makes the build process
 # much easier, at the expense of a few MBs in the 'lib' package.
-{% set version = "4.5.5" %}
+{% set version = "4.5.4" %}
 {% set PY_VER_MAJOR = PY_VER.split('.')[0] %}
 {% set PY_VER_MINOR = PY_VER.split('.')[1] %}
 
@@ -30,13 +30,13 @@ package:
 source:
   - url: https://codeload.github.com/opencv/opencv/tar.gz/{{ version }}
     fn: opencv-{{ version }}.tar.gz
-    sha256: a1cfdcf6619387ca9e232687504da996aaa9f7b5689986b8331ec02cb61d28ad
+    sha256: a1cfdcf6619387ca9e232687504da996aaa9f7b5689986b8331ec02cb61d28ae
     patches:
       # https://github.com/opencv/opencv/pull/21611
       - install_pip_metadata.patch
   - url: https://codeload.github.com/opencv/opencv_contrib/tar.gz/{{ version }}
     fn: opencv_contrib-{{ version }}.tar.gz
-    sha256: a97c2eaecf7a23c6dbd119a609c6d7fae903e5f9ff5f1fe678933e01c67a6c11
+    sha256: a97c2eaecf7a23c6dbd119a609c6d7fae903e5f9ff5f1fe678933e01c67a6c1e
     folder: opencv_contrib
     patches:
       # Allow attempt to find HDF5 on cross-compile
