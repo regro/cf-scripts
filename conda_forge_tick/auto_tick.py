@@ -270,7 +270,7 @@ def run(
             try:
                 eval_cmd(
                     "conda smithy rerender -c auto --no-check-uptodate",
-                    timeout=300,
+                    timeout=900,
                 )
                 make_rerender_comment = False
             except Exception as e:
