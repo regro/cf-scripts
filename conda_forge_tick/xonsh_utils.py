@@ -3,7 +3,7 @@ import builtins
 
 from xonsh.execer import Execer
 from xonsh.environ import Env
-from xonsh.proc import CommandPipeline
+from xonsh.procs.pipelines import CommandPipeline
 
 env: Env = builtins.__xonsh__.env  # type: ignore
 execer: Execer = builtins.__xonsh__.execer  # type: ignore

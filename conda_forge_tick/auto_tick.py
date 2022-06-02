@@ -124,6 +124,8 @@ BOT_RERUN_LABEL = {
     ),
 }
 
+BOT_HOME_DIR = None
+
 
 def _set_pre_pr_migrator_fields(attrs, migrator_name, error_str):
     pre_key = "pre_pr_migrator_status"
@@ -188,6 +190,10 @@ def run(
     pr_json: dict
         The PR json object for recreating the PR as needed
     """
+
+    # sometimes we get weird directory issues so make sure we reset
+    os.chdir(BOT_HOME_DIR)
+
     # get the repo
     # TODO: stop doing this.
     migrator.attrs = feedstock_ctx.attrs  # type: ignore
@@ -271,7 +277,7 @@ def run(
             try:
                 eval_cmd(
                     "conda smithy rerender -c auto --no-check-uptodate",
-                    timeout=300,
+                    timeout=900,
                 )
                 make_rerender_comment = False
             except Exception as e:
@@ -1246,6 +1252,9 @@ def _run_migrator(migrator, mctx, temp, time_per, dry_run):
                 # do this but it is crazy
                 gc.collect()
 
+                # sometimes we get weird directory issues so make sure we reset
+                os.chdir(BOT_HOME_DIR)
+
                 # Write graph partially through
                 if not dry_run:
                     dump_graph(mctx.graph)
@@ -1280,6 +1289,9 @@ def _setup_limits():
 # @profiling
 def main(args: "CLIArgs") -> None:
     _setup_limits()
+
+    global BOT_HOME_DIR
+    BOT_HOME_DIR = os.getcwd()
 
     # logging
     if args.debug:

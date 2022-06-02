@@ -38,6 +38,6 @@ streamz
 tar
 tqdm
 wurlitzer
-xonsh==0.9.24
+xonsh
 yaml
 pandas
