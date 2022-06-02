@@ -67,6 +67,7 @@ STATIC_EXCLUDES = (
 PREFERRED_IMPORT_BY_PACKAGE_MAP = {
     "numpy": "numpy",
     "matplotlib-base": "matplotlib",
+    "qt-main": "qt",
     "theano": "theano",
     "tensorflow-estimator": "tensorflow_estimator",
     "skorch": "skorch",
