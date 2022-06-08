@@ -75,3 +75,7 @@
 - pypi_name: typing-extensions
   import_name: typing_extensions
   conda_name: typing_extensions
+
+- pypi_name: seaborn
+  import_name: seaborn
+  conda_name: seaborn
