@@ -78,4 +78,4 @@
 
 - pypi_name: seaborn
   import_name: seaborn
-  conda_name: seaborn
+  conda_name: seaborn-base
