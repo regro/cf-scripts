@@ -12,9 +12,6 @@ import networkx as nx
 from stdlib_list import stdlib_list
 
 from conda_forge_tick.make_graph import COMPILER_STUBS_WITH_STRONG_EXPORTS
-from depfinder.main import (
-    simple_import_to_pkg_map,
-)
 from depfinder import __version__ as depfinder_version
 from grayskull.__main__ import create_python_recipe
 from grayskull import __version__ as grayskull_version
@@ -33,6 +30,18 @@ from conda_forge_tick.utils import (
 from conda_forge_tick.feedstock_parser import load_feedstock
 from conda_forge_tick.xonsh_utils import env
 from conda_forge_tick.utils import pushd
+
+for __i in range(10):
+    try:
+        from depfinder.main import (
+            simple_import_to_pkg_map,
+        )
+        break
+    except Exception as e:
+        if __i == 9:
+            raise e
+        else:
+            pass
 
 RUNTIME_MINUTES = 45
 
