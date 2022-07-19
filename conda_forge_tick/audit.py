@@ -12,7 +12,6 @@ import networkx as nx
 from stdlib_list import stdlib_list
 
 from conda_forge_tick.make_graph import COMPILER_STUBS_WITH_STRONG_EXPORTS
-from depfinder import __version__ as depfinder_version
 from grayskull.__main__ import create_python_recipe
 from grayskull import __version__ as grayskull_version
 import pandas as pd
@@ -36,6 +35,7 @@ for __i in range(10):
         from depfinder.main import (
             simple_import_to_pkg_map,
         )
+        from depfinder import __version__ as depfinder_version
 
         break
     except Exception as e:
