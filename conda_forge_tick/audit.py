@@ -92,6 +92,9 @@ PACKAGES_BY_IMPORT_OVERRIDE = {
 
 
 def extract_deps_from_source(recipe_dir):
+    return {}
+
+    # Depfinder is disabled. 
     cb_work_dir = _get_source_code(recipe_dir)
     with pushd(cb_work_dir):
         return simple_import_to_pkg_map(
@@ -103,6 +106,9 @@ def extract_deps_from_source(recipe_dir):
 
 def depfinder_audit_feedstock(fctx: FeedstockContext, ctx: MigratorSessionContext):
     """Uses Depfinder to audit the imports for a python package"""
+    # Depfinder is disabled. 
+    return {}
+
     # get feedstock
     feedstock_dir = os.path.join(ctx.rever_dir, fctx.feedstock_name + "-feedstock")
     origin = feedstock_url(fctx=fctx, protocol="https")
@@ -146,6 +152,7 @@ AUDIT_REGISTRY = {
         "version": depfinder_version,
         "creation_version": "4",
     },
+    
     # Grayskull produces a valid meta.yaml, there is no in memory representation
     # for that so we just write out the string
     #    "grayskull": {

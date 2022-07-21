@@ -5,10 +5,6 @@ import logging
 import pprint
 
 from grayskull.__main__ import create_python_recipe
-from conda_forge_tick.audit import (
-    extract_deps_from_source,
-    compare_depfinder_audit,
-)
 from conda_forge_tick.feedstock_parser import load_feedstock
 from conda_forge_tick.recipe_parser import CondaMetaYAML, CONDA_SELECTOR
 
@@ -50,14 +46,17 @@ def get_dep_updates_and_hints(
         The dependency update hint.
     """
     if update_deps in ["hint", "hint-source", "update-source"]:
-        dep_comparison = get_depfinder_comparison(
-            recipe_dir,
-            attrs,
-            python_nodes,
-        )
-        logger.info("source dep. comp: %s", pprint.pformat(dep_comparison))
-        kind = "source code inspection"
-        hint = generate_dep_hint(dep_comparison, kind)
+        if False:
+            dep_comparison = get_depfinder_comparison(
+                recipe_dir,
+                attrs,
+                python_nodes,
+            )
+            logger.info("source dep. comp: %s", pprint.pformat(dep_comparison))
+            kind = "source code inspection"
+            hint = generate_dep_hint(dep_comparison, kind)
+        dep_comparison = {}
+        hint = ""
     elif update_deps in ["hint-grayskull", "update-grayskull"]:
         dep_comparison, gs_recipe = get_grayskull_comparison(
             attrs,
@@ -67,12 +66,14 @@ def get_dep_updates_and_hints(
         kind = "grayskull"
         hint = generate_dep_hint(dep_comparison, kind)
     elif update_deps in ["hint-all", "update-all"]:
-        df_dep_comparison = get_depfinder_comparison(
-            recipe_dir,
-            attrs,
-            python_nodes,
-        )
-        logger.info("source dep. comp: %s", pprint.pformat(df_dep_comparison))
+        if False:
+            df_dep_comparison = get_depfinder_comparison(
+                recipe_dir,
+                attrs,
+                python_nodes,
+            )
+            logger.info("source dep. comp: %s", pprint.pformat(df_dep_comparison))
+        df_dep_comparison = {}
         dep_comparison, gs_recipe = get_grayskull_comparison(
             attrs,
             version_key=version_key,
@@ -239,6 +240,13 @@ def get_depfinder_comparison(recipe_dir, node_attrs, python_nodes):
     d : dict
         The dependency comparison with conda-forge.
     """
+    # Disabled since depfinder relies on no-longer published metadata.
+    return {}
+
+    from conda_forge_tick.audit import (
+        extract_deps_from_source,
+        compare_depfinder_audit,
+    )
     deps = extract_deps_from_source(recipe_dir)
     return {
         "run": compare_depfinder_audit(
