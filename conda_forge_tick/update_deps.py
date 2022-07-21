@@ -247,6 +247,7 @@ def get_depfinder_comparison(recipe_dir, node_attrs, python_nodes):
         extract_deps_from_source,
         compare_depfinder_audit,
     )
+
     deps = extract_deps_from_source(recipe_dir)
     return {
         "run": compare_depfinder_audit(
