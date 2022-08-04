@@ -6,6 +6,7 @@ Builds and maintains mapping of pypi-names to conda-forge names
 """
 
 import glob
+import json
 
 import requests
 import yaml
@@ -276,7 +277,7 @@ def determine_best_matches_for_pypi_import(
             ordered_import_names.append(
                 {
                     "import_name": import_name,
-                    "ranked_conda_names": reversed(ranked_candidates),
+                    "ranked_conda_names": list(reversed(ranked_candidates)),
                 },
             )
         else:
@@ -304,24 +305,25 @@ def main(args: "CLIArgs") -> None:
     dirname.mkdir(parents=True, exist_ok=True)
 
     yaml_dump = functools.partial(yaml.dump, default_flow_style=False, sort_keys=True)
+    # import pdb; pdb.set_trace()
+    for dumper, suffix in ((yaml_dump, 'yaml'), (json.dump, 'json')):
+        with (dirname / f"grayskull_pypi_mapping.{suffix}").open("w") as fp:
+            dumper(grayskull_style, fp)
 
-    with (dirname / "grayskull_pypi_mapping.yaml").open("w") as fp:
-        yaml_dump(grayskull_style, fp)
+        with (dirname / f"name_mapping.{suffix}").open("w") as fp:
+            dumper(
+                sorted(
+                    static_packager_mappings + pypi_package_mappings,
+                    key=lambda pkg: pkg["conda_name"],
+                ),
+                fp,
+            )
 
-    with (dirname / "name_mapping.yaml").open("w") as fp:
-        yaml_dump(
-            sorted(
-                static_packager_mappings + pypi_package_mappings,
-                key=lambda pkg: pkg["conda_name"],
-            ),
-            fp,
-        )
-
-    with (dirname / "import_name_priority_mapping.yaml").open("w") as fp:
-        yaml_dump(
-            sorted(ordered_import_names, key=lambda entry: entry["import_name"]),
-            fp,
-        )
+        with (dirname / f"import_name_priority_mapping.{suffix}").open("w") as fp:
+            dumper(
+                sorted(ordered_import_names, key=lambda entry: entry["import_name"]),
+                fp,
+            )
 
 
 if __name__ == "__main__":
