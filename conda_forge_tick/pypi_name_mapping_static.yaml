@@ -40,10 +40,6 @@
   import_name: xxhash
   conda_name: python-xxhash
 
-- pypi_name: docker
-  import_name: docker
-  conda_name: docker-py
-
 - pypi_name: redis
   import_name: redis
   conda_name: redis-py
