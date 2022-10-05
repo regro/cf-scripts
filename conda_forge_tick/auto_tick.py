@@ -923,6 +923,14 @@ def initialize_migrators(
     migrators = []
 
     add_arch_migrate(migrators, gx)
+    add_replacement_migrator(
+        migrators,
+        gx,
+        "build",
+        "python-build",
+        "The conda package name 'build' is deprecated "
+        "and too generic. Use 'python-build instead.'",
+    )
     migration_factory(migrators, gx)
     create_migration_yaml_creator(migrators=migrators, gx=gx)
     print("rebuild migration graph sizes:", flush=True)
