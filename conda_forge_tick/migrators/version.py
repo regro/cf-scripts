@@ -46,6 +46,10 @@ CHECKSUM_NAMES = [
     "checksum",
 ]
 
+SKIP_DEPS_NODES = [
+    "ansible",
+]
+
 # matches valid jinja2 vars
 JINJA2_VAR_RE = re.compile("{{ ((?:[a-zA-Z]|(?:_[a-zA-Z0-9]))[a-zA-Z0-9_]*) }}")
 
@@ -724,20 +728,29 @@ class Version(Migrator):
             .get("inspection", "hint")
         )
         logger.info("bot.inspection: %s", update_deps)
-        try:
-            _, hint = get_dep_updates_and_hints(
-                update_deps,
-                os.path.join(feedstock_ctx.feedstock_dir, "recipe"),
-                feedstock_ctx.attrs,
-                self.python_nodes,
-                "new_version",
-            )
-        except Exception:
+        if feedstock_ctx.attrs["feedstock_name"] in SKIP_DEPS_NODES:
+            logger.info("Skipping dep update since node %s in rejectlist!")
             hint = "\n\nDependency Analysis\n--------------------\n\n"
             hint += (
-                "We couldn't run dependency analysis due to an internal "
-                "error in the bot. :( Help is very welcome!"
+                "We couldn't run dependency analysis since this feedstock is "
+                "in the reject list for dep updates due to bot stability "
+                "issues!"
             )
+        else:
+            try:
+                _, hint = get_dep_updates_and_hints(
+                    update_deps,
+                    os.path.join(feedstock_ctx.feedstock_dir, "recipe"),
+                    feedstock_ctx.attrs,
+                    self.python_nodes,
+                    "new_version",
+                )
+            except Exception:
+                hint = "\n\nDependency Analysis\n--------------------\n\n"
+                hint += (
+                    "We couldn't run dependency analysis due to an internal "
+                    "error in the bot. :/ Help is very welcome!"
+                )
 
         return hint
 
