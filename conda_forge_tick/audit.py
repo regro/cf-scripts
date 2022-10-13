@@ -57,7 +57,7 @@ DEPFINDER_IGNORE += ["*testdir/*", "*conftest*", "*/test.py", "*/versioneer.py"]
 BUILTINS = set().union(
     # Some libs support older python versions, we don't want their std lib
     # entries in our diff though
-    *[set(stdlib_list(k)) for k in ["2.7", "3.5", "3.6", "3.7"]]
+    *[set(stdlib_list(k)) for k in ["2.7", "3.5", "3.6", "3.7", "3.8", "3.9"]]
 )
 
 STATIC_EXCLUDES = (
