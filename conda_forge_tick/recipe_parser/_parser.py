@@ -510,27 +510,31 @@ class CondaMetaYAML:
         exprs : dict
             A dictionary mapping variable names to their computed values.
         """
-        tmpl = _build_jinja2_expr_tmp(self.jinja2_exprs)
-        if len(tmpl.strip()) == 0:
-            return {}
+        exprs = self.jinja2_exprs
+        # Loop until we stop finding undefined variables
+        while True:
+            tmpl = _build_jinja2_expr_tmp(exprs)
+            if len(tmpl.strip()) == 0:
+                return {}
 
-        # look for undefined things
-        env = jinja2.Environment()
-        ast = env.parse(tmpl)
-        undefined = jinja2.meta.find_undeclared_variables(ast)
-        undefined = {u for u in undefined if u not in jinja2_vars}
+            # look for undefined things
+            env = jinja2.Environment()
+            ast = env.parse(tmpl)
+            undefined = jinja2.meta.find_undeclared_variables(ast)
+            undefined = {u for u in undefined if u not in jinja2_vars}
 
-        # if we found them, remove the offending statements
-        if len(undefined) > 0:
-            new_exprs = {}
-            for var, expr in self.jinja2_exprs.items():
-                if not any(u in expr for u in undefined):
-                    new_exprs[var] = expr
-        else:
-            new_exprs = self.jinja2_exprs
+            # if we found them, remove the offending statements
+            if len(undefined) > 0:
+                new_exprs = {}
+                for var, expr in exprs.items():
+                    if not any(u in expr for u in undefined):
+                        new_exprs[var] = expr
+                exprs = new_exprs
+            else:
+                break
 
         # rebuild the template and render
-        tmpl = _build_jinja2_expr_tmp(new_exprs)
+        tmpl = _build_jinja2_expr_tmp(exprs)
         if len(tmpl.strip()) == 0:
             return {}
 
