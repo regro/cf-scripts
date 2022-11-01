@@ -194,6 +194,9 @@ def graph_migrator_status(
                 else:
                     out["awaiting-parents"].add(node)
                     fc = "#fde725"
+            else:
+                out["awaiting-pr"].add(node)
+                fc = "#35b779"
         elif "PR" not in pr_json:
             out["bot-error"].add(node)
             fc = "#000000"
