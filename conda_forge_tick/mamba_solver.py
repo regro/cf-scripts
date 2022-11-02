@@ -563,7 +563,13 @@ def virtual_package_repodata():
     repodata.add_package(FakePackage("__linux", "0"), subdirs=["linux-64"])
     repodata.add_package(
         FakePackage("__unix", "0"),
-        subdirs=["linux-64", "osx-64", "osx-arm64"],
+        subdirs=[
+            "linux-64",
+            "linux-aarch64",
+            "linux-ppc64le",
+            "osx-64",
+            "osx-arm64",
+        ],
     )
     repodata.write()
 
