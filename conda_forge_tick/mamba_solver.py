@@ -559,6 +559,7 @@ def virtual_package_repodata():
             FakePackage("__osx", osx_ver),
             subdirs=["osx-64", "osx-arm64"],
         )
+    repodata.add_package(FakePackage("__win", "0"), subdirs=["win-64"])
     repodata.write()
 
     return repodata.channel_url
