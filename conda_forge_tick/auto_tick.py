@@ -114,6 +114,7 @@ LOGGER = logging.getLogger("conda_forge_tick.auto_tick")
 
 PR_LIMIT = 5
 MAX_PR_LIMIT = 50
+MAX_SOLVER_ATTEMPTS = 50
 
 BOT_RERUN_LABEL = {
     "name": "bot-rerun",
@@ -590,6 +591,7 @@ def add_rebuild_migration_yaml(
     config: dict = {},
     migration_name: str = "",
     pr_limit: int = PR_LIMIT,
+    max_solver_attempts: int = 3,
 ) -> None:
     """Adds rebuild migrator.
 
@@ -669,6 +671,7 @@ def add_rebuild_migration_yaml(
         top_level=top_level,
         cycles=cycles,
         piggy_back_migrations=piggy_back_migrations,
+        max_solver_attempts=max_solver_attempts,
         **config,
     )
     print(f"migration yaml:\n {migration_yaml}", flush=True)
@@ -729,6 +732,10 @@ def migration_factory(
         paused = migrator_config.pop("paused", False)
         excluded_feedstocks = set(migrator_config.get("exclude", []))
         pr_limit = min(migrator_config.pop("pr_limit", pr_limit), MAX_PR_LIMIT)
+        max_solver_attempts = min(
+            migrator_config.pop("max_solver_attempts", 3),
+            MAX_SOLVER_ATTEMPTS,
+        )
 
         if "override_cbc_keys" in migrator_config:
             package_names = set(migrator_config.get("override_cbc_keys"))
@@ -750,6 +757,7 @@ def migration_factory(
                 migration_name=os.path.splitext(yaml_file)[0],
                 config=migrator_config,
                 pr_limit=pr_limit,
+                max_solver_attempts=max_solver_attempts,
             )
         else:
             LOGGER.warning("skipping migration %s because it is paused", __mname)
