@@ -171,7 +171,7 @@ class MigrationYaml(GraphMigrator):
             elif number_pred < 7:
                 self.pr_limit = 5
         self.bump_number = bump_number
-        self.max_solver_attempts = 3
+        self.max_solver_attempts = max_solver_attempts
 
     def filter(self, attrs: "AttrsTypedDict", not_bad_str_start: str = "") -> bool:
         wait_for_migrators = self.loaded_yaml.get("__migrator", {}).get(
@@ -338,16 +338,17 @@ class MigrationYaml(GraphMigrator):
             if migrator_name in total_graph.nodes[node]["payload"].get(
                 "pre_pr_migrator_status",
                 {},
-            ) and total_graph.nodes[node]["payload"].get(
-                "pre_pr_migrator_attempts",
-                {},
-            ).get(
-                migrator_name,
-                3,
-            ) >= getattr(
-                self,
-                "max_solver_attempts",
-                3,
+            ) and (
+                total_graph.nodes[node]["payload"]
+                .get(
+                    "pre_pr_migrator_attempts",
+                    {},
+                )
+                .get(
+                    migrator_name,
+                    3,
+                )
+                >= self.max_solver_attempts
             ):
                 return 0
             else:
