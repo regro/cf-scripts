@@ -179,7 +179,7 @@ class FakeRepoData:
         (self.base_path / subdir / "repodata.json").write_text(json.dumps(out))
 
     def write(self):
-        all_subdirs = ALL_SUBDIRS.copy()
+        all_subdirs = ALL_PLATFORMS.copy()
         all_subdirs.add("noarch")
         for subdirs in self.packages_by_subdir.values():
             all_subdirs.update(subdirs)
@@ -561,11 +561,11 @@ def virtual_package_repodata():
             subdirs=["osx-64", "osx-arm64"],
         )
     repodata.add_package(FakePackage("__win", "0"),
-        subdirs=list(subdir for subdir in ALL_SUBDIRS if subdir.startswith("win")))
+        subdirs=list(subdir for subdir in ALL_PLATFORMS if subdir.startswith("win")))
     repodata.add_package(FakePackage("__linux", "0"),
-        subdirs=list(subdir for subdir in ALL_SUBDIRS if subdir.startswith("linux")))
+        subdirs=list(subdir for subdir in ALL_PLATFORMS if subdir.startswith("linux")))
     repodata.add_package(FakePackage("__unix", "0"),
-        subdirs=list(subdir for subdir in ALL_SUBDIRS if not subdir.startswith("win")))
+        subdirs=list(subdir for subdir in ALL_PLATFORMS if not subdir.startswith("win")))
     repodata.write()
 
     return repodata.channel_url
