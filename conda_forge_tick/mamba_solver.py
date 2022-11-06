@@ -71,6 +71,7 @@ ALL_PLATFORMS = {
     "win-64",
 }
 
+
 def _munge_req_star(req):
     reqs = []
 
@@ -560,12 +561,20 @@ def virtual_package_repodata():
             FakePackage("__osx", osx_ver),
             subdirs=["osx-64", "osx-arm64"],
         )
-    repodata.add_package(FakePackage("__win", "0"),
-        subdirs=list(subdir for subdir in ALL_PLATFORMS if subdir.startswith("win")))
-    repodata.add_package(FakePackage("__linux", "0"),
-        subdirs=list(subdir for subdir in ALL_PLATFORMS if subdir.startswith("linux")))
-    repodata.add_package(FakePackage("__unix", "0"),
-        subdirs=list(subdir for subdir in ALL_PLATFORMS if not subdir.startswith("win")))
+    repodata.add_package(
+        FakePackage("__win", "0"),
+        subdirs=list(subdir for subdir in ALL_PLATFORMS if subdir.startswith("win")),
+    )
+    repodata.add_package(
+        FakePackage("__linux", "0"),
+        subdirs=list(subdir for subdir in ALL_PLATFORMS if subdir.startswith("linux")),
+    )
+    repodata.add_package(
+        FakePackage("__unix", "0"),
+        subdirs=list(
+            subdir for subdir in ALL_PLATFORMS if not subdir.startswith("win")
+        ),
+    )
     repodata.write()
 
     return repodata.channel_url
