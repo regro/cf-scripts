@@ -62,6 +62,14 @@ api.Context().channel_priority = api.ChannelPriority.kStrict
 # 1.1 to 1.1.*
 REQ_START = ["!=", "==", ">", "<", ">=", "<=", "~="]
 
+ALL_PLATFORMS = {
+    "linux-aarch64",
+    "linux-ppc64le",
+    "linux-64",
+    "osx-64",
+    "osx-arm64",
+    "win-64",
+}
 
 def _munge_req_star(req):
     reqs = []
@@ -171,15 +179,8 @@ class FakeRepoData:
         (self.base_path / subdir / "repodata.json").write_text(json.dumps(out))
 
     def write(self):
-        all_subdirs = {
-            "noarch",
-            "linux-aarch64",
-            "linux-ppc64le",
-            "linux-64",
-            "osx-64",
-            "osx-arm64",
-            "win-64",
-        }
+        all_subdirs = ALL_SUBDIRS.copy()
+        all_subdirs.add("noarch")
         for subdirs in self.packages_by_subdir.values():
             all_subdirs.update(subdirs)
 
@@ -559,18 +560,12 @@ def virtual_package_repodata():
             FakePackage("__osx", osx_ver),
             subdirs=["osx-64", "osx-arm64"],
         )
-    repodata.add_package(FakePackage("__win", "0"), subdirs=["win-64"])
-    repodata.add_package(FakePackage("__linux", "0"), subdirs=["linux-64"])
-    repodata.add_package(
-        FakePackage("__unix", "0"),
-        subdirs=[
-            "linux-64",
-            "linux-aarch64",
-            "linux-ppc64le",
-            "osx-64",
-            "osx-arm64",
-        ],
-    )
+    repodata.add_package(FakePackage("__win", "0"),
+        subdirs=list(subdir for subdir in ALL_SUBDIRS if subdir.startswith("win")))
+    repodata.add_package(FakePackage("__linux", "0"),
+        subdirs=list(subdir for subdir in ALL_SUBDIRS if subdir.startswith("linux")))
+    repodata.add_package(FakePackage("__unix", "0"),
+        subdirs=list(subdir for subdir in ALL_SUBDIRS if not subdir.startswith("win")))
     repodata.write()
 
     return repodata.channel_url
