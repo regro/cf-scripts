@@ -273,6 +273,8 @@ class OSXArm(GraphMigrator):
             # one key deep so this is fine
             for k, v in self.additional_keys.items():
                 if isinstance(v, dict):
+                    if k not in y:
+                        y[k] = {}
                     for _k, _v in v.items():
                         y[k][_k] = _v
                 else:
