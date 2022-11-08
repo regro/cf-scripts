@@ -269,7 +269,16 @@ class OSXArm(GraphMigrator):
             self.set_build_number("recipe/meta.yaml")
             with open("conda-forge.yml") as f:
                 y = yaml_safe_load(f)
-            y.update(self.additional_keys)
+            # we should do this recursively but the cf yaml is usually
+            # one key deep so this is fine
+            for k, v in self.additional_keys.items():
+                if isinstance(v, dict):
+                    if k not in y:
+                        y[k] = {}
+                    for _k, _v in v.items():
+                        y[k][_k] = _v
+                else:
+                    y[k] = v
             with open("conda-forge.yml", "w") as f:
                 yaml_safe_dump(y, f)
 
