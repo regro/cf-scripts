@@ -180,7 +180,7 @@ def run(
     fork : bool
         If true create a fork, defaults to true
     base_branch : str, optional
-        The base branch to which the PR will be targeted. Defaults to "master".
+        The base branch to which the PR will be targeted. Defaults to "main".
     kwargs: dict
         The key word arguments to pass to the migrator
 
