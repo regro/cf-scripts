@@ -6,11 +6,11 @@ cachecontrol
 cachetools
 conda
 conda-forge-pinning
-conda-package-handling
+conda-package-handling<2
 conda-smithy
 curl
 depfinder
-distributed<2022.12.0
+distributed
 doctr
 feedparser
 frozendict
