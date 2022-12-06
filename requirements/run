@@ -10,7 +10,7 @@ conda-package-handling
 conda-smithy
 curl
 depfinder
-distributed
+distributed <2022.12.0
 doctr
 feedparser
 frozendict
