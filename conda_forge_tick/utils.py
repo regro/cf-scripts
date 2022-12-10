@@ -174,7 +174,7 @@ def parse_meta_yaml(
             log_debug=log_debug,
             **kwargs,
         )
-    except SystemExit as e:
+    except (SystemExit, Exception) as e:
         raise RuntimeError("cond build error: %s" % str(e))
 
 

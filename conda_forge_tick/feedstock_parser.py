@@ -123,7 +123,7 @@ def _extract_requirements(meta_yaml):
 
 def _fetch_static_repo(name, dest):
     found_branch = None
-    for branch in ["master", "main"]:
+    for branch in ["main", "master"]:
         try:
             r = requests.get(
                 f"https://github.com/conda-forge/{name}-feedstock/archive/{branch}.zip",
