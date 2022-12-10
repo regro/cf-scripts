@@ -93,7 +93,7 @@ def _build_graph_process_pool(
     new_names: List[str],
     mark_not_archived=False,
 ) -> None:
-    with executor("process", max_workers=2) as pool:
+    with executor("process", max_workers=8) as pool:
         futures = {
             pool.submit(get_attrs, name, i, mark_not_archived=mark_not_archived): name
             for i, name in enumerate(names)
