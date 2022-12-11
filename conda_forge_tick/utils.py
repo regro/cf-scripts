@@ -229,7 +229,7 @@ def _parse_meta_yaml_impl(
                     with open(
                         os.path.join(tmpdir, "conda_build_config.yaml"),
                         "w",
-                    ) as fpw_:
+                    ) as fp_w:
                         fp_w.write(fp_r.read())
 
             def _run_parsing():
