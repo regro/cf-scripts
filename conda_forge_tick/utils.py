@@ -1,7 +1,9 @@
 import datetime
+import traceback
 import typing
 import copy
 import pprint
+import warnings
 from collections.abc import Callable
 from collections import defaultdict
 import contextlib
@@ -136,6 +138,7 @@ def parse_meta_yaml(
     recipe_dir=None,
     cbc_path=None,
     log_debug=False,
+    orig_cbc_path=None,
     **kwargs: Any,
 ) -> "MetaYamlTypedDict":
     """Parse the meta.yaml.
@@ -152,6 +155,9 @@ def parse_meta_yaml(
         The path to the recipe being parsed.
     cbc_path : str, optional
         The path to global pinning file.
+    orig_cbc_path : str, optional
+        If not None, the original conda build config file to put next to
+        the recipe while parsing.
     log_debug : bool, optional
         If True, print extra debugging info. Default is False.
     **kwargs : glob for extra keyword arguments
@@ -164,18 +170,32 @@ def parse_meta_yaml(
         for some errors. Have fun.
     """
     try:
-        return _parse_meta_yaml_impl(
-            text,
-            for_pinning=for_pinning,
-            platform=platform,
-            arch=arch,
-            recipe_dir=recipe_dir,
-            cbc_path=cbc_path,
-            log_debug=log_debug,
-            **kwargs,
-        )
+        with warnings.catch_warnings():
+            warnings.filterwarnings(
+                "ignore",
+                message="The environment variable",
+                category=UserWarning,
+                module=r"conda_build\.environ",
+            )
+            return _parse_meta_yaml_impl(
+                text,
+                for_pinning=for_pinning,
+                platform=platform,
+                arch=arch,
+                recipe_dir=recipe_dir,
+                cbc_path=cbc_path,
+                log_debug=log_debug,
+                orig_cbc_path=orig_cbc_path,
+                **kwargs,
+            )
     except (SystemExit, Exception) as e:
-        raise RuntimeError("cond build error: %s" % repr(e))
+        raise RuntimeError(
+            "cond build error: %s\n%s"
+            % (
+                repr(e),
+                traceback.format_exc(),
+            ),
+        )
 
 
 def _parse_meta_yaml_impl(
@@ -186,6 +206,7 @@ def _parse_meta_yaml_impl(
     recipe_dir=None,
     cbc_path=None,
     log_debug=False,
+    orig_cbc_path=None,
     **kwargs: Any,
 ) -> "MetaYamlTypedDict":
     from conda_build.config import Config
@@ -203,8 +224,23 @@ def _parse_meta_yaml_impl(
         with tempfile.TemporaryDirectory() as tmpdir:
             with open(os.path.join(tmpdir, "meta.yaml"), "w") as fp:
                 fp.write(text)
+            if orig_cbc_path is not None and os.path.exists(orig_cbc_path):
+                with open(orig_cbc_path) as fp_r:
+                    with open(
+                        os.path.join(tmpdir, "conda_build_config.yaml"),
+                        "w",
+                    ) as fpw_:
+                        fp_w.write(fp_r.read())
 
             def _run_parsing():
+                logger.debug(
+                    "parsing for platform %s with cbc %s and arch %s"
+                    % (
+                        platform,
+                        cbc_path,
+                        arch,
+                    ),
+                )
                 config = conda_build.config.get_or_merge_config(
                     None,
                     platform=platform,
@@ -238,7 +274,7 @@ def _parse_meta_yaml_impl(
                 try:
                     m = MetaData(tmpdir, config=config, variant=var)
                 except SystemExit as e:
-                    raise RuntimeError(str(e))
+                    raise RuntimeError(repr(e))
                 cfg_as_dict.update(conda_build.environ.get_dict(m=m))
 
             logger.debug("jinja2 environmment:\n%s", pprint.pformat(cfg_as_dict))

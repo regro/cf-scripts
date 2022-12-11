@@ -235,6 +235,11 @@ def populate_feedstock_attributes(
                         arch = cbc_name_parts[1]
                     else:
                         arch = "64"
+                # some older cbc yaml files have things like "linux64"
+                for _tt in ["64", "aarch64", "ppc64le", "arm64", "32"]:
+                    if plat.endswith(_tt):
+                        plat = plat[: -len(_tt)]
+                        break
                 plat_arch.append((plat, arch))
 
                 varient_yamls.append(
@@ -244,6 +249,10 @@ def populate_feedstock_attributes(
                         arch=arch,
                         recipe_dir=recipe_dir,
                         cbc_path=cbc_path,
+                        orig_cbc_path=os.path.join(
+                            recipe_dir,
+                            "conda_build_config.yaml",
+                        ),
                     ),
                 )
 
@@ -283,7 +292,7 @@ def populate_feedstock_attributes(
             plat_arch = [("win", "64"), ("osx", "64"), ("linux", "64")]
             for k in set(sub_graph["conda-forge.yml"].get("provider", {})):
                 if "_" in k:
-                    plat_arch.append(k.split("_"))
+                    plat_arch.append(tuple(k.split("_")))
             varient_yamls = [
                 parse_meta_yaml(meta_yaml, platform=plat, arch=arch)
                 for plat, arch in plat_arch
