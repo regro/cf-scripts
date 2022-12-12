@@ -169,7 +169,8 @@ def parse_meta_yaml(
         The parsed YAML dict. If parsing fails, returns an empty dict. May raise
         for some errors. Have fun.
     """
-    try:
+
+    def _run(*, use_orig_cbc_path):
         with warnings.catch_warnings():
             warnings.filterwarnings(
                 "ignore",
@@ -185,17 +186,24 @@ def parse_meta_yaml(
                 recipe_dir=recipe_dir,
                 cbc_path=cbc_path,
                 log_debug=log_debug,
-                orig_cbc_path=orig_cbc_path,
+                orig_cbc_path=(orig_cbc_path if use_orig_cbc_path else None),
                 **kwargs,
             )
-    except (SystemExit, Exception) as e:
-        raise RuntimeError(
-            "cond build error: %s\n%s"
-            % (
-                repr(e),
-                traceback.format_exc(),
-            ),
-        )
+
+    try:
+        return _run(use_orig_cbc_path=True)
+    except (SystemExit, Exception):
+        logger.debug("parsing w/ conda_build_config.yaml failed! " "trying without...")
+        try:
+            return _run(use_orig_cbc_path=False)
+        except (SystemExit, Exception) as e:
+            raise RuntimeError(
+                "cond build error: %s\n%s"
+                % (
+                    repr(e),
+                    traceback.format_exc(),
+                ),
+            )
 
 
 def _parse_meta_yaml_impl(
