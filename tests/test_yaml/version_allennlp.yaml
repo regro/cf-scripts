@@ -1,0 +1,187 @@
+{% set tests_to_skip = "_not_a_real_test" %}
+{% set version = "2.10.0" %}
+
+{% set spacy_model = "en_core_web_sm" %}
+
+package:
+  name: allennlp-split
+  version: {{ version }}
+
+source:
+  - url: https://github.com/allenai/allennlp/archive/v{{ version }}.tar.gz
+    sha256: 4b4d3dcab5686de1218490349d5cf9e9e437625fe24ac0553dfc9a37fb1bf725
+
+build:
+  number: 0
+  skip: true  # [win or py<37]
+
+requirements:
+  build:
+    - python                                 # [build_platform != target_platform]
+    - cross-python_{{ target_platform }}     # [build_platform != target_platform]
+    - {{ compiler('c') }}
+    - sysroot_linux-64 ==2.17   # [linux64]
+
+outputs:
+  - name: allennlp-all
+    requirements:
+      host:
+        - python
+      run:
+        - python
+        - {{ pin_subpackage('allennlp', exact=True) }}
+        - {{ pin_subpackage('allennlp-checklist', exact=True) }}
+    test:
+      imports:
+        - allennlp
+
+  - name: allennlp
+    build:
+      script: python -m pip install . --no-deps -vv
+      entry_points:
+        - allennlp=allennlp.__main__:run
+    requirements:
+      build:
+        - python                                 # [build_platform != target_platform]
+        - cross-python_{{ target_platform }}     # [build_platform != target_platform]
+        - {{ compiler('c') }}
+      host:
+        - python
+        - pip
+      run:
+        - python
+        # see https://github.com/allenai/allennlp/blame/v{{ version }}/setup.py
+        # (as of 2.10.0, removed pytest & obsolete dataclasses compared
+        # to upstream, plus all their pins to get working versions)
+        - base58
+        - cached_path >=1.1.3,<1.2.0
+        - dill
+        - fairscale ==0.4.6
+        - filelock >=3.3,<3.8
+        - h5py >=3.6
+        - huggingface_hub >=0.0.16
+        - jsonnet >=0.10.0          # [not win]
+        - python-lmdb >=1.2.1
+        - more-itertools >=8.12
+        - nltk >=3.6.5
+        - numpy
+        - pytorch >=1.8.0,<1.12.0
+        - requests >=2.28
+        - scikit-learn >=1.0.1
+        - scipy >=1.7.3
+        - sentencepiece >=0.1.96
+        - spacy >=2.1.0,<3.4
+        - tensorboardx >=1.2
+        - termcolor =1.1.*
+        - torchvision >=0.8.1,<0.13.0
+        - tqdm >=4.62
+        - transformers >=4.1,<4.21
+        - wandb >=0.10,<0.13
+        # transitive spacy-dep; make sure it's high enough to not be broken
+        - typer >=0.4.1
+
+    # checklist-specific tests in separate output
+    {% set tests_to_skip = "_not_a_real_test" %}
+    # some issue with too much forking (but is flaky, doesn't always appear):
+    # `The current process just got forked, after parallelism has already been used. Disabling parallelism to avoid deadlocks...`
+    {% set tests_to_skip = tests_to_skip + " or test_multiprocess_data_loader" %}    # [osx]
+    {% set tests_to_skip = tests_to_skip + " or test_with_multi_process_loading" %}  # [osx]
+    # fails on osx with `process 0 terminated with signal SIGSEGV` in torch.multiprocess
+    {% set tests_to_skip = tests_to_skip + " or test_train_model_distributed_without_sharded_reader" %}  # [osx]
+
+    test:
+      requires:
+        - flaky
+        - git
+        - git-lfs
+        - matplotlib
+        - pytest
+        - responses >=0.12.1
+        - spacy-model-{{ spacy_model }}
+      source_files:
+        - tests/
+        - test_fixtures/
+        # needed by one of the tests
+        - README.md
+      commands:
+        - python -m spacy link {{ spacy_model }} {{ spacy_model }}
+        # test that dummy command works even without checklist package
+        - allennlp checklist
+        - allennlp test-install
+        - pytest tests/ -v -k "not ({{ tests_to_skip }})" --ignore-glob=*checklist*
+      imports:
+        - allennlp
+        - allennlp.commands
+        - allennlp.common
+        - allennlp.common.testing
+        - allennlp.data
+        - allennlp.data.dataset_readers
+        - allennlp.data.dataset_readers.dataset_utils
+        - allennlp.data.fields
+        - allennlp.data.samplers
+        - allennlp.data.token_indexers
+        - allennlp.data.tokenizers
+        - allennlp.models
+        - allennlp.modules
+        - allennlp.modules.attention
+        - allennlp.modules.matrix_attention
+        - allennlp.modules.seq2seq_encoders
+        - allennlp.modules.seq2vec_encoders
+        - allennlp.modules.span_extractors
+        - allennlp.modules.text_field_embedders
+        - allennlp.modules.token_embedders
+        - allennlp.nn
+        - allennlp.nn.regularizers
+        - allennlp.predictors
+        - allennlp.tools
+        - allennlp.training
+        - allennlp.training.learning_rate_schedulers
+        - allennlp.training.metrics
+        - allennlp.training.momentum_schedulers
+
+  - name: allennlp-checklist
+    requirements:
+      host:
+        - python
+      run:
+        - python
+        - {{ pin_subpackage('allennlp', exact=True) }}
+        - checklist =0.0.11
+    test:
+      requires:
+        - flaky
+        - git
+        - git-lfs
+        - matplotlib
+        - pytest
+        - responses >=0.12.1
+        - spacy-model-{{ spacy_model }}
+      source_files:
+        - tests/
+        - test_fixtures/
+      commands:
+        # download necessary nltk packages; taken from
+        # https://github.com/allenai/allennlp/blob/v2.9.1/Makefile#L28
+        - python -c 'import nltk; [nltk.download(p) for p in ("wordnet", "wordnet_ic", "sentiwordnet", "omw", "omw-1.4")]'
+        - allennlp checklist --help
+        - pytest tests/ -v -k "checklist"
+
+about:
+  home: https://allennlp.org/
+  license: Apache-2.0
+  license_family: APACHE
+  license_file: LICENSE
+  summary: An open-source NLP research library, built on PyTorch.
+  description: |
+    An Apache 2.0 NLP research library, built on PyTorch, for developing state-of-the-art
+    deep learning models on a wide variety of linguistic tasks.
+  doc_url: https://allenai.github.io/allennlp-docs/
+  dev_url: https://github.com/allenai/allennlp
+
+extra:
+  recipe-maintainers:
+    - CurtLH
+    - sodre
+    - h-vetinari
+    - dirkgr
+  feedstock-name: allennlp
