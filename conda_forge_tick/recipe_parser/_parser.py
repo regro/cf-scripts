@@ -113,8 +113,6 @@ def _parse_jinja2_variables(meta_yaml: str) -> dict:
                         new_key = n.target.name + CONDA_SELECTOR + selector
                         jinja2_vals[new_key] = jinja2_vals[n.target.name]
                         del jinja2_vals[n.target.name]
-                    else:
-                        assert False, jinja2_data
 
                 # now insert this key - selector is the next thing
                 jinja2_data = all_nodes[i + 1].nodes[0].data
@@ -124,7 +122,7 @@ def _parse_jinja2_variables(meta_yaml: str) -> dict:
                     new_key = n.target.name + CONDA_SELECTOR + selector
                     jinja2_vals[new_key] = (n.node.value, i)
                 else:
-                    assert False, jinja2_data
+                    jinja2_vals[n.target.name] = (n.node.value, i)
             else:
                 jinja2_vals[n.target.name] = (n.node.value, i)
         elif isinstance(n, jinja2.nodes.Assign):
