@@ -83,7 +83,7 @@ test:
   commands:
     - f2py -h
     # numpy.test will show SIMD features of agent (in the past, there have been
-    # failures that occured depending on presence/absence of e.g. AVX512);
+    # failures that occurred depending on presence/absence of e.g. AVX512);
     # for signature of numpy.test see the following (note default: label='fast'),
     # https://github.com/numpy/numpy/blob/maintenance/1.22.x/numpy/_pytesttester.py#L81-L82
     {% set label = "'fast'" if (CI == "travis") or (aarch64 and python_impl == "pypy") else "'full'" %}

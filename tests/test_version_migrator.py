@@ -15,6 +15,7 @@ YAML_PATH = os.path.join(os.path.dirname(__file__), "test_yaml")
 @pytest.mark.parametrize(
     "case,new_ver",
     [
+        ("faiss-split", "1.7.3"),
         ("docker-py", "6.0.1"),
         ("allennlp", "2.10.1"),
         ("numpy", "1.24.0"),
