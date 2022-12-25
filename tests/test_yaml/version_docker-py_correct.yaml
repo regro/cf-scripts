@@ -1,0 +1,57 @@
+{% set version = "6.0.1" %}
+
+package:
+  name: docker-py
+  version: {{ version }}
+
+source:
+  url: https://pypi.io/packages/source/d/docker/docker-{{ version }}.tar.gz
+  sha256: 896c4282e5c7af5c45e8b683b0b0c33932974fe6e50fc6906a0a83616ab3da97
+
+build:
+  noarch: python
+  script: {{ PYTHON }} -m pip install . -vv
+  number: 0
+
+requirements:
+  host:
+    - python >=3.7
+    - setuptools >=45
+    - setuptools-scm >=6.2
+    - pip
+  run:
+    - python >=3.7
+    - packaging >=14.0
+    - requests >=2.26.0
+    - urllib3 >=1.26.0
+    - websocket-client >=0.32.0
+    - pywin32-on-windows
+    - paramiko >=2.4.3
+
+test:
+  imports:
+    - docker
+    - docker.api
+    - docker.auth
+    - docker.tls
+    - docker.utils
+    - docker.utils.ports
+    - docker.transport.unixconn
+  commands:
+    - pip check
+  requires:
+    - pip
+
+about:
+  home: https://github.com/docker/docker-py
+  summary: A Python library for the Docker Engine API.
+  dev_url: https://github.com/docker/docker-py
+  doc_url: https://docker-py.readthedocs.io
+  license: Apache-2.0
+  license_file: LICENSE
+
+extra:
+  recipe-maintainers:
+    - ocefpaf
+    - scopatz
+    - mariusvniekerk
