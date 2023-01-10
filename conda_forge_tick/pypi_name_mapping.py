@@ -217,7 +217,7 @@ def determine_best_matches_for_pypi_import(
     # computes hubs and authorities.
     # hubs are centralized sources (eg numpy)
     # whilst authorities are packages with many edges to them.
-    hubs, authorities = networkx.hits_scipy(gx)
+    hubs, authorities = networkx.hits(gx)
 
     mapping_src_weights = {
         "static": 1,
