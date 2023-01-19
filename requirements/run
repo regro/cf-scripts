@@ -32,7 +32,7 @@ rever
 ruamel.yaml
 ruamel.yaml.jinja2
 scipy
-setuptools
+setuptools<66
 stopit
 streamz
 tar
