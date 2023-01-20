@@ -54,6 +54,8 @@ def test_url_transform_exts():
 def test_url_transform_pypi():
     urls = set(list(gen_transformed_urls("https://pypi.io/{{ name }}/{{ name }}-barf")))
     assert urls == {
+        "https://files.pythonhosted.org/{{ name }}/{{ name }}-barf",
+        "https://files.pythonhosted.org/{{ name }}/{{ name.replace('_', '-') }}-barf",
         "https://pypi.io/{{ name }}/{{ name }}-barf",
         "https://pypi.io/{{ name }}/{{ name.replace('_', '-') }}-barf",
     }
@@ -66,6 +68,8 @@ def test_url_transform_pypi():
         ),
     )
     assert urls == {
+        "https://files.pythonhosted.org/{{ name }}/{{ name }}-barf",
+        "https://files.pythonhosted.org/{{ name }}/{{ name.replace('_', '-') }}-barf",
         "https://pypi.io/{{ name }}/{{ name }}-barf",
         "https://pypi.io/{{ name }}/{{ name.replace('_', '-') }}-barf",
     }
@@ -78,6 +82,8 @@ def test_url_transform_pypi():
         ),
     )
     assert urls == {
+        "https://files.pythonhosted.org/{{ name }}/{{ name }}-barf",
+        "https://files.pythonhosted.org/{{ name }}/{{ name.replace('_','-') }}-barf",
         "https://pypi.io/{{ name }}/{{ name }}-barf",
         "https://pypi.io/{{ name }}/{{ name.replace('_','-') }}-barf",
     }
@@ -90,6 +96,8 @@ def test_url_transform_pypi():
         ),
     )
     assert urls == {
+        "https://files.pythonhosted.org/{{ name }}/{{ name }}-barf",
+        "https://files.pythonhosted.org/{{ name }}/{{ name|replace('_','-') }}-barf",
         "https://pypi.io/{{ name }}/{{ name }}-barf",
         "https://pypi.io/{{ name }}/{{ name|replace('_','-') }}-barf",
     }
@@ -102,6 +110,8 @@ def test_url_transform_pypi():
         ),
     )
     assert urls == {
+        "https://files.pythonhosted.org/{{ name }}/{{ name }}-barf",
+        'https://files.pythonhosted.org/{{ name }}/{{ name.replace("_", "-") }}-barf',
         "https://pypi.io/{{ name }}/{{ name }}-barf",
         'https://pypi.io/{{ name }}/{{ name.replace("_", "-") }}-barf',
     }
@@ -149,11 +159,48 @@ def test_url_transform_complicated_pypi():
     urls = set(
         list(
             gen_transformed_urls(
-                "https://pypi.io/{{ name }}/{{ name.replace('_', '-') }}-{{ version }}.tgz",
+                "https://pypi.io/{{ name }}/"
+                "{{ name.replace('_', '-') }}-{{ version }}.tgz",
             ),
         ),
     )
     assert urls == {
+        "https://files.pythonhosted.org/{{ name }}"
+        "/{{ name.replace('_', '-') }}-{{ version }}.tgz",
+        "https://files.pythonhosted.org/{{ name }}"
+        "/{{ name.replace('_', '-') }}-{{ version }}.tar.gz",
+        "https://files.pythonhosted.org/{{ name }}"
+        "/{{ name.replace('_', '-') }}-{{ version }}.zip",
+        "https://files.pythonhosted.org/{{ name }}"
+        "/{{ name.replace('_', '-') }}-{{ version }}.tar",
+        "https://files.pythonhosted.org/{{ name }}"
+        "/{{ name.replace('_', '-') }}-{{ version }}.tar.bz2",
+        "https://files.pythonhosted.org/{{ name }}"
+        "/{{ name.replace('_', '-') }}-{{ version }}.tar.xz",
+        "https://files.pythonhosted.org/{{ name }}"
+        "/{{ name.replace('_', '-') }}-v{{ version }}.tgz",
+        "https://files.pythonhosted.org/{{ name }}"
+        "/{{ name.replace('_', '-') }}-v{{ version }}.tar.gz",
+        "https://files.pythonhosted.org/{{ name }}"
+        "/{{ name.replace('_', '-') }}-v{{ version }}.zip",
+        "https://files.pythonhosted.org/{{ name }}"
+        "/{{ name.replace('_', '-') }}-v{{ version }}.tar",
+        "https://files.pythonhosted.org/{{ name }}"
+        "/{{ name.replace('_', '-') }}-v{{ version }}.tar.bz2",
+        "https://files.pythonhosted.org/{{ name }}"
+        "/{{ name.replace('_', '-') }}-v{{ version }}.tar.xz",
+        "https://files.pythonhosted.org/{{ name }}/{{ name }}-{{ version }}.tgz",
+        "https://files.pythonhosted.org/{{ name }}/{{ name }}-{{ version }}.tar.gz",
+        "https://files.pythonhosted.org/{{ name }}/{{ name }}-{{ version }}.zip",
+        "https://files.pythonhosted.org/{{ name }}/{{ name }}-{{ version }}.tar",
+        "https://files.pythonhosted.org/{{ name }}/{{ name }}-{{ version }}.tar.bz2",
+        "https://files.pythonhosted.org/{{ name }}/{{ name }}-{{ version }}.tar.xz",
+        "https://files.pythonhosted.org/{{ name }}/{{ name }}-v{{ version }}.tgz",
+        "https://files.pythonhosted.org/{{ name }}/{{ name }}-v{{ version }}.tar.gz",
+        "https://files.pythonhosted.org/{{ name }}/{{ name }}-v{{ version }}.zip",
+        "https://files.pythonhosted.org/{{ name }}/{{ name }}-v{{ version }}.tar",
+        "https://files.pythonhosted.org/{{ name }}/{{ name }}-v{{ version }}.tar.bz2",
+        "https://files.pythonhosted.org/{{ name }}/{{ name }}-v{{ version }}.tar.xz",
         "https://pypi.io/{{ name }}/{{ name.replace('_', '-') }}-{{ version }}.tgz",
         "https://pypi.io/{{ name }}/{{ name.replace('_', '-') }}-{{ version }}.tar.gz",
         "https://pypi.io/{{ name }}/{{ name.replace('_', '-') }}-{{ version }}.zip",

@@ -46,6 +46,14 @@ def _v_munger(url):
             yield url.replace(vhave, vrep)
 
 
+def _pypi_domain_munger(url):
+    for old_d, new_d in permutations(
+        ["https://pypi.io", "https://files.pythonhosted.org"],
+        2,
+    ):
+        yield url.replace(old_d, new_d, 1)
+
+
 def _pypi_munger(url):
     names = [
         "{{ name }}",
@@ -60,7 +68,7 @@ def _pypi_munger(url):
             '{{ name|replace("_","-") }}',
         ),
     ]
-    if "/pypi." in url:
+    if "/pypi." in url or "/files.pythonhosted.org" in url:
         burl, eurl = url.rsplit("/", 1)
         for vhave, vrep in permutations(names, 2):
             if isinstance(vhave, tuple):
@@ -114,6 +122,7 @@ def gen_transformed_urls(url):
             _jinja2_munger_factory("version"),
             _jinja2_munger_factory("name[0]"),
             _pypi_munger,
+            _pypi_domain_munger,
             _github_munger,
         ],
     )
