@@ -47,8 +47,11 @@ def _v_munger(url):
 
 
 def _pypi_domain_munger(url):
-    if url.startswith("https://pypi.io"):
-        yield "https://files.pythonhosted.org" + url[len("https://pypi.io") :]
+    for old_d, new_d in permutations(
+        ["https://pypi.io", "https://files.pythonhosted.org"],
+        2,
+    ):
+        yield url.replace(old_d, new_d, 1)
 
 
 def _pypi_munger(url):
@@ -65,7 +68,7 @@ def _pypi_munger(url):
             '{{ name|replace("_","-") }}',
         ),
     ]
-    if "/pypi." in url:
+    if "/pypi." in url or "/files.pythonhosted.org" in url:
         burl, eurl = url.rsplit("/", 1)
         for vhave, vrep in permutations(names, 2):
             if isinstance(vhave, tuple):
