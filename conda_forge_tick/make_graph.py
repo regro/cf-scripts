@@ -72,10 +72,11 @@ def make_outputs_lut_from_graph(gx):
     outputs_lut = defaultdict(set)
     for node_name, node in gx.nodes.items():
         for k in node.get("payload", {}).get("outputs_names", []):
-            if node_name != "pypy-meta":
+            if node_name != "pypy-meta" and node_name != "graalpy":
                 outputs_lut[k].add(node_name)
-            elif k == "pypy":
+            elif k in ["pypy", "graalpy"]:
                 # for pypy-meta we only map to pypy and not python or cffi
+                # for graalpy we only map to graalpy and not python or openjdk
                 outputs_lut[k].add(node_name)
     return outputs_lut
 
