@@ -1,3 +1,4 @@
+import os
 from conda_forge_tick.url_transforms import gen_transformed_urls
 
 
@@ -49,6 +50,18 @@ def test_url_transform_exts():
         "blah.zip",
         "blah.tar.xz",
     }
+
+
+def test_rul_transforms_pypi_name():
+    urls = set(
+        list(
+            gen_transformed_urls(
+                "https://pypi.io/packages/source/{{ name[0] }}/{{ name }}"
+                "/dash_extensions-{{ version }}.tar.gz",
+            ),
+        ),
+    )
+    assert any("{{ name }}-{{ version }}" in os.path.basename(url) for url in urls)
 
 
 def test_url_transform_pypi():

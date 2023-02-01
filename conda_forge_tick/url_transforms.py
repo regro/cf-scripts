@@ -1,3 +1,4 @@
+import os
 from itertools import permutations
 
 EXTS = [".tar.gz", ".zip", ".tar", ".tar.bz2", ".tar.xz", ".tgz"]
@@ -52,6 +53,18 @@ def _pypi_domain_munger(url):
         2,
     ):
         yield url.replace(old_d, new_d, 1)
+
+
+def _pypi_name_munger(url):
+    bn = os.path.basename(url)
+    if (
+        url.startswith("https://pypi.io")
+        or url.startswith("https://files.pythonhosted.org")
+    ) and ("{{ version }}" in bn and "{{ name" not in bn):
+
+        yield os.path.join(os.path.dirname(url), "{{ name }}-{{ version }}.tar.gz")
+
+    yield url
 
 
 def _pypi_munger(url):
@@ -139,6 +152,7 @@ def gen_transformed_urls(url):
             _jinja2_munger_factory("name[0]"),
             _pypi_munger,
             _pypi_domain_munger,
+            _pypi_name_munger,
             _github_munger,
         ],
     )

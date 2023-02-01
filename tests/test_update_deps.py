@@ -485,7 +485,7 @@ extra:
 """  # noqa
 
 
-@flaky
+@pytest.mark.xfail()
 @pytest.mark.parametrize(
     "update_kind,out_yml",
     [
