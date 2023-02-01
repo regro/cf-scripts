@@ -55,8 +55,10 @@ def test_url_transform_pypi():
     urls = set(list(gen_transformed_urls("https://pypi.io/{{ name }}/{{ name }}-barf")))
     assert urls == {
         "https://files.pythonhosted.org/{{ name }}/{{ name }}-barf",
+        "https://files.pythonhosted.org/{{ name }}/{{ name.replace('-', '_') }}-barf",
         "https://files.pythonhosted.org/{{ name }}/{{ name.replace('_', '-') }}-barf",
         "https://pypi.io/{{ name }}/{{ name }}-barf",
+        "https://pypi.io/{{ name }}/{{ name.replace('-', '_') }}-barf",
         "https://pypi.io/{{ name }}/{{ name.replace('_', '-') }}-barf",
     }
 

@@ -15,6 +15,7 @@ YAML_PATH = os.path.join(os.path.dirname(__file__), "test_yaml")
 @pytest.mark.parametrize(
     "case,new_ver",
     [
+        ("dash_extensions", "0.1.11"),
         ("numpy", "1.24.1"),
         ("python", "3.9.5"),
         ("faiss-split", "1.7.3"),
