@@ -1,7 +1,7 @@
 name: delete-old-runs
 on:
   schedule:
-    - cron: '0,10,20,30,40,50 * * * *'
+    - cron: '0/10 * * * *'
   workflow_dispatch: null
 
 jobs:
@@ -11,12 +11,14 @@ jobs:
     steps:
       - name: get env file
         shell: bash -l {0}
+        # TODO: Pull this environment.yml from the archived repodata-tools into cf-scripts
         run: |
           wget https://raw.githubusercontent.com/conda-forge/repodata-tools/main/environment.yml
 
       - name: install micromamba
         uses: mamba-org/provision-with-micromamba@main
 
+      # TODO: Move this python script into its own file
       - name: delete runs
         shell: bash -l {0}
         run: |
