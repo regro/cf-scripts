@@ -27,13 +27,13 @@ jobs:
 
       - name: do local setup and stop me if needed
         run: |
-          source local_setup.sh
-          python stop_me_if_needed.py
+          source autotick-bot/local_setup.sh
+          python autotick-bot/stop_me_if_needed.py
 
       - name: install bot code
         if: success() && ! env.CI_SKIP
         run: |
-          source install_bot_code.sh
+          source autotick-bot/install_bot_code.sh
         env:
           PASSWORD: ${{ secrets.AUTOTICK_BOT_TOKEN }}
 
@@ -67,7 +67,7 @@ jobs:
         if: github.ref == 'refs/heads/master' && failure() && ! env.CI_SKIP
         run: |
           export ACTION_URL="https://github.com/regro/autotick-bot/actions/runs/${RUN_ID}"
-          python bump_bot_team.py
+          python autotick-bot/bump_bot_team.py
         env:
           PASSWORD: ${{ secrets.AUTOTICK_BOT_TOKEN }}
           RUN_ID: ${{ github.run_id }}
