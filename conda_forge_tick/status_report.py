@@ -317,7 +317,7 @@ def _compute_recently_closed(total_status, old_closed_status, old_total_status):
     return closed_status
 
 
-def main(args: Any = None) -> None:
+def main() -> None:
     import requests
 
     r = requests.get(

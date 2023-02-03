@@ -37,6 +37,7 @@ stopit
 streamz
 tar
 tqdm
+typer
 wurlitzer
 xonsh
 yaml

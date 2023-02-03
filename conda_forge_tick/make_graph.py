@@ -306,8 +306,8 @@ def _update_nodes_with_archived(gx, archived_names):
 
 
 # @profiling
-def main(args: "CLIArgs") -> None:
-    if args.debug:
+def main(debug: bool) -> None:
+    if debug:
         setup_logger(logging.getLogger("conda_forge_tick"), level="debug")
     else:
         setup_logger(logging.getLogger("conda_forge_tick"))
@@ -317,7 +317,7 @@ def main(args: "CLIArgs") -> None:
         gx = load_graph()
     else:
         gx = None
-    gx = make_graph(names, gx, mark_not_archived=True, debug=args.debug)
+    gx = make_graph(names, gx, mark_not_archived=True, debug=debug)
     nodes_without_paylod = [k for k, v in gx.nodes.items() if "payload" not in v]
     if nodes_without_paylod:
         LOGGER.warning("nodes w/o payload: %s", nodes_without_paylod)

@@ -1,0 +1,6 @@
+#!/usr/bin/env python3 -u
+
+if __name__ == "__main__":
+    from conda_forge_tick.cli2 import main
+
+    main()

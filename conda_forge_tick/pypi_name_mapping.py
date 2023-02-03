@@ -9,7 +9,7 @@ import glob
 
 import requests
 import yaml
-import pathlib
+from pathlib import Path
 import functools
 
 from collections import Counter, defaultdict
@@ -20,7 +20,7 @@ from os.path import commonprefix
 from .utils import load, as_iterable, load_graph, dump, loads
 
 
-def load_node_meta_yaml(filename: str) -> Optional[Dict[str, str]]:
+def load_node_meta_yaml(filename: Path) -> Optional[Dict[str, str]]:
     node_attr = load(open(filename))
     if node_attr.get("archived", False):
         return None
@@ -146,10 +146,10 @@ def extract_single_pypi_information(meta_yaml: Dict[str, Any]) -> Dict[str, str]
     return {}
 
 
-def extract_pypi_information(cf_graph: str) -> List[Dict[str, str]]:
-    package_mappings = []
+def extract_pypi_information(cf_graph: Path) -> List[Dict[str, str]]:
+    package_mappings: list[dict[str, str]] = []
     # TODO: exclude archived node_attrs
-    for f in list(glob.glob(f"{cf_graph}/node_attrs/*.json")):
+    for f in cf_graph.glob("node_attrs/*.json"):
         meta_yaml = load_node_meta_yaml(f)
         if meta_yaml is None:
             continue
@@ -175,7 +175,7 @@ def convert_to_grayskull_style_yaml(
 
 
 def load_static_mappings() -> List[Dict[str, str]]:
-    path = pathlib.Path(__file__).parent / "pypi_name_mapping_static.yaml"
+    path = Path(__file__).parent / "pypi_name_mapping_static.yaml"
     with path.open("r") as fp:
         mapping = yaml.safe_load(fp)
     for d in mapping:
@@ -185,7 +185,7 @@ def load_static_mappings() -> List[Dict[str, str]]:
 
 def determine_best_matches_for_pypi_import(
     mapping: List[Dict[str, Any]],
-    cf_graph: str,
+    cf_graph: Path,
 ):
     map_by_import_name = defaultdict(set)
     map_by_conda_name = dict()
@@ -198,7 +198,7 @@ def determine_best_matches_for_pypi_import(
         map_by_import_name[m["import_name"]].add(conda_name)
         map_by_conda_name[conda_name] = m
 
-    graph_file = str(pathlib.Path(cf_graph) / "graph.json")
+    graph_file = str(cf_graph / "graph.json")
     gx = load_graph(graph_file)
     # TODO: filter out archived feedstocks?
 
@@ -264,7 +264,7 @@ def determine_best_matches_for_pypi_import(
 
     pkgs = list(gx.graph["outputs_lut"])
     ranked_list = list(sorted(pkgs, key=score))
-    with open(pathlib.Path(cf_graph) / "ranked_hubs_authorities.json", "w") as f:
+    with open(cf_graph / "ranked_hubs_authorities.json", "w") as f:
         dump(ranked_list, f)
 
     for import_name, candidates in sorted(map_by_import_name.items()):
@@ -289,8 +289,7 @@ def determine_best_matches_for_pypi_import(
     return final_map, ordered_import_names
 
 
-def main(args: "CLIArgs") -> None:
-    cf_graph = args.cf_graph
+def main(cf_graph: Path) -> None:
     static_packager_mappings = load_static_mappings()
     pypi_package_mappings = extract_pypi_information(cf_graph=cf_graph)
     best_imports, ordered_import_names = determine_best_matches_for_pypi_import(
@@ -300,7 +299,7 @@ def main(args: "CLIArgs") -> None:
 
     grayskull_style = convert_to_grayskull_style_yaml(best_imports.values())
 
-    dirname = pathlib.Path(cf_graph) / "mappings" / "pypi"
+    dirname = cf_graph / "mappings" / "pypi"
     dirname.mkdir(parents=True, exist_ok=True)
 
     yaml_dump = functools.partial(yaml.dump, default_flow_style=False, sort_keys=True)

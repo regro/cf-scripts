@@ -55,7 +55,6 @@ def _update_pr(update_function, dry_run, gx):
             node = gx.nodes[node_id]["payload"]
             prs = node.get("PRed", [])
             for i, migration in enumerate(prs):
-
                 if random.uniform(0, 1) >= KEEP_PR_FRACTION:
                     continue
 
@@ -131,21 +130,23 @@ def close_dirty_prs(gx: nx.DiGraph, dry_run: bool = False) -> nx.DiGraph:
 
 
 # @profiling
-def main(args: "CLIArgs") -> None:
+def main(dry_run: bool = False) -> None:
     setup_logger(logger)
 
     if os.path.exists("graph.json"):
         gx = load_graph()
     else:
+        # close_labels will fail if gx is None. not sure why we dont just exit here if load_graph fails
         gx = None
+    if dry_run:
+        print(f"Exiting early due to {dry_run=}")
 
-    if not args.dry_run:
-        gx = close_labels(gx, args.dry_run)
-        gx = update_graph_pr_status(gx, args.dry_run)
+    if not dry_run:
+        gx = close_labels(gx, dry_run=dry_run)
+        gx = update_graph_pr_status(gx, dry_run=dry_run)
         # This function needs to run last since it edits the actual pr json!
-        gx = close_dirty_prs(gx, args.dry_run)
+        gx = close_dirty_prs(gx, dry_run=dry_run)
 
 
 if __name__ == "__main__":
     pass
-    # main()

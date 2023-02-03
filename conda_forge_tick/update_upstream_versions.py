@@ -64,7 +64,6 @@ def _update_upstream_versions_sequential(
     gx: nx.DiGraph,
     sources: Iterable[AbstractSource] = None,
 ) -> None:
-
     _all_nodes = [t for t in gx.nodes.items()]
     random.shuffle(_all_nodes)
 
@@ -140,7 +139,6 @@ def _update_upstream_versions_process_pool(
         # eta :: elapsed time average
         eta = -1
         for f in as_completed(futures):
-
             n_left -= 1
             if n_left % 10 == 0:
                 eta = (time.time() - start) / (n_tot - n_left) * n_left
@@ -205,8 +203,8 @@ def update_upstream_versions(
     updater(gx, sources)
 
 
-def main(args: Any = None) -> None:
-    if args.debug:
+def main(debug: bool = False) -> None:
+    if debug:
         setup_logger(logger, level="debug")
     else:
         setup_logger(logger)
@@ -218,7 +216,7 @@ def main(args: Any = None) -> None:
     # Check if 'versions' folder exists or create a new one;
     os.makedirs("versions", exist_ok=True)
     # call update
-    update_upstream_versions(gx, debug=args.debug)
+    update_upstream_versions(gx, debug=debug)
 
 
 if __name__ == "__main__":

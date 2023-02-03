@@ -820,7 +820,6 @@ def create_migration_yaml_creator(migrators: MutableSequence[Migrator], gx: nx.D
             and gx.nodes[fs_name]["payload"].get("version")
             and fs_name not in feedstocks_to_be_repinned
         ):
-
             current_pins = list(map(str, package_pin_list))
             current_version = str(gx.nodes[fs_name]["payload"]["version"])
 
@@ -1303,26 +1302,32 @@ def _setup_limits():
 
 
 # @profiling
-def main(args: "CLIArgs") -> None:
+def main(
+    debug: bool = False,
+    dry_run: bool = False,
+    github_username: str = "",
+    github_password: str = "",
+    github_token: str = "",
+) -> None:
     _setup_limits()
 
     global BOT_HOME_DIR
     BOT_HOME_DIR = os.getcwd()
 
     # logging
-    if args.debug:
+    if debug:
         setup_logger(logging.getLogger("conda_forge_tick"), level="debug")
     else:
         setup_logger(logging.getLogger("conda_forge_tick"))
 
-    github_username = env.get("USERNAME", "")
-    github_password = env.get("PASSWORD", "")
-    github_token = env.get("GITHUB_TOKEN")
+    github_username = github_username or env.get("USERNAME", "")
+    github_password = github_password or env.get("PASSWORD", "")
+    github_token = github_token or env.get("GITHUB_TOKEN", "")
 
     mctx, temp, migrators = initialize_migrators(
         github_username=github_username,
         github_password=github_password,
-        dry_run=args.dry_run,
+        dry_run=dry_run,
         github_token=github_token,
     )
 
@@ -1365,7 +1370,7 @@ def main(args: "CLIArgs") -> None:
             mctx,
             temp,
             time_per_migrator[mg_ind],
-            args.dry_run,
+            dry_run,
         )
         if good_prs > 0:
             pass

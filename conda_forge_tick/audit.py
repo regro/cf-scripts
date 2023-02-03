@@ -199,7 +199,6 @@ def compare_grayskull_audits(gx):
 
     futures = {}
     with executor("dask", max_workers=20) as pool:
-
         for node, attrs in gx.nodes("payload"):
             if not attrs.get("version"):
                 continue
@@ -433,7 +432,7 @@ def compute_grayskull_accuracy(bad_inspection):
     )
 
 
-def main(args):
+def main():
     gx = load_graph()
     ctx = MigratorSessionContext("", "", "")
     start_time = time.time()
