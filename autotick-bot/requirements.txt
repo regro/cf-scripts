@@ -1,0 +1,3 @@
+pygithub
+requests
+git

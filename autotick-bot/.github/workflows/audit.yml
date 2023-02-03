@@ -1,0 +1,72 @@
+name: audit
+
+# on:
+#   schedule:
+#     - cron:  '0 * * * *'
+
+jobs:
+  audit:
+    name: audit
+    runs-on: "ubuntu-latest"
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: conda-incubator/setup-miniconda@v2
+        with:
+          python-version: ${{ secrets.PYVER }}
+          channels: conda-forge,defaults
+          channel-priority: strict
+          show-channel-urls: true
+          miniforge-version: latest
+          miniforge-variant: Mambaforge
+
+      - name: do local setup and stop me if needed
+        shell: bash -l {0}
+        run: |
+          source local_setup.sh
+          python stop_me_if_needed.py
+
+      - name: install bot code
+        shell: bash -l {0}
+        run: |
+          source install_bot_code.sh
+        env:
+          PASSWORD: ${{ secrets.AUTOTICK_BOT_TOKEN }}
+
+      - name: audit dependencies
+        shell: bash -l {0}
+        run: |
+          pushd cf-graph
+          conda activate run_env
+
+          conda-forge-tick --run 5
+          popd
+        env:
+          PASSWORD: ${{ secrets.AUTOTICK_BOT_TOKEN }}
+
+      - name: deploy
+        shell: bash -l {0}
+        if: github.ref == 'refs/heads/master' && ! cancelled()
+        run: |
+          pushd cf-graph
+          conda activate run_env
+
+          export CIRCLE_BUILD_URL="https://github.com/regro/autotick-bot/actions/runs/${RUN_ID}"
+          export CIRCLE_BUILD_NUM="actually-actions-${RUN_ID}"
+          conda-forge-tick --run -1
+
+          popd
+        env:
+          PASSWORD: ${{ secrets.AUTOTICK_BOT_TOKEN }}
+          RUN_ID: ${{ github.run_id }}
+
+      - name: bump on fail
+        shell: bash -l {0}
+        if: github.ref == 'refs/heads/master' && failure()
+        run: |
+          export ACTION_URL="https://github.com/regro/autotick-bot/actions/runs/${RUN_ID}"
+          python bump_bot_team.py
+        env:
+          PASSWORD: ${{ secrets.AUTOTICK_BOT_TOKEN }}
+          RUN_ID: ${{ github.run_id }}
+          ACTION_NAME: ${{ github.workflow }}
