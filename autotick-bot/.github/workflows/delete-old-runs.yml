@@ -27,7 +27,7 @@ jobs:
           import requests
           import datetime
           import time
-          
+
           gh = github.Github(os.environ['GITHUB_TOKEN'])
           r = gh.get_repo('regro/autotick-bot')
           done = 0
@@ -38,7 +38,7 @@ jobs:
                           datetime.datetime.utcnow() - rn.updated_at > datetime.timedelta(days=365)
                       ):
                           requests.delete(
-                              rn.url, 
+                              rn.url,
                               headers={'Authorization': 'Bearer ' + os.environ['GITHUB_TOKEN']},
                           )
                           done += 1
@@ -46,7 +46,7 @@ jobs:
                       if done == 200:
                           sys.exit(0)
           " > del_old_runs.py
-          
+
           python del_old_runs.py
         env:
           GITHUB_TOKEN: ${{ secrets.AUTOTICK_BOT_TOKEN }}

@@ -4,4 +4,3 @@
 2. name this file to 'please.stop' to stop the bot
 
 **Remember to put [ci skip] in the git commit when stopping the bot!**
-

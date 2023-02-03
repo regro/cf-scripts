@@ -18,7 +18,7 @@ def pushd(new_dir):
 with tempfile.TemporaryDirectory() as tmpdir, pushd(tmpdir):
     subprocess.run(
         ["git", "clone", "--depth=1", "https://github.com/regro/autotick-bot.git"],
-        check=True
+        check=True,
     )
 
     if os.path.exists(os.path.join("autotick-bot", "please.go")):
@@ -29,11 +29,11 @@ with tempfile.TemporaryDirectory() as tmpdir, pushd(tmpdir):
 if not go:
     print("I could not find the file 'please.go' on master! Stopping!")
     subprocess.run(
-        "echo \"CI_SKIP=1\" >> $GITHUB_ENV",
+        'echo "CI_SKIP=1" >> $GITHUB_ENV',
         shell=True,
     )
 else:
     subprocess.run(
-        "echo \"CI_SKIP=\" >> $GITHUB_ENV",
+        'echo "CI_SKIP=" >> $GITHUB_ENV',
         shell=True,
     )
