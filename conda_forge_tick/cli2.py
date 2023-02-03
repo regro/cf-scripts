@@ -96,7 +96,7 @@ def update_prs(dry_run: bool = False):
 
 @app.command()
 def mappings(
-    cf_graph: Path = typer.Argument(..., exists=True, help="Path to graph.json file")
+    cf_graph: Path = typer.Argument(..., exists=True, help="Path to graph.json file"),
 ):
     with timer():
         from conda_forge_tick.mappings import main
