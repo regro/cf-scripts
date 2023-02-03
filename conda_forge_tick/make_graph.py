@@ -306,7 +306,7 @@ def _update_nodes_with_archived(gx, archived_names):
 
 
 # @profiling
-def main(debug: bool) -> None:
+def main(debug: bool = False) -> None:
     if debug:
         setup_logger(logging.getLogger("conda_forge_tick"), level="debug")
     else:
