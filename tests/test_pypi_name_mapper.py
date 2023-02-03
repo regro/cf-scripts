@@ -1,17 +1,20 @@
-import pathlib
-from collections import defaultdict
+from pathlib import Path
+import pytest
 
 from conda_forge_tick.pypi_name_mapping import (
     extract_pypi_information,
-    load_static_mappings,
     imports_to_canonical_import,
 )
-from conda_forge_tick.utils import load_graph
-
-test_graph_dir = str(pathlib.Path(__file__).parent / "test_pypi_name_mapping")
 
 
-def test_directory():
+@pytest.fixture(scope="module")
+def test_graph_dir() -> Path:
+    p = Path(__file__).parent / "test_pypi_name_mapping"
+    assert p.exists()
+    return p
+
+
+def test_directory(test_graph_dir):
     res = extract_pypi_information(test_graph_dir)
     import pprint
 
