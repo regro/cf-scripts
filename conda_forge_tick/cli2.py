@@ -5,6 +5,7 @@ app = typer.Typer()
 
 
 from contextlib import contextmanager
+from pathlib import Path
 
 
 @contextmanager
@@ -99,7 +100,7 @@ def mappings(
     cf_graph: Path = typer.Argument(..., exists=True, help="Path to graph.json file"),
 ):
     with timer():
-        from conda_forge_tick.mappings import main
+        from .pypi_name_mapping import main
 
         main(cf_graph)
 
