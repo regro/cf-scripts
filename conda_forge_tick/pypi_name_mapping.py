@@ -306,7 +306,7 @@ def main(args: "CLIArgs") -> None:
 
     yaml_dump = functools.partial(yaml.dump, default_flow_style=False, sort_keys=True)
     # import pdb; pdb.set_trace()
-    for dumper, suffix in ((yaml_dump, 'yaml'), (json.dump, 'json')):
+    for dumper, suffix in ((yaml_dump, "yaml"), (json.dump, "json")):
         with (dirname / f"grayskull_pypi_mapping.{suffix}").open("w") as fp:
             dumper(grayskull_style, fp)
 
