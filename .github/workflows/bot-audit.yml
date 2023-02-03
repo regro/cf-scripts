@@ -51,7 +51,7 @@ jobs:
           pushd cf-graph
           conda activate run_env
 
-          export CIRCLE_BUILD_URL="https://github.com/regro/autotick-bot/actions/runs/${RUN_ID}"
+          export CIRCLE_BUILD_URL="https://github.com/regro/cf-scripts/actions/runs/${RUN_ID}"
           export CIRCLE_BUILD_NUM="actually-actions-${RUN_ID}"
           conda-forge-tick --run -1
 
@@ -64,7 +64,7 @@ jobs:
         shell: bash -l {0}
         if: github.ref == 'refs/heads/master' && failure()
         run: |
-          export ACTION_URL="https://github.com/regro/autotick-bot/actions/runs/${RUN_ID}"
+          export ACTION_URL="https://github.com/regro/cf-scripts/actions/runs/${RUN_ID}"
           python autotick-bot/bump_bot_team.py
         env:
           PASSWORD: ${{ secrets.AUTOTICK_BOT_TOKEN }}

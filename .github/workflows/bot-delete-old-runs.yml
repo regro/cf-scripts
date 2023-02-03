@@ -31,7 +31,7 @@ jobs:
           import time
 
           gh = github.Github(os.environ['GITHUB_TOKEN'])
-          r = gh.get_repo('regro/autotick-bot')
+          r = gh.get_repo('regro/cf-scripts')
           done = 0
           for w in r.get_workflows():
               for _ in range(10):

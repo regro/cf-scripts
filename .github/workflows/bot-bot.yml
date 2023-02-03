@@ -65,7 +65,7 @@ jobs:
         run: |
           export START_TIME=$(date +%s)
           export TIMEOUT=7200
-          export CIRCLE_BUILD_URL="https://github.com/regro/autotick-bot/actions/runs/${RUN_ID}"
+          export CIRCLE_BUILD_URL="https://github.com/regro/cf-scripts/actions/runs/${RUN_ID}"
           export CIRCLE_BUILD_NUM="actually-actions-${RUN_ID}"
 
           pushd cf-graph
@@ -92,7 +92,7 @@ jobs:
           pushd cf-graph
           conda activate run_env
 
-          export CIRCLE_BUILD_URL="https://github.com/regro/autotick-bot/actions/runs/${RUN_ID}"
+          export CIRCLE_BUILD_URL="https://github.com/regro/cf-scripts/actions/runs/${RUN_ID}"
           export CIRCLE_BUILD_NUM="actually-actions-${RUN_ID}"
           conda-forge-tick --run -1 ${BOT_CLI_ARGS}
 
@@ -113,7 +113,7 @@ jobs:
         shell: bash -l {0}
         if: github.ref == 'refs/heads/master' && failure() && ! env.CI_SKIP
         run: |
-          export ACTION_URL="https://github.com/regro/autotick-bot/actions/runs/${RUN_ID}"
+          export ACTION_URL="https://github.com/regro/cf-scripts/actions/runs/${RUN_ID}"
           python autotick-bot/bump_bot_team.py
         env:
           PASSWORD: ${{ secrets.AUTOTICK_BOT_TOKEN }}

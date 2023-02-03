@@ -1,4 +1,5 @@
 #!/usr/bin/env xonsh
+cd autotick-bot
 
 if 'please.go' in @(ls):
     mv please.go please.stop

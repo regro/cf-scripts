@@ -6,7 +6,7 @@ import github
 if os.environ["ACTION_NAME"] == "bot":
     gh = github.Github(os.environ["PASSWORD"])
 
-    repo = gh.get_repo("regro/autotick-bot")
+    repo = gh.get_repo("regro/cf-scripts")
 
     repo.create_issue(
         title="failed job %s" % os.environ["ACTION_NAME"],
