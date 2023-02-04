@@ -2,17 +2,16 @@
 This repo is now the home of the autotick bot (used to be at [regro/autotick-bot](https://github.com/regro/autotick-bot)) and remains the home of all of the code that powers the bot (under the `conda_forge_tick/` subdir).
 
 See [autotick-bot](#autotick-bot) section for info on the bot.
-
 See [cf-scripts](#cf-scripts) heading for info on the code that powers the bot.
 
 # autotick-bot
-[![update-status-page](https://github.com/regro/cf-scripts/workflows/bot-update-status-page/badge.svg)](https://github.com/regro/cf-scripts/actions?query=workflow%3Abot-update-status-page)
-[![pypi-mapping](https://github.com/regro/cf-scripts/workflows/bot-pypi-mapping/badge.svg)](https://github.com/regro/cf-scripts/actions?query=workflow%3Abot-pypi-mapping)
-[![versions](https://github.com/regro/cf-scripts/workflows/bot-versions/badge.svg)](https://github.com/regro/cf-scripts/actions?query=workflow%3Abot-versions)
-[![prs](https://github.com/regro/cf-scripts/workflows/bot-prs/badge.svg)](https://github.com/regro/cf-scripts/actions?query=workflow%3Abot-prs)
-[![bot](https://github.com/regro/cf-scripts/workflows/bot-bot/badge.svg)](https://github.com/regro/cf-scripts/actions?query=workflow%3Abot-bot)
-[![feedstocks](https://github.com/regro/cf-scripts/workflows/bot-feedstocks/badge.svg)](https://github.com/regro/cf-scripts/actions?query=workflow%3Abot-feedstocks)
-[![delete-old-runs](https://github.com/regro/cf-scripts/actions/workflows/bot-delete-old-runs.yml/badge.svg)](https://github.com/regro/cf-scripts/actions/workflows/bot-delete-old-runs.yml)
+[![update-status-page](https://github.com/regro/cf-scripts/workflows/update-status-page/badge.svg)](https://github.com/regro/cf-scripts/actions?query=workflow%3Aupdate-status-page)
+[![pypi-mapping](https://github.com/regro/cf-scripts/workflows/pypi-mapping/badge.svg)](https://github.com/regro/cf-scripts/actions?query=workflow%3Apypi-mapping)
+[![versions](https://github.com/regro/cf-scripts/workflows/versions/badge.svg)](https://github.com/regro/cf-scripts/actions?query=workflow%3Aversions)
+[![prs](https://github.com/regro/cf-scripts/workflows/prs/badge.svg)](https://github.com/regro/cf-scripts/actions?query=workflow%3Aprs)
+[![bot](https://github.com/regro/cf-scripts/workflows/bot/badge.svg)](https://github.com/regro/cf-scripts/actions?query=workflow%3Abot)
+[![feedstocks](https://github.com/regro/cf-scripts/workflows/feedstocks/badge.svg)](https://github.com/regro/cf-scripts/actions?query=workflow%3Afeedstocks)
+[![delete-old-runs](https://github.com/regro/cf-scripts/actions/workflows/delete-old-runs.yml/badge.svg)](https://github.com/regro/cf-scripts/actions/workflows/delete-old-runs.yml)
 
 the actual bot in an actual place doing an actual thing
 
