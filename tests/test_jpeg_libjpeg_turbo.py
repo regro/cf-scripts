@@ -16,15 +16,10 @@ YAML_PATH = os.path.join(os.path.dirname(__file__), "test_yaml")
 @pytest.mark.parametrize(
     "old_meta,new_meta,new_ver",
     [
-        # (
-        #     "jpegturbo_r_base_before.yaml",
-        #     "jpegturbo_r_base_after.yaml",
-        #     "4.2.2",
-        # ),
         (
-            "jpegturbo_pillow_before.yaml",
-            "jpegturbo_pillow_after.yaml",
-            "9.4.0",
+            "jpegturbo_pillow_before_meta.yaml",
+            "jpegturbo_pillow_after_meta.yaml",
+            "9.4.1",
         ),
     ],
 )

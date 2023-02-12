@@ -37,6 +37,7 @@ requirements:
     # GPL discussion, see #109 and #111
     # - fribidi
     - jpeg
+    - qt
     - openjpeg
     - lcms2
     # not available elsewhere

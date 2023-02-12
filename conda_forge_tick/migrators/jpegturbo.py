@@ -5,8 +5,7 @@ import os
 def _parse_jpeg(lines):
     new_lines = []
     for line in lines:
-        if line.endswith(" jpeg\n"):
-            line = line.replace(" jpeg", " libjpeg-turbo")
+        line = line.replace(" jpeg\n", " libjpeg-turbo\n")
         line = line.replace(" jpeg", " libjpeg-turbo ")
         new_lines.append(line)
     return new_lines

@@ -1,4 +1,4 @@
-{% set version = "9.4.0" %}
+{% set version = "9.4.1" %}
 
 package:
   name: pillow
@@ -20,7 +20,7 @@ source:
     - patches/0005-Relaxed-child-images-check-to-allow-for-libjpeg.patch
 
 build:
-  number: 1
+  number: 0
 
 requirements:
   build:
@@ -36,7 +36,8 @@ requirements:
     # fribidi and libimagequant disabled due to
     # GPL discussion, see #109 and #111
     # - fribidi
-    - libjpeg-turbo
+    - jpeg
+    - qt-main
     - openjpeg
     - lcms2
     # not available elsewhere
