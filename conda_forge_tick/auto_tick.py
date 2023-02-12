@@ -102,7 +102,7 @@ from conda_forge_tick.migrators import (
     MPIPinRunAsBuildCleanup,
     DependencyUpdateMigrator,
     QtQtMainMigrator,
-    JpegTuroboMigrator,
+    JpegTurboMigrator,
 )
 
 from conda_forge_tick.mamba_solver import is_recipe_solvable
@@ -664,7 +664,7 @@ def add_rebuild_migration_yaml(
     if migration_name == "qt515":
         piggy_back_migrations.append(QtQtMainMigrator())
     if migration_name == "jpeg9e":
-        piggy_back_migrations.append(JpegTuroboMigrator())
+        piggy_back_migrations.append(JpegTurboMigrator())
     cycles = list(nx.simple_cycles(total_graph))
     migrator = MigrationYaml(
         migration_yaml,
