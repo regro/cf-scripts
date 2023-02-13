@@ -1,9 +1,9 @@
 name: bot
 
-on:
-  workflow_dispatch: null
-  schedule:
-    - cron:  '*/30 * * * *'
+# on:
+#   workflow_dispatch: null
+#   schedule:
+#     - cron:  '*/30 * * * *'
 
 jobs:
   bot:
@@ -17,6 +17,8 @@ jobs:
         shell: bash -l {0}
     steps:
       - uses: actions/checkout@v3
+        with:
+          path: cf-scripts
 
       - name: check filesystem
         run: |
@@ -28,7 +30,7 @@ jobs:
 
       - uses: conda-incubator/setup-miniconda@v2
         with:
-          python-version: ${{ secrets.PYVER }}
+          python-version: ${{ vars.PYVER }}
           channels: conda-forge,defaults
           channel-priority: strict
           show-channel-urls: true
@@ -51,9 +53,9 @@ jobs:
         if: success() && ! env.CI_SKIP
         run: |
           pushd cf-graph
-          conda activate run_env
 
           conda-forge-tick --run 1 ${BOT_CLI_ARGS}
+
           popd
         env:
           USERNAME: regro-cf-autotick-bot
@@ -69,9 +71,9 @@ jobs:
           export CIRCLE_BUILD_NUM="actually-actions-${RUN_ID}"
 
           pushd cf-graph
-          conda activate run_env
 
           conda-forge-tick --run 3 ${BOT_CLI_ARGS}
+
           popd
         env:
           USERNAME: regro-cf-autotick-bot
@@ -90,7 +92,6 @@ jobs:
         if: github.ref == 'refs/heads/master' && always() && ! env.CI_SKIP
         run: |
           pushd cf-graph
-          conda activate run_env
 
           export CIRCLE_BUILD_URL="https://github.com/regro/cf-scripts/actions/runs/${RUN_ID}"
           export CIRCLE_BUILD_NUM="actually-actions-${RUN_ID}"

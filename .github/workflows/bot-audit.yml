@@ -10,10 +10,12 @@ jobs:
     runs-on: "ubuntu-latest"
     steps:
       - uses: actions/checkout@v3
+        with:
+          path: cf-scripts
 
       - uses: conda-incubator/setup-miniconda@v2
         with:
-          python-version: ${{ secrets.PYVER }}
+          python-version: ${{ vars.PYVER }}
           channels: conda-forge,defaults
           channel-priority: strict
           show-channel-urls: true
@@ -37,9 +39,9 @@ jobs:
         shell: bash -l {0}
         run: |
           pushd cf-graph
-          conda activate run_env
 
           conda-forge-tick --run 5
+
           popd
         env:
           PASSWORD: ${{ secrets.AUTOTICK_BOT_TOKEN }}
@@ -49,7 +51,6 @@ jobs:
         if: github.ref == 'refs/heads/master' && ! cancelled()
         run: |
           pushd cf-graph
-          conda activate run_env
 
           export CIRCLE_BUILD_URL="https://github.com/regro/cf-scripts/actions/runs/${RUN_ID}"
           export CIRCLE_BUILD_NUM="actually-actions-${RUN_ID}"

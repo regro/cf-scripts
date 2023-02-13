@@ -1,9 +1,9 @@
 name: versions
 
-on:
-  schedule:
-    - cron:  '0,20,40 * * * *'
-  workflow_dispatch: null
+# on:
+#   schedule:
+#     - cron:  '0,20,40 * * * *'
+#   workflow_dispatch: null
 
 jobs:
   versions:
@@ -15,10 +15,12 @@ jobs:
         shell: bash -l {0}
     steps:
       - uses: actions/checkout@v3
+        with:
+          path: cf-scripts
 
       - uses: conda-incubator/setup-miniconda@v2
         with:
-          python-version: ${{ secrets.PYVER }}
+          python-version: ${{ vars.PYVER }}
           channels: conda-forge,defaults
           channel-priority: strict
           show-channel-urls: true
@@ -41,9 +43,9 @@ jobs:
         if: success() && ! env.CI_SKIP
         run: |
           pushd cf-graph
-          conda activate run_env
 
           conda-forge-tick --run 2
+
           popd
         env:
           PASSWORD: ${{ secrets.AUTOTICK_BOT_TOKEN }}
@@ -52,7 +54,6 @@ jobs:
         if: github.ref == 'refs/heads/master' && ! cancelled() && ! env.CI_SKIP
         run: |
           pushd cf-graph
-          conda activate run_env
 
           export CIRCLE_BUILD_URL="https://github.com/regro/cf-scripts/actions/runs/${RUN_ID}"
           export CIRCLE_BUILD_NUM="actually-actions-${RUN_ID}"

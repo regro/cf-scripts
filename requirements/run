@@ -6,6 +6,7 @@ cachecontrol
 cachetools
 conda
 conda-forge-pinning
+conda-libmamba-solver
 conda-package-handling<2
 conda-smithy
 curl
