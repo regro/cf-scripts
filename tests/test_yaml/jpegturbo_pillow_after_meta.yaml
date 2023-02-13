@@ -36,7 +36,7 @@ requirements:
     # fribidi and libimagequant disabled due to
     # GPL discussion, see #109 and #111
     # - fribidi
-    - jpeg
+    - libjpeg-turbo
     - qt-main
     - openjpeg
     - lcms2
