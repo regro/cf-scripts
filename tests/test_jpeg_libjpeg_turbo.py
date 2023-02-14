@@ -19,7 +19,7 @@ YAML_PATH = os.path.join(os.path.dirname(__file__), "test_yaml")
         (
             "jpegturbo_pillow_before_meta.yaml",
             "jpegturbo_pillow_after_meta.yaml",
-            "9.4.1",
+            "9.4.0",
         ),
     ],
 )

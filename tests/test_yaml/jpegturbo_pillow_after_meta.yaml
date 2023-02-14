@@ -1,4 +1,4 @@
-{% set version = "9.4.1" %}
+{% set version = "9.4.0" %}
 
 package:
   name: pillow
@@ -37,7 +37,7 @@ requirements:
     # GPL discussion, see #109 and #111
     # - fribidi
     - libjpeg-turbo
-    - qt-main
+    - qt
     - openjpeg
     - lcms2
     # not available elsewhere
