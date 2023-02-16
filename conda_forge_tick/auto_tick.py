@@ -104,7 +104,7 @@ from conda_forge_tick.migrators import (
     QtQtMainMigrator,
 )
 
-from conda_forge_tick.mamba_solver import is_recipe_solvable
+from conda_forge_feedstock_check_solvable import is_recipe_solvable
 
 # not using this right now
 # from conda_forge_tick.deploy import deploy
