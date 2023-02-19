@@ -33,5 +33,5 @@ conda create -y -n cf --file requirements/run --file requirements/test ipython
 source activate cf
 pip install -e .
 pre-commit run -a
-coverage run run_tests.py
+pytest tests
 ```
