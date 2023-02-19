@@ -14,8 +14,7 @@ from conda_forge_tick.utils import (
 )
 from conda_forge_tick.feedstock_parser import populate_feedstock_attributes
 from conda_forge_tick.migrators import MigrationYamlCreator, merge_migrator_cbc
-from conda_forge_tick.xonsh_utils import eval_xonsh
-from conda_forge_tick.utils import pushd
+from conda_forge_tick.utils import pushd, eval_cmd
 
 G = nx.DiGraph()
 G.add_node("conda", reqs=["python"], payload={})
@@ -143,7 +142,7 @@ def test_migration_yaml_migration(tmock, in_out_yaml, caplog, tmpdir):
     MYM = MigrationYamlCreator(pname, pin_ver, curr_pin, pin_spec, "hi", G, G)
 
     with pushd(tmpdir):
-        eval_xonsh("git init .")
+        eval_cmd("git init .")
 
     os.makedirs(os.path.join(tmpdir, "migrations"), exist_ok=True)
 
