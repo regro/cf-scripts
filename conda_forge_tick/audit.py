@@ -27,7 +27,6 @@ from conda_forge_tick.utils import (
     yaml_safe_load,
 )
 from conda_forge_tick.feedstock_parser import load_feedstock
-from conda_forge_tick.xonsh_utils import env
 from conda_forge_tick.utils import pushd
 
 for __i in range(10):
@@ -461,8 +460,8 @@ def main(args):
         key=lambda x: (len(nx.descendants(gx, x)), x),
         reverse=True,
     ):
-        if time.time() - int(env.get("START_TIME", start_time)) > int(
-            env.get("TIMEOUT", 60 * RUNTIME_MINUTES),
+        if time.time() - int(os.environ.get("START_TIME", start_time)) > int(
+            os.environ.get("TIMEOUT", 60 * RUNTIME_MINUTES),
         ):
             break
         # depfinder only work on python at the moment so only work on things

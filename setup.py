@@ -1,9 +1,13 @@
 from setuptools import setup, find_packages
 
+__version__ = None
+with open("conda_forge_tick/_version.py") as fp:
+    exec(fp.read().strip())
+
 setup(
     name="conda-forge-tick",
-    version="0.0.1",
-    description="",
+    version=__version__,
+    description="Flagship repo for cf-regro-autotick-bot",
     author="Conda-forge-tick Development Team",
     author_email="",
     scripts=["bin/conda-forge-tick"],

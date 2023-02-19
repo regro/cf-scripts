@@ -1,5 +1,4 @@
 import os
-import builtins
 import re
 
 import pytest
@@ -34,7 +33,7 @@ from conda_forge_tick.utils import (
     frozen_to_json_friendly,
 )
 from conda_forge_tick.feedstock_parser import populate_feedstock_attributes
-from xonsh.lib import subprocess
+import subprocess
 from conda_forge_tick.utils import pushd
 
 
@@ -1645,9 +1644,7 @@ class MockLazyJson:
 G = nx.DiGraph()
 G.add_node("conda", reqs=["python"])
 G.nodes["conda"]["payload"] = MockLazyJson({})
-env = builtins.__xonsh__.env  # type: ignore
-env["GRAPH"] = G
-env["CIRCLE_BUILD_URL"] = "hi world"
+os.environ["CIRCLE_BUILD_URL"] = "hi world"
 
 
 def run_test_migration(
@@ -1667,7 +1664,7 @@ def run_test_migration(
         pinning_version="",
         github_username="",
         github_password="",
-        circle_build_url=env["CIRCLE_BUILD_URL"],
+        circle_build_url=os.environ["CIRCLE_BUILD_URL"],
     )
     m_ctx = MigratorContext(mm_ctx, m)
     m.bind_to_ctx(m_ctx)
@@ -1824,6 +1821,7 @@ def test_js_migrator2(tmpdir):
 
 @pytest.mark.skip
 def test_cb3(tmpdir):
+    compiler = None  # here to make flake8 happy
     run_test_migration(
         m=compiler,
         inp=sample_cb3,
