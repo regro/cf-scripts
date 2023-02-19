@@ -18,7 +18,6 @@ from conda_forge_tick.utils import pushd, eval_cmd
 G = nx.DiGraph()
 G.add_node("conda", reqs=["python"], payload={})
 G.graph["outputs_lut"] = {}
-os.environ["GRAPH"] = G
 os.environ["CIRCLE_BUILD_URL"] = "hi world"
 
 YAML_PATH = os.path.join(os.path.dirname(__file__), "test_yaml")

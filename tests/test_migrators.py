@@ -1644,7 +1644,6 @@ class MockLazyJson:
 G = nx.DiGraph()
 G.add_node("conda", reqs=["python"])
 G.nodes["conda"]["payload"] = MockLazyJson({})
-os.environ["GRAPH"] = G
 os.environ["CIRCLE_BUILD_URL"] = "hi world"
 
 
