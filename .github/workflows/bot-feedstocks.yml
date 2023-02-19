@@ -37,9 +37,7 @@ jobs:
       - name: install bot code
         if: success() && ! env.CI_SKIP
         run: |
-          pushd cf-scripts
           source autotick-bot/install_bot_code.sh
-          popd
         env:
           PASSWORD: ${{ secrets.AUTOTICK_BOT_TOKEN }}
 
