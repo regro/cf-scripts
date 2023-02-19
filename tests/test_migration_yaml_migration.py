@@ -1,6 +1,5 @@
 import os
 import re
-import builtins
 import logging
 from unittest import mock
 
@@ -19,9 +18,8 @@ from conda_forge_tick.utils import pushd, eval_cmd
 G = nx.DiGraph()
 G.add_node("conda", reqs=["python"], payload={})
 G.graph["outputs_lut"] = {}
-env = builtins.__xonsh__.env  # type: ignore
-env["GRAPH"] = G
-env["CIRCLE_BUILD_URL"] = "hi world"
+os.environ["GRAPH"] = G
+os.environ["CIRCLE_BUILD_URL"] = "hi world"
 
 YAML_PATH = os.path.join(os.path.dirname(__file__), "test_yaml")
 
@@ -184,7 +182,7 @@ def run_test_migration(
         pinning_version="",
         github_username="",
         github_password="",
-        circle_build_url=env["CIRCLE_BUILD_URL"],
+        circle_build_url=os.environ["CIRCLE_BUILD_URL"],
     )
     m_ctx = MigratorContext(mm_ctx, m)
     m.bind_to_ctx(m_ctx)
