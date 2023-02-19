@@ -1,9 +1,9 @@
 name: bot-feedstocks
 
-# on:
-#   schedule:
-#     - cron: "15 * * * *"
-#   workflow_dispatch: null
+on:
+  schedule:
+    - cron: "15 * * * *"
+  workflow_dispatch: null
 
 jobs:
   feedstocks:
