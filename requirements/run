@@ -7,6 +7,7 @@ cachetools
 conda
 conda-forge-feedstock-check-solvable
 conda-forge-pinning
+conda-libmamba-solver
 conda-package-handling<2
 conda-smithy
 curl

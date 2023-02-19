@@ -1,0 +1,122 @@
+name: bot
+
+# on:
+#   workflow_dispatch: null
+#   schedule:
+#     - cron:  '*/30 * * * *'
+
+jobs:
+  bot:
+    name: bot
+    runs-on: "ubuntu-latest"
+    env:
+      BOT_CLI_ARGS: ""
+    concurrency: bot
+    defaults:
+      run:
+        shell: bash -l {0}
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          path: cf-scripts
+
+      - name: check filesystem
+        run: |
+          df
+
+      - name: check memory
+        run: |
+          free
+
+      - uses: conda-incubator/setup-miniconda@v2
+        with:
+          python-version: ${{ vars.PYVER }}
+          channels: conda-forge,defaults
+          channel-priority: strict
+          show-channel-urls: true
+          miniforge-version: latest
+          miniforge-variant: Mambaforge
+
+      - name: do local setup and stop me if needed
+        run: |
+          source autotick-bot/local_setup.sh
+          python autotick-bot/stop_me_if_needed.py
+
+      - name: install bot code
+        if: success() && ! env.CI_SKIP
+        run: |
+          source autotick-bot/install_bot_code.sh
+        env:
+          PASSWORD: ${{ secrets.AUTOTICK_BOT_TOKEN }}
+
+      - name: make graph
+        if: success() && ! env.CI_SKIP
+        run: |
+          pushd cf-graph
+
+          conda-forge-tick --run 1 ${BOT_CLI_ARGS}
+
+          popd
+        env:
+          USERNAME: regro-cf-autotick-bot
+          PASSWORD: ${{ secrets.AUTOTICK_BOT_TOKEN }}
+
+      - name: run migrations
+        if: success() && ! env.CI_SKIP
+        timeout-minutes: 210
+        run: |
+          export START_TIME=$(date +%s)
+          export TIMEOUT=7200
+          export CIRCLE_BUILD_URL="https://github.com/regro/cf-scripts/actions/runs/${RUN_ID}"
+          export CIRCLE_BUILD_NUM="actually-actions-${RUN_ID}"
+
+          pushd cf-graph
+
+          conda-forge-tick --run 3 ${BOT_CLI_ARGS}
+
+          popd
+        env:
+          USERNAME: regro-cf-autotick-bot
+          PASSWORD: ${{ secrets.AUTOTICK_BOT_TOKEN }}
+          RUN_ID: ${{ github.run_id }}
+          MEMORY_LIMIT_GB: 7
+
+      - name: status of changes
+        if: github.ref == 'refs/heads/master' && always() && ! env.CI_SKIP
+        run: |
+          pushd cf-graph
+          git status
+          popd
+
+      - name: deploy
+        if: github.ref == 'refs/heads/master' && always() && ! env.CI_SKIP
+        run: |
+          pushd cf-graph
+
+          export CIRCLE_BUILD_URL="https://github.com/regro/cf-scripts/actions/runs/${RUN_ID}"
+          export CIRCLE_BUILD_NUM="actually-actions-${RUN_ID}"
+          conda-forge-tick --run -1 ${BOT_CLI_ARGS}
+
+          popd
+        env:
+          PASSWORD: ${{ secrets.AUTOTICK_BOT_TOKEN }}
+          RUN_ID: ${{ github.run_id }}
+
+      - name: trigger next job
+        uses: benc-uk/workflow-dispatch@798e70c97009500150087d30d9f11c5444830385
+        if: github.ref == 'refs/heads/master' && ! cancelled() && ! failure() && ! env.CI_SKIP
+        with:
+          workflow: bot
+          ref: ${{ github.event.ref }}
+          token: ${{ secrets.AUTOTICK_BOT_TOKEN }}
+
+      - name: bump on fail
+        shell: bash -l {0}
+        if: github.ref == 'refs/heads/master' && failure() && ! env.CI_SKIP
+        run: |
+          export ACTION_URL="https://github.com/regro/cf-scripts/actions/runs/${RUN_ID}"
+          python autotick-bot/bump_bot_team.py
+        env:
+          PASSWORD: ${{ secrets.AUTOTICK_BOT_TOKEN }}
+          RUN_ID: ${{ github.run_id }}
+          ACTION_NAME: ${{ github.workflow }}
