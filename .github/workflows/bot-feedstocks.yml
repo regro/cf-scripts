@@ -29,13 +29,17 @@ jobs:
 
       - name: do local setup and stop me if needed
         run: |
+          pushd cf-scripts
           source autotick-bot/local_setup.sh
           python autotick-bot/stop_me_if_needed.py
+          popd
 
       - name: install bot code
         if: success() && ! env.CI_SKIP
         run: |
+          pushd cf-scripts
           source autotick-bot/install_bot_code.sh
+          popd
         env:
           PASSWORD: ${{ secrets.AUTOTICK_BOT_TOKEN }}
 
