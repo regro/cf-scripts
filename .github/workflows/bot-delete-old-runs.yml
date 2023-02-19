@@ -38,7 +38,7 @@ jobs:
               for _ in range(10):
                   for rn in w.get_runs():
                       if rn.status == 'completed' and (
-                          datetime.datetime.utcnow() - rn.updated_at > datetime.timedelta(days=365)
+                          datetime.datetime.utcnow() - rn.updated_at > datetime.timedelta(days=90)
                       ):
                           requests.delete(
                               rn.url,
