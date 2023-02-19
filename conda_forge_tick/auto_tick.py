@@ -44,7 +44,7 @@ from urllib.error import URLError
 import github3
 from uuid import uuid4
 
-from conda_forge_tick.utils import pushd
+from conda_forge_tick.utils import pushd, env_swap
 
 from conda_forge_tick.contexts import (
     FeedstockContext,
@@ -251,7 +251,7 @@ def run(
 
     # rerender, maybe
     diffed_files: typing.List[str] = []
-    with pushd(feedstock_dir), env.swap(RAISE_SUBPROC_ERROR=False):
+    with pushd(feedstock_dir), env_swap("RAISE_SUBPROC_ERROR", False):
         msg = migrator.commit_message(feedstock_ctx)  # noqa
         try:
             eval_cmd("git add --all .")
@@ -1314,9 +1314,12 @@ def main(args: "CLIArgs") -> None:
     else:
         setup_logger(logging.getLogger("conda_forge_tick"))
 
-    github_username = os.environ.get("USERNAME", "")
-    github_password = os.environ.get("PASSWORD", "")
-    github_token = os.environ.get("GITHUB_TOKEN")
+    from . import sensitive_env
+
+    with sensitive_env() as env:
+        github_username = env.get("USERNAME", "")
+        github_password = env.get("PASSWORD", "")
+        github_token = env.get("GITHUB_TOKEN")
 
     mctx, temp, migrators = initialize_migrators(
         github_username=github_username,
