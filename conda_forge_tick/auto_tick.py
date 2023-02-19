@@ -44,7 +44,7 @@ from urllib.error import URLError
 import github3
 from uuid import uuid4
 
-from conda_forge_tick.utils import pushd, env_swap
+from conda_forge_tick.utils import pushd
 
 from conda_forge_tick.contexts import (
     FeedstockContext,
@@ -251,7 +251,7 @@ def run(
 
     # rerender, maybe
     diffed_files: typing.List[str] = []
-    with pushd(feedstock_dir), env_swap("RAISE_SUBPROC_ERROR", False):
+    with pushd(feedstock_dir):
         msg = migrator.commit_message(feedstock_ctx)  # noqa
         try:
             eval_cmd("git add --all .")
