@@ -26,7 +26,6 @@ from .utils import (
     LazyJson,
     as_iterable,
 )
-from .xonsh_utils import env
 
 if typing.TYPE_CHECKING:
     from .cli import CLIArgs
@@ -36,9 +35,9 @@ pin_sep_pat = re.compile(r" |>|<|=|\[")
 
 NUM_GITHUB_THREADS = 2
 
-github_username = env.get("USERNAME", "")
-github_password = env.get("PASSWORD", "")
-github_token = env.get("GITHUB_TOKEN")
+github_username = os.environ.get("USERNAME", "")
+github_password = os.environ.get("PASSWORD", "")
+github_token = os.environ.get("GITHUB_TOKEN")
 
 ghctx = GithubContext(
     github_username=github_username,

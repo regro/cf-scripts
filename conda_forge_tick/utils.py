@@ -84,6 +84,19 @@ def pushd(new_dir):
         os.chdir(previous_dir)
 
 
+@contextlib.contextmanager
+def env_swap(var, val):
+    has_var = var in os.environ
+    old_val = os.environ.get(var, None)
+
+    try:
+        os.environ[var] = val
+        yield
+    finally:
+        if has_var:
+            os.environ[var] = old_val
+
+
 def yaml_safe_load(stream):
     """Load a yaml doc safely"""
     return ruamel.yaml.YAML(typ="safe", pure=True).load(stream)

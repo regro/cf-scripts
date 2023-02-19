@@ -15,8 +15,7 @@ import github3.exceptions
 import github3.repos
 
 from doctr.travis import run_command_hiding_token as doctr_run
-from .xonsh_utils import env
-from .utils import pushd
+from .utils import pushd, env_swap
 
 from requests.exceptions import Timeout, RequestException
 from .contexts import GithubContext, FeedstockContext, MigratorSessionContext
@@ -616,7 +615,7 @@ def push_repo(
         The dict representing the PR, can be used with `from_json`
         to create a PR instance.
     """
-    with pushd(feedstock_dir), env.swap(RAISE_SUBPROC_ERROR=False):
+    with pushd(feedstock_dir), env_swap("RAISE_SUBPROC_ERROR", False):
         # Setup push from doctr
         # Copyright (c) 2016 Aaron Meurer, Gil Forsyth
         token = session_ctx.github_password
