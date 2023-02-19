@@ -95,6 +95,8 @@ def env_swap(var, val):
     finally:
         if has_var:
             os.environ[var] = old_val
+        else:
+            del os.environ[var]
 
 
 def yaml_safe_load(stream):
