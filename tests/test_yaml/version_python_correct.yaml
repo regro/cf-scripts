@@ -108,7 +108,7 @@ source:
     sha256: de3c87b26a80e789986d8e6950c6304175d3829afe9c6c7211eb7257266ab0ac  # [win]
   - url: https://github.com/python/cpython-bin-deps/archive/libffi.zip  # [win]
     folder: externals/libffi  # [win]
-    sha256: ab2a1b20978c1048be8b0486a1e38b3acc4f8c298b962c282365c199ad1db19a  # [win]
+    sha256: 618c607049f99697fbb12e120b3795b071b6c9fc4b8f20b29fe2e4d187d0f910  # [win]
 
 build:
   number: {{ build_number }}

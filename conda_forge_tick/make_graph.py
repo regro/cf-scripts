@@ -26,7 +26,7 @@ from .utils import (
     LazyJson,
     as_iterable,
 )
-from .xonsh_utils import env
+from . import sensitive_env
 
 if typing.TYPE_CHECKING:
     from .cli import CLIArgs
@@ -36,9 +36,10 @@ pin_sep_pat = re.compile(r" |>|<|=|\[")
 
 NUM_GITHUB_THREADS = 2
 
-github_username = env.get("USERNAME", "")
-github_password = env.get("PASSWORD", "")
-github_token = env.get("GITHUB_TOKEN")
+with sensitive_env() as env:
+    github_username = env.get("USERNAME", "")
+    github_password = env.get("PASSWORD", "")
+    github_token = env.get("GITHUB_TOKEN")
 
 ghctx = GithubContext(
     github_username=github_username,

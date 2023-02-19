@@ -44,7 +44,6 @@ from urllib.error import URLError
 import github3
 from uuid import uuid4
 
-from conda_forge_tick.xonsh_utils import env
 from conda_forge_tick.utils import pushd
 
 from conda_forge_tick.contexts import (
@@ -252,7 +251,7 @@ def run(
 
     # rerender, maybe
     diffed_files: typing.List[str] = []
-    with pushd(feedstock_dir), env.swap(RAISE_SUBPROC_ERROR=False):
+    with pushd(feedstock_dir):
         msg = migrator.commit_message(feedstock_ctx)  # noqa
         try:
             eval_cmd("git add --all .")
@@ -1032,7 +1031,7 @@ def _compute_time_per_migrator(mctx, migrators):
 
     num_nodes_tot = sum(num_nodes)
     # do not divide by zero
-    time_per_node = float(env.get("TIMEOUT", 600)) / max(num_nodes_tot, 1)
+    time_per_node = float(os.environ.get("TIMEOUT", 600)) / max(num_nodes_tot, 1)
 
     # also enforce a minimum of 300 seconds if any nodes can be migrated
     time_per_migrator = []
@@ -1047,7 +1046,7 @@ def _compute_time_per_migrator(mctx, migrators):
     # finally rescale to fit in the time we have
     tot_time_per_migrator = sum(time_per_migrator)
     if tot_time_per_migrator > 0:
-        time_fac = float(env.get("TIMEOUT", 600)) / tot_time_per_migrator
+        time_fac = float(os.environ.get("TIMEOUT", 600)) / tot_time_per_migrator
     else:
         time_fac = 1.0
     for i in range(len(time_per_migrator)):
@@ -1116,8 +1115,8 @@ def _run_migrator(migrator, mctx, temp, time_per, dry_run):
             _now = time.time()
             if (
                 (
-                    _now - int(env.get("START_TIME", time.time()))
-                    > int(env.get("TIMEOUT", 600))
+                    _now - int(os.environ.get("START_TIME", time.time()))
+                    > int(os.environ.get("TIMEOUT", 600))
                 )
                 or good_prs >= migrator.pr_limit
                 or (_now - _mg_start) > time_per
@@ -1315,9 +1314,12 @@ def main(args: "CLIArgs") -> None:
     else:
         setup_logger(logging.getLogger("conda_forge_tick"))
 
-    github_username = env.get("USERNAME", "")
-    github_password = env.get("PASSWORD", "")
-    github_token = env.get("GITHUB_TOKEN")
+    from . import sensitive_env
+
+    with sensitive_env() as env:
+        github_username = env.get("USERNAME", "")
+        github_password = env.get("PASSWORD", "")
+        github_token = env.get("GITHUB_TOKEN")
 
     mctx, temp, migrators = initialize_migrators(
         github_username=github_username,
