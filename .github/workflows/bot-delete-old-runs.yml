@@ -36,7 +36,7 @@ jobs:
           done = 0
           for w in r.get_workflows():
               for _ in range(10):
-                  for rn in w.get_runs():
+                  for rn in w.get_runs().reversed:
                       if rn.status == 'completed' and (
                           datetime.datetime.utcnow() - rn.updated_at > datetime.timedelta(days=90)
                       ):
