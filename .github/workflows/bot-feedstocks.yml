@@ -29,7 +29,6 @@ jobs:
 
       - name: do local setup and stop me if needed
         run: |
-          conda env list
           pushd cf-scripts
           source autotick-bot/local_setup.sh
           python autotick-bot/stop_me_if_needed.py
