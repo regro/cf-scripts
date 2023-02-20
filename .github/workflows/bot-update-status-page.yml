@@ -1,4 +1,4 @@
-name: update-status-page
+name: bot-update-status-page
 
 # on:
 #   workflow_dispatch: null

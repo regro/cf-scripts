@@ -1,4 +1,4 @@
-name: delete-old-runs
+name: bot-delete-old-runs
 
 on:
   schedule:

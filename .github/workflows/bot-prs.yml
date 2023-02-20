@@ -1,4 +1,4 @@
-name: prs
+name: bot-prs
 
 # on:
 #   workflow_dispatch: null

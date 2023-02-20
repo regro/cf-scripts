@@ -3,7 +3,7 @@ import sys
 import github
 
 
-if os.environ["ACTION_NAME"] == "bot":
+if os.environ["ACTION_NAME"] == "bot-bot":
     gh = github.Github(os.environ["PASSWORD"])
 
     repo = gh.get_repo("regro/cf-scripts")
