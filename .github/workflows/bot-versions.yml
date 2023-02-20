@@ -1,9 +1,9 @@
 name: bot-versions
 
-# on:
-#   schedule:
-#     - cron:  '0,20,40 * * * *'
-#   workflow_dispatch: null
+on:
+  schedule:
+    - cron:  '0,30 * * * *'
+  workflow_dispatch: null
 
 jobs:
   versions:
@@ -29,13 +29,15 @@ jobs:
 
       - name: do local setup and stop me if needed
         run: |
+          pushd cf-scripts
           source autotick-bot/local_setup.sh
           python autotick-bot/stop_me_if_needed.py
+          popd
 
       - name: install bot code
         if: success() && ! env.CI_SKIP
         run: |
-          source autotick-bot/install_bot_code.sh
+          source cf-scripts/autotick-bot/install_bot_code.sh
         env:
           PASSWORD: ${{ secrets.AUTOTICK_BOT_TOKEN }}
 
@@ -68,7 +70,7 @@ jobs:
         if: github.ref == 'refs/heads/master' && failure() && ! env.CI_SKIP
         run: |
           export ACTION_URL="https://github.com/regro/cf-scripts/actions/runs/${RUN_ID}"
-          python autotick-bot/bump_bot_team.py
+          python cf-scripts/autotick-bot/bump_bot_team.py
         env:
           PASSWORD: ${{ secrets.AUTOTICK_BOT_TOKEN }}
           RUN_ID: ${{ github.run_id }}
