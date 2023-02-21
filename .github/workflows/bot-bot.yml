@@ -1,20 +1,20 @@
 name: bot-bot
 
-# on:
-#   workflow_dispatch: null
-#   schedule:
-#     - cron:  '*/30 * * * *'
+on:
+  workflow_dispatch: null
+  # schedule:
+  #   - cron:  '0 */2 * * *'
+
+concurrency: bot
 
 jobs:
   bot:
     name: bot
     runs-on: "ubuntu-latest"
-    env:
-      BOT_CLI_ARGS: ""
-    concurrency: bot
     defaults:
       run:
         shell: bash -l {0}
+
     steps:
       - uses: actions/checkout@v3
         with:
@@ -39,13 +39,15 @@ jobs:
 
       - name: do local setup and stop me if needed
         run: |
+          pushd cf-scripts
           source autotick-bot/local_setup.sh
           python autotick-bot/stop_me_if_needed.py
+          popd
 
       - name: install bot code
         if: success() && ! env.CI_SKIP
         run: |
-          source autotick-bot/install_bot_code.sh
+          source cf-scripts/autotick-bot/install_bot_code.sh
         env:
           PASSWORD: ${{ secrets.AUTOTICK_BOT_TOKEN }}
 
@@ -54,7 +56,7 @@ jobs:
         run: |
           pushd cf-graph
 
-          conda-forge-tick --run 1 ${BOT_CLI_ARGS}
+          conda-forge-tick --run 1
 
           popd
         env:
@@ -72,7 +74,7 @@ jobs:
 
           pushd cf-graph
 
-          conda-forge-tick --run 3 ${BOT_CLI_ARGS}
+          conda-forge-tick --run 3
 
           popd
         env:
@@ -95,7 +97,7 @@ jobs:
 
           export CIRCLE_BUILD_URL="https://github.com/regro/cf-scripts/actions/runs/${RUN_ID}"
           export CIRCLE_BUILD_NUM="actually-actions-${RUN_ID}"
-          conda-forge-tick --run -1 ${BOT_CLI_ARGS}
+          conda-forge-tick --run -1
 
           popd
         env:
@@ -106,16 +108,15 @@ jobs:
         uses: benc-uk/workflow-dispatch@798e70c97009500150087d30d9f11c5444830385
         if: github.ref == 'refs/heads/master' && ! cancelled() && ! failure() && ! env.CI_SKIP
         with:
-          workflow: bot
+          workflow: bot-bot
           ref: ${{ github.event.ref }}
           token: ${{ secrets.AUTOTICK_BOT_TOKEN }}
 
       - name: bump on fail
-        shell: bash -l {0}
         if: github.ref == 'refs/heads/master' && failure() && ! env.CI_SKIP
         run: |
           export ACTION_URL="https://github.com/regro/cf-scripts/actions/runs/${RUN_ID}"
-          python autotick-bot/bump_bot_team.py
+          python cf-scripts/autotick-bot/bump_bot_team.py
         env:
           PASSWORD: ${{ secrets.AUTOTICK_BOT_TOKEN }}
           RUN_ID: ${{ github.run_id }}
