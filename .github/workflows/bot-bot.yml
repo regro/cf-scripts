@@ -2,8 +2,8 @@ name: bot-bot
 
 on:
   workflow_dispatch: null
-  # schedule:
-  #   - cron:  '0 */2 * * *'
+  schedule:
+    - cron:  '0 */2 * * *'
 
 concurrency: bot
 
