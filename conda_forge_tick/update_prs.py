@@ -116,7 +116,8 @@ def _update_pr(update_function, dry_run, gx, job, n_jobs):
 
 
 def update_graph_pr_status(
-    gx: nx.DiGraph, dry_run: bool = False,
+    gx: nx.DiGraph,
+    dry_run: bool = False,
     job=1,
     n_jobs=1,
 ) -> nx.DiGraph:
@@ -128,11 +129,18 @@ def update_graph_pr_status(
 
 
 def close_labels(
-    gx: nx.DiGraph, dry_run: bool = False,
+    gx: nx.DiGraph,
+    dry_run: bool = False,
     job=1,
     n_jobs=1,
 ) -> nx.DiGraph:
-    succeeded_refresh, failed_refresh = _update_pr(close_out_labels, dry_run, gx, job, n_jobs)
+    succeeded_refresh, failed_refresh = _update_pr(
+        close_out_labels,
+        dry_run,
+        gx,
+        job,
+        n_jobs,
+    )
 
     logger.info(f"bot re-run failed for {failed_refresh} PRs")
     logger.info(f"bot re-run succeed for {succeeded_refresh} PRs")
@@ -140,11 +148,18 @@ def close_labels(
 
 
 def close_dirty_prs(
-    gx: nx.DiGraph, dry_run: bool = False,
+    gx: nx.DiGraph,
+    dry_run: bool = False,
     job=1,
     n_jobs=1,
 ) -> nx.DiGraph:
-    succeeded_refresh, failed_refresh = _update_pr(close_out_dirty_prs, dry_run, gx, job, n_jobs)
+    succeeded_refresh, failed_refresh = _update_pr(
+        close_out_dirty_prs,
+        dry_run,
+        gx,
+        job,
+        n_jobs,
+    )
 
     logger.info(f"close dirty PRs failed for {failed_refresh} PRs")
     logger.info(f"close dirty PRs succeed for {succeeded_refresh} PRs")
