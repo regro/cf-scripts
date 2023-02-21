@@ -115,13 +115,6 @@ jobs:
           python autotick-bot/stop_me_if_needed.py
           popd
 
-      - name: install bot code
-        if: success() && ! env.CI_SKIP
-        run: |
-          source cf-scripts/autotick-bot/install_bot_code.sh
-        env:
-          PASSWORD: ${{ secrets.AUTOTICK_BOT_TOKEN }}
-
       - name: trigger next job
         uses: benc-uk/workflow-dispatch@798e70c97009500150087d30d9f11c5444830385
         if: github.ref == 'refs/heads/master' && ! cancelled() && ! failure() && ! env.CI_SKIP
