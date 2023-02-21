@@ -43,6 +43,21 @@ def main(*args, **kwargs):
         default=".",
         help="location of the graph",
     )
+    parser.add_argument(
+        "--job",
+        default=1,
+        type=int,
+        help=(
+            "If given with --n-jobs, the number of the job to "
+            "run in the range [1, n_jobs]."
+        ),
+    )
+    parser.add_argument(
+        "--n-jobs",
+        default=1,
+        type=int,
+        help=("If given, the total number of jobs being run."),
+    )
     args = parser.parse_args()
 
     if args.debug:

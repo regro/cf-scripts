@@ -5,6 +5,7 @@ import json
 import time
 import os
 import tqdm
+import hashlib
 from concurrent.futures import as_completed
 
 from .utils import setup_logger, load_graph, executor
@@ -60,12 +61,29 @@ def get_latest_version(
     return version_data
 
 
+def _filter_nodes_for_job(_all_nodes, job, n_jobs):
+    job_index = job - 1
+    return [
+        t
+        for t in _all_nodes
+        if abs(int(hashlib.sha1(t[0].encode("utf-8")).hexdigest(), 16)) % n_jobs
+        == job_index
+    ]
+
+
 def _update_upstream_versions_sequential(
     gx: nx.DiGraph,
     sources: Iterable[AbstractSource] = None,
+    job=1,
+    n_jobs=1,
 ) -> None:
 
     _all_nodes = [t for t in gx.nodes.items()]
+    _all_nodes = _filter_nodes_for_job(
+        _all_nodes,
+        job,
+        n_jobs,
+    )
     random.shuffle(_all_nodes)
 
     # Inspection the graph object and node update:
@@ -110,12 +128,19 @@ def _update_upstream_versions_sequential(
 def _update_upstream_versions_process_pool(
     gx: nx.DiGraph,
     sources: Iterable[AbstractSource],
+    job=1,
+    n_jobs=1,
 ) -> None:
     futures = {}
     # this has to be threads because the url hashing code uses a Pipe which
     # cannot be spawned from a process
     with executor(kind="dask", max_workers=5) as pool:
         _all_nodes = [t for t in gx.nodes.items()]
+        _all_nodes = _filter_nodes_for_job(
+            _all_nodes,
+            job,
+            n_jobs,
+        )
         random.shuffle(_all_nodes)
 
         for node, node_attrs in tqdm.tqdm(_all_nodes):
@@ -181,6 +206,8 @@ def update_upstream_versions(
     gx: nx.DiGraph,
     sources: Iterable[AbstractSource] = None,
     debug: bool = False,
+    job=1,
+    n_jobs=1,
 ) -> None:
     sources = (
         (
@@ -202,7 +229,7 @@ def update_upstream_versions(
         else _update_upstream_versions_process_pool
     )
     logger.info("Updating upstream versions")
-    updater(gx, sources)
+    updater(gx, sources, job=job, n_jobs=n_jobs)
 
 
 def main(args: Any = None) -> None:
@@ -218,7 +245,7 @@ def main(args: Any = None) -> None:
     # Check if 'versions' folder exists or create a new one;
     os.makedirs("versions", exist_ok=True)
     # call update
-    update_upstream_versions(gx, debug=args.debug)
+    update_upstream_versions(gx, debug=args.debug, job=args.job, n_jobs=args.n_jobs)
 
 
 if __name__ == "__main__":
