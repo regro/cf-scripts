@@ -4,6 +4,7 @@ import random
 import re
 import typing
 from concurrent.futures._base import as_completed
+import hashlib
 
 import github3
 import networkx as nx
@@ -37,12 +38,20 @@ KEEP_PR_FRACTION = 1.5
 PR_JSON_REGEX = re.compile(r"^pr_json/([0-9]*).json$")
 
 
-def _update_pr(update_function, dry_run, gx):
+def _update_pr(update_function, dry_run, gx, job, n_jobs):
     failed_refresh = 0
     succeeded_refresh = 0
     gh = "" if dry_run else github_client()
     futures = {}
     node_ids = list(gx.nodes)
+    job_index = job - 1
+    node_ids = [
+        node_id
+        for node_id in node_ids
+        if abs(int(hashlib.sha1(node_id.encode("utf-8")).hexdigest(), 16)) % n_jobs
+        == job_index
+    ]
+
     # this makes sure that github rate limits are dispersed
     random.shuffle(node_ids)
 
@@ -106,24 +115,51 @@ def _update_pr(update_function, dry_run, gx):
     return succeeded_refresh, failed_refresh
 
 
-def update_graph_pr_status(gx: nx.DiGraph, dry_run: bool = False) -> nx.DiGraph:
-    succeeded_refresh, failed_refresh = _update_pr(refresh_pr, dry_run, gx)
+def update_graph_pr_status(
+    gx: nx.DiGraph,
+    dry_run: bool = False,
+    job=1,
+    n_jobs=1,
+) -> nx.DiGraph:
+    succeeded_refresh, failed_refresh = _update_pr(refresh_pr, dry_run, gx, job, n_jobs)
 
     logger.info(f"JSON Refresh failed for {failed_refresh} PRs")
     logger.info(f"JSON Refresh succeed for {succeeded_refresh} PRs")
     return gx
 
 
-def close_labels(gx: nx.DiGraph, dry_run: bool = False) -> nx.DiGraph:
-    succeeded_refresh, failed_refresh = _update_pr(close_out_labels, dry_run, gx)
+def close_labels(
+    gx: nx.DiGraph,
+    dry_run: bool = False,
+    job=1,
+    n_jobs=1,
+) -> nx.DiGraph:
+    succeeded_refresh, failed_refresh = _update_pr(
+        close_out_labels,
+        dry_run,
+        gx,
+        job,
+        n_jobs,
+    )
 
     logger.info(f"bot re-run failed for {failed_refresh} PRs")
     logger.info(f"bot re-run succeed for {succeeded_refresh} PRs")
     return gx
 
 
-def close_dirty_prs(gx: nx.DiGraph, dry_run: bool = False) -> nx.DiGraph:
-    succeeded_refresh, failed_refresh = _update_pr(close_out_dirty_prs, dry_run, gx)
+def close_dirty_prs(
+    gx: nx.DiGraph,
+    dry_run: bool = False,
+    job=1,
+    n_jobs=1,
+) -> nx.DiGraph:
+    succeeded_refresh, failed_refresh = _update_pr(
+        close_out_dirty_prs,
+        dry_run,
+        gx,
+        job,
+        n_jobs,
+    )
 
     logger.info(f"close dirty PRs failed for {failed_refresh} PRs")
     logger.info(f"close dirty PRs succeed for {succeeded_refresh} PRs")
@@ -140,10 +176,10 @@ def main(args: "CLIArgs") -> None:
         gx = None
 
     if not args.dry_run:
-        gx = close_labels(gx, args.dry_run)
-        gx = update_graph_pr_status(gx, args.dry_run)
+        gx = close_labels(gx, args.dry_run, job=args.job, n_jobs=args.n_jobs)
+        gx = update_graph_pr_status(gx, args.dry_run, job=args.job, n_jobs=args.n_jobs)
         # This function needs to run last since it edits the actual pr json!
-        gx = close_dirty_prs(gx, args.dry_run)
+        gx = close_dirty_prs(gx, args.dry_run, job=args.job, n_jobs=args.n_jobs)
 
 
 if __name__ == "__main__":

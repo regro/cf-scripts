@@ -3,11 +3,12 @@ name: bot-update-status-page
 on:
   workflow_dispatch: null
 
+concurrency: update-status-page
+
 jobs:
   update_status_page:
     name: update-status-page
     runs-on: "ubuntu-latest"
-    concurrency: update-status-page
     defaults:
       run:
         shell: bash -l {0}
