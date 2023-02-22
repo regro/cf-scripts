@@ -45,8 +45,8 @@ jobs:
                               headers={'Authorization': 'Bearer ' + os.environ['GITHUB_TOKEN']},
                           )
                           done += 1
-                          time.sleep(2)
-                      if done == 200:
+                          time.sleep(1)
+                      if done == 500:
                           sys.exit(0)
           " > del_old_runs.py
 
