@@ -489,19 +489,20 @@ class Version(Migrator):
         version = attrs["new_version"]
 
         # record the attempt
-        if "new_version_attempts" not in attrs:
-            attrs["new_version_attempts"] = {}
-        if version not in attrs["new_version_attempts"]:
-            attrs["new_version_attempts"][version] = 0
-        attrs["new_version_attempts"][version] += 1
-        if "new_version_errors" not in attrs:
-            attrs["new_version_errors"] = {}
+        with attrs["version_pr_info"] as vpri:
+            if version not in vpri["new_version_attempts"]:
+                vpri["new_version_attempts"][version] = 0
+            vpri["new_version_attempts"][version] += 1
 
         if not isinstance(version, str):
             errors.add(
                 "the version '%s' is not a string and must be for the bot" % version,
             )
-            attrs["new_version_errors"][version] = _fmt_error_message(errors, version)
+            with attrs["version_pr_info"] as vpri:
+                vpri["new_version_errors"][version] = _fmt_error_message(
+                    errors,
+                    version,
+                )
             logger.critical(
                 "the version '%s' is not a string and must be for the bot",
                 version,
@@ -516,14 +517,15 @@ class Version(Migrator):
             traceback.print_tb(e.__traceback__, file=tb)
             tb.seek(0)
             tb = tb.read()
-            attrs["new_version_errors"][version] = sanitize_string(
-                "We found a problem parsing the recipe for version '"
-                + version
-                + "': \n\n"
-                + repr(e)
-                + "\n\ntraceback:\n"
-                + tb,
-            )
+            with attrs["version_pr_info"] as vpri:
+                vpri["new_version_errors"][version] = sanitize_string(
+                    "We found a problem parsing the recipe for version '"
+                    + version
+                    + "': \n\n"
+                    + repr(e)
+                    + "\n\ntraceback:\n"
+                    + tb,
+                )
             logger.critical(
                 "We found a problem parsing the recipe: \n\n%s\n\n%s",
                 str(e),
@@ -541,7 +543,11 @@ class Version(Migrator):
         if _recipe_has_git_url(cmeta) and not _recipe_has_url(cmeta):
             logger.critical("Migrations do not work on `git_url`s!")
             errors.add("migrations do not work on `git_url`s")
-            attrs["new_version_errors"][version] = _fmt_error_message(errors, version)
+            with attrs["version_pr_info"] as vpri:
+                vpri["new_version_errors"][version] = _fmt_error_message(
+                    errors,
+                    version,
+                )
             return {}
 
         # mangle the version if it is R
@@ -564,7 +570,11 @@ class Version(Migrator):
                 "Migrations do not work on versions not specified with jinja2!",
             )
             errors.add("migrations do not work on versions not specified with jinja2")
-            attrs["new_version_errors"][version] = _fmt_error_message(errors, version)
+            with attrs["version_pr_info"] as vpri:
+                vpri["new_version_errors"][version] = _fmt_error_message(
+                    errors,
+                    version,
+                )
             return {}
 
         if len(list(_gen_key_selector(cmeta.meta, "source"))) > 0:
@@ -625,7 +635,11 @@ class Version(Migrator):
             return super().migrate(recipe_dir, attrs)
         else:
             logger.critical("Recipe did not change in version migration!")
-            attrs["new_version_errors"][version] = _fmt_error_message(errors, version)
+            with attrs["version_pr_info"] as vpri:
+                vpri["new_version_errors"][version] = _fmt_error_message(
+                    errors,
+                    version,
+                )
             return {}
 
     def pr_body(self, feedstock_ctx: FeedstockContext) -> str:
@@ -814,7 +828,8 @@ class Version(Migrator):
         def _get_attemps_nr(node):
             with graph.nodes[node]["payload"] as attrs:
                 new_version = attrs.get("new_version", "")
-                attempts = attrs.get("new_version_attempts", {}).get(new_version, 0)
+                with attrs["version_pr_info"] as vpri:
+                    attempts = vpri.get("new_version_attempts", {}).get(new_version, 0)
             return min(attempts, 3)
 
         def _get_attemps_r(node, seen):

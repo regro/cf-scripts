@@ -357,13 +357,14 @@ def run(
 
             if isinstance(migrator, Version):
                 _new_ver = feedstock_ctx.attrs["new_version"]
-                feedstock_ctx.attrs["new_version_errors"][_new_ver] = _solver_err_str
-                feedstock_ctx.attrs["new_version_errors"][_new_ver] = sanitize_string(
-                    feedstock_ctx.attrs["new_version_errors"][_new_ver],
-                )
-                # remove part of a try for solver errors to make those slightly
-                # higher priority
-                feedstock_ctx.attrs["new_version_attempts"][_new_ver] -= 0.8
+                with feedstock_ctx.attrs["version_pr_info"] as vpri:
+                    vpri["new_version_errors"][_new_ver] = _solver_err_str
+                    vpri["new_version_errors"][_new_ver] = sanitize_string(
+                        vpri["new_version_errors"][_new_ver],
+                    )
+                    # remove part of a try for solver errors to make those slightly
+                    # higher priority
+                    vpri["new_version_attempts"][_new_ver] -= 0.8
 
             _set_pre_pr_migrator_fields(
                 feedstock_ctx.attrs,
@@ -1010,10 +1011,11 @@ def _compute_time_per_migrator(mctx, migrators):
             _num_nodes = 0
             for node_name in mmctx.effective_graph.nodes:
                 with mmctx.effective_graph.nodes[node_name]["payload"] as attrs:
-                    _attempts = attrs.get("new_version_attempts", {}).get(
-                        attrs.get("new_version", ""),
-                        0,
-                    )
+                    with attrs["version_pr_info"] as vpri:
+                        _attempts = vpri.get("new_version_attempts", {}).get(
+                            attrs.get("new_version", ""),
+                            0,
+                        )
                     if _attempts < 3:
                         _num_nodes += 1
             _num_nodes = max(
@@ -1094,18 +1096,19 @@ def _run_migrator(migrator, mctx, temp, time_per, dry_run):
         LOGGER.info("possible version migrations:")
         for node_name in possible_nodes:
             with effective_graph.nodes[node_name]["payload"] as attrs:
-                LOGGER.info(
-                    "    node|curr|new|attempts: %s|%s|%s|%f",
-                    node_name,
-                    attrs.get("version"),
-                    attrs.get("new_version"),
-                    (
-                        attrs.get("new_version_attempts", {}).get(
-                            attrs.get("new_version", ""),
-                            0,
-                        )
-                    ),
-                )
+                with attrs["version_pr_info"] as vpri:
+                    LOGGER.info(
+                        "    node|curr|new|attempts: %s|%s|%s|%f",
+                        node_name,
+                        attrs.get("version"),
+                        attrs.get("new_version"),
+                        (
+                            vpri.get("new_version_attempts", {}).get(
+                                attrs.get("new_version", ""),
+                                0,
+                            )
+                        ),
+                    )
 
     for node_name in possible_nodes:
         with mctx.graph.nodes[node_name]["payload"] as attrs:
