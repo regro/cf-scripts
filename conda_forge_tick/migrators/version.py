@@ -490,6 +490,10 @@ class Version(Migrator):
 
         # record the attempt
         with attrs["version_pr_info"] as vpri:
+            if "new_version_attempts" not in vpri:
+                vpri["new_version_attempts"] = {}
+            if "new_version_errors" not in vpri:
+                vpri["new_version_errors"] = {}
             if version not in vpri["new_version_attempts"]:
                 vpri["new_version_attempts"][version] = 0
             vpri["new_version_attempts"][version] += 1
