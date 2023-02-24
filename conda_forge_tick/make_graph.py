@@ -114,6 +114,7 @@ def get_attrs(name: str, i: int, mark_not_archived=False) -> LazyJson:
                     if mn not in pri[pre_key_att]:
                         pri[pre_key_att][mn] = 1
 
+                # TODO - will do this one next
                 # if "PRed" in sub_graph:
                 #     pri["PRed"] = sub_graph.pop("PRed")
 
