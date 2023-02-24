@@ -33,6 +33,7 @@ def deploy(dry_run=False):
         "pr_json",
         "status",
         "node_attrs",
+        "version_pr_info",
         "audits",
         "audits/grayskull",
         "audits/depfinder",

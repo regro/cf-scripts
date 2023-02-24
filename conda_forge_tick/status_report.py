@@ -61,19 +61,21 @@ def write_version_migrator_status(migrator, mctx):
     migrator.bind_to_ctx(mmctx)
 
     for node in mmctx.effective_graph.nodes:
-        attrs = mmctx.effective_graph.nodes[node]["payload"]
-        new_version = attrs.get("new_version", None)
-        if new_version is None:
-            continue
-        attempts = attrs.get("new_version_attempts", {}).get(new_version, 0)
-        if attempts == 0:
-            out["queued"].append(node)
-        else:
-            out["errored"].append(node)
-            out["errors"][node] = attrs.get("new_version_errors", {}).get(
-                new_version,
-                "No error information available for version '%s'." % new_version,
-            )
+        with mmctx.effective_graph.nodes[node]["payload"] as attrs:
+            with attrs["version_pr_info"] as vpri:
+                new_version = attrs.get("new_version", None)
+                if new_version is None:
+                    continue
+                attempts = vpri.get("new_version_attempts", {}).get(new_version, 0)
+                if attempts == 0:
+                    out["queued"].append(node)
+                else:
+                    out["errored"].append(node)
+                    out["errors"][node] = vpri.get("new_version_errors", {}).get(
+                        new_version,
+                        "No error information available for version '%s'."
+                        % new_version,
+                    )
 
     with open("./status/version_status.json", "w") as f:
         json.dump(out, f, sort_keys=True, indent=2)

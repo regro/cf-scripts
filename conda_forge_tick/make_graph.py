@@ -86,6 +86,17 @@ def get_attrs(name: str, i: int, mark_not_archived=False) -> LazyJson:
     lzj = LazyJson(f"node_attrs/{name}.json")
     with lzj as sub_graph:
         load_feedstock(name, sub_graph, mark_not_archived=mark_not_archived)
+
+        # schema migrations and fixes go here
+        if "version_pr_info" not in sub_graph:
+            sub_graph["version_pr_info"] = LazyJson(f"version_pr_info/{name}.json")
+            with sub_graph["version_pr_info"] as vpri:
+                for key in ["new_version_attempts", "new_version_errors"]:
+                    if key not in vpri:
+                        vpri[key] = {}
+                    if key in sub_graph:
+                        vpri[key].update(sub_graph.pop(key))
+
     return lzj
 
 

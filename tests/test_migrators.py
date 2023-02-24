@@ -1,5 +1,6 @@
 import os
 import re
+import tempfile
 
 import pytest
 import networkx as nx
@@ -16,6 +17,7 @@ from conda_forge_tick.migrators import (
     Migrator,
     MiniMigrator,
 )
+from conda_forge_tick.utils import LazyJson
 
 # Legacy THINGS
 from conda_forge_tick.migrators.disabled.legacy import (
@@ -1699,55 +1701,62 @@ def run_test_migration(
     pmy["raw_meta_yaml"] = inp
     pmy.update(kwargs)
 
-    assert m.filter(pmy) is should_filter
-    if should_filter:
-        return pmy
+    with tempfile.TemporaryDirectory() as vtmpdir:
+        if "version_pr_info" not in pmy:
+            if tmpdir is None:
+                pmy["version_pr_info"] = LazyJson(os.path.join(vtmpdir, "v.json"))
+            else:
+                pmy["version_pr_info"] = LazyJson(os.path.join(tmpdir, "v.json"))
 
-    m.run_pre_piggyback_migrations(
-        tmpdir,
-        pmy,
-        hash_type=pmy.get("hash_type", "sha256"),
-    )
-    mr = m.migrate(tmpdir, pmy, hash_type=pmy.get("hash_type", "sha256"))
-    m.run_post_piggyback_migrations(
-        tmpdir,
-        pmy,
-        hash_type=pmy.get("hash_type", "sha256"),
-    )
+        assert m.filter(pmy) is should_filter
+        if should_filter:
+            return pmy
 
-    if make_body:
-        fctx = FeedstockContext(
-            package_name=name,
-            feedstock_name=name,
-            attrs=pmy,
+        m.run_pre_piggyback_migrations(
+            tmpdir,
+            pmy,
+            hash_type=pmy.get("hash_type", "sha256"),
         )
-        fctx.feedstock_dir = os.path.dirname(tmpdir)
-        m_ctx.effective_graph.add_node(name)
-        m_ctx.effective_graph.nodes[name]["payload"] = MockLazyJson({})
-        m.pr_body(fctx)
+        mr = m.migrate(tmpdir, pmy, hash_type=pmy.get("hash_type", "sha256"))
+        m.run_post_piggyback_migrations(
+            tmpdir,
+            pmy,
+            hash_type=pmy.get("hash_type", "sha256"),
+        )
 
-    assert mr_out == mr
-    if not mr:
-        return pmy
+        if make_body:
+            fctx = FeedstockContext(
+                package_name=name,
+                feedstock_name=name,
+                attrs=pmy,
+            )
+            fctx.feedstock_dir = os.path.dirname(tmpdir)
+            m_ctx.effective_graph.add_node(name)
+            m_ctx.effective_graph.nodes[name]["payload"] = MockLazyJson({})
+            m.pr_body(fctx)
 
-    pmy.update(PRed=[frozen_to_json_friendly(mr)])
-    with open(os.path.join(tmpdir, "meta.yaml")) as f:
-        actual_output = f.read()
-    # strip jinja comments
-    pat = re.compile(r"{#.*#}")
-    actual_output = pat.sub("", actual_output)
-    output = pat.sub("", output)
-    assert actual_output == output
-    if isinstance(m, Compiler):
-        assert m.messages in m.pr_body(None)
-    # TODO: fix subgraph here (need this to be xsh file)
-    elif isinstance(m, Version):
-        pass
-    elif isinstance(m, Rebuild):
-        return pmy
-    else:
-        assert prb in m.pr_body(None)
-    assert m.filter(pmy) is True
+        assert mr_out == mr
+        if not mr:
+            return pmy
+
+        pmy.update(PRed=[frozen_to_json_friendly(mr)])
+        with open(os.path.join(tmpdir, "meta.yaml")) as f:
+            actual_output = f.read()
+        # strip jinja comments
+        pat = re.compile(r"{#.*#}")
+        actual_output = pat.sub("", actual_output)
+        output = pat.sub("", output)
+        assert actual_output == output
+        if isinstance(m, Compiler):
+            assert m.messages in m.pr_body(None)
+        # TODO: fix subgraph here (need this to be xsh file)
+        elif isinstance(m, Version):
+            pass
+        elif isinstance(m, Rebuild):
+            return pmy
+        else:
+            assert prb in m.pr_body(None)
+        assert m.filter(pmy) is True
 
     return pmy
 
