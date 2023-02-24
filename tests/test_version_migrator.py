@@ -2,10 +2,8 @@ import os
 import logging
 import pytest
 from flaky import flaky
-import tempfile
 
 from conda_forge_tick.migrators import Version
-from conda_forge_tick.utils import LazyJson
 
 from test_migrators import run_test_migration
 
@@ -70,22 +68,19 @@ def test_version(case, new_ver, tmpdir, caplog):
     if case == "sha1":
         kwargs["hash_type"] = "sha1"
 
-    with tempfile.TemporaryDirectory() as vtmpdir:
-        vpri = LazyJson(os.path.join(vtmpdir, "v.json"))
-        kwargs["version_pr_info"] = vpri
-        run_test_migration(
-            m=VERSION,
-            inp=in_yaml,
-            output=out_yaml,
-            kwargs=kwargs,
-            prb="Dependencies have been updated if changed",
-            mr_out={
-                "migrator_name": "Version",
-                "migrator_version": Version.migrator_version,
-                "version": new_ver,
-            },
-            tmpdir=tmpdir,
-        )
+    run_test_migration(
+        m=VERSION,
+        inp=in_yaml,
+        output=out_yaml,
+        kwargs=kwargs,
+        prb="Dependencies have been updated if changed",
+        mr_out={
+            "migrator_name": "Version",
+            "migrator_version": Version.migrator_version,
+            "version": new_ver,
+        },
+        tmpdir=tmpdir,
+    )
 
 
 @pytest.mark.parametrize(
@@ -110,17 +105,15 @@ def test_version_noup(case, new_ver, tmpdir, caplog):
     with open(os.path.join(YAML_PATH, "version_%s_correct.yaml" % case)) as fp:
         out_yaml = fp.read()
 
-    with tempfile.TemporaryDirectory() as vtmpdir:
-        vpri = LazyJson(os.path.join(vtmpdir, "v.json"))
-        attrs = run_test_migration(
-            m=VERSION,
-            inp=in_yaml,
-            output=out_yaml,
-            kwargs={"new_version": new_ver, "version_pr_info": vpri},
-            prb="Dependencies have been updated if changed",
-            mr_out={},
-            tmpdir=tmpdir,
-        )
+    attrs = run_test_migration(
+        m=VERSION,
+        inp=in_yaml,
+        output=out_yaml,
+        kwargs={"new_version": new_ver},
+        prb="Dependencies have been updated if changed",
+        mr_out={},
+        tmpdir=tmpdir,
+    )
 
     print(
         "\n\n"
@@ -149,20 +142,16 @@ def test_version_cupy(tmpdir, caplog):
     if case == "sha1":
         kwargs["hash_type"] = "sha1"
 
-    with tempfile.TemporaryDirectory() as vtmpdir:
-        vpri = LazyJson(os.path.join(vtmpdir, "v.json"))
-        kwargs["version_pr_info"] = vpri
-
-        run_test_migration(
-            m=VERSION,
-            inp=in_yaml,
-            output=out_yaml,
-            kwargs=kwargs,
-            prb="Dependencies have been updated if changed",
-            mr_out={
-                "migrator_name": "Version",
-                "migrator_version": Version.migrator_version,
-                "version": new_ver,
-            },
-            tmpdir=tmpdir,
-        )
+    run_test_migration(
+        m=VERSION,
+        inp=in_yaml,
+        output=out_yaml,
+        kwargs=kwargs,
+        prb="Dependencies have been updated if changed",
+        mr_out={
+            "migrator_name": "Version",
+            "migrator_version": Version.migrator_version,
+            "version": new_ver,
+        },
+        tmpdir=tmpdir,
+    )
