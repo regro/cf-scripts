@@ -173,12 +173,16 @@ def graph_migrator_status(
         elif pr_json is None:
             if buildable:
                 if "not solvable" in (
-                    attrs.get("pre_pr_migrator_status", {}).get(migrator_name, "")
+                    attrs.get("pr_info", {})
+                    .get("pre_pr_migrator_status", {})
+                    .get(migrator_name, "")
                 ):
                     out["not-solvable"].add(node)
                     fc = "#ff8c00"
                 elif "bot error" in (
-                    attrs.get("pre_pr_migrator_status", {}).get(migrator_name, "")
+                    attrs.get("pr_info", {})
+                    .get("pre_pr_migrator_status", {})
+                    .get(migrator_name, "")
                 ):
                     out["bot-error"].add(node)
                     fc = "#000000"
@@ -188,7 +192,9 @@ def graph_migrator_status(
                     fc = "#35b779"
             elif not isinstance(migrator, Replacement):
                 if "bot error" in (
-                    attrs.get("pre_pr_migrator_status", {}).get(migrator_name, "")
+                    attrs.get("pr_info", {})
+                    .get("pre_pr_migrator_status", {})
+                    .get(migrator_name, "")
                 ):
                     out["bot-error"].add(node)
                     fc = "#000000"
@@ -240,10 +246,14 @@ def graph_migrator_status(
             if not gx2[k].get("payload", {}).get("archived", False)
         ]
         if node in out["not-solvable"] or node in out["bot-error"]:
-            node_metadata["pre_pr_migrator_status"] = attrs.get(
-                "pre_pr_migrator_status",
-                {},
-            ).get(migrator_name, "")
+            node_metadata["pre_pr_migrator_status"] = (
+                attrs.get("pr_info", {})
+                .get(
+                    "pre_pr_migrator_status",
+                    {},
+                )
+                .get(migrator_name, "")
+            )
         else:
             node_metadata["pre_pr_migrator_status"] = ""
 

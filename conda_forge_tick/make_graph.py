@@ -97,6 +97,27 @@ def get_attrs(name: str, i: int, mark_not_archived=False) -> LazyJson:
                     if key in sub_graph:
                         vpri[key].update(sub_graph.pop(key))
 
+        if "pr_info" not in sub_graph:
+            sub_graph["pr_info"] = LazyJson(f"pr_info/{name}.json")
+            with sub_graph["pr_info"] as pri:
+                pre_key = "pre_pr_migrator_status"
+                pre_key_att = "pre_pr_migrator_attempts"
+
+                for key in [pre_key, pre_key_att]:
+                    if key not in pri:
+                        pri[key] = {}
+                    if key in sub_graph:
+                        pri[key].update(sub_graph.pop(key))
+
+                # populate migrator attempts if they are not there
+                for mn in pri[pre_key]:
+                    if mn not in pri[pre_key_att]:
+                        pri[pre_key_att][mn] = 1
+
+                # TODO - will do this one next
+                # if "PRed" in sub_graph:
+                #     pri["PRed"] = sub_graph.pop("PRed")
+
     return lzj
 
 

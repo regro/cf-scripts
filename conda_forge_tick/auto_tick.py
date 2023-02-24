@@ -131,25 +131,27 @@ def _set_pre_pr_migrator_fields(attrs, migrator_name, error_str):
     pre_key = "pre_pr_migrator_status"
     pre_key_att = "pre_pr_migrator_attempts"
 
-    if pre_key not in attrs:
-        attrs[pre_key] = {}
-    attrs[pre_key][migrator_name] = sanitize_string(
-        error_str,
-    )
+    with attrs["pr_info"] as pri:
+        if pre_key not in pri:
+            pri[pre_key] = {}
+        pri[pre_key][migrator_name] = sanitize_string(
+            error_str,
+        )
 
-    if pre_key_att not in attrs:
-        attrs[pre_key_att] = {}
-    if migrator_name not in attrs[pre_key_att]:
-        attrs[pre_key_att][migrator_name] = 0
-    attrs[pre_key_att][migrator_name] += 1
+        if pre_key_att not in pri:
+            pri[pre_key_att] = {}
+        if migrator_name not in pri[pre_key_att]:
+            pri[pre_key_att][migrator_name] = 0
+        pri[pre_key_att][migrator_name] += 1
 
 
 def _reset_pre_pr_migrator_fields(attrs, migrator_name):
     pre_key = "pre_pr_migrator_status"
     pre_key_att = "pre_pr_migrator_attempts"
-    for _key in [pre_key, pre_key_att]:
-        if _key in attrs and migrator_name in attrs[_key]:
-            attrs[_key].pop(migrator_name)
+    with attrs["pr_info"] as pri:
+        for _key in [pre_key, pre_key_att]:
+            if _key in pri and migrator_name in pri[_key]:
+                pri[_key].pop(migrator_name)
 
 
 def run(
@@ -365,12 +367,13 @@ def run(
                     # remove part of a try for solver errors to make those slightly
                     # higher priority
                     vpri["new_version_attempts"][_new_ver] -= 0.8
-
-            _set_pre_pr_migrator_fields(
-                feedstock_ctx.attrs,
-                migrator_name,
-                sanitize_string(_solver_err_str),
-            )
+            else:
+                # these are not used for version migrations
+                _set_pre_pr_migrator_fields(
+                    feedstock_ctx.attrs,
+                    migrator_name,
+                    sanitize_string(_solver_err_str),
+                )
 
             eval_cmd(f"rm -rf {feedstock_dir}")
             return False, False

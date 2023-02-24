@@ -336,10 +336,11 @@ class MigrationYaml(GraphMigrator):
 
         def _not_has_error(node):
             if migrator_name in total_graph.nodes[node]["payload"].get(
-                "pre_pr_migrator_status",
+                "pr_info",
                 {},
-            ) and (
+            ).get("pre_pr_migrator_status", {}) and (
                 total_graph.nodes[node]["payload"]
+                .get("pr_info", {})
                 .get(
                     "pre_pr_migrator_attempts",
                     {},
