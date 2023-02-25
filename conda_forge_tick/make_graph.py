@@ -117,12 +117,15 @@ def get_attrs(name: str, i: int, mark_not_archived=False) -> LazyJson:
             "PRed",
             "smithy_version",
             "pinning_version",
+            "bad",
         ]
         if any(key in sub_graph for key in keys_to_move):
             with sub_graph["pr_info"] as pri:
                 for key in keys_to_move:
                     if key in sub_graph:
                         pri[key] = sub_graph.pop(key)
+                        if key == "bad":
+                            pri["bad"] = False
 
     return lzj
 

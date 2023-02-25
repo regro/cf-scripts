@@ -223,7 +223,7 @@ def run(
         LOGGER.critical(
             "Failed to migrate %s, %s",
             feedstock_ctx.package_name,
-            feedstock_ctx.attrs.get("bad"),
+            feedstock_ctx.attrs.get("pr_info", {}).get("bad"),
         )
         return False, False
 
@@ -240,7 +240,7 @@ def run(
         LOGGER.critical(
             "Failed to migrate %s, %s",
             feedstock_ctx.package_name,
-            feedstock_ctx.attrs.get("bad"),
+            feedstock_ctx.attrs.get("pr_info", {}).get("bad"),
         )
         eval_cmd(f"rm -rf {feedstock_dir}")
         return False, False
@@ -445,7 +445,8 @@ comment. Hopefully you all can fix this!
         ljpr = False
 
     # If we've gotten this far then the node is good
-    feedstock_ctx.attrs["bad"] = False
+    with feedstock_ctx.attrs["pr_info"] as pri:
+        pri["bad"] = False
     _reset_pre_pr_migrator_fields(feedstock_ctx.attrs, migrator_name)
 
     LOGGER.info("Removing feedstock dir")
@@ -1215,12 +1216,13 @@ def _run_migrator(migrator, mctx, temp, time_per, dry_run):
                                 break
                     except URLError as e:
                         LOGGER.exception("URLError ERROR")
-                        attrs["bad"] = {
-                            "exception": str(e),
-                            "traceback": str(traceback.format_exc()).split("\n"),
-                            "code": getattr(e, "code"),
-                            "url": getattr(e, "url"),
-                        }
+                        with attrs["pr_info"] as pri:
+                            pri["bad"] = {
+                                "exception": str(e),
+                                "traceback": str(traceback.format_exc()).split("\n"),
+                                "code": getattr(e, "code"),
+                                "url": getattr(e, "url"),
+                            }
 
                         _set_pre_pr_migrator_fields(
                             attrs,
@@ -1243,12 +1245,13 @@ def _run_migrator(migrator, mctx, temp, time_per, dry_run):
                             "conda smithy rerender -c auto --no-check-uptodate"
                             not in str(e)
                         ):
-                            attrs["bad"] = {
-                                "exception": str(e),
-                                "traceback": str(traceback.format_exc()).split(
-                                    "\n",
-                                ),
-                            }
+                            with attrs["pr_info"] as pri:
+                                pri["bad"] = {
+                                    "exception": str(e),
+                                    "traceback": str(traceback.format_exc()).split(
+                                        "\n",
+                                    ),
+                                }
 
                         _set_pre_pr_migrator_fields(
                             attrs,
