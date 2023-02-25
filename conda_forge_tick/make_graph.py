@@ -315,19 +315,20 @@ def _update_nodes_with_new_versions(gx):
         with open(f"./versions/{file}") as json_file:
             version_data: typing.Dict = json.load(json_file)
         with gx.nodes[f"{node}"]["payload"] as attrs:
-            version_from_data = version_data.get("new_version", False)
-            version_from_attrs = attrs.get("new_version", False)
-            # don't update the version if it isn't newer
-            if version_from_data and isinstance(version_from_data, str):
-                # we only override the graph node if the version we found is newer
-                # or the graph doesn't have a valid version
-                if isinstance(version_from_attrs, str):
-                    attrs["new_version"] = max(
-                        [version_from_data, version_from_attrs],
-                        key=lambda x: VersionOrder(x.replace("-", ".")),
-                    )
-                else:
-                    attrs["new_version"] = version_from_data
+            with attrs["version_pr_info"] as vpri:
+                version_from_data = version_data.get("new_version", False)
+                version_from_attrs = vpri.get("new_version", False)
+                # don't update the version if it isn't newer
+                if version_from_data and isinstance(version_from_data, str):
+                    # we only override the graph node if the version we found is newer
+                    # or the graph doesn't have a valid version
+                    if isinstance(version_from_attrs, str):
+                        vpri["new_version"] = max(
+                            [version_from_data, version_from_attrs],
+                            key=lambda x: VersionOrder(x.replace("-", ".")),
+                        )
+                    else:
+                        vpri["new_version"] = version_from_data
 
 
 def _update_nodes_with_archived(gx, archived_names):

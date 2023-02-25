@@ -430,7 +430,8 @@ class Version(Migrator):
 
     def filter(self, attrs: "AttrsTypedDict", not_bad_str_start: str = "") -> bool:
         # if no new version do nothing
-        if "new_version" not in attrs or not attrs["new_version"]:
+        vpri = attrs.get("version_pr_info", {})
+        if "new_version" not in vpri or not vpri["new_version"]:
             return True
 
         # if no jinja2 version, then move on
@@ -451,20 +452,20 @@ class Version(Migrator):
                 ],
             )
             > self.max_num_prs
-            or not attrs.get("new_version"),  # if no new version
+            or not vpri.get("new_version"),  # if no new version
         )
 
         try:
             version_filter = (
                 # if new version is less than current version
                 (
-                    VersionOrder(str(attrs["new_version"]))
-                    <= VersionOrder(str(attrs.get("version", "0.0.0")))
+                    VersionOrder(str(vpri["new_version"]).replace("-", "."))
+                    <= VersionOrder(str(attrs.get("version", "0.0.0")).replace("-", "."))
                 )
                 # if PRed version is greater than newest version
                 or any(
-                    VersionOrder(self._extract_version_from_muid(h))
-                    >= VersionOrder(str(attrs["new_version"]))
+                    VersionOrder(self._extract_version_from_muid(h).replace("-", "."))
+                    >= VersionOrder(str(vpri["new_version"]).replace("-", "."))
                     for h in attrs.get("PRed", set())
                 )
             )
@@ -486,7 +487,7 @@ class Version(Migrator):
     ) -> "MigrationUidTypedDict":
         errors = set()
 
-        version = attrs["new_version"]
+        version = attrs.get("version_pr_info", {})["new_version"]
 
         # record the attempt
         with attrs["version_pr_info"] as vpri:
@@ -648,7 +649,7 @@ class Version(Migrator):
 
     def pr_body(self, feedstock_ctx: FeedstockContext) -> str:
         pred = [
-            (name, self.ctx.effective_graph.nodes[name]["payload"]["new_version"])
+            (name, self.ctx.effective_graph.nodes[name]["payload"]["version_pr_info"]["new_version"])
             for name in list(
                 self.ctx.effective_graph.predecessors(feedstock_ctx.package_name),
             )
@@ -773,11 +774,11 @@ class Version(Migrator):
         return hint
 
     def commit_message(self, feedstock_ctx: FeedstockContext) -> str:
-        assert isinstance(feedstock_ctx.attrs["new_version"], str)
-        return "updated v" + feedstock_ctx.attrs["new_version"]
+        assert isinstance(feedstock_ctx.attrs["version_pr_info"]["new_version"], str)
+        return "updated v" + feedstock_ctx.attrs["version_pr_info"]["new_version"]
 
     def pr_title(self, feedstock_ctx: FeedstockContext) -> str:
-        assert isinstance(feedstock_ctx.attrs["new_version"], str)
+        assert isinstance(feedstock_ctx.attrs["version_pr_info"]["new_version"], str)
         # TODO: turn False to True when we default to automerge
         if feedstock_ctx.attrs.get("conda-forge.yml", {}).get("bot", {}).get(
             "automerge",
@@ -791,17 +792,17 @@ class Version(Migrator):
             add_slug
             + feedstock_ctx.package_name
             + " v"
-            + feedstock_ctx.attrs["new_version"]
+            + feedstock_ctx.attrs["version_pr_info"]["new_version"]
         )
 
     def remote_branch(self, feedstock_ctx: FeedstockContext) -> str:
-        assert isinstance(feedstock_ctx.attrs["new_version"], str)
-        return feedstock_ctx.attrs["new_version"]
+        assert isinstance(feedstock_ctx.attrs["version_pr_info"]["new_version"], str)
+        return feedstock_ctx.attrs["version_pr_info"]["new_version"]
 
     def migrator_uid(self, attrs: "AttrsTypedDict") -> "MigrationUidTypedDict":
         n = super().migrator_uid(attrs)
-        assert isinstance(attrs["new_version"], str)
-        n["version"] = attrs["new_version"]
+        assert isinstance(attrs["version_pr_info"]["new_version"], str)
+        n["version"] = attrs["version_pr_info"]["new_version"]
         return n
 
     def _extract_version_from_muid(self, h: dict) -> str:
@@ -831,8 +832,8 @@ class Version(Migrator):
         @functools.lru_cache(maxsize=1024)
         def _get_attemps_nr(node):
             with graph.nodes[node]["payload"] as attrs:
-                new_version = attrs.get("new_version", "")
                 with attrs["version_pr_info"] as vpri:
+                    new_version = vpri.get("new_version", "")
                     attempts = vpri.get("new_version_attempts", {}).get(new_version, 0)
             return min(attempts, 3)
 
