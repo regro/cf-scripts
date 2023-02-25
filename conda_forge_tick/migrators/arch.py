@@ -109,7 +109,9 @@ class ArchRebuild(GraphMigrator):
                 attrs.get("conda-forge.yml", {}).get("provider", {}).get(arch)
             )
             if configured_arch:
-                return muid in _sanitized_muids(attrs.get("PRed", []))
+                return muid in _sanitized_muids(
+                    attrs.get("pr_info", {}).get("PRed", []),
+                )
         else:
             return False
 
@@ -258,7 +260,9 @@ class OSXArm(GraphMigrator):
                 attrs.get("conda-forge.yml", {}).get("provider", {}).get(arch)
             )
             if configured_arch:
-                return muid in _sanitized_muids(attrs.get("PRed", []))
+                return muid in _sanitized_muids(
+                    attrs.get("pr_info", {}).get("PRed", []),
+                )
         else:
             return False
 

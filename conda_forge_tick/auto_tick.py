@@ -1178,27 +1178,30 @@ def _run_migrator(migrator, mctx, temp, time_per, dry_run):
                         )
                         # if migration successful
                         if migrator_uid:
-                            d = frozen_to_json_friendly(migrator_uid)
-                            # if we have the PR already do nothing
-                            if d["data"] in [
-                                existing_pr["data"]
-                                for existing_pr in attrs.get("PRed", [])
-                            ]:
-                                pass
-                            else:
-                                if not pr_json:
-                                    pr_json = {
-                                        "state": "closed",
-                                        "head": {"ref": "<this_is_not_a_branch>"},
-                                    }
-                                d["PR"] = pr_json
-                                attrs.setdefault("PRed", []).append(d)
-                            attrs.update(
-                                {
-                                    "smithy_version": mctx.smithy_version,
-                                    "pinning_version": mctx.pinning_version,
-                                },
-                            )
+                            with attrs["pr_info"] as pri:
+                                d = frozen_to_json_friendly(migrator_uid)
+                                # if we have the PR already do nothing
+                                if d["data"] in [
+                                    existing_pr["data"]
+                                    for existing_pr in pri.get("PRed", [])
+                                ]:
+                                    pass
+                                else:
+                                    if not pr_json:
+                                        pr_json = {
+                                            "state": "closed",
+                                            "head": {"ref": "<this_is_not_a_branch>"},
+                                        }
+                                    d["PR"] = pr_json
+                                    if "PRed" not in pri:
+                                        pri["PRed"] = []
+                                    pri["PRed"].append(d)
+                                pri.update(
+                                    {
+                                        "smithy_version": mctx.smithy_version,
+                                        "pinning_version": mctx.pinning_version,
+                                    },
+                                )
 
                     except github3.GitHubError as e:
                         if e.msg == "Repository was archived so is read-only.":

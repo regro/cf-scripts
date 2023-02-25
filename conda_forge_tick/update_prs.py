@@ -62,7 +62,7 @@ def _update_pr(update_function, dry_run, gx, job, n_jobs):
             leave=False,
         ):
             node = gx.nodes[node_id]["payload"]
-            prs = node.get("PRed", [])
+            prs = node["pr_info"].get("PRed", [])
             for i, migration in enumerate(prs):
 
                 if random.uniform(0, 1) >= KEEP_PR_FRACTION:
@@ -106,7 +106,7 @@ def _update_pr(update_function, dry_run, gx, job, n_jobs):
                 logger.critical(
                     "ERROR ON FEEDSTOCK: {}: {} - {}".format(
                         name,
-                        gx.nodes[name]["payload"]["PRed"][i],
+                        gx.nodes[name]["payload"]["pr_info"]["PRed"][i],
                         traceback.format_exc(),
                     ),
                 )
