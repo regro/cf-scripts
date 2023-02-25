@@ -97,6 +97,10 @@ def get_attrs(name: str, i: int, mark_not_archived=False) -> LazyJson:
                     if key in sub_graph:
                         vpri[key].update(sub_graph.pop(key))
 
+        if "new_version" in sub_graph:
+            with sub_graph["version_pr_info"] as vpri:
+                vpri["new_version"] = sub_graph.pop("new_version")
+
         if "pr_info" not in sub_graph:
             sub_graph["pr_info"] = LazyJson(f"pr_info/{name}.json")
             with sub_graph["pr_info"] as pri:
