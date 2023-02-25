@@ -86,43 +86,46 @@ def get_attrs(name: str, i: int, mark_not_archived=False) -> LazyJson:
     lzj = LazyJson(f"node_attrs/{name}.json")
     with lzj as sub_graph:
         load_feedstock(name, sub_graph, mark_not_archived=mark_not_archived)
-
-        # schema migrations and fixes go here
-        if "version_pr_info" not in sub_graph:
-            sub_graph["version_pr_info"] = LazyJson(f"version_pr_info/{name}.json")
-            with sub_graph["version_pr_info"] as vpri:
-                for key in ["new_version_attempts", "new_version_errors"]:
-                    if key not in vpri:
-                        vpri[key] = {}
-                    if key in sub_graph:
-                        vpri[key].update(sub_graph.pop(key))
-
-        if "new_version" in sub_graph:
-            with sub_graph["version_pr_info"] as vpri:
-                vpri["new_version"] = sub_graph.pop("new_version")
-
-        if "pr_info" not in sub_graph:
-            sub_graph["pr_info"] = LazyJson(f"pr_info/{name}.json")
-            with sub_graph["pr_info"] as pri:
-                pre_key = "pre_pr_migrator_status"
-                pre_key_att = "pre_pr_migrator_attempts"
-
-                for key in [pre_key, pre_key_att]:
-                    if key not in pri:
-                        pri[key] = {}
-                    if key in sub_graph:
-                        pri[key].update(sub_graph.pop(key))
-
-                # populate migrator attempts if they are not there
-                for mn in pri[pre_key]:
-                    if mn not in pri[pre_key_att]:
-                        pri[pre_key_att][mn] = 1
-
-                # TODO - will do this one next
-                # if "PRed" in sub_graph:
-                #     pri["PRed"] = sub_graph.pop("PRed")
+        _migrate_schema(name, sub_graph)
 
     return lzj
+
+
+def _migrate_schema(name, sub_graph):
+    # schema migrations and fixes go here
+    if "version_pr_info" not in sub_graph:
+        sub_graph["version_pr_info"] = LazyJson(f"version_pr_info/{name}.json")
+        with sub_graph["version_pr_info"] as vpri:
+            for key in ["new_version_attempts", "new_version_errors"]:
+                if key not in vpri:
+                    vpri[key] = {}
+                if key in sub_graph:
+                    vpri[key].update(sub_graph.pop(key))
+
+    if "new_version" in sub_graph:
+        with sub_graph["version_pr_info"] as vpri:
+            vpri["new_version"] = sub_graph.pop("new_version")
+
+    if "pr_info" not in sub_graph:
+        sub_graph["pr_info"] = LazyJson(f"pr_info/{name}.json")
+        with sub_graph["pr_info"] as pri:
+            pre_key = "pre_pr_migrator_status"
+            pre_key_att = "pre_pr_migrator_attempts"
+
+            for key in [pre_key, pre_key_att]:
+                if key not in pri:
+                    pri[key] = {}
+                if key in sub_graph:
+                    pri[key].update(sub_graph.pop(key))
+
+            # populate migrator attempts if they are not there
+            for mn in pri[pre_key]:
+                if mn not in pri[pre_key_att]:
+                    pri[pre_key_att][mn] = 1
+
+            # TODO - will do this one next
+            # if "PRed" in sub_graph:
+            #     pri["PRed"] = sub_graph.pop("PRed")
 
 
 def _build_graph_process_pool(
@@ -159,6 +162,8 @@ def _build_graph_process_pool(
                     name,
                     repr(e),
                 )
+                with gx.nodes[name]["payload"] as sub_graph:
+                    _migrate_schema(name, sub_graph)
             else:
                 if name in new_names:
                     gx.add_node(name, **sub_graph)
@@ -180,6 +185,8 @@ def _build_graph_sequential(
         except Exception as e:
             trb = traceback.format_exc()
             LOGGER.error(f"Error adding {name} to the graph: {e}\n{trb}")
+            with gx.nodes[name]["payload"] as sub_graph:
+                _migrate_schema(name, sub_graph)
         else:
             if name in new_names:
                 gx.add_node(name, **sub_graph)
