@@ -326,6 +326,7 @@ def _update_nodes_with_new_versions(gx):
         with open(f"./versions/{file}") as json_file:
             version_data: typing.Dict = json.load(json_file)
         with gx.nodes[f"{node}"]["payload"] as attrs:
+            _migrate_schema(node, attrs)
             with attrs["version_pr_info"] as vpri:
                 version_from_data = version_data.get("new_version", False)
                 version_from_attrs = vpri.get("new_version", False)
