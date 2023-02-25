@@ -460,7 +460,9 @@ class Version(Migrator):
                 # if new version is less than current version
                 (
                     VersionOrder(str(vpri["new_version"]).replace("-", "."))
-                    <= VersionOrder(str(attrs.get("version", "0.0.0")).replace("-", "."))
+                    <= VersionOrder(
+                        str(attrs.get("version", "0.0.0")).replace("-", "."),
+                    )
                 )
                 # if PRed version is greater than newest version
                 or any(
@@ -649,7 +651,12 @@ class Version(Migrator):
 
     def pr_body(self, feedstock_ctx: FeedstockContext) -> str:
         pred = [
-            (name, self.ctx.effective_graph.nodes[name]["payload"]["version_pr_info"]["new_version"])
+            (
+                name,
+                self.ctx.effective_graph.nodes[name]["payload"]["version_pr_info"][
+                    "new_version"
+                ],
+            )
             for name in list(
                 self.ctx.effective_graph.predecessors(feedstock_ctx.package_name),
             )
