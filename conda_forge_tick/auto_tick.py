@@ -358,8 +358,8 @@ def run(
             )
 
             if isinstance(migrator, Version):
-                _new_ver = feedstock_ctx.attrs["new_version"]
                 with feedstock_ctx.attrs["version_pr_info"] as vpri:
+                    _new_ver = vpri["new_version"]
                     vpri["new_version_errors"][_new_ver] = _solver_err_str
                     vpri["new_version_errors"][_new_ver] = sanitize_string(
                         vpri["new_version_errors"][_new_ver],
@@ -1016,7 +1016,7 @@ def _compute_time_per_migrator(mctx, migrators):
                 with mmctx.effective_graph.nodes[node_name]["payload"] as attrs:
                     with attrs["version_pr_info"] as vpri:
                         _attempts = vpri.get("new_version_attempts", {}).get(
-                            attrs.get("new_version", ""),
+                            vpri.get("new_version", ""),
                             0,
                         )
                     if _attempts < 3:
@@ -1104,10 +1104,10 @@ def _run_migrator(migrator, mctx, temp, time_per, dry_run):
                         "    node|curr|new|attempts: %s|%s|%s|%f",
                         node_name,
                         attrs.get("version"),
-                        attrs.get("new_version"),
+                        vpri.get("new_version"),
                         (
                             vpri.get("new_version_attempts", {}).get(
-                                attrs.get("new_version", ""),
+                                vpri.get("new_version", ""),
                                 0,
                             )
                         ),
