@@ -468,7 +468,7 @@ class Version(Migrator):
                 or any(
                     VersionOrder(self._extract_version_from_muid(h).replace("-", "."))
                     >= VersionOrder(str(vpri["new_version"]).replace("-", "."))
-                    for h in attrs.get("pr_info", {})..get("PRed", set())
+                    for h in attrs.get("pr_info", {}).get("PRed", set())
                 )
             )
         except conda.exceptions.InvalidVersionSpec as e:
