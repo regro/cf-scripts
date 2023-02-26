@@ -2,7 +2,7 @@ name: bot-delete-old-runs
 
 on:
   schedule:
-    - cron: '0 0 * * *'
+    - cron: '0 0,12 * * *'
   workflow_dispatch: null
 
 jobs:
