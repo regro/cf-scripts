@@ -63,7 +63,7 @@ def write_version_migrator_status(migrator, mctx):
     for node in mmctx.effective_graph.nodes:
         with mmctx.effective_graph.nodes[node]["payload"] as attrs:
             with attrs["version_pr_info"] as vpri:
-                new_version = attrs.get("new_version", None)
+                new_version = vpri.get("new_version", None)
                 if new_version is None:
                     continue
                 attempts = vpri.get("new_version_attempts", {}).get(new_version, 0)

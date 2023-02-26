@@ -150,7 +150,10 @@ def make_grayskull_recipe(attrs, version_key="version"):
     recipe : str
         The generated grayskull recipe as a string.
     """
-    pkg_version = attrs[version_key]
+    if version_key not in attrs:
+        pkg_version = attrs.get("version_pr_info", {}).get(version_key)
+    else:
+        pkg_version = attrs[version_key]
     pkg_name = attrs["name"]
     is_noarch = "noarch: python" in attrs["raw_meta_yaml"]
     logger.info(

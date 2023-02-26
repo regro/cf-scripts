@@ -6,7 +6,9 @@ import typing
 import traceback
 from concurrent.futures import as_completed
 from collections import defaultdict
+import glob
 
+import tqdm
 from typing import List, Optional, Iterable
 import psutil
 import json
@@ -87,47 +89,54 @@ def get_attrs(name: str, i: int, mark_not_archived=False) -> LazyJson:
     with lzj as sub_graph:
         load_feedstock(name, sub_graph, mark_not_archived=mark_not_archived)
 
-        # schema migrations and fixes go here
-        if "version_pr_info" not in sub_graph:
-            sub_graph["version_pr_info"] = LazyJson(f"version_pr_info/{name}.json")
-            with sub_graph["version_pr_info"] as vpri:
-                for key in ["new_version_attempts", "new_version_errors"]:
-                    if key not in vpri:
-                        vpri[key] = {}
-                    if key in sub_graph:
-                        vpri[key].update(sub_graph.pop(key))
-
-        if "pr_info" not in sub_graph:
-            sub_graph["pr_info"] = LazyJson(f"pr_info/{name}.json")
-            with sub_graph["pr_info"] as pri:
-                pre_key = "pre_pr_migrator_status"
-                pre_key_att = "pre_pr_migrator_attempts"
-
-                for key in [pre_key, pre_key_att]:
-                    if key not in pri:
-                        pri[key] = {}
-                    if key in sub_graph:
-                        pri[key].update(sub_graph.pop(key))
-
-                # populate migrator attempts if they are not there
-                for mn in pri[pre_key]:
-                    if mn not in pri[pre_key_att]:
-                        pri[pre_key_att][mn] = 1
-        keys_to_move = [
-            "PRed",
-            "smithy_version",
-            "pinning_version",
-            "bad",
-        ]
-        if any(key in sub_graph for key in keys_to_move):
-            with sub_graph["pr_info"] as pri:
-                for key in keys_to_move:
-                    if key in sub_graph:
-                        pri[key] = sub_graph.pop(key)
-                        if key == "bad":
-                            pri["bad"] = False
-
     return lzj
+
+
+def _migrate_schema(name, sub_graph):
+    # schema migrations and fixes go here
+    if "version_pr_info" not in sub_graph:
+        sub_graph["version_pr_info"] = LazyJson(f"version_pr_info/{name}.json")
+        with sub_graph["version_pr_info"] as vpri:
+            for key in ["new_version_attempts", "new_version_errors"]:
+                if key not in vpri:
+                    vpri[key] = {}
+                if key in sub_graph:
+                    vpri[key].update(sub_graph.pop(key))
+
+    if "new_version" in sub_graph:
+        with sub_graph["version_pr_info"] as vpri:
+            vpri["new_version"] = sub_graph.pop("new_version")
+
+    if "pr_info" not in sub_graph:
+        sub_graph["pr_info"] = LazyJson(f"pr_info/{name}.json")
+        with sub_graph["pr_info"] as pri:
+            pre_key = "pre_pr_migrator_status"
+            pre_key_att = "pre_pr_migrator_attempts"
+
+            for key in [pre_key, pre_key_att]:
+                if key not in pri:
+                    pri[key] = {}
+                if key in sub_graph:
+                    pri[key].update(sub_graph.pop(key))
+
+            # populate migrator attempts if they are not there
+            for mn in pri[pre_key]:
+                if mn not in pri[pre_key_att]:
+                    pri[pre_key_att][mn] = 1
+
+    keys_to_move = [
+        "PRed",
+        "smithy_version",
+        "pinning_version",
+        "bad",
+    ]
+    if any(key in sub_graph for key in keys_to_move):
+        with sub_graph["pr_info"] as pri:
+            for key in keys_to_move:
+                if key in sub_graph:
+                    pri[key] = sub_graph.pop(key)
+                    if key == "bad":
+                        pri["bad"] = False
 
 
 def _build_graph_process_pool(
@@ -324,19 +333,20 @@ def _update_nodes_with_new_versions(gx):
         with open(f"./versions/{file}") as json_file:
             version_data: typing.Dict = json.load(json_file)
         with gx.nodes[f"{node}"]["payload"] as attrs:
-            version_from_data = version_data.get("new_version", False)
-            version_from_attrs = attrs.get("new_version", False)
-            # don't update the version if it isn't newer
-            if version_from_data and isinstance(version_from_data, str):
-                # we only override the graph node if the version we found is newer
-                # or the graph doesn't have a valid version
-                if isinstance(version_from_attrs, str):
-                    attrs["new_version"] = max(
-                        [version_from_data, version_from_attrs],
-                        key=lambda x: VersionOrder(x.replace("-", ".")),
-                    )
-                else:
-                    attrs["new_version"] = version_from_data
+            with attrs["version_pr_info"] as vpri:
+                version_from_data = version_data.get("new_version", False)
+                version_from_attrs = vpri.get("new_version", False)
+                # don't update the version if it isn't newer
+                if version_from_data and isinstance(version_from_data, str):
+                    # we only override the graph node if the version we found is newer
+                    # or the graph doesn't have a valid version
+                    if isinstance(version_from_attrs, str):
+                        vpri["new_version"] = max(
+                            [version_from_data, version_from_attrs],
+                            key=lambda x: VersionOrder(x.replace("-", ".")),
+                        )
+                    else:
+                        vpri["new_version"] = version_from_data
 
 
 def _update_nodes_with_archived(gx, archived_names):
@@ -345,6 +355,15 @@ def _update_nodes_with_archived(gx, archived_names):
             node = gx.nodes[name]
             with node["payload"] as payload:
                 payload["archived"] = True
+
+
+def _migrate_schemas():
+    # make sure to apply all schema migrations
+    node_pths = glob.glob("node_attrs/*.json")
+    for node_pth in tqdm.tqdm(node_pths, desc="migrating node schemas"):
+        name = os.path.basename(node_pth)[:-5]
+        with LazyJson(node_pth) as sub_graph:
+            _migrate_schema(name, sub_graph)
 
 
 # @profiling
@@ -363,6 +382,8 @@ def main(args: "CLIArgs") -> None:
     nodes_without_paylod = [k for k, v in gx.nodes.items() if "payload" not in v]
     if nodes_without_paylod:
         LOGGER.warning("nodes w/o payload: %s", nodes_without_paylod)
+
+    _migrate_schemas()
 
     _update_nodes_with_bot_rerun(gx)
     _update_nodes_with_new_versions(gx)
