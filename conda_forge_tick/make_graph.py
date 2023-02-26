@@ -6,7 +6,9 @@ import typing
 import traceback
 from concurrent.futures import as_completed
 from collections import defaultdict
+import glob
 
+import tqdm
 from typing import List, Optional, Iterable
 import psutil
 import json
@@ -86,7 +88,6 @@ def get_attrs(name: str, i: int, mark_not_archived=False) -> LazyJson:
     lzj = LazyJson(f"node_attrs/{name}.json")
     with lzj as sub_graph:
         load_feedstock(name, sub_graph, mark_not_archived=mark_not_archived)
-        _migrate_schema(name, sub_graph)
 
     return lzj
 
@@ -162,8 +163,6 @@ def _build_graph_process_pool(
                     name,
                     repr(e),
                 )
-                with gx.nodes[name]["payload"] as sub_graph:
-                    _migrate_schema(name, sub_graph)
             else:
                 if name in new_names:
                     gx.add_node(name, **sub_graph)
@@ -185,8 +184,6 @@ def _build_graph_sequential(
         except Exception as e:
             trb = traceback.format_exc()
             LOGGER.error(f"Error adding {name} to the graph: {e}\n{trb}")
-            with gx.nodes[name]["payload"] as sub_graph:
-                _migrate_schema(name, sub_graph)
         else:
             if name in new_names:
                 gx.add_node(name, **sub_graph)
@@ -326,7 +323,6 @@ def _update_nodes_with_new_versions(gx):
         with open(f"./versions/{file}") as json_file:
             version_data: typing.Dict = json.load(json_file)
         with gx.nodes[f"{node}"]["payload"] as attrs:
-            _migrate_schema(node, attrs)
             with attrs["version_pr_info"] as vpri:
                 version_from_data = version_data.get("new_version", False)
                 version_from_attrs = vpri.get("new_version", False)
@@ -351,6 +347,15 @@ def _update_nodes_with_archived(gx, archived_names):
                 payload["archived"] = True
 
 
+def _migrate_schemas():
+    # make sure to apply all schema migrations
+    node_pths = glob.glob("node_attrs/*.json")
+    for node_pth in tqdm.tqdm(node_pths, desc="migrating node schemas"):
+        name = os.path.basename(node_pth)[:-5]
+        with LazyJson(node_pth) as sub_graph:
+            _migrate_schema(name, sub_graph)
+
+
 # @profiling
 def main(args: "CLIArgs") -> None:
     if args.debug:
@@ -367,6 +372,8 @@ def main(args: "CLIArgs") -> None:
     nodes_without_paylod = [k for k, v in gx.nodes.items() if "payload" not in v]
     if nodes_without_paylod:
         LOGGER.warning("nodes w/o payload: %s", nodes_without_paylod)
+
+    _migrate_schemas()
 
     _update_nodes_with_bot_rerun(gx)
     _update_nodes_with_new_versions(gx)
