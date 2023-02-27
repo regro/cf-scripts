@@ -42,6 +42,18 @@ jobs:
           mamba install --quiet --file requirements/run --file requirements/test
           python -m pip install -e .
 
+      - name: conda info and env
+        shell: bash -l {0}
+        run: |
+          echo "=================================================================="
+          echo "=================================================================="
+          conda info
+
+          echo ""
+          echo "=================================================================="
+          echo "=================================================================="
+          conda list
+
       - name: test
         shell: bash -l {0}
         run: |
