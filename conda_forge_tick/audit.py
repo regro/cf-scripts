@@ -93,6 +93,9 @@ PACKAGES_BY_IMPORT_OVERRIDE = {
 def extract_deps_from_source(recipe_dir):
     cb_work_dir = _get_source_code(recipe_dir)
     with pushd(cb_work_dir):
+        os.system("ls -lah")
+        print("builtins:", BUILTINS, flush=True)
+        print("ignore:", DEPFINDER_IGNORE, flush=True)
         return simple_import_to_pkg_map(
             cb_work_dir,
             builtins=BUILTINS,
