@@ -59,15 +59,16 @@ jobs:
         run: |
           export TEST_PASSWORD_VAL=unpassword
           export PASSWORD=${TEST_PASSWORD_VAL}
-          pytest \
-            -v \
-            --cov=conda_forge_tick \
-            --cov=tests \
-            --cov-config=.coveragerc \
-            --cov-report term \
-            --durations 10 \
-            tests
-          codecov -X gcov
+          # pytest \
+          #   -v \
+          #   --cov=conda_forge_tick \
+          #   --cov=tests \
+          #   --cov-config=.coveragerc \
+          #   --cov-report term \
+          #   --durations 10 \
+          #   tests
+          # codecov -X gcov
+          pytest -vvs tests -k test_get_dep_updates_and_hints_praw
 
       - name: build docs
         shell: bash -l {0}

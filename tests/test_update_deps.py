@@ -221,6 +221,11 @@ extra:
 
 
 def test_get_dep_updates_and_hints_praw():
+    from conda_forge_tick.audit import (
+        extract_deps_from_source,
+        compare_depfinder_audit,
+    )
+
     attrs = {
         "name": "praw",
         "requirements": {
@@ -245,7 +250,17 @@ def test_get_dep_updates_and_hints_praw():
             {"conda"},
             "new_version",
         )
+        deps = extract_deps_from_source(tmpdir)
+        comp = compare_depfinder_audit(
+            deps,
+            attrs,
+            attrs["name"],
+            python_nodes={"conda"},
+        )
+        print("deps:", deps, flush=True)
+        print("comp:", comp)
 
+    print(res[0], res[1], flush=True)
     assert "google-api-core" in res[1]
 
 
