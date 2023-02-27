@@ -11,7 +11,7 @@ conda-libmamba-solver
 conda-package-handling<2
 conda-smithy
 curl
-depfinder<2.9.1
+depfinder
 distributed
 doctr
 feedparser
