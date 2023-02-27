@@ -13,6 +13,7 @@ from conda_forge_tick.update_deps import (
     make_grayskull_recipe,
     _update_sec_deps,
     _merge_dep_comparisons_sec,
+    get_dep_updates_and_hints,
 )
 from conda_forge_tick.migrators import Version, DependencyUpdateMigrator
 
@@ -157,6 +158,95 @@ def test_get_depfinder_comparison():
         d = get_depfinder_comparison(tmpdir, attrs, {"conda"})
     assert len(d["run"]) == 0
     assert "host" not in d
+
+
+praw_recipe = """\
+{% set name = "praw" %}
+{% set import = "praw" %}
+{% set version = "7.7.0" %}
+{% set sha256 = "090d209b35f79dfa36082ed1cdaa0f9a753b9277a69cfe8f9f32fa1827411a5a" %}
+
+package:
+  name: {{ name|lower }}
+  version: {{ version }}
+
+source:
+  fn: {{ name }}-{{ version }}.tar.gz
+  url: https://pypi.io/packages/source/{{ name[0]|lower }}/{{ name|lower }}/{{ name }}-{{ version }}.tar.gz
+  sha256: {{ sha256 }}
+
+build:
+  noarch: python
+  number: 0
+  script: {{ PYTHON }} -m pip install . --no-deps -vv
+
+requirements:
+  host:
+    - python >=3.7
+    - pip
+  run:
+    - python >=3.7
+    - prawcore >=2.1,<3
+    - update_checker >=0.18
+    - websocket-client >=0.54.0
+
+test:
+  requires:
+    - pip
+  commands:
+    - pip check
+  imports:
+    - {{ import }}
+
+about:
+  home: https://praw.readthedocs.io/
+  license: BSD-2-Clause
+  license_family: BSD
+  license_file: LICENSE.txt
+  summary: Python Reddit API Wrapper allows for simple access to Reddit's API
+  description: |
+    PRAW, an acronym for "Python Reddit API Wrapper", is a python package that
+    allows for simple access to Reddit's API. PRAW aims to be easy to use and
+    internally follows all of Reddit's API rules. With PRAW there's no need to
+    introduce sleep calls in your code. Give your client an appropriate user
+    agent and you're set.
+  doc_url: https://praw.readthedocs.io/
+  dev_url: https://github.com/praw-dev/praw
+
+extra:
+  recipe-maintainers:
+    - CAM-Gerlach
+    - djsutherland
+"""
+
+
+def test_get_dep_updates_and_hints_praw():
+    attrs = {
+        "name": "praw",
+        "requirements": {
+            "run": {
+                "prawcore",
+                "python",
+                "update_checker",
+                "websocket-client",
+            },
+        },
+        "new_version": "7.7.0",
+    }
+    with tempfile.TemporaryDirectory() as tmpdir:
+        pth = os.path.join(tmpdir, "meta.yaml")
+        with open(pth, "w") as fp:
+            fp.write(praw_recipe)
+
+        res = get_dep_updates_and_hints(
+            "hint",
+            tmpdir,
+            attrs,
+            {"conda"},
+            "new_version",
+        )
+
+    assert "google-api-core" in res[1]
 
 
 out_yml_gs = """\
