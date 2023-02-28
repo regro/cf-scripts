@@ -228,7 +228,6 @@ def test_get_dep_updates_and_hints_praw():
                 "prawcore",
                 "python",
                 "update_checker",
-                "websocket-client",
             },
         },
         "new_version": "7.7.0",
@@ -247,7 +246,7 @@ def test_get_dep_updates_and_hints_praw():
         )
 
     print(res[0], res[1], flush=True)
-    assert "requests" in res[1]
+    assert "websocket-client" in res[1]
 
 
 out_yml_gs = """\

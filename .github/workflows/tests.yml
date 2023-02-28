@@ -68,7 +68,7 @@ jobs:
           #   --durations 10 \
           #   tests
           # codecov -X gcov
-          # pytest -vvs tests -k test_get_dep_updates_and_hints_praw
+          pytest -vvs tests -k test_get_dep_updates_and_hints_praw
           wget --quiet https://pypi.io/packages/source/p/praw/praw-7.7.0.tar.gz
           tar xzf praw-7.7.0.tar.gz
           python test_depfind.py
