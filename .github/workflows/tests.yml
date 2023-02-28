@@ -12,7 +12,7 @@ env:
 jobs:
   tests:
     name: tests
-    runs-on: "macos-11"
+    runs-on: "ubuntu-latest"
     steps:
       - name: cancel previous runs
         uses: styfle/cancel-workflow-action@0.6.0
