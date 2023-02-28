@@ -93,9 +93,6 @@ PACKAGES_BY_IMPORT_OVERRIDE = {
 def extract_deps_from_source(recipe_dir):
     cb_work_dir = _get_source_code(recipe_dir)
     with pushd(cb_work_dir):
-        os.system("ls -lah")
-        print("builtins:", BUILTINS, flush=True)
-        print("ignore:", DEPFINDER_IGNORE, flush=True)
         return simple_import_to_pkg_map(
             cb_work_dir,
             builtins=BUILTINS,
@@ -275,6 +272,7 @@ def extract_missing_packages(
             cf_minus_df = cf_minus_df - overlap
 
     # Only report for python nodes, we don't inspect for other deps
+    print(cf_minus_df, df_minus_cf, python_nodes, flush=True)
     cf_minus_df = (cf_minus_df - exclude_packages) & python_nodes
     if cf_minus_df:
         d.update(cf_minus_df=cf_minus_df)
