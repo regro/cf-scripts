@@ -10,6 +10,7 @@ from typing import Dict
 
 import networkx as nx
 from stdlib_list import stdlib_list
+import requests
 
 from conda_forge_tick.make_graph import COMPILER_STUBS_WITH_STRONG_EXPORTS
 from grayskull.__main__ import create_python_recipe
@@ -231,10 +232,15 @@ def compare_grayskull_audits(gx):
     return bad_inspections
 
 
-try:
-    RANKINGS = load(open("ranked_hubs_authorities.json"))
-except FileNotFoundError:
-    RANKINGS = []
+RANKINGS = []
+for _ in range(10):
+    r = requests.get(
+        "https://raw.githubusercontent.com/regro/cf-graph-countyfair/master/ranked_hubs_authorities.json",
+    )
+    if r.status_code == 200:
+        RANKINGS = r.json()
+        break
+del r
 
 
 def extract_missing_packages(
@@ -272,8 +278,8 @@ def extract_missing_packages(
             cf_minus_df = cf_minus_df - overlap
 
     # Only report for python nodes, we don't inspect for other deps
-    print(cf_minus_df, df_minus_cf, python_nodes, flush=True)
-    cf_minus_df = (cf_minus_df - exclude_packages) & python_nodes
+    if python_nodes:
+        cf_minus_df = (cf_minus_df - exclude_packages) & python_nodes
     if cf_minus_df:
         d.update(cf_minus_df=cf_minus_df)
 
