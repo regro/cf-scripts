@@ -224,11 +224,7 @@ def test_get_dep_updates_and_hints_praw():
     attrs = {
         "name": "praw",
         "requirements": {
-            "run": {
-                "prawcore",
-                "python",
-                "update_checker",
-            },
+            "run": set(),
         },
         "new_version": "7.7.0",
     }
