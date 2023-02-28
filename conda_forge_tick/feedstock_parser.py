@@ -181,14 +181,14 @@ def populate_feedstock_attributes(
     If the return is bad hand the response itself in so that it can be parsed
     for meaning.
     """
-    sub_graph.update({"feedstock_name": name, "bad": False, "branch": "main"})
+    sub_graph.update({"feedstock_name": name, "parsing_error": False, "branch": "main"})
 
     if mark_not_archived:
         sub_graph.update({"archived": False})
 
     # handle all the raw strings
     if isinstance(meta_yaml, Response):
-        sub_graph["bad"] = f"make_graph: {meta_yaml.status_code}"
+        sub_graph["parsing_error"] = f"make_graph: {meta_yaml.status_code}"
         return sub_graph
 
     # strip out old keys - this removes old platforms when one gets disabled
@@ -301,7 +301,7 @@ def populate_feedstock_attributes(
         import traceback
 
         trb = traceback.format_exc()
-        sub_graph["bad"] = f"make_graph: render error {e}\n{trb}"
+        sub_graph["parsing_error"] = f"make_graph: render error {e}\n{trb}"
         raise
 
     LOGGER.debug("platforms: %s", plat_arch)
@@ -311,7 +311,7 @@ def populate_feedstock_attributes(
     yaml_dict = ChainDB(*sorted_varient_yamls)
     if not yaml_dict:
         LOGGER.error(f"Something odd happened when parsing recipe {name}")
-        sub_graph["bad"] = "make_graph: Could not parse"
+        sub_graph["parsing_error"] = "make_graph: Could not parse"
         return sub_graph
 
     sub_graph["meta_yaml"] = _convert_to_dict(yaml_dict)

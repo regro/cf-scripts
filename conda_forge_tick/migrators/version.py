@@ -445,7 +445,7 @@ class Version(Migrator):
             or len(
                 [
                     k
-                    for k in attrs.get("PRed", [])
+                    for k in attrs.get("pr_info", {}).get("PRed", [])
                     if k["data"].get("migrator_name") == "Version"
                     # The PR is the actual PR itself
                     and k.get("PR", {}).get("state", None) == "open"
@@ -468,7 +468,7 @@ class Version(Migrator):
                 or any(
                     VersionOrder(self._extract_version_from_muid(h).replace("-", "."))
                     >= VersionOrder(str(vpri["new_version"]).replace("-", "."))
-                    for h in attrs.get("PRed", set())
+                    for h in attrs.get("pr_info", {}).get("PRed", set())
                 )
             )
         except conda.exceptions.InvalidVersionSpec as e:
@@ -667,7 +667,7 @@ class Version(Migrator):
         #  issue PRs into other branches for backports
         open_version_prs = [
             muid["PR"]
-            for muid in feedstock_ctx.attrs.get("PRed", [])
+            for muid in feedstock_ctx.attrs.get("pr_info", {}).get("PRed", [])
             if muid["data"].get("migrator_name") == "Version"
             # The PR is the actual PR itself
             and muid.get("PR", {}).get("state", None) == "open"

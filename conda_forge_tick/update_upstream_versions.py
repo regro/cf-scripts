@@ -92,8 +92,11 @@ def _update_upstream_versions_sequential(
     to_update = []
     for node, node_attrs in _all_nodes:
         attrs = node_attrs["payload"]
-        if (attrs.get("bad") and "Upstream" not in attrs.get("bad")) or attrs.get(
-            "archived",
+        pri = attrs.get("pr_info", {})
+        if (
+            attrs.get("parsing_error", False)
+            or (pri.get("bad") and "Upstream" not in pri.get("bad"))
+            or attrs.get("archived")
         ):
             continue
         to_update.append((node, attrs))
@@ -145,8 +148,11 @@ def _update_upstream_versions_process_pool(
 
         for node, node_attrs in tqdm.tqdm(_all_nodes):
             attrs = node_attrs["payload"]
-            if (attrs.get("bad") and "Upstream" not in attrs["bad"]) or attrs.get(
-                "archived",
+            pri = attrs.get("pr_info", {})
+            if (
+                attrs.get("parsing_error", False)
+                or (pri.get("bad") and "Upstream" not in pri.get("bad"))
+                or attrs.get("archived")
             ):
                 continue
 

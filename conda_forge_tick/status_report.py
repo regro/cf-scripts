@@ -129,7 +129,7 @@ def graph_migrator_status(
         feedstock_metadata[node] = node_metadata
         nuid = migrator.migrator_uid(attrs)
         all_pr_jsons = []
-        for pr_json in attrs.get("PRed", []):
+        for pr_json in attrs.get("pr_info", {}).get("PRed", []):
             all_pr_jsons.append(copy.deepcopy(pr_json))
 
         feedstock_ctx = FeedstockContext(
@@ -439,7 +439,7 @@ def main(args: Any = None) -> None:
             len(
                 [
                     z
-                    for z in v.get("payload", {}).get("PRed", [])
+                    for z in v.get("payload", {}).get("pr_info", {}).get("PRed", [])
                     if z.get("PR", {}).get("state", "closed") == "open"
                     and z.get("data", {}).get("migrator_name", "") == "Version"
                 ],
@@ -486,7 +486,7 @@ def main(args: Any = None) -> None:
     def _get_open_pr_states(k):
         attrs = mctx.graph.nodes[k]
         _open_prs = []
-        for pr in attrs.get("PRed", []):
+        for pr in attrs.get("pr_info", {}).get("PRed", []):
             if pr.get("PR", {}).get("state", "closed") != "closed":
                 _open_prs.append(pr["PR"])
 

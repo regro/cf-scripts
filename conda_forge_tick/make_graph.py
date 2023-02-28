@@ -124,9 +124,19 @@ def _migrate_schema(name, sub_graph):
                 if mn not in pri[pre_key_att]:
                     pri[pre_key_att][mn] = 1
 
-            # TODO - will do this one next
-            # if "PRed" in sub_graph:
-            #     pri["PRed"] = sub_graph.pop("PRed")
+    keys_to_move = [
+        "PRed",
+        "smithy_version",
+        "pinning_version",
+        "bad",
+    ]
+    if any(key in sub_graph for key in keys_to_move):
+        with sub_graph["pr_info"] as pri:
+            for key in keys_to_move:
+                if key in sub_graph:
+                    pri[key] = sub_graph.pop(key)
+                    if key == "bad":
+                        pri["bad"] = False
 
 
 def _build_graph_process_pool(
@@ -282,8 +292,8 @@ def _update_nodes_with_bot_rerun(gx):
         #     f"node: {i} memory usage: "
         #     f"{psutil.Process().memory_info().rss // 1024 ** 2}MB",
         # )
-        with node["payload"] as payload:
-            for migration in payload.get("PRed", []):
+        with node["payload"] as payload, payload["pr_info"] as pri:
+            for migration in pri.get("PRed", []):
                 try:
                     pr_json = migration.get("PR", {})
                     # maybe add a pass check info here ? (if using DEBUG)

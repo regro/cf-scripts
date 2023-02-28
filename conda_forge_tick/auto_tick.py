@@ -223,7 +223,7 @@ def run(
         LOGGER.critical(
             "Failed to migrate %s, %s",
             feedstock_ctx.package_name,
-            feedstock_ctx.attrs.get("bad"),
+            feedstock_ctx.attrs.get("pr_info", {}).get("bad"),
         )
         return False, False
 
@@ -240,7 +240,7 @@ def run(
         LOGGER.critical(
             "Failed to migrate %s, %s",
             feedstock_ctx.package_name,
-            feedstock_ctx.attrs.get("bad"),
+            feedstock_ctx.attrs.get("pr_info", {}).get("bad"),
         )
         eval_cmd(f"rm -rf {feedstock_dir}")
         return False, False
@@ -445,7 +445,8 @@ comment. Hopefully you all can fix this!
         ljpr = False
 
     # If we've gotten this far then the node is good
-    feedstock_ctx.attrs["bad"] = False
+    with feedstock_ctx.attrs["pr_info"] as pri:
+        pri["bad"] = False
     _reset_pre_pr_migrator_fields(feedstock_ctx.attrs, migrator_name)
 
     LOGGER.info("Removing feedstock dir")
@@ -1178,27 +1179,30 @@ def _run_migrator(migrator, mctx, temp, time_per, dry_run):
                         )
                         # if migration successful
                         if migrator_uid:
-                            d = frozen_to_json_friendly(migrator_uid)
-                            # if we have the PR already do nothing
-                            if d["data"] in [
-                                existing_pr["data"]
-                                for existing_pr in attrs.get("PRed", [])
-                            ]:
-                                pass
-                            else:
-                                if not pr_json:
-                                    pr_json = {
-                                        "state": "closed",
-                                        "head": {"ref": "<this_is_not_a_branch>"},
-                                    }
-                                d["PR"] = pr_json
-                                attrs.setdefault("PRed", []).append(d)
-                            attrs.update(
-                                {
-                                    "smithy_version": mctx.smithy_version,
-                                    "pinning_version": mctx.pinning_version,
-                                },
-                            )
+                            with attrs["pr_info"] as pri:
+                                d = frozen_to_json_friendly(migrator_uid)
+                                # if we have the PR already do nothing
+                                if d["data"] in [
+                                    existing_pr["data"]
+                                    for existing_pr in pri.get("PRed", [])
+                                ]:
+                                    pass
+                                else:
+                                    if not pr_json:
+                                        pr_json = {
+                                            "state": "closed",
+                                            "head": {"ref": "<this_is_not_a_branch>"},
+                                        }
+                                    d["PR"] = pr_json
+                                    if "PRed" not in pri:
+                                        pri["PRed"] = []
+                                    pri["PRed"].append(d)
+                                pri.update(
+                                    {
+                                        "smithy_version": mctx.smithy_version,
+                                        "pinning_version": mctx.pinning_version,
+                                    },
+                                )
 
                     except github3.GitHubError as e:
                         if e.msg == "Repository was archived so is read-only.":
@@ -1212,12 +1216,13 @@ def _run_migrator(migrator, mctx, temp, time_per, dry_run):
                                 break
                     except URLError as e:
                         LOGGER.exception("URLError ERROR")
-                        attrs["bad"] = {
-                            "exception": str(e),
-                            "traceback": str(traceback.format_exc()).split("\n"),
-                            "code": getattr(e, "code"),
-                            "url": getattr(e, "url"),
-                        }
+                        with attrs["pr_info"] as pri:
+                            pri["bad"] = {
+                                "exception": str(e),
+                                "traceback": str(traceback.format_exc()).split("\n"),
+                                "code": getattr(e, "code"),
+                                "url": getattr(e, "url"),
+                            }
 
                         _set_pre_pr_migrator_fields(
                             attrs,
@@ -1240,12 +1245,13 @@ def _run_migrator(migrator, mctx, temp, time_per, dry_run):
                             "conda smithy rerender -c auto --no-check-uptodate"
                             not in str(e)
                         ):
-                            attrs["bad"] = {
-                                "exception": str(e),
-                                "traceback": str(traceback.format_exc()).split(
-                                    "\n",
-                                ),
-                            }
+                            with attrs["pr_info"] as pri:
+                                pri["bad"] = {
+                                    "exception": str(e),
+                                    "traceback": str(traceback.format_exc()).split(
+                                        "\n",
+                                    ),
+                                }
 
                         _set_pre_pr_migrator_fields(
                             attrs,
