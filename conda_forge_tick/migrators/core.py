@@ -53,13 +53,7 @@ def _parse_bad_attr(attrs: "AttrsTypedDict", not_bad_str_start: str) -> bool:
     else:
         bad_bool = bad
 
-    perr = attrs.get("parsing_error", False)
-    if isinstance(perr, str):
-        perr_bool = not perr.startswith(not_bad_str_start)
-    else:
-        perr_bool = perr
-
-    return bad_bool or perr_bool
+    return bad_bool or attrs.get("parsing_error", False)
 
 
 def _gen_active_feedstocks_payloads(nodes, gx):
