@@ -389,9 +389,6 @@ def main(args: "CLIArgs") -> None:
 
     _migrate_schemas()
 
-    _update_nodes_with_bot_rerun(gx)
-    _update_nodes_with_new_versions(gx)
-
     archived_names = get_archived_feedstocks(cached=True)
     _update_nodes_with_archived(gx, archived_names)
 
