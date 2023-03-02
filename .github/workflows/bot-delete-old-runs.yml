@@ -35,19 +35,18 @@ jobs:
           r = gh.get_repo('regro/cf-scripts')
           done = 0
           for w in r.get_workflows():
-              for _ in range(10):
-                  for rn in w.get_runs().reversed:
-                      if rn.status == 'completed' and (
-                          datetime.datetime.utcnow() - rn.updated_at > datetime.timedelta(days=90)
-                      ):
-                          requests.delete(
-                              rn.url,
-                              headers={'Authorization': 'Bearer ' + os.environ['GITHUB_TOKEN']},
-                          )
-                          done += 1
-                          time.sleep(1)
-                      if done == 500:
-                          sys.exit(0)
+              for rn in w.get_runs().reversed:
+                  if rn.status == 'completed' and (
+                      datetime.datetime.utcnow() - rn.updated_at > datetime.timedelta(days=90)
+                  ):
+                      requests.delete(
+                          rn.url,
+                          headers={'Authorization': 'Bearer ' + os.environ['GITHUB_TOKEN']},
+                      )
+                      done += 1
+                      time.sleep(1)
+                  if done == 500:
+                      sys.exit(0)
           " > del_old_runs.py
 
           python del_old_runs.py
