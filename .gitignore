@@ -38,3 +38,5 @@ feedstocks
 .venv
 .ipynb_checkpoints/
 Untitled.ipynb
+version_pr_info/*
+pr_info/*
