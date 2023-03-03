@@ -3,7 +3,7 @@ name: bot-bot
 on:
   workflow_dispatch: null
   schedule:
-    - cron:  '0 0 * * *'
+    - cron:  '0 */4 * * *'
 
 concurrency: bot
 
@@ -50,39 +50,6 @@ jobs:
           source cf-scripts/autotick-bot/install_bot_code.sh
         env:
           PASSWORD: ${{ secrets.AUTOTICK_BOT_TOKEN }}
-
-      - name: make graph
-        if: success() && ! env.CI_SKIP
-        run: |
-          pushd cf-graph
-
-          conda-forge-tick --run 1
-
-          popd
-        env:
-          USERNAME: regro-cf-autotick-bot
-          PASSWORD: ${{ secrets.AUTOTICK_BOT_TOKEN }}
-
-      - name: status of changes
-        if: github.ref == 'refs/heads/master' && always() && ! env.CI_SKIP
-        run: |
-          pushd cf-graph
-          git status
-          popd
-
-      - name: deploy
-        if: github.ref == 'refs/heads/master' && always() && ! env.CI_SKIP
-        run: |
-          pushd cf-graph
-
-          export CIRCLE_BUILD_URL="https://github.com/regro/cf-scripts/actions/runs/${RUN_ID}"
-          export CIRCLE_BUILD_NUM="actually-actions-${RUN_ID}"
-          conda-forge-tick --run -1
-
-          popd
-        env:
-          PASSWORD: ${{ secrets.AUTOTICK_BOT_TOKEN }}
-          RUN_ID: ${{ github.run_id }}
 
       - name: run migrations
         if: success() && ! env.CI_SKIP
