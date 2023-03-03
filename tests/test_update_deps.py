@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 import tempfile
 import logging
 
@@ -229,9 +230,11 @@ def test_get_dep_updates_and_hints_praw():
         "new_version": "7.7.0",
     }
     with tempfile.TemporaryDirectory() as tmpdir:
-        pth = os.path.join(tmpdir, "meta.yaml")
-        with open(pth, "w") as fp:
-            fp.write(praw_recipe)
+
+        recipe = Path(tmpdir) / "meta.yaml"
+        recipe.write_text(praw_recipe)
+
+        content = recipe.read_text()
 
         res = get_dep_updates_and_hints(
             "hint",
