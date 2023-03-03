@@ -699,7 +699,7 @@
     },
     "parsing_error": false,
     "pr_info": {
-        "__lazy_json__": "pr_info/depfinder.json"
+        "__lazy_json__": "tests/test_yaml/pr_info_depfinder.json"
     },
     "raw_meta_yaml": "{% set name = \"depfinder\" %}\n{% set version = \"2.9.1\" %}\n\npackage:\n  name: {{ name|lower }}\n  version: {{ version }}\n\nsource:\n  url: https://pypi.io/packages/source/{{ name[0] }}/{{ name }}/depfinder-{{ version }}.tar.gz\n  sha256: 6b058dadbfc9970e7a6bf36ba0c9357cf4c14a926b5b4644f3ea192e6649cd8a\n\nbuild:\n  entry_points:\n    - depfinder = depfinder.cli:cli\n  script: {{ PYTHON }} -m pip install . -vv\n  number: 1\n\nrequirements:\n  host:\n    - pip\n    - python\n  run:\n    - python\n    - pyyaml\n    - requests\n    - stdlib-list  # [py<310]\n\ntest:\n  imports:\n    - depfinder\n  commands:\n    - pip check\n    - depfinder --help\n  requires:\n    - pip\n\nabout:\n  home: http://github.com/ericdill/depfinder\n  license: BSD-3-Clause\n  license_file: LICENSE\n  summary: Find all the unique imports in your library\n\nextra:\n  recipe-maintainers:\n    - ericdill\n    - mariusvniekerk\n    - tonyfast\n    - ocefpaf\n    - CJ-Wright\n    - beckermr\n",
     "req": {
@@ -772,7 +772,7 @@
     "url": "https://pypi.io/packages/source/d/depfinder/depfinder-2.9.1.tar.gz",
     "version": "2.9.1",
     "version_pr_info": {
-        "__lazy_json__": "version_pr_info/depfinder.json"
+        "__lazy_json__": "tests/test_yaml/version_pr_info_depfinder.json"
     },
     "win_64_meta_yaml": {
         "about": {

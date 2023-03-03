@@ -1,0 +1,237 @@
+{
+    "PRed": [
+        {
+            "PR": {
+                "__lazy_json__": "pr_json/199984891.json"
+            },
+            "data": {
+                "bot_rerun": false,
+                "migrator_name": "Noarch",
+                "migrator_version": 0
+            },
+            "keys": [
+                "bot_rerun",
+                "migrator_name",
+                "migrator_version"
+            ]
+        },
+        {
+            "PR": {
+                "__lazy_json__": "pr_json/215369217.json"
+            },
+            "data": {
+                "bot_rerun": false,
+                "migrator_name": "Version",
+                "migrator_version": 0,
+                "version": "2.1.1"
+            },
+            "keys": [
+                "bot_rerun",
+                "migrator_name",
+                "migrator_version",
+                "version"
+            ]
+        },
+        {
+            "PR": {
+                "__lazy_json__": "pr_json/232397616.json"
+            },
+            "data": {
+                "bot_rerun": false,
+                "migrator_name": "Version",
+                "migrator_version": 0,
+                "version": "2.2.1"
+            },
+            "keys": [
+                "bot_rerun",
+                "migrator_name",
+                "migrator_version",
+                "version"
+            ]
+        },
+        {
+            "PR": {
+                "__lazy_json__": "pr_json/425493522.json"
+            },
+            "data": {
+                "bot_rerun": false,
+                "migrator_name": "Version",
+                "migrator_version": 0,
+                "version": "2.3.1"
+            },
+            "keys": [
+                "bot_rerun",
+                "migrator_name",
+                "migrator_version",
+                "version"
+            ]
+        },
+        {
+            "PR": {
+                "__lazy_json__": "pr_json/469132826.json"
+            },
+            "data": {
+                "bot_rerun": false,
+                "migrator_name": "Version",
+                "migrator_version": 0,
+                "version": "2.4.0"
+            },
+            "keys": [
+                "bot_rerun",
+                "migrator_name",
+                "migrator_version",
+                "version"
+            ]
+        },
+        {
+            "PR": {
+                "__lazy_json__": "pr_json/522503025.json"
+            },
+            "data": {
+                "bot_rerun": false,
+                "migrator_name": "Version",
+                "migrator_version": 0,
+                "version": "2.5.0"
+            },
+            "keys": [
+                "bot_rerun",
+                "migrator_name",
+                "migrator_version",
+                "version"
+            ]
+        },
+        {
+            "PR": {
+                "head": {
+                    "ref": "<this_is_not_a_branch>"
+                },
+                "state": "closed"
+            },
+            "data": {
+                "bot_rerun": false,
+                "migrator_name": "Version",
+                "migrator_version": 0,
+                "version": "2.5.1"
+            },
+            "keys": [
+                "bot_rerun",
+                "migrator_name",
+                "migrator_version",
+                "version"
+            ]
+        },
+        {
+            "PR": {
+                "__lazy_json__": "pr_json/551478516.json"
+            },
+            "data": {
+                "bot_rerun": false,
+                "migrator_name": "Version",
+                "migrator_version": 0,
+                "version": "2.7.1"
+            },
+            "keys": [
+                "bot_rerun",
+                "migrator_name",
+                "migrator_version",
+                "version"
+            ]
+        },
+        {
+            "PR": {
+                "__lazy_json__": "pr_json/1018214022.json"
+            },
+            "data": {
+                "bot_rerun": false,
+                "migrator_name": "Version",
+                "migrator_version": 0,
+                "version": "2.9.0"
+            },
+            "keys": [
+                "bot_rerun",
+                "migrator_name",
+                "migrator_version",
+                "version"
+            ]
+        },
+        {
+            "PR": {
+                "__lazy_json__": "pr_json/1018753466.json"
+            },
+            "data": {
+                "bot_rerun": false,
+                "migrator_name": "MigrationYaml",
+                "migrator_object_version": 1,
+                "migrator_version": 0,
+                "name": "python310"
+            },
+            "keys": [
+                "bot_rerun",
+                "migrator_name",
+                "migrator_object_version",
+                "migrator_version",
+                "name"
+            ]
+        },
+        {
+            "PR": {
+                "__lazy_json__": "pr_json/1018994940.json"
+            },
+            "data": {
+                "bot_rerun": false,
+                "migrator_name": "MigrationYaml",
+                "migrator_object_version": 1,
+                "migrator_version": 0,
+                "name": "pypy38"
+            },
+            "keys": [
+                "bot_rerun",
+                "migrator_name",
+                "migrator_object_version",
+                "migrator_version",
+                "name"
+            ]
+        },
+        {
+            "PR": {
+                "__lazy_json__": "pr_json/1104509643.json"
+            },
+            "data": {
+                "bot_rerun": false,
+                "migrator_name": "MigrationYaml",
+                "migrator_object_version": 1,
+                "migrator_version": 0,
+                "name": "python311"
+            },
+            "keys": [
+                "bot_rerun",
+                "migrator_name",
+                "migrator_object_version",
+                "migrator_version",
+                "name"
+            ]
+        },
+        {
+            "PR": {
+                "__lazy_json__": "pr_json/1185587954.json"
+            },
+            "data": {
+                "bot_rerun": false,
+                "migrator_name": "Version",
+                "migrator_version": 0,
+                "version": "2.9.1"
+            },
+            "keys": [
+                "bot_rerun",
+                "migrator_name",
+                "migrator_version",
+                "version"
+            ]
+        }
+    ],
+    "bad": false,
+    "pinning_version": "2023.01.04.13.03.46",
+    "pre_pr_migrator_attempts": {},
+    "pre_pr_migrator_status": {},
+    "smithy_version": "3.22.1"
+}
