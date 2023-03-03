@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 import tempfile
 import copy
 import logging
@@ -243,6 +244,10 @@ def get_depfinder_comparison(recipe_dir, node_attrs, python_nodes):
         The dependency comparison with conda-forge.
     """
     logger.debug('recipe_dir: "%s"', recipe_dir)
+    p = Path(recipe_dir)
+    logger.debug("listing contents of %s", str(p))
+    for item in p.iterdir():
+        logger.debug("%s", str(item))
     deps = extract_deps_from_source(recipe_dir)
     logger.debug("deps from source: %s", deps)
     df_audit = compare_depfinder_audit(
