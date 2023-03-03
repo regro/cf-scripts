@@ -75,8 +75,7 @@ jobs:
           python test_depfind.py
           echo -e "\n======================================================="
           echo "======================================================="
-          pytest -vvs tests -k test_get_dep_updates_and_hints_praw --showlocals
-
+          pytest -vvs tests -k test_get_dep_updates_and_hints_praw --showlocals --log-cli-level debug
       - name: build docs
         shell: bash -l {0}
         run: |

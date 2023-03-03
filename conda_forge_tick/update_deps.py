@@ -20,11 +20,11 @@ SECTIONS_TO_UPDATE = ["run"]
 
 
 def get_dep_updates_and_hints(
-    update_deps,
-    recipe_dir,
+    update_deps: str,
+    recipe_dir: str,
     attrs,
     python_nodes,
-    version_key,
+    version_key: str,
 ):
     """Get updated deps and hints.
 
@@ -243,14 +243,15 @@ def get_depfinder_comparison(recipe_dir, node_attrs, python_nodes):
         The dependency comparison with conda-forge.
     """
     deps = extract_deps_from_source(recipe_dir)
-    return {
-        "run": compare_depfinder_audit(
-            deps,
-            node_attrs,
-            node_attrs["name"],
-            python_nodes=python_nodes,
-        ),
-    }
+    logger.debug("deps from source: %s", deps)
+    df_audit = compare_depfinder_audit(
+        deps,
+        node_attrs,
+        node_attrs["name"],
+        python_nodes=python_nodes,
+    )
+    logger.debug("depfinder audit: %s", df_audit)
+    return {"run": df_audit}
 
 
 def generate_dep_hint(dep_comparison, kind):
