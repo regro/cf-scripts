@@ -1,4 +1,5 @@
 """Audit the dependencies of the conda-forge ecosystem"""
+import logging
 import os
 import shutil
 import tempfile
@@ -29,6 +30,9 @@ from conda_forge_tick.utils import (
 )
 from conda_forge_tick.feedstock_parser import load_feedstock
 from conda_forge_tick.utils import pushd
+
+logger = logging.getLogger("conda_forge_tick.audit")
+
 
 for __i in range(10):
     try:
@@ -93,12 +97,19 @@ PACKAGES_BY_IMPORT_OVERRIDE = {
 
 def extract_deps_from_source(recipe_dir):
     cb_work_dir = _get_source_code(recipe_dir)
+
+    logger.debug("cb_work_dir: %s", cb_work_dir)
+    logger.debug("BUILTINS: %s", BUILTINS)
+    logger.debug("DEPFINDER_IGNORE: %s", DEPFINDER_IGNORE)
+
     with pushd(cb_work_dir):
-        return simple_import_to_pkg_map(
+        pkg_map = simple_import_to_pkg_map(
             cb_work_dir,
             builtins=BUILTINS,
             ignore=DEPFINDER_IGNORE,
         )
+        logger.debug("pkg_map: %s", pkg_map)
+        return pkg_map
 
 
 def depfinder_audit_feedstock(fctx: FeedstockContext, ctx: MigratorSessionContext):
