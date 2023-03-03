@@ -11,9 +11,7 @@ import glob
 import tqdm
 from typing import List, Optional, Iterable
 import psutil
-import json
 import networkx as nx
-from conda.models.version import VersionOrder
 
 # from conda_forge_tick.profiler import profiling
 
@@ -124,9 +122,22 @@ def _migrate_schema(name, sub_graph):
                 if mn not in pri[pre_key_att]:
                     pri[pre_key_att][mn] = 1
 
-            # TODO - will do this one next
-            # if "PRed" in sub_graph:
-            #     pri["PRed"] = sub_graph.pop("PRed")
+    keys_to_move = [
+        "PRed",
+        "smithy_version",
+        "pinning_version",
+        "bad",
+    ]
+    if any(key in sub_graph for key in keys_to_move):
+        with sub_graph["pr_info"] as pri:
+            for key in keys_to_move:
+                if key in sub_graph:
+                    pri[key] = sub_graph.pop(key)
+                    if key == "bad":
+                        pri["bad"] = False
+
+    if "parsing_error" not in sub_graph:
+        sub_graph["parsing_error"] = "make_graph: missing parsing_error key"
 
 
 def _build_graph_process_pool(
@@ -275,70 +286,6 @@ def make_graph(
     return gx
 
 
-def _update_nodes_with_bot_rerun(gx):
-    """Go through all the open PRs and check if they are rerun"""
-    for i, (name, node) in enumerate(gx.nodes.items()):
-        # LOGGER.info(
-        #     f"node: {i} memory usage: "
-        #     f"{psutil.Process().memory_info().rss // 1024 ** 2}MB",
-        # )
-        with node["payload"] as payload:
-            for migration in payload.get("PRed", []):
-                try:
-                    pr_json = migration.get("PR", {})
-                    # maybe add a pass check info here ? (if using DEBUG)
-                except Exception as e:
-                    LOGGER.error(
-                        f"BOT-RERUN : could not proceed check with {node}, {e}",
-                    )
-                    raise e
-                # if there is a valid PR and it isn't currently listed as rerun
-                # but the PR needs a rerun
-                if (
-                    pr_json
-                    and not migration["data"]["bot_rerun"]
-                    and "bot-rerun" in [lb["name"] for lb in pr_json.get("labels", [])]
-                ):
-                    migration["data"]["bot_rerun"] = time.time()
-                    LOGGER.info(
-                        "BOT-RERUN %s: processing bot rerun label for migration %s",
-                        name,
-                        migration["data"],
-                    )
-
-
-def _update_nodes_with_new_versions(gx):
-    """Updates every node with it's new version (when available)"""
-    # check if the versions folder is available
-    if os.path.isdir("./versions"):
-        pass
-    else:
-        return
-    # get all the available node.json files
-    # TODO: I don't thing this is a good idea (8000+ entries)
-    list_files = os.listdir("./versions/")
-
-    for file in list_files:
-        node = os.path.splitext(os.path.basename(str(file)))[0]
-        with open(f"./versions/{file}") as json_file:
-            version_data: typing.Dict = json.load(json_file)
-        with gx.nodes[f"{node}"]["payload"] as attrs:
-            with attrs["version_pr_info"] as vpri:
-                version_from_data = version_data.get("new_version", False)
-                version_from_attrs = vpri.get("new_version", False)
-                # don't update the version if it isn't newer
-                if version_from_data and isinstance(version_from_data, str):
-                    # we only override the graph node if the version we found is newer
-                    # or the graph doesn't have a valid version
-                    if isinstance(version_from_attrs, str):
-                        vpri["new_version"] = max(
-                            [version_from_data, version_from_attrs],
-                            key=lambda x: VersionOrder(x.replace("-", ".")),
-                        )
-                    else:
-                        vpri["new_version"] = version_from_data
-
-
 def _update_nodes_with_archived(gx, archived_names):
     for name in archived_names:
         if name in gx.nodes:
@@ -349,8 +296,12 @@ def _update_nodes_with_archived(gx, archived_names):
 
 def _migrate_schemas():
     # make sure to apply all schema migrations
-    node_pths = glob.glob("node_attrs/*.json")
-    for node_pth in tqdm.tqdm(node_pths, desc="migrating node schemas"):
+    node_pths = (
+        glob.glob("node_attrs/*.json")
+        + glob.glob("node_attrs/.json")
+        # shell expansion won't match .json
+    )
+    for node_pth in tqdm.tqdm(node_pths, desc="migrating node schemas", miniters=100):
         name = os.path.basename(node_pth)[:-5]
         with LazyJson(node_pth) as sub_graph:
             _migrate_schema(name, sub_graph)
@@ -374,9 +325,6 @@ def main(args: "CLIArgs") -> None:
         LOGGER.warning("nodes w/o payload: %s", nodes_without_paylod)
 
     _migrate_schemas()
-
-    _update_nodes_with_bot_rerun(gx)
-    _update_nodes_with_new_versions(gx)
 
     archived_names = get_archived_feedstocks(cached=True)
     _update_nodes_with_archived(gx, archived_names)

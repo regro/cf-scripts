@@ -236,7 +236,8 @@ def run_test_migration(
     if not mr:
         return
 
-    pmy.update(PRed=[frozen_to_json_friendly(mr)])
+    pmy["pr_info"] = {}
+    pmy["pr_info"].update(PRed=[frozen_to_json_friendly(mr)])
     with open(os.path.join(tmpdir, "meta.yaml")) as f:
         actual_output = f.read()
     # strip jinja comments

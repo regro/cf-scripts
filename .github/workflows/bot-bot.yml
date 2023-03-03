@@ -52,18 +52,6 @@ jobs:
         env:
           PASSWORD: ${{ secrets.AUTOTICK_BOT_TOKEN }}
 
-      - name: make graph
-        if: success() && ! env.CI_SKIP
-        run: |
-          pushd cf-graph
-
-          conda-forge-tick --run 1
-
-          popd
-        env:
-          USERNAME: regro-cf-autotick-bot
-          PASSWORD: ${{ secrets.AUTOTICK_BOT_TOKEN }}
-
       - name: run migrations
         if: success() && ! env.CI_SKIP
         timeout-minutes: 210
