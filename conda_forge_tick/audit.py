@@ -56,7 +56,14 @@ DEPFINDER_IGNORE = []
 for k in IGNORE_STUBS:
     for tmpl in IGNORE_TEMPLATES:
         DEPFINDER_IGNORE.append(tmpl.format(z=k))
-DEPFINDER_IGNORE += ["*testdir/*", "*conftest*", "*/test.py", "*/versioneer.py"]
+DEPFINDER_IGNORE += [
+    "*testdir/*",
+    "*conftest*",
+    "*/test.py",
+    "*/versioneer.py",
+    "*/run_test.py",
+    "*/run_tests.py",
+]
 
 BUILTINS = set().union(
     # Some libs support older python versions, we don't want their std lib

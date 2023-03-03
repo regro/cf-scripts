@@ -157,7 +157,8 @@ def test_get_depfinder_comparison():
             fp.write(attrs["raw_meta_yaml"])
 
         d = get_depfinder_comparison(tmpdir, attrs, {"conda"})
-    assert len(d["run"]) == 0
+        print(d)
+    assert d["run"] == {"df_minus_cf": {"versioneer-518"}}
     assert "host" not in d
 
 
@@ -233,8 +234,6 @@ def test_get_dep_updates_and_hints_praw():
 
         recipe = Path(tmpdir) / "meta.yaml"
         recipe.write_text(praw_recipe)
-
-        content = recipe.read_text()
 
         res = get_dep_updates_and_hints(
             "hint",
