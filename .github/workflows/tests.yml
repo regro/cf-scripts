@@ -29,6 +29,7 @@ jobs:
           miniforge-version: latest
           miniforge-variant: Mambaforge
           python-version: ${{ vars.PYVER }}
+          activate-environment: cf-scripts
 
       - name: configure conda and install code
         shell: bash -l {0}
@@ -54,7 +55,7 @@ jobs:
           echo "=================================================================="
           conda list
 
-      - name: test
+      - name: run pytest
         shell: bash -l {0}
         run: |
           export TEST_PASSWORD_VAL=unpassword
