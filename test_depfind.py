@@ -32,7 +32,9 @@ STATIC_EXCLUDES = (
 )
 RANKINGS = []
 for _ in range(10):
-    r = requests.get("https://raw.githubusercontent.com/regro/cf-graph-countyfair/master/ranked_hubs_authorities.json")
+    r = requests.get(
+        "https://raw.githubusercontent.com/regro/cf-graph-countyfair/master/ranked_hubs_authorities.json",
+    )
     if r.status_code == 200:
         RANKINGS = r.json()
         break
