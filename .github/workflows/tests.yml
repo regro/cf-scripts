@@ -28,7 +28,8 @@ jobs:
           show-channel-urls: true
           miniforge-version: latest
           miniforge-variant: Mambaforge
-          python-version: 3.9
+          python-version: ${{ vars.PYVER }}
+          activate-environment: cf-scripts
 
       - name: configure conda and install code
         shell: bash -l {0}
@@ -42,7 +43,19 @@ jobs:
           mamba install --quiet --file requirements/run --file requirements/test
           python -m pip install -e .
 
-      - name: test
+      - name: conda info and env
+        shell: bash -l {0}
+        run: |
+          echo "=================================================================="
+          echo "=================================================================="
+          conda info
+
+          echo ""
+          echo "=================================================================="
+          echo "=================================================================="
+          conda list
+
+      - name: run pytest
         shell: bash -l {0}
         run: |
           export TEST_PASSWORD_VAL=unpassword
@@ -69,6 +82,6 @@ jobs:
         if: github.ref == 'refs/heads/master' && success()
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          BRANCH: gh-pages            # The branch the action should deploy to.
-          FOLDER: ./docs/_build/html  # The folder the action should deploy.
-          CLEAN: true                 # Automatically remove deleted files from the deploy branch
+          BRANCH: gh-pages # The branch the action should deploy to.
+          FOLDER: ./docs/_build/html # The folder the action should deploy.
+          CLEAN: true # Automatically remove deleted files from the deploy branch
