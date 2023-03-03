@@ -320,6 +320,7 @@ requirements:
     - python <3.9
     - pip
   run:
+    - versioneer-518
     - python <3.9
     - stdlib-list
     - pyyaml
@@ -368,6 +369,7 @@ requirements:
     - python <3.9
     - pip
   run:
+    - versioneer-518
     - python <3.9
     - stdlib-list
     - pyyaml
