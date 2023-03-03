@@ -70,6 +70,9 @@ jobs:
           # codecov -X gcov
           echo "======================================================="
           echo "======================================================="
+          pip uninstall depfinder -y
+          mamba remove depfinder -y
+          pip install -U git+https://github.com/ericdill/depfinder@debug-logging --no-deps
           wget --quiet https://pypi.io/packages/source/p/praw/praw-7.7.0.tar.gz
           tar xzf praw-7.7.0.tar.gz
           python test_depfind.py
@@ -88,6 +91,6 @@ jobs:
         if: github.ref == 'refs/heads/master' && success()
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          BRANCH: gh-pages            # The branch the action should deploy to.
-          FOLDER: ./docs/_build/html  # The folder the action should deploy.
-          CLEAN: true                 # Automatically remove deleted files from the deploy branch
+          BRANCH: gh-pages # The branch the action should deploy to.
+          FOLDER: ./docs/_build/html # The folder the action should deploy.
+          CLEAN: true # Automatically remove deleted files from the deploy branch
