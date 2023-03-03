@@ -751,7 +751,7 @@ class Version(Migrator):
         update_deps = (
             feedstock_ctx.attrs.get("conda-forge.yml", {})
             .get("bot", {})
-            .get("inspection", False)
+            .get("inspection", "hint")
         )
         logger.info("bot.inspection: %s", update_deps)
         if not update_deps:

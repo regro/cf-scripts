@@ -25,6 +25,7 @@ jobs:
           show-channel-urls: true
           miniforge-version: latest
           miniforge-variant: Mambaforge
+          activate-environment: cf-scripts
 
       - name: do local setup and stop me if needed
         run: |

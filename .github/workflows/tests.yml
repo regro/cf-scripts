@@ -69,6 +69,7 @@ jobs:
             --durations 10 \
             tests
           codecov -X gcov
+
       - name: build docs
         shell: bash -l {0}
         run: |
