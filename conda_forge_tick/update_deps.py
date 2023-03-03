@@ -242,6 +242,7 @@ def get_depfinder_comparison(recipe_dir, node_attrs, python_nodes):
     d : dict
         The dependency comparison with conda-forge.
     """
+    logger.debug('recipe_dir: "%s"', recipe_dir)
     deps = extract_deps_from_source(recipe_dir)
     logger.debug("deps from source: %s", deps)
     df_audit = compare_depfinder_audit(
