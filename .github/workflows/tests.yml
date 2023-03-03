@@ -71,9 +71,9 @@ jobs:
           # codecov -X gcov
           echo "======================================================="
           echo "======================================================="
-          pip uninstall depfinder -y
-          mamba remove depfinder -y
-          pip install -U git+https://github.com/ericdill/depfinder@debug-logging --no-deps
+          # pip uninstall depfinder -y
+          # mamba remove depfinder -y
+          # pip install -U git+https://github.com/ericdill/depfinder@debug-logging --no-deps
           wget --quiet https://pypi.io/packages/source/p/praw/praw-7.7.0.tar.gz
           tar xzf praw-7.7.0.tar.gz
           python test_depfind.py
