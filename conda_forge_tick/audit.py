@@ -1,4 +1,5 @@
 """Audit the dependencies of the conda-forge ecosystem"""
+import logging
 import os
 import shutil
 import tempfile
@@ -10,6 +11,7 @@ from typing import Dict
 
 import networkx as nx
 from stdlib_list import stdlib_list
+import requests
 
 from conda_forge_tick.make_graph import COMPILER_STUBS_WITH_STRONG_EXPORTS
 from grayskull.__main__ import create_python_recipe
@@ -27,8 +29,10 @@ from conda_forge_tick.utils import (
     yaml_safe_load,
 )
 from conda_forge_tick.feedstock_parser import load_feedstock
-from conda_forge_tick.xonsh_utils import env
 from conda_forge_tick.utils import pushd
+
+logger = logging.getLogger("conda_forge_tick.audit")
+
 
 for __i in range(10):
     try:
@@ -52,7 +56,14 @@ DEPFINDER_IGNORE = []
 for k in IGNORE_STUBS:
     for tmpl in IGNORE_TEMPLATES:
         DEPFINDER_IGNORE.append(tmpl.format(z=k))
-DEPFINDER_IGNORE += ["*testdir/*", "*conftest*", "*/test.py", "*/versioneer.py"]
+DEPFINDER_IGNORE += [
+    "*testdir/*",
+    "*conftest*",
+    "*/test.py",
+    "*/versioneer.py",
+    "*/run_test.py",
+    "*/run_tests.py",
+]
 
 BUILTINS = set().union(
     # Some libs support older python versions, we don't want their std lib
@@ -94,12 +105,19 @@ PACKAGES_BY_IMPORT_OVERRIDE = {
 
 def extract_deps_from_source(recipe_dir):
     cb_work_dir = _get_source_code(recipe_dir)
+
+    logger.debug("cb_work_dir: %s", cb_work_dir)
+    logger.debug("BUILTINS: %s", BUILTINS)
+    logger.debug("DEPFINDER_IGNORE: %s", DEPFINDER_IGNORE)
+
     with pushd(cb_work_dir):
-        return simple_import_to_pkg_map(
+        pkg_map = simple_import_to_pkg_map(
             cb_work_dir,
             builtins=BUILTINS,
             ignore=DEPFINDER_IGNORE,
         )
+        logger.debug("pkg_map: %s", pkg_map)
+        return pkg_map
 
 
 def depfinder_audit_feedstock(fctx: FeedstockContext, ctx: MigratorSessionContext):
@@ -233,10 +251,15 @@ def compare_grayskull_audits(gx):
     return bad_inspections
 
 
-try:
-    RANKINGS = load(open("ranked_hubs_authorities.json"))
-except FileNotFoundError:
-    RANKINGS = []
+RANKINGS = []
+for _ in range(10):
+    r = requests.get(
+        "https://raw.githubusercontent.com/regro/cf-graph-countyfair/master/ranked_hubs_authorities.json",
+    )
+    if r.status_code == 200:
+        RANKINGS = r.json()
+        break
+del r
 
 
 def extract_missing_packages(
@@ -274,7 +297,8 @@ def extract_missing_packages(
             cf_minus_df = cf_minus_df - overlap
 
     # Only report for python nodes, we don't inspect for other deps
-    cf_minus_df = (cf_minus_df - exclude_packages) & python_nodes
+    if python_nodes:
+        cf_minus_df = (cf_minus_df - exclude_packages) & python_nodes
     if cf_minus_df:
         d.update(cf_minus_df=cf_minus_df)
 
@@ -343,7 +367,8 @@ def compare_depfinder_audits(gx):
         if (
             attrs.get("version", None) is None
             or attrs.get("archived", False)
-            or attrs.get("bad", False)
+            or attrs.get("parsing_error", False)
+            or attrs.get("pr_info", {}).get("bad", False)
         ):
             continue
         if "requirements" not in attrs:
@@ -462,8 +487,8 @@ def main(args):
         key=lambda x: (len(nx.descendants(gx, x)), x),
         reverse=True,
     ):
-        if time.time() - int(env.get("START_TIME", start_time)) > int(
-            env.get("TIMEOUT", 60 * RUNTIME_MINUTES),
+        if time.time() - int(os.environ.get("START_TIME", start_time)) > int(
+            os.environ.get("TIMEOUT", 60 * RUNTIME_MINUTES),
         ):
             break
         # depfinder only work on python at the moment so only work on things
@@ -474,7 +499,8 @@ def main(args):
             ext = v["ext"]
             if (
                 not payload.get("archived", False)
-                and not payload.get("bad", False)
+                and not payload.get("parsing_error", False)
+                and not payload.get("pr_info", {}).get("bad", False)
                 and version
                 and "python" in payload["requirements"]["run"]
                 and f"{node}_{version}.{ext}" not in os.listdir(f"audits/{k}")

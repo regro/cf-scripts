@@ -31,8 +31,10 @@ def deploy(dry_run=False):
     files_to_add = set()
     for dr in [
         "pr_json",
+        "pr_info",
         "status",
         "node_attrs",
+        "version_pr_info",
         "audits",
         "audits/grayskull",
         "audits/depfinder",

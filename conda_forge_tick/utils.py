@@ -641,7 +641,9 @@ def load_graph(filename: str = "graph.json", reset_bad=False) -> nx.DiGraph:
     if reset_bad:
         for node in gx.nodes:
             with gx.nodes[node]["payload"] as attrs:
-                attrs["bad"] = False
+                attrs["parsing_error"] = False
+                with attrs["pr_info"] as pri:
+                    pri["bad"] = False
 
     return gx
 

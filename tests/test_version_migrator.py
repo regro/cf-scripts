@@ -115,7 +115,13 @@ def test_version_noup(case, new_ver, tmpdir, caplog):
         tmpdir=tmpdir,
     )
 
-    print("\n\n" + attrs["new_version_errors"][new_ver] + "\n\n")
+    print(
+        "\n\n"
+        + attrs.get("version_pr_info", {})
+        .get("new_version_errors", {})
+        .get(new_ver, "")
+        + "\n\n",
+    )
 
 
 def test_version_cupy(tmpdir, caplog):

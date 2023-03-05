@@ -5,7 +5,9 @@ boto3
 cachecontrol
 cachetools
 conda
+conda-forge-feedstock-check-solvable
 conda-forge-pinning
+conda-libmamba-solver
 conda-package-handling<2
 conda-smithy
 curl
@@ -32,12 +34,12 @@ rever
 ruamel.yaml
 ruamel.yaml.jinja2
 scipy
-setuptools
+setuptools<66
 stopit
 streamz
 tar
 tqdm
 wurlitzer
-xonsh
 yaml
 pandas
+xonsh

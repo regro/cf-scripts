@@ -61,19 +61,21 @@ def write_version_migrator_status(migrator, mctx):
     migrator.bind_to_ctx(mmctx)
 
     for node in mmctx.effective_graph.nodes:
-        attrs = mmctx.effective_graph.nodes[node]["payload"]
-        new_version = attrs.get("new_version", None)
-        if new_version is None:
-            continue
-        attempts = attrs.get("new_version_attempts", {}).get(new_version, 0)
-        if attempts == 0:
-            out["queued"].append(node)
-        else:
-            out["errored"].append(node)
-            out["errors"][node] = attrs.get("new_version_errors", {}).get(
-                new_version,
-                "No error information available for version '%s'." % new_version,
-            )
+        with mmctx.effective_graph.nodes[node]["payload"] as attrs:
+            with attrs["version_pr_info"] as vpri:
+                new_version = vpri.get("new_version", None)
+                if new_version is None:
+                    continue
+                attempts = vpri.get("new_version_attempts", {}).get(new_version, 0)
+                if attempts == 0:
+                    out["queued"].append(node)
+                else:
+                    out["errored"].append(node)
+                    out["errors"][node] = vpri.get("new_version_errors", {}).get(
+                        new_version,
+                        "No error information available for version '%s'."
+                        % new_version,
+                    )
 
     with open("./status/version_status.json", "w") as f:
         json.dump(out, f, sort_keys=True, indent=2)
@@ -127,7 +129,7 @@ def graph_migrator_status(
         feedstock_metadata[node] = node_metadata
         nuid = migrator.migrator_uid(attrs)
         all_pr_jsons = []
-        for pr_json in attrs.get("PRed", []):
+        for pr_json in attrs.get("pr_info", {}).get("PRed", []):
             all_pr_jsons.append(copy.deepcopy(pr_json))
 
         feedstock_ctx = FeedstockContext(
@@ -171,12 +173,16 @@ def graph_migrator_status(
         elif pr_json is None:
             if buildable:
                 if "not solvable" in (
-                    attrs.get("pre_pr_migrator_status", {}).get(migrator_name, "")
+                    attrs.get("pr_info", {})
+                    .get("pre_pr_migrator_status", {})
+                    .get(migrator_name, "")
                 ):
                     out["not-solvable"].add(node)
                     fc = "#ff8c00"
                 elif "bot error" in (
-                    attrs.get("pre_pr_migrator_status", {}).get(migrator_name, "")
+                    attrs.get("pr_info", {})
+                    .get("pre_pr_migrator_status", {})
+                    .get(migrator_name, "")
                 ):
                     out["bot-error"].add(node)
                     fc = "#000000"
@@ -186,7 +192,9 @@ def graph_migrator_status(
                     fc = "#35b779"
             elif not isinstance(migrator, Replacement):
                 if "bot error" in (
-                    attrs.get("pre_pr_migrator_status", {}).get(migrator_name, "")
+                    attrs.get("pr_info", {})
+                    .get("pre_pr_migrator_status", {})
+                    .get(migrator_name, "")
                 ):
                     out["bot-error"].add(node)
                     fc = "#000000"
@@ -238,10 +246,14 @@ def graph_migrator_status(
             if not gx2[k].get("payload", {}).get("archived", False)
         ]
         if node in out["not-solvable"] or node in out["bot-error"]:
-            node_metadata["pre_pr_migrator_status"] = attrs.get(
-                "pre_pr_migrator_status",
-                {},
-            ).get(migrator_name, "")
+            node_metadata["pre_pr_migrator_status"] = (
+                attrs.get("pr_info", {})
+                .get(
+                    "pre_pr_migrator_status",
+                    {},
+                )
+                .get(migrator_name, "")
+            )
         else:
             node_metadata["pre_pr_migrator_status"] = ""
 
@@ -427,7 +439,7 @@ def main(args: Any = None) -> None:
             len(
                 [
                     z
-                    for z in v.get("payload", {}).get("PRed", [])
+                    for z in v.get("payload", {}).get("pr_info", {}).get("PRed", [])
                     if z.get("PR", {}).get("state", "closed") == "open"
                     and z.get("data", {}).get("migrator_name", "") == "Version"
                 ],
@@ -474,7 +486,7 @@ def main(args: Any = None) -> None:
     def _get_open_pr_states(k):
         attrs = mctx.graph.nodes[k]
         _open_prs = []
-        for pr in attrs.get("PRed", []):
+        for pr in attrs.get("pr_info", {}).get("PRed", []):
             if pr.get("PR", {}).get("state", "closed") != "closed":
                 _open_prs.append(pr["PR"])
 

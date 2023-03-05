@@ -430,7 +430,8 @@ class Version(Migrator):
 
     def filter(self, attrs: "AttrsTypedDict", not_bad_str_start: str = "") -> bool:
         # if no new version do nothing
-        if "new_version" not in attrs or not attrs["new_version"]:
+        vpri = attrs.get("version_pr_info", {})
+        if "new_version" not in vpri or not vpri["new_version"]:
             return True
 
         # if no jinja2 version, then move on
@@ -444,28 +445,30 @@ class Version(Migrator):
             or len(
                 [
                     k
-                    for k in attrs.get("PRed", [])
+                    for k in attrs.get("pr_info", {}).get("PRed", [])
                     if k["data"].get("migrator_name") == "Version"
                     # The PR is the actual PR itself
                     and k.get("PR", {}).get("state", None) == "open"
                 ],
             )
             > self.max_num_prs
-            or not attrs.get("new_version"),  # if no new version
+            or not vpri.get("new_version"),  # if no new version
         )
 
         try:
             version_filter = (
                 # if new version is less than current version
                 (
-                    VersionOrder(str(attrs["new_version"]))
-                    <= VersionOrder(str(attrs.get("version", "0.0.0")))
+                    VersionOrder(str(vpri["new_version"]).replace("-", "."))
+                    <= VersionOrder(
+                        str(attrs.get("version", "0.0.0")).replace("-", "."),
+                    )
                 )
                 # if PRed version is greater than newest version
                 or any(
-                    VersionOrder(self._extract_version_from_muid(h))
-                    >= VersionOrder(str(attrs["new_version"]))
-                    for h in attrs.get("PRed", set())
+                    VersionOrder(self._extract_version_from_muid(h).replace("-", "."))
+                    >= VersionOrder(str(vpri["new_version"]).replace("-", "."))
+                    for h in attrs.get("pr_info", {}).get("PRed", set())
                 )
             )
         except conda.exceptions.InvalidVersionSpec as e:
@@ -486,22 +489,27 @@ class Version(Migrator):
     ) -> "MigrationUidTypedDict":
         errors = set()
 
-        version = attrs["new_version"]
+        version = attrs.get("version_pr_info", {})["new_version"]
 
         # record the attempt
-        if "new_version_attempts" not in attrs:
-            attrs["new_version_attempts"] = {}
-        if version not in attrs["new_version_attempts"]:
-            attrs["new_version_attempts"][version] = 0
-        attrs["new_version_attempts"][version] += 1
-        if "new_version_errors" not in attrs:
-            attrs["new_version_errors"] = {}
+        with attrs["version_pr_info"] as vpri:
+            if "new_version_attempts" not in vpri:
+                vpri["new_version_attempts"] = {}
+            if "new_version_errors" not in vpri:
+                vpri["new_version_errors"] = {}
+            if version not in vpri["new_version_attempts"]:
+                vpri["new_version_attempts"][version] = 0
+            vpri["new_version_attempts"][version] += 1
 
         if not isinstance(version, str):
             errors.add(
                 "the version '%s' is not a string and must be for the bot" % version,
             )
-            attrs["new_version_errors"][version] = _fmt_error_message(errors, version)
+            with attrs["version_pr_info"] as vpri:
+                vpri["new_version_errors"][version] = _fmt_error_message(
+                    errors,
+                    version,
+                )
             logger.critical(
                 "the version '%s' is not a string and must be for the bot",
                 version,
@@ -516,14 +524,15 @@ class Version(Migrator):
             traceback.print_tb(e.__traceback__, file=tb)
             tb.seek(0)
             tb = tb.read()
-            attrs["new_version_errors"][version] = sanitize_string(
-                "We found a problem parsing the recipe for version '"
-                + version
-                + "': \n\n"
-                + repr(e)
-                + "\n\ntraceback:\n"
-                + tb,
-            )
+            with attrs["version_pr_info"] as vpri:
+                vpri["new_version_errors"][version] = sanitize_string(
+                    "We found a problem parsing the recipe for version '"
+                    + version
+                    + "': \n\n"
+                    + repr(e)
+                    + "\n\ntraceback:\n"
+                    + tb,
+                )
             logger.critical(
                 "We found a problem parsing the recipe: \n\n%s\n\n%s",
                 str(e),
@@ -541,7 +550,11 @@ class Version(Migrator):
         if _recipe_has_git_url(cmeta) and not _recipe_has_url(cmeta):
             logger.critical("Migrations do not work on `git_url`s!")
             errors.add("migrations do not work on `git_url`s")
-            attrs["new_version_errors"][version] = _fmt_error_message(errors, version)
+            with attrs["version_pr_info"] as vpri:
+                vpri["new_version_errors"][version] = _fmt_error_message(
+                    errors,
+                    version,
+                )
             return {}
 
         # mangle the version if it is R
@@ -564,7 +577,11 @@ class Version(Migrator):
                 "Migrations do not work on versions not specified with jinja2!",
             )
             errors.add("migrations do not work on versions not specified with jinja2")
-            attrs["new_version_errors"][version] = _fmt_error_message(errors, version)
+            with attrs["version_pr_info"] as vpri:
+                vpri["new_version_errors"][version] = _fmt_error_message(
+                    errors,
+                    version,
+                )
             return {}
 
         if len(list(_gen_key_selector(cmeta.meta, "source"))) > 0:
@@ -625,12 +642,21 @@ class Version(Migrator):
             return super().migrate(recipe_dir, attrs)
         else:
             logger.critical("Recipe did not change in version migration!")
-            attrs["new_version_errors"][version] = _fmt_error_message(errors, version)
+            with attrs["version_pr_info"] as vpri:
+                vpri["new_version_errors"][version] = _fmt_error_message(
+                    errors,
+                    version,
+                )
             return {}
 
     def pr_body(self, feedstock_ctx: FeedstockContext) -> str:
         pred = [
-            (name, self.ctx.effective_graph.nodes[name]["payload"]["new_version"])
+            (
+                name,
+                self.ctx.effective_graph.nodes[name]["payload"]["version_pr_info"][
+                    "new_version"
+                ],
+            )
             for name in list(
                 self.ctx.effective_graph.predecessors(feedstock_ctx.package_name),
             )
@@ -641,7 +667,7 @@ class Version(Migrator):
         #  issue PRs into other branches for backports
         open_version_prs = [
             muid["PR"]
-            for muid in feedstock_ctx.attrs.get("PRed", [])
+            for muid in feedstock_ctx.attrs.get("pr_info", {}).get("PRed", [])
             if muid["data"].get("migrator_name") == "Version"
             # The PR is the actual PR itself
             and muid.get("PR", {}).get("state", None) == "open"
@@ -728,38 +754,41 @@ class Version(Migrator):
             .get("inspection", "hint")
         )
         logger.info("bot.inspection: %s", update_deps)
-        if feedstock_ctx.attrs["feedstock_name"] in SKIP_DEPS_NODES:
-            logger.info("Skipping dep update since node %s in rejectlist!")
-            hint = "\n\nDependency Analysis\n--------------------\n\n"
-            hint += (
-                "We couldn't run dependency analysis since this feedstock is "
-                "in the reject list for dep updates due to bot stability "
-                "issues!"
-            )
+        if not update_deps:
+            return ""
         else:
-            try:
-                _, hint = get_dep_updates_and_hints(
-                    update_deps,
-                    os.path.join(feedstock_ctx.feedstock_dir, "recipe"),
-                    feedstock_ctx.attrs,
-                    self.python_nodes,
-                    "new_version",
-                )
-            except Exception:
+            if feedstock_ctx.attrs["feedstock_name"] in SKIP_DEPS_NODES:
+                logger.info("Skipping dep update since node %s in rejectlist!")
                 hint = "\n\nDependency Analysis\n--------------------\n\n"
                 hint += (
-                    "We couldn't run dependency analysis due to an internal "
-                    "error in the bot. :/ Help is very welcome!"
+                    "We couldn't run dependency analysis since this feedstock is "
+                    "in the reject list for dep updates due to bot stability "
+                    "issues!"
                 )
+            else:
+                try:
+                    _, hint = get_dep_updates_and_hints(
+                        update_deps,
+                        os.path.join(feedstock_ctx.feedstock_dir, "recipe"),
+                        feedstock_ctx.attrs,
+                        self.python_nodes,
+                        "new_version",
+                    )
+                except Exception:
+                    hint = "\n\nDependency Analysis\n--------------------\n\n"
+                    hint += (
+                        "We couldn't run dependency analysis due to an internal "
+                        "error in the bot. :/ Help is very welcome!"
+                    )
 
-        return hint
+            return hint
 
     def commit_message(self, feedstock_ctx: FeedstockContext) -> str:
-        assert isinstance(feedstock_ctx.attrs["new_version"], str)
-        return "updated v" + feedstock_ctx.attrs["new_version"]
+        assert isinstance(feedstock_ctx.attrs["version_pr_info"]["new_version"], str)
+        return "updated v" + feedstock_ctx.attrs["version_pr_info"]["new_version"]
 
     def pr_title(self, feedstock_ctx: FeedstockContext) -> str:
-        assert isinstance(feedstock_ctx.attrs["new_version"], str)
+        assert isinstance(feedstock_ctx.attrs["version_pr_info"]["new_version"], str)
         # TODO: turn False to True when we default to automerge
         if feedstock_ctx.attrs.get("conda-forge.yml", {}).get("bot", {}).get(
             "automerge",
@@ -773,17 +802,17 @@ class Version(Migrator):
             add_slug
             + feedstock_ctx.package_name
             + " v"
-            + feedstock_ctx.attrs["new_version"]
+            + feedstock_ctx.attrs["version_pr_info"]["new_version"]
         )
 
     def remote_branch(self, feedstock_ctx: FeedstockContext) -> str:
-        assert isinstance(feedstock_ctx.attrs["new_version"], str)
-        return feedstock_ctx.attrs["new_version"]
+        assert isinstance(feedstock_ctx.attrs["version_pr_info"]["new_version"], str)
+        return feedstock_ctx.attrs["version_pr_info"]["new_version"]
 
     def migrator_uid(self, attrs: "AttrsTypedDict") -> "MigrationUidTypedDict":
         n = super().migrator_uid(attrs)
-        assert isinstance(attrs["new_version"], str)
-        n["version"] = attrs["new_version"]
+        assert isinstance(attrs["version_pr_info"]["new_version"], str)
+        n["version"] = attrs["version_pr_info"]["new_version"]
         return n
 
     def _extract_version_from_muid(self, h: dict) -> str:
@@ -813,8 +842,9 @@ class Version(Migrator):
         @functools.lru_cache(maxsize=1024)
         def _get_attemps_nr(node):
             with graph.nodes[node]["payload"] as attrs:
-                new_version = attrs.get("new_version", "")
-                attempts = attrs.get("new_version_attempts", {}).get(new_version, 0)
+                with attrs["version_pr_info"] as vpri:
+                    new_version = vpri.get("new_version", "")
+                    attempts = vpri.get("new_version_attempts", {}).get(new_version, 0)
             return min(attempts, 3)
 
         def _get_attemps_r(node, seen):

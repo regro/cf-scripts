@@ -162,7 +162,9 @@ class MigrationYaml(GraphMigrator):
                     if self.migrator_uid(v.get("payload", {}))
                     in [
                         vv.get("data", {})
-                        for vv in v.get("payload", {}).get("PRed", [])
+                        for vv in v.get("payload", {})
+                        .get("pr_info", {})
+                        .get("PRed", [])
                     ]
                 ],
             )
@@ -181,7 +183,7 @@ class MigrationYaml(GraphMigrator):
         need_to_wait = False
         if wait_for_migrators:
             found_migrators = set()
-            for migration in attrs.get("PRed", []):
+            for migration in attrs.get("pr_info", {}).get("PRed", []):
                 name = migration.get("data", {}).get("name", "")
                 if not name or name not in wait_for_migrators:
                     continue
@@ -336,10 +338,11 @@ class MigrationYaml(GraphMigrator):
 
         def _not_has_error(node):
             if migrator_name in total_graph.nodes[node]["payload"].get(
-                "pre_pr_migrator_status",
+                "pr_info",
                 {},
-            ) and (
+            ).get("pre_pr_migrator_status", {}) and (
                 total_graph.nodes[node]["payload"]
+                .get("pr_info", {})
                 .get(
                     "pre_pr_migrator_attempts",
                     {},

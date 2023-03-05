@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 import tempfile
 import copy
 import logging
@@ -20,11 +21,11 @@ SECTIONS_TO_UPDATE = ["run"]
 
 
 def get_dep_updates_and_hints(
-    update_deps,
-    recipe_dir,
+    update_deps: str,
+    recipe_dir: str,
     attrs,
     python_nodes,
-    version_key,
+    version_key: str,
 ):
     """Get updated deps and hints.
 
@@ -150,7 +151,10 @@ def make_grayskull_recipe(attrs, version_key="version"):
     recipe : str
         The generated grayskull recipe as a string.
     """
-    pkg_version = attrs[version_key]
+    if version_key not in attrs:
+        pkg_version = attrs.get("version_pr_info", {}).get(version_key)
+    else:
+        pkg_version = attrs[version_key]
     pkg_name = attrs["name"]
     is_noarch = "noarch: python" in attrs["raw_meta_yaml"]
     logger.info(
@@ -239,15 +243,21 @@ def get_depfinder_comparison(recipe_dir, node_attrs, python_nodes):
     d : dict
         The dependency comparison with conda-forge.
     """
+    logger.debug('recipe_dir: "%s"', recipe_dir)
+    p = Path(recipe_dir)
+    logger.debug("listing contents of %s", str(p))
+    for item in p.iterdir():
+        logger.debug("%s", str(item))
     deps = extract_deps_from_source(recipe_dir)
-    return {
-        "run": compare_depfinder_audit(
-            deps,
-            node_attrs,
-            node_attrs["name"],
-            python_nodes=python_nodes,
-        ),
-    }
+    logger.debug("deps from source: %s", deps)
+    df_audit = compare_depfinder_audit(
+        deps,
+        node_attrs,
+        node_attrs["name"],
+        python_nodes=python_nodes,
+    )
+    logger.debug("depfinder audit: %s", df_audit)
+    return {"run": df_audit}
 
 
 def generate_dep_hint(dep_comparison, kind):

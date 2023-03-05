@@ -1,0 +1,78 @@
+name: bot-pypi-mapping
+
+on:
+  schedule:
+    - cron:  '42 * * * *'
+  workflow_dispatch: null
+
+jobs:
+  pypi-mapping:
+    name: pypi-mapping
+    runs-on: "ubuntu-latest"
+    concurrency: pypi-mapping
+    defaults:
+      run:
+        shell: bash -l {0}
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          path: cf-scripts
+
+      - uses: conda-incubator/setup-miniconda@v2
+        with:
+          python-version: ${{ vars.PYVER }}
+          channels: conda-forge,defaults
+          channel-priority: strict
+          show-channel-urls: true
+          miniforge-version: latest
+          miniforge-variant: Mambaforge
+          activate-environment: cf-scripts
+
+      - name: do local setup and stop me if needed
+        run: |
+          pushd cf-scripts
+          source autotick-bot/local_setup.sh
+          python autotick-bot/stop_me_if_needed.py
+          popd
+
+      - name: install bot code
+        if: success() && ! env.CI_SKIP
+        run: |
+          source cf-scripts/autotick-bot/install_bot_code.sh
+        env:
+          PASSWORD: ${{ secrets.AUTOTICK_BOT_TOKEN }}
+
+      - name: build pypi mapping
+        if: success() && ! env.CI_SKIP
+        run: |
+          pushd cf-graph
+
+          conda-forge-tick --run 7
+
+          popd
+        env:
+          PASSWORD: ${{ secrets.AUTOTICK_BOT_TOKEN }}
+
+      - name: deploy
+        if: github.ref == 'refs/heads/master' && ! cancelled() && ! env.CI_SKIP
+        run: |
+          pushd cf-graph
+
+          export CIRCLE_BUILD_URL="https://github.com/regro/cf-scripts/actions/runs/${RUN_ID}"
+          export CIRCLE_BUILD_NUM="actually-actions-${RUN_ID}"
+          conda-forge-tick --run -1
+
+          popd
+        env:
+          PASSWORD: ${{ secrets.AUTOTICK_BOT_TOKEN }}
+          RUN_ID: ${{ github.run_id }}
+
+      - name: bump on fail
+        if: github.ref == 'refs/heads/master' && failure() && ! env.CI_SKIP
+        run: |
+          export ACTION_URL="https://github.com/regro/cf-scripts/actions/runs/${RUN_ID}"
+          python cf-scripts/autotick-bot/bump_bot_team.py
+        env:
+          PASSWORD: ${{ secrets.AUTOTICK_BOT_TOKEN }}
+          RUN_ID: ${{ github.run_id }}
+          ACTION_NAME: ${{ github.workflow }}

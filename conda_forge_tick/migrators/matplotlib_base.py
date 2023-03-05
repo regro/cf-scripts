@@ -22,7 +22,8 @@ class MatplotlibBase(Replacement):
                 frozen_to_json_friendly(self.migrator_uid(attrs))["data"],
             )
             already_migrated_uids: typing.Iterable["MigrationUidTypedDict"] = list(
-                copy.deepcopy(z["data"]) for z in attrs.get("PRed", [])
+                copy.deepcopy(z["data"])
+                for z in attrs.get("pr_info", {}).get("PRed", [])
             )
 
             # we shipped a bug, so fixing this here -

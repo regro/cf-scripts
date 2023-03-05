@@ -44,7 +44,6 @@ from urllib.error import URLError
 import github3
 from uuid import uuid4
 
-from conda_forge_tick.xonsh_utils import env
 from conda_forge_tick.utils import pushd
 
 from conda_forge_tick.contexts import (
@@ -105,7 +104,7 @@ from conda_forge_tick.migrators import (
     JpegTurboMigrator,
 )
 
-from conda_forge_tick.mamba_solver import is_recipe_solvable
+from conda_forge_feedstock_check_solvable import is_recipe_solvable
 
 # not using this right now
 # from conda_forge_tick.deploy import deploy
@@ -133,25 +132,27 @@ def _set_pre_pr_migrator_fields(attrs, migrator_name, error_str):
     pre_key = "pre_pr_migrator_status"
     pre_key_att = "pre_pr_migrator_attempts"
 
-    if pre_key not in attrs:
-        attrs[pre_key] = {}
-    attrs[pre_key][migrator_name] = sanitize_string(
-        error_str,
-    )
+    with attrs["pr_info"] as pri:
+        if pre_key not in pri:
+            pri[pre_key] = {}
+        pri[pre_key][migrator_name] = sanitize_string(
+            error_str,
+        )
 
-    if pre_key_att not in attrs:
-        attrs[pre_key_att] = {}
-    if migrator_name not in attrs[pre_key_att]:
-        attrs[pre_key_att][migrator_name] = 0
-    attrs[pre_key_att][migrator_name] += 1
+        if pre_key_att not in pri:
+            pri[pre_key_att] = {}
+        if migrator_name not in pri[pre_key_att]:
+            pri[pre_key_att][migrator_name] = 0
+        pri[pre_key_att][migrator_name] += 1
 
 
 def _reset_pre_pr_migrator_fields(attrs, migrator_name):
     pre_key = "pre_pr_migrator_status"
     pre_key_att = "pre_pr_migrator_attempts"
-    for _key in [pre_key, pre_key_att]:
-        if _key in attrs and migrator_name in attrs[_key]:
-            attrs[_key].pop(migrator_name)
+    with attrs["pr_info"] as pri:
+        for _key in [pre_key, pre_key_att]:
+            if _key in pri and migrator_name in pri[_key]:
+                pri[_key].pop(migrator_name)
 
 
 def run(
@@ -223,7 +224,7 @@ def run(
         LOGGER.critical(
             "Failed to migrate %s, %s",
             feedstock_ctx.package_name,
-            feedstock_ctx.attrs.get("bad"),
+            feedstock_ctx.attrs.get("pr_info", {}).get("bad"),
         )
         return False, False
 
@@ -240,7 +241,7 @@ def run(
         LOGGER.critical(
             "Failed to migrate %s, %s",
             feedstock_ctx.package_name,
-            feedstock_ctx.attrs.get("bad"),
+            feedstock_ctx.attrs.get("pr_info", {}).get("bad"),
         )
         eval_cmd(f"rm -rf {feedstock_dir}")
         return False, False
@@ -253,7 +254,7 @@ def run(
 
     # rerender, maybe
     diffed_files: typing.List[str] = []
-    with pushd(feedstock_dir), env.swap(RAISE_SUBPROC_ERROR=False):
+    with pushd(feedstock_dir):
         msg = migrator.commit_message(feedstock_ctx)  # noqa
         try:
             eval_cmd("git add --all .")
@@ -358,20 +359,22 @@ def run(
             )
 
             if isinstance(migrator, Version):
-                _new_ver = feedstock_ctx.attrs["new_version"]
-                feedstock_ctx.attrs["new_version_errors"][_new_ver] = _solver_err_str
-                feedstock_ctx.attrs["new_version_errors"][_new_ver] = sanitize_string(
-                    feedstock_ctx.attrs["new_version_errors"][_new_ver],
+                with feedstock_ctx.attrs["version_pr_info"] as vpri:
+                    _new_ver = vpri["new_version"]
+                    vpri["new_version_errors"][_new_ver] = _solver_err_str
+                    vpri["new_version_errors"][_new_ver] = sanitize_string(
+                        vpri["new_version_errors"][_new_ver],
+                    )
+                    # remove part of a try for solver errors to make those slightly
+                    # higher priority
+                    vpri["new_version_attempts"][_new_ver] -= 0.8
+            else:
+                # these are not used for version migrations
+                _set_pre_pr_migrator_fields(
+                    feedstock_ctx.attrs,
+                    migrator_name,
+                    sanitize_string(_solver_err_str),
                 )
-                # remove part of a try for solver errors to make those slightly
-                # higher priority
-                feedstock_ctx.attrs["new_version_attempts"][_new_ver] -= 0.8
-
-            _set_pre_pr_migrator_fields(
-                feedstock_ctx.attrs,
-                migrator_name,
-                sanitize_string(_solver_err_str),
-            )
 
             eval_cmd(f"rm -rf {feedstock_dir}")
             return False, False
@@ -443,7 +446,8 @@ comment. Hopefully you all can fix this!
         ljpr = False
 
     # If we've gotten this far then the node is good
-    feedstock_ctx.attrs["bad"] = False
+    with feedstock_ctx.attrs["pr_info"] as pri:
+        pri["bad"] = False
     _reset_pre_pr_migrator_fields(feedstock_ctx.attrs, migrator_name)
 
     LOGGER.info("Removing feedstock dir")
@@ -1014,10 +1018,11 @@ def _compute_time_per_migrator(mctx, migrators):
             _num_nodes = 0
             for node_name in mmctx.effective_graph.nodes:
                 with mmctx.effective_graph.nodes[node_name]["payload"] as attrs:
-                    _attempts = attrs.get("new_version_attempts", {}).get(
-                        attrs.get("new_version", ""),
-                        0,
-                    )
+                    with attrs["version_pr_info"] as vpri:
+                        _attempts = vpri.get("new_version_attempts", {}).get(
+                            vpri.get("new_version", ""),
+                            0,
+                        )
                     if _attempts < 3:
                         _num_nodes += 1
             _num_nodes = max(
@@ -1035,7 +1040,7 @@ def _compute_time_per_migrator(mctx, migrators):
 
     num_nodes_tot = sum(num_nodes)
     # do not divide by zero
-    time_per_node = float(env.get("TIMEOUT", 600)) / max(num_nodes_tot, 1)
+    time_per_node = float(os.environ.get("TIMEOUT", 600)) / max(num_nodes_tot, 1)
 
     # also enforce a minimum of 300 seconds if any nodes can be migrated
     time_per_migrator = []
@@ -1050,7 +1055,7 @@ def _compute_time_per_migrator(mctx, migrators):
     # finally rescale to fit in the time we have
     tot_time_per_migrator = sum(time_per_migrator)
     if tot_time_per_migrator > 0:
-        time_fac = float(env.get("TIMEOUT", 600)) / tot_time_per_migrator
+        time_fac = float(os.environ.get("TIMEOUT", 600)) / tot_time_per_migrator
     else:
         time_fac = 1.0
     for i in range(len(time_per_migrator)):
@@ -1098,18 +1103,19 @@ def _run_migrator(migrator, mctx, temp, time_per, dry_run):
         LOGGER.info("possible version migrations:")
         for node_name in possible_nodes:
             with effective_graph.nodes[node_name]["payload"] as attrs:
-                LOGGER.info(
-                    "    node|curr|new|attempts: %s|%s|%s|%f",
-                    node_name,
-                    attrs.get("version"),
-                    attrs.get("new_version"),
-                    (
-                        attrs.get("new_version_attempts", {}).get(
-                            attrs.get("new_version", ""),
-                            0,
-                        )
-                    ),
-                )
+                with attrs["version_pr_info"] as vpri:
+                    LOGGER.info(
+                        "    node|curr|new|attempts: %s|%s|%s|%f",
+                        node_name,
+                        attrs.get("version"),
+                        vpri.get("new_version"),
+                        (
+                            vpri.get("new_version_attempts", {}).get(
+                                vpri.get("new_version", ""),
+                                0,
+                            )
+                        ),
+                    )
 
     for node_name in possible_nodes:
         with mctx.graph.nodes[node_name]["payload"] as attrs:
@@ -1119,8 +1125,8 @@ def _run_migrator(migrator, mctx, temp, time_per, dry_run):
             _now = time.time()
             if (
                 (
-                    _now - int(env.get("START_TIME", time.time()))
-                    > int(env.get("TIMEOUT", 600))
+                    _now - int(os.environ.get("START_TIME", time.time()))
+                    > int(os.environ.get("TIMEOUT", 600))
                 )
                 or good_prs >= migrator.pr_limit
                 or (_now - _mg_start) > time_per
@@ -1176,27 +1182,30 @@ def _run_migrator(migrator, mctx, temp, time_per, dry_run):
                         )
                         # if migration successful
                         if migrator_uid:
-                            d = frozen_to_json_friendly(migrator_uid)
-                            # if we have the PR already do nothing
-                            if d["data"] in [
-                                existing_pr["data"]
-                                for existing_pr in attrs.get("PRed", [])
-                            ]:
-                                pass
-                            else:
-                                if not pr_json:
-                                    pr_json = {
-                                        "state": "closed",
-                                        "head": {"ref": "<this_is_not_a_branch>"},
-                                    }
-                                d["PR"] = pr_json
-                                attrs.setdefault("PRed", []).append(d)
-                            attrs.update(
-                                {
-                                    "smithy_version": mctx.smithy_version,
-                                    "pinning_version": mctx.pinning_version,
-                                },
-                            )
+                            with attrs["pr_info"] as pri:
+                                d = frozen_to_json_friendly(migrator_uid)
+                                # if we have the PR already do nothing
+                                if d["data"] in [
+                                    existing_pr["data"]
+                                    for existing_pr in pri.get("PRed", [])
+                                ]:
+                                    pass
+                                else:
+                                    if not pr_json:
+                                        pr_json = {
+                                            "state": "closed",
+                                            "head": {"ref": "<this_is_not_a_branch>"},
+                                        }
+                                    d["PR"] = pr_json
+                                    if "PRed" not in pri:
+                                        pri["PRed"] = []
+                                    pri["PRed"].append(d)
+                                pri.update(
+                                    {
+                                        "smithy_version": mctx.smithy_version,
+                                        "pinning_version": mctx.pinning_version,
+                                    },
+                                )
 
                     except github3.GitHubError as e:
                         if e.msg == "Repository was archived so is read-only.":
@@ -1210,12 +1219,13 @@ def _run_migrator(migrator, mctx, temp, time_per, dry_run):
                                 break
                     except URLError as e:
                         LOGGER.exception("URLError ERROR")
-                        attrs["bad"] = {
-                            "exception": str(e),
-                            "traceback": str(traceback.format_exc()).split("\n"),
-                            "code": getattr(e, "code"),
-                            "url": getattr(e, "url"),
-                        }
+                        with attrs["pr_info"] as pri:
+                            pri["bad"] = {
+                                "exception": str(e),
+                                "traceback": str(traceback.format_exc()).split("\n"),
+                                "code": getattr(e, "code"),
+                                "url": getattr(e, "url"),
+                            }
 
                         _set_pre_pr_migrator_fields(
                             attrs,
@@ -1238,12 +1248,13 @@ def _run_migrator(migrator, mctx, temp, time_per, dry_run):
                             "conda smithy rerender -c auto --no-check-uptodate"
                             not in str(e)
                         ):
-                            attrs["bad"] = {
-                                "exception": str(e),
-                                "traceback": str(traceback.format_exc()).split(
-                                    "\n",
-                                ),
-                            }
+                            with attrs["pr_info"] as pri:
+                                pri["bad"] = {
+                                    "exception": str(e),
+                                    "traceback": str(traceback.format_exc()).split(
+                                        "\n",
+                                    ),
+                                }
 
                         _set_pre_pr_migrator_fields(
                             attrs,
@@ -1305,6 +1316,77 @@ def _setup_limits():
         resource.setrlimit(resource.RLIMIT_AS, (limit_int, limit_int))
 
 
+def _update_nodes_with_bot_rerun(gx):
+    """Go through all the open PRs and check if they are rerun"""
+    for i, (name, node) in enumerate(gx.nodes.items()):
+        # LOGGER.info(
+        #     f"node: {i} memory usage: "
+        #     f"{psutil.Process().memory_info().rss // 1024 ** 2}MB",
+        # )
+        with node["payload"] as payload, payload["pr_info"] as pri:
+            for migration in pri.get("PRed", []):
+                try:
+                    pr_json = migration.get("PR", {})
+                    # maybe add a pass check info here ? (if using DEBUG)
+                except Exception as e:
+                    LOGGER.error(
+                        f"BOT-RERUN : could not proceed check with {node}, {e}",
+                    )
+                    raise e
+                # if there is a valid PR and it isn't currently listed as rerun
+                # but the PR needs a rerun
+                if (
+                    pr_json
+                    and not migration["data"]["bot_rerun"]
+                    and "bot-rerun" in [lb["name"] for lb in pr_json.get("labels", [])]
+                ):
+                    migration["data"]["bot_rerun"] = time.time()
+                    LOGGER.info(
+                        "BOT-RERUN %s: processing bot rerun label for migration %s",
+                        name,
+                        migration["data"],
+                    )
+
+
+def _update_nodes_with_new_versions(gx):
+    """Updates every node with it's new version (when available)"""
+    # check if the versions folder is available
+    if os.path.isdir("./versions"):
+        pass
+    else:
+        return
+    # get all the available node.json files
+    # TODO: I don't thing this is a good idea (8000+ entries)
+    list_files = os.listdir("./versions/")
+
+    for file in list_files:
+        node = os.path.splitext(os.path.basename(str(file)))[0]
+        with open(f"./versions/{file}") as json_file:
+            version_data: typing.Dict = json.load(json_file)
+        with gx.nodes[f"{node}"]["payload"] as attrs:
+            with attrs["version_pr_info"] as vpri:
+                version_from_data = version_data.get("new_version", False)
+                version_from_attrs = vpri.get("new_version", False)
+                # don't update the version if it isn't newer
+                if version_from_data and isinstance(version_from_data, str):
+                    # we only override the graph node if the version we found is newer
+                    # or the graph doesn't have a valid version
+                    if isinstance(version_from_attrs, str):
+                        vpri["new_version"] = max(
+                            [version_from_data, version_from_attrs],
+                            key=lambda x: VersionOrder(x.replace("-", ".")),
+                        )
+                    else:
+                        vpri["new_version"] = version_from_data
+
+
+def _update_graph_with_pr_info():
+    gx = load_graph()
+    _update_nodes_with_bot_rerun(gx)
+    _update_nodes_with_new_versions(gx)
+    dump_graph(gx)
+
+
 # @profiling
 def main(args: "CLIArgs") -> None:
     _setup_limits()
@@ -1318,9 +1400,14 @@ def main(args: "CLIArgs") -> None:
     else:
         setup_logger(logging.getLogger("conda_forge_tick"))
 
-    github_username = env.get("USERNAME", "")
-    github_password = env.get("PASSWORD", "")
-    github_token = env.get("GITHUB_TOKEN")
+    _update_graph_with_pr_info()
+
+    from . import sensitive_env
+
+    with sensitive_env() as env:
+        github_username = env.get("USERNAME", "")
+        github_password = env.get("PASSWORD", "")
+        github_token = env.get("GITHUB_TOKEN")
 
     mctx, temp, migrators = initialize_migrators(
         github_username=github_username,

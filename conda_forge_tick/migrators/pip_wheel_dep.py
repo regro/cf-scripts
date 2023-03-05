@@ -48,7 +48,10 @@ class PipWheelMigrator(MiniMigrator):
         if "python" not in run_reqs:
             return True
 
-        version = attrs.get("new_version", "") or attrs.get("version", "")
+        version = attrs.get("version_pr_info", {}).get("new_version", "") or attrs.get(
+            "version",
+            "",
+        )
         wheel_url, wheel_file = self.determine_wheel(source_url, version)
 
         if wheel_url is None:
@@ -74,7 +77,10 @@ class PipWheelMigrator(MiniMigrator):
 
     def migrate(self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any) -> None:
         source_url = attrs.get("url") or attrs.get("source", {}).get("url")
-        version = attrs.get("new_version", "") or attrs.get("version", "")
+        version = attrs.get("version_pr_info", {}).get("new_version", "") or attrs.get(
+            "version",
+            "",
+        )
         if not version:
             return None
 
