@@ -89,6 +89,7 @@ PREFERRED_IMPORT_BY_PACKAGE_MAP = {
     "numpy": "numpy",
     "matplotlib-base": "matplotlib",
     "qt-main": "qt",
+    "libjpeg-turbo": "jpeg",
     "theano": "theano",
     "tensorflow-estimator": "tensorflow_estimator",
     "skorch": "skorch",
