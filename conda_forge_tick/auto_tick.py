@@ -663,7 +663,7 @@ def add_rebuild_migration_yaml(
     ]
     if migration_name == "qt515":
         piggy_back_migrations.append(QtQtMainMigrator())
-    if migration_name == "jpeg9e":
+    if migration_name == "jpeg_to_libjpeg_turbo":
         piggy_back_migrations.append(JpegTurboMigrator())
     cycles = list(nx.simple_cycles(total_graph))
     migrator = MigrationYaml(
