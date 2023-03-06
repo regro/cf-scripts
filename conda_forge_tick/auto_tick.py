@@ -1348,6 +1348,7 @@ def _update_nodes_with_bot_rerun(
                     continue
 
                 with payload[pri_key] as pri:
+                    pri["bad"] = False
                     for migration in pri.get("PRed", []):
                         try:
                             pr_json = migration.get("PR", {})
