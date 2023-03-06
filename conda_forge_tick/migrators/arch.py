@@ -110,7 +110,7 @@ class ArchRebuild(GraphMigrator):
             )
             if configured_arch:
                 return muid in _sanitized_muids(
-                    attrs.get("pr_info", {}).get("PRed", []),
+                    attrs.get(self.get_pr_info_key(), {}).get("PRed", []),
                 )
         else:
             return False
@@ -261,7 +261,7 @@ class OSXArm(GraphMigrator):
             )
             if configured_arch:
                 return muid in _sanitized_muids(
-                    attrs.get("pr_info", {}).get("PRed", []),
+                    attrs.get(self.get_pr_info_key(), {}).get("PRed", []),
                 )
         else:
             return False

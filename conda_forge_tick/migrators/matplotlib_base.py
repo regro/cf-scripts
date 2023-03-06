@@ -23,7 +23,7 @@ class MatplotlibBase(Replacement):
             )
             already_migrated_uids: typing.Iterable["MigrationUidTypedDict"] = list(
                 copy.deepcopy(z["data"])
-                for z in attrs.get("pr_info", {}).get("PRed", [])
+                for z in attrs.get(self.get_pr_info_key(), {}).get("PRed", [])
             )
 
             # we shipped a bug, so fixing this here -
@@ -37,7 +37,7 @@ class MatplotlibBase(Replacement):
 
         _is_archived = attrs.get("archived", False)
         _is_pred = parse_already_pred()
-        _is_bad = _parse_bad_attr(attrs, not_bad_str_start)
+        _is_bad = _parse_bad_attr(attrs, not_bad_str_start, self.get_pr_info_key())
 
         requirements = attrs.get("requirements", {})
         rq = (

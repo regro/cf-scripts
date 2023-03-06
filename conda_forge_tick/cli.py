@@ -58,6 +58,13 @@ def main(*args, **kwargs):
         type=int,
         help=("If given, the total number of jobs being run."),
     )
+    parser.add_argument(
+        "--version-migrations-only",
+        dest="version_migrations_only",
+        action="store_true",
+        default=False,
+        help="If passed, only version migrations are run in the 'auto-tick' step.",
+    )
     args = parser.parse_args()
 
     if args.debug:

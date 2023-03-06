@@ -45,9 +45,13 @@ def _sanitized_muids(pred: List[dict]) -> List["JsonFriendly"]:
     return lst
 
 
-def _parse_bad_attr(attrs: "AttrsTypedDict", not_bad_str_start: str) -> bool:
+def _parse_bad_attr(
+    attrs: "AttrsTypedDict",
+    not_bad_str_start: str,
+    pr_info_key,
+) -> bool:
     """Overlook some bad entries"""
-    bad = attrs.get("pr_info", {}).get("bad", False)
+    bad = attrs.get(pr_info_key, {}).get("bad", False)
     if isinstance(bad, str):
         bad_bool = not bad.startswith(not_bad_str_start)
     else:
@@ -160,6 +164,10 @@ class Migrator:
             )
         ][:limit]
 
+    def get_pr_info_key(self):
+        """The key used to store the PR info."""
+        return "pr_info"
+
     def filter(self, attrs: "AttrsTypedDict", not_bad_str_start: str = "") -> bool:
         """If true don't act upon node
 
@@ -190,18 +198,20 @@ class Migrator:
                 pr_data["data"],
             )
             already_migrated_uids: typing.Iterable["MigrationUidTypedDict"] = list(
-                z["data"] for z in attrs.get("pr_info", {}).get("PRed", [])
+                z["data"] for z in attrs.get(self.get_pr_info_key(), {}).get("PRed", [])
             )
             already_pred = migrator_uid in already_migrated_uids
             if already_pred:
                 ind = already_migrated_uids.index(migrator_uid)
                 LOGGER.debug(f"{__name}: already PRed: uid: {migrator_uid}")
-                if "PR" in attrs.get("pr_info", {}).get("PRed", [])[ind]:
+                if "PR" in attrs.get(self.get_pr_info_key(), {}).get("PRed", [])[ind]:
                     if isinstance(
-                        attrs.get("pr_info", {}).get("PRed", [])[ind]["PR"],
+                        attrs.get(self.get_pr_info_key(), {}).get("PRed", [])[ind][
+                            "PR"
+                        ],
                         LazyJson,
                     ):
-                        with attrs.get("pr_info", {}).get("PRed", [])[ind][
+                        with attrs.get(self.get_pr_info_key(), {}).get("PRed", [])[ind][
                             "PR"
                         ] as mg_attrs:
 
@@ -219,7 +229,7 @@ class Migrator:
         if attrs.get("archived", False):
             LOGGER.debug("%s: archived" % __name)
 
-        bad_attr = _parse_bad_attr(attrs, not_bad_str_start)
+        bad_attr = _parse_bad_attr(attrs, not_bad_str_start, self.get_pr_info_key())
         if bad_attr:
             LOGGER.debug("%s: bad attr" % __name)
 
@@ -512,7 +522,9 @@ class GraphMigrator(Migrator):
                 continue
 
             muid = frozen_to_json_friendly(self.migrator_uid(payload))
-            pr_muids = _sanitized_muids(payload.get("pr_info", {}).get("PRed", []))
+            pr_muids = _sanitized_muids(
+                payload.get(self.get_pr_info_key(), {}).get("PRed", []),
+            )
             if muid not in pr_muids:
                 LOGGER.debug(
                     "node %s PR %s not yet issued!",
@@ -525,13 +537,13 @@ class GraphMigrator(Migrator):
                 # issued so check timestamp
                 pr_index = pr_muids.index(muid)
                 ts = (
-                    payload.get("pr_info", {})
+                    payload.get(self.get_pr_info_key(), {})
                     .get("PRed", [])[pr_index]
                     .get("PR", {})
                     .get("created_at", None)
                 )
                 state = (
-                    payload.get("pr_info", {})
+                    payload.get(self.get_pr_info_key(), {})
                     .get("PRed", [])[pr_index]
                     .get("PR", {"state": "open"})
                     .get("state", "")
@@ -554,7 +566,7 @@ class GraphMigrator(Migrator):
                             "node %s has PR %s:%s with no timestamp",
                             node,
                             muid.get("data", {}).get("name", None),
-                            payload.get("pr_info", {})
+                            payload.get(self.get_pr_info_key(), {})
                             .get("PRed", [])[pr_index]["PR"]
                             .file_name,
                         )
@@ -578,13 +590,13 @@ class GraphMigrator(Migrator):
             muid = frozen_to_json_friendly(self.migrator_uid(payload))
 
             if muid not in _sanitized_muids(
-                payload.get("pr_info", {}).get("PRed", []),
+                payload.get(self.get_pr_info_key(), {}).get("PRed", []),
             ):
                 LOGGER.debug("not yet built: %s" % node)
                 return True
 
             # This is due to some PRed_json loss due to bad graph deploy outage
-            for m_pred_json in payload.get("pr_info", {}).get("PRed", []):
+            for m_pred_json in payload.get(self.get_pr_info_key(), {}).get("PRed", []):
                 if m_pred_json["data"] == muid["data"]:
                     break
             else:

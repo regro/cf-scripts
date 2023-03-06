@@ -644,6 +644,8 @@ def load_graph(filename: str = "graph.json", reset_bad=False) -> nx.DiGraph:
                 attrs["parsing_error"] = False
                 with attrs["pr_info"] as pri:
                     pri["bad"] = False
+                with attrs["version_pr_info"] as pri:
+                    pri["bad"] = False
 
     return gx
 

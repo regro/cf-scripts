@@ -288,6 +288,8 @@ def get_repo(
             print("could not fork conda-forge/%s!" % feedstock_reponame, flush=True)
             with fctx.attrs["pr_info"] as pri:
                 pri["bad"] = f"{fctx.package_name}: does not match feedstock name\n"
+            with fctx.attrs["version_pr_info"] as pri:
+                pri["bad"] = f"{fctx.package_name}: does not match feedstock name\n"
             return False, False
 
     # Check if fork exists

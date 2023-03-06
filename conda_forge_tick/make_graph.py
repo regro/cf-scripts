@@ -139,6 +139,8 @@ def _migrate_schema(name, sub_graph):
     if "parsing_error" not in sub_graph:
         sub_graph["parsing_error"] = "make_graph: missing parsing_error key"
 
+    # TODO: move version PRs over to version_pr_info
+
 
 def _build_graph_process_pool(
     gx: nx.DiGraph,

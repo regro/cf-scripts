@@ -62,17 +62,26 @@ def _update_pr(update_function, dry_run, gx, job, n_jobs):
             leave=False,
         ):
             node = gx.nodes[node_id]["payload"]
-            prs = node["pr_info"].get("PRed", [])
-            for i, migration in enumerate(prs):
+            for kind, prs in [
+                ("pr_info", node["pr_info"].get("PRed", [])),
+                ("version_pr_info", node["version_pr_info"].get("PRed", [])),
+            ]:
+                for i, migration in enumerate(prs):
 
-                if random.uniform(0, 1) >= KEEP_PR_FRACTION:
-                    continue
+                    if random.uniform(0, 1) >= KEEP_PR_FRACTION:
+                        continue
 
-                pr_json = migration.get("PR", None)
+                    pr_json = migration.get("PR", None)
 
-                if pr_json and not pr_json["state"] == "closed":
-                    future = pool.submit(update_function, ghctx, pr_json, gh, dry_run)
-                    futures[future] = (node_id, i, pr_json)
+                    if pr_json and not pr_json["state"] == "closed":
+                        future = pool.submit(
+                            update_function,
+                            ghctx,
+                            pr_json,
+                            gh,
+                            dry_run,
+                        )
+                        futures[future] = (node_id, i, pr_json, kind)
 
         for f in tqdm.tqdm(
             as_completed(futures),
@@ -80,7 +89,7 @@ def _update_pr(update_function, dry_run, gx, job, n_jobs):
             desc="gathering PR data",
             leave=False,
         ):
-            name, i, pr_json = futures[f]
+            name, i, pr_json, pr_kind = futures[f]
             try:
                 res = f.result()
                 if res:
@@ -106,7 +115,7 @@ def _update_pr(update_function, dry_run, gx, job, n_jobs):
                 logger.critical(
                     "ERROR ON FEEDSTOCK: {}: {} - {}".format(
                         name,
-                        gx.nodes[name]["payload"]["pr_info"]["PRed"][i],
+                        gx.nodes[name]["payload"][pr_kind]["PRed"][i],
                         traceback.format_exc(),
                     ),
                 )

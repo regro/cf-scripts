@@ -369,6 +369,7 @@ def compare_depfinder_audits(gx):
             or attrs.get("archived", False)
             or attrs.get("parsing_error", False)
             or attrs.get("pr_info", {}).get("bad", False)
+            or attrs.get("version_pr_info", {}).get("bad", False)
         ):
             continue
         if "requirements" not in attrs:
@@ -501,6 +502,7 @@ def main(args):
                 not payload.get("archived", False)
                 and not payload.get("parsing_error", False)
                 and not payload.get("pr_info", {}).get("bad", False)
+                and not payload.get("version_pr_info", {}).get("bad", False)
                 and version
                 and "python" in payload["requirements"]["run"]
                 and f"{node}_{version}.{ext}" not in os.listdir(f"audits/{k}")

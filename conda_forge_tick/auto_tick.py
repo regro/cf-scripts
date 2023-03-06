@@ -222,9 +222,10 @@ def run(
     )
     if not feedstock_dir or not repo:
         LOGGER.critical(
-            "Failed to migrate %s, %s",
+            "Failed to migrate %s, %s & %s",
             feedstock_ctx.package_name,
             feedstock_ctx.attrs.get("pr_info", {}).get("bad"),
+            feedstock_ctx.attrs.get("version_pr_info", {}).get("bad"),
         )
         return False, False
 
@@ -241,7 +242,9 @@ def run(
         LOGGER.critical(
             "Failed to migrate %s, %s",
             feedstock_ctx.package_name,
-            feedstock_ctx.attrs.get("pr_info", {}).get("bad"),
+            feedstock_ctx.attrs.get("version_pr_info", {}).get("bad")
+            if isinstance(migrator, Version)
+            else feedstock_ctx.attrs.get("pr_info", {}).get("bad"),
         )
         eval_cmd(f"rm -rf {feedstock_dir}")
         return False, False
@@ -446,6 +449,8 @@ comment. Hopefully you all can fix this!
         ljpr = False
 
     # If we've gotten this far then the node is good
+    with feedstock_ctx.attrs["version_pr_info"] as pri:
+        pri["bad"] = False
     with feedstock_ctx.attrs["pr_info"] as pri:
         pri["bad"] = False
     _reset_pre_pr_migrator_fields(feedstock_ctx.attrs, migrator_name)
@@ -927,6 +932,7 @@ def initialize_migrators(
     github_password: str = "",
     github_token: Optional[str] = None,
     dry_run: bool = False,
+    version_migrations_only=False,
 ) -> Tuple[MigratorSessionContext, list, MutableSequence[Migrator]]:
     temp = glob.glob("/tmp/*")
     gx = load_graph()
@@ -937,26 +943,27 @@ def initialize_migrators(
 
     migrators = []
 
-    add_arch_migrate(migrators, gx)
-    add_replacement_migrator(
-        migrators,
-        gx,
-        "build",
-        "python-build",
-        "The conda package name 'build' is deprecated "
-        "and too generic. Use 'python-build instead.'",
-    )
-    migration_factory(migrators, gx)
-    create_migration_yaml_creator(migrators=migrators, gx=gx)
-    print("rebuild migration graph sizes:", flush=True)
-    for m in migrators:
-        if isinstance(m, GraphMigrator):
-            print(
-                f'    {getattr(m, "name", m)} graph size: '
-                f'{len(getattr(m, "graph", []))}',
-                flush=True,
-            )
-    print(" ", flush=True)
+    if not version_migrations_only:
+        add_arch_migrate(migrators, gx)
+        add_replacement_migrator(
+            migrators,
+            gx,
+            "build",
+            "python-build",
+            "The conda package name 'build' is deprecated "
+            "and too generic. Use 'python-build instead.'",
+        )
+        migration_factory(migrators, gx)
+        create_migration_yaml_creator(migrators=migrators, gx=gx)
+        print("rebuild migration graph sizes:", flush=True)
+        for m in migrators:
+            if isinstance(m, GraphMigrator):
+                print(
+                    f'    {getattr(m, "name", m)} graph size: '
+                    f'{len(getattr(m, "graph", []))}',
+                    flush=True,
+                )
+        print(" ", flush=True)
 
     mctx = MigratorSessionContext(
         circle_build_url=os.getenv("CIRCLE_BUILD_URL", ""),
@@ -969,40 +976,41 @@ def initialize_migrators(
         dry_run=dry_run,
     )
 
-    print("building package import maps and version migrator", flush=True)
-    python_nodes = {
-        n for n, v in mctx.graph.nodes("payload") if "python" in v.get("req", "")
-    }
-    python_nodes.update(
-        [
-            k
-            for node_name, node in mctx.graph.nodes("payload")
-            for k in node.get("outputs_names", [])
-            if node_name in python_nodes
-        ],
-    )
-    version_migrator = Version(
-        python_nodes=python_nodes,
-        pr_limit=PR_LIMIT * 4,
-        piggy_back_migrations=[
-            Jinja2VarsCleanup(),
-            DuplicateLinesCleanup(),
-            PipMigrator(),
-            LicenseMigrator(),
-            CondaForgeYAMLCleanup(),
-            ExtraJinja2KeysCleanup(),
-            Build2HostMigrator(),
-            NoCondaInspectMigrator(),
-            Cos7Config(),
-            PipWheelMigrator(),
-            MPIPinRunAsBuildCleanup(),
-            DependencyUpdateMigrator(python_nodes),
-        ],
-    )
+    if version_migrations_only:
+        print("building package import maps and version migrator", flush=True)
+        python_nodes = {
+            n for n, v in mctx.graph.nodes("payload") if "python" in v.get("req", "")
+        }
+        python_nodes.update(
+            [
+                k
+                for node_name, node in mctx.graph.nodes("payload")
+                for k in node.get("outputs_names", [])
+                if node_name in python_nodes
+            ],
+        )
+        version_migrator = Version(
+            python_nodes=python_nodes,
+            pr_limit=PR_LIMIT * 4,
+            piggy_back_migrations=[
+                Jinja2VarsCleanup(),
+                DuplicateLinesCleanup(),
+                PipMigrator(),
+                LicenseMigrator(),
+                CondaForgeYAMLCleanup(),
+                ExtraJinja2KeysCleanup(),
+                Build2HostMigrator(),
+                NoCondaInspectMigrator(),
+                Cos7Config(),
+                PipWheelMigrator(),
+                MPIPinRunAsBuildCleanup(),
+                DependencyUpdateMigrator(python_nodes),
+            ],
+        )
 
-    migrators = [version_migrator] + migrators
+        migrators = [version_migrator] + migrators
 
-    print(" ", flush=True)
+        print(" ", flush=True)
 
     return mctx, temp, migrators
 
@@ -1080,6 +1088,7 @@ def _run_migrator(migrator, mctx, temp, time_per, dry_run):
     good_prs = 0
     _mg_start = time.time()
     effective_graph = mmctx.effective_graph
+    pri_key = migrator.get_pr_info_key()
 
     if hasattr(migrator, "name"):
         extra_name = "-%s" % migrator.name
@@ -1182,7 +1191,7 @@ def _run_migrator(migrator, mctx, temp, time_per, dry_run):
                         )
                         # if migration successful
                         if migrator_uid:
-                            with attrs["pr_info"] as pri:
+                            with attrs[pri_key] as pri:
                                 d = frozen_to_json_friendly(migrator_uid)
                                 # if we have the PR already do nothing
                                 if d["data"] in [
@@ -1219,7 +1228,7 @@ def _run_migrator(migrator, mctx, temp, time_per, dry_run):
                                 break
                     except URLError as e:
                         LOGGER.exception("URLError ERROR")
-                        with attrs["pr_info"] as pri:
+                        with attrs[pri_key] as pri:
                             pri["bad"] = {
                                 "exception": str(e),
                                 "traceback": str(traceback.format_exc()).split("\n"),
@@ -1227,20 +1236,21 @@ def _run_migrator(migrator, mctx, temp, time_per, dry_run):
                                 "url": getattr(e, "url"),
                             }
 
-                        _set_pre_pr_migrator_fields(
-                            attrs,
-                            migrator_name,
-                            sanitize_string(
-                                "bot error (%s): %s: %s"
-                                % (
-                                    '<a href="'
-                                    + os.getenv("CIRCLE_BUILD_URL", "")
-                                    + '">bot CI job</a>',
-                                    base_branch,
-                                    str(traceback.format_exc()),
+                        if not isinstance(migrator, Version):
+                            _set_pre_pr_migrator_fields(
+                                attrs,
+                                migrator_name,
+                                sanitize_string(
+                                    "bot error (%s): %s: %s"
+                                    % (
+                                        '<a href="'
+                                        + os.getenv("CIRCLE_BUILD_URL", "")
+                                        + '">bot CI job</a>',
+                                        base_branch,
+                                        str(traceback.format_exc()),
+                                    ),
                                 ),
-                            ),
-                        )
+                            )
                     except Exception as e:
                         LOGGER.exception("NON GITHUB ERROR")
                         # we don't set bad for rerendering errors
@@ -1248,7 +1258,7 @@ def _run_migrator(migrator, mctx, temp, time_per, dry_run):
                             "conda smithy rerender -c auto --no-check-uptodate"
                             not in str(e)
                         ):
-                            with attrs["pr_info"] as pri:
+                            with attrs[pri_key] as pri:
                                 pri["bad"] = {
                                     "exception": str(e),
                                     "traceback": str(traceback.format_exc()).split(
@@ -1256,20 +1266,21 @@ def _run_migrator(migrator, mctx, temp, time_per, dry_run):
                                     ),
                                 }
 
-                        _set_pre_pr_migrator_fields(
-                            attrs,
-                            migrator_name,
-                            sanitize_string(
-                                "bot error (%s): %s: %s"
-                                % (
-                                    '<a href="'
-                                    + os.getenv("CIRCLE_BUILD_URL", "")
-                                    + '">bot CI job</a>',
-                                    base_branch,
-                                    str(traceback.format_exc()),
+                        if not isinstance(migrator, Version):
+                            _set_pre_pr_migrator_fields(
+                                attrs,
+                                migrator_name,
+                                sanitize_string(
+                                    "bot error (%s): %s: %s"
+                                    % (
+                                        '<a href="'
+                                        + os.getenv("CIRCLE_BUILD_URL", "")
+                                        + '">bot CI job</a>',
+                                        base_branch,
+                                        str(traceback.format_exc()),
+                                    ),
                                 ),
-                            ),
-                        )
+                            )
                     else:
                         if migrator_uid:
                             # On successful PR add to our counter
@@ -1323,29 +1334,31 @@ def _update_nodes_with_bot_rerun(gx):
         #     f"node: {i} memory usage: "
         #     f"{psutil.Process().memory_info().rss // 1024 ** 2}MB",
         # )
-        with node["payload"] as payload, payload["pr_info"] as pri:
-            for migration in pri.get("PRed", []):
-                try:
-                    pr_json = migration.get("PR", {})
-                    # maybe add a pass check info here ? (if using DEBUG)
-                except Exception as e:
-                    LOGGER.error(
-                        f"BOT-RERUN : could not proceed check with {node}, {e}",
-                    )
-                    raise e
-                # if there is a valid PR and it isn't currently listed as rerun
-                # but the PR needs a rerun
-                if (
-                    pr_json
-                    and not migration["data"]["bot_rerun"]
-                    and "bot-rerun" in [lb["name"] for lb in pr_json.get("labels", [])]
-                ):
-                    migration["data"]["bot_rerun"] = time.time()
-                    LOGGER.info(
-                        "BOT-RERUN %s: processing bot rerun label for migration %s",
-                        name,
-                        migration["data"],
-                    )
+        for pri_key in ["pr_info", "version_pr_info"]:
+            with node["payload"] as payload, payload[pri_key] as pri:
+                for migration in pri.get("PRed", []):
+                    try:
+                        pr_json = migration.get("PR", {})
+                        # maybe add a pass check info here ? (if using DEBUG)
+                    except Exception as e:
+                        LOGGER.error(
+                            f"BOT-RERUN : could not proceed check with {node}, {e}",
+                        )
+                        raise e
+                    # if there is a valid PR and it isn't currently listed as rerun
+                    # but the PR needs a rerun
+                    if (
+                        pr_json
+                        and not migration["data"]["bot_rerun"]
+                        and "bot-rerun"
+                        in [lb["name"] for lb in pr_json.get("labels", [])]
+                    ):
+                        migration["data"]["bot_rerun"] = time.time()
+                        LOGGER.info(
+                            "BOT-RERUN %s: processing bot rerun label for migration %s",
+                            name,
+                            migration["data"],
+                        )
 
 
 def _update_nodes_with_new_versions(gx):
@@ -1414,6 +1427,7 @@ def main(args: "CLIArgs") -> None:
         github_password=github_password,
         dry_run=args.dry_run,
         github_token=github_token,
+        version_migrations_only=args.version_migrations_only,
     )
 
     # compute the time per migrator
