@@ -1323,7 +1323,13 @@ def _update_nodes_with_bot_rerun(gx):
         #     f"node: {i} memory usage: "
         #     f"{psutil.Process().memory_info().rss // 1024 ** 2}MB",
         # )
-        with node["payload"] as payload, payload["pr_info"] as pri:
+        with node["payload"] as payload, payload["pr_info"] as pri, payload[
+            "version_pr_info"
+        ] as vpri:
+            # reset bad
+            pri["bad"] = False
+            vpri["bad"] = False
+
             for migration in pri.get("PRed", []):
                 try:
                     pr_json = migration.get("PR", {})
