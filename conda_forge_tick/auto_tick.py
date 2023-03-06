@@ -1328,38 +1328,49 @@ def _setup_limits():
         resource.setrlimit(resource.RLIMIT_AS, (limit_int, limit_int))
 
 
-def _update_nodes_with_bot_rerun(gx):
+def _update_nodes_with_bot_rerun(
+    gx,
+    skip_version_migrations=False,
+    skip_rebuild_migrations=False,
+):
     """Go through all the open PRs and check if they are rerun"""
     for i, (name, node) in enumerate(gx.nodes.items()):
         # LOGGER.info(
         #     f"node: {i} memory usage: "
         #     f"{psutil.Process().memory_info().rss // 1024 ** 2}MB",
         # )
-        for pri_key in ["pr_info", "version_pr_info"]:
-            with node["payload"] as payload, payload[pri_key] as pri:
-                for migration in pri.get("PRed", []):
-                    try:
-                        pr_json = migration.get("PR", {})
-                        # maybe add a pass check info here ? (if using DEBUG)
-                    except Exception as e:
-                        LOGGER.error(
-                            f"BOT-RERUN : could not proceed check with {node}, {e}",
-                        )
-                        raise e
-                    # if there is a valid PR and it isn't currently listed as rerun
-                    # but the PR needs a rerun
-                    if (
-                        pr_json
-                        and not migration["data"]["bot_rerun"]
-                        and "bot-rerun"
-                        in [lb["name"] for lb in pr_json.get("labels", [])]
-                    ):
-                        migration["data"]["bot_rerun"] = time.time()
-                        LOGGER.info(
-                            "BOT-RERUN %s: processing bot rerun label for migration %s",
-                            name,
-                            migration["data"],
-                        )
+        with node["payload"] as payload:
+            for pri_key in ["pr_info", "version_pr_info"]:
+                if pri_key == "pr_info" and skip_rebuild_migrations:
+                    continue
+
+                if pri_key == "version_pr_info" and skip_version_migrations:
+                    continue
+
+                with payload[pri_key] as pri:
+                    for migration in pri.get("PRed", []):
+                        try:
+                            pr_json = migration.get("PR", {})
+                            # maybe add a pass check info here ? (if using DEBUG)
+                        except Exception as e:
+                            LOGGER.error(
+                                f"BOT-RERUN : could not proceed check with {node}, {e}",
+                            )
+                            raise e
+                        # if there is a valid PR and it isn't currently listed as rerun
+                        # but the PR needs a rerun
+                        if (
+                            pr_json
+                            and not migration["data"]["bot_rerun"]
+                            and "bot-rerun"
+                            in [lb["name"] for lb in pr_json.get("labels", [])]
+                        ):
+                            migration["data"]["bot_rerun"] = time.time()
+                            LOGGER.info(
+                                "BOT-RERUN %s: processing bot rerun label for migration %s",
+                                name,
+                                migration["data"],
+                            )
 
 
 def _update_nodes_with_new_versions(gx):
@@ -1394,10 +1405,18 @@ def _update_nodes_with_new_versions(gx):
                         vpri["new_version"] = version_from_data
 
 
-def _update_graph_with_pr_info():
+def _update_graph_with_pr_info(
+    skip_version_migrations=False,
+    skip_rebuild_migrations=False,
+):
     gx = load_graph()
-    _update_nodes_with_bot_rerun(gx)
-    _update_nodes_with_new_versions(gx)
+    _update_nodes_with_bot_rerun(
+        gx,
+        skip_version_migrations=skip_version_migrations,
+        skip_rebuild_migrations=skip_rebuild_migrations,
+    )
+    if not skip_version_migrations:
+        _update_nodes_with_new_versions(gx)
     dump_graph(gx)
 
 
@@ -1414,7 +1433,10 @@ def main(args: "CLIArgs") -> None:
     else:
         setup_logger(logging.getLogger("conda_forge_tick"))
 
-    _update_graph_with_pr_info()
+    _update_graph_with_pr_info(
+        skip_version_migrations=args.skip_version_migrations,
+        skip_rebuild_migrations=args.skip_rebuild_migrations,
+    )
 
     from . import sensitive_env
 
