@@ -59,11 +59,18 @@ def main(*args, **kwargs):
         help=("If given, the total number of jobs being run."),
     )
     parser.add_argument(
-        "--version-migrations-only",
-        dest="version_migrations_only",
+        "--skip-version-migrations",
+        dest="skip_version_migrations",
         action="store_true",
         default=False,
-        help="If passed, only version migrations are run in the 'auto-tick' step.",
+        help="If passed, skip version migrations in the 'auto-tick' step.",
+    )
+    parser.add_argument(
+        "--skip-rebuild-migrations",
+        dest="rebuild_migrations",
+        action="store_true",
+        default=False,
+        help="If passed, skip rebuild/replacement migrations in the 'auto-tick' step.",
     )
     args = parser.parse_args()
 

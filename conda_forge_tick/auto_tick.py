@@ -932,7 +932,8 @@ def initialize_migrators(
     github_password: str = "",
     github_token: Optional[str] = None,
     dry_run: bool = False,
-    version_migrations_only=False,
+    skip_version_migrations=False,
+    skip_rebuild_migrations=False,
 ) -> Tuple[MigratorSessionContext, list, MutableSequence[Migrator]]:
     temp = glob.glob("/tmp/*")
     gx = load_graph()
@@ -943,7 +944,7 @@ def initialize_migrators(
 
     migrators = []
 
-    if not version_migrations_only:
+    if not skip_rebuild_migrations:
         add_arch_migrate(migrators, gx)
         add_replacement_migrator(
             migrators,
@@ -976,7 +977,7 @@ def initialize_migrators(
         dry_run=dry_run,
     )
 
-    if version_migrations_only:
+    if not skip_version_migrations:
         print("building package import maps and version migrator", flush=True)
         python_nodes = {
             n for n, v in mctx.graph.nodes("payload") if "python" in v.get("req", "")
@@ -1427,7 +1428,8 @@ def main(args: "CLIArgs") -> None:
         github_password=github_password,
         dry_run=args.dry_run,
         github_token=github_token,
-        version_migrations_only=args.version_migrations_only,
+        skip_version_migrations=args.skip_version_migrations,
+        skip_rebuild_migrations=args.skip_rebuild_migrations,
     )
 
     # compute the time per migrator
