@@ -139,7 +139,18 @@ def _migrate_schema(name, sub_graph):
     if "parsing_error" not in sub_graph:
         sub_graph["parsing_error"] = "make_graph: missing parsing_error key"
 
-    # TODO: move version PRs over to version_pr_info
+    with sub_graph["version_pr_info"] as vpri:
+        if "PRed" not in vpri:
+            vPRed = []
+            mPRed = []
+            with sub_graph["pr_info"] as pri:
+                for pr in pri["PRed"]:
+                    if pr.get("data", {}).get("migrator_name", "") == "Version":
+                        vPRed.append(pr)
+                    else:
+                        mPRed.append(pr)
+                pri["PRed"] = mPRed
+            vpri["PRed"] = vPRed
 
 
 def _build_graph_process_pool(

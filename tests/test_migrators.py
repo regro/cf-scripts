@@ -1741,8 +1741,13 @@ def run_test_migration(
         if not mr:
             return pmy
 
-        pmy["version_pr_info"] = {}
-        pmy["version_pr_info"].update(PRed=[frozen_to_json_friendly(mr)])
+        if isinstance(m, Version):
+            pmy["version_pr_info"] = {}
+            pmy["version_pr_info"].update(PRed=[frozen_to_json_friendly(mr)])
+        else:
+            pmy["pr_info"] = {}
+            pmy["pr_info"].update(PRed=[frozen_to_json_friendly(mr)])
+
         with open(os.path.join(tmpdir, "meta.yaml")) as f:
             actual_output = f.read()
         # strip jinja comments
