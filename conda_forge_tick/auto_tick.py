@@ -200,6 +200,7 @@ def run(
     # get the repo
     # TODO: stop doing this.
     migrator.attrs = feedstock_ctx.attrs  # type: ignore
+    pr_info_key = migrator.get_pr_info_key()
 
     branch_name = migrator.remote_branch(feedstock_ctx) + "_h" + uuid4().hex[0:6]
 
@@ -222,10 +223,9 @@ def run(
     )
     if not feedstock_dir or not repo:
         LOGGER.critical(
-            "Failed to migrate %s, %s & %s",
+            "Failed to migrate %s, %s",
             feedstock_ctx.package_name,
-            feedstock_ctx.attrs.get("pr_info", {}).get("bad"),
-            feedstock_ctx.attrs.get("version_pr_info", {}).get("bad"),
+            feedstock_ctx.attrs.get(pr_info_key, {}).get("bad"),
         )
         return False, False
 
@@ -242,9 +242,7 @@ def run(
         LOGGER.critical(
             "Failed to migrate %s, %s",
             feedstock_ctx.package_name,
-            feedstock_ctx.attrs.get("version_pr_info", {}).get("bad")
-            if isinstance(migrator, Version)
-            else feedstock_ctx.attrs.get("pr_info", {}).get("bad"),
+            feedstock_ctx.attrs.get(pr_info_key, {}).get("bad"),
         )
         eval_cmd(f"rm -rf {feedstock_dir}")
         return False, False
@@ -382,7 +380,8 @@ def run(
             eval_cmd(f"rm -rf {feedstock_dir}")
             return False, False
         else:
-            _reset_pre_pr_migrator_fields(feedstock_ctx.attrs, migrator_name)
+            if not isinstance(migrator, Version):
+                _reset_pre_pr_migrator_fields(feedstock_ctx.attrs, migrator_name)
 
     # TODO: Better annotation here
     pr_json: typing.Union[MutableMapping, None, bool]
@@ -449,11 +448,10 @@ comment. Hopefully you all can fix this!
         ljpr = False
 
     # If we've gotten this far then the node is good
-    with feedstock_ctx.attrs["version_pr_info"] as pri:
+    with feedstock_ctx.attrs[pr_info_key] as pri:
         pri["bad"] = False
-    with feedstock_ctx.attrs["pr_info"] as pri:
-        pri["bad"] = False
-    _reset_pre_pr_migrator_fields(feedstock_ctx.attrs, migrator_name)
+    if not isinstance(migrator, Version):
+        _reset_pre_pr_migrator_fields(feedstock_ctx.attrs, migrator_name)
 
     LOGGER.info("Removing feedstock dir")
     eval_cmd(f"rm -rf {feedstock_dir}")
