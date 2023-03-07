@@ -1,9 +1,7 @@
-import csv
 import os
 import rapidjson as json
 import subprocess
 import copy
-from collections import Counter
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import time
 
@@ -92,6 +90,7 @@ def graph_migrator_status(
         migrator_name = migrator.name.lower().replace(" ", "")
     else:
         migrator_name = migrator.__class__.__name__.lower()
+    pr_info_key = migrator.get_pr_info_key()
 
     num_viz = 0
 
@@ -129,7 +128,7 @@ def graph_migrator_status(
         feedstock_metadata[node] = node_metadata
         nuid = migrator.migrator_uid(attrs)
         all_pr_jsons = []
-        for pr_json in attrs.get("pr_info", {}).get("PRed", []):
+        for pr_json in attrs.get(pr_info_key, {}).get("PRed", []):
             all_pr_jsons.append(copy.deepcopy(pr_json))
 
         feedstock_ctx = FeedstockContext(
@@ -173,14 +172,14 @@ def graph_migrator_status(
         elif pr_json is None:
             if buildable:
                 if "not solvable" in (
-                    attrs.get("pr_info", {})
+                    attrs.get(pr_info_key, {})
                     .get("pre_pr_migrator_status", {})
                     .get(migrator_name, "")
                 ):
                     out["not-solvable"].add(node)
                     fc = "#ff8c00"
                 elif "bot error" in (
-                    attrs.get("pr_info", {})
+                    attrs.get(pr_info_key, {})
                     .get("pre_pr_migrator_status", {})
                     .get(migrator_name, "")
                 ):
@@ -192,7 +191,7 @@ def graph_migrator_status(
                     fc = "#35b779"
             elif not isinstance(migrator, Replacement):
                 if "bot error" in (
-                    attrs.get("pr_info", {})
+                    attrs.get(pr_info_key, {})
                     .get("pre_pr_migrator_status", {})
                     .get(migrator_name, "")
                 ):
@@ -247,7 +246,7 @@ def graph_migrator_status(
         ]
         if node in out["not-solvable"] or node in out["bot-error"]:
             node_metadata["pre_pr_migrator_status"] = (
-                attrs.get("pr_info", {})
+                attrs.get(pr_info_key, {})
                 .get(
                     "pre_pr_migrator_status",
                     {},
@@ -439,7 +438,9 @@ def main(args: Any = None) -> None:
             len(
                 [
                     z
-                    for z in v.get("payload", {}).get("pr_info", {}).get("PRed", [])
+                    for z in v.get("payload", {})
+                    .get("version_pr_info", {})
+                    .get("PRed", [])
                     if z.get("PR", {}).get("state", "closed") == "open"
                     and z.get("data", {}).get("migrator_name", "") == "Version"
                 ],
@@ -483,22 +484,28 @@ def main(args: Any = None) -> None:
             indent=2,
         )
 
-    def _get_open_pr_states(k):
-        attrs = mctx.graph.nodes[k]
-        _open_prs = []
-        for pr in attrs.get("pr_info", {}).get("PRed", []):
-            if pr.get("PR", {}).get("state", "closed") != "closed":
-                _open_prs.append(pr["PR"])
+    # this code doesn't work and doesn't seem needed so commenting it out
+    # MRB 2023/03/06
+    # def _get_open_pr_states(k):
+    #     attrs = mctx.graph.nodes[k]["payload"]
+    #     _open_prs = []
+    #     for pr in attrs.get("pr_info", {}).get("PRed", []):
+    #         if pr.get("PR", {}).get("state", "closed") != "closed":
+    #             _open_prs.append(pr["PR"])
 
-        return _open_prs
+    #     for pr in attrs.get("version_pr_info", {}).get("PRed", []):
+    #         if pr.get("PR", {}).get("state", "closed") != "closed":
+    #             _open_prs.append(pr["PR"])
 
-    open_prs = []
-    for op in _collect_items_from_nodes(mctx.graph, _get_open_pr_states):
-        open_prs.extend(op)
-    merge_state_count = Counter([o["mergeable_state"] for o in open_prs])
-    with open("./status/pr_state.csv", "a") as f:
-        writer = csv.writer(f)
-        writer.writerow([merge_state_count[k] for k in GH_MERGE_STATE_STATUS])
+    #     return _open_prs
+
+    # open_prs = []
+    # for op in _collect_items_from_nodes(mctx.graph, _get_open_pr_states):
+    #     open_prs.extend(op)
+    # merge_state_count = Counter([o["mergeable_state"] for o in open_prs])
+    # with open("./status/pr_state.csv", "a") as f:
+    #     writer = csv.writer(f)
+    #     writer.writerow([merge_state_count[k] for k in GH_MERGE_STATE_STATUS])
 
 
 if __name__ == "__main__":
