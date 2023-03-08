@@ -150,7 +150,7 @@ def extract_single_pypi_information(meta_yaml: Dict[str, Any]) -> Dict[str, str]
 def extract_pypi_information(cf_graph: str) -> List[Dict[str, str]]:
     package_mappings = []
     # TODO: exclude archived node_attrs
-    for f in list(glob.glob(f"{cf_graph}/node_attrs/*.json")):
+    for f in list(glob.glob(f"{cf_graph}/node_attrs/**/*.json", recursive=True)):
         meta_yaml = load_node_meta_yaml(f)
         if meta_yaml is None:
             continue
