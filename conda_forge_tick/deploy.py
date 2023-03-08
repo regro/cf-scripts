@@ -44,6 +44,7 @@ def deploy(dry_run=False):
         "mappings/pypi",
         "ranked_hubs_authorities.json",
         "all_feedstocks.json",
+        "graph.json",
     ]:
         # untracked
         files_to_add |= set(
