@@ -43,6 +43,9 @@ jobs:
           mamba install --quiet --file requirements/run --file requirements/test
           python -m pip install -e .
 
+          mamba install redis
+          pip install redislite
+
       - name: conda info and env
         shell: bash -l {0}
         run: |

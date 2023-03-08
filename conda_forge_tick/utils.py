@@ -10,6 +10,7 @@ import contextlib
 import itertools
 import rapidjson as json
 import logging
+import functools
 import tempfile
 import io
 import os
@@ -71,6 +72,7 @@ CB_CONFIG_PINNING = dict(
     cran_mirror="https://cran.r-project.org",
     datetime=datetime,
 )
+CF_TICK_GRAPH_DATA_BACKEND = os.environ.get("CF_TICK_GRAPH_DATA_BACKEND", "file")
 
 
 # https://stackoverflow.com/questions/6194499/pushd-through-os-system
@@ -375,16 +377,50 @@ class NullUndefined(jinja2.Undefined):
         return f'{self}["{name}"]'
 
 
+@functools.lru_cache(maxsize=1)
+def get_graph_data_redis_backend(db_name):
+    if CF_TICK_GRAPH_DATA_BACKEND == "redislite":
+        import redislite
+
+        return redislite.StrictRedis(db_name)
+    else:
+        raise RuntimeError(
+            "Did not recognize graph data backend %s" % CF_TICK_GRAPH_DATA_BACKEND,
+        )
+
+
 class LazyJson(MutableMapping):
     """Lazy load a dict from a json file and save it when updated"""
 
     def __init__(self, file_name: str):
         self.file_name = file_name
-        # If the file doesn't exist create an empty file
-        if not os.path.exists(self.file_name):
-            os.makedirs(os.path.split(self.file_name)[0], exist_ok=True)
-            with open(self.file_name, "w") as f:
-                dump({}, f)
+
+        if CF_TICK_GRAPH_DATA_BACKEND == "file":
+            # If the file doesn't exist create an empty file
+            if not os.path.exists(self.file_name):
+                os.makedirs(os.path.split(self.file_name)[0], exist_ok=True)
+                with open(self.file_name, "w") as f:
+                    dump({}, f)
+        elif CF_TICK_GRAPH_DATA_BACKEND == "redislite":
+            fparts = file_name.split("/")
+            if len(fparts) == 2:
+                key = fparts[0]
+                node = fparts[1][: -len(".json")]
+                self._dbname = key + ".db"
+            else:
+                key = "lazy_json"
+                node = file_name[: -len(".json")]
+                self._dbname = "graph_data.db"
+
+            self._rdkey = key
+            self._rdnode = node
+            rd = get_graph_data_redis_backend(self._dbname)
+            rd.hset(key, node, dumps({}))
+        else:
+            raise RuntimeError(
+                "Did not recognize graph data backend %s" % CF_TICK_GRAPH_DATA_BACKEND,
+            )
+
         self._data: Optional[dict] = None
 
     @property
@@ -415,18 +451,27 @@ class LazyJson(MutableMapping):
 
     def _load(self) -> None:
         if self._data is None:
-            try:
-                with open(self.file_name) as f:
-                    self._data = load(f)
-            except FileNotFoundError:
-                print(os.getcwd())
-                print(os.listdir("."))
-                raise
+            if CF_TICK_GRAPH_DATA_BACKEND == "file":
+                try:
+                    with open(self.file_name) as f:
+                        self._data = load(f)
+                except FileNotFoundError:
+                    print(os.getcwd())
+                    print(os.listdir("."))
+                    raise
+            elif CF_TICK_GRAPH_DATA_BACKEND == "redislite":
+                rd = get_graph_data_redis_backend(self._dbname)
+                self._data = loads(rd.hget(self._rdkey, self._rdnode))
 
     def _dump(self, purge=False) -> None:
         self._load()
-        with open(self.file_name, "w") as f:
-            dump(self._data, f)
+        if CF_TICK_GRAPH_DATA_BACKEND == "file":
+            with open(self.file_name, "w") as f:
+                dump(self._data, f)
+        elif CF_TICK_GRAPH_DATA_BACKEND == "redislite":
+            rd = get_graph_data_redis_backend(self._dbname)
+            rd.hset(self._rdkey, self._rdnode, dumps(self._data))
+
         if purge:
             # this evicts the josn from memory and trades i/o for mem
             # the bot uses too much mem if we don't do this

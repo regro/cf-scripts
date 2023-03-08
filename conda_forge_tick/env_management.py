@@ -3,7 +3,15 @@ from contextlib import contextmanager
 
 
 class SensitiveEnv:
-    SENSITIVE_KEYS = ["USERNAME", "PASSWORD", "GITHUB_TOKEN", "GH_TOKEN"]
+    SENSITIVE_KEYS = [
+        "USERNAME",
+        "PASSWORD",
+        "GITHUB_TOKEN",
+        "GH_TOKEN",
+        "CF_TICK_GRAPH_DATA_USERNAME",
+        "CF_TICK_GRAPH_DATA_PASSWORD",
+        "CF_TICK_GRAPH_DATA_PORT",
+    ]
 
     def __init__(self):
         self.clasified_info = {}
