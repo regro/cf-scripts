@@ -2,8 +2,8 @@ name: bot-make-graph
 
 on:
   workflow_dispatch: null
-  schedule:
-    - cron:  '0 */4 * * *'
+  # schedule:
+  #   - cron:  '0 */4 * * *'
 
 concurrency: bot-make-graph
 
@@ -34,7 +34,7 @@ jobs:
         run: |
           pushd cf-scripts
           source autotick-bot/local_setup.sh
-          python autotick-bot/stop_me_if_needed.py
+          # python autotick-bot/stop_me_if_needed.py
           popd
 
       - name: install bot code
