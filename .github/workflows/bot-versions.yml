@@ -1,8 +1,8 @@
 name: bot-versions
 
 on:
-  # schedule:
-  #   - cron:  '15,45 * * * *'
+  schedule:
+    - cron:  '15,45 * * * *'
   workflow_dispatch: null
 
 concurrency: versions
@@ -36,7 +36,7 @@ jobs:
         run: |
           pushd cf-scripts
           source autotick-bot/local_setup.sh
-          # python autotick-bot/stop_me_if_needed.py
+          python autotick-bot/stop_me_if_needed.py
           popd
 
       - name: install bot code
