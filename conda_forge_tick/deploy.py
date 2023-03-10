@@ -84,6 +84,7 @@ def deploy(dry_run=False):
         if file and os.path.exists(file):
             try:
                 print(f"committing: {file}", flush=True)
+                _run_git_cmd(f"git diff -P {file}")
                 _run_git_cmd(f"git add {file}")
                 n_added += 1
             except Exception as e:
