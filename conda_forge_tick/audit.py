@@ -5,6 +5,7 @@ import shutil
 import tempfile
 import time
 import traceback
+import glob
 from collections import defaultdict
 from concurrent.futures._base import as_completed
 from typing import Dict
@@ -27,6 +28,7 @@ from conda_forge_tick.utils import (
     executor,
     _get_source_code,
     yaml_safe_load,
+    get_sharded_path,
 )
 from conda_forge_tick.feedstock_parser import load_feedstock
 from conda_forge_tick.utils import pushd
@@ -208,7 +210,10 @@ def inner_grayskull_comparison(meta_yaml, attrs, node):
 
 
 def compare_grayskull_audits(gx):
-    grayskull_files = os.listdir("audits/grayskull")
+    grayskull_files = [
+        os.path.basename(f)
+        for f in glob.iglob("audits/grayskull/**/*.yml", recursive=True)
+    ]
     bad_inspections = {}
 
     if "_net_audit.json" in grayskull_files:
@@ -228,9 +233,8 @@ def compare_grayskull_audits(gx):
             # construct the expected filename
             expected_filename = f"{node_version}.yml"
             if expected_filename in grayskull_files:
-                with open(
-                    os.path.join("audits/grayskull", expected_filename),
-                ) as f:
+                gpth = get_sharded_path("audits/grayskull/" + expected_filename)
+                with open(gpth) as f:
                     meta_yaml = f.read()
                 futures[
                     pool.submit(
@@ -358,7 +362,7 @@ def compare_depfinder_audits(gx):
     )
 
     bad_inspection = {}
-    files = os.listdir("audits/depfinder")
+    files = [os.path.basename(f) for f in glob.iglob("audits/depfinder/**/*.json")]
 
     if "_net_audit.json" in files:
         files.pop(files.index("_net_audit.json"))
@@ -380,7 +384,8 @@ def compare_depfinder_audits(gx):
         # construct the expected filename
         expected_filename = f"{node_version}.json"
         if expected_filename in files:
-            with open(os.path.join("audits/depfinder", expected_filename)) as f:
+            dpth = get_sharded_path(os.path.join("audits/depfinder", expected_filename))
+            with open(dpth) as f:
                 output = load(f)
             if isinstance(output, str) or "traceback" in output:
                 bad_inspection[node_version] = output
@@ -523,7 +528,8 @@ def main(args):
                         deps = v["dumper"](deps)
                 finally:
                     if deps:
-                        with open(f"audits/{k}/{node}_{version}.{ext}", "w") as f:
+                        opth = get_sharded_path(f"audits/{k}/{node}_{version}.{ext}")
+                        with open(opth, "w") as f:
                             v["writer"](deps, f)
 
     # grayskull_audit_outcome = compare_grayskull_audits(gx)

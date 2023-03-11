@@ -1374,18 +1374,11 @@ def _update_nodes_with_bot_rerun(
 
 def _update_nodes_with_new_versions(gx):
     """Updates every node with it's new version (when available)"""
-    # check if the versions folder is available
-    if os.path.isdir("./versions"):
-        pass
-    else:
-        return
-    # get all the available node.json files
-    # TODO: I don't thing this is a good idea (8000+ entries)
-    list_files = os.listdir("./versions/")
+    list_files = glob.glob("./versions/**/*.json")
 
     for file in list_files:
         node = os.path.splitext(os.path.basename(str(file)))[0]
-        with open(f"./versions/{file}") as json_file:
+        with open(file) as json_file:
             version_data: typing.Dict = json.load(json_file)
         with gx.nodes[f"{node}"]["payload"] as attrs:
             with attrs["version_pr_info"] as vpri:

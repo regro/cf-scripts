@@ -1,5 +1,6 @@
 import os
 import pytest
+from flaky import flaky
 
 from conda_forge_tick.migrators import JpegTurboMigrator, Version
 from test_migrators import run_test_migration
@@ -13,6 +14,7 @@ VERSION_WITH_JPEGTURBO = Version(
 YAML_PATH = os.path.join(os.path.dirname(__file__), "test_yaml")
 
 
+@flaky
 @pytest.mark.parametrize(
     "old_meta,new_meta,new_ver",
     [

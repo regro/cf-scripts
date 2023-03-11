@@ -8,7 +8,7 @@ import tqdm
 import hashlib
 from concurrent.futures import as_completed
 
-from .utils import setup_logger, load_graph, executor
+from .utils import setup_logger, load_graph, executor, get_sharded_path
 from .update_sources import (
     AbstractSource,
     PyPI,
@@ -125,7 +125,8 @@ def _update_upstream_versions_sequential(
             )
 
         logger.debug("writing out file")
-        with open(f"versions/{node}.json", "w") as outfile:
+        vpth = get_sharded_path(f"versions/{node}.json")
+        with open(vpth, "w") as outfile:
             json.dump(version_data, outfile)
         node_count += 1
 
@@ -208,7 +209,8 @@ def _update_upstream_versions_process_pool(
                     ),
                 )
             # writing out file
-            with open(f"versions/{node}.json", "w") as outfile:
+            vpth = get_sharded_path(f"versions/{node}.json")
+            with open(vpth, "w") as outfile:
                 json.dump(version_data, outfile)
 
 

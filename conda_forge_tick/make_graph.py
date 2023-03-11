@@ -310,13 +310,14 @@ def _update_nodes_with_archived(gx, archived_names):
 def _migrate_schemas():
     # make sure to apply all schema migrations
     node_pths = (
-        glob.glob("node_attrs/*.json")
-        + glob.glob("node_attrs/.json")
+        glob.glob("node_attrs/**/*.json", recursive=True)
+        + glob.glob("node_attrs/**/.json", recursive=True)
         # shell expansion won't match .json
     )
     for node_pth in tqdm.tqdm(node_pths, desc="migrating node schemas", miniters=100):
         name = os.path.basename(node_pth)[:-5]
-        with LazyJson(node_pth) as sub_graph:
+        lzj_pth = f"node_attrs/{name}.json"
+        with LazyJson(lzj_pth) as sub_graph:
             _migrate_schema(name, sub_graph)
 
 
