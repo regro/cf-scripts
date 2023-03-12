@@ -1356,7 +1356,7 @@ def _update_nodes_with_bot_rerun(gx):
 
 def _update_nodes_with_new_versions(gx):
     """Updates every node with it's new version (when available)"""
-    list_files = glob.glob("./versions/**/*.json")
+    list_files = glob.glob("./versions/**/*.json", recursive=True)
 
     for file in list_files:
         node = os.path.splitext(os.path.basename(str(file)))[0]
