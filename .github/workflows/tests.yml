@@ -39,7 +39,7 @@ jobs:
           export GIT_FULL_HASH=`git rev-parse HEAD`
           export CICLE_BUILD_URL="https://www.youtube.com/watch?v=R7qT-C-0ajI"
           mamba install --quiet \
-            pip
+            pip \
             pytest \
             codecov \
             requests-mock \
