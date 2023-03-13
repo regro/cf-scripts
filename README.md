@@ -23,16 +23,3 @@ itself on the next round.
 ## What has the bot done recently?
 
 Check out its [PRs](https://github.com/pulls?utf8=%E2%9C%93&q=is%3Aopen+is%3Apr+author%3Aregro-cf-autotick-bot+archived%3Afalse+), its currently [running jobs](https://github.com/regro/cf-scripts/actions?query=is%3Ain_progress++), and the [status page](https://conda-forge.org/status/#current_migrations)!
-
-## Setup
-
-Below are instructions for setting up a local installation for testing. They
-assume that you have conda installed and conda-forge is in your channel list.
-
-```
-conda create -y -n cf --file requirements/run --file requirements/test ipython
-source activate cf
-pip install -e .
-pre-commit run -a
-pytest tests
-```
