@@ -126,6 +126,7 @@ def _update_upstream_versions_sequential(
 
         logger.debug("writing out file")
         vpth = get_sharded_path(f"versions/{node}.json")
+        os.makedirs(os.path.dirname(vpth), exist_ok=True)
         with open(vpth, "w") as outfile:
             json.dump(version_data, outfile)
         node_count += 1
@@ -210,6 +211,7 @@ def _update_upstream_versions_process_pool(
                 )
             # writing out file
             vpth = get_sharded_path(f"versions/{node}.json")
+            os.makedirs(os.path.dirname(vpth), exist_ok=True)
             with open(vpth, "w") as outfile:
                 json.dump(version_data, outfile)
 
