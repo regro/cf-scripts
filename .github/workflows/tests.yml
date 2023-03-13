@@ -19,7 +19,7 @@ jobs:
         with:
           access_token: ${{ github.token }}
 
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - uses: conda-incubator/setup-miniconda@v2
         with:
@@ -29,20 +29,17 @@ jobs:
           miniforge-version: latest
           miniforge-variant: Mambaforge
           python-version: ${{ vars.PYVER }}
-          activate-environment: cf-scripts
           use-mamba: true
           environment-file: environment.yml
+          activate-environment: cf-scripts
 
       - name: configure conda and install code
         shell: bash -l {0}
         run: |
-          conda config --set always_yes yes
-          conda config --add channels conda-forge
-          mamba install --quiet pip
-
           export GIT_FULL_HASH=`git rev-parse HEAD`
           export CICLE_BUILD_URL="https://www.youtube.com/watch?v=R7qT-C-0ajI"
           mamba install --quiet \
+            pip
             pytest \
             codecov \
             requests-mock \

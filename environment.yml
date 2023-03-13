@@ -20,6 +20,7 @@ dependencies:
  - doctr
  - feedparser
  - frozendict
+ - git
  - github3.py
  - grayskull
  - jinja2
