@@ -30,6 +30,8 @@ jobs:
           miniforge-variant: Mambaforge
           python-version: ${{ vars.PYVER }}
           activate-environment: cf-scripts
+          use-mamba: true
+          environment-file: environment.yml
 
       - name: configure conda and install code
         shell: bash -l {0}
@@ -40,7 +42,18 @@ jobs:
 
           export GIT_FULL_HASH=`git rev-parse HEAD`
           export CICLE_BUILD_URL="https://www.youtube.com/watch?v=R7qT-C-0ajI"
-          mamba install --quiet --file requirements/run --file requirements/test
+          mamba install --quiet \
+            pytest \
+            codecov \
+            requests-mock \
+            doctr \
+            sphinx \
+            scipy \
+            pre-commit \
+            pip \
+            flaky \
+            pytest-xdist \
+            pytest-cov
           python -m pip install -e .
 
       - name: conda info and env
