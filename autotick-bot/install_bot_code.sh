@@ -1,8 +1,10 @@
 #!/bin/bash
 
-pushd cf-scripts
+git config --global user.name regro-cf-autotick-bot
+git config --global user.email 36490558+regro-cf-autotick-bot@users.noreply.github.com
+git config --global pull.rebase false
 
-mamba install -y --file=requirements/run
+pushd cf-scripts
 
 export GIT_FULL_HASH=$(git rev-parse HEAD)
 pip install -e .
