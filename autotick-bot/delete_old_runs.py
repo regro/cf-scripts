@@ -19,5 +19,5 @@ for w in r.get_workflows():
             )
             done += 1
             time.sleep(1)
-        if done == 500:
+        if done == 1000:
             sys.exit(0)
