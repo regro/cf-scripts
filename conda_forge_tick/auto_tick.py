@@ -115,6 +115,7 @@ LOGGER = logging.getLogger("conda_forge_tick.auto_tick")
 PR_LIMIT = 5
 MAX_PR_LIMIT = 50
 MAX_SOLVER_ATTEMPTS = 50
+CHECK_SOLVABLE_TIMEOUT = 90 * 24 * 60 * 60  # 90 days in seconds
 
 BOT_RERUN_LABEL = {
     "name": "bot-rerun",
@@ -751,6 +752,16 @@ def migration_factory(
                 set(loaded_yaml) | {ly.replace("_", "-") for ly in loaded_yaml}
             ) & all_package_names
         exclude_pinned_pkgs = migrator_config.get("exclude_pinned_pkgs", True)
+
+        if (
+            (
+                time.time() - loaded_yaml.get("migration_ts", time.time())
+                > CHECK_SOLVABLE_TIMEOUT
+            )
+            and "check_solvable" not in migrator_config
+            and not migrator_config.get("longterm", False)
+        ):
+            migrator_config["check_solvable"] = False
 
         if not paused:
             add_rebuild_migration_yaml(
