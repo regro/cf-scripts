@@ -754,9 +754,13 @@ def migration_factory(
         exclude_pinned_pkgs = migrator_config.get("exclude_pinned_pkgs", True)
 
         if (
-            time.time() - loaded_yaml.get("migration_ts", time.time())
-            > CHECK_SOLVABLE_TIMEOUT
-        ) and "check_solvable" not in migrator_config:
+            (
+                time.time() - loaded_yaml.get("migration_ts", time.time())
+                > CHECK_SOLVABLE_TIMEOUT
+            )
+            and "check_solvable" not in migrator_config
+            and not migrator_config.get("longterm", False)
+        ):
             migrator_config["check_solvable"] = False
 
         if not paused:
