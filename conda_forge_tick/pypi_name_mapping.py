@@ -208,7 +208,7 @@ def determine_best_matches_for_pypi_import(
     mapping: List[Mapping],
     cf_graph: str,
 ) -> Tuple[Dict[str, Mapping], List[Dict]]:
-    map_by_import_name: Dict[str, Set[str]] = defaultdict(set)
+    map_by_import_name: Dict[str, List[Mapping]] = defaultdict(list)
     map_by_conda_name: Dict[str, Mapping] = dict()
     final_map: Dict[str, Mapping] = {}
     ordered_import_names: List[Dict] = []
@@ -216,7 +216,7 @@ def determine_best_matches_for_pypi_import(
     for m in mapping:
         # print(m)
         conda_name = m["conda_name"]
-        map_by_import_name[m["import_name"]].add(conda_name)
+        map_by_import_name[m["import_name"]].append(m)
         map_by_conda_name[conda_name] = m
 
     graph_file = str(pathlib.Path(cf_graph) / "graph.json")
@@ -294,22 +294,26 @@ def determine_best_matches_for_pypi_import(
         dump(ranked_list, f)
 
     for import_name, candidates in sorted(map_by_import_name.items()):
+        conda_names = {c["conda_name"] for c in candidates}
         if len(candidates) > 1:
-            ranked_candidates = list(sorted(candidates, key=score))
-            winner = ranked_candidates[0]
-            print(f"needs {import_name} <- provided_by: {candidates} : chosen {winner}")
-            final_map[import_name] = map_by_conda_name[winner]
+            ranked_conda_names = list(sorted(conda_names, key=score))
+            winning_name = ranked_conda_names[0]
+            print(
+                f"needs {import_name} <- provided_by: {conda_names} : "
+                f"chosen {winning_name}",
+            )
+            final_map[import_name] = map_by_conda_name[winning_name]
             ordered_import_names.append(
                 {
                     "import_name": import_name,
-                    "ranked_conda_names": list(reversed(ranked_candidates)),
+                    "ranked_conda_names": list(reversed(ranked_conda_names)),
                 },
             )
         else:
-            candidate = list(candidates)[0]
-            final_map[import_name] = map_by_conda_name[candidate]
+            winning_name = conda_names[0]
+            final_map[import_name] = map_by_conda_name[winning_name]
             ordered_import_names.append(
-                {"import_name": import_name, "ranked_conda_names": [candidate]},
+                {"import_name": import_name, "ranked_conda_names": [winning_name]},
             )
 
     return final_map, ordered_import_names
