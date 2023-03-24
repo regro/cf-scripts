@@ -170,7 +170,7 @@ def convert_to_grayskull_style_yaml(
     required by grayskull by reindexing on the PyPI name"""
     package_mappings = best_imports.values()
     grayskull_fmt = {
-        x["pypi_name"]: {k: v for k, v in x.items() if x != "pypi_name"}
+        x["pypi_name"]: x
         for x in sorted(package_mappings, key=lambda x: x["pypi_name"])
     }
     return grayskull_fmt
