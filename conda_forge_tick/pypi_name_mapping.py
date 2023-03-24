@@ -14,7 +14,7 @@ import pathlib
 import functools
 
 from collections import Counter, defaultdict
-from typing import Dict, List, Optional, Any, Tuple, Set, Iterable
+from typing import Dict, List, Optional, Any, Tuple, Set
 from os.path import commonprefix
 
 
@@ -164,10 +164,11 @@ def extract_pypi_information(cf_graph: str) -> List[Dict[str, str]]:
 
 
 def convert_to_grayskull_style_yaml(
-    package_mappings: Iterable[Dict[str, str]],
+    best_imports: Dict[str, Dict[str, str]],
 ) -> Dict[str, Dict[str, str]]:
     """Convert our list style mapping to the pypi-centric version
-    required by grayskull"""
+    required by grayskull by reindexing on the PyPI name"""
+    package_mappings = best_imports.values()
     grayskull_fmt = {
         x["pypi_name"]: {k: v for k, v in x.items() if x != "pypi_name"}
         for x in sorted(package_mappings, key=lambda x: x["pypi_name"])
@@ -316,7 +317,7 @@ def main(args: "CLIArgs") -> None:
         mapping=pypi_package_mappings + static_packager_mappings,
     )
 
-    grayskull_style = convert_to_grayskull_style_yaml(best_imports.values())
+    grayskull_style = convert_to_grayskull_style_yaml(best_imports)
 
     dirname = pathlib.Path(cf_graph) / "mappings" / "pypi"
     dirname.mkdir(parents=True, exist_ok=True)
