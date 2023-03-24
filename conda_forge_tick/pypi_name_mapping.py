@@ -295,27 +295,20 @@ def determine_best_matches_for_pypi_import(
 
     for import_name, candidates in sorted(map_by_import_name.items()):
         conda_names = {c["conda_name"] for c in candidates}
-        if len(candidates) > 1:
-            ranked_conda_names = list(sorted(conda_names, key=score))
-            winning_name = ranked_conda_names[0]
+        ranked_conda_names = list(sorted(conda_names, key=score))
+        winning_name = ranked_conda_names[0]
+        if len(ranked_conda_names) > 1:
             print(
-                f"needs {import_name} <- provided_by: {conda_names} : "
+                f"needs {import_name} <- provided_by: {ranked_conda_names} : "
                 f"chosen {winning_name}",
             )
-            final_map[import_name] = map_by_conda_name[winning_name]
-            ordered_import_names.append(
-                {
-                    "import_name": import_name,
-                    "ranked_conda_names": list(reversed(ranked_conda_names)),
-                },
-            )
-        else:
-            winning_name = conda_names[0]
-            final_map[import_name] = map_by_conda_name[winning_name]
-            ordered_import_names.append(
-                {"import_name": import_name, "ranked_conda_names": [winning_name]},
-            )
-
+        final_map[import_name] = map_by_conda_name[winning_name]
+        ordered_import_names.append(
+            {
+                "import_name": import_name,
+                "ranked_conda_names": list(reversed(ranked_conda_names)),
+            },
+        )
     return final_map, ordered_import_names
 
 
