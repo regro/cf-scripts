@@ -14,11 +14,18 @@ import pathlib
 import functools
 
 from collections import Counter, defaultdict
-from typing import Dict, List, Optional, Any, Tuple, Set
+from typing import Dict, List, Literal, Optional, Any, Tuple, Set, TypedDict, Union
 from os.path import commonprefix
 
 
 from .utils import load, as_iterable, load_graph, dump, loads
+
+
+class Mapping(TypedDict):
+    pypi_name: str
+    conda_name: str
+    import_name: str
+    mapping_source: str
 
 
 def load_node_meta_yaml(filename: str) -> Optional[Dict[str, str]]:
@@ -75,7 +82,7 @@ _KNOWN_NAMESPACE_PACKAGES: List[str] = [
     "zope",
 ]
 
-KNOWN_NAMESPACE_PACKAGES: Set[str] = {
+KNOWN_NAMESPACE_PACKAGES: Set[Tuple[str, ...]] = {
     tuple(imp.split(".")) for imp in _KNOWN_NAMESPACE_PACKAGES
 }
 
@@ -83,7 +90,7 @@ KNOWN_NAMESPACE_PACKAGES: Set[str] = {
 def _imports_to_canonical_import(
     split_imports: Set[Tuple[str, ...]],
     parent_prefix=(),
-) -> Tuple[str, ...]:
+) -> Union[Tuple[str, ...], Literal[""]]:
     """Extract the canonical import name from a list of imports
 
     We have two rules.
@@ -97,7 +104,7 @@ def _imports_to_canonical_import(
     3. Otherwise return the commonprefix
 
     """
-    prefix: Tuple[str, ...] = commonprefix(list(split_imports))
+    prefix: Union[Tuple[str, ...], Literal[""]] = commonprefix(list(split_imports))  # type: ignore
     c = Counter(len(imp) for imp in split_imports)
     if (
         len(prefix) == 1
@@ -128,7 +135,7 @@ def extract_import_name_from_test_imports(meta_yaml: Dict[str, Any]) -> Optional
     return imports_to_canonical_import(imports)
 
 
-def extract_single_pypi_information(meta_yaml: Dict[str, Any]) -> Dict[str, str]:
+def extract_single_pypi_information(meta_yaml: Dict[str, Any]) -> Optional[Mapping]:
     pypi_name = extract_pypi_name_from_metadata_extras(
         meta_yaml,
     ) or extract_pypi_name_from_metadata_source_url(meta_yaml)
@@ -138,17 +145,17 @@ def extract_single_pypi_information(meta_yaml: Dict[str, Any]) -> Dict[str, str]
     ) or extract_import_name_from_test_imports(meta_yaml)
 
     if import_name and conda_name and pypi_name:
-        return {
-            "pypi_name": pypi_name,
-            "conda_name": conda_name,
-            "import_name": import_name,
-            "mapping_source": "regro-bot",
-        }
-    return {}
+        return Mapping(
+            pypi_name=pypi_name,
+            conda_name=conda_name,
+            import_name=import_name,
+            mapping_source="regro-bot",
+        )
+    return None
 
 
-def extract_pypi_information(cf_graph: str) -> List[Dict[str, str]]:
-    package_mappings = []
+def extract_pypi_information(cf_graph: str) -> List[Mapping]:
+    package_mappings: List[Mapping] = []
     # TODO: exclude archived node_attrs
     for f in list(glob.glob(f"{cf_graph}/node_attrs/**/*.json", recursive=True)):
         meta_yaml = load_node_meta_yaml(f)
@@ -157,15 +164,15 @@ def extract_pypi_information(cf_graph: str) -> List[Dict[str, str]]:
         if not meta_yaml:
             continue
         mapping = extract_single_pypi_information(meta_yaml)
-        if mapping:
+        if mapping is not None:
             package_mappings.append(mapping)
 
     return package_mappings
 
 
 def convert_to_grayskull_style_yaml(
-    best_imports: Dict[str, Dict[str, str]],
-) -> Dict[str, Dict[str, str]]:
+    best_imports: Dict[str, Mapping],
+) -> Dict[str, Mapping]:
     """Convert our list style mapping to the pypi-centric version
     required by grayskull by reindexing on the PyPI name"""
     package_mappings = best_imports.values()
@@ -176,7 +183,7 @@ def convert_to_grayskull_style_yaml(
     return grayskull_fmt
 
 
-def load_static_mappings() -> List[Dict[str, str]]:
+def load_static_mappings() -> List[Mapping]:
     path = pathlib.Path(__file__).parent / "pypi_name_mapping_static.yaml"
     with path.open("r") as fp:
         mapping = yaml.safe_load(fp)
@@ -198,13 +205,13 @@ def chop(x: float) -> float:
 
 
 def determine_best_matches_for_pypi_import(
-    mapping: List[Dict[str, Any]],
+    mapping: List[Mapping],
     cf_graph: str,
-):
-    map_by_import_name = defaultdict(set)
-    map_by_conda_name = dict()
-    final_map = {}
-    ordered_import_names = []
+) -> Tuple[Dict[str, Mapping], List[Dict]]:
+    map_by_import_name: Dict[str, Set[str]] = defaultdict(set)
+    map_by_conda_name: Dict[str, Mapping] = dict()
+    final_map: Dict[str, Mapping] = {}
+    ordered_import_names: List[Dict] = []
 
     for m in mapping:
         # print(m)
@@ -308,10 +315,17 @@ def determine_best_matches_for_pypi_import(
     return final_map, ordered_import_names
 
 
-def main(args: "CLIArgs") -> None:
-    cf_graph = args.cf_graph
-    static_packager_mappings = load_static_mappings()
-    pypi_package_mappings = extract_pypi_information(cf_graph=cf_graph)
+def main(args) -> None:
+    # Path to cf-graph-countyfair repository
+    cf_graph: str = args.cf_graph
+
+    # Statically defined mappings from pypi_name_mapping_static.yaml
+    static_packager_mappings: List[Mapping] = load_static_mappings()
+
+    # Mappings extracted from the graph
+    pypi_package_mappings: List[Mapping] = extract_pypi_information(cf_graph=cf_graph)
+
+    # best_imports is indexed by import_name.
     best_imports, ordered_import_names = determine_best_matches_for_pypi_import(
         cf_graph=cf_graph,
         mapping=pypi_package_mappings + static_packager_mappings,
