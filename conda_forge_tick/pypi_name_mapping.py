@@ -335,7 +335,11 @@ def determine_best_matches_for_pypi_import(
                 f"needs {import_name} <- provided_by: {ranked_conda_names} : "
                 f"chosen {winning_name}",
             )
-        final_map[import_name] = map_by_conda_name[winning_name]
+        # Due to concatenating the graph mapping and the static mapping, there might
+        # be multiple candidates with the same conda_name but different PyPI names.
+        winning_candidates = [c for c in candidates if c["conda_name"] == winning_name]
+        winner = resolve_collisions(winning_candidates)
+        final_map[import_name] = winner
         ordered_import_names.append(
             {
                 "import_name": import_name,
