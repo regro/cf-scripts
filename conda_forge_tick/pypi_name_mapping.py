@@ -11,6 +11,7 @@ import math
 import requests
 import yaml
 import pathlib
+import traceback
 import functools
 
 from collections import Counter, defaultdict
@@ -183,6 +184,36 @@ def convert_to_grayskull_style_yaml(
         pypi_name = mapping["pypi_name"]
         grayskull_fmt[pypi_name] = mapping
     return grayskull_fmt
+
+
+def resolve_collisions(collisions: List[Mapping]) -> Mapping:
+    """Given a list of colliding mappings, try to resolve the collision
+    by picking out the unique mapping whose source is from the static mappings file.
+    If there is a problem, then make a guess, print a warning, and continue.
+    """
+    if len(collisions) == 0:
+        raise ValueError("No collisions to resolve!")
+    if len(collisions) == 1:
+        return collisions[0]
+    assert len(collisions) >= 2
+    statics = [
+        collision for collision in collisions if collision["mapping_source"] == "static"
+    ]
+    if len(statics) == 1:
+        return statics[0]
+
+    print("WARNING!!!")
+    print(traceback.format_stack()[-2])
+    if len(statics) == 0:
+        print(
+            f"Could not resolve the following collisions: {collisions}. "
+            f"Please define a static mapping to break the tie.",
+        )
+        return collisions[-1]
+    else:
+        assert len(statics) > 1
+        print(f"Conflicting statically sourced packages {statics}.")
+        return statics[-1]
 
 
 def load_static_mappings() -> List[Mapping]:
