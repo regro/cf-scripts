@@ -28,10 +28,6 @@
   delimiter_min: "5.0.0"
   delimiter_max: "6.0.0"
 
-- pypi_name: python-opencv
-  import_name: cv2
-  conda_name: opencv
-
 - pypi_name: tables
   import_name: pytables
   conda_name: pytables
