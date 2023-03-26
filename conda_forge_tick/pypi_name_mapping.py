@@ -17,13 +17,16 @@ import functools
 from collections import Counter, defaultdict
 from typing import Dict, List, Literal, Optional, Any, Tuple, Set, TypedDict, Union
 from os.path import commonprefix
-
+from packaging.utils import (
+    canonicalize_name as canonicalize_pypi_name,
+    NormalizedName as PypiName,
+)
 
 from .utils import load, as_iterable, load_graph, dump, loads
 
 
 class Mapping(TypedDict):
-    pypi_name: str
+    pypi_name: PypiName
     conda_name: str
     import_name: str
     mapping_source: str
@@ -37,13 +40,18 @@ def load_node_meta_yaml(filename: str) -> Optional[Dict[str, str]]:
     return meta_yaml
 
 
-def extract_pypi_name_from_metadata_extras(meta_yaml: Dict[str, Any]) -> Optional[str]:
-    return meta_yaml.get("extra", {}).get("mappings", {}).get("python", {}).get("pypi")
+def extract_pypi_name_from_metadata_extras(
+    meta_yaml: Dict[str, Any],
+) -> Optional[PypiName]:
+    raw = meta_yaml.get("extra", {}).get("mappings", {}).get("python", {}).get("pypi")
+    if raw is not None:
+        return canonicalize_pypi_name(raw)
+    return None
 
 
 def extract_pypi_name_from_metadata_source_url(
     meta_yaml: Dict[str, Any],
-) -> Optional[str]:
+) -> Optional[PypiName]:
     if "source" in meta_yaml:
         if "url" in meta_yaml["source"]:
             src_urls = meta_yaml["source"]["url"]
@@ -54,7 +62,7 @@ def extract_pypi_name_from_metadata_source_url(
                     or url.startswith("https://pypi.org/packages/")
                     or url.startswith("https://pypi.python.org/packages/")
                 ):
-                    return url.split("/")[-2]
+                    return canonicalize_pypi_name(url.split("/")[-2])
     return None
 
 
@@ -173,13 +181,13 @@ def extract_pypi_information(cf_graph: str) -> List[Mapping]:
 
 def convert_to_grayskull_style_yaml(
     best_imports: Dict[str, Mapping],
-) -> Dict[str, Mapping]:
+) -> Dict[PypiName, Mapping]:
     """Convert our list style mapping to the pypi-centric version
     required by grayskull by reindexing on the PyPI name"""
     package_mappings = best_imports.values()
     sorted_mappings = sorted(package_mappings, key=lambda mapping: mapping["pypi_name"])
 
-    grayskull_fmt: Dict[str, Mapping] = {}
+    grayskull_fmt: Dict[PypiName, Mapping] = {}
     for mapping in sorted_mappings:
         pypi_name = mapping["pypi_name"]
         grayskull_fmt[pypi_name] = mapping
@@ -222,6 +230,7 @@ def load_static_mappings() -> List[Mapping]:
         mapping = yaml.safe_load(fp)
     for d in mapping:
         d["mapping_source"] = "static"
+        d["pypi_name"] = canonicalize_pypi_name(d["pypi_name"])
     return mapping
 
 
