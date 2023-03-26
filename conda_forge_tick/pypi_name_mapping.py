@@ -232,6 +232,11 @@ def determine_best_matches_for_pypi_import(
     # whilst authorities are packages with many edges to them.
     hubs, authorities = networkx.hits(gx)
 
+    # Some hub/authority values are in the range +/- 1e-20. Clip these to 0.
+    # (There are no values between 1e-11 and 1e-19.)
+    hubs = {k: v if v > 1e-15 else 0 for k, v in hubs.items()}
+    authorities = {k: v if v > 1e-15 else 0 for k, v in authorities.items()}
+
     mapping_src_weights = {
         "static": 1,
         "regro-bot": 2,
