@@ -7,7 +7,7 @@ Builds and maintains mapping of pypi-names to conda-forge names
 
 import glob
 import json
-
+import math
 import requests
 import yaml
 import pathlib
@@ -184,6 +184,18 @@ def load_static_mappings() -> List[Dict[str, str]]:
     return mapping
 
 
+def chop(x: float) -> float:
+    """Chop the mantissa of a float to 20 bits.
+
+    This helps to alleviate floating point arithmetic errors when sorting by float keys.
+    """
+    if isinstance(x, int):
+        return x
+    m, e = math.frexp(x)
+    m = round(m * (2 << 20)) / (2 << 20)
+    return m * 2**e
+
+
 def determine_best_matches_for_pypi_import(
     mapping: List[Dict[str, Any]],
     cf_graph: str,
@@ -238,9 +250,9 @@ def determine_best_matches_for_pypi_import(
             mapping_src_weight,
             int(pkg_clobbers),
             # A higher hub score means more centrality in the graph
-            -hubs.get(conda_name, 0),
+            -chop(hubs.get(conda_name, 0)),
             # A lower authority score means fewer dependencies
-            authorities.get(conda_name, 0),
+            chop(authorities.get(conda_name, 0)),
             # prefer pkgs that match feedstocks
             -int(conda_name_is_feedstock_name),
             conda_name,
