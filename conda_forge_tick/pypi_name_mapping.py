@@ -182,7 +182,18 @@ def convert_to_grayskull_style_yaml(
     grayskull_fmt: Dict[str, Mapping] = {}
     for mapping in sorted_mappings:
         pypi_name = mapping["pypi_name"]
-        grayskull_fmt[pypi_name] = mapping
+        if pypi_name not in grayskull_fmt:
+            grayskull_fmt[pypi_name] = mapping
+        else:
+            # This is an exceptional case where the same PyPI package name has two
+            # different import names. For example, the PyPI package ruamel.yaml is
+            # provided also by a conda-forge package named ruamel_yaml.
+            collisions = [
+                mapping
+                for mapping in package_mappings
+                if mapping["pypi_name"] == pypi_name
+            ]
+            grayskull_fmt[pypi_name] = resolve_collisions(collisions)
     return grayskull_fmt
 
 
