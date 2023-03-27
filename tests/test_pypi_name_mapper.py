@@ -28,7 +28,7 @@ def test_directory():
     # zope.interface  is a namespaced package so we check that we don't parse the
     # import_name as zope
     assert {
-        "pypi_name": "zope.interface",
+        "pypi_name": "zope-interface",
         "conda_name": "zope.interface",
         "import_name": "zope.interface",
         "mapping_source": "regro-bot",
