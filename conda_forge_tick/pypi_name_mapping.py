@@ -205,6 +205,28 @@ def convert_to_grayskull_style_yaml(
     return grayskull_fmt
 
 
+def add_missing_pypi_names(
+    pypi_mapping: Dict[str, Mapping],
+    mappings: List[Mapping],
+) -> Dict[str, Mapping]:
+    """Add missing PyPI names to the Grayskull mapping.
+
+    The `convert_to_grayskull_style_yaml` function reindexes from the import name
+    to the PyPI name. In case there are multiple PyPI names for a given import name,
+    only the winner is represented in the resulting Grayskull mapping. This function
+    adds the missing PyPI names back in.
+    """
+    unsorted_mapping: Dict[str, Mapping] = pypi_mapping.copy()
+    missing_mappings_by_pypi_name: Dict[str, List[Mapping]] = defaultdict(list)
+    for mapping in mappings:
+        pypi_name = mapping["pypi_name"]
+        if pypi_name not in unsorted_mapping:
+            missing_mappings_by_pypi_name[mapping["pypi_name"]].append(mapping)
+    for pypi_name, candidates in missing_mappings_by_pypi_name.items():
+        unsorted_mapping[pypi_name] = resolve_collisions(candidates)
+    return dict(sorted(unsorted_mapping.items()))
+
+
 def resolve_collisions(collisions: List[Mapping]) -> Mapping:
     """Given a list of colliding mappings, try to resolve the collision
     by picking out the unique mapping whose source is from the static mappings file.
@@ -385,7 +407,11 @@ def main(args) -> None:
         mapping=pypi_package_mappings + static_packager_mappings,
     )
 
-    grayskull_style = convert_to_grayskull_style_yaml(best_imports)
+    grayskull_style_from_imports = convert_to_grayskull_style_yaml(best_imports)
+    grayskull_style = add_missing_pypi_names(
+        grayskull_style_from_imports,
+        pypi_package_mappings + static_packager_mappings,
+    )
 
     dirname = pathlib.Path(cf_graph) / "mappings" / "pypi"
     dirname.mkdir(parents=True, exist_ok=True)
