@@ -206,9 +206,9 @@ def convert_to_grayskull_style_yaml(
 
 
 def add_missing_pypi_names(
-    pypi_mapping: Dict[str, Mapping],
+    pypi_mapping: Dict[PypiName, Mapping],
     mappings: List[Mapping],
-) -> Dict[str, Mapping]:
+) -> Dict[PypiName, Mapping]:
     """Add missing PyPI names to the Grayskull mapping.
 
     The `convert_to_grayskull_style_yaml` function reindexes from the import name
@@ -216,8 +216,8 @@ def add_missing_pypi_names(
     only the winner is represented in the resulting Grayskull mapping. This function
     adds the missing PyPI names back in.
     """
-    unsorted_mapping: Dict[str, Mapping] = pypi_mapping.copy()
-    missing_mappings_by_pypi_name: Dict[str, List[Mapping]] = defaultdict(list)
+    unsorted_mapping: Dict[PypiName, Mapping] = pypi_mapping.copy()
+    missing_mappings_by_pypi_name: Dict[PypiName, List[Mapping]] = defaultdict(list)
     for mapping in mappings:
         pypi_name = mapping["pypi_name"]
         if pypi_name not in unsorted_mapping:
