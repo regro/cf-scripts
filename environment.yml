@@ -9,7 +9,7 @@ dependencies:
  - cachecontrol
  - cachetools
  - conda
- - conda-forge-feedstock-check-solvable
+ - conda-forge-feedstock-check-solvable>=0.3.0
  - conda-forge-pinning
  - conda-libmamba-solver
  - conda-package-handling<2
