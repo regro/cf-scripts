@@ -370,6 +370,8 @@ def _try_to_update_version(cmeta: Any, src: str, hash_type: str):
 
         updated_version &= new_hash is not None
 
+    logger.info("updated|errors: %r|%r", updated_version, errors)
+
     return updated_version, errors
 
 
