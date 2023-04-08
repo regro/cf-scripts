@@ -519,7 +519,7 @@ def update_version(raw_meta_yaml, version, hash_type="sha256"):
         cmeta.dump(s)
         s.seek(0)
         updated_meta_yaml = s.read()
-        return updated_meta_yaml, errors
+        return updated_meta_yaml, set()
     else:
         logger.critical("Recipe did not change in version migration!")
         return None, errors
