@@ -420,7 +420,7 @@ def update_version(raw_meta_yaml, version, hash_type="sha256"):
                 + repr(e)
                 + "\n\ntraceback:\n"
                 + tb,
-            )
+            ),
         )
         logger.critical(
             "We found a problem parsing the recipe: \n\n%s\n\n%s",
