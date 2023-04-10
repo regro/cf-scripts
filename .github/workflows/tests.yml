@@ -75,7 +75,7 @@ jobs:
 
           rm -rf dist/*
           python setup.py sdist
-          pip install --no-deps --no-build-isolation dist/*.tar.gz
+          pip install -vv --no-deps --no-build-isolation dist/*.tar.gz
           pushd ..
           python -c "import conda_forge_tick; assert conda_forge_tick.__version__ != '0.0.0'"
           popd
