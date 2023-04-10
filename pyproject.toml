@@ -25,15 +25,9 @@ conda-forge-tick = "conda_forge_tick.cli:main"
 [tool.setuptools]
 include-package-data = true
 zip-safe = false
-
-[tool.setuptools.package-data]
-conda_forge_tick = ["*.xsh", "*.yaml"]
-
-[tool.setuptools.package-dir]
-conda_forge_tick = "conda_forge_tick"
-
-[tool.setuptools.packages.find]
-exclude = ["tests", "scripts", "doc"]
+packages = {find = {exclude=["tests*", "scripts*", "docs*", "autotick-bot*", "planning*"]}}
+package-data = {conda_forge_tick = ["*.xsh", "*.yaml"]}
+package-dir = {conda_forge_tick = "conda_forge_tick"}
 
 [tool.setuptools_scm]
 write_to = "conda_forge_tick/_version.py"
