@@ -12,7 +12,7 @@ dependencies:
  - conda-forge-feedstock-check-solvable>=0.3.0
  - conda-forge-pinning
  - conda-libmamba-solver
- - conda-forge-metdata>=0.3.0
+ - conda-forge-metadata>=0.3.0
  - conda-package-handling<2
  - conda-smithy
  - curl
