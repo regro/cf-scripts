@@ -1,2 +1,43 @@
+[build-system]
+requires = [
+    "setuptools>=45",
+    "setuptools_scm>=7",
+    "tomli>=1.0.0; python_version < '3.11'",
+]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "conda-forge-tick"
+authors = [
+    {name = "conda-forge-tick development team", email = "condaforge@gmail.com"},
+]
+description = "Flagship repo for cf-regro-autotick-bot"
+dynamic = ["version"]
+license = {file = "License"}
+readme = "README.md"
+
+[project.urls]
+home = "https://github.com/regro/cf-scripts"
+
+[project.scripts]
+conda-forge-tick = "conda_forge_tick.cli:main"
+
+[tool.setuptools]
+include-package-data = true
+zip-safe = false
+
+[tool.setuptools.package-data]
+conda_forge_tick = ["*.xsh", "*.yaml"]
+
+[tool.setuptools.package-dir]
+conda_forge_tick = "conda_forge_tick"
+
+[tool.setuptools.packages.find]
+exclude = ["tests", "scripts", "doc"]
+
+[tool.setuptools_scm]
+write_to = "conda_forge_tick/_version.py"
+write_to_template = "__version__ = '{version}'\n"
+
 [tool.black]
 line-length = 88
