@@ -42,6 +42,7 @@ dependencies:
  - ruamel.yaml.jinja2
  - scipy
  - setuptools<66
+ - setuptools_scm>=7
  - stopit
  - streamz
  - tar
