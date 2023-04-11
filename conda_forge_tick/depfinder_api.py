@@ -42,7 +42,7 @@ from conda_forge_metadata.autotick_bot import map_import_to_package
 from conda_forge_metadata.libcfgraph import get_libcfgraph_pkgs_for_import
 
 
-logger = logging.getLogger('conda_forge_tick.depfinder_api')
+logger = logging.getLogger("conda_forge_tick.depfinder_api")
 
 
 def extract_pkg_from_import(name):
@@ -76,28 +76,43 @@ def recursively_search_for_name(name, module_names):
         if name in module_names:
             return name
         else:
-            if '.' in name:
-                name = name.rsplit('.', 1)[0]
+            if "." in name:
+                name = name.rsplit(".", 1)[0]
             else:
                 return False
 
 
-def report_conda_forge_names_from_import_map(total_imports, builtin_modules=None, ignore=None):
+def report_conda_forge_names_from_import_map(
+    total_imports,
+    builtin_modules=None,
+    ignore=None,
+):
     if ignore is None:
         ignore = []
     if builtin_modules is None:
         builtin_modules = _builtin_modules
-    report_keys = ['required', 'questionable', 'builtin', 'questionable no match', 'required no match']
+    report_keys = [
+        "required",
+        "questionable",
+        "builtin",
+        "questionable no match",
+        "required no match",
+    ]
     report = {k: set() for k in report_keys}
     import_to_pkg = {k: {} for k in report_keys}
     futures = {}
 
     with ThreadPoolExecutor() as pool:
         for name, md in total_imports.items():
-            if all([any(fnmatch(filename, ignore_element) for ignore_element in ignore) for filename, _ in md]):
+            if all(
+                [
+                    any(fnmatch(filename, ignore_element) for ignore_element in ignore)
+                    for filename, _ in md
+                ],
+            ):
                 continue
             elif recursively_search_for_name(name, builtin_modules):
-                report['builtin'].add(name)
+                report["builtin"].add(name)
                 continue
             future = pool.submit(extract_pkg_from_import, name)
             futures[future] = md
@@ -115,15 +130,15 @@ def report_conda_forge_names_from_import_map(total_imports, builtin_modules=None
             if any(import_metadata.get(v, False) for v in SKETCHY_TYPES_TABLE.values()):
                 # if we couldn't find any artifacts to represent this then it doesn't exist in our maps
                 if not _import_to_pkg[_name]:
-                    report_key = 'questionable no match'
+                    report_key = "questionable no match"
                 else:
-                    report_key = 'questionable'
+                    report_key = "questionable"
             else:
                 # if we couldn't find any artifacts to represent this then it doesn't exist in our maps
                 if not _import_to_pkg[_name]:
-                    report_key = 'required no match'
+                    report_key = "required no match"
                 else:
-                    report_key = 'required'
+                    report_key = "required"
 
             report[report_key].add(most_likely_pkg)
             import_to_pkg[report_key].update(_import_to_pkg)
@@ -131,8 +146,13 @@ def report_conda_forge_names_from_import_map(total_imports, builtin_modules=None
     return report, import_to_pkg
 
 
-def simple_import_to_pkg_map(path_to_source_code, builtins=None, ignore=None, custom_namespaces=None):
-    """Provide the map beteen all the imports and their possible packages
+def simple_import_to_pkg_map(
+    path_to_source_code,
+    builtins=None,
+    ignore=None,
+    custom_namespaces=None,
+):
+    """Provide the map between all the imports and their possible packages
 
     Parameters
     ----------
@@ -156,13 +176,18 @@ def simple_import_to_pkg_map(path_to_source_code, builtins=None, ignore=None, cu
     if ignore is None:
         ignore = []
     total_imports_list = []
-    for _, _, c in iterate_over_library(path_to_source_code, custom_namespaces=custom_namespaces):
+    for _, _, c in iterate_over_library(
+        path_to_source_code,
+        custom_namespaces=custom_namespaces,
+    ):
         total_imports_list.append(c.total_imports)
     total_imports = defaultdict(dict)
     for total_import in total_imports_list:
         for name, md in total_import.items():
             total_imports[name].update(md)
     _, import_to_pkg = report_conda_forge_names_from_import_map(
-        total_imports, builtin_modules=builtins, ignore=ignore
+        total_imports,
+        builtin_modules=builtins,
+        ignore=ignore,
     )
     return import_to_pkg
