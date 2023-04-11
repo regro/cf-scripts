@@ -50,8 +50,10 @@ jobs:
             pip \
             flaky \
             pytest-xdist \
-            pytest-cov
-          python -m pip install -e .
+            pytest-cov \
+            "setuptools_scm>=7" \
+            python-build
+          python -m pip install -v --no-deps --no-build-isolation -e .
 
       - name: conda info and env
         shell: bash -l {0}
@@ -64,6 +66,30 @@ jobs:
           echo "=================================================================="
           echo "=================================================================="
           conda list
+
+      - name: test versions
+        shell: bash -l {0}
+        run: |
+          pip uninstall conda-forge-tick --yes
+          [[ $(python setup.py --version) != "0.0.0" ]] || exit 1
+
+          rm -rf dist/*
+          python setup.py sdist
+          pip install -vv --no-deps --no-build-isolation dist/*.tar.gz
+          pushd ..
+          python -c "import conda_forge_tick; assert conda_forge_tick.__version__ != '0.0.0'"
+          popd
+          pip uninstall conda-forge-tick --yes
+
+          rm -rf dist/*
+          python -m build --sdist . --outdir dist
+          pip install --no-deps --no-build-isolation dist/*.tar.gz
+          pushd ..
+          python -c "import conda_forge_tick; assert conda_forge_tick.__version__ != '0.0.0'"
+          popd
+          pip uninstall conda-forge-tick --yes
+
+          python -m pip install -v --no-deps --no-build-isolation -e .
 
       - name: run pytest
         shell: bash -l {0}

@@ -12,8 +12,10 @@ dependencies:
  - conda-forge-feedstock-check-solvable>=0.3.0
  - conda-forge-pinning
  - conda-libmamba-solver
+ - conda-forge-metadata>=0.3.0
  - conda-package-handling<2
  - conda-smithy
+ - conda-build>=3.24.0
  - curl
  - depfinder
  - distributed
@@ -40,7 +42,8 @@ dependencies:
  - ruamel.yaml
  - ruamel.yaml.jinja2
  - scipy
- - setuptools<66
+ - setuptools
+ - setuptools_scm>=7
  - stopit
  - streamz
  - tar

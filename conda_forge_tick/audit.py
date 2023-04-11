@@ -32,23 +32,10 @@ from conda_forge_tick.utils import (
 )
 from conda_forge_tick.feedstock_parser import load_feedstock
 from conda_forge_tick.utils import pushd
+from conda_forge_tick.depfinder_api import simple_import_to_pkg_map
+from depfinder import __version__ as depfinder_version
 
 logger = logging.getLogger("conda_forge_tick.audit")
-
-
-for __i in range(10):
-    try:
-        from depfinder.main import (
-            simple_import_to_pkg_map,
-        )
-        from depfinder import __version__ as depfinder_version
-
-        break
-    except Exception as e:
-        if __i == 9:
-            raise e
-        else:
-            pass
 
 RUNTIME_MINUTES = 45
 
