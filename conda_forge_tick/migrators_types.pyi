@@ -111,6 +111,7 @@ class AttrsTypedDict_(TypedDict, total=False):
     package: PackageTypedDict
     raw_meta_yaml: str
     req: Set[str]
+    platforms: List[str]
     requirements: RequirementsTypedDict
     source: SourceTypedDict
     test: TestTypedDict
