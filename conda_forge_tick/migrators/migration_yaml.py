@@ -188,6 +188,10 @@ class MigrationYaml(GraphMigrator):
 
         platform_filtered = False
         if platform_allowlist:
+            # migrator.platform_allowlist allows both styles: "osx-64" & "osx_64";
+            # before comparison, normalize to consistently use underscores (we get
+            # "_" in attrs.platforms from the feedstock_parser)
+            platform_allowlist = [x.replace("-", "_") for x in platform_allowlist]
             # filter out nodes where the intersection between
             # attrs.platforms and platform_allowlist is empty
             intersection = set(attrs.get("platforms", {})) & set(platform_allowlist)
