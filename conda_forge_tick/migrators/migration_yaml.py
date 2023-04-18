@@ -183,14 +183,14 @@ class MigrationYaml(GraphMigrator):
         Calls up the MRO until Migrator.filter, see docstring there (./core.py).
         """
         migrator_payload = self.loaded_yaml.get("__migrator", {})
-        platform_restriction = migrator_payload.get("platform_restriction", [])
+        platform_allowlist = migrator_payload.get("platform_allowlist", [])
         wait_for_migrators = migrator_payload.get("wait_for_migrators", [])
 
         platform_filtered = False
-        if platform_restriction:
+        if platform_allowlist:
             # filter out nodes where the intersection between
-            # attrs.platforms and platform_restriction is empty
-            intersection = set(attrs.get("platforms", {})) & set(platform_restriction)
+            # attrs.platforms and platform_allowlist is empty
+            intersection = set(attrs.get("platforms", {})) & set(platform_allowlist)
             platform_filtered = not bool(intersection)
 
         need_to_wait = False
