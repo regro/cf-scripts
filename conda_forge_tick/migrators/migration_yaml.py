@@ -176,10 +176,23 @@ class MigrationYaml(GraphMigrator):
         self.max_solver_attempts = max_solver_attempts
 
     def filter(self, attrs: "AttrsTypedDict", not_bad_str_start: str = "") -> bool:
-        wait_for_migrators = self.loaded_yaml.get("__migrator", {}).get(
-            "wait_for_migrators",
-            [],
-        )
+        """
+        Determine whether migrator needs to be filtered out.
+
+        Return value of True means to skip migrator, False means to go ahead.
+        Calls up the MRO until Migrator.filter, see docstring there (./core.py).
+        """
+        migrator_payload = self.loaded_yaml.get("__migrator", {})
+        platform_restriction = migrator_payload.get("platform_restriction", [])
+        wait_for_migrators = migrator_payload.get("wait_for_migrators", [])
+
+        platform_filtered = False
+        if platform_restriction:
+            # filter out nodes where the intersection between
+            # attrs.platforms and platform_restriction is empty
+            intersection = set(attrs.get("platforms", {})) & set(platform_restriction)
+            platform_filtered = not bool(intersection)
+
         need_to_wait = False
         if wait_for_migrators:
             found_migrators = set()
@@ -199,9 +212,13 @@ class MigrationYaml(GraphMigrator):
             wait_for_migrators,
         )
 
-        return need_to_wait or super().filter(
-            attrs=attrs,
-            not_bad_str_start=not_bad_str_start,
+        return (
+            platform_filtered
+            or need_to_wait
+            or super().filter(
+                attrs=attrs,
+                not_bad_str_start=not_bad_str_start,
+            )
         )
 
     def migrate(

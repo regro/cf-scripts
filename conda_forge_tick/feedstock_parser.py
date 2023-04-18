@@ -305,6 +305,7 @@ def populate_feedstock_attributes(
         raise
 
     LOGGER.debug("platforms: %s", plat_arch)
+    sub_graph["platforms"] = ["_".join(k) for k in plat_arch]
 
     # this makes certain that we have consistent ordering
     sorted_variant_yamls = [x for _, x in sorted(zip(plat_arch, variant_yamls))]
