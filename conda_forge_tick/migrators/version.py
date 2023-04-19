@@ -117,6 +117,7 @@ class Version(Migrator):
         skip_filter = False
         random_fraction_to_keep = (
             attrs.get("conda-forge.yml", {})
+            .get("bot", {})
             .get("version_updates", {})
             .get("random_fraction_to_keep", None)
         )
