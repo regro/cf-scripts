@@ -114,7 +114,35 @@ class Version(Migrator):
             )
             version_filter = True
 
-        return result or version_filter
+        skip_filter = False
+        random_fraction_to_keep = (
+            attrs.get("conda-forge.yml", {})
+            .get("bot", {})
+            .get("version_updates", {})
+            .get("random_fraction_to_keep", None)
+        )
+        if random_fraction_to_keep is not None:
+            curr_state = random.getstate()
+            try:
+                frac = float(random_fraction_to_keep)
+
+                # the seeding here makes the filter stable given the current version
+                # if there is no version in the recipe, we always accept
+                # the version update
+                # this rule avoids a weird edge case possibly of never
+                # shipping a version if we always seed with 0.0.0
+                if "version" not in attrs:
+                    urand = 0.0
+                else:
+                    random.seed(a=str(attrs.get("version", "0.0.0")).replace("-", "."))
+                    urand = random.uniform(0, 1)
+
+                if urand <= frac:
+                    skip_filter = True
+            finally:
+                random.setstate(curr_state)
+
+        return result or version_filter or skip_filter
 
     def migrate(
         self,
