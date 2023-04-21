@@ -699,9 +699,14 @@ class Replacement(Migrator):
         return graph
 
     def filter(self, attrs: "AttrsTypedDict", not_bad_str_start: str = "") -> bool:
-        return (
-            super().filter(attrs) or len(attrs.get("req", set()) & self.packages) == 0
+        requirements = attrs.get("requirements", {})
+        rq = (
+            requirements.get("build", set())
+            | requirements.get("host", set())
+            | requirements.get("run", set())
+            | requirements.get("test", set())
         )
+        return super().filter(attrs) or len(rq & self.packages) == 0
 
     def migrate(
         self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any
