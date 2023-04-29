@@ -26,9 +26,25 @@ from typing import Any, Iterable
 logger = logging.getLogger("conda_forge_tick.update_upstream_versions")
 
 
+def _filter_ignored_versions(attrs, version):
+    versions_to_ignore = (
+        attrs.get("conda-forge.yml", {})
+        .get("bot", {})
+        .get("version_updates", {})
+        .get("exclude", [])
+    )
+    if (
+        str(version).replace("-", ".") in versions_to_ignore
+        or str(version) in versions_to_ignore
+    ):
+        return False
+    else:
+        return version
+
+
 def get_latest_version(
     name: str,
-    meta_yaml: Any,
+    attrs: Any,
     sources: Iterable[AbstractSource],
 ) -> dict:
     version_data = {"new_version": False}
@@ -41,7 +57,7 @@ def get_latest_version(
     for source in sources:
         try:
             logger.debug("source: %s", source.__class__.__name__)
-            url = source.get_url(meta_yaml)
+            url = source.get_url(attrs)
             logger.debug("url: %s", url)
             if url is None:
                 continue
@@ -57,6 +73,12 @@ def get_latest_version(
 
     if version_data["new_version"] is False and len(excs) > 0:
         raise excs[0]
+
+    if version_data["new_version"]:
+        version_data["new_version"] = _filter_ignored_versions(
+            attrs,
+            version_data["new_version"],
+        )
 
     return version_data
 
