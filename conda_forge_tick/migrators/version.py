@@ -142,7 +142,20 @@ class Version(Migrator):
             finally:
                 random.setstate(curr_state)
 
-        return result or version_filter or skip_filter
+        ignore_filter = False
+        versions_to_ignore = (
+            attrs.get("conda-forge.yml", {})
+            .get("bot", {})
+            .get("version_updates", {})
+            .get("exclude", [])
+        )
+        if (
+            str(vpri["new_version"]).replace("-", ".") in versions_to_ignore
+            or str(vpri["new_version"]) in versions_to_ignore
+        ):
+            ignore_filter = True
+
+        return result or version_filter or skip_filter or ignore_filter
 
     def migrate(
         self,
