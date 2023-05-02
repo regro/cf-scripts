@@ -280,7 +280,7 @@ def extract_missing_packages(
                 if any(import_name.startswith(k) for k in _KNOWN_NAMESPACE_PACKAGES):
                     for k in _KNOWN_NAMESPACE_PACKAGES:
                         if import_name.startswith(k):
-                            subname = import_name[len(k)+1:].split(".")[0]
+                            subname = import_name[len(k) + 1 :].split(".")[0]
                             import_name = k + "." + subname
                             break
                 else:
