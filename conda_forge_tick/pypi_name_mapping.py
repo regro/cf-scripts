@@ -337,12 +337,12 @@ def determine_best_matches_for_pypi_import(
             # prefer static mapped packages over inferred
             mapping_src_weight,
             int(pkg_clobbers),
+            # prefer pkgs that match feedstocks
+            -int(conda_name_is_feedstock_name),
             # A higher hub score means more centrality in the graph
             -chop(hubs.get(conda_name, 0)),
             # A lower authority score means fewer dependencies
             chop(authorities.get(conda_name, 0)),
-            # prefer pkgs that match feedstocks
-            -int(conda_name_is_feedstock_name),
             conda_name,
         )
 
