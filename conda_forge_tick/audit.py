@@ -18,6 +18,7 @@ from conda_forge_tick.make_graph import COMPILER_STUBS_WITH_STRONG_EXPORTS
 from grayskull.__main__ import create_python_recipe
 from grayskull import __version__ as grayskull_version
 import pandas as pd
+from conda_forge_tick.pypi_name_mapping import _KNOWN_NAMESPACE_PACKAGES
 
 from conda_forge_tick.contexts import MigratorSessionContext, FeedstockContext
 from conda_forge_tick.git_utils import feedstock_url, fetch_repo
@@ -275,8 +276,20 @@ def extract_missing_packages(
             # XXX: This is particularly annoying with clobbers
             cf_minus_df = cf_minus_df - overlap
         else:
-            # TODO: sort by the rankings
-            pkg_name = next(iter(k for k in RANKINGS if k in supplying_pkgs), None)
+            if "." in import_name:
+                if any(import_name.startswith(k) for k in _KNOWN_NAMESPACE_PACKAGES):
+                    for k in _KNOWN_NAMESPACE_PACKAGES:
+                        if import_name.startswith(k):
+                            subname = import_name[len(k)+1:].split(".")[0]
+                            import_name = k + "." + subname
+                            break
+                else:
+                    import_name = import_name.split(".")[0]
+
+            if any(k == import_name for k in supplying_pkgs):
+                pkg_name = import_name
+            else:
+                pkg_name = next(iter(k for k in RANKINGS if k in supplying_pkgs), None)
             if pkg_name:
                 df_minus_cf.add(pkg_name)
             else:
