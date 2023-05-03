@@ -133,6 +133,8 @@ def test_update_run_deps():
     lines = [ln + "\n" for ln in lines]
     recipe = CondaMetaYAML("".join(lines))
 
+    d["run"]["df_minus_cf"].remove("pyyaml")
+    recipe.meta["requirements"]["run"].append("pyyaml")
     updated_deps = _update_sec_deps(recipe, d, ["host", "run"], update_python=False)
     print("\n" + recipe.dumps())
     assert not updated_deps
@@ -158,7 +160,7 @@ def test_get_depfinder_comparison():
 
         d = get_depfinder_comparison(tmpdir, attrs, {"conda"})
         print(d)
-    assert d["run"] == {"df_minus_cf": {"versioneer-518"}}
+    assert d["run"] == {"df_minus_cf": {"pyyaml"}}
     assert "host" not in d
 
 
@@ -271,9 +273,9 @@ requirements:
     - python <3.9
     - pip
   run:
+    - pyyaml
     - python <3.9
     - stdlib-list
-    - pyyaml
 
 test:
   commands:
@@ -320,10 +322,9 @@ requirements:
     - python <3.9
     - pip
   run:
-    - versioneer-518
+    - pyyaml
     - python <3.9
     - stdlib-list
-    - pyyaml
 
 test:
   commands:
@@ -369,10 +370,9 @@ requirements:
     - python <3.9
     - pip
   run:
-    - versioneer-518
+    - pyyaml
     - python <3.9
     - stdlib-list
-    - pyyaml
 
 test:
   commands:
