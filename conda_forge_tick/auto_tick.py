@@ -4,6 +4,7 @@ import json
 import re
 import sys
 import gc
+import subprocess
 
 import time
 import traceback
@@ -1341,28 +1342,57 @@ def _update_nodes_with_bot_rerun(gx):
             pri["bad"] = False
             vpri["bad"] = False
 
-            for migration in pri.get("PRed", []):
-                try:
-                    pr_json = migration.get("PR", {})
-                    # maybe add a pass check info here ? (if using DEBUG)
-                except Exception as e:
-                    LOGGER.error(
-                        f"BOT-RERUN : could not proceed check with {node}, {e}",
-                    )
-                    raise e
-                # if there is a valid PR and it isn't currently listed as rerun
-                # but the PR needs a rerun
-                if (
-                    pr_json
-                    and not migration["data"]["bot_rerun"]
-                    and "bot-rerun" in [lb["name"] for lb in pr_json.get("labels", [])]
-                ):
-                    migration["data"]["bot_rerun"] = time.time()
-                    LOGGER.info(
-                        "BOT-RERUN %s: processing bot rerun label for migration %s",
-                        name,
-                        migration["data"],
-                    )
+            for __pri in [pri, vpri]:
+                for migration in __pri.get("PRed", []):
+                    try:
+                        pr_json = migration.get("PR", {})
+                        # maybe add a pass check info here ? (if using DEBUG)
+                    except Exception as e:
+                        LOGGER.error(
+                            f"BOT-RERUN : could not proceed check with {node}, {e}",
+                        )
+                        raise e
+                    # if there is a valid PR and it isn't currently listed as rerun
+                    # but the PR needs a rerun
+                    if (
+                        pr_json
+                        and not migration["data"]["bot_rerun"]
+                        and "bot-rerun" in [lb["name"] for lb in pr_json.get("labels", [])]
+                    ):
+                        migration["data"]["bot_rerun"] = time.time()
+                        LOGGER.info(
+                            "BOT-RERUN %s: processing bot rerun label for migration %s",
+                            name,
+                            migration["data"],
+                        )
+
+
+def _collapse_closed_pr_json(gx):
+    """Go through PRs and remove separate json files for closed ones."""
+    for i, (name, node) in enumerate(gx.nodes.items()):
+        with node["payload"] as payload, payload["pr_info"] as pri, payload[
+            "version_pr_info"
+        ] as vpri:
+            for __pri in [pri, vpri]:
+                for migration in __pri.get("PRed", []):
+                    try:
+                        pr_json = migration.get("PR", {})
+                    except Exception as e:
+                        LOGGER.error(
+                            f"COLLAPSE-PR-JSON: could not work with {node}, {e}",
+                        )
+                        raise e
+                    if pr_json.get("state", "") == "closed" and isinstance(pr_json, LazyJson):
+                        migration["PR"] = {
+                            "state": pr_json.get("state", "closed"),
+                            "number": pr_json.get("number", None),
+                        }
+                        subprocess.run(
+                            "git rm --force %s" % pr_json.sharded_path,
+                            shell=True,
+                            capture_output=True,
+                        )
+                        del pr_json
 
 
 def _update_nodes_with_new_versions(gx):
@@ -1394,6 +1424,7 @@ def _update_graph_with_pr_info():
     gx = load_graph()
     _update_nodes_with_bot_rerun(gx)
     _update_nodes_with_new_versions(gx)
+    _collapse_closed_pr_json(gx)
     dump_graph(gx)
 
 
