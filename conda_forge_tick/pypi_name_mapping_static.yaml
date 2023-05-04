@@ -52,6 +52,10 @@
   import_name: numpy
   conda_name: numpy
 
+- pypi_name: tzdata
+  import_name: tzdata
+  conda_name: python-tzdata
+
 - pypi_name: psycopg2-binary
   import_name: psycopg2
   conda_name: psycopg2
