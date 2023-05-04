@@ -1357,7 +1357,8 @@ def _update_nodes_with_bot_rerun(gx):
                     if (
                         pr_json
                         and not migration["data"]["bot_rerun"]
-                        and "bot-rerun" in [lb["name"] for lb in pr_json.get("labels", [])]
+                        and "bot-rerun"
+                        in [lb["name"] for lb in pr_json.get("labels", [])]
                     ):
                         migration["data"]["bot_rerun"] = time.time()
                         LOGGER.info(
@@ -1382,7 +1383,10 @@ def _collapse_closed_pr_json(gx):
                             f"COLLAPSE-PR-JSON: could not work with {node}, {e}",
                         )
                         raise e
-                    if pr_json.get("state", "") == "closed" and isinstance(pr_json, LazyJson):
+                    if pr_json.get("state", "") == "closed" and isinstance(
+                        pr_json,
+                        LazyJson,
+                    ):
                         migration["PR"] = {
                             "state": pr_json.get("state", "closed"),
                             "number": pr_json.get("number", None),
