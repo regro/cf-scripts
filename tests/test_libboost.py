@@ -29,6 +29,11 @@ VERSION_WITH_LIBBOOST = Version(
         ("poppler", "1.10.0"),
         # multiple outputs, complicated selector & pinning combinations
         ("scipopt", "1.10.0"),
+        # testing boost -> libboost-python
+        ("rdkit", "1.10.0"),
+        # interaction between boost & boost-cpp;
+        # multiple outputs but no host deps
+        ("cctx", "1.10.0"),
     ],
 )
 def test_boost(feedstock, new_ver, tmpdir):
