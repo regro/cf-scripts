@@ -27,6 +27,8 @@ VERSION_WITH_LIBBOOST = Version(
         ("fenics", "1.10.0"),
         # multiple outputs, jinja-style pinning
         ("poppler", "1.10.0"),
+        # multiple outputs, complicated selector & pinning combinations
+        ("scipopt", "1.10.0"),
     ],
 )
 def test_boost(feedstock, new_ver, tmpdir):
