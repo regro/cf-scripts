@@ -25,6 +25,8 @@ VERSION_WITH_LIBBOOST = Version(
         ("carve", "1.10.0"),
         # multiple outputs, many don't depend on boost; comment trickiness
         ("fenics", "1.10.0"),
+        # multiple outputs, jinja-style pinning
+        ("poppler", "1.10.0"),
     ],
 )
 def test_boost(feedstock, new_ver, tmpdir):
