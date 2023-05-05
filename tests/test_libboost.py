@@ -19,7 +19,10 @@ VERSION_WITH_LIBBOOST = Version(
 @pytest.mark.parametrize(
     "feedstock,new_ver",
     [
-        # this space intentionally left blank
+        # single output; no run-dep
+        ("gudhi", "1.10.0"),
+        # single output; with run-dep
+        ("carve", "1.10.0"),
     ],
 )
 def test_boost(feedstock, new_ver, tmpdir):
