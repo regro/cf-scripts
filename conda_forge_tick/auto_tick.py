@@ -1369,7 +1369,7 @@ def _update_nodes_with_bot_rerun(gx):
 
 
 def _collapse_closed_pr_json_node(name, node, start):
-    if time.time() - start > 600:
+    if time.time() - start > 1800:
         return
 
     with node["payload"] as payload, payload["pr_info"] as pri, payload[
