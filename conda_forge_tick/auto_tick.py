@@ -4,6 +4,7 @@ import json
 import re
 import sys
 import gc
+import subprocess
 
 import time
 import traceback
@@ -1341,28 +1342,109 @@ def _update_nodes_with_bot_rerun(gx):
             pri["bad"] = False
             vpri["bad"] = False
 
-            for migration in pri.get("PRed", []):
+            for __pri in [pri, vpri]:
+                for migration in __pri.get("PRed", []):
+                    try:
+                        pr_json = migration.get("PR", {})
+                        # maybe add a pass check info here ? (if using DEBUG)
+                    except Exception as e:
+                        LOGGER.error(
+                            f"BOT-RERUN : could not proceed check with {node}, {e}",
+                        )
+                        raise e
+                    # if there is a valid PR and it isn't currently listed as rerun
+                    # but the PR needs a rerun
+                    if (
+                        pr_json
+                        and not migration["data"]["bot_rerun"]
+                        and "bot-rerun"
+                        in [lb["name"] for lb in pr_json.get("labels", [])]
+                    ):
+                        migration["data"]["bot_rerun"] = time.time()
+                        LOGGER.info(
+                            "BOT-RERUN %s: processing bot rerun label for migration %s",
+                            name,
+                            migration["data"],
+                        )
+
+
+def _collapse_closed_pr_json_node(name, node, start):
+    if time.time() - start > 600:
+        return
+
+    with node["payload"] as payload, payload["pr_info"] as pri, payload[
+        "version_pr_info"
+    ] as vpri:
+        for __pri in [pri, vpri]:
+            for migration in __pri.get("PRed", []):
                 try:
                     pr_json = migration.get("PR", {})
-                    # maybe add a pass check info here ? (if using DEBUG)
                 except Exception as e:
                     LOGGER.error(
-                        f"BOT-RERUN : could not proceed check with {node}, {e}",
+                        f"COLLAPSE-PR-JSON: could not work with {node}, {e}",
                     )
                     raise e
-                # if there is a valid PR and it isn't currently listed as rerun
-                # but the PR needs a rerun
-                if (
-                    pr_json
-                    and not migration["data"]["bot_rerun"]
-                    and "bot-rerun" in [lb["name"] for lb in pr_json.get("labels", [])]
+                if pr_json.get("state", "") == "closed" and isinstance(
+                    pr_json,
+                    LazyJson,
                 ):
-                    migration["data"]["bot_rerun"] = time.time()
-                    LOGGER.info(
-                        "BOT-RERUN %s: processing bot rerun label for migration %s",
+                    LOGGER.debug(
+                        "COLLAPSE-PR-JSON %s: collapsing PR data for migration %s",
                         name,
                         migration["data"],
                     )
+                    migration["PR"] = {
+                        "state": pr_json.get("state", "closed"),
+                        "number": pr_json.get("number", None),
+                    }
+                    subprocess.run(
+                        "git rm --force %s" % pr_json.sharded_path,
+                        shell=True,
+                        capture_output=True,
+                    )
+                    del pr_json
+
+
+def _collapse_closed_pr_json(gx):
+    """Go through PRs and remove separate json files for closed ones."""
+    from concurrent.futures import as_completed
+    from .utils import executor
+
+    start = time.time()
+
+    with executor("thread", 4) as pool:
+        futures = {}
+
+        for i, (name, node) in tqdm.tqdm(
+            enumerate(gx.nodes.items()),
+            desc="submitting collapse jobs",
+            ncols=80,
+            leave=False,
+        ):
+            future = pool.submit(_collapse_closed_pr_json_node, name, node, start)
+            futures[future] = (name, i)
+
+        for f in tqdm.tqdm(
+            as_completed(futures),
+            total=len(futures),
+            desc="collapsing old PR json",
+            leave=False,
+            ncols=80,
+        ):
+            name, i = futures[f]
+            try:
+                f.result()
+            except Exception:
+                import traceback
+
+                LOGGER.critical(
+                    "ERROR ON FEEDSTOCK: {}: {} - {}".format(
+                        name,
+                        gx.nodes[name]["payload"]["pr_info"]["PRed"][i],
+                        traceback.format_exc(),
+                    ),
+                )
+                raise
 
 
 def _update_nodes_with_new_versions(gx):
@@ -1394,6 +1476,7 @@ def _update_graph_with_pr_info():
     gx = load_graph()
     _update_nodes_with_bot_rerun(gx)
     _update_nodes_with_new_versions(gx)
+    _collapse_closed_pr_json(gx)
     dump_graph(gx)
 
 

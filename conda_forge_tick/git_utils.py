@@ -489,7 +489,7 @@ def refresh_pr(
     gh: Optional[github3.GitHub] = None,
     dry_run: bool = False,
 ) -> Optional[dict]:
-    if not pr_json["state"] == "closed":
+    if pr_json["state"] != "closed":
         if dry_run:
             print("dry run: refresh pr %s" % pr_json["id"])
             pr_dict = dict(pr_json)
