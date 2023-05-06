@@ -1368,85 +1368,6 @@ def _update_nodes_with_bot_rerun(gx):
                         )
 
 
-def _collapse_closed_pr_json_node(name, node, start):
-    if time.time() - start > 1800:
-        return
-
-    with node["payload"] as payload, payload["pr_info"] as pri, payload[
-        "version_pr_info"
-    ] as vpri:
-        for __pri in [pri, vpri]:
-            for migration in __pri.get("PRed", []):
-                try:
-                    pr_json = migration.get("PR", {})
-                except Exception as e:
-                    LOGGER.error(
-                        f"COLLAPSE-PR-JSON: could not work with {node}, {e}",
-                    )
-                    raise e
-                if pr_json.get("state", "") == "closed" and isinstance(
-                    pr_json,
-                    LazyJson,
-                ):
-                    LOGGER.debug(
-                        "COLLAPSE-PR-JSON %s: collapsing PR data for migration %s",
-                        name,
-                        migration["data"],
-                    )
-                    migration["PR"] = {
-                        "state": pr_json.get("state", "closed"),
-                        "number": pr_json.get("number", None),
-                    }
-                    subprocess.run(
-                        "git rm --force %s" % pr_json.sharded_path,
-                        shell=True,
-                        capture_output=True,
-                    )
-                    del pr_json
-
-
-def _collapse_closed_pr_json(gx):
-    """Go through PRs and remove separate json files for closed ones."""
-    from concurrent.futures import as_completed
-    from .utils import executor
-
-    start = time.time()
-
-    with executor("thread", 4) as pool:
-        futures = {}
-
-        for i, (name, node) in tqdm.tqdm(
-            enumerate(gx.nodes.items()),
-            desc="submitting collapse jobs",
-            ncols=80,
-            leave=False,
-        ):
-            future = pool.submit(_collapse_closed_pr_json_node, name, node, start)
-            futures[future] = (name, i)
-
-        for f in tqdm.tqdm(
-            as_completed(futures),
-            total=len(futures),
-            desc="collapsing old PR json",
-            leave=False,
-            ncols=80,
-        ):
-            name, i = futures[f]
-            try:
-                f.result()
-            except Exception:
-                import traceback
-
-                LOGGER.critical(
-                    "ERROR ON FEEDSTOCK: {}: {} - {}".format(
-                        name,
-                        gx.nodes[name]["payload"]["pr_info"]["PRed"][i],
-                        traceback.format_exc(),
-                    ),
-                )
-                raise
-
-
 def _update_nodes_with_new_versions(gx):
     """Updates every node with it's new version (when available)"""
     list_files = glob.glob("./versions/**/*.json", recursive=True)
@@ -1472,11 +1393,103 @@ def _update_nodes_with_new_versions(gx):
                         vpri["new_version"] = version_from_data
 
 
+def _remove_closed_pr_json():
+    from conda_forge_tick.utils import get_sharded_path, dump
+    from conda_forge_tick.deploy import BUILD_URL_KEY
+
+    # first we go from nodes to pr json and update the pr info and remove the file
+    all_pr_info = (
+        glob.glob("pr_info/**/*.json", recursive=True)
+        + glob.glob("version_pr_info/**/*.json", recursive=True)
+    )
+
+    do_commit = False
+    for pri_name in tqdm.tqdm(all_pr_info, ncols=120, desc="removing closed PR json by pr info"):
+        write = False
+        with open(pri_name, "r") as fp:
+            pri = json.load(fp)
+        for pr_ind, pr in enumerate(pri.get("PRed", [])):
+            if "PR" in pr and "__lazy_json__" in pr["PR"]:
+                lzj_name = get_sharded_path(pr["PR"]["__lazy_json__"])
+                with open(lzj_name, "r") as fp:
+                    lzj = json.load(fp)
+                if lzj.get("state", None) == "closed":
+                    pri["PRed"][pr_ind]["PR"] = {
+                        "state": "closed",
+                        "number": lzj.get("number", None)
+                    }
+                    write = True
+                    do_commit = True
+                    subprocess.run(
+                        "git rm " + lzj_name,
+                        shell=True,
+                        check=True,
+                    )
+                    subprocess.run(
+                        "rm -f " + lzj_name,
+                        shell=True,
+                        check=True,
+                    )
+        if write:
+            with open(pri_name, "w") as fp:
+                dump(pri, fp)
+            subprocess.run(
+                "git add " + pri_name,
+                shell=True,
+                check=True,
+            )
+
+    # now we go from pr json back to nodes and remove files that are not referenced
+    # directly but the info exists
+    all_pr_json = glob.glob("pr_json/**/*.json", recursive=True)
+
+    nclosed = 0
+    files_to_remove = []
+    for fname in tqdm.tqdm(all_pr_json, ncols=120, desc="removing closed PR json by pr json"):
+        with open(fname, "r") as fp:
+            pr_json = json.load(fp)
+        if pr_json.get("state", None) == "closed" and "base" in pr_json:
+            fsname = pr_json["base"]["repo"]["name"][:-len("-feedstock")]
+            for pri_pre in ["", "version_"]:
+                with open(get_sharded_path(f"{pri_pre}pr_info/{fsname}.json"), "r") as fp:
+                    d = json.load(fp)
+                if any(
+                    pr.get("PR", {}).get("number", None) == pr_json["number"]
+                    for pr in d.get("PRed", [])
+                ):
+                    nclosed += 1
+                    files_to_remove.append(fname)
+                    if nclosed % 1000 == 0:
+                        tqdm.tqdm.write("nclosed = %d" % nclosed)
+                        subprocess.run(
+                            "git rm " + " ".join(files_to_remove),
+                            shell=True,
+                            check=True,
+                        )
+                        files_to_remove = []
+                    break
+
+    if files_to_remove:
+        subprocess.run(
+            "git rm " + " ".join(files_to_remove),
+            shell=True,
+            check=True,
+        )
+
+    if do_commit or nclosed > 0:
+        BUILD_URL = os.environ.get(BUILD_URL_KEY, "")
+        subprocess.run(
+            f'git commit -am "remove closed PR json {BUILD_URL}"',
+            shell=True,
+            check=True,
+        )
+
+
 def _update_graph_with_pr_info():
+    _remove_closed_pr_json()
     gx = load_graph()
     _update_nodes_with_bot_rerun(gx)
     _update_nodes_with_new_versions(gx)
-    _collapse_closed_pr_json(gx)
     dump_graph(gx)
 
 
