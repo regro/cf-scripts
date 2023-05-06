@@ -1398,25 +1398,29 @@ def _remove_closed_pr_json():
     from conda_forge_tick.deploy import BUILD_URL_KEY
 
     # first we go from nodes to pr json and update the pr info and remove the file
-    all_pr_info = (
-        glob.glob("pr_info/**/*.json", recursive=True)
-        + glob.glob("version_pr_info/**/*.json", recursive=True)
+    all_pr_info = glob.glob("pr_info/**/*.json", recursive=True) + glob.glob(
+        "version_pr_info/**/*.json",
+        recursive=True,
     )
 
     do_commit = False
-    for pri_name in tqdm.tqdm(all_pr_info, ncols=120, desc="removing closed PR json by pr info"):
+    for pri_name in tqdm.tqdm(
+        all_pr_info,
+        ncols=120,
+        desc="removing closed PR json by pr info",
+    ):
         write = False
-        with open(pri_name, "r") as fp:
+        with open(pri_name) as fp:
             pri = json.load(fp)
         for pr_ind, pr in enumerate(pri.get("PRed", [])):
             if "PR" in pr and "__lazy_json__" in pr["PR"]:
                 lzj_name = get_sharded_path(pr["PR"]["__lazy_json__"])
-                with open(lzj_name, "r") as fp:
+                with open(lzj_name) as fp:
                     lzj = json.load(fp)
                 if lzj.get("state", None) == "closed":
                     pri["PRed"][pr_ind]["PR"] = {
                         "state": "closed",
-                        "number": lzj.get("number", None)
+                        "number": lzj.get("number", None),
                     }
                     write = True
                     do_commit = True
@@ -1445,13 +1449,19 @@ def _remove_closed_pr_json():
 
     nclosed = 0
     files_to_remove = []
-    for fname in tqdm.tqdm(all_pr_json, ncols=120, desc="removing closed PR json by pr json"):
-        with open(fname, "r") as fp:
+    for fname in tqdm.tqdm(
+        all_pr_json,
+        ncols=120,
+        desc="removing closed PR json by pr json",
+    ):
+        with open(fname) as fp:
             pr_json = json.load(fp)
         if pr_json.get("state", None) == "closed" and "base" in pr_json:
-            fsname = pr_json["base"]["repo"]["name"][:-len("-feedstock")]
+            fsname = pr_json["base"]["repo"]["name"][: -len("-feedstock")]
             for pri_pre in ["", "version_"]:
-                with open(get_sharded_path(f"{pri_pre}pr_info/{fsname}.json"), "r") as fp:
+                with open(
+                    get_sharded_path(f"{pri_pre}pr_info/{fsname}.json"),
+                ) as fp:
                     d = json.load(fp)
                 if any(
                     pr.get("PR", {}).get("number", None) == pr_json["number"]
