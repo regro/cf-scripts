@@ -1457,10 +1457,7 @@ def _remove_closed_pr_json():
         with open(fname) as fp:
             pr_json = json.load(fp)
 
-        if (
-            pr_json.get("state", None) == "closed"
-            or pr_json == {}
-        ):
+        if pr_json.get("state", None) == "closed" or pr_json == {}:
             nclosed += 1
             files_to_remove.append(fname)
             if nclosed % 1000 == 0 and files_to_remove:
