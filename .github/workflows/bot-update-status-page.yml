@@ -47,7 +47,7 @@ jobs:
         run: |
           pushd cf-graph
 
-          conda-forge-tick --run 4
+          conda-forge-tick make-status-report
 
           popd
         env:
@@ -60,7 +60,7 @@ jobs:
 
           export CIRCLE_BUILD_URL="https://github.com/regro/cf-scripts/actions/runs/${RUN_ID}"
           export CIRCLE_BUILD_NUM="actually-actions-${RUN_ID}"
-          conda-forge-tick --run -1
+          conda-forge-tick deploy-to-github
 
           popd
         env:

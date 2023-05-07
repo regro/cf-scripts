@@ -5,20 +5,21 @@ import time
 
 from .deploy import deploy
 
-INT_SCRIPT_DICT = {
-    0: {"module": "all_feedstocks", "func": "main"},
-    1: {"module": "make_graph", "func": "main"},
-    2: {"module": "update_upstream_versions", "func": "main"},
-    3: {"module": "auto_tick", "func": "main"},
-    4: {"module": "status_report", "func": "main"},
-    6: {"module": "update_prs", "func": "main"},
-    7: {"module": "mappings", "func": "main"},
+SCRIPT_DICT = {
+    "gather-all-feedstocks": {"module": "all_feedstocks", "func": "main"},
+    "make-graph": {"module": "make_graph", "func": "main"},
+    "update-upstream-versions": {"module": "update_upstream_versions", "func": "main"},
+    "auto-tick": {"module": "auto_tick", "func": "main"},
+    "make-status-report": {"module": "status_report", "func": "main"},
+    "update-prs": {"module": "update_prs", "func": "main"},
+    "make-mappings": {"module": "mappings", "func": "main"},
+    "deploy-to-github": None,
 }
 
 
 def main(*args, **kwargs):
     parser = argparse.ArgumentParser("a tool to help update feedstocks.")
-    parser.add_argument("--run")
+    parser.add_argument("step", choices=list(SCRIPT_DICT.keys()))
     parser.add_argument(
         "--debug",
         dest="debug",
@@ -62,13 +63,13 @@ def main(*args, **kwargs):
     if args.debug:
         os.environ["CONDA_FORGE_TICK_DEBUG"] = "1"
 
-    script = int(args.run)
-    if script in INT_SCRIPT_DICT or script == -1:
+    script = args.run
+    if script in SCRIPT_DICT:
         start = time.time()
-        if script == -1:
+        if script == "deploy-github":
             deploy(dry_run=args.dry_run)
         else:
-            script_md = INT_SCRIPT_DICT[script]
+            script_md = SCRIPT_DICT[script]
             func = getattr(
                 importlib.import_module(f"conda_forge_tick.{script_md['module']}"),
                 script_md["func"],
@@ -78,4 +79,4 @@ def main(*args, **kwargs):
         print(f"FINISHED STAGE {script} IN {time.time() - start} SECONDS")
 
     else:
-        raise RuntimeError("Unknown script number")
+        raise RuntimeError("Unknown step!")

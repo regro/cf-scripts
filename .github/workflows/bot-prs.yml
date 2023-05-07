@@ -55,7 +55,7 @@ jobs:
 
           export CIRCLE_BUILD_URL="https://github.com/regro/cf-scripts/actions/runs/${RUN_ID}"
           export CIRCLE_BUILD_NUM="actually-actions-${RUN_ID}"
-          conda-forge-tick --run 6 --job=${BOT_JOB} --n-jobs=4
+          conda-forge-tick update-prs --job=${BOT_JOB} --n-jobs=4
 
           popd
         env:
@@ -71,7 +71,7 @@ jobs:
 
           export CIRCLE_BUILD_URL="https://github.com/regro/cf-scripts/actions/runs/${RUN_ID}"
           export CIRCLE_BUILD_NUM="actually-actions-${RUN_ID}"
-          conda-forge-tick --run -1
+          conda-forge-tick deploy-to-github
 
           popd
         env:
