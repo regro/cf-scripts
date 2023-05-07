@@ -63,7 +63,7 @@ def main(*args, **kwargs):
     if args.debug:
         os.environ["CONDA_FORGE_TICK_DEBUG"] = "1"
 
-    script = args.run
+    script = args.step
     if script in SCRIPT_DICT:
         start = time.time()
         if script == "deploy-github":
