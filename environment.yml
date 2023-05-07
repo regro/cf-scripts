@@ -5,7 +5,6 @@ dependencies:
  - attrs
  - backoff
  - black
- - boto3
  - cachecontrol
  - cachetools
  - conda

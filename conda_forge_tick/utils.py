@@ -25,7 +25,6 @@ import subprocess
 
 import github3
 import jinja2
-import boto3
 import ruamel.yaml
 
 import networkx as nx
@@ -619,26 +618,6 @@ def dump_graph_json(gx: nx.DiGraph, filename: str = "graph.json") -> None:
         dump(nld, f)
 
 
-def dump_graph_dynamo(
-    gx: nx.DiGraph,
-    tablename: str = "graph",
-    region: str = "us-east-2",
-) -> None:
-    print(f"DynamoDB dump to {tablename} in {region}")
-    ddb = boto3.resource("dynamodb", region_name=region)
-    table = ddb.Table(tablename)
-    with table.batch_writer() as batch:
-        for node in gx.nodes:
-            if not node:
-                continue
-            preds = [n for n in gx.predecessors(node) if n]
-            preds.sort()
-            item = {"node_id": node}
-            if preds:
-                item["predecessors"] = preds
-            batch.put_item(Item=item)
-
-
 def dump_graph(
     gx: nx.DiGraph,
     filename: str = "graph.json",
@@ -646,7 +625,6 @@ def dump_graph(
     region: str = "us-east-2",
 ) -> None:
     dump_graph_json(gx, filename)
-    # dump_graph_dynamo(gx, tablename, region)
 
 
 def load_graph(filename: str = "graph.json", reset_bad=False) -> nx.DiGraph:
