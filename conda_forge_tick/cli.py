@@ -11,7 +11,6 @@ INT_SCRIPT_DICT = {
     2: {"module": "update_upstream_versions", "func": "main"},
     3: {"module": "auto_tick", "func": "main"},
     4: {"module": "status_report", "func": "main"},
-    5: {"module": "audit", "func": "main"},
     6: {"module": "update_prs", "func": "main"},
     7: {"module": "mappings", "func": "main"},
 }
