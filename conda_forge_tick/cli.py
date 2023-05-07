@@ -66,7 +66,7 @@ def main(*args, **kwargs):
     script = args.step
     if script in SCRIPT_DICT:
         start = time.time()
-        if script == "deploy-github":
+        if script == "deploy-to-github":
             deploy(dry_run=args.dry_run)
         else:
             script_md = SCRIPT_DICT[script]
