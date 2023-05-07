@@ -1417,7 +1417,7 @@ def _remove_closed_pr_json():
                 lzj_name = get_sharded_path(pr["PR"]["__lazy_json__"])
                 with open(lzj_name) as fp:
                     lzj = json.load(fp)
-                if lzj.get("state", None) == "closed":
+                if lzj.get("state", None) == "closed" or lzj == {}:
                     pri["PRed"][pr_ind]["PR"] = {
                         "state": "closed",
                         "number": lzj.get("number", None),
@@ -1443,8 +1443,8 @@ def _remove_closed_pr_json():
                 check=True,
             )
 
-    # now we go from pr json back to nodes and remove files that are not referenced
-    # directly but the info exists
+    # at this point, any json blob referenced in the pr info is state != closed
+    # so we can remove anything that is empty or closed
     all_pr_json = glob.glob("pr_json/**/*.json", recursive=True)
 
     nclosed = 0
@@ -1456,28 +1456,21 @@ def _remove_closed_pr_json():
     ):
         with open(fname) as fp:
             pr_json = json.load(fp)
-        if pr_json.get("state", None) == "closed" and "base" in pr_json:
-            fsname = pr_json["base"]["repo"]["name"][: -len("-feedstock")]
-            for pri_pre in ["", "version_"]:
-                with open(
-                    get_sharded_path(f"{pri_pre}pr_info/{fsname}.json"),
-                ) as fp:
-                    d = json.load(fp)
-                if any(
-                    pr.get("PR", {}).get("number", None) == pr_json["number"]
-                    for pr in d.get("PRed", [])
-                ):
-                    nclosed += 1
-                    files_to_remove.append(fname)
-                    if nclosed % 1000 == 0:
-                        tqdm.tqdm.write("nclosed = %d" % nclosed)
-                        subprocess.run(
-                            "git rm " + " ".join(files_to_remove),
-                            shell=True,
-                            check=True,
-                        )
-                        files_to_remove = []
-                    break
+
+        if (
+            pr_json.get("state", None) == "closed"
+            or pr_json == {}
+        ):
+            nclosed += 1
+            files_to_remove.append(fname)
+            if nclosed % 1000 == 0 and files_to_remove:
+                tqdm.tqdm.write("nclosed = %d" % nclosed)
+                subprocess.run(
+                    "git rm " + " ".join(files_to_remove),
+                    shell=True,
+                    check=True,
+                )
+                files_to_remove = []
 
     if files_to_remove:
         subprocess.run(
