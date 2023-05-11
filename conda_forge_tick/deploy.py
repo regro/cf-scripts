@@ -1,5 +1,6 @@
 import os
 import subprocess
+import tqdm
 
 from doctr.travis import run_command_hiding_token as doctr_run
 
@@ -7,6 +8,88 @@ from . import sensitive_env
 from .utils import load_graph
 
 BUILD_URL_KEY = "CIRCLE_BUILD_URL"
+ITEMS_TO_DEPLOY = [
+    "pr_json",
+    "pr_info",
+    "status",
+    "node_attrs",
+    "version_pr_info",
+    "versions",
+    "mappings",
+    "mappings/pypi",
+    "ranked_hubs_authorities.json",
+    "all_feedstocks.json",
+    "graph.json",
+]
+
+
+def _tar_a_file_or_dir(file_or_dir, dest_dir):
+    return subprocess.run(
+        f"tar --zstd -cf {file_or_dir}.tar.zstd {file_or_dir} && mv {file_or_dir}.tar.zstd {dest_dir}/.",
+        check=True,
+        shell=True,
+    )
+
+
+def pack_tarball(stamp):
+    dest_dir = f"cf-graph-{stamp}"
+
+    subprocess.run(
+        f"rm -rf {dest_dir} {dest_dir}.tar",
+        check=True,
+        shell=True,
+    )
+    os.makedirs(dest_dir)
+
+    with tqdm.tqdm(ITEMS_TO_DEPLOY, ncols=80, desc="packing subdirs") as itr:
+        for item in itr:
+            if "/" not in item and item != "status":
+                itr.set_description("packing " + item)
+                _tar_a_file_or_dir(item, dest_dir)
+
+    subprocess.run(
+        f"tar -cvf {dest_dir}.tar {dest_dir}",
+        check=True,
+        shell=True,
+    )
+
+    subprocess.run(
+        f"rm -rf {dest_dir}",
+        check=True,
+        shell=True,
+    )
+
+
+def unpack_tarball(stamp):
+    fname = f"cf-graph-{stamp}.tar"
+    dest_dir = fname[: -len(".tar")]
+    subprocess.run(
+        f"rm -rf {dest_dir}",
+        check=True,
+        shell=True,
+    )
+
+    subprocess.run(
+        f"tar -xvf {fname}",
+        check=True,
+        shell=True,
+    )
+    with tqdm.tqdm(ITEMS_TO_DEPLOY, ncols=80, desc="unpacking subdirs") as itr:
+        for item in itr:
+            if "/" not in item and item != "status":
+                itr.set_description("unpacking " + item)
+                subprocess.run(
+                    f"tar -xf {item}.tar.zstd",
+                    cwd=dest_dir,
+                    check=True,
+                    shell=True,
+                )
+                subprocess.run(
+                    f"rm -f {item}.tar.zstd",
+                    cwd=fname[: -len(".tar")],
+                    check=True,
+                    shell=True,
+                )
 
 
 def _run_git_cmd(cmd):
@@ -29,23 +112,7 @@ def deploy(dry_run=False):
         print(e)
 
     files_to_add = set()
-    for dr in [
-        "pr_json",
-        "pr_info",
-        "status",
-        "node_attrs",
-        "version_pr_info",
-        "audits",
-        "audits/grayskull",
-        "audits/depfinder",
-        "versions",
-        "profiler",
-        "mappings",
-        "mappings/pypi",
-        "ranked_hubs_authorities.json",
-        "all_feedstocks.json",
-        "graph.json",
-    ]:
+    for dr in ITEMS_TO_DEPLOY:
         # untracked
         files_to_add |= set(
             subprocess.run(
