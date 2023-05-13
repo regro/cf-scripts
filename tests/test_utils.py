@@ -1,12 +1,14 @@
 import os
 import json
 import pickle
+import tempfile
 
 from conda_forge_tick.utils import (
     LazyJson,
     dumps,
     get_graph_data_redis_backend,
     get_sharded_path,
+    pushd,
 )
 import conda_forge_tick.utils
 
@@ -85,100 +87,118 @@ def test_lazy_json_file(tmpdir):
 def test_lazy_json_redis():
     old_backend = conda_forge_tick.utils.CF_TICK_GRAPH_DATA_BACKEND
     rd = None
-    try:
-        import redislite
+    with tempfile.TemporaryDirectory() as tmpdir, pushd(tmpdir):
+        try:
+            import redislite
 
-        conda_forge_tick.utils.CF_TICK_GRAPH_DATA_BACKEND = "redislite"
+            conda_forge_tick.utils.CF_TICK_GRAPH_DATA_BACKEND = "redislite"
 
-        f = "hi.json"
-        assert not os.path.exists("graph_data.db")
-        lj = LazyJson(f)
-        assert os.path.exists("graph_data.db.settings"), os.path.abspath(lj._dbname)
+            f = "hi.json"
+            assert not os.path.exists("cf-graph.db")
+            lj = LazyJson(f)
+            lj.data
+            assert os.path.exists("cf-graph.db.settings")
+            assert not os.path.exists(lj.file_name)
+            assert os.path.exists(lj.sharded_path)
 
-        rd = redislite.StrictRedis("graph_data.db")
+            rd = redislite.StrictRedis("cf-graph.db")
 
-        assert rd.hget("lazy_json", "hi").decode("utf-8") == dumps({})
+            assert rd.hget("lazy_json", "hi").decode("utf-8") == dumps({})
 
-        lj["hi"] = "world"
-        assert lj["hi"] == "world"
-        assert rd.hget("lazy_json", "hi").decode("utf-8") == dumps({"hi": "world"})
+            lj["hi"] = "world"
+            assert lj["hi"] == "world"
+            assert rd.hget("lazy_json", "hi").decode("utf-8") == dumps({"hi": "world"})
+            with open(lj.sharded_path) as fp:
+                assert rd.hget("lazy_json", "hi").decode("utf-8") == fp.read()
 
-        lj.update({"hi": "globe"})
-        assert rd.hget("lazy_json", "hi").decode("utf-8") == dumps({"hi": "globe"})
+            lj.update({"hi": "globe"})
+            assert rd.hget("lazy_json", "hi").decode("utf-8") == dumps({"hi": "globe"})
+            with open(lj.sharded_path) as fp:
+                assert rd.hget("lazy_json", "hi").decode("utf-8") == fp.read()
 
-        p = pickle.dumps(lj)
-        lj2 = pickle.loads(p)
-        assert not getattr(lj2, "_data", None)
-        assert lj2["hi"] == "globe"
-        assert rd.hget("lazy_json", "hi").decode("utf-8") == dumps({"hi": "globe"})
+            p = pickle.dumps(lj)
+            lj2 = pickle.loads(p)
+            assert not getattr(lj2, "_data", None)
+            assert lj2["hi"] == "globe"
+            assert rd.hget("lazy_json", "hi").decode("utf-8") == dumps({"hi": "globe"})
+            with open(lj.sharded_path) as fp:
+                assert rd.hget("lazy_json", "hi").decode("utf-8") == fp.read()
 
-        lj["hii"] = "world"
-        assert lj["hii"] == "world"
-        assert rd.hget("lazy_json", "hi").decode("utf-8") == dumps(
-            {"hii": "world", "hi": "globe"},
-        )
+            lj["hii"] = "world"
+            assert lj["hii"] == "world"
+            assert rd.hget("lazy_json", "hi").decode("utf-8") == dumps(
+                {"hii": "world", "hi": "globe"},
+            )
+            with open(lj.sharded_path) as fp:
+                assert rd.hget("lazy_json", "hi").decode("utf-8") == fp.read()
 
-        with lj as attrs:
-            attrs.setdefault("lst", []).append("universe")
-
-        assert rd.hget("lazy_json", "hi").decode("utf-8") == dumps(
-            {"hii": "world", "hi": "globe", "lst": ["universe"]},
-        )
-
-        with lj as attrs:
-            attrs.setdefault("lst", []).append("universe")
-            with lj as attrs_again:
-                attrs_again.setdefault("lst", []).append("universe")
+            with lj as attrs:
                 attrs.setdefault("lst", []).append("universe")
-        assert rd.hget("lazy_json", "hi").decode("utf-8") == dumps(
-            {"hii": "world", "hi": "globe", "lst": ["universe"] * 4},
-        )
 
-        with lj as attrs:
-            with lj as attrs_again:
-                attrs_again.setdefault("lst2", []).append("universe")
-                attrs.setdefault("lst2", []).append("universe")
-        assert rd.hget("lazy_json", "hi").decode("utf-8") == dumps(
-            {
-                "hii": "world",
-                "hi": "globe",
-                "lst": ["universe"] * 4,
-                "lst2": ["universe"] * 2,
-            },
-        )
+            assert rd.hget("lazy_json", "hi").decode("utf-8") == dumps(
+                {"hii": "world", "hi": "globe", "lst": ["universe"]},
+            )
+            with open(lj.sharded_path) as fp:
+                assert rd.hget("lazy_json", "hi").decode("utf-8") == fp.read()
 
-        with lj as attrs:
-            del attrs["lst"]
-        assert rd.hget("lazy_json", "hi").decode("utf-8") == dumps(
-            {"hii": "world", "hi": "globe", "lst2": ["universe"] * 2},
-        )
+            with lj as attrs:
+                attrs.setdefault("lst", []).append("universe")
+                with lj as attrs_again:
+                    attrs_again.setdefault("lst", []).append("universe")
+                    attrs.setdefault("lst", []).append("universe")
+            assert rd.hget("lazy_json", "hi").decode("utf-8") == dumps(
+                {"hii": "world", "hi": "globe", "lst": ["universe"] * 4},
+            )
+            with open(lj.sharded_path) as fp:
+                assert rd.hget("lazy_json", "hi").decode("utf-8") == fp.read()
 
-        with lj as attrs:
-            attrs.pop("lst2")
-        assert rd.hget("lazy_json", "hi").decode("utf-8") == dumps(
-            {"hii": "world", "hi": "globe"},
-        )
+            with lj as attrs:
+                with lj as attrs_again:
+                    attrs_again.setdefault("lst2", []).append("universe")
+                    attrs.setdefault("lst2", []).append("universe")
+            assert rd.hget("lazy_json", "hi").decode("utf-8") == dumps(
+                {
+                    "hii": "world",
+                    "hi": "globe",
+                    "lst": ["universe"] * 4,
+                    "lst2": ["universe"] * 2,
+                },
+            )
+            with open(lj.sharded_path) as fp:
+                assert rd.hget("lazy_json", "hi").decode("utf-8") == fp.read()
 
-        assert len(lj) == 2
-        assert {k for k in lj} == {"hi", "hii"}
+            with lj as attrs:
+                del attrs["lst"]
+            assert rd.hget("lazy_json", "hi").decode("utf-8") == dumps(
+                {"hii": "world", "hi": "globe", "lst2": ["universe"] * 2},
+            )
+            with open(lj.sharded_path) as fp:
+                assert rd.hget("lazy_json", "hi").decode("utf-8") == fp.read()
 
-        lj.clear()
-        assert rd.hget("lazy_json", "hi").decode("utf-8") == dumps({})
-        assert len(lj) == 0
-        assert not lj
+            with lj as attrs:
+                attrs.pop("lst2")
+            assert rd.hget("lazy_json", "hi").decode("utf-8") == dumps(
+                {"hii": "world", "hi": "globe"},
+            )
+            with open(lj.sharded_path) as fp:
+                assert rd.hget("lazy_json", "hi").decode("utf-8") == fp.read()
 
-    finally:
-        if rd is not None:
-            rd.close()
-        get_graph_data_redis_backend("graph_data.db").close()
-        get_graph_data_redis_backend("graph_data.db").shutdown()
-        get_graph_data_redis_backend.cache_clear()
-        for fname in ["graph_data.db.settings", "graph_data.db"]:
-            try:
-                os.remove(fname)
-            except Exception:
-                pass
-        conda_forge_tick.utils.CF_TICK_GRAPH_DATA_BACKEND = old_backend
+            assert len(lj) == 2
+            assert {k for k in lj} == {"hi", "hii"}
+
+            lj.clear()
+            assert rd.hget("lazy_json", "hi").decode("utf-8") == dumps({})
+            assert len(lj) == 0
+            assert not lj
+
+        finally:
+            if rd is not None:
+                rd.close()
+                rd.shutdown()
+            get_graph_data_redis_backend("cf-graph.db").close()
+            get_graph_data_redis_backend("cf-graph.db").shutdown()
+            get_graph_data_redis_backend.cache_clear()
+            conda_forge_tick.utils.CF_TICK_GRAPH_DATA_BACKEND = old_backend
 
 
 def test_lazy_json(tmpdir):

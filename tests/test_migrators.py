@@ -1708,7 +1708,8 @@ def run_test_migration(
             else:
                 pmy["version_pr_info"] = LazyJson(os.path.join(tmpdir, "v.json"))
             if "new_version" in pmy:
-                pmy["version_pr_info"]["new_version"] = pmy.pop("new_version")
+                with pmy["version_pr_info"] as vpri:
+                    vpri["new_version"] = pmy.pop("new_version")
 
         assert m.filter(pmy) is should_filter
         if should_filter:
