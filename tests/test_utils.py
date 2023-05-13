@@ -2,7 +2,12 @@ import os
 import json
 import pickle
 
-from conda_forge_tick.utils import LazyJson, dumps, get_graph_data_redis_backend, get_sharded_path
+from conda_forge_tick.utils import (
+    LazyJson,
+    dumps,
+    get_graph_data_redis_backend,
+    get_sharded_path,
+)
 import conda_forge_tick.utils
 
 
@@ -14,7 +19,7 @@ def test_lazy_json_file(tmpdir):
         f = os.path.join(tmpdir, "hi.json")
         assert not os.path.exists(f)
         lj = LazyJson(f)
-        assert not os.path.exists(lj.file_name)        
+        assert not os.path.exists(lj.file_name)
         assert os.path.exists(lj.sharded_path)
         with open(lj.sharded_path) as ff:
             assert ff.read() == json.dumps({})
