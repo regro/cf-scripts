@@ -221,7 +221,7 @@ def populate_feedstock_attributes(
             ci_support_files = glob.glob(
                 os.path.join(feedstock_dir, ".ci_support", "*.yaml"),
             )
-            varient_yamls = []
+            variant_yamls = []
             plat_arch = []
             for cbc_path in ci_support_files:
                 LOGGER.debug("parsing conda-build config: %s", cbc_path)
@@ -242,7 +242,7 @@ def populate_feedstock_attributes(
                         break
                 plat_arch.append((plat, arch))
 
-                varient_yamls.append(
+                variant_yamls.append(
                     parse_meta_yaml(
                         meta_yaml,
                         platform=plat,
@@ -259,23 +259,23 @@ def populate_feedstock_attributes(
                 # sometimes the requirements come out to None or [None]
                 # and this ruins the aggregated meta_yaml / breaks stuff
                 LOGGER.debug("getting reqs for config: %s", cbc_path)
-                if "requirements" in varient_yamls[-1]:
-                    varient_yamls[-1]["requirements"] = _clean_req_nones(
-                        varient_yamls[-1]["requirements"],
+                if "requirements" in variant_yamls[-1]:
+                    variant_yamls[-1]["requirements"] = _clean_req_nones(
+                        variant_yamls[-1]["requirements"],
                     )
-                if "outputs" in varient_yamls[-1]:
-                    for iout in range(len(varient_yamls[-1]["outputs"])):
-                        if "requirements" in varient_yamls[-1]["outputs"][iout]:
-                            varient_yamls[-1]["outputs"][iout][
+                if "outputs" in variant_yamls[-1]:
+                    for iout in range(len(variant_yamls[-1]["outputs"])):
+                        if "requirements" in variant_yamls[-1]["outputs"][iout]:
+                            variant_yamls[-1]["outputs"][iout][
                                 "requirements"
                             ] = _clean_req_nones(
-                                varient_yamls[-1]["outputs"][iout]["requirements"],
+                                variant_yamls[-1]["outputs"][iout]["requirements"],
                             )
 
                 # collapse them down
                 LOGGER.debug("collapsing reqs for config: %s", cbc_path)
                 final_cfgs = {}
-                for plat_arch, varyml in zip(plat_arch, varient_yamls):
+                for plat_arch, varyml in zip(plat_arch, variant_yamls):
                     if plat_arch not in final_cfgs:
                         final_cfgs[plat_arch] = []
                     final_cfgs[plat_arch].append(varyml)
@@ -283,17 +283,17 @@ def populate_feedstock_attributes(
                     ymls = final_cfgs[k]
                     final_cfgs[k] = _convert_to_dict(ChainDB(*ymls))
                 plat_arch = []
-                varient_yamls = []
+                variant_yamls = []
                 for k, v in final_cfgs.items():
                     plat_arch.append(k)
-                    varient_yamls.append(v)
+                    variant_yamls.append(v)
         else:
             LOGGER.debug("doing generic parsing")
             plat_arch = [("win", "64"), ("osx", "64"), ("linux", "64")]
             for k in set(sub_graph["conda-forge.yml"].get("provider", {})):
                 if "_" in k:
                     plat_arch.append(tuple(k.split("_")))
-            varient_yamls = [
+            variant_yamls = [
                 parse_meta_yaml(meta_yaml, platform=plat, arch=arch)
                 for plat, arch in plat_arch
             ]
@@ -305,10 +305,11 @@ def populate_feedstock_attributes(
         raise
 
     LOGGER.debug("platforms: %s", plat_arch)
+    sub_graph["platforms"] = ["_".join(k) for k in plat_arch]
 
     # this makes certain that we have consistent ordering
-    sorted_varient_yamls = [x for _, x in sorted(zip(plat_arch, varient_yamls))]
-    yaml_dict = ChainDB(*sorted_varient_yamls)
+    sorted_variant_yamls = [x for _, x in sorted(zip(plat_arch, variant_yamls))]
+    yaml_dict = ChainDB(*sorted_variant_yamls)
     if not yaml_dict:
         LOGGER.error(f"Something odd happened when parsing recipe {name}")
         sub_graph["parsing_error"] = "make_graph: Could not parse"
@@ -317,7 +318,7 @@ def populate_feedstock_attributes(
     sub_graph["meta_yaml"] = _convert_to_dict(yaml_dict)
     meta_yaml = sub_graph["meta_yaml"]
 
-    for k, v in zip(plat_arch, varient_yamls):
+    for k, v in zip(plat_arch, variant_yamls):
         plat_arch_name = "_".join(k)
         sub_graph[f"{plat_arch_name}_meta_yaml"] = v
         _, sub_graph[f"{plat_arch_name}_requirements"], _ = _extract_requirements(v)

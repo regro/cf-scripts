@@ -19,7 +19,7 @@ jobs:
         with:
           access_token: ${{ github.token }}
 
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - uses: conda-incubator/setup-miniconda@v2
         with:
@@ -29,19 +29,31 @@ jobs:
           miniforge-version: latest
           miniforge-variant: Mambaforge
           python-version: ${{ vars.PYVER }}
+          use-mamba: true
+          environment-file: environment.yml
           activate-environment: cf-scripts
 
       - name: configure conda and install code
         shell: bash -l {0}
         run: |
-          conda config --set always_yes yes
-          conda config --add channels conda-forge
-          mamba install --quiet pip
-
           export GIT_FULL_HASH=`git rev-parse HEAD`
           export CICLE_BUILD_URL="https://www.youtube.com/watch?v=R7qT-C-0ajI"
-          mamba install --quiet --file requirements/run --file requirements/test
-          python -m pip install -e .
+          mamba install --quiet \
+            pip \
+            pytest \
+            codecov \
+            requests-mock \
+            doctr \
+            sphinx \
+            scipy \
+            pre-commit \
+            pip \
+            flaky \
+            pytest-xdist \
+            pytest-cov \
+            "setuptools_scm>=7" \
+            python-build
+          python -m pip install -v --no-deps --no-build-isolation -e .
 
           mamba install redis
           pip install redislite
@@ -57,6 +69,30 @@ jobs:
           echo "=================================================================="
           echo "=================================================================="
           conda list
+
+      - name: test versions
+        shell: bash -l {0}
+        run: |
+          pip uninstall conda-forge-tick --yes
+          [[ $(python setup.py --version) != "0.0.0" ]] || exit 1
+
+          rm -rf dist/*
+          python setup.py sdist
+          pip install -vv --no-deps --no-build-isolation dist/*.tar.gz
+          pushd ..
+          python -c "import conda_forge_tick; assert conda_forge_tick.__version__ != '0.0.0'"
+          popd
+          pip uninstall conda-forge-tick --yes
+
+          rm -rf dist/*
+          python -m build --sdist . --outdir dist
+          pip install --no-deps --no-build-isolation dist/*.tar.gz
+          pushd ..
+          python -c "import conda_forge_tick; assert conda_forge_tick.__version__ != '0.0.0'"
+          popd
+          pip uninstall conda-forge-tick --yes
+
+          python -m pip install -v --no-deps --no-build-isolation -e .
 
       - name: run pytest
         shell: bash -l {0}

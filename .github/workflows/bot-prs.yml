@@ -25,18 +25,19 @@ jobs:
 
       - uses: conda-incubator/setup-miniconda@v2
         with:
-          python-version: ${{ vars.PYVER }}
           channels: conda-forge,defaults
           channel-priority: strict
           show-channel-urls: true
           miniforge-version: latest
           miniforge-variant: Mambaforge
+          python-version: ${{ vars.PYVER }}
+          use-mamba: true
+          environment-file: cf-scripts/environment.yml
           activate-environment: cf-scripts
 
       - name: do local setup and stop me if needed
         run: |
           pushd cf-scripts
-          source autotick-bot/local_setup.sh
           python autotick-bot/stop_me_if_needed.py
           popd
 
@@ -54,7 +55,7 @@ jobs:
 
           export CIRCLE_BUILD_URL="https://github.com/regro/cf-scripts/actions/runs/${RUN_ID}"
           export CIRCLE_BUILD_NUM="actually-actions-${RUN_ID}"
-          conda-forge-tick --run 6 --job=${BOT_JOB} --n-jobs=4
+          conda-forge-tick update-prs --job=${BOT_JOB} --n-jobs=4
 
           popd
         env:
@@ -70,7 +71,7 @@ jobs:
 
           export CIRCLE_BUILD_URL="https://github.com/regro/cf-scripts/actions/runs/${RUN_ID}"
           export CIRCLE_BUILD_NUM="actually-actions-${RUN_ID}"
-          conda-forge-tick --run -1
+          conda-forge-tick deploy-to-github
 
           popd
         env:
@@ -102,17 +103,19 @@ jobs:
 
       - uses: conda-incubator/setup-miniconda@v2
         with:
-          python-version: ${{ vars.PYVER }}
           channels: conda-forge,defaults
           channel-priority: strict
           show-channel-urls: true
           miniforge-version: latest
           miniforge-variant: Mambaforge
+          python-version: ${{ vars.PYVER }}
+          use-mamba: true
+          environment-file: cf-scripts/environment.yml
+          activate-environment: cf-scripts
 
       - name: do local setup and stop me if needed
         run: |
           pushd cf-scripts
-          source autotick-bot/local_setup.sh
           python autotick-bot/stop_me_if_needed.py
           popd
 

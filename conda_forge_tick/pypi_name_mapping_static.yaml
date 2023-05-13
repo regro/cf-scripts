@@ -28,10 +28,6 @@
   delimiter_min: "5.0.0"
   delimiter_max: "6.0.0"
 
-- pypi_name: python-opencv
-  import_name: cv2
-  conda_name: opencv
-
 - pypi_name: tables
   import_name: pytables
   conda_name: pytables
@@ -56,6 +52,10 @@
   import_name: numpy
   conda_name: numpy
 
+- pypi_name: tzdata
+  import_name: tzdata
+  conda_name: python-tzdata
+
 - pypi_name: psycopg2-binary
   import_name: psycopg2
   conda_name: psycopg2
@@ -75,3 +75,7 @@
 - pypi_name: seaborn
   import_name: seaborn
   conda_name: seaborn-base
+
+- pypi_name: ruamel-yaml
+  import_name: ruamel.yaml
+  conda_name: ruamel.yaml

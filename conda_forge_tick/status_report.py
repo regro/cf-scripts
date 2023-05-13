@@ -64,7 +64,7 @@ def write_version_migrator_status(migrator, mctx):
         with mmctx.effective_graph.nodes[node]["payload"] as attrs:
             with attrs["version_pr_info"] as vpri:
                 new_version = vpri.get("new_version", None)
-                if new_version is None:
+                if new_version is None or not new_version:
                     continue
                 attempts = vpri.get("new_version_attempts", {}).get(new_version, 0)
                 if attempts == 0:
@@ -263,7 +263,7 @@ def graph_migrator_status(
                 "html_url",
                 feedstock_url(fctx=feedstock_ctx, protocol="https").strip(".git"),
             )
-            node_metadata["pr_status"] = pr_json["PR"].get("mergeable_state")
+            node_metadata["pr_status"] = pr_json["PR"].get("mergeable_state", "")
 
     out2: Dict = {}
     for k in out.keys():
@@ -348,8 +348,8 @@ def main(args: Any = None) -> None:
         old_total_status = json.load(fp)
 
     mctx, *_, migrators = initialize_migrators()
-    if not os.path.exists("./status"):
-        os.mkdir("./status")
+    os.makedirs("./status/migration_json", exist_ok=True)
+    os.makedirs("./status/migration_svg", exist_ok=True)
     regular_status = {}
     longterm_status = {}
 
@@ -386,7 +386,10 @@ def main(args: Any = None) -> None:
                 regular_status[migrator_name] = f"{migrator.name} Migration Status"
             status, build_order, gv = graph_migrator_status(migrator, mctx.graph)
             num_viz = status.pop("_num_viz", 0)
-            with open(os.path.join(f"./status/{migrator_name}.json"), "w") as fp:
+            with open(
+                os.path.join(f"./status/migration_json/{migrator_name}.json"),
+                "w",
+            ) as fp:
                 json.dump(status, fp, indent=2)
 
             if num_viz <= 500:
@@ -399,10 +402,16 @@ def main(args: Any = None) -> None:
                             ["unflatten", "-f", "-l", "5", "-c", "10", f"{ntf.name}"],
                         ).decode("utf-8"),
                     ).pipe("svg")
-                with open(os.path.join(f"./status/{migrator_name}.svg"), "wb") as fb:
+                with open(
+                    os.path.join(f"./status/migration_svg/{migrator_name}.svg"),
+                    "wb",
+                ) as fb:
                     fb.write(d or gv.pipe("svg"))
             else:
-                with open(os.path.join(f"./status/{migrator_name}.svg"), "wb") as fb:
+                with open(
+                    os.path.join(f"./status/migration_svg/{migrator_name}.svg"),
+                    "wb",
+                ) as fb:
                     fb.write(r.content)
 
         elif isinstance(migrator, Version):
@@ -431,74 +440,77 @@ def main(args: Any = None) -> None:
     with open("./status/closed_status.json", "w") as f:
         json.dump(closed_status, f, sort_keys=True, indent=2)
 
-    print("\ncomputing feedstock and PR stats", flush=True)
+    if False:
+        # I have turned this off since we do not use it
+        # MRB - 2023/03/08
+        print("\ncomputing feedstock and PR stats", flush=True)
 
-    def _get_needs_help(k):
-        v = mctx.graph.nodes[k]
-        if (
-            len(
-                [
-                    z
-                    for z in v.get("payload", {}).get("pr_info", {}).get("PRed", [])
-                    if z.get("PR", {}).get("state", "closed") == "open"
-                    and z.get("data", {}).get("migrator_name", "") == "Version"
-                ],
+        def _get_needs_help(k):
+            v = mctx.graph.nodes[k]
+            if (
+                len(
+                    [
+                        z
+                        for z in v.get("payload", {}).get("pr_info", {}).get("PRed", [])
+                        if z.get("PR", {}).get("state", "closed") == "open"
+                        and z.get("data", {}).get("migrator_name", "") == "Version"
+                    ],
+                )
+                >= Version.max_num_prs
+            ):
+                return k
+            else:
+                return None
+
+        lst = _collect_items_from_nodes(mctx.graph, _get_needs_help)
+        with open("./status/could_use_help.json", "w") as f:
+            json.dump(
+                sorted(
+                    lst,
+                    key=lambda z: (len(nx.descendants(mctx.graph, z)), lst),
+                    reverse=True,
+                ),
+                f,
+                indent=2,
             )
-            >= Version.max_num_prs
-        ):
-            return k
-        else:
-            return None
 
-    lst = _collect_items_from_nodes(mctx.graph, _get_needs_help)
-    with open("./status/could_use_help.json", "w") as f:
-        json.dump(
-            sorted(
-                lst,
-                key=lambda z: (len(nx.descendants(mctx.graph, z)), lst),
-                reverse=True,
-            ),
-            f,
-            indent=2,
-        )
+        lm = LicenseMigrator()
 
-    lm = LicenseMigrator()
+        def _get_needs_license(k):
+            v = mctx.graph.nodes[k]
+            if not lm.filter(v.get("payload", {})):
+                return k
+            else:
+                return None
 
-    def _get_needs_license(k):
-        v = mctx.graph.nodes[k]
-        if not lm.filter(v.get("payload", {})):
-            return k
-        else:
-            return None
+        lst = _collect_items_from_nodes(mctx.graph, _get_needs_license)
+        with open("./status/unlicensed.json", "w") as f:
+            json.dump(
+                sorted(
+                    lst,
+                    key=lambda z: (len(nx.descendants(mctx.graph, z)), lst),
+                    reverse=True,
+                ),
+                f,
+                indent=2,
+            )
 
-    lst = _collect_items_from_nodes(mctx.graph, _get_needs_license)
-    with open("./status/unlicensed.json", "w") as f:
-        json.dump(
-            sorted(
-                lst,
-                key=lambda z: (len(nx.descendants(mctx.graph, z)), lst),
-                reverse=True,
-            ),
-            f,
-            indent=2,
-        )
+        def _get_open_pr_states(k):
+            attrs = mctx.graph.nodes[k]["payload"]
+            _open_prs = []
+            for pr in attrs.get("pr_info", {}).get("PRed", []):
+                if pr.get("PR", {}).get("state", "closed") != "closed":
+                    _open_prs.append(pr["PR"])
 
-    def _get_open_pr_states(k):
-        attrs = mctx.graph.nodes[k]
-        _open_prs = []
-        for pr in attrs.get("pr_info", {}).get("PRed", []):
-            if pr.get("PR", {}).get("state", "closed") != "closed":
-                _open_prs.append(pr["PR"])
+            return _open_prs
 
-        return _open_prs
-
-    open_prs = []
-    for op in _collect_items_from_nodes(mctx.graph, _get_open_pr_states):
-        open_prs.extend(op)
-    merge_state_count = Counter([o["mergeable_state"] for o in open_prs])
-    with open("./status/pr_state.csv", "a") as f:
-        writer = csv.writer(f)
-        writer.writerow([merge_state_count[k] for k in GH_MERGE_STATE_STATUS])
+        open_prs = []
+        for op in _collect_items_from_nodes(mctx.graph, _get_open_pr_states):
+            open_prs.extend(op)
+        merge_state_count = Counter([o["mergeable_state"] for o in open_prs])
+        with open("./status/pr_state.csv", "a") as f:
+            writer = csv.writer(f)
+            writer.writerow([merge_state_count[k] for k in GH_MERGE_STATE_STATUS])
 
 
 if __name__ == "__main__":

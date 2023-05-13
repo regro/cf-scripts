@@ -4,6 +4,7 @@ import json
 import re
 import sys
 import gc
+import subprocess
 
 import time
 import traceback
@@ -115,6 +116,7 @@ LOGGER = logging.getLogger("conda_forge_tick.auto_tick")
 PR_LIMIT = 5
 MAX_PR_LIMIT = 50
 MAX_SOLVER_ATTEMPTS = 50
+CHECK_SOLVABLE_TIMEOUT = 90 * 24 * 60 * 60  # 90 days in seconds
 
 BOT_RERUN_LABEL = {
     "name": "bot-rerun",
@@ -439,9 +441,6 @@ comment. Hopefully you all can fix this!
             os.path.join(migrator.ctx.session.prjson_dir, str(pr_json["id"]) + ".json"),
         )
         ljpr.update(**pr_json)
-
-        # from .dynamo_models import PRJson
-        # PRJson.dump(pr_json)
     else:
         ljpr = False
 
@@ -751,6 +750,16 @@ def migration_factory(
                 set(loaded_yaml) | {ly.replace("_", "-") for ly in loaded_yaml}
             ) & all_package_names
         exclude_pinned_pkgs = migrator_config.get("exclude_pinned_pkgs", True)
+
+        if (
+            (
+                time.time() - loaded_yaml.get("migration_ts", time.time())
+                > CHECK_SOLVABLE_TIMEOUT
+            )
+            and "check_solvable" not in migrator_config
+            and not migrator_config.get("longterm", False)
+        ):
+            migrator_config["check_solvable"] = False
 
         if not paused:
             add_rebuild_migration_yaml(
@@ -1330,44 +1339,39 @@ def _update_nodes_with_bot_rerun(gx):
             pri["bad"] = False
             vpri["bad"] = False
 
-            for migration in pri.get("PRed", []):
-                try:
-                    pr_json = migration.get("PR", {})
-                    # maybe add a pass check info here ? (if using DEBUG)
-                except Exception as e:
-                    LOGGER.error(
-                        f"BOT-RERUN : could not proceed check with {node}, {e}",
-                    )
-                    raise e
-                # if there is a valid PR and it isn't currently listed as rerun
-                # but the PR needs a rerun
-                if (
-                    pr_json
-                    and not migration["data"]["bot_rerun"]
-                    and "bot-rerun" in [lb["name"] for lb in pr_json.get("labels", [])]
-                ):
-                    migration["data"]["bot_rerun"] = time.time()
-                    LOGGER.info(
-                        "BOT-RERUN %s: processing bot rerun label for migration %s",
-                        name,
-                        migration["data"],
-                    )
+            for __pri in [pri, vpri]:
+                for migration in __pri.get("PRed", []):
+                    try:
+                        pr_json = migration.get("PR", {})
+                        # maybe add a pass check info here ? (if using DEBUG)
+                    except Exception as e:
+                        LOGGER.error(
+                            f"BOT-RERUN : could not proceed check with {node}, {e}",
+                        )
+                        raise e
+                    # if there is a valid PR and it isn't currently listed as rerun
+                    # but the PR needs a rerun
+                    if (
+                        pr_json
+                        and not migration["data"]["bot_rerun"]
+                        and "bot-rerun"
+                        in [lb["name"] for lb in pr_json.get("labels", [])]
+                    ):
+                        migration["data"]["bot_rerun"] = time.time()
+                        LOGGER.info(
+                            "BOT-RERUN %s: processing bot rerun label for migration %s",
+                            name,
+                            migration["data"],
+                        )
 
 
 def _update_nodes_with_new_versions(gx):
     """Updates every node with it's new version (when available)"""
-    # check if the versions folder is available
-    if os.path.isdir("./versions"):
-        pass
-    else:
-        return
-    # get all the available node.json files
-    # TODO: I don't thing this is a good idea (8000+ entries)
-    list_files = os.listdir("./versions/")
+    list_files = glob.glob("./versions/**/*.json", recursive=True)
 
     for file in list_files:
         node = os.path.splitext(os.path.basename(str(file)))[0]
-        with open(f"./versions/{file}") as json_file:
+        with open(file) as json_file:
             version_data: typing.Dict = json.load(json_file)
         with gx.nodes[f"{node}"]["payload"] as attrs:
             with attrs["version_pr_info"] as vpri:
@@ -1386,7 +1390,100 @@ def _update_nodes_with_new_versions(gx):
                         vpri["new_version"] = version_from_data
 
 
+def _remove_closed_pr_json():
+    from conda_forge_tick.utils import get_sharded_path, dump
+    from conda_forge_tick.deploy import BUILD_URL_KEY
+
+    # first we go from nodes to pr json and update the pr info and remove the file
+    all_pr_info = glob.glob("pr_info/**/*.json", recursive=True) + glob.glob(
+        "version_pr_info/**/*.json",
+        recursive=True,
+    )
+
+    do_commit = False
+    for pri_name in tqdm.tqdm(
+        all_pr_info,
+        ncols=120,
+        desc="removing closed PR json by pr info",
+    ):
+        write = False
+        with open(pri_name) as fp:
+            pri = json.load(fp)
+        for pr_ind, pr in enumerate(pri.get("PRed", [])):
+            if "PR" in pr and "__lazy_json__" in pr["PR"]:
+                lzj_name = get_sharded_path(pr["PR"]["__lazy_json__"])
+                with open(lzj_name) as fp:
+                    lzj = json.load(fp)
+                if lzj.get("state", None) == "closed" or lzj == {}:
+                    pri["PRed"][pr_ind]["PR"] = {
+                        "state": "closed",
+                        "number": lzj.get("number", None),
+                    }
+                    write = True
+                    do_commit = True
+                    subprocess.run(
+                        "git rm " + lzj_name,
+                        shell=True,
+                        check=True,
+                    )
+                    subprocess.run(
+                        "rm -f " + lzj_name,
+                        shell=True,
+                        check=True,
+                    )
+        if write:
+            with open(pri_name, "w") as fp:
+                dump(pri, fp)
+            subprocess.run(
+                "git add " + pri_name,
+                shell=True,
+                check=True,
+            )
+
+    # at this point, any json blob referenced in the pr info is state != closed
+    # so we can remove anything that is empty or closed
+    all_pr_json = glob.glob("pr_json/**/*.json", recursive=True)
+
+    nclosed = 0
+    files_to_remove = []
+    for fname in tqdm.tqdm(
+        all_pr_json,
+        ncols=120,
+        desc="removing closed PR json by pr json",
+    ):
+        with open(fname) as fp:
+            pr_json = json.load(fp)
+
+        if pr_json.get("state", None) == "closed" or pr_json == {}:
+            nclosed += 1
+            files_to_remove.append(fname)
+            if nclosed % 1000 == 0 and files_to_remove:
+                tqdm.tqdm.write("nclosed = %d" % nclosed)
+                subprocess.run(
+                    "git rm " + " ".join(files_to_remove),
+                    shell=True,
+                    check=True,
+                )
+                files_to_remove = []
+
+    if files_to_remove:
+        subprocess.run(
+            "git rm " + " ".join(files_to_remove),
+            shell=True,
+            check=True,
+        )
+
+    if do_commit or nclosed > 0:
+        BUILD_URL = os.environ.get(BUILD_URL_KEY, "")
+        subprocess.run(
+            f'git commit -am "remove closed PR json {BUILD_URL}"',
+            shell=True,
+            check=True,
+        )
+
+
 def _update_graph_with_pr_info():
+    _remove_closed_pr_json()
     gx = load_graph()
     _update_nodes_with_bot_rerun(gx)
     _update_nodes_with_new_versions(gx)

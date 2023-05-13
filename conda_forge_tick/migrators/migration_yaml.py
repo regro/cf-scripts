@@ -176,10 +176,27 @@ class MigrationYaml(GraphMigrator):
         self.max_solver_attempts = max_solver_attempts
 
     def filter(self, attrs: "AttrsTypedDict", not_bad_str_start: str = "") -> bool:
-        wait_for_migrators = self.loaded_yaml.get("__migrator", {}).get(
-            "wait_for_migrators",
-            [],
-        )
+        """
+        Determine whether migrator needs to be filtered out.
+
+        Return value of True means to skip migrator, False means to go ahead.
+        Calls up the MRO until Migrator.filter, see docstring there (./core.py).
+        """
+        migrator_payload = self.loaded_yaml.get("__migrator", {})
+        platform_allowlist = migrator_payload.get("platform_allowlist", [])
+        wait_for_migrators = migrator_payload.get("wait_for_migrators", [])
+
+        platform_filtered = False
+        if platform_allowlist:
+            # migrator.platform_allowlist allows both styles: "osx-64" & "osx_64";
+            # before comparison, normalize to consistently use underscores (we get
+            # "_" in attrs.platforms from the feedstock_parser)
+            platform_allowlist = [x.replace("-", "_") for x in platform_allowlist]
+            # filter out nodes where the intersection between
+            # attrs.platforms and platform_allowlist is empty
+            intersection = set(attrs.get("platforms", {})) & set(platform_allowlist)
+            platform_filtered = not bool(intersection)
+
         need_to_wait = False
         if wait_for_migrators:
             found_migrators = set()
@@ -199,9 +216,13 @@ class MigrationYaml(GraphMigrator):
             wait_for_migrators,
         )
 
-        return need_to_wait or super().filter(
-            attrs=attrs,
-            not_bad_str_start=not_bad_str_start,
+        return (
+            platform_filtered
+            or need_to_wait
+            or super().filter(
+                attrs=attrs,
+                not_bad_str_start=not_bad_str_start,
+            )
         )
 
     def migrate(

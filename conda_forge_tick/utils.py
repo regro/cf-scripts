@@ -8,6 +8,7 @@ from collections.abc import Callable
 from collections import defaultdict
 import contextlib
 import itertools
+import hashlib
 import rapidjson as json
 import logging
 import functools
@@ -25,7 +26,6 @@ import subprocess
 
 import github3
 import jinja2
-import boto3
 import ruamel.yaml
 
 import networkx as nx
@@ -389,17 +389,32 @@ def get_graph_data_redis_backend(db_name):
         )
 
 
+def get_sharded_path(file_path, n_dirs=5):
+    """computed a sharded location for the LazyJson file."""
+    top_dir, file_name = os.path.split(file_path)
+
+    if len(top_dir) == 0:
+        top_dir = "lazy_json"
+
+    hx = hashlib.sha1(file_name.encode("utf-8")).hexdigest()[0:n_dirs]
+
+    pth_parts = [top_dir] + [hx[i] for i in range(n_dirs)] + [file_name]
+
+    return os.path.join(*pth_parts)
+
+
 class LazyJson(MutableMapping):
     """Lazy load a dict from a json file and save it when updated"""
 
     def __init__(self, file_name: str):
         self.file_name = file_name
+        self.sharded_path = get_sharded_path(file_name)
 
         if CF_TICK_GRAPH_DATA_BACKEND == "file":
             # If the file doesn't exist create an empty file
-            if not os.path.exists(self.file_name):
-                os.makedirs(os.path.split(self.file_name)[0], exist_ok=True)
-                with open(self.file_name, "w") as f:
+            if not os.path.exists(self.sharded_path):
+                os.makedirs(os.path.split(self.sharded_path)[0], exist_ok=True)
+                with open(self.sharded_path, "w") as f:
                     dump({}, f)
         elif CF_TICK_GRAPH_DATA_BACKEND == "redislite":
             fparts = file_name.split("/")
@@ -453,7 +468,7 @@ class LazyJson(MutableMapping):
         if self._data is None:
             if CF_TICK_GRAPH_DATA_BACKEND == "file":
                 try:
-                    with open(self.file_name) as f:
+                    with open(self.sharded_path) as f:
                         self._data = load(f)
                 except FileNotFoundError:
                     print(os.getcwd())
@@ -466,7 +481,7 @@ class LazyJson(MutableMapping):
     def _dump(self, purge=False) -> None:
         self._load()
         if CF_TICK_GRAPH_DATA_BACKEND == "file":
-            with open(self.file_name, "w") as f:
+            with open(self.sharded_path, "w") as f:
                 dump(self._data, f)
         elif CF_TICK_GRAPH_DATA_BACKEND == "redislite":
             rd = get_graph_data_redis_backend(self._dbname)
@@ -655,7 +670,6 @@ def dump_graph(
     region: str = "us-east-2",
 ) -> None:
     dump_graph_json(gx, filename)
-    # dump_graph_dynamo(gx, tablename, region)
 
 
 def load_graph(filename: str = "graph.json", reset_bad=False) -> nx.DiGraph:

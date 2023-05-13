@@ -24,6 +24,7 @@ from conda_forge_tick.utils import (
 )
 from conda_forge_tick.make_graph import make_outputs_lut_from_graph
 from conda_forge_tick.contexts import MigratorContext, FeedstockContext
+from conda_forge_tick.update_recipe import update_build_number
 
 if typing.TYPE_CHECKING:
     from ..migrators_types import (
@@ -420,22 +421,18 @@ class Migrator:
         ----------
         filename : str
             Path the the meta.yaml
-
         """
+        with open(filename) as f:
+            raw = f.read()
 
-        for p, n in self.build_patterns:
-            with open(filename) as f:
-                raw = f.read()
-            lines = raw.splitlines()
-            for i, line in enumerate(lines):
-                m = p.match(line)
-                if m is not None:
-                    old_build_number = int(m.group(2))
-                    new_build_number = self.new_build_number(old_build_number)
-                    lines[i] = m.group(1) + n.format(new_build_number)
-            upd = "\n".join(lines) + "\n"
-            with open(filename, "w") as f:
-                f.write(upd)
+        new_myaml = update_build_number(
+            raw,
+            self.new_build_number,
+            build_patterns=self.build_patterns,
+        )
+
+        with open(filename, "w") as f:
+            f.write(new_myaml)
 
     def new_build_number(self, old_number: int) -> int:
         """Determine the new build number to use.
@@ -702,9 +699,14 @@ class Replacement(Migrator):
         return graph
 
     def filter(self, attrs: "AttrsTypedDict", not_bad_str_start: str = "") -> bool:
-        return (
-            super().filter(attrs) or len(attrs.get("req", set()) & self.packages) == 0
+        requirements = attrs.get("requirements", {})
+        rq = (
+            requirements.get("build", set())
+            | requirements.get("host", set())
+            | requirements.get("run", set())
+            | requirements.get("test", set())
         )
+        return super().filter(attrs) or len(rq & self.packages) == 0
 
     def migrate(
         self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any

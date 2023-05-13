@@ -70,7 +70,7 @@ def _update_pr(update_function, dry_run, gx, job, n_jobs):
 
                 pr_json = migration.get("PR", None)
 
-                if pr_json and not pr_json["state"] == "closed":
+                if pr_json and pr_json["state"] != "closed":
                     future = pool.submit(update_function, ghctx, pr_json, gh, dry_run)
                     futures[future] = (node_id, i, pr_json)
 
