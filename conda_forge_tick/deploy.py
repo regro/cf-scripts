@@ -4,7 +4,7 @@ import subprocess
 from doctr.travis import run_command_hiding_token as doctr_run
 
 from . import sensitive_env
-from .utils import load_graph
+from .utils import load_graph, CF_TICK_GRAPH_DATA_BACKEND
 
 BUILD_URL_KEY = "CIRCLE_BUILD_URL"
 
@@ -29,19 +29,23 @@ def deploy(dry_run=False):
         print(e)
 
     files_to_add = set()
-    for dr in [
-        "pr_json",
-        "pr_info",
+    drs_to_deploy = [
         "status",
-        "node_attrs",
-        "version_pr_info",
-        "versions",
         "mappings",
         "mappings/pypi",
         "ranked_hubs_authorities.json",
         "all_feedstocks.json",
-        "graph.json",
-    ]:
+    ]
+    if CF_TICK_GRAPH_DATA_BACKEND == "file":
+        drs_to_deploy += [
+            "pr_json",
+            "pr_info",
+            "version_pr_info",
+            "versions",
+            "node_attrs",
+            "graph.json",
+        ]
+    for dr in drs_to_deploy:
         # untracked
         files_to_add |= set(
             subprocess.run(
