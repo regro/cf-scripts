@@ -1642,6 +1642,12 @@ class MockLazyJson:
     def __init__(self, data):
         self.data = data
 
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *args):
+        pass
+
 
 G = nx.DiGraph()
 G.add_node("conda", reqs=["python"])
