@@ -12,6 +12,8 @@ from conda_forge_tick.utils import (
 )
 import conda_forge_tick.utils
 
+import pytest
+
 
 def test_lazy_json_file(tmpdir):
     old_backend = conda_forge_tick.utils.CF_TICK_GRAPH_DATA_BACKEND
@@ -25,20 +27,24 @@ def test_lazy_json_file(tmpdir):
         assert os.path.exists(lj.sharded_path)
         with open(lj.sharded_path) as ff:
             assert ff.read() == json.dumps({})
-        lj["hi"] = "world"
+
+        with pytest.raises(AssertionError):
+            lj.update({"hi": "globe"})
+        with open(lj.sharded_path) as ff:
+            assert ff.read() == dumps({})
+        p = pickle.dumps(lj)
+        lj2 = pickle.loads(p)
+        assert not getattr(lj2, "_data", None)
+
+        with lj as attrs:
+            attrs["hi"] = "world"
         assert lj["hi"] == "world"
         assert os.path.exists(lj.sharded_path)
         with open(lj.sharded_path) as ff:
             assert ff.read() == dumps({"hi": "world"})
-        lj.update({"hi": "globe"})
-        with open(lj.sharded_path) as ff:
-            assert ff.read() == dumps({"hi": "globe"})
-        p = pickle.dumps(lj)
-        lj2 = pickle.loads(p)
-        assert not getattr(lj2, "_data", None)
-        assert lj2["hi"] == "globe"
 
         with lj as attrs:
+            attrs.update({"hi": "globe"})
             attrs.setdefault("lst", []).append("universe")
         with open(lj.sharded_path) as ff:
             assert ff.read() == dumps({"hi": "globe", "lst": ["universe"]})
@@ -105,13 +111,18 @@ def test_lazy_json_redis():
 
             assert rd.hget("lazy_json", "hi").decode("utf-8") == dumps({})
 
-            lj["hi"] = "world"
+            with pytest.raises(AssertionError):
+                lj.update({"hi": "globe"})
+
+            with lj as attrs:
+                attrs["hi"] = "world"
             assert lj["hi"] == "world"
             assert rd.hget("lazy_json", "hi").decode("utf-8") == dumps({"hi": "world"})
             with open(lj.sharded_path) as fp:
                 assert rd.hget("lazy_json", "hi").decode("utf-8") == fp.read()
 
-            lj.update({"hi": "globe"})
+            with lj as attrs:
+                lj.update({"hi": "globe"})
             assert rd.hget("lazy_json", "hi").decode("utf-8") == dumps({"hi": "globe"})
             with open(lj.sharded_path) as fp:
                 assert rd.hget("lazy_json", "hi").decode("utf-8") == fp.read()
@@ -124,7 +135,8 @@ def test_lazy_json_redis():
             with open(lj.sharded_path) as fp:
                 assert rd.hget("lazy_json", "hi").decode("utf-8") == fp.read()
 
-            lj["hii"] = "world"
+            with lj as attrs:
+                attrs["hii"] = "world"
             assert lj["hii"] == "world"
             assert rd.hget("lazy_json", "hi").decode("utf-8") == dumps(
                 {"hii": "world", "hi": "globe"},
@@ -211,23 +223,19 @@ def test_lazy_json(tmpdir):
     assert fpth == lj.sharded_path
     with open(fpth) as ff:
         assert ff.read() == json.dumps({})
-    lj["hi"] = "world"
-    assert lj["hi"] == "world"
-    assert os.path.exists(lj.sharded_path)
-    with open(fpth) as ff:
-        assert ff.read() == dumps({"hi": "world"})
-    lj.update({"hi": "globe"})
-    with open(fpth) as ff:
-        assert ff.read() == dumps({"hi": "globe"})
+
+    with pytest.raises(AssertionError):
+        lj.update({"hi": "globe"})
+
     p = pickle.dumps(lj)
     lj2 = pickle.loads(p)
     assert not getattr(lj2, "_data", None)
-    assert lj2["hi"] == "globe"
 
     with lj as attrs:
         attrs.setdefault("lst", []).append("universe")
+    assert os.path.exists(lj.sharded_path)
     with open(fpth) as ff:
-        assert ff.read() == dumps({"hi": "globe", "lst": ["universe"]})
+        assert ff.read() == dumps({"lst": ["universe"]})
 
     with lj as attrs:
         attrs.setdefault("lst", []).append("universe")
@@ -235,7 +243,7 @@ def test_lazy_json(tmpdir):
             attrs_again.setdefault("lst", []).append("universe")
             attrs.setdefault("lst", []).append("universe")
     with open(fpth) as ff:
-        assert ff.read() == dumps({"hi": "globe", "lst": ["universe"] * 4})
+        assert ff.read() == dumps({"lst": ["universe"] * 4})
 
     with lj as attrs:
         with lj as attrs_again:
@@ -243,20 +251,28 @@ def test_lazy_json(tmpdir):
             attrs.setdefault("lst2", []).append("universe")
     with open(fpth) as ff:
         assert ff.read() == dumps(
-            {"hi": "globe", "lst": ["universe"] * 4, "lst2": ["universe"] * 2},
+            {"lst": ["universe"] * 4, "lst2": ["universe"] * 2},
         )
 
     with lj as attrs:
         del attrs["lst"]
     with open(fpth) as ff:
         assert ff.read() == dumps(
-            {"hi": "globe", "lst2": ["universe"] * 2},
+            {"lst2": ["universe"] * 2},
         )
 
     with lj as attrs:
         attrs.pop("lst2")
     with open(fpth) as ff:
-        assert ff.read() == dumps({"hi": "globe"})
+        assert ff.read() == dumps({})
+
+    with lj as attrs:
+        attrs["hi"] = "world"
+
+    with pytest.raises(AssertionError):
+        lj["hi"] = "worldz"
+
+    assert lj["hi"] == "world"
 
     assert len(lj) == 1
     assert {k for k in lj} == {"hi"}
