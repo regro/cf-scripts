@@ -444,7 +444,7 @@ def main(args: Any = None) -> None:
     # remove old status files
     old_files = glob.glob("./status/migration_*/*.*")
     for old_file in old_files:
-        mname = os.path.basename(old_file)
+        mname = os.path.basename(old_file).rsplit(".", 1)[0]
         if (mname not in total_status) and (mname not in closed_status):
             subprocess.run(
                 "git rm -f " + old_file,
