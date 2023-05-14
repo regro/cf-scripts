@@ -427,10 +427,9 @@ class LazyJson(MutableMapping):
         return self._data
 
     def clear(self):
+        assert self._in_context
         self._load()
         self._data.clear()
-        if not self._in_context:
-            self._dump()
 
     def __len__(self) -> int:
         self._load()

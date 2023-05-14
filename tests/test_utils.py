@@ -81,7 +81,8 @@ def test_lazy_json_file(tmpdir):
         assert len(lj) == 1
         assert {k for k in lj} == {"hi"}
 
-        lj.clear()
+        with lj as attrs:
+            attrs.clear()
         with open(lj.sharded_path) as ff:
             assert ff.read() == dumps({})
         assert len(lj) == 0
@@ -198,7 +199,8 @@ def test_lazy_json_redis():
             assert len(lj) == 2
             assert {k for k in lj} == {"hi", "hii"}
 
-            lj.clear()
+            with lj as attrs:
+                attrs.clear()
             assert rd.hget("lazy_json", "hi").decode("utf-8") == dumps({})
             assert len(lj) == 0
             assert not lj
@@ -277,6 +279,7 @@ def test_lazy_json(tmpdir):
     assert len(lj) == 1
     assert {k for k in lj} == {"hi"}
 
-    lj.clear()
+    with lj as attrs:
+        attrs.clear()
     with open(fpth) as ff:
         assert ff.read() == dumps({})
