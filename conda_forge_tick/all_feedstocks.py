@@ -1,11 +1,12 @@
 from typing import Any, List
+import copy
 
 import tqdm
 import github
 import logging
 
 from conda_forge_tick import sensitive_env
-from .utils import setup_logger, load, dump
+from .utils import setup_logger, LazyJson
 
 logger = logging.getLogger("conda_forge_tick.all_feedstocks")
 
@@ -44,8 +45,9 @@ def get_all_feedstocks_from_github():
 def get_all_feedstocks(cached: bool = False) -> List[str]:
     if cached:
         logger.info("reading cached feedstocks")
-        with open("all_feedstocks.json") as f:
-            names = load(f)["active"]
+        lzj = LazyJson("all_feedstocks.json")
+        with lzj as attrs:
+            names = copy.deepcopy(attrs["active"])
     else:
         logger.info("getting feedstocks from github")
         names = get_all_feedstocks_from_github()["active"]
@@ -55,8 +57,9 @@ def get_all_feedstocks(cached: bool = False) -> List[str]:
 def get_archived_feedstocks(cached: bool = False) -> List[str]:
     if cached:
         logger.info("reading cached archived feedstocks")
-        with open("all_feedstocks.json") as f:
-            names = load(f)["archived"]
+        lzj = LazyJson("all_feedstocks.json")
+        with lzj as attrs:
+            names = copy.deepcopy(attrs["archived"])
     else:
         logger.info("getting archived feedstocks from github")
         names = get_all_feedstocks_from_github()["archived"]
@@ -67,8 +70,10 @@ def main(args: Any = None) -> None:
     setup_logger(logger)
     logger.info("fetching active feedstocks from github")
     data = get_all_feedstocks_from_github()
-    with open("all_feedstocks.json", "w") as fp:
-        dump(data, fp)
+    lzj = LazyJson("all_feedstocks.json")
+    with lzj as attrs:
+        attrs.clear()
+        attrs.update(data)
 
 
 if __name__ == "__main__":

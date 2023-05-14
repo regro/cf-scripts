@@ -246,7 +246,8 @@ def _create_edges(gx: nx.DiGraph) -> nx.DiGraph:
                 # for packages which aren't feedstocks and aren't outputs
                 # usually these are stubs
                 lzj = LazyJson(f"node_attrs/{dep}.json")
-                lzj.update(feedstock_name=dep, bad=False, archived=True)
+                with lzj as attrs:
+                    lzj.update(feedstock_name=dep, bad=False, archived=True)
                 gx.add_node(dep, payload=lzj)
             gx.add_edge(dep, node)
     LOGGER.info("new nodes and edges inferred")

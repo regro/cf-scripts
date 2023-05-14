@@ -394,13 +394,11 @@ def get_sharded_path(file_path, n_dirs=5):
     top_dir, file_name = os.path.split(file_path)
 
     if len(top_dir) == 0:
-        top_dir = "lazy_json"
-
-    hx = hashlib.sha1(file_name.encode("utf-8")).hexdigest()[0:n_dirs]
-
-    pth_parts = [top_dir] + [hx[i] for i in range(n_dirs)] + [file_name]
-
-    return os.path.join(*pth_parts)
+        return file_path
+    else:
+        hx = hashlib.sha1(file_name.encode("utf-8")).hexdigest()[0:n_dirs]
+        pth_parts = [top_dir] + [hx[i] for i in range(n_dirs)] + [file_name]
+        return os.path.join(*pth_parts)
 
 
 class LazyJson(MutableMapping):
@@ -418,7 +416,8 @@ class LazyJson(MutableMapping):
         if CF_TICK_GRAPH_DATA_BACKEND == "file" and not os.path.exists(
             self.sharded_path,
         ):
-            os.makedirs(os.path.split(self.sharded_path)[0], exist_ok=True)
+            if os.path.split(self.sharded_path)[0]:
+                os.makedirs(os.path.split(self.sharded_path)[0], exist_ok=True)
             with open(self.sharded_path, "w") as f:
                 dump({}, f)
 
@@ -430,7 +429,8 @@ class LazyJson(MutableMapping):
     def clear(self):
         self._load()
         self._data.clear()
-        self._dump()
+        if not self._in_context:
+            self._dump()
 
     def __len__(self) -> int:
         self._load()
@@ -455,7 +455,8 @@ class LazyJson(MutableMapping):
                 # so we pull from correct source
                 if CF_TICK_GRAPH_DATA_BACKEND == "file":
                     # the file doesn't exist so create an empty file
-                    os.makedirs(os.path.split(self.sharded_path)[0], exist_ok=True)
+                    if os.path.split(self.sharded_path)[0]:
+                        os.makedirs(os.path.split(self.sharded_path)[0], exist_ok=True)
                     data_str = dumps({})
                     with open(self.sharded_path, "w") as f:
                         f.write(data_str)
@@ -488,7 +489,8 @@ class LazyJson(MutableMapping):
 
                 # cache and set the hash for later
                 if CF_TICK_GRAPH_DATA_BACKEND != "file":
-                    os.makedirs(os.path.split(self.sharded_path)[0], exist_ok=True)
+                    if os.path.split(self.sharded_path)[0]:
+                        os.makedirs(os.path.split(self.sharded_path)[0], exist_ok=True)
                     with open(self.sharded_path, "w") as fp:
                         fp.write(data_str)
 
@@ -700,8 +702,9 @@ def dump_graph_json(gx: nx.DiGraph, filename: str = "graph.json") -> None:
     links = nld["links"]
     links2 = sorted(links, key=lambda x: f'{x["source"]}{x["target"]}')
     nld["links"] = links2
-    with open(filename, "w") as f:
-        dump(nld, f)
+    lzj = LazyJson(filename)
+    with lzj as attrs:
+        attrs.update(nld)
 
 
 def dump_graph(
@@ -713,19 +716,8 @@ def dump_graph(
     dump_graph_json(gx, filename)
 
 
-def load_graph(filename: str = "graph.json", reset_bad=False) -> nx.DiGraph:
-    with open(filename) as f:
-        nld = load(f)
-    gx = nx.node_link_graph(nld)
-
-    if reset_bad:
-        for node in gx.nodes:
-            with gx.nodes[node]["payload"] as attrs:
-                attrs["parsing_error"] = False
-                with attrs["pr_info"] as pri:
-                    pri["bad"] = False
-
-    return gx
+def load_graph(filename: str = "graph.json") -> nx.DiGraph:
+    return nx.node_link_graph(copy.deepcopy(LazyJson(filename).data))
 
 
 # TODO: This type does not support generics yet sadly

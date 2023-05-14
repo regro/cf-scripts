@@ -87,8 +87,8 @@ class MigratorContext:
                 if node not in self.session.graph.nodes:
                     continue
 
-                # use a copy to avoid i/o
-                attrs = copy.deepcopy(self.session.graph.nodes[node]["payload"].data)
+                with self.session.graph.nodes[node]["payload"] as _attrs:
+                    attrs = copy.deepcopy(_attrs.data)
                 base_branches = self.migrator.get_possible_feedstock_branches(attrs)
                 filters = []
                 for base_branch in base_branches:

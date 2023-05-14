@@ -5,6 +5,7 @@ import re
 import typing
 from concurrent.futures._base import as_completed
 import hashlib
+import copy
 
 import github3
 import networkx as nx
@@ -71,7 +72,8 @@ def _update_pr(update_function, dry_run, gx, job, n_jobs):
                 pr_json = migration.get("PR", None)
 
                 if pr_json and pr_json["state"] != "closed":
-                    future = pool.submit(update_function, ghctx, pr_json, gh, dry_run)
+                    _pr_json = copy.deepcopy(pr_json.data)
+                    future = pool.submit(update_function, ghctx, _pr_json, gh, dry_run)
                     futures[future] = (node_id, i, pr_json)
 
         for f in tqdm.tqdm(
@@ -91,7 +93,8 @@ def _update_pr(update_function, dry_run, gx, job, n_jobs):
                         and pr_json["ETag"] != res["ETag"]
                     ):
                         tqdm.tqdm.write(f"Updated PR json for {name}: {res['id']}")
-                    pr_json.update(**res)
+                    with pr_json as attrs:
+                        attrs.update(**res)
             except github3.GitHubError as e:
                 logger.error(f"GITHUB ERROR ON FEEDSTOCK: {name}")
                 failed_refresh += 1

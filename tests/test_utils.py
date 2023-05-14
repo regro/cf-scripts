@@ -104,7 +104,7 @@ def test_lazy_json_redis():
             lj = LazyJson(f)
             lj.data
             assert os.path.exists("cf-graph.db.settings")
-            assert not os.path.exists(lj.file_name)
+            assert os.path.exists(lj.file_name)
             assert os.path.exists(lj.sharded_path)
 
             rd = redislite.StrictRedis("cf-graph.db")

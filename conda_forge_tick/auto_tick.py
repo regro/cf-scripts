@@ -440,7 +440,8 @@ comment. Hopefully you all can fix this!
         ljpr = LazyJson(
             os.path.join(migrator.ctx.session.prjson_dir, str(pr_json["id"]) + ".json"),
         )
-        ljpr.update(**pr_json)
+        with ljpr as __ljpr:
+            __ljpr.update(**pr_json)
     else:
         ljpr = False
 
