@@ -3,6 +3,7 @@ import os
 import rapidjson as json
 import subprocess
 import copy
+import glob
 from collections import Counter
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import time
@@ -439,6 +440,17 @@ def main(args: Any = None) -> None:
     )
     with open("./status/closed_status.json", "w") as f:
         json.dump(closed_status, f, sort_keys=True, indent=2)
+
+    # remove old status files
+    old_files = glob.glob("./status/migration_*/*.*")
+    for old_file in old_files:
+        mname = os.path.basename(old_file)
+        if (mname not in total_status) and (mname not in closed_status):
+            subprocess.run(
+                "git rm -f " + old_file,
+                shell=True,
+                check=True,
+            )
 
     if False:
         # I have turned this off since we do not use it
