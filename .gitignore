@@ -42,6 +42,7 @@ version_pr_info/*
 pr_info/*
 conda_forge_tick/_version.py
 pr_json
+pr_json/*
 .pytest_cache/*
 .pytest_cache
 lazy_json/*
