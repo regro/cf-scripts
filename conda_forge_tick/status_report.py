@@ -398,7 +398,13 @@ def main(args: Any = None) -> None:
                 os.path.join(f"./status/migration_json/{migrator_name}.json"),
                 "w",
             ) as fp:
-                json.dump(status, fp, indent=2, default=_sorted_set_json, sort_keys=True)
+                json.dump(
+                    status,
+                    fp,
+                    indent=2,
+                    default=_sorted_set_json,
+                    sort_keys=True,
+                )
 
             if num_viz <= 500:
                 d = gv.pipe("dot")
