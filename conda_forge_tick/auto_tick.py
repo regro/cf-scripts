@@ -1419,6 +1419,9 @@ def _remove_closed_pr_json():
                     pri["PRed"][pr_ind]["PR"] = {
                         "state": "closed",
                         "number": lzj.get("number", None),
+                        "labels": [
+                            {"name": lb["name"]} for lb in lzj.get("labels", [])
+                        ],
                     }
                     write = True
                     do_commit = True
