@@ -49,12 +49,19 @@ GH_MERGE_STATE_STATUS = [
 ]
 
 
+def _sorted_set_json(obj: Any) -> Any:
+    """For custom object serialization."""
+    if isinstance(obj, Set):
+        return sorted(obj)
+    raise TypeError(repr(obj) + " is not JSON serializable")
+
+
 def write_version_migrator_status(migrator, mctx):
     """write the status of the version migrator"""
 
     out = {
-        "queued": [],
-        "errored": [],
+        "queued": set(),
+        "errored": set(),
         "errors": {},
     }
 
@@ -69,9 +76,9 @@ def write_version_migrator_status(migrator, mctx):
                     continue
                 attempts = vpri.get("new_version_attempts", {}).get(new_version, 0)
                 if attempts == 0:
-                    out["queued"].append(node)
+                    out["queued"].add(node)
                 else:
-                    out["errored"].append(node)
+                    out["errored"].add(node)
                     out["errors"][node] = vpri.get("new_version_errors", {}).get(
                         new_version,
                         "No error information available for version '%s'."
@@ -79,7 +86,7 @@ def write_version_migrator_status(migrator, mctx):
                     )
 
     with open("./status/version_status.json", "w") as f:
-        json.dump(out, f, sort_keys=True, indent=2)
+        json.dump(out, f, sort_keys=True, indent=2, default=_sorted_set_json)
 
 
 def graph_migrator_status(
@@ -391,7 +398,7 @@ def main(args: Any = None) -> None:
                 os.path.join(f"./status/migration_json/{migrator_name}.json"),
                 "w",
             ) as fp:
-                json.dump(status, fp, indent=2)
+                json.dump(status, fp, indent=2, default=_sorted_set_json, sort_keys=True)
 
             if num_viz <= 500:
                 d = gv.pipe("dot")
