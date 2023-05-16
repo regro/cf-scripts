@@ -1,7 +1,7 @@
 import glob
 import tqdm
 
-from conda_forge_tick.utils import load, dump
+from conda_forge_tick.lazy_json_backends import load, dump
 from conda_forge_tick.git_utils import trim_pr_josn_keys
 
 

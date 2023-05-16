@@ -1,4 +1,5 @@
-from conda_forge_tick.utils import LazyJson, load_graph, dump_graph
+from conda_forge_tick.utils import load_graph, dump_graph
+from conda_forge_tick.lazy_json_backends import LazyJson
 
 gx = load_graph()
 for k in gx.nodes.keys():

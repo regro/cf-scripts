@@ -3,13 +3,13 @@ import json
 import pickle
 import tempfile
 
-from conda_forge_tick.utils import (
+from conda_forge_tick.lazy_json_backends import (
     LazyJson,
     dumps,
     get_graph_data_redis_backend,
     get_sharded_path,
-    pushd,
 )
+from conda_forge_tick.utils import pushd
 import conda_forge_tick.utils
 
 import pytest

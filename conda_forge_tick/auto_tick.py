@@ -1411,7 +1411,7 @@ def _update_nodes_with_new_versions(gx):
 
 
 def _remove_closed_pr_json():
-    from conda_forge_tick.utils import get_sharded_path, dump
+    from conda_forge_tick.lazy_json_backends import get_sharded_path, dump
     from conda_forge_tick.deploy import BUILD_URL_KEY
 
     # first we go from nodes to pr json and update the pr info and remove the file

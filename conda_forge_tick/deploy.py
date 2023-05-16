@@ -4,7 +4,8 @@ import subprocess
 from doctr.travis import run_command_hiding_token as doctr_run
 
 from . import sensitive_env
-from .utils import load_graph, CF_TICK_GRAPH_DATA_BACKEND
+from .utils import load_graph
+from .lazy_json_backends import CF_TICK_GRAPH_DATA_BACKEND
 
 BUILD_URL_KEY = "CIRCLE_BUILD_URL"
 

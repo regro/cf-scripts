@@ -22,7 +22,8 @@ from packaging.utils import (
     NormalizedName as PypiName,
 )
 
-from .utils import load, as_iterable, load_graph, dump, loads
+from .utils import as_iterable, load_graph
+from .lazy_json_backends import load, dump, loads
 
 
 class Mapping(TypedDict):
