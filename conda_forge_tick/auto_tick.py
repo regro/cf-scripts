@@ -1366,6 +1366,22 @@ def _update_nodes_with_bot_rerun(gx):
                         )
 
 
+def _filter_ignored_versions(attrs, version):
+    versions_to_ignore = (
+        attrs.get("conda-forge.yml", {})
+        .get("bot", {})
+        .get("version_updates", {})
+        .get("exclude", [])
+    )
+    if (
+        str(version).replace("-", ".") in versions_to_ignore
+        or str(version) in versions_to_ignore
+    ):
+        return False
+    else:
+        return version
+
+
 def _update_nodes_with_new_versions(gx):
     """Updates every node with it's new version (when available)"""
     list_files = glob.glob("./versions/**/*.json", recursive=True)
@@ -1377,7 +1393,10 @@ def _update_nodes_with_new_versions(gx):
         with gx.nodes[f"{node}"]["payload"] as attrs:
             with attrs["version_pr_info"] as vpri:
                 version_from_data = version_data.get("new_version", False)
-                version_from_attrs = vpri.get("new_version", False)
+                version_from_attrs = _filter_ignored_versions(
+                    attrs,
+                    vpri.get("new_version", False),
+                )
                 # don't update the version if it isn't newer
                 if version_from_data and isinstance(version_from_data, str):
                     # we only override the graph node if the version we found is newer
