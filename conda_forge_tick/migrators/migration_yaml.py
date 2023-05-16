@@ -437,7 +437,12 @@ class MigrationYamlCreator(Migrator):
         self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any
     ) -> "MigrationUidTypedDict":
         migration_yaml_dict = {
-            "__migrator": {"build_number": 1, "kind": "version", "migration_number": 1},
+            "__migrator": {
+                "build_number": 1,
+                "kind": "version",
+                "migration_number": 1,
+                "commit_message": f"Rebuild for {self.package_name} {self.new_pin_version}",
+            },
             self.package_name: [self.new_pin_version],
             "migrator_ts": float(time.time()),
         }
