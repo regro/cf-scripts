@@ -24,7 +24,7 @@ CF_TICK_GRAPH_DATA_HASHMAPS = [
 FIRST_LOAD_DONE = set()
 
 
-def sync_lazy_json_backends():
+def sync_lazy_json_across_backends():
     """Sync data from the primary backend to the secondary ones.
 
     If there is only one backend, this is a no-op.
