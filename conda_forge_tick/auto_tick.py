@@ -4,7 +4,6 @@ import json
 import re
 import sys
 import gc
-import subprocess
 
 import time
 import traceback
@@ -46,7 +45,11 @@ import github3
 from uuid import uuid4
 
 from conda_forge_tick.utils import pushd
-from conda_forge_tick.lazy_json_backends import get_all_keys_for_hashmap, LazyJson
+from conda_forge_tick.lazy_json_backends import (
+    get_all_keys_for_hashmap,
+    LazyJson,
+    remove_key_for_hashmap,
+)
 from conda_forge_tick.contexts import (
     FeedstockContext,
     MigratorSessionContext,
@@ -1327,6 +1330,9 @@ def _setup_limits():
 
 def _update_nodes_with_bot_rerun(gx):
     """Go through all the open PRs and check if they are rerun"""
+
+    print("processing bot-rerun labels", flush=True)
+
     for i, (name, node) in enumerate(gx.nodes.items()):
         # LOGGER.info(
         #     f"node: {i} memory usage: "
@@ -1383,6 +1389,9 @@ def _filter_ignored_versions(attrs, version):
 
 def _update_nodes_with_new_versions(gx):
     """Updates every node with it's new version (when available)"""
+
+    print("updating nodes with new versions", flush=True)
+
     version_nodes = get_all_keys_for_hashmap("versions")
 
     for node in version_nodes:
@@ -1408,98 +1417,48 @@ def _update_nodes_with_new_versions(gx):
 
 
 def _remove_closed_pr_json():
-    from conda_forge_tick.lazy_json_backends import get_sharded_path, dump
-    from conda_forge_tick.deploy import BUILD_URL_KEY
+    print("collapsing closed PR json", flush=True)
 
-    # first we go from nodes to pr json and update the pr info and remove the file
-    all_pr_info = glob.glob("pr_info/**/*.json", recursive=True) + glob.glob(
-        "version_pr_info/**/*.json",
-        recursive=True,
-    )
-
-    do_commit = False
-    for pri_name in tqdm.tqdm(
-        all_pr_info,
-        ncols=120,
-        desc="removing closed PR json by pr info",
-    ):
-        write = False
-        with open(pri_name) as fp:
-            pri = json.load(fp)
-        for pr_ind, pr in enumerate(pri.get("PRed", [])):
-            if "PR" in pr and "__lazy_json__" in pr["PR"]:
-                lzj_name = get_sharded_path(pr["PR"]["__lazy_json__"])
-                with open(lzj_name) as fp:
-                    lzj = json.load(fp)
-                if lzj.get("state", None) == "closed" or lzj == {}:
-                    pri["PRed"][pr_ind]["PR"] = {
-                        "state": "closed",
-                        "number": lzj.get("number", None),
-                        "labels": [
-                            {"name": lb["name"]} for lb in lzj.get("labels", [])
-                        ],
-                    }
-                    write = True
-                    do_commit = True
-                    subprocess.run(
-                        "git rm " + lzj_name,
-                        shell=True,
-                        check=True,
-                    )
-                    subprocess.run(
-                        "rm -f " + lzj_name,
-                        shell=True,
-                        check=True,
-                    )
-        if write:
-            with open(pri_name, "w") as fp:
-                dump(pri, fp)
-            subprocess.run(
-                "git add " + pri_name,
-                shell=True,
-                check=True,
-            )
+    # first we go from nodes to pr json and update the pr info and remove the data
+    name_nodes = [
+        ("pr_info", get_all_keys_for_hashmap("pr_info")),
+        ("version_pr_info", get_all_keys_for_hashmap("version_pr_info")),
+    ]
+    for name, nodes in name_nodes:
+        for node in nodes:
+            lzj_pri = LazyJson(f"{name}/{node}.json")
+            with lzj_pri as pri:
+                for pr_ind in len(pri.get("PRed", [])):
+                    pr = pri["PRed"][pr_ind]["PR"]
+                    if isinstance(pr, LazyJson) and (
+                        pr.get("state", None) == "closed" or pr.data == {}
+                    ):
+                        pri["PRed"][pr_ind]["PR"] = {
+                            "state": "closed",
+                            "number": pr.get("number", None),
+                            "labels": [
+                                {"name": lb["name"]} for lb in pr.get("labels", [])
+                            ],
+                        }
+                        assert len(pr.file_name.split("/")) == 2
+                        assert pr.file_name.split("/")[0] == "pr_json"
+                        assert pr.file_name.split("/")[1].endswith(".json")
+                        remove_key_for_hashmap(
+                            pr.file_name.split("/")[0],
+                            pr.file_name.split("/")[1][: -len(".json")],
+                        )
+                        del pr
 
     # at this point, any json blob referenced in the pr info is state != closed
     # so we can remove anything that is empty or closed
-    all_pr_json = glob.glob("pr_json/**/*.json", recursive=True)
-
-    nclosed = 0
-    files_to_remove = []
-    for fname in tqdm.tqdm(
-        all_pr_json,
-        ncols=120,
-        desc="removing closed PR json by pr json",
-    ):
-        with open(fname) as fp:
-            pr_json = json.load(fp)
-
-        if pr_json.get("state", None) == "closed" or pr_json == {}:
-            nclosed += 1
-            files_to_remove.append(fname)
-            if nclosed % 1000 == 0 and files_to_remove:
-                tqdm.tqdm.write("nclosed = %d" % nclosed)
-                subprocess.run(
-                    "git rm " + " ".join(files_to_remove),
-                    shell=True,
-                    check=True,
-                )
-                files_to_remove = []
-
-    if files_to_remove:
-        subprocess.run(
-            "git rm " + " ".join(files_to_remove),
-            shell=True,
-            check=True,
-        )
-
-    if do_commit or nclosed > 0:
-        BUILD_URL = os.environ.get(BUILD_URL_KEY, "")
-        subprocess.run(
-            f'git commit -am "remove closed PR json {BUILD_URL}"',
-            shell=True,
-            check=True,
-        )
+    nodes = get_all_keys_for_hashmap("pr_json")
+    for node in nodes:
+        pr = LazyJson(f"pr_json/{node}.json")
+        if pr.get("state", None) == "closed" or pr.data == {}:
+            remove_key_for_hashmap(
+                pr.file_name.split("/")[0],
+                pr.file_name.split("/")[1][: -len(".json")],
+            )
 
 
 def _update_graph_with_pr_info():
