@@ -1,3 +1,4 @@
+import os
 import pytest
 from flaky import flaky
 
@@ -327,7 +328,7 @@ def test_latest_version_npm(
     requests_mock,
     tmpdir,
 ):
-    pmy = LazyJson(tmpdir.join("cf-scripts-test.json"))
+    pmy = LazyJson(os.path.join(str(tmpdir), "cf-scripts-test.json"))
     with pmy as _pmy:
         _pmy.update(parse_meta_yaml(inp)["source"])
         _pmy.update(
@@ -356,7 +357,7 @@ def test_latest_version_npm(
 )
 @flaky
 def test_latest_version_rawurl(name, inp, curr_ver, ver, source, urls, tmpdir):
-    pmy = LazyJson(tmpdir.join("cf-scripts-test.json"))
+    pmy = LazyJson(os.path.join(tmpdir, "cf-scripts-test.json"))
     with pmy as _pmy:
         _pmy.update(parse_meta_yaml(inp)["source"])
         _pmy.update(
@@ -827,7 +828,7 @@ latest_url_nvidia_test_list = [
     latest_url_nvidia_test_list,
 )
 def test_latest_version_nvidia(name, inp, curr_ver, ver, source, urls, tmpdir):
-    pmy = LazyJson(tmpdir.join("cf-scripts-test.json"))
+    pmy = LazyJson(os.path.join(tmpdir, "cf-scripts-test.json"))
     with pmy as _pmy:
         _pmy.update(parse_meta_yaml(inp)["source"])
         _pmy.update(
