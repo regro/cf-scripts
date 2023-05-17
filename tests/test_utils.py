@@ -16,9 +16,9 @@ import pytest
 
 
 def test_lazy_json_file(tmpdir):
-    old_backend = conda_forge_tick.lazy_json_backends.CF_TICK_GRAPH_DATA_BACKEND
+    old_backend = conda_forge_tick.lazy_json_backends.CF_TICK_GRAPH_DATA_BACKENDS
     try:
-        conda_forge_tick.lazy_json_backends.CF_TICK_GRAPH_DATA_BACKEND = "file"
+        conda_forge_tick.lazy_json_backends.CF_TICK_GRAPH_DATA_BACKENDS = ("file",)
 
         f = os.path.join(tmpdir, "hi.json")
         assert not os.path.exists(f)
@@ -88,17 +88,19 @@ def test_lazy_json_file(tmpdir):
         assert len(lj) == 0
         assert not lj
     finally:
-        conda_forge_tick.lazy_json_backends.CF_TICK_GRAPH_DATA_BACKEND = old_backend
+        conda_forge_tick.lazy_json_backends.CF_TICK_GRAPH_DATA_BACKENDS = old_backend
 
 
 def test_lazy_json_redis():
-    old_backend = conda_forge_tick.lazy_json_backends.CF_TICK_GRAPH_DATA_BACKEND
+    old_backend = conda_forge_tick.lazy_json_backends.CF_TICK_GRAPH_DATA_BACKENDS
     rd = None
     with tempfile.TemporaryDirectory() as tmpdir, pushd(tmpdir):
         try:
             import redislite
 
-            conda_forge_tick.lazy_json_backends.CF_TICK_GRAPH_DATA_BACKEND = "redislite"
+            conda_forge_tick.lazy_json_backends.CF_TICK_GRAPH_DATA_BACKENDS = (
+                "redislite",
+            )
 
             f = "hi.json"
             assert not os.path.exists("cf-graph.db")
@@ -212,7 +214,9 @@ def test_lazy_json_redis():
             get_graph_data_redis_backend("cf-graph.db").close()
             get_graph_data_redis_backend("cf-graph.db").shutdown()
             get_graph_data_redis_backend.cache_clear()
-            conda_forge_tick.lazy_json_backends.CF_TICK_GRAPH_DATA_BACKEND = old_backend
+            conda_forge_tick.lazy_json_backends.CF_TICK_GRAPH_DATA_BACKENDS = (
+                old_backend
+            )
 
 
 def test_lazy_json(tmpdir):

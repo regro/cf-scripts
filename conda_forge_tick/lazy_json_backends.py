@@ -9,19 +9,23 @@ from collections.abc import MutableMapping, Callable
 import rapidjson as json
 
 
-CF_TICK_GRAPH_DATA_BACKEND = os.environ.get("CF_TICK_GRAPH_DATA_BACKEND", "file")
+CF_TICK_GRAPH_DATA_BACKENDS = tuple(
+    os.environ.get("CF_TICK_GRAPH_DATA_BACKEND", "file").split(":"),
+)
+
+FIRST_LOAD_DONE = set()
 
 
 @functools.lru_cache(maxsize=1)
 def get_graph_data_redis_backend(db_name):
-    if CF_TICK_GRAPH_DATA_BACKEND == "redislite":
+    if "redislite" in CF_TICK_GRAPH_DATA_BACKENDS:
         import redislite
 
         return redislite.StrictRedis(db_name)
-    else:
-        raise RuntimeError(
-            "Did not recognize graph data backend %s" % CF_TICK_GRAPH_DATA_BACKEND,
-        )
+
+    raise RuntimeError(
+        "Did not find a graph data backend for redis %r" % CF_TICK_GRAPH_DATA_BACKENDS,
+    )
 
 
 def get_sharded_path(file_path, n_dirs=5):
@@ -38,7 +42,7 @@ def get_sharded_path(file_path, n_dirs=5):
 
 def remove_key_for_hashmap(name, node):
     """Remove the key node for hashmap name."""
-    if CF_TICK_GRAPH_DATA_BACKEND == "file":
+    if "file" in CF_TICK_GRAPH_DATA_BACKENDS:
         lzj_name = get_sharded_path(f"{name}/{node}.json")
         subprocess.run(
             "git rm " + lzj_name,
@@ -50,27 +54,27 @@ def remove_key_for_hashmap(name, node):
             shell=True,
             check=True,
         )
-    elif CF_TICK_GRAPH_DATA_BACKEND == "redislite":
+    if "redislite" in CF_TICK_GRAPH_DATA_BACKENDS:
         rd = get_graph_data_redis_backend("cf-graph.db")
         rd.hdel(name, [node])
-    else:
-        raise RuntimeError(
-            "Did not recognize graph data backend %s" % CF_TICK_GRAPH_DATA_BACKEND,
-        )
+
+    raise RuntimeError(
+        "Did not find a valid graph data backend %r" % CF_TICK_GRAPH_DATA_BACKENDS,
+    )
 
 
 def get_all_keys_for_hashmap(name):
     """Get all keys for the hashmap `name`."""
-    if CF_TICK_GRAPH_DATA_BACKEND == "file":
+    if "file" in CF_TICK_GRAPH_DATA_BACKENDS:
         jlen = len(".json")
         fnames = glob.glob(os.path.join(name, "**/*.json"), recursive=True)
         nodes = [os.path.basename(fname)[:-jlen] for fname in fnames]
-    elif CF_TICK_GRAPH_DATA_BACKEND == "redislite":
+    elif "redislite" in CF_TICK_GRAPH_DATA_BACKENDS:
         rd = get_graph_data_redis_backend("cf-graph.db")
         nodes = rd.hkeys(name)
     else:
         raise RuntimeError(
-            "Did not recognize graph data backend %s" % CF_TICK_GRAPH_DATA_BACKEND,
+            "Did not find a valid graph data backend %r" % CF_TICK_GRAPH_DATA_BACKENDS,
         )
     return nodes
 
@@ -84,10 +88,19 @@ class LazyJson(MutableMapping):
         self._data: Optional[dict] = None
         self._data_hash_at_load = None
         self._in_context = False
+        fparts = self.file_name.split("/")
+        if len(fparts) == 2:
+            key = fparts[0]
+            node = fparts[1][: -len(".json")]
+        else:
+            key = "lazy_json"
+            node = self.file_name[: -len(".json")]
+        self.hashmap = key
+        self.node = node
 
-        # If the file doesn't exist and backend is file create an empty file
+        # If the file doesn't exist and primary backend is file create an empty file
         # this is for backwards compat with old versions
-        if CF_TICK_GRAPH_DATA_BACKEND == "file" and not os.path.exists(
+        if CF_TICK_GRAPH_DATA_BACKENDS[0] == "file" and not os.path.exists(
             self.sharded_path,
         ):
             if os.path.split(self.sharded_path)[0]:
@@ -122,11 +135,11 @@ class LazyJson(MutableMapping):
         del self._data[v]
 
     def _load(self) -> None:
+        global FIRST_LOAD_DONE
+
         if self._data is None:
-            if not os.path.exists(self.sharded_path):
-                # the data is not cached locally
-                # so we pull from correct source
-                if CF_TICK_GRAPH_DATA_BACKEND == "file":
+            if CF_TICK_GRAPH_DATA_BACKENDS[0] == "file":
+                if not os.path.exists(self.sharded_path):
                     # the file doesn't exist so create an empty file
                     if os.path.split(self.sharded_path)[0]:
                         os.makedirs(os.path.split(self.sharded_path)[0], exist_ok=True)
@@ -134,50 +147,55 @@ class LazyJson(MutableMapping):
                     with open(self.sharded_path, "w") as f:
                         f.write(data_str)
                     self._data = {}
-                elif CF_TICK_GRAPH_DATA_BACKEND == "redislite":
-                    fparts = self.file_name.split("/")
-                    if len(fparts) == 2:
-                        key = fparts[0]
-                        node = fparts[1][: -len(".json")]
-                    else:
-                        key = "lazy_json"
-                        node = self.file_name[: -len(".json")]
-
-                    self._rdkey = key
-                    self._rdnode = node
+                    self._data_hash_at_load = hashlib.sha256(
+                        data_str.encode("utf-8"),
+                    ).hexdigest()
+                else:
+                    # we have the data cached so read it
+                    with open(self.sharded_path) as f:
+                        data_str = f.read()
+                    self._data_hash_at_load = hashlib.sha256(
+                        data_str.encode("utf-8"),
+                    ).hexdigest()
+                    self._data = loads(data_str)
+            elif CF_TICK_GRAPH_DATA_BACKENDS[0] == "redislite":
+                if (
+                    os.path.exists(self.sharded_path)
+                    and (self.hashmap, self.node) in FIRST_LOAD_DONE
+                ):
+                    # we have the data cached so read it
+                    with open(self.sharded_path) as f:
+                        data_str = f.read()
+                    self._data_hash_at_load = hashlib.sha256(
+                        data_str.encode("utf-8"),
+                    ).hexdigest()
+                    self._data = loads(data_str)
+                else:
+                    # no file or we have to pull from the backend once
+                    FIRST_LOAD_DONE.add((self.hashmap, self.node))
                     rd = get_graph_data_redis_backend("cf-graph.db")
                     data_str = dumps({})
-                    if rd.hsetnx(key, node, data_str):
+                    if rd.hsetnx(self.hashmap, self.node, data_str):
                         # if a new node was created then it is empty
                         self._data = {}
                     else:
                         # nothing created so we read
-                        data_str = rd.hget(self._rdkey, self._rdnode)
+                        data_str = rd.hget(self.hashmap, self.node)
                         self._data = loads(data_str)
-                else:
-                    raise RuntimeError(
-                        "Did not recognize graph data backend %s"
-                        % CF_TICK_GRAPH_DATA_BACKEND,
-                    )
 
-                # cache and set the hash for later
-                if CF_TICK_GRAPH_DATA_BACKEND != "file":
                     if os.path.split(self.sharded_path)[0]:
                         os.makedirs(os.path.split(self.sharded_path)[0], exist_ok=True)
                     with open(self.sharded_path, "w") as fp:
                         fp.write(data_str)
 
-                self._data_hash_at_load = hashlib.sha256(
-                    data_str.encode("utf-8"),
-                ).hexdigest()
+                    self._data_hash_at_load = hashlib.sha256(
+                        data_str.encode("utf-8"),
+                    ).hexdigest()
             else:
-                # we have the data cached so read it
-                with open(self.sharded_path) as f:
-                    data_str = f.read()
-                self._data_hash_at_load = hashlib.sha256(
-                    data_str.encode("utf-8"),
-                ).hexdigest()
-                self._data = loads(data_str)
+                raise RuntimeError(
+                    "Did not find a valid primary graph data backend %r"
+                    % CF_TICK_GRAPH_DATA_BACKENDS,
+                )
 
     def _dump(self, purge=False) -> None:
         self._load()
@@ -188,16 +206,17 @@ class LazyJson(MutableMapping):
                 f.write(data_str)
             self._data_hash_at_load = curr_hash
 
-            if CF_TICK_GRAPH_DATA_BACKEND == "file":
-                pass
-            elif CF_TICK_GRAPH_DATA_BACKEND == "redislite":
-                rd = get_graph_data_redis_backend("cf-graph.db")
-                rd.hset(self._rdkey, self._rdnode, data_str)
-            else:
-                raise RuntimeError(
-                    "Did not recognize graph data backend %s"
-                    % CF_TICK_GRAPH_DATA_BACKEND,
-                )
+            # sync changes to all backends
+            for backend in CF_TICK_GRAPH_DATA_BACKENDS:
+                if backend == "file":
+                    pass
+                elif backend == "redislite":
+                    rd = get_graph_data_redis_backend("cf-graph.db")
+                    rd.hset(self.hashmap, self.node, data_str)
+                else:
+                    raise RuntimeError(
+                        "Did not recognize graph data backend %s" % backend,
+                    )
 
         if purge:
             # this evicts the josn from memory and trades i/o for mem
