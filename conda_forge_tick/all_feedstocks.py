@@ -6,7 +6,7 @@ import logging
 
 from conda_forge_tick import sensitive_env
 from .utils import setup_logger
-from .lazy_json_backend import load, dump
+from .lazy_json_backends import load, dump
 
 logger = logging.getLogger("conda_forge_tick.all_feedstocks")
 
