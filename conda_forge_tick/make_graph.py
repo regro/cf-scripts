@@ -6,7 +6,6 @@ import typing
 import traceback
 from concurrent.futures import as_completed
 from collections import defaultdict
-import glob
 
 import tqdm
 from typing import List, Optional, Iterable
@@ -26,7 +25,7 @@ from .utils import (
     as_iterable,
 )
 from . import sensitive_env
-from conda_forge_tick.lazy_json_backends import LazyJson
+from conda_forge_tick.lazy_json_backends import LazyJson, get_all_keys_for_hashmap
 
 if typing.TYPE_CHECKING:
     from .cli import CLIArgs
@@ -297,16 +296,10 @@ def _update_nodes_with_archived(gx, archived_names):
 
 def _migrate_schemas():
     # make sure to apply all schema migrations
-    node_pths = (
-        glob.glob("node_attrs/**/*.json", recursive=True)
-        + glob.glob("node_attrs/**/.json", recursive=True)
-        # shell expansion won't match .json
-    )
-    for node_pth in tqdm.tqdm(node_pths, desc="migrating node schemas", miniters=100):
-        name = os.path.basename(node_pth)[:-5]
-        lzj_pth = f"node_attrs/{name}.json"
-        with LazyJson(lzj_pth) as sub_graph:
-            _migrate_schema(name, sub_graph)
+    nodes = get_all_keys_for_hashmap("node_attrs")
+    for node in tqdm.tqdm(nodes, desc="migrating node schemas", miniters=100):
+        with LazyJson(f"node_attrs/{node}.json") as sub_graph:
+            _migrate_schema(node, sub_graph)
 
 
 # @profiling

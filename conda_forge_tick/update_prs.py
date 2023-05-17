@@ -1,7 +1,6 @@
 import logging
 import os
 import random
-import re
 import typing
 from concurrent.futures._base import as_completed
 import hashlib
@@ -34,9 +33,6 @@ logger = logging.getLogger("conda_forge_tick.update_prs")
 
 NUM_GITHUB_THREADS = 2
 KEEP_PR_FRACTION = 1.5
-
-
-PR_JSON_REGEX = re.compile(r"^pr_json/([0-9]*).json$")
 
 
 def _update_pr(update_function, dry_run, gx, job, n_jobs):
