@@ -25,7 +25,7 @@ import backoff
 
 # TODO: handle the URLs more elegantly (most likely make this a true library
 # and pull all the needed info from the various source classes)
-from conda_forge_tick.utils import LazyJson
+from conda_forge_tick.lazy_json_backends import LazyJson
 
 from conda_forge_tick import sensitive_env
 

@@ -23,10 +23,10 @@ from .utils import (
     executor,
     load_graph,
     dump_graph,
-    LazyJson,
     as_iterable,
 )
 from . import sensitive_env
+from conda_forge_tick.lazy_json_backends import LazyJson
 
 if typing.TYPE_CHECKING:
     from .cli import CLIArgs

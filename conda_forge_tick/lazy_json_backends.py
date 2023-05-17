@@ -1,6 +1,7 @@
 import os
 import hashlib
 import functools
+import glob
 from typing import Any, Union, Optional, IO, Set, Iterator
 from collections.abc import MutableMapping, Callable
 
@@ -32,6 +33,22 @@ def get_sharded_path(file_path, n_dirs=5):
         hx = hashlib.sha1(file_name.encode("utf-8")).hexdigest()[0:n_dirs]
         pth_parts = [top_dir] + [hx[i] for i in range(n_dirs)] + [file_name]
         return os.path.join(*pth_parts)
+
+
+def get_all_keys_for_hashmap(name):
+    """Get all keys for the hashmap `name`."""
+    if CF_TICK_GRAPH_DATA_BACKEND == "file":
+        jlen = len(".json")
+        fnames = glob.glob(os.path.join(name, "**/*.json"), recursive=True)
+        nodes = [os.path.basename(fname)[:-jlen] for fname in fnames]
+    elif CF_TICK_GRAPH_DATA_BACKEND == "redislite":
+        rd = get_graph_data_redis_backend("cf-graph.db")
+        nodes = rd.hkeys(name)
+    else:
+        raise RuntimeError(
+            "Did not recognize graph data backend %s" % CF_TICK_GRAPH_DATA_BACKEND,
+        )
+    return nodes
 
 
 class LazyJson(MutableMapping):

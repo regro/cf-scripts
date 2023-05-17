@@ -46,7 +46,7 @@ import github3
 from uuid import uuid4
 
 from conda_forge_tick.utils import pushd
-
+from conda_forge_tick.lazy_json_backends import get_all_keys_for_hashmap, LazyJson
 from conda_forge_tick.contexts import (
     FeedstockContext,
     MigratorSessionContext,
@@ -63,7 +63,6 @@ from conda_forge_tick.utils import (
     pluck,
     load_graph,
     dump_graph,
-    LazyJson,
     CB_CONFIG,
     parse_meta_yaml,
     eval_cmd,
@@ -1384,12 +1383,10 @@ def _filter_ignored_versions(attrs, version):
 
 def _update_nodes_with_new_versions(gx):
     """Updates every node with it's new version (when available)"""
-    list_files = glob.glob("./versions/**/*.json", recursive=True)
+    version_nodes = get_all_keys_for_hashmap("versions")
 
-    for file in list_files:
-        node = os.path.splitext(os.path.basename(str(file)))[0]
-        with open(file) as json_file:
-            version_data: typing.Dict = json.load(json_file)
+    for node in version_nodes:
+        version_data = LazyJson(f"versions/{node}.json").data
         with gx.nodes[f"{node}"]["payload"] as attrs:
             with attrs["version_pr_info"] as vpri:
                 version_from_data = version_data.get("new_version", False)
