@@ -13,7 +13,30 @@ CF_TICK_GRAPH_DATA_BACKENDS = tuple(
     os.environ.get("CF_TICK_GRAPH_DATA_BACKEND", "file").split(":"),
 )
 
+CF_TICK_GRAPH_DATA_HASHMAPS = [
+    "pr_json",
+    "pr_info",
+    "version_pr_info",
+    "versions",
+    "node_attrs",
+]
+
 FIRST_LOAD_DONE = set()
+
+
+def sync_lazy_json_backends():
+    """Sync data from the primary backend to the secondary ones.
+
+    If there is only one backend, this is a no-op.
+
+    **This operation is serial and very expensive!**
+    """
+    if len(CF_TICK_GRAPH_DATA_BACKENDS) > 1:
+        for hashmap in CF_TICK_GRAPH_DATA_HASHMAPS:
+            nodes = get_all_keys_for_hashmap(hashmap)
+            for node in nodes:
+                LazyJson(f"{hashmap}/{node}.json").sync_across_backends()
+        LazyJson("graph.json").sync_across_backends()
 
 
 @functools.lru_cache(maxsize=1)
@@ -65,11 +88,11 @@ def remove_key_for_hashmap(name, node):
 
 def get_all_keys_for_hashmap(name):
     """Get all keys for the hashmap `name`."""
-    if "file" in CF_TICK_GRAPH_DATA_BACKENDS:
+    if CF_TICK_GRAPH_DATA_BACKENDS[0] == "file":
         jlen = len(".json")
         fnames = glob.glob(os.path.join(name, "**/*.json"), recursive=True)
         nodes = [os.path.basename(fname)[:-jlen] for fname in fnames]
-    elif "redislite" in CF_TICK_GRAPH_DATA_BACKENDS:
+    elif CF_TICK_GRAPH_DATA_BACKENDS[0] == "redislite":
         rd = get_graph_data_redis_backend("cf-graph.db")
         nodes = rd.hkeys(name)
     else:
@@ -223,6 +246,26 @@ class LazyJson(MutableMapping):
             # the bot uses too much mem if we don't do this
             self._data = None
             self._data_hash_at_load = None
+
+    def sync_across_backends(self):
+        """Sync data across backends."""
+        self._load()
+        data_str = dumps(self._data)
+
+        # sync changes to all backends
+        for backend in CF_TICK_GRAPH_DATA_BACKENDS:
+            if backend == "file":
+                pass
+            elif backend == "redislite":
+                rd = get_graph_data_redis_backend("cf-graph.db")
+                rd.hset(self.hashmap, self.node, data_str)
+            else:
+                raise RuntimeError(
+                    "Did not recognize graph data backend %s" % backend,
+                )
+
+        self._data = None
+        self._data_hash_at_load = None
 
     def __getitem__(self, item: Any) -> Any:
         self._load()
