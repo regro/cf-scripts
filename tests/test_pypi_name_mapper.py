@@ -11,7 +11,7 @@ test_graph_dir = str(pathlib.Path(__file__).parent / "test_pypi_name_mapping")
 
 def test_directory():
     with pushd(test_graph_dir):
-        res = extract_pypi_information(test_graph_dir)
+        res = extract_pypi_information()
         import pprint
 
         pprint.pprint(res)
