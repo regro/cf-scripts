@@ -195,6 +195,7 @@ class LazyJson(MutableMapping):
         if self._data is None:
             file_backend = LAZY_JSON_BACKENDS["file"]()
             # check if we have it in the cache first and we have loaded it once so cache is valid
+            # if yes, load it from cache, if not load from primary backend and cache it
             if (
                 file_backend.hexists(self.hashmap, self.node)
                 and (self.hashmap, self.node) in FIRST_LOAD_DONE
