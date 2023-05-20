@@ -247,11 +247,10 @@ class LazyJson(MutableMapping):
 
         # sync changes to all backends
         for backend_name in CF_TICK_GRAPH_DATA_BACKENDS:
-            for backend_name in CF_TICK_GRAPH_DATA_BACKENDS:
-                if backend_name == "file":
-                    continue
-                backend = LAZY_JSON_BACKENDS[backend_name]()
-                backend.hset(self.hashmap, self.node, data_str)
+            if backend_name == "file":
+                continue
+            backend = LAZY_JSON_BACKENDS[backend_name]()
+            backend.hset(self.hashmap, self.node, data_str)
 
         self._data = None
         self._data_hash_at_load = None
