@@ -226,6 +226,11 @@ def sync_lazy_json_across_backends():
 
 
 def cache_all_keys_for_hashmap(name):
+    if "/" in name:
+        name = hashlib.sha256(
+            name.encode("utf-8"),
+        ).hexdigest()
+
     ffname = ".unload_to_disk_" + name + "_" + CF_TICK_GRAPH_DATA_PRIMARY_BACKEND
     if not os.path.exists(ffname):
         from .utils import PRLOCK, TRLOCK, DLOCK
