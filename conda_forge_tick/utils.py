@@ -19,6 +19,9 @@ from concurrent.futures import (
 )
 import subprocess
 
+from distributed import Lock as DLock
+import multiprocessing
+
 import github3
 import jinja2
 import ruamel.yaml
@@ -26,11 +29,25 @@ import ruamel.yaml
 import networkx as nx
 
 from . import sensitive_env
-from .lazy_json_backends import LazyJson
 
 if typing.TYPE_CHECKING:
     from mypy_extensions import TypedDict
     from conda_forge_tick.migrators_types import MetaYamlTypedDict
+
+from threading import RLock as TRLock
+
+
+class DummyLock:
+    def __enter__(self, *args, **kwargs):
+        return self
+
+    def __exit__(self, *args, **kwargs):
+        pass
+
+
+TRLOCK = TRLock()
+PRLOCK = DummyLock()
+DLOCK = DummyLock()
 
 
 logger = logging.getLogger("conda_forge_tick.utils")
@@ -409,18 +426,38 @@ def pluck(G: nx.DiGraph, node_id: Any) -> None:
         G.add_edges_from(new_edges)
 
 
+def _init_process(lock):
+    global PRLOCK
+    PRLOCK = lock
+
+
+def _init_dask(lock):
+    global DLOCK
+    DLOCK = lock
+
+
 @contextlib.contextmanager
 def executor(kind: str, max_workers: int, daemon=True) -> typing.Iterator[Executor]:
     """General purpose utility to get an executor with its as_completed handler
 
     This allows us to easily use other executors as needed.
     """
+    global DLOCK
+    global PRLOCK
+
     if kind == "thread":
         with ThreadPoolExecutor(max_workers=max_workers) as pool_t:
             yield pool_t
     elif kind == "process":
-        with ProcessPoolExecutor(max_workers=max_workers) as pool_p:
+        m = multiprocessing.Manager()
+        lock = m.RLock()
+        with ProcessPoolExecutor(
+            max_workers=max_workers,
+            initializer=_init_process,
+            initargs=(lock,),
+        ) as pool_p:
             yield pool_p
+        PRLOCK = DummyLock()
     elif kind in ["dask", "dask-process", "dask-thread"]:
         import dask
         import distributed
@@ -434,7 +471,10 @@ def executor(kind: str, max_workers: int, daemon=True) -> typing.Iterator[Execut
                 processes=processes,
             ) as cluster:
                 with distributed.Client(cluster) as client:
+                    lock = DLock(client=client)
+                    client.run(_init_dask, lock)
                     yield ClientExecutor(client)
+                DLOCK = DummyLock()
     else:
         raise NotImplementedError("That kind is not implemented")
 
@@ -444,6 +484,8 @@ def dump_graph_json(gx: nx.DiGraph, filename: str = "graph.json") -> None:
     links = nld["links"]
     links2 = sorted(links, key=lambda x: f'{x["source"]}{x["target"]}')
     nld["links"] = links2
+    from conda_forge_tick.lazy_json_backends import LazyJson
+
     lzj = LazyJson(filename)
     with lzj as attrs:
         attrs.update(nld)
@@ -459,7 +501,13 @@ def dump_graph(
 
 
 def load_graph(filename: str = "graph.json") -> nx.DiGraph:
-    return nx.node_link_graph(copy.deepcopy(LazyJson(filename).data))
+    from conda_forge_tick.lazy_json_backends import LazyJson
+
+    dta = copy.deepcopy(LazyJson(filename).data)
+    if dta:
+        return nx.node_link_graph(dta)
+    else:
+        return None
 
 
 # TODO: This type does not support generics yet sadly
@@ -473,17 +521,17 @@ if typing.TYPE_CHECKING:
 
 
 @typing.overload
-def frozen_to_json_friendly(fz: None, pr: Optional[LazyJson] = None) -> None:
+def frozen_to_json_friendly(fz: None, pr: Optional[Any] = None) -> None:
     pass
 
 
 @typing.overload
-def frozen_to_json_friendly(fz: Any, pr: Optional[LazyJson] = None) -> "JsonFriendly":
+def frozen_to_json_friendly(fz: Any, pr: Optional[Any] = None) -> "JsonFriendly":
     pass
 
 
 @typing.no_type_check
-def frozen_to_json_friendly(fz, pr: Optional[LazyJson] = None):
+def frozen_to_json_friendly(fz, pr: Optional[Any] = None):
     if fz is None:
         return None
     keys = sorted(list(fz.keys()))

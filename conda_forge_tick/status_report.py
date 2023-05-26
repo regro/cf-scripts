@@ -305,7 +305,7 @@ def _collect_items_from_nodes(gx, func):
             futs.append(exec.submit(func, k))
     return [
         fut.result()
-        for fut in tqdm.tqdm(as_completed(futs), total=len(futs))
+        for fut in tqdm.tqdm(as_completed(futs), total=len(futs), ncols=80)
         if fut.result() is not None
     ]
 

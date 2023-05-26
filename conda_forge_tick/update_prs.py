@@ -1,5 +1,4 @@
 import logging
-import os
 import random
 import typing
 from concurrent.futures._base import as_completed
@@ -57,6 +56,7 @@ def _update_pr(update_function, dry_run, gx, job, n_jobs):
             node_ids,
             desc="submiting PR refresh jobs",
             leave=False,
+            ncols=80,
         ):
             node = gx.nodes[node_id]["payload"]
             prs = node["pr_info"].get("PRed", [])
@@ -77,6 +77,7 @@ def _update_pr(update_function, dry_run, gx, job, n_jobs):
             total=len(futures),
             desc="gathering PR data",
             leave=False,
+            ncols=80,
         ):
             name, i, pr_json = futures[f]
             try:
@@ -169,16 +170,12 @@ def close_dirty_prs(
 def main(args: "CLIArgs") -> None:
     setup_logger(logger)
 
-    if os.path.exists("graph.json"):
-        gx = load_graph()
-    else:
-        gx = None
+    gx = load_graph()
 
-    if not args.dry_run:
-        gx = close_labels(gx, args.dry_run, job=args.job, n_jobs=args.n_jobs)
-        gx = update_graph_pr_status(gx, args.dry_run, job=args.job, n_jobs=args.n_jobs)
-        # This function needs to run last since it edits the actual pr json!
-        gx = close_dirty_prs(gx, args.dry_run, job=args.job, n_jobs=args.n_jobs)
+    gx = close_labels(gx, args.dry_run, job=args.job, n_jobs=args.n_jobs)
+    gx = update_graph_pr_status(gx, args.dry_run, job=args.job, n_jobs=args.n_jobs)
+    # This function needs to run last since it edits the actual pr json!
+    gx = close_dirty_prs(gx, args.dry_run, job=args.job, n_jobs=args.n_jobs)
 
 
 if __name__ == "__main__":

@@ -3,14 +3,16 @@ import hashlib
 import functools
 import glob
 import subprocess
+import tqdm
+import joblib
+
 from typing import Any, Union, Optional, IO, Set, Iterator
 from collections.abc import MutableMapping, Callable
 
 import rapidjson as json
 
-
 CF_TICK_GRAPH_DATA_BACKENDS = tuple(
-    os.environ.get("CF_TICK_GRAPH_DATA_BACKEND", "file").split(":"),
+    os.environ.get("CF_TICK_GRAPH_DATA_BACKENDS", "file").split(":"),
 )
 CF_TICK_GRAPH_DATA_PRIMARY_BACKEND = CF_TICK_GRAPH_DATA_BACKENDS[0]
 
@@ -21,8 +23,6 @@ CF_TICK_GRAPH_DATA_HASHMAPS = [
     "versions",
     "node_attrs",
 ]
-
-FIRST_LOAD_DONE = set()
 
 
 def get_sharded_path(file_path, n_dirs=5):
@@ -38,6 +38,9 @@ def get_sharded_path(file_path, n_dirs=5):
 
 
 class LazyJsonBackend:
+    def unload_to_disk(self, name):
+        raise NotImplementedError
+
     def hexists(self, name, key):
         raise NotImplementedError
 
@@ -62,6 +65,9 @@ class LazyJsonBackend:
 
 
 class FileLazyJsonBackend(LazyJsonBackend):
+    def unload_to_disk(self, name):
+        pass
+
     def hexists(self, name, key):
         return os.path.exists(get_sharded_path(f"{name}/{key}.json"))
 
@@ -101,6 +107,84 @@ class FileLazyJsonBackend(LazyJsonBackend):
 
 
 @functools.lru_cache(maxsize=1)
+def get_graph_data_mongodb_db():
+    from pymongo import MongoClient
+    import pymongo
+
+    client = MongoClient(os.environ["MONGODB_CONNECTION_STRING"])
+
+    db = client["cf_graph"]
+    for hashmap in CF_TICK_GRAPH_DATA_HASHMAPS + ["lazy_json"]:
+        if hashmap not in db.list_collection_names():
+            coll = db.create_collection(hashmap)
+            coll.create_index(
+                [("node", pymongo.ASCENDING)],
+                background=True,
+                unique=True,
+            )
+
+    return db
+
+
+class MongoDBLazyJsonBackend(LazyJsonBackend):
+    def unload_to_disk(self, name):
+        col = self._get_collection(name)
+        ntot = col.count_documents({})
+        curr = col.find({})
+        print("\n\n" + ">" * 80, flush=True)
+        print(">" * 80, flush=True)
+        for d in tqdm.tqdm(curr, ncols=80, total=ntot, desc="caching %s" % name):
+            fname = get_sharded_path(name + "/" + d["node"] + ".json")
+            if os.path.split(fname)[0]:
+                os.makedirs(os.path.split(fname)[0], exist_ok=True)
+            with open(fname, "w") as fp:
+                dump(d["value"], fp)
+        print(">" * 80, flush=True)
+        print(">" * 80 + "\n\n", flush=True)
+
+    def _get_collection(self, name):
+        return get_graph_data_mongodb_db()[name]
+
+    def hexists(self, name, key):
+        assert name in CF_TICK_GRAPH_DATA_HASHMAPS or name == "lazy_json"
+        coll = self._get_collection(name)
+        num = coll.count_documents({"node": key})
+        return num == 1
+
+    def hset(self, name, key, value):
+        assert name in CF_TICK_GRAPH_DATA_HASHMAPS or name == "lazy_json"
+        coll = self._get_collection(name)
+        coll.update_one(
+            {"node": key},
+            {
+                "$set": {
+                    "node": key,
+                    "value": json.loads(value),
+                },
+            },
+            upsert=True,
+        )
+
+    def hdel(self, name, key):
+        assert name in CF_TICK_GRAPH_DATA_HASHMAPS or name == "lazy_json"
+        coll = self._get_collection(name)
+        coll.delete_one({"node": key})
+
+    def hkeys(self, name):
+        assert name in CF_TICK_GRAPH_DATA_HASHMAPS or name == "lazy_json"
+        coll = self._get_collection(name)
+        curr = coll.find({}, {"node": 1})
+        return [doc["node"] for doc in curr]
+
+    def hget(self, name, key):
+        assert name in CF_TICK_GRAPH_DATA_HASHMAPS or name == "lazy_json"
+        coll = self._get_collection()
+        data = coll.find_one({"node": key})
+        assert data is not None
+        return dumps(data["value"])
+
+
+@functools.lru_cache(maxsize=1)
 def get_graph_data_redislite_backend():
     import redislite
 
@@ -110,6 +194,7 @@ def get_graph_data_redislite_backend():
 LAZY_JSON_BACKENDS = {
     "file": FileLazyJsonBackend,
     "redislite": get_graph_data_redislite_backend,
+    "mongodb": MongoDBLazyJsonBackend,
 }
 
 
@@ -120,12 +205,43 @@ def sync_lazy_json_across_backends():
 
     **This operation is serial and very expensive!**
     """
+
+    def _sync_node(hashmap):
+        nodes = get_all_keys_for_hashmap(hashmap)
+        for node in tqdm.tqdm(nodes, desc=f"syncing {hashmap}", ncols=80):
+            LazyJson(f"{hashmap}/{node}.json").sync_across_backends()
+
     if len(CF_TICK_GRAPH_DATA_BACKENDS) > 1:
-        for hashmap in CF_TICK_GRAPH_DATA_HASHMAPS:
-            nodes = get_all_keys_for_hashmap(hashmap)
-            for node in nodes:
-                LazyJson(f"{hashmap}/{node}.json").sync_across_backends()
+        jobs = [
+            joblib.delayed(_sync_node)(hashmap)
+            for hashmap in CF_TICK_GRAPH_DATA_HASHMAPS
+        ]
+        with joblib.Parallel(
+            n_jobs=len(CF_TICK_GRAPH_DATA_HASHMAPS),
+            backend="loky",
+            verbose=100,
+        ) as par:
+            par(jobs)
         LazyJson("graph.json").sync_across_backends()
+
+
+def cache_all_keys_for_hashmap(name):
+    ffname = ".unload_to_disk_" + name + "_" + CF_TICK_GRAPH_DATA_PRIMARY_BACKEND
+    if not os.path.exists(ffname):
+        from .utils import PRLOCK, TRLOCK, DLOCK
+
+        def _do_the_thing():
+            if not os.path.exists(ffname):
+                LAZY_JSON_BACKENDS[CF_TICK_GRAPH_DATA_PRIMARY_BACKEND]().unload_to_disk(
+                    name,
+                )
+                with open(ffname, "w") as fp:
+                    fp.write("done")
+
+        with TRLOCK:
+            with PRLOCK:
+                with DLOCK:
+                    _do_the_thing()
 
 
 def remove_key_for_hashmap(name, node):
@@ -159,10 +275,6 @@ class LazyJson(MutableMapping):
         self.hashmap = key
         self.node = node
 
-        # if key doesn't exist set it to an empty blob
-        primary_backend = LAZY_JSON_BACKENDS[CF_TICK_GRAPH_DATA_PRIMARY_BACKEND]()
-        primary_backend.hsetnx(self.hashmap, self.node, dumps({}))
-
     @property
     def data(self):
         self._load()
@@ -190,23 +302,21 @@ class LazyJson(MutableMapping):
         del self._data[v]
 
     def _load(self) -> None:
-        global FIRST_LOAD_DONE
-
         if self._data is None:
+            cache_all_keys_for_hashmap(self.hashmap)
+
             file_backend = LAZY_JSON_BACKENDS["file"]()
             # check if we have it in the cache first and we have loaded it once so cache is valid
             # if yes, load it from cache, if not load from primary backend and cache it
-            if (
-                file_backend.hexists(self.hashmap, self.node)
-                and (self.hashmap, self.node) in FIRST_LOAD_DONE
-            ):
+            if file_backend.hexists(self.hashmap, self.node):
                 data_str = file_backend.hget(self.hashmap, self.node)
             else:
-                FIRST_LOAD_DONE.add((self.hashmap, self.node))
                 backend = LAZY_JSON_BACKENDS[CF_TICK_GRAPH_DATA_PRIMARY_BACKEND]()
+                backend.hsetnx(self.hashmap, self.node, dumps({}))
                 data_str = backend.hget(self.hashmap, self.node)
                 if isinstance(data_str, bytes):
                     data_str = data_str.decode("utf-8")
+                data_str = dumps(loads(data_str))
 
                 # cache it locally for later
                 if CF_TICK_GRAPH_DATA_PRIMARY_BACKEND != "file":

@@ -20,7 +20,12 @@ def get_all_feedstocks_from_github():
     not_archived = set()
     default_branches = {}
     repos = org.get_repos(type="public")
-    for r in tqdm.tqdm(repos, total=org.public_repos, desc="getting all feedstocks"):
+    for r in tqdm.tqdm(
+        repos,
+        total=org.public_repos,
+        desc="getting all feedstocks",
+        ncols=80,
+    ):
         if r.name.endswith("-feedstock"):
             # special casing for weird renaming in the api
             if r.name == "numpy-sugar-feedstock":
