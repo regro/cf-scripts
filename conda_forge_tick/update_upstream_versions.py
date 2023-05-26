@@ -1,14 +1,13 @@
 import networkx as nx
 import logging
 import random
-import json
 import time
 import os
 import tqdm
 import hashlib
 from concurrent.futures import as_completed
 
-from .utils import setup_logger, load_graph, executor, get_sharded_path
+from .utils import setup_logger, load_graph, executor, get_sharded_path, dump
 from .update_sources import (
     AbstractSource,
     PyPI,
@@ -148,7 +147,7 @@ def _update_upstream_versions_sequential(
         vpth = get_sharded_path(f"versions/{node}.json")
         os.makedirs(os.path.dirname(vpth), exist_ok=True)
         with open(vpth, "w") as outfile:
-            json.dump(version_data, outfile)
+            dump(version_data, outfile)
         node_count += 1
 
 
@@ -231,7 +230,7 @@ def _update_upstream_versions_process_pool(
             vpth = get_sharded_path(f"versions/{node}.json")
             os.makedirs(os.path.dirname(vpth), exist_ok=True)
             with open(vpth, "w") as outfile:
-                json.dump(version_data, outfile)
+                dump(version_data, outfile)
 
 
 def update_upstream_versions(
