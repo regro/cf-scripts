@@ -207,7 +207,7 @@ class RedisLiteLazyJsonBackend(LazyJsonBackend):
             if os.path.split(fname)[0]:
                 os.makedirs(os.path.split(fname)[0], exist_ok=True)
             with open(fname, "w") as fp:
-                dump(value, fp)
+                fp.write(value)
         print(">" * 80, flush=True)
         print(">" * 80 + "\n\n", flush=True)
 
