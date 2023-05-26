@@ -355,10 +355,12 @@ class LazyJson(MutableMapping):
 
     def _load(self) -> None:
         if self._data is None:
+            # cache the data for a hashmap
             cache_all_keys_for_hashmap(self.hashmap)
 
             file_backend = LAZY_JSON_BACKENDS["file"]()
-            # check if we have it in the cache first and we have loaded it once so cache is valid
+
+            # check if we have it in the cache first
             # if yes, load it from cache, if not load from primary backend and cache it
             if file_backend.hexists(self.hashmap, self.node):
                 data_str = file_backend.hget(self.hashmap, self.node)
