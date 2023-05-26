@@ -47,3 +47,4 @@ pr_json/*
 .pytest_cache
 lazy_json/*
 lazy_json
+.unload_to_disk_*

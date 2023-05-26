@@ -191,9 +191,48 @@ def get_graph_data_redislite_backend():
     return redislite.StrictRedis("cf-graph.db")
 
 
+class RedisLiteLazyJsonBackend(LazyJsonBackend):
+    def unload_to_disk(self, name):
+        db = get_graph_data_redislite_backend()
+        ntot = db.hlen(name)
+        print("\n\n" + ">" * 80, flush=True)
+        print(">" * 80, flush=True)
+        for node, value in tqdm.tqdm(
+            db.hgetall(name),
+            ncols=80,
+            total=ntot,
+            desc="caching %s" % name,
+        ):
+            fname = get_sharded_path(name + "/" + node + ".json")
+            if os.path.split(fname)[0]:
+                os.makedirs(os.path.split(fname)[0], exist_ok=True)
+            with open(fname, "w") as fp:
+                dump(value, fp)
+        print(">" * 80, flush=True)
+        print(">" * 80 + "\n\n", flush=True)
+
+    def hexists(self, name, key):
+        return get_graph_data_redislite_backend().hexists(name, key)
+
+    def hset(self, name, key, value):
+        get_graph_data_redislite_backend().hset(name, key, value)
+
+    def hdel(self, name, key):
+        get_graph_data_redislite_backend().hdel(name, key)
+
+    def hkeys(self, name):
+        return get_graph_data_redislite_backend().hkeys(name)
+
+    def hsetnx(self, name, key, value):
+        return get_graph_data_redislite_backend().hsetnx(name, key, value)
+
+    def hget(self, name, key):
+        return get_graph_data_redislite_backend().hget(name, key)
+
+
 LAZY_JSON_BACKENDS = {
     "file": FileLazyJsonBackend,
-    "redislite": get_graph_data_redislite_backend,
+    "redislite": RedisLiteLazyJsonBackend,
     "mongodb": MongoDBLazyJsonBackend,
 }
 
@@ -285,7 +324,7 @@ class LazyJson(MutableMapping):
             LAZY_JSON_BACKENDS[CF_TICK_GRAPH_DATA_PRIMARY_BACKEND]().hsetnx(
                 self.hashmap,
                 self.node,
-                dumps({})
+                dumps({}),
             )
 
     @property
