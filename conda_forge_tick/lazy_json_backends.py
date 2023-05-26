@@ -280,7 +280,7 @@ class LazyJson(MutableMapping):
         self.hashmap = key
         self.node = node
 
-        # make this backwards compatible
+        # make this backwards compatible with old behavior
         if CF_TICK_GRAPH_DATA_PRIMARY_BACKEND == "file":
             LAZY_JSON_BACKENDS[CF_TICK_GRAPH_DATA_PRIMARY_BACKEND]().hsetnx(
                 self.hashmap,
