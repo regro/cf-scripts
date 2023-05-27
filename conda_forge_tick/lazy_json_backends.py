@@ -280,7 +280,7 @@ def cache_all_keys_for_hashmap(name, force=False):
 
     ffname = ".unload_to_disk_" + name + "_" + CF_TICK_GRAPH_DATA_PRIMARY_BACKEND
     if (not os.path.exists(ffname)) or force:
-        from conda_forge_tick.executor import PRLOCK, TRLOCK, DLOCK
+        from conda_forge_tick.executors import PRLOCK, TRLOCK, DLOCK
 
         def _do_the_thing():
             if (not os.path.exists(ffname)) or force:
