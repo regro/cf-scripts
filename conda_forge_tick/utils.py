@@ -264,6 +264,19 @@ def _parse_meta_yaml_impl(
                     raise RuntimeError(repr(e))
                 cfg_as_dict.update(conda_build.environ.get_dict(m=m))
 
+            for key in cfg_as_dict:
+                try:
+                    if cfg_as_dict[key].startswith("/"):
+                        if "win" in platform:
+                            phead = "%"
+                            ptail = "%"
+                        else:
+                            phead = "$"
+                            ptail = ""
+                        cfg_as_dict[key] = phead + key + ptail
+                except Exception:
+                    pass
+
             logger.debug("jinja2 environmment:\n%s", pprint.pformat(cfg_as_dict))
 
         cbc = Config(
