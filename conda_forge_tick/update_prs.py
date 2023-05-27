@@ -18,11 +18,11 @@ from conda_forge_tick.git_utils import (
     close_out_dirty_prs,
 )
 from .make_graph import ghctx
+from .executors import executor
 from .utils import (
     setup_logger,
     load_graph,
     github_client,
-    executor,
 )
 
 if typing.TYPE_CHECKING:

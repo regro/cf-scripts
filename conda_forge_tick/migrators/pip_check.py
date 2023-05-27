@@ -5,7 +5,7 @@ from ruamel.yaml import YAML
 import ruamel.yaml
 import io
 
-from conda_forge_tick.utils import pushd
+from conda_forge_tick.os_utils import pushd
 from conda_forge_tick.migrators.core import MiniMigrator
 
 if typing.TYPE_CHECKING:

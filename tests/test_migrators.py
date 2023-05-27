@@ -36,7 +36,7 @@ from conda_forge_tick.utils import (
 )
 from conda_forge_tick.feedstock_parser import populate_feedstock_attributes
 import subprocess
-from conda_forge_tick.utils import pushd
+from conda_forge_tick.os_utils import pushd
 
 
 sample_yaml_rebuild = """

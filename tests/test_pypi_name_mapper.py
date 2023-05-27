@@ -4,7 +4,7 @@ from conda_forge_tick.pypi_name_mapping import (
     extract_pypi_information,
     imports_to_canonical_import,
 )
-from conda_forge_tick.utils import pushd
+from conda_forge_tick.os_utils import pushd
 
 test_graph_dir = str(pathlib.Path(__file__).parent / "test_pypi_name_mapping")
 

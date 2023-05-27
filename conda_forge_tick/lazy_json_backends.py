@@ -11,6 +11,8 @@ from collections.abc import MutableMapping, Callable
 
 import rapidjson as json
 
+from conda_forge_tick.os_utils import pushd
+
 CF_TICK_GRAPH_DATA_BACKENDS = tuple(
     os.environ.get("CF_TICK_GRAPH_DATA_BACKENDS", "file").split(":"),
 )
@@ -264,18 +266,24 @@ def sync_lazy_json_across_backends():
         LazyJson("graph.json").sync_across_backends()
 
 
-def cache_all_keys_for_hashmap(name):
+def cache_lazy_json_to_disk(dest_dir="."):
+    with pushd(dest_dir):
+        for hashmap in CF_TICK_GRAPH_DATA_HASHMAPS + ["lazy_json"]:
+            cache_all_keys_for_hashmap(hashmap, force=True)
+
+
+def cache_all_keys_for_hashmap(name, force=False):
     if "/" in name:
         name = hashlib.sha256(
             name.encode("utf-8"),
         ).hexdigest()
 
     ffname = ".unload_to_disk_" + name + "_" + CF_TICK_GRAPH_DATA_PRIMARY_BACKEND
-    if not os.path.exists(ffname):
-        from .utils import PRLOCK, TRLOCK, DLOCK
+    if (not os.path.exists(ffname)) or force:
+        from conda_forge_tick.executor import PRLOCK, TRLOCK, DLOCK
 
         def _do_the_thing():
-            if not os.path.exists(ffname):
+            if (not os.path.exists(ffname)) or force:
                 LAZY_JSON_BACKENDS[CF_TICK_GRAPH_DATA_PRIMARY_BACKEND]().unload_to_disk(
                     name,
                 )

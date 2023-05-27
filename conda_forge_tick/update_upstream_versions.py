@@ -8,7 +8,8 @@ import hashlib
 from concurrent.futures import as_completed
 
 from .lazy_json_backends import LazyJson
-from .utils import setup_logger, load_graph, executor
+from .utils import setup_logger, load_graph
+from .executors import executor
 from .update_sources import (
     AbstractSource,
     PyPI,

@@ -7,7 +7,7 @@ from conda_forge_tick.utils import (
     yaml_safe_dump,
 )
 
-from conda_forge_tick.utils import pushd
+from conda_forge_tick.os_utils import pushd
 from conda_forge_tick.utils import _get_source_code
 from conda_forge_tick.migrators.core import MiniMigrator
 

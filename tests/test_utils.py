@@ -9,7 +9,7 @@ from conda_forge_tick.lazy_json_backends import (
     get_graph_data_redislite_backend,
     get_sharded_path,
 )
-from conda_forge_tick.utils import pushd
+from conda_forge_tick.os_utils import pushd
 import conda_forge_tick.utils
 
 import pytest
