@@ -288,13 +288,7 @@ def _parse_meta_yaml_impl(
             for key in cfg_as_dict:
                 try:
                     if cfg_as_dict[key].startswith("/"):
-                        if "win" in platform:
-                            phead = "%"
-                            ptail = "%"
-                        else:
-                            phead = "$"
-                            ptail = ""
-                        cfg_as_dict[key] = phead + key + ptail
+                        cfg_as_dict[key] = "$" + key
                 except Exception:
                     pass
 
