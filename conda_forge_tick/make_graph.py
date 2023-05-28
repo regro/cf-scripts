@@ -19,9 +19,9 @@ import networkx as nx
 from conda_forge_tick.feedstock_parser import load_feedstock
 from .all_feedstocks import get_all_feedstocks, get_archived_feedstocks
 from .contexts import GithubContext
+from .executors import executor
 from .utils import (
     setup_logger,
-    executor,
     load_graph,
     dump_graph,
     LazyJson,
