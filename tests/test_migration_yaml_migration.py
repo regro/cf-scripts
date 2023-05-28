@@ -13,7 +13,7 @@ from conda_forge_tick.utils import (
 )
 from conda_forge_tick.feedstock_parser import populate_feedstock_attributes
 from conda_forge_tick.migrators import MigrationYamlCreator, merge_migrator_cbc
-from conda_forge_tick.utils import pushd, eval_cmd
+from conda_forge_tick.os_utils import pushd, eval_cmd
 
 G = nx.DiGraph()
 G.add_node("conda", reqs=["python"], payload={})

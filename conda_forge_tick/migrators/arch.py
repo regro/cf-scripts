@@ -13,7 +13,7 @@ from conda_forge_tick.utils import (
     yaml_safe_load,
     yaml_safe_dump,
 )
-from conda_forge_tick.utils import pushd
+from conda_forge_tick.os_utils import pushd
 from conda_forge_tick.make_graph import get_deps_from_outputs_lut
 from .migration_yaml import all_noarch
 

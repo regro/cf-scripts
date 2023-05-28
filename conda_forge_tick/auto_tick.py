@@ -45,7 +45,7 @@ from urllib.error import URLError
 import github3
 from uuid import uuid4
 
-from conda_forge_tick.utils import pushd
+from conda_forge_tick.os_utils import pushd
 
 from conda_forge_tick.contexts import (
     FeedstockContext,

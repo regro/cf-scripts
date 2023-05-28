@@ -7,7 +7,7 @@ import typing
 import requests
 
 from conda_forge_tick.migrators import MiniMigrator
-from conda_forge_tick.utils import pushd
+from conda_forge_tick.os_utils import pushd
 
 if typing.TYPE_CHECKING:
     from conda_forge_tick.migrators_types import AttrsTypedDict

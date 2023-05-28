@@ -1,7 +1,6 @@
 import datetime
 import traceback
 import typing
-import copy
 import pprint
 import warnings
 from collections.abc import Callable
@@ -21,8 +20,6 @@ from concurrent.futures import (
     ThreadPoolExecutor,
     Executor,
 )
-import subprocess
-
 import github3
 import jinja2
 import ruamel.yaml
@@ -71,17 +68,6 @@ CB_CONFIG_PINNING = dict(
     cran_mirror="https://cran.r-project.org",
     datetime=datetime,
 )
-
-
-# https://stackoverflow.com/questions/6194499/pushd-through-os-system
-@contextlib.contextmanager
-def pushd(new_dir):
-    previous_dir = os.getcwd()
-    os.chdir(new_dir)
-    try:
-        yield
-    finally:
-        os.chdir(previous_dir)
 
 
 def yaml_safe_load(stream):
@@ -324,29 +310,6 @@ def _parse_meta_yaml_impl(
         logger.debug("parse template: %s", text)
         logger.debug("parse context:\n%s", pprint.pformat(cfg_as_dict))
         raise
-
-
-def eval_cmd(cmd, **kwargs):
-    """run a command capturing stdout
-
-    stderr is printed for debugging
-    any kwargs are added to the env
-    """
-    env = copy.deepcopy(os.environ)
-    timeout = kwargs.pop("timeout", None)
-    env.update(kwargs)
-    c = subprocess.run(
-        cmd,
-        shell=True,
-        stdout=subprocess.PIPE,
-        env=env,
-        timeout=timeout,
-    )
-    if c.returncode != 0:
-        print(c.stdout.decode("utf-8"), flush=True)
-        c.check_returncode()
-
-    return c.stdout.decode("utf-8")
 
 
 class UniversalSet(Set):
