@@ -7,6 +7,7 @@ import traceback
 from concurrent.futures import as_completed
 from collections import defaultdict
 import glob
+import random
 
 import tqdm
 from typing import List, Optional, Iterable
@@ -33,7 +34,9 @@ if typing.TYPE_CHECKING:
 
 LOGGER = logging.getLogger("conda_forge_tick.make_graph")
 pin_sep_pat = re.compile(r" |>|<|=|\[")
+random.seed(os.urandom(64))
 
+RANDOM_FRAC_TO_UPDATE = 0.1
 NUM_GITHUB_THREADS = 2
 
 with sensitive_env() as env:
@@ -150,6 +153,7 @@ def _build_graph_process_pool(
         futures = {
             pool.submit(get_attrs, name, i, mark_not_archived=mark_not_archived): name
             for i, name in enumerate(names)
+            if random.uniform(0, 1) < RANDOM_FRAC_TO_UPDATE
         }
         LOGGER.info("submitted all nodes")
 
