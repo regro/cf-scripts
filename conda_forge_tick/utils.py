@@ -1,7 +1,6 @@
 import datetime
 import traceback
 import typing
-import copy
 import pprint
 import warnings
 from collections import defaultdict
