@@ -14,7 +14,7 @@ from conda_smithy.update_cb3 import update_cb3
 from conda_forge_tick.contexts import FeedstockContext
 from conda_forge_tick.migrators.core import Migrator, GraphMigrator
 from conda_forge_tick.utils import UniversalSet, yaml_safe_load, yaml_safe_dump
-from conda_forge_tick.utils import pushd
+from conda_forge_tick.os_utils import pushd
 
 from rever.tools import eval_version, replace_in_file
 

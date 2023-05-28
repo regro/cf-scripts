@@ -1,7 +1,6 @@
 import datetime
 import traceback
 import typing
-import copy
 import pprint
 import warnings
 from collections.abc import Callable
@@ -16,13 +15,6 @@ import io
 import os
 from typing import Any, Tuple, Iterable, Union, Optional, IO, Set
 from collections.abc import MutableMapping
-from concurrent.futures import (
-    ProcessPoolExecutor,
-    ThreadPoolExecutor,
-    Executor,
-)
-import subprocess
-
 import github3
 import jinja2
 import ruamel.yaml
@@ -71,17 +63,6 @@ CB_CONFIG_PINNING = dict(
     cran_mirror="https://cran.r-project.org",
     datetime=datetime,
 )
-
-
-# https://stackoverflow.com/questions/6194499/pushd-through-os-system
-@contextlib.contextmanager
-def pushd(new_dir):
-    previous_dir = os.getcwd()
-    os.chdir(new_dir)
-    try:
-        yield
-    finally:
-        os.chdir(previous_dir)
 
 
 def yaml_safe_load(stream):
@@ -326,29 +307,6 @@ def _parse_meta_yaml_impl(
         raise
 
 
-def eval_cmd(cmd, **kwargs):
-    """run a command capturing stdout
-
-    stderr is printed for debugging
-    any kwargs are added to the env
-    """
-    env = copy.deepcopy(os.environ)
-    timeout = kwargs.pop("timeout", None)
-    env.update(kwargs)
-    c = subprocess.run(
-        cmd,
-        shell=True,
-        stdout=subprocess.PIPE,
-        env=env,
-        timeout=timeout,
-    )
-    if c.returncode != 0:
-        print(c.stdout.decode("utf-8"), flush=True)
-        c.check_returncode()
-
-    return c.stdout.decode("utf-8")
-
-
 class UniversalSet(Set):
     """The universal set, or identity of the set intersection operation."""
 
@@ -512,36 +470,6 @@ def pluck(G: nx.DiGraph, node_id: Any) -> None:
         )
         G.remove_node(node_id)
         G.add_edges_from(new_edges)
-
-
-@contextlib.contextmanager
-def executor(kind: str, max_workers: int, daemon=True) -> typing.Iterator[Executor]:
-    """General purpose utility to get an executor with its as_completed handler
-
-    This allows us to easily use other executors as needed.
-    """
-    if kind == "thread":
-        with ThreadPoolExecutor(max_workers=max_workers) as pool_t:
-            yield pool_t
-    elif kind == "process":
-        with ProcessPoolExecutor(max_workers=max_workers) as pool_p:
-            yield pool_p
-    elif kind in ["dask", "dask-process", "dask-thread"]:
-        import dask
-        import distributed
-        from distributed.cfexecutor import ClientExecutor
-
-        processes = kind == "dask" or kind == "dask-process"
-
-        with dask.config.set({"distributed.worker.daemon": daemon}):
-            with distributed.LocalCluster(
-                n_workers=max_workers,
-                processes=processes,
-            ) as cluster:
-                with distributed.Client(cluster) as client:
-                    yield ClientExecutor(client)
-    else:
-        raise NotImplementedError("That kind is not implemented")
 
 
 def default(obj: Any) -> Any:

@@ -16,7 +16,7 @@ from conda.models.version import VersionOrder
 
 from conda_forge_tick.migrators.core import Migrator
 from conda_forge_tick.contexts import FeedstockContext
-from conda_forge_tick.utils import pushd
+from conda_forge_tick.os_utils import pushd
 from conda_forge_tick.utils import sanitize_string
 from conda_forge_tick.update_deps import get_dep_updates_and_hints
 from conda_forge_tick.update_recipe import update_version

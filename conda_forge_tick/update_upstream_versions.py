@@ -7,7 +7,8 @@ import tqdm
 import hashlib
 from concurrent.futures import as_completed
 
-from .utils import setup_logger, load_graph, executor, get_sharded_path, dump
+from .executors import executor
+from .utils import setup_logger, load_graph, get_sharded_path, dump
 from .update_sources import (
     AbstractSource,
     PyPI,
