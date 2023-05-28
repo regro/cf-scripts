@@ -45,7 +45,7 @@ from urllib.error import URLError
 import github3
 from uuid import uuid4
 
-from conda_forge_tick.os_utils import pushd
+from conda_forge_tick.os_utils import pushd, eval_cmd
 
 from conda_forge_tick.contexts import (
     FeedstockContext,
@@ -66,7 +66,6 @@ from conda_forge_tick.utils import (
     LazyJson,
     CB_CONFIG,
     parse_meta_yaml,
-    eval_cmd,
     sanitize_string,
     frozen_to_json_friendly,
     yaml_safe_load,
