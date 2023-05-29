@@ -305,7 +305,12 @@ def _migrate_schemas():
         + glob.glob("node_attrs/**/.json", recursive=True)
         # shell expansion won't match .json
     )
-    for node_pth in tqdm.tqdm(node_pths, desc="migrating node schemas", miniters=100):
+    for node_pth in tqdm.tqdm(
+        node_pths,
+        desc="migrating node schemas",
+        miniters=100,
+        ncols=80,
+    ):
         name = os.path.basename(node_pth)[:-5]
         lzj_pth = f"node_attrs/{name}.json"
         with LazyJson(lzj_pth) as sub_graph:

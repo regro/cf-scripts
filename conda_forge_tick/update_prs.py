@@ -60,6 +60,7 @@ def _update_pr(update_function, dry_run, gx, job, n_jobs):
             node_ids,
             desc="submiting PR refresh jobs",
             leave=False,
+            ncols=80,
         ):
             node = gx.nodes[node_id]["payload"]
             prs = node["pr_info"].get("PRed", [])
@@ -79,6 +80,7 @@ def _update_pr(update_function, dry_run, gx, job, n_jobs):
             total=len(futures),
             desc="gathering PR data",
             leave=False,
+            ncols=80,
         ):
             name, i, pr_json = futures[f]
             try:

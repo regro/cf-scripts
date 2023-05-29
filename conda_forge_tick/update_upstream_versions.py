@@ -170,7 +170,11 @@ def _update_upstream_versions_process_pool(
         )
         random.shuffle(_all_nodes)
 
-        for node, node_attrs in tqdm.tqdm(_all_nodes):
+        for node, node_attrs in tqdm.tqdm(
+            _all_nodes,
+            ncols=80,
+            desc="submitting version update jobs",
+        ):
             attrs = node_attrs["payload"]
             pri = attrs.get("pr_info", {})
             if (
