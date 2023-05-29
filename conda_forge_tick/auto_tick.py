@@ -1018,7 +1018,7 @@ def initialize_migrators(
 def _compute_time_per_migrator(mctx, migrators):
     # we weight each migrator by the number of available nodes to migrate
     num_nodes = []
-    for migrator in tqdm.tqdm(migrators):
+    for migrator in tqdm.tqdm(migrators, ncols=80, desc="computing time per migrator"):
         mmctx = MigratorContext(session=mctx, migrator=migrator)
         migrator.bind_to_ctx(mmctx)
 
