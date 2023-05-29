@@ -269,7 +269,7 @@ def _parse_meta_yaml_impl(
             for key in cfg_as_dict:
                 try:
                     if cfg_as_dict[key].startswith("/"):
-                        cfg_as_dict[key] = "$" + key
+                        cfg_as_dict[key] = key
                 except Exception:
                     pass
 
