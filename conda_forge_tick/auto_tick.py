@@ -44,7 +44,7 @@ from urllib.error import URLError
 import github3
 from uuid import uuid4
 
-from conda_forge_tick.os_utils import pushd
+from conda_forge_tick.os_utils import pushd, eval_cmd
 from conda_forge_tick.lazy_json_backends import (
     get_all_keys_for_hashmap,
     LazyJson,
@@ -61,7 +61,6 @@ from conda_forge_tick.git_utils import (
     is_github_api_limit_reached,
     comment_on_pr,
 )
-from conda_forge_tick.os_utils import eval_cmd
 from conda_forge_tick.utils import (
     setup_logger,
     pluck,
