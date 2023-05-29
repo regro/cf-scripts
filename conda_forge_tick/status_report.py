@@ -303,11 +303,11 @@ def _collect_items_from_nodes(gx, func):
     with ThreadPoolExecutor(max_workers=20) as exec:
         for k in gx.nodes:
             futs.append(exec.submit(func, k))
-    return [
-        fut.result()
-        for fut in tqdm.tqdm(as_completed(futs), total=len(futs), ncols=80)
-        if fut.result() is not None
-    ]
+        return [
+            fut.result()
+            for fut in tqdm.tqdm(as_completed(futs), total=len(futs), ncols=80)
+            if fut.result() is not None
+        ]
 
 
 def _compute_recently_closed(total_status, old_closed_status, old_total_status):
