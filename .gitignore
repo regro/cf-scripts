@@ -41,3 +41,4 @@ Untitled.ipynb
 version_pr_info/*
 pr_info/*
 conda_forge_tick/_version.py
+tests/test_pypi_name_mapping/pr_json/
