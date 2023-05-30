@@ -5,12 +5,55 @@ import pickle
 from conda_forge_tick.lazy_json_backends import (
     LazyJson,
     dumps,
+    loads,
+    load,
+    dump,
     get_sharded_path,
+    get_all_keys_for_hashmap,
+    remove_key_for_hashmap,
 )
 from conda_forge_tick.os_utils import pushd
 import conda_forge_tick.utils
 
 import pytest
+
+
+def test_lazy_json_backends_dump_load(tmpdir):
+    with pushd(tmpdir):
+        blob = {"c": "3333", "a": {1, 2, 3}, "b": 56, "d": LazyJson("blah.json")}
+
+        assert blob == loads(dumps(blob))
+        assert (
+            dumps(blob)
+            == """\
+{
+ "a": {
+  "__set__": true,
+  "elements": [
+   1,
+   2,
+   3
+  ]
+ },
+ "b": 56,
+ "c": "3333",
+ "d": {
+  "__lazy_json__": "blah.json"
+ }
+}"""
+        )
+
+        with open(os.path.join(tmpdir, "blah"), "w") as fp:
+            dump(blob, fp)
+
+        with open(os.path.join(tmpdir, "blah")) as fp:
+            assert load(fp) == blob
+
+        class Blah:
+            pass
+
+        with pytest.raises(TypeError):
+            dumps({"a": Blah()})
 
 
 def test_lazy_json_file(tmpdir):
@@ -154,6 +197,7 @@ def test_lazy_json(tmpdir):
         with pytest.raises(AssertionError):
             lj["hi"] = "worldz"
 
+        assert lj.data == {"hi": "world"}
         assert lj["hi"] == "world"
 
         assert len(lj) == 1
@@ -165,3 +209,20 @@ def test_lazy_json(tmpdir):
             attrs.clear()
         with open(fpth) as ff:
             assert ff.read() == dumps({})
+
+
+def test_lazy_json_backends_hashmap(tmpdir):
+    with pushd(tmpdir):
+        LazyJson("blah.json")
+        LazyJson("node_attrs/blah.json")
+        LazyJson("node_attrs/blah_blah.json")
+
+        assert get_all_keys_for_hashmap("lazy_json") == ["blah"]
+        assert sorted(get_all_keys_for_hashmap("node_attrs")) == sorted(
+            ["blah", "blah_blah"],
+        )
+        remove_key_for_hashmap("node_attrs", "blah")
+        assert sorted(get_all_keys_for_hashmap("node_attrs")) == sorted(["blah_blah"])
+        assert get_all_keys_for_hashmap("lazy_json") == ["blah"]
+        remove_key_for_hashmap("lazy_json", "blah")
+        assert get_all_keys_for_hashmap("lazy_json") == []

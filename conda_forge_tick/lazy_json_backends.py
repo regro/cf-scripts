@@ -82,22 +82,32 @@ class FileLazyJsonBackend(LazyJsonBackend):
     def hdel(self, name, keys):
         for key in keys:
             lzj_name = get_sharded_path(f"{name}/{key}.json")
-            subprocess.run(
-                "git rm -f " + lzj_name,
-                shell=True,
-                check=True,
-            )
+            try:
+                res = subprocess.run(
+                    "git rm -f " + lzj_name,
+                    shell=True,
+                    capture_output=True,
+                )
+                if res.returncode != 0:
+                    raise RuntimeError(
+                        res.stdout.decode("utf-8") + res.stderr.decode("utf-8"),
+                    )
+            except Exception as e:
+                if "not a git repository" not in str(e):
+                    raise e
             subprocess.run(
                 "rm -f " + lzj_name,
                 shell=True,
                 check=True,
+                capture_output=True,
             )
 
     def hkeys(self, name):
-        if name == "lazy_json":
-            name = "."
         jlen = len(".json")
-        fnames = glob.glob(os.path.join(name, "**/*.json"), recursive=True)
+        if name == "lazy_json":
+            fnames = glob.glob("*.json")
+        else:
+            fnames = glob.glob(os.path.join(name, "**/*.json"), recursive=True)
         return [os.path.basename(fname)[:-jlen] for fname in fnames]
 
     def hget(self, name, key):
