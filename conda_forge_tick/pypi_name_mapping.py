@@ -163,10 +163,10 @@ def extract_single_pypi_information(meta_yaml: Dict[str, Any]) -> Optional[Mappi
     return None
 
 
-def extract_pypi_information(cf_graph: str) -> List[Mapping]:
+def extract_pypi_information() -> List[Mapping]:
     package_mappings: List[Mapping] = []
     # TODO: exclude archived node_attrs
-    for f in list(glob.glob(f"{cf_graph}/node_attrs/**/*.json", recursive=True)):
+    for f in list(glob.glob("./node_attrs/**/*.json", recursive=True)):
         meta_yaml = load_node_meta_yaml(f)
         if meta_yaml is None:
             continue
@@ -281,7 +281,6 @@ def chop(x: float) -> float:
 
 def determine_best_matches_for_pypi_import(
     mapping: List[Mapping],
-    cf_graph: str,
 ) -> Tuple[Dict[str, Mapping], List[Dict]]:
     map_by_import_name: Dict[str, List[Mapping]] = defaultdict(list)
     map_by_conda_name: Dict[str, Mapping] = dict()
@@ -294,7 +293,7 @@ def determine_best_matches_for_pypi_import(
         map_by_import_name[m["import_name"]].append(m)
         map_by_conda_name[conda_name] = m
 
-    graph_file = str(pathlib.Path(cf_graph) / "graph.json")
+    graph_file = str(pathlib.Path(".") / "graph.json")
     gx = load_graph(graph_file)
     # TODO: filter out archived feedstocks?
 
@@ -365,7 +364,7 @@ def determine_best_matches_for_pypi_import(
 
     pkgs = list(gx.graph["outputs_lut"])
     ranked_list = list(sorted(pkgs, key=score))
-    with open(pathlib.Path(cf_graph) / "ranked_hubs_authorities.json", "w") as f:
+    with open(pathlib.Path(".") / "ranked_hubs_authorities.json", "w") as f:
         dump(ranked_list, f)
 
     for import_name, candidates in sorted(map_by_import_name.items()):
@@ -392,18 +391,14 @@ def determine_best_matches_for_pypi_import(
 
 
 def main(args) -> None:
-    # Path to cf-graph-countyfair repository
-    cf_graph: str = args.cf_graph
-
     # Statically defined mappings from pypi_name_mapping_static.yaml
     static_packager_mappings: List[Mapping] = load_static_mappings()
 
     # Mappings extracted from the graph
-    pypi_package_mappings: List[Mapping] = extract_pypi_information(cf_graph=cf_graph)
+    pypi_package_mappings: List[Mapping] = extract_pypi_information()
 
     # best_imports is indexed by import_name.
     best_imports, ordered_import_names = determine_best_matches_for_pypi_import(
-        cf_graph=cf_graph,
         mapping=pypi_package_mappings + static_packager_mappings,
     )
 
@@ -413,7 +408,7 @@ def main(args) -> None:
         pypi_package_mappings + static_packager_mappings,
     )
 
-    dirname = pathlib.Path(cf_graph) / "mappings" / "pypi"
+    dirname = pathlib.Path(".") / "mappings" / "pypi"
     dirname.mkdir(parents=True, exist_ok=True)
 
     yaml_dump = functools.partial(yaml.dump, default_flow_style=False, sort_keys=True)
