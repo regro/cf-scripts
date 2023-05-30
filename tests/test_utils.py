@@ -298,6 +298,8 @@ def test_lazy_json(tmpdir):
         assert len(lj) == 1
         assert {k for k in lj} == {"hi"}
 
+        with pytest.raises(AssertionError):
+            lj.clear()
         with lj as attrs:
             attrs.clear()
         with open(fpth) as ff:

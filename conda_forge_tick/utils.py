@@ -10,6 +10,7 @@ import logging
 import tempfile
 import io
 import os
+import copy
 from typing import Any, Tuple, Iterable, Optional, Set
 
 import github3
