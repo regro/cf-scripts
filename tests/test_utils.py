@@ -4,6 +4,8 @@ import pickle
 
 from conda_forge_tick.utils import LazyJson, dumps, get_sharded_path
 
+import pytest
+
 
 def test_lazy_json(tmpdir):
     f = os.path.join(tmpdir, "hi.json")
@@ -15,12 +17,18 @@ def test_lazy_json(tmpdir):
     assert fpth == lj.sharded_path
     with open(fpth) as ff:
         assert ff.read() == json.dumps({})
-    lj["hi"] = "world"
+    with pytest.raises(AssertionError):
+        lj["hi"] = "world"
+    with lj:
+        lj["hi"] = "world"
     assert lj["hi"] == "world"
     assert os.path.exists(lj.sharded_path)
     with open(fpth) as ff:
         assert ff.read() == dumps({"hi": "world"})
-    lj.update({"hi": "globe"})
+    with pytest.raises(AssertionError):
+        lj.update({"hi": "globe"})
+    with lj:
+        lj.update({"hi": "globe"})
     with open(fpth) as ff:
         assert ff.read() == dumps({"hi": "globe"})
     p = pickle.dumps(lj)
@@ -65,6 +73,9 @@ def test_lazy_json(tmpdir):
     assert len(lj) == 1
     assert {k for k in lj} == {"hi"}
 
-    lj.clear()
+    with pytest.raises(AssertionError):
+        lj.clear()
+    with lj:
+        lj.clear()
     with open(fpth) as ff:
         assert ff.read() == dumps({})

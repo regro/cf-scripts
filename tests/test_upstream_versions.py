@@ -327,15 +327,16 @@ def test_latest_version_npm(
     tmpdir,
 ):
     pmy = LazyJson(tmpdir.join("cf-scripts-test.json"))
-    pmy.update(parse_meta_yaml(inp)["source"])
-    pmy.update(
-        {
-            "feedstock_name": name,
-            "version": curr_ver,
-            "raw_meta_yaml": inp,
-            "meta_yaml": parse_meta_yaml(inp),
-        },
-    )
+    with pmy as _pmy:
+        _pmy.update(parse_meta_yaml(inp)["source"])
+        _pmy.update(
+            {
+                "feedstock_name": name,
+                "version": curr_ver,
+                "raw_meta_yaml": inp,
+                "meta_yaml": parse_meta_yaml(inp),
+            },
+        )
     [requests_mock.get(url, text=text) for url, text in urls.items()]
     attempt = get_latest_version(name, pmy, [source])
     if ver is None:
@@ -355,15 +356,16 @@ def test_latest_version_npm(
 @flaky
 def test_latest_version_rawurl(name, inp, curr_ver, ver, source, urls, tmpdir):
     pmy = LazyJson(tmpdir.join("cf-scripts-test.json"))
-    pmy.update(parse_meta_yaml(inp)["source"])
-    pmy.update(
-        {
-            "feedstock_name": name,
-            "version": curr_ver,
-            "raw_meta_yaml": inp,
-            "meta_yaml": parse_meta_yaml(inp),
-        },
-    )
+    with pmy as _pmy:
+        _pmy.update(parse_meta_yaml(inp)["source"])
+        _pmy.update(
+            {
+                "feedstock_name": name,
+                "version": curr_ver,
+                "raw_meta_yaml": inp,
+                "meta_yaml": parse_meta_yaml(inp),
+            },
+        )
     attempt = get_latest_version(name, pmy, [source])
     if ver is None:
         assert not (attempt["new_version"] is False)
@@ -825,15 +827,16 @@ latest_url_nvidia_test_list = [
 )
 def test_latest_version_nvidia(name, inp, curr_ver, ver, source, urls, tmpdir):
     pmy = LazyJson(tmpdir.join("cf-scripts-test.json"))
-    pmy.update(parse_meta_yaml(inp)["source"])
-    pmy.update(
-        {
-            "feedstock_name": name,
-            "version": curr_ver,
-            "raw_meta_yaml": inp,
-            "meta_yaml": parse_meta_yaml(inp),
-        },
-    )
+    with pmy as _pmy:
+        _pmy.update(parse_meta_yaml(inp)["source"])
+        _pmy.update(
+            {
+                "feedstock_name": name,
+                "version": curr_ver,
+                "raw_meta_yaml": inp,
+                "meta_yaml": parse_meta_yaml(inp),
+            },
+        )
     attempt = get_latest_version(name, pmy, [source])
     if ver is None:
         assert not (attempt["new_version"] is False)

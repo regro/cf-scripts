@@ -8,7 +8,7 @@ import hashlib
 from concurrent.futures import as_completed
 
 from .executors import executor
-from .utils import setup_logger, load_graph, get_sharded_path, dump
+from .utils import setup_logger, load_graph, LazyJson
 from .update_sources import (
     AbstractSource,
     PyPI,
@@ -145,10 +145,10 @@ def _update_upstream_versions_sequential(
             )
 
         logger.debug("writing out file")
-        vpth = get_sharded_path(f"versions/{node}.json")
-        os.makedirs(os.path.dirname(vpth), exist_ok=True)
-        with open(vpth, "w") as outfile:
-            dump(version_data, outfile)
+        lzj = LazyJson(f"versions/{node}.json")
+        with lzj as attrs:
+            attrs.clear()
+            attrs.update(version_data)
         node_count += 1
 
 
@@ -232,10 +232,10 @@ def _update_upstream_versions_process_pool(
                     ),
                 )
             # writing out file
-            vpth = get_sharded_path(f"versions/{node}.json")
-            os.makedirs(os.path.dirname(vpth), exist_ok=True)
-            with open(vpth, "w") as outfile:
-                dump(version_data, outfile)
+            lzj = LazyJson(f"versions/{node}.json")
+            with lzj as attrs:
+                attrs.clear()
+                attrs.update(version_data)
 
 
 def update_upstream_versions(

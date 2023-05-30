@@ -366,6 +366,7 @@ class LazyJson(MutableMapping):
             with open(self.sharded_path, "w") as f:
                 dump({}, f)
         self._data: Optional[dict] = None
+        self._in_context = False
 
     @property
     def data(self):
@@ -373,6 +374,7 @@ class LazyJson(MutableMapping):
         return self._data
 
     def clear(self):
+        assert self._in_context
         self._load()
         self._data.clear()
         self._dump()
@@ -388,6 +390,7 @@ class LazyJson(MutableMapping):
         yield from self._data
 
     def __delitem__(self, v: Any) -> None:
+        assert self._in_context
         self._load()
         assert self._data is not None
         del self._data[v]
@@ -418,6 +421,7 @@ class LazyJson(MutableMapping):
         return self._data[item]
 
     def __setitem__(self, key: Any, value: Any) -> None:
+        assert self._in_context
         self._load()
         assert self._data is not None
         self._data[key] = value
@@ -429,9 +433,11 @@ class LazyJson(MutableMapping):
         return state
 
     def __enter__(self) -> "LazyJson":
+        self._in_context = True
         return self
 
     def __exit__(self, *args: Any) -> Any:
+        self._in_context = False
         self._dump(purge=True)
 
 
