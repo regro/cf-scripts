@@ -390,7 +390,6 @@ def determine_best_matches_for_pypi_import(
 
 
 def main(args) -> None:
-
     # Statically defined mappings from pypi_name_mapping_static.yaml
     static_packager_mappings: List[Mapping] = load_static_mappings()
 
