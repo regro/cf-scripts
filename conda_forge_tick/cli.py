@@ -38,12 +38,6 @@ def main(*args, **kwargs):
         help="Don't push changes to PRs or graph to Github",
     )
     parser.add_argument(
-        "--cf-graph",
-        dest="cf_graph",
-        default=".",
-        help="location of the graph",
-    )
-    parser.add_argument(
         "--job",
         default=1,
         type=int,
