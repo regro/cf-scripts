@@ -36,7 +36,7 @@ LOGGER = logging.getLogger("conda_forge_tick.make_graph")
 pin_sep_pat = re.compile(r" |>|<|=|\[")
 random.seed(os.urandom(64))
 
-RANDOM_FRAC_TO_UPDATE = 0.1
+RANDOM_FRAC_TO_UPDATE = 1.5
 NUM_GITHUB_THREADS = 2
 
 with sensitive_env() as env:
