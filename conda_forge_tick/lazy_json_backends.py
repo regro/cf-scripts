@@ -1,6 +1,5 @@
 import os
 import hashlib
-import functools
 import glob
 import subprocess
 import tqdm
@@ -108,134 +107,8 @@ class FileLazyJsonBackend(LazyJsonBackend):
         return data_str
 
 
-@functools.lru_cache(maxsize=1)
-def get_graph_data_mongodb_db():
-    from pymongo import MongoClient
-    import pymongo
-
-    client = MongoClient(os.environ["MONGODB_CONNECTION_STRING"])
-
-    db = client["cf_graph"]
-    for hashmap in CF_TICK_GRAPH_DATA_HASHMAPS + ["lazy_json"]:
-        if hashmap not in db.list_collection_names():
-            coll = db.create_collection(hashmap)
-            coll.create_index(
-                [("node", pymongo.ASCENDING)],
-                background=True,
-                unique=True,
-            )
-
-    return db
-
-
-class MongoDBLazyJsonBackend(LazyJsonBackend):
-    def unload_to_disk(self, name):
-        col = self._get_collection(name)
-        ntot = col.count_documents({})
-        curr = col.find({})
-        print("\n\n" + ">" * 80, flush=True)
-        print(">" * 80, flush=True)
-        for d in tqdm.tqdm(curr, ncols=80, total=ntot, desc="caching %s" % name):
-            fname = get_sharded_path(name + "/" + d["node"] + ".json")
-            if os.path.split(fname)[0]:
-                os.makedirs(os.path.split(fname)[0], exist_ok=True)
-            with open(fname, "w") as fp:
-                dump(d["value"], fp)
-        print(">" * 80, flush=True)
-        print(">" * 80 + "\n\n", flush=True)
-
-    def _get_collection(self, name):
-        return get_graph_data_mongodb_db()[name]
-
-    def hexists(self, name, key):
-        assert name in CF_TICK_GRAPH_DATA_HASHMAPS or name == "lazy_json"
-        coll = self._get_collection(name)
-        num = coll.count_documents({"node": key})
-        return num == 1
-
-    def hset(self, name, key, value):
-        assert name in CF_TICK_GRAPH_DATA_HASHMAPS or name == "lazy_json"
-        coll = self._get_collection(name)
-        coll.update_one(
-            {"node": key},
-            {
-                "$set": {
-                    "node": key,
-                    "value": json.loads(value),
-                },
-            },
-            upsert=True,
-        )
-
-    def hdel(self, name, key):
-        assert name in CF_TICK_GRAPH_DATA_HASHMAPS or name == "lazy_json"
-        coll = self._get_collection(name)
-        coll.delete_one({"node": key})
-
-    def hkeys(self, name):
-        assert name in CF_TICK_GRAPH_DATA_HASHMAPS or name == "lazy_json"
-        coll = self._get_collection(name)
-        curr = coll.find({}, {"node": 1})
-        return [doc["node"] for doc in curr]
-
-    def hget(self, name, key):
-        assert name in CF_TICK_GRAPH_DATA_HASHMAPS or name == "lazy_json"
-        coll = self._get_collection()
-        data = coll.find_one({"node": key})
-        assert data is not None
-        return dumps(data["value"])
-
-
-@functools.lru_cache(maxsize=1)
-def get_graph_data_redislite_backend():
-    import redislite
-
-    return redislite.StrictRedis("cf-graph.db")
-
-
-class RedisLiteLazyJsonBackend(LazyJsonBackend):
-    def unload_to_disk(self, name):
-        db = get_graph_data_redislite_backend()
-        ntot = db.hlen(name)
-        print("\n\n" + ">" * 80, flush=True)
-        print(">" * 80, flush=True)
-        for node, value in tqdm.tqdm(
-            db.hgetall(name),
-            ncols=80,
-            total=ntot,
-            desc="caching %s" % name,
-        ):
-            fname = get_sharded_path(name + "/" + node + ".json")
-            if os.path.split(fname)[0]:
-                os.makedirs(os.path.split(fname)[0], exist_ok=True)
-            with open(fname, "w") as fp:
-                fp.write(value)
-        print(">" * 80, flush=True)
-        print(">" * 80 + "\n\n", flush=True)
-
-    def hexists(self, name, key):
-        return get_graph_data_redislite_backend().hexists(name, key)
-
-    def hset(self, name, key, value):
-        get_graph_data_redislite_backend().hset(name, key, value)
-
-    def hdel(self, name, key):
-        get_graph_data_redislite_backend().hdel(name, key)
-
-    def hkeys(self, name):
-        return get_graph_data_redislite_backend().hkeys(name)
-
-    def hsetnx(self, name, key, value):
-        return get_graph_data_redislite_backend().hsetnx(name, key, value)
-
-    def hget(self, name, key):
-        return get_graph_data_redislite_backend().hget(name, key)
-
-
 LAZY_JSON_BACKENDS = {
     "file": FileLazyJsonBackend,
-    "redislite": RedisLiteLazyJsonBackend,
-    "mongodb": MongoDBLazyJsonBackend,
 }
 
 

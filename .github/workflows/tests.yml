@@ -55,9 +55,6 @@ jobs:
             python-build
           python -m pip install -v --no-deps --no-build-isolation -e .
 
-          mamba install redis
-          pip install redislite
-
       - name: conda info and env
         shell: bash -l {0}
         run: |

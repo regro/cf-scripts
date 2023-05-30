@@ -33,7 +33,6 @@ dependencies:
  - packaging
  - psutil
  - pygithub
- - pymongo
  - pynamodb
  - python-dateutil
  - python-graphviz
