@@ -108,8 +108,8 @@ class FileLazyJsonBackend(LazyJsonBackend):
         return data_str
 
 
-@functools.lru_cache(maxsize=1)
-def get_graph_data_mongodb_db():
+@functools.lru_cache(maxsize=128)
+def _get_graph_data_mongodb_db_cached(pid):
     from pymongo import MongoClient
     import pymongo
 
@@ -126,6 +126,10 @@ def get_graph_data_mongodb_db():
             )
 
     return db
+
+
+def get_graph_data_mongodb_db():
+    return _get_graph_data_mongodb_db_cached(str(os.getpid()))
 
 
 class MongoDBLazyJsonBackend(LazyJsonBackend):
@@ -186,55 +190,8 @@ class MongoDBLazyJsonBackend(LazyJsonBackend):
         return dumps(data["value"])
 
 
-@functools.lru_cache(maxsize=1)
-def get_graph_data_redislite_backend():
-    import redislite
-
-    return redislite.StrictRedis("cf-graph.db")
-
-
-class RedisLiteLazyJsonBackend(LazyJsonBackend):
-    def unload_to_disk(self, name):
-        db = get_graph_data_redislite_backend()
-        ntot = db.hlen(name)
-        print("\n\n" + ">" * 80, flush=True)
-        print(">" * 80, flush=True)
-        for node, value in tqdm.tqdm(
-            db.hgetall(name),
-            ncols=80,
-            total=ntot,
-            desc="caching %s" % name,
-        ):
-            fname = get_sharded_path(name + "/" + node + ".json")
-            if os.path.split(fname)[0]:
-                os.makedirs(os.path.split(fname)[0], exist_ok=True)
-            with open(fname, "w") as fp:
-                fp.write(value)
-        print(">" * 80, flush=True)
-        print(">" * 80 + "\n\n", flush=True)
-
-    def hexists(self, name, key):
-        return get_graph_data_redislite_backend().hexists(name, key)
-
-    def hset(self, name, key, value):
-        get_graph_data_redislite_backend().hset(name, key, value)
-
-    def hdel(self, name, key):
-        get_graph_data_redislite_backend().hdel(name, key)
-
-    def hkeys(self, name):
-        return get_graph_data_redislite_backend().hkeys(name)
-
-    def hsetnx(self, name, key, value):
-        return get_graph_data_redislite_backend().hsetnx(name, key, value)
-
-    def hget(self, name, key):
-        return get_graph_data_redislite_backend().hget(name, key)
-
-
 LAZY_JSON_BACKENDS = {
     "file": FileLazyJsonBackend,
-    "redislite": RedisLiteLazyJsonBackend,
     "mongodb": MongoDBLazyJsonBackend,
 }
 
@@ -267,33 +224,21 @@ def sync_lazy_json_across_backends():
 
 
 def cache_lazy_json_to_disk(dest_dir="."):
-    with pushd(dest_dir):
+    from conda_forge_tick.executors import PRLOCK, TRLOCK, DLOCK
+    with pushd(dest_dir), TRLOCK, PRLOCK, DLOCK:
         for hashmap in CF_TICK_GRAPH_DATA_HASHMAPS + ["lazy_json"]:
-            cache_all_keys_for_hashmap(hashmap, force=True)
+            LAZY_JSON_BACKENDS[CF_TICK_GRAPH_DATA_PRIMARY_BACKEND]().unload_to_disk(
+                hashmap,
+            )
 
 
-def cache_all_keys_for_hashmap(name, force=False):
-    if "/" in name:
-        name = hashlib.sha256(
-            name.encode("utf-8"),
-        ).hexdigest()
-
-    ffname = ".unload_to_disk_" + name + "_" + CF_TICK_GRAPH_DATA_PRIMARY_BACKEND
-    if (not os.path.exists(ffname)) or force:
-        from conda_forge_tick.executors import PRLOCK, TRLOCK, DLOCK
-
-        def _do_the_thing():
-            if (not os.path.exists(ffname)) or force:
-                LAZY_JSON_BACKENDS[CF_TICK_GRAPH_DATA_PRIMARY_BACKEND]().unload_to_disk(
-                    name,
-                )
-                with open(ffname, "w") as fp:
-                    fp.write("done")
-
-        with TRLOCK:
-            with PRLOCK:
-                with DLOCK:
-                    _do_the_thing()
+def backup_lazy_json(dest_dir="."):
+    from conda_forge_tick.executors import PRLOCK, TRLOCK, DLOCK
+    with pushd(dest_dir), TRLOCK, PRLOCK, DLOCK:
+        for hashmap in CF_TICK_GRAPH_DATA_HASHMAPS + ["lazy_json"]:
+            LAZY_JSON_BACKENDS[CF_TICK_GRAPH_DATA_PRIMARY_BACKEND]().unload_to_disk(
+                hashmap,
+            )
 
 
 def remove_key_for_hashmap(name, node):
@@ -363,9 +308,6 @@ class LazyJson(MutableMapping):
 
     def _load(self) -> None:
         if self._data is None:
-            # cache the data for a hashmap
-            cache_all_keys_for_hashmap(self.hashmap)
-
             file_backend = LAZY_JSON_BACKENDS["file"]()
 
             # check if we have it in the cache first
