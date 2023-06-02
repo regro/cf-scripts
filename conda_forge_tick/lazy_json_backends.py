@@ -37,7 +37,6 @@ CF_TICK_GRAPH_DATA_HASHMAPS = [
     "versions",
     "node_attrs",
 ]
-_MONGO_DB_SESSION = None
 
 
 def get_sharded_path(file_path, n_dirs=5):
