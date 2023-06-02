@@ -188,13 +188,6 @@ def _get_graph_data_mongodb_client_cached(pid):
                 unique=True,
             )
 
-            coll = db.create_collection(hashmap + "_node_hashes")
-            coll.create_index(
-                [("node", pymongo.ASCENDING)],
-                background=True,
-                unique=True,
-            )
-
     return client
 
 
