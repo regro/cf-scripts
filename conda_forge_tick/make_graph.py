@@ -26,7 +26,11 @@ from .utils import (
     as_iterable,
 )
 from . import sensitive_env
-from conda_forge_tick.lazy_json_backends import LazyJson, get_all_keys_for_hashmap
+from conda_forge_tick.lazy_json_backends import (
+    LazyJson,
+    get_all_keys_for_hashmap,
+    lazy_json_transaction,
+)
 
 if typing.TYPE_CHECKING:
     from .cli import CLIArgs
@@ -95,34 +99,37 @@ def get_attrs(name: str, i: int, mark_not_archived=False) -> LazyJson:
 def _migrate_schema(name, sub_graph):
     # schema migrations and fixes go here
     if "version_pr_info" not in sub_graph:
-        sub_graph["version_pr_info"] = LazyJson(f"version_pr_info/{name}.json")
-        with sub_graph["version_pr_info"] as vpri:
-            for key in ["new_version_attempts", "new_version_errors"]:
-                if key not in vpri:
-                    vpri[key] = {}
-                if key in sub_graph:
-                    vpri[key].update(sub_graph.pop(key))
+        with lazy_json_transaction():
+            sub_graph["version_pr_info"] = LazyJson(f"version_pr_info/{name}.json")
+            with sub_graph["version_pr_info"] as vpri:
+                for key in ["new_version_attempts", "new_version_errors"]:
+                    if key not in vpri:
+                        vpri[key] = {}
+                    if key in sub_graph:
+                        vpri[key].update(sub_graph.pop(key))
 
     if "new_version" in sub_graph:
-        with sub_graph["version_pr_info"] as vpri:
-            vpri["new_version"] = sub_graph.pop("new_version")
+        with lazy_json_transaction():
+            with sub_graph["version_pr_info"] as vpri:
+                vpri["new_version"] = sub_graph.pop("new_version")
 
     if "pr_info" not in sub_graph:
-        sub_graph["pr_info"] = LazyJson(f"pr_info/{name}.json")
-        with sub_graph["pr_info"] as pri:
-            pre_key = "pre_pr_migrator_status"
-            pre_key_att = "pre_pr_migrator_attempts"
+        with lazy_json_transaction():
+            sub_graph["pr_info"] = LazyJson(f"pr_info/{name}.json")
+            with sub_graph["pr_info"] as pri:
+                pre_key = "pre_pr_migrator_status"
+                pre_key_att = "pre_pr_migrator_attempts"
 
-            for key in [pre_key, pre_key_att]:
-                if key not in pri:
-                    pri[key] = {}
-                if key in sub_graph:
-                    pri[key].update(sub_graph.pop(key))
+                for key in [pre_key, pre_key_att]:
+                    if key not in pri:
+                        pri[key] = {}
+                    if key in sub_graph:
+                        pri[key].update(sub_graph.pop(key))
 
-            # populate migrator attempts if they are not there
-            for mn in pri[pre_key]:
-                if mn not in pri[pre_key_att]:
-                    pri[pre_key_att][mn] = 1
+                # populate migrator attempts if they are not there
+                for mn in pri[pre_key]:
+                    if mn not in pri[pre_key_att]:
+                        pri[pre_key_att][mn] = 1
 
     keys_to_move = [
         "PRed",
@@ -131,12 +138,13 @@ def _migrate_schema(name, sub_graph):
         "bad",
     ]
     if any(key in sub_graph for key in keys_to_move):
-        with sub_graph["pr_info"] as pri:
-            for key in keys_to_move:
-                if key in sub_graph:
-                    pri[key] = sub_graph.pop(key)
-                    if key == "bad":
-                        pri["bad"] = False
+        with lazy_json_transaction():
+            with sub_graph["pr_info"] as pri:
+                for key in keys_to_move:
+                    if key in sub_graph:
+                        pri[key] = sub_graph.pop(key)
+                        if key == "bad":
+                            pri["bad"] = False
 
     if "parsing_error" not in sub_graph:
         sub_graph["parsing_error"] = "make_graph: missing parsing_error key"
@@ -321,6 +329,7 @@ def main(args: "CLIArgs") -> None:
     if nodes_without_paylod:
         LOGGER.warning("nodes w/o payload: %s", nodes_without_paylod)
 
+    # we do a bunch of correlated updates on json blobs here so need a transaction
     _migrate_schemas()
 
     archived_names = get_archived_feedstocks(cached=True)

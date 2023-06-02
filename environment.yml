@@ -25,7 +25,6 @@ dependencies:
  - github3.py
  - grayskull
  - jinja2
- - joblib
  - lockfile
  - mamba>=0.23
  - msgpack-python
@@ -33,6 +32,7 @@ dependencies:
  - packaging
  - psutil
  - pygithub
+ - pymongo
  - pynamodb
  - python-dateutil
  - python-graphviz
