@@ -17,7 +17,7 @@ from conda_forge_tick.migrators import (
     Migrator,
     MiniMigrator,
 )
-from conda_forge_tick.utils import LazyJson
+from conda_forge_tick.lazy_json_backends import LazyJson
 
 # Legacy THINGS
 from conda_forge_tick.migrators.disabled.legacy import (

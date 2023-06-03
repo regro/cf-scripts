@@ -4,8 +4,6 @@ Builds and maintains mapping of pypi-names to conda-forge names
 1: Packages should be build from a `https://pypi.io/packages/` source
 2: Packages MUST have a test: imports section importing it
 """
-
-import glob
 import json
 import math
 import requests
@@ -22,7 +20,8 @@ from packaging.utils import (
     NormalizedName as PypiName,
 )
 
-from .utils import load, as_iterable, load_graph, dump, loads
+from .utils import as_iterable, load_graph
+from .lazy_json_backends import dump, loads, get_all_keys_for_hashmap, LazyJson
 
 
 class Mapping(TypedDict):
@@ -32,11 +31,11 @@ class Mapping(TypedDict):
     mapping_source: str
 
 
-def load_node_meta_yaml(filename: str) -> Optional[Dict[str, str]]:
-    node_attr = load(open(filename))
+def load_node_meta_yaml(node: str) -> Optional[Dict[str, str]]:
+    node_attr = LazyJson(f"node_attrs/{node}.json")
     if node_attr.get("archived", False):
         return None
-    meta_yaml = node_attr.get("meta_yaml")
+    meta_yaml = node_attr.get("meta_yaml", None)
     return meta_yaml
 
 
@@ -165,9 +164,9 @@ def extract_single_pypi_information(meta_yaml: Dict[str, Any]) -> Optional[Mappi
 
 def extract_pypi_information() -> List[Mapping]:
     package_mappings: List[Mapping] = []
-    # TODO: exclude archived node_attrs
-    for f in list(glob.glob("./node_attrs/**/*.json", recursive=True)):
-        meta_yaml = load_node_meta_yaml(f)
+    nodes = get_all_keys_for_hashmap("node_attrs")
+    for node in nodes:
+        meta_yaml = load_node_meta_yaml(node)
         if meta_yaml is None:
             continue
         if not meta_yaml:

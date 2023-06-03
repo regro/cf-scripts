@@ -3,18 +3,16 @@ import traceback
 import typing
 import pprint
 import warnings
-from collections.abc import Callable
 from collections import defaultdict
 import contextlib
 import itertools
-import hashlib
-import rapidjson as json
 import logging
 import tempfile
 import io
 import os
-from typing import Any, Tuple, Iterable, Union, Optional, IO, Set
-from collections.abc import MutableMapping
+import copy
+from typing import Any, Tuple, Iterable, Optional, Set
+
 import github3
 import jinja2
 import ruamel.yaml
@@ -22,11 +20,11 @@ import ruamel.yaml
 import networkx as nx
 
 from . import sensitive_env
+from .lazy_json_backends import LazyJson
 
 if typing.TYPE_CHECKING:
     from mypy_extensions import TypedDict
     from conda_forge_tick.migrators_types import MetaYamlTypedDict
-
 
 logger = logging.getLogger("conda_forge_tick.utils")
 
@@ -340,107 +338,6 @@ class NullUndefined(jinja2.Undefined):
         return f'{self}["{name}"]'
 
 
-def get_sharded_path(file_path, n_dirs=5):
-    """computed a sharded location for the LazyJson file."""
-    top_dir, file_name = os.path.split(file_path)
-
-    if len(top_dir) == 0:
-        top_dir = "lazy_json"
-
-    hx = hashlib.sha1(file_name.encode("utf-8")).hexdigest()[0:n_dirs]
-
-    pth_parts = [top_dir] + [hx[i] for i in range(n_dirs)] + [file_name]
-
-    return os.path.join(*pth_parts)
-
-
-class LazyJson(MutableMapping):
-    """Lazy load a dict from a json file and save it when updated"""
-
-    def __init__(self, file_name: str):
-        self.file_name = file_name
-        self.sharded_path = get_sharded_path(file_name)
-        # If the file doesn't exist create an empty file
-        if not os.path.exists(self.sharded_path):
-            os.makedirs(os.path.split(self.sharded_path)[0], exist_ok=True)
-            with open(self.sharded_path, "w") as f:
-                dump({}, f)
-        self._data: Optional[dict] = None
-        self._in_context = False
-
-    @property
-    def data(self):
-        self._load()
-        return self._data
-
-    def clear(self):
-        assert self._in_context
-        self._load()
-        self._data.clear()
-        self._dump()
-
-    def __len__(self) -> int:
-        self._load()
-        assert self._data is not None
-        return len(self._data)
-
-    def __iter__(self) -> typing.Iterator[Any]:
-        self._load()
-        assert self._data is not None
-        yield from self._data
-
-    def __delitem__(self, v: Any) -> None:
-        assert self._in_context
-        self._load()
-        assert self._data is not None
-        del self._data[v]
-        self._dump()
-
-    def _load(self) -> None:
-        if self._data is None:
-            try:
-                with open(self.sharded_path) as f:
-                    self._data = load(f)
-            except FileNotFoundError:
-                print(os.getcwd())
-                print(os.listdir("."))
-                raise
-
-    def _dump(self, purge=False) -> None:
-        self._load()
-        with open(self.sharded_path, "w") as f:
-            dump(self._data, f)
-        if purge:
-            # this evicts the josn from memory and trades i/o for mem
-            # the bot uses too much mem if we don't do this
-            self._data = None
-
-    def __getitem__(self, item: Any) -> Any:
-        self._load()
-        assert self._data is not None
-        return self._data[item]
-
-    def __setitem__(self, key: Any, value: Any) -> None:
-        assert self._in_context
-        self._load()
-        assert self._data is not None
-        self._data[key] = value
-        self._dump()
-
-    def __getstate__(self) -> dict:
-        state = self.__dict__.copy()
-        state["_data"] = None
-        return state
-
-    def __enter__(self) -> "LazyJson":
-        self._in_context = True
-        return self
-
-    def __exit__(self, *args: Any) -> Any:
-        self._in_context = False
-        self._dump(purge=True)
-
-
 def setup_logger(logger: logging.Logger, level: Optional[str] = "INFO") -> None:
     """Basic configuration for logging"""
     logger.setLevel(level.upper())
@@ -478,85 +375,16 @@ def pluck(G: nx.DiGraph, node_id: Any) -> None:
         G.add_edges_from(new_edges)
 
 
-def default(obj: Any) -> Any:
-    """For custom object serialization."""
-    if isinstance(obj, LazyJson):
-        return {"__lazy_json__": obj.file_name}
-    elif isinstance(obj, Set):
-        return {"__set__": True, "elements": sorted(obj)}
-    raise TypeError(repr(obj) + " is not JSON serializable")
-
-
-def object_hook(dct: dict) -> Union[LazyJson, Set, dict]:
-    """For custom object deserialization."""
-    if "__lazy_json__" in dct:
-        return LazyJson(dct["__lazy_json__"])
-    elif "__set__" in dct:
-        return set(dct["elements"])
-    return dct
-
-
-def dumps(
-    obj: Any,
-    sort_keys: bool = True,
-    separators: Any = (",", ":"),
-    default: "Callable[[Any], Any]" = default,
-    **kwargs: Any,
-) -> str:
-    """Returns a JSON string from a Python object."""
-    return json.dumps(
-        obj,
-        sort_keys=sort_keys,
-        # separators=separators,
-        default=default,
-        indent=1,
-        **kwargs,
-    )
-
-
-def dump(
-    obj: Any,
-    fp: IO[str],
-    sort_keys: bool = True,
-    separators: Any = (",", ":"),
-    default: "Callable[[Any], Any]" = default,
-    **kwargs: Any,
-) -> None:
-    """Returns a JSON string from a Python object."""
-    return json.dump(
-        obj,
-        fp,
-        sort_keys=sort_keys,
-        # separators=separators,
-        default=default,
-        indent=1,
-        **kwargs,
-    )
-
-
-def loads(
-    s: str, object_hook: "Callable[[dict], Any]" = object_hook, **kwargs: Any
-) -> dict:
-    """Loads a string as JSON, with appropriate object hooks"""
-    return json.loads(s, object_hook=object_hook, **kwargs)
-
-
-def load(
-    fp: IO[str],
-    object_hook: "Callable[[dict], Any]" = object_hook,
-    **kwargs: Any,
-) -> dict:
-    """Loads a file object as JSON, with appropriate object hooks."""
-    return json.load(fp, object_hook=object_hook, **kwargs)
-
-
 def dump_graph_json(gx: nx.DiGraph, filename: str = "graph.json") -> None:
     nld = nx.node_link_data(gx)
     links = nld["links"]
     links2 = sorted(links, key=lambda x: f'{x["source"]}{x["target"]}')
     nld["links"] = links2
-    with open(filename, "w") as f:
-        dump(nld, f)
+    from conda_forge_tick.lazy_json_backends import LazyJson
+
+    lzj = LazyJson(filename)
+    with lzj as attrs:
+        attrs.update(nld)
 
 
 def dump_graph(
@@ -568,19 +396,14 @@ def dump_graph(
     dump_graph_json(gx, filename)
 
 
-def load_graph(filename: str = "graph.json", reset_bad=False) -> nx.DiGraph:
-    with open(filename) as f:
-        nld = load(f)
-    gx = nx.node_link_graph(nld)
+def load_graph(filename: str = "graph.json") -> nx.DiGraph:
+    from conda_forge_tick.lazy_json_backends import LazyJson
 
-    if reset_bad:
-        for node in gx.nodes:
-            with gx.nodes[node]["payload"] as attrs:
-                attrs["parsing_error"] = False
-                with attrs["pr_info"] as pri:
-                    pri["bad"] = False
-
-    return gx
+    dta = copy.deepcopy(LazyJson(filename).data)
+    if dta:
+        return nx.node_link_graph(dta)
+    else:
+        return None
 
 
 # TODO: This type does not support generics yet sadly

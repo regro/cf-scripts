@@ -1,7 +1,5 @@
 import logging
-import os
 import random
-import re
 import typing
 from concurrent.futures._base import as_completed
 import hashlib
@@ -34,9 +32,6 @@ logger = logging.getLogger("conda_forge_tick.update_prs")
 
 NUM_GITHUB_THREADS = 2
 KEEP_PR_FRACTION = 1.5
-
-
-PR_JSON_REGEX = re.compile(r"^pr_json/([0-9]*).json$")
 
 
 def _update_pr(update_function, dry_run, gx, job, n_jobs):
@@ -175,16 +170,12 @@ def close_dirty_prs(
 def main(args: "CLIArgs") -> None:
     setup_logger(logger)
 
-    if os.path.exists("graph.json"):
-        gx = load_graph()
-    else:
-        gx = None
+    gx = load_graph()
 
-    if not args.dry_run:
-        gx = close_labels(gx, args.dry_run, job=args.job, n_jobs=args.n_jobs)
-        gx = update_graph_pr_status(gx, args.dry_run, job=args.job, n_jobs=args.n_jobs)
-        # This function needs to run last since it edits the actual pr json!
-        gx = close_dirty_prs(gx, args.dry_run, job=args.job, n_jobs=args.n_jobs)
+    gx = close_labels(gx, args.dry_run, job=args.job, n_jobs=args.n_jobs)
+    gx = update_graph_pr_status(gx, args.dry_run, job=args.job, n_jobs=args.n_jobs)
+    # This function needs to run last since it edits the actual pr json!
+    gx = close_dirty_prs(gx, args.dry_run, job=args.job, n_jobs=args.n_jobs)
 
 
 if __name__ == "__main__":

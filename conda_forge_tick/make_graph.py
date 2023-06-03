@@ -6,7 +6,6 @@ import typing
 import traceback
 from concurrent.futures import as_completed
 from collections import defaultdict
-import glob
 import random
 
 import tqdm
@@ -24,10 +23,10 @@ from .utils import (
     setup_logger,
     load_graph,
     dump_graph,
-    LazyJson,
     as_iterable,
 )
 from . import sensitive_env
+from conda_forge_tick.lazy_json_backends import LazyJson, get_all_keys_for_hashmap
 
 if typing.TYPE_CHECKING:
     from .cli import CLIArgs
@@ -301,21 +300,10 @@ def _update_nodes_with_archived(gx, archived_names):
 
 def _migrate_schemas():
     # make sure to apply all schema migrations
-    node_pths = (
-        glob.glob("node_attrs/**/*.json", recursive=True)
-        + glob.glob("node_attrs/**/.json", recursive=True)
-        # shell expansion won't match .json
-    )
-    for node_pth in tqdm.tqdm(
-        node_pths,
-        desc="migrating node schemas",
-        miniters=100,
-        ncols=80,
-    ):
-        name = os.path.basename(node_pth)[:-5]
-        lzj_pth = f"node_attrs/{name}.json"
-        with LazyJson(lzj_pth) as sub_graph:
-            _migrate_schema(name, sub_graph)
+    nodes = get_all_keys_for_hashmap("node_attrs")
+    for node in tqdm.tqdm(nodes, desc="migrating node schemas", miniters=100, ncols=80):
+        with LazyJson(f"node_attrs/{node}.json") as sub_graph:
+            _migrate_schema(node, sub_graph)
 
 
 # @profiling
@@ -326,10 +314,8 @@ def main(args: "CLIArgs") -> None:
         setup_logger(logging.getLogger("conda_forge_tick"))
 
     names = get_all_feedstocks(cached=True)
-    if os.path.exists("graph.json"):
-        gx = load_graph()
-    else:
-        gx = None
+    gx = load_graph()
+
     gx = make_graph(names, gx, mark_not_archived=True, debug=args.debug)
     nodes_without_paylod = [k for k, v in gx.nodes.items() if "payload" not in v]
     if nodes_without_paylod:

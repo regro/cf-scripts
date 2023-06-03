@@ -1,10 +1,12 @@
+import os
 import pytest
 from flaky import flaky
 
 from conda.models.version import VersionOrder
 from conda_forge_tick.update_upstream_versions import get_latest_version
 from conda_forge_tick.update_sources import NPM, next_version, RawURL, NVIDIA
-from conda_forge_tick.utils import parse_meta_yaml, LazyJson
+from conda_forge_tick.utils import parse_meta_yaml
+from conda_forge_tick.lazy_json_backends import LazyJson
 
 sample_npm = """
 {% set name = "configurable-http-proxy" %}
@@ -326,7 +328,7 @@ def test_latest_version_npm(
     requests_mock,
     tmpdir,
 ):
-    pmy = LazyJson(tmpdir.join("cf-scripts-test.json"))
+    pmy = LazyJson(os.path.join(str(tmpdir), "cf-scripts-test.json"))
     with pmy as _pmy:
         _pmy.update(parse_meta_yaml(inp)["source"])
         _pmy.update(
@@ -355,7 +357,7 @@ def test_latest_version_npm(
 )
 @flaky
 def test_latest_version_rawurl(name, inp, curr_ver, ver, source, urls, tmpdir):
-    pmy = LazyJson(tmpdir.join("cf-scripts-test.json"))
+    pmy = LazyJson(os.path.join(tmpdir, "cf-scripts-test.json"))
     with pmy as _pmy:
         _pmy.update(parse_meta_yaml(inp)["source"])
         _pmy.update(
@@ -826,7 +828,7 @@ latest_url_nvidia_test_list = [
     latest_url_nvidia_test_list,
 )
 def test_latest_version_nvidia(name, inp, curr_ver, ver, source, urls, tmpdir):
-    pmy = LazyJson(tmpdir.join("cf-scripts-test.json"))
+    pmy = LazyJson(os.path.join(tmpdir, "cf-scripts-test.json"))
     with pmy as _pmy:
         _pmy.update(parse_meta_yaml(inp)["source"])
         _pmy.update(

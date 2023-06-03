@@ -5,7 +5,7 @@ import logging
 
 from flaky import flaky
 
-from conda_forge_tick.utils import load
+from conda_forge_tick.lazy_json_backends import load
 from conda_forge_tick.recipe_parser import CondaMetaYAML
 from conda_forge_tick.update_deps import (
     get_depfinder_comparison,

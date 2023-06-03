@@ -18,9 +18,9 @@ from typing import (
 import networkx as nx
 
 from conda_forge_tick.path_lengths import cyclic_topological_sort
+from conda_forge_tick.lazy_json_backends import LazyJson
 from conda_forge_tick.utils import (
     frozen_to_json_friendly,
-    LazyJson,
 )
 from conda_forge_tick.make_graph import make_outputs_lut_from_graph
 from conda_forge_tick.contexts import MigratorContext, FeedstockContext

@@ -5,7 +5,7 @@ from networkx import DiGraph
 import typing
 import threading
 import github3
-from conda_forge_tick.utils import load
+from conda_forge_tick.lazy_json_backends import load
 
 from typing import Union
 
