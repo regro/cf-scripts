@@ -63,7 +63,7 @@ jobs:
         run: |
           conda-forge-tick backup-lazy-json
         env:
-          CF_TICK_GRAPH_DATA_BACKENDS: "file:mongodb"
+          CF_TICK_GRAPH_DATA_BACKENDS: "mongodb"
           MONGODB_CONNECTION_STRING: ${{ secrets.MONGODB_CONNECTION_STRING }}
 
       - name: extract cache
