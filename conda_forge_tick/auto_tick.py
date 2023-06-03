@@ -1428,9 +1428,11 @@ def _remove_closed_pr_json():
             lzj_pri = LazyJson(f"{name}/{node}.json")
             with lzj_pri as pri:
                 for pr_ind in range(len(pri.get("PRed", []))):
-                    pr = pri["PRed"][pr_ind]["PR"]
-                    if isinstance(pr, LazyJson) and (
-                        pr.get("state", None) == "closed" or pr.data == {}
+                    pr = pri["PRed"][pr_ind].get("PR", None)
+                    if (
+                        pr is not None
+                        and isinstance(pr, LazyJson)
+                        and (pr.get("state", None) == "closed" or pr.data == {})
                     ):
                         pri["PRed"][pr_ind]["PR"] = {
                             "state": "closed",
