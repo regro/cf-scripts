@@ -80,7 +80,7 @@ jobs:
         uses: actions/cache/save@v3
         with:
           path: cf-graph
-          key: cf-graph
+          key: cf-graph-${{ github.run_id }}-${{ github.run_attempt }}
 
       - name: trigger next job
         uses: benc-uk/workflow-dispatch@798e70c97009500150087d30d9f11c5444830385
