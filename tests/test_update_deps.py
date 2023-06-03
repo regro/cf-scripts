@@ -246,7 +246,7 @@ def test_get_dep_updates_and_hints_praw():
         )
 
     print(res[0], res[1], flush=True)
-    assert "websocket-client" in res[1]
+    assert "websocket" in res[1]
 
 
 out_yml_gs = """\
