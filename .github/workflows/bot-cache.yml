@@ -1,0 +1,90 @@
+name: bot-cache
+
+on:
+  workflow_dispatch: null
+  schedule:
+    - cron:  '0 */4 * * *'
+
+concurrency: bot-cache
+
+jobs:
+  bot-cache:
+    name: bot-cache
+    runs-on: "ubuntu-latest"
+    defaults:
+      run:
+        shell: bash -l {0}
+
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          path: cf-scripts
+          ref: backends-mongodb-again
+
+      - uses: conda-incubator/setup-miniconda@v2
+        with:
+          channels: conda-forge,defaults
+          channel-priority: strict
+          show-channel-urls: true
+          miniforge-version: latest
+          miniforge-variant: Mambaforge
+          python-version: ${{ vars.PYVER }}
+          use-mamba: true
+          environment-file: cf-scripts/environment.yml
+          activate-environment: cf-scripts
+
+      - name: do local setup and stop me if needed
+        run: |
+          pushd cf-scripts
+          python autotick-bot/stop_me_if_needed.py
+          popd
+
+      - name: install bot code
+        if: success() && ! env.CI_SKIP
+        run: |
+          git config --global user.name regro-cf-autotick-bot
+          git config --global user.email 36490558+regro-cf-autotick-bot@users.noreply.github.com
+          git config --global pull.rebase false
+
+          pushd cf-scripts
+          export GIT_FULL_HASH=$(git rev-parse HEAD)
+          pip install -e .
+          popd
+
+          echo -e "\n\n============================================\n============================================"
+          conda info
+          conda config --show-sources
+          conda list --show-channel-urls
+          echo -e "\n\n============================================\n============================================"
+
+      - name: run backup
+        if: success() && ! env.CI_SKIP
+        timeout-minutes: 210
+        run: |
+          conda-forge-tick backup-lazy-json
+        env:
+          CF_TICK_GRAPH_DATA_BACKENDS: "file:mongodb"
+          MONGODB_CONNECTION_STRING: ${{ secrets.MONGODB_CONNECTION_STRING }}
+
+      - name: extract cache
+        if: success() && ! env.CI_SKIP
+        run: |
+          pushd backups
+          tar xf cf_graph_*.tar.zstd
+          mv cf_graph_* ../cf-graph
+          popd
+
+      - name: run cache
+        if: success() && ! env.CI_SKIP
+        uses: actions/cache/save@v3
+        with:
+          path: cf-graph
+          key: cf-graph
+
+      - name: trigger next job
+        uses: benc-uk/workflow-dispatch@798e70c97009500150087d30d9f11c5444830385
+        if: github.ref == 'refs/heads/master' && ! cancelled() && ! failure() && ! env.CI_SKIP
+        with:
+          workflow: bot-cache
+          ref: ${{ github.event.ref }}
+          token: ${{ secrets.AUTOTICK_BOT_TOKEN }}
