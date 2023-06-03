@@ -232,7 +232,7 @@ class MongoDBLazyJsonBackend(LazyJsonBackend):
         from pymongo import ReadPreference
 
         col = self._get_collection(name)
-        col = col.with_options(read_preference=ReadPreference.SECONDARY_PREFERRED)
+        # col = col.with_options(read_preference=ReadPreference.SECONDARY_PREFERRED)
         ntot = col.count_documents({}, session=self.__class__._snapshot_session)
         curr = col.find({}, session=self.__class__._snapshot_session)
         print("\n\n" + ">" * 80, flush=True)
@@ -328,7 +328,7 @@ LAZY_JSON_BACKENDS = {
 }
 
 
-def sync_lazy_json_across_backends(batch_size=1000):
+def sync_lazy_json_across_backends(batch_size=5000):
     """Sync data from the primary backend to the secondary ones.
 
     If there is only one backend, this is a no-op.
