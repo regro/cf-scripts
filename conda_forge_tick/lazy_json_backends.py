@@ -229,10 +229,7 @@ class MongoDBLazyJsonBackend(LazyJsonBackend):
             pass
 
     def unload_to_disk(self, name):
-        from pymongo import ReadPreference
-
         col = self._get_collection(name)
-        col = col.with_options(read_preference=ReadPreference.PRIMARY_PREFERRED)
         ntot = col.count_documents({}, session=self.__class__._snapshot_session)
         curr = col.find({}, session=self.__class__._snapshot_session)
         print("\n\n" + ">" * 80, flush=True)
