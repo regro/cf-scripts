@@ -71,7 +71,8 @@ jobs:
         run: |
           pushd backups
           tar xf cf_graph_*.tar.zstd
-          mv cf_graph_* ../cf-graph
+          rm cf_graph_*.tar.zstd
+          mv $(compgen -G cf_graph_*) ../cf-graph
           popd
 
       - name: run cache
