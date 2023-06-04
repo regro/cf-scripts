@@ -4,8 +4,8 @@ import glob
 import subprocess
 import tqdm
 import functools
-import shutil
 import datetime
+import tempfile
 import pprint
 import logging
 import contextlib
@@ -14,8 +14,6 @@ from typing import Any, Union, Optional, IO, Set, Iterator
 from collections.abc import MutableMapping, Callable
 
 import rapidjson as json
-
-from conda_forge_tick.os_utils import pushd
 
 LOGGER = logging.getLogger("conda_forge_tick.lazy_json_backends")
 
@@ -60,9 +58,6 @@ class LazyJsonBackend:
     def snapshot_context(self):
         raise NotImplementedError
 
-    def unload_to_disk(self, name):
-        raise NotImplementedError
-
     def hexists(self, name, key):
         raise NotImplementedError
 
@@ -91,6 +86,9 @@ class LazyJsonBackend:
     def hget(self, name, key):
         raise NotImplementedError
 
+    def hgetall(self, name, hashval=False):
+        raise NotImplementedError
+
 
 class FileLazyJsonBackend(LazyJsonBackend):
     @contextlib.contextmanager
@@ -106,9 +104,6 @@ class FileLazyJsonBackend(LazyJsonBackend):
             yield self
         finally:
             pass
-
-    def unload_to_disk(self, name):
-        pass
 
     def hexists(self, name, key):
         return os.path.exists(get_sharded_path(f"{name}/{key}.json"))
@@ -126,6 +121,16 @@ class FileLazyJsonBackend(LazyJsonBackend):
 
     def hmget(self, name, keys):
         return [self.hget(name, key) for key in keys]
+
+    def hgetall(self, name, hashval=False):
+        return {
+            key: (
+                hashlib.sha256(self.hget(name, key).encode("utf-8")).hexdigest()
+                if hashval
+                else self.hget(name, key)
+            )
+            for key in self.hkeys(name)
+        }
 
     def hdel(self, name, keys):
         from .executors import PRLOCK, TRLOCK, DLOCK
@@ -228,20 +233,21 @@ class MongoDBLazyJsonBackend(LazyJsonBackend):
         finally:
             pass
 
-    def unload_to_disk(self, name):
-        col = self._get_collection(name)
-        ntot = col.count_documents({}, session=self.__class__._snapshot_session)
-        curr = col.find({}, session=self.__class__._snapshot_session)
-        print("\n\n" + ">" * 80, flush=True)
-        print(">" * 80, flush=True)
-        for d in tqdm.tqdm(curr, ncols=80, total=ntot, desc="caching %s" % name):
-            fname = get_sharded_path(name + "/" + d["node"] + ".json")
-            if os.path.split(fname)[0]:
-                os.makedirs(os.path.split(fname)[0], exist_ok=True)
-            with open(fname, "w") as fp:
-                dump(d["value"], fp)
-        print(">" * 80, flush=True)
-        print(">" * 80 + "\n\n", flush=True)
+    def hgetall(self, name, hashval=False):
+        assert name in CF_TICK_GRAPH_DATA_HASHMAPS or name == "lazy_json"
+        coll = self._get_collection(name)
+        if hashval:
+            curr = coll.find({}, {"node": 1, "sha256": 1}, session=self.__class__._snapshot_session)
+            return {
+                d["node"]: d["sha256"]
+                for d in curr
+            }
+        else:
+            curr = coll.find({}, session=self.__class__._snapshot_session)
+            return {
+                d["node"]: dumps(d["value"])
+                for d in curr
+            }
 
     def _get_collection(self, name):
         return get_graph_data_mongodb_client()["cf_graph"][name]
@@ -261,6 +267,7 @@ class MongoDBLazyJsonBackend(LazyJsonBackend):
                 "$set": {
                     "node": key,
                     "value": json.loads(value),
+                    "sha256": hashlib.sha256(value.encode("utf-8")).hexdigest(),
                 },
             },
             upsert=True,
@@ -280,6 +287,7 @@ class MongoDBLazyJsonBackend(LazyJsonBackend):
                         "$set": {
                             "node": key,
                             "value": json.loads(value),
+                            "sha256": hashlib.sha256(value.encode("utf-8")).hexdigest(),
                         },
                     },
                     upsert=True,
@@ -332,33 +340,35 @@ def sync_lazy_json_across_backends(batch_size=5000):
     """
 
     def _sync_hashmap(hashmap, n_per_batch, primary_backend):
-        primary_nodes = set(get_all_keys_for_hashmap(hashmap))
+        primary_hashes = primary_backend.hgetall(hashmap, hashval=True)
+        primary_nodes = set(primary_hashes.keys())
 
+        all_nodes_to_get = set()
+        backend_hashes = {}
         for backend_name in CF_TICK_GRAPH_DATA_BACKENDS[1:]:
             backend = LAZY_JSON_BACKENDS[backend_name]()
-            curr_nodes = set(backend.hkeys(hashmap))
+            backend_hashes[backend_name] = backend.hgetall(hashmap, hashval=True)
+
+            curr_nodes = set(backend_hashes[backend_name].keys())
             del_nodes = curr_nodes - primary_nodes
             if del_nodes:
                 backend.hdel(hashmap, list(del_nodes))
+                tqdm.tqdm.write("deleted %d nodes from %s:%s" % (len(del_nodes), backend_name, hashmap))
 
-        nodes_to_get = []
-        for node in tqdm.tqdm(primary_nodes, desc=f"syncing {hashmap}", ncols=80):
-            if len(nodes_to_get) < n_per_batch:
-                nodes_to_get.append(node)
-            else:
-                batch = {
-                    k: v
-                    for k, v in zip(
-                        nodes_to_get,
-                        primary_backend.hmget(hashmap, nodes_to_get),
+            for node, hashval in primary_hashes.items():
+                if (
+                    node not in backend_hashes[backend_name]
+                    or (
+                        backend_hashes[backend_name][node] != primary_hashes[node]
                     )
-                }
-                nodes_to_get = []
-                for backend_name in CF_TICK_GRAPH_DATA_BACKENDS[1:]:
-                    backend = LAZY_JSON_BACKENDS[backend_name]()
-                    backend.hmset(hashmap, batch)
+                ):
+                    all_nodes_to_get.add(node)
 
-        if nodes_to_get:
+        while all_nodes_to_get:
+            nodes_to_get = [
+                all_nodes_to_get.pop()
+                for _ in range(min(len(all_nodes_to_get), n_per_batch))
+            ]
             batch = {
                 k: v
                 for k, v in zip(
@@ -366,60 +376,61 @@ def sync_lazy_json_across_backends(batch_size=5000):
                     primary_backend.hmget(hashmap, nodes_to_get),
                 )
             }
-            nodes_to_get = []
             for backend_name in CF_TICK_GRAPH_DATA_BACKENDS[1:]:
-                backend = LAZY_JSON_BACKENDS[backend_name]()
-                backend.hmset(hashmap, batch)
+                _batch = {
+                    node: value
+                    for node, value in batch.items()
+                    if (
+                        node not in backend_hashes[backend_name]
+                        or (backend_hashes[backend_name][node] != primary_hashes[node])
+                    )
+                }
+                if _batch:
+                    backend = LAZY_JSON_BACKENDS[backend_name]()
+                    backend.hmset(hashmap, _batch)
+                    tqdm.tqdm.write("synced %d nodes to %s:%s" % (len(_batch), backend_name, hashmap))
 
     if len(CF_TICK_GRAPH_DATA_BACKENDS) > 1:
         primary_backend = LAZY_JSON_BACKENDS[CF_TICK_GRAPH_DATA_PRIMARY_BACKEND]()
         with primary_backend.snapshot_context():
-            for hashmap in tqdm.tqdm(
+            with tqdm.tqdm(
                 CF_TICK_GRAPH_DATA_HASHMAPS + ["lazy_json"],
                 ncols=80,
                 desc="syncing hashmaps",
-            ):
-                _sync_hashmap(hashmap, batch_size, primary_backend)
+            ) as pbar:
+                for hashmap in pbar:
+                    pbar.set_description("syncing %s" % hashmap)
+                    _sync_hashmap(hashmap, batch_size, primary_backend)
 
 
-def cache_lazy_json_to_disk(dest_dir="."):
-    from conda_forge_tick.executors import PRLOCK, TRLOCK, DLOCK
-
-    backend = LAZY_JSON_BACKENDS[CF_TICK_GRAPH_DATA_PRIMARY_BACKEND]()
-
-    os.makedirs(dest_dir, exist_ok=True)
-
-    with PRLOCK, TRLOCK, DLOCK, backend.snapshot_context():
-        for hashmap in CF_TICK_GRAPH_DATA_HASHMAPS + ["lazy_json"]:
-            if CF_TICK_GRAPH_DATA_PRIMARY_BACKEND != "file":
-                with pushd(dest_dir):
-                    backend.unload_to_disk(hashmap)
-            else:
-                if hashmap == "lazy_json":
-                    nodes = backend.hkeys("lazy_json")
-                    for node in nodes:
-                        shutil.copy2(node + ".json", dest_dir)
-                else:
-                    shutil.copytree(hashmap, os.path.join(dest_dir, hashmap))
-
-
-def make_lazy_json_backup():
+def make_lazy_json_backup(verbose=False):
     ts = str(int(datetime.datetime.now(tz=datetime.timezone.utc).timestamp()))
+    slink = f"cf_graph_{ts}"
     try:
-        dest_dir = f"backups/cf_graph_{ts}"
-        os.makedirs(dest_dir, exist_ok=True)
-        LOGGER.info("caching lazy json to disk")
-        cache_lazy_json_to_disk(dest_dir=dest_dir)
-        LOGGER.info("compressing lazy json disk cache")
         subprocess.run(
-            f"cd backups && tar --zstd -cvf cf_graph_{ts}.tar.zstd cf_graph_{ts}",
+            f"ln -s . {slink}",
             shell=True,
             check=True,
-            capture_output=True,
+            capture_output=not verbose,
         )
+        backend = LAZY_JSON_BACKENDS["file"]()
+        with tempfile.TemporaryDirectory() as tmpdir:
+            LOGGER.info("gathering files for backup")
+            with open(os.path.join(tmpdir, "files.txt"), "w") as fp:
+                for hashmap in CF_TICK_GRAPH_DATA_HASHMAPS + ["lazy_json"]:
+                    nodes = backend.hkeys(hashmap)
+                    for node in nodes:
+                        fp.write(os.path.join(slink, get_sharded_path(f"{hashmap}/{node}.json")) + "\n")
+
+            LOGGER.info("compressing lazy json disk cache")
+            subprocess.run(
+                f"tar --zstd -cvf cf_graph_{ts}.tar.zstd -T " + os.path.join(tmpdir, "files.txt"),
+                shell=True,
+                check=True,
+                capture_output=not verbose,
+            )
     finally:
-        LOGGER.info("removing uncompressed lazy json")
-        shutil.rmtree(dest_dir, ignore_errors=True)
+        subprocess.run(f"rm -f {slink}", shell=True, check=True, capture_output=not verbose)
 
     return f"cf_graph_{ts}.tar.zstd"
 
@@ -802,11 +813,20 @@ def main_sync(args):
 
 def main_cache(args):
     from conda_forge_tick.utils import setup_logger
+    global CF_TICK_GRAPH_DATA_BACKENDS
 
     if args.debug:
         setup_logger(logging.getLogger("conda_forge_tick"), level="debug")
     else:
         setup_logger(logging.getLogger("conda_forge_tick"))
 
-    if not args.dry_run:
-        cache_lazy_json_to_disk()
+    if not args.dry_run and len(CF_TICK_GRAPH_DATA_BACKENDS) > 1:
+        OLD_CF_TICK_GRAPH_DATA_BACKENDS = CF_TICK_GRAPH_DATA_BACKENDS
+        try:
+            CF_TICK_GRAPH_DATA_BACKENDS = (
+                CF_TICK_GRAPH_DATA_PRIMARY_BACKEND,
+                "file",
+            )
+            sync_lazy_json_across_backends()
+        finally:
+            CF_TICK_GRAPH_DATA_BACKENDS = OLD_CF_TICK_GRAPH_DATA_BACKENDS
