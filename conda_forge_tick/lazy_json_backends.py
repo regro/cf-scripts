@@ -237,17 +237,15 @@ class MongoDBLazyJsonBackend(LazyJsonBackend):
         assert name in CF_TICK_GRAPH_DATA_HASHMAPS or name == "lazy_json"
         coll = self._get_collection(name)
         if hashval:
-            curr = coll.find({}, {"node": 1, "sha256": 1}, session=self.__class__._snapshot_session)
-            return {
-                d["node"]: d["sha256"]
-                for d in curr
-            }
+            curr = coll.find(
+                {},
+                {"node": 1, "sha256": 1},
+                session=self.__class__._snapshot_session,
+            )
+            return {d["node"]: d["sha256"] for d in curr}
         else:
             curr = coll.find({}, session=self.__class__._snapshot_session)
-            return {
-                d["node"]: dumps(d["value"])
-                for d in curr
-            }
+            return {d["node"]: dumps(d["value"]) for d in curr}
 
     def _get_collection(self, name):
         return get_graph_data_mongodb_client()["cf_graph"][name]
@@ -353,14 +351,14 @@ def sync_lazy_json_across_backends(batch_size=5000):
             del_nodes = curr_nodes - primary_nodes
             if del_nodes:
                 backend.hdel(hashmap, list(del_nodes))
-                tqdm.tqdm.write("deleted %d nodes from %s:%s" % (len(del_nodes), backend_name, hashmap))
+                tqdm.tqdm.write(
+                    "deleted %d nodes from %s:%s"
+                    % (len(del_nodes), backend_name, hashmap),
+                )
 
             for node, hashval in primary_hashes.items():
-                if (
-                    node not in backend_hashes[backend_name]
-                    or (
-                        backend_hashes[backend_name][node] != primary_hashes[node]
-                    )
+                if node not in backend_hashes[backend_name] or (
+                    backend_hashes[backend_name][node] != primary_hashes[node]
                 ):
                     all_nodes_to_get.add(node)
 
@@ -388,7 +386,10 @@ def sync_lazy_json_across_backends(batch_size=5000):
                 if _batch:
                     backend = LAZY_JSON_BACKENDS[backend_name]()
                     backend.hmset(hashmap, _batch)
-                    tqdm.tqdm.write("synced %d nodes to %s:%s" % (len(_batch), backend_name, hashmap))
+                    tqdm.tqdm.write(
+                        "synced %d nodes to %s:%s"
+                        % (len(_batch), backend_name, hashmap),
+                    )
 
     if len(CF_TICK_GRAPH_DATA_BACKENDS) > 1:
         primary_backend = LAZY_JSON_BACKENDS[CF_TICK_GRAPH_DATA_PRIMARY_BACKEND]()
@@ -420,17 +421,29 @@ def make_lazy_json_backup(verbose=False):
                 for hashmap in CF_TICK_GRAPH_DATA_HASHMAPS + ["lazy_json"]:
                     nodes = backend.hkeys(hashmap)
                     for node in nodes:
-                        fp.write(os.path.join(slink, get_sharded_path(f"{hashmap}/{node}.json")) + "\n")
+                        fp.write(
+                            os.path.join(
+                                slink,
+                                get_sharded_path(f"{hashmap}/{node}.json"),
+                            )
+                            + "\n",
+                        )
 
             LOGGER.info("compressing lazy json disk cache")
             subprocess.run(
-                f"tar --zstd -cvf cf_graph_{ts}.tar.zstd -T " + os.path.join(tmpdir, "files.txt"),
+                f"tar --zstd -cvf cf_graph_{ts}.tar.zstd -T "
+                + os.path.join(tmpdir, "files.txt"),
                 shell=True,
                 check=True,
                 capture_output=not verbose,
             )
     finally:
-        subprocess.run(f"rm -f {slink}", shell=True, check=True, capture_output=not verbose)
+        subprocess.run(
+            f"rm -f {slink}",
+            shell=True,
+            check=True,
+            capture_output=not verbose,
+        )
 
     return f"cf_graph_{ts}.tar.zstd"
 
@@ -813,6 +826,7 @@ def main_sync(args):
 
 def main_cache(args):
     from conda_forge_tick.utils import setup_logger
+
     global CF_TICK_GRAPH_DATA_BACKENDS
 
     if args.debug:
