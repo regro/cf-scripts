@@ -71,6 +71,7 @@ jobs:
         timeout-minutes: 210
         run: |
           pushd cf-graph
+          ls -lah
           conda-forge-tick sync-lazy-json-across-backends
           popd
         env:
