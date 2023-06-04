@@ -9,6 +9,7 @@ import tempfile
 import pprint
 import logging
 import contextlib
+import sys
 
 from typing import Any, Union, Optional, IO, Set, Iterator
 from collections.abc import MutableMapping, Callable
@@ -35,6 +36,11 @@ CF_TICK_GRAPH_DATA_HASHMAPS = [
     "versions",
     "node_attrs",
 ]
+
+
+def _flush_it():
+    sys.stderr.flush()
+    sys.stout.flush()
 
 
 def get_sharded_path(file_path, n_dirs=5):
@@ -352,9 +358,10 @@ def sync_lazy_json_across_backends(batch_size=5000):
             if del_nodes:
                 backend.hdel(hashmap, list(del_nodes))
                 tqdm.tqdm.write(
-                    "deleted %d nodes from %s:%s"
-                    % (len(del_nodes), backend_name, hashmap),
+                    "deleted nodes %r from %s:%s"
+                    % (sorted(del_nodes), backend_name, hashmap),
                 )
+                _flush_it()
 
             for node, hashval in primary_hashes.items():
                 if node not in backend_hashes[backend_name] or (
@@ -387,9 +394,10 @@ def sync_lazy_json_across_backends(batch_size=5000):
                     backend = LAZY_JSON_BACKENDS[backend_name]()
                     backend.hmset(hashmap, _batch)
                     tqdm.tqdm.write(
-                        "synced %d nodes to %s:%s"
-                        % (len(_batch), backend_name, hashmap),
+                        "synced nodes %r to %s:%s"
+                        % (sorted(_batch), backend_name, hashmap),
                     )
+                    _flush_it()
 
     if len(CF_TICK_GRAPH_DATA_BACKENDS) > 1:
         primary_backend = LAZY_JSON_BACKENDS[CF_TICK_GRAPH_DATA_PRIMARY_BACKEND]()
