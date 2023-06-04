@@ -57,30 +57,25 @@ jobs:
           conda list --show-channel-urls
           echo -e "\n\n============================================\n============================================"
 
-      - name: run backup
-        if: success() && ! env.CI_SKIP
-        timeout-minutes: 210
-        run: |
-          conda-forge-tick backup-lazy-json
-        env:
-          CF_TICK_GRAPH_DATA_BACKENDS: "mongodb"
-          MONGODB_CONNECTION_STRING: ${{ secrets.MONGODB_CONNECTION_STRING }}
-
-      - name: extract cache
-        if: success() && ! env.CI_SKIP
-        run: |
-          pushd backups
-          tar xf cf_graph_*.tar.zstd
-          rm cf_graph_*.tar.zstd
-          mv $(compgen -G cf_graph_*) ../cf-graph
-          popd
-
       - name: run cache
         if: success() && ! env.CI_SKIP
-        uses: actions/cache/save@v3
+        uses: actions/cache@v3
         with:
           path: cf-graph
           key: cf-graph-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            cf-graph-
+
+      - name: run sync
+        if: success() && ! env.CI_SKIP
+        timeout-minutes: 210
+        run: |
+          pushd cf-graph
+          conda-forge-tick sync-lazy-json-across-backends
+          popd
+        env:
+          CF_TICK_GRAPH_DATA_BACKENDS: "mongodb:file"
+          MONGODB_CONNECTION_STRING: ${{ secrets.MONGODB_CONNECTION_STRING }}
 
       - name: trigger next job
         uses: benc-uk/workflow-dispatch@798e70c97009500150087d30d9f11c5444830385
