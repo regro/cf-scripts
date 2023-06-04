@@ -40,7 +40,7 @@ CF_TICK_GRAPH_DATA_HASHMAPS = [
 
 def _flush_it():
     sys.stderr.flush()
-    sys.stout.flush()
+    sys.stdout.flush()
 
 
 def get_sharded_path(file_path, n_dirs=5):
