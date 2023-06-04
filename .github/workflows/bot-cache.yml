@@ -70,6 +70,7 @@ jobs:
         if: success() && ! env.CI_SKIP
         timeout-minutes: 210
         run: |
+          ls -lah .
           pushd cf-graph
           ls -lah
           conda-forge-tick sync-lazy-json-across-backends
