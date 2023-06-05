@@ -556,7 +556,6 @@ class LazyJson(MutableMapping):
                 data_str = backend.hget(self.hashmap, self.node)
                 if isinstance(data_str, bytes):
                     data_str = data_str.decode("utf-8")
-                data_str = dumps(loads(data_str))
 
                 # cache it locally for later
                 if CF_TICK_GRAPH_DATA_PRIMARY_BACKEND != "file":
