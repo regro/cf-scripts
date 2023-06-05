@@ -24,6 +24,15 @@ jobs:
           key: cf-graph-${{ github.run_id }}-${{ github.run_attempt }}
           restore-keys: |
             cf-graph-
+      
+      - name: run cache
+        if: success() && ! env.CI_SKIP
+        uses: actions/cache@v3
+        with:
+          path: cf-graph.tar.zstd
+          key: cf-graph-tzstd-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            cf-graph-tzstd-
     
       - uses: actions/checkout@v3
         with:
@@ -74,6 +83,7 @@ jobs:
           pushd cf-graph
           conda-forge-tick sync-lazy-json-across-backends
           popd
+          tar --zstd -cf cf_graph.tar.zstd cf_graph
         env:
           CF_TICK_GRAPH_DATA_BACKENDS: "mongodb:file"
           MONGODB_CONNECTION_STRING: ${{ secrets.MONGODB_CONNECTION_STRING }}
