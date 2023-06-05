@@ -83,7 +83,7 @@ jobs:
           pushd cf-graph
           conda-forge-tick sync-lazy-json-across-backends
           popd
-          tar --zstd -cf cf_graph.tar.zstd cf_graph
+          tar --zstd -cf cf-graph.tar.zstd cf-graph
         env:
           CF_TICK_GRAPH_DATA_BACKENDS: "mongodb:file"
           MONGODB_CONNECTION_STRING: ${{ secrets.MONGODB_CONNECTION_STRING }}
