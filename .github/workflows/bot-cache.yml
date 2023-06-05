@@ -16,6 +16,15 @@ jobs:
         shell: bash -l {0}
 
     steps:
+      - name: run cache
+        if: success() && ! env.CI_SKIP
+        uses: actions/cache@v3
+        with:
+          path: cf-graph
+          key: cf-graph-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            cf-graph-
+    
       - uses: actions/checkout@v3
         with:
           path: cf-scripts
@@ -56,15 +65,6 @@ jobs:
           conda config --show-sources
           conda list --show-channel-urls
           echo -e "\n\n============================================\n============================================"
-
-      - name: run cache
-        if: success() && ! env.CI_SKIP
-        uses: actions/cache@v3
-        with:
-          path: cf-graph
-          key: cf-graph-${{ github.run_id }}-${{ github.run_attempt }}
-          restore-keys: |
-            cf-graph-
 
       - name: run sync
         if: success() && ! env.CI_SKIP
