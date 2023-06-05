@@ -409,6 +409,7 @@ def sync_lazy_json_across_backends(batch_size=5000):
             ) as pbar:
                 for hashmap in pbar:
                     tqdm.tqdm.write("SYNCING %s" % hashmap)
+                    _flush_it()
                     _sync_hashmap(hashmap, batch_size, primary_backend)
 
 
