@@ -7,7 +7,6 @@ from concurrent.futures import (
     Executor,
 )
 
-from distributed import Lock as DLock
 import multiprocessing
 from threading import RLock as TRLock
 
@@ -73,6 +72,7 @@ def executor(kind: str, max_workers: int, daemon=True) -> typing.Iterator[Execut
                 processes=processes,
             ) as cluster:
                 with distributed.Client(cluster) as client:
+                    from distributed import Lock as DLock
                     lock = DLock(client=client)
                     client.run(_init_dask, lock)
                     yield ClientExecutor(client)
