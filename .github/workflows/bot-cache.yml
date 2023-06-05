@@ -15,23 +15,32 @@ jobs:
       run:
         shell: bash -l {0}
 
-    steps:
+    steps:      
+      - name: run cache
+        if: success() && ! env.CI_SKIP
+        uses: actions/cache@v3
+        with:
+          path: cf-graph.tar.zstd
+          key: cf-graph-tzstd-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            cf-graph-tzstd-
+    
       - uses: actions/checkout@v3
         with:
           path: cf-scripts
           ref: backends-mongodb-again
 
-      - uses: conda-incubator/setup-miniconda@v2
+      - uses: mamba-org/setup-micromamba@v1
         with:
-          channels: conda-forge,defaults
-          channel-priority: strict
-          show-channel-urls: true
-          miniforge-version: latest
-          miniforge-variant: Mambaforge
-          python-version: ${{ vars.PYVER }}
-          use-mamba: true
           environment-file: cf-scripts/environment.yml
-          activate-environment: cf-scripts
+          create-args: "python==${{ vars.PYVER }}"
+          init-shell: bash
+          cache-environment: true
+          environment-name: cf-scripts
+          post-cleanup: 'all'        
+          condarc: |
+            channels:
+              - conda-forge
 
       - name: do local setup and stop me if needed
         run: |
@@ -57,22 +66,15 @@ jobs:
           conda list --show-channel-urls
           echo -e "\n\n============================================\n============================================"
 
-      - name: run cache
-        if: success() && ! env.CI_SKIP
-        uses: actions/cache@v3
-        with:
-          path: cf-graph
-          key: cf-graph-${{ github.run_id }}-${{ github.run_attempt }}
-          restore-keys: |
-            cf-graph-
-
       - name: run sync
         if: success() && ! env.CI_SKIP
         timeout-minutes: 210
         run: |
+          tar -xf cf-graph.tar.zstd
           pushd cf-graph
           conda-forge-tick sync-lazy-json-across-backends
           popd
+          tar --zstd -cf cf-graph.tar.zstd cf-graph
         env:
           CF_TICK_GRAPH_DATA_BACKENDS: "mongodb:file"
           MONGODB_CONNECTION_STRING: ${{ secrets.MONGODB_CONNECTION_STRING }}
