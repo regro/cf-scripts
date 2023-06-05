@@ -358,8 +358,8 @@ def sync_lazy_json_across_backends(batch_size=5000):
             if del_nodes:
                 backend.hdel(hashmap, list(del_nodes))
                 tqdm.tqdm.write(
-                    "deleted %s:%s nodes: %r"
-                    % (backend_name, hashmap, sorted(del_nodes)),
+                    "DELETED %s:%s nodes (%d): %r"
+                    % (backend_name, hashmap, len(del_nodes), sorted(del_nodes)),
                 )
                 _flush_it()
 
@@ -394,8 +394,8 @@ def sync_lazy_json_across_backends(batch_size=5000):
                     backend = LAZY_JSON_BACKENDS[backend_name]()
                     backend.hmset(hashmap, _batch)
                     tqdm.tqdm.write(
-                        "synced %s:%s nodes: %r"
-                        % (backend_name, hashmap, sorted(_batch)),
+                        "UPDATED %s:%s nodes (%d): %r"
+                        % (backend_name, hashmap, len(_batch), sorted(_batch)),
                     )
                     _flush_it()
 
