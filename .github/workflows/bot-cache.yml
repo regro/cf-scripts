@@ -15,16 +15,7 @@ jobs:
       run:
         shell: bash -l {0}
 
-    steps:
-      - name: run cache
-        if: success() && ! env.CI_SKIP
-        uses: actions/cache@v3
-        with:
-          path: cf-graph
-          key: cf-graph-${{ github.run_id }}-${{ github.run_attempt }}
-          restore-keys: |
-            cf-graph-
-      
+    steps:      
       - name: run cache
         if: success() && ! env.CI_SKIP
         uses: actions/cache@v3
@@ -79,7 +70,7 @@ jobs:
         if: success() && ! env.CI_SKIP
         timeout-minutes: 210
         run: |
-          mkdir -p cf-graph
+          tar -xf cf-graph.tar.zstd
           pushd cf-graph
           conda-forge-tick sync-lazy-json-across-backends
           popd
