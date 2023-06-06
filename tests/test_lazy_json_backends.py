@@ -308,7 +308,7 @@ def test_lazy_json(tmpdir, backend):
             lj = LazyJson(f)
 
             if backend == "file":
-                assert not os.path.exists(lj.file_name)
+                assert os.path.exists(lj.file_name)
                 assert os.path.exists(sharded_path)
                 with open(sharded_path) as ff:
                     assert ff.read() == json.dumps({})
