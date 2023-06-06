@@ -24,16 +24,21 @@ import conda_forge_tick.utils
 import pytest
 
 
-@pytest.mark.parametrize("backends", [
-    ("file", "mongodb"),
-    ("mongodb", "file"),
-])
+@pytest.mark.parametrize(
+    "backends",
+    [
+        ("file", "mongodb"),
+        ("mongodb", "file"),
+    ],
+)
 def test_lazy_json_backends_sync(backends, tmpdir):
     old_backend = conda_forge_tick.lazy_json_backends.CF_TICK_GRAPH_DATA_BACKENDS
     with pushd(tmpdir):
         try:
             conda_forge_tick.lazy_json_backends.CF_TICK_GRAPH_DATA_BACKENDS = backends
-            conda_forge_tick.lazy_json_backends.CF_TICK_GRAPH_DATA_PRIMARY_BACKEND = backends[0]
+            conda_forge_tick.lazy_json_backends.CF_TICK_GRAPH_DATA_PRIMARY_BACKEND = (
+                backends[0]
+            )
 
             pbe = LAZY_JSON_BACKENDS[backends[0]]()
             be = LAZY_JSON_BACKENDS[backends[1]]()
@@ -57,7 +62,9 @@ def test_lazy_json_backends_sync(backends, tmpdir):
                 for i in range(2):
                     be.hdel(hashmap, [f"node{i}"])
 
-            conda_forge_tick.lazy_json_backends.CF_TICK_GRAPH_DATA_BACKENDS = old_backend
+            conda_forge_tick.lazy_json_backends.CF_TICK_GRAPH_DATA_BACKENDS = (
+                old_backend
+            )
             conda_forge_tick.lazy_json_backends.CF_TICK_GRAPH_DATA_PRIMARY_BACKEND = (
                 old_backend[0]
             )
@@ -104,7 +111,7 @@ def test_lazy_json_backends_ops(backend, hashmap, tmpdir):
             assert be.hget(hashmap, key_again) == value_again
             assert be.hexists(hashmap, key)
             assert be.hexists(hashmap, key_again)
-            assert be.hkeys(hashmap) == [key, key_again]
+            assert set(be.hkeys(hashmap)) == {key, key_again}
 
             assert be.hmget(hashmap, [key, key_again]) == [value, value_again]
             assert be.hmget(hashmap, [key_again, key]) == [value_again, value]
