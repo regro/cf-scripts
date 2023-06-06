@@ -114,7 +114,7 @@ jobs:
           export TEST_PASSWORD_VAL=unpassword
           export PASSWORD=${TEST_PASSWORD_VAL}
           pytest \
-            -v \
+            -vvs \
             --cov=conda_forge_tick.lazy_json_backends \
             --cov=tests \
             --cov-config=.coveragerc \
