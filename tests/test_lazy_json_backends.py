@@ -11,11 +11,44 @@ from conda_forge_tick.lazy_json_backends import (
     get_sharded_path,
     get_all_keys_for_hashmap,
     remove_key_for_hashmap,
+    lazy_json_snapshot,
+    lazy_json_transaction,
+    MongoDBLazyJsonBackend,
 )
 from conda_forge_tick.os_utils import pushd
 import conda_forge_tick.utils
 
 import pytest
+
+
+@pytest.mark.parametrize("backend", ["file", "mongodb"])
+def test_lazy_json_backends_contexts(backend):
+    old_backend = conda_forge_tick.lazy_json_backends.CF_TICK_GRAPH_DATA_BACKENDS
+    try:
+        conda_forge_tick.lazy_json_backends.CF_TICK_GRAPH_DATA_BACKENDS = (backend,)
+        conda_forge_tick.lazy_json_backends.CF_TICK_GRAPH_DATA_PRIMARY_BACKEND = backend
+
+        with lazy_json_transaction():
+            if backend == "file":
+                assert MongoDBLazyJsonBackend._session is None
+                assert MongoDBLazyJsonBackend._snapshot_session is None
+            elif backend == "mongodb":
+                assert MongoDBLazyJsonBackend._session is not None
+                assert MongoDBLazyJsonBackend._snapshot_session is None
+
+        with lazy_json_snapshot():
+            if backend == "file":
+                assert MongoDBLazyJsonBackend._session is None
+                assert MongoDBLazyJsonBackend._snapshot_session is None
+            elif backend == "mongodb":
+                assert MongoDBLazyJsonBackend._session is None
+                assert MongoDBLazyJsonBackend._snapshot_session is not None
+
+    finally:
+        conda_forge_tick.lazy_json_backends.CF_TICK_GRAPH_DATA_BACKENDS = old_backend
+        conda_forge_tick.lazy_json_backends.CF_TICK_GRAPH_DATA_PRIMARY_BACKEND = (
+            old_backend[0]
+        )
 
 
 def test_lazy_json_backends_dump_load(tmpdir):
