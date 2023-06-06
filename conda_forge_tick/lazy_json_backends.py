@@ -231,11 +231,13 @@ class MongoDBLazyJsonBackend(LazyJsonBackend):
             if self.__class__._snapshot_session is None:
                 client = get_graph_data_mongodb_client()
                 val = client.admin.command("getCmdLineOpts")
-                print(val)
-                with client.start_session(snapshot=True) as session:
-                    self.__class__._snapshot_session = session
+                if "--replSet" in val["argv"]:
+                    with client.start_session(snapshot=True) as session:
+                        self.__class__._snapshot_session = session
+                        yield self
+                        self.__class__._snapshot_session = None
+                else:
                     yield self
-                    self.__class__._snapshot_session = None
             else:
                 yield self
         finally:
