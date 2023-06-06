@@ -6,6 +6,8 @@ on:
       - master
   pull_request: null
 
+concurrency: tests
+
 env:
   PY_COLORS: "1"
 
@@ -14,31 +16,26 @@ jobs:
     name: tests
     runs-on: "ubuntu-latest"
     steps:
-      - name: cancel previous runs
-        uses: styfle/cancel-workflow-action@0.6.0
-        with:
-          access_token: ${{ github.token }}
-
       - uses: actions/checkout@v3
 
-      - uses: conda-incubator/setup-miniconda@v2
+      - uses: mamba-org/setup-micromamba@v1
         with:
-          channels: conda-forge,defaults
-          channel-priority: strict
-          show-channel-urls: true
-          miniforge-version: latest
-          miniforge-variant: Mambaforge
-          python-version: ${{ vars.PYVER }}
-          use-mamba: true
-          environment-file: environment.yml
-          activate-environment: cf-scripts
+          environment-file: cf-scripts/environment.yml
+          create-args: "python==${{ vars.PYVER }}"
+          init-shell: bash
+          cache-environment: true
+          environment-name: cf-scripts
+          post-cleanup: 'all'
+          condarc: |
+            channels:
+              - conda-forge
 
       - name: configure conda and install code
         shell: bash -l {0}
         run: |
           export GIT_FULL_HASH=`git rev-parse HEAD`
           export CICLE_BUILD_URL="https://www.youtube.com/watch?v=R7qT-C-0ajI"
-          mamba install --quiet \
+          micromamba install --quiet \
             pip \
             pytest \
             codecov \
@@ -90,6 +87,13 @@ jobs:
           pip uninstall conda-forge-tick --yes
 
           python -m pip install -v --no-deps --no-build-isolation -e .
+
+      - name: Start MongoDB
+        uses: MongoCamp/mongodb-github-action@e76ad215d47c31a99b4b0b1fde05f6cd1185df1a
+        with:
+          mongodb-version: "latest"
+
+      - run: curl http://localhost:27017
 
       - name: run pytest
         shell: bash -l {0}
