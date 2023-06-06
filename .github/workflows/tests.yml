@@ -109,10 +109,10 @@ jobs:
           export PASSWORD=${TEST_PASSWORD_VAL}
           pytest \
             -v \
-            --cov=conda_forge_tick \
+            --cov=conda_forge_tick.lazy_json_backends \
             --cov=tests \
             --cov-config=.coveragerc \
-            --cov-report term \
+            --cov-report term-missing \
             --durations 10 \
             tests/test_lazy_json_backends.py
           codecov -X gcov
