@@ -76,6 +76,7 @@ def test_lazy_json_backends_backup(tmpdir):
             )
 
 
+@pytest.mark.skipif("MONGODB_CONNECTION_STRING" not in os.environ, reason="no mongodb")
 @pytest.mark.parametrize(
     "backends",
     [
@@ -123,7 +124,19 @@ def test_lazy_json_backends_sync(backends, tmpdir):
 
 
 @pytest.mark.parametrize("hashmap", ["lazy_json", "pr_info"])
-@pytest.mark.parametrize("backend", ["file", "mongodb"])
+@pytest.mark.parametrize(
+    "backend",
+    [
+        "file",
+        pytest.param(
+            "mongodb",
+            marks=pytest.mark.skipif(
+                "MONGODB_CONNECTION_STRING" not in os.environ,
+                reason="no mongodb",
+            ),
+        ),
+    ],
+)
 def test_lazy_json_backends_ops(backend, hashmap, tmpdir):
     be = LAZY_JSON_BACKENDS[backend]()
     key = "blah"
@@ -178,7 +191,19 @@ def test_lazy_json_backends_ops(backend, hashmap, tmpdir):
             be.hdel(hashmap, [key, key_again])
 
 
-@pytest.mark.parametrize("backend", ["file", "mongodb"])
+@pytest.mark.parametrize(
+    "backend",
+    [
+        "file",
+        pytest.param(
+            "mongodb",
+            marks=pytest.mark.skipif(
+                "MONGODB_CONNECTION_STRING" not in os.environ,
+                reason="no mongodb",
+            ),
+        ),
+    ],
+)
 def test_lazy_json_backends_contexts(backend):
     old_backend = conda_forge_tick.lazy_json_backends.CF_TICK_GRAPH_DATA_BACKENDS
     try:
@@ -255,25 +280,41 @@ def test_lazy_json_backends_dump_load(tmpdir):
             dumps({"a": Blah()})
 
 
-@pytest.mark.parametrize("backend", ["file", "mongodb"])
+@pytest.mark.parametrize(
+    "backend",
+    [
+        "file",
+        pytest.param(
+            "mongodb",
+            marks=pytest.mark.skipif(
+                "MONGODB_CONNECTION_STRING" not in os.environ,
+                reason="no mongodb",
+            ),
+        ),
+    ],
+)
 def test_lazy_json(tmpdir, backend):
     with pushd(tmpdir):
         old_backend = conda_forge_tick.lazy_json_backends.CF_TICK_GRAPH_DATA_BACKENDS
         try:
             conda_forge_tick.lazy_json_backends.CF_TICK_GRAPH_DATA_BACKENDS = (backend,)
-            conda_forge_tick.lazy_json_backends.CF_TICK_GRAPH_DATA_PRIMARY_BACKEND = backend
+            conda_forge_tick.lazy_json_backends.CF_TICK_GRAPH_DATA_PRIMARY_BACKEND = (
+                backend
+            )
 
             f = "hi.json"
             sharded_path = get_sharded_path(f)
             assert not os.path.exists(f)
             lj = LazyJson(f)
-            assert not os.path.exists(lj.file_name)
+
             if backend == "file":
+                assert not os.path.exists(lj.file_name)
                 assert os.path.exists(sharded_path)
                 with open(sharded_path) as ff:
                     assert ff.read() == json.dumps({})
             else:
                 assert not os.path.exists(sharded_path)
+                assert not os.path.exists(lj.file_name)
 
             with pytest.raises(AssertionError):
                 lj.update({"hi": "globe"})
@@ -336,7 +377,9 @@ def test_lazy_json(tmpdir, backend):
             assert len(lj) == 0
             assert not lj
         finally:
-            conda_forge_tick.lazy_json_backends.CF_TICK_GRAPH_DATA_BACKENDS = old_backend
+            conda_forge_tick.lazy_json_backends.CF_TICK_GRAPH_DATA_BACKENDS = (
+                old_backend
+            )
             conda_forge_tick.lazy_json_backends.CF_TICK_GRAPH_DATA_PRIMARY_BACKEND = (
                 old_backend[0]
             )
