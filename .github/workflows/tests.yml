@@ -25,7 +25,7 @@ jobs:
         with:
           environment-file: environment.yml
           create-args: >-
-            python
+            python==${{ vars.PYVER }}
             pip
             pytest
             codecov
@@ -37,7 +37,7 @@ jobs:
             flaky
             pytest-xdist
             pytest-cov
-            'setuptools_scm>=7'
+            setuptools_scm>=7
             python-build
           init-shell: bash
           cache-environment: true
