@@ -255,25 +255,30 @@ def test_lazy_json_backends_dump_load(tmpdir):
             dumps({"a": Blah()})
 
 
-def test_lazy_json_file(tmpdir):
+@pytest.mark.parametrize("backend", ["file", "mongodb"])
+def test_lazy_json(tmpdir, backend):
     old_backend = conda_forge_tick.lazy_json_backends.CF_TICK_GRAPH_DATA_BACKENDS
     try:
-        conda_forge_tick.lazy_json_backends.CF_TICK_GRAPH_DATA_BACKENDS = ("file",)
-        conda_forge_tick.lazy_json_backends.CF_TICK_GRAPH_DATA_PRIMARY_BACKEND = "file"
+        conda_forge_tick.lazy_json_backends.CF_TICK_GRAPH_DATA_BACKENDS = (backend,)
+        conda_forge_tick.lazy_json_backends.CF_TICK_GRAPH_DATA_PRIMARY_BACKEND = backend
 
         f = os.path.join(tmpdir, "hi.json")
         sharded_path = get_sharded_path(f)
         assert not os.path.exists(f)
         lj = LazyJson(f)
         assert not os.path.exists(lj.file_name)
-        assert os.path.exists(sharded_path)
-        with open(sharded_path) as ff:
-            assert ff.read() == json.dumps({})
+        if backend == "file":
+            assert os.path.exists(sharded_path)
+            with open(sharded_path) as ff:
+                assert ff.read() == json.dumps({})
+        else:
+            assert not os.path.exists(sharded_path)
 
         with pytest.raises(AssertionError):
             lj.update({"hi": "globe"})
-        with open(sharded_path) as ff:
-            assert ff.read() == dumps({})
+        if backend == "file":
+            with open(sharded_path) as ff:
+                assert ff.read() == dumps({})
         p = pickle.dumps(lj)
         lj2 = pickle.loads(p)
         assert not getattr(lj2, "_data", None)
@@ -336,7 +341,7 @@ def test_lazy_json_file(tmpdir):
         )
 
 
-def test_lazy_json(tmpdir):
+def test_lazy_json_default(tmpdir):
     with pushd(str(tmpdir)):
         f = "hi.json"
         fpth = get_sharded_path(f)
