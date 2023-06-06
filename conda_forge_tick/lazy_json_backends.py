@@ -223,13 +223,15 @@ class MongoDBLazyJsonBackend(LazyJsonBackend):
             else:
                 yield self
         finally:
-            pass
+            self.__class__._session = None
 
     @contextlib.contextmanager
     def snapshot_context(self):
         try:
             if self.__class__._snapshot_session is None:
                 client = get_graph_data_mongodb_client()
+                val = client.admin.command("getCmdLineOpts")
+                print(val)
                 with client.start_session(snapshot=True) as session:
                     self.__class__._snapshot_session = session
                     yield self
@@ -237,7 +239,7 @@ class MongoDBLazyJsonBackend(LazyJsonBackend):
             else:
                 yield self
         finally:
-            pass
+            self.__class__._snapshot_session = None
 
     def hgetall(self, name, hashval=False):
         assert name in CF_TICK_GRAPH_DATA_HASHMAPS or name == "lazy_json"
