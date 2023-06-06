@@ -20,7 +20,7 @@ jobs:
 
       - uses: mamba-org/setup-micromamba@v1
         with:
-          environment-file: cf-scripts/environment.yml
+          environment-file: environment.yml
           create-args: "python==${{ vars.PYVER }}"
           init-shell: bash
           cache-environment: true
