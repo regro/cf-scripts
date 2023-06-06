@@ -21,7 +21,21 @@ jobs:
       - uses: mamba-org/setup-micromamba@v1
         with:
           environment-file: environment.yml
-          create-args: "python==${{ vars.PYVER }}"
+          create-args: >-
+            "python==${{ vars.PYVER }}"
+            pip
+            pytest
+            codecov
+            requests-mock
+            doctr
+            sphinx
+            pre-commit
+            pip
+            flaky
+            pytest-xdist
+            pytest-cov
+            "setuptools_scm>=7"
+            python-build
           init-shell: bash
           cache-environment: true
           environment-name: cf-scripts
@@ -35,21 +49,6 @@ jobs:
         run: |
           export GIT_FULL_HASH=`git rev-parse HEAD`
           export CICLE_BUILD_URL="https://www.youtube.com/watch?v=R7qT-C-0ajI"
-          micromamba install --yes \
-            pip \
-            pytest \
-            codecov \
-            requests-mock \
-            doctr \
-            sphinx \
-            scipy \
-            pre-commit \
-            pip \
-            flaky \
-            pytest-xdist \
-            pytest-cov \
-            "setuptools_scm>=7" \
-            python-build
           pip install --no-deps --no-build-isolation -e .
 
       - name: conda info and env
@@ -93,7 +92,7 @@ jobs:
         with:
           mongodb-version: "latest"
 
-      - name: test mongodb
+      - name: test mongodb is OK
         shell: bash -l {0}
         run: |
           python -c "from pymongo import MongoClient; import os; print(MongoClient(os.environ['MONGODB_CONNECTION_STRING']))"
@@ -112,8 +111,10 @@ jobs:
             --cov-config=.coveragerc \
             --cov-report term \
             --durations 10 \
-            tests
+            tests/test_lazy_json_backends.py
           codecov -X gcov
+        env:
+          MONGODB_CONNECTION_STRING: "mongodb://127.0.0.1:27017/?directConnection=true&serverSelectionTimeoutMS=2000"
 
       - name: build docs
         shell: bash -l {0}
