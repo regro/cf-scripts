@@ -16,6 +16,7 @@ from conda_forge_tick.lazy_json_backends import (
     lazy_json_transaction,
     MongoDBLazyJsonBackend,
     LAZY_JSON_BACKENDS,
+    sync_lazy_json_across_backends,
 )
 from conda_forge_tick.os_utils import pushd
 import conda_forge_tick.utils
@@ -23,10 +24,49 @@ import conda_forge_tick.utils
 import pytest
 
 
+@pytest.mark.parametrize("backends", [
+    ("file", "mongodb"),
+    ("mongodb", "file"),
+])
+def test_lazy_json_backends_sync(backends, tmpdir):
+    old_backend = conda_forge_tick.lazy_json_backends.CF_TICK_GRAPH_DATA_BACKENDS
+    with pushd(tmpdir):
+        try:
+            conda_forge_tick.lazy_json_backends.CF_TICK_GRAPH_DATA_BACKENDS = backends
+            conda_forge_tick.lazy_json_backends.CF_TICK_GRAPH_DATA_PRIMARY_BACKEND = backends[0]
+
+            pbe = LAZY_JSON_BACKENDS[backends[0]]()
+            be = LAZY_JSON_BACKENDS[backends[1]]()
+
+            be.hset("lazy_json", "blah", dumps({}))
+
+            for hashmap in ["lazy_json", "node_attrs"]:
+                for i in range(2):
+                    pbe.hset(hashmap, f"node{i}", dumps({f"a{i}": i}))
+
+            sync_lazy_json_across_backends()
+
+            for hashmap in ["lazy_json", "node_attrs"]:
+                for i in range(2):
+                    be.hget(hashmap, f"node{i}") == dumps({f"a{i}": i})
+
+            assert not be.hexists("lazy_json", "blah")
+        finally:
+            be = LAZY_JSON_BACKENDS["mongodb"]()
+            for hashmap in ["lazy_json", "node_attrs"]:
+                for i in range(2):
+                    be.hdel(hashmap, [f"node{i}"])
+
+            conda_forge_tick.lazy_json_backends.CF_TICK_GRAPH_DATA_BACKENDS = old_backend
+            conda_forge_tick.lazy_json_backends.CF_TICK_GRAPH_DATA_PRIMARY_BACKEND = (
+                old_backend[0]
+            )
+
+
+@pytest.mark.parametrize("hashmap", ["lazy_json", "pr_info"])
 @pytest.mark.parametrize("backend", ["file", "mongodb"])
-def test_lazy_json_backends_ops(backend, tmpdir):
+def test_lazy_json_backends_ops(backend, hashmap, tmpdir):
     be = LAZY_JSON_BACKENDS[backend]()
-    hashmap = "pr_info"
     key = "blah"
     value = dumps({"a": 1, "b": 2})
     key_again = "blahblah"
@@ -94,6 +134,14 @@ def test_lazy_json_backends_contexts(backend):
                 assert MongoDBLazyJsonBackend._session is not None
                 assert MongoDBLazyJsonBackend._snapshot_session is None
 
+            with lazy_json_transaction():
+                if backend == "file":
+                    assert MongoDBLazyJsonBackend._session is None
+                    assert MongoDBLazyJsonBackend._snapshot_session is None
+                elif backend == "mongodb":
+                    assert MongoDBLazyJsonBackend._session is not None
+                    assert MongoDBLazyJsonBackend._snapshot_session is None
+
         with lazy_json_snapshot():
             if backend == "file":
                 assert MongoDBLazyJsonBackend._session is None
@@ -101,6 +149,14 @@ def test_lazy_json_backends_contexts(backend):
             elif backend == "mongodb":
                 assert MongoDBLazyJsonBackend._session is None
                 assert MongoDBLazyJsonBackend._snapshot_session is not None
+
+            with lazy_json_snapshot():
+                if backend == "file":
+                    assert MongoDBLazyJsonBackend._session is None
+                    assert MongoDBLazyJsonBackend._snapshot_session is None
+                elif backend == "mongodb":
+                    assert MongoDBLazyJsonBackend._session is None
+                    assert MongoDBLazyJsonBackend._snapshot_session is not None
 
     finally:
         conda_forge_tick.lazy_json_backends.CF_TICK_GRAPH_DATA_BACKENDS = old_backend
