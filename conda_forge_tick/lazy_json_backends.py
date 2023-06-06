@@ -76,7 +76,7 @@ class LazyJsonBackend:
     def hmget(self, name, keys):
         raise NotImplementedError
 
-    def hdel(self, name, key):
+    def hdel(self, name, keys):
         raise NotImplementedError
 
     def hkeys(self, name):

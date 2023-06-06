@@ -1,6 +1,7 @@
 import os
 import json
 import pickle
+import hashlib
 
 from conda_forge_tick.lazy_json_backends import (
     LazyJson,
@@ -14,11 +15,68 @@ from conda_forge_tick.lazy_json_backends import (
     lazy_json_snapshot,
     lazy_json_transaction,
     MongoDBLazyJsonBackend,
+    LAZY_JSON_BACKENDS,
 )
 from conda_forge_tick.os_utils import pushd
 import conda_forge_tick.utils
 
 import pytest
+
+
+@pytest.mark.parametrize("backend", ["file", "mongodb"])
+def test_lazy_json_backends_ops(backend, tmpdir):
+    be = LAZY_JSON_BACKENDS[backend]()
+    hashmap = "pr_info"
+    key = "blah"
+    value = dumps({"a": 1, "b": 2})
+    key_again = "blahblah"
+    value_again = dumps({"a": 1, "b": 2, "c": 3})
+
+    with pushd(tmpdir):
+        try:
+            assert not be.hexists(hashmap, key)
+            assert be.hkeys(hashmap) == []
+
+            be.hset(hashmap, key, value)
+            assert be.hget(hashmap, key) == value
+            assert be.hexists(hashmap, key)
+            assert be.hkeys(hashmap) == [key]
+
+            assert not be.hsetnx(hashmap, key, dumps({}))
+            assert be.hget(hashmap, key) == value
+
+            be.hdel(hashmap, [key])
+            assert not be.hexists(hashmap, key)
+            assert be.hkeys(hashmap) == []
+
+            assert be.hsetnx(hashmap, key, value)
+            assert be.hget(hashmap, key) == value
+            assert be.hexists(hashmap, key)
+            assert be.hkeys(hashmap) == [key]
+
+            be.hdel(hashmap, [key])
+            assert not be.hexists(hashmap, key)
+            assert be.hkeys(hashmap) == []
+
+            mapping = {key: value, key_again: value_again}
+            be.hmset(hashmap, mapping)
+            assert be.hget(hashmap, key) == value
+            assert be.hget(hashmap, key_again) == value_again
+            assert be.hexists(hashmap, key)
+            assert be.hexists(hashmap, key_again)
+            assert be.hkeys(hashmap) == [key, key_again]
+
+            assert be.hmget(hashmap, [key, key_again]) == [value, value_again]
+            assert be.hmget(hashmap, [key_again, key]) == [value_again, value]
+
+            assert be.hgetall(hashmap) == mapping
+
+            assert be.hgetall(hashmap, hashval=True) == {
+                key: hashlib.sha256(value.encode("utf-8")).hexdigest(),
+                key_again: hashlib.sha256(value_again.encode("utf-8")).hexdigest(),
+            }
+        finally:
+            be.hdel(hashmap, [key, key_again])
 
 
 @pytest.mark.parametrize("backend", ["file", "mongodb"])
