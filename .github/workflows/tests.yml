@@ -93,7 +93,12 @@ jobs:
         with:
           mongodb-version: "latest"
 
-      - run: curl http://localhost:27017
+      - name: test mongodb
+        shell: bash -l {0}
+        run: |
+          python -c "from pymongo import MongoClient; import os; print(MongoClient(os.environ["MONGODB_CONNECTION_STRING"]))"
+        env:
+          MONGODB_CONNECTION_STRING: "mongodb://127.0.0.1:27017/?directConnection=true&serverSelectionTimeoutMS=2000"
 
       - name: run pytest
         shell: bash -l {0}
