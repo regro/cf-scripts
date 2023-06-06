@@ -753,7 +753,7 @@ def prune_timestamps(
 
 def get_current_backup_filenames():
     if CF_TICK_GRAPH_DATA_BACKUP_BACKEND == "file":
-        backups = glob.glob("backups/*.tar.zstd")
+        backups = glob.glob("cf_graph_*.tar.zstd")
         return [os.path.basename(b) for b in backups]
     else:
         raise RuntimeError(
@@ -765,7 +765,7 @@ def get_current_backup_filenames():
 def remove_backup(fname):
     if CF_TICK_GRAPH_DATA_BACKUP_BACKEND == "file":
         try:
-            os.remove(f"backups/{fname}")
+            os.remove(fname)
         except Exception:
             pass
     else:
@@ -797,7 +797,6 @@ def main_backup(args):
         return int(b.split(".")[0].split("_")[-1])
 
     if not args.dry_run:
-        os.makedirs("backups", exist_ok=True)
         LOGGER.info("making lazy json backup")
         latest_backup = make_lazy_json_backup()
         curr_fnames = get_current_backup_filenames()

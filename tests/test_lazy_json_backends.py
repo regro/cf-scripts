@@ -2,6 +2,7 @@ import os
 import json
 import pickle
 import hashlib
+import subprocess
 
 from conda_forge_tick.lazy_json_backends import (
     LazyJson,
@@ -17,11 +18,62 @@ from conda_forge_tick.lazy_json_backends import (
     MongoDBLazyJsonBackend,
     LAZY_JSON_BACKENDS,
     sync_lazy_json_across_backends,
+    make_lazy_json_backup,
+    get_current_backup_filenames,
+    remove_backup,
 )
 from conda_forge_tick.os_utils import pushd
 import conda_forge_tick.utils
 
 import pytest
+
+
+def test_lazy_json_backends_backup(tmpdir):
+    old_backend = conda_forge_tick.lazy_json_backends.CF_TICK_GRAPH_DATA_BACKENDS
+    with pushd(tmpdir):
+        try:
+            conda_forge_tick.lazy_json_backends.CF_TICK_GRAPH_DATA_BACKENDS = ("file",)
+            conda_forge_tick.lazy_json_backends.CF_TICK_GRAPH_DATA_PRIMARY_BACKEND = (
+                "file"
+            )
+
+            pbe = LAZY_JSON_BACKENDS["file"]()
+            for hashmap in ["lazy_json", "node_attrs"]:
+                for i in range(2):
+                    pbe.hset(hashmap, f"node{i}", dumps({f"a{i}": i}))
+
+            make_lazy_json_backup()
+
+            fnames = get_current_backup_filenames()
+            assert len(fnames) == 1
+
+            subprocess.run(
+                f"tar xf {fnames[0]}",
+                shell=True,
+                check=True,
+                capture_output=True,
+            )
+
+            with pushd(fnames[0].split(".")[0]):
+                for hashmap in ["lazy_json", "node_attrs"]:
+                    for i in range(2):
+                        pbe.hget(hashmap, f"node{i}") == dumps({f"a{i}": i})
+
+            remove_backup(fnames[0])
+            fnames = get_current_backup_filenames()
+            assert len(fnames) == 0
+        finally:
+            be = LAZY_JSON_BACKENDS["file"]()
+            for hashmap in ["lazy_json", "node_attrs"]:
+                for i in range(2):
+                    be.hdel(hashmap, [f"node{i}"])
+
+            conda_forge_tick.lazy_json_backends.CF_TICK_GRAPH_DATA_BACKENDS = (
+                old_backend
+            )
+            conda_forge_tick.lazy_json_backends.CF_TICK_GRAPH_DATA_PRIMARY_BACKEND = (
+                old_backend[0]
+            )
 
 
 @pytest.mark.parametrize(
