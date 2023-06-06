@@ -325,7 +325,7 @@ class MongoDBLazyJsonBackend(LazyJsonBackend):
 
     def hget(self, name, key):
         assert name in CF_TICK_GRAPH_DATA_HASHMAPS or name == "lazy_json"
-        coll = self._get_collection()
+        coll = self._get_collection(name)
         data = coll.find_one({"node": key}, session=self.__class__._session)
         assert data is not None
         return dumps(data["value"])
