@@ -101,7 +101,12 @@ jobs:
         run: |
           python -c "from pymongo import MongoClient; import os; print(MongoClient(os.environ['MONGODB_CONNECTION_STRING']))"
         env:
-          MONGODB_CONNECTION_STRING: "mongodb://127.0.0.1:27017/?replicaSet=cfgraph&directConnection=true&serverSelectionTimeoutMS=2000"
+          MONGODB_CONNECTION_STRING: "mongodb://127.0.0.1:27017/?replicaSet=cfgraph&directConnection=true&serverSelectionTimeoutMS=2000&retryWrites=true&w=majority"
+
+      - name: wait a bit more for mongodb
+        shell: bash -l {0}
+        run: |
+          sleep 10
 
       - name: run pytest
         shell: bash -l {0}
@@ -116,9 +121,13 @@ jobs:
             --cov-report term-missing \
             --durations 10 \
             tests/test_lazy_json_backends.py
-          codecov -X gcov
         env:
-          MONGODB_CONNECTION_STRING: "mongodb://127.0.0.1:27017/?replicaSet=cfgraph&directConnection=true&serverSelectionTimeoutMS=2000"
+          MONGODB_CONNECTION_STRING: "mongodb://127.0.0.1:27017/?replicaSet=cfgraph&directConnection=true&serverSelectionTimeoutMS=2000&retryWrites=true&w=majority"
+
+      - name: run codecov
+        shell: bash -l {0}
+        run: |
+         codecov -X gcov
 
       - name: build docs
         shell: bash -l {0}
