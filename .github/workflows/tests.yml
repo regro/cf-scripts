@@ -35,7 +35,7 @@ jobs:
         run: |
           export GIT_FULL_HASH=`git rev-parse HEAD`
           export CICLE_BUILD_URL="https://www.youtube.com/watch?v=R7qT-C-0ajI"
-          micromamba install --quiet \
+          micromamba install --yes \
             pip \
             pytest \
             codecov \
@@ -50,7 +50,7 @@ jobs:
             pytest-cov \
             "setuptools_scm>=7" \
             python-build
-          python -m pip install -v --no-deps --no-build-isolation -e .
+          pip install --no-deps --no-build-isolation -e .
 
       - name: conda info and env
         shell: bash -l {0}
@@ -96,7 +96,7 @@ jobs:
       - name: test mongodb
         shell: bash -l {0}
         run: |
-          python -c "from pymongo import MongoClient; import os; print(MongoClient(os.environ["MONGODB_CONNECTION_STRING"]))"
+          python -c "from pymongo import MongoClient; import os; print(MongoClient(os.environ['MONGODB_CONNECTION_STRING']))"
         env:
           MONGODB_CONNECTION_STRING: "mongodb://127.0.0.1:27017/?directConnection=true&serverSelectionTimeoutMS=2000"
 
