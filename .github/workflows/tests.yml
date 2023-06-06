@@ -94,14 +94,14 @@ jobs:
         uses: MongoCamp/mongodb-github-action@e76ad215d47c31a99b4b0b1fde05f6cd1185df1a
         with:
           mongodb-version: "latest"
-          mongodb-replica-set: cf-graph
+          mongodb-replica-set: cfgraph
 
       - name: test mongodb is OK
         shell: bash -l {0}
         run: |
           python -c "from pymongo import MongoClient; import os; print(MongoClient(os.environ['MONGODB_CONNECTION_STRING']))"
         env:
-          MONGODB_CONNECTION_STRING: "mongodb://127.0.0.1:27017/?directConnection=true&serverSelectionTimeoutMS=2000"
+          MONGODB_CONNECTION_STRING: "mongodb://127.0.0.1:27017,127.0.0.1:27018,127.0.0.1:27019/?replicaSet=cfgraph&retryWrites=true&w=majority"
 
       - name: run pytest
         shell: bash -l {0}
@@ -118,7 +118,7 @@ jobs:
             tests/test_lazy_json_backends.py
           codecov -X gcov
         env:
-          MONGODB_CONNECTION_STRING: "mongodb://127.0.0.1:27017/?directConnection=true&serverSelectionTimeoutMS=2000"
+          MONGODB_CONNECTION_STRING: "mongodb://127.0.0.1:27017,127.0.0.1:27018,127.0.0.1:27019/?replicaSet=cfgraph&retryWrites=true&w=majority"
 
       - name: build docs
         shell: bash -l {0}
