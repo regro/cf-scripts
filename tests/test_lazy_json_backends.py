@@ -201,21 +201,14 @@ def test_lazy_json_backends_contexts(backend):
                     assert MongoDBLazyJsonBackend._session is not None
                     assert MongoDBLazyJsonBackend._snapshot_session is None
 
+        # we test without a replica set so no snapshot session
         with lazy_json_snapshot():
-            if backend == "file":
-                assert MongoDBLazyJsonBackend._session is None
-                assert MongoDBLazyJsonBackend._snapshot_session is None
-            elif backend == "mongodb":
-                assert MongoDBLazyJsonBackend._session is None
-                assert MongoDBLazyJsonBackend._snapshot_session is not None
+            assert MongoDBLazyJsonBackend._session is None
+            assert MongoDBLazyJsonBackend._snapshot_session is None
 
             with lazy_json_snapshot():
-                if backend == "file":
-                    assert MongoDBLazyJsonBackend._session is None
-                    assert MongoDBLazyJsonBackend._snapshot_session is None
-                elif backend == "mongodb":
-                    assert MongoDBLazyJsonBackend._session is None
-                    assert MongoDBLazyJsonBackend._snapshot_session is not None
+                assert MongoDBLazyJsonBackend._session is None
+                assert MongoDBLazyJsonBackend._snapshot_session is None
 
     finally:
         conda_forge_tick.lazy_json_backends.CF_TICK_GRAPH_DATA_BACKENDS = old_backend
