@@ -102,11 +102,6 @@ jobs:
         env:
           MONGODB_CONNECTION_STRING: "mongodb://127.0.0.1:27017/?directConnection=true&serverSelectionTimeoutMS=2000"
 
-      - name: wait a bit more for mongodb
-        shell: bash -l {0}
-        run: |
-          sleep 10
-
       - name: run pytest
         shell: bash -l {0}
         run: |
