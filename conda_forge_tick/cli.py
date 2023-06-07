@@ -14,7 +14,7 @@ SCRIPT_DICT = {
     "update-prs": {"module": "update_prs", "func": "main"},
     "make-mappings": {"module": "mappings", "func": "main"},
     "deploy-to-github": None,
-    "backup-lazy-json": {"module": "lazy_json_backends", "func": "main_backup"},
+    "backup-lazy-json": {"module": "lazy_json_backups", "func": "main_backup"},
     "sync-lazy-json-across-backends": {
         "module": "lazy_json_backends",
         "func": "main_sync",
