@@ -108,13 +108,13 @@ jobs:
           export TEST_PASSWORD_VAL=unpassword
           export PASSWORD=${TEST_PASSWORD_VAL}
           pytest \
-            -vvs \
+            -v \
             --cov=conda_forge_tick \
             --cov=tests \
             --cov-config=.coveragerc \
             --cov-report term-missing \
             --durations 10 \
-            tests/test_lazy_json_backends.py
+            tests
         env:
           MONGODB_CONNECTION_STRING: "mongodb://127.0.0.1:27017/?directConnection=true&serverSelectionTimeoutMS=2000"
 
