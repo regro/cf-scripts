@@ -12,17 +12,17 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - uses: conda-incubator/setup-miniconda@v2
+      - uses: mamba-org/setup-micromamba@v1
         with:
-          channels: conda-forge,defaults
-          channel-priority: strict
-          show-channel-urls: true
-          miniforge-version: latest
-          miniforge-variant: Mambaforge
-          python-version: ${{ vars.PYVER }}
-          use-mamba: true
           environment-file: environment.yml
-          activate-environment: cf-scripts
+          create-args: "python==${{ vars.PYVER }}"
+          init-shell: bash
+          cache-environment: true
+          environment-name: cf-scripts
+          post-cleanup: 'all'
+          condarc: |
+            channels:
+              - conda-forge
 
       - name: delete runs
         shell: bash -l {0}
