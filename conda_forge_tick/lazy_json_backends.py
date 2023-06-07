@@ -228,15 +228,13 @@ class MongoDBLazyJsonBackend(LazyJsonBackend):
     def snapshot_context(self):
         try:
             if self.__class__._snapshot_session is None:
-                try:
-                    client = get_graph_data_mongodb_client()
-                    print(client.topology_description, client.server_info())
+                client = get_graph_data_mongodb_client()
+                if "Single" not in client.topology_description.topology_type_name:
                     with client.start_session(snapshot=True) as session:
                         self.__class__._snapshot_session = session
                         yield self
                         self.__class__._snapshot_session = None
-                except Exception as e:
-                    print(repr(e))
+                else:
                     yield self
             else:
                 yield self
