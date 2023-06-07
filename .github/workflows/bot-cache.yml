@@ -15,7 +15,7 @@ jobs:
       run:
         shell: bash -l {0}
 
-    steps:      
+    steps:
       - name: run cache
         if: success() && ! env.CI_SKIP
         uses: actions/cache@v3
@@ -24,7 +24,7 @@ jobs:
           key: cf-graph-tzstd-${{ github.run_id }}-${{ github.run_attempt }}
           restore-keys: |
             cf-graph-tzstd-
-    
+
       - uses: actions/checkout@v3
         with:
           path: cf-scripts
@@ -37,7 +37,7 @@ jobs:
           init-shell: bash
           cache-environment: true
           environment-name: cf-scripts
-          post-cleanup: 'all'        
+          post-cleanup: 'all'
           condarc: |
             channels:
               - conda-forge

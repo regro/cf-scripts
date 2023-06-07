@@ -49,6 +49,7 @@ from conda_forge_tick.lazy_json_backends import (
     get_all_keys_for_hashmap,
     LazyJson,
     remove_key_for_hashmap,
+    lazy_json_transaction,
 )
 from conda_forge_tick.contexts import (
     FeedstockContext,
@@ -1426,29 +1427,31 @@ def _remove_closed_pr_json():
     for name, nodes in name_nodes:
         for node in nodes:
             lzj_pri = LazyJson(f"{name}/{node}.json")
-            with lzj_pri as pri:
-                for pr_ind in range(len(pri.get("PRed", []))):
-                    pr = pri["PRed"][pr_ind].get("PR", None)
-                    if (
-                        pr is not None
-                        and isinstance(pr, LazyJson)
-                        and (pr.get("state", None) == "closed" or pr.data == {})
-                    ):
-                        pri["PRed"][pr_ind]["PR"] = {
-                            "state": "closed",
-                            "number": pr.get("number", None),
-                            "labels": [
-                                {"name": lb["name"]} for lb in pr.get("labels", [])
-                            ],
-                        }
-                        assert len(pr.file_name.split("/")) == 2
-                        assert pr.file_name.split("/")[0] == "pr_json"
-                        assert pr.file_name.split("/")[1].endswith(".json")
-                        remove_key_for_hashmap(
-                            pr.file_name.split("/")[0],
-                            pr.file_name.split("/")[1][: -len(".json")],
-                        )
-                        del pr
+            with lazy_json_transaction():
+                with lzj_pri as pri:
+                    for pr_ind in len(pri.get("PRed", [])):
+                        pr = pri["PRed"][pr_ind].get("PR", None)
+                        if (
+                            pr is not None
+                            and isinstance(pr, LazyJson)
+                            and (pr.get("state", None) == "closed" or pr.data == {})
+                        ):
+                            pri["PRed"][pr_ind]["PR"] = {
+                                "state": "closed",
+                                "number": pr.get("number", None),
+                                "labels": [
+                                    {"name": lb["name"]} for lb in pr.get("labels", [])
+                                ],
+                            }
+                            assert len(pr.file_name.split("/")) == 2
+                            assert pr.file_name.split("/")[0] == "pr_json"
+                            assert pr.file_name.split("/")[1].endswith(".json")
+                            pr_json_node = pr.file_name.split("/")[1][: -len(".json")]
+                            del pr
+                            remove_key_for_hashmap(
+                                "pr_json",
+                                pr_json_node,
+                            )
 
     # at this point, any json blob referenced in the pr info is state != closed
     # so we can remove anything that is empty or closed

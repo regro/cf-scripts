@@ -21,39 +21,38 @@ jobs:
 
       - uses: actions/checkout@v3
 
-      - uses: conda-incubator/setup-miniconda@v2
+      - uses: mamba-org/setup-micromamba@v1
         with:
-          channels: conda-forge,defaults
-          channel-priority: strict
-          show-channel-urls: true
-          miniforge-version: latest
-          miniforge-variant: Mambaforge
-          python-version: ${{ vars.PYVER }}
-          use-mamba: true
           environment-file: environment.yml
-          activate-environment: cf-scripts
+          create-args: >-
+            python==${{ vars.PYVER }}
+            pip
+            pytest
+            codecov
+            requests-mock
+            doctr
+            sphinx
+            pre-commit
+            pip
+            flaky
+            pytest-xdist
+            pytest-cov
+            setuptools_scm>=7
+            python-build
+          init-shell: bash
+          cache-environment: true
+          environment-name: cf-scripts
+          post-cleanup: 'all'
+          condarc: |
+            channels:
+              - conda-forge
 
       - name: configure conda and install code
         shell: bash -l {0}
         run: |
           export GIT_FULL_HASH=`git rev-parse HEAD`
           export CICLE_BUILD_URL="https://www.youtube.com/watch?v=R7qT-C-0ajI"
-          mamba install --quiet \
-            pip \
-            pytest \
-            codecov \
-            requests-mock \
-            doctr \
-            sphinx \
-            scipy \
-            pre-commit \
-            pip \
-            flaky \
-            pytest-xdist \
-            pytest-cov \
-            "setuptools_scm>=7" \
-            python-build
-          python -m pip install -v --no-deps --no-build-isolation -e .
+          pip install --no-deps --no-build-isolation -e .
 
       - name: conda info and env
         shell: bash -l {0}
@@ -91,6 +90,18 @@ jobs:
 
           python -m pip install -v --no-deps --no-build-isolation -e .
 
+      - name: Start MongoDB
+        uses: MongoCamp/mongodb-github-action@e76ad215d47c31a99b4b0b1fde05f6cd1185df1a
+        with:
+          mongodb-version: "latest"
+
+      - name: test mongodb is OK
+        shell: bash -l {0}
+        run: |
+          python -c "from pymongo import MongoClient; import os; print(MongoClient(os.environ['MONGODB_CONNECTION_STRING']))"
+        env:
+          MONGODB_CONNECTION_STRING: "mongodb://127.0.0.1:27017/?directConnection=true&serverSelectionTimeoutMS=2000"
+
       - name: run pytest
         shell: bash -l {0}
         run: |
@@ -101,10 +112,16 @@ jobs:
             --cov=conda_forge_tick \
             --cov=tests \
             --cov-config=.coveragerc \
-            --cov-report term \
+            --cov-report term-missing \
             --durations 10 \
             tests
-          codecov -X gcov
+        env:
+          MONGODB_CONNECTION_STRING: "mongodb://127.0.0.1:27017/?directConnection=true&serverSelectionTimeoutMS=2000"
+
+      - name: run codecov
+        shell: bash -l {0}
+        run: |
+         codecov -X gcov
 
       - name: build docs
         shell: bash -l {0}

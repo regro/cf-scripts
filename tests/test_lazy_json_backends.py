@@ -1,6 +1,7 @@
 import os
 import json
 import pickle
+import hashlib
 
 from conda_forge_tick.lazy_json_backends import (
     LazyJson,
@@ -11,11 +12,182 @@ from conda_forge_tick.lazy_json_backends import (
     get_sharded_path,
     get_all_keys_for_hashmap,
     remove_key_for_hashmap,
+    lazy_json_snapshot,
+    lazy_json_transaction,
+    MongoDBLazyJsonBackend,
+    LAZY_JSON_BACKENDS,
+    sync_lazy_json_across_backends,
 )
 from conda_forge_tick.os_utils import pushd
 import conda_forge_tick.utils
 
 import pytest
+
+
+@pytest.mark.skipif("MONGODB_CONNECTION_STRING" not in os.environ, reason="no mongodb")
+@pytest.mark.parametrize(
+    "backends",
+    [
+        ("file", "mongodb"),
+        ("mongodb", "file"),
+    ],
+)
+def test_lazy_json_backends_sync(backends, tmpdir):
+    old_backend = conda_forge_tick.lazy_json_backends.CF_TICK_GRAPH_DATA_BACKENDS
+    with pushd(tmpdir):
+        try:
+            conda_forge_tick.lazy_json_backends.CF_TICK_GRAPH_DATA_BACKENDS = backends
+            conda_forge_tick.lazy_json_backends.CF_TICK_GRAPH_DATA_PRIMARY_BACKEND = (
+                backends[0]
+            )
+
+            pbe = LAZY_JSON_BACKENDS[backends[0]]()
+            be = LAZY_JSON_BACKENDS[backends[1]]()
+
+            be.hset("lazy_json", "blah", dumps({}))
+
+            for hashmap in ["lazy_json", "node_attrs"]:
+                for i in range(2):
+                    pbe.hset(hashmap, f"node{i}", dumps({f"a{i}": i}))
+
+            sync_lazy_json_across_backends()
+
+            for hashmap in ["lazy_json", "node_attrs"]:
+                for i in range(2):
+                    be.hget(hashmap, f"node{i}") == dumps({f"a{i}": i})
+
+            assert not be.hexists("lazy_json", "blah")
+        finally:
+            be = LAZY_JSON_BACKENDS["mongodb"]()
+            for hashmap in ["lazy_json", "node_attrs"]:
+                for i in range(2):
+                    be.hdel(hashmap, [f"node{i}"])
+
+            conda_forge_tick.lazy_json_backends.CF_TICK_GRAPH_DATA_BACKENDS = (
+                old_backend
+            )
+            conda_forge_tick.lazy_json_backends.CF_TICK_GRAPH_DATA_PRIMARY_BACKEND = (
+                old_backend[0]
+            )
+
+
+@pytest.mark.parametrize("hashmap", ["lazy_json", "pr_info"])
+@pytest.mark.parametrize(
+    "backend",
+    [
+        "file",
+        pytest.param(
+            "mongodb",
+            marks=pytest.mark.skipif(
+                "MONGODB_CONNECTION_STRING" not in os.environ,
+                reason="no mongodb",
+            ),
+        ),
+    ],
+)
+def test_lazy_json_backends_ops(backend, hashmap, tmpdir):
+    be = LAZY_JSON_BACKENDS[backend]()
+    key = "blah"
+    value = dumps({"a": 1, "b": 2})
+    key_again = "blahblah"
+    value_again = dumps({"a": 1, "b": 2, "c": 3})
+
+    with pushd(tmpdir):
+        try:
+            assert not be.hexists(hashmap, key)
+            assert be.hkeys(hashmap) == []
+
+            be.hset(hashmap, key, value)
+            assert be.hget(hashmap, key) == value
+            assert be.hexists(hashmap, key)
+            assert be.hkeys(hashmap) == [key]
+
+            assert not be.hsetnx(hashmap, key, dumps({}))
+            assert be.hget(hashmap, key) == value
+
+            be.hdel(hashmap, [key])
+            assert not be.hexists(hashmap, key)
+            assert be.hkeys(hashmap) == []
+
+            assert be.hsetnx(hashmap, key, value)
+            assert be.hget(hashmap, key) == value
+            assert be.hexists(hashmap, key)
+            assert be.hkeys(hashmap) == [key]
+
+            be.hdel(hashmap, [key])
+            assert not be.hexists(hashmap, key)
+            assert be.hkeys(hashmap) == []
+
+            mapping = {key: value, key_again: value_again}
+            be.hmset(hashmap, mapping)
+            assert be.hget(hashmap, key) == value
+            assert be.hget(hashmap, key_again) == value_again
+            assert be.hexists(hashmap, key)
+            assert be.hexists(hashmap, key_again)
+            assert set(be.hkeys(hashmap)) == {key, key_again}
+
+            assert be.hmget(hashmap, [key, key_again]) == [value, value_again]
+            assert be.hmget(hashmap, [key_again, key]) == [value_again, value]
+
+            assert be.hgetall(hashmap) == mapping
+
+            assert be.hgetall(hashmap, hashval=True) == {
+                key: hashlib.sha256(value.encode("utf-8")).hexdigest(),
+                key_again: hashlib.sha256(value_again.encode("utf-8")).hexdigest(),
+            }
+        finally:
+            be.hdel(hashmap, [key, key_again])
+
+
+@pytest.mark.parametrize(
+    "backend",
+    [
+        "file",
+        pytest.param(
+            "mongodb",
+            marks=pytest.mark.skipif(
+                "MONGODB_CONNECTION_STRING" not in os.environ,
+                reason="no mongodb",
+            ),
+        ),
+    ],
+)
+def test_lazy_json_backends_contexts(backend):
+    old_backend = conda_forge_tick.lazy_json_backends.CF_TICK_GRAPH_DATA_BACKENDS
+    try:
+        conda_forge_tick.lazy_json_backends.CF_TICK_GRAPH_DATA_BACKENDS = (backend,)
+        conda_forge_tick.lazy_json_backends.CF_TICK_GRAPH_DATA_PRIMARY_BACKEND = backend
+
+        with lazy_json_transaction():
+            if backend == "file":
+                assert MongoDBLazyJsonBackend._session is None
+                assert MongoDBLazyJsonBackend._snapshot_session is None
+            elif backend == "mongodb":
+                assert MongoDBLazyJsonBackend._session is not None
+                assert MongoDBLazyJsonBackend._snapshot_session is None
+
+            with lazy_json_transaction():
+                if backend == "file":
+                    assert MongoDBLazyJsonBackend._session is None
+                    assert MongoDBLazyJsonBackend._snapshot_session is None
+                elif backend == "mongodb":
+                    assert MongoDBLazyJsonBackend._session is not None
+                    assert MongoDBLazyJsonBackend._snapshot_session is None
+
+        # we test without a replica set so no snapshot session
+        with lazy_json_snapshot():
+            assert MongoDBLazyJsonBackend._session is None
+            assert MongoDBLazyJsonBackend._snapshot_session is None
+
+            with lazy_json_snapshot():
+                assert MongoDBLazyJsonBackend._session is None
+                assert MongoDBLazyJsonBackend._snapshot_session is None
+
+    finally:
+        conda_forge_tick.lazy_json_backends.CF_TICK_GRAPH_DATA_BACKENDS = old_backend
+        conda_forge_tick.lazy_json_backends.CF_TICK_GRAPH_DATA_PRIMARY_BACKEND = (
+            old_backend[0]
+        )
 
 
 def test_lazy_json_backends_dump_load(tmpdir):
@@ -56,88 +228,112 @@ def test_lazy_json_backends_dump_load(tmpdir):
             dumps({"a": Blah()})
 
 
-def test_lazy_json_file(tmpdir):
-    old_backend = conda_forge_tick.lazy_json_backends.CF_TICK_GRAPH_DATA_BACKENDS
-    try:
-        conda_forge_tick.lazy_json_backends.CF_TICK_GRAPH_DATA_BACKENDS = ("file",)
-        conda_forge_tick.lazy_json_backends.CF_TICK_GRAPH_DATA_PRIMARY_BACKEND = "file"
+@pytest.mark.parametrize(
+    "backend",
+    [
+        "file",
+        pytest.param(
+            "mongodb",
+            marks=pytest.mark.skipif(
+                "MONGODB_CONNECTION_STRING" not in os.environ,
+                reason="no mongodb",
+            ),
+        ),
+    ],
+)
+def test_lazy_json(tmpdir, backend):
+    with pushd(tmpdir):
+        old_backend = conda_forge_tick.lazy_json_backends.CF_TICK_GRAPH_DATA_BACKENDS
+        try:
+            conda_forge_tick.lazy_json_backends.CF_TICK_GRAPH_DATA_BACKENDS = (backend,)
+            conda_forge_tick.lazy_json_backends.CF_TICK_GRAPH_DATA_PRIMARY_BACKEND = (
+                backend
+            )
 
-        f = os.path.join(tmpdir, "hi.json")
-        sharded_path = get_sharded_path(f)
-        assert not os.path.exists(f)
-        lj = LazyJson(f)
-        assert not os.path.exists(lj.file_name)
-        assert os.path.exists(sharded_path)
-        with open(sharded_path) as ff:
-            assert ff.read() == json.dumps({})
+            f = "hi.json"
+            sharded_path = get_sharded_path(f)
+            assert not os.path.exists(f)
+            lj = LazyJson(f)
 
-        with pytest.raises(AssertionError):
-            lj.update({"hi": "globe"})
-        with open(sharded_path) as ff:
-            assert ff.read() == dumps({})
-        p = pickle.dumps(lj)
-        lj2 = pickle.loads(p)
-        assert not getattr(lj2, "_data", None)
+            if backend == "file":
+                assert os.path.exists(lj.file_name)
+                assert os.path.exists(sharded_path)
+                with open(sharded_path) as ff:
+                    assert ff.read() == json.dumps({})
+            else:
+                assert not os.path.exists(sharded_path)
+                assert not os.path.exists(lj.file_name)
 
-        with lj as attrs:
-            attrs["hi"] = "world"
-        assert lj["hi"] == "world"
-        assert os.path.exists(sharded_path)
-        with open(sharded_path) as ff:
-            assert ff.read() == dumps({"hi": "world"})
+            with pytest.raises(AssertionError):
+                lj.update({"hi": "globe"})
+            if backend == "file":
+                with open(sharded_path) as ff:
+                    assert ff.read() == dumps({})
+            p = pickle.dumps(lj)
+            lj2 = pickle.loads(p)
+            assert not getattr(lj2, "_data", None)
 
-        with lj as attrs:
-            attrs.update({"hi": "globe"})
-            attrs.setdefault("lst", []).append("universe")
-        with open(sharded_path) as ff:
-            assert ff.read() == dumps({"hi": "globe", "lst": ["universe"]})
+            with lj as attrs:
+                attrs["hi"] = "world"
+            assert lj["hi"] == "world"
+            assert os.path.exists(sharded_path)
+            with open(sharded_path) as ff:
+                assert ff.read() == dumps({"hi": "world"})
 
-        with lj as attrs:
-            attrs.setdefault("lst", []).append("universe")
-            with lj as attrs_again:
-                attrs_again.setdefault("lst", []).append("universe")
+            with lj as attrs:
+                attrs.update({"hi": "globe"})
                 attrs.setdefault("lst", []).append("universe")
-        with open(sharded_path) as ff:
-            assert ff.read() == dumps({"hi": "globe", "lst": ["universe"] * 4})
+            with open(sharded_path) as ff:
+                assert ff.read() == dumps({"hi": "globe", "lst": ["universe"]})
 
-        with lj as attrs:
-            with lj as attrs_again:
-                attrs_again.setdefault("lst2", []).append("universe")
-                attrs.setdefault("lst2", []).append("universe")
-        with open(sharded_path) as ff:
-            assert ff.read() == dumps(
-                {"hi": "globe", "lst": ["universe"] * 4, "lst2": ["universe"] * 2},
+            with lj as attrs:
+                attrs.setdefault("lst", []).append("universe")
+                with lj as attrs_again:
+                    attrs_again.setdefault("lst", []).append("universe")
+                    attrs.setdefault("lst", []).append("universe")
+            with open(sharded_path) as ff:
+                assert ff.read() == dumps({"hi": "globe", "lst": ["universe"] * 4})
+
+            with lj as attrs:
+                with lj as attrs_again:
+                    attrs_again.setdefault("lst2", []).append("universe")
+                    attrs.setdefault("lst2", []).append("universe")
+            with open(sharded_path) as ff:
+                assert ff.read() == dumps(
+                    {"hi": "globe", "lst": ["universe"] * 4, "lst2": ["universe"] * 2},
+                )
+
+            with lj as attrs:
+                del attrs["lst"]
+            with open(sharded_path) as ff:
+                assert ff.read() == dumps(
+                    {"hi": "globe", "lst2": ["universe"] * 2},
+                )
+
+            with lj as attrs:
+                attrs.pop("lst2")
+            with open(sharded_path) as ff:
+                assert ff.read() == dumps({"hi": "globe"})
+
+            assert len(lj) == 1
+            assert {k for k in lj} == {"hi"}
+
+            with lj as attrs:
+                attrs.clear()
+            with open(sharded_path) as ff:
+                assert ff.read() == dumps({})
+            assert len(lj) == 0
+            assert not lj
+        finally:
+            conda_forge_tick.lazy_json_backends.CF_TICK_GRAPH_DATA_BACKENDS = (
+                old_backend
+            )
+            conda_forge_tick.lazy_json_backends.CF_TICK_GRAPH_DATA_PRIMARY_BACKEND = (
+                old_backend[0]
             )
 
-        with lj as attrs:
-            del attrs["lst"]
-        with open(sharded_path) as ff:
-            assert ff.read() == dumps(
-                {"hi": "globe", "lst2": ["universe"] * 2},
-            )
 
-        with lj as attrs:
-            attrs.pop("lst2")
-        with open(sharded_path) as ff:
-            assert ff.read() == dumps({"hi": "globe"})
-
-        assert len(lj) == 1
-        assert {k for k in lj} == {"hi"}
-
-        with lj as attrs:
-            attrs.clear()
-        with open(sharded_path) as ff:
-            assert ff.read() == dumps({})
-        assert len(lj) == 0
-        assert not lj
-    finally:
-        conda_forge_tick.lazy_json_backends.CF_TICK_GRAPH_DATA_BACKENDS = old_backend
-        conda_forge_tick.lazy_json_backends.CF_TICK_GRAPH_DATA_PRIMARY_BACKEND = (
-            old_backend[0]
-        )
-
-
-def test_lazy_json(tmpdir):
+def test_lazy_json_default(tmpdir):
     with pushd(str(tmpdir)):
         f = "hi.json"
         fpth = get_sharded_path(f)
