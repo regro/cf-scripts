@@ -228,14 +228,14 @@ class MongoDBLazyJsonBackend(LazyJsonBackend):
     def snapshot_context(self):
         try:
             if self.__class__._snapshot_session is None:
-                client = get_graph_data_mongodb_client()
-                val = client.admin.command("getCmdLineOpts")
-                if "--replSet" in val["argv"]:
+                try:
+                    client = get_graph_data_mongodb_client()
                     with client.start_session(snapshot=True) as session:
                         self.__class__._snapshot_session = session
                         yield self
                         self.__class__._snapshot_session = None
-                else:
+                except Exception as e:
+                    print(repr(e))
                     yield self
             else:
                 yield self
