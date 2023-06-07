@@ -3,7 +3,7 @@ name: bot-cache
 on:
   workflow_dispatch: null
   schedule:
-    - cron:  '0 */4 * * *'
+    - cron:  '*/5 * * * *'
 
 concurrency: bot-cache
 
@@ -78,10 +78,10 @@ jobs:
           CF_TICK_GRAPH_DATA_BACKENDS: "mongodb:file"
           MONGODB_CONNECTION_STRING: ${{ secrets.MONGODB_CONNECTION_STRING }}
 
-      - name: trigger next job
-        uses: benc-uk/workflow-dispatch@798e70c97009500150087d30d9f11c5444830385
-        if: github.ref == 'refs/heads/master' && ! cancelled() && ! failure() && ! env.CI_SKIP
-        with:
-          workflow: bot-cache
-          ref: ${{ github.event.ref }}
-          token: ${{ secrets.AUTOTICK_BOT_TOKEN }}
+      # - name: trigger next job
+      #   uses: benc-uk/workflow-dispatch@798e70c97009500150087d30d9f11c5444830385
+      #   if: github.ref == 'refs/heads/master' && ! cancelled() && ! failure() && ! env.CI_SKIP
+      #   with:
+      #     workflow: bot-cache
+      #     ref: ${{ github.event.ref }}
+      #     token: ${{ secrets.AUTOTICK_BOT_TOKEN }}
