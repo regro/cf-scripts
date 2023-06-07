@@ -1429,7 +1429,7 @@ def _remove_closed_pr_json():
             lzj_pri = LazyJson(f"{name}/{node}.json")
             with lazy_json_transaction():
                 with lzj_pri as pri:
-                    for pr_ind in len(pri.get("PRed", [])):
+                    for pr_ind in range(len(pri.get("PRed", []))):
                         pr = pri["PRed"][pr_ind].get("PR", None)
                         if (
                             pr is not None
