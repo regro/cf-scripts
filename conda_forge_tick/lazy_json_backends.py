@@ -230,6 +230,7 @@ class MongoDBLazyJsonBackend(LazyJsonBackend):
             if self.__class__._snapshot_session is None:
                 try:
                     client = get_graph_data_mongodb_client()
+                    print(client.topology_description, client.server_info())
                     with client.start_session(snapshot=True) as session:
                         self.__class__._snapshot_session = session
                         yield self
