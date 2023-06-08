@@ -394,16 +394,34 @@ def sync_lazy_json_across_backends(batch_size=5000):
 
     if len(CF_TICK_GRAPH_DATA_BACKENDS) > 1:
         primary_backend = LAZY_JSON_BACKENDS[CF_TICK_GRAPH_DATA_PRIMARY_BACKEND]()
-        with primary_backend.snapshot_context():
-            with tqdm.tqdm(
-                CF_TICK_GRAPH_DATA_HASHMAPS + ["lazy_json"],
-                ncols=80,
-                desc="syncing hashmaps",
-            ) as pbar:
-                for hashmap in pbar:
-                    tqdm.tqdm.write("SYNCING %s" % hashmap)
-                    _flush_it()
-                    _sync_hashmap(hashmap, batch_size, primary_backend)
+
+        # only certain collections need to be updated in a single transaction
+        all_collections = set(CF_TICK_GRAPH_DATA_HASHMAPS + ["lazy_json"])
+        pr_collections = {"pr_info", "pr_json", "version_pr_info"}
+        node_collections = {"node_attrs", "lazy_json"}
+        parallel_collections = all_collections - pr_collections - node_collections
+
+        for collection_set in [pr_collections, node_collections]:
+            with primary_backend.snapshot_context():
+                with tqdm.tqdm(
+                    collection_set,
+                    ncols=80,
+                    desc="syncing %r" % collection_set,
+                ) as pbar:
+                    for hashmap in pbar:
+                        tqdm.tqdm.write("SYNCING %s" % hashmap)
+                        _flush_it()
+                        _sync_hashmap(hashmap, batch_size, primary_backend)
+
+        with tqdm.tqdm(
+            parallel_collections,
+            ncols=80,
+            desc="syncing %r" % parallel_collections,
+        ) as pbar:
+            for hashmap in pbar:
+                tqdm.tqdm.write("SYNCING %s" % hashmap)
+                _flush_it()
+                _sync_hashmap(hashmap, batch_size, primary_backend)
 
 
 def remove_key_for_hashmap(name, node):
