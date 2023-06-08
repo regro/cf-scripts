@@ -17,7 +17,7 @@ dependencies:
  - conda-build>=3.24.0
  - curl
  - depfinder
- - distributed
+ - distributed<2023.5
  - doctr
  - feedparser
  - frozendict
