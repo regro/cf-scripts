@@ -29,6 +29,7 @@ dependencies:
  - mamba>=0.23
  - msgpack-python
  - networkx!=2.8.1
+ - numpy
  - packaging
  - psutil
  - pygithub
