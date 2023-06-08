@@ -411,7 +411,7 @@ def sync_lazy_json_across_backends(batch_size=5000):
         with tqdm.tqdm(
             ordered_collections + rest_of_the_collections,
             ncols=80,
-            desc=f"syncing {ordered_collections + rest_of_the_collections!r}",
+            desc="syncing hashmaps",
         ) as pbar:
             for hashmap in pbar:
                 tqdm.tqdm.write("SYNCING %s" % hashmap)
