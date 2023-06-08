@@ -406,7 +406,7 @@ def sync_lazy_json_across_backends(batch_size=5000):
             "pr_json",
             "versions",
         ]
-        rest_of_the_collections = list(all_collections - ordered_collections)
+        rest_of_the_collections = list(all_collections - set(ordered_collections))
 
         with tqdm.tqdm(
             ordered_collections + rest_of_the_collections,
