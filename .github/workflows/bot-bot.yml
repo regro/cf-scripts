@@ -72,6 +72,8 @@ jobs:
           PASSWORD: ${{ secrets.AUTOTICK_BOT_TOKEN }}
           RUN_ID: ${{ github.run_id }}
           MEMORY_LIMIT_GB: 7
+          CF_TICK_GRAPH_DATA_BACKENDS: "mongodb:file"
+          MONGODB_CONNECTION_STRING: ${{ secrets.MONGODB_CONNECTION_STRING }}
 
       - name: status of changes
         if: github.ref == 'refs/heads/master' && always() && ! env.CI_SKIP

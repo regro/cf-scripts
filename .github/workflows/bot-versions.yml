@@ -58,6 +58,8 @@ jobs:
         env:
           BOT_JOB: ${{ matrix.job_num }}
           PASSWORD: ${{ secrets.AUTOTICK_BOT_TOKEN }}
+          CF_TICK_GRAPH_DATA_BACKENDS: "mongodb:file"
+          MONGODB_CONNECTION_STRING: ${{ secrets.MONGODB_CONNECTION_STRING }}
 
       - name: deploy
         if: github.ref == 'refs/heads/master' && ! cancelled() && ! env.CI_SKIP

@@ -63,6 +63,8 @@ jobs:
           PASSWORD: ${{ secrets.AUTOTICK_BOT_TOKEN }}
           RUN_ID: ${{ github.run_id }}
           BOT_JOB: ${{ matrix.job_num }}
+          CF_TICK_GRAPH_DATA_BACKENDS: "mongodb:file"
+          MONGODB_CONNECTION_STRING: ${{ secrets.MONGODB_CONNECTION_STRING }}
 
       - name: deploy
         if: github.ref == 'refs/heads/master' && ! cancelled() && ! env.CI_SKIP
