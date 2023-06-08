@@ -56,6 +56,8 @@ jobs:
         env:
           USERNAME: regro-cf-autotick-bot
           PASSWORD: ${{ secrets.AUTOTICK_BOT_TOKEN }}
+          CF_TICK_GRAPH_DATA_BACKENDS: "mongodb:file"
+          MONGODB_CONNECTION_STRING: ${{ secrets.MONGODB_CONNECTION_STRING }}
 
       - name: deploy
         if: github.ref == 'refs/heads/master' && always() && ! env.CI_SKIP
