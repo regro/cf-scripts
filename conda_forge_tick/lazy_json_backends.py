@@ -395,33 +395,57 @@ def sync_lazy_json_across_backends(batch_size=5000):
     if len(CF_TICK_GRAPH_DATA_BACKENDS) > 1:
         primary_backend = LAZY_JSON_BACKENDS[CF_TICK_GRAPH_DATA_PRIMARY_BACKEND]()
 
-        # only certain collections need to be updated in a single transaction
+        # pulling in this order helps us ensure we get a consistent view
+        # of the backend data even if we did not sync from a snapshot
         all_collections = set(CF_TICK_GRAPH_DATA_HASHMAPS + ["lazy_json"])
-        pr_collections = {"pr_info", "pr_json", "version_pr_info"}
-        node_collections = {"node_attrs", "lazy_json"}
-        parallel_collections = all_collections - pr_collections - node_collections
-
-        for collection_set in [pr_collections, node_collections]:
-            with primary_backend.snapshot_context():
-                with tqdm.tqdm(
-                    collection_set,
-                    ncols=80,
-                    desc="syncing %r" % collection_set,
-                ) as pbar:
-                    for hashmap in pbar:
-                        tqdm.tqdm.write("SYNCING %s" % hashmap)
-                        _flush_it()
-                        _sync_hashmap(hashmap, batch_size, primary_backend)
+        ordered_collections = [
+            "lazy_json",
+            "node_attrs",
+            "pr_info",
+            "version_pr_info",
+            "pr_json",
+            "versions",
+        ]
+        rest_of_the_collections = list(all_collections - ordered_collections)
 
         with tqdm.tqdm(
-            parallel_collections,
+            ordered_collections + rest_of_the_collections,
             ncols=80,
-            desc="syncing %r" % parallel_collections,
+            desc=f"syncing {ordered_collections + rest_of_the_collections!r}",
         ) as pbar:
             for hashmap in pbar:
                 tqdm.tqdm.write("SYNCING %s" % hashmap)
                 _flush_it()
                 _sync_hashmap(hashmap, batch_size, primary_backend)
+
+        # if mongodb has better performance we do this
+        # only certain collections need to be updated in a single transaction
+        # all_collections = set(CF_TICK_GRAPH_DATA_HASHMAPS + ["lazy_json"])
+        # pr_collections = {"pr_info", "pr_json", "version_pr_info"}
+        # node_collections = {"node_attrs", "lazy_json"}
+        # parallel_collections = all_collections - pr_collections - node_collections
+
+        # for collection_set in [pr_collections, node_collections]:
+        #     with primary_backend.snapshot_context():
+        #         with tqdm.tqdm(
+        #             collection_set,
+        #             ncols=80,
+        #             desc="syncing %r" % collection_set,
+        #         ) as pbar:
+        #             for hashmap in pbar:
+        #                 tqdm.tqdm.write("SYNCING %s" % hashmap)
+        #                 _flush_it()
+        #                 _sync_hashmap(hashmap, batch_size, primary_backend)
+
+        # with tqdm.tqdm(
+        #     parallel_collections,
+        #     ncols=80,
+        #     desc="syncing %r" % parallel_collections,
+        # ) as pbar:
+        #     for hashmap in pbar:
+        #         tqdm.tqdm.write("SYNCING %s" % hashmap)
+        #         _flush_it()
+        #         _sync_hashmap(hashmap, batch_size, primary_backend)
 
 
 def remove_key_for_hashmap(name, node):
