@@ -29,10 +29,6 @@ CF_TICK_GRAPH_DATA_HASHMAPS = [
 ]
 
 
-def _flush_it():
-    sys.stdout.flush()
-
-
 def get_sharded_path(file_path, n_dirs=5):
     """computed a sharded location for the LazyJson file."""
     top_dir, file_name = os.path.split(file_path)
@@ -330,94 +326,95 @@ LAZY_JSON_BACKENDS = {
 }
 
 
+def sync_lazy_json_hashmap(
+    hashmap,
+    source_backend,
+    destination_backends,
+    n_per_batch=5000,
+    writer=print,
+):
+    primary_backend = LAZY_JSON_BACKENDS[source_backend]
+    primary_hashes = primary_backend.hgetall(hashmap, hashval=True)
+    primary_nodes = set(primary_hashes.keys())
+    writer(
+        "    FOUND %s:%s nodes (%d)" % (source_backend, hashmap, len(primary_nodes)),
+    )
+
+    all_nodes_to_get = set()
+    backend_hashes = {}
+    for backend_name in destination_backends:
+        backend = LAZY_JSON_BACKENDS[backend_name]()
+        backend_hashes[backend_name] = backend.hgetall(hashmap, hashval=True)
+        writer(
+            "    FOUND %s:%s nodes (%d)"
+            % (backend_name, hashmap, len(backend_hashes[backend_name])),
+        )
+
+        curr_nodes = set(backend_hashes[backend_name].keys())
+        del_nodes = curr_nodes - primary_nodes
+        if del_nodes:
+            backend.hdel(hashmap, list(del_nodes))
+            writer(
+                "DELETED %s:%s nodes (%d): %r"
+                % (backend_name, hashmap, len(del_nodes), sorted(del_nodes)),
+            )
+
+        for node, hashval in primary_hashes.items():
+            if node not in backend_hashes[backend_name] or (
+                backend_hashes[backend_name][node] != primary_hashes[node]
+            ):
+                all_nodes_to_get.add(node)
+
+    writer(
+        "    OUT OF SYNC %s:%s nodes (%d)"
+        % (source_backend, hashmap, len(all_nodes_to_get)),
+    )
+
+    while all_nodes_to_get:
+        nodes_to_get = [
+            all_nodes_to_get.pop()
+            for _ in range(min(len(all_nodes_to_get), n_per_batch))
+        ]
+        writer(
+            "    PULLING %s:%s nodes (%d) for batch"
+            % (source_backend, hashmap, len(nodes_to_get)),
+        )
+
+        batch = {
+            k: v
+            for k, v in zip(
+                nodes_to_get,
+                primary_backend.hmget(hashmap, nodes_to_get),
+            )
+        }
+        for backend_name in destination_backends:
+            _batch = {
+                node: value
+                for node, value in batch.items()
+                if (
+                    node not in backend_hashes[backend_name]
+                    or (backend_hashes[backend_name][node] != primary_hashes[node])
+                )
+            }
+            if _batch:
+                writer(
+                    "UPDATING %s:%s nodes (%d)" % (backend_name, hashmap, len(_batch)),
+                )
+
+                backend = LAZY_JSON_BACKENDS[backend_name]()
+                backend.hmset(hashmap, _batch)
+                writer(
+                    "UPDATED %s:%s nodes (%d): %r"
+                    % (backend_name, hashmap, len(_batch), sorted(_batch)),
+                )
+
+
 def sync_lazy_json_across_backends(batch_size=5000):
     """Sync data from the primary backend to the secondary ones.
 
     If there is only one backend, this is a no-op.
     """
-
-    def _sync_hashmap(hashmap, n_per_batch, primary_backend):
-        primary_hashes = primary_backend.hgetall(hashmap, hashval=True)
-        primary_nodes = set(primary_hashes.keys())
-        tqdm.tqdm.write(
-            "    FOUND %s:%s nodes (%d)"
-            % (CF_TICK_GRAPH_DATA_PRIMARY_BACKEND, hashmap, len(primary_nodes)),
-        )
-
-        all_nodes_to_get = set()
-        backend_hashes = {}
-        for backend_name in CF_TICK_GRAPH_DATA_BACKENDS[1:]:
-            backend = LAZY_JSON_BACKENDS[backend_name]()
-            backend_hashes[backend_name] = backend.hgetall(hashmap, hashval=True)
-            tqdm.tqdm.write(
-                "    FOUND %s:%s nodes (%d)"
-                % (backend_name, hashmap, len(backend_hashes[backend_name])),
-            )
-
-            curr_nodes = set(backend_hashes[backend_name].keys())
-            del_nodes = curr_nodes - primary_nodes
-            if del_nodes:
-                backend.hdel(hashmap, list(del_nodes))
-                tqdm.tqdm.write(
-                    "DELETED %s:%s nodes (%d): %r"
-                    % (backend_name, hashmap, len(del_nodes), sorted(del_nodes)),
-                )
-                _flush_it()
-
-            for node, hashval in primary_hashes.items():
-                if node not in backend_hashes[backend_name] or (
-                    backend_hashes[backend_name][node] != primary_hashes[node]
-                ):
-                    all_nodes_to_get.add(node)
-
-        tqdm.tqdm.write(
-            "    OUT OF SYNC %s:%s nodes (%d)"
-            % (CF_TICK_GRAPH_DATA_PRIMARY_BACKEND, hashmap, len(all_nodes_to_get)),
-        )
-
-        while all_nodes_to_get:
-            nodes_to_get = [
-                all_nodes_to_get.pop()
-                for _ in range(min(len(all_nodes_to_get), n_per_batch))
-            ]
-            tqdm.tqdm.write(
-                "    PULLING %s:%s nodes (%d) for batch"
-                % (CF_TICK_GRAPH_DATA_PRIMARY_BACKEND, hashmap, len(nodes_to_get)),
-            )
-
-            batch = {
-                k: v
-                for k, v in zip(
-                    nodes_to_get,
-                    primary_backend.hmget(hashmap, nodes_to_get),
-                )
-            }
-            for backend_name in CF_TICK_GRAPH_DATA_BACKENDS[1:]:
-                _batch = {
-                    node: value
-                    for node, value in batch.items()
-                    if (
-                        node not in backend_hashes[backend_name]
-                        or (backend_hashes[backend_name][node] != primary_hashes[node])
-                    )
-                }
-                if _batch:
-                    tqdm.tqdm.write(
-                        "UPDATING %s:%s nodes (%d)"
-                        % (backend_name, hashmap, len(_batch)),
-                    )
-
-                    backend = LAZY_JSON_BACKENDS[backend_name]()
-                    backend.hmset(hashmap, _batch)
-                    tqdm.tqdm.write(
-                        "UPDATED %s:%s nodes (%d): %r"
-                        % (backend_name, hashmap, len(_batch), sorted(_batch)),
-                    )
-                    _flush_it()
-
     if len(CF_TICK_GRAPH_DATA_BACKENDS) > 1:
-        primary_backend = LAZY_JSON_BACKENDS[CF_TICK_GRAPH_DATA_PRIMARY_BACKEND]()
-
         # pulling in this order helps us ensure we get a consistent view
         # of the backend data even if we did not sync from a snapshot
         all_collections = set(CF_TICK_GRAPH_DATA_HASHMAPS + ["lazy_json"])
@@ -436,10 +433,19 @@ def sync_lazy_json_across_backends(batch_size=5000):
             ncols=80,
             desc="syncing hashmaps",
         ) as pbar:
+
+            def _write_and_flush(x):
+                tqdm.tqdm.write(x)
+                sys.stderr.flush()
+
             for hashmap in pbar:
                 tqdm.tqdm.write("SYNCING %s" % hashmap)
-                _flush_it()
-                _sync_hashmap(hashmap, batch_size, primary_backend)
+                sync_lazy_json_hashmap(
+                    hashmap,
+                    CF_TICK_GRAPH_DATA_PRIMARY_BACKEND,
+                    CF_TICK_GRAPH_DATA_BACKENDS[1:],
+                    writer=_write_and_flush,
+                )
 
         # if mongodb has better performance we do this
         # only certain collections need to be updated in a single transaction
@@ -594,11 +600,11 @@ class LazyJson(MutableMapping):
             ).hexdigest()
             self._data = loads(data_str)
 
-    def _dump(self, purge=False, force=False) -> None:
+    def _dump(self, purge=False) -> None:
         self._load()
         data_str = dumps(self._data)
         curr_hash = hashlib.sha256(data_str.encode("utf-8")).hexdigest()
-        if curr_hash != self._data_hash_at_load or force:
+        if curr_hash != self._data_hash_at_load:
             self._data_hash_at_load = curr_hash
 
             # cache it locally
@@ -622,14 +628,6 @@ class LazyJson(MutableMapping):
             # the bot uses too much mem if we don't do this
             self._data = None
             self._data_hash_at_load = None
-
-    def flush_to_backends(self):
-        if self._data is None:
-            purge = True
-        else:
-            purge = False
-        self._load()
-        self._dump(purge=purge, force=True)
 
     def __getitem__(self, item: Any) -> Any:
         self._load()

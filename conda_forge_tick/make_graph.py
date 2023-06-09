@@ -30,6 +30,8 @@ from conda_forge_tick.lazy_json_backends import (
     LazyJson,
     get_all_keys_for_hashmap,
     lazy_json_transaction,
+    sync_lazy_json_hashmap,
+    CF_TICK_GRAPH_DATA_BACKENDS,
 )
 
 if typing.TYPE_CHECKING:
@@ -236,7 +238,9 @@ def _create_edges(gx: nx.DiGraph) -> nx.DiGraph:
     # use a list so we don't change an iterable that is iterating
     all_nodes = list(gx.nodes.keys())
     for node in all_nodes:
-        with gx.nodes[node]["payload"] as attrs:
+        with gx.nodes[node]["payload"].override_backends(
+            ("file",),
+        ) as lzj_fileonly, lzj_fileonly as attrs:
             # replace output package names with feedstock names via LUT
             deps = set()
             for req_section in attrs.get("requirements", {}).values():
@@ -251,9 +255,6 @@ def _create_edges(gx: nx.DiGraph) -> nx.DiGraph:
             if requirements and overlap:
                 requirements["host"].update(overlap)
                 requirements["run"].update(overlap)
-
-            # force it to flush to backends here
-            attrs.flush_to_backends()
 
         for dep in deps:
             if dep not in gx.nodes:
@@ -305,7 +306,9 @@ def _update_nodes_with_archived(gx, archived_names):
     for name in archived_names:
         if name in gx.nodes:
             node = gx.nodes[name]
-            with node["payload"] as payload:
+            with node["payload"].override_backends(
+                ("file",),
+            ) as lzj_fileonly, lzj_fileonly as payload:
                 payload["archived"] = True
 
 
@@ -313,7 +316,9 @@ def _migrate_schemas():
     # make sure to apply all schema migrations, not just those in the graph
     nodes = get_all_keys_for_hashmap("node_attrs")
     for node in tqdm.tqdm(nodes, desc="migrating node schemas", miniters=100, ncols=80):
-        with LazyJson(f"node_attrs/{node}.json") as sub_graph:
+        with LazyJson(f"node_attrs/{node}.json").override_backends(
+            ("file",),
+        ) as lzj_fileonly, lzj_fileonly as sub_graph:
             _migrate_schema(node, sub_graph)
 
 
@@ -324,20 +329,30 @@ def main(args: "CLIArgs") -> None:
     else:
         setup_logger(logging.getLogger("conda_forge_tick"))
 
-    names = get_all_feedstocks(cached=True)
-    gx = load_graph()
+    didit = False
+    try:
+        names = get_all_feedstocks(cached=True)
+        gx = load_graph()
 
-    gx = make_graph(names, gx, mark_not_archived=True, debug=args.debug)
-    nodes_without_paylod = [k for k, v in gx.nodes.items() if "payload" not in v]
-    if nodes_without_paylod:
-        LOGGER.warning("nodes w/o payload: %s", nodes_without_paylod)
+        gx = make_graph(names, gx, mark_not_archived=True, debug=args.debug)
+        nodes_without_paylod = [k for k, v in gx.nodes.items() if "payload" not in v]
+        if nodes_without_paylod:
+            LOGGER.warning("nodes w/o payload: %s", nodes_without_paylod)
 
-    _migrate_schemas()
+        _migrate_schemas()
 
-    archived_names = get_archived_feedstocks(cached=True)
-    _update_nodes_with_archived(gx, archived_names)
+        archived_names = get_archived_feedstocks(cached=True)
+        _update_nodes_with_archived(gx, archived_names)
 
-    dump_graph(gx)
+        didit = True
+    finally:
+        if didit:
+            dump_graph(gx)
+            sync_lazy_json_hashmap(
+                "node_attrs",
+                "file",
+                [be for be in CF_TICK_GRAPH_DATA_BACKENDS if be != "file"],
+            )
 
 
 if __name__ == "__main__":
