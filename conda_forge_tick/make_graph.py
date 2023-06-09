@@ -252,6 +252,9 @@ def _create_edges(gx: nx.DiGraph) -> nx.DiGraph:
                 requirements["host"].update(overlap)
                 requirements["run"].update(overlap)
 
+            # force it to flush to backends here
+            attrs.flush_to_backends()
+
         for dep in deps:
             if dep not in gx.nodes:
                 # for packages which aren't feedstocks and aren't outputs

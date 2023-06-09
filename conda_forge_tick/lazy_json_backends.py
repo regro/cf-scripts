@@ -594,11 +594,11 @@ class LazyJson(MutableMapping):
             ).hexdigest()
             self._data = loads(data_str)
 
-    def _dump(self, purge=False) -> None:
+    def _dump(self, purge=False, force=False) -> None:
         self._load()
         data_str = dumps(self._data)
         curr_hash = hashlib.sha256(data_str.encode("utf-8")).hexdigest()
-        if curr_hash != self._data_hash_at_load:
+        if curr_hash != self._data_hash_at_load or force:
             self._data_hash_at_load = curr_hash
 
             # cache it locally
@@ -622,6 +622,14 @@ class LazyJson(MutableMapping):
             # the bot uses too much mem if we don't do this
             self._data = None
             self._data_hash_at_load = None
+
+    def flush_to_backends(self):
+        if self._data is None:
+            purge = True
+        else:
+            purge = False
+        self._load()
+        self._dump(purge=purge, force=True)
 
     def __getitem__(self, item: Any) -> Any:
         self._load()
