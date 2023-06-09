@@ -339,12 +339,20 @@ def sync_lazy_json_across_backends(batch_size=5000):
     def _sync_hashmap(hashmap, n_per_batch, primary_backend):
         primary_hashes = primary_backend.hgetall(hashmap, hashval=True)
         primary_nodes = set(primary_hashes.keys())
+        tqdm.tqdm.write(
+            "    FOUND %s:%s nodes (%d)"
+            % (CF_TICK_GRAPH_DATA_PRIMARY_BACKEND, hashmap, len(primary_nodes)),
+        )
 
         all_nodes_to_get = set()
         backend_hashes = {}
         for backend_name in CF_TICK_GRAPH_DATA_BACKENDS[1:]:
             backend = LAZY_JSON_BACKENDS[backend_name]()
             backend_hashes[backend_name] = backend.hgetall(hashmap, hashval=True)
+            tqdm.tqdm.write(
+                "    FOUND %s:%s nodes (%d)"
+                % (backend_name, hashmap, len(backend_hashes[backend_name])),
+            )
 
             curr_nodes = set(backend_hashes[backend_name].keys())
             del_nodes = curr_nodes - primary_nodes
@@ -362,11 +370,21 @@ def sync_lazy_json_across_backends(batch_size=5000):
                 ):
                     all_nodes_to_get.add(node)
 
+        tqdm.tqdm.write(
+            "    OUT OF SYNC %s:%s nodes (%d)"
+            % (CF_TICK_GRAPH_DATA_PRIMARY_BACKEND, hashmap, len(all_nodes_to_get)),
+        )
+
         while all_nodes_to_get:
             nodes_to_get = [
                 all_nodes_to_get.pop()
                 for _ in range(min(len(all_nodes_to_get), n_per_batch))
             ]
+            tqdm.tqdm.write(
+                "    PULLING %s:%s nodes (%d) for batch"
+                % (CF_TICK_GRAPH_DATA_PRIMARY_BACKEND, hashmap, len(nodes_to_get)),
+            )
+
             batch = {
                 k: v
                 for k, v in zip(
@@ -384,6 +402,11 @@ def sync_lazy_json_across_backends(batch_size=5000):
                     )
                 }
                 if _batch:
+                    tqdm.tqdm.write(
+                        "UPDATING %s:%s nodes (%d)"
+                        % (backend_name, hashmap, len(_batch)),
+                    )
+
                     backend = LAZY_JSON_BACKENDS[backend_name]()
                     backend.hmset(hashmap, _batch)
                     tqdm.tqdm.write(
@@ -498,6 +521,7 @@ class LazyJson(MutableMapping):
             node = self.file_name[: -len(".json")]
         self.hashmap = key
         self.node = node
+        self._override_backends = None
 
         # make this backwards compatible with old behavior
         if CF_TICK_GRAPH_DATA_PRIMARY_BACKEND == "file":
@@ -506,6 +530,14 @@ class LazyJson(MutableMapping):
                 self.node,
                 dumps({}),
             )
+
+    @contextlib.contextmanager
+    def override_backends(self, new_backends):
+        try:
+            self._override_backends = new_backends
+            yield self
+        finally:
+            self._override_backends = None
 
     @property
     def data(self):
@@ -542,14 +574,19 @@ class LazyJson(MutableMapping):
             if file_backend.hexists(self.hashmap, self.node):
                 data_str = file_backend.hget(self.hashmap, self.node)
             else:
-                backend = LAZY_JSON_BACKENDS[CF_TICK_GRAPH_DATA_PRIMARY_BACKEND]()
+                if self._override_backends is not None:
+                    primary_backend_name = self._override_backends[0]
+                else:
+                    primary_backend_name = CF_TICK_GRAPH_DATA_PRIMARY_BACKEND
+
+                backend = LAZY_JSON_BACKENDS[primary_backend_name]()
                 backend.hsetnx(self.hashmap, self.node, dumps({}))
                 data_str = backend.hget(self.hashmap, self.node)
                 if isinstance(data_str, bytes):
                     data_str = data_str.decode("utf-8")
 
                 # cache it locally for later
-                if CF_TICK_GRAPH_DATA_PRIMARY_BACKEND != "file":
+                if primary_backend_name != "file":
                     file_backend.hset(self.hashmap, self.node, data_str)
 
             self._data_hash_at_load = hashlib.sha256(
@@ -568,8 +605,13 @@ class LazyJson(MutableMapping):
             file_backend = LAZY_JSON_BACKENDS["file"]()
             file_backend.hset(self.hashmap, self.node, data_str)
 
+            if self._override_backends is not None:
+                backend_names = self._override_backends
+            else:
+                backend_names = CF_TICK_GRAPH_DATA_BACKENDS
+
             # sync changes to all backends
-            for backend_name in CF_TICK_GRAPH_DATA_BACKENDS:
+            for backend_name in backend_names:
                 if backend_name == "file":
                     continue
                 backend = LAZY_JSON_BACKENDS[backend_name]()
