@@ -333,7 +333,7 @@ def sync_lazy_json_hashmap(
     n_per_batch=5000,
     writer=print,
 ):
-    primary_backend = LAZY_JSON_BACKENDS[source_backend]
+    primary_backend = LAZY_JSON_BACKENDS[source_backend]()
     primary_hashes = primary_backend.hgetall(hashmap, hashval=True)
     primary_nodes = set(primary_hashes.keys())
     writer(
