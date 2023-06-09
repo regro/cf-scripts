@@ -218,8 +218,10 @@ def populate_feedstock_attributes(
             and len(glob.glob(os.path.join(feedstock_dir, ".ci_support", "*.yaml"))) > 0
         ):
             recipe_dir = os.path.join(feedstock_dir, "recipe")
-            ci_support_files = glob.glob(
-                os.path.join(feedstock_dir, ".ci_support", "*.yaml"),
+            ci_support_files = sorted(
+                glob.glob(
+                    os.path.join(feedstock_dir, ".ci_support", "*.yaml"),
+                ),
             )
             variant_yamls = []
             plat_arch = []
