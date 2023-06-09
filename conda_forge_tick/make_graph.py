@@ -90,7 +90,7 @@ def make_outputs_lut_from_graph(gx):
 
 def get_attrs(name: str, i: int, mark_not_archived=False) -> LazyJson:
     lzj = LazyJson(f"node_attrs/{name}.json")
-    with lzj as sub_graph:
+    with lzj.override_backends(("file",)) as lzj_fileonly, lzj_fileonly as sub_graph:
         load_feedstock(name, sub_graph, mark_not_archived=mark_not_archived)
 
     return lzj
@@ -307,7 +307,7 @@ def _update_nodes_with_archived(gx, archived_names):
 
 
 def _migrate_schemas():
-    # make sure to apply all schema migrations
+    # make sure to apply all schema migrations, not just those in the graph
     nodes = get_all_keys_for_hashmap("node_attrs")
     for node in tqdm.tqdm(nodes, desc="migrating node schemas", miniters=100, ncols=80):
         with LazyJson(f"node_attrs/{node}.json") as sub_graph:
@@ -329,7 +329,6 @@ def main(args: "CLIArgs") -> None:
     if nodes_without_paylod:
         LOGGER.warning("nodes w/o payload: %s", nodes_without_paylod)
 
-    # we do a bunch of correlated updates on json blobs here so need a transaction
     _migrate_schemas()
 
     archived_names = get_archived_feedstocks(cached=True)
