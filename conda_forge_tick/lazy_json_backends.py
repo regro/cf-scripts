@@ -742,12 +742,6 @@ def main_sync(args):
     if not args.dry_run:
         sync_lazy_json_across_backends()
 
-        t0 = time.time() - t0
-        if t0 < 300:
-            wt = (int(300 - t0) // 10) * 10 + 10
-            for _ in tqdm.trange(wt // 10, desc="waiting %d seconds" % wt, ncols=80):
-                time.sleep(10)
-
 
 def main_cache(args):
     from conda_forge_tick.utils import setup_logger

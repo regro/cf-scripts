@@ -14,7 +14,10 @@ jobs:
     defaults:
       run:
         shell: bash -l {0}
-    timeout-minutes: 100
+    strategy:
+      max-parallel: 1
+      matrix:
+        version: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
 
     steps:
       - name: run cache
@@ -68,7 +71,6 @@ jobs:
 
       - name: run sync
         if: success() && ! env.CI_SKIP
-        timeout-minutes: 210
         run: |
           tar -xf cf-graph.tar.zstd
           pushd cf-graph
@@ -78,6 +80,55 @@ jobs:
         env:
           CF_TICK_GRAPH_DATA_BACKENDS: "mongodb:file"
           MONGODB_CONNECTION_STRING: ${{ secrets.MONGODB_CONNECTION_STRING }}
+
+  bot-cache-trigger:
+    needs: bot-cache
+    name: bot-cache-trigger
+    runs-on: "ubuntu-latest"
+    defaults:
+      run:
+        shell: bash -l {0}
+
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          path: cf-scripts
+
+      - uses: mamba-org/setup-micromamba@v1
+        with:
+          environment-file: cf-scripts/environment.yml
+          create-args: "python==${{ vars.PYVER }}"
+          init-shell: bash
+          cache-environment: true
+          environment-name: cf-scripts
+          post-cleanup: 'all'
+          condarc: |
+            channels:
+              - conda-forge
+
+      - name: do local setup and stop me if needed
+        run: |
+          pushd cf-scripts
+          python autotick-bot/stop_me_if_needed.py
+          popd
+
+      - name: install bot code
+        if: success() && ! env.CI_SKIP
+        run: |
+          git config --global user.name regro-cf-autotick-bot
+          git config --global user.email 36490558+regro-cf-autotick-bot@users.noreply.github.com
+          git config --global pull.rebase false
+
+          pushd cf-scripts
+          export GIT_FULL_HASH=$(git rev-parse HEAD)
+          pip install -e .
+          popd
+
+          echo -e "\n\n============================================\n============================================"
+          conda info
+          conda config --show-sources
+          conda list --show-channel-urls
+          echo -e "\n\n============================================\n============================================"
 
       - name: trigger next job
         uses: benc-uk/workflow-dispatch@798e70c97009500150087d30d9f11c5444830385
