@@ -420,27 +420,17 @@ def sync_lazy_json_across_backends(batch_size=5000):
         ]
         rest_of_the_collections = list(all_collections - set(ordered_collections))
 
-        with tqdm.tqdm(
-            ordered_collections + rest_of_the_collections,
-            ncols=80,
-            desc="syncing hashmaps",
-        ) as pbar:
+        def _write_and_flush(x):
+            print(x, flush=True)
 
-            def _write_and_flush(x):
-                tqdm.tqdm.write(x)
-                # sys.stderr.flush()
-                # sys.stdout.flush()
-
-            for hashmap in pbar:
-                tqdm.tqdm.write("SYNCING %s" % hashmap)
-                # sys.stderr.flush()
-                # sys.stdout.flush()
-                sync_lazy_json_hashmap(
-                    hashmap,
-                    CF_TICK_GRAPH_DATA_PRIMARY_BACKEND,
-                    CF_TICK_GRAPH_DATA_BACKENDS[1:],
-                    writer=_write_and_flush,
-                )
+        for hashmap in ordered_collections + rest_of_the_collections:
+            print("SYNCING %s" % hashmap, flush=True)
+            sync_lazy_json_hashmap(
+                hashmap,
+                CF_TICK_GRAPH_DATA_PRIMARY_BACKEND,
+                CF_TICK_GRAPH_DATA_BACKENDS[1:],
+                writer=_write_and_flush,
+            )
 
         # if mongodb has better performance we do this
         # only certain collections need to be updated in a single transaction
