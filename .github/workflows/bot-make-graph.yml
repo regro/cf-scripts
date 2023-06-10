@@ -3,7 +3,7 @@ name: bot-make-graph
 on:
   workflow_dispatch: null
   schedule:
-    - cron:  '0 */4 * * *'
+    - cron:  '*/15 * * * *'
 
 concurrency: bot-make-graph
 
