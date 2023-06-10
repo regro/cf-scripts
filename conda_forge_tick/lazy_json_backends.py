@@ -355,7 +355,7 @@ def sync_lazy_json_hashmap(
         if del_nodes:
             backend.hdel(hashmap, list(del_nodes))
             writer(
-                "DELETED %s:%s nodes (%d): %r"
+                "    DELETED %s:%s nodes (%d): %r"
                 % (backend_name, hashmap, len(del_nodes), sorted(del_nodes)),
             )
 
@@ -398,13 +398,14 @@ def sync_lazy_json_hashmap(
             }
             if _batch:
                 writer(
-                    "UPDATING %s:%s nodes (%d)" % (backend_name, hashmap, len(_batch)),
+                    "    UPDATING %s:%s nodes (%d)"
+                    % (backend_name, hashmap, len(_batch)),
                 )
 
                 backend = LAZY_JSON_BACKENDS[backend_name]()
                 backend.hmset(hashmap, _batch)
                 writer(
-                    "UPDATED %s:%s nodes (%d): %r"
+                    "    UPDATED %s:%s nodes (%d): %r"
                     % (backend_name, hashmap, len(_batch), sorted(_batch)),
                 )
 

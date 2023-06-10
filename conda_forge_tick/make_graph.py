@@ -348,11 +348,15 @@ def main(args: "CLIArgs") -> None:
     finally:
         if didit:
             dump_graph(gx)
-            sync_lazy_json_hashmap(
-                "node_attrs",
-                "file",
-                [be for be in CF_TICK_GRAPH_DATA_BACKENDS if be != "file"],
-            )
+
+            other_backends = [be for be in CF_TICK_GRAPH_DATA_BACKENDS if be != "file"]
+            if other_backends:
+                print("SYNCING node_attrs")
+                sync_lazy_json_hashmap(
+                    "node_attrs",
+                    "file",
+                    other_backends,
+                )
 
 
 if __name__ == "__main__":
