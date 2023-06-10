@@ -2,11 +2,9 @@ import os
 import hashlib
 import glob
 import subprocess
-import tqdm
 import functools
 import logging
 import contextlib
-import time
 
 from typing import Any, Union, Optional, IO, Set, Iterator
 from collections.abc import MutableMapping, Callable
@@ -731,7 +729,6 @@ def load(
 
 
 def main_sync(args):
-    t0 = time.time()
     from conda_forge_tick.utils import setup_logger
 
     if args.debug:
