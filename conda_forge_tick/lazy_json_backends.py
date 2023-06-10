@@ -513,7 +513,10 @@ def lazy_json_override_backends(new_backends, hashmaps_to_sync=None):
             sync_backends = list(set(old_backends) - set(new_backends))
             if sync_backends:
                 for hashmap in hashmaps_to_sync:
-                    print(f"SYNCING {hashmap}", flush=True)
+                    print(
+                        f"SYNCING {hashmap} from {new_backends[0]} to {sync_backends}",
+                        flush=True,
+                    )
                     sync_lazy_json_hashmap(
                         hashmap,
                         new_backends[0],
