@@ -506,9 +506,6 @@ def lazy_json_override_backends(new_backends, hashmaps_to_sync=None):
         CF_TICK_GRAPH_DATA_PRIMARY_BACKEND = new_backends[0]
         yield
     finally:
-        CF_TICK_GRAPH_DATA_BACKENDS = old_backends
-        CF_TICK_GRAPH_DATA_PRIMARY_BACKEND = old_backends[0]
-
         if hashmaps_to_sync is not None:
             sync_backends = list(set(old_backends) - set(new_backends))
             if sync_backends:
@@ -522,6 +519,9 @@ def lazy_json_override_backends(new_backends, hashmaps_to_sync=None):
                         new_backends[0],
                         sync_backends,
                     )
+
+        CF_TICK_GRAPH_DATA_BACKENDS = old_backends
+        CF_TICK_GRAPH_DATA_PRIMARY_BACKEND = old_backends[0]
 
 
 def get_lazy_json_backends():
