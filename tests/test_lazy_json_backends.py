@@ -17,6 +17,9 @@ from conda_forge_tick.lazy_json_backends import (
     MongoDBLazyJsonBackend,
     LAZY_JSON_BACKENDS,
     sync_lazy_json_across_backends,
+    lazy_json_override_backends,
+    get_lazy_json_backends,
+    get_lazy_json_primary_backend,
 )
 from conda_forge_tick.os_utils import pushd
 import conda_forge_tick.utils
@@ -25,7 +28,88 @@ import pytest
 
 
 @pytest.mark.skipif("MONGODB_CONNECTION_STRING" not in os.environ, reason="no mongodb")
-def test_lazy_json_override_backends(tmpdir):
+def test_lazy_json_override_backends_global(tmpdir):
+    old_backend = conda_forge_tick.lazy_json_backends.CF_TICK_GRAPH_DATA_BACKENDS
+    with pushd(tmpdir):
+        try:
+            conda_forge_tick.lazy_json_backends.CF_TICK_GRAPH_DATA_BACKENDS = (
+                "mongodb",
+                "file",
+            )
+            conda_forge_tick.lazy_json_backends.CF_TICK_GRAPH_DATA_PRIMARY_BACKEND = (
+                "mongodb"
+            )
+
+            lzj = LazyJson("blah.json")
+            with lzj as attrs:
+                attrs["hello"] = "world"
+            pbe = LAZY_JSON_BACKENDS["mongodb"]()
+            be = LAZY_JSON_BACKENDS["file"]()
+
+            assert be.hget("lazy_json", "blah") == pbe.hget("lazy_json", "blah")
+            assert be.hget("lazy_json", "blah") == dumps({"hello": "world"})
+
+            with lazy_json_override_backends(["file"]):
+                assert (
+                    conda_forge_tick.lazy_json_backends.CF_TICK_GRAPH_DATA_BACKENDS
+                    == ("file",)
+                )
+                assert (
+                    conda_forge_tick.lazy_json_backends.CF_TICK_GRAPH_DATA_PRIMARY_BACKEND
+                    == "file"
+                )
+                assert get_lazy_json_backends() == ("file",)
+                assert get_lazy_json_primary_backend() == "file"
+                with lzj as attrs:
+                    attrs["hello"] = "me"
+
+            assert be.hget("lazy_json", "blah") != pbe.hget("lazy_json", "blah")
+            assert be.hget("lazy_json", "blah") == dumps({"hello": "me"})
+
+            assert conda_forge_tick.lazy_json_backends.CF_TICK_GRAPH_DATA_BACKENDS == (
+                "mongodb",
+                "file",
+            )
+            assert (
+                conda_forge_tick.lazy_json_backends.CF_TICK_GRAPH_DATA_PRIMARY_BACKEND
+                == "mongodb"
+            )
+            assert get_lazy_json_backends() == (
+                "mongodb",
+                "file",
+            )
+            assert get_lazy_json_primary_backend() == "mongodb"
+
+            with lazy_json_override_backends(["file"], hashmaps_to_sync=["lazy_json"]):
+                assert (
+                    conda_forge_tick.lazy_json_backends.CF_TICK_GRAPH_DATA_BACKENDS
+                    == ("file",)
+                )
+                assert (
+                    conda_forge_tick.lazy_json_backends.CF_TICK_GRAPH_DATA_PRIMARY_BACKEND
+                    == "file"
+                )
+                assert get_lazy_json_backends() == ("file",)
+                assert get_lazy_json_primary_backend() == "file"
+                with lzj as attrs:
+                    attrs["hello"] = "me again"
+
+            assert be.hget("lazy_json", "blah") == pbe.hget("lazy_json", "blah")
+            assert be.hget("lazy_json", "blah") == dumps({"hello": "me again"})
+        finally:
+            be = LAZY_JSON_BACKENDS["mongodb"]()
+            be.hdel("lazy_json", ["blah"])
+
+            conda_forge_tick.lazy_json_backends.CF_TICK_GRAPH_DATA_BACKENDS = (
+                old_backend
+            )
+            conda_forge_tick.lazy_json_backends.CF_TICK_GRAPH_DATA_PRIMARY_BACKEND = (
+                old_backend[0]
+            )
+
+
+@pytest.mark.skipif("MONGODB_CONNECTION_STRING" not in os.environ, reason="no mongodb")
+def test_lazy_json_override_backends_local(tmpdir):
     old_backend = conda_forge_tick.lazy_json_backends.CF_TICK_GRAPH_DATA_BACKENDS
     with pushd(tmpdir):
         try:
@@ -54,7 +138,7 @@ def test_lazy_json_override_backends(tmpdir):
 
         finally:
             be = LAZY_JSON_BACKENDS["mongodb"]()
-            be.hdel("lazy_json", "blah")
+            be.hdel("lazy_json", ["blah"])
 
             conda_forge_tick.lazy_json_backends.CF_TICK_GRAPH_DATA_BACKENDS = (
                 old_backend

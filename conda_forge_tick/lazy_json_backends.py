@@ -495,6 +495,40 @@ def lazy_json_snapshot():
         pass
 
 
+@contextlib.contextmanager
+def lazy_json_override_backends(new_backends, hashmaps_to_sync=None):
+    global CF_TICK_GRAPH_DATA_BACKENDS
+    global CF_TICK_GRAPH_DATA_PRIMARY_BACKEND
+
+    old_backends = CF_TICK_GRAPH_DATA_BACKENDS
+    try:
+        CF_TICK_GRAPH_DATA_BACKENDS = tuple(new_backends)
+        CF_TICK_GRAPH_DATA_PRIMARY_BACKEND = new_backends[0]
+        yield
+    finally:
+        CF_TICK_GRAPH_DATA_BACKENDS = old_backends
+        CF_TICK_GRAPH_DATA_PRIMARY_BACKEND = old_backends[0]
+
+        if hashmaps_to_sync is not None:
+            sync_backends = list(set(old_backends) - set(new_backends))
+            if sync_backends:
+                for hashmap in hashmaps_to_sync:
+                    print(f"SYNCING {hashmap}", flush=True)
+                    sync_lazy_json_hashmap(
+                        hashmap,
+                        old_backends[0],
+                        sync_backends,
+                    )
+
+
+def get_lazy_json_backends():
+    return CF_TICK_GRAPH_DATA_BACKENDS
+
+
+def get_lazy_json_primary_backend():
+    return CF_TICK_GRAPH_DATA_PRIMARY_BACKEND
+
+
 class LazyJson(MutableMapping):
     """Lazy load a dict from a json file and save it when updated"""
 
@@ -512,7 +546,6 @@ class LazyJson(MutableMapping):
             node = self.file_name[: -len(".json")]
         self.hashmap = key
         self.node = node
-        self._override_backends = None
 
         # make this backwards compatible with old behavior
         if CF_TICK_GRAPH_DATA_PRIMARY_BACKEND == "file":
@@ -521,14 +554,6 @@ class LazyJson(MutableMapping):
                 self.node,
                 dumps({}),
             )
-
-    @contextlib.contextmanager
-    def override_backends(self, new_backends):
-        try:
-            self._override_backends = new_backends
-            yield self
-        finally:
-            self._override_backends = None
 
     @property
     def data(self):
@@ -565,19 +590,14 @@ class LazyJson(MutableMapping):
             if file_backend.hexists(self.hashmap, self.node):
                 data_str = file_backend.hget(self.hashmap, self.node)
             else:
-                if self._override_backends is not None:
-                    primary_backend_name = self._override_backends[0]
-                else:
-                    primary_backend_name = CF_TICK_GRAPH_DATA_PRIMARY_BACKEND
-
-                backend = LAZY_JSON_BACKENDS[primary_backend_name]()
+                backend = LAZY_JSON_BACKENDS[CF_TICK_GRAPH_DATA_PRIMARY_BACKEND]()
                 backend.hsetnx(self.hashmap, self.node, dumps({}))
                 data_str = backend.hget(self.hashmap, self.node)
                 if isinstance(data_str, bytes):
                     data_str = data_str.decode("utf-8")
 
                 # cache it locally for later
-                if primary_backend_name != "file":
+                if CF_TICK_GRAPH_DATA_PRIMARY_BACKEND != "file":
                     file_backend.hset(self.hashmap, self.node, data_str)
 
             self._data_hash_at_load = hashlib.sha256(
@@ -596,13 +616,8 @@ class LazyJson(MutableMapping):
             file_backend = LAZY_JSON_BACKENDS["file"]()
             file_backend.hset(self.hashmap, self.node, data_str)
 
-            if self._override_backends is not None:
-                backend_names = self._override_backends
-            else:
-                backend_names = CF_TICK_GRAPH_DATA_BACKENDS
-
             # sync changes to all backends
-            for backend_name in backend_names:
+            for backend_name in CF_TICK_GRAPH_DATA_BACKENDS:
                 if backend_name == "file":
                     continue
                 backend = LAZY_JSON_BACKENDS[backend_name]()
@@ -724,11 +739,11 @@ def main_sync(args):
     if not args.dry_run:
         sync_lazy_json_across_backends()
 
-    t0 = time.time() - t0
-    if t0 < 300:
-        wt = int(300 - t0)
-        for _ in tqdm.trange(wt, desc="waiting %d seconds" % wt, ncols=80):
-            time.sleep(1)
+        t0 = time.time() - t0
+        if t0 < 300:
+            wt = (int(300 - t0) // 10) * 10 + 10
+            for _ in tqdm.trange(wt // 10, desc="waiting %d seconds" % wt, ncols=80):
+                time.sleep(10)
 
 
 def main_cache(args):

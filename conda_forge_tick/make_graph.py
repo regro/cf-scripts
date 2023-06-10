@@ -30,8 +30,7 @@ from conda_forge_tick.lazy_json_backends import (
     LazyJson,
     get_all_keys_for_hashmap,
     lazy_json_transaction,
-    sync_lazy_json_hashmap,
-    CF_TICK_GRAPH_DATA_BACKENDS,
+    lazy_json_override_backends,
 )
 
 if typing.TYPE_CHECKING:
@@ -92,7 +91,7 @@ def make_outputs_lut_from_graph(gx):
 
 def get_attrs(name: str, i: int, mark_not_archived=False) -> LazyJson:
     lzj = LazyJson(f"node_attrs/{name}.json")
-    with lzj.override_backends(("file",)) as lzj_fileonly, lzj_fileonly as sub_graph:
+    with lzj as sub_graph:
         load_feedstock(name, sub_graph, mark_not_archived=mark_not_archived)
 
     return lzj
@@ -238,9 +237,7 @@ def _create_edges(gx: nx.DiGraph) -> nx.DiGraph:
     # use a list so we don't change an iterable that is iterating
     all_nodes = list(gx.nodes.keys())
     for node in all_nodes:
-        with gx.nodes[node]["payload"].override_backends(
-            ("file",),
-        ) as lzj_fileonly, lzj_fileonly as attrs:
+        with gx.nodes[node]["payload"] as attrs:
             # replace output package names with feedstock names via LUT
             deps = set()
             for req_section in attrs.get("requirements", {}).values():
@@ -306,9 +303,7 @@ def _update_nodes_with_archived(gx, archived_names):
     for name in archived_names:
         if name in gx.nodes:
             node = gx.nodes[name]
-            with node["payload"].override_backends(
-                ("file",),
-            ) as lzj_fileonly, lzj_fileonly as payload:
+            with node["payload"] as payload:
                 payload["archived"] = True
 
 
@@ -316,9 +311,7 @@ def _migrate_schemas():
     # make sure to apply all schema migrations, not just those in the graph
     nodes = get_all_keys_for_hashmap("node_attrs")
     for node in tqdm.tqdm(nodes, desc="migrating node schemas", miniters=100, ncols=80):
-        with LazyJson(f"node_attrs/{node}.json").override_backends(
-            ("file",),
-        ) as lzj_fileonly, lzj_fileonly as sub_graph:
+        with LazyJson(f"node_attrs/{node}.json") as sub_graph:
             _migrate_schema(node, sub_graph)
 
 
@@ -329,34 +322,21 @@ def main(args: "CLIArgs") -> None:
     else:
         setup_logger(logging.getLogger("conda_forge_tick"))
 
-    didit = False
-    try:
-        names = get_all_feedstocks(cached=True)
-        gx = load_graph()
+    names = get_all_feedstocks(cached=True)
+    gx = load_graph()
 
+    with lazy_json_override_backends(["file"], hashmaps_to_sync=["node_attrs"]):
         gx = make_graph(names, gx, mark_not_archived=True, debug=args.debug)
         nodes_without_paylod = [k for k, v in gx.nodes.items() if "payload" not in v]
         if nodes_without_paylod:
             LOGGER.warning("nodes w/o payload: %s", nodes_without_paylod)
 
-        _migrate_schemas()
-
         archived_names = get_archived_feedstocks(cached=True)
         _update_nodes_with_archived(gx, archived_names)
 
-        didit = True
-    finally:
-        if didit:
-            dump_graph(gx)
+    dump_graph(gx)
 
-            other_backends = [be for be in CF_TICK_GRAPH_DATA_BACKENDS if be != "file"]
-            if other_backends:
-                print("SYNCING node_attrs")
-                sync_lazy_json_hashmap(
-                    "node_attrs",
-                    "file",
-                    other_backends,
-                )
+    _migrate_schemas()
 
 
 if __name__ == "__main__":
