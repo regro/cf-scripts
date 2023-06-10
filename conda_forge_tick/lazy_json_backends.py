@@ -129,23 +129,14 @@ class FileLazyJsonBackend(LazyJsonBackend):
 
         lzj_names = " ".join(get_sharded_path(f"{name}/{key}.json") for key in keys)
         with PRLOCK, DLOCK, TRLOCK:
-            try:
-                res = subprocess.run(
-                    "git rm -f " + lzj_names,
-                    shell=True,
-                    capture_output=True,
-                )
-                if res.returncode != 0:
-                    raise RuntimeError(
-                        res.stdout.decode("utf-8") + res.stderr.decode("utf-8"),
-                    )
-            except Exception as e:
-                if "not a git repository" not in str(e):
-                    raise e
+            subprocess.run(
+                "git rm --ignore-unmatch -f " + lzj_names,
+                shell=True,
+                capture_output=True,
+            )
         subprocess.run(
             "rm -f " + lzj_names,
             shell=True,
-            check=True,
             capture_output=True,
         )
 
