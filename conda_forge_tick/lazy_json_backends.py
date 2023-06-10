@@ -6,7 +6,6 @@ import tqdm
 import functools
 import logging
 import contextlib
-import sys
 import time
 
 from typing import Any, Union, Optional, IO, Set, Iterator
@@ -429,13 +428,13 @@ def sync_lazy_json_across_backends(batch_size=5000):
 
             def _write_and_flush(x):
                 tqdm.tqdm.write(x)
-                sys.stderr.flush()
-                sys.stdout.flush()
+                # sys.stderr.flush()
+                # sys.stdout.flush()
 
             for hashmap in pbar:
                 tqdm.tqdm.write("SYNCING %s" % hashmap)
-                sys.stderr.flush()
-                sys.stdout.flush()
+                # sys.stderr.flush()
+                # sys.stdout.flush()
                 sync_lazy_json_hashmap(
                     hashmap,
                     CF_TICK_GRAPH_DATA_PRIMARY_BACKEND,
