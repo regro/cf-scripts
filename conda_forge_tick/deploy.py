@@ -5,7 +5,7 @@ from doctr.travis import run_command_hiding_token as doctr_run
 
 from . import sensitive_env
 from .utils import load_graph
-from .lazy_json_backends import CF_TICK_GRAPH_DATA_BACKENDS, CF_TICK_GRAPH_DATA_HASHMAPS
+from .lazy_json_backends import get_lazy_json_backends, CF_TICK_GRAPH_DATA_HASHMAPS
 
 BUILD_URL_KEY = "CIRCLE_BUILD_URL"
 
@@ -37,7 +37,7 @@ def deploy(dry_run=False):
         "ranked_hubs_authorities.json",
         "all_feedstocks.json",
     ]
-    if "file" in CF_TICK_GRAPH_DATA_BACKENDS:
+    if "file" in get_lazy_json_backends():
         drs_to_deploy += CF_TICK_GRAPH_DATA_HASHMAPS
         drs_to_deploy += ["graph.json"]
     for dr in drs_to_deploy:
