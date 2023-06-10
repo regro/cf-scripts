@@ -7,6 +7,7 @@ import functools
 import logging
 import contextlib
 import sys
+import time
 
 from typing import Any, Union, Optional, IO, Set, Iterator
 from collections.abc import MutableMapping, Callable
@@ -723,6 +724,7 @@ def load(
 
 
 def main_sync(args):
+    t0 = time.time()
     from conda_forge_tick.utils import setup_logger
 
     if args.debug:
@@ -732,6 +734,12 @@ def main_sync(args):
 
     if not args.dry_run:
         sync_lazy_json_across_backends()
+
+    t0 = time.time() - t0
+    if t0 < 300:
+        wt = int(300 - t0)
+        for _ in tqdm.trange(wt, desc="waiting %d seconds" % wt, ncols=80):
+            time.sleep(1)
 
 
 def main_cache(args):
