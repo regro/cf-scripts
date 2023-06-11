@@ -25,7 +25,7 @@ jobs:
         uses: actions/cache@v3
         with:
           path: cf-graph.tar.zstd
-          key: cf-graph-tzstd-${{ github.run_id }}-${{ github.run_attempt }}
+          key: cf-graph-tzstd-${{ github.run_id }}-${{ github.run_attempt }}-${{ matrix.version }}
           restore-keys: |
             cf-graph-tzstd-
 
