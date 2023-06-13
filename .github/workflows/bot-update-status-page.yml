@@ -29,6 +29,11 @@ jobs:
             channels:
               - conda-forge
 
+      # Update conda-forge-pinning as we might got an outdated versions through the environment caching.
+      - name: force-update conda-forge-pinning
+        run: |
+          micromamba update conda-forge-pinning
+
       - name: do local setup and stop me if needed
         run: |
           pushd cf-scripts
