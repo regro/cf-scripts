@@ -306,7 +306,7 @@ class MigrationYaml(GraphMigrator):
         )
         if commit_body:
             additional_body += (
-                "<hr>"
+                "<hr>\n\n"
                 "Here are some more details about this specific migrator:\n\n"
                 "{commit_body}\n\n"
             ).format(commit_body=commit_body)
@@ -316,7 +316,7 @@ class MigrationYaml(GraphMigrator):
         )
         if len(children) > 0:
             additional_body += (
-                "<hr>"
+                "<hr>\n\n"
                 "This package has the following downstream children:\n"
                 "{children}\n"
                 "and potentially more."
