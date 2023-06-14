@@ -301,6 +301,14 @@ class MigrationYaml(GraphMigrator):
                 )
             )
 
+        commit_body = " ".join([e for e in self.commit_message(feedstock_ctx).splitlines()[1:] if e])
+        if commit_body:
+            additional_body += (
+                "<hr>"
+                "Here are some more details about this specific migrator:\n\n"
+                "{commit_body}\n\n"
+            ).format(commit_body=commit_body)
+
         children = "\n".join(
             [" - %s" % ch for ch in self.downstream_children(feedstock_ctx)],
         )
