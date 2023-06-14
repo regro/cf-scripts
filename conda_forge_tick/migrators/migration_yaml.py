@@ -301,7 +301,9 @@ class MigrationYaml(GraphMigrator):
                 )
             )
 
-        commit_body = " ".join([e for e in self.commit_message(feedstock_ctx).splitlines()[1:] if e])
+        commit_body = " ".join(
+            [e for e in self.commit_message(feedstock_ctx).splitlines()[1:] if e],
+        )
         if commit_body:
             additional_body += (
                 "<hr>"
