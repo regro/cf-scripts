@@ -306,6 +306,7 @@ class MigrationYaml(GraphMigrator):
         )
         if len(children) > 0:
             additional_body += (
+                "<hr>"
                 "This package has the following downstream children:\n"
                 "{children}\n"
                 "and potentially more."
