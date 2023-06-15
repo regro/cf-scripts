@@ -310,7 +310,7 @@ class MigrationYaml(GraphMigrator):
             additional_body += (
                 "\n\n"
                 "Here are some more details about this specific migrator:\n\n"
-                "{commit_body}\n\n"
+                "> {commit_body}\n\n"
                 "<hr>"
             ).format(commit_body=commit_body)
 
