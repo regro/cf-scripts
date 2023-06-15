@@ -281,6 +281,7 @@ class MigrationYaml(GraphMigrator):
                 "the feedstock has been rebuilt, so if you are going to "
                 "perform the rebuild yourself don't close this PR until "
                 "the your rebuild has been merged.**\n\n"
+                "<hr>"
                 "".format(
                     name=self.name,
                 )
@@ -296,6 +297,7 @@ class MigrationYaml(GraphMigrator):
                 "the feedstock has been rebuilt, so if you are going to "
                 "perform the rebuild yourself don't close this PR until "
                 "the your rebuild has been merged.**\n\n"
+                "<hr>"
                 "".format(
                     name=self.name,
                 )
@@ -306,9 +308,10 @@ class MigrationYaml(GraphMigrator):
         )
         if commit_body:
             additional_body += (
-                "<hr>\n\n"
+                "\n\n"
                 "Here are some more details about this specific migrator:\n\n"
                 "{commit_body}\n\n"
+                "<hr>"
             ).format(commit_body=commit_body)
 
         children = "\n".join(
@@ -316,10 +319,11 @@ class MigrationYaml(GraphMigrator):
         )
         if len(children) > 0:
             additional_body += (
-                "<hr>\n\n"
+                "\n\n"
                 "This package has the following downstream children:\n"
                 "{children}\n"
-                "and potentially more."
+                "and potentially more.\n\n"
+                "<hr>"
             ).format(children=children)
 
         return body.format(additional_body)
