@@ -1338,37 +1338,38 @@ def _update_nodes_with_bot_rerun(gx):
         #     f"node: {i} memory usage: "
         #     f"{psutil.Process().memory_info().rss // 1024 ** 2}MB",
         # )
-        with node["payload"] as payload, payload["pr_info"] as pri, payload[
-            "version_pr_info"
-        ] as vpri:
-            # reset bad
-            pri["bad"] = False
-            vpri["bad"] = False
+        with node["payload"] as payload:
+            if payload.get("archived", False):
+                continue
+            with payload["pr_info"] as pri, payload["version_pr_info"] as vpri:
+                # reset bad
+                pri["bad"] = False
+                vpri["bad"] = False
 
-            for __pri in [pri, vpri]:
-                for migration in __pri.get("PRed", []):
-                    try:
-                        pr_json = migration.get("PR", {})
-                        # maybe add a pass check info here ? (if using DEBUG)
-                    except Exception as e:
-                        LOGGER.error(
-                            f"BOT-RERUN : could not proceed check with {node}, {e}",
-                        )
-                        raise e
-                    # if there is a valid PR and it isn't currently listed as rerun
-                    # but the PR needs a rerun
-                    if (
-                        pr_json
-                        and not migration["data"]["bot_rerun"]
-                        and "bot-rerun"
-                        in [lb["name"] for lb in pr_json.get("labels", [])]
-                    ):
-                        migration["data"]["bot_rerun"] = time.time()
-                        LOGGER.info(
-                            "BOT-RERUN %s: processing bot rerun label for migration %s",
-                            name,
-                            migration["data"],
-                        )
+                for __pri in [pri, vpri]:
+                    for migration in __pri.get("PRed", []):
+                        try:
+                            pr_json = migration.get("PR", {})
+                            # maybe add a pass check info here ? (if using DEBUG)
+                        except Exception as e:
+                            LOGGER.error(
+                                f"BOT-RERUN : could not proceed check with {node}, {e}",
+                            )
+                            raise e
+                        # if there is a valid PR and it isn't currently listed as rerun
+                        # but the PR needs a rerun
+                        if (
+                            pr_json
+                            and not migration["data"]["bot_rerun"]
+                            and "bot-rerun"
+                            in [lb["name"] for lb in pr_json.get("labels", [])]
+                        ):
+                            migration["data"]["bot_rerun"] = time.time()
+                            LOGGER.info(
+                                "BOT-RERUN %s: processing bot rerun label for migration %s",
+                                name,
+                                migration["data"],
+                            )
 
 
 def _filter_ignored_versions(attrs, version):
@@ -1397,6 +1398,8 @@ def _update_nodes_with_new_versions(gx):
     for node in version_nodes:
         version_data = LazyJson(f"versions/{node}.json").data
         with gx.nodes[f"{node}"]["payload"] as attrs:
+            if attrs.get("archived", False):
+                continue
             with attrs["version_pr_info"] as vpri:
                 version_from_data = version_data.get("new_version", False)
                 version_from_attrs = _filter_ignored_versions(
