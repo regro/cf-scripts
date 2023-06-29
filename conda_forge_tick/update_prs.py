@@ -59,7 +59,9 @@ def _update_pr(update_function, dry_run, gx, job, n_jobs):
             ncols=80,
         ):
             node = gx.nodes[node_id]["payload"]
-            prs = node["pr_info"].get("PRed", [])
+            if node.get("archived", False):
+                continue
+            prs = node.get("pr_info", {}).get("PRed", [])
             for i, migration in enumerate(prs):
 
                 if random.uniform(0, 1) >= KEEP_PR_FRACTION:
