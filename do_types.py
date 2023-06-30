@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any, Union
-from collections.abc import Callable, MutableMapping, Iterable
+from collections.abc import Callable, MutableMapping
 
 if TYPE_CHECKING:
     # TODO import from typing (requires Python >=3.10)

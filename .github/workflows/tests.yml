@@ -25,7 +25,7 @@ jobs:
         with:
           environment-file: environment.yml
           create-args: >-
-            python==${{ vars.PYVER }}
+            python==3.10
             pip
             pytest
             codecov
@@ -39,6 +39,7 @@ jobs:
             pytest-cov
             setuptools_scm>=7
             python-build
+            mypy
           init-shell: bash
           cache-environment: true
           environment-name: cf-scripts
@@ -107,6 +108,7 @@ jobs:
         run: |
           export TEST_PASSWORD_VAL=unpassword
           export PASSWORD=${TEST_PASSWORD_VAL}
+          mypy do_types.py
           python do_types.py
           python -c "from do_types import WorkerDataParameter"
           # pytest \
