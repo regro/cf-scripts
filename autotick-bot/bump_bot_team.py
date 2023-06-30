@@ -26,7 +26,7 @@ Have a great day!
 job url: %s
 
 """
-    % (user, os.environ["ACTION_NAME"], os.environ["ACTION_URL"]),
-)
+        % (user, os.environ["ACTION_NAME"], os.environ["ACTION_URL"]),
+    )
 
 sys.exit(1)
