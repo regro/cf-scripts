@@ -11,9 +11,9 @@ WorkerDataParameter: TypeAlias = Union[
     # pre-initialized
     MutableMapping[str, object],
     # constructor
-    Callable[Iterable, MutableMapping[str, object]],
+    Callable[..., MutableMapping[str, object]],
     # constructor, passed worker.local_directory
-    Callable[Iterable[str], MutableMapping[str, object]],
+    Callable[[str], MutableMapping[str, object]],
     # (constructor, kwargs to constructor)
     tuple[Callable[..., MutableMapping[str, object]], dict[str, Any]],
     # initialize internally
