@@ -12,12 +12,12 @@ dependencies:
  - conda-forge-pinning
  - conda-libmamba-solver
  - conda-forge-metadata>=0.3.0
- - conda-package-handling<2
+ - conda-package-handling
  - conda-smithy
  - conda-build>=3.24.0
  - curl
  - depfinder
- - distributed<2023.5
+ - distributed
  - doctr
  - feedparser
  - frozendict
