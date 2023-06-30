@@ -107,36 +107,34 @@ jobs:
         run: |
           export TEST_PASSWORD_VAL=unpassword
           export PASSWORD=${TEST_PASSWORD_VAL}
-          python do_types.py
-          python -c "from do_types import WorkerDataParameter"
-          # pytest \
-          #   -v \
-          #   --cov=conda_forge_tick \
-          #   --cov=tests \
-          #   --cov-config=.coveragerc \
-          #   --cov-report term-missing \
-          #   --durations 10 \
-          #   tests
+          pytest \
+            -v \
+            --cov=conda_forge_tick \
+            --cov=tests \
+            --cov-config=.coveragerc \
+            --cov-report term-missing \
+            --durations 10 \
+            tests
         env:
           MONGODB_CONNECTION_STRING: "mongodb://127.0.0.1:27017/?directConnection=true&serverSelectionTimeoutMS=2000"
 
-      # - name: run codecov
-      #   shell: bash -l {0}
-      #   run: |
-      #    codecov -X gcov
+      - name: run codecov
+        shell: bash -l {0}
+        run: |
+         codecov -X gcov
 
-      # - name: build docs
-      #   shell: bash -l {0}
-      #   run: |
-      #     pushd docs
-      #     make html
-      #     popd
+      - name: build docs
+        shell: bash -l {0}
+        run: |
+          pushd docs
+          make html
+          popd
 
-      # - name: deploy docs
-      #   uses: JamesIves/github-pages-deploy-action@3.7.1
-      #   if: github.ref == 'refs/heads/master' && success()
-      #   with:
-      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      #     BRANCH: gh-pages # The branch the action should deploy to.
-      #     FOLDER: ./docs/_build/html # The folder the action should deploy.
-      #     CLEAN: true # Automatically remove deleted files from the deploy branch
+      - name: deploy docs
+        uses: JamesIves/github-pages-deploy-action@3.7.1
+        if: github.ref == 'refs/heads/master' && success()
+        with:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          BRANCH: gh-pages # The branch the action should deploy to.
+          FOLDER: ./docs/_build/html # The folder the action should deploy.
+          CLEAN: true # Automatically remove deleted files from the deploy branch
