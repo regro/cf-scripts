@@ -19,6 +19,8 @@ import yaml
 
 from typing import Any, Dict, Set, Tuple
 
+from conda.models.version import VersionOrder
+
 from conda_forge_tick.utils import frozen_to_json_friendly
 from conda_forge_tick.auto_tick import initialize_migrators
 from conda_forge_tick.migrators import (
@@ -32,7 +34,9 @@ from conda_forge_tick.migrators import (
     OSXArm,
 )
 from conda_forge_tick.path_lengths import cyclic_topological_sort
-from conda_forge_tick.contexts import MigratorContext, FeedstockContext
+from conda_forge_tick.contexts import FeedstockContext
+from conda_forge_tick.lazy_json_backends import LazyJson, get_all_keys_for_hashmap
+from conda_forge_tick.auto_tick import _filter_ignored_versions
 
 from .git_utils import feedstock_url
 
@@ -56,6 +60,10 @@ def _sorted_set_json(obj: Any) -> Any:
     raise TypeError(repr(obj) + " is not JSON serializable")
 
 
+def _ok_version(ver):
+    return ver is not None and ver and isinstance(ver, str)
+
+
 def write_version_migrator_status(migrator, mctx):
     """write the status of the version migrator"""
 
@@ -65,25 +73,54 @@ def write_version_migrator_status(migrator, mctx):
         "errors": {},
     }
 
-    mmctx = MigratorContext(session=mctx, migrator=migrator)
-    migrator.bind_to_ctx(mmctx)
+    gx = mctx.graph
+    version_nodes = get_all_keys_for_hashmap("versions")
 
-    for node in mmctx.effective_graph.nodes:
-        with mmctx.effective_graph.nodes[node]["payload"] as attrs:
+    for node in version_nodes:
+        version_data = LazyJson(f"versions/{node}.json").data
+        with gx.nodes[f"{node}"]["payload"] as attrs:
+            if attrs.get("archived", False):
+                continue
+
             with attrs["version_pr_info"] as vpri:
-                new_version = vpri.get("new_version", None)
-                if new_version is None or not new_version:
-                    continue
-                attempts = vpri.get("new_version_attempts", {}).get(new_version, 0)
-                if attempts == 0:
-                    out["queued"].add(node)
-                else:
-                    out["errored"].add(node)
-                    out["errors"][node] = vpri.get("new_version_errors", {}).get(
-                        new_version,
-                        "No error information available for version '%s'."
-                        % new_version,
+                version_from_data = _filter_ignored_versions(
+                    attrs,
+                    version_data.get("new_version", False),
+                )
+                version_from_attrs = _filter_ignored_versions(
+                    attrs,
+                    vpri.get("new_version", False),
+                )
+                if _ok_version(version_from_data) and _ok_version(version_from_attrs):
+                    new_version = max(
+                        [version_from_data, version_from_attrs],
+                        key=lambda x: VersionOrder(x.replace("-", ".")),
                     )
+                elif not _ok_version(version_from_data) and _ok_version(
+                    version_from_attrs,
+                ):
+                    new_version = version_from_attrs
+                elif _ok_version(version_from_data) and not _ok_version(
+                    version_from_attrs,
+                ):
+                    new_version = version_from_data
+                else:
+                    new_version = False
+
+                if _ok_version(new_version):
+                    attempts = vpri.get("new_version_attempts", {}).get(new_version, 0)
+                    if attempts == 0:
+                        out["queued"].add(node)
+                    else:
+                        out["errored"].add(node)
+                        out["errors"][node] = f"{attempts} attempts - " + vpri.get(
+                            "new_version_errors",
+                            {},
+                        ).get(
+                            new_version,
+                            "No error information available for version '%s'."
+                            % new_version,
+                        )
 
     with open("./status/version_status.json", "w") as f:
         json.dump(out, f, sort_keys=True, indent=2, default=_sorted_set_json)
