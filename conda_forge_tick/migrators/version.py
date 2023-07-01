@@ -63,6 +63,7 @@ class Version(Migrator):
         if "check_solvable" in kwargs:
             kwargs.pop("check_solvable")
         super().__init__(*args, **kwargs, check_solvable=False)
+        self._new_version = None
 
     def filter(
         self,
@@ -76,6 +77,7 @@ class Version(Migrator):
             if "new_version" not in vpri or not vpri["new_version"]:
                 return True
             new_version = vpri["new_version"]
+        self._new_version = new_version
 
         # if no jinja2 version, then move on
         if "raw_meta_yaml" in attrs and "{% set version" not in attrs["raw_meta_yaml"]:
@@ -162,6 +164,7 @@ class Version(Migrator):
         ):
             ignore_filter = True
 
+        self._new_version = None
         return result or version_filter or skip_filter or ignore_filter
 
     def migrate(
@@ -369,8 +372,11 @@ class Version(Migrator):
 
     def migrator_uid(self, attrs: "AttrsTypedDict") -> "MigrationUidTypedDict":
         n = super().migrator_uid(attrs)
-        assert isinstance(attrs["version_pr_info"]["new_version"], str)
-        n["version"] = attrs["version_pr_info"]["new_version"]
+        if self._new_version is not None:
+            new_version = self._new_version
+        else:
+            new_version = attrs["version_pr_info"]["new_version"]
+        n["version"] = new_version
         return n
 
     def _extract_version_from_muid(self, h: dict) -> str:
