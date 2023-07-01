@@ -754,7 +754,7 @@ def migration_factory(
             ) & all_package_names
         exclude_pinned_pkgs = migrator_config.get("exclude_pinned_pkgs", True)
 
-        age = time.time() - loaded_yaml.get("migration_ts", time.time())
+        age = time.time() - loaded_yaml.get("migrator_ts", time.time())
         age /= 24 * 60 * 60
         print(
             "migrator is %d days old" % int(age),
