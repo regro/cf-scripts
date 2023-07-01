@@ -118,7 +118,7 @@ LOGGER = logging.getLogger("conda_forge_tick.auto_tick")
 PR_LIMIT = 5
 MAX_PR_LIMIT = 50
 MAX_SOLVER_ATTEMPTS = 50
-CHECK_SOLVABLE_TIMEOUT = 90 # 90 days
+CHECK_SOLVABLE_TIMEOUT = 90  # 90 days
 
 BOT_RERUN_LABEL = {
     "name": "bot-rerun",
@@ -755,7 +755,7 @@ def migration_factory(
         exclude_pinned_pkgs = migrator_config.get("exclude_pinned_pkgs", True)
 
         age = time.time() - loaded_yaml.get("migration_ts", time.time())
-        age /= (24 * 60 * 60)
+        age /= 24 * 60 * 60
         print(
             "migrator is %d days old" % int(age),
             flush=True,
@@ -785,6 +785,8 @@ def migration_factory(
                 pr_limit=pr_limit,
                 max_solver_attempts=max_solver_attempts,
             )
+            if age > CHECK_SOLVABLE_TIMEOUT:
+                assert not migrators[-1].check_solvable
         else:
             LOGGER.warning("skipping migration %s because it is paused", __mname)
 
