@@ -73,9 +73,9 @@ jobs:
         if: success() && ! env.CI_SKIP
         run: |
           tar -xf cf-graph.tar.zstd
-          pushd cf-graph
+          cd cf-graph
           conda-forge-tick sync-lazy-json-across-backends
-
+          cd ..
           tar --zstd -cf cf-graph.tar.zstd cf-graph
         env:
           CF_TICK_GRAPH_DATA_BACKENDS: "mongodb:file"
