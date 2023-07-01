@@ -91,23 +91,19 @@ def write_version_migrator_status(migrator, mctx):
                     attrs,
                     vpri.get("new_version", False),
                 )
-                if _ok_version(version_from_data) and _ok_version(version_from_attrs):
-                    new_version = max(
-                        [version_from_data, version_from_attrs],
-                        key=lambda x: VersionOrder(x.replace("-", ".")),
-                    )
-                elif not _ok_version(version_from_data) and _ok_version(
-                    version_from_attrs,
-                ):
-                    new_version = version_from_attrs
-                elif _ok_version(version_from_data) and not _ok_version(
-                    version_from_attrs,
-                ):
-                    new_version = version_from_data
+                if _ok_version(version_from_data):
+                    if _ok_version(version_from_attrs):
+                        new_version = max(
+                            [version_from_data, version_from_attrs],
+                            key=lambda x: VersionOrder(x.replace("-", ".")),
+                        )
+                    else:
+                        new_version = version_from_data
                 else:
-                    new_version = False
+                    new_version = None
 
-                if _ok_version(new_version):
+                # run filter with new_version
+                if not migrator.filter(attrs, new_version=new_version):
                     attempts = vpri.get("new_version_attempts", {}).get(new_version, 0)
                     if attempts == 0:
                         out["queued"].add(node)
