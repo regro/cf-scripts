@@ -112,7 +112,7 @@ def write_version_migrator_status(migrator, mctx):
                         out["queued"].add(node)
                     else:
                         out["errored"].add(node)
-                        out["errors"][node] = f"{attempts} attempts - " + vpri.get(
+                        out["errors"][node] = f"{attempts:.2f} attempts - " + vpri.get(
                             "new_version_errors",
                             {},
                         ).get(
