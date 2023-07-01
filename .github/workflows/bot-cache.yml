@@ -47,9 +47,9 @@ jobs:
 
       - name: do local setup and stop me if needed
         run: |
-          pushd cf-scripts
+          cd cf-scripts
           python autotick-bot/stop_me_if_needed.py
-          popd
+
 
       - name: install bot code
         if: success() && ! env.CI_SKIP
@@ -58,10 +58,10 @@ jobs:
           git config --global user.email 36490558+regro-cf-autotick-bot@users.noreply.github.com
           git config --global pull.rebase false
 
-          pushd cf-scripts
+          cd cf-scripts
           export GIT_FULL_HASH=$(git rev-parse HEAD)
           pip install -e .
-          popd
+
 
           echo -e "\n\n============================================\n============================================"
           conda info
@@ -75,7 +75,7 @@ jobs:
           tar -xf cf-graph.tar.zstd
           pushd cf-graph
           conda-forge-tick sync-lazy-json-across-backends
-          popd
+
           tar --zstd -cf cf-graph.tar.zstd cf-graph
         env:
           CF_TICK_GRAPH_DATA_BACKENDS: "mongodb:file"
@@ -108,9 +108,9 @@ jobs:
 
       - name: do local setup and stop me if needed
         run: |
-          pushd cf-scripts
+          cd cf-scripts
           python autotick-bot/stop_me_if_needed.py
-          popd
+
 
       - name: install bot code
         if: success() && ! env.CI_SKIP
@@ -119,10 +119,10 @@ jobs:
           git config --global user.email 36490558+regro-cf-autotick-bot@users.noreply.github.com
           git config --global pull.rebase false
 
-          pushd cf-scripts
+          cd cf-scripts
           export GIT_FULL_HASH=$(git rev-parse HEAD)
           pip install -e .
-          popd
+
 
           echo -e "\n\n============================================\n============================================"
           conda info
