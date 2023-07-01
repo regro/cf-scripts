@@ -64,11 +64,18 @@ class Version(Migrator):
             kwargs.pop("check_solvable")
         super().__init__(*args, **kwargs, check_solvable=False)
 
-    def filter(self, attrs: "AttrsTypedDict", not_bad_str_start: str = "") -> bool:
+    def filter(
+        self,
+        attrs: "AttrsTypedDict",
+        not_bad_str_start: str = "",
+        new_version=None,
+    ) -> bool:
         # if no new version do nothing
-        vpri = attrs.get("version_pr_info", {})
-        if "new_version" not in vpri or not vpri["new_version"]:
-            return True
+        if new_version is None:
+            vpri = attrs.get("version_pr_info", {})
+            if "new_version" not in vpri or not vpri["new_version"]:
+                return True
+            new_version = vpri["new_version"]
 
         # if no jinja2 version, then move on
         if "raw_meta_yaml" in attrs and "{% set version" not in attrs["raw_meta_yaml"]:
@@ -88,14 +95,14 @@ class Version(Migrator):
                 ],
             )
             > self.max_num_prs
-            or not vpri.get("new_version"),  # if no new version
+            or not new_version,  # if no new version
         )
 
         try:
             version_filter = (
                 # if new version is less than current version
                 (
-                    VersionOrder(str(vpri["new_version"]).replace("-", "."))
+                    VersionOrder(str(new_version).replace("-", "."))
                     <= VersionOrder(
                         str(attrs.get("version", "0.0.0")).replace("-", "."),
                     )
@@ -103,7 +110,7 @@ class Version(Migrator):
                 # if PRed version is greater than newest version
                 or any(
                     VersionOrder(self._extract_version_from_muid(h).replace("-", "."))
-                    >= VersionOrder(str(vpri["new_version"]).replace("-", "."))
+                    >= VersionOrder(str(new_version).replace("-", "."))
                     for h in attrs.get("pr_info", {}).get("PRed", set())
                 )
             )
@@ -150,8 +157,8 @@ class Version(Migrator):
             .get("exclude", [])
         )
         if (
-            str(vpri["new_version"]).replace("-", ".") in versions_to_ignore
-            or str(vpri["new_version"]) in versions_to_ignore
+            str(new_version).replace("-", ".") in versions_to_ignore
+            or str(new_version) in versions_to_ignore
         ):
             ignore_filter = True
 
