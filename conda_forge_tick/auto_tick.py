@@ -770,6 +770,9 @@ def migration_factory(
                 "turning off solver checks since over limit %d",
                 CHECK_SOLVABLE_TIMEOUT,
             )
+            skip_solver_checks = True
+        else:
+            skip_solver_checks = False
 
         if not paused:
             add_rebuild_migration_yaml(
@@ -785,7 +788,7 @@ def migration_factory(
                 pr_limit=pr_limit,
                 max_solver_attempts=max_solver_attempts,
             )
-            if age > CHECK_SOLVABLE_TIMEOUT:
+            if skip_solver_checks:
                 assert not migrators[-1].check_solvable
         else:
             LOGGER.warning("skipping migration %s because it is paused", __mname)
