@@ -47,9 +47,9 @@ jobs:
 
       - name: do local setup and stop me if needed
         run: |
-          pushd cf-scripts
+          cd cf-scripts
           python autotick-bot/stop_me_if_needed.py
-          popd
+
 
       - name: install bot code
         if: success() && ! env.CI_SKIP
@@ -71,7 +71,7 @@ jobs:
 
           conda-forge-tick auto-tick
 
-          popd
+
         env:
           USERNAME: regro-cf-autotick-bot
           PASSWORD: ${{ secrets.AUTOTICK_BOT_TOKEN }}
@@ -85,7 +85,7 @@ jobs:
         run: |
           pushd cf-graph
           git status
-          popd
+
 
       - name: deploy
         if: github.ref == 'refs/heads/master' && always() && ! env.CI_SKIP
@@ -96,7 +96,7 @@ jobs:
           export CIRCLE_BUILD_NUM="actually-actions-${RUN_ID}"
           conda-forge-tick deploy-to-github
 
-          popd
+
         env:
           PASSWORD: ${{ secrets.AUTOTICK_BOT_TOKEN }}
           RUN_ID: ${{ github.run_id }}

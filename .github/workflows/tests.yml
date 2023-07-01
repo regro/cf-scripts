@@ -75,17 +75,17 @@ jobs:
           rm -rf dist/*
           python setup.py sdist
           pip install -vv --no-deps --no-build-isolation dist/*.tar.gz
-          pushd ..
+          cd ..
           python -c "import conda_forge_tick; assert conda_forge_tick.__version__ != '0.0.0'"
-          popd
+          cd -
           pip uninstall conda-forge-tick --yes
 
           rm -rf dist/*
           python -m build --sdist . --outdir dist
           pip install --no-deps --no-build-isolation dist/*.tar.gz
-          pushd ..
+          cd ..
           python -c "import conda_forge_tick; assert conda_forge_tick.__version__ != '0.0.0'"
-          popd
+          cd -
           pip uninstall conda-forge-tick --yes
 
           python -m pip install -v --no-deps --no-build-isolation -e .
@@ -126,9 +126,8 @@ jobs:
       - name: build docs
         shell: bash -l {0}
         run: |
-          pushd docs
+          cd docs
           make html
-          popd
 
       - name: deploy docs
         uses: JamesIves/github-pages-deploy-action@3.7.1
