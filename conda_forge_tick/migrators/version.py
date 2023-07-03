@@ -335,11 +335,11 @@ class Version(Migrator):
                         self.python_nodes,
                         "new_version",
                     )
-                except Exception:
+                except (SystemExit, Exception):
                     hint = "\n\nDependency Analysis\n--------------------\n\n"
                     hint += (
                         "We couldn't run dependency analysis due to an internal "
-                        "error in the bot. :/ Help is very welcome!"
+                        "error in the bot, depfinder, or grayskull. :/ Help is very welcome!"
                     )
 
             return hint
