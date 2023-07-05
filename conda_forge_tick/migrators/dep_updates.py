@@ -31,16 +31,19 @@ class DependencyUpdateMigrator(MiniMigrator):
             attrs.get("conda-forge.yml", {}).get("bot", {}).get("inspection", "hint")
         )
         logger.info("bot.inspection: %s", update_deps)
-        dep_comparison, _ = get_dep_updates_and_hints(
-            update_deps,
-            recipe_dir,
-            attrs,
-            self.python_nodes,
-            "new_version",
-        )
-
-        logger.info("applying deps: %s", update_deps)
-        apply_dep_update(
-            recipe_dir,
-            dep_comparison,
-        )
+        try:
+            dep_comparison, _ = get_dep_updates_and_hints(
+                update_deps,
+                recipe_dir,
+                attrs,
+                self.python_nodes,
+                "new_version",
+            )
+        except (SystemExit, Exception) as e:
+            logger.warning("Dep update failed! %s", repr(e))
+        else:
+            logger.info("applying deps: %s", update_deps)
+            apply_dep_update(
+                recipe_dir,
+                dep_comparison,
+            )
