@@ -39,7 +39,7 @@ class DependencyUpdateMigrator(MiniMigrator):
                 self.python_nodes,
                 "new_version",
             )
-        except (SystemExit, Exception) as e:
+        except (BaseException, Exception) as e:
             logger.warning("Dep update failed! %s", repr(e))
         else:
             logger.info("applying deps: %s", update_deps)
