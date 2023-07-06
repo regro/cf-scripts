@@ -335,7 +335,7 @@ class Version(Migrator):
                         self.python_nodes,
                         "new_version",
                     )
-                except (SystemExit, Exception):
+                except (BaseException, Exception):
                     hint = "\n\nDependency Analysis\n--------------------\n\n"
                     hint += (
                         "We couldn't run dependency analysis due to an internal "
