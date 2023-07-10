@@ -135,18 +135,11 @@ class Version(Migrator):
             try:
                 frac = float(random_fraction_to_keep)
 
-                # the seeding here makes the filter stable given the current version
-                # if there is no version in the recipe, we always accept
-                # the version update
-                # this rule avoids a weird edge case possibly of never
-                # shipping a version if we always seed with 0.0.0
-                if "version" not in attrs:
-                    urand = 0.0
-                else:
-                    random.seed(a=str(attrs.get("version", "0.0.0")).replace("-", "."))
-                    urand = random.uniform(0, 1)
+                # the seeding here makes the filter stable given new version
+                random.seed(a=self._new_version.replace("-", "."))
+                urand = random.uniform(0, 1)
 
-                if urand <= frac:
+                if urand >= frac:
                     skip_filter = True
             finally:
                 random.setstate(curr_state)
@@ -339,7 +332,8 @@ class Version(Migrator):
                     hint = "\n\nDependency Analysis\n--------------------\n\n"
                     hint += (
                         "We couldn't run dependency analysis due to an internal "
-                        "error in the bot, depfinder, or grayskull. :/ Help is very welcome!"
+                        "error in the bot, depfinder, or grayskull. :/ "
+                        "Help is very welcome!"
                     )
 
             return hint
