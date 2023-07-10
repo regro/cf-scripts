@@ -136,10 +136,6 @@ class Version(Migrator):
                 frac = float(random_fraction_to_keep)
 
                 # the seeding here makes the filter stable given new version
-                # if there is no version in the recipe, we always accept
-                # the version update
-                # this rule avoids a weird edge case possibly of never
-                # shipping a version if we always seed with 0.0.0
                 random.seed(a=self._new_version.replace("-", "."))
                 urand = random.uniform(0, 1)
 
