@@ -345,7 +345,7 @@ def test_latest_version_npm(
     [requests_mock.get(url, text=text) for url, text in urls.items()]
     attempt = get_latest_version(name, pmy, [source])
     if ver is None:
-        assert not (attempt["new_version"] is False)
+        assert attempt["new_version"] is not False
         assert attempt["new_version"] != curr_ver
         assert VersionOrder(attempt["new_version"]) > VersionOrder(curr_ver)
     elif ver is False:
@@ -373,7 +373,7 @@ def test_latest_version_rawurl(name, inp, curr_ver, ver, source, urls, tmpdir):
         )
     attempt = get_latest_version(name, pmy, [source])
     if ver is None:
-        assert not (attempt["new_version"] is False)
+        assert attempt["new_version"] is not False
         assert attempt["new_version"] != curr_ver
         assert VersionOrder(attempt["new_version"]) > VersionOrder(curr_ver)
     elif ver is False:
