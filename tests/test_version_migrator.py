@@ -1,4 +1,5 @@
 import os
+import random
 import logging
 import pytest
 from flaky import flaky
@@ -155,3 +156,41 @@ def test_version_cupy(tmpdir, caplog):
         },
         tmpdir=tmpdir,
     )
+
+
+def test_version_rand_frac(tmpdir, caplog):
+    case = "aws_sdk_cpp"
+    new_ver = "1.11.132"
+    caplog.set_level(
+        logging.DEBUG,
+        logger="conda_forge_tick.migrators.version",
+    )
+
+    random.seed(a=new_ver)
+    urand = random.uniform(0, 1)
+    assert urand < 0.1
+
+    with open(os.path.join(YAML_PATH, "version_%s.yaml" % case)) as fp:
+        in_yaml = fp.read()
+
+    with open(os.path.join(YAML_PATH, "version_%s_correct.yaml" % case)) as fp:
+        out_yaml = fp.read()
+
+    kwargs = {"new_version": new_ver}
+    kwargs["conda-forge.yml"] = {
+        "bot": {"version_updates": {"random_fraction_to_keep": 0.1}},
+    }
+    run_test_migration(
+        m=VERSION,
+        inp=in_yaml,
+        output=out_yaml,
+        kwargs=kwargs,
+        prb="Dependencies have been updated if changed",
+        mr_out={
+            "migrator_name": "Version",
+            "migrator_version": Version.migrator_version,
+            "version": new_ver,
+        },
+        tmpdir=tmpdir,
+    )
+    assert "random_fraction_to_keep: 0.1" in caplog.text
