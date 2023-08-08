@@ -4,7 +4,14 @@ from flaky import flaky
 
 from conda.models.version import VersionOrder
 from conda_forge_tick.update_upstream_versions import get_latest_version
-from conda_forge_tick.update_sources import NPM, next_version, PyPI, RawURL, NVIDIA, Github
+from conda_forge_tick.update_sources import (
+    NPM,
+    next_version,
+    PyPI,
+    RawURL,
+    NVIDIA,
+    Github,
+)
 
 from conda_forge_tick.utils import parse_meta_yaml
 from conda_forge_tick.lazy_json_backends import LazyJson
