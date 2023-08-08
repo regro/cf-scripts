@@ -60,9 +60,8 @@ def get_latest_version(
         .get("version_updates", {})
         .get("sources", None)
     )
-    version_sources = [vs.lower() for vs in version_sources]
-
     if version_sources is not None:
+        version_sources = [vs.lower() for vs in version_sources]
         sources_to_use = []
         for vs in version_sources:
             for source in sources:
