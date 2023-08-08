@@ -145,6 +145,7 @@ class AbstractSource(abc.ABC):
 
 
 class VersionFromFeed(AbstractSource):
+    name = "VersionFromFeed"
     ver_prefix_remove = ["release-", "releases%2F", "v_", "v.", "v"]
     dev_vers = [
         "rc",
@@ -182,7 +183,7 @@ class VersionFromFeed(AbstractSource):
 
 
 class PyPI(AbstractSource):
-    name = "pypi"
+    name = "PyPI"
 
     def get_url(self, meta_yaml) -> Optional[str]:
         url_names = ["pypi.python.org", "pypi.org", "pypi.io"]
@@ -205,7 +206,7 @@ class PyPI(AbstractSource):
 
 
 class NPM(AbstractSource):
-    name = "npm"
+    name = "NPM"
 
     def get_url(self, meta_yaml) -> Optional[str]:
         if "registry.npmjs.org" not in meta_yaml["url"]:
@@ -238,7 +239,7 @@ class CRAN(AbstractSource):
     dask.
     """
 
-    name = "cran"
+    name = "CRAN"
     url_contains = "cran.r-project.org/src/contrib/Archive"
     cran_url = "https://cran.r-project.org"
 
@@ -294,7 +295,7 @@ ROS_DISTRO_INDEX: Optional[dict] = None
 
 
 class ROSDistro(AbstractSource):
-    name = "rosdistro"
+    name = "ROSDistro"
 
     def parse_idx(self, distro_name: str = "melodic") -> dict:
         session = requests.Session()
@@ -556,7 +557,7 @@ class IncrementAlphaRawURL(BaseRawURL):
 
 
 class Github(VersionFromFeed):
-    name = "github"
+    name = "Github"
 
     def get_url(self, meta_yaml) -> Optional[str]:
         if "github.com" not in meta_yaml["url"]:
@@ -568,6 +569,8 @@ class Github(VersionFromFeed):
 
 
 class LibrariesIO(VersionFromFeed):
+    name = "LibrariesIO"
+
     def get_url(self, meta_yaml) -> Optional[str]:
         urls = meta_yaml["url"]
         if not isinstance(meta_yaml["url"], list):

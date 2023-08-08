@@ -54,10 +54,31 @@ def get_latest_version(
     if name == "ca-policy-lcg":
         return version_data
 
+    version_sources = (
+        attrs.get("conda-forge.yml", {})
+        .get("bot", {})
+        .get("version_updates", {})
+        .get("sources", None)
+    )
+    version_sources = [vs.lower() for vs in version_sources]
+
+    if version_sources is not None:
+        sources_to_use = []
+        for vs in version_sources:
+            for source in sources:
+                if source.name.lower() == vs:
+                    sources_to_use.append(source)
+
+        for source in sources:
+            if source not in sources_to_use:
+                logger.debug("skipped source: %s", source.name)
+    else:
+        sources_to_use = sources
+
     excs = []
-    for source in sources:
+    for source in sources_to_use:
         try:
-            logger.debug("source: %s", source.__class__.__name__)
+            logger.debug("source: %s", source.name)
             url = source.get_url(attrs)
             logger.debug("url: %s", url)
             if url is None:
