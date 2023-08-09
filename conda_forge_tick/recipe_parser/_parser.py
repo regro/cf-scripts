@@ -21,7 +21,7 @@ JINJA2_ENDIF_RE = re.compile(r"^\s*\{\%\s+endif")
 # this regex pulls out lines like
 #  '   name: val # [sel]'
 # to groups ('   ', 'name', 'val ', 'sel')
-SPC_KEY_VAL_SELECTOR_RE = re.compile(r"^(\s*-?\s*)([^\s:]*): ([^#]*)#\s*\[(.*)\]")
+SPC_KEY_VAL_SELECTOR_RE = re.compile(r"^(\s*-?\s*)([^\s:]*):\s+([^#]*)#\s*\[(.*)\]")
 
 # this regex pulls out lines like
 #  '   name__###conda-selector###__py3k and blah: val # comment'
@@ -43,6 +43,7 @@ def _get_yaml_parser():
     parser = YAML(typ="jinja2")
     parser.indent(mapping=2, sequence=4, offset=2)
     parser.width = 320
+    parser.preserve_quotes = True
     return parser
 
 
@@ -151,13 +152,8 @@ def _munge_line(line: str) -> str:
     m = SPC_KEY_VAL_SELECTOR_RE.match(line)
     if m:
         spc, key, val, selector = m.group(1, 2, 3, 4)
-        # quoted strings are not mappings
-        if (key.startswith('"') and not key.endswith('"')) or (
-            key.startswith("'") and not key.endswith("'")
-        ):
-            return line
 
-        # handle keys with quotes
+        # # handle keys with quotes
         if key.endswith('"'):
             key = key[:-1]
             sel_tail = '"'
@@ -188,6 +184,15 @@ def _unmunge_line(line: str) -> str:
     m = MUNGED_LINE_RE.match(line)
     if m:
         spc, key, selector, val = m.group(1, 2, 3, 4)
+
+        # munge quotes in keys properly
+        if key.startswith('"') and selector.endswith('"'):
+            key += '"'
+            selector = selector[:-1]
+        elif key.startswith("'") and selector.endswith("'"):
+            key += "'"
+            selector = selector[:-1]
+
         return spc + key + ": " + val.strip() + "  # [" + selector + "]\n"
     else:
         return line
