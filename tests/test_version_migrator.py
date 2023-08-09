@@ -16,6 +16,8 @@ YAML_PATH = os.path.join(os.path.dirname(__file__), "test_yaml")
 @pytest.mark.parametrize(
     "case,new_ver",
     [
+        ("mpich", "4.1.1"),
+        ("mpichv0", "4.1.0"),
         ("dash_extensions", "0.1.11"),
         ("numpy", "1.24.1"),
         ("python", "3.9.5"),
@@ -53,7 +55,7 @@ YAML_PATH = os.path.join(os.path.dirname(__file__), "test_yaml")
     ],
 )
 @flaky
-def test_version(case, new_ver, tmpdir, caplog):
+def test_version_up(case, new_ver, tmpdir, caplog):
     caplog.set_level(
         logging.DEBUG,
         logger="conda_forge_tick.migrators.version",
