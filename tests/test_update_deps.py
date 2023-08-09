@@ -263,7 +263,7 @@ source:
 build:
   number: 0
   noarch: python
-  script: {{ PYTHON }} -m pip install . --no-deps -vv
+  script: "{{ PYTHON }} -m pip install . --no-deps -vv"
   entry_points:
     - depfinder = depfinder.cli:cli
 
@@ -312,7 +312,7 @@ source:
 build:
   number: 0
   noarch: python
-  script: {{ PYTHON }} -m pip install . --no-deps -vv
+  script: "{{ PYTHON }} -m pip install . --no-deps -vv"
   entry_points:
     - depfinder = depfinder.cli:cli
 
@@ -360,7 +360,7 @@ source:
 build:
   number: 0
   noarch: python
-  script: {{ PYTHON }} -m pip install . --no-deps -vv
+  script: "{{ PYTHON }} -m pip install . --no-deps -vv"
   entry_points:
     - depfinder = depfinder.cli:cli
 

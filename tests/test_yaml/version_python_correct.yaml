@@ -169,8 +169,8 @@ outputs:
         # Putting these here means they get emitted to build_env_setup.{sh,bat} meaning we can launch IDEs
         # after sourcing or calling that script without examine the contents of conda_build.{sh,bat} for
         # important env. vars.
-        - OPENSSL_DIR=%PREFIX%\Library    # [win]
-        - SQLITE3_DIR=%PREFIX%\Library    # [win]
+        - 'OPENSSL_DIR=%PREFIX%\Library'  # [win]
+        - 'SQLITE3_DIR=%PREFIX%\Library'  # [win]
 {% if 'conda-forge' in channel_targets %}
         - CONDA_FORGE=yes
 {% else %}
