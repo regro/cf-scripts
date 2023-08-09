@@ -37,8 +37,8 @@ requirements:
 test:
   commands:
     # Verify Python headers are removed.
-    - '! test -f $PREFIX/include/boost/python.hpp'                      # [unix]
-    - '! test -d $PREFIX/include/boost/python'                          # [unix]
+    - "! test -f $PREFIX/include/boost/python.hpp"                      # [unix]
+    - "! test -d $PREFIX/include/boost/python"                          # [unix]
     - if exist %PREFIX%\\Library\\include\\boost\\python.hpp exit 1     # [win]
     - if exist %PREFIX%\\Library\\include\\boost\\python exit 1         # [win]
 
