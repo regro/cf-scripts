@@ -4,9 +4,19 @@ from flaky import flaky
 
 from conda.models.version import VersionOrder
 from conda_forge_tick.update_upstream_versions import get_latest_version
-from conda_forge_tick.update_sources import NPM, next_version, RawURL, NVIDIA
+from conda_forge_tick.update_sources import (
+    NPM,
+    next_version,
+    PyPI,
+    RawURL,
+    NVIDIA,
+    Github,
+)
+
 from conda_forge_tick.utils import parse_meta_yaml
 from conda_forge_tick.lazy_json_backends import LazyJson
+
+YAML_PATH = os.path.join(os.path.dirname(__file__), "test_yaml")
 
 sample_npm = """
 {% set name = "configurable-http-proxy" %}
@@ -342,7 +352,7 @@ def test_latest_version_npm(
     [requests_mock.get(url, text=text) for url, text in urls.items()]
     attempt = get_latest_version(name, pmy, [source])
     if ver is None:
-        assert not (attempt["new_version"] is False)
+        assert attempt["new_version"] is not False
         assert attempt["new_version"] != curr_ver
         assert VersionOrder(attempt["new_version"]) > VersionOrder(curr_ver)
     elif ver is False:
@@ -370,7 +380,7 @@ def test_latest_version_rawurl(name, inp, curr_ver, ver, source, urls, tmpdir):
         )
     attempt = get_latest_version(name, pmy, [source])
     if ver is None:
-        assert not (attempt["new_version"] is False)
+        assert attempt["new_version"] is not False
         assert attempt["new_version"] != curr_ver
         assert VersionOrder(attempt["new_version"]) > VersionOrder(curr_ver)
     elif ver is False:
@@ -841,10 +851,32 @@ def test_latest_version_nvidia(name, inp, curr_ver, ver, source, urls, tmpdir):
         )
     attempt = get_latest_version(name, pmy, [source])
     if ver is None:
-        assert not (attempt["new_version"] is False)
+        assert attempt["new_version"] is not False
         assert attempt["new_version"] != curr_ver
         assert VersionOrder(attempt["new_version"]) > VersionOrder(curr_ver)
     elif ver is False:
         assert attempt["new_version"] is ver
     else:
         assert ver == attempt["new_version"]
+
+
+def test_latest_version_aws_sdk_cpp(tmpdir):
+    name = "aws_sdk_cpp"
+    with open(os.path.join(YAML_PATH, "version_%s.yaml" % name)) as fp:
+        inp = fp.read()
+
+    pmy = LazyJson(os.path.join(tmpdir, name + ".json"))
+    with pmy as _pmy:
+        _pmy.update(parse_meta_yaml(inp)["source"])
+        _pmy.update(
+            {
+                "feedstock_name": name,
+                "version": "1.11.68",
+                "raw_meta_yaml": inp,
+                "meta_yaml": parse_meta_yaml(inp),
+            },
+        )
+    attempt = get_latest_version(name, pmy, [PyPI(), Github(), RawURL()])
+    assert attempt["new_version"] is not None
+    assert attempt["new_version"]
+    print(attempt)

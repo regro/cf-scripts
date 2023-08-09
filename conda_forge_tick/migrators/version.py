@@ -130,6 +130,7 @@ class Version(Migrator):
             .get("version_updates", {})
             .get("random_fraction_to_keep", None)
         )
+        logger.info("random_fraction_to_keep: %r", random_fraction_to_keep)
         if random_fraction_to_keep is not None:
             curr_state = random.getstate()
             try:
@@ -141,6 +142,14 @@ class Version(Migrator):
 
                 if urand >= frac:
                     skip_filter = True
+
+                logger.info(
+                    "random version skip: version=%s, fraction=%f, urand=%f, skip=%r",
+                    self._new_version.replace("-", "."),
+                    frac,
+                    urand,
+                    skip_filter,
+                )
             finally:
                 random.setstate(curr_state)
 
