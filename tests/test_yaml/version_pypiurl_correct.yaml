@@ -32,7 +32,7 @@ about:
   license: Apache-2.0
   license_family: APACHE
   license_file: LICENSE
-  summary: 'Package for Spark Dagster framework components.'
+  summary: "Package for Spark Dagster framework components."
 
 extra:
   recipe-maintainers:
