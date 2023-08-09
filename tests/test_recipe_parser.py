@@ -1571,3 +1571,31 @@ extra:
     cm.dump(s)
     s.seek(0)
     assert s.read() == recipe_parsed
+
+
+def test_recipe_parses_strings_colons():
+    recipe = """\
+test:
+  commands:
+    - "DISPLAY=localhost:1.0 xvfb-run -a affinder --help"  # [linux]
+    - DISPLAY=localhost:1.0 xvfb-run -a affinder --help  # [linux]
+    - "foo": bar  # [linux]
+      blah: blah blah  # [linux]
+      'ghg': ggsdf  # [linux]
+"""
+
+    recipe_correct = """\
+test:
+  commands:
+    - DISPLAY=localhost:1.0 xvfb-run -a affinder --help    # [linux]
+    - DISPLAY=localhost:1.0 xvfb-run -a affinder --help  # [linux]
+    - foo: bar  # [linux]
+      blah: blah blah  # [linux]
+      ghg: ggsdf  # [linux]
+"""
+    cm = CondaMetaYAML(recipe)
+    s = io.StringIO()
+    cm.dump(s)
+    s.seek(0)
+    new_recipe = s.read()
+    assert new_recipe == recipe_correct

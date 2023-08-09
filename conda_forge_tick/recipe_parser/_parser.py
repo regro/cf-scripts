@@ -21,7 +21,7 @@ JINJA2_ENDIF_RE = re.compile(r"^\s*\{\%\s+endif")
 # this regex pulls out lines like
 #  '   name: val # [sel]'
 # to groups ('   ', 'name', 'val ', 'sel')
-SPC_KEY_VAL_SELECTOR_RE = re.compile(r"^(\s*-?\s*)([^\s:]*):([^#]*)#\s*\[(.*)\]")
+SPC_KEY_VAL_SELECTOR_RE = re.compile(r"^(\s*-?\s*)([^\s:]*): ([^#]*)#\s*\[(.*)\]")
 
 # this regex pulls out lines like
 #  '   name__###conda-selector###__py3k and blah: val # comment'
@@ -151,8 +151,25 @@ def _munge_line(line: str) -> str:
     m = SPC_KEY_VAL_SELECTOR_RE.match(line)
     if m:
         spc, key, val, selector = m.group(1, 2, 3, 4)
-        new_key = key + CONDA_SELECTOR + selector
-        return spc + new_key + ":" + val + "\n"
+        # quoted strings are not mappings
+        if (key.startswith('"') and not key.endswith('"')) or (
+            key.startswith("'") and not key.endswith("'")
+        ):
+            return line
+
+        # handle keys with quotes
+        if key.endswith('"'):
+            key = key[:-1]
+            sel_tail = '"'
+        elif key.endswith("'"):
+            key = key[:-1]
+            sel_tail = "'"
+        else:
+            sel_tail = ""
+
+        new_key = key + CONDA_SELECTOR + selector + sel_tail
+
+        return spc + new_key + ": " + val + "\n"
     else:
         return line
 
