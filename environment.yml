@@ -23,7 +23,7 @@ dependencies:
  - frozendict
  - git
  - github3.py
- - grayskull<2.3.1
+ - grayskull<2.3.0
  - jinja2
  - lockfile
  - mamba>=0.23
