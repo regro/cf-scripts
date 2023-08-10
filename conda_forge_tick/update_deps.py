@@ -8,7 +8,10 @@ from typing import Dict
 
 import requests
 from stdlib_list import stdlib_list
-from grayskull.__main__ import create_python_recipe
+try:
+    from grayskull.main import create_python_recipe
+except ImportError:
+    from grayskull.__main__ import create_python_recipe
 from conda_forge_tick.os_utils import pushd
 from conda_forge_tick.utils import _get_source_code
 from conda_forge_tick.depfinder_api import simple_import_to_pkg_map
