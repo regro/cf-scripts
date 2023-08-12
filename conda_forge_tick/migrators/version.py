@@ -130,7 +130,7 @@ class Version(Migrator):
             .get("version_updates", {})
             .get("random_fraction_to_keep", None)
         )
-        logger.info("random_fraction_to_keep: %r", random_fraction_to_keep)
+        logger.debug("random_fraction_to_keep: %r", random_fraction_to_keep)
         if random_fraction_to_keep is not None:
             curr_state = random.getstate()
             try:
