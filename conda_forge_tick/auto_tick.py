@@ -354,6 +354,7 @@ def run(
                 "build_platform",
                 None,
             ),
+            verbosity=2,
         )
         if not solvable:
             _solver_err_str = "not solvable ({}): {}: {}".format(
