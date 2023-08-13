@@ -1029,7 +1029,8 @@ def initialize_migrators(
         ],
     )
 
-    migrators = [version_migrator] + migrators + random.shuffle(pinning_migrators)
+    random.shuffle(pinning_migrators)
+    migrators = [version_migrator] + migrators + pinning_migrators
 
     print(" ", flush=True)
 
