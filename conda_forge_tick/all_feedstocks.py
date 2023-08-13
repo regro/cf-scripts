@@ -27,11 +27,7 @@ def get_all_feedstocks_from_github():
         ncols=80,
     ):
         if r.name.endswith("-feedstock"):
-            # special casing for weird renaming in the api
-            if r.name == "numpy-sugar-feedstock":
-                name = "numpy_sugar-feedstock"
-            else:
-                name = r.name
+            name = r.name
 
             if r.archived:
                 archived.add(name[: -len("-feedstock")])
