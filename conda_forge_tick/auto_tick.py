@@ -4,6 +4,7 @@ import json
 import re
 import sys
 import gc
+import random
 
 import time
 import traceback
@@ -112,7 +113,6 @@ from conda_forge_feedstock_check_solvable import is_recipe_solvable
 # not using this right now
 # from conda_forge_tick.deploy import deploy
 
-
 LOGGER = logging.getLogger("conda_forge_tick.auto_tick")
 
 PR_LIMIT = 5
@@ -130,6 +130,9 @@ BOT_RERUN_LABEL = {
 }
 
 BOT_HOME_DIR = None
+
+# migrator runs on loop so avoid any seeds at current time should that happen
+random.seed(os.urandom(64))
 
 
 def _set_pre_pr_migrator_fields(attrs, migrator_name, error_str):
@@ -971,10 +974,11 @@ def initialize_migrators(
         "The conda package name 'build' is deprecated "
         "and too generic. Use 'python-build instead.'",
     )
-    migration_factory(migrators, gx)
-    create_migration_yaml_creator(migrators=migrators, gx=gx)
+    pinning_migrators = []
+    migration_factory(pinning_migrators, gx)
+    create_migration_yaml_creator(migrators=pinning_migrators, gx=gx)
     print("rebuild migration graph sizes:", flush=True)
-    for m in migrators:
+    for m in migrators + pinning_migrators:
         if isinstance(m, GraphMigrator):
             print(
                 f'    {getattr(m, "name", m)} graph size: '
@@ -1025,7 +1029,7 @@ def initialize_migrators(
         ],
     )
 
-    migrators = [version_migrator] + migrators
+    migrators = [version_migrator] + migrators + random.shuffle(pinning_migrators)
 
     print(" ", flush=True)
 
@@ -1379,7 +1383,8 @@ def _update_nodes_with_bot_rerun(gx):
                         ):
                             migration["data"]["bot_rerun"] = time.time()
                             LOGGER.info(
-                                "BOT-RERUN %s: processing bot rerun label for migration %s",
+                                "BOT-RERUN %s: processing bot rerun label "
+                                "for migration %s",
                                 name,
                                 migration["data"],
                             )
