@@ -73,6 +73,7 @@ from conda_forge_tick.utils import (
     sanitize_string,
     frozen_to_json_friendly,
     yaml_safe_load,
+    parse_munged_run_export,
 )
 from conda_forge_tick.migrators.arch import OSXArm
 from conda_forge_tick.migrators.migration_yaml import (
@@ -761,7 +762,7 @@ def migration_factory(
         age = time.time() - loaded_yaml.get("migrator_ts", time.time())
         age /= 24 * 60 * 60
         print(
-            "migrator is %d days old" % int(age),
+            "migrator %s is %d days old" % (__mname, int(age)),
             flush=True,
         )
         if (
@@ -770,9 +771,15 @@ def migration_factory(
             and not migrator_config.get("longterm", False)
         ):
             migrator_config["check_solvable"] = False
-            LOGGER.warning(
-                "turning off solver checks since over limit %d",
-                CHECK_SOLVABLE_TIMEOUT,
+            print(
+                "turning off solver checks for migrator "
+                "%s since over %d is over limit %d"
+                % (
+                    __mname,
+                    age,
+                    CHECK_SOLVABLE_TIMEOUT,
+                ),
+                flush=True,
             )
             skip_solver_checks = True
         else:
@@ -872,8 +879,8 @@ def create_migration_yaml_creator(migrators: MutableSequence[Migrator], gx: nx.D
                     build = block.get("build", {}) or {}
                     # and check the exported package is within the feedstock
                     exports = [
-                        p.get("max_pin", "")
-                        for p in build.get("run_exports", [{}])
+                        parse_munged_run_export(p).get("max_pin", "")
+                        for p in build.get("run_exports", [""])
                         # make certain not direct hard pin
                         if isinstance(p, MutableMapping)
                         # ensure the export is for this package

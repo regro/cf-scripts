@@ -49,18 +49,50 @@ CB_CONFIG = dict(
     datetime=datetime,
 )
 
+
+def _munge_dict_repr(d):
+    d = repr(d)
+    d = "__dict__ " + d[1:-1].replace(":", "@") + " __dict__"
+    return d
+
+
 CB_CONFIG_PINNING = dict(
     os=os,
     environ=defaultdict(str),
     compiler=lambda x: x + "_compiler_stub",
     # The `max_pin, ` stub is so we know when people used the functions
     # to create the pins
-    pin_subpackage=lambda *args, **kwargs: {"package_name": args[0], **kwargs},
-    pin_compatible=lambda *args, **kwargs: {"package_name": args[0], **kwargs},
+    pin_subpackage=lambda *args, **kwargs: _munge_dict_repr(
+        {"package_name": args[0], **kwargs},
+    ),
+    pin_compatible=lambda *args, **kwargs: _munge_dict_repr(
+        {"package_name": args[0], **kwargs},
+    ),
     cdt=lambda *args, **kwargs: "cdt_stub",
     cran_mirror="https://cran.r-project.org",
     datetime=datetime,
 )
+
+
+def parse_munged_run_export(p):
+    if len(p) <= len("__dict__ "):
+        logger.info("could not parse run export for pinning: %r", p)
+        return {}
+
+    p_orig = p
+
+    # remove build string if it is there
+    if not p.endswith("__dict__"):
+        p = p.rsplit("__dict__", maxsplit=1)[0].strip()
+
+    if p.startswith("__dict__ "):
+        p = "{" + p[len("__dict__") :].replace("@", ":") + "}"
+        p = yaml_safe_load(p)
+        logger.info("parsed run export for pinning: %r", p)
+        return p
+    else:
+        logger.info("could not parse run export for pinning: %r", p_orig)
+        return {}
 
 
 def yaml_safe_load(stream):
