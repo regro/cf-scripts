@@ -55,8 +55,10 @@ CB_CONFIG_PINNING = dict(
     compiler=lambda x: x + "_compiler_stub",
     # The `max_pin, ` stub is so we know when people used the functions
     # to create the pins
-    pin_subpackage=lambda *args, **kwargs: {"package_name": args[0], **kwargs},
-    pin_compatible=lambda *args, **kwargs: {"package_name": args[0], **kwargs},
+    pin_subpackage=lambda *args, **kwargs: "dict"
+    + repr({"package_name": args[0], **kwargs}),
+    pin_compatible=lambda *args, **kwargs: "dict"
+    + repr({"package_name": args[0], **kwargs}),
     cdt=lambda *args, **kwargs: "cdt_stub",
     cran_mirror="https://cran.r-project.org",
     datetime=datetime,

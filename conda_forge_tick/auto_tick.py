@@ -812,6 +812,27 @@ def _outside_pin_range(pin_spec, current_pin, new_version):
 
 
 def create_migration_yaml_creator(migrators: MutableSequence[Migrator], gx: nx.DiGraph):
+    def _parse_run_export(p):
+        if len(p) <= 4:
+            LOGGER.info("could not parse run export for pinning: %r", p)
+            return {}
+
+        p_orig = p
+
+        # strip comments
+        p = p.rsplit("#", maxsplit=1)[0].strip()
+        # remove build string if it is there
+        if not p.endswith("}"):
+            p = p.rsplit(maxsplit=1)[0].strip()
+
+        if p.startswith("dict{") and p.endswith("}"):
+            p = yaml_safe_load(p[4:])
+            LOGGER.info("parsed run export for pinning: %r", p)
+            return p
+        else:
+            LOGGER.info("could not parse run export for pinning: %r", p_orig)
+            return {}
+
     cfp_gx = copy.deepcopy(gx)
     for node in list(cfp_gx.nodes):
         if node != "conda-forge-pinning":
@@ -872,7 +893,7 @@ def create_migration_yaml_creator(migrators: MutableSequence[Migrator], gx: nx.D
                     build = block.get("build", {}) or {}
                     # and check the exported package is within the feedstock
                     exports = [
-                        p.get("max_pin", "")
+                        _parse_run_export(p).get("max_pin", "")
                         for p in build.get("run_exports", [{}])
                         # make certain not direct hard pin
                         if isinstance(p, MutableMapping)
