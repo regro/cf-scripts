@@ -302,8 +302,6 @@ def _parse_meta_yaml_impl(
                 except Exception:
                     pass
 
-            logger.debug("jinja2 environmment:\n%s", pprint.pformat(cfg_as_dict))
-
         cbc = Config(
             platform=platform,
             arch=arch,
@@ -311,14 +309,25 @@ def _parse_meta_yaml_impl(
             **kwargs,
         )
     else:
-        _cfg = {}
-        _cfg.update(kwargs)
-        if platform is not None:
-            _cfg["platform"] = platform
-        if arch is not None:
-            _cfg["arch"] = arch
-        cbc = Config(**_cfg)
-        cfg_as_dict = {}
+        with tempfile.TemporaryDirectory() as tmpdir:
+            with open(os.path.join(tmpdir, "meta.yaml"), "w") as fp:
+                fp.write(text)
+
+            _cfg = {}
+            _cfg.update(kwargs)
+            if platform is not None:
+                _cfg["platform"] = platform
+            if arch is not None:
+                _cfg["arch"] = arch
+            cbc = Config(**_cfg)
+
+            try:
+                m = MetaData(tmpdir)
+                cfg_as_dict = conda_build.environ.get_dict(m=m)
+            except (SystemExit, Exception):
+                cfg_as_dict = {}
+
+    logger.debug("jinja2 environmment:\n%s", pprint.pformat(cfg_as_dict))
 
     if for_pinning:
         content = render_meta_yaml(text, for_pinning=for_pinning, **cfg_as_dict)
