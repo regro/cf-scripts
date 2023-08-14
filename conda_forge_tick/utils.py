@@ -52,7 +52,7 @@ CB_CONFIG = dict(
 
 def _munge_dict_repr(d):
     d = repr(d)
-    d = "__dict__ " + d[1:-1].replace(":", "@") + " __dict__"
+    d = "__dict__" + d[1:-1].replace(":", "@").replace(" ", "$$") + "__dict__"
     return d
 
 
@@ -75,18 +75,17 @@ CB_CONFIG_PINNING = dict(
 
 
 def parse_munged_run_export(p):
-    if len(p) <= len("__dict__ "):
+    if len(p) <= len("__dict__"):
         logger.info("could not parse run export for pinning: %r", p)
         return {}
 
     p_orig = p
 
     # remove build string if it is there
-    if not p.endswith("__dict__"):
-        p = p.rsplit("__dict__", maxsplit=1)[0].strip()
+    p = p.rsplit("__dict__", maxsplit=1)[0].strip()
 
-    if p.startswith("__dict__ "):
-        p = "{" + p[len("__dict__") :].replace("@", ":") + "}"
+    if p.startswith("__dict__"):
+        p = "{" + p[len("__dict__") :].replace("$$", " ").replace("@", ":") + "}"
         p = yaml_safe_load(p)
         logger.info("parsed run export for pinning: %r", p)
         return p
