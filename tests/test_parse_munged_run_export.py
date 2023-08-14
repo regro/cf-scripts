@@ -673,6 +673,269 @@ extra:
 """  # noqa
 
 
+OPENCV_RECIPE = """\
+{% set version = "4.8.0" %}
+{% set major_version = version.split('.')[0] %}
+{% set PY_VER_MAJOR = PY_VER.split('.')[0] %}
+{% set PY_VER_MINOR = PY_VER.split('.')[1] %}
+
+package:
+  name: libopencv
+  version: {{ version }}
+
+source:
+  - url: https://github.com/opencv/opencv/archive/{{ version }}.tar.gz
+    fn: opencv-{{ version }}.tar.gz
+    sha256: cbf47ecc336d2bff36b0dcd7d6c179a9bb59e805136af6b9670ca944aef889bd
+    patches:
+      # backport https://github.com/opencv/opencv/pull/21611 (unmerged as of 06/2023)
+      - patches_opencv/0001-Add-installation-of-pip-metadata-from-cmake.patch
+      - patches_opencv/0002-delete-lines-that-download-opencv.patch
+      - patches_opencv/0003-find-pkgconfig-on-windows.patch
+      - patches_opencv/0004-fix-detection-for-protobuf-23.x.patch
+  - url: https://github.com/opencv/opencv_contrib/archive/{{ version }}.tar.gz
+    fn: opencv_contrib-{{ version }}.tar.gz
+    sha256: b4aef0f25a22edcd7305df830fa926ca304ea9db65de6ccd02f6cfa5f3357dbb
+    folder: opencv_contrib
+    patches:
+      # Allow attempt to find HDF5 on cross-compile
+      - patches_opencv_contrib/cmake_hdf5_xpile.patch
+  - fn: test.avi
+    url: https://github.com/opencv/opencv_extra/raw/master/testdata/highgui/video/VID00003-20100701-2204.avi
+    sha256: 78884f64b564a3b06dc6ee731ed33b60c6d8cd864cea07f21d94ba0f90c7b310
+
+build:
+  number: 0
+  string: py{{ PY_VER_MAJOR }}{{ PY_VER_MINOR }}h{{ PKG_HASH }}_{{ PKG_BUILDNUM }}
+  run_exports:
+    # https://abi-laboratory.pro/index.php?view=timeline&l=opencv
+    # Things seem to change every patch versions, mostly the dnn module
+    - {{ pin_subpackage('libopencv', max_pin='x.x.x') }}
+  ignore_run_exports_from:
+    - python
+
+requirements:
+  build:
+    - python                                 # [build_platform != target_platform]
+    - cross-python_{{ target_platform }}     # [build_platform != target_platform]
+    - numpy                                  # [build_platform != target_platform]
+    - libprotobuf                            # [build_platform != target_platform]
+    # pkg-config is required to find ffpmeg
+    - pkg-config
+    - cmake
+    - ninja
+    - libgomp                        # [linux]
+    # ICE when enabling this
+    # - llvm-openmp                    # [osx]
+    - {{ compiler('c') }}
+    - {{ compiler('cxx') }}
+    - sysroot_linux-64 2.17  # [linux64]
+    - {{ cdt('mesa-libgl-devel') }}  # [linux]
+    - {{ cdt('mesa-libegl-devel') }}  # [linux]
+    - {{ cdt('mesa-dri-drivers') }}  # [linux]
+    - {{ cdt('libselinux') }}        # [linux]
+    - {{ cdt('libxdamage') }}        # [linux]
+    - {{ cdt('libxfixes') }}         # [linux]
+    - {{ cdt('libxxf86vm') }}        # [linux]
+  host:
+    - python
+    - numpy
+    - eigen =3.4.0
+    - ffmpeg {{ ffmpeg }}=lgpl_*
+    - freetype
+    - glib                           # [unix]
+    - harfbuzz
+    - hdf5
+    - jasper
+    - libcblas
+    - libiconv                       # [unix]
+    - libjpeg-turbo
+    - liblapack
+    - liblapacke
+    - libpng
+    - libprotobuf
+    - libtiff
+    - libwebp
+    - qt-main                        # [not osx and not ppc64le]
+    - zlib
+    - openvino                       # [not ppc64le]
+
+test:
+    requires:
+      - {{ compiler('c') }}
+      - {{ compiler('cxx') }}
+      - pkg-config                    # [not win]
+      # Test with the two currently supported lapack implementatons
+      # One test done on different versions of python on each platform
+      - liblapack * *openblas         # [py==36]
+      - liblapack * *mkl              # [py==37 and linux64]
+      - cmake
+      - ninja
+    files:
+      - CMakeLists.txt
+      - test.cpp
+    commands:
+        # Verify dynamic libraries on all systems
+        {% set win_ver_lib = version|replace(".", "") %}
+        # The bot doesn't support multiline jinja, so use
+        # single line jinja.
+        {% set opencv_libs = [] %}
+        {{ opencv_libs.append("alphamat") or "" }}
+        {{ opencv_libs.append("aruco") or "" }}
+        {{ opencv_libs.append("bgsegm") or "" }}
+        {{ opencv_libs.append("calib3d") or "" }}
+        {{ opencv_libs.append("ccalib") or "" }}
+        {{ opencv_libs.append("core") or "" }}
+        {{ opencv_libs.append("datasets") or "" }}
+        {{ opencv_libs.append("dnn_objdetect") or "" }}
+        {{ opencv_libs.append("dnn_superres") or "" }}
+        {{ opencv_libs.append("dnn") or "" }}
+        {{ opencv_libs.append("dpm") or "" }}
+        {{ opencv_libs.append("face") or "" }}
+        {{ opencv_libs.append("features2d") or "" }}
+        {{ opencv_libs.append("flann") or "" }}
+        {{ opencv_libs.append("fuzzy") or "" }}
+        {{ opencv_libs.append("gapi") or "" }}
+        {{ opencv_libs.append("hfs") or "" }}
+        {{ opencv_libs.append("highgui") or "" }}
+        {{ opencv_libs.append("img_hash") or "" }}
+        {{ opencv_libs.append("imgcodecs") or "" }}
+        {{ opencv_libs.append("imgproc") or "" }}
+        {{ opencv_libs.append("intensity_transform") or "" }}
+        {{ opencv_libs.append("line_descriptor") or "" }}
+        {{ opencv_libs.append("mcc") or "" }}
+        {{ opencv_libs.append("ml") or "" }}
+        {{ opencv_libs.append("objdetect") or "" }}
+        {{ opencv_libs.append("optflow") or "" }}
+        {{ opencv_libs.append("phase_unwrapping") or "" }}
+        {{ opencv_libs.append("photo") or "" }}
+        {{ opencv_libs.append("plot") or "" }}
+        {{ opencv_libs.append("quality") or "" }}
+        {{ opencv_libs.append("rapid") or "" }}
+        {{ opencv_libs.append("reg") or "" }}
+        {{ opencv_libs.append("rgbd") or "" }}
+        {{ opencv_libs.append("saliency") or "" }}
+        {{ opencv_libs.append("shape") or "" }}
+        {{ opencv_libs.append("stereo") or "" }}
+        {{ opencv_libs.append("stitching") or "" }}
+        {{ opencv_libs.append("structured_light") or "" }}
+        {{ opencv_libs.append("superres") or "" }}
+        {{ opencv_libs.append("surface_matching") or "" }}
+        {{ opencv_libs.append("text") or "" }}
+        {{ opencv_libs.append("tracking") or "" }}
+        {{ opencv_libs.append("video") or "" }}
+        {{ opencv_libs.append("videoio") or "" }}
+        {{ opencv_libs.append("videostab") or "" }}
+        {{ opencv_libs.append("wechat_qrcode") or "" }}
+        {{ opencv_libs.append("xfeatures2d") or "" }}
+        {{ opencv_libs.append("ximgproc") or "" }}
+        {{ opencv_libs.append("xobjdetect") or "" }}
+        {{ opencv_libs.append("xphoto") or "" }}
+        {{ opencv_libs.append("freetype") or "" }}
+        - export MACOSX_DEPLOYMENT_TARGET={{ MACOSX_DEPLOYMENT_TARGET }}       # [osx]
+        - export CONDA_BUILD_SYSROOT={{ CONDA_BUILD_SYSROOT }}                 # [osx]
+        - OPENCV_FLAGS=`pkg-config --cflags opencv4`  # [unix]
+        - $CXX -std=c++11 $RECIPE_DIR/test.cpp ${OPENCV_FLAGS} -o test   # [unix]
+        - if [[ $(./test) != $PKG_VERSION ]]; then exit 1 ; fi                # [unix]
+        {% for each_opencv_lib in opencv_libs %}
+        - echo Testing for presence of {{ each_opencv_lib }}
+        - test -f $PREFIX/lib/libopencv_{{ each_opencv_lib }}${SHLIB_EXT}                  # [unix]
+        - if not exist %PREFIX%\\Library\\bin\\opencv_{{ each_opencv_lib }}{{ win_ver_lib }}.dll exit 1  # [win]
+        {% endfor %}
+        - test -f $PREFIX/lib/libopencv_bioinspired${SHLIB_EXT}  # [unix]
+        - test -f $PREFIX/lib/libopencv_hdf${SHLIB_EXT}          # [unix]
+        - mkdir -p cmake_build_test && pushd cmake_build_test
+        - cmake -G "Ninja" ..
+        - cmake --build . --config Release
+        - popd
+
+outputs:
+  - name: libopencv
+  - name: opencv
+    build:
+      string: py{{ PY_VER_MAJOR }}{{ PY_VER_MINOR }}h{{ PKG_HASH }}_{{ PKG_BUILDNUM }}
+    requirements:
+      host:
+        # opencv    for pypy36 and python3.6
+        # similarly for pypy37 and python3.7
+        - python
+      run:
+        - {{ pin_subpackage('libopencv', exact=True) }}
+        - {{ pin_subpackage('py-opencv', exact=True) }}
+    test:
+      commands:
+        - echo "tested in other outputs"
+
+  - name: py-opencv
+    build:
+      string: py{{ PY_VER_MAJOR }}{{ PY_VER_MINOR }}h{{ PKG_HASH }}_{{ PKG_BUILDNUM }}
+      run_exports:
+        # Should we even have this???
+        # don't pin the python version so hard.
+        # Actually, I have found pretty good compatibility in the python
+        # package
+        - {{ pin_subpackage('py-opencv') }}
+    requirements:
+      # There is no build script, but I just want it to think
+      # that it needs python and numpy at build time
+      host:
+        - python
+        - numpy
+      run:
+        - python
+        - {{ pin_compatible('numpy') }}
+        - {{ pin_subpackage('libopencv', exact=True) }}
+    test:
+      requires:
+        # Test with the two currently supported lapack implementatons
+        # One test done on different versions of python on each platform
+        - liblapack * *openblas         # [py==39]
+        - liblapack * *mkl              # [py==310 and linux64]
+      imports:
+        - cv2
+        - cv2.xfeatures2d
+        - cv2.freetype
+      files:
+        - run_py_test.py
+        - color_palette_alpha.png
+        - test_1_c1.jpg
+      source_files:
+        - test.avi
+      commands:
+        - python run_py_test.py
+        - if [[ $($PYTHON -c 'import cv2; print(cv2.__version__)') != $PKG_VERSION ]]; then exit 1; fi  # [unix]
+        - python -c "import cv2; assert 'Unknown' not in cv2.videoio_registry.getBackendName(cv2.CAP_V4L)"  # [linux]
+        - python -c "import cv2, re; assert re.search('Lapack:\\s+YES', cv2.getBuildInformation())"
+        - pip check
+        - pip list
+        - test $(pip list | grep opencv-python | wc -l) -eq 1  # [unix]
+      requires:
+        - pip
+
+
+about:
+  home: https://opencv.org/
+  license: Apache-2.0
+  license_family: Apache
+  license_file: LICENSE
+  summary: Computer vision and machine learning software library.
+  dev_url: https://github.com/opencv/opencv
+  doc_url: https://docs.opencv.org/{{ major_version }}.x/
+
+extra:
+  recipe-maintainers:
+    - h-vetinari
+    - xhochy
+    - jakirkham
+    - msarahan
+    - patricksnape
+    - zym1010
+    - hajapy
+    - ocefpaf
+    - hmaarrfk
+"""  # noqa
+
+
 def test_parse_munged_run_export():
     meta_yaml = parse_meta_yaml(
         RECIPE,
@@ -712,3 +975,13 @@ def test_parse_munged_run_export_gnuradio():
                     "max_pin": "x.x.x",
                 },
             ]
+
+
+def test_parse_munged_run_export_opencv():
+    meta_yaml = parse_meta_yaml(
+        OPENCV_RECIPE,
+        for_pinning=True,
+    )
+    assert meta_yaml["build"]["run_exports"] == [
+        "__dict__'package_name'@$$'libopencv',$$'max_pin'@$$'x.x.x'__dict__",
+    ]
