@@ -48,8 +48,9 @@ def test_parse_munged_run_export():
         for_pinning=True,
     )
     assert meta_yaml["build"]["run_exports"] == [
-        "__dict__ 'package_name'@ 'slepc', 'max_pin'@ 'x.x' __dict__ real_*"
+        "__dict__ 'package_name'@ 'slepc', 'max_pin'@ 'x.x' __dict__ real_*",
     ]
-    assert parse_munged_run_export(
-        meta_yaml["build"]["run_exports"][0]
-    ) == {'package_name': 'slepc', 'max_pin': 'x.x'}
+    assert parse_munged_run_export(meta_yaml["build"]["run_exports"][0]) == {
+        "package_name": "slepc",
+        "max_pin": "x.x",
+    }
