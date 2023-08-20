@@ -832,6 +832,9 @@ def create_migration_yaml_creator(migrators: MutableSequence[Migrator], gx: nx.D
         )
     feedstocks_to_be_repinned = []
     for pinning_name, package_pin_list in pinnings.items():
+        # TODO REMOVE ME
+        if "protobuf" not in pinning_name:
+            continue
         # there are three things:
         # pinning_name - entry in pinning file
         # package_name - the actual package, could differ via `-` -> `_`
@@ -856,6 +859,10 @@ def create_migration_yaml_creator(migrators: MutableSequence[Migrator], gx: nx.D
             ),
         )
 
+        print("    %s:" % pinning_name, flush=True)
+        print("        package name:", package_name, flush=True)
+        print("        feedstock name:", fs_name, flush=True)
+
         if (
             (fs_name in gx.nodes)
             and not gx.nodes[fs_name]["payload"].get("archived", False)
@@ -877,10 +884,18 @@ def create_migration_yaml_creator(migrators: MutableSequence[Migrator], gx: nx.D
                 pin_spec = ""
                 for block in [meta_yaml] + meta_yaml.get("outputs", []) or []:
                     build = block.get("build", {}) or {}
+
+                    # parse back to dict
+                    possible_p_dicts = [
+                        parse_munged_run_export(p) for p in build.get("run_exports", [])
+                    ]
+                    for p in possible_p_dicts:
+                        print("        possible pin spec:", p, flush=True)
+
                     # and check the exported package is within the feedstock
                     exports = [
-                        parse_munged_run_export(p).get("max_pin", "")
-                        for p in build.get("run_exports", [""])
+                        p.get("max_pin", "")
+                        for p in possible_p_dicts
                         # make certain not direct hard pin
                         if isinstance(p, MutableMapping)
                         # ensure the export is for this package
@@ -928,11 +943,11 @@ def create_migration_yaml_creator(migrators: MutableSequence[Migrator], gx: nx.D
                 ):
                     feedstocks_to_be_repinned.append(fs_name)
                     print(
-                        "    %s:\n"
-                        "        curr version: %s\n"
-                        "        curr pin: %s\n"
-                        "        pin_spec: %s"
-                        % (pinning_name, current_version, current_pin, pin_spec),
+                        "        migrator:\n"
+                        "            curr version: %s\n"
+                        "            curr pin: %s\n"
+                        "            pin_spec: %s"
+                        % (current_version, current_pin, pin_spec),
                         flush=True,
                     )
                     migrators.append(
