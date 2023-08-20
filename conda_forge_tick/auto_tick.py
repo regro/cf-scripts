@@ -832,9 +832,6 @@ def create_migration_yaml_creator(migrators: MutableSequence[Migrator], gx: nx.D
         )
     feedstocks_to_be_repinned = []
     for pinning_name, package_pin_list in pinnings.items():
-        # TODO REMOVE ME
-        if "protobuf" not in pinning_name:
-            continue
         # there are three things:
         # pinning_name - entry in pinning file
         # package_name - the actual package, could differ via `-` -> `_`
