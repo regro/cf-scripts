@@ -82,6 +82,7 @@ def fold_log_lines(title):
         sys.stderr.flush()
         if os.environ.get("GITHUB_ACTIONS", "false") == "true":
             print(f"::group::{title}", flush=True)
+        yield
     finally:
         sys.stdout.flush()
         sys.stderr.flush()
