@@ -1148,8 +1148,8 @@ def _run_migrator(migrator, mctx, temp, time_per, dry_run):
     possible_nodes = list(migrator.order(effective_graph, mctx.graph))
 
     # version debugging info
-    with fold_log_lines("possible version migrations"):
-        if isinstance(migrator, Version):
+    if isinstance(migrator, Version):
+        with fold_log_lines("possible version migrations"):
             print("possible version migrations:", flush=True)
             for node_name in possible_nodes:
                 with effective_graph.nodes[node_name]["payload"] as attrs:
@@ -1176,6 +1176,15 @@ def _run_migrator(migrator, mctx, temp, time_per, dry_run):
             len(effective_graph.nodes),
         ),
     ):
+        print(
+            "\n========================================"
+            "========================================"
+            "\n"
+            "========================================"
+            "========================================",
+            flush=True,
+        )
+
         print(
             "Running migrations for %s%s: %d\n"
             % (
@@ -1373,6 +1382,8 @@ def _run_migrator(migrator, mctx, temp, time_per, dry_run):
 
                 if mctx.gh_api_requests_left == 0:
                     break
+
+        print("\n", flush=True)
 
     return good_prs
 
@@ -1598,15 +1609,6 @@ def main(args: "CLIArgs") -> None:
             )
 
     for mg_ind, migrator in enumerate(migrators):
-        print(
-            "\n========================================"
-            "========================================"
-            "\n"
-            "========================================"
-            "========================================",
-            flush=True,
-        )
-
         good_prs = _run_migrator(
             migrator,
             mctx,
@@ -1619,8 +1621,6 @@ def main(args: "CLIArgs") -> None:
             # this has been causing issues with bad deploys
             # turning off for now
             # deploy(dry_run=args.dry_run)
-
-        print("\n", flush=True)
 
     LOGGER.info("API Calls Remaining: %d", mctx.gh_api_requests_left)
     LOGGER.info("Done")
