@@ -10,6 +10,7 @@ import logging
 import tempfile
 import io
 import os
+import sys
 import copy
 from typing import Any, Tuple, Iterable, Optional, Set
 
@@ -74,6 +75,20 @@ CB_CONFIG_PINNING = dict(
 )
 
 
+@contextlib.contextmanager
+def fold_log_lines(title):
+    try:
+        sys.stdout.flush()
+        sys.stderr.flush()
+        if os.environ.get("GITHUB_ACTIONS", "false") == "true":
+            print(f"::group::{title}", flush=True)
+    finally:
+        sys.stdout.flush()
+        sys.stderr.flush()
+        if os.environ.get("GITHUB_ACTIONS", "false") == "true":
+            print("::endgroup::", flush=True)
+
+
 def parse_munged_run_export(p):
     if len(p) <= len("__dict__"):
         logger.info("could not parse run export for pinning: %r", p)
@@ -87,7 +102,7 @@ def parse_munged_run_export(p):
     if p.startswith("__dict__"):
         p = "{" + p[len("__dict__") :].replace("$$", " ").replace("@", ":") + "}"
         p = yaml_safe_load(p)
-        logger.info("parsed run export for pinning: %r", p)
+        logger.debug("parsed run export for pinning: %r", p)
         return p
     else:
         logger.info("could not parse run export for pinning: %r", p_orig)
