@@ -10,6 +10,7 @@ import logging
 import tempfile
 import io
 import os
+import sys
 import copy
 from typing import Any, Tuple, Iterable, Optional, Set
 
@@ -72,6 +73,20 @@ CB_CONFIG_PINNING = dict(
     cran_mirror="https://cran.r-project.org",
     datetime=datetime,
 )
+
+
+@contextlib.contextmanager
+def fold_log_lines(title):
+    try:
+        sys.stdout.flush()
+        sys.stderr.flush()
+        if os.environ.get("GITHUB_ACTIONS", "false") == "true":
+            print(f"::group::{title}", flush=True)
+    finally:
+        sys.stdout.flush()
+        sys.stderr.flush()
+        if os.environ.get("GITHUB_ACTIONS", "false") == "true":
+            print("::endgroup::", flush=True)
 
 
 def parse_munged_run_export(p):
