@@ -87,7 +87,7 @@ def parse_munged_run_export(p):
     if p.startswith("__dict__"):
         p = "{" + p[len("__dict__") :].replace("$$", " ").replace("@", ":") + "}"
         p = yaml_safe_load(p)
-        logger.info("parsed run export for pinning: %r", p)
+        logger.debug("parsed run export for pinning: %r", p)
         return p
     else:
         logger.info("could not parse run export for pinning: %r", p_orig)
