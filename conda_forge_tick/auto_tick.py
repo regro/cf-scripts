@@ -856,10 +856,6 @@ def create_migration_yaml_creator(migrators: MutableSequence[Migrator], gx: nx.D
             ),
         )
 
-        print("    %s:" % pinning_name, flush=True)
-        print("        package name:", package_name, flush=True)
-        print("        feedstock name:", fs_name, flush=True)
-
         if (
             (fs_name in gx.nodes)
             and not gx.nodes[fs_name]["payload"].get("archived", False)
@@ -886,8 +882,6 @@ def create_migration_yaml_creator(migrators: MutableSequence[Migrator], gx: nx.D
                     possible_p_dicts = [
                         parse_munged_run_export(p) for p in build.get("run_exports", [])
                     ]
-                    for p in possible_p_dicts:
-                        print("        possible pin spec:", p, flush=True)
 
                     # and check the exported package is within the feedstock
                     exports = [
@@ -939,6 +933,11 @@ def create_migration_yaml_creator(migrators: MutableSequence[Migrator], gx: nx.D
                     current_version,
                 ):
                     feedstocks_to_be_repinned.append(fs_name)
+                    print("    %s:" % pinning_name, flush=True)
+                    print("        package name:", package_name, flush=True)
+                    print("        feedstock name:", fs_name, flush=True)
+                    for p in possible_p_dicts:
+                        print("        possible pin spec:", p, flush=True)                    
                     print(
                         "        migrator:\n"
                         "            curr version: %s\n"
