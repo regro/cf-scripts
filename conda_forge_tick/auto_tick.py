@@ -4,6 +4,7 @@ import json
 import re
 import sys
 import gc
+import random
 
 import time
 import traceback
@@ -72,6 +73,7 @@ from conda_forge_tick.utils import (
     sanitize_string,
     frozen_to_json_friendly,
     yaml_safe_load,
+    parse_munged_run_export,
 )
 from conda_forge_tick.migrators.arch import OSXArm
 from conda_forge_tick.migrators.migration_yaml import (
@@ -112,7 +114,6 @@ from conda_forge_feedstock_check_solvable import is_recipe_solvable
 # not using this right now
 # from conda_forge_tick.deploy import deploy
 
-
 LOGGER = logging.getLogger("conda_forge_tick.auto_tick")
 
 PR_LIMIT = 5
@@ -130,6 +131,9 @@ BOT_RERUN_LABEL = {
 }
 
 BOT_HOME_DIR = None
+
+# migrator runs on loop so avoid any seeds at current time should that happen
+random.seed(os.urandom(64))
 
 
 def _set_pre_pr_migrator_fields(attrs, migrator_name, error_str):
@@ -758,7 +762,7 @@ def migration_factory(
         age = time.time() - loaded_yaml.get("migrator_ts", time.time())
         age /= 24 * 60 * 60
         print(
-            "migrator is %d days old" % int(age),
+            "migrator %s is %d days old" % (__mname, int(age)),
             flush=True,
         )
         if (
@@ -767,9 +771,15 @@ def migration_factory(
             and not migrator_config.get("longterm", False)
         ):
             migrator_config["check_solvable"] = False
-            LOGGER.warning(
-                "turning off solver checks since over limit %d",
-                CHECK_SOLVABLE_TIMEOUT,
+            print(
+                "turning off solver checks for migrator "
+                "%s since over %d is over limit %d"
+                % (
+                    __mname,
+                    age,
+                    CHECK_SOLVABLE_TIMEOUT,
+                ),
+                flush=True,
             )
             skip_solver_checks = True
         else:
@@ -867,10 +877,16 @@ def create_migration_yaml_creator(migrators: MutableSequence[Migrator], gx: nx.D
                 pin_spec = ""
                 for block in [meta_yaml] + meta_yaml.get("outputs", []) or []:
                     build = block.get("build", {}) or {}
+
+                    # parse back to dict
+                    possible_p_dicts = [
+                        parse_munged_run_export(p) for p in build.get("run_exports", [])
+                    ]
+
                     # and check the exported package is within the feedstock
                     exports = [
                         p.get("max_pin", "")
-                        for p in build.get("run_exports", [{}])
+                        for p in possible_p_dicts
                         # make certain not direct hard pin
                         if isinstance(p, MutableMapping)
                         # ensure the export is for this package
@@ -917,12 +933,17 @@ def create_migration_yaml_creator(migrators: MutableSequence[Migrator], gx: nx.D
                     current_version,
                 ):
                     feedstocks_to_be_repinned.append(fs_name)
+                    print("    %s:" % pinning_name, flush=True)
+                    print("        package name:", package_name, flush=True)
+                    print("        feedstock name:", fs_name, flush=True)
+                    for p in possible_p_dicts:
+                        print("        possible pin spec:", p, flush=True)                    
                     print(
-                        "    %s:\n"
-                        "        curr version: %s\n"
-                        "        curr pin: %s\n"
-                        "        pin_spec: %s"
-                        % (pinning_name, current_version, current_pin, pin_spec),
+                        "        migrator:\n"
+                        "            curr version: %s\n"
+                        "            curr pin: %s\n"
+                        "            pin_spec: %s"
+                        % (current_version, current_pin, pin_spec),
                         flush=True,
                     )
                     migrators.append(
@@ -971,10 +992,11 @@ def initialize_migrators(
         "The conda package name 'build' is deprecated "
         "and too generic. Use 'python-build instead.'",
     )
-    migration_factory(migrators, gx)
-    create_migration_yaml_creator(migrators=migrators, gx=gx)
+    pinning_migrators = []
+    migration_factory(pinning_migrators, gx)
+    create_migration_yaml_creator(migrators=pinning_migrators, gx=gx)
     print("rebuild migration graph sizes:", flush=True)
-    for m in migrators:
+    for m in migrators + pinning_migrators:
         if isinstance(m, GraphMigrator):
             print(
                 f'    {getattr(m, "name", m)} graph size: '
@@ -1025,7 +1047,8 @@ def initialize_migrators(
         ],
     )
 
-    migrators = [version_migrator] + migrators
+    random.shuffle(pinning_migrators)
+    migrators = [version_migrator] + migrators + pinning_migrators
 
     print(" ", flush=True)
 
@@ -1379,7 +1402,8 @@ def _update_nodes_with_bot_rerun(gx):
                         ):
                             migration["data"]["bot_rerun"] = time.time()
                             LOGGER.info(
-                                "BOT-RERUN %s: processing bot rerun label for migration %s",
+                                "BOT-RERUN %s: processing bot rerun label "
+                                "for migration %s",
                                 name,
                                 migration["data"],
                             )
