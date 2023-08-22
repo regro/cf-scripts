@@ -1097,6 +1097,9 @@ def _compute_time_per_migrator(mctx, migrators):
                 ),
             )
 
+    sys.stderr.flush()
+    sys.stdout.flush()
+    print(" ", flush=True)
     num_nodes_tot = sum(num_nodes)
     # do not divide by zero
     time_per_node = float(os.environ.get("TIMEOUT", 600)) / max(num_nodes_tot, 1)
@@ -1133,49 +1136,20 @@ def _run_migrator(migrator, mctx, temp, time_per, dry_run):
     else:
         migrator_name = migrator.__class__.__name__.lower()
 
-    mmctx = MigratorContext(session=mctx, migrator=migrator)
-    migrator.bind_to_ctx(mmctx)
-
-    good_prs = 0
-    _mg_start = time.time()
-    effective_graph = mmctx.effective_graph
-
     if hasattr(migrator, "name"):
         extra_name = "-%s" % migrator.name
     else:
         extra_name = ""
 
-    possible_nodes = list(migrator.order(effective_graph, mctx.graph))
-
-    # version debugging info
-    if isinstance(migrator, Version):
-        with fold_log_lines("possible version migrations"):
-            print("possible version migrations:", flush=True)
-            for node_name in possible_nodes:
-                with effective_graph.nodes[node_name]["payload"] as attrs:
-                    with attrs["version_pr_info"] as vpri:
-                        print(
-                            "    node|curr|new|attempts: %s|%s|%s|%f",
-                            node_name,
-                            attrs.get("version"),
-                            vpri.get("new_version"),
-                            (
-                                vpri.get("new_version_attempts", {}).get(
-                                    vpri.get("new_version", ""),
-                                    0,
-                                )
-                            ),
-                            flush=True,
-                        )
-
+    
     with fold_log_lines(
-        "migrations for %s%s: %d\n"
+        "migrations for %s%s\n"
         % (
             migrator.__class__.__name__,
             extra_name,
-            len(effective_graph.nodes),
         ),
     ):
+
         print(
             "\n========================================"
             "========================================"
@@ -1184,6 +1158,36 @@ def _run_migrator(migrator, mctx, temp, time_per, dry_run):
             "========================================",
             flush=True,
         )
+
+        mmctx = MigratorContext(session=mctx, migrator=migrator)
+        migrator.bind_to_ctx(mmctx)
+    
+        good_prs = 0
+        _mg_start = time.time()
+        effective_graph = mmctx.effective_graph
+    
+        possible_nodes = list(migrator.order(effective_graph, mctx.graph))
+    
+        # version debugging info
+        if isinstance(migrator, Version):
+            print("possible version migrations:", flush=True)
+            for node_name in possible_nodes:
+                with effective_graph.nodes[node_name]["payload"] as attrs:
+                    with attrs["version_pr_info"] as vpri:
+                        print(
+                            "    node|curr|new|attempts: %s|%s|%s|%f" % (
+                                node_name,
+                                attrs.get("version"),
+                                vpri.get("new_version"),
+                                (
+                                    vpri.get("new_version_attempts", {}).get(
+                                        vpri.get("new_version", ""),
+                                        0,
+                                    )
+                                )
+                            ),
+                            flush=True,
+                        )
 
         print(
             "Running migrations for %s%s: %d\n"
