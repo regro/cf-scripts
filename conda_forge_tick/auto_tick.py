@@ -108,6 +108,7 @@ from conda_forge_tick.migrators import (
     DependencyUpdateMigrator,
     QtQtMainMigrator,
     JpegTurboMigrator,
+    LibboostMigrator,
 )
 
 from conda_forge_feedstock_check_solvable import is_recipe_solvable
@@ -677,6 +678,8 @@ def add_rebuild_migration_yaml(
         piggy_back_migrations.append(QtQtMainMigrator())
     if migration_name == "jpeg_to_libjpeg_turbo":
         piggy_back_migrations.append(JpegTurboMigrator())
+    if migration_name == "boost_cpp_to_libboost":
+        piggy_back_migrations.append(LibboostMigrator())
     cycles = list(nx.simple_cycles(total_graph))
     migrator = MigrationYaml(
         migration_yaml,
