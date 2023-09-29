@@ -23,6 +23,8 @@ VERSION_WITH_LIBBOOST = Version(
         ("gudhi", "1.10.0"),
         # single output; with run-dep
         ("carve", "1.10.0"),
+        # multiple output; no run-dep
+        ("arrow", "1.10.0"),
         # multiple outputs, many don't depend on boost; comment trickiness
         ("fenics", "1.10.0"),
         # multiple outputs, jinja-style pinning
