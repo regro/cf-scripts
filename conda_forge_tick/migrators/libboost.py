@@ -71,9 +71,9 @@ def _process_section(name, attrs, lines):
     host_req = reqs.get("host", set()) or set()
     run_req = reqs.get("run", set()) or set()
 
-    is_boost_in_build = "boost-cpp" in build_req
-    is_boost_in_host = "boost-cpp" in host_req
-    is_boost_in_run = "boost-cpp" in run_req
+    is_boost_in_build = any((x or "").startswith("boost-cpp") for x in build_req)
+    is_boost_in_host = any((x or "").startswith("boost-cpp") for x in host_req)
+    is_boost_in_run = any((x or "").startswith("boost-cpp") for x in run_req)
 
     # anything behind a comment needs to get replaced first, so it
     # doesn't mess up the counts below
