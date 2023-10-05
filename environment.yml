@@ -26,7 +26,7 @@ dependencies:
  - grayskull<2.3.0
  - jinja2
  - lockfile
- - mamba>=0.23
+ - mamba>=1.5.1
  - msgpack-python
  - networkx!=2.8.1
  - numpy
