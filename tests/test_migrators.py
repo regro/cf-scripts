@@ -22,7 +22,6 @@ from conda_forge_tick.lazy_json_backends import LazyJson
 # Legacy THINGS
 from conda_forge_tick.migrators.disabled.legacy import (
     JS,
-    Compiler,
     Noarch,
     Pinning,
     NoarchR,
@@ -1757,10 +1756,10 @@ def run_test_migration(
         actual_output = pat.sub("", actual_output)
         output = pat.sub("", output)
         assert actual_output == output
-        if isinstance(m, Compiler):
-            assert m.messages in m.pr_body(None)
+        # if isinstance(m, Compiler):
+        #     assert m.messages in m.pr_body(None)
         # TODO: fix subgraph here (need this to be xsh file)
-        elif isinstance(m, Version):
+        if isinstance(m, Version):
             pass
         elif isinstance(m, Rebuild):
             return pmy
