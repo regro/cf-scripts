@@ -249,7 +249,7 @@ def graph_migrator_status(
             else:
                 out["awaiting-pr"].add(node)
                 fc = "#35b779"
-        elif "PR" not in pr_json:
+        elif "PR" not in pr_json or "state" not in pr_json["PR"]:
             out["bot-error"].add(node)
             fc = "#000000"
             fntc = "white"
