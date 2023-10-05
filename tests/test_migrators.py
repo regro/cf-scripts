@@ -22,7 +22,6 @@ from conda_forge_tick.lazy_json_backends import LazyJson
 # Legacy THINGS
 from conda_forge_tick.migrators.disabled.legacy import (
     JS,
-    Compiler,
     Noarch,
     Pinning,
     NoarchR,
@@ -1608,7 +1607,6 @@ extra:
 
 js = JS()
 version = Version(set())
-# compiler = Compiler()
 noarch = Noarch()
 noarchr = NoarchR()
 perl = Pinning(removals={"perl"})
@@ -1757,10 +1755,8 @@ def run_test_migration(
         actual_output = pat.sub("", actual_output)
         output = pat.sub("", output)
         assert actual_output == output
-        if isinstance(m, Compiler):
-            assert m.messages in m.pr_body(None)
         # TODO: fix subgraph here (need this to be xsh file)
-        elif isinstance(m, Version):
+        if isinstance(m, Version):
             pass
         elif isinstance(m, Rebuild):
             return pmy
@@ -1834,23 +1830,6 @@ def test_js_migrator2(tmpdir):
         kwargs={},
         prb="Please merge the PR only after the tests have passed.",
         mr_out={"migrator_name": "JS", "migrator_version": JS.migrator_version},
-        tmpdir=tmpdir,
-    )
-
-
-@pytest.mark.skip
-def test_cb3(tmpdir):
-    compiler = None  # here to make flake8 happy
-    run_test_migration(
-        m=compiler,
-        inp=sample_cb3,
-        output=correct_cb3,
-        kwargs={},
-        prb="N/A",
-        mr_out={
-            "migrator_name": "Compiler",
-            "migrator_version": Compiler.migrator_version,
-        },
         tmpdir=tmpdir,
     )
 
