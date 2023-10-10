@@ -367,10 +367,8 @@ def run(
             ci_job_url = os.getenv("CIRCLE_BUILD_URL", "#")
             _solver_err_str = dedent(
                 f"""
+                not solvable (<a href="{ci_job_url}">bot CI job</a>) @ {base_branch}
                 <details>
-                <summary>
-                    not solvable (<a href="{ci_job_url}">bot CI job</a>) @ {base_branch}
-                </summary>
                 <div align="left">
                 <pre>
                 {'</pre><pre>'.join(sorted(set(errors)))}
