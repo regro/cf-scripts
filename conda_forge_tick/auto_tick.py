@@ -364,10 +364,11 @@ def run(
             verbosity=2,
         )
         if not solvable:
-            ci_job_url = os.getenv("CIRCLE_BUILD_URL", "#")
+            ci_url = os.getenv("CIRCLE_BUILD_URL")
+            ci_url = f"(<a href='{ci_url}'>bot CI job</a>)" if ci_url else ""
             _solver_err_str = dedent(
                 f"""
-                not solvable (<a href="{ci_job_url}">bot CI job</a>) @ {base_branch}
+                not solvable {ci_url} @ {base_branch}
                 <details>
                 <div align="left">
                 <pre>
@@ -375,7 +376,7 @@ def run(
                 </pre>
                 </div>
                 </details>
-                """
+                """,
             ).strip()
 
             if isinstance(migrator, Version):
