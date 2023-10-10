@@ -371,9 +371,11 @@ def run(
                 <summary>
                     not solvable (<a href="{ci_job_url}">bot CI job</a>) @ {base_branch}
                 </summary>
+                <div align="left">
                 <pre>
                 {'</pre><pre>'.join(sorted(set(errors)))}
                 </pre>
+                </div>
                 </details>
                 """
             ).strip()
