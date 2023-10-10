@@ -13,6 +13,7 @@ import os
 import typing
 import tqdm
 from subprocess import CalledProcessError
+from textwrap import dedent
 from typing import (
     Optional,
     MutableSequence,
@@ -363,11 +364,18 @@ def run(
             verbosity=2,
         )
         if not solvable:
-            _solver_err_str = "not solvable ({}): {}: {}".format(
-                ('<a href="' + os.getenv("CIRCLE_BUILD_URL", "") + '">bot CI job</a>'),
-                base_branch,
-                sorted(set(errors)),
-            )
+            ci_job_url = os.getenv("CIRCLE_BUILD_URL", "#")
+            _solver_err_str = dedent(
+                f"""
+                <details>
+                <summary>
+                    not solvable (<a href="{ci_job_url}">bot CI job</a>) @ {base_branch}
+                </summary>
+                <pre>
+                {''.join(sorted(set(errors)))}
+                </pre>
+                """
+            ).strip()
 
             if isinstance(migrator, Version):
                 with feedstock_ctx.attrs["version_pr_info"] as vpri:
