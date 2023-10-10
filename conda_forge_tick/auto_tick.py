@@ -374,6 +374,7 @@ def run(
                 <pre>
                 {'</pre><pre>'.join(sorted(set(errors)))}
                 </pre>
+                </details>
                 """
             ).strip()
 
