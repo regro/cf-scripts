@@ -372,7 +372,7 @@ def run(
                     not solvable (<a href="{ci_job_url}">bot CI job</a>) @ {base_branch}
                 </summary>
                 <pre>
-                {''.join(sorted(set(errors)))}
+                {'</pre><pre>'.join(sorted(set(errors)))}
                 </pre>
                 """
             ).strip()
