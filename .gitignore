@@ -49,5 +49,3 @@ lazy_json/*
 lazy_json
 .unload_to_disk_*
 tests/test_pypi_name_mapping/pr_json/
-
-.pixi/
