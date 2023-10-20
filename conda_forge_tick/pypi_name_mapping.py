@@ -207,6 +207,7 @@ def convert_to_grayskull_style_yaml(
 def add_missing_pypi_names(
     pypi_mapping: Dict[PypiName, Mapping],
     mappings: List[Mapping],
+    overrides: List[Mapping],
 ) -> Dict[PypiName, Mapping]:
     """Add missing PyPI names to the Grayskull mapping.
 
@@ -221,6 +222,11 @@ def add_missing_pypi_names(
         pypi_name = mapping["pypi_name"]
         if pypi_name not in unsorted_mapping:
             missing_mappings_by_pypi_name[mapping["pypi_name"]].append(mapping)
+    # Always add in the overrides
+    for mapping in overrides:
+        pypi_name = mapping["pypi_name"]
+        missing_mappings_by_pypi_name[mapping["pypi_name"]].append(mapping)
+
     for pypi_name, candidates in missing_mappings_by_pypi_name.items():
         unsorted_mapping[pypi_name] = resolve_collisions(candidates)
     return dict(sorted(unsorted_mapping.items()))
@@ -404,7 +410,8 @@ def main(args) -> None:
     grayskull_style_from_imports = convert_to_grayskull_style_yaml(best_imports)
     grayskull_style = add_missing_pypi_names(
         grayskull_style_from_imports,
-        pypi_package_mappings + static_packager_mappings,
+        pypi_package_mappings,
+        static_packager_mappings,
     )
 
     dirname = pathlib.Path(".") / "mappings" / "pypi"
