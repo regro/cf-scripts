@@ -13,7 +13,7 @@ pip install -e .
 
 cd ..
 
-git clone --depth=100 https://github.com/regro/cf-graph-countyfair.git cf-graph
+git clone --depth=10 https://github.com/regro/cf-graph-countyfair.git cf-graph
 git clone --depth=1 https://github.com/conda-forge/conda-forge-pinning-feedstock.git
 
 echo -e "\n\n============================================\n============================================"
