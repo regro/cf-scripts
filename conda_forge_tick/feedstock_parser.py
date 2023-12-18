@@ -190,8 +190,7 @@ def populate_feedstock_attributes(
     # Get the conda-forge.yml
     if isinstance(conda_forge_yaml, str):
         sub_graph["conda-forge.yml"] = {
-            k: v
-            for k, v in yaml.safe_load(conda_forge_yaml).items()
+            k: v for k, v in yaml.safe_load(conda_forge_yaml).items()
         }
 
     if feedstock_dir is not None:
