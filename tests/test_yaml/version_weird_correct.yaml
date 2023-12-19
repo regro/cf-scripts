@@ -13,7 +13,7 @@ source:
 build:
   noarch: python
   number: 0
-  script: {{ PYTHON }} -m pip install . --no-deps -vv
+  script: "{{ PYTHON }} -m pip install . --no-deps -vv"
 
 requirements:
   host:
@@ -48,9 +48,9 @@ about:
   license: BSD-3-clause
   license_family: BSD
   license_file: LICENSE
-  summary: A Python data collection interface for experimental science
+  summary: 'A Python data collection interface for experimental science'
 
-  description: A Python data collection interface for experimental science
+  description: 'A Python data collection interface for experimental science'
   doc_url: https://blueskyproject.io/bluesky
   dev_url: https://github.com/bluesky/bluesky
 

@@ -5,7 +5,7 @@ import logging
 
 from flaky import flaky
 
-from conda_forge_tick.utils import load
+from conda_forge_tick.lazy_json_backends import load
 from conda_forge_tick.recipe_parser import CondaMetaYAML
 from conda_forge_tick.update_deps import (
     get_depfinder_comparison,
@@ -246,7 +246,7 @@ def test_get_dep_updates_and_hints_praw():
         )
 
     print(res[0], res[1], flush=True)
-    assert "websocket-client" in res[1]
+    assert "websocket" in res[1]
 
 
 out_yml_gs = """\
@@ -263,7 +263,7 @@ source:
 build:
   number: 0
   noarch: python
-  script: {{ PYTHON }} -m pip install . --no-deps -vv
+  script: "{{ PYTHON }} -m pip install . --no-deps -vv"
   entry_points:
     - depfinder = depfinder.cli:cli
 
@@ -312,7 +312,7 @@ source:
 build:
   number: 0
   noarch: python
-  script: {{ PYTHON }} -m pip install . --no-deps -vv
+  script: "{{ PYTHON }} -m pip install . --no-deps -vv"
   entry_points:
     - depfinder = depfinder.cli:cli
 
@@ -360,7 +360,7 @@ source:
 build:
   number: 0
   noarch: python
-  script: {{ PYTHON }} -m pip install . --no-deps -vv
+  script: "{{ PYTHON }} -m pip install . --no-deps -vv"
   entry_points:
     - depfinder = depfinder.cli:cli
 

@@ -6,7 +6,7 @@ import typing
 import traceback
 from concurrent.futures import as_completed
 from collections import defaultdict
-import glob
+import random
 
 import tqdm
 from typing import List, Optional, Iterable
@@ -18,22 +18,29 @@ import networkx as nx
 from conda_forge_tick.feedstock_parser import load_feedstock
 from .all_feedstocks import get_all_feedstocks, get_archived_feedstocks
 from .contexts import GithubContext
+from .executors import executor
 from .utils import (
     setup_logger,
-    executor,
     load_graph,
     dump_graph,
-    LazyJson,
     as_iterable,
 )
 from . import sensitive_env
+from conda_forge_tick.lazy_json_backends import (
+    LazyJson,
+    get_all_keys_for_hashmap,
+    lazy_json_transaction,
+    lazy_json_override_backends,
+)
 
 if typing.TYPE_CHECKING:
     from .cli import CLIArgs
 
 LOGGER = logging.getLogger("conda_forge_tick.make_graph")
 pin_sep_pat = re.compile(r" |>|<|=|\[")
+random.seed(os.urandom(64))
 
+RANDOM_FRAC_TO_UPDATE = 1.5
 NUM_GITHUB_THREADS = 2
 
 with sensitive_env() as env:
@@ -93,34 +100,37 @@ def get_attrs(name: str, i: int, mark_not_archived=False) -> LazyJson:
 def _migrate_schema(name, sub_graph):
     # schema migrations and fixes go here
     if "version_pr_info" not in sub_graph:
-        sub_graph["version_pr_info"] = LazyJson(f"version_pr_info/{name}.json")
-        with sub_graph["version_pr_info"] as vpri:
-            for key in ["new_version_attempts", "new_version_errors"]:
-                if key not in vpri:
-                    vpri[key] = {}
-                if key in sub_graph:
-                    vpri[key].update(sub_graph.pop(key))
+        with lazy_json_transaction():
+            sub_graph["version_pr_info"] = LazyJson(f"version_pr_info/{name}.json")
+            with sub_graph["version_pr_info"] as vpri:
+                for key in ["new_version_attempts", "new_version_errors"]:
+                    if key not in vpri:
+                        vpri[key] = {}
+                    if key in sub_graph:
+                        vpri[key].update(sub_graph.pop(key))
 
     if "new_version" in sub_graph:
-        with sub_graph["version_pr_info"] as vpri:
-            vpri["new_version"] = sub_graph.pop("new_version")
+        with lazy_json_transaction():
+            with sub_graph["version_pr_info"] as vpri:
+                vpri["new_version"] = sub_graph.pop("new_version")
 
     if "pr_info" not in sub_graph:
-        sub_graph["pr_info"] = LazyJson(f"pr_info/{name}.json")
-        with sub_graph["pr_info"] as pri:
-            pre_key = "pre_pr_migrator_status"
-            pre_key_att = "pre_pr_migrator_attempts"
+        with lazy_json_transaction():
+            sub_graph["pr_info"] = LazyJson(f"pr_info/{name}.json")
+            with sub_graph["pr_info"] as pri:
+                pre_key = "pre_pr_migrator_status"
+                pre_key_att = "pre_pr_migrator_attempts"
 
-            for key in [pre_key, pre_key_att]:
-                if key not in pri:
-                    pri[key] = {}
-                if key in sub_graph:
-                    pri[key].update(sub_graph.pop(key))
+                for key in [pre_key, pre_key_att]:
+                    if key not in pri:
+                        pri[key] = {}
+                    if key in sub_graph:
+                        pri[key].update(sub_graph.pop(key))
 
-            # populate migrator attempts if they are not there
-            for mn in pri[pre_key]:
-                if mn not in pri[pre_key_att]:
-                    pri[pre_key_att][mn] = 1
+                # populate migrator attempts if they are not there
+                for mn in pri[pre_key]:
+                    if mn not in pri[pre_key_att]:
+                        pri[pre_key_att][mn] = 1
 
     keys_to_move = [
         "PRed",
@@ -129,12 +139,13 @@ def _migrate_schema(name, sub_graph):
         "bad",
     ]
     if any(key in sub_graph for key in keys_to_move):
-        with sub_graph["pr_info"] as pri:
-            for key in keys_to_move:
-                if key in sub_graph:
-                    pri[key] = sub_graph.pop(key)
-                    if key == "bad":
-                        pri["bad"] = False
+        with lazy_json_transaction():
+            with sub_graph["pr_info"] as pri:
+                for key in keys_to_move:
+                    if key in sub_graph:
+                        pri[key] = sub_graph.pop(key)
+                        if key == "bad":
+                            pri["bad"] = False
 
     if "parsing_error" not in sub_graph:
         sub_graph["parsing_error"] = "make_graph: missing parsing_error key"
@@ -150,6 +161,7 @@ def _build_graph_process_pool(
         futures = {
             pool.submit(get_attrs, name, i, mark_not_archived=mark_not_archived): name
             for i, name in enumerate(names)
+            if random.uniform(0, 1) < RANDOM_FRAC_TO_UPDATE
         }
         LOGGER.info("submitted all nodes")
 
@@ -246,7 +258,8 @@ def _create_edges(gx: nx.DiGraph) -> nx.DiGraph:
                 # for packages which aren't feedstocks and aren't outputs
                 # usually these are stubs
                 lzj = LazyJson(f"node_attrs/{dep}.json")
-                lzj.update(feedstock_name=dep, bad=False, archived=True)
+                with lzj as _attrs:
+                    _attrs.update(feedstock_name=dep, bad=False, archived=True)
                 gx.add_node(dep, payload=lzj)
             gx.add_edge(dep, node)
     LOGGER.info("new nodes and edges inferred")
@@ -295,17 +308,11 @@ def _update_nodes_with_archived(gx, archived_names):
 
 
 def _migrate_schemas():
-    # make sure to apply all schema migrations
-    node_pths = (
-        glob.glob("node_attrs/**/*.json", recursive=True)
-        + glob.glob("node_attrs/**/.json", recursive=True)
-        # shell expansion won't match .json
-    )
-    for node_pth in tqdm.tqdm(node_pths, desc="migrating node schemas", miniters=100):
-        name = os.path.basename(node_pth)[:-5]
-        lzj_pth = f"node_attrs/{name}.json"
-        with LazyJson(lzj_pth) as sub_graph:
-            _migrate_schema(name, sub_graph)
+    # make sure to apply all schema migrations, not just those in the graph
+    nodes = get_all_keys_for_hashmap("node_attrs")
+    for node in tqdm.tqdm(nodes, desc="migrating node schemas", miniters=100, ncols=80):
+        with LazyJson(f"node_attrs/{node}.json") as sub_graph:
+            _migrate_schema(node, sub_graph)
 
 
 # @profiling
@@ -316,21 +323,20 @@ def main(args: "CLIArgs") -> None:
         setup_logger(logging.getLogger("conda_forge_tick"))
 
     names = get_all_feedstocks(cached=True)
-    if os.path.exists("graph.json"):
-        gx = load_graph()
-    else:
-        gx = None
-    gx = make_graph(names, gx, mark_not_archived=True, debug=args.debug)
-    nodes_without_paylod = [k for k, v in gx.nodes.items() if "payload" not in v]
-    if nodes_without_paylod:
-        LOGGER.warning("nodes w/o payload: %s", nodes_without_paylod)
+    gx = load_graph()
 
-    _migrate_schemas()
+    with lazy_json_override_backends(["file"], hashmaps_to_sync=["node_attrs"]):
+        gx = make_graph(names, gx, mark_not_archived=True, debug=args.debug)
+        nodes_without_paylod = [k for k, v in gx.nodes.items() if "payload" not in v]
+        if nodes_without_paylod:
+            LOGGER.warning("nodes w/o payload: %s", nodes_without_paylod)
 
-    archived_names = get_archived_feedstocks(cached=True)
-    _update_nodes_with_archived(gx, archived_names)
+        archived_names = get_archived_feedstocks(cached=True)
+        _update_nodes_with_archived(gx, archived_names)
 
     dump_graph(gx)
+
+    _migrate_schemas()
 
 
 if __name__ == "__main__":

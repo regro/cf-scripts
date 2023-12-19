@@ -14,6 +14,12 @@ SCRIPT_DICT = {
     "update-prs": {"module": "update_prs", "func": "main"},
     "make-mappings": {"module": "mappings", "func": "main"},
     "deploy-to-github": None,
+    "backup-lazy-json": {"module": "lazy_json_backups", "func": "main_backup"},
+    "sync-lazy-json-across-backends": {
+        "module": "lazy_json_backends",
+        "func": "main_sync",
+    },
+    "cache-lazy-json-to-disk": {"module": "lazy_json_backends", "func": "main_cache"},
 }
 
 
@@ -36,12 +42,6 @@ def main(*args, **kwargs):
         action="store_true",
         default=False,
         help="Don't push changes to PRs or graph to Github",
-    )
-    parser.add_argument(
-        "--cf-graph",
-        dest="cf_graph",
-        default=".",
-        help="location of the graph",
     )
     parser.add_argument(
         "--job",

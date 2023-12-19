@@ -1,10 +1,9 @@
 import logging
-import os
 import random
-import re
 import typing
 from concurrent.futures._base import as_completed
 import hashlib
+import copy
 
 import github3
 import networkx as nx
@@ -19,11 +18,11 @@ from conda_forge_tick.git_utils import (
     close_out_dirty_prs,
 )
 from .make_graph import ghctx
+from .executors import executor
 from .utils import (
     setup_logger,
     load_graph,
     github_client,
-    executor,
 )
 
 if typing.TYPE_CHECKING:
@@ -33,9 +32,6 @@ logger = logging.getLogger("conda_forge_tick.update_prs")
 
 NUM_GITHUB_THREADS = 2
 KEEP_PR_FRACTION = 1.5
-
-
-PR_JSON_REGEX = re.compile(r"^pr_json/([0-9]*).json$")
 
 
 def _update_pr(update_function, dry_run, gx, job, n_jobs):
@@ -60,9 +56,12 @@ def _update_pr(update_function, dry_run, gx, job, n_jobs):
             node_ids,
             desc="submiting PR refresh jobs",
             leave=False,
+            ncols=80,
         ):
             node = gx.nodes[node_id]["payload"]
-            prs = node["pr_info"].get("PRed", [])
+            if node.get("archived", False):
+                continue
+            prs = node.get("pr_info", {}).get("PRed", [])
             for i, migration in enumerate(prs):
 
                 if random.uniform(0, 1) >= KEEP_PR_FRACTION:
@@ -71,7 +70,8 @@ def _update_pr(update_function, dry_run, gx, job, n_jobs):
                 pr_json = migration.get("PR", None)
 
                 if pr_json and pr_json["state"] != "closed":
-                    future = pool.submit(update_function, ghctx, pr_json, gh, dry_run)
+                    _pr_json = copy.deepcopy(pr_json.data)
+                    future = pool.submit(update_function, ghctx, _pr_json, gh, dry_run)
                     futures[future] = (node_id, i, pr_json)
 
         for f in tqdm.tqdm(
@@ -79,6 +79,7 @@ def _update_pr(update_function, dry_run, gx, job, n_jobs):
             total=len(futures),
             desc="gathering PR data",
             leave=False,
+            ncols=80,
         ):
             name, i, pr_json = futures[f]
             try:
@@ -91,7 +92,8 @@ def _update_pr(update_function, dry_run, gx, job, n_jobs):
                         and pr_json["ETag"] != res["ETag"]
                     ):
                         tqdm.tqdm.write(f"Updated PR json for {name}: {res['id']}")
-                    pr_json.update(**res)
+                    with pr_json as attrs:
+                        attrs.update(**res)
             except github3.GitHubError as e:
                 logger.error(f"GITHUB ERROR ON FEEDSTOCK: {name}")
                 failed_refresh += 1
@@ -170,16 +172,12 @@ def close_dirty_prs(
 def main(args: "CLIArgs") -> None:
     setup_logger(logger)
 
-    if os.path.exists("graph.json"):
-        gx = load_graph()
-    else:
-        gx = None
+    gx = load_graph()
 
-    if not args.dry_run:
-        gx = close_labels(gx, args.dry_run, job=args.job, n_jobs=args.n_jobs)
-        gx = update_graph_pr_status(gx, args.dry_run, job=args.job, n_jobs=args.n_jobs)
-        # This function needs to run last since it edits the actual pr json!
-        gx = close_dirty_prs(gx, args.dry_run, job=args.job, n_jobs=args.n_jobs)
+    gx = close_labels(gx, args.dry_run, job=args.job, n_jobs=args.n_jobs)
+    gx = update_graph_pr_status(gx, args.dry_run, job=args.job, n_jobs=args.n_jobs)
+    # This function needs to run last since it edits the actual pr json!
+    gx = close_dirty_prs(gx, args.dry_run, job=args.job, n_jobs=args.n_jobs)
 
 
 if __name__ == "__main__":

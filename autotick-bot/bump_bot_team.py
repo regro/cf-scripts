@@ -4,14 +4,18 @@ import github
 
 
 if os.environ["ACTION_NAME"] == "bot-bot":
-    gh = github.Github(os.environ["PASSWORD"])
+    user = "@regro/auto-tick-triage"
+else:
+    user = "@beckermr"
 
-    repo = gh.get_repo("regro/cf-scripts")
+gh = github.Github(os.environ["PASSWORD"])
 
-    repo.create_issue(
-        title="failed job %s" % os.environ["ACTION_NAME"],
-        body="""
-Hey @regro/auto-tick-triage!
+repo = gh.get_repo("regro/cf-scripts")
+
+repo.create_issue(
+    title="failed job %s" % os.environ["ACTION_NAME"],
+    body="""
+Hey %s!
 
 It appears that the bot `%s` job failed! :(
 
@@ -22,7 +26,7 @@ Have a great day!
 job url: %s
 
 """
-        % (os.environ["ACTION_NAME"], os.environ["ACTION_URL"]),
-    )
+    % (user, os.environ["ACTION_NAME"], os.environ["ACTION_URL"]),
+)
 
 sys.exit(1)

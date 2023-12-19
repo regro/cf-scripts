@@ -3,7 +3,7 @@ name: bot-bot
 on:
   workflow_dispatch: null
   schedule:
-    - cron:  '0 */4 * * *'
+    - cron:  '*/15 * * * *'
 
 concurrency: bot
 
@@ -28,23 +28,28 @@ jobs:
         run: |
           free
 
-      - uses: conda-incubator/setup-miniconda@v2
+      - uses: mamba-org/setup-micromamba@v1
         with:
-          channels: conda-forge,defaults
-          channel-priority: strict
-          show-channel-urls: true
-          miniforge-version: latest
-          miniforge-variant: Mambaforge
-          python-version: ${{ vars.PYVER }}
-          use-mamba: true
           environment-file: cf-scripts/environment.yml
-          activate-environment: cf-scripts
+          create-args: "python==${{ vars.PYVER }}"
+          init-shell: bash
+          cache-environment: true
+          environment-name: cf-scripts
+          post-cleanup: 'all'
+          condarc: |
+            channels:
+              - conda-forge
+
+      # Update conda-forge-pinning as we might got an outdated versions through the environment caching.
+      - name: force-update conda-forge-pinning
+        run: |
+          micromamba update conda-forge-pinning
 
       - name: do local setup and stop me if needed
         run: |
-          pushd cf-scripts
+          cd cf-scripts
           python autotick-bot/stop_me_if_needed.py
-          popd
+
 
       - name: install bot code
         if: success() && ! env.CI_SKIP
@@ -65,20 +70,20 @@ jobs:
           pushd cf-graph
 
           conda-forge-tick auto-tick
-
-          popd
         env:
           USERNAME: regro-cf-autotick-bot
           PASSWORD: ${{ secrets.AUTOTICK_BOT_TOKEN }}
           RUN_ID: ${{ github.run_id }}
           MEMORY_LIMIT_GB: 7
+          CF_TICK_GRAPH_DATA_BACKENDS: "mongodb:file"
+          MONGODB_CONNECTION_STRING: ${{ secrets.MONGODB_CONNECTION_STRING }}
 
       - name: status of changes
         if: github.ref == 'refs/heads/master' && always() && ! env.CI_SKIP
         run: |
           pushd cf-graph
           git status
-          popd
+
 
       - name: deploy
         if: github.ref == 'refs/heads/master' && always() && ! env.CI_SKIP
@@ -89,7 +94,7 @@ jobs:
           export CIRCLE_BUILD_NUM="actually-actions-${RUN_ID}"
           conda-forge-tick deploy-to-github
 
-          popd
+
         env:
           PASSWORD: ${{ secrets.AUTOTICK_BOT_TOKEN }}
           RUN_ID: ${{ github.run_id }}

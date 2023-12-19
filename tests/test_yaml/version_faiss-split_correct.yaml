@@ -127,8 +127,8 @@ outputs:
     script: build-lib-{{ CF_FAISS_BUILD }}.sh  # [not win]
     script: build-lib-{{ CF_FAISS_BUILD }}.bat  # [win]
     build:
-      string: h{{ PKG_HASH }}_{{ PKG_BUILDNUM }}_{{ faiss_proc_type }}  # [cuda_compiler_version == "None"]
-      string: cuda{{ cuda_compiler_version|replace('.', '') }}h{{ PKG_HASH }}_{{ PKG_BUILDNUM }}_{{ faiss_proc_type }}  # [cuda_compiler_version != "None"]
+      string: "h{{ PKG_HASH }}_{{ PKG_BUILDNUM }}_{{ faiss_proc_type }}"  # [cuda_compiler_version == "None"]
+      string: "cuda{{ cuda_compiler_version|replace('.', '') }}h{{ PKG_HASH }}_{{ PKG_BUILDNUM }}_{{ faiss_proc_type }}"  # [cuda_compiler_version != "None"]
       run_exports:
         # faiss follows SemVer, so restrict packages built with libfaiss to use
         # at least the same version at runtime, but below the next major version.
@@ -175,8 +175,8 @@ outputs:
     script: build-pkg.sh  # [not win]
     script: build-pkg.bat  # [win]
     build:
-      string: py{{ CONDA_PY }}h{{ PKG_HASH }}_{{ PKG_BUILDNUM }}_{{ faiss_proc_type }}  # [cuda_compiler_version == "None"]
-      string: py{{ CONDA_PY }}cuda{{ cuda_compiler_version|replace('.', '') }}h{{ PKG_HASH }}_{{ PKG_BUILDNUM }}_{{ faiss_proc_type }}  # [cuda_compiler_version != "None"]
+      string: "py{{ CONDA_PY }}h{{ PKG_HASH }}_{{ PKG_BUILDNUM }}_{{ faiss_proc_type }}"  # [cuda_compiler_version == "None"]
+      string: "py{{ CONDA_PY }}cuda{{ cuda_compiler_version|replace('.', '') }}h{{ PKG_HASH }}_{{ PKG_BUILDNUM }}_{{ faiss_proc_type }}"  # [cuda_compiler_version != "None"]
     requirements:
       build:
         - {{ compiler('cxx') }}
@@ -259,7 +259,7 @@ about:
   license: MIT
   license_family: MIT
   license_file: LICENSE
-  summary: A library for efficient similarity search and clustering of dense vectors.
+  summary: 'A library for efficient similarity search and clustering of dense vectors.'
 
   description: |
     Faiss is a library for efficient similarity search and clustering of dense vectors.

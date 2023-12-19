@@ -15,7 +15,7 @@ import github3.exceptions
 import github3.repos
 
 from doctr.travis import run_command_hiding_token as doctr_run
-from .utils import pushd
+from .os_utils import pushd
 
 from requests.exceptions import Timeout, RequestException
 from .contexts import GithubContext, FeedstockContext, MigratorSessionContext
@@ -25,7 +25,7 @@ import backoff
 
 # TODO: handle the URLs more elegantly (most likely make this a true library
 # and pull all the needed info from the various source classes)
-from conda_forge_tick.utils import LazyJson
+from conda_forge_tick.lazy_json_backends import LazyJson
 
 from conda_forge_tick import sensitive_env
 

@@ -13,8 +13,8 @@ import networkx as nx
 
 from conda_forge_tick.contexts import FeedstockContext
 from conda_forge_tick.migrators.core import GraphMigrator, MiniMigrator, Migrator
-from conda_forge_tick.utils import pushd
-from conda_forge_tick.utils import eval_cmd, pluck, yaml_safe_load, yaml_safe_dump
+from conda_forge_tick.os_utils import pushd, eval_cmd
+from conda_forge_tick.utils import pluck, yaml_safe_load, yaml_safe_dump
 from conda_forge_tick.make_graph import get_deps_from_outputs_lut
 from conda_forge_tick.feedstock_parser import PIN_SEP_PAT
 
@@ -281,6 +281,7 @@ class MigrationYaml(GraphMigrator):
                 "the feedstock has been rebuilt, so if you are going to "
                 "perform the rebuild yourself don't close this PR until "
                 "the your rebuild has been merged.**\n\n"
+                "<hr>"
                 "".format(
                     name=self.name,
                 )
@@ -296,19 +297,33 @@ class MigrationYaml(GraphMigrator):
                 "the feedstock has been rebuilt, so if you are going to "
                 "perform the rebuild yourself don't close this PR until "
                 "the your rebuild has been merged.**\n\n"
+                "<hr>"
                 "".format(
                     name=self.name,
                 )
             )
+
+        commit_body = " ".join(
+            [e for e in self.commit_message(feedstock_ctx).splitlines()[1:] if e],
+        )
+        if commit_body:
+            additional_body += (
+                "\n\n"
+                "Here are some more details about this specific migrator:\n\n"
+                "> {commit_body}\n\n"
+                "<hr>"
+            ).format(commit_body=commit_body)
 
         children = "\n".join(
             [" - %s" % ch for ch in self.downstream_children(feedstock_ctx)],
         )
         if len(children) > 0:
             additional_body += (
+                "\n\n"
                 "This package has the following downstream children:\n"
                 "{children}\n"
-                "and potentially more."
+                "and potentially more.\n\n"
+                "<hr>"
             ).format(children=children)
 
         return body.format(additional_body)
@@ -333,7 +348,9 @@ class MigrationYaml(GraphMigrator):
         else:
             add_slug = ""
 
-        return add_slug + self.commit_message(feedstock_ctx)
+        title = self.commit_message(feedstock_ctx).splitlines()[0]
+
+        return add_slug + title
 
     def remote_branch(self, feedstock_ctx: FeedstockContext) -> str:
         s_obj = str(self.obj_version) if self.obj_version else ""

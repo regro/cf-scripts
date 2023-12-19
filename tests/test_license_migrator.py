@@ -243,7 +243,7 @@ about:
   license_family: AGPL
 
   license_file:
-    - {{ environ["PREFIX"] }}/lib/R/share/licenses/AGPL-3
+    - '{{ environ["PREFIX"] }}/lib/R/share/licenses/AGPL-3'
     - LICENSE
 extra:
   recipe-maintainers:

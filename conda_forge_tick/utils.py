@@ -1,27 +1,18 @@
 import datetime
 import traceback
 import typing
-import copy
 import pprint
 import warnings
-from collections.abc import Callable
 from collections import defaultdict
 import contextlib
 import itertools
-import hashlib
-import rapidjson as json
 import logging
 import tempfile
 import io
 import os
-from typing import Any, Tuple, Iterable, Union, Optional, IO, Set
-from collections.abc import MutableMapping
-from concurrent.futures import (
-    ProcessPoolExecutor,
-    ThreadPoolExecutor,
-    Executor,
-)
-import subprocess
+import sys
+import copy
+from typing import Any, Tuple, Iterable, Optional, Set
 
 import github3
 import jinja2
@@ -30,11 +21,11 @@ import ruamel.yaml
 import networkx as nx
 
 from . import sensitive_env
+from .lazy_json_backends import LazyJson
 
 if typing.TYPE_CHECKING:
     from mypy_extensions import TypedDict
     from conda_forge_tick.migrators_types import MetaYamlTypedDict
-
 
 logger = logging.getLogger("conda_forge_tick.utils")
 
@@ -59,29 +50,64 @@ CB_CONFIG = dict(
     datetime=datetime,
 )
 
+
+def _munge_dict_repr(d):
+    d = repr(d)
+    d = "__dict__" + d[1:-1].replace(":", "@").replace(" ", "$$") + "__dict__"
+    return d
+
+
 CB_CONFIG_PINNING = dict(
     os=os,
     environ=defaultdict(str),
     compiler=lambda x: x + "_compiler_stub",
     # The `max_pin, ` stub is so we know when people used the functions
     # to create the pins
-    pin_subpackage=lambda *args, **kwargs: {"package_name": args[0], **kwargs},
-    pin_compatible=lambda *args, **kwargs: {"package_name": args[0], **kwargs},
+    pin_subpackage=lambda *args, **kwargs: _munge_dict_repr(
+        {"package_name": args[0], **kwargs},
+    ),
+    pin_compatible=lambda *args, **kwargs: _munge_dict_repr(
+        {"package_name": args[0], **kwargs},
+    ),
     cdt=lambda *args, **kwargs: "cdt_stub",
     cran_mirror="https://cran.r-project.org",
     datetime=datetime,
 )
 
 
-# https://stackoverflow.com/questions/6194499/pushd-through-os-system
 @contextlib.contextmanager
-def pushd(new_dir):
-    previous_dir = os.getcwd()
-    os.chdir(new_dir)
+def fold_log_lines(title):
     try:
+        sys.stdout.flush()
+        sys.stderr.flush()
+        if os.environ.get("GITHUB_ACTIONS", "false") == "true":
+            print(f"::group::{title}", flush=True)
         yield
     finally:
-        os.chdir(previous_dir)
+        sys.stdout.flush()
+        sys.stderr.flush()
+        if os.environ.get("GITHUB_ACTIONS", "false") == "true":
+            print("::endgroup::", flush=True)
+
+
+def parse_munged_run_export(p):
+    if len(p) <= len("__dict__"):
+        logger.info("could not parse run export for pinning: %r", p)
+        return {}
+
+    p_orig = p
+
+    # remove build string if it is there
+    p = p.rsplit("__dict__", maxsplit=1)[0].strip()
+
+    if p.startswith("__dict__"):
+        p = "{" + p[len("__dict__") :].replace("$$", " ").replace("@", ":") + "}"
+        p = yaml_safe_load(p)
+        logger.debug("parsed run export for pinning: %r", p)
+        return p
+    else:
+        logger.info("could not parse run export for pinning: %r", p_orig)
+        return {}
 
 
 def yaml_safe_load(stream):
@@ -285,7 +311,12 @@ def _parse_meta_yaml_impl(
                     raise RuntimeError(repr(e))
                 cfg_as_dict.update(conda_build.environ.get_dict(m=m))
 
-            logger.debug("jinja2 environmment:\n%s", pprint.pformat(cfg_as_dict))
+            for key in cfg_as_dict:
+                try:
+                    if cfg_as_dict[key].startswith("/"):
+                        cfg_as_dict[key] = key
+                except Exception:
+                    pass
 
         cbc = Config(
             platform=platform,
@@ -294,14 +325,25 @@ def _parse_meta_yaml_impl(
             **kwargs,
         )
     else:
-        _cfg = {}
-        _cfg.update(kwargs)
-        if platform is not None:
-            _cfg["platform"] = platform
-        if arch is not None:
-            _cfg["arch"] = arch
-        cbc = Config(**_cfg)
-        cfg_as_dict = {}
+        with tempfile.TemporaryDirectory() as tmpdir:
+            with open(os.path.join(tmpdir, "meta.yaml"), "w") as fp:
+                fp.write(text)
+
+            _cfg = {}
+            _cfg.update(kwargs)
+            if platform is not None:
+                _cfg["platform"] = platform
+            if arch is not None:
+                _cfg["arch"] = arch
+            cbc = Config(**_cfg)
+
+            try:
+                m = MetaData(tmpdir)
+                cfg_as_dict = conda_build.environ.get_dict(m=m)
+            except (SystemExit, Exception):
+                cfg_as_dict = {}
+
+    logger.debug("jinja2 environmment:\n%s", pprint.pformat(cfg_as_dict))
 
     if for_pinning:
         content = render_meta_yaml(text, for_pinning=for_pinning, **cfg_as_dict)
@@ -317,29 +359,6 @@ def _parse_meta_yaml_impl(
         logger.debug("parse template: %s", text)
         logger.debug("parse context:\n%s", pprint.pformat(cfg_as_dict))
         raise
-
-
-def eval_cmd(cmd, **kwargs):
-    """run a command capturing stdout
-
-    stderr is printed for debugging
-    any kwargs are added to the env
-    """
-    env = copy.deepcopy(os.environ)
-    timeout = kwargs.pop("timeout", None)
-    env.update(kwargs)
-    c = subprocess.run(
-        cmd,
-        shell=True,
-        stdout=subprocess.PIPE,
-        env=env,
-        timeout=timeout,
-    )
-    if c.returncode != 0:
-        print(c.stdout.decode("utf-8"), flush=True)
-        c.check_returncode()
-
-    return c.stdout.decode("utf-8")
 
 
 class UniversalSet(Set):
@@ -373,101 +392,6 @@ class NullUndefined(jinja2.Undefined):
 
     def __getitem__(self, name: Any) -> str:
         return f'{self}["{name}"]'
-
-
-def get_sharded_path(file_path, n_dirs=5):
-    """computed a sharded location for the LazyJson file."""
-    top_dir, file_name = os.path.split(file_path)
-
-    if len(top_dir) == 0:
-        top_dir = "lazy_json"
-
-    hx = hashlib.sha1(file_name.encode("utf-8")).hexdigest()[0:n_dirs]
-
-    pth_parts = [top_dir] + [hx[i] for i in range(n_dirs)] + [file_name]
-
-    return os.path.join(*pth_parts)
-
-
-class LazyJson(MutableMapping):
-    """Lazy load a dict from a json file and save it when updated"""
-
-    def __init__(self, file_name: str):
-        self.file_name = file_name
-        self.sharded_path = get_sharded_path(file_name)
-        # If the file doesn't exist create an empty file
-        if not os.path.exists(self.sharded_path):
-            os.makedirs(os.path.split(self.sharded_path)[0], exist_ok=True)
-            with open(self.sharded_path, "w") as f:
-                dump({}, f)
-        self._data: Optional[dict] = None
-
-    @property
-    def data(self):
-        self._load()
-        return self._data
-
-    def clear(self):
-        self._load()
-        self._data.clear()
-        self._dump()
-
-    def __len__(self) -> int:
-        self._load()
-        assert self._data is not None
-        return len(self._data)
-
-    def __iter__(self) -> typing.Iterator[Any]:
-        self._load()
-        assert self._data is not None
-        yield from self._data
-
-    def __delitem__(self, v: Any) -> None:
-        self._load()
-        assert self._data is not None
-        del self._data[v]
-        self._dump()
-
-    def _load(self) -> None:
-        if self._data is None:
-            try:
-                with open(self.sharded_path) as f:
-                    self._data = load(f)
-            except FileNotFoundError:
-                print(os.getcwd())
-                print(os.listdir("."))
-                raise
-
-    def _dump(self, purge=False) -> None:
-        self._load()
-        with open(self.sharded_path, "w") as f:
-            dump(self._data, f)
-        if purge:
-            # this evicts the josn from memory and trades i/o for mem
-            # the bot uses too much mem if we don't do this
-            self._data = None
-
-    def __getitem__(self, item: Any) -> Any:
-        self._load()
-        assert self._data is not None
-        return self._data[item]
-
-    def __setitem__(self, key: Any, value: Any) -> None:
-        self._load()
-        assert self._data is not None
-        self._data[key] = value
-        self._dump()
-
-    def __getstate__(self) -> dict:
-        state = self.__dict__.copy()
-        state["_data"] = None
-        return state
-
-    def __enter__(self) -> "LazyJson":
-        return self
-
-    def __exit__(self, *args: Any) -> Any:
-        self._dump(purge=True)
 
 
 def setup_logger(logger: logging.Logger, level: Optional[str] = "INFO") -> None:
@@ -507,115 +431,16 @@ def pluck(G: nx.DiGraph, node_id: Any) -> None:
         G.add_edges_from(new_edges)
 
 
-@contextlib.contextmanager
-def executor(kind: str, max_workers: int, daemon=True) -> typing.Iterator[Executor]:
-    """General purpose utility to get an executor with its as_completed handler
-
-    This allows us to easily use other executors as needed.
-    """
-    if kind == "thread":
-        with ThreadPoolExecutor(max_workers=max_workers) as pool_t:
-            yield pool_t
-    elif kind == "process":
-        with ProcessPoolExecutor(max_workers=max_workers) as pool_p:
-            yield pool_p
-    elif kind in ["dask", "dask-process", "dask-thread"]:
-        import dask
-        import distributed
-        from distributed.cfexecutor import ClientExecutor
-
-        processes = kind == "dask" or kind == "dask-process"
-
-        with dask.config.set({"distributed.worker.daemon": daemon}):
-            with distributed.LocalCluster(
-                n_workers=max_workers,
-                processes=processes,
-            ) as cluster:
-                with distributed.Client(cluster) as client:
-                    yield ClientExecutor(client)
-    else:
-        raise NotImplementedError("That kind is not implemented")
-
-
-def default(obj: Any) -> Any:
-    """For custom object serialization."""
-    if isinstance(obj, LazyJson):
-        return {"__lazy_json__": obj.file_name}
-    elif isinstance(obj, Set):
-        return {"__set__": True, "elements": sorted(obj)}
-    raise TypeError(repr(obj) + " is not JSON serializable")
-
-
-def object_hook(dct: dict) -> Union[LazyJson, Set, dict]:
-    """For custom object deserialization."""
-    if "__lazy_json__" in dct:
-        return LazyJson(dct["__lazy_json__"])
-    elif "__set__" in dct:
-        return set(dct["elements"])
-    return dct
-
-
-def dumps(
-    obj: Any,
-    sort_keys: bool = True,
-    separators: Any = (",", ":"),
-    default: "Callable[[Any], Any]" = default,
-    **kwargs: Any,
-) -> str:
-    """Returns a JSON string from a Python object."""
-    return json.dumps(
-        obj,
-        sort_keys=sort_keys,
-        # separators=separators,
-        default=default,
-        indent=1,
-        **kwargs,
-    )
-
-
-def dump(
-    obj: Any,
-    fp: IO[str],
-    sort_keys: bool = True,
-    separators: Any = (",", ":"),
-    default: "Callable[[Any], Any]" = default,
-    **kwargs: Any,
-) -> None:
-    """Returns a JSON string from a Python object."""
-    return json.dump(
-        obj,
-        fp,
-        sort_keys=sort_keys,
-        # separators=separators,
-        default=default,
-        indent=1,
-        **kwargs,
-    )
-
-
-def loads(
-    s: str, object_hook: "Callable[[dict], Any]" = object_hook, **kwargs: Any
-) -> dict:
-    """Loads a string as JSON, with appropriate object hooks"""
-    return json.loads(s, object_hook=object_hook, **kwargs)
-
-
-def load(
-    fp: IO[str],
-    object_hook: "Callable[[dict], Any]" = object_hook,
-    **kwargs: Any,
-) -> dict:
-    """Loads a file object as JSON, with appropriate object hooks."""
-    return json.load(fp, object_hook=object_hook, **kwargs)
-
-
 def dump_graph_json(gx: nx.DiGraph, filename: str = "graph.json") -> None:
     nld = nx.node_link_data(gx)
     links = nld["links"]
     links2 = sorted(links, key=lambda x: f'{x["source"]}{x["target"]}')
     nld["links"] = links2
-    with open(filename, "w") as f:
-        dump(nld, f)
+    from conda_forge_tick.lazy_json_backends import LazyJson
+
+    lzj = LazyJson(filename)
+    with lzj as attrs:
+        attrs.update(nld)
 
 
 def dump_graph(
@@ -627,19 +452,14 @@ def dump_graph(
     dump_graph_json(gx, filename)
 
 
-def load_graph(filename: str = "graph.json", reset_bad=False) -> nx.DiGraph:
-    with open(filename) as f:
-        nld = load(f)
-    gx = nx.node_link_graph(nld)
+def load_graph(filename: str = "graph.json") -> nx.DiGraph:
+    from conda_forge_tick.lazy_json_backends import LazyJson
 
-    if reset_bad:
-        for node in gx.nodes:
-            with gx.nodes[node]["payload"] as attrs:
-                attrs["parsing_error"] = False
-                with attrs["pr_info"] as pri:
-                    pri["bad"] = False
-
-    return gx
+    dta = copy.deepcopy(LazyJson(filename).data)
+    if dta:
+        return nx.node_link_graph(dta)
+    else:
+        return None
 
 
 # TODO: This type does not support generics yet sadly

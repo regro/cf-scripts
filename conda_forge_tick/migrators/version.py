@@ -16,7 +16,7 @@ from conda.models.version import VersionOrder
 
 from conda_forge_tick.migrators.core import Migrator
 from conda_forge_tick.contexts import FeedstockContext
-from conda_forge_tick.utils import pushd
+from conda_forge_tick.os_utils import pushd
 from conda_forge_tick.utils import sanitize_string
 from conda_forge_tick.update_deps import get_dep_updates_and_hints
 from conda_forge_tick.update_recipe import update_version
@@ -63,12 +63,21 @@ class Version(Migrator):
         if "check_solvable" in kwargs:
             kwargs.pop("check_solvable")
         super().__init__(*args, **kwargs, check_solvable=False)
+        self._new_version = None
 
-    def filter(self, attrs: "AttrsTypedDict", not_bad_str_start: str = "") -> bool:
+    def filter(
+        self,
+        attrs: "AttrsTypedDict",
+        not_bad_str_start: str = "",
+        new_version=None,
+    ) -> bool:
         # if no new version do nothing
-        vpri = attrs.get("version_pr_info", {})
-        if "new_version" not in vpri or not vpri["new_version"]:
-            return True
+        if new_version is None:
+            vpri = attrs.get("version_pr_info", {})
+            if "new_version" not in vpri or not vpri["new_version"]:
+                return True
+            new_version = vpri["new_version"]
+        self._new_version = new_version
 
         # if no jinja2 version, then move on
         if "raw_meta_yaml" in attrs and "{% set version" not in attrs["raw_meta_yaml"]:
@@ -88,14 +97,14 @@ class Version(Migrator):
                 ],
             )
             > self.max_num_prs
-            or not vpri.get("new_version"),  # if no new version
+            or not new_version,  # if no new version
         )
 
         try:
             version_filter = (
                 # if new version is less than current version
                 (
-                    VersionOrder(str(vpri["new_version"]).replace("-", "."))
+                    VersionOrder(str(new_version).replace("-", "."))
                     <= VersionOrder(
                         str(attrs.get("version", "0.0.0")).replace("-", "."),
                     )
@@ -103,7 +112,7 @@ class Version(Migrator):
                 # if PRed version is greater than newest version
                 or any(
                     VersionOrder(self._extract_version_from_muid(h).replace("-", "."))
-                    >= VersionOrder(str(vpri["new_version"]).replace("-", "."))
+                    >= VersionOrder(str(new_version).replace("-", "."))
                     for h in attrs.get("pr_info", {}).get("PRed", set())
                 )
             )
@@ -121,24 +130,26 @@ class Version(Migrator):
             .get("version_updates", {})
             .get("random_fraction_to_keep", None)
         )
+        logger.debug("random_fraction_to_keep: %r", random_fraction_to_keep)
         if random_fraction_to_keep is not None:
             curr_state = random.getstate()
             try:
                 frac = float(random_fraction_to_keep)
 
-                # the seeding here makes the filter stable given the current version
-                # if there is no version in the recipe, we always accept
-                # the version update
-                # this rule avoids a weird edge case possibly of never
-                # shipping a version if we always seed with 0.0.0
-                if "version" not in attrs:
-                    urand = 0.0
-                else:
-                    random.seed(a=str(attrs.get("version", "0.0.0")).replace("-", "."))
-                    urand = random.uniform(0, 1)
+                # the seeding here makes the filter stable given new version
+                random.seed(a=self._new_version.replace("-", "."))
+                urand = random.uniform(0, 1)
 
-                if urand <= frac:
+                if urand >= frac:
                     skip_filter = True
+
+                logger.info(
+                    "random version skip: version=%s, fraction=%f, urand=%f, skip=%r",
+                    self._new_version.replace("-", "."),
+                    frac,
+                    urand,
+                    skip_filter,
+                )
             finally:
                 random.setstate(curr_state)
 
@@ -150,11 +161,12 @@ class Version(Migrator):
             .get("exclude", [])
         )
         if (
-            str(vpri["new_version"]).replace("-", ".") in versions_to_ignore
-            or str(vpri["new_version"]) in versions_to_ignore
+            str(new_version).replace("-", ".") in versions_to_ignore
+            or str(new_version) in versions_to_ignore
         ):
             ignore_filter = True
 
+        self._new_version = None
         return result or version_filter or skip_filter or ignore_filter
 
     def migrate(
@@ -325,11 +337,12 @@ class Version(Migrator):
                         self.python_nodes,
                         "new_version",
                     )
-                except Exception:
+                except (BaseException, Exception):
                     hint = "\n\nDependency Analysis\n--------------------\n\n"
                     hint += (
                         "We couldn't run dependency analysis due to an internal "
-                        "error in the bot. :/ Help is very welcome!"
+                        "error in the bot, depfinder, or grayskull. :/ "
+                        "Help is very welcome!"
                     )
 
             return hint
@@ -362,8 +375,11 @@ class Version(Migrator):
 
     def migrator_uid(self, attrs: "AttrsTypedDict") -> "MigrationUidTypedDict":
         n = super().migrator_uid(attrs)
-        assert isinstance(attrs["version_pr_info"]["new_version"], str)
-        n["version"] = attrs["version_pr_info"]["new_version"]
+        if self._new_version is not None:
+            new_version = self._new_version
+        else:
+            new_version = attrs["version_pr_info"]["new_version"]
+        n["version"] = new_version
         return n
 
     def _extract_version_from_muid(self, h: dict) -> str:

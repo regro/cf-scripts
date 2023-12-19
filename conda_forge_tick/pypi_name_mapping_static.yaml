@@ -79,3 +79,11 @@
 - pypi_name: ruamel-yaml
   import_name: ruamel.yaml
   conda_name: ruamel.yaml
+
+- pypi_name: fastjsonschema
+  import_name: fastjsonschema
+  conda_name: python-fastjsonschema
+
+- pypi_name: ray
+  import_name: ray
+  conda_name: ray-core

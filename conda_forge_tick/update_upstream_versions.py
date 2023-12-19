@@ -1,14 +1,15 @@
 import networkx as nx
 import logging
 import random
-import json
 import time
 import os
 import tqdm
 import hashlib
 from concurrent.futures import as_completed
 
-from .utils import setup_logger, load_graph, executor, get_sharded_path
+from .lazy_json_backends import LazyJson
+from .utils import setup_logger, load_graph
+from .executors import executor
 from .update_sources import (
     AbstractSource,
     PyPI,
@@ -53,10 +54,30 @@ def get_latest_version(
     if name == "ca-policy-lcg":
         return version_data
 
+    version_sources = (
+        attrs.get("conda-forge.yml", {})
+        .get("bot", {})
+        .get("version_updates", {})
+        .get("sources", None)
+    )
+    if version_sources is not None:
+        version_sources = [vs.lower() for vs in version_sources]
+        sources_to_use = []
+        for vs in version_sources:
+            for source in sources:
+                if source.name.lower() == vs:
+                    sources_to_use.append(source)
+
+        for source in sources:
+            if source not in sources_to_use:
+                logger.debug("skipped source: %s", source.name)
+    else:
+        sources_to_use = sources
+
     excs = []
-    for source in sources:
+    for source in sources_to_use:
         try:
-            logger.debug("source: %s", source.__class__.__name__)
+            logger.debug("source: %s", source.name)
             url = source.get_url(attrs)
             logger.debug("url: %s", url)
             if url is None:
@@ -145,10 +166,10 @@ def _update_upstream_versions_sequential(
             )
 
         logger.debug("writing out file")
-        vpth = get_sharded_path(f"versions/{node}.json")
-        os.makedirs(os.path.dirname(vpth), exist_ok=True)
-        with open(vpth, "w") as outfile:
-            json.dump(version_data, outfile)
+        lzj = LazyJson(f"versions/{node}.json")
+        with lzj as attrs:
+            attrs.clear()
+            attrs.update(version_data)
         node_count += 1
 
 
@@ -170,7 +191,11 @@ def _update_upstream_versions_process_pool(
         )
         random.shuffle(_all_nodes)
 
-        for node, node_attrs in tqdm.tqdm(_all_nodes):
+        for node, node_attrs in tqdm.tqdm(
+            _all_nodes,
+            ncols=80,
+            desc="submitting version update jobs",
+        ):
             attrs = node_attrs["payload"]
             pri = attrs.get("pr_info", {})
             if (
@@ -228,10 +253,10 @@ def _update_upstream_versions_process_pool(
                     ),
                 )
             # writing out file
-            vpth = get_sharded_path(f"versions/{node}.json")
-            os.makedirs(os.path.dirname(vpth), exist_ok=True)
-            with open(vpth, "w") as outfile:
-                json.dump(version_data, outfile)
+            lzj = LazyJson(f"versions/{node}.json")
+            with lzj as attrs:
+                attrs.clear()
+                attrs.update(version_data)
 
 
 def update_upstream_versions(

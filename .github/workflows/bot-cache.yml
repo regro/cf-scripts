@@ -1,0 +1,139 @@
+name: bot-cache
+
+on:
+  workflow_dispatch: null
+  schedule:
+    - cron:  '*/15 * * * *'
+
+concurrency: bot-cache
+
+jobs:
+  bot-cache:
+    name: bot-cache
+    runs-on: "ubuntu-latest"
+    defaults:
+      run:
+        shell: bash -l {0}
+    strategy:
+      max-parallel: 1
+      matrix:
+        version: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40]
+
+    steps:
+      - name: run cache
+        if: success() && ! env.CI_SKIP
+        uses: actions/cache@v3
+        with:
+          path: cf-graph.tar.zstd
+          key: cf-graph-tzstd-${{ github.run_id }}-${{ github.run_attempt }}-${{ matrix.version }}
+          restore-keys: |
+            cf-graph-tzstd-
+
+      - uses: actions/checkout@v3
+        with:
+          path: cf-scripts
+
+      - uses: mamba-org/setup-micromamba@v1
+        with:
+          environment-file: cf-scripts/environment.yml
+          create-args: "python==${{ vars.PYVER }}"
+          init-shell: bash
+          cache-environment: true
+          environment-name: cf-scripts
+          post-cleanup: 'all'
+          condarc: |
+            channels:
+              - conda-forge
+
+      - name: do local setup and stop me if needed
+        run: |
+          cd cf-scripts
+          python autotick-bot/stop_me_if_needed.py
+
+
+      - name: install bot code
+        if: success() && ! env.CI_SKIP
+        run: |
+          git config --global user.name regro-cf-autotick-bot
+          git config --global user.email 36490558+regro-cf-autotick-bot@users.noreply.github.com
+          git config --global pull.rebase false
+
+          cd cf-scripts
+          export GIT_FULL_HASH=$(git rev-parse HEAD)
+          pip install -e .
+
+
+          echo -e "\n\n============================================\n============================================"
+          conda info
+          conda config --show-sources
+          conda list --show-channel-urls
+          echo -e "\n\n============================================\n============================================"
+
+      - name: run sync
+        if: success() && ! env.CI_SKIP
+        run: |
+          tar -xf cf-graph.tar.zstd
+          cd cf-graph
+          conda-forge-tick sync-lazy-json-across-backends
+          cd ..
+          tar --zstd -cf cf-graph.tar.zstd cf-graph
+        env:
+          CF_TICK_GRAPH_DATA_BACKENDS: "mongodb:file"
+          MONGODB_CONNECTION_STRING: ${{ secrets.MONGODB_CONNECTION_STRING }}
+
+  bot-cache-trigger:
+    needs: bot-cache
+    name: bot-cache-trigger
+    runs-on: "ubuntu-latest"
+    defaults:
+      run:
+        shell: bash -l {0}
+
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          path: cf-scripts
+
+      - uses: mamba-org/setup-micromamba@v1
+        with:
+          environment-file: cf-scripts/environment.yml
+          create-args: "python==${{ vars.PYVER }}"
+          init-shell: bash
+          cache-environment: true
+          environment-name: cf-scripts
+          post-cleanup: 'all'
+          condarc: |
+            channels:
+              - conda-forge
+
+      - name: do local setup and stop me if needed
+        run: |
+          cd cf-scripts
+          python autotick-bot/stop_me_if_needed.py
+
+
+      - name: install bot code
+        if: success() && ! env.CI_SKIP
+        run: |
+          git config --global user.name regro-cf-autotick-bot
+          git config --global user.email 36490558+regro-cf-autotick-bot@users.noreply.github.com
+          git config --global pull.rebase false
+
+          cd cf-scripts
+          export GIT_FULL_HASH=$(git rev-parse HEAD)
+          pip install -e .
+
+
+          echo -e "\n\n============================================\n============================================"
+          conda info
+          conda config --show-sources
+          conda list --show-channel-urls
+          echo -e "\n\n============================================\n============================================"
+
+      - name: trigger next job
+        uses: benc-uk/workflow-dispatch@798e70c97009500150087d30d9f11c5444830385
+        if: github.ref == 'refs/heads/master' && ! cancelled() && ! failure() && ! env.CI_SKIP
+        with:
+          workflow: bot-cache
+          ref: ${{ github.event.ref }}
+          token: ${{ secrets.AUTOTICK_BOT_TOKEN }}

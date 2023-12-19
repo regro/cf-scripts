@@ -2,13 +2,13 @@
 {% set version = "0.20.0" %}
 
 package:
-  name: {{ name|lower }}
-  version: {{ version }}
+  name: '{{ name|lower }}'
+  version: '{{ version }}'
 
 source:
-  fn: {{ name }}-{{ version }}.tar.gz
+  fn: '{{ name }}-{{ version }}.tar.gz'
   url: https://pypi.io/packages/source/{{ name[0] }}/{{ name }}/{{ name }}-{{ version }}.tar.gz
-  sha256: 13a30747589ed9ea5e4c60a51b6819b72ed1015696b5106b48390bfd4bd5b6a3
+  'sha256': '13a30747589ed9ea5e4c60a51b6819b72ed1015696b5106b48390bfd4bd5b6a3'
 
 build:
   number: 0
@@ -62,13 +62,13 @@ about:
   home: https://github.com/pytroll/satpy
   license: GPL-3.0
   license_family: GPL3
-  license_file: LICENSE.txt
+  license_file: 'LICENSE.txt'
   summary: Meteorological processing package
   description: |
     Python package for reading and manipulating meteorological remote
     sensing data and writing it to various image and data file formats.
-  doc_url: http://satpy.readthedocs.io/en/latest/
-  dev_url: https://github.com/pytroll/satpy
+  doc_url: 'http://satpy.readthedocs.io/en/latest/'
+  dev_url: 'https://github.com/pytroll/satpy'
 
 extra:
   recipe-maintainers:
