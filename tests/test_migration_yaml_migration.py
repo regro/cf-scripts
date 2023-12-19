@@ -112,6 +112,7 @@ build:
 BOOST_YAML = """\
 __migrator:
   build_number: 1
+  commit_message: Rebuild for boost 1.99
   kind: version
   migration_number: 1
 boost:
