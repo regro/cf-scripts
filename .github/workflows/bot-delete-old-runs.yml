@@ -17,7 +17,7 @@ jobs:
           environment-file: environment.yml
           create-args: "python==${{ vars.PYVER }}"
           init-shell: bash
-          cache-environment: true
+          cache-environment: false
           environment-name: cf-scripts
           post-cleanup: 'all'
           condarc: |
