@@ -27,6 +27,7 @@ jobs:
           environment-file: environment.yml
           python-version: "${{ vars.PYVER }}"
           environment-name: cf-scripts
+          condarc-file: autotick-bot/condarc
 
       - name: configure conda and install code
         shell: bash -l {0}
