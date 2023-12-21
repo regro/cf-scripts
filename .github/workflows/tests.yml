@@ -21,7 +21,7 @@ jobs:
 
       - uses: actions/checkout@v3
 
-      - uses: mamba-org/setup-miniconda@v3
+      - uses: conda-incubator/setup-miniconda@v3
         with:
           miniforge-version: latest
           environment-file: environment.yml
