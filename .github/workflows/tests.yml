@@ -21,23 +21,17 @@ jobs:
 
       - uses: actions/checkout@v3
 
-      - uses: mamba-org/setup-micromamba@v1
+      - uses: mamba-org/setup-miniconda@v3
         with:
+          miniforge-version: latest
           environment-file: environment.yml
-          create-args: >-
-            python==${{ vars.PYVER }}
-          init-shell: bash
-          cache-environment: false
+          python-version: "${{ vars.PYVER }}"
           environment-name: cf-scripts
-          post-cleanup: 'all'
-          condarc: |
-            channels:
-              - conda-forge
 
       - name: configure conda and install code
         shell: bash -l {0}
         run: |
-          micromamba install --file requirements-dev.txt --yes
+          conda install --file requirements-dev.txt --yes
           export GIT_FULL_HASH=`git rev-parse HEAD`
           export CICLE_BUILD_URL="https://www.youtube.com/watch?v=R7qT-C-0ajI"
           pip install --no-deps --no-build-isolation -e .
