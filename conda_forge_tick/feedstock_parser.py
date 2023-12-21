@@ -27,17 +27,6 @@ LOGGER = logging.getLogger("conda_forge_tick.feedstock_parser")
 
 PIN_SEP_PAT = re.compile(r" |>|<|=|\[")
 
-CONDA_FORGE_YML_KEYS_TO_KEEP = (
-    "provider",
-    "min_r_ver",
-    "min_py_ver",
-    "max_py_ver",
-    "max_r_ver",
-    "compiler_stack",
-    "bot",
-    "build_platform",
-)
-
 
 def _get_requirements(
     meta_yaml: "MetaYamlTypedDict",
@@ -123,7 +112,7 @@ def _extract_requirements(meta_yaml):
 
 def _fetch_static_repo(name, dest):
     found_branch = None
-    for branch in ["master", "main"]:
+    for branch in ["main", "master"]:
         try:
             r = requests.get(
                 f"https://github.com/conda-forge/{name}-feedstock/archive/{branch}.zip",
@@ -181,14 +170,14 @@ def populate_feedstock_attributes(
     If the return is bad hand the response itself in so that it can be parsed
     for meaning.
     """
-    sub_graph.update({"feedstock_name": name, "bad": False, "branch": "main"})
+    sub_graph.update({"feedstock_name": name, "parsing_error": False, "branch": "main"})
 
     if mark_not_archived:
         sub_graph.update({"archived": False})
 
     # handle all the raw strings
     if isinstance(meta_yaml, Response):
-        sub_graph["bad"] = f"make_graph: {meta_yaml.status_code}"
+        sub_graph["parsing_error"] = f"make_graph: {meta_yaml.status_code}"
         return sub_graph
 
     # strip out old keys - this removes old platforms when one gets disabled
@@ -201,9 +190,7 @@ def populate_feedstock_attributes(
     # Get the conda-forge.yml
     if isinstance(conda_forge_yaml, str):
         sub_graph["conda-forge.yml"] = {
-            k: v
-            for k, v in yaml.safe_load(conda_forge_yaml).items()
-            if k in CONDA_FORGE_YML_KEYS_TO_KEEP
+            k: v for k, v in yaml.safe_load(conda_forge_yaml).items()
         }
 
     if feedstock_dir is not None:
@@ -218,10 +205,12 @@ def populate_feedstock_attributes(
             and len(glob.glob(os.path.join(feedstock_dir, ".ci_support", "*.yaml"))) > 0
         ):
             recipe_dir = os.path.join(feedstock_dir, "recipe")
-            ci_support_files = glob.glob(
-                os.path.join(feedstock_dir, ".ci_support", "*.yaml"),
+            ci_support_files = sorted(
+                glob.glob(
+                    os.path.join(feedstock_dir, ".ci_support", "*.yaml"),
+                ),
             )
-            varient_yamls = []
+            variant_yamls = []
             plat_arch = []
             for cbc_path in ci_support_files:
                 LOGGER.debug("parsing conda-build config: %s", cbc_path)
@@ -235,38 +224,47 @@ def populate_feedstock_attributes(
                         arch = cbc_name_parts[1]
                     else:
                         arch = "64"
+                # some older cbc yaml files have things like "linux64"
+                for _tt in ["64", "aarch64", "ppc64le", "arm64", "32"]:
+                    if plat.endswith(_tt):
+                        plat = plat[: -len(_tt)]
+                        break
                 plat_arch.append((plat, arch))
 
-                varient_yamls.append(
+                variant_yamls.append(
                     parse_meta_yaml(
                         meta_yaml,
                         platform=plat,
                         arch=arch,
                         recipe_dir=recipe_dir,
                         cbc_path=cbc_path,
+                        orig_cbc_path=os.path.join(
+                            recipe_dir,
+                            "conda_build_config.yaml",
+                        ),
                     ),
                 )
 
                 # sometimes the requirements come out to None or [None]
                 # and this ruins the aggregated meta_yaml / breaks stuff
                 LOGGER.debug("getting reqs for config: %s", cbc_path)
-                if "requirements" in varient_yamls[-1]:
-                    varient_yamls[-1]["requirements"] = _clean_req_nones(
-                        varient_yamls[-1]["requirements"],
+                if "requirements" in variant_yamls[-1]:
+                    variant_yamls[-1]["requirements"] = _clean_req_nones(
+                        variant_yamls[-1]["requirements"],
                     )
-                if "outputs" in varient_yamls[-1]:
-                    for iout in range(len(varient_yamls[-1]["outputs"])):
-                        if "requirements" in varient_yamls[-1]["outputs"][iout]:
-                            varient_yamls[-1]["outputs"][iout][
+                if "outputs" in variant_yamls[-1]:
+                    for iout in range(len(variant_yamls[-1]["outputs"])):
+                        if "requirements" in variant_yamls[-1]["outputs"][iout]:
+                            variant_yamls[-1]["outputs"][iout][
                                 "requirements"
                             ] = _clean_req_nones(
-                                varient_yamls[-1]["outputs"][iout]["requirements"],
+                                variant_yamls[-1]["outputs"][iout]["requirements"],
                             )
 
                 # collapse them down
                 LOGGER.debug("collapsing reqs for config: %s", cbc_path)
                 final_cfgs = {}
-                for plat_arch, varyml in zip(plat_arch, varient_yamls):
+                for plat_arch, varyml in zip(plat_arch, variant_yamls):
                     if plat_arch not in final_cfgs:
                         final_cfgs[plat_arch] = []
                     final_cfgs[plat_arch].append(varyml)
@@ -274,17 +272,17 @@ def populate_feedstock_attributes(
                     ymls = final_cfgs[k]
                     final_cfgs[k] = _convert_to_dict(ChainDB(*ymls))
                 plat_arch = []
-                varient_yamls = []
+                variant_yamls = []
                 for k, v in final_cfgs.items():
                     plat_arch.append(k)
-                    varient_yamls.append(v)
+                    variant_yamls.append(v)
         else:
             LOGGER.debug("doing generic parsing")
             plat_arch = [("win", "64"), ("osx", "64"), ("linux", "64")]
             for k in set(sub_graph["conda-forge.yml"].get("provider", {})):
                 if "_" in k:
-                    plat_arch.append(k.split("_"))
-            varient_yamls = [
+                    plat_arch.append(tuple(k.split("_")))
+            variant_yamls = [
                 parse_meta_yaml(meta_yaml, platform=plat, arch=arch)
                 for plat, arch in plat_arch
             ]
@@ -292,23 +290,24 @@ def populate_feedstock_attributes(
         import traceback
 
         trb = traceback.format_exc()
-        sub_graph["bad"] = f"make_graph: render error {e}\n{trb}"
+        sub_graph["parsing_error"] = f"make_graph: render error {e}\n{trb}"
         raise
 
     LOGGER.debug("platforms: %s", plat_arch)
+    sub_graph["platforms"] = ["_".join(k) for k in plat_arch]
 
     # this makes certain that we have consistent ordering
-    sorted_varient_yamls = [x for _, x in sorted(zip(plat_arch, varient_yamls))]
-    yaml_dict = ChainDB(*sorted_varient_yamls)
+    sorted_variant_yamls = [x for _, x in sorted(zip(plat_arch, variant_yamls))]
+    yaml_dict = ChainDB(*sorted_variant_yamls)
     if not yaml_dict:
         LOGGER.error(f"Something odd happened when parsing recipe {name}")
-        sub_graph["bad"] = "make_graph: Could not parse"
+        sub_graph["parsing_error"] = "make_graph: Could not parse"
         return sub_graph
 
     sub_graph["meta_yaml"] = _convert_to_dict(yaml_dict)
     meta_yaml = sub_graph["meta_yaml"]
 
-    for k, v in zip(plat_arch, varient_yamls):
+    for k, v in zip(plat_arch, variant_yamls):
         plat_arch_name = "_".join(k)
         sub_graph[f"{plat_arch_name}_meta_yaml"] = v
         _, sub_graph[f"{plat_arch_name}_requirements"], _ = _extract_requirements(v)
@@ -420,15 +419,5 @@ def load_feedstock(
             mark_not_archived=mark_not_archived,
             feedstock_dir=feedstock_dir,
         )
-
-    # populate migrator attempts if they are not there
-    pre_key = "pre_pr_migrator_status"
-    pre_key_att = "pre_pr_migrator_attempts"
-    if pre_key in sub_graph:
-        if pre_key_att not in sub_graph:
-            sub_graph[pre_key_att] = {}
-        for mn in sub_graph[pre_key]:
-            if mn not in sub_graph[pre_key_att]:
-                sub_graph[pre_key_att][mn] = 1
 
     return sub_graph

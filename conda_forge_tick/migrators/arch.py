@@ -13,7 +13,7 @@ from conda_forge_tick.utils import (
     yaml_safe_load,
     yaml_safe_dump,
 )
-from conda_forge_tick.utils import pushd
+from conda_forge_tick.os_utils import pushd
 from conda_forge_tick.make_graph import get_deps_from_outputs_lut
 from .migration_yaml import all_noarch
 
@@ -109,7 +109,9 @@ class ArchRebuild(GraphMigrator):
                 attrs.get("conda-forge.yml", {}).get("provider", {}).get(arch)
             )
             if configured_arch:
-                return muid in _sanitized_muids(attrs.get("PRed", []))
+                return muid in _sanitized_muids(
+                    attrs.get("pr_info", {}).get("PRed", []),
+                )
         else:
             return False
 
@@ -258,7 +260,9 @@ class OSXArm(GraphMigrator):
                 attrs.get("conda-forge.yml", {}).get("provider", {}).get(arch)
             )
             if configured_arch:
-                return muid in _sanitized_muids(attrs.get("PRed", []))
+                return muid in _sanitized_muids(
+                    attrs.get("pr_info", {}).get("PRed", []),
+                )
         else:
             return False
 
@@ -269,7 +273,16 @@ class OSXArm(GraphMigrator):
             self.set_build_number("recipe/meta.yaml")
             with open("conda-forge.yml") as f:
                 y = yaml_safe_load(f)
-            y.update(self.additional_keys)
+            # we should do this recursively but the cf yaml is usually
+            # one key deep so this is fine
+            for k, v in self.additional_keys.items():
+                if isinstance(v, dict):
+                    if k not in y:
+                        y[k] = {}
+                    for _k, _v in v.items():
+                        y[k][_k] = _v
+                else:
+                    y[k] = v
             with open("conda-forge.yml", "w") as f:
                 yaml_safe_dump(y, f)
 

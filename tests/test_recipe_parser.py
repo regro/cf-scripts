@@ -1012,7 +1012,7 @@ build:
   {% else %}
   {% set mpi_prefix = "nompi" %}
   {% endif %}
-  string: {{ mpi_prefix }}_h{{ PKG_HASH }}_{{ build }}
+  string: "{{ mpi_prefix }}_h{{ PKG_HASH }}_{{ build }}"
 
   run_exports:
     - {{ pin_compatible('fftw', max_pin='x') }}
@@ -1109,7 +1109,7 @@ about:
   home: http://fftw.org
   license: GPL-2.0-or-later
   license_file: COPYING
-  summary: The fastest Fourier transform in the west.
+  summary: "The fastest Fourier transform in the west."
 
 extra:
   recipe-maintainers:
@@ -1571,3 +1571,31 @@ extra:
     cm.dump(s)
     s.seek(0)
     assert s.read() == recipe_parsed
+
+
+def test_recipe_parses_strings_colons_quotes():
+    recipe = """\
+test:
+  commands:
+    - "DISPLAY=localhost:1.0 xvfb-run -a affinder --help"  # [linux]
+    - 'DISPLAY=localhost:1.0 xvfb-run -a affinder --help'  # [linux]
+    - "foo": bar  # [linux]
+      blah: blah blah  # [linux]
+      'ghg': ggsdf  # [linux]
+"""
+
+    recipe_correct = """\
+test:
+  commands:
+    - "DISPLAY=localhost:1.0 xvfb-run -a affinder --help"  # [linux]
+    - 'DISPLAY=localhost:1.0 xvfb-run -a affinder --help'  # [linux]
+    - "foo": bar  # [linux]
+      blah: blah blah  # [linux]
+      'ghg': ggsdf  # [linux]
+"""
+    cm = CondaMetaYAML(recipe)
+    s = io.StringIO()
+    cm.dump(s)
+    s.seek(0)
+    new_recipe = s.read()
+    assert new_recipe == recipe_correct

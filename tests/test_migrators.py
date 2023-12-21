@@ -1,6 +1,6 @@
 import os
-import builtins
 import re
+import tempfile
 
 import pytest
 import networkx as nx
@@ -17,11 +17,11 @@ from conda_forge_tick.migrators import (
     Migrator,
     MiniMigrator,
 )
+from conda_forge_tick.lazy_json_backends import LazyJson
 
 # Legacy THINGS
 from conda_forge_tick.migrators.disabled.legacy import (
     JS,
-    Compiler,
     Noarch,
     Pinning,
     NoarchR,
@@ -34,8 +34,8 @@ from conda_forge_tick.utils import (
     frozen_to_json_friendly,
 )
 from conda_forge_tick.feedstock_parser import populate_feedstock_attributes
-from xonsh.lib import subprocess
-from conda_forge_tick.utils import pushd
+import subprocess
+from conda_forge_tick.os_utils import pushd
 
 
 sample_yaml_rebuild = """
@@ -316,8 +316,8 @@ def run_test_yaml_migration(
 
     mr = m.migrate(os.path.join(tmpdir, "recipe"), pmy)
     assert mr_out == mr
-
-    pmy.update(PRed=[frozen_to_json_friendly(mr)])
+    pmy["pr_info"] = {}
+    pmy["pr_info"].update(PRed=[frozen_to_json_friendly(mr)])
     with open(os.path.join(tmpdir, "recipe/meta.yaml")) as f:
         actual_output = f.read()
     assert actual_output == output
@@ -1607,7 +1607,6 @@ extra:
 
 js = JS()
 version = Version(set())
-# compiler = Compiler()
 noarch = Noarch()
 noarchr = NoarchR()
 perl = Pinning(removals={"perl"})
@@ -1641,13 +1640,17 @@ class MockLazyJson:
     def __init__(self, data):
         self.data = data
 
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *args):
+        pass
+
 
 G = nx.DiGraph()
 G.add_node("conda", reqs=["python"])
 G.nodes["conda"]["payload"] = MockLazyJson({})
-env = builtins.__xonsh__.env  # type: ignore
-env["GRAPH"] = G
-env["CIRCLE_BUILD_URL"] = "hi world"
+os.environ["CIRCLE_BUILD_URL"] = "hi world"
 
 
 def run_test_migration(
@@ -1667,7 +1670,7 @@ def run_test_migration(
         pinning_version="",
         github_username="",
         github_password="",
-        circle_build_url=env["CIRCLE_BUILD_URL"],
+        circle_build_url=os.environ["CIRCLE_BUILD_URL"],
     )
     m_ctx = MigratorContext(mm_ctx, m)
     m.bind_to_ctx(m_ctx)
@@ -1702,55 +1705,64 @@ def run_test_migration(
     pmy["raw_meta_yaml"] = inp
     pmy.update(kwargs)
 
-    assert m.filter(pmy) is should_filter
-    if should_filter:
-        return pmy
+    with tempfile.TemporaryDirectory() as vtmpdir:
+        if "version_pr_info" not in pmy:
+            if tmpdir is None:
+                pmy["version_pr_info"] = LazyJson(os.path.join(vtmpdir, "v.json"))
+            else:
+                pmy["version_pr_info"] = LazyJson(os.path.join(tmpdir, "v.json"))
+            if "new_version" in pmy:
+                with pmy["version_pr_info"] as vpri:
+                    vpri["new_version"] = pmy.pop("new_version")
 
-    m.run_pre_piggyback_migrations(
-        tmpdir,
-        pmy,
-        hash_type=pmy.get("hash_type", "sha256"),
-    )
-    mr = m.migrate(tmpdir, pmy, hash_type=pmy.get("hash_type", "sha256"))
-    m.run_post_piggyback_migrations(
-        tmpdir,
-        pmy,
-        hash_type=pmy.get("hash_type", "sha256"),
-    )
+        assert m.filter(pmy) is should_filter
+        if should_filter:
+            return pmy
 
-    if make_body:
-        fctx = FeedstockContext(
-            package_name=name,
-            feedstock_name=name,
-            attrs=pmy,
+        m.run_pre_piggyback_migrations(
+            tmpdir,
+            pmy,
+            hash_type=pmy.get("hash_type", "sha256"),
         )
-        fctx.feedstock_dir = os.path.dirname(tmpdir)
-        m_ctx.effective_graph.add_node(name)
-        m_ctx.effective_graph.nodes[name]["payload"] = MockLazyJson({})
-        m.pr_body(fctx)
+        mr = m.migrate(tmpdir, pmy, hash_type=pmy.get("hash_type", "sha256"))
+        m.run_post_piggyback_migrations(
+            tmpdir,
+            pmy,
+            hash_type=pmy.get("hash_type", "sha256"),
+        )
 
-    assert mr_out == mr
-    if not mr:
-        return pmy
+        if make_body:
+            fctx = FeedstockContext(
+                package_name=name,
+                feedstock_name=name,
+                attrs=pmy,
+            )
+            fctx.feedstock_dir = os.path.dirname(tmpdir)
+            m_ctx.effective_graph.add_node(name)
+            m_ctx.effective_graph.nodes[name]["payload"] = MockLazyJson({})
+            m.pr_body(fctx)
 
-    pmy.update(PRed=[frozen_to_json_friendly(mr)])
-    with open(os.path.join(tmpdir, "meta.yaml")) as f:
-        actual_output = f.read()
-    # strip jinja comments
-    pat = re.compile(r"{#.*#}")
-    actual_output = pat.sub("", actual_output)
-    output = pat.sub("", output)
-    assert actual_output == output
-    if isinstance(m, Compiler):
-        assert m.messages in m.pr_body(None)
-    # TODO: fix subgraph here (need this to be xsh file)
-    elif isinstance(m, Version):
-        pass
-    elif isinstance(m, Rebuild):
-        return pmy
-    else:
-        assert prb in m.pr_body(None)
-    assert m.filter(pmy) is True
+        assert mr_out == mr
+        if not mr:
+            return pmy
+
+        pmy["pr_info"] = {}
+        pmy["pr_info"].update(PRed=[frozen_to_json_friendly(mr)])
+        with open(os.path.join(tmpdir, "meta.yaml")) as f:
+            actual_output = f.read()
+        # strip jinja comments
+        pat = re.compile(r"{#.*#}")
+        actual_output = pat.sub("", actual_output)
+        output = pat.sub("", output)
+        assert actual_output == output
+        # TODO: fix subgraph here (need this to be xsh file)
+        if isinstance(m, Version):
+            pass
+        elif isinstance(m, Rebuild):
+            return pmy
+        else:
+            assert prb in m.pr_body(None)
+        assert m.filter(pmy) is True
 
     return pmy
 
@@ -1818,22 +1830,6 @@ def test_js_migrator2(tmpdir):
         kwargs={},
         prb="Please merge the PR only after the tests have passed.",
         mr_out={"migrator_name": "JS", "migrator_version": JS.migrator_version},
-        tmpdir=tmpdir,
-    )
-
-
-@pytest.mark.skip
-def test_cb3(tmpdir):
-    run_test_migration(
-        m=compiler,
-        inp=sample_cb3,
-        output=correct_cb3,
-        kwargs={},
-        prb="N/A",
-        mr_out={
-            "migrator_name": "Compiler",
-            "migrator_version": Compiler.migrator_version,
-        },
         tmpdir=tmpdir,
     )
 

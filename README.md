@@ -1,22 +1,26 @@
-# cf-scripts
-[![tests](https://github.com/regro/cf-scripts/workflows/tests/badge.svg)](https://github.com/regro/cf-scripts/actions?query=workflow%3Atests)
+# autotick-bot
+[![tests](https://github.com/regro/cf-scripts/actions/workflows/tests.yml/badge.svg)](https://github.com/regro/cf-scripts/actions/workflows/tests.yml)
+[![pre-commit](https://github.com/regro/cf-scripts/actions/workflows/pre-commit.yml/badge.svg)](https://github.com/regro/cf-scripts/actions/workflows/pre-commit.yml)
+[![bot-bot](https://github.com/regro/cf-scripts/actions/workflows/bot-bot.yml/badge.svg)](https://github.com/regro/cf-scripts/actions/workflows/bot-bot.yml)
+[![bot-update-status-page](https://github.com/regro/cf-scripts/actions/workflows/bot-update-status-page.yml/badge.svg)](https://github.com/regro/cf-scripts/actions/workflows/bot-update-status-page.yml)
+[![bot-pypi-mapping](https://github.com/regro/cf-scripts/actions/workflows/bot-pypi-mapping.yml/badge.svg)](https://github.com/regro/cf-scripts/actions/workflows/bot-pypi-mapping.yml)
+[![bot-versions](https://github.com/regro/cf-scripts/actions/workflows/bot-versions.yml/badge.svg)](https://github.com/regro/cf-scripts/actions/workflows/bot-versions.yml)
+[![bot-prs](https://github.com/regro/cf-scripts/actions/workflows/bot-prs.yml/badge.svg)](https://github.com/regro/cf-scripts/actions/workflows/bot-prs.yml)
+[![bot-feedstocks](https://github.com/regro/cf-scripts/actions/workflows/bot-feedstocks.yml/badge.svg)](https://github.com/regro/cf-scripts/actions/workflows/bot-feedstocks.yml)
+[![bot-delete-old-runs](https://github.com/regro/cf-scripts/actions/workflows/bot-delete-old-runs.yml/badge.svg)](https://github.com/regro/cf-scripts/actions/workflows/bot-delete-old-runs.yml)
+[![bot-make-graph](https://github.com/regro/cf-scripts/actions/workflows/bot-make-graph.yml/badge.svg)](https://github.com/regro/cf-scripts/actions/workflows/bot-make-graph.yml)
+[![bot-cache](https://github.com/regro/cf-scripts/actions/workflows/bot-cache.yml/badge.svg)](https://github.com/regro/cf-scripts/actions/workflows/bot-cache.yml)
 
-Conda-Forge dependency graph tracker and auto ticker
+the actual bot in an actual place doing an actual thing
 
-## Autotick Bot Status and PRs
-pull requests: [regro-cf-autotick-bot's PRs](https://github.com/pulls?utf8=%E2%9C%93&q=is%3Aopen+is%3Apr+author%3Aregro-cf-autotick-bot+archived%3Afalse+)
+## Starting and Stopping the Worker
 
-autotick bot status: [![bot](https://github.com/regro/autotick-bot/workflows/bot/badge.svg)](https://github.com/regro/autotick-bot/actions?query=workflow%3Abot)
+In order to start the worker, make a commit to master with the file `please.go`
+in the `autotick-bot` subdirectory.
 
-## Setup
+If you want to stop the worker, rename the file to `please.stop` and it will not restart
+itself on the next round.
 
-Below are instructions for setting up a local installation for testing. They
-assume that you have conda installed and conda-forge is in your channel list.
+## What has the bot done recently?
 
-```
-conda create -y -n cf --file requirements/run --file requirements/test ipython
-source activate cf
-python setup.py install
-pre-commit run -a
-coverage run run_tests.py
-```
+Check out its [PRs](https://github.com/pulls?utf8=%E2%9C%93&q=is%3Aopen+is%3Apr+author%3Aregro-cf-autotick-bot+archived%3Afalse+), its currently [running jobs](https://github.com/regro/cf-scripts/actions?query=is%3Ain_progress++), and the [status page](https://conda-forge.org/status/#current_migrations)!

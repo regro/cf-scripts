@@ -1,7 +1,7 @@
 from typing import Any
 import typing
 
-from conda_forge_tick.utils import pushd
+from conda_forge_tick.os_utils import pushd
 from .core import MiniMigrator
 from conda_forge_tick.utils import as_iterable
 

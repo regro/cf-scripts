@@ -6,39 +6,47 @@ import typing
 import traceback
 from concurrent.futures import as_completed
 from collections import defaultdict
+import random
 
+import tqdm
 from typing import List, Optional, Iterable
 import psutil
-import json
 import networkx as nx
-from conda.models.version import VersionOrder
 
 # from conda_forge_tick.profiler import profiling
 
 from conda_forge_tick.feedstock_parser import load_feedstock
 from .all_feedstocks import get_all_feedstocks, get_archived_feedstocks
 from .contexts import GithubContext
+from .executors import executor
 from .utils import (
     setup_logger,
-    executor,
     load_graph,
     dump_graph,
-    LazyJson,
     as_iterable,
 )
-from .xonsh_utils import env
+from . import sensitive_env
+from conda_forge_tick.lazy_json_backends import (
+    LazyJson,
+    get_all_keys_for_hashmap,
+    lazy_json_transaction,
+    lazy_json_override_backends,
+)
 
 if typing.TYPE_CHECKING:
     from .cli import CLIArgs
 
 LOGGER = logging.getLogger("conda_forge_tick.make_graph")
 pin_sep_pat = re.compile(r" |>|<|=|\[")
+random.seed(os.urandom(64))
 
+RANDOM_FRAC_TO_UPDATE = 1.5
 NUM_GITHUB_THREADS = 2
 
-github_username = env.get("USERNAME", "")
-github_password = env.get("PASSWORD", "")
-github_token = env.get("GITHUB_TOKEN")
+with sensitive_env() as env:
+    github_username = env.get("USERNAME", "")
+    github_password = env.get("PASSWORD", "")
+    github_token = env.get("GITHUB_TOKEN")
 
 ghctx = GithubContext(
     github_username=github_username,
@@ -72,10 +80,11 @@ def make_outputs_lut_from_graph(gx):
     outputs_lut = defaultdict(set)
     for node_name, node in gx.nodes.items():
         for k in node.get("payload", {}).get("outputs_names", []):
-            if node_name != "pypy-meta":
+            if node_name != "pypy-meta" and node_name != "graalpy":
                 outputs_lut[k].add(node_name)
-            elif k == "pypy":
+            elif k in ["pypy", "graalpy"]:
                 # for pypy-meta we only map to pypy and not python or cffi
+                # for graalpy we only map to graalpy and not python or openjdk
                 outputs_lut[k].add(node_name)
     return outputs_lut
 
@@ -84,7 +93,62 @@ def get_attrs(name: str, i: int, mark_not_archived=False) -> LazyJson:
     lzj = LazyJson(f"node_attrs/{name}.json")
     with lzj as sub_graph:
         load_feedstock(name, sub_graph, mark_not_archived=mark_not_archived)
+
     return lzj
+
+
+def _migrate_schema(name, sub_graph):
+    # schema migrations and fixes go here
+    if "version_pr_info" not in sub_graph:
+        with lazy_json_transaction():
+            sub_graph["version_pr_info"] = LazyJson(f"version_pr_info/{name}.json")
+            with sub_graph["version_pr_info"] as vpri:
+                for key in ["new_version_attempts", "new_version_errors"]:
+                    if key not in vpri:
+                        vpri[key] = {}
+                    if key in sub_graph:
+                        vpri[key].update(sub_graph.pop(key))
+
+    if "new_version" in sub_graph:
+        with lazy_json_transaction():
+            with sub_graph["version_pr_info"] as vpri:
+                vpri["new_version"] = sub_graph.pop("new_version")
+
+    if "pr_info" not in sub_graph:
+        with lazy_json_transaction():
+            sub_graph["pr_info"] = LazyJson(f"pr_info/{name}.json")
+            with sub_graph["pr_info"] as pri:
+                pre_key = "pre_pr_migrator_status"
+                pre_key_att = "pre_pr_migrator_attempts"
+
+                for key in [pre_key, pre_key_att]:
+                    if key not in pri:
+                        pri[key] = {}
+                    if key in sub_graph:
+                        pri[key].update(sub_graph.pop(key))
+
+                # populate migrator attempts if they are not there
+                for mn in pri[pre_key]:
+                    if mn not in pri[pre_key_att]:
+                        pri[pre_key_att][mn] = 1
+
+    keys_to_move = [
+        "PRed",
+        "smithy_version",
+        "pinning_version",
+        "bad",
+    ]
+    if any(key in sub_graph for key in keys_to_move):
+        with lazy_json_transaction():
+            with sub_graph["pr_info"] as pri:
+                for key in keys_to_move:
+                    if key in sub_graph:
+                        pri[key] = sub_graph.pop(key)
+                        if key == "bad":
+                            pri["bad"] = False
+
+    if "parsing_error" not in sub_graph:
+        sub_graph["parsing_error"] = "make_graph: missing parsing_error key"
 
 
 def _build_graph_process_pool(
@@ -97,6 +161,7 @@ def _build_graph_process_pool(
         futures = {
             pool.submit(get_attrs, name, i, mark_not_archived=mark_not_archived): name
             for i, name in enumerate(names)
+            if random.uniform(0, 1) < RANDOM_FRAC_TO_UPDATE
         }
         LOGGER.info("submitted all nodes")
 
@@ -193,7 +258,8 @@ def _create_edges(gx: nx.DiGraph) -> nx.DiGraph:
                 # for packages which aren't feedstocks and aren't outputs
                 # usually these are stubs
                 lzj = LazyJson(f"node_attrs/{dep}.json")
-                lzj.update(feedstock_name=dep, bad=False, archived=True)
+                with lzj as _attrs:
+                    _attrs.update(feedstock_name=dep, bad=False, archived=True)
                 gx.add_node(dep, payload=lzj)
             gx.add_edge(dep, node)
     LOGGER.info("new nodes and edges inferred")
@@ -233,75 +299,20 @@ def make_graph(
     return gx
 
 
-def _update_nodes_with_bot_rerun(gx):
-    """Go through all the open PRs and check if they are rerun"""
-    for i, (name, node) in enumerate(gx.nodes.items()):
-        # LOGGER.info(
-        #     f"node: {i} memory usage: "
-        #     f"{psutil.Process().memory_info().rss // 1024 ** 2}MB",
-        # )
-        with node["payload"] as payload:
-            for migration in payload.get("PRed", []):
-                try:
-                    pr_json = migration.get("PR", {})
-                    # maybe add a pass check info here ? (if using DEBUG)
-                except Exception as e:
-                    LOGGER.error(
-                        f"BOT-RERUN : could not proceed check with {node}, {e}",
-                    )
-                    raise e
-                # if there is a valid PR and it isn't currently listed as rerun
-                # but the PR needs a rerun
-                if (
-                    pr_json
-                    and not migration["data"]["bot_rerun"]
-                    and "bot-rerun" in [lb["name"] for lb in pr_json.get("labels", [])]
-                ):
-                    migration["data"]["bot_rerun"] = time.time()
-                    LOGGER.info(
-                        "BOT-RERUN %s: processing bot rerun label for migration %s",
-                        name,
-                        migration["data"],
-                    )
-
-
-def _update_nodes_with_new_versions(gx):
-    """Updates every node with it's new version (when available)"""
-    # check if the versions folder is available
-    if os.path.isdir("./versions"):
-        pass
-    else:
-        return
-    # get all the available node.json files
-    # TODO: I don't thing this is a good idea (8000+ entries)
-    list_files = os.listdir("./versions/")
-
-    for file in list_files:
-        node = os.path.splitext(os.path.basename(str(file)))[0]
-        with open(f"./versions/{file}") as json_file:
-            version_data: typing.Dict = json.load(json_file)
-        with gx.nodes[f"{node}"]["payload"] as attrs:
-            version_from_data = version_data.get("new_version", False)
-            version_from_attrs = attrs.get("new_version", False)
-            # don't update the version if it isn't newer
-            if version_from_data and isinstance(version_from_data, str):
-                # we only override the graph node if the version we found is newer
-                # or the graph doesn't have a valid version
-                if isinstance(version_from_attrs, str):
-                    attrs["new_version"] = max(
-                        [version_from_data, version_from_attrs],
-                        key=lambda x: VersionOrder(x.replace("-", ".")),
-                    )
-                else:
-                    attrs["new_version"] = version_from_data
-
-
 def _update_nodes_with_archived(gx, archived_names):
     for name in archived_names:
         if name in gx.nodes:
             node = gx.nodes[name]
             with node["payload"] as payload:
                 payload["archived"] = True
+
+
+def _migrate_schemas():
+    # make sure to apply all schema migrations, not just those in the graph
+    nodes = get_all_keys_for_hashmap("node_attrs")
+    for node in tqdm.tqdm(nodes, desc="migrating node schemas", miniters=100, ncols=80):
+        with LazyJson(f"node_attrs/{node}.json") as sub_graph:
+            _migrate_schema(node, sub_graph)
 
 
 # @profiling
@@ -312,22 +323,20 @@ def main(args: "CLIArgs") -> None:
         setup_logger(logging.getLogger("conda_forge_tick"))
 
     names = get_all_feedstocks(cached=True)
-    if os.path.exists("graph.json"):
-        gx = load_graph()
-    else:
-        gx = None
-    gx = make_graph(names, gx, mark_not_archived=True, debug=args.debug)
-    nodes_without_paylod = [k for k, v in gx.nodes.items() if "payload" not in v]
-    if nodes_without_paylod:
-        LOGGER.warning("nodes w/o payload: %s", nodes_without_paylod)
+    gx = load_graph()
 
-    _update_nodes_with_bot_rerun(gx)
-    _update_nodes_with_new_versions(gx)
+    with lazy_json_override_backends(["file"], hashmaps_to_sync=["node_attrs"]):
+        gx = make_graph(names, gx, mark_not_archived=True, debug=args.debug)
+        nodes_without_paylod = [k for k, v in gx.nodes.items() if "payload" not in v]
+        if nodes_without_paylod:
+            LOGGER.warning("nodes w/o payload: %s", nodes_without_paylod)
 
-    archived_names = get_archived_feedstocks(cached=True)
-    _update_nodes_with_archived(gx, archived_names)
+        archived_names = get_archived_feedstocks(cached=True)
+        _update_nodes_with_archived(gx, archived_names)
 
     dump_graph(gx)
+
+    _migrate_schemas()
 
 
 if __name__ == "__main__":

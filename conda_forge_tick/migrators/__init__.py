@@ -8,6 +8,8 @@ from .core import (
 from .conda_forge_yaml_cleanup import CondaForgeYAMLCleanup
 from .mpi_pin_run_as_build import MPIPinRunAsBuildCleanup
 from .qt_to_qt_main import QtQtMainMigrator
+from .jpegturbo import JpegTurboMigrator
+from .libboost import LibboostMigrator
 from .migration_yaml import MigrationYaml, MigrationYamlCreator, merge_migrator_cbc
 from .arch import ArchRebuild, OSXArm
 from .pip_check import PipCheckMigrator

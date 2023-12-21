@@ -15,8 +15,7 @@ import github3.exceptions
 import github3.repos
 
 from doctr.travis import run_command_hiding_token as doctr_run
-from .xonsh_utils import env
-from .utils import pushd
+from .os_utils import pushd
 
 from requests.exceptions import Timeout, RequestException
 from .contexts import GithubContext, FeedstockContext, MigratorSessionContext
@@ -26,7 +25,7 @@ import backoff
 
 # TODO: handle the URLs more elegantly (most likely make this a true library
 # and pull all the needed info from the various source classes)
-from conda_forge_tick.utils import LazyJson
+from conda_forge_tick.lazy_json_backends import LazyJson
 
 from conda_forge_tick import sensitive_env
 
@@ -287,7 +286,8 @@ def get_repo(
         repo = gh.repository("conda-forge", feedstock_reponame)
         if repo is None:
             print("could not fork conda-forge/%s!" % feedstock_reponame, flush=True)
-            fctx.attrs["bad"] = f"{fctx.package_name}: does not match feedstock name\n"
+            with fctx.attrs["pr_info"] as pri:
+                pri["bad"] = f"{fctx.package_name}: does not match feedstock name\n"
             return False, False
 
     # Check if fork exists
@@ -489,7 +489,7 @@ def refresh_pr(
     gh: Optional[github3.GitHub] = None,
     dry_run: bool = False,
 ) -> Optional[dict]:
-    if not pr_json["state"] == "closed":
+    if pr_json["state"] != "closed":
         if dry_run:
             print("dry run: refresh pr %s" % pr_json["id"])
             pr_dict = dict(pr_json)
@@ -616,7 +616,7 @@ def push_repo(
         The dict representing the PR, can be used with `from_json`
         to create a PR instance.
     """
-    with pushd(feedstock_dir), env.swap(RAISE_SUBPROC_ERROR=False):
+    with pushd(feedstock_dir):
         # Setup push from doctr
         # Copyright (c) 2016 Aaron Meurer, Gil Forsyth
         token = session_ctx.github_password
@@ -627,7 +627,7 @@ def push_repo(
             repo_url = f"https://github.com/{deploy_repo}.git"
             print(f"dry run: adding remote and pushing up branch for {repo_url}")
         else:
-            doctr_run(
+            ecode = doctr_run(
                 [
                     "git",
                     "remote",
@@ -637,11 +637,18 @@ def push_repo(
                 ],
                 token=token.encode("utf-8"),
             )
+            if ecode != 0:
+                print("Failed to add git remote!")
+                return False
 
-            doctr_run(
+            ecode = doctr_run(
                 ["git", "push", "--set-upstream", "regro_remote", branch],
                 token=token.encode("utf-8"),
             )
+            if ecode != 0:
+                print("Failed to push to remote!")
+                return False
+
     # lastly make a PR for the feedstock
     print("Creating conda-forge feedstock pull request...")
     if session_ctx.dry_run:

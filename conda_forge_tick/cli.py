@@ -5,21 +5,27 @@ import time
 
 from .deploy import deploy
 
-INT_SCRIPT_DICT = {
-    0: {"module": "all_feedstocks", "func": "main"},
-    1: {"module": "make_graph", "func": "main"},
-    2: {"module": "update_upstream_versions", "func": "main"},
-    3: {"module": "auto_tick", "func": "main"},
-    4: {"module": "status_report", "func": "main"},
-    5: {"module": "audit", "func": "main"},
-    6: {"module": "update_prs", "func": "main"},
-    7: {"module": "mappings", "func": "main"},
+SCRIPT_DICT = {
+    "gather-all-feedstocks": {"module": "all_feedstocks", "func": "main"},
+    "make-graph": {"module": "make_graph", "func": "main"},
+    "update-upstream-versions": {"module": "update_upstream_versions", "func": "main"},
+    "auto-tick": {"module": "auto_tick", "func": "main"},
+    "make-status-report": {"module": "status_report", "func": "main"},
+    "update-prs": {"module": "update_prs", "func": "main"},
+    "make-mappings": {"module": "mappings", "func": "main"},
+    "deploy-to-github": None,
+    "backup-lazy-json": {"module": "lazy_json_backups", "func": "main_backup"},
+    "sync-lazy-json-across-backends": {
+        "module": "lazy_json_backends",
+        "func": "main_sync",
+    },
+    "cache-lazy-json-to-disk": {"module": "lazy_json_backends", "func": "main_cache"},
 }
 
 
 def main(*args, **kwargs):
     parser = argparse.ArgumentParser("a tool to help update feedstocks.")
-    parser.add_argument("--run")
+    parser.add_argument("step", choices=list(SCRIPT_DICT.keys()))
     parser.add_argument(
         "--debug",
         dest="debug",
@@ -38,23 +44,32 @@ def main(*args, **kwargs):
         help="Don't push changes to PRs or graph to Github",
     )
     parser.add_argument(
-        "--cf-graph",
-        dest="cf_graph",
-        default=".",
-        help="location of the graph",
+        "--job",
+        default=1,
+        type=int,
+        help=(
+            "If given with --n-jobs, the number of the job to "
+            "run in the range [1, n_jobs]."
+        ),
+    )
+    parser.add_argument(
+        "--n-jobs",
+        default=1,
+        type=int,
+        help=("If given, the total number of jobs being run."),
     )
     args = parser.parse_args()
 
     if args.debug:
         os.environ["CONDA_FORGE_TICK_DEBUG"] = "1"
 
-    script = int(args.run)
-    if script in INT_SCRIPT_DICT or script == -1:
+    script = args.step
+    if script in SCRIPT_DICT:
         start = time.time()
-        if script == -1:
+        if script == "deploy-to-github":
             deploy(dry_run=args.dry_run)
         else:
-            script_md = INT_SCRIPT_DICT[script]
+            script_md = SCRIPT_DICT[script]
             func = getattr(
                 importlib.import_module(f"conda_forge_tick.{script_md['module']}"),
                 script_md["func"],
@@ -64,4 +79,4 @@ def main(*args, **kwargs):
         print(f"FINISHED STAGE {script} IN {time.time() - start} SECONDS")
 
     else:
-        raise RuntimeError("Unknown script number")
+        raise RuntimeError("Unknown step!")

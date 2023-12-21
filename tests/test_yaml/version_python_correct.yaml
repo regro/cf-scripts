@@ -108,7 +108,7 @@ source:
     sha256: de3c87b26a80e789986d8e6950c6304175d3829afe9c6c7211eb7257266ab0ac  # [win]
   - url: https://github.com/python/cpython-bin-deps/archive/libffi.zip  # [win]
     folder: externals/libffi  # [win]
-    sha256: 346978268569d63cecf668e031d56908019b4098cdad18729d1d5af495d34641  # [win]
+    sha256: 618c607049f99697fbb12e120b3795b071b6c9fc4b8f20b29fe2e4d187d0f910  # [win]
 
 build:
   number: {{ build_number }}
@@ -169,8 +169,8 @@ outputs:
         # Putting these here means they get emitted to build_env_setup.{sh,bat} meaning we can launch IDEs
         # after sourcing or calling that script without examine the contents of conda_build.{sh,bat} for
         # important env. vars.
-        - OPENSSL_DIR=%PREFIX%\Library    # [win]
-        - SQLITE3_DIR=%PREFIX%\Library    # [win]
+        - 'OPENSSL_DIR=%PREFIX%\Library'  # [win]
+        - 'SQLITE3_DIR=%PREFIX%\Library'  # [win]
 {% if 'conda-forge' in channel_targets %}
         - CONDA_FORGE=yes
 {% else %}

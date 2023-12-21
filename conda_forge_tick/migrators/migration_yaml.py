@@ -13,8 +13,8 @@ import networkx as nx
 
 from conda_forge_tick.contexts import FeedstockContext
 from conda_forge_tick.migrators.core import GraphMigrator, MiniMigrator, Migrator
-from conda_forge_tick.utils import pushd
-from conda_forge_tick.utils import eval_cmd, pluck, yaml_safe_load, yaml_safe_dump
+from conda_forge_tick.os_utils import pushd, eval_cmd
+from conda_forge_tick.utils import pluck, yaml_safe_load, yaml_safe_dump
 from conda_forge_tick.make_graph import get_deps_from_outputs_lut
 from conda_forge_tick.feedstock_parser import PIN_SEP_PAT
 
@@ -162,7 +162,9 @@ class MigrationYaml(GraphMigrator):
                     if self.migrator_uid(v.get("payload", {}))
                     in [
                         vv.get("data", {})
-                        for vv in v.get("payload", {}).get("PRed", [])
+                        for vv in v.get("payload", {})
+                        .get("pr_info", {})
+                        .get("PRed", [])
                     ]
                 ],
             )
@@ -171,17 +173,34 @@ class MigrationYaml(GraphMigrator):
             elif number_pred < 7:
                 self.pr_limit = 5
         self.bump_number = bump_number
-        self.max_solver_attempts = 3
+        self.max_solver_attempts = max_solver_attempts
 
     def filter(self, attrs: "AttrsTypedDict", not_bad_str_start: str = "") -> bool:
-        wait_for_migrators = self.loaded_yaml.get("__migrator", {}).get(
-            "wait_for_migrators",
-            [],
-        )
+        """
+        Determine whether migrator needs to be filtered out.
+
+        Return value of True means to skip migrator, False means to go ahead.
+        Calls up the MRO until Migrator.filter, see docstring there (./core.py).
+        """
+        migrator_payload = self.loaded_yaml.get("__migrator", {})
+        platform_allowlist = migrator_payload.get("platform_allowlist", [])
+        wait_for_migrators = migrator_payload.get("wait_for_migrators", [])
+
+        platform_filtered = False
+        if platform_allowlist:
+            # migrator.platform_allowlist allows both styles: "osx-64" & "osx_64";
+            # before comparison, normalize to consistently use underscores (we get
+            # "_" in attrs.platforms from the feedstock_parser)
+            platform_allowlist = [x.replace("-", "_") for x in platform_allowlist]
+            # filter out nodes where the intersection between
+            # attrs.platforms and platform_allowlist is empty
+            intersection = set(attrs.get("platforms", {})) & set(platform_allowlist)
+            platform_filtered = not bool(intersection)
+
         need_to_wait = False
         if wait_for_migrators:
             found_migrators = set()
-            for migration in attrs.get("PRed", []):
+            for migration in attrs.get("pr_info", {}).get("PRed", []):
                 name = migration.get("data", {}).get("name", "")
                 if not name or name not in wait_for_migrators:
                     continue
@@ -197,9 +216,13 @@ class MigrationYaml(GraphMigrator):
             wait_for_migrators,
         )
 
-        return need_to_wait or super().filter(
-            attrs=attrs,
-            not_bad_str_start=not_bad_str_start,
+        return (
+            platform_filtered
+            or need_to_wait
+            or super().filter(
+                attrs=attrs,
+                not_bad_str_start=not_bad_str_start,
+            )
         )
 
     def migrate(
@@ -258,6 +281,7 @@ class MigrationYaml(GraphMigrator):
                 "the feedstock has been rebuilt, so if you are going to "
                 "perform the rebuild yourself don't close this PR until "
                 "the your rebuild has been merged.**\n\n"
+                "<hr>"
                 "".format(
                     name=self.name,
                 )
@@ -273,19 +297,33 @@ class MigrationYaml(GraphMigrator):
                 "the feedstock has been rebuilt, so if you are going to "
                 "perform the rebuild yourself don't close this PR until "
                 "the your rebuild has been merged.**\n\n"
+                "<hr>"
                 "".format(
                     name=self.name,
                 )
             )
+
+        commit_body = " ".join(
+            [e for e in self.commit_message(feedstock_ctx).splitlines()[1:] if e],
+        )
+        if commit_body:
+            additional_body += (
+                "\n\n"
+                "Here are some more details about this specific migrator:\n\n"
+                "> {commit_body}\n\n"
+                "<hr>"
+            ).format(commit_body=commit_body)
 
         children = "\n".join(
             [" - %s" % ch for ch in self.downstream_children(feedstock_ctx)],
         )
         if len(children) > 0:
             additional_body += (
+                "\n\n"
                 "This package has the following downstream children:\n"
                 "{children}\n"
-                "and potentially more."
+                "and potentially more.\n\n"
+                "<hr>"
             ).format(children=children)
 
         return body.format(additional_body)
@@ -310,7 +348,9 @@ class MigrationYaml(GraphMigrator):
         else:
             add_slug = ""
 
-        return add_slug + self.commit_message(feedstock_ctx)
+        title = self.commit_message(feedstock_ctx).splitlines()[0]
+
+        return add_slug + title
 
     def remote_branch(self, feedstock_ctx: FeedstockContext) -> str:
         s_obj = str(self.obj_version) if self.obj_version else ""
@@ -336,18 +376,20 @@ class MigrationYaml(GraphMigrator):
 
         def _not_has_error(node):
             if migrator_name in total_graph.nodes[node]["payload"].get(
-                "pre_pr_migrator_status",
+                "pr_info",
                 {},
-            ) and total_graph.nodes[node]["payload"].get(
-                "pre_pr_migrator_attempts",
-                {},
-            ).get(
-                migrator_name,
-                3,
-            ) >= getattr(
-                self,
-                "max_solver_attempts",
-                3,
+            ).get("pre_pr_migrator_status", {}) and (
+                total_graph.nodes[node]["payload"]
+                .get("pr_info", {})
+                .get(
+                    "pre_pr_migrator_attempts",
+                    {},
+                )
+                .get(
+                    migrator_name,
+                    3,
+                )
+                >= self.max_solver_attempts
             ):
                 return 0
             else:
@@ -412,7 +454,12 @@ class MigrationYamlCreator(Migrator):
         self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any
     ) -> "MigrationUidTypedDict":
         migration_yaml_dict = {
-            "__migrator": {"build_number": 1, "kind": "version", "migration_number": 1},
+            "__migrator": {
+                "build_number": 1,
+                "kind": "version",
+                "migration_number": 1,
+                "commit_message": f"Rebuild for {self.package_name} {self.new_pin_version}",
+            },
             self.package_name: [self.new_pin_version],
             "migrator_ts": float(time.time()),
         }

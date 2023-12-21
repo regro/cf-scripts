@@ -1,0 +1,3 @@
+include conda_forge_tick/_version.py
+include environment.yml
+include License

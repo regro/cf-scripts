@@ -1,6 +1,5 @@
 import os
 import re
-import builtins
 import logging
 from unittest import mock
 
@@ -14,15 +13,12 @@ from conda_forge_tick.utils import (
 )
 from conda_forge_tick.feedstock_parser import populate_feedstock_attributes
 from conda_forge_tick.migrators import MigrationYamlCreator, merge_migrator_cbc
-from conda_forge_tick.xonsh_utils import eval_xonsh
-from conda_forge_tick.utils import pushd
+from conda_forge_tick.os_utils import pushd, eval_cmd
 
 G = nx.DiGraph()
 G.add_node("conda", reqs=["python"], payload={})
 G.graph["outputs_lut"] = {}
-env = builtins.__xonsh__.env  # type: ignore
-env["GRAPH"] = G
-env["CIRCLE_BUILD_URL"] = "hi world"
+os.environ["CIRCLE_BUILD_URL"] = "hi world"
 
 YAML_PATH = os.path.join(os.path.dirname(__file__), "test_yaml")
 
@@ -116,6 +112,7 @@ build:
 BOOST_YAML = """\
 __migrator:
   build_number: 1
+  commit_message: Rebuild for boost 1.99
   kind: version
   migration_number: 1
 boost:
@@ -143,7 +140,7 @@ def test_migration_yaml_migration(tmock, in_out_yaml, caplog, tmpdir):
     MYM = MigrationYamlCreator(pname, pin_ver, curr_pin, pin_spec, "hi", G, G)
 
     with pushd(tmpdir):
-        eval_xonsh("git init .")
+        eval_cmd("git init .")
 
     os.makedirs(os.path.join(tmpdir, "migrations"), exist_ok=True)
 
@@ -185,7 +182,7 @@ def run_test_migration(
         pinning_version="",
         github_username="",
         github_password="",
-        circle_build_url=env["CIRCLE_BUILD_URL"],
+        circle_build_url=os.environ["CIRCLE_BUILD_URL"],
     )
     m_ctx = MigratorContext(mm_ctx, m)
     m.bind_to_ctx(m_ctx)
@@ -240,7 +237,8 @@ def run_test_migration(
     if not mr:
         return
 
-    pmy.update(PRed=[frozen_to_json_friendly(mr)])
+    pmy["pr_info"] = {}
+    pmy["pr_info"].update(PRed=[frozen_to_json_friendly(mr)])
     with open(os.path.join(tmpdir, "meta.yaml")) as f:
         actual_output = f.read()
     # strip jinja comments
