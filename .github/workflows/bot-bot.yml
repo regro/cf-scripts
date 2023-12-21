@@ -28,28 +28,18 @@ jobs:
         run: |
           free
 
-      - uses: mamba-org/setup-micromamba@v1
+      - uses: conda-incubator/setup-miniconda@v3
         with:
+          miniforge-version: latest
           environment-file: cf-scripts/environment.yml
-          create-args: "python==${{ vars.PYVER }}"
-          init-shell: bash
-          cache-environment: false
-          environment-name: cf-scripts
-          post-cleanup: 'all'
-          condarc: |
-            channels:
-              - conda-forge
-
-      # Update conda-forge-pinning as we might got an outdated versions through the environment caching.
-      - name: force-update conda-forge-pinning
-        run: |
-          micromamba update conda-forge-pinning
+          python-version: "${{ vars.PYVER }}"
+          activate-environment: cf-scripts
+          condarc-file: cf-scripts/autotick-bot/condarc
 
       - name: do local setup and stop me if needed
         run: |
           cd cf-scripts
           python autotick-bot/stop_me_if_needed.py
-
 
       - name: install bot code
         if: success() && ! env.CI_SKIP
@@ -84,7 +74,6 @@ jobs:
           pushd cf-graph
           git status
 
-
       - name: deploy
         if: github.ref == 'refs/heads/master' && always() && ! env.CI_SKIP
         run: |
@@ -93,8 +82,6 @@ jobs:
           export CIRCLE_BUILD_URL="https://github.com/regro/cf-scripts/actions/runs/${RUN_ID}"
           export CIRCLE_BUILD_NUM="actually-actions-${RUN_ID}"
           conda-forge-tick deploy-to-github
-
-
         env:
           PASSWORD: ${{ secrets.AUTOTICK_BOT_TOKEN }}
           RUN_ID: ${{ github.run_id }}

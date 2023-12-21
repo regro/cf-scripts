@@ -5,6 +5,7 @@ git config --global user.email 36490558+regro-cf-autotick-bot@users.noreply.gith
 git config --global pull.rebase false
 
 conda update --all --yes
+conda update conda-forge-pinning --yes
 
 cd cf-scripts
 
@@ -13,8 +14,12 @@ pip install -e .
 
 cd ..
 
-git clone --depth=10 https://github.com/regro/cf-graph-countyfair.git cf-graph
-git clone --depth=1 https://github.com/conda-forge/conda-forge-pinning-feedstock.git
+if [[ "$1" != "--no-clone-graph-and-pinning" ]]; then
+    git clone --depth=10 https://github.com/regro/cf-graph-countyfair.git cf-graph
+    git clone --depth=1 https://github.com/conda-forge/conda-forge-pinning-feedstock.git
+else
+    echo "Skipping cloning of cf-graph and pinning feedstock"
+fi
 
 echo -e "\n\n============================================\n============================================"
 conda info
