@@ -13,6 +13,10 @@ jobs:
   tests:
     name: tests
     runs-on: "ubuntu-latest"
+    defaults:
+      run:
+        shell: bash -l {0}
+
     steps:
       - name: cancel previous runs
         uses: styfle/cancel-workflow-action@0.6.0
@@ -21,29 +25,22 @@ jobs:
 
       - uses: actions/checkout@v3
 
-      - uses: mamba-org/setup-micromamba@v1
+      - uses: conda-incubator/setup-miniconda@v3
         with:
+          miniforge-version: latest
           environment-file: environment.yml
-          create-args: >-
-            python==${{ vars.PYVER }}
-          init-shell: bash
-          cache-environment: false
-          environment-name: cf-scripts
-          post-cleanup: 'all'
-          condarc: |
-            channels:
-              - conda-forge
+          python-version: "${{ vars.PYVER }}"
+          activate-environment: cf-scripts
+          condarc-file: autotick-bot/condarc
 
       - name: configure conda and install code
-        shell: bash -l {0}
         run: |
-          micromamba install --file requirements-dev.txt --yes
+          conda install --file requirements-dev.txt --yes
           export GIT_FULL_HASH=`git rev-parse HEAD`
           export CICLE_BUILD_URL="https://www.youtube.com/watch?v=R7qT-C-0ajI"
           pip install --no-deps --no-build-isolation -e .
 
       - name: conda info and env
-        shell: bash -l {0}
         run: |
           echo "=================================================================="
           echo "=================================================================="
@@ -55,7 +52,6 @@ jobs:
           conda list
 
       - name: test versions
-        shell: bash -l {0}
         run: |
           pip uninstall conda-forge-tick --yes
           [[ $(python setup.py --version) != "0.0.0" ]] || exit 1
@@ -84,14 +80,12 @@ jobs:
           mongodb-version: "latest"
 
       - name: test mongodb is OK
-        shell: bash -l {0}
         run: |
           python -c "from pymongo import MongoClient; import os; print(MongoClient(os.environ['MONGODB_CONNECTION_STRING']))"
         env:
           MONGODB_CONNECTION_STRING: "mongodb://127.0.0.1:27017/?directConnection=true&serverSelectionTimeoutMS=2000"
 
       - name: run pytest
-        shell: bash -l {0}
         run: |
           export TEST_PASSWORD_VAL=unpassword
           export PASSWORD=${TEST_PASSWORD_VAL}
@@ -107,12 +101,10 @@ jobs:
           MONGODB_CONNECTION_STRING: "mongodb://127.0.0.1:27017/?directConnection=true&serverSelectionTimeoutMS=2000"
 
       - name: run codecov
-        shell: bash -l {0}
         run: |
          codecov -X gcov
 
       - name: build docs
-        shell: bash -l {0}
         run: |
           cd docs
           make html

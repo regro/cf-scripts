@@ -9,24 +9,26 @@ jobs:
   delete-old-runs:
     name: delete-old-runs
     runs-on: "ubuntu-latest"
+    defaults:
+      run:
+        shell: bash -l {0}
+
     steps:
       - uses: actions/checkout@v3
-
-      - uses: mamba-org/setup-micromamba@v1
         with:
-          environment-file: environment.yml
-          create-args: "python==${{ vars.PYVER }}"
-          init-shell: bash
-          cache-environment: false
-          environment-name: cf-scripts
-          post-cleanup: 'all'
-          condarc: |
-            channels:
-              - conda-forge
+          path: cf-scripts
+
+      - uses: conda-incubator/setup-miniconda@v3
+        with:
+          miniforge-version: latest
+          environment-file: cf-scripts/environment.yml
+          python-version: "${{ vars.PYVER }}"
+          activate-environment: cf-scripts
+          condarc-file: cf-scripts/autotick-bot/condarc
 
       - name: delete runs
-        shell: bash -l {0}
         run: |
+          cd cf-scripts
           python autotick-bot/delete_old_runs.py
         env:
           GITHUB_TOKEN: ${{ secrets.AUTOTICK_BOT_TOKEN }}
