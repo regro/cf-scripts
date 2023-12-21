@@ -1,0 +1,231 @@
+{% set version = "1.9.0" %}
+{% set posix = 'm2-' if win else '' %}
+{% set native = 'm2w64-' if win else '' %}
+{% set prefix = 'Library/' if win else '' %}
+
+package:
+  name: poppler-split
+  version: {{ version }}
+
+source:
+  # fake source url to get version migrator to pass
+  url: https://github.com/scipy/scipy/archive/refs/tags/v{{ version }}.tar.gz
+  # url: https://poppler.freedesktop.org/poppler-{{ version }}.tar.xz
+  sha256: b6d893dc7dcd4138b9e9df59a13c59695e50e80dc5c2cacee0674670693951a1
+  patches:
+    - exportsymbols.patch  # [win]
+    - windows-data.patch  # [win]
+    # libtiff uses Unix I/O even on Windows
+    # https://github.com/conda-forge/libtiff-feedstock/pull/51
+    - disable-libtiff-win32-io.patch  # [win]
+    - includesystembeforejpeg.patch  # [win]
+
+build:
+  number: 1
+  detect_binary_files_with_prefix: true
+
+requirements:
+  build:
+    - {{ compiler('c') }}
+    - {{ compiler('cxx') }}
+    # Need these CDTs for Qt on Linux. Please keep them alphabetized!
+    - {{ cdt('libselinux-devel') }}     # [linux]
+    - {{ cdt('libxdamage') }}           # [linux]
+    - {{ cdt('libxfixes') }}            # [linux]
+    - {{ cdt('libxscrnsaver-devel') }}  # [linux]
+    - {{ cdt('libxtst-devel') }}        # [linux]
+    - {{ cdt('libxxf86vm') }}           # [linux]
+    - {{ cdt('mesa-libgl-devel') }}     # [linux]
+    - {{ cdt('mesa-libegl-devel') }}    # [linux]
+    - m2-msys2-runtime  # [win]
+    - {{ native }}pkg-config
+    - cmake
+    - make
+    - ninja
+    - {{ posix }}patch
+    - perl 5
+    - gobject-introspection 1.*  # [not win]
+    - boost-cpp {{ boost_cpp }}  # [build_platform != target_platform]
+    - cairo       # [build_platform != target_platform]
+    - curl        # [build_platform != target_platform]
+    - fontconfig  # [build_platform != target_platform]
+    - freetype    # [build_platform != target_platform]
+    - gettext     # [build_platform != target_platform]
+    - glib        # [build_platform != target_platform]
+    - libjpeg-turbo         # [build_platform != target_platform]
+    - lcms2       # [build_platform != target_platform]
+    - libcurl     # [build_platform != target_platform]
+    - libiconv    # [build_platform != target_platform]
+    - libpng      # [build_platform != target_platform]
+    - libtiff     # [build_platform != target_platform]
+    - nss         # [not win and build_platform != target_platform]
+    - openjpeg    # [build_platform != target_platform]
+    - zlib        # [build_platform != target_platform]
+  host:
+    - boost-cpp
+    - cairo
+    - curl
+    - fontconfig
+    - freetype
+    - gettext
+    - glib
+    - libjpeg-turbo
+    - lcms2
+    - libcurl
+    - libiconv
+    - libpng
+    - libtiff
+    - nss  # [not win]
+    - openjpeg
+    - qt-main  # [not (ppc64le or arm64)]
+    - zlib
+
+outputs:
+  - name: poppler
+    script: install.sh  # [unix]
+    script: install.bat  # [not unix]
+    requirements:
+      build:
+        - {{ compiler('c') }}
+        - {{ compiler('cxx') }}
+        # Need these CDTs for Qt on Linux. Please keep them alphabetized!
+        - {{ cdt('libselinux-devel') }}     # [linux]
+        - {{ cdt('libxdamage') }}           # [linux]
+        - {{ cdt('libxfixes') }}            # [linux]
+        - {{ cdt('libxscrnsaver-devel') }}  # [linux]
+        - {{ cdt('libxtst-devel') }}        # [linux]
+        - {{ cdt('libxxf86vm') }}           # [linux]
+        - {{ cdt('mesa-libgl-devel') }}     # [linux]
+        - {{ cdt('mesa-libegl-devel') }}    # [linux]
+        - m2-msys2-runtime  # [win]
+        - {{ native }}pkg-config
+        - cmake
+        - make
+        - ninja
+        - {{ posix }}patch
+        - perl 5
+        - gobject-introspection 1.*  # [not win]
+        - boost-cpp {{ boost_cpp }}  # [build_platform != target_platform]
+        - cairo       # [build_platform != target_platform]
+        - curl        # [build_platform != target_platform]
+        - fontconfig  # [build_platform != target_platform]
+        - freetype    # [build_platform != target_platform]
+        - gettext     # [build_platform != target_platform]
+        - glib        # [build_platform != target_platform]
+        - libjpeg-turbo         # [build_platform != target_platform]
+        - lcms2       # [build_platform != target_platform]
+        - libcurl     # [build_platform != target_platform]
+        - libiconv    # [build_platform != target_platform]
+        - libpng      # [build_platform != target_platform]
+        - libtiff     # [build_platform != target_platform]
+        - nss         # [not win and build_platform != target_platform]
+        - openjpeg    # [build_platform != target_platform]
+        - zlib        # [build_platform != target_platform]
+      host:
+        - boost-cpp {{ boost_cpp }}
+        - cairo
+        - curl
+        - fontconfig
+        - freetype
+        - gettext
+        - glib
+        - libjpeg-turbo
+        - lcms2
+        - libcurl
+        - libiconv
+        - libpng
+        - libtiff
+        - nss  # [not win]
+        - openjpeg
+        - zlib
+      run:
+        - {{ pin_compatible('boost-cpp') }}
+        - poppler-data
+    test:
+      commands:
+        - pdfinfo -listenc
+        - pdfunite --help
+        - pdftocairo --help
+
+  - name: poppler-qt
+    build:
+      skip: true  # [ppc64le or arm64]
+    script: install.sh  # [unix]
+    script: install.bat  # [not unix]
+    requirements:
+      build:
+        - {{ compiler('c') }}
+        - {{ compiler('cxx') }}
+        # Need these CDTs for Qt on Linux. Please keep them alphabetized!
+        - {{ cdt('libselinux-devel') }}     # [linux]
+        - {{ cdt('libxdamage') }}           # [linux]
+        - {{ cdt('libxfixes') }}            # [linux]
+        - {{ cdt('libxscrnsaver-devel') }}  # [linux]
+        - {{ cdt('libxtst-devel') }}        # [linux]
+        - {{ cdt('libxxf86vm') }}           # [linux]
+        - {{ cdt('mesa-libgl-devel') }}     # [linux]
+        - {{ cdt('mesa-libegl-devel') }}    # [linux]
+        - m2-msys2-runtime  # [win]
+        - {{ native }}pkg-config
+        - cmake
+        - make
+        - ninja
+        - {{ posix }}patch
+        - perl 5
+        - gobject-introspection 1.*  # [not win]
+        - boost-cpp {{ boost_cpp }}  # [build_platform != target_platform]
+        - cairo       # [build_platform != target_platform]
+        - curl        # [build_platform != target_platform]
+        - fontconfig  # [build_platform != target_platform]
+        - freetype    # [build_platform != target_platform]
+        - gettext     # [build_platform != target_platform]
+        - glib        # [build_platform != target_platform]
+        - libjpeg-turbo         # [build_platform != target_platform]
+        - lcms2       # [build_platform != target_platform]
+        - libcurl     # [build_platform != target_platform]
+        - libiconv    # [build_platform != target_platform]
+        - libpng      # [build_platform != target_platform]
+        - libtiff     # [build_platform != target_platform]
+        - nss         # [not win and build_platform != target_platform]
+        - openjpeg    # [build_platform != target_platform]
+        - zlib        # [build_platform != target_platform]
+      host:
+        - boost-cpp {{ boost_cpp }}
+        - cairo
+        - curl
+        - fontconfig
+        - freetype
+        - gettext
+        - glib
+        - libjpeg-turbo
+        - lcms2
+        - libcurl
+        - libiconv
+        - libpng
+        - libtiff
+        - nss  # [not win]
+        - openjpeg
+        - qt-main
+        - zlib
+        - {{ pin_subpackage('poppler', exact=True) }}
+      run:
+        - {{ pin_subpackage('poppler', exact=True) }}
+    test:
+      commands:
+        - test -f ${PREFIX}/lib/pkgconfig/poppler-qt5.pc  # [not win]
+        - if not exist %LIBRARY_BIN%\\poppler.dll exit 1  # [win]
+
+about:
+  home: https://poppler.freedesktop.org/
+  license: GPL-2.0-only
+  license_family: GPL
+  license_file: COPYING
+  summary: The Poppler PDF manipulation library.
+
+extra:
+  feedstock-name: poppler
+  recipe-maintainers:
+    - pkgw
+    - ocefpaf
+    - xhochy
+    - xylar

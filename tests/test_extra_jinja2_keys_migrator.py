@@ -1,4 +1,6 @@
 import os
+
+from flaky import flaky
 from ruamel.yaml import YAML
 
 from conda_forge_tick.migrators import (
@@ -9,18 +11,20 @@ from conda_forge_tick.migrators import (
 from test_migrators import run_test_migration
 
 VERSION_CF = Version(
-    set(), dict(), dict(), piggy_back_migrations=[ExtraJinja2KeysCleanup()],
+    set(),
+    piggy_back_migrations=[ExtraJinja2KeysCleanup()],
 )
 
 YAML_PATH = os.path.join(os.path.dirname(__file__), "test_yaml")
 
 
+@flaky
 def test_version_extra_jinja2_keys_cleanup(tmpdir):
-    with open(os.path.join(YAML_PATH, "version_extra_jinja2_keys.yaml"), "r") as fp:
+    with open(os.path.join(YAML_PATH, "version_extra_jinja2_keys.yaml")) as fp:
         in_yaml = fp.read()
 
     with open(
-        os.path.join(YAML_PATH, "version_extra_jinja2_keys_correct.yaml"), "r",
+        os.path.join(YAML_PATH, "version_extra_jinja2_keys_correct.yaml"),
     ) as fp:
         out_yaml = fp.read()
 

@@ -22,7 +22,8 @@ class MatplotlibBase(Replacement):
                 frozen_to_json_friendly(self.migrator_uid(attrs))["data"],
             )
             already_migrated_uids: typing.Iterable["MigrationUidTypedDict"] = list(
-                copy.deepcopy(z["data"]) for z in attrs.get("PRed", [])
+                copy.deepcopy(z["data"])
+                for z in attrs.get("pr_info", {}).get("PRed", [])
             )
 
             # we shipped a bug, so fixing this here -
@@ -57,7 +58,7 @@ class MatplotlibBase(Replacement):
         if not os.path.exists(yum_pth):
             yum_lines = []
         else:
-            with open(yum_pth, "r") as fp:
+            with open(yum_pth) as fp:
                 yum_lines = fp.readlines()
 
         if "xorg-x11-server-Xorg\n" not in yum_lines:

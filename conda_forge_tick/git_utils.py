@@ -2,8 +2,12 @@
 import datetime
 import os
 import time
-from typing import Optional, Union, Tuple
+import sys
+from typing import Optional, Union, Tuple, Dict
+import subprocess
+import copy
 
+import requests
 import github3
 import github3.pulls
 import github3.repos
@@ -11,16 +15,19 @@ import github3.exceptions
 import github3.repos
 
 from doctr.travis import run_command_hiding_token as doctr_run
-from .xonsh_utils import env, indir
+from .os_utils import pushd
 
 from requests.exceptions import Timeout, RequestException
 from .contexts import GithubContext, FeedstockContext, MigratorSessionContext
+import github
 
 import backoff
 
 # TODO: handle the URLs more elegantly (most likely make this a true library
 # and pull all the needed info from the various source classes)
-from conda_forge_tick.utils import LazyJson
+from conda_forge_tick.lazy_json_backends import LazyJson
+
+from conda_forge_tick import sensitive_env
 
 backoff._decorator._is_event_loop = lambda: False
 
@@ -38,11 +45,80 @@ DUMMY_BOT_RERUN_METADATA = {
 
 CF_BOT_NAMES = {"regro-cf-autotick-bot", "conda-forge-linter"}
 
+# these keys are kept from github PR json blobs
+# to add more keys to keep, put them in the right spot in the dict and
+# set them to None.
+PR_KEYS_TO_KEEP = {
+    "ETag": None,
+    "Last-Modified": None,
+    "id": None,
+    "number": None,
+    "html_url": None,
+    "created_at": None,
+    "updated_at": None,
+    "merged_at": None,
+    "closed_at": None,
+    "state": None,
+    "mergeable_state": None,
+    "labels": None,
+    "merged": None,
+    "draft": None,
+    "mergeable": None,
+    "head": {"ref": None},
+    "base": {"repo": {"name": None}},
+}
+
+
+def get_default_branch(feedstock_name):
+    """Get the default branch for a feedstock
+
+    Parameters
+    ----------
+    feedstock_name : str
+        The feedstock without '-feedstock'.
+
+    Returns
+    -------
+    branch : str
+        The default branch (e.g., 'main').
+    """
+    with sensitive_env() as env:
+        return (
+            github.Github(env["PASSWORD"])
+            .get_repo(f"conda-forge/{feedstock_name}-feedstock")
+            .default_branch
+        )
+
 
 def ensure_gh(ctx: GithubContext, gh: Optional[github3.GitHub]) -> github3.GitHub:
     if gh is None:
         gh = github3.login(ctx.github_username, ctx.github_password)
     return gh
+
+
+def is_github_api_limit_reached(e: github3.GitHubError, gh: github3.GitHub) -> bool:
+    """Prints diagnostic information about a github exception.
+
+    Returns
+    -------
+    out_of_api_credits
+        A flag to indicate that the api limit has been exhausted
+    """
+    print(e)
+    print(e.response)
+    print(e.response.url)
+
+    try:
+        c = gh.rate_limit()["resources"]["core"]
+    except Exception:
+        # if we can't connect to the rate limit API, let's assume it has been reached
+        return True
+    if c["remaining"] == 0:
+        ts = c["reset"]
+        print("API timeout, API returns at")
+        print(datetime.datetime.utcfromtimestamp(ts).strftime("%Y-%m-%dT%H:%M:%SZ"))
+        return True
+    return False
 
 
 def feedstock_url(fctx: FeedstockContext, protocol: str = "ssh") -> str:
@@ -83,6 +159,83 @@ def fork_url(feedstock_url: str, username: str) -> str:
     return url
 
 
+def fetch_repo(*, feedstock_dir, origin, upstream, branch, base_branch="main"):
+    """fetch a repo and make a PR branch
+
+    Parameters
+    ----------
+    feedstock_dir : str
+        The directory where you want to clone the feedstock.
+    origin : str
+        The origin to clone from.
+    upstream : str
+        The upstream repo to add as a remote named `upstream`.
+    branch : str
+        The branch to make and checkout.
+    base_branch : str, optional
+        The branch from which to branch from to make `branch`. Defaults to "main".
+
+    Returns
+    -------
+    success : bool
+        True if the fetch worked, False otherwise.
+    """
+    if not os.path.isdir(feedstock_dir):
+        p = subprocess.run(
+            f"git clone -q {origin} {feedstock_dir}",
+            shell=True,
+        )
+        if p.returncode != 0:
+            msg = "Could not clone " + origin
+            msg += ". Do you have a personal fork of the feedstock?"
+            print(msg, file=sys.stderr)
+            return False
+        reset_hard = False
+    else:
+        reset_hard = True
+
+    def _run_git_cmd(cmd):
+        return subprocess.run(cmd, shell=True, check=True)
+
+    quiet = "--quiet"
+    with pushd(feedstock_dir):
+        if reset_hard:
+            _run_git_cmd("git reset --hard HEAD")
+
+        # doesn't work if the upstream already exists
+        try:
+            # always run upstream
+            _run_git_cmd(f"git remote add upstream {upstream}")
+        except subprocess.CalledProcessError:
+            pass
+
+        # fetch remote changes
+        _run_git_cmd(f"git fetch --all {quiet}")
+        if subprocess.run(
+            f"git branch --list {base_branch}",
+            check=True,
+            shell=True,
+            capture_output=True,
+        ).stdout:
+            _run_git_cmd(f"git checkout {base_branch} {quiet}")
+        else:
+            try:
+                _run_git_cmd(f"git checkout --track upstream/{base_branch} {quiet}")
+            except subprocess.CalledProcessError:
+                _run_git_cmd(
+                    f"git checkout -b {base_branch} upstream/{base_branch} {quiet}",
+                )
+        _run_git_cmd(f"git reset --hard upstream/{base_branch} {quiet}")
+
+        # make and modify version branch
+        try:
+            _run_git_cmd(f"git checkout {branch} {quiet}")
+        except subprocess.CalledProcessError:
+            _run_git_cmd(f"git checkout -b {branch} {base_branch} {quiet}")
+
+    return True
+
+
 def get_repo(
     ctx: MigratorSessionContext,
     fctx: FeedstockContext,
@@ -91,11 +244,19 @@ def get_repo(
     protocol: str = "ssh",
     pull_request: bool = True,
     fork: bool = True,
+    base_branch: str = "main",
 ) -> Tuple[str, github3.repos.Repository]:
     """Get the feedstock repo
 
     Parameters
     ----------
+    ctx : MigratorSessionContext
+        Migrator context. Used to access the github3 object and other github
+        information.
+    fcts : FeedstockContext
+        Feedstock context used for constructing feedstock urls, etc.
+    branch : str
+        The branch to be made.
     feedstock : str, optional
         The feedstock to clone if None use $FEEDSTOCK
     protocol : str, optional
@@ -104,16 +265,18 @@ def get_repo(
         If true issue pull request, defaults to true
     fork : bool
         If true create a fork, defaults to true
-    gh : github3.GitHub instance, optional
-        Object for communicating with GitHub, if None build from $USERNAME
-        and $PASSWORD, defaults to None
+    base_branch : str, optional
+        The base branch from which to make the new branch.
 
     Returns
     -------
     recipe_dir : str
         The recipe directory
+    repo : github3 repository
+        The github3 repository object.
     """
     gh = ctx.gh
+
     # first, let's grab the feedstock locally
     upstream = feedstock_url(fctx=fctx, protocol=protocol)
     origin = fork_url(upstream, ctx.github_username)
@@ -122,8 +285,10 @@ def get_repo(
     if pull_request or fork:
         repo = gh.repository("conda-forge", feedstock_reponame)
         if repo is None:
-            fctx.attrs["bad"] = f"{fctx.package_name}: does not match feedstock name\n"
-            return False
+            print("could not fork conda-forge/%s!" % feedstock_reponame, flush=True)
+            with fctx.attrs["pr_info"] as pri:
+                pri["bad"] = f"{fctx.package_name}: does not match feedstock name\n"
+            return False, False
 
     # Check if fork exists
     if fork:
@@ -137,15 +302,48 @@ def get_repo(
             # Sleep to make sure the fork is created before we go after it
             time.sleep(5)
 
+        # sync the default branches if needed
+        _sync_default_branches(
+            feedstock_reponame,
+            ctx.github_username,
+            ctx.github_password,
+        )
+
     feedstock_dir = os.path.join(ctx.rever_dir, fctx.package_name + "-feedstock")
-    from conda_forge_tick.git_xonsh_utils import fetch_repo
 
     if fetch_repo(
-        feedstock_dir=feedstock_dir, origin=origin, upstream=upstream, branch=branch,
+        feedstock_dir=feedstock_dir,
+        origin=origin,
+        upstream=upstream,
+        branch=branch,
+        base_branch=base_branch,
     ):
         return feedstock_dir, repo
     else:
-        return None
+        return False, False
+
+
+def _sync_default_branches(reponame, forked_user, token):
+    gh = github.Github(token)
+    default_branch = gh.get_repo(f"conda-forge/{reponame}").default_branch
+    forked_default_branch = gh.get_repo(f"{forked_user}/{reponame}").default_branch
+    if default_branch != forked_default_branch:
+        print("Fork's default branch doesn't match upstream, syncing...")
+        r = requests.post(
+            f"https://api.github.com/repos/{forked_user}/"
+            f"{reponame}/branches/{forked_default_branch}/rename",
+            json={"new_name": default_branch},
+            headers={
+                "Authorization": f"token {token}",
+                "Content-Type": "application/json",
+                "Accept": "application/vnd.github.v3+json",
+            },
+        )
+        if r.status_code != 404:
+            r.raise_for_status()
+
+        # sleep to wait for branch name change
+        time.sleep(5)
 
 
 def delete_branch(ctx: GithubContext, pr_json: LazyJson, dry_run: bool = False) -> None:
@@ -170,8 +368,120 @@ def delete_branch(ctx: GithubContext, pr_json: LazyJson, dry_run: bool = False) 
     pr_json["head"]["ref"] = "this_is_not_a_branch"
 
 
+def trim_pr_josn_keys(
+    pr_json: Union[Dict, LazyJson],
+    src_pr_json: Optional[Union[Dict, LazyJson]] = None,
+) -> Union[Dict, LazyJson]:
+    """Trim the set of keys in the PR json. The keys kept are defined by the global
+    PR_KEYS_TO_KEEP.
+
+    Parameters
+    ----------
+    pr_json : dict-like
+        A dict-like object with the current PR information.
+    src_pr_json : dict-like, optional
+        If this object is sent, the values for the trimmed keys are taken
+        from this object. Otherwise `pr_json` is used for the values.
+
+    Returns
+    -------
+    pr_json : dict-like
+        A dict-like object with the current PR information trimmed to the subset of
+        keys.
+    """
+    # keep a subset of keys
+    def _munge_dict(dest, src, keys):
+        for k, v in keys.items():
+            if k in src:
+                if v is None:
+                    dest[k] = src[k]
+                else:
+                    dest[k] = {}
+                    _munge_dict(dest[k], src[k], v)
+
+    if src_pr_json is None:
+        src_pr_json = copy.deepcopy(dict(pr_json))
+
+    pr_json.clear()
+    _munge_dict(pr_json, src_pr_json, PR_KEYS_TO_KEEP)
+    return pr_json
+
+
+def lazy_update_pr_json(
+    pr_json: Union[Dict, LazyJson],
+    ctx: GithubContext,
+    force: bool = False,
+    trim: bool = True,
+) -> Union[Dict, LazyJson]:
+    """Lazily update a GitHub PR.
+
+    This function will use the ETag in the GitHub API to update PR information
+    lazily. It sends the ETag to github properly and if nothing is changed on their
+    end, it simply returns the PR. Otherwise the information is refershed.
+
+    Parameters
+    ----------
+    pr_json : dict-like
+        A dict-like object with the current PR information.
+    ctx : GithubContext
+        The context object with GitHub credential information.
+    force : bool, optional
+        If True, forcibly update the PR json even if it is not out of date
+        according to the ETag. Default is False.
+    trim : bool, optional
+        If True, trim the PR json keys to ones in the global PR_KEYS_TO_KEEP.
+        Default is True.
+
+    Returns
+    -------
+    pr_json : dict-like
+        A dict-like object with the current PR information.
+    """
+    hdrs = {
+        "Authorization": f"token {ctx.github_password}",
+        "Accept": "application/vnd.github.v3+json",
+    }
+    if not force and "ETag" in pr_json:
+        hdrs["If-None-Match"] = pr_json["ETag"]
+
+    if "repo" not in pr_json["base"] or (
+        "repo" in pr_json["base"] and "name" not in pr_json["base"]["repo"]
+    ):
+        # some pr json blobs never had this key so we backfill
+        repo_name = pr_json["html_url"].split("/conda-forge/")[1]
+        if repo_name[-1] == "/":
+            repo_name = repo_name[:-1]
+        if "repo" not in pr_json["base"]:
+            pr_json["base"]["repo"] = {}
+        pr_json["base"]["repo"]["name"] = repo_name
+
+    if "/pull/" in pr_json["base"]["repo"]["name"]:
+        pr_json["base"]["repo"]["name"] = pr_json["base"]["repo"]["name"].split(
+            "/pull/",
+        )[0]
+
+    r = requests.get(
+        "https://api.github.com/repos/conda-forge/"
+        f"{pr_json['base']['repo']['name']}/pulls/{pr_json['number']}",
+        headers=hdrs,
+    )
+
+    if r.status_code == 200:
+        if trim:
+            pr_json = trim_pr_josn_keys(pr_json, src_pr_json=r.json())
+        pr_json["ETag"] = r.headers["ETag"]
+        pr_json["Last-Modified"] = r.headers["Last-Modified"]
+    else:
+        if trim:
+            pr_json = trim_pr_josn_keys(pr_json)
+
+    return pr_json
+
+
 @backoff.on_exception(
-    backoff.expo, (RequestException, Timeout), max_time=MAX_GITHUB_TIMEOUT,
+    backoff.expo,
+    (RequestException, Timeout),
+    max_time=MAX_GITHUB_TIMEOUT,
 )
 def refresh_pr(
     ctx: GithubContext,
@@ -179,26 +489,51 @@ def refresh_pr(
     gh: Optional[github3.GitHub] = None,
     dry_run: bool = False,
 ) -> Optional[dict]:
-    gh = ensure_gh(ctx, gh)
-    if not pr_json["state"] == "closed":
+    if pr_json["state"] != "closed":
         if dry_run:
             print("dry run: refresh pr %s" % pr_json["id"])
             pr_dict = dict(pr_json)
         else:
-            pr_obj = github3.pulls.PullRequest(dict(pr_json), gh)
-            pr_obj.refresh(True)
-            pr_obj_d = pr_obj.as_dict()
+            pr_json = lazy_update_pr_json(copy.deepcopy(pr_json), ctx)
+
             # if state passed from opened to merged or if it
             # closed for a day delete the branch
-            if pr_obj_d["state"] == "closed" and pr_obj_d.get("merged_at", False):
+            if pr_json["state"] == "closed" and pr_json.get("merged_at", False):
                 delete_branch(ctx=ctx, pr_json=pr_json, dry_run=dry_run)
-            pr_dict = pr_obj.as_dict()
+            pr_dict = dict(pr_json)
+
         return pr_dict
+
     return None
 
 
+def get_pr_obj_from_pr_json(
+    pr_json: Union[Dict, LazyJson],
+    gh: github3.GitHub,
+) -> github3.pulls.PullRequest:
+    """Produce a github3 pull request object from pr_json.
+
+    Parameters
+    ----------
+    pr_json : dict-like
+        A dict-like object with the current PR information.
+    gh : github3 object
+        The github3 object for interacting with the GitHub API.
+
+    Returns
+    -------
+    pr_obj : github3.pulls.PullRequest
+        The pull request object.
+    """
+    feedstock_reponame = pr_json["base"]["repo"]["name"]
+    repo = gh.repository("conda-forge", feedstock_reponame)
+    return repo.pull_request(pr_json["number"])
+
+
 @backoff.on_exception(
-    backoff.expo, (RequestException, Timeout), max_time=MAX_GITHUB_TIMEOUT,
+    backoff.expo,
+    (RequestException, Timeout),
+    max_time=MAX_GITHUB_TIMEOUT,
 )
 def close_out_labels(
     ctx: GithubContext,
@@ -207,33 +542,36 @@ def close_out_labels(
     dry_run: bool = False,
 ) -> Optional[dict]:
     gh = ensure_gh(ctx, gh)
+
     # run this twice so we always have the latest info (eg a thing was already closed)
     if pr_json["state"] != "closed" and "bot-rerun" in [
-        l["name"] for l in pr_json.get("labels", [])
+        lab["name"] for lab in pr_json.get("labels", [])
     ]:
         # update
         if dry_run:
             print("dry run: checking pr %s" % pr_json["id"])
         else:
-            pr_obj = github3.pulls.PullRequest(dict(pr_json), gh)
-            pr_obj.refresh(True)
-            pr_json = pr_obj.as_dict()
+            pr_json = lazy_update_pr_json(pr_json, ctx)
 
     if pr_json["state"] != "closed" and "bot-rerun" in [
-        l["name"] for l in pr_json.get("labels", [])
+        lab["name"] for lab in pr_json.get("labels", [])
     ]:
         if dry_run:
             print("dry run: comment and close pr %s" % pr_json["id"])
         else:
+            pr_obj = get_pr_obj_from_pr_json(pr_json, gh)
             pr_obj.create_comment(
                 "Due to the `bot-rerun` label I'm closing "
                 "this PR. I will make another one as"
                 " appropriate. This was generated by {}".format(ctx.circle_build_url),
             )
             pr_obj.close()
+
             delete_branch(ctx=ctx, pr_json=pr_json, dry_run=dry_run)
-            pr_obj.refresh(True)
-        return pr_obj.as_dict()
+            pr_json = lazy_update_pr_json(pr_json, ctx)
+
+        return dict(pr_json)
+
     return None
 
 
@@ -246,15 +584,31 @@ def push_repo(
     title: str,
     head: str,
     branch: str,
+    base_branch: str = "main",
 ) -> Union[dict, bool, None]:
     """Push a repo up to github
 
     Parameters
     ----------
+    ctx : MigratorSessionContext
+        Migrator context. Used to access the github3 object and other github
+        information.
+    fcts : FeedstockContext
+        Feedstock context used for constructing feedstock urls, etc.
     feedstock_dir : str
         The feedstock directory
     body : str
-        The PR body
+        The PR body.
+    repo : github3.repos.Repository
+        The feedstock repo as a github3 object.
+    title : str
+        The title of the PR.
+    head : str
+        The github head for the PR in the form `username:branch`.
+    branch : str
+        The head branch of the PR.
+    base_branch : str, optional
+        The base branch or target branch of the PR.
 
     Returns
     -------
@@ -262,7 +616,7 @@ def push_repo(
         The dict representing the PR, can be used with `from_json`
         to create a PR instance.
     """
-    with indir(feedstock_dir), env.swap(RAISE_SUBPROC_ERROR=False):
+    with pushd(feedstock_dir):
         # Setup push from doctr
         # Copyright (c) 2016 Aaron Meurer, Gil Forsyth
         token = session_ctx.github_password
@@ -273,7 +627,7 @@ def push_repo(
             repo_url = f"https://github.com/{deploy_repo}.git"
             print(f"dry run: adding remote and pushing up branch for {repo_url}")
         else:
-            doctr_run(
+            ecode = doctr_run(
                 [
                     "git",
                     "remote",
@@ -283,33 +637,62 @@ def push_repo(
                 ],
                 token=token.encode("utf-8"),
             )
+            if ecode != 0:
+                print("Failed to add git remote!")
+                return False
 
-            doctr_run(
+            ecode = doctr_run(
                 ["git", "push", "--set-upstream", "regro_remote", branch],
                 token=token.encode("utf-8"),
             )
+            if ecode != 0:
+                print("Failed to push to remote!")
+                return False
+
     # lastly make a PR for the feedstock
     print("Creating conda-forge feedstock pull request...")
     if session_ctx.dry_run:
         print(f"dry run: create pr with title: {title}")
         return False
     else:
-        pr = repo.create_pull(title, "master", head, body=body)
+        pr = repo.create_pull(title, base_branch, head, body=body)
         if pr is None:
             print("Failed to create pull request!")
             return False
         else:
             print("Pull request created at " + pr.html_url)
+
     # Return a json object so we can remake the PR if needed
     pr_dict: dict = pr.as_dict()
-    return pr_dict
+
+    return trim_pr_josn_keys(pr_dict)
+
+
+def comment_on_pr(pr_json, comment, repo):
+    """Make a comment on a PR.
+
+    Parameters
+    ----------
+    pr_json : dict
+        A dict-like json blob with the PR information
+    comment : str
+        The comment to make.
+    repo : github3.repos.Repository
+        The feedstock repo as a github3 object.
+    """
+    pr_obj = repo.pull_request(pr_json["number"])
+    pr_obj.create_comment(comment)
 
 
 @backoff.on_exception(
-    backoff.expo, (RequestException, Timeout), max_time=MAX_GITHUB_TIMEOUT,
+    backoff.expo,
+    (RequestException, Timeout),
+    max_time=MAX_GITHUB_TIMEOUT,
 )
 def ensure_label_exists(
-    repo: github3.repos.Repository, label_dict: dict, dry_run: bool = False,
+    repo: github3.repos.Repository,
+    label_dict: dict,
+    dry_run: bool = False,
 ) -> None:
     if dry_run:
         print(f"dry run: ensure label exists {label_dict['name']}")
@@ -333,31 +716,6 @@ def label_pr(
         iss.add_labels(label_dict["name"])
 
 
-def is_github_api_limit_reached(e: github3.GitHubError, gh: github3.GitHub) -> bool:
-    """Prints diagnostic information about a github exception.
-
-    Returns
-    -------
-    out_of_api_credits
-        A flag to indicate that the api limit has been exhausted
-    """
-    print(e)
-    print(e.response)
-    print(e.response.url)
-
-    try:
-        c = gh.rate_limit()["resources"]["core"]
-    except Exception:
-        # if we can't connect to the rate limit API, let's assume it has been reached
-        return True
-    if c["remaining"] == 0:
-        ts = c["reset"]
-        print("API timeout, API returns at")
-        print(datetime.datetime.utcfromtimestamp(ts).strftime("%Y-%m-%dT%H:%M:%SZ"))
-        return True
-    return False
-
-
 def close_out_dirty_prs(
     ctx: GithubContext,
     pr_json: LazyJson,
@@ -371,35 +729,46 @@ def close_out_dirty_prs(
         if dry_run:
             print("dry run: checking pr %s" % pr_json["id"])
         else:
-            pr_obj = github3.pulls.PullRequest(dict(pr_json), gh)
-            pr_obj.refresh(True)
-            pr_json = pr_obj.as_dict()
+            pr_json = lazy_update_pr_json(pr_json, ctx)
 
-    if pr_json["state"] != "closed" and pr_json["mergeable_state"] == "dirty":
-        d = pr_obj.as_dict()
+    if (
+        pr_json["state"] != "closed"
+        and pr_json["mergeable_state"] == "dirty"
+        and not pr_json.get("draft", False)
+    ):
+        d = dict(pr_json)
+
         if dry_run:
             print("dry run: comment and close pr %s" % pr_json["id"])
         else:
+            pr_obj = get_pr_obj_from_pr_json(pr_json, gh)
+
             if all(
                 c.as_dict()["commit"]["author"]["name"] in CF_BOT_NAMES
                 for c in pr_obj.commits()
             ):
                 pr_obj.create_comment(
-                    "I see that this PR has conflicts and I'm the only committer "
+                    "I see that this PR has conflicts, and I'm the only committer. "
                     "I'm going to close this PR and will make another one as"
                     " appropriate. This was generated by {}".format(
                         ctx.circle_build_url,
                     ),
                 )
                 pr_obj.close()
+
                 delete_branch(ctx=ctx, pr_json=pr_json, dry_run=dry_run)
-                pr_obj.refresh(True)
-                d = pr_obj.as_dict()
-                # This will cause the update_nodes_with_bot_rerun to trigger properly and shouldn't be overridden since
-                # this is the last function to run, the long term solution here is to add the bot to conda-forge and then
-                # it should have label adding capability and we can just add the label properly
+
+                pr_json = lazy_update_pr_json(pr_json, ctx)
+                d = dict(pr_json)
+
+                # This will cause the _update_nodes_with_bot_rerun to trigger
+                # properly and shouldn't be overridden since
+                # this is the last function to run, the long term solution here
+                # is to add the bot to conda-forge and then
+                # it should have label adding capability and we can just add
+                # the label properly
                 d["labels"].append(DUMMY_BOT_RERUN_METADATA)
-            else:
-                d = pr_obj.as_dict()
+
         return d
+
     return None

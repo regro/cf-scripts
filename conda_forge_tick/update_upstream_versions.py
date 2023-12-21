@@ -1,13 +1,15 @@
 import networkx as nx
 import logging
 import random
-import json
 import time
 import os
 import tqdm
+import hashlib
 from concurrent.futures import as_completed
 
-from .utils import setup_logger, load_graph, executor
+from .lazy_json_backends import LazyJson
+from .utils import setup_logger, load_graph
+from .executors import executor
 from .update_sources import (
     AbstractSource,
     PyPI,
@@ -16,53 +18,115 @@ from .update_sources import (
     ROSDistro,
     RawURL,
     Github,
+    IncrementAlphaRawURL,
+    NVIDIA,
 )
 from typing import Any, Iterable
 
 # conda_forge_tick :: cft
-logger = logging.getLogger("conda-forge-tick._update_versions")
+logger = logging.getLogger("conda_forge_tick.update_upstream_versions")
+
+
+def _filter_ignored_versions(attrs, version):
+    versions_to_ignore = (
+        attrs.get("conda-forge.yml", {})
+        .get("bot", {})
+        .get("version_updates", {})
+        .get("exclude", [])
+    )
+    if (
+        str(version).replace("-", ".") in versions_to_ignore
+        or str(version) in versions_to_ignore
+    ):
+        return False
+    else:
+        return version
 
 
 def get_latest_version(
-    name: str, meta_yaml: Any, sources: Iterable[AbstractSource],
+    name: str,
+    attrs: Any,
+    sources: Iterable[AbstractSource],
 ) -> dict:
-    version_data = {}
-    # avoid
+    version_data = {"new_version": False}
+
+    # avoid this one since it runs too long and hangs the bot
     if name == "ca-policy-lcg":
-        version_data["new_version"] = False
         return version_data
 
-    for source in sources:
-        logger.debug("source: %s", source.__class__.__name__)
-        url = source.get_url(meta_yaml)
-        logger.debug("url: %s", url)
-        if url is None:
-            continue
-        ver = source.get_version(url)
-        logger.debug("ver: %s", ver)
-        if ver:
-            version_data["new_version"] = ver
-            return version_data
-        else:
-            logger.debug(f"Upstream: Could not find version on {source.name}")
-            version_data["bad"] = f"Upstream: Could not find version on {source.name}"
-    if not meta_yaml.get("bad"):
-        logger.debug("Upstream: unknown source")
-        version_data["bad"] = "Upstream: unknown source or URL not in YAML"
+    version_sources = (
+        attrs.get("conda-forge.yml", {})
+        .get("bot", {})
+        .get("version_updates", {})
+        .get("sources", None)
+    )
+    if version_sources is not None:
+        version_sources = [vs.lower() for vs in version_sources]
+        sources_to_use = []
+        for vs in version_sources:
+            for source in sources:
+                if source.name.lower() == vs:
+                    sources_to_use.append(source)
 
-    version_data["new_version"] = False
+        for source in sources:
+            if source not in sources_to_use:
+                logger.debug("skipped source: %s", source.name)
+    else:
+        sources_to_use = sources
+
+    excs = []
+    for source in sources_to_use:
+        try:
+            logger.debug("source: %s", source.name)
+            url = source.get_url(attrs)
+            logger.debug("url: %s", url)
+            if url is None:
+                continue
+            ver = source.get_version(url)
+            logger.debug("ver: %s", ver)
+            if ver:
+                version_data["new_version"] = ver
+                break
+            else:
+                logger.debug(f"Upstream: Could not find version on {source.name}")
+        except Exception as e:
+            excs.append(e)
+
+    if version_data["new_version"] is False and len(excs) > 0:
+        raise excs[0]
+
+    if version_data["new_version"]:
+        version_data["new_version"] = _filter_ignored_versions(
+            attrs,
+            version_data["new_version"],
+        )
+
     return version_data
 
 
-# It's expected that your environment provide this info.
-CONDA_FORGE_TICK_DEBUG = os.environ.get("CONDA_FORGE_TICK_DEBUG", False)
+def _filter_nodes_for_job(_all_nodes, job, n_jobs):
+    job_index = job - 1
+    return [
+        t
+        for t in _all_nodes
+        if abs(int(hashlib.sha1(t[0].encode("utf-8")).hexdigest(), 16)) % n_jobs
+        == job_index
+    ]
 
 
 def _update_upstream_versions_sequential(
-    gx: nx.DiGraph, sources: Iterable[AbstractSource] = None,
+    gx: nx.DiGraph,
+    sources: Iterable[AbstractSource] = None,
+    job=1,
+    n_jobs=1,
 ) -> None:
 
     _all_nodes = [t for t in gx.nodes.items()]
+    _all_nodes = _filter_nodes_for_job(
+        _all_nodes,
+        job,
+        n_jobs,
+    )
     random.shuffle(_all_nodes)
 
     # Inspection the graph object and node update:
@@ -71,7 +135,12 @@ def _update_upstream_versions_sequential(
     to_update = []
     for node, node_attrs in _all_nodes:
         attrs = node_attrs["payload"]
-        if "Upstream" not in attrs.get("bad", []) or attrs.get("archived"):
+        pri = attrs.get("pr_info", {})
+        if (
+            attrs.get("parsing_error", False)
+            or (pri.get("bad") and "Upstream" not in pri.get("bad"))
+            or attrs.get("archived")
+        ):
             continue
         to_update.append((node, attrs))
 
@@ -92,29 +161,47 @@ def _update_upstream_versions_sequential(
             version_data["bad"] = "Upstream: Error getting upstream version"
         else:
             logger.info(
-                f"# {node_count:<5} - {node} - {attrs.get('version')} - {version_data.get('new_version')}",
+                f"# {node_count:<5} - {node} - {attrs.get('version')} "
+                f"- {version_data.get('new_version')}",
             )
 
         logger.debug("writing out file")
-        with open(f"versions/{node}.json", "w") as outfile:
-            json.dump(version_data, outfile)
+        lzj = LazyJson(f"versions/{node}.json")
+        with lzj as attrs:
+            attrs.clear()
+            attrs.update(version_data)
         node_count += 1
 
 
 def _update_upstream_versions_process_pool(
-    gx: nx.DiGraph, sources: Iterable[AbstractSource],
+    gx: nx.DiGraph,
+    sources: Iterable[AbstractSource],
+    job=1,
+    n_jobs=1,
 ) -> None:
     futures = {}
     # this has to be threads because the url hashing code uses a Pipe which
     # cannot be spawned from a process
-    with executor(kind="dask", max_workers=10) as pool:
+    with executor(kind="dask", max_workers=5) as pool:
         _all_nodes = [t for t in gx.nodes.items()]
+        _all_nodes = _filter_nodes_for_job(
+            _all_nodes,
+            job,
+            n_jobs,
+        )
         random.shuffle(_all_nodes)
 
-        for node, node_attrs in tqdm.tqdm(_all_nodes):
+        for node, node_attrs in tqdm.tqdm(
+            _all_nodes,
+            ncols=80,
+            desc="submitting version update jobs",
+        ):
             attrs = node_attrs["payload"]
-            if (attrs.get("bad") and "Upstream" not in attrs["bad"]) or attrs.get(
-                "archived",
+            pri = attrs.get("pr_info", {})
+            if (
+                attrs.get("parsing_error", False)
+                or (pri.get("bad") and "Upstream" not in pri.get("bad"))
+                or attrs.get("archived")
             ):
                 continue
 
@@ -166,29 +253,44 @@ def _update_upstream_versions_process_pool(
                     ),
                 )
             # writing out file
-            with open(f"versions/{node}.json", "w") as outfile:
-                json.dump(version_data, outfile)
+            lzj = LazyJson(f"versions/{node}.json")
+            with lzj as attrs:
+                attrs.clear()
+                attrs.update(version_data)
 
 
 def update_upstream_versions(
-    gx: nx.DiGraph, sources: Iterable[AbstractSource] = None,
+    gx: nx.DiGraph,
+    sources: Iterable[AbstractSource] = None,
+    debug: bool = False,
+    job=1,
+    n_jobs=1,
 ) -> None:
     sources = (
-        (PyPI(), CRAN(), NPM(), ROSDistro(), RawURL(), Github())
+        (
+            PyPI(),
+            CRAN(),
+            NPM(),
+            ROSDistro(),
+            RawURL(),
+            Github(),
+            IncrementAlphaRawURL(),
+            NVIDIA(),
+        )
         if sources is None
         else sources
     )
     updater = (
         _update_upstream_versions_sequential
-        if CONDA_FORGE_TICK_DEBUG
+        if debug
         else _update_upstream_versions_process_pool
     )
     logger.info("Updating upstream versions")
-    updater(gx, sources)
+    updater(gx, sources, job=job, n_jobs=n_jobs)
 
 
 def main(args: Any = None) -> None:
-    if CONDA_FORGE_TICK_DEBUG:
+    if args.debug:
         setup_logger(logger, level="debug")
     else:
         setup_logger(logger)
@@ -200,7 +302,7 @@ def main(args: Any = None) -> None:
     # Check if 'versions' folder exists or create a new one;
     os.makedirs("versions", exist_ok=True)
     # call update
-    update_upstream_versions(gx)
+    update_upstream_versions(gx, debug=args.debug, job=args.job, n_jobs=args.n_jobs)
 
 
 if __name__ == "__main__":

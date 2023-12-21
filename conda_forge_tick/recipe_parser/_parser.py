@@ -10,18 +10,31 @@ from ruamel.yaml import YAML
 
 CONDA_SELECTOR = "__###conda-selector###__"
 
+JINJA2_ML_SLUG = "###jinja2-multiline### "
+
+# this regex matches any jinja2 for or if statement
+JINJA2_FOR_RE = re.compile(r"^\s*\{\%\s+for")
+JINJA2_ENDFOR_RE = re.compile(r"^\s*\{\%\s+endfor")
+JINJA2_IF_RE = re.compile(r"^\s*\{\%\s+if")
+JINJA2_ENDIF_RE = re.compile(r"^\s*\{\%\s+endif")
+
 # this regex pulls out lines like
 #  '   name: val # [sel]'
 # to groups ('   ', 'name', 'val ', 'sel')
-SPC_KEY_VAL_SELECTOR_RE = re.compile(r"^(\s*-?\s*)([^\s:]*):([^#]*)#\s*\[(.*)\]")
+SPC_KEY_VAL_SELECTOR_RE = re.compile(r"^(\s*-?\s*)([^\s:]*):\s+([^#]*)#\s*\[(.*)\]")
 
 # this regex pulls out lines like
 #  '   name__###conda-selector###__py3k and blah: val # comment'
 # to groups ('   ', 'name', 'py3k and blah', ' val # comment')
-MUNGED_LINE_RE = re.compile(r"^(\s*-?\s*)([^\s:]*)" + CONDA_SELECTOR + r"([^:]*):(.*)")
+MUNGED_LINE_RE = re.compile(
+    r"^(\s*-?\??\s*)([^\s:]*)" + CONDA_SELECTOR + r"([^:]*):(.*)",
+)
 
 # this regex matches any line with a selector
 SELECTOR_RE = re.compile(r"^.*#\s*\[(.*)\]")
+
+# this one matches bad yaml syntax with a selector on a multiline string start
+BAD_MULTILINE_STRING_WITH_SELECTOR = re.compile(r"[^|#]*\|\s+#")
 
 
 def _get_yaml_parser():
@@ -30,6 +43,7 @@ def _get_yaml_parser():
     parser = YAML(typ="jinja2")
     parser.indent(mapping=2, sequence=4, offset=2)
     parser.width = 320
+    parser.preserve_quotes = True
     return parser
 
 
@@ -78,7 +92,8 @@ def _parse_jinja2_variables(meta_yaml: str) -> dict:
     jinja2_vals = {}
     for i, n in enumerate(all_nodes):
         if isinstance(n, jinja2.nodes.Assign) and isinstance(
-            n.node, jinja2.nodes.Const,
+            n.node,
+            jinja2.nodes.Const,
         ):
             if _config_has_key_with_selectors(jinja2_vals, n.target.name):
                 # selectors!
@@ -99,8 +114,6 @@ def _parse_jinja2_variables(meta_yaml: str) -> dict:
                         new_key = n.target.name + CONDA_SELECTOR + selector
                         jinja2_vals[new_key] = jinja2_vals[n.target.name]
                         del jinja2_vals[n.target.name]
-                    else:
-                        assert False, jinja2_data
 
                 # now insert this key - selector is the next thing
                 jinja2_data = all_nodes[i + 1].nodes[0].data
@@ -110,7 +123,7 @@ def _parse_jinja2_variables(meta_yaml: str) -> dict:
                     new_key = n.target.name + CONDA_SELECTOR + selector
                     jinja2_vals[new_key] = (n.node.value, i)
                 else:
-                    assert False, jinja2_data
+                    jinja2_vals[n.target.name] = (n.node.value, i)
             else:
                 jinja2_vals[n.target.name] = (n.node.value, i)
         elif isinstance(n, jinja2.nodes.Assign):
@@ -139,8 +152,20 @@ def _munge_line(line: str) -> str:
     m = SPC_KEY_VAL_SELECTOR_RE.match(line)
     if m:
         spc, key, val, selector = m.group(1, 2, 3, 4)
-        new_key = key + CONDA_SELECTOR + selector
-        return spc + new_key + ":" + val + "\n"
+
+        # # handle keys with quotes
+        if key.endswith('"'):
+            key = key[:-1]
+            sel_tail = '"'
+        elif key.endswith("'"):
+            key = key[:-1]
+            sel_tail = "'"
+        else:
+            sel_tail = ""
+
+        new_key = key + CONDA_SELECTOR + selector + sel_tail
+
+        return spc + new_key + ": " + val + "\n"
     else:
         return line
 
@@ -159,9 +184,95 @@ def _unmunge_line(line: str) -> str:
     m = MUNGED_LINE_RE.match(line)
     if m:
         spc, key, selector, val = m.group(1, 2, 3, 4)
+
+        # munge quotes in keys properly
+        if key.startswith('"') and selector.endswith('"'):
+            key += '"'
+            selector = selector[:-1]
+        elif key.startswith("'") and selector.endswith("'"):
+            key += "'"
+            selector = selector[:-1]
+
         return spc + key + ": " + val.strip() + "  # [" + selector + "]\n"
     else:
         return line
+
+
+def _unmunge_split_key_value_pairs_with_selectors(lines):
+    # yaml likes to split key-value pairs over lines sometimes
+    # this seems to happen when it inserts a question mark in front
+    # of the key
+    _lines = []
+    add_next = False
+    for line in lines:
+        if (
+            len(line.lstrip()) > 0
+            and line.lstrip()[0] == "?"
+            and ":" not in line
+            and CONDA_SELECTOR in line
+        ):
+            add_next = True
+            line = line.rstrip()
+            parts = line.split("?")
+            line = parts[0] + parts[1].lstrip()
+            _lines.append(line)
+        else:
+            if add_next:
+                _lines[-1] += line.lstrip()
+                add_next = False
+            else:
+                _lines.append(line)
+    return _lines
+
+
+def _munge_multiline_jinja2(lines):
+    """puts a comment slug in front of any multiline jinja2 statements"""
+    in_statement = False
+    special_end_slug_re = []
+    new_lines = []
+    for line in lines:
+        if line.strip().startswith("{%") and "%}" not in line:
+            in_statement = True
+
+        if in_statement:
+            if JINJA2_FOR_RE.match(line):
+                special_end_slug_re.append(JINJA2_ENDFOR_RE)
+            elif JINJA2_IF_RE.match(line):
+                special_end_slug_re.append(JINJA2_ENDIF_RE)
+            elif line.strip().startswith("{%") and "%}" not in line:
+                special_end_slug_re.append(None)
+
+        if in_statement:
+            new_lines.append("# {# " + JINJA2_ML_SLUG + line[:-1] + " #}\n")
+        else:
+            new_lines.append(line)
+
+        if len(special_end_slug_re) > 0:
+            if special_end_slug_re[-1] is not None:
+                if special_end_slug_re[-1].match(line):
+                    special_end_slug_re = special_end_slug_re[:-1]
+            else:
+                if "%}" in line and "{%" not in line:
+                    special_end_slug_re = special_end_slug_re[:-1]
+
+        if len(special_end_slug_re) == 0:
+            in_statement = False
+
+    return new_lines
+
+
+def _unmunge_multiline_jinja2(lines):
+    """removes a comment slug in front of any multiline jinja2 statements"""
+    start_slug = "# {# " + JINJA2_ML_SLUG
+    start = len(start_slug)
+    stop = len(" #}\n")
+    new_lines = []
+    for line in lines:
+        if line.startswith(start_slug):
+            new_lines.append(line[start:-stop] + "\n")
+        else:
+            new_lines.append(line)
+    return new_lines
 
 
 def _demunge_jinja2_vars(meta: Union[dict, list], sentinel: str) -> Union[dict, list]:
@@ -211,7 +322,7 @@ def _is_simple_jinja2_set(line):
 
 
 def _replace_jinja2_vars(lines: List[str], jinja2_vars: dict) -> List[str]:
-    """Find all instances of jinja2 vairable assignment via `set` in a recipe
+    """Find all instances of jinja2 variable assignment via `set` in a recipe
     and replace the values with those in `jinja2_vars`. Any extra key-value
     pairs in `jinja2_vars` will be added as new statements at the top.
     """
@@ -369,6 +480,18 @@ class CondaMetaYAML:
     """
 
     def __init__(self, meta_yaml: str):
+        for line in meta_yaml.splitlines():
+            if BAD_MULTILINE_STRING_WITH_SELECTOR.match(line):
+                raise RuntimeError(
+                    "Could not parse meta.yaml due to multiline string '|' paired "
+                    "with a conda build selector! (offending line: '%s')" % line,
+                )
+
+        # remove multiline jinja2 statements
+        lines = list(io.StringIO(meta_yaml).readlines())
+        lines = _munge_multiline_jinja2(lines)
+        meta_yaml = "".join(lines)
+
         # get any variables set in the file by jinja2
         v, e = _parse_jinja2_variables(meta_yaml)
         self.jinja2_vars = v
@@ -400,34 +523,38 @@ class CondaMetaYAML:
         Parameters
         ----------
         jinja2_vars : dict
-            A dictionary mapping vairable names to their (constant) values.
+            A dictionary mapping variable names to their (constant) values.
 
         Returns
         -------
         exprs : dict
             A dictionary mapping variable names to their computed values.
         """
-        tmpl = _build_jinja2_expr_tmp(self.jinja2_exprs)
-        if len(tmpl.strip()) == 0:
-            return {}
+        exprs = self.jinja2_exprs
+        # Loop until we stop finding undefined variables
+        while True:
+            tmpl = _build_jinja2_expr_tmp(exprs)
+            if len(tmpl.strip()) == 0:
+                return {}
 
-        # look for undefined things
-        env = jinja2.Environment()
-        ast = env.parse(tmpl)
-        undefined = jinja2.meta.find_undeclared_variables(ast)
-        undefined = {u for u in undefined if u not in jinja2_vars}
+            # look for undefined things
+            env = jinja2.Environment()
+            ast = env.parse(tmpl)
+            undefined = jinja2.meta.find_undeclared_variables(ast)
+            undefined = {u for u in undefined if u not in jinja2_vars}
 
-        # if we found them, remove the offending statements
-        if len(undefined) > 0:
-            new_exprs = {}
-            for var, expr in self.jinja2_exprs.items():
-                if not any(u in expr for u in undefined):
-                    new_exprs[var] = expr
-        else:
-            new_exprs = self.jinja2_exprs
+            # if we found them, remove the offending statements
+            if len(undefined) > 0:
+                new_exprs = {}
+                for var, expr in exprs.items():
+                    if not any(u in expr for u in undefined):
+                        new_exprs[var] = expr
+                exprs = new_exprs
+            else:
+                break
 
         # rebuild the template and render
-        tmpl = _build_jinja2_expr_tmp(new_exprs)
+        tmpl = _build_jinja2_expr_tmp(exprs)
         if len(tmpl.strip()) == 0:
             return {}
 
@@ -435,6 +562,13 @@ class CondaMetaYAML:
         # that we don't want to ruin
         _parser = _get_yaml_parser()
         return _parser.load(jinja2.Template(tmpl).render(**jinja2_vars))
+
+    def dumps(self):
+        """Dump the recipe to a string"""
+        buff = io.StringIO()
+        self.dump(buff)
+        buff.seek(0)
+        return buff.read()
 
     def dump(self, fp: Any):
         """Dump the recipe to a file-like object.
@@ -454,9 +588,14 @@ class CondaMetaYAML:
             s.seek(0)
 
             # now unmunge
-            lines = []
-            for line in s.readlines():
-                lines.append(_unmunge_line(line))
+            lines = _unmunge_split_key_value_pairs_with_selectors(
+                [line for line in s.readlines()],
+            )
+            for i in range(len(lines)):
+                lines[i] = _unmunge_line(lines[i])
+
+            # add multiline jinja2 statements
+            lines = _unmunge_multiline_jinja2(lines)
 
             # put in new jinja2 vars
             lines = _replace_jinja2_vars(lines, self.jinja2_vars)

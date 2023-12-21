@@ -9,18 +9,18 @@ from conda_forge_tick.migrators import (
 from test_migrators import run_test_migration
 
 PC = PipCheckMigrator()
-VERSION_PC = Version(set(), dict(), dict(), piggy_back_migrations=[PC])
+VERSION_PC = Version(set(), piggy_back_migrations=[PC])
 
 YAML_PATH = os.path.join(os.path.dirname(__file__), "test_yaml")
 
 
 @pytest.mark.parametrize("case", ["simple", "selector", "selector_partial"])
 def test_version_pipcheck(case, tmpdir):
-    with open(os.path.join(YAML_PATH, "version_pipcheck_%s.yaml" % case), "r") as fp:
+    with open(os.path.join(YAML_PATH, "version_pipcheck_%s.yaml" % case)) as fp:
         in_yaml = fp.read()
 
     with open(
-        os.path.join(YAML_PATH, "version_pipcheck_%s_correct.yaml" % case), "r",
+        os.path.join(YAML_PATH, "version_pipcheck_%s_correct.yaml" % case),
     ) as fp:
         out_yaml = fp.read()
 
@@ -40,11 +40,11 @@ def test_version_pipcheck(case, tmpdir):
 
 
 def test_version_pipcheck_outputs(tmpdir):
-    with open(os.path.join(YAML_PATH, "version_pipcheck_outputs.yaml"), "r") as fp:
+    with open(os.path.join(YAML_PATH, "version_pipcheck_outputs.yaml")) as fp:
         in_yaml = fp.read()
 
     with open(
-        os.path.join(YAML_PATH, "version_pipcheck_outputs_correct.yaml"), "r",
+        os.path.join(YAML_PATH, "version_pipcheck_outputs_correct.yaml"),
     ) as fp:
         out_yaml = fp.read()
 

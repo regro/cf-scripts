@@ -1,0 +1,77 @@
+{% set version = "1.72.0" %}
+{% set filename = "boost_%s.tar.bz2" % version.replace(".", "_") %}
+
+package:
+  name: boost
+  version: {{ version }}
+
+source:
+  fn:  {{ filename }}
+  url: https://boostorg.jfrog.io/artifactory/main/release/{{ version }}/source/{{ filename }}
+  sha256: 59c9b274bc451cf91a9ba1dd2c7fdcaf5d60b1b3aa83f2c9fa143417cc660722
+  patches:
+    # related to https://github.com/boostorg/build/pull/291
+    - fix-include-dir.patch  # [py3k and py<38]
+    - 456be0b7ecca065fbccf380c2f51e0985e608ba0.patch  # [osx and arm64]
+    # For PyPy and python 3.10
+    - fopen.patch
+    - cc7bd35cc7616c31a6eaa97204a9f0127900d6f8.patch
+
+build:
+  number: 3
+
+requirements:
+  build:
+    - python                                 # [build_platform != target_platform]
+    - cross-python_{{ target_platform }}     # [build_platform != target_platform]
+    - numpy                                  # [build_platform != target_platform]
+    - {{ compiler('cxx') }}
+
+  host:
+    - python
+    - numpy
+    - boost-cpp  {{ version }}
+
+  run:
+    - python
+    - {{ pin_compatible('numpy') }}
+    - boost-cpp  {{ version }}
+
+test:
+  commands:
+    # Verify Python headers are installed.
+    - test -f $PREFIX/include/boost/python.hpp                 # [unix]
+    - test -d $PREFIX/include/boost/python                     # [unix]
+    - if not exist %LIBRARY_INC%\\boost\\python.hpp exit 1     # [win]
+    - if not exist %LIBRARY_INC%\\boost\\python exit 1         # [win]
+
+    # Verify libraries.
+    {% set boost_libs = [
+            "python%s" % py,
+            "numpy%s" % py
+    ] %}
+    {% for each_boost_lib in boost_libs %}
+    - test -f $PREFIX/lib/libboost_{{ each_boost_lib }}.a                                                 # [unix]
+    - test -f $PREFIX/lib/libboost_{{ each_boost_lib }}${SHLIB_EXT}                                       # [unix]
+    - if not exist %PREFIX%\\Library\\bin\\boost_{{ each_boost_lib }}.dll exit 1                          # [win]
+    - if not exist %PREFIX%\\Library\\lib\\boost_{{ each_boost_lib }}.lib exit 1                          # [win]
+    - if not exist %PREFIX%\\Library\\lib\\libboost_{{ each_boost_lib }}.lib exit 1                       # [win]
+    {% endfor %}
+
+about:
+  home: http://www.boost.org/
+  license: BSL-1.0
+  license_file: LICENSE_1_0.txt
+  summary: Free peer-reviewed portable C++ source libraries.
+
+extra:
+  recipe-maintainers:
+    - ccordoba12
+    - jakirkham
+    - msarahan
+    - ocefpaf
+    - jschueller
+    - scopatz
+    - isuruf
+    - xhochy
+    - beckermr

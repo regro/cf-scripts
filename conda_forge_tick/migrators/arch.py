@@ -3,16 +3,22 @@ import typing
 from typing import Optional, Any, Sequence
 
 import networkx as nx
-from ruamel.yaml import safe_load, safe_dump
 
 from conda_forge_tick.contexts import FeedstockContext
 from conda_forge_tick.migrators.core import _sanitized_muids, GraphMigrator
-from conda_forge_tick.utils import frozen_to_json_friendly, pluck, as_iterable
-from ..xonsh_utils import indir
-
+from conda_forge_tick.utils import (
+    frozen_to_json_friendly,
+    pluck,
+    as_iterable,
+    yaml_safe_load,
+    yaml_safe_dump,
+)
+from conda_forge_tick.os_utils import pushd
+from conda_forge_tick.make_graph import get_deps_from_outputs_lut
+from .migration_yaml import all_noarch
 
 if typing.TYPE_CHECKING:
-    from ..migrators_types import AttrsTypedDict, MigrationUidTypedDict
+    from conda_forge_tick.migrators_types import AttrsTypedDict, MigrationUidTypedDict
 
 from .core import MiniMigrator
 
@@ -51,11 +57,11 @@ class ArchRebuild(GraphMigrator):
             for plat_arch in self.arches:
                 deps = set().union(
                     *attrs.get(
-                        f"{plat_arch}_requirements", attrs.get("requirements", {}),
+                        f"{plat_arch}_requirements",
+                        attrs.get("requirements", {}),
                     ).values()
                 )
-                for dep in deps:
-                    dep = graph.graph["outputs_lut"].get(dep, dep)
+                for dep in get_deps_from_outputs_lut(deps, graph.graph["outputs_lut"]):
                     graph2.add_edge(dep, node)
 
         super().__init__(
@@ -67,8 +73,8 @@ class ArchRebuild(GraphMigrator):
 
         assert not self.check_solvable, "We don't want to check solvability for aarch!"
         # We are constraining the scope of this migrator
-        with indir("../conda-forge-pinning-feedstock/recipe/migrations"), open(
-            "arch_rebuild.txt", "r",
+        with pushd("../conda-forge-pinning-feedstock/recipe/migrations"), open(
+            "arch_rebuild.txt",
         ) as f:
             self.target_packages = set(f.read().split())
 
@@ -83,19 +89,13 @@ class ArchRebuild(GraphMigrator):
             self.graph.remove_nodes_from([n for n in self.graph if n not in packages])
 
         # filter out stub packages and ignored packages
-        for node in list(self.graph.nodes):
+        for node, attrs in list(self.graph.nodes("payload")):
             if (
                 node.endswith("_stub")
                 or (node.startswith("m2-"))
                 or (node.startswith("m2w64-"))
                 or (node in self.ignored_packages)
-                or (
-                    self.graph.nodes[node]
-                    .get("payload", {})
-                    .get("meta_yaml", {})
-                    .get("build", {})
-                    .get("noarch")
-                )
+                or all_noarch(attrs)
             ):
                 pluck(self.graph, node)
         self.graph.remove_edges_from(nx.selfloop_edges(self.graph))
@@ -109,17 +109,19 @@ class ArchRebuild(GraphMigrator):
                 attrs.get("conda-forge.yml", {}).get("provider", {}).get(arch)
             )
             if configured_arch:
-                return muid in _sanitized_muids(attrs.get("PRed", []))
+                return muid in _sanitized_muids(
+                    attrs.get("pr_info", {}).get("PRed", []),
+                )
         else:
             return False
 
     def migrate(
         self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any
     ) -> "MigrationUidTypedDict":
-        with indir(recipe_dir + "/.."):
+        with pushd(recipe_dir + "/.."):
             self.set_build_number("recipe/meta.yaml")
-            with open("conda-forge.yml", "r") as f:
-                y = safe_load(f)
+            with open("conda-forge.yml") as f:
+                y = yaml_safe_load(f)
             if "provider" not in y:
                 y["provider"] = {}
             for k, v in self.arches.items():
@@ -127,7 +129,7 @@ class ArchRebuild(GraphMigrator):
                     y["provider"][k] = v
 
             with open("conda-forge.yml", "w") as f:
-                safe_dump(y, f)
+                yaml_safe_dump(y, f)
 
         return super().migrate(recipe_dir, attrs, **kwargs)
 
@@ -162,14 +164,14 @@ class OSXArm(GraphMigrator):
     # We purposefully don't want to bump build number for this migrator
     bump_number = 0
 
-    ignored_packages = {"gfortran"}
-    excluded_dependencies = {"fortran_compiler_stub"}
+    ignored_packages = set()
+    excluded_dependencies = set()
 
     arches = ["osx_arm64"]
 
     additional_keys = {
         "build_platform": {"osx_arm64": "osx_64"},
-        "test_on_native_only": True,
+        "test": "native_and_emulated",
     }
 
     def __init__(
@@ -198,8 +200,7 @@ class OSXArm(GraphMigrator):
                 for build_dep in build_deps:
                     if build_dep.endswith("_stub"):
                         deps.add(build_dep)
-                for dep in deps:
-                    dep = graph.graph["outputs_lut"].get(dep, dep)
+                for dep in get_deps_from_outputs_lut(deps, graph.graph["outputs_lut"]):
                     graph2.add_edge(dep, node)
 
         super().__init__(
@@ -222,8 +223,8 @@ class OSXArm(GraphMigrator):
             self.graph.remove_nodes_from(nx.descendants(self.graph, excluded_dep))
 
         # We are constraining the scope of this migrator
-        with indir("../conda-forge-pinning-feedstock/recipe/migrations"), open(
-            "osx_arm64.txt", "r",
+        with pushd("../conda-forge-pinning-feedstock/recipe/migrations"), open(
+            "osx_arm64.txt",
         ) as f:
             self.target_packages = set(f.read().split())
 
@@ -238,15 +239,13 @@ class OSXArm(GraphMigrator):
 
         # filter out stub packages and ignored packages
         for node, attrs in list(self.graph.nodes("payload")):
-            if not attrs:
-                print(node)
             if (
                 not attrs
                 or node.endswith("_stub")
                 or (node.startswith("m2-"))
                 or (node.startswith("m2w64-"))
                 or (node in self.ignored_packages)
-                or (attrs.get("meta_yaml", {}).get("build", {}).get("noarch"))
+                or all_noarch(attrs)
             ):
                 pluck(self.graph, node)
 
@@ -261,20 +260,31 @@ class OSXArm(GraphMigrator):
                 attrs.get("conda-forge.yml", {}).get("provider", {}).get(arch)
             )
             if configured_arch:
-                return muid in _sanitized_muids(attrs.get("PRed", []))
+                return muid in _sanitized_muids(
+                    attrs.get("pr_info", {}).get("PRed", []),
+                )
         else:
             return False
 
     def migrate(
         self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any
     ) -> "MigrationUidTypedDict":
-        with indir(recipe_dir + "/.."):
+        with pushd(recipe_dir + "/.."):
             self.set_build_number("recipe/meta.yaml")
-            with open("conda-forge.yml", "r") as f:
-                y = safe_load(f)
-            y.update(self.additional_keys)
+            with open("conda-forge.yml") as f:
+                y = yaml_safe_load(f)
+            # we should do this recursively but the cf yaml is usually
+            # one key deep so this is fine
+            for k, v in self.additional_keys.items():
+                if isinstance(v, dict):
+                    if k not in y:
+                        y[k] = {}
+                    for _k, _v in v.items():
+                        y[k][_k] = _v
+                else:
+                    y[k] = v
             with open("conda-forge.yml", "w") as f:
-                safe_dump(y, f)
+                yaml_safe_dump(y, f)
 
         return super().migrate(recipe_dir, attrs, **kwargs)
 
@@ -290,7 +300,7 @@ class OSXArm(GraphMigrator):
 
         **Feel free to merge the PR if CI is all green, but please don't close it
         without reaching out the the ARM OSX team first at @conda-forge/help-osx-arm64.**
-        """,
+        """,  # noqa
             ),
         )
         return body

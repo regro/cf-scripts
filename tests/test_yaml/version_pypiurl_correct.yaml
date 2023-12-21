@@ -2,17 +2,17 @@
 {% set version = "0.7.1" %}
 
 package:
-  name: {{ name|lower }}
-  version: {{ version }}
+  name: "{{ name|lower }}"
+  version: "{{ version }}"
 
 source:
-  url: https://pypi.io/packages/source/{{ name[0] }}/{{ name }}/{{ name.replace('_', '-') }}-{{ version }}.tar.gz
+  url: "https://pypi.io/packages/source/{{ name[0] }}/{{ name }}/{{ name.replace('_', '-') }}-{{ version }}.tar.gz"
   sha256: f3fe3f89011899b82451669cf1dbe4978523b8ac0f62c9c116429876fe8b6be8
 
 build:
   number: 0
   noarch: python
-  script: {{ PYTHON }} -m pip install . -vv
+  script: "{{ PYTHON }} -m pip install . -vv"
 
 requirements:
   host:
@@ -28,11 +28,11 @@ test:
     - dagster_spark
 
 about:
-  home: https://github.com/dagster-io/dagster/tree/master/python_modules/libraries/dagster-spark
+  home: "https://github.com/dagster-io/dagster/tree/master/python_modules/libraries/dagster-spark"
   license: Apache-2.0
   license_family: APACHE
   license_file: LICENSE
-  summary: Package for Spark Dagster framework components.
+  summary: "Package for Spark Dagster framework components."
 
 extra:
   recipe-maintainers:

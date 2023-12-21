@@ -2,17 +2,17 @@
 {% set version = "0.6.0" %}
 
 package:
-  name: {{ name|lower }}
-  version: {{ version }}
+  name: "{{ name|lower }}"
+  version: "{{ version }}"
 
 source:
-  url: https://pypi.io/packages/source/{{ name[0] }}/{{ name }}/{{ name }}-{{ version }}.tar.gz
-  sha256: a6017ad79fea8fd04da313f91fdce6007fce21a3b2e5b9a137295274a0a68846
+  url: "https://pypi.io/packages/source/{{ name[0] }}/{{ name }}/{{ name }}-{{ version }}.tar.gz"
+  sha256: "a6017ad79fea8fd04da313f91fdce6007fce21a3b2e5b9a137295274a0a68846"
 
 build:
   number: 0
   noarch: python
-  script: '{{ PYTHON }} -m pip install . --no-deps --ignore-installed -vv '
+  script: "{{ PYTHON }} -m pip install . --no-deps --ignore-installed -vv "
 
 requirements:
   host:
@@ -44,12 +44,12 @@ test:
     - pytest_notebook.utils
 
 about:
-  home: https://github.com/chrisjsewell/pytest-notebook
-  license: BSD
-  license_family: BSD
-  license_file: LICENSE
-  summary: A pytest plugin for testing Jupyter Notebooks
-  doc_url: https://pytest-notebook.readthedocs.io
+  home: "https://github.com/chrisjsewell/pytest-notebook"
+  license: "BSD"
+  license_family: "BSD"
+  license_file: "LICENSE"
+  summary: "A pytest plugin for testing Jupyter Notebooks"
+  doc_url: "https://pytest-notebook.readthedocs.io"
 
 extra:
   recipe-maintainers:

@@ -1,5 +1,5 @@
 BSD 3-clause license
-Copyright (c) 2015-2018, NumFOCUS
+Copyright (c) 2015-2023, NumFOCUS
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -27,6 +27,10 @@ CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
 USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+
+Autotick-bot
+BSD 3-Clause
+Copyright (c) 2020, Re(search) Gro(up)
 
 Tick-my-feedstocks
 Copyright (c) 2017, Peter M. Landwehr

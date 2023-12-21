@@ -1,0 +1,79 @@
+{% set version = "1.9.0" %}
+
+package:
+  name: gudhi
+  version: {{ version }}
+
+source:
+  # fake source url to get version migrator to pass
+  url: https://github.com/scipy/scipy/archive/refs/tags/v{{ version }}.tar.gz
+  sha256: b6d893dc7dcd4138b9e9df59a13c59695e50e80dc5c2cacee0674670693951a1
+  # git_url: https://github.com/GUDHI/gudhi-devel.git
+  # git_rev: tags/gudhi-release-{{ version }}
+
+build:
+  number: 5
+
+requirements:
+  build:
+    - {{ compiler('c') }}
+    - {{ compiler('cxx') }}
+    - cmake
+    - make  # [not win]
+    - python                                 # [build_platform != target_platform]
+    - cross-python_{{ target_platform }}     # [build_platform != target_platform]
+    - cython                                 # [build_platform != target_platform]
+    - pybind11                               # [build_platform != target_platform]
+    - numpy                                  # [build_platform != target_platform]
+    - git                                    # [build_platform != target_platform]
+  host:
+    - python
+    - pip
+    - setuptools
+    - cython
+    - pybind11
+    - numpy
+    - boost-cpp
+    - eigen
+    - cgal-cpp >=5.5
+  run:
+    - python
+    - {{ pin_compatible('numpy') }}
+    - cgal-cpp >=5.5
+
+test:
+  requires:
+    - pytest
+    - python
+  source_files:
+    - src/python/test
+  commands:
+    - test -f ${PREFIX}/include/gudhi/Simplex_tree.h  # [unix]
+    - if not exist %LIBRARY_INC%\gudhi\Simplex_tree.h exit 1  # [win]
+    - pytest src/python/test/test_alpha_complex.py
+    - pytest src/python/test/test_bottleneck_distance.py
+    - pytest src/python/test/test_cubical_complex.py
+    - pytest src/python/test/test_euclidean_witness_complex.py
+    - pytest src/python/test/test_reader_utils.py
+    - pytest src/python/test/test_rips_complex.py
+    - pytest src/python/test/test_simplex_generators.py
+    - pytest src/python/test/test_simplex_tree.py
+    - pytest src/python/test/test_subsampling.py
+    - pytest src/python/test/test_tangential_complex.py
+    - pytest src/python/test/test_time_delay.py
+    - pytest src/python/test/test_witness_complex.py
+about:
+  home: https://gudhi.inria.fr/
+  license: MIT AND BSD-3-Clause AND MPL-2.0 AND LGPL-3.0-or-later AND GPL-3.0-or-later
+  license_file: LICENSE
+  summary: Geometry Understanding in Higher Dimensions
+  description: |
+    The GUDHI library is a generic open source C++ library, with a Python
+    interface, for Topological Data Analysis (TDA) and Higher Dimensional
+    Geometry Understanding. The library offers state-of-the-art data structures
+    and algorithms to construct simplicial complexes and compute persistent
+    homology.
+  doc_url: https://gudhi.inria.fr/python/{{ version }}/
+extra:
+  recipe-maintainers:
+    - VincentRouvreau

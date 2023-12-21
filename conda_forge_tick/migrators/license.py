@@ -8,8 +8,8 @@ import logging
 
 from rever.tools import replace_in_file
 
-from conda_forge_tick.xonsh_utils import indir
-from conda_forge_tick.utils import eval_cmd, _get_source_code
+from conda_forge_tick.os_utils import pushd, eval_cmd
+from conda_forge_tick.utils import _get_source_code
 from conda_forge_tick.recipe_parser import CondaMetaYAML
 from conda_forge_tick.migrators.core import MiniMigrator
 
@@ -134,7 +134,7 @@ def _scrape_license_string(pkg):
 
     LOGGER.info("LICENSE running cran skeleton for pkg %s" % pkg)
 
-    with tempfile.TemporaryDirectory() as tmpdir, indir(tmpdir):
+    with tempfile.TemporaryDirectory() as tmpdir, pushd(tmpdir):
 
         subprocess.run(
             [
@@ -147,7 +147,7 @@ def _scrape_license_string(pkg):
             ],
             check=True,
         )
-        with open("r-%s/meta.yaml" % pkg, "r") as fp:
+        with open("r-%s/meta.yaml" % pkg) as fp:
             in_about = False
             meta_yaml = []
             for line in fp.readlines():
@@ -164,7 +164,9 @@ def _scrape_license_string(pkg):
 
     cmeta = CondaMetaYAML("".join(meta_yaml))
 
-    d["license_file"] = [l for l in cmeta.meta.get("about", {}).get("license_file", [])]
+    d["license_file"] = [
+        lf for lf in cmeta.meta.get("about", {}).get("license_file", [])
+    ]
     if len(d["license_file"]) == 0:
         d["license_file"] = None
 
@@ -191,7 +193,7 @@ def _do_r_license_munging(pkg, recipe_dir):
         d = _scrape_license_string(pkg)
         LOGGER.info("LICENSE R package license data: %s" % d)
 
-        with open(os.path.join(recipe_dir, "meta.yaml"), "r") as fp:
+        with open(os.path.join(recipe_dir, "meta.yaml")) as fp:
             cmeta = CondaMetaYAML(fp.read())
 
         if d["license_file"] is not None:
@@ -259,10 +261,13 @@ class LicenseMigrator(MiniMigrator):
             _do_r_license_munging(name, recipe_dir)
             return
 
-        cb_work_dir = _get_source_code(recipe_dir)
+        try:
+            cb_work_dir = _get_source_code(recipe_dir)
+        except Exception:
+            return
         if cb_work_dir is None:
             return
-        with indir(cb_work_dir):
+        with pushd(cb_work_dir):
             # look for a license file
             license_files = [
                 s
@@ -274,12 +279,12 @@ class LicenseMigrator(MiniMigrator):
         eval_cmd(f"rm -r {cb_work_dir}")
         # if there is a license file in tarball update things
         if license_files:
-            with indir(recipe_dir):
+            with pushd(recipe_dir):
                 """BSD 3-Clause License
-                  Copyright (c) 2017, Anthony Scopatz
-                  Copyright (c) 2018, The Regro Developers
-                  All rights reserved."""
-                with open("meta.yaml", "r") as f:
+                Copyright (c) 2017, Anthony Scopatz
+                Copyright (c) 2018, The Regro Developers
+                All rights reserved."""
+                with open("meta.yaml") as f:
                     raw = f.read()
                 lines = raw.splitlines()
                 ptn = re.compile(r"(\s*?)" + "license:")

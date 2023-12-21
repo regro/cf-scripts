@@ -1,3 +1,5 @@
+from flaky import flaky
+
 from conda_forge_tick.migrators import Version, LicenseMigrator
 from conda_forge_tick.migrators.license import _munge_licenses
 
@@ -5,7 +7,7 @@ from test_migrators import run_test_migration
 
 
 LM = LicenseMigrator()
-VER_LM = Version(set(), dict(), dict(), piggy_back_migrations=[LM])
+VER_LM = Version(set(), piggy_back_migrations=[LM])
 
 version_license = """\
 {% set version = "0.8" %}
@@ -241,7 +243,7 @@ about:
   license_family: AGPL
 
   license_file:
-    - {{ environ["PREFIX"] }}/lib/R/share/licenses/AGPL-3
+    - '{{ environ["PREFIX"] }}/lib/R/share/licenses/AGPL-3'
     - LICENSE
 extra:
   recipe-maintainers:
@@ -302,6 +304,7 @@ def test_munge_licenses():
     assert spdx == "MIT OR GPL-2.0-or-later"
 
 
+@flaky
 def test_version_license_correct_r(tmpdir):
     run_test_migration(
         m=VER_LM,

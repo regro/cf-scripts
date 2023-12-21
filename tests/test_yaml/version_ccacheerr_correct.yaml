@@ -33,7 +33,7 @@ about:
   license: GPL-3.0
   license_family: GPL
   license_file: GPL-3.0.txt
-  summary: A compiler cache
+  summary: 'A compiler cache'
 
   description: |
     ccache is a compiler cache. It speeds up recompilation by caching

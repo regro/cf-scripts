@@ -1,0 +1,8 @@
+blas_impl:
+  - mkl                        # [x86 or x86_64]
+mkl:
+  - 2020
+c_compiler_version:  # [linux64]
+  - 7                # [linux64]
+cxx_compiler_version:  # [linux64]
+  - 7                # [linux64]

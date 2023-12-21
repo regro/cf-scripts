@@ -1,0 +1,107 @@
+{% set version = "2.1.10" %}
+
+package:
+  name: libevent
+  version: {{ version }}
+
+source:
+  fn: libevent-{{ version }}.tar.gz
+  url: https://github.com/libevent/libevent/archive/release-{{ version }}-stable.tar.gz
+  sha256: 52c9db0bc5b148f146192aa517db0762b2a5b3060ccc63b2c470982ec72b9a79
+  patches:
+    - 0374b55942e533a3c3997439481a8d05d6c8f729.patch
+    - 0001-Fix-destination-for-DLLs-lib-bin.patch
+    - build-with-no-undefined.patch  # [osx and arm64]
+
+build:
+  number: 3
+  run_exports:
+    # https://abi-laboratory.pro/tracker/timeline/libevent/
+    - {{ pin_subpackage('libevent', max_pin='x.x.x') }}
+
+requirements:
+  build:
+    - pkg-config  # [unix]
+    - autoconf    # [unix]
+    - automake    # [unix]
+    - libtool     # [unix]
+    - cmake       # [win]
+    - m2-patch    # [win]
+    - make
+    - {{ compiler('c') }}
+    - openssl
+  host:
+    - openssl
+  run:
+    # Will be taken care of by run_exports
+    # - openssl 1.0.*
+
+test:
+  requires:
+    - python *
+
+  source_files:
+    - event_rpcgen.py
+    - test/
+
+  commands:
+    # Check for headers.
+    - test -d "${PREFIX}/include/event2"  # [unix]
+    - if not exist %LIBRARY_INC%\event2 exit 1  # [win]
+
+    # Check for libraries.
+    {% set libs = [
+        "libevent",
+        "libevent_core",
+        "libevent_extra",
+        "libevent_openssl",
+        "libevent_pthreads"
+    ] %}
+    {% set libs_win = [
+        "event",
+        "event_core",
+        "event_extra",
+    ] %}
+
+    {% for each_lib in libs %}
+    - test ! -f "${PREFIX}/lib/{{ each_lib }}.a"             # [unix]
+    - test -f "${PREFIX}/lib/{{ each_lib }}.dylib"         # [osx]
+    - test -f "${PREFIX}/lib/{{ each_lib }}.so"            # [linux]
+    {% endfor %}
+
+    {% for each_lib in libs_win %}
+    - if not exist "%LIBRARY_PREFIX%/lib/{{ each_lib }}.lib" exit 1  # [win]
+    - if not exist "%LIBRARY_PREFIX%/bin/{{ each_lib }}.dll" exit 1  # [win]
+    {% endfor %}
+
+    {% set pkgconfigs = [
+        "libevent",
+        "libevent_openssl",
+        "libevent_pthreads"
+    ] %}
+
+    # Check for pkg-config files.
+    {% for each_pkgconfig in pkgconfigs %}
+    - test -f "${PREFIX}/lib/pkgconfig/{{ each_pkgconfig }}.pc"  # [unix]
+    {% endfor %}
+
+    # Run included Python script.
+    - python event_rpcgen.py test/regress.rpc test/regress.gen.h test/regress.gen.c
+
+about:
+  home: http://libevent.org/
+  license: BSD-3-Clause
+  license_family: BSD
+  license_file: LICENSE
+  description: |
+    The libevent API provides a mechanism to execute a callback function when
+    a specific event occurs on a file descriptor or after a timeout has been
+    reached. Furthermore, libevent also supports callbacks due to signals or
+    regular timeouts.
+  summary: An event notification library.
+  doc_url: http://www.wangafu.net/~nickm/libevent-1.4/doxygen/html/
+  dev_url: https://github.com/libevent/libevent
+
+extra:
+  recipe-maintainers:
+    - jakirkham
