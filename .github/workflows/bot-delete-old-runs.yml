@@ -9,6 +9,10 @@ jobs:
   delete-old-runs:
     name: delete-old-runs
     runs-on: "ubuntu-latest"
+    defaults:
+      run:
+        shell: bash -l {0}
+
     steps:
       - uses: actions/checkout@v3
         with:
@@ -23,7 +27,6 @@ jobs:
           condarc-file: cf-scripts/autotick-bot/condarc
 
       - name: delete runs
-        shell: bash -l {0}
         run: |
           cd cf-scripts
           python autotick-bot/delete_old_runs.py
