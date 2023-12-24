@@ -5,6 +5,7 @@ from doctr.travis import run_command_hiding_token as doctr_run
 
 from . import sensitive_env
 from .utils import load_graph
+from .lazy_json_backends import get_lazy_json_backends, CF_TICK_GRAPH_DATA_HASHMAPS
 
 BUILD_URL_KEY = "CIRCLE_BUILD_URL"
 
@@ -29,20 +30,17 @@ def deploy(dry_run=False):
         print(e)
 
     files_to_add = set()
-    for dr in [
-        "pr_json",
+    drs_to_deploy = [
         "status",
-        "node_attrs",
-        "audits",
-        "audits/grayskull",
-        "audits/depfinder",
-        "versions",
-        "profiler",
         "mappings",
         "mappings/pypi",
         "ranked_hubs_authorities.json",
         "all_feedstocks.json",
-    ]:
+    ]
+    if "file" in get_lazy_json_backends():
+        drs_to_deploy += CF_TICK_GRAPH_DATA_HASHMAPS
+        drs_to_deploy += ["graph.json"]
+    for dr in drs_to_deploy:
         # untracked
         files_to_add |= set(
             subprocess.run(

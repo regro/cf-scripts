@@ -1,12 +1,76 @@
 import os
 import subprocess
 
-from ruamel.yaml import YAML
-
-from conda_forge_tick.xonsh_utils import indir
+from conda_forge_tick.os_utils import pushd
 from conda_forge_tick.migrators.core import MiniMigrator
 
 MPIS = ["mpich", "openmpi"]
+
+
+def _parse_cbc_mpi(lines):
+    in_prab = False
+    prab_indent = None
+    mpi_indent = None
+    new_lines = []
+    for _line in lines:
+        if _line.endswith("\n"):
+            _line = _line[:-1]
+        line = _line.split("#", 1)[0]
+
+        if len(line.strip()) > 0:
+            if "\t" in line:
+                line = line.replace("\t", "    ")
+
+            curr_indent = len(line) - len(line.lstrip())
+
+            if "pin_run_as_build:" == line.strip():
+                in_prab = True
+                prab_indent = len(line) - len(line.lstrip())
+            elif in_prab:
+                if mpi_indent is not None:
+                    if curr_indent > mpi_indent:
+                        continue
+                    else:
+                        mpi_indent = None
+
+                if mpi_indent is None:
+                    for mpi in MPIS:
+                        if mpi == line.split(":", 1)[0].strip():
+                            mpi_indent = len(line) - len(line.lstrip())
+                            break
+
+                    if mpi_indent is not None:
+                        continue
+
+                if curr_indent <= prab_indent:
+                    in_prab = False
+                    prab_indent = None
+
+        new_lines.append(_line)
+
+    iprab = None
+    for i, ln in enumerate(new_lines):
+        if "pin_run_as_build" in ln:
+            iprab = i
+            break
+    if iprab is not None:
+        prab_indent = len(new_lines[iprab]) - len(new_lines[iprab].lstrip())
+        inext = None
+        if iprab < len(new_lines) - 1:
+            for i in range(iprab + 1, len(new_lines)):
+                if len(new_lines[i].split("#", 1)[0].strip()) > 0:
+                    inext = i
+                    break
+
+        if inext is not None:
+            next_prab_indent = len(new_lines[inext]) - len(new_lines[inext].lstrip())
+        else:
+            next_prab_indent = prab_indent
+
+        if prab_indent == next_prab_indent:
+            new_lines.pop(iprab)
+
+    return new_lines
 
 
 class MPIPinRunAsBuildCleanup(MiniMigrator):
@@ -21,24 +85,15 @@ class MPIPinRunAsBuildCleanup(MiniMigrator):
     def migrate(self, recipe_dir, attrs, **kwargs):
         fname = os.path.join(recipe_dir, "conda_build_config.yaml")
         if os.path.exists(fname):
-            parser = YAML(typ="rt")
-            parser.indent(mapping=2, sequence=4, offset=2)
-            parser.width = 320
 
             with open(fname) as fp:
-                cbc = parser.load(fp.read())
+                lines = fp.readlines()
 
-            if "pin_run_as_build" in cbc:
-                for mpi in MPIS:
-                    if mpi in cbc["pin_run_as_build"]:
-                        del cbc["pin_run_as_build"][mpi]
-                if len(cbc["pin_run_as_build"]) == 0:
-                    del cbc["pin_run_as_build"]
-
-            if len(cbc) > 0:
+            new_lines = _parse_cbc_mpi(lines)
+            if len(new_lines) > 0:
                 with open(fname, "w") as fp:
-                    parser.dump(cbc, stream=fp)
+                    fp.write("\n".join(new_lines))
             else:
-                with indir(recipe_dir):
+                with pushd(recipe_dir):
                     subprocess.run("git rm -f conda_build_config.yaml", shell=True)
                     subprocess.run("rm -f conda_build_config.yaml", shell=True)

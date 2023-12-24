@@ -3,7 +3,7 @@ import typing
 from typing import Any
 from ruamel.yaml import YAML
 
-from conda_forge_tick.xonsh_utils import indir
+from conda_forge_tick.os_utils import pushd
 from conda_forge_tick.migrators.core import MiniMigrator
 
 if typing.TYPE_CHECKING:
@@ -30,7 +30,7 @@ class CondaForgeYAMLCleanup(MiniMigrator):
             return True
 
     def migrate(self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any) -> None:
-        with indir(recipe_dir):
+        with pushd(recipe_dir):
             cfg_path = os.path.join("..", "conda-forge.yml")
             yaml = YAML()
             yaml.indent(mapping=2, sequence=4, offset=2)

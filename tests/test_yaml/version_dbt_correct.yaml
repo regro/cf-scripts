@@ -1,0 +1,98 @@
+{% set version = "1.2.0" %}
+
+package:
+  name: dbt
+  version: {{ version }}
+
+source:
+  - url: https://pypi.io/packages/source/d/dbt-core/dbt-core-{{ version }}.tar.gz
+    sha256: 20c579792c485d0c5f753dece99a429da1065f13d27e8dd0a410087837ce6f8f
+    folder: dbt-core
+  - url: https://pypi.io/packages/source/d/dbt-postgres/dbt-postgres-{{ version }}.tar.gz
+    sha256: 3abf4587b799bef3527f09717615232a3f85ee6a500ba7b371c771166af1ab9c
+    folder: dbt-postgres
+
+build:
+  number: 0
+  noarch: python
+
+outputs:
+  - name: dbt-core
+    build:
+      noarch: python
+      entry_points:
+        - dbt = dbt.main:main
+      script: python -m pip install --no-deps  -vv ./dbt-core
+    requirements:
+      host:
+        - pip
+        - python >=3.7
+      run:
+        - python >=3.7
+        # Ref: <https://www.marcelotrevisani.com/grayskull>
+        # (Note: delete extra "- python" reference.)
+        - agate >=1.6,<1.6.4
+        - cffi >=1.9,<2.0.0
+        - click >=7.0,<9
+        - colorama >=0.3.9,<0.4.5
+        - dbt-extractor >=0.4.1,<0.5  # Changed ==0.4.* to <0.5
+        - hologram >=0.0.14,<=0.0.15
+        - idna >=2.5,<4
+        - isodate >=0.6,<0.7
+        - jinja2 ==2.11.3
+        - logbook >=1.5,<1.6
+        - markupsafe >=0.23,<2.1
+        - mashumaro ==2.9
+        - minimal-snowplow-tracker ==0.0.2
+        - networkx >=2.3,<2.8.4
+        - packaging >=20.9,<22.0
+        - requests <3.0.0
+        - sqlparse >=0.2.3,<0.5
+        - typing-extensions >=3.7.4
+        - werkzeug >=1,<3
+    test:
+      imports:
+        - dbt
+        - dbt.adapters
+      commands:
+        - pip check
+        - dbt --help
+      requires:
+        - pip
+
+
+  - name: dbt-postgres
+    build:
+      noarch: python
+      script: python -m pip install --no-deps -vv ./dbt-postgres
+    requirements:
+      host:
+        - pip
+        - python >=3.7
+      run:
+        - {{ pin_subpackage("dbt-core", exact=True) }}
+        # Ref: <https://www.marcelotrevisani.com/grayskull>
+        # (Note: delete extra "dbt-core" reference.)
+        - psycopg2-binary >=2.8,<3  # Changed ==2.* to <3
+        - python >=3.7
+    test:
+      imports:
+        - dbt
+        - dbt.adapters
+      commands:
+        - pip check
+      requires:
+        - pip
+
+about:
+  home: https://github.com/dbt-labs/dbt
+  summary: With dbt, data analysts and engineers can build analytics the way engineers build applications.
+  license: Apache-2.0
+  license_file: License.md
+
+extra:
+  recipe-maintainers:
+    - drewbanin
+    - jthandy
+    - maresb
+    - thewchan

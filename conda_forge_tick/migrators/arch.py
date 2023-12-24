@@ -13,7 +13,7 @@ from conda_forge_tick.utils import (
     yaml_safe_load,
     yaml_safe_dump,
 )
-from conda_forge_tick.xonsh_utils import indir
+from conda_forge_tick.os_utils import pushd
 from conda_forge_tick.make_graph import get_deps_from_outputs_lut
 from .migration_yaml import all_noarch
 
@@ -73,7 +73,7 @@ class ArchRebuild(GraphMigrator):
 
         assert not self.check_solvable, "We don't want to check solvability for aarch!"
         # We are constraining the scope of this migrator
-        with indir("../conda-forge-pinning-feedstock/recipe/migrations"), open(
+        with pushd("../conda-forge-pinning-feedstock/recipe/migrations"), open(
             "arch_rebuild.txt",
         ) as f:
             self.target_packages = set(f.read().split())
@@ -109,14 +109,16 @@ class ArchRebuild(GraphMigrator):
                 attrs.get("conda-forge.yml", {}).get("provider", {}).get(arch)
             )
             if configured_arch:
-                return muid in _sanitized_muids(attrs.get("PRed", []))
+                return muid in _sanitized_muids(
+                    attrs.get("pr_info", {}).get("PRed", []),
+                )
         else:
             return False
 
     def migrate(
         self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any
     ) -> "MigrationUidTypedDict":
-        with indir(recipe_dir + "/.."):
+        with pushd(recipe_dir + "/.."):
             self.set_build_number("recipe/meta.yaml")
             with open("conda-forge.yml") as f:
                 y = yaml_safe_load(f)
@@ -169,7 +171,7 @@ class OSXArm(GraphMigrator):
 
     additional_keys = {
         "build_platform": {"osx_arm64": "osx_64"},
-        "test_on_native_only": True,
+        "test": "native_and_emulated",
     }
 
     def __init__(
@@ -221,7 +223,7 @@ class OSXArm(GraphMigrator):
             self.graph.remove_nodes_from(nx.descendants(self.graph, excluded_dep))
 
         # We are constraining the scope of this migrator
-        with indir("../conda-forge-pinning-feedstock/recipe/migrations"), open(
+        with pushd("../conda-forge-pinning-feedstock/recipe/migrations"), open(
             "osx_arm64.txt",
         ) as f:
             self.target_packages = set(f.read().split())
@@ -258,18 +260,29 @@ class OSXArm(GraphMigrator):
                 attrs.get("conda-forge.yml", {}).get("provider", {}).get(arch)
             )
             if configured_arch:
-                return muid in _sanitized_muids(attrs.get("PRed", []))
+                return muid in _sanitized_muids(
+                    attrs.get("pr_info", {}).get("PRed", []),
+                )
         else:
             return False
 
     def migrate(
         self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any
     ) -> "MigrationUidTypedDict":
-        with indir(recipe_dir + "/.."):
+        with pushd(recipe_dir + "/.."):
             self.set_build_number("recipe/meta.yaml")
             with open("conda-forge.yml") as f:
                 y = yaml_safe_load(f)
-            y.update(self.additional_keys)
+            # we should do this recursively but the cf yaml is usually
+            # one key deep so this is fine
+            for k, v in self.additional_keys.items():
+                if isinstance(v, dict):
+                    if k not in y:
+                        y[k] = {}
+                    for _k, _v in v.items():
+                        y[k][_k] = _v
+                else:
+                    y[k] = v
             with open("conda-forge.yml", "w") as f:
                 yaml_safe_dump(y, f)
 

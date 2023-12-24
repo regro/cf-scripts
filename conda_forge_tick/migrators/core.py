@@ -18,12 +18,13 @@ from typing import (
 import networkx as nx
 
 from conda_forge_tick.path_lengths import cyclic_topological_sort
+from conda_forge_tick.lazy_json_backends import LazyJson
 from conda_forge_tick.utils import (
     frozen_to_json_friendly,
-    LazyJson,
 )
 from conda_forge_tick.make_graph import make_outputs_lut_from_graph
 from conda_forge_tick.contexts import MigratorContext, FeedstockContext
+from conda_forge_tick.update_recipe import update_build_number
 
 if typing.TYPE_CHECKING:
     from ..migrators_types import (
@@ -47,11 +48,13 @@ def _sanitized_muids(pred: List[dict]) -> List["JsonFriendly"]:
 
 def _parse_bad_attr(attrs: "AttrsTypedDict", not_bad_str_start: str) -> bool:
     """Overlook some bad entries"""
-    bad = attrs.get("bad", False)
+    bad = attrs.get("pr_info", {}).get("bad", False)
     if isinstance(bad, str):
-        return not bad.startswith(not_bad_str_start)
+        bad_bool = not bad.startswith(not_bad_str_start)
     else:
-        return bad
+        bad_bool = bad
+
+    return bad_bool or attrs.get("parsing_error", False)
 
 
 def _gen_active_feedstocks_payloads(nodes, gx):
@@ -188,15 +191,20 @@ class Migrator:
                 pr_data["data"],
             )
             already_migrated_uids: typing.Iterable["MigrationUidTypedDict"] = list(
-                z["data"] for z in attrs.get("PRed", [])
+                z["data"] for z in attrs.get("pr_info", {}).get("PRed", [])
             )
             already_pred = migrator_uid in already_migrated_uids
             if already_pred:
                 ind = already_migrated_uids.index(migrator_uid)
                 LOGGER.debug(f"{__name}: already PRed: uid: {migrator_uid}")
-                if "PR" in attrs.get("PRed", [])[ind]:
-                    if isinstance(attrs.get("PRed", [])[ind]["PR"], LazyJson):
-                        with attrs.get("PRed", [])[ind]["PR"] as mg_attrs:
+                if "PR" in attrs.get("pr_info", {}).get("PRed", [])[ind]:
+                    if isinstance(
+                        attrs.get("pr_info", {}).get("PRed", [])[ind]["PR"],
+                        LazyJson,
+                    ):
+                        with attrs.get("pr_info", {}).get("PRed", [])[ind][
+                            "PR"
+                        ] as mg_attrs:
 
                             LOGGER.debug(
                                 "%s: already PRed: PR file: %s"
@@ -413,22 +421,18 @@ class Migrator:
         ----------
         filename : str
             Path the the meta.yaml
-
         """
+        with open(filename) as f:
+            raw = f.read()
 
-        for p, n in self.build_patterns:
-            with open(filename) as f:
-                raw = f.read()
-            lines = raw.splitlines()
-            for i, line in enumerate(lines):
-                m = p.match(line)
-                if m is not None:
-                    old_build_number = int(m.group(2))
-                    new_build_number = self.new_build_number(old_build_number)
-                    lines[i] = m.group(1) + n.format(new_build_number)
-            upd = "\n".join(lines) + "\n"
-            with open(filename, "w") as f:
-                f.write(upd)
+        new_myaml = update_build_number(
+            raw,
+            self.new_build_number,
+            build_patterns=self.build_patterns,
+        )
+
+        with open(filename, "w") as f:
+            f.write(new_myaml)
 
     def new_build_number(self, old_number: int) -> int:
         """Determine the new build number to use.
@@ -505,7 +509,7 @@ class GraphMigrator(Migrator):
                 continue
 
             muid = frozen_to_json_friendly(self.migrator_uid(payload))
-            pr_muids = _sanitized_muids(payload.get("PRed", []))
+            pr_muids = _sanitized_muids(payload.get("pr_info", {}).get("PRed", []))
             if muid not in pr_muids:
                 LOGGER.debug(
                     "node %s PR %s not yet issued!",
@@ -518,12 +522,14 @@ class GraphMigrator(Migrator):
                 # issued so check timestamp
                 pr_index = pr_muids.index(muid)
                 ts = (
-                    payload.get("PRed", [])[pr_index]
+                    payload.get("pr_info", {})
+                    .get("PRed", [])[pr_index]
                     .get("PR", {})
                     .get("created_at", None)
                 )
                 state = (
-                    payload.get("PRed", [])[pr_index]
+                    payload.get("pr_info", {})
+                    .get("PRed", [])[pr_index]
                     .get("PR", {"state": "open"})
                     .get("state", "")
                 )
@@ -545,7 +551,9 @@ class GraphMigrator(Migrator):
                             "node %s has PR %s:%s with no timestamp",
                             node,
                             muid.get("data", {}).get("name", None),
-                            payload.get("PRed", [])[pr_index]["PR"].file_name,
+                            payload.get("pr_info", {})
+                            .get("PRed", [])[pr_index]["PR"]
+                            .file_name,
                         )
                         return False
 
@@ -567,13 +575,13 @@ class GraphMigrator(Migrator):
             muid = frozen_to_json_friendly(self.migrator_uid(payload))
 
             if muid not in _sanitized_muids(
-                payload.get("PRed", []),
+                payload.get("pr_info", {}).get("PRed", []),
             ):
                 LOGGER.debug("not yet built: %s" % node)
                 return True
 
             # This is due to some PRed_json loss due to bad graph deploy outage
-            for m_pred_json in payload.get("PRed", []):
+            for m_pred_json in payload.get("pr_info", {}).get("PRed", []):
                 if m_pred_json["data"] == muid["data"]:
                     break
             else:
@@ -691,9 +699,14 @@ class Replacement(Migrator):
         return graph
 
     def filter(self, attrs: "AttrsTypedDict", not_bad_str_start: str = "") -> bool:
-        return (
-            super().filter(attrs) or len(attrs.get("req", set()) & self.packages) == 0
+        requirements = attrs.get("requirements", {})
+        rq = (
+            requirements.get("build", set())
+            | requirements.get("host", set())
+            | requirements.get("run", set())
+            | requirements.get("test", set())
         )
+        return super().filter(attrs) or len(rq & self.packages) == 0
 
     def migrate(
         self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any

@@ -1,0 +1,71 @@
+name: bot-pypi-mapping
+
+on:
+  schedule:
+    - cron:  '42 * * * *'
+  workflow_dispatch: null
+
+jobs:
+  pypi-mapping:
+    name: pypi-mapping
+    runs-on: "ubuntu-latest"
+    concurrency: pypi-mapping
+    defaults:
+      run:
+        shell: bash -l {0}
+
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          path: cf-scripts
+
+      - uses: conda-incubator/setup-miniconda@v3
+        with:
+          miniforge-version: latest
+          environment-file: cf-scripts/environment.yml
+          python-version: "${{ vars.PYVER }}"
+          activate-environment: cf-scripts
+          condarc-file: cf-scripts/autotick-bot/condarc
+
+      - name: do local setup and stop me if needed
+        run: |
+          cd cf-scripts
+          python autotick-bot/stop_me_if_needed.py
+
+      - name: install bot code
+        if: success() && ! env.CI_SKIP
+        run: |
+          source cf-scripts/autotick-bot/install_bot_code.sh
+        env:
+          PASSWORD: ${{ secrets.AUTOTICK_BOT_TOKEN }}
+
+      - name: build pypi mapping
+        if: success() && ! env.CI_SKIP
+        run: |
+          pushd cf-graph
+
+          conda-forge-tick make-mappings
+        env:
+          PASSWORD: ${{ secrets.AUTOTICK_BOT_TOKEN }}
+
+      - name: deploy
+        if: github.ref == 'refs/heads/master' && ! cancelled() && ! env.CI_SKIP
+        run: |
+          pushd cf-graph
+
+          export CIRCLE_BUILD_URL="https://github.com/regro/cf-scripts/actions/runs/${RUN_ID}"
+          export CIRCLE_BUILD_NUM="actually-actions-${RUN_ID}"
+          conda-forge-tick deploy-to-github
+        env:
+          PASSWORD: ${{ secrets.AUTOTICK_BOT_TOKEN }}
+          RUN_ID: ${{ github.run_id }}
+
+      - name: bump on fail
+        if: github.ref == 'refs/heads/master' && failure() && ! env.CI_SKIP
+        run: |
+          export ACTION_URL="https://github.com/regro/cf-scripts/actions/runs/${RUN_ID}"
+          python cf-scripts/autotick-bot/bump_bot_team.py
+        env:
+          PASSWORD: ${{ secrets.AUTOTICK_BOT_TOKEN }}
+          RUN_ID: ${{ github.run_id }}
+          ACTION_NAME: ${{ github.workflow }}

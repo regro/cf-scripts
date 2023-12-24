@@ -2,7 +2,7 @@ import re
 import typing
 from typing import Any
 
-from conda_forge_tick.xonsh_utils import indir
+from conda_forge_tick.os_utils import pushd
 from conda_forge_tick.migrators.core import MiniMigrator
 
 if typing.TYPE_CHECKING:
@@ -40,7 +40,7 @@ class ExtraJinja2KeysCleanup(MiniMigrator):
     def _replace_jinja_key(self, key_name, lines):
         """Replace any usage of and the definition of a jinja2 variable."""
         var_def_regex = re.compile(
-            fr"{{% set {key_name} = [\'\"]?(?P<var_value>.+?)[\'\"]? %}}",
+            rf"{{% set {key_name} = [\'\"]?(?P<var_value>.+?)[\'\"]? %}}",
         )
         var_use = "{{ " + key_name + " }}"
         var_value = None
@@ -57,7 +57,7 @@ class ExtraJinja2KeysCleanup(MiniMigrator):
             yield line
 
     def migrate(self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any) -> None:
-        with indir(recipe_dir):
+        with pushd(recipe_dir):
             with open("meta.yaml") as fp:
                 lines = fp.readlines()
 

@@ -1,0 +1,139 @@
+{% set version = "1.9.0" %}
+
+package:
+  name: cctbx-base
+  version: {{ version }}
+
+source:
+  # fake source url to get version migrator to pass
+  url: https://github.com/scipy/scipy/archive/refs/tags/v{{ version }}.tar.gz
+  sha256: b6d893dc7dcd4138b9e9df59a13c59695e50e80dc5c2cacee0674670693951a1
+  # url: https://github.com/cctbx/cctbx_project/releases/download/v{{ version }}/cctbx-{{ version }}.tar.gz
+  # sha256: ad46f373875e1893f5fa87267b5445b97d660d0d05887e41d38d1fdd0e46724b
+  patches:
+    - cbf.patch
+    - dxtbx.patch
+    - libann.patch
+    - libtbx_osx-arm64.patch  # [build_platform != target_platform]
+    - libtbx_SConscript.patch
+
+build:
+  number: 0
+  preserve_egg_dir: true
+
+requirements:
+  build:
+    - python                                 # [build_platform != target_platform]
+    - cross-python_{{ target_platform }}     # [build_platform != target_platform]
+    - numpy                                  # [build_platform != target_platform]
+    - gnuconfig  # [unix]
+    - {{ compiler('c') }}
+    - {{ compiler('cxx') }}
+    - {{ cdt('mesa-libgl-devel') }}  # [linux]
+    - {{ cdt('mesa-dri-drivers') }}  # [linux]
+    - {{ cdt('libselinux') }}  # [linux]
+    - {{ cdt('libxdamage') }}  # [linux]
+    - {{ cdt('libxxf86vm') }}  # [linux]
+    - {{ cdt('libxext') }}     # [linux]
+  host:
+    - boost
+    - boost-cpp
+    - eigen
+    - future
+    - libglu  # [linux]
+    - numpy
+    - pip
+    - python
+    - python.app  # [osx]
+    - scons
+    - setuptools
+    - six
+    - xorg-libxfixes  # [linux]
+
+outputs:
+  - name: cctbx-base
+    requirements:
+      run:
+        - biopython
+        - {{ pin_compatible('boost') }}
+        - boost-cpp
+        - future
+        - {{ pin_compatible('libglu') }}  # [linux]
+        - libsvm
+        - matplotlib-base
+        - mrcfile
+        - {{ pin_compatible('numpy') }}
+        - pillow
+        - psutil
+        - python
+        - python.app  # [osx]
+        - reportlab
+        - requests
+        - scipy
+        - six
+    test:
+      imports:
+        - scitbx.array_family.flex
+        - gltbx.gl  # [not (win and py>=38)]
+        - gltbx.glu  # [not (win and py>=38)]
+      commands:
+        - libtbx.show_commands
+        - pip check
+      requires:
+        - pip
+
+  - name: cctbx
+    requirements:
+      host:
+        - python
+      run:
+        - {{ pin_subpackage('cctbx-base', max_pin="x.x.x") }}
+        - ipython
+        - pyside2  # [x86_64 or arm64]
+        - python
+        - pyzmq
+        - websockets
+        - wxpython  # [x86_64 or arm64]
+    test:
+      imports:
+        - scitbx.array_family.flex
+        - gltbx.gl  # [not (win and py>=38)]
+        - gltbx.glu  # [not (win and py>=38)]
+      commands:
+        - libtbx.show_commands
+        - pip check
+        - libtbx.python -c "import wx; wx.App()"  # [not linux]
+      requires:
+        - pip
+
+about:
+  home: https://github.com/cctbx/cctbx_project
+  license: BSD-3-Clause-LBNL AND BSD-3-Clause AND BSL-1.0 AND LGPL-2.0-only AND LGPL-2.1-only AND LGPL-3.0-only AND MIT AND LGPL-2.0-or-later WITH WxWindows-exception-3.1
+  license_family: Other
+  license_file:
+    - ./licenses/LICENSE.txt
+    - ./licenses/Boost_LICENSE_1_0.txt
+    - ./licenses/bsd_3_clause.txt
+    - ./licenses/gpl-3.0.txt
+    - ./licenses/lgpl-2.0.txt
+    - ./licenses/lgpl-2.1.txt
+    - ./licenses/lgpl-3.0.txt
+    - ./licenses/mit.txt
+    - ./licenses/wxWindows_3.1.txt
+
+  summary: The Computational Crystallography Toolbox
+  description: |
+    The Computational Crystallography Toolbox (cctbx) is being developed
+    as the open source component of the Phenix system. The goal of the
+    Phenix project is to advance automation of macromolecular structure
+    determination. Phenix depends on the cctbx, but not vice versa. This
+    hierarchical approach enforces a clean design as a reusable library.
+    The cctbx is therefore also useful for small-molecule crystallography
+    and even general scientific applications.
+  doc_url: https://cctbx.github.io/
+  dev_url: https://github.com/cctbx/cctbx_project
+
+extra:
+  recipe-maintainers:
+    - bkpoon
+    - phyy-nx

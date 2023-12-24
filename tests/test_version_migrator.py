@@ -1,4 +1,5 @@
 import os
+import random
 import logging
 import pytest
 from flaky import flaky
@@ -15,6 +16,15 @@ YAML_PATH = os.path.join(os.path.dirname(__file__), "test_yaml")
 @pytest.mark.parametrize(
     "case,new_ver",
     [
+        ("mpich", "4.1.1"),
+        ("mpichv0", "4.1.0"),
+        ("dash_extensions", "0.1.11"),
+        ("numpy", "1.24.1"),
+        ("python", "3.9.5"),
+        ("faiss-split", "1.7.3"),
+        ("docker-py", "6.0.1"),
+        ("allennlp", "2.10.1"),
+        ("dbt", "1.2.0"),
         ("jinja2expr", "1.1.1"),
         ("weird", "1.6.0"),
         ("compress", "0.9"),
@@ -39,14 +49,13 @@ YAML_PATH = os.path.join(os.path.dirname(__file__), "test_yaml")
         ("libevent", "2.1.12"),
         ("boost", "1.74.0"),
         ("boostcpp", "1.74.0"),
-        ("mumps", "5.2.1"),
-        ("python", "3.9.5"),
         # upstream is not available
+        # ("mumps", "5.2.1"),
         # ("cb3multi", "6.0.0"),
     ],
 )
 @flaky
-def test_version(case, new_ver, tmpdir, caplog):
+def test_version_up(case, new_ver, tmpdir, caplog):
     caplog.set_level(
         logging.DEBUG,
         logger="conda_forge_tick.migrators.version",
@@ -109,7 +118,13 @@ def test_version_noup(case, new_ver, tmpdir, caplog):
         tmpdir=tmpdir,
     )
 
-    print("\n\n" + attrs["new_version_errors"][new_ver] + "\n\n")
+    print(
+        "\n\n"
+        + attrs.get("version_pr_info", {})
+        .get("new_version_errors", {})
+        .get(new_ver, "")
+        + "\n\n",
+    )
 
 
 def test_version_cupy(tmpdir, caplog):
@@ -143,3 +158,41 @@ def test_version_cupy(tmpdir, caplog):
         },
         tmpdir=tmpdir,
     )
+
+
+def test_version_rand_frac(tmpdir, caplog):
+    case = "aws_sdk_cpp"
+    new_ver = "1.11.132"
+    caplog.set_level(
+        logging.DEBUG,
+        logger="conda_forge_tick.migrators.version",
+    )
+
+    random.seed(a=new_ver)
+    urand = random.uniform(0, 1)
+    assert urand < 0.1
+
+    with open(os.path.join(YAML_PATH, "version_%s.yaml" % case)) as fp:
+        in_yaml = fp.read()
+
+    with open(os.path.join(YAML_PATH, "version_%s_correct.yaml" % case)) as fp:
+        out_yaml = fp.read()
+
+    kwargs = {"new_version": new_ver}
+    kwargs["conda-forge.yml"] = {
+        "bot": {"version_updates": {"random_fraction_to_keep": 0.1}},
+    }
+    run_test_migration(
+        m=VERSION,
+        inp=in_yaml,
+        output=out_yaml,
+        kwargs=kwargs,
+        prb="Dependencies have been updated if changed",
+        mr_out={
+            "migrator_name": "Version",
+            "migrator_version": Version.migrator_version,
+            "version": new_ver,
+        },
+        tmpdir=tmpdir,
+    )
+    assert "random_fraction_to_keep: 0.1" in caplog.text

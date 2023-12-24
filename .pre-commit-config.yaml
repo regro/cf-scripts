@@ -13,7 +13,7 @@ repos:
         - --override-channels
         - --channel
         - conda-forge
-        - black=21.9b0
+        - black=22.3.0
       language: conda
       types:
         - python
@@ -34,6 +34,7 @@ repos:
         args:
           - --ignore-words-list=rever,pring,pullrequest,pullrequests
           - --exclude-file=.codespellignorelines
+          - -L=statics
   # - repo: https://gitlab.com/pycqa/flake8
   #   rev: 3.8.4
   #   hooks:

@@ -1,16 +1,25 @@
 import os
+from pathlib import Path
 import tempfile
 import copy
 import logging
 import pprint
+from typing import Dict
 
-from grayskull.__main__ import create_python_recipe
-from conda_forge_tick.audit import (
-    extract_deps_from_source,
-    compare_depfinder_audit,
-)
+import requests
+from stdlib_list import stdlib_list
+from conda_forge_tick.os_utils import pushd
+from conda_forge_tick.utils import _get_source_code
+from conda_forge_tick.depfinder_api import simple_import_to_pkg_map
 from conda_forge_tick.feedstock_parser import load_feedstock
 from conda_forge_tick.recipe_parser import CondaMetaYAML, CONDA_SELECTOR
+from conda_forge_tick.pypi_name_mapping import _KNOWN_NAMESPACE_PACKAGES
+from conda_forge_tick.make_graph import COMPILER_STUBS_WITH_STRONG_EXPORTS
+
+try:
+    from grayskull.main import create_python_recipe
+except ImportError:
+    from grayskull.__main__ import create_python_recipe
 
 logger = logging.getLogger("conda_forge_tick.update_deps")
 
@@ -18,13 +27,148 @@ logger = logging.getLogger("conda_forge_tick.update_deps")
 SECTIONS_TO_PARSE = ["host", "run"]
 SECTIONS_TO_UPDATE = ["run"]
 
+IGNORE_STUBS = ["doc", "example", "demo", "test", "unit_tests", "testing"]
+IGNORE_TEMPLATES = ["*/{z}/*", "*/{z}s/*"]
+DEPFINDER_IGNORE = []
+for k in IGNORE_STUBS:
+    for tmpl in IGNORE_TEMPLATES:
+        DEPFINDER_IGNORE.append(tmpl.format(z=k))
+DEPFINDER_IGNORE += [
+    "*testdir/*",
+    "*conftest*",
+    "*/test.py",
+    "*/versioneer.py",
+    "*/run_test.py",
+    "*/run_tests.py",
+]
+
+BUILTINS = set().union(
+    # Some libs support older python versions, we don't want their std lib
+    # entries in our diff though
+    *[set(stdlib_list(k)) for k in ["2.7", "3.5", "3.6", "3.7", "3.8", "3.9"]]
+)
+
+STATIC_EXCLUDES = (
+    {
+        "python",
+        "setuptools",
+        "pip",
+        "versioneer",
+        # not a real dep
+        "cross-python",
+    }
+    | BUILTINS
+    | set(COMPILER_STUBS_WITH_STRONG_EXPORTS)
+)
+
+RANKINGS = []
+for _ in range(10):
+    r = requests.get(
+        "https://raw.githubusercontent.com/regro/cf-graph-countyfair/master/ranked_hubs_authorities.json",
+    )
+    if r.status_code == 200:
+        RANKINGS = r.json()
+        break
+del r
+
+
+def extract_deps_from_source(recipe_dir):
+    cb_work_dir = _get_source_code(recipe_dir)
+
+    logger.debug("cb_work_dir: %s", cb_work_dir)
+    logger.debug("BUILTINS: %s", BUILTINS)
+    logger.debug("DEPFINDER_IGNORE: %s", DEPFINDER_IGNORE)
+
+    with pushd(cb_work_dir):
+        pkg_map = simple_import_to_pkg_map(
+            cb_work_dir,
+            builtins=BUILTINS,
+            ignore=DEPFINDER_IGNORE,
+        )
+        logger.debug("pkg_map: %s", pkg_map)
+        return pkg_map
+
+
+def compare_depfinder_audit(
+    deps: Dict,
+    attrs: Dict,
+    node: str,
+    python_nodes,
+) -> Dict[str, set]:
+    d = extract_missing_packages(
+        required_packages=deps.get("required", {}),
+        questionable_packages=deps.get("questionable", {}),
+        run_packages=attrs["requirements"]["run"],
+        node=node,
+        python_nodes=python_nodes,
+    )
+    return d
+
+
+def extract_missing_packages(
+    required_packages,
+    questionable_packages,
+    run_packages,
+    node,
+    python_nodes,
+):
+    exclude_packages = STATIC_EXCLUDES.union(
+        {node, node.replace("-", "_"), node.replace("_", "-")},
+    )
+
+    d = {}
+    cf_minus_df = set(run_packages)
+    df_minus_cf = set()
+    for import_name, supplying_pkgs in required_packages.items():
+        # If there is any overlap in the cf requirements and the supplying
+        # pkgs remove from the cf_minus_df set
+        overlap = supplying_pkgs & run_packages
+        if overlap:
+            # XXX: This is particularly annoying with clobbers
+            cf_minus_df = cf_minus_df - overlap
+        else:
+            if "." in import_name:
+                if any(import_name.startswith(k) for k in _KNOWN_NAMESPACE_PACKAGES):
+                    for k in _KNOWN_NAMESPACE_PACKAGES:
+                        if import_name.startswith(k):
+                            subname = import_name[len(k) + 1 :].split(".")[0]
+                            import_name = k + "." + subname
+                            break
+                else:
+                    import_name = import_name.split(".")[0]
+
+            if any(k == import_name for k in supplying_pkgs):
+                pkg_name = import_name
+            else:
+                pkg_name = next(iter(k for k in RANKINGS if k in supplying_pkgs), None)
+            if pkg_name:
+                df_minus_cf.add(pkg_name)
+            else:
+                df_minus_cf.update(supplying_pkgs)
+
+    for import_name, supplying_pkgs in questionable_packages.items():
+        overlap = supplying_pkgs & run_packages
+        if overlap:
+            cf_minus_df = cf_minus_df - overlap
+
+    # Only report for python nodes, we don't inspect for other deps
+    if python_nodes:
+        cf_minus_df = (cf_minus_df - exclude_packages) & python_nodes
+    if cf_minus_df:
+        d.update(cf_minus_df=cf_minus_df)
+
+    df_minus_cf = df_minus_cf - exclude_packages
+    if df_minus_cf:
+        d.update(df_minus_cf=df_minus_cf)
+    return d
+
 
 def get_dep_updates_and_hints(
-    update_deps,
-    recipe_dir,
+    update_deps: str,
+    recipe_dir: str,
     attrs,
     python_nodes,
-    version_key,
+    version_key: str,
 ):
     """Get updated deps and hints.
 
@@ -150,7 +294,10 @@ def make_grayskull_recipe(attrs, version_key="version"):
     recipe : str
         The generated grayskull recipe as a string.
     """
-    pkg_version = attrs[version_key]
+    if version_key not in attrs:
+        pkg_version = attrs.get("version_pr_info", {}).get(version_key)
+    else:
+        pkg_version = attrs[version_key]
     pkg_name = attrs["name"]
     is_noarch = "noarch: python" in attrs["raw_meta_yaml"]
     logger.info(
@@ -239,15 +386,21 @@ def get_depfinder_comparison(recipe_dir, node_attrs, python_nodes):
     d : dict
         The dependency comparison with conda-forge.
     """
+    logger.debug('recipe_dir: "%s"', recipe_dir)
+    p = Path(recipe_dir)
+    logger.debug("listing contents of %s", str(p))
+    for item in p.iterdir():
+        logger.debug("%s", str(item))
     deps = extract_deps_from_source(recipe_dir)
-    return {
-        "run": compare_depfinder_audit(
-            deps,
-            node_attrs,
-            node_attrs["name"],
-            python_nodes=python_nodes,
-        ),
-    }
+    logger.debug("deps from source: %s", deps)
+    df_audit = compare_depfinder_audit(
+        deps,
+        node_attrs,
+        node_attrs["name"],
+        python_nodes=python_nodes,
+    )
+    logger.debug("depfinder audit: %s", df_audit)
+    return {"run": df_audit}
 
 
 def generate_dep_hint(dep_comparison, kind):

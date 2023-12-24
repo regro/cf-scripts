@@ -168,6 +168,7 @@ class AbstractSource(abc.ABC):
 
 
 class VersionFromFeed(AbstractSource):
+    name = "VersionFromFeed"
     ver_prefix_remove = ["release-", "releases%2F", "v_", "v.", "v"]
     dev_vers = [
         "rc",
@@ -207,7 +208,7 @@ class VersionFromFeed(AbstractSource):
 
 
 class PyPI(AbstractSource):
-    name = "pypi"
+    name = "PyPI"
 
     def get_url(self, meta_yaml) -> Optional[str]:
         url_names = ["pypi.python.org", "pypi.org", "pypi.io"]
@@ -234,7 +235,7 @@ class PyPI(AbstractSource):
 
 
 class NPM(AbstractSource):
-    name = "npm"
+    name = "NPM"
 
     def get_url(self, meta_yaml) -> Optional[str]:
         if "registry.npmjs.org" not in meta_yaml["url"]:
@@ -270,7 +271,7 @@ class CRAN(AbstractSource):
     dask.
     """
 
-    name = "cran"
+    name = "CRAN"
     url_contains = "cran.r-project.org/src/contrib/Archive"
     cran_url = "https://cran.r-project.org"
 
@@ -333,7 +334,7 @@ ROS_DISTRO_INDEX: Optional[dict] = None
 
 
 class ROSDistro(AbstractSource):
-    name = "rosdistro"
+    name = "ROSDistro"
 
     def parse_idx(self, distro_name: str = "melodic") -> dict:
         session = requests.Session()
@@ -604,7 +605,7 @@ class IncrementAlphaRawURL(BaseRawURL):
 
 
 class Github(VersionFromFeed):
-    name = "github"
+    name = "Github"
 
     def get_url(self, meta_yaml) -> Optional[str]:
         if "github.com" not in meta_yaml["url"]:
@@ -616,6 +617,8 @@ class Github(VersionFromFeed):
 
 
 class LibrariesIO(VersionFromFeed):
+    name = "LibrariesIO"
+
     def get_url(self, meta_yaml) -> Optional[str]:
         urls = meta_yaml["url"]
         if not isinstance(meta_yaml["url"], list):
@@ -625,3 +628,83 @@ class LibrariesIO(VersionFromFeed):
                 continue
             pkg = self.package_name(url)
             return f"https://libraries.io/{self.name}/{pkg}/versions.atom"
+
+
+class NVIDIA(AbstractSource):
+    """Like BaseRawURL but it embeds logic based on NVIDIA's packaging schema."""
+
+    name = "NVIDIA"
+    template = "https://developer.download.nvidia.com/compute/{name}/redist/redistrib_{version}.json"
+    feedstock_to_package = {
+        "cudatoolkit": "cuda",
+    }
+
+    def next_ver_func(self, name: str, current_ver: str) -> Optional[str]:
+        # Challenges:
+        # 1. Most libraries use SemVer, but some use CalVer
+        # 2. We don't know the build number in advance, so need to look it up
+
+        next_versions = next_version(current_ver)
+        r = None
+        for ver in next_versions:
+            to_try = [ver]
+            major, minor, patch = ver.split(".")
+            if int(minor) <= 9:
+                to_try.append(f"{major}.0{int(minor)}.{patch}")  # for CalVer
+            for v in to_try:
+                r = requests.get(self.template.format(name=name, version=v))
+                if r.ok:
+                    break
+            else:
+                continue
+            break
+        else:
+            return None
+        assert r is not None
+
+        next_ver = None
+        if name == "cuda":
+            # hack: the CUDA json contains a ton of components, none of which
+            # is versioned using the CTK version, so instead of looking up
+            # from the json we simply use its filename
+            #
+            # Note: the version string does not contain the build number
+            #
+            # TODO(leofang): discuss internally if we could avoid this hack
+            next_ver = v
+        else:
+            metadata = r.json()
+            # hack: "name" may not be the library name here...
+            # but this loop should not be expensive since the convention is
+            # keys = {'release_date', 'library name'}
+            for k in metadata:
+                if name not in k.lower().replace("_", ""):
+                    continue
+                try:
+                    next_ver = metadata[k]["version"]
+                except KeyError:
+                    continue
+                else:
+                    break
+            else:
+                return None
+        assert next_ver is not None
+        return next_ver
+
+    def get_url(self, meta_yaml) -> Optional[str]:
+        url = meta_yaml["url"]
+        if "nvidia.com" not in url:
+            return None
+        feedstock_name = meta_yaml["feedstock_name"]
+        name = self.feedstock_to_package.get(feedstock_name, feedstock_name)
+        # we need major.minor.patch
+        current_ver = meta_yaml["version"]
+        if current_ver.count(".") > 2:
+            current_ver = current_ver.split(".")
+            current_ver = ".".join(current_ver[:3])
+        elif current_ver.count(".") == 1:
+            current_ver = f"{current_ver}.0"
+        return self.next_ver_func(name, current_ver)
+
+    def get_version(self, url: str) -> Optional[str]:
+        return url  # = next version, same as in BaseRawURL

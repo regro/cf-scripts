@@ -3,6 +3,7 @@ import os
 import rapidjson as json
 import subprocess
 import copy
+import glob
 from collections import Counter
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import time
@@ -18,6 +19,8 @@ import yaml
 
 from typing import Any, Dict, Set, Tuple
 
+from conda.models.version import VersionOrder
+
 from conda_forge_tick.utils import frozen_to_json_friendly
 from conda_forge_tick.auto_tick import initialize_migrators
 from conda_forge_tick.migrators import (
@@ -31,7 +34,9 @@ from conda_forge_tick.migrators import (
     OSXArm,
 )
 from conda_forge_tick.path_lengths import cyclic_topological_sort
-from conda_forge_tick.contexts import MigratorContext, FeedstockContext
+from conda_forge_tick.contexts import FeedstockContext
+from conda_forge_tick.lazy_json_backends import LazyJson, get_all_keys_for_hashmap
+from conda_forge_tick.auto_tick import _filter_ignored_versions
 
 from .git_utils import feedstock_url
 
@@ -48,35 +53,76 @@ GH_MERGE_STATE_STATUS = [
 ]
 
 
+def _sorted_set_json(obj: Any) -> Any:
+    """For custom object serialization."""
+    if isinstance(obj, Set):
+        return sorted(obj)
+    raise TypeError(repr(obj) + " is not JSON serializable")
+
+
+def _ok_version(ver):
+    return ver is not None and ver and isinstance(ver, str)
+
+
 def write_version_migrator_status(migrator, mctx):
     """write the status of the version migrator"""
 
     out = {
-        "queued": [],
-        "errored": [],
+        "queued": set(),
+        "errored": set(),
         "errors": {},
     }
 
-    mmctx = MigratorContext(session=mctx, migrator=migrator)
-    migrator.bind_to_ctx(mmctx)
+    gx = mctx.graph
+    version_nodes = get_all_keys_for_hashmap("versions")
 
-    for node in mmctx.effective_graph.nodes:
-        attrs = mmctx.effective_graph.nodes[node]["payload"]
-        new_version = attrs.get("new_version", None)
-        if new_version is None:
-            continue
-        attempts = attrs.get("new_version_attempts", {}).get(new_version, 0)
-        if attempts == 0:
-            out["queued"].append(node)
-        else:
-            out["errored"].append(node)
-            out["errors"][node] = attrs.get("new_version_errors", {}).get(
-                new_version,
-                "No error information available for version '%s'." % new_version,
-            )
+    for node in version_nodes:
+        version_data = LazyJson(f"versions/{node}.json").data
+        with gx.nodes[f"{node}"]["payload"] as attrs:
+            if attrs.get("archived", False):
+                continue
+
+            with attrs["version_pr_info"] as vpri:
+                version_from_data = _filter_ignored_versions(
+                    attrs,
+                    version_data.get("new_version", False),
+                )
+                version_from_attrs = _filter_ignored_versions(
+                    attrs,
+                    vpri.get("new_version", False),
+                )
+                if _ok_version(version_from_data):
+                    if _ok_version(version_from_attrs):
+                        new_version = max(
+                            [version_from_data, version_from_attrs],
+                            key=lambda x: VersionOrder(x.replace("-", ".")),
+                        )
+                    else:
+                        new_version = version_from_data
+                else:
+                    new_version = vpri.get("new_version", False)
+
+                # run filter with new_version
+                if _ok_version(new_version) and not migrator.filter(
+                    attrs,
+                    new_version=new_version,
+                ):
+                    attempts = vpri.get("new_version_attempts", {}).get(new_version, 0)
+                    if attempts == 0:
+                        out["queued"].add(node)
+                    else:
+                        out["errored"].add(node)
+                        out["errors"][node] = f"{attempts:.2f} attempts - " + vpri.get(
+                            "new_version_errors",
+                            {},
+                        ).get(
+                            new_version,
+                            "No error information available for version '%s'."
+                            % new_version,
+                        )
 
     with open("./status/version_status.json", "w") as f:
-        json.dump(out, f, sort_keys=True, indent=2)
+        json.dump(out, f, sort_keys=True, indent=2, default=_sorted_set_json)
 
 
 def graph_migrator_status(
@@ -127,7 +173,7 @@ def graph_migrator_status(
         feedstock_metadata[node] = node_metadata
         nuid = migrator.migrator_uid(attrs)
         all_pr_jsons = []
-        for pr_json in attrs.get("PRed", []):
+        for pr_json in attrs.get("pr_info", {}).get("PRed", []):
             all_pr_jsons.append(copy.deepcopy(pr_json))
 
         feedstock_ctx = FeedstockContext(
@@ -171,12 +217,16 @@ def graph_migrator_status(
         elif pr_json is None:
             if buildable:
                 if "not solvable" in (
-                    attrs.get("pre_pr_migrator_status", {}).get(migrator_name, "")
+                    attrs.get("pr_info", {})
+                    .get("pre_pr_migrator_status", {})
+                    .get(migrator_name, "")
                 ):
                     out["not-solvable"].add(node)
                     fc = "#ff8c00"
                 elif "bot error" in (
-                    attrs.get("pre_pr_migrator_status", {}).get(migrator_name, "")
+                    attrs.get("pr_info", {})
+                    .get("pre_pr_migrator_status", {})
+                    .get(migrator_name, "")
                 ):
                     out["bot-error"].add(node)
                     fc = "#000000"
@@ -186,7 +236,9 @@ def graph_migrator_status(
                     fc = "#35b779"
             elif not isinstance(migrator, Replacement):
                 if "bot error" in (
-                    attrs.get("pre_pr_migrator_status", {}).get(migrator_name, "")
+                    attrs.get("pr_info", {})
+                    .get("pre_pr_migrator_status", {})
+                    .get(migrator_name, "")
                 ):
                     out["bot-error"].add(node)
                     fc = "#000000"
@@ -194,7 +246,10 @@ def graph_migrator_status(
                 else:
                     out["awaiting-parents"].add(node)
                     fc = "#fde725"
-        elif "PR" not in pr_json:
+            else:
+                out["awaiting-pr"].add(node)
+                fc = "#35b779"
+        elif "PR" not in pr_json or "state" not in pr_json["PR"]:
             out["bot-error"].add(node)
             fc = "#000000"
             fntc = "white"
@@ -235,10 +290,14 @@ def graph_migrator_status(
             if not gx2[k].get("payload", {}).get("archived", False)
         ]
         if node in out["not-solvable"] or node in out["bot-error"]:
-            node_metadata["pre_pr_migrator_status"] = attrs.get(
-                "pre_pr_migrator_status",
-                {},
-            ).get(migrator_name, "")
+            node_metadata["pre_pr_migrator_status"] = (
+                attrs.get("pr_info", {})
+                .get(
+                    "pre_pr_migrator_status",
+                    {},
+                )
+                .get(migrator_name, "")
+            )
         else:
             node_metadata["pre_pr_migrator_status"] = ""
 
@@ -248,7 +307,7 @@ def graph_migrator_status(
                 "html_url",
                 feedstock_url(fctx=feedstock_ctx, protocol="https").strip(".git"),
             )
-            node_metadata["pr_status"] = pr_json["PR"].get("mergeable_state")
+            node_metadata["pr_status"] = pr_json["PR"].get("mergeable_state", "")
 
     out2: Dict = {}
     for k in out.keys():
@@ -280,11 +339,11 @@ def _collect_items_from_nodes(gx, func):
     with ThreadPoolExecutor(max_workers=20) as exec:
         for k in gx.nodes:
             futs.append(exec.submit(func, k))
-    return [
-        fut.result()
-        for fut in tqdm.tqdm(as_completed(futs), total=len(futs))
-        if fut.result() is not None
-    ]
+        return [
+            fut.result()
+            for fut in tqdm.tqdm(as_completed(futs), total=len(futs), ncols=80)
+            if fut.result() is not None
+        ]
 
 
 def _compute_recently_closed(total_status, old_closed_status, old_total_status):
@@ -333,8 +392,8 @@ def main(args: Any = None) -> None:
         old_total_status = json.load(fp)
 
     mctx, *_, migrators = initialize_migrators()
-    if not os.path.exists("./status"):
-        os.mkdir("./status")
+    os.makedirs("./status/migration_json", exist_ok=True)
+    os.makedirs("./status/migration_svg", exist_ok=True)
     regular_status = {}
     longterm_status = {}
 
@@ -371,8 +430,17 @@ def main(args: Any = None) -> None:
                 regular_status[migrator_name] = f"{migrator.name} Migration Status"
             status, build_order, gv = graph_migrator_status(migrator, mctx.graph)
             num_viz = status.pop("_num_viz", 0)
-            with open(os.path.join(f"./status/{migrator_name}.json"), "w") as fp:
-                json.dump(status, fp, indent=2)
+            with open(
+                os.path.join(f"./status/migration_json/{migrator_name}.json"),
+                "w",
+            ) as fp:
+                json.dump(
+                    status,
+                    fp,
+                    indent=2,
+                    default=_sorted_set_json,
+                    sort_keys=True,
+                )
 
             if num_viz <= 500:
                 d = gv.pipe("dot")
@@ -384,10 +452,16 @@ def main(args: Any = None) -> None:
                             ["unflatten", "-f", "-l", "5", "-c", "10", f"{ntf.name}"],
                         ).decode("utf-8"),
                     ).pipe("svg")
-                with open(os.path.join(f"./status/{migrator_name}.svg"), "wb") as fb:
+                with open(
+                    os.path.join(f"./status/migration_svg/{migrator_name}.svg"),
+                    "wb",
+                ) as fb:
                     fb.write(d or gv.pipe("svg"))
             else:
-                with open(os.path.join(f"./status/{migrator_name}.svg"), "wb") as fb:
+                with open(
+                    os.path.join(f"./status/migration_svg/{migrator_name}.svg"),
+                    "wb",
+                ) as fb:
                     fb.write(r.content)
 
         elif isinstance(migrator, Version):
@@ -416,74 +490,96 @@ def main(args: Any = None) -> None:
     with open("./status/closed_status.json", "w") as f:
         json.dump(closed_status, f, sort_keys=True, indent=2)
 
-    print("\ncomputing feedstock and PR stats", flush=True)
-
-    def _get_needs_help(k):
-        v = mctx.graph.nodes[k]
-        if (
-            len(
-                [
-                    z
-                    for z in v.get("payload", {}).get("PRed", [])
-                    if z.get("PR", {}).get("state", "closed") == "open"
-                    and z.get("data", {}).get("migrator_name", "") == "Version"
-                ],
+    # remove old status files
+    old_files = glob.glob("./status/migration_*/*.*")
+    for old_file in old_files:
+        mname = os.path.basename(old_file).rsplit(".", 1)[0]
+        if (mname not in total_status) and (mname not in closed_status):
+            subprocess.run(
+                "git rm -f " + old_file,
+                shell=True,
+                check=True,
             )
-            >= Version.max_num_prs
-        ):
-            return k
-        else:
-            return None
 
-    lst = _collect_items_from_nodes(mctx.graph, _get_needs_help)
-    with open("./status/could_use_help.json", "w") as f:
-        json.dump(
-            sorted(
-                lst,
-                key=lambda z: (len(nx.descendants(mctx.graph, z)), lst),
-                reverse=True,
-            ),
-            f,
-            indent=2,
-        )
+    if False:
+        # I have turned this off since we do not use it
+        # MRB - 2023/03/08
+        print("\ncomputing feedstock and PR stats", flush=True)
 
-    lm = LicenseMigrator()
+        def _get_needs_help(k):
+            v = mctx.graph.nodes[k]
+            if (
+                len(
+                    [
+                        z
+                        for z in v.get("payload", {}).get("pr_info", {}).get("PRed", [])
+                        if z.get("PR", {}).get("state", "closed") == "open"
+                        and z.get("data", {}).get("migrator_name", "") == "Version"
+                    ],
+                )
+                >= Version.max_num_prs
+            ):
+                return k
+            else:
+                return None
 
-    def _get_needs_license(k):
-        v = mctx.graph.nodes[k]
-        if not lm.filter(v.get("payload", {})):
-            return k
-        else:
-            return None
+        lst = _collect_items_from_nodes(mctx.graph, _get_needs_help)
+        with open("./status/could_use_help.json", "w") as f:
+            json.dump(
+                sorted(
+                    lst,
+                    key=lambda z: (len(nx.descendants(mctx.graph, z)), lst),
+                    reverse=True,
+                ),
+                f,
+                indent=2,
+            )
 
-    lst = _collect_items_from_nodes(mctx.graph, _get_needs_license)
-    with open("./status/unlicensed.json", "w") as f:
-        json.dump(
-            sorted(
-                lst,
-                key=lambda z: (len(nx.descendants(mctx.graph, z)), lst),
-                reverse=True,
-            ),
-            f,
-            indent=2,
-        )
+        lm = LicenseMigrator()
 
-    def _get_open_pr_states(k):
-        attrs = mctx.graph.nodes[k]
-        _open_prs = []
-        for pr in attrs.get("PRed", []):
-            if pr.get("PR", {}).get("state", "closed") != "closed":
-                _open_prs.append(pr["PR"])
+        def _get_needs_license(k):
+            v = mctx.graph.nodes[k]
+            if not lm.filter(v.get("payload", {})):
+                return k
+            else:
+                return None
 
-        return _open_prs
+        lst = _collect_items_from_nodes(mctx.graph, _get_needs_license)
+        with open("./status/unlicensed.json", "w") as f:
+            json.dump(
+                sorted(
+                    lst,
+                    key=lambda z: (len(nx.descendants(mctx.graph, z)), lst),
+                    reverse=True,
+                ),
+                f,
+                indent=2,
+            )
 
-    open_prs = []
-    for op in _collect_items_from_nodes(mctx.graph, _get_open_pr_states):
-        open_prs.extend(op)
-    merge_state_count = Counter([o["mergeable_state"] for o in open_prs])
-    with open("./status/pr_state.csv", "a") as f:
-        writer = csv.writer(f)
-        writer.writerow([merge_state_count[k] for k in GH_MERGE_STATE_STATUS])
+        lst = [
+            k
+            for k, v in mctx.graph.nodes.items()
+            if v.get("payload", {}).get("archived", False)
+        ]
+        with open("./status/archived.json", "w") as f:
+            json.dump(sorted(lst), f, indent=2)
+
+        def _get_open_pr_states(k):
+            attrs = mctx.graph.nodes[k]["payload"]
+            _open_prs = []
+            for pr in attrs.get("pr_info", {}).get("PRed", []):
+                if pr.get("PR", {}).get("state", "closed") != "closed":
+                    _open_prs.append(pr["PR"])
+
+            return _open_prs
+
+        open_prs = []
+        for op in _collect_items_from_nodes(mctx.graph, _get_open_pr_states):
+            open_prs.extend(op)
+        merge_state_count = Counter([o["mergeable_state"] for o in open_prs])
+        with open("./status/pr_state.csv", "a") as f:
+            writer = csv.writer(f)
+            writer.writerow([merge_state_count[k] for k in GH_MERGE_STATE_STATUS])
 
 
 if __name__ == "__main__":

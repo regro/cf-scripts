@@ -2,7 +2,7 @@ import re
 import typing
 from typing import Any
 
-from conda_forge_tick.xonsh_utils import indir
+from conda_forge_tick.os_utils import pushd
 from conda_forge_tick.migrators.core import MiniMigrator
 
 if typing.TYPE_CHECKING:
@@ -37,7 +37,7 @@ class Jinja2VarsCleanup(MiniMigrator):
         return _should_filter(attrs.get("raw_meta_yaml", ""))
 
     def migrate(self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any) -> None:
-        with indir(recipe_dir):
+        with pushd(recipe_dir):
             with open("meta.yaml") as fp:
                 raw_yaml = fp.read()
 

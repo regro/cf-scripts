@@ -21,7 +21,7 @@ JINJA2_ENDIF_RE = re.compile(r"^\s*\{\%\s+endif")
 # this regex pulls out lines like
 #  '   name: val # [sel]'
 # to groups ('   ', 'name', 'val ', 'sel')
-SPC_KEY_VAL_SELECTOR_RE = re.compile(r"^(\s*-?\s*)([^\s:]*):([^#]*)#\s*\[(.*)\]")
+SPC_KEY_VAL_SELECTOR_RE = re.compile(r"^(\s*-?\s*)([^\s:]*):\s+([^#]*)#\s*\[(.*)\]")
 
 # this regex pulls out lines like
 #  '   name__###conda-selector###__py3k and blah: val # comment'
@@ -43,6 +43,7 @@ def _get_yaml_parser():
     parser = YAML(typ="jinja2")
     parser.indent(mapping=2, sequence=4, offset=2)
     parser.width = 320
+    parser.preserve_quotes = True
     return parser
 
 
@@ -113,8 +114,6 @@ def _parse_jinja2_variables(meta_yaml: str) -> dict:
                         new_key = n.target.name + CONDA_SELECTOR + selector
                         jinja2_vals[new_key] = jinja2_vals[n.target.name]
                         del jinja2_vals[n.target.name]
-                    else:
-                        assert False, jinja2_data
 
                 # now insert this key - selector is the next thing
                 jinja2_data = all_nodes[i + 1].nodes[0].data
@@ -124,7 +123,7 @@ def _parse_jinja2_variables(meta_yaml: str) -> dict:
                     new_key = n.target.name + CONDA_SELECTOR + selector
                     jinja2_vals[new_key] = (n.node.value, i)
                 else:
-                    assert False, jinja2_data
+                    jinja2_vals[n.target.name] = (n.node.value, i)
             else:
                 jinja2_vals[n.target.name] = (n.node.value, i)
         elif isinstance(n, jinja2.nodes.Assign):
@@ -153,8 +152,20 @@ def _munge_line(line: str) -> str:
     m = SPC_KEY_VAL_SELECTOR_RE.match(line)
     if m:
         spc, key, val, selector = m.group(1, 2, 3, 4)
-        new_key = key + CONDA_SELECTOR + selector
-        return spc + new_key + ":" + val + "\n"
+
+        # # handle keys with quotes
+        if key.endswith('"'):
+            key = key[:-1]
+            sel_tail = '"'
+        elif key.endswith("'"):
+            key = key[:-1]
+            sel_tail = "'"
+        else:
+            sel_tail = ""
+
+        new_key = key + CONDA_SELECTOR + selector + sel_tail
+
+        return spc + new_key + ": " + val + "\n"
     else:
         return line
 
@@ -173,6 +184,15 @@ def _unmunge_line(line: str) -> str:
     m = MUNGED_LINE_RE.match(line)
     if m:
         spc, key, selector, val = m.group(1, 2, 3, 4)
+
+        # munge quotes in keys properly
+        if key.startswith('"') and selector.endswith('"'):
+            key += '"'
+            selector = selector[:-1]
+        elif key.startswith("'") and selector.endswith("'"):
+            key += "'"
+            selector = selector[:-1]
+
         return spc + key + ": " + val.strip() + "  # [" + selector + "]\n"
     else:
         return line
@@ -510,27 +530,31 @@ class CondaMetaYAML:
         exprs : dict
             A dictionary mapping variable names to their computed values.
         """
-        tmpl = _build_jinja2_expr_tmp(self.jinja2_exprs)
-        if len(tmpl.strip()) == 0:
-            return {}
+        exprs = self.jinja2_exprs
+        # Loop until we stop finding undefined variables
+        while True:
+            tmpl = _build_jinja2_expr_tmp(exprs)
+            if len(tmpl.strip()) == 0:
+                return {}
 
-        # look for undefined things
-        env = jinja2.Environment()
-        ast = env.parse(tmpl)
-        undefined = jinja2.meta.find_undeclared_variables(ast)
-        undefined = {u for u in undefined if u not in jinja2_vars}
+            # look for undefined things
+            env = jinja2.Environment()
+            ast = env.parse(tmpl)
+            undefined = jinja2.meta.find_undeclared_variables(ast)
+            undefined = {u for u in undefined if u not in jinja2_vars}
 
-        # if we found them, remove the offending statements
-        if len(undefined) > 0:
-            new_exprs = {}
-            for var, expr in self.jinja2_exprs.items():
-                if not any(u in expr for u in undefined):
-                    new_exprs[var] = expr
-        else:
-            new_exprs = self.jinja2_exprs
+            # if we found them, remove the offending statements
+            if len(undefined) > 0:
+                new_exprs = {}
+                for var, expr in exprs.items():
+                    if not any(u in expr for u in undefined):
+                        new_exprs[var] = expr
+                exprs = new_exprs
+            else:
+                break
 
         # rebuild the template and render
-        tmpl = _build_jinja2_expr_tmp(new_exprs)
+        tmpl = _build_jinja2_expr_tmp(exprs)
         if len(tmpl.strip()) == 0:
             return {}
 
