@@ -1,58 +1,76 @@
-import datetime
-import os
 from typing import Any, List
 
-import github3
+import tqdm
+import github
 import logging
 
+from conda_forge_tick import sensitive_env
 from .utils import setup_logger
+from .lazy_json_backends import load, dump
 
-logger = logging.getLogger("conda_forge_tick.all-feedstocks")
+logger = logging.getLogger("conda_forge_tick.all_feedstocks")
 
 
-def get_all_feedstocks_from_github() -> List[str]:
-    gh = github3.login(os.environ["USERNAME"], os.environ["PASSWORD"])
-    org = gh.organization("conda-forge")
-    names = []
-    try:
-        for repo in org.repositories():
-            name = repo.name
-            if name.endswith("-feedstock"):
-                name = name.split("-feedstock")[0]
-                logger.info(name)
-                names.append(name)
-    except github3.GitHubError as e:
-        msg = ["Github rate limited. "]
-        c = gh.rate_limit()["resources"]["core"]
-        if c["remaining"] == 0:
-            ts = c["reset"]
-            msg.append("API timeout, API returns at")
-            msg.append(
-                datetime.datetime.utcfromtimestamp(ts).strftime("%Y-%m-%dT%H:%M:%SZ"),
-            )
-        logger.warning(" ".join(msg))
-        raise
-    return names
+def get_all_feedstocks_from_github():
+    with sensitive_env() as env:
+        gh = github.Github(env["PASSWORD"], per_page=100)
+
+    org = gh.get_organization("conda-forge")
+    archived = set()
+    not_archived = set()
+    default_branches = {}
+    repos = org.get_repos(type="public")
+    for r in tqdm.tqdm(
+        repos,
+        total=org.public_repos,
+        desc="getting all feedstocks",
+        ncols=80,
+    ):
+        if r.name.endswith("-feedstock"):
+            name = r.name
+
+            if r.archived:
+                archived.add(name[: -len("-feedstock")])
+            else:
+                not_archived.add(name[: -len("-feedstock")])
+
+            default_branches[name[: -len("-feedstock")]] = r.default_branch
+
+    return {
+        "active": sorted(list(not_archived)),
+        "archived": sorted(list(archived)),
+        "default_branches": default_branches,
+    }
 
 
 def get_all_feedstocks(cached: bool = False) -> List[str]:
     if cached:
-        logger.info("reading names")
-        with open("names.txt", "r") as f:
-            names = f.read().split()
-        return names
+        logger.info("reading cached feedstocks")
+        with open("all_feedstocks.json") as f:
+            names = load(f)["active"]
+    else:
+        logger.info("getting feedstocks from github")
+        names = get_all_feedstocks_from_github()["active"]
+    return names
 
-    names = get_all_feedstocks_from_github()
+
+def get_archived_feedstocks(cached: bool = False) -> List[str]:
+    if cached:
+        logger.info("reading cached archived feedstocks")
+        with open("all_feedstocks.json") as f:
+            names = load(f)["archived"]
+    else:
+        logger.info("getting archived feedstocks from github")
+        names = get_all_feedstocks_from_github()["archived"]
     return names
 
 
 def main(args: Any = None) -> None:
     setup_logger(logger)
-    names = get_all_feedstocks(cached=False)
-    with open("names.txt", "w") as f:
-        for name in names:
-            f.write(name)
-            f.write("\n")
+    logger.info("fetching active feedstocks from github")
+    data = get_all_feedstocks_from_github()
+    with open("all_feedstocks.json", "w") as fp:
+        dump(data, fp)
 
 
 if __name__ == "__main__":

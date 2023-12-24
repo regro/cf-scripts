@@ -5,7 +5,7 @@ from ruamel.yaml import YAML
 import ruamel.yaml
 import io
 
-from conda_forge_tick.xonsh_utils import indir
+from conda_forge_tick.os_utils import pushd
 from conda_forge_tick.migrators.core import MiniMigrator
 
 if typing.TYPE_CHECKING:
@@ -70,7 +70,7 @@ def _unmunge_line(line, mapping):
 
 def _has_python_in_host(host):
     host_set = {r.split(" ")[0] for r in host}
-    return bool(host_set & set(["python"]))
+    return bool(host_set & {"python"})
 
 
 def _gen_keys_selector(meta, base):
@@ -89,14 +89,18 @@ def _adjust_test_dict(meta, key, mapping, groups, parent_group=None):
             val.append("pip")
             if _key in groups:
                 val.yaml_add_eol_comment(
-                    "# [%s]" % groups[_key][3], len(val) - 1, column=2,
+                    "# [%s]" % groups[_key][3],
+                    len(val) - 1,
+                    column=2,
                 )
     elif _has_key_selector(meta[key], "requirements"):
         for _key, val in _gen_keys_selector(meta[key], "requirements"):
             val.append("pip")
             if _key in groups:
                 val.yaml_add_eol_comment(
-                    "# [%s]" % groups[_key][3], len(val) - 1, column=80,
+                    "# [%s]" % groups[_key][3],
+                    len(val) - 1,
+                    column=80,
                 )
     else:
         new_seq = ruamel.yaml.comments.CommentedSeq()
@@ -104,10 +108,14 @@ def _adjust_test_dict(meta, key, mapping, groups, parent_group=None):
         meta[key]["requires"] = new_seq
         if parent_group is not None:
             new_seq.yaml_add_eol_comment(
-                "# [%s]" % parent_group[3], 0, column=80,
+                "# [%s]" % parent_group[3],
+                0,
+                column=80,
             )
             meta[key].yaml_add_eol_comment(
-                "# [%s]" % parent_group[3], "requires", column=80,
+                "# [%s]" % parent_group[3],
+                "requires",
+                column=80,
             )
 
     if _has_key_selector(meta[key], "commands"):
@@ -115,7 +123,9 @@ def _adjust_test_dict(meta, key, mapping, groups, parent_group=None):
             val.append("python -m pip check")
             if _key in groups:
                 val.yaml_add_eol_comment(
-                    "# [%s]" % groups[_key][3], len(val) - 1, column=80,
+                    "# [%s]" % groups[_key][3],
+                    len(val) - 1,
+                    column=80,
                 )
     else:
         new_seq = ruamel.yaml.comments.CommentedSeq()
@@ -123,10 +133,14 @@ def _adjust_test_dict(meta, key, mapping, groups, parent_group=None):
         meta[key]["commands"] = new_seq
         if parent_group is not None:
             new_seq.yaml_add_eol_comment(
-                "# [%s]" % parent_group[3], 0, column=80,
+                "# [%s]" % parent_group[3],
+                0,
+                column=80,
             )
             meta[key].yaml_add_eol_comment(
-                "# [%s]" % parent_group[3], "commands", column=80,
+                "# [%s]" % parent_group[3],
+                "commands",
+                column=80,
             )
 
 
@@ -141,10 +155,10 @@ class PipCheckMigrator(MiniMigrator):
         return "python" not in build_host
 
     def migrate(self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any) -> None:
-        with indir(recipe_dir):
+        with pushd(recipe_dir):
             mapping = {}
             groups = {}
-            with open("meta.yaml", "r") as fp:
+            with open("meta.yaml") as fp:
                 lines = []
                 for line in fp.readlines():
                     lines.append(_munge_line(line, mapping, groups))
@@ -158,7 +172,11 @@ class PipCheckMigrator(MiniMigrator):
             if not _has_key_selector(meta, "outputs"):
                 for key, _ in _gen_keys_selector(meta, "test"):
                     _adjust_test_dict(
-                        meta, key, mapping, groups, parent_group=groups.get(key, None),
+                        meta,
+                        key,
+                        mapping,
+                        groups,
+                        parent_group=groups.get(key, None),
                     )
             else:
                 # do top level
@@ -203,7 +221,7 @@ class PipCheckMigrator(MiniMigrator):
                 yaml.dump(meta, fp)
 
             # now undo mapping
-            with open("meta.yaml", "r") as fp:
+            with open("meta.yaml") as fp:
                 lines = []
                 for line in fp.readlines():
                     lines.append(_unmunge_line(line, mapping))

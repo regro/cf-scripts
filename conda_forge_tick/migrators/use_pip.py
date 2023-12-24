@@ -1,14 +1,12 @@
 from typing import Any
 import typing
 
-from conda_forge_tick.xonsh_utils import indir
+from conda_forge_tick.os_utils import pushd
 from .core import MiniMigrator
 from conda_forge_tick.utils import as_iterable
 
 if typing.TYPE_CHECKING:
-    from ..migrators_types import (
-        AttrsTypedDict,
-    )
+    from ..migrators_types import AttrsTypedDict
 
 
 class PipMigrator(MiniMigrator):
@@ -24,8 +22,8 @@ class PipMigrator(MiniMigrator):
         return not bool(set(self.bad_install) & set(scripts))
 
     def migrate(self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any) -> None:
-        with indir(recipe_dir):
-            with open("meta.yaml", "r") as fp:
+        with pushd(recipe_dir):
+            with open("meta.yaml") as fp:
                 lines = fp.readlines()
 
             new_lines = []

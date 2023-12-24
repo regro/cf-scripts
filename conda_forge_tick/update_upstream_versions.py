@@ -1,614 +1,308 @@
-import abc
-import collections.abc
+import networkx as nx
 import logging
-import subprocess
 import random
 import time
-import re
+import os
+import tqdm
+import hashlib
 from concurrent.futures import as_completed
-import typing
-from typing import (
-    Any,
-    Optional,
-    Iterable,
-    Set,
-    Iterator,
-    List,
+
+from .lazy_json_backends import LazyJson
+from .utils import setup_logger, load_graph
+from .executors import executor
+from .update_sources import (
+    AbstractSource,
+    PyPI,
+    CRAN,
+    NPM,
+    ROSDistro,
+    RawURL,
+    Github,
+    IncrementAlphaRawURL,
+    NVIDIA,
 )
+from typing import Any, Iterable
 
-import yaml
-import networkx as nx
-
-import feedparser
-import requests
-from conda.models.version import VersionOrder
-
-# TODO: parse_version has bad type annotations
-from pkg_resources import parse_version
-
-from .utils import (
-    parse_meta_yaml,
-    setup_logger,
-    executor,
-    load_graph,
-    dump_graph,
-)
-from conda_forge_tick.hashing import hash_url
-
-if typing.TYPE_CHECKING:
-    from .migrators_types import MetaYamlTypedDict, SourceTypedDict
-
+# conda_forge_tick :: cft
 logger = logging.getLogger("conda_forge_tick.update_upstream_versions")
 
-CRAN_INDEX: Optional[dict] = None
 
-
-def urls_from_meta(meta_yaml: "MetaYamlTypedDict") -> Set[str]:
-    source: "SourceTypedDict" = meta_yaml["source"]
-    sources: typing.List["SourceTypedDict"]
-    if isinstance(source, collections.abc.Mapping):
-        sources = [source]
+def _filter_ignored_versions(attrs, version):
+    versions_to_ignore = (
+        attrs.get("conda-forge.yml", {})
+        .get("bot", {})
+        .get("version_updates", {})
+        .get("exclude", [])
+    )
+    if (
+        str(version).replace("-", ".") in versions_to_ignore
+        or str(version) in versions_to_ignore
+    ):
+        return False
     else:
-        sources = typing.cast("typing.List[SourceTypedDict]", source)
-    urls = set()
-    for s in sources:
-        if "url" in s:
-            # if it is a list for instance
-            if not isinstance(s["url"], str):
-                urls.update(s["url"])
-            else:
-                urls.add(s["url"])
-    return urls
-
-
-def _split_alpha_num(ver: str) -> List[str]:
-    for i, c in enumerate(ver):
-        if c.isalpha():
-            return [ver[0:i], ver[i:]]
-    return [ver]
-
-
-def next_version(ver: str) -> Iterator[str]:
-    ver_split = []
-    ver_dot_split = ver.split(".")
-    n_dot = len(ver_dot_split)
-    for idot, sdot in enumerate(ver_dot_split):
-
-        ver_under_split = sdot.split("_")
-        n_under = len(ver_under_split)
-        for iunder, sunder in enumerate(ver_under_split):
-
-            ver_dash_split = sunder.split("-")
-            n_dash = len(ver_dash_split)
-            for idash, sdash in enumerate(ver_dash_split):
-
-                for el in _split_alpha_num(sdash):
-                    ver_split.append(el)
-
-                if idash < n_dash - 1:
-                    ver_split.append("-")
-
-            if iunder < n_under - 1:
-                ver_split.append("_")
-
-        if idot < n_dot - 1:
-            ver_split.append(".")
-
-    for k in reversed(range(len(ver_split))):
-        try:
-            t = int(ver_split[k])
-        except Exception:
-            continue
-        else:
-            ver_split[k] = str(t + 1)
-            yield "".join(ver_split)
-            ver_split[k] = "0"
-
-
-class AbstractSource(abc.ABC):
-    name: str
-
-    @abc.abstractmethod
-    def get_version(self, url: str) -> Optional[str]:
-        pass
-
-    @abc.abstractmethod
-    def get_url(self, url: str) -> Optional[str]:
-        pass
-
-
-class VersionFromFeed(AbstractSource):
-    ver_prefix_remove = ["release-", "releases%2F", "v_", "v.", "v"]
-    dev_vers = [
-        "rc",
-        "beta",
-        "alpha",
-        "dev",
-        "a",
-        "b",
-        "init",
-        "testing",
-        "test",
-        "pre",
-    ]
-
-    def get_version(self, url) -> Optional[str]:
-        data = feedparser.parse(url)
-        if data["bozo"] == 1:
-            return None
-        vers = []
-        for entry in data["entries"]:
-            ver = entry["link"].split("/")[-1]
-            for prefix in self.ver_prefix_remove:
-                if ver.startswith(prefix):
-                    ver = ver[len(prefix) :]
-            if any(s in ver.lower() for s in self.dev_vers):
-                continue
-            # Extract vesion number starting at the first digit.
-            ver = re.search(r"(\d+[^\s]*)", ver).group(0)
-            vers.append(ver)
-        if vers:
-            return max(vers, key=lambda x: VersionOrder(x.replace("-", ".")))
-        else:
-            return None
-
-
-class Github(VersionFromFeed):
-    name = "github"
-
-    def get_url(self, meta_yaml) -> Optional[str]:
-        if "github.com" not in meta_yaml["url"]:
-            return None
-        split_url = meta_yaml["url"].lower().split("/")
-        package_owner = split_url[split_url.index("github.com") + 1]
-        gh_package_name = split_url[split_url.index("github.com") + 2]
-        return f"https://github.com/{package_owner}/{gh_package_name}/releases.atom"
-
-
-class LibrariesIO(VersionFromFeed):
-    def get_url(self, meta_yaml) -> Optional[str]:
-        urls = meta_yaml["url"]
-        if not isinstance(meta_yaml["url"], list):
-            urls = [urls]
-        for url in urls:
-            if self.url_contains not in url:
-                continue
-            pkg = self.package_name(url)
-            return f"https://libraries.io/{self.name}/{pkg}/versions.atom"
-
-
-class PyPI(AbstractSource):
-    name = "pypi"
-
-    def get_url(self, meta_yaml) -> Optional[str]:
-        url_names = ["pypi.python.org", "pypi.org", "pypi.io"]
-        source_url = meta_yaml["url"]
-        if not any(s in source_url for s in url_names):
-            return None
-        pkg = meta_yaml["url"].split("/")[6]
-        return f"https://pypi.org/pypi/{pkg}/json"
-
-    def get_version(self, url) -> Optional[str]:
-        r = requests.get(url)
-        # If it is a pre-release don't give back the pre-release version
-        if not r.ok or parse_version(r.json()["info"]["version"].strip()).is_prerelease:
-            return False
-        return r.json()["info"]["version"].strip()
-
-
-class NPM(AbstractSource):
-    name = "npm"
-
-    def get_url(self, meta_yaml) -> Optional[str]:
-        if "registry.npmjs.org" not in meta_yaml["url"]:
-            return None
-        # might be namespaced
-        pkg = meta_yaml["url"].split("/")[3:-2]
-        return f"https://registry.npmjs.org/{'/'.join(pkg)}"
-
-    def get_version(self, url: str) -> Optional[str]:
-        r = requests.get(url)
-        if not r.ok:
-            return False
-        latest = r.json()["dist-tags"].get("latest", "").strip()
-        # If it is a pre-release don't give back the pre-release version
-        if not len(latest) or parse_version(latest).is_prerelease:
-            return False
-
-        return latest
-
-
-class CRAN(AbstractSource):
-    """The CRAN versions source.
-
-    Uses a local CRAN index instead of one request per package.
-
-    The index is lazy initialzed on first `get_url` call and kept in
-    memory on module level as `CRAN_INDEX` like a singelton. This way it
-    is shared on executor level and not serialized with every instance of
-    the CRAN class to allow efficient distributed execution with e.g.
-    dask.
-    """
-
-    name = "cran"
-    url_contains = "cran.r-project.org/src/contrib/Archive"
-    cran_url = "https://cran.r-project.org"
-
-    def init(self) -> None:
-        global CRAN_INDEX
-        if not CRAN_INDEX:
-            try:
-                session = requests.Session()
-                CRAN_INDEX = self._get_cran_index(session)
-                logger.debug("Cran source initialized")
-            except Exception:
-                logger.error("Cran initialization failed", exc_info=True)
-                CRAN_INDEX = {}
-
-    def _get_cran_index(self, session: requests.Session) -> dict:
-        # from conda_build/skeletons/cran.py:get_cran_index
-        logger.debug("Fetching cran index from %s", self.cran_url)
-        r = session.get(self.cran_url + "/src/contrib/")
-        r.raise_for_status()
-        records = {}
-        for p in re.findall(r'<td><a href="([^"]+)">\1</a></td>', r.text):
-            if p.endswith(".tar.gz") and "_" in p:
-                name, version = p.rsplit(".", 2)[0].split("_", 1)
-                records[name.lower()] = (name, version)
-        r = session.get(self.cran_url + "/src/contrib/Archive/")
-        r.raise_for_status()
-        for p in re.findall(r'<td><a href="([^"]+)/">\1/</a></td>', r.text):
-            if re.match(r"^[A-Za-z]", p):
-                records.setdefault(p.lower(), (p, None))
-        return records
-
-    def get_url(self, meta_yaml) -> Optional[str]:
-        self.init()
-        urls = meta_yaml["url"]
-        if not isinstance(meta_yaml["url"], list):
-            urls = [urls]
-        for url in urls:
-            if self.url_contains not in url:
-                continue
-            # alternatively: pkg = meta_yaml["name"].split("r-", 1)[-1]
-            pkg = url.split("/")[6].lower()
-            if pkg in CRAN_INDEX:
-                return CRAN_INDEX[pkg]
-            else:
-                return None
-        return None
-
-    def get_version(self, url) -> Optional[str]:
-        return str(url[1]).replace("-", "_") if url[1] else None
-
-
-ROS_DISTRO_INDEX: Optional[dict] = None
-
-
-class ROSDistro(AbstractSource):
-    name = "rosdistro"
-
-    def parse_idx(self, distro_name: str = "melodic") -> dict:
-        session = requests.Session()
-        res = session.get(
-            f"https://raw.githubusercontent.com/ros/rosdistro/master/{distro_name}/distribution.yaml",  # noqa
-        )
-        res.raise_for_status()
-        resd = yaml.load(res.text, Loader=yaml.SafeLoader)
-        repos = resd["repositories"]
-
-        result_dict: dict = {distro_name: {"reverse": {}, "forward": {}}}
-        for k, v in repos.items():
-            if not v.get("release"):
-                continue
-            if v["release"].get("packages"):
-                for p in v["release"]["packages"]:
-                    result_dict[distro_name]["reverse"][self.encode_ros_name(p)] = (
-                        k,
-                        p,
-                    )
-            else:
-                result_dict[distro_name]["reverse"][self.encode_ros_name(k)] = (k, k)
-        result_dict[distro_name]["forward"] = repos
-        return result_dict
-
-    def encode_ros_name(self, name: str) -> str:
-        new_name = name.replace("_", "-")
-        if new_name.startswith("ros-"):
-            return new_name
-        else:
-            return "ros-" + new_name
-
-    def init(self) -> None:
-        global ROS_DISTRO_INDEX
-        if not ROS_DISTRO_INDEX:
-            self.version_url_cache = {}
-            try:
-                ROS_DISTRO_INDEX = self.parse_idx("melodic")
-                logger.info("ROS Distro source initialized")
-            except Exception:
-                logger.error("ROS Distro initialization failed", exc_info=True)
-                ROS_DISTRO_INDEX = {}
-
-    def get_url(self, meta_yaml: "MetaYamlTypedDict") -> Optional[str]:
-        if not meta_yaml["name"].startswith("ros-"):
-            return None
-
-        self.init()
-
-        toplevel_package, package = ROS_DISTRO_INDEX["melodic"]["reverse"][
-            meta_yaml["name"]
-        ]
-
-        p_dict = ROS_DISTRO_INDEX["melodic"]["forward"][toplevel_package]
-        version = p_dict["release"]["version"]
-        tag_url = p_dict["release"]["tags"]["release"].format(
-            package=package, version=version,
-        )
-        url = p_dict["release"]["url"]
-
-        if url.endswith(".git"):
-            url = url[:-4]
-
-        final_url = f"{url}/archive/{tag_url}.tar.gz"
-        self.version_url_cache[final_url] = version.split("-")[0]
-
-        return final_url
-
-    def get_version(self, url):
-        return self.version_url_cache[url]
-
-
-def get_sha256(url: str) -> Optional[str]:
-    try:
-        return hash_url(url, timeout=120, hash_type="sha256")
-    except Exception:
-        return None
-
-
-def url_exists(url: str) -> bool:
-    try:
-        output = subprocess.check_output(
-            ["wget", "--spider", url], stderr=subprocess.STDOUT, timeout=1,
-        )
-    except Exception:
-        return False
-    # For FTP servers an exception is not thrown
-    if "No such file" in output.decode("utf-8"):
-        return False
-    if "not retrieving" in output.decode("utf-8"):
-        return False
-
-    return True
-
-
-def url_exists_swap_exts(url: str):
-    if url_exists(url):
-        return True, url
-
-    # TODO this is too expensive
-    # from conda_forge_tick.url_transforms import gen_transformed_urls
-    # for new_url in gen_transformed_urls(url):
-    #     if url_exists(new_url):
-    #         return True, new_url
-
-    return False, None
-
-
-class RawURL(AbstractSource):
-    name = "RawURL"
-
-    def get_url(self, meta_yaml) -> Optional[str]:
-        if "feedstock_name" not in meta_yaml:
-            return None
-        if "version" not in meta_yaml:
-            return None
-        # TODO: pull this from the graph itself
-        content = meta_yaml["raw_meta_yaml"]
-
-        orig_urls = urls_from_meta(meta_yaml["meta_yaml"])
-        current_ver = meta_yaml["version"]
-        current_sha256 = None
-        orig_ver = current_ver
-        found = True
-        count = 0
-        max_count = 10
-        while found and count < max_count:
-            found = False
-            for next_ver in next_version(current_ver):
-                logger.debug("trying version: %s", next_ver)
-                new_content = content.replace(orig_ver, next_ver)
-                meta = parse_meta_yaml(new_content)
-                url = None
-                for u in urls_from_meta(meta):
-                    if u not in orig_urls:
-                        url = u
-                        break
-                if url is None:
-                    meta_yaml["bad"] = "Upstream: no url in yaml"
-                    return None
-                if (
-                    str(meta["package"]["version"]) != next_ver
-                    or meta_yaml["url"] == url
-                ):
-                    continue
-
-                _exists, _url_to_use = url_exists_swap_exts(url)
-                if not _exists:
-                    logger.debug("version %s does not exist", next_ver)
-                    continue
-                else:
-                    url = _url_to_use
-
-                found = True
-                count = count + 1
-                current_ver = next_ver
-                new_sha256 = get_sha256(url)
-                if new_sha256 == current_sha256 or new_sha256 in new_content:
-                    return None
-                current_sha256 = new_sha256
-                logger.debug("version %s is ok", current_ver)
-                break
-
-        if count == max_count:
-            return None
-        if current_ver != orig_ver:
-            logger.debug("using version %s", current_ver)
-            return current_ver
-        return None
-
-    def get_version(self, url: str) -> str:
-        return url
+        return version
 
 
 def get_latest_version(
-    name: str, payload_meta_yaml: Any, sources: Iterable[AbstractSource]
-):
-    with payload_meta_yaml as meta_yaml:
+    name: str,
+    attrs: Any,
+    sources: Iterable[AbstractSource],
+) -> dict:
+    version_data = {"new_version": False}
+
+    # avoid this one since it runs too long and hangs the bot
+    if name == "ca-policy-lcg":
+        return version_data
+
+    version_sources = (
+        attrs.get("conda-forge.yml", {})
+        .get("bot", {})
+        .get("version_updates", {})
+        .get("sources", None)
+    )
+    if version_sources is not None:
+        version_sources = [vs.lower() for vs in version_sources]
+        sources_to_use = []
+        for vs in version_sources:
+            for source in sources:
+                if source.name.lower() == vs:
+                    sources_to_use.append(source)
+
         for source in sources:
-            logger.debug("source: %s", source.__class__.__name__)
-            url = source.get_url(meta_yaml)
+            if source not in sources_to_use:
+                logger.debug("skipped source: %s", source.name)
+    else:
+        sources_to_use = sources
+
+    excs = []
+    for source in sources_to_use:
+        try:
+            logger.debug("source: %s", source.name)
+            url = source.get_url(attrs)
             logger.debug("url: %s", url)
             if url is None:
                 continue
             ver = source.get_version(url)
             logger.debug("ver: %s", ver)
             if ver:
-                return ver
+                version_data["new_version"] = ver
+                break
             else:
-                meta_yaml["bad"] = f"Upstream: Could not find version on {source.name}"
-        if not meta_yaml.get("bad"):
-            meta_yaml["bad"] = "Upstream: unknown source"
-        return False
+                logger.debug(f"Upstream: Could not find version on {source.name}")
+        except Exception as e:
+            excs.append(e)
+
+    if version_data["new_version"] is False and len(excs) > 0:
+        raise excs[0]
+
+    if version_data["new_version"]:
+        version_data["new_version"] = _filter_ignored_versions(
+            attrs,
+            version_data["new_version"],
+        )
+
+    return version_data
+
+
+def _filter_nodes_for_job(_all_nodes, job, n_jobs):
+    job_index = job - 1
+    return [
+        t
+        for t in _all_nodes
+        if abs(int(hashlib.sha1(t[0].encode("utf-8")).hexdigest(), 16)) % n_jobs
+        == job_index
+    ]
 
 
 def _update_upstream_versions_sequential(
-    gx: nx.DiGraph, sources: Iterable[AbstractSource],
+    gx: nx.DiGraph,
+    sources: Iterable[AbstractSource] = None,
+    job=1,
+    n_jobs=1,
 ) -> None:
+
     _all_nodes = [t for t in gx.nodes.items()]
+    _all_nodes = _filter_nodes_for_job(
+        _all_nodes,
+        job,
+        n_jobs,
+    )
     random.shuffle(_all_nodes)
 
+    # Inspection the graph object and node update:
+    # print(f"Number of nodes: {len(gx.nodes)}")
+    node_count = 0
     to_update = []
     for node, node_attrs in _all_nodes:
         attrs = node_attrs["payload"]
-        if attrs.get("bad") or attrs.get("archived"):
-            attrs["new_version"] = False
+        pri = attrs.get("pr_info", {})
+        if (
+            attrs.get("parsing_error", False)
+            or (pri.get("bad") and "Upstream" not in pri.get("bad"))
+            or attrs.get("archived")
+        ):
             continue
         to_update.append((node, attrs))
 
-    for node, node_attrs in to_update:
-        with node_attrs as attrs:
+    for node, attrs in to_update:
+        # checking each node
+        version_data = {}
+
+        # New version request
+        try:
+            # check for latest version
+            version_data.update(get_latest_version(node, attrs, sources))
+        except Exception as e:
             try:
-                new_version = get_latest_version(node, attrs, sources)
-                attrs["new_version"] = new_version or attrs["new_version"]
+                se = repr(e)
+            except Exception as ee:
+                se = f"Bad exception string: {ee}"
+            logger.warning(f"Warning: Error getting upstream version of {node}: {se}")
+            version_data["bad"] = "Upstream: Error getting upstream version"
+        else:
+            logger.info(
+                f"# {node_count:<5} - {node} - {attrs.get('version')} "
+                f"- {version_data.get('new_version')}",
+            )
+
+        logger.debug("writing out file")
+        lzj = LazyJson(f"versions/{node}.json")
+        with lzj as attrs:
+            attrs.clear()
+            attrs.update(version_data)
+        node_count += 1
+
+
+def _update_upstream_versions_process_pool(
+    gx: nx.DiGraph,
+    sources: Iterable[AbstractSource],
+    job=1,
+    n_jobs=1,
+) -> None:
+    futures = {}
+    # this has to be threads because the url hashing code uses a Pipe which
+    # cannot be spawned from a process
+    with executor(kind="dask", max_workers=5) as pool:
+        _all_nodes = [t for t in gx.nodes.items()]
+        _all_nodes = _filter_nodes_for_job(
+            _all_nodes,
+            job,
+            n_jobs,
+        )
+        random.shuffle(_all_nodes)
+
+        for node, node_attrs in tqdm.tqdm(
+            _all_nodes,
+            ncols=80,
+            desc="submitting version update jobs",
+        ):
+            attrs = node_attrs["payload"]
+            pri = attrs.get("pr_info", {})
+            if (
+                attrs.get("parsing_error", False)
+                or (pri.get("bad") and "Upstream" not in pri.get("bad"))
+                or attrs.get("archived")
+            ):
+                continue
+
+            futures.update(
+                {
+                    pool.submit(get_latest_version, node, attrs, sources): (
+                        node,
+                        attrs,
+                    ),
+                },
+            )
+
+        n_tot = len(futures)
+        n_left = len(futures)
+        start = time.time()
+        # eta :: elapsed time average
+        eta = -1
+        for f in as_completed(futures):
+
+            n_left -= 1
+            if n_left % 10 == 0:
+                eta = (time.time() - start) / (n_tot - n_left) * n_left
+
+            node, attrs = futures[f]
+            version_data = {}
+            try:
+                # check for latest version
+                version_data.update(f.result())
             except Exception as e:
                 try:
                     se = repr(e)
                 except Exception as ee:
                     se = f"Bad exception string: {ee}"
-                logger.warning(f"Error getting uptream version of {node}: {se}")
-                attrs["bad"] = "Upstream: Error getting upstream version"
+                logger.error(
+                    "itr % 5d - eta % 5ds: "
+                    "Error getting upstream version of %s: %s"
+                    % (n_left, eta, node, se),
+                )
+                version_data["bad"] = "Upstream: Error getting upstream version"
             else:
                 logger.info(
-                    f"{node} - {attrs.get('version')} - {attrs.get('new_version')}",
+                    "itr % 5d - eta % 5ds: %s - %s - %s"
+                    % (
+                        n_left,
+                        eta,
+                        node,
+                        attrs.get("version", "<no-version>"),
+                        version_data["new_version"],
+                    ),
                 )
-
-
-def _update_upstream_versions_process_pool(
-    gx: nx.DiGraph, sources: Iterable[AbstractSource],
-) -> None:
-    futures = {}
-    with executor(kind="dask", max_workers=10) as pool:
-        _all_nodes = [t for t in gx.nodes.items()]
-        random.shuffle(_all_nodes)
-        for node, node_attrs in _all_nodes:
-            with node_attrs["payload"] as attrs:
-                if attrs.get("bad") or attrs.get("archived"):
-                    attrs["new_version"] = False
-                    continue
-                futures.update(
-                    {
-                        pool.submit(get_latest_version, node, attrs, sources): (
-                            node,
-                            attrs,
-                        )
-                    },
-                )
-
-        n_tot = len(futures)
-        n_left = len(futures)
-        start = time.time()
-        eta = -1
-        for f in as_completed(futures):
-            n_left -= 1
-            if n_left % 10 == 0:
-                eta = (time.time() - start) / (n_tot - n_left) * n_left
-
-            node, node_attrs = futures[f]
-            with node_attrs as attrs:
-                try:
-                    new_version = f.result()
-                    attrs["new_version"] = new_version or attrs["new_version"]
-                except Exception as e:
-                    try:
-                        se = repr(e)
-                    except Exception as ee:
-                        se = f"Bad exception string: {ee}"
-                    logger.error(
-                        "itr % 5d - eta % 5ds: "
-                        "Error getting upstream version of %s: %s"
-                        % (n_left, eta, node, se,)
-                    )
-                    attrs["bad"] = "Upstream: Error getting upstream version"
-                else:
-                    logger.info(
-                        "itr % 5d - eta % 5ds: %s - %s - %s"
-                        % (
-                            n_left,
-                            eta,
-                            node,
-                            attrs.get("version", "<no-version>"),
-                            attrs["new_version"],
-                        ),
-                    )
+            # writing out file
+            lzj = LazyJson(f"versions/{node}.json")
+            with lzj as attrs:
+                attrs.clear()
+                attrs.update(version_data)
 
 
 def update_upstream_versions(
-    gx: nx.DiGraph, sources: Iterable[AbstractSource] = None,
+    gx: nx.DiGraph,
+    sources: Iterable[AbstractSource] = None,
+    debug: bool = False,
+    job=1,
+    n_jobs=1,
 ) -> None:
     sources = (
-        (PyPI(), CRAN(), NPM(), ROSDistro(), RawURL(), Github())
+        (
+            PyPI(),
+            CRAN(),
+            NPM(),
+            ROSDistro(),
+            RawURL(),
+            Github(),
+            IncrementAlphaRawURL(),
+            NVIDIA(),
+        )
         if sources is None
         else sources
     )
-    from .xonsh_utils import env
-
-    debug = env.get("CONDA_FORGE_TICK_DEBUG", False)
     updater = (
         _update_upstream_versions_sequential
         if debug
         else _update_upstream_versions_process_pool
     )
     logger.info("Updating upstream versions")
-    updater(gx, sources)
+    updater(gx, sources, job=job, n_jobs=n_jobs)
 
 
 def main(args: Any = None) -> None:
-    from .xonsh_utils import env
-
-    debug = env.get("CONDA_FORGE_TICK_DEBUG", False)
-    if debug:
+    if args.debug:
         setup_logger(logger, level="debug")
     else:
         setup_logger(logger)
 
     logger.info("Reading graph")
+    # Graph enabled for inspection
     gx = load_graph()
 
-    update_upstream_versions(gx)
-
-    logger.info("writing out file")
-    dump_graph(gx)
+    # Check if 'versions' folder exists or create a new one;
+    os.makedirs("versions", exist_ok=True)
+    # call update
+    update_upstream_versions(gx, debug=args.debug, job=args.job, n_jobs=args.n_jobs)
 
 
 if __name__ == "__main__":

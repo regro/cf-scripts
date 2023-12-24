@@ -1,0 +1,119 @@
+name: tests
+
+on:
+  push:
+    branches:
+      - master
+  pull_request: null
+
+env:
+  PY_COLORS: "1"
+
+jobs:
+  tests:
+    name: tests
+    runs-on: "ubuntu-latest"
+    defaults:
+      run:
+        shell: bash -l {0}
+
+    steps:
+      - name: cancel previous runs
+        uses: styfle/cancel-workflow-action@0.6.0
+        with:
+          access_token: ${{ github.token }}
+
+      - uses: actions/checkout@v3
+
+      - uses: conda-incubator/setup-miniconda@v3
+        with:
+          miniforge-version: latest
+          environment-file: environment.yml
+          python-version: "${{ vars.PYVER }}"
+          activate-environment: cf-scripts
+          condarc-file: autotick-bot/condarc
+
+      - name: configure conda and install code
+        run: |
+          conda install --file requirements-dev.txt --yes
+          export GIT_FULL_HASH=`git rev-parse HEAD`
+          export CICLE_BUILD_URL="https://www.youtube.com/watch?v=R7qT-C-0ajI"
+          pip install --no-deps --no-build-isolation -e .
+
+      - name: conda info and env
+        run: |
+          echo "=================================================================="
+          echo "=================================================================="
+          conda info
+
+          echo ""
+          echo "=================================================================="
+          echo "=================================================================="
+          conda list
+
+      - name: test versions
+        run: |
+          pip uninstall conda-forge-tick --yes
+          [[ $(python setup.py --version) != "0.0.0" ]] || exit 1
+
+          rm -rf dist/*
+          python setup.py sdist
+          pip install -vv --no-deps --no-build-isolation dist/*.tar.gz
+          cd ..
+          python -c "import conda_forge_tick; assert conda_forge_tick.__version__ != '0.0.0'"
+          cd -
+          pip uninstall conda-forge-tick --yes
+
+          rm -rf dist/*
+          python -m build --sdist . --outdir dist
+          pip install --no-deps --no-build-isolation dist/*.tar.gz
+          cd ..
+          python -c "import conda_forge_tick; assert conda_forge_tick.__version__ != '0.0.0'"
+          cd -
+          pip uninstall conda-forge-tick --yes
+
+          python -m pip install -v --no-deps --no-build-isolation -e .
+
+      - name: Start MongoDB
+        uses: MongoCamp/mongodb-github-action@e76ad215d47c31a99b4b0b1fde05f6cd1185df1a
+        with:
+          mongodb-version: "latest"
+
+      - name: test mongodb is OK
+        run: |
+          python -c "from pymongo import MongoClient; import os; print(MongoClient(os.environ['MONGODB_CONNECTION_STRING']))"
+        env:
+          MONGODB_CONNECTION_STRING: "mongodb://127.0.0.1:27017/?directConnection=true&serverSelectionTimeoutMS=2000"
+
+      - name: run pytest
+        run: |
+          export TEST_PASSWORD_VAL=unpassword
+          export PASSWORD=${TEST_PASSWORD_VAL}
+          pytest \
+            -v \
+            --cov=conda_forge_tick \
+            --cov=tests \
+            --cov-config=.coveragerc \
+            --cov-report term-missing \
+            --durations 10 \
+            tests
+        env:
+          MONGODB_CONNECTION_STRING: "mongodb://127.0.0.1:27017/?directConnection=true&serverSelectionTimeoutMS=2000"
+
+      - name: run codecov
+        run: |
+         codecov -X gcov
+
+      - name: build docs
+        run: |
+          cd docs
+          make html
+
+      - name: deploy docs
+        uses: JamesIves/github-pages-deploy-action@3.7.1
+        if: github.ref == 'refs/heads/master' && success()
+        with:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          BRANCH: gh-pages # The branch the action should deploy to.
+          FOLDER: ./docs/_build/html # The folder the action should deploy.
+          CLEAN: true # Automatically remove deleted files from the deploy branch

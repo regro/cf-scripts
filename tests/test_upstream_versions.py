@@ -1,9 +1,22 @@
+import os
 import pytest
+from flaky import flaky
 
-from conda_forge_tick.update_upstream_versions import (
-    NPM, get_latest_version, next_version
+from conda.models.version import VersionOrder
+from conda_forge_tick.update_upstream_versions import get_latest_version
+from conda_forge_tick.update_sources import (
+    NPM,
+    next_version,
+    PyPI,
+    RawURL,
+    NVIDIA,
+    Github,
 )
-from conda_forge_tick.utils import parse_meta_yaml, LazyJson
+
+from conda_forge_tick.utils import parse_meta_yaml
+from conda_forge_tick.lazy_json_backends import LazyJson
+
+YAML_PATH = os.path.join(os.path.dirname(__file__), "test_yaml")
 
 sample_npm = """
 {% set name = "configurable-http-proxy" %}
@@ -145,39 +158,725 @@ sample_npm_response = """
     }
   }
 }
-"""
+"""  # noqa
 
-latest_url_test_list = [
+sample_spams = """\
+{% set version = "2.6.1" %}
+{% set date = "2017-12-08" %}
+{% set file_num = "37237" %}
+
+
+package:
+  name: python-spams
+  version: {{ version }}
+
+source:
+  fn: spams-python-{{ version }}.tar.gz
+  url: http://spams-devel.gforge.inria.fr/hitcounter2.php?file={{ file_num }}/spams-python-v{{ version }}-svn{{ date }}.tar.gz
+  sha256: 3012529c0461bd777228dce53c880f2a5fa2aaf22b5d673a1f22045a63f4d8bc
+
+  patches:
+    # patch setup.py to link to LLVM's OpenMP library instead of GCC's.
+    - llvm_openmp_setup.py.patch  # [osx]
+    # array creation requires integers for shape specification.
+    - spams.py.patch
+
+build:
+  skip: true  # [win or (osx and cxx_compiler == "toolchain_cxx")]
+  number: 1204
+  detect_binary_files_with_prefix: true
+  features:
+
+requirements:
+  build:
+    - {{ compiler("cxx") }}
+    - llvm-openmp                    # [osx]
+  host:
+    - libblas
+    - liblapack
+    - python
+    - pip
+    - llvm-openmp                    # [osx]
+    - numpy
+  run:
+    - python
+    - llvm-openmp                    # [osx]
+    - {{ pin_compatible('numpy') }}
+    - scipy
+    - six
+
+test:
+  source_files:
+    # Test data
+    - extdata/boat.png
+    - extdata/lena.png
+    # Test suite
+    - test_decomp.py
+    - test_dictLearn.py
+    - test_linalg.py
+    - test_prox.py
+    - test_spams.py
+    - test_utils.py
+  requires:
+    - pillow
+  imports:
+    - spams
+
+about:
+  home: http://spams-devel.gforge.inria.fr/
+  license: GPL 3
+  license_family: GPL
+  license_file: LICENSE.txt
+  summary: An optimization toolbox for solving various sparse estimation problems.
+
+extra:
+  recipe-maintainers:
+    - jakirkham
+    - zym1010
+"""  # noqa
+
+sample_cmake_no_system = """\
+{% set version = "3.16.4" %}
+
+package:
+  name: cmake-no-system
+  version: {{ version }}
+
+source:
+  url: https://github.com/Kitware/CMake/releases/download/v{{ version }}/cmake-{{ version }}.tar.gz
+  sha256: 9bcc8c114d9da603af9512083ed7d4a39911d16105466beba165ba8fe939ac2c
+  patches:
+    - patches/3.16.2/0001-find_-Add-debug-logging-infrastructure.patch
+    - patches/3.16.2/0002-find_-Use-debug-logging-infrastructure.patch
+    - patches/3.16.2/0003-Add-more-debug-logging-to-cmFindCommon.patch
+
+build:
+  number: 0
+  skip: True  # [win]
+
+requirements:
+  build:
+    - {{ compiler('c') }}
+    - {{ compiler('cxx') }}
+    - make
+    - patch
+
+test:
+  commands:
+    - cmake --version
+    - ctest --version
+    - cpack --version
+
+about:
+  home: http://www.cmake.org/
+  license: BSD-3-Clause
+  license_family: BSD
+  license_file:
+    - Copyright.txt
+    - Utilities/cmbzip2/LICENSE
+    - Utilities/cmcurl/COPYING
+    - Utilities/cmexpat/COPYING
+    - Utilities/cmjsoncpp/LICENSE
+    - Utilities/cmlibarchive/COPYING
+    - Utilities/cmliblzma/COPYING
+    - Utilities/cmlibrhash/COPYING
+    - Utilities/cmlibuv/LICENSE
+    - Utilities/cmzlib/Copyright.txt
+    - Utilities/cmzstd/LICENSE
+  summary: CMake built without system libraries for use when building CMake dependencies.
+
+extra:
+  recipe-maintainers:
+    - jjhelmus
+    - beckermr
+"""  # noqa
+
+latest_url_npm_test_list = [
     (
+        "configurable-http-proxy",
         sample_npm,
+        "3.1.0",
         "3.1.1",
         NPM(),
         {"https://registry.npmjs.org/configurable-http-proxy": sample_npm_response},
     ),
 ]
 
+latest_url_rawurl_test_list = [
+    (
+        "python-spams",
+        sample_spams,
+        "2.6.1",
+        False,
+        RawURL(),
+        {},
+    ),
+    (
+        "cmake-no-system",
+        sample_cmake_no_system,
+        "3.16.4",
+        # represents any version in the test
+        # which exact one we get changes due to internet failures
+        None,
+        RawURL(),
+        {},
+    ),
+]
 
-@pytest.mark.parametrize("inp, ver, source, urls", latest_url_test_list)
-def test_latest_version(inp, ver, source, urls, requests_mock, tmpdir):
-    pmy = LazyJson(tmpdir.join("cf-scripts-test.json"))
-    pmy.update(parse_meta_yaml(inp)["source"])
+
+@pytest.mark.parametrize(
+    "name, inp, curr_ver, ver, source, urls",
+    latest_url_npm_test_list,
+)
+def test_latest_version_npm(
+    name,
+    inp,
+    curr_ver,
+    ver,
+    source,
+    urls,
+    requests_mock,
+    tmpdir,
+):
+    pmy = LazyJson(os.path.join(str(tmpdir), "cf-scripts-test.json"))
+    with pmy as _pmy:
+        _pmy.update(parse_meta_yaml(inp)["source"])
+        _pmy.update(
+            {
+                "feedstock_name": name,
+                "version": curr_ver,
+                "raw_meta_yaml": inp,
+                "meta_yaml": parse_meta_yaml(inp),
+            },
+        )
     [requests_mock.get(url, text=text) for url, text in urls.items()]
-    assert ver == get_latest_version('configurable-http-proxy', pmy, [source])
+    attempt = get_latest_version(name, pmy, [source])
+    if ver is None:
+        assert attempt["new_version"] is not False
+        assert attempt["new_version"] != curr_ver
+        assert VersionOrder(attempt["new_version"]) > VersionOrder(curr_ver)
+    elif ver is False:
+        assert attempt["new_version"] is ver
+    else:
+        assert ver == attempt["new_version"]
 
 
-@pytest.mark.parametrize('in_ver, ver_test', [
-    ('8.1', ['8.2', '9.0']),
-    ('8.1.5', ['8.1.6', '8.2.0', '9.0.0']),
-    ('8_1', ['8_2', '9_0']),
-    ('8_1_5', ['8_1_6', '8_2_0', '9_0_0']),
-    ('8-1', ['8-2', '9-0']),
-    ('8-1-5', ['8-1-6', '8-2-0', '9-0-0']),
-    ('8.1-10', ['8.1-11', '8.2-0', '9.0-0']),
-    ('8.1_10', ['8.1_11', '8.2_0', '9.0_0']),
-    ('10.8.1-10', ['10.8.1-11', '10.8.2-0', '10.9.0-0', '11.0.0-0']),
-    ('10-8.1_10', ['10-8.1_11', '10-8.2_0', '10-9.0_0', '11-0.0_0']),
-    ('8.1p1', ['8.2p1', '9.0p1']),
-])
+@pytest.mark.parametrize(
+    "name, inp, curr_ver, ver, source, urls",
+    latest_url_rawurl_test_list,
+)
+@flaky
+def test_latest_version_rawurl(name, inp, curr_ver, ver, source, urls, tmpdir):
+    pmy = LazyJson(os.path.join(tmpdir, "cf-scripts-test.json"))
+    with pmy as _pmy:
+        _pmy.update(parse_meta_yaml(inp)["source"])
+        _pmy.update(
+            {
+                "feedstock_name": name,
+                "version": curr_ver,
+                "raw_meta_yaml": inp,
+                "meta_yaml": parse_meta_yaml(inp),
+            },
+        )
+    attempt = get_latest_version(name, pmy, [source])
+    if ver is None:
+        assert attempt["new_version"] is not False
+        assert attempt["new_version"] != curr_ver
+        assert VersionOrder(attempt["new_version"]) > VersionOrder(curr_ver)
+    elif ver is False:
+        assert attempt["new_version"] is ver
+    else:
+        assert ver == attempt["new_version"]
+
+
+@pytest.mark.parametrize(
+    "in_ver, ver_test",
+    [
+        ("8.1", ["8.2", "8.3", "9.0", "9.1", "10.0", "10.1"]),
+        (
+            "8.1.5",
+            [
+                "8.1.6",
+                "8.1.7",
+                "8.2.0",
+                "8.2.1",
+                "8.3.0",
+                "8.3.1",
+                "9.0.0",
+                "9.0.1",
+                "9.1.0",
+                "10.0.0",
+                "10.0.1",
+                "10.1.0",
+            ],
+        ),
+        ("8_1", ["8_2", "8_3", "9_0", "9_1", "10_0", "10_1"]),
+        (
+            "8_1_5",
+            [
+                "8_1_6",
+                "8_1_7",
+                "8_2_0",
+                "8_2_1",
+                "8_3_0",
+                "8_3_1",
+                "9_0_0",
+                "9_0_1",
+                "9_1_0",
+                "10_0_0",
+                "10_0_1",
+                "10_1_0",
+            ],
+        ),
+        ("8-1", ["8-2", "8-3", "9-0", "9-1", "10-0", "10-1"]),
+        (
+            "8-1-5",
+            [
+                "8-1-6",
+                "8-1-7",
+                "8-2-0",
+                "8-2-1",
+                "8-3-0",
+                "8-3-1",
+                "9-0-0",
+                "9-0-1",
+                "9-1-0",
+                "10-0-0",
+                "10-0-1",
+                "10-1-0",
+            ],
+        ),
+        (
+            "8.1-10",
+            [
+                "8.1-11",
+                "8.1-12",
+                "8.2-0",
+                "8.2-1",
+                "8.3-0",
+                "8.3-1",
+                "9.0-0",
+                "9.0-1",
+                "9.1-0",
+                "10.0-0",
+                "10.0-1",
+                "10.1-0",
+            ],
+        ),
+        (
+            "8.1_10",
+            [
+                "8.1_11",
+                "8.1_12",
+                "8.2_0",
+                "8.2_1",
+                "8.3_0",
+                "8.3_1",
+                "9.0_0",
+                "9.0_1",
+                "9.1_0",
+                "10.0_0",
+                "10.0_1",
+                "10.1_0",
+            ],
+        ),
+        (
+            "10.8.1-10",
+            [
+                "10.8.1-11",
+                "10.8.1-12",
+                "10.8.2-0",
+                "10.8.2-1",
+                "10.8.3-0",
+                "10.8.3-1",
+                "10.9.0-0",
+                "10.9.0-1",
+                "10.9.1-0",
+                "10.10.0-0",
+                "10.10.0-1",
+                "10.10.1-0",
+                "11.0.0-0",
+                "11.0.0-1",
+                "11.0.1-0",
+                "11.1.0-0",
+                "12.0.0-0",
+                "12.0.0-1",
+                "12.0.1-0",
+                "12.1.0-0",
+            ],
+        ),
+        (
+            "10-8.1_10",
+            [
+                "10-8.1_11",
+                "10-8.1_12",
+                "10-8.2_0",
+                "10-8.2_1",
+                "10-8.3_0",
+                "10-8.3_1",
+                "10-9.0_0",
+                "10-9.0_1",
+                "10-9.1_0",
+                "10-10.0_0",
+                "10-10.0_1",
+                "10-10.1_0",
+                "11-0.0_0",
+                "11-0.0_1",
+                "11-0.1_0",
+                "11-1.0_0",
+                "12-0.0_0",
+                "12-0.0_1",
+                "12-0.1_0",
+                "12-1.0_0",
+            ],
+        ),
+        ("8.1p1", ["8.2p1", "8.3p1", "9.0p1", "9.1p1", "10.0p1", "10.1p1"]),
+    ],
+)
 def test_next_version(in_ver, ver_test):
     next_vers = [v for v in next_version(in_ver)]
+    print(next_vers)
+    assert next_vers == ver_test, next_vers
+
+
+@pytest.mark.parametrize(
+    "in_ver, ver_test",
+    [
+        ("8.1", ["8.2", "8.3", "9.0", "9.1", "10.0", "10.1"]),
+        (
+            "8.1.5",
+            [
+                "8.1.6",
+                "8.1.7",
+                "8.2.0",
+                "8.2.1",
+                "8.3.0",
+                "8.3.1",
+                "9.0.0",
+                "9.0.1",
+                "9.1.0",
+                "10.0.0",
+                "10.0.1",
+                "10.1.0",
+            ],
+        ),
+        ("8_1", ["8_2", "8_3", "9_0", "9_1", "10_0", "10_1"]),
+        (
+            "8_1_5",
+            [
+                "8_1_6",
+                "8_1_7",
+                "8_2_0",
+                "8_2_1",
+                "8_3_0",
+                "8_3_1",
+                "9_0_0",
+                "9_0_1",
+                "9_1_0",
+                "10_0_0",
+                "10_0_1",
+                "10_1_0",
+            ],
+        ),
+        ("8-1", ["8-2", "8-3", "9-0", "9-1", "10-0", "10-1"]),
+        (
+            "8-1-5",
+            [
+                "8-1-6",
+                "8-1-7",
+                "8-2-0",
+                "8-2-1",
+                "8-3-0",
+                "8-3-1",
+                "9-0-0",
+                "9-0-1",
+                "9-1-0",
+                "10-0-0",
+                "10-0-1",
+                "10-1-0",
+            ],
+        ),
+        (
+            "8.1-10",
+            [
+                "8.1-11",
+                "8.1-12",
+                "8.2-0",
+                "8.2-1",
+                "8.3-0",
+                "8.3-1",
+                "9.0-0",
+                "9.0-1",
+                "9.1-0",
+                "10.0-0",
+                "10.0-1",
+                "10.1-0",
+            ],
+        ),
+        (
+            "8.1_10",
+            [
+                "8.1_11",
+                "8.1_12",
+                "8.2_0",
+                "8.2_1",
+                "8.3_0",
+                "8.3_1",
+                "9.0_0",
+                "9.0_1",
+                "9.1_0",
+                "10.0_0",
+                "10.0_1",
+                "10.1_0",
+            ],
+        ),
+        (
+            "10.8.1-10",
+            [
+                "10.8.1-11",
+                "10.8.1-12",
+                "10.8.2-0",
+                "10.8.2-1",
+                "10.8.3-0",
+                "10.8.3-1",
+                "10.9.0-0",
+                "10.9.0-1",
+                "10.9.1-0",
+                "10.10.0-0",
+                "10.10.0-1",
+                "10.10.1-0",
+                "11.0.0-0",
+                "11.0.0-1",
+                "11.0.1-0",
+                "11.1.0-0",
+                "12.0.0-0",
+                "12.0.0-1",
+                "12.0.1-0",
+                "12.1.0-0",
+            ],
+        ),
+        (
+            "10-8.1_10",
+            [
+                "10-8.1_11",
+                "10-8.1_12",
+                "10-8.2_0",
+                "10-8.2_1",
+                "10-8.3_0",
+                "10-8.3_1",
+                "10-9.0_0",
+                "10-9.0_1",
+                "10-9.1_0",
+                "10-10.0_0",
+                "10-10.0_1",
+                "10-10.1_0",
+                "11-0.0_0",
+                "11-0.0_1",
+                "11-0.1_0",
+                "11-1.0_0",
+                "12-0.0_0",
+                "12-0.0_1",
+                "12-0.1_0",
+                "12-1.0_0",
+            ],
+        ),
+        (
+            "1.1.1a",
+            [
+                "1.1.1b",
+                "1.1.1c",
+                "1.1.2a",
+                "1.1.2b",
+                "1.1.3a",
+                "1.1.3b",
+                "1.2.0a",
+                "1.2.0b",
+                "1.2.1a",
+                "1.3.0a",
+                "1.3.0b",
+                "1.3.1a",
+                "2.0.0a",
+                "2.0.0b",
+                "2.0.1a",
+                "2.1.0a",
+                "3.0.0a",
+                "3.0.0b",
+                "3.0.1a",
+                "3.1.0a",
+            ],
+        ),
+        ("2020a", ["2020b", "2020c", "2021a", "2021b", "2022a", "2022b"]),
+    ],
+)
+def test_next_version_openssl(in_ver, ver_test):
+    next_vers = [v for v in next_version(in_ver, increment_alpha=True)]
+    print(next_vers)
     assert next_vers == ver_test
+
+
+sample_cutensor = """
+{% set version = "1.5.0" %}
+{% set patch_version = "3" %}
+
+package:
+  name: cutensor
+  version: {{ version }}.{{ patch_version }}
+
+source:
+  url: https://developer.download.nvidia.com/compute/cutensor/redist/libcutensor/linux-x86_64/libcutensor-linux-x86_64-{{ version }}.{{ patch_version }}-archive.tar.xz     # [linux64]
+  url: https://developer.download.nvidia.com/compute/cutensor/redist/libcutensor/linux-ppc64le/libcutensor-linux-ppc64le-{{ version }}.{{ patch_version }}-archive.tar.xz   # [ppc64le]
+  url: https://developer.download.nvidia.com/compute/cutensor/redist/libcutensor/linux-sbsa/libcutensor-linux-sbsa-{{ version }}.{{ patch_version }}-archive.tar.xz         # [aarch64]
+  url: https://developer.download.nvidia.com/compute/cutensor/redist/libcutensor/windows-x86_64/libcutensor-windows-x86_64-{{ version }}.{{ patch_version }}-archive.zip    # [win64]
+
+  sha256: 4fdebe94f0ba3933a422cff3dd05a0ef7a18552ca274dd12564056993f55471d  # [linux64]
+  sha256: ad736acc94e88673b04a3156d7d3a408937cac32d083acdfbd8435582cbe15db  # [ppc64le]
+  sha256: 5b9ac479b1dadaf40464ff3076e45f2ec92581c07df1258a155b5bcd142f6090  # [aarch64]
+  sha256: de76f7d92600dda87a14ac756e9d0b5733cbceb88bcd20b3935a82c99342e6cd  # [win64]
+
+build:
+  number: 2
+  # cuTENSOR v1.3.1 supports CUDA 10.2, 11.0, and 11.1+
+  skip: True  # [win32 or cuda_compiler_version not in ("10.2", "11.0", "11.1")]
+  script_env:
+    # for some reason /usr/local/cuda is not added to $PATH in ppc64le's docker image
+    - CUDA_HOME  # [ppc64le or aarch64]
+  script:
+    - mkdir -p $PREFIX/include                                             # [linux]
+    - mv include/* $PREFIX/include/                                        # [linux]
+    - mkdir -p $PREFIX/lib                                                 # [linux]
+    - mv lib/{{ cuda_compiler_version }}/*.so* $PREFIX/lib/                # [linux and cuda_compiler_version in ("10.2", "11.0")]
+    - mv lib/11/*.so* $PREFIX/lib/                                         # [linux and cuda_compiler_version == "11.1"]
+    - patchelf --add-needed libcudart.so $PREFIX/lib/libcutensor.so        # [ppc64le]
+
+    - copy include\\cutensor.h %LIBRARY_INC%\\                             # [win64]
+    - copy include\\cutensorMg.h %LIBRARY_INC%\\                           # [win64]
+    - mkdir %LIBRARY_INC%\\cutensor                                        # [win64]
+    - copy include\\cutensor\\types.h %LIBRARY_INC%\\cutensor              # [win64]
+    - del lib\\{{ cuda_compiler_version }}\\*static*                       # [win64 and cuda_compiler_version in ("10.2", "11.0")]
+    - copy lib\\{{ cuda_compiler_version }}\\*.dll %LIBRARY_BIN%\\         # [win64 and cuda_compiler_version in ("10.2", "11.0")]
+    - copy lib\\{{ cuda_compiler_version }}\\*.lib %LIBRARY_LIB%\\         # [win64 and cuda_compiler_version in ("10.2", "11.0")]
+    - del lib\\11\\*static*                                                # [win64 and cuda_compiler_version in ("11.1", )]
+    - copy lib\\11\\*.dll %LIBRARY_BIN%\\                                  # [win64 and cuda_compiler_version in ("11.1", )]
+    - copy lib\\11\\*.lib %LIBRARY_LIB%\\                                  # [win64 and cuda_compiler_version in ("11.1", )]
+  ignore_run_exports:
+    - cudatoolkit
+  run_exports:
+    - {{ pin_subpackage('cutensor') }}
+  missing_dso_whitelist:
+    # suppress warning, as these are included in the run dependency
+    - '*/libcublasLt.so*'  # [linux and cuda_compiler_version in ("11.0", "11.1")]
+    - '*/cublasLt64*.dll'  # [win64 and cuda_compiler_version in ("11.0", "11.1")]
+
+requirements:
+  build:
+    - {{ compiler('c') }}
+    - {{ compiler('cuda') }}
+    - sysroot_linux-64 2.17  # [linux64]
+  host:
+    - patchelf >=0.12  # [linux]
+  run:
+    - cudatoolkit {{ cuda_compiler_version }}  # [cuda_compiler_version in ("10.2", "11.0")]
+    - cudatoolkit >=11.1,<12                   # [cuda_compiler_version == "11.1"]
+  run_constrained:
+    # Only GLIBC_2.17 or older symbols present
+    - __glibc >=2.17      # [linux]
+
+test:
+  requires:
+    - git
+    - {{ compiler('c') }}
+    - {{ compiler('cxx') }}
+    - {{ compiler('cuda') }}
+    - sysroot_linux-64 2.17  # [linux]
+    # make sure we pick up the version matching the docker,
+    # or the linker would complain
+    - cudatoolkit {{ cuda_compiler_version }}
+  files:
+    - test_load_elf.c        # [linux]
+
+about:
+  home: https://developer.nvidia.com/cutensor
+  license: LicenseRef-cuTENSOR-Software-License-Agreement
+  license_url: https://docs.nvidia.com/cuda/cutensor/license.html
+  license_file: LICENSE
+  summary: "Tensor Linear Algebra on NVIDIA GPUs"
+  description: |
+    The cuTENSOR Library is a first-of-its-kind GPU-accelerated tensor linear
+    algebra library providing tensor contraction, reduction and elementwise
+    operations. cuTENSOR is used to accelerate applications in the areas of
+    deep learning training and inference, computer vision, quantum chemistry
+    and computational physics.
+    License Agreements:- The packages are governed by the NVIDIA cuTENSOR
+    Software License Agreement (EULA). By downloading and using the packages,
+    you accept the terms and conditions of the NVIDIA cuTENSOR EULA -
+    https://docs.nvidia.com/cuda/cutensor/license.html
+  doc_url: https://docs.nvidia.com/cuda/cutensor/index.html
+  dev_url: https://developer.nvidia.com/cutensor/downloads
+
+extra:
+  recipe-maintainers:
+    - leofang
+    - jakirkham
+    - mtjrider
+"""  # noqa
+
+
+latest_url_nvidia_test_list = [
+    (
+        "cutensor",
+        sample_cutensor,
+        "1.4.0.3",
+        "1.5.0.3",
+        NVIDIA(),
+        {},
+    ),
+]
+
+
+@pytest.mark.parametrize(
+    "name, inp, curr_ver, ver, source, urls",
+    latest_url_nvidia_test_list,
+)
+def test_latest_version_nvidia(name, inp, curr_ver, ver, source, urls, tmpdir):
+    pmy = LazyJson(os.path.join(tmpdir, "cf-scripts-test.json"))
+    with pmy as _pmy:
+        _pmy.update(parse_meta_yaml(inp)["source"])
+        _pmy.update(
+            {
+                "feedstock_name": name,
+                "version": curr_ver,
+                "raw_meta_yaml": inp,
+                "meta_yaml": parse_meta_yaml(inp),
+            },
+        )
+    attempt = get_latest_version(name, pmy, [source])
+    if ver is None:
+        assert attempt["new_version"] is not False
+        assert attempt["new_version"] != curr_ver
+        assert VersionOrder(attempt["new_version"]) > VersionOrder(curr_ver)
+    elif ver is False:
+        assert attempt["new_version"] is ver
+    else:
+        assert ver == attempt["new_version"]
+
+
+def test_latest_version_aws_sdk_cpp(tmpdir):
+    name = "aws_sdk_cpp"
+    with open(os.path.join(YAML_PATH, "version_%s.yaml" % name)) as fp:
+        inp = fp.read()
+
+    pmy = LazyJson(os.path.join(tmpdir, name + ".json"))
+    with pmy as _pmy:
+        _pmy.update(parse_meta_yaml(inp)["source"])
+        _pmy.update(
+            {
+                "feedstock_name": name,
+                "version": "1.11.68",
+                "raw_meta_yaml": inp,
+                "meta_yaml": parse_meta_yaml(inp),
+            },
+        )
+    attempt = get_latest_version(name, pmy, [PyPI(), Github(), RawURL()])
+    assert attempt["new_version"] is not None
+    assert attempt["new_version"]
+    print(attempt)

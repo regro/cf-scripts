@@ -1,0 +1,213 @@
+{% set version = "3.18.2" %}
+
+package:
+  name: qgis
+  version: {{ version }}
+
+source:
+  url: https://qgis.org/downloads/qgis-{{ version }}.tar.bz2
+  sha256: 8935ba2a658aee44286b39af43d4e6ec7c389e780ed2f352cbea60f99ced0b91
+  patches:
+    # backport of https://github.com/qgis/QGIS/pull/41774
+    - proj8.patch
+    # fix linking error, from https://github.com/archlinux/svntogit-community/raw/a433363547593c30bfabf869860cc3fe1e17532f/trunk/qgis-qwtpolar-link.patch
+    - qgis-qwtpolar-link.patch
+    # patches to get untwine working on Windows
+    - mapfile.patch  # [win]
+    - leanandmean.patch  # [win]
+    - fileprocessor.patch  # [win]
+    - qgisuntwine.patch  # [win]
+    ## fix for llvm 13 from https://github.com/qgis/QGIS/pull/46408/files
+    - Fix-building-with-llvm13.patch
+
+build:
+  number: 10
+  skip: true  # [py2k or py<38]
+
+requirements:
+  build:
+    - cmake
+    - ninja
+    - m2-flex  # [win]
+    - m2-bison  # [win]
+    - m2-m4  # [win]
+    - {{ compiler('c') }}
+    - {{ compiler('cxx') }}
+    # The CDT packages below are those used in qt-feedstock
+    - {{ cdt('xorg-x11-proto-devel') }}  # [linux]
+    - {{ cdt('libx11-devel') }}          # [linux]
+    - {{ cdt('libxext-devel') }}         # [linux]
+    - {{ cdt('libxrender-devel') }}      # [linux]
+    - {{ cdt('mesa-libgl-devel') }}      # [linux]
+    - {{ cdt('mesa-libegl-devel') }}     # [linux]
+    - {{ cdt('mesa-dri-drivers') }}      # [linux]
+    - {{ cdt('libxau-devel') }}          # [linux]
+    - {{ cdt('alsa-lib-devel') }}        # [linux]
+    - {{ cdt('gtk2-devel') }}            # [linux]
+    - {{ cdt('gtkmm24-devel') }}         # [linux]
+    - {{ cdt('libdrm-devel') }}          # [linux]
+    - {{ cdt('libxcomposite-devel') }}   # [linux]
+    - {{ cdt('libxcursor-devel') }}      # [linux]
+    - {{ cdt('libxi-devel') }}           # [linux]
+    - {{ cdt('libxrandr-devel') }}       # [linux]
+    - {{ cdt('pciutils-devel') }}        # [linux]
+    - {{ cdt('libxscrnsaver-devel') }}   # [linux]
+    - {{ cdt('libxtst-devel') }}         # [linux]
+    - {{ cdt('libselinux-devel') }}      # [linux]
+    - {{ cdt('libxdamage') }}            # [linux]
+    - {{ cdt('libxdamage-devel') }}      # [linux]
+    - {{ cdt('libxfixes') }}             # [linux]
+    - {{ cdt('libxfixes-devel') }}       # [linux]
+    - {{ cdt('libxxf86vm') }}            # [linux]
+    - {{ cdt('libxxf86vm-devel') }}      # [linux]
+    - {{ cdt('cups-devel') }}            # [linux]
+    - {{ cdt('libxcb') }}                # [linux]
+  host:
+    - python
+    - six
+    - flex  # [unix]
+    - bison  # [unix]
+    - m4  # [unix]
+    - pkgconfig
+    - expat
+    - icu
+    - libzip
+    - libprotobuf
+    - libtasn1  # [osx]
+    - exiv2
+    # Qt stack.
+    - qt
+    - pyqt
+    - qtwebkit
+    - pyqtwebkit
+    - qscintilla2
+    - qca
+    - qjson
+    - qwt <6.2.0
+    - qwtpolar
+    - qtkeychain
+    - qtlocation
+    # included in win-64 Qt already but needed for linux/osx
+    - qtserialport  # [unix]
+    # GDAL stack.
+    - gdal
+    - geos
+    - proj
+    # GSL for georeferencer.
+    - gsl
+    - sqlite
+    - libspatialindex
+    - libspatialite
+    # For PostgreSQL support.
+    - postgresql >=14,<15
+    - psycopg2
+    # Point Clouds
+    - pdal
+    - laz-perf
+  run:
+    - python
+    - icu
+    - libzip
+    - libtasn1  # [osx]
+    - qt
+    - pyqt
+    - qtwebkit
+    - qscintilla2
+    - qca
+    - qjson
+    - qwt <6.2.0
+    - qwtpolar
+    - qtkeychain
+    - qtlocation
+    - qtserialport  # [unix]
+    - gdal
+    - geos
+    - proj
+    - gsl
+    - sqlite
+    - libspatialindex
+    - libspatialite
+    - psycopg2
+    - postgresql >=14,<15
+    - exiv2
+    - libprotobuf
+    # Runtime Python library deps
+    - python-dateutil
+    - future
+    - httplib2
+    - jinja2
+    - markupsafe
+    - mock
+    - nose2
+    - owslib
+    - plotly
+    - pygments
+    - pyproj
+    - requests
+    - six
+    - pytz
+    - pyyaml
+    - yaml
+    - owslib
+    - pyqtwebkit
+    - pdal
+    - laz-perf
+
+  run_constrained:   # [osx]
+    - __osx >={{ MACOSX_DEPLOYMENT_TARGET|default("10.9") }}  # [osx]
+test:
+  requires:
+    - {{ cdt('xorg-x11-proto-devel') }}  # [linux]
+    - {{ cdt('libx11-devel') }}          # [linux]
+    - {{ cdt('libxext-devel') }}         # [linux]
+    - {{ cdt('libxrender-devel') }}      # [linux]
+    - {{ cdt('mesa-libgl-devel') }}      # [linux]
+    - {{ cdt('mesa-libegl-devel') }}     # [linux]
+    - {{ cdt('mesa-dri-drivers') }}      # [linux]
+    - {{ cdt('libxau-devel') }}          # [linux]
+    - {{ cdt('alsa-lib-devel') }}        # [linux]
+    - {{ cdt('gtk2-devel') }}            # [linux]
+    - {{ cdt('gtkmm24-devel') }}         # [linux]
+    - {{ cdt('libdrm-devel') }}          # [linux]
+    - {{ cdt('libxcomposite-devel') }}   # [linux]
+    - {{ cdt('libxcursor-devel') }}      # [linux]
+    - {{ cdt('libxi-devel') }}           # [linux]
+    - {{ cdt('libxrandr-devel') }}       # [linux]
+    - {{ cdt('pciutils-devel') }}        # [linux]
+    - {{ cdt('libxscrnsaver-devel') }}   # [linux]
+    - {{ cdt('libxtst-devel') }}         # [linux]
+    - {{ cdt('libselinux-devel') }}      # [linux]
+    - {{ cdt('libxdamage') }}            # [linux]
+    - {{ cdt('libxdamage-devel') }}      # [linux]
+    - {{ cdt('libxfixes') }}             # [linux]
+    - {{ cdt('libxfixes-devel') }}       # [linux]
+    - {{ cdt('libxxf86vm') }}            # [linux]
+    - {{ cdt('libxcb') }}                # [linux]
+  files:
+    - test_data
+    - test_py_qgis.py
+  commands:
+    - {{ RECIPE_DIR }}/run_test.bat  # [win]
+    - bash {{ RECIPE_DIR }}/run_test.sh  # [not win]
+
+about:
+  home: http://qgis.org/
+  license: GPL-2.0-only
+  license_file: COPYING
+  summary: A free and open source Geographic Information System (GIS).
+  description: |
+    QGIS is a user friendly Open Source Geographic Information System (GIS)
+    licensed under the GNU General Public License. QGIS is an official
+    project of the Open Source Geospatial Foundation (OSGeo). It runs on
+    Linux, Unix, Mac OSX, Windows and Android and supports numerous vector,
+    raster, and database formats and functionalities.
+  doc_url: https://www.qgis.org/en/docs/index.html
+  dev_url: https://github.com/qgis/QGIS
+
+extra:
+  recipe-maintainers:
+    - ceholden
+    - ocefpaf
+    - kmuehlbauer
+    - SrNetoChan
+    - gillins

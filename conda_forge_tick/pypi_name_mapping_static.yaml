@@ -1,0 +1,105 @@
+# Initially adapted from grayskull (https://github.com/marcelotrevisani/grayskull)
+
+- pypi_name: docker
+  import_name: docker
+  conda_name: docker-py
+
+- pypi_name: graphviz
+  import_name: graphviz
+  conda_name: python-graphviz
+
+- pypi_name: matplotlib
+  import_name: matplotlib
+  conda_name: matplotlib-base
+
+- pypi_name: opencv-python
+  import_name: cv2
+  conda_name: opencv
+
+- pypi_name: pyqt4
+  import_name: PyQt4
+  conda_name: pyqt
+  delimiter_min: "4.0.0"
+  delimiter_max: "5.0.0"
+
+- pypi_name: pyqt5
+  import_name: PyQt5
+  conda_name: pyqt
+  delimiter_min: "5.0.0"
+  delimiter_max: "6.0.0"
+
+- pypi_name: tables
+  import_name: pytables
+  conda_name: pytables
+
+- pypi_name: xxhash
+  import_name: xxhash
+  conda_name: python-xxhash
+
+- pypi_name: redis
+  import_name: redis
+  conda_name: redis-py
+
+- pypi_name: apache-airflow
+  import_name: airflow
+  conda_name: airflow
+
+- pypi_name: setuptools
+  import_name: pkg_resources
+  conda_name: setuptools
+
+- pypi_name: numpy
+  import_name: numpy
+  conda_name: numpy
+
+- pypi_name: tzdata
+  import_name: tzdata
+  conda_name: python-tzdata
+
+- pypi_name: psycopg2-binary
+  import_name: psycopg2
+  conda_name: psycopg2
+
+- pypi_name: duckdb
+  import_name: duckdb
+  conda_name: python-duckdb
+
+- pypi_name: torch
+  import_name: torch
+  conda_name: pytorch
+
+- pypi_name: typing-extensions
+  import_name: typing_extensions
+  conda_name: typing_extensions
+
+- pypi_name: seaborn
+  import_name: seaborn
+  conda_name: seaborn-base
+
+- pypi_name: ipopt
+  import_name: ipopt
+  conda_name: cyipopt
+
+- pypi_name: ipopt
+  import_name: cyipopt
+  conda_name: cyipopt
+
+- pypi_name: cyipopt
+  import_name: ipopt
+  conda_name: cyipopt
+
+- pypi_name: cyipopt
+  import_name: cyipopt
+  conda_name: cyipopt
+
+- pypi_name: ruamel-yaml
+  import_name: ruamel.yaml
+  conda_name: ruamel.yaml
+
+- pypi_name: fastjsonschema
+  import_name: fastjsonschema
+  conda_name: python-fastjsonschema
+
+- pypi_name: ray
+  import_name: ray
+  conda_name: ray-core

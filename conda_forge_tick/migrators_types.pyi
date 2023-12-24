@@ -1,5 +1,5 @@
 import typing
-from typing import Any, Dict, List, Set, Tuple, Union, Optional
+from typing import Dict, List, Set, Union
 
 from mypy_extensions import TypedDict
 
@@ -28,10 +28,6 @@ class PRHead_TD(TypedDict, tota=False):
 class PR_TD(TypedDict, total=False):
     state: PRState
     head: PRHead_TD
-
-class PRedElementTypedDict(TypedDict, total=False):
-    data: MigrationUidTypedDict
-    PR: PR_TD
 
 class BlasRebuildMigrateTypedDict(TypedDict):
     bot_rerun: bool
@@ -102,6 +98,10 @@ class TestTypedDict(TypedDict, total=False):
     requires: List[str]
     requirements: List[str]
 
+class PRedElementTypedDict(TypedDict, total=False):
+    data: MigrationUidTypedDict
+    PR: PR_TD
+
 class AttrsTypedDict_(TypedDict, total=False):
     about: AboutTypedDict
     build: BuildTypedDict
@@ -111,6 +111,7 @@ class AttrsTypedDict_(TypedDict, total=False):
     package: PackageTypedDict
     raw_meta_yaml: str
     req: Set[str]
+    platforms: List[str]
     requirements: RequirementsTypedDict
     source: SourceTypedDict
     test: TestTypedDict

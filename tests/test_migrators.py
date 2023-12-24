@@ -1,22 +1,27 @@
 import os
-import builtins
 import re
+import tempfile
 
 import pytest
 import networkx as nx
 
-from conda_forge_tick.contexts import MigratorSessionContext, MigratorContext
+from conda_forge_tick.contexts import (
+    MigratorSessionContext,
+    MigratorContext,
+    FeedstockContext,
+)
 from conda_forge_tick.migrators import (
     Version,
-    LicenseMigrator,
     MigrationYaml,
     Replacement,
+    Migrator,
+    MiniMigrator,
 )
+from conda_forge_tick.lazy_json_backends import LazyJson
 
 # Legacy THINGS
 from conda_forge_tick.migrators.disabled.legacy import (
     JS,
-    Compiler,
     Noarch,
     Pinning,
     NoarchR,
@@ -24,8 +29,13 @@ from conda_forge_tick.migrators.disabled.legacy import (
     Rebuild,
 )
 
-from conda_forge_tick.utils import parse_meta_yaml, frozen_to_json_friendly, LazyJson
-from conda_forge_tick.make_graph import populate_feedstock_attributes
+from conda_forge_tick.utils import (
+    parse_meta_yaml,
+    frozen_to_json_friendly,
+)
+from conda_forge_tick.feedstock_parser import populate_feedstock_attributes
+import subprocess
+from conda_forge_tick.os_utils import pushd
 
 
 sample_yaml_rebuild = """
@@ -253,12 +263,10 @@ extra:
     - ocefpaf
     - beckermr
 """
-from xonsh.lib import subprocess
-from xonsh.lib.os import indir
 
 
 class NoFilter:
-    def filter(self, attrs: "AttrsTypedDict", not_bad_str_start: str = "") -> bool:
+    def filter(self, attrs, not_bad_str_start=""):
         return False
 
 
@@ -269,17 +277,21 @@ class _MigrationYaml(NoFilter, MigrationYaml):
 yaml_rebuild = _MigrationYaml(yaml_contents="hello world", name="hi")
 yaml_rebuild.cycles = []
 yaml_rebuild_no_build_number = _MigrationYaml(
-    yaml_contents="hello world", name="hi", bump_number=0,
+    yaml_contents="hello world",
+    name="hi",
+    bump_number=0,
 )
 yaml_rebuild_no_build_number.cycles = []
 
 
-def run_test_yaml_migration(m, *, inp, output, kwargs, prb, mr_out, tmpdir, should_filter=False):
+def run_test_yaml_migration(
+    m, *, inp, output, kwargs, prb, mr_out, tmpdir, should_filter=False
+):
     os.makedirs(os.path.join(tmpdir, "recipe"), exist_ok=True)
     with open(os.path.join(tmpdir, "recipe", "meta.yaml"), "w") as f:
         f.write(inp)
 
-    with indir(tmpdir):
+    with pushd(tmpdir):
         subprocess.run(["git", "init"])
     # Load the meta.yaml (this is done in the graph)
     try:
@@ -304,9 +316,9 @@ def run_test_yaml_migration(m, *, inp, output, kwargs, prb, mr_out, tmpdir, shou
 
     mr = m.migrate(os.path.join(tmpdir, "recipe"), pmy)
     assert mr_out == mr
-
-    pmy.update(PRed=[frozen_to_json_friendly(mr)])
-    with open(os.path.join(tmpdir, "recipe/meta.yaml"), "r") as f:
+    pmy["pr_info"] = {}
+    pmy["pr_info"].update(PRed=[frozen_to_json_friendly(mr)])
+    with open(os.path.join(tmpdir, "recipe/meta.yaml")) as f:
         actual_output = f.read()
     assert actual_output == output
     assert os.path.exists(os.path.join(tmpdir, ".ci_support/migrations/hi.yaml"))
@@ -553,7 +565,7 @@ extra:
     - pelson
     - rgommers
     - ocefpaf
-"""
+"""  # noqa
 
 correct_cb3 = """
 {# correct_cb3 #}
@@ -619,7 +631,7 @@ extra:
     - pelson
     - rgommers
     - ocefpaf
-"""
+"""  # noqa
 
 sample_r_base = """
 {# sample_r_base #}
@@ -660,7 +672,7 @@ test:
   commands:
     - $R -e "library('stabledist')"  # [not win]
     - "\\"%R%\\" -e \\"library('stabledist')\\""  # [win]
-"""
+"""  # noqa
 
 updated_r_base = """
 {# updated_r_base #}
@@ -701,7 +713,7 @@ test:
   commands:
     - $R -e "library('stabledist')"  # [not win]
     - "\\"%R%\\" -e \\"library('stabledist')\\""  # [win]
-"""
+"""  # noqa
 
 
 sample_r_base2 = """
@@ -743,7 +755,7 @@ test:
   commands:
     - $R -e "library('stabledist')"  # [not win]
     - "\\"%R%\\" -e \\"library('stabledist')\\""  # [win]
-"""
+"""  # noqa
 
 updated_r_base2 = """
 {% set version = '0.7-1' %}
@@ -784,7 +796,7 @@ test:
   commands:
     - $R -e "library('stabledist')"  # [not win]
     - "\\"%R%\\" -e \\"library('stabledist')\\""  # [win]
-"""
+"""  # noqa
 
 # Test that filepaths to various licenses are updated for a noarch recipe
 sample_r_licenses_noarch = """
@@ -845,7 +857,7 @@ about:
 
   license_file: '{{ environ["PREFIX"] }}/lib/R/share/licenses/GPL-2'  # [unix]
   license_file: '{{ environ["PREFIX"] }}/lib/R/share/licenses/BSD_3_clause'  # [unix]
-"""
+"""  # noqa
 
 updated_r_licenses_noarch = """
 {% set version = '0.7-1' %}
@@ -900,7 +912,7 @@ about:
 
   license_file: '{{ environ["PREFIX"] }}/lib/R/share/licenses/GPL-2'
   license_file: '{{ environ["PREFIX"] }}/lib/R/share/licenses/BSD_3_clause'
-"""
+"""  # noqa
 
 # Test that filepaths to various licenses are updated for a compiled recipe
 sample_r_licenses_compiled = """
@@ -962,7 +974,7 @@ about:
 
   license_file: '{{ environ["PREFIX"] }}/lib/R/share/licenses/GPL-2'  # [unix]
   license_file: '{{ environ["PREFIX"] }}/lib/R/share/licenses/BSD_3_clause'  # [unix]
-"""
+"""  # noqa
 
 updated_r_licenses_compiled = """
 {% set version = '0.7-1' %}
@@ -1018,7 +1030,7 @@ about:
 
   license_file: '{{ environ["PREFIX"] }}/lib/R/share/licenses/GPL-2'
   license_file: '{{ environ["PREFIX"] }}/lib/R/share/licenses/BSD_3_clause'
-"""
+"""  # noqa
 
 sample_noarch = """
 {# sample_noarch #}
@@ -1079,7 +1091,7 @@ about:
 extra:
   recipe-maintainers:
     - CJ-Wright
-"""
+"""  # noqa
 
 
 updated_noarch = """
@@ -1142,7 +1154,7 @@ about:
 extra:
   recipe-maintainers:
     - CJ-Wright
-"""
+"""  # noqa
 
 sample_noarch_space = """
 {# sample_noarch_space #}
@@ -1203,7 +1215,7 @@ about:
 extra:
   recipe-maintainers:
     - CJ-Wright
-"""
+"""  # noqa
 
 
 updated_noarch_space = """
@@ -1266,7 +1278,7 @@ about:
 extra:
   recipe-maintainers:
     - CJ-Wright
-"""
+"""  # noqa
 
 
 sample_pinning = """
@@ -1505,93 +1517,6 @@ test:
     - mpmath
 """
 
-version_license = """\
-{% set version = "0.8" %}
-
-package:
-  name: viscm
-  version: {{ version }}
-
-source:
-  url: https://pypi.io/packages/source/v/viscm/viscm-{{ version }}.tar.gz
-  sha256: dca77e463c56d42bbf915197c9b95e98913c85bef150d2e1dd18626b8c2c9c32
-
-build:
-  number: 0
-  noarch: python
-  script: python -m pip install --no-deps --ignore-installed .
-
-requirements:
-  host:
-    - python
-    - pip
-    - numpy
-  run:
-    - python
-    - numpy
-    - matplotlib
-    - colorspacious
-
-test:
-  imports:
-    - viscm
-
-about:
-  home: https://github.com/bids/viscm
-  license: MIT
-  license_family: MIT
-  # license_file: '' we need to an issue upstream to get a license in the source dist.
-  summary: A colormap tool
-
-extra:
-  recipe-maintainers:
-    - kthyng
-"""
-
-version_license_correct = """\
-{% set version = "0.9" %}
-
-package:
-  name: viscm
-  version: {{ version }}
-
-source:
-  url: https://pypi.io/packages/source/v/viscm/viscm-{{ version }}.tar.gz
-  sha256: c770e4b76f726e653d2b7c2c73f71941a88de6eb47ccf8fb8e984b55562d05a2
-
-build:
-  number: 0
-  noarch: python
-  script: python -m pip install --no-deps --ignore-installed .
-
-requirements:
-  host:
-    - python
-    - pip
-    - numpy
-  run:
-    - python
-    - numpy
-    - matplotlib
-    - colorspacious
-
-test:
-  imports:
-    - viscm
-
-about:
-  home: https://github.com/bids/viscm
-  license: MIT
-  license_file: LICENSE
-  license_family: MIT
-  # license_file: '' we need to an issue upstream to get a license in the source dist.
-  summary: A colormap tool
-
-extra:
-  recipe-maintainers:
-    - kthyng
-"""
-
 sample_matplotlib = """
 {% set version = "0.9" %}
 
@@ -1681,10 +1606,7 @@ extra:
 """
 
 js = JS()
-version = Version()
-lm = LicenseMigrator()
-version_license_migrator = Version(piggy_back_migrations=[lm])
-compiler = Compiler()
+version = Version(set())
 noarch = Noarch()
 noarchr = NoarchR()
 perl = Pinning(removals={"perl"})
@@ -1713,15 +1635,34 @@ matplotlib = Replacement(
     pr_limit=5,
 )
 
+
+class MockLazyJson:
+    def __init__(self, data):
+        self.data = data
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *args):
+        pass
+
+
 G = nx.DiGraph()
 G.add_node("conda", reqs=["python"])
-env = builtins.__xonsh__.env  # type: ignore
-env["GRAPH"] = G
-env["CIRCLE_BUILD_URL"] = "hi world"
+G.nodes["conda"]["payload"] = MockLazyJson({})
+os.environ["CIRCLE_BUILD_URL"] = "hi world"
 
 
 def run_test_migration(
-    m, inp, output, kwargs, prb, mr_out, should_filter=False, tmpdir=None,
+    m: Migrator,
+    inp: str,
+    output: str,
+    kwargs: dict,
+    prb: dict,
+    mr_out: dict,
+    should_filter=False,
+    tmpdir=None,
+    make_body=False,
 ):
     mm_ctx = MigratorSessionContext(
         graph=G,
@@ -1729,7 +1670,7 @@ def run_test_migration(
         pinning_version="",
         github_username="",
         github_password="",
-        circle_build_url=env["CIRCLE_BUILD_URL"],
+        circle_build_url=os.environ["CIRCLE_BUILD_URL"],
     )
     m_ctx = MigratorContext(mm_ctx, m)
     m.bind_to_ctx(m_ctx)
@@ -1740,83 +1681,131 @@ def run_test_migration(
         f.write(inp)
 
     # read the conda-forge.yml
-    if os.path.exists(os.path.join(tmpdir, '..', 'conda-forge.yml')):
-        with open(os.path.join(tmpdir, '..', 'conda-forge.yml'), 'r') as fp:
+    if os.path.exists(os.path.join(tmpdir, "..", "conda-forge.yml")):
+        with open(os.path.join(tmpdir, "..", "conda-forge.yml")) as fp:
             cf_yml = fp.read()
     else:
         cf_yml = "{}"
 
     # Load the meta.yaml (this is done in the graph)
     try:
-        name = parse_meta_yaml(inp)['package']['name']
+        name = parse_meta_yaml(inp)["package"]["name"]
     except Exception:
-        name = 'blah'
+        name = "blah"
 
-    pmy = populate_feedstock_attributes(
-        name,
-        {},
-        inp,
-        cf_yml,
-    )
+    pmy = populate_feedstock_attributes(name, {}, inp, cf_yml)
 
     # these are here for legacy migrators
-    pmy["version"] = pmy['meta_yaml']["package"]["version"]
+    pmy["version"] = pmy["meta_yaml"]["package"]["version"]
     pmy["req"] = set()
     for k in ["build", "host", "run"]:
-        req = pmy['meta_yaml'].get("requirements", {}) or {}
+        req = pmy["meta_yaml"].get("requirements", {}) or {}
         _set = req.get(k) or set()
         pmy["req"] |= set(_set)
     pmy["raw_meta_yaml"] = inp
     pmy.update(kwargs)
 
-    assert m.filter(pmy) is should_filter
-    if should_filter:
-        return
+    with tempfile.TemporaryDirectory() as vtmpdir:
+        if "version_pr_info" not in pmy:
+            if tmpdir is None:
+                pmy["version_pr_info"] = LazyJson(os.path.join(vtmpdir, "v.json"))
+            else:
+                pmy["version_pr_info"] = LazyJson(os.path.join(tmpdir, "v.json"))
+            if "new_version" in pmy:
+                with pmy["version_pr_info"] as vpri:
+                    vpri["new_version"] = pmy.pop("new_version")
 
-    m.run_pre_piggyback_migrations(
-        tmpdir, pmy, hash_type=pmy.get("hash_type", "sha256"))
-    mr = m.migrate(tmpdir, pmy, hash_type=pmy.get("hash_type", "sha256"))
-    m.run_post_piggyback_migrations(
-        tmpdir, pmy, hash_type=pmy.get("hash_type", "sha256"))
+        assert m.filter(pmy) is should_filter
+        if should_filter:
+            return pmy
 
-    assert mr_out == mr
-    if not mr:
-        return
+        m.run_pre_piggyback_migrations(
+            tmpdir,
+            pmy,
+            hash_type=pmy.get("hash_type", "sha256"),
+        )
+        mr = m.migrate(tmpdir, pmy, hash_type=pmy.get("hash_type", "sha256"))
+        m.run_post_piggyback_migrations(
+            tmpdir,
+            pmy,
+            hash_type=pmy.get("hash_type", "sha256"),
+        )
 
-    pmy.update(PRed=[frozen_to_json_friendly(mr)])
-    with open(os.path.join(tmpdir, "meta.yaml"), "r") as f:
+        if make_body:
+            fctx = FeedstockContext(
+                package_name=name,
+                feedstock_name=name,
+                attrs=pmy,
+            )
+            fctx.feedstock_dir = os.path.dirname(tmpdir)
+            m_ctx.effective_graph.add_node(name)
+            m_ctx.effective_graph.nodes[name]["payload"] = MockLazyJson({})
+            m.pr_body(fctx)
+
+        assert mr_out == mr
+        if not mr:
+            return pmy
+
+        pmy["pr_info"] = {}
+        pmy["pr_info"].update(PRed=[frozen_to_json_friendly(mr)])
+        with open(os.path.join(tmpdir, "meta.yaml")) as f:
+            actual_output = f.read()
+        # strip jinja comments
+        pat = re.compile(r"{#.*#}")
+        actual_output = pat.sub("", actual_output)
+        output = pat.sub("", output)
+        assert actual_output == output
+        # TODO: fix subgraph here (need this to be xsh file)
+        if isinstance(m, Version):
+            pass
+        elif isinstance(m, Rebuild):
+            return pmy
+        else:
+            assert prb in m.pr_body(None)
+        assert m.filter(pmy) is True
+
+    return pmy
+
+
+def run_minimigrator(
+    migrator: MiniMigrator,
+    inp: str,
+    output: str,
+    mr_out: dict,
+    should_filter: bool = False,
+    tmpdir=None,
+):
+    if mr_out:
+        mr_out.update(bot_rerun=False)
+    with open(os.path.join(tmpdir, "meta.yaml"), "w") as f:
+        f.write(inp)
+
+    # read the conda-forge.yml
+    if os.path.exists(os.path.join(tmpdir, "..", "conda-forge.yml")):
+        with open(os.path.join(tmpdir, "..", "conda-forge.yml")) as fp:
+            cf_yml = fp.read()
+    else:
+        cf_yml = "{}"
+
+    # Load the meta.yaml (this is done in the graph)
+    try:
+        name = parse_meta_yaml(inp)["package"]["name"]
+    except Exception:
+        name = "blah"
+
+    pmy = populate_feedstock_attributes(name, {}, inp, cf_yml)
+    filtered = migrator.filter(pmy)
+    if should_filter and filtered:
+        return migrator
+    assert filtered == should_filter
+
+    with open(os.path.join(tmpdir, "meta.yaml")) as f:
         actual_output = f.read()
     # strip jinja comments
     pat = re.compile(r"{#.*#}")
     actual_output = pat.sub("", actual_output)
     output = pat.sub("", output)
     assert actual_output == output
-    if isinstance(m, Compiler):
-        assert m.messages in m.pr_body(None)
-    # TODO: fix subgraph here (need this to be xsh file)
-    elif isinstance(m, Version):
-        pass
-    elif isinstance(m, Rebuild):
-        return
-    else:
-        assert prb in m.pr_body(None)
-    assert m.filter(pmy) is True
-
-
-def test_version_license_correct(tmpdir):
-    run_test_migration(
-        m=version_license_migrator,
-        inp=version_license,
-        output=version_license_correct,
-        kwargs={"new_version": "0.9"},
-        prb="Dependencies have been updated if changed",
-        mr_out={
-            "migrator_name": "Version",
-            "migrator_version": Version.migrator_version,
-            "version": "0.9",
-        },
-        tmpdir=tmpdir,
-    )
 
 
 @pytest.mark.skip
@@ -1837,26 +1826,10 @@ def test_js_migrator2(tmpdir):
     run_test_migration(
         m=js,
         inp=sample_js2,
-        output=correct_js2,
+        output=correct_js2,  # noqa
         kwargs={},
         prb="Please merge the PR only after the tests have passed.",
         mr_out={"migrator_name": "JS", "migrator_version": JS.migrator_version},
-        tmpdir=tmpdir,
-    )
-
-
-@pytest.mark.skip
-def test_cb3(tmpdir):
-    run_test_migration(
-        m=compiler,
-        inp=sample_cb3,
-        output=correct_cb3,
-        kwargs={},
-        prb="N/A",
-        mr_out={
-            "migrator_name": "Compiler",
-            "migrator_version": Compiler.migrator_version,
-        },
         tmpdir=tmpdir,
     )
 

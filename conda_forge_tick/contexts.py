@@ -1,13 +1,24 @@
+import os
 import copy
 from dataclasses import dataclass
 from networkx import DiGraph
 import typing
 import threading
 import github3
+from conda_forge_tick.lazy_json_backends import load
+
+from typing import Union
 
 if typing.TYPE_CHECKING:
     from conda_forge_tick.migrators import Migrator
     from conda_forge_tick.migrators_types import AttrsTypedDict
+
+
+if os.path.exists("all_feedstocks.json"):
+    with open("all_feedstocks.json") as f:
+        DEFAULT_BRANCHES = load(f).get("default_branches", {})
+else:
+    DEFAULT_BRANCHES = {}
 
 
 @dataclass
@@ -29,6 +40,16 @@ class GithubContext:
             setattr(self._tl, "gh", gh)
         return self._tl.gh
 
+    @property
+    def gh_api_requests_left(self) -> Union[int, None]:
+        """The remaining API requests left. Returns None if there is an exception"""
+        try:
+            left = self.gh.rate_limit()["resources"]["core"]["remaining"]
+        except Exception:
+            left = None
+
+        return left
+
 
 @dataclass
 class MigratorSessionContext(GithubContext):
@@ -44,7 +65,9 @@ class MigratorSessionContext(GithubContext):
 
 @dataclass
 class MigratorContext:
-    """The context for a given migrator.  This houses the runtime information that a migrator needs"""
+    """The context for a given migrator.
+    This houses the runtime information that a migrator needs
+    """
 
     session: MigratorSessionContext
     migrator: "Migrator"
@@ -60,11 +83,23 @@ class MigratorContext:
             gx2 = copy.deepcopy(getattr(self.migrator, "graph", self.session.graph))
 
             # Prune graph to only things that need builds right now
-            for node, node_attrs in self.session.graph.nodes.items():
-                attrs = node_attrs.get("payload", {})
-                if node in gx2 and self.migrator.filter(attrs):
+            for node in list(gx2.nodes):
+                if node not in self.session.graph.nodes:
+                    continue
+
+                with self.session.graph.nodes[node]["payload"] as _attrs:
+                    attrs = copy.deepcopy(_attrs.data)
+                base_branches = self.migrator.get_possible_feedstock_branches(attrs)
+                filters = []
+                for base_branch in base_branches:
+                    attrs["branch"] = base_branch
+                    filters.append(self.migrator.filter(attrs))
+
+                if filters and all(filters):
                     gx2.remove_node(node)
+
             self._effective_graph = gx2
+
         return self._effective_graph
 
 
@@ -73,3 +108,15 @@ class FeedstockContext:
     package_name: str
     feedstock_name: str
     attrs: "AttrsTypedDict"
+    _default_branch: str = None
+
+    @property
+    def default_branch(self):
+        if self._default_branch is None:
+            return DEFAULT_BRANCHES.get(f"{self.feedstock_name}", "main")
+        else:
+            return self._default_branch
+
+    @default_branch.setter
+    def default_branch(self, v):
+        self._default_branch = v

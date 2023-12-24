@@ -1,6 +1,0 @@
-pytest
-coverage
-codecov
-requests-mock
-doctr
-sphinx

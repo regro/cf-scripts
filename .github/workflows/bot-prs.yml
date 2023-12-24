@@ -1,0 +1,134 @@
+name: bot-prs
+
+on:
+  workflow_dispatch: null
+  schedule:
+    - cron:  '*/15 * * * *'
+
+concurrency: prs
+
+jobs:
+  prs:
+    name: prs
+    runs-on: "ubuntu-latest"
+    strategy:
+      matrix:
+        job_num: [1, 2, 3, 4]
+    defaults:
+      run:
+        shell: bash -l {0}
+
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          path: cf-scripts
+
+      - uses: conda-incubator/setup-miniconda@v3
+        with:
+          miniforge-version: latest
+          environment-file: cf-scripts/environment.yml
+          python-version: "${{ vars.PYVER }}"
+          activate-environment: cf-scripts
+          condarc-file: cf-scripts/autotick-bot/condarc
+
+      - name: do local setup and stop me if needed
+        run: |
+          cd cf-scripts
+          python autotick-bot/stop_me_if_needed.py
+
+      - name: install bot code
+        if: success() && ! env.CI_SKIP
+        run: |
+          source cf-scripts/autotick-bot/install_bot_code.sh
+        env:
+          PASSWORD: ${{ secrets.AUTOTICK_BOT_TOKEN }}
+
+      - name: update prs
+        if: success() && ! env.CI_SKIP
+        run: |
+          pushd cf-graph
+
+          export CIRCLE_BUILD_URL="https://github.com/regro/cf-scripts/actions/runs/${RUN_ID}"
+          export CIRCLE_BUILD_NUM="actually-actions-${RUN_ID}"
+          conda-forge-tick update-prs --job=${BOT_JOB} --n-jobs=4
+        env:
+          USERNAME: regro-cf-autotick-bot
+          PASSWORD: ${{ secrets.AUTOTICK_BOT_TOKEN }}
+          RUN_ID: ${{ github.run_id }}
+          BOT_JOB: ${{ matrix.job_num }}
+          CF_TICK_GRAPH_DATA_BACKENDS: "mongodb:file"
+          MONGODB_CONNECTION_STRING: ${{ secrets.MONGODB_CONNECTION_STRING }}
+
+      - name: deploy
+        if: github.ref == 'refs/heads/master' && ! cancelled() && ! env.CI_SKIP
+        run: |
+          pushd cf-graph
+
+          export CIRCLE_BUILD_URL="https://github.com/regro/cf-scripts/actions/runs/${RUN_ID}"
+          export CIRCLE_BUILD_NUM="actually-actions-${RUN_ID}"
+          conda-forge-tick deploy-to-github
+        env:
+          PASSWORD: ${{ secrets.AUTOTICK_BOT_TOKEN }}
+          RUN_ID: ${{ github.run_id }}
+
+      - name: bump on fail
+        if: github.ref == 'refs/heads/master' && failure() && ! env.CI_SKIP
+        run: |
+          export ACTION_URL="https://github.com/regro/cf-scripts/actions/runs/${RUN_ID}"
+          python cf-scripts/autotick-bot/bump_bot_team.py
+        env:
+          PASSWORD: ${{ secrets.AUTOTICK_BOT_TOKEN }}
+          RUN_ID: ${{ github.run_id }}
+          ACTION_NAME: ${{ github.workflow }}
+
+  prs-trigger:
+    needs: prs
+    name: prs-trigger
+    runs-on: "ubuntu-latest"
+    defaults:
+      run:
+        shell: bash -l {0}
+
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          path: cf-scripts
+
+      - uses: conda-incubator/setup-miniconda@v3
+        with:
+          miniforge-version: latest
+          environment-file: cf-scripts/environment.yml
+          python-version: "${{ vars.PYVER }}"
+          activate-environment: cf-scripts
+          condarc-file: cf-scripts/autotick-bot/condarc
+
+      - name: do local setup and stop me if needed
+        run: |
+          cd cf-scripts
+          python autotick-bot/stop_me_if_needed.py
+
+      - name: trigger next job
+        uses: benc-uk/workflow-dispatch@798e70c97009500150087d30d9f11c5444830385
+        if: github.ref == 'refs/heads/master' && ! cancelled() && ! failure() && ! env.CI_SKIP
+        with:
+          workflow: bot-prs
+          ref: ${{ github.event.ref }}
+          token: ${{ secrets.AUTOTICK_BOT_TOKEN }}
+
+      - name: trigger status page
+        uses: benc-uk/workflow-dispatch@798e70c97009500150087d30d9f11c5444830385
+        if: github.ref == 'refs/heads/master' && ! cancelled() && ! failure() && ! env.CI_SKIP
+        with:
+          workflow: bot-update-status-page
+          ref: ${{ github.event.ref }}
+          token: ${{ secrets.AUTOTICK_BOT_TOKEN }}
+
+      - name: bump on fail
+        if: github.ref == 'refs/heads/master' && failure() && ! env.CI_SKIP
+        run: |
+          export ACTION_URL="https://github.com/regro/cf-scripts/actions/runs/${RUN_ID}"
+          python cf-scripts/autotick-bot/bump_bot_team.py
+        env:
+          PASSWORD: ${{ secrets.AUTOTICK_BOT_TOKEN }}
+          RUN_ID: ${{ github.run_id }}
+          ACTION_NAME: ${{ github.workflow }}

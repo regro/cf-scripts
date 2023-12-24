@@ -2,6 +2,7 @@ build/
 *.egg-info
 dist/
 *.pyx
+*.pyc
 __pycache__
 *.swp
 
@@ -23,3 +24,28 @@ graph.json
 pr_json/*
 pr_status/*
 status/*
+feedstocks/*
+coverage.xml
+.coverage.*
+
+cf-graph/
+tests/node_attrs/
+pkgs
+dask-worker-space
+cbr
+feedstocks
+
+.venv
+.ipynb_checkpoints/
+Untitled.ipynb
+version_pr_info/*
+pr_info/*
+conda_forge_tick/_version.py
+pr_json
+pr_json/*
+.pytest_cache/*
+.pytest_cache
+lazy_json/*
+lazy_json
+.unload_to_disk_*
+tests/test_pypi_name_mapping/pr_json/
