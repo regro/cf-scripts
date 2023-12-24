@@ -556,6 +556,14 @@ def main(args: Any = None) -> None:
                 indent=2,
             )
 
+        lst = [
+            k
+            for k, v in mctx.graph.nodes.items()
+            if v.get("payload", {}).get("archived", False)
+        ]
+        with open("./status/archived.json", "w") as f:
+            json.dump(sorted(lst), f, indent=2)
+
         def _get_open_pr_states(k):
             attrs = mctx.graph.nodes[k]["payload"]
             _open_prs = []
