@@ -340,7 +340,8 @@ class Version(Migrator):
                     )
 
                     if feedstock_ctx.attrs.get("conda-forge.yml", {}).get(
-                        "bot", {},
+                        "bot",
+                        {},
                     ).get("automerge", False) in {"version", True}:
                         feedstock_ctx.passed_dep_analysis = False
                         hint += (
