@@ -339,9 +339,9 @@ class Version(Migrator):
                         "new_version",
                     )
 
-                    if feedstock_ctx.attrs.get("conda-forge.yml", {}).get("bot", {}).get(
-                        "automerge", False,
-                    ) in {"version", True}:
+                    if feedstock_ctx.attrs.get("conda-forge.yml", {}).get(
+                        "bot", {},
+                    ).get("automerge", False) in {"version", True}:
                         feedstock_ctx.passed_dep_analysis = False
                         hint += (
                             "\nNote that automerge has been disabled for this PR because of the dependency issues. You can"
