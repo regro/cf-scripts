@@ -101,7 +101,6 @@ from conda_forge_tick.migrators import (
     Build2HostMigrator,
     NoCondaInspectMigrator,
     DuplicateLinesCleanup,
-    Cos7Config,
     PipWheelMigrator,
     GraphMigrator,
     CrossCompilationForARMAndPower,
@@ -680,7 +679,6 @@ def add_rebuild_migration_yaml(
         ExtraJinja2KeysCleanup(),
         Build2HostMigrator(),
         NoCondaInspectMigrator(),
-        Cos7Config(),
         CrossCompilationForARMAndPower(),
         MPIPinRunAsBuildCleanup(),
     ]
@@ -1064,7 +1062,6 @@ def initialize_migrators(
                 ExtraJinja2KeysCleanup(),
                 Build2HostMigrator(),
                 NoCondaInspectMigrator(),
-                Cos7Config(),
                 PipWheelMigrator(),
                 MPIPinRunAsBuildCleanup(),
                 DependencyUpdateMigrator(python_nodes),
