@@ -40,7 +40,7 @@ class DependencyUpdateMigrator(MiniMigrator):
                 "new_version",
             )
         except (BaseException, Exception) as e:
-            logger.warning("Dep update failed! %s", repr(e))
+            logger.warning("Dep update failed!", exc_info=True)
         else:
             logger.info("applying deps: %s", update_deps)
             apply_dep_update(
