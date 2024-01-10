@@ -143,7 +143,7 @@ def test_update_run_deps():
     updated_deps = _update_sec_deps(recipe, d, ["host", "run"], update_python=True)
     print("\n" + recipe.dumps())
     assert updated_deps
-    assert "python >=3.6" in recipe.dumps()
+    assert "python >=3.7" in recipe.dumps()
 
 
 @flaky
