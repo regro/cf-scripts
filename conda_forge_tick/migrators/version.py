@@ -283,6 +283,7 @@ class Version(Migrator):
                 ),
             )
         )
+
         # Statement here
         template = (
             "|{name}|{new_version}|[![Anaconda-Server Badge]"
@@ -337,6 +338,18 @@ class Version(Migrator):
                         self.python_nodes,
                         "new_version",
                     )
+
+                    if feedstock_ctx.attrs.get("conda-forge.yml", {}).get(
+                        "bot",
+                        {},
+                    ).get("automerge", False) in {"version", True}:
+                        feedstock_ctx.passed_dep_analysis = False
+                        hint += (
+                            "\nNote that automerge has been disabled for this PR because of the dependency issues. You can"
+                            "restore automerge by disabling this feature by adding `bot: inspection: false` to your "
+                            "`conda-forge.yml`. "
+                        )
+
                 except (BaseException, Exception):
                     hint = "\n\nDependency Analysis\n--------------------\n\n"
                     hint += (
@@ -354,10 +367,12 @@ class Version(Migrator):
     def pr_title(self, feedstock_ctx: FeedstockContext) -> str:
         assert isinstance(feedstock_ctx.attrs["version_pr_info"]["new_version"], str)
         # TODO: turn False to True when we default to automerge
-        if feedstock_ctx.attrs.get("conda-forge.yml", {}).get("bot", {}).get(
-            "automerge",
-            False,
-        ) in {"version", True}:
+        if (
+            feedstock_ctx.attrs.get("conda-forge.yml", {})
+            .get("bot", {})
+            .get("automerge", False)
+            in {"version", True}
+        ) and feedstock_ctx.passed_dep_analysis:
             add_slug = "[bot-automerge] "
         else:
             add_slug = ""
