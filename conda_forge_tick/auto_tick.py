@@ -1459,13 +1459,18 @@ def _update_nodes_with_bot_rerun(gx):
                             )
 
 
+def _get_key_or_default(attrs, key, default):
+    val = attrs.get(key, default)
+    if val is None:
+        val = default
+    return val
+
+
 def _filter_ignored_versions(attrs, version):
-    versions_to_ignore = (
-        attrs.get("conda-forge.yml", {})
-        .get("bot", {})
-        .get("version_updates", {})
-        .get("exclude", [])
-    )
+    versions_to_ignore = _get_key_or_default(attrs, "conda-forge.yml", {})
+    versions_to_ignore = _get_key_or_default(versions_to_ignore, "bot", {})
+    versions_to_ignore = _get_key_or_default(versions_to_ignore, "version_updates", {})
+    versions_to_ignore = _get_key_or_default(versions_to_ignore, "exclude", [])
     if (
         str(version).replace("-", ".") in versions_to_ignore
         or str(version) in versions_to_ignore
