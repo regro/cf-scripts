@@ -4,6 +4,7 @@ from typing import Any
 
 from conda_forge_tick.update_deps import get_dep_updates_and_hints, apply_dep_update
 from conda_forge_tick.migrators.core import MiniMigrator
+from conda_forge_tick.utils import get_keys_default
 
 if typing.TYPE_CHECKING:
     from ..migrators_types import AttrsTypedDict
@@ -18,8 +19,11 @@ class DependencyUpdateMigrator(MiniMigrator):
         self.python_nodes = python_nodes
 
     def filter(self, attrs: "AttrsTypedDict", not_bad_str_start: str = "") -> bool:
-        update_deps = (
-            attrs.get("conda-forge.yml", {}).get("bot", {}).get("inspection", "hint")
+        update_deps = get_keys_default(
+            attrs,
+            ["conda-forge.yml", "bot", "inspection"],
+            {},
+            "hint",
         )
         if update_deps in ["update-all", "update-source", "update-grayskull"]:
             return False
@@ -27,8 +31,11 @@ class DependencyUpdateMigrator(MiniMigrator):
         return True
 
     def migrate(self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any) -> None:
-        update_deps = (
-            attrs.get("conda-forge.yml", {}).get("bot", {}).get("inspection", "hint")
+        update_deps = get_keys_default(
+            attrs,
+            ["conda-forge.yml", "bot", "inspection"],
+            {},
+            "hint",
         )
         logger.info("bot.inspection: %s", update_deps)
         try:
@@ -39,7 +46,7 @@ class DependencyUpdateMigrator(MiniMigrator):
                 self.python_nodes,
                 "new_version",
             )
-        except (BaseException, Exception) as e:
+        except (BaseException, Exception):
             logger.warning("Dep update failed!", exc_info=True)
         else:
             logger.info("applying deps: %s", update_deps)

@@ -17,7 +17,7 @@ from conda.models.version import VersionOrder
 from conda_forge_tick.migrators.core import Migrator
 from conda_forge_tick.contexts import FeedstockContext
 from conda_forge_tick.os_utils import pushd
-from conda_forge_tick.utils import sanitize_string
+from conda_forge_tick.utils import sanitize_string, get_keys_default
 from conda_forge_tick.update_deps import get_dep_updates_and_hints
 from conda_forge_tick.update_recipe import update_version
 
@@ -124,11 +124,11 @@ class Version(Migrator):
             version_filter = True
 
         skip_filter = False
-        random_fraction_to_keep = (
-            attrs.get("conda-forge.yml", {})
-            .get("bot", {})
-            .get("version_updates", {})
-            .get("random_fraction_to_keep", None)
+        random_fraction_to_keep = get_keys_default(
+            attrs,
+            ["conda-forge.yml", "bot", "version_updates", "random_fraction_to_keep"],
+            {},
+            None,
         )
         logger.debug("random_fraction_to_keep: %r", random_fraction_to_keep)
         if random_fraction_to_keep is not None:
@@ -154,11 +154,11 @@ class Version(Migrator):
                 random.setstate(curr_state)
 
         ignore_filter = False
-        versions_to_ignore = (
-            attrs.get("conda-forge.yml", {})
-            .get("bot", {})
-            .get("version_updates", {})
-            .get("exclude", [])
+        versions_to_ignore = get_keys_default(
+            attrs,
+            ["conda-forge.yml", "bot", "version_updates", "exclude"],
+            {},
+            [],
         )
         if (
             str(new_version).replace("-", ".") in versions_to_ignore
@@ -247,7 +247,6 @@ class Version(Migrator):
         else:
             upstream_url_link = ""
 
-        muid: dict
         body += (
             "It is very likely that the current package version for this "
             "feedstock is out of date.\n"

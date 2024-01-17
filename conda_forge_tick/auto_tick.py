@@ -76,6 +76,7 @@ from conda_forge_tick.utils import (
     yaml_safe_load,
     parse_munged_run_export,
     fold_log_lines,
+    get_keys_default,
 )
 from conda_forge_tick.migrators.arch import OSXArm
 from conda_forge_tick.migrators.migration_yaml import (
@@ -301,16 +302,16 @@ def run(
                     raise
                 else:
                     # for check solvable or automerge, we always raise rerender errors
-                    if feedstock_ctx.attrs["conda-forge.yml"].get("bot", {}).get(
-                        "check_solvable",
+                    if get_keys_default(
+                        feedstock_ctx.attrs,
+                        ["conda-forge.yml", "bot", "check_solvable"],
+                        {},
                         False,
-                    ) or (
-                        feedstock_ctx.attrs["conda-forge.yml"]
-                        .get("bot", {})
-                        .get(
-                            "automerge",
-                            False,
-                        )
+                    ) or get_keys_default(
+                        feedstock_ctx.attrs,
+                        ["conda-forge.yml", "bot", "automerge"],
+                        {},
+                        False,
                     ):
                         raise
                     else:
@@ -346,10 +347,10 @@ def run(
                 and feedstock_ctx.attrs["name"]
                 not in getattr(migrator, "top_level", set())
             )
-            or feedstock_ctx.attrs["conda-forge.yml"]
-            .get("bot", {})
-            .get(
-                "check_solvable",
+            or get_keys_default(
+                feedstock_ctx.attrs,
+                ["conda-forge.yml", "bot", "check_solvable"],
+                {},
                 False,
             )
         )
@@ -1459,18 +1460,13 @@ def _update_nodes_with_bot_rerun(gx):
                             )
 
 
-def _get_key_or_default(attrs, key, default):
-    val = attrs.get(key, default)
-    if val is None:
-        val = default
-    return val
-
-
 def _filter_ignored_versions(attrs, version):
-    versions_to_ignore = _get_key_or_default(attrs, "conda-forge.yml", {})
-    versions_to_ignore = _get_key_or_default(versions_to_ignore, "bot", {})
-    versions_to_ignore = _get_key_or_default(versions_to_ignore, "version_updates", {})
-    versions_to_ignore = _get_key_or_default(versions_to_ignore, "exclude", [])
+    versions_to_ignore = get_keys_default(
+        attrs,
+        ["conda-forge.yml", "bot", "version_updates", "exclude"],
+        {},
+        [],
+    )
     if (
         str(version).replace("-", ".") in versions_to_ignore
         or str(version) in versions_to_ignore

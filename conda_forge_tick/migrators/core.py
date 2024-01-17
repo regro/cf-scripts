@@ -21,6 +21,7 @@ from conda_forge_tick.path_lengths import cyclic_topological_sort
 from conda_forge_tick.lazy_json_backends import LazyJson
 from conda_forge_tick.utils import (
     frozen_to_json_friendly,
+    get_keys_default,
 )
 from conda_forge_tick.make_graph import make_outputs_lut_from_graph
 from conda_forge_tick.contexts import MigratorContext, FeedstockContext
@@ -242,10 +243,11 @@ class Migrator:
         """
         branches = ["main"]
         try:
-            branches += (
-                attrs.get("conda-forge.yml", {})
-                .get("bot", {})
-                .get("abi_migration_branches", [])
+            branches += get_keys_default(
+                attrs,
+                ["conda-forge.yml", "bot", "migration_branches"],
+                {},
+                [],
             )
         except Exception:
             LOGGER.exception(f"Invalid value for {attrs.get('conda-forge.yml', {})=}")

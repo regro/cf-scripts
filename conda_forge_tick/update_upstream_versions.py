@@ -22,17 +22,18 @@ from .update_sources import (
     NVIDIA,
 )
 from typing import Any, Iterable
+from .utils import get_keys_default
 
 # conda_forge_tick :: cft
 logger = logging.getLogger("conda_forge_tick.update_upstream_versions")
 
 
 def _filter_ignored_versions(attrs, version):
-    versions_to_ignore = (
-        attrs.get("conda-forge.yml", {})
-        .get("bot", {})
-        .get("version_updates", {})
-        .get("exclude", [])
+    versions_to_ignore = get_keys_default(
+        attrs,
+        ["conda-forge.yml", "bot", "version_updates", "exclude"],
+        {},
+        [],
     )
     if (
         str(version).replace("-", ".") in versions_to_ignore
@@ -54,11 +55,11 @@ def get_latest_version(
     if name == "ca-policy-lcg":
         return version_data
 
-    version_sources = (
-        attrs.get("conda-forge.yml", {})
-        .get("bot", {})
-        .get("version_updates", {})
-        .get("sources", None)
+    version_sources = get_keys_default(
+        attrs,
+        ["conda-forge.yml", "bot", "version_updates", "sources"],
+        {},
+        None,
     )
     if version_sources is not None:
         version_sources = [vs.lower() for vs in version_sources]

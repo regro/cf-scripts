@@ -14,7 +14,12 @@ import networkx as nx
 from conda_forge_tick.contexts import FeedstockContext
 from conda_forge_tick.migrators.core import GraphMigrator, MiniMigrator, Migrator
 from conda_forge_tick.os_utils import pushd, eval_cmd
-from conda_forge_tick.utils import pluck, yaml_safe_load, yaml_safe_dump
+from conda_forge_tick.utils import (
+    pluck,
+    yaml_safe_load,
+    yaml_safe_dump,
+    get_keys_default,
+)
 from conda_forge_tick.make_graph import get_deps_from_outputs_lut
 from conda_forge_tick.feedstock_parser import PIN_SEP_PAT
 
@@ -339,9 +344,12 @@ class MigrationYaml(GraphMigrator):
 
     def pr_title(self, feedstock_ctx: FeedstockContext) -> str:
         if (
-            feedstock_ctx.attrs.get("conda-forge.yml", {})
-            .get("bot", {})
-            .get("automerge", False)
+            get_keys_default(
+                feedstock_ctx.attrs,
+                ["conda-forge.yml", "bot", "automerge"],
+                {},
+                True,
+            )
             in {"migration", True}
         ) and self.automerge:
             add_slug = "[bot-automerge] "
