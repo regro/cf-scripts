@@ -348,7 +348,7 @@ class MigrationYaml(GraphMigrator):
                 feedstock_ctx.attrs,
                 ["conda-forge.yml", "bot", "automerge"],
                 {},
-                True,
+                False,
             )
             in {"migration", True}
         ) and self.automerge:
