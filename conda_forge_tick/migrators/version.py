@@ -310,10 +310,11 @@ class Version(Migrator):
         return super().pr_body(feedstock_ctx, add_label_text=False).format(body)
 
     def _hint_and_maybe_update_deps(self, feedstock_ctx):
-        update_deps = (
-            feedstock_ctx.attrs.get("conda-forge.yml", {})
-            .get("bot", {})
-            .get("inspection", "hint")
+        update_deps = get_keys_default(
+            feedstock_ctx.attrs,
+            ["conda-forge.yml", "bot", "inspection"],
+            {},
+            "hint",
         )
         logger.info("bot.inspection: %s", update_deps)
         if not update_deps:
@@ -353,10 +354,13 @@ class Version(Migrator):
     def pr_title(self, feedstock_ctx: FeedstockContext) -> str:
         assert isinstance(feedstock_ctx.attrs["version_pr_info"]["new_version"], str)
         # TODO: turn False to True when we default to automerge
-        if feedstock_ctx.attrs.get("conda-forge.yml", {}).get("bot", {}).get(
-            "automerge",
+        amerge = get_keys_default(
+            feedstock_ctx.attrs,
+            ["conda-forge.yml", "bot", "automerge"],
+            {},
             False,
-        ) in {"version", True}:
+        )
+        if amerge in {"version", True}:
             add_slug = "[bot-automerge] "
         else:
             add_slug = ""
@@ -396,13 +400,11 @@ class Version(Migrator):
         @functools.lru_cache(maxsize=1024)
         def _has_solver_checks(node):
             with graph.nodes[node]["payload"] as attrs:
-                return (
-                    attrs["conda-forge.yml"]
-                    .get("bot", {})
-                    .get(
-                        "check_solvable",
-                        False,
-                    )
+                return get_keys_default(
+                    attrs,
+                    ["conda-forge.yml", "bot", "check_solvable"],
+                    {},
+                    False,
                 )
 
         @functools.lru_cache(maxsize=1024)

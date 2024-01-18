@@ -595,7 +595,7 @@ def sanitize_string(instr):
 
 def get_keys_default(dlike, keys, default, final_default):
     defaults = [default] * (len(keys) - 1) + [final_default]
-    val = None
+    val = dlike
     for k, _d in zip(keys, defaults):
-        val = dlike.get(k, _d) or _d
+        val = val.get(k, _d) or _d
     return val
