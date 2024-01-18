@@ -11,4 +11,9 @@ def test_get_keys_default():
             },
         },
     }
-    assert get_keys_default(attrs, ["conda-forge.yml", "bot", "version_updates", "sources"], {}, None) == ["pypi"]
+    assert get_keys_default(
+        attrs,
+        ["conda-forge.yml", "bot", "version_updates", "sources"],
+        {},
+        None,
+    ) == ["pypi"]
