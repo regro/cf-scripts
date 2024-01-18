@@ -8,6 +8,7 @@ import requests
 
 from conda_forge_tick.migrators import MiniMigrator
 from conda_forge_tick.os_utils import pushd
+from conda_forge_tick.utils import get_keys_default
 
 if typing.TYPE_CHECKING:
     from conda_forge_tick.migrators_types import AttrsTypedDict
@@ -38,10 +39,11 @@ class PipWheelMigrator(MiniMigrator):
         url_names = ["pypi.python.org", "pypi.org", "pypi.io"]
         if not any(s in source_url for s in url_names):
             return True
-        if (
-            not attrs.get("conda-forge.yml", {})
-            .get("bot", {})
-            .get("run_deps_from_wheel", False)
+        if not get_keys_default(
+            attrs,
+            ["conda-forge.yml", "bot", "run_deps_from_wheel"],
+            {},
+            False,
         ):
             return True
 
