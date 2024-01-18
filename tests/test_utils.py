@@ -17,3 +17,17 @@ def test_get_keys_default():
         {},
         None,
     ) == ["pypi"]
+
+
+def test_get_keys_default_none():
+    attrs = {
+        "conda-forge.yml": {
+            "bot": None,
+        },
+    }
+    get_keys_default(
+        attrs,
+        ["conda-forge.yml", "bot", "check_solvable"],
+        {},
+        False,
+    ) is False
