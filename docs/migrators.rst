@@ -58,17 +58,17 @@ Add your ``Migration`` to ``auto_tick.py``
 ------------------------------------------
 To have the bot run the migration, we need to add the migrator to add it to the
 ``auto_tick`` module.
-If the migrator needs no information about the graph (eg. version bumps) then
+If the migrator needs no information about the graph (e.g., version bumps), then
 it can be added to the ``MIGRATORS`` list directly.
-If the migrator needs graph information (eg it runs in topological order) then it
+If the migrator needs graph information (e.g., it runs in topological order), then it
 needs to be added by a function (e.g., ``add_rebuild``).
 This function takes in the list of migrators and the entire package graph.
-The job of the function is to pair down the graph to the nodes which need
+The job of the function is to pare down the graph to the nodes which need
 to be migrated, for instance only packages which require ``python``.
-This paired down graph is passed into the migrator, which is then added
+This pared-down graph is passed into the migrator, which is then added
 to the migrators list.
 
-Once the ``add_rebuild...`` function is created it needs to be added to the
+Once the ``add_rebuild...`` function is created, it needs to be added to the
 ``initialize_migrators`` function so the migration will go forward.
 
 See the ``auto_tick.py`` file for example ``add_rebuild...`` functions.
