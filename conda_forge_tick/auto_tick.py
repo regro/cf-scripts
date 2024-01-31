@@ -1640,7 +1640,3 @@ def main(ctx: CliContext = CliContext()) -> None:
 
     LOGGER.info("API Calls Remaining: %d", mctx.gh_api_requests_left)
     LOGGER.info("Done")
-
-
-if __name__ == "__main__":
-    main()

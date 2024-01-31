@@ -579,7 +579,3 @@ def main(_: CliContext = CliContext()) -> None:
         writer = csv.writer(f)
         writer.writerow([merge_state_count[k] for k in GH_MERGE_STATE_STATUS])
     """
-
-
-if __name__ == "__main__":
-    main()

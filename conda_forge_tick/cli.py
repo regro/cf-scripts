@@ -148,3 +148,11 @@ def cache_lazy_json_to_disk(ctx: CliContext) -> None:
     from . import lazy_json_backends
 
     lazy_json_backends.main_cache(ctx)
+
+
+if __name__ == "__main__":
+    # This entrypoint can be used for debugging.
+    # click will read the command line arguments and call the corresponding
+    # function.
+    # Example: python -m conda_forge_tick.cli --debug make-graph
+    main()

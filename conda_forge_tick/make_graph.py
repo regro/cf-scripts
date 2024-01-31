@@ -337,7 +337,3 @@ def main(ctx: CliContext = CliContext()) -> None:
     dump_graph(gx)
 
     _migrate_schemas()
-
-
-if __name__ == "__main__":
-    main()

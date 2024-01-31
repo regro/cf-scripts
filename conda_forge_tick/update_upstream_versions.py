@@ -305,7 +305,3 @@ def main(ctx: CliContext = CliContext(), job: int = 1, n_jobs: int = 1) -> None:
     os.makedirs("versions", exist_ok=True)
     # call update
     update_upstream_versions(gx, debug=ctx.debug, job=job, n_jobs=n_jobs)
-
-
-if __name__ == "__main__":
-    main()

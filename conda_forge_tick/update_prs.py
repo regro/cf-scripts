@@ -183,7 +183,3 @@ def main(ctx: CliContext = CliContext(), job: int = 1, n_jobs: int = 1) -> None:
     gx = update_graph_pr_status(gx, ctx.dry_run, job=job, n_jobs=n_jobs)
     # This function needs to run last since it edits the actual pr json!
     gx = close_dirty_prs(gx, ctx.dry_run, job=job, n_jobs=n_jobs)
-
-
-if __name__ == "__main__":
-    main()

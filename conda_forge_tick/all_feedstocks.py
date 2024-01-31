@@ -75,7 +75,3 @@ def main(ctx: CliContext = CliContext()) -> None:
     data = get_all_feedstocks_from_github()
     with open("all_feedstocks.json", "w") as fp:
         dump(data, fp)
-
-
-if __name__ == "__main__":
-    main()

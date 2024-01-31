@@ -194,7 +194,3 @@ def main_backup(ctx: CliContext = CliContext()):
                 LOGGER.info("saving backup %s", bup)
                 if bup not in curr_fnames:
                     save_backup(bup)
-
-
-if __name__ == "__main__":
-    main_backup()

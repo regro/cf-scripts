@@ -438,7 +438,3 @@ def main() -> None:
                 sorted(ordered_import_names, key=lambda entry: entry["import_name"]),
                 fp,
             )
-
-
-if __name__ == "__main__":
-    main()

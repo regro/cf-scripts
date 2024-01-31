@@ -162,7 +162,3 @@ def deploy(ctx: CliContext = CliContext()):
             raise RuntimeError("bot did not push its data! stopping!")
     else:
         print("no files to commit!", flush=True)
-
-
-if __name__ == "__main__":
-    deploy()
