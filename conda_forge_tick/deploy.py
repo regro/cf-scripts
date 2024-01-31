@@ -3,6 +3,7 @@ import subprocess
 
 from doctr.travis import run_command_hiding_token as doctr_run
 
+from .cli_context import CliContext
 from . import sensitive_env
 from .utils import load_graph
 from .lazy_json_backends import get_lazy_json_backends, CF_TICK_GRAPH_DATA_HASHMAPS
@@ -14,9 +15,9 @@ def _run_git_cmd(cmd):
     return subprocess.run(cmd, shell=True, check=True)
 
 
-def deploy(dry_run=False):
-    """Deploy the graph to github"""
-    if dry_run:
+def deploy(ctx: CliContext = CliContext()):
+    """Deploy the graph to GitHub"""
+    if ctx.dry_run:
         print("(dry run) deploying")
         return
 
@@ -161,3 +162,7 @@ def deploy(dry_run=False):
             raise RuntimeError("bot did not push its data! stopping!")
     else:
         print("no files to commit!", flush=True)
+
+
+if __name__ == "__main__":
+    deploy()

@@ -7,6 +7,7 @@ import tqdm
 import hashlib
 from concurrent.futures import as_completed
 
+from conda_forge_tick.cli_context import CliContext
 from .lazy_json_backends import LazyJson
 from .utils import setup_logger, load_graph
 from .executors import executor
@@ -290,8 +291,8 @@ def update_upstream_versions(
     updater(gx, sources, job=job, n_jobs=n_jobs)
 
 
-def main(args: Any = None) -> None:
-    if args.debug:
+def main(ctx: CliContext = CliContext(), job: int = 1, n_jobs: int = 1) -> None:
+    if ctx.debug:
         setup_logger(logger, level="debug")
     else:
         setup_logger(logger)
@@ -303,7 +304,7 @@ def main(args: Any = None) -> None:
     # Check if 'versions' folder exists or create a new one;
     os.makedirs("versions", exist_ok=True)
     # call update
-    update_upstream_versions(gx, debug=args.debug, job=args.job, n_jobs=args.n_jobs)
+    update_upstream_versions(gx, debug=ctx.debug, job=job, n_jobs=n_jobs)
 
 
 if __name__ == "__main__":

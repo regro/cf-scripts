@@ -6,6 +6,7 @@ import logging
 import glob
 import pprint
 
+from .cli_context import CliContext
 from conda_forge_tick.lazy_json_backends import (
     LAZY_JSON_BACKENDS,
     CF_TICK_GRAPH_DATA_HASHMAPS,
@@ -161,10 +162,10 @@ def save_backup(fname):
         )
 
 
-def main_backup(args):
+def main_backup(ctx: CliContext = CliContext()):
     from conda_forge_tick.utils import setup_logger
 
-    if args.debug:
+    if ctx.debug:
         setup_logger(logging.getLogger("conda_forge_tick"), level="debug")
     else:
         setup_logger(logging.getLogger("conda_forge_tick"))
@@ -172,7 +173,7 @@ def main_backup(args):
     def _name_to_ts(b):
         return int(b.split(".")[0].split("_")[-1])
 
-    if not args.dry_run:
+    if not ctx.dry_run:
         LOGGER.info("making lazy json backup")
         latest_backup = make_lazy_json_backup()
         curr_fnames = get_current_backup_filenames()
@@ -193,3 +194,7 @@ def main_backup(args):
                 LOGGER.info("saving backup %s", bup)
                 if bup not in curr_fnames:
                     save_backup(bup)
+
+
+if __name__ == "__main__":
+    main_backup()

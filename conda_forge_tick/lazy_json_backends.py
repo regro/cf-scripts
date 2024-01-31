@@ -11,6 +11,8 @@ from collections.abc import MutableMapping, Callable
 
 import rapidjson as json
 
+from .cli_context import CliContext
+
 LOGGER = logging.getLogger("conda_forge_tick.lazy_json_backends")
 
 CF_TICK_GRAPH_DATA_BACKENDS = tuple(
@@ -728,29 +730,29 @@ def load(
     return json.load(fp, object_hook=object_hook, **kwargs)
 
 
-def main_sync(args):
+def main_sync(ctx: CliContext = CliContext()):
     from conda_forge_tick.utils import setup_logger
 
-    if args.debug:
+    if ctx.debug:
         setup_logger(logging.getLogger("conda_forge_tick"), level="debug")
     else:
         setup_logger(logging.getLogger("conda_forge_tick"))
 
-    if not args.dry_run:
+    if not ctx.dry_run:
         sync_lazy_json_across_backends()
 
 
-def main_cache(args):
+def main_cache(ctx: CliContext = CliContext()):
     from conda_forge_tick.utils import setup_logger
 
     global CF_TICK_GRAPH_DATA_BACKENDS
 
-    if args.debug:
+    if ctx.debug:
         setup_logger(logging.getLogger("conda_forge_tick"), level="debug")
     else:
         setup_logger(logging.getLogger("conda_forge_tick"))
 
-    if not args.dry_run and len(CF_TICK_GRAPH_DATA_BACKENDS) > 1:
+    if not ctx.dry_run and len(CF_TICK_GRAPH_DATA_BACKENDS) > 1:
         OLD_CF_TICK_GRAPH_DATA_BACKENDS = CF_TICK_GRAPH_DATA_BACKENDS
         try:
             CF_TICK_GRAPH_DATA_BACKENDS = (

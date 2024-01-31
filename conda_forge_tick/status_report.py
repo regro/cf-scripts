@@ -1,10 +1,8 @@
-import csv
 import os
 import rapidjson as json
 import subprocess
 import copy
 import glob
-from collections import Counter
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import time
 
@@ -21,12 +19,12 @@ from typing import Any, Dict, Set, Tuple
 
 from conda.models.version import VersionOrder
 
+from conda_forge_tick.cli_context import CliContext
 from conda_forge_tick.utils import frozen_to_json_friendly
 from conda_forge_tick.auto_tick import initialize_migrators
 from conda_forge_tick.migrators import (
     Migrator,
     GraphMigrator,
-    LicenseMigrator,
     Version,
     Replacement,
     MatplotlibBase,
@@ -373,7 +371,7 @@ def _compute_recently_closed(total_status, old_closed_status, old_total_status):
     return closed_status
 
 
-def main(args: Any = None) -> None:
+def main(_: CliContext = CliContext()) -> None:
     import requests
 
     r = requests.get(
@@ -501,85 +499,86 @@ def main(args: Any = None) -> None:
                 check=True,
             )
 
-    if False:
-        # I have turned this off since we do not use it
-        # MRB - 2023/03/08
-        print("\ncomputing feedstock and PR stats", flush=True)
+    # I have turned this off since we do not use it
+    # MRB - 2023/03/08
+    """
+    print("\ncomputing feedstock and PR stats", flush=True)
 
-        def _get_needs_help(k):
-            v = mctx.graph.nodes[k]
-            if (
-                len(
-                    [
-                        z
-                        for z in v.get("payload", {}).get("pr_info", {}).get("PRed", [])
-                        if z.get("PR", {}).get("state", "closed") == "open"
-                        and z.get("data", {}).get("migrator_name", "") == "Version"
-                    ],
-                )
-                >= Version.max_num_prs
-            ):
-                return k
-            else:
-                return None
-
-        lst = _collect_items_from_nodes(mctx.graph, _get_needs_help)
-        with open("./status/could_use_help.json", "w") as f:
-            json.dump(
-                sorted(
-                    lst,
-                    key=lambda z: (len(nx.descendants(mctx.graph, z)), lst),
-                    reverse=True,
-                ),
-                f,
-                indent=2,
+    def _get_needs_help(k):
+        v = mctx.graph.nodes[k]
+        if (
+            len(
+                [
+                    z
+                    for z in v.get("payload", {}).get("pr_info", {}).get("PRed", [])
+                    if z.get("PR", {}).get("state", "closed") == "open"
+                    and z.get("data", {}).get("migrator_name", "") == "Version"
+                ],
             )
+            >= Version.max_num_prs
+        ):
+            return k
+        else:
+            return None
 
-        lm = LicenseMigrator()
+    lst = _collect_items_from_nodes(mctx.graph, _get_needs_help)
+    with open("./status/could_use_help.json", "w") as f:
+        json.dump(
+            sorted(
+                lst,
+                key=lambda z: (len(nx.descendants(mctx.graph, z)), lst),
+                reverse=True,
+            ),
+            f,
+            indent=2,
+        )
 
-        def _get_needs_license(k):
-            v = mctx.graph.nodes[k]
-            if not lm.filter(v.get("payload", {})):
-                return k
-            else:
-                return None
+    lm = LicenseMigrator()
 
-        lst = _collect_items_from_nodes(mctx.graph, _get_needs_license)
-        with open("./status/unlicensed.json", "w") as f:
-            json.dump(
-                sorted(
-                    lst,
-                    key=lambda z: (len(nx.descendants(mctx.graph, z)), lst),
-                    reverse=True,
-                ),
-                f,
-                indent=2,
-            )
+    def _get_needs_license(k):
+        v = mctx.graph.nodes[k]
+        if not lm.filter(v.get("payload", {})):
+            return k
+        else:
+            return None
 
-        lst = [
-            k
-            for k, v in mctx.graph.nodes.items()
-            if v.get("payload", {}).get("archived", False)
-        ]
-        with open("./status/archived.json", "w") as f:
-            json.dump(sorted(lst), f, indent=2)
+    lst = _collect_items_from_nodes(mctx.graph, _get_needs_license)
+    with open("./status/unlicensed.json", "w") as f:
+        json.dump(
+            sorted(
+                lst,
+                key=lambda z: (len(nx.descendants(mctx.graph, z)), lst),
+                reverse=True,
+            ),
+            f,
+            indent=2,
+        )
 
-        def _get_open_pr_states(k):
-            attrs = mctx.graph.nodes[k]["payload"]
-            _open_prs = []
-            for pr in attrs.get("pr_info", {}).get("PRed", []):
-                if pr.get("PR", {}).get("state", "closed") != "closed":
-                    _open_prs.append(pr["PR"])
+    lst = [
+        k
+        for k, v in mctx.graph.nodes.items()
+        if v.get("payload", {}).get("archived", False)
+    ]
+    with open("./status/archived.json", "w") as f:
+        json.dump(sorted(lst), f, indent=2)
 
-            return _open_prs
+    def _get_open_pr_states(k):
+        attrs = mctx.graph.nodes[k]["payload"]
+        _open_prs = []
+        for pr in attrs.get("pr_info", {}).get("PRed", []):
+            if pr.get("PR", {}).get("state", "closed") != "closed":
+                _open_prs.append(pr["PR"])
 
-        open_prs = []
-        for op in _collect_items_from_nodes(mctx.graph, _get_open_pr_states):
-            open_prs.extend(op)
-        merge_state_count = Counter([o["mergeable_state"] for o in open_prs])
-        with open("./status/pr_state.csv", "a") as f:
-            writer = csv.writer(f)
-            writer.writerow([merge_state_count[k] for k in GH_MERGE_STATE_STATUS])
+        return _open_prs
+
+    open_prs = []
+    for op in _collect_items_from_nodes(mctx.graph, _get_open_pr_states):
+        open_prs.extend(op)
+    merge_state_count = Counter([o["mergeable_state"] for o in open_prs])
+    with open("./status/pr_state.csv", "a") as f:
+        writer = csv.writer(f)
+        writer.writerow([merge_state_count[k] for k in GH_MERGE_STATE_STATUS])
+    """
 
 
 if __name__ == "__main__":

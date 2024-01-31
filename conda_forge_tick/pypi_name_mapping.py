@@ -4,6 +4,7 @@ Builds and maintains mapping of pypi-names to conda-forge names
 1: Packages should be build from a `https://pypi.io/packages/` source
 2: Packages MUST have a test: imports section importing it
 """
+
 import json
 import math
 import requests
@@ -395,7 +396,7 @@ def determine_best_matches_for_pypi_import(
     return final_map, ordered_import_names
 
 
-def main(args) -> None:
+def main() -> None:
     # Statically defined mappings from pypi_name_mapping_static.yaml
     static_packager_mappings: List[Mapping] = load_static_mappings()
 
@@ -440,5 +441,4 @@ def main(args) -> None:
 
 
 if __name__ == "__main__":
-    # main()
-    pass
+    main()

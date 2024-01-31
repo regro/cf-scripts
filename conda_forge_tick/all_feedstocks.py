@@ -5,6 +5,7 @@ import github
 import logging
 
 from conda_forge_tick import sensitive_env
+from .cli_context import CliContext
 from .utils import setup_logger
 from .lazy_json_backends import load, dump
 
@@ -65,8 +66,11 @@ def get_archived_feedstocks(cached: bool = False) -> List[str]:
     return names
 
 
-def main(args: Any = None) -> None:
-    setup_logger(logger)
+def main(ctx: CliContext = CliContext()) -> None:
+    if ctx.debug:
+        setup_logger(logger, level="debug")
+    else:
+        setup_logger(logger)
     logger.info("fetching active feedstocks from github")
     data = get_all_feedstocks_from_github()
     with open("all_feedstocks.json", "w") as fp:
