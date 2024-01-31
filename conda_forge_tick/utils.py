@@ -394,7 +394,7 @@ class NullUndefined(jinja2.Undefined):
         return f'{self}["{name}"]'
 
 
-def setup_logger(logger: logging.Logger, level: Optional[str] = "INFO") -> None:
+def setup_logger(logger: logging.Logger, level: str = "INFO") -> None:
     """Basic configuration for logging"""
     logger.setLevel(level.upper())
     ch = logging.StreamHandler()

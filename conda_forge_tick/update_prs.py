@@ -9,6 +9,8 @@ import github3
 import networkx as nx
 import tqdm
 
+from conda_forge_tick.cli_context import CliContext
+
 # from conda_forge_tick.profiler import profiling
 
 from conda_forge_tick.git_utils import (
@@ -169,17 +171,15 @@ def close_dirty_prs(
 
 
 # @profiling
-def main(args: "CLIArgs") -> None:
-    setup_logger(logger)
+def main(ctx: CliContext, job: int = 1, n_jobs: int = 1) -> None:
+    if ctx.debug:
+        setup_logger(logger, level="debug")
+    else:
+        setup_logger(logger)
 
     gx = load_graph()
 
-    gx = close_labels(gx, args.dry_run, job=args.job, n_jobs=args.n_jobs)
-    gx = update_graph_pr_status(gx, args.dry_run, job=args.job, n_jobs=args.n_jobs)
+    gx = close_labels(gx, ctx.dry_run, job=job, n_jobs=n_jobs)
+    gx = update_graph_pr_status(gx, ctx.dry_run, job=job, n_jobs=n_jobs)
     # This function needs to run last since it edits the actual pr json!
-    gx = close_dirty_prs(gx, args.dry_run, job=args.job, n_jobs=args.n_jobs)
-
-
-if __name__ == "__main__":
-    pass
-    # main()
+    gx = close_dirty_prs(gx, ctx.dry_run, job=job, n_jobs=n_jobs)

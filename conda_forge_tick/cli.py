@@ -1,82 +1,156 @@
-import argparse
-import importlib
 import os
 import time
 
-from .deploy import deploy
+import click
+from click import IntRange
 
-SCRIPT_DICT = {
-    "gather-all-feedstocks": {"module": "all_feedstocks", "func": "main"},
-    "make-graph": {"module": "make_graph", "func": "main"},
-    "update-upstream-versions": {"module": "update_upstream_versions", "func": "main"},
-    "auto-tick": {"module": "auto_tick", "func": "main"},
-    "make-status-report": {"module": "status_report", "func": "main"},
-    "update-prs": {"module": "update_prs", "func": "main"},
-    "make-mappings": {"module": "mappings", "func": "main"},
-    "deploy-to-github": None,
-    "backup-lazy-json": {"module": "lazy_json_backups", "func": "main_backup"},
-    "sync-lazy-json-across-backends": {
-        "module": "lazy_json_backends",
-        "func": "main_sync",
-    },
-    "cache-lazy-json-to-disk": {"module": "lazy_json_backends", "func": "main_cache"},
-}
+from .cli_context import CliContext
+
+pass_context = click.make_pass_decorator(CliContext, ensure=True)
+job_option = click.option(
+    "--job",
+    default=1,
+    type=IntRange(1, None),
+    show_default=True,
+    help="If given with --n-jobs, the number of the job to run in the range [1, n_jobs].",
+)
+n_jobs_option = click.option(
+    "--n-jobs",
+    default=1,
+    type=IntRange(1, None),
+    show_default=True,
+    help="If given, the total number of jobs being run.",
+)
 
 
-def main(*args, **kwargs):
-    parser = argparse.ArgumentParser("a tool to help update feedstocks.")
-    parser.add_argument("step", choices=list(SCRIPT_DICT.keys()))
-    parser.add_argument(
-        "--debug",
-        dest="debug",
-        action="store_true",
-        default=False,
-        help=(
-            "Runs in debug mode, running parallel parts "
-            "sequentially and printing more info."
-        ),
-    )
-    parser.add_argument(
-        "--dry-run",
-        dest="dry_run",
-        action="store_true",
-        default=False,
-        help="Don't push changes to PRs or graph to Github",
-    )
-    parser.add_argument(
-        "--job",
-        default=1,
-        type=int,
-        help=(
-            "If given with --n-jobs, the number of the job to "
-            "run in the range [1, n_jobs]."
-        ),
-    )
-    parser.add_argument(
-        "--n-jobs",
-        default=1,
-        type=int,
-        help=("If given, the total number of jobs being run."),
-    )
-    args = parser.parse_args()
+def check_job_param_relative(job: int, n_jobs: int) -> None:
+    if job > n_jobs:
+        raise click.BadParameter(f"job must be in the range [1, n_jobs], got {job}")
 
-    if args.debug:
+
+class TimedCommand(click.Command):
+    def invoke(self, ctx: click.Context):
+        start = time.time()
+        super().invoke(ctx)
+        click.echo(f"FINISHED STAGE {self.name} IN {time.time() - start} SECONDS")
+
+
+click.Group.command_class = TimedCommand
+
+
+@click.group()
+@click.option("--debug/--no-debug", default=False)
+@click.option(
+    "--dry-run/--no-dry-run",
+    default=False,
+    help="dry run: don't push changes to PRs or graph to Github",
+)
+@pass_context
+def main(ctx: CliContext, debug: bool, dry_run: bool) -> None:
+    ctx.debug = debug
+    ctx.dry_run = dry_run
+
+    if ctx.debug:
         os.environ["CONDA_FORGE_TICK_DEBUG"] = "1"
 
-    script = args.step
-    if script in SCRIPT_DICT:
-        start = time.time()
-        if script == "deploy-to-github":
-            deploy(dry_run=args.dry_run)
-        else:
-            script_md = SCRIPT_DICT[script]
-            func = getattr(
-                importlib.import_module(f"conda_forge_tick.{script_md['module']}"),
-                script_md["func"],
-            )
-            func(args)
 
-        print(f"FINISHED STAGE {script} IN {time.time() - start} SECONDS")
+@main.command(name="gather-all-feedstocks")
+@pass_context
+def gather_all_feedstocks(ctx: CliContext) -> None:
+    from . import all_feedstocks
 
-    else:
-        raise RuntimeError("Unknown step!")
+    all_feedstocks.main(ctx)
+
+
+@main.command(name="make-graph")
+@pass_context
+def make_graph(ctx: CliContext) -> None:
+    from . import make_graph
+
+    make_graph.main(ctx)
+
+
+@main.command(name="update-upstream-versions")
+@job_option
+@n_jobs_option
+@pass_context
+def update_upstream_versions(ctx: CliContext, job: int, n_jobs: int) -> None:
+    from . import update_upstream_versions
+
+    check_job_param_relative(job, n_jobs)
+
+    update_upstream_versions.main(ctx, job=job, n_jobs=n_jobs)
+
+
+@main.command(name="auto-tick")
+@pass_context
+def auto_tick(ctx: CliContext) -> None:
+    from . import auto_tick
+
+    auto_tick.main(ctx)
+
+
+@main.command(name="make-status-report")
+def make_status_report() -> None:
+    from . import status_report
+
+    status_report.main()
+
+
+@main.command(name="update-prs")
+@job_option
+@n_jobs_option
+@pass_context
+def update_prs(ctx: CliContext, job: int, n_jobs: int) -> None:
+    from . import update_prs
+
+    check_job_param_relative(job, n_jobs)
+
+    update_prs.main(ctx, job=job, n_jobs=n_jobs)
+
+
+@main.command(name="make-mappings")
+def make_mappings() -> None:
+    from . import mappings
+
+    mappings.main()
+
+
+@main.command(name="deploy-to-github")
+@pass_context
+def deploy_to_github(ctx: CliContext) -> None:
+    from . import deploy
+
+    deploy.deploy(ctx)
+
+
+@main.command(name="backup-lazy-json")
+@pass_context
+def backup_lazy_json(ctx: CliContext) -> None:
+    from . import lazy_json_backups
+
+    lazy_json_backups.main_backup(ctx)
+
+
+@main.command(name="sync-lazy-json-across-backends")
+@pass_context
+def sync_lazy_json_across_backends(ctx: CliContext) -> None:
+    from . import lazy_json_backends
+
+    lazy_json_backends.main_sync(ctx)
+
+
+@main.command(name="cache-lazy-json-to-disk")
+@pass_context
+def cache_lazy_json_to_disk(ctx: CliContext) -> None:
+    from . import lazy_json_backends
+
+    lazy_json_backends.main_cache(ctx)
+
+
+if __name__ == "__main__":
+    # This entrypoint can be used for debugging.
+    # click will read the command line arguments and call the corresponding
+    # function.
+    # Example: python -m conda_forge_tick.cli --debug make-graph
+    main()

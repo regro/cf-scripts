@@ -13,6 +13,8 @@ from typing import List, Optional, Iterable
 import psutil
 import networkx as nx
 
+from .cli_context import CliContext
+
 # from conda_forge_tick.profiler import profiling
 
 from conda_forge_tick.feedstock_parser import load_feedstock
@@ -33,8 +35,6 @@ from conda_forge_tick.lazy_json_backends import (
     lazy_json_override_backends,
 )
 
-if typing.TYPE_CHECKING:
-    from .cli import CLIArgs
 
 LOGGER = logging.getLogger("conda_forge_tick.make_graph")
 pin_sep_pat = re.compile(r" |>|<|=|\[")
@@ -316,8 +316,8 @@ def _migrate_schemas():
 
 
 # @profiling
-def main(args: "CLIArgs") -> None:
-    if args.debug:
+def main(ctx: CliContext) -> None:
+    if ctx.debug:
         setup_logger(logging.getLogger("conda_forge_tick"), level="debug")
     else:
         setup_logger(logging.getLogger("conda_forge_tick"))
@@ -326,10 +326,10 @@ def main(args: "CLIArgs") -> None:
     gx = load_graph()
 
     with lazy_json_override_backends(["file"], hashmaps_to_sync=["node_attrs"]):
-        gx = make_graph(names, gx, mark_not_archived=True, debug=args.debug)
-        nodes_without_paylod = [k for k, v in gx.nodes.items() if "payload" not in v]
-        if nodes_without_paylod:
-            LOGGER.warning("nodes w/o payload: %s", nodes_without_paylod)
+        gx = make_graph(names, gx, mark_not_archived=True, debug=ctx.debug)
+        nodes_without_payload = [k for k, v in gx.nodes.items() if "payload" not in v]
+        if nodes_without_payload:
+            LOGGER.warning("nodes w/o payload: %s", nodes_without_payload)
 
         archived_names = get_archived_feedstocks(cached=True)
         _update_nodes_with_archived(gx, archived_names)
@@ -337,8 +337,3 @@ def main(args: "CLIArgs") -> None:
     dump_graph(gx)
 
     _migrate_schemas()
-
-
-if __name__ == "__main__":
-    pass
-    # main()

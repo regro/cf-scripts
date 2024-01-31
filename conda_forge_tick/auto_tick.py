@@ -26,8 +26,9 @@ from typing import (
     Union,
 )
 
+from .cli_context import CliContext
+
 if typing.TYPE_CHECKING:
-    from .cli import CLIArgs
     from .migrators_types import (
         MetaYamlTypedDict,
         PackageName,
@@ -1565,14 +1566,14 @@ def _update_graph_with_pr_info():
 
 
 # @profiling
-def main(args: "CLIArgs") -> None:
+def main(ctx: CliContext) -> None:
     _setup_limits()
 
     global BOT_HOME_DIR
     BOT_HOME_DIR = os.getcwd()
 
     # logging
-    if args.debug:
+    if ctx.debug:
         setup_logger(logging.getLogger("conda_forge_tick"), level="debug")
     else:
         setup_logger(logging.getLogger("conda_forge_tick"))
@@ -1590,7 +1591,7 @@ def main(args: "CLIArgs") -> None:
     mctx, temp, migrators = initialize_migrators(
         github_username=github_username,
         github_password=github_password,
-        dry_run=args.dry_run,
+        dry_run=ctx.dry_run,
         github_token=github_token,
     )
 
@@ -1629,17 +1630,13 @@ def main(args: "CLIArgs") -> None:
             mctx,
             temp,
             time_per_migrator[mg_ind],
-            args.dry_run,
+            ctx.dry_run,
         )
         if good_prs > 0:
             pass
             # this has been causing issues with bad deploys
             # turning off for now
-            # deploy(dry_run=args.dry_run)
+            # deploy(dry_run=ctx.dry_run)
 
     LOGGER.info("API Calls Remaining: %d", mctx.gh_api_requests_left)
     LOGGER.info("Done")
-
-
-if __name__ == "__main__":
-    pass  # main()
