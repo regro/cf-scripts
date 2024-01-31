@@ -2,6 +2,7 @@ import os
 import time
 
 import click
+from click import IntRange
 
 from .cli_context import CliContext
 
@@ -9,22 +10,22 @@ pass_context = click.make_pass_decorator(CliContext, ensure=True)
 job_option = click.option(
     "--job",
     default=1,
-    type=int,
+    type=IntRange(1, None),
     show_default=True,
     help="If given with --n-jobs, the number of the job to run in the range [1, n_jobs].",
 )
 n_jobs_option = click.option(
     "--n-jobs",
     default=1,
-    type=int,
+    type=IntRange(1, None),
     show_default=True,
     help="If given, the total number of jobs being run.",
 )
 
 
-def check_jobs(job: int, n_jobs: int) -> None:
-    if job < 1 or job > n_jobs:
-        raise ValueError(f"job must be in the range [1, n_jobs], got {job}")
+def check_job_param_relative(job: int, n_jobs: int) -> None:
+    if job > n_jobs:
+        raise click.BadParameter(f"job must be in the range [1, n_jobs], got {job}")
 
 
 class TimedCommand(click.Command):
@@ -76,7 +77,7 @@ def make_graph(ctx: CliContext) -> None:
 def update_upstream_versions(ctx: CliContext, job: int, n_jobs: int) -> None:
     from . import update_upstream_versions
 
-    check_jobs(job, n_jobs)
+    check_job_param_relative(job, n_jobs)
 
     update_upstream_versions.main(ctx, job=job, n_jobs=n_jobs)
 
@@ -104,7 +105,7 @@ def make_status_report(ctx: CliContext) -> None:
 def update_prs(ctx: CliContext, job: int, n_jobs: int) -> None:
     from . import update_prs
 
-    check_jobs(job, n_jobs)
+    check_job_param_relative(job, n_jobs)
 
     update_prs.main(ctx, job=job, n_jobs=n_jobs)
 
