@@ -1566,7 +1566,7 @@ def _update_graph_with_pr_info():
 
 
 # @profiling
-def main(ctx: CliContext = CliContext()) -> None:
+def main(ctx: CliContext) -> None:
     _setup_limits()
 
     global BOT_HOME_DIR

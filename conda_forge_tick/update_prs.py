@@ -171,7 +171,7 @@ def close_dirty_prs(
 
 
 # @profiling
-def main(ctx: CliContext = CliContext(), job: int = 1, n_jobs: int = 1) -> None:
+def main(ctx: CliContext, job: int = 1, n_jobs: int = 1) -> None:
     if ctx.debug:
         setup_logger(logger, level="debug")
     else:

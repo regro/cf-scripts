@@ -730,7 +730,7 @@ def load(
     return json.load(fp, object_hook=object_hook, **kwargs)
 
 
-def main_sync(ctx: CliContext = CliContext()):
+def main_sync(ctx: CliContext):
     from conda_forge_tick.utils import setup_logger
 
     if ctx.debug:
@@ -742,7 +742,7 @@ def main_sync(ctx: CliContext = CliContext()):
         sync_lazy_json_across_backends()
 
 
-def main_cache(ctx: CliContext = CliContext()):
+def main_cache(ctx: CliContext):
     from conda_forge_tick.utils import setup_logger
 
     global CF_TICK_GRAPH_DATA_BACKENDS

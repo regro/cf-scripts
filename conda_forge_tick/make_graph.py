@@ -316,7 +316,7 @@ def _migrate_schemas():
 
 
 # @profiling
-def main(ctx: CliContext = CliContext()) -> None:
+def main(ctx: CliContext) -> None:
     if ctx.debug:
         setup_logger(logging.getLogger("conda_forge_tick"), level="debug")
     else:

@@ -162,7 +162,7 @@ def save_backup(fname):
         )
 
 
-def main_backup(ctx: CliContext = CliContext()):
+def main_backup(ctx: CliContext):
     from conda_forge_tick.utils import setup_logger
 
     if ctx.debug:

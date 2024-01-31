@@ -15,7 +15,7 @@ def _run_git_cmd(cmd):
     return subprocess.run(cmd, shell=True, check=True)
 
 
-def deploy(ctx: CliContext = CliContext()):
+def deploy(ctx: CliContext):
     """Deploy the graph to GitHub"""
     if ctx.dry_run:
         print("(dry run) deploying")

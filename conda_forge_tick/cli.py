@@ -91,11 +91,10 @@ def auto_tick(ctx: CliContext) -> None:
 
 
 @main.command(name="make-status-report")
-@pass_context
-def make_status_report(ctx: CliContext) -> None:
+def make_status_report() -> None:
     from . import status_report
 
-    status_report.main(ctx)
+    status_report.main()
 
 
 @main.command(name="update-prs")
@@ -111,11 +110,10 @@ def update_prs(ctx: CliContext, job: int, n_jobs: int) -> None:
 
 
 @main.command(name="make-mappings")
-@pass_context
-def make_mappings(ctx: CliContext) -> None:
+def make_mappings() -> None:
     from . import mappings
 
-    mappings.main(ctx)
+    mappings.main()
 
 
 @main.command(name="deploy-to-github")

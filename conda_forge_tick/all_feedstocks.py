@@ -66,7 +66,7 @@ def get_archived_feedstocks(cached: bool = False) -> List[str]:
     return names
 
 
-def main(ctx: CliContext = CliContext()) -> None:
+def main(ctx: CliContext) -> None:
     if ctx.debug:
         setup_logger(logger, level="debug")
     else:
