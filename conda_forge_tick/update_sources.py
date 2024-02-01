@@ -139,7 +139,7 @@ class AbstractSource(abc.ABC):
         pass
 
 
-class VersionFromFeed(AbstractSource):
+class VersionFromFeed(AbstractSource, abc.ABC):
     name = "VersionFromFeed"
     ver_prefix_remove = ["release-", "releases%2F", "v_", "v.", "v"]
     dev_vers = [
