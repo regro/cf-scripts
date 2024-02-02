@@ -232,8 +232,11 @@ class GithubLazyJsonBackend(LazyJsonBackend):
 
     def hexists(self, name: str, key: str) -> bool:
         self._inform_web_request()
-        url = urllib.parse.urljoin(self.base_url, f"{name}/{key}.json")
-        status = requests.head(url).status_code
+        url = urllib.parse.urljoin(
+            self.base_url,
+            get_sharded_path(f"{name}/{key}.json"),
+        )
+        status = requests.head(url, allow_redirects=True).status_code
 
         if status == 200:
             return True
