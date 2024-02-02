@@ -36,7 +36,11 @@ conda-forge-tick --help
 For debugging, use the `--debug` flag. This enables debug logging and disables multiprocessing.
 
 Note that the bot expects the [conda-forge dependency graph](https://github.com/regro/cf-graph-countyfair) to be
-present in the current working directory by default. Use `--online` to download missing files on demand from GitHub.
+present in the current working directory by default, unless the `--online` flag is used.
+
+> [!TIP]
+> Use the `--online` flag when debugging the bot locally to avoid having to clone the whole
+> dependency graph.
 
 The local debugging functionality is still work in progress and might not work for all commands.
 Currently, the following commands are supported and tested:
