@@ -1,4 +1,5 @@
 """Classes for migrating repos"""
+
 import os
 import re
 import dateutil.parser
@@ -36,7 +37,7 @@ if typing.TYPE_CHECKING:
     from conda_forge_tick.utils import JsonFriendly
 
 
-LOGGER = logging.getLogger("conda_forge_tick.migrators.core")
+logger = logging.getLogger("conda_forge_tick.migrators.core")
 
 
 def _sanitized_muids(pred: List[dict]) -> List["JsonFriendly"]:
@@ -197,7 +198,7 @@ class Migrator:
             already_pred = migrator_uid in already_migrated_uids
             if already_pred:
                 ind = already_migrated_uids.index(migrator_uid)
-                LOGGER.debug(f"{__name}: already PRed: uid: {migrator_uid}")
+                logger.debug(f"{__name}: already PRed: uid: {migrator_uid}")
                 if "PR" in attrs.get("pr_info", {}).get("PRed", [])[ind]:
                     if isinstance(
                         attrs.get("pr_info", {}).get("PRed", [])[ind]["PR"],
@@ -207,23 +208,23 @@ class Migrator:
                             "PR"
                         ] as mg_attrs:
 
-                            LOGGER.debug(
+                            logger.debug(
                                 "%s: already PRed: PR file: %s"
                                 % (__name, mg_attrs.file_name),
                             )
 
                             html_url = mg_attrs.get("html_url", "no url")
 
-                            LOGGER.debug(f"{__name}: already PRed: url: {html_url}")
+                            logger.debug(f"{__name}: already PRed: url: {html_url}")
 
             return already_pred
 
         if attrs.get("archived", False):
-            LOGGER.debug("%s: archived" % __name)
+            logger.debug("%s: archived" % __name)
 
         bad_attr = _parse_bad_attr(attrs, not_bad_str_start)
         if bad_attr:
-            LOGGER.debug("%s: bad attr" % __name)
+            logger.debug("%s: bad attr" % __name)
 
         return attrs.get("archived", False) or parse_already_pred() or bad_attr
 
@@ -250,7 +251,7 @@ class Migrator:
                 [],
             )
         except Exception:
-            LOGGER.exception(f"Invalid value for {attrs.get('conda-forge.yml', {})=}")
+            logger.exception(f"Invalid value for {attrs.get('conda-forge.yml', {})=}")
         # make sure this is always a string
         return [str(b) for b in branches]
 
@@ -513,7 +514,7 @@ class GraphMigrator(Migrator):
             muid = frozen_to_json_friendly(self.migrator_uid(payload))
             pr_muids = _sanitized_muids(payload.get("pr_info", {}).get("PRed", []))
             if muid not in pr_muids:
-                LOGGER.debug(
+                logger.debug(
                     "node %s PR %s not yet issued!",
                     node,
                     muid.get("data", {}).get("name", None),
@@ -540,7 +541,7 @@ class GraphMigrator(Migrator):
                         now = datetime.datetime.now(datetime.timezone.utc)
                         ts = dateutil.parser.parse(ts)
                         if now - ts < datetime.timedelta(days=14):
-                            LOGGER.debug(
+                            logger.debug(
                                 "node %s has PR %s open for %s",
                                 node,
                                 muid.get("data", {}).get("name", None),
@@ -549,7 +550,7 @@ class GraphMigrator(Migrator):
                             return False
                     else:
                         # no timestamp so keep things open
-                        LOGGER.debug(
+                        logger.debug(
                             "node %s has PR %s:%s with no timestamp",
                             node,
                             muid.get("data", {}).get("name", None),
@@ -579,7 +580,7 @@ class GraphMigrator(Migrator):
             if muid not in _sanitized_muids(
                 payload.get("pr_info", {}).get("PRed", []),
             ):
-                LOGGER.debug("not yet built: %s" % node)
+                logger.debug("not yet built: %s" % node)
                 return True
 
             # This is due to some PRed_json loss due to bad graph deploy outage
@@ -595,7 +596,7 @@ class GraphMigrator(Migrator):
                 m_pred_json
                 and m_pred_json.get("PR", {"state": "open"}).get("state", "") == "open"
             ):
-                LOGGER.debug("not yet built: %s" % node)
+                logger.debug("not yet built: %s" % node)
                 return True
 
         return False
@@ -604,11 +605,11 @@ class GraphMigrator(Migrator):
         name = attrs.get("name", "")
 
         if super().filter(attrs, "Upstream:"):
-            LOGGER.debug("filter %s: archived or done", name)
+            logger.debug("filter %s: archived or done", name)
             return True
 
         if attrs.get("feedstock_name", None) not in self.graph:
-            LOGGER.debug("filter %s: node not in graph", name)
+            logger.debug("filter %s: node not in graph", name)
             return True
 
         # If in top level or in a cycle don't check for upstreams just build
@@ -621,12 +622,12 @@ class GraphMigrator(Migrator):
         if name == "conda-forge-pinning" and self.all_predecessors_issued_and_stale(
             attrs=attrs,
         ):
-            LOGGER.debug("not filtered %s: pinning parents issued and stale", name)
+            logger.debug("not filtered %s: pinning parents issued and stale", name)
             return False
 
         # Check if all upstreams have been built
         if self.predecessors_not_yet_built(attrs=attrs):
-            LOGGER.debug("filter %s: parents not built", name)
+            logger.debug("filter %s: parents not built", name)
             return True
 
         return False

@@ -23,7 +23,7 @@ if typing.TYPE_CHECKING:
 
 LICENSE_SPLIT = re.compile(r"\||\+")
 
-LOGGER = logging.getLogger("conda_forge_tick.migrators.license")
+logger = logging.getLogger("conda_forge_tick.migrators.license")
 
 
 def _to_spdx(lic):
@@ -132,7 +132,7 @@ def _scrape_license_string(pkg):
     if pkg.startswith("r-"):
         pkg = pkg[2:]
 
-    LOGGER.info("LICENSE running cran skeleton for pkg %s" % pkg)
+    logger.info("LICENSE running cran skeleton for pkg %s" % pkg)
 
     with tempfile.TemporaryDirectory() as tmpdir, pushd(tmpdir):
 
@@ -191,7 +191,7 @@ def _scrape_license_string(pkg):
 def _do_r_license_munging(pkg, recipe_dir):
     try:
         d = _scrape_license_string(pkg)
-        LOGGER.info("LICENSE R package license data: %s" % d)
+        logger.info("LICENSE R package license data: %s" % d)
 
         with open(os.path.join(recipe_dir, "meta.yaml")) as fp:
             cmeta = CondaMetaYAML(fp.read())
@@ -208,7 +208,7 @@ def _do_r_license_munging(pkg, recipe_dir):
             cmeta.dump(fp)
 
     except Exception as e:
-        LOGGER.info("LICENSE R license ERROR: %s" % repr(e))
+        logger.info("LICENSE R license ERROR: %s" % repr(e))
         pass
 
 

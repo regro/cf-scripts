@@ -23,7 +23,7 @@ if typing.TYPE_CHECKING:
 
 from .utils import as_iterable, parse_meta_yaml
 
-LOGGER = logging.getLogger("conda_forge_tick.feedstock_parser")
+logger = logging.getLogger("conda_forge_tick.feedstock_parser")
 
 PIN_SEP_PAT = re.compile(r" |>|<|=|\[")
 
@@ -124,7 +124,7 @@ def _fetch_static_repo(name, dest):
             pass
 
     if r.status_code != 200:
-        LOGGER.error(
+        logger.error(
             f"Something odd happened when fetching feedstock {name}: {r.status_code}",
         )
         return r
@@ -194,7 +194,7 @@ def populate_feedstock_attributes(
         }
 
     if feedstock_dir is not None:
-        LOGGER.debug(
+        logger.debug(
             "# of ci support files: %s",
             len(glob.glob(os.path.join(feedstock_dir, ".ci_support", "*.yaml"))),
         )
@@ -213,7 +213,7 @@ def populate_feedstock_attributes(
             variant_yamls = []
             plat_arch = []
             for cbc_path in ci_support_files:
-                LOGGER.debug("parsing conda-build config: %s", cbc_path)
+                logger.debug("parsing conda-build config: %s", cbc_path)
                 cbc_name = os.path.basename(cbc_path)
                 cbc_name_parts = cbc_name.replace(".yaml", "").split("_")
                 plat = cbc_name_parts[0]
@@ -247,7 +247,7 @@ def populate_feedstock_attributes(
 
                 # sometimes the requirements come out to None or [None]
                 # and this ruins the aggregated meta_yaml / breaks stuff
-                LOGGER.debug("getting reqs for config: %s", cbc_path)
+                logger.debug("getting reqs for config: %s", cbc_path)
                 if "requirements" in variant_yamls[-1]:
                     variant_yamls[-1]["requirements"] = _clean_req_nones(
                         variant_yamls[-1]["requirements"],
@@ -262,7 +262,7 @@ def populate_feedstock_attributes(
                             )
 
                 # collapse them down
-                LOGGER.debug("collapsing reqs for config: %s", cbc_path)
+                logger.debug("collapsing reqs for config: %s", cbc_path)
                 final_cfgs = {}
                 for plat_arch, varyml in zip(plat_arch, variant_yamls):
                     if plat_arch not in final_cfgs:
@@ -277,7 +277,7 @@ def populate_feedstock_attributes(
                     plat_arch.append(k)
                     variant_yamls.append(v)
         else:
-            LOGGER.debug("doing generic parsing")
+            logger.debug("doing generic parsing")
             plat_arch = [("win", "64"), ("osx", "64"), ("linux", "64")]
             for k in set(sub_graph["conda-forge.yml"].get("provider", {})):
                 if "_" in k:
@@ -293,14 +293,14 @@ def populate_feedstock_attributes(
         sub_graph["parsing_error"] = f"make_graph: render error {e}\n{trb}"
         raise
 
-    LOGGER.debug("platforms: %s", plat_arch)
+    logger.debug("platforms: %s", plat_arch)
     sub_graph["platforms"] = ["_".join(k) for k in plat_arch]
 
     # this makes certain that we have consistent ordering
     sorted_variant_yamls = [x for _, x in sorted(zip(plat_arch, variant_yamls))]
     yaml_dict = ChainDB(*sorted_variant_yamls)
     if not yaml_dict:
-        LOGGER.error(f"Something odd happened when parsing recipe {name}")
+        logger.error(f"Something odd happened when parsing recipe {name}")
         sub_graph["parsing_error"] = "make_graph: Could not parse"
         return sub_graph
 
