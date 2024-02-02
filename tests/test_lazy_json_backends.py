@@ -550,3 +550,35 @@ class TestGithubLazyJsonBackend:
         mock_head.assert_called_once_with(
             f"{TestGithubLazyJsonBackend.base_url}/name/key.json",
         )
+
+    def test_hkeys(self, backend: GithubLazyJsonBackend) -> None:
+        assert backend.hkeys("name") == []
+
+    def test_hgetall(self, backend: GithubLazyJsonBackend) -> None:
+        assert backend.hgetall("name") == {}
+
+    @mock.patch("requests.get")
+    def test_hget_success(
+        self,
+        mock_get: MagicMock,
+        backend: GithubLazyJsonBackend,
+    ) -> None:
+        mock_get.return_value.status_code = 200
+        mock_get.return_value.text = "{'key': 'value'}"
+        assert backend.hget("name", "key") == "{'key': 'value'}"
+        mock_get.assert_called_once_with(
+            f"{TestGithubLazyJsonBackend.base_url}/name/4/4/0/9/d/key.json",
+        )
+
+    @mock.patch("requests.get")
+    def test_hget_not_found(
+        self,
+        mock_get: MagicMock,
+        backend: GithubLazyJsonBackend,
+    ) -> None:
+        mock_get.return_value.status_code = 404
+        with pytest.raises(KeyError):
+            backend.hget("name", "key")
+        mock_get.assert_called_once_with(
+            f"{TestGithubLazyJsonBackend.base_url}/name/4/4/0/9/d/key.json",
+        )

@@ -269,6 +269,8 @@ class GithubLazyJsonBackend(LazyJsonBackend):
         sharded_path = get_sharded_path(f"{name}/{key}.json")
         url = urllib.parse.urljoin(self.base_url, sharded_path)
         r = requests.get(url)
+        if r.status_code == 404:
+            raise KeyError(f"Key {key} not found in hashmap {name}")
         r.raise_for_status()
         return r.text
 
