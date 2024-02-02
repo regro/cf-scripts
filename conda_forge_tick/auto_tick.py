@@ -118,7 +118,7 @@ from conda_forge_feedstock_check_solvable import is_recipe_solvable
 # not using this right now
 # from conda_forge_tick.deploy import deploy
 
-LOGGER = logging.getLogger("conda_forge_tick.auto_tick")
+logger = logging.getLogger("conda_forge_tick.auto_tick")
 
 PR_LIMIT = 5
 MAX_PR_LIMIT = 50
@@ -233,7 +233,7 @@ def run(
         base_branch=base_branch,
     )
     if not feedstock_dir or not repo:
-        LOGGER.critical(
+        logger.critical(
             "Failed to migrate %s, %s",
             feedstock_ctx.package_name,
             feedstock_ctx.attrs.get("pr_info", {}).get("bad"),
@@ -250,7 +250,7 @@ def run(
     migrate_return = migrator.migrate(recipe_dir, feedstock_ctx.attrs, **kwargs)
 
     if not migrate_return:
-        LOGGER.critical(
+        logger.critical(
             "Failed to migrate %s, %s",
             feedstock_ctx.package_name,
             feedstock_ctx.attrs.get("pr_info", {}).get("bad"),
@@ -275,7 +275,7 @@ def run(
             else:
                 eval_cmd(f"git commit -am '{msg}'")
         except CalledProcessError as e:
-            LOGGER.info(
+            logger.info(
                 "could not commit to feedstock - "
                 "likely no changes - error is '%s'" % (repr(e)),
             )
@@ -287,7 +287,7 @@ def run(
 
         if rerender:
             head_ref = eval_cmd("git rev-parse HEAD").strip()
-            LOGGER.info("Rerendering the feedstock")
+            logger.info("Rerendering the feedstock")
 
             try:
                 eval_cmd(
@@ -470,7 +470,7 @@ comment. Hopefully you all can fix this!
         pri["bad"] = False
     _reset_pre_pr_migrator_fields(feedstock_ctx.attrs, migrator_name)
 
-    LOGGER.info("Removing feedstock dir")
+    logger.info("Removing feedstock dir")
     eval_cmd(f"rm -rf {feedstock_dir}")
     return migrate_return, ljpr
 
@@ -816,7 +816,7 @@ def migration_factory(
             if skip_solver_checks:
                 assert not migrators[-1].check_solvable
         else:
-            LOGGER.warning("skipping migration %s because it is paused", __mname)
+            logger.warning("skipping migration %s because it is paused", __mname)
 
 
 def _outside_pin_range(pin_spec, current_pin, new_version):
@@ -972,7 +972,7 @@ def create_migration_yaml_creator(migrators: MutableSequence[Migrator], gx: nx.D
                         ),
                     )
             except Exception as e:
-                LOGGER.info(
+                logger.info(
                     "failed to possibly generate pinning PR for {}: {}".format(
                         pinning_name,
                         repr(e),
@@ -1255,7 +1255,7 @@ def _run_migrator(migrator, mctx, temp, time_per, dry_run):
                         print("\n", flush=True, end="")
                         sys.stderr.flush()
                         sys.stdout.flush()
-                        LOGGER.info(
+                        logger.info(
                             "%s%s IS MIGRATING %s:%s",
                             migrator.__class__.__name__.upper(),
                             extra_name,
@@ -1307,14 +1307,14 @@ def _run_migrator(migrator, mctx, temp, time_per, dry_run):
                             if e.msg == "Repository was archived so is read-only.":
                                 attrs["archived"] = True
                             else:
-                                LOGGER.critical(
+                                logger.critical(
                                     "GITHUB ERROR ON FEEDSTOCK: %s",
                                     fctx.feedstock_name,
                                 )
                                 if is_github_api_limit_reached(e, mctx.gh):
                                     break
                         except URLError as e:
-                            LOGGER.exception("URLError ERROR")
+                            logger.exception("URLError ERROR")
                             with attrs["pr_info"] as pri:
                                 pri["bad"] = {
                                     "exception": str(e),
@@ -1340,7 +1340,7 @@ def _run_migrator(migrator, mctx, temp, time_per, dry_run):
                                 ),
                             )
                         except Exception as e:
-                            LOGGER.exception("NON GITHUB ERROR")
+                            logger.exception("NON GITHUB ERROR")
                             # we don't set bad for rerendering errors
                             if (
                                 "conda smithy rerender -c auto --no-check-uptodate"
@@ -1388,7 +1388,7 @@ def _run_migrator(migrator, mctx, temp, time_per, dry_run):
                         dump_graph(mctx.graph)
 
                     eval_cmd(f"rm -rf {mctx.rever_dir}/*")
-                    LOGGER.info(os.getcwd())
+                    logger.info(os.getcwd())
                     for f in glob.glob("/tmp/*"):
                         if f not in temp:
                             try:
@@ -1422,7 +1422,7 @@ def _update_nodes_with_bot_rerun(gx):
     print("processing bot-rerun labels", flush=True)
 
     for i, (name, node) in enumerate(gx.nodes.items()):
-        # LOGGER.info(
+        # logger.info(
         #     f"node: {i} memory usage: "
         #     f"{psutil.Process().memory_info().rss // 1024 ** 2}MB",
         # )
@@ -1440,7 +1440,7 @@ def _update_nodes_with_bot_rerun(gx):
                             pr_json = migration.get("PR", {})
                             # maybe add a pass check info here ? (if using DEBUG)
                         except Exception as e:
-                            LOGGER.error(
+                            logger.error(
                                 f"BOT-RERUN : could not proceed check with {node}, {e}",
                             )
                             raise e
@@ -1453,7 +1453,7 @@ def _update_nodes_with_bot_rerun(gx):
                             in [lb["name"] for lb in pr_json.get("labels", [])]
                         ):
                             migration["data"]["bot_rerun"] = time.time()
-                            LOGGER.info(
+                            logger.info(
                                 "BOT-RERUN %s: processing bot rerun label "
                                 "for migration %s",
                                 name,
@@ -1638,5 +1638,5 @@ def main(ctx: CliContext) -> None:
             # turning off for now
             # deploy(dry_run=ctx.dry_run)
 
-    LOGGER.info("API Calls Remaining: %d", mctx.gh_api_requests_left)
-    LOGGER.info("Done")
+    logger.info("API Calls Remaining: %d", mctx.gh_api_requests_left)
+    logger.info("Done")

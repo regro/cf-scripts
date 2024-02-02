@@ -36,7 +36,7 @@ from conda_forge_tick.lazy_json_backends import (
 )
 
 
-LOGGER = logging.getLogger("conda_forge_tick.make_graph")
+logger = logging.getLogger("conda_forge_tick.make_graph")
 pin_sep_pat = re.compile(r" |>|<|=|\[")
 random.seed(os.urandom(64))
 
@@ -163,7 +163,7 @@ def _build_graph_process_pool(
             for i, name in enumerate(names)
             if random.uniform(0, 1) < RANDOM_FRAC_TO_UPDATE
         }
-        LOGGER.info("submitted all nodes")
+        logger.info("submitted all nodes")
 
         n_tot = len(futures)
         n_left = len(futures)
@@ -177,9 +177,9 @@ def _build_graph_process_pool(
             try:
                 sub_graph = {"payload": f.result()}
                 if n_left % 100 == 0:
-                    LOGGER.info("itr % 5d - eta % 5ds: finished %s", n_left, eta, name)
+                    logger.info("itr % 5d - eta % 5ds: finished %s", n_left, eta, name)
             except Exception as e:
-                LOGGER.error(
+                logger.error(
                     "itr % 5d - eta % 5ds: Error adding %s to the graph: %s",
                     n_left,
                     eta,
@@ -206,7 +206,7 @@ def _build_graph_sequential(
             }
         except Exception as e:
             trb = traceback.format_exc()
-            LOGGER.error(f"Error adding {name} to the graph: {e}\n{trb}")
+            logger.error(f"Error adding {name} to the graph: {e}\n{trb}")
         else:
             if name in new_names:
                 gx.add_node(name, **sub_graph)
@@ -215,7 +215,7 @@ def _build_graph_sequential(
 
 
 def _create_edges(gx: nx.DiGraph) -> nx.DiGraph:
-    LOGGER.info("inferring nodes and edges")
+    logger.info("inferring nodes and edges")
 
     # make the outputs look up table so we can link properly
     # and add this as an attr so we can use later
@@ -262,7 +262,7 @@ def _create_edges(gx: nx.DiGraph) -> nx.DiGraph:
                     _attrs.update(feedstock_name=dep, bad=False, archived=True)
                 gx.add_node(dep, payload=lzj)
             gx.add_edge(dep, node)
-    LOGGER.info("new nodes and edges inferred")
+    logger.info("new nodes and edges inferred")
 
     return gx
 
@@ -273,7 +273,7 @@ def make_graph(
     mark_not_archived=False,
     debug=False,
 ) -> nx.DiGraph:
-    LOGGER.info("reading graph")
+    logger.info("reading graph")
 
     if gx is None:
         gx = nx.DiGraph()
@@ -288,14 +288,14 @@ def make_graph(
     )  # type: ignore
     total_names = new_names + old_names
 
-    LOGGER.info("start feedstock fetch loop")
+    logger.info("start feedstock fetch loop")
     builder = _build_graph_sequential if debug else _build_graph_process_pool
     builder(gx, total_names, new_names, mark_not_archived=mark_not_archived)
-    LOGGER.info("feedstock fetch loop completed")
+    logger.info("feedstock fetch loop completed")
 
     gx = _create_edges(gx)
 
-    LOGGER.info(f"memory usage: {psutil.virtual_memory()}")
+    logger.info(f"memory usage: {psutil.virtual_memory()}")
     return gx
 
 
@@ -329,7 +329,7 @@ def main(ctx: CliContext) -> None:
         gx = make_graph(names, gx, mark_not_archived=True, debug=ctx.debug)
         nodes_without_payload = [k for k, v in gx.nodes.items() if "payload" not in v]
         if nodes_without_payload:
-            LOGGER.warning("nodes w/o payload: %s", nodes_without_payload)
+            logger.warning("nodes w/o payload: %s", nodes_without_payload)
 
         archived_names = get_archived_feedstocks(cached=True)
         _update_nodes_with_archived(gx, archived_names)

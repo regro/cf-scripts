@@ -13,7 +13,7 @@ import rapidjson as json
 
 from .cli_context import CliContext
 
-LOGGER = logging.getLogger("conda_forge_tick.lazy_json_backends")
+logger = logging.getLogger("conda_forge_tick.lazy_json_backends")
 
 CF_TICK_GRAPH_DATA_BACKENDS = tuple(
     os.environ.get("CF_TICK_GRAPH_DATA_BACKENDS", "file").split(":"),

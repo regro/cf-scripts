@@ -13,7 +13,7 @@ from conda_forge_tick.lazy_json_backends import (
     get_sharded_path,
 )
 
-LOGGER = logging.getLogger("conda_forge_tick.lazy_json_backends")
+logger = logging.getLogger("conda_forge_tick.lazy_json_backends")
 
 CF_TICK_GRAPH_DATA_BACKUP_BACKEND = os.environ.get(
     "CF_TICK_GRAPH_DATA_BACKUP_BACKEND",
@@ -33,7 +33,7 @@ def make_lazy_json_backup(verbose=False):
         )
         backend = LAZY_JSON_BACKENDS["file"]()
         with tempfile.TemporaryDirectory() as tmpdir:
-            LOGGER.info("gathering files for backup")
+            logger.info("gathering files for backup")
             with open(os.path.join(tmpdir, "files.txt"), "w") as fp:
                 for hashmap in CF_TICK_GRAPH_DATA_HASHMAPS + ["lazy_json"]:
                     nodes = backend.hkeys(hashmap)
@@ -46,7 +46,7 @@ def make_lazy_json_backup(verbose=False):
                             + "\n",
                         )
 
-            LOGGER.info("compressing lazy json disk cache")
+            logger.info("compressing lazy json disk cache")
             subprocess.run(
                 f"tar --zstd -cvf cf_graph_{ts}.tar.zstd -T "
                 + os.path.join(tmpdir, "files.txt"),
@@ -174,23 +174,23 @@ def main_backup(ctx: CliContext):
         return int(b.split(".")[0].split("_")[-1])
 
     if not ctx.dry_run:
-        LOGGER.info("making lazy json backup")
+        logger.info("making lazy json backup")
         latest_backup = make_lazy_json_backup()
         curr_fnames = get_current_backup_filenames()
         all_fnames = set(curr_fnames) | {latest_backup}
         all_timestamps = [_name_to_ts(b) for b in all_fnames]
         tsdict = prune_timestamps(all_timestamps)
-        LOGGER.info("backups to keep:\n%s", pprint.pformat(tsdict, sort_dicts=False))
+        logger.info("backups to keep:\n%s", pprint.pformat(tsdict, sort_dicts=False))
 
         timestamps_to_keep = set(tsdict.values())
         for bup in all_fnames:
             if _name_to_ts(bup) not in timestamps_to_keep:
                 try:
-                    LOGGER.info("removing backup %s", bup)
+                    logger.info("removing backup %s", bup)
                     remove_backup(bup)
                 except Exception:
                     pass
             else:
-                LOGGER.info("saving backup %s", bup)
+                logger.info("saving backup %s", bup)
                 if bup not in curr_fnames:
                     save_backup(bup)

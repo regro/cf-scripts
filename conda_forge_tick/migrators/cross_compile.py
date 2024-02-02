@@ -14,7 +14,7 @@ from conda_forge_tick.migrators.core import MiniMigrator
 if typing.TYPE_CHECKING:
     from ..migrators_types import AttrsTypedDict
 
-LOGGER = logging.getLogger("conda_forge_tick.migrators.cross_compile")
+logger = logging.getLogger("conda_forge_tick.migrators.cross_compile")
 
 
 class CrossCompilationMigratorBase(MiniMigrator):
@@ -379,7 +379,7 @@ class CrossCompilationForARMAndPower(MiniMigrator):
         with pushd(recipe_dir):
             if not os.path.exists("../conda-forge.yml"):
                 name = attrs.get("feedstock_name")
-                LOGGER.info(f"no conda-forge.yml for {name}")
+                logger.info(f"no conda-forge.yml for {name}")
                 return
 
             with open("../conda-forge.yml") as f:
@@ -394,7 +394,7 @@ class CrossCompilationForARMAndPower(MiniMigrator):
                         config["build_platform"][arch] = "linux_64"
                 with open("../conda-forge.yml", "w") as f:
                     name = attrs.get("feedstock_name")
-                    LOGGER.info(f"new conda-forge.yml for {name}:={config}")
+                    logger.info(f"new conda-forge.yml for {name}:={config}")
                     yaml_safe_dump(config, f)
 
             if not os.path.exists("build.sh"):
