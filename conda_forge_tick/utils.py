@@ -454,7 +454,7 @@ def load_graph(filename: str = "graph.json") -> nx.DiGraph:
     if dta:
         return nx.node_link_graph(dta)
     else:
-        return None
+        raise FileNotFoundError("Graph file not found.")
 
 
 # TODO: This type does not support generics yet sadly
