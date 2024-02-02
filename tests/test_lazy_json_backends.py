@@ -512,73 +512,85 @@ def test_lazy_json_backends_hashmap(tmpdir):
         assert get_all_keys_for_hashmap("lazy_json") == []
 
 
-class TestGithubLazyJsonBackend:
-    base_url = "https://github.com/lorem/ipsum/raw/master"
+def test_github_base_url() -> None:
+    github_backend = GithubLazyJsonBackend()
+    assert github_backend.base_url == GITHUB_GRAPH_BACKEND_BASE_URL + "/"
+    github_backend.base_url = "https://github.com/lorem/ipsum"
+    assert github_backend.base_url == "https://github.com/lorem/ipsum" + "/"
 
-    @pytest.fixture
-    def backend(self) -> GithubLazyJsonBackend:
-        github_backend = GithubLazyJsonBackend()
-        github_backend.base_url = self.base_url
-        return github_backend
 
-    def test_base_url(self) -> None:
-        github_backend = GithubLazyJsonBackend()
-        assert github_backend.base_url == GITHUB_GRAPH_BACKEND_BASE_URL + "/"
-        github_backend.base_url = self.base_url
-        assert github_backend.base_url == self.base_url + "/"
+@pytest.mark.parametrize(
+    "name, key",
+    [
+        ("node_attrs", "flask"),
+        ("node_attrs", "requests"),
+        ("node_attrs", "boto3"),
+        ("node_attrs", "setuptools"),
+    ],
+)
+def test_github_online_hexists_success(
+    name: str,
+    key: str,
+) -> None:
+    # this performs a web request
+    assert GithubLazyJsonBackend().hexists(name, key)
 
-    @mock.patch("requests.head")
-    def test_hexists_success(
-        self,
-        mock_head: MagicMock,
-        backend: GithubLazyJsonBackend,
-    ) -> None:
-        mock_head.return_value.status_code = 200
-        assert backend.hexists("name", "key")
-        mock_head.assert_called_once_with(
-            f"{TestGithubLazyJsonBackend.base_url}/name/key.json",
-        )
 
-    @mock.patch("requests.head")
-    def test_hexists_failure(
-        self,
-        mock_head: MagicMock,
-        backend: GithubLazyJsonBackend,
-    ) -> None:
-        mock_head.return_value.status_code = 404
-        assert not backend.hexists("name", "key")
-        mock_head.assert_called_once_with(
-            f"{TestGithubLazyJsonBackend.base_url}/name/key.json",
-        )
+@pytest.mark.parametrize(
+    "name, key",
+    [
+        ("node_attrs", "this-package-will-not-ever-exist-invalid"),
+        ("invalid-name", "flask"),
+    ],
+)
+def test_github_online_hexists_failure(name: str, key: str) -> None:
+    # this performs a web request
+    assert not GithubLazyJsonBackend().hexists(name, key)
 
-    def test_hkeys(self, backend: GithubLazyJsonBackend) -> None:
-        assert backend.hkeys("name") == []
 
-    def test_hgetall(self, backend: GithubLazyJsonBackend) -> None:
-        assert backend.hgetall("name") == {}
+def test_github_hkeys() -> None:
+    assert GithubLazyJsonBackend().hkeys("name") == []
 
-    @mock.patch("requests.get")
-    def test_hget_success(
-        self,
-        mock_get: MagicMock,
-        backend: GithubLazyJsonBackend,
-    ) -> None:
-        mock_get.return_value.status_code = 200
-        mock_get.return_value.text = "{'key': 'value'}"
-        assert backend.hget("name", "key") == "{'key': 'value'}"
-        mock_get.assert_called_once_with(
-            f"{TestGithubLazyJsonBackend.base_url}/name/4/4/0/9/d/key.json",
-        )
 
-    @mock.patch("requests.get")
-    def test_hget_not_found(
-        self,
-        mock_get: MagicMock,
-        backend: GithubLazyJsonBackend,
-    ) -> None:
-        mock_get.return_value.status_code = 404
-        with pytest.raises(KeyError):
-            backend.hget("name", "key")
-        mock_get.assert_called_once_with(
-            f"{TestGithubLazyJsonBackend.base_url}/name/4/4/0/9/d/key.json",
-        )
+def test_github_hgetall() -> None:
+    assert GithubLazyJsonBackend().hgetall("name") == {}
+
+
+@mock.patch("requests.get")
+def test_github_hget_success(
+    mock_get: MagicMock,
+) -> None:
+    backend = GithubLazyJsonBackend()
+    backend.base_url = "https://github.com/lorem/ipsum"
+    mock_get.return_value.status_code = 200
+    mock_get.return_value.text = "{'key': 'value'}"
+    assert backend.hget("name", "key") == "{'key': 'value'}"
+    mock_get.assert_called_once_with(
+        f"https://github.com/lorem/ipsum/name/4/4/0/9/d/key.json",
+    )
+
+
+@mock.patch("requests.get")
+def test_github_offline_hget_not_found(
+    mock_get: MagicMock,
+) -> None:
+    backend = GithubLazyJsonBackend()
+    backend.base_url = "https://github.com/lorem/ipsum"
+    mock_get.return_value.status_code = 404
+    with pytest.raises(KeyError):
+        backend.hget("name", "key")
+    mock_get.assert_called_once_with(
+        f"https://github.com/lorem/ipsum/name/4/4/0/9/d/key.json",
+    )
+
+
+@pytest.mark.parametrize(
+    "name, key",
+    [
+        ("node_attrs", "this-package-will-not-ever-exist-invalid"),
+        ("invalid-name", "flask"),
+    ],
+)
+def test_github_online_hget_not_found(name: str, key: str):
+    with pytest.raises(KeyError):
+        GithubLazyJsonBackend().hget(name, key)
