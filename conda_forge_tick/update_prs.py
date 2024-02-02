@@ -2,7 +2,6 @@ import copy
 import hashlib
 import logging
 import random
-import typing
 from concurrent.futures._base import as_completed
 
 import github3
