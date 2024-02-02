@@ -55,7 +55,8 @@ click.Group.command_class = TimedCommand
     "--online/--offline",
     default=False,
     help="Online: Use the GitHub API for accessing the dependency graph. This is useful for local testing. Note "
-    "however that any write operations will not be performed.",
+    "however that any write operations will not be performed. Important: The current working directory will be "
+    "used to cache JSON files. Local files will be used if they exist.",
 )
 @pass_context
 def main(ctx: CliContext, debug: bool, dry_run: bool, online: bool) -> None:
@@ -76,7 +77,7 @@ def main(ctx: CliContext, debug: bool, dry_run: bool, online: bool) -> None:
 
 @main.command(name="gather-all-feedstocks")
 @pass_context
-def gather_all_feedstocks(ctx: CliContext) -> None:
+def gather_all_feedstocks() -> None:
     from . import all_feedstocks
 
     all_feedstocks.main()
