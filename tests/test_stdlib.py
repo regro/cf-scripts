@@ -19,7 +19,7 @@ VERSION_WITH_STDLIB = Version(
 @pytest.mark.parametrize(
     "feedstock,new_ver",
     [
-        # blank for now
+        ("arrow", "1.10.0"),
     ],
 )
 def test_stdlib(feedstock, new_ver, tmpdir):
