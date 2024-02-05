@@ -84,6 +84,7 @@ from conda_forge_tick.migrators import (
     PipWheelMigrator,
     QtQtMainMigrator,
     Replacement,
+    StdlibMigrator,
     UpdateCMakeArgsMigrator,
     UpdateConfigSubGuessMigrator,
     Version,
@@ -684,6 +685,10 @@ def add_rebuild_migration_yaml(
         piggy_back_migrations.append(JpegTurboMigrator())
     if migration_name == "boost_cpp_to_libboost":
         piggy_back_migrations.append(LibboostMigrator())
+    if migration_name == "boost1840":
+        # testing phase: only a single migration
+        # TODO: piggyback for all migrations
+        piggy_back_migrations.append(StdlibMigrator())
     cycles = list(nx.simple_cycles(total_graph))
     migrator = MigrationYaml(
         migration_yaml,

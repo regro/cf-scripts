@@ -14,6 +14,7 @@ from .cross_compile import (
     UpdateCMakeArgsMigrator,
     UpdateConfigSubGuessMigrator,
 )
+from .cstdlib import StdlibMigrator
 from .dep_updates import DependencyUpdateMigrator
 from .duplicate_lines import DuplicateLinesCleanup
 from .extra_jinj2a_keys_cleanup import ExtraJinja2KeysCleanup
