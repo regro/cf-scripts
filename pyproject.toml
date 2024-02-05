@@ -35,3 +35,6 @@ write_to_template = "__version__ = '{version}'\n"
 
 [tool.black]
 line-length = 88
+
+[tool.isort]
+profile = "black"

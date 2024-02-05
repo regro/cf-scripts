@@ -35,6 +35,11 @@ repos:
           - --ignore-words-list=rever,pring,pullrequest,pullrequests
           - --exclude-file=.codespellignorelines
           - -L=statics
+  - repo: https://github.com/pycqa/isort
+    rev: 5.13.2
+    hooks:
+      - id: isort
+        name: isort (python)
   # - repo: https://gitlab.com/pycqa/flake8
   #   rev: 3.8.4
   #   hooks:
