@@ -1,8 +1,9 @@
 import os
+
 import pytest
+from test_migrators import run_test_migration
 
 from conda_forge_tick.migrators import QtQtMainMigrator, Version
-from test_migrators import run_test_migration
 
 QTQTMAIN = QtQtMainMigrator()
 VERSION_WITH_QTQTMAIN = Version(

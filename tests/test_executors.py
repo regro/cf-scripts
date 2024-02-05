@@ -1,8 +1,9 @@
 from concurrent.futures import as_completed
-import numpy as np
-from conda_forge_tick.executors import executor
 
+import numpy as np
 import pytest
+
+from conda_forge_tick.executors import executor
 
 
 def _square(x):

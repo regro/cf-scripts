@@ -1,43 +1,38 @@
-import os
-import rapidjson as json
-import subprocess
 import copy
-import glob
-from concurrent.futures import ThreadPoolExecutor, as_completed
-import time
-
-import dateutil.parser
 import datetime
-import networkx as nx
-from graphviz import Source
+import glob
+import os
+import subprocess
 import tempfile
-
-import tqdm
-import yaml
-
+import time
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import Any, Dict, Set, Tuple
 
+import dateutil.parser
+import networkx as nx
+import rapidjson as json
+import tqdm
+import yaml
 from conda.models.version import VersionOrder
+from graphviz import Source
 
+from conda_forge_tick.auto_tick import _filter_ignored_versions, initialize_migrators
 from conda_forge_tick.cli_context import CliContext
-from conda_forge_tick.utils import frozen_to_json_friendly
-from conda_forge_tick.auto_tick import initialize_migrators
-from conda_forge_tick.migrators import (
-    Migrator,
-    GraphMigrator,
-    Version,
-    Replacement,
-    MatplotlibBase,
-    ArchRebuild,
-    OSXArm,
-)
-from conda_forge_tick.path_lengths import cyclic_topological_sort
 from conda_forge_tick.contexts import FeedstockContext
 from conda_forge_tick.lazy_json_backends import LazyJson, get_all_keys_for_hashmap
-from conda_forge_tick.auto_tick import _filter_ignored_versions
+from conda_forge_tick.migrators import (
+    ArchRebuild,
+    GraphMigrator,
+    MatplotlibBase,
+    Migrator,
+    OSXArm,
+    Replacement,
+    Version,
+)
+from conda_forge_tick.path_lengths import cyclic_topological_sort
+from conda_forge_tick.utils import frozen_to_json_friendly
 
 from .git_utils import feedstock_url
-
 
 GH_MERGE_STATE_STATUS = [
     "behind",

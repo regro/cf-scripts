@@ -1,13 +1,10 @@
 import os
+
 import pytest
 from ruamel.yaml import YAML
-
-from conda_forge_tick.migrators import (
-    Version,
-    CondaForgeYAMLCleanup,
-)
-
 from test_migrators import run_test_migration
+
+from conda_forge_tick.migrators import CondaForgeYAMLCleanup, Version
 
 VERSION_CF = Version(
     set(),

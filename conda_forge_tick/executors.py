@@ -1,13 +1,8 @@
-import typing
 import contextlib
 import logging
-from concurrent.futures import (
-    ProcessPoolExecutor,
-    ThreadPoolExecutor,
-    Executor,
-)
-
 import multiprocessing
+import typing
+from concurrent.futures import Executor, ProcessPoolExecutor, ThreadPoolExecutor
 from threading import RLock as TRLock
 
 

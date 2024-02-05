@@ -1,17 +1,17 @@
 import io
+
 import pytest
 
+from conda_forge_tick.recipe_parser import CONDA_SELECTOR, CondaMetaYAML
 from conda_forge_tick.recipe_parser._parser import (
-    _parse_jinja2_variables,
-    _munge_line,
-    _unmunge_line,
+    _build_jinja2_expr_tmp,
     _demunge_jinja2_vars,
+    _munge_line,
+    _parse_jinja2_variables,
     _remunge_jinja2_vars,
     _replace_jinja2_vars,
-    _build_jinja2_expr_tmp,
+    _unmunge_line,
 )
-
-from conda_forge_tick.recipe_parser import CondaMetaYAML, CONDA_SELECTOR
 
 
 def test_parsing_ml_jinja2():

@@ -1,19 +1,17 @@
-import re
-import io
-import jinja2
 import collections.abc
 import hashlib
-import pprint
-import traceback
-from typing import (
-    MutableMapping,
-    Any,
-)
+import io
 import logging
+import pprint
+import re
+import traceback
+from typing import Any, MutableMapping
 
+import jinja2
+
+from conda_forge_tick.hashing import hash_url
 from conda_forge_tick.recipe_parser import CONDA_SELECTOR, CondaMetaYAML
 from conda_forge_tick.url_transforms import gen_transformed_urls
-from conda_forge_tick.hashing import hash_url
 from conda_forge_tick.utils import sanitize_string
 
 CHECKSUM_NAMES = [

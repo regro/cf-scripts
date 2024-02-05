@@ -1,5 +1,6 @@
-from conda_forge_tick.migrators.core import MiniMigrator
 import os
+
+from conda_forge_tick.migrators.core import MiniMigrator
 
 
 def _parse_jpeg(lines):

@@ -5,24 +5,22 @@ Builds and maintains mapping of pypi-names to conda-forge names
 2: Packages MUST have a test: imports section importing it
 """
 
+import functools
 import json
 import math
-import requests
-import yaml
 import pathlib
 import traceback
-import functools
-
 from collections import Counter, defaultdict
-from typing import Dict, List, Literal, Optional, Any, Tuple, Set, TypedDict, Union
 from os.path import commonprefix
-from packaging.utils import (
-    canonicalize_name as canonicalize_pypi_name,
-    NormalizedName as PypiName,
-)
+from typing import Any, Dict, List, Literal, Optional, Set, Tuple, TypedDict, Union
 
+import requests
+import yaml
+from packaging.utils import NormalizedName as PypiName
+from packaging.utils import canonicalize_name as canonicalize_pypi_name
+
+from .lazy_json_backends import LazyJson, dump, get_all_keys_for_hashmap, loads
 from .utils import as_iterable, load_graph
-from .lazy_json_backends import dump, loads, get_all_keys_for_hashmap, LazyJson
 
 
 class Mapping(TypedDict):

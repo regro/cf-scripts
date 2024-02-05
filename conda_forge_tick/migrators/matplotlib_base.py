@@ -1,7 +1,7 @@
+import copy
 import os
 import typing
 from typing import Any
-import copy
 
 from conda_forge_tick.migrators.core import Replacement, _parse_bad_attr
 from conda_forge_tick.utils import frozen_to_json_friendly

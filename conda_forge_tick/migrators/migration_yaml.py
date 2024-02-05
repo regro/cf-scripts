@@ -1,34 +1,30 @@
 import copy
-import os
-from itertools import chain
-import typing
-from typing import Optional, Set, Sequence, Any, MutableSet
-import time
-import re
-from collections import defaultdict
 import logging
+import os
 import random
+import re
+import time
+import typing
+from collections import defaultdict
+from itertools import chain
+from typing import Any, MutableSet, Optional, Sequence, Set
 
 import networkx as nx
 
 from conda_forge_tick.contexts import FeedstockContext
-from conda_forge_tick.migrators.core import GraphMigrator, MiniMigrator, Migrator
-from conda_forge_tick.os_utils import pushd, eval_cmd
-from conda_forge_tick.utils import (
-    pluck,
-    yaml_safe_load,
-    yaml_safe_dump,
-    get_keys_default,
-)
-from conda_forge_tick.make_graph import get_deps_from_outputs_lut
 from conda_forge_tick.feedstock_parser import PIN_SEP_PAT
+from conda_forge_tick.make_graph import get_deps_from_outputs_lut
+from conda_forge_tick.migrators.core import GraphMigrator, Migrator, MiniMigrator
+from conda_forge_tick.os_utils import eval_cmd, pushd
+from conda_forge_tick.utils import (
+    get_keys_default,
+    pluck,
+    yaml_safe_dump,
+    yaml_safe_load,
+)
 
 if typing.TYPE_CHECKING:
-    from ..migrators_types import (
-        MigrationUidTypedDict,
-        AttrsTypedDict,
-        PackageName,
-    )
+    from ..migrators_types import AttrsTypedDict, MigrationUidTypedDict, PackageName
 
 logger = logging.getLogger("conda_forge_tick.migrators.migration_yaml")
 

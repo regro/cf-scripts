@@ -1,31 +1,28 @@
+import copy
+import hashlib
 import logging
 import random
 import typing
 from concurrent.futures._base import as_completed
-import hashlib
-import copy
 
 import github3
 import networkx as nx
 import tqdm
 
 from conda_forge_tick.cli_context import CliContext
-
-# from conda_forge_tick.profiler import profiling
-
 from conda_forge_tick.git_utils import (
+    close_out_dirty_prs,
     close_out_labels,
     is_github_api_limit_reached,
     refresh_pr,
-    close_out_dirty_prs,
 )
-from .make_graph import ghctx
+
 from .executors import executor
-from .utils import (
-    setup_logger,
-    load_graph,
-    github_client,
-)
+from .make_graph import ghctx
+from .utils import github_client, load_graph, setup_logger
+
+# from conda_forge_tick.profiler import profiling
+
 
 if typing.TYPE_CHECKING:
     from .cli import CLIArgs

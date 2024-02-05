@@ -1,10 +1,9 @@
-from cProfile import Profile
-from contextlib import contextmanager
-
-import os
 import inspect
-from functools import wraps
+import os
+from contextlib import contextmanager
+from cProfile import Profile
 from datetime import datetime
+from functools import wraps
 
 
 class Profiled(Profile):

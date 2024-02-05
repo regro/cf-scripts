@@ -2,13 +2,9 @@ import os
 
 from flaky import flaky
 from ruamel.yaml import YAML
-
-from conda_forge_tick.migrators import (
-    Version,
-    ExtraJinja2KeysCleanup,
-)
-
 from test_migrators import run_test_migration
+
+from conda_forge_tick.migrators import ExtraJinja2KeysCleanup, Version
 
 VERSION_CF = Version(
     set(),

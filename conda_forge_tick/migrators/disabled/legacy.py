@@ -2,20 +2,19 @@
 
 import os
 import re
+import tempfile
 from itertools import chain
 from textwrap import dedent
-from typing import Any, Optional, Set, List
-import tempfile
+from typing import Any, List, Optional, Set
 
 import networkx as nx
 from conda_smithy.configure_feedstock import get_cfp_file_path
+from rever.tools import eval_version, replace_in_file
 
 from conda_forge_tick.contexts import FeedstockContext
-from conda_forge_tick.migrators.core import Migrator, GraphMigrator
-from conda_forge_tick.utils import UniversalSet, yaml_safe_load, yaml_safe_dump
+from conda_forge_tick.migrators.core import GraphMigrator, Migrator
 from conda_forge_tick.os_utils import pushd
-
-from rever.tools import eval_version, replace_in_file
+from conda_forge_tick.utils import UniversalSet, yaml_safe_dump, yaml_safe_load
 
 
 class JS(Migrator):

@@ -1,8 +1,9 @@
 import os
+
 import pytest
+from test_migrators import run_test_migration
 
 from conda_forge_tick.migrators import MatplotlibBase
-from test_migrators import run_test_migration
 
 MPLB = MatplotlibBase(
     old_pkg="matplotlib",

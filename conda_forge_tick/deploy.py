@@ -3,10 +3,10 @@ import subprocess
 
 from doctr.travis import run_command_hiding_token as doctr_run
 
-from .cli_context import CliContext
 from . import sensitive_env
+from .cli_context import CliContext
+from .lazy_json_backends import CF_TICK_GRAPH_DATA_HASHMAPS, get_lazy_json_backends
 from .utils import load_graph
-from .lazy_json_backends import get_lazy_json_backends, CF_TICK_GRAPH_DATA_HASHMAPS
 
 BUILD_URL_KEY = "CIRCLE_BUILD_URL"
 

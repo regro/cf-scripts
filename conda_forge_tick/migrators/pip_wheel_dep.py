@@ -1,10 +1,10 @@
-import tempfile
 import functools
-from typing import Any, Dict
-from ruamel.yaml import YAML
+import tempfile
 import typing
+from typing import Any, Dict
 
 import requests
+from ruamel.yaml import YAML
 
 from conda_forge_tick.migrators import MiniMigrator
 from conda_forge_tick.os_utils import pushd
@@ -97,8 +97,8 @@ class PipWheelMigrator(MiniMigrator):
             with open(wheel_file, "wb") as fp:
                 for chunk in resp.iter_content(chunk_size=2**16):
                     fp.write(chunk)
-            import pkginfo
             import pkg_resources
+            import pkginfo
 
             wheel_metadata = pkginfo.get_metadata(wheel_file)
             wheel_metadata.extractMetadata()

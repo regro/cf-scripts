@@ -27,20 +27,18 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
-from collections import defaultdict
-from depfinder.inspection import iterate_over_library
 import logging
+from collections import defaultdict
 from concurrent.futures._base import as_completed
 from concurrent.futures.thread import ThreadPoolExecutor
 from fnmatch import fnmatch
+
 import requests.exceptions
-
-from depfinder.stdliblist import builtin_modules as _builtin_modules
-from depfinder.utils import SKETCHY_TYPES_TABLE
-
 from conda_forge_metadata.autotick_bot import map_import_to_package
 from conda_forge_metadata.libcfgraph import get_libcfgraph_pkgs_for_import
-
+from depfinder.inspection import iterate_over_library
+from depfinder.stdliblist import builtin_modules as _builtin_modules
+from depfinder.utils import SKETCHY_TYPES_TABLE
 
 logger = logging.getLogger("conda_forge_tick.depfinder_api")
 

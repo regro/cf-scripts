@@ -1,33 +1,28 @@
 import abc
 import collections.abc
-import subprocess
-import re
 import copy
-import logging
-import urllib.parse
-import typing
 import functools
-from typing import (
-    Optional,
-    Set,
-    Iterator,
-    List,
-)
-import yaml
+import logging
+import re
+import subprocess
+import typing
+import urllib.parse
+from typing import Iterator, List, Optional, Set
+
 import feedparser
 import requests
+import yaml
 from conda.models.version import VersionOrder
-from conda_forge_tick.utils import parse_meta_yaml
-from .hashing import hash_url
 
 # TODO: parse_version has bad type annotations
 from pkg_resources import parse_version
 
+from conda_forge_tick.utils import parse_meta_yaml
+
+from .hashing import hash_url
+
 if typing.TYPE_CHECKING:
-    from conda_forge_tick.migrators_types import (
-        MetaYamlTypedDict,
-        SourceTypedDict,
-    )
+    from conda_forge_tick.migrators_types import MetaYamlTypedDict, SourceTypedDict
 
 
 CRAN_INDEX: Optional[dict] = None

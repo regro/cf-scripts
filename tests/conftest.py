@@ -1,6 +1,7 @@
 import os
 
 import pytest
+
 from conda_forge_tick import global_sensitive_env
 
 

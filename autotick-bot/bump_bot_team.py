@@ -1,7 +1,7 @@
 import os
 import sys
-import github
 
+import github
 
 if os.environ["ACTION_NAME"] == "bot-bot":
     user = "@regro/auto-tick-triage"

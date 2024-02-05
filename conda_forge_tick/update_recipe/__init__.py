@@ -1,2 +1,2 @@
-from .build_number import update_build_number, DEFAULT_BUILD_PATTERNS  # noqa
+from .build_number import DEFAULT_BUILD_PATTERNS, update_build_number  # noqa
 from .version import update_version  # noqa

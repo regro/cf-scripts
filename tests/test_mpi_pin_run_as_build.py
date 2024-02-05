@@ -1,4 +1,5 @@
 import pytest
+
 from conda_forge_tick.migrators.mpi_pin_run_as_build import _parse_cbc_mpi
 
 

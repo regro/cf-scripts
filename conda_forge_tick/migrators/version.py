@@ -1,30 +1,26 @@
-import os
-import typing
 import functools
-import random
-from typing import (
-    Sequence,
-    Any,
-    List,
-)
-import warnings
 import logging
+import os
+import random
+import typing
+import warnings
+from typing import Any, List, Sequence
 
-import networkx as nx
 import conda.exceptions
+import networkx as nx
 from conda.models.version import VersionOrder
 
-from conda_forge_tick.migrators.core import Migrator
 from conda_forge_tick.contexts import FeedstockContext
+from conda_forge_tick.migrators.core import Migrator
 from conda_forge_tick.os_utils import pushd
-from conda_forge_tick.utils import sanitize_string, get_keys_default
 from conda_forge_tick.update_deps import get_dep_updates_and_hints
 from conda_forge_tick.update_recipe import update_version
+from conda_forge_tick.utils import get_keys_default, sanitize_string
 
 if typing.TYPE_CHECKING:
     from conda_forge_tick.migrators_types import (
-        MigrationUidTypedDict,
         AttrsTypedDict,
+        MigrationUidTypedDict,
         PackageName,
     )
 

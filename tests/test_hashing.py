@@ -1,6 +1,6 @@
 import pytest
 
-from conda_forge_tick.hashing import hash_url, _hash_url
+from conda_forge_tick.hashing import _hash_url, hash_url
 
 
 def test_hashing_smoke():

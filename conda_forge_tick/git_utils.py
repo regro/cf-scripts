@@ -1,33 +1,30 @@
 """Utilities for managing github repos"""
+import copy
 import datetime
 import os
-import time
-import sys
-from typing import Optional, Union, Tuple, Dict
 import subprocess
-import copy
-
-import requests
-import github3
-import github3.pulls
-import github3.repos
-import github3.exceptions
-import github3.repos
-
-from doctr.travis import run_command_hiding_token as doctr_run
-from .os_utils import pushd
-
-from requests.exceptions import Timeout, RequestException
-from .contexts import GithubContext, FeedstockContext, MigratorSessionContext
-import github
+import sys
+import time
+from typing import Dict, Optional, Tuple, Union
 
 import backoff
+import github
+import github3
+import github3.exceptions
+import github3.pulls
+import github3.repos
+import requests
+from doctr.travis import run_command_hiding_token as doctr_run
+from requests.exceptions import RequestException, Timeout
+
+from conda_forge_tick import sensitive_env
 
 # TODO: handle the URLs more elegantly (most likely make this a true library
 # and pull all the needed info from the various source classes)
 from conda_forge_tick.lazy_json_backends import LazyJson
 
-from conda_forge_tick import sensitive_env
+from .contexts import FeedstockContext, GithubContext, MigratorSessionContext
+from .os_utils import pushd
 
 backoff._decorator._is_event_loop = lambda: False
 

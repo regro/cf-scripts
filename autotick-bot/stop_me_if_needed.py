@@ -1,7 +1,7 @@
-import os
-import tempfile
-import subprocess
 import contextlib
+import os
+import subprocess
+import tempfile
 
 
 # https://stackoverflow.com/questions/6194499/pushd-through-os-system

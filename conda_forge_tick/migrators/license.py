@@ -1,17 +1,17 @@
+import logging
 import os
 import re
-import tempfile
 import subprocess
+import tempfile
 import typing
 from typing import Any
-import logging
 
 from rever.tools import replace_in_file
 
-from conda_forge_tick.os_utils import pushd, eval_cmd
-from conda_forge_tick.utils import _get_source_code
-from conda_forge_tick.recipe_parser import CondaMetaYAML
 from conda_forge_tick.migrators.core import MiniMigrator
+from conda_forge_tick.os_utils import eval_cmd, pushd
+from conda_forge_tick.recipe_parser import CondaMetaYAML
+from conda_forge_tick.utils import _get_source_code
 
 try:
     from conda_smithy.lint_recipe import NEEDED_FAMILIES

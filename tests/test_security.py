@@ -3,10 +3,10 @@ import subprocess
 
 
 def test_env_is_protected_against_malicious_recipes(tmpdir, caplog, env_setup):
-    from conda_forge_tick.os_utils import pushd
     import logging
 
     from conda_forge_tick.feedstock_parser import populate_feedstock_attributes
+    from conda_forge_tick.os_utils import pushd
 
     malicious_recipe = """\
     {% set version = "0" %}

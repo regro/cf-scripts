@@ -2,8 +2,8 @@ import re
 import typing
 from typing import Any
 
-from conda_forge_tick.os_utils import pushd
 from conda_forge_tick.migrators.core import MiniMigrator
+from conda_forge_tick.os_utils import pushd
 
 if typing.TYPE_CHECKING:
     from ..migrators_types import AttrsTypedDict

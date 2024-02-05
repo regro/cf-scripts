@@ -1,119 +1,113 @@
 import copy
+import gc
 import glob
 import json
-import re
-import sys
-import gc
-import random
-
-import time
-import traceback
 import logging
 import os
+import random
+import re
+import sys
+import time
+import traceback
 import typing
-import tqdm
 from subprocess import CalledProcessError
 from textwrap import dedent
 from typing import (
-    Optional,
-    MutableSequence,
-    MutableSet,
-    Sequence,
-    Tuple,
-    Set,
     Mapping,
     MutableMapping,
+    MutableSequence,
+    MutableSet,
+    Optional,
+    Sequence,
+    Set,
+    Tuple,
     Union,
 )
+
+import tqdm
 
 from .cli_context import CliContext
 
 if typing.TYPE_CHECKING:
-    from .migrators_types import (
-        MetaYamlTypedDict,
-        PackageName,
-        MigrationUidTypedDict,
-    )
+    from .migrators_types import MetaYamlTypedDict, MigrationUidTypedDict, PackageName
 
 # from conda_forge_tick.profiler import profiling
 
+from urllib.error import URLError
+from uuid import uuid4
+
+import github3
 import networkx as nx
 from conda.models.version import VersionOrder
 from conda_build.config import Config
 from conda_build.variants import parse_config_file
+from conda_forge_feedstock_check_solvable import is_recipe_solvable
 
-from urllib.error import URLError
-
-import github3
-from uuid import uuid4
-
-from conda_forge_tick.os_utils import pushd, eval_cmd
-from conda_forge_tick.lazy_json_backends import (
-    get_all_keys_for_hashmap,
-    LazyJson,
-    remove_key_for_hashmap,
-    lazy_json_transaction,
-)
 from conda_forge_tick.contexts import (
     FeedstockContext,
-    MigratorSessionContext,
     MigratorContext,
+    MigratorSessionContext,
 )
 from conda_forge_tick.git_utils import (
-    get_repo,
-    push_repo,
-    is_github_api_limit_reached,
     comment_on_pr,
+    get_repo,
+    is_github_api_limit_reached,
+    push_repo,
 )
-from conda_forge_tick.utils import (
-    setup_logger,
-    pluck,
-    load_graph,
-    dump_graph,
-    CB_CONFIG,
-    parse_meta_yaml,
-    sanitize_string,
-    frozen_to_json_friendly,
-    yaml_safe_load,
-    parse_munged_run_export,
-    fold_log_lines,
-    get_keys_default,
+from conda_forge_tick.lazy_json_backends import (
+    LazyJson,
+    get_all_keys_for_hashmap,
+    lazy_json_transaction,
+    remove_key_for_hashmap,
+)
+from conda_forge_tick.migrators import (
+    ArchRebuild,
+    Build2HostMigrator,
+    CondaForgeYAMLCleanup,
+    CrossCompilationForARMAndPower,
+    CrossPythonMigrator,
+    CrossRBaseMigrator,
+    DependencyUpdateMigrator,
+    DuplicateLinesCleanup,
+    ExtraJinja2KeysCleanup,
+    GraphMigrator,
+    GuardTestingMigrator,
+    Jinja2VarsCleanup,
+    JpegTurboMigrator,
+    LibboostMigrator,
+    LicenseMigrator,
+    MigrationYaml,
+    Migrator,
+    MPIPinRunAsBuildCleanup,
+    NoCondaInspectMigrator,
+    PipMigrator,
+    PipWheelMigrator,
+    QtQtMainMigrator,
+    Replacement,
+    UpdateCMakeArgsMigrator,
+    UpdateConfigSubGuessMigrator,
+    Version,
 )
 from conda_forge_tick.migrators.arch import OSXArm
 from conda_forge_tick.migrators.migration_yaml import (
     MigrationYamlCreator,
     create_rebuild_graph,
 )
-from conda_forge_tick.migrators import (
-    Migrator,
-    Version,
-    PipMigrator,
-    LicenseMigrator,
-    MigrationYaml,
-    Replacement,
-    ArchRebuild,
-    CondaForgeYAMLCleanup,
-    ExtraJinja2KeysCleanup,
-    Jinja2VarsCleanup,
-    UpdateConfigSubGuessMigrator,
-    UpdateCMakeArgsMigrator,
-    GuardTestingMigrator,
-    CrossRBaseMigrator,
-    CrossPythonMigrator,
-    Build2HostMigrator,
-    NoCondaInspectMigrator,
-    DuplicateLinesCleanup,
-    PipWheelMigrator,
-    GraphMigrator,
-    CrossCompilationForARMAndPower,
-    MPIPinRunAsBuildCleanup,
-    DependencyUpdateMigrator,
-    QtQtMainMigrator,
-    JpegTurboMigrator,
-    LibboostMigrator,
+from conda_forge_tick.os_utils import eval_cmd, pushd
+from conda_forge_tick.utils import (
+    CB_CONFIG,
+    dump_graph,
+    fold_log_lines,
+    frozen_to_json_friendly,
+    get_keys_default,
+    load_graph,
+    parse_meta_yaml,
+    parse_munged_run_export,
+    pluck,
+    sanitize_string,
+    setup_logger,
+    yaml_safe_load,
 )
-
-from conda_forge_feedstock_check_solvable import is_recipe_solvable
 
 # not using this right now
 # from conda_forge_tick.deploy import deploy

@@ -1,20 +1,19 @@
 import collections.abc
 import glob
 import hashlib
+import logging
+import os
+import re
 import tempfile
 import typing
 import zipfile
-import logging
 from collections import defaultdict
-import os
-import re
-from typing import Union, Set, Optional
+from typing import Optional, Set, Union
 
 import requests
 import yaml
-
 from requests.models import Response
-from xonsh.lib.collections import _convert_to_dict, ChainDB
+from xonsh.lib.collections import ChainDB, _convert_to_dict
 
 if typing.TYPE_CHECKING:
     from mypy_extensions import TestTypedDict

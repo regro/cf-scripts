@@ -1,40 +1,27 @@
 """Classes for migrating repos"""
 
+import datetime
+import logging
 import os
 import re
-import dateutil.parser
-import datetime
-from itertools import chain
 import typing
-import logging
-from typing import (
-    List,
-    Any,
-    Optional,
-    Sequence,
-    Set,
-)
+from itertools import chain
+from typing import Any, List, Optional, Sequence, Set
 
-
+import dateutil.parser
 import networkx as nx
 
-from conda_forge_tick.path_lengths import cyclic_topological_sort
+from conda_forge_tick.contexts import FeedstockContext, MigratorContext
 from conda_forge_tick.lazy_json_backends import LazyJson
-from conda_forge_tick.utils import (
-    frozen_to_json_friendly,
-    get_keys_default,
-)
 from conda_forge_tick.make_graph import make_outputs_lut_from_graph
-from conda_forge_tick.contexts import MigratorContext, FeedstockContext
+from conda_forge_tick.path_lengths import cyclic_topological_sort
 from conda_forge_tick.update_recipe import update_build_number
+from conda_forge_tick.utils import frozen_to_json_friendly, get_keys_default
 
 if typing.TYPE_CHECKING:
-    from ..migrators_types import (
-        AttrsTypedDict,
-        MigrationUidTypedDict,
-        PackageName,
-    )
     from conda_forge_tick.utils import JsonFriendly
+
+    from ..migrators_types import AttrsTypedDict, MigrationUidTypedDict, PackageName
 
 
 logger = logging.getLogger("conda_forge_tick.migrators.core")

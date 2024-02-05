@@ -1,19 +1,16 @@
+import logging
 import os
 import re
-import logging
 from unittest import mock
 
-import pytest
 import networkx as nx
+import pytest
 
-from conda_forge_tick.contexts import MigratorSessionContext, MigratorContext
-from conda_forge_tick.utils import (
-    parse_meta_yaml,
-    frozen_to_json_friendly,
-)
+from conda_forge_tick.contexts import MigratorContext, MigratorSessionContext
 from conda_forge_tick.feedstock_parser import populate_feedstock_attributes
 from conda_forge_tick.migrators import MigrationYamlCreator, merge_migrator_cbc
-from conda_forge_tick.os_utils import pushd, eval_cmd
+from conda_forge_tick.os_utils import eval_cmd, pushd
+from conda_forge_tick.utils import frozen_to_json_friendly, parse_meta_yaml
 
 G = nx.DiGraph()
 G.add_node("conda", reqs=["python"], payload={})
