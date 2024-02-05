@@ -1,5 +1,4 @@
-from conda_forge_tick.utils import parse_munged_run_export, parse_meta_yaml
-
+from conda_forge_tick.utils import parse_meta_yaml, parse_munged_run_export
 
 RECIPE = """\
 {% set version = "3.19.1" %}

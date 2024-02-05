@@ -1,30 +1,30 @@
-import datetime
-import traceback
-import typing
-import pprint
-import warnings
-from collections import defaultdict
 import contextlib
+import copy
+import datetime
+import io
 import itertools
 import logging
-import tempfile
-import io
 import os
+import pprint
 import sys
-import copy
-from typing import Any, Tuple, Iterable, Optional, Set
+import tempfile
+import traceback
+import typing
+import warnings
+from collections import defaultdict
+from typing import Any, Iterable, Optional, Set, Tuple
 
 import github3
 import jinja2
-import ruamel.yaml
-
 import networkx as nx
+import ruamel.yaml
 
 from . import sensitive_env
 from .lazy_json_backends import LazyJson
 
 if typing.TYPE_CHECKING:
     from mypy_extensions import TypedDict
+
     from conda_forge_tick.migrators_types import MetaYamlTypedDict
 
 logger = logging.getLogger("conda_forge_tick.utils")
@@ -243,10 +243,10 @@ def _parse_meta_yaml_impl(
     orig_cbc_path=None,
     **kwargs: Any,
 ) -> "MetaYamlTypedDict":
-    from conda_build.config import Config
-    from conda_build.metadata import parse, MetaData
     import conda_build.api
     import conda_build.environ
+    from conda_build.config import Config
+    from conda_build.metadata import MetaData, parse
     from conda_build.variants import explode_variants
 
     if (

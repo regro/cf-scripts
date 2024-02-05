@@ -1,8 +1,8 @@
-import re
-import io
 import collections.abc
+import io
 import json
-from typing import Union, List, Any
+import re
+from typing import Any, List, Union
 
 import jinja2
 import jinja2.meta

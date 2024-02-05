@@ -1,15 +1,11 @@
+import logging
 import os
 import typing
 from typing import Any
-import logging
-from conda_forge_tick.utils import (
-    yaml_safe_load,
-    yaml_safe_dump,
-)
 
-from conda_forge_tick.os_utils import pushd
-from conda_forge_tick.utils import _get_source_code
 from conda_forge_tick.migrators.core import MiniMigrator
+from conda_forge_tick.os_utils import pushd
+from conda_forge_tick.utils import _get_source_code, yaml_safe_dump, yaml_safe_load
 
 if typing.TYPE_CHECKING:
     from ..migrators_types import AttrsTypedDict

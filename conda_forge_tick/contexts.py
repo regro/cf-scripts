@@ -1,13 +1,14 @@
-import os
 import copy
-from dataclasses import dataclass
-from networkx import DiGraph
-import typing
+import os
 import threading
-import github3
-from conda_forge_tick.lazy_json_backends import load
-
+import typing
+from dataclasses import dataclass
 from typing import Union
+
+import github3
+from networkx import DiGraph
+
+from conda_forge_tick.lazy_json_backends import load
 
 if typing.TYPE_CHECKING:
     from conda_forge_tick.migrators import Migrator

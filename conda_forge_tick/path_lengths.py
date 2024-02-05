@@ -2,23 +2,12 @@
 Functions to find the longest paths between nodes in a graph.
 
 """
-from copy import deepcopy
 from collections import defaultdict
+from copy import deepcopy
+from typing import Any, DefaultDict, Dict, Iterable, List, Sequence, Set, TypeVar
 
 import networkx as nx
-
-
 from networkx.classes.digraph import DiGraph
-from typing import (
-    DefaultDict,
-    Dict,
-    List,
-    Set,
-    Iterable,
-    Any,
-    Sequence,
-    TypeVar,
-)
 
 T = TypeVar("T")
 

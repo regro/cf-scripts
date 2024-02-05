@@ -1,13 +1,14 @@
+import logging
 from typing import Any, List
 
-import tqdm
 import github
-import logging
+import tqdm
 
 from conda_forge_tick import sensitive_env
+
 from .cli_context import CliContext
+from .lazy_json_backends import dump, load
 from .utils import setup_logger
-from .lazy_json_backends import load, dump
 
 logger = logging.getLogger("conda_forge_tick.all_feedstocks")
 

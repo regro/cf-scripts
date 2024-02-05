@@ -1,6 +1,6 @@
-from conda_forge_tick.update_recipe import update_build_number
-
 import pytest
+
+from conda_forge_tick.update_recipe import update_build_number
 
 
 @pytest.mark.parametrize(

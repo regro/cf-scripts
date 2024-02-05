@@ -1,13 +1,12 @@
-import os
-import hashlib
-import glob
-import subprocess
-import functools
-import logging
 import contextlib
-
-from typing import Any, Union, Optional, IO, Set, Iterator
-from collections.abc import MutableMapping, Callable
+import functools
+import glob
+import hashlib
+import logging
+import os
+import subprocess
+from collections.abc import Callable, MutableMapping
+from typing import IO, Any, Iterator, Optional, Set, Union
 
 import rapidjson as json
 
@@ -125,7 +124,7 @@ class FileLazyJsonBackend(LazyJsonBackend):
         }
 
     def hdel(self, name, keys):
-        from .executors import PRLOCK, TRLOCK, DLOCK
+        from .executors import DLOCK, PRLOCK, TRLOCK
 
         lzj_names = " ".join(get_sharded_path(f"{name}/{key}.json") for key in keys)
         with PRLOCK, DLOCK, TRLOCK:
@@ -161,8 +160,8 @@ class FileLazyJsonBackend(LazyJsonBackend):
 
 @functools.lru_cache(maxsize=128)
 def _get_graph_data_mongodb_client_cached(pid):
-    from pymongo import MongoClient
     import pymongo
+    from pymongo import MongoClient
 
     client = MongoClient(os.environ["MONGODB_CONNECTION_STRING"])
 

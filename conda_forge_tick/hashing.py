@@ -1,8 +1,8 @@
-import hashlib
-from multiprocessing import Process, Pipe
-import time
-import math
 import functools
+import hashlib
+import math
+import time
+from multiprocessing import Pipe, Process
 
 import requests
 

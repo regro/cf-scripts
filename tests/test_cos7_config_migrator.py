@@ -1,13 +1,10 @@
 import os
+
 import pytest
-
-from conda_forge_tick.migrators import (
-    Version,
-    Cos7Config,
-)
-from conda_forge_tick.migrators.cos7 import REQUIRED_RE_LINES, _has_line_set
-
 from test_migrators import run_test_migration
+
+from conda_forge_tick.migrators import Cos7Config, Version
+from conda_forge_tick.migrators.cos7 import REQUIRED_RE_LINES, _has_line_set
 
 VERSION_COS7 = Version(
     set(),

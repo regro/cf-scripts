@@ -1,19 +1,18 @@
 import os
 
 from flaky import flaky
+from test_migrators import run_test_migration
 
 from conda_forge_tick.migrators import (
+    Build2HostMigrator,
+    CrossPythonMigrator,
+    CrossRBaseMigrator,
+    GuardTestingMigrator,
+    NoCondaInspectMigrator,
+    UpdateCMakeArgsMigrator,
     UpdateConfigSubGuessMigrator,
     Version,
-    GuardTestingMigrator,
-    UpdateCMakeArgsMigrator,
-    CrossRBaseMigrator,
-    CrossPythonMigrator,
-    Build2HostMigrator,
-    NoCondaInspectMigrator,
 )
-
-from test_migrators import run_test_migration
 
 config_migrator = UpdateConfigSubGuessMigrator()
 guard_testing_migrator = GuardTestingMigrator()

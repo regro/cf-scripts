@@ -1,42 +1,37 @@
 import os
 import re
+import subprocess
 import tempfile
 
-import pytest
 import networkx as nx
+import pytest
 
 from conda_forge_tick.contexts import (
-    MigratorSessionContext,
-    MigratorContext,
     FeedstockContext,
+    MigratorContext,
+    MigratorSessionContext,
 )
+from conda_forge_tick.feedstock_parser import populate_feedstock_attributes
+from conda_forge_tick.lazy_json_backends import LazyJson
 from conda_forge_tick.migrators import (
-    Version,
     MigrationYaml,
-    Replacement,
     Migrator,
     MiniMigrator,
+    Replacement,
+    Version,
 )
-from conda_forge_tick.lazy_json_backends import LazyJson
 
 # Legacy THINGS
 from conda_forge_tick.migrators.disabled.legacy import (
     JS,
-    Noarch,
-    Pinning,
-    NoarchR,
     BlasRebuild,
+    Noarch,
+    NoarchR,
+    Pinning,
     Rebuild,
 )
-
-from conda_forge_tick.utils import (
-    parse_meta_yaml,
-    frozen_to_json_friendly,
-)
-from conda_forge_tick.feedstock_parser import populate_feedstock_attributes
-import subprocess
 from conda_forge_tick.os_utils import pushd
-
+from conda_forge_tick.utils import frozen_to_json_friendly, parse_meta_yaml
 
 sample_yaml_rebuild = """
 {% set version = "1.3.2" %}

@@ -1,20 +1,21 @@
-from textwrap import dedent
 import typing
-from typing import Optional, Any, Sequence
+from textwrap import dedent
+from typing import Any, Optional, Sequence
 
 import networkx as nx
 
 from conda_forge_tick.contexts import FeedstockContext
-from conda_forge_tick.migrators.core import _sanitized_muids, GraphMigrator
+from conda_forge_tick.make_graph import get_deps_from_outputs_lut
+from conda_forge_tick.migrators.core import GraphMigrator, _sanitized_muids
+from conda_forge_tick.os_utils import pushd
 from conda_forge_tick.utils import (
+    as_iterable,
     frozen_to_json_friendly,
     pluck,
-    as_iterable,
-    yaml_safe_load,
     yaml_safe_dump,
+    yaml_safe_load,
 )
-from conda_forge_tick.os_utils import pushd
-from conda_forge_tick.make_graph import get_deps_from_outputs_lut
+
 from .migration_yaml import all_noarch
 
 if typing.TYPE_CHECKING:

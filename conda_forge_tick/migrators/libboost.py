@@ -1,6 +1,7 @@
-from conda_forge_tick.migrators.core import MiniMigrator
 import os
 import re
+
+from conda_forge_tick.migrators.core import MiniMigrator
 
 
 def _slice_into_output_sections(meta_yaml_lines, attrs):

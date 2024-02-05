@@ -2,8 +2,8 @@ import logging
 import typing
 from typing import Any
 
-from conda_forge_tick.update_deps import get_dep_updates_and_hints, apply_dep_update
 from conda_forge_tick.migrators.core import MiniMigrator
+from conda_forge_tick.update_deps import apply_dep_update, get_dep_updates_and_hints
 from conda_forge_tick.utils import get_keys_default
 
 if typing.TYPE_CHECKING:

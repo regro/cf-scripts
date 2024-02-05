@@ -1,29 +1,30 @@
-import networkx as nx
+import hashlib
 import logging
+import os
 import random
 import time
-import os
-import tqdm
-import hashlib
 from concurrent.futures import as_completed
+from typing import Any, Iterable
+
+import networkx as nx
+import tqdm
 
 from conda_forge_tick.cli_context import CliContext
-from .lazy_json_backends import LazyJson
-from .utils import setup_logger, load_graph
+
 from .executors import executor
+from .lazy_json_backends import LazyJson
 from .update_sources import (
-    AbstractSource,
-    PyPI,
     CRAN,
     NPM,
-    ROSDistro,
-    RawURL,
+    NVIDIA,
+    AbstractSource,
     Github,
     IncrementAlphaRawURL,
-    NVIDIA,
+    PyPI,
+    RawURL,
+    ROSDistro,
 )
-from typing import Any, Iterable
-from .utils import get_keys_default
+from .utils import get_keys_default, load_graph, setup_logger
 
 # conda_forge_tick :: cft
 logger = logging.getLogger("conda_forge_tick.update_upstream_versions")

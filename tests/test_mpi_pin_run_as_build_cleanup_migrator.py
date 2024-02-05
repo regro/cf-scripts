@@ -1,13 +1,11 @@
 import os
+
 import pytest
 from ruamel.yaml import YAML
-
-from conda_forge_tick.migrators import (
-    Version,
-    MPIPinRunAsBuildCleanup,
-)
-from conda_forge_tick.migrators.mpi_pin_run_as_build import MPIS
 from test_migrators import run_test_migration
+
+from conda_forge_tick.migrators import MPIPinRunAsBuildCleanup, Version
+from conda_forge_tick.migrators.mpi_pin_run_as_build import MPIS
 
 VERSION_CF = Version(
     set(),

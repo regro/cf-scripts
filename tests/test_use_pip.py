@@ -1,12 +1,9 @@
 import os
+
 import pytest
-
-from conda_forge_tick.migrators import (
-    Version,
-    PipMigrator,
-)
-
 from test_migrators import run_test_migration
+
+from conda_forge_tick.migrators import PipMigrator, Version
 
 PC = PipMigrator()
 VERSION_PC = Version(set(), piggy_back_migrations=[PC])

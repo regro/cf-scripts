@@ -1,20 +1,21 @@
-import os
-from pathlib import Path
-import tempfile
 import copy
 import logging
+import os
 import pprint
+import tempfile
+from pathlib import Path
 from typing import Dict
 
 import requests
 from stdlib_list import stdlib_list
-from conda_forge_tick.os_utils import pushd
-from conda_forge_tick.utils import _get_source_code
+
 from conda_forge_tick.depfinder_api import simple_import_to_pkg_map
 from conda_forge_tick.feedstock_parser import load_feedstock
-from conda_forge_tick.recipe_parser import CondaMetaYAML, CONDA_SELECTOR
-from conda_forge_tick.pypi_name_mapping import _KNOWN_NAMESPACE_PACKAGES
 from conda_forge_tick.make_graph import COMPILER_STUBS_WITH_STRONG_EXPORTS
+from conda_forge_tick.os_utils import pushd
+from conda_forge_tick.pypi_name_mapping import _KNOWN_NAMESPACE_PACKAGES
+from conda_forge_tick.recipe_parser import CONDA_SELECTOR, CondaMetaYAML
+from conda_forge_tick.utils import _get_source_code
 
 try:
     from grayskull.main import create_python_recipe

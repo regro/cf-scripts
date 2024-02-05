@@ -1,39 +1,34 @@
 import logging
 import os
+import random
 import re
 import time
-import typing
 import traceback
-from concurrent.futures import as_completed
+import typing
 from collections import defaultdict
-import random
+from concurrent.futures import as_completed
+from typing import Iterable, List, Optional
 
-import tqdm
-from typing import List, Optional, Iterable
-import psutil
 import networkx as nx
-
-from .cli_context import CliContext
-
-# from conda_forge_tick.profiler import profiling
+import psutil
+import tqdm
 
 from conda_forge_tick.feedstock_parser import load_feedstock
-from .all_feedstocks import get_all_feedstocks, get_archived_feedstocks
-from .contexts import GithubContext
-from .executors import executor
-from .utils import (
-    setup_logger,
-    load_graph,
-    dump_graph,
-    as_iterable,
-)
-from . import sensitive_env
 from conda_forge_tick.lazy_json_backends import (
     LazyJson,
     get_all_keys_for_hashmap,
-    lazy_json_transaction,
     lazy_json_override_backends,
+    lazy_json_transaction,
 )
+
+from . import sensitive_env
+from .all_feedstocks import get_all_feedstocks, get_archived_feedstocks
+from .cli_context import CliContext
+from .contexts import GithubContext
+from .executors import executor
+from .utils import as_iterable, dump_graph, load_graph, setup_logger
+
+# from conda_forge_tick.profiler import profiling
 
 
 logger = logging.getLogger("conda_forge_tick.make_graph")

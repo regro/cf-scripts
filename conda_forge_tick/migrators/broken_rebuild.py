@@ -4,7 +4,6 @@ import networkx as nx
 
 from conda_forge_tick.migrators.core import Migrator
 
-
 BROKEN_PACKAGES = """\
 linux-ppc64le/adios2-2.7.1-mpi_mpich_py36ha1d8cba_0.tar.bz2
 linux-ppc64le/adios2-2.7.1-mpi_mpich_py36hbc05bcd_1.tar.bz2

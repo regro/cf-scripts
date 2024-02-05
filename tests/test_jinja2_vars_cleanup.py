@@ -1,7 +1,8 @@
 import pytest
+
 from conda_forge_tick.migrators.jinja2_vars_cleanup import (
-    _should_filter,
     _cleanup_raw_yaml,
+    _should_filter,
 )
 
 

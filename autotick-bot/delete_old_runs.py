@@ -1,9 +1,10 @@
-import github
+import datetime
 import os
 import sys
-import requests
-import datetime
 import time
+
+import github
+import requests
 
 gh = github.Github(os.environ["GITHUB_TOKEN"])
 r = gh.get_repo("regro/cf-scripts")

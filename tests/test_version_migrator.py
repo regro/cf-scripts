@@ -1,12 +1,12 @@
+import logging
 import os
 import random
-import logging
+
 import pytest
 from flaky import flaky
+from test_migrators import run_test_migration
 
 from conda_forge_tick.migrators import Version
-
-from test_migrators import run_test_migration
 
 VERSION = Version(set())
 

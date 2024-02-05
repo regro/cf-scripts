@@ -1,11 +1,9 @@
 import os
-import pytest
-from conda_forge_tick.migrators import (
-    Version,
-    DuplicateLinesCleanup,
-)
 
+import pytest
 from test_migrators import run_test_migration
+
+from conda_forge_tick.migrators import DuplicateLinesCleanup, Version
 
 VERSION_DLC = Version(
     set(),

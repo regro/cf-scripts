@@ -1,10 +1,10 @@
 import os
+
 import pytest
 from flaky import flaky
-
-from conda_forge_tick.migrators import LibboostMigrator, Version
 from test_migrators import run_test_migration
 
+from conda_forge_tick.migrators import LibboostMigrator, Version
 
 TEST_YAML_PATH = os.path.join(os.path.dirname(__file__), "test_yaml")
 

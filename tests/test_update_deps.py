@@ -1,27 +1,24 @@
-import os
-from pathlib import Path
-import tempfile
 import logging
-
-from flaky import flaky
-
-from conda_forge_tick.lazy_json_backends import load
-from conda_forge_tick.recipe_parser import CondaMetaYAML
-from conda_forge_tick.update_deps import (
-    get_depfinder_comparison,
-    get_grayskull_comparison,
-    generate_dep_hint,
-    make_grayskull_recipe,
-    _update_sec_deps,
-    _merge_dep_comparisons_sec,
-    get_dep_updates_and_hints,
-)
-from conda_forge_tick.migrators import Version, DependencyUpdateMigrator
+import os
+import tempfile
+from pathlib import Path
 
 import pytest
-
+from flaky import flaky
 from test_migrators import run_test_migration
 
+from conda_forge_tick.lazy_json_backends import load
+from conda_forge_tick.migrators import DependencyUpdateMigrator, Version
+from conda_forge_tick.recipe_parser import CondaMetaYAML
+from conda_forge_tick.update_deps import (
+    _merge_dep_comparisons_sec,
+    _update_sec_deps,
+    generate_dep_hint,
+    get_dep_updates_and_hints,
+    get_depfinder_comparison,
+    get_grayskull_comparison,
+    make_grayskull_recipe,
+)
 
 VERSION = Version(
     set(),

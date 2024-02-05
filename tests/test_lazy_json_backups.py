@@ -1,18 +1,15 @@
-import subprocess
 import datetime
+import subprocess
 
-from conda_forge_tick.lazy_json_backends import (
-    LAZY_JSON_BACKENDS,
-    dumps,
-)
+import conda_forge_tick.utils
+from conda_forge_tick.lazy_json_backends import LAZY_JSON_BACKENDS, dumps
 from conda_forge_tick.lazy_json_backups import (
-    make_lazy_json_backup,
     get_current_backup_filenames,
-    remove_backup,
+    make_lazy_json_backup,
     prune_timestamps,
+    remove_backup,
 )
 from conda_forge_tick.os_utils import pushd
-import conda_forge_tick.utils
 
 
 def test_prune_timestamps():

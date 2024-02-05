@@ -1,10 +1,8 @@
 from flaky import flaky
-
-from conda_forge_tick.migrators import Version, LicenseMigrator
-from conda_forge_tick.migrators.license import _munge_licenses
-
 from test_migrators import run_test_migration
 
+from conda_forge_tick.migrators import LicenseMigrator, Version
+from conda_forge_tick.migrators.license import _munge_licenses
 
 LM = LicenseMigrator()
 VER_LM = Version(set(), piggy_back_migrations=[LM])
