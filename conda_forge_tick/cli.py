@@ -54,7 +54,7 @@ click.Group.command_class = TimedCommand
 @click.option(
     "--online/--offline",
     default=False,
-    help="online: Use the GitHub API for accessing the dependency graph. This is useful for local testing. Note "
+    help="online: Make requests to GitHub for accessing the dependency graph. This is useful for local testing. Note "
     "however that any write operations will not be performed. Important: The current working directory will be "
     "used to cache JSON files. Local files will be used if they exist.",
 )
