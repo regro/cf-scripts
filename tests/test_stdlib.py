@@ -21,6 +21,8 @@ VERSION_WITH_STDLIB = Version(
     [
         ("arrow", "1.10.0"),
         ("polars", "1.10.0"),
+        # test that we skip recipes that already contain a {{ stdlib("c") }}
+        ("skip_migration", "1.10.0"),
     ],
 )
 def test_stdlib(feedstock, new_ver, tmpdir):
