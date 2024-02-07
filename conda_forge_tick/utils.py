@@ -34,6 +34,7 @@ TD = typing.TypeVar("TD", bound=dict, covariant=True)
 
 PACKAGE_STUBS = [
     "_compiler_stub",
+    "_stdlib_stub",
     "subpackage_stub",
     "compatible_pin_stub",
     "cdt_stub",
@@ -43,6 +44,7 @@ CB_CONFIG = dict(
     os=os,
     environ=defaultdict(str),
     compiler=lambda x: x + "_compiler_stub",
+    stdlib=lambda x: x + "_stdlib_stub",
     pin_subpackage=lambda *args, **kwargs: args[0],
     pin_compatible=lambda *args, **kwargs: args[0],
     cdt=lambda *args, **kwargs: "cdt_stub",
@@ -61,6 +63,7 @@ CB_CONFIG_PINNING = dict(
     os=os,
     environ=defaultdict(str),
     compiler=lambda x: x + "_compiler_stub",
+    stdlib=lambda x: x + "_stdlib_stub",
     # The `max_pin, ` stub is so we know when people used the functions
     # to create the pins
     pin_subpackage=lambda *args, **kwargs: _munge_dict_repr(
