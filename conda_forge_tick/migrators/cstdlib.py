@@ -8,7 +8,7 @@ pat_stub = re.compile(r"(c|cxx|fortran)_compiler_stub")
 pat_compiler = re.compile(
     r"(?P<indent>\s*)-\s*"
     r"(?P<compiler>\{\{\s*compiler\([\"\'](c|cxx|fortran)[\"\']\)\s*\}\})"
-    r"\s*(?P<selector>\#\s+\[[\w\s]+\])?"
+    r"\s*(?P<selector>\#\s+\[[\w\s()<>!=.,\-\'\"]+\])?"
 )
 pat_stdlib = re.compile(r".*\{\{\s*stdlib\([\"\']c[\"\']\)\s*\}\}.*")
 
