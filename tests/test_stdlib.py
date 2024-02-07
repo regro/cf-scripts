@@ -20,6 +20,7 @@ VERSION_WITH_STDLIB = Version(
     "feedstock,new_ver",
     [
         ("arrow", "1.10.0"),
+        ("polars", "1.10.0"),
     ],
 )
 def test_stdlib(feedstock, new_ver, tmpdir):
