@@ -58,9 +58,12 @@ def _process_section(name, attrs, lines):
     line_build = line_compiler_c = line_compiler_other = 0
     line_host = line_run = line_constrain = line_test = 0
     indent_c = selector_c = indent_other = selector_other = ""
+    last_line_was_build = False
     for i, line in enumerate(lines):
         if re.match(r"^\s*build:.*", line):
-            # always update this, as requirements.build follows build.{number,...}
+            # we need to avoid build.{number,...}, but cannot use multiline
+            # regexes here. So leave a marker that we can skip on
+            last_line_was_build = True
             line_build = i
         elif pat_compiler_c.search(line):
             line_compiler_c = i
@@ -80,6 +83,11 @@ def _process_section(name, attrs, lines):
             line_test = i
             # ensure we don't read past test section (may contain unrelated deps)
             break
+        elif last_line_was_build:
+            if re.match(r"^\s*(number|script|noarch|skip):.*", line):
+                # last match was spurious, reset line_build
+                line_build = 0
+            last_line_was_build = False
 
     # in case of several compilers, prefer line, indent & selector of c compiler
     line_compiler = line_compiler_c or line_compiler_other
