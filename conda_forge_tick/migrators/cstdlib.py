@@ -5,10 +5,19 @@ from conda_forge_tick.migrators.core import MiniMigrator
 from conda_forge_tick.migrators.libboost import _slice_into_output_sections
 
 pat_stub = re.compile(r"(c|cxx|fortran)_compiler_stub")
+rgx_idt = r"(?P<indent>\s*)-\s*"
+rgx_pre = r"(?P<compiler>\{\{\s*compiler\([\"\']"
+rgx_post = r"[\"\']\)\s*\}\})"
+rgx_sel = r"\s*(?P<selector>\#\s+\[[\w\s()<>!=.,\-\'\"]+\])?"
+
+pat_compiler_c = re.compile(
+    "".join([rgx_idt, rgx_pre, "(m2w64_)?c", rgx_post, rgx_sel])
+)
+pat_compiler_other = re.compile(
+    "".join([rgx_idt, rgx_pre, "(m2w64_)?(cxx|fortran)", rgx_post, rgx_sel])
+)
 pat_compiler = re.compile(
-    r"(?P<indent>\s*)-\s*"
-    r"(?P<compiler>\{\{\s*compiler\([\"\'](c|cxx|fortran)[\"\']\)\s*\}\})"
-    r"\s*(?P<selector>\#\s+\[[\w\s()<>!=.,\-\'\"]+\])?"
+    "".join([rgx_idt, rgx_pre, "(m2w64_)?(c|cxx|fortran)", rgx_post, rgx_sel])
 )
 pat_stdlib = re.compile(r".*\{\{\s*stdlib\([\"\']c[\"\']\)\s*\}\}.*")
 
@@ -46,16 +55,21 @@ def _process_section(name, attrs, lines):
         # no change
         return lines
 
-    line_build = line_compiler = line_host = line_run = line_constrain = line_test = 0
-    indent = selector = ""
+    line_build = line_compiler_c = line_compiler_other = 0
+    line_host = line_run = line_constrain = line_test = 0
+    indent_c = selector_c = indent_other = selector_other = ""
     for i, line in enumerate(lines):
         if re.match(r".*build:.*", line):
             # always update this, as requirements.build follows build.{number,...}
             line_build = i
-        elif pat_compiler.search(line):
-            line_compiler = i
-            indent = pat_compiler.match(line).group("indent")
-            selector = pat_compiler.match(line).group("selector") or ""
+        elif pat_compiler_c.search(line):
+            line_compiler_c = i
+            indent_c = pat_compiler_c.match(line).group("indent")
+            selector_c = pat_compiler_c.match(line).group("selector") or ""
+        elif pat_compiler_other.search(line):
+            line_compiler_other = i
+            indent_other = pat_compiler_other.match(line).group("indent")
+            selector_other = pat_compiler_other.match(line).group("selector") or ""
         elif re.match(r".*host:.*", line):
             line_host = i
         elif re.match(r".*run:.*", line):
@@ -67,6 +81,10 @@ def _process_section(name, attrs, lines):
             # ensure we don't read past test section (may contain unrelated deps)
             break
 
+    # in case of several compilers, prefer line, indent & selector of c compiler
+    line_compiler = line_compiler_c or line_compiler_other
+    indent = indent_c or indent_other
+    selector = selector_c or selector_other
     if indent == "":
         # no compiler in current output; take first line of section as reference (without last \n);
         # ensure it works for both global build section as well as for `- name: <output>`.
@@ -84,8 +102,9 @@ def _process_section(name, attrs, lines):
     line_insert = line_host or line_run or line_constrain or line_test
     if not line_insert:
         raise RuntimeError("Don't know where to insert build section!")
-    # by default, we insert directly after the compiler
-    line_insert = line_compiler + 1
+    if line_compiler:
+        # by default, we insert directly after the compiler
+        line_insert = line_compiler + 1
 
     return lines[:line_insert] + [to_insert] + lines[line_insert:]
 
