@@ -4,7 +4,7 @@ import time
 from typing import Optional
 
 import click
-from click import IntRange, Context
+from click import Context, IntRange
 
 from conda_forge_tick import lazy_json_backends
 

@@ -20,7 +20,7 @@ from packaging.utils import NormalizedName as PypiName
 from packaging.utils import canonicalize_name as canonicalize_pypi_name
 
 from .lazy_json_backends import LazyJson, dump, get_all_keys_for_hashmap, loads
-from .utils import as_iterable, load_graph
+from .utils import as_iterable, load_existing_graph, load_graph
 
 
 class Mapping(TypedDict):
@@ -298,7 +298,7 @@ def determine_best_matches_for_pypi_import(
         map_by_conda_name[conda_name] = m
 
     graph_file = str(pathlib.Path(".") / "graph.json")
-    gx = load_graph(graph_file)
+    gx = load_existing_graph(graph_file)
     # TODO: filter out archived feedstocks?
 
     try:

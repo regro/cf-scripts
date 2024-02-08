@@ -36,7 +36,7 @@ from .update_sources import (
     RawURL,
     ROSDistro,
 )
-from .utils import get_keys_default, load_graph
+from .utils import get_keys_default, load_existing_graph
 
 T = TypeVar("T")
 
@@ -405,7 +405,7 @@ def main(
     """
     logger.info("Reading graph")
     # Graph enabled for inspection
-    gx = load_graph()
+    gx = load_existing_graph()
 
     # Check if 'versions' folder exists or create a new one;
     os.makedirs("versions", exist_ok=True)

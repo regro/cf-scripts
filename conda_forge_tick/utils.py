@@ -74,6 +74,8 @@ CB_CONFIG_PINNING = dict(
     datetime=datetime,
 )
 
+DEFAULT_GRAPH_FILENAME = "graph.json"
+
 
 @contextlib.contextmanager
 def fold_log_lines(title):
@@ -431,7 +433,6 @@ def dump_graph_json(gx: nx.DiGraph, filename: str = "graph.json") -> None:
     links = nld["links"]
     links2 = sorted(links, key=lambda x: f'{x["source"]}{x["target"]}')
     nld["links"] = links2
-    from conda_forge_tick.lazy_json_backends import LazyJson
 
     lzj = LazyJson(filename)
     with lzj as attrs:
@@ -447,14 +448,32 @@ def dump_graph(
     dump_graph_json(gx, filename)
 
 
-def load_graph(filename: str = "graph.json") -> nx.DiGraph:
-    from conda_forge_tick.lazy_json_backends import LazyJson
+def load_existing_graph(filename: str = DEFAULT_GRAPH_FILENAME) -> nx.DiGraph:
+    """
+    Load the graph from a file using the lazy json backend.
+    If a non-existing or empty file is encountered, a FileNotFoundError is raised.
+    If you expect the graph to possibly not exist, use load_graph.
 
+    :return: the graph
+    """
+    gx = load_graph(filename)
+    if gx is None:
+        raise FileNotFoundError(f"Graph file {filename} does not exist or is empty")
+    return gx
+
+
+def load_graph(filename: str = DEFAULT_GRAPH_FILENAME) -> Optional[nx.DiGraph]:
+    """
+    Load the graph from a file using the lazy json backend.
+    If you expect the graph to exist, use load_existing_graph.
+
+    :return: the graph, or None if the file does not exist or is empty JSON
+    """
     dta = copy.deepcopy(LazyJson(filename).data)
     if dta:
         return nx.node_link_graph(dta)
     else:
-        raise FileNotFoundError("Graph file not found.")
+        return None
 
 
 # TODO: This type does not support generics yet sadly

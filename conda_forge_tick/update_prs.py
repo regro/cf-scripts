@@ -18,7 +18,7 @@ from conda_forge_tick.git_utils import (
 
 from .executors import executor
 from .make_graph import ghctx
-from .utils import github_client, load_graph
+from .utils import github_client, load_existing_graph
 
 # from conda_forge_tick.profiler import profiling
 
@@ -164,7 +164,7 @@ def close_dirty_prs(
 
 # @profiling
 def main(ctx: CliContext, job: int = 1, n_jobs: int = 1) -> None:
-    gx = load_graph()
+    gx = load_existing_graph()
 
     gx = close_labels(gx, ctx.dry_run, job=job, n_jobs=n_jobs)
     gx = update_graph_pr_status(gx, ctx.dry_run, job=job, n_jobs=n_jobs)
