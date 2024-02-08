@@ -75,22 +75,17 @@ def _process_section(name, attrs, lines):
         )
 
     to_insert = indent + '- {{ stdlib("c") }}' + selector + "\n"
-    if line_host == 0:
-        # no host section, need to add it
-        to_insert = indent[:-2] + "host:\n" + to_insert
+    if line_build == 0:
+        # no build section, need to add it
+        to_insert = indent[:-2] + "build:\n" + to_insert
 
-    if line_host == 0 and line_run == 0:
-        # neither host nor run section; insert before
-        # run_constrained (if it exists) else test section
-        line_insert = line_constrain or line_test
-        if not line_insert:
-            raise RuntimeError("Don't know where to insert host section!")
-    elif line_host == 0:
-        # no host section, insert before run
-        line_insert = line_run
-    else:
-        # by default, we insert as first host dependency
-        line_insert = line_host + 1
+    # if there's no build section, try to insert (in order of preference)
+    # before the sections for host, run, run_constrained, test
+    line_insert = line_host or line_run or line_constrain or line_test
+    if not line_insert:
+        raise RuntimeError("Don't know where to insert build section!")
+    # by default, we insert directly after the compiler
+    line_insert = line_compiler + 1
 
     return lines[:line_insert] + [to_insert] + lines[line_insert:]
 
