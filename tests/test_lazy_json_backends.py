@@ -2,12 +2,16 @@ import hashlib
 import json
 import os
 import pickle
+from unittest import mock
+from unittest.mock import MagicMock
 
 import pytest
 
 import conda_forge_tick.utils
+from conda_forge_tick.backend_settings import GITHUB_GRAPH_BACKEND_BASE_URL
 from conda_forge_tick.lazy_json_backends import (
     LAZY_JSON_BACKENDS,
+    GithubLazyJsonBackend,
     LazyJson,
     MongoDBLazyJsonBackend,
     dump,
@@ -506,3 +510,43 @@ def test_lazy_json_backends_hashmap(tmpdir):
         assert get_all_keys_for_hashmap("lazy_json") == ["blah"]
         remove_key_for_hashmap("lazy_json", "blah")
         assert get_all_keys_for_hashmap("lazy_json") == []
+
+
+class TestGithubLazyJsonBackend:
+    base_url = "https://github.com/lorem/ipsum/raw/master"
+
+    @pytest.fixture
+    def backend(self) -> GithubLazyJsonBackend:
+        github_backend = GithubLazyJsonBackend()
+        github_backend.base_url = self.base_url
+        return github_backend
+
+    def test_base_url(self) -> None:
+        github_backend = GithubLazyJsonBackend()
+        assert github_backend.base_url == GITHUB_GRAPH_BACKEND_BASE_URL + "/"
+        github_backend.base_url = self.base_url
+        assert github_backend.base_url == self.base_url + "/"
+
+    @mock.patch("requests.head")
+    def test_hexists_success(
+        self,
+        mock_head: MagicMock,
+        backend: GithubLazyJsonBackend,
+    ) -> None:
+        mock_head.return_value.status_code = 200
+        assert backend.hexists("name", "key")
+        mock_head.assert_called_once_with(
+            f"{TestGithubLazyJsonBackend.base_url}/name/key.json",
+        )
+
+    @mock.patch("requests.head")
+    def test_hexists_failure(
+        self,
+        mock_head: MagicMock,
+        backend: GithubLazyJsonBackend,
+    ) -> None:
+        mock_head.return_value.status_code = 404
+        assert not backend.hexists("name", "key")
+        mock_head.assert_called_once_with(
+            f"{TestGithubLazyJsonBackend.base_url}/name/key.json",
+        )

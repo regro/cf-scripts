@@ -1,3 +1,4 @@
+import logging
 import os
 import time
 from typing import Optional
@@ -5,7 +6,12 @@ from typing import Optional
 import click
 from click import IntRange
 
+from conda_forge_tick import lazy_json_backends
+from conda_forge_tick.utils import setup_logger
+
 from .cli_context import CliContext
+
+logger = logging.getLogger(__name__)
 
 pass_context = click.make_pass_decorator(CliContext, ensure=True)
 job_option = click.option(
@@ -46,13 +52,27 @@ click.Group.command_class = TimedCommand
     default=False,
     help="dry run: don't push changes to PRs or graph to Github",
 )
+@click.option(
+    "--online/--offline",
+    default=False,
+    help="Online: Use the GitHub API for accessing the dependency graph. This is useful for local testing. Note "
+    "however that any write operations will not be performed.",
+)
 @pass_context
-def main(ctx: CliContext, debug: bool, dry_run: bool) -> None:
+def main(ctx: CliContext, debug: bool, dry_run: bool, online: bool) -> None:
+    log_level = "debug" if debug else "info"
+    setup_logger(logger, log_level)
+
     ctx.debug = debug
     ctx.dry_run = dry_run
 
     if ctx.debug:
         os.environ["CONDA_FORGE_TICK_DEBUG"] = "1"
+
+    if online:
+        logger.info("Running in online mode")
+        lazy_json_backends.CF_TICK_GRAPH_DATA_BACKENDS = ("github",)
+        lazy_json_backends.CF_TICK_GRAPH_DATA_PRIMARY_BACKEND = "github"
 
 
 @main.command(name="gather-all-feedstocks")

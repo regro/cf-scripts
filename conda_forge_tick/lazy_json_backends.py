@@ -5,14 +5,29 @@ import hashlib
 import logging
 import os
 import subprocess
+import urllib
+from abc import ABC, abstractmethod
 from collections.abc import Callable, MutableMapping
-from typing import IO, Any, Iterator, Optional, Set, Union
+from typing import (
+    IO,
+    Any,
+    Dict,
+    Iterable,
+    Iterator,
+    List,
+    Mapping,
+    Optional,
+    Set,
+    Union,
+)
 
 import rapidjson as json
+import requests
 
+from .backend_settings import GITHUB_GRAPH_BACKEND_BASE_URL
 from .cli_context import CliContext
 
-logger = logging.getLogger("conda_forge_tick.lazy_json_backends")
+logger = logging.getLogger(__name__)
 
 CF_TICK_GRAPH_DATA_BACKENDS = tuple(
     os.environ.get("CF_TICK_GRAPH_DATA_BACKENDS", "file").split(":"),
@@ -40,80 +55,86 @@ def get_sharded_path(file_path, n_dirs=5):
         return os.path.join(*pth_parts)
 
 
-class LazyJsonBackend:
+class LazyJsonBackend(ABC):
     @contextlib.contextmanager
-    def transaction_context(self):
-        raise NotImplementedError
+    @abstractmethod
+    def transaction_context(self) -> "LazyJsonBackend":
+        pass
 
     @contextlib.contextmanager
-    def snapshot_context(self):
-        raise NotImplementedError
+    @abstractmethod
+    def snapshot_context(self) -> "LazyJsonBackend":
+        pass
 
-    def hexists(self, name, key):
-        raise NotImplementedError
+    @abstractmethod
+    def hexists(self, name: str, key: str) -> bool:
+        pass
 
-    def hset(self, name, key, value):
-        raise NotImplementedError
+    @abstractmethod
+    def hset(self, name: str, key: str, value: str) -> None:
+        pass
 
-    def hmset(self, name, mapping):
-        raise NotImplementedError
+    @abstractmethod
+    def hmset(self, name: str, mapping: Mapping[str, str]) -> None:
+        pass
 
-    def hmget(self, name, keys):
-        raise NotImplementedError
+    @abstractmethod
+    def hmget(self, name: str, keys: Iterable[str]) -> List[str]:
+        pass
 
-    def hdel(self, name, keys):
-        raise NotImplementedError
+    @abstractmethod
+    def hdel(self, name: str, keys: Iterable[str]) -> None:
+        pass
 
-    def hkeys(self, name):
-        raise NotImplementedError
+    @abstractmethod
+    def hkeys(self, name: str) -> List[str]:
+        pass
 
-    def hsetnx(self, name, key, value):
+    def hsetnx(self, name: str, key: str, value: str) -> bool:
         if self.hexists(name, key):
             return False
         else:
             self.hset(name, key, value)
             return True
 
-    def hget(self, name, key):
-        raise NotImplementedError
+    @abstractmethod
+    def hget(self, name: str, key: str) -> str:
+        pass
 
-    def hgetall(self, name, hashval=False):
-        raise NotImplementedError
+    @abstractmethod
+    def hgetall(self, name: str, hashval: bool = False) -> Dict[str, str]:
+        pass
 
 
 class FileLazyJsonBackend(LazyJsonBackend):
     @contextlib.contextmanager
-    def transaction_context(self):
-        try:
-            yield self
-        finally:
-            pass
+    def transaction_context(self) -> "FileLazyJsonBackend":
+        # context not required
+        yield self
 
     @contextlib.contextmanager
-    def snapshot_context(self):
-        try:
-            yield self
-        finally:
-            pass
+    def snapshot_context(self) -> "FileLazyJsonBackend":
+        # context not required
+        yield self
 
-    def hexists(self, name, key):
+    def hexists(self, name: str, key: str) -> bool:
         return os.path.exists(get_sharded_path(f"{name}/{key}.json"))
 
-    def hset(self, name, key, value):
+    def hset(self, name: str, key: str, value: str) -> None:
         sharded_path = get_sharded_path(f"{name}/{key}.json")
         if os.path.split(sharded_path)[0]:
             os.makedirs(os.path.split(sharded_path)[0], exist_ok=True)
         with open(sharded_path, "w") as f:
             f.write(value)
 
-    def hmset(self, name, mapping):
+    def hmset(self, name: str, mapping: Mapping[str, str]) -> None:
         for key, value in mapping.items():
             self.hset(name, key, value)
 
-    def hmget(self, name, keys):
+    def hmget(self, name: str, keys: str) -> List[str]:
         return [self.hget(name, key) for key in keys]
 
-    def hgetall(self, name, hashval=False):
+    def hgetall(self, name: str, hashval: bool = False) -> Dict[str, str]:
         return {
             key: (
                 hashlib.sha256(self.hget(name, key).encode("utf-8")).hexdigest()
@@ -123,7 +144,7 @@ class FileLazyJsonBackend(LazyJsonBackend):
             for key in self.hkeys(name)
         }
 
-    def hdel(self, name, keys):
+    def hdel(self, name: str, keys: Iterable[str]) -> None:
         from .executors import DLOCK, PRLOCK, TRLOCK
 
         lzj_names = " ".join(get_sharded_path(f"{name}/{key}.json") for key in keys)
@@ -139,7 +160,7 @@ class FileLazyJsonBackend(LazyJsonBackend):
             capture_output=True,
         )
 
-    def hkeys(self, name):
+    def hkeys(self, name: str) -> List[str]:
         jlen = len(".json")
         if name == "lazy_json":
             fnames = glob.glob("*.json")
@@ -151,11 +172,114 @@ class FileLazyJsonBackend(LazyJsonBackend):
             fnames = glob.glob(os.path.join(name, "**/*.json"), recursive=True)
         return [os.path.basename(fname)[:-jlen] for fname in fnames]
 
-    def hget(self, name, key):
+    def hget(self, name: str, key: str) -> str:
         sharded_path = get_sharded_path(f"{name}/{key}.json")
         with open(sharded_path) as f:
             data_str = f.read()
         return data_str
+
+
+class GithubLazyJsonBackend(LazyJsonBackend):
+    """
+    Read-only backend that makes live requests to https://raw.githubusercontent.com URLs for serving
+    JSON files.
+
+    Any write operations are ignored!
+    """
+
+    _write_warned = False
+    _n_requests = 0
+
+    def __init__(self) -> None:
+        self.base_url = GITHUB_GRAPH_BACKEND_BASE_URL
+
+    @property
+    def base_url(self) -> str:
+        return self._base_url
+
+    @base_url.setter
+    def base_url(self, value: str) -> None:
+        if not value.endswith("/"):
+            value += "/"
+        self._base_url = value
+
+    def _ignore_write(self) -> None:
+        if self._write_warned:
+            return
+        logger.info(f"Note: Write operations to the GitHub online backend are ignored.")
+        self._write_warned = True
+
+    @classmethod
+    def _inform_web_request(cls):
+        cls._n_requests += 1
+        if cls._n_requests % 10 == 0:
+            logger.info(
+                f"Made {cls._n_requests} requests to the GitHub online backend.",
+            )
+        if cls._n_requests == 10:
+            logger.warning(
+                f"Using the GitHub online backend for making a lot of requests is not recommended.",
+            )
+
+    def transaction_context(self) -> "GithubLazyJsonBackend":
+        # context not required
+        yield self
+
+    def snapshot_context(self) -> "GithubLazyJsonBackend":
+        # context not required
+        yield self
+
+    def hexists(self, name: str, key: str) -> bool:
+        self._inform_web_request()
+        url = urllib.parse.urljoin(self.base_url, f"{name}/{key}.json")
+        status = requests.head(url).status_code
+
+        if status == 200:
+            return True
+        if status == 404:
+            return False
+
+        raise RuntimeError(f"Unexpected status code {status} for {url}")
+
+    def hset(self, name: str, key: str, value: str) -> None:
+        self._ignore_write()
+
+    def hmset(self, name: str, mapping: Mapping[str, str]) -> None:
+        self._ignore_write()
+
+    def hmget(self, name: str, keys: Iterable[str]) -> List[str]:
+        return [self.hget(name, key) for key in keys]
+
+    def hdel(self, name: str, keys: Iterable[str]) -> None:
+        self._ignore_write()
+
+    def hkeys(self, name: str) -> List[str]:
+        """
+        Not implemented for GithubLazyJsonBackend.
+        Logs a warning and returns an empty list.
+        """
+        logger.warning(
+            "hkeys not implemented for GithubLazyJsonBackend. Returning empty list.",
+        )
+        return []
+
+    def hget(self, name: str, key: str) -> str:
+        self._inform_web_request()
+        sharded_path = get_sharded_path(f"{name}/{key}.json")
+        url = urllib.parse.urljoin(self.base_url, sharded_path)
+        r = requests.get(url)
+        r.raise_for_status()
+        return r.text
+
+    def hgetall(self, name: str, hashval: bool = False) -> Dict[str, str]:
+        """
+        Not implemented for GithubLazyJsonBackend.
+        Logs a warning and returns an empty dict.
+        """
+        logger.warning(
+            "hgetall not implemented for GithubLazyJsonBackend. Returning empty dict.",
+        )
+        return {}
 
 
 @functools.lru_cache(maxsize=128)
@@ -313,6 +437,7 @@ class MongoDBLazyJsonBackend(LazyJsonBackend):
 LAZY_JSON_BACKENDS = {
     "file": FileLazyJsonBackend,
     "mongodb": MongoDBLazyJsonBackend,
+    "github": GithubLazyJsonBackend,
 }
 
 
