@@ -40,6 +40,7 @@ build:
 requirements:
   build:
     - {{ compiler("c") }}
+    - {{ stdlib("c") }}
     - {{ compiler("cxx") }}
     - {{ compiler("cuda") }}                 # [cuda_compiler_version != "None"]
     # needs to run protoc & grpc_cpp_plugin
@@ -55,7 +56,6 @@ requirements:
     - autoconf     # [linux]
     - make         # [linux]
   host:
-    - {{ stdlib("c") }}
     # for required dependencies, see
     # https://github.com/apache/arrow/blob/apache-arrow-11.0.0/cpp/cmake_modules/ThirdpartyToolchain.cmake#L46-L75
     - clangdev {{ llvm_version }}
@@ -95,7 +95,7 @@ outputs:
       number: {{ proc_build_number }}
       string: {{ build_ext }}
     requirements:
-      host:
+      build:
         - {{ stdlib("c") }}
       run_constrained:
         # avoid installation with old naming of proc package
@@ -185,10 +185,10 @@ outputs:
         - ninja
         # for strong run-exports
         - {{ compiler("c") }}
+        - {{ stdlib("c") }}
         - {{ compiler("cxx") }}
         - {{ compiler("cuda") }}                 # [cuda_compiler_version != "None"]
       host:
-        - {{ stdlib("c") }}
         - aws-crt-cpp
         - aws-sdk-cpp
         - brotli
@@ -288,9 +288,9 @@ outputs:
         - ninja
         # for strong run-exports
         - {{ compiler("c") }}
+        - {{ stdlib("c") }}
         - {{ compiler("cxx") }}
       host:
-        - {{ stdlib("c") }}
         - {{ pin_subpackage("libarrow", exact=True) }}
       run:
         - {{ pin_subpackage("libarrow", exact=True) }}
@@ -333,9 +333,9 @@ outputs:
         - ninja
         # for strong run-exports
         - {{ compiler("c") }}
+        - {{ stdlib("c") }}
         - {{ compiler("cxx") }}
       host:
-        - {{ stdlib("c") }}
         - {{ pin_subpackage("libarrow", exact=True) }}
         - {{ pin_subpackage("libarrow-acero", exact=True) }}
         - {{ pin_subpackage("libparquet", exact=True) }}
@@ -382,12 +382,12 @@ outputs:
         - ninja
         # for strong run-exports
         - {{ compiler("c") }}
+        - {{ stdlib("c") }}
         - {{ compiler("cxx") }}
         # needs to run protoc & grpc_cpp_plugin
         - libgrpc                                # [build_platform != target_platform]
         - libprotobuf                            # [build_platform != target_platform]
       host:
-        - {{ stdlib("c") }}
         - {{ pin_subpackage("libarrow", exact=True) }}
         - libabseil
         - libgrpc
@@ -437,12 +437,12 @@ outputs:
         - ninja
         # for strong run-exports
         - {{ compiler("c") }}
+        - {{ stdlib("c") }}
         - {{ compiler("cxx") }}
         # needs to run protoc & grpc_cpp_plugin
         - libgrpc                                # [build_platform != target_platform]
         - libprotobuf                            # [build_platform != target_platform]
       host:
-        - {{ stdlib("c") }}
         - {{ pin_subpackage("libarrow", exact=True) }}
         - {{ pin_subpackage("libarrow-flight", exact=True) }}
         - libprotobuf
@@ -488,9 +488,9 @@ outputs:
         - ninja
         # for strong run-exports
         - {{ compiler("c") }}
+        - {{ stdlib("c") }}
         - {{ compiler("cxx") }}
       host:
-        - {{ stdlib("c") }}
         - {{ pin_subpackage("libarrow", max_pin="x") }}
         - libutf8proc
         # gandiva requires shared libllvm; needs to match version used at build time
@@ -543,11 +543,11 @@ outputs:
         - libprotobuf                            # [build_platform != target_platform]
         # for strong run-exports
         - {{ compiler("c") }}
+        - {{ stdlib("c") }}
         - {{ compiler("cxx") }}
         - cmake
         - ninja
       host:
-        - {{ stdlib("c") }}
         - {{ pin_subpackage("libarrow", exact=True) }}
         - {{ pin_subpackage("libarrow-acero", exact=True) }}
         - {{ pin_subpackage("libarrow-dataset", exact=True) }}
@@ -596,9 +596,9 @@ outputs:
         - ninja
         # for strong run-exports
         - {{ compiler("c") }}
+        - {{ stdlib("c") }}
         - {{ compiler("cxx") }}
       host:
-        - {{ stdlib("c") }}
         - {{ pin_subpackage("libarrow", max_pin="x") }}
         - openssl
         - thrift-cpp
@@ -648,6 +648,7 @@ outputs:
     requirements:
       build:
         - {{ compiler("c") }}
+        - {{ stdlib("c") }}
         - {{ compiler("cxx") }}
         # pyarrow does not require nvcc but it needs to link against libraries in libarrow=*=*cuda
         - {{ compiler("cuda") }}                 # [cuda_compiler_version != "None"]
@@ -658,7 +659,6 @@ outputs:
         - cmake
         - ninja
       host:
-        - {{ stdlib("c") }}
         - {{ pin_subpackage("libarrow-all", exact=True) }}
         - clangdev {{ llvm_version }}
         - llvmdev {{ llvm_version }}
@@ -740,6 +740,7 @@ outputs:
     requirements:
       build:
         - {{ compiler("c") }}
+        - {{ stdlib("c") }}
         - {{ compiler("cxx") }}
         # pyarrow does not require nvcc but it needs to link against libraries in libarrow=*=*cuda
         - {{ compiler("cuda") }}                 # [cuda_compiler_version != "None"]
@@ -750,7 +751,6 @@ outputs:
         - cmake
         - ninja
       host:
-        - {{ stdlib("c") }}
         - {{ pin_subpackage("libarrow-all", exact=True) }}
         - {{ pin_subpackage('pyarrow', exact=True) }}
         - clangdev {{ llvm_version }}

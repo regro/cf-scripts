@@ -24,13 +24,13 @@ requirements:
     - crossenv                            # [build_platform != target_platform]
     - maturin >=1.2.1,<2                  # [build_platform != target_platform]
     - {{ compiler('c') }}
+    - {{ stdlib("c") }}
     - {{ compiler('rust') }}
     - posix                               # [build_platform == "win-64"]
     - cmake
     - make                                # [unix]
     - cargo-bundle-licenses
   host:
-    - {{ stdlib("c") }}
     # this is a hacky way to do cross-compilation from linux to windows
     - python              # [not (build_platform == "linux-64" and target_platform == "win-64")]
     - pip                 # [not (build_platform == "linux-64" and target_platform == "win-64")]
