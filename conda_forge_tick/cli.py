@@ -4,7 +4,7 @@ import time
 from typing import Optional
 
 import click
-from click import IntRange
+from click import IntRange, Context
 
 from conda_forge_tick import lazy_json_backends
 
@@ -59,7 +59,14 @@ click.Group.command_class = TimedCommand
     "used to cache JSON files. Local files will be used if they exist.",
 )
 @pass_context
-def main(ctx: CliContext, debug: bool, dry_run: bool, online: bool) -> None:
+@click.pass_context
+def main(
+    click_context: Context,
+    ctx: CliContext,
+    debug: bool,
+    dry_run: bool,
+    online: bool,
+) -> None:
     log_level = "debug" if debug else "info"
     setup_logging(log_level)
 
@@ -71,8 +78,9 @@ def main(ctx: CliContext, debug: bool, dry_run: bool, online: bool) -> None:
 
     if online:
         logger.info("Running in online mode")
-        lazy_json_backends.CF_TICK_GRAPH_DATA_BACKENDS = ("github",)
-        lazy_json_backends.CF_TICK_GRAPH_DATA_PRIMARY_BACKEND = "github"
+        click_context.with_resource(
+            lazy_json_backends.lazy_json_override_backends(["github"]),
+        )
 
 
 @main.command(name="gather-all-feedstocks")
