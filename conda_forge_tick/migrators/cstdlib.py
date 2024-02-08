@@ -84,7 +84,18 @@ def _process_section(name, attrs, lines):
             # ensure we don't read past test section (may contain unrelated deps)
             break
         elif last_line_was_build:
-            if re.match(r"^\s*(number|script|noarch|skip):.*", line):
+            keys_after_nonreq_build = [
+                "binary_relocation",
+                "force_ignore_keys",
+                "ignore_run_exports(_from)?",
+                "missing_dso_whitelist",
+                "noarch",
+                "number",
+                "run_exports",
+                "script",
+                "skip",
+            ]
+            if re.match(rf"^\s*({'|'.join(keys_after_nonreq_build)}):.*", line):
                 # last match was spurious, reset line_build
                 line_build = 0
             last_line_was_build = False
