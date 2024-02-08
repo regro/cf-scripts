@@ -27,7 +27,7 @@ if typing.TYPE_CHECKING:
 
 CRAN_INDEX: Optional[dict] = None
 
-logger = logging.getLogger("conda_forge_tick._update_version.update_sources")
+logger = logging.getLogger(__name__)
 
 CURL_ONLY_URL_SLUGS = [
     "https://eups.lsst.codes/",

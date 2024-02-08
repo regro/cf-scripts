@@ -25,7 +25,7 @@ CHECKSUM_NAMES = [
 # matches valid jinja2 vars
 JINJA2_VAR_RE = re.compile("{{ ((?:[a-zA-Z]|(?:_[a-zA-Z0-9]))[a-zA-Z0-9_]*) }}")
 
-logger = logging.getLogger("conda_forge_tick.update_recipe.version")
+logger = logging.getLogger(__name__)
 
 
 def _gen_key_selector(dct: MutableMapping, key: str):

@@ -26,7 +26,7 @@ from conda_forge_tick.utils import (
 if typing.TYPE_CHECKING:
     from ..migrators_types import AttrsTypedDict, MigrationUidTypedDict, PackageName
 
-logger = logging.getLogger("conda_forge_tick.migrators.migration_yaml")
+logger = logging.getLogger(__name__)
 
 
 def _patch_dict(cfg, patches):
@@ -403,9 +403,11 @@ class MigrationYaml(GraphMigrator):
             graph,
             key=lambda x: (
                 _not_has_error(x),
-                random.uniform(0, 1)
-                if not _not_has_error(x)
-                else len(nx.descendants(total_graph, x)),
+                (
+                    random.uniform(0, 1)
+                    if not _not_has_error(x)
+                    else len(nx.descendants(total_graph, x))
+                ),
                 x,
             ),
             reverse=True,

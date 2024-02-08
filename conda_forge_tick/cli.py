@@ -7,7 +7,6 @@ import click
 from click import IntRange
 
 from conda_forge_tick import lazy_json_backends
-from conda_forge_tick.utils import setup_logger
 
 from .cli_context import CliContext
 
@@ -61,7 +60,7 @@ click.Group.command_class = TimedCommand
 @pass_context
 def main(ctx: CliContext, debug: bool, dry_run: bool, online: bool) -> None:
     log_level = "debug" if debug else "info"
-    setup_logger(logger, log_level)
+    setup_logging(log_level)
 
     ctx.debug = debug
     ctx.dry_run = dry_run
@@ -80,7 +79,7 @@ def main(ctx: CliContext, debug: bool, dry_run: bool, online: bool) -> None:
 def gather_all_feedstocks(ctx: CliContext) -> None:
     from . import all_feedstocks
 
-    all_feedstocks.main(ctx)
+    all_feedstocks.main()
 
 
 @main.command(name="make-graph")

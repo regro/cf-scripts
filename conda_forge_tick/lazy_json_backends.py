@@ -203,20 +203,21 @@ class GithubLazyJsonBackend(LazyJsonBackend):
             value += "/"
         self._base_url = value
 
-    def _ignore_write(self) -> None:
-        if self._write_warned:
+    @classmethod
+    def _ignore_write(cls) -> None:
+        if cls._write_warned:
             return
         logger.info(f"Note: Write operations to the GitHub online backend are ignored.")
-        self._write_warned = True
+        cls._write_warned = True
 
     @classmethod
     def _inform_web_request(cls):
         cls._n_requests += 1
-        if cls._n_requests % 10 == 0:
+        if cls._n_requests % 20 == 0:
             logger.info(
                 f"Made {cls._n_requests} requests to the GitHub online backend.",
             )
-        if cls._n_requests == 10:
+        if cls._n_requests == 20:
             logger.warning(
                 f"Using the GitHub online backend for making a lot of requests is not recommended.",
             )
@@ -855,26 +856,12 @@ def load(
 
 
 def main_sync(ctx: CliContext):
-    from conda_forge_tick.utils import setup_logger
-
-    if ctx.debug:
-        setup_logger(logging.getLogger("conda_forge_tick"), level="debug")
-    else:
-        setup_logger(logging.getLogger("conda_forge_tick"))
-
     if not ctx.dry_run:
         sync_lazy_json_across_backends()
 
 
 def main_cache(ctx: CliContext):
-    from conda_forge_tick.utils import setup_logger
-
     global CF_TICK_GRAPH_DATA_BACKENDS
-
-    if ctx.debug:
-        setup_logger(logging.getLogger("conda_forge_tick"), level="debug")
-    else:
-        setup_logger(logging.getLogger("conda_forge_tick"))
 
     if not ctx.dry_run and len(CF_TICK_GRAPH_DATA_BACKENDS) > 1:
         OLD_CF_TICK_GRAPH_DATA_BACKENDS = CF_TICK_GRAPH_DATA_BACKENDS

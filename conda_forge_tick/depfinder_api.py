@@ -40,7 +40,7 @@ from depfinder.inspection import iterate_over_library
 from depfinder.stdliblist import builtin_modules as _builtin_modules
 from depfinder.utils import SKETCHY_TYPES_TABLE
 
-logger = logging.getLogger("conda_forge_tick.depfinder_api")
+logger = logging.getLogger(__name__)
 
 
 def extract_pkg_from_import(name):

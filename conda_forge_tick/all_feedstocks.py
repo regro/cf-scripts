@@ -1,16 +1,14 @@
 import logging
-from typing import Any, List
+from typing import List
 
 import github
 import tqdm
 
 from conda_forge_tick import sensitive_env
 
-from .cli_context import CliContext
 from .lazy_json_backends import dump, load
-from .utils import setup_logger
 
-logger = logging.getLogger("conda_forge_tick.all_feedstocks")
+logger = logging.getLogger(__name__)
 
 
 def get_all_feedstocks_from_github():
@@ -67,11 +65,7 @@ def get_archived_feedstocks(cached: bool = False) -> List[str]:
     return names
 
 
-def main(ctx: CliContext) -> None:
-    if ctx.debug:
-        setup_logger(logger, level="debug")
-    else:
-        setup_logger(logger)
+def main() -> None:
     logger.info("fetching active feedstocks from github")
     data = get_all_feedstocks_from_github()
     with open("all_feedstocks.json", "w") as fp:

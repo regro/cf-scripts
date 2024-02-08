@@ -24,7 +24,7 @@ if typing.TYPE_CHECKING:
     from ..migrators_types import AttrsTypedDict, MigrationUidTypedDict, PackageName
 
 
-logger = logging.getLogger("conda_forge_tick.migrators.core")
+logger = logging.getLogger(__name__)
 
 
 def _sanitized_muids(pred: List[dict]) -> List["JsonFriendly"]:

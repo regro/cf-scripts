@@ -23,7 +23,7 @@ if typing.TYPE_CHECKING:
 
 LICENSE_SPLIT = re.compile(r"\||\+")
 
-logger = logging.getLogger("conda_forge_tick.migrators.license")
+logger = logging.getLogger(__name__)
 
 
 def _to_spdx(lic):

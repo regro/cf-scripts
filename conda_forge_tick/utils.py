@@ -27,7 +27,7 @@ if typing.TYPE_CHECKING:
 
     from conda_forge_tick.migrators_types import MetaYamlTypedDict
 
-logger = logging.getLogger("conda_forge_tick.utils")
+logger = logging.getLogger(__name__)
 
 T = typing.TypeVar("T")
 TD = typing.TypeVar("TD", bound=dict, covariant=True)
@@ -394,17 +394,12 @@ class NullUndefined(jinja2.Undefined):
         return f'{self}["{name}"]'
 
 
-def setup_logger(logger: logging.Logger, level: str = "INFO") -> None:
-    """Basic configuration for logging"""
-    logger.setLevel(level.upper())
-    ch = logging.StreamHandler()
-    ch.setLevel(level.upper())
-    ch.setFormatter(
-        logging.Formatter("%(asctime)-15s %(levelname)-8s %(name)s || %(message)s"),
+def setup_logging(level: str = "INFO") -> None:
+    logging.basicConfig(
+        format="%(asctime)-15s %(levelname)-8s %(name)s || %(message)s",
+        level=level.upper(),
     )
-    logger.addHandler(ch)
-    # this prevents duplicate logging messages
-    logger.propagate = False
+    logging.getLogger("urllib3").setLevel(logging.INFO)
 
 
 # TODO: upstream this into networkx?

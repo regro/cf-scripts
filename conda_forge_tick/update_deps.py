@@ -22,7 +22,7 @@ try:
 except ImportError:
     from grayskull.__main__ import create_python_recipe
 
-logger = logging.getLogger("conda_forge_tick.update_deps")
+logger = logging.getLogger(__name__)
 
 
 SECTIONS_TO_PARSE = ["host", "run"]
