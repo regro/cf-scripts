@@ -59,7 +59,7 @@ def _process_section(name, attrs, lines):
     line_host = line_run = line_constrain = line_test = 0
     indent_c = selector_c = indent_other = selector_other = ""
     for i, line in enumerate(lines):
-        if re.match(r".*build:.*", line):
+        if re.match(r"^\s*build:.*", line):
             # always update this, as requirements.build follows build.{number,...}
             line_build = i
         elif pat_compiler_c.search(line):
@@ -70,13 +70,13 @@ def _process_section(name, attrs, lines):
             line_compiler_other = i
             indent_other = pat_compiler_other.match(line).group("indent")
             selector_other = pat_compiler_other.match(line).group("selector") or ""
-        elif re.match(r".*host:.*", line):
+        elif re.match(r"^\s*host:.*", line):
             line_host = i
-        elif re.match(r".*run:.*", line):
+        elif re.match(r"^\s*run:.*", line):
             line_run = i
-        elif re.match(r".*run_constrained:.*", line):
+        elif re.match(r"^\s*run_constrained:.*", line):
             line_constrain = i
-        elif re.match(r".*test:.*", line):
+        elif re.match(r"^\s*test:.*", line):
             line_test = i
             # ensure we don't read past test section (may contain unrelated deps)
             break
