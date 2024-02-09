@@ -1,4 +1,5 @@
 from unittest import mock
+from unittest.mock import MagicMock
 
 import pytest
 from click.testing import CliRunner
@@ -134,3 +135,29 @@ def test_cli_mock_commands_pass_context(
         command_context: CliContext = cmd_mock.call_args.args[0]
         assert command_context.debug is debug
         assert command_context.dry_run is dry_run
+
+
+@pytest.mark.parametrize("job, n_jobs", [(1, 5), (3, 7), (4, 4)])
+@pytest.mark.parametrize("package", ["foo", "bar", "baz"])
+@mock.patch("conda_forge_tick.update_upstream_versions.main")
+def test_cli_mock_update_upstream_versions(
+    cmd_mock: MagicMock, job: int, n_jobs: int, package: str
+):
+    runner = CliRunner()
+    result = runner.invoke(
+        main,
+        ["update-upstream-versions", f"--job={job}", f"--n-jobs={n_jobs}", package],
+    )
+
+    assert result.exit_code == 0
+    cmd_mock.assert_called_once_with(mock.ANY, job=job, n_jobs=n_jobs, package=package)
+
+
+@pytest.mark.parametrize("job, n_jobs", [(1, 5), (3, 7), (4, 4)])
+@mock.patch("conda_forge_tick.update_prs.main")
+def test_cli_mock_update_prs(cmd_mock: MagicMock, job: int, n_jobs: int):
+    runner = CliRunner()
+    result = runner.invoke(main, ["update-prs", f"--job={job}", f"--n-jobs={n_jobs}"])
+
+    assert result.exit_code == 0
+    cmd_mock.assert_called_once_with(mock.ANY, job=job, n_jobs=n_jobs)
