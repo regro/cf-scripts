@@ -1,3 +1,4 @@
+import logging
 import os
 
 import pytest
@@ -13,7 +14,12 @@ from conda_forge_tick.update_sources import (
     RawURL,
     next_version,
 )
-from conda_forge_tick.update_upstream_versions import get_latest_version
+from conda_forge_tick.update_upstream_versions import (
+    filter_nodes_for_job,
+    get_latest_version,
+    ignore_version,
+    include_node,
+)
 from conda_forge_tick.utils import parse_meta_yaml
 
 YAML_PATH = os.path.join(os.path.dirname(__file__), "test_yaml")
@@ -322,6 +328,50 @@ latest_url_rawurl_test_list = [
         {},
     ),
 ]
+
+
+@pytest.mark.parametrize(
+    "attrs",
+    [
+        {"key": "value"},
+        {"conda-forge.yml": {"key": "value"}},
+        {"conda-forge.yml": {"bot": {"key": "value"}}},
+        {"conda-forge.yml": {"bot": {"version_updates": {"key": "value"}}}},
+        {"conda-forge.yml": {"bot": {"version_updates": {"exclude": []}}}},
+        {
+            "conda-forge.yml": {
+                "bot": {
+                    "version_updates": {
+                        "exclude": ["12.3", "1.23", "1.2", "2.3", "1.2.3.4"],
+                    },
+                },
+            },
+        },
+    ],
+)
+def test_ignore_version_false(attrs):
+    assert ignore_version(attrs, "1.2.3") is False
+
+
+@pytest.mark.parametrize(
+    "attrs",
+    [
+        {"conda-forge.yml": {"bot": {"version_updates": {"exclude": ["1.2.3"]}}}},
+        {
+            "conda-forge.yml": {
+                "bot": {"version_updates": {"exclude": ["3.2.1", "1.2.3"]}},
+            },
+        },
+        {
+            "conda-forge.yml": {
+                "bot": {"version_updates": {"exclude": ["1.2.3", "3.2.1"]}},
+            },
+        },
+    ],
+)
+@pytest.mark.parametrize("version", ["1.2.3", "1.2-3"])
+def test_ignore_version_true(attrs, version):
+    assert ignore_version(attrs, version) is True
 
 
 @pytest.mark.parametrize(
@@ -880,3 +930,94 @@ def test_latest_version_aws_sdk_cpp(tmpdir):
     assert attempt["new_version"] is not None
     assert attempt["new_version"]
     print(attempt)
+
+
+@pytest.mark.parametrize("n_jobs", [1, 2, 4, 8])
+def test_filter_nodes_for_job(n_jobs: int):
+    # instead of relying on the hash function, we check that a "random" sample is partitioned
+    # into the correct number of jobs of roughly equal size
+
+    all_nodes = [(f"node-{i}", {"payload": f"payload-{i}"}) for i in range(2048)]
+
+    filtered_nodes = [
+        list(filter_nodes_for_job(all_nodes, i, n_jobs)) for i in range(1, n_jobs + 1)
+    ]
+
+    # sum of job sizes should be equal to total number of nodes
+    assert sum(len(nodes) for nodes in filtered_nodes) == len(all_nodes)
+
+    # jobs should be disjoint
+    frozen_nodes = [
+        [(name, frozenset(attrs.items())) for (name, attrs) in job_nodes]
+        for job_nodes in filtered_nodes
+    ]
+    assert len(set().union(*frozen_nodes)) == len(all_nodes)
+
+    # jobs should have roughly equal size
+    assert all(
+        0.8 < n_jobs * len(nodes) / len(all_nodes) < 1.2 for nodes in filtered_nodes
+    )
+
+
+def test_include_node_parsing_error(caplog):
+    package_name = "testpackage"
+    payload_attrs = {"parsing_error": "She sells seashells by the seashore."}
+
+    caplog.set_level(logging.DEBUG)
+    assert not include_node(package_name, payload_attrs)
+
+    assert f"Skipping {package_name}" in caplog.text
+    assert "parsing error" in caplog.text
+    assert "She sells seashells by the seashore." in caplog.text
+
+
+def test_include_node_no_payload():
+    package_name = "testpackage"
+    payload_attrs = {}
+
+    assert include_node(package_name, payload_attrs)
+
+
+def test_include_node_archived(caplog):
+    package_name = "testpackage"
+    payload_attrs = {"archived": True}
+
+    caplog.set_level(logging.DEBUG)
+    assert not include_node(package_name, payload_attrs)
+
+    assert f"Skipping {package_name}" in caplog.text
+    assert "archived" in caplog.text
+
+
+def test_include_node_archived_false(caplog):
+    package_name = "testpackage"
+    payload_attrs = {"archived": False}
+
+    assert include_node(package_name, payload_attrs)
+
+
+def test_include_node_bad_pull_request(caplog):
+    package_name = "testpackage"
+    payload_attrs = {"pr_info": {"bad": "Lorem Ipsum"}}
+
+    caplog.set_level(logging.DEBUG)
+    assert not include_node(package_name, payload_attrs)
+
+    assert f"Skipping {package_name}" in caplog.text
+    assert "Pull Request" in caplog.text
+    assert "bad" in caplog.text
+    assert "Lorem Ipsum" in caplog.text
+
+
+def test_include_node_bad_pull_request_upstream(caplog):
+    package_name = "testpackage"
+    payload_attrs = {"pr_info": {"bad": "Upstream: Could not fetch URL"}}
+
+    caplog.set_level(logging.DEBUG)
+    # the node is included!
+    assert include_node(package_name, payload_attrs)
+
+    assert f"Note: {package_name}" in caplog.text
+    assert "Pull Request" in caplog.text
+    assert "bad" in caplog.text
+    assert "upstream" in caplog.text
