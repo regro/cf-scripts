@@ -35,7 +35,7 @@ from .update_sources import (
     RawURL,
     ROSDistro,
 )
-from .utils import get_keys_default, load_graph
+from .utils import get_keys_default, load_graph, setup_logger
 
 T = TypeVar("T")
 
@@ -393,6 +393,11 @@ def main(
     :param n_jobs: The total number of jobs.
     :param package: The package to update. If None, update all packages.
     """
+    if ctx.debug:
+        setup_logger(logger, level="debug")
+    else:
+        setup_logger(logger)
+
     logger.info("Reading graph")
     # Graph enabled for inspection
     gx = load_graph()
