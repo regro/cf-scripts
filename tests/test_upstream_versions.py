@@ -1,11 +1,14 @@
 import logging
 import os
-from unittest.mock import Mock, patch
+from unittest import mock
+from unittest.mock import MagicMock, Mock, patch
 
+import networkx as nx
 import pytest
 from conda.models.version import VersionOrder
 from flaky import flaky
 
+from conda_forge_tick.cli_context import CliContext
 from conda_forge_tick.lazy_json_backends import LazyJson
 from conda_forge_tick.update_sources import (
     NPM,
@@ -21,6 +24,7 @@ from conda_forge_tick.update_upstream_versions import (
     get_latest_version,
     ignore_version,
     include_node,
+    main,
 )
 from conda_forge_tick.utils import parse_meta_yaml
 
@@ -1183,3 +1187,29 @@ def test_include_node_bad_pull_request_upstream(caplog):
     assert "Pull Request" in caplog.text
     assert "bad" in caplog.text
     assert "upstream" in caplog.text
+
+
+@pytest.mark.parametrize("debug", [True, False])
+@mock.patch("os.makedirs")
+@mock.patch("conda_forge_tick.update_upstream_versions.load_graph")
+@mock.patch("conda_forge_tick.update_upstream_versions.update_upstream_versions")
+def test_main(
+    update_upstream_versions_mock: MagicMock,
+    load_graph_mock: MagicMock,
+    makedirs_mock: MagicMock,
+    debug: bool,
+):
+
+    gx = Mock(nx.DiGraph)
+    load_graph_mock.return_value = gx
+
+    ctx = CliContext()
+    ctx.debug = debug
+
+    main(ctx, job=3, n_jobs=10, package="testpackage")
+
+    makedirs_mock.assert_called_once_with("versions", exist_ok=True)
+    load_graph_mock.assert_called_once()
+    update_upstream_versions_mock.assert_called_once_with(
+        gx, debug=debug, job=3, n_jobs=10, package="testpackage"
+    )
