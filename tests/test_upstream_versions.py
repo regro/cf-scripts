@@ -1,7 +1,7 @@
 import logging
 import os
 import random
-import sys
+from concurrent.futures import Future
 from typing import Mapping
 from unittest import mock
 from unittest.mock import MagicMock, Mock, patch
@@ -23,6 +23,7 @@ from conda_forge_tick.update_sources import (
     next_version,
 )
 from conda_forge_tick.update_upstream_versions import (
+    _update_upstream_versions_process_pool,
     _update_upstream_versions_sequential,
     filter_nodes_for_job,
     get_latest_version,
@@ -1446,6 +1447,145 @@ def test_update_upstream_versions_sequential(
 
     assert "# 0     - testpackage - 2.2.3 - 2.2.4" in caplog.text
     assert "# 1     - testpackage2 - 1.2.4 - 1.2.5" in caplog.text
+
+
+@mock.patch("conda_forge_tick.update_upstream_versions.executor")
+@mock.patch("conda_forge_tick.update_upstream_versions.LazyJson")
+def test_update_upstream_versions_process_pool(
+    lazy_json_mock: MagicMock, executor_mock: MagicMock, caplog
+):
+    caplog.set_level(logging.DEBUG)
+    source_a = Mock(AbstractSource)
+    source_a.name = "source a"
+    source_b = Mock(AbstractSource)
+    source_b.name = "source b"
+
+    sources = [source_a, source_b]
+
+    to_update = [
+        ("testpackage", {"version": "2.2.3"}),
+        ("testpackage2", {"version": "1.2.4"}),
+    ]
+
+    future_1 = Future()
+    future_2 = Future()
+
+    pool_mock = executor_mock.return_value.__enter__.return_value
+    pool_mock.submit.side_effect = [future_1, future_2]
+
+    lazy_json_instance = lazy_json_mock.return_value
+    lazy_json_instance.__enter__.return_value = lazy_json_instance
+
+    future_1.set_result({"new_version": "2.2.4"})
+    future_2.set_result({"new_version": "1.2.5"})
+
+    _update_upstream_versions_process_pool(to_update, sources)
+
+    pool_mock.submit.assert_has_calls(
+        [
+            mock.call(get_latest_version, "testpackage", {"version": "2.2.3"}, sources),
+            mock.call(
+                get_latest_version, "testpackage2", {"version": "1.2.4"}, sources
+            ),
+        ]
+    )
+
+    lazy_json_mock.assert_any_call("versions/testpackage.json")
+    lazy_json_mock.assert_any_call("versions/testpackage2.json")
+
+    lazy_json_instance.clear.assert_has_calls([mock.call(), mock.call()])
+    lazy_json_instance.update.assert_any_call({"new_version": "2.2.4"})
+    lazy_json_instance.update.assert_any_call({"new_version": "1.2.5"})
+
+    assert "testpackage2 - 1.2.4 - 1.2.5" in caplog.text
+    assert "testpackage - 2.2.3 - 2.2.4" in caplog.text
+
+
+@mock.patch("conda_forge_tick.update_upstream_versions.executor")
+@mock.patch("conda_forge_tick.update_upstream_versions.LazyJson")
+def test_update_upstream_versions_process_pool_exception(
+    lazy_json_mock: MagicMock, executor_mock: MagicMock, caplog
+):
+    caplog.set_level(logging.DEBUG)
+    source_a = Mock(AbstractSource)
+    source_a.name = "source a"
+    source_b = Mock(AbstractSource)
+    source_b.name = "source b"
+
+    sources = [source_a, source_b]
+
+    to_update = [
+        ("testpackage", {"version": "2.2.3"}),
+    ]
+
+    future = Future()
+
+    pool_mock = executor_mock.return_value.__enter__.return_value
+    pool_mock.submit.return_value = future
+
+    lazy_json_instance = lazy_json_mock.return_value
+    lazy_json_instance.__enter__.return_value = lazy_json_instance
+
+    future.set_exception(ZeroDivisionError("source a error"))
+
+    _update_upstream_versions_process_pool(to_update, sources)
+
+    pool_mock.submit.assert_called_once_with(
+        get_latest_version, "testpackage", {"version": "2.2.3"}, sources
+    )
+
+    lazy_json_mock.assert_any_call("versions/testpackage.json")
+
+    lazy_json_instance.clear.assert_called_once()
+    lazy_json_instance.update.assert_any_call(
+        {"bad": "Upstream: Error getting upstream version"}
+    )
+
+    assert "source a error" in caplog.text
+
+
+@mock.patch("conda_forge_tick.update_upstream_versions.executor")
+@mock.patch("conda_forge_tick.update_upstream_versions.LazyJson")
+def test_update_upstream_versions_process_pool_exception_repr_exception(
+    lazy_json_mock: MagicMock, executor_mock: MagicMock, caplog
+):
+    caplog.set_level(logging.DEBUG)
+    source_a = Mock(AbstractSource)
+    source_a.name = "source a"
+    source_b = Mock(AbstractSource)
+    source_b.name = "source b"
+
+    sources = [source_a, source_b]
+
+    to_update = [
+        ("testpackage", {"version": "2.2.3"}),
+    ]
+
+    future = Future()
+
+    pool_mock = executor_mock.return_value.__enter__.return_value
+    pool_mock.submit.return_value = future
+
+    lazy_json_instance = lazy_json_mock.return_value
+    lazy_json_instance.__enter__.return_value = lazy_json_instance
+
+    future.set_exception(BrokenException("source a error"))
+
+    _update_upstream_versions_process_pool(to_update, sources)
+
+    pool_mock.submit.assert_called_once_with(
+        get_latest_version, "testpackage", {"version": "2.2.3"}, sources
+    )
+
+    lazy_json_mock.assert_any_call("versions/testpackage.json")
+
+    lazy_json_instance.clear.assert_called_once()
+    lazy_json_instance.update.assert_any_call(
+        {"bad": "Upstream: Error getting upstream version"}
+    )
+
+    assert "Bad exception string" in caplog.text
+    assert "broken exception" in caplog.text
 
 
 @pytest.mark.parametrize("debug", [True, False])
