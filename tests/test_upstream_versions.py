@@ -576,6 +576,31 @@ def test_latest_version_ignore_version(caplog):
     assert result == {"new_version": False}
 
 
+def test_latest_version_no_sources_are_skipped(caplog):
+    caplog.set_level(logging.DEBUG)
+
+    source_a = Mock(AbstractSource)
+    source_a.name = "source a"
+    source_a.get_url.return_value = "https://source-a.com"
+    source_a.get_version.return_value = "1.2.3"
+
+    attrs = {
+        "conda-forge.yml": {
+            "bot": {
+                "version_updates": {
+                    "sources": ["source a"],
+                },
+            },
+        },
+    }
+
+    result = get_latest_version("crazy-package", attrs, [source_a])
+
+    assert "No sources are skipped" in caplog.text
+
+    assert result == {"new_version": "1.2.3"}
+
+
 @pytest.mark.parametrize(
     "in_ver, ver_test",
     [
