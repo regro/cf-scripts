@@ -1,5 +1,6 @@
 import logging
 import os
+from unittest.mock import Mock, patch
 
 import pytest
 from conda.models.version import VersionOrder
@@ -9,6 +10,7 @@ from conda_forge_tick.lazy_json_backends import LazyJson
 from conda_forge_tick.update_sources import (
     NPM,
     NVIDIA,
+    AbstractSource,
     Github,
     PyPI,
     RawURL,
@@ -443,6 +445,116 @@ def test_latest_version_ca_policy_lcg(caplog):
     assert get_latest_version("ca-policy-lcg", {}, [RawURL()]) == {"new_version": False}
     assert "ca-policy-lcg" in caplog.text
     assert "manually excluded" in caplog.text
+
+
+def test_latest_version_version_sources_no_error(caplog):
+    caplog.set_level(logging.DEBUG)
+
+    source_a = Mock(AbstractSource)
+    source_a.name = "this Is Source A"
+
+    source_b = Mock(AbstractSource)
+    source_b.name = "Source b it Is"
+
+    attrs = {
+        "conda-forge.yml": {
+            "bot": {
+                "version_updates": {
+                    "sources": ["source B it is", "source c"],
+                },
+            },
+        },
+    }
+
+    source_b.get_url.return_value = "https://source-b.com"
+    source_b.get_version.return_value = "1.2.3"
+
+    with patch(
+        "conda_forge_tick.update_upstream_versions.ignore_version", return_value=False
+    ) as ignore_version_mock:
+        result = get_latest_version("crazy-package", attrs, [source_a, source_b])
+
+    # source c is not a valid source, source a does not appear in the list
+    assert (
+        "crazy-package requests version source 'source c' which is not available"
+        in caplog.text
+    )
+    assert (
+        "crazy-package defines the following custom version sources: ['Source b it Is']"
+        in caplog.text
+    )
+    assert "we skip the following sources: ['this Is Source A']" in caplog.text
+
+    assert (
+        "Fetching latest version for crazy-package from Source b it Is" in caplog.text
+    )
+
+    source_b.get_url.assert_called_once_with(attrs)
+    assert "Using URL https://source-b.com" in caplog.text
+
+    source_b.get_version.assert_called_once_with("https://source-b.com")
+    assert "Found version 1.2.3 on Source b it Is" in caplog.text
+
+    ignore_version_mock.assert_called_once_with(attrs, "1.2.3")
+
+    assert result == {"new_version": "1.2.3"}
+
+
+def test_latest_version_skip_error_success(caplog):
+    caplog.set_level(logging.DEBUG)
+
+    source_a = Mock(AbstractSource)
+    source_a.name = "source a"
+    source_a.get_url.return_value = "https://source-a.com"
+    source_a.get_version.side_effect = Exception("source a error")
+
+    source_b = Mock(AbstractSource)
+    source_b.name = "source b"
+    source_b.get_url.return_value = "https://source-b.com"
+    source_b.get_version.return_value = "1.2.3"
+
+    with patch(
+        "conda_forge_tick.update_upstream_versions.ignore_version", return_value=False
+    ):
+        result = get_latest_version("crazy-package", {}, [source_a, source_b])
+
+    assert "Using URL https://source-a.com" in caplog.text
+    assert (
+        "An exception occurred while fetching crazy-package from source a:"
+        in caplog.text
+    )
+    assert "source a error" in caplog.text
+
+    assert result == {"new_version": "1.2.3"}
+
+
+def test_latest_version_error_and_no_new_version(caplog):
+    caplog.set_level(logging.DEBUG)
+
+    source_a = Mock(AbstractSource)
+    source_a.name = "source a"
+    source_a.get_url.return_value = "https://source-a.com"
+    source_a.get_version.side_effect = ZeroDivisionError("source a error")
+
+    source_b = Mock(AbstractSource)
+    source_b.name = "source b"
+    source_b.get_url.return_value = "https://source-b.com"
+    source_b.get_version.return_value = None
+
+    with pytest.raises(ZeroDivisionError):
+        get_latest_version("crazy-package", {}, [source_a, source_b])
+
+    assert "Using URL https://source-a.com" in caplog.text
+    assert (
+        "An exception occurred while fetching crazy-package from source a:"
+        in caplog.text
+    )
+    assert "source a error" in caplog.text
+
+    assert "Fetching latest version for crazy-package from source b" in caplog.text
+    assert "Upstream: Could not find version on source b" in caplog.text
+
+    assert "Cannot find version on any source, exceptions occurred" in caplog.text
 
 
 @pytest.mark.parametrize(
