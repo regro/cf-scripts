@@ -1,5 +1,7 @@
 import logging
 import os
+import random
+from typing import Mapping
 from unittest import mock
 from unittest.mock import MagicMock, Mock, patch
 
@@ -25,6 +27,7 @@ from conda_forge_tick.update_upstream_versions import (
     ignore_version,
     include_node,
     main,
+    update_upstream_versions,
 )
 from conda_forge_tick.utils import parse_meta_yaml
 
@@ -1187,6 +1190,139 @@ def test_include_node_bad_pull_request_upstream(caplog):
     assert "Pull Request" in caplog.text
     assert "bad" in caplog.text
     assert "upstream" in caplog.text
+
+
+def test_update_upstream_versions_nonexistent_package(caplog):
+    package_name = "nonexistent-package"
+
+    caplog.set_level(logging.DEBUG)
+    update_upstream_versions(
+        nx.DiGraph(),
+        package=package_name,
+    )
+
+    assert "Package nonexistent-package not found in graph" in caplog.text
+
+
+@mock.patch("conda_forge_tick.update_upstream_versions.filter_nodes_for_job")
+def test_update_upstream_versions_no_packages_to_update(
+    filter_nodes_mock: MagicMock, caplog
+):
+    caplog.set_level(logging.DEBUG)
+
+    gx = nx.DiGraph()
+    gx.add_node("testpackage")
+    gx.add_node("testpackage2")
+
+    filter_nodes_mock.return_value = []
+
+    update_upstream_versions(gx, job=7, n_jobs=14)
+
+    filter_nodes_mock.assert_called_once_with(gx.nodes().items(), 7, 14)
+    assert "No packages to update for job" in caplog.text
+
+
+default_sources = (
+    "PyPI",
+    "CRAN",
+    "NPM",
+    "ROSDistro",
+    "RawURL",
+    "Github",
+    "IncrementAlphaRawURL",
+    "NVIDIA",
+)
+
+
+@mock.patch("conda_forge_tick.update_upstream_versions.filter_nodes_for_job")
+@mock.patch("conda_forge_tick.update_upstream_versions.include_node")
+@mock.patch(
+    "conda_forge_tick.update_upstream_versions._update_upstream_versions_sequential"
+)
+def test_update_upstream_versions_run_sequential(
+    update_sequential_mock: MagicMock,
+    include_node_mock: MagicMock,
+    filter_nodes_mock: MagicMock,
+):
+
+    gx = nx.DiGraph()
+    gx.add_node("testpackage", payload={"version": "1.2.3"})
+    gx.add_node("testpackage2", payload={"version": "1.2.4"})
+    gx.add_node("testpackage3", payload={"version": "1.2.5"})
+
+    filter_nodes_mock.return_value = [
+        ("testpackage", {"payload": {"dummy": "1.2.3"}}),
+        ("testpackage2", {"payload": {"dummy": "1.2.4"}}),
+        ("testpackage3", {"payload": {"dummy": "1.2.5"}}),
+    ]
+
+    # swaps the packages
+    random.seed(1)
+
+    def custom_include_node(name: str, _: Mapping) -> bool:
+        return name in ("testpackage", "testpackage2")
+
+    include_node_mock.side_effect = custom_include_node
+
+    update_upstream_versions(gx, debug=True)
+
+    filter_nodes_mock.assert_called_once_with(gx.nodes().items(), 1, 1)
+    include_node_mock.assert_has_calls(
+        [
+            mock.call("testpackage", {"dummy": "1.2.3"}),
+            mock.call("testpackage2", {"dummy": "1.2.4"}),
+            mock.call("testpackage3", {"dummy": "1.2.5"}),
+        ]
+    )
+
+    update_sequential_mock.assert_called_once()
+    assert update_sequential_mock.call_args.args[0] == [
+        ("testpackage2", {"dummy": "1.2.4"}),
+        ("testpackage", {"dummy": "1.2.3"}),
+    ]
+    assert (
+        tuple(source.name for source in update_sequential_mock.call_args.args[1])
+        == default_sources
+    )
+
+
+@mock.patch("conda_forge_tick.update_upstream_versions.filter_nodes_for_job")
+@mock.patch("conda_forge_tick.update_upstream_versions.include_node")
+@mock.patch(
+    "conda_forge_tick.update_upstream_versions._update_upstream_versions_sequential"
+)
+def test_update_upstream_versions_run_sequential_custom_sources(
+    update_sequential_mock: MagicMock,
+    include_node_mock: MagicMock,
+    filter_nodes_mock: MagicMock,
+):
+    gx = nx.DiGraph()
+    gx.add_node("testpackage", payload={"version": "1.2.3"})
+
+    filter_nodes_mock.return_value = [
+        ("testpackage", {"payload": {"dummy": "1.2.3"}}),
+    ]
+
+    random.seed(1)
+
+    include_node_mock.return_value = True
+
+    source_a = Mock(AbstractSource)
+    source_a.name = "source a"
+    source_b = Mock(AbstractSource)
+    source_b.name = "source b"
+
+    update_upstream_versions(gx, debug=True, sources=[source_a, source_b])
+
+    filter_nodes_mock.assert_called_once_with(gx.nodes().items(), 1, 1)
+
+    update_sequential_mock.assert_called_once()
+    assert update_sequential_mock.call_args.args[0] == [
+        ("testpackage", {"dummy": "1.2.3"}),
+    ]
+    assert tuple(
+        source.name for source in update_sequential_mock.call_args.args[1]
+    ) == ("source a", "source b")
 
 
 @pytest.mark.parametrize("debug", [True, False])
