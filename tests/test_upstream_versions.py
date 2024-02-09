@@ -557,6 +557,25 @@ def test_latest_version_error_and_no_new_version(caplog):
     assert "Cannot find version on any source, exceptions occurred" in caplog.text
 
 
+def test_latest_version_ignore_version(caplog):
+    caplog.set_level(logging.DEBUG)
+
+    source_a = Mock(AbstractSource)
+    source_a.name = "source a"
+    source_a.get_url.return_value = "https://source-a.com"
+    source_a.get_version.return_value = "1.2.3"
+
+    with patch(
+        "conda_forge_tick.update_upstream_versions.ignore_version", return_value=True
+    ):
+        result = get_latest_version("crazy-package", {}, [source_a])
+
+    assert "Using URL https://source-a.com" in caplog.text
+    assert "Ignoring version 1.2.3" in caplog.text
+
+    assert result == {"new_version": False}
+
+
 @pytest.mark.parametrize(
     "in_ver, ver_test",
     [
