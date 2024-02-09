@@ -131,12 +131,35 @@ class AbstractSource(abc.ABC):
     name: str
 
     @abc.abstractmethod
-    def get_version(self, url: str) -> Optional[str]:
+    def get_version(self, url: str, meta_yaml) -> Optional[str]:
         pass
 
     @abc.abstractmethod
     def get_url(self, meta_yaml) -> Optional[str]:
         pass
+
+    def get_bot_settings(self, meta_yaml):
+        if "conda-forge.yml" not in meta_yaml:
+            return {}
+        conda_forge_yml = meta_yaml["conda-forge.yml"]
+        # First check for the text for an early exit
+        # to avoid parsing yaml if possible
+        if "bot" not in conda_forge_yaml:
+            return {}
+        # Parse the yaml now
+        parsed_yml = yaml.safe_load(conda_forge_yml)
+        return parsed_yml.get("bot", {})
+
+    def skip_version(self, version, meta_yaml) -> bool:
+        if not version:
+            return True
+        bot_settings = self.get_bot_settings(meta_yaml)
+        if not bot_settings:
+            return False
+        if "version_regex" not in bot_settings:
+            return False
+        ver_regex = bot_settings["version_regex"]
+        return re.match(ver_regex, version) is None
 
 
 class VersionFromFeed(AbstractSource):
@@ -157,7 +180,7 @@ class VersionFromFeed(AbstractSource):
         "pc",
     ]
 
-    def get_version(self, url) -> Optional[str]:
+    def get_version(self, url, meta_yaml) -> Optional[str]:
         data = feedparser.parse(url)
         if data["bozo"] == 1:
             return None
@@ -171,6 +194,8 @@ class VersionFromFeed(AbstractSource):
                 continue
             # Extract version number starting at the first digit.
             ver = re.search(r"(\d+[^\s]*)", ver).group(0)
+            if self.skip_version(ver, meta_yaml):
+                continue
             vers.append(ver)
         if vers:
             return max(vers, key=lambda x: VersionOrder(x.replace("-", ".")))
@@ -189,7 +214,7 @@ class PyPI(AbstractSource):
         pkg = meta_yaml["url"].split("/")[6]
         return f"https://pypi.org/pypi/{pkg}/json"
 
-    def get_version(self, url) -> Optional[str]:
+    def get_version(self, url, meta_yaml) -> Optional[str]:
         r = requests.get(url)
         # If it is a pre-release don't give back the pre-release version
         most_recent_version = r.json()["info"]["version"].strip()
@@ -197,6 +222,10 @@ class PyPI(AbstractSource):
             # if ALL releases are prereleases return the version
             if all(parse_version(v).is_prerelease for v in r.json()["releases"]):
                 return most_recent_version
+            return False
+        # FIXME: instead of skipping here, use the latest version that
+        # is not skipped.
+        if self.skip_version(most_recent_version, meta_yaml):
             return False
         return most_recent_version
 
@@ -211,13 +240,16 @@ class NPM(AbstractSource):
         pkg = meta_yaml["url"].split("/")[3:-2]
         return f"https://registry.npmjs.org/{'/'.join(pkg)}"
 
-    def get_version(self, url: str) -> Optional[str]:
+    def get_version(self, url: str, meta_yaml) -> Optional[str]:
         r = requests.get(url)
         if not r.ok:
             return False
         latest = r.json()["dist-tags"].get("latest", "").strip()
         # If it is a pre-release don't give back the pre-release version
-        if not len(latest) or parse_version(latest).is_prerelease:
+        if not len(latest) or parse_version(latest).is_prerelease or \
+                self.skip_version(latest, meta_yaml):
+            # FIXME: instead of skipping here, use the latest version that
+            # is not skipped.
             return False
 
         return latest
@@ -283,8 +315,15 @@ class CRAN(AbstractSource):
                 return None
         return None
 
-    def get_version(self, url) -> Optional[str]:
-        return str(url[1]).replace("-", "_") if url[1] else None
+    def get_version(self, url, meta_yaml) -> Optional[str]:
+        if not url[1]:
+            return None
+        ver = str(url[1]).replace("-", "_")
+        # FIXME: instead of skipping here, use the latest version that
+        # is not skipped. This requires looking at the CRAN archive index
+        # which we do not currently look at.
+        if self.skip_version(ver, meta_yaml):
+            return None
 
 
 ROS_DISTRO_INDEX: Optional[dict] = None
@@ -361,8 +400,14 @@ class ROSDistro(AbstractSource):
 
         return final_url
 
-    def get_version(self, url):
-        return self.version_url_cache[url]
+    def get_version(self, url, meta_yaml):
+        ver = self.version_url_cache[url]
+        # FIXME: instead of skipping here, use the latest version that
+        # is not skipped.
+        if self.skip_version(ver, meta_yaml):
+            return False
+        return ver
+
 
 
 def get_sha256(url: str) -> Optional[str]:
@@ -448,8 +493,9 @@ class BaseRawURL(AbstractSource):
         orig_ver = current_ver
         found = True
         count = 0
-        max_count = 10
+        max_count = self.get_bot_settings(meta_yaml).get("version_update_max_check", 10)
 
+        found_ver = orig_ver
         while found and count < max_count:
             found = False
             for next_ver in self.next_ver_func(current_ver):
@@ -520,15 +566,17 @@ class BaseRawURL(AbstractSource):
                         return None
                     current_sha256 = new_sha256
                     logger.debug("version %s is ok for url %s", current_ver, url_to_use)
+                    if not self.skip_version(current_ver, meta_yaml):
+                        found_ver = current_ver
                     break
 
-        if current_ver != orig_ver:
-            logger.debug("using version %s", current_ver)
-            return current_ver
+        if found_ver != orig_ver:
+            logger.debug("using version %s", found_ver)
+            return found_ver
 
         return None
 
-    def get_version(self, url: str) -> str:
+    def get_version(self, url: str, meta_yaml) -> str:
         return url
 
 
