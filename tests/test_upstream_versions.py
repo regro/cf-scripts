@@ -439,6 +439,12 @@ def test_latest_version_rawurl(name, inp, curr_ver, ver, source, urls, tmpdir):
         assert ver == attempt["new_version"]
 
 
+def test_latest_version_ca_policy_lcg(caplog):
+    assert get_latest_version("ca-policy-lcg", {}, [RawURL()]) == {"new_version": False}
+    assert "ca-policy-lcg" in caplog.text
+    assert "manually excluded" in caplog.text
+
+
 @pytest.mark.parametrize(
     "in_ver, ver_test",
     [
