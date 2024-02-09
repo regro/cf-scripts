@@ -94,6 +94,11 @@ def get_latest_version(
             for source in sources:
                 if source.name.lower() == vs:
                     sources_to_use.append(source)
+                    break
+            else:
+                logger.warning(
+                    f"Package {name} requests version source '{vs}' which is not available. Skipping.",
+                )
 
         logger.debug(
             f"{name} defines the following custom version sources: {[source.name for source in sources_to_use]}",
