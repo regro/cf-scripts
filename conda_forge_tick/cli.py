@@ -7,6 +7,7 @@ import click
 from click import Context, IntRange
 
 from conda_forge_tick import lazy_json_backends
+from conda_forge_tick.utils import setup_logging
 
 from .cli_context import CliContext
 
