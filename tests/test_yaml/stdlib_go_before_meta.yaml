@@ -1,0 +1,122 @@
+{% set name = "go" %}
+{% set version = "1.9.0" %}
+
+package:
+  name: {{ name }}
+  version: {{ version }}
+
+source:
+  # fake source url to get version migrator to pass
+  - url: https://github.com/scipy/scipy/archive/refs/tags/v{{ version }}.tar.gz
+    sha256: b6d893dc7dcd4138b9e9df59a13c59695e50e80dc5c2cacee0674670693951a1
+  # - folder: go
+  #   url: https://dl.google.com/{{ name }}/go{{ version }}.src.tar.gz
+  #   sha256: 4d196c3d41a0d6c1dfc64d04e3cc1f608b0c436bd87b7060ce3e23234e1f4d5c
+  #   patches:
+  #     # [...snip...]
+
+build:
+  binary_relocation: false
+  detect_binary_files_with_prefix: false
+  force_ignore_keys:   # [win]
+    - c_compiler        # [win]
+    - cxx_compiler      # [win]
+    - fortran_compiler  # [win]
+  # test data links to these DSOs
+  missing_dso_whitelist:
+    - $RPATH/libc.so.6             # [linux and not cgo]
+    - /usr/lib/libSystem.B.dylib   # [osx]
+    - $SYSROOT\System32\winmm.dll  # [win]
+  number: 0
+  skip: true  # [linux and s390x]
+
+requirements:
+  run:
+    - {{ pin_subpackage(name, exact=true) }}
+    - {{ compiler('c') }}  # [unix and cgo]
+    - {{ compiler('m2w64_c') }}  # [win and cgo]
+
+test:
+  commands:
+    - go help
+
+outputs:
+  - name: go
+    script: cgo/build.sh  # [unix]
+    script: cgo/build.bat  # [win]
+
+    build:   # [linux64 and cgo]
+      binary_relocation: false  # [linux64 and cgo]
+      detect_binary_files_with_prefix: false  # [linux64 and cgo]
+      run_exports:   # [linux64 and cgo]
+        strong:   # [linux64 and cgo]
+          - __glibc >=2.17                    # [linux64 and cgo]
+    requirements:
+      build:
+        - {{ compiler('c') }}        # [unix and cgo]
+        - sysroot_linux-64 2.17      # [linux64 and cgo]
+        - {{ compiler('cxx') }}      # [unix and cgo]
+        - {{ compiler('fortran') }}  # [unix and cgo]
+
+        - {{ compiler('m2w64_c') }}        # [win and cgo]
+        - {{ compiler('m2w64_cxx') }}      # [win and cgo]
+        - {{ compiler('m2w64_fortran') }}  # [win and cgo]
+      run:
+        - _go_select ==2.3.0=cgo
+        - sysroot_linux-64 2.17      # [linux64 and cgo]
+      run_constrained:
+        # TODO: Move to run section once conda/conda#9845 is fixed
+        - __osx >={{ MACOSX_DEPLOYMENT_TARGET }}  # [osx]
+
+        - {{ pin_compatible(compiler('c')) }}        # [unix and cgo]
+        - {{ pin_compatible(compiler('cxx')) }}      # [unix and cgo]
+        - {{ pin_compatible(compiler('fortran')) }}  # [unix and cgo]
+
+        - {{ pin_compatible(compiler('m2w64_c')) }}        # [win and cgo]
+        - {{ pin_compatible(compiler('m2w64_cxx')) }}      # [win and cgo]
+        - {{ pin_compatible(compiler('m2w64_fortran')) }}  # [win and cgo]
+    test:
+      requires:
+        - {{ compiler('c') }}        # [unix and cgo]
+        - {{ compiler('m2w64_c') }}  # [win and cgo]
+        - git  # [linux]
+        - perl
+      files:
+        - cgo
+      commands:
+        - chmod +x cgo/test.sh   # [unix]
+        - ./cgo/test.sh   # [unix]
+        - cgo/test.bat  # [win]
+    about:
+      home: https://go.dev/
+      license: BSD-3-Clause
+      license_family: BSD
+      license_file: go/LICENSE
+      summary: The Go Programming Language
+
+about:
+  home: https://go.dev/
+  license: BSD-3-Clause
+  license_family: BSD
+  license_file: go/LICENSE
+  summary: The Go Programming Language (cgo)
+  description: |
+    Go is expressive, concise, clean, and efficient. Its concurrency mechanisms
+    make it easy to write programs that get the most out of multicore and
+    networked machines, while its novel type system enables flexible and
+    modular program construction. Go compiles quickly to machine code yet has
+    the convenience of garbage collection and the power of run-time reflection.
+    It's a fast, statically typed, compiled language that feels like a
+    dynamically typed, interpreted language.
+  doc_url: https://go.dev/doc
+  dev_url: https://github.com/golang/
+
+extra:
+  feedstock-name: go
+  recipe-maintainers:
+    - nehaljwani
+    - scopatz
+    - sodre
+    - stuarteberg
+    - xhochy
+    - hmaarrfk
