@@ -8,7 +8,7 @@ pat_stub = re.compile(r"(c|cxx|fortran)_compiler_stub")
 rgx_idt = r"(?P<indent>\s*)-\s*"
 rgx_pre = r"(?P<compiler>\{\{\s*compiler\([\"\']"
 rgx_post = r"[\"\']\)\s*\}\})"
-rgx_sel = r"\s*(?P<selector>\#\s+\[[\w\s()<>!=.,\-\'\"]+\])?"
+rgx_sel = r"(?P<selector>\s*\#\s+\[[\w\s()<>!=.,\-\'\"]+\])?"
 
 pat_compiler_c = re.compile("".join([rgx_idt, rgx_pre, "c", rgx_post, rgx_sel]))
 pat_compiler_m2c = re.compile("".join([rgx_idt, rgx_pre, "m2w64_c", rgx_post, rgx_sel]))
@@ -125,6 +125,8 @@ def _process_section(name, attrs, lines):
             re.sub(r"^([\s\-]*).*", r"\1", lines[0][:-1]).replace("-", " ") + " " * 4
         )
 
+    # align selectors between {{ compiler(...) }} with {{ stdlib(...) }}
+    selector = "  " + selector if selector else ""
     to_insert = indent + '- {{ stdlib("c") }}' + selector + "\n"
     if line_build == 0:
         # no build section, need to add it
@@ -143,6 +145,7 @@ def _process_section(name, attrs, lines):
     if line_compiler_c and line_compiler_m2c:
         # we have both compiler("c") and compiler("m2w64_c"), likely with complementary
         # selectors; add a second stdlib line after m2w64_c with respective selector
+        selector_m2c = " " * 8 + selector_m2c if selector_m2c else ""
         to_insert = indent + '- {{ stdlib("c") }}' + selector_m2c + "\n"
         line_insert = line_compiler_m2c + 1 + (line_compiler_c < line_compiler_m2c)
         lines = lines[:line_insert] + [to_insert] + lines[line_insert:]
