@@ -50,10 +50,8 @@ def _process_section(name, attrs, lines):
     needs_stdlib |= not bool(build_reqs) and any(
         pat_stub.search(x or "") for x in global_build_reqs
     )
-
-    if not needs_stdlib:
-        # no change
-        return lines
+    # see more computation further down depending on dependencies
+    # ignored due to selectors, where we need the line numbers below.
 
     line_build = line_compiler_c = line_compiler_other = 0
     line_host = line_run = line_constrain = line_test = 0
@@ -99,6 +97,18 @@ def _process_section(name, attrs, lines):
                 # last match was spurious, reset line_build
                 line_build = 0
             last_line_was_build = False
+
+    if line_build:
+        # double-check whether there are compilers in the build section
+        # that may have gotten ignored by selectors; we explicitly only
+        # want to match with compilers in build, not host or run
+        build_reqs = lines[
+            line_build : (line_host or line_run or line_constrain or line_test or -1)
+        ]
+        needs_stdlib |= any(pat_compiler.search(line) for line in build_reqs)
+    if not needs_stdlib:
+        # no change
+        return lines
 
     # in case of several compilers, prefer line, indent & selector of c compiler
     line_compiler = line_compiler_c or line_compiler_other
