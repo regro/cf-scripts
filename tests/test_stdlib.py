@@ -1,4 +1,5 @@
 import os
+import re
 
 import pytest
 from flaky import flaky
@@ -17,22 +18,22 @@ VERSION_WITH_STDLIB = Version(
 
 
 @pytest.mark.parametrize(
-    "feedstock,new_ver",
+    "feedstock,new_ver,expect_cbc",
     [
         # package with many outputs, includes inheritance from global build env
-        ("arrow", "1.10.0"),
+        ("arrow", "1.10.0", False),
         # package without c compiler, but with selectors
-        ("daal4py", "1.10.0"),
+        ("daal4py", "1.10.0", False),
         # package involving selectors and m2w64_c compilers, and compilers in
         # unusual places (e.g. in host & run sections)
-        ("go", "1.10.0"),
+        ("go", "1.10.0", True),
         # package with rust compilers
-        ("polars", "1.10.0"),
+        ("polars", "1.10.0", False),
         # test that we skip recipes that already contain a {{ stdlib("c") }}
-        ("skip_migration", "1.10.0"),
+        ("skip_migration", "1.10.0", False),
     ],
 )
-def test_stdlib(feedstock, new_ver, tmpdir):
+def test_stdlib(feedstock, new_ver, expect_cbc, tmpdir):
     before = f"stdlib_{feedstock}_before_meta.yaml"
     with open(os.path.join(TEST_YAML_PATH, before)) as fp:
         in_yaml = fp.read()
@@ -40,6 +41,9 @@ def test_stdlib(feedstock, new_ver, tmpdir):
     after = f"stdlib_{feedstock}_after_meta.yaml"
     with open(os.path.join(TEST_YAML_PATH, after)) as fp:
         out_yaml = fp.read()
+
+    recipe_dir = os.path.join(tmpdir, f"{feedstock}-feedstock")
+    os.makedirs(recipe_dir, exist_ok=True)
 
     run_test_migration(
         m=VERSION_WITH_STDLIB,
@@ -52,6 +56,12 @@ def test_stdlib(feedstock, new_ver, tmpdir):
             "migrator_version": VERSION_WITH_STDLIB.migrator_version,
             "version": new_ver,
         },
-        tmpdir=tmpdir,
+        tmpdir=recipe_dir,
         should_filter=False,
     )
+
+    cbc_pth = os.path.join(recipe_dir, "conda_build_config.yaml")
+    if expect_cbc:
+        with open(cbc_pth) as fp:
+            lines = fp.readlines()
+        assert any(re.match(r"c_stdlib_version:\s+\#\s\[linux\]", x) for x in lines)

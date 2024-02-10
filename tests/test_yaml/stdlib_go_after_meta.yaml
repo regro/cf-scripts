@@ -55,7 +55,6 @@ outputs:
       build:
         - {{ compiler('c') }}        # [unix and cgo]
         - {{ stdlib("c") }}          # [unix and cgo]
-        - sysroot_linux-64 2.17      # [linux64 and cgo]
         - {{ compiler('cxx') }}      # [unix and cgo]
         - {{ compiler('fortran') }}  # [unix and cgo]
 
@@ -65,7 +64,6 @@ outputs:
         - {{ compiler('m2w64_fortran') }}  # [win and cgo]
       run:
         - _go_select ==2.3.0=cgo
-        - sysroot_linux-64 2.17      # [linux64 and cgo]
       run_constrained:
         # TODO: Move to run section once conda/conda#9845 is fixed
         - __osx >={{ MACOSX_DEPLOYMENT_TARGET }}  # [osx]

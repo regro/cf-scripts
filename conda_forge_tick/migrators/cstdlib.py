@@ -2,7 +2,7 @@ import os
 import re
 
 from conda_forge_tick.migrators.core import MiniMigrator
-from conda_forge_tick.migrators.libboost import _slice_into_output_sections
+from conda_forge_tick.migrators.libboost import _replacer, _slice_into_output_sections
 
 pat_stub = re.compile(r"(c|cxx|fortran)_compiler_stub")
 rgx_idt = r"(?P<indent>\s*)-\s*"
@@ -19,6 +19,8 @@ pat_compiler = re.compile(
     "".join([rgx_idt, rgx_pre, "(m2w64_)?(c|cxx|fortran)", rgx_post, rgx_sel])
 )
 pat_stdlib = re.compile(r".*\{\{\s*stdlib\([\"\']c[\"\']\)\s*\}\}.*")
+# no version other than 2.17 currently available (except 2.12 as default on linux-64)
+pat_sysroot_217 = re.compile(r"- sysroot_linux-64\s*=?=?2\.17")
 
 
 def _process_section(name, attrs, lines):
@@ -29,7 +31,10 @@ def _process_section(name, attrs, lines):
     - if there's _any_ `{{ stdlib("c") }}` in the recipe, abort (consider it migrated)
     - if there's `{{ compiler("c") }}` in build, add `{{ stdlib("c") }}` in host
     - where there's no host-section, add it
+
+    If we find `sysroot_linux-64 2.17`, remove those lines and write the spec to CBC.
     """
+    write_stdlib_to_cbc = False
     outputs = attrs["meta_yaml"].get("outputs", [])
     global_reqs = attrs["meta_yaml"].get("requirements", {})
     if name == "global":
@@ -110,9 +115,18 @@ def _process_section(name, attrs, lines):
             line_build : (line_host or line_run or line_constrain or line_test or -1)
         ]
         needs_stdlib |= any(pat_compiler.search(line) for line in build_reqs)
+
     if not needs_stdlib:
-        # no change
-        return lines
+        if any(pat_sysroot_217.search(line) for line in lines):
+            # if there are no compilers, but we still find sysroot_linux-64,
+            # replace it; remove potential selectors, as only that package is
+            # linux-only, not the requirement for a c-stdlib
+            from_this, to_that = "sysroot_linux-64.*", '{{ stdlib("c") }}'
+            lines = _replacer(lines, from_this, to_that, max_times=1)
+            lines = _replacer(lines, "sysroot_linux-64.*", "")
+            write_stdlib_to_cbc = True
+        # otherwise, no change
+        return lines, write_stdlib_to_cbc
 
     # in case of several compilers, prefer line, indent & selector of c compiler
     line_compiler = line_compiler_c or line_compiler_m2c or line_compiler_other
@@ -149,7 +163,15 @@ def _process_section(name, attrs, lines):
         to_insert = indent + '- {{ stdlib("c") }}' + selector_m2c + "\n"
         line_insert = line_compiler_m2c + 1 + (line_compiler_c < line_compiler_m2c)
         lines = lines[:line_insert] + [to_insert] + lines[line_insert:]
-    return lines
+
+    # check if someone specified a newer sysroot in recipe already,
+    # leave indicator to migrate() function that we need to write spec to CBC
+    if any(pat_sysroot_217.search(line) for line in lines):
+        write_stdlib_to_cbc = True
+    # as we've already inserted a stdlib-jinja next to the compiler,
+    # simply remove any remaining occurrences of sysroot_linux-64
+    lines = _replacer(lines, "sysroot_linux-64.*", "")
+    return lines, write_stdlib_to_cbc
 
 
 class StdlibMigrator(MiniMigrator):
@@ -163,16 +185,27 @@ class StdlibMigrator(MiniMigrator):
     def migrate(self, recipe_dir, attrs, **kwargs):
         outputs = attrs["meta_yaml"].get("outputs", [])
 
+        new_lines = []
+        write_stdlib_to_cbc = False
         fname = os.path.join(recipe_dir, "meta.yaml")
         if os.path.exists(fname):
             with open(fname) as fp:
                 lines = fp.readlines()
 
-            new_lines = []
             sections = _slice_into_output_sections(lines, attrs)
             for name, section in sections.items():
                 # _process_section returns list of lines already
-                new_lines += _process_section(name, attrs, section)
+                chunk, cbc = _process_section(name, attrs, section)
+                new_lines += chunk
+                write_stdlib_to_cbc |= cbc
 
             with open(fname, "w") as fp:
                 fp.write("".join(new_lines))
+
+        fname = os.path.join(recipe_dir, "conda_build_config.yaml")
+
+        with open(fname, "a") as fp:
+            # append ("a") to existing CBC (or create it if it exista already),
+            # no need to differentiate as no-one is using c_stdlib_version yet;
+            # selector can just be linux as that matches default on aarch/ppc
+            fp.write('\nc_stdlib_version:   # [linux]\n  - "2.17"          # [linux]\n')
