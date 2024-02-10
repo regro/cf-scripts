@@ -29,6 +29,8 @@ VERSION_WITH_STDLIB = Version(
         ("go", "1.10.0", True),
         # package with rust compilers
         ("polars", "1.10.0", False),
+        # package without compilers, but with sysroot_linux-64
+        ("sinabs", "1.10.0", True),
         # test that we skip recipes that already contain a {{ stdlib("c") }}
         ("skip_migration", "1.10.0", False),
     ],

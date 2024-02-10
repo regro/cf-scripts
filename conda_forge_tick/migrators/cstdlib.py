@@ -179,8 +179,9 @@ class StdlibMigrator(MiniMigrator):
         lines = attrs["raw_meta_yaml"].splitlines()
         already_migrated = any(pat_stdlib.search(line) for line in lines)
         has_compiler = any(pat_compiler.search(line) for line in lines)
+        has_sysroot = any(pat_sysroot_217.search(line) for line in lines)
         # filter() returns True if we _don't_ want to migrate
-        return already_migrated or not has_compiler
+        return already_migrated or not (has_compiler or has_sysroot)
 
     def migrate(self, recipe_dir, attrs, **kwargs):
         outputs = attrs["meta_yaml"].get("outputs", [])
