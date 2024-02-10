@@ -21,6 +21,8 @@ VERSION_WITH_STDLIB = Version(
     [
         # package with many outputs, includes inheritance from global build env
         ("arrow", "1.10.0"),
+        # package without c compiler, but with selectors
+        ("daal4py", "1.10.0"),
         # package involving selectors and m2w64_c compilers, and compilers in
         # unusual places (e.g. in host & run sections)
         ("go", "1.10.0"),
