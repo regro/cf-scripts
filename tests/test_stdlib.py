@@ -19,8 +19,12 @@ VERSION_WITH_STDLIB = Version(
 @pytest.mark.parametrize(
     "feedstock,new_ver",
     [
+        # package with many outputs, includes inheritance from global build env
         ("arrow", "1.10.0"),
+        # package involving selectors and m2w64_c compilers, and compilers in
+        # unusual places (e.g. in host & run sections)
         ("go", "1.10.0"),
+        # package with rust compilers
         ("polars", "1.10.0"),
         # test that we skip recipes that already contain a {{ stdlib("c") }}
         ("skip_migration", "1.10.0"),
