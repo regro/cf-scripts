@@ -103,3 +103,7 @@
 - pypi_name: ray
   import_name: ray
   conda_name: ray-core
+
+- pypi_name: flit_core
+  import_name: flit_core
+  conda_name: flit-core
