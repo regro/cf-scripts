@@ -204,9 +204,11 @@ class StdlibMigrator(MiniMigrator):
                 fp.write("".join(new_lines))
 
         fname = os.path.join(recipe_dir, "conda_build_config.yaml")
-
-        with open(fname, "a") as fp:
-            # append ("a") to existing CBC (or create it if it exista already),
-            # no need to differentiate as no-one is using c_stdlib_version yet;
-            # selector can just be linux as that matches default on aarch/ppc
-            fp.write('\nc_stdlib_version:   # [linux]\n  - "2.17"          # [linux]\n')
+        if write_stdlib_to_cbc:
+            with open(fname, "a") as fp:
+                # append ("a") to existing CBC (or create it if it exista already),
+                # no need to differentiate as no-one is using c_stdlib_version yet;
+                # selector can just be linux as that matches default on aarch/ppc
+                fp.write(
+                    '\nc_stdlib_version:   # [linux]\n  - "2.17"          # [linux]\n'
+                )
