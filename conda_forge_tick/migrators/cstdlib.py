@@ -10,9 +10,8 @@ rgx_pre = r"(?P<compiler>\{\{\s*compiler\([\"\']"
 rgx_post = r"[\"\']\)\s*\}\})"
 rgx_sel = r"\s*(?P<selector>\#\s+\[[\w\s()<>!=.,\-\'\"]+\])?"
 
-pat_compiler_c = re.compile(
-    "".join([rgx_idt, rgx_pre, "(m2w64_)?c", rgx_post, rgx_sel])
-)
+pat_compiler_c = re.compile("".join([rgx_idt, rgx_pre, "c", rgx_post, rgx_sel]))
+pat_compiler_m2c = re.compile("".join([rgx_idt, rgx_pre, "m2w64_c", rgx_post, rgx_sel]))
 pat_compiler_other = re.compile(
     "".join([rgx_idt, rgx_pre, "(m2w64_)?(cxx|fortran)", rgx_post, rgx_sel])
 )
@@ -53,9 +52,10 @@ def _process_section(name, attrs, lines):
     # see more computation further down depending on dependencies
     # ignored due to selectors, where we need the line numbers below.
 
-    line_build = line_compiler_c = line_compiler_other = 0
+    line_build = line_compiler_c = line_compiler_m2c = line_compiler_other = 0
     line_host = line_run = line_constrain = line_test = 0
-    indent_c = selector_c = indent_other = selector_other = ""
+    indent_c = indent_m2c = indent_other = ""
+    selector_c = selector_m2c = selector_other = ""
     last_line_was_build = False
     for i, line in enumerate(lines):
         if re.match(r"^\s*build:.*", line):
@@ -67,6 +67,10 @@ def _process_section(name, attrs, lines):
             line_compiler_c = i
             indent_c = pat_compiler_c.match(line).group("indent")
             selector_c = pat_compiler_c.match(line).group("selector") or ""
+        elif pat_compiler_m2c.search(line):
+            line_compiler_m2c = i
+            indent_m2c = pat_compiler_m2c.match(line).group("indent")
+            selector_m2c = pat_compiler_m2c.match(line).group("selector") or ""
         elif pat_compiler_other.search(line):
             line_compiler_other = i
             indent_other = pat_compiler_other.match(line).group("indent")
@@ -111,9 +115,9 @@ def _process_section(name, attrs, lines):
         return lines
 
     # in case of several compilers, prefer line, indent & selector of c compiler
-    line_compiler = line_compiler_c or line_compiler_other
-    indent = indent_c or indent_other
-    selector = selector_c or selector_other
+    line_compiler = line_compiler_c or line_compiler_m2c or line_compiler_other
+    indent = indent_c or indent_m2c or indent_other
+    selector = selector_c or selector_m2c or selector_other
     if indent == "":
         # no compiler in current output; take first line of section as reference (without last \n);
         # ensure it works for both global build section as well as for `- name: <output>`.
@@ -135,7 +139,14 @@ def _process_section(name, attrs, lines):
         # by default, we insert directly after the compiler
         line_insert = line_compiler + 1
 
-    return lines[:line_insert] + [to_insert] + lines[line_insert:]
+    lines = lines[:line_insert] + [to_insert] + lines[line_insert:]
+    if line_compiler_c and line_compiler_m2c:
+        # we have both compiler("c") and compiler("m2w64_c"), likely with complementary
+        # selectors; add a second stdlib line after m2w64_c with respective selector
+        to_insert = indent + '- {{ stdlib("c") }}' + selector_m2c + "\n"
+        line_insert = line_compiler_m2c + 1 + (line_compiler_c < line_compiler_m2c)
+        lines = lines[:line_insert] + [to_insert] + lines[line_insert:]
+    return lines
 
 
 class StdlibMigrator(MiniMigrator):
