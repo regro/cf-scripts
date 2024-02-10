@@ -35,6 +35,9 @@ def _process_section(name, attrs, lines):
     If we find `sysroot_linux-64 2.17`, remove those lines and write the spec to CBC.
     """
     write_stdlib_to_cbc = False
+    # remove occurrences of __osx due to MACOSX_DEPLOYMENT_TARGET (see migrate() below)
+    lines = _replacer(lines, "- __osx", "")
+
     outputs = attrs["meta_yaml"].get("outputs", [])
     global_reqs = attrs["meta_yaml"].get("requirements", {})
     if name == "global":
@@ -212,3 +215,20 @@ class StdlibMigrator(MiniMigrator):
                 fp.write(
                     '\nc_stdlib_version:   # [linux]\n  - "2.17"          # [linux]\n'
                 )
+
+        if os.path.exists(fname):
+            with open(fname) as fp:
+                cbc_lines = fp.readlines()
+            # in a well-formed recipe, all deviations from the baseline
+            # MACOSX_DEPLOYMENT_TARGET come with a constraint on `__osx` in meta.yaml.
+            # Since the c_stdlib_version (together with the macosx_deployment_target
+            # metapackage) satisfies exactly that role, we can unconditionally replace
+            # that in the conda_build_config, and remove all `__osx` constraints in
+            # the meta.yaml (see further up).
+            # this line almost always has a selector, keep the alignment
+            cbc_lines = _replacer(
+                cbc_lines, r"^MACOSX_DEPLOYMENT_TARGET:", "c_stdlib_version:        "
+            )
+
+            with open(fname, "w") as fp:
+                fp.write("".join(cbc_lines))
