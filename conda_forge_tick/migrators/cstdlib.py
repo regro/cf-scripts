@@ -66,6 +66,24 @@ def _process_section(name, attrs, lines):
     selector_c = selector_m2c = selector_other = ""
     last_line_was_build = False
     for i, line in enumerate(lines):
+        if last_line_was_build:
+            # process this separately from the if-else-chain below
+            keys_after_nonreq_build = [
+                "binary_relocation",
+                "force_ignore_keys",
+                "ignore_run_exports(_from)?",
+                "missing_dso_whitelist",
+                "noarch",
+                "number",
+                "run_exports",
+                "script",
+                "skip",
+            ]
+            if re.match(rf"^\s*({'|'.join(keys_after_nonreq_build)}):.*", line):
+                # last match was spurious, reset line_build
+                line_build = 0
+            last_line_was_build = False
+
         if re.match(r"^\s*build:.*", line):
             # we need to avoid build.{number,...}, but cannot use multiline
             # regexes here. So leave a marker that we can skip on
@@ -93,22 +111,6 @@ def _process_section(name, attrs, lines):
             line_test = i
             # ensure we don't read past test section (may contain unrelated deps)
             break
-        elif last_line_was_build:
-            keys_after_nonreq_build = [
-                "binary_relocation",
-                "force_ignore_keys",
-                "ignore_run_exports(_from)?",
-                "missing_dso_whitelist",
-                "noarch",
-                "number",
-                "run_exports",
-                "script",
-                "skip",
-            ]
-            if re.match(rf"^\s*({'|'.join(keys_after_nonreq_build)}):.*", line):
-                # last match was spurious, reset line_build
-                line_build = 0
-            last_line_was_build = False
 
     if line_build:
         # double-check whether there are compilers in the build section
