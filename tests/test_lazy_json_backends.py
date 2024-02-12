@@ -557,7 +557,16 @@ def test_github_hexists_unexpected_status_code(request_mock: MagicMock) -> None:
         GithubLazyJsonBackend().hexists("name", "key")
 
 
-def test_github_hdel(caplog) -> None:
+@pytest.fixture
+def reset_github_backend():
+    # In the future, the program architecture should be changed such that backend instances are shared, instead of
+    # instantiating each backend multiple times (whenever it is needed). Then, this can be moved into instance
+    # variables that don't need to be reset.
+    GithubLazyJsonBackend._write_warned = False
+    GithubLazyJsonBackend._n_requests = 0
+
+
+def test_github_hdel(caplog, reset_github_backend) -> None:
     caplog.set_level(logging.DEBUG)
     backend = GithubLazyJsonBackend()
     backend.hdel("name", ["key1", "key2"])
@@ -573,7 +582,7 @@ def test_github_hdel(caplog) -> None:
     )
 
 
-def test_github_hmset(caplog) -> None:
+def test_github_hmset(caplog, reset_github_backend) -> None:
     caplog.set_level(logging.DEBUG)
     backend = GithubLazyJsonBackend()
     backend.hmset("name", {"a": "b"})
@@ -589,7 +598,7 @@ def test_github_hmset(caplog) -> None:
     )
 
 
-def test_github_hset(caplog) -> None:
+def test_github_hset(caplog, reset_github_backend) -> None:
     caplog.set_level(logging.DEBUG)
     backend = GithubLazyJsonBackend()
     backend.hset("name", "key", "value")
@@ -605,7 +614,7 @@ def test_github_hset(caplog) -> None:
     )
 
 
-def test_github_write_mix(caplog) -> None:
+def test_github_write_mix(caplog, reset_github_backend) -> None:
     caplog.set_level(logging.DEBUG)
     backend = GithubLazyJsonBackend()
 
