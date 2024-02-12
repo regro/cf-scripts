@@ -85,7 +85,6 @@ def main(
 
 
 @main.command(name="gather-all-feedstocks")
-@pass_context
 def gather_all_feedstocks() -> None:
     from . import all_feedstocks
 

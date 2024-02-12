@@ -71,7 +71,6 @@ def test_invalid_job(command: str, job: int, n_jobs: int):
 
 
 takes_context_commands = (
-    "gather-all-feedstocks",
     "make-graph",
     "update-upstream-versions",
     "auto-tick",
