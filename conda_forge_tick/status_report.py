@@ -17,7 +17,6 @@ from conda.models.version import VersionOrder
 from graphviz import Source
 
 from conda_forge_tick.auto_tick import _filter_ignored_versions, initialize_migrators
-from conda_forge_tick.cli_context import CliContext
 from conda_forge_tick.contexts import FeedstockContext
 from conda_forge_tick.lazy_json_backends import LazyJson, get_all_keys_for_hashmap
 from conda_forge_tick.migrators import (

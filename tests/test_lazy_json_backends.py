@@ -1,5 +1,6 @@
 import hashlib
 import json
+import logging
 import os
 import pickle
 from unittest import mock
@@ -546,6 +547,80 @@ def test_github_online_hexists_success(
 def test_github_online_hexists_failure(name: str, key: str) -> None:
     # this performs a web request
     assert not GithubLazyJsonBackend().hexists(name, key)
+
+
+@mock.patch("requests.head")
+def test_github_hexists_unexpected_status_code(request_mock: MagicMock) -> None:
+    request_mock.return_value.status_code = 500
+
+    with pytest.raises(RuntimeError, match="Unexpected status code 500"):
+        GithubLazyJsonBackend().hexists("name", "key")
+
+
+def test_github_hdel(caplog) -> None:
+    caplog.set_level(logging.DEBUG)
+    backend = GithubLazyJsonBackend()
+    backend.hdel("name", ["key1", "key2"])
+
+    assert "Write operations to the GitHub online backend are ignored." in caplog.text
+
+    backend.hdel("name2", ["key3"])
+
+    # warning should only be once in log
+    assert (
+        caplog.text.count("Write operations to the GitHub online backend are ignored")
+        == 1
+    )
+
+
+def test_github_hmset(caplog) -> None:
+    caplog.set_level(logging.DEBUG)
+    backend = GithubLazyJsonBackend()
+    backend.hmset("name", {"a": "b"})
+
+    assert "Write operations to the GitHub online backend are ignored." in caplog.text
+
+    backend.hmset("name2", {})
+
+    # warning should only be once in log
+    assert (
+        caplog.text.count("Write operations to the GitHub online backend are ignored")
+        == 1
+    )
+
+
+def test_github_hset(caplog) -> None:
+    caplog.set_level(logging.DEBUG)
+    backend = GithubLazyJsonBackend()
+    backend.hset("name", "key", "value")
+
+    assert "Write operations to the GitHub online backend are ignored." in caplog.text
+
+    backend.hset("name", "key", "value2")
+
+    # warning should only be once in log
+    assert (
+        caplog.text.count("Write operations to the GitHub online backend are ignored")
+        == 1
+    )
+
+
+def test_github_write_mix(caplog) -> None:
+    caplog.set_level(logging.DEBUG)
+    backend = GithubLazyJsonBackend()
+
+    backend.hset("name", "key", "value")
+    backend.hdel("name", ["a", "b"])
+    backend.hmset("name2", {"a": "d"})
+    backend.hset("name", "key", "value")
+    backend.hdel("name3", ["a", "b"])
+    backend.hmset("name", {"a": "d"})
+
+    # warning should only be once in log
+    assert (
+        caplog.text.count("Write operations to the GitHub online backend are ignored")
+        == 1
+    )
 
 
 def test_github_hkeys() -> None:
