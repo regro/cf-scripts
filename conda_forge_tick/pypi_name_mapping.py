@@ -20,7 +20,7 @@ from packaging.utils import NormalizedName as PypiName
 from packaging.utils import canonicalize_name as canonicalize_pypi_name
 
 from .lazy_json_backends import LazyJson, dump, get_all_keys_for_hashmap, loads
-from .utils import as_iterable, load_existing_graph, load_graph
+from .utils import as_iterable, load_existing_graph
 
 
 class Mapping(TypedDict):

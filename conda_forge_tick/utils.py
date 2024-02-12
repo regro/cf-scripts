@@ -451,23 +451,27 @@ def dump_graph(
 def load_existing_graph(filename: str = DEFAULT_GRAPH_FILENAME) -> nx.DiGraph:
     """
     Load the graph from a file using the lazy json backend.
-    If a non-existing or empty file is encountered, a FileNotFoundError is raised.
-    If you expect the graph to possibly not exist, use load_graph.
+    If the file does not exist, it is initialized with empty JSON before performing any reads.
+    If empty JSON is encountered, a ValueError is raised.
+    If you expect the graph to be possibly empty JSON (i.e. not initialized), use load_graph.
 
     :return: the graph
+    :raises ValueError if the file contains empty JSON (or did not exist before)
     """
     gx = load_graph(filename)
     if gx is None:
-        raise FileNotFoundError(f"Graph file {filename} does not exist or is empty")
+        raise ValueError(f"Graph file {filename} contains empty JSON")
     return gx
 
 
 def load_graph(filename: str = DEFAULT_GRAPH_FILENAME) -> Optional[nx.DiGraph]:
     """
     Load the graph from a file using the lazy json backend.
-    If you expect the graph to exist, use load_existing_graph.
+    If the file does not exist, it is initialized with empty JSON.
+    If you expect the graph to be non-empty JSON, use load_existing_graph.
 
-    :return: the graph, or None if the file does not exist or is empty JSON
+    :return: the graph, or None if the file is empty JSON (or
+    :raises FileNotFoundError if the file does not exist
     """
     dta = copy.deepcopy(LazyJson(filename).data)
     if dta:
