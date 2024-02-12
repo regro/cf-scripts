@@ -590,8 +590,8 @@ def test_github_hmset(caplog) -> None:
 
 
 def test_github_hset(caplog) -> None:
-    backend = GithubLazyJsonBackend()
     caplog.set_level(logging.DEBUG)
+    backend = GithubLazyJsonBackend()
     backend.hset("name", "key", "value")
 
     assert "Write operations to the GitHub online backend are ignored." in caplog.text
