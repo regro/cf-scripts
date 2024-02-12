@@ -549,11 +549,13 @@ def test_github_online_hexists_failure(name: str, key: str) -> None:
 
 
 def test_github_hkeys() -> None:
-    assert GithubLazyJsonBackend().hkeys("name") == []
+    with pytest.raises(NotImplementedError):
+        assert GithubLazyJsonBackend().hkeys("name") == []
 
 
 def test_github_hgetall() -> None:
-    assert GithubLazyJsonBackend().hgetall("name") == {}
+    with pytest.raises(NotImplementedError):
+        GithubLazyJsonBackend().hgetall("name")
 
 
 @mock.patch("requests.get")

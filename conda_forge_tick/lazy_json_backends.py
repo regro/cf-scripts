@@ -260,12 +260,12 @@ class GithubLazyJsonBackend(LazyJsonBackend):
     def hkeys(self, name: str) -> List[str]:
         """
         Not implemented for GithubLazyJsonBackend.
-        Logs a warning and returns an empty list.
+        Raises an error.
         """
-        logger.warning(
-            "hkeys not implemented for GithubLazyJsonBackend. Returning empty list.",
+        raise NotImplementedError(
+            "hkeys not implemented for GitHub JSON backend."
+            "You cannot use the GitHub backend with operations that require listing all hashmap keys."
         )
-        return []
 
     def hget(self, name: str, key: str) -> str:
         self._inform_web_request()
@@ -280,12 +280,13 @@ class GithubLazyJsonBackend(LazyJsonBackend):
     def hgetall(self, name: str, hashval: bool = False) -> Dict[str, str]:
         """
         Not implemented for GithubLazyJsonBackend.
-        Logs a warning and returns an empty dict.
+        Raises an error.
         """
-        logger.warning(
-            "hgetall not implemented for GithubLazyJsonBackend. Returning empty dict.",
+        raise NotImplementedError(
+            "hgetall not implemented for GitHub JSON backend."
+            "You cannot use the GitHub backend as source or target for hashmap synchronization or other"
+            "commands that require listing all hashmap keys.",
         )
-        return {}
 
 
 @functools.lru_cache(maxsize=128)
