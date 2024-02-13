@@ -92,7 +92,6 @@ def test_load_graph():
 
         assert gx.nodes.keys() == {"package1", "package2"}
 
-    mock_file: MagicMock
     mock_file.assert_has_calls([mock.call(DEFAULT_GRAPH_FILENAME)])
 
 
@@ -102,7 +101,6 @@ def test_load_graph_empty_graph():
 
         assert gx is None
 
-    mock_file: MagicMock
     mock_file.assert_has_calls([mock.call(DEFAULT_GRAPH_FILENAME)])
 
 
@@ -113,7 +111,6 @@ def test_load_graph_file_does_not_exist(exists_mock: MagicMock):
     with mock.patch("builtins.open", mock_open(read_data=EMPTY_JSON)) as mock_file:
         load_graph()
 
-    mock_file: MagicMock
     mock_file.assert_has_calls([mock.call(DEFAULT_GRAPH_FILENAME, "w")])
 
 
@@ -123,7 +120,6 @@ def test_load_existing_graph():
 
         assert gx.nodes.keys() == {"package1", "package2"}
 
-    mock_file: MagicMock
     mock_file.assert_has_calls([mock.call(DEFAULT_GRAPH_FILENAME)])
 
 
@@ -132,7 +128,6 @@ def test_load_existing_graph_empty_graph():
         with pytest.raises(ValueError, match="empty JSON"):
             load_existing_graph()
 
-    mock_file: MagicMock
     mock_file.assert_has_calls([mock.call(DEFAULT_GRAPH_FILENAME)])
 
 
@@ -144,5 +139,4 @@ def test_load_existing_graph_file_does_not_exist(exists_mock: MagicMock):
         with pytest.raises(ValueError, match="empty JSON"):
             load_existing_graph()
 
-    mock_file: MagicMock
     mock_file.assert_has_calls([mock.call(DEFAULT_GRAPH_FILENAME, "w")])

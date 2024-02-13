@@ -58,12 +58,12 @@ def get_sharded_path(file_path, n_dirs=5):
 class LazyJsonBackend(ABC):
     @contextlib.contextmanager
     @abstractmethod
-    def transaction_context(self) -> "LazyJsonBackend":
+    def transaction_context(self) -> "Iterator[LazyJsonBackend]":
         pass
 
     @contextlib.contextmanager
     @abstractmethod
-    def snapshot_context(self) -> "LazyJsonBackend":
+    def snapshot_context(self) -> "Iterator[LazyJsonBackend]":
         pass
 
     @abstractmethod
@@ -108,12 +108,12 @@ class LazyJsonBackend(ABC):
 
 class FileLazyJsonBackend(LazyJsonBackend):
     @contextlib.contextmanager
-    def transaction_context(self) -> "FileLazyJsonBackend":
+    def transaction_context(self) -> "Iterator[FileLazyJsonBackend]":
         # context not required
         yield self
 
     @contextlib.contextmanager
-    def snapshot_context(self) -> "FileLazyJsonBackend":
+    def snapshot_context(self) -> "Iterator[FileLazyJsonBackend]":
         # context not required
         yield self
 
@@ -131,7 +131,7 @@ class FileLazyJsonBackend(LazyJsonBackend):
         for key, value in mapping.items():
             self.hset(name, key, value)
 
-    def hmget(self, name: str, keys: str) -> List[str]:
+    def hmget(self, name: str, keys: Iterable[str]) -> List[str]:
         return [self.hget(name, key) for key in keys]
 
     def hgetall(self, name: str, hashval: bool = False) -> Dict[str, str]:
@@ -222,11 +222,11 @@ class GithubLazyJsonBackend(LazyJsonBackend):
                 f"Using the GitHub online backend for making a lot of requests is not recommended.",
             )
 
-    def transaction_context(self) -> "GithubLazyJsonBackend":
+    def transaction_context(self) -> "Iterator[GithubLazyJsonBackend]":
         # context not required
         yield self
 
-    def snapshot_context(self) -> "GithubLazyJsonBackend":
+    def snapshot_context(self) -> "Iterator[GithubLazyJsonBackend]":
         # context not required
         yield self
 
@@ -318,7 +318,7 @@ class MongoDBLazyJsonBackend(LazyJsonBackend):
     _snapshot_session = None
 
     @contextlib.contextmanager
-    def transaction_context(self):
+    def transaction_context(self) -> "Iterator[MongoDBLazyJsonBackend]":
         try:
             if self.__class__._session is None:
                 client = get_graph_data_mongodb_client()
@@ -333,7 +333,7 @@ class MongoDBLazyJsonBackend(LazyJsonBackend):
             self.__class__._session = None
 
     @contextlib.contextmanager
-    def snapshot_context(self):
+    def snapshot_context(self) -> "Iterator[MongoDBLazyJsonBackend]":
         try:
             if self.__class__._snapshot_session is None:
                 client = get_graph_data_mongodb_client()
