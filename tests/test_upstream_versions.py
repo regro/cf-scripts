@@ -2,7 +2,7 @@ import logging
 import os
 import random
 from concurrent.futures import Future
-from typing import Mapping
+from typing import Dict, Mapping
 from unittest import mock
 from unittest.mock import MagicMock, Mock, patch
 
@@ -1145,7 +1145,7 @@ def test_include_node_parsing_error(caplog):
 
 def test_include_node_no_payload():
     package_name = "testpackage"
-    payload_attrs = {}
+    payload_attrs: Dict = {}
 
     assert include_node(package_name, payload_attrs)
 
@@ -1467,8 +1467,8 @@ def test_update_upstream_versions_process_pool(
         ("testpackage2", {"version": "1.2.4"}),
     ]
 
-    future_1 = Future()
-    future_2 = Future()
+    future_1: Future[Dict[str, str]] = Future()
+    future_2: Future[Dict[str, str]] = Future()
 
     pool_mock = executor_mock.return_value.__enter__.return_value
     pool_mock.submit.side_effect = [future_1, future_2]
@@ -1518,7 +1518,7 @@ def test_update_upstream_versions_process_pool_exception(
         ("testpackage", {"version": "2.2.3"}),
     ]
 
-    future = Future()
+    future: Future[Dict[str, str]] = Future()
 
     pool_mock = executor_mock.return_value.__enter__.return_value
     pool_mock.submit.return_value = future
@@ -1561,7 +1561,7 @@ def test_update_upstream_versions_process_pool_exception_repr_exception(
         ("testpackage", {"version": "2.2.3"}),
     ]
 
-    future = Future()
+    future: Future[Dict[str, str]] = Future()
 
     pool_mock = executor_mock.return_value.__enter__.return_value
     pool_mock.submit.return_value = future

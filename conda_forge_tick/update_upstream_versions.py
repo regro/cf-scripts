@@ -9,6 +9,7 @@ from typing import (
     Dict,
     Iterable,
     Iterator,
+    List,
     Literal,
     Mapping,
     Optional,
@@ -65,7 +66,7 @@ def get_latest_version(
     name: str,
     attrs: Mapping[str, Any],
     sources: Iterable[AbstractSource],
-) -> Dict[str, Union[bool, str]]:
+) -> Dict[str, Union[Literal[False], str]]:
     """
     Given a package, return the new version information to be written into the cf-graph.
     :param name: the name of the package.
@@ -87,18 +88,22 @@ def get_latest_version(
         {},
         None,
     )
+
+    sources_to_use: Iterable[AbstractSource]
     if version_sources is not None:
         version_sources = [vs.lower() for vs in version_sources]
-        sources_to_use = []
+        sources_to_use_list = []
         for vs in version_sources:
             for source in sources:
                 if source.name.lower() == vs:
-                    sources_to_use.append(source)
+                    sources_to_use_list.append(source)
                     break
             else:
                 logger.warning(
                     f"Package {name} requests version source '{vs}' which is not available. Skipping.",
                 )
+
+        sources_to_use = sources_to_use_list
 
         logger.debug(
             f"{name} defines the following custom version sources: {[source.name for source in sources_to_use]}",
@@ -215,12 +220,12 @@ def include_node(package_name: str, payload_attrs: Mapping) -> bool:
 
 def _update_upstream_versions_sequential(
     to_update: Iterable[Tuple[str, Mapping]],
-    sources: Iterable[AbstractSource] = None,
+    sources: Iterable[AbstractSource],
 ) -> None:
     node_count = 0
     for node, attrs in to_update:
         # checking each node
-        version_data = {}
+        version_data: Dict[str, Union[Literal[False], str]] = {}
 
         # New version request
         try:
@@ -273,7 +278,7 @@ def _update_upstream_versions_process_pool(
         n_left = len(futures)
         start = time.time()
         # eta :: elapsed time average
-        eta = -1
+        eta = -1.0
         for f in as_completed(futures):
             n_left -= 1
             if n_left % 10 == 0:
@@ -315,7 +320,7 @@ def _update_upstream_versions_process_pool(
 
 def update_upstream_versions(
     gx: nx.DiGraph,
-    sources: Iterable[AbstractSource] = None,
+    sources: Optional[Iterable[AbstractSource]] = None,
     debug: bool = False,
     job=1,
     n_jobs=1,
