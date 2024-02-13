@@ -351,7 +351,7 @@ def update_upstream_versions(
 
     payload_extracted = map(extract_payload, job_nodes)
 
-    to_update = list(
+    to_update: List[Tuple[str, Mapping]] = list(
         filter(
             lambda node: include_node(node[0], node[1]),
             payload_extracted,
