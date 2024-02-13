@@ -28,7 +28,7 @@ SKIP_DEPS_NODES = [
     "ansible",
 ]
 
-logger = logging.getLogger("conda_forge_tick.migrators.version")
+logger = logging.getLogger(__name__)
 
 
 def _fmt_error_message(errors, version):

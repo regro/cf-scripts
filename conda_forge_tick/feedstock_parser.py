@@ -22,7 +22,7 @@ if typing.TYPE_CHECKING:
 
 from .utils import as_iterable, parse_meta_yaml
 
-logger = logging.getLogger("conda_forge_tick.feedstock_parser")
+logger = logging.getLogger(__name__)
 
 PIN_SEP_PAT = re.compile(r" |>|<|=|\[")
 

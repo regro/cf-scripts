@@ -14,7 +14,7 @@ from conda_forge_tick.lazy_json_backends import (
 
 from .cli_context import CliContext
 
-logger = logging.getLogger("conda_forge_tick.lazy_json_backends")
+logger = logging.getLogger(__name__)
 
 CF_TICK_GRAPH_DATA_BACKUP_BACKEND = os.environ.get(
     "CF_TICK_GRAPH_DATA_BACKUP_BACKEND",
@@ -164,13 +164,6 @@ def save_backup(fname):
 
 
 def main_backup(ctx: CliContext):
-    from conda_forge_tick.utils import setup_logger
-
-    if ctx.debug:
-        setup_logger(logging.getLogger("conda_forge_tick"), level="debug")
-    else:
-        setup_logger(logging.getLogger("conda_forge_tick"))
-
     def _name_to_ts(b):
         return int(b.split(".")[0].split("_")[-1])
 

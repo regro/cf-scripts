@@ -27,7 +27,7 @@ if typing.TYPE_CHECKING:
 
     from conda_forge_tick.migrators_types import MetaYamlTypedDict
 
-logger = logging.getLogger("conda_forge_tick.utils")
+logger = logging.getLogger(__name__)
 
 T = typing.TypeVar("T")
 TD = typing.TypeVar("TD", bound=dict, covariant=True)
@@ -73,6 +73,8 @@ CB_CONFIG_PINNING = dict(
     cran_mirror="https://cran.r-project.org",
     datetime=datetime,
 )
+
+DEFAULT_GRAPH_FILENAME = "graph.json"
 
 
 @contextlib.contextmanager
@@ -394,17 +396,12 @@ class NullUndefined(jinja2.Undefined):
         return f'{self}["{name}"]'
 
 
-def setup_logger(logger: logging.Logger, level: str = "INFO") -> None:
-    """Basic configuration for logging"""
-    logger.setLevel(level.upper())
-    ch = logging.StreamHandler()
-    ch.setLevel(level.upper())
-    ch.setFormatter(
-        logging.Formatter("%(asctime)-15s %(levelname)-8s %(name)s || %(message)s"),
+def setup_logging(level: str = "INFO") -> None:
+    logging.basicConfig(
+        format="%(asctime)-15s %(levelname)-8s %(name)s || %(message)s",
+        level=level.upper(),
     )
-    logger.addHandler(ch)
-    # this prevents duplicate logging messages
-    logger.propagate = False
+    logging.getLogger("urllib3").setLevel(logging.INFO)
 
 
 # TODO: upstream this into networkx?
@@ -436,7 +433,6 @@ def dump_graph_json(gx: nx.DiGraph, filename: str = "graph.json") -> None:
     links = nld["links"]
     links2 = sorted(links, key=lambda x: f'{x["source"]}{x["target"]}')
     nld["links"] = links2
-    from conda_forge_tick.lazy_json_backends import LazyJson
 
     lzj = LazyJson(filename)
     with lzj as attrs:
@@ -452,9 +448,31 @@ def dump_graph(
     dump_graph_json(gx, filename)
 
 
-def load_graph(filename: str = "graph.json") -> nx.DiGraph:
-    from conda_forge_tick.lazy_json_backends import LazyJson
+def load_existing_graph(filename: str = DEFAULT_GRAPH_FILENAME) -> nx.DiGraph:
+    """
+    Load the graph from a file using the lazy json backend.
+    If the file does not exist, it is initialized with empty JSON before performing any reads.
+    If empty JSON is encountered, a ValueError is raised.
+    If you expect the graph to be possibly empty JSON (i.e. not initialized), use load_graph.
 
+    :return: the graph
+    :raises ValueError if the file contains empty JSON (or did not exist before)
+    """
+    gx = load_graph(filename)
+    if gx is None:
+        raise ValueError(f"Graph file {filename} contains empty JSON")
+    return gx
+
+
+def load_graph(filename: str = DEFAULT_GRAPH_FILENAME) -> Optional[nx.DiGraph]:
+    """
+    Load the graph from a file using the lazy json backend.
+    If the file does not exist, it is initialized with empty JSON.
+    If you expect the graph to be non-empty JSON, use load_existing_graph.
+
+    :return: the graph, or None if the file is empty JSON (or
+    :raises FileNotFoundError if the file does not exist
+    """
     dta = copy.deepcopy(LazyJson(filename).data)
     if dta:
         return nx.node_link_graph(dta)

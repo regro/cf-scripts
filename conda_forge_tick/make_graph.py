@@ -26,12 +26,13 @@ from .all_feedstocks import get_all_feedstocks, get_archived_feedstocks
 from .cli_context import CliContext
 from .contexts import GithubContext
 from .executors import executor
-from .utils import as_iterable, dump_graph, load_graph, setup_logger
+from .utils import as_iterable, dump_graph, load_graph
 
 # from conda_forge_tick.profiler import profiling
 
 
-logger = logging.getLogger("conda_forge_tick.make_graph")
+logger = logging.getLogger(__name__)
+
 pin_sep_pat = re.compile(r" |>|<|=|\[")
 random.seed(os.urandom(64))
 
@@ -312,11 +313,6 @@ def _migrate_schemas():
 
 # @profiling
 def main(ctx: CliContext) -> None:
-    if ctx.debug:
-        setup_logger(logging.getLogger("conda_forge_tick"), level="debug")
-    else:
-        setup_logger(logging.getLogger("conda_forge_tick"))
-
     names = get_all_feedstocks(cached=True)
     gx = load_graph()
 

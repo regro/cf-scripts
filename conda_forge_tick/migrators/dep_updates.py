@@ -9,7 +9,7 @@ from conda_forge_tick.utils import get_keys_default
 if typing.TYPE_CHECKING:
     from ..migrators_types import AttrsTypedDict
 
-logger = logging.getLogger("conda_forge_tick.migrators.dep_updates")
+logger = logging.getLogger(__name__)
 
 
 class DependencyUpdateMigrator(MiniMigrator):

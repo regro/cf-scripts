@@ -2,7 +2,6 @@ import copy
 import hashlib
 import logging
 import random
-import typing
 from concurrent.futures._base import as_completed
 
 import github3
@@ -19,11 +18,11 @@ from conda_forge_tick.git_utils import (
 
 from .executors import executor
 from .make_graph import ghctx
-from .utils import github_client, load_graph, setup_logger
+from .utils import github_client, load_existing_graph
 
 # from conda_forge_tick.profiler import profiling
 
-logger = logging.getLogger("conda_forge_tick.update_prs")
+logger = logging.getLogger(__name__)
 
 NUM_GITHUB_THREADS = 2
 KEEP_PR_FRACTION = 1.5
@@ -165,12 +164,7 @@ def close_dirty_prs(
 
 # @profiling
 def main(ctx: CliContext, job: int = 1, n_jobs: int = 1) -> None:
-    if ctx.debug:
-        setup_logger(logger, level="debug")
-    else:
-        setup_logger(logger)
-
-    gx = load_graph()
+    gx = load_existing_graph()
 
     gx = close_labels(gx, ctx.dry_run, job=job, n_jobs=n_jobs)
     gx = update_graph_pr_status(gx, ctx.dry_run, job=job, n_jobs=n_jobs)

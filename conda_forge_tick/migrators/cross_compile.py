@@ -10,7 +10,7 @@ from conda_forge_tick.utils import _get_source_code, yaml_safe_dump, yaml_safe_l
 if typing.TYPE_CHECKING:
     from ..migrators_types import AttrsTypedDict
 
-logger = logging.getLogger("conda_forge_tick.migrators.cross_compile")
+logger = logging.getLogger(__name__)
 
 
 class CrossCompilationMigratorBase(MiniMigrator):

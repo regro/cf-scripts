@@ -19,7 +19,7 @@ PRLOCK = DummyLock()
 DLOCK = DummyLock()
 
 
-logger = logging.getLogger("conda_forge_tick.executor")
+logger = logging.getLogger(__name__)
 
 
 def _init_process(lock):

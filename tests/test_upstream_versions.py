@@ -1590,7 +1590,7 @@ def test_update_upstream_versions_process_pool_exception_repr_exception(
 
 @pytest.mark.parametrize("debug", [True, False])
 @mock.patch("os.makedirs")
-@mock.patch("conda_forge_tick.update_upstream_versions.load_graph")
+@mock.patch("conda_forge_tick.update_upstream_versions.load_existing_graph")
 @mock.patch("conda_forge_tick.update_upstream_versions.update_upstream_versions")
 def test_main(
     update_upstream_versions_mock: MagicMock,

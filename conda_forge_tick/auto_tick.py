@@ -27,6 +27,12 @@ from typing import (
 import tqdm
 
 from .cli_context import CliContext
+from .lazy_json_backends import (
+    LazyJson,
+    get_all_keys_for_hashmap,
+    lazy_json_transaction,
+    remove_key_for_hashmap,
+)
 
 if typing.TYPE_CHECKING:
     from .migrators_types import MetaYamlTypedDict, MigrationUidTypedDict, PackageName
@@ -53,12 +59,6 @@ from conda_forge_tick.git_utils import (
     get_repo,
     is_github_api_limit_reached,
     push_repo,
-)
-from conda_forge_tick.lazy_json_backends import (
-    LazyJson,
-    get_all_keys_for_hashmap,
-    lazy_json_transaction,
-    remove_key_for_hashmap,
 )
 from conda_forge_tick.migrators import (
     ArchRebuild,
@@ -100,19 +100,18 @@ from conda_forge_tick.utils import (
     fold_log_lines,
     frozen_to_json_friendly,
     get_keys_default,
-    load_graph,
+    load_existing_graph,
     parse_meta_yaml,
     parse_munged_run_export,
     pluck,
     sanitize_string,
-    setup_logger,
     yaml_safe_load,
 )
 
 # not using this right now
 # from conda_forge_tick.deploy import deploy
 
-logger = logging.getLogger("conda_forge_tick.auto_tick")
+logger = logging.getLogger(__name__)
 
 PR_LIMIT = 5
 MAX_PR_LIMIT = 50
@@ -983,7 +982,7 @@ def initialize_migrators(
     dry_run: bool = False,
 ) -> Tuple[MigratorSessionContext, list, MutableSequence[Migrator]]:
     temp = glob.glob("/tmp/*")
-    gx = load_graph()
+    gx = load_existing_graph()
     smithy_version = eval_cmd("conda smithy --version").strip()
     pinning_version = json.loads(eval_cmd("conda list conda-forge-pinning --json"))[0][
         "version"
@@ -1410,7 +1409,7 @@ def _setup_limits():
         resource.setrlimit(resource.RLIMIT_AS, (limit_int, limit_int))
 
 
-def _update_nodes_with_bot_rerun(gx):
+def _update_nodes_with_bot_rerun(gx: nx.DiGraph):
     """Go through all the open PRs and check if they are rerun"""
 
     print("processing bot-rerun labels", flush=True)
@@ -1553,7 +1552,7 @@ def _remove_closed_pr_json():
 
 def _update_graph_with_pr_info():
     _remove_closed_pr_json()
-    gx = load_graph()
+    gx = load_existing_graph()
     _update_nodes_with_bot_rerun(gx)
     _update_nodes_with_new_versions(gx)
     dump_graph(gx)
@@ -1565,12 +1564,6 @@ def main(ctx: CliContext) -> None:
 
     global BOT_HOME_DIR
     BOT_HOME_DIR = os.getcwd()
-
-    # logging
-    if ctx.debug:
-        setup_logger(logging.getLogger("conda_forge_tick"), level="debug")
-    else:
-        setup_logger(logging.getLogger("conda_forge_tick"))
 
     with fold_log_lines("updating graph with PR info"):
         _update_graph_with_pr_info()
