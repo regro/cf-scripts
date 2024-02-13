@@ -1,19 +1,37 @@
+import logging
 import os
+import random
+from concurrent.futures import Future
+from typing import Dict, Mapping
+from unittest import mock
+from unittest.mock import MagicMock, Mock, patch
 
+import networkx as nx
 import pytest
 from conda.models.version import VersionOrder
 from flaky import flaky
 
+from conda_forge_tick.cli_context import CliContext
 from conda_forge_tick.lazy_json_backends import LazyJson
 from conda_forge_tick.update_sources import (
     NPM,
     NVIDIA,
+    AbstractSource,
     Github,
     PyPI,
     RawURL,
     next_version,
 )
-from conda_forge_tick.update_upstream_versions import get_latest_version
+from conda_forge_tick.update_upstream_versions import (
+    _update_upstream_versions_process_pool,
+    _update_upstream_versions_sequential,
+    filter_nodes_for_job,
+    get_latest_version,
+    ignore_version,
+    include_node,
+    main,
+    update_upstream_versions,
+)
 from conda_forge_tick.utils import parse_meta_yaml
 
 YAML_PATH = os.path.join(os.path.dirname(__file__), "test_yaml")
@@ -325,6 +343,50 @@ latest_url_rawurl_test_list = [
 
 
 @pytest.mark.parametrize(
+    "attrs",
+    [
+        {"key": "value"},
+        {"conda-forge.yml": {"key": "value"}},
+        {"conda-forge.yml": {"bot": {"key": "value"}}},
+        {"conda-forge.yml": {"bot": {"version_updates": {"key": "value"}}}},
+        {"conda-forge.yml": {"bot": {"version_updates": {"exclude": []}}}},
+        {
+            "conda-forge.yml": {
+                "bot": {
+                    "version_updates": {
+                        "exclude": ["12.3", "1.23", "1.2", "2.3", "1.2.3.4"],
+                    },
+                },
+            },
+        },
+    ],
+)
+def test_ignore_version_false(attrs):
+    assert ignore_version(attrs, "1.2.3") is False
+
+
+@pytest.mark.parametrize(
+    "attrs",
+    [
+        {"conda-forge.yml": {"bot": {"version_updates": {"exclude": ["1.2.3"]}}}},
+        {
+            "conda-forge.yml": {
+                "bot": {"version_updates": {"exclude": ["3.2.1", "1.2.3"]}},
+            },
+        },
+        {
+            "conda-forge.yml": {
+                "bot": {"version_updates": {"exclude": ["1.2.3", "3.2.1"]}},
+            },
+        },
+    ],
+)
+@pytest.mark.parametrize("version", ["1.2.3", "1.2-3"])
+def test_ignore_version_true(attrs, version):
+    assert ignore_version(attrs, version) is True
+
+
+@pytest.mark.parametrize(
     "name, inp, curr_ver, ver, source, urls",
     latest_url_npm_test_list,
 )
@@ -387,6 +449,166 @@ def test_latest_version_rawurl(name, inp, curr_ver, ver, source, urls, tmpdir):
         assert attempt["new_version"] is ver
     else:
         assert ver == attempt["new_version"]
+
+
+def test_latest_version_ca_policy_lcg(caplog):
+    assert get_latest_version("ca-policy-lcg", {}, [RawURL()]) == {"new_version": False}
+    assert "ca-policy-lcg" in caplog.text
+    assert "manually excluded" in caplog.text
+
+
+def test_latest_version_version_sources_no_error(caplog):
+    caplog.set_level(logging.DEBUG)
+
+    source_a = Mock(AbstractSource)
+    source_a.name = "this Is Source A"
+
+    source_b = Mock(AbstractSource)
+    source_b.name = "Source b it Is"
+
+    attrs = {
+        "conda-forge.yml": {
+            "bot": {
+                "version_updates": {
+                    "sources": ["source B it is", "source c"],
+                },
+            },
+        },
+    }
+
+    source_b.get_url.return_value = "https://source-b.com"
+    source_b.get_version.return_value = "1.2.3"
+
+    with patch(
+        "conda_forge_tick.update_upstream_versions.ignore_version", return_value=False
+    ) as ignore_version_mock:
+        result = get_latest_version("crazy-package", attrs, [source_a, source_b])
+
+    # source c is not a valid source, source a does not appear in the list
+    assert (
+        "crazy-package requests version source 'source c' which is not available"
+        in caplog.text
+    )
+    assert (
+        "crazy-package defines the following custom version sources: ['Source b it Is']"
+        in caplog.text
+    )
+    assert "we skip the following sources: ['this Is Source A']" in caplog.text
+
+    assert (
+        "Fetching latest version for crazy-package from Source b it Is" in caplog.text
+    )
+
+    source_b.get_url.assert_called_once_with(attrs)
+    assert "Using URL https://source-b.com" in caplog.text
+
+    source_b.get_version.assert_called_once_with("https://source-b.com")
+    assert "Found version 1.2.3 on Source b it Is" in caplog.text
+
+    ignore_version_mock.assert_called_once_with(attrs, "1.2.3")
+
+    assert result == {"new_version": "1.2.3"}
+
+
+def test_latest_version_skip_error_success(caplog):
+    caplog.set_level(logging.DEBUG)
+
+    source_a = Mock(AbstractSource)
+    source_a.name = "source a"
+    source_a.get_url.return_value = "https://source-a.com"
+    source_a.get_version.side_effect = Exception("source a error")
+
+    source_b = Mock(AbstractSource)
+    source_b.name = "source b"
+    source_b.get_url.return_value = "https://source-b.com"
+    source_b.get_version.return_value = "1.2.3"
+
+    with patch(
+        "conda_forge_tick.update_upstream_versions.ignore_version", return_value=False
+    ):
+        result = get_latest_version("crazy-package", {}, [source_a, source_b])
+
+    assert "Using URL https://source-a.com" in caplog.text
+    assert (
+        "An exception occurred while fetching crazy-package from source a:"
+        in caplog.text
+    )
+    assert "source a error" in caplog.text
+
+    assert result == {"new_version": "1.2.3"}
+
+
+def test_latest_version_error_and_no_new_version(caplog):
+    caplog.set_level(logging.DEBUG)
+
+    source_a = Mock(AbstractSource)
+    source_a.name = "source a"
+    source_a.get_url.return_value = "https://source-a.com"
+    source_a.get_version.side_effect = ZeroDivisionError("source a error")
+
+    source_b = Mock(AbstractSource)
+    source_b.name = "source b"
+    source_b.get_url.return_value = "https://source-b.com"
+    source_b.get_version.return_value = None
+
+    with pytest.raises(ZeroDivisionError):
+        get_latest_version("crazy-package", {}, [source_a, source_b])
+
+    assert "Using URL https://source-a.com" in caplog.text
+    assert (
+        "An exception occurred while fetching crazy-package from source a:"
+        in caplog.text
+    )
+    assert "source a error" in caplog.text
+
+    assert "Fetching latest version for crazy-package from source b" in caplog.text
+    assert "Upstream: Could not find version on source b" in caplog.text
+
+    assert "Cannot find version on any source, exceptions occurred" in caplog.text
+
+
+def test_latest_version_ignore_version(caplog):
+    caplog.set_level(logging.DEBUG)
+
+    source_a = Mock(AbstractSource)
+    source_a.name = "source a"
+    source_a.get_url.return_value = "https://source-a.com"
+    source_a.get_version.return_value = "1.2.3"
+
+    with patch(
+        "conda_forge_tick.update_upstream_versions.ignore_version", return_value=True
+    ):
+        result = get_latest_version("crazy-package", {}, [source_a])
+
+    assert "Using URL https://source-a.com" in caplog.text
+    assert "Ignoring version 1.2.3" in caplog.text
+
+    assert result == {"new_version": False}
+
+
+def test_latest_version_no_sources_are_skipped(caplog):
+    caplog.set_level(logging.DEBUG)
+
+    source_a = Mock(AbstractSource)
+    source_a.name = "source a"
+    source_a.get_url.return_value = "https://source-a.com"
+    source_a.get_version.return_value = "1.2.3"
+
+    attrs = {
+        "conda-forge.yml": {
+            "bot": {
+                "version_updates": {
+                    "sources": ["source a"],
+                },
+            },
+        },
+    }
+
+    result = get_latest_version("crazy-package", attrs, [source_a])
+
+    assert "No sources are skipped" in caplog.text
+
+    assert result == {"new_version": "1.2.3"}
 
 
 @pytest.mark.parametrize(
@@ -880,3 +1102,513 @@ def test_latest_version_aws_sdk_cpp(tmpdir):
     assert attempt["new_version"] is not None
     assert attempt["new_version"]
     print(attempt)
+
+
+@pytest.mark.parametrize("n_jobs", [1, 2, 4, 8])
+def test_filter_nodes_for_job(n_jobs: int):
+    # instead of relying on the hash function, we check that a "random" sample is partitioned
+    # into the correct number of jobs of roughly equal size
+
+    all_nodes = [(f"node-{i}", {"payload": f"payload-{i}"}) for i in range(2048)]
+
+    filtered_nodes = [
+        list(filter_nodes_for_job(all_nodes, i, n_jobs)) for i in range(1, n_jobs + 1)
+    ]
+
+    # sum of job sizes should be equal to total number of nodes
+    assert sum(len(nodes) for nodes in filtered_nodes) == len(all_nodes)
+
+    # jobs should be disjoint
+    frozen_nodes = [
+        [(name, frozenset(attrs.items())) for (name, attrs) in job_nodes]
+        for job_nodes in filtered_nodes
+    ]
+    assert len(set().union(*frozen_nodes)) == len(all_nodes)
+
+    # jobs should have roughly equal size
+    assert all(
+        0.8 < n_jobs * len(nodes) / len(all_nodes) < 1.2 for nodes in filtered_nodes
+    )
+
+
+def test_include_node_parsing_error(caplog):
+    package_name = "testpackage"
+    payload_attrs = {"parsing_error": "She sells seashells by the seashore."}
+
+    caplog.set_level(logging.DEBUG)
+    assert not include_node(package_name, payload_attrs)
+
+    assert f"Skipping {package_name}" in caplog.text
+    assert "parsing error" in caplog.text
+    assert "She sells seashells by the seashore." in caplog.text
+
+
+def test_include_node_no_payload():
+    package_name = "testpackage"
+    payload_attrs: Dict = {}
+
+    assert include_node(package_name, payload_attrs)
+
+
+def test_include_node_archived(caplog):
+    package_name = "testpackage"
+    payload_attrs = {"archived": True}
+
+    caplog.set_level(logging.DEBUG)
+    assert not include_node(package_name, payload_attrs)
+
+    assert f"Skipping {package_name}" in caplog.text
+    assert "archived" in caplog.text
+
+
+def test_include_node_archived_false(caplog):
+    package_name = "testpackage"
+    payload_attrs = {"archived": False}
+
+    assert include_node(package_name, payload_attrs)
+
+
+def test_include_node_bad_pull_request(caplog):
+    package_name = "testpackage"
+    payload_attrs = {"pr_info": {"bad": "Lorem Ipsum"}}
+
+    caplog.set_level(logging.DEBUG)
+    assert not include_node(package_name, payload_attrs)
+
+    assert f"Skipping {package_name}" in caplog.text
+    assert "Pull Request" in caplog.text
+    assert "bad" in caplog.text
+    assert "Lorem Ipsum" in caplog.text
+
+
+def test_include_node_bad_pull_request_upstream(caplog):
+    package_name = "testpackage"
+    payload_attrs = {"pr_info": {"bad": "Upstream: Could not fetch URL"}}
+
+    caplog.set_level(logging.DEBUG)
+    # the node is included!
+    assert include_node(package_name, payload_attrs)
+
+    assert f"Note: {package_name}" in caplog.text
+    assert "Pull Request" in caplog.text
+    assert "bad" in caplog.text
+    assert "upstream" in caplog.text
+
+
+def test_update_upstream_versions_nonexistent_package(caplog):
+    package_name = "nonexistent-package"
+
+    caplog.set_level(logging.DEBUG)
+    update_upstream_versions(
+        nx.DiGraph(),
+        package=package_name,
+    )
+
+    assert "Package nonexistent-package not found in graph" in caplog.text
+
+
+@mock.patch("conda_forge_tick.update_upstream_versions.filter_nodes_for_job")
+def test_update_upstream_versions_no_packages_to_update(
+    filter_nodes_mock: MagicMock, caplog
+):
+    caplog.set_level(logging.DEBUG)
+
+    gx = nx.DiGraph()
+    gx.add_node("testpackage")
+    gx.add_node("testpackage2")
+
+    filter_nodes_mock.return_value = []
+
+    update_upstream_versions(gx, job=7, n_jobs=14)
+
+    filter_nodes_mock.assert_called_once_with(gx.nodes().items(), 7, 14)
+    assert "No packages to update for job" in caplog.text
+
+
+default_sources = (
+    "PyPI",
+    "CRAN",
+    "NPM",
+    "ROSDistro",
+    "RawURL",
+    "Github",
+    "IncrementAlphaRawURL",
+    "NVIDIA",
+)
+
+
+@mock.patch("conda_forge_tick.update_upstream_versions.filter_nodes_for_job")
+@mock.patch("conda_forge_tick.update_upstream_versions.include_node")
+@mock.patch(
+    "conda_forge_tick.update_upstream_versions._update_upstream_versions_sequential"
+)
+def test_update_upstream_versions_run_sequential(
+    update_sequential_mock: MagicMock,
+    include_node_mock: MagicMock,
+    filter_nodes_mock: MagicMock,
+):
+
+    gx = nx.DiGraph()
+    gx.add_node("testpackage", payload={"version": "1.2.3"})
+    gx.add_node("testpackage2", payload={"version": "1.2.4"})
+    gx.add_node("testpackage3", payload={"version": "1.2.5"})
+
+    filter_nodes_mock.return_value = [
+        ("testpackage", {"payload": {"dummy": "1.2.3"}}),
+        ("testpackage2", {"payload": {"dummy": "1.2.4"}}),
+        ("testpackage3", {"payload": {"dummy": "1.2.5"}}),
+    ]
+
+    # swaps the packages
+    random.seed(1)
+
+    def custom_include_node(name: str, _: Mapping) -> bool:
+        return name in ("testpackage", "testpackage2")
+
+    include_node_mock.side_effect = custom_include_node
+
+    update_upstream_versions(gx, debug=True)
+
+    filter_nodes_mock.assert_called_once_with(gx.nodes().items(), 1, 1)
+    include_node_mock.assert_has_calls(
+        [
+            mock.call("testpackage", {"dummy": "1.2.3"}),
+            mock.call("testpackage2", {"dummy": "1.2.4"}),
+            mock.call("testpackage3", {"dummy": "1.2.5"}),
+        ]
+    )
+
+    update_sequential_mock.assert_called_once()
+    assert update_sequential_mock.call_args.args[0] == [
+        ("testpackage2", {"dummy": "1.2.4"}),
+        ("testpackage", {"dummy": "1.2.3"}),
+    ]
+    assert (
+        tuple(source.name for source in update_sequential_mock.call_args.args[1])
+        == default_sources
+    )
+
+
+@mock.patch("conda_forge_tick.update_upstream_versions.filter_nodes_for_job")
+@mock.patch("conda_forge_tick.update_upstream_versions.include_node")
+@mock.patch(
+    "conda_forge_tick.update_upstream_versions._update_upstream_versions_process_pool"
+)
+def test_update_upstream_versions_run_parallel_custom_sources(
+    update_process_pool_mock: MagicMock,
+    include_node_mock: MagicMock,
+    filter_nodes_mock: MagicMock,
+):
+    gx = nx.DiGraph()
+    gx.add_node("testpackage", payload={"version": "1.2.3"})
+
+    filter_nodes_mock.return_value = [
+        ("testpackage", {"payload": {"dummy": "1.2.3"}}),
+    ]
+
+    random.seed(1)
+
+    include_node_mock.return_value = True
+
+    source_a = Mock(AbstractSource)
+    source_a.name = "source a"
+    source_b = Mock(AbstractSource)
+    source_b.name = "source b"
+
+    update_upstream_versions(gx, debug=False, sources=[source_a, source_b])
+
+    filter_nodes_mock.assert_called_once_with(gx.nodes().items(), 1, 1)
+
+    update_process_pool_mock.assert_called_once()
+    assert update_process_pool_mock.call_args.args[0] == [
+        ("testpackage", {"dummy": "1.2.3"}),
+    ]
+    assert tuple(
+        source.name for source in update_process_pool_mock.call_args.args[1]
+    ) == ("source a", "source b")
+
+
+@mock.patch("conda_forge_tick.update_upstream_versions.get_latest_version")
+@mock.patch("conda_forge_tick.update_upstream_versions.LazyJson")
+def test_update_upstream_versions_sequential_error(
+    lazy_json_mock: MagicMock, get_latest_version_mock: MagicMock, caplog
+):
+    caplog.set_level(logging.DEBUG)
+    source_a = Mock(AbstractSource)
+    to_update = [
+        ("testpackage", {"dummy": "1.2.3"}),
+    ]
+
+    get_latest_version_mock.side_effect = Exception("source a error")
+
+    lazy_json_instance = lazy_json_mock.return_value
+    lazy_json_instance.__enter__.return_value = lazy_json_instance
+
+    _update_upstream_versions_sequential(to_update, [source_a])
+
+    assert "Warning: Error getting upstream version of testpackage" in caplog.text
+    assert "source a error" in caplog.text
+
+    get_latest_version_mock.assert_called_once_with(
+        "testpackage", {"dummy": "1.2.3"}, [source_a]
+    )
+
+    lazy_json_mock.assert_called_once_with("versions/testpackage.json")
+    lazy_json_instance.clear.assert_called_once()
+    lazy_json_instance.update.assert_called_once_with(
+        {"bad": "Upstream: Error getting upstream version"}
+    )
+
+
+class BrokenException(Exception):
+    def __repr__(self):
+        raise Exception("broken exception")
+
+
+@mock.patch("conda_forge_tick.update_upstream_versions.get_latest_version")
+@mock.patch("conda_forge_tick.update_upstream_versions.LazyJson")
+def test_update_upstream_versions_sequential_exception_repr_exception(
+    lazy_json_mock: MagicMock, get_latest_version_mock: MagicMock, caplog
+):
+    caplog.set_level(logging.DEBUG)
+    source_a = Mock(AbstractSource)
+    to_update = [
+        ("testpackage", {"dummy": "1.2.3"}),
+    ]
+
+    get_latest_version_mock.side_effect = BrokenException("source a error")
+
+    lazy_json_instance = lazy_json_mock.return_value
+    lazy_json_instance.__enter__.return_value = lazy_json_instance
+
+    _update_upstream_versions_sequential(to_update, [source_a])
+
+    assert "Warning: Error getting upstream version of testpackage" in caplog.text
+    assert "Bad exception string: " in caplog.text
+    assert "broken exception" in caplog.text
+    assert "writing out file" in caplog.text
+
+    get_latest_version_mock.assert_called_once_with(
+        "testpackage", {"dummy": "1.2.3"}, [source_a]
+    )
+
+    lazy_json_mock.assert_called_once_with("versions/testpackage.json")
+    lazy_json_instance.clear.assert_called_once()
+    lazy_json_instance.update.assert_called_once_with(
+        {"bad": "Upstream: Error getting upstream version"}
+    )
+
+
+@mock.patch("conda_forge_tick.update_upstream_versions.get_latest_version")
+@mock.patch("conda_forge_tick.update_upstream_versions.LazyJson")
+def test_update_upstream_versions_sequential(
+    lazy_json_mock: MagicMock, get_latest_version_mock: MagicMock, caplog
+):
+    caplog.set_level(logging.DEBUG)
+    source_a = Mock(AbstractSource)
+    source_a.name = "source a"
+    source_b = Mock(AbstractSource)
+    source_b.name = "source b"
+
+    sources = [source_a, source_b]
+
+    to_update = [
+        ("testpackage", {"version": "2.2.3"}),
+        ("testpackage2", {"version": "1.2.4"}),
+    ]
+
+    get_latest_version_mock.side_effect = [
+        {"new_version": "2.2.4"},
+        {"new_version": "1.2.5"},
+    ]
+
+    lazy_json_instance = lazy_json_mock.return_value
+    lazy_json_instance.__enter__.return_value = lazy_json_instance
+
+    _update_upstream_versions_sequential(to_update, [source_a, source_b])
+
+    get_latest_version_mock.assert_has_calls(
+        [
+            mock.call("testpackage", {"version": "2.2.3"}, sources),
+            mock.call("testpackage2", {"version": "1.2.4"}, sources),
+        ]
+    )
+
+    lazy_json_mock.assert_any_call("versions/testpackage.json")
+    lazy_json_mock.assert_any_call("versions/testpackage2.json")
+
+    lazy_json_instance.clear.assert_has_calls([mock.call(), mock.call()])
+    lazy_json_instance.update.assert_has_calls(
+        [
+            mock.call({"new_version": "2.2.4"}),
+            mock.call({"new_version": "1.2.5"}),
+        ]
+    )
+
+    assert "# 0     - testpackage - 2.2.3 - 2.2.4" in caplog.text
+    assert "# 1     - testpackage2 - 1.2.4 - 1.2.5" in caplog.text
+
+
+@mock.patch("conda_forge_tick.update_upstream_versions.executor")
+@mock.patch("conda_forge_tick.update_upstream_versions.LazyJson")
+def test_update_upstream_versions_process_pool(
+    lazy_json_mock: MagicMock, executor_mock: MagicMock, caplog
+):
+    caplog.set_level(logging.DEBUG)
+    source_a = Mock(AbstractSource)
+    source_a.name = "source a"
+    source_b = Mock(AbstractSource)
+    source_b.name = "source b"
+
+    sources = [source_a, source_b]
+
+    to_update = [
+        ("testpackage", {"version": "2.2.3"}),
+        ("testpackage2", {"version": "1.2.4"}),
+    ]
+
+    future_1: Future[Dict[str, str]] = Future()
+    future_2: Future[Dict[str, str]] = Future()
+
+    pool_mock = executor_mock.return_value.__enter__.return_value
+    pool_mock.submit.side_effect = [future_1, future_2]
+
+    lazy_json_instance = lazy_json_mock.return_value
+    lazy_json_instance.__enter__.return_value = lazy_json_instance
+
+    future_1.set_result({"new_version": "2.2.4"})
+    future_2.set_result({"new_version": "1.2.5"})
+
+    _update_upstream_versions_process_pool(to_update, sources)
+
+    pool_mock.submit.assert_has_calls(
+        [
+            mock.call(get_latest_version, "testpackage", {"version": "2.2.3"}, sources),
+            mock.call(
+                get_latest_version, "testpackage2", {"version": "1.2.4"}, sources
+            ),
+        ]
+    )
+
+    lazy_json_mock.assert_any_call("versions/testpackage.json")
+    lazy_json_mock.assert_any_call("versions/testpackage2.json")
+
+    lazy_json_instance.clear.assert_has_calls([mock.call(), mock.call()])
+    lazy_json_instance.update.assert_any_call({"new_version": "2.2.4"})
+    lazy_json_instance.update.assert_any_call({"new_version": "1.2.5"})
+
+    assert "testpackage2 - 1.2.4 - 1.2.5" in caplog.text
+    assert "testpackage - 2.2.3 - 2.2.4" in caplog.text
+
+
+@mock.patch("conda_forge_tick.update_upstream_versions.executor")
+@mock.patch("conda_forge_tick.update_upstream_versions.LazyJson")
+def test_update_upstream_versions_process_pool_exception(
+    lazy_json_mock: MagicMock, executor_mock: MagicMock, caplog
+):
+    caplog.set_level(logging.DEBUG)
+    source_a = Mock(AbstractSource)
+    source_a.name = "source a"
+    source_b = Mock(AbstractSource)
+    source_b.name = "source b"
+
+    sources = [source_a, source_b]
+
+    to_update = [
+        ("testpackage", {"version": "2.2.3"}),
+    ]
+
+    future: Future[Dict[str, str]] = Future()
+
+    pool_mock = executor_mock.return_value.__enter__.return_value
+    pool_mock.submit.return_value = future
+
+    lazy_json_instance = lazy_json_mock.return_value
+    lazy_json_instance.__enter__.return_value = lazy_json_instance
+
+    future.set_exception(ZeroDivisionError("source a error"))
+
+    _update_upstream_versions_process_pool(to_update, sources)
+
+    pool_mock.submit.assert_called_once_with(
+        get_latest_version, "testpackage", {"version": "2.2.3"}, sources
+    )
+
+    lazy_json_mock.assert_any_call("versions/testpackage.json")
+
+    lazy_json_instance.clear.assert_called_once()
+    lazy_json_instance.update.assert_any_call(
+        {"bad": "Upstream: Error getting upstream version"}
+    )
+
+    assert "source a error" in caplog.text
+
+
+@mock.patch("conda_forge_tick.update_upstream_versions.executor")
+@mock.patch("conda_forge_tick.update_upstream_versions.LazyJson")
+def test_update_upstream_versions_process_pool_exception_repr_exception(
+    lazy_json_mock: MagicMock, executor_mock: MagicMock, caplog
+):
+    caplog.set_level(logging.DEBUG)
+    source_a = Mock(AbstractSource)
+    source_a.name = "source a"
+    source_b = Mock(AbstractSource)
+    source_b.name = "source b"
+
+    sources = [source_a, source_b]
+
+    to_update = [
+        ("testpackage", {"version": "2.2.3"}),
+    ]
+
+    future: Future[Dict[str, str]] = Future()
+
+    pool_mock = executor_mock.return_value.__enter__.return_value
+    pool_mock.submit.return_value = future
+
+    lazy_json_instance = lazy_json_mock.return_value
+    lazy_json_instance.__enter__.return_value = lazy_json_instance
+
+    future.set_exception(BrokenException("source a error"))
+
+    _update_upstream_versions_process_pool(to_update, sources)
+
+    pool_mock.submit.assert_called_once_with(
+        get_latest_version, "testpackage", {"version": "2.2.3"}, sources
+    )
+
+    lazy_json_mock.assert_any_call("versions/testpackage.json")
+
+    lazy_json_instance.clear.assert_called_once()
+    lazy_json_instance.update.assert_any_call(
+        {"bad": "Upstream: Error getting upstream version"}
+    )
+
+    assert "Bad exception string" in caplog.text
+    assert "broken exception" in caplog.text
+
+
+@pytest.mark.parametrize("debug", [True, False])
+@mock.patch("os.makedirs")
+@mock.patch("conda_forge_tick.update_upstream_versions.load_graph")
+@mock.patch("conda_forge_tick.update_upstream_versions.update_upstream_versions")
+def test_main(
+    update_upstream_versions_mock: MagicMock,
+    load_graph_mock: MagicMock,
+    makedirs_mock: MagicMock,
+    debug: bool,
+):
+
+    gx = Mock(nx.DiGraph)
+    load_graph_mock.return_value = gx
+
+    ctx = CliContext()
+    ctx.debug = debug
+
+    main(ctx, job=3, n_jobs=10, package="testpackage")
+
+    makedirs_mock.assert_called_once_with("versions", exist_ok=True)
+    load_graph_mock.assert_called_once()
+    update_upstream_versions_mock.assert_called_once_with(
+        gx, debug=debug, job=3, n_jobs=10, package="testpackage"
+    )

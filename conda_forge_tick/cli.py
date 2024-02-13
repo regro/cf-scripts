@@ -1,5 +1,6 @@
 import os
 import time
+from typing import Optional
 
 import click
 from click import IntRange
@@ -73,13 +74,24 @@ def make_graph(ctx: CliContext) -> None:
 @main.command(name="update-upstream-versions")
 @job_option
 @n_jobs_option
+@click.argument(
+    "package",
+    required=False,
+)
 @pass_context
-def update_upstream_versions(ctx: CliContext, job: int, n_jobs: int) -> None:
+def update_upstream_versions(
+    ctx: CliContext, job: int, n_jobs: int, package: Optional[str]
+) -> None:
+    """
+    Update the upstream versions of feedstocks in the graph.
+
+    If PACKAGE is given, only update that package, otherwise update all packages.
+    """
     from . import update_upstream_versions
 
     check_job_param_relative(job, n_jobs)
 
-    update_upstream_versions.main(ctx, job=job, n_jobs=n_jobs)
+    update_upstream_versions.main(ctx, job=job, n_jobs=n_jobs, package=package)
 
 
 @main.command(name="auto-tick")

@@ -23,10 +23,6 @@ from .utils import github_client, load_graph, setup_logger
 
 # from conda_forge_tick.profiler import profiling
 
-
-if typing.TYPE_CHECKING:
-    from .cli import CLIArgs
-
 logger = logging.getLogger("conda_forge_tick.update_prs")
 
 NUM_GITHUB_THREADS = 2
