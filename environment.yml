@@ -38,6 +38,7 @@ dependencies:
   - numpy
   - packaging
   - psutil
+  - pydantic
   - pygithub
   - pymongo
   - pynamodb
