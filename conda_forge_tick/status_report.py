@@ -59,7 +59,7 @@ def _ok_version(ver):
 def write_version_migrator_status(migrator, mctx):
     """write the status of the version migrator"""
 
-    out = {
+    out: Dict[str, Any] = {
         "queued": set(),
         "errored": set(),
         "errors": {},

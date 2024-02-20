@@ -50,7 +50,9 @@ class PipWheelMigrator(MiniMigrator):
         if "python" not in run_reqs:
             return True
 
-        version = attrs.get("version_pr_info", {}).get("new_version", "") or attrs.get(
+        version: str = attrs.get("version_pr_info", {}).get(
+            "new_version", ""
+        ) or attrs.get(
             "version",
             "",
         )

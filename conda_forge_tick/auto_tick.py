@@ -13,6 +13,7 @@ import typing
 from subprocess import CalledProcessError
 from textwrap import dedent
 from typing import (
+    List,
     Mapping,
     MutableMapping,
     MutableSequence,
@@ -22,6 +23,7 @@ from typing import (
     Set,
     Tuple,
     Union,
+    cast,
 )
 
 import tqdm
@@ -127,7 +129,7 @@ BOT_RERUN_LABEL = {
     ),
 }
 
-BOT_HOME_DIR = None
+BOT_HOME_DIR: str = os.getcwd()
 
 # migrator runs on loop so avoid any seeds at current time should that happen
 random.seed(os.urandom(64))
@@ -650,7 +652,7 @@ def add_rebuild_migration_yaml(
     # Some packages don't have a host section so we use their
     # build section in its place.
 
-    feedstock_names = set()
+    feedstock_names: Set[str] = set()
     for p in package_names:
         feedstock_names |= output_to_feedstock.get(p, {p})
 
@@ -983,12 +985,12 @@ def initialize_migrators(
 ) -> Tuple[MigratorSessionContext, list, MutableSequence[Migrator]]:
     temp = glob.glob("/tmp/*")
     gx = load_existing_graph()
-    smithy_version = eval_cmd("conda smithy --version").strip()
-    pinning_version = json.loads(eval_cmd("conda list conda-forge-pinning --json"))[0][
-        "version"
-    ]
+    smithy_version: str = eval_cmd("conda smithy --version").strip()
+    pinning_version: str = cast(
+        str, json.loads(eval_cmd("conda list conda-forge-pinning --json"))[0]["version"]
+    )
 
-    migrators = []
+    migrators: List[Migrator] = []
 
     with fold_log_lines("making alt-arch migrators"):
         add_arch_migrate(migrators, gx)
@@ -997,13 +999,13 @@ def initialize_migrators(
         add_replacement_migrator(
             migrators,
             gx,
-            "build",
-            "python-build",
+            cast("PackageName", "build"),
+            cast("PackageName", "python-build"),
             "The conda package name 'build' is deprecated "
             "and too generic. Use 'python-build instead.'",
         )
 
-    pinning_migrators = []
+    pinning_migrators: List[Migrator] = []
     with fold_log_lines("making pinning migrators"):
         migration_factory(pinning_migrators, gx)
 
@@ -1561,9 +1563,6 @@ def _update_graph_with_pr_info():
 # @profiling
 def main(ctx: CliContext) -> None:
     _setup_limits()
-
-    global BOT_HOME_DIR
-    BOT_HOME_DIR = os.getcwd()
 
     with fold_log_lines("updating graph with PR info"):
         _update_graph_with_pr_info()

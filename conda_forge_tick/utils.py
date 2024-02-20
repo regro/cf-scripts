@@ -12,7 +12,7 @@ import traceback
 import typing
 import warnings
 from collections import defaultdict
-from typing import Any, Iterable, Optional, Set, Tuple
+from typing import Any, Dict, Iterable, Optional, Set, Tuple, cast
 
 import github3
 import jinja2
@@ -51,8 +51,8 @@ CB_CONFIG = dict(
 )
 
 
-def _munge_dict_repr(d):
-    d = repr(d)
+def _munge_dict_repr(dct: Dict[Any, Any]) -> str:
+    d = repr(dct)
     d = "__dict__" + d[1:-1].replace(":", "@").replace(" ", "$$") + "__dict__"
     return d
 
@@ -92,7 +92,7 @@ def fold_log_lines(title):
             print("::endgroup::", flush=True)
 
 
-def parse_munged_run_export(p):
+def parse_munged_run_export(p: str) -> Dict:
     if len(p) <= len("__dict__"):
         logger.info("could not parse run export for pinning: %r", p)
         return {}
@@ -104,9 +104,9 @@ def parse_munged_run_export(p):
 
     if p.startswith("__dict__"):
         p = "{" + p[len("__dict__") :].replace("$$", " ").replace("@", ":") + "}"
-        p = yaml_safe_load(p)
-        logger.debug("parsed run export for pinning: %r", p)
-        return p
+        dct = cast(Dict, yaml_safe_load(p))
+        logger.debug("parsed run export for pinning: %r", dct)
+        return dct
     else:
         logger.info("could not parse run export for pinning: %r", p_orig)
         return {}
@@ -124,7 +124,7 @@ def yaml_safe_dump(data, stream=None):
     return yaml.dump(data, stream=stream)
 
 
-def render_meta_yaml(text: str, for_pinning=False, **kwargs) -> str:
+def render_meta_yaml(text: str, for_pinning: bool = False, **kwargs) -> str:
     """Render the meta.yaml with Jinja2 variables.
 
     Parameters
@@ -601,7 +601,7 @@ def _get_source_code(recipe_dir):
         raise RuntimeError("conda build src exception:" + str(e))
 
 
-def sanitize_string(instr):
+def sanitize_string(instr: str) -> str:
     with sensitive_env() as env:
         tokens = [env.get("PASSWORD", None)]
     for token in tokens:
