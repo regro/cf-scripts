@@ -233,7 +233,7 @@ class Migrator:
         try:
             branches += get_keys_default(
                 attrs,
-                ["conda-forge.yml", "bot", "migration_branches"],
+                ["conda-forge.yml", "bot", "abi_migration_branches"],
                 {},
                 [],
             )
