@@ -107,3 +107,7 @@
 - pypi_name: flit_core
   import_name: flit_core
   conda_name: flit-core
+
+- pypi_name: lrcalc
+  import_name: lrcalc
+  conda_name: python-lrcalc
