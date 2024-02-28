@@ -51,7 +51,6 @@ jobs:
           conda-forge-tick update-upstream-versions --job=${BOT_JOB} --n-jobs=8
         env:
           BOT_JOB: ${{ matrix.job_num }}
-          PASSWORD: ${{ secrets.AUTOTICK_BOT_TOKEN }}
           CF_TICK_GRAPH_DATA_BACKENDS: "mongodb:file"
           MONGODB_CONNECTION_STRING: ${{ secrets.MONGODB_CONNECTION_STRING }}
 

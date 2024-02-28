@@ -1,6 +1,7 @@
 import copy
 import hashlib
 import logging
+import os
 import random
 from concurrent.futures._base import as_completed
 
@@ -16,8 +17,9 @@ from conda_forge_tick.git_utils import (
     refresh_pr,
 )
 
+from . import sensitive_env
+from .contexts import GithubContext
 from .executors import executor
-from .make_graph import ghctx
 from .utils import github_client, load_existing_graph
 
 # from conda_forge_tick.profiler import profiling
@@ -41,6 +43,18 @@ def _update_pr(update_function, dry_run, gx, job, n_jobs):
         if abs(int(hashlib.sha1(node_id.encode("utf-8")).hexdigest(), 16)) % n_jobs
         == job_index
     ]
+
+    with sensitive_env() as env:
+        github_username = env.get("USERNAME", "")
+        github_password = env.get("PASSWORD", "")
+        github_token = env.get("GITHUB_TOKEN")
+
+    ghctx = GithubContext(
+        github_username=github_username,
+        github_password=github_password,
+        github_token=github_token,
+        circle_build_url=os.getenv("CIRCLE_BUILD_URL", ""),
+    )
 
     # this makes sure that github rate limits are dispersed
     random.shuffle(node_ids)
