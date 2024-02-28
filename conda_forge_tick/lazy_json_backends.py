@@ -207,7 +207,7 @@ class GithubLazyJsonBackend(LazyJsonBackend):
     def _ignore_write(cls) -> None:
         if cls._write_warned:
             return
-        logger.info(f"Note: Write operations to the GitHub online backend are ignored.")
+        logger.info("Note: Write operations to the GitHub online backend are ignored.")
         cls._write_warned = True
 
     @classmethod
@@ -219,7 +219,7 @@ class GithubLazyJsonBackend(LazyJsonBackend):
             )
         if cls._n_requests == 20:
             logger.warning(
-                f"Using the GitHub online backend for making a lot of requests is not recommended.",
+                "Using the GitHub online backend for making a lot of requests is not recommended.",
             )
 
     def transaction_context(self) -> "Iterator[GithubLazyJsonBackend]":
@@ -294,7 +294,10 @@ def _get_graph_data_mongodb_client_cached(pid):
     import pymongo
     from pymongo import MongoClient
 
-    client = MongoClient(os.environ["MONGODB_CONNECTION_STRING"])
+    from . import sensitive_env
+
+    with sensitive_env() as env:
+        client = MongoClient(env.get("MONGODB_CONNECTION_STRING", ""))
 
     db = client["cf_graph"]
     for hashmap in CF_TICK_GRAPH_DATA_HASHMAPS + ["lazy_json"]:
