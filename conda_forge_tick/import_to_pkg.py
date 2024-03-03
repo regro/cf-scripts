@@ -2,23 +2,23 @@ import bz2
 import hashlib
 import io
 import json
-import os
 import logging
+import os
 from collections import defaultdict
+from concurrent.futures import ProcessPoolExecutor, as_completed
+from itertools import chain, groupby
 from typing import List
-from concurrent.futures import as_completed, ProcessPoolExecutor
-from itertools import groupby, chain
 
 import requests
-from tqdm import tqdm
 from conda_forge_metadata.artifact_info import get_artifact_info_as_json
+from tqdm import tqdm
 
 from conda_forge_tick.cli_context import CliContext
 from conda_forge_tick.lazy_json_backends import (
     LazyJson,
+    dump,
     lazy_json_override_backends,
     load,
-    dump,
 )
 
 logger = logging.getLogger(__name__)
@@ -34,16 +34,14 @@ NUM_LETTERS = 10
 
 IMPORT_TO_PKG_DIR = "import_to_pkg_maps"
 IMPORT_TO_PKG_DIR_INDEX = os.path.join(
-    IMPORT_TO_PKG_DIR,
-    f"{IMPORT_TO_PKG_DIR}_indexed_files"
+    IMPORT_TO_PKG_DIR, f"{IMPORT_TO_PKG_DIR}_indexed_files"
 )
 IMPORT_TO_PKG_DIR_CLOBBERING = os.path.join(
     IMPORT_TO_PKG_DIR,
     f"{IMPORT_TO_PKG_DIR}_clobbering_pkgs.json",
 )
 IMPORT_TO_PKG_DIR_META = os.path.join(
-    IMPORT_TO_PKG_DIR,
-    f"{IMPORT_TO_PKG_DIR}_meta.json"
+    IMPORT_TO_PKG_DIR, f"{IMPORT_TO_PKG_DIR}_meta.json"
 )
 IMPORT_TO_PKG_DIR_SHARD = 20
 
@@ -72,7 +70,9 @@ def fetch_arch(arch):
     # Generate a set a urls to generate for an channel/arch combo
     try:
         logger.info(f"fetching {arch}")
-        r = requests.get(f"https://conda.anaconda.org/conda-forge/{arch}/repodata.json.bz2")
+        r = requests.get(
+            f"https://conda.anaconda.org/conda-forge/{arch}/repodata.json.bz2"
+        )
         r.raise_for_status()
         repodata = json.load(bz2.BZ2File(io.BytesIO(r.content)))
     except Exception as e:
@@ -80,14 +80,10 @@ def fetch_arch(arch):
         return
 
     logger.info(
-        "    found %d .conda artifacts" % (
-            len(repodata["packages.conda"])
-        ),
+        "    found %d .conda artifacts" % (len(repodata["packages.conda"])),
     )
     logger.info(
-        "    found %d .tar.bz2 artifacts" % (
-            len(repodata["packages"])
-        ),
+        "    found %d .tar.bz2 artifacts" % (len(repodata["packages"])),
     )
     for p in repodata["packages.conda"]:
         yield f"{arch}/{p}"
@@ -106,7 +102,7 @@ def _get_all_artifacts():
 
 
 def _get_head_letters(name):
-    return name[:min(NUM_LETTERS, len(name))].lower()
+    return name[: min(NUM_LETTERS, len(name))].lower()
 
 
 def _fname_to_index(fname):
@@ -195,7 +191,7 @@ def main_import_to_pkg(max_artifacts: int):
     indexed_files = set()
     for i in range(IMPORT_TO_PKG_DIR_SHARD):
         if os.path.exists(f"{IMPORT_TO_PKG_DIR_INDEX}_{i}"):
-            with open(f"{IMPORT_TO_PKG_DIR_INDEX}_{i}", "r") as f:
+            with open(f"{IMPORT_TO_PKG_DIR_INDEX}_{i}") as f:
                 indexed_files.update({ff.strip() for ff in f.readlines()})
 
     clobbers = set()
@@ -215,7 +211,10 @@ def main_import_to_pkg(max_artifacts: int):
     with ProcessPoolExecutor(max_workers=4) as exc:
         n_sub = 0
         for file in tqdm(
-            new_files, total=min(max_artifacts, len(new_files)), desc="submitting artifact scan jobs", ncols=80,
+            new_files,
+            total=min(max_artifacts, len(new_files)),
+            desc="submitting artifact scan jobs",
+            ncols=80,
         ):
             artifact_name = os.path.basename(file)
             if artifact_name.endswith(".tar.bz2"):
@@ -270,7 +269,7 @@ def main_import_to_pkg(max_artifacts: int):
             fp.write("\n".join(sorted(fnames)))
 
     try:
-        with open(IMPORT_TO_PKG_DIR_CLOBBERING, "r") as f:
+        with open(IMPORT_TO_PKG_DIR_CLOBBERING) as f:
             _clobbers = load(f)
     except FileNotFoundError:
         _clobbers = set()
