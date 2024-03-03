@@ -37,6 +37,7 @@ def deploy(ctx: CliContext):
         "mappings/pypi",
         "ranked_hubs_authorities.json",
         "all_feedstocks.json",
+        "import_to_pkg_maps",
     ]
     if "file" in get_lazy_json_backends():
         drs_to_deploy += CF_TICK_GRAPH_DATA_HASHMAPS
