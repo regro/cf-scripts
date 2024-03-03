@@ -191,7 +191,7 @@ def cache_lazy_json_to_disk(ctx: CliContext) -> None:
 @main.command(name="make-import-to-package-mapping")
 @click.option(
     "--max-artifacts",
-    default=15000,
+    default=20000,
     type=IntRange(1, None),
     show_default=True,
     help="If given, the maximum number of artifacts to process.",
