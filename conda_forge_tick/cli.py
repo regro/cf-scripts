@@ -188,6 +188,27 @@ def cache_lazy_json_to_disk(ctx: CliContext) -> None:
     lazy_json_backends.main_cache(ctx)
 
 
+@main.command(name="make-import-to-package-mapping")
+@click.option(
+    "--max-artifacts",
+    default=10000,
+    type=IntRange(1, None),
+    show_default=True,
+    help="If given, the maximum number of artifacts to process.",
+)
+@pass_context
+def make_import_to_package_mapping(
+    ctx: CliContext,
+    max_artifacts: int,
+) -> None:
+    """
+    Make the import to package mapping.
+    """
+    from . import import_to_pkg
+
+    import_to_pkg.main(ctx, max_artifacts)
+
+
 if __name__ == "__main__":
     # This entrypoint can be used for debugging.
     # click will read the command line arguments and call the corresponding
