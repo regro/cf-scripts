@@ -1,5 +1,5 @@
 pip
-pytest
+pytest<8.1.0
 codecov
 requests-mock
 doctr
