@@ -88,7 +88,8 @@ def deploy(ctx: CliContext):
 
     if n_added > 0:
         try:
-            _run_git_cmd(f'git commit -am "Update Graph {BUILD_URL}"')
+            _step_name = os.environ.get("GITHUB_WORKFLOW", "update graph")
+            _run_git_cmd(f'git commit -am "{_step_name} - {BUILD_URL}"')
         except Exception as e:
             print(e)
 

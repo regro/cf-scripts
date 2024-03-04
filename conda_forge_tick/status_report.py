@@ -306,7 +306,10 @@ def graph_migrator_status(
         out2[k] = list(
             sorted(
                 out[k],
-                key=lambda x: build_sequence.index(x) if x in build_sequence else -1,
+                key=lambda x: (
+                    build_sequence.index(x) if x in build_sequence else -1,
+                    x,
+                ),
             ),
         )
 
