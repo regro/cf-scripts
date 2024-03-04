@@ -5,6 +5,8 @@ from pydantic import ValidationError
 
 from conda_forge_tick.models.node_attributes import NodeAttributes
 
+# TODO: CI execution
+
 NODE_ATTRS_DIR = Path("node_attrs")
 
 KNOWN_BAD_FEEDSTOCKS = [
