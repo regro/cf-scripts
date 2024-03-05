@@ -36,7 +36,7 @@ def cyclic_topological_sort(graph: DiGraph, sources: Iterable[T]) -> Sequence[T]
 
     g2 = deepcopy(graph)
     order: List[T] = []
-    for source in sources:
+    for source in sorted(sources):
         _visit(g2, source, order)
     return list(reversed(order))
 
@@ -45,7 +45,7 @@ def _visit(graph: DiGraph, node: T, order: List[T]) -> None:
     if graph.nodes[node].get("visited", False):
         return
     graph.nodes[node]["visited"] = True
-    for n in graph.neighbors(node):
+    for n in sorted(graph.neighbors(node)):
         _visit(graph, n, order)
     order.append(node)
 
