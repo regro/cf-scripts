@@ -30,7 +30,10 @@ class Requirements(StrictBaseModel):
     host: Set[str]
     run: Set[str]
     run_constrained: Set[str] | None = None
-    # TODO: run_constrained should not be optional since we can use an empty set instead of None.
+    """
+    This field is currently optional but should be required since no requirements can be represented by an empty set.
+    A missing field should be treated as an empty set.
+    """
     test: Set[str]
 
 
@@ -49,15 +52,12 @@ class BuildPlatformInfo(StrictBaseModel):
     """
 
 
-class NodeAttributesValid(BaseModel):
+class NodeAttributesValid(StrictBaseModel):
     archived: bool
     """
     Is the feedstock repository archived?
     Archived feedstocks are excluded from most bot operations and never receive updates.
-
-    Some very old feedstocks (~ 20) do not have this attribute.
     """
-    # TODO: Why is this not optional?
 
     branch: str
     """
@@ -220,7 +220,8 @@ class NodeAttributesValid(BaseModel):
 
     pr_info: LazyJsonReference
     """
-    The JSON reference to the pull request information for the feedstock repository.
+    The JSON reference to the pull request information for the feedstock repository, created by migrators.
+    Note that version updates are handled via the `version_pr_info` field.
     """
 
     raw_meta_yaml: str
@@ -234,7 +235,6 @@ class NodeAttributesValid(BaseModel):
     This includes build, host, and run requirements, as well as all requirements defined in the outputs section,
     and is not further organized.
     """
-    # TODO: evaluate whether to use the custom type `PackageName` here (and also in all other places)
 
     requirements: Requirements
     """
@@ -253,6 +253,11 @@ class NodeAttributesValid(BaseModel):
     https://docs.conda.io/projects/conda-build/en/stable/resources/define-metadata.html#export-runtime-requirements
     """
 
+    time: float | None = None
+    """
+    A deprecated field which should be removed. Currently present for ~200 feedstocks.
+    """
+
     total_requirements: Requirements
     """
     This is the same as `requirements`, but contains all requirements with version pins (if present).
@@ -268,17 +273,34 @@ class NodeAttributesValid(BaseModel):
     be a set of URLs). This should be fixed.
     """
 
-    version: str
+    version: str | None = None
     """
     The package version of the feedstock, as extracted from the package.version field of the `meta.yaml` file in the
     feedstock repository.
+
+    This is None if the `package.version` field is missing in the `meta.yaml` file, which can be valid if the outputs
+    specify their own versions.
+
+    Note that this field can have a value set if the `package.version` field is missing in the `meta.yaml` file, but
+    a previous version of the feedstock had a `version` field set. This is not valid and should be fixed. Note that
+    the version field can be outdated in this case!
     """
 
     @model_validator(mode="after")
     def check_version_match(self) -> Self:
         """
         Ensure that the version field matches the version field in the meta_yaml field.
+
+        If both fields are None, all outputs must specify their own versions.
         """
+        if self.version is None and self.meta_yaml.package.version is None:
+            for output in self.meta_yaml.outputs or []:
+                if output.version is None:
+                    raise ValueError(
+                        "If the `version` field is None, all outputs must specify their own versions."
+                    )
+            return self
+
         if self.version != self.meta_yaml.package.version:
             raise ValueError(
                 "The `version` field must match the `package.version` field in the `meta_yaml` field."
@@ -286,8 +308,20 @@ class NodeAttributesValid(BaseModel):
 
         return self
 
+    version_pr_info: LazyJsonReference
+    """
+    The JSON reference to the pull request information for the feedstock repository, created by the version migrator.
+    This is used to track version updates of the feedstock.
+
+    The pull request information of all other migrations is tracked via the `pr_info` field.
+    """
+
 
 class NodeAttributesError(BaseModel):
+    """
+    If a parsing error occurred, any number of fields can be missing.
+    """
+
     parsing_error: str
     """
     Denotes an error that occurred while parsing the feedstock repository.
