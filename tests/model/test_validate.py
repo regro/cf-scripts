@@ -19,6 +19,9 @@ KNOWN_BAD_FEEDSTOCKS = [
     "mamba",  # outdated version field in dependency graph (package.version field removed in meta.yaml)
     "napari",  # outdated version field in dependency graph (package.version field removed in meta.yaml)
     "birka",  # outdated version field in dependency graph (package.version field removed in meta.yaml)
+    "xsimd",  # recipe/meta.yaml about.doc_url has a typo in the URL scheme
+    "pytao",  # recipe/meta.yaml about.dev_url has a typo in the URL scheme
+    "anyqt",  # recipe/meta.yaml about.dev_url has a typo in the URL scheme
 ]
 
 

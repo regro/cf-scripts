@@ -1,6 +1,7 @@
-from typing import Generic, Literal, TypeVar
+import re
+from typing import Annotated, Any, Generic, Literal, Never, TypeVar
 
-from pydantic import BaseModel, Field, constr
+from pydantic import BaseModel, BeforeValidator, Field
 
 T = TypeVar("T")
 
@@ -11,6 +12,12 @@ class StrictBaseModel(BaseModel):
         extra = "forbid"
 
 
+class ValidatedBaseModel(BaseModel):
+    class Config:
+        validate_assignment = True
+        extra = "allow"
+
+
 class Set(StrictBaseModel, Generic[T]):
     """
     A custom set type. It contains a special set marker `__set__`, allowing dynamic instantiation of the set type.
@@ -19,6 +26,38 @@ class Set(StrictBaseModel, Generic[T]):
 
     magic_set_marker: Literal[True] = Field(..., alias="__set__")
     elements: set[T]
+
+
+def none_to_empty_list(value: T) -> T | list[Never]:
+    """
+    Convert `None` to an empty list.
+    """
+    if value is None:
+        return []
+    return value
+
+
+NoneIsEmptyList = Annotated[list[T], BeforeValidator(none_to_empty_list)]
+"""
+A generic list type that converts `None` to an empty list.
+This should not be needed if this proper data model is used in production.
+Defining this type is already the first step to remove it.
+"""
+
+
+def split_string_newline(value: Any) -> list[str]:
+    """
+    Split a string by newlines.
+    """
+    if not isinstance(value, str):
+        raise ValueError("value must be a string")
+    return value.split("\n")
+
+
+SplitStringNewlineBefore = Annotated[list[T], BeforeValidator(split_string_newline)]
+"""
+A generic list type that splits a string at newlines before validation.
+"""
 
 
 class LazyJsonReference(StrictBaseModel):
