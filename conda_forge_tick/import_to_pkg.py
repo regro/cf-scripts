@@ -18,6 +18,7 @@ from tqdm import tqdm
 from conda_forge_tick.cli_context import CliContext
 from conda_forge_tick.lazy_json_backends import (
     CF_TICK_GRAPH_DATA_BACKENDS,
+    CF_TICK_GRAPH_GITHUB_BACKEND_BASE_URL,
     LazyJson,
     dump,
     get_sharded_path,
@@ -77,8 +78,10 @@ def _get_head_letters(name):
 @lru_cache(maxsize=1)
 def _ranked_hubs_authorities() -> list[str]:
     req = requests.get(
-        "https://raw.githubusercontent.com/regro/cf-graph-countyfair/"
-        "master/ranked_hubs_authorities.json"
+        os.path.join(
+            CF_TICK_GRAPH_GITHUB_BACKEND_BASE_URL,
+            "ranked_hubs_authorities.json",
+        )
     )
     req.raise_for_status()
     return req.json()
@@ -94,7 +97,10 @@ def _import_to_pkg_maps_cache(import_first_letters: str) -> dict[str, set[str]]:
             return load(f)
     else:
         req = requests.get(
-            "https://raw.githubusercontent.com/regro/cf-graph-countyfair/master/" + pth
+            os.path.join(
+                CF_TICK_GRAPH_GITHUB_BACKEND_BASE_URL,
+                pth,
+            )
         )
         req.raise_for_status()
         return {k: set(v["elements"]) for k, v in req.json().items()}

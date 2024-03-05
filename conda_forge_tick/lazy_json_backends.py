@@ -24,7 +24,6 @@ from typing import (
 import rapidjson as json
 import requests
 
-from .backend_settings import GITHUB_GRAPH_BACKEND_BASE_URL
 from .cli_context import CliContext
 
 logger = logging.getLogger(__name__)
@@ -41,6 +40,10 @@ CF_TICK_GRAPH_DATA_HASHMAPS = [
     "versions",
     "node_attrs",
 ]
+
+CF_TICK_GRAPH_GITHUB_BACKEND_BASE_URL = (
+    "https://github.com/regro/cf-graph-countyfair/raw/master"
+)
 
 
 def get_sharded_path(file_path, n_dirs=5):
@@ -191,7 +194,7 @@ class GithubLazyJsonBackend(LazyJsonBackend):
     _n_requests = 0
 
     def __init__(self) -> None:
-        self.base_url = GITHUB_GRAPH_BACKEND_BASE_URL
+        self.base_url = CF_TICK_GRAPH_GITHUB_BACKEND_BASE_URL
 
     @property
     def base_url(self) -> str:

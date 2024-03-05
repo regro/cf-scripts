@@ -20,8 +20,10 @@ import yaml
 from packaging.utils import NormalizedName as PypiName
 from packaging.utils import canonicalize_name as canonicalize_pypi_name
 
+from .import_to_pkg import IMPORT_TO_PKG_DIR_CLOBBERING
 from .lazy_json_backends import (
     CF_TICK_GRAPH_DATA_BACKENDS,
+    CF_TICK_GRAPH_GITHUB_BACKEND_BASE_URL,
     LazyJson,
     dump,
     get_all_keys_for_hashmap,
@@ -309,15 +311,18 @@ def determine_best_matches_for_pypi_import(
     # TODO: filter out archived feedstocks?
 
     try:
-        clobberers_pth = "import_to_pkg_maps/import_to_pkg_maps_clobbering_pkgs.json"
-        if "file" in CF_TICK_GRAPH_DATA_BACKENDS and os.path.exists(clobberers_pth):
-            with open(clobberers_pth) as fp:
+        if "file" in CF_TICK_GRAPH_DATA_BACKENDS and os.path.exists(
+            IMPORT_TO_PKG_DIR_CLOBBERING
+        ):
+            with open(IMPORT_TO_PKG_DIR_CLOBBERING) as fp:
                 clobberers = loads(fp.read())
         else:
             clobberers = loads(
                 requests.get(
-                    "https://raw.githubusercontent.com/regro/cf-graph-countyfair/master/"
-                    "import_to_pkg_maps/import_to_pkg_maps_clobbering_pkgs.json"
+                    os.path.join(
+                        CF_TICK_GRAPH_GITHUB_BACKEND_BASE_URL,
+                        IMPORT_TO_PKG_DIR_CLOBBERING,
+                    )
                 ).text,
             )
     except Exception as e:
