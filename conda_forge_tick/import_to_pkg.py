@@ -6,17 +6,21 @@ import logging
 import os
 from collections import defaultdict
 from concurrent.futures import ProcessPoolExecutor, as_completed
+from functools import lru_cache
 from itertools import chain, groupby
 from typing import List
 
 import requests
+import requests.exceptions
 from conda_forge_metadata.artifact_info import get_artifact_info_as_json
 from tqdm import tqdm
 
 from conda_forge_tick.cli_context import CliContext
 from conda_forge_tick.lazy_json_backends import (
+    CF_TICK_GRAPH_DATA_BACKENDS,
     LazyJson,
     dump,
+    get_sharded_path,
     lazy_json_override_backends,
     load,
 )
@@ -66,7 +70,124 @@ CONDA_SUBDIRS = [
 ]
 
 
-def fetch_arch(arch):
+def _get_head_letters(name):
+    return name[: min(NUM_LETTERS, len(name))].lower()
+
+
+@lru_cache(maxsize=1)
+def _ranked_hubs_authorities() -> list[str]:
+    req = requests.get(
+        "https://raw.githubusercontent.com/regro/cf-graph-countyfair/"
+        "master/ranked_hubs_authorities.json"
+    )
+    req.raise_for_status()
+    return req.json()
+
+
+@lru_cache(maxsize=128)
+def _import_to_pkg_maps_cache(import_first_letters: str) -> dict[str, set[str]]:
+    pth = get_sharded_path(
+        f"{IMPORT_TO_PKG_DIR}/{import_first_letters.lower()}.json",
+    )
+    if "file" in CF_TICK_GRAPH_DATA_BACKENDS and os.path.exists(pth):
+        with open(pth) as f:
+            return load(f)
+    else:
+        req = requests.get(
+            "https://raw.githubusercontent.com/regro/cf-graph-countyfair/master/" + pth
+        )
+        req.raise_for_status()
+        return {k: set(v["elements"]) for k, v in req.json().items()}
+
+
+def _get_pkgs_for_import(import_name: str) -> set[str] | None:
+    fllt = _get_head_letters(import_name)
+    import_to_pkg_map = _import_to_pkg_maps_cache(fllt)
+    return import_to_pkg_map.get(import_name, None)
+
+
+def get_pkgs_for_import(import_name):
+    """Get a list of possible packages that supply a given import.
+
+    **This data is approximate and may be wrong.**
+
+    Parameters
+    ----------
+    import_name : str
+        The name of the import.
+
+    Returns
+    -------
+    packages : set
+        A set of packages that possibly have the import.
+        Will return `None` if the import was not found.
+    found_import_name : str
+        The import name found in the metadata. Only
+        valid if `packages` is not None. This name will be the
+        top-level import with all subpackages removed (e.g., foo.bar.baz
+        will be returned as foo).
+    """
+    import_name = import_name.split(".")[0]
+    supplying_pkgs = _get_pkgs_for_import(import_name)
+    return supplying_pkgs, import_name
+
+
+def map_import_to_package(import_name: str) -> str:
+    """Map an import name to the most likely package that has it.
+
+    Parameters
+    ----------
+    import_name : str
+        The name of the import.
+
+    Returns
+    -------
+    pkg_name : str
+        The name of the package.
+    """
+
+    supplying_pkgs, found_import_name = get_pkgs_for_import(import_name)
+    if supplying_pkgs is None:
+        return found_import_name
+
+    if found_import_name in supplying_pkgs:
+        # heuristic that import scipy comes from scipy
+        return found_import_name
+    else:
+        hubs_auths = _ranked_hubs_authorities()
+        return next(
+            iter(k for k in hubs_auths if k in supplying_pkgs),
+            found_import_name,
+        )
+
+
+def extract_pkg_from_import(name):
+    """Provide the name of the package that matches with the import provided,
+    with the maps between the imports and artifacts and packages that matches
+
+    Parameters
+    ----------
+    name : str
+        The name of the import to be searched for
+
+    Returns
+    -------
+    most_likely_pkg : str
+        The most likely conda-forge package.
+    import_to_pkg : dict mapping str to sets
+        A dict mapping the import name to a set of possible packages that supply that import.
+    """
+    try:
+        supplying_pkgs, _ = get_pkgs_for_import(name)
+        best_import = map_import_to_package(name)
+    except requests.exceptions.HTTPError:
+        supplying_pkgs = set()
+        best_import = name
+    import_to_pkg = {name: supplying_pkgs or set()}
+    return best_import, import_to_pkg
+
+
+def _fetch_arch(arch):
     # Generate a set a urls to generate for an channel/arch combo
     try:
         logger.info(f"fetching {arch}")
@@ -96,13 +217,9 @@ def _get_all_artifacts():
     logger.info("Fetching all artifacts from conda-forge.")
     all_artifacts = set()
     for subdir in CONDA_SUBDIRS:
-        for artifact in fetch_arch(subdir):
+        for artifact in _fetch_arch(subdir):
             all_artifacts.add(artifact)
     return all_artifacts
-
-
-def _get_head_letters(name):
-    return name[: min(NUM_LETTERS, len(name))].lower()
 
 
 def _fname_to_index(fname):
@@ -185,7 +302,7 @@ def _write_out_maps(gn, import_map):
             old_map[k].update(import_map[k])
 
 
-def main_import_to_pkg(max_artifacts: int):
+def _main_import_to_pkg(max_artifacts: int):
     import_map = defaultdict(set)
 
     indexed_files = set()
@@ -285,6 +402,6 @@ def main_import_to_pkg(max_artifacts: int):
 def main(ctx: CliContext, max_artifacts: int = 10000) -> None:
     if not ctx.debug:
         with lazy_json_override_backends(["file"]):
-            main_import_to_pkg(max_artifacts)
+            _main_import_to_pkg(max_artifacts)
     else:
-        main_import_to_pkg(max_artifacts)
+        _main_import_to_pkg(max_artifacts)

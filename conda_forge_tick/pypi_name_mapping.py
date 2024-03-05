@@ -8,6 +8,7 @@ Builds and maintains mapping of pypi-names to conda-forge names
 import functools
 import json
 import math
+import os
 import pathlib
 import traceback
 from collections import Counter, defaultdict
@@ -19,7 +20,13 @@ import yaml
 from packaging.utils import NormalizedName as PypiName
 from packaging.utils import canonicalize_name as canonicalize_pypi_name
 
-from .lazy_json_backends import LazyJson, dump, get_all_keys_for_hashmap, loads
+from .lazy_json_backends import (
+    CF_TICK_GRAPH_DATA_BACKENDS,
+    LazyJson,
+    dump,
+    get_all_keys_for_hashmap,
+    loads,
+)
 from .utils import as_iterable, load_existing_graph
 
 
@@ -302,12 +309,17 @@ def determine_best_matches_for_pypi_import(
     # TODO: filter out archived feedstocks?
 
     try:
-        clobberers = loads(
-            requests.get(
-                "https://raw.githubusercontent.com/regro/libcfgraph/master/"
-                "clobbering_pkgs.json",
-            ).text,
-        )
+        clobberers_pth = "import_to_pkg_maps/import_to_pkg_maps_clobbering_pkgs.json"
+        if "file" in CF_TICK_GRAPH_DATA_BACKENDS and os.path.exists(clobberers_pth):
+            with open(clobberers_pth) as fp:
+                clobberers = loads(fp.read())
+        else:
+            clobberers = loads(
+                requests.get(
+                    "https://raw.githubusercontent.com/regro/cf-graph-countyfair/master/"
+                    "import_to_pkg_maps/import_to_pkg_maps_clobbering_pkgs.json"
+                ).text,
+            )
     except Exception as e:
         print(e)
         clobberers = set()
