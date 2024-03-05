@@ -10,7 +10,7 @@ import pytest
 
 import conda_forge_tick.utils
 from conda_forge_tick.lazy_json_backends import (
-    GITHUB_GRAPH_BACKEND_BASE_URL,
+    CF_TICK_GRAPH_GITHUB_BACKEND_BASE_URL,
     LAZY_JSON_BACKENDS,
     GithubLazyJsonBackend,
     LazyJson,
@@ -515,7 +515,7 @@ def test_lazy_json_backends_hashmap(tmpdir):
 
 def test_github_base_url() -> None:
     github_backend = GithubLazyJsonBackend()
-    assert github_backend.base_url == GITHUB_GRAPH_BACKEND_BASE_URL + "/"
+    assert github_backend.base_url == CF_TICK_GRAPH_GITHUB_BACKEND_BASE_URL + "/"
     github_backend.base_url = "https://github.com/lorem/ipsum"
     assert github_backend.base_url == "https://github.com/lorem/ipsum" + "/"
 
