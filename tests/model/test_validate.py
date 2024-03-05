@@ -16,6 +16,9 @@ KNOWN_BAD_FEEDSTOCKS = [
     "thrust",  # missing platforms
     "make_arq",  # invalid conda-forge.yml build platform "windows"
     "cub",  # missing platforms
+    "mamba",  # outdated version field in dependency graph (package.version field removed in meta.yaml)
+    "napari",  # outdated version field in dependency graph (package.version field removed in meta.yaml)
+    "birka",  # outdated version field in dependency graph (package.version field removed in meta.yaml)
 ]
 
 
