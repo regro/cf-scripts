@@ -11,6 +11,7 @@ from stdlib_list import stdlib_list
 
 from conda_forge_tick.depfinder_api import simple_import_to_pkg_map
 from conda_forge_tick.feedstock_parser import load_feedstock
+from conda_forge_tick.lazy_json_backends import CF_TICK_GRAPH_GITHUB_BACKEND_BASE_URL
 from conda_forge_tick.make_graph import COMPILER_STUBS_WITH_STRONG_EXPORTS
 from conda_forge_tick.os_utils import pushd
 from conda_forge_tick.pypi_name_mapping import _KNOWN_NAMESPACE_PACKAGES
@@ -65,7 +66,10 @@ STATIC_EXCLUDES = (
 RANKINGS = []
 for _ in range(10):
     r = requests.get(
-        "https://raw.githubusercontent.com/regro/cf-graph-countyfair/master/ranked_hubs_authorities.json",
+        os.path.join(
+            CF_TICK_GRAPH_GITHUB_BACKEND_BASE_URL,
+            "ranked_hubs_authorities.json",
+        )
     )
     if r.status_code == 200:
         RANKINGS = r.json()

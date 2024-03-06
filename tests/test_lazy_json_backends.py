@@ -9,8 +9,8 @@ from unittest.mock import MagicMock
 import pytest
 
 import conda_forge_tick.utils
-from conda_forge_tick.backend_settings import GITHUB_GRAPH_BACKEND_BASE_URL
 from conda_forge_tick.lazy_json_backends import (
+    CF_TICK_GRAPH_GITHUB_BACKEND_BASE_URL,
     LAZY_JSON_BACKENDS,
     GithubLazyJsonBackend,
     LazyJson,
@@ -515,7 +515,7 @@ def test_lazy_json_backends_hashmap(tmpdir):
 
 def test_github_base_url() -> None:
     github_backend = GithubLazyJsonBackend()
-    assert github_backend.base_url == GITHUB_GRAPH_BACKEND_BASE_URL + "/"
+    assert github_backend.base_url == CF_TICK_GRAPH_GITHUB_BACKEND_BASE_URL + "/"
     github_backend.base_url = "https://github.com/lorem/ipsum"
     assert github_backend.base_url == "https://github.com/lorem/ipsum" + "/"
 
@@ -652,7 +652,7 @@ def test_github_hget_success(
     mock_get.return_value.text = "{'key': 'value'}"
     assert backend.hget("name", "key") == "{'key': 'value'}"
     mock_get.assert_called_once_with(
-        f"https://github.com/lorem/ipsum/name/4/4/0/9/d/key.json",
+        "https://github.com/lorem/ipsum/name/4/4/0/9/d/key.json",
     )
 
 
@@ -666,7 +666,7 @@ def test_github_offline_hget_not_found(
     with pytest.raises(KeyError):
         backend.hget("name", "key")
     mock_get.assert_called_once_with(
-        f"https://github.com/lorem/ipsum/name/4/4/0/9/d/key.json",
+        "https://github.com/lorem/ipsum/name/4/4/0/9/d/key.json",
     )
 
 

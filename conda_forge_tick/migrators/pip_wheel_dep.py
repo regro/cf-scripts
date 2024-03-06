@@ -1,4 +1,5 @@
 import functools
+import os
 import tempfile
 import typing
 from typing import Any, Dict
@@ -6,6 +7,7 @@ from typing import Any, Dict
 import requests
 from ruamel.yaml import YAML
 
+from conda_forge_tick.lazy_json_backends import CF_TICK_GRAPH_GITHUB_BACKEND_BASE_URL
 from conda_forge_tick.migrators import MiniMigrator
 from conda_forge_tick.os_utils import pushd
 from conda_forge_tick.utils import get_keys_default
@@ -22,7 +24,12 @@ def pypi_conda_mapping() -> Dict[str, str]:
     """
     yaml = YAML()
     content = requests.get(
-        "https://raw.githubusercontent.com/regro/cf-graph-countyfair/master/mappings/pypi/grayskull_pypi_mapping.yaml",  # noqa
+        os.path.join(
+            CF_TICK_GRAPH_GITHUB_BACKEND_BASE_URL,
+            "mappings",
+            "pypi",
+            "grayskull_pypi_mapping.yaml",
+        )
     ).text
     mappings = yaml.load(content)
     return {
