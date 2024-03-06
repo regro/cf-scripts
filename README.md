@@ -47,6 +47,17 @@ The local debugging functionality is still work in progress and might not work f
 Currently, the following commands are supported and tested:
 - `update-upstream-versions`
 
+## Data Model
+The bot uses the [conda-forge dependency graph](https://github.com/regro/cf-graph-countyfair) to remember metadata
+about feedstocks, their versions, and their dependencies. Some of the information
+(e.g. the contents of `recipe/meta.yaml` file of the corresponding feedstock) is redundant but stored in the
+graph for performance reasons. In an attempt to document the data model, we have created a
+[Pydantic](https://github.com/pydantic/pydantic) model in [conda_forge_tick/models](conda_forge_tick/models). Refer
+to the README in that directory for more information.
+
+The Pydantic model is not used by the bot code itself (yet) but there is an CI job (`test-models`)
+that validates the model against the actual data in the graph.
+
 ## What has the bot done recently?
 
 Check out its [PRs](https://github.com/pulls?utf8=%E2%9C%93&q=is%3Aopen+is%3Apr+author%3Aregro-cf-autotick-bot+archived%3Afalse+), its currently [running jobs](https://github.com/regro/cf-scripts/actions?query=is%3Ain_progress++), and the [status page](https://conda-forge.org/status/#current_migrations)!
