@@ -5,7 +5,19 @@ from pydantic import ValidationError
 
 from conda_forge_tick.models.node_attributes import NodeAttributes
 
-# TODO: CI execution
+"""
+These tests validate that the node attributes files in the node_attrs directory are valid JSON and
+conform to the NodeAttributes schema.
+
+Since we currently do not use the NodeAttributes schema in production, and also do not enforce some rules
+in the conda-smithy linter (e.g. valid URLs in , it is very possible that failures in these tests can occur.
+
+The most likely cause of these failures is that the meta.yaml file of an upstream feedstock does not conform to
+the MetaYaml schema - note that some fields of the NodeAttributes schema are derived directly from the meta.yaml file.
+
+You can add the name of a feedstock to the KNOWN_BAD_FEEDSTOCKS list if you know that it will fail these tests.
+After fixing the issue, you can remove the feedstock from the list.
+"""
 
 NODE_ATTRS_DIR = Path("node_attrs")
 
