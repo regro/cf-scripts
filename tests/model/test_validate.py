@@ -22,6 +22,27 @@ KNOWN_BAD_FEEDSTOCKS = [
     "xsimd",  # recipe/meta.yaml about.doc_url has a typo in the URL scheme
     "pytao",  # recipe/meta.yaml about.dev_url has a typo in the URL scheme
     "anyqt",  # recipe/meta.yaml about.dev_url has a typo in the URL scheme
+    "cubed",  # recipe/meta.yaml about.doc_url has invalid URL scheme
+    "condastats",  # recipe/meta.yaml about.doc_url has invalid URL scheme
+    "pytermgui",  # recipe/meta.yaml about.doc_url has invalid URL scheme
+    "torcpy",  # recipe/meta.yaml about.dev_url has typo
+    "scikit-plot",  # recipe/meta.yaml about.doc_url has invalid URL scheme
+    "wagtall-bakery",  # recipe/meta.yaml about.doc_url has invalid URL scheme
+    "matbench-genmetrics",  # recipe/meta.yaml about.doc_url has invalid URL scheme
+    "neutronics_material_maker",  # recipe/meta.yaml about.doc_url has invalid URL scheme
+    "gulp",  # recipe/meta.yaml about.dev_url has invalid URL scheme
+    "wagtail-bakery",  # recipe/meta.yaml about.doc_url has invalid URL scheme
+    "mp_time_split",  # recipe/meta.yaml about.doc_url has invalid URL scheme
+    "shippinglabel",  # recipe/meta.yaml about.doc_url has invalid URL scheme
+    "cddlib",  # recipe/meta.yaml about.doc_url has "ftp" URL scheme (and is unreachable)
+    "cf-autotick-bot-test-package",  # recipe/meta.yaml source.sha256 is invalid
+    "vs2008_runtime",  # node attributes error: build.skip is true for non-Windows, but osx and linux are platforms
+    "llspy",  # recipe/meta.yaml about.doc_url has invalid URL scheme
+    "everett",  # recipe/meta.yaml about.dev_url has invalid URL scheme
+    "scheil",  # recipe/meta.yaml about.doc_url is not a valid URL
+    "llspy-slm",  # recipe/meta.yaml about.doc_url has invalid URL scheme
+    "path.py",  # build.noarch: true in meta.yaml, which should probably be build.noarch: python
+    "parallel-hashmap",  # build.noarch: true (should be generic) but also probably broken on Windows
 ]
 
 
