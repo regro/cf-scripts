@@ -3,8 +3,12 @@ from typing import Literal, Self
 from pydantic import AnyUrl, Field, HttpUrl, model_validator
 
 from conda_forge_tick.models.common import (
+    EmptyStringIsNone,
+    GitUrl,
     NoneIsEmptyList,
+    SingleElementToList,
     SplitStringNewlineBefore,
+    StrictBaseModel,
     ValidatedBaseModel,
 )
 
@@ -25,12 +29,12 @@ class Package(ValidatedBaseModel):
 
 
 class BaseSource(ValidatedBaseModel):
-    patches: NoneIsEmptyList[str] = []
+    patches: NoneIsEmptyList[str] | SingleElementToList[str] = []
     folder: str | None = None
 
 
 class UrlSource(BaseSource):
-    url: AnyUrl | list[AnyUrl]
+    url: list[AnyUrl] | SingleElementToList[AnyUrl]
     md5: str | None = Field(None, pattern=r"^[a-f0-9]{32}$")
     sha1: str | None = Field(None, pattern=r"^[a-f0-9]{40}$")
     sha256: str | None = Field(None, pattern=r"^[a-f0-9]{64}$")
@@ -40,7 +44,7 @@ class UrlSource(BaseSource):
 
 class GitSource(BaseSource):
     git_url: AnyUrl
-    git_rev: str
+    git_rev: str = "HEAD"
     git_depth: int = -1
     """
     default: no shallow clone
@@ -72,12 +76,27 @@ class LocalPathSource(BaseSource):
     path: str
 
 
-Source = UrlSource | GitSource | MercurialSource | SvnSource | LocalPathSource
+class PatchesOnlySource(BaseSource, StrictBaseModel):
+    """
+    Apparently, it is also possible to have a source that only contains patches.
+    """
+
+    pass
+
+
+Source = (
+    UrlSource
+    | GitSource
+    | MercurialSource
+    | SvnSource
+    | LocalPathSource
+    | PatchesOnlySource
+)
 
 
 class BuildRunExportsExplicit(ValidatedBaseModel):
-    weak: NoneIsEmptyList[str] = []
-    strong: NoneIsEmptyList[str] = []
+    weak: NoneIsEmptyList[str] | SingleElementToList[str] = []
+    strong: NoneIsEmptyList[str] | SingleElementToList[str] = []
 
 
 class Build(ValidatedBaseModel):
@@ -85,13 +104,17 @@ class Build(ValidatedBaseModel):
     noarch: Literal["generic", "python"] | None = None
     """
     Note that there is a legacy syntax for `noarch: python` which is `noarch_python: True`
+    There are 2 legacy feedstocks that use `noarch: true` (which is undocumented).
+    This is not supported by this data model but should be treated as `noarch: generic`.
     """
     noarch_python: Literal[True] | None = None
     """
     Legacy Syntax for `noarch: python`
     """
-    script: str | NoneIsEmptyList[str] = []
-    run_exports: NoneIsEmptyList[str] | BuildRunExportsExplicit = []
+    script: NoneIsEmptyList[str] | SingleElementToList[str] = []
+    run_exports: (
+        NoneIsEmptyList[str] | SingleElementToList[str] | BuildRunExportsExplicit
+    ) = []
 
 
 class Requirements(ValidatedBaseModel):
@@ -108,7 +131,7 @@ class Test(ValidatedBaseModel):
     Multiple commands are separated by newlines.
     This is undocumented and should not be supported. Probably the bot behaves incorrectly today.
     """
-    imports: NoneIsEmptyList[str] = []
+    imports: NoneIsEmptyList[str] | SingleElementToList[str] = []
     requires: NoneIsEmptyList[str] = []
 
 
@@ -119,9 +142,9 @@ class Output(ValidatedBaseModel):
 
 class About(ValidatedBaseModel):
     description: str | None = None
-    dev_url: HttpUrl | None = None
-    doc_url: HttpUrl | None = None
-    home: str | None = None
+    dev_url: HttpUrl | GitUrl | EmptyStringIsNone | None = None
+    doc_url: HttpUrl | EmptyStringIsNone | None = None
+    home: str | EmptyStringIsNone | None = None
     """
     Note! According to the conda documentation, this should be a single (!) URL.
 

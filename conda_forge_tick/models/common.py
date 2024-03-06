@@ -1,7 +1,8 @@
 import re
 from typing import Annotated, Any, Generic, Literal, Never, TypeVar
 
-from pydantic import BaseModel, BeforeValidator, Field
+from pydantic import BaseModel, BeforeValidator, Field, UrlConstraints
+from pydantic_core import Url
 
 T = TypeVar("T")
 
@@ -45,6 +46,35 @@ Defining this type is already the first step to remove it.
 """
 
 
+def convert_to_list(value: T) -> list[T]:
+    """
+    Convert a single value to a list.
+    """
+    return [value]
+
+
+SingleElementToList = Annotated[list[T], BeforeValidator(convert_to_list)]
+"""
+A generic list type that converts a single value to a list.
+"""
+
+
+def empty_string_to_none(value: Any) -> None:
+    """
+    Convert an empty string to `None`.
+    """
+    if value != "":
+        raise ValueError("value must be an empty string")
+    return None
+
+
+EmptyStringIsNone = Annotated[None, BeforeValidator(empty_string_to_none)]
+"""
+A type that can only receive an empty string and converts it to `None`.
+This should not be needed if a proper data model is enforced.
+"""
+
+
 def split_string_newline(value: Any) -> list[str]:
     """
     Split a string by newlines.
@@ -58,6 +88,8 @@ SplitStringNewlineBefore = Annotated[list[T], BeforeValidator(split_string_newli
 """
 A generic list type that splits a string at newlines before validation.
 """
+
+GitUrl = Annotated[Url, UrlConstraints(allowed_schemes=["git"])]
 
 
 class LazyJsonReference(StrictBaseModel):
