@@ -1,22 +1,18 @@
 import re
 from typing import Annotated, Any, Generic, Literal, Never, TypeVar
 
-from pydantic import BaseModel, BeforeValidator, Field, UrlConstraints
+from pydantic import BaseModel, BeforeValidator, ConfigDict, Field, UrlConstraints
 from pydantic_core import Url
 
 T = TypeVar("T")
 
 
 class StrictBaseModel(BaseModel):
-    class Config:
-        validate_assignment = True
-        extra = "forbid"
+    model_config = ConfigDict(validate_assignment=True, extra="forbid")
 
 
 class ValidatedBaseModel(BaseModel):
-    class Config:
-        validate_assignment = True
-        extra = "allow"
+    model_config = ConfigDict(validate_assignment=True, extra="allow")
 
 
 class Set(StrictBaseModel, Generic[T]):

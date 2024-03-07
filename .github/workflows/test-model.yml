@@ -56,4 +56,4 @@ jobs:
           pytest \
             -v \
             --durations 10 \
-            tests/model
+            ../tests/model
