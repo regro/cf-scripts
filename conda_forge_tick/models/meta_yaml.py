@@ -127,7 +127,7 @@ class Requirements(ValidatedBaseModel):
 class Test(ValidatedBaseModel):
     commands: NoneIsEmptyList[str] | SplitStringNewlineBefore[str] = []
     """
-    Some feedstocks (today: ~80) use a string instead of a list for the `test/commands` field.
+    Some feedstocks (03/2024: ~80) use a string instead of a list for the `test/commands` field.
     Multiple commands are separated by newlines.
     This is undocumented and should not be supported. Probably the bot behaves incorrectly today.
     """

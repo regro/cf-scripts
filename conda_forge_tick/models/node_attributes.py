@@ -260,7 +260,7 @@ class NodeAttributesValid(StrictBaseModel):
 
     time: float | None = None
     """
-    A deprecated field which should be removed. Currently present for ~200 feedstocks.
+    A deprecated field which should be removed. In 03/2024 present for ~200 feedstocks.
     """
 
     total_requirements: Requirements
