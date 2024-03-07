@@ -93,12 +93,6 @@ class CIService(StrEnum):
     LEGACY_OSX_64 = "osx_64"
 
 
-BUILD_PLATFORMS_WITH_NATIVE_SUPPORT = [
-    BuildPlatform.LINUX_AARCH64,
-    BuildPlatform.LINUX_PPC64LE,
-]
-
-
 class CondaForgeYml(ValidatedBaseModel):
     bot: Bot | None = None
 
