@@ -403,11 +403,14 @@ def _main_import_to_pkg(max_artifacts: int):
         dump(_clobbers, f)
 
     with open(IMPORT_TO_PKG_DIR_META, "w") as f:
-        dump({
-            "num_letters": NUM_LETTERS,
-            "n_files": IMPORT_TO_PKG_DIR_SHARD,
-            "num_dirs": CF_TICK_GRAPH_GITHUB_BACKEND_NUM_DIRS,
-        }, f)
+        dump(
+            {
+                "num_letters": NUM_LETTERS,
+                "n_files": IMPORT_TO_PKG_DIR_SHARD,
+                "num_dirs": CF_TICK_GRAPH_GITHUB_BACKEND_NUM_DIRS,
+            },
+            f,
+        )
 
 
 def main(ctx: CliContext, max_artifacts: int = 10000) -> None:
