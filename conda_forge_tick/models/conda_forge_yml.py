@@ -18,6 +18,8 @@ Refer to https://conda-forge.org/docs/maintainer/conda_forge_yml for a documenta
 TODO Note: There is currently an open PR that aims to add a Pydantic model for the `conda-forge.yml` file to
 conda-smithy. This PR is not yet merged, so the important parts of the model are defined here.
 
+https://github.com/conda-forge/conda-smithy/pull/1756
+
 In the future, cf-scripts should depend on conda-smithy to obtain the `conda-forge.yml` model from there.
 """
 
