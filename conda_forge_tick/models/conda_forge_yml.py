@@ -1,4 +1,4 @@
-from enum import Enum
+from enum import StrEnum
 from typing import Literal
 
 from pydantic import Field
@@ -22,10 +22,7 @@ In the future, cf-scripts should depend on conda-smithy to obtain the `conda-for
 """
 
 
-class BotInspection(str, Enum):
-    def __str__(self):
-        return self.value
-
+class BotInspection(StrEnum):
     HINT = "hint"
     HINT_ALL = "hint-all"
     HINT_SOURCE = "hint-source"
@@ -35,10 +32,7 @@ class BotInspection(str, Enum):
     UPDATE_GRAYSKULL = "update-grayskull"
 
 
-class VersionSource(str, Enum):
-    def __str__(self):
-        return self.value
-
+class VersionSource(StrEnum):
     PYPI = "pypi"
     CRAN = "cran"
     NPM = "npm"
@@ -64,10 +58,7 @@ class Bot(StrictBaseModel):
     run_deps_from_wheel: bool = False
 
 
-class BuildPlatform(str, Enum):
-    def __str__(self):
-        return self.value
-
+class BuildPlatform(StrEnum):
     """
     Build platforms prefixed with LEGACY were mentioned in the documentation for the `provider` field in the
     `conda-forge.yml` file but are no longer supported. A lot of feedstocks (03/2024: ~3000) still use them.
@@ -87,10 +78,7 @@ class BuildPlatform(str, Enum):
     LEGACY_OSX_ARM64 = "osx_arm64"
 
 
-class CIService(str, Enum):
-    def __str__(self):
-        return self.value
-
+class CIService(StrEnum):
     AZURE = "azure"
     CIRCLE = "circle"
     TRAVIS = "travis"
