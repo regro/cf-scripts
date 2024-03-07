@@ -56,7 +56,7 @@ graph for performance reasons. In an attempt to document the data model, we have
 to the README in that directory for more information.
 
 The Pydantic model is not used by the bot code itself (yet) but there is an CI job (`test-models`)
-that validates the model against the actual data in the graph.
+that periodically validates the model against the actual data in the graph.
 
 ## What has the bot done recently?
 
