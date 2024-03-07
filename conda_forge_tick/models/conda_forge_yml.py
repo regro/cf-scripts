@@ -70,7 +70,7 @@ class BuildPlatform(str, Enum):
 
     """
     Build platforms prefixed with LEGACY were mentioned in the documentation for the `provider` field in the
-    `conda-forge.yml` file but are no longer supported. A lot of feedstocks (today: ~3000) still use them.
+    `conda-forge.yml` file but are no longer supported. A lot of feedstocks (03/2024: ~3000) still use them.
     They should be migrated to a non-legacy build platform.
     """
 
