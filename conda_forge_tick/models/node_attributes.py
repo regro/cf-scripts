@@ -11,7 +11,12 @@ from pydantic import (
 )
 from pydantic_core.core_schema import SerializerFunctionWrapHandler
 
-from conda_forge_tick.models.common import LazyJsonReference, Set, StrictBaseModel
+from conda_forge_tick.models.common import (
+    LazyJsonReference,
+    Set,
+    StrictBaseModel,
+    ValidatedBaseModel,
+)
 from conda_forge_tick.models.conda_forge_yml import BuildPlatform, CondaForgeYml
 from conda_forge_tick.models.meta_yaml import MetaYaml
 
@@ -317,7 +322,7 @@ class NodeAttributesValid(StrictBaseModel):
     """
 
 
-class NodeAttributesError(BaseModel):
+class NodeAttributesError(ValidatedBaseModel):
     """
     If a parsing error occurred, any number of fields can be missing.
     """

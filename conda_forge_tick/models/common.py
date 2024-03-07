@@ -1,10 +1,12 @@
-import re
 from typing import Annotated, Any, Generic, Literal, Never, TypeVar
 
 from pydantic import BaseModel, BeforeValidator, ConfigDict, Field, UrlConstraints
 from pydantic_core import Url
 
 T = TypeVar("T")
+
+K = TypeVar("K")
+V = TypeVar("V")
 
 
 class StrictBaseModel(BaseModel):
@@ -57,16 +59,17 @@ A generic list type that converts a single value to a list.
 
 def empty_string_to_none(value: Any) -> None:
     """
-    Convert an empty string to `None`.
+    Convert an empty string to `None`. None is kept as is.
     """
-    if value != "":
-        raise ValueError("value must be an empty string")
-    return None
+    if value is None or value == "":
+        return None
+    raise ValueError("value must be an empty string or None")
 
 
 EmptyStringIsNone = Annotated[None, BeforeValidator(empty_string_to_none)]
 """
 A type that can only receive an empty string and converts it to `None`.
+Can also hold `None` as is.
 This should not be needed if a proper data model is enforced.
 """
 
@@ -84,6 +87,37 @@ SplitStringNewlineBefore = Annotated[list[T], BeforeValidator(split_string_newli
 """
 A generic list type that splits a string at newlines before validation.
 """
+
+
+def false_to_none(value: Any) -> None:
+    """
+    Convert `False` to `None`. Keep `None` as is.
+    """
+    if value is False or value is None:
+        return None
+    raise ValueError("value must be False")
+
+
+FalseIsNone = Annotated[None, BeforeValidator(false_to_none)]
+"""
+A type that can only receive `False` or `None` and converts it to `None`.
+"""
+
+
+def none_to_empty_dict(value: T) -> T | dict[Never, Never]:
+    """
+    Convert `None` to an empty dictionary, otherwise keep the value as is.
+    """
+    if value is None:
+        return {}
+    return value
+
+
+NoneIsEmptyDict = Annotated[dict[K, V], BeforeValidator(none_to_empty_dict)]
+"""
+A generic dict type that converts `None` to an empty dict.
+"""
+
 
 GitUrl = Annotated[Url, UrlConstraints(allowed_schemes=["git"])]
 

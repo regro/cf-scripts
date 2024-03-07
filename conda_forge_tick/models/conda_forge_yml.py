@@ -1,7 +1,67 @@
 from enum import Enum
-from typing import Literal, Optional
+from typing import Literal
 
-from pydantic import BaseModel
+from pydantic import Field
+
+from conda_forge_tick.models.common import (
+    FalseIsNone,
+    NoneIsEmptyDict,
+    NoneIsEmptyList,
+    SingleElementToList,
+    StrictBaseModel,
+    ValidatedBaseModel,
+)
+
+"""
+Refer to https://conda-forge.org/docs/maintainer/conda_forge_yml for a documentation of the fields.
+
+TODO Note: There is currently an open PR that aims to add a Pydantic model for the `conda-forge.yml` file to
+conda-smithy. This PR is not yet merged, so the important parts of the model are defined here.
+
+In the future, cf-scripts should depend on conda-smithy to obtain the `conda-forge.yml` model from there.
+"""
+
+
+class BotInspection(str, Enum):
+    def __str__(self):
+        return self.value
+
+    HINT = "hint"
+    HINT_ALL = "hint-all"
+    HINT_SOURCE = "hint-source"
+    HINT_GRAYSKULL = "hint-grayskull"
+    UPDATE_ALL = "update-all"
+    UPDATE_SOURCE = "update-source"
+    UPDATE_GRAYSKULL = "update-grayskull"
+
+
+class VersionSource(str, Enum):
+    def __str__(self):
+        return self.value
+
+    PYPI = "pypi"
+    CRAN = "cran"
+    NPM = "npm"
+    ROS_DISTRO = "rosdistro"
+    RAW_URL = "rawurl"
+    GITHUB = "github"
+    INCREMENT_ALPHA_RAW_URL = "incrementalpharawurl"
+    NVIDIA = "nvidia"
+
+
+class BotVersionUpdates(StrictBaseModel):
+    random_fraction_to_keep: float = Field(0.0, ge=0.0, le=1.0)
+    sources: NoneIsEmptyList[VersionSource] | SingleElementToList[VersionSource] = []
+    exclude: NoneIsEmptyList[str] | SingleElementToList[str] = []
+
+
+class Bot(StrictBaseModel):
+    automerge: bool | Literal["version", "migration"] = False
+    check_solvable: bool = False
+    inspection: BotInspection = BotInspection.HINT
+    abi_migration_branches: NoneIsEmptyList[str] | SingleElementToList[str] = []
+    version_updates: BotVersionUpdates | None = None
+    run_deps_from_wheel: bool = False
 
 
 class BuildPlatform(str, Enum):
@@ -27,16 +87,32 @@ class BuildPlatform(str, Enum):
     LEGACY_OSX_ARM64 = "osx_arm64"
 
 
-class CondaForgeYml(BaseModel):
-    """
-    Refer to https://conda-forge.org/docs/maintainer/conda_forge_yml for a documentation of the fields.
-    """
+class CIService(str, Enum):
+    def __str__(self):
+        return self.value
 
-    provider: Optional[
-        dict[
-            BuildPlatform,
-            str | Literal[False] | None,
-        ]
-    ] = None
+    AZURE = "azure"
+    CIRCLE = "circle"
+    TRAVIS = "travis"
+    APPVEYOR = "appveyor"
+    GITHUB_ACTIONS = "github_actions"
+    NATIVE = "native"
+    EMULATED = "emulated"
+    DEFAULT = "default"
 
-    # TODO: complete
+    LEGACY_OSX_64 = "osx_64"
+
+
+BUILD_PLATFORMS_WITH_NATIVE_SUPPORT = [
+    BuildPlatform.LINUX_AARCH64,
+    BuildPlatform.LINUX_PPC64LE,
+]
+
+
+class CondaForgeYml(ValidatedBaseModel):
+    bot: Bot | None = None
+
+    provider: NoneIsEmptyDict[
+        BuildPlatform,
+        CIService | FalseIsNone,
+    ] = {}
