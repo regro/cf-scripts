@@ -19,6 +19,7 @@ from conda_forge_tick.cli_context import CliContext
 from conda_forge_tick.lazy_json_backends import (
     CF_TICK_GRAPH_DATA_BACKENDS,
     CF_TICK_GRAPH_GITHUB_BACKEND_BASE_URL,
+    CF_TICK_GRAPH_GITHUB_BACKEND_NUM_DIRS,
     LazyJson,
     dump,
     get_sharded_path,
@@ -402,7 +403,14 @@ def _main_import_to_pkg(max_artifacts: int):
         dump(_clobbers, f)
 
     with open(IMPORT_TO_PKG_DIR_META, "w") as f:
-        dump({"num_letters": NUM_LETTERS, "n_files": IMPORT_TO_PKG_DIR_SHARD}, f)
+        dump(
+            {
+                "num_letters": NUM_LETTERS,
+                "n_files": IMPORT_TO_PKG_DIR_SHARD,
+                "num_dirs": CF_TICK_GRAPH_GITHUB_BACKEND_NUM_DIRS,
+            },
+            f,
+        )
 
 
 def main(ctx: CliContext, max_artifacts: int = 10000) -> None:
