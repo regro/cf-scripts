@@ -45,7 +45,7 @@ class VersionSource(StrEnum):
 
 class BotVersionUpdates(StrictBaseModel):
     random_fraction_to_keep: float = Field(0.0, ge=0.0, le=1.0)
-    sources: NoneIsEmptyList[VersionSource] | SingleElementToList[VersionSource] = []
+    sources: SingleElementToList[VersionSource] | None = None
     exclude: NoneIsEmptyList[str] | SingleElementToList[str] = []
 
 
