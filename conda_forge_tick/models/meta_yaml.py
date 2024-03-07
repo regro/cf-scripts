@@ -125,7 +125,7 @@ class Requirements(ValidatedBaseModel):
 
 
 class Test(ValidatedBaseModel):
-    commands: NoneIsEmptyList[str] | SplitStringNewlineBefore[str] = []
+    commands: NoneIsEmptyList[str] | SplitStringNewlineBefore = []
     """
     Some feedstocks (03/2024: ~80) use a string instead of a list for the `test/commands` field.
     Multiple commands are separated by newlines.

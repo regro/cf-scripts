@@ -29,7 +29,7 @@ class Set(StrictBaseModel, Generic[T]):
 
 def none_to_empty_list(value: T) -> T | list[Never]:
     """
-    Convert `None` to an empty list.
+    Convert `None` to an empty list. Everything else is kept as is.
     """
     if value is None:
         return []
@@ -70,7 +70,7 @@ EmptyStringIsNone = Annotated[None, BeforeValidator(empty_string_to_none)]
 """
 A type that can only receive an empty string and converts it to `None`.
 Can also hold `None` as is.
-This should not be needed if a proper data model is enforced.
+This should not be needed if a proper data model is used in production.
 """
 
 
@@ -83,7 +83,7 @@ def split_string_newline(value: Any) -> list[str]:
     return value.split("\n")
 
 
-SplitStringNewlineBefore = Annotated[list[T], BeforeValidator(split_string_newline)]
+SplitStringNewlineBefore = Annotated[list[str], BeforeValidator(split_string_newline)]
 """
 A generic list type that splits a string at newlines before validation.
 """
@@ -95,7 +95,7 @@ def false_to_none(value: Any) -> None:
     """
     if value is False or value is None:
         return None
-    raise ValueError("value must be False")
+    raise ValueError("value must be False or None")
 
 
 FalseIsNone = Annotated[None, BeforeValidator(false_to_none)]
