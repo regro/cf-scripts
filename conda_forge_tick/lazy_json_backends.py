@@ -44,9 +44,10 @@ CF_TICK_GRAPH_DATA_HASHMAPS = [
 CF_TICK_GRAPH_GITHUB_BACKEND_BASE_URL = (
     "https://github.com/regro/cf-graph-countyfair/raw/master"
 )
+CF_TICK_GRAPH_GITHUB_BACKEND_NUM_DIRS = 5
 
 
-def get_sharded_path(file_path, n_dirs=5):
+def get_sharded_path(file_path, n_dirs=CF_TICK_GRAPH_GITHUB_BACKEND_NUM_DIRS):
     """computed a sharded location for the LazyJson file."""
     top_dir, file_name = os.path.split(file_path)
 
