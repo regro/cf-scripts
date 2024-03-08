@@ -15,7 +15,7 @@ def _run_git_cmd(cmd):
     return subprocess.run(cmd, shell=True, check=True)
 
 
-def deploy(ctx: CliContext):
+def deploy(ctx: CliContext, dirs_to_deploy: list[str] = None):
     """Deploy the graph to GitHub"""
     if ctx.dry_run:
         print("(dry run) deploying")
@@ -31,17 +31,21 @@ def deploy(ctx: CliContext):
         print(e)
 
     files_to_add = set()
-    drs_to_deploy = [
-        "status",
-        "mappings",
-        "mappings/pypi",
-        "ranked_hubs_authorities.json",
-        "all_feedstocks.json",
-        "import_to_pkg_maps",
-    ]
-    if "file" in get_lazy_json_backends():
-        drs_to_deploy += CF_TICK_GRAPH_DATA_HASHMAPS
-        drs_to_deploy += ["graph.json"]
+    if dirs_to_deploy is None:
+        drs_to_deploy = [
+            "status",
+            "mappings",
+            "mappings/pypi",
+            "ranked_hubs_authorities.json",
+            "all_feedstocks.json",
+            "import_to_pkg_maps",
+        ]
+        if "file" in get_lazy_json_backends():
+            drs_to_deploy += CF_TICK_GRAPH_DATA_HASHMAPS
+            drs_to_deploy += ["graph.json"]
+    else:
+        drs_to_deploy = dirs_to_deploy
+
     for dr in drs_to_deploy:
         # untracked
         files_to_add |= set(
