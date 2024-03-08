@@ -27,7 +27,7 @@ class Set(StrictBaseModel, Generic[T]):
     elements: set[T]
 
 
-def none_to_empty_list(value: T) -> T | list[Never]:
+def none_to_empty_list(value: T | None) -> T | list[Never]:
     """
     Convert `None` to an empty list. Everything else is kept as is.
     """
@@ -104,7 +104,7 @@ A type that can only receive `False` or `None` and converts it to `None`.
 """
 
 
-def none_to_empty_dict(value: T) -> T | dict[Never, Never]:
+def none_to_empty_dict(value: T | None) -> T | dict[Never, Never]:
     """
     Convert `None` to an empty dictionary, otherwise keep the value as is.
     """
