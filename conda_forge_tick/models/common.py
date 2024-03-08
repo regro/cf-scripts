@@ -53,7 +53,7 @@ def convert_to_list(value: T) -> list[T]:
 
 SingleElementToList = Annotated[list[T], BeforeValidator(convert_to_list)]
 """
-A generic list type that converts a single value to a list.
+A generic list type that converts a single value to a list. Union with list[T] to allow multiple values.
 """
 
 
