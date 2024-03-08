@@ -58,6 +58,7 @@ Undocumented.
 
 ### `versions`
 One file per conda-forge package containing upstream version update information about the package.
+For some packages, this file may not exist, indicating absent upstream version update information.
 
 ### `graph.json`
 The JSON representation of a [networkx](https://networkx.org/) graph. The graph is a directed graph, where the nodes
