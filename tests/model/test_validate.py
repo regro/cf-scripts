@@ -1,10 +1,13 @@
 import warnings
+from dataclasses import dataclass, field
 from pathlib import Path
 
 import pytest
-from pydantic import ValidationError
+from pydantic import TypeAdapter, ValidationError
 
+from conda_forge_tick.lazy_json_backends import get_sharded_path
 from conda_forge_tick.models.node_attributes import NodeAttributes
+from conda_forge_tick.models.versions import Versions
 
 """
 These tests validate that the node attributes files in the node_attrs directory are valid JSON and
@@ -20,9 +23,7 @@ You can add the name of a feedstock to the KNOWN_BAD_FEEDSTOCKS list if you know
 After fixing the issue, you can remove the feedstock from the list.
 """
 
-NODE_ATTRS_DIR = Path("node_attrs")
-
-KNOWN_BAD_FEEDSTOCKS = {
+NODE_ATTRS_BAD_FEEDSTOCKS = {
     "gmatelastoplasticqpot3d",  # missing platforms
     "semi-ate-stdf",  # missing platforms
     "thrust",  # missing platforms
@@ -93,41 +94,102 @@ KNOWN_BAD_FEEDSTOCKS = {
 }
 
 
-def pytest_generate_tests(metafunc):
-    files = list(NODE_ATTRS_DIR.rglob("*.json"))
-    valid_files = [f for f in files if f.stem not in KNOWN_BAD_FEEDSTOCKS]
-    invalid_files = [f for f in files if f.stem in KNOWN_BAD_FEEDSTOCKS]
+@dataclass
+class PerPackageModel:
+    base_path: Path
+    model: TypeAdapter
+    bad_feedstocks: set[str] = field(default_factory=set)
+    must_exist: bool = True
+    """
+    If True, the feedstock must exist in the base_path directory.
+    """
 
-    if not files:
+    @property
+    def __name__(self):
+        return str(self.base_path.name)
+
+
+PER_PACKAGE_MODELS: list[PerPackageModel] = [
+    PerPackageModel(Path("node_attrs"), NodeAttributes, NODE_ATTRS_BAD_FEEDSTOCKS),
+    PerPackageModel(Path("versions"), Versions, must_exist=False),
+]
+
+
+def get_all_feedstocks() -> set[str]:
+    packages: set[str] = set()
+
+    for model in PER_PACKAGE_MODELS:
+        for file in model.base_path.rglob("*.json"):
+            packages.add(file.stem)
+
+    return packages
+
+
+def pytest_generate_tests(metafunc):
+    packages = get_all_feedstocks()
+
+    if not packages:
         raise ValueError(
-            "No node attributes files found. Make sure the cf-graph is in the current working directory."
+            "No packages found. Make sure the cf-graph is in the current working directory."
         )
 
-    nonexistent_bad_feedstocks = [
-        feedstock
-        for feedstock in KNOWN_BAD_FEEDSTOCKS
-        if feedstock not in (f.stem for f in files)
-    ]
+    all_invalid_feedstocks = set()
+    for model in PER_PACKAGE_MODELS:
+        all_invalid_feedstocks.update(model.bad_feedstocks)
+
+    nonexistent_bad_feedstocks = all_invalid_feedstocks - packages
+
     if nonexistent_bad_feedstocks:
         warnings.warn(
-            f"Some feedstocks from the KNOWN_BAD_FEEDSTOCKS do not exist: {nonexistent_bad_feedstocks}"
+            f"Some feedstocks are mentioned as bad feedstock but do not exist: {nonexistent_bad_feedstocks}"
         )
 
-    if "node_file_valid" in metafunc.fixturenames:
-        metafunc.parametrize("node_file_valid", valid_files, ids=lambda x: x.stem)
+    if "valid_feedstock" in metafunc.fixturenames:
+        parameters: list[tuple[PerPackageModel, str]] = []
+        for model in PER_PACKAGE_MODELS:
+            for package in packages:
+                if package not in model.bad_feedstocks:
+                    parameters.append((model, package))
 
-    if "node_file_invalid" in metafunc.fixturenames:
-        metafunc.parametrize("node_file_invalid", invalid_files, ids=lambda x: x.stem)
+        metafunc.parametrize(
+            "model,valid_feedstock",
+            parameters,
+        )
+        return
+
+    if "invalid_feedstock" in metafunc.fixturenames:
+        parameters: list[tuple[PerPackageModel, str]] = []
+        for model in PER_PACKAGE_MODELS:
+            for package in packages:
+                if package in model.bad_feedstocks:
+                    parameters.append((model, package))
+
+        metafunc.parametrize(
+            "model,invalid_feedstock",
+            parameters,
+        )
 
 
-def test_validate_node_attrs_valid(node_file_valid):
-    with open(node_file_valid) as f:
-        node_attrs = f.read()
-    NodeAttributes.validate_json(node_attrs)
+def test_model_valid(model: PerPackageModel, valid_feedstock: str):
+    try:
+        with open(get_sharded_path(model.base_path / f"{valid_feedstock}.json")) as f:
+            node_attrs = f.read()
+    except FileNotFoundError:
+        if model.must_exist:
+            raise
+        pytest.skip(f"{valid_feedstock}.json does not exist")
+
+    model.model.validate_json(node_attrs)
 
 
-def test_validate_node_attrs_invalid(node_file_invalid):
-    with open(node_file_invalid) as f:
-        node_attrs = f.read()
+def test_model_invalid(model: PerPackageModel, invalid_feedstock: str):
+    try:
+        with open(get_sharded_path(model.base_path / f"{invalid_feedstock}.json")) as f:
+            node_attrs = f.read()
+    except FileNotFoundError:
+        if model.must_exist:
+            raise
+        pytest.skip(f"{invalid_feedstock}.json does not exist")
+
     with pytest.raises(ValidationError):
-        NodeAttributes.validate_json(node_attrs)
+        model.model.validate_json(node_attrs)
