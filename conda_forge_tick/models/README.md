@@ -44,9 +44,8 @@ Undocumented.
 Undocumented.
 
 ### `node_attrs`
-Each file in this directory corresponds to a package in the conda-forge ecosystem and contains metadata about the
-package. The exact structure of a JSON file is documented by the `NodeAttributes` Pydantic model defined in
-[node_attributes.py](node_attributes.py).
+One file per conda-forge package containing metadata about the package.
+Pydantic Model: `NodeAttributes` in [node_attributes.py](node_attributes.py).
 
 ### `pr_info`
 Undocumented.
@@ -58,7 +57,7 @@ Undocumented.
 Undocumented.
 
 ### `versions`
-Undocumented.
+One file per conda-forge package containing upstream version update information about the package.
 
 ### `graph.json`
 The JSON representation of a [networkx](https://networkx.org/) graph. The graph is a directed graph, where the nodes
