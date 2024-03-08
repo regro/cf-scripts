@@ -29,6 +29,7 @@ from typing import (
 import tqdm
 
 from .cli_context import CliContext
+from .deploy import deploy
 from .lazy_json_backends import (
     LazyJson,
     get_all_keys_for_hashmap,
@@ -1622,7 +1623,15 @@ def main(ctx: CliContext) -> None:
             pass
             # this has been causing issues with bad deploys
             # turning off for now
-            # deploy(dry_run=ctx.dry_run)
+            deploy(
+                ctx,
+                dirs_to_deploy=[
+                    "pr_json",
+                    "pr_info",
+                    "version_pr_info",
+                    "nodes",
+                ],
+            )
 
     logger.info("API Calls Remaining: %d", mctx.gh_api_requests_left)
     logger.info("Done")
