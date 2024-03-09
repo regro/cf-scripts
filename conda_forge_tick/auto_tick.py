@@ -1623,15 +1623,15 @@ def main(ctx: CliContext) -> None:
             pass
             # this has been causing issues with bad deploys
             # turning off for now
-            deploy(
-                ctx,
-                dirs_to_deploy=[
-                    "pr_json",
-                    "pr_info",
-                    "version_pr_info",
-                    "nodes",
-                ],
-            )
+            # deploy(
+            #     ctx,
+            #     dirs_to_deploy=[
+            #         "pr_json",
+            #         "pr_info",
+            #         "version_pr_info",
+            #         "nodes",
+            #     ],
+            # )
 
     logger.info("API Calls Remaining: %d", mctx.gh_api_requests_left)
     logger.info("Done")
