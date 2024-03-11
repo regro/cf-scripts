@@ -90,8 +90,6 @@ class CIService(StrEnum):
     EMULATED = "emulated"
     DEFAULT = "default"
 
-    LEGACY_OSX_64 = "osx_64"
-
 
 class CondaForgeYml(ValidatedBaseModel):
     bot: Bot | None = None

@@ -88,6 +88,9 @@ KNOWN_BAD_FEEDSTOCKS = {
     "pymc-marketing",  # typo in bot.inspection (conda-forge.yml)
     "requests-cache",  # bot.inspection is false (conda-forge.yml)
     "graphite2",  # provider.win has invalid value "win".
+    "lbapcommon",  # provider.osx_arm64 has invalid value "osx_64". See issue #64 of the feedstock.
+    "root",  # provider.osx_arm64 has invalid value "osx_64". See issue #238 of the feedstock.
+    "vector-classes",  # provider.osx_arm64 has invalid value "osx_64". See issue #9 of the feedstock.
 }
 
 
