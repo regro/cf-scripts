@@ -7,6 +7,7 @@ from pydantic import TypeAdapter, ValidationError
 
 from conda_forge_tick.lazy_json_backends import get_sharded_path
 from conda_forge_tick.models.node_attributes import NodeAttributes
+from conda_forge_tick.models.pr_info import PrInfo
 from conda_forge_tick.models.versions import Versions
 
 """
@@ -111,6 +112,7 @@ class PerPackageModel:
 
 PER_PACKAGE_MODELS: list[PerPackageModel] = [
     PerPackageModel(Path("node_attrs"), NodeAttributes, NODE_ATTRS_BAD_FEEDSTOCKS),
+    PerPackageModel(Path("pr_info"), PrInfo),
     PerPackageModel(Path("versions"), Versions, must_exist=False),
 ]
 
@@ -171,25 +173,27 @@ def pytest_generate_tests(metafunc):
 
 
 def test_model_valid(model: PerPackageModel, valid_feedstock: str):
+    path = get_sharded_path(model.base_path / f"{valid_feedstock}.json")
     try:
-        with open(get_sharded_path(model.base_path / f"{valid_feedstock}.json")) as f:
+        with open(path) as f:
             node_attrs = f.read()
     except FileNotFoundError:
         if model.must_exist:
             raise
-        pytest.skip(f"{valid_feedstock}.json does not exist")
+        pytest.skip(f"{path} does not exist")
 
     model.model.validate_json(node_attrs)
 
 
 def test_model_invalid(model: PerPackageModel, invalid_feedstock: str):
+    path = get_sharded_path(model.base_path / f"{invalid_feedstock}.json")
     try:
-        with open(get_sharded_path(model.base_path / f"{invalid_feedstock}.json")) as f:
+        with open(path) as f:
             node_attrs = f.read()
     except FileNotFoundError:
         if model.must_exist:
             raise
-        pytest.skip(f"{invalid_feedstock}.json does not exist")
+        pytest.skip(f"{path} does not exist")
 
     with pytest.raises(ValidationError):
         model.model.validate_json(node_attrs)
