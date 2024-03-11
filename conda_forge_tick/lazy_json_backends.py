@@ -28,6 +28,14 @@ from .cli_context import CliContext
 
 logger = logging.getLogger(__name__)
 
+CF_TICK_GRAPH_DATA_USE_FILE_CACHE = (
+    False
+    if (
+        "CF_TICK_GRAPH_DATA_USE_FILE_CACHE" in os.environ
+        and os.environ["CF_TICK_GRAPH_DATA_USE_FILE_CACHE"].lower() in ["false", "0"]
+    )
+    else True
+)
 CF_TICK_GRAPH_DATA_BACKENDS = tuple(
     os.environ.get("CF_TICK_GRAPH_DATA_BACKENDS", "file").split(":"),
 )
@@ -634,14 +642,18 @@ def lazy_json_snapshot():
 
 
 @contextlib.contextmanager
-def lazy_json_override_backends(new_backends, hashmaps_to_sync=None):
+def lazy_json_override_backends(new_backends, hashmaps_to_sync=None, use_file_cache=None):
     global CF_TICK_GRAPH_DATA_BACKENDS
     global CF_TICK_GRAPH_DATA_PRIMARY_BACKEND
+    global CF_TICK_GRAPH_DATA_USE_FILE_CACHE
 
+    old_cache = CF_TICK_GRAPH_DATA_USE_FILE_CACHE
     old_backends = CF_TICK_GRAPH_DATA_BACKENDS
     try:
         CF_TICK_GRAPH_DATA_BACKENDS = tuple(new_backends)
         CF_TICK_GRAPH_DATA_PRIMARY_BACKEND = new_backends[0]
+        if use_file_cache is not None:
+            CF_TICK_GRAPH_DATA_USE_FILE_CACHE = use_file_cache
         yield
     finally:
         if hashmaps_to_sync is not None:
@@ -660,6 +672,7 @@ def lazy_json_override_backends(new_backends, hashmaps_to_sync=None):
 
         CF_TICK_GRAPH_DATA_BACKENDS = old_backends
         CF_TICK_GRAPH_DATA_PRIMARY_BACKEND = old_backends[0]
+        CF_TICK_GRAPH_DATA_USE_FILE_CACHE = old_cache
 
 
 def get_lazy_json_backends():
@@ -728,7 +741,7 @@ class LazyJson(MutableMapping):
 
             # check if we have it in the cache first
             # if yes, load it from cache, if not load from primary backend and cache it
-            if file_backend.hexists(self.hashmap, self.node):
+            if CF_TICK_GRAPH_DATA_USE_FILE_CACHE and file_backend.hexists(self.hashmap, self.node):
                 data_str = file_backend.hget(self.hashmap, self.node)
             else:
                 backend = LAZY_JSON_BACKENDS[CF_TICK_GRAPH_DATA_PRIMARY_BACKEND]()
@@ -738,7 +751,7 @@ class LazyJson(MutableMapping):
                     data_str = data_str.decode("utf-8")
 
                 # cache it locally for later
-                if CF_TICK_GRAPH_DATA_PRIMARY_BACKEND != "file":
+                if CF_TICK_GRAPH_DATA_USE_FILE_CACHE and CF_TICK_GRAPH_DATA_PRIMARY_BACKEND != "file":
                     file_backend.hset(self.hashmap, self.node, data_str)
 
             self._data_hash_at_load = hashlib.sha256(
@@ -754,12 +767,13 @@ class LazyJson(MutableMapping):
             self._data_hash_at_load = curr_hash
 
             # cache it locally
-            file_backend = LAZY_JSON_BACKENDS["file"]()
-            file_backend.hset(self.hashmap, self.node, data_str)
+            if CF_TICK_GRAPH_DATA_USE_FILE_CACHE:
+                file_backend = LAZY_JSON_BACKENDS["file"]()
+                file_backend.hset(self.hashmap, self.node, data_str)
 
             # sync changes to all backends
             for backend_name in CF_TICK_GRAPH_DATA_BACKENDS:
-                if backend_name == "file":
+                if backend_name == "file" and CF_TICK_GRAPH_DATA_USE_FILE_CACHE:
                     continue
                 backend = LAZY_JSON_BACKENDS[backend_name]()
                 backend.hset(self.hashmap, self.node, data_str)
@@ -886,3 +900,7 @@ def main_cache(ctx: CliContext):
             sync_lazy_json_across_backends()
         finally:
             CF_TICK_GRAPH_DATA_BACKENDS = OLD_CF_TICK_GRAPH_DATA_BACKENDS
+
+
+def main_shard_path(path: str) -> None:
+    print(get_sharded_path(path))

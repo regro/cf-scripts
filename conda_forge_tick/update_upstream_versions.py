@@ -1,3 +1,4 @@
+import copy
 import hashlib
 import logging
 import os
@@ -24,7 +25,7 @@ import tqdm
 from conda_forge_tick.cli_context import CliContext
 
 from .executors import executor
-from .lazy_json_backends import LazyJson
+from .lazy_json_backends import LazyJson, load
 from .update_sources import (
     CRAN,
     NPM,
@@ -149,7 +150,7 @@ def get_latest_version(
         raise exceptions[0]
 
     if not new_version:
-        logger.debug(f"Upstream: Could not find version on any source")
+        logger.debug("Upstream: Could not find version on any source")
         return version_data
 
     if ignore_version(attrs, new_version):
@@ -318,6 +319,19 @@ def _update_upstream_versions_process_pool(
                 version_attrs.update(version_data)
 
 
+def _all_sources():
+    return (
+        PyPI(),
+        CRAN(),
+        NPM(),
+        ROSDistro(),
+        RawURL(),
+        Github(),
+        IncrementAlphaRawURL(),
+        NVIDIA(),
+    )
+
+
 def update_upstream_versions(
     gx: nx.DiGraph,
     sources: Optional[Iterable[AbstractSource]] = None,
@@ -365,20 +379,7 @@ def update_upstream_versions(
 
     random.shuffle(to_update)
 
-    sources = (
-        (
-            PyPI(),
-            CRAN(),
-            NPM(),
-            ROSDistro(),
-            RawURL(),
-            Github(),
-            IncrementAlphaRawURL(),
-            NVIDIA(),
-        )
-        if sources is None
-        else sources
-    )
+    sources = _all_sources() if sources is None else sources
 
     updater = (
         _update_upstream_versions_sequential
@@ -416,4 +417,27 @@ def main(
         job=job,
         n_jobs=n_jobs,
         package=package,
+    )
+
+
+def main_find_latest_feedstock_version(
+    name: str = None,
+    node_attrs_file: str = None,
+) -> None:
+
+    if name is not None and node_attrs_file is None:
+        node_attrs_file = f"node_attrs/{name}.json"
+        with LazyJson(node_attrs_file) as node_attrs:
+            attrs = copy.deepcopy(node_attrs.data)
+    elif name is None and node_attrs_file is not None:
+        name = os.path.basename(node_attrs_file)[: -len(".json")]
+        with open(node_attrs_file) as fp:
+            attrs = load(fp)
+
+    print(
+        get_latest_version(
+            name,
+            attrs,
+            _all_sources(),
+        )
     )

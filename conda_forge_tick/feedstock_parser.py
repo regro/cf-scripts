@@ -1,3 +1,4 @@
+import copy
 import collections.abc
 import glob
 import hashlib
@@ -20,6 +21,7 @@ if typing.TYPE_CHECKING:
     from .migrators_types import PackageName, RequirementsTypedDict
     from conda_forge_tick.migrators_types import MetaYamlTypedDict
 
+from .lazy_json_backends import dumps, load, LazyJson
 from .utils import as_iterable, parse_meta_yaml
 
 logger = logging.getLogger(__name__)
@@ -420,3 +422,24 @@ def load_feedstock(
         )
 
     return sub_graph
+
+
+def main_feedstock_parser(
+    name: str = None,
+    node_attrs_file: str = None,
+) -> None:
+
+    if name is not None and node_attrs_file is None:
+        node_attrs_file = f"node_attrs/{name}.json"
+        with LazyJson(node_attrs_file) as node_attrs:
+            attrs = copy.deepcopy(node_attrs.data)
+    elif name is None and node_attrs_file is not None:
+        name = os.path.basename(node_attrs_file)[: -len(".json")]
+        with open(node_attrs_file) as fp:
+            attrs = load(fp)
+
+    load_feedstock(
+        name,
+        attrs,
+    )
+    print(dumps(attrs))

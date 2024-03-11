@@ -32,6 +32,7 @@ dependencies:
  - networkx!=2.8.1
  - numpy
  - packaging
+ - pip
  - psutil
  - pygithub
  - pymongo

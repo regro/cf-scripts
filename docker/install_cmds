@@ -1,0 +1,21 @@
+#!/bin/bash -il
+
+set -exo pipefail
+
+conda activate base
+
+conda install python=3.11 --yes
+conda env update -n base --file $AUTOTICK_BOT_DIR/environment.yml
+
+conda clean --tarballs --index-cache --packages --yes
+# find ${CONDA_DIR} -follow -type f -name '*.a' -delete
+# find ${CONDA_DIR} -follow -type f -name '*.pyc' -delete
+conda clean --force-pkgs-dirs --all --yes
+
+cd $AUTOTICK_BOT_DIR
+pip install --no-deps --no-build-isolation -e .
+cd -
+
+# Lucky group gets permission to write in the conda dir
+chown -R root /opt/conda
+chgrp -R lucky /opt/conda && chmod -R g=u /opt/conda

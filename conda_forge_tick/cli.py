@@ -28,6 +28,32 @@ n_jobs_option = click.option(
     show_default=True,
     help="If given, the total number of jobs being run.",
 )
+feedstock_option = click.option(
+    "--feedstock",
+    default=None,
+    type=str,
+    show_default=True,
+    help="If given, the name of the feedstock to update and/or use (e.g., 'pandas' for the 'pandas-feedstock').",
+)
+existing_feedstock_metadata_option = click.option(
+    "--existing-feedstock-metadata",
+    default=None,
+    type=str,
+    show_default=True,
+    help="If given, the existing feedstock metadata to update and/or use as a JSON blob in a file.",
+)
+
+
+def check_feedstock_param(feedstock: Optional[str], existing_feedstock_metadata: str):
+    if feedstock is not None and existing_feedstock_metadata is not None:
+        raise ValueError(
+            "Only one of --feedstock or --existing-feedstock-metadata can be given. "
+            f"{feedstock} and {existing_feedstock_metadata} were given."
+        )
+    elif feedstock is None and existing_feedstock_metadata is None:
+        raise ValueError(
+            "One of --feedstock or --existing-feedstock-metadata is required."
+        )
 
 
 def check_job_param_relative(job: int, n_jobs: int) -> None:
@@ -39,7 +65,9 @@ class TimedCommand(click.Command):
     def invoke(self, ctx: click.Context):
         start = time.time()
         super().invoke(ctx)
-        click.echo(f"FINISHED STAGE {self.name} IN {time.time() - start} SECONDS")
+        click.echo(
+            f"FINISHED STAGE {self.name} IN {time.time() - start} SECONDS", err=True
+        )
 
 
 click.Group.command_class = TimedCommand
@@ -56,8 +84,7 @@ click.Group.command_class = TimedCommand
     "--online/--offline",
     default=False,
     help="online: Make requests to GitHub for accessing the dependency graph. This is useful for local testing. Note "
-    "however that any write operations will not be performed. Important: The current working directory will be "
-    "used to cache JSON files. Local files will be used if they exist.",
+    "however that any write operations will not be performed.",
 )
 @pass_context
 @click.pass_context
@@ -79,8 +106,9 @@ def main(
 
     if online:
         logger.info("Running in online mode")
+        # turn off the file cache so that things rerun properly during testing
         click_context.with_resource(
-            lazy_json_backends.lazy_json_override_backends(["github"]),
+            lazy_json_backends.lazy_json_override_backends(["github"], use_file_cache=False),
         )
 
 
@@ -207,6 +235,62 @@ def make_import_to_package_mapping(
     from . import import_to_pkg
 
     import_to_pkg.main(ctx, max_artifacts)
+
+
+@main.command(name="parse-feedstock")
+@feedstock_option
+@existing_feedstock_metadata_option
+def parse_feedstock(
+    feedstock: str,
+    existing_feedstock_metadata: str,
+) -> None:
+    """
+    Parse a feedstock and update the feedstock metadata.
+    """
+    from . import feedstock_parser
+
+    check_feedstock_param(feedstock, existing_feedstock_metadata)
+
+    feedstock_parser.main_feedstock_parser(
+        name=feedstock,
+        node_attrs_file=existing_feedstock_metadata,
+    )
+
+
+@main.command(name="find-latest-feedstock-version")
+@feedstock_option
+@existing_feedstock_metadata_option
+def find_latest_feedstock_version(
+    feedstock: str,
+    existing_feedstock_metadata: str,
+) -> None:
+    """
+    Find the most recent version for a feedstock.
+    """
+    from . import update_upstream_versions
+
+    check_feedstock_param(feedstock, existing_feedstock_metadata)
+
+    update_upstream_versions.main_find_latest_feedstock_version(
+        name=feedstock,
+        node_attrs_file=existing_feedstock_metadata,
+    )
+
+
+@main.command(name="shard-path")
+@click.argument(
+    "path",
+    type=str,
+)
+def shard_path(
+    path: str,
+) -> None:
+    """
+    Print the sharded value of a path.
+    """
+    from . import lazy_json_backends
+
+    lazy_json_backends.main_shard_path(path)
 
 
 if __name__ == "__main__":
