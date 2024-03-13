@@ -105,6 +105,15 @@ NODE_ATTRS_BAD_FEEDSTOCKS = {
     "stackvana-afw",  # `conda-forge.yml`.remote_ci_setup must be list
 }
 
+PR_INFO_BAD_FEEDSTOCKS = {
+    "python",  # PR.data.branch should be string, not float
+    "aws-c-mqtt",  # PRed.data.migrator_object_version has typo: "1+" instead of 1 or 2 (upstream migrator issue)
+    "aws-c-s3",  # PRed.data.migrator_object_version has typo: "1+" instead of 1 or 2 (upstream migrator issue)
+    "awscrt",  # PRed.data.migrator_object_version has typo: "1+" instead of 1 or 2 (upstream migrator issue)
+    "aws-c-auth",  # PRed.data.migrator_object_version has typo: "1+" instead of 1 or 2 (upstream migrator issue)
+    "aws-crt-cpp",  # PRed.data.migrator_object_version has typo: "1+" instead of 1 or 2 (upstream migrator issue)
+}
+
 
 @dataclass
 class PerPackageModel:
@@ -123,7 +132,7 @@ class PerPackageModel:
 
 PER_PACKAGE_MODELS: list[PerPackageModel] = [
     PerPackageModel(Path("node_attrs"), NodeAttributes, NODE_ATTRS_BAD_FEEDSTOCKS),
-    PerPackageModel(Path("pr_info"), PrInfo),
+    PerPackageModel(Path("pr_info"), PrInfo, PR_INFO_BAD_FEEDSTOCKS),
     PerPackageModel(Path("versions"), Versions, must_exist=False),
 ]
 

@@ -17,6 +17,19 @@ class ValidatedBaseModel(BaseModel):
     model_config = ConfigDict(validate_assignment=True, extra="allow")
 
 
+def before_validator_ensure_dict(value: Any) -> dict:
+    """
+    Ensure that a value is a dictionary. If it is not, raise a ValueError.
+    """
+    if not isinstance(value, dict):
+        raise ValueError(
+            "We only support validating dicts. Pydantic supports calling model_validate with some "
+            "other objects (e.g. in conjunction with construct), but we do not. "
+            "See https://docs.pydantic.dev/latest/concepts/validators/#model-validators"
+        )
+    return value
+
+
 class Set(StrictBaseModel, Generic[T]):
     """
     A custom set type. It contains a special set marker `__set__`, allowing dynamic instantiation of the set type.
@@ -130,15 +143,30 @@ A string that matches version numbers in one of the following formats:
 - `X.Y.Z`
 """
 
+# TODO: There should be an elegant pydantic way to resolve LazyJSON references, generically
 
-class LazyJsonReference(StrictBaseModel):
+
+class PrInfoLazyJsonReference(StrictBaseModel):
     """
-    A lazy reference to a JSON object.
+    A lazy reference to a pr_info JSON object.
     """
 
-    # TODO: There should be an elegant pydantic way to resolve LazyJSON references.
+    json_reference: str = Field(pattern=r"pr_info/.*\.json$", alias="__lazy_json__")
 
-    json_reference: str = Field(pattern=r".*\.json$", alias="__lazy_json__")
+
+class VersionPrInfoLazyJsonReference(StrictBaseModel):
     """
-    The JSON file reference.
+    A lazy reference to a version_pr_info JSON object.
     """
+
+    json_reference: str = Field(
+        pattern=r"version_pr_info/.*\.json$", alias="__lazy_json__"
+    )
+
+
+class PrJsonLazyJsonReference(StrictBaseModel):
+    """
+    A lazy reference to a pr_json JSON object.
+    """
+
+    json_reference: str = Field(pattern=r"pr_json/.*\.json$", alias="__lazy_json__")

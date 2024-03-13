@@ -39,7 +39,7 @@ CF_BOT_NAMES = {"regro-cf-autotick-bot", "conda-forge-linter"}
 
 # these keys are kept from github PR json blobs
 # to add more keys to keep, put them in the right spot in the dict and
-# set them to None.
+# set them to None. Also add them to the PullRequestInfo Pydantic model!
 PR_KEYS_TO_KEEP = {
     "ETag": None,
     "Last-Modified": None,
