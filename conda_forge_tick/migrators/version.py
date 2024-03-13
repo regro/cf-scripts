@@ -87,7 +87,7 @@ class Version(Migrator):
                 [
                     k
                     for k in attrs.get("pr_info", {}).get("PRed", [])
-                    if k["data"].get("migrator_name") == "Version"
+                    if k["data"].get("migrator_name") == Version.name
                     # The PR is the actual PR itself
                     and k.get("PR", {}).get("state", None) == "open"
                 ],
@@ -227,7 +227,7 @@ class Version(Migrator):
         open_version_prs = [
             muid["PR"]
             for muid in feedstock_ctx.attrs.get("pr_info", {}).get("PRed", [])
-            if muid["data"].get("migrator_name") == "Version"
+            if muid["data"].get("migrator_name") == Version.name
             # The PR is the actual PR itself
             and muid.get("PR", {}).get("state", None) == "open"
         ]
