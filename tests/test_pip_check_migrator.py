@@ -28,7 +28,7 @@ def test_version_pipcheck(case, tmpdir):
         kwargs={"new_version": "0.9"},
         prb="Dependencies have been updated if changed",
         mr_out={
-            "migrator_name": "Version",
+            "migrator_name": Version.name,
             "migrator_version": Version.migrator_version,
             "version": "0.9",
         },
@@ -52,7 +52,7 @@ def test_version_pipcheck_outputs(tmpdir):
         kwargs={"new_version": "1.1.0"},
         prb="Dependencies have been updated if changed",
         mr_out={
-            "migrator_name": "Version",
+            "migrator_name": Version.name,
             "migrator_version": Version.migrator_version,
             "version": "1.1.0",
         },

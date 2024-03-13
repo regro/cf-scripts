@@ -446,7 +446,7 @@ def test_update_deps_version(caplog, tmpdir, update_kind, out_yml):
         kwargs=kwargs,
         prb="Dependencies have been updated if changed",
         mr_out={
-            "migrator_name": "Version",
+            "migrator_name": Version.name,
             "migrator_version": Version.migrator_version,
             "version": new_ver,
         },
@@ -613,7 +613,7 @@ def test_update_deps_version_pyquil(caplog, tmpdir, update_kind, out_yml):
         kwargs=kwargs,
         prb="Dependencies have been updated if changed",
         mr_out={
-            "migrator_name": "Version",
+            "migrator_name": Version.name,
             "migrator_version": Version.migrator_version,
             "version": new_ver,
         },

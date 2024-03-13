@@ -106,7 +106,7 @@ A type that can only receive `False` or `None` and converts it to `None`.
 
 def none_to_empty_dict(value: T | None) -> T | dict[Never, Never]:
     """
-    Convert `None` to an empty dictionary, otherwise keep the value as is.
+    Convert `None` to an empty dictionary f, otherwise keep the value as is.
     """
     if value is None:
         return {}
@@ -120,6 +120,15 @@ A generic dict type that converts `None` to an empty dict.
 
 
 GitUrl = Annotated[Url, UrlConstraints(allowed_schemes=["git"])]
+
+
+VersionString = Annotated[str, Field(..., pattern=r"^\d+(\.\d+){0,2}$")]
+"""
+A string that matches version numbers in one of the following formats:
+- `X`
+- `X.Y`
+- `X.Y.Z`
+"""
 
 
 class LazyJsonReference(StrictBaseModel):

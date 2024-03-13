@@ -1,7 +1,6 @@
 import os
 
 from flaky import flaky
-from ruamel.yaml import YAML
 from test_migrators import run_test_migration
 
 from conda_forge_tick.migrators import ExtraJinja2KeysCleanup, Version
@@ -32,7 +31,7 @@ def test_version_extra_jinja2_keys_cleanup(tmpdir):
         kwargs={"new_version": "0.20.0"},
         prb="Dependencies have been updated if changed",
         mr_out={
-            "migrator_name": "Version",
+            "migrator_name": Version.name,
             "migrator_version": Version.migrator_version,
             "version": "0.20.0",
         },

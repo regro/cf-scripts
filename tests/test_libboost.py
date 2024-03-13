@@ -1,7 +1,6 @@
 import os
 
 import pytest
-from flaky import flaky
 from test_migrators import run_test_migration
 
 from conda_forge_tick.migrators import LibboostMigrator, Version
@@ -54,7 +53,7 @@ def test_boost(feedstock, new_ver, tmpdir):
         kwargs={"new_version": new_ver},
         prb="Dependencies have been updated if changed",
         mr_out={
-            "migrator_name": "Version",
+            "migrator_name": Version.name,
             "migrator_version": VERSION_WITH_LIBBOOST.migrator_version,
             "version": new_ver,
         },

@@ -283,7 +283,7 @@ def test_version_license_correct(tmpdir):
         kwargs={"new_version": "0.9"},
         prb="Dependencies have been updated if changed",
         mr_out={
-            "migrator_name": "Version",
+            "migrator_name": Version.name,
             "migrator_version": Version.migrator_version,
             "version": "0.9",
         },
@@ -311,7 +311,7 @@ def test_version_license_correct_r(tmpdir):
         kwargs={"new_version": "0.9.2"},
         prb="Dependencies have been updated if changed",
         mr_out={
-            "migrator_name": "Version",
+            "migrator_name": Version.name,
             "migrator_version": Version.migrator_version,
             "version": "0.9.2",
         },

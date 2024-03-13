@@ -78,7 +78,7 @@ def test_version_up(case, new_ver, tmpdir, caplog):
         kwargs=kwargs,
         prb="Dependencies have been updated if changed",
         mr_out={
-            "migrator_name": "Version",
+            "migrator_name": Version.name,
             "migrator_version": Version.migrator_version,
             "version": new_ver,
         },
@@ -152,7 +152,7 @@ def test_version_cupy(tmpdir, caplog):
         kwargs=kwargs,
         prb="Dependencies have been updated if changed",
         mr_out={
-            "migrator_name": "Version",
+            "migrator_name": Version.name,
             "migrator_version": Version.migrator_version,
             "version": new_ver,
         },
@@ -189,7 +189,7 @@ def test_version_rand_frac(tmpdir, caplog):
         kwargs=kwargs,
         prb="Dependencies have been updated if changed",
         mr_out={
-            "migrator_name": "Version",
+            "migrator_name": Version.name,
             "migrator_version": Version.migrator_version,
             "version": new_ver,
         },
