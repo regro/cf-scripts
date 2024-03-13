@@ -6,10 +6,12 @@ from pydantic import AnyUrl, Field, TypeAdapter, model_serializer, model_validat
 from pydantic_core.core_schema import SerializerFunctionWrapHandler
 
 from conda_forge_tick.models.common import (
-    LazyJsonReference,
+    PrInfoLazyJsonReference,
     Set,
     StrictBaseModel,
     ValidatedBaseModel,
+    VersionPrInfoLazyJsonReference,
+    before_validator_ensure_dict,
 )
 from conda_forge_tick.models.meta_yaml import MetaYaml
 
@@ -149,12 +151,7 @@ class NodeAttributesValid(StrictBaseModel):
         This data model is a bit too complex for what it does, so we transform it into a simpler model that is easier to
         work with. See platform_info above for the new model.
         """
-        if not isinstance(data, dict):
-            raise ValueError(
-                "We only support validating dicts. Pydantic supports calling model_validate with some "
-                "other objects (e.g. in conjunction with construct), but we do not. "
-                "See https://docs.pydantic.dev/latest/concepts/validators/#model-validators"
-            )
+        data = before_validator_ensure_dict(data)
 
         if "platform_info" in data:
             raise ValueError(
@@ -216,7 +213,7 @@ class NodeAttributesValid(StrictBaseModel):
 
         return serialized_model
 
-    pr_info: LazyJsonReference
+    pr_info: PrInfoLazyJsonReference
     """
     The JSON reference to the pull request information for the feedstock repository, created by migrators.
     This includes pull requests created for version migrations.
@@ -306,7 +303,7 @@ class NodeAttributesValid(StrictBaseModel):
 
         return self
 
-    version_pr_info: LazyJsonReference
+    version_pr_info: VersionPrInfoLazyJsonReference
     """
     The JSON reference to the version migration information for the feedstock repository, created by the version
     migrator. This is used to track version updates of the feedstock.
