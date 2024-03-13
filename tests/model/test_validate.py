@@ -58,7 +58,6 @@ KNOWN_BAD_FEEDSTOCKS = {
     "ipython_memory_usage",  # bot.inspect should be bot.inspection in conda-forge.yml
     "rich-argparse",  # grayskull-update should be update-grayskull in conda-forge.yml
     "htbuilder",  # bot.inspect should be bot.inspection in conda-forge.yml
-    "cuda-python",  # bot.abi_migration_branches should be string, not float (conda-forge.yml)
     "cdsdashboards",  # invalid value for bot.inspection: false (conda-forge.yml)
     "stats_arrays",  # "grayskull-update" should be "update-grayskull" in conda-forge.yml
     "spyder",  # invalid value for bot.inspection: false (conda-forge.yml)
