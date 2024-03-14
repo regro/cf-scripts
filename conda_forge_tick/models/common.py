@@ -1,3 +1,5 @@
+import email.utils
+from datetime import datetime
 from typing import Annotated, Any, Generic, Literal, Never, TypeVar
 
 from pydantic import BaseModel, BeforeValidator, ConfigDict, Field, UrlConstraints
@@ -115,6 +117,15 @@ FalseIsNone = Annotated[None, BeforeValidator(false_to_none)]
 """
 A type that can only receive `False` or `None` and converts it to `None`.
 """
+
+
+def parse_rfc_2822_date(value: str) -> datetime:
+    if not isinstance(value, str):
+        raise ValueError("value must be a string")
+    return email.utils.parsedate_to_datetime(value)
+
+
+RFC2822Date = Annotated[datetime, BeforeValidator(parse_rfc_2822_date)]
 
 
 def none_to_empty_dict(value: T | None) -> T | dict[Never, Never]:

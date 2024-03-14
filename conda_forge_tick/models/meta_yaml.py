@@ -1,6 +1,6 @@
 from typing import Literal, Self
 
-from pydantic import AnyUrl, Field, HttpUrl, model_validator
+from pydantic import AnyHttpUrl, AnyUrl, Field, model_validator
 
 from conda_forge_tick.models.common import (
     EmptyStringIsNone,
@@ -142,8 +142,8 @@ class Output(ValidatedBaseModel):
 
 class About(ValidatedBaseModel):
     description: str | None = None
-    dev_url: HttpUrl | GitUrl | EmptyStringIsNone | None = None
-    doc_url: HttpUrl | EmptyStringIsNone | None = None
+    dev_url: AnyHttpUrl | GitUrl | EmptyStringIsNone | None = None
+    doc_url: AnyHttpUrl | EmptyStringIsNone | None = None
     home: str | EmptyStringIsNone | None = None
     """
     Note! According to the conda documentation, this should be a single (!) URL.
