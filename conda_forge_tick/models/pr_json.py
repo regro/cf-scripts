@@ -2,7 +2,7 @@ from datetime import datetime
 from enum import StrEnum
 
 from pydantic import AnyHttpUrl, Field
-from pydantic.color import Color
+from pydantic_extra_types.color import Color
 
 from conda_forge_tick.models.common import RFC2822Date, StrictBaseModel
 
@@ -15,7 +15,7 @@ class PullRequestLabelShort(StrictBaseModel):
 
 
 class PullRequestLabel(PullRequestLabelShort):
-    color: Color  # TODO: use pydantic-extra-types
+    color: Color
     """
     The color of the label, parsed as a hex color.
     """
@@ -80,7 +80,7 @@ class GithubPullRequestBase(StrictBaseModel):
     repo: GithubRepository
 
 
-class PullRequestInfo(StrictBaseModel):
+class PullRequestData(StrictBaseModel):
     """
     Information about a pull request, as retrieved from the GitHub API.
     Refer to git_utils.PR_KEYS_TO_KEEP for the keys that are kept in the PR object.
