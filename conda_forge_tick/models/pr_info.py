@@ -17,7 +17,7 @@ from conda_forge_tick.models.common import (
     VersionString,
     before_validator_ensure_dict,
 )
-from conda_forge_tick.models.pr_json import PullRequestInfo, PullRequestState
+from conda_forge_tick.models.pr_json import PullRequestData, PullRequestState
 
 
 def remove_azure_error(value: Any) -> str:
@@ -205,7 +205,7 @@ class MigrationPullRequestData(StrictBaseModel):
 
 
 class MigrationPullRequest(StrictBaseModel):
-    PR: PullRequestInfoSpecial | PullRequestInfo | PrJsonLazyJsonReference | None = None
+    PR: PullRequestInfoSpecial | PullRequestData | PrJsonLazyJsonReference | None = None
     """
     GitHub data about the pull request.
     This field may be missing.

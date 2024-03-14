@@ -8,7 +8,8 @@ from pydantic import TypeAdapter, ValidationError
 from conda_forge_tick.lazy_json_backends import get_sharded_path
 from conda_forge_tick.models.node_attributes import NodeAttributes
 from conda_forge_tick.models.pr_info import PrInfo
-from conda_forge_tick.models.pr_json import PullRequestInfo
+from conda_forge_tick.models.pr_json import PullRequestData
+from conda_forge_tick.models.version_pr_info import VersionPrInfo
 from conda_forge_tick.models.versions import Versions
 
 """
@@ -96,8 +97,10 @@ NODE_ATTRS_BAD_FEEDSTOCKS = {
 }
 
 PR_INFO_BAD_FEEDSTOCKS = {
-    "python",  # PR.data.branch should be string, not float
+    "python",  # pr_info (bot internal): PR.data.branch should be string, not float
 }
+
+VERSION_PR_INFO_BAD_FEEDSTOCKS = {"r-rgdal"}
 
 
 @dataclass
@@ -119,6 +122,9 @@ PER_PACKAGE_MODELS: list[PerPackageModel] = [
     PerPackageModel(Path("node_attrs"), NodeAttributes, NODE_ATTRS_BAD_FEEDSTOCKS),
     PerPackageModel(Path("pr_info"), PrInfo, PR_INFO_BAD_FEEDSTOCKS),
     PerPackageModel(Path("versions"), Versions, must_exist=False),
+    PerPackageModel(
+        Path("version_pr_info"), VersionPrInfo, VERSION_PR_INFO_BAD_FEEDSTOCKS
+    ),
 ]
 
 
@@ -219,4 +225,4 @@ def test_model_invalid(model: PerPackageModel, invalid_feedstock: str):
 
 
 def test_validate_pr_json(pr_json: str):
-    PullRequestInfo.model_validate_json(pr_json)
+    PullRequestData.model_validate_json(pr_json)
