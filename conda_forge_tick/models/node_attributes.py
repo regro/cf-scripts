@@ -226,7 +226,7 @@ class NodeAttributesValid(StrictBaseModel):
     pr_info: LazyJsonReference
     """
     The JSON reference to the pull request information for the feedstock repository, created by migrators.
-    Note that version updates are handled via the `version_pr_info` field.
+    This includes pull requests created for version migrations.
     """
 
     raw_meta_yaml: str
@@ -315,10 +315,10 @@ class NodeAttributesValid(StrictBaseModel):
 
     version_pr_info: LazyJsonReference
     """
-    The JSON reference to the pull request information for the feedstock repository, created by the version migrator.
-    This is used to track version updates of the feedstock.
+    The JSON reference to the version migration information for the feedstock repository, created by the version
+    migrator. This is used to track version updates of the feedstock.
 
-    The pull request information of all other migrations is tracked via the `pr_info` field.
+    Note that this field is NOT analogous to the `pr_info` field. Version migration PRs still appear in `pr_info`.
     """
 
 
