@@ -96,11 +96,6 @@ NODE_ATTRS_BAD_FEEDSTOCKS = {
 
 PR_INFO_BAD_FEEDSTOCKS = {
     "python",  # PR.data.branch should be string, not float
-    "aws-c-mqtt",  # PRed.data.migrator_object_version has typo: "1+" instead of 1 or 2 (upstream migrator issue)
-    "aws-c-s3",  # PRed.data.migrator_object_version has typo: "1+" instead of 1 or 2 (upstream migrator issue)
-    "awscrt",  # PRed.data.migrator_object_version has typo: "1+" instead of 1 or 2 (upstream migrator issue)
-    "aws-c-auth",  # PRed.data.migrator_object_version has typo: "1+" instead of 1 or 2 (upstream migrator issue)
-    "aws-crt-cpp",  # PRed.data.migrator_object_version has typo: "1+" instead of 1 or 2 (upstream migrator issue)
 }
 
 

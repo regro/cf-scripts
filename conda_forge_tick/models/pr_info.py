@@ -8,6 +8,7 @@ from pydantic import (
     BeforeValidator,
     Field,
     TypeAdapter,
+    field_validator,
     model_validator,
 )
 
@@ -36,6 +37,21 @@ Extracts a version from a string that contains an Azure token error.
 """
 
 
+def one_plus_to_one(value: Any) -> int:
+    if value != "1+":
+        raise ValueError("This is not '1+'.")
+    return 1
+
+
+OnePlusToOne = Annotated[int, BeforeValidator(one_plus_to_one)]
+"""
+Receives a string "1+" and converts it into 1.
+This is just for rolling back the effects of a typo in the aws_c_http0627 migration.
+When this Pydantic model is used in production, serialize and deserialize the entire graph data to remove the error.
+After that, this type can be removed.
+"""
+
+
 class PullRequestState(StrEnum):
     OPEN = "open"
     CLOSED = "closed"
@@ -52,7 +68,12 @@ class PullRequestLabel(StrictBaseModel):
 
 
 class PullRequestInfoHead(StrictBaseModel):
-    ref: Literal["<this_is_not_a_branch>"]
+    ref: str
+    """
+    The head branch of the pull request.
+    This is set to "<this_is_not_a_branch>" or "this_is_not_a_branch" (without the angle brackets) if the branch is
+    deleted, which seems unnecessary.
+    """
 
 
 class GithubPullRequestMergeableState(StrEnum):
@@ -83,18 +104,38 @@ class PullRequestInfo(StrictBaseModel):
     """
     Information about a pull request, as retrieved from the GitHub API.
     Refer to git_utils.PR_KEYS_TO_KEEP for the keys that are kept in the PR object.
+
+    GitHub documentation: https://docs.github.com/en/rest/pulls/pulls?apiVersion=2022-11-28#get-a-pull-request
     """
 
-    # TODO: add docstrings
-
     e_tag: str | None = Field(None, alias="ETag")
+    """
+    HTTP ETag header field, allowing us to quickly check if the PR has changed.
+    """
+
     last_modified: datetime | None = Field(None, alias="Last-Modified")
-    id: int | UUID4 | None = None
+    """
+    Taken from the GitHub response header.
+    """
+
+    id: int | None = None
+    """
+    The GitHub Pull Request ID (not: the PR number).
+    """
+
     html_url: AnyHttpUrl | None = None
+    """
+    The URL of the pull request on GitHub.
+    """
+
     created_at: datetime | None = None
     updated_at: datetime | None = None
     merged_at: datetime | None = None
+    """
+    Note that this field is abused in PullRequestInfoSpecial.
+    """
     closed_at: datetime | None = None
+
     mergeable_state: GithubPullRequestMergeableState | None = None
     """
     Undocumented GitHub API field. See here: https://github.com/octokit/octokit.net/issues/1763#issue-297399985
@@ -125,6 +166,51 @@ class PullRequestInfoSpecial(StrictBaseModel):
     state: Literal[PullRequestState.CLOSED]
 
 
+class MigratorName(StrEnum):
+    """
+    Each value here corresponds to a subclass of migrators.core.Migrator in the codebase.
+    """
+
+    VERSION = "Version"
+    ARCH_REBUILD = "ArchRebuild"
+    OSX_ARM = "OSXArm"
+    MIGRATION_YAML = "MigrationYaml"
+    REBUILD = "Rebuild"
+    BLAS_REBUILD = "BlasRebuild"
+    R_BASE_REBUILD = "RBaseRebuild"
+    G_FORTRAN_OSX_REBUILD = "GFortranOSXRebuild"
+    REPLACEMENT = "Replacement"
+    MATPLOTLIB_BASE = "MatplotlibBase"
+    REBUILD_BROKEN = "RebuildBroken"
+    MIGRATION_YAML_CREATOR = "MigrationYamlCreator"
+    """
+    Only operates on the conda-forge-pinning feedstock and updates the pinning version of packages.
+    """
+
+    JS = "JS"
+    """
+    This legacy migrator for JavaScript technically exists in the codebase, but does not appear in the graph.
+    """
+    NOARCH = "Noarch"
+    NOARCH_R = "NoarchR"
+    """
+    This legacy migrator R noarch packages technically exists in the codebase, but does not appear in the graph.
+    """
+    PINNING = "Pinning"
+    COMPILER_REBUILD = "CompilerRebuild"
+    """
+    This migrator is no longer present in the codebase but still appears in the graph.
+    """
+    COMPILER = "Compiler"
+    """
+    This migrator is no longer present in the codebase but still appears in the graph.
+    """
+    OPEN_SSL_REBUILD = "OpenSSLRebuild"
+    """
+    This migrator is no longer present in the codebase but still appears in the graph.
+    """
+
+
 class MigrationPullRequestData(StrictBaseModel):
     """
     Sometimes, this object is called `migrator_uid` or `MigrationUidTypedDict` in the code.
@@ -137,7 +223,7 @@ class MigrationPullRequestData(StrictBaseModel):
     timestamp of a rerun that was performed.
     """
 
-    migrator_name: str
+    migrator_name: MigratorName
     """
     The name of the migrator that created the PR. As opposed to `pre_pr_migrator_status` and `pre_pr_migrator_attempts`
     below, the names of migrators appear here with spaces and not necessarily in lowercase.
@@ -169,13 +255,15 @@ class MigrationPullRequestData(StrictBaseModel):
             )
         return self
 
-    migrator_object_version: int | None = None
+    migrator_object_version: int | OnePlusToOne | None = None
     """
     This field is taken from the migration YAML for YAML-based migrations. In the migration YAML, this field is called
     `migration_number`. Increasing the migrator object version is a way to force a migration to be rerun.
     The version of the migrator object (see above) is different from this value.
     https://github.com/conda-forge/conda-forge-pinning-feedstock/blob/0d70e56969f0fcba4e6211cd93224abbfe3c919f/recipe/migrations/example.exyaml#L9-L11
     Non-YAML migrators do not set this field.
+
+    Refer to OnePlusToOne for more information about the 1+ case (legacy typo fix).
     """
 
     name: str | None = None
@@ -185,9 +273,39 @@ class MigrationPullRequestData(StrictBaseModel):
     """
 
     branch: str | None = None
-    pin_version: str | None = (
-        None  # TODO: only conda-forge-pinning MigrationYamlCreator
-    )
+    """
+    The branch that was migrated. Only set if not equal to "master" or "main", which seems a bit questionable.
+    """
+
+    # noinspection PyNestedDecorators
+    @field_validator("branch")
+    @classmethod
+    def check_branch(cls, value: str) -> str:
+        if value in ("master", "main"):
+            raise ValueError("The branch field must not be 'master' or 'main'.")
+        return value
+
+    pin_version: str | None = None
+    """
+    This is only set by MigrationYamlCreator and specifies the version of the package that is pinned in the migration.
+    """
+
+    @model_validator(mode="after")
+    def validate_pin_version(self) -> Self:
+        if self.pin_version is None and (
+            self.migrator_name == MigratorName.MIGRATION_YAML_CREATOR
+        ):
+            raise ValueError(
+                "MigrationYamlCreator must have the pin_version field set."
+            )
+
+        if self.pin_version is not None and (
+            self.migrator_name != MigratorName.MIGRATION_YAML_CREATOR
+        ):
+            raise ValueError(
+                "Only MigrationYamlCreator can have the pin_version field set."
+            )
+        return self
 
 
 class MigrationPullRequest(StrictBaseModel):
@@ -232,7 +350,7 @@ class MigrationPullRequest(StrictBaseModel):
 
 
 class PrInfoValid(StrictBaseModel):
-    PRed: list[MigrationPullRequest] = []  # TODO: note about closed PRs
+    PRed: list[MigrationPullRequest] = []
     bad: Literal[False] = False
     """
     See `PrInfoError` for the (bad is not False) case.
