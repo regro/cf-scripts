@@ -4,9 +4,7 @@ from typing import Annotated, Any, Literal, Self
 
 from pydantic import (
     UUID4,
-    AnyHttpUrl,
     BeforeValidator,
-    Field,
     TypeAdapter,
     field_validator,
     model_validator,
@@ -19,6 +17,7 @@ from conda_forge_tick.models.common import (
     VersionString,
     before_validator_ensure_dict,
 )
+from conda_forge_tick.models.pr_json import PullRequestInfo, PullRequestState
 
 
 def remove_azure_error(value: Any) -> str:
@@ -52,115 +51,12 @@ After that, this type can be removed.
 """
 
 
-class PullRequestState(StrEnum):
-    OPEN = "open"
-    CLOSED = "closed"
-    """
-    Merged PRs are also closed.
-    """
-
-
-class PullRequestLabel(StrictBaseModel):
-    name: str
-    """
-    The name of the label.
-    """
-
-
-class PullRequestInfoHead(StrictBaseModel):
-    ref: str
-    """
-    The head branch of the pull request.
-    This is set to "<this_is_not_a_branch>" or "this_is_not_a_branch" (without the angle brackets) if the branch is
-    deleted, which seems unnecessary.
-    """
-
-
-class GithubPullRequestMergeableState(StrEnum):
-    """
-    These values are not officially documented by GitHub.
-    See https://github.com/octokit/octokit.net/issues/1763#issue-297399985 for more information
-    and an explanation of the different possible values.
-    """
-
-    DIRTY = "dirty"
-    UNKNOWN = "unknown"
-    BLOCKED = "blocked"
-    BEHIND = "behind"
-    UNSTABLE = "unstable"
-    HAS_HOOKS = "has_hooks"
-    CLEAN = "clean"
-
-
-class GithubRepository(StrictBaseModel):
-    name: str
-
-
-class GithubPullRequestBase(StrictBaseModel):
-    repo: GithubRepository
-
-
-class PullRequestInfo(StrictBaseModel):
-    """
-    Information about a pull request, as retrieved from the GitHub API.
-    Refer to git_utils.PR_KEYS_TO_KEEP for the keys that are kept in the PR object.
-
-    GitHub documentation: https://docs.github.com/en/rest/pulls/pulls?apiVersion=2022-11-28#get-a-pull-request
-    """
-
-    e_tag: str | None = Field(None, alias="ETag")
-    """
-    HTTP ETag header field, allowing us to quickly check if the PR has changed.
-    """
-
-    last_modified: datetime | None = Field(None, alias="Last-Modified")
-    """
-    Taken from the GitHub response header.
-    """
-
-    id: int | None = None
-    """
-    The GitHub Pull Request ID (not: the PR number).
-    """
-
-    html_url: AnyHttpUrl | None = None
-    """
-    The URL of the pull request on GitHub.
-    """
-
-    created_at: datetime | None = None
-    updated_at: datetime | None = None
-    merged_at: datetime | None = None
-    """
-    Note that this field is abused in PullRequestInfoSpecial.
-    """
-    closed_at: datetime | None = None
-
-    mergeable_state: GithubPullRequestMergeableState | None = None
-    """
-    Undocumented GitHub API field. See here: https://github.com/octokit/octokit.net/issues/1763#issue-297399985
-    """
-    mergeable: bool | None = None
-    merged: bool | None = None
-    draft: bool | None = None
-
-    number: int | None = None
-    """
-    The pull request number. Sometimes, this information is missing.
-    """
-    state: PullRequestState
-    """
-    Whether the pull request is open or closed.
-    """
-    labels: list[PullRequestLabel] = []
-    """
-    All GitHub labels of the pull request.
-    """
-    head: PullRequestInfoHead | None = None
-    base: GithubPullRequestBase | None = None
-
-
 class PullRequestInfoSpecial(StrictBaseModel):
+    """
+    Used instead of pr_json.PullRequestInfo in the graph data to fake a closed pull request.
+    This is probably not necessary and should be removed.
+    """
+
     id: UUID4
     merged_at: Literal["never issued", "fix aarch missing prs"]
     state: Literal[PullRequestState.CLOSED]

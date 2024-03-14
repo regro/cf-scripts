@@ -45,13 +45,24 @@ Undocumented.
 
 ### `node_attrs`
 One file per conda-forge package containing metadata about the package.
+
 Pydantic Model: `NodeAttributes` in [node_attributes.py](node_attributes.py).
 
 ### `pr_info`
-Undocumented.
+One file per conda-forge package containing information about pull requests that have been created for performing
+migrations. Not all packages have a file in this directory. Every file is this directory is referenced by the
+`NodeAttributes.pr_info` field using a Lazy JSON reference.
+
+Originally, pull requests mentioned here included version updates (and they are still contained in the graph),
+but the `version_pr_info` directory is now used for that purpose.
+
+Pydantic Model: `PRInfo` in [pr_info.py](pr_info.py).
 
 ### `pr_json`
-Undocumented.
+One file per pull request (filename: `<pr_id>.json`) containing information about a migration-related GitHub pull
+request.
+Previously, the data of this directory was inlined in the `pr_info` files (and in some instances, it still is), but
+today Lazy JSON references are used to link to `pr_json` files.
 
 ### `version_pr_info`
 Undocumented.

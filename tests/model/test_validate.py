@@ -8,6 +8,7 @@ from pydantic import TypeAdapter, ValidationError
 from conda_forge_tick.lazy_json_backends import get_sharded_path
 from conda_forge_tick.models.node_attributes import NodeAttributes
 from conda_forge_tick.models.pr_info import PrInfo
+from conda_forge_tick.models.pr_json import PullRequestInfo
 from conda_forge_tick.models.versions import Versions
 
 """
@@ -175,6 +176,20 @@ def pytest_generate_tests(metafunc):
             parameters,
         )
 
+    if "pr_json" in metafunc.fixturenames:
+        name_list: list[str] = []
+        pr_json_list: list[str] = []
+        for file in Path("pr_json").rglob("*.json"):
+            with open(file) as f:
+                name_list.append(file.stem)
+                pr_json_list.append(f.read())
+
+        metafunc.parametrize(
+            "pr_json",
+            pr_json_list,
+            ids=name_list,
+        )
+
 
 def test_model_valid(model: PerPackageModel, valid_feedstock: str):
     path = get_sharded_path(model.base_path / f"{valid_feedstock}.json")
@@ -201,3 +216,7 @@ def test_model_invalid(model: PerPackageModel, invalid_feedstock: str):
 
     with pytest.raises(ValidationError):
         model.model.validate_json(node_attrs)
+
+
+def test_validate_pr_json(pr_json: str):
+    PullRequestInfo.model_validate_json(pr_json)
