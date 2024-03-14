@@ -29,7 +29,6 @@ from typing import (
 import tqdm
 
 from .cli_context import CliContext
-from .deploy import deploy
 from .lazy_json_backends import (
     LazyJson,
     get_all_keys_for_hashmap,
