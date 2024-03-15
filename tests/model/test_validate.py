@@ -77,10 +77,8 @@ KNOWN_BAD_FEEDSTOCKS = {
     "pyobjc-framework-corebluetooth",  # bot.inspect should be bot.inspection in conda-forge.yml
     "azure-storage-queue",  # bot.inspect should be bot.inspection in conda-forge.yml
     "semi-ate-testers",  # invalid value for bot.inspection: false (conda-forge.yml)
-    "aws-c-common",  # bot.version_updates.exclude is float, should be string
     "sisl",  # bot.inspection is false (conda-forge.yml)
     "unicorn-binance-suite",  # bot.inspection is false (conda-forge.yml)
-    "power-grid-model",  # provider.linux_ppc64le
     "sepal-ui",  # bot.inspection is false (conda-forge.yml)
     "apsg",  # bot.inspection is false (conda-forge.yml)
     "intake_pattern_catalog",  # bot.inspection is false (conda-forge.yml)
@@ -90,6 +88,21 @@ KNOWN_BAD_FEEDSTOCKS = {
     "lbapcommon",  # provider.osx_arm64 has invalid value "osx_64". See issue #64 of the feedstock.
     "root",  # provider.osx_arm64 has invalid value "osx_64". See issue #238 of the feedstock.
     "vector-classes",  # provider.osx_arm64 has invalid value "osx_64". See issue #9 of the feedstock.
+    "espaloma",  # typo in `conda-forge.yml`.azure
+    "sparc-x",  # `conda-forge.yml`.channels is unexpected
+    "jupyter_core",  # `conda-forge.yml`.abi_migration_branches is unexpected, should be moved to `conda-forge.yml`.bot
+    "rerun-sdk",  # unrecognized field `conda-forge.yml`.azure.artifact_retention_days
+    "bamnostic",  # unrecognized field `conda-forge.yml`.build
+    "r-v8",  # unrecognized field `conda-forge.yml`.github.win
+    "python-utils",  # unrecognized field `conda-forge.yml`.dependencies
+    "pyrosm",  # unrecognized option `conda-forge.yml`.build, legacy field `conda-forge.yml`.matrix does not validate
+    "sketchnu",  # `conda-forge.yml`.conda_build.pkg_format may not be None
+    "fd-find",  # invalid `conda-forge.yml`.test_on_native_only value
+    "micromamba",  # invalid value for `conda-forge.yml`.channel_priority
+    "conda-build",  # unrecognized field `conda-forge.yml`.remote-ci-setup - use _ instead of -!
+    "sense2vec",  # `conda-forge.yml`.channels is unexpected
+    "mpi4py",  # legacy field `conda-forge.yml`.matrix needs further investigation
+    "rpaframework",  # `conda-forge.yml`.channel_priority has invalid value "False"
 }
 
 
