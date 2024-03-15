@@ -103,6 +103,15 @@ KNOWN_BAD_FEEDSTOCKS = {
     "sense2vec",  # `conda-forge.yml`.channels is unexpected
     "mpi4py",  # legacy field `conda-forge.yml`.matrix needs further investigation
     "rpaframework",  # `conda-forge.yml`.channel_priority has invalid value "False"
+    # see https://github.com/conda-forge/conda-smithy/issues/1863 for the top-level build platform fields
+    "nbgrader",  # `conda-forge.yml`.linux_ppc64le should be removed (see above)
+    "sccache",  # `conda-forge.yml`.linux_aarch64 should be removed (see above)
+    "cmdstan",  # `conda-forge.yml`.linux_aarch64 and linux_ppc64le should be removed (see above)
+    "uarray",  # `conda-forge.yml`.linux_ppc64le and linux_aarch64 should be removed (see above)
+    "sourmash-minimal",  # `conda-forge.yml`.linux_ppc64le and linux_aarch64 should be removed (see above)
+    "libtk",  # `conda-forge.yml`.linux_ppc64le and linux_aarch64 should be removed (see above)
+    "libsimpleitk",  # `conda-forge.yml`.linux_ppc64le and linux_aarch64 should be removed (see above)
+    "stackvana-afw",  # `conda-forge.yml`.remote_ci_setup must be list
 }
 
 
