@@ -21,11 +21,14 @@ class CondaForgeYAMLCleanup(MiniMigrator):
         "max_py_ver",
         "compiler_stack",
     ]
+    keys_to_change = [
+        "test_on_native_only",
+    ]
 
     def filter(self, attrs: "AttrsTypedDict", not_bad_str_start: str = "") -> bool:
         """only remove the keys if they are there"""
         cfy = attrs.get("conda-forge.yml", {})
-        if any(k in cfy for k in self.keys_to_remove):
+        if any(k in cfy for k in self.keys_to_remove or k in self.keys_to_change):
             return False
         else:
             return True
@@ -42,6 +45,12 @@ class CondaForgeYAMLCleanup(MiniMigrator):
             for k in self.keys_to_remove:
                 if k in cfg:
                     del cfg[k]
+
+            if "test_on_native_only" in cfg:
+                value = cfg["test_on_native_only"]
+                del cfg["test_on_native_only"]
+                if value:
+                    cfg["test"] = "native_and_emulated"
 
             with open(cfg_path, "w") as fp:
                 yaml.dump(cfg, fp)
