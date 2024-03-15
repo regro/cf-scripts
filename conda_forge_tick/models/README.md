@@ -64,6 +64,8 @@ request.
 Previously, the data of this directory was inlined in the `pr_info` files (and in some instances, it still is), but
 today Lazy JSON references are used to link to `pr_json` files.
 
+Pydantic Model: `PullRequestInfo` in [pr_json.py](pr_json.py).
+
 ### `version_pr_info`
 Undocumented.
 
