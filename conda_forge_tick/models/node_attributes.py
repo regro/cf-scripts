@@ -1,14 +1,8 @@
 from collections import defaultdict
 from typing import Any, Literal, Self
 
-from pydantic import (
-    AnyUrl,
-    BaseModel,
-    Field,
-    TypeAdapter,
-    model_serializer,
-    model_validator,
-)
+from conda_smithy.schema import ConfigModel, Platforms
+from pydantic import AnyUrl, Field, TypeAdapter, model_serializer, model_validator
 from pydantic_core.core_schema import SerializerFunctionWrapHandler
 
 from conda_forge_tick.models.common import (
@@ -17,7 +11,6 @@ from conda_forge_tick.models.common import (
     StrictBaseModel,
     ValidatedBaseModel,
 )
-from conda_forge_tick.models.conda_forge_yml import BuildPlatform, CondaForgeYml
 from conda_forge_tick.models.meta_yaml import MetaYaml
 
 
@@ -70,7 +63,7 @@ class NodeAttributesValid(StrictBaseModel):
     For new feedstocks, this defaults to `main`.
     """
 
-    conda_forge_yml: CondaForgeYml = Field(..., alias="conda-forge.yml")
+    conda_forge_yml: ConfigModel = Field(..., alias="conda-forge.yml")
     """
     A parsed representation of the `conda-forge.yml` file in the feedstock repository.
     """
@@ -128,7 +121,7 @@ class NodeAttributesValid(StrictBaseModel):
     If no error occurred, this is `False`.
     """
 
-    platforms: set[BuildPlatform]
+    platforms: set[Platforms]
     """
     The list of build platforms (not: target platforms) this feedstock uses. For new feedstocks, this is inferred from
     the `*.yaml` files in the `.ci_support` directory of the feedstock repository. It consists of a platform name and
@@ -140,7 +133,7 @@ class NodeAttributesValid(StrictBaseModel):
     should not be empty after all).
     """
 
-    platform_info: dict[BuildPlatform, BuildPlatformInfo]
+    platform_info: dict[Platforms, BuildPlatformInfo]
     """
     The build-specific information for each build platform in the `platforms` field.
     Note that this is represented differently in the old (JSON) model, see below.
@@ -169,7 +162,7 @@ class NodeAttributesValid(StrictBaseModel):
             )
 
         data["platform_info"] = defaultdict(dict)
-        for build_platform in BuildPlatform:
+        for build_platform in Platforms:
             if f"{build_platform}_meta_yaml" in data:
                 data["platform_info"][build_platform]["meta_yaml"] = data.pop(
                     f"{build_platform}_meta_yaml"
