@@ -26,13 +26,17 @@ jobs:
 
       - uses: mamba-org/setup-micromamba@v1
         with:
-          environment-file: environment.yml
+          # environment-file: environment.yml
           environment-name: cf-scripts
           condarc-file: autotick-bot/condarc
+          create-args: >-
+            conda
+            conda-lock
 
       - name: configure conda and install code
         run: |
-          micromamba install --file requirements-dev.txt --yes
+          conda-lock install --name cf-scripts conda-lock.yml
+          conda install --file requirements-dev.txt --yes
           export GIT_FULL_HASH=`git rev-parse HEAD`
           export CIRCLE_BUILD_URL="https://www.youtube.com/watch?v=R7qT-C-0ajI"
           pip install --no-deps --no-build-isolation -e .
