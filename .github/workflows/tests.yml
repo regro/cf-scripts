@@ -9,32 +9,47 @@ on:
 env:
   PY_COLORS: "1"
 
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
-
 jobs:
   tests:
     name: tests
     runs-on: "ubuntu-latest"
     defaults:
       run:
-        shell: bash -leo pipefail {0}
+        shell: bash -l {0}
 
     steps:
-      - uses: actions/checkout@v4
-
-      - uses: mamba-org/setup-micromamba@v1
+      - name: cancel previous runs
+        uses: styfle/cancel-workflow-action@0.6.0
         with:
-          environment-file: conda-lock.yml
-          environment-name: cf-scripts
+          access_token: ${{ github.token }}
+
+      - uses: actions/checkout@v3
+
+      - uses: conda-incubator/setup-miniconda@v3
+        with:
+          miniforge-version: latest
+          environment-file: environment.yml
+          python-version: "${{ vars.PYVER }}"
+          activate-environment: cf-scripts
           condarc-file: autotick-bot/condarc
 
       - name: configure conda and install code
         run: |
+          conda install --file requirements-dev.txt --yes
           export GIT_FULL_HASH=`git rev-parse HEAD`
-          export CIRCLE_BUILD_URL=""
+          export CIRCLE_BUILD_URL="https://www.youtube.com/watch?v=R7qT-C-0ajI"
           pip install --no-deps --no-build-isolation -e .
+
+      - name: conda info and env
+        run: |
+          echo "=================================================================="
+          echo "=================================================================="
+          conda info
+
+          echo ""
+          echo "=================================================================="
+          echo "=================================================================="
+          conda list
 
       - name: test versions
         run: |

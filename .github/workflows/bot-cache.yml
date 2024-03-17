@@ -13,7 +13,7 @@ jobs:
     runs-on: "ubuntu-latest"
     defaults:
       run:
-        shell: bash -leo pipefail {0}
+        shell: bash -l {0}
     strategy:
       max-parallel: 1
       matrix:
@@ -29,15 +29,17 @@ jobs:
           restore-keys: |
             cf-graph-tzstd-
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v3
         with:
           path: cf-scripts
 
-      - uses: mamba-org/setup-micromamba@v1
+      - uses: conda-incubator/setup-miniconda@v3
         with:
-          environment-file: conda-lock.yml
-          environment-name: cf-scripts
-          condarc-file: autotick-bot/condarc
+          miniforge-version: latest
+          environment-file: cf-scripts/environment.yml
+          python-version: "${{ vars.PYVER }}"
+          activate-environment: cf-scripts
+          condarc-file: cf-scripts/autotick-bot/condarc
 
       - name: do local setup and stop me if needed
         run: |
@@ -67,18 +69,20 @@ jobs:
     runs-on: "ubuntu-latest"
     defaults:
       run:
-        shell: bash -leo pipefail {0}
+        shell: bash -l {0}
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v3
         with:
           path: cf-scripts
 
-      - uses: mamba-org/setup-micromamba@v1
+      - uses: conda-incubator/setup-miniconda@v3
         with:
-          environment-file: conda-lock.yml
-          environment-name: cf-scripts
-          condarc-file: autotick-bot/condarc
+          miniforge-version: latest
+          environment-file: cf-scripts/environment.yml
+          python-version: "${{ vars.PYVER }}"
+          activate-environment: cf-scripts
+          condarc-file: cf-scripts/autotick-bot/condarc
 
       - name: do local setup and stop me if needed
         run: |
