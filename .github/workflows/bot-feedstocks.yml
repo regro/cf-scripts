@@ -21,9 +21,9 @@ jobs:
 
       - uses: mamba-org/setup-micromamba@v1
         with:
-          environment-file: conda-lock.yml
+          environment-file: cf-scripts/conda-lock.yml
           environment-name: cf-scripts
-          condarc-file: autotick-bot/condarc
+          condarc-file: cf-scripts/autotick-bot/condarc
 
       - name: do local setup and stop me if needed
         run: |
