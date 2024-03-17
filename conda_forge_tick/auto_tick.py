@@ -1051,6 +1051,7 @@ def initialize_migrators(
             python_nodes=python_nodes,
             pr_limit=PR_LIMIT * 4,
             piggy_back_migrations=[
+                CondaForgeYAMLCleanup(),
                 Jinja2VarsCleanup(),
                 DuplicateLinesCleanup(),
                 PipMigrator(),

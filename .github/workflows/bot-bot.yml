@@ -13,10 +13,10 @@ jobs:
     runs-on: "ubuntu-latest"
     defaults:
       run:
-        shell: bash -l {0}
+        shell: bash -leo pipefail {0}
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           path: cf-scripts
 
@@ -28,12 +28,10 @@ jobs:
         run: |
           free
 
-      - uses: conda-incubator/setup-miniconda@v3
+      - uses: mamba-org/setup-micromamba@v1
         with:
-          miniforge-version: latest
-          environment-file: cf-scripts/environment.yml
-          python-version: "${{ vars.PYVER }}"
-          activate-environment: cf-scripts
+          environment-file: cf-scripts/conda-lock.yml
+          environment-name: cf-scripts
           condarc-file: cf-scripts/autotick-bot/condarc
 
       - name: do local setup and stop me if needed
@@ -65,7 +63,7 @@ jobs:
           PASSWORD: ${{ secrets.AUTOTICK_BOT_TOKEN }}
           RUN_ID: ${{ github.run_id }}
           MEMORY_LIMIT_GB: 7
-          CF_TICK_GRAPH_DATA_BACKENDS: "mongodb:file"
+          CF_TICK_GRAPH_DATA_BACKENDS: "${{ vars. CF_TICK_GRAPH_DATA_BACKENDS }}"
           MONGODB_CONNECTION_STRING: ${{ secrets.MONGODB_CONNECTION_STRING }}
 
       - name: status of changes

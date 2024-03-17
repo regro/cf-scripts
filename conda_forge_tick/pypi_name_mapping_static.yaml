@@ -16,6 +16,10 @@
   import_name: cv2
   conda_name: opencv
 
+- pypi_name: opencv-python-headless
+  import_name: cv2
+  conda_name: opencv
+
 - pypi_name: pyqt4
   import_name: PyQt4
   conda_name: pyqt
