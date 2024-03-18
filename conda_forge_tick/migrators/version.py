@@ -313,35 +313,35 @@ class Version(Migrator):
             "hint",
         )
         logger.info("bot.inspection: %s", update_deps)
-        if not update_deps:
+        if not update_deps or update_deps == "disabled":
             return ""
-        else:
-            if feedstock_ctx.attrs["feedstock_name"] in SKIP_DEPS_NODES:
-                logger.info("Skipping dep update since node %s in rejectlist!")
-                hint = "\n\nDependency Analysis\n--------------------\n\n"
-                hint += (
-                    "We couldn't run dependency analysis since this feedstock is "
-                    "in the reject list for dep updates due to bot stability "
-                    "issues!"
-                )
-            else:
-                try:
-                    _, hint = get_dep_updates_and_hints(
-                        update_deps,
-                        os.path.join(feedstock_ctx.feedstock_dir, "recipe"),
-                        feedstock_ctx.attrs,
-                        self.python_nodes,
-                        "new_version",
-                    )
-                except (BaseException, Exception):
-                    hint = "\n\nDependency Analysis\n--------------------\n\n"
-                    hint += (
-                        "We couldn't run dependency analysis due to an internal "
-                        "error in the bot, depfinder, or grayskull. :/ "
-                        "Help is very welcome!"
-                    )
 
+        if feedstock_ctx.attrs["feedstock_name"] in SKIP_DEPS_NODES:
+            logger.info("Skipping dep update since node %s in rejectlist!")
+            hint = "\n\nDependency Analysis\n--------------------\n\n"
+            hint += (
+                "We couldn't run dependency analysis since this feedstock is "
+                "in the reject list for dep updates due to bot stability "
+                "issues!"
+            )
             return hint
+        try:
+            _, hint = get_dep_updates_and_hints(
+                update_deps,
+                os.path.join(feedstock_ctx.feedstock_dir, "recipe"),
+                feedstock_ctx.attrs,
+                self.python_nodes,
+                "new_version",
+            )
+        except BaseException:
+            hint = "\n\nDependency Analysis\n--------------------\n\n"
+            hint += (
+                "We couldn't run dependency analysis due to an internal "
+                "error in the bot, depfinder, or grayskull. :/ "
+                "Help is very welcome!"
+            )
+
+        return hint
 
     def commit_message(self, feedstock_ctx: FeedstockContext) -> str:
         assert isinstance(feedstock_ctx.attrs["version_pr_info"]["new_version"], str)
