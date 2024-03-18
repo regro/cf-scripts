@@ -146,6 +146,7 @@ class MigrationYaml(GraphMigrator):
             ignored_deps_per_node=ignored_deps_per_node,
         )
         self.yaml_contents = yaml_contents
+        assert isinstance(name, str)
         self.name = name
         self.top_level = top_level or set()
         self.cycles = set(chain.from_iterable(cycles or []))
