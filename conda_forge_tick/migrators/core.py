@@ -101,6 +101,8 @@ class MiniMigrator:
 class Migrator:
     """Base class for Migrators"""
 
+    name: str
+
     rerender = True
 
     # bump this if the migrator object needs a change mid migration

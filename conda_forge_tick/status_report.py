@@ -509,7 +509,7 @@ def main() -> None:
                     z
                     for z in v.get("payload", {}).get("pr_info", {}).get("PRed", [])
                     if z.get("PR", {}).get("state", "closed") == "open"
-                    and z.get("data", {}).get("migrator_name", "") == "Version"
+                    and z.get("data", {}).get("migrator_name", "") == Version.name
                 ],
             )
             >= Version.max_num_prs

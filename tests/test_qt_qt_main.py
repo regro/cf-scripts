@@ -39,7 +39,7 @@ def test_qt_main(old_meta, new_meta, new_ver, tmpdir):
         kwargs={"new_version": new_ver},
         prb="Dependencies have been updated if changed",
         mr_out={
-            "migrator_name": "Version",
+            "migrator_name": Version.name,
             "migrator_version": VERSION_WITH_QTQTMAIN.migrator_version,
             "version": new_ver,
         },

@@ -29,7 +29,6 @@ from typing import (
 import tqdm
 
 from .cli_context import CliContext
-from .deploy import deploy
 from .lazy_json_backends import (
     LazyJson,
     get_all_keys_for_hashmap,
@@ -120,15 +119,6 @@ PR_LIMIT = 5
 MAX_PR_LIMIT = 50
 MAX_SOLVER_ATTEMPTS = 50
 CHECK_SOLVABLE_TIMEOUT = 90  # 90 days
-
-BOT_RERUN_LABEL = {
-    "name": "bot-rerun",
-    "color": "#191970",
-    "description": (
-        "Apply this label if you want the bot to retry "
-        "issuing a particular pull-request"
-    ),
-}
 
 BOT_HOME_DIR: str = os.getcwd()
 

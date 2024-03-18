@@ -1054,7 +1054,7 @@ def test_correct_config_sub(tmpdir):
         prb="Dependencies have been updated if changed",
         kwargs={"new_version": "8.0"},
         mr_out={
-            "migrator_name": "Version",
+            "migrator_name": Version.name,
             "migrator_version": Version.migrator_version,
             "version": "8.0",
         },
@@ -1075,7 +1075,7 @@ def test_make_check(tmpdir):
         prb="Dependencies have been updated if changed",
         kwargs={"new_version": "8.0"},
         mr_out={
-            "migrator_name": "Version",
+            "migrator_name": Version.name,
             "migrator_version": Version.migrator_version,
             "version": "8.0",
         },
@@ -1105,7 +1105,7 @@ def test_cmake(tmpdir):
         prb="Dependencies have been updated if changed",
         kwargs={"new_version": "8.0"},
         mr_out={
-            "migrator_name": "Version",
+            "migrator_name": Version.name,
             "migrator_version": Version.migrator_version,
             "version": "8.0",
         },
@@ -1132,7 +1132,7 @@ def test_cross_rbase(tmpdir):
         prb="Dependencies have been updated if changed",
         kwargs={"new_version": "2.0.1"},
         mr_out={
-            "migrator_name": "Version",
+            "migrator_name": Version.name,
             "migrator_version": Version.migrator_version,
             "version": "2.0.1",
         },
@@ -1151,7 +1151,7 @@ def test_cross_rbase_build_sh(tmpdir):
         prb="Dependencies have been updated if changed",
         kwargs={"new_version": "2.0.1"},
         mr_out={
-            "migrator_name": "Version",
+            "migrator_name": Version.name,
             "migrator_version": Version.migrator_version,
             "version": "2.0.1",
         },
@@ -1179,7 +1179,7 @@ def test_cross_python(tmpdir):
         prb="Dependencies have been updated if changed",
         kwargs={"new_version": "1.19.1"},
         mr_out={
-            "migrator_name": "Version",
+            "migrator_name": Version.name,
             "migrator_version": Version.migrator_version,
             "version": "1.19.1",
         },
@@ -1196,7 +1196,7 @@ def test_cross_python_no_build(tmpdir):
         prb="Dependencies have been updated if changed",
         kwargs={"new_version": "2020.6.20"},
         mr_out={
-            "migrator_name": "Version",
+            "migrator_name": Version.name,
             "migrator_version": Version.migrator_version,
             "version": "2020.6.20",
         },
@@ -1213,7 +1213,7 @@ def test_build2host(tmpdir):
         prb="Dependencies have been updated if changed",
         kwargs={"new_version": "1.19.1"},
         mr_out={
-            "migrator_name": "Version",
+            "migrator_name": Version.name,
             "migrator_version": Version.migrator_version,
             "version": "1.19.1",
         },
@@ -1230,7 +1230,7 @@ def test_build2host_buildok(tmpdir):
         prb="Dependencies have been updated if changed",
         kwargs={"new_version": "1.19.1"},
         mr_out={
-            "migrator_name": "Version",
+            "migrator_name": Version.name,
             "migrator_version": Version.migrator_version,
             "version": "1.19.1",
         },
@@ -1247,7 +1247,7 @@ def test_build2host_bhskip(tmpdir):
         prb="Dependencies have been updated if changed",
         kwargs={"new_version": "1.19.1"},
         mr_out={
-            "migrator_name": "Version",
+            "migrator_name": Version.name,
             "migrator_version": Version.migrator_version,
             "version": "1.19.1",
         },
@@ -1264,7 +1264,7 @@ def test_nocondainspect(tmpdir):
         prb="Dependencies have been updated if changed",
         kwargs={"new_version": "1.19.1"},
         mr_out={
-            "migrator_name": "Version",
+            "migrator_name": Version.name,
             "migrator_version": Version.migrator_version,
             "version": "1.19.1",
         },
