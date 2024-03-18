@@ -122,8 +122,8 @@ class MigrationYaml(GraphMigrator):
     def __init__(
         self,
         yaml_contents: str,
+        name: str,
         graph: nx.DiGraph = None,
-        name: Optional[str] = None,
         pr_limit: int = 50,
         top_level: Set["PackageName"] = None,
         cycles: Optional[Sequence["PackageName"]] = None,
@@ -147,7 +147,7 @@ class MigrationYaml(GraphMigrator):
         )
         self.yaml_contents = yaml_contents
         assert isinstance(name, str)
-        self.name: str = name
+        self.name = name
         self.top_level = top_level or set()
         self.cycles = set(chain.from_iterable(cycles or []))
         self.automerge = automerge
