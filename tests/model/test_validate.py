@@ -58,9 +58,7 @@ KNOWN_BAD_FEEDSTOCKS = {
     "ipython_memory_usage",  # bot.inspect should be bot.inspection in conda-forge.yml
     "rich-argparse",  # grayskull-update should be update-grayskull in conda-forge.yml
     "htbuilder",  # bot.inspect should be bot.inspection in conda-forge.yml
-    "cdsdashboards",  # invalid value for bot.inspection: false (conda-forge.yml)
     "stats_arrays",  # "grayskull-update" should be "update-grayskull" in conda-forge.yml
-    "spyder",  # invalid value for bot.inspection: false (conda-forge.yml)
     "textual-fastdatatable",  # bot.inspect should be bot.inspection in conda-forge.yml
     "aiohttp",  # bot.inspect should be bot.inspection in conda-forge.yml
     "buildbot",  # bot.inspect should be bot.inspection in conda-forge.yml
@@ -68,22 +66,13 @@ KNOWN_BAD_FEEDSTOCKS = {
     "sphinx-sitemap",  # typo in bot.inspection (conda-forge.yml)
     "alibabacloud-openapi-util",  # "grayskull-update" should be "update-grayskull" in conda-forge.yml
     "st-annotated-text",  # bot.inspect should be bot.inspection in conda-forge.yml
-    "dustgoggles",  # invalid value for bot.inspection: false (conda-forge.yml)
-    "cx_freeze",  # invalid value for bot.inspection: false (conda-forge.yml)
     "buildbot-www",  # bot.inspect should be bot.inspection in conda-forge.yml
     "wgpu-native",  # bot.abi_migration_branches should be string, not float (conda-forge.yml)
     "google-ads",  # "grayskull-update" should be "update-grayskull" in conda-forge.yml
     "dnspython",  # "grayskull-update" should be "update-grayskull" in conda-forge.yml
     "pyobjc-framework-corebluetooth",  # bot.inspect should be bot.inspection in conda-forge.yml
     "azure-storage-queue",  # bot.inspect should be bot.inspection in conda-forge.yml
-    "semi-ate-testers",  # invalid value for bot.inspection: false (conda-forge.yml)
-    "sisl",  # bot.inspection is false (conda-forge.yml)
-    "unicorn-binance-suite",  # bot.inspection is false (conda-forge.yml)
-    "sepal-ui",  # bot.inspection is false (conda-forge.yml)
-    "apsg",  # bot.inspection is false (conda-forge.yml)
-    "intake_pattern_catalog",  # bot.inspection is false (conda-forge.yml)
     "pymc-marketing",  # typo in bot.inspection (conda-forge.yml)
-    "requests-cache",  # bot.inspection is false (conda-forge.yml)
     "graphite2",  # provider.win has invalid value "win".
     "lbapcommon",  # provider.osx_arm64 has invalid value "osx_64". See issue #64 of the feedstock.
     "root",  # provider.osx_arm64 has invalid value "osx_64". See issue #238 of the feedstock.
