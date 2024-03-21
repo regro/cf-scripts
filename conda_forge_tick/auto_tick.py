@@ -29,7 +29,6 @@ from typing import (
 import tqdm
 
 from .cli_context import CliContext
-from .deploy import deploy
 from .lazy_json_backends import (
     LazyJson,
     get_all_keys_for_hashmap,
@@ -57,6 +56,7 @@ from conda_forge_tick.contexts import (
     MigratorContext,
     MigratorSessionContext,
 )
+from conda_forge_tick.feedstock_parser import BOOTSTRAP_MAPPINGS
 from conda_forge_tick.git_utils import (
     comment_on_pr,
     get_repo,
@@ -351,6 +351,8 @@ def run(
                 False,
             )
         )
+        # feedstocks that have problematic bootstrapping will not always be solvable
+        and feedstock_ctx.feedstock_name not in BOOTSTRAP_MAPPINGS
     ):
         solvable, errors, _ = is_recipe_solvable(
             feedstock_dir,
