@@ -62,19 +62,19 @@ def _get_requirements(
         the set of recipe requirements
     """
     kw = dict(build=build, host=host, run=run)
-    if outputs_to_keep is None:
-        reqs = _parse_requirements(meta_yaml.get("requirements", {}), **kw)
-        outputs_ = meta_yaml.get("outputs", []) or [] if outputs else []
-        for output in outputs_:
-            for req in _parse_requirements(output.get("requirements", {}) or {}, **kw):
-                reqs.add(req)
-    else:
+    if outputs_to_keep:
         reqs = set()
         outputs_ = meta_yaml.get("outputs", []) or [] if outputs else []
         for output in outputs_:
             if output.get("name") in outputs_to_keep:
                 reqs |= _parse_requirements(output.get("requirements", {}) or {}, **kw)
                 break
+    else:
+        reqs = _parse_requirements(meta_yaml.get("requirements", {}), **kw)
+        outputs_ = meta_yaml.get("outputs", []) or [] if outputs else []
+        for output in outputs_:
+            for req in _parse_requirements(output.get("requirements", {}) or {}, **kw):
+                reqs.add(req)
     return reqs
 
 
@@ -103,13 +103,13 @@ def _extract_requirements(meta_yaml, outputs_to_keep=None):
     strong_exports = False
     requirements_dict = defaultdict(set)
 
-    if outputs_to_keep is None:
-        metas = [meta_yaml] + meta_yaml.get("outputs", []) or []
-    else:
+    if outputs_to_keep:
         metas = []
         for output in meta_yaml.get("outputs", []) or []:
             if output.get("name") in outputs_to_keep:
                 metas.append(output)
+    else:
+        metas = [meta_yaml] + meta_yaml.get("outputs", []) or []
 
     for block in metas:
         req: "RequirementsTypedDict" = block.get("requirements", {}) or {}
@@ -337,7 +337,7 @@ def populate_feedstock_attributes(
         sub_graph[f"{plat_arch_name}_meta_yaml"] = v
         _, sub_graph[f"{plat_arch_name}_requirements"], _ = _extract_requirements(
             v,
-            outputs_to_keep=BOOTSTRAP_MAPPINGS.get(name, []),
+            outputs_to_keep=BOOTSTRAP_MAPPINGS.get(name, None),
         )
 
     (
@@ -346,7 +346,7 @@ def populate_feedstock_attributes(
         sub_graph["strong_exports"],
     ) = _extract_requirements(
         meta_yaml,
-        outputs_to_keep=BOOTSTRAP_MAPPINGS.get(name, []),
+        outputs_to_keep=BOOTSTRAP_MAPPINGS.get(name, None),
     )
 
     # handle multi outputs
