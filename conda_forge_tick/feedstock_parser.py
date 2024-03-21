@@ -68,7 +68,6 @@ def _get_requirements(
         for output in outputs_:
             if output.get("name") in outputs_to_keep:
                 reqs |= _parse_requirements(output.get("requirements", {}) or {}, **kw)
-                break
     else:
         reqs = _parse_requirements(meta_yaml.get("requirements", {}), **kw)
         outputs_ = meta_yaml.get("outputs", []) or [] if outputs else []
