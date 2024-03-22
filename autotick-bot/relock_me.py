@@ -28,7 +28,7 @@ lockfile = sys.argv[1]
 try:
     shutil.move(lockfile, lockfile + ".bak")
 
-    print("Relocking environment.yml...", flush=True, stream=sys.stderr)
+    print("Relocking environment.yml...", flush=True, file=sys.stderr)
     subprocess.run(
         "conda lock --file environment.yml",
         shell=True,
@@ -88,7 +88,7 @@ try:
                 print(f"    - {pkg}: {old_ver} -> {new_ver}", flush=True)
             print("", flush=True)
     else:
-        print("No packages have been updated.", flush=True, stream=sys.stderr)
+        print("No packages have been updated.", flush=True, file=sys.stderr)
         shutil.move(lockfile + ".bak", lockfile)
 except Exception as e:
     if os.path.exists(lockfile + ".bak"):
