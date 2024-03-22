@@ -8,8 +8,8 @@ on:
 concurrency: relock
 
 jobs:
-  bot:
-    name: bot
+  relock:
+    name: relock
     runs-on: "ubuntu-latest"
     defaults:
       run:
