@@ -24,14 +24,14 @@ jobs:
           environment-name: cf-scripts
           condarc-file: autotick-bot/condarc
 
-      # - name: relock
-      #   run: |
-      #     cd cf-scripts
-      #     rm conda-lock.yml
-      #     conda lock --file environment.yml
-      #     git add conda-lock.yml
-      #     git commit --allow-empty -m "[ci skip] relock deps w/ conda-lock"
-      #     git push
+      - name: relock
+        run: |
+          cd cf-scripts
+          rm conda-lock.yml
+          conda lock --file environment.yml
+          # git add conda-lock.yml
+          # git commit --allow-empty -m "[ci skip] relock deps w/ conda-lock"
+          # git push
 
       - name: open PR
         uses: peter-evans/create-pull-request@v6
