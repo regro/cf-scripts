@@ -1,0 +1,37 @@
+name: relock
+
+on:
+  workflow_dispatch: null
+  schedule:
+    - cron:  '15 * * * *'
+
+concurrency: relock
+
+jobs:
+  bot:
+    name: bot
+    runs-on: "ubuntu-latest"
+    defaults:
+      run:
+        shell: bash -leo pipefail {0}
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: cf-scripts
+
+      - uses: mamba-org/setup-micromamba@v1
+        with:
+          environment-file: cf-scripts/conda-lock.yml
+          environment-name: cf-scripts
+          condarc-file: cf-scripts/autotick-bot/condarc
+
+      - name: relock
+        run: |
+          cd cf-scripts
+          rm conda-lock.yml
+          conda lock --file environment.yml
+          git add conda-lock.yml
+          git commit --allow-empty -m "[ci skip] relock deps w/ conda-lock"
+          git push
+
