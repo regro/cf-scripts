@@ -56,4 +56,4 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.AUTOTICK_BOT_TOKEN }}
 
-         
+
