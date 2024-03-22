@@ -3,7 +3,7 @@ name: relock
 on:
   workflow_dispatch: null
   schedule:
-    - cron:  '15 * * * *'
+    - cron:  '*/15 * * * *'
 
 concurrency: relock
 
