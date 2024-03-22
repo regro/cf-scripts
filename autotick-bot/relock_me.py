@@ -9,7 +9,7 @@ with the .github/workflows/relock.yml workflow:
     4. If any packages have been updated, print the updated packages and their versions,
        and save the new lockfile.
 
-The GHA workflow will then make a PR with the new lockfile if any packages have been updated.
+The GHA workflow will then make a PR with the new lockfile if any packages have been updated. If there is an existing PR with lockfile updates on the same branch, it is updated with the latest contents.
 
 This script also carefully sorts the lockfile so that the git diff is clean and easy to read.
 """
