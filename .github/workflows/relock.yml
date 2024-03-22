@@ -25,19 +25,20 @@ jobs:
           condarc-file: autotick-bot/condarc
 
       - name: relock
+        id: relock
         run: |
-          rm conda-lock.yml
-          conda lock --file environment.yml
-          # git add conda-lock.yml
-          # git commit --allow-empty -m "[ci skip] relock deps w/ conda-lock"
-          # git push
+          python autotick-bot/relock_me.py > summary.txt
+          cat summary.txt
+          echo "SUMMARY=$(cat summary.txt)" >> "$GITHUB_OUTPUT"
 
-      - name: open PR
+      - name: Open PR
         uses: peter-evans/create-pull-request@v6
         with:
           commit-message: relock w/ conda-lock
           title: relock w/ conda-lock
           body: >
             This pull request relocks the dependencies with conda-lock.
+
+            ${{ steps.relock.outputs.SUMMARY }}
           branch: relock-deps
           delete-branch: true
