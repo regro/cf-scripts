@@ -36,6 +36,7 @@ jobs:
           rm summary.txt
 
       - name: Open PR
+        id: pr
         uses: peter-evans/create-pull-request@v6
         with:
           commit-message: relock w/ conda-lock
@@ -49,3 +50,10 @@ jobs:
           token: ${{ secrets.AUTOTICK_BOT_TOKEN }}
           committer: regro-cf-autotick-bot <36490558+regro-cf-autotick-bot@users.noreply.github.com>
           author: regro-cf-autotick-bot <36490558+regro-cf-autotick-bot@users.noreply.github.com>
+
+      - name: automerge
+        run: gh pr merge --merge --auto "${{ steps.pr.outputs.pull-request-number }}"
+        env:
+          GH_TOKEN: ${{ secrets.AUTOTICK_BOT_TOKEN }}
+
+         
