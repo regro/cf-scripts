@@ -28,8 +28,11 @@ jobs:
         id: relock
         run: |
           python autotick-bot/relock_me.py conda-lock.yml > summary.txt
-          cat summary.txt
-          echo "SUMMARY=$(cat summary.txt)" >> "$GITHUB_OUTPUT"
+          {
+            echo 'SUMMARY<<EOF'
+            cat summary.txt
+            echo EOF
+          } >> "$GITHUB_OUTPUT"
 
       - name: Open PR
         uses: peter-evans/create-pull-request@v6
