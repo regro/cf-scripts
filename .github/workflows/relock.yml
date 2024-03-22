@@ -1,0 +1,44 @@
+name: relock
+
+on:
+  workflow_dispatch: null
+  schedule:
+    - cron:  '15 * * * *'
+
+concurrency: relock
+
+jobs:
+  bot:
+    name: bot
+    runs-on: "ubuntu-latest"
+    defaults:
+      run:
+        shell: bash -leo pipefail {0}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: mamba-org/setup-micromamba@v1
+        with:
+          environment-file: conda-lock.yml
+          environment-name: cf-scripts
+          condarc-file: autotick-bot/condarc
+
+      # - name: relock
+      #   run: |
+      #     cd cf-scripts
+      #     rm conda-lock.yml
+      #     conda lock --file environment.yml
+      #     git add conda-lock.yml
+      #     git commit --allow-empty -m "[ci skip] relock deps w/ conda-lock"
+      #     git push
+
+    - name: open PR
+      uses: peter-evans/create-pull-request@v6
+      with:
+        commit-message: relock w/ conda-lock
+        title: relock w/ conda-lock
+        body: >
+          This pull request relocks the dependencies with conda-lock.
+        branch: relock-deps
+        delete-branch: true
