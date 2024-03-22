@@ -46,3 +46,4 @@ jobs:
             ${{ steps.relock.outputs.SUMMARY }}
           branch: relock-deps
           delete-branch: true
+          token: ${{ secrets.AUTOTICK_BOT_TOKEN }}
