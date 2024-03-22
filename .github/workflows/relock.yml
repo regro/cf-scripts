@@ -27,7 +27,7 @@ jobs:
       - name: relock
         id: relock
         run: |
-          python autotick-bot/relock_me.py > summary.txt
+          python autotick-bot/relock_me.py conda-lock.yml > summary.txt
           cat summary.txt
           echo "SUMMARY=$(cat summary.txt)" >> "$GITHUB_OUTPUT"
 
