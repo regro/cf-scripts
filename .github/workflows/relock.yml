@@ -33,6 +33,7 @@ jobs:
             cat summary.txt
             echo EOF
           } >> "$GITHUB_OUTPUT"
+          rm summary.txt
 
       - name: Open PR
         uses: peter-evans/create-pull-request@v6
