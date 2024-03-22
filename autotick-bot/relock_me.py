@@ -23,6 +23,24 @@ def _lock_to_ver(lock, platform):
     return pkg_to_ver
 
 
+def _reformat_lockfile(lockfile):
+    # load / dump the lockfile to make sure it is sorted
+    # so we get nice diffs
+    with open(lockfile) as f:
+        new_lock = yaml.load(f)
+    new_lock["package"] = sorted(
+        new_lock["package"], key=lambda x: (x["name"], x["platform"])
+    )
+    with open(lockfile, "w") as f:
+        yaml.dump(new_lock, f)
+
+    with open(lockfile) as f:
+        lines = [line.rstrip() for line in f]
+
+    with open(lockfile, "w") as f:
+        f.write("\n".join(lines) + "\n")
+
+
 lockfile = sys.argv[1]
 
 try:
@@ -71,15 +89,7 @@ try:
     if any(relock_tuples[platform] for platform in envyml["platforms"]):
         os.remove(lockfile + ".bak")
 
-        # load / dump the lockfile to make sure it is sorted
-        # so we get nice diffs
-        with open(lockfile) as f:
-            new_lock = yaml.load(f)
-        new_lock["package"] = sorted(
-            new_lock["package"], key=lambda x: (x["name"], x["platform"])
-        )
-        with open(lockfile, "w") as f:
-            yaml.dump(new_lock, f)
+        _reformat_lockfile(lockfile)
 
         print("The following packages have been updated:\n", flush=True)
         for platform in envyml["platforms"]:
