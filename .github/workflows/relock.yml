@@ -47,3 +47,4 @@ jobs:
           branch: relock-deps
           delete-branch: true
           token: ${{ secrets.AUTOTICK_BOT_TOKEN }}
+          author: regro-cf-autotick-bot <36490558+regro-cf-autotick-bot@users.noreply.github.com>
