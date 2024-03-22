@@ -1,3 +1,18 @@
+"""
+This script is used to relock the conda environment. It does the following in combination
+with the .github/workflows/relock.yml workflow:
+
+    1. Move the existing lockfile to a backup file, conda-lock.yml.bak.
+    2. Run `conda lock --file environment.yml` to relock the environment.
+    3. Compare the old and new lockfiles to see if any packages have been updated.
+       Only packages in the environment.yml file are considered in this step.
+    4. If any packages have been updated, print the updated packages and their versions,
+       and save the new lockfile.
+
+The GHA workflow will then make a PR with the new lockfile if any packages have been updated.
+
+This script also carefully sorts the lockfile so that the git diff is clean and easy to read.
+"""
 import os
 import shutil
 import subprocess
