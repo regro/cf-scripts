@@ -430,7 +430,7 @@ def generate_dep_hint(dep_comparison, kind):
         "Importantly this analysis does not support optional dependencies, "
         "please double check those before making changes. "
         "If you do not want hinting of this kind ever please add "
-        "`bot: inspection: false` to your `conda-forge.yml`. "
+        "`bot: inspection: disabled` to your `conda-forge.yml`. "
         "If you encounter issues with this feature please ping the bot team `conda-forge/bot`.\n\n"  # noqa: E501
     )
 
