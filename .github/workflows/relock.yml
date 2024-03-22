@@ -33,12 +33,12 @@ jobs:
       #     git commit --allow-empty -m "[ci skip] relock deps w/ conda-lock"
       #     git push
 
-    - name: open PR
-      uses: peter-evans/create-pull-request@v6
-      with:
-        commit-message: relock w/ conda-lock
-        title: relock w/ conda-lock
-        body: >
-          This pull request relocks the dependencies with conda-lock.
-        branch: relock-deps
-        delete-branch: true
+      - name: open PR
+        uses: peter-evans/create-pull-request@v6
+        with:
+          commit-message: relock w/ conda-lock
+          title: relock w/ conda-lock
+          body: >
+            This pull request relocks the dependencies with conda-lock.
+          branch: relock-deps
+          delete-branch: true
