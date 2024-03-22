@@ -313,8 +313,6 @@ class Version(Migrator):
             "hint",
         )
         logger.info("bot.inspection: %s", update_deps)
-        if not update_deps or update_deps == "disabled":
-            return ""
 
         if feedstock_ctx.attrs["feedstock_name"] in SKIP_DEPS_NODES:
             logger.info("Skipping dep update since node %s in rejectlist!")

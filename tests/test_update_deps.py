@@ -246,6 +246,16 @@ def test_get_dep_updates_and_hints_praw():
     assert "websocket" in res[1]
 
 
+@pytest.mark.parametrize("disabled_param", ["disabled", False])
+def test_get_dep_updates_and_hints_disabled(disabled_param):
+    dep_comparison, hints = get_dep_updates_and_hints(
+        disabled_param, "RECIPE_DIR", {"no": "attrs"}, {"no_nodes"}, "VERSION_KEY"
+    )
+
+    assert dep_comparison == {}
+    assert hints == ""
+
+
 out_yml_gs = """\
 {% set version = "2.3.0" %}
 
