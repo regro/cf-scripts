@@ -55,5 +55,3 @@ jobs:
         run: gh pr merge --merge --auto "${{ steps.pr.outputs.pull-request-number }}"
         env:
           GH_TOKEN: ${{ secrets.AUTOTICK_BOT_TOKEN }}
-
-
