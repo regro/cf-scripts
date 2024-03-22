@@ -26,7 +26,6 @@ jobs:
 
       - name: relock
         run: |
-          cd cf-scripts
           rm conda-lock.yml
           conda lock --file environment.yml
           # git add conda-lock.yml
