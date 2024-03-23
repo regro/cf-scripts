@@ -642,7 +642,9 @@ def lazy_json_snapshot():
 
 
 @contextlib.contextmanager
-def lazy_json_override_backends(new_backends, hashmaps_to_sync=None, use_file_cache=None):
+def lazy_json_override_backends(
+    new_backends, hashmaps_to_sync=None, use_file_cache=None
+):
     global CF_TICK_GRAPH_DATA_BACKENDS
     global CF_TICK_GRAPH_DATA_PRIMARY_BACKEND
     global CF_TICK_GRAPH_DATA_USE_FILE_CACHE
@@ -741,7 +743,9 @@ class LazyJson(MutableMapping):
 
             # check if we have it in the cache first
             # if yes, load it from cache, if not load from primary backend and cache it
-            if CF_TICK_GRAPH_DATA_USE_FILE_CACHE and file_backend.hexists(self.hashmap, self.node):
+            if CF_TICK_GRAPH_DATA_USE_FILE_CACHE and file_backend.hexists(
+                self.hashmap, self.node
+            ):
                 data_str = file_backend.hget(self.hashmap, self.node)
             else:
                 backend = LAZY_JSON_BACKENDS[CF_TICK_GRAPH_DATA_PRIMARY_BACKEND]()
@@ -751,7 +755,10 @@ class LazyJson(MutableMapping):
                     data_str = data_str.decode("utf-8")
 
                 # cache it locally for later
-                if CF_TICK_GRAPH_DATA_USE_FILE_CACHE and CF_TICK_GRAPH_DATA_PRIMARY_BACKEND != "file":
+                if (
+                    CF_TICK_GRAPH_DATA_USE_FILE_CACHE
+                    and CF_TICK_GRAPH_DATA_PRIMARY_BACKEND != "file"
+                ):
                     file_backend.hset(self.hashmap, self.node, data_str)
 
             self._data_hash_at_load = hashlib.sha256(

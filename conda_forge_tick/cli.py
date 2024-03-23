@@ -108,7 +108,9 @@ def main(
         logger.info("Running in online mode")
         # turn off the file cache so that things rerun properly during testing
         click_context.with_resource(
-            lazy_json_backends.lazy_json_override_backends(["github"], use_file_cache=False),
+            lazy_json_backends.lazy_json_override_backends(
+                ["github"], use_file_cache=False
+            ),
         )
 
 

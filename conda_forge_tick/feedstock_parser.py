@@ -1,5 +1,5 @@
-import copy
 import collections.abc
+import copy
 import glob
 import hashlib
 import logging
@@ -21,7 +21,7 @@ if typing.TYPE_CHECKING:
     from .migrators_types import PackageName, RequirementsTypedDict
     from conda_forge_tick.migrators_types import MetaYamlTypedDict
 
-from .lazy_json_backends import dumps, load, LazyJson
+from .lazy_json_backends import LazyJson, dumps, load
 from .utils import as_iterable, parse_meta_yaml
 
 logger = logging.getLogger(__name__)
