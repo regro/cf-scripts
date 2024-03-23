@@ -95,7 +95,7 @@ jobs:
           make html
 
       - name: deploy docs
-        uses: JamesIves/github-pages-deploy-action@3.7.1
+        uses: JamesIves/github-pages-deploy-action@v4.5.0
         if: github.ref == 'refs/heads/master' && success()
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
