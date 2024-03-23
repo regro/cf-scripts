@@ -56,6 +56,7 @@ from conda_forge_tick.contexts import (
     MigratorContext,
     MigratorSessionContext,
 )
+from conda_forge_tick.feedstock_parser import BOOTSTRAP_MAPPINGS
 from conda_forge_tick.git_utils import (
     comment_on_pr,
     get_repo,
@@ -350,6 +351,8 @@ def run(
                 False,
             )
         )
+        # feedstocks that have problematic bootstrapping will not always be solvable
+        and feedstock_ctx.feedstock_name not in BOOTSTRAP_MAPPINGS
     ):
         solvable, errors, _ = is_recipe_solvable(
             feedstock_dir,
@@ -608,8 +611,8 @@ def add_rebuild_migration_yaml(
     excluded_feedstocks: MutableSet[str],
     exclude_pinned_pkgs: bool,
     migration_yaml: str,
-    config: dict = {},
-    migration_name: str = "",
+    config: dict,
+    migration_name: str,
     pr_limit: int = PR_LIMIT,
     max_solver_attempts: int = 3,
 ) -> None:
@@ -688,9 +691,9 @@ def add_rebuild_migration_yaml(
     cycles = list(nx.simple_cycles(total_graph))
     migrator = MigrationYaml(
         migration_yaml,
+        name=migration_name,
         graph=total_graph,
         pr_limit=pr_limit,
-        name=migration_name,
         top_level=top_level,
         cycles=cycles,
         piggy_back_migrations=piggy_back_migrations,

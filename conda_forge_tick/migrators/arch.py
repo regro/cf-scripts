@@ -24,6 +24,60 @@ if typing.TYPE_CHECKING:
 from .core import MiniMigrator
 
 
+def _filter_excluded_deps(graph, excluded_dependencies):
+    """filter out excluded dependencies from the graph
+
+    This function removes any node that descends from an excluded dependency
+    in addition to removing the excluded dependency itself.
+
+    **operates in place**
+    """
+    nodes_to_remove = set(excluded_dependencies)
+    for excluded_dep in excluded_dependencies:
+        nodes_to_remove |= set(nx.descendants(graph, excluded_dep))
+    for node in nodes_to_remove:
+        pluck(graph, node)
+    # post-plucking cleanup
+    graph.remove_edges_from(nx.selfloop_edges(graph))
+
+
+def _cut_to_target_packages(graph, target_packages):
+    """cut the graph to only the target packages
+
+    **operates in place**
+    """
+    packages = target_packages.copy()
+    for target in target_packages:
+        if target in graph.nodes:
+            packages.update(nx.ancestors(graph, target))
+    for node in list(graph.nodes.keys()):
+        if node not in packages:
+            pluck(graph, node)
+    # post-plucking cleanup
+    graph.remove_edges_from(nx.selfloop_edges(graph))
+
+
+def _filter_stubby_and_ignored_nodes(graph, ignored_packages):
+    """remove any stub packages and ignored packages from the graph
+
+    **operates in place**
+    """
+    # filter out stub packages and ignored packages
+    for node, attrs in list(graph.nodes("payload")):
+        if (
+            (not attrs)
+            or node.endswith("_stub")
+            or node.startswith("m2-")
+            or node.startswith("m2w64-")
+            or node.startswith("__")
+            or (node in ignored_packages)
+            or all_noarch(attrs)
+        ):
+            pluck(graph, node)
+    # post-plucking cleanup
+    graph.remove_edges_from(nx.selfloop_edges(graph))
+
+
 class ArchRebuild(GraphMigrator):
     """
     A Migrator that add aarch64 and ppc64le builds to feedstocks
@@ -83,23 +137,10 @@ class ArchRebuild(GraphMigrator):
         # filter the graph down to the target packages
         if self.target_packages:
             self.target_packages.add("python")  # hack that is ~harmless?
-            packages = self.target_packages.copy()
-            for target in self.target_packages:
-                if target in self.graph.nodes:
-                    packages.update(nx.ancestors(self.graph, target))
-            self.graph.remove_nodes_from([n for n in self.graph if n not in packages])
+            _cut_to_target_packages(self.graph, self.target_packages)
 
         # filter out stub packages and ignored packages
-        for node, attrs in list(self.graph.nodes("payload")):
-            if (
-                node.endswith("_stub")
-                or (node.startswith("m2-"))
-                or (node.startswith("m2w64-"))
-                or (node in self.ignored_packages)
-                or all_noarch(attrs)
-            ):
-                pluck(self.graph, node)
-        self.graph.remove_edges_from(nx.selfloop_edges(self.graph))
+        _filter_stubby_and_ignored_nodes(self.graph, self.ignored_packages)
 
     def filter(self, attrs: "AttrsTypedDict", not_bad_str_start: str = "") -> bool:
         if super().filter(attrs):
@@ -217,11 +258,10 @@ class OSXArm(GraphMigrator):
 
         self.name = name
 
-        # Excluded dependencies need to be removed before no target_packages are
+        # Excluded dependencies need to be removed before non target_packages are
         # filtered out so that if a target_package is excluded, its dependencies
         # are not added to the graph
-        for excluded_dep in self.excluded_dependencies:
-            self.graph.remove_nodes_from(nx.descendants(self.graph, excluded_dep))
+        _filter_excluded_deps(self.graph, self.excluded_dependencies)
 
         # We are constraining the scope of this migrator
         with pushd("../conda-forge-pinning-feedstock/recipe/migrations"), open(
@@ -232,25 +272,10 @@ class OSXArm(GraphMigrator):
         # filter the graph down to the target packages
         if self.target_packages:
             self.target_packages.add("python")  # hack that is ~harmless?
-            packages = self.target_packages.copy()
-            for target in self.target_packages:
-                if target in self.graph.nodes:
-                    packages.update(nx.ancestors(self.graph, target))
-            self.graph.remove_nodes_from([n for n in self.graph if n not in packages])
+            _cut_to_target_packages(self.graph, self.target_packages)
 
         # filter out stub packages and ignored packages
-        for node, attrs in list(self.graph.nodes("payload")):
-            if (
-                not attrs
-                or node.endswith("_stub")
-                or (node.startswith("m2-"))
-                or (node.startswith("m2w64-"))
-                or (node in self.ignored_packages)
-                or all_noarch(attrs)
-            ):
-                pluck(self.graph, node)
-
-        self.graph.remove_edges_from(nx.selfloop_edges(self.graph))
+        _filter_stubby_and_ignored_nodes(self.graph, self.ignored_packages)
 
     def filter(self, attrs: "AttrsTypedDict", not_bad_str_start: str = "") -> bool:
         if super().filter(attrs):

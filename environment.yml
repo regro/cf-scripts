@@ -13,6 +13,7 @@ dependencies:
   - cachetools
   - click
   - conda
+  - conda-lock
   - conda-forge-feedstock-check-solvable>=0.4.0
   - conda-forge-pinning
   - conda-libmamba-solver

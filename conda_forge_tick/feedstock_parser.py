@@ -28,6 +28,14 @@ logger = logging.getLogger(__name__)
 
 PIN_SEP_PAT = re.compile(r" |>|<|=|\[")
 
+# this dictionary maps feedstocks to their output
+# that would be available in a bootstrapping scenario
+# for these nodes, we only use the bootstrap requirements
+# to build graph edges
+BOOTSTRAP_MAPPINGS = {
+    "flit": {"flit-core"},
+}
+
 
 def _get_requirements(
     meta_yaml: "MetaYamlTypedDict",
@@ -35,6 +43,7 @@ def _get_requirements(
     build: bool = True,
     host: bool = True,
     run: bool = True,
+    outputs_to_keep: Optional[Set["PackageName"]] = None,
 ) -> "Set[PackageName]":
     """Get the list of recipe requirements from a meta.yaml dict
 
@@ -55,11 +64,18 @@ def _get_requirements(
         the set of recipe requirements
     """
     kw = dict(build=build, host=host, run=run)
-    reqs = _parse_requirements(meta_yaml.get("requirements", {}), **kw)
-    outputs_ = meta_yaml.get("outputs", []) or [] if outputs else []
-    for output in outputs_:
-        for req in _parse_requirements(output.get("requirements", {}) or {}, **kw):
-            reqs.add(req)
+    if outputs_to_keep:
+        reqs = set()
+        outputs_ = meta_yaml.get("outputs", []) or [] if outputs else []
+        for output in outputs_:
+            if output.get("name") in outputs_to_keep:
+                reqs |= _parse_requirements(output.get("requirements", {}) or {}, **kw)
+    else:
+        reqs = _parse_requirements(meta_yaml.get("requirements", {}), **kw)
+        outputs_ = meta_yaml.get("outputs", []) or [] if outputs else []
+        for output in outputs_:
+            for req in _parse_requirements(output.get("requirements", {}) or {}, **kw):
+                reqs.add(req)
     return reqs
 
 
@@ -84,10 +100,19 @@ def _parse_requirements(
     return {typing.cast("PackageName", pkg) for pkg in packages}
 
 
-def _extract_requirements(meta_yaml):
+def _extract_requirements(meta_yaml, outputs_to_keep=None):
     strong_exports = False
     requirements_dict = defaultdict(set)
-    for block in [meta_yaml] + meta_yaml.get("outputs", []) or []:
+
+    if outputs_to_keep:
+        metas = []
+        for output in meta_yaml.get("outputs", []) or []:
+            if output.get("name") in outputs_to_keep:
+                metas.append(output)
+    else:
+        metas = [meta_yaml] + meta_yaml.get("outputs", []) or []
+
+    for block in metas:
         req: "RequirementsTypedDict" = block.get("requirements", {}) or {}
         if isinstance(req, list):
             requirements_dict["run"].update(set(req))
@@ -311,13 +336,19 @@ def populate_feedstock_attributes(
     for k, v in zip(plat_arch, variant_yamls):
         plat_arch_name = "_".join(k)
         sub_graph[f"{plat_arch_name}_meta_yaml"] = v
-        _, sub_graph[f"{plat_arch_name}_requirements"], _ = _extract_requirements(v)
+        _, sub_graph[f"{plat_arch_name}_requirements"], _ = _extract_requirements(
+            v,
+            outputs_to_keep=BOOTSTRAP_MAPPINGS.get(name, None),
+        )
 
     (
         sub_graph["total_requirements"],
         sub_graph["requirements"],
         sub_graph["strong_exports"],
-    ) = _extract_requirements(meta_yaml)
+    ) = _extract_requirements(
+        meta_yaml,
+        outputs_to_keep=BOOTSTRAP_MAPPINGS.get(name, None),
+    )
 
     # handle multi outputs
     outputs_names = set()
@@ -337,7 +368,10 @@ def populate_feedstock_attributes(
 
     # TODO: Write schema for dict
     # TODO: remove this
-    req = _get_requirements(yaml_dict)
+    req = _get_requirements(
+        yaml_dict,
+        outputs_to_keep=BOOTSTRAP_MAPPINGS.get(name, []),
+    )
     sub_graph["req"] = req
 
     # set name and version
