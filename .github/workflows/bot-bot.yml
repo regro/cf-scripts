@@ -20,8 +20,8 @@ jobs:
         id: turnsyle
         uses: beckermr/turnstyle-python@v1
         with:
-          abort-after-seconds: 30
-          poll-interval-seconds: 5
+          abort-after-seconds: 300
+          poll-interval-seconds: 30
           github-token:  ${{ secrets.AUTOTICK_BOT_TOKEN }}
         continue-on-error: true
 
