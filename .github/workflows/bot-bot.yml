@@ -108,14 +108,6 @@ jobs:
           PASSWORD: ${{ secrets.AUTOTICK_BOT_TOKEN }}
           RUN_ID: ${{ github.run_id }}
 
-      - name: trigger next job
-        uses: benc-uk/workflow-dispatch@25b02cc069be46d637e8fe2f1e8484008e9e9609
-        if: github.ref == 'refs/heads/master' && ! cancelled() && ! failure() && ! env.CI_SKIP
-        with:
-          workflow: bot-bot
-          ref: ${{ github.event.ref }}
-          token: ${{ secrets.AUTOTICK_BOT_TOKEN }}
-
       - name: bump on fail
         if: github.ref == 'refs/heads/master' && failure() && ! env.CI_SKIP
         run: |
@@ -125,3 +117,11 @@ jobs:
           PASSWORD: ${{ secrets.AUTOTICK_BOT_TOKEN }}
           RUN_ID: ${{ github.run_id }}
           ACTION_NAME: ${{ github.workflow }}
+
+      - name: trigger next job
+        uses: benc-uk/workflow-dispatch@25b02cc069be46d637e8fe2f1e8484008e9e9609
+        if: github.ref == 'refs/heads/master' && ! cancelled() && ! failure() && ! env.CI_SKIP
+        with:
+          workflow: bot-bot
+          ref: ${{ github.event.ref }}
+          token: ${{ secrets.AUTOTICK_BOT_TOKEN }}
