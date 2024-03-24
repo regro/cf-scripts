@@ -25,6 +25,10 @@ jobs:
           github-token:  ${{ secrets.AUTOTICK_BOT_TOKEN }}
         continue-on-error: true
 
+      - name: debug outcome
+        run:
+          echo "outcome - ""${{ steps.turnstyle.outcome }}"
+
       - name: set CI_SKIP success
         if: steps.turnstyle.outcome == 'success'
         run: |
