@@ -17,7 +17,7 @@ jobs:
 
     steps:
       - name: prevent multiple jobs running in parallel
-        id: turnsyle
+        id: turnstyle
         uses: beckermr/turnstyle-python@v1
         with:
           abort-after-seconds: 300
