@@ -5,7 +5,7 @@ on:
   schedule:
     - cron:  '*/15 * * * *'
 
-concurrency: bot
+# concurrency: bot
 
 jobs:
   bot:
@@ -16,25 +16,49 @@ jobs:
         shell: bash -leo pipefail {0}
 
     steps:
+      - name: prevent multiple jobs running in parallel
+        id: turnsyle
+        uses: beckermr/turnstyle-python@v1
+        with:
+          abort-after-seconds: 30
+          poll-interval-seconds: 5
+          github-token:  ${{ secrets.AUTOTICK_BOT_TOKEN }}
+        continue-on-error: true
+
+      - name: set CI_SKIP success
+        if: steps.turnstyle.outcome == 'success'
+        run: |
+          echo "CI_SKIP=" >> $GITHUB_ENV
+
+      - name: set CI_SKIP not success
+        if: steps.turnstyle.outcome != 'success'
+        run: |
+          echo "CI_SKIP=1" >> $GITHUB_ENV
+
       - uses: actions/checkout@v4
+        if: ${{ ! env.CI_SKIP }}
         with:
           path: cf-scripts
 
       - name: check filesystem
+        if: ${{ ! env.CI_SKIP }}
         run: |
           df
 
       - name: check memory
+        if: ${{ ! env.CI_SKIP }}
         run: |
           free
 
       - uses: mamba-org/setup-micromamba@v1
+        if: ${{ ! env.CI_SKIP }}
         with:
           environment-file: cf-scripts/conda-lock.yml
           environment-name: cf-scripts
           condarc-file: cf-scripts/autotick-bot/condarc
 
       - name: do local setup and stop me if needed
+        if: ${{ ! env.CI_SKIP }}
         run: |
           cd cf-scripts
           python autotick-bot/stop_me_if_needed.py
