@@ -2360,15 +2360,15 @@ package:
       toolz: ''
       vsts-python-api: ''
     hash:
-      md5: 7a0e0154d4fc4a8d1aab70edee143bd8
-      sha256: 1f76e746b5eb436a5783a74d0c3a9eb30afbbd2e478e7c30964ea26756d2a368
+      md5: 413eaacf695be9f76beff58e31848cc3
+      sha256: d53d08698c9b61c1afb852e549a2b0a4dbafdaa9c523c5f4e6b74ac73d0dafdb
     manager: conda
     name: conda-smithy
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-smithy-3.33.0-pyhd8ed1ab_0.conda
-    version: 3.33.0
+      https://conda.anaconda.org/conda-forge/noarch/conda-smithy-3.34.0-pyhd8ed1ab_0.conda
+    version: 3.34.0
   - category: main
     dependencies:
       cirun: '>=0.30'
@@ -2393,15 +2393,15 @@ package:
       toolz: ''
       vsts-python-api: ''
     hash:
-      md5: 7a0e0154d4fc4a8d1aab70edee143bd8
-      sha256: 1f76e746b5eb436a5783a74d0c3a9eb30afbbd2e478e7c30964ea26756d2a368
+      md5: 413eaacf695be9f76beff58e31848cc3
+      sha256: d53d08698c9b61c1afb852e549a2b0a4dbafdaa9c523c5f4e6b74ac73d0dafdb
     manager: conda
     name: conda-smithy
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-smithy-3.33.0-pyhd8ed1ab_0.conda
-    version: 3.33.0
+      https://conda.anaconda.org/conda-forge/noarch/conda-smithy-3.34.0-pyhd8ed1ab_0.conda
+    version: 3.34.0
   - category: main
     dependencies:
       cirun: '>=0.30'
@@ -2426,15 +2426,15 @@ package:
       toolz: ''
       vsts-python-api: ''
     hash:
-      md5: 7a0e0154d4fc4a8d1aab70edee143bd8
-      sha256: 1f76e746b5eb436a5783a74d0c3a9eb30afbbd2e478e7c30964ea26756d2a368
+      md5: 413eaacf695be9f76beff58e31848cc3
+      sha256: d53d08698c9b61c1afb852e549a2b0a4dbafdaa9c523c5f4e6b74ac73d0dafdb
     manager: conda
     name: conda-smithy
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-smithy-3.33.0-pyhd8ed1ab_0.conda
-    version: 3.33.0
+      https://conda.anaconda.org/conda-forge/noarch/conda-smithy-3.34.0-pyhd8ed1ab_0.conda
+    version: 3.34.0
   - category: main
     dependencies:
       python: '>=3.8'
@@ -7373,26 +7373,26 @@ package:
       libstdcxx-ng: '>=12'
       libzlib: '>=1.2.13,<1.3.0a0'
     hash:
-      md5: 66d4f5d8256542d9ebfa341d690c5e03
-      sha256: 835d9c7072ad8fd247f2c4946b5b61f60ba8fc836d3a0623e09def0320d02161
+      md5: 84271c00f5804bbc1ef7c525d1e4f405
+      sha256: dcddda4248b3b04272de8b03675b3d41ac3eff4e306bef7b3a6749277fd7359b
     manager: conda
     name: libsolv
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/linux-64/libsolv-0.7.28-hfc55251_0.conda
+    url: https://conda.anaconda.org/conda-forge/linux-64/libsolv-0.7.28-hfc55251_1.conda
     version: 0.7.28
   - category: main
     dependencies:
       libcxx: '>=16'
       libzlib: '>=1.2.13,<1.3.0a0'
     hash:
-      md5: a30cb23edd3ef8c8a7a8e83c1bee9295
-      sha256: 23ae8512daa05c0c0f49f4649f1405af86a72460419aca07abed904243691017
+      md5: 9b0dddcfdaa868197742a0590b42e67c
+      sha256: 8d710885d38080f6ac9b2b92e62ad790e6e04932ae326f5d4fc31e56ca49a093
     manager: conda
     name: libsolv
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/osx-64/libsolv-0.7.28-h2d185b6_0.conda
+    url: https://conda.anaconda.org/conda-forge/osx-64/libsolv-0.7.28-h2d185b6_1.conda
     version: 0.7.28
   - category: main
     dependencies:
