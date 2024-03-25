@@ -1946,39 +1946,39 @@ package:
   - category: main
     dependencies: {}
     hash:
-      md5: c281085df21649246444b27924ce4a40
-      sha256: ba96408dfa8061259dfa130907b6c688fc36fe26722b72386ae5ef937ae171c6
+      md5: b3c9d345418807c38d5a949daaaf6fc6
+      sha256: 122a244ca3ae51e23a05c2c2b1ef4a5a84f2f64a4ee20be46f25ba7844547ed0
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.03.25.02.40.24-hd8ed1ab_0.conda
-    version: 2024.03.25.02.40.24
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.03.25.06.18.47-hd8ed1ab_0.conda
+    version: 2024.03.25.06.18.47
   - category: main
     dependencies: {}
     hash:
-      md5: c281085df21649246444b27924ce4a40
-      sha256: ba96408dfa8061259dfa130907b6c688fc36fe26722b72386ae5ef937ae171c6
+      md5: b3c9d345418807c38d5a949daaaf6fc6
+      sha256: 122a244ca3ae51e23a05c2c2b1ef4a5a84f2f64a4ee20be46f25ba7844547ed0
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.03.25.02.40.24-hd8ed1ab_0.conda
-    version: 2024.03.25.02.40.24
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.03.25.06.18.47-hd8ed1ab_0.conda
+    version: 2024.03.25.06.18.47
   - category: main
     dependencies: {}
     hash:
-      md5: c281085df21649246444b27924ce4a40
-      sha256: ba96408dfa8061259dfa130907b6c688fc36fe26722b72386ae5ef937ae171c6
+      md5: b3c9d345418807c38d5a949daaaf6fc6
+      sha256: 122a244ca3ae51e23a05c2c2b1ef4a5a84f2f64a4ee20be46f25ba7844547ed0
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.03.25.02.40.24-hd8ed1ab_0.conda
-    version: 2024.03.25.02.40.24
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.03.25.06.18.47-hd8ed1ab_0.conda
+    version: 2024.03.25.06.18.47
   - category: main
     dependencies:
       click: '>=8'
@@ -10981,15 +10981,15 @@ package:
       python: '>=3.11,<3.12.0a0'
       python_abi: 3.11.*
     hash:
-      md5: 672333d53a3decfcc438142df01aeba9
-      sha256: 1789751ab5d32f80599fbac94baa7c0df2461b8b76f83a6348bf4f6c1473a96a
+      md5: 27afdad3e73c768b7a9d6b1738ce2987
+      sha256: 79b9b5cc51d3de48f652ff7df9273d20e977eb34a3b7c1bff79ef27c8627ed34
     manager: conda
     name: rapidfuzz
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/osx-64/rapidfuzz-3.6.2-py311hdd0406b_0.conda
-    version: 3.6.2
+      https://conda.anaconda.org/conda-forge/osx-64/rapidfuzz-3.7.0-py311hdd0406b_0.conda
+    version: 3.7.0
   - category: main
     dependencies:
       libcxx: '>=16'
