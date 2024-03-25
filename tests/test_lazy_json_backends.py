@@ -1,13 +1,18 @@
 import hashlib
 import json
+import logging
 import os
 import pickle
+from unittest import mock
+from unittest.mock import MagicMock
 
 import pytest
 
 import conda_forge_tick.utils
 from conda_forge_tick.lazy_json_backends import (
+    CF_TICK_GRAPH_GITHUB_BACKEND_BASE_URL,
     LAZY_JSON_BACKENDS,
+    GithubLazyJsonBackend,
     LazyJson,
     MongoDBLazyJsonBackend,
     dump,
@@ -506,3 +511,172 @@ def test_lazy_json_backends_hashmap(tmpdir):
         assert get_all_keys_for_hashmap("lazy_json") == ["blah"]
         remove_key_for_hashmap("lazy_json", "blah")
         assert get_all_keys_for_hashmap("lazy_json") == []
+
+
+def test_github_base_url() -> None:
+    github_backend = GithubLazyJsonBackend()
+    assert github_backend.base_url == CF_TICK_GRAPH_GITHUB_BACKEND_BASE_URL + "/"
+    github_backend.base_url = "https://github.com/lorem/ipsum"
+    assert github_backend.base_url == "https://github.com/lorem/ipsum" + "/"
+
+
+@pytest.mark.parametrize(
+    "name, key",
+    [
+        ("node_attrs", "flask"),
+        ("node_attrs", "requests"),
+        ("node_attrs", "boto3"),
+        ("node_attrs", "setuptools"),
+    ],
+)
+def test_github_online_hexists_success(
+    name: str,
+    key: str,
+) -> None:
+    # this performs a web request
+    assert GithubLazyJsonBackend().hexists(name, key)
+
+
+@pytest.mark.parametrize(
+    "name, key",
+    [
+        ("node_attrs", "this-package-will-not-ever-exist-invalid"),
+        ("invalid-name", "flask"),
+    ],
+)
+def test_github_online_hexists_failure(name: str, key: str) -> None:
+    # this performs a web request
+    assert not GithubLazyJsonBackend().hexists(name, key)
+
+
+@mock.patch("requests.head")
+def test_github_hexists_unexpected_status_code(request_mock: MagicMock) -> None:
+    request_mock.return_value.status_code = 500
+
+    with pytest.raises(RuntimeError, match="Unexpected status code 500"):
+        GithubLazyJsonBackend().hexists("name", "key")
+
+
+@pytest.fixture
+def reset_github_backend():
+    # In the future, the program architecture should be changed such that backend instances are shared, instead of
+    # instantiating each backend multiple times (whenever it is needed). Then, this can be moved into instance
+    # variables that don't need to be reset.
+    GithubLazyJsonBackend._write_warned = False
+    GithubLazyJsonBackend._n_requests = 0
+
+
+def test_github_hdel(caplog, reset_github_backend) -> None:
+    caplog.set_level(logging.DEBUG)
+    backend = GithubLazyJsonBackend()
+    backend.hdel("name", ["key1", "key2"])
+
+    assert "Write operations to the GitHub online backend are ignored." in caplog.text
+
+    backend.hdel("name2", ["key3"])
+
+    # warning should only be once in log
+    assert (
+        caplog.text.count("Write operations to the GitHub online backend are ignored")
+        == 1
+    )
+
+
+def test_github_hmset(caplog, reset_github_backend) -> None:
+    caplog.set_level(logging.DEBUG)
+    backend = GithubLazyJsonBackend()
+    backend.hmset("name", {"a": "b"})
+
+    assert "Write operations to the GitHub online backend are ignored." in caplog.text
+
+    backend.hmset("name2", {})
+
+    # warning should only be once in log
+    assert (
+        caplog.text.count("Write operations to the GitHub online backend are ignored")
+        == 1
+    )
+
+
+def test_github_hset(caplog, reset_github_backend) -> None:
+    caplog.set_level(logging.DEBUG)
+    backend = GithubLazyJsonBackend()
+    backend.hset("name", "key", "value")
+
+    assert "Write operations to the GitHub online backend are ignored." in caplog.text
+
+    backend.hset("name", "key", "value2")
+
+    # warning should only be once in log
+    assert (
+        caplog.text.count("Write operations to the GitHub online backend are ignored")
+        == 1
+    )
+
+
+def test_github_write_mix(caplog, reset_github_backend) -> None:
+    caplog.set_level(logging.DEBUG)
+    backend = GithubLazyJsonBackend()
+
+    backend.hset("name", "key", "value")
+    backend.hdel("name", ["a", "b"])
+    backend.hmset("name2", {"a": "d"})
+    backend.hset("name", "key", "value")
+    backend.hdel("name3", ["a", "b"])
+    backend.hmset("name", {"a": "d"})
+
+    # warning should only be once in log
+    assert (
+        caplog.text.count("Write operations to the GitHub online backend are ignored")
+        == 1
+    )
+
+
+def test_github_hkeys() -> None:
+    with pytest.raises(NotImplementedError):
+        assert GithubLazyJsonBackend().hkeys("name") == []
+
+
+def test_github_hgetall() -> None:
+    with pytest.raises(NotImplementedError):
+        GithubLazyJsonBackend().hgetall("name")
+
+
+@mock.patch("requests.get")
+def test_github_hget_success(
+    mock_get: MagicMock,
+) -> None:
+    backend = GithubLazyJsonBackend()
+    backend.base_url = "https://github.com/lorem/ipsum"
+    mock_get.return_value.status_code = 200
+    mock_get.return_value.text = "{'key': 'value'}"
+    assert backend.hget("name", "key") == "{'key': 'value'}"
+    mock_get.assert_called_once_with(
+        "https://github.com/lorem/ipsum/name/4/4/0/9/d/key.json",
+    )
+
+
+@mock.patch("requests.get")
+def test_github_offline_hget_not_found(
+    mock_get: MagicMock,
+) -> None:
+    backend = GithubLazyJsonBackend()
+    backend.base_url = "https://github.com/lorem/ipsum"
+    mock_get.return_value.status_code = 404
+    with pytest.raises(KeyError):
+        backend.hget("name", "key")
+    mock_get.assert_called_once_with(
+        "https://github.com/lorem/ipsum/name/4/4/0/9/d/key.json",
+    )
+
+
+@pytest.mark.parametrize(
+    "name, key",
+    [
+        ("node_attrs", "this-package-will-not-ever-exist-invalid"),
+        ("invalid-name", "flask"),
+    ],
+)
+def test_github_online_hget_not_found(name: str, key: str):
+    with pytest.raises(KeyError):
+        GithubLazyJsonBackend().hget(name, key)

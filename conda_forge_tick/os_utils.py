@@ -6,7 +6,7 @@ import subprocess
 
 # https://stackoverflow.com/questions/6194499/pushd-through-os-system
 @contextlib.contextmanager
-def pushd(new_dir):
+def pushd(new_dir: str):
     previous_dir = os.getcwd()
     os.chdir(new_dir)
     try:
@@ -15,7 +15,7 @@ def pushd(new_dir):
         os.chdir(previous_dir)
 
 
-def eval_cmd(cmd, **kwargs):
+def eval_cmd(cmd: str, **kwargs) -> str:
     """run a command capturing stdout
 
     stderr is printed for debugging

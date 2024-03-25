@@ -4,13 +4,14 @@ import os
 import pprint
 import tempfile
 from pathlib import Path
-from typing import Dict
+from typing import Dict, Literal, Union
 
 import requests
 from stdlib_list import stdlib_list
 
 from conda_forge_tick.depfinder_api import simple_import_to_pkg_map
 from conda_forge_tick.feedstock_parser import load_feedstock
+from conda_forge_tick.lazy_json_backends import CF_TICK_GRAPH_GITHUB_BACKEND_BASE_URL
 from conda_forge_tick.make_graph import COMPILER_STUBS_WITH_STRONG_EXPORTS
 from conda_forge_tick.os_utils import pushd
 from conda_forge_tick.pypi_name_mapping import _KNOWN_NAMESPACE_PACKAGES
@@ -22,7 +23,7 @@ try:
 except ImportError:
     from grayskull.__main__ import create_python_recipe
 
-logger = logging.getLogger("conda_forge_tick.update_deps")
+logger = logging.getLogger(__name__)
 
 
 SECTIONS_TO_PARSE = ["host", "run"]
@@ -65,7 +66,10 @@ STATIC_EXCLUDES = (
 RANKINGS = []
 for _ in range(10):
     r = requests.get(
-        "https://raw.githubusercontent.com/regro/cf-graph-countyfair/master/ranked_hubs_authorities.json",
+        os.path.join(
+            CF_TICK_GRAPH_GITHUB_BACKEND_BASE_URL,
+            "ranked_hubs_authorities.json",
+        )
     )
     if r.status_code == 200:
         RANKINGS = r.json()
@@ -165,7 +169,7 @@ def extract_missing_packages(
 
 
 def get_dep_updates_and_hints(
-    update_deps: str,
+    update_deps: Union[str | Literal[False]],
     recipe_dir: str,
     attrs,
     python_nodes,
@@ -175,7 +179,7 @@ def get_dep_updates_and_hints(
 
     Parameters
     ----------
-    update_deps : str
+    update_deps : str | Literal[False]
         An update kind. See the code below for what is supported.
     recipe_dir : str
         The directory with the recipe.
@@ -194,6 +198,10 @@ def get_dep_updates_and_hints(
     hint : str
         The dependency update hint.
     """
+    if not update_deps or update_deps == "disabled":
+        # no dependency updates or hinting
+        return {}, ""
+
     if update_deps in ["hint", "hint-source", "update-source"]:
         dep_comparison = get_depfinder_comparison(
             recipe_dir,
@@ -203,7 +211,9 @@ def get_dep_updates_and_hints(
         logger.info("source dep. comp: %s", pprint.pformat(dep_comparison))
         kind = "source code inspection"
         hint = generate_dep_hint(dep_comparison, kind)
-    elif update_deps in ["hint-grayskull", "update-grayskull"]:
+        return dep_comparison, hint
+
+    if update_deps in ["hint-grayskull", "update-grayskull"]:
         dep_comparison, gs_recipe = get_grayskull_comparison(
             attrs,
             version_key=version_key,
@@ -211,7 +221,9 @@ def get_dep_updates_and_hints(
         logger.info("grayskull dep. comp: %s", pprint.pformat(dep_comparison))
         kind = "grayskull"
         hint = generate_dep_hint(dep_comparison, kind)
-    elif update_deps in ["hint-all", "update-all"]:
+        return dep_comparison, hint
+
+    if update_deps in ["hint-all", "update-all"]:
         df_dep_comparison = get_depfinder_comparison(
             recipe_dir,
             attrs,
@@ -230,8 +242,9 @@ def get_dep_updates_and_hints(
         logger.info("combined dep. comp: %s", pprint.pformat(dep_comparison))
         kind = "source code inspection+grayskull"
         hint = generate_dep_hint(dep_comparison, kind)
+        return dep_comparison, hint
 
-    return dep_comparison, hint
+    raise ValueError(f"update kind '{update_deps}' not supported.")
 
 
 def _merge_dep_comparisons_sec(dep_comparison, _dep_comparison):
@@ -426,7 +439,7 @@ def generate_dep_hint(dep_comparison, kind):
         "Importantly this analysis does not support optional dependencies, "
         "please double check those before making changes. "
         "If you do not want hinting of this kind ever please add "
-        "`bot: inspection: false` to your `conda-forge.yml`. "
+        "`bot: inspection: disabled` to your `conda-forge.yml`. "
         "If you encounter issues with this feature please ping the bot team `conda-forge/bot`.\n\n"  # noqa: E501
     )
 
@@ -522,8 +535,8 @@ def _gen_key_selector(dct, key):
             yield k
 
 
-def apply_dep_update(recipe_dir, dep_comparison, update_python=False):
-    """Upodate a recipe given a dependency comparison.
+def apply_dep_update(recipe_dir, dep_comparison):
+    """Update a recipe given a dependency comparison.
 
     Parameters
     ----------
@@ -531,13 +544,6 @@ def apply_dep_update(recipe_dir, dep_comparison, update_python=False):
         The path to the recipe dir.
     dep_comparison : dict
         The dependency comparison.
-    update_python : bool, optional
-        If True, update python deps. Default is False.
-
-    Returns
-    -------
-    update_deps : bool
-        True if deps were updated, False otherwise.
     """
     recipe_pth = os.path.join(recipe_dir, "meta.yaml")
     with open(recipe_pth) as fp:
@@ -553,6 +559,7 @@ def apply_dep_update(recipe_dir, dep_comparison, update_python=False):
             dep_comparison,
             SECTIONS_TO_UPDATE,
         )
+        # updated_deps is True if deps were updated, False otherwise.
         if updated_deps:
             with open(recipe_pth, "w") as fp:
                 recipe.dump(fp)

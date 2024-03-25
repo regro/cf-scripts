@@ -17,7 +17,6 @@ from conda.models.version import VersionOrder
 from graphviz import Source
 
 from conda_forge_tick.auto_tick import _filter_ignored_versions, initialize_migrators
-from conda_forge_tick.cli_context import CliContext
 from conda_forge_tick.contexts import FeedstockContext
 from conda_forge_tick.lazy_json_backends import LazyJson, get_all_keys_for_hashmap
 from conda_forge_tick.migrators import (
@@ -60,7 +59,7 @@ def _ok_version(ver):
 def write_version_migrator_status(migrator, mctx):
     """write the status of the version migrator"""
 
-    out = {
+    out: Dict[str, Any] = {
         "queued": set(),
         "errored": set(),
         "errors": {},
@@ -307,7 +306,10 @@ def graph_migrator_status(
         out2[k] = list(
             sorted(
                 out[k],
-                key=lambda x: build_sequence.index(x) if x in build_sequence else -1,
+                key=lambda x: (
+                    build_sequence.index(x) if x in build_sequence else -1,
+                    x,
+                ),
             ),
         )
 

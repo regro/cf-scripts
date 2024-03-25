@@ -1,4 +1,5 @@
 """Utilities for managing github repos"""
+
 import copy
 import datetime
 import os
@@ -365,7 +366,7 @@ def delete_branch(ctx: GithubContext, pr_json: LazyJson, dry_run: bool = False) 
     pr_json["head"]["ref"] = "this_is_not_a_branch"
 
 
-def trim_pr_josn_keys(
+def trim_pr_json_keys(
     pr_json: Union[Dict, LazyJson],
     src_pr_json: Optional[Union[Dict, LazyJson]] = None,
 ) -> Union[Dict, LazyJson]:
@@ -386,6 +387,7 @@ def trim_pr_josn_keys(
         A dict-like object with the current PR information trimmed to the subset of
         keys.
     """
+
     # keep a subset of keys
     def _munge_dict(dest, src, keys):
         for k, v in keys.items():
@@ -405,10 +407,7 @@ def trim_pr_josn_keys(
 
 
 def lazy_update_pr_json(
-    pr_json: Union[Dict, LazyJson],
-    ctx: GithubContext,
-    force: bool = False,
-    trim: bool = True,
+    pr_json: Union[Dict, LazyJson], ctx: GithubContext, force: bool = False
 ) -> Union[Dict, LazyJson]:
     """Lazily update a GitHub PR.
 
@@ -464,13 +463,11 @@ def lazy_update_pr_json(
     )
 
     if r.status_code == 200:
-        if trim:
-            pr_json = trim_pr_josn_keys(pr_json, src_pr_json=r.json())
+        pr_json = trim_pr_json_keys(pr_json, src_pr_json=r.json())
         pr_json["ETag"] = r.headers["ETag"]
         pr_json["Last-Modified"] = r.headers["Last-Modified"]
     else:
-        if trim:
-            pr_json = trim_pr_josn_keys(pr_json)
+        pr_json = trim_pr_json_keys(pr_json)
 
     return pr_json
 
@@ -662,7 +659,7 @@ def push_repo(
     # Return a json object so we can remake the PR if needed
     pr_dict: dict = pr.as_dict()
 
-    return trim_pr_josn_keys(pr_dict)
+    return trim_pr_json_keys(pr_dict)
 
 
 def comment_on_pr(pr_json, comment, repo):

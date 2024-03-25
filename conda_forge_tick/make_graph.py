@@ -21,34 +21,22 @@ from conda_forge_tick.lazy_json_backends import (
     lazy_json_transaction,
 )
 
-from . import sensitive_env
 from .all_feedstocks import get_all_feedstocks, get_archived_feedstocks
 from .cli_context import CliContext
-from .contexts import GithubContext
 from .executors import executor
-from .utils import as_iterable, dump_graph, load_graph, setup_logger
+from .utils import as_iterable, dump_graph, load_graph
 
 # from conda_forge_tick.profiler import profiling
 
 
-logger = logging.getLogger("conda_forge_tick.make_graph")
+logger = logging.getLogger(__name__)
+
 pin_sep_pat = re.compile(r" |>|<|=|\[")
 random.seed(os.urandom(64))
 
 RANDOM_FRAC_TO_UPDATE = 1.5
 NUM_GITHUB_THREADS = 2
 
-with sensitive_env() as env:
-    github_username = env.get("USERNAME", "")
-    github_password = env.get("PASSWORD", "")
-    github_token = env.get("GITHUB_TOKEN")
-
-ghctx = GithubContext(
-    github_username=github_username,
-    github_password=github_password,
-    github_token=github_token,
-    circle_build_url=os.getenv("CIRCLE_BUILD_URL", ""),
-)
 
 # AFAIK, go and rust do not have strong run exports and so do not need to
 # appear here
@@ -313,11 +301,6 @@ def _migrate_schemas():
 
 # @profiling
 def main(ctx: CliContext) -> None:
-    if ctx.debug:
-        setup_logger(logging.getLogger("conda_forge_tick"), level="debug")
-    else:
-        setup_logger(logging.getLogger("conda_forge_tick"))
-
     names = get_all_feedstocks(cached=True)
     gx = load_graph()
 

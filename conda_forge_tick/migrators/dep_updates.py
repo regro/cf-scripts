@@ -9,7 +9,7 @@ from conda_forge_tick.utils import get_keys_default
 if typing.TYPE_CHECKING:
     from ..migrators_types import AttrsTypedDict
 
-logger = logging.getLogger("conda_forge_tick.migrators.dep_updates")
+logger = logging.getLogger(__name__)
 
 
 class DependencyUpdateMigrator(MiniMigrator):
@@ -48,9 +48,14 @@ class DependencyUpdateMigrator(MiniMigrator):
             )
         except (BaseException, Exception):
             logger.warning("Dep update failed!", exc_info=True)
-        else:
-            logger.info("applying deps: %s", update_deps)
-            apply_dep_update(
-                recipe_dir,
-                dep_comparison,
-            )
+            return
+
+        if not dep_comparison:
+            logger.info("No dependency update to apply.")
+            return
+
+        logger.info("applying deps: %s", update_deps)
+        apply_dep_update(
+            recipe_dir,
+            dep_comparison,
+        )

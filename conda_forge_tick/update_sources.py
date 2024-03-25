@@ -27,7 +27,7 @@ if typing.TYPE_CHECKING:
 
 CRAN_INDEX: Optional[dict] = None
 
-logger = logging.getLogger("conda_forge_tick._update_version.update_sources")
+logger = logging.getLogger(__name__)
 
 CURL_ONLY_URL_SLUGS = [
     "https://eups.lsst.codes/",
@@ -139,7 +139,7 @@ class AbstractSource(abc.ABC):
         pass
 
 
-class VersionFromFeed(AbstractSource):
+class VersionFromFeed(AbstractSource, abc.ABC):
     name = "VersionFromFeed"
     ver_prefix_remove = ["release-", "releases%2F", "v_", "v.", "v"]
     dev_vers = [

@@ -24,7 +24,7 @@ if typing.TYPE_CHECKING:
     from ..migrators_types import AttrsTypedDict, MigrationUidTypedDict, PackageName
 
 
-logger = logging.getLogger("conda_forge_tick.migrators.core")
+logger = logging.getLogger(__name__)
 
 
 def _sanitized_muids(pred: List[dict]) -> List["JsonFriendly"]:
@@ -233,7 +233,7 @@ class Migrator:
         try:
             branches += get_keys_default(
                 attrs,
-                ["conda-forge.yml", "bot", "migration_branches"],
+                ["conda-forge.yml", "bot", "abi_migration_branches"],
                 {},
                 [],
             )

@@ -1,10 +1,17 @@
+import logging
 import os
 import time
+from typing import Optional
 
 import click
-from click import IntRange
+from click import Context, IntRange
+
+from conda_forge_tick import lazy_json_backends
+from conda_forge_tick.utils import setup_logging
 
 from .cli_context import CliContext
+
+logger = logging.getLogger(__name__)
 
 pass_context = click.make_pass_decorator(CliContext, ensure=True)
 job_option = click.option(
@@ -45,21 +52,43 @@ click.Group.command_class = TimedCommand
     default=False,
     help="dry run: don't push changes to PRs or graph to Github",
 )
+@click.option(
+    "--online/--offline",
+    default=False,
+    help="online: Make requests to GitHub for accessing the dependency graph. This is useful for local testing. Note "
+    "however that any write operations will not be performed. Important: The current working directory will be "
+    "used to cache JSON files. Local files will be used if they exist.",
+)
 @pass_context
-def main(ctx: CliContext, debug: bool, dry_run: bool) -> None:
+@click.pass_context
+def main(
+    click_context: Context,
+    ctx: CliContext,
+    debug: bool,
+    dry_run: bool,
+    online: bool,
+) -> None:
+    log_level = "debug" if debug else "info"
+    setup_logging(log_level)
+
     ctx.debug = debug
     ctx.dry_run = dry_run
 
     if ctx.debug:
         os.environ["CONDA_FORGE_TICK_DEBUG"] = "1"
 
+    if online:
+        logger.info("Running in online mode")
+        click_context.with_resource(
+            lazy_json_backends.lazy_json_override_backends(["github"]),
+        )
+
 
 @main.command(name="gather-all-feedstocks")
-@pass_context
-def gather_all_feedstocks(ctx: CliContext) -> None:
+def gather_all_feedstocks() -> None:
     from . import all_feedstocks
 
-    all_feedstocks.main(ctx)
+    all_feedstocks.main()
 
 
 @main.command(name="make-graph")
@@ -73,13 +102,24 @@ def make_graph(ctx: CliContext) -> None:
 @main.command(name="update-upstream-versions")
 @job_option
 @n_jobs_option
+@click.argument(
+    "package",
+    required=False,
+)
 @pass_context
-def update_upstream_versions(ctx: CliContext, job: int, n_jobs: int) -> None:
+def update_upstream_versions(
+    ctx: CliContext, job: int, n_jobs: int, package: Optional[str]
+) -> None:
+    """
+    Update the upstream versions of feedstocks in the graph.
+
+    If PACKAGE is given, only update that package, otherwise update all packages.
+    """
     from . import update_upstream_versions
 
     check_job_param_relative(job, n_jobs)
 
-    update_upstream_versions.main(ctx, job=job, n_jobs=n_jobs)
+    update_upstream_versions.main(ctx, job=job, n_jobs=n_jobs, package=package)
 
 
 @main.command(name="auto-tick")
@@ -146,6 +186,27 @@ def cache_lazy_json_to_disk(ctx: CliContext) -> None:
     from . import lazy_json_backends
 
     lazy_json_backends.main_cache(ctx)
+
+
+@main.command(name="make-import-to-package-mapping")
+@click.option(
+    "--max-artifacts",
+    default=30000,
+    type=IntRange(1, None),
+    show_default=True,
+    help="If given, the maximum number of artifacts to process.",
+)
+@pass_context
+def make_import_to_package_mapping(
+    ctx: CliContext,
+    max_artifacts: int,
+) -> None:
+    """
+    Make the import to package mapping.
+    """
+    from . import import_to_pkg
+
+    import_to_pkg.main(ctx, max_artifacts)
 
 
 if __name__ == "__main__":

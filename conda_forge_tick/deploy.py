@@ -6,7 +6,7 @@ from doctr.travis import run_command_hiding_token as doctr_run
 from . import sensitive_env
 from .cli_context import CliContext
 from .lazy_json_backends import CF_TICK_GRAPH_DATA_HASHMAPS, get_lazy_json_backends
-from .utils import load_graph
+from .utils import load_existing_graph
 
 BUILD_URL_KEY = "CIRCLE_BUILD_URL"
 
@@ -15,7 +15,7 @@ def _run_git_cmd(cmd):
     return subprocess.run(cmd, shell=True, check=True)
 
 
-def deploy(ctx: CliContext):
+def deploy(ctx: CliContext, dirs_to_deploy: list[str] = None):
     """Deploy the graph to GitHub"""
     if ctx.dry_run:
         print("(dry run) deploying")
@@ -31,16 +31,21 @@ def deploy(ctx: CliContext):
         print(e)
 
     files_to_add = set()
-    drs_to_deploy = [
-        "status",
-        "mappings",
-        "mappings/pypi",
-        "ranked_hubs_authorities.json",
-        "all_feedstocks.json",
-    ]
-    if "file" in get_lazy_json_backends():
-        drs_to_deploy += CF_TICK_GRAPH_DATA_HASHMAPS
-        drs_to_deploy += ["graph.json"]
+    if dirs_to_deploy is None:
+        drs_to_deploy = [
+            "status",
+            "mappings",
+            "mappings/pypi",
+            "ranked_hubs_authorities.json",
+            "all_feedstocks.json",
+            "import_to_pkg_maps",
+        ]
+        if "file" in get_lazy_json_backends():
+            drs_to_deploy += CF_TICK_GRAPH_DATA_HASHMAPS
+            drs_to_deploy += ["graph.json"]
+    else:
+        drs_to_deploy = dirs_to_deploy
+
     for dr in drs_to_deploy:
         # untracked
         files_to_add |= set(
@@ -87,13 +92,14 @@ def deploy(ctx: CliContext):
 
     if n_added > 0:
         try:
-            _run_git_cmd(f'git commit -am "Update Graph {BUILD_URL}"')
+            _step_name = os.environ.get("GITHUB_WORKFLOW", "update graph")
+            _run_git_cmd(f'git commit -am "{_step_name} - {BUILD_URL}"')
         except Exception as e:
             print(e)
 
         # make sure the graph can load, if not we will error
         try:
-            gx = load_graph()
+            gx = load_existing_graph()
             # TODO: be more selective about which json to check
             for node, attrs in gx.nodes.items():
                 attrs["payload"]._load()

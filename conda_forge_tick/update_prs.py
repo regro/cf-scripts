@@ -1,8 +1,8 @@
 import copy
 import hashlib
 import logging
+import os
 import random
-import typing
 from concurrent.futures._base import as_completed
 
 import github3
@@ -17,17 +17,14 @@ from conda_forge_tick.git_utils import (
     refresh_pr,
 )
 
+from . import sensitive_env
+from .contexts import GithubContext
 from .executors import executor
-from .make_graph import ghctx
-from .utils import github_client, load_graph, setup_logger
+from .utils import github_client, load_existing_graph
 
 # from conda_forge_tick.profiler import profiling
 
-
-if typing.TYPE_CHECKING:
-    from .cli import CLIArgs
-
-logger = logging.getLogger("conda_forge_tick.update_prs")
+logger = logging.getLogger(__name__)
 
 NUM_GITHUB_THREADS = 2
 KEEP_PR_FRACTION = 1.5
@@ -46,6 +43,18 @@ def _update_pr(update_function, dry_run, gx, job, n_jobs):
         if abs(int(hashlib.sha1(node_id.encode("utf-8")).hexdigest(), 16)) % n_jobs
         == job_index
     ]
+
+    with sensitive_env() as env:
+        github_username = env.get("USERNAME", "")
+        github_password = env.get("PASSWORD", "")
+        github_token = env.get("GITHUB_TOKEN")
+
+    ghctx = GithubContext(
+        github_username=github_username,
+        github_password=github_password,
+        github_token=github_token,
+        circle_build_url=os.getenv("CIRCLE_BUILD_URL", ""),
+    )
 
     # this makes sure that github rate limits are dispersed
     random.shuffle(node_ids)
@@ -169,12 +178,7 @@ def close_dirty_prs(
 
 # @profiling
 def main(ctx: CliContext, job: int = 1, n_jobs: int = 1) -> None:
-    if ctx.debug:
-        setup_logger(logger, level="debug")
-    else:
-        setup_logger(logger)
-
-    gx = load_graph()
+    gx = load_existing_graph()
 
     gx = close_labels(gx, ctx.dry_run, job=job, n_jobs=n_jobs)
     gx = update_graph_pr_status(gx, ctx.dry_run, job=job, n_jobs=n_jobs)

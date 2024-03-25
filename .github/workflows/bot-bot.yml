@@ -3,9 +3,9 @@ name: bot-bot
 on:
   workflow_dispatch: null
   schedule:
-    - cron:  '*/15 * * * *'
+    - cron:  '15 */8 * * *'
 
-concurrency: bot
+# concurrency: bot
 
 jobs:
   bot:
@@ -13,30 +13,56 @@ jobs:
     runs-on: "ubuntu-latest"
     defaults:
       run:
-        shell: bash -l {0}
+        shell: bash -leo pipefail {0}
 
     steps:
-      - uses: actions/checkout@v3
+      - name: prevent multiple jobs running in parallel
+        id: turnstyle
+        uses: beckermr/turnstyle-python@v1
+        with:
+          abort-after-seconds: 300
+          poll-interval-seconds: 30
+          github-token:  ${{ secrets.AUTOTICK_BOT_TOKEN }}
+        continue-on-error: true
+
+      - name: debug outcome
+        run:
+          echo "outcome - ""${{ steps.turnstyle.outcome }}"
+
+      - name: set CI_SKIP success
+        if: steps.turnstyle.outcome == 'success'
+        run: |
+          echo "CI_SKIP=" >> $GITHUB_ENV
+
+      - name: set CI_SKIP not success
+        if: steps.turnstyle.outcome != 'success'
+        run: |
+          echo "CI_SKIP=1" >> $GITHUB_ENV
+
+      - uses: actions/checkout@v4
+        if: ${{ ! env.CI_SKIP }}
         with:
           path: cf-scripts
 
       - name: check filesystem
+        if: ${{ ! env.CI_SKIP }}
         run: |
           df
 
       - name: check memory
+        if: ${{ ! env.CI_SKIP }}
         run: |
           free
 
-      - uses: conda-incubator/setup-miniconda@v3
+      - uses: mamba-org/setup-micromamba@v1
+        if: ${{ ! env.CI_SKIP }}
         with:
-          miniforge-version: latest
-          environment-file: cf-scripts/environment.yml
-          python-version: "${{ vars.PYVER }}"
-          activate-environment: cf-scripts
+          environment-file: cf-scripts/conda-lock.yml
+          environment-name: cf-scripts
           condarc-file: cf-scripts/autotick-bot/condarc
 
       - name: do local setup and stop me if needed
+        if: ${{ ! env.CI_SKIP }}
         run: |
           cd cf-scripts
           python autotick-bot/stop_me_if_needed.py
@@ -65,7 +91,7 @@ jobs:
           PASSWORD: ${{ secrets.AUTOTICK_BOT_TOKEN }}
           RUN_ID: ${{ github.run_id }}
           MEMORY_LIMIT_GB: 7
-          CF_TICK_GRAPH_DATA_BACKENDS: "mongodb:file"
+          CF_TICK_GRAPH_DATA_BACKENDS: "${{ vars. CF_TICK_GRAPH_DATA_BACKENDS }}"
           MONGODB_CONNECTION_STRING: ${{ secrets.MONGODB_CONNECTION_STRING }}
 
       - name: status of changes
@@ -86,14 +112,6 @@ jobs:
           PASSWORD: ${{ secrets.AUTOTICK_BOT_TOKEN }}
           RUN_ID: ${{ github.run_id }}
 
-      - name: trigger next job
-        uses: benc-uk/workflow-dispatch@798e70c97009500150087d30d9f11c5444830385
-        if: github.ref == 'refs/heads/master' && ! cancelled() && ! failure() && ! env.CI_SKIP
-        with:
-          workflow: bot-bot
-          ref: ${{ github.event.ref }}
-          token: ${{ secrets.AUTOTICK_BOT_TOKEN }}
-
       - name: bump on fail
         if: github.ref == 'refs/heads/master' && failure() && ! env.CI_SKIP
         run: |
@@ -103,3 +121,11 @@ jobs:
           PASSWORD: ${{ secrets.AUTOTICK_BOT_TOKEN }}
           RUN_ID: ${{ github.run_id }}
           ACTION_NAME: ${{ github.workflow }}
+
+      - name: trigger next job
+        uses: benc-uk/workflow-dispatch@25b02cc069be46d637e8fe2f1e8484008e9e9609
+        if: github.ref == 'refs/heads/master' && ! cancelled() && ! failure() && ! env.CI_SKIP
+        with:
+          workflow: bot-bot
+          ref: ${{ github.event.ref }}
+          token: ${{ secrets.AUTOTICK_BOT_TOKEN }}

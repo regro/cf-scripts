@@ -33,40 +33,13 @@ from concurrent.futures._base import as_completed
 from concurrent.futures.thread import ThreadPoolExecutor
 from fnmatch import fnmatch
 
-import requests.exceptions
-from conda_forge_metadata.autotick_bot import map_import_to_package
-from conda_forge_metadata.libcfgraph import get_libcfgraph_pkgs_for_import
 from depfinder.inspection import iterate_over_library
 from depfinder.stdliblist import builtin_modules as _builtin_modules
 from depfinder.utils import SKETCHY_TYPES_TABLE
 
-logger = logging.getLogger("conda_forge_tick.depfinder_api")
+from conda_forge_tick.import_to_pkg import extract_pkg_from_import
 
-
-def extract_pkg_from_import(name):
-    """Provide the name of the package that matches with the import provided,
-    with the maps between the imports and artifacts and packages that matches
-
-    Parameters
-    ----------
-    name : str
-        The name of the import to be searched for
-
-    Returns
-    -------
-    most_likely_pkg : str
-        The most likely conda-forge package.
-    import_to_pkg : dict mapping str to sets
-        A dict mapping the import name to a set of possible packages that supply that import.
-    """
-    try:
-        supplying_pkgs, _ = get_libcfgraph_pkgs_for_import(name)
-        best_import = map_import_to_package(name)
-    except requests.exceptions.HTTPError:
-        supplying_pkgs = set()
-        best_import = name
-    import_to_pkg = {name: supplying_pkgs or set()}
-    return best_import, import_to_pkg
+logger = logging.getLogger(__name__)
 
 
 def recursively_search_for_name(name, module_names):

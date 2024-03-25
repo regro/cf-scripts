@@ -16,19 +16,17 @@ jobs:
         job_num: [1, 2, 3, 4, 5, 6, 7, 8]
     defaults:
       run:
-        shell: bash -l {0}
+        shell: bash -leo pipefail {0}
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           path: cf-scripts
 
-      - uses: conda-incubator/setup-miniconda@v3
+      - uses: mamba-org/setup-micromamba@v1
         with:
-          miniforge-version: latest
-          environment-file: cf-scripts/environment.yml
-          python-version: "${{ vars.PYVER }}"
-          activate-environment: cf-scripts
+          environment-file: cf-scripts/conda-lock.yml
+          environment-name: cf-scripts
           condarc-file: cf-scripts/autotick-bot/condarc
 
       - name: do local setup and stop me if needed
@@ -51,8 +49,7 @@ jobs:
           conda-forge-tick update-upstream-versions --job=${BOT_JOB} --n-jobs=8
         env:
           BOT_JOB: ${{ matrix.job_num }}
-          PASSWORD: ${{ secrets.AUTOTICK_BOT_TOKEN }}
-          CF_TICK_GRAPH_DATA_BACKENDS: "mongodb:file"
+          CF_TICK_GRAPH_DATA_BACKENDS: "${{ vars. CF_TICK_GRAPH_DATA_BACKENDS }}"
           MONGODB_CONNECTION_STRING: ${{ secrets.MONGODB_CONNECTION_STRING }}
 
       - name: deploy
