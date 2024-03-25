@@ -30,9 +30,7 @@ PIN_SEP_PAT = re.compile(r" |>|<|=|\[")
 # that would be available in a bootstrapping scenario
 # for these nodes, we only use the bootstrap requirements
 # to build graph edges
-BOOTSTRAP_MAPPINGS = {
-    "flit": {"flit-core"},
-}
+BOOTSTRAP_MAPPINGS = {}
 
 
 def _get_requirements(
