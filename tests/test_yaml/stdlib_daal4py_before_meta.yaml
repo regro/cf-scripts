@@ -1,0 +1,87 @@
+{% set version = "1.9.0" %}
+{% set buildnumber = 0 %}
+
+package:
+  name: daal4py
+  version: {{ version }}
+
+source:
+  # fake source url to get version migrator to pass
+  url: https://github.com/scipy/scipy/archive/refs/tags/v{{ version }}.tar.gz
+  sha256: b6d893dc7dcd4138b9e9df59a13c59695e50e80dc5c2cacee0674670693951a1
+  # url: https://github.com/intel/scikit-learn-intelex/archive/{{ version }}.tar.gz
+  # sha256: 169c62cbe231eb0b65a4009f035c4114a895a42ae6b004e5895b3aab1c750762
+
+build:
+  skip: true  # [not (linux64 or win)]
+  number: {{ buildnumber }}
+  include_recipe: false
+
+requirements:
+  build:
+    - make  # [linux]
+    - {{ compiler('cxx') }}  # [linux64 or win]
+  host:
+    - python
+    - setuptools
+    - numpy
+    - dal-devel ==2024.1.0
+    - cython
+    - jinja2
+    - mpich      # [not win]
+    - clang-format
+    - cmake
+    - pybind11
+  run:
+    - python
+    - dal ==2024.1.0
+    - {{ pin_compatible('numpy') }}
+
+test:
+  requires:
+    - pandas ==1.2.5  # [python_impl == 'pypy']
+    - pandas  # [python_impl != 'pypy']
+    - scipy
+    - scikit-learn
+    - xgboost
+    - lightgbm
+    - pytest
+    - mpich      # [not win]
+  source_files:
+    - examples
+    - tests
+    - daal4py
+    - onedal
+  commands:
+    - cd tests
+    - python -c "import daal4py"
+    - python -m unittest discover -v -p "test*[!ex].py"
+    - pytest --verbose --pyargs ../daal4py/sklearn
+    - pytest --verbose --pyargs ../onedal
+    #- python run_examples.py temp_removal
+
+about:
+  home: https://intelpython.github.io/daal4py/
+  license: Apache-2.0
+  license_file:
+    - LICENSE
+    - doc/daal4py/third-party-programs.txt
+  summary: A convenient Python API to Intel (R) oneAPI Data Analytics Library
+  description: |
+    <strong>LEGAL NOTICE: Use of this software package is subject to the
+    software license agreement (as set forth above, in the license section of
+    the installed Conda package and/or the README file) and all notices,
+    disclaimers or license terms for third party or open source software
+    included in or with the software.</strong>
+    <br/><br/>
+    EULA: <a href="https://opensource.org/licenses/Apache-2.0" target="_blank">Apache-2.0</a>
+    <br/><br/>
+  dev_url: https://github.com/intel/scikit-learn-intelex
+  doc_url: https://intelpython.github.io/daal4py
+
+extra:
+  recipe-maintainers:
+        # GitHub IDs for maintainers of the recipe.
+    - napetrov
+    - Alexsandruss
+    - maria-Petrova

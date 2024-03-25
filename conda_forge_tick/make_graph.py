@@ -42,6 +42,7 @@ NUM_GITHUB_THREADS = 2
 # appear here
 COMPILER_STUBS_WITH_STRONG_EXPORTS = [
     "c_compiler_stub",
+    "c_stdlib_stub",
     "cxx_compiler_stub",
     "fortran_compiler_stub",
     "cuda_compiler_stub",
