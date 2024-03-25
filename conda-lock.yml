@@ -1698,7 +1698,7 @@ package:
     dependencies:
       beautifulsoup4: ''
       chardet: ''
-      conda: '>=22.11.0,<24.3.0a0'
+      conda: '>=23.5.0'
       conda-index: '>=0.4.0'
       conda-package-handling: '>=1.3'
       filelock: ''
@@ -1720,21 +1720,21 @@ package:
       ripgrep: ''
       tqdm: ''
     hash:
-      md5: fff32b22a4356bddf1f46a10115cab3d
-      sha256: 786a60ccf16ce8ac0cea4eab14bff3740fc067bf2a428f08440ff5e97451936d
+      md5: 9e1c61d856c2a88969716b1dd6890b77
+      sha256: 5ca7f21fa27e393a35b30bc8951aa7c8c7a71dcad85b4032c30fd7ee1d094be9
     manager: conda
     name: conda-build
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/linux-64/conda-build-24.1.2-py311h38be061_0.conda
-    version: 24.1.2
+      https://conda.anaconda.org/conda-forge/linux-64/conda-build-24.3.0-py311h38be061_0.conda
+    version: 24.3.0
   - category: main
     dependencies:
       beautifulsoup4: ''
       cctools: ''
       chardet: ''
-      conda: '>=22.11.0,<24.3.0a0'
+      conda: '>=23.5.0'
       conda-index: '>=0.4.0'
       conda-package-handling: '>=1.3'
       filelock: ''
@@ -1755,21 +1755,21 @@ package:
       ripgrep: ''
       tqdm: ''
     hash:
-      md5: 11d3cf758c6df91c0d05d68762e13349
-      sha256: db2085f062da8ad32adfab97b80710d7e8dc19995bb0ae36a0bc4b646d769acc
+      md5: c5a4fdd0614729164ba078c02cd77efc
+      sha256: 514f009676f3e3e4ef6a4e2db5dd2c5775b10cefd929cdecbf0a716ef105119f
     manager: conda
     name: conda-build
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/osx-64/conda-build-24.1.2-py311h6eed73b_0.conda
-    version: 24.1.2
+      https://conda.anaconda.org/conda-forge/osx-64/conda-build-24.3.0-py311h6eed73b_0.conda
+    version: 24.3.0
   - category: main
     dependencies:
       beautifulsoup4: ''
       cctools: ''
       chardet: ''
-      conda: '>=22.11.0,<24.3.0a0'
+      conda: '>=23.5.0'
       conda-index: '>=0.4.0'
       conda-package-handling: '>=1.3'
       filelock: ''
@@ -1790,15 +1790,15 @@ package:
       ripgrep: ''
       tqdm: ''
     hash:
-      md5: c1f9fb72a97722da6ec141584a127b17
-      sha256: b9734af2adc04743985762538d179d36d7b33736df2e6e2a818aae4211b25083
+      md5: f82f98afc0ccb6936f47396fe97bdd01
+      sha256: 1853cdf12e458c97c0a3c121dc5d6bc0829003d2b7980f0affe1281baa9a36e8
     manager: conda
     name: conda-build
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/osx-arm64/conda-build-24.1.2-py311h267d04e_0.conda
-    version: 24.1.2
+      https://conda.anaconda.org/conda-forge/osx-arm64/conda-build-24.3.0-py311h267d04e_0.conda
+    version: 24.3.0
   - category: main
     dependencies:
       cachetools: ''
@@ -1946,39 +1946,39 @@ package:
   - category: main
     dependencies: {}
     hash:
-      md5: b3c9d345418807c38d5a949daaaf6fc6
-      sha256: 122a244ca3ae51e23a05c2c2b1ef4a5a84f2f64a4ee20be46f25ba7844547ed0
+      md5: 273661a1f87b886c14ee0ab10a18ab89
+      sha256: 4c0d9e7d722b2a5ef5ca460c19ddd1f8a33342bf254c6af0b93164cdf257b111
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.03.25.06.18.47-hd8ed1ab_0.conda
-    version: 2024.03.25.06.18.47
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.03.25.09.21.25-hd8ed1ab_0.conda
+    version: 2024.03.25.09.21.25
   - category: main
     dependencies: {}
     hash:
-      md5: b3c9d345418807c38d5a949daaaf6fc6
-      sha256: 122a244ca3ae51e23a05c2c2b1ef4a5a84f2f64a4ee20be46f25ba7844547ed0
+      md5: 273661a1f87b886c14ee0ab10a18ab89
+      sha256: 4c0d9e7d722b2a5ef5ca460c19ddd1f8a33342bf254c6af0b93164cdf257b111
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.03.25.06.18.47-hd8ed1ab_0.conda
-    version: 2024.03.25.06.18.47
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.03.25.09.21.25-hd8ed1ab_0.conda
+    version: 2024.03.25.09.21.25
   - category: main
     dependencies: {}
     hash:
-      md5: b3c9d345418807c38d5a949daaaf6fc6
-      sha256: 122a244ca3ae51e23a05c2c2b1ef4a5a84f2f64a4ee20be46f25ba7844547ed0
+      md5: 273661a1f87b886c14ee0ab10a18ab89
+      sha256: 4c0d9e7d722b2a5ef5ca460c19ddd1f8a33342bf254c6af0b93164cdf257b111
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.03.25.06.18.47-hd8ed1ab_0.conda
-    version: 2024.03.25.06.18.47
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.03.25.09.21.25-hd8ed1ab_0.conda
+    version: 2024.03.25.09.21.25
   - category: main
     dependencies:
       click: '>=8'
