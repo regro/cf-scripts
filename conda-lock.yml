@@ -7053,7 +7053,7 @@ package:
     dependencies:
       fmt: '>=10.2.1,<11.0a0'
       libarchive: '>=3.7.2,<3.8.0a0'
-      libcurl: '>=8.5.0,<9.0a0'
+      libcurl: '>=8.6.0,<9.0a0'
       libcxx: '>=16'
       libsolv: '>=0.7.23'
       openssl: '>=3.2.1,<4.0a0'
@@ -7062,14 +7062,14 @@ package:
       yaml-cpp: '>=0.8.0,<0.9.0a0'
       zstd: '>=1.5.5,<1.6.0a0'
     hash:
-      md5: 7a62d24ad6e5a41491d29b1ea6e62707
-      sha256: fc308b37aa60129e820de03a80372c7746b1bb66ac533b32d78f157c2834caa9
+      md5: e02e82b493ab683be580380193db1b64
+      sha256: a6182bd735fe6a8bdd511096931a991b7d431cbfa2358f3aebb98132f063c89d
     manager: conda
     name: libmamba
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/osx-arm64/libmamba-1.5.7-h90c426b_0.conda
-    version: 1.5.7
+    url: https://conda.anaconda.org/conda-forge/osx-arm64/libmamba-1.5.8-h90c426b_0.conda
+    version: 1.5.8
   - category: main
     dependencies:
       fmt: '>=10.2.1,<11.0a0'
@@ -7115,22 +7115,22 @@ package:
     dependencies:
       fmt: '>=10.2.1,<11.0a0'
       libcxx: '>=16'
-      libmamba: 1.5.7
+      libmamba: 1.5.8
       openssl: '>=3.2.1,<4.0a0'
       pybind11-abi: '4'
       python: '>=3.11,<3.12.0a0'
       python_abi: 3.11.*
       yaml-cpp: '>=0.8.0,<0.9.0a0'
     hash:
-      md5: 322f2d9240e2462e032bb4bf9aac38b4
-      sha256: a55d5627b394e31a66c1512761a3c3f1e655a39b138d46de0b720928b9e263e0
+      md5: f593235abf65eed36843ed14582d5456
+      sha256: cec670d940c6094a8eb1594fa18f26bf260d0f3b0b9b1c9143200407e1e442b6
     manager: conda
     name: libmambapy
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/osx-arm64/libmambapy-1.5.7-py311h26e1311_0.conda
-    version: 1.5.7
+      https://conda.anaconda.org/conda-forge/osx-arm64/libmambapy-1.5.8-py311h26e1311_0.conda
+    version: 1.5.8
   - category: main
     dependencies:
       c-ares: '>=1.23.0,<2.0a0'
@@ -8007,20 +8007,20 @@ package:
   - category: main
     dependencies:
       conda: '>=24,<25'
-      libmambapy: 1.5.7
+      libmambapy: 1.5.8
       openssl: '>=3.2.1,<4.0a0'
       python: '>=3.11,<3.12.0a0'
       python_abi: 3.11.*
     hash:
-      md5: f307c223f73d3ff75d33069636154703
-      sha256: fe85bd1ae421b7e0795599be685162db9e591047c91d805ea04a6a975e0a5cb1
+      md5: aed016cf23bb70155a2e79538f88bf1e
+      sha256: 297b6d00902c7a11d924942a63efabba0c99c99059be84a77d3e61028c22267e
     manager: conda
     name: mamba
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/osx-arm64/mamba-1.5.7-py311hb045da1_0.conda
-    version: 1.5.7
+      https://conda.anaconda.org/conda-forge/osx-arm64/mamba-1.5.8-py311hb045da1_0.conda
+    version: 1.5.8
   - category: main
     dependencies:
       mdurl: '>=0.1,<1'
