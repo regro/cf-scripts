@@ -22,7 +22,7 @@ jobs:
     steps:
       - name: run cache
         if: success() && ! env.CI_SKIP
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: cf-graph.tar.zstd
           key: cf-graph-tzstd-${{ github.run_id }}-${{ github.run_attempt }}-${{ matrix.version }}
