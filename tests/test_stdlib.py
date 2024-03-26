@@ -29,6 +29,8 @@ VERSION_WITH_STDLIB = Version(
         ("go", "1.10.0", True),
         # test that pure metapackages don't get stdlib added
         ("htcondor", "1.10.0", True),
+        # package that reuses feedstock-name; sole global build section
+        ("pagmo", "1.10.0", False),
         # package with rust compilers
         ("polars", "1.10.0", False),
         # package that intentionally reuses feedstock-name for output
