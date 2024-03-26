@@ -61,7 +61,7 @@ def _process_section(name, attrs, lines):
     # ignored due to selectors, where we need the line numbers below.
 
     line_build = line_compiler_c = line_compiler_m2c = line_compiler_other = 0
-    line_host = line_run = line_constrain = line_test = 0
+    line_script = line_host = line_run = line_constrain = line_test = 0
     indent_c = indent_m2c = indent_other = ""
     selector_c = selector_m2c = selector_other = ""
     last_line_was_build = False
@@ -84,7 +84,9 @@ def _process_section(name, attrs, lines):
                 line_build = 0
             last_line_was_build = False
 
-        if re.match(r"^\s*build:.*", line):
+        if re.match(r"^\s*script:.*", line):
+            line_script = i
+        elif re.match(r"^\s*build:.*", line):
             # we need to avoid build.{number,...}, but cannot use multiline
             # regexes here. So leave a marker that we can skip on
             last_line_was_build = True
@@ -147,7 +149,10 @@ def _process_section(name, attrs, lines):
     # align selectors between {{ compiler(...) }} with {{ stdlib(...) }}
     selector = "  " + selector if selector else ""
     to_insert = indent + '- {{ stdlib("c") }}' + selector + "\n"
-    if line_build == 0:
+    if not (line_script or line_build):
+        # for pure metapackages (no script:, no build:), we do not want to add stdlib
+        to_insert = ""
+    elif line_build == 0:
         # no build section, need to add it
         to_insert = indent[:-2] + "build:\n" + to_insert
 

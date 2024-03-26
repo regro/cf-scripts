@@ -95,8 +95,6 @@ outputs:
       number: {{ proc_build_number }}
       string: {{ build_ext }}
     requirements:
-      build:
-        - {{ stdlib("c") }}
       run_constrained:
         # avoid installation with old naming of proc package
         - arrow-cpp-proc <0.0a0
