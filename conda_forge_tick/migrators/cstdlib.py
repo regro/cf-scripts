@@ -190,6 +190,7 @@ class StdlibMigrator(MiniMigrator):
 
     def migrate(self, recipe_dir, attrs, **kwargs):
         outputs = attrs["meta_yaml"].get("outputs", [])
+        feedstock_name = attrs["meta_yaml"]["package"]["name"]
 
         new_lines = []
         write_stdlib_to_cbc = False
@@ -200,6 +201,11 @@ class StdlibMigrator(MiniMigrator):
 
             sections = _slice_into_output_sections(lines, attrs)
             for name, section in sections.items():
+                if (name == feedstock_name) and len(section) == 1:
+                    # weird corner case of conda-build where output is build
+                    # in global section and then again defined under outputs
+                    new_lines += section
+                    continue
                 # _process_section returns list of lines already
                 chunk, cbc = _process_section(name, attrs, section)
                 new_lines += chunk
