@@ -61,7 +61,7 @@ def _process_section(name, attrs, lines):
     # ignored due to selectors, where we need the line numbers below.
 
     line_build = line_compiler_c = line_compiler_m2c = line_compiler_other = 0
-    line_host = line_run = line_constrain = line_test = 0
+    line_script = line_host = line_run = line_constrain = line_test = 0
     indent_c = indent_m2c = indent_other = ""
     selector_c = selector_m2c = selector_other = ""
     last_line_was_build = False
@@ -84,7 +84,9 @@ def _process_section(name, attrs, lines):
                 line_build = 0
             last_line_was_build = False
 
-        if re.match(r"^\s*build:.*", line):
+        if re.match(r"^\s*script:.*", line):
+            line_script = i
+        elif re.match(r"^\s*build:.*", line):
             # we need to avoid build.{number,...}, but cannot use multiline
             # regexes here. So leave a marker that we can skip on
             last_line_was_build = True
@@ -147,18 +149,22 @@ def _process_section(name, attrs, lines):
     # align selectors between {{ compiler(...) }} with {{ stdlib(...) }}
     selector = "  " + selector if selector else ""
     to_insert = indent + '- {{ stdlib("c") }}' + selector + "\n"
-    if line_build == 0:
+    if not (line_script or line_build):
+        # for pure metapackages (no script:, no build:), we do not want to add stdlib
+        to_insert = ""
+    elif line_build == 0:
         # no build section, need to add it
         to_insert = indent[:-2] + "build:\n" + to_insert
 
-    # if there's no build section, try to insert (in order of preference)
-    # before the sections for host, run, run_constrained, test
-    line_insert = line_host or line_run or line_constrain or line_test
-    if not line_insert:
-        raise RuntimeError("Don't know where to insert build section!")
+    line_insert = 0
     if line_compiler:
         # by default, we insert directly after the compiler
         line_insert = line_compiler + 1
+    # if there's no compiler, try to insert (in order of preference)
+    # before the sections for host, run, run_constrained, test
+    line_insert = line_insert or line_host or line_run or line_constrain or line_test
+    if not line_insert:
+        raise RuntimeError("Don't know where to insert build section!")
 
     lines = lines[:line_insert] + [to_insert] + lines[line_insert:]
     if line_compiler_c and line_compiler_m2c:
