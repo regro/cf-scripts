@@ -27,6 +27,8 @@ VERSION_WITH_STDLIB = Version(
         # package involving selectors and m2w64_c compilers, and compilers in
         # unusual places (e.g. in host & run sections)
         ("go", "1.10.0", True),
+        # test that pure metapackages don't get stdlib added
+        ("htcondor", "1.10.0", True),
         # package with rust compilers
         ("polars", "1.10.0", False),
         # package that intentionally reuses feedstock-name for output
