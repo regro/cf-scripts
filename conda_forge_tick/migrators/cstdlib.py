@@ -201,7 +201,7 @@ class StdlibMigrator(MiniMigrator):
 
             sections = _slice_into_output_sections(lines, attrs)
             for name, section in sections.items():
-                if name == feedstock_name:
+                if (name == feedstock_name) and len(section) == 1:
                     # weird corner case of conda-build where output is build
                     # in global section and then again defined under outputs
                     new_lines += section
