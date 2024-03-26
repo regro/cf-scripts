@@ -41,7 +41,7 @@ jobs:
         with:
           commit-message: relock w/ conda-lock
           title: relock w/ conda-lock
-          body: >
+          body: |
             This pull request relocks the dependencies with conda-lock.
             
             
