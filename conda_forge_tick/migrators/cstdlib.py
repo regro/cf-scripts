@@ -156,14 +156,15 @@ def _process_section(name, attrs, lines):
         # no build section, need to add it
         to_insert = indent[:-2] + "build:\n" + to_insert
 
-    # if there's no build section, try to insert (in order of preference)
-    # before the sections for host, run, run_constrained, test
-    line_insert = line_host or line_run or line_constrain or line_test
-    if not line_insert:
-        raise RuntimeError("Don't know where to insert build section!")
+    line_insert = 0
     if line_compiler:
         # by default, we insert directly after the compiler
         line_insert = line_compiler + 1
+    # if there's no compiler, try to insert (in order of preference)
+    # before the sections for host, run, run_constrained, test
+    line_insert = line_insert or line_host or line_run or line_constrain or line_test
+    if not line_insert:
+        raise RuntimeError("Don't know where to insert build section!")
 
     lines = lines[:line_insert] + [to_insert] + lines[line_insert:]
     if line_compiler_c and line_compiler_m2c:
