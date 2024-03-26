@@ -29,7 +29,7 @@ VERSION_WITH_STDLIB = Version(
         ("go", "1.10.0", True),
         # package with rust compilers
         ("polars", "1.10.0", False),
-        # package without compilers, but with sysroot_linux-64
+        # package that intentionally reuses feedstock-name for output
         ("rdkit", "1.10.0", False),
         # package without compilers, but with sysroot_linux-64
         ("sinabs", "1.10.0", True),
