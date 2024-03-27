@@ -137,8 +137,8 @@ def _process_section(name, attrs, lines):
 
     # in case of several compilers, prefer line, indent & selector of c compiler
     line_compiler = line_compiler_c or line_compiler_m2c or line_compiler_other
-    indent = indent_c or indent_m2c or indent_other
-    selector = selector_c or selector_m2c or selector_other
+    indent = indent_c if line_compiler_c else (indent_m2c if line_compiler_m2c else indent_other)
+    selector = selector_c if line_compiler_c else (selector_m2c if line_compiler_m2c else selector_other)
     if indent == "":
         # no compiler in current output; take first line of section as reference (without last \n);
         # ensure it works for both global build section as well as for `- name: <output>`.
