@@ -6,8 +6,8 @@ from conda_forge_tick.migrators.libboost import _replacer, _slice_into_output_se
 
 pat_stub = re.compile(r"(c|cxx|fortran)_compiler_stub")
 rgx_idt = r"(?P<indent>\s*)-\s*"
-rgx_pre = r"(?P<compiler>\{\{\s*compiler\([\"\']"
-rgx_post = r"[\"\']\)\s*\}\})"
+rgx_pre = r"[\"\']?(?P<compiler>\{\{\s*compiler\([\"\']"
+rgx_post = r"[\"\']\)\s*\}\})[\"\']?"
 rgx_sel = r"(?P<selector>\s*\#\s+\[[\w\s()<>!=.,\-\'\"]+\])?"
 
 pat_compiler_c = re.compile("".join([rgx_idt, rgx_pre, "c", rgx_post, rgx_sel]))
