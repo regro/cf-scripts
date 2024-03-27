@@ -24,11 +24,15 @@ VERSION_WITH_STDLIB = Version(
         ("arrow", "1.10.0", False),
         # package without c compiler, but with selectors
         ("daal4py", "1.10.0", False),
+        # problems with spurious selectors applied to stdlib
+        ("fenics", "1.10.0", False),
         # package involving selectors and m2w64_c compilers, and compilers in
         # unusual places (e.g. in host & run sections)
         ("go", "1.10.0", True),
         # test that pure metapackages don't get stdlib added
         ("htcondor", "1.10.0", True),
+        # package that got failed to get stdlib added
+        ("mgis", "1.10.0", False),
         # package that reuses feedstock-name; sole global build section
         ("pagmo", "1.10.0", False),
         # package with rust compilers

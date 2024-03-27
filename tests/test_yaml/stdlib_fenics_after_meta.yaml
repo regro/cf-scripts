@@ -1,0 +1,204 @@
+{% set version = "1.10.0" %}
+# choose one variant from CBC
+{% set mpi = "mpich" %}
+
+package:
+  name: fenics-pkgs
+  version: {{ version }}
+
+source:
+  # fake source url to get version migrator to pass
+  - url: https://github.com/scipy/scipy/archive/refs/tags/v{{ version }}.tar.gz
+    sha256: 3f9e587a96844a9b4ee7f998cfe4dc3964dc95c4ca94d7de6a77bffb99f873da
+  # - url: https://bitbucket.org/fenics-project/dolfin/downloads/dolfin-{{ version }}.post0.tar.gz
+  #   sha256: 61abdcdb13684ba2a3ba4afb7ea6c7907aa0896a46439d3af7e8848483d4392f
+    folder: dolfin
+    patches:
+      - boost.patch
+      - linuxboost.patch  # [linux]
+      - find-petsc-slepc.patch
+      - hdf5-1.12.patch
+      - fix-xdmf.patch
+
+build:
+  number: 0
+  skip: true  # [win]
+  # this doesn't actually affect the build hashes
+  # so duplicate where the build hash should actually change
+  force_use_keys:
+    - python
+    - mpi
+
+outputs:
+  - name: fenics-libdolfin
+    build:
+      script: ${RECIPE_DIR}/build-libdolfin.sh
+      skip: true  # [win]
+      script_env:
+        - OMPI_MCA_plm=isolated
+        - OMPI_MCA_rmaps_base_oversubscribe=yes
+        - OMPI_MCA_btl_vader_single_copy_mechanism=none
+      ignore_run_exports_from:
+        - python
+        - numpy
+      {% set mpi_prefix = "mpi_" + mpi %}
+    requirements:
+      build:
+        - {{ compiler('c') }}
+        - {{ stdlib("c") }}
+        - {{ compiler('cxx') }}
+      host:
+        - libblas
+        - libcblas
+        - libboost-devel
+        - cmake >=3.9
+        - make
+        - eigen
+        - parmetis
+        - pkg-config
+        - ptscotch
+        - suitesparse
+        - zlib
+        - {{ mpi }}
+        - petsc
+        - slepc
+        - python
+        - numpy
+        - fenics-ffc =={{ version }}
+        # need to list libnetcdf and netcdf-fortran twice to get version
+        # pinning from conda_build_config and build pinning from {{ mpi_prefix }}
+        - hdf5
+        - hdf5 * {{ mpi_prefix }}_*
+      run:
+        - {{ compiler('cxx') }}  # [linux]
+        - cmake >=3.9
+        - eigen
+        - {{ mpi }}
+        - parmetis
+        - petsc
+        - slepc
+        - pkg-config
+        - ptscotch
+        - suitesparse
+        - zlib
+        - fenics-ffc =={{ version }}
+    test:
+      commands:
+        - test -f ${PREFIX}/lib/libdolfin${SHLIB_EXT}
+        - test -f ${PREFIX}/lib/libdolfin.{{ version }}${SHLIB_EXT}  # [osx]
+        - test -f ${PREFIX}/lib/libdolfin${SHLIB_EXT}.{{ version }}  # [linux]
+
+  - name: fenics-dolfin
+    build:
+      script: ${RECIPE_DIR}/build-dolfin.sh
+      script_env:
+        - OMPI_MCA_plm=isolated
+        - OMPI_MCA_rmaps_base_oversubscribe=yes
+        - OMPI_MCA_btl_vader_single_copy_mechanism=none
+    requirements:
+      build:
+        - {{ compiler('c') }}
+        - {{ stdlib("c") }}
+        - {{ compiler('cxx') }}
+      host:
+        - libblas
+        - libcblas
+        - libboost-devel
+        - python
+        - pip
+        - cmake >=3.9
+        - make
+        - pkgconfig
+        - {{ mpi }}
+        - mpi4py
+        - petsc4py
+        - slepc4py
+        - numpy
+        - pybind11
+        - six
+        - sympy >=1
+        - {{ pin_subpackage("fenics-libdolfin", exact=True) }}
+        - fenics-dijitso =={{ version }}
+        - fenics-fiat =={{ version }}
+        - fenics-ufl =={{ version }}
+        - fenics-ffc =={{ version }}
+        # need to list libnetcdf and netcdf-fortran twice to get version
+        # pinning from conda_build_config and build pinning from {{ mpi_prefix }}
+        - hdf5
+        - hdf5 * {{ mpi_prefix }}_*
+      run:
+        - {{ compiler('cxx') }}
+        - python
+        # dolfin depends on the boost headers for its own headers, see
+        # https://bitbucket.org/fenics-project/dolfin/src/master/dolfin/parameter/Parameters.h#lines-24
+        - libboost-headers
+        - setuptools
+        - {{ mpi }}
+        - mpi4py
+        - petsc
+        - petsc4py
+        - slepc
+        - slepc4py
+        - pkgconfig  # Python pkgconfig package
+        - pybind11
+        - {{ pin_compatible('numpy', max_pin=None) }}
+        - six
+        - sympy >=1
+        - {{ pin_subpackage("fenics-libdolfin", exact=True) }}
+        - fenics-dijitso =={{ version }}
+        - fenics-fiat =={{ version }}
+        - fenics-ufl =={{ version }}
+        - fenics-ffc =={{ version }}
+
+    test:
+      commands:
+        - bash ${RECIPE_DIR}/parent/test-dolfin.sh
+      source_files:
+        - dolfin/python/test
+
+      requires:
+        - nose
+        - pytest
+        - git
+        - decorator
+
+  - name: fenics
+    build:
+      skip: true  # [win]
+      script: "echo 1"
+      force_use_keys:
+        - mpi
+    requirements:
+      host:
+        - python
+      run:
+        - python
+        - {{ pin_subpackage("fenics-libdolfin", exact=True) }}
+        - {{ pin_subpackage("fenics-dolfin", exact=True) }}
+    test:
+      commands:
+        - bash ${RECIPE_DIR}/parent/test-fenics.sh
+
+about:
+  home: http://www.fenicsproject.org
+  license: LGPL-3.0-or-later
+  license_file:
+    - dolfin/COPYING
+    - dolfin/COPYING.LESSER
+  summary: 'FEniCS is a collection of free software for automated, efficient solution of differential equations'
+
+  description: |
+    FEniCS is a collection of free software for automated, efficient solution of differential equations
+    (<http://fenicsproject.org>). It provides C++ and Python interfaces, and creates efficient solvers via
+    expression of finite variational statements in a domain-specific language that are transformed and
+    just-in-time compiled into efficient implementations.
+  doc_url: https://fenics.readthedocs.io/
+  dev_url: https://bitbucket.org/fenics-project/
+
+extra:
+  recipe-maintainers:
+    - garth-wells
+    - johannesring
+    - mikaem
+    - minrk
+    - jan-janssen
