@@ -189,7 +189,7 @@ about:
 
   description: |
     FEniCS is a collection of free software for automated, efficient solution of differential equations
-    (<http://fenicsproject.org>). It provides C++ and Python interfaces, and creates effecient solvers via
+    (<http://fenicsproject.org>). It provides C++ and Python interfaces, and creates efficient solvers via
     expression of finite variational statements in a domain-specific language that are transformed and
     just-in-time compiled into efficient implementations.
   doc_url: https://fenics.readthedocs.io/
