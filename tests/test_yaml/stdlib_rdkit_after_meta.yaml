@@ -85,8 +85,6 @@ outputs:
   - name: rdkit-dev
     script: install_rdkit_dev.bat  # [win]
     requirements:
-      build:
-        - {{ stdlib("c") }}
       run:
         - rdkit
     test:
