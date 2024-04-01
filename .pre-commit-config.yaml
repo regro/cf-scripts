@@ -39,9 +39,8 @@ repos:
     hooks:
       - id: codespell
         args:
-          - --ignore-words-list=rever,pring,pullrequest,pullrequests
           - --exclude-file=.codespellignorelines
-          - -L=statics
+          - --ignore-words=.codespellignorewords
   - repo: https://github.com/pycqa/isort
     rev: 5.13.2
     hooks:

@@ -509,7 +509,7 @@ def add_replacement_migrator(
         The package to replace the `old_pkg`.
     rationale : str
         The reason the for the migration. Should be a full statement.
-    alt_migrator : Replacement migrator or a sublcass thereof
+    alt_migrator : Replacement migrator or a subclass thereof
         An alternate Replacement migrator to use for special tasks.
 
     """
