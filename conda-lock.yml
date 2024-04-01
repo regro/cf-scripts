@@ -3953,15 +3953,15 @@ package:
       python: '>=3.11,<3.12.0a0'
       python_abi: 3.11.*
     hash:
-      md5: af0371b024172e00e820709989e65b5d
-      sha256: 46aa8af2fad03324783371a37bb9bee69f32f0867da4adf2800ed471dbb120c5
+      md5: 815fdc530bcde750da71b1e1f1c0bea1
+      sha256: b7597d6fb077d3a3a3a9a9f18a1b2a8b8800a38ca6ce9f4dd3c7fa4e07dcafb6
     manager: conda
     name: frozendict
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/linux-64/frozendict-2.4.0-py311h459d7ec_0.conda
-    version: 2.4.0
+      https://conda.anaconda.org/conda-forge/linux-64/frozendict-2.4.1-py311h459d7ec_0.conda
+    version: 2.4.1
   - category: main
     dependencies:
       python: '>=3.11,<3.12.0a0'
@@ -3981,15 +3981,15 @@ package:
       python: '>=3.11,<3.12.0a0'
       python_abi: 3.11.*
     hash:
-      md5: 2d71cf18b3b01ac1d180b3029ce81a30
-      sha256: 7df09d0233a77aac1560eca38c3f0b480b27b0b82b00cac1a759c06c5c815fe7
+      md5: 53f0ecdcfffbbe98ce2110a251216fad
+      sha256: 0b7dab8f935ed6a3421fbccfb0751ee2c48138ca5000665195de385a437c78d3
     manager: conda
     name: frozendict
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/osx-arm64/frozendict-2.4.0-py311h05b510d_0.conda
-    version: 2.4.0
+      https://conda.anaconda.org/conda-forge/osx-arm64/frozendict-2.4.1-py311h05b510d_0.conda
+    version: 2.4.1
   - category: main
     dependencies:
       python: '>=3.8'
