@@ -87,6 +87,7 @@ from conda_forge_tick.migrators import (
     PipWheelMigrator,
     QtQtMainMigrator,
     Replacement,
+    StdlibMigrator,
     UpdateCMakeArgsMigrator,
     UpdateConfigSubGuessMigrator,
     Version,
@@ -508,7 +509,7 @@ def add_replacement_migrator(
         The package to replace the `old_pkg`.
     rationale : str
         The reason the for the migration. Should be a full statement.
-    alt_migrator : Replacement migrator or a sublcass thereof
+    alt_migrator : Replacement migrator or a subclass thereof
         An alternate Replacement migrator to use for special tasks.
 
     """
@@ -688,6 +689,10 @@ def add_rebuild_migration_yaml(
         piggy_back_migrations.append(JpegTurboMigrator())
     if migration_name == "boost_cpp_to_libboost":
         piggy_back_migrations.append(LibboostMigrator())
+    if migration_name == "boost1840":
+        # testing phase: only a single migration
+        # TODO: piggyback for all migrations
+        piggy_back_migrations.append(StdlibMigrator())
     cycles = list(nx.simple_cycles(total_graph))
     migrator = MigrationYaml(
         migration_yaml,

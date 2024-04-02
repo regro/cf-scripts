@@ -11,7 +11,7 @@ ci:
 
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.0.1
+    rev: v4.5.0
     hooks:
       - id: end-of-file-fixer
       - id: trailing-whitespace
@@ -29,19 +29,18 @@ repos:
       types:
         - python
   - repo: https://github.com/asottile/pyupgrade
-    rev: v2.29.0
+    rev: v3.15.2
     hooks:
       - id: pyupgrade
         args:
           - --py36-plus
   - repo: https://github.com/codespell-project/codespell
-    rev: v2.1.0
+    rev: v2.2.6
     hooks:
       - id: codespell
         args:
-          - --ignore-words-list=rever,pring,pullrequest,pullrequests
           - --exclude-file=.codespellignorelines
-          - -L=statics
+          - --ignore-words=.codespellignorewords
   - repo: https://github.com/pycqa/isort
     rev: 5.13.2
     hooks:

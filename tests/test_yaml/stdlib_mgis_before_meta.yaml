@@ -1,0 +1,72 @@
+{% set name = "mgis" %}
+{% set version = "1.9.0" %}
+
+package:
+  name: '{{ name|lower }}'
+  version: '{{ version }}'
+
+source:
+  # fake source url to get version migrator to pass
+  - url: https://github.com/scipy/scipy/archive/refs/tags/v{{ version }}.tar.gz
+    sha256: b6d893dc7dcd4138b9e9df59a13c59695e50e80dc5c2cacee0674670693951a1
+  # - fn: '{{ name }}_{{ version }}.tar.gz'
+  #   url: https://github.com/thelfer/MFrontGenericInterfaceSupport/archive/refs/tags/MFrontGenericInterfaceSupport-{{ version }}.tar.gz
+  #   sha256: b3776d7b3a534ca626525a42b97665f7660ae2b28ea57b3f53fd7e8538da1ceb
+  #   patches:
+  #     - patches/site_packages_override_on_windows.patch  # [win]
+
+build:
+  number: 0
+  detect_binary_files_with_prefix: true
+  skip: true  # [py2k or osx or (python_impl == 'pypy')]
+  skip: true  # [win and py<39]
+
+requirements:
+  build:
+    - "{{ compiler('c') }}"
+    - "{{ compiler('cxx') }}"
+    - "{{ compiler('fortran') }}"  # [not win]
+    - cmake >=3.26.4
+    - ninja                       # [win]
+    - autoconf                    # [not win]
+    - make                        # [not win]
+
+  host:
+    - python
+    - libboost-python-devel
+    - numpy
+    - mfront 4.2.0
+
+  run:
+    - mfront
+    - python
+
+test:
+  imports:
+    - mgis
+  requires:
+    - pip
+  commands:
+    - pip check
+    # Check for libMFrontGenericInterface.so library
+    - test -f $PREFIX/lib/libMFrontGenericInterface.so                      # [not win]
+    - test -f $PREFIX/include/MGIS/Config.hxx                               # [not win]
+    - test -f $PREFIX/share/mgis/cmake/MFrontGenericInterfaceConfig.cmake   # [not win]
+
+
+about:
+  home: https://thelfer.github.io/mgis/web/index.html
+  license: LGPL-3.0-or-later and CECILL-C
+  license_file:
+    - LGPL-3.0.txt
+    - CeCILL-C_V1-en.txt
+    - CeCILL-C_V1-fr.txt
+  summary: 'MGIS - MFrontGenericInterfaceSupport '
+  description: |
+    This project aims at proving tools (functions, classes, bindings, etc…) to handle behaviours written using MFront generic interface
+  doc_url: https://github.com/thelfer/MFrontGenericInterfaceSupport
+
+extra:
+  recipe-maintainers:
+    - Krande
+    - ldallolio

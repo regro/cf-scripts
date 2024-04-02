@@ -267,7 +267,7 @@ def _try_to_update_version(cmeta: Any, src: str, hash_type: str):
                     context[key.split(CONDA_SELECTOR)[0]] = val
             else:
                 context[key] = val
-        # this pulls out any jinja2 expressions that are not constans
+        # this pulls out any jinja2 expressions that are not constants
         # e.g. bits of jinja2 that extract version parts
         evaled_context = cmeta.eval_jinja2_exprs(context)
         logger.info("jinja2 context: %s", pprint.pformat(context))

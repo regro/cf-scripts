@@ -1,0 +1,111 @@
+{% set name = "rdkit" %}
+{% set version = "1.10.0" %}
+{% set filename = "Release_%s.tar.gz" % version.replace(".", "_") %}
+
+package:
+  name: {{ name|lower }}
+  version: {{ version }}
+
+source:
+  # fake source url to get version migrator to pass
+  url: https://github.com/scipy/scipy/archive/refs/tags/v{{ version }}.tar.gz
+  sha256: 3f9e587a96844a9b4ee7f998cfe4dc3964dc95c4ca94d7de6a77bffb99f873da
+  # fn: {{ filename }}
+  # url: https://github.com/rdkit/rdkit/archive/{{ filename }}
+  # sha256: e8f580db8fe14070d009adafb1f0e5b15c12ebe6c1cf4e99085c0615be3996fc
+
+  patches:
+    - pyproject.patch
+
+build:
+  number: 0
+  skip: true  # [aarch64]
+  missing_dso_whitelist:
+    - '*/RDKit*dll'  # [win]
+
+requirements:
+  build:
+    - python                                 # [build_platform != target_platform]
+    - cross-python_{{ target_platform }}     # [build_platform != target_platform]
+    - numpy                                  # [build_platform != target_platform]
+    - {{ compiler('cxx') }}
+    - {{ stdlib("c") }}
+    - cmake
+    - jom  # [win]
+    - make  # [unix]
+    - pkg-config
+  host:
+    - libboost-python-devel
+    - cairo
+    - eigen
+    - freetype
+    - python
+    - numpy
+    - pillow
+    - pandas <2.2
+    - pip
+    - setuptools
+    - setuptools_scm >=8
+    # For rdkit-stubs
+    - pybind11-stubgen
+  run:
+    - cairo
+    - python
+    - pillow
+    - pandas <2.2
+    - {{ pin_compatible('numpy') }}
+    - pycairo
+    - matplotlib-base
+    - sqlalchemy
+    - reportlab
+
+test:
+  commands:
+    - python -c "import rdkit; assert rdkit.__version__ == '{{ version }}'"
+  imports:
+    - rdkit
+    - rdkit.Avalon
+    - rdkit.Chem
+    - rdkit.Chem.AllChem
+    - rdkit.Chem.rdFreeSASA
+    - rdkit.DataManip
+    - rdkit.Dbase
+    - rdkit.DistanceGeometry
+    - rdkit.ForceField
+    - rdkit.Geometry
+    - rdkit.ML
+    - rdkit.Numerics
+    - rdkit.SimDivFilters
+    - rdkit.VLib
+    - rdkit.VLib.NodeLib
+    - rdkit.Chem.PandasTools
+
+outputs:
+  - name: rdkit
+  - name: rdkit-dev
+    script: install_rdkit_dev.bat  # [win]
+    requirements:
+      run:
+        - rdkit
+    test:
+      commands:
+        - if not exist %LIBRARY_INC%\\rdkit\\Catalogs\\Catalog.h exit 1   # [win]
+    about:
+      summary: RDKit headers and library used in rdkit package
+      license: BSD-3-Clause
+      license_file: license.txt
+
+about:
+  home: http://rdkit.org
+  license: BSD-3-Clause
+  license_file: license.txt
+  summary: RDKit is a collection of cheminformatics and machine-learning software written in C++ and Python.
+  doc_url: http://www.rdkit.org/docs/index.html
+  dev_url: https://github.com/rdkit/rdkit
+
+extra:
+  recipe-maintainers:
+    - greglandrum
+    - pstjohn
+    - mcs07
+    - jaimergp

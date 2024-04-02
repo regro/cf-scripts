@@ -1,0 +1,52 @@
+{% set name = "sinabs" %}
+{% set version = "1.9.0" %}
+
+package:
+  name: {{ name|lower }}
+  version: {{ version }}
+
+source:
+  # fake source url to get version migrator to pass
+  url: https://github.com/scipy/scipy/archive/refs/tags/v{{ version }}.tar.gz
+  sha256: b6d893dc7dcd4138b9e9df59a13c59695e50e80dc5c2cacee0674670693951a1
+  # url: https://pypi.io/packages/source/{{ name[0] }}/{{ name }}/sinabs-{{ version }}.tar.gz
+  # sha256: 0277cba4dbdac68f0d71c9ee7df40283059a03372e026c534d712d16db3be1ee
+
+build:
+  number: 0
+  noarch: python
+  script: {{ PYTHON }} -m pip install . -vv
+
+requirements:
+  build:
+    - sysroot_linux-64 ==2.17                # [linux64]
+  host:
+    - pbr
+    - pip
+    - python >=3.6
+  run:
+    - numpy
+    - pbr
+    - python >=3.6
+    - pytorch >=1.9.0
+    - onnx
+    - nir
+    - nirtorch
+
+test:
+  imports:
+    - sinabs
+  commands:
+    - pip check
+  requires:
+    - pip
+
+about:
+  home: https://pypi.org/project/sinabs/
+  summary: SynSense Spiking Neural Network simulator for deep neural networks (DNNs).
+  license: AGPL-3.0-only
+  license_file: LICENSE
+
+extra:
+  recipe-maintainers:
+    - Tobias-Fischer

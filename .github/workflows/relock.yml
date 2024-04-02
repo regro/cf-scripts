@@ -3,7 +3,7 @@ name: relock
 on:
   workflow_dispatch: null
   schedule:
-    - cron:  '*/15 * * * *'
+    - cron:  '15 */3 * * *'
 
 concurrency: relock
 
@@ -41,15 +41,13 @@ jobs:
         with:
           commit-message: relock w/ conda-lock
           title: relock w/ conda-lock
-          body: >
-            This pull request relocks the dependencies with conda-lock.
-
-            ${{ steps.relock.outputs.SUMMARY }}
+          body: "This pull request relocks the dependencies with conda-lock.\n\n${{ steps.relock.outputs.SUMMARY }}"
           branch: relock-deps
           delete-branch: true
           token: ${{ secrets.AUTOTICK_BOT_TOKEN }}
           committer: regro-cf-autotick-bot <36490558+regro-cf-autotick-bot@users.noreply.github.com>
           author: regro-cf-autotick-bot <36490558+regro-cf-autotick-bot@users.noreply.github.com>
+          labels: dependencies
 
       - name: automerge
         if: ${{ steps.pr.outputs.pull-request-number != '' }}

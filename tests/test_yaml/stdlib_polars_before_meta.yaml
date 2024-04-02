@@ -1,0 +1,74 @@
+{% set name = "polars" %}
+{% set version = "1.9.0" %}
+
+package:
+  name: {{ name|lower }}
+  version: {{ version }}
+
+source:
+  # fake source url to get version migrator to pass
+  - url: https://github.com/scipy/scipy/archive/refs/tags/v{{ version }}.tar.gz
+    sha256: b6d893dc7dcd4138b9e9df59a13c59695e50e80dc5c2cacee0674670693951a1
+  # - url: https://pypi.io/packages/source/{{ name[0] }}/{{ name }}/polars-{{ version }}.tar.gz
+  #   sha256: ec742fdf41e16ff699c043259ba94a11bbc2f7dcb978d768495db1ff2b3c5c20
+
+build:
+  number: 0
+  skip: true  # [win and python_impl=="pypy"]
+
+requirements:
+  build:
+    - python                              # [build_platform != target_platform]
+    # there is no cross-python for linux-64 -> win-64
+    - cross-python_{{ target_platform }}  # [build_platform != target_platform and not target_platform == "win-64"]
+    - crossenv                            # [build_platform != target_platform]
+    - maturin >=1.2.1,<2                  # [build_platform != target_platform]
+    - {{ compiler('c') }}
+    - {{ compiler('rust') }}
+    - posix                               # [build_platform == "win-64"]
+    - cmake
+    - make                                # [unix]
+    - cargo-bundle-licenses
+  host:
+    # this is a hacky way to do cross-compilation from linux to windows
+    - python              # [not (build_platform == "linux-64" and target_platform == "win-64")]
+    - pip                 # [not (build_platform == "linux-64" and target_platform == "win-64")]
+    - maturin >=1.2.1,<2  # [not (build_platform == "linux-64" and target_platform == "win-64")]
+  run:
+    - python
+    - numpy >=1.16.0
+    - backports.zoneinfo                   # [py<39]
+    - typing_extensions >=4.0.0            # [py<311]
+    - packaging                            # [py>=310]
+
+test:
+  imports:
+    - polars
+  commands:
+    - pip check
+    - python -c "from polars import DataFrame"
+  requires:
+    - pip
+
+about:
+  home: https://github.com/pola-rs/polars
+  license: MIT
+  license_family: MIT
+  license_file:
+    - LICENSE
+    - THIRDPARTY.yml
+  summary: Polars is a blazingly fast DataFrames library implemented in Rust using Apache Arrow(2) as memory model.
+  doc_url: https://pola-rs.github.io/polars-book/user-guide/index.html
+  dev_url: https://github.com/pola-rs/polars
+
+extra:
+  recipe-maintainers:
+    - borchero
+    - Maxyme
+    - timkpaine
+    - ritchie46
+    - sugatoray
+    - xhochy
+    - dhirschfeld
+    - pavelzw
+    - '0xbe7a'

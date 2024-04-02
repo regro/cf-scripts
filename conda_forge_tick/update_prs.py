@@ -62,7 +62,7 @@ def _update_pr(update_function, dry_run, gx, job, n_jobs):
     with executor("thread", NUM_GITHUB_THREADS) as pool:
         for node_id in tqdm.tqdm(
             node_ids,
-            desc="submiting PR refresh jobs",
+            desc="submitting PR refresh jobs",
             leave=False,
             ncols=80,
         ):

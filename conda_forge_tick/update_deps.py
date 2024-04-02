@@ -198,7 +198,7 @@ def get_dep_updates_and_hints(
     hint : str
         The dependency update hint.
     """
-    if not update_deps or update_deps == "disabled":
+    if update_deps == "disabled":
         # no dependency updates or hinting
         return {}, ""
 
