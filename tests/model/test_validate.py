@@ -24,10 +24,8 @@ NODE_ATTRS_DIR = Path("node_attrs")
 
 KNOWN_BAD_FEEDSTOCKS = {
     "gmatelastoplasticqpot3d",  # missing platforms
-    "tqdm",  # invalid conda-forge.yaml build platform "win:azure"
     "semi-ate-stdf",  # missing platforms
     "thrust",  # missing platforms
-    "make_arq",  # invalid conda-forge.yml build platform "windows"
     "cub",  # missing platforms
     "mamba",  # outdated version field in dependency graph (package.version field removed in meta.yaml)
     "napari",  # outdated version field in dependency graph (package.version field removed in meta.yaml)
@@ -60,7 +58,6 @@ KNOWN_BAD_FEEDSTOCKS = {
     "htbuilder",  # bot.inspect should be bot.inspection in conda-forge.yml
     "stats_arrays",  # "grayskull-update" should be "update-grayskull" in conda-forge.yml
     "textual-fastdatatable",  # bot.inspect should be bot.inspection in conda-forge.yml
-    "aiohttp",  # bot.inspect should be bot.inspection in conda-forge.yml
     "buildbot",  # bot.inspect should be bot.inspection in conda-forge.yml
     "sqlalchemy-drill",  # "grayskull-update" should be "update-grayskull" in conda-forge.yml
     "sphinx-sitemap",  # typo in bot.inspection (conda-forge.yml)
@@ -72,23 +69,16 @@ KNOWN_BAD_FEEDSTOCKS = {
     "dnspython",  # "grayskull-update" should be "update-grayskull" in conda-forge.yml
     "pyobjc-framework-corebluetooth",  # bot.inspect should be bot.inspection in conda-forge.yml
     "azure-storage-queue",  # bot.inspect should be bot.inspection in conda-forge.yml
-    "pymc-marketing",  # typo in bot.inspection (conda-forge.yml)
     "graphite2",  # provider.win has invalid value "win".
-    "lbapcommon",  # provider.osx_arm64 has invalid value "osx_64". See issue #64 of the feedstock.
     "root",  # provider.osx_arm64 has invalid value "osx_64". See issue #238 of the feedstock.
-    "vector-classes",  # provider.osx_arm64 has invalid value "osx_64". See issue #9 of the feedstock.
     "espaloma",  # typo in `conda-forge.yml`.azure
     "sparc-x",  # `conda-forge.yml`.channels is unexpected
     "jupyter_core",  # `conda-forge.yml`.abi_migration_branches is unexpected, should be moved to `conda-forge.yml`.bot
-    "rerun-sdk",  # unrecognized field `conda-forge.yml`.azure.artifact_retention_days
     "bamnostic",  # unrecognized field `conda-forge.yml`.build
     "r-v8",  # unrecognized field `conda-forge.yml`.github.win
     "python-utils",  # unrecognized field `conda-forge.yml`.dependencies
     "pyrosm",  # unrecognized option `conda-forge.yml`.build, legacy field `conda-forge.yml`.matrix does not validate
     "sketchnu",  # `conda-forge.yml`.conda_build.pkg_format may not be None
-    "fd-find",  # invalid `conda-forge.yml`.test_on_native_only value
-    "micromamba",  # invalid value for `conda-forge.yml`.channel_priority
-    "conda-build",  # unrecognized field `conda-forge.yml`.remote-ci-setup - use _ instead of -!
     "sense2vec",  # `conda-forge.yml`.channels is unexpected
     "mpi4py",  # legacy field `conda-forge.yml`.matrix needs further investigation
     "rpaframework",  # `conda-forge.yml`.channel_priority has invalid value "False"
@@ -97,10 +87,9 @@ KNOWN_BAD_FEEDSTOCKS = {
     "sccache",  # `conda-forge.yml`.linux_aarch64 should be removed (see above)
     "cmdstan",  # `conda-forge.yml`.linux_aarch64 and linux_ppc64le should be removed (see above)
     "uarray",  # `conda-forge.yml`.linux_ppc64le and linux_aarch64 should be removed (see above)
-    "sourmash-minimal",  # `conda-forge.yml`.linux_ppc64le and linux_aarch64 should be removed (see above)
     "libtk",  # `conda-forge.yml`.linux_ppc64le and linux_aarch64 should be removed (see above)
     "libsimpleitk",  # `conda-forge.yml`.linux_ppc64le and linux_aarch64 should be removed (see above)
-    "stackvana-afw",  # `conda-forge.yml`.remote_ci_setup must be list
+    "pnab",  # missing build number in the recipe/meta.yaml
 }
 
 
