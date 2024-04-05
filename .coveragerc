@@ -10,6 +10,7 @@ omit =
     .*version.*
     *_version.py
     *.yaml
+    conda_forge_tick/models/*
 
 exclude_lines =
     if __name__ == '__main__':
