@@ -1,0 +1,19 @@
+#!/bin/bash -il
+
+set -exo pipefail
+
+conda activate base
+
+conda install conda-lock --yes
+conda-lock install -n cf-scripts $AUTOTICK_BOT_DIR/conda-lock.yml
+conda clean --all --yes
+
+conda activate cf-scripts
+cd $AUTOTICK_BOT_DIR
+pip install --no-deps --no-build-isolation -e .
+cd -
+conda deactivate
+
+# Lucky group gets permission to write in the conda dir
+chown -R root /opt/conda
+chgrp -R lucky /opt/conda && chmod -R g=u /opt/conda
