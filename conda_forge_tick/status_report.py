@@ -423,7 +423,7 @@ def main() -> None:
                     regular_status[migrator_name] = f"{migrator.name} Migration Status"
             else:
                 regular_status[migrator_name] = f"{migrator.name} Migration Status"
-            status, build_order, gv = graph_migrator_status(migrator, mctx.graph)
+            status, _, gv = graph_migrator_status(migrator, mctx.graph)
             num_viz = status.pop("_num_viz", 0)
             with open(
                 os.path.join(f"./status/migration_json/{migrator_name}.json"),

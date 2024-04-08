@@ -125,7 +125,7 @@ def test_update_run_deps():
         os.path.join(os.path.dirname(__file__), "test_yaml", "depfinder.json"),
     ) as f:
         attrs = load(f)
-    d, rs = get_grayskull_comparison(attrs)
+    d, _ = get_grayskull_comparison(attrs)
     lines = attrs["raw_meta_yaml"].splitlines()
     lines = [ln + "\n" for ln in lines]
     recipe = CondaMetaYAML("".join(lines))
@@ -230,7 +230,6 @@ def test_get_dep_updates_and_hints_praw():
         "new_version": "7.7.0",
     }
     with tempfile.TemporaryDirectory() as tmpdir:
-
         recipe = Path(tmpdir) / "meta.yaml"
         recipe.write_text(praw_recipe)
 

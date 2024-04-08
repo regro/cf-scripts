@@ -65,15 +65,12 @@ def next_version(ver: str, increment_alpha: bool = False) -> Iterator[str]:
     ver_dot_split = ver.split(".")
     n_dot = len(ver_dot_split)
     for idot, sdot in enumerate(ver_dot_split):
-
         ver_under_split = sdot.split("_")
         n_under = len(ver_under_split)
         for iunder, sunder in enumerate(ver_under_split):
-
             ver_dash_split = sunder.split("-")
             n_dash = len(ver_dash_split)
             for idash, sdash in enumerate(ver_dash_split):
-
                 for el in _split_alpha_num(sdash):
                     ver_split.append(el)
 

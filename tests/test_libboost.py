@@ -1,7 +1,6 @@
 import os
 
 import pytest
-from flaky import flaky
 from test_migrators import run_test_migration
 
 from conda_forge_tick.migrators import LibboostMigrator, Version

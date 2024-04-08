@@ -329,7 +329,7 @@ def _main_import_to_pkg(max_artifacts: int):
     logger.info(
         f"Found {len(new_files)} new files to index "
         f"out of {len(all_files)} total "
-        f"({(1 - len(new_files)/len(all_files))*100:0.4}% indexed).",
+        f"({(1 - len(new_files) / len(all_files)) * 100:0.4}% indexed).",
     )
 
     with ProcessPoolExecutor(max_workers=4) as exc:
@@ -363,7 +363,7 @@ def _main_import_to_pkg(max_artifacts: int):
         ):
             f, fext = futures.pop(future)
             files_indexed.add(fext)
-            imports, files = future.result()
+            imports, _ = future.result()
             pkg = f.rsplit("-", 2)[0]
             for impt in imports:
                 import_map[impt].add(pkg)

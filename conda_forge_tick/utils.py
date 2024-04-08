@@ -523,23 +523,19 @@ def github_client() -> github3.GitHub:
 
 
 @typing.overload
-def as_iterable(x: dict) -> Tuple[dict]:
-    ...
+def as_iterable(x: dict) -> Tuple[dict]: ...
 
 
 @typing.overload
-def as_iterable(x: str) -> Tuple[str]:
-    ...
+def as_iterable(x: str) -> Tuple[str]: ...
 
 
 @typing.overload
-def as_iterable(x: Iterable[T]) -> Iterable[T]:
-    ...
+def as_iterable(x: Iterable[T]) -> Iterable[T]: ...
 
 
 @typing.overload
-def as_iterable(x: T) -> Tuple[T]:
-    ...
+def as_iterable(x: T) -> Tuple[T]: ...
 
 
 @typing.no_type_check

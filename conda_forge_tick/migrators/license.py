@@ -135,7 +135,6 @@ def _scrape_license_string(pkg):
     logger.info("LICENSE running cran skeleton for pkg %s" % pkg)
 
     with tempfile.TemporaryDirectory() as tmpdir, pushd(tmpdir):
-
         subprocess.run(
             [
                 "conda",
@@ -310,7 +309,7 @@ class LicenseMigrator(MiniMigrator):
                         + "\n"
                         + ws
                         + "license_file: \n"
-                        + "".join(f"{ws*2}- {z} \n" for z in license_files),
+                        + "".join(f"{ws * 2}- {z} \n" for z in license_files),
                         "meta.yaml",
                     )
 
