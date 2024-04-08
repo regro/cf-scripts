@@ -14,6 +14,9 @@ pip install --no-deps --no-build-isolation -e .
 cd -
 conda deactivate
 
+# put in new entrypoint
+cp $AUTOTICK_BOT_DIR/docker/entrypoint /opt/docker/bin/entrypoint
+
 # Lucky group gets permission to write in the conda dir
 chown -R root /opt/conda
 chgrp -R lucky /opt/conda && chmod -R g=u /opt/conda
