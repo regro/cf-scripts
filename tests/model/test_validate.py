@@ -95,12 +95,14 @@ KNOWN_BAD_FEEDSTOCKS = {
 
 def pytest_generate_tests(metafunc):
     files = list(NODE_ATTRS_DIR.rglob("*.json"))
-    valid_files = [f for f in files if f.stem not in KNOWN_BAD_FEEDSTOCKS]
-    invalid_files = [f for f in files if f.stem in KNOWN_BAD_FEEDSTOCKS]
+    valid_files = [f.stem for f in files if f.stem not in KNOWN_BAD_FEEDSTOCKS]
+    invalid_files = [f.stem for f in files if f.stem in KNOWN_BAD_FEEDSTOCKS]
 
     if not files:
-        raise ValueError(
-            "No node attributes files found. Make sure the cf-graph is in the current working directory."
+        warnings.warn(
+            "No node attributes files found. Make sure these tests are run "
+            "from within the cf-graph-countyfair repository in order to do full "
+            "schema valiudation."
         )
 
     nonexistent_bad_feedstocks = [
@@ -114,10 +116,10 @@ def pytest_generate_tests(metafunc):
         )
 
     if "node_file_valid" in metafunc.fixturenames:
-        metafunc.parametrize("node_file_valid", valid_files, ids=lambda x: x.stem)
+        metafunc.parametrize("node_file_valid", valid_files)
 
     if "node_file_invalid" in metafunc.fixturenames:
-        metafunc.parametrize("node_file_invalid", invalid_files, ids=lambda x: x.stem)
+        metafunc.parametrize("node_file_invalid", invalid_files)
 
 
 def test_validate_node_attrs_valid(node_file_valid):
