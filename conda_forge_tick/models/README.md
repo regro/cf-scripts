@@ -45,19 +45,33 @@ Undocumented.
 
 ### `node_attrs`
 One file per conda-forge package containing metadata about the package.
+
 Pydantic Model: `NodeAttributes` in [node_attributes.py](node_attributes.py).
 
 ### `pr_info`
-Undocumented.
+One file per conda-forge package containing information about pull requests that have been created for performing
+migrations (including version migrations). Not all packages have a file in this directory.
+Every file is this directory is referenced by the `NodeAttributes.pr_info` field using a Lazy JSON reference.
+
+Pydantic Model: `PRInfo` in [pr_info.py](pr_info.py).
 
 ### `pr_json`
-Undocumented.
+One file per pull request (filename: `<pr_id>.json`) containing information about a migration-related GitHub pull
+request.
+Previously, the data of this directory was inlined in the `pr_info` files (and in some instances, it still is), but
+today Lazy JSON references are used to link to `pr_json` files.
+
+Pydantic Model: `PullRequestData` in [pr_json.py](pr_json.py).
 
 ### `version_pr_info`
-Undocumented.
+This directory is NOT analogous to `pr_info`. It contains metadata about attempted version migrations, and is
+referenced by the `NodeAttributes.version_pr_info` field using a Lazy JSON reference.
 
 ### `versions`
 One file per conda-forge package containing upstream version update information about the package.
+For some packages, this file may not exist, indicating absent upstream version update information.
+
+Pydantic Model: `Versions` in [versions.py](versions.py).
 
 ### `graph.json`
 The JSON representation of a [networkx](https://networkx.org/) graph. The graph is a directed graph, where the nodes

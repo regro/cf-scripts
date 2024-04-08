@@ -1,6 +1,17 @@
+import email.utils
+from datetime import datetime
 from typing import Annotated, Any, Generic, Literal, Never, TypeVar
 
-from pydantic import BaseModel, BeforeValidator, ConfigDict, Field, UrlConstraints
+from conda.exceptions import InvalidVersionSpec
+from conda.models.version import VersionOrder
+from pydantic import (
+    AfterValidator,
+    BaseModel,
+    BeforeValidator,
+    ConfigDict,
+    Field,
+    UrlConstraints,
+)
 from pydantic_core import Url
 
 T = TypeVar("T")
@@ -15,6 +26,19 @@ class StrictBaseModel(BaseModel):
 
 class ValidatedBaseModel(BaseModel):
     model_config = ConfigDict(validate_assignment=True, extra="allow")
+
+
+def before_validator_ensure_dict(value: Any) -> dict:
+    """
+    Ensure that a value is a dictionary. If it is not, raise a ValueError.
+    """
+    if not isinstance(value, dict):
+        raise ValueError(
+            "We only support validating dicts. Pydantic supports calling model_validate with some "
+            "other objects (e.g. in conjunction with construct), but we do not. "
+            "See https://docs.pydantic.dev/latest/concepts/validators/#model-validators"
+        )
+    return value
 
 
 class Set(StrictBaseModel, Generic[T]):
@@ -104,9 +128,18 @@ A type that can only receive `False` or `None` and converts it to `None`.
 """
 
 
+def parse_rfc_2822_date(value: str) -> datetime:
+    if not isinstance(value, str):
+        raise ValueError("value must be a string")
+    return email.utils.parsedate_to_datetime(value)
+
+
+RFC2822Date = Annotated[datetime, BeforeValidator(parse_rfc_2822_date)]
+
+
 def none_to_empty_dict(value: T | None) -> T | dict[Never, Never]:
     """
-    Convert `None` to an empty dictionary, otherwise keep the value as is.
+    Convert `None` to an empty dictionary f, otherwise keep the value as is.
     """
     if value is None:
         return {}
@@ -122,14 +155,43 @@ A generic dict type that converts `None` to an empty dict.
 GitUrl = Annotated[Url, UrlConstraints(allowed_schemes=["git"])]
 
 
-class LazyJsonReference(StrictBaseModel):
+def try_parse_conda_version(value: str) -> str:
+    try:
+        VersionOrder(value)
+    except InvalidVersionSpec as e:
+        raise ValueError(f"Value '{value}' is not a valid conda version string: {e}")
+    return value
+
+
+CondaVersionString = Annotated[str, AfterValidator(try_parse_conda_version)]
+"""
+A string that matches conda version numbers.
+"""
+
+# TODO: There should be an elegant pydantic way to resolve LazyJSON references, generically
+
+
+class PrInfoLazyJsonReference(StrictBaseModel):
     """
-    A lazy reference to a JSON object.
+    A lazy reference to a pr_info JSON object.
     """
 
-    # TODO: There should be an elegant pydantic way to resolve LazyJSON references.
+    json_reference: str = Field(pattern=r"pr_info/.*\.json$", alias="__lazy_json__")
 
-    json_reference: str = Field(pattern=r".*\.json$", alias="__lazy_json__")
+
+class VersionPrInfoLazyJsonReference(StrictBaseModel):
     """
-    The JSON file reference.
+    A lazy reference to a version_pr_info JSON object.
     """
+
+    json_reference: str = Field(
+        pattern=r"version_pr_info/.*\.json$", alias="__lazy_json__"
+    )
+
+
+class PrJsonLazyJsonReference(StrictBaseModel):
+    """
+    A lazy reference to a pr_json JSON object.
+    """
+
+    json_reference: str = Field(pattern=r"pr_json/.*\.json$", alias="__lazy_json__")

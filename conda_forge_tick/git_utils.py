@@ -31,21 +31,15 @@ backoff._decorator._is_event_loop = lambda: False
 
 MAX_GITHUB_TIMEOUT = 60
 
-DUMMY_BOT_RERUN_METADATA = {
-    "color": "191970",
-    "default": False,
-    "description": "Instruct the bot to retry the PR",
-    "id": 1,
+BOT_RERUN_LABEL = {
     "name": "bot-rerun",
-    "node_id": "hello",
-    "url": "world",
 }
 
 CF_BOT_NAMES = {"regro-cf-autotick-bot", "conda-forge-linter"}
 
 # these keys are kept from github PR json blobs
 # to add more keys to keep, put them in the right spot in the dict and
-# set them to None.
+# set them to None. Also add them to the PullRequestInfo Pydantic model!
 PR_KEYS_TO_KEEP = {
     "ETag": None,
     "Last-Modified": None,
@@ -761,7 +755,7 @@ def close_out_dirty_prs(
                 # is to add the bot to conda-forge and then
                 # it should have label adding capability and we can just add
                 # the label properly
-                d["labels"].append(DUMMY_BOT_RERUN_METADATA)
+                d["labels"].append(BOT_RERUN_LABEL)
 
         return d
 

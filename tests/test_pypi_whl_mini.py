@@ -106,7 +106,7 @@ def test_migrate_opentelemetry(tmp_dir_with_conf):
         prb="Dependencies have been updated if changed",
         kwargs={"new_version": "0.23b2"},
         mr_out={
-            "migrator_name": "Version",
+            "migrator_name": Version.name,
             "migrator_version": Version.migrator_version,
             "version": "0.23b2",
         },

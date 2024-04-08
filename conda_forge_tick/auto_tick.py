@@ -122,15 +122,6 @@ MAX_PR_LIMIT = 50
 MAX_SOLVER_ATTEMPTS = 50
 CHECK_SOLVABLE_TIMEOUT = 90  # 90 days
 
-BOT_RERUN_LABEL = {
-    "name": "bot-rerun",
-    "color": "#191970",
-    "description": (
-        "Apply this label if you want the bot to retry "
-        "issuing a particular pull-request"
-    ),
-}
-
 BOT_HOME_DIR: str = os.getcwd()
 
 # migrator runs on loop so avoid any seeds at current time should that happen
