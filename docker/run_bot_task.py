@@ -5,7 +5,6 @@ from io import StringIO
 
 import click
 
-from conda_forge_tick.feedstock_parser import load_feedstock
 from conda_forge_tick.lazy_json_backends import (
     LazyJson,
     dumps,
@@ -52,26 +51,6 @@ def _handle_existing_feedstock_node_attrs(existing_feedstock_node_attrs):
 @click.group()
 def cli():
     pass
-
-
-@cli.command(name="parse-feedstock")
-@existing_feedstock_node_attrs_option
-def parse_feedstock(existing_feedstock_node_attrs):
-    node_attrs_file = _handle_existing_feedstock_node_attrs(
-        existing_feedstock_node_attrs
-    )
-
-    name = os.path.basename(node_attrs_file)[: -len(".json")]
-    with open(node_attrs_file) as fp:
-        attrs = load(fp)
-
-    outerr = StringIO()
-    with redirect_stdout(outerr), redirect_stderr(outerr):
-        load_feedstock(
-            name,
-            attrs,
-        )
-    print(dumps(attrs))
 
 
 @cli.command(name="update-version")
