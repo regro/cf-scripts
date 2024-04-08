@@ -3,7 +3,11 @@ import subprocess
 
 import conda_smithy
 
-from conda_forge_tick.lazy_json_backends import LazyJson, dumps, lazy_json_override_backends
+from conda_forge_tick.lazy_json_backends import (
+    LazyJson,
+    dumps,
+    lazy_json_override_backends,
+)
 
 
 def test_container_tasks_version():
@@ -17,9 +21,9 @@ def test_container_tasks_version():
             "python",
             "/opt/autotick-bot/docker/run_bot_task.py",
             "update-version",
-            "--existing-feedstock-node-attrs=conda-smithy"
+            "--existing-feedstock-node-attrs=conda-smithy",
         ],
-        capture_output=True
+        capture_output=True,
     )
     assert res.returncode == 0
     data = json.loads(res.stdout.decode("utf-8"))
@@ -44,7 +48,7 @@ def test_container_tasks_version_json():
             "--existing-feedstock-node-attrs",
             existing_feedstock_node_attrs,
         ],
-        capture_output=True
+        capture_output=True,
     )
     assert res.returncode == 0
     data = json.loads(res.stdout.decode("utf-8"))
