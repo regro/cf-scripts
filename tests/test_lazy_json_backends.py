@@ -8,6 +8,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
+import conda_forge_tick
 import conda_forge_tick.utils
 from conda_forge_tick.lazy_json_backends import (
     CF_TICK_GRAPH_GITHUB_BACKEND_BASE_URL,
@@ -31,8 +32,12 @@ from conda_forge_tick.lazy_json_backends import (
 )
 from conda_forge_tick.os_utils import pushd
 
+HAVE_MONGODB = (
+    "MONGODB_CONNECTION_STRING" in conda_forge_tick.global_sensitive_env.clasified_info
+)
 
-@pytest.mark.skipif("MONGODB_CONNECTION_STRING" not in os.environ, reason="no mongodb")
+
+@pytest.mark.skipif(not HAVE_MONGODB, reason="no mongodb")
 def test_lazy_json_override_backends_global(tmpdir):
     old_backend = conda_forge_tick.lazy_json_backends.CF_TICK_GRAPH_DATA_BACKENDS
     with pushd(tmpdir):
@@ -113,7 +118,7 @@ def test_lazy_json_override_backends_global(tmpdir):
             )
 
 
-@pytest.mark.skipif("MONGODB_CONNECTION_STRING" not in os.environ, reason="no mongodb")
+@pytest.mark.skipif(not HAVE_MONGODB, reason="no mongodb")
 def test_lazy_json_override_backends_global_nocache(tmpdir):
     old_backend = conda_forge_tick.lazy_json_backends.CF_TICK_GRAPH_DATA_BACKENDS
     with pushd(tmpdir):
@@ -172,7 +177,7 @@ def test_lazy_json_override_backends_global_nocache(tmpdir):
             )
 
 
-@pytest.mark.skipif("MONGODB_CONNECTION_STRING" not in os.environ, reason="no mongodb")
+@pytest.mark.skipif(not HAVE_MONGODB, reason="no mongodb")
 @pytest.mark.parametrize(
     "backends",
     [
@@ -227,7 +232,7 @@ def test_lazy_json_backends_sync(backends, tmpdir):
         pytest.param(
             "mongodb",
             marks=pytest.mark.skipif(
-                "MONGODB_CONNECTION_STRING" not in os.environ,
+                not HAVE_MONGODB,
                 reason="no mongodb",
             ),
         ),
@@ -294,7 +299,7 @@ def test_lazy_json_backends_ops(backend, hashmap, tmpdir):
         pytest.param(
             "mongodb",
             marks=pytest.mark.skipif(
-                "MONGODB_CONNECTION_STRING" not in os.environ,
+                not HAVE_MONGODB,
                 reason="no mongodb",
             ),
         ),
@@ -383,7 +388,7 @@ def test_lazy_json_backends_dump_load(tmpdir):
         pytest.param(
             "mongodb",
             marks=pytest.mark.skipif(
-                "MONGODB_CONNECTION_STRING" not in os.environ,
+                not HAVE_MONGODB,
                 reason="no mongodb",
             ),
         ),
