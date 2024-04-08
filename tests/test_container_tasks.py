@@ -1,3 +1,4 @@
+import copy
 import json
 import subprocess
 
@@ -62,7 +63,7 @@ def test_container_tasks_version_json():
 def test_get_latest_version_containerized():
     with lazy_json_override_backends(["github"], use_file_cache=False):
         with LazyJson("node_attrs/conda-smithy.json") as lzj:
-            attrs = dumps(lzj.data)
+            attrs = copy.deepcopy(lzj.data)
 
     data = get_latest_version_containerized(
         "conda-smithy", attrs, all_version_sources()
