@@ -15,7 +15,7 @@ cd -
 conda deactivate
 
 # put in new entrypoint
-cp $AUTOTICK_BOT_DIR/docker/entrypoint /opt/docker/bin/entrypoint
+cp -f $AUTOTICK_BOT_DIR/docker/entrypoint /opt/docker/bin/entrypoint
 
 # Lucky group gets permission to write in the conda dir
 chown -R root /opt/conda
