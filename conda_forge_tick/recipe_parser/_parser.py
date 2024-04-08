@@ -349,7 +349,7 @@ def _replace_jinja2_vars(lines: List[str], jinja2_vars: dict) -> List[str]:
         if _re_sel:
             # if the line has a selector in it, then we need to pull
             # out the right key with the selector from jinja2_vars
-            spc, var, val, sel = _re_sel.group(1, 2, 3, 4)
+            spc, var, _, sel = _re_sel.group(1, 2, 3, 4)
             key = var.strip() + CONDA_SELECTOR + sel
             if key in jinja2_vars:
                 _new_line = (
@@ -367,7 +367,7 @@ def _replace_jinja2_vars(lines: List[str], jinja2_vars: dict) -> List[str]:
                 _new_line = line
         elif _re:
             # no selector
-            spc, var, val, end = _re.group(1, 2, 3, 4)
+            spc, var, _, end = _re.group(1, 2, 3, 4)
             if var.strip() in jinja2_vars:
                 _new_line = (
                     spc

@@ -2,7 +2,6 @@ from conda_forge_tick.git_utils import trim_pr_json_keys
 
 
 def test_trim_pr_json_keys():
-
     pr_json = {
         "ETag": "blah",
         "Last-Modified": "flah",
@@ -20,7 +19,6 @@ def test_trim_pr_json_keys():
 
 
 def test_trim_pr_json_keys_src():
-
     src_pr_json = {
         "ETag": "blah",
         "Last-Modified": "flah",

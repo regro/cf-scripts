@@ -277,10 +277,10 @@ def populate_feedstock_attributes(
                 if "outputs" in variant_yamls[-1]:
                     for iout in range(len(variant_yamls[-1]["outputs"])):
                         if "requirements" in variant_yamls[-1]["outputs"][iout]:
-                            variant_yamls[-1]["outputs"][iout][
-                                "requirements"
-                            ] = _clean_req_nones(
-                                variant_yamls[-1]["outputs"][iout]["requirements"],
+                            variant_yamls[-1]["outputs"][iout]["requirements"] = (
+                                _clean_req_nones(
+                                    variant_yamls[-1]["outputs"][iout]["requirements"],
+                                )
                             )
 
                 # collapse them down

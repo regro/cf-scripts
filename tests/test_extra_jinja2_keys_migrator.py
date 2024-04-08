@@ -1,7 +1,6 @@
 import os
 
 from flaky import flaky
-from ruamel.yaml import YAML
 from test_migrators import run_test_migration
 
 from conda_forge_tick.migrators import ExtraJinja2KeysCleanup, Version

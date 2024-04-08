@@ -194,7 +194,6 @@ class StdlibMigrator(MiniMigrator):
         return already_migrated or not (has_compiler or has_sysroot)
 
     def migrate(self, recipe_dir, attrs, **kwargs):
-        outputs = attrs["meta_yaml"].get("outputs", [])
         feedstock_name = attrs["meta_yaml"]["package"]["name"]
 
         new_lines = []

@@ -127,7 +127,8 @@ class GuardTestingMigrator(CrossCompilationMigratorBase):
                 ):
                     lines.insert(
                         i,
-                        'if [[ "${CONDA_BUILD_CROSS_COMPILATION:-}" != "1" || "${CROSSCOMPILING_EMULATOR}" != "" ]]; then\n',
+                        'if [[ "${CONDA_BUILD_CROSS_COMPILATION:-}" != "1" '
+                        '|| "${CROSSCOMPILING_EMULATOR}" != "" ]]; then\n',
                     )
                     insert_after = i + 1
                     while len(lines) > insert_after and lines[insert_after].endswith(
@@ -405,7 +406,10 @@ class CrossCompilationForARMAndPower(MiniMigrator):
                 'if [[ "$CONDA_BUILD_CROSS_COMPILATION" == "0" ]]; then\n',
                 'if [[ "${CONDA_BUILD_CROSS_COMPILATION}" == "0" ]]; then\n',
             ]
-            new_guard_line = 'if [[ "${CONDA_BUILD_CROSS_COMPILATION:-}" != "1" || "${CROSSCOMPILING_EMULATOR}" != "" ]]; then\n'
+            new_guard_line = (
+                'if [[ "${CONDA_BUILD_CROSS_COMPILATION:-}" != "1" '
+                '|| "${CROSSCOMPILING_EMULATOR}" != "" ]]; then\n'
+            )
             for i, line in enumerate(lines):
                 if (
                     (
