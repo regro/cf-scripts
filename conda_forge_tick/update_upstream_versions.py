@@ -303,9 +303,7 @@ def _update_upstream_versions_process_pool(
         ):
             futures.update(
                 {
-                    pool.submit(
-                        get_latest_version, node, attrs, sources
-                    ): (
+                    pool.submit(get_latest_version, node, attrs, sources): (
                         node,
                         attrs,
                     ),
