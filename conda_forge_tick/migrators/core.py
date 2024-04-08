@@ -197,8 +197,9 @@ class Migrator:
                             "PR"
                         ] as mg_attrs:
                             logger.debug(
-                                "%s: already PRed: PR file: %s"
-                                % (__name, mg_attrs.file_name),
+                                "{}: already PRed: PR file: {}".format(
+                                    __name, mg_attrs.file_name
+                                ),
                             )
 
                             html_url = mg_attrs.get("html_url", "no url")

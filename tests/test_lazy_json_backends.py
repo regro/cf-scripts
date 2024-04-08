@@ -114,6 +114,65 @@ def test_lazy_json_override_backends_global(tmpdir):
 
 
 @pytest.mark.skipif("MONGODB_CONNECTION_STRING" not in os.environ, reason="no mongodb")
+def test_lazy_json_override_backends_global_nocache(tmpdir):
+    old_backend = conda_forge_tick.lazy_json_backends.CF_TICK_GRAPH_DATA_BACKENDS
+    with pushd(tmpdir):
+        try:
+            conda_forge_tick.lazy_json_backends.CF_TICK_GRAPH_DATA_BACKENDS = (
+                "mongodb",
+            )
+            conda_forge_tick.lazy_json_backends.CF_TICK_GRAPH_DATA_PRIMARY_BACKEND = (
+                "mongodb"
+            )
+
+            lzj = LazyJson("blah.json")
+            with lzj as attrs:
+                attrs["hello"] = "world"
+            pbe = LAZY_JSON_BACKENDS["mongodb"]()
+            be = LAZY_JSON_BACKENDS["file"]()
+
+            assert be.hget("lazy_json", "blah") == pbe.hget("lazy_json", "blah")
+            assert be.hget("lazy_json", "blah") == dumps({"hello": "world"})
+
+            with lazy_json_override_backends(["mongodb"], use_file_cache=False):
+                assert (
+                    conda_forge_tick.lazy_json_backends.CF_TICK_GRAPH_DATA_BACKENDS
+                    == ("mongodb",)
+                )
+                assert (
+                    conda_forge_tick.lazy_json_backends.CF_TICK_GRAPH_DATA_PRIMARY_BACKEND
+                    == "mongodb"
+                )
+                used_cache = getattr(
+                    conda_forge_tick.lazy_json_backends,
+                    "CF_TICK_GRAPH_DATA_USE_FILE_CACHE",
+                )
+                assert not used_cache
+                assert get_lazy_json_backends() == ("mongodb",)
+                assert get_lazy_json_primary_backend() == "mongodb"
+                lzj = LazyJson("blah2.json")
+                with lzj as attrs:
+                    attrs["hello"] = "world"
+
+                assert not be.hexists("lazy_json", "blah2")
+                assert be.hexists("lazy_json", "blah")
+                assert pbe.hexists("lazy_json", "blah")
+        finally:
+            for bename in ["file", "mongodb"]:
+                for key in ["blah", "blah2"]:
+                    be = LAZY_JSON_BACKENDS[bename]()
+                    if be.hexists("lazy_json", key):
+                        be.hdel("lazy_json", [key])
+
+            conda_forge_tick.lazy_json_backends.CF_TICK_GRAPH_DATA_BACKENDS = (
+                old_backend
+            )
+            conda_forge_tick.lazy_json_backends.CF_TICK_GRAPH_DATA_PRIMARY_BACKEND = (
+                old_backend[0]
+            )
+
+
+@pytest.mark.skipif("MONGODB_CONNECTION_STRING" not in os.environ, reason="no mongodb")
 @pytest.mark.parametrize(
     "backends",
     [

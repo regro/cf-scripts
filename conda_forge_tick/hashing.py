@@ -41,8 +41,9 @@ def _hash_url(url, hash_type, progress=False, conn=None, timeout=None):
                     eta = (time.time() - t0) / (itr + 1) * (num - (itr + 1))
                     loc = int((itr + 1) / num * 25)
                     print(
-                        "eta % 7.2fs: [%s%s]"
-                        % (eta, "".join(["=" * loc]), "".join([" " * (25 - loc)])),
+                        "eta {: 7.2f}s: [{}{}]".format(
+                            eta, "".join(["=" * loc]), "".join([" " * (25 - loc)])
+                        ),
                     )
                 if timeout is not None:
                     if time.time() - t0 > timeout:
