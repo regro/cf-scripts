@@ -39,6 +39,7 @@ dependencies:
   - packaging
   - psutil
   - pydantic
+  - pydantic-extra-types
   - pygithub
   - pymongo
   - pynamodb

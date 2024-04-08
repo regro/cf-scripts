@@ -12,6 +12,7 @@ from conda.models.version import VersionOrder
 
 from conda_forge_tick.contexts import FeedstockContext
 from conda_forge_tick.migrators.core import Migrator
+from conda_forge_tick.models.pr_info import MigratorName
 from conda_forge_tick.os_utils import pushd
 from conda_forge_tick.update_deps import get_dep_updates_and_hints
 from conda_forge_tick.update_recipe import update_version
@@ -52,7 +53,7 @@ class Version(Migrator):
     max_num_prs = 3
     migrator_version = 0
     rerender = True
-    name = "Version"
+    name = MigratorName.VERSION
 
     def __init__(self, python_nodes, *args, **kwargs):
         self.python_nodes = python_nodes
@@ -87,7 +88,7 @@ class Version(Migrator):
                 [
                     k
                     for k in attrs.get("pr_info", {}).get("PRed", [])
-                    if k["data"].get("migrator_name") == "Version"
+                    if k["data"].get("migrator_name") == Version.name
                     # The PR is the actual PR itself
                     and k.get("PR", {}).get("state", None) == "open"
                 ],
@@ -227,7 +228,7 @@ class Version(Migrator):
         open_version_prs = [
             muid["PR"]
             for muid in feedstock_ctx.attrs.get("pr_info", {}).get("PRed", [])
-            if muid["data"].get("migrator_name") == "Version"
+            if muid["data"].get("migrator_name") == Version.name
             # The PR is the actual PR itself
             and muid.get("PR", {}).get("state", None) == "open"
         ]
