@@ -2,7 +2,8 @@
 
 # Use non-interactive cp
 unalias cp
-useradd --shell /bin/bash -o -c "" -m conda
+groupadd -g 32767 conda-grp
+useradd --shell /bin/bash -g conda-grp -c "" -m conda
 export HOME=/home/conda
 export USER=conda
 export LOGNAME=conda
