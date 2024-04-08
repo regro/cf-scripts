@@ -153,7 +153,7 @@ def get_latest_version(
         raise exceptions[0]
 
     if not new_version:
-        logger.debug(f"Upstream: Could not find version on any source")
+        logger.debug("Upstream: Could not find version on any source")
         return version_data
 
     if ignore_version(attrs, new_version):

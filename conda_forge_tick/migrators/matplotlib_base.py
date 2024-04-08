@@ -53,7 +53,6 @@ class MatplotlibBase(Replacement):
     def migrate(
         self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any
     ) -> "MigrationUidTypedDict":
-
         yum_pth = os.path.join(recipe_dir, "yum_requirements.txt")
         if not os.path.exists(yum_pth):
             yum_lines = []

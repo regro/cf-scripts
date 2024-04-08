@@ -7,7 +7,6 @@ from conda_forge_tick import global_sensitive_env
 
 @pytest.fixture
 def env_setup():
-
     if "TEST_PASSWORD_VAL" not in os.environ:
         old_pwd = os.environ.pop("PASSWORD", None)
         os.environ["PASSWORD"] = "unpassword"

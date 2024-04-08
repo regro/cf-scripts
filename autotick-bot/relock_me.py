@@ -15,6 +15,7 @@ latest contents.
 
 This script also carefully sorts the lockfile so that the git diff is clean and easy to read.
 """
+
 import os
 import shutil
 import subprocess

@@ -85,7 +85,6 @@ class MPIPinRunAsBuildCleanup(MiniMigrator):
     def migrate(self, recipe_dir, attrs, **kwargs):
         fname = os.path.join(recipe_dir, "conda_build_config.yaml")
         if os.path.exists(fname):
-
             with open(fname) as fp:
                 lines = fp.readlines()
 

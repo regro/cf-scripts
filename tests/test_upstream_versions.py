@@ -1248,7 +1248,6 @@ def test_update_upstream_versions_run_sequential(
     include_node_mock: MagicMock,
     filter_nodes_mock: MagicMock,
 ):
-
     gx = nx.DiGraph()
     gx.add_node("testpackage", payload={"version": "1.2.3"})
     gx.add_node("testpackage2", payload={"version": "1.2.4"})
@@ -1613,7 +1612,6 @@ def test_main(
     makedirs_mock: MagicMock,
     debug: bool,
 ):
-
     gx = Mock(nx.DiGraph)
     load_graph_mock.return_value = gx
 

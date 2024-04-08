@@ -878,7 +878,6 @@ def create_migration_yaml_creator(migrators: MutableSequence[Migrator], gx: nx.D
             and gx.nodes[fs_name]["payload"].get("version")
             and fs_name not in feedstocks_to_be_repinned
         ):
-
             current_pins = list(map(str, package_pin_list))
             current_version = str(gx.nodes[fs_name]["payload"]["version"])
 
@@ -1163,7 +1162,6 @@ def _run_migrator(migrator, mctx, temp, time_per, dry_run):
             extra_name,
         ),
     ):
-
         print(
             "\n========================================"
             "========================================"
@@ -1414,8 +1412,8 @@ def _setup_limits():
         limit_gb = float(os.environ["MEMORY_LIMIT_GB"])
         limit = limit_gb * 1e9
         limit_int = int(int(limit) * 0.95)
-        print(f"limit read as {limit/1e9} GB")
-        print(f"Setting memory limit to {limit_int//1e9} GB")
+        print(f"limit read as {limit / 1e9} GB")
+        print(f"Setting memory limit to {limit_int // 1e9} GB")
         resource.setrlimit(resource.RLIMIT_AS, (limit_int, limit_int))
 
 

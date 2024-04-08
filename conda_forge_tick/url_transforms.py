@@ -61,7 +61,6 @@ def _pypi_name_munger(url):
         url.startswith("https://pypi.io")
         or url.startswith("https://files.pythonhosted.org")
     ) and ("{{ version }}" in bn and "{{ name" not in bn):
-
         yield os.path.join(os.path.dirname(url), "{{ name }}-{{ version }}.tar.gz")
 
     yield url
