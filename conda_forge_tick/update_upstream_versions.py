@@ -318,6 +318,19 @@ def _update_upstream_versions_process_pool(
                 version_attrs.update(version_data)
 
 
+def all_version_sources():
+    return (
+        PyPI(),
+        CRAN(),
+        NPM(),
+        ROSDistro(),
+        RawURL(),
+        Github(),
+        IncrementAlphaRawURL(),
+        NVIDIA(),
+    )
+
+
 def update_upstream_versions(
     gx: nx.DiGraph,
     sources: Optional[Iterable[AbstractSource]] = None,
@@ -365,20 +378,7 @@ def update_upstream_versions(
 
     random.shuffle(to_update)
 
-    sources = (
-        (
-            PyPI(),
-            CRAN(),
-            NPM(),
-            ROSDistro(),
-            RawURL(),
-            Github(),
-            IncrementAlphaRawURL(),
-            NVIDIA(),
-        )
-        if sources is None
-        else sources
-    )
+    sources = all_version_sources() if sources is None else sources
 
     updater = (
         _update_upstream_versions_sequential

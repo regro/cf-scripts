@@ -8,6 +8,8 @@ on:
 
 env:
   PY_COLORS: "1"
+  REGISTRY: ghcr.io
+  IMAGE_NAME: conda-forge-tick
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -70,6 +72,10 @@ jobs:
         env:
           MONGODB_CONNECTION_STRING: "mongodb://127.0.0.1:27017/?directConnection=true&serverSelectionTimeoutMS=2000"
 
+      - name: build docker image
+        run: |
+          docker build -t ${{ env.IMAGE_NAME }}:test .
+
       - name: run pytest
         run: |
           export TEST_PASSWORD_VAL=unpassword
@@ -103,3 +109,27 @@ jobs:
           BRANCH: gh-pages # The branch the action should deploy to.
           FOLDER: ./docs/_build/html # The folder the action should deploy.
           CLEAN: true # Automatically remove deleted files from the deploy branch
+
+      - name: log into ghcr.io
+        if: github.ref == 'refs/heads/master' && success()
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: build docker metadata
+        if: github.ref == 'refs/heads/master' && success()
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+
+      - name: build and push image
+        if: github.ref == 'refs/heads/master' && success()
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
