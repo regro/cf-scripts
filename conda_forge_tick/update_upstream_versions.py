@@ -266,7 +266,7 @@ def _update_upstream_versions_sequential(
         # New version request
         try:
             # check for latest version
-            version_data.update(get_latest_version_containerized(node, attrs, sources))
+            version_data.update(get_latest_version(node, attrs, sources))
         except Exception as e:
             try:
                 se = repr(e)
@@ -304,7 +304,7 @@ def _update_upstream_versions_process_pool(
             futures.update(
                 {
                     pool.submit(
-                        get_latest_version_containerized, node, attrs, sources
+                        get_latest_version, node, attrs, sources
                     ): (
                         node,
                         attrs,
