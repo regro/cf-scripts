@@ -70,8 +70,8 @@ ideal.
 
 The backend(s) can be set by using the `CF_TICK_GRAPH_DATA_BACKENDS` environment variable to a colon-separated list of backends (e.g., `export CF_TICK_GRAPH_DATA_BACKENDS=file:mongodb`). The possible backends are:
 
-- `file` (default): Use the local filesystem to store data. In order to properly use this backend, you must clone the `regro/cf-graph-countyfair` repository and run the bot from `regro/cf-graph-countyfair`'s root directory. You can use the `deploy` command from the bot CLI to commit any changes and push them to the remote repository.
+- `file` (default): Use the local file system to store data. In order to properly use this backend, you must clone the `regro/cf-graph-countyfair` repository and run the bot from `regro/cf-graph-countyfair`'s root directory. You can use the `deploy` command from the bot CLI to commit any changes and push them to the remote repository.
 - `mongodb`: Use a MongoDB database to store data. In order to use this backend, you need to set the `MONGODB_CONNECTION_STRING` environment variable to the connection string of the MongoDB database you want to use. **WARNING: The bot will typically read almost all of its data in the backend during its runs, so be careful when using this backend without a pre-cached local copy of the data.**
-- `github`: Read-onyl backend that uses the `regro/cf-graph-countyfair` repository as a data source. This backend reads data on-the-fly using GitHub's "raw" URLs (e.g, `https://raw.githubusercontent.com/regro/cf-graph-countyfair/master/all_feedstocks.json`).
+- `github`: Read-only backend that uses the `regro/cf-graph-countyfair` repository as a data source. This backend reads data on-the-fly using GitHub's "raw" URLs (e.g, `https://raw.githubusercontent.com/regro/cf-graph-countyfair/master/all_feedstocks.json`).
 
 The bot uses the first backend in the list as the primary backend and syncs any changed data to the other backends as needed. The bot will also cache data to disk upon first use to speed up subsequent reads. To turn off this caching, set the `CF_TICK_GRAPH_DATA_USE_FILE_CACHE` environment variable to `false`.
