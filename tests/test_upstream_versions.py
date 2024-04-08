@@ -27,6 +27,7 @@ from conda_forge_tick.update_upstream_versions import (
     _update_upstream_versions_sequential,
     filter_nodes_for_job,
     get_latest_version,
+    get_latest_version_containerized,
     ignore_version,
     include_node,
     main,
@@ -1489,9 +1490,17 @@ def test_update_upstream_versions_process_pool(
 
     pool_mock.submit.assert_has_calls(
         [
-            mock.call(get_latest_version, "testpackage", {"version": "2.2.3"}, sources),
             mock.call(
-                get_latest_version, "testpackage2", {"version": "1.2.4"}, sources
+                get_latest_version_containerized,
+                "testpackage",
+                {"version": "2.2.3"},
+                sources,
+            ),
+            mock.call(
+                get_latest_version_containerized,
+                "testpackage2",
+                {"version": "1.2.4"},
+                sources,
             ),
         ]
     )
@@ -1537,7 +1546,7 @@ def test_update_upstream_versions_process_pool_exception(
     _update_upstream_versions_process_pool(to_update, sources)
 
     pool_mock.submit.assert_called_once_with(
-        get_latest_version, "testpackage", {"version": "2.2.3"}, sources
+        get_latest_version_containerized, "testpackage", {"version": "2.2.3"}, sources
     )
 
     lazy_json_mock.assert_any_call("versions/testpackage.json")
@@ -1580,7 +1589,7 @@ def test_update_upstream_versions_process_pool_exception_repr_exception(
     _update_upstream_versions_process_pool(to_update, sources)
 
     pool_mock.submit.assert_called_once_with(
-        get_latest_version, "testpackage", {"version": "2.2.3"}, sources
+        get_latest_version_containerized, "testpackage", {"version": "2.2.3"}, sources
     )
 
     lazy_json_mock.assert_any_call("versions/testpackage.json")
