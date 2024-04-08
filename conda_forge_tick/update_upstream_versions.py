@@ -186,8 +186,6 @@ def get_latest_version_containerized(name, attrs, sources):
             "--security-opt=no-new-privileges",
             "--read-only",
             "--cap-drop=all",
-            "--icc=false",
-            "--default-ulimit",
             "--mount",
             "type=tmpfs,destination=/tmp,tmpfs-mode=1777,tmpfs-size=10000000",  # 10 MB
             "-m",

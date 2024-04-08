@@ -1,25 +1,6 @@
 #!/bin/bash -il
 
-# Use non-interactive cp
-unalias cp
-useradd --shell /bin/bash -c "" -m conda
-export HOME=/home/conda
-export USER=conda
-export LOGNAME=conda
-export MAIL=/var/spool/mail/conda
-export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/home/conda/bin
-export supkg="su-exec"
-chown conda:conda $HOME
-cp -R /etc/skel $HOME && chown -R conda:conda $HOME/skel && (ls -A1 $HOME/skel | xargs -I {} mv -n $HOME/skel/{} $HOME) && rm -Rf $HOME/skel
-
-# This is needed to have a predictable channel specification used for builds
-# from non-conda-forge channels as conda-smithy does not remove it for us.
-rm -f /opt/conda/.condarc
-
-cp /root/.condarc $HOME/.condarc && chown conda:conda $HOME/.condarc
-cd $HOME
-
 conda activate cf-scripts
 
 # Run whatever the user wants.
-exec /opt/conda/bin/$supkg conda "$@"
+exec "$@"

@@ -38,13 +38,11 @@ def _get_existing_feedstock_node_attrs(existing_feedstock_node_attrs):
         if not existing_feedstock_node_attrs.endswith(".json"):
             existing_feedstock_node_attrs += ".json"
 
-        with tempfile.TemporaryDirectory() as tmpdir:
-            with pushd(tmpdir):
-                pth = os.path.join("node_attrs", existing_feedstock_node_attrs)
-                with lazy_json_override_backends(
-                    ["github"], use_file_cache=False
-                ), LazyJson(pth) as lzj:
-                    attrs = copy.deepcopy(lzj.data)
+        pth = os.path.join("node_attrs", existing_feedstock_node_attrs)
+        with lazy_json_override_backends(["github"], use_file_cache=False), LazyJson(
+            pth
+        ) as lzj:
+            attrs = copy.deepcopy(lzj.data)
 
     return attrs
 
@@ -57,16 +55,18 @@ def cli():
 @cli.command(name="update-version")
 @existing_feedstock_node_attrs_option
 def update_version(existing_feedstock_node_attrs):
-    attrs = _get_existing_feedstock_node_attrs(existing_feedstock_node_attrs)
+    with tempfile.TemporaryDirectory() as tmpdir:
+        with pushd(tmpdir):
+            attrs = _get_existing_feedstock_node_attrs(existing_feedstock_node_attrs)
 
-    name = attrs["feedstock_name"]
-    outerr = StringIO()
-    with redirect_stdout(outerr), redirect_stderr(outerr):
-        data = get_latest_version(
-            name,
-            attrs,
-            all_version_sources(),
-        )
+            name = attrs["feedstock_name"]
+            outerr = StringIO()
+            with redirect_stdout(outerr), redirect_stderr(outerr):
+                data = get_latest_version(
+                    name,
+                    attrs,
+                    all_version_sources(),
+                )
 
     print(dumps(data))
 
