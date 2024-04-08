@@ -49,7 +49,7 @@ jobs:
           conda-forge-tick update-upstream-versions --job=${BOT_JOB} --n-jobs=8
         env:
           BOT_JOB: ${{ matrix.job_num }}
-          CF_TICK_GRAPH_DATA_BACKENDS: "${{ vars. CF_TICK_GRAPH_DATA_BACKENDS }}"
+          CF_TICK_GRAPH_DATA_BACKENDS: "${{ vars.CF_TICK_GRAPH_DATA_BACKENDS }}"
           MONGODB_CONNECTION_STRING: ${{ secrets.MONGODB_CONNECTION_STRING }}
 
       - name: deploy

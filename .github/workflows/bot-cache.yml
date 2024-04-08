@@ -58,7 +58,7 @@ jobs:
           cd ..
           tar --zstd -cf cf-graph.tar.zstd cf-graph
         env:
-          CF_TICK_GRAPH_DATA_BACKENDS: "${{ vars. CF_TICK_GRAPH_DATA_BACKENDS }}"
+          CF_TICK_GRAPH_DATA_BACKENDS: "${{ vars.CF_TICK_GRAPH_DATA_BACKENDS }}"
           MONGODB_CONNECTION_STRING: ${{ secrets.MONGODB_CONNECTION_STRING }}
 
   bot-cache-trigger:
