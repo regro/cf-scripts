@@ -46,7 +46,7 @@ def _get_existing_feedstock_node_attrs(existing_feedstock_node_attrs):
                 ), LazyJson(pth) as lzj:
                     attrs = copy.deepcopy(lzj.data)
 
-        return attrs
+    return attrs
 
 
 @click.group()
