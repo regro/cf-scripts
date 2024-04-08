@@ -175,7 +175,7 @@ def get_latest_version_containerized(name, attrs, sources):
     if os.environ.get("CI", "false") == "true":
         tag = "test"
     else:
-        tag = "latest"
+        tag = "master"
 
     res = subprocess.run(
         [
@@ -183,7 +183,7 @@ def get_latest_version_containerized(name, attrs, sources):
             "run",
             "--rm",
             "-t",
-            f"conda-forge-tick:{tag}",
+            f"regro/conda-forge-tick:{tag}",
             "python",
             "/opt/autotick-bot/docker/run_bot_task.py",
             "update-version",

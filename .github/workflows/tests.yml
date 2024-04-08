@@ -8,7 +8,7 @@ on:
 
 env:
   PY_COLORS: "1"
-  IMAGE_NAME: conda-forge-tick
+  IMAGE_NAME: regro/conda-forge-tick
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
