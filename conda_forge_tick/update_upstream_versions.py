@@ -1,8 +1,12 @@
+import functools
 import hashlib
+import json
 import logging
 import os
 import random
+import subprocess
 import time
+import warnings
 from concurrent.futures import as_completed
 from typing import (
     Any,
@@ -24,7 +28,7 @@ import tqdm
 from conda_forge_tick.cli_context import CliContext
 
 from .executors import executor
-from .lazy_json_backends import LazyJson
+from .lazy_json_backends import LazyJson, dumps
 from .update_sources import (
     CRAN,
     NPM,
@@ -161,6 +165,38 @@ def get_latest_version(
     return version_data
 
 
+def get_latest_version_containerized(name, attrs, sources):
+    if sources != all_version_sources():
+        warnings.warn(
+            "The sources argument is ignored when running in a container. "
+            "All available sources will be used.",
+        )
+
+    if os.environ.get("CI", "false") == "true":
+        tag = "test"
+    else:
+        tag = "latest"
+
+    res = subprocess.run(
+        [
+            "docker",
+            "run",
+            "--rm",
+            "-t",
+            f"conda-forge-tick:{tag}",
+            "python",
+            "/opt/autotick-bot/docker/run_bot_task.py",
+            "update-version",
+            "--existing-feedstock-node-attrs",
+            dumps(attrs),
+        ],
+        capture_output=True,
+    )
+    if res.returncode != 0:
+        raise RuntimeError(f"Error running containerized version update: {res.stderr}")
+    return json.loads(res.stdout.decode("utf-8"))
+
+
 def get_job_number_for_package(name: str, n_jobs: int):
     return abs(int(hashlib.sha1(name.encode("utf-8")).hexdigest(), 16)) % n_jobs + 1
 
@@ -230,7 +266,7 @@ def _update_upstream_versions_sequential(
         # New version request
         try:
             # check for latest version
-            version_data.update(get_latest_version(node, attrs, sources))
+            version_data.update(get_latest_version_containerized(node, attrs, sources))
         except Exception as e:
             try:
                 se = repr(e)
@@ -267,7 +303,9 @@ def _update_upstream_versions_process_pool(
         ):
             futures.update(
                 {
-                    pool.submit(get_latest_version, node, attrs, sources): (
+                    pool.submit(
+                        get_latest_version_containerized, node, attrs, sources
+                    ): (
                         node,
                         attrs,
                     ),
@@ -318,6 +356,20 @@ def _update_upstream_versions_process_pool(
                 version_attrs.update(version_data)
 
 
+@functools.lru_cache(maxsize=1)
+def all_version_sources():
+    return (
+        PyPI(),
+        CRAN(),
+        NPM(),
+        ROSDistro(),
+        RawURL(),
+        Github(),
+        IncrementAlphaRawURL(),
+        NVIDIA(),
+    )
+
+
 def update_upstream_versions(
     gx: nx.DiGraph,
     sources: Optional[Iterable[AbstractSource]] = None,
@@ -365,20 +417,7 @@ def update_upstream_versions(
 
     random.shuffle(to_update)
 
-    sources = (
-        (
-            PyPI(),
-            CRAN(),
-            NPM(),
-            ROSDistro(),
-            RawURL(),
-            Github(),
-            IncrementAlphaRawURL(),
-            NVIDIA(),
-        )
-        if sources is None
-        else sources
-    )
+    sources = all_version_sources() if sources is None else sources
 
     updater = (
         _update_upstream_versions_sequential

@@ -27,6 +27,7 @@ from conda_forge_tick.update_upstream_versions import (
     _update_upstream_versions_sequential,
     filter_nodes_for_job,
     get_latest_version,
+    get_latest_version_containerized,
     ignore_version,
     include_node,
     main,
@@ -1327,7 +1328,9 @@ def test_update_upstream_versions_run_parallel_custom_sources(
     ) == ("source a", "source b")
 
 
-@mock.patch("conda_forge_tick.update_upstream_versions.get_latest_version")
+@mock.patch(
+    "conda_forge_tick.update_upstream_versions.get_latest_version_containerized"
+)
 @mock.patch("conda_forge_tick.update_upstream_versions.LazyJson")
 def test_update_upstream_versions_sequential_error(
     lazy_json_mock: MagicMock, get_latest_version_mock: MagicMock, caplog
@@ -1364,7 +1367,9 @@ class BrokenException(Exception):
         raise Exception("broken exception")
 
 
-@mock.patch("conda_forge_tick.update_upstream_versions.get_latest_version")
+@mock.patch(
+    "conda_forge_tick.update_upstream_versions.get_latest_version_containerized"
+)
 @mock.patch("conda_forge_tick.update_upstream_versions.LazyJson")
 def test_update_upstream_versions_sequential_exception_repr_exception(
     lazy_json_mock: MagicMock, get_latest_version_mock: MagicMock, caplog
@@ -1398,7 +1403,9 @@ def test_update_upstream_versions_sequential_exception_repr_exception(
     )
 
 
-@mock.patch("conda_forge_tick.update_upstream_versions.get_latest_version")
+@mock.patch(
+    "conda_forge_tick.update_upstream_versions.get_latest_version_containerized"
+)
 @mock.patch("conda_forge_tick.update_upstream_versions.LazyJson")
 def test_update_upstream_versions_sequential(
     lazy_json_mock: MagicMock, get_latest_version_mock: MagicMock, caplog
@@ -1482,9 +1489,17 @@ def test_update_upstream_versions_process_pool(
 
     pool_mock.submit.assert_has_calls(
         [
-            mock.call(get_latest_version, "testpackage", {"version": "2.2.3"}, sources),
             mock.call(
-                get_latest_version, "testpackage2", {"version": "1.2.4"}, sources
+                get_latest_version_containerized,
+                "testpackage",
+                {"version": "2.2.3"},
+                sources,
+            ),
+            mock.call(
+                get_latest_version_containerized,
+                "testpackage2",
+                {"version": "1.2.4"},
+                sources,
             ),
         ]
     )
@@ -1530,7 +1545,7 @@ def test_update_upstream_versions_process_pool_exception(
     _update_upstream_versions_process_pool(to_update, sources)
 
     pool_mock.submit.assert_called_once_with(
-        get_latest_version, "testpackage", {"version": "2.2.3"}, sources
+        get_latest_version_containerized, "testpackage", {"version": "2.2.3"}, sources
     )
 
     lazy_json_mock.assert_any_call("versions/testpackage.json")
@@ -1573,7 +1588,7 @@ def test_update_upstream_versions_process_pool_exception_repr_exception(
     _update_upstream_versions_process_pool(to_update, sources)
 
     pool_mock.submit.assert_called_once_with(
-        get_latest_version, "testpackage", {"version": "2.2.3"}, sources
+        get_latest_version_containerized, "testpackage", {"version": "2.2.3"}, sources
     )
 
     lazy_json_mock.assert_any_call("versions/testpackage.json")

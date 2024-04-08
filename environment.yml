@@ -8,7 +8,6 @@ platforms:
 dependencies:
   - attrs
   - backoff
-  - black
   - cachecontrol
   - cachetools
   - click

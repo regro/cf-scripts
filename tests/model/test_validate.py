@@ -143,8 +143,10 @@ def pytest_generate_tests(metafunc):
     packages = get_all_feedstocks()
 
     if not packages:
-        raise ValueError(
-            "No packages found. Make sure the cf-graph is in the current working directory."
+        warnings.warn(
+            "No packages found. Make sure these tests are run "
+            "from within the cf-graph-countyfair repository in order to do full "
+            "schema valiudation."
         )
 
     all_invalid_feedstocks = set()
