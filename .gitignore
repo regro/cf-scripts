@@ -38,7 +38,11 @@ feedstocks
 .venv
 .ipynb_checkpoints/
 Untitled.ipynb
+node_attrs/*
+node_attrs
+version_pr_info
 version_pr_info/*
+pr_info
 pr_info/*
 conda_forge_tick/_version.py
 pr_json
