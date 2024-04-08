@@ -1328,7 +1328,9 @@ def test_update_upstream_versions_run_parallel_custom_sources(
     ) == ("source a", "source b")
 
 
-@mock.patch("conda_forge_tick.update_upstream_versions.get_latest_version")
+@mock.patch(
+    "conda_forge_tick.update_upstream_versions.get_latest_version_containerized"
+)
 @mock.patch("conda_forge_tick.update_upstream_versions.LazyJson")
 def test_update_upstream_versions_sequential_error(
     lazy_json_mock: MagicMock, get_latest_version_mock: MagicMock, caplog
@@ -1365,7 +1367,9 @@ class BrokenException(Exception):
         raise Exception("broken exception")
 
 
-@mock.patch("conda_forge_tick.update_upstream_versions.get_latest_version")
+@mock.patch(
+    "conda_forge_tick.update_upstream_versions.get_latest_version_containerized"
+)
 @mock.patch("conda_forge_tick.update_upstream_versions.LazyJson")
 def test_update_upstream_versions_sequential_exception_repr_exception(
     lazy_json_mock: MagicMock, get_latest_version_mock: MagicMock, caplog
@@ -1399,7 +1403,9 @@ def test_update_upstream_versions_sequential_exception_repr_exception(
     )
 
 
-@mock.patch("conda_forge_tick.update_upstream_versions.get_latest_version")
+@mock.patch(
+    "conda_forge_tick.update_upstream_versions.get_latest_version_containerized"
+)
 @mock.patch("conda_forge_tick.update_upstream_versions.LazyJson")
 def test_update_upstream_versions_sequential(
     lazy_json_mock: MagicMock, get_latest_version_mock: MagicMock, caplog
