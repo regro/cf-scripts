@@ -680,10 +680,9 @@ def add_rebuild_migration_yaml(
         piggy_back_migrations.append(JpegTurboMigrator())
     if migration_name == "boost_cpp_to_libboost":
         piggy_back_migrations.append(LibboostMigrator())
-    if migration_name == "boost1840":
-        # testing phase: only a single migration
-        # TODO: piggyback for all migrations
-        piggy_back_migrations.append(StdlibMigrator())
+    # stdlib migrator runs on top of ALL migrations, see
+    # https://github.com/conda-forge/conda-forge.github.io/issues/2102
+    piggy_back_migrations.append(StdlibMigrator())
     cycles = list(nx.simple_cycles(total_graph))
     migrator = MigrationYaml(
         migration_yaml,

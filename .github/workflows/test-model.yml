@@ -3,7 +3,7 @@ name: test-model
 on:
   workflow_dispatch:
   schedule:
-    - cron: "10 * * * *"  # every hour
+    - cron: "10 8 * * *"  # every hour
 
 env:
   PY_COLORS: "1"
@@ -14,22 +14,19 @@ jobs:
     runs-on: "ubuntu-latest"
     defaults:
       run:
-        shell: bash -l {0}
+        shell: bash -leo pipefail {0}
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
-      - uses: conda-incubator/setup-miniconda@v3
+      - uses: mamba-org/setup-micromamba@v1
         with:
-          miniforge-version: latest
-          environment-file: environment.yml
-          python-version: "${{ vars.PYVER }}"
-          activate-environment: cf-scripts
+          environment-file: conda-lock.yml
+          environment-name: cf-scripts
           condarc-file: autotick-bot/condarc
 
       - name: configure conda, install code, and clone cf-graph
         run: |
-          conda install --file requirements-dev.txt --yes
           pip install --no-deps --no-build-isolation -e .
           git clone --depth=1 https://github.com/regro/cf-graph-countyfair.git cf-graph
 
