@@ -60,7 +60,8 @@ def test_container_tasks_version_json():
     assert data["new_version"] == conda_smithy.__version__
 
 
-def test_get_latest_version_containerized():
+def test_get_latest_version_containerized(monkeypatch):
+    monkeypatch.setenv("CI", "true", prepend=False)
     with lazy_json_override_backends(["github"], use_file_cache=False):
         with LazyJson("node_attrs/conda-smithy.json") as lzj:
             attrs = copy.deepcopy(lzj.data)
