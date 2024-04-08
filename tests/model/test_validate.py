@@ -144,7 +144,7 @@ def pytest_generate_tests(metafunc):
 
     if not packages:
         warnings.warn(
-            "No node attributes files found. Make sure these tests are run "
+            "No packages found. Make sure these tests are run "
             "from within the cf-graph-countyfair repository in order to do full "
             "schema valiudation."
         )
