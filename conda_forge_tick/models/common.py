@@ -2,7 +2,16 @@ import email.utils
 from datetime import datetime
 from typing import Annotated, Any, Generic, Literal, Never, TypeVar
 
-from pydantic import BaseModel, BeforeValidator, ConfigDict, Field, UrlConstraints
+from conda.exceptions import InvalidVersionSpec
+from conda.models.version import VersionOrder
+from pydantic import (
+    AfterValidator,
+    BaseModel,
+    BeforeValidator,
+    ConfigDict,
+    Field,
+    UrlConstraints,
+)
 from pydantic_core import Url
 
 T = TypeVar("T")
@@ -146,12 +155,17 @@ A generic dict type that converts `None` to an empty dict.
 GitUrl = Annotated[Url, UrlConstraints(allowed_schemes=["git"])]
 
 
-VersionString = Annotated[str, Field(..., pattern=r"^\d+(\.\d+){0,2}$")]
+def try_parse_conda_version(value: str) -> str:
+    try:
+        VersionOrder(value)
+    except InvalidVersionSpec as e:
+        raise ValueError(f"Value '{value}' is not a valid conda version string: {e}")
+    return value
+
+
+CondaVersionString = Annotated[str, AfterValidator(try_parse_conda_version)]
 """
-A string that matches version numbers in one of the following formats:
-- `X`
-- `X.Y`
-- `X.Y.Z`
+A string that matches conda version numbers.
 """
 
 # TODO: There should be an elegant pydantic way to resolve LazyJSON references, generically

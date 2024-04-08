@@ -11,10 +11,10 @@ from pydantic import (
 )
 
 from conda_forge_tick.models.common import (
+    CondaVersionString,
     PrJsonLazyJsonReference,
     StrictBaseModel,
     ValidatedBaseModel,
-    VersionString,
     before_validator_ensure_dict,
 )
 from conda_forge_tick.models.pr_json import PullRequestData, PullRequestState
@@ -28,8 +28,8 @@ def remove_azure_error(value: Any) -> str:
     return list(filter(None, value.split("\n")))[-1]
 
 
-VersionStringWithAzureTokenError = Annotated[
-    VersionString, BeforeValidator(remove_azure_error)
+CondaVersionStringWithAzureTokenError = Annotated[
+    CondaVersionString, BeforeValidator(remove_azure_error)
 ]
 """
 Extracts a version from a string that contains an Azure token error.
@@ -130,13 +130,10 @@ class MigrationPullRequestData(StrictBaseModel):
     The version of the migrator that created the PR.
     """
 
-    version: str | None = None
+    version: CondaVersionString | None = None
     """
     If migrator_name is "Version", this fields contains the version that was migrated to.
     Otherwise, this field is None.
-    The version is not always a VersionString: For example, it can be 1.0-6
-
-    This is a legacy field since version migration information is now stored in the `version_pr_info` object.
     """
 
     @model_validator(mode="after")
@@ -260,7 +257,9 @@ class PrInfoValid(StrictBaseModel):
     assertions when this field is missing or present.
     """
 
-    smithy_version: VersionStringWithAzureTokenError | VersionString | None = None
+    smithy_version: (
+        CondaVersionString | CondaVersionStringWithAzureTokenError | None
+    ) = None
     """
     The version of conda-smithy that was used for performing the LATEST migration of the feedstock.
     This can be None if the feedstock has not been migrated yet. There are NO assertions when this field is missing or

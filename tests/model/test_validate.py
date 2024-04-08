@@ -98,6 +98,7 @@ NODE_ATTRS_BAD_FEEDSTOCKS = {
 
 PR_INFO_BAD_FEEDSTOCKS = {
     "python",  # pr_info (bot internal): PR.data.branch should be string, not float
+    "font-ttf-noto-emoji",  # PRed.0.data.version is not a valid conda version
 }
 
 VERSION_PR_INFO_BAD_FEEDSTOCKS = {"r-rgdal"}
