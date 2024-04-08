@@ -17,7 +17,11 @@ the actual bot in an actual place doing an actual thing
 
 ## What has the bot done recently?
 
-Check out its [PRs](https://github.com/pulls?utf8=%E2%9C%93&q=is%3Aopen+is%3Apr+author%3Aregro-cf-autotick-bot+archived%3Afalse+), its currently [running jobs](https://github.com/regro/cf-scripts/actions?query=is%3Ain_progress++), and the [status page](https://conda-forge.org/status/#current_migrations)!
+Check out the following pages for status information on the bot:
+
+- [PRs](https://github.com/pulls?utf8=%E2%9C%93&q=is%3Aopen+is%3Apr+author%3Aregro-cf-autotick-bot+archived%3Afalse+)
+- [running jobs](https://github.com/regro/cf-scripts/actions?query=is%3Ain_progress++)
+- [status page](https://conda-forge.org/status/#current_migrations)
 
 ## Starting and Stopping the Worker
 
@@ -78,3 +82,17 @@ docker run --rm -t conda-forge-tick:latest python /opt/autotick-bot/docker/run_b
 ```
 
 See the [run_bot_task.py](docker/run_bot_task.py) script for more information.
+
+## `LazyJson` Data Structures and Backends
+
+The bot relies on a lazily-loaded JSON class called `LazyJson` to store and manipulate its data. This data structure has a backend
+abstraction that allows the bot to store its data in a variety of places. This system is home-grown and certainly not
+ideal.
+
+The backend(s) can be set by using the `CF_TICK_GRAPH_DATA_BACKENDS` environment variable to a colon-separated list of backends (e.g., `export CF_TICK_GRAPH_DATA_BACKENDS=file:mongodb`). The possible backends are:
+
+- `file` (default): Use the local file system to store data. In order to properly use this backend, you must clone the `regro/cf-graph-countyfair` repository and run the bot from `regro/cf-graph-countyfair`'s root directory. You can use the `deploy` command from the bot CLI to commit any changes and push them to the remote repository.
+- `mongodb`: Use a MongoDB database to store data. In order to use this backend, you need to set the `MONGODB_CONNECTION_STRING` environment variable to the connection string of the MongoDB database you want to use. **WARNING: The bot will typically read almost all of its data in the backend during its runs, so be careful when using this backend without a pre-cached local copy of the data.**
+- `github`: Read-only backend that uses the `regro/cf-graph-countyfair` repository as a data source. This backend reads data on-the-fly using GitHub's "raw" URLs (e.g, `https://raw.githubusercontent.com/regro/cf-graph-countyfair/master/all_feedstocks.json`). This backend is ideal for debugging when you only want to touch a fraction of the data.
+
+The bot uses the first backend in the list as the primary backend and syncs any changed data to the other backends as needed. The bot will also cache data to disk upon first use to speed up subsequent reads. To turn off this caching, set the `CF_TICK_GRAPH_DATA_USE_FILE_CACHE` environment variable to `false`.

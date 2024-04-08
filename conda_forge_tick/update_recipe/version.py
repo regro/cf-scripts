@@ -298,8 +298,9 @@ def _try_to_update_version(cmeta: Any, src: str, hash_type: str):
                 else:
                     logger.critical("jinja2 variable %s is missing!", var)
                     errors.add(
-                        "missing jinja2 variable '%s' for selector '%s'"
-                        % (var, selector),
+                        "missing jinja2 variable '{}' for selector '{}'".format(
+                            var, selector
+                        ),
                     )
                     updated_version = False
                     break
