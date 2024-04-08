@@ -214,7 +214,7 @@ def get_dep_updates_and_hints(
         return dep_comparison, hint
 
     if update_deps in ["hint-grayskull", "update-grayskull"]:
-        dep_comparison, gs_recipe = get_grayskull_comparison(
+        dep_comparison, _ = get_grayskull_comparison(
             attrs,
             version_key=version_key,
         )
@@ -230,7 +230,7 @@ def get_dep_updates_and_hints(
             python_nodes,
         )
         logger.info("source dep. comp: %s", pprint.pformat(df_dep_comparison))
-        dep_comparison, gs_recipe = get_grayskull_comparison(
+        dep_comparison, _ = get_grayskull_comparison(
             attrs,
             version_key=version_key,
         )
@@ -486,7 +486,6 @@ def _update_sec_deps(recipe, dep_comparison, sections_to_update, update_python=F
 
     for rqkey in _gen_key_selector(recipe.meta, "requirements"):
         for section in sections_to_update:
-
             seckeys = list(_gen_key_selector(recipe.meta[rqkey], section))
             if len(seckeys) == 0:
                 recipe.meta[rqkey][section] = []

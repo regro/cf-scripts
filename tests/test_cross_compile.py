@@ -274,7 +274,7 @@ extra:
   recipe-maintainers:
     - conda-forge/r
     - ocefpaf
-"""
+"""  # noqa
 
 rbase_recipe_correct = """\
 {% set version = "2.0.1" %}
@@ -336,7 +336,7 @@ extra:
   recipe-maintainers:
     - conda-forge/r
     - ocefpaf
-"""
+"""  # noqa
 
 
 python_recipe = """\

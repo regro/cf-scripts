@@ -196,7 +196,6 @@ class Migrator:
                         with attrs.get("pr_info", {}).get("PRed", [])[ind][
                             "PR"
                         ] as mg_attrs:
-
                             logger.debug(
                                 "%s: already PRed: PR file: %s"
                                 % (__name, mg_attrs.file_name),
@@ -557,7 +556,6 @@ class GraphMigrator(Migrator):
             self.graph.predecessors(attrs["feedstock_name"]),
             self.graph,
         ):
-
             if node in self.ignored_deps_per_node.get(
                 attrs.get("feedstock_name", None),
                 [],

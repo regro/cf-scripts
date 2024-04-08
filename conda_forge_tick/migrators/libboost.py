@@ -147,8 +147,6 @@ class LibboostMigrator(MiniMigrator):
         return not bool({"boost", "boost-cpp"} & all_req)
 
     def migrate(self, recipe_dir, attrs, **kwargs):
-        outputs = attrs["meta_yaml"].get("outputs", [])
-
         fname = os.path.join(recipe_dir, "meta.yaml")
         if os.path.exists(fname):
             with open(fname) as fp:

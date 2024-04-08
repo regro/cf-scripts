@@ -63,7 +63,7 @@ class PipWheelMigrator(MiniMigrator):
             "version",
             "",
         )
-        wheel_url, wheel_file = self.determine_wheel(source_url, version)
+        wheel_url, _ = self.determine_wheel(source_url, version)
 
         if wheel_url is None:
             return True
