@@ -46,7 +46,7 @@ jobs:
           conda-forge-tick make-graph
         env:
           USERNAME: regro-cf-autotick-bot
-          CF_TICK_GRAPH_DATA_BACKENDS: "${{ vars. CF_TICK_GRAPH_DATA_BACKENDS }}"
+          CF_TICK_GRAPH_DATA_BACKENDS: "${{ vars.CF_TICK_GRAPH_DATA_BACKENDS }}"
           MONGODB_CONNECTION_STRING: ${{ secrets.MONGODB_CONNECTION_STRING }}
 
       - name: deploy
