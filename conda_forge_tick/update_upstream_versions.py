@@ -172,7 +172,7 @@ def get_latest_version_containerized(name, attrs, sources):
             "All available sources will be used.",
         )
 
-    if os.envirn.get("CI", "false") == "true":
+    if os.environ.get("CI", "false") == "true":
         tag = "test"
     else:
         tag = "latest"
