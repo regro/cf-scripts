@@ -1,6 +1,6 @@
 #!/bin/bash -il
 
-set -exo pipefail
+set -euxo pipefail
 
 conda activate base
 
