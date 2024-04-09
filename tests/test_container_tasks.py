@@ -18,7 +18,7 @@ from conda_forge_tick.update_upstream_versions import (
 from conda_forge_tick.utils import get_default_container_name
 
 
-def test_container_tasks_update_version(monkeypatch):
+def test_container_tasks_get_latest_version(monkeypatch):
     if "CI" not in os.environ:
         monkeypatch.setenv("CI", "true", prepend=False)
 
@@ -31,7 +31,7 @@ def test_container_tasks_update_version(monkeypatch):
             f"{get_default_container_name()}",
             "python",
             "/opt/autotick-bot/docker/run_bot_task.py",
-            "update-version",
+            "get-latest-version",
             "--existing-feedstock-node-attrs=conda-smithy",
         ],
         capture_output=True,
@@ -41,7 +41,7 @@ def test_container_tasks_update_version(monkeypatch):
     assert data["new_version"] == conda_smithy.__version__
 
 
-def test_container_tasks_update_version_json(monkeypatch):
+def test_container_tasks_get_latest_version_json(monkeypatch):
     if "CI" not in os.environ:
         monkeypatch.setenv("CI", "true", prepend=False)
 
@@ -58,7 +58,7 @@ def test_container_tasks_update_version_json(monkeypatch):
             f"{get_default_container_name()}",
             "python",
             "/opt/autotick-bot/docker/run_bot_task.py",
-            "update-version",
+            "get-latest-version",
             "--existing-feedstock-node-attrs",
             existing_feedstock_node_attrs,
         ],

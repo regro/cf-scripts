@@ -113,9 +113,9 @@ def parse_feedstock(
                 print(dumps(attrs))
 
 
-@cli.command(name="update-version")
+@cli.command(name="get-latest-version")
 @existing_feedstock_node_attrs_option
-def update_version(existing_feedstock_node_attrs):
+def get_latest_version(existing_feedstock_node_attrs):
     from conda_forge_tick.lazy_json_backends import dumps
     from conda_forge_tick.os_utils import pushd
     from conda_forge_tick.update_upstream_versions import (

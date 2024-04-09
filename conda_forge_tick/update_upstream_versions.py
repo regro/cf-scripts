@@ -203,7 +203,7 @@ def get_latest_version_containerized(
             f"{get_default_container_name()}",
             "python",
             "/opt/autotick-bot/docker/run_bot_task.py",
-            "update-version",
+            "get-latest-version",
             "--existing-feedstock-node-attrs",
             dumps(attrs),
         ],
