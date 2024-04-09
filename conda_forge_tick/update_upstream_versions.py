@@ -205,6 +205,9 @@ def get_latest_version_containerized(
     version_data : dict
         The new version information.
     """
+    if "feedstock_name" not in attrs:
+        attrs["feedstock_name"] = name
+
     cmd = [
         *get_default_container_run_args(),
         "-t",
