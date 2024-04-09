@@ -406,7 +406,7 @@ def _parse_meta_yaml_impl(
             try:
                 m = MetaData(tmpdir)
                 cfg_as_dict = conda_build.environ.get_dict(m=m)
-            except (SystemExit, Exception) as e:
+            except SystemExit as e:
                 raise RuntimeError(repr(e))
 
     logger.debug("jinja2 environmment:\n%s", pprint.pformat(cfg_as_dict))
