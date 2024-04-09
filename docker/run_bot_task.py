@@ -85,7 +85,7 @@ def _run_bot_task(func, **kwargs):
     except Exception as e:
         ret["data"] = data
         ret["container_stdout_stderr"] = outerr.getvalue()
-        ret["error"] = str(e)
+        ret["error"] = repr(e)
         ret["traceback"] = traceback.format_exc()
 
     print(dumps(ret))
