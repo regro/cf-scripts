@@ -186,13 +186,9 @@ def get_latest_version_containerized(name, attrs, sources):
         get_default_container_name(),
         "python",
         "/opt/autotick-bot/docker/run_bot_task.py",
-        "get-latest-version",
+        "update-version",
         "--existing-feedstock-node-attrs",
         dumps(attrs.data) if isinstance(attrs, LazyJson) else dumps(attrs),
-        "--sources",
-        ",".join([source.name for source in sources]),
-        "--log-level",
-        str(logging.getLevelName(logger.getEffectiveLevel())).lower(),
     ]
 
     res = subprocess.run(
