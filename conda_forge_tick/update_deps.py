@@ -364,7 +364,7 @@ def get_grayskull_comparison(attrs, version_key="version"):
     # load the feedstock with the grayskull meta_yaml
     new_attrs = load_feedstock(
         attrs.get("feedstock_name"),
-        {"feedstock_name": attrs.get("feedstock_name")},
+        {},
         meta_yaml=gs_recipe,
     )
     d = {}
