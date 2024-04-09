@@ -82,6 +82,7 @@ DEFAULT_GRAPH_FILENAME = "graph.json"
 
 def get_default_container_name():
     """Get the default container name for the bot.
+
     If the environment variable `CI` is set to `true`, the container name is `conda-forge-tick:test`.
     Otherwise, the container name is `ghcr.io/regro/conda-forge-tick:master`.
     """
@@ -95,10 +96,12 @@ def get_default_container_name():
 
 def get_default_container_run_args(tmpfs_size_mb: int = 10):
     """Get the default arguments for running a container.
+
     Parameters
     ----------
     tmpfs_size_mb : int, optional
         The size of the tmpfs in MB, by default 10.
+
     Returns
     -------
     list
