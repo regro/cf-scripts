@@ -40,7 +40,12 @@ from .update_sources import (
     RawURL,
     ROSDistro,
 )
-from .utils import get_keys_default, load_existing_graph
+from .utils import (
+    get_default_container_name,
+    get_default_container_run_args,
+    get_keys_default,
+    load_existing_graph,
+)
 
 T = TypeVar("T")
 
@@ -172,35 +177,26 @@ def get_latest_version_containerized(name, attrs, sources):
             "All available sources will be used.",
         )
 
-    if os.environ.get("CI", "false") == "true":
-        tag = "test"
-        cname = "conda-forge-tick"
-    else:
-        tag = "master"
-        cname = "regro/conda-forge-tick"
+    if "feedstock_name" not in attrs:
+        attrs["feedstock_name"] = name
+
+    cmd = [
+        *get_default_container_run_args(),
+        "-t",
+        get_default_container_name(),
+        "python",
+        "/opt/autotick-bot/docker/run_bot_task.py",
+        "get-latest-version",
+        "--existing-feedstock-node-attrs",
+        dumps(attrs.data) if isinstance(attrs, LazyJson) else dumps(attrs),
+        "--sources",
+        ",".join([source.name for source in sources]),
+        "--log-level",
+        str(logging.getLevelName(logger.getEffectiveLevel())).lower(),
+    ]
 
     res = subprocess.run(
-        [
-            "docker",
-            "run",
-            "--security-opt=no-new-privileges",
-            "--read-only",
-            "--cap-drop=all",
-            "--mount",
-            "type=tmpfs,destination=/tmp,tmpfs-mode=1777,tmpfs-size=10000000",  # 10 MB
-            "-m",
-            "2048m",
-            "--cpus",
-            "1",
-            "--rm",
-            "-t",
-            f"{cname}:{tag}",
-            "python",
-            "/opt/autotick-bot/docker/run_bot_task.py",
-            "update-version",
-            "--existing-feedstock-node-attrs",
-            dumps(attrs),
-        ],
+        cmd,
         capture_output=True,
     )
     if res.returncode != 0:

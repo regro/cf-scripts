@@ -80,6 +80,51 @@ CB_CONFIG_PINNING = dict(
 DEFAULT_GRAPH_FILENAME = "graph.json"
 
 
+def get_default_container_name():
+    """Get the default container name for the bot.
+    If the environment variable `CI` is set to `true`, the container name is `conda-forge-tick:test`.
+    Otherwise, the container name is `ghcr.io/regro/conda-forge-tick:master`.
+    """
+    if os.environ.get("CI", "false") == "true":
+        cname = "conda-forge-tick:test"
+    else:
+        cname = "ghcr.io/regro/conda-forge-tick:master"
+
+    return cname
+
+
+def get_default_container_run_args(tmpfs_size_mb: int = 10):
+    """Get the default arguments for running a container.
+    Parameters
+    ----------
+    tmpfs_size_mb : int, optional
+        The size of the tmpfs in MB, by default 10.
+    Returns
+    -------
+    list
+        The command to run a container.
+    """
+    tmpfs_size_bytes = tmpfs_size_mb * 1000 * 1000
+    return [
+        "docker",
+        "run",
+        "--security-opt=no-new-privileges",
+        "--read-only",
+        "--cap-drop=all",
+        "--mount",
+        f"type=tmpfs,destination=/tmp,tmpfs-mode=1777,tmpfs-size={tmpfs_size_bytes}",
+        "-m",
+        "2048m",
+        "--cpus",
+        "1",
+        "--ulimit",
+        "nofile=1024:1024",
+        "--ulimit",
+        "nproc=2048:2048",
+        "--rm",
+    ]
+
+
 @contextlib.contextmanager
 def fold_log_lines(title):
     try:

@@ -1,14 +1,41 @@
 FROM quay.io/condaforge/linux-anvil-cos7-x86_64:latest
 
-ENV AUTOTICK_BOT_DIR=/opt/autotick-bot
-COPY . $AUTOTICK_BOT_DIR
-RUN $AUTOTICK_BOT_DIR/docker/install_cmds
-
-# put in new entrypoint
-RUN cp -f $AUTOTICK_BOT_DIR/docker/entrypoint /opt/docker/bin/entrypoint
-
-# made at runtime by the bot for data
+# baseline env
 ENV TMPDIR=/tmp
+ENV AUTOTICK_BOT_DIR=/opt/autotick-bot
+
+# use bash for a while to make conda manipulations easier
+SHELL ["/bin/bash", "-l", "-c"]
+
+# build the conda env first
+COPY conda-lock.yml $AUTOTICK_BOT_DIR/conda-lock.yml
+RUN conda activate base && \
+    conda install conda-lock --yes && \
+    conda-lock install -n cf-scripts $AUTOTICK_BOT_DIR/conda-lock.yml && \
+    conda clean --all --yes && \
+    # Lucky group gets permission to write in the conda dir
+    chown -R root /opt/conda && \
+    chgrp -R lucky /opt/conda && chmod -R g=u /opt/conda && \
+    conda deactivate
+
+# deal with entrypoint
+COPY docker/entrypoint /opt/docker/bin/
+RUN chmod +x /opt/docker/bin/entrypoint
+
+# now install the bot code
+COPY . $AUTOTICK_BOT_DIR
+RUN conda activate base && \
+    conda activate cf-scripts && \
+    cd $AUTOTICK_BOT_DIR && \
+    pip install --no-deps --no-build-isolation -e . && \
+    cd - && \
+    conda deactivate && \
+    conda deactivate
+
+# put the shell back
+SHELL ["/bin/sh", "-c"]
+
+# now make the conda user for running tasks and set the user
 RUN useradd --shell /bin/bash -c "" -m conda
 ENV HOME=/home/conda
 ENV USER=conda
@@ -20,6 +47,5 @@ RUN chown conda:conda $HOME && \
     chown -R conda:conda $HOME/skel && \
     (ls -A1 $HOME/skel | xargs -I {} mv -n $HOME/skel/{} $HOME) && \
     rm -Rf $HOME/skel && \
-    cd $HOME && \
-    /bin/bash -l -c "conda activate cf-scripts"
+    cd $HOME
 USER conda
