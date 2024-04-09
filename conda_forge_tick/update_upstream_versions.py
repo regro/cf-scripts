@@ -219,6 +219,8 @@ def get_latest_version_containerized(
         dumps(attrs.data) if isinstance(attrs, LazyJson) else dumps(attrs),
         "--sources",
         ",".join([source.name for source in sources]),
+        "--log-level",
+        str(logging.getLevelName(logger.getEffectiveLevel())).lower(),
     ]
     res = subprocess.run(
         cmd,
@@ -227,7 +229,16 @@ def get_latest_version_containerized(
         check=True,
     )
     ret = json.loads(res.stdout)
-    logger.debug("Containerized version update output:\n%s", pprint.pformat(ret))
+    # I have tried more than once to filter this out of the conda-build
+    # logs using a filter but I cannot get it to work always.
+    # For now, I will replace it here.
+    data = ret["container_stdout_stderr"].replace(
+        "WARNING: No numpy version specified in conda_build_config.yaml.", ""
+    )
+    for level in ["critical", "error", "warning", "info", "debug"]:
+        if f"{level.upper()}    conda_forge_tick" in data:
+            getattr(logger, level)(data)
+            break
 
     if "error" in ret:
         raise RuntimeError(

@@ -31,6 +31,12 @@ existing_feedstock_node_attrs_option = click.option(
         "from the bot metadata if a feedstock name is passed."
     ),
 )
+log_level_option = click.option(
+    "--log-level",
+    default="info",
+    type=click.Choice(["debug", "info", "warning", "error", "critical"]),
+    help="The log level to use.",
+)
 
 
 @contextmanager
@@ -70,33 +76,41 @@ def _get_existing_feedstock_node_attrs(existing_feedstock_node_attrs):
 
 
 def _run_bot_task(func, **kwargs):
-    from conda_forge_tick.lazy_json_backends import dumps
+    with tempfile.TemporaryDirectory() as tmpdir_cbld, _setenv(
+        "CONDA_BLD_PATH", os.path.join(tmpdir_cbld, "conda-bld")
+    ):
+        os.makedirs(os.path.join(tmpdir_cbld, "conda-bld"), exist_ok=True)
 
-    data = None
-    ret = copy.copy(kwargs)
-    outerr = StringIO()
-    try:
-        with redirect_stdout(outerr), redirect_stderr(outerr):
-            data = func(**kwargs)
+        from conda_forge_tick.lazy_json_backends import dumps
 
-        ret["data"] = data
-        ret["container_stdout_stderr"] = outerr.getvalue()
+        data = None
+        ret = copy.copy(kwargs)
+        outerr = StringIO()
+        try:
+            with redirect_stdout(outerr), redirect_stderr(outerr):
+                data = func(**kwargs)
 
-    except Exception as e:
-        ret["data"] = data
-        ret["container_stdout_stderr"] = outerr.getvalue()
-        ret["error"] = repr(e)
-        ret["traceback"] = traceback.format_exc()
+            ret["data"] = data
+            ret["container_stdout_stderr"] = outerr.getvalue()
 
-    print(dumps(ret))
+        except Exception as e:
+            ret["data"] = data
+            ret["container_stdout_stderr"] = outerr.getvalue()
+            ret["error"] = repr(e)
+            ret["traceback"] = traceback.format_exc()
+
+        print(dumps(ret))
 
 
-def _get_latest_version(*, existing_feedstock_node_attrs, sources):
+def _get_latest_version(*, log_level, existing_feedstock_node_attrs, sources):
     from conda_forge_tick.os_utils import pushd
     from conda_forge_tick.update_upstream_versions import (
         all_version_sources,
         get_latest_version_local,
     )
+    from conda_forge_tick.utils import setup_logging
+
+    setup_logging(log_level)
 
     _sources = all_version_sources()
     if sources is not None:
@@ -118,7 +132,12 @@ def _get_latest_version(*, existing_feedstock_node_attrs, sources):
 
 
 def _parse_feedstock(
-    *, existing_feedstock_node_attrs, meta_yaml, conda_forge_yaml, mark_not_archived
+    *,
+    log_level,
+    existing_feedstock_node_attrs,
+    meta_yaml,
+    conda_forge_yaml,
+    mark_not_archived,
 ):
     with tempfile.TemporaryDirectory() as tmpdir_cbld, _setenv(
         "CONDA_BLD_PATH", os.path.join(tmpdir_cbld, "conda-bld")
@@ -127,6 +146,9 @@ def _parse_feedstock(
 
         from conda_forge_tick.feedstock_parser import load_feedstock_local
         from conda_forge_tick.os_utils import pushd
+        from conda_forge_tick.utils import setup_logging
+
+        setup_logging(log_level)
 
         with tempfile.TemporaryDirectory() as tmpdir:
             with pushd(tmpdir):
@@ -153,6 +175,7 @@ def cli():
 
 
 @cli.command(name="parse-feedstock")
+@log_level_option
 @existing_feedstock_node_attrs_option
 @click.option("--meta-yaml", default=None, type=str, help="The meta.yaml file to use.")
 @click.option(
@@ -162,10 +185,15 @@ def cli():
     "--mark-not-archived", is_flag=True, help="Mark the feedstock as not archived."
 )
 def parse_feedstock(
-    existing_feedstock_node_attrs, meta_yaml, conda_forge_yaml, mark_not_archived
+    log_level,
+    existing_feedstock_node_attrs,
+    meta_yaml,
+    conda_forge_yaml,
+    mark_not_archived,
 ):
     return _run_bot_task(
         _parse_feedstock,
+        log_level=log_level,
         existing_feedstock_node_attrs=existing_feedstock_node_attrs,
         meta_yaml=meta_yaml,
         conda_forge_yaml=conda_forge_yaml,
@@ -174,6 +202,7 @@ def parse_feedstock(
 
 
 @cli.command(name="get-latest-version")
+@log_level_option
 @existing_feedstock_node_attrs_option
 @click.option(
     "--sources",
@@ -181,9 +210,10 @@ def parse_feedstock(
     type=str,
     help="Comma separated list of sources to use. Default is all sources as given by `all_version_sources`.",
 )
-def get_latest_version(existing_feedstock_node_attrs, sources):
+def get_latest_version(log_level, existing_feedstock_node_attrs, sources):
     return _run_bot_task(
         _get_latest_version,
+        log_level=log_level,
         existing_feedstock_node_attrs=existing_feedstock_node_attrs,
         sources=sources,
     )

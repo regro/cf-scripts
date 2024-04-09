@@ -517,6 +517,8 @@ def load_feedstock_containerized(
         "--existing-feedstock-node-attrs",
         dumps(sub_graph),
         *args,
+        "--log-level",
+        str(logging.getLevelName(logger.getEffectiveLevel())).lower(),
     ]
     res = subprocess.run(
         cmd,
@@ -525,7 +527,16 @@ def load_feedstock_containerized(
         text=True,
     )
     ret = loads(res.stdout)
-    logger.debug("Containerized parse feedstock output:\n%s", pprint.pformat(ret))
+    # I have tried more than once to filter this out of the conda-build
+    # logs using a filter but I cannot get it to work always.
+    # For now, I will replace it here.
+    data = ret["container_stdout_stderr"].replace(
+        "WARNING: No numpy version specified in conda_build_config.yaml.", ""
+    )
+    for level in ["critical", "error", "warning", "info", "debug"]:
+        if f"{level.upper()}    conda_forge_tick" in data:
+            getattr(logger, level)(data)
+            break
 
     if "error" in ret:
         raise RuntimeError(

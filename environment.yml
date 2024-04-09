@@ -57,6 +57,7 @@ dependencies:
   - streamz
   - tar
   - tqdm
+  - wget
   - wurlitzer
   - yaml
   - pandas
