@@ -362,7 +362,11 @@ def get_grayskull_comparison(attrs, version_key="version"):
     gs_recipe = make_grayskull_recipe(attrs, version_key=version_key)
 
     # load the feedstock with the grayskull meta_yaml
-    new_attrs = load_feedstock(attrs.get("feedstock_name"), {}, meta_yaml=gs_recipe)
+    new_attrs = load_feedstock(
+        attrs.get("feedstock_name"),
+        {"feedstock_name": attrs.get("feedstock_name")},
+        meta_yaml=gs_recipe,
+    )
     d = {}
     for section in SECTIONS_TO_PARSE:
         gs_run = {c for c in new_attrs.get("total_requirements").get(section, set())}
