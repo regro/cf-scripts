@@ -14,15 +14,16 @@ from conda_forge_tick.update_upstream_versions import (
     all_version_sources,
     get_latest_version_containerized,
 )
-from conda_forge_tick.utils import get_default_container_name
+from conda_forge_tick.utils import (
+    get_default_container_name,
+    get_default_container_run_args,
+)
 
 
 def test_container_tasks_get_latest_version():
     res = subprocess.run(
         [
-            "docker",
-            "run",
-            "--rm",
+            *get_default_container_run_args(),
             "-t",
             get_default_container_name(),
             "python",
@@ -46,9 +47,7 @@ def test_container_tasks_get_latest_version_json():
 
     res = subprocess.run(
         [
-            "docker",
-            "run",
-            "--rm",
+            *get_default_container_run_args(),
             "-t",
             get_default_container_name(),
             "python",
@@ -80,9 +79,7 @@ def test_get_latest_version_containerized():
 def test_container_tasks_parse_feedstock():
     res = subprocess.run(
         [
-            "docker",
-            "run",
-            "--rm",
+            *get_default_container_run_args(),
             "-t",
             get_default_container_name(),
             "python",
@@ -115,9 +112,7 @@ def test_container_tasks_parse_feedstock_json():
 
     res = subprocess.run(
         [
-            "docker",
-            "run",
-            "--rm",
+            *get_default_container_run_args(),
             "-t",
             get_default_container_name(),
             "python",
