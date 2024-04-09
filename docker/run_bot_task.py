@@ -56,21 +56,18 @@ def cli():
 @cli.command(name="parse-feedstock")
 @existing_feedstock_node_attrs_option
 def parse_feedstock(existing_feedstock_node_attrs):
-    node_attrs_file = _handle_existing_feedstock_node_attrs(
-        existing_feedstock_node_attrs
-    )
+    with tempfile.TemporaryDirectory() as tmpdir:
+        with pushd(tmpdir):
+            attrs = _get_existing_feedstock_node_attrs(existing_feedstock_node_attrs)
+            name = attrs["feedstock_name"]
 
-    name = os.path.basename(node_attrs_file)[: -len(".json")]
-    with open(node_attrs_file) as fp:
-        attrs = load(fp)
-
-    outerr = StringIO()
-    with redirect_stdout(outerr), redirect_stderr(outerr):
-        load_feedstock(
-            name,
-            attrs,
-        )
-    print(dumps(attrs))
+            outerr = StringIO()
+            with redirect_stdout(outerr), redirect_stderr(outerr):
+                load_feedstock(
+                    name,
+                    attrs,
+                )
+            print(dumps(attrs))
 
 
 @cli.command(name="update-version")
@@ -79,8 +76,8 @@ def update_version(existing_feedstock_node_attrs):
     with tempfile.TemporaryDirectory() as tmpdir:
         with pushd(tmpdir):
             attrs = _get_existing_feedstock_node_attrs(existing_feedstock_node_attrs)
-
             name = attrs["feedstock_name"]
+
             outerr = StringIO()
             with redirect_stdout(outerr), redirect_stderr(outerr):
                 data = get_latest_version(
