@@ -75,13 +75,16 @@ def _get_existing_feedstock_node_attrs(existing_feedstock_node_attrs):
     return attrs
 
 
-def _run_bot_task(func, **kwargs):
+def _run_bot_task(func, *, log_level, **kwargs):
     with tempfile.TemporaryDirectory() as tmpdir_cbld, _setenv(
         "CONDA_BLD_PATH", os.path.join(tmpdir_cbld, "conda-bld")
     ):
         os.makedirs(os.path.join(tmpdir_cbld, "conda-bld"), exist_ok=True)
 
         from conda_forge_tick.lazy_json_backends import dumps
+        from conda_forge_tick.utils import setup_logging
+
+        setup_logging(log_level)
 
         data = None
         ret = copy.copy(kwargs)
@@ -102,15 +105,12 @@ def _run_bot_task(func, **kwargs):
         print(dumps(ret))
 
 
-def _get_latest_version(*, log_level, existing_feedstock_node_attrs, sources):
+def _get_latest_version(*, existing_feedstock_node_attrs, sources):
     from conda_forge_tick.os_utils import pushd
     from conda_forge_tick.update_upstream_versions import (
         all_version_sources,
         get_latest_version_local,
     )
-    from conda_forge_tick.utils import setup_logging
-
-    setup_logging(log_level)
 
     _sources = all_version_sources()
     if sources is not None:
@@ -133,39 +133,29 @@ def _get_latest_version(*, log_level, existing_feedstock_node_attrs, sources):
 
 def _parse_feedstock(
     *,
-    log_level,
     existing_feedstock_node_attrs,
     meta_yaml,
     conda_forge_yaml,
     mark_not_archived,
 ):
-    with tempfile.TemporaryDirectory() as tmpdir_cbld, _setenv(
-        "CONDA_BLD_PATH", os.path.join(tmpdir_cbld, "conda-bld")
-    ):
-        os.makedirs(os.path.join(tmpdir_cbld, "conda-bld"), exist_ok=True)
+    from conda_forge_tick.feedstock_parser import load_feedstock_local
+    from conda_forge_tick.os_utils import pushd
 
-        from conda_forge_tick.feedstock_parser import load_feedstock_local
-        from conda_forge_tick.os_utils import pushd
-        from conda_forge_tick.utils import setup_logging
+    with tempfile.TemporaryDirectory() as tmpdir:
+        with pushd(tmpdir):
+            attrs = _get_existing_feedstock_node_attrs(existing_feedstock_node_attrs)
+            name = attrs["feedstock_name"]
 
-        setup_logging(log_level)
-
-        with tempfile.TemporaryDirectory() as tmpdir:
-            with pushd(tmpdir):
-                attrs = _get_existing_feedstock_node_attrs(
-                    existing_feedstock_node_attrs
+            outerr = StringIO()
+            with redirect_stdout(outerr), redirect_stderr(outerr):
+                load_feedstock_local(
+                    name,
+                    attrs,
+                    meta_yaml=meta_yaml,
+                    conda_forge_yaml=conda_forge_yaml,
+                    mark_not_archived=mark_not_archived,
                 )
-                name = attrs["feedstock_name"]
 
-                outerr = StringIO()
-                with redirect_stdout(outerr), redirect_stderr(outerr):
-                    load_feedstock_local(
-                        name,
-                        attrs,
-                        meta_yaml=meta_yaml,
-                        conda_forge_yaml=conda_forge_yaml,
-                        mark_not_archived=mark_not_archived,
-                    )
     return attrs
 
 
