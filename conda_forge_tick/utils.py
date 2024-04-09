@@ -209,17 +209,30 @@ def parse_meta_yaml(
                 category=UserWarning,
                 module=r"conda_build\.environ",
             )
-            return _parse_meta_yaml_impl(
-                text,
-                for_pinning=for_pinning,
-                platform=platform,
-                arch=arch,
-                recipe_dir=recipe_dir,
-                cbc_path=cbc_path,
-                log_debug=log_debug,
-                orig_cbc_path=(orig_cbc_path if use_orig_cbc_path else None),
-                **kwargs,
-            )
+
+            class NumpyFilter(logging.Filter):
+                def filter(self, record):
+                    if record.msg.startswith("No numpy version specified"):
+                        return False
+                    return True
+
+            np_filter = NumpyFilter()
+            try:
+                logging.getLogger("conda_build.metadata").addFilter(np_filter)
+
+                return _parse_meta_yaml_impl(
+                    text,
+                    for_pinning=for_pinning,
+                    platform=platform,
+                    arch=arch,
+                    recipe_dir=recipe_dir,
+                    cbc_path=cbc_path,
+                    log_debug=log_debug,
+                    orig_cbc_path=(orig_cbc_path if use_orig_cbc_path else None),
+                    **kwargs,
+                )
+            finally:
+                logging.getLogger("conda_build.metadata").removeFilter(np_filter)
 
     try:
         return _run(use_orig_cbc_path=True)
@@ -345,8 +358,8 @@ def _parse_meta_yaml_impl(
             try:
                 m = MetaData(tmpdir)
                 cfg_as_dict = conda_build.environ.get_dict(m=m)
-            except (SystemExit, Exception):
-                cfg_as_dict = {}
+            except SystemExit as e:
+                raise RuntimeError(repr(e))
 
     logger.debug("jinja2 environmment:\n%s", pprint.pformat(cfg_as_dict))
 
