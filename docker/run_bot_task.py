@@ -1,24 +1,24 @@
 #!/usr/bin/env python
+"""This file runs specific tasks for the bot.
+
+All imports from the bot need to be guarded by putting them in the subcommands.
+This ensures that we can set important environment variables before any imports,
+including `CONDA_BLD_PATH`.
+
+This container is run in a read-only environment except a small tmpfs volume
+mounted at `/tmp`. The `TMPDIR` environment variable is set to `/tmp` so that
+one can use the `tempfile` module to create temporary files and directories.
+
+These tasks return their info to the bot by printing a JSON blob to stdout.
+"""
+
 import copy
 import os
 import tempfile
-from contextlib import redirect_stderr, redirect_stdout
+from contextlib import contextmanager, redirect_stderr, redirect_stdout
 from io import StringIO
 
 import click
-
-from conda_forge_tick.feedstock_parser import load_feedstock
-from conda_forge_tick.lazy_json_backends import (
-    LazyJson,
-    dumps,
-    lazy_json_override_backends,
-    loads,
-)
-from conda_forge_tick.os_utils import pushd
-from conda_forge_tick.update_upstream_versions import (
-    all_version_sources,
-    get_latest_version,
-)
 
 existing_feedstock_node_attrs_option = click.option(
     "--existing-feedstock-node-attrs",
@@ -32,7 +32,27 @@ existing_feedstock_node_attrs_option = click.option(
 )
 
 
+@contextmanager
+def _setenv(name, value):
+    """set an environment variable temporarily"""
+    old = os.environ.get(name, None)
+    try:
+        os.environ[name] = value
+        yield
+    finally:
+        if old is None:
+            del os.environ[name]
+        else:
+            os.environ[name] = old
+
+
 def _get_existing_feedstock_node_attrs(existing_feedstock_node_attrs):
+    from conda_forge_tick.lazy_json_backends import (
+        LazyJson,
+        lazy_json_override_backends,
+        loads,
+    )
+
     if existing_feedstock_node_attrs.startswith("{"):
         attrs = loads(existing_feedstock_node_attrs)
     else:
@@ -55,24 +75,54 @@ def cli():
 
 @cli.command(name="parse-feedstock")
 @existing_feedstock_node_attrs_option
-def parse_feedstock(existing_feedstock_node_attrs):
-    with tempfile.TemporaryDirectory() as tmpdir:
-        with pushd(tmpdir):
-            attrs = _get_existing_feedstock_node_attrs(existing_feedstock_node_attrs)
-            name = attrs["feedstock_name"]
+@click.option("--meta-yaml", default=None, type=str, help="The meta.yaml file to use.")
+@click.option(
+    "--conda-forge-yaml", default=None, type=str, help="The meta.yaml file to use."
+)
+@click.option(
+    "--mark-not-archived", is_flag=True, help="Mark the feedstock as not archived."
+)
+def parse_feedstock(
+    existing_feedstock_node_attrs, meta_yaml, conda_forge_yaml, mark_not_archived
+):
+    with tempfile.TemporaryDirectory() as tmpdir_cbld, _setenv(
+        "CONDA_BLD_PATH", os.path.join(tmpdir_cbld, "conda-bld")
+    ):
+        os.makedirs(os.path.join(tmpdir_cbld, "conda-bld"), exist_ok=True)
 
-            outerr = StringIO()
-            with redirect_stdout(outerr), redirect_stderr(outerr):
-                load_feedstock(
-                    name,
-                    attrs,
+        from conda_forge_tick.feedstock_parser import load_feedstock
+        from conda_forge_tick.lazy_json_backends import dumps
+        from conda_forge_tick.os_utils import pushd
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            with pushd(tmpdir):
+                attrs = _get_existing_feedstock_node_attrs(
+                    existing_feedstock_node_attrs
                 )
-            print(dumps(attrs))
+                name = attrs["feedstock_name"]
+
+                outerr = StringIO()
+                with redirect_stdout(outerr), redirect_stderr(outerr):
+                    load_feedstock(
+                        name,
+                        attrs,
+                        meta_yaml=meta_yaml,
+                        conda_forge_yaml=conda_forge_yaml,
+                        mark_not_archived=mark_not_archived,
+                    )
+                print(dumps(attrs))
 
 
 @cli.command(name="update-version")
 @existing_feedstock_node_attrs_option
 def update_version(existing_feedstock_node_attrs):
+    from conda_forge_tick.lazy_json_backends import dumps
+    from conda_forge_tick.os_utils import pushd
+    from conda_forge_tick.update_upstream_versions import (
+        all_version_sources,
+        get_latest_version,
+    )
+
     with tempfile.TemporaryDirectory() as tmpdir:
         with pushd(tmpdir):
             attrs = _get_existing_feedstock_node_attrs(existing_feedstock_node_attrs)

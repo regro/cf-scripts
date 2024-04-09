@@ -4,6 +4,7 @@ import hashlib
 import logging
 import os
 import re
+import subprocess
 import tempfile
 import typing
 import zipfile
@@ -19,6 +20,9 @@ if typing.TYPE_CHECKING:
     from mypy_extensions import TestTypedDict
     from .migrators_types import PackageName, RequirementsTypedDict
     from conda_forge_tick.migrators_types import MetaYamlTypedDict
+
+from conda_forge_tick.lazy_json_backends import dumps, loads
+from conda_forge_tick.utils import get_default_container_name
 
 from .utils import as_iterable, parse_meta_yaml
 
@@ -452,3 +456,75 @@ def load_feedstock(
         )
 
     return sub_graph
+
+
+def load_feedstock_containerized(
+    name: str,
+    sub_graph: typing.MutableMapping,
+    meta_yaml: Optional[str] = None,
+    conda_forge_yaml: Optional[str] = None,
+    mark_not_archived: bool = False,
+):
+    """Load a feedstock into subgraph based on its name, if meta_yaml and
+    conda_forge_yaml are provided
+
+    **This function runs the feedstock parsing in a container.**
+
+    Parameters
+    ----------
+    name : str
+        Name of the feedstock
+    sub_graph : MutableMapping
+        The existing metadata if any
+    meta_yaml : Optional[str]
+        The string meta.yaml, overrides the file in the feedstock if provided
+    conda_forge_yaml : Optional[str]
+        The string conda-forge.yaml, overrides the file in the feedstock if provided
+    mark_not_archived
+
+    Returns
+    -------
+    sub_graph : MutableMapping
+        The sub_graph, now updated with the feedstock metadata
+    """
+    args = []
+
+    if meta_yaml is not None:
+        args += ["--meta-yaml", meta_yaml]
+
+    if conda_forge_yaml is not None:
+        args += ["--conda-forge-yaml", conda_forge_yaml]
+
+    if mark_not_archived:
+        args += ["--mark-not-archived"]
+
+    res = subprocess.run(
+        [
+            "docker",
+            "run",
+            "--security-opt=no-new-privileges",
+            "--read-only",
+            "--cap-drop=all",
+            "--mount",
+            "type=tmpfs,destination=/tmp,tmpfs-mode=1777,tmpfs-size=10000000",  # 10 MB
+            "-m",
+            "2048m",
+            "--cpus",
+            "1",
+            "--rm",
+            "-t",
+            f"{get_default_container_name()}",
+            "python",
+            "/opt/autotick-bot/docker/run_bot_task.py",
+            "parse-feedstock",
+            "--existing-feedstock-node-attrs",
+            dumps(sub_graph),
+        ]
+        + args,
+        capture_output=True,
+    )
+    if res.returncode != 0:
+        raise RuntimeError(
+            f"Error running containerized feedstock parsing: {res.stderr}"
+        )
+    return loads(res.stdout.decode("utf-8"))

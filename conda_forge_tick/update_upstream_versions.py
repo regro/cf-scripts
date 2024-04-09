@@ -40,7 +40,7 @@ from .update_sources import (
     RawURL,
     ROSDistro,
 )
-from .utils import get_keys_default, load_existing_graph
+from .utils import get_default_container_name, get_keys_default, load_existing_graph
 
 T = TypeVar("T")
 
@@ -165,19 +165,25 @@ def get_latest_version(
     return version_data
 
 
-def get_latest_version_containerized(name, attrs, sources):
+def get_latest_version_containerized(
+    name: str,
+    attrs: Mapping[str, Any],
+    sources: Iterable[AbstractSource],
+) -> Dict[str, Union[Literal[False], str]]:
+    """
+    Given a package, return the new version information to be written into the cf-graph.
+
+    **This function runs the version parsing in a container.**
+
+    :param name: the name of the package.
+    :param attrs: the node attributes of the package
+    :param sources: the version sources to use (sources can be excluded by the package but not added)
+    """
     if sources != all_version_sources():
         warnings.warn(
             "The sources argument is ignored when running in a container. "
             "All available sources will be used.",
         )
-
-    if os.environ.get("CI", "false") == "true":
-        tag = "test"
-        cname = "conda-forge-tick"
-    else:
-        tag = "master"
-        cname = "regro/conda-forge-tick"
 
     res = subprocess.run(
         [
@@ -194,7 +200,7 @@ def get_latest_version_containerized(name, attrs, sources):
             "1",
             "--rm",
             "-t",
-            f"{cname}:{tag}",
+            f"{get_default_container_name()}",
             "python",
             "/opt/autotick-bot/docker/run_bot_task.py",
             "update-version",

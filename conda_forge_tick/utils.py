@@ -80,6 +80,15 @@ CB_CONFIG_PINNING = dict(
 DEFAULT_GRAPH_FILENAME = "graph.json"
 
 
+def get_default_container_name():
+    if os.environ.get("CI", "false") == "true":
+        cname = "conda-forge-tick:test"
+    else:
+        cname = "ghcr.io/regro/conda-forge-tick:master"
+
+    return cname
+
+
 @contextlib.contextmanager
 def fold_log_lines(title):
     try:
