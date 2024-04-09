@@ -214,6 +214,24 @@ def get_latest_version_containerized(
     return json.loads(res.stdout.decode("utf-8"))
 
 
+def get_latest_version_wrapper(
+    name: str,
+    attrs: Mapping[str, Any],
+    sources: Iterable[AbstractSource],
+) -> Dict[str, Union[Literal[False], str]]:
+    """
+    Given a package, return the new version information to be written into the cf-graph.
+
+    :param name: the name of the package.
+    :param attrs: the node attributes of the package
+    :param sources: the version sources to use (sources can be excluded by the package but not added)
+    """
+    if True:
+        return get_latest_version_containerized(name, attrs, sources)
+    else:
+        return get_latest_version(name, attrs, sources)
+
+
 def get_job_number_for_package(name: str, n_jobs: int):
     return abs(int(hashlib.sha1(name.encode("utf-8")).hexdigest(), 16)) % n_jobs + 1
 
@@ -283,7 +301,7 @@ def _update_upstream_versions_sequential(
         # New version request
         try:
             # check for latest version
-            version_data.update(get_latest_version(node, attrs, sources))
+            version_data.update(get_latest_version_wrapper(node, attrs, sources))
         except Exception as e:
             try:
                 se = repr(e)
@@ -320,7 +338,7 @@ def _update_upstream_versions_process_pool(
         ):
             futures.update(
                 {
-                    pool.submit(get_latest_version, node, attrs, sources): (
+                    pool.submit(get_latest_version_wrapper, node, attrs, sources): (
                         node,
                         attrs,
                     ),

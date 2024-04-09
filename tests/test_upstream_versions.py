@@ -26,7 +26,7 @@ from conda_forge_tick.update_upstream_versions import (
     _update_upstream_versions_process_pool,
     _update_upstream_versions_sequential,
     filter_nodes_for_job,
-    get_latest_version,
+    get_latest_version_wrapper,
     ignore_version,
     include_node,
     main,
@@ -412,7 +412,7 @@ def test_latest_version_npm(
             },
         )
     [requests_mock.get(url, text=text) for url, text in urls.items()]
-    attempt = get_latest_version(name, pmy, [source])
+    attempt = get_latest_version_wrapper(name, pmy, [source])
     if ver is None:
         assert attempt["new_version"] is not False
         assert attempt["new_version"] != curr_ver
@@ -440,7 +440,7 @@ def test_latest_version_rawurl(name, inp, curr_ver, ver, source, urls, tmpdir):
                 "meta_yaml": parse_meta_yaml(inp),
             },
         )
-    attempt = get_latest_version(name, pmy, [source])
+    attempt = get_latest_version_wrapper(name, pmy, [source])
     if ver is None:
         assert attempt["new_version"] is not False
         assert attempt["new_version"] != curr_ver
@@ -452,7 +452,9 @@ def test_latest_version_rawurl(name, inp, curr_ver, ver, source, urls, tmpdir):
 
 
 def test_latest_version_ca_policy_lcg(caplog):
-    assert get_latest_version("ca-policy-lcg", {}, [RawURL()]) == {"new_version": False}
+    assert get_latest_version_wrapper("ca-policy-lcg", {}, [RawURL()]) == {
+        "new_version": False
+    }
     assert "ca-policy-lcg" in caplog.text
     assert "manually excluded" in caplog.text
 
@@ -482,7 +484,9 @@ def test_latest_version_version_sources_no_error(caplog):
     with patch(
         "conda_forge_tick.update_upstream_versions.ignore_version", return_value=False
     ) as ignore_version_mock:
-        result = get_latest_version("crazy-package", attrs, [source_a, source_b])
+        result = get_latest_version_wrapper(
+            "crazy-package", attrs, [source_a, source_b]
+        )
 
     # source c is not a valid source, source a does not appear in the list
     assert (
@@ -526,7 +530,7 @@ def test_latest_version_skip_error_success(caplog):
     with patch(
         "conda_forge_tick.update_upstream_versions.ignore_version", return_value=False
     ):
-        result = get_latest_version("crazy-package", {}, [source_a, source_b])
+        result = get_latest_version_wrapper("crazy-package", {}, [source_a, source_b])
 
     assert "Using URL https://source-a.com" in caplog.text
     assert (
@@ -552,7 +556,7 @@ def test_latest_version_error_and_no_new_version(caplog):
     source_b.get_version.return_value = None
 
     with pytest.raises(ZeroDivisionError):
-        get_latest_version("crazy-package", {}, [source_a, source_b])
+        get_latest_version_wrapper("crazy-package", {}, [source_a, source_b])
 
     assert "Using URL https://source-a.com" in caplog.text
     assert (
@@ -578,7 +582,7 @@ def test_latest_version_ignore_version(caplog):
     with patch(
         "conda_forge_tick.update_upstream_versions.ignore_version", return_value=True
     ):
-        result = get_latest_version("crazy-package", {}, [source_a])
+        result = get_latest_version_wrapper("crazy-package", {}, [source_a])
 
     assert "Using URL https://source-a.com" in caplog.text
     assert "Ignoring version 1.2.3" in caplog.text
@@ -604,7 +608,7 @@ def test_latest_version_no_sources_are_skipped(caplog):
         },
     }
 
-    result = get_latest_version("crazy-package", attrs, [source_a])
+    result = get_latest_version_wrapper("crazy-package", attrs, [source_a])
 
     assert "No sources are skipped" in caplog.text
 
@@ -1071,7 +1075,7 @@ def test_latest_version_nvidia(name, inp, curr_ver, ver, source, urls, tmpdir):
                 "meta_yaml": parse_meta_yaml(inp),
             },
         )
-    attempt = get_latest_version(name, pmy, [source])
+    attempt = get_latest_version_wrapper(name, pmy, [source])
     if ver is None:
         assert attempt["new_version"] is not False
         assert attempt["new_version"] != curr_ver
@@ -1098,7 +1102,7 @@ def test_latest_version_aws_sdk_cpp(tmpdir):
                 "meta_yaml": parse_meta_yaml(inp),
             },
         )
-    attempt = get_latest_version(name, pmy, [PyPI(), Github(), RawURL()])
+    attempt = get_latest_version_wrapper(name, pmy, [PyPI(), Github(), RawURL()])
     assert attempt["new_version"] is not None
     assert attempt["new_version"]
     print(attempt)
@@ -1327,7 +1331,7 @@ def test_update_upstream_versions_run_parallel_custom_sources(
     ) == ("source a", "source b")
 
 
-@mock.patch("conda_forge_tick.update_upstream_versions.get_latest_version")
+@mock.patch("conda_forge_tick.update_upstream_versions.get_latest_version_wrapper")
 @mock.patch("conda_forge_tick.update_upstream_versions.LazyJson")
 def test_update_upstream_versions_sequential_error(
     lazy_json_mock: MagicMock, get_latest_version_mock: MagicMock, caplog
@@ -1364,7 +1368,7 @@ class BrokenException(Exception):
         raise Exception("broken exception")
 
 
-@mock.patch("conda_forge_tick.update_upstream_versions.get_latest_version")
+@mock.patch("conda_forge_tick.update_upstream_versions.get_latest_version_wrapper")
 @mock.patch("conda_forge_tick.update_upstream_versions.LazyJson")
 def test_update_upstream_versions_sequential_exception_repr_exception(
     lazy_json_mock: MagicMock, get_latest_version_mock: MagicMock, caplog
@@ -1398,7 +1402,7 @@ def test_update_upstream_versions_sequential_exception_repr_exception(
     )
 
 
-@mock.patch("conda_forge_tick.update_upstream_versions.get_latest_version")
+@mock.patch("conda_forge_tick.update_upstream_versions.get_latest_version_wrapper")
 @mock.patch("conda_forge_tick.update_upstream_versions.LazyJson")
 def test_update_upstream_versions_sequential(
     lazy_json_mock: MagicMock, get_latest_version_mock: MagicMock, caplog
@@ -1483,13 +1487,13 @@ def test_update_upstream_versions_process_pool(
     pool_mock.submit.assert_has_calls(
         [
             mock.call(
-                get_latest_version,
+                get_latest_version_wrapper,
                 "testpackage",
                 {"version": "2.2.3"},
                 sources,
             ),
             mock.call(
-                get_latest_version,
+                get_latest_version_wrapper,
                 "testpackage2",
                 {"version": "1.2.4"},
                 sources,
@@ -1538,7 +1542,7 @@ def test_update_upstream_versions_process_pool_exception(
     _update_upstream_versions_process_pool(to_update, sources)
 
     pool_mock.submit.assert_called_once_with(
-        get_latest_version, "testpackage", {"version": "2.2.3"}, sources
+        get_latest_version_wrapper, "testpackage", {"version": "2.2.3"}, sources
     )
 
     lazy_json_mock.assert_any_call("versions/testpackage.json")
@@ -1581,7 +1585,7 @@ def test_update_upstream_versions_process_pool_exception_repr_exception(
     _update_upstream_versions_process_pool(to_update, sources)
 
     pool_mock.submit.assert_called_once_with(
-        get_latest_version, "testpackage", {"version": "2.2.3"}, sources
+        get_latest_version_wrapper, "testpackage", {"version": "2.2.3"}, sources
     )
 
     lazy_json_mock.assert_any_call("versions/testpackage.json")
