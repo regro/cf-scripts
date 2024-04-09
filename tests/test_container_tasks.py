@@ -74,8 +74,7 @@ def test_get_latest_version_containerized():
     data = get_latest_version_containerized(
         "conda-smithy", attrs, all_version_sources()
     )
-    assert "error" not in data
-    assert data["data"]["new_version"] == conda_smithy.__version__
+    assert data["new_version"] == conda_smithy.__version__
 
 
 def test_container_tasks_parse_feedstock():
@@ -144,7 +143,6 @@ def test_load_feedstock_containerized():
             attrs = copy.deepcopy(lzj.data)
 
     data = load_feedstock_containerized("conda-smithy", attrs)
-    assert "error" not in data
-    assert data["data"]["feedstock_name"] == attrs["feedstock_name"]
-    assert not data["data"]["parsing_error"]
-    assert data["data"]["raw_meta_yaml"] == attrs["raw_meta_yaml"]
+    assert data["feedstock_name"] == attrs["feedstock_name"]
+    assert not data["parsing_error"]
+    assert data["raw_meta_yaml"] == attrs["raw_meta_yaml"]

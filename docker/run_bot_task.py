@@ -36,7 +36,7 @@ existing_feedstock_node_attrs_option = click.option(
 @contextmanager
 def _setenv(name, value):
     """set an environment variable temporarily"""
-    old = os.environ.get(name, None)
+    old = os.environ.get(name)
     try:
         os.environ[name] = value
         yield
@@ -69,6 +69,84 @@ def _get_existing_feedstock_node_attrs(existing_feedstock_node_attrs):
     return attrs
 
 
+def _run_bot_task(func, **kwargs):
+    from conda_forge_tick.lazy_json_backends import dumps
+
+    data = None
+    ret = copy.copy(kwargs)
+    outerr = StringIO()
+    try:
+        with redirect_stdout(outerr), redirect_stderr(outerr):
+            data = func(**kwargs)
+
+        ret["data"] = data
+        ret["container_stdout_stderr"] = outerr.getvalue()
+
+    except Exception as e:
+        ret["data"] = data
+        ret["container_stdout_stderr"] = outerr.getvalue()
+        ret["error"] = str(e)
+        ret["traceback"] = traceback.format_exc()
+
+    print(dumps(ret))
+
+
+def _get_latest_version(*, existing_feedstock_node_attrs, sources):
+    from conda_forge_tick.os_utils import pushd
+    from conda_forge_tick.update_upstream_versions import (
+        all_version_sources,
+        get_latest_version_local,
+    )
+
+    _sources = all_version_sources()
+    if sources is not None:
+        sources = sources.split(",")
+        sources = [s.strip().lower() for s in sources]
+        _sources = [s for s in _sources if s.name.strip().lower() in sources]
+
+    with tempfile.TemporaryDirectory() as tmpdir:
+        with pushd(tmpdir):
+            attrs = _get_existing_feedstock_node_attrs(existing_feedstock_node_attrs)
+            name = attrs["feedstock_name"]
+
+            data = get_latest_version_local(
+                name,
+                attrs,
+                _sources,
+            )
+    return data
+
+
+def _parse_feedstock(
+    *, existing_feedstock_node_attrs, meta_yaml, conda_forge_yaml, mark_not_archived
+):
+    with tempfile.TemporaryDirectory() as tmpdir_cbld, _setenv(
+        "CONDA_BLD_PATH", os.path.join(tmpdir_cbld, "conda-bld")
+    ):
+        os.makedirs(os.path.join(tmpdir_cbld, "conda-bld"), exist_ok=True)
+
+        from conda_forge_tick.feedstock_parser import load_feedstock_local
+        from conda_forge_tick.os_utils import pushd
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            with pushd(tmpdir):
+                attrs = _get_existing_feedstock_node_attrs(
+                    existing_feedstock_node_attrs
+                )
+                name = attrs["feedstock_name"]
+
+                outerr = StringIO()
+                with redirect_stdout(outerr), redirect_stderr(outerr):
+                    load_feedstock_local(
+                        name,
+                        attrs,
+                        meta_yaml=meta_yaml,
+                        conda_forge_yaml=conda_forge_yaml,
+                        mark_not_archived=mark_not_archived,
+                    )
+    return attrs
+
+
 @click.group()
 def cli():
     pass
@@ -86,32 +164,13 @@ def cli():
 def parse_feedstock(
     existing_feedstock_node_attrs, meta_yaml, conda_forge_yaml, mark_not_archived
 ):
-    with tempfile.TemporaryDirectory() as tmpdir_cbld, _setenv(
-        "CONDA_BLD_PATH", os.path.join(tmpdir_cbld, "conda-bld")
-    ):
-        os.makedirs(os.path.join(tmpdir_cbld, "conda-bld"), exist_ok=True)
-
-        from conda_forge_tick.feedstock_parser import load_feedstock
-        from conda_forge_tick.lazy_json_backends import dumps
-        from conda_forge_tick.os_utils import pushd
-
-        with tempfile.TemporaryDirectory() as tmpdir:
-            with pushd(tmpdir):
-                attrs = _get_existing_feedstock_node_attrs(
-                    existing_feedstock_node_attrs
-                )
-                name = attrs["feedstock_name"]
-
-                outerr = StringIO()
-                with redirect_stdout(outerr), redirect_stderr(outerr):
-                    load_feedstock(
-                        name,
-                        attrs,
-                        meta_yaml=meta_yaml,
-                        conda_forge_yaml=conda_forge_yaml,
-                        mark_not_archived=mark_not_archived,
-                    )
-                print(dumps(attrs))
+    return _run_bot_task(
+        _parse_feedstock,
+        existing_feedstock_node_attrs=existing_feedstock_node_attrs,
+        meta_yaml=meta_yaml,
+        conda_forge_yaml=conda_forge_yaml,
+        mark_not_archived=mark_not_archived,
+    )
 
 
 @cli.command(name="get-latest-version")
@@ -123,60 +182,11 @@ def parse_feedstock(
     help="Comma separated list of sources to use. Default is all sources as given by `all_version_sources`.",
 )
 def get_latest_version(existing_feedstock_node_attrs, sources):
-    attrs = None
-    data = None
-    outerr = StringIO()
-    try:
-        with redirect_stdout(outerr), redirect_stderr(outerr):
-            from conda_forge_tick.lazy_json_backends import dumps
-            from conda_forge_tick.os_utils import pushd
-            from conda_forge_tick.update_upstream_versions import (
-                all_version_sources,
-                get_latest_version,
-            )
-
-            _sources = all_version_sources()
-            if sources is not None:
-                sources = sources.split(",")
-                sources = [s.strip().lower() for s in sources]
-                _sources = [s for s in _sources if s.name.strip().lower() in sources]
-
-            with tempfile.TemporaryDirectory() as tmpdir:
-                with pushd(tmpdir):
-                    attrs = _get_existing_feedstock_node_attrs(
-                        existing_feedstock_node_attrs
-                    )
-                    name = attrs["feedstock_name"]
-
-                    data = get_latest_version(
-                        name,
-                        attrs,
-                        _sources,
-                    )
-
-        print(
-            dumps(
-                {
-                    "data": data,
-                    "attrs": attrs,
-                    "sources": sources,
-                    "container_stdout_stderr": outerr.getvalue(),
-                }
-            )
-        )
-    except Exception as e:
-        print(
-            dumps(
-                {
-                    "attrs": attrs,
-                    "sources": sources,
-                    "error": str(e),
-                    "traceback": traceback.format_exc(),
-                    "data": data,
-                    "container_stdout_stderr": outerr.getvalue(),
-                }
-            )
-        )
+    return _run_bot_task(
+        _get_latest_version,
+        existing_feedstock_node_attrs=existing_feedstock_node_attrs,
+        sources=sources,
+    )
 
 
 if __name__ == "__main__":

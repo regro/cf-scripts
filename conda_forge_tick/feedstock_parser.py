@@ -3,6 +3,7 @@ import glob
 import hashlib
 import logging
 import os
+import pprint
 import re
 import subprocess
 import tempfile
@@ -401,7 +402,7 @@ def populate_feedstock_attributes(
     return sub_graph
 
 
-def load_feedstock(
+def load_feedstock_local(
     name: str,
     sub_graph: typing.MutableMapping,
     meta_yaml: Optional[str] = None,
@@ -421,7 +422,8 @@ def load_feedstock(
         The string meta.yaml, overrides the file in the feedstock if provided
     conda_forge_yaml : Optional[str]
         The string conda-forge.yaml, overrides the file in the feedstock if provided
-    mark_not_archived
+    mark_not_archived : bool
+        If True, forcibly mark the feedstock as not archived in the node attrs.
 
     Returns
     -------
@@ -480,7 +482,8 @@ def load_feedstock_containerized(
         The string meta.yaml, overrides the file in the feedstock if provided
     conda_forge_yaml : Optional[str]
         The string conda-forge.yaml, overrides the file in the feedstock if provided
-    mark_not_archived
+    mark_not_archived : bool
+        If True, forcibly mark the feedstock as not archived in the node attrs.
 
     Returns
     -------
@@ -513,18 +516,74 @@ def load_feedstock_containerized(
             "1",
             "--rm",
             "-t",
-            f"{get_default_container_name()}",
+            get_default_container_name(),
             "python",
             "/opt/autotick-bot/docker/run_bot_task.py",
             "parse-feedstock",
             "--existing-feedstock-node-attrs",
             dumps(sub_graph),
-        ]
-        + args,
+            *args,
+        ],
         capture_output=True,
+        check=True,
+        text=True,
     )
-    if res.returncode != 0:
+    ret = loads(res.stdout)
+    logger.debug("Containerized parse feedstock output:\n%s", pprint.pformat(ret))
+
+    if "error" in ret:
         raise RuntimeError(
-            f"Error running containerized feedstock parsing: {res.stderr}"
+            "Error running containerized parse feedstock:"
+            f"\nstderr: {pprint.pformat(res.stderr)}"
+            f"\nstdout: {pprint.pformat(ret)}"
         )
-    return loads(res.stdout.decode("utf-8"))
+    return ret["data"]
+
+
+def load_feedstock(
+    name: str,
+    sub_graph: typing.MutableMapping,
+    meta_yaml: Optional[str] = None,
+    conda_forge_yaml: Optional[str] = None,
+    mark_not_archived: bool = False,
+    use_container: bool = True,
+):
+    """Load a feedstock into subgraph based on its name. If meta_yaml and/or
+    conda_forge_yaml are not provided, they will be fetched from the feedstock.
+
+    Parameters
+    ----------
+    name : str
+        Name of the feedstock
+    sub_graph : MutableMapping
+        The existing metadata if any
+    meta_yaml : Optional[str]
+        The string meta.yaml, overrides the file in the feedstock if provided
+    conda_forge_yaml : Optional[str]
+        The string conda-forge.yaml, overrides the file in the feedstock if provided
+    mark_not_archived : bool
+        If True, forcibly mark the feedstock as not archived in the node attrs.
+    use_container : bool, optional
+        Whether to use a container to run the version parsing.
+
+    Returns
+    -------
+    sub_graph : MutableMapping
+        The sub_graph, now updated with the feedstock metadata
+    """
+    if use_container:
+        return load_feedstock_containerized(
+            name,
+            sub_graph,
+            meta_yaml=meta_yaml,
+            conda_forge_yaml=conda_forge_yaml,
+            mark_not_archived=mark_not_archived,
+        )
+    else:
+        return load_feedstock_local(
+            name,
+            sub_graph,
+            meta_yaml=meta_yaml,
+            conda_forge_yaml=conda_forge_yaml,
+            mark_not_archived=mark_not_archived,
+        )
