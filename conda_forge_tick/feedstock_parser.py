@@ -519,7 +519,6 @@ def load_feedstock_containerized(
         *args,
         "--log-level",
         str(logging.getLevelName(logger.getEffectiveLevel())).lower(),
-        *args,
     ]
     res = subprocess.run(
         cmd,
