@@ -15,6 +15,7 @@ These tasks return their info to the bot by printing a JSON blob to stdout.
 import copy
 import os
 import tempfile
+import traceback
 from contextlib import contextmanager, redirect_stderr, redirect_stdout
 from io import StringIO
 
@@ -115,28 +116,67 @@ def parse_feedstock(
 
 @cli.command(name="get-latest-version")
 @existing_feedstock_node_attrs_option
-def get_latest_version(existing_feedstock_node_attrs):
-    from conda_forge_tick.lazy_json_backends import dumps
-    from conda_forge_tick.os_utils import pushd
-    from conda_forge_tick.update_upstream_versions import (
-        all_version_sources,
-        get_latest_version,
-    )
+@click.option(
+    "--sources",
+    default=None,
+    type=str,
+    help="Comma separated list of sources to use. Default is all sources as given by `all_version_sources`.",
+)
+def get_latest_version(existing_feedstock_node_attrs, sources):
+    attrs = None
+    data = None
+    outerr = StringIO()
+    try:
+        with redirect_stdout(outerr), redirect_stderr(outerr):
+            from conda_forge_tick.lazy_json_backends import dumps
+            from conda_forge_tick.os_utils import pushd
+            from conda_forge_tick.update_upstream_versions import (
+                all_version_sources,
+                get_latest_version,
+            )
 
-    with tempfile.TemporaryDirectory() as tmpdir:
-        with pushd(tmpdir):
-            attrs = _get_existing_feedstock_node_attrs(existing_feedstock_node_attrs)
-            name = attrs["feedstock_name"]
+            _sources = all_version_sources()
+            if sources is not None:
+                sources = sources.split(",")
+                sources = [s.strip().lower() for s in sources]
+                _sources = [s for s in _sources if s.name.strip().lower() in sources]
 
-            outerr = StringIO()
-            with redirect_stdout(outerr), redirect_stderr(outerr):
-                data = get_latest_version(
-                    name,
-                    attrs,
-                    all_version_sources(),
-                )
+            with tempfile.TemporaryDirectory() as tmpdir:
+                with pushd(tmpdir):
+                    attrs = _get_existing_feedstock_node_attrs(
+                        existing_feedstock_node_attrs
+                    )
+                    name = attrs["feedstock_name"]
 
-    print(dumps(data))
+                    data = get_latest_version(
+                        name,
+                        attrs,
+                        _sources,
+                    )
+
+        print(
+            dumps(
+                {
+                    "data": data,
+                    "attrs": attrs,
+                    "sources": sources,
+                    "container_stdout_stderr": outerr.getvalue(),
+                }
+            )
+        )
+    except Exception as e:
+        print(
+            dumps(
+                {
+                    "attrs": attrs,
+                    "sources": sources,
+                    "error": str(e),
+                    "traceback": traceback.format_exc(),
+                    "data": data,
+                    "container_stdout_stderr": outerr.getvalue(),
+                }
+            )
+        )
 
 
 if __name__ == "__main__":
