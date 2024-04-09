@@ -174,16 +174,27 @@ def get_latest_version_containerized(name, attrs, sources):
 
     if os.environ.get("CI", "false") == "true":
         tag = "test"
+        cname = "conda-forge-tick"
     else:
-        tag = "latest"
+        tag = "master"
+        cname = "regro/conda-forge-tick"
 
     res = subprocess.run(
         [
             "docker",
             "run",
+            "--security-opt=no-new-privileges",
+            "--read-only",
+            "--cap-drop=all",
+            "--mount",
+            "type=tmpfs,destination=/tmp,tmpfs-mode=1777,tmpfs-size=10000000",  # 10 MB
+            "-m",
+            "2048m",
+            "--cpus",
+            "1",
             "--rm",
             "-t",
-            f"conda-forge-tick:{tag}",
+            f"{cname}:{tag}",
             "python",
             "/opt/autotick-bot/docker/run_bot_task.py",
             "update-version",
@@ -266,7 +277,7 @@ def _update_upstream_versions_sequential(
         # New version request
         try:
             # check for latest version
-            version_data.update(get_latest_version_containerized(node, attrs, sources))
+            version_data.update(get_latest_version(node, attrs, sources))
         except Exception as e:
             try:
                 se = repr(e)
@@ -303,9 +314,7 @@ def _update_upstream_versions_process_pool(
         ):
             futures.update(
                 {
-                    pool.submit(
-                        get_latest_version_containerized, node, attrs, sources
-                    ): (
+                    pool.submit(get_latest_version, node, attrs, sources): (
                         node,
                         attrs,
                     ),

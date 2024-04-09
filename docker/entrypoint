@@ -1,0 +1,6 @@
+#!/bin/bash -il
+
+conda activate cf-scripts
+
+# Run whatever the user wants.
+exec "$@"
