@@ -24,3 +24,15 @@ def env_setup():
 
     if old_pwd2:
         os.environ["pwd"] = old_pwd2
+
+
+@pytest.fixture(autouse=True, scope="session")
+def set_ci_var():
+    old_ci = os.environ.get("CI")
+    if old_ci is None:
+        os.environ["CI"] = "true"
+    yield
+    if old_ci is None:
+        del os.environ["CI"]
+    else:
+        os.environ["CI"] = old_ci
