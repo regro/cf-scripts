@@ -4121,36 +4121,36 @@ package:
     dependencies:
       libgcc-ng: '>=12'
     hash:
-      md5: 96f3b11872ef6fad973eac856cd2624f
-      sha256: 41ec165704ccce2faa0437f4f53c03c06261a2cc9ff7614828e51427d9261f4b
+      md5: 3bf7b9fd5a7136126e0234db4b87c8b6
+      sha256: aac402a8298f0c0cc528664249170372ef6b37ac39fdc92b40601a6aed1e32ff
     manager: conda
     name: giflib
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/linux-64/giflib-5.2.1-h0b41bf4_3.conda
-    version: 5.2.1
+    url: https://conda.anaconda.org/conda-forge/linux-64/giflib-5.2.2-hd590300_0.conda
+    version: 5.2.2
   - category: main
     dependencies: {}
     hash:
-      md5: aca150b0186836f893ebac79019e5498
-      sha256: 47515e0874bcf67e438e1d5d093b074c1781f055067195f0d00a7790a56d446d
+      md5: 03e8c9b4d3da5f3d6eabdd020c2d63ac
+      sha256: 2c825df829097536314a195ae5cacaa8695209da6b4400135a65d8e23c008ff8
     manager: conda
     name: giflib
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/osx-64/giflib-5.2.1-hb7f2c08_3.conda
-    version: 5.2.1
+    url: https://conda.anaconda.org/conda-forge/osx-64/giflib-5.2.2-h10d778d_0.conda
+    version: 5.2.2
   - category: main
     dependencies: {}
     hash:
-      md5: f39a05d3dbb0e5024b7deabb2c0993f1
-      sha256: dbf1e431d3e5e03f8eeb77ec08a4c5d6d5d9af84dbef13d4365e397dd389beb8
+      md5: 95fa1486c77505330c20f7202492b913
+      sha256: 843b3f364ff844137e37d5c0a181f11f6d51adcedd216f019d074e5aa5d7e09c
     manager: conda
     name: giflib
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/osx-arm64/giflib-5.2.1-h1a8c8d9_3.conda
-    version: 5.2.1
+    url: https://conda.anaconda.org/conda-forge/osx-arm64/giflib-5.2.2-h93a5062_0.conda
+    version: 5.2.2
   - category: main
     dependencies:
       curl: ''
