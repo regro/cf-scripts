@@ -408,8 +408,8 @@ def load_feedstock(
     conda_forge_yaml: Optional[str] = None,
     mark_not_archived: bool = False,
 ):
-    """Load a feedstock into subgraph based on its name, if meta_yaml and
-    conda_forge_yaml are provided
+    """Load a feedstock into subgraph based on its name. If meta_yaml and/or
+    conda_forge_yaml are not provided, they will be fetched from the feedstock.
 
     Parameters
     ----------
@@ -465,8 +465,8 @@ def load_feedstock_containerized(
     conda_forge_yaml: Optional[str] = None,
     mark_not_archived: bool = False,
 ):
-    """Load a feedstock into subgraph based on its name, if meta_yaml and
-    conda_forge_yaml are provided
+    """Load a feedstock into subgraph based on its name. If meta_yaml and/or
+    conda_forge_yaml are not provided, they will be fetched from the feedstock.
 
     **This function runs the feedstock parsing in a container.**
 
