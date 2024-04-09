@@ -493,6 +493,9 @@ def load_feedstock_containerized(
     sub_graph : MutableMapping
         The sub_graph, now updated with the feedstock metadata
     """
+    if "feedstock_name" not in sub_graph:
+        sub_graph["feedstock_name"] = name
+
     args = []
 
     if meta_yaml is not None:
