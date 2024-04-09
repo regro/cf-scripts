@@ -60,7 +60,7 @@ def test_container_tasks_version_json():
     assert data["new_version"] == conda_smithy.__version__
 
 
-def test_get_latest_version_containerized(monkeypatch):
+def test_get_latest_version_containerized():
     # if the user doesn't set CI, assume we are in CI
     with lazy_json_override_backends(["github"], use_file_cache=False):
         with LazyJson("node_attrs/conda-smithy.json") as lzj:
