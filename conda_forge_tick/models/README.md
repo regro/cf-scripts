@@ -67,6 +67,8 @@ Pydantic Model: `PullRequestData` in [pr_json.py](pr_json.py).
 This directory is NOT analogous to `pr_info`. It contains metadata about attempted version migrations, and is
 referenced by the `NodeAttributes.version_pr_info` field using a Lazy JSON reference.
 
+Pydantic Model: `VersionPrInfo` in [version_pr_info.py](version_pr_info.py)
+
 ### `versions`
 One file per conda-forge package containing upstream version update information about the package.
 For some packages, this file may not exist, indicating absent upstream version update information.
