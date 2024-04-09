@@ -23,7 +23,10 @@ if typing.TYPE_CHECKING:
     from conda_forge_tick.migrators_types import MetaYamlTypedDict
 
 from conda_forge_tick.lazy_json_backends import dumps, loads
-from conda_forge_tick.utils import get_default_container_name
+from conda_forge_tick.utils import (
+    get_default_container_name,
+    get_default_container_run_args,
+)
 
 from .utils import as_iterable, parse_meta_yaml
 
@@ -501,29 +504,19 @@ def load_feedstock_containerized(
     if mark_not_archived:
         args += ["--mark-not-archived"]
 
+    cmd = [
+        *get_default_container_run_args(),
+        "-t",
+        get_default_container_name(),
+        "python",
+        "/opt/autotick-bot/docker/run_bot_task.py",
+        "parse-feedstock",
+        "--existing-feedstock-node-attrs",
+        dumps(sub_graph),
+        *args,
+    ]
     res = subprocess.run(
-        [
-            "docker",
-            "run",
-            "--security-opt=no-new-privileges",
-            "--read-only",
-            "--cap-drop=all",
-            "--mount",
-            "type=tmpfs,destination=/tmp,tmpfs-mode=1777,tmpfs-size=10000000",  # 10 MB
-            "-m",
-            "2048m",
-            "--cpus",
-            "1",
-            "--rm",
-            "-t",
-            get_default_container_name(),
-            "python",
-            "/opt/autotick-bot/docker/run_bot_task.py",
-            "parse-feedstock",
-            "--existing-feedstock-node-attrs",
-            dumps(sub_graph),
-            *args,
-        ],
+        cmd,
         capture_output=True,
         check=True,
         text=True,
