@@ -1,6 +1,4 @@
 import copy
-import json
-import subprocess
 import tempfile
 
 import conda_smithy
@@ -57,31 +55,19 @@ def test_get_latest_version_containerized():
 
 def test_container_tasks_parse_feedstock():
     with tempfile.TemporaryDirectory() as tmpdir, pushd(tmpdir):
-        res = subprocess.run(
-            [
-                *get_default_container_run_args(),
-                "-t",
-                get_default_container_name(),
-                "python",
-                "/opt/autotick-bot/docker/run_bot_task.py",
-                "parse-feedstock",
-                "--existing-feedstock-node-attrs=conda-smithy",
-            ],
-            capture_output=True,
-            check=True,
-            text=True,
+        data = run_container_task(
+            "parse-feedstock",
+            ["--existing-feedstock-node-attrs", "conda-smithy"],
         )
-        data = json.loads(res.stdout)
-        assert "error" not in data
 
         with lazy_json_override_backends(["github"], use_file_cache=False), LazyJson(
             "node_attrs/conda-smithy.json"
         ) as lzj:
             attrs = copy.deepcopy(lzj.data)
 
-        assert data["data"]["feedstock_name"] == attrs["feedstock_name"]
-        assert not data["data"]["parsing_error"]
-        assert data["data"]["raw_meta_yaml"] == attrs["raw_meta_yaml"]
+        assert data["feedstock_name"] == attrs["feedstock_name"]
+        assert not data["parsing_error"]
+        assert data["raw_meta_yaml"] == attrs["raw_meta_yaml"]
 
 
 def test_container_tasks_parse_feedstock_json():
@@ -91,26 +77,13 @@ def test_container_tasks_parse_feedstock_json():
                 attrs = copy.deepcopy(lzj.data)
                 existing_feedstock_node_attrs = dumps(lzj.data)
 
-        res = subprocess.run(
-            [
-                *get_default_container_run_args(),
-                "-t",
-                get_default_container_name(),
-                "python",
-                "/opt/autotick-bot/docker/run_bot_task.py",
-                "parse-feedstock",
-                "--existing-feedstock-node-attrs",
-                existing_feedstock_node_attrs,
-            ],
-            capture_output=True,
-            check=True,
-            text=True,
+        data = run_container_task(
+            "parse-feedstock",
+            ["--existing-feedstock-node-attrs", existing_feedstock_node_attrs],
         )
-        data = json.loads(res.stdout)
-        assert "error" not in data
-        assert data["data"]["feedstock_name"] == attrs["feedstock_name"]
-        assert not data["data"]["parsing_error"]
-        assert data["data"]["raw_meta_yaml"] == attrs["raw_meta_yaml"]
+        assert data["feedstock_name"] == attrs["feedstock_name"]
+        assert not data["parsing_error"]
+        assert data["raw_meta_yaml"] == attrs["raw_meta_yaml"]
 
 
 def test_load_feedstock_containerized():
