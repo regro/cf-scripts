@@ -3,9 +3,11 @@ import copy
 import datetime
 import io
 import itertools
+import json
 import logging
 import os
 import pprint
+import subprocess
 import sys
 import tempfile
 import traceback
@@ -111,6 +113,7 @@ def get_default_container_run_args(tmpfs_size_mb: int = 10):
     return [
         "docker",
         "run",
+        "-e CF_TICK_IN_CONTAINER='true'",
         "--security-opt=no-new-privileges",
         "--read-only",
         "--cap-drop=all",
@@ -126,6 +129,77 @@ def get_default_container_run_args(tmpfs_size_mb: int = 10):
         "nproc=2048:2048",
         "--rm",
     ]
+
+
+def run_container_task(name, args, json_loads=json.loads):
+    """Run a bot task in a container.
+
+    Parameters
+    ----------
+    name : str
+        The name of the task.
+    args : List[str]
+        The arguments to pass to the container.
+    json_loads : function, optional
+        The function to use to load JSON to a string, by default `json.loads`.
+
+    Returns
+    -------
+    data : dict-like
+        The result of the task.
+    """
+    cmd = [
+        *get_default_container_run_args(),
+        "-t",
+        get_default_container_name(),
+        "python",
+        "/opt/autotick-bot/docker/run_bot_task.py",
+        name,
+        *args,
+        "--log-level",
+        str(logging.getLevelName(logger.getEffectiveLevel())).lower(),
+    ]
+    res = subprocess.run(
+        cmd,
+        capture_output=True,
+        text=True,
+    )
+    # we handle this ourselves to customize the error message
+    if res.returncode != 0:
+        raise RuntimeError(
+            f"Error running {name} in container - return code {res.returncode}:"
+            f"\nstderr: {pprint.pformat(res.stderr)}"
+            f"\nstdout: {pprint.pformat(res.stdout)}"
+        )
+
+    try:
+        ret = json_loads(res.stdout)
+    except json.JSONDecodeError:
+        raise RuntimeError(
+            f"Error running {name} in container - JSON could not parse stdout:"
+            f"\nstderr: {pprint.pformat(res.stderr)}"
+            f"\nstdout: {pprint.pformat(res.stdout)}"
+        )
+
+    # I have tried more than once to filter this out of the conda-build
+    # logs using a filter but I cannot get it to work always.
+    # For now, I will replace it here.
+    data = ret["container_stdout_stderr"].replace(
+        "WARNING: No numpy version specified in conda_build_config.yaml.", ""
+    )
+    for level in ["critical", "error", "warning", "info", "debug"]:
+        if f"{level.upper():<8} conda_forge_tick" in data:
+            getattr(logger, level)(data)
+            break
+
+    if "error" in ret:
+        raise RuntimeError(
+            f"Error running {name} in container - error {ret['error']} raised:"
+            f"\nstderr: {pprint.pformat(res.stderr)}"
+            f"\nstdout: {pprint.pformat(ret)}"
+        )
+
+    return ret["data"]
 
 
 @contextlib.contextmanager

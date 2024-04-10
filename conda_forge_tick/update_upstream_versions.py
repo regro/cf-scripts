@@ -1,11 +1,9 @@
 import functools
 import hashlib
-import json
 import logging
 import os
 import pprint
 import random
-import subprocess
 import time
 from concurrent.futures import as_completed
 from typing import (
@@ -40,12 +38,7 @@ from .update_sources import (
     RawURL,
     ROSDistro,
 )
-from .utils import (
-    get_default_container_name,
-    get_default_container_run_args,
-    get_keys_default,
-    load_existing_graph,
-)
+from .utils import get_keys_default, load_existing_graph, run_container_task
 
 T = TypeVar("T")
 
@@ -208,45 +201,15 @@ def get_latest_version_containerized(
     if "feedstock_name" not in attrs:
         attrs["feedstock_name"] = name
 
-    cmd = [
-        *get_default_container_run_args(),
-        "-t",
-        get_default_container_name(),
-        "python",
-        "/opt/autotick-bot/docker/run_bot_task.py",
-        "get-latest-version",
+    task = "get-latest-version"
+    args = [
         "--existing-feedstock-node-attrs",
         dumps(attrs.data) if isinstance(attrs, LazyJson) else dumps(attrs),
         "--sources",
         ",".join([source.name for source in sources]),
-        "--log-level",
-        str(logging.getLevelName(logger.getEffectiveLevel())).lower(),
     ]
-    res = subprocess.run(
-        cmd,
-        capture_output=True,
-        text=True,
-        check=True,
-    )
-    ret = json.loads(res.stdout)
-    # I have tried more than once to filter this out of the conda-build
-    # logs using a filter but I cannot get it to work always.
-    # For now, I will replace it here.
-    data = ret["container_stdout_stderr"].replace(
-        "WARNING: No numpy version specified in conda_build_config.yaml.", ""
-    )
-    for level in ["critical", "error", "warning", "info", "debug"]:
-        if f"{level.upper()}    conda_forge_tick" in data:
-            getattr(logger, level)(data)
-            break
 
-    if "error" in ret:
-        raise RuntimeError(
-            "Error running containerized version update:"
-            f"\nstderr: {pprint.pformat(res.stderr)}"
-            f"\nstdout: {pprint.pformat(ret)}"
-        )
-    return ret["data"]
+    return run_container_task(task, args)
 
 
 def get_latest_version(
@@ -268,13 +231,20 @@ def get_latest_version(
         The version sources to use.
     use_container : bool, optional
         Whether to use a container to run the version parsing.
+        If None, the function will use a container if the environment
+        variable `CF_TICK_IN_CONTAINER` is 'false'. This feature can be
+        used to avoid container in container calls.
 
     Returns
     -------
     version_data : dict
         The new version information.
     """
-    if use_container:
+    in_container = os.environ.get("CF_TICK_IN_CONTAINER", "false") == "true"
+    if use_container is None:
+        use_container = not in_container
+
+    if use_container and not in_container:
         return get_latest_version_containerized(name, attrs, sources)
     else:
         return get_latest_version_local(name, attrs, sources)

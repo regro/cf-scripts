@@ -84,13 +84,13 @@ def _run_bot_task(func, *, log_level, **kwargs):
         from conda_forge_tick.lazy_json_backends import dumps
         from conda_forge_tick.utils import setup_logging
 
-        setup_logging(log_level)
-
         data = None
         ret = copy.copy(kwargs)
         outerr = StringIO()
         try:
             with redirect_stdout(outerr), redirect_stderr(outerr):
+                # logger call needs to be here so it gets the changed stdout/stderr
+                setup_logging(log_level)
                 data = func(**kwargs)
 
             ret["data"] = data
