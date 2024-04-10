@@ -20,6 +20,9 @@ if typing.TYPE_CHECKING:
     from .migrators_types import PackageName, RequirementsTypedDict
     from conda_forge_tick.migrators_types import MetaYamlTypedDict
 
+from conda_forge_tick.lazy_json_backends import dumps, loads
+from conda_forge_tick.utils import run_container_task
+
 from .utils import as_iterable, parse_meta_yaml
 
 logger = logging.getLogger(__name__)
@@ -397,15 +400,15 @@ def populate_feedstock_attributes(
     return sub_graph
 
 
-def load_feedstock(
+def load_feedstock_local(
     name: str,
     sub_graph: typing.MutableMapping,
     meta_yaml: Optional[str] = None,
     conda_forge_yaml: Optional[str] = None,
     mark_not_archived: bool = False,
 ):
-    """Load a feedstock into subgraph based on its name, if meta_yaml and
-    conda_forge_yaml are provided
+    """Load a feedstock into subgraph based on its name. If meta_yaml and/or
+    conda_forge_yaml are not provided, they will be fetched from the feedstock.
 
     Parameters
     ----------
@@ -417,7 +420,8 @@ def load_feedstock(
         The string meta.yaml, overrides the file in the feedstock if provided
     conda_forge_yaml : Optional[str]
         The string conda-forge.yaml, overrides the file in the feedstock if provided
-    mark_not_archived
+    mark_not_archived : bool
+        If True, forcibly mark the feedstock as not archived in the node attrs.
 
     Returns
     -------
@@ -452,3 +456,116 @@ def load_feedstock(
         )
 
     return sub_graph
+
+
+def load_feedstock_containerized(
+    name: str,
+    sub_graph: typing.MutableMapping,
+    meta_yaml: Optional[str] = None,
+    conda_forge_yaml: Optional[str] = None,
+    mark_not_archived: bool = False,
+):
+    """Load a feedstock into subgraph based on its name. If meta_yaml and/or
+    conda_forge_yaml are not provided, they will be fetched from the feedstock.
+
+    **This function runs the feedstock parsing in a container.**
+
+    Parameters
+    ----------
+    name : str
+        Name of the feedstock
+    sub_graph : MutableMapping
+        The existing metadata if any
+    meta_yaml : Optional[str]
+        The string meta.yaml, overrides the file in the feedstock if provided
+    conda_forge_yaml : Optional[str]
+        The string conda-forge.yaml, overrides the file in the feedstock if provided
+    mark_not_archived : bool
+        If True, forcibly mark the feedstock as not archived in the node attrs.
+
+    Returns
+    -------
+    sub_graph : MutableMapping
+        The sub_graph, now updated with the feedstock metadata
+    """
+    if "feedstock_name" not in sub_graph:
+        sub_graph["feedstock_name"] = name
+
+    args = []
+
+    if meta_yaml is not None:
+        args += ["--meta-yaml", meta_yaml]
+
+    if conda_forge_yaml is not None:
+        args += ["--conda-forge-yaml", conda_forge_yaml]
+
+    if mark_not_archived:
+        args += ["--mark-not-archived"]
+
+    data = run_container_task(
+        "parse-feedstock",
+        [
+            "--existing-feedstock-node-attrs",
+            dumps(sub_graph),
+            *args,
+        ],
+        json_loads=loads,
+    )
+
+    return data
+
+
+def load_feedstock(
+    name: str,
+    sub_graph: typing.MutableMapping,
+    meta_yaml: Optional[str] = None,
+    conda_forge_yaml: Optional[str] = None,
+    mark_not_archived: bool = False,
+    use_container: bool = False,
+):
+    """Load a feedstock into subgraph based on its name. If meta_yaml and/or
+    conda_forge_yaml are not provided, they will be fetched from the feedstock.
+
+    Parameters
+    ----------
+    name : str
+        Name of the feedstock
+    sub_graph : MutableMapping
+        The existing metadata if any
+    meta_yaml : Optional[str]
+        The string meta.yaml, overrides the file in the feedstock if provided
+    conda_forge_yaml : Optional[str]
+        The string conda-forge.yaml, overrides the file in the feedstock if provided
+    mark_not_archived : bool
+        If True, forcibly mark the feedstock as not archived in the node attrs.
+    use_container : bool, optional
+        Whether to use a container to run the version parsing.
+        If None, the function will use a container if the environment
+        variable `CF_TICK_IN_CONTAINER` is 'false'. This feature can be
+        used to avoid container in container calls.
+
+    Returns
+    -------
+    sub_graph : MutableMapping
+        The sub_graph, now updated with the feedstock metadata
+    """
+    in_container = os.environ.get("CF_TICK_IN_CONTAINER", "false") == "true"
+    if use_container is None:
+        use_container = not in_container
+
+    if use_container and not in_container:
+        return load_feedstock_containerized(
+            name,
+            sub_graph,
+            meta_yaml=meta_yaml,
+            conda_forge_yaml=conda_forge_yaml,
+            mark_not_archived=mark_not_archived,
+        )
+    else:
+        return load_feedstock_local(
+            name,
+            sub_graph,
+            meta_yaml=meta_yaml,
+            conda_forge_yaml=conda_forge_yaml,
+            mark_not_archived=mark_not_archived,
+        )

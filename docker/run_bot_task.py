@@ -82,13 +82,16 @@ def _run_bot_task(func, *, log_level, **kwargs):
         os.makedirs(os.path.join(tmpdir_cbld, "conda-bld"), exist_ok=True)
 
         from conda_forge_tick.lazy_json_backends import dumps
+        from conda_forge_tick.os_utils import pushd
         from conda_forge_tick.utils import setup_logging
 
         data = None
         ret = copy.copy(kwargs)
         outerr = StringIO()
         try:
-            with redirect_stdout(outerr), redirect_stderr(outerr):
+            with redirect_stdout(outerr), redirect_stderr(
+                outerr
+            ), tempfile.TemporaryDirectory() as tmpdir, pushd(tmpdir):
                 # logger call needs to be here so it gets the changed stdout/stderr
                 setup_logging(log_level)
                 data = func(**kwargs)
@@ -106,7 +109,6 @@ def _run_bot_task(func, *, log_level, **kwargs):
 
 
 def _get_latest_version(*, existing_feedstock_node_attrs, sources):
-    from conda_forge_tick.os_utils import pushd
     from conda_forge_tick.update_upstream_versions import (
         all_version_sources,
         get_latest_version_local,
@@ -118,22 +120,70 @@ def _get_latest_version(*, existing_feedstock_node_attrs, sources):
         sources = [s.strip().lower() for s in sources]
         _sources = [s for s in _sources if s.name.strip().lower() in sources]
 
-    with tempfile.TemporaryDirectory() as tmpdir:
-        with pushd(tmpdir):
-            attrs = _get_existing_feedstock_node_attrs(existing_feedstock_node_attrs)
-            name = attrs["feedstock_name"]
+    attrs = _get_existing_feedstock_node_attrs(existing_feedstock_node_attrs)
+    name = attrs["feedstock_name"]
 
-            data = get_latest_version_local(
-                name,
-                attrs,
-                _sources,
-            )
+    data = get_latest_version_local(
+        name,
+        attrs,
+        _sources,
+    )
     return data
+
+
+def _parse_feedstock(
+    *,
+    existing_feedstock_node_attrs,
+    meta_yaml,
+    conda_forge_yaml,
+    mark_not_archived,
+):
+    from conda_forge_tick.feedstock_parser import load_feedstock_local
+
+    attrs = _get_existing_feedstock_node_attrs(existing_feedstock_node_attrs)
+    name = attrs["feedstock_name"]
+
+    load_feedstock_local(
+        name,
+        attrs,
+        meta_yaml=meta_yaml,
+        conda_forge_yaml=conda_forge_yaml,
+        mark_not_archived=mark_not_archived,
+    )
+
+    return attrs
 
 
 @click.group()
 def cli():
     pass
+
+
+@cli.command(name="parse-feedstock")
+@log_level_option
+@existing_feedstock_node_attrs_option
+@click.option("--meta-yaml", default=None, type=str, help="The meta.yaml file to use.")
+@click.option(
+    "--conda-forge-yaml", default=None, type=str, help="The meta.yaml file to use."
+)
+@click.option(
+    "--mark-not-archived", is_flag=True, help="Mark the feedstock as not archived."
+)
+def parse_feedstock(
+    log_level,
+    existing_feedstock_node_attrs,
+    meta_yaml,
+    conda_forge_yaml,
+    mark_not_archived,
+):
+    return _run_bot_task(
+        _parse_feedstock,
+        log_level=log_level,
+        existing_feedstock_node_attrs=existing_feedstock_node_attrs,
+        meta_yaml=meta_yaml,
+        conda_forge_yaml=conda_forge_yaml,
+        mark_not_archived=mark_not_archived,
+    )
 
 
 @cli.command(name="get-latest-version")
