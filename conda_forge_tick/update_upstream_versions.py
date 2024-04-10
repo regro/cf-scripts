@@ -1,11 +1,8 @@
 import functools
 import hashlib
-import json
 import logging
 import os
-import pprint
 import random
-import subprocess
 import time
 from concurrent.futures import as_completed
 from typing import (
@@ -40,12 +37,7 @@ from .update_sources import (
     RawURL,
     ROSDistro,
 )
-from .utils import (
-    get_default_container_name,
-    get_default_container_run_args,
-    get_keys_default,
-    load_existing_graph,
-)
+from .utils import get_keys_default, load_existing_graph, run_container_task
 
 T = TypeVar("T")
 
@@ -208,44 +200,15 @@ def get_latest_version_containerized(
     if "feedstock_name" not in attrs:
         attrs["feedstock_name"] = name
 
-    cmd = [
-        *get_default_container_run_args(),
-        "-t",
-        get_default_container_name(),
-        "python",
-        "/opt/autotick-bot/docker/run_bot_task.py",
-        "get-latest-version",
+    task = "get-latest-version"
+    args = [
         "--existing-feedstock-node-attrs",
         dumps(attrs.data) if isinstance(attrs, LazyJson) else dumps(attrs),
         "--sources",
         ",".join([source.name for source in sources]),
-        "--log-level",
-        str(logging.getLevelName(logger.getEffectiveLevel())).lower(),
     ]
-    res = subprocess.run(
-        cmd,
-        capture_output=True,
-        text=True,
-    )
-    ret = json.loads(res.stdout)
-    # I have tried more than once to filter this out of the conda-build
-    # logs using a filter but I cannot get it to work always.
-    # For now, I will replace it here.
-    data = ret["container_stdout_stderr"].replace(
-        "WARNING: No numpy version specified in conda_build_config.yaml.", ""
-    )
-    for level in ["critical", "error", "warning", "info", "debug"]:
-        if f"{level.upper()}    conda_forge_tick" in data:
-            getattr(logger, level)(data)
-            break
 
-    if "error" in ret or res.returncode != 0:
-        raise RuntimeError(
-            "Error running containerized version update:"
-            f"\nstderr: {pprint.pformat(res.stderr)}"
-            f"\nstdout: {pprint.pformat(ret)}"
-        )
-    return ret["data"]
+    return run_container_task(task, args)
 
 
 def get_latest_version(
