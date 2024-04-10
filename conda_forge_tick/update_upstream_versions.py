@@ -3,10 +3,10 @@ import hashlib
 import json
 import logging
 import os
+import pprint
 import random
 import subprocess
 import time
-import warnings
 from concurrent.futures import as_completed
 from typing import (
     Any,
@@ -71,16 +71,27 @@ def ignore_version(attrs: Mapping[str, Any], version: str) -> bool:
     )
 
 
-def get_latest_version(
+def get_latest_version_local(
     name: str,
     attrs: Mapping[str, Any],
     sources: Iterable[AbstractSource],
 ) -> Dict[str, Union[Literal[False], str]]:
     """
     Given a package, return the new version information to be written into the cf-graph.
-    :param name: the name of the package.
-    :param attrs: the node attributes of the package
-    :param sources: the version sources to use (sources can be excluded by the package but not added)
+
+    Parameters
+    ----------
+    name : str
+        The name of the feedstock.
+    attrs : Mapping[str, Any]
+        The node attributes of the feedstock.
+    sources : Iterable[AbstractSource]
+        The version sources to use.
+
+    Returns
+    -------
+    version_data : dict
+        The new version information.
     """
     version_data: Dict[str, Union[Literal[False], str]] = {"new_version": False}
 
@@ -170,13 +181,30 @@ def get_latest_version(
     return version_data
 
 
-def get_latest_version_containerized(name, attrs, sources):
-    if sources != all_version_sources():
-        warnings.warn(
-            "The sources argument is ignored when running in a container. "
-            "All available sources will be used.",
-        )
+def get_latest_version_containerized(
+    name: str,
+    attrs: Mapping[str, Any],
+    sources: Iterable[AbstractSource],
+) -> Dict[str, Union[Literal[False], str]]:
+    """
+    Given a package, return the new version information to be written into the cf-graph.
 
+    **This function runs the version parsing in a container.**
+
+    Parameters
+    ----------
+    name : str
+        The name of the feedstock.
+    attrs : Mapping[str, Any]
+        The node attributes of the feedstock.
+    sources : Iterable[AbstractSource]
+        The version sources to use.
+
+    Returns
+    -------
+    version_data : dict
+        The new version information.
+    """
     if "feedstock_name" not in attrs:
         attrs["feedstock_name"] = name
 
@@ -186,18 +214,70 @@ def get_latest_version_containerized(name, attrs, sources):
         get_default_container_name(),
         "python",
         "/opt/autotick-bot/docker/run_bot_task.py",
-        "update-version",
+        "get-latest-version",
         "--existing-feedstock-node-attrs",
         dumps(attrs.data) if isinstance(attrs, LazyJson) else dumps(attrs),
+        "--sources",
+        ",".join([source.name for source in sources]),
+        "--log-level",
+        str(logging.getLevelName(logger.getEffectiveLevel())).lower(),
     ]
-
     res = subprocess.run(
         cmd,
         capture_output=True,
+        text=True,
+        check=True,
     )
-    if res.returncode != 0:
-        raise RuntimeError(f"Error running containerized version update: {res.stderr}")
-    return json.loads(res.stdout.decode("utf-8"))
+    ret = json.loads(res.stdout)
+    # I have tried more than once to filter this out of the conda-build
+    # logs using a filter but I cannot get it to work always.
+    # For now, I will replace it here.
+    data = ret["container_stdout_stderr"].replace(
+        "WARNING: No numpy version specified in conda_build_config.yaml.", ""
+    )
+    for level in ["critical", "error", "warning", "info", "debug"]:
+        if f"{level.upper()}    conda_forge_tick" in data:
+            getattr(logger, level)(data)
+            break
+
+    if "error" in ret:
+        raise RuntimeError(
+            "Error running containerized version update:"
+            f"\nstderr: {pprint.pformat(res.stderr)}"
+            f"\nstdout: {pprint.pformat(ret)}"
+        )
+    return ret["data"]
+
+
+def get_latest_version(
+    name: str,
+    attrs: Mapping[str, Any],
+    sources: Iterable[AbstractSource],
+    use_container: bool = True,
+) -> Dict[str, Union[Literal[False], str]]:
+    """
+    Given a package, return the new version information to be written into the cf-graph.
+
+    Parameters
+    ----------
+    name : str
+        The name of the feedstock.
+    attrs : Mapping[str, Any]
+        The node attributes of the feedstock.
+    sources : Iterable[AbstractSource]
+        The version sources to use.
+    use_container : bool, optional
+        Whether to use a container to run the version parsing.
+
+    Returns
+    -------
+    version_data : dict
+        The new version information.
+    """
+    if use_container:
+        return get_latest_version_containerized(name, attrs, sources)
+    else:
+        return get_latest_version_local(name, attrs, sources)
 
 
 def get_job_number_for_package(name: str, n_jobs: int):

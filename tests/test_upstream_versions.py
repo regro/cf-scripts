@@ -412,7 +412,7 @@ def test_latest_version_npm(
             },
         )
     [requests_mock.get(url, text=text) for url, text in urls.items()]
-    attempt = get_latest_version(name, pmy, [source])
+    attempt = get_latest_version(name, pmy, [source], use_container=False)
     if ver is None:
         assert attempt["new_version"] is not False
         assert attempt["new_version"] != curr_ver
@@ -440,7 +440,7 @@ def test_latest_version_rawurl(name, inp, curr_ver, ver, source, urls, tmpdir):
                 "meta_yaml": parse_meta_yaml(inp),
             },
         )
-    attempt = get_latest_version(name, pmy, [source])
+    attempt = get_latest_version(name, pmy, [source], use_container=True)
     if ver is None:
         assert attempt["new_version"] is not False
         assert attempt["new_version"] != curr_ver
@@ -482,7 +482,12 @@ def test_latest_version_version_sources_no_error(caplog):
     with patch(
         "conda_forge_tick.update_upstream_versions.ignore_version", return_value=False
     ) as ignore_version_mock:
-        result = get_latest_version("crazy-package", attrs, [source_a, source_b])
+        result = get_latest_version(
+            "crazy-package",
+            attrs,
+            [source_a, source_b],
+            use_container=False,
+        )
 
     # source c is not a valid source, source a does not appear in the list
     assert (
@@ -526,7 +531,12 @@ def test_latest_version_skip_error_success(caplog):
     with patch(
         "conda_forge_tick.update_upstream_versions.ignore_version", return_value=False
     ):
-        result = get_latest_version("crazy-package", {}, [source_a, source_b])
+        result = get_latest_version(
+            "crazy-package",
+            {},
+            [source_a, source_b],
+            use_container=False,
+        )
 
     assert "Using URL https://source-a.com" in caplog.text
     assert (
@@ -552,7 +562,12 @@ def test_latest_version_error_and_no_new_version(caplog):
     source_b.get_version.return_value = None
 
     with pytest.raises(ZeroDivisionError):
-        get_latest_version("crazy-package", {}, [source_a, source_b])
+        get_latest_version(
+            "crazy-package",
+            {},
+            [source_a, source_b],
+            use_container=False,
+        )
 
     assert "Using URL https://source-a.com" in caplog.text
     assert (
@@ -578,7 +593,12 @@ def test_latest_version_ignore_version(caplog):
     with patch(
         "conda_forge_tick.update_upstream_versions.ignore_version", return_value=True
     ):
-        result = get_latest_version("crazy-package", {}, [source_a])
+        result = get_latest_version(
+            "crazy-package",
+            {},
+            [source_a],
+            use_container=False,
+        )
 
     assert "Using URL https://source-a.com" in caplog.text
     assert "Ignoring version 1.2.3" in caplog.text
@@ -604,7 +624,7 @@ def test_latest_version_no_sources_are_skipped(caplog):
         },
     }
 
-    result = get_latest_version("crazy-package", attrs, [source_a])
+    result = get_latest_version("crazy-package", attrs, [source_a], use_container=False)
 
     assert "No sources are skipped" in caplog.text
 
@@ -945,12 +965,12 @@ package:
   version: {{ version }}.{{ patch_version }}
 
 source:
-  url: https://developer.download.nvidia.com/compute/cutensor/redist/libcutensor/linux-x86_64/libcutensor-linux-x86_64-{{ version }}.{{ patch_version }}-archive.tar.xz     # [linux64]
+  url: https://developer.download.nvidia.com/compute/cutensor/redist/libcutensor/linux-x86_64/libcutensor-linux-x86_64-{{ version }}.{{ patch_version }}-archive.tar.xz     # [unix]
   url: https://developer.download.nvidia.com/compute/cutensor/redist/libcutensor/linux-ppc64le/libcutensor-linux-ppc64le-{{ version }}.{{ patch_version }}-archive.tar.xz   # [ppc64le]
   url: https://developer.download.nvidia.com/compute/cutensor/redist/libcutensor/linux-sbsa/libcutensor-linux-sbsa-{{ version }}.{{ patch_version }}-archive.tar.xz         # [aarch64]
   url: https://developer.download.nvidia.com/compute/cutensor/redist/libcutensor/windows-x86_64/libcutensor-windows-x86_64-{{ version }}.{{ patch_version }}-archive.zip    # [win64]
 
-  sha256: 4fdebe94f0ba3933a422cff3dd05a0ef7a18552ca274dd12564056993f55471d  # [linux64]
+  sha256: 4fdebe94f0ba3933a422cff3dd05a0ef7a18552ca274dd12564056993f55471d  # [unix]
   sha256: ad736acc94e88673b04a3156d7d3a408937cac32d083acdfbd8435582cbe15db  # [ppc64le]
   sha256: 5b9ac479b1dadaf40464ff3076e45f2ec92581c07df1258a155b5bcd142f6090  # [aarch64]
   sha256: de76f7d92600dda87a14ac756e9d0b5733cbceb88bcd20b3935a82c99342e6cd  # [win64]
