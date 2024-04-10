@@ -553,7 +553,7 @@ def load_feedstock(
     if use_container is None:
         use_container = not in_container
 
-    if use_container:
+    if use_container and not in_container:
         return load_feedstock_containerized(
             name,
             sub_graph,
