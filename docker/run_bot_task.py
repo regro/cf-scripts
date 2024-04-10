@@ -1,23 +1,25 @@
 #!/usr/bin/env python
+"""This file runs specific tasks for the bot.
+
+All imports from the bot need to be guarded by putting them in the subcommands.
+This ensures that we can set important environment variables before any imports,
+including `CONDA_BLD_PATH`.
+
+This container is run in a read-only environment except a small tmpfs volume
+mounted at `/tmp`. The `TMPDIR` environment variable is set to `/tmp` so that
+one can use the `tempfile` module to create temporary files and directories.
+
+These tasks return their info to the bot by printing a JSON blob to stdout.
+"""
+
 import copy
 import os
 import tempfile
-from contextlib import redirect_stderr, redirect_stdout
+import traceback
+from contextlib import contextmanager, redirect_stderr, redirect_stdout
 from io import StringIO
 
 import click
-
-from conda_forge_tick.lazy_json_backends import (
-    LazyJson,
-    dumps,
-    lazy_json_override_backends,
-    loads,
-)
-from conda_forge_tick.os_utils import pushd
-from conda_forge_tick.update_upstream_versions import (
-    all_version_sources,
-    get_latest_version,
-)
 
 existing_feedstock_node_attrs_option = click.option(
     "--existing-feedstock-node-attrs",
@@ -29,9 +31,35 @@ existing_feedstock_node_attrs_option = click.option(
         "from the bot metadata if a feedstock name is passed."
     ),
 )
+log_level_option = click.option(
+    "--log-level",
+    default="info",
+    type=click.Choice(["debug", "info", "warning", "error", "critical"]),
+    help="The log level to use.",
+)
+
+
+@contextmanager
+def _setenv(name, value):
+    """set an environment variable temporarily"""
+    old = os.environ.get(name)
+    try:
+        os.environ[name] = value
+        yield
+    finally:
+        if old is None:
+            del os.environ[name]
+        else:
+            os.environ[name] = old
 
 
 def _get_existing_feedstock_node_attrs(existing_feedstock_node_attrs):
+    from conda_forge_tick.lazy_json_backends import (
+        LazyJson,
+        lazy_json_override_backends,
+        loads,
+    )
+
     if existing_feedstock_node_attrs.startswith("{"):
         attrs = loads(existing_feedstock_node_attrs)
     else:
@@ -47,28 +75,83 @@ def _get_existing_feedstock_node_attrs(existing_feedstock_node_attrs):
     return attrs
 
 
+def _run_bot_task(func, *, log_level, **kwargs):
+    with tempfile.TemporaryDirectory() as tmpdir_cbld, _setenv(
+        "CONDA_BLD_PATH", os.path.join(tmpdir_cbld, "conda-bld")
+    ):
+        os.makedirs(os.path.join(tmpdir_cbld, "conda-bld"), exist_ok=True)
+
+        from conda_forge_tick.lazy_json_backends import dumps
+        from conda_forge_tick.utils import setup_logging
+
+        data = None
+        ret = copy.copy(kwargs)
+        outerr = StringIO()
+        try:
+            with redirect_stdout(outerr), redirect_stderr(outerr):
+                # logger call needs to be here so it gets the changed stdout/stderr
+                setup_logging(log_level)
+                data = func(**kwargs)
+
+            ret["data"] = data
+            ret["container_stdout_stderr"] = outerr.getvalue()
+
+        except Exception as e:
+            ret["data"] = data
+            ret["container_stdout_stderr"] = outerr.getvalue()
+            ret["error"] = repr(e)
+            ret["traceback"] = traceback.format_exc()
+
+        print(dumps(ret))
+
+
+def _get_latest_version(*, existing_feedstock_node_attrs, sources):
+    from conda_forge_tick.os_utils import pushd
+    from conda_forge_tick.update_upstream_versions import (
+        all_version_sources,
+        get_latest_version_local,
+    )
+
+    _sources = all_version_sources()
+    if sources is not None:
+        sources = sources.split(",")
+        sources = [s.strip().lower() for s in sources]
+        _sources = [s for s in _sources if s.name.strip().lower() in sources]
+
+    with tempfile.TemporaryDirectory() as tmpdir:
+        with pushd(tmpdir):
+            attrs = _get_existing_feedstock_node_attrs(existing_feedstock_node_attrs)
+            name = attrs["feedstock_name"]
+
+            data = get_latest_version_local(
+                name,
+                attrs,
+                _sources,
+            )
+    return data
+
+
 @click.group()
 def cli():
     pass
 
 
-@cli.command(name="update-version")
+@cli.command(name="get-latest-version")
+@log_level_option
 @existing_feedstock_node_attrs_option
-def update_version(existing_feedstock_node_attrs):
-    with tempfile.TemporaryDirectory() as tmpdir:
-        with pushd(tmpdir):
-            attrs = _get_existing_feedstock_node_attrs(existing_feedstock_node_attrs)
-
-            name = attrs["feedstock_name"]
-            outerr = StringIO()
-            with redirect_stdout(outerr), redirect_stderr(outerr):
-                data = get_latest_version(
-                    name,
-                    attrs,
-                    all_version_sources(),
-                )
-
-    print(dumps(data))
+@click.option(
+    "--sources",
+    default=None,
+    type=str,
+    help="Comma separated list of sources to use. Default is all sources as given by `all_version_sources`.",
+)
+def get_latest_version(log_level, existing_feedstock_node_attrs, sources):
+    return _run_bot_task(
+        _get_latest_version,
+        log_level=log_level,
+        existing_feedstock_node_attrs=existing_feedstock_node_attrs,
+        sources=sources,
+    )
 
 
 if __name__ == "__main__":

@@ -383,7 +383,8 @@ def url_exists(url: str, timeout=2) -> bool:
                 stderr=subprocess.STDOUT,
                 timeout=timeout,
             )
-        except Exception:
+        except Exception as e:
+            logger.debug("url_exists wget exception: %s", repr(e))
             return False
         # For FTP servers an exception is not thrown
         if "No such file" in output.decode("utf-8"):
@@ -399,7 +400,8 @@ def url_exists(url: str, timeout=2) -> bool:
                 capture_output=True,
                 check=True,
             )
-        except subprocess.CalledProcessError:
+        except subprocess.CalledProcessError as e:
+            logger.debug("url_exists curl exception: %s", repr(e))
             return False
 
         return True
