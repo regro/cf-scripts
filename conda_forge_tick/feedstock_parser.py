@@ -532,7 +532,7 @@ def load_feedstock(
     meta_yaml: Optional[str] = None,
     conda_forge_yaml: Optional[str] = None,
     mark_not_archived: bool = False,
-    use_container: bool = True,
+    use_container: bool = False,
 ):
     """Load a feedstock into subgraph based on its name. If meta_yaml and/or
     conda_forge_yaml are not provided, they will be fetched from the feedstock.
