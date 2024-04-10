@@ -20,7 +20,7 @@ if typing.TYPE_CHECKING:
     from .migrators_types import PackageName, RequirementsTypedDict
     from conda_forge_tick.migrators_types import MetaYamlTypedDict
 
-from conda_forge_tick.lazy_json_backends import dumps, loads, LazyJson
+from conda_forge_tick.lazy_json_backends import LazyJson, dumps, loads
 from conda_forge_tick.utils import run_container_task
 
 from .utils import as_iterable, parse_meta_yaml
@@ -502,7 +502,9 @@ def load_feedstock_containerized(
     if mark_not_archived:
         args += ["--mark-not-archived"]
 
-    json_blob = dumps(sub_graph.data) if isinstance(sub_graph, LazyJson) else dumps(sub_graph)
+    json_blob = (
+        dumps(sub_graph.data) if isinstance(sub_graph, LazyJson) else dumps(sub_graph)
+    )
     if len(json_blob) > 6000:
         logger.warning(
             f"The JSON blob is too large ({len(json_blob)} characters, limit is 6000), "
