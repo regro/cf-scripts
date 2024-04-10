@@ -164,7 +164,23 @@ def run_container_task(name, args, json_loads=json.loads):
         capture_output=True,
         text=True,
     )
-    ret = json_loads(res.stdout)
+    # we handle this ourselves to customize the error message
+    if res.returncode != 0:
+        raise RuntimeError(
+            f"Error running {name} in container - return code {res.returncode}:"
+            f"\nstderr: {pprint.pformat(res.stderr)}"
+            f"\nstdout: {pprint.pformat(res.stdout)}"
+        )
+
+    try:
+        ret = json_loads(res.stdout)
+    except json.JSONDecodeError:
+        raise RuntimeError(
+            f"Error running {name} in container - JSON could not parse stdout:"
+            f"\nstderr: {pprint.pformat(res.stderr)}"
+            f"\nstdout: {pprint.pformat(res.stdout)}"
+        )
+
     # I have tried more than once to filter this out of the conda-build
     # logs using a filter but I cannot get it to work always.
     # For now, I will replace it here.
@@ -176,12 +192,13 @@ def run_container_task(name, args, json_loads=json.loads):
             getattr(logger, level)(data)
             break
 
-    if "error" in ret or res.returncode != 0:
+    if "error" in ret:
         raise RuntimeError(
-            f"Error running {name} in container:"
+            f"Error running {name} in container - error {ret['error']} raised:"
             f"\nstderr: {pprint.pformat(res.stderr)}"
             f"\nstdout: {pprint.pformat(ret)}"
         )
+
     return ret["data"]
 
 

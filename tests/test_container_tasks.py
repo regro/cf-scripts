@@ -1,6 +1,4 @@
 import copy
-import json
-import subprocess
 import tempfile
 
 import conda_smithy
@@ -15,30 +13,15 @@ from conda_forge_tick.update_upstream_versions import (
     all_version_sources,
     get_latest_version_containerized,
 )
-from conda_forge_tick.utils import (
-    get_default_container_name,
-    get_default_container_run_args,
-)
+from conda_forge_tick.utils import run_container_task
 
 
 def test_container_tasks_get_latest_version():
-    res = subprocess.run(
-        [
-            *get_default_container_run_args(),
-            "-t",
-            get_default_container_name(),
-            "python",
-            "/opt/autotick-bot/docker/run_bot_task.py",
-            "get-latest-version",
-            "--existing-feedstock-node-attrs=conda-smithy",
-        ],
-        capture_output=True,
-        check=True,
-        text=True,
+    data = run_container_task(
+        "get-latest-version",
+        ["--existing-feedstock-node-attrs", "conda-smithy"],
     )
-    data = json.loads(res.stdout)
-    assert "error" not in data
-    assert data["data"]["new_version"] == conda_smithy.__version__
+    assert data["new_version"] == conda_smithy.__version__
 
 
 def test_container_tasks_get_latest_version_json():
@@ -47,24 +30,14 @@ def test_container_tasks_get_latest_version_json():
             with LazyJson("node_attrs/conda-smithy.json") as lzj:
                 existing_feedstock_node_attrs = dumps(lzj.data)
 
-        res = subprocess.run(
+        data = run_container_task(
+            "get-latest-version",
             [
-                *get_default_container_run_args(),
-                "-t",
-                get_default_container_name(),
-                "python",
-                "/opt/autotick-bot/docker/run_bot_task.py",
-                "get-latest-version",
                 "--existing-feedstock-node-attrs",
                 existing_feedstock_node_attrs,
             ],
-            capture_output=True,
-            check=True,
-            text=True,
         )
-        data = json.loads(res.stdout)
-        assert "error" not in data
-        assert data["data"]["new_version"] == conda_smithy.__version__
+        assert data["new_version"] == conda_smithy.__version__
 
 
 def test_get_latest_version_containerized():
