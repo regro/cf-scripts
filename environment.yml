@@ -72,5 +72,6 @@ dependencies:
   - flaky
   - pytest-xdist
   - pytest-cov
+  - pytest-env
   - setuptools_scm>=7
   - python-build
