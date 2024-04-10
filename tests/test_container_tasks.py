@@ -53,6 +53,18 @@ def test_get_latest_version_containerized():
         assert data["new_version"] == conda_smithy.__version__
 
 
+def test_get_latest_version_containerized_mpas_tools():
+    with tempfile.TemporaryDirectory() as tmpdir, pushd(tmpdir):
+        with lazy_json_override_backends(["github"], use_file_cache=False):
+            with LazyJson("node_attrs/mpas_tools.json") as lzj:
+                attrs = copy.deepcopy(lzj.data)
+
+        data = get_latest_version_containerized(
+            "mpas_tools", attrs, all_version_sources()
+        )
+        assert data["new_version"] is not False
+
+
 def test_container_tasks_parse_feedstock():
     with tempfile.TemporaryDirectory() as tmpdir, pushd(tmpdir):
         data = run_container_task(
@@ -93,6 +105,18 @@ def test_load_feedstock_containerized():
                 attrs = copy.deepcopy(lzj.data)
 
         data = load_feedstock_containerized("conda-smithy", attrs)
+        assert data["feedstock_name"] == attrs["feedstock_name"]
+        assert not data["parsing_error"]
+        assert data["raw_meta_yaml"] == attrs["raw_meta_yaml"]
+
+
+def test_load_feedstock_containerized_mpas_tools():
+    with tempfile.TemporaryDirectory() as tmpdir, pushd(tmpdir):
+        with lazy_json_override_backends(["github"], use_file_cache=False):
+            with LazyJson("node_attrs/mpas_tools.json") as lzj:
+                attrs = copy.deepcopy(lzj.data)
+
+        data = load_feedstock_containerized("mpas_tools", attrs)
         assert data["feedstock_name"] == attrs["feedstock_name"]
         assert not data["parsing_error"]
         assert data["raw_meta_yaml"] == attrs["raw_meta_yaml"]
