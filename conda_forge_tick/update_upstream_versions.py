@@ -215,7 +215,7 @@ def get_latest_version(
     name: str,
     attrs: Mapping[str, Any],
     sources: Iterable[AbstractSource],
-    use_container: bool = None,
+    use_container: bool = False,
 ) -> Dict[str, Union[Literal[False], str]]:
     """
     Given a package, return the new version information to be written into the cf-graph.
@@ -230,6 +230,9 @@ def get_latest_version(
         The version sources to use.
     use_container : bool, optional
         Whether to use a container to run the version parsing.
+        If None, the function will use a container if the environment
+        variable `CF_TICK_IN_CONTAINER` is 'false'. This feature can be
+        used to avoid container in container calls.
 
     Returns
     -------
