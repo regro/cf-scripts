@@ -200,10 +200,19 @@ def get_latest_version_containerized(
     if "feedstock_name" not in attrs:
         attrs["feedstock_name"] = name
 
+    json_blob = dumps(attrs.data) if isinstance(attrs, LazyJson) else dumps(attrs)
+    if len(json_blob) > 6000:
+        logger.warning(
+            f"The JSON blob is too large ({len(json_blob)} characters, limit is 6000), "
+            "using the feedstock name instead. This will force "
+            "the container to download the node attritbutes directly from GitHub."
+        )
+        json_blob = name
+
     task = "get-latest-version"
     args = [
         "--existing-feedstock-node-attrs",
-        dumps(attrs.data) if isinstance(attrs, LazyJson) else dumps(attrs),
+        json_blob,
         "--sources",
         ",".join([source.name for source in sources]),
     ]

@@ -502,11 +502,20 @@ def load_feedstock_containerized(
     if mark_not_archived:
         args += ["--mark-not-archived"]
 
+    json_blob = dumps(sub_graph)
+    if len(json_blob) > 6000:
+        logger.warning(
+            f"The JSON blob is too large ({len(json_blob)} characters, limit is 6000), "
+            "using the feedstock name instead. This will force "
+            "the container to download the node attritbutes directly from GitHub."
+        )
+        json_blob = name
+
     data = run_container_task(
         "parse-feedstock",
         [
             "--existing-feedstock-node-attrs",
-            dumps(sub_graph),
+            json_blob,
             *args,
         ],
         json_loads=loads,

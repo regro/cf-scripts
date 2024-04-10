@@ -152,7 +152,7 @@ def run_container_task(name, args, json_loads=json.loads):
         *get_default_container_run_args(),
         "-t",
         get_default_container_name(),
-        "python",
+        "/opt/conda/envs/cf-scripts/bin/python",
         "/opt/autotick-bot/docker/run_bot_task.py",
         name,
         *args,
