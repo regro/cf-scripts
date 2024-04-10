@@ -146,15 +146,13 @@ def _parse_feedstock(
             attrs = _get_existing_feedstock_node_attrs(existing_feedstock_node_attrs)
             name = attrs["feedstock_name"]
 
-            outerr = StringIO()
-            with redirect_stdout(outerr), redirect_stderr(outerr):
-                load_feedstock_local(
-                    name,
-                    attrs,
-                    meta_yaml=meta_yaml,
-                    conda_forge_yaml=conda_forge_yaml,
-                    mark_not_archived=mark_not_archived,
-                )
+            load_feedstock_local(
+                name,
+                attrs,
+                meta_yaml=meta_yaml,
+                conda_forge_yaml=conda_forge_yaml,
+                mark_not_archived=mark_not_archived,
+            )
 
     return attrs
 
