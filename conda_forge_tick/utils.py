@@ -111,6 +111,7 @@ def get_default_container_run_args(tmpfs_size_mb: int = 10):
     return [
         "docker",
         "run",
+        "-e CF_TICK_IN_CONTAINER='true'",
         "--security-opt=no-new-privileges",
         "--read-only",
         "--cap-drop=all",

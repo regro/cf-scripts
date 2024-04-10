@@ -226,7 +226,6 @@ def get_latest_version_containerized(
         cmd,
         capture_output=True,
         text=True,
-        check=True,
     )
     ret = json.loads(res.stdout)
     # I have tried more than once to filter this out of the conda-build
@@ -240,7 +239,7 @@ def get_latest_version_containerized(
             getattr(logger, level)(data)
             break
 
-    if "error" in ret:
+    if "error" in ret or res.returncode != 0:
         raise RuntimeError(
             "Error running containerized version update:"
             f"\nstderr: {pprint.pformat(res.stderr)}"
@@ -253,7 +252,7 @@ def get_latest_version(
     name: str,
     attrs: Mapping[str, Any],
     sources: Iterable[AbstractSource],
-    use_container: bool = True,
+    use_container: bool = None,
 ) -> Dict[str, Union[Literal[False], str]]:
     """
     Given a package, return the new version information to be written into the cf-graph.
@@ -274,7 +273,11 @@ def get_latest_version(
     version_data : dict
         The new version information.
     """
-    if use_container:
+    in_container = os.environ.get("CF_TICK_IN_CONTAINER", "false") == "true"
+    if use_container is None:
+        use_container = not in_container
+
+    if use_container and not in_container:
         return get_latest_version_containerized(name, attrs, sources)
     else:
         return get_latest_version_local(name, attrs, sources)
