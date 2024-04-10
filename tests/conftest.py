@@ -27,12 +27,12 @@ def env_setup():
 
 
 @pytest.fixture(autouse=True, scope="session")
-def set_ci_var():
-    old_ci = os.environ.get("CI")
+def set_cf_tick_pytest_envvar():
+    old_ci = os.environ.get("CF_TICK_PYTEST")
     if old_ci is None:
-        os.environ["CI"] = "true"
+        os.environ["CF_TICK_PYTEST"] = "true"
     yield
     if old_ci is None:
-        del os.environ["CI"]
+        del os.environ["CF_TICK_PYTEST"]
     else:
-        os.environ["CI"] = old_ci
+        os.environ["CF_TICK_PYTEST"] = old_ci

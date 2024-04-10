@@ -88,7 +88,7 @@ def get_default_container_name():
     If the environment variable `CI` is set to `true`, the container name is `conda-forge-tick:test`.
     Otherwise, the container name is `ghcr.io/regro/conda-forge-tick:master`.
     """
-    if os.environ.get("CI", "false") == "true":
+    if os.environ.get("CF_TICK_PYTEST", "false") == "true":
         cname = "conda-forge-tick:test"
     else:
         cname = "ghcr.io/regro/conda-forge-tick:master"
