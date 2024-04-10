@@ -3,9 +3,7 @@ import glob
 import hashlib
 import logging
 import os
-import pprint
 import re
-import subprocess
 import tempfile
 import typing
 import zipfile
@@ -23,10 +21,7 @@ if typing.TYPE_CHECKING:
     from conda_forge_tick.migrators_types import MetaYamlTypedDict
 
 from conda_forge_tick.lazy_json_backends import dumps, loads
-from conda_forge_tick.utils import (
-    get_default_container_name,
-    get_default_container_run_args,
-)
+from conda_forge_tick.utils import run_container_task
 
 from .utils import as_iterable, parse_meta_yaml
 
@@ -507,44 +502,17 @@ def load_feedstock_containerized(
     if mark_not_archived:
         args += ["--mark-not-archived"]
 
-    cmd = [
-        *get_default_container_run_args(),
-        "-t",
-        get_default_container_name(),
-        "python",
-        "/opt/autotick-bot/docker/run_bot_task.py",
+    data = run_container_task(
         "parse-feedstock",
-        "--existing-feedstock-node-attrs",
-        dumps(sub_graph),
-        *args,
-        "--log-level",
-        str(logging.getLevelName(logger.getEffectiveLevel())).lower(),
-    ]
-    res = subprocess.run(
-        cmd,
-        capture_output=True,
-        check=True,
-        text=True,
+        [
+            "--existing-feedstock-node-attrs",
+            dumps(sub_graph),
+            *args,
+        ],
+        json_loads=loads,
     )
-    ret = loads(res.stdout)
-    # I have tried more than once to filter this out of the conda-build
-    # logs using a filter but I cannot get it to work always.
-    # For now, I will replace it here.
-    data = ret["container_stdout_stderr"].replace(
-        "WARNING: No numpy version specified in conda_build_config.yaml.", ""
-    )
-    for level in ["critical", "error", "warning", "info", "debug"]:
-        if f"{level.upper()}    conda_forge_tick" in data:
-            getattr(logger, level)(data)
-            break
 
-    if "error" in ret:
-        raise RuntimeError(
-            "Error running containerized parse feedstock:"
-            f"\nstderr: {pprint.pformat(res.stderr)}"
-            f"\nstdout: {pprint.pformat(ret)}"
-        )
-    return ret["data"]
+    return data
 
 
 def load_feedstock(
