@@ -215,7 +215,7 @@ def get_latest_version(
     name: str,
     attrs: Mapping[str, Any],
     sources: Iterable[AbstractSource],
-    use_container: bool = True,
+    use_container: bool = None,
 ) -> Dict[str, Union[Literal[False], str]]:
     """
     Given a package, return the new version information to be written into the cf-graph.

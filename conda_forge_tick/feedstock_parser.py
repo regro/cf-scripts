@@ -553,7 +553,7 @@ def load_feedstock(
     meta_yaml: Optional[str] = None,
     conda_forge_yaml: Optional[str] = None,
     mark_not_archived: bool = False,
-    use_container: bool = True,
+    use_container: bool = None,
 ):
     """Load a feedstock into subgraph based on its name. If meta_yaml and/or
     conda_forge_yaml are not provided, they will be fetched from the feedstock.
@@ -572,12 +572,19 @@ def load_feedstock(
         If True, forcibly mark the feedstock as not archived in the node attrs.
     use_container : bool, optional
         Whether to use a container to run the version parsing.
+        If None, the function will use a container if the environment
+        variable `CF_TICK_IN_CONTAINER` is 'false'. This feature can be
+        used to avoid container in container calls.
 
     Returns
     -------
     sub_graph : MutableMapping
         The sub_graph, now updated with the feedstock metadata
     """
+    in_container = os.environ.get("CF_TICK_IN_CONTAINER", "false") == "true"
+    if use_container is None:
+        use_container = not in_container
+
     if use_container:
         return load_feedstock_containerized(
             name,
