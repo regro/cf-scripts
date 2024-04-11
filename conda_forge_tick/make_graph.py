@@ -142,7 +142,7 @@ def _build_graph_process_pool(
     mark_not_archived=False,
 ) -> None:
     # we use threads here since all of the work is done in a container anyways
-    with executor("threads", max_workers=8) as pool:
+    with executor("thread", max_workers=8) as pool:
         futures = {
             pool.submit(get_attrs, name, i, mark_not_archived=mark_not_archived): name
             for i, name in enumerate(names)
