@@ -81,6 +81,8 @@ CB_CONFIG_PINNING = dict(
 
 DEFAULT_GRAPH_FILENAME = "graph.json"
 
+CONTAINER_ARG_CHAR_LIMIT = 8000
+
 
 def get_default_container_name():
     """Get the default container name for the bot.

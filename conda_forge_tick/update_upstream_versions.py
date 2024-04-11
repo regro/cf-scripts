@@ -37,7 +37,12 @@ from .update_sources import (
     RawURL,
     ROSDistro,
 )
-from .utils import get_keys_default, load_existing_graph, run_container_task
+from .utils import (
+    CONTAINER_ARG_CHAR_LIMIT,
+    get_keys_default,
+    load_existing_graph,
+    run_container_task,
+)
 
 T = TypeVar("T")
 
@@ -201,9 +206,10 @@ def get_latest_version_containerized(
         attrs["feedstock_name"] = name
 
     json_blob = dumps(attrs.data) if isinstance(attrs, LazyJson) else dumps(attrs)
-    if len(json_blob) > 6000:
+    if len(json_blob) > CONTAINER_ARG_CHAR_LIMIT:
         logger.warning(
-            f"The JSON blob is too large ({len(json_blob)} characters, limit is 6000), "
+            f"The JSON blob for {name} is too large ({len(json_blob)} characters, "
+            f"limit is {CONTAINER_ARG_CHAR_LIMIT}), "
             "using the feedstock name instead. This will force "
             "the container to download the node attritbutes directly from GitHub."
         )
