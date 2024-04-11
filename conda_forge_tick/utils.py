@@ -14,7 +14,7 @@ import traceback
 import typing
 import warnings
 from collections import defaultdict
-from typing import Any, Dict, Iterable, Optional, Set, Tuple, cast
+from typing import Any, Callable, Dict, Iterable, Optional, Set, Tuple, cast
 
 import github3
 import jinja2
@@ -131,16 +131,18 @@ def get_default_container_run_args(tmpfs_size_mb: int = 10):
     ]
 
 
-def run_container_task(name, args, json_loads=json.loads):
+def run_container_task(
+    name: str, args: Iterable[str], json_loads: Optional[Callable] = json.loads
+):
     """Run a bot task in a container.
 
     Parameters
     ----------
-    name : str
+    name
         The name of the task.
-    args : List[str]
+    args
         The arguments to pass to the container.
-    json_loads : function, optional
+    json_loads
         The function to use to load JSON to a string, by default `json.loads`.
 
     Returns

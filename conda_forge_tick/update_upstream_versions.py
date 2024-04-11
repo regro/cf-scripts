@@ -73,11 +73,11 @@ def get_latest_version_local(
 
     Parameters
     ----------
-    name : str
+    name
         The name of the feedstock.
-    attrs : Mapping[str, Any]
+    attrs
         The node attributes of the feedstock.
-    sources : Iterable[AbstractSource]
+    sources
         The version sources to use.
 
     Returns
@@ -185,11 +185,11 @@ def get_latest_version_containerized(
 
     Parameters
     ----------
-    name : str
+    name
         The name of the feedstock.
-    attrs : Mapping[str, Any]
+    attrs
         The node attributes of the feedstock.
-    sources : Iterable[AbstractSource]
+    sources
         The version sources to use.
 
     Returns
@@ -231,13 +231,13 @@ def get_latest_version(
 
     Parameters
     ----------
-    name : str
+    name
         The name of the feedstock.
-    attrs : Mapping[str, Any]
+    attrs
         The node attributes of the feedstock.
-    sources : Iterable[AbstractSource]
+    sources
         The version sources to use.
-    use_container : bool, optional
+    use_container
         Whether to use a container to run the version parsing.
         If None, the function will use a container if the environment
         variable `CF_TICK_IN_CONTAINER` is 'false'. This feature can be
