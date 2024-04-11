@@ -18,6 +18,7 @@ from typing import Any, Dict, Iterable, Optional, Set, Tuple, cast
 
 import github3
 import jinja2
+import jinja2.sandbox
 import networkx as nx
 import ruamel.yaml
 
@@ -266,7 +267,7 @@ def render_meta_yaml(text: str, for_pinning: bool = False, **kwargs) -> str:
 
     cfg = dict(**kwargs)
 
-    env = jinja2.Environment(undefined=NullUndefined)
+    env = jinja2.sandbox.SandboxedEnvironment(undefined=NullUndefined)
     if for_pinning:
         cfg.update(**CB_CONFIG_PINNING)
     else:
