@@ -1,3 +1,4 @@
+import base64
 import collections.abc
 import glob
 import hashlib
@@ -7,6 +8,7 @@ import re
 import tempfile
 import typing
 import zipfile
+import zlib as lz4framed
 from collections import defaultdict
 from typing import Optional, Set, Union
 
@@ -505,6 +507,11 @@ def load_feedstock_containerized(
     json_blob = (
         dumps(sub_graph.data) if isinstance(sub_graph, LazyJson) else dumps(sub_graph)
     )
+    json_blob = json_blob.encode("utf-8")
+    json_blob = lz4framed.compress(json_blob)
+    json_blob = base64.urlsafe_b64encode(json_blob).decode("utf-8")
+    extra_args = ["--is-compressed"]
+
     if len(json_blob) > CONTAINER_ARG_CHAR_LIMIT:
         logger.warning(
             f"The JSON blob for {name} is too large ({len(json_blob)} characters, "
@@ -513,10 +520,12 @@ def load_feedstock_containerized(
             "the container to download the node attritbutes directly from GitHub."
         )
         json_blob = name
+        extra_args = []
 
     data = run_container_task(
         "parse-feedstock",
         [
+            *extra_args,
             "--existing-feedstock-node-attrs",
             json_blob,
             *args,

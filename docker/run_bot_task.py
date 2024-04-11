@@ -12,10 +12,12 @@ one can use the `tempfile` module to create temporary files and directories.
 These tasks return their info to the bot by printing a JSON blob to stdout.
 """
 
+import base64
 import copy
 import os
 import tempfile
 import traceback
+import zlib as lz4framed
 from contextlib import contextmanager, redirect_stderr, redirect_stdout
 from io import StringIO
 
@@ -66,10 +68,6 @@ def _get_existing_feedstock_node_attrs(*, existing_feedstock_node_attrs, is_comp
     )
 
     if is_compressed:
-        import base64
-
-        import lz4framed
-
         existing_feedstock_node_attrs = base64.urlsafe_b64decode(
             existing_feedstock_node_attrs
         )

@@ -5,6 +5,7 @@ import logging
 import os
 import random
 import time
+import zlib as lz4framed
 from concurrent.futures import as_completed
 from typing import (
     Any,
@@ -20,7 +21,6 @@ from typing import (
     Union,
 )
 
-import lz4framed
 import networkx as nx
 import tqdm
 
