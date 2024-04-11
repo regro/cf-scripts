@@ -43,8 +43,14 @@ PACKAGE_STUBS = [
     "cdt_stub",
 ]
 
+
+class MockOS:
+    def __init__(self):
+        self.environ = defaultdict(str)
+
+
 CB_CONFIG = dict(
-    os=os,
+    os=MockOS(),
     environ=defaultdict(str),
     compiler=lambda x: x + "_compiler_stub",
     stdlib=lambda x: x + "_stdlib_stub",
@@ -63,7 +69,7 @@ def _munge_dict_repr(dct: Dict[Any, Any]) -> str:
 
 
 CB_CONFIG_PINNING = dict(
-    os=os,
+    os=MockOS(),
     environ=defaultdict(str),
     compiler=lambda x: x + "_compiler_stub",
     stdlib=lambda x: x + "_stdlib_stub",
