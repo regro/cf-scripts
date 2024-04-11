@@ -119,7 +119,7 @@ def _try_url_and_hash_it(url: str, hash_type: str):
 def _render_jinja2(tmpl, context):
     return (
         jinja2.sandbox.SandboxedEnvironment(undefined=jinja2.StrictUndefined)
-        .get_template(tmpl)
+        .from_string(tmpl)
         .render(**context)
     )
 
