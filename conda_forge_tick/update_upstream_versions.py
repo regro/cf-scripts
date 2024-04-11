@@ -37,7 +37,12 @@ from .update_sources import (
     RawURL,
     ROSDistro,
 )
-from .utils import get_keys_default, load_existing_graph, run_container_task
+from .utils import (
+    CONTAINER_ARG_CHAR_LIMIT,
+    get_keys_default,
+    load_existing_graph,
+    run_container_task,
+)
 
 T = TypeVar("T")
 
@@ -73,11 +78,11 @@ def get_latest_version_local(
 
     Parameters
     ----------
-    name : str
+    name
         The name of the feedstock.
-    attrs : Mapping[str, Any]
+    attrs
         The node attributes of the feedstock.
-    sources : Iterable[AbstractSource]
+    sources
         The version sources to use.
 
     Returns
@@ -185,11 +190,11 @@ def get_latest_version_containerized(
 
     Parameters
     ----------
-    name : str
+    name
         The name of the feedstock.
-    attrs : Mapping[str, Any]
+    attrs
         The node attributes of the feedstock.
-    sources : Iterable[AbstractSource]
+    sources
         The version sources to use.
 
     Returns
@@ -201,9 +206,10 @@ def get_latest_version_containerized(
         attrs["feedstock_name"] = name
 
     json_blob = dumps(attrs.data) if isinstance(attrs, LazyJson) else dumps(attrs)
-    if len(json_blob) > 6000:
+    if len(json_blob) > CONTAINER_ARG_CHAR_LIMIT:
         logger.warning(
-            f"The JSON blob is too large ({len(json_blob)} characters, limit is 6000), "
+            f"The JSON blob for {name} is too large ({len(json_blob)} characters, "
+            f"limit is {CONTAINER_ARG_CHAR_LIMIT}), "
             "using the feedstock name instead. This will force "
             "the container to download the node attritbutes directly from GitHub."
         )
@@ -224,20 +230,20 @@ def get_latest_version(
     name: str,
     attrs: Mapping[str, Any],
     sources: Iterable[AbstractSource],
-    use_container: bool = False,
+    use_container: bool = True,
 ) -> Dict[str, Union[Literal[False], str]]:
     """
     Given a package, return the new version information to be written into the cf-graph.
 
     Parameters
     ----------
-    name : str
+    name
         The name of the feedstock.
-    attrs : Mapping[str, Any]
+    attrs
         The node attributes of the feedstock.
-    sources : Iterable[AbstractSource]
+    sources
         The version sources to use.
-    use_container : bool, optional
+    use_container
         Whether to use a container to run the version parsing.
         If None, the function will use a container if the environment
         variable `CF_TICK_IN_CONTAINER` is 'false'. This feature can be
