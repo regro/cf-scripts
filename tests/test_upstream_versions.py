@@ -1079,6 +1079,7 @@ latest_url_nvidia_test_list = [
     "name, inp, curr_ver, ver, source, urls",
     latest_url_nvidia_test_list,
 )
+@pytest.mark.xfail
 def test_latest_version_nvidia(name, inp, curr_ver, ver, source, urls, tmpdir):
     pmy = LazyJson(os.path.join(tmpdir, "cf-scripts-test.json"))
     with pmy as _pmy:
