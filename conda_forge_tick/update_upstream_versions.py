@@ -371,7 +371,7 @@ def _update_upstream_versions_process_pool(
 ) -> None:
     futures = {}
     # we use threads here since all of the work is done in a container anyways
-    with executor(kind="threads", max_workers=5) as pool:
+    with executor(kind="thread", max_workers=5) as pool:
         for node, attrs in tqdm.tqdm(
             to_update,
             ncols=80,
