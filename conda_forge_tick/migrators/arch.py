@@ -128,9 +128,12 @@ class ArchRebuild(GraphMigrator):
 
         assert not self.check_solvable, "We don't want to check solvability for aarch!"
         # We are constraining the scope of this migrator
-        with pushd("../conda-forge-pinning-feedstock/recipe/migrations"), open(
-            "arch_rebuild.txt",
-        ) as f:
+        with (
+            pushd("../conda-forge-pinning-feedstock/recipe/migrations"),
+            open(
+                "arch_rebuild.txt",
+            ) as f,
+        ):
             self.target_packages = set(f.read().split())
 
         self.name = name
@@ -264,9 +267,12 @@ class OSXArm(GraphMigrator):
         _filter_excluded_deps(self.graph, self.excluded_dependencies)
 
         # We are constraining the scope of this migrator
-        with pushd("../conda-forge-pinning-feedstock/recipe/migrations"), open(
-            "osx_arm64.txt",
-        ) as f:
+        with (
+            pushd("../conda-forge-pinning-feedstock/recipe/migrations"),
+            open(
+                "osx_arm64.txt",
+            ) as f,
+        ):
             self.target_packages = set(f.read().split())
 
         # filter the graph down to the target packages

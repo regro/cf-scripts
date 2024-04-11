@@ -440,9 +440,12 @@ def _parse_meta_yaml_impl(
                 #   wurlitzer 3.0.2 py38h50d1736_1    conda-forge
                 #   conda     4.11.0           py38h50d1736_0    conda-forge
                 #   conda-build   3.21.7           py38h50d1736_0    conda-forge
-                with contextlib.redirect_stdout(
-                    fout,
-                ), contextlib.redirect_stderr(ferr):
+                with (
+                    contextlib.redirect_stdout(
+                        fout,
+                    ),
+                    contextlib.redirect_stderr(ferr),
+                ):
                     config, _cbc = _run_parsing()
             else:
                 config, _cbc = _run_parsing()
