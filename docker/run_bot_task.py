@@ -31,6 +31,11 @@ existing_feedstock_node_attrs_option = click.option(
         "from the bot metadata if a feedstock name is passed."
     ),
 )
+is_compressed_option = click.option(
+    "--is-compressed",
+    is_flag=True,
+    help="Whether or not the existing node attrs is compressed via str => bytes => lz4 => base64.",
+)
 log_level_option = click.option(
     "--log-level",
     default="info",
@@ -53,12 +58,24 @@ def _setenv(name, value):
             os.environ[name] = old
 
 
-def _get_existing_feedstock_node_attrs(existing_feedstock_node_attrs):
+def _get_existing_feedstock_node_attrs(*, existing_feedstock_node_attrs, is_compressed):
     from conda_forge_tick.lazy_json_backends import (
         LazyJson,
         lazy_json_override_backends,
         loads,
     )
+
+    if is_compressed:
+        import base64
+
+        import lz4framed
+
+        existing_feedstock_node_attrs = base64.urlsafe_b64decode(
+            existing_feedstock_node_attrs
+        )
+        existing_feedstock_node_attrs = lz4framed.decompress(
+            existing_feedstock_node_attrs
+        ).decode("utf-8")
 
     if existing_feedstock_node_attrs.startswith("{"):
         attrs = loads(existing_feedstock_node_attrs)
@@ -76,7 +93,9 @@ def _get_existing_feedstock_node_attrs(existing_feedstock_node_attrs):
     return attrs
 
 
-def _run_bot_task(func, *, log_level, **kwargs):
+def _run_bot_task(
+    func, *, log_level, is_compressed, existing_feedstock_node_attrs, **kwargs
+):
     with (
         tempfile.TemporaryDirectory() as tmpdir_cbld,
         _setenv("CONDA_BLD_PATH", os.path.join(tmpdir_cbld, "conda-bld")),
@@ -99,7 +118,12 @@ def _run_bot_task(func, *, log_level, **kwargs):
             ):
                 # logger call needs to be here so it gets the changed stdout/stderr
                 setup_logging(log_level)
-                data = func(**kwargs)
+                attrs = _get_existing_feedstock_node_attrs(
+                    existing_feedstock_node_attrs=existing_feedstock_node_attrs,
+                    is_compressed=is_compressed,
+                )
+
+                data = func(attrs=attrs, **kwargs)
 
             ret["data"] = data
             ret["container_stdout_stderr"] = outerr.getvalue()
@@ -113,7 +137,7 @@ def _run_bot_task(func, *, log_level, **kwargs):
         print(dumps(ret))
 
 
-def _get_latest_version(*, existing_feedstock_node_attrs, sources):
+def _get_latest_version(*, attrs, sources):
     from conda_forge_tick.update_upstream_versions import (
         all_version_sources,
         get_latest_version_local,
@@ -125,7 +149,6 @@ def _get_latest_version(*, existing_feedstock_node_attrs, sources):
         sources = [s.strip().lower() for s in sources]
         _sources = [s for s in _sources if s.name.strip().lower() in sources]
 
-    attrs = _get_existing_feedstock_node_attrs(existing_feedstock_node_attrs)
     name = attrs["feedstock_name"]
 
     data = get_latest_version_local(
@@ -138,14 +161,13 @@ def _get_latest_version(*, existing_feedstock_node_attrs, sources):
 
 def _parse_feedstock(
     *,
-    existing_feedstock_node_attrs,
+    attrs,
     meta_yaml,
     conda_forge_yaml,
     mark_not_archived,
 ):
     from conda_forge_tick.feedstock_parser import load_feedstock_local
 
-    attrs = _get_existing_feedstock_node_attrs(existing_feedstock_node_attrs)
     name = attrs["feedstock_name"]
 
     load_feedstock_local(
@@ -167,6 +189,7 @@ def cli():
 @cli.command(name="parse-feedstock")
 @log_level_option
 @existing_feedstock_node_attrs_option
+@is_compressed_option
 @click.option("--meta-yaml", default=None, type=str, help="The meta.yaml file to use.")
 @click.option(
     "--conda-forge-yaml", default=None, type=str, help="The meta.yaml file to use."
@@ -177,6 +200,7 @@ def cli():
 def parse_feedstock(
     log_level,
     existing_feedstock_node_attrs,
+    is_compressed,
     meta_yaml,
     conda_forge_yaml,
     mark_not_archived,
@@ -188,24 +212,29 @@ def parse_feedstock(
         meta_yaml=meta_yaml,
         conda_forge_yaml=conda_forge_yaml,
         mark_not_archived=mark_not_archived,
+        is_compressed=is_compressed,
     )
 
 
 @cli.command(name="get-latest-version")
 @log_level_option
 @existing_feedstock_node_attrs_option
+@is_compressed_option
 @click.option(
     "--sources",
     default=None,
     type=str,
     help="Comma separated list of sources to use. Default is all sources as given by `all_version_sources`.",
 )
-def get_latest_version(log_level, existing_feedstock_node_attrs, sources):
+def get_latest_version(
+    log_level, existing_feedstock_node_attrs, is_compressed, sources
+):
     return _run_bot_task(
         _get_latest_version,
         log_level=log_level,
         existing_feedstock_node_attrs=existing_feedstock_node_attrs,
         sources=sources,
+        is_compressed=is_compressed,
     )
 
 

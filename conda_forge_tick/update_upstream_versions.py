@@ -1,3 +1,4 @@
+import base64
 import functools
 import hashlib
 import logging
@@ -19,6 +20,7 @@ from typing import (
     Union,
 )
 
+import lz4framed
 import networkx as nx
 import tqdm
 
@@ -206,6 +208,12 @@ def get_latest_version_containerized(
         attrs["feedstock_name"] = name
 
     json_blob = dumps(attrs.data) if isinstance(attrs, LazyJson) else dumps(attrs)
+
+    json_blob = json_blob.encode("utf-8")
+    json_blob = lz4framed.compress(json_blob)
+    json_blob = base64.urlsafe_b64encode(json_blob).decode("utf-8")
+    extra_args = ["--is-compressed"]
+
     if len(json_blob) > CONTAINER_ARG_CHAR_LIMIT:
         logger.warning(
             f"The JSON blob for {name} is too large ({len(json_blob)} characters, "
@@ -214,9 +222,11 @@ def get_latest_version_containerized(
             "the container to download the node attritbutes directly from GitHub."
         )
         json_blob = name
+        extra_args = []
 
     task = "get-latest-version"
     args = [
+        *extra_args,
         "--existing-feedstock-node-attrs",
         json_blob,
         "--sources",

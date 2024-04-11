@@ -46,6 +46,7 @@ dependencies:
   - python-dateutil
   - python-graphviz
   - python-rapidjson
+  - py-lz4framed
   - requests
   - rever
   - ruamel.yaml
