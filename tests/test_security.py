@@ -69,4 +69,4 @@ def test_env_is_protected_against_malicious_recipes(tmpdir, caplog, env_setup):
     pswd = os.environ.get("TEST_PASSWORD_VAL", "unpassword")
     tst_url = f"https://{pswd[0]}/{pswd[1:]}"
     assert pmy["url"][0] != tst_url
-    assert pmy["url"][1] == "pwd"
+    assert pmy["url"][1] is None

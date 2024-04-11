@@ -47,6 +47,7 @@ PACKAGE_STUBS = [
 class MockOS:
     def __init__(self):
         self.environ = defaultdict(str)
+        self.sep = "/"
 
 
 CB_CONFIG = dict(
