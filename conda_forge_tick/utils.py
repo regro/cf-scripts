@@ -18,6 +18,7 @@ from typing import Any, Callable, Dict, Iterable, Optional, Set, Tuple, cast
 
 import github3
 import jinja2
+import jinja2.sandbox
 import networkx as nx
 import ruamel.yaml
 
@@ -42,8 +43,15 @@ PACKAGE_STUBS = [
     "cdt_stub",
 ]
 
+
+class MockOS:
+    def __init__(self):
+        self.environ = defaultdict(str)
+        self.sep = "/"
+
+
 CB_CONFIG = dict(
-    os=os,
+    os=MockOS(),
     environ=defaultdict(str),
     compiler=lambda x: x + "_compiler_stub",
     stdlib=lambda x: x + "_stdlib_stub",
@@ -62,7 +70,7 @@ def _munge_dict_repr(dct: Dict[Any, Any]) -> str:
 
 
 CB_CONFIG_PINNING = dict(
-    os=os,
+    os=MockOS(),
     environ=defaultdict(str),
     compiler=lambda x: x + "_compiler_stub",
     stdlib=lambda x: x + "_stdlib_stub",
@@ -270,7 +278,7 @@ def render_meta_yaml(text: str, for_pinning: bool = False, **kwargs) -> str:
 
     cfg = dict(**kwargs)
 
-    env = jinja2.Environment(undefined=NullUndefined)
+    env = jinja2.sandbox.SandboxedEnvironment(undefined=NullUndefined)
     if for_pinning:
         cfg.update(**CB_CONFIG_PINNING)
     else:
