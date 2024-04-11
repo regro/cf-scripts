@@ -370,9 +370,8 @@ def _update_upstream_versions_process_pool(
     sources: Iterable[AbstractSource],
 ) -> None:
     futures = {}
-    # this has to be threads because the url hashing code uses a Pipe which
-    # cannot be spawned from a process
-    with executor(kind="dask", max_workers=5) as pool:
+    # we use threads here since all of the work is done in a container anyways
+    with executor(kind="threads", max_workers=5) as pool:
         for node, attrs in tqdm.tqdm(
             to_update,
             ncols=80,

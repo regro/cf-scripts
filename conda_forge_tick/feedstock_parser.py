@@ -38,6 +38,35 @@ PIN_SEP_PAT = re.compile(r" |>|<|=|\[")
 BOOTSTRAP_MAPPINGS = {}
 
 
+def _dedupe_list_ordered(list_with_dupes):
+    if not isinstance(list_with_dupes, list):
+        return list_with_dupes
+
+    if not all(isinstance(x, str) for x in list_with_dupes):
+        return list_with_dupes
+
+    seen = set()
+    list_without_dupes = []
+    for item in list_with_dupes:
+        if item not in seen:
+            seen.add(item)
+            list_without_dupes.append(item)
+    return list_without_dupes
+
+
+def _dedupe_meta_yaml(meta_yaml):
+    """Deduplicate a meta.yaml dict recursively."""
+    if isinstance(meta_yaml, dict):
+        for key, value in meta_yaml.items():
+            meta_yaml[key] = _dedupe_meta_yaml(value)
+    elif isinstance(meta_yaml, list):
+        for i, item in enumerate(meta_yaml):
+            meta_yaml[i] = _dedupe_meta_yaml(item)
+        meta_yaml = _dedupe_list_ordered(meta_yaml)
+
+    return meta_yaml
+
+
 def _get_requirements(
     meta_yaml: "MetaYamlTypedDict",
     outputs: bool = True,
@@ -297,7 +326,7 @@ def populate_feedstock_attributes(
                     final_cfgs[plat_arch].append(varyml)
                 for k in final_cfgs:
                     ymls = final_cfgs[k]
-                    final_cfgs[k] = _convert_to_dict(ChainDB(*ymls))
+                    final_cfgs[k] = _dedupe_meta_yaml(_convert_to_dict(ChainDB(*ymls)))
                 plat_arch = []
                 variant_yamls = []
                 for k, v in final_cfgs.items():
@@ -331,7 +360,7 @@ def populate_feedstock_attributes(
         sub_graph["parsing_error"] = "make_graph: Could not parse"
         return sub_graph
 
-    sub_graph["meta_yaml"] = _convert_to_dict(yaml_dict)
+    sub_graph["meta_yaml"] = _dedupe_meta_yaml(_convert_to_dict(yaml_dict))
     meta_yaml = sub_graph["meta_yaml"]
 
     for k, v in zip(plat_arch, variant_yamls):
