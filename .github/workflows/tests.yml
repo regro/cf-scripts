@@ -84,16 +84,18 @@ jobs:
             --cov=conda_forge_tick \
             --cov=tests \
             --cov-config=.coveragerc \
-            --cov-report term-missing \
-            --durations 10 \
+            --cov-report=term-missing \
+            --cov-report=xml \
+            --durations=10 \
             --ignore=tests/model \
             tests
         env:
           MONGODB_CONNECTION_STRING: "mongodb://127.0.0.1:27017/?directConnection=true&serverSelectionTimeoutMS=2000"
 
-      - name: run codecov
-        run: |
-         codecov -X gcov
+      - name: upload codecov
+        uses: codecov/codecov-action@v4
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
 
       - name: build docs
         run: |
