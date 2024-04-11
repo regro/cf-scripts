@@ -67,17 +67,19 @@ def _get_existing_feedstock_node_attrs(existing_feedstock_node_attrs):
             existing_feedstock_node_attrs += ".json"
 
         pth = os.path.join("node_attrs", existing_feedstock_node_attrs)
-        with lazy_json_override_backends(["github"], use_file_cache=False), LazyJson(
-            pth
-        ) as lzj:
+        with (
+            lazy_json_override_backends(["github"], use_file_cache=False),
+            LazyJson(pth) as lzj,
+        ):
             attrs = copy.deepcopy(lzj.data)
 
     return attrs
 
 
 def _run_bot_task(func, *, log_level, **kwargs):
-    with tempfile.TemporaryDirectory() as tmpdir_cbld, _setenv(
-        "CONDA_BLD_PATH", os.path.join(tmpdir_cbld, "conda-bld")
+    with (
+        tempfile.TemporaryDirectory() as tmpdir_cbld,
+        _setenv("CONDA_BLD_PATH", os.path.join(tmpdir_cbld, "conda-bld")),
     ):
         os.makedirs(os.path.join(tmpdir_cbld, "conda-bld"), exist_ok=True)
 
@@ -89,9 +91,12 @@ def _run_bot_task(func, *, log_level, **kwargs):
         ret = copy.copy(kwargs)
         outerr = StringIO()
         try:
-            with redirect_stdout(outerr), redirect_stderr(
-                outerr
-            ), tempfile.TemporaryDirectory() as tmpdir, pushd(tmpdir):
+            with (
+                redirect_stdout(outerr),
+                redirect_stderr(outerr),
+                tempfile.TemporaryDirectory() as tmpdir,
+                pushd(tmpdir),
+            ):
                 # logger call needs to be here so it gets the changed stdout/stderr
                 setup_logging(log_level)
                 data = func(**kwargs)

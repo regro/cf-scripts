@@ -26,10 +26,13 @@ def test_container_tasks_get_latest_version():
 
 
 def test_container_tasks_get_latest_version_json():
-    with tempfile.TemporaryDirectory() as tmpdir, pushd(tmpdir):
-        with lazy_json_override_backends(["github"], use_file_cache=False):
-            with LazyJson("node_attrs/conda-smithy.json") as lzj:
-                existing_feedstock_node_attrs = dumps(lzj.data)
+    with (
+        tempfile.TemporaryDirectory() as tmpdir,
+        pushd(tmpdir),
+        lazy_json_override_backends(["github"], use_file_cache=False),
+        LazyJson("node_attrs/conda-smithy.json") as lzj,
+    ):
+        existing_feedstock_node_attrs = dumps(lzj.data)
 
         data = run_container_task(
             "get-latest-version",
@@ -42,10 +45,13 @@ def test_container_tasks_get_latest_version_json():
 
 
 def test_get_latest_version_containerized():
-    with tempfile.TemporaryDirectory() as tmpdir, pushd(tmpdir):
-        with lazy_json_override_backends(["github"], use_file_cache=False):
-            with LazyJson("node_attrs/conda-smithy.json") as lzj:
-                attrs = copy.deepcopy(lzj.data)
+    with (
+        tempfile.TemporaryDirectory() as tmpdir,
+        pushd(tmpdir),
+        lazy_json_override_backends(["github"], use_file_cache=False),
+        LazyJson("node_attrs/conda-smithy.json") as lzj,
+    ):
+        attrs = copy.deepcopy(lzj.data)
 
         data = get_latest_version_containerized(
             "conda-smithy", attrs, all_version_sources()
@@ -54,10 +60,13 @@ def test_get_latest_version_containerized():
 
 
 def test_get_latest_version_containerized_mpas_tools():
-    with tempfile.TemporaryDirectory() as tmpdir, pushd(tmpdir):
-        with lazy_json_override_backends(["github"], use_file_cache=False):
-            with LazyJson("node_attrs/mpas_tools.json") as lzj:
-                attrs = copy.deepcopy(lzj.data)
+    with (
+        tempfile.TemporaryDirectory() as tmpdir,
+        pushd(tmpdir),
+        lazy_json_override_backends(["github"], use_file_cache=False),
+        LazyJson("node_attrs/mpas_tools.json") as lzj,
+    ):
+        attrs = copy.deepcopy(lzj.data)
 
         data = get_latest_version_containerized(
             "mpas_tools", attrs, all_version_sources()
@@ -72,9 +81,10 @@ def test_container_tasks_parse_feedstock():
             ["--existing-feedstock-node-attrs", "conda-smithy"],
         )
 
-        with lazy_json_override_backends(["github"], use_file_cache=False), LazyJson(
-            "node_attrs/conda-smithy.json"
-        ) as lzj:
+        with (
+            lazy_json_override_backends(["github"], use_file_cache=False),
+            LazyJson("node_attrs/conda-smithy.json") as lzj,
+        ):
             attrs = copy.deepcopy(lzj.data)
 
         assert data["feedstock_name"] == attrs["feedstock_name"]
@@ -83,11 +93,14 @@ def test_container_tasks_parse_feedstock():
 
 
 def test_container_tasks_parse_feedstock_json():
-    with tempfile.TemporaryDirectory() as tmpdir, pushd(tmpdir):
-        with lazy_json_override_backends(["github"], use_file_cache=False):
-            with LazyJson("node_attrs/conda-smithy.json") as lzj:
-                attrs = copy.deepcopy(lzj.data)
-                existing_feedstock_node_attrs = dumps(lzj.data)
+    with (
+        tempfile.TemporaryDirectory() as tmpdir,
+        pushd(tmpdir),
+        lazy_json_override_backends(["github"], use_file_cache=False),
+        LazyJson("node_attrs/conda-smithy.json") as lzj,
+    ):
+        attrs = copy.deepcopy(lzj.data)
+        existing_feedstock_node_attrs = dumps(lzj.data)
 
         data = run_container_task(
             "parse-feedstock",
@@ -99,10 +112,13 @@ def test_container_tasks_parse_feedstock_json():
 
 
 def test_load_feedstock_containerized():
-    with tempfile.TemporaryDirectory() as tmpdir, pushd(tmpdir):
-        with lazy_json_override_backends(["github"], use_file_cache=False):
-            with LazyJson("node_attrs/conda-smithy.json") as lzj:
-                attrs = copy.deepcopy(lzj.data)
+    with (
+        tempfile.TemporaryDirectory() as tmpdir,
+        pushd(tmpdir),
+        lazy_json_override_backends(["github"], use_file_cache=False),
+        LazyJson("node_attrs/conda-smithy.json") as lzj,
+    ):
+        attrs = copy.deepcopy(lzj.data)
 
         data = load_feedstock_containerized("conda-smithy", attrs)
         assert data["feedstock_name"] == attrs["feedstock_name"]
@@ -111,10 +127,13 @@ def test_load_feedstock_containerized():
 
 
 def test_load_feedstock_containerized_mpas_tools():
-    with tempfile.TemporaryDirectory() as tmpdir, pushd(tmpdir):
-        with lazy_json_override_backends(["github"], use_file_cache=False):
-            with LazyJson("node_attrs/mpas_tools.json") as lzj:
-                attrs = copy.deepcopy(lzj.data)
+    with (
+        tempfile.TemporaryDirectory() as tmpdir,
+        pushd(tmpdir),
+        lazy_json_override_backends(["github"], use_file_cache=False),
+        LazyJson("node_attrs/mpas_tools.json") as lzj,
+    ):
+        attrs = copy.deepcopy(lzj.data)
 
         data = load_feedstock_containerized("mpas_tools", attrs)
         assert data["feedstock_name"] == attrs["feedstock_name"]
