@@ -15,6 +15,7 @@ description = "Flagship repo for cf-regro-autotick-bot"
 dynamic = ["version"]
 license = {file = "License"}
 readme = "README.md"
+requires-python = ">=3.11"
 
 [project.urls]
 home = "https://github.com/regro/cf-scripts"
