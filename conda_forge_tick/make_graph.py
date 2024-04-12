@@ -15,8 +15,10 @@ import tqdm
 
 from conda_forge_tick.feedstock_parser import load_feedstock
 from conda_forge_tick.lazy_json_backends import (
+    LAZY_JSON_BACKENDS,
     LazyJson,
     get_all_keys_for_hashmap,
+    get_lazy_json_backends,
     lazy_json_override_backends,
     lazy_json_transaction,
 )
@@ -313,12 +315,17 @@ def main(
         dump_graph(gx)
     else:
         names = get_all_feedstocks(cached=True)
-        names_for_this_job = _get_names_for_job(names, job, n_jobs)
+        tot_names = set(names)
+        for backend_name in get_lazy_json_backends():
+            backend = LAZY_JSON_BACKENDS[backend_name]()
+            tot_names |= set(backend.hkeys("node_attrs"))
+
+        tot_names_for_this_job = _get_names_for_job(tot_names, job, n_jobs)
 
         with lazy_json_override_backends(
             ["file"],
             hashmaps_to_sync=["node_attrs"],
-            keys_to_sync=set(names_for_this_job),
+            keys_to_sync=set(tot_names_for_this_job),
         ):
             _update_graph_nodea(
                 names, mark_not_archived=True, debug=ctx.debug, job=job, n_jobs=n_jobs
