@@ -21,7 +21,7 @@ if typing.TYPE_CHECKING:
     from conda_forge_tick.migrators_types import MetaYamlTypedDict
 
 from conda_forge_tick.lazy_json_backends import LazyJson, dumps, loads
-from conda_forge_tick.utils import CONTAINER_ARG_CHAR_LIMIT, run_container_task
+from conda_forge_tick.utils import run_container_task
 
 from .utils import as_iterable, parse_meta_yaml
 
@@ -534,23 +534,16 @@ def load_feedstock_containerized(
     json_blob = (
         dumps(sub_graph.data) if isinstance(sub_graph, LazyJson) else dumps(sub_graph)
     )
-    if len(json_blob) > CONTAINER_ARG_CHAR_LIMIT:
-        logger.warning(
-            f"The JSON blob for {name} is too large ({len(json_blob)} characters, "
-            f"limit is {CONTAINER_ARG_CHAR_LIMIT}), "
-            "using the feedstock name instead. This will force "
-            "the container to download the node attritbutes directly from GitHub."
-        )
-        json_blob = name
 
     data = run_container_task(
         "parse-feedstock",
         [
             "--existing-feedstock-node-attrs",
-            json_blob,
+            "-",
             *args,
         ],
         json_loads=loads,
+        input=json_blob,
     )
 
     return data
