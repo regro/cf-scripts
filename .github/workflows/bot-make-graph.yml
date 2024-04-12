@@ -13,7 +13,7 @@ jobs:
     runs-on: "ubuntu-latest"
     strategy:
       matrix:
-        job_num: [1, 2, 3, 4]
+        job_num: [1, 2, 3]
     defaults:
       run:
         shell: bash -leo pipefail {0}
@@ -46,7 +46,7 @@ jobs:
         run: |
           pushd cf-graph
 
-          conda-forge-tick make-graph --job=${BOT_JOB} --n-jobs=4
+          conda-forge-tick make-graph --job=${BOT_JOB} --n-jobs=3
         env:
           USERNAME: regro-cf-autotick-bot
           CF_TICK_GRAPH_DATA_BACKENDS: "${{ vars.CF_TICK_GRAPH_DATA_BACKENDS }}"

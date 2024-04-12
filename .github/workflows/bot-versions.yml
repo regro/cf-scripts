@@ -13,7 +13,7 @@ jobs:
     runs-on: "ubuntu-latest"
     strategy:
       matrix:
-        job_num: [1, 2, 3, 4, 5, 6, 7, 8]
+        job_num: [1, 2, 3, 4, 5, 6]
     defaults:
       run:
         shell: bash -leo pipefail {0}
@@ -46,7 +46,7 @@ jobs:
         run: |
           pushd cf-graph
 
-          conda-forge-tick update-upstream-versions --job=${BOT_JOB} --n-jobs=8
+          conda-forge-tick update-upstream-versions --job=${BOT_JOB} --n-jobs=6
         env:
           BOT_JOB: ${{ matrix.job_num }}
           CF_TICK_GRAPH_DATA_BACKENDS: "${{ vars.CF_TICK_GRAPH_DATA_BACKENDS }}"
