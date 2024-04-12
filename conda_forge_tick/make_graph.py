@@ -49,6 +49,16 @@ COMPILER_STUBS_WITH_STRONG_EXPORTS = [
 ]
 
 
+def _get_names_for_job(names, job, n_jobs):
+    job_index = job - 1
+    return [
+        node_id
+        for node_id in names
+        if abs(int(hashlib.sha1(node_id.encode("utf-8")).hexdigest(), 16)) % n_jobs
+        == job_index
+    ]
+
+
 def get_deps_from_outputs_lut(
     req_section: Iterable,
     outputs_lut: typing.Dict[str, set],
@@ -245,13 +255,7 @@ def _update_graph_nodea(
     job: int = 1,
     n_jobs: int = 1,
 ) -> nx.DiGraph:
-    job_index = job - 1
-    _names_to_update = [
-        node_id
-        for node_id in names
-        if abs(int(hashlib.sha1(node_id.encode("utf-8")).hexdigest(), 16)) % n_jobs
-        == job_index
-    ]
+    _names_to_update = _get_names_for_job(names, job, n_jobs)
 
     logger.info("start feedstock fetch loop")
     builder = _build_graph_sequential if debug else _build_graph_process_pool
@@ -264,14 +268,7 @@ def _update_graph_nodea(
 
 
 def _update_nodes_with_archived(archived_names, job: int = 1, n_jobs: int = 1):
-    job_index = job - 1
-    _names_to_update = [
-        node_id
-        for node_id in archived_names
-        if abs(int(hashlib.sha1(node_id.encode("utf-8")).hexdigest(), 16)) % n_jobs
-        == job_index
-    ]
-
+    _names_to_update = _get_names_for_job(archived_names, job, n_jobs)
     for name in _names_to_update:
         with LazyJson(f"node_attrs/{name}.json") as sub_graph:
             sub_graph["archived"] = True
@@ -281,13 +278,7 @@ def _migrate_schemas(job: int = 1, n_jobs: int = 1):
     # make sure to apply all schema migrations, not just those in the graph
     nodes = get_all_keys_for_hashmap("node_attrs")
 
-    job_index = job - 1
-    _names_to_update = [
-        node_id
-        for node_id in nodes
-        if abs(int(hashlib.sha1(node_id.encode("utf-8")).hexdigest(), 16)) % n_jobs
-        == job_index
-    ]
+    _names_to_update = _get_names_for_job(nodes, job, n_jobs)
 
     for node in tqdm.tqdm(
         _names_to_update, desc="migrating node schemas", miniters=100, ncols=80
