@@ -143,19 +143,11 @@ def _build_graph_process_pool(
     job: int = 1,
     n_jobs: int = 1,
 ) -> None:
-    job_index = job - 1
-    _names_to_update = [
-        node_id
-        for node_id in names
-        if abs(int(hashlib.sha1(node_id.encode("utf-8")).hexdigest(), 16)) % n_jobs
-        == job_index
-    ]
-
     # we use threads here since all of the work is done in a container anyways
     with executor("thread", max_workers=8) as pool:
         futures = {
             pool.submit(get_attrs, name, i, mark_not_archived=mark_not_archived): name
-            for i, name in enumerate(_names_to_update)
+            for i, name in enumerate(names)
             if random.uniform(0, 1) < RANDOM_FRAC_TO_UPDATE
         }
         logger.info("submitted all nodes")
@@ -186,14 +178,7 @@ def _build_graph_sequential(
     job: int = 1,
     n_jobs: int = 1,
 ) -> None:
-    job_index = job - 1
-    _names_to_update = [
-        node_id
-        for node_id in names
-        if abs(int(hashlib.sha1(node_id.encode("utf-8")).hexdigest(), 16)) % n_jobs
-        == job_index
-    ]
-    for i, name in enumerate(_names_to_update):
+    for i, name in enumerate(names):
         try:
             get_attrs(name, i, mark_not_archived=mark_not_archived)
         except Exception as e:
@@ -260,11 +245,19 @@ def _update_graph_nodea(
     job: int = 1,
     n_jobs: int = 1,
 ) -> nx.DiGraph:
-    logger.info("reading graph")
+    job_index = job - 1
+    _names_to_update = [
+        node_id
+        for node_id in names
+        if abs(int(hashlib.sha1(node_id.encode("utf-8")).hexdigest(), 16)) % n_jobs
+        == job_index
+    ]
 
     logger.info("start feedstock fetch loop")
     builder = _build_graph_sequential if debug else _build_graph_process_pool
-    builder(names, mark_not_archived=mark_not_archived, job=job, n_jobs=n_jobs)
+    builder(
+        _names_to_update, mark_not_archived=mark_not_archived, job=job, n_jobs=n_jobs
+    )
     logger.info("feedstock fetch loop completed")
 
     logger.info(f"memory usage: {psutil.virtual_memory()}")
