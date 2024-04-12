@@ -14,6 +14,7 @@ These tasks return their info to the bot by printing a JSON blob to stdout.
 
 import copy
 import os
+import sys
 import tempfile
 import traceback
 from contextlib import contextmanager, redirect_stderr, redirect_stdout
@@ -60,7 +61,10 @@ def _get_existing_feedstock_node_attrs(existing_feedstock_node_attrs):
         loads,
     )
 
-    if existing_feedstock_node_attrs.startswith("{"):
+    if existing_feedstock_node_attrs == "-":
+        val = sys.stdin.read()
+        attrs = loads(val)
+    elif existing_feedstock_node_attrs.startswith("{"):
         attrs = loads(existing_feedstock_node_attrs)
     else:
         if not existing_feedstock_node_attrs.endswith(".json"):
@@ -76,7 +80,7 @@ def _get_existing_feedstock_node_attrs(existing_feedstock_node_attrs):
     return attrs
 
 
-def _run_bot_task(func, *, log_level, **kwargs):
+def _run_bot_task(func, *, log_level, existing_feedstock_node_attrs, **kwargs):
     with (
         tempfile.TemporaryDirectory() as tmpdir_cbld,
         _setenv("CONDA_BLD_PATH", os.path.join(tmpdir_cbld, "conda-bld")),
@@ -99,7 +103,10 @@ def _run_bot_task(func, *, log_level, **kwargs):
             ):
                 # logger call needs to be here so it gets the changed stdout/stderr
                 setup_logging(log_level)
-                data = func(**kwargs)
+                attrs = _get_existing_feedstock_node_attrs(
+                    existing_feedstock_node_attrs
+                )
+                data = func(attrs=attrs, **kwargs)
 
             ret["data"] = data
             ret["container_stdout_stderr"] = outerr.getvalue()
@@ -113,7 +120,7 @@ def _run_bot_task(func, *, log_level, **kwargs):
         print(dumps(ret))
 
 
-def _get_latest_version(*, existing_feedstock_node_attrs, sources):
+def _get_latest_version(*, attrs, sources):
     from conda_forge_tick.update_upstream_versions import (
         all_version_sources,
         get_latest_version_local,
@@ -125,7 +132,6 @@ def _get_latest_version(*, existing_feedstock_node_attrs, sources):
         sources = [s.strip().lower() for s in sources]
         _sources = [s for s in _sources if s.name.strip().lower() in sources]
 
-    attrs = _get_existing_feedstock_node_attrs(existing_feedstock_node_attrs)
     name = attrs["feedstock_name"]
 
     data = get_latest_version_local(
@@ -138,14 +144,13 @@ def _get_latest_version(*, existing_feedstock_node_attrs, sources):
 
 def _parse_feedstock(
     *,
-    existing_feedstock_node_attrs,
+    attrs,
     meta_yaml,
     conda_forge_yaml,
     mark_not_archived,
 ):
     from conda_forge_tick.feedstock_parser import load_feedstock_local
 
-    attrs = _get_existing_feedstock_node_attrs(existing_feedstock_node_attrs)
     name = attrs["feedstock_name"]
 
     load_feedstock_local(

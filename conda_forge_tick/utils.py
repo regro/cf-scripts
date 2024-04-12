@@ -138,11 +138,15 @@ def get_default_container_run_args(tmpfs_size_mb: int = 10):
         "--ulimit",
         "nproc=2048:2048",
         "--rm",
+        "-i",
     ]
 
 
 def run_container_task(
-    name: str, args: Iterable[str], json_loads: Optional[Callable] = json.loads
+    name: str,
+    args: Iterable[str],
+    json_loads: Optional[Callable] = json.loads,
+    input: Optional[str] = None,
 ):
     """Run a bot task in a container.
 
@@ -162,7 +166,6 @@ def run_container_task(
     """
     cmd = [
         *get_default_container_run_args(),
-        "-t",
         get_default_container_name(),
         "/opt/conda/envs/cf-scripts/bin/python",
         "/opt/autotick-bot/docker/run_bot_task.py",
@@ -175,6 +178,7 @@ def run_container_task(
         cmd,
         capture_output=True,
         text=True,
+        input=input,
     )
     # we handle this ourselves to customize the error message
     if res.returncode != 0:
