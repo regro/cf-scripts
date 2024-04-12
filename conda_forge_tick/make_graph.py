@@ -312,8 +312,14 @@ def main(
 
         dump_graph(gx)
     else:
-        with lazy_json_override_backends(["file"], hashmaps_to_sync=["node_attrs"]):
-            names = get_all_feedstocks(cached=True)
+        names = get_all_feedstocks(cached=True)
+        names_for_this_job = _get_names_for_job(names, job, n_jobs)
+
+        with lazy_json_override_backends(
+            ["file"],
+            hashmaps_to_sync=["node_attrs"],
+            keys_to_sync=set(names_for_this_job),
+        ):
             _update_graph_nodea(
                 names, mark_not_archived=True, debug=ctx.debug, job=job, n_jobs=n_jobs
             )

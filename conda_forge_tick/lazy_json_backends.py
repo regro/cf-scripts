@@ -472,6 +472,7 @@ def sync_lazy_json_hashmap(
     destination_backends,
     n_per_batch=5000,
     writer=print,
+    keys_to_sync=None,
 ):
     primary_backend = LAZY_JSON_BACKENDS[source_backend]()
     primary_hashes = primary_backend.hgetall(hashmap, hashval=True)
@@ -492,6 +493,8 @@ def sync_lazy_json_hashmap(
 
         curr_nodes = set(backend_hashes[backend_name].keys())
         del_nodes = curr_nodes - primary_nodes
+        if keys_to_sync is not None:
+            del_nodes &= keys_to_sync
         if del_nodes:
             backend.hdel(hashmap, list(del_nodes))
             writer(
@@ -504,6 +507,9 @@ def sync_lazy_json_hashmap(
                 backend_hashes[backend_name][node] != primary_hashes[node]
             ):
                 all_nodes_to_get.add(node)
+
+    if keys_to_sync is not None:
+        all_nodes_to_get &= keys_to_sync
 
     writer(
         "    OUT OF SYNC %s:%s nodes (%d)"
