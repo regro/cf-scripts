@@ -8,10 +8,10 @@ import re
 import tempfile
 import typing
 import zipfile
-import lz4framed
 from collections import defaultdict
 from typing import Optional, Set, Union
 
+import lz4framed
 import requests
 import yaml
 from requests.models import Response

@@ -17,11 +17,11 @@ import copy
 import os
 import tempfile
 import traceback
-import lz4framed
 from contextlib import contextmanager, redirect_stderr, redirect_stdout
 from io import StringIO
 
 import click
+import lz4framed
 
 existing_feedstock_node_attrs_option = click.option(
     "--existing-feedstock-node-attrs",
