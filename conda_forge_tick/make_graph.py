@@ -195,7 +195,7 @@ def _build_graph_sequential(
     ]
     for i, name in enumerate(_names_to_update):
         try:
-            (get_attrs(name, i, mark_not_archived=mark_not_archived),)
+            get_attrs(name, i, mark_not_archived=mark_not_archived)
         except Exception as e:
             logger.error(f"Error updating node {name}", exc_info=e)
 
