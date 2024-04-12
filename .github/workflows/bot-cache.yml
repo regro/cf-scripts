@@ -52,11 +52,13 @@ jobs:
       - name: run sync
         if: success() && ! env.CI_SKIP
         run: |
-          tar -xf cf-graph.tar.zstd
-          cd cf-graph
-          conda-forge-tick sync-lazy-json-across-backends
-          cd ..
-          tar --zstd -cf cf-graph.tar.zstd cf-graph
+          if [[ "${CF_TICK_GRAPH_DATA_BACKENDS}" != file:* ]]; then
+            tar -xf cf-graph.tar.zstd
+            cd cf-graph
+            conda-forge-tick sync-lazy-json-across-backends
+            cd ..
+            tar --zstd -cf cf-graph.tar.zstd cf-graph
+          fi
         env:
           CF_TICK_GRAPH_DATA_BACKENDS: "${{ vars.CF_TICK_GRAPH_DATA_BACKENDS }}"
           MONGODB_CONNECTION_STRING: ${{ secrets.MONGODB_CONNECTION_STRING }}
