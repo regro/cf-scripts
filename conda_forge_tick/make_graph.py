@@ -34,9 +34,7 @@ logger = logging.getLogger(__name__)
 pin_sep_pat = re.compile(r" |>|<|=|\[")
 random.seed(os.urandom(64))
 
-RANDOM_FRAC_TO_UPDATE = 1.5
-NUM_GITHUB_THREADS = 2
-
+RANDOM_FRAC_TO_UPDATE = 0.1
 
 # AFAIK, go and rust do not have strong run exports and so do not need to
 # appear here
@@ -76,7 +74,8 @@ def make_outputs_lut_from_graph(gx):
 def get_attrs(name: str, i: int, mark_not_archived=False) -> LazyJson:
     lzj = LazyJson(f"node_attrs/{name}.json")
     with lzj as sub_graph:
-        load_feedstock(name, sub_graph, mark_not_archived=mark_not_archived)
+        data = load_feedstock(name, sub_graph.data, mark_not_archived=mark_not_archived)
+        sub_graph.update(data)
 
     return lzj
 
@@ -185,6 +184,9 @@ def _build_graph_sequential(
     mark_not_archived=False,
 ) -> None:
     for i, name in enumerate(names):
+        if random.uniform(0, 1) >= RANDOM_FRAC_TO_UPDATE:
+            continue
+
         try:
             sub_graph = {
                 "payload": get_attrs(name, i, mark_not_archived=mark_not_archived),

@@ -1890,39 +1890,39 @@ package:
   - category: main
     dependencies: {}
     hash:
-      md5: 7624e85bf892b66044acef26c0bd70d4
-      sha256: 1c66a7df00d7811c4dfb00a4b35880f972ccd8b0f1d3b20d288b80ae0c0c5d8b
+      md5: e61d5b2a1c7a1e6762ce232c6eedfa27
+      sha256: cb9a81f98a3a770df6994c49f6b44ef96a8c13bd4906083e43bae571c94ce255
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.04.10.16.59.40-hd8ed1ab_0.conda
-    version: 2024.04.10.16.59.40
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.04.11.22.26.35-hd8ed1ab_0.conda
+    version: 2024.04.11.22.26.35
   - category: main
     dependencies: {}
     hash:
-      md5: 7624e85bf892b66044acef26c0bd70d4
-      sha256: 1c66a7df00d7811c4dfb00a4b35880f972ccd8b0f1d3b20d288b80ae0c0c5d8b
+      md5: e61d5b2a1c7a1e6762ce232c6eedfa27
+      sha256: cb9a81f98a3a770df6994c49f6b44ef96a8c13bd4906083e43bae571c94ce255
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.04.10.16.59.40-hd8ed1ab_0.conda
-    version: 2024.04.10.16.59.40
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.04.11.22.26.35-hd8ed1ab_0.conda
+    version: 2024.04.11.22.26.35
   - category: main
     dependencies: {}
     hash:
-      md5: 7624e85bf892b66044acef26c0bd70d4
-      sha256: 1c66a7df00d7811c4dfb00a4b35880f972ccd8b0f1d3b20d288b80ae0c0c5d8b
+      md5: e61d5b2a1c7a1e6762ce232c6eedfa27
+      sha256: cb9a81f98a3a770df6994c49f6b44ef96a8c13bd4906083e43bae571c94ce255
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.04.10.16.59.40-hd8ed1ab_0.conda
-    version: 2024.04.10.16.59.40
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.04.11.22.26.35-hd8ed1ab_0.conda
+    version: 2024.04.11.22.26.35
   - category: main
     dependencies:
       click: '>=8'
@@ -10053,48 +10053,48 @@ package:
   - category: main
     dependencies:
       annotated-types: '>=0.4.0'
-      pydantic-core: 2.16.3
+      pydantic-core: 2.18.1
       python: '>=3.7'
       typing-extensions: '>=4.6.1'
     hash:
-      md5: 2e8e9f16431085f4b5a218b31fe557a3
-      sha256: 9747044e91a607c175bbce67fdb5865de5373151098bbb4a2cd79bc05666a299
+      md5: 369c93f0209568e7c33892d8960fe583
+      sha256: e7b58685010aaeb64524d430b7fd9e732d81644a7185810f567097fc16804e88
     manager: conda
     name: pydantic
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/noarch/pydantic-2.6.4-pyhd8ed1ab_0.conda
-    version: 2.6.4
+    url: https://conda.anaconda.org/conda-forge/noarch/pydantic-2.7.0-pyhd8ed1ab_0.conda
+    version: 2.7.0
   - category: main
     dependencies:
       annotated-types: '>=0.4.0'
-      pydantic-core: 2.16.3
+      pydantic-core: 2.18.1
       python: '>=3.7'
       typing-extensions: '>=4.6.1'
     hash:
-      md5: 2e8e9f16431085f4b5a218b31fe557a3
-      sha256: 9747044e91a607c175bbce67fdb5865de5373151098bbb4a2cd79bc05666a299
+      md5: 369c93f0209568e7c33892d8960fe583
+      sha256: e7b58685010aaeb64524d430b7fd9e732d81644a7185810f567097fc16804e88
     manager: conda
     name: pydantic
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/noarch/pydantic-2.6.4-pyhd8ed1ab_0.conda
-    version: 2.6.4
+    url: https://conda.anaconda.org/conda-forge/noarch/pydantic-2.7.0-pyhd8ed1ab_0.conda
+    version: 2.7.0
   - category: main
     dependencies:
       annotated-types: '>=0.4.0'
-      pydantic-core: 2.16.3
+      pydantic-core: 2.18.1
       python: '>=3.7'
       typing-extensions: '>=4.6.1'
     hash:
-      md5: 2e8e9f16431085f4b5a218b31fe557a3
-      sha256: 9747044e91a607c175bbce67fdb5865de5373151098bbb4a2cd79bc05666a299
+      md5: 369c93f0209568e7c33892d8960fe583
+      sha256: e7b58685010aaeb64524d430b7fd9e732d81644a7185810f567097fc16804e88
     manager: conda
     name: pydantic
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/noarch/pydantic-2.6.4-pyhd8ed1ab_0.conda
-    version: 2.6.4
+    url: https://conda.anaconda.org/conda-forge/noarch/pydantic-2.7.0-pyhd8ed1ab_0.conda
+    version: 2.7.0
   - category: main
     dependencies:
       libgcc-ng: '>=12'
@@ -10102,45 +10102,45 @@ package:
       python_abi: 3.11.*
       typing-extensions: '>=4.6.0,!=4.7.0'
     hash:
-      md5: b8241049c210406da1c9aa8eb4536470
-      sha256: 9ea66b121c1f110f9c323d00f6e849df4941b2c0356dd8380a96f56adefebf57
+      md5: 585ed61519d1dfe3a848959bf141826b
+      sha256: 761a297d8818b17c5428bf2289e47a88fc3c1444aef24051a0bf0eb98f3e9e30
     manager: conda
     name: pydantic-core
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/linux-64/pydantic-core-2.16.3-py311h46250e7_0.conda
-    version: 2.16.3
+      https://conda.anaconda.org/conda-forge/linux-64/pydantic-core-2.18.1-py311h46250e7_0.conda
+    version: 2.18.1
   - category: main
     dependencies:
       python: '>=3.11,<3.12.0a0'
       python_abi: 3.11.*
       typing-extensions: '>=4.6.0,!=4.7.0'
     hash:
-      md5: 501a363399b9f0e87d6ecaf7636342cc
-      sha256: 222280c774852b1fce3d0fa7a19da8ed77c288583ff90a2b4c19519160f93bd6
+      md5: 116a2da8d10e736bf67d4de579c9eda5
+      sha256: 3867aa370fffc0022bdd98ab8dc23bf7332ad5cbf1012b602d2309dd15c243d7
     manager: conda
     name: pydantic-core
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/osx-64/pydantic-core-2.16.3-py311hd64b9fd_0.conda
-    version: 2.16.3
+      https://conda.anaconda.org/conda-forge/osx-64/pydantic-core-2.18.1-py311hd64b9fd_0.conda
+    version: 2.18.1
   - category: main
     dependencies:
       python: '>=3.11,<3.12.0a0'
       python_abi: 3.11.*
       typing-extensions: '>=4.6.0,!=4.7.0'
     hash:
-      md5: bd21dac222b9114709c1cc8d57a66b69
-      sha256: 5cb74110e8cf4f9982f37b05e9879d71d0fbe931f18ae524b0f2bba66e2f05c5
+      md5: db31f2b8d05c7014f8d22296c0e8aaca
+      sha256: 28e21c0f242dbaa7bd532a5d3a70ab955a461bca03529ea0619959aaf7932dc2
     manager: conda
     name: pydantic-core
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/osx-arm64/pydantic-core-2.16.3-py311h94f323b_0.conda
-    version: 2.16.3
+      https://conda.anaconda.org/conda-forge/osx-arm64/pydantic-core-2.18.1-py311h94f323b_0.conda
+    version: 2.18.1
   - category: main
     dependencies:
       pydantic: '>=2.5.2'
@@ -13480,41 +13480,41 @@ package:
     dependencies:
       python: '>=3.7'
     hash:
-      md5: e565e537d9760fc5d6d02ae4521a144b
-      sha256: 909b4288bd2be8566f6d0a311d75a7e0e1cf81c42c19c97b1fc7d043c3db3301
+      md5: 9622d541e2314c0207bebdc0359fa478
+      sha256: cbc8e5c5f82b1eeff7aa21aaff77757336c1e6d64a4255b071c783acd60f4618
     manager: conda
     name: trove-classifiers
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/trove-classifiers-2024.3.25-pyhd8ed1ab_0.conda
-    version: 2024.3.25
+      https://conda.anaconda.org/conda-forge/noarch/trove-classifiers-2024.4.10-pyhd8ed1ab_0.conda
+    version: 2024.4.10
   - category: main
     dependencies:
       python: '>=3.7'
     hash:
-      md5: e565e537d9760fc5d6d02ae4521a144b
-      sha256: 909b4288bd2be8566f6d0a311d75a7e0e1cf81c42c19c97b1fc7d043c3db3301
+      md5: 9622d541e2314c0207bebdc0359fa478
+      sha256: cbc8e5c5f82b1eeff7aa21aaff77757336c1e6d64a4255b071c783acd60f4618
     manager: conda
     name: trove-classifiers
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/trove-classifiers-2024.3.25-pyhd8ed1ab_0.conda
-    version: 2024.3.25
+      https://conda.anaconda.org/conda-forge/noarch/trove-classifiers-2024.4.10-pyhd8ed1ab_0.conda
+    version: 2024.4.10
   - category: main
     dependencies:
       python: '>=3.7'
     hash:
-      md5: e565e537d9760fc5d6d02ae4521a144b
-      sha256: 909b4288bd2be8566f6d0a311d75a7e0e1cf81c42c19c97b1fc7d043c3db3301
+      md5: 9622d541e2314c0207bebdc0359fa478
+      sha256: cbc8e5c5f82b1eeff7aa21aaff77757336c1e6d64a4255b071c783acd60f4618
     manager: conda
     name: trove-classifiers
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/trove-classifiers-2024.3.25-pyhd8ed1ab_0.conda
-    version: 2024.3.25
+      https://conda.anaconda.org/conda-forge/noarch/trove-classifiers-2024.4.10-pyhd8ed1ab_0.conda
+    version: 2024.4.10
   - category: main
     dependencies:
       python: '>=3.10'
