@@ -22,6 +22,7 @@ commands = (
 )
 
 job_commands = (
+    "make-graph",
     "update-prs",
     "update-upstream-versions",
 )
