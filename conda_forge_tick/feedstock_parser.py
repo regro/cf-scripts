@@ -8,7 +8,7 @@ import re
 import tempfile
 import typing
 import zipfile
-import zlib as lz4framed
+import lz4framed
 from collections import defaultdict
 from typing import Optional, Set, Union
 

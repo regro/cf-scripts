@@ -17,7 +17,7 @@ import copy
 import os
 import tempfile
 import traceback
-import zlib as lz4framed
+import lz4framed
 from contextlib import contextmanager, redirect_stderr, redirect_stdout
 from io import StringIO
 
