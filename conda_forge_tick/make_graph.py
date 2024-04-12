@@ -86,7 +86,8 @@ def make_outputs_lut_from_graph(gx):
 def get_attrs(name: str, i: int, mark_not_archived=False) -> LazyJson:
     lzj = LazyJson(f"node_attrs/{name}.json")
     with lzj as sub_graph:
-        load_feedstock(name, sub_graph, mark_not_archived=mark_not_archived)
+        data = load_feedstock(name, sub_graph.data, mark_not_archived=mark_not_archived)
+        sub_graph.update(data)
 
     return lzj
 
