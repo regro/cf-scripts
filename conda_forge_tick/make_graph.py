@@ -263,6 +263,16 @@ def _create_edges(gx: nx.DiGraph) -> nx.DiGraph:
 def _add_run_exports(nodes_to_update):
     gx = load_graph()
 
+    new_names = [name for name in nodes_to_update if name not in gx.nodes]
+    for name in nodes_to_update:
+        sub_graph = {
+            "payload": LazyJson(f"node_attrs/{name}.json"),
+        }
+        if name in new_names:
+            gx.add_node(name, **sub_graph)
+        else:
+            gx.nodes[name].update(**sub_graph)
+
     outputs_lut = make_outputs_lut_from_graph(gx)
 
     # collect all of the strong run exports
@@ -272,7 +282,6 @@ def _add_run_exports(nodes_to_update):
         node_name
         for node_name, node in gx.nodes.items()
         if node.get("payload").get("strong_exports", False)
-        and node_name in nodes_to_update
     } | set(COMPILER_STUBS_WITH_STRONG_EXPORTS)
 
     for node in nodes_to_update:
