@@ -88,6 +88,8 @@ def _deploy_batch(files_to_add, batch, n_added, max_per_batch=500):
             # we did try to push to a branch but it never worked so we'll just stop
             raise RuntimeError("bot did not push its data! stopping!")
 
+    return n_added_this_batch
+
 
 def deploy(ctx: CliContext, dirs_to_deploy: list[str] = None):
     """Deploy the graph to GitHub"""
