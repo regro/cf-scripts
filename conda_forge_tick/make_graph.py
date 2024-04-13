@@ -173,10 +173,12 @@ def _build_graph_process_pool(
             try:
                 f.result()
                 if n_left % 100 == 0:
-                    logger.info("itr % 5d - eta % 5ds: finished %s", n_left, eta, name)
+                    logger.info(
+                        f"nodes left {n_left: >5d} - eta {int(eta): >5d}s: finished {name}"
+                    )
             except Exception as e:
                 logger.error(
-                    f"itr {n_left: 5d} - eta {eta: 5d}s: Error adding {name} to the graph",
+                    f"nodes left {n_left: >5d} - eta {int(eta): >5d}s: error adding {name} to the graph",
                     exc_info=e,
                 )
 
