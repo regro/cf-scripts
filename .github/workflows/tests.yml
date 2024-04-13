@@ -96,17 +96,3 @@ jobs:
         uses: codecov/codecov-action@v4
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
-
-      - name: build docs
-        run: |
-          cd docs
-          make html
-
-      - name: deploy docs
-        uses: JamesIves/github-pages-deploy-action@v4.5.0
-        if: github.ref == 'refs/heads/master' && success()
-        with:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          BRANCH: gh-pages # The branch the action should deploy to.
-          FOLDER: ./docs/_build/html # The folder the action should deploy.
-          CLEAN: true # Automatically remove deleted files from the deploy branch
