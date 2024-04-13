@@ -556,7 +556,7 @@ def sync_lazy_json_hashmap(
                 )
 
 
-def sync_lazy_json_across_backends(batch_size=5000):
+def sync_lazy_json_across_backends(batch_size=5000, keys_to_sync=None):
     """Sync data from the primary backend to the secondary ones.
 
     If there is only one backend, this is a no-op.
@@ -585,6 +585,7 @@ def sync_lazy_json_across_backends(batch_size=5000):
                 CF_TICK_GRAPH_DATA_PRIMARY_BACKEND,
                 CF_TICK_GRAPH_DATA_BACKENDS[1:],
                 writer=_write_and_flush,
+                keys_to_sync=keys_to_sync,
             )
 
         # if mongodb has better performance we do this
@@ -652,7 +653,10 @@ def lazy_json_snapshot():
 
 @contextlib.contextmanager
 def lazy_json_override_backends(
-    new_backends, hashmaps_to_sync=None, use_file_cache=None
+    new_backends,
+    hashmaps_to_sync=None,
+    use_file_cache=None,
+    keys_to_sync=None,
 ):
     global CF_TICK_GRAPH_DATA_BACKENDS
     global CF_TICK_GRAPH_DATA_PRIMARY_BACKEND
@@ -679,6 +683,7 @@ def lazy_json_override_backends(
                         hashmap,
                         new_backends[0],
                         sync_backends,
+                        keys_to_sync=keys_to_sync,
                     )
 
         CF_TICK_GRAPH_DATA_BACKENDS = old_backends
