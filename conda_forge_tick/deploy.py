@@ -15,7 +15,7 @@ def _run_git_cmd(cmd):
     return subprocess.run(cmd, shell=True, check=True)
 
 
-def _deploy_batch(files_to_add, batch, n_added, max_per_batch=500):
+def _deploy_batch(files_to_add, batch, n_added, max_per_batch=50):
     # TODO: have function construct this
     BUILD_URL = os.environ.get(BUILD_URL_KEY, "")
 
