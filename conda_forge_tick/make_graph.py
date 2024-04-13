@@ -295,33 +295,36 @@ def _migrate_schemas(job: int = 1, n_jobs: int = 1):
 def main(
     ctx: CliContext, job: int = 1, n_jobs: int = 1, update_nodes_and_edges: bool = False
 ) -> None:
+    names = get_all_feedstocks(cached=True)
+    tot_names = set(names)
+    for backend_name in get_lazy_json_backends():
+        backend = LAZY_JSON_BACKENDS[backend_name]()
+        tot_names |= set(backend.hkeys("node_attrs"))
+
+    tot_names_for_this_job = _get_names_for_job(tot_names, job, n_jobs)
+
     if update_nodes_and_edges:
         gx = load_graph()
 
-        names = get_all_keys_for_hashmap("node_attrs")
         new_names = [name for name in names if name not in gx.nodes]
+        with lazy_json_override_backends(
+            ["file"],
+            hashmaps_to_sync=["node_attrs"],
+            keys_to_sync=set(tot_names_for_this_job),
+        ):
+            for name in names:
+                sub_graph = {
+                    "payload": LazyJson(f"node_attrs/{name}.json"),
+                }
+                if name in new_names:
+                    gx.add_node(name, **sub_graph)
+                else:
+                    gx.nodes[name].update(**sub_graph)
 
-        for name in names:
-            sub_graph = {
-                "payload": LazyJson(f"node_attrs/{name}.json"),
-            }
-            if name in new_names:
-                gx.add_node(name, **sub_graph)
-            else:
-                gx.nodes[name].update(**sub_graph)
-
-        gx = _create_edges(gx)
+            gx = _create_edges(gx)
 
         dump_graph(gx)
     else:
-        names = get_all_feedstocks(cached=True)
-        tot_names = set(names)
-        for backend_name in get_lazy_json_backends():
-            backend = LAZY_JSON_BACKENDS[backend_name]()
-            tot_names |= set(backend.hkeys("node_attrs"))
-
-        tot_names_for_this_job = _get_names_for_job(tot_names, job, n_jobs)
-
         with lazy_json_override_backends(
             ["file"],
             hashmaps_to_sync=["node_attrs"],
