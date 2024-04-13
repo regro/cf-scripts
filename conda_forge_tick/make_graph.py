@@ -147,9 +147,7 @@ def _migrate_schema(name, sub_graph):
 
 
 def _build_graph_process_pool(
-    gx: nx.DiGraph,
     names: List[str],
-    new_names: List[str],
     mark_not_archived=False,
     job: int = 1,
     n_jobs: int = 1,
