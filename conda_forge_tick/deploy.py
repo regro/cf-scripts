@@ -35,7 +35,7 @@ def _deploy_batch(files_to_add, batch, n_added, max_per_batch=50):
         try:
             _step_name = os.environ.get("GITHUB_WORKFLOW", "update graph")
             _run_git_cmd(
-                f'git commit -am "{_step_name} - batch {batch: >3d} - {BUILD_URL}"'
+                f'git commit -m "{_step_name} - batch {batch: >3d} - {BUILD_URL}"'
             )
         except Exception as e:
             print(e)
