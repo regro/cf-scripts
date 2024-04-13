@@ -14,22 +14,24 @@
 [![relock](https://github.com/regro/cf-scripts/actions/workflows/relock.yml/badge.svg)](https://github.com/regro/cf-scripts/actions/workflows/relock.yml)
 
 the actual bot in an actual place doing an actual thing
-<!-- TOC depthto:3 -->
 
-- [autotick-bot](#autotick-bot)
-    - [What has the bot done recently?](#what-has-the-bot-done-recently)
-    - [Starting and Stopping the Worker](#starting-and-stopping-the-worker)
-    - [User Documentation](#user-documentation)
-        - [Configuring the Bot via the conda-forge.yml](#configuring-the-bot-via-the-conda-forgeyml)
-        - [Making Migrators](#making-migrators)
-    - [Developer Documentation](#developer-documentation)
-        - [Debugging Locally](#debugging-locally)
-        - [Using the conda_forge_tick Module to Interact with the Bot Data](#using-the-conda_forge_tick-module-to-interact-with-the-bot-data)
-        - [Useful Environment Variables](#useful-environment-variables)
-        - [conda-forge-tick Container Image and Dockerfile](#conda-forge-tick-container-image-and-dockerfile)
-        - [Data Model](#data-model)
-        - [LazyJson Data Structures and Backends](#lazyjson-data-structures-and-backends)
-        - [Notes on the Version Migrator](#notes-on-the-version-migrator)
+<!-- TOC ignore:true -->
+## Table of Contents
+<!-- TOC -->
+
+- [What has the bot done recently?](#what-has-the-bot-done-recently)
+- [Starting and Stopping the Worker](#starting-and-stopping-the-worker)
+- [User Documentation](#user-documentation)
+    - [Configuring the Bot via the conda-forge.yml](#configuring-the-bot-via-the-conda-forgeyml)
+    - [Making Migrators](#making-migrators)
+- [Developer Documentation](#developer-documentation)
+    - [Debugging Locally](#debugging-locally)
+    - [Using the conda_forge_tick Module to Interact with the Bot Data](#using-the-conda_forge_tick-module-to-interact-with-the-bot-data)
+    - [Useful Environment Variables](#useful-environment-variables)
+    - [conda-forge-tick Container Image and Dockerfile](#conda-forge-tick-container-image-and-dockerfile)
+    - [Data Model](#data-model)
+    - [LazyJson Data Structures and Backends](#lazyjson-data-structures-and-backends)
+    - [Notes on the Version Migrator](#notes-on-the-version-migrator)
 
 <!-- /TOC -->
 
