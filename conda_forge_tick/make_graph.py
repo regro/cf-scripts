@@ -199,6 +199,25 @@ def _build_graph_sequential(
             logger.error(f"Error updating node {name}", exc_info=e)
 
 
+def _add_run_exports_per_node(attrs, outputs_lut, strong_exports):
+    # replace output package names with feedstock names via LUT
+    deps = set()
+    for req_section in attrs.get("requirements", {}).values():
+        deps.update(
+            get_deps_from_outputs_lut(req_section, outputs_lut),
+        )
+
+    # handle strong run exports
+    # TODO: do this per platform
+    overlap = deps & strong_exports
+    requirements = attrs.get("requirements")
+    if requirements and overlap:
+        requirements["host"].update(overlap)
+        requirements["run"].update(overlap)
+
+    return deps
+
+
 def _create_edges(gx: nx.DiGraph) -> nx.DiGraph:
     logger.info("inferring nodes and edges")
 
@@ -223,20 +242,9 @@ def _create_edges(gx: nx.DiGraph) -> nx.DiGraph:
     all_nodes = list(gx.nodes.keys())
     for node in all_nodes:
         with gx.nodes[node]["payload"] as attrs:
-            # replace output package names with feedstock names via LUT
-            deps = set()
-            for req_section in attrs.get("requirements", {}).values():
-                deps.update(
-                    get_deps_from_outputs_lut(req_section, gx.graph["outputs_lut"]),
-                )
-
-            # handle strong run exports
-            # TODO: do this per platform
-            overlap = deps & strong_exports
-            requirements = attrs.get("requirements")
-            if requirements and overlap:
-                requirements["host"].update(overlap)
-                requirements["run"].update(overlap)
+            deps = _add_run_exports_per_node(
+                attrs, gx.graph["outputs_lut"], strong_exports
+            )
 
         for dep in deps:
             if dep not in gx.nodes:
@@ -250,6 +258,26 @@ def _create_edges(gx: nx.DiGraph) -> nx.DiGraph:
     logger.info("new nodes and edges inferred")
 
     return gx
+
+
+def _add_run_exports(nodes_to_update):
+    gx = load_graph()
+
+    outputs_lut = make_outputs_lut_from_graph(gx)
+
+    # collect all of the strong run exports
+    # we add the compiler stubs so that we know when host and run
+    # envs will have compiler-related packages in them
+    strong_exports = {
+        node_name
+        for node_name, node in gx.nodes.items()
+        if node.get("payload").get("strong_exports", False)
+        and node_name in nodes_to_update
+    } | set(COMPILER_STUBS_WITH_STRONG_EXPORTS)
+
+    for node in nodes_to_update:
+        with gx.nodes[node]["payload"] as attrs:
+            _add_run_exports_per_node(attrs, outputs_lut, strong_exports)
 
 
 def _update_graph_nodea(
@@ -267,6 +295,10 @@ def _update_graph_nodea(
         _names_to_update, mark_not_archived=mark_not_archived, job=job, n_jobs=n_jobs
     )
     logger.info("feedstock fetch loop completed")
+
+    logger.info("adding run exports")
+    _add_run_exports(_names_to_update)
+    logger.info("done adding run exports")
 
     logger.info(f"memory usage: {psutil.virtual_memory()}")
 
