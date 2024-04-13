@@ -102,7 +102,9 @@ def deploy(ctx: CliContext, dirs_to_deploy: list[str] = None):
         if n_added_this_batch > 0:
             try:
                 _step_name = os.environ.get("GITHUB_WORKFLOW", "update graph")
-                _run_git_cmd(f'git commit -am "{_step_name} {batch: >3d} - {BUILD_URL}"')
+                _run_git_cmd(
+                    f'git commit -am "{_step_name} - batch {batch: >3d} - {BUILD_URL}"'
+                )
             except Exception as e:
                 print(e)
 
@@ -130,7 +132,8 @@ def deploy(ctx: CliContext, dirs_to_deploy: list[str] = None):
                     _run_git_cmd("git pull -s recursive -X theirs")
                 except Exception as e:
                     print(
-                        "\n\n>>>>>>>>>>>> git pull try %d failed: %s \n\n" % (num_try, e),
+                        "\n\n>>>>>>>>>>>> git pull try %d failed: %s \n\n"
+                        % (num_try, e),
                         flush=True,
                     )
                     pass
