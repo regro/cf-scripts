@@ -54,12 +54,6 @@ def _deploy_batch(files_to_add, batch, n_added, max_per_batch=50):
         num_try = 0
         while status != 0 and num_try < 10 and graph_ok:
             try:
-                if num_try == 9:
-                    print(
-                        "\n\n>>>>>>>>>>>> git unshallow for try %d\n\n" % num_try,
-                        flush=True,
-                    )
-                    _run_git_cmd("git fetch --unshallow")
                 print("\n\n>>>>>>>>>>>> git pull try %d\n\n" % num_try, flush=True)
                 _run_git_cmd("git pull -s recursive -X theirs")
             except Exception as e:
