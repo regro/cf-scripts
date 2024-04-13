@@ -92,11 +92,24 @@ def gather_all_feedstocks() -> None:
 
 
 @main.command(name="make-graph")
+@job_option
+@n_jobs_option
+@click.option(
+    "--update-nodes-and-edges",
+    is_flag=True,
+    help="If given, update the nodes and edges in the graph. Otherwise, only update the node attrs.",
+)
 @pass_context
-def make_graph(ctx: CliContext) -> None:
+def make_graph(
+    ctx: CliContext, job: int, n_jobs: int, update_nodes_and_edges: bool
+) -> None:
     from . import make_graph
 
-    make_graph.main(ctx)
+    check_job_param_relative(job, n_jobs)
+
+    make_graph.main(
+        ctx, job=job, n_jobs=n_jobs, update_nodes_and_edges=update_nodes_and_edges
+    )
 
 
 @main.command(name="update-upstream-versions")
