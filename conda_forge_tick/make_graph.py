@@ -272,6 +272,7 @@ def _add_run_exports(nodes_to_update):
         node_name
         for node_name, node in gx.nodes.items()
         if node.get("payload").get("strong_exports", False)
+        and node_name in nodes_to_update
     } | set(COMPILER_STUBS_WITH_STRONG_EXPORTS)
 
     for node in nodes_to_update:
