@@ -124,7 +124,7 @@ def test_lazy_json_override_backends_global(tmpdir):
                     attrs["hello"] = "me again again"
 
             assert be.hget("lazy_json", "blah") != pbe.hget("lazy_json", "blah")
-            assert be.hget("lazy_json", "blah") == dumps({"hello": "me again"})
+            assert be.hget("lazy_json", "blah") == dumps({"hello": "me again again"})
 
         finally:
             be = LAZY_JSON_BACKENDS["mongodb"]()
