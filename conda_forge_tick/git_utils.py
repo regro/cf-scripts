@@ -78,7 +78,7 @@ def github3_client() -> github3.GitHub:
     return GITHUB3_CLIENT.client
 
 
-def github_client() -> github.GitHub:
+def github_client() -> github.Github:
     if not hasattr(GITHUB_CLIENT, "client"):
         with sensitive_env() as env:
             GITHUB_CLIENT.client = github.Github(env["BOT_TOKEN"])
