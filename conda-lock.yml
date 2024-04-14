@@ -3897,43 +3897,43 @@ package:
       python: '>=3.11,<3.12.0a0'
       python_abi: 3.11.*
     hash:
-      md5: 815fdc530bcde750da71b1e1f1c0bea1
-      sha256: b7597d6fb077d3a3a3a9a9f18a1b2a8b8800a38ca6ce9f4dd3c7fa4e07dcafb6
+      md5: 5da6df80c79f36b7ffe809665cc42daf
+      sha256: 4cbef38f6cc7e6815d972f9bea3538f6ee7dd24cf7235b06aaf4bee529193966
     manager: conda
     name: frozendict
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/linux-64/frozendict-2.4.1-py311h459d7ec_0.conda
-    version: 2.4.1
+      https://conda.anaconda.org/conda-forge/linux-64/frozendict-2.4.2-py311h459d7ec_0.conda
+    version: 2.4.2
   - category: main
     dependencies:
       python: '>=3.11,<3.12.0a0'
       python_abi: 3.11.*
     hash:
-      md5: 103fda06ca58fb1a0cbb429fe7d92335
-      sha256: 83d1268f68dca2dc81471372364373f114edc196c4abcb38194fca2b58ebdca5
+      md5: 0d030a1fb539e9003746f07332eded68
+      sha256: bd15ab58cdd2825c93174d06fd95946bd90507e79ed68fe5c8ab1b6df36676f0
     manager: conda
     name: frozendict
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/osx-64/frozendict-2.4.1-py311he705e18_0.conda
-    version: 2.4.1
+      https://conda.anaconda.org/conda-forge/osx-64/frozendict-2.4.2-py311he705e18_0.conda
+    version: 2.4.2
   - category: main
     dependencies:
       python: '>=3.11,<3.12.0a0'
       python_abi: 3.11.*
     hash:
-      md5: 53f0ecdcfffbbe98ce2110a251216fad
-      sha256: 0b7dab8f935ed6a3421fbccfb0751ee2c48138ca5000665195de385a437c78d3
+      md5: 0b2b8e3614c09d3e09eebd769afadad1
+      sha256: 4678da4e4b176071ce4d308f13bfdfe41cd74982f947e850e38f80a9b1ec5c5c
     manager: conda
     name: frozendict
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/osx-arm64/frozendict-2.4.1-py311h05b510d_0.conda
-    version: 2.4.1
+      https://conda.anaconda.org/conda-forge/osx-arm64/frozendict-2.4.2-py311h05b510d_0.conda
+    version: 2.4.2
   - category: main
     dependencies:
       python: '>=3.8'
