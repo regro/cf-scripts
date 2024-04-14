@@ -305,9 +305,9 @@ def _update_graph_nodea(
     )
     logger.info("feedstock fetch loop completed")
 
-    # logger.info("adding run exports")
-    # _add_run_exports(_names_to_update)
-    # logger.info("done adding run exports")
+    logger.info("adding run exports")
+    _add_run_exports(_names_to_update)
+    logger.info("done adding run exports")
 
     logger.info(f"memory usage: {psutil.virtual_memory()}")
 
