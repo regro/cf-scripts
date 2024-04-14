@@ -34,7 +34,7 @@ jobs:
       - name: configure conda and install code
         run: |
           export GIT_FULL_HASH=`git rev-parse HEAD`
-          export CIRCLE_BUILD_URL=""
+          export RUN_URL=""
           pip install --no-deps --no-build-isolation -e .
 
       - name: test versions
@@ -77,8 +77,8 @@ jobs:
 
       - name: run pytest
         run: |
-          export TEST_PASSWORD_VAL=unpassword
-          export PASSWORD=${TEST_PASSWORD_VAL}
+          export TEST_BOT_TOKEN_VAL=unpassword
+          export BOT_TOKEN=${TEST_BOT_TOKEN_VAL}
           pytest \
             -v \
             --cov=conda_forge_tick \

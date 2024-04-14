@@ -1645,7 +1645,7 @@ class MockLazyJson:
 G = nx.DiGraph()
 G.add_node("conda", reqs=["python"])
 G.nodes["conda"]["payload"] = MockLazyJson({})
-os.environ["CIRCLE_BUILD_URL"] = "hi world"
+os.environ["RUN_URL"] = "hi world"
 
 
 def run_test_migration(
@@ -1663,9 +1663,7 @@ def run_test_migration(
         graph=G,
         smithy_version="",
         pinning_version="",
-        github_username="",
-        github_password="",
-        circle_build_url=os.environ["CIRCLE_BUILD_URL"],
+        github_token="",
     )
     m_ctx = MigratorContext(mm_ctx, m)
     m.bind_to_ctx(m_ctx)

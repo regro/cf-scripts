@@ -1,10 +1,10 @@
 import copy
 import hashlib
 import logging
-import os
 import random
 from concurrent.futures._base import as_completed
 
+import github
 import github3
 import networkx as nx
 import tqdm
@@ -17,10 +17,8 @@ from conda_forge_tick.git_utils import (
     refresh_pr,
 )
 
-from . import sensitive_env
-from .contexts import GithubContext
 from .executors import executor
-from .utils import github_client, load_existing_graph
+from .utils import load_existing_graph
 
 # from conda_forge_tick.profiler import profiling
 
@@ -33,7 +31,6 @@ KEEP_PR_FRACTION = 1.5
 def _update_pr(update_function, dry_run, gx, job, n_jobs):
     failed_refresh = 0
     succeeded_refresh = 0
-    gh = "" if dry_run else github_client()
     futures = {}
     node_ids = list(gx.nodes)
     job_index = job - 1
@@ -43,18 +40,6 @@ def _update_pr(update_function, dry_run, gx, job, n_jobs):
         if abs(int(hashlib.sha1(node_id.encode("utf-8")).hexdigest(), 16)) % n_jobs
         == job_index
     ]
-
-    with sensitive_env() as env:
-        github_username = env.get("USERNAME", "")
-        github_password = env.get("PASSWORD", "")
-        github_token = env.get("GITHUB_TOKEN")
-
-    ghctx = GithubContext(
-        github_username=github_username,
-        github_password=github_password,
-        github_token=github_token,
-        circle_build_url=os.getenv("CIRCLE_BUILD_URL", ""),
-    )
 
     # this makes sure that github rate limits are dispersed
     random.shuffle(node_ids)
@@ -78,7 +63,7 @@ def _update_pr(update_function, dry_run, gx, job, n_jobs):
 
                 if pr_json and pr_json["state"] != "closed":
                     _pr_json = copy.deepcopy(pr_json.data)
-                    future = pool.submit(update_function, ghctx, _pr_json, gh, dry_run)
+                    future = pool.submit(update_function, _pr_json, dry_run)
                     futures[future] = (node_id, i, pr_json)
 
         for f in tqdm.tqdm(
@@ -101,12 +86,12 @@ def _update_pr(update_function, dry_run, gx, job, n_jobs):
                         tqdm.tqdm.write(f"Updated PR json for {name}: {res['id']}")
                     with pr_json as attrs:
                         attrs.update(**res)
-            except github3.GitHubError as e:
+            except (github3.GitHubError, github.GithubException) as e:
                 logger.error(f"GITHUB ERROR ON FEEDSTOCK: {name}")
                 failed_refresh += 1
-                if is_github_api_limit_reached(e, gh):
+                if is_github_api_limit_reached(e):
                     break
-            except github3.exceptions.ConnectionError:
+            except (github3.exceptions.ConnectionError, github.GithubException):
                 logger.error(f"GITHUB ERROR ON FEEDSTOCK: {name}")
                 failed_refresh += 1
             except Exception:

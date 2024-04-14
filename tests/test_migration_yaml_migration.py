@@ -15,7 +15,7 @@ from conda_forge_tick.utils import frozen_to_json_friendly, parse_meta_yaml
 G = nx.DiGraph()
 G.add_node("conda", reqs=["python"], payload={})
 G.graph["outputs_lut"] = {}
-os.environ["CIRCLE_BUILD_URL"] = "hi world"
+os.environ["RUN_URL"] = "hi world"
 
 YAML_PATH = os.path.join(os.path.dirname(__file__), "test_yaml")
 
@@ -177,9 +177,7 @@ def run_test_migration(
         graph=G,
         smithy_version="",
         pinning_version="",
-        github_username="",
-        github_password="",
-        circle_build_url=os.environ["CIRCLE_BUILD_URL"],
+        github_token="",
     )
     m_ctx = MigratorContext(mm_ctx, m)
     m.bind_to_ctx(m_ctx)

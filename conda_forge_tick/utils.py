@@ -16,7 +16,6 @@ import warnings
 from collections import defaultdict
 from typing import Any, Callable, Dict, Iterable, Optional, Set, Tuple, cast
 
-import github3
 import jinja2
 import jinja2.sandbox
 import networkx as nx
@@ -670,14 +669,6 @@ def frozen_to_json_friendly(fz, pr: Optional[LazyJson] = None):
     return d
 
 
-def github_client() -> github3.GitHub:
-    with sensitive_env() as env:
-        if env.get("GITHUB_TOKEN"):
-            return github3.login(token=env["GITHUB_TOKEN"])
-        else:
-            return github3.login(env["USERNAME"], env["PASSWORD"])
-
-
 @typing.overload
 def as_iterable(x: dict) -> Tuple[dict]: ...
 
@@ -758,7 +749,7 @@ def _get_source_code(recipe_dir):
 
 def sanitize_string(instr: str) -> str:
     with sensitive_env() as env:
-        tokens = [env.get("PASSWORD", None)]
+        tokens = [env.get("BOT_TOKEN", None)]
     for token in tokens:
         if token is not None:
             instr = instr.replace(token, "~" * len(token))
@@ -772,3 +763,7 @@ def get_keys_default(dlike, keys, default, final_default):
     for k, _d in zip(keys, defaults):
         val = val.get(k, _d) or _d
     return val
+
+
+def get_bot_run_url():
+    return os.environ.get("RUN_URL", "")

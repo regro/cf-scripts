@@ -18,7 +18,6 @@ from typing import (
     MutableMapping,
     MutableSequence,
     MutableSet,
-    Optional,
     Sequence,
     Set,
     Tuple,
@@ -44,6 +43,7 @@ if typing.TYPE_CHECKING:
 from urllib.error import URLError
 from uuid import uuid4
 
+import github
 import github3
 import networkx as nx
 from conda.models.version import VersionOrder
@@ -58,7 +58,9 @@ from conda_forge_tick.contexts import (
 )
 from conda_forge_tick.feedstock_parser import BOOTSTRAP_MAPPINGS
 from conda_forge_tick.git_utils import (
+    GIT_CLONE_DIR,
     comment_on_pr,
+    get_github_api_requests_left,
     get_repo,
     is_github_api_limit_reached,
     push_repo,
@@ -103,6 +105,7 @@ from conda_forge_tick.utils import (
     dump_graph,
     fold_log_lines,
     frozen_to_json_friendly,
+    get_bot_run_url,
     get_keys_default,
     load_existing_graph,
     parse_meta_yaml,
@@ -163,6 +166,7 @@ def run(
     rerender: bool = True,
     fork: bool = True,
     base_branch: str = "main",
+    dry_run: bool = False,
     **kwargs: typing.Any,
 ) -> Tuple["MigrationUidTypedDict", dict]:
     """For a given feedstock and migration run the migration
@@ -211,7 +215,6 @@ def run(
 
     # TODO: run this in parallel
     feedstock_dir, repo = get_repo(
-        ctx=migrator.ctx.session,
         fctx=feedstock_ctx,
         branch=branch_name,
         feedstock=feedstock_ctx.feedstock_name,
@@ -355,7 +358,7 @@ def run(
             verbosity=2,
         )
         if not solvable:
-            ci_url = os.getenv("CIRCLE_BUILD_URL")
+            ci_url = get_bot_run_url()
             ci_url = f"(<a href='{ci_url}'>bot CI job</a>)" if ci_url else ""
             _solver_err_str = dedent(
                 f"""
@@ -413,15 +416,14 @@ def run(
             # the feedstock dir into pr_body
             feedstock_ctx.feedstock_dir = feedstock_dir
             pr_json = push_repo(
-                session_ctx=migrator.ctx.session,
                 fctx=feedstock_ctx,
                 feedstock_dir=feedstock_dir,
                 body=migrator.pr_body(feedstock_ctx),
                 repo=repo,
                 title=migrator.pr_title(feedstock_ctx),
-                head=f"{migrator.ctx.github_username}:{branch_name}",
                 branch=branch_name,
                 base_branch=base_branch,
+                dry_run=dry_run,
             )
 
         # This shouldn't happen too often any more since we won't double PR
@@ -975,9 +977,7 @@ def create_migration_yaml_creator(migrators: MutableSequence[Migrator], gx: nx.D
 
 
 def initialize_migrators(
-    github_username: str = "",
-    github_password: str = "",
-    github_token: Optional[str] = None,
+    github_token: str = "",
     dry_run: bool = False,
 ) -> Tuple[MigratorSessionContext, list, MutableSequence[Migrator]]:
     temp = glob.glob("/tmp/*")
@@ -1022,12 +1022,9 @@ def initialize_migrators(
 
     with fold_log_lines("making version migrator"):
         mctx = MigratorSessionContext(
-            circle_build_url=os.getenv("CIRCLE_BUILD_URL", ""),
             graph=gx,
             smithy_version=smithy_version,
             pinning_version=pinning_version,
-            github_username=github_username,
-            github_password=github_password,
             github_token=github_token,
             dry_run=dry_run,
         )
@@ -1256,7 +1253,7 @@ def _run_migrator(migrator, mctx, temp, time_per, dry_run):
                         )
                         try:
                             # Don't bother running if we are at zero
-                            if mctx.gh_api_requests_left == 0:
+                            if get_github_api_requests_left() == 0:
                                 break
                             migrator_uid, pr_json = run(
                                 feedstock_ctx=fctx,
@@ -1265,6 +1262,7 @@ def _run_migrator(migrator, mctx, temp, time_per, dry_run):
                                 protocol="https",
                                 hash_type=attrs.get("hash_type", "sha256"),
                                 base_branch=base_branch,
+                                dry_run=dry_run,
                             )
                             # if migration successful
                             if migrator_uid:
@@ -1295,7 +1293,7 @@ def _run_migrator(migrator, mctx, temp, time_per, dry_run):
                                         },
                                     )
 
-                        except github3.GitHubError as e:
+                        except (github3.GitHubError, github.GithubException) as e:
                             if e.msg == "Repository was archived so is read-only.":
                                 attrs["archived"] = True
                             else:
@@ -1303,7 +1301,7 @@ def _run_migrator(migrator, mctx, temp, time_per, dry_run):
                                     "GITHUB ERROR ON FEEDSTOCK: %s",
                                     fctx.feedstock_name,
                                 )
-                                if is_github_api_limit_reached(e, mctx.gh):
+                                if is_github_api_limit_reached(e):
                                     break
                         except URLError as e:
                             logger.exception("URLError ERROR")
@@ -1324,7 +1322,7 @@ def _run_migrator(migrator, mctx, temp, time_per, dry_run):
                                     "bot error (%s): %s: %s"
                                     % (
                                         '<a href="'
-                                        + os.getenv("CIRCLE_BUILD_URL", "")
+                                        + get_bot_run_url()
                                         + '">bot CI job</a>',
                                         base_branch,
                                         str(traceback.format_exc()),
@@ -1353,7 +1351,7 @@ def _run_migrator(migrator, mctx, temp, time_per, dry_run):
                                     "bot error (%s): %s: %s"
                                     % (
                                         '<a href="'
-                                        + os.getenv("CIRCLE_BUILD_URL", "")
+                                        + get_bot_run_url()
                                         + '">bot CI job</a>',
                                         base_branch,
                                         str(traceback.format_exc()),
@@ -1379,7 +1377,7 @@ def _run_migrator(migrator, mctx, temp, time_per, dry_run):
                     if not dry_run:
                         dump_graph(mctx.graph)
 
-                    eval_cmd(f"rm -rf {mctx.rever_dir}/*")
+                    eval_cmd(f"rm -rf {GIT_CLONE_DIR}/*")
                     logger.info(os.getcwd())
                     for f in glob.glob("/tmp/*"):
                         if f not in temp:
@@ -1388,7 +1386,7 @@ def _run_migrator(migrator, mctx, temp, time_per, dry_run):
                             except Exception:
                                 pass
 
-                if mctx.gh_api_requests_left == 0:
+                if get_github_api_requests_left() == 0:
                     break
 
         print("\n", flush=True)
@@ -1567,13 +1565,9 @@ def main(ctx: CliContext) -> None:
     from . import sensitive_env
 
     with sensitive_env() as env:
-        github_username = env.get("USERNAME", "")
-        github_password = env.get("PASSWORD", "")
-        github_token = env.get("GITHUB_TOKEN")
+        github_token = env.get("BOT_TOKEN")
 
     mctx, temp, migrators = initialize_migrators(
-        github_username=github_username,
-        github_password=github_password,
         dry_run=ctx.dry_run,
         github_token=github_token,
     )
@@ -1629,5 +1623,5 @@ def main(ctx: CliContext) -> None:
             #     ],
             # )
 
-    logger.info("API Calls Remaining: %d", mctx.gh_api_requests_left)
+    logger.info("API Calls Remaining: %d", get_github_api_requests_left())
     logger.info("Done")

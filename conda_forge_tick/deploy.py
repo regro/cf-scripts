@@ -6,9 +6,7 @@ from doctr.travis import run_command_hiding_token as doctr_run
 from . import sensitive_env
 from .cli_context import CliContext
 from .lazy_json_backends import CF_TICK_GRAPH_DATA_HASHMAPS, get_lazy_json_backends
-from .utils import load_existing_graph
-
-BUILD_URL_KEY = "CIRCLE_BUILD_URL"
+from .utils import get_bot_run_url, load_existing_graph
 
 
 def _run_git_cmd(cmd):
@@ -16,9 +14,6 @@ def _run_git_cmd(cmd):
 
 
 def _deploy_batch(*, files_to_add, batch, n_added, max_per_batch=100):
-    # TODO: have function construct this
-    BUILD_URL = os.environ.get(BUILD_URL_KEY, "")
-
     n_added_this_batch = 0
     while files_to_add and n_added_this_batch < max_per_batch:
         file = files_to_add.pop()
@@ -35,7 +30,7 @@ def _deploy_batch(*, files_to_add, batch, n_added, max_per_batch=100):
         try:
             _step_name = os.environ.get("GITHUB_WORKFLOW", "update graph")
             _run_git_cmd(
-                f'git commit -m "{_step_name} - batch {batch: >3d} - {BUILD_URL}"'
+                f'git commit -m "{_step_name} - batch {batch: >3d} - {get_bot_run_url()}"'
             )
         except Exception as e:
             print(e)
@@ -69,12 +64,12 @@ def _deploy_batch(*, files_to_add, batch, n_added, max_per_batch=100):
                         "git",
                         "push",
                         "https://{token}@github.com/{deploy_repo}.git".format(
-                            token=env.get("PASSWORD", ""),
+                            token=env.get("BOT_TOKEN", ""),
                             deploy_repo="regro/cf-graph-countyfair",
                         ),
                         "master",
                     ],
-                    token=env.get("PASSWORD", "").encode("utf-8"),
+                    token=env.get("BOT_TOKEN", "").encode("utf-8"),
                 )
             num_try += 1
 

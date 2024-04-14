@@ -188,11 +188,9 @@ This is an important number to know when proposing a migration
 - `CF_TICK_IN_CONTAINER`: set to `true` to indicate that the bot is running in a container, prevents container in container issues
 - `START_TIME`: set to `$(date +%s)` to force the bot to timeout after `TIMEOUT` seconds
 - `TIMEOUT`: set to the number of seconds to wait before timing out the bot
-- `CIRCLE_BUILD_URL`: set to the URL of the CI build (now set to a GHA run URL)
-- `CIRCLE_BUILD_NUM`: set to the build number of the CI build (now set to `actually-actions-<GHA run id>`)
+- `RUN_URL`: set to the URL of the CI build (now set to a GHA run URL)
 - `MEMORY_LIMIT_GB`: set to the memory limit in GB for the bot
-- `USERNAME`: the username of the GitHub account being used as the bot (usually `regro-cf-autotick-bot`)
-- `PASSWORD`: a GitHub token for the bot user
+- `BOT_TOKEN`: a GitHub token for the bot user
 
 ### `conda-forge-tick` Container Image and Dockerfile
 
