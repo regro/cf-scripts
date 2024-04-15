@@ -31,11 +31,7 @@ from conda_forge_tick.migrators.disabled.legacy import (
     Rebuild,
 )
 from conda_forge_tick.os_utils import pushd
-from conda_forge_tick.utils import (
-    frozen_to_json_friendly,
-    get_bot_run_url,
-    parse_meta_yaml,
-)
+from conda_forge_tick.utils import frozen_to_json_friendly, parse_meta_yaml
 
 sample_yaml_rebuild = """
 {% set version = "1.3.2" %}
@@ -1667,9 +1663,6 @@ def run_test_migration(
         graph=G,
         smithy_version="",
         pinning_version="",
-        github_username="",
-        github_password="",
-        circle_build_url=get_bot_run_url(),
     )
     m_ctx = MigratorContext(mm_ctx, m)
     m.bind_to_ctx(m_ctx)

@@ -2,9 +2,11 @@
 
 import copy
 import datetime
+import logging
 import os
 import subprocess
 import sys
+import threading
 import time
 from typing import Dict, Optional, Tuple, Union
 
@@ -24,13 +26,20 @@ from conda_forge_tick import sensitive_env
 # and pull all the needed info from the various source classes)
 from conda_forge_tick.lazy_json_backends import LazyJson
 
-from .contexts import FeedstockContext, GithubContext, MigratorSessionContext
+from .contexts import FeedstockContext
 from .os_utils import pushd
 from .utils import get_bot_run_url
 
+logger = logging.getLogger(__name__)
+
 backoff._decorator._is_event_loop = lambda: False
 
+GITHUB3_CLIENT = threading.local()
+GITHUB_CLIENT = threading.local()
+
 MAX_GITHUB_TIMEOUT = 60
+
+GIT_CLONE_DIR = "./feedstocks/"
 
 BOT_RERUN_LABEL = {
     "name": "bot-rerun",
@@ -62,6 +71,20 @@ PR_KEYS_TO_KEEP = {
 }
 
 
+def github3_client() -> github3.GitHub:
+    if not hasattr(GITHUB3_CLIENT, "client"):
+        with sensitive_env() as env:
+            GITHUB3_CLIENT.client = github3.login(token=env["BOT_TOKEN"])
+    return GITHUB3_CLIENT.client
+
+
+def github_client() -> github.Github:
+    if not hasattr(GITHUB_CLIENT, "client"):
+        with sensitive_env() as env:
+            GITHUB_CLIENT.client = github.Github(env["BOT_TOKEN"])
+    return GITHUB_CLIENT.client
+
+
 def get_default_branch(feedstock_name):
     """Get the default branch for a feedstock
 
@@ -75,42 +98,63 @@ def get_default_branch(feedstock_name):
     branch : str
         The default branch (e.g., 'main').
     """
-    with sensitive_env() as env:
-        return (
-            github.Github(env["BOT_TOKEN"])
-            .get_repo(f"conda-forge/{feedstock_name}-feedstock")
-            .default_branch
-        )
+    return (
+        github_client()
+        .get_repo(f"conda-forge/{feedstock_name}-feedstock")
+        .default_branch
+    )
 
 
-def ensure_gh(ctx: GithubContext, gh: Optional[github3.GitHub]) -> github3.GitHub:
-    if gh is None:
-        gh = github3.login(ctx.github_username, ctx.github_password)
-    return gh
-
-
-def is_github_api_limit_reached(e: github3.GitHubError, gh: github3.GitHub) -> bool:
-    """Prints diagnostic information about a github exception.
+def get_github_api_requests_left() -> Union[int, None]:
+    """Get the number of remaining GitHub API requests.
 
     Returns
     -------
-    out_of_api_credits
-        A flag to indicate that the api limit has been exhausted
+    left : int or None
+        The number of remaining requests, or None if there is an exception.
     """
-    print(e)
-    print(e.response)
-    print(e.response.url)
+    gh = github3_client()
+    try:
+        left = gh.rate_limit()["resources"]["core"]["remaining"]
+    except Exception:
+        left = None
+
+    return left
+
+
+def is_github_api_limit_reached(
+    e: Union[github3.GitHubError, github.GithubException],
+) -> bool:
+    """Prints diagnostic information about a github exception.
+
+    Parameters
+    ----------
+    e
+        The exception to check.
+
+    Returns
+    -------
+    out_of_api_calls
+        A flag to indicate that the api call limit has been reached.
+    """
+    gh = github3_client()
+
+    logger.warning("GitHub API error:", exc_info=e)
 
     try:
         c = gh.rate_limit()["resources"]["core"]
     except Exception:
         # if we can't connect to the rate limit API, let's assume it has been reached
         return True
+
     if c["remaining"] == 0:
         ts = c["reset"]
-        print("API timeout, API returns at")
-        print(datetime.datetime.utcfromtimestamp(ts).strftime("%Y-%m-%dT%H:%M:%SZ"))
+        logger.warning(
+            "GitHub API timeout, API returns at %s",
+            datetime.datetime.utcfromtimestamp(ts).strftime("%Y-%m-%dT%H:%M:%SZ"),
+        )
         return True
+
     return False
 
 
@@ -230,7 +274,6 @@ def fetch_repo(*, feedstock_dir, origin, upstream, branch, base_branch="main"):
 
 
 def get_repo(
-    ctx: MigratorSessionContext,
     fctx: FeedstockContext,
     branch: str,
     feedstock: Optional[str] = None,
@@ -243,9 +286,6 @@ def get_repo(
 
     Parameters
     ----------
-    ctx : MigratorSessionContext
-        Migrator context. Used to access the github3 object and other github
-        information.
     fcts : FeedstockContext
         Feedstock context used for constructing feedstock urls, etc.
     branch : str
@@ -268,11 +308,12 @@ def get_repo(
     repo : github3 repository
         The github3 repository object.
     """
-    gh = ctx.gh
+    gh = github3_client()
+    gh_username = gh.me().login
 
     # first, let's grab the feedstock locally
     upstream = feedstock_url(fctx=fctx, protocol=protocol)
-    origin = fork_url(upstream, ctx.github_username)
+    origin = fork_url(upstream, gh_username)
     feedstock_reponame = feedstock_repo(fctx=fctx)
 
     if pull_request or fork:
@@ -286,7 +327,7 @@ def get_repo(
     # Check if fork exists
     if fork:
         try:
-            fork_repo = gh.repository(ctx.github_username, feedstock_reponame)
+            fork_repo = gh.repository(gh_username, feedstock_reponame)
         except github3.GitHubError:
             fork_repo = None
         if fork_repo is None or (hasattr(fork_repo, "is_null") and fork_repo.is_null()):
@@ -296,13 +337,14 @@ def get_repo(
             time.sleep(5)
 
         # sync the default branches if needed
-        _sync_default_branches(
-            feedstock_reponame,
-            ctx.github_username,
-            ctx.github_password,
-        )
+        with sensitive_env() as env:
+            _sync_default_branches(
+                feedstock_reponame,
+                gh_username,
+                env["BOT_TOKEN"],
+            )
 
-    feedstock_dir = os.path.join(ctx.rever_dir, fctx.package_name + "-feedstock")
+    feedstock_dir = os.path.join(GIT_CLONE_DIR, fctx.package_name + "-feedstock")
 
     if fetch_repo(
         feedstock_dir=feedstock_dir,
@@ -339,24 +381,27 @@ def _sync_default_branches(reponame, forked_user, token):
         time.sleep(5)
 
 
-def delete_branch(ctx: GithubContext, pr_json: LazyJson, dry_run: bool = False) -> None:
+def delete_branch(pr_json: LazyJson, dry_run: bool = False) -> None:
     ref = pr_json["head"]["ref"]
     if dry_run:
         print(f"dry run: deleting ref {ref}")
         return
     name = pr_json["base"]["repo"]["name"]
-    token = ctx.github_password
-    deploy_repo = ctx.github_username + "/" + name
-    doctr_run(
-        [
-            "git",
-            "push",
-            f"https://{token}@github.com/{deploy_repo}.git",
-            "--delete",
-            ref,
-        ],
-        token=token.encode("utf-8"),
-    )
+
+    gh = github3_client()
+    deploy_repo = gh.me().login + "/" + name
+
+    with sensitive_env() as env:
+        doctr_run(
+            [
+                "git",
+                "push",
+                f"https://{env['BOT_TOKEN']}@github.com/{deploy_repo}.git",
+                "--delete",
+                ref,
+            ],
+            token=env["BOT_TOKEN"].encode("utf-8"),
+        )
     # Replace ref so we know not to try again
     pr_json["head"]["ref"] = "this_is_not_a_branch"
 
@@ -402,7 +447,7 @@ def trim_pr_json_keys(
 
 
 def lazy_update_pr_json(
-    pr_json: Union[Dict, LazyJson], ctx: GithubContext, force: bool = False
+    pr_json: Union[Dict, LazyJson], force: bool = False
 ) -> Union[Dict, LazyJson]:
     """Lazily update a GitHub PR.
 
@@ -414,8 +459,6 @@ def lazy_update_pr_json(
     ----------
     pr_json : dict-like
         A dict-like object with the current PR information.
-    ctx : GithubContext
-        The context object with GitHub credential information.
     force : bool, optional
         If True, forcibly update the PR json even if it is not out of date
         according to the ETag. Default is False.
@@ -428,10 +471,11 @@ def lazy_update_pr_json(
     pr_json : dict-like
         A dict-like object with the current PR information.
     """
-    hdrs = {
-        "Authorization": f"token {ctx.github_password}",
-        "Accept": "application/vnd.github.v3+json",
-    }
+    with sensitive_env() as env:
+        hdrs = {
+            "Authorization": f"token {env['BOT_TOKEN']}",
+            "Accept": "application/vnd.github.v3+json",
+        }
     if not force and "ETag" in pr_json:
         hdrs["If-None-Match"] = pr_json["ETag"]
 
@@ -473,9 +517,7 @@ def lazy_update_pr_json(
     max_time=MAX_GITHUB_TIMEOUT,
 )
 def refresh_pr(
-    ctx: GithubContext,
     pr_json: LazyJson,
-    gh: Optional[github3.GitHub] = None,
     dry_run: bool = False,
 ) -> Optional[dict]:
     if pr_json["state"] != "closed":
@@ -483,12 +525,12 @@ def refresh_pr(
             print("dry run: refresh pr %s" % pr_json["id"])
             pr_dict = dict(pr_json)
         else:
-            pr_json = lazy_update_pr_json(copy.deepcopy(pr_json), ctx)
+            pr_json = lazy_update_pr_json(copy.deepcopy(pr_json))
 
             # if state passed from opened to merged or if it
             # closed for a day delete the branch
             if pr_json["state"] == "closed" and pr_json.get("merged_at", False):
-                delete_branch(ctx=ctx, pr_json=pr_json, dry_run=dry_run)
+                delete_branch(pr_json=pr_json, dry_run=dry_run)
             pr_dict = dict(pr_json)
 
         return pr_dict
@@ -525,12 +567,10 @@ def get_pr_obj_from_pr_json(
     max_time=MAX_GITHUB_TIMEOUT,
 )
 def close_out_labels(
-    ctx: GithubContext,
     pr_json: LazyJson,
-    gh: Optional[github3.GitHub] = None,
     dry_run: bool = False,
 ) -> Optional[dict]:
-    gh = ensure_gh(ctx, gh)
+    gh = github3_client()
 
     # run this twice so we always have the latest info (eg a thing was already closed)
     if pr_json["state"] != "closed" and "bot-rerun" in [
@@ -540,7 +580,7 @@ def close_out_labels(
         if dry_run:
             print("dry run: checking pr %s" % pr_json["id"])
         else:
-            pr_json = lazy_update_pr_json(pr_json, ctx)
+            pr_json = lazy_update_pr_json(pr_json)
 
     if pr_json["state"] != "closed" and "bot-rerun" in [
         lab["name"] for lab in pr_json.get("labels", [])
@@ -552,12 +592,12 @@ def close_out_labels(
             pr_obj.create_comment(
                 "Due to the `bot-rerun` label I'm closing "
                 "this PR. I will make another one as"
-                " appropriate. This was generated by {}".format(ctx.circle_build_url),
+                f" appropriate. This message was generated by {get_bot_run_url()} - please use this URL for debugging.",
             )
             pr_obj.close()
 
-            delete_branch(ctx=ctx, pr_json=pr_json, dry_run=dry_run)
-            pr_json = lazy_update_pr_json(pr_json, ctx)
+            delete_branch(pr_json=pr_json, dry_run=dry_run)
+            pr_json = lazy_update_pr_json(pr_json)
 
         return dict(pr_json)
 
@@ -565,23 +605,20 @@ def close_out_labels(
 
 
 def push_repo(
-    session_ctx: MigratorSessionContext,
     fctx: FeedstockContext,
     feedstock_dir: str,
     body: str,
     repo: github3.repos.Repository,
     title: str,
-    head: str,
     branch: str,
     base_branch: str = "main",
+    head: Optional[str] = None,
+    dry_run: bool = False,
 ) -> Union[dict, bool, None]:
     """Push a repo up to github
 
     Parameters
     ----------
-    ctx : MigratorSessionContext
-        Migrator context. Used to access the github3 object and other github
-        information.
     fcts : FeedstockContext
         Feedstock context used for constructing feedstock urls, etc.
     feedstock_dir : str
@@ -592,7 +629,7 @@ def push_repo(
         The feedstock repo as a github3 object.
     title : str
         The title of the PR.
-    head : str
+    head : str, optional
         The github head for the PR in the form `username:branch`.
     branch : str
         The head branch of the PR.
@@ -605,14 +642,17 @@ def push_repo(
         The dict representing the PR, can be used with `from_json`
         to create a PR instance.
     """
-    with pushd(feedstock_dir):
+    with sensitive_env() as env, pushd(feedstock_dir):
         # Setup push from doctr
         # Copyright (c) 2016 Aaron Meurer, Gil Forsyth
-        token = session_ctx.github_password
-        deploy_repo = (
-            session_ctx.github_username + "/" + fctx.feedstock_name + "-feedstock"
-        )
-        if session_ctx.dry_run:
+        token = env["BOT_TOKEN"]
+        gh_username = github3_client().me().login
+
+        if head is None:
+            head = gh_username + ":" + branch
+
+        deploy_repo = gh_username + "/" + fctx.feedstock_name + "-feedstock"
+        if dry_run:
             repo_url = f"https://github.com/{deploy_repo}.git"
             print(f"dry run: adding remote and pushing up branch for {repo_url}")
         else:
@@ -640,7 +680,7 @@ def push_repo(
 
     # lastly make a PR for the feedstock
     print("Creating conda-forge feedstock pull request...")
-    if session_ctx.dry_run:
+    if dry_run:
         print(f"dry run: create pr with title: {title}")
         return False
     else:
@@ -706,19 +746,18 @@ def label_pr(
 
 
 def close_out_dirty_prs(
-    ctx: GithubContext,
     pr_json: LazyJson,
-    gh: Optional[github3.GitHub] = None,
     dry_run: bool = False,
 ) -> Optional[dict]:
-    gh = ensure_gh(ctx, gh)
+    gh = github3_client()
+
     # run this twice so we always have the latest info (eg a thing was already closed)
     if pr_json["state"] != "closed" and pr_json["mergeable_state"] == "dirty":
         # update
         if dry_run:
             print("dry run: checking pr %s" % pr_json["id"])
         else:
-            pr_json = lazy_update_pr_json(pr_json, ctx)
+            pr_json = lazy_update_pr_json(pr_json)
 
     if (
         pr_json["state"] != "closed"
@@ -744,9 +783,9 @@ def close_out_dirty_prs(
                 )
                 pr_obj.close()
 
-                delete_branch(ctx=ctx, pr_json=pr_json, dry_run=dry_run)
+                delete_branch(pr_json=pr_json, dry_run=dry_run)
 
-                pr_json = lazy_update_pr_json(pr_json, ctx)
+                pr_json = lazy_update_pr_json(pr_json)
                 d = dict(pr_json)
 
                 # This will cause the _update_nodes_with_bot_rerun to trigger

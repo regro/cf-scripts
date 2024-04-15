@@ -190,7 +190,6 @@ This is an important number to know when proposing a migration
 - `TIMEOUT`: set to the number of seconds to wait before timing out the bot
 - `RUN_URL`: set to the URL of the CI build (now set to a GHA run URL)
 - `MEMORY_LIMIT_GB`: set to the memory limit in GB for the bot
-- `USERNAME`: the username of the GitHub account being used as the bot (usually `regro-cf-autotick-bot`)
 - `BOT_TOKEN`: a GitHub token for the bot user
 
 ### `conda-forge-tick` Container Image and Dockerfile

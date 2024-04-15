@@ -86,7 +86,6 @@ jobs:
 
           conda-forge-tick auto-tick
         env:
-          USERNAME: regro-cf-autotick-bot
           BOT_TOKEN: ${{ secrets.AUTOTICK_BOT_TOKEN }}
           RUN_ID: ${{ github.run_id }}
           MEMORY_LIMIT_GB: 7

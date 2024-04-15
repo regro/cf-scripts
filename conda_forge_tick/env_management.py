@@ -4,10 +4,9 @@ from contextlib import contextmanager
 
 class SensitiveEnv:
     SENSITIVE_KEYS = [
-        "USERNAME",
-        "BOT_TOKEN",
         "GITHUB_TOKEN",
         "GH_TOKEN",
+        "BOT_TOKEN",
         "MONGODB_CONNECTION_STRING",
     ]
 
