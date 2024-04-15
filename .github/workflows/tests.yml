@@ -77,8 +77,8 @@ jobs:
 
       - name: run pytest
         run: |
-          export TEST_PASSWORD_VAL=unpassword
-          export PASSWORD=${TEST_PASSWORD_VAL}
+          export TEST_BOT_TOKEN_VAL=unpassword
+          export BOT_TOKEN=${TEST_BOT_TOKEN_VAL}
           pytest \
             -v \
             --cov=conda_forge_tick \

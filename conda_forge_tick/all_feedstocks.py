@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 
 def get_all_feedstocks_from_github():
     with sensitive_env() as env:
-        gh = github.Github(env["PASSWORD"], per_page=100)
+        gh = github.Github(env["BOT_TOKEN"], per_page=100)
 
     org = gh.get_organization("conda-forge")
     archived = set()
