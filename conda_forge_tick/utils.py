@@ -757,8 +757,11 @@ def _get_source_code(recipe_dir):
 
 
 def sanitize_string(instr: str) -> str:
+    from conda_forge_tick.env_management import SensitiveEnv
+
     with sensitive_env() as env:
-        tokens = [env.get("PASSWORD", None)]
+        tokens = [env.get(token, None) for token in SensitiveEnv.SENSITIVE_KEYS]
+
     for token in tokens:
         if token is not None:
             instr = instr.replace(token, "~" * len(token))
