@@ -284,7 +284,7 @@ def _add_run_exports(nodes_to_update):
             _add_run_exports_per_node(attrs, outputs_lut, strong_exports)
 
 
-def _update_graph_nodea(
+def _update_graph_nodes(
     names: List[str],
     mark_not_archived=False,
     debug=False,
@@ -362,12 +362,10 @@ def main(
             hashmaps_to_sync=["node_attrs"],
             keys_to_sync=set(tot_names_for_this_job),
         ):
-            _update_graph_nodea(
+            _update_graph_nodes(
                 names_for_this_job,
                 mark_not_archived=True,
                 debug=ctx.debug,
-                job=job,
-                n_jobs=n_jobs,
             )
 
             _update_nodes_with_archived(
