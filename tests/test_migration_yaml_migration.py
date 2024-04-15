@@ -177,7 +177,6 @@ def run_test_migration(
         graph=G,
         smithy_version="",
         pinning_version="",
-        github_token="",
     )
     m_ctx = MigratorContext(mm_ctx, m)
     m.bind_to_ctx(m_ctx)

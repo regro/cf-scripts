@@ -977,7 +977,6 @@ def create_migration_yaml_creator(migrators: MutableSequence[Migrator], gx: nx.D
 
 
 def initialize_migrators(
-    github_token: str = "",
     dry_run: bool = False,
 ) -> Tuple[MigratorSessionContext, list, MutableSequence[Migrator]]:
     temp = glob.glob("/tmp/*")
@@ -1025,7 +1024,6 @@ def initialize_migrators(
             graph=gx,
             smithy_version=smithy_version,
             pinning_version=pinning_version,
-            github_token=github_token,
             dry_run=dry_run,
         )
 
@@ -1562,14 +1560,8 @@ def main(ctx: CliContext) -> None:
     with fold_log_lines("updating graph with PR info"):
         _update_graph_with_pr_info()
 
-    from . import sensitive_env
-
-    with sensitive_env() as env:
-        github_token = env.get("BOT_TOKEN")
-
     mctx, temp, migrators = initialize_migrators(
         dry_run=ctx.dry_run,
-        github_token=github_token,
     )
 
     # compute the time per migrator
