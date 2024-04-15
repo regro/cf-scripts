@@ -16,7 +16,7 @@ def test_env_is_protected_against_malicious_recipes(tmpdir, caplog, env_setup):
 
     source:
       url:
-        - https://{{ os.environ["PASSWORD"][0] }}/{{ os.environ["PASSWORD"][1:] }}
+        - https://{{ os.environ["BOT_TOKEN"][0] }}/{{ os.environ["BOT_TOKEN"][1:] }}
         - {{ os.environ['pwd'] }}
       sha256: dca77e463c56d42bbf915197c9b95e98913c85bef150d2e1dd18626b8c2c9c32
     build:
@@ -49,7 +49,7 @@ def test_env_is_protected_against_malicious_recipes(tmpdir, caplog, env_setup):
     extra:
       recipe-maintainers:
         - kthyng
-        - {{ os.environ["PASSWORD"] }}
+        - {{ os.environ["BOT_TOKEN"] }}
     """  # noqa
     caplog.set_level(
         logging.DEBUG,
@@ -66,7 +66,7 @@ def test_env_is_protected_against_malicious_recipes(tmpdir, caplog, env_setup):
     pmy = populate_feedstock_attributes("blah", {}, in_yaml, "{}")
 
     # This url gets saved in https://github.com/regro/cf-graph-countyfair
-    pswd = os.environ.get("TEST_PASSWORD_VAL", "unpassword")
+    pswd = os.environ.get("TEST_BOT_TOKEN_VAL", "unpassword")
     tst_url = f"https://{pswd[0]}/{pswd[1:]}"
     assert pmy["url"][0] != tst_url
     assert pmy["url"][1] is None

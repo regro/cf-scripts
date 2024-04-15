@@ -39,7 +39,7 @@ jobs:
         run: |
           source cf-scripts/autotick-bot/install_bot_code.sh
         env:
-          PASSWORD: ${{ secrets.AUTOTICK_BOT_TOKEN }}
+          BOT_TOKEN: ${{ secrets.AUTOTICK_BOT_TOKEN }}
 
       - name: update prs
         if: success() && ! env.CI_SKIP
@@ -51,7 +51,7 @@ jobs:
           conda-forge-tick update-prs --job=${BOT_JOB} --n-jobs=4
         env:
           USERNAME: regro-cf-autotick-bot
-          PASSWORD: ${{ secrets.AUTOTICK_BOT_TOKEN }}
+          BOT_TOKEN: ${{ secrets.AUTOTICK_BOT_TOKEN }}
           RUN_ID: ${{ github.run_id }}
           BOT_JOB: ${{ matrix.job_num }}
           CF_TICK_GRAPH_DATA_BACKENDS: "${{ vars.CF_TICK_GRAPH_DATA_BACKENDS }}"
@@ -66,7 +66,7 @@ jobs:
           export CIRCLE_BUILD_NUM="actually-actions-${RUN_ID}"
           conda-forge-tick deploy-to-github
         env:
-          PASSWORD: ${{ secrets.AUTOTICK_BOT_TOKEN }}
+          BOT_TOKEN: ${{ secrets.AUTOTICK_BOT_TOKEN }}
           RUN_ID: ${{ github.run_id }}
 
       - name: bump on fail
@@ -75,7 +75,7 @@ jobs:
           export ACTION_URL="https://github.com/regro/cf-scripts/actions/runs/${RUN_ID}"
           python cf-scripts/autotick-bot/bump_bot_team.py
         env:
-          PASSWORD: ${{ secrets.AUTOTICK_BOT_TOKEN }}
+          BOT_TOKEN: ${{ secrets.AUTOTICK_BOT_TOKEN }}
           RUN_ID: ${{ github.run_id }}
           ACTION_NAME: ${{ github.workflow }}
 
@@ -125,6 +125,6 @@ jobs:
           export ACTION_URL="https://github.com/regro/cf-scripts/actions/runs/${RUN_ID}"
           python cf-scripts/autotick-bot/bump_bot_team.py
         env:
-          PASSWORD: ${{ secrets.AUTOTICK_BOT_TOKEN }}
+          BOT_TOKEN: ${{ secrets.AUTOTICK_BOT_TOKEN }}
           RUN_ID: ${{ github.run_id }}
           ACTION_NAME: ${{ github.workflow }}

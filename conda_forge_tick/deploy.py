@@ -69,12 +69,12 @@ def _deploy_batch(*, files_to_add, batch, n_added, max_per_batch=200):
                         "git",
                         "push",
                         "https://{token}@github.com/{deploy_repo}.git".format(
-                            token=env.get("PASSWORD", ""),
+                            token=env.get("BOT_TOKEN", ""),
                             deploy_repo="regro/cf-graph-countyfair",
                         ),
                         "master",
                     ],
-                    token=env.get("PASSWORD", "").encode("utf-8"),
+                    token=env.get("BOT_TOKEN", "").encode("utf-8"),
                 )
             num_try += 1
 

@@ -8,7 +8,7 @@ if os.environ["ACTION_NAME"] == "bot-bot":
 else:
     user = "@beckermr"
 
-gh = github.Github(os.environ["PASSWORD"])
+gh = github.Github(os.environ["BOT_TOKEN"])
 
 repo = gh.get_repo("regro/cf-scripts")
 

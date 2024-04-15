@@ -672,10 +672,10 @@ def frozen_to_json_friendly(fz, pr: Optional[LazyJson] = None):
 
 def github_client() -> github3.GitHub:
     with sensitive_env() as env:
-        if env.get("GITHUB_TOKEN"):
-            return github3.login(token=env["GITHUB_TOKEN"])
+        if env.get("BOT_TOKEN"):
+            return github3.login(token=env["BOT_TOKEN"])
         else:
-            return github3.login(env["USERNAME"], env["PASSWORD"])
+            return github3.login(env["USERNAME"], env["BOT_TOKEN"])
 
 
 @typing.overload
