@@ -751,7 +751,7 @@ def sanitize_string(instr: str) -> str:
     from conda_forge_tick.env_management import SensitiveEnv
 
     with sensitive_env() as env:
-        tokens = [env.get(name, None) for name in SensitiveEnv.SENSITIVE_KEYS]
+        tokens = [env.get(token, None) for token in SensitiveEnv.SENSITIVE_KEYS]
 
     for token in tokens:
         if token is not None:

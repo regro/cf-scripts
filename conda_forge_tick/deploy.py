@@ -13,7 +13,7 @@ def _run_git_cmd(cmd):
     return subprocess.run(cmd, shell=True, check=True)
 
 
-def _deploy_batch(*, files_to_add, batch, n_added, max_per_batch=100):
+def _deploy_batch(*, files_to_add, batch, n_added, max_per_batch=200):
     n_added_this_batch = 0
     while files_to_add and n_added_this_batch < max_per_batch:
         file = files_to_add.pop()
