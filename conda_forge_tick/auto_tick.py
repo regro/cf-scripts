@@ -356,7 +356,7 @@ def run(
             verbosity=2,
         )
         if not solvable:
-            ci_url = os.getenv("RUN_URL")
+            ci_url = get_bot_run_url()
             ci_url = f"(<a href='{ci_url}'>bot CI job</a>)" if ci_url else ""
             _solver_err_str = dedent(
                 f"""
@@ -1325,7 +1325,7 @@ def _run_migrator(migrator, mctx, temp, time_per, dry_run):
                                     "bot error (%s): %s: %s"
                                     % (
                                         '<a href="'
-                                        + os.getenv("RUN_URL", "")
+                                        + get_bot_run_url()
                                         + '">bot CI job</a>',
                                         base_branch,
                                         str(traceback.format_exc()),
@@ -1354,7 +1354,7 @@ def _run_migrator(migrator, mctx, temp, time_per, dry_run):
                                     "bot error (%s): %s: %s"
                                     % (
                                         '<a href="'
-                                        + os.getenv("RUN_URL", "")
+                                        + get_bot_run_url()
                                         + '">bot CI job</a>',
                                         base_branch,
                                         str(traceback.format_exc()),
