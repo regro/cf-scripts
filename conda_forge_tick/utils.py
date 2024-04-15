@@ -775,3 +775,7 @@ def get_keys_default(dlike, keys, default, final_default):
     for k, _d in zip(keys, defaults):
         val = val.get(k, _d) or _d
     return val
+
+
+def get_bot_run_url():
+    return os.environ.get("RUN_URL", "")
