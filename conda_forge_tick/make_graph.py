@@ -17,7 +17,6 @@ from conda_forge_tick.feedstock_parser import load_feedstock
 from conda_forge_tick.lazy_json_backends import (
     LAZY_JSON_BACKENDS,
     LazyJson,
-    get_all_keys_for_hashmap,
     get_lazy_json_backends,
     lazy_json_override_backends,
     lazy_json_transaction,
@@ -149,8 +148,6 @@ def _migrate_schema(name, sub_graph):
 def _build_graph_process_pool(
     names: List[str],
     mark_not_archived=False,
-    job: int = 1,
-    n_jobs: int = 1,
 ) -> None:
     # we use threads here since all of the work is done in a container anyways
     with executor("thread", max_workers=8) as pool:
@@ -186,8 +183,6 @@ def _build_graph_process_pool(
 def _build_graph_sequential(
     names: List[str],
     mark_not_archived=False,
-    job: int = 1,
-    n_jobs: int = 1,
 ) -> None:
     for i, name in enumerate(names):
         if random.uniform(0, 1) >= RANDOM_FRAC_TO_UPDATE:
@@ -293,41 +288,30 @@ def _update_graph_nodea(
     names: List[str],
     mark_not_archived=False,
     debug=False,
-    job: int = 1,
-    n_jobs: int = 1,
 ) -> nx.DiGraph:
-    _names_to_update = _get_names_for_job(names, job, n_jobs)
-
     logger.info("start feedstock fetch loop")
     builder = _build_graph_sequential if debug else _build_graph_process_pool
     builder(
-        _names_to_update, mark_not_archived=mark_not_archived, job=job, n_jobs=n_jobs
+        names,
+        mark_not_archived=mark_not_archived,
     )
     logger.info("feedstock fetch loop completed")
 
     logger.info("adding run exports")
-    _add_run_exports(_names_to_update)
+    _add_run_exports(names)
     logger.info("done adding run exports")
 
     logger.info(f"memory usage: {psutil.virtual_memory()}")
 
 
-def _update_nodes_with_archived(archived_names, job: int = 1, n_jobs: int = 1):
-    _names_to_update = _get_names_for_job(archived_names, job, n_jobs)
-    for name in _names_to_update:
+def _update_nodes_with_archived(names):
+    for name in names:
         with LazyJson(f"node_attrs/{name}.json") as sub_graph:
             sub_graph["archived"] = True
 
 
-def _migrate_schemas(job: int = 1, n_jobs: int = 1):
-    # make sure to apply all schema migrations, not just those in the graph
-    nodes = get_all_keys_for_hashmap("node_attrs")
-
-    _names_to_update = _get_names_for_job(nodes, job, n_jobs)
-
-    for node in tqdm.tqdm(
-        _names_to_update, desc="migrating node schemas", miniters=100, ncols=80
-    ):
+def _migrate_schemas(nodes):
+    for node in tqdm.tqdm(nodes, desc="migrating node schemas", miniters=100, ncols=80):
         with LazyJson(f"node_attrs/{node}.json") as sub_graph:
             _migrate_schema(node, sub_graph)
 
@@ -336,13 +320,20 @@ def _migrate_schemas(job: int = 1, n_jobs: int = 1):
 def main(
     ctx: CliContext, job: int = 1, n_jobs: int = 1, update_nodes_and_edges: bool = False
 ) -> None:
+    logger.info("getting all nodes")
     names = get_all_feedstocks(cached=True)
-    tot_names = set(names)
+    archived_names = get_archived_feedstocks(cached=True)
+    tot_names = set(names) | set(archived_names)
     for backend_name in get_lazy_json_backends():
         backend = LAZY_JSON_BACKENDS[backend_name]()
         tot_names |= set(backend.hkeys("node_attrs"))
 
     tot_names_for_this_job = _get_names_for_job(tot_names, job, n_jobs)
+    names_for_this_job = _get_names_for_job(names, job, n_jobs)
+    archived_names_for_this_job = _get_names_for_job(archived_names, job, n_jobs)
+    logger.info(f"total # of nodes across all backends: {len(tot_names)}")
+    logger.info(f"active nodes: {len(names)}")
+    logger.info(f"archived nodes: {len(archived_names)}")
 
     if update_nodes_and_edges:
         gx = load_graph()
@@ -372,10 +363,15 @@ def main(
             keys_to_sync=set(tot_names_for_this_job),
         ):
             _update_graph_nodea(
-                names, mark_not_archived=True, debug=ctx.debug, job=job, n_jobs=n_jobs
+                names_for_this_job,
+                mark_not_archived=True,
+                debug=ctx.debug,
+                job=job,
+                n_jobs=n_jobs,
             )
 
-            archived_names = get_archived_feedstocks(cached=True)
-            _update_nodes_with_archived(archived_names, job=job, n_jobs=n_jobs)
+            _update_nodes_with_archived(
+                archived_names_for_this_job, job=job, n_jobs=n_jobs
+            )
 
-            _migrate_schemas(job=job, n_jobs=n_jobs)
+            _migrate_schemas(tot_names_for_this_job)
