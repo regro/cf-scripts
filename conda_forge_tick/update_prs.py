@@ -1,7 +1,6 @@
 import copy
 import hashlib
 import logging
-import os
 import random
 from concurrent.futures._base import as_completed
 
@@ -20,7 +19,7 @@ from conda_forge_tick.git_utils import (
 from . import sensitive_env
 from .contexts import GithubContext
 from .executors import executor
-from .utils import github_client, load_existing_graph
+from .utils import get_bot_run_url, github_client, load_existing_graph
 
 # from conda_forge_tick.profiler import profiling
 
@@ -53,7 +52,7 @@ def _update_pr(update_function, dry_run, gx, job, n_jobs):
         github_username=github_username,
         github_password=github_password,
         github_token=github_token,
-        circle_build_url=os.getenv("CIRCLE_BUILD_URL", ""),
+        circle_build_url=get_bot_run_url(),
     )
 
     # this makes sure that github rate limits are dispersed

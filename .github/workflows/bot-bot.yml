@@ -80,8 +80,7 @@ jobs:
         run: |
           export START_TIME=$(date +%s)
           export TIMEOUT=7200
-          export CIRCLE_BUILD_URL="https://github.com/regro/cf-scripts/actions/runs/${RUN_ID}"
-          export CIRCLE_BUILD_NUM="actually-actions-${RUN_ID}"
+          export RUN_URL="https://github.com/regro/cf-scripts/actions/runs/${RUN_ID}"
 
           pushd cf-graph
 
@@ -105,8 +104,7 @@ jobs:
         run: |
           pushd cf-graph
 
-          export CIRCLE_BUILD_URL="https://github.com/regro/cf-scripts/actions/runs/${RUN_ID}"
-          export CIRCLE_BUILD_NUM="actually-actions-${RUN_ID}"
+          export RUN_URL="https://github.com/regro/cf-scripts/actions/runs/${RUN_ID}"
           conda-forge-tick deploy-to-github
         env:
           BOT_TOKEN: ${{ secrets.AUTOTICK_BOT_TOKEN }}

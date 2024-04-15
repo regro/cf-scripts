@@ -103,6 +103,7 @@ from conda_forge_tick.utils import (
     dump_graph,
     fold_log_lines,
     frozen_to_json_friendly,
+    get_bot_run_url,
     get_keys_default,
     load_existing_graph,
     parse_meta_yaml,
@@ -355,7 +356,7 @@ def run(
             verbosity=2,
         )
         if not solvable:
-            ci_url = os.getenv("CIRCLE_BUILD_URL")
+            ci_url = get_bot_run_url()
             ci_url = f"(<a href='{ci_url}'>bot CI job</a>)" if ci_url else ""
             _solver_err_str = dedent(
                 f"""
@@ -1022,7 +1023,7 @@ def initialize_migrators(
 
     with fold_log_lines("making version migrator"):
         mctx = MigratorSessionContext(
-            circle_build_url=os.getenv("CIRCLE_BUILD_URL", ""),
+            circle_build_url=get_bot_run_url(),
             graph=gx,
             smithy_version=smithy_version,
             pinning_version=pinning_version,
@@ -1324,7 +1325,7 @@ def _run_migrator(migrator, mctx, temp, time_per, dry_run):
                                     "bot error (%s): %s: %s"
                                     % (
                                         '<a href="'
-                                        + os.getenv("CIRCLE_BUILD_URL", "")
+                                        + get_bot_run_url()
                                         + '">bot CI job</a>',
                                         base_branch,
                                         str(traceback.format_exc()),
@@ -1353,7 +1354,7 @@ def _run_migrator(migrator, mctx, temp, time_per, dry_run):
                                     "bot error (%s): %s: %s"
                                     % (
                                         '<a href="'
-                                        + os.getenv("CIRCLE_BUILD_URL", "")
+                                        + get_bot_run_url()
                                         + '">bot CI job</a>',
                                         base_branch,
                                         str(traceback.format_exc()),

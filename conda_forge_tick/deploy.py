@@ -8,7 +8,7 @@ from .cli_context import CliContext
 from .lazy_json_backends import CF_TICK_GRAPH_DATA_HASHMAPS, get_lazy_json_backends
 from .utils import load_existing_graph
 
-BUILD_URL_KEY = "CIRCLE_BUILD_URL"
+BUILD_URL_KEY = "RUN_URL"
 
 
 def _run_git_cmd(cmd):
