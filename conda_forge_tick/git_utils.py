@@ -77,7 +77,7 @@ def get_default_branch(feedstock_name):
     """
     with sensitive_env() as env:
         return (
-            github.Github(env["PASSWORD"])
+            github.Github(env["BOT_TOKEN"])
             .get_repo(f"conda-forge/{feedstock_name}-feedstock")
             .default_branch
         )

@@ -39,7 +39,7 @@ jobs:
         run: |
           source cf-scripts/autotick-bot/install_bot_code.sh
         env:
-          PASSWORD: ${{ secrets.AUTOTICK_BOT_TOKEN }}
+          BOT_TOKEN: ${{ secrets.AUTOTICK_BOT_TOKEN }}
 
       - name: make graph
         if: success() && ! env.CI_SKIP
@@ -62,7 +62,7 @@ jobs:
 
           conda-forge-tick deploy-to-github
         env:
-          PASSWORD: ${{ secrets.AUTOTICK_BOT_TOKEN }}
+          BOT_TOKEN: ${{ secrets.AUTOTICK_BOT_TOKEN }}
           RUN_ID: ${{ github.run_id }}
 
       - name: bump on fail
@@ -71,7 +71,7 @@ jobs:
           export ACTION_URL="https://github.com/regro/cf-scripts/actions/runs/${RUN_ID}"
           python cf-scripts/autotick-bot/bump_bot_team.py
         env:
-          PASSWORD: ${{ secrets.AUTOTICK_BOT_TOKEN }}
+          BOT_TOKEN: ${{ secrets.AUTOTICK_BOT_TOKEN }}
           RUN_ID: ${{ github.run_id }}
           ACTION_NAME: ${{ github.workflow }}
 
@@ -104,7 +104,7 @@ jobs:
         run: |
           source cf-scripts/autotick-bot/install_bot_code.sh
         env:
-          PASSWORD: ${{ secrets.AUTOTICK_BOT_TOKEN }}
+          BOT_TOKEN: ${{ secrets.AUTOTICK_BOT_TOKEN }}
 
       - name: make graph
         if: success() && ! env.CI_SKIP
@@ -126,7 +126,7 @@ jobs:
 
           conda-forge-tick deploy-to-github
         env:
-          PASSWORD: ${{ secrets.AUTOTICK_BOT_TOKEN }}
+          BOT_TOKEN: ${{ secrets.AUTOTICK_BOT_TOKEN }}
           RUN_ID: ${{ github.run_id }}
 
       - name: trigger next job
@@ -143,6 +143,6 @@ jobs:
           export ACTION_URL="https://github.com/regro/cf-scripts/actions/runs/${RUN_ID}"
           python cf-scripts/autotick-bot/bump_bot_team.py
         env:
-          PASSWORD: ${{ secrets.AUTOTICK_BOT_TOKEN }}
+          BOT_TOKEN: ${{ secrets.AUTOTICK_BOT_TOKEN }}
           RUN_ID: ${{ github.run_id }}
           ACTION_NAME: ${{ github.workflow }}

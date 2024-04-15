@@ -45,8 +45,8 @@ def _update_pr(update_function, dry_run, gx, job, n_jobs):
 
     with sensitive_env() as env:
         github_username = env.get("USERNAME", "")
-        github_password = env.get("PASSWORD", "")
-        github_token = env.get("GITHUB_TOKEN")
+        github_password = env.get("BOT_TOKEN", "")
+        github_token = env.get("BOT_TOKEN")
 
     ghctx = GithubContext(
         github_username=github_username,
