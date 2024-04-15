@@ -369,7 +369,7 @@ def main(
             )
 
             _update_nodes_with_archived(
-                archived_names_for_this_job, job=job, n_jobs=n_jobs
+                archived_names_for_this_job,
             )
 
             _migrate_schemas(tot_names_for_this_job)
