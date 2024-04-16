@@ -305,11 +305,9 @@ def parse_meta_yaml(
     for_pinning=False,
     platform=None,
     arch=None,
-    recipe_dir=None,
     cbc_path=None,
-    log_debug=False,
     orig_cbc_path=None,
-    **kwargs: Any,
+    log_debug=False,
 ) -> "MetaYamlTypedDict":
     """Parse the meta.yaml.
 
@@ -317,12 +315,12 @@ def parse_meta_yaml(
     ----------
     text : str
         The raw text in conda-forge feedstock meta.yaml file
+    for_pinning : bool, optional
+        If True, render the meta.yaml for pinning migrators, by default False.
     platform : str, optional
         The platform (e.g., 'linux', 'osx', 'win').
     arch : str, optional
         The CPU architecture (e.g., '64', 'aarch64').
-    recipe_dir : str, optional
-        The path to the recipe being parsed.
     cbc_path : str, optional
         The path to global pinning file.
     orig_cbc_path : str, optional
@@ -330,8 +328,6 @@ def parse_meta_yaml(
         the recipe while parsing.
     log_debug : bool, optional
         If True, print extra debugging info. Default is False.
-    **kwargs : glob for extra keyword arguments
-        These are passed to the conda_build.config.Config constructor.
 
     Returns
     -------
@@ -364,11 +360,9 @@ def parse_meta_yaml(
                     for_pinning=for_pinning,
                     platform=platform,
                     arch=arch,
-                    recipe_dir=recipe_dir,
                     cbc_path=cbc_path,
                     log_debug=log_debug,
                     orig_cbc_path=(orig_cbc_path if use_orig_cbc_path else None),
-                    **kwargs,
                 )
             finally:
                 logging.getLogger("conda_build.metadata").removeFilter(np_filter)
@@ -394,11 +388,9 @@ def _parse_meta_yaml_impl(
     for_pinning=False,
     platform=None,
     arch=None,
-    recipe_dir=None,
     cbc_path=None,
     log_debug=False,
     orig_cbc_path=None,
-    **kwargs: Any,
 ) -> "MetaYamlTypedDict":
     import conda_build.api
     import conda_build.environ
@@ -406,12 +398,7 @@ def _parse_meta_yaml_impl(
     from conda_build.metadata import MetaData, parse
     from conda_build.variants import explode_variants
 
-    if (
-        recipe_dir is not None
-        and cbc_path is not None
-        and arch is not None
-        and platform is not None
-    ):
+    if cbc_path is not None and arch is not None and platform is not None:
         with tempfile.TemporaryDirectory() as tmpdir:
             with open(os.path.join(tmpdir, "meta.yaml"), "w") as fp:
                 fp.write(text)
@@ -482,7 +469,6 @@ def _parse_meta_yaml_impl(
             platform=platform,
             arch=arch,
             variant=cfg_as_dict,
-            **kwargs,
         )
     else:
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -490,7 +476,6 @@ def _parse_meta_yaml_impl(
                 fp.write(text)
 
             _cfg = {}
-            _cfg.update(kwargs)
             if platform is not None:
                 _cfg["platform"] = platform
             if arch is not None:
