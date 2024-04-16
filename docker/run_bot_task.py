@@ -178,14 +178,6 @@ def _parse_meta_yaml(
 ):
     from conda_forge_tick.utils import parse_meta_yaml_local
 
-    # FIXME
-    if cbc_path is not None and os.path.exists(cbc_path):
-        os.system(f"ls -lah {cbc_path}")
-
-    # FIXME
-    if orig_cbc_path is not None and os.path.exists(orig_cbc_path):
-        os.system(f"ls -lah {orig_cbc_path}")
-
     return parse_meta_yaml_local(
         sys.stdin.read(),
         for_pinning=for_pinning,
@@ -240,6 +232,15 @@ def parse_meta_yaml(
     orig_cbc_path,
     log_debug,
 ):
+
+    # FIXME
+    if cbc_path is not None and os.path.exists(cbc_path):
+        os.system(f"ls -lah {cbc_path}")
+
+    # FIXME
+    if orig_cbc_path is not None and os.path.exists(orig_cbc_path):
+        os.system(f"ls -lah {orig_cbc_path}")
+
     return _run_bot_task(
         _parse_meta_yaml,
         log_level=log_level,
