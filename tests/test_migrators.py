@@ -1686,6 +1686,7 @@ def run_test_migration(
         name = "blah"
 
     pmy = populate_feedstock_attributes(name, {}, inp, cf_yml)
+    del pmy["version_pr_info"]
 
     # these are here for legacy migrators
     pmy["version"] = pmy["meta_yaml"]["package"]["version"]
