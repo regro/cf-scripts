@@ -426,11 +426,6 @@ def populate_feedstock_attributes(
     if kl:
         sub_graph["hash_type"] = kl[0]
 
-    # make other LazyJson objects if needed
-    for key in ["version_pr_info", "pr_info"]:
-        if key not in sub_graph:
-            sub_graph[key] = LazyJson(f"{key}/{name}.json")
-
     return sub_graph
 
 
