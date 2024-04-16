@@ -178,9 +178,11 @@ def _parse_meta_yaml(
 ):
     from conda_forge_tick.utils import parse_meta_yaml_local
 
+    # FIXME
     if cbc_path is not None and os.path.exists(cbc_path):
         os.system(f"ls -lah {cbc_path}")
 
+    # FIXME
     if orig_cbc_path is not None and os.path.exists(orig_cbc_path):
         os.system(f"ls -lah {orig_cbc_path}")
 

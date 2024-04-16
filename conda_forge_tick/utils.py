@@ -457,14 +457,14 @@ def parse_meta_yaml_containerized(
                 with open(os.path.join(tmpdir, "cbc_path.yaml"), "w") as fp:
                     with open(cbc_path) as fp_r:
                         fp.write(fp_r.read())
-                os.system("chmod 755 " + os.path.join(tmpdir, "cbc_path.yaml"))
+                os.system("chmod 755 " + os.path.join(tmpdir, "cbc_path.yaml"))  # FIXME
                 args += ["--cbc-path", "/cf_tick_dir/cbc_path.yaml"]
 
             if orig_cbc_path is not None and os.path.exists(orig_cbc_path):
                 with open(os.path.join(tmpdir, "orig_cbc_path.yaml"), "w") as fp:
                     with open(orig_cbc_path) as fp_r:
                         fp.write(fp_r.read())
-                os.system("chmod 755 " + os.path.join(tmpdir, "orig_cbc_path.yaml"))
+                os.system("chmod 755 " + os.path.join(tmpdir, "orig_cbc_path.yaml"))  # FIXME
                 args += ["--orig-cbc-path", "/cf_tick_dir/orig_cbc_path.yaml"]
 
             data = _run(args, tmpdir)
