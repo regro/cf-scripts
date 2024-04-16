@@ -1289,7 +1289,10 @@ def _run_migrator(migrator, mctx, temp, time_per, dry_run):
                                     )
 
                         except (github3.GitHubError, github.GithubException) as e:
-                            if e.msg == "Repository was archived so is read-only.":
+                            if (
+                                hasattr(e, "msg")
+                                and e.msg == "Repository was archived so is read-only."
+                            ):
                                 attrs["archived"] = True
                             else:
                                 logger.critical(
