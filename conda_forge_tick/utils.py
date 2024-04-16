@@ -124,7 +124,8 @@ def get_default_container_run_args(tmpfs_size_mb: int = 10):
     return [
         "docker",
         "run",
-        "-e CF_TICK_IN_CONTAINER='true'",
+        "-e",
+        "CF_TICK_IN_CONTAINER=true",
         "--security-opt=no-new-privileges",
         "--read-only",
         "--cap-drop=all",
@@ -147,7 +148,10 @@ def run_container_task(
     name: str,
     args: Iterable[str],
     json_loads: Optional[Callable] = json.loads,
+    tmpfs_size_mb: int = 10,
     input: Optional[str] = None,
+    mount_dir: Optional[str] = None,
+    mount_readonly: bool = True,
 ):
     """Run a bot task in a container.
 
@@ -159,14 +163,31 @@ def run_container_task(
         The arguments to pass to the container.
     json_loads
         The function to use to load JSON to a string, by default `json.loads`.
+    tmpfs_size_mb
+        The size of the tmpfs in MB, by default 10.
+    input
+        The input to pass to the container, by default None.
+    mount_dir
+        The directory to mount to the container at `/cf_tick_dir`, by default None.
+    mount_readonly
+        Whether to mount the directory as read-only, by default True.
 
     Returns
     -------
     data : dict-like
         The result of the task.
     """
+    if mount_dir is not None:
+        mount_dir = os.path.abspath(mount_dir)
+        mnt_args = ["--mount", f"type=bind,source={mount_dir},destination=/cf_tick_dir"]
+        if mount_readonly:
+            mnt_args.append(",readonly")
+    else:
+        mnt_args = []
+
     cmd = [
-        *get_default_container_run_args(),
+        *get_default_container_run_args(tmpfs_size_mb=tmpfs_size_mb),
+        *mnt_args,
         get_default_container_name(),
         "/opt/conda/envs/cf-scripts/bin/python",
         "/opt/autotick-bot/docker/run_bot_task.py",
@@ -266,7 +287,7 @@ def yaml_safe_dump(data, stream=None):
     return yaml.dump(data, stream=stream)
 
 
-def render_meta_yaml(text: str, for_pinning: bool = False, **kwargs) -> str:
+def _render_meta_yaml(text: str, for_pinning: bool = False, **kwargs) -> str:
     """Render the meta.yaml with Jinja2 variables.
 
     Parameters
@@ -301,6 +322,153 @@ def render_meta_yaml(text: str, for_pinning: bool = False, **kwargs) -> str:
 
 
 def parse_meta_yaml(
+    text: str,
+    for_pinning=False,
+    platform=None,
+    arch=None,
+    cbc_path=None,
+    orig_cbc_path=None,
+    log_debug=False,
+    use_container: bool = True,
+):
+    """Parse the meta.yaml.
+
+    Parameters
+    ----------
+    text : str
+        The raw text in conda-forge feedstock meta.yaml file
+    for_pinning : bool, optional
+        If True, render the meta.yaml for pinning migrators, by default False.
+    platform : str, optional
+        The platform (e.g., 'linux', 'osx', 'win').
+    arch : str, optional
+        The CPU architecture (e.g., '64', 'aarch64').
+    cbc_path : str, optional
+        The path to global pinning file.
+    orig_cbc_path : str, optional
+        If not None, the original conda build config file to put next to
+        the recipe while parsing.
+    log_debug : bool, optional
+        If True, print extra debugging info. Default is False.
+    use_container
+        Whether to use a container to run the parsing.
+        If None, the function will use a container if the environment
+        variable `CF_TICK_IN_CONTAINER` is 'false'. This feature can be
+        used to avoid container in container calls.
+
+    Returns
+    -------
+    dict :
+        The parsed YAML dict. If parsing fails, returns an empty dict. May raise
+        for some errors. Have fun.
+    """
+    in_container = os.environ.get("CF_TICK_IN_CONTAINER", "false") == "true"
+    if use_container is None:
+        use_container = not in_container
+
+    if use_container and not in_container:
+        return parse_meta_yaml_containerized(
+            text,
+            for_pinning=for_pinning,
+            platform=platform,
+            arch=arch,
+            cbc_path=cbc_path,
+            orig_cbc_path=orig_cbc_path,
+            log_debug=log_debug,
+        )
+    else:
+        return parse_meta_yaml_local(
+            text,
+            for_pinning=for_pinning,
+            platform=platform,
+            arch=arch,
+            cbc_path=cbc_path,
+            orig_cbc_path=orig_cbc_path,
+            log_debug=log_debug,
+        )
+
+
+def parse_meta_yaml_containerized(
+    text: str,
+    for_pinning=False,
+    platform=None,
+    arch=None,
+    cbc_path=None,
+    orig_cbc_path=None,
+    log_debug=False,
+):
+    """Parse the meta.yaml.
+
+    **This function runs the parsing in a container.**
+
+    Parameters
+    ----------
+    text : str
+        The raw text in conda-forge feedstock meta.yaml file
+    for_pinning : bool, optional
+        If True, render the meta.yaml for pinning migrators, by default False.
+    platform : str, optional
+        The platform (e.g., 'linux', 'osx', 'win').
+    arch : str, optional
+        The CPU architecture (e.g., '64', 'aarch64').
+    cbc_path : str, optional
+        The path to global pinning file.
+    orig_cbc_path : str, optional
+        If not None, the original conda build config file to put next to
+        the recipe while parsing.
+    log_debug : bool, optional
+        If True, print extra debugging info. Default is False.
+
+    Returns
+    -------
+    dict :
+        The parsed YAML dict. If parsing fails, returns an empty dict. May raise
+        for some errors. Have fun.
+    """
+    args = []
+
+    if platform is not None:
+        args += ["--platform", platform]
+
+    if arch is not None:
+        args += ["--arch", arch]
+
+    if log_debug:
+        args += ["--log-debug"]
+
+    def _run(_args, _mount_dir):
+        return run_container_task(
+            "parse-meta-yaml",
+            _args,
+            input=text,
+            mount_readonly=True,
+            mount_dir=_mount_dir,
+        )
+
+    if (cbc_path is not None and os.path.exists(cbc_path)) or (
+        orig_cbc_path is not None and os.path.exists(orig_cbc_path)
+    ):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            if cbc_path is not None and os.path.exists(cbc_path):
+                with open(os.path.join(tmpdir, "cbc_path.yaml"), "w") as fp:
+                    with open(cbc_path) as fp_r:
+                        fp.write(fp_r.read())
+                args += ["--cbc-path", "/cf_tick_dir/cbc_path.yaml"]
+
+            if orig_cbc_path is not None and os.path.exists(orig_cbc_path):
+                with open(os.path.join(tmpdir, "orig_cbc_path.yaml"), "w") as fp:
+                    with open(orig_cbc_path) as fp_r:
+                        fp.write(fp_r.read())
+                args += ["--orig-cbc-path", "/cf_tick_dir/orig_cbc_path.yaml"]
+
+            data = _run(args, tmpdir)
+    else:
+        data = _run(args, None)
+
+    return data
+
+
+def parse_meta_yaml_local(
     text: str,
     for_pinning=False,
     platform=None,
@@ -491,9 +659,9 @@ def _parse_meta_yaml_impl(
     logger.debug("jinja2 environmment:\n%s", pprint.pformat(cfg_as_dict))
 
     if for_pinning:
-        content = render_meta_yaml(text, for_pinning=for_pinning, **cfg_as_dict)
+        content = _render_meta_yaml(text, for_pinning=for_pinning, **cfg_as_dict)
     else:
-        content = render_meta_yaml(text, **cfg_as_dict)
+        content = _render_meta_yaml(text, **cfg_as_dict)
 
     try:
         return parse(content, cbc)

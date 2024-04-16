@@ -103,10 +103,13 @@ def _run_bot_task(func, *, log_level, existing_feedstock_node_attrs, **kwargs):
             ):
                 # logger call needs to be here so it gets the changed stdout/stderr
                 setup_logging(log_level)
-                attrs = _get_existing_feedstock_node_attrs(
-                    existing_feedstock_node_attrs
-                )
-                data = func(attrs=attrs, **kwargs)
+                if existing_feedstock_node_attrs is not None:
+                    attrs = _get_existing_feedstock_node_attrs(
+                        existing_feedstock_node_attrs
+                    )
+                    data = func(attrs=attrs, **kwargs)
+                else:
+                    data = func(**kwargs)
 
             ret["data"] = data
             ret["container_stdout_stderr"] = outerr.getvalue()
@@ -164,9 +167,82 @@ def _parse_feedstock(
     return attrs
 
 
+def _parse_meta_yaml(
+    *,
+    for_pinning,
+    platform,
+    arch,
+    cbc_path,
+    orig_cbc_path,
+    log_debug,
+):
+    from conda_forge_tick.utils import parse_meta_yaml_local
+
+    return parse_meta_yaml_local(
+        sys.stdin.read(),
+        for_pinning=for_pinning,
+        platform=platform,
+        arch=arch,
+        cbc_path=cbc_path,
+        orig_cbc_path=orig_cbc_path,
+        log_debug=log_debug,
+    )
+
+
 @click.group()
 def cli():
     pass
+
+
+@cli.command(name="parse-meta-yaml")
+@log_level_option
+@click.option(
+    "--for-pinning",
+    is_flag=True,
+    help="Parse the meta.yaml for pinning requirements.",
+)
+@click.option(
+    "--platform",
+    type=str,
+    default=None,
+    help="The platform (e.g., 'linux', 'osx', 'win').",
+)
+@click.option(
+    "--arch",
+    type=str,
+    default=None,
+    help="The CPU architecture (e.g., '64', 'aarch64').",
+)
+@click.option(
+    "--cbc-path", type=str, default=None, help="The path to global pinning file."
+)
+@click.option(
+    "--orig_cbc_path",
+    type=str,
+    default=None,
+    help="The path to the original global pinning file.",
+)
+@click.option("--log-debug", is_flag=True, help="Log debug information.")
+def parse_meta_yaml(
+    log_level,
+    for_pinning,
+    platform,
+    arch,
+    cbc_path,
+    orig_cbc_path,
+    log_debug,
+):
+    return _run_bot_task(
+        _parse_meta_yaml,
+        log_level=log_level,
+        existing_feedstock_node_attrs=None,
+        for_pinning=for_pinning,
+        platform=platform,
+        arch=arch,
+        cbc_path=cbc_path,
+        orig_cbc_path=orig_cbc_path,
+        log_debug=log_debug,
+    )
 
 
 @cli.command(name="parse-feedstock")
