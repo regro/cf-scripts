@@ -244,7 +244,7 @@ def parse_meta_yaml(
     print(ret.returncode, ret.stderr, ret.stdout)
 
     ret = subprocess.run(
-        ["ls", "-lah", cbc_path],
+        ["ls", "-lah", "/"],
         check=False,
         capture_output=True,
         text=True,
