@@ -355,6 +355,8 @@ def main(
 
             gx = _create_edges(gx)
 
+            _migrate_schemas(tot_names)
+
         dump_graph(gx)
     else:
         with lazy_json_override_backends(
