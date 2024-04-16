@@ -181,7 +181,7 @@ def run_container_task(
         mount_dir = os.path.abspath(mount_dir)
         mnt_args = ["--mount", f"type=bind,source={mount_dir},destination=/cf_tick_dir"]
         if mount_readonly:
-            mnt_args.append(",readonly")
+            mnt_args[-1] += ",readonly"
     else:
         mnt_args = []
 
@@ -206,6 +206,7 @@ def run_container_task(
     if res.returncode != 0:
         raise RuntimeError(
             f"Error running {name} in container - return code {res.returncode}:"
+            f"\ncmd: {pprint.pformat(cmd)}"
             f"\nstderr: {pprint.pformat(res.stderr)}"
             f"\nstdout: {pprint.pformat(res.stdout)}"
         )
