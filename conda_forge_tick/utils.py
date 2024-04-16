@@ -437,6 +437,9 @@ def parse_meta_yaml_containerized(
     if log_debug:
         args += ["--log-debug"]
 
+    if for_pinning:
+        args += ["--for-pinning"]
+
     def _run(_args, _mount_dir):
         return run_container_task(
             "parse-meta-yaml",
