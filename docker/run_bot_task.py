@@ -234,12 +234,14 @@ def parse_meta_yaml(
 ):
 
     # FIXME
-    if cbc_path is not None and os.path.exists(cbc_path):
-        os.system(f"ls -lah {cbc_path}")
-
-    # FIXME
-    if orig_cbc_path is not None and os.path.exists(orig_cbc_path):
-        os.system(f"ls -lah {orig_cbc_path}")
+    import subprocess
+    ret = subprocess.run(
+        ["ls", "-lah", cbc_path],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    print(ret.returncode, ret.stderr, ret.stdout)
 
     return _run_bot_task(
         _parse_meta_yaml,
