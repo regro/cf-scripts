@@ -236,6 +236,14 @@ def parse_meta_yaml(
     # FIXME
     import subprocess
     ret = subprocess.run(
+        ["ls", "-lah", os.path.dirname(cbc_path)],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    print(ret.returncode, ret.stderr, ret.stdout)
+
+    ret = subprocess.run(
         ["ls", "-lah", cbc_path],
         check=False,
         capture_output=True,
