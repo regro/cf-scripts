@@ -232,25 +232,6 @@ def parse_meta_yaml(
     orig_cbc_path,
     log_debug,
 ):
-
-    # FIXME
-    import subprocess
-    ret = subprocess.run(
-        ["ls", "-lah", os.path.dirname(cbc_path)],
-        check=False,
-        capture_output=True,
-        text=True,
-    )
-    print(ret.returncode, ret.stderr, ret.stdout)
-
-    ret = subprocess.run(
-        ["ls", "-lah", "/"],
-        check=False,
-        capture_output=True,
-        text=True,
-    )
-    print(ret.returncode, ret.stderr, ret.stdout)
-
     return _run_bot_task(
         _parse_meta_yaml,
         log_level=log_level,
