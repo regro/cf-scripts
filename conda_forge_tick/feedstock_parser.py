@@ -290,7 +290,6 @@ def populate_feedstock_attributes(
                         meta_yaml,
                         platform=plat,
                         arch=arch,
-                        recipe_dir=recipe_dir,
                         cbc_path=cbc_path,
                         orig_cbc_path=os.path.join(
                             recipe_dir,
