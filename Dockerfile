@@ -35,8 +35,6 @@ RUN conda activate base && \
 # put the shell back
 SHELL ["/bin/sh", "-c"]
 
-# RUN mkdir /cf_tick_dir && chmod 777 /cf_tick_dir
-
 # now make the conda user for running tasks and set the user
 RUN useradd --shell /bin/bash -c "" -m conda
 ENV HOME=/home/conda
