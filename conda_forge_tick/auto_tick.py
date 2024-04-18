@@ -1052,6 +1052,7 @@ def initialize_migrators(
                 PipWheelMigrator(),
                 MPIPinRunAsBuildCleanup(),
                 DependencyUpdateMigrator(python_nodes),
+                StdlibMigrator(),
             ],
         )
 
