@@ -36,3 +36,25 @@ def set_cf_tick_pytest_envvar():
         del os.environ["CF_TICK_PYTEST"]
     else:
         os.environ["CF_TICK_PYTEST"] = old_ci
+
+
+@pytest.fixture(autouse=True, scope="session")
+def turn_off_containers_if_missing():
+    import subprocess
+
+    ret = subprocess.run(["docker", "--version"], capture_output=True)
+    have_docker = ret.returncode == 0
+
+    old_in_container = os.environ.get("CF_TICK_IN_CONTAINER")
+
+    if not have_docker:
+        # tell the code we are in a container so that it
+        # doesn't try to run docker commands
+        os.environ["CF_TICK_IN_CONTAINER"] = "true"
+
+    yield
+
+    if old_in_container is None:
+        del os.environ["CF_TICK_IN_CONTAINER"]
+    else:
+        os.environ["CF_TICK_IN_CONTAINER"] = old_in_container
