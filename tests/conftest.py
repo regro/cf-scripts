@@ -55,6 +55,6 @@ def turn_off_containers_if_missing():
     yield
 
     if old_in_container is None:
-        del os.environ["CF_TICK_IN_CONTAINER"]
+        os.environ.pop("CF_TICK_IN_CONTAINER", None)
     else:
         os.environ["CF_TICK_IN_CONTAINER"] = old_in_container
