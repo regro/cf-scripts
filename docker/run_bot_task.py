@@ -18,7 +18,7 @@ import subprocess
 import sys
 import tempfile
 import traceback
-from contextlib import contextmanager, redirect_stdout
+from contextlib import contextmanager
 from io import StringIO
 
 import click
@@ -99,7 +99,7 @@ def _run_bot_task(func, *, log_level, existing_feedstock_node_attrs, **kwargs):
         stdout = StringIO()
         try:
             with (
-                redirect_stdout(stdout),
+                # FIXME redirect_stdout(stdout),
                 tempfile.TemporaryDirectory() as tmpdir,
                 pushd(tmpdir),
             ):
@@ -133,19 +133,19 @@ def _rerender_feedstock(*, timeout):
             ["git", "init", "."],
             check=True,
             cwd="/cf_tick_dir",
-            stdout=sys.stderr,
+            # FIXME stdout=sys.stderr,
         )
         subprocess.run(
             ["git", "add", "."],
             check=True,
             cwd="/cf_tick_dir",
-            stdout=sys.stderr,
+            # FIXME stdout=sys.stderr,
         )
         subprocess.run(
             ["git", "commit", "-am", "initial commit"],
             check=True,
             cwd="/cf_tick_dir",
-            stdout=sys.stderr,
+            # FIXME stdout=sys.stderr,
         )
 
     msg = rerender_feedstock_local("/cf_tick_dir", timeout=timeout)
