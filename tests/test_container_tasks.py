@@ -183,10 +183,16 @@ def test_rerender_feedstock_containerized(capfd):
             ["git", "clone", "https://github.com/conda-forge/ngmix-feedstock.git"]
         )
 
-        msg = rerender_feedstock_containerized(
-            os.path.join(tmpdir, "ngmix-feedstock"),
-            timeout=900,
-        )
+        try:
+            msg = rerender_feedstock_containerized(
+                os.path.join(tmpdir, "ngmix-feedstock"),
+                timeout=900,
+            )
+        except Exception as e:
+            # FIXME
+            captured = capfd.readouterr()
+            assert False, f"msg: {msg}\nout: {captured.out}\nerr: {captured.err}, e: {e}"
+
         captured = capfd.readouterr()
         if "git commit -m " in captured.err:
             assert (
