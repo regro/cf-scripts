@@ -20,7 +20,7 @@ pat_compiler = re.compile(
 )
 pat_stdlib = re.compile(r".*\{\{\s*stdlib\([\"\']c[\"\']\)\s*\}\}.*")
 # no version other than 2.17 currently available (except 2.12 as default on linux-64)
-pat_sysroot_217 = re.compile(r"- sysroot_linux-64\s*=?=?2\.17")
+pat_sysroot_217 = re.compile(r"- sysroot_(linux-64|\{\{.*\}\})\s*=?=?2\.17")
 
 
 def _process_section(name, attrs, lines):
