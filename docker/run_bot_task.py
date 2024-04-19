@@ -14,7 +14,6 @@ These tasks return their info to the bot by printing a JSON blob to stdout.
 
 import copy
 import os
-import subprocess
 import sys
 import tempfile
 import traceback
@@ -127,26 +126,6 @@ def _run_bot_task(func, *, log_level, existing_feedstock_node_attrs, **kwargs):
 
 def _rerender_feedstock(*, timeout):
     from conda_forge_tick.rerender_feedstock import rerender_feedstock_local
-
-    if not os.path.exists("/cf_tick_dir/.git"):
-        subprocess.run(
-            ["git", "init", "."],
-            check=True,
-            cwd="/cf_tick_dir",
-            stdout=sys.stderr,
-        )
-        subprocess.run(
-            ["git", "add", "."],
-            check=True,
-            cwd="/cf_tick_dir",
-            stdout=sys.stderr,
-        )
-        subprocess.run(
-            ["git", "commit", "-am", "initial commit"],
-            check=True,
-            cwd="/cf_tick_dir",
-            stdout=sys.stderr,
-        )
 
     msg = rerender_feedstock_local("/cf_tick_dir", timeout=timeout)
     return {"commit_message": msg}

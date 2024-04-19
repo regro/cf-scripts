@@ -73,6 +73,25 @@ def rerender_feedstock_containerized(feedstock_dir, timeout=900):
         shutil.rmtree(os.path.join(tmpdir, ".git"))
         os.remove(os.path.join(tmpdir, ".gitignore"))
 
+        subprocess.run(
+            ["git", "init", "."],
+            check=True,
+            cwd=tmpdir,
+            stdout=sys.stderr,
+        )
+        subprocess.run(
+            ["git", "add", "."],
+            check=True,
+            cwd=tmpdir,
+            stdout=sys.stderr,
+        )
+        subprocess.run(
+            ["git", "commit", "-am", "initial commit"],
+            check=True,
+            cwd=tmpdir,
+            stdout=sys.stderr,
+        )
+
         os.chmod(tmpdir, 0o777)
         subprocess.run(["chmod", "-R", "777", tmpdir], check=True, capture_output=True)
 
