@@ -100,9 +100,11 @@ def rerender_feedstock_containerized(feedstock_dir, timeout=900):
             )
         except Exception as e:
             raise e
-        else:
+        finally:
             os.chmod(tmpdir, 0o777)
-            subprocess.run(["chmod", "-R", "777", tmpdir], check=True, capture_output=True)
+            subprocess.run(
+                ["chmod", "-R", "777", tmpdir], check=True, capture_output=True
+            )
             shutil.rmtree(os.path.join(tmpdir, ".git"))
             shutil.copytree(tmpdir, feedstock_dir, dirs_exist_ok=True)
 
