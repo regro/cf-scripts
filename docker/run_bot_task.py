@@ -133,19 +133,19 @@ def _rerender_feedstock(*, timeout):
             ["git", "init", "."],
             check=True,
             cwd="/cf_tick_dir",
-            # FIXME stdout=sys.stderr,
+            stdout=sys.stderr,
         )
         subprocess.run(
             ["git", "add", "."],
             check=True,
             cwd="/cf_tick_dir",
-            # FIXME stdout=sys.stderr,
+            stdout=sys.stderr,
         )
         subprocess.run(
             ["git", "commit", "-am", "initial commit"],
             check=True,
             cwd="/cf_tick_dir",
-            # FIXME stdout=sys.stderr,
+            stdout=sys.stderr,
         )
 
     msg = rerender_feedstock_local("/cf_tick_dir", timeout=timeout)
