@@ -191,7 +191,7 @@ def test_rerender_feedstock_containerized(capfd):
         except Exception as e:
             # FIXME
             captured = capfd.readouterr()
-            assert False, f"msg: {msg}\nout: {captured.out}\nerr: {captured.err}, e: {e}"
+            assert False, f"error: {e}\nout: {captured.out}\nerr: {captured.err}"
 
         captured = capfd.readouterr()
         if "git commit -m " in captured.err:
