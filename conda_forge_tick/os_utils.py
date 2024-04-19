@@ -27,7 +27,6 @@ def eval_cmd(cmd: str, **kwargs) -> str:
     env.update(kwargs)
     c = subprocess.run(
         shlex.split(cmd),
-        shell=True,
         stdout=subprocess.PIPE,
         env=env,
         timeout=timeout,
