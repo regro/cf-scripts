@@ -73,24 +73,20 @@ def rerender_feedstock_containerized(feedstock_dir, timeout=900):
         shutil.rmtree(os.path.join(tmpdir, ".git"))
         os.remove(os.path.join(tmpdir, ".gitignore"))
 
-        subprocess.run(
-            ["git", "init", "."],
-            check=True,
-            cwd=tmpdir,
-            stdout=sys.stderr,
-        )
-        subprocess.run(
+        cmds = [
+            ["git", "init", "-b", "main", "."],
+            ["git", "config", "user.email", "conda@conda.conda"],
+            ["git", "config", "user.name", "conda conda"],
             ["git", "add", "."],
-            check=True,
-            cwd=tmpdir,
-            stdout=sys.stderr,
-        )
-        subprocess.run(
             ["git", "commit", "-am", "initial commit"],
-            check=True,
-            cwd=tmpdir,
-            stdout=sys.stderr,
-        )
+        ]
+        for cmd in cmds:
+            subprocess.run(
+                cmd,
+                check=True,
+                cwd=tmpdir,
+                stdout=sys.stderr,
+            )
 
         os.chmod(tmpdir, 0o777)
         subprocess.run(["chmod", "-R", "777", tmpdir], check=True, capture_output=True)
