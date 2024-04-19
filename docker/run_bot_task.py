@@ -14,10 +14,11 @@ These tasks return their info to the bot by printing a JSON blob to stdout.
 
 import copy
 import os
+import subprocess
 import sys
 import tempfile
 import traceback
-from contextlib import contextmanager, redirect_stderr, redirect_stdout
+from contextlib import contextmanager, redirect_stdout
 from io import StringIO
 
 import click
@@ -84,6 +85,8 @@ def _run_bot_task(func, *, log_level, existing_feedstock_node_attrs, **kwargs):
     with (
         tempfile.TemporaryDirectory() as tmpdir_cbld,
         _setenv("CONDA_BLD_PATH", os.path.join(tmpdir_cbld, "conda-bld")),
+        tempfile.TemporaryDirectory() as tmpdir_cache,
+        _setenv("XDG_CACHE_HOME", tmpdir_cache),
     ):
         os.makedirs(os.path.join(tmpdir_cbld, "conda-bld"), exist_ok=True)
 
@@ -93,11 +96,10 @@ def _run_bot_task(func, *, log_level, existing_feedstock_node_attrs, **kwargs):
 
         data = None
         ret = copy.copy(kwargs)
-        outerr = StringIO()
+        stdout = StringIO()
         try:
             with (
-                redirect_stdout(outerr),
-                redirect_stderr(outerr),
+                redirect_stdout(stdout),
                 tempfile.TemporaryDirectory() as tmpdir,
                 pushd(tmpdir),
             ):
@@ -112,15 +114,42 @@ def _run_bot_task(func, *, log_level, existing_feedstock_node_attrs, **kwargs):
                     data = func(**kwargs)
 
             ret["data"] = data
-            ret["container_stdout_stderr"] = outerr.getvalue()
+            ret["container_stdout"] = stdout.getvalue()
 
         except Exception as e:
             ret["data"] = data
-            ret["container_stdout_stderr"] = outerr.getvalue()
+            ret["container_stdout"] = stdout.getvalue()
             ret["error"] = repr(e)
             ret["traceback"] = traceback.format_exc()
 
         print(dumps(ret))
+
+
+def _rerender_feedstock(*, timeout):
+    from conda_forge_tick.rerender_feedstock import rerender_feedstock_local
+
+    if not os.path.exists("/cf_tick_dir/.git"):
+        subprocess.run(
+            ["git", "init", "."],
+            check=True,
+            cwd="/cf_tick_dir",
+            stdout=sys.stderr,
+        )
+        subprocess.run(
+            ["git", "add", "."],
+            check=True,
+            cwd="/cf_tick_dir",
+            stdout=sys.stderr,
+        )
+        subprocess.run(
+            ["git", "commit", "-am", "initial commit"],
+            check=True,
+            cwd="/cf_tick_dir",
+            stdout=sys.stderr,
+        )
+
+    msg = rerender_feedstock_local("/cf_tick_dir", timeout=timeout)
+    return {"commit_message": msg}
 
 
 def _get_latest_version(*, attrs, sources):
@@ -287,6 +316,18 @@ def get_latest_version(log_level, existing_feedstock_node_attrs, sources):
         log_level=log_level,
         existing_feedstock_node_attrs=existing_feedstock_node_attrs,
         sources=sources,
+    )
+
+
+@cli.command(name="rerender-feedstock")
+@log_level_option
+@click.option("--timeout", default=900, type=int, help="The timeout for the rerender.")
+def rerender_feedstock(log_level, timeout):
+    return _run_bot_task(
+        _rerender_feedstock,
+        log_level=log_level,
+        existing_feedstock_node_attrs=None,
+        timeout=timeout,
     )
 
 

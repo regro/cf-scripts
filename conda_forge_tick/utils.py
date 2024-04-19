@@ -198,7 +198,7 @@ def run_container_task(
     ]
     res = subprocess.run(
         cmd,
-        capture_output=True,
+        stdout=subprocess.PIPE,
         text=True,
         input=input,
     )
@@ -207,8 +207,7 @@ def run_container_task(
         raise RuntimeError(
             f"Error running {name} in container - return code {res.returncode}:"
             f"\ncmd: {pprint.pformat(cmd)}"
-            f"\nstderr: {pprint.pformat(res.stderr)}"
-            f"\nstdout: {pprint.pformat(res.stdout)}"
+            f"\noutput: {pprint.pformat(res.stdout)}"
         )
 
     try:
@@ -216,14 +215,14 @@ def run_container_task(
     except json.JSONDecodeError:
         raise RuntimeError(
             f"Error running {name} in container - JSON could not parse stdout:"
-            f"\nstderr: {pprint.pformat(res.stderr)}"
-            f"\nstdout: {pprint.pformat(res.stdout)}"
+            f"\ncmd: {pprint.pformat(cmd)}"
+            f"\noutput: {pprint.pformat(res.stdout)}"
         )
 
     # I have tried more than once to filter this out of the conda-build
     # logs using a filter but I cannot get it to work always.
     # For now, I will replace it here.
-    data = ret["container_stdout_stderr"].replace(
+    data = ret["container_stdout"].replace(
         "WARNING: No numpy version specified in conda_build_config.yaml.", ""
     )
     for level in ["critical", "error", "warning", "info", "debug"]:
@@ -234,7 +233,7 @@ def run_container_task(
     if "error" in ret:
         raise RuntimeError(
             f"Error running {name} in container - error {ret['error']} raised:"
-            f"\nstderr: {pprint.pformat(res.stderr)}"
+            f"\ncmd: {pprint.pformat(cmd)}"
             f"\nstdout: {pprint.pformat(ret)}"
         )
 

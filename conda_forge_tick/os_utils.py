@@ -1,6 +1,7 @@
 import contextlib
 import copy
 import os
+import shlex
 import subprocess
 
 
@@ -25,7 +26,7 @@ def eval_cmd(cmd: str, **kwargs) -> str:
     timeout = kwargs.pop("timeout", None)
     env.update(kwargs)
     c = subprocess.run(
-        cmd,
+        shlex.split(cmd),
         shell=True,
         stdout=subprocess.PIPE,
         env=env,

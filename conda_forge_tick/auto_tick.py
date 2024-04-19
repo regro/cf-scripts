@@ -100,6 +100,7 @@ from conda_forge_tick.migrators.migration_yaml import (
     create_rebuild_graph,
 )
 from conda_forge_tick.os_utils import eval_cmd, pushd
+from conda_forge_tick.rerender_feedstock import rerender_feedstock
 from conda_forge_tick.utils import (
     CB_CONFIG,
     dump_graph,
@@ -114,9 +115,6 @@ from conda_forge_tick.utils import (
     sanitize_string,
     yaml_safe_load,
 )
-
-# not using this right now
-# from conda_forge_tick.deploy import deploy
 
 logger = logging.getLogger(__name__)
 
@@ -278,10 +276,11 @@ def run(
             logger.info("Rerendering the feedstock")
 
             try:
-                eval_cmd(
-                    "conda smithy rerender -c auto --no-check-uptodate",
-                    timeout=900,
-                )
+                rerender_msg = rerender_feedstock(feedstock_dir, timeout=900)
+                if rerender_msg is not None:
+                    eval_cmd("git add --all .")
+                    eval_cmd(f"git commit --allow-empty -am '{rerender_msg}'")
+
                 make_rerender_comment = False
             except Exception as e:
                 # I am trying this bit of code to force these errors
