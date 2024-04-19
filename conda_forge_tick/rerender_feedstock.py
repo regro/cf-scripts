@@ -76,15 +76,20 @@ def rerender_feedstock_containerized(feedstock_dir, timeout=900):
         os.chmod(tmpdir, 0o777)
         subprocess.run(["chmod", "-R", "777", tmpdir], check=True, capture_output=True)
 
-        data = run_container_task(
-            "rerender-feedstock",
-            args,
-            mount_readonly=False,
-            mount_dir=tmpdir,
-        )
-
-        shutil.rmtree(os.path.join(tmpdir, ".git"))
-        shutil.copytree(tmpdir, feedstock_dir, dirs_exist_ok=True)
+        try:
+            data = run_container_task(
+                "rerender-feedstock",
+                args,
+                mount_readonly=False,
+                mount_dir=tmpdir,
+            )
+        except Exception as e:
+            raise e
+        else:
+            os.chmod(tmpdir, 0o777)
+            subprocess.run(["chmod", "-R", "777", tmpdir], check=True, capture_output=True)
+            shutil.rmtree(os.path.join(tmpdir, ".git"))
+            shutil.copytree(tmpdir, feedstock_dir, dirs_exist_ok=True)
 
     return data["commit_message"]
 
