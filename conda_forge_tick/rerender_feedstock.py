@@ -69,11 +69,12 @@ def rerender_feedstock_containerized(feedstock_dir, timeout=900):
         args += ["--timeout", str(timeout)]
 
     with tempfile.TemporaryDirectory() as tmpdir:
-        os.chmod(tmpdir, 0o777)
-
         shutil.copytree(feedstock_dir, tmpdir, dirs_exist_ok=True)
         shutil.rmtree(os.path.join(tmpdir, ".git"))
         os.remove(os.path.join(tmpdir, ".gitignore"))
+
+        os.chmod(tmpdir, 0o777)
+        subprocess.run(["chmod", "-R", "777", tmpdir], check=True, capture_output=True)
 
         data = run_container_task(
             "rerender-feedstock",
