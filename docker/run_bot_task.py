@@ -18,7 +18,7 @@ import subprocess
 import sys
 import tempfile
 import traceback
-from contextlib import contextmanager
+from contextlib import contextmanager, redirect_stdout
 from io import StringIO
 
 import click
@@ -99,7 +99,7 @@ def _run_bot_task(func, *, log_level, existing_feedstock_node_attrs, **kwargs):
         stdout = StringIO()
         try:
             with (
-                # FIXME redirect_stdout(stdout),
+                redirect_stdout(stdout),
                 tempfile.TemporaryDirectory() as tmpdir,
                 pushd(tmpdir),
             ):
