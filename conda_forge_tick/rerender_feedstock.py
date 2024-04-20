@@ -80,23 +80,20 @@ def rerender_feedstock_containerized(feedstock_dir, timeout=900):
         os.chmod(tmpdir, 0o777)
         subprocess.run(["chmod", "-R", "777", tmpdir], check=True, capture_output=True)
 
-        try:
-            data = run_container_task(
-                "rerender-feedstock",
-                args,
-                mount_readonly=False,
-                mount_dir=tmpdir,
+        data = run_container_task(
+            "rerender-feedstock",
+            args,
+            mount_readonly=False,
+            mount_dir=tmpdir,
+        )
+
+        if data["commit_message"] is not None:
+            sync_dirs(
+                tmp_feedstock_dir,
+                feedstock_dir,
+                ignore_dot_git=True,
+                update_git=True,
             )
-        except Exception as e:
-            raise e
-        else:
-            if data["commit_message"] is not None:
-                sync_dirs(
-                    tmp_feedstock_dir,
-                    feedstock_dir,
-                    ignore_dot_git=True,
-                    update_git=True,
-                )
 
     return data["commit_message"]
 
