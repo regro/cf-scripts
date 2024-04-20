@@ -108,7 +108,7 @@ def sync_dirs(source_dir, dest_dir, ignore_dot_git=True, update_git=True):
             os.makedirs(dest_fname, exist_ok=True)
         else:
             os.makedirs(os.path.dirname(dest_fname), exist_ok=True)
-            shutil.copy2(src_fname, dest_fname)
+            shutil.copy(src_fname, dest_fname)
             if update_git:
                 subprocess.run(
                     ["git", "add", "-f", rel_fname],

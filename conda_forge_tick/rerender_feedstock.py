@@ -107,28 +107,25 @@ def rerender_feedstock_containerized(feedstock_dir, timeout=900):
 
 
 class _StreamToStderr(Thread):
-    def __init__(self, *buffers, timeout=None):
+    def __init__(self, buffer, timeout=None):
         super().__init__()
-        self.buffers = list(buffers)
+        self.buffer = buffer
         self.lines = []
         self.timeout = timeout
 
     def run(self):
         t0 = time.time()
         while True and (self.timeout is None or time.time() - t0 < self.timeout):
-            last_lines = []
-            for buffer in self.buffers:
-                try:
-                    line = buffer.readline()
-                except Exception:
-                    pass
-                last_lines.append(line)
-                self.lines.append(line)
+            try:
+                line = self.buffer.readline()
+            except Exception:
+                pass
+            self.lines.append(line)
 
-                sys.stderr.write(line)
-                sys.stderr.flush()
+            sys.stderr.write(line)
+            sys.stderr.flush()
 
-            if all(line == "" for line in last_lines):
+            if line == "":
                 break
 
         self.output = "".join(self.lines)
@@ -141,20 +138,29 @@ def _subprocess_run_tee(args, timeout=None):
         stderr=subprocess.PIPE,
         text=True,
     )
-    out_thread = _StreamToStderr(proc.stdout, proc.stderr, timeout=timeout)
-    out_thread.start()
+    threads = [
+        _StreamToStderr(proc.stdout, timeout=timeout),
+        _StreamToStderr(proc.stderr, timeout=timeout),
+    ]
+    for out_thread in threads:
+        out_thread.start()
     try:
         out, err = proc.communicate(timeout=timeout)
     except subprocess.TimeoutExpired:
         proc.kill()
         out, err = proc.communicate()
 
-    out_thread.join()
+    for out_thread in threads:
+        out_thread.join()
     for line in (err + out).splitlines():
         sys.stderr.write(line + "\n")
         sys.stderr.flush()
 
-    proc.stdout = out_thread.output + out + err
+    final_out = ""
+    for out_thread in threads:
+        final_out += out_thread.output
+    proc.stdout = final_out + out + err
+
     return proc
 
 
