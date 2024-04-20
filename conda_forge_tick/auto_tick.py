@@ -85,6 +85,7 @@ from conda_forge_tick.migrators import (
     Migrator,
     MPIPinRunAsBuildCleanup,
     NoCondaInspectMigrator,
+    Numpy2Migrator,
     PipMigrator,
     PipWheelMigrator,
     QtQtMainMigrator,
@@ -688,6 +689,8 @@ def add_rebuild_migration_yaml(
         piggy_back_migrations.append(JpegTurboMigrator())
     if migration_name == "boost_cpp_to_libboost":
         piggy_back_migrations.append(LibboostMigrator())
+    if migration_name == "numpy2":
+        piggy_back_migrations.append(Numpy2Migrator())
     # stdlib migrator runs on top of ALL migrations, see
     # https://github.com/conda-forge/conda-forge.github.io/issues/2102
     piggy_back_migrations.append(StdlibMigrator())
