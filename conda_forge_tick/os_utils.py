@@ -85,8 +85,7 @@ def sync_dirs(source_dir, dest_dir, ignore_dot_git=True, update_git=True):
         rel_fname = os.path.relpath(dest_fname, dest_dir)
         src_fname = os.path.join(source_dir, rel_fname)
         if src_fname not in src_fnames:
-            _isdir = os.path.isdir(dest_fname)
-            if _isdir:
+            if os.path.isdir(dest_fname):
                 shutil.rmtree(dest_fname)
             else:
                 os.remove(dest_fname)
