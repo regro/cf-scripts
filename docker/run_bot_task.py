@@ -140,8 +140,6 @@ def _rerender_feedstock(*, timeout):
 
         cmds = [
             ["git", "init", "-b", "main", "."],
-            ["git", "config", "user.email", "conda@conda.conda"],
-            ["git", "config", "user.name", "conda conda"],
             ["git", "add", "."],
             ["git", "commit", "-am", "initial commit"],
         ]
