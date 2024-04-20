@@ -2,26 +2,13 @@ import os
 import re
 
 from conda_forge_tick.migrators.core import MiniMigrator
-from conda_forge_tick.migrators.libboost import _replacer, _slice_into_output_sections
+from conda_forge_tick.migrators.libboost import _replacer
 
 # pin_compatible("numpy"...)
 # ^   ^           ^
 # p   c           n
 raw_pat_pcn = r".*\{\{\s*pin_compatible\([\"\']numpy[\"\'].*"
 pat_pcn = re.compile(raw_pat_pcn)
-
-
-def _process_section(name, attrs, lines):
-    """
-    Migrate requirements per section.
-
-    We want to migrate as follows:
-    - remove all occurrences of `{{ pin_compatible("numpy",...) }}`;
-      these will be taken care of henceforth by numpy's run-export
-    """
-    # _replacer take the raw pattern, not the compiled one
-    lines = _replacer(lines, raw_pat_pcn, "")
-    return lines
 
 
 class Numpy2Migrator(MiniMigrator):
@@ -37,11 +24,8 @@ class Numpy2Migrator(MiniMigrator):
             with open(fname) as fp:
                 lines = fp.readlines()
 
-            new_lines = []
-            sections = _slice_into_output_sections(lines, attrs)
-            for name, section in sections.items():
-                # _process_section returns list of lines already
-                new_lines += _process_section(name, attrs, section)
+            # _replacer take the raw pattern, not the compiled one
+            new_lines = _replacer(lines, raw_pat_pcn, "")
 
             with open(fname, "w") as fp:
                 fp.write("".join(new_lines))
