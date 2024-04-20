@@ -1,7 +1,6 @@
 import contextlib
 import copy
 import os
-import shlex
 import shutil
 import subprocess
 
@@ -17,7 +16,7 @@ def pushd(new_dir: str):
         os.chdir(previous_dir)
 
 
-def eval_cmd(cmd: str, **kwargs) -> str:
+def eval_cmd(cmd: list[str], **kwargs) -> str:
     """run a command capturing stdout
 
     stderr is printed for debugging
@@ -27,7 +26,7 @@ def eval_cmd(cmd: str, **kwargs) -> str:
     timeout = kwargs.pop("timeout", None)
     env.update(kwargs)
     c = subprocess.run(
-        shlex.split(cmd),
+        cmd,
         stdout=subprocess.PIPE,
         env=env,
         timeout=timeout,

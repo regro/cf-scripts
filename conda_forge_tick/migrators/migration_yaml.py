@@ -253,7 +253,7 @@ class MigrationYaml(GraphMigrator):
                 with pushd("migrations"):
                     with open(f"{self.name}.yaml", "w") as f:
                         f.write(self.yaml_contents)
-                    eval_cmd("git add .")
+                    eval_cmd(["git", "add", "."])
 
             if self.conda_forge_yml_patches is not None:
                 with pushd(os.path.join(recipe_dir, "..")):
@@ -262,7 +262,7 @@ class MigrationYaml(GraphMigrator):
                     _patch_dict(cfg, self.conda_forge_yml_patches)
                     with open("conda-forge.yml", "w") as fp:
                         yaml_safe_dump(cfg, fp)
-                    eval_cmd("git add conda-forge.yml")
+                    eval_cmd(["git", "add", "conda-forge.yml"])
 
             with pushd(recipe_dir):
                 self.set_build_number("meta.yaml")
@@ -480,7 +480,7 @@ class MigrationYamlCreator(Migrator):
                     migration_yaml_dict,
                     f,
                 )
-            eval_cmd("git add .")
+            eval_cmd(["git", "add", "."])
 
         return super().migrate(recipe_dir, attrs)
 

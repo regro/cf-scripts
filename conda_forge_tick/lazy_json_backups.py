@@ -27,8 +27,7 @@ def make_lazy_json_backup(verbose=False):
     slink = f"cf_graph_{ts}"
     try:
         subprocess.run(
-            f"ln -s . {slink}",
-            shell=True,
+            ["ln", "-s", ".", slink],
             check=True,
             capture_output=not verbose,
         )
@@ -49,16 +48,20 @@ def make_lazy_json_backup(verbose=False):
 
             logger.info("compressing lazy json disk cache")
             subprocess.run(
-                f"tar --zstd -cvf cf_graph_{ts}.tar.zstd -T "
-                + os.path.join(tmpdir, "files.txt"),
-                shell=True,
+                [
+                    "tar",
+                    "--zstd",
+                    "-cvf",
+                    f"cf_graph_{ts}.tar.zstd",
+                    "-T",
+                    os.path.join(tmpdir, "files.txt"),
+                ],
                 check=True,
                 capture_output=not verbose,
             )
     finally:
         subprocess.run(
-            f"rm -f {slink}",
-            shell=True,
+            ["rm", "-f", slink],
             check=True,
             capture_output=not verbose,
         )
