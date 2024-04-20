@@ -16,7 +16,7 @@ def test_rerender_feedstock_stderr(capfd):
             cmds = [
                 ["git", "rm", "-f", ".gitignore"],
                 ["git", "config", "user.email", "conda@conda.conda"],
-                ["git", "config", "user.name" "conda c. conda"],
+                ["git", "config", "user.name", "conda c. conda"],
                 ["git", "commit", "-m", "test commit"],
             ]
             for cmd in cmds:
@@ -50,7 +50,7 @@ def test_rerender_feedstock_git_staged():
             cmds = [
                 ["git", "rm", "-f", ".gitignore"],
                 ["git", "config", "user.email", "conda@conda.conda"],
-                ["git", "config", "user.name" "conda c. conda"],
+                ["git", "config", "user.name", "conda c. conda"],
                 ["git", "commit", "-m", "test commit"],
             ]
             for cmd in cmds:

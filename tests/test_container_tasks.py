@@ -194,7 +194,7 @@ def test_rerender_feedstock_containerized(capfd):
                 cmds = [
                     ["git", "rm", "-f", ".gitignore"],
                     ["git", "config", "user.email", "conda@conda.conda"],
-                    ["git", "config", "user.name" "conda c. conda"],
+                    ["git", "config", "user.name", "conda c. conda"],
                     ["git", "commit", "-m", "test commit"],
                 ]
                 for cmd in cmds:
@@ -232,7 +232,7 @@ def test_rerender_feedstock_containerized(capfd):
                 cmds = [
                     ["git", "rm", "-f", ".gitignore"],
                     ["git", "config", "user.email", "conda@conda.conda"],
-                    ["git", "config", "user.name" "conda c. conda"],
+                    ["git", "config", "user.name", "conda c. conda"],
                     ["git", "commit", "-m", "test commit"],
                 ]
                 for cmd in cmds:
