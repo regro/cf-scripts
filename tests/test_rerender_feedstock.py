@@ -13,14 +13,17 @@ def test_rerender_feedstock_stderr(capfd):
         )
         # make sure rerender happens
         with pushd("ngmix-feedstock"):
-            subprocess.run(
+            cmds = [
                 ["git", "rm", "-f", ".gitignore"],
-                check=True,
-            )
-            subprocess.run(
+                ["git", "config", "user.email", "conda@conda.conda"],
+                ["git", "config", "user.name" "conda c. conda"],
                 ["git", "commit", "-m", "test commit"],
-                check=True,
-            )
+            ]
+            for cmd in cmds:
+                subprocess.run(
+                    cmd,
+                    check=True,
+                )
 
         try:
             msg = rerender_feedstock_local(
@@ -44,14 +47,17 @@ def test_rerender_feedstock_git_staged():
         )
         # make sure rerender happens
         with pushd("ngmix-feedstock"):
-            subprocess.run(
+            cmds = [
                 ["git", "rm", "-f", ".gitignore"],
-                check=True,
-            )
-            subprocess.run(
+                ["git", "config", "user.email", "conda@conda.conda"],
+                ["git", "config", "user.name" "conda c. conda"],
                 ["git", "commit", "-m", "test commit"],
-                check=True,
-            )
+            ]
+            for cmd in cmds:
+                subprocess.run(
+                    cmd,
+                    check=True,
+                )
 
         msg = rerender_feedstock_local(
             os.path.join(tmpdir, "ngmix-feedstock"),
