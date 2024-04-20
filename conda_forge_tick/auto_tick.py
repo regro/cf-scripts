@@ -279,7 +279,7 @@ def run(
             logger.info("Rerendering the feedstock")
 
             try:
-                rerender_msg = rerender_feedstock(feedstock_dir, timeout=900)
+                rerender_msg = rerender_feedstock(feedstock_dir, timeout=900, , use_container=False)
                 if rerender_msg is not None:
                     eval_cmd(["git", "commit", "--allow-empty", "-am", rerender_msg])
 
