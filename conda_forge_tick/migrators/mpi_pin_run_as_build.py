@@ -94,5 +94,5 @@ class MPIPinRunAsBuildCleanup(MiniMigrator):
                     fp.write("\n".join(new_lines))
             else:
                 with pushd(recipe_dir):
-                    subprocess.run("git rm -f conda_build_config.yaml", shell=True)
-                    subprocess.run("rm -f conda_build_config.yaml", shell=True)
+                    subprocess.run(["git", "rm", "-f", "conda_build_config.yaml"])
+                    subprocess.run(["rm", "-f", "conda_build_config.yaml"])
