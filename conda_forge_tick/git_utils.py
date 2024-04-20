@@ -219,8 +219,7 @@ def fetch_repo(*, feedstock_dir, origin, upstream, branch, base_branch="main"):
     """
     if not os.path.isdir(feedstock_dir):
         p = subprocess.run(
-            f"git clone -q {origin} {feedstock_dir}",
-            shell=True,
+            ["git", "clone", "-q", origin, feedstock_dir],
         )
         if p.returncode != 0:
             msg = "Could not clone " + origin
@@ -231,44 +230,42 @@ def fetch_repo(*, feedstock_dir, origin, upstream, branch, base_branch="main"):
     else:
         reset_hard = True
 
-    def _run_git_cmd(cmd):
-        return subprocess.run(cmd, shell=True, check=True)
+    def _run_git_cmd(cmd, **kwargs):
+        return subprocess.run(["git"] + cmd, check=True, **kwargs)
 
     quiet = "--quiet"
     with pushd(feedstock_dir):
         if reset_hard:
-            _run_git_cmd("git reset --hard HEAD")
+            _run_git_cmd(["reset", "--hard", "HEAD"])
 
         # doesn't work if the upstream already exists
         try:
             # always run upstream
-            _run_git_cmd(f"git remote add upstream {upstream}")
+            _run_git_cmd(["remote", "add", "upstream", upstream])
         except subprocess.CalledProcessError:
             pass
 
         # fetch remote changes
-        _run_git_cmd(f"git fetch --all {quiet}")
-        if subprocess.run(
-            f"git branch --list {base_branch}",
-            check=True,
-            shell=True,
+        _run_git_cmd(["fetch", "--all", quiet])
+        if _run_git_cmd(
+            ["branch", "--list", base_branch],
             capture_output=True,
         ).stdout:
-            _run_git_cmd(f"git checkout {base_branch} {quiet}")
+            _run_git_cmd(["checkout", base_branch, quiet])
         else:
             try:
-                _run_git_cmd(f"git checkout --track upstream/{base_branch} {quiet}")
+                _run_git_cmd(["checkout", "--track", f"upstream/{base_branch}", quiet])
             except subprocess.CalledProcessError:
                 _run_git_cmd(
-                    f"git checkout -b {base_branch} upstream/{base_branch} {quiet}",
+                    ["checkout", "-b", base_branch, f"upstream/{base_branch}", quiet],
                 )
-        _run_git_cmd(f"git reset --hard upstream/{base_branch} {quiet}")
+        _run_git_cmd(["reset", "--hard", f"upstream/{base_branch}", quiet])
 
         # make and modify version branch
         try:
-            _run_git_cmd(f"git checkout {branch} {quiet}")
+            _run_git_cmd(["checkout", branch, quiet])
         except subprocess.CalledProcessError:
-            _run_git_cmd(f"git checkout -b {branch} {base_branch} {quiet}")
+            _run_git_cmd(["checkout", "-b", branch, base_branch, quiet])
 
     return True
 

@@ -9,8 +9,8 @@ from .lazy_json_backends import CF_TICK_GRAPH_DATA_HASHMAPS, get_lazy_json_backe
 from .utils import get_bot_run_url, load_existing_graph
 
 
-def _run_git_cmd(cmd):
-    return subprocess.run(cmd, shell=True, check=True)
+def _run_git_cmd(cmd, **kwargs):
+    return subprocess.run(["git"] + cmd, check=True, **kwargs)
 
 
 def _deploy_batch(*, files_to_add, batch, n_added, max_per_batch=200):
@@ -20,7 +20,7 @@ def _deploy_batch(*, files_to_add, batch, n_added, max_per_batch=200):
         if file and os.path.exists(file):
             try:
                 print(f"committing {n_added: >5d}: {file}", flush=True)
-                _run_git_cmd(f"git add {file}")
+                _run_git_cmd(["add", file])
                 n_added_this_batch += 1
                 n_added += 1
             except Exception as e:
@@ -30,7 +30,11 @@ def _deploy_batch(*, files_to_add, batch, n_added, max_per_batch=200):
         try:
             _step_name = os.environ.get("GITHUB_WORKFLOW", "update graph")
             _run_git_cmd(
-                f'git commit -m "{_step_name} - batch {batch: >3d} - {get_bot_run_url()}"'
+                [
+                    "commit",
+                    "-m",
+                    f"{_step_name} - batch {batch: >3d} - {get_bot_run_url()}",
+                ],
             )
         except Exception as e:
             print(e)
@@ -50,7 +54,7 @@ def _deploy_batch(*, files_to_add, batch, n_added, max_per_batch=200):
         while status != 0 and num_try < 10 and graph_ok:
             try:
                 print("\n\n>>>>>>>>>>>> git pull try %d\n\n" % num_try, flush=True)
-                _run_git_cmd("git pull -s recursive -X theirs")
+                _run_git_cmd(["pull", "-s", "recursive", "-X", "theirs"])
             except Exception as e:
                 print(
                     "\n\n>>>>>>>>>>>> git pull try %d failed: %s \n\n" % (num_try, e),
@@ -88,7 +92,7 @@ def deploy(ctx: CliContext, dirs_to_deploy: list[str] = None):
 
     # pull changes, add ours, make a commit
     try:
-        _run_git_cmd("git pull -s recursive -X theirs")
+        _run_git_cmd(["pull", "-s", "recursive", "-X", "theirs"])
     except Exception as e:
         print(e)
 
@@ -111,35 +115,29 @@ def deploy(ctx: CliContext, dirs_to_deploy: list[str] = None):
     for dr in drs_to_deploy:
         # untracked
         files_to_add |= set(
-            subprocess.run(
-                f"git ls-files -o --exclude-standard {dr}",
-                shell=True,
+            _run_git_cmd(
+                ["ls-files", "-o", "--exclude-standard", dr],
                 capture_output=True,
-            )
-            .stdout.decode("utf-8")
-            .splitlines(),
+                text=True,
+            ).stdout.splitlines(),
         )
 
         # changed
         files_to_add |= set(
-            subprocess.run(
-                f"git diff --name-only {dr}",
-                shell=True,
+            _run_git_cmd(
+                ["diff", "--name-only", dr],
                 capture_output=True,
-            )
-            .stdout.decode("utf-8")
-            .splitlines(),
+                text=True,
+            ).stdout.splitlines(),
         )
 
         # modified and staged but not deleted
         files_to_add |= set(
-            subprocess.run(
-                f"git diff --name-only --cached --diff-filter=d {dr}",
-                shell=True,
+            _run_git_cmd(
+                ["diff", "--name-only", "--cached", "--diff-filter=d", dr],
                 capture_output=True,
-            )
-            .stdout.decode("utf-8")
-            .splitlines(),
+                text=True,
+            ).stdout.splitlines(),
         )
 
     print("found %d files to add" % len(files_to_add), flush=True)

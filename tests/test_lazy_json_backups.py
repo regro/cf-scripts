@@ -75,8 +75,7 @@ def test_lazy_json_backends_backup(tmpdir):
             assert len(fnames) == 1
 
             subprocess.run(
-                f"tar xf {fnames[0]}",
-                shell=True,
+                ["tar", "xf", fnames[0]],
                 check=True,
                 capture_output=True,
             )

@@ -30,10 +30,6 @@ yaml.indent(mapping=2, sequence=4, offset=2)
 yaml.default_flow_style = False
 
 
-def _run_cmd(cmd):
-    return subprocess.run(cmd, shell=True, check=True)
-
-
 def _lock_to_ver(lock, platform):
     pkg_to_ver = {}
     for pkg in lock["package"]:
@@ -77,8 +73,7 @@ def main(lockfile, reformat_only):
 
         print("Relocking environment.yml...", flush=True, file=sys.stderr)
         subprocess.run(
-            "conda lock --file environment.yml",
-            shell=True,
+            ["conda", "lock", "--file", "environment.yml"],
             check=True,
             capture_output=True,
         )
