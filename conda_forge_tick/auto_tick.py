@@ -227,6 +227,8 @@ def run(
         )
         return False, False
 
+    # need to use an absolute path here
+    feedstock_dir = os.path.abspath(feedstock_dir)
     recipe_dir = os.path.join(feedstock_dir, "recipe")
 
     # migrate the feedstock
@@ -277,7 +279,7 @@ def run(
             logger.info("Rerendering the feedstock")
 
             try:
-                rerender_msg = rerender_feedstock(feedstock_dir, timeout=900, , use_container=False)
+                rerender_msg = rerender_feedstock(feedstock_dir, timeout=900)
                 if rerender_msg is not None:
                     eval_cmd(["git", "commit", "--allow-empty", "-am", rerender_msg])
 

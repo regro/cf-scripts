@@ -80,6 +80,11 @@ def rerender_feedstock_containerized(feedstock_dir, timeout=900):
         os.chmod(tmpdir, 0o777)
         subprocess.run(["chmod", "-R", "777", tmpdir], check=True, capture_output=True)
 
+        logger.info(f"host feedstock dir {feedstock_dir}: {os.listdir(feedstock_dir)}")
+        logger.info(
+            f"copied host feedstock dir {tmp_feedstock_dir}: {os.listdir(tmp_feedstock_dir)}"
+        )
+
         data = run_container_task(
             "rerender-feedstock",
             args,
