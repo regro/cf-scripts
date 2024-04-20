@@ -190,7 +190,15 @@ def test_rerender_feedstock_containerized(capfd):
                 ["git", "clone", "https://github.com/conda-forge/ngmix-feedstock.git"]
             )
             # make sure rerender happens
-            os.remove(os.path.join(tmpdir_cont, "ngmix-feedstock", ".gitignore"))
+            with pushd("ngmix-feedstock"):
+                subprocess.run(
+                    ["git", "rm", "-f", ".gitignore"],
+                    check=True,
+                )
+                subprocess.run(
+                    ["git", "commit", "-m", "test commit"],
+                    check=True,
+                )
 
             try:
                 msg = rerender_feedstock_containerized(
@@ -218,7 +226,15 @@ def test_rerender_feedstock_containerized(capfd):
                 ["git", "clone", "https://github.com/conda-forge/ngmix-feedstock.git"]
             )
             # make sure rerender happens
-            os.remove(os.path.join(tmpdir_local, "ngmix-feedstock", ".gitignore"))
+            with pushd("ngmix-feedstock"):
+                subprocess.run(
+                    ["git", "rm", "-f", ".gitignore"],
+                    check=True,
+                )
+                subprocess.run(
+                    ["git", "commit", "-m", "test commit"],
+                    check=True,
+                )
 
             try:
                 local_msg = rerender_feedstock_local(
