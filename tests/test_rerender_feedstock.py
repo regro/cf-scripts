@@ -7,10 +7,7 @@ from conda_forge_tick.rerender_feedstock import rerender_feedstock_local
 
 
 def test_rerender_feedstock_stderr(capfd):
-    with (
-        tempfile.TemporaryDirectory() as tmpdir,
-        pushd(tmpdir)
-    ):
+    with tempfile.TemporaryDirectory() as tmpdir, pushd(tmpdir):
         subprocess.run(
             ["git", "clone", "https://github.com/conda-forge/ngmix-feedstock.git"]
         )
@@ -28,26 +25,20 @@ def test_rerender_feedstock_stderr(capfd):
         try:
             msg = rerender_feedstock_local(
                 os.path.join(tmpdir, "ngmix-feedstock"),
-                timeout=900,
             )
         finally:
             captured = capfd.readouterr()
             print(f"out: {captured.out}\nerr: {captured.err}")
 
         assert "git commit -m " in captured.err
-        assert (
-            msg is not None
-        ), f"msg: {msg}\nout: {captured.out}\nerr: {captured.err}"
+        assert msg is not None, f"msg: {msg}\nout: {captured.out}\nerr: {captured.err}"
         assert msg.startswith(
             "MNT:"
         ), f"msg: {msg}\nout: {captured.out}\nerr: {captured.err}"
 
 
 def test_rerender_feedstock_git_staged():
-    with (
-        tempfile.TemporaryDirectory() as tmpdir,
-        pushd(tmpdir)
-    ):
+    with tempfile.TemporaryDirectory() as tmpdir, pushd(tmpdir):
         subprocess.run(
             ["git", "clone", "https://github.com/conda-forge/ngmix-feedstock.git"]
         )
@@ -64,7 +55,6 @@ def test_rerender_feedstock_git_staged():
 
         msg = rerender_feedstock_local(
             os.path.join(tmpdir, "ngmix-feedstock"),
-            timeout=900,
         )
         assert msg is not None
 

@@ -203,7 +203,6 @@ def test_rerender_feedstock_containerized(capfd):
             try:
                 msg = rerender_feedstock_containerized(
                     os.path.join(tmpdir_cont, "ngmix-feedstock"),
-                    timeout=900,
                 )
             finally:
                 captured = capfd.readouterr()
@@ -239,7 +238,6 @@ def test_rerender_feedstock_containerized(capfd):
             try:
                 local_msg = rerender_feedstock_local(
                     os.path.join(tmpdir_local, "ngmix-feedstock"),
-                    timeout=900,
                 )
             finally:
                 local_captured = capfd.readouterr()

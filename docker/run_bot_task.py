@@ -132,7 +132,9 @@ def _rerender_feedstock(*, timeout):
     from conda_forge_tick.rerender_feedstock import rerender_feedstock_local
 
     with tempfile.TemporaryDirectory() as tmpdir:
-        input_fs_dir = glob.glob("/cf_tick_dir/*-feedstock")[0]
+        input_fs_dir = glob.glob("/cf_tick_dir/*-feedstock")
+        assert len(input_fs_dir) == 1, f"expected one feedstock, got {input_fs_dir}"
+        input_fs_dir = input_fs_dir[0]
         fs_dir = os.path.join(tmpdir, os.path.basename(input_fs_dir))
         sync_dirs(input_fs_dir, fs_dir, ignore_dot_git=True, update_git=False)
         if os.path.exists(os.path.join(fs_dir, ".gitignore")):
@@ -151,7 +153,11 @@ def _rerender_feedstock(*, timeout):
                 stdout=sys.stderr,
             )
 
-        msg = rerender_feedstock_local(fs_dir, timeout=timeout)
+        if timeout is not None:
+            kwargs = {"timeout": timeout}
+        else:
+            kwargs = {}
+        msg = rerender_feedstock_local(fs_dir, **kwargs)
 
         # if something changed, copy back the new feedstock
         if msg is not None:
@@ -329,7 +335,7 @@ def get_latest_version(log_level, existing_feedstock_node_attrs, sources):
 
 @cli.command(name="rerender-feedstock")
 @log_level_option
-@click.option("--timeout", default=900, type=int, help="The timeout for the rerender.")
+@click.option("--timeout", default=None, type=int, help="The timeout for the rerender.")
 def rerender_feedstock(log_level, timeout):
     return _run_bot_task(
         _rerender_feedstock,
