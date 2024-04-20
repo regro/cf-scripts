@@ -227,6 +227,8 @@ def run(
         )
         return False, False
 
+    # need to use an absolute path here
+    feedstock_dir = os.path.abspath(feedstock_dir)
     recipe_dir = os.path.join(feedstock_dir, "recipe")
 
     # migrate the feedstock
