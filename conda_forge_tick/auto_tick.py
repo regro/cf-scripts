@@ -278,7 +278,6 @@ def run(
             try:
                 rerender_msg = rerender_feedstock(feedstock_dir, timeout=900)
                 if rerender_msg is not None:
-                    eval_cmd("git add --all .")
                     eval_cmd(f"git commit --allow-empty -am '{rerender_msg}'")
 
                 make_rerender_comment = False
