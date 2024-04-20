@@ -125,10 +125,41 @@ def _run_bot_task(func, *, log_level, existing_feedstock_node_attrs, **kwargs):
 
 
 def _rerender_feedstock(*, timeout):
+    import glob
+    import subprocess
+
+    from conda_forge_tick.os_utils import sync_dirs
     from conda_forge_tick.rerender_feedstock import rerender_feedstock_local
 
-    msg = rerender_feedstock_local("/cf_tick_dir", timeout=timeout)
-    return {"commit_message": msg}
+    with tempfile.TemporaryDirectory() as tmpdir:
+        input_fs_dir = glob.glob("/cf_tick_dir/*-feedstock")[0]
+        fs_dir = os.path.join(tmpdir, os.path.basename(input_fs_dir))
+        sync_dirs(input_fs_dir, fs_dir, ignore_dot_git=True, update_git=False)
+        if os.path.exists(os.path.join(fs_dir, ".gitignore")):
+            os.remove(os.path.join(fs_dir, ".gitignore"))
+
+        cmds = [
+            ["git", "init", "-b", "main", "."],
+            ["git", "config", "user.email", "conda@conda.conda"],
+            ["git", "config", "user.name", "conda conda"],
+            ["git", "add", "."],
+            ["git", "commit", "-am", "initial commit"],
+        ]
+        for cmd in cmds:
+            subprocess.run(
+                cmd,
+                check=True,
+                cwd=fs_dir,
+                stdout=sys.stderr,
+            )
+
+        msg = rerender_feedstock_local(fs_dir, timeout=timeout)
+
+        # if something changed, copy back the new feedstock
+        if msg is not None:
+            sync_dirs(fs_dir, input_fs_dir, ignore_dot_git=True, update_git=False)
+
+        return {"commit_message": msg}
 
 
 def _get_latest_version(*, attrs, sources):

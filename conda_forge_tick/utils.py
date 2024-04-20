@@ -190,6 +190,7 @@ def run_container_task(
         *mnt_args,
         get_default_container_name(),
         "/opt/conda/envs/cf-scripts/bin/python",
+        "-u",
         "/opt/autotick-bot/docker/run_bot_task.py",
         name,
         *args,

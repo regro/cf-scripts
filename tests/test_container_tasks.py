@@ -1,4 +1,5 @@
 import copy
+import glob
 import os
 import subprocess
 import tempfile
@@ -13,7 +14,10 @@ from conda_forge_tick.lazy_json_backends import (
     lazy_json_override_backends,
 )
 from conda_forge_tick.os_utils import pushd
-from conda_forge_tick.rerender_feedstock import rerender_feedstock_containerized
+from conda_forge_tick.rerender_feedstock import (
+    rerender_feedstock_containerized,
+    rerender_feedstock_local,
+)
 from conda_forge_tick.update_upstream_versions import (
     all_version_sources,
     get_latest_version_containerized,
@@ -176,30 +180,78 @@ def test_parse_meta_yaml_containerized():
 @pytest.mark.skipif(not HAVE_CONTAINERS, reason="containers not available")
 def test_rerender_feedstock_containerized(capfd):
     with (
-        tempfile.TemporaryDirectory() as tmpdir,
-        pushd(tmpdir),
+        tempfile.TemporaryDirectory() as tmpdir_cont,
+        tempfile.TemporaryDirectory() as tmpdir_local,
     ):
-        subprocess.run(
-            ["git", "clone", "https://github.com/conda-forge/ngmix-feedstock.git"]
+        assert tmpdir_cont != tmpdir_local
+
+        with pushd(tmpdir_cont):
+            subprocess.run(
+                ["git", "clone", "https://github.com/conda-forge/ngmix-feedstock.git"]
+            )
+            # make sure rerender happens
+            os.remove(os.path.join(tmpdir_cont, "ngmix-feedstock", ".gitignore"))
+
+            try:
+                msg = rerender_feedstock_containerized(
+                    os.path.join(tmpdir_cont, "ngmix-feedstock"),
+                    timeout=900,
+                )
+            finally:
+                captured = capfd.readouterr()
+                print(f"out: {captured.out}\nerr: {captured.err}")
+
+            if "git commit -m " in captured.err:
+                assert (
+                    msg is not None
+                ), f"msg: {msg}\nout: {captured.out}\nerr: {captured.err}"
+                assert msg.startswith(
+                    "MNT:"
+                ), f"msg: {msg}\nout: {captured.out}\nerr: {captured.err}"
+            else:
+                assert (
+                    msg is None
+                ), f"msg: {msg}\nout: {captured.out}\nerr: {captured.err}"
+
+        with pushd(tmpdir_local):
+            subprocess.run(
+                ["git", "clone", "https://github.com/conda-forge/ngmix-feedstock.git"]
+            )
+            # make sure rerender happens
+            os.remove(os.path.join(tmpdir_local, "ngmix-feedstock", ".gitignore"))
+
+            try:
+                local_msg = rerender_feedstock_local(
+                    os.path.join(tmpdir_local, "ngmix-feedstock"),
+                    timeout=900,
+                )
+            finally:
+                local_captured = capfd.readouterr()
+                print(f"out: {local_captured.out}\nerr: {local_captured.err}")
+
+        assert msg == local_msg
+
+        # now compare files
+        cont_fnames = set(
+            glob.glob(os.path.join(tmpdir_cont, "**", "*"), recursive=True)
+        )
+        local_fnames = set(
+            glob.glob(os.path.join(tmpdir_local, "**", "*"), recursive=True)
         )
 
-        try:
-            msg = rerender_feedstock_containerized(
-                os.path.join(tmpdir, "ngmix-feedstock"),
-                timeout=900,
-            )
-        except Exception as e:
-            # FIXME
-            captured = capfd.readouterr()
-            assert False, f"error: {e}\nout: {captured.out}\nerr: {captured.err}"
+        rel_cont_fnames = {os.path.relpath(fname, tmpdir_cont) for fname in cont_fnames}
+        rel_local_fnames = {
+            os.path.relpath(fname, tmpdir_local) for fname in local_fnames
+        }
+        assert (
+            rel_cont_fnames == rel_local_fnames
+        ), f"{rel_cont_fnames} != {rel_local_fnames}"
 
-        captured = capfd.readouterr()
-        if "git commit -m " in captured.err:
-            assert (
-                msg is not None
-            ), f"msg: {msg}\nout: {captured.out}\nerr: {captured.err}"
-            assert msg.startswith(
-                "MNT:"
-            ), f"msg: {msg}\nout: {captured.out}\nerr: {captured.err}"
-        else:
-            assert msg is None, f"msg: {msg}\nout: {captured.out}\nerr: {captured.err}"
+        for cfname in cont_fnames:
+            lfname = os.path.join(tmpdir_local, os.path.relpath(cfname, tmpdir_cont))
+            if not os.path.isdir(cfname):
+                with open(cfname, "rb") as f:
+                    cdata = f.read()
+                with open(lfname, "rb") as f:
+                    ldata = f.read()
+                assert cdata == ldata, f"{cfname} not equal to local"

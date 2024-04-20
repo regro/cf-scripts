@@ -1,12 +1,15 @@
+import logging
 import os
-import shutil
 import subprocess
 import sys
 import tempfile
+import time
 from threading import Thread
 
-from conda_forge_tick.os_utils import pushd
+from conda_forge_tick.os_utils import pushd, sync_dirs
 from conda_forge_tick.utils import run_container_task
+
+logger = logging.getLogger(__name__)
 
 
 def rerender_feedstock(feedstock_dir, timeout=900, use_container=True):
@@ -69,24 +72,10 @@ def rerender_feedstock_containerized(feedstock_dir, timeout=900):
         args += ["--timeout", str(timeout)]
 
     with tempfile.TemporaryDirectory() as tmpdir:
-        shutil.copytree(feedstock_dir, tmpdir, dirs_exist_ok=True)
-        shutil.rmtree(os.path.join(tmpdir, ".git"))
-        os.remove(os.path.join(tmpdir, ".gitignore"))
-
-        cmds = [
-            ["git", "init", "-b", "main", "."],
-            ["git", "config", "user.email", "conda@conda.conda"],
-            ["git", "config", "user.name", "conda conda"],
-            ["git", "add", "."],
-            ["git", "commit", "-am", "initial commit"],
-        ]
-        for cmd in cmds:
-            subprocess.run(
-                cmd,
-                check=True,
-                cwd=tmpdir,
-                stdout=sys.stderr,
-            )
+        tmp_feedstock_dir = os.path.join(tmpdir, os.path.basename(feedstock_dir))
+        sync_dirs(
+            feedstock_dir, tmp_feedstock_dir, ignore_dot_git=True, update_git=False
+        )
 
         os.chmod(tmpdir, 0o777)
         subprocess.run(["chmod", "-R", "777", tmpdir], check=True, capture_output=True)
@@ -100,13 +89,14 @@ def rerender_feedstock_containerized(feedstock_dir, timeout=900):
             )
         except Exception as e:
             raise e
-        finally:
-            os.chmod(tmpdir, 0o777)
-            subprocess.run(
-                ["chmod", "-R", "777", tmpdir], check=True, capture_output=True
-            )
-            shutil.rmtree(os.path.join(tmpdir, ".git"))
-            shutil.copytree(tmpdir, feedstock_dir, dirs_exist_ok=True)
+        else:
+            if data["commit_message"] is not None:
+                sync_dirs(
+                    tmp_feedstock_dir,
+                    feedstock_dir,
+                    ignore_dot_git=True,
+                    update_git=True,
+                )
 
     return data["commit_message"]
 
@@ -117,16 +107,21 @@ def rerender_feedstock_containerized(feedstock_dir, timeout=900):
 
 
 class _StreamToStderr(Thread):
-    def __init__(self, *buffers):
+    def __init__(self, *buffers, timeout=None):
         super().__init__()
         self.buffers = list(buffers)
         self.lines = []
+        self.timeout = timeout
 
     def run(self):
-        while True:
+        t0 = time.time()
+        while True and (self.timeout is None or time.time() - t0 < self.timeout):
             last_lines = []
             for buffer in self.buffers:
-                line = buffer.readline()
+                try:
+                    line = buffer.readline()
+                except Exception:
+                    pass
                 last_lines.append(line)
                 self.lines.append(line)
 
@@ -146,7 +141,7 @@ def _subprocess_run_tee(args, timeout=None):
         stderr=subprocess.PIPE,
         text=True,
     )
-    out_thread = _StreamToStderr(proc.stdout, proc.stderr)
+    out_thread = _StreamToStderr(proc.stdout, proc.stderr, timeout=timeout)
     out_thread.start()
     try:
         out, err = proc.communicate(timeout=timeout)
@@ -184,6 +179,21 @@ def rerender_feedstock_local(feedstock_dir, timeout=900):
         pushd(feedstock_dir),
         tempfile.TemporaryDirectory() as tmpdir,
     ):
+        # ret = subprocess.run(
+        #     [
+        #         "conda",
+        #         "smithy",
+        #         "rerender",
+        #         "--no-check-uptodate",
+        #         "--temporary-directory",
+        #         tmpdir,
+        #     ],
+        #     stdout=subprocess.PIPE,
+        #     stderr=subprocess.STDOUT,
+        #     text=True,
+        #     timeout=timeout,
+        # )
+        # print(ret.stdout, flush=True, file=sys.stderr)
         ret = _subprocess_run_tee(
             [
                 "conda",
@@ -197,9 +207,7 @@ def rerender_feedstock_local(feedstock_dir, timeout=900):
         )
 
     if ret.returncode != 0:
-        raise RuntimeError(
-            f"Failed to rerender.\n" f"stdout: {ret.stdout}\n" f"stderr: {ret.stderr}"
-        )
+        raise RuntimeError(f"Failed to rerender.\noutput: {ret.stdout}\n")
 
     commit_message = None
     for line in ret.stdout.split("\n"):
