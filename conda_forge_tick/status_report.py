@@ -491,8 +491,7 @@ def main() -> None:
         mname = os.path.basename(old_file).rsplit(".", 1)[0]
         if (mname not in total_status) and (mname not in closed_status):
             subprocess.run(
-                "git rm -f " + old_file,
-                shell=True,
+                ["git", "rm", "-f ", old_file],
                 check=True,
             )
 

@@ -275,7 +275,7 @@ class LicenseMigrator(MiniMigrator):
                     s.lower().startswith(k) for k in ["license", "copying", "copyright"]
                 )
             ]
-        eval_cmd(f"rm -r {cb_work_dir}")
+        eval_cmd(["rm", "-r", cb_work_dir])
         # if there is a license file in tarball update things
         if license_files:
             with pushd(recipe_dir):

@@ -162,13 +162,11 @@ class FileLazyJsonBackend(LazyJsonBackend):
         lzj_names = " ".join(get_sharded_path(f"{name}/{key}.json") for key in keys)
         with PRLOCK, DLOCK, TRLOCK:
             subprocess.run(
-                "git rm --ignore-unmatch -f " + lzj_names,
-                shell=True,
+                ["git", "rm", "--ignore-unmatch", "-f"] + lzj_names.split(" "),
                 capture_output=True,
             )
         subprocess.run(
-            "rm -f " + lzj_names,
-            shell=True,
+            ["rm", "-f"] + lzj_names.split(" "),
             capture_output=True,
         )
 

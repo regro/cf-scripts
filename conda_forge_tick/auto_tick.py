@@ -85,6 +85,7 @@ from conda_forge_tick.migrators import (
     Migrator,
     MPIPinRunAsBuildCleanup,
     NoCondaInspectMigrator,
+    Numpy2Migrator,
     PipMigrator,
     PipWheelMigrator,
     QtQtMainMigrator,
@@ -241,7 +242,7 @@ def run(
             feedstock_ctx.package_name,
             feedstock_ctx.attrs.get("pr_info", {}).get("bad"),
         )
-        eval_cmd(f"rm -rf {feedstock_dir}")
+        eval_cmd(["rm", "-rf", feedstock_dir])
         return False, False
 
     # TODO - commit main migration here
@@ -255,11 +256,11 @@ def run(
     with pushd(feedstock_dir):
         msg = migrator.commit_message(feedstock_ctx)  # noqa
         try:
-            eval_cmd("git add --all .")
+            eval_cmd(["git", "add", "--all", "."])
             if migrator.allow_empty_commits:
-                eval_cmd(f"git commit --allow-empty -am '{msg}'")
+                eval_cmd(["git", "commit", "--allow-empty", "-am", msg])
             else:
-                eval_cmd(f"git commit -am '{msg}'")
+                eval_cmd(["git", "commit", "-am", msg])
         except CalledProcessError as e:
             logger.info(
                 "could not commit to feedstock - "
@@ -272,13 +273,13 @@ def run(
                 raise e
 
         if rerender:
-            head_ref = eval_cmd("git rev-parse HEAD").strip()
+            head_ref = eval_cmd(["git", "rev-parse", "HEAD"]).strip()
             logger.info("Rerendering the feedstock")
 
             try:
                 rerender_msg = rerender_feedstock(feedstock_dir, timeout=900)
                 if rerender_msg is not None:
-                    eval_cmd(f"git commit --allow-empty -am '{rerender_msg}'")
+                    eval_cmd(["git", "commit", "--allow-empty", "-am", rerender_msg])
 
                 make_rerender_comment = False
             except Exception as e:
@@ -307,7 +308,9 @@ def run(
             # If we tried to run the MigrationYaml and rerender did nothing (we only
             # bumped the build number and dropped a yaml file in migrations) bail
             # for instance platform specific migrations
-            gdiff = eval_cmd(f"git diff --name-only {head_ref.strip()}...HEAD")
+            gdiff = eval_cmd(
+                ["git", "diff", "--name-only", f"{head_ref.strip()}...HEAD"]
+            )
 
             diffed_files = [
                 _
@@ -386,7 +389,7 @@ def run(
                     sanitize_string(_solver_err_str),
                 )
 
-            eval_cmd(f"rm -rf {feedstock_dir}")
+            eval_cmd(["rm", "-rf", feedstock_dir])
             return False, False
         else:
             _reset_pre_pr_migrator_fields(feedstock_ctx.attrs, migrator_name)
@@ -458,7 +461,7 @@ comment. Hopefully you all can fix this!
     _reset_pre_pr_migrator_fields(feedstock_ctx.attrs, migrator_name)
 
     logger.info("Removing feedstock dir")
-    eval_cmd(f"rm -rf {feedstock_dir}")
+    eval_cmd(["rm", "-rf", feedstock_dir])
     return migrate_return, ljpr
 
 
@@ -677,6 +680,8 @@ def add_rebuild_migration_yaml(
         piggy_back_migrations.append(JpegTurboMigrator())
     if migration_name == "boost_cpp_to_libboost":
         piggy_back_migrations.append(LibboostMigrator())
+    if migration_name == "numpy2":
+        piggy_back_migrations.append(Numpy2Migrator())
     # stdlib migrator runs on top of ALL migrations, see
     # https://github.com/conda-forge/conda-forge.github.io/issues/2102
     piggy_back_migrations.append(StdlibMigrator())
@@ -976,9 +981,12 @@ def initialize_migrators(
 ) -> Tuple[MigratorSessionContext, list, MutableSequence[Migrator]]:
     temp = glob.glob("/tmp/*")
     gx = load_existing_graph()
-    smithy_version: str = eval_cmd("conda smithy --version").strip()
+    smithy_version: str = eval_cmd(["conda", "smithy", "--version"]).strip()
     pinning_version: str = cast(
-        str, json.loads(eval_cmd("conda list conda-forge-pinning --json"))[0]["version"]
+        str,
+        json.loads(eval_cmd(["conda", "list", "conda-forge-pinning", "--json"]))[0][
+            "version"
+        ],
     )
 
     migrators: List[Migrator] = []
@@ -1374,12 +1382,11 @@ def _run_migrator(migrator, mctx, temp, time_per, dry_run):
                     if not dry_run:
                         dump_graph(mctx.graph)
 
-                    eval_cmd(f"rm -rf {GIT_CLONE_DIR}/*")
-                    logger.info(os.getcwd())
+                    eval_cmd(["rm", "-rf", f"{GIT_CLONE_DIR}/*"])
                     for f in glob.glob("/tmp/*"):
                         if f not in temp:
                             try:
-                                eval_cmd(f"rm -rf {f}")
+                                eval_cmd(["rm", "-rf", f])
                             except Exception:
                                 pass
 
