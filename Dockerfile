@@ -32,9 +32,6 @@ RUN conda activate base && \
     conda deactivate && \
     conda deactivate
 
-# put the shell back
-SHELL ["/bin/sh", "-c"]
-
 # now make the conda user for running tasks and set the user
 RUN useradd --shell /bin/bash -c "" -m conda
 ENV HOME=/home/conda
@@ -49,3 +46,14 @@ RUN chown conda:conda $HOME && \
     rm -Rf $HOME/skel && \
     cd $HOME
 USER conda
+
+# deal with git config for user and mounted directory
+RUN conda activate cf-scripts && \
+    git config --global --add safe.directory /cf_tick_dir && \
+    git config --global init.defaultBranch main && \
+    git config --global user.email "conda@conda.conda" && \
+    git config --global user.name "conda conda" && \
+    conda deactivate
+
+# put the shell back
+SHELL ["/bin/sh", "-c"]

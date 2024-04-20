@@ -17,7 +17,7 @@ import os
 import sys
 import tempfile
 import traceback
-from contextlib import contextmanager, redirect_stderr, redirect_stdout
+from contextlib import contextmanager, redirect_stdout
 from io import StringIO
 
 import click
@@ -84,6 +84,8 @@ def _run_bot_task(func, *, log_level, existing_feedstock_node_attrs, **kwargs):
     with (
         tempfile.TemporaryDirectory() as tmpdir_cbld,
         _setenv("CONDA_BLD_PATH", os.path.join(tmpdir_cbld, "conda-bld")),
+        tempfile.TemporaryDirectory() as tmpdir_cache,
+        _setenv("XDG_CACHE_HOME", tmpdir_cache),
     ):
         os.makedirs(os.path.join(tmpdir_cbld, "conda-bld"), exist_ok=True)
 
@@ -93,11 +95,10 @@ def _run_bot_task(func, *, log_level, existing_feedstock_node_attrs, **kwargs):
 
         data = None
         ret = copy.copy(kwargs)
-        outerr = StringIO()
+        stdout = StringIO()
         try:
             with (
-                redirect_stdout(outerr),
-                redirect_stderr(outerr),
+                redirect_stdout(stdout),
                 tempfile.TemporaryDirectory() as tmpdir,
                 pushd(tmpdir),
             ):
@@ -112,15 +113,57 @@ def _run_bot_task(func, *, log_level, existing_feedstock_node_attrs, **kwargs):
                     data = func(**kwargs)
 
             ret["data"] = data
-            ret["container_stdout_stderr"] = outerr.getvalue()
+            ret["container_stdout"] = stdout.getvalue()
 
         except Exception as e:
             ret["data"] = data
-            ret["container_stdout_stderr"] = outerr.getvalue()
+            ret["container_stdout"] = stdout.getvalue()
             ret["error"] = repr(e)
             ret["traceback"] = traceback.format_exc()
 
         print(dumps(ret))
+
+
+def _rerender_feedstock(*, timeout):
+    import glob
+    import subprocess
+
+    from conda_forge_tick.os_utils import sync_dirs
+    from conda_forge_tick.rerender_feedstock import rerender_feedstock_local
+
+    with tempfile.TemporaryDirectory() as tmpdir:
+        input_fs_dir = glob.glob("/cf_tick_dir/*-feedstock")
+        assert len(input_fs_dir) == 1, f"expected one feedstock, got {input_fs_dir}"
+        input_fs_dir = input_fs_dir[0]
+        fs_dir = os.path.join(tmpdir, os.path.basename(input_fs_dir))
+        sync_dirs(input_fs_dir, fs_dir, ignore_dot_git=True, update_git=False)
+        if os.path.exists(os.path.join(fs_dir, ".gitignore")):
+            os.remove(os.path.join(fs_dir, ".gitignore"))
+
+        cmds = [
+            ["git", "init", "-b", "main", "."],
+            ["git", "add", "."],
+            ["git", "commit", "-am", "initial commit"],
+        ]
+        for cmd in cmds:
+            subprocess.run(
+                cmd,
+                check=True,
+                cwd=fs_dir,
+                stdout=sys.stderr,
+            )
+
+        if timeout is not None:
+            kwargs = {"timeout": timeout}
+        else:
+            kwargs = {}
+        msg = rerender_feedstock_local(fs_dir, **kwargs)
+
+        # if something changed, copy back the new feedstock
+        if msg is not None:
+            sync_dirs(fs_dir, input_fs_dir, ignore_dot_git=True, update_git=False)
+
+        return {"commit_message": msg}
 
 
 def _get_latest_version(*, attrs, sources):
@@ -287,6 +330,18 @@ def get_latest_version(log_level, existing_feedstock_node_attrs, sources):
         log_level=log_level,
         existing_feedstock_node_attrs=existing_feedstock_node_attrs,
         sources=sources,
+    )
+
+
+@cli.command(name="rerender-feedstock")
+@log_level_option
+@click.option("--timeout", default=None, type=int, help="The timeout for the rerender.")
+def rerender_feedstock(log_level, timeout):
+    return _run_bot_task(
+        _rerender_feedstock,
+        log_level=log_level,
+        existing_feedstock_node_attrs=None,
+        timeout=timeout,
     )
 
 

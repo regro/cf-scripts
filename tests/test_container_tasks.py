@@ -1,4 +1,6 @@
 import copy
+import glob
+import os
 import subprocess
 import tempfile
 
@@ -12,11 +14,15 @@ from conda_forge_tick.lazy_json_backends import (
     lazy_json_override_backends,
 )
 from conda_forge_tick.os_utils import pushd
+from conda_forge_tick.rerender_feedstock import (
+    rerender_feedstock_containerized,
+    rerender_feedstock_local,
+)
 from conda_forge_tick.update_upstream_versions import (
     all_version_sources,
     get_latest_version_containerized,
 )
-from conda_forge_tick.utils import run_container_task
+from conda_forge_tick.utils import parse_meta_yaml_containerized, run_container_task
 
 HAVE_CONTAINERS = (
     subprocess.run(["docker", "--version"], capture_output=True).returncode == 0
@@ -153,3 +159,119 @@ def test_load_feedstock_containerized_mpas_tools():
         assert data["feedstock_name"] == attrs["feedstock_name"]
         assert not data["parsing_error"]
         assert data["raw_meta_yaml"] == attrs["raw_meta_yaml"]
+
+
+@pytest.mark.skipif(not HAVE_CONTAINERS, reason="containers not available")
+def test_parse_meta_yaml_containerized():
+    with (
+        tempfile.TemporaryDirectory() as tmpdir,
+        pushd(tmpdir),
+        lazy_json_override_backends(["github"], use_file_cache=False),
+        LazyJson("node_attrs/conda-smithy.json") as lzj,
+    ):
+        attrs = copy.deepcopy(lzj.data)
+
+        data = parse_meta_yaml_containerized(
+            attrs["raw_meta_yaml"],
+        )
+        assert data["package"]["name"] == "conda-smithy"
+
+
+@pytest.mark.skipif(not HAVE_CONTAINERS, reason="containers not available")
+def test_rerender_feedstock_containerized(capfd):
+    with (
+        tempfile.TemporaryDirectory() as tmpdir_cont,
+        tempfile.TemporaryDirectory() as tmpdir_local,
+    ):
+        assert tmpdir_cont != tmpdir_local
+
+        with pushd(tmpdir_cont):
+            subprocess.run(
+                ["git", "clone", "https://github.com/conda-forge/ngmix-feedstock.git"]
+            )
+            # make sure rerender happens
+            with pushd("ngmix-feedstock"):
+                cmds = [
+                    ["git", "rm", "-f", ".gitignore"],
+                    ["git", "config", "user.email", "conda@conda.conda"],
+                    ["git", "config", "user.name", "conda c. conda"],
+                    ["git", "commit", "-m", "test commit"],
+                ]
+                for cmd in cmds:
+                    subprocess.run(
+                        cmd,
+                        check=True,
+                    )
+
+            try:
+                msg = rerender_feedstock_containerized(
+                    os.path.join(tmpdir_cont, "ngmix-feedstock"),
+                )
+            finally:
+                captured = capfd.readouterr()
+                print(f"out: {captured.out}\nerr: {captured.err}")
+
+            if "git commit -m " in captured.err:
+                assert (
+                    msg is not None
+                ), f"msg: {msg}\nout: {captured.out}\nerr: {captured.err}"
+                assert msg.startswith(
+                    "MNT:"
+                ), f"msg: {msg}\nout: {captured.out}\nerr: {captured.err}"
+            else:
+                assert (
+                    msg is None
+                ), f"msg: {msg}\nout: {captured.out}\nerr: {captured.err}"
+
+        with pushd(tmpdir_local):
+            subprocess.run(
+                ["git", "clone", "https://github.com/conda-forge/ngmix-feedstock.git"]
+            )
+            # make sure rerender happens
+            with pushd("ngmix-feedstock"):
+                cmds = [
+                    ["git", "rm", "-f", ".gitignore"],
+                    ["git", "config", "user.email", "conda@conda.conda"],
+                    ["git", "config", "user.name", "conda c. conda"],
+                    ["git", "commit", "-m", "test commit"],
+                ]
+                for cmd in cmds:
+                    subprocess.run(
+                        cmd,
+                        check=True,
+                    )
+
+            try:
+                local_msg = rerender_feedstock_local(
+                    os.path.join(tmpdir_local, "ngmix-feedstock"),
+                )
+            finally:
+                local_captured = capfd.readouterr()
+                print(f"out: {local_captured.out}\nerr: {local_captured.err}")
+
+        assert msg == local_msg
+
+        # now compare files
+        cont_fnames = set(
+            glob.glob(os.path.join(tmpdir_cont, "**", "*"), recursive=True)
+        )
+        local_fnames = set(
+            glob.glob(os.path.join(tmpdir_local, "**", "*"), recursive=True)
+        )
+
+        rel_cont_fnames = {os.path.relpath(fname, tmpdir_cont) for fname in cont_fnames}
+        rel_local_fnames = {
+            os.path.relpath(fname, tmpdir_local) for fname in local_fnames
+        }
+        assert (
+            rel_cont_fnames == rel_local_fnames
+        ), f"{rel_cont_fnames} != {rel_local_fnames}"
+
+        for cfname in cont_fnames:
+            lfname = os.path.join(tmpdir_local, os.path.relpath(cfname, tmpdir_cont))
+            if not os.path.isdir(cfname):
+                with open(cfname, "rb") as f:
+                    cdata = f.read()
+                with open(lfname, "rb") as f:
+                    ldata = f.read()
+                assert cdata == ldata, f"{cfname} not equal to local"
