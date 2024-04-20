@@ -185,21 +185,6 @@ def rerender_feedstock_local(feedstock_dir, timeout=900):
         pushd(feedstock_dir),
         tempfile.TemporaryDirectory() as tmpdir,
     ):
-        # ret = subprocess.run(
-        #     [
-        #         "conda",
-        #         "smithy",
-        #         "rerender",
-        #         "--no-check-uptodate",
-        #         "--temporary-directory",
-        #         tmpdir,
-        #     ],
-        #     stdout=subprocess.PIPE,
-        #     stderr=subprocess.STDOUT,
-        #     text=True,
-        #     timeout=timeout,
-        # )
-        # print(ret.stdout, flush=True, file=sys.stderr)
         ret = _subprocess_run_tee(
             [
                 "conda",
