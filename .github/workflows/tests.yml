@@ -79,9 +79,8 @@ jobs:
         run: |
           export TEST_BOT_TOKEN_VAL=unpassword
           export BOT_TOKEN=${TEST_BOT_TOKEN_VAL}
-          # FIXME
           pytest \
-            -vvsx \
+            -v \
             --cov=conda_forge_tick \
             --cov=tests \
             --cov-config=.coveragerc \
@@ -89,8 +88,6 @@ jobs:
             --cov-report=xml \
             --durations=10 \
             --ignore=tests/model \
-            -k test_rerender_feedstock_containerized \
-            --log-cli-level=DEBUG \
             tests
         env:
           MONGODB_CONNECTION_STRING: "mongodb://127.0.0.1:27017/?directConnection=true&serverSelectionTimeoutMS=2000"
