@@ -90,7 +90,7 @@ CB_CONFIG_PINNING = dict(
 
 DEFAULT_GRAPH_FILENAME = "graph.json"
 
-CONTAINER_ARG_CHAR_LIMIT = 8000
+DEFAULT_CONTAINER_TMPFS_SIZE_MB = 100
 
 
 def get_default_container_name():
@@ -107,7 +107,9 @@ def get_default_container_name():
     return cname
 
 
-def get_default_container_run_args(tmpfs_size_mb: int = 100):
+def get_default_container_run_args(
+    tmpfs_size_mb: int = DEFAULT_CONTAINER_TMPFS_SIZE_MB,
+):
     """Get the default arguments for running a container.
 
     Parameters
@@ -148,7 +150,7 @@ def run_container_task(
     name: str,
     args: Iterable[str],
     json_loads: Optional[Callable] = json.loads,
-    tmpfs_size_mb: int = 100,
+    tmpfs_size_mb: int = DEFAULT_CONTAINER_TMPFS_SIZE_MB,
     input: Optional[str] = None,
     mount_dir: Optional[str] = None,
     mount_readonly: bool = True,
