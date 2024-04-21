@@ -14,6 +14,7 @@ from conda_forge_tick.lazy_json_backends import (
     lazy_json_override_backends,
 )
 from conda_forge_tick.os_utils import pushd
+from conda_forge_tick.provide_source_code import provide_source_code_containerized
 from conda_forge_tick.rerender_feedstock import (
     rerender_feedstock_containerized,
     rerender_feedstock_local,
@@ -277,3 +278,20 @@ def test_rerender_feedstock_containerized(capfd):
                 with open(lfname, "rb") as f:
                     ldata = f.read()
                 assert cdata == ldata, f"{cfname} not equal to local"
+
+
+@pytest.mark.skipif(not HAVE_CONTAINERS, reason="containers not available")
+def test_provide_source_code_containerized():
+    with (
+        tempfile.TemporaryDirectory() as tmpdir,
+        pushd(tmpdir),
+    ):
+        subprocess.run(
+            ["git", "clone", "https://github.com/conda-forge/ngmix-feedstock.git"]
+        )
+
+        with provide_source_code_containerized("ngmix-feedstock/recipe") as source_dir:
+            assert os.path.exists(source_dir)
+            assert os.path.isdir(source_dir)
+            assert "ngmix" in os.listdir(source_dir)
+            assert "setup.py" in os.listdir(source_dir)

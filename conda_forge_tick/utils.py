@@ -90,7 +90,7 @@ CB_CONFIG_PINNING = dict(
 
 DEFAULT_GRAPH_FILENAME = "graph.json"
 
-CONTAINER_ARG_CHAR_LIMIT = 8000
+DEFAULT_CONTAINER_TMPFS_SIZE_MB = 100
 
 
 def get_default_container_name():
@@ -107,7 +107,9 @@ def get_default_container_name():
     return cname
 
 
-def get_default_container_run_args(tmpfs_size_mb: int = 10):
+def get_default_container_run_args(
+    tmpfs_size_mb: int = DEFAULT_CONTAINER_TMPFS_SIZE_MB,
+):
     """Get the default arguments for running a container.
 
     Parameters
@@ -148,7 +150,7 @@ def run_container_task(
     name: str,
     args: Iterable[str],
     json_loads: Optional[Callable] = json.loads,
-    tmpfs_size_mb: int = 10,
+    tmpfs_size_mb: int = DEFAULT_CONTAINER_TMPFS_SIZE_MB,
     input: Optional[str] = None,
     mount_dir: Optional[str] = None,
     mount_readonly: bool = True,
@@ -882,28 +884,6 @@ def as_iterable(iterable_or_scalar):
         return iterable_or_scalar
     else:
         return (iterable_or_scalar,)
-
-
-def _get_source_code(recipe_dir):
-    try:
-        from conda_build.api import render
-        from conda_build.config import Config
-        from conda_build.source import provide
-
-        # Use conda build to do all the downloading/extracting bits
-        md = render(
-            recipe_dir,
-            config=Config(**CB_CONFIG),
-            finalize=False,
-            bypass_env_check=True,
-        )
-        if not md:
-            return None
-        md = md[0][0]
-        # provide source dir
-        return provide(md)
-    except (SystemExit, Exception) as e:
-        raise RuntimeError("conda build src exception:" + str(e))
 
 
 def sanitize_string(instr: str) -> str:

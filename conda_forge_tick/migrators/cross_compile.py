@@ -5,7 +5,8 @@ from typing import Any
 
 from conda_forge_tick.migrators.core import MiniMigrator
 from conda_forge_tick.os_utils import pushd
-from conda_forge_tick.utils import _get_source_code, yaml_safe_dump, yaml_safe_load
+from conda_forge_tick.provide_source_code import provide_source_code
+from conda_forge_tick.utils import yaml_safe_dump, yaml_safe_load
 
 if typing.TYPE_CHECKING:
     from ..migrators_types import AttrsTypedDict
@@ -38,75 +39,75 @@ class UpdateConfigSubGuessMigrator(CrossCompilationMigratorBase):
         ):
             return
         try:
-            cb_work_dir = _get_source_code(recipe_dir)
-        except RuntimeError:
-            return
-        if cb_work_dir is None:
-            return
-        directories = set()
-        with pushd(cb_work_dir):
-            for dp, dn, fn in os.walk("."):
-                for f in fn:
-                    if f != "config.sub":
-                        continue
-                    if os.path.exists(os.path.join(dp, "config.guess")):
-                        directories.add(dp)
+            with provide_source_code(recipe_dir) as cb_work_dir:
+                if cb_work_dir is None:
+                    return
+                directories = set()
+                with pushd(cb_work_dir):
+                    for dp, dn, fn in os.walk("."):
+                        for f in fn:
+                            if f != "config.sub":
+                                continue
+                            if os.path.exists(os.path.join(dp, "config.guess")):
+                                directories.add(dp)
 
-        if not directories:
-            return
+                if not directories:
+                    return
 
-        with pushd(recipe_dir):
-            if not os.path.exists("build.sh"):
-                return
-            with open("build.sh") as f:
-                lines = list(f.readlines())
-                for line in lines:
-                    if line.strip().startswith(
-                        "cp $BUILD_PREFIX/share/gnuconfig",
-                    ):
+                with pushd(recipe_dir):
+                    if not os.path.exists("build.sh"):
                         return
-                    if line.strip().startswith(
-                        "cp $BUILD_PREFIX/share/libtool/build-aux/config",
-                    ):
-                        return
-                    if line.strip().startswith("autoreconf"):
-                        for word in line.split(" "):
-                            if word == "--force":
-                                return
-                            if (
-                                word.startswith("-")
-                                and not word.startswith("--")
-                                and "f" in word
+                    with open("build.sh") as f:
+                        lines = list(f.readlines())
+                        for line in lines:
+                            if line.strip().startswith(
+                                "cp $BUILD_PREFIX/share/gnuconfig",
                             ):
                                 return
-                    if line.strip().startswith("./autogen.sh"):
-                        return
-                insert_at = 0
-                if lines[0].startswith("#"):
-                    insert_at = 1
-                for d in directories:
-                    lines.insert(
-                        insert_at,
-                        f"cp $BUILD_PREFIX/share/gnuconfig/config.* {d}\n",
-                    )
-                lines.insert(
-                    insert_at,
-                    "# Get an updated config.sub and config.guess\n",
-                )
-            with open("build.sh", "w") as f:
-                f.write("".join(lines))
+                            if line.strip().startswith(
+                                "cp $BUILD_PREFIX/share/libtool/build-aux/config",
+                            ):
+                                return
+                            if line.strip().startswith("autoreconf"):
+                                for word in line.split(" "):
+                                    if word == "--force":
+                                        return
+                                    if (
+                                        word.startswith("-")
+                                        and not word.startswith("--")
+                                        and "f" in word
+                                    ):
+                                        return
+                            if line.strip().startswith("./autogen.sh"):
+                                return
+                        insert_at = 0
+                        if lines[0].startswith("#"):
+                            insert_at = 1
+                        for d in directories:
+                            lines.insert(
+                                insert_at,
+                                f"cp $BUILD_PREFIX/share/gnuconfig/config.* {d}\n",
+                            )
+                        lines.insert(
+                            insert_at,
+                            "# Get an updated config.sub and config.guess\n",
+                        )
+                    with open("build.sh", "w") as f:
+                        f.write("".join(lines))
 
-            with open("meta.yaml") as f:
-                lines = f.readlines()
-            for i, line in enumerate(lines):
-                if line.strip().startswith("- {{ compiler"):
-                    new_line = " " * (len(line) - len(line.lstrip()))
-                    new_line += "- gnuconfig  # [unix]\n"
-                    lines.insert(i, new_line)
-                    break
+                    with open("meta.yaml") as f:
+                        lines = f.readlines()
+                    for i, line in enumerate(lines):
+                        if line.strip().startswith("- {{ compiler"):
+                            new_line = " " * (len(line) - len(line.lstrip()))
+                            new_line += "- gnuconfig  # [unix]\n"
+                            lines.insert(i, new_line)
+                            break
 
-            with open("meta.yaml", "w") as f:
-                f.write("".join(lines))
+                    with open("meta.yaml", "w") as f:
+                        f.write("".join(lines))
+        except RuntimeError:
+            return
 
 
 class GuardTestingMigrator(CrossCompilationMigratorBase):

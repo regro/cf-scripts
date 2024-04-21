@@ -125,6 +125,37 @@ def _run_bot_task(func, *, log_level, existing_feedstock_node_attrs, **kwargs):
         print(dumps(ret))
 
 
+def _provide_source_code():
+    from conda_forge_tick.os_utils import chmod_plus_rwX, sync_dirs
+    from conda_forge_tick.provide_source_code import provide_source_code_local
+
+    logger = logging.getLogger("conda_forge_tick.container")
+
+    with tempfile.TemporaryDirectory() as tmpdir:
+        input_recipe_dir = "/cf_tick_dir/recipe_dir"
+        logger.info(
+            f"input container recipe dir {input_recipe_dir}: {os.listdir(input_recipe_dir)}"
+        )
+
+        recipe_dir = os.path.join(tmpdir, os.path.basename(input_recipe_dir))
+        sync_dirs(input_recipe_dir, recipe_dir, ignore_dot_git=True, update_git=False)
+        logger.info(
+            f"copied container recipe dir {recipe_dir}: {os.listdir(recipe_dir)}"
+        )
+
+        output_source_code = "/cf_tick_dir/source_dir"
+        os.makedirs(output_source_code, exist_ok=True)
+
+        with provide_source_code_local(recipe_dir) as cb_work_dir:
+            chmod_plus_rwX(cb_work_dir, recursive=True, skip_on_error=True)
+            sync_dirs(
+                cb_work_dir, output_source_code, ignore_dot_git=True, update_git=False
+            )
+            chmod_plus_rwX(output_source_code, recursive=True, skip_on_error=True)
+
+        return dict()
+
+
 def _rerender_feedstock(*, timeout):
     import glob
     import subprocess
@@ -354,6 +385,16 @@ def rerender_feedstock(log_level, timeout):
         log_level=log_level,
         existing_feedstock_node_attrs=None,
         timeout=timeout,
+    )
+
+
+@cli.command(name="provide-source-code")
+@log_level_option
+def provide_source_code(log_level):
+    return _run_bot_task(
+        _provide_source_code,
+        log_level=log_level,
+        existing_feedstock_node_attrs=None,
     )
 
 
