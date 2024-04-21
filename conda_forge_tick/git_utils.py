@@ -336,12 +336,7 @@ def get_repo(
             time.sleep(5)
 
         # sync the default branches if needed
-        with sensitive_env() as env:
-            _sync_default_branches(
-                feedstock_reponame,
-                gh_username,
-                env["BOT_TOKEN"],
-            )
+        _sync_default_branches(feedstock_reponame)
 
     feedstock_dir = os.path.join(GIT_CLONE_DIR, fctx.package_name + "-feedstock")
 
@@ -357,24 +352,15 @@ def get_repo(
         return False, False
 
 
-def _sync_default_branches(reponame, forked_user, token):
-    gh = github.Github(token)
+def _sync_default_branches(reponame):
+    gh = github_client()
+    forked_user = gh.get_user().login
     default_branch = gh.get_repo(f"conda-forge/{reponame}").default_branch
     forked_default_branch = gh.get_repo(f"{forked_user}/{reponame}").default_branch
     if default_branch != forked_default_branch:
         print("Fork's default branch doesn't match upstream, syncing...")
-        r = requests.post(
-            f"https://api.github.com/repos/{forked_user}/"
-            f"{reponame}/branches/{forked_default_branch}/rename",
-            json={"new_name": default_branch},
-            headers={
-                "Authorization": f"token {token}",
-                "Content-Type": "application/json",
-                "Accept": "application/vnd.github.v3+json",
-            },
-        )
-        if r.status_code != 404:
-            r.raise_for_status()
+        forked_repo = gh.get_repo(f"{forked_user}/{reponame}")
+        forked_repo.rename_branch(forked_default_branch, default_branch)
 
         # sleep to wait for branch name change
         time.sleep(5)
