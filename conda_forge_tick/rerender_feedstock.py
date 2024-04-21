@@ -6,7 +6,7 @@ import tempfile
 import time
 from threading import Thread
 
-from conda_forge_tick.os_utils import pushd, sync_dirs
+from conda_forge_tick.os_utils import chmod_plus_rw, pushd, sync_dirs
 from conda_forge_tick.utils import run_container_task
 
 logger = logging.getLogger(__name__)
@@ -77,8 +77,7 @@ def rerender_feedstock_containerized(feedstock_dir, timeout=900):
             feedstock_dir, tmp_feedstock_dir, ignore_dot_git=True, update_git=False
         )
 
-        os.chmod(tmpdir, 0o777)
-        subprocess.run(["chmod", "-R", "777", tmpdir], check=True, capture_output=True)
+        chmod_plus_rw(tmpdir, recursive=True)
 
         logger.info(f"host feedstock dir {feedstock_dir}: {os.listdir(feedstock_dir)}")
         logger.info(

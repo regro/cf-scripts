@@ -114,3 +114,19 @@ def sync_dirs(source_dir, dest_dir, ignore_dot_git=True, update_git=True):
                     capture_output=True,
                     cwd=dest_dir,
                 )
+
+
+def _chmod_plus_rw(file_or_dir):
+    st = os.stat(file_or_dir)
+    os.chmod(file_or_dir, st.st_mode | 0o666)
+
+
+def chmod_plus_rw(file_or_dir, recursive=False):
+    if recursive and os.path.isdir(file_or_dir):
+        for root, dirs, files in os.walk(file_or_dir):
+            for d in dirs:
+                _chmod_plus_rw(os.path.join(root, d))
+            for f in files:
+                _chmod_plus_rw(os.path.join(root, f))
+    else:
+        _chmod_plus_rw(file_or_dir)

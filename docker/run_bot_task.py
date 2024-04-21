@@ -129,7 +129,7 @@ def _rerender_feedstock(*, timeout):
     import glob
     import subprocess
 
-    from conda_forge_tick.os_utils import sync_dirs
+    from conda_forge_tick.os_utils import chmod_plus_rw, sync_dirs
     from conda_forge_tick.rerender_feedstock import rerender_feedstock_local
 
     logger = logging.getLogger("conda_forge_tick.container")
@@ -166,6 +166,8 @@ def _rerender_feedstock(*, timeout):
         else:
             kwargs = {}
         msg = rerender_feedstock_local(fs_dir, **kwargs)
+
+        chmod_plus_rw(tmpdir, recursive=True)
 
         # if something changed, copy back the new feedstock
         if msg is not None:
