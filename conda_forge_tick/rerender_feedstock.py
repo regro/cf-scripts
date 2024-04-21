@@ -1,5 +1,6 @@
 import logging
 import os
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -98,6 +99,11 @@ def rerender_feedstock_containerized(feedstock_dir, timeout=900):
                 ignore_dot_git=True,
                 update_git=True,
             )
+
+        # When tempfile removes tempdir, it tries to reset permissions on subdirs.
+        # This causes a permission error since the subdirs were made by the user
+        # in the container. So we remove the subdir we made before cleaning up.
+        shutil.rmtree(tmp_feedstock_dir)
 
     return data["commit_message"]
 
