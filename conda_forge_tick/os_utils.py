@@ -127,6 +127,15 @@ def _chmod_plus_rwx(file_or_dir):
 
 
 def chmod_plus_rwX(file_or_dir, recursive=False):
+    """chmod +rwX a file or directory.
+
+    Parameters
+    ----------
+    file_or_dir : str
+        The file or directory to chmod.
+    recursive : bool, optional
+        Whether to chmod recursively, by default False.
+    """
     if os.path.isdir(file_or_dir):
         _chmod_plus_rwx(file_or_dir)
         if recursive:
