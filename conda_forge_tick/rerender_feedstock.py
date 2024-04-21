@@ -80,8 +80,8 @@ def rerender_feedstock_containerized(feedstock_dir, timeout=900):
 
         chmod_plus_rwX(tmpdir, recursive=True)
 
-        logger.info(f"host feedstock dir {feedstock_dir}: {os.listdir(feedstock_dir)}")
-        logger.info(
+        logger.debug(f"host feedstock dir {feedstock_dir}: {os.listdir(feedstock_dir)}")
+        logger.debug(
             f"copied host feedstock dir {tmp_feedstock_dir}: {os.listdir(tmp_feedstock_dir)}"
         )
 

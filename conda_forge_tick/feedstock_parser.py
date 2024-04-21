@@ -13,7 +13,6 @@ from typing import Optional, Set, Union
 import requests
 import yaml
 from requests.models import Response
-from xonsh.lib.collections import ChainDB, _convert_to_dict
 
 if typing.TYPE_CHECKING:
     from mypy_extensions import TestTypedDict
@@ -224,6 +223,8 @@ def populate_feedstock_attributes(
     If the return is bad hand the response itself in so that it can be parsed
     for meaning.
     """
+    from xonsh.lib.collections import ChainDB, _convert_to_dict
+
     sub_graph.update({"feedstock_name": name, "parsing_error": False, "branch": "main"})
 
     if mark_not_archived:
