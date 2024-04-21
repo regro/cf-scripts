@@ -38,7 +38,7 @@ def provide_source_code(recipe_dir, use_container=True):
 
 
 @contextmanager
-def provide_source_code_containerized(recipe_dir, use_container=True):
+def provide_source_code_containerized(recipe_dir):
     """Context manager to provide the source code for a recipe.
 
     **This function runs recipe parsing in a container and then provides
