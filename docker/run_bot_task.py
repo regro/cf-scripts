@@ -140,7 +140,7 @@ def _provide_source_code():
         recipe_dir = os.path.join(tmpdir, os.path.basename(input_recipe_dir))
         sync_dirs(input_recipe_dir, recipe_dir, ignore_dot_git=True, update_git=False)
         logger.info(
-            f"copied container feedstock dir {recipe_dir}: {os.listdir(recipe_dir)}"
+            f"copied container recipe dir {recipe_dir}: {os.listdir(recipe_dir)}"
         )
 
         output_source_code = "/cf_tick_dir/source_dir"
