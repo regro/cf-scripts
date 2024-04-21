@@ -133,13 +133,13 @@ def _provide_source_code():
 
     with tempfile.TemporaryDirectory() as tmpdir:
         input_recipe_dir = "/cf_tick_dir/recipe_dir"
-        logger.info(
+        logger.debug(
             f"input container recipe dir {input_recipe_dir}: {os.listdir(input_recipe_dir)}"
         )
 
         recipe_dir = os.path.join(tmpdir, os.path.basename(input_recipe_dir))
         sync_dirs(input_recipe_dir, recipe_dir, ignore_dot_git=True, update_git=False)
-        logger.info(
+        logger.debug(
             f"copied container recipe dir {recipe_dir}: {os.listdir(recipe_dir)}"
         )
 
@@ -169,7 +169,7 @@ def _rerender_feedstock(*, timeout):
         input_fs_dir = glob.glob("/cf_tick_dir/*-feedstock")
         assert len(input_fs_dir) == 1, f"expected one feedstock, got {input_fs_dir}"
         input_fs_dir = input_fs_dir[0]
-        logger.info(
+        logger.debug(
             f"input container feedstock dir {input_fs_dir}: {os.listdir(input_fs_dir)}"
         )
 
@@ -177,20 +177,30 @@ def _rerender_feedstock(*, timeout):
         sync_dirs(input_fs_dir, fs_dir, ignore_dot_git=True, update_git=False)
         if os.path.exists(os.path.join(fs_dir, ".gitignore")):
             os.remove(os.path.join(fs_dir, ".gitignore"))
-        logger.info(f"copied container feedstock dir {fs_dir}: {os.listdir(fs_dir)}")
+        logger.debug(f"copied container feedstock dir {fs_dir}: {os.listdir(fs_dir)}")
 
-        cmds = [
-            ["git", "init", "-b", "main", "."],
-            ["git", "add", "."],
-            ["git", "commit", "-am", "initial commit"],
-        ]
-        for cmd in cmds:
-            subprocess.run(
-                cmd,
-                check=True,
-                cwd=fs_dir,
-                stdout=sys.stderr,
+        try:
+            _output = ""
+            cmds = [
+                ["git", "init", "-b", "main", "."],
+                ["git", "add", "."],
+                ["git", "commit", "-am", "initial commit"],
+            ]
+            for cmd in cmds:
+                gitret = subprocess.run(
+                    cmd,
+                    cwd=fs_dir,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.STDOUT,
+                    text=True,
+                )
+                _output += gitret.stdout
+                gitret.check_returncode()
+        except Exception as e:
+            logger.error(
+                f"git repo init failed for rerender\noutput: {_output}", exc_info=e
             )
+            raise e
 
         if timeout is not None:
             kwargs = {"timeout": timeout}

@@ -721,6 +721,7 @@ def setup_logging(level: str = "INFO") -> None:
         level=level.upper(),
     )
     logging.getLogger("urllib3").setLevel(logging.INFO)
+    logging.getLogger("github3").setLevel(logging.WARNING)
 
 
 # TODO: upstream this into networkx?
