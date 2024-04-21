@@ -107,7 +107,7 @@ def get_default_container_name():
     return cname
 
 
-def get_default_container_run_args(tmpfs_size_mb: int = 10):
+def get_default_container_run_args(tmpfs_size_mb: int = 100):
     """Get the default arguments for running a container.
 
     Parameters
