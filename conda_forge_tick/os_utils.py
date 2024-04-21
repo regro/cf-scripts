@@ -121,12 +121,19 @@ def _chmod_plus_rw(file_or_dir):
     os.chmod(file_or_dir, st.st_mode | 0o666)
 
 
-def chmod_plus_rw(file_or_dir, recursive=False):
-    if recursive and os.path.isdir(file_or_dir):
-        for root, dirs, files in os.walk(file_or_dir):
-            for d in dirs:
-                _chmod_plus_rw(os.path.join(root, d))
-            for f in files:
-                _chmod_plus_rw(os.path.join(root, f))
+def _chmod_plus_rwx(file_or_dir):
+    st = os.stat(file_or_dir)
+    os.chmod(file_or_dir, st.st_mode | 0o777)
+
+
+def chmod_plus_rwX(file_or_dir, recursive=False):
+    if os.path.isdir(file_or_dir):
+        _chmod_plus_rwx(file_or_dir)
+        if recursive:
+            for root, dirs, files in os.walk(file_or_dir):
+                for d in dirs:
+                    _chmod_plus_rwx(os.path.join(root, d))
+                for f in files:
+                    _chmod_plus_rw(os.path.join(root, f))
     else:
         _chmod_plus_rw(file_or_dir)
