@@ -14,9 +14,9 @@ from conda_forge_tick.feedstock_parser import load_feedstock
 from conda_forge_tick.lazy_json_backends import CF_TICK_GRAPH_GITHUB_BACKEND_BASE_URL
 from conda_forge_tick.make_graph import COMPILER_STUBS_WITH_STRONG_EXPORTS
 from conda_forge_tick.os_utils import pushd
+from conda_forge_tick.provide_source_code import provide_source_code
 from conda_forge_tick.pypi_name_mapping import _KNOWN_NAMESPACE_PACKAGES
 from conda_forge_tick.recipe_parser import CONDA_SELECTOR, CondaMetaYAML
-from conda_forge_tick.utils import _get_source_code
 
 try:
     from grayskull.main import create_python_recipe
@@ -78,13 +78,14 @@ del r
 
 
 def extract_deps_from_source(recipe_dir):
-    cb_work_dir = _get_source_code(recipe_dir)
+    with (
+        provide_source_code(recipe_dir) as cb_work_dir,
+        pushd(cb_work_dir),
+    ):
+        logger.debug("cb_work_dir: %s", cb_work_dir)
+        logger.debug("BUILTINS: %s", BUILTINS)
+        logger.debug("DEPFINDER_IGNORE: %s", DEPFINDER_IGNORE)
 
-    logger.debug("cb_work_dir: %s", cb_work_dir)
-    logger.debug("BUILTINS: %s", BUILTINS)
-    logger.debug("DEPFINDER_IGNORE: %s", DEPFINDER_IGNORE)
-
-    with pushd(cb_work_dir):
         pkg_map = simple_import_to_pkg_map(
             cb_work_dir,
             builtins=BUILTINS,

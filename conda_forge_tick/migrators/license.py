@@ -9,9 +9,9 @@ from typing import Any
 from rever.tools import replace_in_file
 
 from conda_forge_tick.migrators.core import MiniMigrator
-from conda_forge_tick.os_utils import eval_cmd, pushd
+from conda_forge_tick.os_utils import pushd
+from conda_forge_tick.provide_source_code import provide_source_code
 from conda_forge_tick.recipe_parser import CondaMetaYAML
-from conda_forge_tick.utils import _get_source_code
 
 try:
     from conda_smithy.lint_recipe import NEEDED_FAMILIES
@@ -261,57 +261,61 @@ class LicenseMigrator(MiniMigrator):
             return
 
         try:
-            cb_work_dir = _get_source_code(recipe_dir)
+            with provide_source_code(recipe_dir) as cb_work_dir:
+                if cb_work_dir is None:
+                    return
+                with pushd(cb_work_dir):
+                    # look for a license file
+                    license_files = [
+                        s
+                        for s in os.listdir(".")
+                        if any(
+                            s.lower().startswith(k)
+                            for k in ["license", "copying", "copyright"]
+                        )
+                    ]
+
+                # if there is a license file in tarball update things
+                if license_files:
+                    with pushd(recipe_dir):
+                        """BSD 3-Clause License
+                        Copyright (c) 2017, Anthony Scopatz
+                        Copyright (c) 2018, The Regro Developers
+                        All rights reserved."""
+                        with open("meta.yaml") as f:
+                            raw = f.read()
+                        lines = raw.splitlines()
+                        ptn = re.compile(r"(\s*?)" + "license:")
+                        for i, line in enumerate(lines):
+                            m = ptn.match(line)
+                            if m is not None:
+                                break
+                        # TODO: Sketchy type assertion
+                        assert m is not None
+                        ws = m.group(1)
+                        if len(license_files) == 1:
+                            replace_in_file(
+                                line,
+                                line
+                                + "\n"
+                                + ws
+                                + f"license_file: {list(license_files)[0]}",
+                                "meta.yaml",
+                            )
+                        else:
+                            # note that this white space is not perfect but works for
+                            # most of the situations
+                            replace_in_file(
+                                line,
+                                line
+                                + "\n"
+                                + ws
+                                + "license_file: \n"
+                                + "".join(f"{ws * 2}- {z} \n" for z in license_files),
+                                "meta.yaml",
+                            )
+
+                # if license not in tarball do something!
+                # check if github in dev url, then use that to get the license
         except Exception:
             return
-        if cb_work_dir is None:
-            return
-        with pushd(cb_work_dir):
-            # look for a license file
-            license_files = [
-                s
-                for s in os.listdir(".")
-                if any(
-                    s.lower().startswith(k) for k in ["license", "copying", "copyright"]
-                )
-            ]
-        eval_cmd(["rm", "-r", cb_work_dir])
-        # if there is a license file in tarball update things
-        if license_files:
-            with pushd(recipe_dir):
-                """BSD 3-Clause License
-                Copyright (c) 2017, Anthony Scopatz
-                Copyright (c) 2018, The Regro Developers
-                All rights reserved."""
-                with open("meta.yaml") as f:
-                    raw = f.read()
-                lines = raw.splitlines()
-                ptn = re.compile(r"(\s*?)" + "license:")
-                for i, line in enumerate(lines):
-                    m = ptn.match(line)
-                    if m is not None:
-                        break
-                # TODO: Sketchy type assertion
-                assert m is not None
-                ws = m.group(1)
-                if len(license_files) == 1:
-                    replace_in_file(
-                        line,
-                        line + "\n" + ws + f"license_file: {list(license_files)[0]}",
-                        "meta.yaml",
-                    )
-                else:
-                    # note that this white space is not perfect but works for
-                    # most of the situations
-                    replace_in_file(
-                        line,
-                        line
-                        + "\n"
-                        + ws
-                        + "license_file: \n"
-                        + "".join(f"{ws * 2}- {z} \n" for z in license_files),
-                        "meta.yaml",
-                    )
-
-        # if license not in tarball do something!
-        # check if github in dev url, then use that to get the license

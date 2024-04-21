@@ -1,11 +1,10 @@
 import logging
 import os
-import subprocess
 import tempfile
 from contextlib import contextmanager
 
-from conda_forge_tick.os_utils import sync_dirs
-from conda_forge_tick.utils import run_container_task, CB_CONFIG
+from conda_forge_tick.os_utils import sync_dirs, chmod_plus_rwX
+from conda_forge_tick.utils import CB_CONFIG, run_container_task
 
 logger = logging.getLogger(__name__)
 
@@ -56,12 +55,9 @@ def provide_source_code_containerized(recipe_dir, use_container=True):
     """
     with tempfile.TemporaryDirectory() as tmpdir:
         tmp_recipe_dir = os.path.join(tmpdir, "recipe_dir")
-        sync_dirs(
-            recipe_dir, tmp_recipe_dir, ignore_dot_git=True, update_git=False
-        )
+        sync_dirs(recipe_dir, tmp_recipe_dir, ignore_dot_git=True, update_git=False)
 
-        os.chmod(tmpdir, 0o777)
-        subprocess.run(["chmod", "-R", "777", tmpdir], check=True, capture_output=True)
+        chmod_plus_rwX(tmpdir)
 
         logger.info(f"host recipe dir {recipe_dir}: {os.listdir(recipe_dir)}")
         logger.info(
