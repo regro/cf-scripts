@@ -88,7 +88,6 @@ jobs:
             --cov-report=xml \
             --durations=10 \
             --ignore=tests/model \
-            -k test_rerender_feedstock_containerized \
             tests
         env:
           MONGODB_CONNECTION_STRING: "mongodb://127.0.0.1:27017/?directConnection=true&serverSelectionTimeoutMS=2000"
