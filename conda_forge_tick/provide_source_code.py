@@ -1,9 +1,10 @@
 import logging
 import os
+import shutil
 import tempfile
 from contextlib import contextmanager
 
-from conda_forge_tick.os_utils import sync_dirs, chmod_plus_rwX
+from conda_forge_tick.os_utils import chmod_plus_rwX, sync_dirs
 from conda_forge_tick.utils import CB_CONFIG, run_container_task
 
 logger = logging.getLogger(__name__)
@@ -64,6 +65,8 @@ def provide_source_code_containerized(recipe_dir, use_container=True):
             f"copied host recipe dir {tmp_recipe_dir}: {os.listdir(tmp_recipe_dir)}"
         )
 
+        tmp_source_dir = os.path.join(tmpdir, "source_dir")
+
         run_container_task(
             "provide-source-code",
             [],
@@ -71,7 +74,13 @@ def provide_source_code_containerized(recipe_dir, use_container=True):
             mount_dir=tmpdir,
         )
 
-        yield os.path.join(tmpdir, "source_dir")
+        yield tmp_source_dir
+
+        # When tempfile removes tempdir, it tries to reset permissions on subdirs.
+        # This causes a permission error since the subdirs were made by the user
+        # in the container. So we remove the subdir we made before cleaning up.
+        shutil.rmtree(tmp_recipe_dir)
+        shutil.rmtree(tmp_source_dir)
 
 
 @contextmanager
