@@ -193,6 +193,7 @@ def test_rerender_feedstock_containerized(capfd):
             with pushd("ngmix-feedstock"):
                 cmds = [
                     ["git", "rm", "-f", ".gitignore"],
+                    ["git", "rm", "-rf", ".scripts"],
                     ["git", "config", "user.email", "conda@conda.conda"],
                     ["git", "config", "user.name", "conda c. conda"],
                     ["git", "commit", "-m", "test commit"],
@@ -231,6 +232,7 @@ def test_rerender_feedstock_containerized(capfd):
             with pushd("ngmix-feedstock"):
                 cmds = [
                     ["git", "rm", "-f", ".gitignore"],
+                    ["git", "rm", "-rf", ".scripts"],
                     ["git", "config", "user.email", "conda@conda.conda"],
                     ["git", "config", "user.name", "conda c. conda"],
                     ["git", "commit", "-m", "test commit"],
