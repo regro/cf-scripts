@@ -116,17 +116,25 @@ def sync_dirs(source_dir, dest_dir, ignore_dot_git=True, update_git=True):
                 )
 
 
-def _chmod_plus_rw(file_or_dir):
-    st = os.stat(file_or_dir)
-    os.chmod(file_or_dir, st.st_mode | 0o666)
+def _chmod_plus_rw(file_or_dir, skip_on_error=False):
+    try:
+        st = os.stat(file_or_dir)
+        os.chmod(file_or_dir, st.st_mode | 0o666)
+    except Exception as e:
+        if not skip_on_error:
+            raise e
 
 
-def _chmod_plus_rwx(file_or_dir):
-    st = os.stat(file_or_dir)
-    os.chmod(file_or_dir, st.st_mode | 0o777)
+def _chmod_plus_rwx(file_or_dir, skip_on_error=False):
+    try:
+        st = os.stat(file_or_dir)
+        os.chmod(file_or_dir, st.st_mode | 0o777)
+    except Exception as e:
+        if not skip_on_error:
+            raise e
 
 
-def chmod_plus_rwX(file_or_dir, recursive=False):
+def chmod_plus_rwX(file_or_dir, recursive=False, skip_on_error=False):
     """chmod +rwX a file or directory.
 
     Parameters
@@ -135,14 +143,16 @@ def chmod_plus_rwX(file_or_dir, recursive=False):
         The file or directory to chmod.
     recursive : bool, optional
         Whether to chmod recursively, by default False.
+    skip_on_error : bool, optional
+        Whether to skip files where chmod fails or to raise. Default is False.
     """
     if os.path.isdir(file_or_dir):
-        _chmod_plus_rwx(file_or_dir)
+        _chmod_plus_rwx(file_or_dir, skip_on_error=skip_on_error)
         if recursive:
             for root, dirs, files in os.walk(file_or_dir):
                 for d in dirs:
-                    _chmod_plus_rwx(os.path.join(root, d))
+                    _chmod_plus_rwx(os.path.join(root, d), skip_on_error=skip_on_error)
                 for f in files:
-                    _chmod_plus_rw(os.path.join(root, f))
+                    _chmod_plus_rw(os.path.join(root, f), skip_on_error=skip_on_error)
     else:
-        _chmod_plus_rw(file_or_dir)
+        _chmod_plus_rw(file_or_dir, skip_on_error=skip_on_error)

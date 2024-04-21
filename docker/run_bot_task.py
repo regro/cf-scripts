@@ -167,13 +167,13 @@ def _rerender_feedstock(*, timeout):
             kwargs = {}
         msg = rerender_feedstock_local(fs_dir, **kwargs)
 
-        chmod_plus_rwX(fs_dir, recursive=True)
+        chmod_plus_rwX(fs_dir, recursive=True, skip_on_error=False)
 
         # if something changed, copy back the new feedstock
         if msg is not None:
             sync_dirs(fs_dir, input_fs_dir, ignore_dot_git=True, update_git=False)
 
-        chmod_plus_rwX(input_fs_dir, recursive=True)
+        chmod_plus_rwX(input_fs_dir, recursive=True, skip_on_error=True)
 
         return {"commit_message": msg}
 
