@@ -78,7 +78,6 @@ jobs:
         if: success() && ! env.CI_SKIP
         timeout-minutes: 210
         run: |
-          export START_TIME=$(date +%s)
           export TIMEOUT=7200
           export RUN_URL="https://github.com/regro/cf-scripts/actions/runs/${RUN_ID}"
 
