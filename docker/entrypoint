@@ -1,4 +1,20 @@
-#!/bin/bash -il
+#!/bin/bash
+
+# replicate bash profile loading
+# if we use -il above, we get extra output to stderr that we cannot
+# suppress, so we do this manually
+if [ -f /etc/profile ]; then
+    source /etc/profile
+fi
+for fname in  ".bash_profile" ".bash_login" ".profile"; do
+    if [ -f $HOME/$fname ]; then
+        source $HOME/$fname
+        break
+    fi
+done
+if [ -f $HOME/.bashrc ]; then
+    source $HOME/.bashrc
+fi
 
 conda activate cf-scripts
 

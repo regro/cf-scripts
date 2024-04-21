@@ -6,7 +6,7 @@ from conda_forge_tick.os_utils import pushd
 from conda_forge_tick.rerender_feedstock import rerender_feedstock_local
 
 
-def test_rerender_feedstock_stderr(capfd):
+def test_rerender_feedstock_local_stderr(capfd):
     with tempfile.TemporaryDirectory() as tmpdir, pushd(tmpdir):
         subprocess.run(
             ["git", "clone", "https://github.com/conda-forge/ngmix-feedstock.git"]
@@ -41,7 +41,7 @@ def test_rerender_feedstock_stderr(capfd):
         ), f"msg: {msg}\nout: {captured.out}\nerr: {captured.err}"
 
 
-def test_rerender_feedstock_git_staged():
+def test_rerender_feedstock_local_git_staged():
     with tempfile.TemporaryDirectory() as tmpdir, pushd(tmpdir):
         subprocess.run(
             ["git", "clone", "https://github.com/conda-forge/ngmix-feedstock.git"]

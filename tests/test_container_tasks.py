@@ -295,3 +295,45 @@ def test_provide_source_code_containerized():
             assert os.path.isdir(source_dir)
             assert "ngmix" in os.listdir(source_dir)
             assert "setup.py" in os.listdir(source_dir)
+
+
+def test_rerender_feedstock_containerized_git_staged():
+    with tempfile.TemporaryDirectory() as tmpdir, pushd(tmpdir):
+        subprocess.run(
+            ["git", "clone", "https://github.com/conda-forge/ngmix-feedstock.git"]
+        )
+        # make sure rerender happens
+        with pushd("ngmix-feedstock"):
+            cmds = [
+                ["git", "rm", "-f", ".gitignore"],
+                ["git", "rm", "-rf", ".scripts"],
+                ["git", "config", "user.email", "conda@conda.conda"],
+                ["git", "config", "user.name", "conda c. conda"],
+                ["git", "commit", "-m", "test commit"],
+            ]
+            for cmd in cmds:
+                subprocess.run(
+                    cmd,
+                    check=True,
+                )
+
+        msg = rerender_feedstock_containerized(
+            os.path.join(tmpdir, "ngmix-feedstock"),
+        )
+        assert msg is not None
+
+        # check that things are staged in git
+        with pushd("ngmix-feedstock"):
+            ret = subprocess.run(
+                ["git", "diff", "--name-only", "--staged"],
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+                text=True,
+                check=True,
+            )
+        found_it = False
+        for line in ret.stdout.split("\n"):
+            if ".gitignore" in line:
+                found_it = True
+                break
+        assert found_it, ret.stdout
