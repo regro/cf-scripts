@@ -191,7 +191,7 @@ def _rerender_feedstock(*, timeout):
                     cmd,
                     cwd=fs_dir,
                     stdout=subprocess.PIPE,
-                    sterr=subprocess.STDOUT,
+                    stderr=subprocess.STDOUT,
                     text=True,
                 )
                 _output += gitret.stdout
