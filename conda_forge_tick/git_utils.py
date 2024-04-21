@@ -358,7 +358,7 @@ def get_repo(
 
 
 def _sync_default_branches(reponame, forked_user, token):
-    gh = github.Github(token)
+    gh = github.Github(auth=github.Auth.Token(token))
     default_branch = gh.get_repo(f"conda-forge/{reponame}").default_branch
     forked_default_branch = gh.get_repo(f"{forked_user}/{reponame}").default_branch
     if default_branch != forked_default_branch:
