@@ -125,6 +125,8 @@ MAX_SOLVER_ATTEMPTS = 50
 CHECK_SOLVABLE_TIMEOUT = 90  # 90 days
 
 BOT_HOME_DIR: str = os.getcwd()
+START_TIME = None
+TIMEOUT = int(os.environ.get("TIMEOUT", 600))
 
 # migrator runs on loop so avoid any seeds at current time should that happen
 random.seed(os.urandom(64))
@@ -1135,6 +1137,12 @@ def _compute_time_per_migrator(mctx, migrators):
     return num_nodes, time_per_migrator, tot_time_per_migrator
 
 
+def _over_time_limit():
+    _now = time.time()
+    logger.info("elpased time %ds (timeout %ds)", _now - START_TIME, TIMEOUT)
+    return _now - START_TIME > TIMEOUT
+
+
 def _run_migrator(migrator, mctx, temp, time_per, dry_run):
     if hasattr(migrator, "name"):
         assert isinstance(migrator.name, str)
@@ -1211,12 +1219,9 @@ def _run_migrator(migrator, mctx, temp, time_per, dry_run):
                 # TODO: convert these env vars
                 _now = time.time()
                 if (
-                    (
-                        _now - int(os.environ.get("START_TIME", time.time()))
-                        > int(os.environ.get("TIMEOUT", 600))
-                    )
+                    _over_time_limit()
                     or good_prs >= migrator.pr_limit
-                    or (_now - _mg_start) > time_per
+                    or (time.time() - _mg_start) > time_per
                 ):
                     break
 
@@ -1563,6 +1568,9 @@ def _update_graph_with_pr_info():
 
 # @profiling
 def main(ctx: CliContext) -> None:
+    global START_TIME
+    START_TIME = time.time()
+
     _setup_limits()
 
     with fold_log_lines("updating graph with PR info"):
@@ -1602,6 +1610,9 @@ def main(ctx: CliContext) -> None:
             )
 
     for mg_ind, migrator in enumerate(migrators):
+        if _over_time_limit():
+            break
+
         good_prs = _run_migrator(
             migrator,
             mctx,

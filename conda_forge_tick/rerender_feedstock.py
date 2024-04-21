@@ -1,12 +1,13 @@
 import logging
 import os
+import shutil
 import subprocess
 import sys
 import tempfile
 import time
 from threading import Thread
 
-from conda_forge_tick.os_utils import pushd, sync_dirs
+from conda_forge_tick.os_utils import chmod_plus_rwX, pushd, sync_dirs
 from conda_forge_tick.utils import run_container_task
 
 logger = logging.getLogger(__name__)
@@ -77,8 +78,7 @@ def rerender_feedstock_containerized(feedstock_dir, timeout=900):
             feedstock_dir, tmp_feedstock_dir, ignore_dot_git=True, update_git=False
         )
 
-        os.chmod(tmpdir, 0o777)
-        subprocess.run(["chmod", "-R", "777", tmpdir], check=True, capture_output=True)
+        chmod_plus_rwX(tmpdir, recursive=True)
 
         logger.info(f"host feedstock dir {feedstock_dir}: {os.listdir(feedstock_dir)}")
         logger.info(
@@ -99,6 +99,11 @@ def rerender_feedstock_containerized(feedstock_dir, timeout=900):
                 ignore_dot_git=True,
                 update_git=True,
             )
+
+        # When tempfile removes tempdir, it tries to reset permissions on subdirs.
+        # This causes a permission error since the subdirs were made by the user
+        # in the container. So we remove the subdir we made before cleaning up.
+        shutil.rmtree(tmp_feedstock_dir)
 
     return data["commit_message"]
 
