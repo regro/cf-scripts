@@ -148,7 +148,7 @@ def run_container_task(
     name: str,
     args: Iterable[str],
     json_loads: Optional[Callable] = json.loads,
-    tmpfs_size_mb: int = 10,
+    tmpfs_size_mb: int = 100,
     input: Optional[str] = None,
     mount_dir: Optional[str] = None,
     mount_readonly: bool = True,
