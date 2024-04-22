@@ -82,7 +82,8 @@ def github_client() -> github.Github:
     if not hasattr(GITHUB_CLIENT, "client"):
         with sensitive_env() as env:
             GITHUB_CLIENT.client = github.Github(
-                auth=github.Auth.Token(env["BOT_TOKEN"])
+                auth=github.Auth.Token(env["BOT_TOKEN"]),
+                per_page=100,
             )
     return GITHUB_CLIENT.client
 

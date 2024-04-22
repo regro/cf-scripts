@@ -1566,7 +1566,6 @@ def _update_graph_with_pr_info():
     dump_graph(gx)
 
 
-# @profiling
 def main(ctx: CliContext) -> None:
     global START_TIME
     START_TIME = time.time()

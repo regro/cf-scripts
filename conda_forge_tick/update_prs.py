@@ -160,7 +160,6 @@ def close_dirty_prs(
     return gx
 
 
-# @profiling
 def main(ctx: CliContext, job: int = 1, n_jobs: int = 1) -> None:
     gx = load_existing_graph()
 
