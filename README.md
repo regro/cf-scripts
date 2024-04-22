@@ -15,35 +15,12 @@
 
 the actual bot in an actual place doing an actual thing
 
-<!-- TOC ignore:true -->
 ## Table of Contents
-<!-- TOC -->
 
-- [autotick-bot](#autotick-bot)
-    - [What has the bot done recently?](#what-has-the-bot-done-recently)
-    - [Starting and Stopping the Worker](#starting-and-stopping-the-worker)
-    - [User Documentation](#user-documentation)
-        - [Configuring the Bot via the conda-forge.yml](#configuring-the-bot-via-the-conda-forgeyml)
-        - [Making Migrators](#making-migrators)
-            - [Automated Generation of Migrations](#automated-generation-of-migrations)
-            - [Migration YAML Files and CFEP-09](#migration-yaml-files-and-cfep-09)
-            - [Custom Migration Classes](#custom-migration-classes)
-                - [Write your Custom Migration Class](#write-your-custom-migration-class)
-                - [Add your Migration to auto_tick.py](#add-your-migration-to-auto_tickpy)
-    - [Developer Documentation](#developer-documentation)
-        - [Debugging Locally](#debugging-locally)
-        - [Using the conda_forge_tick Module to Interact with the Bot Data](#using-the-conda_forge_tick-module-to-interact-with-the-bot-data)
-            - [Loading the graph](#loading-the-graph)
-            - [Calculating migration impact](#calculating-migration-impact)
-        - [Useful Environment Variables](#useful-environment-variables)
-        - [conda-forge-tick Container Image and Dockerfile](#conda-forge-tick-container-image-and-dockerfile)
-        - [Data Model](#data-model)
-        - [LazyJson Data Structures and Backends](#lazyjson-data-structures-and-backends)
-        - [Notes on the Version Migrator](#notes-on-the-version-migrator)
-            - [YAML Parsing with Jinja2](#yaml-parsing-with-jinja2)
-            - [Version Migration Algorithm](#version-migration-algorithm)
-
-<!-- /TOC -->
+- [What has the bot done recently?](#what-has-the-bot-done-recently)
+- [Starting and Stopping the Worker](#starting-and-stopping-the-worker)
+- [User Documentation](#user-documentation)
+- [Developer Documentation](#developer-documentation)
 
 ## What has the bot done recently?
 
