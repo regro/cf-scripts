@@ -1,10 +1,9 @@
 import logging
 from typing import List
 
-import github
 import tqdm
 
-from conda_forge_tick import sensitive_env
+from conda_forge_tick.git_utils import github_client
 
 from .lazy_json_backends import dump, load
 
@@ -12,8 +11,7 @@ logger = logging.getLogger(__name__)
 
 
 def get_all_feedstocks_from_github():
-    with sensitive_env() as env:
-        gh = github.Github(env["BOT_TOKEN"], per_page=100)
+    gh = github_client()
 
     org = gh.get_organization("conda-forge")
     archived = set()

@@ -316,7 +316,6 @@ def _migrate_schemas(nodes):
             _migrate_schema(node, sub_graph)
 
 
-# @profiling
 def main(
     ctx: CliContext, job: int = 1, n_jobs: int = 1, update_nodes_and_edges: bool = False
 ) -> None:
