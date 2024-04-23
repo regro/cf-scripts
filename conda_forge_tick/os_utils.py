@@ -194,6 +194,8 @@ def reset_permissions_with_user_execute(path, perms):
     """Set the execute permissions of a directory `path` and all of its contents
     using the default umask and whether or not exec bits should be set.
 
+    This function is meant to mimic how git sets permissions for files and directories.
+
     Parameters
     ----------
     path : str
@@ -206,20 +208,19 @@ def reset_permissions_with_user_execute(path, perms):
         if ".git" in fname.split(os.path.sep):
             continue
 
-        path_fname = os.path.join(path, fname)
-        if os.path.exists(path_fname):
+        if os.path.exists(fname):
             key = os.path.relpath(fname, path)
             has_exec = perms.get(key, False)
 
-            if os.path.isdir(path_fname) or has_exec:
-                new_perm = get_dir_default_permissions()
+            if os.path.isdir(fname) or has_exec:
+                new_perm = get_dir_or_exec_default_permissions()
             else:
                 new_perm = get_file_default_permissions()
 
             logger.debug(
-                f"setting permissions of {key} to {new_perm:#o} from {os.stat(path_fname).st_mode:#o}"
+                f"setting permissions of {key} to {new_perm:#o} from {os.stat(fname).st_mode:#o}"
             )
-            os.chmod(path_fname, new_perm)
+            os.chmod(fname, new_perm)
 
 
 def _current_umask():
@@ -236,8 +237,8 @@ def get_umask():
         return pool.submit(_current_umask).result()
 
 
-def get_dir_default_permissions():
-    """Get the default permissions for directories."""
+def get_dir_or_exec_default_permissions():
+    """Get the default permissions for directories or executables."""
     return 0o777 ^ get_umask()
 
 
