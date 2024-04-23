@@ -13,7 +13,7 @@ from conda_forge_tick.lazy_json_backends import (
     dumps,
     lazy_json_override_backends,
 )
-from conda_forge_tick.os_utils import pushd
+from conda_forge_tick.os_utils import get_user_execute_permissions, pushd
 from conda_forge_tick.provide_source_code import provide_source_code_containerized
 from conda_forge_tick.rerender_feedstock import (
     rerender_feedstock_containerized,
@@ -179,7 +179,7 @@ def test_parse_meta_yaml_containerized():
 
 
 @pytest.mark.skipif(not HAVE_CONTAINERS, reason="containers not available")
-def test_rerender_feedstock_containerized(capfd):
+def test_rerender_feedstock_containerized_same_as_local(capfd):
     with (
         tempfile.TemporaryDirectory() as tmpdir_cont,
         tempfile.TemporaryDirectory() as tmpdir_local,
@@ -278,6 +278,112 @@ def test_rerender_feedstock_containerized(capfd):
                 with open(lfname, "rb") as f:
                     ldata = f.read()
                 assert cdata == ldata, f"{cfname} not equal to local"
+
+
+@pytest.mark.skipif(not HAVE_CONTAINERS, reason="containers not available")
+def test_rerender_feedstock_containerized_empty():
+    with tempfile.TemporaryDirectory() as tmpdir_local:
+        # first run the rerender locally
+        with pushd(tmpdir_local):
+            subprocess.run(
+                ["git", "clone", "https://github.com/conda-forge/ngmix-feedstock.git"]
+            )
+            # make sure rerender happens
+            with pushd("ngmix-feedstock"):
+                cmds = [
+                    ["git", "rm", "-f", ".gitignore"],
+                    ["git", "rm", "-rf", ".scripts"],
+                    ["git", "config", "user.email", "conda@conda.conda"],
+                    ["git", "config", "user.name", "conda c. conda"],
+                    ["git", "commit", "-m", "test commit"],
+                ]
+                for cmd in cmds:
+                    subprocess.run(
+                        cmd,
+                        check=True,
+                    )
+
+            local_msg = rerender_feedstock_local(
+                os.path.join(tmpdir_local, "ngmix-feedstock"),
+            )
+
+            assert local_msg is not None
+            with pushd("ngmix-feedstock"):
+                subprocess.run(
+                    ["git", "commit", "-am", local_msg],
+                    check=True,
+                )
+
+        # now run in container and make sure commit message is None
+        msg = rerender_feedstock_containerized(
+            os.path.join(tmpdir_local, "ngmix-feedstock"),
+        )
+
+        assert msg is None
+
+
+@pytest.mark.skipif(not HAVE_CONTAINERS, reason="containers not available")
+def test_rerender_feedstock_containerized_permissions():
+    with tempfile.TemporaryDirectory() as tmpdir:
+        with pushd(tmpdir):
+            subprocess.run(
+                ["git", "clone", "https://github.com/conda-forge/ngmix-feedstock.git"]
+            )
+
+            with pushd("ngmix-feedstock"):
+                orig_perms_bl = os.stat("build-locally.py").st_mode
+                print(
+                    f"\n\ncloned permissions for build-locally.py: {orig_perms_bl:#o}\n\n"
+                )
+                orig_exec = get_user_execute_permissions(".")
+
+            local_msg = rerender_feedstock_local(
+                os.path.join(tmpdir, "ngmix-feedstock"),
+            )
+
+            if local_msg is not None:
+                with pushd("ngmix-feedstock"):
+                    cmds = [
+                        ["git", "config", "user.email", "conda@conda.conda"],
+                        ["git", "config", "user.name", "conda c. conda"],
+                        ["git", "commit", "-am", local_msg],
+                    ]
+                    for cmd in cmds:
+                        subprocess.run(cmd, check=True)
+
+            # now change permissions
+            with pushd("ngmix-feedstock"):
+                orig_perms_bl = os.stat("build-locally.py").st_mode
+                print(
+                    f"\n\ninput permissions for build-locally.py: {orig_perms_bl:#o}\n\n"
+                )
+                local_rerend_exec = get_user_execute_permissions(".")
+
+                cmds = [
+                    ["chmod", "655", "build-locally.py"],
+                    ["git", "add", "build-locally.py"],
+                    ["git", "config", "user.email", "conda@conda.conda"],
+                    ["git", "config", "user.name", "conda c. conda"],
+                    ["git", "commit", "-m", "test commit for rerender"],
+                ]
+                for cmd in cmds:
+                    subprocess.run(
+                        cmd,
+                        check=True,
+                    )
+
+            msg = rerender_feedstock_containerized(
+                os.path.join(tmpdir, "ngmix-feedstock"),
+            )
+            assert msg is not None
+
+            with pushd("ngmix-feedstock"):
+                perms_bl = os.stat("build-locally.py").st_mode
+                print(f"\n\nfinal permissions for build-locally.py: {perms_bl:#o}\n\n")
+                cont_rerend_exec = get_user_execute_permissions(".")
+
+            assert orig_exec == local_rerend_exec
+            assert orig_exec == cont_rerend_exec
 
 
 @pytest.mark.skipif(not HAVE_CONTAINERS, reason="containers not available")
