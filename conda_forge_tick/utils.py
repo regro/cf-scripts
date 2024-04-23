@@ -187,6 +187,9 @@ def run_container_task(
     else:
         mnt_args = []
 
+    log_level_str = str(logging.getLevelName(logger.getEffectiveLevel())).lower()
+    logger.debug("computed effective logging level: %s", log_level_str)
+
     cmd = [
         *get_default_container_run_args(tmpfs_size_mb=tmpfs_size_mb),
         *mnt_args,
@@ -197,7 +200,7 @@ def run_container_task(
         name,
         *args,
         "--log-level",
-        str(logging.getLevelName(logger.getEffectiveLevel())).lower(),
+        log_level_str,
     ]
     res = subprocess.run(
         cmd,

@@ -1,3 +1,4 @@
+import json
 import logging
 import os
 import shutil
@@ -7,7 +8,13 @@ import tempfile
 import time
 from threading import Thread
 
-from conda_forge_tick.os_utils import chmod_plus_rwX, pushd, sync_dirs
+from conda_forge_tick.os_utils import (
+    chmod_plus_rwX,
+    get_user_execute_permissions,
+    pushd,
+    reset_permissions_with_user_execute,
+    sync_dirs,
+)
 from conda_forge_tick.utils import run_container_task
 
 logger = logging.getLogger(__name__)
@@ -78,6 +85,13 @@ def rerender_feedstock_containerized(feedstock_dir, timeout=900):
             feedstock_dir, tmp_feedstock_dir, ignore_dot_git=True, update_git=False
         )
 
+        perms = get_user_execute_permissions(feedstock_dir)
+        with open(
+            os.path.join(tmpdir, f"permissions-{os.path.basename(feedstock_dir)}.json"),
+            "w",
+        ) as f:
+            json.dump(perms, f)
+
         chmod_plus_rwX(tmpdir, recursive=True)
 
         logger.debug(f"host feedstock dir {feedstock_dir}: {os.listdir(feedstock_dir)}")
@@ -99,6 +113,7 @@ def rerender_feedstock_containerized(feedstock_dir, timeout=900):
                 ignore_dot_git=True,
                 update_git=True,
             )
+            reset_permissions_with_user_execute(feedstock_dir, data["permissions"])
 
         # When tempfile removes tempdir, it tries to reset permissions on subdirs.
         # This causes a permission error since the subdirs were made by the user

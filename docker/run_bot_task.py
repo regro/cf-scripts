@@ -13,8 +13,12 @@ These tasks return their info to the bot by printing a JSON blob to stdout.
 """
 
 import copy
+import glob
+import json
 import logging
 import os
+import shutil
+import subprocess
 import sys
 import tempfile
 import traceback
@@ -156,11 +160,34 @@ def _provide_source_code():
         return dict()
 
 
-def _rerender_feedstock(*, timeout):
-    import glob
-    import subprocess
+def _execute_git_cmds_and_report(*, cmds, cwd, msg):
+    logger = logging.getLogger("conda_forge_tick.container")
 
-    from conda_forge_tick.os_utils import chmod_plus_rwX, sync_dirs
+    try:
+        _output = ""
+        for cmd in cmds:
+            gitret = subprocess.run(
+                cmd,
+                cwd=cwd,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+                text=True,
+            )
+            logger.debug("git command %r output: %s", cmd, gitret.stdout)
+            _output += gitret.stdout
+            gitret.check_returncode()
+    except Exception as e:
+        logger.error(f"{msg}\noutput: {_output}", exc_info=e)
+        raise e
+
+
+def _rerender_feedstock(*, timeout):
+    from conda_forge_tick.os_utils import (
+        chmod_plus_rwX,
+        get_user_execute_permissions,
+        reset_permissions_with_user_execute,
+        sync_dirs,
+    )
     from conda_forge_tick.rerender_feedstock import rerender_feedstock_local
 
     logger = logging.getLogger("conda_forge_tick.container")
@@ -172,35 +199,48 @@ def _rerender_feedstock(*, timeout):
         logger.debug(
             f"input container feedstock dir {input_fs_dir}: {os.listdir(input_fs_dir)}"
         )
+        input_permissions = os.path.join(
+            "/cf_tick_dir", f"permissions-{os.path.basename(input_fs_dir)}.json"
+        )
+        with open(input_permissions) as f:
+            input_permissions = json.load(f)
 
         fs_dir = os.path.join(tmpdir, os.path.basename(input_fs_dir))
         sync_dirs(input_fs_dir, fs_dir, ignore_dot_git=True, update_git=False)
-        if os.path.exists(os.path.join(fs_dir, ".gitignore")):
-            os.remove(os.path.join(fs_dir, ".gitignore"))
         logger.debug(f"copied container feedstock dir {fs_dir}: {os.listdir(fs_dir)}")
 
-        try:
-            _output = ""
-            cmds = [
-                ["git", "init", "-b", "main", "."],
-                ["git", "add", "."],
-                ["git", "commit", "-am", "initial commit"],
-            ]
-            for cmd in cmds:
-                gitret = subprocess.run(
-                    cmd,
-                    cwd=fs_dir,
-                    stdout=subprocess.PIPE,
-                    stderr=subprocess.STDOUT,
-                    text=True,
-                )
-                _output += gitret.stdout
-                gitret.check_returncode()
-        except Exception as e:
-            logger.error(
-                f"git repo init failed for rerender\noutput: {_output}", exc_info=e
+        reset_permissions_with_user_execute(fs_dir, input_permissions)
+
+        has_gitignore = os.path.exists(os.path.join(fs_dir, ".gitignore"))
+        if has_gitignore:
+            shutil.move(
+                os.path.join(fs_dir, ".gitignore"),
+                os.path.join(fs_dir, ".gitignore.bak"),
             )
-            raise e
+
+        cmds = [
+            ["git", "init", "-b", "main", "."],
+            ["git", "add", "."],
+            ["git", "commit", "-am", "initial commit"],
+        ]
+        if has_gitignore:
+            cmds += [
+                ["git", "mv", ".gitignore.bak", ".gitignore"],
+                ["git", "commit", "-am", "put back gitignore"],
+            ]
+        _execute_git_cmds_and_report(
+            cmds=cmds,
+            cwd=fs_dir,
+            msg="git init failed for rerender",
+        )
+
+        # FIXME
+        _after_git_permissions = get_user_execute_permissions(fs_dir)
+        for key in input_permissions:
+            if input_permissions[key] != _after_git_permissions[key]:
+                logger.warning(
+                    f"permissions differ for {key}: {input_permissions[key]:#o} != {_after_git_permissions[key]:#o}"
+                )
 
         if timeout is not None:
             kwargs = {"timeout": timeout}
@@ -208,15 +248,30 @@ def _rerender_feedstock(*, timeout):
             kwargs = {}
         msg = rerender_feedstock_local(fs_dir, **kwargs)
 
-        chmod_plus_rwX(fs_dir, recursive=True, skip_on_error=False)
+        if logger.getEffectiveLevel() <= logging.DEBUG:
+            cmds = [
+                ["git", "status"],
+                ["git", "diff", "--name-only"],
+                ["git", "diff", "--name-only", "--staged"],
+                ["git", "--no-pager", "diff"],
+                ["git", "--no-pager", "diff", "--staged"],
+            ]
+            _execute_git_cmds_and_report(
+                cmds=cmds,
+                cwd=fs_dir,
+                msg="git status failed for rerender",
+            )
 
         # if something changed, copy back the new feedstock
         if msg is not None:
+            output_permissions = get_user_execute_permissions(fs_dir)
             sync_dirs(fs_dir, input_fs_dir, ignore_dot_git=True, update_git=False)
+        else:
+            output_permissions = input_permissions
 
         chmod_plus_rwX(input_fs_dir, recursive=True, skip_on_error=True)
 
-        return {"commit_message": msg}
+        return {"commit_message": msg, "permissions": output_permissions}
 
 
 def _get_latest_version(*, attrs, sources):

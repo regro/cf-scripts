@@ -1,8 +1,13 @@
 import contextlib
 import copy
+import functools
+import logging
 import os
 import shutil
 import subprocess
+from concurrent.futures import ProcessPoolExecutor
+
+logger = logging.getLogger(__name__)
 
 
 # https://stackoverflow.com/questions/6194499/pushd-through-os-system
@@ -51,7 +56,9 @@ def _all_fnames(root_dir):
     return fnames
 
 
-def sync_dirs(source_dir, dest_dir, ignore_dot_git=True, update_git=True):
+def sync_dirs(
+    source_dir, dest_dir, ignore_dot_git=True, update_git=True, sync_permissions=False
+):
     """Sync the contents of source_dir to dest_dir.
 
     By default, this function ignores `.git` directories and will update the git index
@@ -156,3 +163,85 @@ def chmod_plus_rwX(file_or_dir, recursive=False, skip_on_error=False):
                     _chmod_plus_rw(os.path.join(root, f), skip_on_error=skip_on_error)
     else:
         _chmod_plus_rw(file_or_dir, skip_on_error=skip_on_error)
+
+
+def get_user_execute_permissions(path):
+    """Get the user execute permissions of directory `path` and all of its contents.
+
+    Parameters
+    ----------
+    path : str
+        The path to the directory.
+
+    Returns
+    -------
+    dict
+        A dictionary mapping file paths to True if the user has execute permission or False otherwise.
+    """
+    fnames = _all_fnames(path)
+    perms = {}
+    for fname in sorted(fnames):
+        if ".git" in fname.split(os.path.sep):
+            continue
+
+        perm = os.stat(fname).st_mode
+        has_user_exe = os.stat(fname).st_mode & 0o100
+        key = os.path.relpath(fname, path)
+        logger.debug(f"got permissions of {key} as {perm:#o}")
+        perms[key] = has_user_exe
+    return perms
+
+
+def reset_permissions_with_user_execute(path, perms):
+    """Set the userpermissions of a directory `path` and all of its contents.
+
+    Parameters
+    ----------
+    path : str
+        The path to the directory.
+    perms : dict
+        A dictionary mapping file paths to True if the user has execute permission or False otherwise.
+    """
+    fnames = sorted(_all_fnames(path))
+    for fname in fnames:
+        if ".git" in fname.split(os.path.sep):
+            continue
+
+        path_fname = os.path.join(path, fname)
+        if os.path.exists(path_fname):
+            key = os.path.relpath(fname, path)
+            has_exec = perms.get(key, False)
+
+            if os.path.isdir(path_fname) or has_exec:
+                new_perm = get_dir_default_permissions()
+            else:
+                new_perm = get_file_default_permissions()
+
+            logger.debug(
+                f"setting permissions of {key} to {new_perm:#o} from {os.stat(path_fname).st_mode:#o}"
+            )
+            os.chmod(path_fname, new_perm)
+
+
+def _current_umask():
+    tmp = os.umask(0o666)
+    os.umask(tmp)
+    return tmp
+
+
+@functools.lru_cache(maxsize=1)
+def get_umask():
+    """Get the current umask."""
+    # done in a separate process for safety
+    with ProcessPoolExecutor(max_workers=1) as pool:
+        return pool.submit(_current_umask).result()
+
+
+def get_dir_default_permissions():
+    """Get the default permissions for directories."""
+    return 0o777 ^ get_umask()
+
+
+def get_file_default_permissions():
+    """Get the default permissions for files."""
+    return 0o666 ^ get_umask()
