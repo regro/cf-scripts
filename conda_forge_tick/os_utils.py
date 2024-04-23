@@ -191,7 +191,8 @@ def get_user_execute_permissions(path):
 
 
 def reset_permissions_with_user_execute(path, perms):
-    """Set the userpermissions of a directory `path` and all of its contents.
+    """Set the execute permissions of a directory `path` and all of its contents
+    using the default umask and whether or not exec bits should be set.
 
     Parameters
     ----------
