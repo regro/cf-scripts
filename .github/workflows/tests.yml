@@ -73,6 +73,10 @@ jobs:
 
       - name: build docker image
         run: |
+          # pull the current one
+          docker pull ghcr.io/regro/conda-forge-tick:master
+
+          # build the new one
           docker build -t ${{ env.IMAGE_NAME }}:test .
 
       - name: run pytest
