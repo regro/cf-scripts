@@ -331,6 +331,9 @@ def test_rerender_feedstock_containerized_permissions():
             )
 
             with pushd("ngmix-feedstock"):
+                orig_perms_bl = os.stat("build-locally.py").st_mode
+                print(f"\n\ncloned permissions for build-locally.py: {orig_perms_bl:#o}\n\n")
+
                 cmds = [
                     ["chmod", "655", "build-locally.py"],
                     ["git", "add", "build-locally.py"],
@@ -358,8 +361,7 @@ def test_rerender_feedstock_containerized_permissions():
             # now change permissions
             with pushd("ngmix-feedstock"):
                 orig_perms_bl = os.stat("build-locally.py").st_mode
-
-                print(f"input permissions for build-locally.py: {orig_perms_bl:#o}")
+                print(f"\n\ninput permissions for build-locally.py: {orig_perms_bl:#o}\n\n")
 
                 cmds = [
                     ["chmod", "655", "build-locally.py"],
