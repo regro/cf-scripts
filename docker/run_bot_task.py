@@ -234,13 +234,6 @@ def _rerender_feedstock(*, timeout):
             msg="git init failed for rerender",
         )
 
-        # FIXME
-        _after_git_permissions = get_user_execute_permissions(fs_dir)
-        for key in input_permissions:
-            if input_permissions[key] != _after_git_permissions[key]:
-                logger.warning(
-                    f"permissions differ for {key}: {input_permissions[key]:#o} != {_after_git_permissions[key]:#o}"
-                )
 
         if timeout is not None:
             kwargs = {"timeout": timeout}
