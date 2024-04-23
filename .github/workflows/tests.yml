@@ -77,6 +77,8 @@ jobs:
 
       - name: run pytest
         run: |
+          echo "\n\ncurrent umask: $(umask)\n\n"
+
           export TEST_BOT_TOKEN_VAL=unpassword
           export BOT_TOKEN=${TEST_BOT_TOKEN_VAL}
           pytest \
