@@ -13,7 +13,7 @@ from conda_forge_tick.lazy_json_backends import (
     dumps,
     lazy_json_override_backends,
 )
-from conda_forge_tick.os_utils import pushd
+from conda_forge_tick.os_utils import get_user_execute_permissions, pushd
 from conda_forge_tick.provide_source_code import provide_source_code_containerized
 from conda_forge_tick.rerender_feedstock import (
     rerender_feedstock_containerized,
@@ -332,7 +332,10 @@ def test_rerender_feedstock_containerized_permissions():
 
             with pushd("ngmix-feedstock"):
                 orig_perms_bl = os.stat("build-locally.py").st_mode
-                print(f"\n\ncloned permissions for build-locally.py: {orig_perms_bl:#o}\n\n")
+                print(
+                    f"\n\ncloned permissions for build-locally.py: {orig_perms_bl:#o}\n\n"
+                )
+                orig_exec = get_user_execute_permissions(".")
 
             local_msg = rerender_feedstock_local(
                 os.path.join(tmpdir, "ngmix-feedstock"),
@@ -351,7 +354,10 @@ def test_rerender_feedstock_containerized_permissions():
             # now change permissions
             with pushd("ngmix-feedstock"):
                 orig_perms_bl = os.stat("build-locally.py").st_mode
-                print(f"\n\ninput permissions for build-locally.py: {orig_perms_bl:#o}\n\n")
+                print(
+                    f"\n\ninput permissions for build-locally.py: {orig_perms_bl:#o}\n\n"
+                )
+                local_rerend_exec = get_user_execute_permissions(".")
 
                 cmds = [
                     ["chmod", "655", "build-locally.py"],
@@ -373,7 +379,11 @@ def test_rerender_feedstock_containerized_permissions():
 
             with pushd("ngmix-feedstock"):
                 perms_bl = os.stat("build-locally.py").st_mode
-                assert f"{perms_bl:#o}" == f"{orig_perms_bl:#o}"
+                print(f"\n\nfinal permissions for build-locally.py: {perms_bl:#o}\n\n")
+                cont_rerend_exec = get_user_execute_permissions(".")
+
+            assert orig_exec == local_rerend_exec
+            assert orig_exec == cont_rerend_exec
 
 
 @pytest.mark.skipif(not HAVE_CONTAINERS, reason="containers not available")
