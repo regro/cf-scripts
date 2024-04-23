@@ -237,11 +237,13 @@ def get_umask():
         return pool.submit(_current_umask).result()
 
 
+@functools.lru_cache(maxsize=1)
 def get_dir_or_exec_default_permissions():
     """Get the default permissions for directories or executables."""
     return 0o777 ^ get_umask()
 
 
+@functools.lru_cache(maxsize=1)
 def get_file_default_permissions():
     """Get the default permissions for files."""
     return 0o666 ^ get_umask()
