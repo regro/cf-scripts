@@ -340,10 +340,13 @@ def test_rerender_feedstock_containerized_permissions():
 
             if local_msg is not None:
                 with pushd("ngmix-feedstock"):
-                    subprocess.run(
+                    cmds = [
+                        ["git", "config", "user.email", "conda@conda.conda"],
+                        ["git", "config", "user.name", "conda c. conda"],
                         ["git", "commit", "-am", local_msg],
-                        check=True,
-                    )
+                    ]
+                    for cmd in cmds:
+                        subprocess.run(cmd, check=True)
 
             # now change permissions
             with pushd("ngmix-feedstock"):
