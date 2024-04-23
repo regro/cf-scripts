@@ -334,19 +334,6 @@ def test_rerender_feedstock_containerized_permissions():
                 orig_perms_bl = os.stat("build-locally.py").st_mode
                 print(f"\n\ncloned permissions for build-locally.py: {orig_perms_bl:#o}\n\n")
 
-                cmds = [
-                    ["chmod", "655", "build-locally.py"],
-                    ["git", "add", "build-locally.py"],
-                    ["git", "config", "user.email", "conda@conda.conda"],
-                    ["git", "config", "user.name", "conda c. conda"],
-                    ["git", "commit", "-m", "test commit for perms"],
-                ]
-                for cmd in cmds:
-                    subprocess.run(
-                        cmd,
-                        check=True,
-                    )
-
             local_msg = rerender_feedstock_local(
                 os.path.join(tmpdir, "ngmix-feedstock"),
             )
