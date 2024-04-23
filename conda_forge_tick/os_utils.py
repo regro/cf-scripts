@@ -56,9 +56,7 @@ def _all_fnames(root_dir):
     return fnames
 
 
-def sync_dirs(
-    source_dir, dest_dir, ignore_dot_git=True, update_git=True, sync_permissions=False
-):
+def sync_dirs(source_dir, dest_dir, ignore_dot_git=True, update_git=True):
     """Sync the contents of source_dir to dest_dir.
 
     By default, this function ignores `.git` directories and will update the git index
