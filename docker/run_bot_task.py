@@ -234,7 +234,6 @@ def _rerender_feedstock(*, timeout):
             msg="git init failed for rerender",
         )
 
-
         if timeout is not None:
             kwargs = {"timeout": timeout}
         else:
