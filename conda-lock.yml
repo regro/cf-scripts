@@ -1895,39 +1895,39 @@ package:
   - category: main
     dependencies: {}
     hash:
-      md5: f4d7428329738d44d09aefc034339f79
-      sha256: d7a7a20d64a08664d2569d989e6e7a7f84a6440d5350bef749b22f676a802e3a
+      md5: 37f7e4adccf1b3acc3cf5e429b32b74d
+      sha256: 4b9fd6b88eb474725289321ba80b0c165a744d83d8371afb5320d41951584b49
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.04.24.11.05.54-hd8ed1ab_0.conda
-    version: 2024.04.24.11.05.54
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.04.24.14.42.55-hd8ed1ab_0.conda
+    version: 2024.04.24.14.42.55
   - category: main
     dependencies: {}
     hash:
-      md5: f4d7428329738d44d09aefc034339f79
-      sha256: d7a7a20d64a08664d2569d989e6e7a7f84a6440d5350bef749b22f676a802e3a
+      md5: 37f7e4adccf1b3acc3cf5e429b32b74d
+      sha256: 4b9fd6b88eb474725289321ba80b0c165a744d83d8371afb5320d41951584b49
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.04.24.11.05.54-hd8ed1ab_0.conda
-    version: 2024.04.24.11.05.54
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.04.24.14.42.55-hd8ed1ab_0.conda
+    version: 2024.04.24.14.42.55
   - category: main
     dependencies: {}
     hash:
-      md5: f4d7428329738d44d09aefc034339f79
-      sha256: d7a7a20d64a08664d2569d989e6e7a7f84a6440d5350bef749b22f676a802e3a
+      md5: 37f7e4adccf1b3acc3cf5e429b32b74d
+      sha256: 4b9fd6b88eb474725289321ba80b0c165a744d83d8371afb5320d41951584b49
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.04.24.11.05.54-hd8ed1ab_0.conda
-    version: 2024.04.24.11.05.54
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.04.24.14.42.55-hd8ed1ab_0.conda
+    version: 2024.04.24.14.42.55
   - category: main
     dependencies:
       click: '>=8'
@@ -14355,15 +14355,15 @@ package:
       python_abi: 3.11.*
       setproctitle: ''
     hash:
-      md5: 470d9fcfed1d83c272e09d60e182d873
-      sha256: e014cb2fa7b52cb54014be7a007729dc4bdd38db8e35a1df19d9e25e3b5dd454
+      md5: 2f7802687aab8b01ddcbce507c460ae6
+      sha256: 7a920e07a4d3035d871eb0aaedd8e6baad34c242a5d9a8d64e15ac5f34613b7d
     manager: conda
     name: xonsh
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/osx-arm64/xonsh-0.15.0-py311h267d04e_0.conda
-    version: 0.15.0
+      https://conda.anaconda.org/conda-forge/osx-arm64/xonsh-0.16.0-py311h267d04e_0.conda
+    version: 0.16.0
   - category: main
     dependencies:
       libgcc-ng: '>=9.3.0'
