@@ -181,14 +181,14 @@ def _subprocess_run_tee(args, timeout=None):
     except subprocess.TimeoutExpired:
         proc.kill()
     finally:
+        stop_event.set()
+        for out_thread in threads:
+            out_thread.join()
+
         try:
             out, err = proc.communicate(timeout=30)
         except Exception:
             out, err = "", ""
-        stop_event.set()
-
-    for out_thread in threads:
-        out_thread.join()
 
     for line in (err + out).splitlines():
         sys.stderr.write(line + "\n")
