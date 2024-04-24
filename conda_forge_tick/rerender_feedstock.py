@@ -6,7 +6,7 @@ import subprocess
 import sys
 import tempfile
 import time
-from threading import Thread
+from threading import Event, Thread
 
 from conda_forge_tick.os_utils import (
     chmod_plus_rwX,
@@ -129,26 +129,31 @@ def rerender_feedstock_containerized(feedstock_dir, timeout=900):
 
 
 class _StreamToStderr(Thread):
-    def __init__(self, buffer, timeout=None):
+    def __init__(self, buffer, stop_event, timeout=None):
         super().__init__()
         self.buffer = buffer
         self.lines = []
         self.timeout = timeout
+        self.stop_event = stop_event
 
     def run(self):
         t0 = time.time()
-        while True and (self.timeout is None or time.time() - t0 < self.timeout):
+        while True:
+            if self.stop_event.is_set():
+                break
+
+            if self.timeout is not None and time.time() - t0 > self.timeout:
+                break
+
             try:
                 line = self.buffer.readline()
             except Exception:
                 pass
-            self.lines.append(line)
 
-            sys.stderr.write(line)
-            sys.stderr.flush()
-
-            if line == "":
-                break
+            if line:
+                self.lines.append(line)
+                sys.stderr.write(line)
+                sys.stderr.flush()
 
         self.output = "".join(self.lines)
 
@@ -160,20 +165,32 @@ def _subprocess_run_tee(args, timeout=None):
         stderr=subprocess.PIPE,
         text=True,
     )
+    os.set_blocking(proc.stdout.fileno(), False)
+    os.set_blocking(proc.stderr.fileno(), False)
+
+    stop_event = Event()
     threads = [
-        _StreamToStderr(proc.stdout, timeout=timeout),
-        _StreamToStderr(proc.stderr, timeout=timeout),
+        _StreamToStderr(proc.stdout, stop_event, timeout=timeout),
+        _StreamToStderr(proc.stderr, stop_event, timeout=timeout),
     ]
     for out_thread in threads:
         out_thread.start()
+
     try:
         out, err = proc.communicate(timeout=timeout)
     except subprocess.TimeoutExpired:
         proc.kill()
-        out, err = proc.communicate()
+        try:
+            out, err = proc.communicate(timeout=timeout)
+        except subprocess.TimeoutExpired:
+            out = ""
+            err = ""
+    finally:
+        stop_event.set()
 
     for out_thread in threads:
         out_thread.join()
+
     for line in (err + out).splitlines():
         sys.stderr.write(line + "\n")
         sys.stderr.flush()
