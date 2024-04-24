@@ -148,7 +148,7 @@ class _StreamToStderr(Thread):
             try:
                 line = self.buffer.readline()
             except Exception:
-                pass
+                line = ""
 
             if line:
                 self.lines.append(line)
@@ -177,15 +177,14 @@ def _subprocess_run_tee(args, timeout=None):
         out_thread.start()
 
     try:
-        out, err = proc.communicate(timeout=timeout)
+        proc.wait(timeout=timeout)
     except subprocess.TimeoutExpired:
         proc.kill()
+    finally:
         try:
             out, err = proc.communicate(timeout=30)
-        except subprocess.TimeoutExpired:
-            out = ""
-            err = ""
-    finally:
+        except Exception:
+            out, err = "", ""
         stop_event.set()
 
     for out_thread in threads:
