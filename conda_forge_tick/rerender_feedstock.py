@@ -181,7 +181,7 @@ def _subprocess_run_tee(args, timeout=None):
     except subprocess.TimeoutExpired:
         proc.kill()
         try:
-            out, err = proc.communicate(timeout=timeout)
+            out, err = proc.communicate(timeout=30)
         except subprocess.TimeoutExpired:
             out = ""
             err = ""
