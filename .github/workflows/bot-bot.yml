@@ -2,10 +2,8 @@ name: bot-bot
 
 on:
   workflow_dispatch: null
-  schedule:
-    - cron:  '15 */8 * * *'
 
-# concurrency: bot
+concurrency: bot
 
 jobs:
   bot:
@@ -16,66 +14,28 @@ jobs:
         shell: bash -leo pipefail {0}
 
     steps:
-      - name: prevent multiple jobs running in parallel
-        id: turnstyle
-        uses: beckermr/turnstyle-python@v1
-        with:
-          abort-after-seconds: 300
-          poll-interval-seconds: 30
-          github-token:  ${{ secrets.AUTOTICK_BOT_TOKEN }}
-        continue-on-error: true
-
-      - name: debug outcome
-        run:
-          echo "outcome - ""${{ steps.turnstyle.outcome }}"
-
-      - name: set CI_SKIP success
-        if: steps.turnstyle.outcome == 'success'
-        run: |
-          echo "CI_SKIP=" >> $GITHUB_ENV
-
-      - name: set CI_SKIP not success
-        if: steps.turnstyle.outcome != 'success'
-        run: |
-          echo "CI_SKIP=1" >> $GITHUB_ENV
-
       - uses: actions/checkout@v4
-        if: ${{ ! env.CI_SKIP }}
         with:
           path: cf-scripts
 
-      - name: check filesystem
-        if: ${{ ! env.CI_SKIP }}
-        run: |
-          df
-
-      - name: check memory
-        if: ${{ ! env.CI_SKIP }}
-        run: |
-          free
-
       - uses: mamba-org/setup-micromamba@v1
-        if: ${{ ! env.CI_SKIP }}
         with:
           environment-file: cf-scripts/conda-lock.yml
           environment-name: cf-scripts
           condarc-file: cf-scripts/autotick-bot/condarc
 
       - name: do local setup and stop me if needed
-        if: ${{ ! env.CI_SKIP }}
         run: |
           cd cf-scripts
           python autotick-bot/stop_me_if_needed.py
 
       - name: install bot code
-        if: success() && ! env.CI_SKIP
         run: |
           source cf-scripts/autotick-bot/install_bot_code.sh
         env:
           BOT_TOKEN: ${{ secrets.AUTOTICK_BOT_TOKEN }}
 
       - name: run migrations
-        if: success() && ! env.CI_SKIP
         timeout-minutes: 210
         run: |
           export TIMEOUT=7200
@@ -92,13 +52,13 @@ jobs:
           MONGODB_CONNECTION_STRING: ${{ secrets.MONGODB_CONNECTION_STRING }}
 
       - name: status of changes
-        if: github.ref == 'refs/heads/master' && always() && ! env.CI_SKIP
+        if: github.ref == 'refs/heads/master' && always()
         run: |
           pushd cf-graph
           git status
 
       - name: deploy
-        if: github.ref == 'refs/heads/master' && always() && ! env.CI_SKIP
+        if: github.ref == 'refs/heads/master' && always()
         run: |
           pushd cf-graph
 
@@ -109,7 +69,7 @@ jobs:
           RUN_ID: ${{ github.run_id }}
 
       - name: bump on fail
-        if: github.ref == 'refs/heads/master' && failure() && ! env.CI_SKIP
+        if: github.ref == 'refs/heads/master' && failure()
         run: |
           export ACTION_URL="https://github.com/regro/cf-scripts/actions/runs/${RUN_ID}"
           python cf-scripts/autotick-bot/bump_bot_team.py
@@ -120,7 +80,7 @@ jobs:
 
       - name: trigger next job
         uses: benc-uk/workflow-dispatch@25b02cc069be46d637e8fe2f1e8484008e9e9609
-        if: github.ref == 'refs/heads/master' && ! cancelled() && ! failure() && ! env.CI_SKIP
+        if: github.ref == 'refs/heads/master' && ! cancelled() && ! failure()
         with:
           workflow: bot-bot
           ref: ${{ github.event.ref }}
