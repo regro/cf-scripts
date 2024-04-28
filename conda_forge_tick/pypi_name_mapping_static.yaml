@@ -115,3 +115,7 @@
 - pypi_name: lrcalc
   import_name: lrcalc
   conda_name: python-lrcalc
+
+- pypi_name: libigl
+  import_name: igl
+  conda_name: igl
