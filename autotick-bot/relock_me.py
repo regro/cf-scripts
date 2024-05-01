@@ -61,7 +61,12 @@ def _reformat_lockfile(lockfile):
 @click.option(
     "--reformat-only", is_flag=True, help="Reformat the lockfile for nicer git diffs."
 )
-def main(lockfile, reformat_only):
+@click.option(
+    "--force",
+    is_flag=True,
+    help="Forcibly update lockfile even if no packages have changed.",
+)
+def main(lockfile, reformat_only, force):
     """Re-lock the conda environment given by LOCKFILE and the environment.yml file."""
 
     if reformat_only:
@@ -117,17 +122,24 @@ def main(lockfile, reformat_only):
                         )
                     )
 
-        if any(relock_tuples[platform] for platform in envyml["platforms"]):
+        if any(relock_tuples[platform] for platform in envyml["platforms"]) or force:
             os.remove(lockfile + ".bak")
 
             _reformat_lockfile(lockfile)
 
-            print("The following packages have been updated:\n", flush=True)
-            for platform in envyml["platforms"]:
-                print(f"  platform: {platform}", flush=True)
-                for pkg, old_ver, new_ver in relock_tuples[platform]:
-                    print(f"    - {pkg}: {old_ver} -> {new_ver}", flush=True)
-                print("", flush=True)
+            if any(relock_tuples[platform] for platform in envyml["platforms"]):
+                print("The following packages have been updated:\n", flush=True)
+                for platform in envyml["platforms"]:
+                    print(f"  platform: {platform}", flush=True)
+                    for pkg, old_ver, new_ver in relock_tuples[platform]:
+                        print(f"    - {pkg}: {old_ver} -> {new_ver}", flush=True)
+                    print("", flush=True)
+            else:
+                print(
+                    "Forcibly relocked env even though no packages have been updated.",
+                    flush=True,
+                    file=sys.stderr,
+                )
         else:
             print("No packages have been updated.", flush=True, file=sys.stderr)
             shutil.move(lockfile + ".bak", lockfile)
