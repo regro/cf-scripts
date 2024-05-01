@@ -47,7 +47,6 @@ dependencies:
   - python-graphviz
   - python-rapidjson
   - requests
-  - rever
   - ruamel.yaml
   - ruamel.yaml.jinja2
   - scipy

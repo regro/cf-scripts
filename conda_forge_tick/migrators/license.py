@@ -6,8 +6,6 @@ import tempfile
 import typing
 from typing import Any
 
-from rever.tools import replace_in_file
-
 from conda_forge_tick.migrators.core import MiniMigrator
 from conda_forge_tick.os_utils import pushd
 from conda_forge_tick.provide_source_code import provide_source_code
@@ -24,6 +22,60 @@ if typing.TYPE_CHECKING:
 LICENSE_SPLIT = re.compile(r"\||\+")
 
 logger = logging.getLogger(__name__)
+
+
+def replace_in_file(pattern, new, fname, leading_whitespace=True):
+    """Replaces a given pattern in a file. If leading whitespace is True,
+    whitespace at the beginning of a line will be captured and preserved.
+    Otherwise, the pattern itself must contain all leading whitespace.
+
+    This function is vendored from rever under their license:
+
+    BSD 3-Clause License
+
+    Copyright (c) 2017, Anthony Scopatz
+    Copyright (c) 2018, The Regro Developers
+    All rights reserved.
+
+    Redistribution and use in source and binary forms, with or without
+    modification, are permitted provided that the following conditions are met:
+
+    * Redistributions of source code must retain the above copyright notice, this
+    list of conditions and the following disclaimer.
+
+    * Redistributions in binary form must reproduce the above copyright notice,
+    this list of conditions and the following disclaimer in the documentation
+    and/or other materials provided with the distribution.
+
+    * Neither the name of the copyright holder nor the names of its
+    contributors may be used to endorse or promote products derived from
+    this software without specific prior written permission.
+
+    THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+    AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+    IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+    DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+    FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+    DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+    SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+    CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+    OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+    OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+    """
+    with open(fname) as f:
+        raw = f.read()
+    lines = raw.splitlines()
+    if leading_whitespace:
+        ptn = re.compile(r"(\s*?)" + pattern)
+    else:
+        ptn = re.compile(pattern)
+    for i, line in enumerate(lines):
+        m = ptn.match(line)
+        if m is not None:
+            lines[i] = m.group(1) + new if leading_whitespace else new
+    upd = "\n".join(lines) + "\n"
+    with open(fname, "w") as f:
+        f.write(upd)
 
 
 def _to_spdx(lic):
