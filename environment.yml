@@ -61,7 +61,6 @@ dependencies:
   - wurlitzer
   - yaml
   - pandas
-  - xonsh
   - pip
   - pytest<8.1.0
   - codecov
