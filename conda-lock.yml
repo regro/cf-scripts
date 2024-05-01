@@ -3,9 +3,9 @@ metadata:
     - url: conda-forge
       used_env_vars: []
   content_hash:
-    linux-64: d1b2fee8cfcb526d5c8fb13dc26550043f79c45d596a31a9348f6619c9721dd0
-    osx-64: 2e433f5c4b4065e8cdd0b8860b11fb252c9a4a9a6b6c3073e09d8fc40756fc86
-    osx-arm64: 4de8bd8a04984d8646d81223f162a26f4d97d6069ab77a30e64004c20ab7b62e
+    linux-64: a4700e85ae3eba550b1ee1cedf5ee4b2ace1aad99ecda9c27c87dcfff83ff190
+    osx-64: 406b368013ca56a86d133ba1f01d8336b0821e27219bd3478f7a2b2d025e8ada
+    osx-arm64: 27642801c89e621c91d932f6990a44c75e2ad529c95097677f74067608633fb5
   platforms:
     - osx-arm64
     - linux-64
@@ -6545,14 +6545,14 @@ package:
       _libgcc_mutex: '0.1'
       _openmp_mutex: '>=4.5'
     hash:
-      md5: df88796bd09a0d2ed292e59101478ad8
-      sha256: 836a0057525f1414de43642d357d0ab21ac7f85e24800b010dbc17d132e6efec
+      md5: 4398809ac84d0b8c28beebaaa83277f5
+      sha256: 8bd6311a05f02459eb3efafe948f21e58170ccfcce4350a86de35d7573256bb2
     manager: conda
     name: libgcc-ng
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/linux-64/libgcc-ng-13.2.0-hc881cc4_6.conda
+      https://conda.anaconda.org/conda-forge/linux-64/libgcc-ng-13.2.0-h77fa898_6.conda
     version: 13.2.0
   - category: main
     dependencies:
@@ -6844,13 +6844,13 @@ package:
     dependencies:
       _libgcc_mutex: '0.1'
     hash:
-      md5: aae89d3736661c36a5591788aebd0817
-      sha256: e722b19b23b31a14b1592d5eceabb38dc52452ff5e4d346e330526971c22e52a
+      md5: e733e0573651a1f0639fa8ce066a286e
+      sha256: b059ec2403a421c71c33633ece6be2ccd303e376aae6079f8cfda96d42616527
     manager: conda
     name: libgomp
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/linux-64/libgomp-13.2.0-hc881cc4_6.conda
+    url: https://conda.anaconda.org/conda-forge/linux-64/libgomp-13.2.0-h77fa898_6.conda
     version: 13.2.0
   - category: main
     dependencies:
@@ -7611,14 +7611,14 @@ package:
   - category: main
     dependencies: {}
     hash:
-      md5: 3cfab3e709f77e9f1b3d380eb622494a
-      sha256: 2616dbf9d28431eea20b6e307145c6a92ea0328a047c725ff34b0316de2617da
+      md5: 2f18345bbc433c8a1ed887d7161e86a6
+      sha256: 547903d5ffecf49543c6ca9f6e504f0a8a47920b0517395cf529b4a955f1c3d4
     manager: conda
     name: libstdcxx-ng
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/linux-64/libstdcxx-ng-13.2.0-h95c4c6d_6.conda
+      https://conda.anaconda.org/conda-forge/linux-64/libstdcxx-ng-13.2.0-hc0a3c3a_6.conda
     version: 13.2.0
   - category: main
     dependencies:
@@ -11552,6 +11552,69 @@ package:
     url:
       https://conda.anaconda.org/conda-forge/noarch/ruamel.yaml.jinja2-0.2.4-py_1.tar.bz2
     version: 0.2.4
+  - category: main
+    dependencies:
+      libblas: '>=3.9.0,<4.0a0'
+      libcblas: '>=3.9.0,<4.0a0'
+      libgcc-ng: '>=12'
+      libgfortran-ng: ''
+      libgfortran5: '>=12.3.0'
+      liblapack: '>=3.9.0,<4.0a0'
+      libstdcxx-ng: '>=12'
+      numpy: '>=1.23.5,<2.0a0'
+      python: '>=3.11,<3.12.0a0'
+      python_abi: 3.11.*
+    hash:
+      md5: d443c70b4a05f50236c70b9c79beff64
+      sha256: d61d31d6f54e5d22f45bfce9d37d847313eab0afd6ff45e4c31f56f9ca2f8955
+    manager: conda
+    name: scipy
+    optional: false
+    platform: linux-64
+    url:
+      https://conda.anaconda.org/conda-forge/linux-64/scipy-1.13.0-py311h64a7726_0.conda
+    version: 1.13.0
+  - category: main
+    dependencies:
+      libblas: '>=3.9.0,<4.0a0'
+      libcblas: '>=3.9.0,<4.0a0'
+      libcxx: '>=16'
+      libgfortran: 5.*
+      libgfortran5: '>=13.2.0'
+      liblapack: '>=3.9.0,<4.0a0'
+      numpy: '>=1.23.5,<2.0a0'
+      python: '>=3.11,<3.12.0a0'
+      python_abi: 3.11.*
+    hash:
+      md5: 280cc0c8d29e2a60bb583db598719b06
+      sha256: 25b39409d6837185f780ad5f4d5733d70f4ab372973429d150ad52ab3148e603
+    manager: conda
+    name: scipy
+    optional: false
+    platform: osx-64
+    url: https://conda.anaconda.org/conda-forge/osx-64/scipy-1.13.0-py311h86d0cd9_0.conda
+    version: 1.13.0
+  - category: main
+    dependencies:
+      libblas: '>=3.9.0,<4.0a0'
+      libcblas: '>=3.9.0,<4.0a0'
+      libcxx: '>=16'
+      libgfortran: 5.*
+      libgfortran5: '>=13.2.0'
+      liblapack: '>=3.9.0,<4.0a0'
+      numpy: '>=1.23.5,<2.0a0'
+      python: '>=3.11,<3.12.0a0'
+      python_abi: 3.11.*
+    hash:
+      md5: 8ee0bd3f02934adabade41ab82914ab9
+      sha256: 3b1c61d3ae96e7e6586af560ba4562e2dcbe3bc72a6e29ca175dc64ff150f786
+    manager: conda
+    name: scipy
+    optional: false
+    platform: osx-arm64
+    url:
+      https://conda.anaconda.org/conda-forge/osx-arm64/scipy-1.13.0-py311h4f9446f_0.conda
+    version: 1.13.0
   - category: main
     dependencies:
       cffi: '>=1.7'
