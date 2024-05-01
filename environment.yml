@@ -49,6 +49,7 @@ dependencies:
   - requests
   - ruamel.yaml
   - ruamel.yaml.jinja2
+  - scipy
   - setuptools
   - setuptools_scm>=7
   - stopit
