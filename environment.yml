@@ -59,7 +59,6 @@ dependencies:
   - wget
   - wurlitzer
   - yaml
-  - pandas
   - pip
   - pytest<8.1.0
   - codecov

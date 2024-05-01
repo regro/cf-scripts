@@ -3,9 +3,9 @@ metadata:
     - url: conda-forge
       used_env_vars: []
   content_hash:
-    linux-64: 88c6642c5ca322c30cf63641bef49293a67ce41b44b761352b4b1ef5fb75c1bd
-    osx-64: fddefcf904ccefd6cab644de4acf4661a4f99c34fc99214adcf5e15abd229cd2
-    osx-arm64: a313056a1c8b1231ff4dece0887e93fafbfd6cbcf95084923c0ebd22db0671db
+    linux-64: 23c73478c3d4ddae224c8f85dc83ac42a5014e3ce10e758f103cf02762d377b8
+    osx-64: 12986383bb5598e409b26ec43dedd7922a332709482dee11ab0af7e0aab4c19e
+    osx-arm64: 1fcbc1ac0150a76a756dd24cd539f3142bbe2801db40dfcf72d983ed935953e7
   platforms:
     - osx-arm64
     - linux-64
@@ -8965,63 +8965,6 @@ package:
     version: '24.0'
   - category: main
     dependencies:
-      libgcc-ng: '>=12'
-      libstdcxx-ng: '>=12'
-      numpy: '>=1.23.5,<2.0a0'
-      python: '>=3.11,<3.12.0a0'
-      python-dateutil: '>=2.8.1'
-      python-tzdata: '>=2022a'
-      python_abi: 3.11.*
-      pytz: '>=2020.1'
-    hash:
-      md5: c79e96ece4110fdaf2657c9f8e16f749
-      sha256: 3c04d27e56972321e2bc84bb923452414e6b037b95ffc8797cef5d896e663243
-    manager: conda
-    name: pandas
-    optional: false
-    platform: linux-64
-    url:
-      https://conda.anaconda.org/conda-forge/linux-64/pandas-2.2.2-py311h320fe9a_0.conda
-    version: 2.2.2
-  - category: main
-    dependencies:
-      libcxx: '>=16'
-      numpy: '>=1.23.5,<2.0a0'
-      python: '>=3.11,<3.12.0a0'
-      python-dateutil: '>=2.8.1'
-      python-tzdata: '>=2022a'
-      python_abi: 3.11.*
-      pytz: '>=2020.1'
-    hash:
-      md5: a218d0ff002600e778badcffecd3db2f
-      sha256: c095d4692d786f674d75a6a4a1f512304e7abc0dcd7487e70cd786d104659aa9
-    manager: conda
-    name: pandas
-    optional: false
-    platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/osx-64/pandas-2.2.2-py311h8f6166a_0.conda
-    version: 2.2.2
-  - category: main
-    dependencies:
-      libcxx: '>=16'
-      numpy: '>=1.23.5,<2.0a0'
-      python: '>=3.11,<3.12.0a0'
-      python-dateutil: '>=2.8.1'
-      python-tzdata: '>=2022a'
-      python_abi: 3.11.*
-      pytz: '>=2020.1'
-    hash:
-      md5: 28caba700adb764f4f3defe92d704ccc
-      sha256: 59a7755030d79cf1639cb3779016c679b8adca05d1e67e215ba0a4a1994fd9c0
-    manager: conda
-    name: pandas
-    optional: false
-    platform: osx-arm64
-    url:
-      https://conda.anaconda.org/conda-forge/osx-arm64/pandas-2.2.2-py311hfbe21a1_0.conda
-    version: 2.2.2
-  - category: main
-    dependencies:
       cairo: '>=1.18.0,<2.0a0'
       fontconfig: '>=2.14.2,<3.0a0'
       fonts-conda-ecosystem: ''
@@ -11008,45 +10951,6 @@ package:
     url:
       https://conda.anaconda.org/conda-forge/osx-arm64/python-rapidjson-1.16-py311h92babd0_0.conda
     version: '1.16'
-  - category: main
-    dependencies:
-      python: '>=3.6'
-    hash:
-      md5: 98206ea9954216ee7540f0c773f2104d
-      sha256: 9da9a849d53705dee450b83507df1ca8ffea5f83bd21a215202221f1c492f8ad
-    manager: conda
-    name: python-tzdata
-    optional: false
-    platform: linux-64
-    url:
-      https://conda.anaconda.org/conda-forge/noarch/python-tzdata-2024.1-pyhd8ed1ab_0.conda
-    version: '2024.1'
-  - category: main
-    dependencies:
-      python: '>=3.6'
-    hash:
-      md5: 98206ea9954216ee7540f0c773f2104d
-      sha256: 9da9a849d53705dee450b83507df1ca8ffea5f83bd21a215202221f1c492f8ad
-    manager: conda
-    name: python-tzdata
-    optional: false
-    platform: osx-64
-    url:
-      https://conda.anaconda.org/conda-forge/noarch/python-tzdata-2024.1-pyhd8ed1ab_0.conda
-    version: '2024.1'
-  - category: main
-    dependencies:
-      python: '>=3.6'
-    hash:
-      md5: 98206ea9954216ee7540f0c773f2104d
-      sha256: 9da9a849d53705dee450b83507df1ca8ffea5f83bd21a215202221f1c492f8ad
-    manager: conda
-    name: python-tzdata
-    optional: false
-    platform: osx-arm64
-    url:
-      https://conda.anaconda.org/conda-forge/noarch/python-tzdata-2024.1-pyhd8ed1ab_0.conda
-    version: '2024.1'
   - category: main
     dependencies:
       python: '>=3.8'
