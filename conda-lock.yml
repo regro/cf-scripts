@@ -5760,15 +5760,15 @@ package:
       referencing: '>=0.28.4'
       rpds-py: '>=0.7.1'
     hash:
-      md5: 8a3a3d01629da20befa340919e3dd2c4
-      sha256: c5c1b4e08e91fdd697289015be1a176409b4e63942899a43b276f1f250be8129
+      md5: b9661a4b1200d6bc7d8a4cdafdc91468
+      sha256: 57a466e8c42635d8e930fa065dc6e461f4215aa259ab03873eacb03ddaeefc8a
     manager: conda
     name: jsonschema
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/jsonschema-4.21.1-pyhd8ed1ab_0.conda
-    version: 4.21.1
+      https://conda.anaconda.org/conda-forge/noarch/jsonschema-4.22.0-pyhd8ed1ab_0.conda
+    version: 4.22.0
   - category: main
     dependencies:
       attrs: '>=22.2.0'
@@ -5779,15 +5779,15 @@ package:
       referencing: '>=0.28.4'
       rpds-py: '>=0.7.1'
     hash:
-      md5: 8a3a3d01629da20befa340919e3dd2c4
-      sha256: c5c1b4e08e91fdd697289015be1a176409b4e63942899a43b276f1f250be8129
+      md5: b9661a4b1200d6bc7d8a4cdafdc91468
+      sha256: 57a466e8c42635d8e930fa065dc6e461f4215aa259ab03873eacb03ddaeefc8a
     manager: conda
     name: jsonschema
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/jsonschema-4.21.1-pyhd8ed1ab_0.conda
-    version: 4.21.1
+      https://conda.anaconda.org/conda-forge/noarch/jsonschema-4.22.0-pyhd8ed1ab_0.conda
+    version: 4.22.0
   - category: main
     dependencies:
       attrs: '>=22.2.0'
@@ -5798,15 +5798,15 @@ package:
       referencing: '>=0.28.4'
       rpds-py: '>=0.7.1'
     hash:
-      md5: 8a3a3d01629da20befa340919e3dd2c4
-      sha256: c5c1b4e08e91fdd697289015be1a176409b4e63942899a43b276f1f250be8129
+      md5: b9661a4b1200d6bc7d8a4cdafdc91468
+      sha256: 57a466e8c42635d8e930fa065dc6e461f4215aa259ab03873eacb03ddaeefc8a
     manager: conda
     name: jsonschema
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/jsonschema-4.21.1-pyhd8ed1ab_0.conda
-    version: 4.21.1
+      https://conda.anaconda.org/conda-forge/noarch/jsonschema-4.22.0-pyhd8ed1ab_0.conda
+    version: 4.22.0
   - category: main
     dependencies:
       importlib_resources: '>=1.4.0'
