@@ -223,7 +223,7 @@ def populate_feedstock_attributes(
     If the return is bad hand the response itself in so that it can be parsed
     for meaning.
     """
-    from xonsh.lib.collections import ChainDB, _convert_to_dict
+    from conda_forge_tick.chaindb import ChainDB, _convert_to_dict
 
     sub_graph.update({"feedstock_name": name, "parsing_error": False, "branch": "main"})
 
