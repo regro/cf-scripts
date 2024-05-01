@@ -28,6 +28,7 @@ The views and conclusions contained in the software and documentation are those 
 authors and should not be interpreted as representing official policies, either expressed
 or implied, of the stakeholders of the xonsh project or the employers of xonsh developers.
 """
+
 import itertools
 import typing as tp
 from collections import ChainMap
