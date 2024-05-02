@@ -1,5 +1,9 @@
-#!/bin/bash -il
+#!/bin/bash
 
+# setup conda directly
+source /opt/conda/etc/profile.d/conda.sh
+
+# activate env
 conda activate cf-scripts
 
 # Run whatever the user wants.
