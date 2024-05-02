@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# setup conda directly
-source /opt/conda/etc/profile.d/conda.sh
+# source profile scripts for conda
+source ~/.bash_profile
 
 # activate env
 conda activate cf-scripts
