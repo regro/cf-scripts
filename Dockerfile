@@ -53,7 +53,8 @@ RUN conda activate cf-scripts && \
     git config --global init.defaultBranch main && \
     git config --global user.email "conda@conda.conda" && \
     git config --global user.name "conda conda" && \
-    conda deactivate
+    conda deactivate && \
+    conda init --all --user
 
 # put the shell back
 SHELL ["/bin/sh", "-c"]
