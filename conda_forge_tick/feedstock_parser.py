@@ -409,6 +409,16 @@ def populate_feedstock_attributes(
         if k[1] not in missing_keys:
             sub_graph[k[1]] = yaml_dict[k[0]][k[1]]
 
+    # sometimes a version is not given at the top level, so we check outputs
+    # we do not know which version to take, but hopefully they are all the same
+    if (
+        "version" not in sub_graph
+        and "outputs" in yaml_dict
+        and len(yaml_dict["outputs"]) > 0
+        and "version" in yaml_dict["outputs"][0]
+    ):
+        sub_graph["version"] = yaml_dict["outputs"][0]["version"]
+
     # set the url and hash
     sub_graph.pop("url", None)
     sub_graph.pop("hash_type", None)
