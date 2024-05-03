@@ -831,7 +831,9 @@ def _outside_pin_range(pin_spec, current_pin, new_version):
     return False
 
 
-def create_migration_yaml_creator(migrators: MutableSequence[Migrator], gx: nx.DiGraph):
+def create_migration_yaml_creator(
+    migrators: MutableSequence[Migrator], gx: nx.DiGraph, pin_to_debug=None
+):
     cfp_gx = copy.deepcopy(gx)
     for node in list(cfp_gx.nodes):
         if node != "conda-forge-pinning":
@@ -845,6 +847,9 @@ def create_migration_yaml_creator(migrators: MutableSequence[Migrator], gx: nx.D
         )
     feedstocks_to_be_repinned = []
     for pinning_name, package_pin_list in pinnings.items():
+        if pin_to_debug is not None and pinning_name != pin_to_debug:
+            continue
+
         # there are three things:
         # pinning_name - entry in pinning file
         # package_name - the actual package, could differ via `-` -> `_`
