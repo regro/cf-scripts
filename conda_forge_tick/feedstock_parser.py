@@ -414,6 +414,7 @@ def populate_feedstock_attributes(
     if (
         "version" not in sub_graph
         and "outputs" in yaml_dict
+        and len(yaml_dict["outputs"]) > 0
         and "version" in yaml_dict["outputs"][0]
     ):
         sub_graph["version"] = yaml_dict["outputs"][0]["version"]
