@@ -188,10 +188,14 @@ def test_rerender_feedstock_containerized_same_as_local(capfd):
 
         with pushd(tmpdir_cont):
             subprocess.run(
-                ["git", "clone", "https://github.com/conda-forge/ngmix-feedstock.git"]
+                [
+                    "git",
+                    "clone",
+                    "https://github.com/conda-forge/conda-forge-feedstock-check-solvable-feedstock.git",
+                ]
             )
             # make sure rerender happens
-            with pushd("ngmix-feedstock"):
+            with pushd("conda-forge-feedstock-check-solvable-feedstock"):
                 cmds = [
                     ["git", "rm", "-f", ".gitignore"],
                     ["git", "rm", "-rf", ".scripts"],
@@ -207,7 +211,9 @@ def test_rerender_feedstock_containerized_same_as_local(capfd):
 
             try:
                 msg = rerender_feedstock_containerized(
-                    os.path.join(tmpdir_cont, "ngmix-feedstock"),
+                    os.path.join(
+                        tmpdir_cont, "conda-forge-feedstock-check-solvable-feedstock"
+                    ),
                 )
             finally:
                 captured = capfd.readouterr()
@@ -227,10 +233,14 @@ def test_rerender_feedstock_containerized_same_as_local(capfd):
 
         with pushd(tmpdir_local):
             subprocess.run(
-                ["git", "clone", "https://github.com/conda-forge/ngmix-feedstock.git"]
+                [
+                    "git",
+                    "clone",
+                    "https://github.com/conda-forge/conda-forge-feedstock-check-solvable-feedstock.git",
+                ]
             )
             # make sure rerender happens
-            with pushd("ngmix-feedstock"):
+            with pushd("conda-forge-feedstock-check-solvable-feedstock"):
                 cmds = [
                     ["git", "rm", "-f", ".gitignore"],
                     ["git", "rm", "-rf", ".scripts"],
@@ -246,7 +256,9 @@ def test_rerender_feedstock_containerized_same_as_local(capfd):
 
             try:
                 local_msg = rerender_feedstock_local(
-                    os.path.join(tmpdir_local, "ngmix-feedstock"),
+                    os.path.join(
+                        tmpdir_local, "conda-forge-feedstock-check-solvable-feedstock"
+                    ),
                 )
             finally:
                 local_captured = capfd.readouterr()
@@ -286,10 +298,14 @@ def test_rerender_feedstock_containerized_empty():
         # first run the rerender locally
         with pushd(tmpdir_local):
             subprocess.run(
-                ["git", "clone", "https://github.com/conda-forge/ngmix-feedstock.git"]
+                [
+                    "git",
+                    "clone",
+                    "https://github.com/conda-forge/conda-forge-feedstock-check-solvable-feedstock.git",
+                ]
             )
             # make sure rerender happens
-            with pushd("ngmix-feedstock"):
+            with pushd("conda-forge-feedstock-check-solvable-feedstock"):
                 cmds = [
                     ["git", "rm", "-f", ".gitignore"],
                     ["git", "rm", "-rf", ".scripts"],
@@ -304,11 +320,13 @@ def test_rerender_feedstock_containerized_empty():
                     )
 
             local_msg = rerender_feedstock_local(
-                os.path.join(tmpdir_local, "ngmix-feedstock"),
+                os.path.join(
+                    tmpdir_local, "conda-forge-feedstock-check-solvable-feedstock"
+                ),
             )
 
             assert local_msg is not None
-            with pushd("ngmix-feedstock"):
+            with pushd("conda-forge-feedstock-check-solvable-feedstock"):
                 subprocess.run(
                     ["git", "commit", "-am", local_msg],
                     check=True,
@@ -316,7 +334,9 @@ def test_rerender_feedstock_containerized_empty():
 
         # now run in container and make sure commit message is None
         msg = rerender_feedstock_containerized(
-            os.path.join(tmpdir_local, "ngmix-feedstock"),
+            os.path.join(
+                tmpdir_local, "conda-forge-feedstock-check-solvable-feedstock"
+            ),
         )
 
         assert msg is None
@@ -327,10 +347,14 @@ def test_rerender_feedstock_containerized_permissions():
     with tempfile.TemporaryDirectory() as tmpdir:
         with pushd(tmpdir):
             subprocess.run(
-                ["git", "clone", "https://github.com/conda-forge/ngmix-feedstock.git"]
+                [
+                    "git",
+                    "clone",
+                    "https://github.com/conda-forge/conda-forge-feedstock-check-solvable-feedstock.git",
+                ]
             )
 
-            with pushd("ngmix-feedstock"):
+            with pushd("conda-forge-feedstock-check-solvable-feedstock"):
                 orig_perms_bl = os.stat("build-locally.py").st_mode
                 print(
                     f"\n\ncloned permissions for build-locally.py: {orig_perms_bl:#o}\n\n"
@@ -338,11 +362,11 @@ def test_rerender_feedstock_containerized_permissions():
                 orig_exec = get_user_execute_permissions(".")
 
             local_msg = rerender_feedstock_local(
-                os.path.join(tmpdir, "ngmix-feedstock"),
+                os.path.join(tmpdir, "conda-forge-feedstock-check-solvable-feedstock"),
             )
 
             if local_msg is not None:
-                with pushd("ngmix-feedstock"):
+                with pushd("conda-forge-feedstock-check-solvable-feedstock"):
                     cmds = [
                         ["git", "config", "user.email", "conda@conda.conda"],
                         ["git", "config", "user.name", "conda c. conda"],
@@ -352,7 +376,7 @@ def test_rerender_feedstock_containerized_permissions():
                         subprocess.run(cmd, check=True)
 
             # now change permissions
-            with pushd("ngmix-feedstock"):
+            with pushd("conda-forge-feedstock-check-solvable-feedstock"):
                 orig_perms_bl = os.stat("build-locally.py").st_mode
                 print(
                     f"\n\ninput permissions for build-locally.py: {orig_perms_bl:#o}\n\n"
@@ -373,11 +397,11 @@ def test_rerender_feedstock_containerized_permissions():
                     )
 
             msg = rerender_feedstock_containerized(
-                os.path.join(tmpdir, "ngmix-feedstock"),
+                os.path.join(tmpdir, "conda-forge-feedstock-check-solvable-feedstock"),
             )
             assert msg is not None
 
-            with pushd("ngmix-feedstock"):
+            with pushd("conda-forge-feedstock-check-solvable-feedstock"):
                 perms_bl = os.stat("build-locally.py").st_mode
                 print(f"\n\nfinal permissions for build-locally.py: {perms_bl:#o}\n\n")
                 cont_rerend_exec = get_user_execute_permissions(".")
@@ -393,10 +417,16 @@ def test_provide_source_code_containerized():
         pushd(tmpdir),
     ):
         subprocess.run(
-            ["git", "clone", "https://github.com/conda-forge/ngmix-feedstock.git"]
+            [
+                "git",
+                "clone",
+                "https://github.com/conda-forge/conda-forge-feedstock-check-solvable-feedstock.git",
+            ]
         )
 
-        with provide_source_code_containerized("ngmix-feedstock/recipe") as source_dir:
+        with provide_source_code_containerized(
+            "conda-forge-feedstock-check-solvable-feedstock/recipe"
+        ) as source_dir:
             assert os.path.exists(source_dir)
             assert os.path.isdir(source_dir)
             assert "ngmix" in os.listdir(source_dir)
