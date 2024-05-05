@@ -429,5 +429,5 @@ def test_provide_source_code_containerized():
         ) as source_dir:
             assert os.path.exists(source_dir)
             assert os.path.isdir(source_dir)
-            assert "ngmix" in os.listdir(source_dir)
-            assert "setup.py" in os.listdir(source_dir)
+            assert "conda_forge_feedstock_check_solvable" in os.listdir(source_dir)
+            assert "pyproject.toml" in os.listdir(source_dir)
