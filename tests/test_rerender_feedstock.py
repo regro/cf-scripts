@@ -9,10 +9,14 @@ from conda_forge_tick.rerender_feedstock import rerender_feedstock_local
 def test_rerender_feedstock_stderr(capfd):
     with tempfile.TemporaryDirectory() as tmpdir, pushd(tmpdir):
         subprocess.run(
-            ["git", "clone", "https://github.com/conda-forge/ngmix-feedstock.git"]
+            [
+                "git",
+                "clone",
+                "https://github.com/conda-forge/conda-forge-feedstock-check-solvable-feedstock.git",
+            ]
         )
         # make sure rerender happens
-        with pushd("ngmix-feedstock"):
+        with pushd("conda-forge-feedstock-check-solvable-feedstock"):
             cmds = [
                 ["git", "rm", "-f", ".gitignore"],
                 ["git", "rm", "-rf", ".scripts"],
@@ -28,7 +32,7 @@ def test_rerender_feedstock_stderr(capfd):
 
         try:
             msg = rerender_feedstock_local(
-                os.path.join(tmpdir, "ngmix-feedstock"),
+                os.path.join(tmpdir, "conda-forge-feedstock-check-solvable-feedstock"),
             )
         finally:
             captured = capfd.readouterr()
@@ -44,10 +48,14 @@ def test_rerender_feedstock_stderr(capfd):
 def test_rerender_feedstock_git_staged():
     with tempfile.TemporaryDirectory() as tmpdir, pushd(tmpdir):
         subprocess.run(
-            ["git", "clone", "https://github.com/conda-forge/ngmix-feedstock.git"]
+            [
+                "git",
+                "clone",
+                "https://github.com/conda-forge/conda-forge-feedstock-check-solvable-feedstock.git",
+            ]
         )
         # make sure rerender happens
-        with pushd("ngmix-feedstock"):
+        with pushd("conda-forge-feedstock-check-solvable-feedstock"):
             cmds = [
                 ["git", "rm", "-f", ".gitignore"],
                 ["git", "rm", "-rf", ".scripts"],
@@ -62,12 +70,12 @@ def test_rerender_feedstock_git_staged():
                 )
 
         msg = rerender_feedstock_local(
-            os.path.join(tmpdir, "ngmix-feedstock"),
+            os.path.join(tmpdir, "conda-forge-feedstock-check-solvable-feedstock"),
         )
         assert msg is not None
 
         # check that things are staged in git
-        with pushd("ngmix-feedstock"):
+        with pushd("conda-forge-feedstock-check-solvable-feedstock"):
             ret = subprocess.run(
                 ["git", "diff", "--name-only", "--staged"],
                 stdout=subprocess.PIPE,
