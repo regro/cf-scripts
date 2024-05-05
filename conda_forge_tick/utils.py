@@ -90,7 +90,7 @@ CB_CONFIG_PINNING = dict(
 
 DEFAULT_GRAPH_FILENAME = "graph.json"
 
-DEFAULT_CONTAINER_TMPFS_SIZE_MB = 100
+DEFAULT_CONTAINER_TMPFS_SIZE_MB = 6000
 
 
 def get_default_container_name():
@@ -134,7 +134,7 @@ def get_default_container_run_args(
         "--mount",
         f"type=tmpfs,destination=/tmp,tmpfs-mode=1777,tmpfs-size={tmpfs_size_bytes}",
         "-m",
-        "2048m",
+        "6000m",
         "--cpus",
         "1",
         "--ulimit",
@@ -224,17 +224,6 @@ def run_container_task(
             f"\ncmd: {pprint.pformat(cmd)}"
             f"\noutput: {pprint.pformat(res.stdout)}"
         )
-
-    # I have tried more than once to filter this out of the conda-build
-    # logs using a filter but I cannot get it to work always.
-    # For now, I will replace it here.
-    data = ret["container_stdout"].replace(
-        "WARNING: No numpy version specified in conda_build_config.yaml.", ""
-    )
-    for level in ["critical", "error", "warning", "info", "debug"]:
-        if f"{level.upper():<8} conda_forge_tick" in data:
-            getattr(logger, level)(data)
-            break
 
     if "error" in ret:
         raise RuntimeError(

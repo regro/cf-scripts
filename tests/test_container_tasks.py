@@ -19,6 +19,7 @@ from conda_forge_tick.rerender_feedstock import (
     rerender_feedstock_containerized,
     rerender_feedstock_local,
 )
+from conda_forge_tick.solver_checks import is_recipe_solvable
 from conda_forge_tick.update_upstream_versions import (
     all_version_sources,
     get_latest_version_containerized,
@@ -401,3 +402,26 @@ def test_provide_source_code_containerized():
             assert os.path.isdir(source_dir)
             assert "ngmix" in os.listdir(source_dir)
             assert "setup.py" in os.listdir(source_dir)
+
+
+@pytest.mark.skipif(not HAVE_CONTAINERS, reason="containers not available")
+def test_is_recipe_solvable_containerized():
+    with tempfile.TemporaryDirectory() as tmpdir:
+        with pushd(tmpdir):
+            subprocess.run(
+                ["git", "clone", "https://github.com/conda-forge/ngmix-feedstock.git"]
+            )
+
+        res_cont = is_recipe_solvable(
+            os.path.join(tmpdir, "ngmix-feedstock"),
+            use_container=True,
+        )
+        assert res_cont[0], res_cont
+
+        res_local = is_recipe_solvable(
+            os.path.join(tmpdir, "ngmix-feedstock"),
+            use_container=False,
+        )
+        assert res_local[0], res_local
+
+        assert res_cont == res_local

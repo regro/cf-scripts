@@ -23,7 +23,6 @@ import sys
 import tempfile
 import traceback
 from contextlib import contextmanager, redirect_stdout
-from io import StringIO
 
 import click
 
@@ -91,6 +90,8 @@ def _run_bot_task(func, *, log_level, existing_feedstock_node_attrs, **kwargs):
         _setenv("CONDA_BLD_PATH", os.path.join(tmpdir_cbld, "conda-bld")),
         tempfile.TemporaryDirectory() as tmpdir_cache,
         _setenv("XDG_CACHE_HOME", tmpdir_cache),
+        tempfile.TemporaryDirectory() as tmpdir_conda_pkgs_dirs,
+        _setenv("CONDA_PKGS_DIRS", tmpdir_conda_pkgs_dirs),
     ):
         os.makedirs(os.path.join(tmpdir_cbld, "conda-bld"), exist_ok=True)
 
@@ -100,10 +101,9 @@ def _run_bot_task(func, *, log_level, existing_feedstock_node_attrs, **kwargs):
 
         data = None
         ret = copy.copy(kwargs)
-        stdout = StringIO()
         try:
             with (
-                redirect_stdout(stdout),
+                redirect_stdout(sys.stderr),
                 tempfile.TemporaryDirectory() as tmpdir,
                 pushd(tmpdir),
             ):
@@ -118,11 +118,9 @@ def _run_bot_task(func, *, log_level, existing_feedstock_node_attrs, **kwargs):
                     data = func(**kwargs)
 
             ret["data"] = data
-            ret["container_stdout"] = stdout.getvalue()
 
         except Exception as e:
             ret["data"] = data
-            ret["container_stdout"] = stdout.getvalue()
             ret["error"] = repr(e)
             ret["traceback"] = traceback.format_exc()
 
@@ -332,6 +330,35 @@ def _parse_meta_yaml(
     )
 
 
+def _check_solvable(
+    *,
+    timeout,
+    verbosity,
+    additional_channels,
+    build_platform,
+):
+    from conda_forge_tick.solver_checks import is_recipe_solvable
+
+    logger = logging.getLogger("conda_forge_tick.container")
+
+    logger.debug(
+        f"input container feedstock dir /cf_tick_dir: {os.listdir('/cf_tick_dir')}"
+    )
+
+    data = {}
+    data["solvable"], data["errors"], data["solvable_by_variant"] = is_recipe_solvable(
+        "/cf_tick_dir",
+        use_container=False,
+        timeout=timeout,
+        verbosity=verbosity,
+        additional_channels=(
+            additional_channels.split(",") if additional_channels else None
+        ),
+        build_platform=json.loads(build_platform) if build_platform else None,
+    )
+    return data
+
+
 @click.group()
 def cli():
     pass
@@ -452,6 +479,44 @@ def provide_source_code(log_level):
         _provide_source_code,
         log_level=log_level,
         existing_feedstock_node_attrs=None,
+    )
+
+
+@cli.command(name="check-solvable")
+@log_level_option
+@click.option(
+    "--timeout",
+    type=int,
+    default=600,
+    help="The timeout for the solver check in seconds.",
+)
+@click.option(
+    "--verbosity",
+    type=int,
+    default=1,
+    help="The verbosity of the solver check. 0 is no output, 3 is a lot of output.",
+)
+@click.option(
+    "--additional-channels",
+    type=str,
+    default=None,
+    help="Additional channels to use for the solver check as a comma separated list.",
+)
+@click.option(
+    "--build-platform",
+    type=str,
+    default=None,
+    help="The conda-forge.yml build_platform section as a JSON string.",
+)
+def check_solvable(log_level, timeout, verbosity, additional_channels, build_platform):
+    return _run_bot_task(
+        _check_solvable,
+        log_level=log_level,
+        existing_feedstock_node_attrs=None,
+        timeout=timeout,
+        verbosity=verbosity,
+        additional_channels=additional_channels,
+        build_platform=build_platform,
     )
 
 
