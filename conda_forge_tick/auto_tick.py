@@ -49,7 +49,6 @@ import networkx as nx
 from conda.models.version import VersionOrder
 from conda_build.config import Config
 from conda_build.variants import parse_config_file
-from conda_forge_feedstock_check_solvable import is_recipe_solvable
 
 from conda_forge_tick.contexts import (
     FeedstockContext,
@@ -102,6 +101,7 @@ from conda_forge_tick.migrators.migration_yaml import (
 )
 from conda_forge_tick.os_utils import eval_cmd, pushd
 from conda_forge_tick.rerender_feedstock import rerender_feedstock
+from conda_forge_tick.solver_checks import is_recipe_solvable
 from conda_forge_tick.utils import (
     CB_CONFIG,
     dump_graph,
@@ -357,7 +357,6 @@ def run(
                 "build_platform",
                 None,
             ),
-            verbosity=2,
         )
         if not solvable:
             ci_url = get_bot_run_url()
