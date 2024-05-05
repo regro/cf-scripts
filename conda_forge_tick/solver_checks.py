@@ -84,7 +84,10 @@ def is_recipe_solvable(
             verbosity=verbosity,
         )
     else:
-        from conda_forge_feedstock_check_solvable import is_recipe_solvable as _is_recipe_solvable
+        from conda_forge_feedstock_check_solvable import (
+            is_recipe_solvable as _is_recipe_solvable,
+        )
+
         return _is_recipe_solvable(
             feedstock_dir,
             additional_channels=additional_channels,
