@@ -58,7 +58,9 @@ def _slice_into_output_sections(meta_yaml_lines, attrs):
     if pos < len(meta_yaml_lines):
         sections[section_index] = meta_yaml_lines[pos:]
 
-    # output_names may contain duplicates; remove them but keep order
+    # double check length here to flag possible weird cases
+    # this check will fail incorrectly for outputs with the same name
+    # but different build strings.
     outputs = attrs["meta_yaml"].get("outputs", [])
     outputs = {o["name"] for o in outputs}
     if len(sections) != len(outputs) + 1:
