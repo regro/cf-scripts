@@ -2,7 +2,7 @@ name: bot-versions
 
 on:
   schedule:
-    - cron:  '15,45 * * * *'
+    - cron: '15,45 * * * *'
   workflow_dispatch: null
 
 concurrency: versions
@@ -13,17 +13,17 @@ jobs:
     runs-on: "ubuntu-latest"
     strategy:
       matrix:
-        job_num: [1, 2, 3, 4, 5, 6]
+        job_num: [ 1, 2, 3, 4, 5, 6 ]
     defaults:
       run:
         shell: bash -leo pipefail {0}
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # v4
         with:
           path: cf-scripts
 
-      - uses: mamba-org/setup-micromamba@v1
+      - uses: mamba-org/setup-micromamba@422500192359a097648154e8db4e39bdb6c6eed7 # v1
         with:
           environment-file: cf-scripts/conda-lock.yml
           environment-name: cf-scripts

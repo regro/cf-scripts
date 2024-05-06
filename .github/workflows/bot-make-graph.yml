@@ -3,7 +3,7 @@ name: bot-make-graph
 on:
   workflow_dispatch: null
   schedule:
-    - cron:  '*/15 * * * *'
+    - cron: '*/15 * * * *'
 
 concurrency: bot-make-graph
 
@@ -13,17 +13,17 @@ jobs:
     runs-on: "ubuntu-latest"
     strategy:
       matrix:
-        job_num: [1, 2, 3]
+        job_num: [ 1, 2, 3 ]
     defaults:
       run:
         shell: bash -leo pipefail {0}
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # v4
         with:
           path: cf-scripts
 
-      - uses: mamba-org/setup-micromamba@v1
+      - uses: mamba-org/setup-micromamba@422500192359a097648154e8db4e39bdb6c6eed7 # v1
         with:
           environment-file: cf-scripts/conda-lock.yml
           environment-name: cf-scripts
@@ -82,11 +82,11 @@ jobs:
         shell: bash -leo pipefail {0}
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # v4
         with:
           path: cf-scripts
 
-      - uses: mamba-org/setup-micromamba@v1
+      - uses: mamba-org/setup-micromamba@422500192359a097648154e8db4e39bdb6c6eed7 # v1
         with:
           environment-file: cf-scripts/conda-lock.yml
           environment-name: cf-scripts
@@ -126,7 +126,7 @@ jobs:
           RUN_ID: ${{ github.run_id }}
 
       - name: trigger next job
-        uses: benc-uk/workflow-dispatch@25b02cc069be46d637e8fe2f1e8484008e9e9609
+        uses: benc-uk/workflow-dispatch@25b02cc069be46d637e8fe2f1e8484008e9e9609 # v1.2.3
         if: github.ref == 'refs/heads/master' && ! cancelled() && ! failure() && ! env.CI_SKIP
         with:
           workflow: bot-make-graph

@@ -3,7 +3,7 @@ name: bot-keepalive
 on:
   workflow_dispatch: null
   schedule:
-    - cron:  '15 * * * *'
+    - cron: '15 * * * *'
 
 concurrency: bot-keepalive
 
@@ -18,17 +18,16 @@ jobs:
     steps:
       - name: prevent multiple jobs running in parallel
         id: turnstyle
-        uses: beckermr/turnstyle-python@v2
+        uses: beckermr/turnstyle-python@d50fd7e1de14639af00d8dc8e0f60176a99153d9 # v2
         with:
           abort-after-seconds: 300
           poll-interval-seconds: 30
-          github-token:  ${{ secrets.AUTOTICK_BOT_TOKEN }}
+          github-token: ${{ secrets.AUTOTICK_BOT_TOKEN }}
           workflow-name: bot-bot
         continue-on-error: true
 
       - name: debug outcome
-        run:
-          echo "outcome - ""${{ steps.turnstyle.outcome }}"
+        run: echo "outcome - ""${{ steps.turnstyle.outcome }}"
 
       - name: set CI_SKIP success
         if: steps.turnstyle.outcome == 'success'
@@ -41,7 +40,7 @@ jobs:
           echo "CI_SKIP=1" >> $GITHUB_ENV
 
       - name: trigger next job
-        uses: benc-uk/workflow-dispatch@25b02cc069be46d637e8fe2f1e8484008e9e9609
+        uses: benc-uk/workflow-dispatch@25b02cc069be46d637e8fe2f1e8484008e9e9609 # v1.2.3
         if: github.ref == 'refs/heads/master' && ! cancelled() && ! failure() && ! env.CI_SKIP
         with:
           workflow: bot-bot

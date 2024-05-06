@@ -3,7 +3,7 @@ name: bot-cache
 on:
   workflow_dispatch: null
   schedule:
-    - cron:  '*/15 * * * *'
+    - cron: '*/15 * * * *'
 
 concurrency: bot-cache
 
@@ -22,18 +22,18 @@ jobs:
     steps:
       - name: run cache
         if: success() && ! env.CI_SKIP
-        uses: actions/cache@v4
+        uses: actions/cache@0c45773b623bea8c8e75f6c82b208c3cf94ea4f9 # v4
         with:
           path: cf-graph.tar.zstd
           key: cf-graph-tzstd-${{ github.run_id }}-${{ github.run_attempt }}-${{ matrix.version }}
           restore-keys: |
             cf-graph-tzstd-
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # v4
         with:
           path: cf-scripts
 
-      - uses: mamba-org/setup-micromamba@v1
+      - uses: mamba-org/setup-micromamba@422500192359a097648154e8db4e39bdb6c6eed7 # v1
         with:
           environment-file: cf-scripts/conda-lock.yml
           environment-name: cf-scripts
@@ -72,11 +72,11 @@ jobs:
         shell: bash -leo pipefail {0}
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # v4
         with:
           path: cf-scripts
 
-      - uses: mamba-org/setup-micromamba@v1
+      - uses: mamba-org/setup-micromamba@422500192359a097648154e8db4e39bdb6c6eed7 # v1
         with:
           environment-file: cf-scripts/conda-lock.yml
           environment-name: cf-scripts
@@ -93,7 +93,7 @@ jobs:
           source cf-scripts/autotick-bot/install_bot_code.sh --no-clone-graph-and-pinning
 
       - name: trigger next job
-        uses: benc-uk/workflow-dispatch@25b02cc069be46d637e8fe2f1e8484008e9e9609
+        uses: benc-uk/workflow-dispatch@25b02cc069be46d637e8fe2f1e8484008e9e9609 # v1.2.3
         if: github.ref == 'refs/heads/master' && ! cancelled() && ! failure() && ! env.CI_SKIP
         with:
           workflow: bot-cache
