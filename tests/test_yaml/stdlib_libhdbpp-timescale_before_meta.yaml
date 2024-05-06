@@ -1,0 +1,80 @@
+{% set name = "libhdbpp-timescale" %}
+{% set version = "2.0.1" %}
+
+package:
+  name: {{ name|lower }}
+  version: {{ version }}
+
+source:
+  url: https://gitlab.com/tango-controls/hdbpp/libhdbpp-timescale/-/archive/{{ version }}/libhdbpp-timescale-{{ version }}.tar.gz
+  sha256: not_a_hash
+
+build:
+  number: 1
+  skip: true  # [not linux]
+  # Library doesn't link against libhdbpp (only headers used)
+  ignore_run_exports:
+    - libhdbpp
+  # Prevent libhdb++timescale.so.{{ version }}.dbg to be modified
+  # Will raise CRC mismatch otherwise!
+  binary_relocation:                               # [linux]
+    - "lib/libhdb++timescale.so.{{ version }}"     # [linux]
+  run_exports:
+    - {{ pin_subpackage('libhdbpp-timescale', max_pin='x.x') }}
+
+requirements:
+  build:
+    - cmake
+    - make
+    - {{ compiler('cxx') }}
+    - libtool
+    - pkg-config
+  host:
+    - cppzmq
+    - cpptango
+    - omniorb-libs
+    - libhdbpp
+    - libpqxx =6.4
+    - spdlog
+
+test:
+  commands:
+    - test -f ${PREFIX}/lib/libhdb++timescale${SHLIB_EXT}
+    - test -f ${PREFIX}/lib/cmake/libhdbpp-timescale/libhdbpp-timescaleConfig.cmake
+
+outputs:                                                                              # [linux]
+  - name: "libhdbpp-timescale"                                                        # [linux]
+    files:                                                                            # [linux]
+      - "lib/libhdb++timescale.so"                                                    # [linux]
+      - "lib/libhdb++timescale.so.2"                                                  # [linux]
+      - "lib/libhdb++timescale.so.{{ version }}"                                      # [linux]
+      - "lib/cmake/libhdbpp-timescale/"                                               # [linux]
+
+  - name: "libhdbpp-timescale-dbg"                                                    # [linux]
+    requirements:                                                                     # [linux]
+      host:                                                                           # [linux]
+        # build string must depend on cpptango to have
+        # different versions per cpptango
+        - cpptango                                                                    # [linux]
+      run:                                                                            # [linux]
+        - "{{ pin_subpackage('libhdbpp-timescale', exact=True) }}"                    # [linux]
+    files:                                                                            # [linux]
+      - "lib/libhdb++timescale.so.{{ version }}.dbg"                                  # [linux]
+    test:                                                                             # [linux]
+      commands:                                                                       # [linux]
+        - "test -f ${PREFIX}/lib/libhdb++timescale${SHLIB_EXT}.${PKG_VERSION}.dbg"    # [linux]
+about:
+  home: https://www.tango-controls.org
+  license: LGPL-3.0-or-later
+  license_file: LICENSE
+  summary: HDB++ library for Timescale database back-end
+  description: |
+    HDB++ is an archiving system for Tango-Controls.
+    This library is used by events subscribers to archive events from a Tango Controls system.
+    libhdbpp-timescale is the HDB++ backend library for the TimescaleDb extenstion to Postgresql.
+  dev_url: https://gitlab.com/tango-controls/hdbpp/libhdbpp-timescale
+  doc_url: https://tango-controls.readthedocs.io/en/latest/tools-and-extensions/archiving/HDB++.html
+
+extra:
+  recipe-maintainers:
+    - beenje
