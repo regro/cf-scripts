@@ -80,6 +80,13 @@ outputs:
         host:
           - bar
     {{% jinja %}}
+
+    {{% jinja %}}
+    - name: blarg-jinja
+      requirements:
+        host:
+          - baz
+    {{% jinja %}}
     - requirements:
         host:
           - baz
@@ -95,9 +102,17 @@ about:
 """
     sections = _slice_into_output_sections(
         lines.splitlines(),
-        {"meta_yaml": {"outputs": [{"name": "blarg"}, {"name": "blarg2"}]}},
+        {
+            "meta_yaml": {
+                "outputs": [
+                    {"name": "blarg"},
+                    {"name": "blarg-jinja"},
+                    {"name": "blarg2"},
+                ]
+            }
+        },
     )
-    assert len(sections) == 3
+    assert len(sections) == 4
     assert sections[-1] == [
         "package:",
         "  name: blah",
@@ -116,8 +131,17 @@ about:
         "        host:",
         "          - bar",
         "    {{% jinja %}}",
+        "",
+        "    {{% jinja %}}",
     ]
     assert sections[1] == [
+        "    - name: blarg-jinja",
+        "      requirements:",
+        "        host:",
+        "          - baz",
+        "    {{% jinja %}}",
+    ]
+    assert sections[2] == [
         "    - requirements:",
         "        host:",
         "          - baz",
