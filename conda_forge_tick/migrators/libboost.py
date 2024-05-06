@@ -12,10 +12,10 @@ def _slice_into_output_sections(meta_yaml_lines, attrs):
     single or multi-output recipes, we need to be able to
     restrict which lines we're operating on.
 
-    Takes a list of lines and returns a dict from each output name to
+    Takes a list of lines and returns a dict from each output index to
     the list of lines where this output is described in the meta.yaml.
-    The result will always contain a "global" section (== everything
-    if there are no other outputs).
+    The result will always contain an index -1 for the top-level section (
+    == everything if there are no other outputs).
     """
     outputs_token_pos = None
     re_output_start = None
@@ -57,6 +57,15 @@ def _slice_into_output_sections(meta_yaml_lines, attrs):
 
     if pos < len(meta_yaml_lines):
         sections[section_index] = meta_yaml_lines[pos:]
+
+    # output_names may contain duplicates; remove them but keep order
+    outputs = attrs["meta_yaml"].get("outputs", [])
+    outputs = {o["name"] for o in outputs}
+    if len(sections) != len(outputs) + 1:
+        raise RuntimeError(
+            f"Could not find all output sections in meta.yaml! "
+            f"Found {len(sections)} sections for outputs names = {outputs}.",
+        )
 
     return sections
 
