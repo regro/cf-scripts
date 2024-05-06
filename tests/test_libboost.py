@@ -113,48 +113,57 @@ about:
         },
     )
     assert len(sections) == 4
-    assert sections[-1] == [
-        "package:",
-        "  name: blah",
-        "  version: 1.0.0",
-        "",
-        "requirements:",
-        "  host:",
-        "    - foo",
-        "",
-        "outputs:",
-        "  # comment",
-    ]
-    assert sections[0] == [
-        "    - name: blarg  # comment",
-        "      requirements:",
-        "        host:",
-        "          - bar",
-        "    {{% jinja %}}",
-        "",
-        "    {{% jinja %}}",
-    ]
-    assert sections[1] == [
-        "    - name: blarg-jinja",
-        "      requirements:",
-        "        host:",
-        "          - baz",
-        "    {{% jinja %}}",
-    ]
-    assert sections[2] == [
-        "    - requirements:",
-        "        host:",
-        "          - baz",
-        "      name: blarg2",
-        "  {{% jinja %}}",
-        "",
-        "about:",
-        "  home: http://example.com",
-        "  license: MIT",
-        "  license_file:",
-        "    - file1",
-        "    - file2",
-    ]
+    assert (
+        sections[-1]
+        == """\
+package:
+  name: blah
+  version: 1.0.0
+
+requirements:
+  host:
+    - foo
+
+outputs:
+  # comment
+""".splitlines()
+    )
+    assert (
+        sections[0]
+        == """\
+    - name: blarg  # comment
+      requirements:
+        host:
+          - bar
+    {{% jinja %}}
+
+    {{% jinja %}}""".splitlines()
+    )
+    assert (
+        sections[1]
+        == """\
+    - name: blarg-jinja
+      requirements:
+        host:
+          - baz
+    {{% jinja %}}""".splitlines()
+    )
+    assert (
+        sections[2]
+        == """\
+    - requirements:
+        host:
+          - baz
+      name: blarg2
+  {{% jinja %}}
+
+about:
+  home: http://example.com
+  license: MIT
+  license_file:
+    - file1
+    - file2""".splitlines()
+    )
 
 
 def test_slice_into_output_sections_global_only():
