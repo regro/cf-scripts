@@ -27,7 +27,10 @@ def _slice_into_output_sections(meta_yaml_lines, attrs):
     section_index = -1
     sections = {}
     for i, line in enumerate(meta_yaml_lines):
+        # we go through lines until we find the `outputs:` line
+        # we grab its position for later
         if re_outputs_token.match(line) and outputs_token_pos is None:
+            # we cannot handle list-style outputs so raise an error
             if re_outputs_token_list.match(line):
                 raise RuntimeError(
                     "List-style outputs not supported for outputs slicing!"
@@ -36,6 +39,12 @@ def _slice_into_output_sections(meta_yaml_lines, attrs):
             outputs_token_pos = i
             continue
 
+        # next we need to find the indent of the first output list element.
+        # it could be anything from the indent of the `outputs:` line to that number
+        # plus zero or more spaces. Typically, the indent is the same as the `outputs:`
+        # plus one of [0, 2, 4] spaces.
+        # ocne we find the first output list element, we build a regex to match any list
+        # element at that indent level.
         if (
             outputs_token_pos is not None
             and re_output_start is None
@@ -45,6 +54,9 @@ def _slice_into_output_sections(meta_yaml_lines, attrs):
             outputs_indent = len(line) - len(line.lstrip())
             re_output_start = re.compile(r"^" + r" " * outputs_indent + r"-.*")
 
+        # finally we add slices for each output section as we find list elements at
+        # the correct indent level
+        # this block adds the previous output when it finds the start of the next one
         if (
             outputs_token_pos is not None
             and re_output_start is not None
@@ -55,8 +67,30 @@ def _slice_into_output_sections(meta_yaml_lines, attrs):
             pos = i
             continue
 
-    if pos < len(meta_yaml_lines):
+    # the last output possibly needs to be added
+    if pos < len(meta_yaml_lines) - 1:
         sections[section_index] = meta_yaml_lines[pos:]
+
+    # finally, if a block list at the same indent happens after the outputs section ends
+    # we'll have extra outputs that are not real. We remove them
+    # by checking if there is a name key in the dict
+    re_name = re.compile(r"^\W*-\W*name:.*")
+    final_sections = {}
+    final_sections[-1] = sections[-1]  # we always keep the first global section
+    final_output_index = 0
+    carried_lines = []
+    for output_index, section in sections.items():
+        if any(re_name.match(line) for line in section):
+            # we found another valid output so we add any carried lines to the previous output
+            if carried_lines:
+                final_sections[final_output_index - 1] = carried_lines
+                carried_lines = []
+
+            # add the next valid output
+            final_sections[final_output_index] = section
+            final_output_index += 1
+        else:
+            carried_lines += section
 
     # double check length here to flag possible weird cases
     # this check will fail incorrectly for outputs with the same name
