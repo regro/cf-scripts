@@ -21,7 +21,7 @@ def _slice_into_output_sections(meta_yaml_lines, attrs):
     re_output_start = None
     re_outputs_token = re.compile(r"^\W*outputs:.*")
     re_outputs_token_list = re.compile(r"^\W*outputs:\W*\[.*")
-    re_match_block_list = re.compile(r"^\W*-.*")
+    re_match_block_list = re.compile(r"^\W*\-.*")
 
     pos = 0
     section_index = -1
@@ -68,22 +68,23 @@ def _slice_into_output_sections(meta_yaml_lines, attrs):
             continue
 
     # the last output possibly needs to be added
-    if pos < len(meta_yaml_lines) - 1:
+    if pos < len(meta_yaml_lines):
         sections[section_index] = meta_yaml_lines[pos:]
 
     # finally, if a block list at the same indent happens after the outputs section ends
     # we'll have extra outputs that are not real. We remove them
     # by checking if there is a name key in the dict
-    re_name = re.compile(r"^\W*-\W*name:.*")
+    re_name = re.compile(r"^\W*name:.*")
     final_sections = {}
     final_sections[-1] = sections[-1]  # we always keep the first global section
     final_output_index = 0
     carried_lines = []
-    for output_index, section in sections.items():
+    for output_index in range(len(sections) - 1):
+        section = sections[output_index]
         if any(re_name.match(line) for line in section):
             # we found another valid output so we add any carried lines to the previous output
             if carried_lines:
-                final_sections[final_output_index - 1] = carried_lines
+                final_sections[final_output_index - 1] += carried_lines
                 carried_lines = []
 
             # add the next valid output
@@ -92,18 +93,22 @@ def _slice_into_output_sections(meta_yaml_lines, attrs):
         else:
             carried_lines += section
 
+    # make sure to add any trailing carried lines to the last output we found
+    if carried_lines:
+        final_sections[final_output_index - 1] += carried_lines
+
     # double check length here to flag possible weird cases
     # this check will fail incorrectly for outputs with the same name
     # but different build strings.
     outputs = attrs["meta_yaml"].get("outputs", [])
     outputs = {o["name"] for o in outputs}
-    if len(sections) != len(outputs) + 1:
+    if len(final_sections) != len(outputs) + 1:
         raise RuntimeError(
             f"Could not find all output sections in meta.yaml! "
-            f"Found {len(sections)} sections for outputs names = {outputs}.",
+            f"Found {len(final_sections)} sections for outputs names = {outputs}.",
         )
 
-    return sections
+    return final_sections
 
 
 def _process_section(output_index, attrs, lines):
