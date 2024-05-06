@@ -3,3 +3,6 @@
     and just use that, or re-use the Skew-T with your own data code. MetPy
       # Test with the two currently supported lapack implementatons
         # Test with the two currently supported lapack implementatons
+## tests/test_yaml/stdlib_libhdbpp-timescale_after_meta.yaml::74 recipe has spelling error
+## tests/test_yaml/stdlib_libhdbpp-timescale_after_meta.yaml::74 recipe has spelling error
+    libhdbpp-timescale is the HDB++ backend library for the TimescaleDb extenstion to Postgresql.
