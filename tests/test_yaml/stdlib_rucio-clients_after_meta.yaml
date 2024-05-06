@@ -1,0 +1,47 @@
+{% set name = "rucio-clients" %}
+{% set version = "34.3.0" %}
+
+
+package:
+  name: {{ name|lower }}
+  version: {{ version }}
+
+source:
+  url: https://pypi.io/packages/source/{{ name[0] }}/{{ name }}/{{ name.replace('-', '_') }}-{{ version }}.tar.gz
+  sha256: 92229d097012be2347266a633c655b46ca66ead0628becfa506ee6c4a9b38057
+
+build:
+  number: 0
+  noarch: python
+  script: {{ PYTHON }} -m pip install . -vv
+
+requirements:
+  host:
+    - pip
+    - python >=3.9
+  run:
+    - python >=3.9
+    - dogpile.cache ~=1.2.2
+    - jsonschema ~=4.20.0
+    - requests >=2.25.1,<=2.31.0
+    - tabulate ~=0.9.0
+    - urllib3 ~=1.26.18
+
+test:
+  imports:
+    - rucio
+    - rucio.client
+  commands:
+    - pip check
+  requires:
+    - pip
+
+about:
+  home: https://rucio.cern.ch/
+  summary: Rucio Client Lite Package
+  license: Apache-2.0
+  license_file: LICENSE
+
+extra:
+  recipe-maintainers:
+    - bari12

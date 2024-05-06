@@ -42,6 +42,25 @@ VERSION_WITH_STDLIB = Version(
         ("sinabs", "1.10.0", True),
         # test that we skip recipes that already contain a {{ stdlib("c") }}
         ("skip_migration", "1.10.0", False),
+        # no-op on noatrch: python recipe
+        ("rucio-clients", "34.3.0", False),
+        # test recipe with templated name
+        pytest.param(
+            "gz-common",
+            "5_5.6.0",
+            False,
+            marks=pytest.mark.xfail(
+                reason="Cannot currently slice templated output names!"
+            ),
+        ),
+        pytest.param(
+            "libhdbpp-timescale",
+            "2.1.0",
+            False,
+            marks=pytest.mark.xfail(
+                reason="Cannot currently slice names that happen to be quoted but are valid yaml!"
+            ),
+        ),
     ],
 )
 def test_stdlib(feedstock, new_ver, expect_cbc, tmpdir):
