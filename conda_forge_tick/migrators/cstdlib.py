@@ -23,7 +23,7 @@ pat_stdlib = re.compile(r".*\{\{\s*stdlib\([\"\']c[\"\']\)\s*\}\}.*")
 pat_sysroot_217 = re.compile(r"- sysroot_(linux-64|\{\{.*\}\})\s*=?=?2\.17")
 
 
-def _process_section(name, attrs, lines):
+def _process_section(output_index, attrs, lines):
     """
     Migrate requirements per section.
 
@@ -40,13 +40,22 @@ def _process_section(name, attrs, lines):
 
     outputs = attrs["meta_yaml"].get("outputs", [])
     global_reqs = attrs["meta_yaml"].get("requirements", {})
-    if name == "global":
+    if output_index == -1:
         reqs = global_reqs
     else:
-        filtered = [o for o in outputs if o["name"] == name]
-        if len(filtered) == 0:
-            raise RuntimeError(f"Could not find output {name}!")
-        reqs = filtered[0].get("requirements", {})
+        seen_names = set()
+        unique_outputs = []
+        for output in outputs:
+            _name = output["name"]
+            if _name in seen_names:
+                continue
+            seen_names.add(_name)
+            unique_outputs.append(output)
+
+        try:
+            reqs = unique_outputs[output_index].get("requirements", {})
+        except IndexError:
+            raise RuntimeError(f"Could not find output {output_index}!")
 
     build_reqs = reqs.get("build", set()) or set()
 
@@ -194,8 +203,6 @@ class StdlibMigrator(MiniMigrator):
         return already_migrated or not (has_compiler or has_sysroot)
 
     def migrate(self, recipe_dir, attrs, **kwargs):
-        feedstock_name = attrs["meta_yaml"]["package"]["name"]
-
         new_lines = []
         write_stdlib_to_cbc = False
         fname = os.path.join(recipe_dir, "meta.yaml")
@@ -204,14 +211,14 @@ class StdlibMigrator(MiniMigrator):
                 lines = fp.readlines()
 
             sections = _slice_into_output_sections(lines, attrs)
-            for name, section in sections.items():
-                if (name == feedstock_name) and len(section) == 1:
+            for output_index, section in sections.items():
+                if len(section) == 1:
                     # weird corner case of conda-build where output is build
                     # in global section and then again defined under outputs
                     new_lines += section
                     continue
                 # _process_section returns list of lines already
-                chunk, cbc = _process_section(name, attrs, section)
+                chunk, cbc = _process_section(output_index, attrs, section)
                 new_lines += chunk
                 write_stdlib_to_cbc |= cbc
 

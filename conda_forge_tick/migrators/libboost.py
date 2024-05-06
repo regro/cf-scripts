@@ -17,39 +17,51 @@ def _slice_into_output_sections(meta_yaml_lines, attrs):
     The result will always contain a "global" section (== everything
     if there are no other outputs).
     """
-    outputs = attrs["meta_yaml"].get("outputs", [])
-    output_names = [o["name"] for o in outputs]
-    # if there are no outputs, there's only one section
-    if not output_names:
-        return {"global": meta_yaml_lines}
-    # output_names may contain duplicates; remove them but keep order
-    names = []
-    [names := names + [x] for x in output_names if x not in names]
-    num_outputs = len(names)
-    # add dummy for later use & reverse list for easier pop()ing
-    names += ["dummy"]
-    names.reverse()
-    # initialize
-    pos, prev, seek = 0, "global", names.pop()
+    outputs_token_pos = None
+    re_output_start = None
+    re_outputs_token = re.compile(r"^\W*outputs:.*")
+    re_outputs_token_list = re.compile(r"^\W*outputs:\W*\[.*")
+    re_match_block_list = re.compile(r"^\W*-.*")
+
+    pos = 0
+    section_index = -1
     sections = {}
     for i, line in enumerate(meta_yaml_lines):
-        # assumes order of names matches their appearance in meta_yaml,
-        # and that they appear literally (i.e. no {{...}}) and without quotes
-        if f"- name: {seek}" in line:
-            # found the beginning of the next output;
-            # everything until here belongs to the previous one
-            sections[prev] = meta_yaml_lines[pos:i]
-            # update
-            pos, prev, seek = i, seek, names.pop()
-            if seek == "dummy":
-                # reached the last output; it goes until the end of the file
-                sections[prev] = meta_yaml_lines[pos:]
-    if len(sections) != num_outputs + 1:
-        raise RuntimeError("Could not find all output sections in meta.yaml!")
+        if re_outputs_token.match(line) and outputs_token_pos is None:
+            if re_outputs_token_list.match(line):
+                raise RuntimeError(
+                    "List-style outputs not supported for outputs slicing!"
+                )
+
+            outputs_token_pos = i
+            continue
+
+        if (
+            outputs_token_pos is not None
+            and re_output_start is None
+            and i > outputs_token_pos
+            and re_match_block_list.match(line)
+        ):
+            outputs_indent = len(line) - len(line.lstrip())
+            re_output_start = re.compile(r"^" + r" " * outputs_indent + r"-.*")
+
+        if (
+            outputs_token_pos is not None
+            and re_output_start is not None
+            and re_output_start.match(line)
+        ):
+            sections[section_index] = meta_yaml_lines[pos:i]
+            section_index += 1
+            pos = i
+            continue
+
+    if pos < len(meta_yaml_lines):
+        sections[section_index] = meta_yaml_lines[pos:]
+
     return sections
 
 
-def _process_section(name, attrs, lines):
+def _process_section(output_index, attrs, lines):
     """
     Migrate requirements per section.
 
@@ -60,13 +72,22 @@ def _process_section(name, attrs, lines):
       and remove it in run.
     """
     outputs = attrs["meta_yaml"].get("outputs", [])
-    if name == "global":
+    if output_index == -1:
         reqs = attrs["meta_yaml"].get("requirements", {})
     else:
-        filtered = [o for o in outputs if o["name"] == name]
-        if len(filtered) == 0:
-            raise RuntimeError(f"Could not find output {name}!")
-        reqs = filtered[0].get("requirements", {})
+        seen_names = set()
+        unique_outputs = []
+        for output in outputs:
+            _name = output["name"]
+            if _name in seen_names:
+                continue
+            seen_names.add(_name)
+            unique_outputs.append(output)
+
+        try:
+            reqs = unique_outputs[output_index].get("requirements", {})
+        except IndexError:
+            raise RuntimeError(f"Could not find output {output_index}!")
 
     build_req = reqs.get("build", set()) or set()
     host_req = reqs.get("host", set()) or set()
@@ -101,7 +122,7 @@ def _process_section(name, attrs, lines):
         lines = _replacer(lines, p_base + p_selector, "libboost-devel", max_times=1)
         # delete all other occurrences
         lines = _replacer(lines, "boost-cpp", "")
-    elif is_boost_in_host and name == "global" and outputs:
+    elif is_boost_in_host and output_index == -1 and outputs:
         # global build section for multi-output with no run-requirements;
         # safer to use the full library here
         lines = _replacer(lines, p_base + p_selector, "libboost-devel", max_times=1)
@@ -154,9 +175,9 @@ class LibboostMigrator(MiniMigrator):
 
             new_lines = []
             sections = _slice_into_output_sections(lines, attrs)
-            for name, section in sections.items():
+            for output_index, section in sections.items():
                 # _process_section returns list of lines already
-                new_lines += _process_section(name, attrs, section)
+                new_lines += _process_section(output_index, attrs, section)
 
             with open(fname, "w") as fp:
                 fp.write("".join(new_lines))
