@@ -45,16 +45,9 @@ VERSION_WITH_STDLIB = Version(
         # no-op on noatrch: python recipe
         ("rucio-clients", "34.3.0", False),
         # test recipe with templated name
-        (
-            "gz-common",
-            "5_5.6.0",
-            False,
-        ),
-        (
-            "libhdbpp-timescale",
-            "2.1.0",
-            False,
-        ),
+        ("gz-common", "5_5.6.0", False),
+        # test recipe with quoting
+        ("libhdbpp-timescale", "2.1.0", False),
     ],
 )
 def test_stdlib(feedstock, new_ver, expect_cbc, tmpdir):
