@@ -421,16 +421,16 @@ def test_provide_source_code_containerized():
             [
                 "git",
                 "clone",
-                "https://github.com/conda-forge/conda-forge-feedstock-check-solvable-feedstock.git",
+                "https://github.com/conda-forge/conda-smithy-feedstock.git",
             ]
         )
 
         with provide_source_code_containerized(
-            "conda-forge-feedstock-check-solvable-feedstock/recipe"
+            "conda-smithy-feedstock/recipe"
         ) as source_dir:
             assert os.path.exists(source_dir)
             assert os.path.isdir(source_dir)
-            assert "conda_forge_feedstock_check_solvable" in os.listdir(source_dir)
+            assert "conda_smithy" in os.listdir(source_dir)
             assert "pyproject.toml" in os.listdir(source_dir)
 
 
