@@ -2,7 +2,7 @@ name: bot-pypi-mapping
 
 on:
   schedule:
-    - cron:  '42 * * * *'
+    - cron: '42 * * * *'
   workflow_dispatch: null
 
 jobs:
@@ -15,11 +15,11 @@ jobs:
         shell: bash -leo pipefail {0}
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # v4
         with:
           path: cf-scripts
 
-      - uses: mamba-org/setup-micromamba@v1
+      - uses: mamba-org/setup-micromamba@422500192359a097648154e8db4e39bdb6c6eed7 # v1
         with:
           environment-file: cf-scripts/conda-lock.yml
           environment-name: cf-scripts

@@ -23,9 +23,9 @@ jobs:
         shell: bash -leo pipefail {0}
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # v4
 
-      - uses: mamba-org/setup-micromamba@v1
+      - uses: mamba-org/setup-micromamba@422500192359a097648154e8db4e39bdb6c6eed7 # v1
         with:
           environment-file: conda-lock.yml
           environment-name: cf-scripts
@@ -61,7 +61,7 @@ jobs:
           python -m pip install -v --no-deps --no-build-isolation -e .
 
       - name: Start MongoDB
-        uses: MongoCamp/mongodb-github-action@e76ad215d47c31a99b4b0b1fde05f6cd1185df1a
+        uses: MongoCamp/mongodb-github-action@e76ad215d47c31a99b4b0b1fde05f6cd1185df1a # e76ad215d47c31a99b4b0b1fde05f6cd1185df1a
         with:
           mongodb-version: "latest"
 
@@ -93,6 +93,6 @@ jobs:
           MONGODB_CONNECTION_STRING: "mongodb://127.0.0.1:27017/?directConnection=true&serverSelectionTimeoutMS=2000"
 
       - name: upload codecov
-        uses: codecov/codecov-action@v4
+        uses: codecov/codecov-action@5ecb98a3c6b747ed38dc09f787459979aebb39be # v4
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
