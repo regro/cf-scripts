@@ -67,9 +67,8 @@ def _slice_into_output_sections(meta_yaml_lines, attrs):
             pos = i
             continue
 
-    # the last output possibly needs to be added
-    if pos < len(meta_yaml_lines):
-        sections[section_index] = meta_yaml_lines[pos:]
+    # the last output needs to be added
+    sections[section_index] = meta_yaml_lines[pos:]
 
     # finally, if a block list at the same indent happens after the outputs section ends
     # we'll have extra outputs that are not real. We remove them
