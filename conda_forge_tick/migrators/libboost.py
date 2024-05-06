@@ -43,7 +43,7 @@ def _slice_into_output_sections(meta_yaml_lines, attrs):
         # it could be anything from the indent of the `outputs:` line to that number
         # plus zero or more spaces. Typically, the indent is the same as the `outputs:`
         # plus one of [0, 2, 4] spaces.
-        # ocne we find the first output list element, we build a regex to match any list
+        # once we find the first output list element, we build a regex to match any list
         # element at that indent level.
         if (
             outputs_token_pos is not None
