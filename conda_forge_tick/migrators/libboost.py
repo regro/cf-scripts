@@ -19,9 +19,9 @@ def _slice_into_output_sections(meta_yaml_lines, attrs):
     """
     outputs_token_pos = None
     re_output_start = None
-    re_outputs_token = re.compile(r"^\W*outputs:.*")
-    re_outputs_token_list = re.compile(r"^\W*outputs:\W*\[.*")
-    re_match_block_list = re.compile(r"^\W*\-.*")
+    re_outputs_token = re.compile(r"^\s*outputs:.*")
+    re_outputs_token_list = re.compile(r"^\s*outputs:\s*\[.*")
+    re_match_block_list = re.compile(r"^\s*\-.*")
 
     pos = 0
     section_index = -1
@@ -73,7 +73,7 @@ def _slice_into_output_sections(meta_yaml_lines, attrs):
     # finally, if a block list at the same indent happens after the outputs section ends
     # we'll have extra outputs that are not real. We remove them
     # by checking if there is a name key in the dict
-    re_name = re.compile(r"^\W*name:.*")
+    re_name = re.compile(r"^\s*(-\s+)?name:.*")
     final_sections = {}
     final_sections[-1] = sections[-1]  # we always keep the first global section
     final_output_index = 0
