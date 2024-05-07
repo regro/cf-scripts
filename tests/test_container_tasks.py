@@ -2,7 +2,6 @@ import copy
 import glob
 import json
 import os
-import platform
 import subprocess
 import tempfile
 
@@ -30,7 +29,7 @@ from conda_forge_tick.utils import parse_meta_yaml_containerized, run_container_
 
 HAVE_CONTAINERS = (
     subprocess.run(["docker", "--version"], capture_output=True).returncode == 0
-) and platform.system() in ["Linux", "Darwin"]
+)
 
 if HAVE_CONTAINERS:
     HAVE_TEST_IMAGE = False
