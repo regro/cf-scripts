@@ -3,6 +3,9 @@ on:
   schedule:
     - cron: "0 0 * * *"
 
+permissions:
+  contents: write
+
 jobs:
   cronjob-based-github-action:
     name: Cronjob based github action
@@ -10,3 +13,9 @@ jobs:
     steps:
       - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # v4
       - uses: gautamkrishnar/keepalive-workflow@beb86212524e1ae856d1cd80efb44e73bf7daf4a # v2
+        with:
+          commit_message: "Ah ah ah, stayin' alive"
+          committer_username: conda-forge-bot
+          committer_email: "conda-forge-bot@users.noreply.github.com"
+          time_elapsed: 50 # days
+          use_api: false
