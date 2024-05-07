@@ -12,44 +12,105 @@ def _slice_into_output_sections(meta_yaml_lines, attrs):
     single or multi-output recipes, we need to be able to
     restrict which lines we're operating on.
 
-    Takes a list of lines and returns a dict from each output name to
+    Takes a list of lines and returns a dict from each output index to
     the list of lines where this output is described in the meta.yaml.
-    The result will always contain a "global" section (== everything
-    if there are no other outputs).
+    The result will always contain an index -1 for the top-level section (
+    == everything if there are no other outputs).
     """
-    outputs = attrs["meta_yaml"].get("outputs", [])
-    output_names = [o["name"] for o in outputs]
-    # if there are no outputs, there's only one section
-    if not output_names:
-        return {"global": meta_yaml_lines}
-    # output_names may contain duplicates; remove them but keep order
-    names = []
-    [names := names + [x] for x in output_names if x not in names]
-    num_outputs = len(names)
-    # add dummy for later use & reverse list for easier pop()ing
-    names += ["dummy"]
-    names.reverse()
-    # initialize
-    pos, prev, seek = 0, "global", names.pop()
+    outputs_token_pos = None
+    re_output_start = None
+    re_outputs_token = re.compile(r"^\s*outputs:.*")
+    re_outputs_token_list = re.compile(r"^\s*outputs:\s*\[.*")
+    re_match_block_list = re.compile(r"^\s*\-.*")
+
+    pos = 0
+    section_index = -1
     sections = {}
     for i, line in enumerate(meta_yaml_lines):
-        # assumes order of names matches their appearance in meta_yaml,
-        # and that they appear literally (i.e. no {{...}}) and without quotes
-        if f"- name: {seek}" in line:
-            # found the beginning of the next output;
-            # everything until here belongs to the previous one
-            sections[prev] = meta_yaml_lines[pos:i]
-            # update
-            pos, prev, seek = i, seek, names.pop()
-            if seek == "dummy":
-                # reached the last output; it goes until the end of the file
-                sections[prev] = meta_yaml_lines[pos:]
-    if len(sections) != num_outputs + 1:
-        raise RuntimeError("Could not find all output sections in meta.yaml!")
-    return sections
+        # we go through lines until we find the `outputs:` line
+        # we grab its position for later
+        if re_outputs_token.match(line) and outputs_token_pos is None:
+            # we cannot handle list-style outputs so raise an error
+            if re_outputs_token_list.match(line):
+                raise RuntimeError(
+                    "List-style outputs not supported for outputs slicing!"
+                )
+
+            outputs_token_pos = i
+            continue
+
+        # next we need to find the indent of the first output list element.
+        # it could be anything from the indent of the `outputs:` line to that number
+        # plus zero or more spaces. Typically, the indent is the same as the `outputs:`
+        # plus one of [0, 2, 4] spaces.
+        # once we find the first output list element, we build a regex to match any list
+        # element at that indent level.
+        if (
+            outputs_token_pos is not None
+            and re_output_start is None
+            and i > outputs_token_pos
+            and re_match_block_list.match(line)
+        ):
+            outputs_indent = len(line) - len(line.lstrip())
+            re_output_start = re.compile(r"^" + r" " * outputs_indent + r"-.*")
+
+        # finally we add slices for each output section as we find list elements at
+        # the correct indent level
+        # this block adds the previous output when it finds the start of the next one
+        if (
+            outputs_token_pos is not None
+            and re_output_start is not None
+            and re_output_start.match(line)
+        ):
+            sections[section_index] = meta_yaml_lines[pos:i]
+            section_index += 1
+            pos = i
+            continue
+
+    # the last output needs to be added
+    sections[section_index] = meta_yaml_lines[pos:]
+
+    # finally, if a block list at the same indent happens after the outputs section ends
+    # we'll have extra outputs that are not real. We remove them
+    # by checking if there is a name key in the dict
+    re_name = re.compile(r"^\s*(-\s+)?name:.*")
+    final_sections = {}
+    final_sections[-1] = sections[-1]  # we always keep the first global section
+    final_output_index = 0
+    carried_lines = []
+    for output_index in range(len(sections) - 1):
+        section = sections[output_index]
+        if any(re_name.match(line) for line in section):
+            # we found another valid output so we add any carried lines to the previous output
+            if carried_lines:
+                final_sections[final_output_index - 1] += carried_lines
+                carried_lines = []
+
+            # add the next valid output
+            final_sections[final_output_index] = section
+            final_output_index += 1
+        else:
+            carried_lines += section
+
+    # make sure to add any trailing carried lines to the last output we found
+    if carried_lines:
+        final_sections[final_output_index - 1] += carried_lines
+
+    # double check length here to flag possible weird cases
+    # this check will fail incorrectly for outputs with the same name
+    # but different build strings.
+    outputs = attrs["meta_yaml"].get("outputs", [])
+    outputs = {o["name"] for o in outputs}
+    if len(final_sections) != len(outputs) + 1:
+        raise RuntimeError(
+            f"Could not find all output sections in meta.yaml! "
+            f"Found {len(final_sections)} sections for outputs names = {outputs}.",
+        )
+
+    return final_sections
 
 
-def _process_section(name, attrs, lines):
+def _process_section(output_index, attrs, lines):
     """
     Migrate requirements per section.
 
@@ -60,13 +121,22 @@ def _process_section(name, attrs, lines):
       and remove it in run.
     """
     outputs = attrs["meta_yaml"].get("outputs", [])
-    if name == "global":
+    if output_index == -1:
         reqs = attrs["meta_yaml"].get("requirements", {})
     else:
-        filtered = [o for o in outputs if o["name"] == name]
-        if len(filtered) == 0:
-            raise RuntimeError(f"Could not find output {name}!")
-        reqs = filtered[0].get("requirements", {})
+        seen_names = set()
+        unique_outputs = []
+        for output in outputs:
+            _name = output["name"]
+            if _name in seen_names:
+                continue
+            seen_names.add(_name)
+            unique_outputs.append(output)
+
+        try:
+            reqs = unique_outputs[output_index].get("requirements", {})
+        except IndexError:
+            raise RuntimeError(f"Could not find output {output_index}!")
 
     build_req = reqs.get("build", set()) or set()
     host_req = reqs.get("host", set()) or set()
@@ -101,7 +171,7 @@ def _process_section(name, attrs, lines):
         lines = _replacer(lines, p_base + p_selector, "libboost-devel", max_times=1)
         # delete all other occurrences
         lines = _replacer(lines, "boost-cpp", "")
-    elif is_boost_in_host and name == "global" and outputs:
+    elif is_boost_in_host and output_index == -1 and outputs:
         # global build section for multi-output with no run-requirements;
         # safer to use the full library here
         lines = _replacer(lines, p_base + p_selector, "libboost-devel", max_times=1)
@@ -154,9 +224,9 @@ class LibboostMigrator(MiniMigrator):
 
             new_lines = []
             sections = _slice_into_output_sections(lines, attrs)
-            for name, section in sections.items():
+            for output_index, section in sections.items():
                 # _process_section returns list of lines already
-                new_lines += _process_section(name, attrs, section)
+                new_lines += _process_section(output_index, attrs, section)
 
             with open(fname, "w") as fp:
                 fp.write("".join(new_lines))

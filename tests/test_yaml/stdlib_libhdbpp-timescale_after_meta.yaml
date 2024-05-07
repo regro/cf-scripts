@@ -10,14 +10,14 @@ source:
   sha256: 6c8a9a906c29932bacb3ca68b5e8a164fd4ead7aa7965870d6889e9dbc201869
 
 build:
-  number: 1
+  number: 0
   skip: true  # [not linux]
   # Library doesn't link against libhdbpp (only headers used)
   ignore_run_exports:
     - libhdbpp
   # Prevent libhdb++timescale.so.{{ version }}.dbg to be modified
   # Will raise CRC mismatch otherwise!
-  binary_relocation:                               # [linux]
+  binary_relocation:   # [linux]
     - "lib/libhdb++timescale.so.{{ version }}"     # [linux]
   run_exports:
     - {{ pin_subpackage('libhdbpp-timescale', max_pin='x.x') }}
@@ -27,6 +27,7 @@ requirements:
     - cmake
     - make
     - {{ compiler('cxx') }}
+    - {{ stdlib("c") }}
     - libtool
     - pkg-config
   host:
@@ -42,26 +43,26 @@ test:
     - test -f ${PREFIX}/lib/libhdb++timescale${SHLIB_EXT}
     - test -f ${PREFIX}/lib/cmake/libhdbpp-timescale/libhdbpp-timescaleConfig.cmake
 
-outputs:                                                                              # [linux]
-  - name: "libhdbpp-timescale"                                                        # [linux]
-    files:                                                                            # [linux]
+outputs:   # [linux]
+  - name: "libhdbpp-timescale"  # [linux]
+    files:   # [linux]
       - "lib/libhdb++timescale.so"                                                    # [linux]
       - "lib/libhdb++timescale.so.2"                                                  # [linux]
       - "lib/libhdb++timescale.so.{{ version }}"                                      # [linux]
       - "lib/cmake/libhdbpp-timescale/"                                               # [linux]
 
-  - name: "libhdbpp-timescale-dbg"                                                    # [linux]
-    requirements:                                                                     # [linux]
-      host:                                                                           # [linux]
+  - name: "libhdbpp-timescale-dbg"  # [linux]
+    requirements:   # [linux]
+      host:   # [linux]
         # build string must depend on cpptango to have
         # different versions per cpptango
         - cpptango                                                                    # [linux]
-      run:                                                                            # [linux]
+      run:   # [linux]
         - "{{ pin_subpackage('libhdbpp-timescale', exact=True) }}"                    # [linux]
-    files:                                                                            # [linux]
+    files:   # [linux]
       - "lib/libhdb++timescale.so.{{ version }}.dbg"                                  # [linux]
-    test:                                                                             # [linux]
-      commands:                                                                       # [linux]
+    test:   # [linux]
+      commands:   # [linux]
         - "test -f ${PREFIX}/lib/libhdb++timescale${SHLIB_EXT}.${PKG_VERSION}.dbg"    # [linux]
 about:
   home: https://www.tango-controls.org

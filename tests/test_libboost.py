@@ -4,6 +4,7 @@ import pytest
 from test_migrators import run_test_migration
 
 from conda_forge_tick.migrators import LibboostMigrator, Version
+from conda_forge_tick.migrators.libboost import _slice_into_output_sections
 
 TEST_YAML_PATH = os.path.join(os.path.dirname(__file__), "test_yaml")
 
@@ -60,3 +61,131 @@ def test_boost(feedstock, new_ver, tmpdir):
         tmpdir=tmpdir,
         should_filter=False,
     )
+
+
+def test_slice_into_output_sections_multioutput():
+    lines = """\
+package:
+  name: blah
+  version: 1.0.0
+
+requirements:
+  host:
+    - foo
+
+outputs:
+  # comment
+    - name: blarg  # comment
+      requirements:
+        host:
+          - bar
+    {{% jinja %}}
+
+    {{% jinja %}}
+    - name: blarg-jinja
+      requirements:
+        host:
+          - baz
+    {{% jinja %}}
+    - requirements:
+        host:
+          - baz
+      name: blarg2
+  {{% jinja %}}
+
+about:
+  home: http://example.com
+  license: MIT
+  license_file:
+    - file1
+    - file2
+"""
+    sections = _slice_into_output_sections(
+        lines.splitlines(),
+        {
+            "meta_yaml": {
+                "outputs": [
+                    {"name": "blarg"},
+                    {"name": "blarg-jinja"},
+                    {"name": "blarg2"},
+                ]
+            }
+        },
+    )
+    assert len(sections) == 4
+    assert (
+        sections[-1]
+        == """\
+package:
+  name: blah
+  version: 1.0.0
+
+requirements:
+  host:
+    - foo
+
+outputs:
+  # comment
+""".splitlines()
+    )
+    assert (
+        sections[0]
+        == """\
+    - name: blarg  # comment
+      requirements:
+        host:
+          - bar
+    {{% jinja %}}
+
+    {{% jinja %}}""".splitlines()
+    )
+    assert (
+        sections[1]
+        == """\
+    - name: blarg-jinja
+      requirements:
+        host:
+          - baz
+    {{% jinja %}}""".splitlines()
+    )
+    assert (
+        sections[2]
+        == """\
+    - requirements:
+        host:
+          - baz
+      name: blarg2
+  {{% jinja %}}
+
+about:
+  home: http://example.com
+  license: MIT
+  license_file:
+    - file1
+    - file2""".splitlines()
+    )
+
+
+def test_slice_into_output_sections_global_only():
+    lines = """\
+package:
+  name: blah
+  version: 1.0.0
+
+requirements:
+  host:
+    - foo
+
+about:
+  home: http://example.com
+  license: MIT
+  license_file:
+    - file1
+    - file2
+"""
+    sections = _slice_into_output_sections(
+        lines.splitlines(),
+        {"meta_yaml": {}},
+    )
+    assert len(sections) == 1
+    assert sections[-1] == lines.splitlines()
