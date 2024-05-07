@@ -1,6 +1,7 @@
 import copy
 import glob
 import os
+import platform
 import subprocess
 import tempfile
 
@@ -28,7 +29,7 @@ from conda_forge_tick.utils import parse_meta_yaml_containerized, run_container_
 
 HAVE_CONTAINERS = (
     subprocess.run(["docker", "--version"], capture_output=True).returncode == 0
-)
+) and platform.system() in ["Linux", "Darwin"]
 
 
 @pytest.mark.skipif(not HAVE_CONTAINERS, reason="containers not available")
