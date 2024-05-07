@@ -451,10 +451,12 @@ def test_latest_version_rawurl(name, inp, curr_ver, ver, source, urls, tmpdir):
         assert ver == attempt["new_version"]
 
 
-def test_latest_version_ca_policy_lcg(capfd):
+def test_latest_version_ca_policy_lcg(capfd, caplog):
     assert get_latest_version("ca-policy-lcg", {}, [RawURL()]) == {"new_version": False}
     out, err = capfd.readouterr()
     all_output = out + err
+    for record in caplog.records:
+        all_output += record.getMessage()
     assert "ca-policy-lcg" in all_output
     assert "manually excluded" in all_output
 
