@@ -33,21 +33,27 @@ HAVE_CONTAINERS = (
 
 if HAVE_CONTAINERS:
     HAVE_TEST_IMAGE = False
-    for line in subprocess.run(
-        [
-            "docker",
-            "images",
-            "--format",
-            "json",
-        ],
-        check=True,
-        capture_output=True,
-        text=True,
-    ).stdout.splitlines():
-        image = json.loads(line)
-        if image["Repository"] == "conda-forge-tick" and image["Tag"] == "test":
-            HAVE_TEST_IMAGE = True
-            break
+    try:
+        for line in subprocess.run(
+            [
+                "docker",
+                "images",
+                "--format",
+                "json",
+            ],
+            check=True,
+            capture_output=True,
+            text=True,
+        ).stdout.splitlines():
+            image = json.loads(line)
+            if image["Repository"] == "conda-forge-tick" and image["Tag"] == "test":
+                HAVE_TEST_IMAGE = True
+                break
+    except subprocess.CalledProcessError as e:
+        print(
+            f"Could not list local docker images due "
+            "to error {e}. Skipping container tests!"
+        )
 
 
 @pytest.mark.skipif(
