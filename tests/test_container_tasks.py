@@ -86,7 +86,7 @@ def test_container_tasks_get_latest_version_json(use_containers):
 @pytest.mark.skipif(
     not (HAVE_CONTAINERS and HAVE_TEST_IMAGE), reason="containers not available"
 )
-def test_get_latest_version_containerized(use_containers):
+def test_container_tasks_get_latest_version_containerized(use_containers):
     with (
         tempfile.TemporaryDirectory() as tmpdir,
         pushd(tmpdir),
@@ -104,7 +104,7 @@ def test_get_latest_version_containerized(use_containers):
 @pytest.mark.skipif(
     not (HAVE_CONTAINERS and HAVE_TEST_IMAGE), reason="containers not available"
 )
-def test_get_latest_version_containerized_mpas_tools(use_containers):
+def test_container_tasks_get_latest_version_containerized_mpas_tools(use_containers):
     with (
         tempfile.TemporaryDirectory() as tmpdir,
         pushd(tmpdir),
@@ -165,7 +165,7 @@ def test_container_tasks_parse_feedstock_json(use_containers):
 @pytest.mark.skipif(
     not (HAVE_CONTAINERS and HAVE_TEST_IMAGE), reason="containers not available"
 )
-def test_load_feedstock_containerized(use_containers):
+def test_container_tasks_load_feedstock_containerized(use_containers):
     with (
         tempfile.TemporaryDirectory() as tmpdir,
         pushd(tmpdir),
@@ -183,7 +183,7 @@ def test_load_feedstock_containerized(use_containers):
 @pytest.mark.skipif(
     not (HAVE_CONTAINERS and HAVE_TEST_IMAGE), reason="containers not available"
 )
-def test_load_feedstock_containerized_mpas_tools(use_containers):
+def test_container_tasks_load_feedstock_containerized_mpas_tools(use_containers):
     with (
         tempfile.TemporaryDirectory() as tmpdir,
         pushd(tmpdir),
@@ -201,7 +201,7 @@ def test_load_feedstock_containerized_mpas_tools(use_containers):
 @pytest.mark.skipif(
     not (HAVE_CONTAINERS and HAVE_TEST_IMAGE), reason="containers not available"
 )
-def test_parse_meta_yaml_containerized(use_containers):
+def test_container_tasks_parse_meta_yaml_containerized(use_containers):
     with (
         tempfile.TemporaryDirectory() as tmpdir,
         pushd(tmpdir),
@@ -219,7 +219,9 @@ def test_parse_meta_yaml_containerized(use_containers):
 @pytest.mark.skipif(
     not (HAVE_CONTAINERS and HAVE_TEST_IMAGE), reason="containers not available"
 )
-def test_rerender_feedstock_containerized_same_as_local(use_containers, capfd):
+def test_container_tasks_rerender_feedstock_containerized_same_as_local(
+    use_containers, capfd
+):
     with (
         tempfile.TemporaryDirectory() as tmpdir_cont,
         tempfile.TemporaryDirectory() as tmpdir_local,
@@ -335,7 +337,7 @@ def test_rerender_feedstock_containerized_same_as_local(use_containers, capfd):
 @pytest.mark.skipif(
     not (HAVE_CONTAINERS and HAVE_TEST_IMAGE), reason="containers not available"
 )
-def test_rerender_feedstock_containerized_empty(use_containers):
+def test_container_tasks_rerender_feedstock_containerized_empty(use_containers):
     with tempfile.TemporaryDirectory() as tmpdir_local:
         # first run the rerender locally
         with pushd(tmpdir_local):
@@ -387,7 +389,7 @@ def test_rerender_feedstock_containerized_empty(use_containers):
 @pytest.mark.skipif(
     not (HAVE_CONTAINERS and HAVE_TEST_IMAGE), reason="containers not available"
 )
-def test_rerender_feedstock_containerized_permissions(use_containers):
+def test_container_tasks_rerender_feedstock_containerized_permissions(use_containers):
     with tempfile.TemporaryDirectory() as tmpdir:
         with pushd(tmpdir):
             subprocess.run(
@@ -457,7 +459,7 @@ def test_rerender_feedstock_containerized_permissions(use_containers):
 @pytest.mark.skipif(
     not (HAVE_CONTAINERS and HAVE_TEST_IMAGE), reason="containers not available"
 )
-def test_provide_source_code_containerized(use_containers):
+def test_container_tasks_provide_source_code_containerized(use_containers):
     with (
         tempfile.TemporaryDirectory() as tmpdir,
         pushd(tmpdir),
@@ -482,7 +484,7 @@ def test_provide_source_code_containerized(use_containers):
 @pytest.mark.skipif(
     not (HAVE_CONTAINERS and HAVE_TEST_IMAGE), reason="containers not available"
 )
-def test_is_recipe_solvable_containerized(use_containers):
+def test_container_tasks_is_recipe_solvable_containerized(use_containers):
     with tempfile.TemporaryDirectory() as tmpdir:
         with pushd(tmpdir):
             subprocess.run(
