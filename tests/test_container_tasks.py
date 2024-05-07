@@ -49,9 +49,9 @@ if HAVE_CONTAINERS:
             if image["Repository"] == "conda-forge-tick" and image["Tag"] == "test":
                 HAVE_TEST_IMAGE = True
                 break
-    except subprocess.CalledProcessError as e:
+    except subprocess.CalledProcessError:
         print(
-            f"Could not list local docker images due "
+            "Could not list local docker images due "
             "to error {e}. Skipping container tests!"
         )
 
