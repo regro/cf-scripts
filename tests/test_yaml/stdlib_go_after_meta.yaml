@@ -59,7 +59,7 @@ outputs:
         - {{ compiler('fortran') }}  # [unix and cgo]
 
         - {{ compiler('m2w64_c') }}        # [win and cgo]
-        - {{ stdlib("c") }}                # [win and cgo]
+        - {{ stdlib("m2w64_c") }}          # [win and cgo]
         - {{ compiler('m2w64_cxx') }}      # [win and cgo]
         - {{ compiler('m2w64_fortran') }}  # [win and cgo]
       run:

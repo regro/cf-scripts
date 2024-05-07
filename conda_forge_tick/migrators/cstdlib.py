@@ -178,8 +178,8 @@ def _process_section(output_index, attrs, lines):
     if line_compiler_c and line_compiler_m2c:
         # we have both compiler("c") and compiler("m2w64_c"), likely with complementary
         # selectors; add a second stdlib line after m2w64_c with respective selector
-        selector_m2c = " " * 8 + selector_m2c if selector_m2c else ""
-        to_insert = indent + '- {{ stdlib("c") }}' + selector_m2c + "\n"
+        selector_m2c = "  " + selector_m2c if selector_m2c else ""
+        to_insert = indent + '- {{ stdlib("m2w64_c") }}' + selector_m2c + "\n"
         line_insert = line_compiler_m2c + 1 + (line_compiler_c < line_compiler_m2c)
         lines = lines[:line_insert] + [to_insert] + lines[line_insert:]
 
