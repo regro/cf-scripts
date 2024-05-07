@@ -1,5 +1,6 @@
 import copy
 import glob
+import json
 import os
 import platform
 import subprocess
@@ -31,8 +32,28 @@ HAVE_CONTAINERS = (
     subprocess.run(["docker", "--version"], capture_output=True).returncode == 0
 ) and platform.system() in ["Linux", "Darwin"]
 
+if HAVE_CONTAINERS:
+    HAVE_TEST_IMAGE = False
+    for line in subprocess.run(
+        [
+            "docker",
+            "images",
+            "--format",
+            "json",
+        ],
+        check=True,
+        capture_output=True,
+        text=True,
+    ).stdout.splitlines():
+        image = json.loads(line)
+        if image["Repository"] == "conda-forge-tick" and image["Tag"] == "test":
+            HAVE_TEST_IMAGE = True
+            break
 
-@pytest.mark.skipif(not HAVE_CONTAINERS, reason="containers not available")
+
+@pytest.mark.skipif(
+    not (HAVE_CONTAINERS and HAVE_TEST_IMAGE), reason="containers not available"
+)
 def test_container_tasks_get_latest_version(use_containers):
     data = run_container_task(
         "get-latest-version",
@@ -41,7 +62,9 @@ def test_container_tasks_get_latest_version(use_containers):
     assert data["new_version"] == conda_smithy.__version__
 
 
-@pytest.mark.skipif(not HAVE_CONTAINERS, reason="containers not available")
+@pytest.mark.skipif(
+    not (HAVE_CONTAINERS and HAVE_TEST_IMAGE), reason="containers not available"
+)
 def test_container_tasks_get_latest_version_json(use_containers):
     with (
         tempfile.TemporaryDirectory() as tmpdir,
@@ -61,7 +84,9 @@ def test_container_tasks_get_latest_version_json(use_containers):
         assert data["new_version"] == conda_smithy.__version__
 
 
-@pytest.mark.skipif(not HAVE_CONTAINERS, reason="containers not available")
+@pytest.mark.skipif(
+    not (HAVE_CONTAINERS and HAVE_TEST_IMAGE), reason="containers not available"
+)
 def test_get_latest_version_containerized(use_containers):
     with (
         tempfile.TemporaryDirectory() as tmpdir,
@@ -77,7 +102,9 @@ def test_get_latest_version_containerized(use_containers):
         assert data["new_version"] == conda_smithy.__version__
 
 
-@pytest.mark.skipif(not HAVE_CONTAINERS, reason="containers not available")
+@pytest.mark.skipif(
+    not (HAVE_CONTAINERS and HAVE_TEST_IMAGE), reason="containers not available"
+)
 def test_get_latest_version_containerized_mpas_tools(use_containers):
     with (
         tempfile.TemporaryDirectory() as tmpdir,
@@ -93,7 +120,9 @@ def test_get_latest_version_containerized_mpas_tools(use_containers):
         assert data["new_version"] is not False
 
 
-@pytest.mark.skipif(not HAVE_CONTAINERS, reason="containers not available")
+@pytest.mark.skipif(
+    not (HAVE_CONTAINERS and HAVE_TEST_IMAGE), reason="containers not available"
+)
 def test_container_tasks_parse_feedstock(use_containers):
     with tempfile.TemporaryDirectory() as tmpdir, pushd(tmpdir):
         data = run_container_task(
@@ -112,7 +141,9 @@ def test_container_tasks_parse_feedstock(use_containers):
         assert data["raw_meta_yaml"] == attrs["raw_meta_yaml"]
 
 
-@pytest.mark.skipif(not HAVE_CONTAINERS, reason="containers not available")
+@pytest.mark.skipif(
+    not (HAVE_CONTAINERS and HAVE_TEST_IMAGE), reason="containers not available"
+)
 def test_container_tasks_parse_feedstock_json(use_containers):
     with (
         tempfile.TemporaryDirectory() as tmpdir,
@@ -132,7 +163,9 @@ def test_container_tasks_parse_feedstock_json(use_containers):
         assert data["raw_meta_yaml"] == attrs["raw_meta_yaml"]
 
 
-@pytest.mark.skipif(not HAVE_CONTAINERS, reason="containers not available")
+@pytest.mark.skipif(
+    not (HAVE_CONTAINERS and HAVE_TEST_IMAGE), reason="containers not available"
+)
 def test_load_feedstock_containerized(use_containers):
     with (
         tempfile.TemporaryDirectory() as tmpdir,
@@ -148,7 +181,9 @@ def test_load_feedstock_containerized(use_containers):
         assert data["raw_meta_yaml"] == attrs["raw_meta_yaml"]
 
 
-@pytest.mark.skipif(not HAVE_CONTAINERS, reason="containers not available")
+@pytest.mark.skipif(
+    not (HAVE_CONTAINERS and HAVE_TEST_IMAGE), reason="containers not available"
+)
 def test_load_feedstock_containerized_mpas_tools(use_containers):
     with (
         tempfile.TemporaryDirectory() as tmpdir,
@@ -164,7 +199,9 @@ def test_load_feedstock_containerized_mpas_tools(use_containers):
         assert data["raw_meta_yaml"] == attrs["raw_meta_yaml"]
 
 
-@pytest.mark.skipif(not HAVE_CONTAINERS, reason="containers not available")
+@pytest.mark.skipif(
+    not (HAVE_CONTAINERS and HAVE_TEST_IMAGE), reason="containers not available"
+)
 def test_parse_meta_yaml_containerized(use_containers):
     with (
         tempfile.TemporaryDirectory() as tmpdir,
@@ -180,7 +217,9 @@ def test_parse_meta_yaml_containerized(use_containers):
         assert data["package"]["name"] == "conda-smithy"
 
 
-@pytest.mark.skipif(not HAVE_CONTAINERS, reason="containers not available")
+@pytest.mark.skipif(
+    not (HAVE_CONTAINERS and HAVE_TEST_IMAGE), reason="containers not available"
+)
 def test_rerender_feedstock_containerized_same_as_local(use_containers, capfd):
     with (
         tempfile.TemporaryDirectory() as tmpdir_cont,
@@ -294,7 +333,9 @@ def test_rerender_feedstock_containerized_same_as_local(use_containers, capfd):
                 assert cdata == ldata, f"{cfname} not equal to local"
 
 
-@pytest.mark.skipif(not HAVE_CONTAINERS, reason="containers not available")
+@pytest.mark.skipif(
+    not (HAVE_CONTAINERS and HAVE_TEST_IMAGE), reason="containers not available"
+)
 def test_rerender_feedstock_containerized_empty(use_containers):
     with tempfile.TemporaryDirectory() as tmpdir_local:
         # first run the rerender locally
@@ -344,7 +385,9 @@ def test_rerender_feedstock_containerized_empty(use_containers):
         assert msg is None
 
 
-@pytest.mark.skipif(not HAVE_CONTAINERS, reason="containers not available")
+@pytest.mark.skipif(
+    not (HAVE_CONTAINERS and HAVE_TEST_IMAGE), reason="containers not available"
+)
 def test_rerender_feedstock_containerized_permissions(use_containers):
     with tempfile.TemporaryDirectory() as tmpdir:
         with pushd(tmpdir):
@@ -412,7 +455,9 @@ def test_rerender_feedstock_containerized_permissions(use_containers):
             assert orig_exec == cont_rerend_exec
 
 
-@pytest.mark.skipif(not HAVE_CONTAINERS, reason="containers not available")
+@pytest.mark.skipif(
+    not (HAVE_CONTAINERS and HAVE_TEST_IMAGE), reason="containers not available"
+)
 def test_provide_source_code_containerized(use_containers):
     with (
         tempfile.TemporaryDirectory() as tmpdir,
@@ -435,7 +480,9 @@ def test_provide_source_code_containerized(use_containers):
             assert "pyproject.toml" in os.listdir(source_dir)
 
 
-@pytest.mark.skipif(not HAVE_CONTAINERS, reason="containers not available")
+@pytest.mark.skipif(
+    not (HAVE_CONTAINERS and HAVE_TEST_IMAGE), reason="containers not available"
+)
 def test_is_recipe_solvable_containerized(use_containers):
     with tempfile.TemporaryDirectory() as tmpdir:
         with pushd(tmpdir):

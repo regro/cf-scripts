@@ -94,6 +94,33 @@ If your migrator needs special configuration, you should write a new factory fun
 
 ## Developer Documentation
 
+### Useful Environment Variables
+
+- `CF_TICK_GRAPH_DATA_BACKENDS`: See [`LazyJson` Data Structures and Backends](#lazyjson-data-structures-and-backends) below.
+- `CF_TICK_GRAPH_DATA_USE_FILE_CACHE`: See [`LazyJson` Data Structures and Backends](#lazyjson-data-structures-and-backends) below.
+- `MONGODB_CONNECTION_STRING`: See [`LazyJson` Data Structures and Backends](#lazyjson-data-structures-and-backends) below.
+- `CF_TICK_IN_CONTAINER`: set to `true` to indicate that the bot is running in a container, prevents container in container issues
+- `TIMEOUT`: set to the number of seconds to wait before timing out the bot
+- `RUN_URL`: set to the URL of the CI build (now set to a GHA run URL)
+- `MEMORY_LIMIT_GB`: set to the memory limit in GB for the bot
+- `BOT_TOKEN`: a GitHub token for the bot user
+
+### Running Tests
+
+The test suite relies on `pytest` and uses `docker`. To run the tests, use the following command:
+
+```bash
+pytest -v
+```
+
+If you want to test the `container` parts of the bot, you need to build the image first and use the `test` tag:
+
+```bash
+docker build -t conda-forge-tick:test .
+```
+
+The test suite will not run the container-based tests unless an image with this name and tag is present.
+
 ### Debugging Locally
 
 You can use the CLI of the bot to debug it locally. To do so, install the bot with the following command:
@@ -168,17 +195,6 @@ print(len(graph))
 ```
 
 This is an important number to know when proposing a migration
-
-### Useful Environment Variables
-
-- `CF_TICK_GRAPH_DATA_BACKENDS`: See [`LazyJson` Data Structures and Backends](#lazyjson-data-structures-and-backends) below.
-- `CF_TICK_GRAPH_DATA_USE_FILE_CACHE`: See [`LazyJson` Data Structures and Backends](#lazyjson-data-structures-and-backends) below.
-- `MONGODB_CONNECTION_STRING`: See [`LazyJson` Data Structures and Backends](#lazyjson-data-structures-and-backends) below.
-- `CF_TICK_IN_CONTAINER`: set to `true` to indicate that the bot is running in a container, prevents container in container issues
-- `TIMEOUT`: set to the number of seconds to wait before timing out the bot
-- `RUN_URL`: set to the URL of the CI build (now set to a GHA run URL)
-- `MEMORY_LIMIT_GB`: set to the memory limit in GB for the bot
-- `BOT_TOKEN`: a GitHub token for the bot user
 
 ### `conda-forge-tick` Container Image and Dockerfile
 
