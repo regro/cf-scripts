@@ -75,3 +75,23 @@ def test_migrator_to_json_minimigrators():
             assert migrator2._init_kwargs == {}
             assert isinstance(migrator2, migrator.__class__)
             assert migrator2.to_lazy_json_data() == data
+
+
+def test_migrator_to_json_version():
+    migrator = conda_forge_tick.migrators.Version(
+        set(),
+        piggy_back_migrations=[
+            conda_forge_tick.migrators.DependencyUpdateMigrator(["blah"]),
+            conda_forge_tick.migrators.DependencyUpdateMigrator(["blah2"]),
+            conda_forge_tick.migrators.LibboostMigrator(),
+            conda_forge_tick.migrators.DuplicateLinesCleanup(),
+        ],
+    )
+    data = migrator.to_lazy_json_data()
+    dumps(data)
+    assert data["__migrator__"] is True
+    assert data["class"] == "Version"
+
+    migrator2 = conda_forge_tick.migrators.Migrator.from_lazy_json_data(data)
+    assert isinstance(migrator2, conda_forge_tick.migrators.Version)
+    assert migrator2.to_lazy_json_data() == data
