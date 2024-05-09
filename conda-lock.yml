@@ -6820,20 +6820,21 @@ package:
     version: 2.80.1
   - category: main
     dependencies:
+      __osx: '>=10.13'
       libffi: '>=3.4,<4.0a0'
       libiconv: '>=1.17,<2.0a0'
       libintl: '>=0.22.5,<1.0a0'
       libzlib: '>=1.2.13,<1.3.0a0'
       pcre2: '>=10.43,<10.44.0a0'
     hash:
-      md5: 54dd1ed37dd65c5d13600bcc5ebbd0a1
-      sha256: 1cbca3cfdc470c528a36c93d9d478103d2a7a6036814ab23fa0486cde29e9607
+      md5: 91404f4d1359ef22a66d37cccb4c121a
+      sha256: b56bb2bfb4ee1e7009c580dfd36ea8d3789c182f8cdb1462ba04f377bbfae6bc
     manager: conda
     name: libglib
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/osx-64/libglib-2.80.0-h81c1438_6.conda
-    version: 2.80.0
+    url: https://conda.anaconda.org/conda-forge/osx-64/libglib-2.80.1-h0f68cf7_0.conda
+    version: 2.80.1
   - category: main
     dependencies:
       __osx: '>=11.0'
@@ -8508,15 +8509,14 @@ package:
   - category: main
     dependencies: {}
     hash:
-      md5: 50f28c512e9ad78589e3eab34833f762
-      sha256: 50b72acf08acbc4e5332807653e2ca6b26d4326e8af16fad1fd3f2ce9ea55503
+      md5: 02a888433d165c99bf09784a7b14d900
+      sha256: 6ecc73db0e49143092c0934355ac41583a5d5a48c6914c5f6ca48e562d3a4b79
     manager: conda
     name: ncurses
     optional: false
     platform: osx-64
-    url:
-      https://conda.anaconda.org/conda-forge/osx-64/ncurses-6.4.20240210-h73e2aa4_0.conda
-    version: 6.4.20240210
+    url: https://conda.anaconda.org/conda-forge/osx-64/ncurses-6.5-h5846eda_0.conda
+    version: '6.5'
   - category: main
     dependencies: {}
     hash:
@@ -10096,31 +10096,32 @@ package:
       python: '>=3.11,<3.12.0a0'
       python_abi: 3.11.*
     hash:
-      md5: 6d819f94ce95766d5d87734f6658df12
-      sha256: bcfe58a5f7ca9e93a8ff5810d1d24b9a3d59768aa04051a3bffbb9bf63d7f768
+      md5: fda1badc01d461a47c8aeea826dd8174
+      sha256: 7e98dc3c3e1c81781db645fd3d3da0e70d12a41672ea457221eb5b75beceb0cf
     manager: conda
     name: pymongo
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/linux-64/pymongo-4.7.1-py311h4332511_0.conda
-    version: 4.7.1
+      https://conda.anaconda.org/conda-forge/linux-64/pymongo-4.7.2-py311h4332511_0.conda
+    version: 4.7.2
   - category: main
     dependencies:
+      __osx: '>=10.13'
       dnspython: '>=1.16.0,<3.0.0'
       libcxx: '>=16'
       python: '>=3.11,<3.12.0a0'
       python_abi: 3.11.*
     hash:
-      md5: a92d9a7e506053dd0667f24cee426f2d
-      sha256: 9b870a5842f888b761d57e24d1ca10d8737cd350e4eddfa42e35c5e023446627
+      md5: 541c8d7274ad12e262f456a30f5556b3
+      sha256: 386bb956a917d3a31a01afd8aa873bf4a940c412fe18b139adc6ebb977765246
     manager: conda
     name: pymongo
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/osx-64/pymongo-4.6.3-py311hdd0406b_0.conda
-    version: 4.6.3
+      https://conda.anaconda.org/conda-forge/osx-64/pymongo-4.7.2-py311hbafa61a_0.conda
+    version: 4.7.2
   - category: main
     dependencies:
       __osx: '>=11.0'
@@ -10129,15 +10130,15 @@ package:
       python: '>=3.11,<3.12.0a0'
       python_abi: 3.11.*
     hash:
-      md5: f0a8fbbb6c2a10ad71e827acb82a7925
-      sha256: 438af90efda16d005118a4b0cb4a5dee0bb2c5be07ea3c050f0e326fdf4e4619
+      md5: 4c1efd723a23243fc46168da7308510e
+      sha256: fe43aaf58a3872a15bd7afc67ea69283549d6c87da21ba97c67c168ec6c8314e
     manager: conda
     name: pymongo
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/osx-arm64/pymongo-4.7.1-py311h6376970_0.conda
-    version: 4.7.1
+      https://conda.anaconda.org/conda-forge/osx-arm64/pymongo-4.7.2-py311hb9542d7_0.conda
+    version: 4.7.2
   - category: main
     dependencies:
       cffi: '>=1.4.1'
@@ -13186,14 +13187,14 @@ package:
       __osx: '>=10.13'
       libcxx: '>=16'
     hash:
-      md5: 5e50d8694fbebe55f5ed5d00f02ef2f7
-      sha256: c4d37909b789ae5fb906fdac36874d599d17e71ffec9d64814f1bb8d189881bf
+      md5: e4e71decde6c872d19c743a1f3e2b8c7
+      sha256: 91b7bd95468a283d3741c81dea02399378d38182b463f7690a818c072839b650
     manager: conda
     name: uv
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/osx-64/uv-0.1.40-h0a647a2_0.conda
-    version: 0.1.40
+    url: https://conda.anaconda.org/conda-forge/osx-64/uv-0.1.41-h0a647a2_0.conda
+    version: 0.1.41
   - category: main
     dependencies:
       __osx: '>=11.0'
