@@ -3,6 +3,7 @@ import inspect
 
 import conda_forge_tick.migrators
 from conda_forge_tick.lazy_json_backends import dumps
+from conda_forge_tick.migrators import make_from_lazy_json_data
 
 
 def test_migrator_to_json_dep_update_minimigrator():
@@ -30,7 +31,7 @@ def test_migrator_to_json_dep_update_minimigrator():
         "class": "DependencyUpdateMigrator",
     }
 
-    migrator2 = conda_forge_tick.migrators.MiniMigrator.from_lazy_json_data(data)
+    migrator2 = make_from_lazy_json_data(data)
     assert migrator2._init_args == [python_nodes]
     assert migrator2._init_kwargs == {}
     assert isinstance(migrator2, conda_forge_tick.migrators.DependencyUpdateMigrator)
@@ -68,9 +69,7 @@ def test_migrator_to_json_minimigrators():
                 "class": migrator_name,
             }
 
-            migrator2 = conda_forge_tick.migrators.MiniMigrator.from_lazy_json_data(
-                data
-            )
+            migrator2 = make_from_lazy_json_data(data)
             assert migrator2._init_args == []
             assert migrator2._init_kwargs == {}
             assert isinstance(migrator2, migrator.__class__)
@@ -92,6 +91,6 @@ def test_migrator_to_json_version():
     assert data["__migrator__"] is True
     assert data["class"] == "Version"
 
-    migrator2 = conda_forge_tick.migrators.Migrator.from_lazy_json_data(data)
+    migrator2 = make_from_lazy_json_data(data)
     assert isinstance(migrator2, conda_forge_tick.migrators.Version)
     assert migrator2.to_lazy_json_data() == data

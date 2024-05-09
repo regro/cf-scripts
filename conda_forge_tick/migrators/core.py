@@ -81,6 +81,26 @@ def _migratror_hash(klass, args, kwargs):
     return hashlib.sha1(dumps(data).encode("utf-8")).hexdigest()
 
 
+def make_from_lazy_json_data(data):
+    """Deserialize the migrator from LazyJson-compatible data."""
+    import conda_forge_tick.migrators
+
+    cls = getattr(conda_forge_tick.migrators, data["class"])
+
+    kwargs = copy.deepcopy(data["kwargs"])
+    if (
+        "pigg_back_migrations" in kwargs
+        and kwargs["piggy_back_migrations"]
+        and isinstance(kwargs["piggy_back_migrations"][0], dict)
+    ):
+        kwargs["piggy_back_migrations"] = [
+            make_from_lazy_json_data(mini_migrator)
+            for mini_migrator in kwargs["piggy_back_migrations"]
+        ]
+
+    return cls(*data["args"], **kwargs)
+
+
 class MiniMigrator:
     post_migration = False
 
@@ -143,13 +163,6 @@ class MiniMigrator:
             )
         )
         return data
-
-    def from_lazy_json_data(data):
-        """Deserialize the migrator from LazyJson-compatible data."""
-        import conda_forge_tick.migrators
-
-        cls = getattr(conda_forge_tick.migrators, data["class"])
-        return cls(*data["args"], **data["kwargs"])
 
 
 class Migrator:
@@ -233,25 +246,6 @@ class Migrator:
             )
         )
         return data
-
-    def from_lazy_json_data(data):
-        """Deserialize the migrator from LazyJson-compatible data."""
-        import conda_forge_tick.migrators
-
-        cls = getattr(conda_forge_tick.migrators, data["name"])
-
-        kwargs = copy.deepcopy(data["kwargs"])
-        if (
-            "pigg_back_migrations" in kwargs
-            and kwargs["piggy_back_migrations"]
-            and isinstance(kwargs["piggy_back_migrations"][0], dict)
-        ):
-            kwargs["piggy_back_migrations"] = [
-                MiniMigrator.from_lazy_json_data(mini_migrator)
-                for mini_migrator in kwargs["piggy_back_migrations"]
-            ]
-
-        return cls(*data["args"], **kwargs)
 
     def bind_to_ctx(self, migrator_ctx: MigratorContext) -> None:
         self.ctx = migrator_ctx
