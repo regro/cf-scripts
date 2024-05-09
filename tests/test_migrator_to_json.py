@@ -93,7 +93,7 @@ def test_migrator_to_json_version():
 
 def test_migrator_to_json_migration_yaml_creator():
     gx = nx.DiGraph()
-    gx.add_node("conda", reqs=["python"], payload={})
+    gx.add_node("conda", reqs=["python"], payload={}, blah="foo")
     gx.graph["outputs_lut"] = {}
 
     pname = "boost"
@@ -106,8 +106,11 @@ def test_migrator_to_json_migration_yaml_creator():
     )
     data = migrator.to_lazy_json_data()
     pprint.pprint(data)
+    assert data["kwargs"]["blah"] == "foo"
+
     lzj_data = dumps(data)
     print("lazy json data:\n", lzj_data)
+
     assert data["__migrator__"] is True
     assert data["class"] == "MigrationYamlCreator"
     assert data["name"] == pname + " pinning"
@@ -142,13 +145,17 @@ def test_migrator_to_json_matplotlib_base():
 
 def test_migrator_to_json_migration_yaml():
     migrator = conda_forge_tick.migrators.MigrationYaml(
-        yaml_contents="hello world", name="hi"
+        yaml_contents="hello world",
+        name="hi",
+        blah="foo",
     )
 
     data = migrator.to_lazy_json_data()
     pprint.pprint(data)
+    assert data["kwargs"]["blah"] == "foo"
     lzj_data = dumps(data)
     print("lazy json data:\n", lzj_data)
+
     assert data["__migrator__"] is True
     assert data["class"] == "MigrationYaml"
     assert data["name"] == "hi"
