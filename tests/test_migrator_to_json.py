@@ -102,7 +102,14 @@ def test_migrator_to_json_migration_yaml_creator():
     pin_spec = "x.x"
 
     migrator = conda_forge_tick.migrators.MigrationYamlCreator(
-        pname, pin_ver, curr_pin, pin_spec, "hi", gx, gx
+        pname,
+        pin_ver,
+        curr_pin,
+        pin_spec,
+        "hi",
+        gx,
+        gx,
+        blah="foo",
     )
     data = migrator.to_lazy_json_data()
     pprint.pprint(data)
