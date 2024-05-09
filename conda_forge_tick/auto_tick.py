@@ -1166,14 +1166,8 @@ def _run_migrator(migrator, mctx, temp, time_per, dry_run):
             extra_name,
         ),
     ):
-        print(
-            "\n========================================"
-            "========================================"
-            "\n"
-            "========================================"
-            "========================================",
-            flush=True,
-        )
+        if _over_time_limit():
+            return 0
 
         mmctx = MigratorContext(session=mctx, migrator=migrator)
         migrator.bind_to_ctx(mmctx)
@@ -1207,11 +1201,11 @@ def _run_migrator(migrator, mctx, temp, time_per, dry_run):
                         )
 
         print(
-            "Running migrations for %s%s: %d\n"
+            "found %d nodes for migration %s%s"
             % (
+                len(effective_graph.nodes),
                 migrator.__class__.__name__,
                 extra_name,
-                len(effective_graph.nodes),
             ),
             flush=True,
         )
@@ -1257,127 +1251,133 @@ def _run_migrator(migrator, mctx, temp, time_per, dry_run):
                         print("\n", flush=True, end="")
                         sys.stderr.flush()
                         sys.stdout.flush()
-                        logger.info(
-                            "%s%s IS MIGRATING %s:%s",
-                            migrator.__class__.__name__.upper(),
-                            extra_name,
-                            fctx.package_name,
-                            base_branch,
-                        )
-                        try:
-                            # Don't bother running if we are at zero
-                            if get_github_api_requests_left() == 0:
-                                break
-                            migrator_uid, pr_json = run(
-                                feedstock_ctx=fctx,
-                                migrator=migrator,
-                                rerender=migrator.rerender,
-                                protocol="https",
-                                hash_type=attrs.get("hash_type", "sha256"),
-                                base_branch=base_branch,
-                                dry_run=dry_run,
-                            )
-                            # if migration successful
-                            if migrator_uid:
-                                with attrs["pr_info"] as pri:
-                                    d = frozen_to_json_friendly(migrator_uid)
-                                    # if we have the PR already do nothing
-                                    if d["data"] in [
-                                        existing_pr["data"]
-                                        for existing_pr in pri.get("PRed", [])
-                                    ]:
-                                        pass
-                                    else:
-                                        if not pr_json:
-                                            pr_json = {
-                                                "state": "closed",
-                                                "head": {
-                                                    "ref": "<this_is_not_a_branch>",
-                                                },
-                                            }
-                                        d["PR"] = pr_json
-                                        if "PRed" not in pri:
-                                            pri["PRed"] = []
-                                        pri["PRed"].append(d)
-                                    pri.update(
-                                        {
-                                            "smithy_version": mctx.smithy_version,
-                                            "pinning_version": mctx.pinning_version,
-                                        },
-                                    )
 
-                        except (github3.GitHubError, github.GithubException) as e:
-                            if (
-                                hasattr(e, "msg")
-                                and e.msg == "Repository was archived so is read-only."
-                            ):
-                                attrs["archived"] = True
-                            else:
-                                logger.critical(
-                                    "GITHUB ERROR ON FEEDSTOCK: %s",
-                                    fctx.feedstock_name,
-                                )
-                                if is_github_api_limit_reached(e):
+                        with fold_log_lines(
+                            "%s%s IS MIGRATING %s:%s"
+                            % (
+                                migrator.__class__.__name__.upper(),
+                                extra_name,
+                                fctx.package_name,
+                                base_branch,
+                            )
+                        ):
+                            try:
+                                # Don't bother running if we are at zero
+                                if get_github_api_requests_left() == 0:
                                     break
-                        except URLError as e:
-                            logger.exception("URLError ERROR")
-                            with attrs["pr_info"] as pri:
-                                pri["bad"] = {
-                                    "exception": str(e),
-                                    "traceback": str(traceback.format_exc()).split(
-                                        "\n",
-                                    ),
-                                    "code": getattr(e, "code"),
-                                    "url": getattr(e, "url"),
-                                }
+                                migrator_uid, pr_json = run(
+                                    feedstock_ctx=fctx,
+                                    migrator=migrator,
+                                    rerender=migrator.rerender,
+                                    protocol="https",
+                                    hash_type=attrs.get("hash_type", "sha256"),
+                                    base_branch=base_branch,
+                                    dry_run=dry_run,
+                                )
+                                # if migration successful
+                                if migrator_uid:
+                                    with attrs["pr_info"] as pri:
+                                        d = frozen_to_json_friendly(migrator_uid)
+                                        # if we have the PR already do nothing
+                                        if d["data"] in [
+                                            existing_pr["data"]
+                                            for existing_pr in pri.get("PRed", [])
+                                        ]:
+                                            pass
+                                        else:
+                                            if not pr_json:
+                                                pr_json = {
+                                                    "state": "closed",
+                                                    "head": {
+                                                        "ref": "<this_is_not_a_branch>",
+                                                    },
+                                                }
+                                            d["PR"] = pr_json
+                                            if "PRed" not in pri:
+                                                pri["PRed"] = []
+                                            pri["PRed"].append(d)
+                                        pri.update(
+                                            {
+                                                "smithy_version": mctx.smithy_version,
+                                                "pinning_version": mctx.pinning_version,
+                                            },
+                                        )
 
-                            _set_pre_pr_migrator_fields(
-                                attrs,
-                                migrator_name,
-                                sanitize_string(
-                                    "bot error (%s): %s: %s"
-                                    % (
-                                        '<a href="'
-                                        + get_bot_run_url()
-                                        + '">bot CI job</a>',
-                                        base_branch,
-                                        str(traceback.format_exc()),
-                                    ),
-                                ),
-                            )
-                        except Exception as e:
-                            logger.exception("NON GITHUB ERROR")
-                            # we don't set bad for rerendering errors
-                            if (
-                                "conda smithy rerender -c auto --no-check-uptodate"
-                                not in str(e)
-                            ):
+                            except (github3.GitHubError, github.GithubException) as e:
+                                if (
+                                    hasattr(e, "msg")
+                                    and e.msg
+                                    == "Repository was archived so is read-only."
+                                ):
+                                    attrs["archived"] = True
+                                else:
+                                    logger.critical(
+                                        "GITHUB ERROR ON FEEDSTOCK: %s",
+                                        fctx.feedstock_name,
+                                    )
+                                    if is_github_api_limit_reached(e):
+                                        break
+                            except URLError as e:
+                                logger.exception("URLError ERROR")
                                 with attrs["pr_info"] as pri:
                                     pri["bad"] = {
                                         "exception": str(e),
                                         "traceback": str(traceback.format_exc()).split(
                                             "\n",
                                         ),
+                                        "code": getattr(e, "code"),
+                                        "url": getattr(e, "url"),
                                     }
 
-                            _set_pre_pr_migrator_fields(
-                                attrs,
-                                migrator_name,
-                                sanitize_string(
-                                    "bot error (%s): %s: %s"
-                                    % (
-                                        '<a href="'
-                                        + get_bot_run_url()
-                                        + '">bot CI job</a>',
-                                        base_branch,
-                                        str(traceback.format_exc()),
+                                _set_pre_pr_migrator_fields(
+                                    attrs,
+                                    migrator_name,
+                                    sanitize_string(
+                                        "bot error (%s): %s: %s"
+                                        % (
+                                            '<a href="'
+                                            + get_bot_run_url()
+                                            + '">bot CI job</a>',
+                                            base_branch,
+                                            str(traceback.format_exc()),
+                                        ),
                                     ),
-                                ),
-                            )
-                        else:
-                            if migrator_uid:
-                                # On successful PR add to our counter
-                                good_prs += 1
+                                )
+                            except Exception as e:
+                                logger.exception("NON GITHUB ERROR")
+                                # we don't set bad for rerendering errors
+                                if (
+                                    "conda smithy rerender -c auto --no-check-uptodate"
+                                    not in str(e)
+                                ):
+                                    with attrs["pr_info"] as pri:
+                                        pri["bad"] = {
+                                            "exception": str(e),
+                                            "traceback": str(
+                                                traceback.format_exc()
+                                            ).split(
+                                                "\n",
+                                            ),
+                                        }
+
+                                _set_pre_pr_migrator_fields(
+                                    attrs,
+                                    migrator_name,
+                                    sanitize_string(
+                                        "bot error (%s): %s: %s"
+                                        % (
+                                            '<a href="'
+                                            + get_bot_run_url()
+                                            + '">bot CI job</a>',
+                                            base_branch,
+                                            str(traceback.format_exc()),
+                                        ),
+                                    ),
+                                )
+                            else:
+                                if migrator_uid:
+                                    # On successful PR add to our counter
+                                    good_prs += 1
                 finally:
                     # reset branch
                     if has_attrs_branch:
@@ -1628,9 +1628,6 @@ def main(ctx: CliContext) -> None:
             )
 
     for mg_ind, migrator in enumerate(migrators):
-        if _over_time_limit():
-            break
-
         good_prs = _run_migrator(
             migrator,
             mctx,
