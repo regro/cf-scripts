@@ -107,7 +107,7 @@ def make_from_lazy_json_data(data):
 
     kwargs = copy.deepcopy(data["kwargs"])
     if (
-        "pigg_back_migrations" in kwargs
+        "piggy_back_migrations" in kwargs
         and kwargs["piggy_back_migrations"]
         and isinstance(kwargs["piggy_back_migrations"][0], dict)
     ):

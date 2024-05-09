@@ -82,11 +82,18 @@ def test_migrator_to_json_version():
         ],
     )
     data = migrator.to_lazy_json_data()
+    pprint.pprint(data)
+
     lzj_data = dumps(data)
+    print("lazy json data:\n", lzj_data)
+
     assert data["__migrator__"] is True
     assert data["class"] == "Version"
 
     migrator2 = make_from_lazy_json_data(loads(lzj_data))
+    assert [pgm.__class__.__name__ for pgm in migrator2.piggy_back_migrations] == [
+        pgm.__class__.__name__ for pgm in migrator.piggy_back_migrations
+    ]
     assert isinstance(migrator2, conda_forge_tick.migrators.Version)
     assert dumps(migrator2.to_lazy_json_data()) == lzj_data
 
@@ -123,6 +130,9 @@ def test_migrator_to_json_migration_yaml_creator():
     assert data["name"] == pname + " pinning"
 
     migrator2 = make_from_lazy_json_data(loads(lzj_data))
+    assert [pgm.__class__.__name__ for pgm in migrator2.piggy_back_migrations] == [
+        pgm.__class__.__name__ for pgm in migrator.piggy_back_migrations
+    ]
     assert isinstance(migrator2, conda_forge_tick.migrators.MigrationYamlCreator)
     assert dumps(migrator2.to_lazy_json_data()) == lzj_data
 
@@ -146,6 +156,9 @@ def test_migrator_to_json_matplotlib_base():
     assert data["name"] == "matplotlib-to-matplotlib-base"
 
     migrator2 = make_from_lazy_json_data(loads(lzj_data))
+    assert [pgm.__class__.__name__ for pgm in migrator2.piggy_back_migrations] == [
+        pgm.__class__.__name__ for pgm in migrator.piggy_back_migrations
+    ]
     assert isinstance(migrator2, conda_forge_tick.migrators.MatplotlibBase)
     assert dumps(migrator2.to_lazy_json_data()) == lzj_data
 
@@ -168,6 +181,9 @@ def test_migrator_to_json_migration_yaml():
     assert data["name"] == "hi"
 
     migrator2 = make_from_lazy_json_data(loads(lzj_data))
+    assert [pgm.__class__.__name__ for pgm in migrator2.piggy_back_migrations] == [
+        pgm.__class__.__name__ for pgm in migrator.piggy_back_migrations
+    ]
     assert isinstance(migrator2, conda_forge_tick.migrators.MigrationYaml)
     assert dumps(migrator2.to_lazy_json_data()) == lzj_data
 
@@ -192,5 +208,8 @@ def test_migrator_to_json_rebuild():
     assert data["name"] == "matplotlib-to-matplotlib-base"
 
     migrator2 = make_from_lazy_json_data(loads(lzj_data))
+    assert [pgm.__class__.__name__ for pgm in migrator2.piggy_back_migrations] == [
+        pgm.__class__.__name__ for pgm in migrator.piggy_back_migrations
+    ]
     assert isinstance(migrator2, conda_forge_tick.migrators.Replacement)
     assert dumps(migrator2.to_lazy_json_data()) == lzj_data
