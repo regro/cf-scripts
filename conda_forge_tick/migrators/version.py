@@ -1,3 +1,4 @@
+import copy
 import functools
 import logging
 import os
@@ -56,6 +57,12 @@ class Version(Migrator):
     name = MigratorName.VERSION
 
     def __init__(self, python_nodes, *args, **kwargs):
+        if not hasattr(self, "_init_args"):
+            self._init_args = [python_nodes, *args]
+
+        if not hasattr(self, "_init_kwargs"):
+            self._init_kwargs = copy.deepcopy(kwargs)
+
         self.python_nodes = python_nodes
         if "check_solvable" in kwargs:
             kwargs.pop("check_solvable")

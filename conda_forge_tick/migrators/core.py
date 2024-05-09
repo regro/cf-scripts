@@ -1,5 +1,6 @@
 """Classes for migrating repos"""
 
+import copy
 import datetime
 import logging
 import os
@@ -66,8 +67,67 @@ def _gen_active_feedstocks_payloads(nodes, gx):
             yield node, payload
 
 
+def _migratror_hash(klass, args, kwargs):
+    import hashlib
+
+    from conda_forge_tick.lazy_json_backends import dumps
+
+    data = {
+        "class": klass,
+        "args": args,
+        "kwargs": kwargs,
+    }
+
+    return hashlib.sha1(dumps(data).encode("utf-8")).hexdigest()
+
+
+def _make_migrator_lazy_json_name(mgr, data):
+    return (
+        mgr.name
+        if hasattr(mgr, "name")
+        else mgr.__class__.__name__
+        + (
+            ""
+            if len(mgr._init_args) == 0 and len(mgr._init_kwargs) == 0
+            else "_h"
+            + _migratror_hash(
+                data["class"],
+                data["args"],
+                data["kwargs"],
+            )
+        )
+    )
+
+
+def make_from_lazy_json_data(data):
+    """Deserialize the migrator from LazyJson-compatible data."""
+    import conda_forge_tick.migrators
+
+    cls = getattr(conda_forge_tick.migrators, data["class"])
+
+    kwargs = copy.deepcopy(data["kwargs"])
+    if (
+        "piggy_back_migrations" in kwargs
+        and kwargs["piggy_back_migrations"]
+        and isinstance(kwargs["piggy_back_migrations"][0], dict)
+    ):
+        kwargs["piggy_back_migrations"] = [
+            make_from_lazy_json_data(mini_migrator)
+            for mini_migrator in kwargs["piggy_back_migrations"]
+        ]
+
+    return cls(*data["args"], **kwargs)
+
+
 class MiniMigrator:
     post_migration = False
+
+    def __init__(self):
+        if not hasattr(self, "_init_args"):
+            self._init_args = []
+
+        if not hasattr(self, "_init_kwargs"):
+            self._init_kwargs = {}
 
     def filter(self, attrs: "AttrsTypedDict", not_bad_str_start: str = "") -> bool:
         """If true don't act upon node
@@ -100,6 +160,17 @@ class MiniMigrator:
             If namedtuple continue with PR, if False scrap local folder
         """
         return
+
+    def to_lazy_json_data(self):
+        """Serialize the migrator to LazyJson-compatible data."""
+        data = {
+            "__mini_migrator__": True,
+            "class": self.__class__.__name__,
+            "args": self._init_args,
+            "kwargs": self._init_kwargs,
+        }
+        data["name"] = _make_migrator_lazy_json_name(self, data)
+        return data
 
 
 class Migrator:
@@ -134,11 +205,45 @@ class Migrator:
         piggy_back_migrations: Optional[Sequence[MiniMigrator]] = None,
         check_solvable=True,
     ):
+        if not hasattr(self, "_init_args"):
+            self._init_args = []
+
+        if not hasattr(self, "_init_kwargs"):
+            self._init_kwargs = {
+                "pr_limit": pr_limit,
+                "obj_version": obj_version,
+                "piggy_back_migrations": piggy_back_migrations,
+                "check_solvable": check_solvable,
+            }
+
         self.piggy_back_migrations = piggy_back_migrations or []
         self.pr_limit = pr_limit
         self.obj_version = obj_version
         self.ctx: MigratorContext = None
         self.check_solvable = check_solvable
+
+    def to_lazy_json_data(self):
+        """Serialize the migrator to LazyJson-compatible data."""
+
+        kwargs = copy.deepcopy(self._init_kwargs)
+        if (
+            "piggy_back_migrations" in kwargs
+            and kwargs["piggy_back_migrations"]
+            and isinstance(kwargs["piggy_back_migrations"][0], MiniMigrator)
+        ):
+            kwargs["piggy_back_migrations"] = [
+                mini_migrator.to_lazy_json_data()
+                for mini_migrator in kwargs["piggy_back_migrations"]
+            ]
+
+        data = {
+            "__migrator__": True,
+            "class": self.__class__.__name__,
+            "args": self._init_args,
+            "kwargs": kwargs,
+        }
+        data["name"] = _make_migrator_lazy_json_name(self, data)
+        return data
 
     def bind_to_ctx(self, migrator_ctx: MigratorContext) -> None:
         self.ctx = migrator_ctx
@@ -469,6 +574,22 @@ class GraphMigrator(Migrator):
         check_solvable=True,
         ignored_deps_per_node=None,
     ):
+        if not hasattr(self, "_init_args"):
+            self._init_args = []
+
+        if not hasattr(self, "_init_kwargs"):
+            self._init_kwargs = {
+                "name": name,
+                "graph": graph,
+                "pr_limit": pr_limit,
+                "top_level": top_level,
+                "cycles": cycles,
+                "obj_version": obj_version,
+                "piggy_back_migrations": piggy_back_migrations,
+                "check_solvable": check_solvable,
+                "ignored_deps_per_node": ignored_deps_per_node,
+            }
+
         super().__init__(
             pr_limit,
             obj_version,
@@ -662,6 +783,19 @@ class Replacement(Migrator):
         pr_limit: int = 0,
         check_solvable=True,
     ):
+        if not hasattr(self, "_init_args"):
+            self._init_args = []
+
+        if not hasattr(self, "_init_kwargs"):
+            self._init_kwargs = {
+                "old_pkg": old_pkg,
+                "new_pkg": new_pkg,
+                "rationale": rationale,
+                "graph": graph,
+                "pr_limit": pr_limit,
+                "check_solvable": check_solvable,
+            }
+
         super().__init__(pr_limit, check_solvable=check_solvable)
         self.old_pkg = old_pkg
         self.new_pkg = new_pkg

@@ -1582,6 +1582,21 @@ def main(ctx: CliContext) -> None:
     mctx, temp, migrators = initialize_migrators(
         dry_run=ctx.dry_run,
     )
+    seen_names = set()
+    with fold_log_lines("dumping migrators to JSON"):
+        for migrator in migrators:
+            try:
+                data = migrator.to_lazy_json_data()
+                if data["name"] in seen_names:
+                    raise RuntimeError(f"Duplicate migrator name: {data['name']}!")
+
+                seen_names.add(data["name"])
+
+                with LazyJson(f"migrators/{data['name']}.json") as f:
+                    f.update(data)
+
+            except Exception as e:
+                logger.error(f"Error dumping migrator {migrator} to JSON!", exc_info=e)
 
     # compute the time per migrator
     with fold_log_lines("computing migrator run times"):
