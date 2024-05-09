@@ -81,6 +81,24 @@ def _migratror_hash(klass, args, kwargs):
     return hashlib.sha1(dumps(data).encode("utf-8")).hexdigest()
 
 
+def _make_migrator_lazy_json_name(mgr, data):
+    return (
+        mgr.name
+        if hasattr(mgr, "name")
+        else mgr.__class__.__name__
+        + (
+            ""
+            if len(mgr._init_args) == 0 and len(mgr._init_kwargs) == 0
+            else "_h"
+            + _migratror_hash(
+                data["class"],
+                data["args"],
+                data["kwargs"],
+            )
+        )
+    )
+
+
 def make_from_lazy_json_data(data):
     """Deserialize the migrator from LazyJson-compatible data."""
     import conda_forge_tick.migrators
@@ -151,17 +169,7 @@ class MiniMigrator:
             "args": self._init_args,
             "kwargs": self._init_kwargs,
         }
-        data["name"] = (
-            self.name
-            if hasattr(self, "name")
-            else self.__class__.__name__
-            + "_h"
-            + _migratror_hash(
-                data["class"],
-                data["args"],
-                data["kwargs"],
-            )
-        )
+        data["name"] = _make_migrator_lazy_json_name(self, data)
         return data
 
 
@@ -234,17 +242,7 @@ class Migrator:
             "args": self._init_args,
             "kwargs": kwargs,
         }
-        data["name"] = (
-            self.name
-            if hasattr(self, "name")
-            else self.__class__.__name__
-            + "_h"
-            + _migratror_hash(
-                data["class"],
-                data["args"],
-                data["kwargs"],
-            )
-        )
+        data["name"] = _make_migrator_lazy_json_name(self, data)
         return data
 
     def bind_to_ctx(self, migrator_ctx: MigratorContext) -> None:
