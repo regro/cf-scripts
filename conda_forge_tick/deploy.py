@@ -113,6 +113,9 @@ def deploy(ctx: CliContext, dirs_to_deploy: list[str] = None):
         drs_to_deploy = dirs_to_deploy
 
     for dr in drs_to_deploy:
+        if not os.path.exists(dr):
+            continue
+
         # untracked
         files_to_add |= set(
             _run_git_cmd(
