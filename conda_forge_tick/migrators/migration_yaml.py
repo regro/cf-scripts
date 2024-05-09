@@ -138,6 +138,26 @@ class MigrationYaml(GraphMigrator):
         max_solver_attempts=3,
         **kwargs: Any,
     ):
+        if not hasattr(self, "_init_args"):
+            self._init_args = [yaml_contents, name]
+
+        if not hasattr(self, "_init_kwargs"):
+            self._init_kwargs = {
+                "graph": graph,
+                "pr_limit": pr_limit,
+                "top_level": top_level,
+                "cycles": cycles,
+                "migration_number": migration_number,
+                "bump_number": bump_number,
+                "piggy_back_migrations": piggy_back_migrations,
+                "automerge": automerge,
+                "check_solvable": check_solvable,
+                "conda_forge_yml_patches": conda_forge_yml_patches,
+                "ignored_deps_per_node": ignored_deps_per_node,
+                "max_solver_attempts": max_solver_attempts,
+            }
+            self._init_kwargs.update(copy.deepcopy(kwargs))
+
         super().__init__(
             graph=graph,
             pr_limit=pr_limit,
@@ -436,6 +456,24 @@ class MigrationYamlCreator(Migrator):
         bump_number: int = 1,
         **kwargs: Any,
     ):
+        if not hasattr(self, "_init_args"):
+            self._init_args = [
+                package_name,
+                new_pin_version,
+                current_pin,
+                pin_spec,
+                feedstock_name,
+                graph,
+                full_graph,
+            ]
+
+        if not hasattr(self, "_init_kwargs"):
+            self._init_kwargs = {
+                "pr_limit": pr_limit,
+                "bump_number": bump_number,
+            }
+            self._init_kwargs.update(copy.deepcopy(kwargs))
+
         super().__init__(pr_limit=pr_limit)
         self.feedstock_name = feedstock_name
         self.pin_spec = pin_spec

@@ -106,6 +106,17 @@ class ArchRebuild(GraphMigrator):
         pr_limit: int = 0,
         piggy_back_migrations: Optional[Sequence[MiniMigrator]] = None,
     ):
+        if not hasattr(self, "_init_args"):
+            self._init_args = []
+
+        if not hasattr(self, "_init_kwargs"):
+            self._init_kwargs = {
+                "graph": graph,
+                "name": name,
+                "pr_limit": pr_limit,
+                "piggy_back_migrations": piggy_back_migrations,
+            }
+
         # rebuild the graph to only use edges from the arm and power requirements
         graph2 = nx.create_empty_copy(graph)
         for node, attrs in graph.nodes(data="payload"):
@@ -226,6 +237,17 @@ class OSXArm(GraphMigrator):
         pr_limit: int = 0,
         piggy_back_migrations: Optional[Sequence[MiniMigrator]] = None,
     ):
+        if not hasattr(self, "_init_args"):
+            self._init_args = []
+
+        if not hasattr(self, "_init_kwargs"):
+            self._init_kwargs = {
+                "graph": graph,
+                "name": name,
+                "pr_limit": pr_limit,
+                "piggy_back_migrations": piggy_back_migrations,
+            }
+
         # rebuild the graph to only use edges from the arm osx requirements
         graph2 = nx.create_empty_copy(graph)
         for node, attrs in graph.nodes(data="payload"):

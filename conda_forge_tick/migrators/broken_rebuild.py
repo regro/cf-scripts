@@ -325,6 +325,15 @@ class RebuildBroken(Migrator):
         outputs_lut,
         pr_limit: int = 0,
     ):
+        if not hasattr(self, "_init_args"):
+            self._init_args = []
+
+        if not hasattr(self, "_init_kwargs"):
+            self._init_kwargs = {
+                "outputs_lut": outputs_lut,
+                "pr_limit": pr_limit,
+            }
+
         super().__init__(1, check_solvable=False)
         self.name = "rebuild-broken"
 

@@ -21,6 +21,7 @@ from typing import (
     Union,
 )
 
+import networkx as nx
 import rapidjson as json
 import requests
 
@@ -47,6 +48,7 @@ CF_TICK_GRAPH_DATA_HASHMAPS = [
     "version_pr_info",
     "versions",
     "node_attrs",
+    "migrators",
 ]
 
 CF_TICK_GRAPH_GITHUB_BACKEND_BASE_URL = (
@@ -835,6 +837,12 @@ def default(obj: Any) -> Any:
         return {"__lazy_json__": obj.file_name}
     elif isinstance(obj, Set):
         return {"__set__": True, "elements": sorted(obj)}
+    elif isinstance(obj, nx.DiGraph):
+        nld = nx.node_link_data(obj)
+        links = nld["links"]
+        links2 = sorted(links, key=lambda x: f'{x["source"]}{x["target"]}')
+        nld["links"] = links2
+        return {"__nx_digraph__": True, "node_link_data": nld}
     raise TypeError(repr(obj) + " is not JSON serializable")
 
 
@@ -844,6 +852,8 @@ def object_hook(dct: dict) -> Union[LazyJson, Set, dict]:
         return LazyJson(dct["__lazy_json__"])
     elif "__set__" in dct:
         return set(dct["elements"])
+    elif "__nx_digraph__" in dct:
+        return nx.node_link_graph(dct["node_link_data"])
     return dct
 
 

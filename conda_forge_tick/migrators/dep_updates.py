@@ -16,6 +16,12 @@ class DependencyUpdateMigrator(MiniMigrator):
     post_migration = True
 
     def __init__(self, python_nodes):
+        if not hasattr(self, "_init_args"):
+            self._init_args = [python_nodes]
+
+        if not hasattr(self, "_init_kwargs"):
+            self._init_kwargs = {}
+
         self.python_nodes = python_nodes
 
     def filter(self, attrs: "AttrsTypedDict", not_bad_str_start: str = "") -> bool:
