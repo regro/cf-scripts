@@ -2,6 +2,7 @@ import copy
 import glob
 import logging
 import os
+import pprint
 import random
 import re
 import time
@@ -298,7 +299,7 @@ def add_rebuild_migration_yaml(
     # stdlib migrator runs on top of ALL migrations, see
     # https://github.com/conda-forge/conda-forge.github.io/issues/2102
     piggy_back_migrations.append(StdlibMigrator())
-    cycles = list(nx.simple_cycles(total_graph))
+    cycles = sorted(list(nx.simple_cycles(total_graph)))
     migrator = MigrationYaml(
         migration_yaml,
         name=migration_name,
@@ -310,8 +311,14 @@ def add_rebuild_migration_yaml(
         max_solver_attempts=max_solver_attempts,
         **config,
     )
-    print(f"migration yaml:\n {migration_yaml}", flush=True)
-    print(f"bump number: {migrator.bump_number}\n", flush=True)
+    print(f"migration yaml:\n{migration_yaml}", flush=True)
+    print(f"bump number: {migrator.bump_number}", flush=True)
+    final_config = {}
+    final_config.update(config)
+    final_config["bump_number"] = migrator.bump_number
+    final_config["pr_limit"] = pr_limit
+    final_config["max_solver_attempts"] = max_solver_attempts
+    print("final config:\n", pprint.pformat(final_config), flush=True)
     migrators.append(migrator)
 
 
@@ -367,7 +374,7 @@ def migration_factory(
         migrator_config = loaded_yaml.get("__migrator", {})
         paused = migrator_config.pop("paused", False)
         excluded_feedstocks = set(migrator_config.get("exclude", []))
-        pr_limit = min(migrator_config.pop("pr_limit", pr_limit), MAX_PR_LIMIT)
+        _pr_limit = min(migrator_config.pop("pr_limit", pr_limit), MAX_PR_LIMIT)
         max_solver_attempts = min(
             migrator_config.pop("max_solver_attempts", 3),
             MAX_SOLVER_ATTEMPTS,
@@ -418,7 +425,7 @@ def migration_factory(
                 migration_yaml=yaml_contents,
                 migration_name=os.path.splitext(yaml_file)[0],
                 config=migrator_config,
-                pr_limit=pr_limit,
+                pr_limit=_pr_limit,
                 max_solver_attempts=max_solver_attempts,
             )
             if skip_solver_checks:
@@ -666,8 +673,6 @@ def initialize_migrators(
 
         random.shuffle(pinning_migrators)
         migrators = [version_migrator] + migrators + pinning_migrators
-
-        print(" ", flush=True)
 
     return migrators
 
