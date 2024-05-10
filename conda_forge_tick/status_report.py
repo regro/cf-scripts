@@ -19,7 +19,7 @@ from graphviz import Source
 from conda_forge_tick.auto_tick import _filter_ignored_versions
 from conda_forge_tick.contexts import FeedstockContext, MigratorSessionContext
 from conda_forge_tick.lazy_json_backends import LazyJson, get_all_keys_for_hashmap
-from conda_forge_tick.make_migrators import initialize_migrators
+from conda_forge_tick.make_migrators import load_migrators
 from conda_forge_tick.migrators import (
     ArchRebuild,
     GraphMigrator,
@@ -402,7 +402,7 @@ def main() -> None:
         pinning_version=pinning_version,
         dry_run=False,
     )
-    migrators = initialize_migrators(gx)
+    migrators = load_migrators()
 
     os.makedirs("./status/migration_json", exist_ok=True)
     os.makedirs("./status/migration_svg", exist_ok=True)
