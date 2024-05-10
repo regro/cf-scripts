@@ -395,13 +395,14 @@ def main() -> None:
             "version"
         ],
     )
+    gx = load_existing_graph()
     mctx = MigratorSessionContext(
-        graph=load_existing_graph(),
+        graph=gx,
         smithy_version=smithy_version,
         pinning_version=pinning_version,
         dry_run=False,
     )
-    migrators = initialize_migrators()
+    migrators = initialize_migrators(gx)
 
     os.makedirs("./status/migration_json", exist_ok=True)
     os.makedirs("./status/migration_svg", exist_ok=True)
