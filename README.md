@@ -184,9 +184,8 @@ print(dict(gx.node['python']['payload']))
 The number of feedstocks which would be migrated by a particular migration can be calculated:
 
 ```python
-
-from conda_forge_tick.auto_tick import initialize_migrators
-*_, migrators = initialize_migrators()
+from conda_forge_tick.make_migrators import initialize_migrators
+migrators = initialize_migrators()
 migrator = migrators[-1]
 print(migrator.name)
 graph = migrator.graph

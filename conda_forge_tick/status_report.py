@@ -6,7 +6,7 @@ import subprocess
 import tempfile
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from typing import Any, Dict, Set, Tuple
+from typing import Any, Dict, Set, Tuple, cast
 
 import dateutil.parser
 import networkx as nx
@@ -16,9 +16,10 @@ import yaml
 from conda.models.version import VersionOrder
 from graphviz import Source
 
-from conda_forge_tick.auto_tick import _filter_ignored_versions, initialize_migrators
-from conda_forge_tick.contexts import FeedstockContext
+from conda_forge_tick.auto_tick import _filter_ignored_versions
+from conda_forge_tick.contexts import FeedstockContext, MigratorSessionContext
 from conda_forge_tick.lazy_json_backends import LazyJson, get_all_keys_for_hashmap
+from conda_forge_tick.make_migrators import initialize_migrators
 from conda_forge_tick.migrators import (
     ArchRebuild,
     GraphMigrator,
@@ -28,8 +29,9 @@ from conda_forge_tick.migrators import (
     Replacement,
     Version,
 )
+from conda_forge_tick.os_utils import eval_cmd
 from conda_forge_tick.path_lengths import cyclic_topological_sort
-from conda_forge_tick.utils import frozen_to_json_friendly
+from conda_forge_tick.utils import frozen_to_json_friendly, load_existing_graph
 
 from .git_utils import feedstock_url
 
@@ -386,7 +388,21 @@ def main() -> None:
     with open("status/total_status.json") as fp:
         old_total_status = json.load(fp)
 
-    mctx, *_, migrators = initialize_migrators()
+    smithy_version: str = eval_cmd(["conda", "smithy", "--version"]).strip()
+    pinning_version: str = cast(
+        str,
+        json.loads(eval_cmd(["conda", "list", "conda-forge-pinning", "--json"]))[0][
+            "version"
+        ],
+    )
+    mctx = MigratorSessionContext(
+        graph=load_existing_graph(),
+        smithy_version=smithy_version,
+        pinning_version=pinning_version,
+        dry_run=False,
+    )
+    migrators = initialize_migrators()
+
     os.makedirs("./status/migration_json", exist_ok=True)
     os.makedirs("./status/migration_svg", exist_ok=True)
     regular_status = {}
