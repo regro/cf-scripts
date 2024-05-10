@@ -105,7 +105,15 @@ class ArchRebuild(GraphMigrator):
         name: Optional[str] = None,
         pr_limit: int = 0,
         piggy_back_migrations: Optional[Sequence[MiniMigrator]] = None,
+        target_packages: Optional[Sequence[str]] = None,
     ):
+        if target_packages is None:
+            # We are constraining the scope of this migrator
+            with open(
+                "../conda-forge-pinning-feedstock/recipe/migrations/arch_rebuild.txt",
+            ) as f:
+                target_packages = set(f.read().split())
+
         if not hasattr(self, "_init_args"):
             self._init_args = []
 
@@ -115,6 +123,7 @@ class ArchRebuild(GraphMigrator):
                 "name": name,
                 "pr_limit": pr_limit,
                 "piggy_back_migrations": piggy_back_migrations,
+                "target_packages": target_packages,
             }
 
         # rebuild the graph to only use edges from the arm and power requirements
@@ -138,15 +147,8 @@ class ArchRebuild(GraphMigrator):
         )
 
         assert not self.check_solvable, "We don't want to check solvability for aarch!"
-        # We are constraining the scope of this migrator
-        with (
-            pushd("../conda-forge-pinning-feedstock/recipe/migrations"),
-            open(
-                "arch_rebuild.txt",
-            ) as f,
-        ):
-            self.target_packages = set(f.read().split())
 
+        self.target_packages = set(target_packages)
         self.name = name
         # filter the graph down to the target packages
         if self.target_packages:
@@ -236,7 +238,15 @@ class OSXArm(GraphMigrator):
         name: Optional[str] = None,
         pr_limit: int = 0,
         piggy_back_migrations: Optional[Sequence[MiniMigrator]] = None,
+        target_packages: Optional[Sequence[str]] = None,
     ):
+        if target_packages is None:
+            # We are constraining the scope of this migrator
+            with open(
+                "../conda-forge-pinning-feedstock/recipe/migrations/arch_rebuild.txt",
+            ) as f:
+                target_packages = set(f.read().split())
+
         if not hasattr(self, "_init_args"):
             self._init_args = []
 
@@ -246,6 +256,7 @@ class OSXArm(GraphMigrator):
                 "name": name,
                 "pr_limit": pr_limit,
                 "piggy_back_migrations": piggy_back_migrations,
+                "target_packages": target_packages,
             }
 
         # rebuild the graph to only use edges from the arm osx requirements
@@ -288,14 +299,7 @@ class OSXArm(GraphMigrator):
         # are not added to the graph
         _filter_excluded_deps(self.graph, self.excluded_dependencies)
 
-        # We are constraining the scope of this migrator
-        with (
-            pushd("../conda-forge-pinning-feedstock/recipe/migrations"),
-            open(
-                "osx_arm64.txt",
-            ) as f,
-        ):
-            self.target_packages = set(f.read().split())
+        self.target_packages = set(target_packages)
 
         # filter the graph down to the target packages
         if self.target_packages:

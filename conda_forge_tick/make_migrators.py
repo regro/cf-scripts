@@ -7,6 +7,7 @@ import random
 import re
 import time
 import typing
+from concurrent.futures import as_completed
 from typing import (
     List,
     Mapping,
@@ -23,11 +24,13 @@ if typing.TYPE_CHECKING:
     from .migrators_types import PackageName
 
 import networkx as nx
+import tqdm
 from conda.models.version import VersionOrder
 from conda_build.config import Config
 from conda_build.variants import parse_config_file
 
 from conda_forge_tick.cli_context import CliContext
+from conda_forge_tick.executors import executor
 from conda_forge_tick.lazy_json_backends import (
     LazyJson,
     get_all_keys_for_hashmap,
@@ -317,10 +320,9 @@ def add_rebuild_migration_yaml(
     print(f"bump number: {migrator.bump_number}", flush=True)
     final_config = {}
     final_config.update(config)
-    final_config["bump_number"] = migrator.bump_number
     final_config["pr_limit"] = pr_limit
     final_config["max_solver_attempts"] = max_solver_attempts
-    print("final config:\n", pprint.pformat(final_config), flush=True)
+    print("final config:\n", pprint.pformat(final_config) + "\n", flush=True)
     migrators.append(migrator)
 
 
@@ -679,6 +681,11 @@ def initialize_migrators(
     return migrators
 
 
+def _load(name):
+    with LazyJson(f"migrators/{name}.json") as lzj:
+        return make_from_lazy_json_data(lzj.data)
+
+
 def load_migrators() -> MutableSequence[Migrator]:
     """Loads all current migrators.
 
@@ -691,18 +698,22 @@ def load_migrators() -> MutableSequence[Migrator]:
     version_migrator = None
     pinning_migrators = []
     all_names = get_all_keys_for_hashmap("migrators")
-    for name in all_names:
-        with LazyJson(f"migrators/{name}.json") as lzj:
-            migrator = make_from_lazy_json_data(lzj.data)
+    with executor("process", 4) as pool:
+        futs = [pool.submit(_load, name) for name in all_names]
 
-        if isinstance(migrator, Version):
-            version_migrator = migrator
-        elif isinstance(migrator, MigrationYamlCreator) or isinstance(
-            migrator, MigrationYaml
+        for fut in tqdm.tqdm(
+            as_completed(futs), desc="loading migrators", ncols=80, total=len(all_names)
         ):
-            pinning_migrators.append(migrator)
-        else:
-            migrators.append(migrator)
+            migrator = fut.result()
+
+            if isinstance(migrator, Version):
+                version_migrator = migrator
+            elif isinstance(migrator, MigrationYamlCreator) or isinstance(
+                migrator, MigrationYaml
+            ):
+                pinning_migrators.append(migrator)
+            else:
+                migrators.append(migrator)
 
     if version_migrator is None:
         raise RuntimeError("No version migrator found in the migrators directory!")
