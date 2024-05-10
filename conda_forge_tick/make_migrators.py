@@ -299,7 +299,9 @@ def add_rebuild_migration_yaml(
     # stdlib migrator runs on top of ALL migrations, see
     # https://github.com/conda-forge/conda-forge.github.io/issues/2102
     piggy_back_migrations.append(StdlibMigrator())
-    cycles = sorted(list(nx.simple_cycles(total_graph)))
+    cycles = set()
+    for cyc in nx.simple_cycles(total_graph):
+        cycles |= set(cyc)
     migrator = MigrationYaml(
         migration_yaml,
         name=migration_name,

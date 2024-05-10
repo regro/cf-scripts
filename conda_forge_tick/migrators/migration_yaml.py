@@ -6,7 +6,6 @@ import re
 import time
 import typing
 from collections import defaultdict
-from itertools import chain
 from typing import Any, MutableSet, Optional, Sequence, Set
 
 import networkx as nx
@@ -170,7 +169,7 @@ class MigrationYaml(GraphMigrator):
         assert isinstance(name, str)
         self.name = name
         self.top_level = top_level or set()
-        self.cycles = set(chain.from_iterable(cycles or []))
+        self.cycles = set(cycles or [])
         self.automerge = automerge
         self.conda_forge_yml_patches = conda_forge_yml_patches
         self.loaded_yaml = yaml_safe_load(self.yaml_contents)
