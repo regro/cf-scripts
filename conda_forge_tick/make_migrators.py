@@ -739,7 +739,9 @@ def main(ctx: CliContext) -> None:
     ):
         old_migrators = set(get_all_keys_for_hashmap("migrators"))
         new_migrators = set()
-        for migrator in migrators:
+        for migrator in tqdm.tqdm(
+            migrators, desc="dumping migrators", ncols=80, total=len(migrators)
+        ):
             try:
                 data = migrator.to_lazy_json_data()
                 if data["name"] in new_migrators:
