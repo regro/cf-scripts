@@ -610,7 +610,7 @@ def feedstock_url(fctx: FeedstockContext, protocol: str = "ssh") -> str:
         url = "git@github.com:conda-forge/" + feedstock + ".git"
     else:
         msg = f"Unrecognized github protocol {protocol}, must be ssh, http, or https."
-        raise ValueError(msg.format(protocol))
+        raise ValueError(msg)
     return url
 
 
