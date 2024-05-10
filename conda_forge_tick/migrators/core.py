@@ -96,7 +96,7 @@ def _make_migrator_lazy_json_name(mgr, data):
                 data["kwargs"],
             )
         )
-    )
+    ).replace(" ", "_")
 
 
 def make_from_lazy_json_data(data):
