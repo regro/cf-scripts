@@ -127,7 +127,7 @@ def test_migrator_to_json_migration_yaml_creator():
 
     assert data["__migrator__"] is True
     assert data["class"] == "MigrationYamlCreator"
-    assert data["name"] == pname + " pinning"
+    assert data["name"] == pname + "_pinning"
 
     migrator2 = make_from_lazy_json_data(loads(lzj_data))
     assert [pgm.__class__.__name__ for pgm in migrator2.piggy_back_migrations] == [
