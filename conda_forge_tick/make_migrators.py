@@ -27,7 +27,12 @@ from conda_build.config import Config
 from conda_build.variants import parse_config_file
 
 from conda_forge_tick.cli_context import CliContext
-from conda_forge_tick.lazy_json_backends import LazyJson
+from conda_forge_tick.lazy_json_backends import (
+    LazyJson,
+    get_all_keys_for_hashmap,
+    lazy_json_override_backends,
+    remove_key_for_hashmap,
+)
 from conda_forge_tick.migrators import (
     ArchRebuild,
     Build2HostMigrator,
@@ -57,6 +62,7 @@ from conda_forge_tick.migrators import (
     UpdateCMakeArgsMigrator,
     UpdateConfigSubGuessMigrator,
     Version,
+    make_from_lazy_json_data,
 )
 from conda_forge_tick.migrators.arch import OSXArm
 from conda_forge_tick.migrators.migration_yaml import (
@@ -73,6 +79,9 @@ from conda_forge_tick.utils import (
     pluck,
     yaml_safe_load,
 )
+
+# migrator runs on loop so avoid any seeds at current time should that happen
+random.seed(os.urandom(64))
 
 logger = logging.getLogger(__name__)
 
@@ -663,24 +672,69 @@ def initialize_migrators(
     return migrators
 
 
+def load_migrators() -> MutableSequence[Migrator]:
+    """Loads all current migrators.
+
+    Returns
+    -------
+    migrators : list of Migrator
+        The list of migrators to run in the correct randomized order.
+    """
+    migrators = []
+    version_migrator = None
+    pinning_migrators = []
+    all_names = get_all_keys_for_hashmap("migrators")
+    for name in all_names:
+        with LazyJson(f"migrators/{name}.json") as lzj:
+            migrator = make_from_lazy_json_data(lzj.data)
+
+        if isinstance(migrator, Version):
+            version_migrator = migrator
+        elif isinstance(migrator, MigrationYamlCreator) or isinstance(
+            migrator, MigrationYaml
+        ):
+            pinning_migrators.append(migrator)
+        else:
+            migrators.append(migrator)
+
+    if version_migrator is None:
+        raise RuntimeError("No version migrator found in the migrators directory!")
+
+    random.shuffle(pinning_migrators)
+    migrators = [version_migrator] + migrators + pinning_migrators
+
+    return migrators
+
+
 def main(ctx: CliContext) -> None:
     gx = load_existing_graph()
     migrators = initialize_migrators(
         gx,
         dry_run=ctx.dry_run,
     )
-    seen_names = set()
-    with fold_log_lines("dumping migrators to JSON"):
+    with (
+        fold_log_lines("dumping migrators to JSON"),
+        lazy_json_override_backends(
+            ["file"],
+            hashmaps_to_sync=["migrators"],
+        ),
+    ):
+        old_migrators = set(get_all_keys_for_hashmap("migrators"))
+        new_migrators = set()
         for migrator in migrators:
             try:
                 data = migrator.to_lazy_json_data()
-                if data["name"] in seen_names:
+                if data["name"] in new_migrators:
                     raise RuntimeError(f"Duplicate migrator name: {data['name']}!")
 
-                seen_names.add(data["name"])
+                new_migrators.add(data["name"])
 
-                with LazyJson(f"migrators/{data['name']}.json") as f:
-                    f.update(data)
+                with LazyJson(f"migrators/{data['name']}.json") as lzj:
+                    lzj.update(data)
 
             except Exception as e:
                 logger.error(f"Error dumping migrator {migrator} to JSON!", exc_info=e)
+
+        migrators_to_remove = old_migrators - new_migrators
+        for migrator in migrators_to_remove:
+            remove_key_for_hashmap("migrators", migrator)
