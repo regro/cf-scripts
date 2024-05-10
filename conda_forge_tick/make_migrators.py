@@ -322,7 +322,7 @@ def add_rebuild_migration_yaml(
     final_config.update(config)
     final_config["pr_limit"] = pr_limit
     final_config["max_solver_attempts"] = max_solver_attempts
-    print("final config:\n", pprint.pformat(final_config) + "\n", flush=True)
+    print("final config:\n", pprint.pformat(final_config) + "\n\n", flush=True)
     migrators.append(migrator)
 
 
