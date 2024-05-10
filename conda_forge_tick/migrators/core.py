@@ -6,7 +6,6 @@ import logging
 import os
 import re
 import typing
-from itertools import chain
 from typing import Any, List, Optional, Sequence, Set
 
 import dateutil.parser
@@ -610,7 +609,7 @@ class GraphMigrator(Migrator):
 
         self.name = name
         self.top_level = top_level or set()
-        self.cycles = set(chain.from_iterable(cycles or []))
+        self.cycles = set(cycles or [])
         self.ignored_deps_per_node = ignored_deps_per_node or {}
 
     def all_predecessors_issued_and_stale(self, attrs: "AttrsTypedDict") -> bool:

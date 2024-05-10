@@ -222,6 +222,19 @@ def make_import_to_package_mapping(
     import_to_pkg.main(ctx, max_artifacts)
 
 
+@main.command(name="make-migrators")
+@pass_context
+def make_migrators(
+    ctx: CliContext,
+) -> None:
+    """
+    Make the migrators.
+    """
+    from . import make_migrators as _make_migrators
+
+    _make_migrators.main(ctx)
+
+
 if __name__ == "__main__":
     # This entrypoint can be used for debugging.
     # click will read the command line arguments and call the corresponding

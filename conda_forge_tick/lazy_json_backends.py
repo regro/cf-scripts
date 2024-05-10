@@ -161,14 +161,14 @@ class FileLazyJsonBackend(LazyJsonBackend):
     def hdel(self, name: str, keys: Iterable[str]) -> None:
         from .executors import DLOCK, PRLOCK, TRLOCK
 
-        lzj_names = " ".join(get_sharded_path(f"{name}/{key}.json") for key in keys)
+        lzj_names = [get_sharded_path(f"{name}/{key}.json") for key in keys]
         with PRLOCK, DLOCK, TRLOCK:
             subprocess.run(
-                ["git", "rm", "--ignore-unmatch", "-f"] + lzj_names.split(" "),
+                ["git", "rm", "--ignore-unmatch", "-f"] + lzj_names,
                 capture_output=True,
             )
         subprocess.run(
-            ["rm", "-f"] + lzj_names.split(" "),
+            ["rm", "-f"] + lzj_names,
             capture_output=True,
         )
 

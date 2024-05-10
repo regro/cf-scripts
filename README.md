@@ -11,6 +11,7 @@
 [![bot-feedstocks](https://github.com/regro/cf-scripts/actions/workflows/bot-feedstocks.yml/badge.svg)](https://github.com/regro/cf-scripts/actions/workflows/bot-feedstocks.yml)
 [![bot-delete-old-runs](https://github.com/regro/cf-scripts/actions/workflows/bot-delete-old-runs.yml/badge.svg)](https://github.com/regro/cf-scripts/actions/workflows/bot-delete-old-runs.yml)
 [![bot-make-graph](https://github.com/regro/cf-scripts/actions/workflows/bot-make-graph.yml/badge.svg)](https://github.com/regro/cf-scripts/actions/workflows/bot-make-graph.yml)
+[![bot-make-migrators](https://github.com/regro/cf-scripts/actions/workflows/bot-make-migrators.yml/badge.svg)](https://github.com/regro/cf-scripts/actions/workflows/bot-make-migrators.yml)
 [![bot-cache](https://github.com/regro/cf-scripts/actions/workflows/bot-cache.yml/badge.svg)](https://github.com/regro/cf-scripts/actions/workflows/bot-cache.yml)
 [![test-model](https://github.com/regro/cf-scripts/actions/workflows/test-model.yml/badge.svg)](https://github.com/regro/cf-scripts/actions/workflows/test-model.yml)
 [![relock](https://github.com/regro/cf-scripts/actions/workflows/relock.yml/badge.svg)](https://github.com/regro/cf-scripts/actions/workflows/relock.yml)
@@ -184,9 +185,8 @@ print(dict(gx.node['python']['payload']))
 The number of feedstocks which would be migrated by a particular migration can be calculated:
 
 ```python
-
-from conda_forge_tick.auto_tick import initialize_migrators
-*_, migrators = initialize_migrators()
+from conda_forge_tick.make_migrators import initialize_migrators
+migrators = initialize_migrators()
 migrator = migrators[-1]
 print(migrator.name)
 graph = migrator.graph
