@@ -15,6 +15,7 @@ commands = (
     "gather-all-feedstocks",
     "make-graph",
     "make-mappings",
+    "make-migrators",
     "make-status-report",
     "sync-lazy-json-across-backends",
     "update-prs",
@@ -80,6 +81,7 @@ takes_context_commands = (
     "backup-lazy-json",
     "sync-lazy-json-across-backends",
     "cache-lazy-json-to-disk",
+    "make-migrators",
 )
 
 
@@ -108,6 +110,7 @@ takes_context_commands = (
             "cache-lazy-json-to-disk",
             "conda_forge_tick.lazy_json_backends.main_cache",
         ),
+        ("make-migrators", "conda_forge_tick.make_migrators.main"),
     ],
 )
 def test_cli_mock_commands_pass_context(
