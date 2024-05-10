@@ -243,7 +243,7 @@ class OSXArm(GraphMigrator):
         if target_packages is None:
             # We are constraining the scope of this migrator
             with open(
-                "../conda-forge-pinning-feedstock/recipe/migrations/arch_rebuild.txt",
+                "../conda-forge-pinning-feedstock/recipe/migrations/osx_arm64.txt",
             ) as f:
                 target_packages = set(f.read().split())
 
