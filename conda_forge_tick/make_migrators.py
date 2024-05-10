@@ -21,13 +21,13 @@ from typing import (
 if typing.TYPE_CHECKING:
     from .migrators_types import PackageName
 
-
 import networkx as nx
 from conda.models.version import VersionOrder
 from conda_build.config import Config
 from conda_build.variants import parse_config_file
 
 from conda_forge_tick.cli_context import CliContext
+from conda_forge_tick.lazy_json_backends import LazyJson
 from conda_forge_tick.migrators import (
     ArchRebuild,
     Build2HostMigrator,
@@ -73,7 +73,6 @@ from conda_forge_tick.utils import (
     pluck,
     yaml_safe_load,
 )
-from conda_forge_tick.lazy_json_backends import LazyJson
 
 logger = logging.getLogger(__name__)
 

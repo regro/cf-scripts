@@ -10,29 +10,20 @@ import traceback
 import typing
 from subprocess import CalledProcessError
 from textwrap import dedent
-from typing import (
-    MutableMapping,
-    Tuple,
-    cast,
-)
+from typing import MutableMapping, Tuple, cast
 
 if typing.TYPE_CHECKING:
     from .migrators_types import MigrationUidTypedDict
 
-import tqdm
 from urllib.error import URLError
 from uuid import uuid4
+
 import github
 import github3
 import networkx as nx
+import tqdm
 from conda.models.version import VersionOrder
 
-from conda_forge_tick.lazy_json_backends import (
-    LazyJson,
-    get_all_keys_for_hashmap,
-    lazy_json_transaction,
-    remove_key_for_hashmap,
-)
 from conda_forge_tick.cli_context import CliContext
 from conda_forge_tick.contexts import (
     FeedstockContext,
@@ -48,11 +39,14 @@ from conda_forge_tick.git_utils import (
     is_github_api_limit_reached,
     push_repo,
 )
-from conda_forge_tick.migrators import (
-    MigrationYaml,
-    Migrator,
-    Version,
+from conda_forge_tick.lazy_json_backends import (
+    LazyJson,
+    get_all_keys_for_hashmap,
+    lazy_json_transaction,
+    remove_key_for_hashmap,
 )
+from conda_forge_tick.make_migrators import PR_LIMIT, initialize_migrators
+from conda_forge_tick.migrators import MigrationYaml, Migrator, Version
 from conda_forge_tick.os_utils import eval_cmd, pushd
 from conda_forge_tick.rerender_feedstock import rerender_feedstock
 from conda_forge_tick.solver_checks import is_recipe_solvable
@@ -65,7 +59,6 @@ from conda_forge_tick.utils import (
     load_existing_graph,
     sanitize_string,
 )
-from conda_forge_tick.make_migrators import PR_LIMIT, initialize_migrators
 
 logger = logging.getLogger(__name__)
 
@@ -933,7 +926,8 @@ def main(ctx: CliContext) -> None:
     )
 
     migrators = initialize_migrators(
-        gx, dry_run=ctx.dry_run,
+        gx,
+        dry_run=ctx.dry_run,
     )
 
     # compute the time per migrator
