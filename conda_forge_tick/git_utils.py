@@ -1,14 +1,17 @@
 """Utilities for managing github repos"""
 
 import copy
-import datetime
+import enum
 import logging
-import os
+import math
 import subprocess
-import sys
 import threading
 import time
-from typing import Dict, Optional, Tuple, Union
+from abc import ABC, abstractmethod
+from datetime import datetime
+from functools import cached_property
+from pathlib import Path
+from typing import Dict, Literal, Optional, Tuple, Union
 
 import backoff
 import github
@@ -72,6 +75,9 @@ PR_KEYS_TO_KEEP = {
 
 
 def github3_client() -> github3.GitHub:
+    """
+    This will be removed in the future, use the GitHubBackend class instead.
+    """
     if not hasattr(GITHUB3_CLIENT, "client"):
         with sensitive_env() as env:
             GITHUB3_CLIENT.client = github3.login(token=env["BOT_TOKEN"])
@@ -79,6 +85,9 @@ def github3_client() -> github3.GitHub:
 
 
 def github_client() -> github.Github:
+    """
+    This will be removed in the future, use the GitHubBackend class instead.
+    """
     if not hasattr(GITHUB_CLIENT, "client"):
         with sensitive_env() as env:
             GITHUB_CLIENT.client = github.Github(
@@ -88,77 +97,499 @@ def github_client() -> github.Github:
     return GITHUB_CLIENT.client
 
 
-def get_default_branch(feedstock_name):
-    """Get the default branch for a feedstock
+class Bound(float, enum.Enum):
+    def __str__(self):
+        return str(self.value)
 
-    Parameters
-    ----------
-    feedstock_name : str
-        The feedstock without '-feedstock'.
-
-    Returns
-    -------
-    branch : str
-        The default branch (e.g., 'main').
+    INFINITY = math.inf
     """
-    return (
-        github_client()
-        .get_repo(f"conda-forge/{feedstock_name}-feedstock")
-        .default_branch
-    )
-
-
-def get_github_api_requests_left() -> Union[int, None]:
-    """Get the number of remaining GitHub API requests.
-
-    Returns
-    -------
-    left : int or None
-        The number of remaining requests, or None if there is an exception.
+    Python does not have support for a literal infinity value, so we use this enum for it.
     """
-    gh = github3_client()
-    try:
-        left = gh.rate_limit()["resources"]["core"]["remaining"]
-    except Exception:
-        left = None
-
-    return left
 
 
-def is_github_api_limit_reached(
-    e: Union[github3.GitHubError, github.GithubException],
-) -> bool:
-    """Prints diagnostic information about a github exception.
+class GitConnectionMode(enum.StrEnum):
+    SSH = "ssh"
+    HTTPS = "https"
 
-    Parameters
-    ----------
-    e
-        The exception to check.
 
-    Returns
-    -------
-    out_of_api_calls
-        A flag to indicate that the api call limit has been reached.
+class GitCliError(Exception):
+    pass
+
+
+class RepositoryNotFoundError(Exception):
     """
-    gh = github3_client()
+    Raised when a repository is not found.
+    """
 
-    logger.warning("GitHub API error:", exc_info=e)
+    pass
 
-    try:
-        c = gh.rate_limit()["resources"]["core"]
-    except Exception:
-        # if we can't connect to the rate limit API, let's assume it has been reached
-        return True
 
-    if c["remaining"] == 0:
-        ts = c["reset"]
-        logger.warning(
-            "GitHub API timeout, API returns at %s",
-            datetime.datetime.utcfromtimestamp(ts).strftime("%Y-%m-%dT%H:%M:%SZ"),
+class _GitCli:
+    """
+    A simple wrapper around the git command line interface.
+    """
+
+    @staticmethod
+    def _run_git_command(
+        cmd: list[str | Path],
+        working_directory: Path | None = None,
+        check_error: bool = True,
+    ) -> subprocess.CompletedProcess:
+        """
+        Run a git command.
+        :param cmd: The command to run, as a list of strings.
+        :param working_directory: The directory to run the command in. If None, the command will be run in the current
+        working directory.
+        :param check_error: If True, raise a GitCliError if the git command fails.
+        :return: The result of the git command.
+        """
+        git_command = ["git"] + cmd
+
+        logger.debug(f"Running git command: {git_command}")
+
+        try:
+            return subprocess.run(git_command, check=check_error, cwd=working_directory)
+        except subprocess.CalledProcessError as e:
+            raise GitCliError("Error running git command.") from e
+
+    def reset_hard(self, git_dir: Path, to_treeish: str = "HEAD"):
+        """
+        Reset the git index of a directory to the state of the last commit with `git reset --hard HEAD`.
+        :param git_dir: The directory to reset.
+        :param to_treeish: The treeish to reset to. Defaults to "HEAD".
+        :raises GitCliError: If the git command fails.
+        """
+        self._run_git_command(["reset", "--quiet", "--hard", to_treeish], git_dir)
+
+    def clone_repo(self, origin_url: str, target_dir: Path):
+        """
+        Clone a Git repository. If target_dir already exists, it will be reset to the state of the git index
+        with `git reset --hard HEAD`. This may be unexpected behavior because target_dir could contain a
+        different repository. Use with caution.
+        :param target_dir: The directory to clone the repository into.
+        :param origin_url: The URL of the repository to clone.
+        :raises GitCliError: If the git command fails.
+        """
+        if target_dir.exists():
+            self.reset_hard(target_dir)
+            return
+        try:
+            self._run_git_command(["clone", "--quiet", origin_url, target_dir])
+        except GitCliError as e:
+            raise GitCliError(
+                f"Error cloning repository from {origin_url}. Does the repository exist?"
+            ) from e
+
+    def add_remote(self, remote_name: str, remote_url: str, git_dir: Path):
+        """
+        Add a remote to a git repository.
+        :param remote_name: The name of the remote.
+        :param remote_url: The URL of the remote.
+        :param git_dir: The directory of the git repository.
+        :raises GitCliError: If the git command fails (e.g., the remote already exists).
+        """
+        self._run_git_command(["remote", "add", remote_name, remote_url], git_dir)
+
+    def fetch_all(self, git_dir: Path):
+        """
+        Fetch all changes from all remotes.
+        :param git_dir: The directory of the git repository.
+        :raises GitCliError: If the git command fails.
+        """
+        self._run_git_command(["fetch", "--all", "--quiet"], git_dir)
+
+    def does_branch_exist(self, branch_name: str, git_dir: Path):
+        """
+        Check if a branch exists in a git repository.
+        :param branch_name: The name of the branch.
+        :param git_dir: The directory of the git repository.
+        :return: True if the branch exists, False otherwise.
+        :raises GitCliError: If the git command fails.
+        """
+        ret = self._run_git_command(
+            ["show-ref", "--verify", "--quiet", f"refs/heads/{branch_name}"],
+            git_dir,
+            check_error=False,
         )
-        return True
 
-    return False
+        return ret.returncode == 0
+
+    def does_remote_exist(self, remote_url: str) -> bool:
+        """
+        Check if a remote exists.
+        :param remote_url: The URL of the remote.
+        :return: True if the remote exists, False otherwise.
+        """
+        ret = self._run_git_command(["ls-remote", remote_url], check_error=False)
+
+        return ret.returncode == 0
+
+    def checkout_branch(
+        self,
+        branch: str,
+        git_dir: Path,
+        create_branch_name: str | None = False,
+        track: bool = False,
+    ):
+        """
+        Checkout a branch in a git repository.
+        :param branch: The branch to check out.
+        :param git_dir: The directory of the git repository.
+        :param create_branch_name: If set, create a new branch with the given name starting at branch_name
+        (using the -b option).
+        :param track: If True, set the branch to track the remote branch with the same name (sets the --track flag).
+        If create_branch_name is not set, a new branch will be created with the name inferred from branch_name.
+        For example, if branch_name is "upstream/main", the new branch will be "main".
+        :raises GitCliError: If the git command fails.
+        """
+        create_branch_option = ["-b", create_branch_name] if create_branch_name else []
+        track_flag = ["--track"] if track else []
+        self._run_git_command(
+            ["checkout", "--quiet"] + create_branch_option + track_flag + [branch],
+            git_dir,
+        )
+
+    def clone_fork_and_branch_custom_url(
+        self,
+        origin_url: str,
+        target_dir: Path,
+        upstream_url: str,
+        new_branch: str,
+        base_branch: str = "main",
+    ):
+        """
+        Convenience method to do the following:
+        1. Clone the repository at origin_url into target_dir (resetting the directory if it already exists).
+        2. Add a remote named "upstream" with the URL upstream_url (ignoring if it already exists).
+        3. Fetch all changes from all remotes.
+        4. Checkout the base branch.
+        5. Create a new branch from the base branch with the name new_branch.
+
+        This is usually used to create a new branch for a pull request. In this case, origin_url is the URL of the
+        user's fork, and upstream_url is the URL of the upstream repository.
+
+        :param origin_url: The URL of the repository (fork) to clone.
+        :param target_dir: The directory to clone the repository into.
+        :param upstream_url: The URL of the upstream repository.
+        :param new_branch: The name of the branch to create.
+        :param base_branch: The name of the base branch to branch from.
+
+        :raises GitCliError: If a git command fails.
+        """
+        self.clone_repo(origin_url, target_dir)
+
+        try:
+            self.add_remote("upstream", upstream_url, target_dir)
+        except GitCliError as e:
+            logger.debug(
+                "It looks like remote 'upstream' already exists. Ignoring.", exc_info=e
+            )
+            pass
+
+        self.fetch_all(target_dir)
+
+        if self.does_branch_exist(base_branch, target_dir):
+            self.checkout_branch(base_branch, target_dir)
+        else:
+            try:
+                self.checkout_branch(f"upstream/{base_branch}", target_dir, track=True)
+            except GitCliError as e:
+                logger.debug(
+                    "Could not check out with git checkout --track. Trying git checkout -b.",
+                    exc_info=e,
+                )
+
+                # not sure why this is needed, but it was in the original code
+                self.checkout_branch(
+                    f"upstream/{base_branch}",
+                    target_dir,
+                    create_branch_name=base_branch,
+                )
+
+        # not sure why this is needed, but it was in the original code
+        self.reset_hard(target_dir, f"upstream/{base_branch}")
+
+        try:
+            logger.debug(
+                f"Trying to checkout branch {new_branch} without creating a new branch"
+            )
+            self.checkout_branch(new_branch, target_dir)
+        except GitCliError:
+            logger.debug(
+                f"It seems branch {new_branch} does not exist. Creating it.",
+            )
+            self.checkout_branch(base_branch, target_dir, create_branch_name=new_branch)
+
+
+class GitBackend(_GitCli, ABC):
+    """
+    A backend for interacting with a git repository, and a platform around it (e.g. GitHub).
+    Note that this class is not thread-safe, you should create a new instance for each thread.
+
+    Implementation Note: If you wonder what should be in this class vs. the _GitCli class, the GitBackend class should
+    contain the logic for interacting with the platform (e.g. GitHub), while the _GitCli class should contain the logic
+    for interacting with the git repository itself. If you need to know anything specific about the platform,
+    it should be in the GitBackend class.
+    """
+
+    @abstractmethod
+    def does_repository_exist(self, owner: str, repo_name: str) -> bool:
+        """
+        Check if a repository exists.
+        :param owner: The owner of the repository.
+        :param repo_name: The name of the repository.
+        """
+        pass
+
+    @staticmethod
+    def get_remote_url(
+        owner: str,
+        repo_name: str,
+        connection_mode: GitConnectionMode = GitConnectionMode.SSH,
+    ) -> str:
+        """
+        Using SSH as the default protocol, get the URL of the remote repository.
+        :param owner: The owner of the repository.
+        :param repo_name: The name of the repository.
+        :param connection_mode: The connection mode to use.
+        :raises ValueError: If the connection mode is not supported.
+        """
+        # Currently we don't need any abstraction for other platforms than GitHub, so we don't build such abstractions.
+        match connection_mode:
+            case GitConnectionMode.HTTPS:
+                return f"https://github.com/{owner}/{repo_name}.git"
+            case GitConnectionMode.SSH:
+                return f"git@github.com:{owner}/{repo_name}.git"
+            case _:
+                raise ValueError(f"Unsupported connection mode: {connection_mode}")
+
+    @abstractmethod
+    def fork(self, owner: str, repo_name: str):
+        """
+        Fork a repository. If the fork already exists, do nothing except syncing the default branch name.
+        Forks are created under the current user's account (see `self.user`).
+        The name of the forked repository is the same as the original repository.
+        :param owner: The owner of the repository.
+        :param repo_name: The name of the repository.
+        :raises RepositoryNotFoundError: If the repository does not exist.
+        """
+        pass
+
+    def clone_fork_and_branch(
+        self,
+        upstream_owner: str,
+        repo_name: str,
+        target_dir: Path,
+        new_branch: str,
+        base_branch: str = "main",
+    ):
+        """
+        Identical to `clone_fork_and_branch_custom_url`, but generates the URLs from the repository name.
+
+        :param upstream_owner: The owner of the upstream repository.
+        :param repo_name: The name of the repository.
+        :param target_dir: The directory to clone the repository into.
+        :param new_branch: The name of the branch to create.
+        :param base_branch: The name of the base branch to branch from.
+
+        :raises GitCliError: If a git command fails.
+        """
+        self.clone_fork_and_branch_custom_url(
+            origin_url=self.get_remote_url(self.user, repo_name),
+            target_dir=target_dir,
+            upstream_url=self.get_remote_url(upstream_owner, repo_name),
+            new_branch=new_branch,
+            base_branch=base_branch,
+        )
+
+    @property
+    @abstractmethod
+    def user(self) -> str:
+        """
+        The username of the logged-in user, i.e. the owner of forked repositories.
+        """
+        pass
+
+    @abstractmethod
+    def _sync_default_branch(self, upstream_owner: str, upstream_repo: str):
+        """
+        Sync the default branch of the forked repository with the upstream repository.
+        :param upstream_owner: The owner of the upstream repository.
+        :param upstream_repo: The name of the upstream repository.
+        """
+        pass
+
+    @abstractmethod
+    def get_api_requests_left(self) -> int | Bound | None:
+        """
+        Get the number of remaining API requests for the backend.
+        Returns `Bound.INFINITY` if the backend does not have a rate limit.
+        Returns None if an exception occurred while getting the rate limit.
+
+        Implementations may print diagnostic information about the API limit.
+        """
+        pass
+
+    def is_api_limit_reached(self) -> bool:
+        """
+        Returns True if the API limit has been reached, False otherwise.
+
+        If an exception occurred while getting the rate limit, this method returns True, assuming the limit has
+        been reached.
+
+        Additionally, implementations may print diagnostic information about the API limit.
+        """
+        return self.get_api_requests_left() in (0, None)
+
+
+class GitHubBackend(GitBackend):
+    """
+    A git backend for GitHub, using both PyGithub and github3.py as clients.
+    It is unclear why both clients are used, in the future, this should be refactored to use only one client.
+    Note that this class is not thread-safe, you should create a new instance for each thread.
+    """
+
+    _GITHUB_PER_PAGE = 100
+    """
+    The number of items to fetch per page from the GitHub API.
+    """
+
+    def __init__(self, github3_client: github3.GitHub, pygithub_client: github.Github):
+        self.github3_client = github3_client
+        self.pygithub_client = pygithub_client
+
+    @classmethod
+    def from_token(cls, token: str):
+        return cls(
+            github3.login(token=token),
+            github.Github(auth=github.Auth.Token(token), per_page=cls._GITHUB_PER_PAGE),
+        )
+
+    def does_repository_exist(self, owner: str, repo_name: str) -> bool:
+        repo = self.github3_client.repository(owner, repo_name)
+        return repo is not None
+
+    def fork(self, owner: str, repo_name: str):
+        if self.does_repository_exist(self.user, repo_name):
+            # The fork already exists, so we only sync the default branch.
+            self._sync_default_branch(owner, repo_name)
+            return
+
+        repo = self.github3_client.repository(owner, repo_name)
+        if repo is None:
+            raise RepositoryNotFoundError(
+                f"Repository {owner}/{repo_name} does not exist."
+            )
+
+        logger.debug(f"Forking {owner}/{repo_name}.")
+        repo.create_fork()
+
+        # Sleep to make sure the fork is created before we go after it
+        time.sleep(5)
+
+    def _sync_default_branch(self, upstream_owner: str, repo_name: str):
+        fork_owner = self.user
+
+        upstream_repo = self.pygithub_client.get_repo(f"{upstream_owner}/{repo_name}")
+        fork = self.pygithub_client.get_repo(f"{fork_owner}/{repo_name}")
+
+        if upstream_repo.default_branch == fork.default_branch:
+            return
+
+        logger.info(
+            f"Syncing default branch of {fork_owner}/{repo_name} with {upstream_owner}/{repo_name}..."
+        )
+
+        fork.rename_branch(fork.default_branch, upstream_repo.default_branch)
+
+        # Sleep to wait for branch name change
+        time.sleep(5)
+
+    @cached_property
+    def user(self) -> str:
+        return self.pygithub_client.get_user().login
+
+    def get_api_requests_left(self) -> int | None:
+        try:
+            limit_info = self.github3_client.rate_limit()
+        except github3.exceptions.GitHubException as e:
+            logger.warning("GitHub API error while fetching rate limit.", exc_info=e)
+            return None
+
+        try:
+            core_resource = limit_info["resources"]["core"]
+            remaining_limit = core_resource["remaining"]
+        except KeyError as e:
+            logger.warning("GitHub API error while parsing rate limit.", exc_info=e)
+            return None
+
+        if remaining_limit != 0:
+            return remaining_limit
+
+        # try to log when the limit will be reset
+        try:
+            reset_timestamp = core_resource["reset"]
+        except KeyError as e:
+            logger.warning(
+                "GitHub API error while fetching rate limit reset time.",
+                exc_info=e,
+            )
+            return remaining_limit
+
+        logger.info(
+            "GitHub API limit reached, will reset at "
+            f"{datetime.utcfromtimestamp(reset_timestamp).strftime('%Y-%m-%dT%H:%M:%SZ')}"
+        )
+
+        return remaining_limit
+
+
+class DryRunBackend(GitBackend):
+    """
+    A git backend that doesn't modify anything and only relies on public APIs that do not require authentication.
+    Useful for local testing with dry-run.
+    Note that this class is not thread-safe, you should create a new instance for each thread.
+    """
+
+    _USER = "virtual-dry-run-user"
+
+    def __init__(self):
+        self._repos: set[str] = set()
+
+    def get_api_requests_left(self) -> Bound:
+        return Bound.INFINITY
+
+    def does_repository_exist(self, owner: str, repo_name: str) -> bool:
+        if owner == self._USER:
+            return repo_name in self._repos
+
+        # We do not use the GitHub API because unauthenticated requests are quite strictly rate-limited.
+        return self.does_remote_exist(self.get_remote_url(owner, repo_name))
+
+    def fork(self, owner: str, repo_name: str):
+        if repo_name in self._repos:
+            raise ValueError(f"Fork of {repo_name} already exists.")
+
+        logger.debug(
+            f"Dry Run: Creating fork of {owner}/{repo_name} for user {self._USER}."
+        )
+        self._repos.add(repo_name)
+
+    def _sync_default_branch(self, upstream_owner: str, upstream_repo: str):
+        logger.debug(
+            f"Dry Run: Syncing default branch of {upstream_owner}/{upstream_repo}."
+        )
+
+    def user(self) -> str:
+        return self._USER
+
+
+def github_backend() -> GitHubBackend:
+    """
+    This helper method will be removed in the future, use the GitHubBackend class directly.
+    """
+    with sensitive_env() as env:
+        return GitHubBackend.from_token(env["BOT_TOKEN"])
 
 
 def feedstock_url(fctx: FeedstockContext, protocol: str = "ssh") -> str:
@@ -178,17 +609,14 @@ def feedstock_url(fctx: FeedstockContext, protocol: str = "ssh") -> str:
     elif protocol == "ssh":
         url = "git@github.com:conda-forge/" + feedstock + ".git"
     else:
-        msg = "Unrecognized github protocol {0!r}, must be ssh, http, or https."
+        msg = f"Unrecognized github protocol {protocol}, must be ssh, http, or https."
         raise ValueError(msg.format(protocol))
     return url
 
 
 def feedstock_repo(fctx: FeedstockContext) -> str:
     """Gets the name of the feedstock repository."""
-    repo = fctx.feedstock_name + "-feedstock"
-    if repo.endswith(".git"):
-        repo = repo[:-4]
-    return repo
+    return fctx.feedstock_name + "-feedstock"
 
 
 def fork_url(feedstock_url: str, username: str) -> str:
@@ -199,99 +627,19 @@ def fork_url(feedstock_url: str, username: str) -> str:
     return url
 
 
-def fetch_repo(*, feedstock_dir, origin, upstream, branch, base_branch="main"):
-    """fetch a repo and make a PR branch
-
-    Parameters
-    ----------
-    feedstock_dir : str
-        The directory where you want to clone the feedstock.
-    origin : str
-        The origin to clone from.
-    upstream : str
-        The upstream repo to add as a remote named `upstream`.
-    branch : str
-        The branch to make and checkout.
-    base_branch : str, optional
-        The branch from which to branch from to make `branch`. Defaults to "main".
-
-    Returns
-    -------
-    success : bool
-        True if the fetch worked, False otherwise.
-    """
-    if not os.path.isdir(feedstock_dir):
-        p = subprocess.run(
-            ["git", "clone", "-q", origin, feedstock_dir],
-        )
-        if p.returncode != 0:
-            msg = "Could not clone " + origin
-            msg += ". Do you have a personal fork of the feedstock?"
-            print(msg, file=sys.stderr)
-            return False
-        reset_hard = False
-    else:
-        reset_hard = True
-
-    def _run_git_cmd(cmd, **kwargs):
-        return subprocess.run(["git"] + cmd, check=True, **kwargs)
-
-    quiet = "--quiet"
-    with pushd(feedstock_dir):
-        if reset_hard:
-            _run_git_cmd(["reset", "--hard", "HEAD"])
-
-        # doesn't work if the upstream already exists
-        try:
-            # always run upstream
-            _run_git_cmd(["remote", "add", "upstream", upstream])
-        except subprocess.CalledProcessError:
-            pass
-
-        # fetch remote changes
-        _run_git_cmd(["fetch", "--all", quiet])
-        if _run_git_cmd(
-            ["branch", "--list", base_branch],
-            capture_output=True,
-        ).stdout:
-            _run_git_cmd(["checkout", base_branch, quiet])
-        else:
-            try:
-                _run_git_cmd(["checkout", "--track", f"upstream/{base_branch}", quiet])
-            except subprocess.CalledProcessError:
-                _run_git_cmd(
-                    ["checkout", "-b", base_branch, f"upstream/{base_branch}", quiet],
-                )
-        _run_git_cmd(["reset", "--hard", f"upstream/{base_branch}", quiet])
-
-        # make and modify version branch
-        try:
-            _run_git_cmd(["checkout", branch, quiet])
-        except subprocess.CalledProcessError:
-            _run_git_cmd(["checkout", "-b", branch, base_branch, quiet])
-
-    return True
-
-
 def get_repo(
     fctx: FeedstockContext,
     branch: str,
-    feedstock: Optional[str] = None,
-    protocol: str = "ssh",
-    pull_request: bool = True,
-    fork: bool = True,
     base_branch: str = "main",
-) -> Tuple[str, github3.repos.Repository]:
+) -> Tuple[str, github3.repos.Repository] | Tuple[Literal[False], Literal[False]]:
     """Get the feedstock repo
 
     Parameters
     ----------
-    fcts : FeedstockContext
+    fctx : FeedstockContext
         Feedstock context used for constructing feedstock urls, etc.
     branch : str
         The branch to be made.
-    feedstock : str, optional
-        The feedstock to clone if None use $FEEDSTOCK
     protocol : str, optional
         The git protocol to use, defaults to ``ssh``
     pull_request : bool, optional
@@ -308,63 +656,35 @@ def get_repo(
     repo : github3 repository
         The github3 repository object.
     """
-    gh = github3_client()
-    gh_username = gh.me().login
+    backend = github_backend()
+    feedstock_repo_name = feedstock_repo(fctx)
 
-    # first, let's grab the feedstock locally
-    upstream = feedstock_url(fctx=fctx, protocol=protocol)
-    origin = fork_url(upstream, gh_username)
-    feedstock_reponame = feedstock_repo(fctx=fctx)
-
-    if pull_request or fork:
-        repo = gh.repository("conda-forge", feedstock_reponame)
-        if repo is None:
-            print("could not fork conda-forge/%s!" % feedstock_reponame, flush=True)
-            with fctx.attrs["pr_info"] as pri:
-                pri["bad"] = f"{fctx.package_name}: does not match feedstock name\n"
-            return False, False
-
-    # Check if fork exists
-    if fork:
-        try:
-            fork_repo = gh.repository(gh_username, feedstock_reponame)
-        except github3.GitHubError:
-            fork_repo = None
-        if fork_repo is None or (hasattr(fork_repo, "is_null") and fork_repo.is_null()):
-            print("Fork doesn't exist creating feedstock fork...")
-            repo.create_fork()
-            # Sleep to make sure the fork is created before we go after it
-            time.sleep(5)
-
-        # sync the default branches if needed
-        _sync_default_branches(feedstock_reponame)
-
-    feedstock_dir = os.path.join(GIT_CLONE_DIR, fctx.package_name + "-feedstock")
-
-    if fetch_repo(
-        feedstock_dir=feedstock_dir,
-        origin=origin,
-        upstream=upstream,
-        branch=branch,
-        base_branch=base_branch,
-    ):
-        return feedstock_dir, repo
-    else:
+    try:
+        backend.fork("conda-forge", feedstock_repo_name)
+    except RepositoryNotFoundError:
+        logger.warning(f"Could not fork conda-forge/{feedstock_repo_name}")
+        with fctx.attrs["pr_info"] as pri:
+            pri["bad"] = f"{fctx.package_name}: does not match feedstock name\n"
         return False, False
 
+    feedstock_dir = Path(GIT_CLONE_DIR) / (fctx.package_name + "-feedstock")
 
-def _sync_default_branches(reponame):
-    gh = github_client()
-    forked_user = gh.get_user().login
-    default_branch = gh.get_repo(f"conda-forge/{reponame}").default_branch
-    forked_default_branch = gh.get_repo(f"{forked_user}/{reponame}").default_branch
-    if default_branch != forked_default_branch:
-        print("Fork's default branch doesn't match upstream, syncing...")
-        forked_repo = gh.get_repo(f"{forked_user}/{reponame}")
-        forked_repo.rename_branch(forked_default_branch, default_branch)
+    backend.clone_fork_and_branch(
+        upstream_owner="conda-forge",
+        repo_name=feedstock_repo_name,
+        target_dir=feedstock_dir,
+        new_branch=branch,
+        base_branch=base_branch,
+    )
 
-        # sleep to wait for branch name change
-        time.sleep(5)
+    # This is needed because we want to migrate to the new backend step-by-step
+    repo: github3.repos.Repository | None = github3_client().repository(
+        "conda-forge", feedstock_repo_name
+    )
+
+    assert repo is not None
+
+    return feedstock_repo_name, repo
 
 
 def delete_branch(pr_json: LazyJson, dry_run: bool = False) -> None:
@@ -605,7 +925,7 @@ def push_repo(
 
     Parameters
     ----------
-    fcts : FeedstockContext
+    fctx : FeedstockContext
         Feedstock context used for constructing feedstock urls, etc.
     feedstock_dir : str
         The feedstock directory

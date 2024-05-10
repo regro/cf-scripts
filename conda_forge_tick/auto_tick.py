@@ -192,13 +192,7 @@ def run(
 
     # TODO: run this in parallel
     feedstock_dir, repo = get_repo(
-        fctx=feedstock_ctx,
-        branch=branch_name,
-        feedstock=feedstock_ctx.feedstock_name,
-        protocol=protocol,
-        pull_request=pull_request,
-        fork=fork,
-        base_branch=base_branch,
+        fctx=feedstock_ctx, branch=branch_name, base_branch=base_branch
     )
     if not feedstock_dir or not repo:
         logger.critical(
