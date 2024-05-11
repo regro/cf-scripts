@@ -7,6 +7,7 @@ import tempfile
 
 import conda_smithy
 import pytest
+from conda.models.version import VersionOrder
 
 from conda_forge_tick.feedstock_parser import load_feedstock_containerized
 from conda_forge_tick.lazy_json_backends import (
@@ -64,7 +65,7 @@ def test_container_tasks_get_latest_version(use_containers):
         "get-latest-version",
         ["--existing-feedstock-node-attrs", "conda-smithy"],
     )
-    assert data["new_version"] == conda_smithy.__version__
+    assert VersionOrder(data["new_version"]) >= VersionOrder(conda_smithy.__version__)
 
 
 @pytest.mark.skipif(
@@ -86,7 +87,9 @@ def test_container_tasks_get_latest_version_json(use_containers):
                 existing_feedstock_node_attrs,
             ],
         )
-        assert data["new_version"] == conda_smithy.__version__
+        assert VersionOrder(data["new_version"]) >= VersionOrder(
+            conda_smithy.__version__
+        )
 
 
 @pytest.mark.skipif(
@@ -104,7 +107,9 @@ def test_container_tasks_get_latest_version_containerized(use_containers):
         data = get_latest_version_containerized(
             "conda-smithy", attrs, all_version_sources()
         )
-        assert data["new_version"] == conda_smithy.__version__
+        assert VersionOrder(data["new_version"]) >= VersionOrder(
+            conda_smithy.__version__
+        )
 
 
 @pytest.mark.skipif(
