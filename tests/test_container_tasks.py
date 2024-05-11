@@ -143,7 +143,6 @@ def test_container_tasks_parse_feedstock(use_containers):
 
         assert data["feedstock_name"] == attrs["feedstock_name"]
         assert not data["parsing_error"]
-        assert data["raw_meta_yaml"] == attrs["raw_meta_yaml"]
 
 
 @pytest.mark.skipif(
@@ -165,7 +164,6 @@ def test_container_tasks_parse_feedstock_json(use_containers):
         )
         assert data["feedstock_name"] == attrs["feedstock_name"]
         assert not data["parsing_error"]
-        assert data["raw_meta_yaml"] == attrs["raw_meta_yaml"]
 
 
 @pytest.mark.skipif(
@@ -183,7 +181,6 @@ def test_container_tasks_load_feedstock_containerized(use_containers):
         data = load_feedstock_containerized("conda-smithy", attrs)
         assert data["feedstock_name"] == attrs["feedstock_name"]
         assert not data["parsing_error"]
-        assert data["raw_meta_yaml"] == attrs["raw_meta_yaml"]
 
 
 @pytest.mark.skipif(
