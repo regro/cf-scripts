@@ -45,7 +45,7 @@ from conda_forge_tick.lazy_json_backends import (
     lazy_json_transaction,
     remove_key_for_hashmap,
 )
-from conda_forge_tick.make_migrators import PR_LIMIT, initialize_migrators
+from conda_forge_tick.make_migrators import PR_LIMIT, load_migrators
 from conda_forge_tick.migrators import MigrationYaml, Migrator, Version
 from conda_forge_tick.os_utils import eval_cmd, pushd
 from conda_forge_tick.rerender_feedstock import rerender_feedstock
@@ -937,11 +937,7 @@ def main(ctx: CliContext) -> None:
         pinning_version=pinning_version,
         dry_run=ctx.dry_run,
     )
-
-    migrators = initialize_migrators(
-        gx,
-        dry_run=ctx.dry_run,
-    )
+    migrators = load_migrators()
 
     # compute the time per migrator
     with fold_log_lines("computing migrator run times"):
