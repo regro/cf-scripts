@@ -235,12 +235,17 @@ def run_container_task(
     return ret["data"]
 
 
+LOG_LINES_FOLDED = False
+
+
 @contextlib.contextmanager
 def fold_log_lines(title):
+    global LOG_LINES_FOLDED
     try:
         sys.stdout.flush()
         sys.stderr.flush()
-        if os.environ.get("GITHUB_ACTIONS", "false") == "true":
+        if os.environ.get("GITHUB_ACTIONS", "false") == "true" and not LOG_LINES_FOLDED:
+            LOG_LINES_FOLDED = True
             print(f"::group::{title}", flush=True)
         else:
             print(">" * 80, flush=True)
@@ -250,6 +255,7 @@ def fold_log_lines(title):
         sys.stdout.flush()
         sys.stderr.flush()
         if os.environ.get("GITHUB_ACTIONS", "false") == "true":
+            LOG_LINES_FOLDED = False
             print("::endgroup::", flush=True)
         else:
             print("", flush=True)

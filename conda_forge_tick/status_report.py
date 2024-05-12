@@ -11,6 +11,7 @@ from typing import Any, Dict, Set, Tuple, cast
 import dateutil.parser
 import networkx as nx
 import rapidjson as json
+import requests
 import tqdm
 import yaml
 from conda.models.version import VersionOrder
@@ -31,7 +32,11 @@ from conda_forge_tick.migrators import (
 )
 from conda_forge_tick.os_utils import eval_cmd
 from conda_forge_tick.path_lengths import cyclic_topological_sort
-from conda_forge_tick.utils import frozen_to_json_friendly, load_existing_graph
+from conda_forge_tick.utils import (
+    fold_log_lines,
+    frozen_to_json_friendly,
+    load_existing_graph,
+)
 
 from .git_utils import feedstock_url
 
@@ -371,45 +376,42 @@ def _compute_recently_closed(total_status, old_closed_status, old_total_status):
 
 
 def main() -> None:
-    import requests
+    with fold_log_lines("loading existing status data, graph and migrators"):
+        r = requests.get(
+            "https://raw.githubusercontent.com/conda-forge/"
+            "conda-forge.github.io/77bb24125496/sphinx/img/anvil.svg",
+        )
 
-    r = requests.get(
-        "https://raw.githubusercontent.com/conda-forge/"
-        "conda-forge.github.io/77bb24125496/sphinx/img/anvil.svg",
-    )
+        # cache these for later
+        if os.path.exists("status/closed_status.json"):
+            with open("status/closed_status.json") as fp:
+                old_closed_status = json.load(fp)
+        else:
+            old_closed_status = {}
 
-    # cache these for later
-    if os.path.exists("status/closed_status.json"):
-        with open("status/closed_status.json") as fp:
-            old_closed_status = json.load(fp)
-    else:
-        old_closed_status = {}
+        with open("status/total_status.json") as fp:
+            old_total_status = json.load(fp)
 
-    with open("status/total_status.json") as fp:
-        old_total_status = json.load(fp)
-
-    smithy_version: str = eval_cmd(["conda", "smithy", "--version"]).strip()
-    pinning_version: str = cast(
-        str,
-        json.loads(eval_cmd(["conda", "list", "conda-forge-pinning", "--json"]))[0][
-            "version"
-        ],
-    )
-    gx = load_existing_graph()
-    mctx = MigratorSessionContext(
-        graph=gx,
-        smithy_version=smithy_version,
-        pinning_version=pinning_version,
-        dry_run=False,
-    )
-    migrators = load_migrators()
+        smithy_version: str = eval_cmd(["conda", "smithy", "--version"]).strip()
+        pinning_version: str = cast(
+            str,
+            json.loads(eval_cmd(["conda", "list", "conda-forge-pinning", "--json"]))[0][
+                "version"
+            ],
+        )
+        gx = load_existing_graph()
+        mctx = MigratorSessionContext(
+            graph=gx,
+            smithy_version=smithy_version,
+            pinning_version=pinning_version,
+            dry_run=False,
+        )
+        migrators = load_migrators()
 
     os.makedirs("./status/migration_json", exist_ok=True)
     os.makedirs("./status/migration_svg", exist_ok=True)
     regular_status = {}
     longterm_status = {}
-
-    print(" ", flush=True)
 
     for migrator in migrators:
         if hasattr(migrator, "name"):
