@@ -4,7 +4,6 @@ import json
 import logging
 import os
 import random
-import sys
 import time
 import traceback
 import typing
@@ -437,9 +436,6 @@ def _compute_time_per_migrator(mctx, migrators):
                 ),
             )
 
-    sys.stderr.flush()
-    sys.stdout.flush()
-    print(" ", flush=True)
     num_nodes_tot = sum(num_nodes)
     # do not divide by zero
     time_per_node = float(os.environ.get("TIMEOUT", 600)) / max(num_nodes_tot, 1)
@@ -655,97 +651,99 @@ def _run_migrator(migrator, mctx, temp, time_per, dry_run):
             flush=True,
         )
 
-        for node_name in possible_nodes:
-            with mctx.graph.nodes[node_name]["payload"] as attrs:
-                # Don't let CI timeout, break ahead of the timeout so we make certain
-                # to write to the repo
-                # TODO: convert these env vars
-                _now = time.time()
-                if (
-                    _over_time_limit()
-                    or good_prs >= migrator.pr_limit
-                    or (time.time() - _mg_start) > time_per
-                ):
-                    break
-
-                base_branches = migrator.get_possible_feedstock_branches(attrs)
-                if "branch" in attrs:
-                    has_attrs_branch = True
-                    orig_branch = attrs.get("branch")
-                else:
-                    has_attrs_branch = False
-                    orig_branch = None
-
-                fctx = FeedstockContext(
-                    package_name=node_name,
-                    feedstock_name=attrs["feedstock_name"],
-                    attrs=attrs,
+    for node_name in possible_nodes:
+        with (
+            fold_log_lines(
+                "%s%s IS MIGRATING %s"
+                % (
+                    migrator.__class__.__name__.upper(),
+                    extra_name,
+                    node_name,
                 )
+            ),
+            mctx.graph.nodes[node_name]["payload"] as attrs,
+        ):
+            # Don't let CI timeout, break ahead of the timeout so we make certain
+            # to write to the repo
+            # TODO: convert these env vars
+            _now = time.time()
+            if (
+                _over_time_limit()
+                or good_prs >= migrator.pr_limit
+                or (time.time() - _mg_start) > time_per
+                or get_github_api_requests_left() == 0
+            ):
+                break
 
-                # map main to current default branch
-                base_branches = [
-                    br if br != "main" else fctx.default_branch for br in base_branches
-                ]
+            base_branches = migrator.get_possible_feedstock_branches(attrs)
+            if "branch" in attrs:
+                has_attrs_branch = True
+                orig_branch = attrs.get("branch")
+            else:
+                has_attrs_branch = False
+                orig_branch = None
 
-                try:
-                    for base_branch in base_branches:
-                        # Don't bother running if we are at zero
-                        if get_github_api_requests_left() == 0:
+            fctx = FeedstockContext(
+                package_name=node_name,
+                feedstock_name=attrs["feedstock_name"],
+                attrs=attrs,
+            )
+
+            # map main to current default branch
+            base_branches = [
+                br if br != "main" else fctx.default_branch for br in base_branches
+            ]
+
+            try:
+                for base_branch in base_branches:
+                    # skip things that do not get migrated
+                    attrs["branch"] = base_branch
+                    if migrator.filter(attrs):
+                        continue
+
+                    with fold_log_lines(
+                        "%s%s IS MIGRATING %s:%s"
+                        % (
+                            migrator.__class__.__name__.upper(),
+                            extra_name,
+                            fctx.package_name,
+                            base_branch,
+                        )
+                    ):
+                        good_prs, break_loop = _run_migrator_on_feedstock_branch(
+                            attrs,
+                            base_branch,
+                            migrator,
+                            fctx,
+                            dry_run,
+                            mctx,
+                            migrator_name,
+                            good_prs,
+                        )
+                        if break_loop:
                             break
+            finally:
+                # reset branch
+                if has_attrs_branch:
+                    attrs["branch"] = orig_branch
 
-                        # skip things that do not get migrated
-                        attrs["branch"] = base_branch
-                        if migrator.filter(attrs):
-                            continue
+                # do this but it is crazy
+                gc.collect()
 
-                        with fold_log_lines(
-                            "%s%s IS MIGRATING %s:%s"
-                            % (
-                                migrator.__class__.__name__.upper(),
-                                extra_name,
-                                fctx.package_name,
-                                base_branch,
-                            )
-                        ):
-                            good_prs, break_loop = _run_migrator_on_feedstock_branch(
-                                attrs,
-                                base_branch,
-                                migrator,
-                                fctx,
-                                dry_run,
-                                mctx,
-                                migrator_name,
-                                good_prs,
-                            )
-                            if break_loop:
-                                break
-                finally:
-                    # reset branch
-                    if has_attrs_branch:
-                        attrs["branch"] = orig_branch
+                # sometimes we get weird directory issues so make sure we reset
+                os.chdir(BOT_HOME_DIR)
 
-                    # do this but it is crazy
-                    gc.collect()
+                # Write graph partially through
+                if not dry_run:
+                    dump_graph(mctx.graph)
 
-                    # sometimes we get weird directory issues so make sure we reset
-                    os.chdir(BOT_HOME_DIR)
-
-                    # Write graph partially through
-                    if not dry_run:
-                        dump_graph(mctx.graph)
-
-                    eval_cmd(["rm", "-rf", f"{GIT_CLONE_DIR}/*"])
-                    for f in glob.glob("/tmp/*"):
-                        if f not in temp:
-                            try:
-                                eval_cmd(["rm", "-rf", f])
-                            except Exception:
-                                pass
-
-                if get_github_api_requests_left() == 0:
-                    break
-
-        print("\n", flush=True)
+                eval_cmd(["rm", "-rf", f"{GIT_CLONE_DIR}/*"])
+                for f in glob.glob("/tmp/*"):
+                    if f not in temp:
+                        try:
+                            eval_cmd(["rm", "-rf", f])
+                        except Exception:
+                            pass
 
     return good_prs
 
@@ -923,21 +921,22 @@ def main(ctx: CliContext) -> None:
     # record tmp dir so we can be sure to clean it later
     temp = glob.glob("/tmp/*")
 
-    gx = load_existing_graph()
-    smithy_version: str = eval_cmd(["conda", "smithy", "--version"]).strip()
-    pinning_version: str = cast(
-        str,
-        json.loads(eval_cmd(["conda", "list", "conda-forge-pinning", "--json"]))[0][
-            "version"
-        ],
-    )
-    mctx = MigratorSessionContext(
-        graph=gx,
-        smithy_version=smithy_version,
-        pinning_version=pinning_version,
-        dry_run=ctx.dry_run,
-    )
-    migrators = load_migrators()
+    with fold_log_lines("loading graph and migrators"):
+        gx = load_existing_graph()
+        smithy_version: str = eval_cmd(["conda", "smithy", "--version"]).strip()
+        pinning_version: str = cast(
+            str,
+            json.loads(eval_cmd(["conda", "list", "conda-forge-pinning", "--json"]))[0][
+                "version"
+            ],
+        )
+        mctx = MigratorSessionContext(
+            graph=gx,
+            smithy_version=smithy_version,
+            pinning_version=pinning_version,
+            dry_run=ctx.dry_run,
+        )
+        migrators = load_migrators()
 
     # compute the time per migrator
     with fold_log_lines("computing migrator run times"):
