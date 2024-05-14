@@ -8413,47 +8413,47 @@ package:
       python: '>=3.11,<3.12.0a0'
       python_abi: 3.11.*
     hash:
-      md5: 3ac85c6c226e2a2e4b17864fc2ca88ff
-      sha256: b12070ce86f108d3dcf2f447dfa76906c4bc15f2d2bf6cef19703ee42768b74a
+      md5: f33f59b8130753174992f409a41e112e
+      sha256: 8b0b4def742cebde399fd3244248e6db5b6843e7db64a94a10d6b649a3f20144
     manager: conda
     name: msgpack-python
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/linux-64/msgpack-python-1.0.7-py311h9547e67_0.conda
-    version: 1.0.7
+      https://conda.anaconda.org/conda-forge/linux-64/msgpack-python-1.0.8-py311h52f7536_0.conda
+    version: 1.0.8
   - category: main
     dependencies:
-      __osx: '>=10.9'
-      libcxx: '>=16.0.6'
+      __osx: '>=10.13'
+      libcxx: '>=16'
       python: '>=3.11,<3.12.0a0'
       python_abi: 3.11.*
     hash:
-      md5: a44d3852f8eaab128793074b26d5dcf9
-      sha256: 87de66aee894bf8054c92bfec296bfb2520077cb9f958d043177a782922fcf2b
+      md5: e451ed01f83544c6029f8fe29d0e9fe3
+      sha256: 3d575b0c8e6dcbbdc7c27f3f93b68c72adf2cfac3c88b792b12b35fd4b9ba4ac
     manager: conda
     name: msgpack-python
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/osx-64/msgpack-python-1.0.7-py311h7bea37d_0.conda
-    version: 1.0.7
+      https://conda.anaconda.org/conda-forge/osx-64/msgpack-python-1.0.8-py311h46c8309_0.conda
+    version: 1.0.8
   - category: main
     dependencies:
-      __osx: '>=10.9'
-      libcxx: '>=16.0.6'
+      __osx: '>=11.0'
+      libcxx: '>=16'
       python: '>=3.11,<3.12.0a0'
       python_abi: 3.11.*
     hash:
-      md5: 088b13e442731c8273fd8b8f611fb527
-      sha256: a94431a5d83393e7effcb901a1c05b75db32d2369117cc05b0d1c6091255faa9
+      md5: 649b2c1744a0ef73cc7a78cc6a453a9a
+      sha256: d7f42bb89e656b70c4be5e85dd409aab2bf11aa4638589cfd030306c9d682e6d
     manager: conda
     name: msgpack-python
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/osx-arm64/msgpack-python-1.0.7-py311hd03642b_0.conda
-    version: 1.0.7
+      https://conda.anaconda.org/conda-forge/osx-arm64/msgpack-python-1.0.8-py311h6bde47b_0.conda
+    version: 1.0.8
   - category: main
     dependencies:
       certifi: '>=2017.4.17'
@@ -13182,40 +13182,40 @@ package:
       libgcc-ng: '>=12'
       libstdcxx-ng: '>=12'
     hash:
-      md5: 437bdf174ef88a618a3cde1e774af632
-      sha256: e0a914f438575c0b7498f94eea40880ffd2030fba6af55c1bdaa6438e31ec685
+      md5: 5d1249bb3260c19a2f19b250b954c8b5
+      sha256: 48aa4fac8c54627604af188c24812d10e83a838343a2e33d47d47f8fcf1121c8
     manager: conda
     name: uv
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/linux-64/uv-0.1.42-h0ea3d13_0.conda
-    version: 0.1.42
+    url: https://conda.anaconda.org/conda-forge/linux-64/uv-0.1.43-h0ea3d13_0.conda
+    version: 0.1.43
   - category: main
     dependencies:
       __osx: '>=10.13'
       libcxx: '>=16'
     hash:
-      md5: c1e69dc5dbe5b4768af0d5ee60fb07f3
-      sha256: ba0817c5d8370e8a064ec1e752bf2d2d5387b6ff856d480c3ee95f4cbe06fd48
+      md5: c88c9d799f71fe52676e1e4e7e644f61
+      sha256: 8652ea7935db578cc7887f3d475ab6a35228ad03f6d0094e3fbb883cffb23142
     manager: conda
     name: uv
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/osx-64/uv-0.1.42-h0a647a2_0.conda
-    version: 0.1.42
+    url: https://conda.anaconda.org/conda-forge/osx-64/uv-0.1.43-h0a647a2_0.conda
+    version: 0.1.43
   - category: main
     dependencies:
       __osx: '>=11.0'
       libcxx: '>=16'
     hash:
-      md5: b1f10250e97c2d5180e3f31c58634776
-      sha256: 52f197298bfb9c2419de18800f7227d61e557e0e5aec9bed9d66a9a7f1dae15a
+      md5: 7b8cedf0e71b8aa620041fe88d235d4a
+      sha256: 3e4d11ad1f12f4dd98934d64c8a1d6988c0cd041306684c2d4d0f0c9c787a27f
     manager: conda
     name: uv
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/osx-arm64/uv-0.1.42-hc069d6b_0.conda
-    version: 0.1.42
+    url: https://conda.anaconda.org/conda-forge/osx-arm64/uv-0.1.43-hc069d6b_0.conda
+    version: 0.1.43
   - category: main
     dependencies:
       distlib: <1,>=0.3.7
