@@ -9,7 +9,6 @@
 [![bot-versions](https://github.com/regro/cf-scripts/actions/workflows/bot-versions.yml/badge.svg)](https://github.com/regro/cf-scripts/actions/workflows/bot-versions.yml)
 [![bot-prs](https://github.com/regro/cf-scripts/actions/workflows/bot-prs.yml/badge.svg)](https://github.com/regro/cf-scripts/actions/workflows/bot-prs.yml)
 [![bot-feedstocks](https://github.com/regro/cf-scripts/actions/workflows/bot-feedstocks.yml/badge.svg)](https://github.com/regro/cf-scripts/actions/workflows/bot-feedstocks.yml)
-[![bot-delete-old-runs](https://github.com/regro/cf-scripts/actions/workflows/bot-delete-old-runs.yml/badge.svg)](https://github.com/regro/cf-scripts/actions/workflows/bot-delete-old-runs.yml)
 [![bot-make-graph](https://github.com/regro/cf-scripts/actions/workflows/bot-make-graph.yml/badge.svg)](https://github.com/regro/cf-scripts/actions/workflows/bot-make-graph.yml)
 [![bot-make-migrators](https://github.com/regro/cf-scripts/actions/workflows/bot-make-migrators.yml/badge.svg)](https://github.com/regro/cf-scripts/actions/workflows/bot-make-migrators.yml)
 [![bot-cache](https://github.com/regro/cf-scripts/actions/workflows/bot-cache.yml/badge.svg)](https://github.com/regro/cf-scripts/actions/workflows/bot-cache.yml)
