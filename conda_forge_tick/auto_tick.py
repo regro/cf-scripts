@@ -467,7 +467,18 @@ def _compute_time_per_migrator(mctx, migrators):
 
 def _over_time_limit():
     _now = time.time()
-    logger.info("elpased time %ds (timeout %ds)", _now - START_TIME, TIMEOUT)
+    print(
+        """\
+
+=~>=~>=~>=~>=~>=~>=~>=~>=~>=~>=~>=~>=~>=~>=~>=~>=~>=~>=~>=~>=~>=~>=~>=~>=~>=~>
+=~> elpased time %ds (timeout %ds)
+=~>=~>=~>=~>=~>=~>=~>=~>=~>=~>=~>=~>=~>=~>=~>=~>=~>=~>=~>=~>=~>=~>=~>=~>=~>=~>
+
+"""
+        % (_now - START_TIME, TIMEOUT),
+        flush=True,
+        end="",
+    )
     return _now - START_TIME > TIMEOUT
 
 
