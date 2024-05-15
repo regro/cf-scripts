@@ -5,11 +5,7 @@ import tempfile
 
 import networkx as nx
 
-from conda_forge_tick.contexts import (
-    FeedstockContext,
-    MigratorContext,
-    MigratorSessionContext,
-)
+from conda_forge_tick.contexts import FeedstockContext
 from conda_forge_tick.feedstock_parser import populate_feedstock_attributes
 from conda_forge_tick.lazy_json_backends import LazyJson
 from conda_forge_tick.migrators import (
@@ -473,14 +469,6 @@ def run_test_migration(
     tmpdir=None,
     make_body=False,
 ):
-    mm_ctx = MigratorSessionContext(
-        graph=G,
-        smithy_version="",
-        pinning_version="",
-    )
-    m_ctx = MigratorContext(mm_ctx, m)
-    m.bind_to_ctx(m_ctx)
-
     if mr_out:
         mr_out.update(bot_rerun=False)
     with open(os.path.join(tmpdir, "meta.yaml"), "w") as f:
@@ -544,8 +532,8 @@ def run_test_migration(
                 attrs=pmy,
             )
             fctx.feedstock_dir = os.path.dirname(tmpdir)
-            m_ctx.effective_graph.add_node(name)
-            m_ctx.effective_graph.nodes[name]["payload"] = MockLazyJson({})
+            m.effective_graph.add_node(name)
+            m.effective_graph.nodes[name]["payload"] = MockLazyJson({})
             m.pr_body(fctx)
 
         assert mr_out == mr

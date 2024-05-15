@@ -6,7 +6,6 @@ from unittest import mock
 import networkx as nx
 import pytest
 
-from conda_forge_tick.contexts import MigratorContext, MigratorSessionContext
 from conda_forge_tick.feedstock_parser import populate_feedstock_attributes
 from conda_forge_tick.migrators import MigrationYamlCreator, merge_migrator_cbc
 from conda_forge_tick.os_utils import eval_cmd, pushd
@@ -173,14 +172,6 @@ def run_test_migration(
     should_filter=False,
     tmpdir=None,
 ):
-    mm_ctx = MigratorSessionContext(
-        graph=G,
-        smithy_version="",
-        pinning_version="",
-    )
-    m_ctx = MigratorContext(mm_ctx, m)
-    m.bind_to_ctx(m_ctx)
-
     if mr_out:
         mr_out.update(bot_rerun=False)
     with open(os.path.join(tmpdir, "meta.yaml"), "w") as f:

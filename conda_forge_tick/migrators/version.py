@@ -69,6 +69,8 @@ class Version(Migrator):
         super().__init__(*args, **kwargs, check_solvable=False)
         self._new_version = None
 
+        self._reset_effective_graph()
+
     def filter(
         self,
         attrs: "AttrsTypedDict",
@@ -220,12 +222,12 @@ class Version(Migrator):
         pred = [
             (
                 name,
-                self.ctx.effective_graph.nodes[name]["payload"]["version_pr_info"][
+                self.effective_graph.nodes[name]["payload"]["version_pr_info"][
                     "new_version"
                 ],
             )
             for name in list(
-                self.ctx.effective_graph.predecessors(feedstock_ctx.package_name),
+                self.effective_graph.predecessors(feedstock_ctx.package_name),
             )
         ]
         body = ""
