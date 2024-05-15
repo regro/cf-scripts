@@ -345,6 +345,8 @@ class RebuildBroken(Migrator):
             for fs in outputs_lut.get(output, {output}):
                 self.feedstocks_to_migrate |= {fs}
 
+        self._reset_effective_graph()
+
     def order(
         self,
         graph: nx.DiGraph,

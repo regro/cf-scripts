@@ -158,6 +158,8 @@ class ArchRebuild(GraphMigrator):
         # filter out stub packages and ignored packages
         _filter_stubby_and_ignored_nodes(self.graph, self.ignored_packages)
 
+        self._reset_effective_graph()
+
     def filter(self, attrs: "AttrsTypedDict", not_bad_str_start: str = "") -> bool:
         if super().filter(attrs):
             return True
@@ -308,6 +310,8 @@ class OSXArm(GraphMigrator):
 
         # filter out stub packages and ignored packages
         _filter_stubby_and_ignored_nodes(self.graph, self.ignored_packages)
+
+        self._reset_effective_graph()
 
     def filter(self, attrs: "AttrsTypedDict", not_bad_str_start: str = "") -> bool:
         if super().filter(attrs):

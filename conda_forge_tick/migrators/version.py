@@ -69,6 +69,8 @@ class Version(Migrator):
         super().__init__(*args, **kwargs, check_solvable=False)
         self._new_version = None
 
+        self._reset_effective_graph()
+
     def filter(
         self,
         attrs: "AttrsTypedDict",

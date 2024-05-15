@@ -196,6 +196,8 @@ class MigrationYaml(GraphMigrator):
         self.bump_number = bump_number
         self.max_solver_attempts = max_solver_attempts
 
+        self._reset_effective_graph()
+
     def filter(self, attrs: "AttrsTypedDict", not_bad_str_start: str = "") -> bool:
         """
         Determine whether migrator needs to be filtered out.
@@ -492,6 +494,8 @@ class MigrationYamlCreator(Migrator):
         self.package_name = package_name
         self.bump_number = bump_number
         self.name = package_name + " pinning"
+
+        self._reset_effective_graph()
 
     def filter(self, attrs: "AttrsTypedDict", not_bad_str_start: str = "") -> bool:
         if (
