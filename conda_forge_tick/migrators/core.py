@@ -608,6 +608,7 @@ class GraphMigrator(Migrator):
         piggy_back_migrations: Optional[Sequence[MiniMigrator]] = None,
         check_solvable=True,
         ignored_deps_per_node=None,
+        effective_graph: nx.DiGraph = None,
     ):
         if not hasattr(self, "_init_args"):
             self._init_args = []
@@ -623,6 +624,7 @@ class GraphMigrator(Migrator):
                 "piggy_back_migrations": piggy_back_migrations,
                 "check_solvable": check_solvable,
                 "ignored_deps_per_node": ignored_deps_per_node,
+                "effective_graph": effective_graph,
             }
 
         super().__init__(
@@ -631,6 +633,7 @@ class GraphMigrator(Migrator):
             piggy_back_migrations,
             check_solvable=check_solvable,
             graph=graph,
+            effective_graph=effective_graph,
         )
 
         # IDK if this will be there so I am going to make it if needed

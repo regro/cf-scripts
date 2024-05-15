@@ -135,6 +135,7 @@ class MigrationYaml(GraphMigrator):
         conda_forge_yml_patches=None,
         ignored_deps_per_node=None,
         max_solver_attempts=3,
+        effective_graph: nx.DiGraph = None,
         **kwargs: Any,
     ):
         if not hasattr(self, "_init_args"):
@@ -154,6 +155,7 @@ class MigrationYaml(GraphMigrator):
                 "conda_forge_yml_patches": conda_forge_yml_patches,
                 "ignored_deps_per_node": ignored_deps_per_node,
                 "max_solver_attempts": max_solver_attempts,
+                "effective_graph": effective_graph,
             }
             self._init_kwargs.update(copy.deepcopy(kwargs))
 
@@ -164,6 +166,7 @@ class MigrationYaml(GraphMigrator):
             piggy_back_migrations=piggy_back_migrations,
             check_solvable=check_solvable,
             ignored_deps_per_node=ignored_deps_per_node,
+            effective_graph=effective_graph,
         )
         self.yaml_contents = yaml_contents
         assert isinstance(name, str)
@@ -456,6 +459,7 @@ class MigrationYamlCreator(Migrator):
         full_graph: Optional[nx.DiGraph] = None,
         pr_limit: int = 1,
         bump_number: int = 1,
+        effective_graph: nx.DiGraph = None,
         **kwargs: Any,
     ):
         if pin_impact is None:
@@ -481,10 +485,13 @@ class MigrationYamlCreator(Migrator):
                 "bump_number": bump_number,
                 "pin_impact": pin_impact,
                 "full_graph": full_graph,
+                "effective_graph": effective_graph,
             }
             self._init_kwargs.update(copy.deepcopy(kwargs))
 
-        super().__init__(pr_limit=pr_limit, graph=graph)
+        super().__init__(
+            pr_limit=pr_limit, graph=graph, effective_graph=effective_graph
+        )
         self.feedstock_name = feedstock_name
         self.pin_spec = pin_spec
         self.current_pin = current_pin

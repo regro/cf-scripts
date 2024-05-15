@@ -47,6 +47,7 @@ class Replacement(Migrator):
         graph: nx.DiGraph = None,
         pr_limit: int = 0,
         check_solvable=True,
+        effective_graph: nx.DiGraph = None,
     ):
         if not hasattr(self, "_init_args"):
             self._init_args = []
@@ -59,9 +60,15 @@ class Replacement(Migrator):
                 "graph": graph,
                 "pr_limit": pr_limit,
                 "check_solvable": check_solvable,
+                "effective_graph": effective_graph,
             }
 
-        super().__init__(pr_limit, check_solvable=check_solvable, graph=graph)
+        super().__init__(
+            pr_limit,
+            check_solvable=check_solvable,
+            graph=graph,
+            effective_graph=effective_graph,
+        )
         self.old_pkg = old_pkg
         self.new_pkg = new_pkg
         self.pattern = re.compile(r"\s*-\s*(%s)(\s+|$)" % old_pkg)

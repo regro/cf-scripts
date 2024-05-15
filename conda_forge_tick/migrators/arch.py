@@ -106,6 +106,7 @@ class ArchRebuild(GraphMigrator):
         pr_limit: int = 0,
         piggy_back_migrations: Optional[Sequence[MiniMigrator]] = None,
         target_packages: Optional[Sequence[str]] = None,
+        effective_graph: nx.DiGraph = None,
     ):
         if target_packages is None:
             # We are constraining the scope of this migrator
@@ -124,6 +125,7 @@ class ArchRebuild(GraphMigrator):
                 "pr_limit": pr_limit,
                 "piggy_back_migrations": piggy_back_migrations,
                 "target_packages": target_packages,
+                "effective_graph": effective_graph,
             }
 
         # rebuild the graph to only use edges from the arm and power requirements
@@ -144,6 +146,7 @@ class ArchRebuild(GraphMigrator):
             pr_limit=pr_limit,
             check_solvable=False,
             piggy_back_migrations=piggy_back_migrations,
+            effective_graph=effective_graph,
         )
 
         assert not self.check_solvable, "We don't want to check solvability for aarch!"
@@ -241,6 +244,7 @@ class OSXArm(GraphMigrator):
         pr_limit: int = 0,
         piggy_back_migrations: Optional[Sequence[MiniMigrator]] = None,
         target_packages: Optional[Sequence[str]] = None,
+        effective_graph: nx.DiGraph = None,
     ):
         if target_packages is None:
             # We are constraining the scope of this migrator
@@ -259,6 +263,7 @@ class OSXArm(GraphMigrator):
                 "pr_limit": pr_limit,
                 "piggy_back_migrations": piggy_back_migrations,
                 "target_packages": target_packages,
+                "effective_graph": effective_graph,
             }
 
         # rebuild the graph to only use edges from the arm osx requirements
@@ -288,6 +293,7 @@ class OSXArm(GraphMigrator):
             pr_limit=pr_limit,
             check_solvable=False,
             piggy_back_migrations=piggy_back_migrations,
+            effective_graph=effective_graph,
         )
 
         assert (
