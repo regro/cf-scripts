@@ -249,6 +249,7 @@ def fold_log_lines(title):
             print(f"::group::{title}", flush=True)
         else:
             print(">" * 80, flush=True)
+            print(">" * 80, flush=True)
             print("> " + title, flush=True)
         yield
     finally:
@@ -257,8 +258,6 @@ def fold_log_lines(title):
         if os.environ.get("GITHUB_ACTIONS", "false") == "true":
             LOG_LINES_FOLDED = False
             print("::endgroup::", flush=True)
-        else:
-            print("", flush=True)
 
 
 def parse_munged_run_export(p: str) -> Dict:
