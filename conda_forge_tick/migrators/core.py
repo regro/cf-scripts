@@ -242,14 +242,13 @@ class Migrator:
         self.pr_limit = pr_limit
         self.obj_version = obj_version
         self.check_solvable = check_solvable
+
         if graph is None:
             self.graph = nx.DiGraph()
         else:
             self.graph = graph
-        if effective_graph is None:
-            self.effective_graph = self.graph
-        else:
-            self.effective_graph = effective_graph
+
+        self.effective_graph = effective_graph
 
     def to_lazy_json_data(self):
         """Serialize the migrator to LazyJson-compatible data."""
@@ -274,11 +273,12 @@ class Migrator:
         data["name"] = _make_migrator_lazy_json_name(self, data)
         return data
 
-    def _reset_effective_graph(self):
+    def _reset_effective_graph(self, force=False):
         """This method is meant to be called by an non-abstract child class at the end
         of its __init__ method."""
-        self.effective_graph = _make_effective_graph(self.graph, self)
-        self._init_kwargs["effective_graph"] = self.effective_graph
+        if self.effective_graph is None or force:
+            self.effective_graph = _make_effective_graph(self.graph, self)
+            self._init_kwargs["effective_graph"] = self.effective_graph
 
     def downstream_children(
         self,
