@@ -1,4 +1,3 @@
-import copy
 import os
 import typing
 from dataclasses import dataclass
@@ -8,7 +7,6 @@ from networkx import DiGraph
 from conda_forge_tick.lazy_json_backends import load
 
 if typing.TYPE_CHECKING:
-    from conda_forge_tick.migrators import Migrator
     from conda_forge_tick.migrators_types import AttrsTypedDict
 
 
@@ -27,42 +25,6 @@ class MigratorSessionContext:
     smithy_version: str = ""
     pinning_version: str = ""
     dry_run: bool = True
-
-
-@dataclass
-class MigratorContext:
-    """The context for a given migrator.
-    This houses the runtime information that a migrator needs
-    """
-
-    session: MigratorSessionContext
-    migrator: "Migrator"
-    _effective_graph: DiGraph = None
-
-    @property
-    def effective_graph(self) -> DiGraph:
-        if self._effective_graph is None:
-            gx2 = copy.deepcopy(getattr(self.migrator, "graph", self.session.graph))
-
-            # Prune graph to only things that need builds right now
-            for node in list(gx2.nodes):
-                if node not in self.session.graph.nodes:
-                    continue
-
-                with self.session.graph.nodes[node]["payload"] as _attrs:
-                    attrs = copy.deepcopy(_attrs.data)
-                base_branches = self.migrator.get_possible_feedstock_branches(attrs)
-                filters = []
-                for base_branch in base_branches:
-                    attrs["branch"] = base_branch
-                    filters.append(self.migrator.filter(attrs))
-
-                if filters and all(filters):
-                    gx2.remove_node(node)
-
-            self._effective_graph = gx2
-
-        return self._effective_graph
 
 
 @dataclass

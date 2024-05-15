@@ -220,12 +220,12 @@ class Version(Migrator):
         pred = [
             (
                 name,
-                self.ctx.effective_graph.nodes[name]["payload"]["version_pr_info"][
+                self.effective_graph.nodes[name]["payload"]["version_pr_info"][
                     "new_version"
                 ],
             )
             for name in list(
-                self.ctx.effective_graph.predecessors(feedstock_ctx.package_name),
+                self.effective_graph.predecessors(feedstock_ctx.package_name),
             )
         ]
         body = ""

@@ -11,7 +11,7 @@ from typing import Any, List, Optional, Sequence, Set
 import dateutil.parser
 import networkx as nx
 
-from conda_forge_tick.contexts import FeedstockContext, MigratorContext
+from conda_forge_tick.contexts import FeedstockContext
 from conda_forge_tick.lazy_json_backends import LazyJson
 from conda_forge_tick.make_graph import make_outputs_lut_from_graph
 from conda_forge_tick.path_lengths import cyclic_topological_sort
@@ -29,6 +29,26 @@ if typing.TYPE_CHECKING:
 
 
 logger = logging.getLogger(__name__)
+
+
+def _make_effective_graph(graph, migrator):
+    """Prune graph only to nodes that need rebuilds."""
+    gx2 = copy.deepcopy(graph)
+
+    # Prune graph to only things that need builds right now
+    for node in list(gx2.nodes):
+        with graph.nodes[node]["payload"] as _attrs:
+            attrs = copy.deepcopy(_attrs.data)
+        base_branches = migrator.get_possible_feedstock_branches(attrs)
+        filters = []
+        for base_branch in base_branches:
+            attrs["branch"] = base_branch
+            filters.append(migrator.filter(attrs))
+
+        if filters and all(filters):
+            gx2.remove_node(node)
+
+    return gx2
 
 
 def _sanitized_muids(pred: List[dict]) -> List["JsonFriendly"]:
@@ -203,7 +223,12 @@ class Migrator:
         obj_version: Optional[int] = None,
         piggy_back_migrations: Optional[Sequence[MiniMigrator]] = None,
         check_solvable=True,
+        graph: nx.DiGraph = None,
+        effective_graph: nx.DiGraph = None,
     ):
+        if graph is not None and effective_graph is None:
+            effective_graph = _make_effective_graph(graph, self)
+
         if not hasattr(self, "_init_args"):
             self._init_args = []
 
@@ -213,13 +238,20 @@ class Migrator:
                 "obj_version": obj_version,
                 "piggy_back_migrations": piggy_back_migrations,
                 "check_solvable": check_solvable,
+                "graph": graph,
+                "effective_graph": effective_graph,
             }
 
         self.piggy_back_migrations = piggy_back_migrations or []
         self.pr_limit = pr_limit
         self.obj_version = obj_version
-        self.ctx: MigratorContext = None
         self.check_solvable = check_solvable
+        if graph is None:
+            self.graph = nx.DiGraph()
+        else:
+            self.graph = graph
+        if effective_graph is None:
+            self.effective_graph = self.graph
 
     def to_lazy_json_data(self):
         """Serialize the migrator to LazyJson-compatible data."""
@@ -244,9 +276,6 @@ class Migrator:
         data["name"] = _make_migrator_lazy_json_name(self, data)
         return data
 
-    def bind_to_ctx(self, migrator_ctx: MigratorContext) -> None:
-        self.ctx = migrator_ctx
-
     def downstream_children(
         self,
         feedstock_ctx: FeedstockContext,
@@ -256,7 +285,7 @@ class Migrator:
         return [
             a[1]
             for a in list(
-                self.ctx.effective_graph.out_edges(feedstock_ctx.package_name),
+                self.effective_graph.out_edges(feedstock_ctx.package_name),
             )
         ][:limit]
 
@@ -594,12 +623,8 @@ class GraphMigrator(Migrator):
             obj_version,
             piggy_back_migrations,
             check_solvable=check_solvable,
+            graph=graph,
         )
-        # TODO: Grab the graph from the migrator ctx
-        if graph is None:
-            self.graph = nx.DiGraph()
-        else:
-            self.graph = graph
 
         # IDK if this will be there so I am going to make it if needed
         if "outputs_lut" in self.graph.graph:
@@ -795,17 +820,13 @@ class Replacement(Migrator):
                 "check_solvable": check_solvable,
             }
 
-        super().__init__(pr_limit, check_solvable=check_solvable)
+        super().__init__(pr_limit, check_solvable=check_solvable, graph=graph)
         self.old_pkg = old_pkg
         self.new_pkg = new_pkg
         self.pattern = re.compile(r"\s*-\s*(%s)(\s+|$)" % old_pkg)
         self.packages = {old_pkg}
         self.rationale = rationale
         self.name = f"{old_pkg}-to-{new_pkg}"
-        if graph is None:
-            self.graph = nx.DiGraph()
-        else:
-            self.graph = graph
 
     def order(
         self,

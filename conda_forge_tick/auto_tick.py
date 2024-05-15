@@ -24,11 +24,7 @@ import tqdm
 from conda.models.version import VersionOrder
 
 from conda_forge_tick.cli_context import CliContext
-from conda_forge_tick.contexts import (
-    FeedstockContext,
-    MigratorContext,
-    MigratorSessionContext,
-)
+from conda_forge_tick.contexts import FeedstockContext, MigratorSessionContext
 from conda_forge_tick.feedstock_parser import BOOTSTRAP_MAPPINGS
 from conda_forge_tick.git_utils import (
     GIT_CLONE_DIR,
@@ -409,13 +405,10 @@ def _compute_time_per_migrator(mctx, migrators):
     # we weight each migrator by the number of available nodes to migrate
     num_nodes = []
     for migrator in tqdm.tqdm(migrators, ncols=80, desc="computing time per migrator"):
-        mmctx = MigratorContext(session=mctx, migrator=migrator)
-        migrator.bind_to_ctx(mmctx)
-
         if isinstance(migrator, Version):
             _num_nodes = 0
-            for node_name in mmctx.effective_graph.nodes:
-                with mmctx.effective_graph.nodes[node_name]["payload"] as attrs:
+            for node_name in migrator.effective_graph.nodes:
+                with migrator.effective_graph.nodes[node_name]["payload"] as attrs:
                     with attrs["version_pr_info"] as vpri:
                         _attempts = vpri.get("new_version_attempts", {}).get(
                             vpri.get("new_version", ""),
@@ -425,14 +418,14 @@ def _compute_time_per_migrator(mctx, migrators):
                         _num_nodes += 1
             _num_nodes = max(
                 _num_nodes,
-                min(PR_LIMIT * 4, len(mmctx.effective_graph.nodes)),
+                min(PR_LIMIT * 4, len(migrator.effective_graph.nodes)),
             )
             num_nodes.append(_num_nodes)
         else:
             num_nodes.append(
                 min(
                     getattr(migrator, "pr_limit", PR_LIMIT) * 4,
-                    len(mmctx.effective_graph.nodes),
+                    len(migrator.effective_graph.nodes),
                 ),
             )
 
@@ -621,12 +614,9 @@ def _run_migrator(migrator, mctx, temp, time_per, dry_run):
         if _over_time_limit():
             return 0
 
-        mmctx = MigratorContext(session=mctx, migrator=migrator)
-        migrator.bind_to_ctx(mmctx)
-
         good_prs = 0
         _mg_start = time.time()
-        effective_graph = mmctx.effective_graph
+        effective_graph = migrator.effective_graph
 
         possible_nodes = list(migrator.order(effective_graph, mctx.graph))
 

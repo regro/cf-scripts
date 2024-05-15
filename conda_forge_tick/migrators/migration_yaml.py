@@ -482,7 +482,7 @@ class MigrationYamlCreator(Migrator):
             }
             self._init_kwargs.update(copy.deepcopy(kwargs))
 
-        super().__init__(pr_limit=pr_limit)
+        super().__init__(pr_limit=pr_limit, graph=graph)
         self.feedstock_name = feedstock_name
         self.pin_spec = pin_spec
         self.current_pin = current_pin
@@ -492,7 +492,6 @@ class MigrationYamlCreator(Migrator):
         self.package_name = package_name
         self.bump_number = bump_number
         self.name = package_name + " pinning"
-        self.graph = graph
 
     def filter(self, attrs: "AttrsTypedDict", not_bad_str_start: str = "") -> bool:
         if (

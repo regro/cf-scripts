@@ -657,6 +657,7 @@ def initialize_migrators(
         )
         version_migrator = Version(
             python_nodes=python_nodes,
+            graph=gx,
             pr_limit=PR_LIMIT * 4,
             piggy_back_migrations=[
                 CondaForgeYAMLCleanup(),

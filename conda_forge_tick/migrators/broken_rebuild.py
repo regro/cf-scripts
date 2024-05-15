@@ -324,6 +324,7 @@ class RebuildBroken(Migrator):
         *,
         outputs_lut,
         pr_limit: int = 0,
+        graph: nx.DiGraph = None,
     ):
         if not hasattr(self, "_init_args"):
             self._init_args = []
@@ -332,9 +333,10 @@ class RebuildBroken(Migrator):
             self._init_kwargs = {
                 "outputs_lut": outputs_lut,
                 "pr_limit": pr_limit,
+                "graph": graph,
             }
 
-        super().__init__(1, check_solvable=False)
+        super().__init__(1, check_solvable=False, graph=graph)
         self.name = "rebuild-broken"
 
         outputs_to_migrate = {split_pkg(pkg)[1] for pkg in BROKEN_PACKAGES}
