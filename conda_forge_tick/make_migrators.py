@@ -214,7 +214,7 @@ def add_rebuild_migration_yaml(
     migration_yaml: str,
     config: dict,
     migration_name: str,
-    pr_limit: int = PR_LIMIT,
+    nominal_pr_limit: int = PR_LIMIT,
     max_solver_attempts: int = 3,
 ) -> None:
     """Adds rebuild migrator.
@@ -239,7 +239,7 @@ def add_rebuild_migration_yaml(
         The __migrator contents of the migration
     migration_name: str
         Name of the migration
-    pr_limit : int, optional
+    nominal_pr_limit : int, optional
         The number of PRs per hour, defaults to 5
     """
 
@@ -297,17 +297,54 @@ def add_rebuild_migration_yaml(
     cycles = set()
     for cyc in nx.simple_cycles(total_graph):
         cycles |= set(cyc)
+
     migrator = MigrationYaml(
         migration_yaml,
         name=migration_name,
         graph=total_graph,
-        pr_limit=pr_limit,
+        pr_limit=nominal_pr_limit,
         top_level=top_level,
         cycles=cycles,
         piggy_back_migrations=piggy_back_migrations,
         max_solver_attempts=max_solver_attempts,
         **config,
     )
+
+    # adaptivewl set PR limits based on the number of PRs made so far
+    number_pred = len(
+        [
+            k
+            for k, v in migrator.graph.nodes.items()
+            if migrator.migrator_uid(v.get("payload", {}))
+            in [
+                vv.get("data", {})
+                for vv in v.get("payload", {}).get("pr_info", {}).get("PRed", [])
+            ]
+        ],
+    )
+
+    tenth = int(len(migrator.graph.nodes) / 10)
+    quarter = int(len(migrator.graph.nodes) / 4)
+    half = int(len(migrator.graph.nodes) / 2)
+    number_pred_breaks = sorted([0, tenth, quarter, half])
+    pr_limits = [
+        min(2, nominal_pr_limit),
+        nominal_pr_limit,
+        min(nominal_pr_limit * 3, MAX_PR_LIMIT),
+        min(nominal_pr_limit * 2, MAX_PR_LIMIT),
+    ]
+
+    pr_limit = None
+    for i, lim in enumerate(number_pred_breaks):
+        if number_pred <= lim:
+            pr_limit = pr_limits[i]
+            break
+
+    if pr_limit is None:
+        pr_limit = nominal_pr_limit
+
+    migrator.pr_limit = pr_limit
+
     print(f"migration yaml:\n{migration_yaml}", flush=True)
     print(f"bump number: {migrator.bump_number}", flush=True)
     final_config = {}
@@ -415,7 +452,7 @@ def migration_factory(
                     migration_yaml=yaml_contents,
                     migration_name=os.path.splitext(yaml_file)[0],
                     config=migrator_config,
-                    pr_limit=_pr_limit,
+                    nominal_pr_limit=_pr_limit,
                     max_solver_attempts=max_solver_attempts,
                 )
                 if skip_solver_checks:

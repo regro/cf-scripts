@@ -178,26 +178,6 @@ class MigrationYaml(GraphMigrator):
         self.automerge = automerge
         self.conda_forge_yml_patches = conda_forge_yml_patches
         self.loaded_yaml = yaml_safe_load(self.yaml_contents)
-
-        # auto set the pr_limit for initial things
-        if self.pr_limit > 2:
-            number_pred = len(
-                [
-                    k
-                    for k, v in self.graph.nodes.items()
-                    if self.migrator_uid(v.get("payload", {}))
-                    in [
-                        vv.get("data", {})
-                        for vv in v.get("payload", {})
-                        .get("pr_info", {})
-                        .get("PRed", [])
-                    ]
-                ],
-            )
-            if number_pred == 0:
-                self.pr_limit = 2
-            elif number_pred < 7:
-                self.pr_limit = 5
         self.bump_number = bump_number
         self.max_solver_attempts = max_solver_attempts
         self.longterm = longterm
