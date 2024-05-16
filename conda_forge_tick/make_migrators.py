@@ -310,7 +310,7 @@ def add_rebuild_migration_yaml(
         **config,
     )
 
-    # adaptivewl set PR limits based on the number of PRs made so far
+    # adaptively set PR limits based on the number of PRs made so far
     number_pred = len(
         [
             k
