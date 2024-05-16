@@ -67,7 +67,6 @@ def _munge_dict_repr(dct: Dict[Any, Any]) -> str:
     d = repr(dct)
     from urllib.parse import quote_plus
 
-    # d = "__dict__" + d[1:-1].replace(":", "@").replace(" ", "$$") + "__dict__"
     return quote_plus(d)
 
 
