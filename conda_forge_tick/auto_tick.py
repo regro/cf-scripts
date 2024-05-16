@@ -47,6 +47,7 @@ from conda_forge_tick.rerender_feedstock import rerender_feedstock
 from conda_forge_tick.solver_checks import is_recipe_solvable
 from conda_forge_tick.utils import (
     dump_graph,
+    filter_reprinted_lines,
     fold_log_lines,
     frozen_to_json_friendly,
     get_bot_run_url,
@@ -738,13 +739,14 @@ def _run_migrator(migrator, mctx, temp, time_per, dry_run):
                 if not dry_run:
                     dump_graph(mctx.graph)
 
-                eval_cmd(["rm", "-rf", f"{GIT_CLONE_DIR}/*"])
-                for f in glob.glob("/tmp/*"):
-                    if f not in temp:
-                        try:
-                            eval_cmd(["rm", "-rf", f])
-                        except Exception:
-                            pass
+                with filter_reprinted_lines("rm-tmp"):
+                    eval_cmd(["rm", "-rf", f"{GIT_CLONE_DIR}/*"])
+                    for f in glob.glob("/tmp/*"):
+                        if f not in temp:
+                            try:
+                                eval_cmd(["rm", "-rf", f])
+                            except Exception:
+                                pass
 
     return good_prs
 
