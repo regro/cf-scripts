@@ -136,6 +136,7 @@ class MigrationYaml(GraphMigrator):
         ignored_deps_per_node=None,
         max_solver_attempts=3,
         effective_graph: nx.DiGraph = None,
+        longterm=False,
         **kwargs: Any,
     ):
         if not hasattr(self, "_init_args"):
@@ -156,6 +157,7 @@ class MigrationYaml(GraphMigrator):
                 "ignored_deps_per_node": ignored_deps_per_node,
                 "max_solver_attempts": max_solver_attempts,
                 "effective_graph": effective_graph,
+                "longterm": longterm,
             }
             self._init_kwargs.update(copy.deepcopy(kwargs))
 
@@ -198,6 +200,7 @@ class MigrationYaml(GraphMigrator):
                 self.pr_limit = 5
         self.bump_number = bump_number
         self.max_solver_attempts = max_solver_attempts
+        self.longterm = longterm
 
         self._reset_effective_graph()
 

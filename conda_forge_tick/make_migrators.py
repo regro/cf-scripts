@@ -689,6 +689,7 @@ def load_migrators() -> MutableSequence[Migrator]:
     migrators = []
     version_migrator = None
     pinning_migrators = []
+    longterm_migrators = []
     all_names = get_all_keys_for_hashmap("migrators")
     with executor("process", 4) as pool:
         futs = [pool.submit(_load, name) for name in all_names]
@@ -703,7 +704,10 @@ def load_migrators() -> MutableSequence[Migrator]:
             elif isinstance(migrator, MigrationYamlCreator) or isinstance(
                 migrator, MigrationYaml
             ):
-                pinning_migrators.append(migrator)
+                if getattr(migrator, "longterm", False):
+                    longterm_migrators.append(migrator)
+                else:
+                    pinning_migrators.append(migrator)
             else:
                 migrators.append(migrator)
 
@@ -711,7 +715,8 @@ def load_migrators() -> MutableSequence[Migrator]:
         raise RuntimeError("No version migrator found in the migrators directory!")
 
     random.shuffle(pinning_migrators)
-    migrators = [version_migrator] + migrators + pinning_migrators
+    random.shuffle(longterm_migrators)
+    migrators = [version_migrator] + migrators + pinning_migrators + longterm_migrators
 
     return migrators
 
