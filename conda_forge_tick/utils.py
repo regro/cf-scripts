@@ -65,8 +65,10 @@ CB_CONFIG = dict(
 
 def _munge_dict_repr(dct: Dict[Any, Any]) -> str:
     d = repr(dct)
-    d = "__dict__" + d[1:-1].replace(":", "@").replace(" ", "$$") + "__dict__"
-    return d
+    from urllib.parse import quote_plus
+
+    # d = "__dict__" + d[1:-1].replace(":", "@").replace(" ", "$$") + "__dict__"
+    return quote_plus(d)
 
 
 CB_CONFIG_PINNING = dict(
@@ -287,23 +289,9 @@ def fold_log_lines(title):
 
 
 def parse_munged_run_export(p: str) -> Dict:
-    if len(p) <= len("__dict__"):
-        logger.info("could not parse run export for pinning: %r", p)
-        return {}
+    from urllib.parse import unquote_plus
 
-    p_orig = p
-
-    # remove build string if it is there
-    p = p.rsplit("__dict__", maxsplit=1)[0].strip()
-
-    if p.startswith("__dict__"):
-        p = "{" + p[len("__dict__") :].replace("$$", " ").replace("@", ":") + "}"
-        dct = cast(Dict, yaml_safe_load(p))
-        logger.debug("parsed run export for pinning: %r", dct)
-        return dct
-    else:
-        logger.info("could not parse run export for pinning: %r", p_orig)
-        return {}
+    return cast(Dict, yaml_safe_load(unquote_plus(p)))
 
 
 def yaml_safe_load(stream):

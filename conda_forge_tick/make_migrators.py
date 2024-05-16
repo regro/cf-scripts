@@ -516,9 +516,14 @@ def create_migration_yaml_creator(
                     build = block.get("build", {}) or {}
 
                     # parse back to dict
-                    possible_p_dicts = [
-                        parse_munged_run_export(p) for p in build.get("run_exports", [])
-                    ]
+                    possible_p_dicts = []
+                    if isinstance(build.get("run_exports", None), MutableMapping):
+                        for _, v in build.get("run_exports", {}).items():
+                            for p in v:
+                                possible_p_dicts.append(parse_munged_run_export(p))
+                    else:
+                        for p in build.get("run_exports", []) or []:
+                            possible_p_dicts.append(parse_munged_run_export(p))
 
                     # and check the exported package is within the feedstock
                     exports = [
