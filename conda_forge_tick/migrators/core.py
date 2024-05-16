@@ -242,7 +242,7 @@ class Migrator:
             }
 
         self.piggy_back_migrations = piggy_back_migrations or []
-        self.pr_limit = pr_limit
+        self._pr_limit = pr_limit
         self.obj_version = obj_version
         self.check_solvable = check_solvable
 
@@ -282,6 +282,16 @@ class Migrator:
         if self.effective_graph is None or force:
             self.effective_graph = _make_effective_graph(self.graph, self)
             self._init_kwargs["effective_graph"] = self.effective_graph
+
+    @property
+    def pr_limit(self):
+        return self._pr_limit
+
+    @pr_limit.setter
+    def pr_limit(self, value):
+        self._pr_limit = value
+        if hasattr(self, "_init_kwargs"):
+            self._init_kwargs["pr_limit"] = value
 
     def downstream_children(
         self,
