@@ -326,12 +326,13 @@ def add_rebuild_migration_yaml(
     tenth = int(len(migrator.graph.nodes) / 10)
     quarter = int(len(migrator.graph.nodes) / 4)
     half = int(len(migrator.graph.nodes) / 2)
-    number_pred_breaks = sorted([0, tenth, quarter, half])
+    number_pred_breaks = sorted([0, 10, tenth, quarter, half])
     pr_limits = [
         min(2, nominal_pr_limit),
         nominal_pr_limit,
         min(nominal_pr_limit * 3, MAX_PR_LIMIT),
-        min(nominal_pr_limit * 2, MAX_PR_LIMIT),
+        min(int(nominal_pr_limit * 2.25), MAX_PR_LIMIT),
+        min(int(nominal_pr_limit * 1.5), MAX_PR_LIMIT),
     ]
 
     pr_limit = None
@@ -347,6 +348,7 @@ def add_rebuild_migration_yaml(
 
     print(f"migration yaml:\n{migration_yaml}", flush=True)
     print(f"bump number: {migrator.bump_number}", flush=True)
+    print(f"# of PRs made so far: {number_pred}", flush=True)
     final_config = {}
     final_config.update(config)
     final_config["pr_limit"] = migrator.pr_limit
