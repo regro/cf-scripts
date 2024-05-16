@@ -320,7 +320,7 @@ def add_rebuild_migration_yaml(
     print(f"bump number: {migrator.bump_number}", flush=True)
     final_config = {}
     final_config.update(config)
-    final_config["pr_limit"] = pr_limit
+    final_config["pr_limit"] = migrator.pr_limit
     final_config["max_solver_attempts"] = max_solver_attempts
     print("final config:\n", pprint.pformat(final_config) + "\n\n", flush=True)
     migrators.append(migrator)
