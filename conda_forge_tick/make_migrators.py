@@ -121,51 +121,46 @@ def add_replacement_migrator(
         An alternate Replacement migrator to use for special tasks.
 
     """
-    print(
-        "========================================"
-        "========================================",
-        flush=True,
-    )
-    print(f"making replacement migrator for {old_pkg} -> {new_pkg}", flush=True)
-    total_graph = copy.deepcopy(gx)
+    with fold_log_lines(f"making replacement migrator for {old_pkg} -> {new_pkg}"):
+        total_graph = copy.deepcopy(gx)
 
-    for node, node_attrs in gx.nodes.items():
-        requirements = node_attrs["payload"].get("requirements", {})
-        rq = (
-            requirements.get("build", set())
-            | requirements.get("host", set())
-            | requirements.get("run", set())
-            | requirements.get("test", set())
-        )
-        pkgs = {old_pkg}
-        old_pkg_c = pkgs.intersection(rq)
+        for node, node_attrs in gx.nodes.items():
+            requirements = node_attrs["payload"].get("requirements", {})
+            rq = (
+                requirements.get("build", set())
+                | requirements.get("host", set())
+                | requirements.get("run", set())
+                | requirements.get("test", set())
+            )
+            pkgs = {old_pkg}
+            old_pkg_c = pkgs.intersection(rq)
 
-        if not old_pkg_c:
-            pluck(total_graph, node)
+            if not old_pkg_c:
+                pluck(total_graph, node)
 
-    # post plucking we can have several strange cases, lets remove all selfloops
-    total_graph.remove_edges_from(nx.selfloop_edges(total_graph))
+        # post plucking we can have several strange cases, lets remove all selfloops
+        total_graph.remove_edges_from(nx.selfloop_edges(total_graph))
 
-    if alt_migrator is not None:
-        migrators.append(
-            alt_migrator(
-                old_pkg=old_pkg,
-                new_pkg=new_pkg,
-                rationale=rationale,
-                pr_limit=PR_LIMIT,
-                graph=total_graph,
-            ),
-        )
-    else:
-        migrators.append(
-            Replacement(
-                old_pkg=old_pkg,
-                new_pkg=new_pkg,
-                rationale=rationale,
-                pr_limit=PR_LIMIT,
-                graph=total_graph,
-            ),
-        )
+        if alt_migrator is not None:
+            migrators.append(
+                alt_migrator(
+                    old_pkg=old_pkg,
+                    new_pkg=new_pkg,
+                    rationale=rationale,
+                    pr_limit=PR_LIMIT,
+                    graph=total_graph,
+                ),
+            )
+        else:
+            migrators.append(
+                Replacement(
+                    old_pkg=old_pkg,
+                    new_pkg=new_pkg,
+                    rationale=rationale,
+                    pr_limit=PR_LIMIT,
+                    graph=total_graph,
+                ),
+            )
 
 
 def add_arch_migrate(migrators: MutableSequence[Migrator], gx: nx.DiGraph) -> None:
@@ -177,39 +172,36 @@ def add_arch_migrate(migrators: MutableSequence[Migrator], gx: nx.DiGraph) -> No
         The list of migrators to run.
 
     """
-    print(
-        "========================================"
-        "========================================",
-        flush=True,
-    )
-    print("making aarch64+ppc64le and osx-arm64 migrations", flush=True)
     total_graph = copy.deepcopy(gx)
 
-    migrators.append(
-        ArchRebuild(
-            graph=total_graph,
-            pr_limit=PR_LIMIT,
-            name="aarch64 and ppc64le addition",
-        ),
-    )
-    migrators.append(
-        OSXArm(
-            graph=total_graph,
-            pr_limit=PR_LIMIT,
-            name="arm osx addition",
-            piggy_back_migrations=[
-                Build2HostMigrator(),
-                UpdateConfigSubGuessMigrator(),
-                CondaForgeYAMLCleanup(),
-                UpdateCMakeArgsMigrator(),
-                GuardTestingMigrator(),
-                CrossRBaseMigrator(),
-                CrossPythonMigrator(),
-                NoCondaInspectMigrator(),
-                MPIPinRunAsBuildCleanup(),
-            ],
-        ),
-    )
+    with fold_log_lines("making aarch64+ppc64le migrator"):
+        migrators.append(
+            ArchRebuild(
+                graph=total_graph,
+                pr_limit=PR_LIMIT,
+                name="aarch64 and ppc64le addition",
+            ),
+        )
+
+    with fold_log_lines("making osx-arm64 migrator"):
+        migrators.append(
+            OSXArm(
+                graph=total_graph,
+                pr_limit=PR_LIMIT,
+                name="arm osx addition",
+                piggy_back_migrations=[
+                    Build2HostMigrator(),
+                    UpdateConfigSubGuessMigrator(),
+                    CondaForgeYAMLCleanup(),
+                    UpdateCMakeArgsMigrator(),
+                    GuardTestingMigrator(),
+                    CrossRBaseMigrator(),
+                    CrossPythonMigrator(),
+                    NoCondaInspectMigrator(),
+                    MPIPinRunAsBuildCleanup(),
+                ],
+            ),
+        )
 
 
 def add_rebuild_migration_yaml(
@@ -340,7 +332,7 @@ def migration_factory(
         "migrations",
     )
     with pushd(migrations_loc):
-        for yaml_file in glob.glob("*.y*ml"):
+        for yaml_file in sorted(glob.glob("*.y*ml")):
             with open(yaml_file) as f:
                 yaml_contents = f.read()
             migration_yamls.append((yaml_file, yaml_contents))
@@ -368,74 +360,68 @@ def migration_factory(
         if __mname not in only_keep:
             continue
 
-        print(
-            "========================================"
-            "========================================\n"
-            f"migrator: {__mname}",
-            flush=True,
-        )
+        with fold_log_lines(f"making {__mname} migrator"):
+            migrator_config = loaded_yaml.get("__migrator", {})
+            paused = migrator_config.pop("paused", False)
+            excluded_feedstocks = set(migrator_config.get("exclude", []))
+            _pr_limit = min(migrator_config.pop("pr_limit", pr_limit), MAX_PR_LIMIT)
+            max_solver_attempts = min(
+                migrator_config.pop("max_solver_attempts", 3),
+                MAX_SOLVER_ATTEMPTS,
+            )
 
-        migrator_config = loaded_yaml.get("__migrator", {})
-        paused = migrator_config.pop("paused", False)
-        excluded_feedstocks = set(migrator_config.get("exclude", []))
-        _pr_limit = min(migrator_config.pop("pr_limit", pr_limit), MAX_PR_LIMIT)
-        max_solver_attempts = min(
-            migrator_config.pop("max_solver_attempts", 3),
-            MAX_SOLVER_ATTEMPTS,
-        )
+            if "override_cbc_keys" in migrator_config:
+                package_names = set(migrator_config.get("override_cbc_keys"))
+            else:
+                package_names = (
+                    set(loaded_yaml) | {ly.replace("_", "-") for ly in loaded_yaml}
+                ) & all_package_names
+            exclude_pinned_pkgs = migrator_config.get("exclude_pinned_pkgs", True)
 
-        if "override_cbc_keys" in migrator_config:
-            package_names = set(migrator_config.get("override_cbc_keys"))
-        else:
-            package_names = (
-                set(loaded_yaml) | {ly.replace("_", "-") for ly in loaded_yaml}
-            ) & all_package_names
-        exclude_pinned_pkgs = migrator_config.get("exclude_pinned_pkgs", True)
-
-        age = time.time() - loaded_yaml.get("migrator_ts", time.time())
-        age /= 24 * 60 * 60
-        print(
-            "migrator %s is %d days old" % (__mname, int(age)),
-            flush=True,
-        )
-        if (
-            age > CHECK_SOLVABLE_TIMEOUT
-            and "check_solvable" not in migrator_config
-            and not migrator_config.get("longterm", False)
-        ):
-            migrator_config["check_solvable"] = False
+            age = time.time() - loaded_yaml.get("migrator_ts", time.time())
+            age /= 24 * 60 * 60
             print(
-                "turning off solver checks for migrator "
-                "%s since over %d is over limit %d"
-                % (
-                    __mname,
-                    age,
-                    CHECK_SOLVABLE_TIMEOUT,
-                ),
+                "migrator %s is %d days old" % (__mname, int(age)),
                 flush=True,
             )
-            skip_solver_checks = True
-        else:
-            skip_solver_checks = False
+            if (
+                age > CHECK_SOLVABLE_TIMEOUT
+                and "check_solvable" not in migrator_config
+                and not migrator_config.get("longterm", False)
+            ):
+                migrator_config["check_solvable"] = False
+                print(
+                    "turning off solver checks for migrator "
+                    "%s since over %d is over limit %d"
+                    % (
+                        __mname,
+                        age,
+                        CHECK_SOLVABLE_TIMEOUT,
+                    ),
+                    flush=True,
+                )
+                skip_solver_checks = True
+            else:
+                skip_solver_checks = False
 
-        if not paused:
-            add_rebuild_migration_yaml(
-                migrators=migrators,
-                gx=gx,
-                package_names=list(package_names),
-                output_to_feedstock=output_to_feedstock,
-                excluded_feedstocks=excluded_feedstocks,
-                exclude_pinned_pkgs=exclude_pinned_pkgs,
-                migration_yaml=yaml_contents,
-                migration_name=os.path.splitext(yaml_file)[0],
-                config=migrator_config,
-                pr_limit=_pr_limit,
-                max_solver_attempts=max_solver_attempts,
-            )
-            if skip_solver_checks:
-                assert not migrators[-1].check_solvable
-        else:
-            logger.warning("skipping migration %s because it is paused", __mname)
+            if not paused:
+                add_rebuild_migration_yaml(
+                    migrators=migrators,
+                    gx=gx,
+                    package_names=list(package_names),
+                    output_to_feedstock=output_to_feedstock,
+                    excluded_feedstocks=excluded_feedstocks,
+                    exclude_pinned_pkgs=exclude_pinned_pkgs,
+                    migration_yaml=yaml_contents,
+                    migration_name=os.path.splitext(yaml_file)[0],
+                    config=migrator_config,
+                    pr_limit=_pr_limit,
+                    max_solver_attempts=max_solver_attempts,
+                )
+                if skip_solver_checks:
+                    assert not migrators[-1].check_solvable
+            else:
+                print(f"skipping migration {__mname} because it is paused", flush=True)
 
 
 def _outside_pin_range(pin_spec, current_pin, new_version):
@@ -459,14 +445,17 @@ def create_migration_yaml_creator(
         if node != "conda-forge-pinning":
             pluck(cfp_gx, node)
 
-    print("pinning migrations", flush=True)
     with pushd(os.environ["CONDA_PREFIX"]):
         pinnings = parse_config_file(
             "conda_build_config.yaml",
             config=Config(**CB_CONFIG),
         )
+
+    pinning_names = sorted(list(pinnings.keys()))
+
     feedstocks_to_be_repinned = []
-    for pinning_name, package_pin_list in pinnings.items():
+    for pinning_name in pinning_names:
+        package_pin_list = pinnings[pinning_name]
         if pin_to_debug is not None and pinning_name != pin_to_debug:
             continue
 
@@ -570,39 +559,42 @@ def create_migration_yaml_creator(
                     current_version,
                 ):
                     feedstocks_to_be_repinned.append(fs_name)
+                    with fold_log_lines(
+                        "making pinning migrator for %s" % pinning_name
+                    ):
+                        print("    %s:" % pinning_name, flush=True)
+                        print("        package name:", package_name, flush=True)
+                        print("        feedstock name:", fs_name, flush=True)
+                        for p in possible_p_dicts:
+                            print("        possible pin spec:", p, flush=True)
+                        print(
+                            "        migrator:\n"
+                            "            curr version: %s\n"
+                            "            curr pin: %s\n"
+                            "            pin_spec: %s"
+                            % (current_version, current_pin, pin_spec),
+                            flush=True,
+                        )
+                        migrators.append(
+                            MigrationYamlCreator(
+                                pinning_name,
+                                current_version,
+                                current_pin,
+                                pin_spec,
+                                fs_name,
+                                cfp_gx,
+                                full_graph=gx,
+                            ),
+                        )
+            except Exception as e:
+                with fold_log_lines(
+                    "failed to make pinning migrator for %s" % pinning_name
+                ):
                     print("    %s:" % pinning_name, flush=True)
                     print("        package name:", package_name, flush=True)
                     print("        feedstock name:", fs_name, flush=True)
-                    for p in possible_p_dicts:
-                        print("        possible pin spec:", p, flush=True)
-                    print(
-                        "        migrator:\n"
-                        "            curr version: %s\n"
-                        "            curr pin: %s\n"
-                        "            pin_spec: %s"
-                        % (current_version, current_pin, pin_spec),
-                        flush=True,
-                    )
-                    migrators.append(
-                        MigrationYamlCreator(
-                            pinning_name,
-                            current_version,
-                            current_pin,
-                            pin_spec,
-                            fs_name,
-                            cfp_gx,
-                            full_graph=gx,
-                        ),
-                    )
-            except Exception as e:
-                logger.info(
-                    "failed to possibly generate pinning PR for {}: {}".format(
-                        pinning_name,
-                        repr(e),
-                    ),
-                )
+                    print("        error:", repr(e), flush=True)
                 continue
-    print(" ", flush=True)
 
 
 def initialize_migrators(
@@ -611,25 +603,20 @@ def initialize_migrators(
 ) -> MutableSequence[Migrator]:
     migrators: List[Migrator] = []
 
-    with fold_log_lines("making alt-arch migrators"):
-        add_arch_migrate(migrators, gx)
+    add_arch_migrate(migrators, gx)
 
-    with fold_log_lines("making replacement migrators"):
-        add_replacement_migrator(
-            migrators,
-            gx,
-            cast("PackageName", "build"),
-            cast("PackageName", "python-build"),
-            "The conda package name 'build' is deprecated "
-            "and too generic. Use 'python-build instead.'",
-        )
+    add_replacement_migrator(
+        migrators,
+        gx,
+        cast("PackageName", "build"),
+        cast("PackageName", "python-build"),
+        "The conda package name 'build' is deprecated "
+        "and too generic. Use 'python-build instead.'",
+    )
 
     pinning_migrators: List[Migrator] = []
-    with fold_log_lines("making pinning migrators"):
-        migration_factory(pinning_migrators, gx)
-
-    with fold_log_lines("making pinnings repo migrators"):
-        create_migration_yaml_creator(migrators=pinning_migrators, gx=gx)
+    migration_factory(pinning_migrators, gx)
+    create_migration_yaml_creator(migrators=pinning_migrators, gx=gx)
 
     with fold_log_lines("migration graph sizes"):
         print("rebuild migration graph sizes:", flush=True)
@@ -640,7 +627,6 @@ def initialize_migrators(
                     f'{len(getattr(m, "graph", []))}',
                     flush=True,
                 )
-        print(" ", flush=True)
 
     with fold_log_lines("making version migrator"):
         print("building package import maps and version migrator", flush=True)
