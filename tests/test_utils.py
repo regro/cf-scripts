@@ -5,9 +5,11 @@ import pytest
 
 from conda_forge_tick.utils import (
     DEFAULT_GRAPH_FILENAME,
+    _munge_dict_repr,
     get_keys_default,
     load_existing_graph,
     load_graph,
+    parse_munged_run_export,
 )
 
 EMPTY_JSON = "{}"
@@ -140,3 +142,9 @@ def test_load_existing_graph_file_does_not_exist(exists_mock: MagicMock):
             load_existing_graph()
 
     mock_file.assert_has_calls([mock.call(DEFAULT_GRAPH_FILENAME, "w")])
+
+
+def test_munge_dict_repr():
+    d = {"a": 1, "b": 2, "weak": [1, 2, 3], "strong": {"a": 1, "b": 2}}
+    print(_munge_dict_repr(d))
+    assert parse_munged_run_export(_munge_dict_repr(d)) == d

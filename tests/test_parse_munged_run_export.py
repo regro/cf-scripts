@@ -41,6 +41,50 @@ extra:
 """
 
 
+RECIPE_WEAK_STRONG = """\
+{% set version = "3.19.1" %}
+{% set sha256 = "280737e9ef762d7f0079ad3ad29913215c799ebf124651c723c1972f71fbc0db" %}
+{% set build = 0 %}
+
+package:
+  name: slepc
+  version: {{ version }}
+
+source:
+  url: http://slepc.upv.es/download/distrib/slepc-{{ version }}.tar.gz
+  sha256: {{ sha256 }}
+
+build:
+  skip: true  # [win]
+  number: {{ build }}
+  string: real_h{{ PKG_HASH }}_{{ build }}
+  run_exports:
+    weak:
+      - {{ pin_subpackage('slepc', max_pin='x.x') }} real_*  # comment
+    strong:
+      - {{ pin_subpackage('slepc', max_pin='x') }} imag_*  # comment
+
+requirements:
+  run:
+    - petsc
+    - suitesparse
+
+about:
+  home: http://slepc.upv.es/
+  summary: 'SLEPc: Scalable Library for Eigenvalue Problem Computations'
+  license: BSD-2-Clause
+  license_file: LICENSE.md
+  license_family: BSD
+
+extra:
+  recipe-maintainers:
+    - dalcinl
+    - joseeroman
+    - minrk
+
+"""
+
+
 ANOTHER_RECIPE = """\
 {% set version = "3.10.7.0" %}
 {% set prefix = "Library/" if win else "" %}
@@ -941,11 +985,26 @@ def test_parse_munged_run_export():
         for_pinning=True,
     )
     assert meta_yaml["build"]["run_exports"] == [
-        "__dict__'package_name'@$$'slepc',$$'max_pin'@$$'x.x'__dict__ real_*",
+        "__quote_plus__%7B%27package_name%27%3A+%27slepc%27%2C+%27max_pin%27%3A+%27x.x%27%7D__quote_plus__ real_*",
     ]
     assert parse_munged_run_export(meta_yaml["build"]["run_exports"][0]) == {
         "package_name": "slepc",
         "max_pin": "x.x",
+    }
+
+
+def test_parse_munged_run_export_weak_strong():
+    meta_yaml = parse_meta_yaml(
+        RECIPE_WEAK_STRONG,
+        for_pinning=True,
+    )
+    assert parse_munged_run_export(meta_yaml["build"]["run_exports"]["weak"][0]) == {
+        "package_name": "slepc",
+        "max_pin": "x.x",
+    }
+    assert parse_munged_run_export(meta_yaml["build"]["run_exports"]["strong"][0]) == {
+        "package_name": "slepc",
+        "max_pin": "x",
     }
 
 
@@ -958,8 +1017,8 @@ def test_parse_munged_run_export_gnuradio():
         if out["name"] == "gnuradio-core":
             assert len(out["build"]["run_exports"]) == 2
             assert out["build"]["run_exports"] == [
-                "__dict__'package_name'@$$'gnuradio-core',$$'max_pin'@$$'x.x.x'__dict__",
-                "__dict__'package_name'@$$'gnuradio-pmt',$$'max_pin'@$$'x.x.x'__dict__",
+                "__quote_plus__%7B%27package_name%27%3A+%27gnuradio-core%27%2C+%27max_pin%27%3A+%27x.x.x%27%7D__quote_plus__",
+                "__quote_plus__%7B%27package_name%27%3A+%27gnuradio-pmt%27%2C+%27max_pin%27%3A+%27x.x.x%27%7D__quote_plus__",
             ]
             assert [
                 parse_munged_run_export(out["build"]["run_exports"][0]),
@@ -982,5 +1041,5 @@ def test_parse_munged_run_export_opencv():
         for_pinning=True,
     )
     assert meta_yaml["build"]["run_exports"] == [
-        "__dict__'package_name'@$$'libopencv',$$'max_pin'@$$'x.x.x'__dict__",
+        "__quote_plus__%7B%27package_name%27%3A+%27libopencv%27%2C+%27max_pin%27%3A+%27x.x.x%27%7D__quote_plus__",
     ]
