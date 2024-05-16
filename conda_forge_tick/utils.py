@@ -64,10 +64,9 @@ CB_CONFIG = dict(
 
 
 def _munge_dict_repr(dct: Dict[Any, Any]) -> str:
-    d = repr(dct)
     from urllib.parse import quote_plus
 
-    return quote_plus(d)
+    return "__quote_plus__" + quote_plus(repr(dct)) + "__quote_plus__"
 
 
 CB_CONFIG_PINNING = dict(
@@ -92,6 +91,26 @@ CB_CONFIG_PINNING = dict(
 DEFAULT_GRAPH_FILENAME = "graph.json"
 
 DEFAULT_CONTAINER_TMPFS_SIZE_MB = 6000
+
+
+def parse_munged_run_export(p: str) -> Dict:
+    from urllib.parse import unquote_plus
+
+    # get rid of comments
+    p = p.split("#")[0].strip()
+
+    # remove build string
+    p = p.rsplit("__quote_plus__", maxsplit=1)[0].strip()
+
+    # unquote
+    if p.startswith("__quote_plus__") or p.endswith("__quote_plus__"):
+        if p.startswith("__quote_plus__"):
+            p = p[len("__quote_plus__") :]
+        if p.endswith("__quote_plus__"):
+            p = p[: -len("__quote_plus__")]
+        p = unquote_plus(p)
+
+    return cast(Dict, yaml_safe_load(p))
 
 
 def get_default_container_name():
@@ -285,12 +304,6 @@ def fold_log_lines(title):
         if os.environ.get("GITHUB_ACTIONS", "false") == "true":
             LOG_LINES_FOLDED = False
             print("::endgroup::", flush=True)
-
-
-def parse_munged_run_export(p: str) -> Dict:
-    from urllib.parse import unquote_plus
-
-    return cast(Dict, yaml_safe_load(unquote_plus(p)))
 
 
 def yaml_safe_load(stream):
