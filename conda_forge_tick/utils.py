@@ -235,6 +235,32 @@ def run_container_task(
     return ret["data"]
 
 
+REPRINTED_LINES = {}
+
+
+@contextlib.contextmanager
+def filter_reprinted_lines(key):
+    global REPRINTED_LINES
+    if key not in REPRINTED_LINES:
+        REPRINTED_LINES[key] = set()
+
+    stdout = io.StringIO()
+    stderr = io.StringIO()
+
+    try:
+        with contextlib.redirect_stdout(stdout), contextlib.redirect_stderr(stderr):
+            yield
+    finally:
+        for line in stdout.getvalue().split("\n"):
+            if line not in REPRINTED_LINES[key]:
+                print(line, file=sys.stdout)
+                REPRINTED_LINES[key].add(line)
+        for line in stderr.getvalue().split("\n"):
+            if line not in REPRINTED_LINES[key]:
+                print(line, file=sys.stderr)
+                REPRINTED_LINES[key].add(line)
+
+
 LOG_LINES_FOLDED = False
 
 
