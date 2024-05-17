@@ -93,6 +93,11 @@ def _reset_pre_pr_migrator_fields(attrs, migrator_name):
                 pri[_key].pop(migrator_name)
 
 
+def _get_pre_pr_migrator_attempts(attrs, migrator_name):
+    with attrs["pr_info"] as pri:
+        return pri.get("pre_pr_migrator_attempts", {}).get(migrator_name, 0)
+
+
 def run(
     feedstock_ctx: FeedstockContext,
     migrator: Migrator,
@@ -284,6 +289,10 @@ def run(
         )
         # feedstocks that have problematic bootstrapping will not always be solvable
         and feedstock_ctx.feedstock_name not in BOOTSTRAP_MAPPINGS
+        # we try up to MAX_SOLVER_ATTEMPTS times and then we just skip
+        # the solver check and issue the PR
+        and _get_pre_pr_migrator_attempts(feedstock_ctx.attrs, migrator_name)
+        < migrator.force_pr_after_solver_attempts
     ):
         solvable, errors, _ = is_recipe_solvable(
             feedstock_dir,

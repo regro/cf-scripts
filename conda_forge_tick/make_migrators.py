@@ -216,6 +216,7 @@ def add_rebuild_migration_yaml(
     migration_name: str,
     nominal_pr_limit: int = PR_LIMIT,
     max_solver_attempts: int = 3,
+    force_pr_after_solver_attempts: int = MAX_SOLVER_ATTEMPTS,
 ) -> None:
     """Adds rebuild migrator.
 
@@ -241,6 +242,8 @@ def add_rebuild_migration_yaml(
         Name of the migration
     nominal_pr_limit : int, optional
         The number of PRs per hour, defaults to 5
+    force_pr_after_solver_attempts : int, optional
+        The number of solver attempts after which to force a PR, defaults to 50.
     """
 
     total_graph = create_rebuild_graph(
@@ -307,6 +310,7 @@ def add_rebuild_migration_yaml(
         cycles=cycles,
         piggy_back_migrations=piggy_back_migrations,
         max_solver_attempts=max_solver_attempts,
+        force_pr_after_solver_attempts=force_pr_after_solver_attempts,
         **config,
     )
 
@@ -418,6 +422,10 @@ def migration_factory(
                 migrator_config.pop("max_solver_attempts", 3),
                 MAX_SOLVER_ATTEMPTS,
             )
+            force_pr_after_solver_attempts = min(
+                migrator_config.pop("force_pr_after_solver_attempts", 50),
+                MAX_SOLVER_ATTEMPTS,
+            )
 
             if "override_cbc_keys" in migrator_config:
                 package_names = set(migrator_config.get("override_cbc_keys"))
@@ -466,6 +474,7 @@ def migration_factory(
                     config=migrator_config,
                     nominal_pr_limit=_pr_limit,
                     max_solver_attempts=max_solver_attempts,
+                    force_pr_after_solver_attempts=force_pr_after_solver_attempts,
                 )
                 if skip_solver_checks:
                     assert not migrators[-1].check_solvable
