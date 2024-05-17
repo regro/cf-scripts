@@ -272,24 +272,24 @@ def run(
         and (base_branch == "master" or base_branch == "main")
         # feedstocks that have problematic bootstrapping will not always be solvable
         and feedstock_ctx.feedstock_name not in BOOTSTRAP_MAPPINGS
+        # stuff in cycles always goes
+        and feedstock_ctx.attrs["name"] not in getattr(migrator, "cycles", set())
+        # stuff at the top always goes
+        and feedstock_ctx.attrs["name"] not in getattr(migrator, "top_level", set())
+        # either the migrator or the feedstock has to request solver checks
         and (
-            (
-                migrator.check_solvable
-                # we always let stuff in cycles go
-                and feedstock_ctx.attrs["name"]
-                not in getattr(migrator, "cycles", set())
-                # we always let stuff at the top go
-                and feedstock_ctx.attrs["name"]
-                not in getattr(migrator, "top_level", set())
-            )
+            migrator.check_solvable
             or get_keys_default(
                 feedstock_ctx.attrs,
                 ["conda-forge.yml", "bot", "check_solvable"],
                 {},
                 False,
             )
-            # we try up to MAX_SOLVER_ATTEMPTS times and then we just skip
-            # the solver check and issue the PR
+        )
+        # we try up to MAX_SOLVER_ATTEMPTS times and then we just skip
+        # the solver check and issue the PR if automerge is off
+        and (
+            getattr(migrator, "automerge", False)
             or (
                 _get_pre_pr_migrator_attempts(feedstock_ctx.attrs, migrator_name)
                 < migrator.force_pr_after_solver_attempts
