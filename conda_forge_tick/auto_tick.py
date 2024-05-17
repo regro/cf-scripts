@@ -270,6 +270,8 @@ def run(
     if (
         feedstock_ctx.feedstock_name != "conda-forge-pinning"
         and (base_branch == "master" or base_branch == "main")
+        # feedstocks that have problematic bootstrapping will not always be solvable
+        and feedstock_ctx.feedstock_name not in BOOTSTRAP_MAPPINGS
         and (
             (
                 migrator.check_solvable
@@ -286,13 +288,13 @@ def run(
                 {},
                 False,
             )
+            # we try up to MAX_SOLVER_ATTEMPTS times and then we just skip
+            # the solver check and issue the PR
+            or (
+                _get_pre_pr_migrator_attempts(feedstock_ctx.attrs, migrator_name)
+                < migrator.force_pr_after_solver_attempts
+            )
         )
-        # feedstocks that have problematic bootstrapping will not always be solvable
-        and feedstock_ctx.feedstock_name not in BOOTSTRAP_MAPPINGS
-        # we try up to MAX_SOLVER_ATTEMPTS times and then we just skip
-        # the solver check and issue the PR
-        and _get_pre_pr_migrator_attempts(feedstock_ctx.attrs, migrator_name)
-        < migrator.force_pr_after_solver_attempts
     ):
         solvable, errors, _ = is_recipe_solvable(
             feedstock_dir,
