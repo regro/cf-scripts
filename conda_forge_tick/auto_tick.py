@@ -289,7 +289,7 @@ def run(
         )
         # feedstocks that have problematic bootstrapping will not always be solvable
         and feedstock_ctx.feedstock_name not in BOOTSTRAP_MAPPINGS
-        # we try up to MAX_SOLVER_ATTEMPTS times and then we just skip
+        # we try up to force_pr_after_solver_attempts times and then we just skip
         # the solver check and issue the PR
         and _get_pre_pr_migrator_attempts(feedstock_ctx.attrs, migrator_name)
         < migrator.force_pr_after_solver_attempts
