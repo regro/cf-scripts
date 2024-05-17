@@ -40,7 +40,11 @@ from conda_forge_tick.lazy_json_backends import (
     lazy_json_transaction,
     remove_key_for_hashmap,
 )
-from conda_forge_tick.make_migrators import PR_LIMIT, load_migrators
+from conda_forge_tick.make_migrators import (
+    MAX_SOLVER_ATTEMPTS,
+    PR_LIMIT,
+    load_migrators,
+)
 from conda_forge_tick.migrators import MigrationYaml, Migrator, Version
 from conda_forge_tick.os_utils import eval_cmd, pushd
 from conda_forge_tick.rerender_feedstock import rerender_feedstock
@@ -278,7 +282,7 @@ def run(
         and feedstock_ctx.attrs["name"] not in getattr(migrator, "top_level", set())
         # either the migrator or the feedstock has to request solver checks
         and (
-            migrator.check_solvable
+            getattr(migrator, "check_solvable", True)
             or get_keys_default(
                 feedstock_ctx.attrs,
                 ["conda-forge.yml", "bot", "check_solvable"],
@@ -292,7 +296,9 @@ def run(
             getattr(migrator, "automerge", False)
             or (
                 _get_pre_pr_migrator_attempts(feedstock_ctx.attrs, migrator_name)
-                < migrator.force_pr_after_solver_attempts
+                < getattr(
+                    migrator, "force_pr_after_solver_attempts", MAX_SOLVER_ATTEMPTS * 2
+                )
             )
         )
     ):
