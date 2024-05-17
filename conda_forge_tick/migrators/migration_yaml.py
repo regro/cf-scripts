@@ -136,6 +136,7 @@ class MigrationYaml(GraphMigrator):
         ignored_deps_per_node=None,
         max_solver_attempts=3,
         effective_graph: nx.DiGraph = None,
+        force_pr_after_solver_attempts=100,
         longterm=False,
         **kwargs: Any,
     ):
@@ -158,6 +159,7 @@ class MigrationYaml(GraphMigrator):
                 "max_solver_attempts": max_solver_attempts,
                 "effective_graph": effective_graph,
                 "longterm": longterm,
+                "force_pr_after_solver_attempts": force_pr_after_solver_attempts,
             }
             self._init_kwargs.update(copy.deepcopy(kwargs))
 
@@ -181,6 +183,7 @@ class MigrationYaml(GraphMigrator):
         self.bump_number = bump_number
         self.max_solver_attempts = max_solver_attempts
         self.longterm = longterm
+        self.force_pr_after_solver_attempts = force_pr_after_solver_attempts
 
         self._reset_effective_graph()
 
