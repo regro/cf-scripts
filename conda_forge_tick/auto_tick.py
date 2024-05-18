@@ -271,6 +271,45 @@ def run(
         else:
             make_rerender_comment = False
 
+    feedstock_automerge = get_keys_default(
+        feedstock_ctx.attrs,
+        ["conda-forge.yml", "bot", "automerge"],
+        {},
+        False,
+    )
+    if isinstance(migrator, Version):
+        has_automerge = feedstock_automerge in [True, "version"]
+    else:
+        has_automerge = getattr(
+            migrator, "automerge", False
+        ) and feedstock_automerge in [True, "migration"]
+
+    migrator_check_solvable = getattr(migrator, "check_solvable", True)
+    feedstock_check_solvable = get_keys_default(
+        feedstock_ctx.attrs,
+        ["conda-forge.yml", "bot", "check_solvable"],
+        {},
+        False,
+    )
+    pr_attempts = _get_pre_pr_migrator_attempts(feedstock_ctx.attrs, migrator_name)
+    max_pr_attempts = getattr(
+        migrator, "force_pr_after_solver_attempts", MAX_SOLVER_ATTEMPTS * 2
+    )
+
+    logger.info(
+        f"""automerge and check_solvable status/settings:
+    automerge:
+        feedstock_automerge: {feedstock_automerge}
+        migratror_automerge: {getattr(migrator, 'automerge', False)}
+        has_automerge: {has_automerge} (only considers feedstock if version migration)
+    check_solvable:
+        feedstock_checksolvable: {feedstock_check_solvable}
+        migrator_check_solvable: {migrator_check_solvable}
+    pre_pr_migrator_attempts: {pr_attempts}
+    force_pr_after_solver_attempts: {max_pr_attempts}
+"""
+    )
+
     if (
         feedstock_ctx.feedstock_name != "conda-forge-pinning"
         and (base_branch == "master" or base_branch == "main")
@@ -281,26 +320,10 @@ def run(
         # stuff at the top always goes
         and feedstock_ctx.attrs["name"] not in getattr(migrator, "top_level", set())
         # either the migrator or the feedstock has to request solver checks
-        and (
-            getattr(migrator, "check_solvable", True)
-            or get_keys_default(
-                feedstock_ctx.attrs,
-                ["conda-forge.yml", "bot", "check_solvable"],
-                {},
-                False,
-            )
-        )
+        and (migrator_check_solvable or feedstock_check_solvable)
         # we try up to MAX_SOLVER_ATTEMPTS times and then we just skip
         # the solver check and issue the PR if automerge is off
-        and (
-            getattr(migrator, "automerge", False)
-            or (
-                _get_pre_pr_migrator_attempts(feedstock_ctx.attrs, migrator_name)
-                < getattr(
-                    migrator, "force_pr_after_solver_attempts", MAX_SOLVER_ATTEMPTS * 2
-                )
-            )
-        )
+        and (has_automerge or (pr_attempts < max_pr_attempts))
     ):
         solvable, errors, _ = is_recipe_solvable(
             feedstock_dir,
