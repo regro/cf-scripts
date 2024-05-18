@@ -639,7 +639,46 @@ def _run_migrator_on_feedstock_branch(
     return good_prs, break_loop
 
 
+def _is_migrator_done(_mg_start, good_prs, time_per, pr_limit):
+    curr_time = time.time()
+    api_req = get_github_api_requests_left()
+
+    if curr_time - START_TIME > TIMEOUT:
+        logger.info(
+            "BOT TIMEOUT: breaking after %d seconds (limit %d)",
+            curr_time - START_TIME,
+            TIMEOUT,
+        )
+        return True
+
+    if good_prs >= pr_limit:
+        logger.info(
+            "MIGRATOR PR LIMIT: breaking after %d good PRs (limit %d)",
+            good_prs,
+            pr_limit,
+        )
+        return True
+
+    if (curr_time - _mg_start) > time_per:
+        logger.info(
+            "TIME LIMIT: breaking after %d seconds (limit %d)",
+            curr_time - _mg_start,
+            time_per,
+        )
+        return True
+
+    if api_req == 0:
+        logger.info(
+            "GitHub API LIMIT: no requests left",
+        )
+        return True
+
+    return False
+
+
 def _run_migrator(migrator, mctx, temp, time_per, dry_run):
+    _mg_start = time.time()
+
     if hasattr(migrator, "name"):
         assert isinstance(migrator.name, str)
         migrator_name = migrator.name.lower().replace(" ", "")
@@ -658,11 +697,7 @@ def _run_migrator(migrator, mctx, temp, time_per, dry_run):
             extra_name,
         ),
     ):
-        if _over_time_limit():
-            return 0
-
         good_prs = 0
-        _mg_start = time.time()
         effective_graph = migrator.effective_graph
 
         possible_nodes = list(migrator.order(effective_graph, mctx.graph))
@@ -699,6 +734,9 @@ def _run_migrator(migrator, mctx, temp, time_per, dry_run):
             flush=True,
         )
 
+        if _is_migrator_done(_mg_start, good_prs, time_per, migrator.pr_limit):
+            return 0
+
     for node_name in possible_nodes:
         with (
             fold_log_lines(
@@ -713,14 +751,7 @@ def _run_migrator(migrator, mctx, temp, time_per, dry_run):
         ):
             # Don't let CI timeout, break ahead of the timeout so we make certain
             # to write to the repo
-            # TODO: convert these env vars
-            _now = time.time()
-            if (
-                _over_time_limit()
-                or good_prs >= migrator.pr_limit
-                or (time.time() - _mg_start) > time_per
-                or get_github_api_requests_left() == 0
-            ):
+            if _is_migrator_done(_mg_start, good_prs, time_per, migrator.pr_limit):
                 break
 
             base_branches = migrator.get_possible_feedstock_branches(attrs)
@@ -747,6 +778,9 @@ def _run_migrator(migrator, mctx, temp, time_per, dry_run):
                     # skip things that do not get migrated
                     attrs["branch"] = base_branch
                     if migrator.filter(attrs):
+                        logger.info(
+                            "skipping node %s w/ branch %s", node_name, base_branch
+                        )
                         continue
 
                     with fold_log_lines(
