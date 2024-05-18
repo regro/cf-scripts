@@ -590,15 +590,15 @@ package:
       python-dateutil: '>=2.1,<3.0.0'
       urllib3: '>=1.25.4,!=2.2.0,<3'
     hash:
-      md5: 975c4ded3ea1a4fd5f373b7e3485b500
-      sha256: bcb3d88dcc518727719b1c98bd234d8c76b552cd962fdfc2347f991bb0d07d9b
+      md5: 0b64b03ecd058c1e8b447f20a7fd79a0
+      sha256: 4481d08cf0bd77c94e5327e6b3a4888605c1c030078f63c4c60d46598f1f64bb
     manager: conda
     name: botocore
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/botocore-1.34.107-pyge310_1234567_0.conda
-    version: 1.34.107
+      https://conda.anaconda.org/conda-forge/noarch/botocore-1.34.108-pyge310_1234567_0.conda
+    version: 1.34.108
   - category: main
     dependencies:
       jmespath: '>=0.7.1,<2.0.0'
@@ -606,15 +606,15 @@ package:
       python-dateutil: '>=2.1,<3.0.0'
       urllib3: '>=1.25.4,!=2.2.0,<3'
     hash:
-      md5: 975c4ded3ea1a4fd5f373b7e3485b500
-      sha256: bcb3d88dcc518727719b1c98bd234d8c76b552cd962fdfc2347f991bb0d07d9b
+      md5: 0b64b03ecd058c1e8b447f20a7fd79a0
+      sha256: 4481d08cf0bd77c94e5327e6b3a4888605c1c030078f63c4c60d46598f1f64bb
     manager: conda
     name: botocore
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/botocore-1.34.107-pyge310_1234567_0.conda
-    version: 1.34.107
+      https://conda.anaconda.org/conda-forge/noarch/botocore-1.34.108-pyge310_1234567_0.conda
+    version: 1.34.108
   - category: main
     dependencies:
       jmespath: '>=0.7.1,<2.0.0'
@@ -622,15 +622,15 @@ package:
       python-dateutil: '>=2.1,<3.0.0'
       urllib3: '>=1.25.4,!=2.2.0,<3'
     hash:
-      md5: 975c4ded3ea1a4fd5f373b7e3485b500
-      sha256: bcb3d88dcc518727719b1c98bd234d8c76b552cd962fdfc2347f991bb0d07d9b
+      md5: 0b64b03ecd058c1e8b447f20a7fd79a0
+      sha256: 4481d08cf0bd77c94e5327e6b3a4888605c1c030078f63c4c60d46598f1f64bb
     manager: conda
     name: botocore
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/botocore-1.34.107-pyge310_1234567_0.conda
-    version: 1.34.107
+      https://conda.anaconda.org/conda-forge/noarch/botocore-1.34.108-pyge310_1234567_0.conda
+    version: 1.34.108
   - category: main
     dependencies:
       libgcc-ng: '>=12'
@@ -10781,45 +10781,47 @@ package:
       python: '>=3.11,<3.12.0a0'
       python_abi: 3.11.*
     hash:
-      md5: d17019e578acf68fa278576d1f00ab21
-      sha256: 83b7036e33d4e2f50d175a30f7d4fa6ec66ab45ee8e0684b3576b81979eeb47d
+      md5: 6316989d91d279e7a17242938d44e8e3
+      sha256: 2c5457337f878442716cfd3824a3abe5f909020dcc70ee9cc67ea1fea079aeea
     manager: conda
     name: python-rapidjson
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/linux-64/python-rapidjson-1.16-py311hb755f60_0.conda
-    version: '1.16'
+      https://conda.anaconda.org/conda-forge/linux-64/python-rapidjson-1.17-py311h4332511_0.conda
+    version: '1.17'
   - category: main
     dependencies:
+      __osx: '>=10.13'
       libcxx: '>=16'
       python: '>=3.11,<3.12.0a0'
       python_abi: 3.11.*
     hash:
-      md5: e3fec16e37991f137136461e83a9aacf
-      sha256: 48c2e43300e633cbdc07b596632093c55c5d11a2bedbd8b651a6e8a6e7aedab6
+      md5: 3515838fe5f6dcaf7245417543e35177
+      sha256: a76d2e35ab425c48c1f90c20ed7554ff911083952c27896bc5b5b3a5d59bad02
     manager: conda
     name: python-rapidjson
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/osx-64/python-rapidjson-1.16-py311hdd0406b_0.conda
-    version: '1.16'
+      https://conda.anaconda.org/conda-forge/osx-64/python-rapidjson-1.17-py311hbafa61a_0.conda
+    version: '1.17'
   - category: main
     dependencies:
+      __osx: '>=11.0'
       libcxx: '>=16'
       python: '>=3.11,<3.12.0a0'
       python_abi: 3.11.*
     hash:
-      md5: 284ea2900e4835ebc79062fdc3e99a43
-      sha256: f0553c8d81132834ab5327e22c0d5afc4489402f686b560383ee36efe3f8efab
+      md5: 213e714f8974598c163f78bd4d420caa
+      sha256: d172f22c71908af1b25b0e9b2656709f2ad19140066ae4df9111a39bc675d1fc
     manager: conda
     name: python-rapidjson
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/osx-arm64/python-rapidjson-1.16-py311h92babd0_0.conda
-    version: '1.16'
+      https://conda.anaconda.org/conda-forge/osx-arm64/python-rapidjson-1.17-py311hb9542d7_0.conda
+    version: '1.17'
   - category: main
     dependencies:
       python: '>=3.8'
