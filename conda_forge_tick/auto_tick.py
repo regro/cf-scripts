@@ -97,9 +97,13 @@ def _reset_pre_pr_migrator_fields(attrs, migrator_name):
                 pri[_key].pop(migrator_name)
 
 
-def _get_pre_pr_migrator_attempts(attrs, migrator_name):
-    with attrs["pr_info"] as pri:
-        return pri.get("pre_pr_migrator_attempts", {}).get(migrator_name, 0)
+def _get_pre_pr_migrator_attempts(attrs, migrator_name, is_version=False):
+    if is_version:
+        with attrs["version_pr_info"] as vpri:
+            return vpri.get("new_version_attempts", {}).get(vpri["new_version"], 0)
+    else:
+        with attrs["pr_info"] as pri:
+            return pri.get("pre_pr_migrator_attempts", {}).get(migrator_name, 0)
 
 
 def run(
@@ -291,7 +295,9 @@ def run(
         {},
         False,
     )
-    pr_attempts = _get_pre_pr_migrator_attempts(feedstock_ctx.attrs, migrator_name)
+    pr_attempts = _get_pre_pr_migrator_attempts(
+        feedstock_ctx.attrs, migrator_name, is_version=isinstance(migrator, Version)
+    )
     max_pr_attempts = getattr(
         migrator, "force_pr_after_solver_attempts", MAX_SOLVER_ATTEMPTS * 2
     )
