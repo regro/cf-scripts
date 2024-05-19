@@ -45,6 +45,7 @@ from conda_forge_tick.make_migrators import (
     PR_LIMIT,
     load_migrators,
 )
+from conda_forge_tick.migration_runner import run_migration
 from conda_forge_tick.migrators import MigrationYaml, Migrator, Version
 from conda_forge_tick.os_utils import eval_cmd, pushd
 from conda_forge_tick.rerender_feedstock import rerender_feedstock
@@ -56,6 +57,7 @@ from conda_forge_tick.utils import (
     frozen_to_json_friendly,
     get_bot_run_url,
     get_keys_default,
+    get_migrator_name,
     load_existing_graph,
     sanitize_string,
 )
@@ -152,11 +154,7 @@ def run(
     # get the repo
     branch_name = migrator.remote_branch(feedstock_ctx) + "_h" + uuid4().hex[0:6]
 
-    if hasattr(migrator, "name"):
-        assert isinstance(migrator.name, str)
-        migrator_name = migrator.name.lower().replace(" ", "")
-    else:
-        migrator_name = migrator.__class__.__name__.lower()
+    migrator_name = get_migrator_name(migrator)
 
     # TODO: run this in parallel
     feedstock_dir, repo = get_repo(
@@ -178,16 +176,18 @@ def run(
 
     # need to use an absolute path here
     feedstock_dir = os.path.abspath(feedstock_dir)
-    recipe_dir = os.path.join(feedstock_dir, "recipe")
 
-    # migrate the feedstock
-    migrator.run_pre_piggyback_migrations(recipe_dir, feedstock_ctx.attrs, **kwargs)
+    migration_run_data = run_migration(
+        migrator=migrator,
+        feedstock_dir=feedstock_dir,
+        package_name=feedstock_ctx.package_name,
+        feedstock_name=feedstock_ctx.feedstock_name,
+        node_attrs=feedstock_ctx.attrs,
+        default_branch=feedstock_ctx.default_branch,
+        **kwargs,
+    )
 
-    # TODO - make a commit here if the repo changed
-
-    migrate_return = migrator.migrate(recipe_dir, feedstock_ctx.attrs, **kwargs)
-
-    if not migrate_return:
+    if not migration_run_data["migrate_return_value"]:
         logger.critical(
             "Failed to migrate %s, %s",
             feedstock_ctx.package_name,
@@ -196,16 +196,10 @@ def run(
         eval_cmd(["rm", "-rf", feedstock_dir])
         return False, False
 
-    # TODO - commit main migration here
-
-    migrator.run_post_piggyback_migrations(recipe_dir, feedstock_ctx.attrs, **kwargs)
-
-    # TODO commit post migration here
-
     # rerender, maybe
     diffed_files: typing.List[str] = []
     with pushd(feedstock_dir):
-        msg = migrator.commit_message(feedstock_ctx)  # noqa
+        msg = migration_run_data["commit_message"]
         try:
             eval_cmd(["git", "add", "--all", "."])
             if migrator.allow_empty_commits:
@@ -399,9 +393,9 @@ def run(
             pr_json = push_repo(
                 fctx=feedstock_ctx,
                 feedstock_dir=feedstock_dir,
-                body=migrator.pr_body(feedstock_ctx),
+                body=migration_run_data["pr_body"],
                 repo=repo,
-                title=migrator.pr_title(feedstock_ctx),
+                title=migration_run_data["pr_title"],
                 branch=branch_name,
                 base_branch=base_branch,
                 dry_run=dry_run,
@@ -445,7 +439,7 @@ comment. Hopefully you all can fix this!
 
     logger.info("Removing feedstock dir")
     eval_cmd(["rm", "-rf", feedstock_dir])
-    return migrate_return, ljpr
+    return migration_run_data["migrate_return_value"], ljpr
 
 
 def _compute_time_per_migrator(mctx, migrators):
@@ -679,11 +673,7 @@ def _is_migrator_done(_mg_start, good_prs, time_per, pr_limit):
 def _run_migrator(migrator, mctx, temp, time_per, dry_run):
     _mg_start = time.time()
 
-    if hasattr(migrator, "name"):
-        assert isinstance(migrator.name, str)
-        migrator_name = migrator.name.lower().replace(" ", "")
-    else:
-        migrator_name = migrator.__class__.__name__.lower()
+    migrator_name = get_migrator_name(migrator)
 
     if hasattr(migrator, "name"):
         extra_name = "-%s" % migrator.name
