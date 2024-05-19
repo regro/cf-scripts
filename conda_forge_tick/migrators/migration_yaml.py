@@ -487,6 +487,7 @@ class MigrationYamlCreator(Migrator):
         self.package_name = package_name
         self.bump_number = bump_number
         self.name = package_name + " pinning"
+        self.pin_impact = pin_impact
 
         self._reset_effective_graph()
 
