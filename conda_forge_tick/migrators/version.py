@@ -33,6 +33,10 @@ SKIP_DEPS_NODES = [
 logger = logging.getLogger(__name__)
 
 
+class VersionMigrationError(Exception):
+    pass
+
+
 def _fmt_error_message(errors, version):
     msg = (
         "The recipe did not change in the version migration, a URL did "
@@ -184,16 +188,6 @@ class Version(Migrator):
     ) -> "MigrationUidTypedDict":
         version = attrs.get("version_pr_info", {})["new_version"]
 
-        # record the attempt
-        with attrs["version_pr_info"] as vpri:
-            if "new_version_attempts" not in vpri:
-                vpri["new_version_attempts"] = {}
-            if "new_version_errors" not in vpri:
-                vpri["new_version_errors"] = {}
-            if version not in vpri["new_version_attempts"]:
-                vpri["new_version_attempts"][version] = 0
-            vpri["new_version_attempts"][version] += 1
-
         with open(os.path.join(recipe_dir, "meta.yaml")) as fp:
             raw_meta_yaml = fp.read()
 
@@ -211,12 +205,12 @@ class Version(Migrator):
 
             return super().migrate(recipe_dir, attrs)
         else:
-            with attrs["version_pr_info"] as vpri:
-                vpri["new_version_errors"][version] = _fmt_error_message(
+            raise VersionMigrationError(
+                _fmt_error_message(
                     errors,
                     version,
                 )
-            return {}
+            )
 
     def pr_body(self, feedstock_ctx: FeedstockContext) -> str:
         pred = [
