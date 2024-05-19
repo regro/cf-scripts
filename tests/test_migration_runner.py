@@ -4,7 +4,7 @@ import subprocess
 
 from test_migrators import sample_yaml_rebuild, updated_yaml_rebuild
 
-from conda_forge_tick.migration_runner import run_migration
+from conda_forge_tick.migration_runner import run_migration_local
 from conda_forge_tick.migrators import MigrationYaml
 from conda_forge_tick.os_utils import pushd
 from conda_forge_tick.utils import parse_meta_yaml
@@ -23,7 +23,7 @@ yaml_rebuild = _MigrationYaml(yaml_contents="{}", name="hi")
 yaml_rebuild.cycles = []
 
 
-def test_migration_runner_yaml_rebuild(tmpdir):
+def test_migration_runner_run_migration_local_yaml_rebuild(tmpdir):
     os.makedirs(os.path.join(tmpdir, "recipe"), exist_ok=True)
     with open(os.path.join(tmpdir, "recipe", "meta.yaml"), "w") as f:
         f.write(sample_yaml_rebuild)
@@ -46,7 +46,7 @@ def test_migration_runner_yaml_rebuild(tmpdir):
             pmy["meta_yaml"] = {}
     pmy["raw_meta_yaml"] = sample_yaml_rebuild
 
-    migration_data = run_migration(
+    migration_data = run_migration_local(
         migrator=yaml_rebuild,
         feedstock_dir=tmpdir,
         package_name="scipy",
