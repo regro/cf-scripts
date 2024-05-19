@@ -47,6 +47,7 @@ from conda_forge_tick.make_migrators import (
 )
 from conda_forge_tick.migration_runner import run_migration
 from conda_forge_tick.migrators import MigrationYaml, Migrator, Version
+from conda_forge_tick.migrators.version import VersionMigrationError
 from conda_forge_tick.os_utils import eval_cmd, pushd
 from conda_forge_tick.rerender_feedstock import rerender_feedstock
 from conda_forge_tick.solver_checks import is_recipe_solvable
@@ -72,34 +73,61 @@ TIMEOUT = int(os.environ.get("TIMEOUT", 600))
 random.seed(os.urandom(64))
 
 
-def _set_pre_pr_migrator_fields(attrs, migrator_name, error_str):
-    pre_key = "pre_pr_migrator_status"
-    pre_key_att = "pre_pr_migrator_attempts"
+def _set_pre_pr_migrator_error(attrs, migrator_name, error_str, *, is_version):
+    if is_version:
+        with attrs["version_pr_info"] as vpri:
+            version = vpri["new_version"]
+            if "new_version_errors" not in vpri:
+                vpri["new_version_errors"] = {}
+            vpri["new_version_errors"][version] = sanitize_string(error_str)
+    else:
+        pre_key = "pre_pr_migrator_status"
 
-    with attrs["pr_info"] as pri:
-        if pre_key not in pri:
-            pri[pre_key] = {}
-        pri[pre_key][migrator_name] = sanitize_string(
-            error_str,
-        )
-
-        if pre_key_att not in pri:
-            pri[pre_key_att] = {}
-        if migrator_name not in pri[pre_key_att]:
-            pri[pre_key_att][migrator_name] = 0
-        pri[pre_key_att][migrator_name] += 1
-
-
-def _reset_pre_pr_migrator_fields(attrs, migrator_name):
-    pre_key = "pre_pr_migrator_status"
-    pre_key_att = "pre_pr_migrator_attempts"
-    with attrs["pr_info"] as pri:
-        for _key in [pre_key, pre_key_att]:
-            if _key in pri and migrator_name in pri[_key]:
-                pri[_key].pop(migrator_name)
+        with attrs["pr_info"] as pri:
+            if pre_key not in pri:
+                pri[pre_key] = {}
+            pri[pre_key][migrator_name] = sanitize_string(
+                error_str,
+            )
 
 
-def _get_pre_pr_migrator_attempts(attrs, migrator_name, is_version=False):
+def _increment_pre_pr_migrator_attempt(attrs, migrator_name, *, is_version):
+    if is_version:
+        with attrs["version_pr_info"] as vpri:
+            version = vpri["new_version"]
+            if "new_version_attempts" not in vpri:
+                vpri["new_version_attempts"] = {}
+            if version not in vpri["new_version_attempts"]:
+                vpri["new_version_attempts"][version] = 0
+            vpri["new_version_attempts"][version] += 1
+    else:
+        pre_key_att = "pre_pr_migrator_attempts"
+
+        with attrs["pr_info"] as pri:
+            if pre_key_att not in pri:
+                pri[pre_key_att] = {}
+            if migrator_name not in pri[pre_key_att]:
+                pri[pre_key_att][migrator_name] = 0
+            pri[pre_key_att][migrator_name] += 1
+
+
+def _reset_pre_pr_migrator_fields(attrs, migrator_name, *, is_version):
+    if is_version:
+        with attrs["version_pr_info"] as vpri:
+            version = vpri["new_version"]
+            for _key in ["new_version_errors", "new_version_attempts"]:
+                if _key in vpri and version in vpri[_key]:
+                    vpri[_key].pop(version)
+    else:
+        pre_key = "pre_pr_migrator_status"
+        pre_key_att = "pre_pr_migrator_attempts"
+        with attrs["pr_info"] as pri:
+            for _key in [pre_key, pre_key_att]:
+                if _key in pri and migrator_name in pri[_key]:
+                    pri[_key].pop(migrator_name)
+
+
+def _get_pre_pr_migrator_attempts(attrs, migrator_name, *, is_version):
     if is_version:
         with attrs["version_pr_info"] as vpri:
             return vpri.get("new_version_attempts", {}).get(vpri["new_version"], 0)
@@ -155,6 +183,12 @@ def run(
     branch_name = migrator.remote_branch(feedstock_ctx) + "_h" + uuid4().hex[0:6]
 
     migrator_name = get_migrator_name(migrator)
+    is_version_migration = isinstance(migrator, Version)
+    _increment_pre_pr_migrator_attempt(
+        feedstock_ctx.attrs,
+        migrator_name,
+        is_version=is_version_migration,
+    )
 
     # TODO: run this in parallel
     feedstock_dir, repo = get_repo(
@@ -290,7 +324,9 @@ def run(
         False,
     )
     pr_attempts = _get_pre_pr_migrator_attempts(
-        feedstock_ctx.attrs, migrator_name, is_version=isinstance(migrator, Version)
+        feedstock_ctx.attrs,
+        migrator_name,
+        is_version=is_version_migration,
     )
     max_pr_attempts = getattr(
         migrator, "force_pr_after_solver_attempts", MAX_SOLVER_ATTEMPTS * 2
@@ -348,28 +384,26 @@ def run(
                 """,
             ).strip()
 
+            _set_pre_pr_migrator_error(
+                feedstock_ctx.attrs,
+                migrator_name,
+                _solver_err_str,
+                is_version=is_version_migration,
+            )
+
+            # remove part of a try for solver errors to make those slightly
+            # higher priority next time the bot runs
             if isinstance(migrator, Version):
                 with feedstock_ctx.attrs["version_pr_info"] as vpri:
                     _new_ver = vpri["new_version"]
-                    vpri["new_version_errors"][_new_ver] = _solver_err_str
-                    vpri["new_version_errors"][_new_ver] = sanitize_string(
-                        vpri["new_version_errors"][_new_ver],
-                    )
-                    # remove part of a try for solver errors to make those slightly
-                    # higher priority
                     vpri["new_version_attempts"][_new_ver] -= 0.8
-            else:
-                # these are not used for version migrations
-                _set_pre_pr_migrator_fields(
-                    feedstock_ctx.attrs,
-                    migrator_name,
-                    sanitize_string(_solver_err_str),
-                )
 
             eval_cmd(["rm", "-rf", feedstock_dir])
             return False, False
         else:
-            _reset_pre_pr_migrator_fields(feedstock_ctx.attrs, migrator_name)
+            _reset_pre_pr_migrator_fields(
+                feedstock_ctx.attrs, migrator_name, is_version=is_version_migration
+            )
 
     # TODO: Better annotation here
     pr_json: typing.Union[MutableMapping, None, bool]
@@ -435,7 +469,9 @@ comment. Hopefully you all can fix this!
     # If we've gotten this far then the node is good
     with feedstock_ctx.attrs["pr_info"] as pri:
         pri["bad"] = False
-    _reset_pre_pr_migrator_fields(feedstock_ctx.attrs, migrator_name)
+    _reset_pre_pr_migrator_fields(
+        feedstock_ctx.attrs, migrator_name, is_version=is_version_migration
+    )
 
     logger.info("Removing feedstock dir")
     eval_cmd(["rm", "-rf", feedstock_dir])
@@ -577,6 +613,18 @@ def _run_migrator_on_feedstock_branch(
             if is_github_api_limit_reached(e):
                 break_loop = True
 
+    except VersionMigrationError as e:
+        logger.exception("VERSION MIGRATION ERROR")
+
+        _set_pre_pr_migrator_error(
+            attrs,
+            migrator_name,
+            str(
+                e
+            ),  # we do not use any HTML formats here since at one point status page had them
+            is_version=isinstance(migrator, Version),
+        )
+
     except URLError as e:
         logger.exception("URLError ERROR")
         with attrs["pr_info"] as pri:
@@ -589,7 +637,7 @@ def _run_migrator_on_feedstock_branch(
                 "url": getattr(e, "url"),
             }
 
-        _set_pre_pr_migrator_fields(
+        _set_pre_pr_migrator_error(
             attrs,
             migrator_name,
             sanitize_string(
@@ -600,6 +648,7 @@ def _run_migrator_on_feedstock_branch(
                     str(traceback.format_exc()),
                 ),
             ),
+            is_version=isinstance(migrator, Version),
         )
     except Exception as e:
         logger.exception("NON GITHUB ERROR")
@@ -613,7 +662,7 @@ def _run_migrator_on_feedstock_branch(
                     ),
                 }
 
-        _set_pre_pr_migrator_fields(
+        _set_pre_pr_migrator_error(
             attrs,
             migrator_name,
             sanitize_string(
@@ -624,6 +673,7 @@ def _run_migrator_on_feedstock_branch(
                     str(traceback.format_exc()),
                 ),
             ),
+            is_version=isinstance(migrator, Version),
         )
     else:
         if migrator_uid:
