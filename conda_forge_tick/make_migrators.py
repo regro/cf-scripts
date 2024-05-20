@@ -92,7 +92,7 @@ logger = logging.getLogger(__name__)
 PR_LIMIT = 5
 MAX_PR_LIMIT = 50
 MAX_SOLVER_ATTEMPTS = 50
-CHECK_SOLVABLE_TIMEOUT = 30  # 30 days
+CHECK_SOLVABLE_TIMEOUT = 90  # 90 days
 
 
 def add_replacement_migrator(
