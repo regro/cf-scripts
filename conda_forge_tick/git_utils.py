@@ -568,10 +568,9 @@ class DryRunBackend(GitPlatformBackend):
     """
     A git backend that doesn't modify anything and only relies on public APIs that do not require authentication.
     Useful for local testing with dry-run.
-    Note that this class is not thread-safe, you should create a new instance for each thread.
     """
 
-    _USER = "virtual-dry-run-user"
+    _USER = "auto-tick-bot-dry-run"
 
     def __init__(self):
         super().__init__(GitCli())

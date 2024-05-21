@@ -8,6 +8,8 @@ import github3.exceptions
 import pytest
 
 from conda_forge_tick.git_utils import (
+    Bound,
+    DryRunBackend,
     GitCli,
     GitCliError,
     GitConnectionMode,
@@ -730,7 +732,98 @@ def test_github_backend_get_api_requests_left_zero_valid_reset_time(caplog):
     assert backend.get_api_requests_left() == 0
 
     github3_client.rate_limit.assert_called_once()
-    assert f"will reset at {reset_timestamp_str}" in caplog.text
+    assert f"will reset at {reset_timestamp_str}" in caplog.text  #
+
+
+@pytest.mark.parametrize(
+    "backend", [GitHubBackend(MagicMock(), MagicMock()), DryRunBackend()]
+)
+@mock.patch(
+    "conda_forge_tick.git_utils.GitHubBackend.user", new_callable=mock.PropertyMock
+)
+@mock.patch("conda_forge_tick.git_utils.GitCli.clone_fork_and_branch")
+def test_git_platform_backend_clone_fork_and_branch(
+    convenience_method_mock: MagicMock,
+    user_mock: MagicMock,
+    backend: GitPlatformBackend,
+):
+    upstream_owner = "UPSTREAM-OWNER"
+    repo_name = "REPO"
+    target_dir = Path("TARGET_DIR")
+    new_branch = "NEW_BRANCH"
+    base_branch = "BASE_BRANCH"
+
+    user_mock.return_value = "USER"
+
+    backend = GitHubBackend(MagicMock(), MagicMock())
+    backend.clone_fork_and_branch(
+        upstream_owner, repo_name, target_dir, new_branch, base_branch
+    )
+
+    convenience_method_mock.assert_called_once_with(
+        origin_url=f"git@github.com:USER/{repo_name}.git",
+        target_dir=target_dir,
+        upstream_url=f"git@github.com:{upstream_owner}/{repo_name}.git",
+        new_branch=new_branch,
+        base_branch=base_branch,
+    )
+
+
+def test_dry_run_backend_get_api_requests_left():
+    backend = DryRunBackend()
+
+    assert backend.get_api_requests_left() is Bound.INFINITY
+
+
+def test_dry_run_backend_does_repository_exist_own_repo():
+    backend = DryRunBackend()
+
+    assert not backend.does_repository_exist("auto-tick-bot-dry-run", "REPO")
+    backend.fork("UPSTREAM_OWNER", "REPO")
+    assert backend.does_repository_exist("auto-tick-bot-dry-run", "REPO")
+
+
+def test_dry_run_backend_does_repository_exist_other_repo():
+    backend = DryRunBackend()
+
+    assert backend.does_repository_exist("conda-forge", "pytest-feedstock")
+    assert not backend.does_repository_exist(
+        "conda-forge", "this-repository-does-not-exist"
+    )
+
+
+def test_dry_run_backend_fork(caplog):
+    caplog.set_level("DEBUG")
+
+    backend = DryRunBackend()
+
+    backend.fork("UPSTREAM_OWNER", "REPO")
+    assert (
+        "Dry Run: Creating fork of UPSTREAM_OWNER/REPO for user auto-tick-bot-dry-run"
+        in caplog.text
+    )
+
+    with pytest.raises(ValueError, match="Fork of REPO already exists"):
+        backend.fork("UPSTREAM_OWNER", "REPO")
+
+    with pytest.raises(ValueError, match="Fork of REPO already exists"):
+        backend.fork("OTHER_OWNER", "REPO")
+
+
+def test_dry_run_backend_sync_default_branch(caplog):
+    caplog.set_level("DEBUG")
+
+    backend = DryRunBackend()
+
+    backend._sync_default_branch("UPSTREAM_OWNER", "REPO")
+
+    assert "Dry Run: Syncing default branch of UPSTREAM_OWNER/REPO" in caplog.text
+
+
+def test_dry_run_backend_user():
+    backend = DryRunBackend()
+
+    assert backend.user == "auto-tick-bot-dry-run"
 
 
 def test_trim_pr_json_keys():
