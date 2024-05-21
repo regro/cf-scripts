@@ -124,7 +124,7 @@ class RepositoryNotFoundError(Exception):
     pass
 
 
-class _GitCli:
+class GitCli:
     """
     A simple wrapper around the git command line interface.
     """
@@ -321,16 +321,23 @@ class _GitCli:
             self.checkout_branch(base_branch, target_dir, create_branch_name=new_branch)
 
 
-class GitBackend(_GitCli, ABC):
+class GitPlatformBackend(ABC):
     """
-    A backend for interacting with a git repository, and a platform around it (e.g. GitHub).
+    A backend for interacting with a git platform (e.g. GitHub).
     Note that this class is not thread-safe, you should create a new instance for each thread.
 
-    Implementation Note: If you wonder what should be in this class vs. the _GitCli class, the GitBackend class should
-    contain the logic for interacting with the platform (e.g. GitHub), while the _GitCli class should contain the logic
-    for interacting with the git repository itself. If you need to know anything specific about the platform,
-    it should be in the GitBackend class.
+    Implementation Note: If you wonder what should be in this class vs. the GitCli class, the GitPlatformBackend class
+    should contain the logic for interacting with the platform (e.g. GitHub), while the GitCli class should contain the
+    logic for interacting with the git repository itself. If you need to know anything specific about the platform,
+    it should be in the GitPlatformBackend class.
     """
+
+    def __init__(self, git_cli: GitCli):
+        """
+        Create a new GitPlatformBackend.
+        :param git_cli: The GitCli instance to use for interacting with git repositories.
+        """
+        self.cli = git_cli
 
     @abstractmethod
     def does_repository_exist(self, owner: str, repo_name: str) -> bool:
@@ -394,7 +401,7 @@ class GitBackend(_GitCli, ABC):
 
         :raises GitCliError: If a git command fails.
         """
-        self.clone_fork_and_branch_custom_url(
+        self.cli.clone_fork_and_branch_custom_url(
             origin_url=self.get_remote_url(self.user, repo_name),
             target_dir=target_dir,
             upstream_url=self.get_remote_url(upstream_owner, repo_name),
@@ -442,7 +449,7 @@ class GitBackend(_GitCli, ABC):
         return self.get_api_requests_left() in (0, None)
 
 
-class GitHubBackend(GitBackend):
+class GitHubBackend(GitPlatformBackend):
     """
     A git backend for GitHub, using both PyGithub and github3.py as clients.
     It is unclear why both clients are used, in the future, this should be refactored to use only one client.
@@ -455,6 +462,7 @@ class GitHubBackend(GitBackend):
     """
 
     def __init__(self, github3_client: github3.GitHub, pygithub_client: github.Github):
+        super().__init__(GitCli())
         self.github3_client = github3_client
         self.pygithub_client = pygithub_client
 
@@ -544,7 +552,7 @@ class GitHubBackend(GitBackend):
         return remaining_limit
 
 
-class DryRunBackend(GitBackend):
+class DryRunBackend(GitPlatformBackend):
     """
     A git backend that doesn't modify anything and only relies on public APIs that do not require authentication.
     Useful for local testing with dry-run.
@@ -554,6 +562,7 @@ class DryRunBackend(GitBackend):
     _USER = "virtual-dry-run-user"
 
     def __init__(self):
+        super().__init__(GitCli())
         self._repos: set[str] = set()
 
     def get_api_requests_left(self) -> Bound:
@@ -564,7 +573,7 @@ class DryRunBackend(GitBackend):
             return repo_name in self._repos
 
         # We do not use the GitHub API because unauthenticated requests are quite strictly rate-limited.
-        return self.does_remote_exist(self.get_remote_url(owner, repo_name))
+        return self.cli.does_remote_exist(self.get_remote_url(owner, repo_name))
 
     def fork(self, owner: str, repo_name: str):
         if repo_name in self._repos:
@@ -640,12 +649,6 @@ def get_repo(
         Feedstock context used for constructing feedstock urls, etc.
     branch : str
         The branch to be made.
-    protocol : str, optional
-        The git protocol to use, defaults to ``ssh``
-    pull_request : bool, optional
-        If true issue pull request, defaults to true
-    fork : bool
-        If true create a fork, defaults to true
     base_branch : str, optional
         The base branch from which to make the new branch.
 
@@ -768,9 +771,6 @@ def lazy_update_pr_json(
     force : bool, optional
         If True, forcibly update the PR json even if it is not out of date
         according to the ETag. Default is False.
-    trim : bool, optional
-        If True, trim the PR json keys to ones in the global PR_KEYS_TO_KEEP.
-        Default is True.
 
     Returns
     -------
