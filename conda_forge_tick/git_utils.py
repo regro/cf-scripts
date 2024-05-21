@@ -367,10 +367,10 @@ class GitPlatformBackend(ABC):
         connection_mode: GitConnectionMode = GitConnectionMode.SSH,
     ) -> str:
         """
-        Using SSH as the default protocol, get the URL of the remote repository.
+        Get the URL of a remote repository.
         :param owner: The owner of the repository.
         :param repo_name: The name of the repository.
-        :param connection_mode: The connection mode to use.
+        :param connection_mode: The connection mode to use (defaults to SSH).
         :raises ValueError: If the connection mode is not supported.
         """
         # Currently we don't need any abstraction for other platforms than GitHub, so we don't build such abstractions.

@@ -6,7 +6,15 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from conda_forge_tick.git_utils import GitCli, GitCliError, trim_pr_json_keys
+from conda_forge_tick.git_utils import (
+    GitCli,
+    GitCliError,
+    GitConnectionMode,
+    GitHubBackend,
+    GitPlatformBackend,
+    RepositoryNotFoundError,
+    trim_pr_json_keys,
+)
 
 """
 Note: You have to have git installed on your machine to run these tests.
@@ -502,6 +510,156 @@ def test_git_cli_clone_fork_and_branch_mock(
     checkout_new_branch_mock.assert_called_with(
         git_dir, "new_branch_name", start_point="base_branch"
     )
+
+
+def test_git_platform_backend_get_remote_url_https():
+    owner = "OWNER"
+    repo = "REPO"
+
+    url = GitPlatformBackend.get_remote_url(owner, repo, GitConnectionMode.HTTPS)
+
+    assert url == f"https://github.com/{owner}/{repo}.git"
+
+
+def test_git_platform_backend_get_remote_url_ssh():
+    owner = "OWNER"
+    repo = "REPO"
+
+    url = GitPlatformBackend.get_remote_url(owner, repo, GitConnectionMode.SSH)
+
+    assert url == f"git@github.com:{owner}/{repo}.git"
+
+
+def test_github_backend_from_token():
+    token = "TOKEN"
+
+    backend = GitHubBackend.from_token(token)
+
+    assert backend.github3_client.session.auth.token == token
+    # we cannot verify the pygithub token trivially
+
+
+@pytest.mark.parametrize("does_exist", [True, False])
+def test_github_backend_does_repository_exist(does_exist: bool):
+    github3_client = MagicMock()
+
+    backend = GitHubBackend(github3_client, MagicMock())
+
+    github3_client.repository.return_value = MagicMock() if does_exist else None
+
+    assert backend.does_repository_exist("OWNER", "REPO") is does_exist
+    github3_client.repository.assert_called_once_with("OWNER", "REPO")
+
+
+@mock.patch("time.sleep", return_value=None)
+@mock.patch(
+    "conda_forge_tick.git_utils.GitHubBackend.user", new_callable=mock.PropertyMock
+)
+@mock.patch("conda_forge_tick.git_utils.GitHubBackend.does_repository_exist")
+def test_github_backend_fork_not_exists_repo_found(
+    exists_mock: MagicMock, user_mock: MagicMock, sleep_mock: MagicMock
+):
+    exists_mock.return_value = False
+
+    github3_client = MagicMock()
+    repository = MagicMock()
+    github3_client.repository.return_value = repository
+
+    backend = GitHubBackend(github3_client, MagicMock())
+    user_mock.return_value = "USER"
+    backend.fork("UPSTREAM-OWNER", "REPO")
+
+    exists_mock.assert_called_once_with("USER", "REPO")
+    github3_client.repository.assert_called_once_with("UPSTREAM-OWNER", "REPO")
+    repository.create_fork.assert_called_once()
+    sleep_mock.assert_called_once_with(5)
+
+
+@pytest.mark.parametrize("branch_already_synced", [True, False])
+@mock.patch("time.sleep", return_value=None)
+@mock.patch(
+    "conda_forge_tick.git_utils.GitHubBackend.user", new_callable=mock.PropertyMock
+)
+@mock.patch("conda_forge_tick.git_utils.GitHubBackend.does_repository_exist")
+def test_github_backend_fork_exists(
+    exists_mock: MagicMock,
+    user_mock: MagicMock,
+    sleep_mock: MagicMock,
+    branch_already_synced: bool,
+    caplog,
+):
+    caplog.set_level("DEBUG")
+
+    exists_mock.return_value = True
+    user_mock.return_value = "USER"
+
+    pygithub_client = MagicMock()
+    upstream_repo = MagicMock()
+    fork_repo = MagicMock()
+
+    def get_repo(full_name: str):
+        if full_name == "UPSTREAM-OWNER/REPO":
+            return upstream_repo
+        if full_name == "USER/REPO":
+            return fork_repo
+        assert False, f"Unexpected repo full name: {full_name}"
+
+    pygithub_client.get_repo.side_effect = get_repo
+
+    if branch_already_synced:
+        upstream_repo.default_branch = "BRANCH_NAME"
+        fork_repo.default_branch = "BRANCH_NAME"
+    else:
+        upstream_repo.default_branch = "UPSTREAM_BRANCH_NAME"
+        fork_repo.default_branch = "FORK_BRANCH_NAME"
+
+    backend = GitHubBackend(MagicMock(), pygithub_client)
+    backend.fork("UPSTREAM-OWNER", "REPO")
+
+    if not branch_already_synced:
+        pygithub_client.get_repo.assert_any_call("UPSTREAM-OWNER/REPO")
+        pygithub_client.get_repo.assert_any_call("USER/REPO")
+
+        assert "Syncing default branch" in caplog.text
+        sleep_mock.assert_called_once_with(5)
+
+
+@mock.patch(
+    "conda_forge_tick.git_utils.GitHubBackend.user", new_callable=mock.PropertyMock
+)
+@mock.patch("conda_forge_tick.git_utils.GitHubBackend.does_repository_exist")
+def test_github_backend_remote_does_not_exist(
+    exists_mock: MagicMock, user_mock: MagicMock
+):
+    exists_mock.return_value = False
+
+    github3_client = MagicMock()
+    github3_client.repository.return_value = None
+
+    backend = GitHubBackend(github3_client, MagicMock())
+
+    user_mock.return_value = "USER"
+
+    with pytest.raises(RepositoryNotFoundError):
+        backend.fork("UPSTREAM-OWNER", "REPO")
+
+    exists_mock.assert_called_once_with("USER", "REPO")
+    github3_client.repository.assert_called_once_with("UPSTREAM-OWNER", "REPO")
+
+
+def test_github_backend_user():
+    pygithub_client = MagicMock()
+    user = MagicMock()
+    user.login = "USER"
+    pygithub_client.get_user.return_value = user
+
+    backend = GitHubBackend(MagicMock(), pygithub_client)
+
+    for _ in range(4):
+        # cached property
+        assert backend.user == "USER"
+
+    pygithub_client.get_user.assert_called_once()
 
 
 def test_trim_pr_json_keys():
