@@ -103,7 +103,7 @@ class Bound(float, enum.Enum):
 
     INFINITY = math.inf
     """
-    Python does not have support for a literal infinity value, so we use this enum for it.
+    Python does not have support for a literal infinity type, so we use this enum for it.
     """
 
 
@@ -180,7 +180,7 @@ class GitCli:
                 f"Error cloning repository from {origin_url}. Does the repository exist?"
             ) from e
 
-    def add_remote(self, remote_name: str, remote_url: str, git_dir: Path):
+    def add_remote(self, git_dir: Path, remote_name: str, remote_url: str):
         """
         Add a remote to a git repository.
         :param remote_name: The name of the remote.
@@ -198,9 +198,10 @@ class GitCli:
         """
         self._run_git_command(["fetch", "--all", "--quiet"], git_dir)
 
-    def does_branch_exist(self, branch_name: str, git_dir: Path):
+    def does_branch_exist(self, git_dir: Path, branch_name: str):
         """
         Check if a branch exists in a git repository.
+        Note: If git_dir is not a git repository, this method will return False.
         :param branch_name: The name of the branch.
         :param git_dir: The directory of the git repository.
         :return: True if the branch exists, False otherwise.
@@ -226,30 +227,41 @@ class GitCli:
 
     def checkout_branch(
         self,
-        branch: str,
         git_dir: Path,
-        create_branch_name: str | None = False,
+        branch: str,
         track: bool = False,
     ):
         """
         Checkout a branch in a git repository.
-        :param branch: The branch to check out.
         :param git_dir: The directory of the git repository.
-        :param create_branch_name: If set, create a new branch with the given name starting at branch_name
-        (using the -b option).
+        :param branch: The branch to check out.
         :param track: If True, set the branch to track the remote branch with the same name (sets the --track flag).
-        If create_branch_name is not set, a new branch will be created with the name inferred from branch_name.
-        For example, if branch_name is "upstream/main", the new branch will be "main".
+        A new local branch will be created with the name inferred from branch.
+        For example, if branch is "upstream/main", the new branch will be "main".
         :raises GitCliError: If the git command fails.
         """
-        create_branch_option = ["-b", create_branch_name] if create_branch_name else []
         track_flag = ["--track"] if track else []
         self._run_git_command(
-            ["checkout", "--quiet"] + create_branch_option + track_flag + [branch],
+            ["checkout", "--quiet"] + track_flag + [branch],
             git_dir,
         )
 
-    def clone_fork_and_branch_custom_url(
+    def checkout_new_branch(
+        self, git_dir: Path, branch: str, start_point: str | None = None
+    ):
+        """
+        Checkout a new branch in a git repository.
+        :param git_dir: The directory of the git repository.
+        :param branch: The name of the new branch.
+        :param start_point: The name of the branch to branch from, or None to branch from the current branch.
+        """
+        start_point_option = [start_point] if start_point else []
+
+        self._run_git_command(
+            ["checkout", "--quiet", "-b", branch] + start_point_option, git_dir
+        )
+
+    def clone_fork_and_branch(
         self,
         origin_url: str,
         target_dir: Path,
@@ -279,7 +291,7 @@ class GitCli:
         self.clone_repo(origin_url, target_dir)
 
         try:
-            self.add_remote("upstream", upstream_url, target_dir)
+            self.add_remote(target_dir, "upstream", upstream_url)
         except GitCliError as e:
             logger.debug(
                 "It looks like remote 'upstream' already exists. Ignoring.", exc_info=e
@@ -288,11 +300,11 @@ class GitCli:
 
         self.fetch_all(target_dir)
 
-        if self.does_branch_exist(base_branch, target_dir):
-            self.checkout_branch(base_branch, target_dir)
+        if self.does_branch_exist(target_dir, base_branch):
+            self.checkout_branch(target_dir, base_branch)
         else:
             try:
-                self.checkout_branch(f"upstream/{base_branch}", target_dir, track=True)
+                self.checkout_branch(target_dir, f"upstream/{base_branch}", track=True)
             except GitCliError as e:
                 logger.debug(
                     "Could not check out with git checkout --track. Trying git checkout -b.",
@@ -300,10 +312,10 @@ class GitCli:
                 )
 
                 # not sure why this is needed, but it was in the original code
-                self.checkout_branch(
-                    f"upstream/{base_branch}",
+                self.checkout_new_branch(
                     target_dir,
-                    create_branch_name=base_branch,
+                    base_branch,
+                    start_point=f"upstream/{base_branch}",
                 )
 
         # not sure why this is needed, but it was in the original code
@@ -313,12 +325,12 @@ class GitCli:
             logger.debug(
                 f"Trying to checkout branch {new_branch} without creating a new branch"
             )
-            self.checkout_branch(new_branch, target_dir)
+            self.checkout_branch(target_dir, new_branch)
         except GitCliError:
             logger.debug(
                 f"It seems branch {new_branch} does not exist. Creating it.",
             )
-            self.checkout_branch(base_branch, target_dir, create_branch_name=new_branch)
+            self.checkout_new_branch(target_dir, new_branch, start_point=base_branch)
 
 
 class GitPlatformBackend(ABC):
@@ -391,7 +403,7 @@ class GitPlatformBackend(ABC):
         base_branch: str = "main",
     ):
         """
-        Identical to `clone_fork_and_branch_custom_url`, but generates the URLs from the repository name.
+        Identical to `GitCli::clone_fork_and_branch`, but generates the URLs from the repository name.
 
         :param upstream_owner: The owner of the upstream repository.
         :param repo_name: The name of the repository.
@@ -401,7 +413,7 @@ class GitPlatformBackend(ABC):
 
         :raises GitCliError: If a git command fails.
         """
-        self.cli.clone_fork_and_branch_custom_url(
+        self.cli.clone_fork_and_branch(
             origin_url=self.get_remote_url(self.user, repo_name),
             target_dir=target_dir,
             upstream_url=self.get_remote_url(upstream_owner, repo_name),
