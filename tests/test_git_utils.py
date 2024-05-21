@@ -4,6 +4,7 @@ from pathlib import Path
 from unittest import mock
 from unittest.mock import MagicMock
 
+import github3.exceptions
 import pytest
 
 from conda_forge_tick.git_utils import (
@@ -660,6 +661,76 @@ def test_github_backend_user():
         assert backend.user == "USER"
 
     pygithub_client.get_user.assert_called_once()
+
+
+def test_github_backend_get_api_requests_left_github_exception(caplog):
+    github3_client = MagicMock()
+    github3_client.rate_limit.side_effect = github3.exceptions.GitHubException(
+        "API Error"
+    )
+
+    backend = GitHubBackend(github3_client, MagicMock())
+
+    assert backend.get_api_requests_left() is None
+    assert "API Error while fetching" in caplog.text
+
+    github3_client.rate_limit.assert_called_once()
+
+
+def test_github_backend_get_api_requests_left_unexpected_response_schema(caplog):
+    github3_client = MagicMock()
+    github3_client.rate_limit.return_value = {"some": "gibberish data"}
+
+    backend = GitHubBackend(github3_client, MagicMock())
+
+    assert backend.get_api_requests_left() is None
+    assert "API Error while parsing"
+
+    github3_client.rate_limit.assert_called_once()
+
+
+def test_github_backend_get_api_requests_left_nonzero():
+    github3_client = MagicMock()
+    github3_client.rate_limit.return_value = {"resources": {"core": {"remaining": 5}}}
+
+    backend = GitHubBackend(github3_client, MagicMock())
+
+    assert backend.get_api_requests_left() == 0
+
+    github3_client.rate_limit.assert_called_once()
+
+
+def test_github_backend_get_api_requests_left_zero_invalid_reset_time(caplog):
+    github3_client = MagicMock()
+
+    github3_client.rate_limit.return_value = {"resources": {"core": {"remaining": 0}}}
+
+    backend = GitHubBackend(github3_client, MagicMock())
+
+    assert backend.get_api_requests_left() == 0
+
+    github3_client.rate_limit.assert_called_once()
+    assert "GitHub API error while fetching rate limit reset time" in caplog.text
+
+
+def test_github_backend_get_api_requests_left_zero_valid_reset_time(caplog):
+    caplog.set_level("INFO")
+
+    github3_client = MagicMock()
+
+    reset_timestamp = 1716303697
+    reset_timestamp_str = "2024-05-21T15:01:37Z"
+
+    github3_client.rate_limit.return_value = {
+        "resources": {"core": {"remaining": 0, "reset": reset_timestamp}}
+    }
+
+    backend = GitHubBackend(github3_client, MagicMock())
+
+    assert backend.get_api_requests_left() == 0
+
+    github3_client.rate_limit.assert_called_once()
+    assert f"will reset at {reset_timestamp_str}" in caplog.text
 
 
 def test_trim_pr_json_keys():
