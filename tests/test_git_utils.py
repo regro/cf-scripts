@@ -687,7 +687,7 @@ def test_github_backend_get_api_requests_left_github_exception(caplog):
     backend = GitHubBackend(github3_client, MagicMock())
 
     assert backend.get_api_requests_left() is None
-    assert "API Error while fetching" in caplog.text
+    assert "API error while fetching" in caplog.text
 
     github3_client.rate_limit.assert_called_once()
 
