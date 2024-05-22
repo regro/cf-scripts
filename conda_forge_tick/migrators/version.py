@@ -176,8 +176,15 @@ class Version(Migrator):
         ):
             ignore_filter = True
 
+        skip_me = get_keys_default(
+            attrs,
+            ["conda-forge.yml", "bot", "version_updates", "skip"],
+            {},
+            False,
+        )
+
         self._new_version = None
-        return result or version_filter or skip_filter or ignore_filter
+        return result or version_filter or skip_filter or ignore_filter or skip_me
 
     def migrate(
         self,
