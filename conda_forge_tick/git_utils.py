@@ -612,6 +612,17 @@ def github_backend() -> GitHubBackend:
         return GitHubBackend.from_token(env["BOT_TOKEN"])
 
 
+def is_github_api_limit_reached() -> bool:
+    """
+    Return True if the GitHub API limit has been reached, False otherwise.
+
+    This method will be removed in the future, use the GitHubBackend class directly.
+    """
+    backend = github_backend()
+
+    return backend.is_api_limit_reached()
+
+
 def feedstock_url(fctx: FeedstockContext, protocol: str = "ssh") -> str:
     """Returns the URL for a conda-forge feedstock."""
     feedstock = fctx.feedstock_name + "-feedstock"

@@ -604,7 +604,8 @@ def _run_migrator_on_feedstock_branch(
                 fctx.feedstock_name,
             )
 
-            if is_github_api_limit_reached(e):
+            if is_github_api_limit_reached():
+                logger.warning("GitHub API error", exc_info=e)
                 break_loop = True
 
     except VersionMigrationError as e:
