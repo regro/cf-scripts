@@ -29,8 +29,8 @@ from conda_forge_tick.feedstock_parser import BOOTSTRAP_MAPPINGS
 from conda_forge_tick.git_utils import (
     GIT_CLONE_DIR,
     comment_on_pr,
-    get_github_api_requests_left,
     get_repo,
+    github_backend,
     is_github_api_limit_reached,
     push_repo,
 )
@@ -680,7 +680,8 @@ def _run_migrator_on_feedstock_branch(
 
 def _is_migrator_done(_mg_start, good_prs, time_per, pr_limit):
     curr_time = time.time()
-    api_req = get_github_api_requests_left()
+    backend = github_backend()
+    api_req = backend.get_api_requests_left()
 
     if curr_time - START_TIME > TIMEOUT:
         logger.info(
@@ -1107,5 +1108,5 @@ def main(ctx: CliContext) -> None:
             #     ],
             # )
 
-    logger.info("API Calls Remaining: %d", get_github_api_requests_left())
+    logger.info("API Calls Remaining: %d", github_backend().get_api_requests_left())
     logger.info("Done")
