@@ -584,7 +584,9 @@ class DryRunBackend(GitPlatformBackend):
             return repo_name in self._repos
 
         # We do not use the GitHub API because unauthenticated requests are quite strictly rate-limited.
-        return self.cli.does_remote_exist(self.get_remote_url(owner, repo_name))
+        return self.cli.does_remote_exist(
+            self.get_remote_url(owner, repo_name, GitConnectionMode.HTTPS)
+        )
 
     def fork(self, owner: str, repo_name: str):
         if repo_name in self._repos:

@@ -83,12 +83,25 @@ def test_git_cli_outside_repo():
             cli.checkout_branch(dir_path, "main")
 
 
+# noinspection PyProtectedMember
+def init_temp_git_repo(git_dir: Path):
+    cli = GitCli()
+    cli._run_git_command(["init"], working_directory=git_dir)
+    cli._run_git_command(
+        ["config", "user.name", "CI Test User"], working_directory=git_dir
+    )
+    cli._run_git_command(
+        ["config", "user.email", "ci-test-user-invalid@example.com"],
+        working_directory=git_dir,
+    )
+
+
 def test_git_cli_reset_hard_already_reset():
     cli = GitCli()
     with tempfile.TemporaryDirectory() as tmpdir:
         dir_path = Path(tmpdir)
 
-        cli._run_git_command(["init"], working_directory=dir_path)
+        init_temp_git_repo(dir_path)
         cli._run_git_command(
             ["commit", "--allow-empty", "-m", "Initial commit"],
             working_directory=dir_path,
@@ -115,7 +128,7 @@ def test_git_cli_reset_hard():
     with tempfile.TemporaryDirectory() as tmpdir:
         dir_path = Path(tmpdir)
 
-        cli._run_git_command(["init"], working_directory=dir_path)
+        init_temp_git_repo(dir_path)
         cli._run_git_command(
             ["commit", "--allow-empty", "-m", "Initial commit"],
             working_directory=dir_path,
@@ -236,7 +249,7 @@ def test_git_cli_add_remote():
     with tempfile.TemporaryDirectory() as tmpdir:
         dir_path = Path(tmpdir)
 
-        cli._run_git_command(["init"], working_directory=dir_path)
+        init_temp_git_repo(dir_path)
 
         remote_name = "remote24"
         remote_url = "https://git-repository.com/repo.git"
@@ -280,7 +293,7 @@ def test_git_cli_does_branch_exist():
     with tempfile.TemporaryDirectory() as tmpdir:
         dir_path = Path(tmpdir)
 
-        cli._run_git_command(["init"], working_directory=dir_path)
+        init_temp_git_repo(dir_path)
 
         assert not cli.does_branch_exist(dir_path, "main")
 
@@ -379,7 +392,7 @@ def test_git_cli_checkout_branch_no_track():
     with tempfile.TemporaryDirectory() as tmpdir:
         dir_path = Path(tmpdir)
 
-        cli._run_git_command(["init"], working_directory=dir_path)
+        init_temp_git_repo(dir_path)
         cli._run_git_command(["checkout", "-b", "main"], working_directory=dir_path)
         cli._run_git_command(
             ["commit", "--allow-empty", "-m", "Initial commit"],
