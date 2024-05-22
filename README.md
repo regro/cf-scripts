@@ -149,6 +149,40 @@ Currently, the following commands are supported and tested:
 
 - `update-upstream-versions`
 
+### Structure of the Bot's Jobs
+
+#### History
+
+The bot started mostly as a single script, in `xonsh`, that was run in a cron-like job that would do all tasks. Further, given the small size of the bot's metadata at the time, the initial bot code assumed that all data was present on disk locally, could be loaded into memory efficiently, and that all parts of the code could modify almost any part of the data. Given the small size of `conda-forge` at the time, this model was workable, had the advantage of simplicity, and had the advantage of ensuring strong consistency between the different parts of the bot's data.
+
+As `conda-forge` grew, the "single job + global data access" model became increasingly unmanageable. Thus, over time, the bot has been split into separate jobs that run in parallel. This gradual refactoring has maintained the bot's performance despite `conda-forge`'s extreme growth. The cost has been increased complexity, the need to more carefully manage data access/updates, and the loss of strong consistency between the different parts of the bot's data. As of 2024, the bot is a collection of cron jobs, run in parallel, combined with a carefully separated data model based on eventual consistency.
+
+#### Current Bot Jobs and Structure
+
+In this section, we list the collection of jobs that comprise the bot. Each job touches a distinct part of the bot's data structure and is run in parallel with the other jobs. We have also specified the GitHub Actions workflow that runs each job. See those files for further details on which commands are run.
+
+**bot** / `bot-bot.yml`: The main job that runs the bot, making PRs to feedstocks, etc. This job writes data on the PRs it makes to `cf-graph-countyfair/pr_info` and `cf-graph-countyfair/version_pr_info`. It also writes new PR JSON blobs to `cf-graph-countyfair/pr_json` for each PR to track their statuses on GitHub.
+
+**feedstocks** / `bot-feedstocks.yml`: Updates the list of valid and archived feedstocks in `conda-forge` located at `cf-graph-countyfair/all_feedstocks.json`.
+
+**versions** / `bot-versions.yml`: Fetches the latest version for each feedstock in `conda-forge`, writing the data to `cf-graph-countyfair/versions/`.
+
+**prs** / `bot-prs.yml`: Fetches the latest PR statuses from GitHub for all of the PRs that bot has made, writing the data to`cf-graph-countyfair/pr_json`.
+
+**pypi-mapping** / `bot-pypi-mapping.yml`: Builds a mapping of packages between PyPI and `conda-forge`, and a mapping of python imports to packages using the bot's metadata. The PyPI mapping is written to `cf-graph-countyfair/mappings` and the import mapping is written to `cf-graph-countyfair/import_to_pkg_maps`. This job also generates some internal data stored at `cf-graph-countyfair/ranked_hubs_authorities.json`.
+
+**make-graph** / `bot-make-graph.yml`: Builds the `conda-forge` dependency graph from the feedstocks in `cf-graph-countyfair/all_feedstocks.json`. The graph is written to `cf-graph-countyfair/graph.json` and specific attributes for each node are written to `cf-graph-countyfair/node_attrs`. This job also performs some schema migrations and might add new files to `cf-graph-countyfair/pr_info` and `cf-graph-countyfair/version_pr_info`.
+
+**make-migrators** / `bot-make-migrators.yml`: Builds the migrations the bot will run, writing them as JSON to `cf-graph-countyfair/migrators`.
+
+**update-status-page** / `bot-update-status-page.yml`: Updates the status page at `conda-forge.org/status` with the latest migration information. The status data is written to `cf-graph-countyfair/status`.
+
+**[NOT CURRENTLY USED] cache** / `bot-cache.yml`: Caches the data in `cf-graph-countyfair` to GitHub Actions.
+
+**keepalive** / `bot-keepalive.yml`: This job runs every 15 minutes and ensures that the bot is still running. If the bot is not running, it will restart it.
+
+Many of these jobs could be converted to a more event-driven model, especially the job that updates the status of PRs (**prs**) and the parts of the jobs that update attributes of the graph nodes (**make-graph**). However, there are some caveats. Even with event-driven updates, the bot would still need cron jobs for these tasks to ensure that data eventually gets updated if events are missed. Further, the main limit on the bot making PRs is the **bot** job itself. Making this job respond to events is a non-trivial task due to many reasons, including the fact that once a given a PR is merged on a feedstock, there is a few-hour delay before the next PR can be made.
+
 ### Using the `conda_forge_tick` Module to Interact with the Bot Data
 
 The next few sections provide information about how to use the `conda_forge_tick` package to
