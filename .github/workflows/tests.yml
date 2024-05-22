@@ -23,7 +23,7 @@ jobs:
         shell: bash -leo pipefail {0}
 
     steps:
-      - uses: actions/checkout@44c2b7a8a4ea60a981eaca3cf939b5f4305c123b # v4
+      - uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29 # v4
 
       - uses: mamba-org/setup-micromamba@422500192359a097648154e8db4e39bdb6c6eed7 # v1
         with:
@@ -93,6 +93,6 @@ jobs:
           MONGODB_CONNECTION_STRING: "mongodb://127.0.0.1:27017/?directConnection=true&serverSelectionTimeoutMS=2000"
 
       - name: upload codecov
-        uses: codecov/codecov-action@5ecb98a3c6b747ed38dc09f787459979aebb39be # v4
+        uses: codecov/codecov-action@125fc84a9a348dbcf27191600683ec096ec9021c # v4
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
