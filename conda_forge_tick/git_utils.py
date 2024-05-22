@@ -602,6 +602,7 @@ class DryRunBackend(GitPlatformBackend):
             f"Dry Run: Syncing default branch of {upstream_owner}/{upstream_repo}."
         )
 
+    @property
     def user(self) -> str:
         return self._USER
 
