@@ -710,7 +710,7 @@ def test_github_backend_get_api_requests_left_nonzero():
 
     backend = GitHubBackend(github3_client, MagicMock())
 
-    assert backend.get_api_requests_left() == 0
+    assert backend.get_api_requests_left() == 5
 
     github3_client.rate_limit.assert_called_once()
 
