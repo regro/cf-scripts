@@ -331,7 +331,7 @@ def _update_upstream_versions_sequential(
             version_data["bad"] = "Upstream: Error getting upstream version"
         else:
             logger.info(
-                f"# {node_count:<5} - {node} - {attrs.get('version')} "
+                f"# {node_count:<5} - {node} -> {attrs.get('version')} "
                 f"- {version_data.get('new_version')}",
             )
 
@@ -392,7 +392,7 @@ def _update_upstream_versions_process_pool(
                 version_data["bad"] = "Upstream: Error getting upstream version"
             else:
                 logger.info(
-                    "itr % 5d - eta % 5ds: %s - %s - %s"
+                    "itr % 5d - eta % 5ds: %s - %s -> %s"
                     % (
                         n_left,
                         eta,
