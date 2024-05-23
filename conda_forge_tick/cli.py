@@ -63,7 +63,6 @@ click.Group.command_class = TimedCommand
 @click.option(
     "--no-containers",
     is_flag=True,
-    default=False,
     help=(
         "Do not use containers for isolating recipe code from the system. "
         "Turning off containers is a potential security issue."
