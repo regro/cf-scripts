@@ -7,6 +7,7 @@ import click
 from click import Context, IntRange
 
 from conda_forge_tick import lazy_json_backends
+from conda_forge_tick.os_utils import override_env
 from conda_forge_tick.utils import setup_logging
 
 from .cli_context import CliContext
@@ -59,6 +60,14 @@ click.Group.command_class = TimedCommand
     "however that any write operations will not be performed. Important: The current working directory will be "
     "used to cache JSON files. Local files will be used if they exist.",
 )
+@click.option(
+    "--no-containers",
+    default=False,
+    help=(
+        "Do not use containers for isolating recipe code from the system. "
+        "Turning off containers is a potential security issue."
+    ),
+)
 @pass_context
 @click.pass_context
 def main(
@@ -67,6 +76,7 @@ def main(
     debug: bool,
     dry_run: bool,
     online: bool,
+    no_containers: bool,
 ) -> None:
     log_level = "debug" if debug else "info"
     setup_logging(log_level)
@@ -82,6 +92,9 @@ def main(
         click_context.with_resource(
             lazy_json_backends.lazy_json_override_backends(["github"]),
         )
+    if no_containers:
+        logger.info("Running without containers")
+        click_context.with_resource(override_env("CF_TICK_IN_CONTAINER", "true"))
 
 
 @main.command(name="gather-all-feedstocks")
