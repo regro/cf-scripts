@@ -21,6 +21,20 @@ def pushd(new_dir: str):
         os.chdir(previous_dir)
 
 
+@contextlib.contextmanager
+def override_env(name, value):
+    """Override an environment variable temporarily."""
+    old = os.environ.get(name)
+    try:
+        os.environ[name] = value
+        yield
+    finally:
+        if old is None:
+            del os.environ[name]
+        else:
+            os.environ[name] = old
+
+
 def eval_cmd(cmd: list[str], **kwargs) -> str:
     """run a command capturing stdout
 

@@ -1469,8 +1469,8 @@ def test_update_upstream_versions_sequential(
         ]
     )
 
-    assert "# 0     - testpackage - 2.2.3 - 2.2.4" in caplog.text
-    assert "# 1     - testpackage2 - 1.2.4 - 1.2.5" in caplog.text
+    assert "# 0     - testpackage - 2.2.3 -> 2.2.4" in caplog.text
+    assert "# 1     - testpackage2 - 1.2.4 -> 1.2.5" in caplog.text
 
 
 @mock.patch("conda_forge_tick.update_upstream_versions.executor")
@@ -1529,8 +1529,8 @@ def test_update_upstream_versions_process_pool(
     lazy_json_instance.update.assert_any_call({"new_version": "2.2.4"})
     lazy_json_instance.update.assert_any_call({"new_version": "1.2.5"})
 
-    assert "testpackage2 - 1.2.4 - 1.2.5" in caplog.text
-    assert "testpackage - 2.2.3 - 2.2.4" in caplog.text
+    assert "testpackage2 - 1.2.4 -> 1.2.5" in caplog.text
+    assert "testpackage - 2.2.3 -> 2.2.4" in caplog.text
 
 
 @mock.patch("conda_forge_tick.update_upstream_versions.executor")
