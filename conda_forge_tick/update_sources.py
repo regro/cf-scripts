@@ -555,7 +555,6 @@ class Github(VersionFromFeed):
     name = "Github"
 
     def set_version_prefix(self, version: str, split_url: list[str]):
-        logger.debug(f"dbg: {split_url}")
         version_prefix = self.get_version_prefix(version, split_url)
         if version_prefix is None:
             return
@@ -566,7 +565,7 @@ class Github(VersionFromFeed):
         r = re.compile(rf"^(.*){version}")
         for split in split_url:
             match = r.match(split)
-            if match is not None:
+            if match is not None and match.group(1) != "":
                 return match.group(1)
 
         return None
