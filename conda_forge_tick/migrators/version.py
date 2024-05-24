@@ -342,7 +342,9 @@ class Version(Migrator):
                 self.python_nodes,
                 "new_version",
             )
-        except BaseException:
+        except BaseException as e:
+            logger.critical("Error doing bot dep inspection/updates!", exc_info=e)
+
             hint = "\n\nDependency Analysis\n--------------------\n\n"
             hint += (
                 "We couldn't run dependency analysis due to an internal "
