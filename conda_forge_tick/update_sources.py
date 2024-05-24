@@ -553,13 +553,14 @@ class IncrementAlphaRawURL(BaseRawURL):
 
 class Github(VersionFromFeed):
     name = "Github"
+    version_prefix = None
 
     def set_version_prefix(self, version: str, split_url: list[str]):
-        version_prefix = self.get_version_prefix(version, split_url)
-        if version_prefix is None:
+        self.version_prefix = self.get_version_prefix(version, split_url)
+        if self.version_prefix is None:
             return
-        logger.debug(f"Found version prefix from url: {version_prefix}")
-        self.ver_prefix_remove = [version_prefix] + self.ver_prefix_remove
+        logger.debug(f"Found version prefix from url: {self.version_prefix}")
+        self.ver_prefix_remove = [self.version_prefix] + self.ver_prefix_remove
 
     def get_version_prefix(self, version: str, split_url: list[str]):
         r = re.compile(rf"^(.*){version}")

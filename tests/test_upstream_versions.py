@@ -1643,3 +1643,41 @@ def test_main(
     update_upstream_versions_mock.assert_called_once_with(
         gx, debug=debug, job=3, n_jobs=10, package="testpackage"
     )
+
+
+@pytest.mark.parametrize(
+    "url, version, version_prefix",
+    [
+        ("https://example.com/archs/1.2.3.tar.gz", "1.2.3", None),
+        # we don't want any assumptions on non github urls
+        ("https://example.com/archs/example-1.2.3.tar.gz", "1.2.3", None),
+        (
+            "https://github.com/example/example/archive/refs/tags/1.2.3.tar.gz",
+            "1.2.3",
+            None,
+        ),
+        (
+            "https://github.com/example/example/archive/refs/tags/example-1.2.3.tar.gz",
+            "1.2.3",
+            "example-",
+        ),
+    ],
+)
+@flaky
+def test_github_version_prefix(url, version, version_prefix, tmpdir):
+    gh = Github()
+    meta_yaml = LazyJson(os.path.join(tmpdir, "cf-scripts-test.json"))
+    with meta_yaml as _meta_yaml:
+        _meta_yaml.update(
+            {
+                "version": version,
+                "url": url,
+            }
+        )
+
+    gh.get_url(meta_yaml)
+
+    if version_prefix is None:
+        assert gh.version_prefix is None
+    else:
+        assert gh.version_prefix == version_prefix
