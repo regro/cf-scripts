@@ -1661,6 +1661,19 @@ def test_main(
             "1.2.3",
             "example-",
         ),
+        (
+            "https://github.com/llvm/llvm-project/releases/download/llvmorg-18.1.6/llvm-18.1.6.src.tar.xz",
+            "18.1.6",
+            "llvmorg-",
+        ),
+        (
+            "https://github.com/simplejson/simplejson/releases/download/1.2.3/simplejson-1.2.3.tar.gz",
+            "1.2.3",
+            None,
+        ),
+        # Test URLs without source version (if any)
+        ("https://example.com/archs/sources.tar.gz", "1.2.3", None),
+        ("https://github.com/archs/sources.tar.gz", "1.2.3", None),
     ],
 )
 @flaky

@@ -563,10 +563,14 @@ class Github(VersionFromFeed):
         self.ver_prefix_remove = [self.version_prefix] + self.ver_prefix_remove
 
     def get_version_prefix(self, version: str, split_url: list[str]):
+        """Returns prefix for the first split that contains version. If prefix
+        is empty - returns None."""
         r = re.compile(rf"^(.*){version}")
         for split in split_url:
             match = r.match(split)
-            if match is not None and match.group(1) != "":
+            if match is not None:
+                if match.group(1) == "":
+                    return None
                 return match.group(1)
 
         return None
