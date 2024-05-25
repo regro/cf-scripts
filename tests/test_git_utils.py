@@ -188,13 +188,22 @@ def test_git_cli_clone_repo_success():
 
         readme_file = dir_path.joinpath("README.md")
 
-        # delete the README.md file
-        readme_file.unlink()
+        assert readme_file.exists()
 
-        assert not readme_file.exists()
 
-        # clone the repo again (in the same directory!) - this should reset the repo
-        cli.clone_repo(git_url, dir_path)
+def test_git_cli_clone_repo_existing_empty_dir():
+    cli = GitCli()
+
+    git_url = "https://github.com/conda-forge/duckdb-feedstock.git"
+
+    with tempfile.TemporaryDirectory() as tmpdir:
+        target = Path(tmpdir) / "duckdb-feedstock"
+
+        target.mkdir()
+
+        cli.clone_repo(git_url, target)
+
+        readme_file = target.joinpath("README.md")
 
         assert readme_file.exists()
 
@@ -460,6 +469,7 @@ def test_git_cli_clone_fork_and_branch_minimal():
     [(True, False), (False, False), (False, True)],
 )
 @pytest.mark.parametrize("new_branch_already_exists", [True, False])
+@pytest.mark.parametrize("target_repo_already_exists", [True, False])
 @mock.patch("conda_forge_tick.git_utils.GitCli.reset_hard")
 @mock.patch("conda_forge_tick.git_utils.GitCli.checkout_new_branch")
 @mock.patch("conda_forge_tick.git_utils.GitCli.checkout_branch")
@@ -479,6 +489,7 @@ def test_git_cli_clone_fork_and_branch_mock(
     base_branch_exists: bool,
     git_checkout_track_error: bool,
     new_branch_already_exists: bool,
+    target_repo_already_exists: bool,
     caplog,
 ):
     fork_url = "https://github.com/regro-cf-autotick-bot/pytest-feedstock.git"
@@ -488,6 +499,11 @@ def test_git_cli_clone_fork_and_branch_mock(
     caplog.set_level("DEBUG")
 
     cli = GitCli()
+
+    if target_repo_already_exists:
+        clone_repo_mock.side_effect = GitCliError(
+            "target_dir is not an empty directory"
+        )
 
     if remote_already_exists:
         add_remote_mock.side_effect = GitCliError("Remote already exists")
@@ -508,6 +524,9 @@ def test_git_cli_clone_fork_and_branch_mock(
     )
 
     clone_repo_mock.assert_called_once_with(fork_url, git_dir)
+    if target_repo_already_exists:
+        reset_hard_mock.assert_any_call(git_dir)
+
     add_remote_mock.assert_called_once_with(git_dir, "upstream", upstream_url)
     if remote_already_exists:
         assert "remote 'upstream' already exists" in caplog.text
@@ -528,7 +547,7 @@ def test_git_cli_clone_fork_and_branch_mock(
                 git_dir, "base_branch", start_point="upstream/base_branch"
             )
 
-    reset_hard_mock.assert_called_once_with(git_dir, "upstream/base_branch")
+    reset_hard_mock.assert_called_with(git_dir, "upstream/base_branch")
     checkout_branch_mock.assert_any_call(git_dir, "new_branch_name")
 
     if not new_branch_already_exists:
@@ -538,6 +557,38 @@ def test_git_cli_clone_fork_and_branch_mock(
     checkout_new_branch_mock.assert_called_with(
         git_dir, "new_branch_name", start_point="base_branch"
     )
+
+
+def test_git_cli_clone_fork_and_branch_non_existing_remote():
+    origin_url = "https://github.com/conda-forge/this-repo-does-not-exist.git"
+    upstream_url = "https://github.com/conda-forge/duckdb-feedstock.git"
+    new_branch = "NEW_BRANCH"
+
+    cli = GitCli()
+
+    with tempfile.TemporaryDirectory() as tmpdir:
+        dir_path = Path(tmpdir) / "duckdb-feedstock"
+
+        with pytest.raises(GitCliError, match="does the remote exist?"):
+            cli.clone_fork_and_branch(origin_url, dir_path, upstream_url, new_branch)
+
+
+def test_git_cli_clone_fork_and_branch_non_existing_remote_existing_target_dir(caplog):
+    origin_url = "https://github.com/conda-forge/this-repo-does-not-exist.git"
+    upstream_url = "https://github.com/conda-forge/duckdb-feedstock.git"
+    new_branch = "NEW_BRANCH"
+
+    cli = GitCli()
+    caplog.set_level("DEBUG")
+
+    with tempfile.TemporaryDirectory() as tmpdir:
+        dir_path = Path(tmpdir) / "duckdb-feedstock"
+        dir_path.mkdir()
+
+        with pytest.raises(GitCliError):
+            cli.clone_fork_and_branch(origin_url, dir_path, upstream_url, new_branch)
+
+        assert "trying to reset hard" in caplog.text
 
 
 def test_git_platform_backend_get_remote_url_https():

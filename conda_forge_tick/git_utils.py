@@ -163,21 +163,20 @@ class GitCli:
 
     def clone_repo(self, origin_url: str, target_dir: Path):
         """
-        Clone a Git repository. If target_dir already exists, it will be reset to the state of the git index
-        with `git reset --hard HEAD`. This may be unexpected behavior because target_dir could contain a
-        different repository. Use with caution.
+        Clone a Git repository.
+        If target_dir exists and is non-empty, this method will fail with GitCliError.
+        If target_dir exists and is empty, it will work.
+        If target_dir does not exist, it will work.
         :param target_dir: The directory to clone the repository into.
         :param origin_url: The URL of the repository to clone.
-        :raises GitCliError: If the git command fails.
+        :raises GitCliError: If the git command fails (e.g. because origin_url does not point to valid remote or
+        target_dir is not empty).
         """
-        if target_dir.exists():
-            self.reset_hard(target_dir)
-            return
         try:
             self._run_git_command(["clone", "--quiet", origin_url, target_dir])
         except GitCliError as e:
             raise GitCliError(
-                f"Error cloning repository from {origin_url}. Does the repository exist?"
+                f"Error cloning repository from {origin_url}. Does the repository exist? Is target_dir empty?"
             ) from e
 
     def add_remote(self, git_dir: Path, remote_name: str, remote_url: str):
@@ -288,7 +287,19 @@ class GitCli:
 
         :raises GitCliError: If a git command fails.
         """
-        self.clone_repo(origin_url, target_dir)
+        try:
+            self.clone_repo(origin_url, target_dir)
+        except GitCliError:
+            if not target_dir.exists():
+                raise GitCliError(
+                    f"Could not clone {origin_url} - does the remote exist?"
+                )
+            logger.debug(
+                f"Cloning {origin_url} into {target_dir} was not successful - "
+                f"trying to reset hard since the directory already exists. This will fail if the target directory is "
+                f"not a git repository."
+            )
+            self.reset_hard(target_dir)
 
         try:
             self.add_remote(target_dir, "upstream", upstream_url)
