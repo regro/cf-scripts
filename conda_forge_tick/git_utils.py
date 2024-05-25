@@ -698,7 +698,7 @@ def get_repo(
             pri["bad"] = f"{fctx.package_name}: does not match feedstock name\n"
         return False, False
 
-    feedstock_dir = Path(GIT_CLONE_DIR) / (fctx.package_name + "-feedstock")
+    feedstock_dir = Path(GIT_CLONE_DIR) / (fctx.feedstock_name + "-feedstock")
 
     backend.clone_fork_and_branch(
         upstream_owner="conda-forge",

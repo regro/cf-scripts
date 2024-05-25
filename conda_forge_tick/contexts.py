@@ -29,7 +29,6 @@ class MigratorSessionContext:
 
 @dataclass
 class FeedstockContext:
-    package_name: str
     feedstock_name: str
     attrs: "AttrsTypedDict"
     _default_branch: str = None

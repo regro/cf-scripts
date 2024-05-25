@@ -281,7 +281,7 @@ class MigrationYaml(GraphMigrator):
 
     def pr_body(self, feedstock_ctx: "FeedstockContext") -> str:
         body = super().pr_body(feedstock_ctx)
-        if feedstock_ctx.package_name == "conda-forge-pinning":
+        if feedstock_ctx.feedstock_name == "conda-forge-pinning":
             additional_body = (
                 "This PR has been triggered in an effort to close out the "
                 "migration for **{name}**.\n\n"
@@ -342,7 +342,7 @@ class MigrationYaml(GraphMigrator):
 
     def commit_message(self, feedstock_ctx: FeedstockContext) -> str:
         if self.name:
-            if feedstock_ctx.package_name == "conda-forge-pinning":
+            if feedstock_ctx.feedstock_name == "conda-forge-pinning":
                 return f"Close out migration for {self.name}"
             default_msg = "Rebuild for " + self.name
         else:

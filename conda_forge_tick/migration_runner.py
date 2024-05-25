@@ -10,7 +10,6 @@ def run_migration(
     *,
     migrator,
     feedstock_dir,
-    package_name,
     feedstock_name,
     node_attrs,
     default_branch,
@@ -25,7 +24,6 @@ def run_migration(
         return run_migration_containerized(
             migrator=migrator,
             feedstock_dir=feedstock_dir,
-            package_name=package_name,
             feedstock_name=feedstock_name,
             node_attrs=node_attrs,
             default_branch=default_branch,
@@ -35,7 +33,6 @@ def run_migration(
         return run_migration_local(
             migrator=migrator,
             feedstock_dir=feedstock_dir,
-            package_name=package_name,
             feedstock_name=feedstock_name,
             node_attrs=node_attrs,
             default_branch=default_branch,
@@ -47,7 +44,6 @@ def run_migration_containerized(
     *,
     migrator,
     feedstock_dir,
-    package_name,
     feedstock_name,
     node_attrs,
     default_branch,
@@ -108,18 +104,17 @@ def run_migration_local(
     *,
     migrator,
     feedstock_dir,
-    package_name,
     feedstock_name,
     node_attrs,
     default_branch,
     **kwargs,
 ):
     feedstock_ctx = FeedstockContext(
-        package_name=package_name,
         feedstock_name=feedstock_name,
         attrs=node_attrs,
     )
     feedstock_ctx.default_branch = default_branch
+    feedstock_ctx.feedstock_dir = feedstock_dir
     recipe_dir = os.path.join(feedstock_dir, "recipe")
 
     data = {

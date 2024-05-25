@@ -197,7 +197,7 @@ def run(
     if not feedstock_dir or not repo:
         logger.critical(
             "Failed to migrate %s, %s",
-            feedstock_ctx.package_name,
+            feedstock_ctx.feedstock_name,
             feedstock_ctx.attrs.get("pr_info", {}).get("bad"),
         )
         return False, False
@@ -208,7 +208,6 @@ def run(
     migration_run_data = run_migration(
         migrator=migrator,
         feedstock_dir=feedstock_dir,
-        package_name=feedstock_ctx.package_name,
         feedstock_name=feedstock_ctx.feedstock_name,
         node_attrs=feedstock_ctx.attrs,
         default_branch=feedstock_ctx.default_branch,
@@ -218,7 +217,7 @@ def run(
     if not migration_run_data["migrate_return_value"]:
         logger.critical(
             "Failed to migrate %s, %s",
-            feedstock_ctx.package_name,
+            feedstock_ctx.feedstock_name,
             feedstock_ctx.attrs.get("pr_info", {}).get("bad"),
         )
         eval_cmd(["rm", "-rf", feedstock_dir])
@@ -799,7 +798,6 @@ def _run_migrator(migrator, mctx, temp, time_per, dry_run):
                 orig_branch = None
 
             fctx = FeedstockContext(
-                package_name=node_name,
                 feedstock_name=attrs["feedstock_name"],
                 attrs=attrs,
             )
@@ -824,7 +822,7 @@ def _run_migrator(migrator, mctx, temp, time_per, dry_run):
                         % (
                             migrator.__class__.__name__.upper(),
                             extra_name,
-                            fctx.package_name,
+                            fctx.feedstock_name,
                             base_branch,
                         )
                     ):
