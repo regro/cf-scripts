@@ -653,14 +653,6 @@ def feedstock_repo(fctx: FeedstockContext) -> str:
     return fctx.feedstock_name + "-feedstock"
 
 
-def fork_url(feedstock_url: str, username: str) -> str:
-    """Creates the URL of the user's fork."""
-    beg, end = feedstock_url.rsplit("/", 1)
-    beg = beg[:-11]  # chop off 'conda-forge'
-    url = beg + username + "/" + end
-    return url
-
-
 def get_repo(
     fctx: FeedstockContext,
     branch: str,
