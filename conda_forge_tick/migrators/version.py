@@ -228,7 +228,7 @@ class Version(Migrator):
                 ],
             )
             for name in list(
-                self.effective_graph.predecessors(feedstock_ctx.package_name),
+                self.effective_graph.predecessors(feedstock_ctx.feedstock_name),
             )
         ]
         body = ""
@@ -374,7 +374,7 @@ class Version(Migrator):
 
         return (
             add_slug
-            + feedstock_ctx.package_name
+            + feedstock_ctx.feedstock_name
             + " v"
             + feedstock_ctx.attrs["version_pr_info"]["new_version"]
         )

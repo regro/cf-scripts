@@ -302,7 +302,7 @@ class Migrator:
         return [
             a[1]
             for a in list(
-                self.effective_graph.out_edges(feedstock_ctx.package_name),
+                self.effective_graph.out_edges(feedstock_ctx.feedstock_name),
             )
         ][:limit]
 

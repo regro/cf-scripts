@@ -527,7 +527,6 @@ def run_test_migration(
 
         if make_body:
             fctx = FeedstockContext(
-                package_name=name,
                 feedstock_name=name,
                 attrs=pmy,
             )

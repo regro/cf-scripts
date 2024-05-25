@@ -173,7 +173,6 @@ def graph_migrator_status(
             all_pr_jsons.append(copy.deepcopy(pr_json))
 
         feedstock_ctx = FeedstockContext(
-            package_name=node,
             feedstock_name=attrs.get("feedstock_name", node),
             attrs=attrs,
         )
