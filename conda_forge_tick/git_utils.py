@@ -134,6 +134,7 @@ class GitCli:
         cmd: list[str | Path],
         working_directory: Path | None = None,
         check_error: bool = True,
+        capture_text: bool = False,
     ) -> subprocess.CompletedProcess:
         """
         Run a git command.
@@ -141,16 +142,44 @@ class GitCli:
         :param working_directory: The directory to run the command in. If None, the command will be run in the current
         working directory.
         :param check_error: If True, raise a GitCliError if the git command fails.
+        :param capture_text: If True, capture the output of the git command as text. The output will be in the
+        returned result object.
         :return: The result of the git command.
+        :raises GitCliError: If the git command fails and check_error is True.
+        :raises FileNotFoundError: If the working directory does not exist.
         """
         git_command = ["git"] + cmd
 
         logger.debug(f"Running git command: {git_command}")
+        capture_args = {"capture_output": True, "text": True} if capture_text else {}
 
         try:
-            return subprocess.run(git_command, check=check_error, cwd=working_directory)
+            return subprocess.run(
+                git_command, check=check_error, cwd=working_directory, **capture_args
+            )
         except subprocess.CalledProcessError as e:
             raise GitCliError("Error running git command.") from e
+
+    def _get_git_root(self, git_dir: Path) -> Path:
+        """
+        Get the root directory of a git repository.
+        :param git_dir: Any subdirectory of the local git repository in question
+        :return: The root directory of the git repository.
+        :raises RepositoryNotFoundError: if an error occurred while executing the git command.
+        If git is installed, this can only happen if git_dir does not point to a git repository.
+        :raises FileNotFoundError: If the git_dir does not exist.
+        """
+
+        try:
+            result = self._run_git_command(
+                ["rev-parse", "--show-toplevel"], git_dir, capture_text=True
+            )
+        except GitCliError as e:
+            raise RepositoryNotFoundError(
+                f"Error finding git root directory for {git_dir}"
+            ) from e
+
+        return Path(result.stdout.strip())
 
     def reset_hard(self, git_dir: Path, to_treeish: str = "HEAD"):
         """
@@ -158,6 +187,7 @@ class GitCli:
         :param git_dir: The directory to reset.
         :param to_treeish: The treeish to reset to. Defaults to "HEAD".
         :raises GitCliError: If the git command fails.
+        :raises FileNotFoundError: If the git_dir does not exist.
         """
         self._run_git_command(["reset", "--quiet", "--hard", to_treeish], git_dir)
 
@@ -186,6 +216,7 @@ class GitCli:
         :param remote_url: The URL of the remote.
         :param git_dir: The directory of the git repository.
         :raises GitCliError: If the git command fails (e.g., the remote already exists).
+        :raises FileNotFoundError: If git_dir does not exist
         """
         self._run_git_command(["remote", "add", remote_name, remote_url], git_dir)
 
@@ -194,6 +225,7 @@ class GitCli:
         Fetch all changes from all remotes.
         :param git_dir: The directory of the git repository.
         :raises GitCliError: If the git command fails.
+        :raises FileNotFoundError: If git_dir does not exist
         """
         self._run_git_command(["fetch", "--all", "--quiet"], git_dir)
 
@@ -205,6 +237,7 @@ class GitCli:
         :param git_dir: The directory of the git repository.
         :return: True if the branch exists, False otherwise.
         :raises GitCliError: If the git command fails.
+        :raises FileNotFoundError: If git_dir does not exist
         """
         ret = self._run_git_command(
             ["show-ref", "--verify", "--quiet", f"refs/heads/{branch_name}"],
@@ -238,6 +271,7 @@ class GitCli:
         A new local branch will be created with the name inferred from branch.
         For example, if branch is "upstream/main", the new branch will be "main".
         :raises GitCliError: If the git command fails.
+        :raises FileNotFoundError: If git_dir does not exist
         """
         track_flag = ["--track"] if track else []
         self._run_git_command(
@@ -253,6 +287,7 @@ class GitCli:
         :param git_dir: The directory of the git repository.
         :param branch: The name of the new branch.
         :param start_point: The name of the branch to branch from, or None to branch from the current branch.
+        :raises FileNotFoundError: If git_dir does not exist
         """
         start_point_option = [start_point] if start_point else []
 
@@ -347,7 +382,6 @@ class GitCli:
 class GitPlatformBackend(ABC):
     """
     A backend for interacting with a git platform (e.g. GitHub).
-    Note that this class is not thread-safe, you should create a new instance for each thread.
 
     Implementation Note: If you wonder what should be in this class vs. the GitCli class, the GitPlatformBackend class
     should contain the logic for interacting with the platform (e.g. GitHub), while the GitCli class should contain the
@@ -476,7 +510,6 @@ class GitHubBackend(GitPlatformBackend):
     """
     A git backend for GitHub, using both PyGithub and github3.py as clients.
     Both clients are used for historical reasons. In the future, this should be refactored to use only one client.
-    Note that this class is not thread-safe, you should create a new instance for each thread.
     """
 
     _GITHUB_PER_PAGE = 100
