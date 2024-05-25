@@ -103,11 +103,23 @@ def test_git_cli_reset_hard_already_reset():
 
         init_temp_git_repo(dir_path)
         cli._run_git_command(
-            ["commit", "--allow-empty", "-m", "Initial commit"],
+            ["commit", "--allow-empty", "-m", "First commit"],
+            working_directory=dir_path,
+        )
+
+        cli._run_git_command(
+            ["commit", "--allow-empty", "-m", "Second commit"],
             working_directory=dir_path,
         )
 
         cli.reset_hard(dir_path)
+
+        git_log = subprocess.run(
+            "git log", cwd=dir_path, shell=True, capture_output=True
+        ).stdout.decode()
+
+        assert "First commit" in git_log
+        assert "Second commit" in git_log
 
 
 @mock.patch("conda_forge_tick.git_utils.GitCli._run_git_command")
