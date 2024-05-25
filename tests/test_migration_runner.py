@@ -49,7 +49,6 @@ def test_migration_runner_run_migration_local_yaml_rebuild(tmpdir):
     migration_data = run_migration_local(
         migrator=yaml_rebuild,
         feedstock_dir=tmpdir,
-        package_name="scipy",
         feedstock_name="scipy",
         node_attrs=pmy,
         default_branch="main",

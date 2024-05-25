@@ -321,7 +321,7 @@ def get_repo(
         if repo is None:
             print("could not fork conda-forge/%s!" % feedstock_reponame, flush=True)
             with fctx.attrs["pr_info"] as pri:
-                pri["bad"] = f"{fctx.package_name}: does not match feedstock name\n"
+                pri["bad"] = f"{fctx.feedstock_name}: could not find feedstock\n"
             return False, False
 
     # Check if fork exists
@@ -339,7 +339,7 @@ def get_repo(
         # sync the default branches if needed
         _sync_default_branches(feedstock_reponame)
 
-    feedstock_dir = os.path.join(GIT_CLONE_DIR, fctx.package_name + "-feedstock")
+    feedstock_dir = os.path.join(GIT_CLONE_DIR, fctx.feedstock_name + "-feedstock")
 
     if fetch_repo(
         feedstock_dir=feedstock_dir,
