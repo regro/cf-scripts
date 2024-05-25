@@ -475,7 +475,7 @@ class GitPlatformBackend(ABC):
 class GitHubBackend(GitPlatformBackend):
     """
     A git backend for GitHub, using both PyGithub and github3.py as clients.
-    It is unclear why both clients are used, in the future, this should be refactored to use only one client.
+    Both clients are used for historical reasons. In the future, this should be refactored to use only one client.
     Note that this class is not thread-safe, you should create a new instance for each thread.
     """
 
