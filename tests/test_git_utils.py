@@ -494,7 +494,6 @@ def test_git_cli_clone_fork_and_branch_mock(
 ):
     fork_url = "https://github.com/regro-cf-autotick-bot/pytest-feedstock.git"
     upstream_url = "https://github.com/conda-forge/pytest-feedstock.git"
-    git_dir = Path("TEST_DIR")
 
     caplog.set_level("DEBUG")
 
@@ -519,9 +518,15 @@ def test_git_cli_clone_fork_and_branch_mock(
 
     checkout_branch_mock.side_effect = checkout_branch_side_effect
 
-    cli.clone_fork_and_branch(
-        fork_url, git_dir, upstream_url, "new_branch_name", "base_branch"
-    )
+    with tempfile.TemporaryDirectory() as tmpdir:
+        git_dir = Path(tmpdir) / "pytest-feedstock"
+
+        if target_repo_already_exists:
+            git_dir.mkdir()
+
+        cli.clone_fork_and_branch(
+            fork_url, git_dir, upstream_url, "new_branch_name", "base_branch"
+        )
 
     clone_repo_mock.assert_called_once_with(fork_url, git_dir)
     if target_repo_already_exists:
