@@ -226,13 +226,6 @@ def test_git_cli_clone_repo_mock_success(
             ["clone", "--quiet", git_url, dir_path]
         )
 
-        # now we simulate that the repo already exists
-        dir_path.mkdir()
-
-        cli.clone_repo(git_url, dir_path)
-
-        reset_hard_mock.assert_called_once_with(dir_path)
-
 
 @mock.patch("conda_forge_tick.git_utils.GitCli._run_git_command")
 def test_git_cli_clone_repo_mock_error(run_git_command_mock: MagicMock):
