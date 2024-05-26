@@ -4,15 +4,15 @@ import os
 import shutil
 import tempfile
 
-from conda_forge_tick.utils import run_container_task
 from conda_forge_tick.contexts import FeedstockContext
+from conda_forge_tick.lazy_json_backends import dumps
 from conda_forge_tick.os_utils import (
     chmod_plus_rwX,
     get_user_execute_permissions,
     reset_permissions_with_user_execute,
     sync_dirs,
 )
-from conda_forge_tick.lazy_json_backends import dumps
+from conda_forge_tick.utils import run_container_task
 
 logger = logging.getLogger(__name__)
 
@@ -108,7 +108,7 @@ def run_migration_containerized(
             tmp_feedstock_dir,
             feedstock_dir,
             ignore_dot_git=True,
-            update_git=True,
+            update_git=False,
         )
         reset_permissions_with_user_execute(feedstock_dir, data["permissions"])
 
