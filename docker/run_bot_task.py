@@ -264,6 +264,51 @@ def _rerender_feedstock(*, timeout):
         return {"commit_message": msg, "permissions": output_permissions}
 
 
+def _migrate_feedstock(*, feedstock_name, default_branch, attrs, input_kwargs):
+    from conda_forge_tick.os_utils import (
+        chmod_plus_rwX,
+        get_user_execute_permissions,
+        reset_permissions_with_user_execute,
+    )
+    from conda_forge_tick.lazy_json_backends import loads
+    from conda_forge_tick.migration_runner import run_migration_local
+    from conda_forge_tick.migrators import make_from_lazy_json_data
+
+    logger = logging.getLogger("conda_forge_tick.container")
+
+    input_fs_dir = glob.glob("/cf_tick_dir/*-feedstock")
+    assert len(input_fs_dir) == 1, f"expected one feedstock, got {input_fs_dir}"
+    input_fs_dir = input_fs_dir[0]
+    logger.debug(
+        f"input container feedstock dir {input_fs_dir}: {os.listdir(input_fs_dir)}"
+    )
+    input_permissions = os.path.join(
+        "/cf_tick_dir", f"permissions-{os.path.basename(input_fs_dir)}.json"
+    )
+    with open(input_permissions) as f:
+        input_permissions = json.load(f)
+
+    reset_permissions_with_user_execute(input_fs_dir, input_permissions)
+
+    with open("/cf_tick_dir/migrator.json") as f:
+        migrator = make_from_lazy_json_data(loads(f.read()))
+
+    kwargs = loads(input_kwargs) if input_kwargs else {}
+    data = run_migration_local(
+        migrator=migrator,
+        feedstock_dir=input_fs_dir,
+        feedstock_name=feedstock_name,
+        default_branch=default_branch,
+        node_attrs=attrs,
+        **kwargs,
+    )
+
+    data["permissions"] = get_user_execute_permissions(input_fs_dir)
+    chmod_plus_rwX(input_fs_dir, recursive=True, skip_on_error=True)
+
+    return data
+
+
 def _get_latest_version(*, attrs, sources):
     from conda_forge_tick.update_upstream_versions import (
         all_version_sources,
@@ -469,6 +514,33 @@ def rerender_feedstock(log_level, timeout):
         log_level=log_level,
         existing_feedstock_node_attrs=None,
         timeout=timeout,
+    )
+
+
+@cli.command(name="migrate-feedstock")
+@log_level_option
+@existing_feedstock_node_attrs_option
+@click.option("--feedstock-name", type=str, required=True, help="The name of the feedstock.")
+@click.option(
+    "--default-branch",
+    type=str,
+    required=True,
+    help="The default branch of the feedstock.",
+)
+@click.option(
+    "--kwargs",
+    type=str,
+    default=None,
+    help="The input kwargs JSON as a string.",
+)
+def migrate_feedstock(log_level, existing_feedstock_node_attrs, feedstock_name, default_branch, kwargs):
+    return _run_bot_task(
+        _migrate_feedstock,
+        log_level=log_level,
+        existing_feedstock_node_attrs=existing_feedstock_node_attrs,
+        feedstock_name=feedstock_name,
+        default_branch=default_branch,
+        input_kwargs=kwargs,
     )
 
 

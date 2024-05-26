@@ -1,7 +1,18 @@
+import json
 import logging
 import os
+import shutil
+import tempfile
 
+from conda_forge_tick.utils import run_container_task
 from conda_forge_tick.contexts import FeedstockContext
+from conda_forge_tick.os_utils import (
+    chmod_plus_rwX,
+    get_user_execute_permissions,
+    reset_permissions_with_user_execute,
+    sync_dirs,
+)
+from conda_forge_tick.lazy_json_backends import dumps
 
 logger = logging.getLogger(__name__)
 
@@ -49,55 +60,65 @@ def run_migration_containerized(
     default_branch,
     **kwargs,
 ):
-    # args = []
+    with tempfile.TemporaryDirectory() as tmpdir:
+        tmp_feedstock_dir = os.path.join(tmpdir, os.path.basename(feedstock_dir))
+        sync_dirs(
+            feedstock_dir, tmp_feedstock_dir, ignore_dot_git=True, update_git=False
+        )
 
-    # if timeout is not None:
-    #     args += ["--timeout", str(timeout)]
+        perms = get_user_execute_permissions(feedstock_dir)
+        with open(
+            os.path.join(tmpdir, f"permissions-{os.path.basename(feedstock_dir)}.json"),
+            "w",
+        ) as f:
+            json.dump(perms, f)
 
-    # with tempfile.TemporaryDirectory() as tmpdir:
-    #     tmp_feedstock_dir = os.path.join(tmpdir, os.path.basename(feedstock_dir))
-    #     sync_dirs(
-    #         feedstock_dir, tmp_feedstock_dir, ignore_dot_git=True, update_git=False
-    #     )
+        chmod_plus_rwX(tmpdir, recursive=True)
 
-    #     perms = get_user_execute_permissions(feedstock_dir)
-    #     with open(
-    #         os.path.join(tmpdir, f"permissions-{os.path.basename(feedstock_dir)}.json"),
-    #         "w",
-    #     ) as f:
-    #         json.dump(perms, f)
+        logger.debug(f"host feedstock dir {feedstock_dir}: {os.listdir(feedstock_dir)}")
+        logger.debug(
+            f"copied host feedstock dir {tmp_feedstock_dir}: {os.listdir(tmp_feedstock_dir)}"
+        )
 
-    #     chmod_plus_rwX(tmpdir, recursive=True)
+        mfile = os.path.join(tmpdir, "migrator.json")
+        with open(mfile, "w") as f:
+            f.write(dumps(migrator.to_lazy_json_data()))
 
-    #     logger.debug(f"host feedstock dir {feedstock_dir}: {os.listdir(feedstock_dir)}")
-    #     logger.debug(
-    #         f"copied host feedstock dir {tmp_feedstock_dir}: {os.listdir(tmp_feedstock_dir)}"
-    #     )
+        args = [
+            "--feedstock-name",
+            feedstock_name,
+            "--default-branch",
+            default_branch,
+            "--existing-feedstock-node-attrs",
+            "-",
+        ]
 
-    #     data = run_container_task(
-    #         "rerender-feedstock",
-    #         args,
-    #         mount_readonly=False,
-    #         mount_dir=tmpdir,
-    #     )
+        if kwargs:
+            args += ["--kwargs", dumps(kwargs)]
 
-    #     if data["commit_message"] is not None:
-    #         sync_dirs(
-    #             tmp_feedstock_dir,
-    #             feedstock_dir,
-    #             ignore_dot_git=True,
-    #             update_git=True,
-    #         )
-    #         reset_permissions_with_user_execute(feedstock_dir, data["permissions"])
+        data = run_container_task(
+            "migrate-feedstock",
+            args,
+            mount_readonly=False,
+            mount_dir=tmpdir,
+            input=dumps(node_attrs),
+        )
 
-    #     # When tempfile removes tempdir, it tries to reset permissions on subdirs.
-    #     # This causes a permission error since the subdirs were made by the user
-    #     # in the container. So we remove the subdir we made before cleaning up.
-    #     shutil.rmtree(tmp_feedstock_dir)
+        sync_dirs(
+            tmp_feedstock_dir,
+            feedstock_dir,
+            ignore_dot_git=True,
+            update_git=True,
+        )
+        reset_permissions_with_user_execute(feedstock_dir, data["permissions"])
 
-    # return data["commit_message"]
-    raise NotImplementedError("Containerized migrations are not yet implemented!")
-    pass
+        # When tempfile removes tempdir, it tries to reset permissions on subdirs.
+        # This causes a permission error since the subdirs were made by the user
+        # in the container. So we remove the subdir we made before cleaning up.
+        shutil.rmtree(tmp_feedstock_dir)
+
+    data.pop("permissions", None)
+    return data
 
 
 def run_migration_local(
