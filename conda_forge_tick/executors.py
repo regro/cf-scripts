@@ -5,6 +5,8 @@ import typing
 from concurrent.futures import Executor, ProcessPoolExecutor, ThreadPoolExecutor
 from threading import RLock as TRLock
 
+from distributed import Lock as DaskLock
+
 
 class DummyLock:
     def __enter__(self, *args, **kwargs):
@@ -16,10 +18,37 @@ class DummyLock:
 
 TRLOCK = TRLock()
 PRLOCK = DummyLock()
-DLOCK = DummyLock()
+DRLOCK = DummyLock()
 
 
 logger = logging.getLogger(__name__)
+
+
+class DaskRLock(DaskLock):
+    """A reentrant lock for dask that is always blocking and never times out."""
+
+    def acquire(self):
+        if not hasattr(self, "_rcount"):
+            self._rcount = 0
+
+        self._rcount += 1
+
+        if self._rcount == 1:
+            self._rdata = super().acquire(blocking=True, timeout=None)
+
+        return self._rdata
+
+    def release(self):
+        if not hasattr(self, "_rcount") or self._rcount == 0:
+            raise RuntimeError("Lock not acquired so cannot be released!")
+
+        self._rcount -= 1
+
+        if self._rcount == 0:
+            delattr(self, "_rdata")
+            return super().release()
+        else:
+            return None
 
 
 def _init_process(lock):
@@ -28,8 +57,11 @@ def _init_process(lock):
 
 
 def _init_dask(lock):
-    global DLOCK
-    DLOCK = lock
+    global DRLOCK
+    # it appears we have to construct the locak by name instead
+    # of passing the object itself
+    # otherwise dask uses a regular lock
+    DRLOCK = DaskRLock(name=lock)
 
 
 @contextlib.contextmanager
@@ -38,7 +70,7 @@ def executor(kind: str, max_workers: int, daemon=True) -> typing.Iterator[Execut
 
     This allows us to easily use other executors as needed.
     """
-    global DLOCK
+    global DRLOCK
     global PRLOCK
 
     if kind == "thread":
@@ -67,11 +99,8 @@ def executor(kind: str, max_workers: int, daemon=True) -> typing.Iterator[Execut
                 processes=processes,
             ) as cluster:
                 with distributed.Client(cluster) as client:
-                    from distributed import Lock as DLock
-
-                    lock = DLock(client=client)
-                    client.run(_init_dask, lock)
+                    client.run(_init_dask, "cftick")
                     yield ClientExecutor(client)
-                DLOCK = DummyLock()
+                DRLOCK = DummyLock()
     else:
         raise NotImplementedError("That kind is not implemented")
