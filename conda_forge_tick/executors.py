@@ -4,6 +4,7 @@ import multiprocessing
 import typing
 from concurrent.futures import Executor, ProcessPoolExecutor, ThreadPoolExecutor
 from threading import RLock as TRLock
+from distributed import Lock as DaskLock
 
 
 class DummyLock:
@@ -20,6 +21,29 @@ DLOCK = DummyLock()
 
 
 logger = logging.getLogger(__name__)
+
+
+class RDaskLock(DaskLock):
+    def acquire(self, *args, **kwargs):
+        if not hasattr(self, "_rcount"):
+            self._rcount = 0
+
+        self._rcount += 1
+
+        if not self.locked():
+            self._rdata = self.acquire(*args, **kwargs)
+
+        return self._rdata
+
+    def release(self):
+        if not hasattr(self, "_rcount") or self._rcount == 0:
+            raise RuntimeError("Lock not acquired")
+        self._rcount -= 1
+        if self._rcount == 0:
+            delattr(self, "_rdata")
+            return self.release()
+        else:
+            return None
 
 
 def _init_process(lock):
@@ -67,9 +91,8 @@ def executor(kind: str, max_workers: int, daemon=True) -> typing.Iterator[Execut
                 processes=processes,
             ) as cluster:
                 with distributed.Client(cluster) as client:
-                    from distributed import Lock as DLock
 
-                    lock = DLock(client=client)
+                    lock = RDaskLock(name="conda-forge-tick", client=client)
                     client.run(_init_dask, lock)
                     yield ClientExecutor(client)
                 DLOCK = DummyLock()
