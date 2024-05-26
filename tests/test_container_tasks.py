@@ -2,18 +2,14 @@ import copy
 import glob
 import json
 import os
+import pprint
 import subprocess
 import tempfile
-import pprint
 
 import conda_smithy
 import pytest
 from conda.models.version import VersionOrder
-
 from test_migrators import sample_yaml_rebuild, updated_yaml_rebuild
-
-from conda_forge_tick.migrators import MigrationYaml
-from conda_forge_tick.utils import parse_meta_yaml
 
 from conda_forge_tick.feedstock_parser import load_feedstock_containerized
 from conda_forge_tick.lazy_json_backends import (
@@ -21,6 +17,8 @@ from conda_forge_tick.lazy_json_backends import (
     dumps,
     lazy_json_override_backends,
 )
+from conda_forge_tick.migration_runner import run_migration_containerized
+from conda_forge_tick.migrators import MigrationYaml
 from conda_forge_tick.os_utils import get_user_execute_permissions, pushd
 from conda_forge_tick.provide_source_code import provide_source_code_containerized
 from conda_forge_tick.rerender_feedstock import (
@@ -32,8 +30,11 @@ from conda_forge_tick.update_upstream_versions import (
     all_version_sources,
     get_latest_version_containerized,
 )
-from conda_forge_tick.utils import parse_meta_yaml_containerized, run_container_task
-from conda_forge_tick.migration_runner import run_migration_containerized
+from conda_forge_tick.utils import (
+    parse_meta_yaml,
+    parse_meta_yaml_containerized,
+    run_container_task,
+)
 
 HAVE_CONTAINERS = (
     subprocess.run(["docker", "--version"], capture_output=True).returncode == 0
