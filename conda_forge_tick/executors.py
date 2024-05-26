@@ -99,7 +99,6 @@ def executor(kind: str, max_workers: int, daemon=True) -> typing.Iterator[Execut
                 processes=processes,
             ) as cluster:
                 with distributed.Client(cluster) as client:
-                    # lock = DaskRLock(name="conda-forge-tick", client=client)
                     client.run(_init_dask, "cftick")
                     yield ClientExecutor(client)
                 DRLOCK = DummyLock()
