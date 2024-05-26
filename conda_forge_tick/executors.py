@@ -4,6 +4,7 @@ import multiprocessing
 import typing
 from concurrent.futures import Executor, ProcessPoolExecutor, ThreadPoolExecutor
 from threading import RLock as TRLock
+
 from distributed import Lock as DaskLock
 
 
@@ -17,31 +18,35 @@ class DummyLock:
 
 TRLOCK = TRLock()
 PRLOCK = DummyLock()
-DLOCK = DummyLock()
+DRLOCK = DummyLock()
 
 
 logger = logging.getLogger(__name__)
 
 
-class RDaskLock(DaskLock):
-    def acquire(self, *args, **kwargs):
+class DaskRLock(DaskLock):
+    """A reentrant lock for dask that is always blocking and never times out."""
+
+    def acquire(self):
         if not hasattr(self, "_rcount"):
             self._rcount = 0
 
         self._rcount += 1
 
-        if not self.locked():
-            self._rdata = self.acquire(*args, **kwargs)
+        if self._rcount == 1:
+            self._rdata = super().acquire(blocking=True, timeout=None)
 
         return self._rdata
 
     def release(self):
         if not hasattr(self, "_rcount") or self._rcount == 0:
-            raise RuntimeError("Lock not acquired")
+            raise RuntimeError("Lock not acquired so cannot be released!")
+
         self._rcount -= 1
+
         if self._rcount == 0:
             delattr(self, "_rdata")
-            return self.release()
+            return super().release()
         else:
             return None
 
@@ -52,8 +57,8 @@ def _init_process(lock):
 
 
 def _init_dask(lock):
-    global DLOCK
-    DLOCK = lock
+    global DRLOCK
+    DRLOCK = DaskRLock(name=lock)
 
 
 @contextlib.contextmanager
@@ -62,7 +67,7 @@ def executor(kind: str, max_workers: int, daemon=True) -> typing.Iterator[Execut
 
     This allows us to easily use other executors as needed.
     """
-    global DLOCK
+    global DRLOCK
     global PRLOCK
 
     if kind == "thread":
@@ -91,10 +96,9 @@ def executor(kind: str, max_workers: int, daemon=True) -> typing.Iterator[Execut
                 processes=processes,
             ) as cluster:
                 with distributed.Client(cluster) as client:
-
-                    lock = RDaskLock(name="conda-forge-tick", client=client)
-                    client.run(_init_dask, lock)
+                    # lock = DaskRLock(name="conda-forge-tick", client=client)
+                    client.run(_init_dask, "cftick")
                     yield ClientExecutor(client)
-                DLOCK = DummyLock()
+                DRLOCK = DummyLock()
     else:
         raise NotImplementedError("That kind is not implemented")
