@@ -24,7 +24,7 @@ def run_migration(
     feedstock_name,
     node_attrs,
     default_branch,
-    use_container=False,
+    use_container=True,
     **kwargs,
 ):
     in_container = os.environ.get("CF_TICK_IN_CONTAINER", "false") == "true"
