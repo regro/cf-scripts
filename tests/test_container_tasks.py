@@ -526,15 +526,6 @@ def test_container_tasks_is_recipe_solvable_containerized(use_containers):
         assert res_cont == res_local
 
 
-class NoFilter:
-    def filter(self, attrs, not_bad_str_start=""):
-        return False
-
-
-class _MigrationYaml(NoFilter, MigrationYaml):
-    pass
-
-
 yaml_rebuild = MigrationYaml(yaml_contents="{}", name="hi")
 yaml_rebuild.cycles = []
 
