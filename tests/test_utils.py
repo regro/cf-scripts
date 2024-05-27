@@ -205,8 +205,8 @@ def test_print_subprocess_output_strip_token_both():
     with contextlib.redirect_stdout(stdout), contextlib.redirect_stderr(stderr):
         print_subprocess_output_strip_token(p, "TOKEN")
 
-    assert stdout.getvalue() == "std****.out"
-    assert stderr.getvalue() == "std****.err"
+    assert stdout.getvalue() == "std*****.out"
+    assert stderr.getvalue() == "std*****.err"
 
 
 def test_print_subprocess_output_strip_token_no_token():
@@ -233,8 +233,8 @@ def test_print_subprocess_output_strip_token_multiple_occurrences():
     with contextlib.redirect_stdout(stdout), contextlib.redirect_stderr(stderr):
         print_subprocess_output_strip_token(p, "TOKEN")
 
-    assert stdout.getvalue() == "std****-******.out"
-    assert stderr.getvalue() == "std****-******.err"
+    assert stdout.getvalue() == "std*****-*****.out"
+    assert stderr.getvalue() == "std*****-*****.err"
 
 
 def test_print_subprocess_output_strip_token_bytes_in_stdout():
