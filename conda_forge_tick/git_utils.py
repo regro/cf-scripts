@@ -30,6 +30,7 @@ from conda_forge_tick import sensitive_env
 from conda_forge_tick.lazy_json_backends import LazyJson
 
 from .contexts import FeedstockContext
+from .executors import lock_git_operation
 from .os_utils import pushd
 from .utils import get_bot_run_url
 
@@ -127,9 +128,13 @@ class RepositoryNotFoundError(Exception):
 class GitCli:
     """
     A simple wrapper around the git command line interface.
+
+    Git operations are locked (globally) to prevent operations from interfering with each other.
+    If this does impact performance too much, we can consider a per-repository locking strategy.
     """
 
     @staticmethod
+    @lock_git_operation()
     def _run_git_command(
         cmd: list[str | Path],
         working_directory: Path | None = None,
@@ -160,6 +165,7 @@ class GitCli:
         except subprocess.CalledProcessError as e:
             raise GitCliError("Error running git command.") from e
 
+    @lock_git_operation()
     def reset_hard(self, git_dir: Path, to_treeish: str = "HEAD"):
         """
         Reset the git index of a directory to the state of the last commit with `git reset --hard HEAD`.
@@ -170,6 +176,7 @@ class GitCli:
         """
         self._run_git_command(["reset", "--quiet", "--hard", to_treeish], git_dir)
 
+    @lock_git_operation()
     def clone_repo(self, origin_url: str, target_dir: Path):
         """
         Clone a Git repository.
@@ -188,6 +195,7 @@ class GitCli:
                 f"Error cloning repository from {origin_url}. Does the repository exist? Is target_dir empty?"
             ) from e
 
+    @lock_git_operation()
     def add_remote(self, git_dir: Path, remote_name: str, remote_url: str):
         """
         Add a remote to a git repository.
@@ -199,6 +207,7 @@ class GitCli:
         """
         self._run_git_command(["remote", "add", remote_name, remote_url], git_dir)
 
+    @lock_git_operation()
     def fetch_all(self, git_dir: Path):
         """
         Fetch all changes from all remotes.
@@ -212,6 +221,8 @@ class GitCli:
         """
         Check if a branch exists in a git repository.
         Note: If git_dir is not a git repository, this method will return False.
+        Note: This method is intentionally not locked with lock_git_operation, as it only reads the git repository and
+        does not modify it.
         :param branch_name: The name of the branch.
         :param git_dir: The directory of the git repository.
         :return: True if the branch exists, False otherwise.
@@ -229,6 +240,8 @@ class GitCli:
     def does_remote_exist(self, remote_url: str) -> bool:
         """
         Check if a remote exists.
+        Note: This method is intentionally not locked with lock_git_operation, as it only reads a remote and does not
+        modify a git repository.
         :param remote_url: The URL of the remote.
         :return: True if the remote exists, False otherwise.
         """
@@ -236,6 +249,7 @@ class GitCli:
 
         return ret.returncode == 0
 
+    @lock_git_operation()
     def checkout_branch(
         self,
         git_dir: Path,
@@ -258,6 +272,7 @@ class GitCli:
             git_dir,
         )
 
+    @lock_git_operation()
     def checkout_new_branch(
         self, git_dir: Path, branch: str, start_point: str | None = None
     ):
@@ -274,6 +289,7 @@ class GitCli:
             ["checkout", "--quiet", "-b", branch] + start_point_option, git_dir
         )
 
+    @lock_git_operation()
     def clone_fork_and_branch(
         self,
         origin_url: str,
@@ -366,6 +382,9 @@ class GitPlatformBackend(ABC):
     should contain the logic for interacting with the platform (e.g. GitHub), while the GitCli class should contain the
     logic for interacting with the git repository itself. If you need to know anything specific about the platform,
     it should be in the GitPlatformBackend class.
+
+    Git operations are locked (globally) to prevent operations from interfering with each other.
+    If this does impact performance too much, we can consider a per-repository locking strategy.
     """
 
     def __init__(self, git_cli: GitCli):
@@ -418,6 +437,7 @@ class GitPlatformBackend(ABC):
         """
         pass
 
+    @lock_git_operation()
     def clone_fork_and_branch(
         self,
         upstream_owner: str,
@@ -489,6 +509,9 @@ class GitHubBackend(GitPlatformBackend):
     """
     A git backend for GitHub, using both PyGithub and github3.py as clients.
     Both clients are used for historical reasons. In the future, this should be refactored to use only one client.
+
+    Git operations are locked (globally) to prevent operations from interfering with each other.
+    If this does impact performance too much, we can consider a per-repository locking strategy.
     """
 
     _GITHUB_PER_PAGE = 100
@@ -512,6 +535,7 @@ class GitHubBackend(GitPlatformBackend):
         repo = self.github3_client.repository(owner, repo_name)
         return repo is not None
 
+    @lock_git_operation()
     def fork(self, owner: str, repo_name: str):
         if self.does_repository_exist(self.user, repo_name):
             # The fork already exists, so we only sync the default branch.
@@ -530,6 +554,7 @@ class GitHubBackend(GitPlatformBackend):
         # Sleep to make sure the fork is created before we go after it
         time.sleep(5)
 
+    @lock_git_operation()
     def _sync_default_branch(self, upstream_owner: str, repo_name: str):
         fork_owner = self.user
 
@@ -611,6 +636,7 @@ class DryRunBackend(GitPlatformBackend):
             self.get_remote_url(owner, repo_name, GitConnectionMode.HTTPS)
         )
 
+    @lock_git_operation()
     def fork(self, owner: str, repo_name: str):
         if repo_name in self._repos:
             raise ValueError(f"Fork of {repo_name} already exists.")
@@ -676,6 +702,7 @@ def feedstock_repo(fctx: FeedstockContext) -> str:
     return fctx.feedstock_name + "-feedstock"
 
 
+@lock_git_operation()
 def get_repo(
     fctx: FeedstockContext,
     branch: str,
@@ -730,6 +757,7 @@ def get_repo(
     return feedstock_repo_name, repo
 
 
+@lock_git_operation()
 def delete_branch(pr_json: LazyJson, dry_run: bool = False) -> None:
     ref = pr_json["head"]["ref"]
     if dry_run:
@@ -950,6 +978,7 @@ def close_out_labels(
     return None
 
 
+@lock_git_operation()
 def push_repo(
     fctx: FeedstockContext,
     feedstock_dir: str,
