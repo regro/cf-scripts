@@ -27,6 +27,34 @@ def run_migration(
     use_container=True,
     **kwargs,
 ):
+    """Run a migration against a feedstock.
+
+    Parameters
+    ----------
+    migrator : Migrator
+        The migrator to run.
+    feedstock_dir : str
+        The path to the feedstock directory.
+    feedstock_name : str
+        The name of the feedstock.
+    node_attrs : dict
+        The node attributes for the feedstock.
+    default_branch : str
+        The default branch of the feedstock.
+    use_container : bool, optional
+        Whether to run the migration in a container, by default True.
+    **kwargs : dict
+        Additional keyword arguments to pass to the migration.
+
+    Returns
+    -------
+    data : dict
+        Data for the migration with keys:
+          - migrate_return_value: The return value of the migration.
+          - commit_message: The commit message for the migration.
+          - pr_title: The PR title for the migration.
+          - pr_body: The PR body for the migration.
+    """
     in_container = os.environ.get("CF_TICK_IN_CONTAINER", "false") == "true"
     if use_container is None:
         use_container = not in_container
@@ -60,6 +88,36 @@ def run_migration_containerized(
     default_branch,
     **kwargs,
 ):
+    """Run a migration against a feedstock.
+
+    **This function runs the migration in a container.**
+
+    Parameters
+    ----------
+    migrator : Migrator
+        The migrator to run.
+    feedstock_dir : str
+        The path to the feedstock directory.
+    feedstock_name : str
+        The name of the feedstock.
+    node_attrs : dict
+        The node attributes for the feedstock.
+    default_branch : str
+        The default branch of the feedstock.
+    use_container : bool, optional
+        Whether to run the migration in a container, by default True.
+    **kwargs : dict
+        Additional keyword arguments to pass to the migration.
+
+    Returns
+    -------
+    data : dict
+        Data for the migration with keys:
+          - migrate_return_value: The return value of the migration.
+          - commit_message: The commit message for the migration.
+          - pr_title: The PR title for the migration.
+          - pr_body: The PR body for the migration.
+    """
     with tempfile.TemporaryDirectory() as tmpdir:
         tmp_feedstock_dir = os.path.join(tmpdir, os.path.basename(feedstock_dir))
         sync_dirs(
@@ -130,6 +188,35 @@ def run_migration_local(
     default_branch,
     **kwargs,
 ):
+    """Run a migration against a feedstock.
+
+    Parameters
+    ----------
+    migrator : Migrator
+        The migrator to run.
+    feedstock_dir : str
+        The path to the feedstock directory.
+    feedstock_name : str
+        The name of the feedstock.
+    node_attrs : dict
+        The node attributes for the feedstock.
+    default_branch : str
+        The default branch of the feedstock.
+    use_container : bool, optional
+        Whether to run the migration in a container, by default True.
+    **kwargs : dict
+        Additional keyword arguments to pass to the migration.
+
+    Returns
+    -------
+    data : dict
+        Data for the migration with keys:
+          - migrate_return_value: The return value of the migration.
+          - commit_message: The commit message for the migration.
+          - pr_title: The PR title for the migration.
+          - pr_body: The PR body for the migration.
+    """
+
     feedstock_ctx = FeedstockContext(
         feedstock_name=feedstock_name,
         attrs=node_attrs,
