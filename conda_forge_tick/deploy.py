@@ -1,12 +1,10 @@
 import os
 import subprocess
 
-from doctr.travis import run_command_hiding_token as doctr_run
-
 from . import sensitive_env
 from .cli_context import CliContext
 from .lazy_json_backends import CF_TICK_GRAPH_DATA_HASHMAPS, get_lazy_json_backends
-from .utils import get_bot_run_url, load_existing_graph
+from .utils import get_bot_run_url, load_existing_graph, run_command_hiding_token
 
 
 def _run_git_cmd(cmd, **kwargs):
@@ -63,7 +61,7 @@ def _deploy_batch(*, files_to_add, batch, n_added, max_per_batch=200):
                 pass
             print("\n\n>>>>>>>>>>>> git push try %d\n\n" % num_try, flush=True)
             with sensitive_env() as env:
-                status = doctr_run(
+                status = run_command_hiding_token(
                     [
                         "git",
                         "push",
@@ -73,7 +71,7 @@ def _deploy_batch(*, files_to_add, batch, n_added, max_per_batch=200):
                         ),
                         "master",
                     ],
-                    token=env.get("BOT_TOKEN", "").encode("utf-8"),
+                    token=env.get("BOT_TOKEN", ""),
                 )
             num_try += 1
 
