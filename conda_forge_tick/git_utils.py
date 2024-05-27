@@ -616,6 +616,9 @@ class DryRunBackend(GitPlatformBackend):
     """
     A git backend that doesn't modify anything and only relies on public APIs that do not require authentication.
     Useful for local testing with dry-run.
+
+    By default, the dry run backend assumes that the current user has not created any forks yet.
+    If forks are created, their names are stored in memory and can be checked with `does_repository_exist`.
     """
 
     _USER = "auto-tick-bot-dry-run"
