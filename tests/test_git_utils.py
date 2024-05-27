@@ -56,59 +56,6 @@ def test_git_cli_run_git_command_error(subprocess_run_mock: MagicMock):
         cli._run_git_command(["GIT_COMMAND"], working_directory)
 
 
-def test_git_cli_get_git_root():
-    cli = GitCli()
-
-    with tempfile.TemporaryDirectory() as tmpdir:
-        dir_path = Path(tmpdir)
-
-        init_temp_git_repo(dir_path)
-
-        assert cli._get_git_root(dir_path).resolve() == dir_path.resolve()
-
-        subdir = dir_path / "subdir"
-        subdir.mkdir()
-
-        assert cli._get_git_root(subdir).resolve() == dir_path.resolve()
-
-        with pytest.raises(FileNotFoundError):
-            cli._get_git_root(dir_path / "non_existent_dir")
-
-        sub_subdir = subdir / "sub_subdir"
-        sub_subdir.mkdir()
-
-        assert cli._get_git_root(sub_subdir).resolve() == dir_path.resolve()
-
-
-@mock.patch("conda_forge_tick.git_utils.GitCli._run_git_command")
-def test_git_cli_get_git_root_mock(run_git_command_mock: MagicMock):
-    run_git_command_mock.return_value = subprocess.CompletedProcess(
-        [], returncode=0, stdout="GIT_ROOT_PATH"
-    )
-
-    cli = GitCli()
-    git_root = cli._get_git_root(Path("TEST_DIR"))
-
-    assert git_root == Path("GIT_ROOT_PATH")
-    run_git_command_mock.assert_called_once_with(
-        ["rev-parse", "--show-toplevel"], Path("TEST_DIR"), capture_text=True
-    )
-
-
-@mock.patch("conda_forge_tick.git_utils.GitCli._run_git_command")
-def test_git_cli_get_git_root_mock_error(run_git_command_mock: MagicMock):
-    run_git_command_mock.side_effect = GitCliError("Error")
-
-    cli = GitCli()
-
-    with pytest.raises(RepositoryNotFoundError):
-        cli._get_git_root(Path("TEST_DIR"))
-
-    run_git_command_mock.assert_called_once_with(
-        ["rev-parse", "--show-toplevel"], Path("TEST_DIR"), capture_text=True
-    )
-
-
 def test_git_cli_outside_repo():
     with tempfile.TemporaryDirectory() as tmpdir:
         dir_path = Path(tmpdir)

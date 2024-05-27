@@ -160,27 +160,6 @@ class GitCli:
         except subprocess.CalledProcessError as e:
             raise GitCliError("Error running git command.") from e
 
-    def _get_git_root(self, git_dir: Path) -> Path:
-        """
-        Get the root directory of a git repository.
-        :param git_dir: Any subdirectory of the local git repository in question
-        :return: The root directory of the git repository.
-        :raises RepositoryNotFoundError: if an error occurred while executing the git command.
-        If git is installed, this can only happen if git_dir does not point to a git repository.
-        :raises FileNotFoundError: If the git_dir does not exist.
-        """
-
-        try:
-            result = self._run_git_command(
-                ["rev-parse", "--show-toplevel"], git_dir, capture_text=True
-            )
-        except GitCliError as e:
-            raise RepositoryNotFoundError(
-                f"Error finding git root directory for {git_dir}"
-            ) from e
-
-        return Path(result.stdout.strip())
-
     def reset_hard(self, git_dir: Path, to_treeish: str = "HEAD"):
         """
         Reset the git index of a directory to the state of the last commit with `git reset --hard HEAD`.
