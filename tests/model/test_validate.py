@@ -101,7 +101,9 @@ PR_INFO_BAD_FEEDSTOCKS = {
     "font-ttf-noto-emoji",  # PRed.0.data.version is not a valid conda version
 }
 
-VERSION_PR_INFO_BAD_FEEDSTOCKS = {"r-rgdal"}
+VERSION_PR_INFO_BAD_FEEDSTOCKS = {
+    "r-rgdal",  # mismatched versions in new_version_errors and new_version_attempts
+}
 
 
 @dataclass

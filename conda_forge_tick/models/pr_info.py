@@ -1,6 +1,6 @@
 from datetime import datetime
 from enum import StrEnum
-from typing import Annotated, Any, Literal, Self
+from typing import Annotated, Any, Literal, Optional, Self
 
 from pydantic import (
     UUID4,
@@ -14,7 +14,6 @@ from conda_forge_tick.models.common import (
     CondaVersionString,
     PrJsonLazyJsonReference,
     StrictBaseModel,
-    ValidatedBaseModel,
     before_validator_ensure_dict,
 )
 from conda_forge_tick.models.pr_json import PullRequestData, PullRequestState
@@ -242,68 +241,6 @@ class MigrationPullRequest(StrictBaseModel):
         return input_data
 
 
-class PrInfoValid(StrictBaseModel):
-    PRed: list[MigrationPullRequest] = []
-    bad: Literal[False] = False
-    """
-    See `PrInfoError` for the (bad is not False) case.
-    """
-
-    pinning_version: str | None = None
-    """
-    The version of the conda-forge-pinning feedstock that was used for performing the LATEST migration of the feedstock.
-
-    This can be None the feedstock has not been migrated yet, but it is also missing in other cases. There are NO
-    assertions when this field is missing or present.
-    """
-
-    smithy_version: (
-        CondaVersionString | CondaVersionStringWithAzureTokenError | None
-    ) = None
-    """
-    The version of conda-smithy that was used for performing the LATEST migration of the feedstock.
-    This can be None if the feedstock has not been migrated yet. There are NO assertions when this field is missing or
-    present.
-
-    A lot of feedstocks have an Azure token error in the smithy_version field, which is removed automatically.
-    The Azure token errors should be removed from the graph, e.g. by parsing the model and re-serializing it.
-    """
-
-    pre_pr_migrator_status: dict[str, str]
-    """
-    A dictionary (migration name -> error message) of the error status of the migrations.
-    Errors are added here if a non-version migration fails before a migration PR is created.
-    This field can contain HTML tags, which are probably intended for the status page.
-
-    The same thing for version migrations is part of the `version_pr_info` object.
-
-    There are implicit assumptions about the contents of this field, but they are not documented.
-    Refer to status_report.graph_migrator_status, for example.
-
-    Note: The names of migrators appear here without spaces and in lowercase. This is not always the case.
-
-    If a migration is eventually successful, the corresponding key is removed from the dictionary.
-    """
-
-    pre_pr_migrator_attempts: dict[str, int]
-    """
-    A dictionary (migration name -> number of attempts) of the number of attempts of the migrations.
-    This value is increased by 1 every time a migration fails before a migration PR is created.
-
-    Note: The names of migrators appear here without spaces and in lowercase. This is not always the case.
-
-    If a migration is eventually successful, the corresponding key is removed from the dictionary.
-    """
-
-    @model_validator(mode="after")
-    def check_pre_pr_migrations(self) -> Self:
-        if self.pre_pr_migrator_status.keys() != self.pre_pr_migrator_attempts.keys():
-            raise ValueError(
-                "The keys (migration names) of pre_pr_migrator_status and pre_pr_migrator_attempts must match."
-            )
-        return self
-
-
 class ExceptionInfo(StrictBaseModel):
     """
     Information about an exception that occurred while performing migrations.
@@ -330,12 +267,69 @@ class ExceptionInfo(StrictBaseModel):
     """
 
 
-class PrInfoError(ValidatedBaseModel):
-    bad: str | ExceptionInfo
+class PrInfoValid(StrictBaseModel):
+    PRed: list[MigrationPullRequest] = []
+    bad: str | ExceptionInfo | Literal[False] = False
     """
-    Indicates an error that occurred while performing migrations.
+    If `False`, nothing bad happened. Otherwise, it indicates an error that occurred while performing migrations.
     Example: The feedstock was not found by the name defined in the graph or node attributes feedstock_name field.
     """
 
+    pinning_version: str | None = None
+    """
+    The version of the conda-forge-pinning feedstock that was used for performing the LATEST migration of the feedstock.
 
-PrInfo = TypeAdapter(PrInfoValid | PrInfoError)
+    This can be None the feedstock has not been migrated yet, but it is also missing in other cases. There are NO
+    assertions when this field is missing or present.
+    """
+
+    smithy_version: (
+        CondaVersionString | CondaVersionStringWithAzureTokenError | None
+    ) = None
+    """
+    The version of conda-smithy that was used for performing the LATEST migration of the feedstock.
+    This can be None if the feedstock has not been migrated yet. There are NO assertions when this field is missing or
+    present.
+
+    A lot of feedstocks have an Azure token error in the smithy_version field, which is removed automatically.
+    The Azure token errors should be removed from the graph, e.g. by parsing the model and re-serializing it.
+    """
+
+    pre_pr_migrator_status: Optional[dict[str, str]] = None
+    """
+    A dictionary (migration name -> error message) of the error status of the migrations.
+    Errors are added here if a non-version migration fails before a migration PR is created.
+    This field can contain HTML tags, which are probably intended for the status page.
+
+    The same thing for version migrations is part of the `version_pr_info` object.
+
+    There are implicit assumptions about the contents of this field, but they are not documented.
+    Refer to status_report.graph_migrator_status, for example.
+
+    Note: The names of migrators appear here without spaces and in lowercase. This is not always the case.
+
+    If a migration is eventually successful, the corresponding key is removed from the dictionary.
+    """
+
+    pre_pr_migrator_attempts: Optional[dict[str, int]] = None
+    """
+    A dictionary (migration name -> number of attempts) of the number of attempts of the migrations.
+    This value is increased by 1 every time a migration fails before a migration PR is created.
+
+    Note: The names of migrators appear here without spaces and in lowercase. This is not always the case.
+
+    If a migration is eventually successful, the corresponding key is removed from the dictionary.
+    """
+
+    @model_validator(mode="after")
+    def check_pre_pr_migrations(self) -> Self:
+        ppms = getattr(self, "pre_pr_migrator_status", {}) or {}
+        ppma = getattr(self, "pre_pr_migrator_attempts", {}) or {}
+        if ppms.keys() != ppma.keys():
+            raise ValueError(
+                "The keys (migration names) of pre_pr_migrator_status and pre_pr_migrator_attempts must match."
+            )
+        return self
+
+
+PrInfo = TypeAdapter(PrInfoValid)
