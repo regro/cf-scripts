@@ -72,7 +72,7 @@ def _init_process(lock):
 
 def _init_dask(lock):
     global DRLOCK
-    # it appears we have to construct the locak by name instead
+    # it appears we have to construct the lock by name instead
     # of passing the object itself
     # otherwise dask uses a regular lock
     DRLOCK = DaskRLock(name=lock)
