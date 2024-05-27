@@ -21,16 +21,30 @@ PRLOCK = DummyLock()
 DRLOCK = DummyLock()
 
 
+@contextlib.contextmanager
+def lock_git_operation():
+    """
+    A context manager to lock git operations - it can be acquired once per thread, once per process,
+    and once per dask worker.
+    Note that this is a reentrant lock, so it can be acquired multiple times by the same thread/process/worker.
+    """
+
+    with TRLOCK, PRLOCK, DRLOCK:
+        yield
+
+
 logger = logging.getLogger(__name__)
 
 
 class DaskRLock(DaskLock):
     """A reentrant lock for dask that is always blocking and never times out."""
 
-    def acquire(self):
-        if not hasattr(self, "_rcount"):
-            self._rcount = 0
+    def __init__(self, name: str):
+        super().__init__(name=name)
+        self._rcount = 0
+        self._rdata = None
 
+    def acquire(self, *args):
         self._rcount += 1
 
         if self._rcount == 1:
@@ -39,13 +53,13 @@ class DaskRLock(DaskLock):
         return self._rdata
 
     def release(self):
-        if not hasattr(self, "_rcount") or self._rcount == 0:
+        if self._rcount == 0:
             raise RuntimeError("Lock not acquired so cannot be released!")
 
         self._rcount -= 1
 
         if self._rcount == 0:
-            delattr(self, "_rdata")
+            self._rdata = None
             return super().release()
         else:
             return None
