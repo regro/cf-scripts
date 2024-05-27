@@ -45,6 +45,5 @@ jobs:
         run: |
           cd cf-graph
           pytest \
-            -v \
             --durations 10 \
             ../tests/model

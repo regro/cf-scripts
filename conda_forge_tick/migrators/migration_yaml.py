@@ -14,7 +14,7 @@ from conda_forge_tick.contexts import FeedstockContext
 from conda_forge_tick.feedstock_parser import PIN_SEP_PAT
 from conda_forge_tick.make_graph import get_deps_from_outputs_lut
 from conda_forge_tick.migrators.core import GraphMigrator, Migrator, MiniMigrator
-from conda_forge_tick.os_utils import eval_cmd, pushd
+from conda_forge_tick.os_utils import pushd
 from conda_forge_tick.utils import (
     get_bot_run_url,
     get_keys_default,
@@ -263,7 +263,6 @@ class MigrationYaml(GraphMigrator):
                 with pushd("migrations"):
                     with open(f"{self.name}.yaml", "w") as f:
                         f.write(self.yaml_contents)
-                    eval_cmd(["git", "add", "."])
 
             if self.conda_forge_yml_patches is not None:
                 with pushd(os.path.join(recipe_dir, "..")):
@@ -272,7 +271,6 @@ class MigrationYaml(GraphMigrator):
                     _patch_dict(cfg, self.conda_forge_yml_patches)
                     with open("conda-forge.yml", "w") as fp:
                         yaml_safe_dump(cfg, fp)
-                    eval_cmd(["git", "add", "conda-forge.yml"])
 
             with pushd(recipe_dir):
                 self.set_build_number("meta.yaml")
@@ -522,7 +520,6 @@ class MigrationYamlCreator(Migrator):
                     migration_yaml_dict,
                     f,
                 )
-            eval_cmd(["git", "add", "."])
 
         return super().migrate(recipe_dir, attrs)
 

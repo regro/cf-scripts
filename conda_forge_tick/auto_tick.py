@@ -52,6 +52,7 @@ from conda_forge_tick.os_utils import eval_cmd, pushd
 from conda_forge_tick.rerender_feedstock import rerender_feedstock
 from conda_forge_tick.solver_checks import is_recipe_solvable
 from conda_forge_tick.utils import (
+    change_log_level,
     dump_graph,
     filter_reprinted_lines,
     fold_log_lines,
@@ -812,6 +813,12 @@ def _run_migrator(migrator, mctx, temp, time_per, dry_run):
                     # skip things that do not get migrated
                     attrs["branch"] = base_branch
                     if migrator.filter(attrs):
+                        if (
+                            logging.getLogger("conda_forge_tick").getEffectiveLevel()
+                            > logging.DEBUG
+                        ):
+                            with change_log_level("conda_forge_tick", "DEBUG"):
+                                migrator.filter(attrs)
                         logger.info(
                             "skipping node %s w/ branch %s", node_name, base_branch
                         )
