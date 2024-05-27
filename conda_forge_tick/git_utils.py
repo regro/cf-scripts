@@ -737,7 +737,7 @@ def get_repo(
     except RepositoryNotFoundError:
         logger.warning(f"Could not fork conda-forge/{feedstock_repo_name}")
         with fctx.attrs["pr_info"] as pri:
-            pri["bad"] = f"{fctx.package_name}: does not match feedstock name\n"
+            pri["bad"] = f"{fctx.feedstock_name}: Git repository not found.\n"
         return False, False
 
     feedstock_dir = Path(GIT_CLONE_DIR) / (fctx.feedstock_name + "-feedstock")
