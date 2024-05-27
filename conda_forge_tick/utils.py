@@ -949,3 +949,20 @@ def get_migrator_name(migrator):
         migrator_name = migrator.__class__.__name__.lower()
 
     return migrator_name
+
+
+@contextlib.contextmanager
+def change_log_level(logger, new_level):
+    """Context manager to temporarily change the logging level of a logger."""
+    if isinstance(logger, str):
+        logger = logging.getLogger(logger)
+
+    if isinstance(new_level, str):
+        new_level = getattr(logging, new_level.upper())
+
+    saved_logger_level = logger.level
+    try:
+        logger.setLevel(new_level)
+        yield
+    finally:
+        logger.setLevel(saved_logger_level)
