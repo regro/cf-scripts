@@ -39,8 +39,8 @@ logger = logging.getLogger(__name__)
 class DaskRLock(DaskLock):
     """A reentrant lock for dask that is always blocking and never times out."""
 
-    def __init__(self, name: str):
-        super().__init__(name=name)
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self._rcount = 0
         self._rdata = None
 
