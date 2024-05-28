@@ -286,20 +286,30 @@ class NodeAttributesValid(StrictBaseModel):
         """
         Ensure that the version field matches the version field in the meta_yaml field.
 
-        If both fields are None, all outputs must specify their own versions.
+        If the top-level version is None, all outputs must specify their own versions.
+
+        The top-level version should match at least one of the outputs, but may not match all of them.
         """
-        if self.version is None and self.meta_yaml.package.version is None:
+        if self.meta_yaml.package.version is None:
+            output_versions = set()
             for output in self.meta_yaml.outputs or []:
                 if output.version is None:
                     raise ValueError(
-                        "If the `version` field is None, all outputs must specify their own versions."
+                        "If the `top-level version` field is None, all outputs must specify their own versions."
                     )
-            return self
+                output_versions.add(output.version)
 
-        if self.version != self.meta_yaml.package.version:
-            raise ValueError(
-                "The `version` field must match the `package.version` field in the `meta_yaml` field."
-            )
+            if self.version not in output_versions:
+                raise ValueError(
+                    "The to[-level ]`version` field must match at least one of the `outputs[].version` fields "
+                    "in the `meta_yaml` field."
+                )
+            return self
+        else:
+            if self.version != self.meta_yaml.package.version:
+                raise ValueError(
+                    "The `version` field must match the `package.version` field in the `meta_yaml` field."
+                )
 
         return self
 
