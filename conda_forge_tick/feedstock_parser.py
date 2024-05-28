@@ -361,6 +361,13 @@ def populate_feedstock_attributes(
     sub_graph["meta_yaml"] = _dedupe_meta_yaml(_convert_to_dict(yaml_dict))
     meta_yaml = sub_graph["meta_yaml"]
 
+    # remove all plat-arch specific keys to remove old ones if a combination is disabled
+    for k in list(sub_graph.keys()):
+        if k in ["raw_meta_yaml", "total_requirements"]:
+            continue
+        if k.endswith("_meta_yaml") or k.endswith("_requirements"):
+            sub_graph.pop(k)
+
     for k, v in zip(plat_arch, variant_yamls):
         plat_arch_name = "_".join(k)
         sub_graph[f"{plat_arch_name}_meta_yaml"] = v
