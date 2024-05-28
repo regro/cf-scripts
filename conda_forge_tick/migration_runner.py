@@ -24,7 +24,7 @@ def run_migration(
     feedstock_name,
     node_attrs,
     default_branch,
-    use_container=True,
+    use_container=False,
     **kwargs,
 ):
     """Run a migration against a feedstock.
