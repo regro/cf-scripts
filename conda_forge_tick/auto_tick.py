@@ -167,7 +167,7 @@ def run(
     base_branch : str, optional
         The base branch to which the PR will be targeted. Defaults to "main".
     kwargs: dict
-        The key word arguments to pass to the migrator
+        The keyword arguments to pass to the migrator.
 
     Returns
     -------
@@ -564,6 +564,13 @@ def _run_migrator_on_feedstock_branch(
 ):
     break_loop = False
     try:
+        if isinstance(migrator, Version):
+            kwargs = {
+                "version": attrs.get("version_pr_info", {})["new_version"]
+            }
+        else:
+            kwargs = {}
+
         migrator_uid, pr_json = run(
             feedstock_ctx=fctx,
             migrator=migrator,
@@ -572,6 +579,7 @@ def _run_migrator_on_feedstock_branch(
             hash_type=attrs.get("hash_type", "sha256"),
             base_branch=base_branch,
             dry_run=dry_run,
+            **kwargs,
         )
         # if migration successful
         if migrator_uid:
