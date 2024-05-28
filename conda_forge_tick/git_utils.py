@@ -210,6 +210,18 @@ class GitCli:
         """
         self._run_git_command(["remote", "add", remote_name, remote_url], git_dir)
 
+    def push_to_url(self, git_dir: Path, remote_url: str, branch: str):
+        """
+        Push changes to a remote URL.
+
+        :param git_dir: The directory of the git repository.
+        :param remote_url: The URL of the remote.
+        :param branch: The branch to push to.
+        :raises GitCliError: If the git command fails.
+        """
+
+        self._run_git_command(["push", remote_url, branch], git_dir)
+
     @lock_git_operation()
     def fetch_all(self, git_dir: Path):
         """
@@ -991,7 +1003,6 @@ def push_repo(
     title: str,
     branch: str,
     base_branch: str = "main",
-    head: Optional[str] = None,
     dry_run: bool = False,
 ) -> Union[dict, bool, None]:
     """Push a repo up to github
@@ -1026,8 +1037,7 @@ def push_repo(
         token = env["BOT_TOKEN"]
         gh_username = github3_client().me().login
 
-        if head is None:
-            head = gh_username + ":" + branch
+        head = gh_username + ":" + branch
 
         deploy_repo = gh_username + "/" + fctx.feedstock_name + "-feedstock"
         if dry_run:

@@ -84,9 +84,10 @@ def test_git_cli_outside_repo():
 
 
 # noinspection PyProtectedMember
-def init_temp_git_repo(git_dir: Path):
+def init_temp_git_repo(git_dir: Path, bare: bool = False):
     cli = GitCli()
-    cli._run_git_command(["init"], working_directory=git_dir)
+    bare_arg = ["--bare"] if bare else []
+    cli._run_git_command(["init", *bare_arg, "-b", "main"], working_directory=git_dir)
     cli._run_git_command(
         ["config", "user.name", "CI Test User"], working_directory=git_dir
     )
@@ -276,6 +277,70 @@ def test_git_cli_add_remote():
 
         assert remote_name in output.stdout.decode()
         assert remote_url in output.stdout.decode()
+
+
+@mock.patch("conda_forge_tick.git_utils.GitCli._run_git_command")
+def test_git_cli_push_to_url_mock(run_git_command_mock: MagicMock):
+    cli = GitCli()
+
+    git_dir = Path("TEST_DIR")
+    remote_url = "https://git-repository.com/repo.git"
+
+    cli.push_to_url(git_dir, remote_url, "BRANCH_NAME")
+
+    run_git_command_mock.assert_called_once_with(
+        ["push", remote_url, "BRANCH_NAME"], git_dir
+    )
+
+
+@mock.patch("conda_forge_tick.git_utils.GitCli._run_git_command")
+def test_git_cli_push_to_url_mock_error(run_git_command_mock: MagicMock):
+    cli = GitCli()
+
+    run_git_command_mock.side_effect = GitCliError("Error")
+
+    with pytest.raises(GitCliError):
+        cli.push_to_url(
+            Path("TEST_DIR"), "https://git-repository.com/repo.git", "BRANCH_NAME"
+        )
+
+
+def test_git_cli_push_to_url_local_repository():
+    cli = GitCli()
+
+    with tempfile.TemporaryDirectory() as tmpdir:
+        dir_path = Path(tmpdir)
+
+        source_repo = dir_path / "source_repo"
+        source_repo.mkdir()
+        init_temp_git_repo(source_repo, bare=True)
+
+        local_repo = dir_path / "local_repo"
+        local_repo.mkdir()
+        cli._run_git_command(
+            ["clone", source_repo.resolve(), local_repo],
+        )
+
+        # remove all references to the original repo
+        cli._run_git_command(
+            ["remote", "remove", "origin"], working_directory=local_repo
+        )
+
+        with local_repo.joinpath("test.txt").open("w") as f:
+            f.write("Hello, World!")
+
+        cli._run_git_command(["add", "test.txt"], working_directory=local_repo)
+        cli._run_git_command(
+            ["commit", "-am", "Add test.txt"], working_directory=local_repo
+        )
+
+        cli.push_to_url(local_repo, str(source_repo.resolve()), "main")
+
+        source_git_log = subprocess.run(
+            "git log", cwd=source_repo, shell=True, capture_output=True
+        ).stdout.decode()
+
+        assert "test.txt" in source_git_log
 
 
 @mock.patch("conda_forge_tick.git_utils.GitCli._run_git_command")
