@@ -25,6 +25,7 @@ from conda.models.version import VersionOrder
 
 from conda_forge_tick.cli_context import CliContext
 from conda_forge_tick.contexts import FeedstockContext, MigratorSessionContext
+from conda_forge_tick.deploy import deploy
 from conda_forge_tick.feedstock_parser import BOOTSTRAP_MAPPINGS
 from conda_forge_tick.git_utils import (
     GIT_CLONE_DIR,
@@ -1049,6 +1050,7 @@ def main(ctx: CliContext) -> None:
 
     with fold_log_lines("updating graph with PR info"):
         _update_graph_with_pr_info()
+        deploy(ctx, dirs_to_deploy=["version_pr_info", "pr_json", "pr_info"])
 
     # record tmp dir so we can be sure to clean it later
     temp = glob.glob("/tmp/*")
@@ -1117,7 +1119,6 @@ def main(ctx: CliContext) -> None:
             #         "pr_json",
             #         "pr_info",
             #         "version_pr_info",
-            #         "nodes",
             #     ],
             # )
 
