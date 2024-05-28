@@ -2,13 +2,13 @@ from typing import Literal
 
 from pydantic import TypeAdapter, model_validator
 
-from conda_forge_tick.models.common import StrictBaseModel, ValidatedBaseModel
+from conda_forge_tick.models.common import NoneIsEmptyDict, StrictBaseModel
 
 
-class VersionPrInfoValid(ValidatedBaseModel):
-    bad: Literal[False] = False
+class VersionPrInfo(StrictBaseModel):
+    bad: str | Literal[False] = False
     """
-    If this value is non-False, the file data is not necessarily valid and should be parsed as VersionPrInfoError.
+    If this value is non-False, the string indicates the error.
     """
 
     new_version: str | Literal[False] = False
@@ -17,14 +17,14 @@ class VersionPrInfoValid(ValidatedBaseModel):
     auto_tick run.
     """
 
-    new_version_attempts: dict[str, int | float]
+    new_version_attempts: NoneIsEmptyDict[str, int | float] = {}
     """
     Mapping (version -> number of attempts) to describe the number of attempts that were made to update the versions in
     the PR. The value can be a float since failing with a solving error is counted as a partial attempt, which only
     increases the count by a fraction that is specified in auto_tick.run (03/2024: 0.2).
     """
 
-    new_version_errors: dict[str, str]
+    new_version_errors: NoneIsEmptyDict[str, str] = {}
     """
     Mapping (version -> error message) to describe the errors that occurred when trying to update the versions in the
     PR.
@@ -44,8 +44,4 @@ class VersionPrInfoValid(ValidatedBaseModel):
             )
 
 
-class VersionPrInfoError(StrictBaseModel):
-    bad: str
-
-
-VersionPrInfo = TypeAdapter(VersionPrInfoValid | VersionPrInfoError)
+VersionPrInfo = TypeAdapter(VersionPrInfo)

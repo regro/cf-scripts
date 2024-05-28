@@ -3085,51 +3085,6 @@ package:
     version: 2.6.1
   - category: main
     dependencies:
-      cryptography: ''
-      python: '>=3.5'
-      pyyaml: ''
-      requests: ''
-    hash:
-      md5: f57b656502db0e45cc996ddbef2a9d25
-      sha256: 41ea80bd2b50180e074632152c3364ac92d75546af46db10a724a07eb1ff06d4
-    manager: conda
-    name: doctr
-    optional: false
-    platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/noarch/doctr-1.9.0-pyhd8ed1ab_0.tar.bz2
-    version: 1.9.0
-  - category: main
-    dependencies:
-      cryptography: ''
-      python: '>=3.5'
-      pyyaml: ''
-      requests: ''
-    hash:
-      md5: f57b656502db0e45cc996ddbef2a9d25
-      sha256: 41ea80bd2b50180e074632152c3364ac92d75546af46db10a724a07eb1ff06d4
-    manager: conda
-    name: doctr
-    optional: false
-    platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/noarch/doctr-1.9.0-pyhd8ed1ab_0.tar.bz2
-    version: 1.9.0
-  - category: main
-    dependencies:
-      cryptography: ''
-      python: '>=3.5'
-      pyyaml: ''
-      requests: ''
-    hash:
-      md5: f57b656502db0e45cc996ddbef2a9d25
-      sha256: 41ea80bd2b50180e074632152c3364ac92d75546af46db10a724a07eb1ff06d4
-    manager: conda
-    name: doctr
-    optional: false
-    platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/noarch/doctr-1.9.0-pyhd8ed1ab_0.tar.bz2
-    version: 1.9.0
-  - category: main
-    dependencies:
       python: '>=3.7'
     hash:
       md5: 9873878e2a069bc358b69e9a29c1ecd5

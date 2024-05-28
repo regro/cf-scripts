@@ -20,7 +20,6 @@ import github3.exceptions
 import github3.pulls
 import github3.repos
 import requests
-from doctr.travis import run_command_hiding_token as doctr_run
 from requests.exceptions import RequestException, Timeout
 
 from conda_forge_tick import sensitive_env
@@ -32,7 +31,7 @@ from conda_forge_tick.lazy_json_backends import LazyJson
 from .contexts import FeedstockContext
 from .executors import lock_git_operation
 from .os_utils import pushd
-from .utils import get_bot_run_url
+from .utils import get_bot_run_url, run_command_hiding_token
 
 logger = logging.getLogger(__name__)
 
@@ -772,7 +771,7 @@ def delete_branch(pr_json: LazyJson, dry_run: bool = False) -> None:
     deploy_repo = gh.me().login + "/" + name
 
     with sensitive_env() as env:
-        doctr_run(
+        run_command_hiding_token(
             [
                 "git",
                 "push",
@@ -780,7 +779,7 @@ def delete_branch(pr_json: LazyJson, dry_run: bool = False) -> None:
                 "--delete",
                 ref,
             ],
-            token=env["BOT_TOKEN"].encode("utf-8"),
+            token=env["BOT_TOKEN"],
         )
     # Replace ref so we know not to try again
     pr_json["head"]["ref"] = "this_is_not_a_branch"
@@ -1021,7 +1020,6 @@ def push_repo(
         to create a PR instance.
     """
     with sensitive_env() as env, pushd(feedstock_dir):
-        # Setup push from doctr
         # Copyright (c) 2016 Aaron Meurer, Gil Forsyth
         token = env["BOT_TOKEN"]
         gh_username = github3_client().me().login
@@ -1034,7 +1032,7 @@ def push_repo(
             repo_url = f"https://github.com/{deploy_repo}.git"
             print(f"dry run: adding remote and pushing up branch for {repo_url}")
         else:
-            ecode = doctr_run(
+            ecode = run_command_hiding_token(
                 [
                     "git",
                     "remote",
@@ -1042,15 +1040,15 @@ def push_repo(
                     "regro_remote",
                     f"https://{token}@github.com/{deploy_repo}.git",
                 ],
-                token=token.encode("utf-8"),
+                token=token,
             )
             if ecode != 0:
                 print("Failed to add git remote!")
                 return False
 
-            ecode = doctr_run(
+            ecode = run_command_hiding_token(
                 ["git", "push", "--set-upstream", "regro_remote", branch],
-                token=token.encode("utf-8"),
+                token=token,
             )
             if ecode != 0:
                 print("Failed to push to remote!")

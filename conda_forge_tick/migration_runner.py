@@ -5,7 +5,7 @@ import shutil
 import tempfile
 
 from conda_forge_tick.contexts import FeedstockContext
-from conda_forge_tick.lazy_json_backends import dumps
+from conda_forge_tick.lazy_json_backends import LazyJson, dumps
 from conda_forge_tick.os_utils import (
     chmod_plus_rwX,
     get_user_execute_permissions,
@@ -24,7 +24,7 @@ def run_migration(
     feedstock_name,
     node_attrs,
     default_branch,
-    use_container=True,
+    use_container=False,
     **kwargs,
 ):
     """Run a migration against a feedstock.
@@ -159,7 +159,11 @@ def run_migration_containerized(
             args,
             mount_readonly=False,
             mount_dir=tmpdir,
-            input=dumps(node_attrs),
+            input=(
+                dumps(node_attrs.data)
+                if isinstance(node_attrs, LazyJson)
+                else dumps(node_attrs)
+            ),
         )
 
         sync_dirs(

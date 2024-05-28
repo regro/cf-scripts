@@ -23,7 +23,6 @@ dependencies:
   - curl
   - depfinder
   - distributed
-  - doctr
   - feedparser
   - frozendict
   - git
@@ -63,7 +62,6 @@ dependencies:
   - pytest<8.1.0
   - codecov
   - requests-mock
-  - doctr
   - pre-commit
   - flaky
   - pytest-xdist
