@@ -546,7 +546,12 @@ def run_test_migration(
         pass
     else:
         assert prb in m.pr_body(None)
-    assert m.filter(pmy) is True
+    try:
+        if "new_version" in kwargs:
+            pmy["version_pr_info"] = {"new_version": kwargs["new_version"]}
+        assert m.filter(pmy) is True
+    finally:
+        pmy.pop("version_pr_info", None)
 
     return pmy
 
