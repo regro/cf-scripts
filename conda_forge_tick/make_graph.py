@@ -82,10 +82,11 @@ def make_outputs_lut_from_graph(gx):
     return outputs_lut
 
 
-def get_attrs(name: str, i: int, mark_not_archived=False) -> LazyJson:
+def get_attrs(name: str, mark_not_archived=False) -> LazyJson:
     lzj = LazyJson(f"node_attrs/{name}.json")
     with lzj as sub_graph:
         data = load_feedstock(name, sub_graph.data, mark_not_archived=mark_not_archived)
+        sub_graph.clear()
         sub_graph.update(data)
 
     return lzj
@@ -152,8 +153,8 @@ def _build_graph_process_pool(
     # we use threads here since all of the work is done in a container anyways
     with executor("thread", max_workers=8) as pool:
         futures = {
-            pool.submit(get_attrs, name, i, mark_not_archived=mark_not_archived): name
-            for i, name in enumerate(names)
+            pool.submit(get_attrs, name, mark_not_archived=mark_not_archived): name
+            for name in names
             if random.uniform(0, 1) < RANDOM_FRAC_TO_UPDATE
         }
         logger.info("submitted all nodes")
@@ -184,12 +185,12 @@ def _build_graph_sequential(
     names: List[str],
     mark_not_archived=False,
 ) -> None:
-    for i, name in enumerate(names):
+    for name in names:
         if random.uniform(0, 1) >= RANDOM_FRAC_TO_UPDATE:
             continue
 
         try:
-            get_attrs(name, i, mark_not_archived=mark_not_archived)
+            get_attrs(name, mark_not_archived=mark_not_archived)
         except Exception as e:
             logger.error(f"Error updating node {name}", exc_info=e)
 

@@ -439,7 +439,7 @@ def cli():
     "--cbc-path", type=str, default=None, help="The path to global pinning file."
 )
 @click.option(
-    "--orig_cbc_path",
+    "--orig-cbc-path",
     type=str,
     default=None,
     help="The path to the original global pinning file.",
