@@ -497,7 +497,12 @@ def run_test_migration(
     pmy["raw_meta_yaml"] = inp
     pmy.update(kwargs)
 
-    assert m.filter(pmy) is should_filter
+    try:
+        if "new_version" in kwargs:
+            pmy["version_pr_info"] = {"new_version": kwargs["new_version"]}
+        assert m.filter(pmy) is should_filter
+    finally:
+        pmy.pop("version_pr_info", None)
     if should_filter:
         return pmy
 
