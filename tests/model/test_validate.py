@@ -49,31 +49,22 @@ NODE_ATTRS_BAD_FEEDSTOCKS = {
     "mp_time_split",  # recipe/meta.yaml about.doc_url has invalid URL scheme
     "shippinglabel",  # recipe/meta.yaml about.doc_url has invalid URL scheme
     "cddlib",  # recipe/meta.yaml about.doc_url has "ftp" URL scheme (and is unreachable)
-    "cf-autotick-bot-test-package",  # recipe/meta.yaml source.sha256 is invalid
     "vs2008_runtime",  # node attributes error: build.skip is true for non-Windows, but osx and linux are platforms
     "everett",  # recipe/meta.yaml about.dev_url has invalid URL scheme
     "scheil",  # recipe/meta.yaml about.doc_url is not a valid URL
     "llspy-slm",  # recipe/meta.yaml about.doc_url has invalid URL scheme
     "path.py",  # build.noarch: true in meta.yaml, which should probably be build.noarch: python
     "parallel-hashmap",  # build.noarch: true (should be generic) but also probably broken on Windows
-    "airflow",  # "grayskull-update" should be "update-grayskull" in conda-forge.yml
     "ipython_memory_usage",  # bot.inspect should be bot.inspection in conda-forge.yml
     "rich-argparse",  # grayskull-update should be update-grayskull in conda-forge.yml
     "htbuilder",  # bot.inspect should be bot.inspection in conda-forge.yml
     "stats_arrays",  # "grayskull-update" should be "update-grayskull" in conda-forge.yml
     "textual-fastdatatable",  # bot.inspect should be bot.inspection in conda-forge.yml
-    "buildbot",  # bot.inspect should be bot.inspection in conda-forge.yml
     "sqlalchemy-drill",  # "grayskull-update" should be "update-grayskull" in conda-forge.yml
     "sphinx-sitemap",  # typo in bot.inspection (conda-forge.yml)
     "alibabacloud-openapi-util",  # "grayskull-update" should be "update-grayskull" in conda-forge.yml
     "st-annotated-text",  # bot.inspect should be bot.inspection in conda-forge.yml
-    "buildbot-www",  # bot.inspect should be bot.inspection in conda-forge.yml
-    "wgpu-native",  # bot.abi_migration_branches should be string, not float (conda-forge.yml)
-    "google-ads",  # "grayskull-update" should be "update-grayskull" in conda-forge.yml
     "dnspython",  # "grayskull-update" should be "update-grayskull" in conda-forge.yml
-    "pyobjc-framework-corebluetooth",  # bot.inspect should be bot.inspection in conda-forge.yml
-    "azure-storage-queue",  # bot.inspect should be bot.inspection in conda-forge.yml
-    "graphite2",  # provider.win has invalid value "win".
     "root",  # provider.osx_arm64 has invalid value "osx_64". See issue #238 of the feedstock.
     "espaloma",  # typo in `conda-forge.yml`.azure
     "sparc-x",  # `conda-forge.yml`.channels is unexpected
@@ -84,11 +75,8 @@ NODE_ATTRS_BAD_FEEDSTOCKS = {
     "pyrosm",  # unrecognized option `conda-forge.yml`.build, legacy field `conda-forge.yml`.matrix does not validate
     "sketchnu",  # `conda-forge.yml`.conda_build.pkg_format may not be None
     "sense2vec",  # `conda-forge.yml`.channels is unexpected
-    "mpi4py",  # legacy field `conda-forge.yml`.matrix needs further investigation
     "rpaframework",  # `conda-forge.yml`.channel_priority has invalid value "False"
     # see https://github.com/conda-forge/conda-smithy/issues/1863 for the top-level build platform fields
-    "nbgrader",  # `conda-forge.yml`.linux_ppc64le should be removed (see above)
-    "sccache",  # `conda-forge.yml`.linux_aarch64 should be removed (see above)
     "cmdstan",  # `conda-forge.yml`.linux_aarch64 and linux_ppc64le should be removed (see above)
     "uarray",  # `conda-forge.yml`.linux_ppc64le and linux_aarch64 should be removed (see above)
     "libtk",  # `conda-forge.yml`.linux_ppc64le and linux_aarch64 should be removed (see above)
