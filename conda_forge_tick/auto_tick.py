@@ -566,7 +566,7 @@ def _run_migrator_on_feedstock_branch(
     break_loop = False
     try:
         try:
-            fctx.attrs["new_version"] = attrs.get("version_pr_info", {})["new_version"]
+            fctx.attrs["new_version"] = attrs.get("version_pr_info", {}).get("new_version", None)
             migrator_uid, pr_json = run(
                 feedstock_ctx=fctx,
                 migrator=migrator,
