@@ -191,9 +191,11 @@ class Version(Migrator):
         recipe_dir: str,
         attrs: "AttrsTypedDict",
         hash_type: str = "sha256",
+        version: str = None,
         **kwargs: Any,
     ) -> "MigrationUidTypedDict":
-        version = attrs.get("version_pr_info", {})["new_version"]
+        if version is None:
+            version = attrs.get("version_pr_info", {})["new_version"]
 
         with open(os.path.join(recipe_dir, "meta.yaml")) as fp:
             raw_meta_yaml = fp.read()
