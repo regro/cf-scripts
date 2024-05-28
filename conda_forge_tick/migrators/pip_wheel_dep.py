@@ -1,4 +1,5 @@
 import functools
+import logging
 import os
 import tempfile
 import typing
@@ -14,6 +15,8 @@ from conda_forge_tick.utils import get_keys_default
 
 if typing.TYPE_CHECKING:
     from conda_forge_tick.migrators_types import AttrsTypedDict
+
+logger = logging.getLogger(__name__)
 
 
 @functools.lru_cache()
@@ -40,6 +43,16 @@ def pypi_conda_mapping() -> Dict[str, str]:
 class PipWheelMigrator(MiniMigrator):
     post_migration = True
 
+    def _get_version(self, attrs: "AttrsTypedDict") -> str:
+        return (
+            attrs.get("new_version", "")
+            or attrs.get("version_pr_info", {}).get("new_version", "")
+            or attrs.get(
+                "version",
+                "",
+            )
+        )
+
     def filter(self, attrs: "AttrsTypedDict", not_bad_str_start: str = "") -> bool:
         run_reqs = attrs.get("requirements", {}).get("run", set())
         source_url = attrs.get("url") or attrs.get("source", {}).get("url")
@@ -57,12 +70,8 @@ class PipWheelMigrator(MiniMigrator):
         if "python" not in run_reqs:
             return True
 
-        version: str = attrs.get("version_pr_info", {}).get(
-            "new_version", ""
-        ) or attrs.get(
-            "version",
-            "",
-        )
+        version: str = self._get_version(attrs)
+        logger.debug(f"Checking if PyPI has a wheel for {version}")
         wheel_url, _ = self.determine_wheel(source_url, version)
 
         if wheel_url is None:
@@ -88,10 +97,7 @@ class PipWheelMigrator(MiniMigrator):
 
     def migrate(self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any) -> None:
         source_url = attrs.get("url") or attrs.get("source", {}).get("url")
-        version = attrs.get("version_pr_info", {}).get("new_version", "") or attrs.get(
-            "version",
-            "",
-        )
+        version = self._get_version(attrs)
         if not version:
             return None
 

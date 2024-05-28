@@ -1,24 +1,30 @@
 import copy
 import glob
 import json
+import logging
 import os
 import pprint
+import re
 import subprocess
 import tempfile
 
 import conda_smithy
 import pytest
 from conda.models.version import VersionOrder
+from flaky import flaky
 from test_migrators import sample_yaml_rebuild, updated_yaml_rebuild
 
-from conda_forge_tick.feedstock_parser import load_feedstock_containerized
+from conda_forge_tick.feedstock_parser import (
+    load_feedstock_containerized,
+    populate_feedstock_attributes,
+)
 from conda_forge_tick.lazy_json_backends import (
     LazyJson,
     dumps,
     lazy_json_override_backends,
 )
 from conda_forge_tick.migration_runner import run_migration_containerized
-from conda_forge_tick.migrators import MigrationYaml
+from conda_forge_tick.migrators import MigrationYaml, Version
 from conda_forge_tick.os_utils import get_user_execute_permissions, pushd
 from conda_forge_tick.provide_source_code import provide_source_code_containerized
 from conda_forge_tick.rerender_feedstock import (
@@ -31,10 +37,15 @@ from conda_forge_tick.update_upstream_versions import (
     get_latest_version_containerized,
 )
 from conda_forge_tick.utils import (
+    frozen_to_json_friendly,
     parse_meta_yaml,
     parse_meta_yaml_containerized,
     run_container_task,
 )
+
+VERSION = Version(set())
+
+YAML_PATH = os.path.join(os.path.dirname(__file__), "test_yaml")
 
 HAVE_CONTAINERS = (
     subprocess.run(["docker", "--version"], capture_output=True).returncode == 0
@@ -584,3 +595,84 @@ def test_migration_runner_run_migration_containerized_yaml_rebuild(tmpdir):
     with open(os.path.join(fs_dir, ".ci_support/migrations/hi.yaml")) as f:
         saved_migration = f.read()
     assert saved_migration == yaml_rebuild.yaml_contents
+
+
+@pytest.mark.parametrize(
+    "case,new_ver",
+    [
+        ("sha1", "5.0.1"),
+    ],
+)
+@flaky
+def test_migration_runner_run_migration_containerized_version(
+    case, new_ver, tmpdir, caplog
+):
+    caplog.set_level(
+        logging.DEBUG,
+        logger="conda_forge_tick.migrators.version",
+    )
+
+    with open(os.path.join(YAML_PATH, "version_%s.yaml" % case)) as fp:
+        inp = fp.read()
+
+    with open(os.path.join(YAML_PATH, "version_%s_correct.yaml" % case)) as fp:
+        output = fp.read()
+
+    kwargs = {}
+    if case == "sha1":
+        kwargs["hash_type"] = "sha1"
+
+    m = VERSION
+    mr_out = {
+        "migrator_name": Version.name,
+        "migrator_version": Version.migrator_version,
+        "version": new_ver,
+        "bot_rerun": False,
+    }
+
+    # Load the meta.yaml (this is done in the graph)
+    try:
+        name = parse_meta_yaml(inp)["package"]["name"]
+    except Exception:
+        name = "blah"
+
+    fs_dir = os.path.join(tmpdir, f"{name}-feedstock")
+    os.makedirs(os.path.join(fs_dir, "recipe"), exist_ok=True)
+
+    with open(os.path.join(tmpdir, fs_dir, "recipe", "meta.yaml"), "w") as f:
+        f.write(inp)
+
+    pmy = populate_feedstock_attributes(name, {}, inp, "{}")
+
+    # these are here for legacy migrators
+    pmy["version"] = pmy["meta_yaml"]["package"]["version"]
+    pmy["req"] = set()
+    for k in ["build", "host", "run"]:
+        req = pmy["meta_yaml"].get("requirements", {}) or {}
+        _set = req.get(k) or set()
+        pmy["req"] |= set(_set)
+    pmy["raw_meta_yaml"] = inp
+    pmy.update(kwargs)
+    pmy["new_version"] = new_ver
+
+    data = run_migration_containerized(
+        migrator=m,
+        feedstock_dir=fs_dir,
+        feedstock_name=name,
+        node_attrs=pmy,
+        default_branch="main",
+        **kwargs,
+    )
+
+    assert mr_out == data["migrate_return_value"]
+
+    pmy["pr_info"] = {}
+    pmy["pr_info"].update(PRed=[frozen_to_json_friendly(data["migrate_return_value"])])
+    with open(os.path.join(tmpdir, fs_dir, "recipe", "meta.yaml")) as f:
+        actual_output = f.read()
+    # strip jinja comments
+    pat = re.compile(r"{#.*#}")
+    actual_output = pat.sub("", actual_output)
+    output = pat.sub("", output)
+    assert actual_output == output
+    assert m.filter(pmy) is True
