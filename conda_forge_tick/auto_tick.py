@@ -142,10 +142,7 @@ def _get_pre_pr_migrator_attempts(attrs, migrator_name, *, is_version):
 def run(
     feedstock_ctx: FeedstockContext,
     migrator: Migrator,
-    protocol: str = "ssh",
-    pull_request: bool = True,
     rerender: bool = True,
-    fork: bool = True,
     base_branch: str = "main",
     dry_run: bool = False,
     **kwargs: typing.Any,
@@ -158,16 +155,12 @@ def run(
         The node attributes
     migrator: Migrator instance
         The migrator to run on the feedstock
-    protocol : str, optional
-        The git protocol to use, defaults to ``ssh``
-    pull_request : bool, optional
-        If true issue pull request, defaults to true
     rerender : bool
         Whether to rerender
-    fork : bool
-        If true create a fork, defaults to true
     base_branch : str, optional
-        The base branch to which the PR will be targeted. Defaults to "main".
+        The base branch to which the PR will be targeted.
+    dry_run : bool, optional
+        Whether to run in dry run mode.
     kwargs: dict
         The keyword arguments to pass to the migrator.
 
@@ -568,10 +561,9 @@ def _run_migrator_on_feedstock_branch(
                 feedstock_ctx=fctx,
                 migrator=migrator,
                 rerender=migrator.rerender,
-                protocol="https",
-                hash_type=attrs.get("hash_type", "sha256"),
                 base_branch=base_branch,
                 dry_run=dry_run,
+                hash_type=attrs.get("hash_type", "sha256"),
             )
         finally:
             fctx.attrs.pop("new_version", None)
