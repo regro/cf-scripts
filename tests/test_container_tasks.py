@@ -661,6 +661,7 @@ def test_migration_runner_run_migration_containerized_version(
         feedstock_name=name,
         node_attrs=pmy,
         default_branch="main",
+        **kwargs,
     )
 
     assert mr_out == data["migrate_return_value"]
