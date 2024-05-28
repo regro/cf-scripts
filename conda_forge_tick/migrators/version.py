@@ -193,7 +193,7 @@ class Version(Migrator):
         hash_type: str = "sha256",
         **kwargs: Any,
     ) -> "MigrationUidTypedDict":
-        version = attrs.get("version_pr_info", {})["new_version"]
+        version = attrs["new_version"]
 
         with open(os.path.join(recipe_dir, "meta.yaml")) as fp:
             raw_meta_yaml = fp.read()
@@ -220,17 +220,20 @@ class Version(Migrator):
             )
 
     def pr_body(self, feedstock_ctx: FeedstockContext) -> str:
-        pred = [
-            (
-                name,
-                self.effective_graph.nodes[name]["payload"]["version_pr_info"][
-                    "new_version"
-                ],
-            )
-            for name in list(
-                self.effective_graph.predecessors(feedstock_ctx.feedstock_name),
-            )
-        ]
+        if feedstock_ctx.feedstock_name in self.effective_graph.nodes:
+            pred = [
+                (
+                    name,
+                    self.effective_graph.nodes[name]["payload"]["version_pr_info"][
+                        "new_version"
+                    ],
+                )
+                for name in list(
+                    self.effective_graph.predecessors(feedstock_ctx.feedstock_name),
+                )
+            ]
+        else:
+            pred = []
         body = ""
 
         # TODO: note that the closing logic needs to be modified when we
@@ -355,11 +358,11 @@ class Version(Migrator):
         return hint
 
     def commit_message(self, feedstock_ctx: FeedstockContext) -> str:
-        assert isinstance(feedstock_ctx.attrs["version_pr_info"]["new_version"], str)
-        return "updated v" + feedstock_ctx.attrs["version_pr_info"]["new_version"]
+        assert isinstance(feedstock_ctx.attrs["new_version"], str)
+        return "updated v" + feedstock_ctx.attrs["new_version"]
 
     def pr_title(self, feedstock_ctx: FeedstockContext) -> str:
-        assert isinstance(feedstock_ctx.attrs["version_pr_info"]["new_version"], str)
+        assert isinstance(feedstock_ctx.attrs["new_version"], str)
         # TODO: turn False to True when we default to automerge
         amerge = get_keys_default(
             feedstock_ctx.attrs,
@@ -376,7 +379,7 @@ class Version(Migrator):
             add_slug
             + feedstock_ctx.feedstock_name
             + " v"
-            + feedstock_ctx.attrs["version_pr_info"]["new_version"]
+            + feedstock_ctx.attrs["new_version"]
         )
 
     def remote_branch(self, feedstock_ctx: FeedstockContext) -> str:
@@ -388,7 +391,7 @@ class Version(Migrator):
         if self._new_version is not None:
             new_version = self._new_version
         else:
-            new_version = attrs["version_pr_info"]["new_version"]
+            new_version = attrs["new_version"]
         n["version"] = new_version
         return n
 

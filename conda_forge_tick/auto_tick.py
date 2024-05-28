@@ -25,6 +25,7 @@ from conda.models.version import VersionOrder
 
 from conda_forge_tick.cli_context import CliContext
 from conda_forge_tick.contexts import FeedstockContext, MigratorSessionContext
+from conda_forge_tick.deploy import deploy
 from conda_forge_tick.feedstock_parser import BOOTSTRAP_MAPPINGS
 from conda_forge_tick.git_utils import (
     GIT_CLONE_DIR,
@@ -167,7 +168,7 @@ def run(
     base_branch : str, optional
         The base branch to which the PR will be targeted. Defaults to "main".
     kwargs: dict
-        The key word arguments to pass to the migrator
+        The keyword arguments to pass to the migrator.
 
     Returns
     -------
@@ -564,15 +565,21 @@ def _run_migrator_on_feedstock_branch(
 ):
     break_loop = False
     try:
-        migrator_uid, pr_json = run(
-            feedstock_ctx=fctx,
-            migrator=migrator,
-            rerender=migrator.rerender,
-            protocol="https",
-            hash_type=attrs.get("hash_type", "sha256"),
-            base_branch=base_branch,
-            dry_run=dry_run,
-        )
+        try:
+            fctx.attrs["new_version"] = attrs.get("version_pr_info", {}).get(
+                "new_version", None
+            )
+            migrator_uid, pr_json = run(
+                feedstock_ctx=fctx,
+                migrator=migrator,
+                rerender=migrator.rerender,
+                protocol="https",
+                hash_type=attrs.get("hash_type", "sha256"),
+                base_branch=base_branch,
+                dry_run=dry_run,
+            )
+        finally:
+            fctx.attrs.pop("new_version", None)
         # if migration successful
         if migrator_uid:
             with attrs["pr_info"] as pri:
@@ -1045,6 +1052,7 @@ def main(ctx: CliContext) -> None:
 
     with fold_log_lines("updating graph with PR info"):
         _update_graph_with_pr_info()
+        deploy(ctx, dirs_to_deploy=["version_pr_info", "pr_json", "pr_info"])
 
     # record tmp dir so we can be sure to clean it later
     temp = glob.glob("/tmp/*")
@@ -1113,7 +1121,6 @@ def main(ctx: CliContext) -> None:
             #         "pr_json",
             #         "pr_info",
             #         "version_pr_info",
-            #         "nodes",
             #     ],
             # )
 
