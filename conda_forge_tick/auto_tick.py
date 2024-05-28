@@ -565,9 +565,7 @@ def _run_migrator_on_feedstock_branch(
     break_loop = False
     try:
         if isinstance(migrator, Version):
-            kwargs = {
-                "version": attrs.get("version_pr_info", {})["new_version"]
-            }
+            kwargs = {"version": attrs.get("version_pr_info", {})["new_version"]}
         else:
             kwargs = {}
 
