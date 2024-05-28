@@ -1,6 +1,6 @@
 from datetime import datetime
 from enum import StrEnum
-from typing import Annotated, Any, Literal, Optional, Self
+from typing import Annotated, Any, Literal, Self
 
 from pydantic import (
     UUID4,
@@ -12,6 +12,7 @@ from pydantic import (
 
 from conda_forge_tick.models.common import (
     CondaVersionString,
+    NoneIsEmptyDict,
     PrJsonLazyJsonReference,
     StrictBaseModel,
     before_validator_ensure_dict,
@@ -295,7 +296,7 @@ class PrInfoValid(StrictBaseModel):
     The Azure token errors should be removed from the graph, e.g. by parsing the model and re-serializing it.
     """
 
-    pre_pr_migrator_status: Optional[dict[str, str]] = None
+    pre_pr_migrator_status: NoneIsEmptyDict[str, str] = {}
     """
     A dictionary (migration name -> error message) of the error status of the migrations.
     Errors are added here if a non-version migration fails before a migration PR is created.
@@ -311,7 +312,7 @@ class PrInfoValid(StrictBaseModel):
     If a migration is eventually successful, the corresponding key is removed from the dictionary.
     """
 
-    pre_pr_migrator_attempts: Optional[dict[str, int]] = None
+    pre_pr_migrator_attempts: NoneIsEmptyDict[str, int] = {}
     """
     A dictionary (migration name -> number of attempts) of the number of attempts of the migrations.
     This value is increased by 1 every time a migration fails before a migration PR is created.
@@ -323,9 +324,7 @@ class PrInfoValid(StrictBaseModel):
 
     @model_validator(mode="after")
     def check_pre_pr_migrations(self) -> Self:
-        ppms = getattr(self, "pre_pr_migrator_status", {}) or {}
-        ppma = getattr(self, "pre_pr_migrator_attempts", {}) or {}
-        if ppms.keys() != ppma.keys():
+        if self.pre_pr_migrator_status.keys() != self.pre_pr_migrator_attempts.keys():
             raise ValueError(
                 "The keys (migration names) of pre_pr_migrator_status and pre_pr_migrator_attempts must match."
             )

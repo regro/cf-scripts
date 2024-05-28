@@ -68,6 +68,23 @@ Defining this type is already the first step to remove it.
 """
 
 
+def none_to_empty_dict(value: T | None) -> T | dict[Never]:
+    """
+    Convert `None` to an empty dict. Everything else is kept as is.
+    """
+    if value is None:
+        return {}
+    return value
+
+
+NoneIsEmptyDict = Annotated[dict[T], BeforeValidator(none_to_empty_dict)]
+"""
+A generic dict type that converts `None` to an empty dict.
+This should not be needed if this proper data model is used in production.
+Defining this type is already the first step to remove it.
+"""
+
+
 def convert_to_list(value: T) -> list[T]:
     """
     Convert a single value to a list.
