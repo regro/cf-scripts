@@ -564,21 +564,19 @@ def _run_migrator_on_feedstock_branch(
 ):
     break_loop = False
     try:
-        if isinstance(migrator, Version):
-            kwargs = {"version": attrs.get("version_pr_info", {})["new_version"]}
-        else:
-            kwargs = {}
-
-        migrator_uid, pr_json = run(
-            feedstock_ctx=fctx,
-            migrator=migrator,
-            rerender=migrator.rerender,
-            protocol="https",
-            hash_type=attrs.get("hash_type", "sha256"),
-            base_branch=base_branch,
-            dry_run=dry_run,
-            **kwargs,
-        )
+        try:
+            fctx.attrs["new_version"] = attrs.get("version_pr_info", {})["new_version"]
+            migrator_uid, pr_json = run(
+                feedstock_ctx=fctx,
+                migrator=migrator,
+                rerender=migrator.rerender,
+                protocol="https",
+                hash_type=attrs.get("hash_type", "sha256"),
+                base_branch=base_branch,
+                dry_run=dry_run,
+            )
+        finally:
+            fctx.attrs.pop("new_version", None)
         # if migration successful
         if migrator_uid:
             with attrs["pr_info"] as pri:

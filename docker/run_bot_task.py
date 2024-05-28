@@ -95,7 +95,10 @@ def _run_bot_task(func, *, log_level, existing_feedstock_node_attrs, **kwargs):
     ):
         os.makedirs(os.path.join(tmpdir_cbld, "conda-bld"), exist_ok=True)
 
-        from conda_forge_tick.lazy_json_backends import dumps
+        from conda_forge_tick.lazy_json_backends import (
+            dumps,
+            lazy_json_override_backends,
+        )
         from conda_forge_tick.os_utils import pushd
         from conda_forge_tick.utils import setup_logging
 
@@ -113,9 +116,11 @@ def _run_bot_task(func, *, log_level, existing_feedstock_node_attrs, **kwargs):
                     attrs = _get_existing_feedstock_node_attrs(
                         existing_feedstock_node_attrs
                     )
-                    data = func(attrs=attrs, **kwargs)
+                    with lazy_json_override_backends(["github"], use_file_cache=False):
+                        data = func(attrs=attrs, **kwargs)
                 else:
-                    data = func(**kwargs)
+                    with lazy_json_override_backends(["github"], use_file_cache=False):
+                        data = func(**kwargs)
 
             ret["data"] = data
 
