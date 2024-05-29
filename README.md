@@ -85,6 +85,7 @@ migrator_ts: 1634025600
 __migrator:
   # The kind of of migrator. Only version is supported at the moment.
   kind: version
+
   # The operation key forces the migrator to do specific operations.
   # This key is mutually exclusive with the `kind` key.
   operation: key_add  # add the keys to the pinnings
@@ -141,6 +142,7 @@ __migrator:
   # This feature is useful for migrations that use automerge and to prevent the bot
   # from issuing PRs that will fail to build.
   check_solvable: true
+
   # The max_solver_attempts controls how many times the bot will try to issue a PR (and
   # fail due to unsolvable environments) before it deprioritizes the migration of the feedstock.
   # Once all feedstocks without failed solver attempts have been tried, the bot will randomly
