@@ -743,12 +743,11 @@ def get_repo(
         The github3 repository object.
     """
     backend = github_backend()
-    feedstock_repo_name = feedstock_repo(fctx)
 
     try:
-        backend.fork("conda-forge", feedstock_repo_name)
+        backend.fork(fctx.git_repo_owner, fctx.git_repo_name)
     except RepositoryNotFoundError:
-        logger.warning(f"Could not fork conda-forge/{feedstock_repo_name}")
+        logger.warning(f"Could not fork {fctx.git_repo_owner}/{fctx.git_repo_name}")
         with fctx.attrs["pr_info"] as pri:
             pri["bad"] = f"{fctx.feedstock_name}: Git repository not found.\n"
         return False, False
@@ -756,8 +755,8 @@ def get_repo(
     feedstock_dir = Path(GIT_CLONE_DIR) / (fctx.feedstock_name + "-feedstock")
 
     backend.clone_fork_and_branch(
-        upstream_owner="conda-forge",
-        repo_name=feedstock_repo_name,
+        upstream_owner=fctx.git_repo_owner,
+        repo_name=fctx.git_repo_name,
         target_dir=feedstock_dir,
         new_branch=branch,
         base_branch=base_branch,
@@ -765,7 +764,7 @@ def get_repo(
 
     # This is needed because we want to migrate to the new backend step-by-step
     repo: github3.repos.Repository | None = github3_client().repository(
-        "conda-forge", feedstock_repo_name
+        fctx.git_repo_owner, fctx.git_repo_name
     )
 
     assert repo is not None

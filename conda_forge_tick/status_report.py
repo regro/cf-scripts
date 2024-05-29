@@ -39,8 +39,6 @@ from conda_forge_tick.utils import (
     load_existing_graph,
 )
 
-from .git_utils import feedstock_url
-
 GH_MERGE_STATE_STATUS = [
     "behind",
     "blocked",
@@ -273,7 +271,7 @@ def graph_migrator_status(
                 .get("PR", {})
                 .get(
                     "html_url",
-                    feedstock_url(fctx=feedstock_ctx, protocol="https").strip(".git"),
+                    feedstock_ctx.git_href,
                 ),
             )
 
@@ -300,7 +298,7 @@ def graph_migrator_status(
             # I needed to fake some PRs they don't have html_urls though
             node_metadata["pr_url"] = pr_json["PR"].get(
                 "html_url",
-                feedstock_url(fctx=feedstock_ctx, protocol="https").strip(".git"),
+                feedstock_ctx.git_href,
             )
             node_metadata["pr_status"] = pr_json["PR"].get("mergeable_state", "")
 
