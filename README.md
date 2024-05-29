@@ -85,9 +85,10 @@ migrator_ts: 1634025600
 __migrator:
   # The kind of of migrator. Only version is supported at the moment.
   kind: version
-  # The operation key forces the migrator to do specific operations
-  # operation: key_add  # add the keys to the pinnings
-  # operation: key_remove  # remove the keys from the pinnings
+  # The operation key forces the migrator to do specific operations.
+  # This key is mutually exclusive with the `kind` key.
+  operation: key_add  # add the keys to the pinnings
+  operation: key_remove  # remove the keys from the pinnings
 
   # The migration number denotes specific runs of the migration, like a
   # package build number. Changing it will cause the migration to start over.
@@ -173,6 +174,19 @@ __migrator:
     feedstock1:
       - feedstock2
       - feedstock3
+
+  # The `ordering` field is used to determine where to insert keys for `key_add` migrations
+  # or which keys to keep for version migrations where the versions are strings and so have no
+  # natural version ordering. Each changed pin can be mapped to a list
+  # that determines the ordering. The highest (e.g., item with highest list index)
+  # version is kept for version migrations.
+  oridering:
+    pin1:
+      - value1
+      - value2
+    pin2:
+      - value3
+      - value4
 
 # The names of any packages/pins you wish to migrate go here. Convert any
 # dashes to underscores. You can list more than one item here if things are
