@@ -26,7 +26,6 @@ demo_attrs_check_solvable = AttrsTypedDict(
     }
 )
 
-
 def test_feedstock_context_default_branch_not_set():
     context = FeedstockContext("TEST-FEEDSTOCK-NAME", demo_attrs)
     assert context.default_branch == "main"

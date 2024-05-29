@@ -572,9 +572,9 @@ def run(
     None means: We don't update the PR data.
     """
     if (
-        isinstance(migrator, MigrationYaml)
-        and not rerender_info.nontrivial_migration_yaml_changes
-        and context.attrs["name"] != "conda-forge-pinning"
+            isinstance(migrator, MigrationYaml)
+            and not rerender_info.nontrivial_migration_yaml_changes
+            and context.attrs["name"] != "conda-forge-pinning"
     ):
         # spoof this so it looks like the package is done
         pr_data = get_spoofed_closed_pr_info()

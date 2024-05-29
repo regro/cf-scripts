@@ -117,3 +117,18 @@ class ClonedFeedstockContext(FeedstockContext):
     # Implementation Note: Keep this class frozen or there will be consistency issues if someone modifies
     # a ClonedFeedstockContext object in place - it will not be reflected in the original FeedstockContext object.
     local_clone_dir: Path
+
+    @property
+    def git_repo_owner(self) -> str:
+        return "conda-forge"
+
+    @property
+    def git_repo_name(self) -> str:
+        return f"{self.feedstock_name}-feedstock"
+
+    @property
+    def git_href(self) -> str:
+        """
+        A link to the feedstocks GitHub repository.
+        """
+        return f"https://github.com/{self.git_repo_owner}/{self.git_repo_name}"
