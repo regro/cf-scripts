@@ -213,3 +213,57 @@ def test_migrator_to_json_rebuild():
     ]
     assert isinstance(migrator2, conda_forge_tick.migrators.Replacement)
     assert dumps(migrator2.to_lazy_json_data()) == lzj_data
+
+
+def test_migrator_to_json_arch():
+    gx = nx.DiGraph()
+    gx.add_node("conda", reqs=["python"], payload={}, blah="foo")
+
+    migrator = conda_forge_tick.migrators.ArchRebuild(
+        target_packages=["python"],
+        graph=gx,
+        pr_limit=5,
+        name="aarch64 and ppc64le addition",
+    )
+
+    data = migrator.to_lazy_json_data()
+    pprint.pprint(data)
+    lzj_data = dumps(data)
+    print("lazy json data:\n", lzj_data)
+    assert data["__migrator__"] is True
+    assert data["class"] == "ArchRebuild"
+    assert data["name"] == "aarch64_and_ppc64le_addition"
+
+    migrator2 = make_from_lazy_json_data(loads(lzj_data))
+    assert [pgm.__class__.__name__ for pgm in migrator2.piggy_back_migrations] == [
+        pgm.__class__.__name__ for pgm in migrator.piggy_back_migrations
+    ]
+    assert isinstance(migrator2, conda_forge_tick.migrators.ArchRebuild)
+    assert dumps(migrator2.to_lazy_json_data()) == lzj_data
+
+
+def test_migrator_to_json_osx_arm():
+    gx = nx.DiGraph()
+    gx.add_node("conda", reqs=["python"], payload={}, blah="foo")
+
+    migrator = conda_forge_tick.migrators.OSXArm(
+        target_packages=["python"],
+        graph=gx,
+        pr_limit=5,
+        name="arm osx addition",
+    )
+
+    data = migrator.to_lazy_json_data()
+    pprint.pprint(data)
+    lzj_data = dumps(data)
+    print("lazy json data:\n", lzj_data)
+    assert data["__migrator__"] is True
+    assert data["class"] == "OSXArm"
+    assert data["name"] == "arm_osx_addition"
+
+    migrator2 = make_from_lazy_json_data(loads(lzj_data))
+    assert [pgm.__class__.__name__ for pgm in migrator2.piggy_back_migrations] == [
+        pgm.__class__.__name__ for pgm in migrator.piggy_back_migrations
+    ]
+    assert isinstance(migrator2, conda_forge_tick.migrators.OSXArm)
+    assert dumps(migrator2.to_lazy_json_data()) == lzj_data
