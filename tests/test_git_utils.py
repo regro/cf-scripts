@@ -107,6 +107,104 @@ def init_temp_git_repo(git_dir: Path, bare: bool = False):
     )
 
 
+@pytest.mark.parametrize(
+    "n_paths,all_", [(0, True), (1, False), (1, True), (2, False), (2, True)]
+)
+@mock.patch("conda_forge_tick.git_utils.GitCli._run_git_command")
+def test_git_cli_add_success_mock(
+    run_git_command_mock: MagicMock, n_paths: int, all_: bool
+):
+    cli = GitCli()
+
+    git_dir = Path("TEST_DIR")
+    paths = [Path(f"test{i}.txt") for i in range(n_paths)]
+
+    cli.add(git_dir, *paths, all_=all_)
+
+    expected_all_arg = ["--all"] if all_ else []
+
+    run_git_command_mock.assert_called_once_with(
+        ["add", *expected_all_arg, *paths], git_dir
+    )
+
+
+@mock.patch("conda_forge_tick.git_utils.GitCli._run_git_command")
+def test_git_cli_add_no_arguments_error(run_git_command_mock: MagicMock):
+    cli = GitCli()
+
+    git_dir = Path("TEST_DIR")
+
+    with pytest.raises(ValueError, match="Either pathspec or all_ must be set"):
+        cli.add(git_dir)
+
+    run_git_command_mock.assert_not_called()
+
+
+@pytest.mark.parametrize(
+    "n_paths,all_", [(0, True), (1, False), (1, True), (2, False), (2, True)]
+)
+def test_git_cli_add_success(n_paths: int, all_: bool):
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        git_dir = Path(tmp_dir)
+        init_temp_git_repo(git_dir)
+
+        pathspec = [git_dir / f"test{i}.txt" for i in range(n_paths)]
+
+        for path in pathspec + [git_dir / "all_tracker.txt"]:
+            path.touch()
+
+        cli = GitCli()
+        cli.add(git_dir, *pathspec, all_=all_)
+
+        tracked_files = cli._run_git_command(
+            ["ls-files", "-s"], git_dir, capture_text=True
+        ).stdout
+
+        for path in pathspec:
+            assert path.name in tracked_files
+
+        if all_ and n_paths == 0:
+            # note that n_paths has to be zero to add unknown files to the working tree
+            assert "all_tracker.txt" in tracked_files
+        else:
+            assert "all_tracker.txt" not in tracked_files
+
+
+@pytest.mark.parametrize("all_", [True, False])
+@mock.patch("conda_forge_tick.git_utils.GitCli._run_git_command")
+def test_git_cli_commit_success_mock(run_git_command_mock: MagicMock, all_: bool):
+    git_dir = Path("GIT_DIR")
+    message = "COMMIT_MESSAGE"
+
+    cli = GitCli()
+    cli.commit(git_dir, message, all_)
+
+    expected_all_arg = ["-a"] if all_ else []
+
+    run_git_command_mock.assert_called_once_with(
+        ["commit", *expected_all_arg, "-m", message], git_dir
+    )
+
+
+@pytest.mark.parametrize("all_", [True, False])
+def test_git_cli_commit_success(all_: bool):
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        git_dir = Path(tmp_dir)
+        init_temp_git_repo(git_dir)
+
+        cli = GitCli()
+
+        with git_dir.joinpath("test.txt").open("w") as f:
+            f.write("Hello, World!")
+
+        cli.add(git_dir, git_dir / "test.txt")
+        cli.commit(git_dir, "Add Test")
+
+        git_log = cli._run_git_command(["log"], git_dir, capture_text=True).stdout
+
+        assert "Add Test" in git_log
+
+
 def test_git_cli_reset_hard_already_reset():
     cli = GitCli()
     with tempfile.TemporaryDirectory() as tmpdir:
