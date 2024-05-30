@@ -211,16 +211,23 @@ class GitCli:
         self._run_git_command(["add", *all_arg, *pathspec], git_dir)
 
     @lock_git_operation()
-    def commit(self, git_dir: Path, message: str, all_: bool = False):
+    def commit(
+        self, git_dir: Path, message: str, all_: bool = False, allow_empty: bool = False
+    ):
         """
         Commit changes to the git repository with `git commit`.
         :param git_dir: The directory of the git repository.
         :param message: The commit message.
+        :param allow_empty: If True, allow an empty commit.
         :param all_: Automatically stage files that have been modified and deleted, but new files are not affected.
         :raises GitCliError: If the git command fails.
         """
         all_arg = ["-a"] if all_ else []
-        self._run_git_command(["commit", *all_arg, "-m", message], git_dir)
+        allow_empty_arg = ["--allow-empty"] if allow_empty else []
+
+        self._run_git_command(
+            ["commit", *all_arg, *allow_empty_arg, "-m", message], git_dir
+        )
 
     @lock_git_operation()
     def reset_hard(self, git_dir: Path, to_treeish: str = "HEAD"):

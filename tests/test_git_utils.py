@@ -170,35 +170,53 @@ def test_git_cli_add_success(n_paths: int, all_: bool):
             assert "all_tracker.txt" not in tracked_files
 
 
+@pytest.mark.parametrize("allow_empty", [True, False])
 @pytest.mark.parametrize("all_", [True, False])
 @mock.patch("conda_forge_tick.git_utils.GitCli._run_git_command")
-def test_git_cli_commit_success_mock(run_git_command_mock: MagicMock, all_: bool):
+def test_git_cli_commit_success_mock(
+    run_git_command_mock: MagicMock, all_: bool, allow_empty: bool
+):
     git_dir = Path("GIT_DIR")
     message = "COMMIT_MESSAGE"
 
     cli = GitCli()
-    cli.commit(git_dir, message, all_)
+    cli.commit(git_dir, message, all_, allow_empty)
 
     expected_all_arg = ["-a"] if all_ else []
+    expected_allow_empty_arg = ["--allow-empty"] if allow_empty else []
 
     run_git_command_mock.assert_called_once_with(
-        ["commit", *expected_all_arg, "-m", message], git_dir
+        ["commit", *expected_all_arg, *expected_allow_empty_arg, "-m", message], git_dir
     )
 
 
+@pytest.mark.parametrize("allow_empty", [True, False])
+@pytest.mark.parametrize("empty", [True, False])
 @pytest.mark.parametrize("all_", [True, False])
-def test_git_cli_commit_success(all_: bool):
+def test_git_cli_commit(all_: bool, empty: bool, allow_empty: bool):
     with tempfile.TemporaryDirectory() as tmp_dir:
         git_dir = Path(tmp_dir)
         init_temp_git_repo(git_dir)
 
         cli = GitCli()
 
-        with git_dir.joinpath("test.txt").open("w") as f:
+        test_file = git_dir.joinpath("test.txt")
+        with test_file.open("w") as f:
             f.write("Hello, World!")
-
         cli.add(git_dir, git_dir / "test.txt")
         cli.commit(git_dir, "Add Test")
+
+        if not empty:
+            test_file.unlink()
+            if not all_:
+                cli.add(git_dir, git_dir / "test.txt")
+
+        if empty and not allow_empty:
+            with pytest.raises(GitCliError):
+                cli.commit(git_dir, "Add Test", all_, allow_empty)
+            return
+
+        cli.commit(git_dir, "Add Test", all_, allow_empty)
 
         git_log = cli._run_git_command(["log"], git_dir, capture_text=True).stdout
 
