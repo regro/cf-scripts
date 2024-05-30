@@ -1,3 +1,6 @@
+import datetime
+import json
+import logging
 import subprocess
 import tempfile
 from pathlib import Path
@@ -6,6 +9,9 @@ from unittest.mock import MagicMock
 
 import github3.exceptions
 import pytest
+import requests
+from pydantic_core import Url
+from requests.structures import CaseInsensitiveDict
 
 from conda_forge_tick.git_utils import (
     Bound,
@@ -17,6 +23,10 @@ from conda_forge_tick.git_utils import (
     GitPlatformBackend,
     RepositoryNotFoundError,
     trim_pr_json_keys,
+)
+from conda_forge_tick.models.pr_json import (
+    GithubPullRequestMergeableState,
+    PullRequestState,
 )
 
 """
@@ -553,7 +563,7 @@ def test_git_cli_clone_fork_and_branch_mock(
     fork_url = "https://github.com/regro-cf-autotick-bot/pytest-feedstock.git"
     upstream_url = "https://github.com/conda-forge/pytest-feedstock.git"
 
-    caplog.set_level("DEBUG")
+    caplog.set_level(logging.DEBUG)
 
     cli = GitCli()
 
@@ -642,7 +652,7 @@ def test_git_cli_clone_fork_and_branch_non_existing_remote_existing_target_dir(c
     new_branch = "NEW_BRANCH"
 
     cli = GitCli()
-    caplog.set_level("DEBUG")
+    caplog.set_level(logging.DEBUG)
 
     with tempfile.TemporaryDirectory() as tmpdir:
         dir_path = Path(tmpdir) / "duckdb-feedstock"
@@ -721,7 +731,7 @@ def test_github_backend_fork_exists(
     branch_already_synced: bool,
     caplog,
 ):
-    caplog.set_level("DEBUG")
+    caplog.set_level(logging.DEBUG)
 
     exists_mock.return_value = True
     user_mock.return_value = "USER"
@@ -862,7 +872,73 @@ def test_github_backend_get_api_requests_left_zero_valid_reset_time(caplog):
     assert backend.get_api_requests_left() == 0
 
     github3_client.rate_limit.assert_called_once()
-    assert f"will reset at {reset_timestamp_str}" in caplog.text  #
+    assert f"will reset at {reset_timestamp_str}" in caplog.text
+
+
+@mock.patch("requests.Session.request")
+def test_github_backend_create_pull_request_mock(request_mock: MagicMock):
+    github3_client = github3.login(token="TOKEN")
+
+    with open(Path(__file__).parent / "github_api" / "get_repo_pytest.json") as f:
+        get_repo_response = json.load(f)
+
+    with open(
+        Path(__file__).parent / "github_api" / "github_response_headers.json"
+    ) as f:
+        response_headers = json.load(f)
+
+    with open(Path(__file__).parent / "github_api" / "get_pull_pytest.json") as f:
+        create_pull_response = json.load(f)
+
+    def request_side_effect(method, url, **kwargs):
+        response = requests.Response()
+        if method == "GET":
+            response.status_code = 200
+            response.json = lambda: get_repo_response
+            return response
+        if method == "POST":
+            response.status_code = 201
+            response.json = lambda: create_pull_response
+            response.headers = CaseInsensitiveDict(response_headers)
+            return response
+        assert False, f"Unexpected method: {method}"
+
+    request_mock.side_effect = request_side_effect
+
+    backend = GitHubBackend(github3_client, MagicMock())
+
+    pr_data = backend.create_pull_request(
+        "conda-forge",
+        "pytest-feedstock",
+        "BASE_BRANCH",
+        "HEAD_BRANCH",
+        "TITLE",
+        "BODY",
+    )
+
+    assert pr_data.base is not None
+    assert pr_data.base.repo.name == "pytest-feedstock"
+    assert pr_data.closed_at is None
+    assert pr_data.created_at is not None
+    assert pr_data.created_at == datetime.datetime(
+        2024, 5, 3, 17, 4, 20, tzinfo=datetime.timezone.utc
+    )
+    assert pr_data.head is not None
+    assert pr_data.head.ref == "HEAD_BRANCH"
+    assert pr_data.html_url == Url(
+        "https://github.com/conda-forge/pytest-feedstock/pull/1919"
+    )
+    assert pr_data.id == 1853804278
+    assert pr_data.labels == []
+    assert pr_data.mergeable is True
+    assert pr_data.mergeable_state == GithubPullRequestMergeableState.CLEAN
+    assert pr_data.merged is False
+    assert pr_data.merged_at is None
+    assert pr_data.number == 1919
+    assert pr_data.state == PullRequestState.OPEN
+    assert pr_data.updated_at == datetime.datetime(
+        2024, 5, 27, 13, 31, 50, tzinfo=datetime.timezone.utc
+    )
 
 
 @pytest.mark.parametrize(
@@ -923,7 +999,7 @@ def test_dry_run_backend_does_repository_exist_other_repo():
 
 
 def test_dry_run_backend_fork(caplog):
-    caplog.set_level("DEBUG")
+    caplog.set_level(logging.DEBUG)
 
     backend = DryRunBackend()
 
@@ -941,7 +1017,7 @@ def test_dry_run_backend_fork(caplog):
 
 
 def test_dry_run_backend_sync_default_branch(caplog):
-    caplog.set_level("DEBUG")
+    caplog.set_level(logging.DEBUG)
 
     backend = DryRunBackend()
 
@@ -954,6 +1030,43 @@ def test_dry_run_backend_user():
     backend = DryRunBackend()
 
     assert backend.user == "auto-tick-bot-dry-run"
+
+
+def test_dry_run_backend_create_pull_request(caplog):
+    backend = DryRunBackend()
+    caplog.set_level(logging.DEBUG)
+
+    pr_data = backend.create_pull_request(
+        "conda-forge",
+        "pytest-feedstock",
+        "BASE_BRANCH",
+        "HEAD_BRANCH",
+        "TITLE",
+        "BODY_TEXT",
+    )
+
+    # caplog validation
+    assert "Create Pull Request" in caplog.text
+    assert 'Title: "TITLE"' in caplog.text
+    assert "Target Repository: conda-forge/pytest-feedstock" in caplog.text
+    assert (
+        f"Branches: {backend.user}:HEAD_BRANCH -> conda-forge:BASE_BRANCH"
+        in caplog.text
+    )
+    assert "BODY_TEXT" in caplog.text
+
+    # pr_data validation
+    assert pr_data.e_tag == "GITHUB_PR_ETAG"
+    assert pr_data.last_modified is not None
+    assert pr_data.id == 13371337
+    assert pr_data.html_url == Url(
+        "https://github.com/conda-forge/pytest-feedstock/pulls/1337"
+    )
+    assert pr_data.created_at is not None
+    assert pr_data.number == 1337
+    assert pr_data.state == PullRequestState.OPEN
+    assert pr_data.head.ref == "HEAD_BRANCH"
+    assert pr_data.base.repo.name == "pytest-feedstock"
 
 
 def test_trim_pr_json_keys():

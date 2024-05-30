@@ -9,6 +9,7 @@ import threading
 import time
 from abc import ABC, abstractmethod
 from datetime import datetime
+from email import utils
 from functools import cached_property
 from pathlib import Path
 from typing import Dict, Literal, Optional, Tuple, Union
@@ -20,7 +21,9 @@ import github3.exceptions
 import github3.pulls
 import github3.repos
 import requests
+from github3.session import GitHubSession
 from requests.exceptions import RequestException, Timeout
+from requests.structures import CaseInsensitiveDict
 
 from conda_forge_tick import sensitive_env
 
@@ -30,6 +33,14 @@ from conda_forge_tick.lazy_json_backends import LazyJson
 
 from .contexts import FeedstockContext
 from .executors import lock_git_operation
+from .models.pr_json import (
+    GithubPullRequestBase,
+    GithubPullRequestMergeableState,
+    GithubRepository,
+    PullRequestData,
+    PullRequestInfoHead,
+    PullRequestState,
+)
 from .os_utils import pushd
 from .utils import get_bot_run_url, run_command_hiding_token
 
@@ -52,7 +63,7 @@ CF_BOT_NAMES = {"regro-cf-autotick-bot", "conda-forge-linter"}
 
 # these keys are kept from github PR json blobs
 # to add more keys to keep, put them in the right spot in the dict and
-# set them to None. Also add them to the PullRequestInfo Pydantic model!
+# set them to None. Also add them to the PullRequestData Pydantic model!
 PR_KEYS_TO_KEEP = {
     "ETag": None,
     "Last-Modified": None,
@@ -117,6 +128,18 @@ class GitConnectionMode(enum.StrEnum):
 
 
 class GitCliError(Exception):
+    """
+    A generic error that occurred while running a git CLI command.
+    """
+
+    pass
+
+
+class GitPlatformError(Exception):
+    """
+    A generic error that occurred while interacting with a git platform.
+    """
+
     pass
 
 
@@ -517,6 +540,58 @@ class GitPlatformBackend(ABC):
         """
         return self.get_api_requests_left() in (0, None)
 
+    @abstractmethod
+    def create_pull_request(
+        self,
+        target_owner: str,
+        target_repo: str,
+        base_branch: str,
+        head_branch: str,
+        title: str,
+        body: str,
+    ) -> PullRequestData:
+        """
+        Create a pull request from a forked repository. It is assumed that the forked repository is owned by the
+        current user and has the same name as the target repository.
+
+        :param target_owner: The owner of the target repository.
+        :param target_repo: The name of the target repository.
+        :param base_branch: The base branch of the pull request, located in the target repository.
+        :param head_branch: The head branch of the pull request, located in the forked repository.
+        :param title: The title of the pull request.
+        :param body: The body of the pull request.
+
+        :returns: The data of the created pull request.
+
+        :raises GitPlatformError: If the pull request could not be created.
+        """
+        pass
+
+
+class _Github3SessionWrapper:
+    """
+    This is a wrapper around the github3.session.GitHubSession that allows us to intercept the response headers.
+    """
+
+    def __init__(self, session: GitHubSession):
+        super().__init__()
+        self._session = session
+        self.last_response_headers: CaseInsensitiveDict[str] = CaseInsensitiveDict()
+
+    def __getattr__(self, item):
+        return getattr(self._session, item)
+
+    def _forward_request(self, method, *args, **kwargs):
+        response = method(*args, **kwargs)
+        self.last_response_headers = copy.deepcopy(response.headers)
+        return response
+
+    def post(self, *args, **kwargs):
+        return self._forward_request(self._session.post, *args, **kwargs)
+
+    def get(self, *args, **kwargs):
+        return self._forward_request(self._session.get, *args, **kwargs)
+
 
 class GitHubBackend(GitPlatformBackend):
     """
@@ -533,8 +608,17 @@ class GitHubBackend(GitPlatformBackend):
     """
 
     def __init__(self, github3_client: github3.GitHub, pygithub_client: github.Github):
+        """
+        Create a new GitHubBackend.
+
+        Note: Because we need additional response headers, we wrap the github3 session of the github3 client
+        with our own session wrapper and replace the github3 client's session with it.
+        """
         super().__init__(GitCli())
         self.github3_client = github3_client
+        self._github3_session = _Github3SessionWrapper(self.github3_client.session)
+        self.github3_client.session = self._github3_session
+
         self.pygithub_client = pygithub_client
 
     @classmethod
@@ -624,6 +708,38 @@ class GitHubBackend(GitPlatformBackend):
 
         return remaining_limit
 
+    def create_pull_request(
+        self,
+        target_owner: str,
+        target_repo: str,
+        base_branch: str,
+        head_branch: str,
+        title: str,
+        body: str,
+    ) -> PullRequestData:
+        repo: github3.repos.Repository = self.github3_client.repository(
+            target_owner, target_repo
+        )
+
+        response: github3.pulls.ShortPullRequest | None = repo.create_pull(
+            title=title,
+            base=base_branch,
+            head=f"{self.user}:{head_branch}",
+            body=body,
+        )
+
+        if response is None:
+            raise GitPlatformError("Could not create pull request.")
+
+        # fields like ETag and Last-Modified are stored in the response headers, we need to extract them
+        header_fields = {
+            k: self._github3_session.last_response_headers[k]
+            for k in PullRequestData.HEADER_FIELDS
+        }
+
+        # note: this ignores extra fields in the response
+        return PullRequestData.model_validate(response.as_dict() | header_fields)
+
 
 class DryRunBackend(GitPlatformBackend):
     """
@@ -670,6 +786,45 @@ class DryRunBackend(GitPlatformBackend):
     @property
     def user(self) -> str:
         return self._USER
+
+    def create_pull_request(
+        self,
+        target_owner: str,
+        target_repo: str,
+        base_branch: str,
+        head_branch: str,
+        title: str,
+        body: str,
+    ) -> PullRequestData:
+        logger.debug(
+            f"=============================================================="
+            f"Dry Run: Create Pull Request"
+            f'Title: "{title}"'
+            f"Target Repository: {target_owner}/{target_repo}"
+            f"Branches: {self.user}:{head_branch} -> {target_owner}:{base_branch}"
+            f"Body:"
+            f"{body}"
+            f"=============================================================="
+        )
+
+        now = datetime.now()
+        return PullRequestData.model_validate(
+            {
+                "ETag": "GITHUB_PR_ETAG",
+                "Last-Modified": utils.format_datetime(now),
+                "id": 13371337,
+                "html_url": f"https://github.com/{target_owner}/{target_repo}/pulls/1337",
+                "created_at": now,
+                "mergeable_state": GithubPullRequestMergeableState.CLEAN,
+                "mergeable": True,
+                "merged": False,
+                "draft": False,
+                "number": 1337,
+                "state": PullRequestState.OPEN,
+                "head": PullRequestInfoHead(ref=head_branch),
+                "base": GithubPullRequestBase(repo=GithubRepository(name=target_repo)),
+            }
+        )
 
 
 def github_backend() -> GitHubBackend:
