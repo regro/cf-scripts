@@ -4,7 +4,6 @@ import json
 import logging
 import os
 import pprint
-import re
 import subprocess
 import tempfile
 
@@ -670,9 +669,5 @@ def test_migration_runner_run_migration_containerized_version(
     pmy["pr_info"].update(PRed=[frozen_to_json_friendly(data["migrate_return_value"])])
     with open(os.path.join(tmpdir, fs_dir, "recipe", "meta.yaml")) as f:
         actual_output = f.read()
-    # strip jinja comments
-    pat = re.compile(r"{#.*#}")
-    actual_output = pat.sub("", actual_output)
-    output = pat.sub("", output)
     assert actual_output == output
     assert m.filter(pmy) is True
