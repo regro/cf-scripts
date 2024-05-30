@@ -25,7 +25,7 @@ class StrictBaseModel(BaseModel):
 
 
 class ValidatedBaseModel(BaseModel):
-    model_config = ConfigDict(validate_assignment=True, extra="allow")
+    model_config = ConfigDict(validate_assignment=True, extra="ignore")
 
 
 def before_validator_ensure_dict(value: Any) -> dict:
