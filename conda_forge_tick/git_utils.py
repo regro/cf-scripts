@@ -54,8 +54,6 @@ GITHUB_CLIENT = threading.local()
 
 MAX_GITHUB_TIMEOUT = 60
 
-GIT_CLONE_DIR = "./feedstocks/"
-
 BOT_RERUN_LABEL = {
     "name": "bot-rerun",
 }
@@ -169,7 +167,9 @@ class GitCli:
         capture_text: bool = False,
     ) -> subprocess.CompletedProcess:
         """
-        Run a git command.
+        Run a git command. stdout is only printed if the command fails. stderr is always printed.
+        If outputs are captured, they are never printed.
+
         :param cmd: The command to run, as a list of strings.
         :param working_directory: The directory to run the command in. If None, the command will be run in the current
         working directory.
@@ -183,14 +183,23 @@ class GitCli:
         git_command = ["git"] + cmd
 
         logger.debug(f"Running git command: {git_command}")
+
+        stdout_args = {"stdout": subprocess.PIPE} if not capture_text else {}
         capture_args = {"capture_output": True, "text": True} if capture_text else {}
 
         try:
             return subprocess.run(
-                git_command, check=check_error, cwd=working_directory, **capture_args
+                git_command,
+                check=check_error,
+                cwd=working_directory,
+                **stdout_args,
+                **capture_args,
             )
         except subprocess.CalledProcessError as e:
-            raise GitCliError("Error running git command.") from e
+            logger.info(
+                f"Command {git_command} failed. stdout:\n{e.stdout}\nend of stdout"
+            )
+            raise GitCliError(f"Error running git command: {repr(e)}") from e
 
     @lock_git_operation()
     def add(self, git_dir: Path, *pathspec: Path, all_: bool = False):
@@ -229,6 +238,17 @@ class GitCli:
         self._run_git_command(
             ["commit", *all_arg, *allow_empty_arg, "-m", message], git_dir
         )
+
+    def rev_parse_head(self, git_dir: Path) -> str:
+        """
+        Get the commit hash of HEAD with `git rev-parse HEAD`.
+        :param git_dir: The directory of the git repository.
+        :return: The commit hash of HEAD.
+        :raises GitCliError: If the git command fails.
+        """
+        ret = self._run_git_command(["rev-parse", "HEAD"], git_dir, capture_text=True)
+
+        return ret.stdout.strip()
 
     @lock_git_operation()
     def reset_hard(self, git_dir: Path, to_treeish: str = "HEAD"):
@@ -974,25 +994,6 @@ def get_repo(
     repo : github3 repository
         The github3 repository object.
     """
-    backend = github_backend()
-
-    try:
-        backend.fork(fctx.git_repo_owner, fctx.git_repo_name)
-    except RepositoryNotFoundError:
-        logger.warning(f"Could not fork {fctx.git_repo_owner}/{fctx.git_repo_name}")
-        with fctx.attrs["pr_info"] as pri:
-            pri["bad"] = f"{fctx.feedstock_name}: Git repository not found.\n"
-        return False, False
-
-    feedstock_dir = Path(GIT_CLONE_DIR) / (fctx.feedstock_name + "-feedstock")
-
-    backend.clone_fork_and_branch(
-        upstream_owner=fctx.git_repo_owner,
-        repo_name=fctx.git_repo_name,
-        target_dir=feedstock_dir,
-        new_branch=branch,
-        base_branch=base_branch,
-    )
 
     # This is needed because we want to migrate to the new backend step-by-step
     repo: github3.repos.Repository | None = github3_client().repository(
