@@ -21,6 +21,7 @@ from conda_forge_tick.git_utils import (
     GitConnectionMode,
     GitHubBackend,
     GitPlatformBackend,
+    GitPlatformError,
     RepositoryNotFoundError,
     trim_pr_json_keys,
 )
@@ -993,8 +994,6 @@ def test_github_backend_get_api_requests_left_zero_valid_reset_time(caplog):
 
 @mock.patch("requests.Session.request")
 def test_github_backend_create_pull_request_mock(request_mock: MagicMock):
-    github3_client = github3.login(token="TOKEN")
-
     with open(Path(__file__).parent / "github_api" / "get_repo_pytest.json") as f:
         get_repo_response = json.load(f)
 
@@ -1006,7 +1005,7 @@ def test_github_backend_create_pull_request_mock(request_mock: MagicMock):
     with open(Path(__file__).parent / "github_api" / "get_pull_pytest.json") as f:
         create_pull_response = json.load(f)
 
-    def request_side_effect(method, url, **kwargs):
+    def request_side_effect(method, _url, **_kwargs):
         response = requests.Response()
         if method == "GET":
             response.status_code = 200
@@ -1021,7 +1020,10 @@ def test_github_backend_create_pull_request_mock(request_mock: MagicMock):
 
     request_mock.side_effect = request_side_effect
 
-    backend = GitHubBackend(github3_client, MagicMock())
+    pygithub_mock = MagicMock()
+    pygithub_mock.get_user.return_value.login = "CURRENT_USER"
+
+    backend = GitHubBackend(github3.login(token="TOKEN"), pygithub_mock)
 
     pr_data = backend.create_pull_request(
         "conda-forge",
@@ -1030,6 +1032,14 @@ def test_github_backend_create_pull_request_mock(request_mock: MagicMock):
         "HEAD_BRANCH",
         "TITLE",
         "BODY",
+    )
+
+    request_mock.assert_called_with(
+        "POST",
+        "https://api.github.com/repos/conda-forge/pytest-feedstock/pulls",
+        data='{"title": "TITLE", "body": "BODY", "base": "BASE_BRANCH", "head": "CURRENT_USER:HEAD_BRANCH"}',
+        json=None,
+        timeout=mock.ANY,
     )
 
     assert pr_data.base is not None
@@ -1042,7 +1052,7 @@ def test_github_backend_create_pull_request_mock(request_mock: MagicMock):
     assert pr_data.head is not None
     assert pr_data.head.ref == "HEAD_BRANCH"
     assert pr_data.html_url == Url(
-        "https://github.com/conda-forge/pytest-feedstock/pull/1919"
+        "https://github.com/conda-forge/pytest-feedstock/pull/1337"
     )
     assert pr_data.id == 1853804278
     assert pr_data.labels == []
@@ -1050,11 +1060,186 @@ def test_github_backend_create_pull_request_mock(request_mock: MagicMock):
     assert pr_data.mergeable_state == GithubPullRequestMergeableState.CLEAN
     assert pr_data.merged is False
     assert pr_data.merged_at is None
-    assert pr_data.number == 1919
+    assert pr_data.number == 1337
     assert pr_data.state == PullRequestState.OPEN
     assert pr_data.updated_at == datetime.datetime(
         2024, 5, 27, 13, 31, 50, tzinfo=datetime.timezone.utc
     )
+
+
+@mock.patch("requests.Session.request")
+def test_github_backend_comment_on_pull_request_success(request_mock: MagicMock):
+    with open(Path(__file__).parent / "github_api" / "get_repo_pytest.json") as f:
+        get_repo_response = json.load(f)
+
+    with open(Path(__file__).parent / "github_api" / "get_pull_pytest.json") as f:
+        get_pull_response = json.load(f)
+
+    with open(
+        Path(__file__).parent / "github_api" / "create_issue_comment_pytest.json"
+    ) as f:
+        create_comment_response = json.load(f)
+
+    def request_side_effect(method, url, **_kwargs):
+        response = requests.Response()
+        if (
+            method == "GET"
+            and url == "https://api.github.com/repos/conda-forge/pytest-feedstock"
+        ):
+            response.status_code = 200
+            response.json = lambda: get_repo_response
+            return response
+        if (
+            method == "GET"
+            and url
+            == "https://api.github.com/repos/conda-forge/pytest-feedstock/pulls/1337"
+        ):
+            response.status_code = 200
+            response.json = lambda: get_pull_response
+            return response
+        if (
+            method == "POST"
+            and url
+            == "https://api.github.com/repos/conda-forge/pytest-feedstock/issues/1337/comments"
+        ):
+            response.status_code = 201
+            response.json = lambda: create_comment_response
+            return response
+        assert False, f"Unexpected endpoint: {method} {url}"
+
+    request_mock.side_effect = request_side_effect
+
+    backend = GitHubBackend(github3.login(token="TOKEN"), MagicMock())
+
+    backend.comment_on_pull_request(
+        "conda-forge",
+        "pytest-feedstock",
+        1337,
+        "COMMENT",
+    )
+
+    request_mock.assert_called_with(
+        "POST",
+        "https://api.github.com/repos/conda-forge/pytest-feedstock/issues/1337/comments",
+        data='{"body": "COMMENT"}',
+        json=None,
+        timeout=mock.ANY,
+    )
+
+
+@mock.patch("requests.Session.request")
+def test_github_backend_comment_on_pull_request_repo_not_found(request_mock: MagicMock):
+    def request_side_effect(method, url, **_kwargs):
+        response = requests.Response()
+        if (
+            method == "GET"
+            and url == "https://api.github.com/repos/conda-forge/pytest-feedstock"
+        ):
+            response.status_code = 404
+            return response
+        assert False, f"Unexpected endpoint: {method} {url}"
+
+    request_mock.side_effect = request_side_effect
+
+    backend = GitHubBackend(github3.login(token="TOKEN"), MagicMock())
+
+    with pytest.raises(RepositoryNotFoundError):
+        backend.comment_on_pull_request(
+            "conda-forge",
+            "pytest-feedstock",
+            1337,
+            "COMMENT",
+        )
+
+
+@mock.patch("requests.Session.request")
+def test_github_backend_comment_on_pull_request_pull_request_not_found(
+    request_mock: MagicMock,
+):
+    with open(Path(__file__).parent / "github_api" / "get_repo_pytest.json") as f:
+        get_repo_response = json.load(f)
+
+    def request_side_effect(method, url, **_kwargs):
+        response = requests.Response()
+        if (
+            method == "GET"
+            and url == "https://api.github.com/repos/conda-forge/pytest-feedstock"
+        ):
+            response.status_code = 200
+            response.json = lambda: get_repo_response
+            return response
+        if (
+            method == "GET"
+            and url
+            == "https://api.github.com/repos/conda-forge/pytest-feedstock/pulls/1337"
+        ):
+            response.status_code = 404
+            return response
+        assert False, f"Unexpected endpoint: {method} {url}"
+
+    request_mock.side_effect = request_side_effect
+    backend = GitHubBackend(github3.login(token="TOKEN"), MagicMock())
+
+    with pytest.raises(
+        GitPlatformError,
+        match="Pull request conda-forge/pytest-feedstock#1337 not found",
+    ):
+        backend.comment_on_pull_request(
+            "conda-forge",
+            "pytest-feedstock",
+            1337,
+            "COMMENT",
+        )
+
+
+@mock.patch("requests.Session.request")
+def test_github_backend_comment_on_pull_request_unexpected_response(
+    request_mock: MagicMock,
+):
+    with open(Path(__file__).parent / "github_api" / "get_repo_pytest.json") as f:
+        get_repo_response = json.load(f)
+
+    with open(Path(__file__).parent / "github_api" / "get_pull_pytest.json") as f:
+        get_pull_response = json.load(f)
+
+    def request_side_effect(method, url, **_kwargs):
+        # noinspection DuplicatedCode
+        response = requests.Response()
+        if (
+            method == "GET"
+            and url == "https://api.github.com/repos/conda-forge/pytest-feedstock"
+        ):
+            response.status_code = 200
+            response.json = lambda: get_repo_response
+            return response
+        if (
+            method == "GET"
+            and url
+            == "https://api.github.com/repos/conda-forge/pytest-feedstock/pulls/1337"
+        ):
+            response.status_code = 200
+            response.json = lambda: get_pull_response
+            return response
+        if (
+            method == "POST"
+            and url
+            == "https://api.github.com/repos/conda-forge/pytest-feedstock/issues/1337/comments"
+        ):
+            response.status_code = 500
+            return response
+        assert False, f"Unexpected endpoint: {method} {url}"
+
+    request_mock.side_effect = request_side_effect
+
+    backend = GitHubBackend(github3.login(token="TOKEN"), MagicMock())
+
+    with pytest.raises(GitPlatformError, match="Could not comment on pull request"):
+        backend.comment_on_pull_request(
+            "conda-forge",
+            "pytest-feedstock",
+            1337,
+            "COMMENT",
+        )
 
 
 @pytest.mark.parametrize(
@@ -1169,7 +1354,7 @@ def test_dry_run_backend_create_pull_request(caplog):
         f"Branches: {backend.user}:HEAD_BRANCH -> conda-forge:BASE_BRANCH"
         in caplog.text
     )
-    assert "BODY_TEXT" in caplog.text
+    assert "Body:\nBODY_TEXT" in caplog.text
 
     # pr_data validation
     assert pr_data.e_tag == "GITHUB_PR_ETAG"
@@ -1183,6 +1368,22 @@ def test_dry_run_backend_create_pull_request(caplog):
     assert pr_data.state == PullRequestState.OPEN
     assert pr_data.head.ref == "HEAD_BRANCH"
     assert pr_data.base.repo.name == "pytest-feedstock"
+
+
+def test_dry_run_backend_comment_on_pull_request(caplog):
+    backend = DryRunBackend()
+    caplog.set_level(logging.DEBUG)
+
+    backend.comment_on_pull_request(
+        "conda-forge",
+        "pytest-feedstock",
+        1337,
+        "COMMENT",
+    )
+
+    assert "Comment on Pull Request" in caplog.text
+    assert "Comment:\nCOMMENT" in caplog.text
+    assert "Pull Request: conda-forge/pytest-feedstock#1337" in caplog.text
 
 
 def test_trim_pr_json_keys():

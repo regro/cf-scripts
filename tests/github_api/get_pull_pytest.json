@@ -1,12 +1,12 @@
 {
-  "url": "https://api.github.com/repos/conda-forge/pytest-feedstock/pulls/1919",
+  "url": "https://api.github.com/repos/conda-forge/pytest-feedstock/pulls/1337",
   "id": 1853804278,
   "node_id": "PR_kwDOAgM_Js5ufs72",
-  "html_url": "https://github.com/conda-forge/pytest-feedstock/pull/1919",
-  "diff_url": "https://github.com/conda-forge/pytest-feedstock/pull/1919.diff",
-  "patch_url": "https://github.com/conda-forge/pytest-feedstock/pull/1919.patch",
-  "issue_url": "https://api.github.com/repos/conda-forge/pytest-feedstock/issues/1919",
-  "number": 1919,
+  "html_url": "https://github.com/conda-forge/pytest-feedstock/pull/1337",
+  "diff_url": "https://github.com/conda-forge/pytest-feedstock/pull/1337.diff",
+  "patch_url": "https://github.com/conda-forge/pytest-feedstock/pull/1337.patch",
+  "issue_url": "https://api.github.com/repos/conda-forge/pytest-feedstock/issues/1337",
+  "number": 1337,
   "state": "open",
   "locked": false,
   "title": "PR_TITLE",
@@ -44,10 +44,10 @@
   "labels": [],
   "milestone": null,
   "draft": false,
-  "commits_url": "https://api.github.com/repos/conda-forge/pytest-feedstock/pulls/1919/commits",
-  "review_comments_url": "https://api.github.com/repos/conda-forge/pytest-feedstock/pulls/1919/comments",
+  "commits_url": "https://api.github.com/repos/conda-forge/pytest-feedstock/pulls/1337/commits",
+  "review_comments_url": "https://api.github.com/repos/conda-forge/pytest-feedstock/pulls/1337/comments",
   "review_comment_url": "https://api.github.com/repos/conda-forge/pytest-feedstock/pulls/comments{/number}",
-  "comments_url": "https://api.github.com/repos/conda-forge/pytest-feedstock/issues/1919/comments",
+  "comments_url": "https://api.github.com/repos/conda-forge/pytest-feedstock/issues/1337/comments",
   "statuses_url": "https://api.github.com/repos/conda-forge/pytest-feedstock/statuses/0eaa1de035b8720c8b85a7f435a0ae7037fe9095",
   "head": {
     "label": "regro-cf-autotick-bot:HEAD_BRANCH",
@@ -316,25 +316,25 @@
   },
   "_links": {
     "self": {
-      "href": "https://api.github.com/repos/conda-forge/pytest-feedstock/pulls/1919"
+      "href": "https://api.github.com/repos/conda-forge/pytest-feedstock/pulls/1337"
     },
     "html": {
-      "href": "https://github.com/conda-forge/pytest-feedstock/pull/1919"
+      "href": "https://github.com/conda-forge/pytest-feedstock/pull/1337"
     },
     "issue": {
-      "href": "https://api.github.com/repos/conda-forge/pytest-feedstock/issues/1919"
+      "href": "https://api.github.com/repos/conda-forge/pytest-feedstock/issues/1337"
     },
     "comments": {
-      "href": "https://api.github.com/repos/conda-forge/pytest-feedstock/issues/1919/comments"
+      "href": "https://api.github.com/repos/conda-forge/pytest-feedstock/issues/1337/comments"
     },
     "review_comments": {
-      "href": "https://api.github.com/repos/conda-forge/pytest-feedstock/pulls/1919/comments"
+      "href": "https://api.github.com/repos/conda-forge/pytest-feedstock/pulls/1337/comments"
     },
     "review_comment": {
       "href": "https://api.github.com/repos/conda-forge/pytest-feedstock/pulls/comments{/number}"
     },
     "commits": {
-      "href": "https://api.github.com/repos/conda-forge/pytest-feedstock/pulls/1919/commits"
+      "href": "https://api.github.com/repos/conda-forge/pytest-feedstock/pulls/1337/commits"
     },
     "statuses": {
       "href": "https://api.github.com/repos/conda-forge/pytest-feedstock/statuses/0eaa1de035b8720c8b85a7f435a0ae7037fe9095"
