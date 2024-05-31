@@ -224,6 +224,36 @@ def test_git_cli_commit(all_: bool, empty: bool, allow_empty: bool):
         assert "Add Test" in git_log
 
 
+@mock.patch("conda_forge_tick.git_utils.GitCli._run_git_command")
+def test_git_cli_rev_parse_head_mock(run_git_command_mock: MagicMock):
+    cli = GitCli()
+
+    git_dir = Path("TEST_DIR")
+
+    run_git_command_mock.return_value = subprocess.CompletedProcess(
+        args=[], returncode=0, stdout="deadbeef\n"
+    )
+
+    head_rev = cli.rev_parse_head(git_dir)
+    run_git_command_mock.assert_called_once_with(
+        ["rev-parse", "HEAD"], git_dir, capture_text=True
+    )
+
+    assert head_rev == "deadbeef"
+
+
+def test_git_cli_rev_parse_head():
+    cli = GitCli()
+
+    with tempfile.TemporaryDirectory() as tmpdir:
+        dir_path = Path(tmpdir)
+        init_temp_git_repo(dir_path)
+        cli.commit(dir_path, "Initial commit", allow_empty=True)
+        head_rev = cli.rev_parse_head(dir_path)
+        assert len(head_rev) == 40
+        assert all(c in "0123456789abcdef" for c in head_rev)
+
+
 def test_git_cli_reset_hard_already_reset():
     cli = GitCli()
     with tempfile.TemporaryDirectory() as tmpdir:
