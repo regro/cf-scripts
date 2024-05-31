@@ -656,6 +656,62 @@ def test_git_cli_checkout_branch_no_track():
         )
 
 
+def test_git_cli_diffed_files():
+    cli = GitCli()
+
+    with tempfile.TemporaryDirectory() as tmpdir:
+        dir_path = Path(tmpdir)
+
+        init_temp_git_repo(dir_path)
+
+        cli.commit(dir_path, "Initial commit", allow_empty=True)
+        dir_path.joinpath("test.txt").touch()
+        cli.add(dir_path, dir_path / "test.txt")
+        cli.commit(dir_path, "Add test.txt")
+
+        diffed_files = list(cli.diffed_files(dir_path, "HEAD~1"))
+
+        assert (dir_path / "test.txt") in diffed_files
+        assert len(diffed_files) == 1
+
+
+def test_git_cli_diffed_files_no_diff():
+    cli = GitCli()
+
+    with tempfile.TemporaryDirectory() as tmpdir:
+        dir_path = Path(tmpdir)
+
+        init_temp_git_repo(dir_path)
+
+        cli.commit(dir_path, "Initial commit", allow_empty=True)
+
+        diffed_files = list(cli.diffed_files(dir_path, "HEAD"))
+
+        assert len(diffed_files) == 0
+
+
+@mock.patch("conda_forge_tick.git_utils.GitCli._run_git_command")
+def test_git_cli_diffed_files_mock(run_git_command_mock: MagicMock):
+    cli = GitCli()
+
+    git_dir = Path("TEST_DIR")
+    commit = "COMMIT"
+
+    run_git_command_mock.return_value = subprocess.CompletedProcess(
+        args=[], returncode=0, stdout="test.txt\n"
+    )
+
+    diffed_files = list(cli.diffed_files(git_dir, commit))
+
+    run_git_command_mock.assert_called_once_with(
+        ["diff", "--name-only", "--relative", commit, "HEAD"],
+        git_dir,
+        capture_text=True,
+    )
+
+    assert diffed_files == [git_dir / "test.txt"]
+
+
 def test_git_cli_clone_fork_and_branch_minimal():
     fork_url = "https://github.com/regro-cf-autotick-bot/pytest-feedstock.git"
     upstream_url = "https://github.com/conda-forge/pytest-feedstock.git"
