@@ -5,6 +5,7 @@ import enum
 import logging
 import math
 import subprocess
+import textwrap
 import threading
 import time
 from abc import ABC, abstractmethod
@@ -605,6 +606,22 @@ class GitPlatformBackend(ABC):
         """
         pass
 
+    @abstractmethod
+    def comment_on_pull_request(
+        self, repo_owner: str, repo_name: str, pr_number: int, comment: str
+    ) -> None:
+        """
+        Comment on an existing pull request.
+        :param repo_owner: The owner of the repository.
+        :param repo_name: The name of the repository.
+        :param pr_number: The number of the pull request.
+        :param comment: The comment to post.
+
+        :raises RepositoryNotFoundError: If the repository does not exist.
+        :raises GitPlatformError: If the comment could not be posted, including if the pull request does not exist.
+        """
+        pass
+
 
 class _Github3SessionWrapper:
     """
@@ -778,6 +795,30 @@ class GitHubBackend(GitPlatformBackend):
         # note: this ignores extra fields in the response
         return PullRequestData.model_validate(response.as_dict() | header_fields)
 
+    def comment_on_pull_request(
+        self, repo_owner: str, repo_name: str, pr_number: int, comment: str
+    ) -> None:
+        try:
+            repo = self.github3_client.repository(repo_owner, repo_name)
+        except github3.exceptions.NotFoundError as e:
+            raise RepositoryNotFoundError(
+                f"Repository {repo_owner}/{repo_name} not found."
+            ) from e
+
+        try:
+            pr = repo.pull_request(pr_number)
+        except github3.exceptions.NotFoundError as e:
+            raise GitPlatformError(
+                f"Pull request {repo_owner}/{repo_name}#{pr_number} not found."
+            ) from e
+
+        try:
+            pr.create_comment(comment)
+        except github3.GitHubError as e:
+            raise GitPlatformError(
+                f"Could not comment on pull request {repo_owner}/{repo_name}#{pr_number}."
+            ) from e
+
 
 class DryRunBackend(GitPlatformBackend):
     """
@@ -835,14 +876,18 @@ class DryRunBackend(GitPlatformBackend):
         body: str,
     ) -> PullRequestData:
         logger.debug(
-            f"=============================================================="
-            f"Dry Run: Create Pull Request"
-            f'Title: "{title}"'
-            f"Target Repository: {target_owner}/{target_repo}"
-            f"Branches: {self.user}:{head_branch} -> {target_owner}:{base_branch}"
-            f"Body:"
-            f"{body}"
-            f"=============================================================="
+            textwrap.dedent(
+                f"""
+                ==============================================================
+                Dry Run: Create Pull Request
+                Title: "{title}"
+                Target Repository: {target_owner}/{target_repo}
+                Branches: {self.user}:{head_branch} -> {target_owner}:{base_branch}
+                Body:
+                {body}
+                ==============================================================
+                """
+            )
         )
 
         now = datetime.now()
@@ -862,6 +907,27 @@ class DryRunBackend(GitPlatformBackend):
                 "head": PullRequestInfoHead(ref=head_branch),
                 "base": GithubPullRequestBase(repo=GithubRepository(name=target_repo)),
             }
+        )
+
+    def comment_on_pull_request(
+        self, repo_owner: str, repo_name: str, pr_number: int, comment: str
+    ):
+        if not self.does_repository_exist(repo_owner, repo_name):
+            raise RepositoryNotFoundError(
+                f"Repository {repo_owner}/{repo_name} not found."
+            )
+
+        logger.debug(
+            textwrap.dedent(
+                f"""
+                ==============================================================
+                Dry Run: Comment on Pull Request
+                Pull Request: {repo_owner}/{repo_name}#{pr_number}
+                Comment:
+                {comment}
+                ==============================================================
+                """
+            )
         )
 
 
