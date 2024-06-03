@@ -70,7 +70,7 @@ class ChainDB(ChainMap):
             [isinstance(result, (MutableSequence, MutableSet)) for result in results]
         ):
             results_chain = itertools.chain(*results)
-            # if all reults have the same type, cast into that type
+            # if all results have the same type, cast into that type
             if all([isinstance(result, type(results[0])) for result in results]):
                 return type(results[0])(results_chain)
             else:
