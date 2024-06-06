@@ -315,21 +315,21 @@ def populate_feedstock_attributes(
                                 )
                             )
 
-            # collapse them down
-            logger.debug("collapsing reqs for %s", name)
-            final_cfgs = {}
-            for plat_arch, varyml in zip(plat_arch, variant_yamls):
-                if plat_arch not in final_cfgs:
-                    final_cfgs[plat_arch] = []
-                final_cfgs[plat_arch].append(varyml)
-            for k in final_cfgs:
-                ymls = final_cfgs[k]
-                final_cfgs[k] = _dedupe_meta_yaml(_convert_to_dict(ChainDB(*ymls)))
-            plat_arch = []
-            variant_yamls = []
-            for k, v in final_cfgs.items():
-                plat_arch.append(k)
-                variant_yamls.append(v)
+                # collapse them down
+                logger.debug("collapsing reqs for %s", name)
+                final_cfgs = {}
+                for plat_arch, varyml in zip(plat_arch, variant_yamls):
+                    if plat_arch not in final_cfgs:
+                        final_cfgs[plat_arch] = []
+                    final_cfgs[plat_arch].append(varyml)
+                for k in final_cfgs:
+                    ymls = final_cfgs[k]
+                    final_cfgs[k] = _dedupe_meta_yaml(_convert_to_dict(ChainDB(*ymls)))
+                plat_arch = []
+                variant_yamls = []
+                for k, v in final_cfgs.items():
+                    plat_arch.append(k)
+                    variant_yamls.append(v)
         else:
             logger.debug("doing generic parsing")
             plat_arch = [("win", "64"), ("osx", "64"), ("linux", "64")]
