@@ -250,4 +250,4 @@ class StdlibMigrator(MiniMigrator):
             )
 
             with open(fname, "w") as fp:
-                fp.write("".join(cbc_lines))
+                fp.write("".join(cbc_lines) + "\n")
