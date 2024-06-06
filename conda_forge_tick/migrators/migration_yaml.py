@@ -108,6 +108,9 @@ def merge_migrator_cbc(migrator_yaml: str, conda_build_config_yaml: str):
         # if this is in a key we didn't migrate, add the line (or it is a space)
         elif current_cbc_key not in migrator_keys or line.isspace() or not line:
             outbound_cbc.append(line)
+    if outbound_cbc and outbound_cbc[-1]:
+        # ensure trailing newline
+        outbound_cbc.append("")
     return "\n".join(outbound_cbc)
 
 
