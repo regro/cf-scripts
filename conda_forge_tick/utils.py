@@ -602,6 +602,9 @@ def _parse_meta_yaml_impl(
     from conda_build.metadata import MetaData, parse
     from conda_build.variants import explode_variants
 
+    if logger.getEffectiveLevel() <= logging.DEBUG:
+        log_debug = True
+
     if cbc_path is not None and arch is not None and platform is not None:
         with tempfile.TemporaryDirectory() as tmpdir:
             with open(os.path.join(tmpdir, "meta.yaml"), "w") as fp:
@@ -627,7 +630,9 @@ def _parse_meta_yaml_impl(
                     None,
                     platform=platform,
                     arch=arch,
-                    exclusive_config_file=cbc_path,
+                    variant_config_files=[
+                        cbc_path,
+                    ],
                 )
                 _cbc, _ = conda_build.variants.get_package_combined_spec(
                     tmpdir,
@@ -666,7 +671,10 @@ def _parse_meta_yaml_impl(
                 try:
                     if cfg_as_dict[key].startswith("/"):
                         cfg_as_dict[key] = key
-                except Exception:
+                except Exception as e:
+                    logger.debug(
+                        "key-val not string: %s: %s", key, cfg_as_dict[key], exc_info=e
+                    )
                     pass
 
         cbc = Config(
