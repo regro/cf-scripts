@@ -2,13 +2,7 @@ from datetime import datetime
 from enum import StrEnum
 from typing import Annotated, Any, Literal, Self
 
-from pydantic import (
-    UUID4,
-    BeforeValidator,
-    TypeAdapter,
-    field_validator,
-    model_validator,
-)
+from pydantic import BeforeValidator, TypeAdapter, field_validator, model_validator
 
 from conda_forge_tick.models.common import (
     CondaVersionString,
@@ -17,7 +11,7 @@ from conda_forge_tick.models.common import (
     StrictBaseModel,
     before_validator_ensure_dict,
 )
-from conda_forge_tick.models.pr_json import PullRequestData, PullRequestState
+from conda_forge_tick.models.pr_json import PullRequestDataValid, PullRequestInfoSpecial
 
 
 def remove_azure_error(value: Any) -> str:
@@ -49,17 +43,6 @@ This is just for rolling back the effects of a typo in the aws_c_http0627 migrat
 When this Pydantic model is used in production, serialize and deserialize the entire graph data to remove the error.
 After that, this type can be removed.
 """
-
-
-class PullRequestInfoSpecial(StrictBaseModel):
-    """
-    Used instead of pr_json.PullRequestInfo in the graph data to fake a closed pull request.
-    This is probably not necessary and should be removed.
-    """
-
-    id: UUID4
-    merged_at: Literal["never issued", "fix aarch missing prs"]
-    state: Literal[PullRequestState.CLOSED]
 
 
 class MigratorName(StrEnum):
@@ -202,7 +185,9 @@ class MigrationPullRequestData(StrictBaseModel):
 
 
 class MigrationPullRequest(StrictBaseModel):
-    PR: PullRequestInfoSpecial | PullRequestData | PrJsonLazyJsonReference | None = None
+    PR: (
+        PullRequestDataValid | PullRequestInfoSpecial | PrJsonLazyJsonReference | None
+    ) = None
     """
     GitHub data about the pull request.
     This field may be missing.

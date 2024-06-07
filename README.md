@@ -71,7 +71,131 @@ Sometimes the bot won't be able to generate a migration on its own or the migrat
 
 To get started, you can copy the `recipe/migrations/example.exyaml` example file and modify it. The `migration_ts` is the timestamp of the migration and can be created by copying the result of `import time; print(time.time())` from a python interpreter.
 
-Please see the [CFEP-09 implementation](https://github.com/conda-forge/conda-forge-enhancement-proposals/blob/main/cfep-09.md#implementation-details) information for the different kinds of migrations that are available.
+Please see the [CFEP-09 implementation](https://github.com/conda-forge/conda-forge-enhancement-proposals/blob/main/cfep-09.md#implementation-details) information for the different kinds of migrations that are available. As of writing, `deletion` migrations are not yet implemented. There are additional migration types not in CFEP-09, but defined directly in `conda-smithy`. See the `__migration.operation` field and the [source code](https://github.com/conda-forge/conda-smithy/blob/main/conda_smithy/variant_algebra.py) in `conda-smithy` for more information.
+
+Here is full example migration file with the various possible keys and their meanings:
+
+```yaml
+# The timestamp of when the migration was made
+# Can be obtained by copying the output of
+# python -c "import time; print(f'{time.time():.0f}')"
+migrator_ts: 1634025600
+
+# The __migrator key is used to determine the type of migration, special behavior, etc.
+__migrator:
+  # The kind of of migrator. Only version is supported at the moment.
+  kind: version
+
+  # The operation key forces the migrator to do specific operations.
+  # This key is mutually exclusive with the `kind` key.
+  operation: key_add  # add the keys to the pinnings
+  operation: key_remove  # remove the keys from the pinnings
+
+  # The migration number denotes specific runs of the migration, like a
+  # package build number. Changing it will cause the migration to start over.
+  # Only change the migration_number if the bot messes up,
+  migration_number: 1
+
+  # `build_number` determines the increment to the build number when the
+  # migration runs.
+  # Change this to zero if the new pin only adds builds to the feedstock
+  # and doesn't rebuild any existing packages.
+  bump_number: 1
+
+  # If `paused` is set to true, the bot will not run the migration. This key is
+  # useful if we do not want to delete the migration file from the pinnings repo,
+  # but we do not want to run the migration.
+  paused: false
+
+  # If a migration is marked as longterm, the status page will filter the migration
+  # information up to the top. This is useful for migrations that will take a long
+  # time (e.g., python) and so merit special attention.
+  longterm: false
+
+  # If `automerge` is set to true, the bot will automatically merge the PRs that pass.
+  # This can be used in conjunction with the solver to checks to fully automate migrations.
+  automerge: false
+
+  # Set `exclude` to a list of feedstocks to exclude from the migration.
+  exclude:
+    - feedstock1
+    - feedstock2
+
+  # If `exclude_pinned_pkgs` is set to true, the bot will exclude feedstocks that
+  # make the packages whose pins are being moved (i.e., the packages and versions listed below).
+  # Usually this behavior is the correct default.
+  exclude_pinned_pkgs: true
+
+  # If `include_noarch` is set to true, the bot will include noarch feedstocks in the migration.
+  # The bot will skip noarch feedstocks by default.
+  include_noarch: false
+
+  # The pr_limit controls how many PRs that bot makes in a single run.
+  # Typical values range from 5 (small/slow) to 30 (large/fast). If not given,
+  # the bot will scale this limit automatically to make new migrations more responsive
+  # and to ensure that migrations start slowly to prevent the negative impacts
+  # of buggy migrations.
+  pr_limit: 5
+
+  # If `check_solvable` is set to true, the bot will check if the migrated feedstock
+  # environments can be solved by the solver. If they cannot, the bot will not make a PR.
+  # This feature is useful for migrations that use automerge and to prevent the bot
+  # from issuing PRs that will fail to build.
+  check_solvable: true
+
+  # The max_solver_attempts controls how many times the bot will try to issue a PR (and
+  # fail due to unsolvable environments) before it deprioritizes the migration of the feedstock.
+  # Once all feedstocks without failed solver attempts have been tried, the bot will randomly
+  # retry the failed feedstocks.
+  max_solver_attempts: 3
+
+  # The bot will forcibly make PRs for feedstocks that have failed the solver attempts after
+  # this many tries.
+  force_pr_after_solver_attempts: 100
+
+  # If `override_cbc_keys` is set to a list, the bot will use this list of packages to
+  # determine which feedstocks to migrate as opposed to the changed pins listed below.
+  # You almost never need this option.
+  override_cbc_keys:
+    - package1
+    - package2
+
+  # If this key is set to dict, the conda-forge.yml will be modified by the migration
+  # with the contents of this dict. This can be used to add keys to the conda-forge.yml
+  # or to change them. You can replace subkeys by using a dot in the key name (e.g., `a.b.c`
+  # will replace the value of `c`, but leave `a` and `b` untouched).
+  conda_forge_yml_patches:
+    blah.foo: false
+    bar: 1
+
+  # If this key is set to dict mapping a feedstock to a list of feedstocks, the bot will
+  # ignore predecessors in the list for the feedstock in the key when determining if the
+  # a feedstock is ready to be migrated. This can be used to force a specific feedstock to be
+  # migrated even if not all of its predecessors have been migrated.
+  ignored_deps_per_node:
+    feedstock1:
+      - feedstock2
+      - feedstock3
+
+  # The `ordering` field is used to determine where to insert keys for `key_add` migrations
+  # or which keys to keep for version migrations where the versions are strings and so have no
+  # natural version ordering. Each changed pin can be mapped to a list
+  # that determines the ordering. The highest (e.g., item with highest list index)
+  # version is kept for version migrations.
+  oridering:
+    pin1:
+      - value1
+      - value2
+    pin2:
+      - value3
+      - value4
+
+# The names of any packages/pins you wish to migrate go here. Convert any
+# dashes to underscores. You can list more than one item here if things are
+# coupled or if you need to change items in zip_keys via key_add or key_remove.
+boost_cpp:
+  - 1.71    # new version to build against
+```
 
 #### Custom Migration Classes
 

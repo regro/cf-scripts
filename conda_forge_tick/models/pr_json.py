@@ -1,7 +1,8 @@
 from datetime import datetime
 from enum import StrEnum
+from typing import Literal
 
-from pydantic import AnyHttpUrl, Field
+from pydantic import UUID4, AnyHttpUrl, Field, TypeAdapter
 from pydantic_extra_types.color import Color
 
 from conda_forge_tick.models.common import RFC2822Date, StrictBaseModel
@@ -80,7 +81,7 @@ class GithubPullRequestBase(StrictBaseModel):
     repo: GithubRepository
 
 
-class PullRequestData(StrictBaseModel):
+class PullRequestDataValid(StrictBaseModel):
     """
     Information about a pull request, as retrieved from the GitHub API.
     Refer to git_utils.PR_KEYS_TO_KEEP for the keys that are kept in the PR object.
@@ -139,3 +140,17 @@ class PullRequestData(StrictBaseModel):
     """
     head: PullRequestInfoHead | None = None
     base: GithubPullRequestBase | None = None
+
+
+class PullRequestInfoSpecial(StrictBaseModel):
+    """
+    Used instead of pr_json.PullRequestInfo in the graph data to fake a closed pull request.
+    This is probably not necessary and should be removed.
+    """
+
+    id: UUID4
+    merged_at: Literal["never issued", "fix aarch missing prs"]
+    state: Literal[PullRequestState.CLOSED]
+
+
+PullRequestData = TypeAdapter(PullRequestDataValid | PullRequestInfoSpecial)

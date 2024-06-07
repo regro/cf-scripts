@@ -316,7 +316,7 @@ def populate_feedstock_attributes(
                             )
 
                 # collapse them down
-                logger.debug("collapsing reqs for config: %s", cbc_path)
+                logger.debug("collapsing reqs for %s", name)
                 final_cfgs = {}
                 for plat_arch, varyml in zip(plat_arch, variant_yamls):
                     if plat_arch not in final_cfgs:
