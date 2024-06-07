@@ -56,12 +56,10 @@ NODE_ATTRS_BAD_FEEDSTOCKS = {
     "path.py",  # build.noarch: true in meta.yaml, which should probably be build.noarch: python
     "parallel-hashmap",  # build.noarch: true (should be generic) but also probably broken on Windows
     "ipython_memory_usage",  # bot.inspect should be bot.inspection in conda-forge.yml
-    "rich-argparse",  # grayskull-update should be update-grayskull in conda-forge.yml
     "htbuilder",  # bot.inspect should be bot.inspection in conda-forge.yml
     "stats_arrays",  # "grayskull-update" should be "update-grayskull" in conda-forge.yml
     "textual-fastdatatable",  # bot.inspect should be bot.inspection in conda-forge.yml
     "sqlalchemy-drill",  # "grayskull-update" should be "update-grayskull" in conda-forge.yml
-    "sphinx-sitemap",  # typo in bot.inspection (conda-forge.yml)
     "alibabacloud-openapi-util",  # "grayskull-update" should be "update-grayskull" in conda-forge.yml
     "st-annotated-text",  # bot.inspect should be bot.inspection in conda-forge.yml
     "dnspython",  # "grayskull-update" should be "update-grayskull" in conda-forge.yml
@@ -77,7 +75,6 @@ NODE_ATTRS_BAD_FEEDSTOCKS = {
     "sense2vec",  # `conda-forge.yml`.channels is unexpected
     "rpaframework",  # `conda-forge.yml`.channel_priority has invalid value "False"
     # see https://github.com/conda-forge/conda-smithy/issues/1863 for the top-level build platform fields
-    "cmdstan",  # `conda-forge.yml`.linux_aarch64 and linux_ppc64le should be removed (see above)
     "uarray",  # `conda-forge.yml`.linux_ppc64le and linux_aarch64 should be removed (see above)
     "libtk",  # `conda-forge.yml`.linux_ppc64le and linux_aarch64 should be removed (see above)
     "libsimpleitk",  # `conda-forge.yml`.linux_ppc64le and linux_aarch64 should be removed (see above)
