@@ -8,10 +8,14 @@ from conda_forge_tick.executors import executor
 
 
 def _square_with_lock(x):
-    from conda_forge_tick.executors import DRLOCK, PRLOCK, TRLOCK
+    from conda_forge_tick.executors import (
+        GIT_LOCK_DASK,
+        GIT_LOCK_PROCESS,
+        GIT_LOCK_THREAD,
+    )
 
-    with TRLOCK, PRLOCK, DRLOCK:
-        with TRLOCK, PRLOCK, DRLOCK:
+    with GIT_LOCK_THREAD, GIT_LOCK_PROCESS, GIT_LOCK_DASK:
+        with GIT_LOCK_THREAD, GIT_LOCK_PROCESS, GIT_LOCK_DASK:
             time.sleep(0.01)
             return x * x
 
