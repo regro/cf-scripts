@@ -511,7 +511,7 @@ def create_migration_yaml_creator(
             config=Config(**CB_CONFIG),
         )
 
-        fname = "share/conda-forge/migrations/packages_to_migrate_together.yaml"
+        fname = "share/conda-forge/migration_support/packages_to_migrate_together.yaml"
         if os.path.exists(fname):
             with open(fname) as f:
                 packages_to_migrate_together = yaml_safe_load(f)
