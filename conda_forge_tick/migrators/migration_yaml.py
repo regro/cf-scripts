@@ -6,7 +6,7 @@ import re
 import time
 import typing
 from collections import defaultdict
-from typing import Any, MutableSet, Optional, Sequence, Set
+from typing import Any, List, MutableSet, Optional, Sequence, Set
 
 import networkx as nx
 
@@ -444,11 +444,15 @@ class MigrationYamlCreator(Migrator):
         pr_limit: int = 1,
         bump_number: int = 1,
         effective_graph: nx.DiGraph = None,
+        pinnings: Optional[List[int]] = None,
         **kwargs: Any,
     ):
+        if pinnings is None:
+            pinnings = [package_name]
+
         if pin_impact is None:
             if full_graph is not None:
-                pin_impact = len(create_rebuild_graph(full_graph, (package_name,)))
+                pin_impact = len(create_rebuild_graph(full_graph, tuple(pinnings)))
                 full_graph = None
             else:
                 pin_impact = -1
@@ -470,6 +474,7 @@ class MigrationYamlCreator(Migrator):
                 "pin_impact": pin_impact,
                 "full_graph": full_graph,
                 "effective_graph": effective_graph,
+                "pinnings": pinnings,
             }
             self._init_kwargs.update(copy.deepcopy(kwargs))
 
@@ -486,6 +491,7 @@ class MigrationYamlCreator(Migrator):
         self.bump_number = bump_number
         self.name = package_name + " pinning"
         self.pin_impact = pin_impact
+        self.pinnings = pinnings
 
         self._reset_effective_graph()
 
@@ -507,9 +513,11 @@ class MigrationYamlCreator(Migrator):
                 "migration_number": 1,
                 "commit_message": f"Rebuild for {self.package_name} {self.new_pin_version}",
             },
-            self.package_name: [self.new_pin_version],
             "migrator_ts": float(time.time()),
         }
+        for pkg in self.pinnings:
+            migration_yaml_dict[pkg] = [self.new_pin_version]
+
         with pushd(os.path.join(recipe_dir, "migrations")):
             mig_fname = "{}{}.yaml".format(
                 self.package_name,
