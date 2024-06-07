@@ -9,6 +9,10 @@ on:
   schedule:
     - cron: "10 8 * * *" # every hour
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 env:
   PY_COLORS: "1"
 
