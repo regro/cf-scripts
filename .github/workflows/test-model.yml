@@ -1,6 +1,10 @@
 name: test-model
 
 on:
+  push:
+    branches:
+      - master
+  pull_request: null
   workflow_dispatch:
   schedule:
     - cron: "10 8 * * *" # every hour
@@ -9,8 +13,8 @@ env:
   PY_COLORS: "1"
 
 jobs:
-  tests:
-    name: tests
+  test-model:
+    name: test-model
     runs-on: "ubuntu-latest"
     defaults:
       run:
