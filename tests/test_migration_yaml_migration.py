@@ -108,10 +108,12 @@ build:
 BOOST_YAML = """\
 __migrator:
   build_number: 1
-  commit_message: Rebuild for boost 1.99
+  commit_message: Rebuild for libboost_devel 1.99
   kind: version
   migration_number: 1
-boost:
+libboost_devel:
+- '1.99'
+libboost_python_devel:
 - '1.99'
 migrator_ts: 12345.2
 """
@@ -128,12 +130,21 @@ def test_migration_yaml_migration(tmock, in_out_yaml, caplog, tmpdir):
         logger="conda_forge_tick.migrators.migration_yaml",
     )
     tmock.return_value = 12345.2
-    pname = "boost"
+    pname = "libboost_devel"
     pin_ver = "1.99.0"
     curr_pin = "1.70.0"
     pin_spec = "x.x"
 
-    MYM = MigrationYamlCreator(pname, pin_ver, curr_pin, pin_spec, "hi", G, G)
+    MYM = MigrationYamlCreator(
+        pname,
+        pin_ver,
+        curr_pin,
+        pin_spec,
+        "hi",
+        G,
+        G,
+        pinnings=["libboost_devel", "libboost_python_devel"],
+    )
 
     with pushd(tmpdir):
         eval_cmd(["git", "init", "."])
@@ -155,7 +166,7 @@ def test_migration_yaml_migration(tmock, in_out_yaml, caplog, tmpdir):
         tmpdir=tmpdir,
     )
 
-    boost_file = os.path.join(tmpdir, "migrations", "boost199.yaml")
+    boost_file = os.path.join(tmpdir, "migrations", "libboost_devel199.yaml")
     assert os.path.exists(boost_file)
     with open(boost_file) as fp:
         bf_out = fp.read()

@@ -511,10 +511,28 @@ def create_migration_yaml_creator(
             config=Config(**CB_CONFIG),
         )
 
+        fname = "share/conda-forge/migrations/packages_to_migrate_together.yaml"
+        if os.path.exists(fname):
+            with open(fname) as f:
+                packages_to_migrate_together = yaml_safe_load(f)
+        else:
+            packages_to_migrate_together = {}
+
+    packages_to_migrate_together_mapping = {}
+
+    for top, pkgs in packages_to_migrate_together.items():
+        for pkg in pkgs:
+            packages_to_migrate_together_mapping[pkg] = top
+
     pinning_names = sorted(list(pinnings.keys()))
 
     feedstocks_to_be_repinned = []
     for pinning_name in pinning_names:
+        if (
+            pinning_name in packages_to_migrate_together_mapping
+            and pinning_name not in packages_to_migrate_together
+        ):
+            continue
         package_pin_list = pinnings[pinning_name]
         if pin_to_debug is not None and pinning_name != pin_to_debug:
             continue
@@ -636,8 +654,9 @@ def create_migration_yaml_creator(
                             "        migrator:\n"
                             "            curr version: %s\n"
                             "            curr pin: %s\n"
-                            "            pin_spec: %s"
-                            % (current_version, current_pin, pin_spec),
+                            "            pin_spec: %s\n"
+                            "            pinnings: %s"
+                            % (current_version, current_pin, pin_spec, pinnings),
                             flush=True,
                         )
                         migrators.append(
@@ -648,6 +667,9 @@ def create_migration_yaml_creator(
                                 pin_spec,
                                 fs_name,
                                 cfp_gx,
+                                pinnings=packages_to_migrate_together.get(
+                                    pinning_name, [pinning_name]
+                                ),
                                 full_graph=gx,
                             ),
                         )
