@@ -30,8 +30,8 @@ from conda_forge_tick.feedstock_parser import BOOTSTRAP_MAPPINGS
 from conda_forge_tick.git_utils import (
     GIT_CLONE_DIR,
     comment_on_pr,
+    get_github_api_requests_left,
     get_repo,
-    github_backend,
     is_github_api_limit_reached,
     push_repo,
 )
@@ -194,7 +194,13 @@ def run(
 
     # TODO: run this in parallel
     feedstock_dir, repo = get_repo(
-        fctx=feedstock_ctx, branch=branch_name, base_branch=base_branch
+        fctx=feedstock_ctx,
+        branch=branch_name,
+        feedstock=feedstock_ctx.feedstock_name,
+        protocol=protocol,
+        pull_request=pull_request,
+        fork=fork,
+        base_branch=base_branch,
     )
     if not feedstock_dir or not repo:
         logger.critical(
@@ -611,8 +617,7 @@ def _run_migrator_on_feedstock_branch(
                 fctx.feedstock_name,
             )
 
-            if is_github_api_limit_reached():
-                logger.warning("GitHub API error", exc_info=e)
+            if is_github_api_limit_reached(e):
                 break_loop = True
 
     except VersionMigrationError as e:
@@ -687,8 +692,7 @@ def _run_migrator_on_feedstock_branch(
 
 def _is_migrator_done(_mg_start, good_prs, time_per, pr_limit):
     curr_time = time.time()
-    backend = github_backend()
-    api_req = backend.get_api_requests_left()
+    api_req = get_github_api_requests_left()
 
     if curr_time - START_TIME > TIMEOUT:
         logger.info(
@@ -1120,5 +1124,5 @@ def main(ctx: CliContext) -> None:
             #     ],
             # )
 
-    logger.info("API Calls Remaining: %d", github_backend().get_api_requests_left())
+    logger.info("API Calls Remaining: %d", get_github_api_requests_left())
     logger.info("Done")
