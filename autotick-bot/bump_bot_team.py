@@ -17,7 +17,7 @@ issue = None
 tried = 0
 for _issue in repo.get_issues():
     tried += 1
-    if today in issue.title == issue_title:
+    if issue.title == issue_title:
         issue = _issue
         break
     if tried > max_try:
