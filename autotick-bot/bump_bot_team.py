@@ -1,27 +1,56 @@
 import os
 import sys
+import textwrap
+from datetime import datetime
 
 import github
 
-gh = github.Github(os.environ["BOT_TOKEN"])
+today = datetime.today().strftime("%Y-%m-%d")
+issue_title = f"[{today}] failed job {os.environ['ACTION_NAME']}"
 
+gh = github.Github(os.environ["BOT_TOKEN"])
 repo = gh.get_repo("regro/cf-scripts")
 
-repo.create_issue(
-    title="failed job %s" % os.environ["ACTION_NAME"],
-    body="""
-Hey @regro/auto-tick-triage!
+# find any issues from today, if any
+max_try = 50
+issue = None
+tried = 0
+for _issue in repo.get_issues():
+    tried += 1
+    if issue.title == issue_title:
+        issue = _issue
+        break
+    if tried > max_try:
+        break
 
-It appears that the bot `%s` job failed! :(
+if issue is None:
+    issue = repo.create_issue(
+        title=issue_title,
+        body=textwrap.dedent(
+            """\
+            Hey @regro/auto-tick-triage!
 
-I hope it is not too much work to fix but we all know that is never the case.
+            It appears that the bot `%s` job failed! :(
 
-Have a great day!
+            I hope it is not too much work to fix but we all know that is never the case.
 
-job url: %s
+            Have a great day!
+            """
+        )
+        % os.environ["ACTION_NAME"],
+    )
 
-"""
-    % (os.environ["ACTION_NAME"], os.environ["ACTION_URL"]),
+issue.create_comment(
+    textwrap.dedent(
+        """\
+        Hey @regro/auto-tick-triage!
+
+        There is (possibly another) failure of this bot job! :(
+
+        Check the logs for more details: %s
+        """
+        % os.environ["ACTION_URL"]
+    )
 )
 
 sys.exit(1)
