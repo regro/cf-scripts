@@ -47,9 +47,7 @@ issue.create_comment(
 
         There is (possibly another) failure of this bot job! :(
 
-        Check the logs for more details:
-
-          %s
+        Check the logs for more details: %s
         """
         % os.environ["ACTION_URL"]
     )
