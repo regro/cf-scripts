@@ -50,7 +50,6 @@ issue.create_comment(
         Check the logs for more details:
 
           %s
-
         """
         % os.environ["ACTION_URL"]
     )
