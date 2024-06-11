@@ -1,10 +1,12 @@
 """Utilities for managing github repos"""
 
+import contextlib
 import copy
 import enum
 import logging
 import math
 import subprocess
+import sys
 import textwrap
 import threading
 import time
@@ -43,7 +45,7 @@ from .models.pr_json import (
     PullRequestState,
 )
 from .os_utils import pushd
-from .utils import get_bot_run_url, run_command_hiding_token
+from .utils import get_bot_run_url, replace_tokens, run_command_hiding_token
 
 logger = logging.getLogger(__name__)
 
@@ -158,24 +160,25 @@ class GitCli:
     If this does impact performance too much, we can consider a per-repository locking strategy.
     """
 
-    @staticmethod
+    def __init__(self):
+        self.__hidden_tokens: list[str] = []
+
     @lock_git_operation()
     def _run_git_command(
+        self,
         cmd: list[str | Path],
         working_directory: Path | None = None,
         check_error: bool = True,
-        capture_text: bool = False,
     ) -> subprocess.CompletedProcess:
         """
         Run a git command. stdout is only printed if the command fails. stderr is always printed.
         If outputs are captured, they are never printed.
+        stdout is always captured, we capture stderr only if tokens are hidden.
 
         :param cmd: The command to run, as a list of strings.
         :param working_directory: The directory to run the command in. If None, the command will be run in the current
         working directory.
         :param check_error: If True, raise a GitCliError if the git command fails.
-        :param capture_text: If True, capture the output of the git command as text. The output will be in the
-        returned result object.
         :return: The result of the git command.
         :raises GitCliError: If the git command fails and check_error is True.
         :raises FileNotFoundError: If the working directory does not exist.
@@ -184,22 +187,45 @@ class GitCli:
 
         logger.debug(f"Running git command: {git_command}")
 
-        stdout_args = {"stdout": subprocess.PIPE} if not capture_text else {}
-        capture_args = {"capture_output": True, "text": True} if capture_text else {}
+        # we only need to capture stderr if we want to hide tokens
+        stderr_args = {"stderr": subprocess.PIPE} if self.__hidden_tokens else {}
 
         try:
-            return subprocess.run(
+            p = subprocess.run(
                 git_command,
                 check=check_error,
                 cwd=working_directory,
-                **stdout_args,
-                **capture_args,
+                stdout=subprocess.PIPE,
+                **stderr_args,
+                text=True,
             )
         except subprocess.CalledProcessError as e:
+            e.stdout = replace_tokens(e.stdout, self.__hidden_tokens)
+            e.stderr = replace_tokens(e.stderr, self.__hidden_tokens)
             logger.info(
-                f"Command {git_command} failed. stdout:\n{e.stdout}\nend of stdout"
+                f"Command '{' '.join(git_command)}' failed.\nstdout:\n{e.stdout}\nend of stdout"
             )
+            if self.__hidden_tokens:
+                logger.info(f"stderr:\n{e.stderr}\nend of stderr")
             raise GitCliError(f"Error running git command: {repr(e)}") from e
+
+        p.stdout = replace_tokens(p.stdout, self.__hidden_tokens)
+        p.stderr = replace_tokens(p.stderr, self.__hidden_tokens)
+
+        if self.__hidden_tokens:
+            # we suppressed stderr, so we need to print it here
+            print(p.stderr, file=sys.stderr, end="")
+
+        return p
+
+    @contextlib.contextmanager
+    def hide_token(self, token: str):
+        """
+        Within this context manager, the given token will be hidden in the logs.
+        """
+        self.__hidden_tokens.append(token)
+        yield
+        self.__hidden_tokens.pop()
 
     @lock_git_operation()
     def add(self, git_dir: Path, *pathspec: Path, all_: bool = False):
@@ -246,7 +272,7 @@ class GitCli:
         :return: The commit hash of HEAD.
         :raises GitCliError: If the git command fails.
         """
-        ret = self._run_git_command(["rev-parse", "HEAD"], git_dir, capture_text=True)
+        ret = self._run_git_command(["rev-parse", "HEAD"], git_dir)
 
         return ret.stdout.strip()
 
@@ -364,10 +390,7 @@ class GitCli:
         :raises FileNotFoundError: If git_dir does not exist
         """
         track_flag = ["--track"] if track else []
-        self._run_git_command(
-            ["checkout", "--quiet"] + track_flag + [branch],
-            git_dir,
-        )
+        self._run_git_command(["checkout", "--quiet"] + track_flag + [branch], git_dir)
 
     @lock_git_operation()
     def checkout_new_branch(
@@ -400,9 +423,7 @@ class GitCli:
 
         # --relative ensures that we do not assemble invalid paths below if git_dir is a subdirectory
         ret = self._run_git_command(
-            ["diff", "--name-only", "--relative", commit_a, commit_b],
-            git_dir,
-            capture_text=True,
+            ["diff", "--name-only", "--relative", commit_a, commit_b], git_dir
         )
 
         return (git_dir / line for line in ret.stdout.splitlines())

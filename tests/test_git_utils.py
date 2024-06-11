@@ -67,6 +67,160 @@ def test_git_cli_run_git_command_error(subprocess_run_mock: MagicMock):
         cli._run_git_command(["GIT_COMMAND"], working_directory)
 
 
+@pytest.mark.parametrize("token_hidden", [True, False])
+@pytest.mark.parametrize("check_error", [True, False])
+@mock.patch("subprocess.run")
+def test_git_cli_run_git_command_mock(
+    subprocess_run_mock: MagicMock, check_error: bool, token_hidden: bool
+):
+    """
+    This test checks if all parameters are passed correctly to the subprocess.run function.
+    """
+    cli = GitCli()
+
+    working_directory = Path("TEST_DIR")
+
+    def run_command():
+        cli._run_git_command(
+            ["COMMAND", "ARG1", "ARG2"], working_directory, check_error
+        )
+
+    if token_hidden:
+        with cli.hide_token("TOKEN"):
+            run_command()
+    else:
+        run_command()
+
+    stderr_args = {"stderr": subprocess.PIPE} if token_hidden else {}
+
+    subprocess_run_mock.assert_called_once_with(
+        ["git", "COMMAND", "ARG1", "ARG2"],
+        check=check_error,
+        cwd=working_directory,
+        stdout=subprocess.PIPE,
+        **stderr_args,
+        text=True,
+    )
+
+
+@pytest.mark.parametrize("token_hidden", [True, False])
+@pytest.mark.parametrize("check_error", [True, False])
+def test_git_cli_run_git_command_stdout_captured(
+    capfd, check_error: bool, token_hidden: bool
+):
+    """
+    Verify that the stdout of the git command is captured and not printed to the console.
+    """
+    cli = GitCli()
+
+    def run_command() -> subprocess.CompletedProcess:
+        return cli._run_git_command(["version"], check_error=check_error)
+
+    if token_hidden:
+        with cli.hide_token("TOKEN"):
+            p = run_command()
+    else:
+        p = run_command()
+
+    captured = capfd.readouterr()
+
+    assert captured.out == ""
+    assert p.stdout.startswith("git version")
+
+
+def test_git_cli_run_git_command_stderr_not_captured(capfd):
+    """
+    Verify that the stderr of the git command is not captured if no token is hidden.
+    """
+    cli = GitCli()
+
+    p = cli._run_git_command(["non-existing-command"], check_error=False)
+
+    captured = capfd.readouterr()
+
+    assert captured.out == ""
+    assert "not a git command" in captured.err
+    assert p.stderr is None
+
+
+def test_git_cli_hide_token_stdout_no_error(capfd):
+    cli = GitCli()
+
+    with cli.hide_token("git"):
+        p = cli._run_git_command(["help"])
+
+    captured = capfd.readouterr()
+
+    assert "git" not in captured.out
+    assert "git" not in captured.err
+    assert "git" not in p.stdout
+    assert "git" not in p.stderr
+
+    assert p.stdout.count("***") > 5
+
+
+def test_git_cli_hide_token_stderr_no_check_error(capfd):
+    cli = GitCli()
+
+    with cli.hide_token("command"):
+        p = cli._run_git_command(["non-existing-command"], check_error=False)
+
+    captured = capfd.readouterr()
+
+    assert "command" not in captured.out
+    assert "command" not in captured.err
+    assert "command" not in p.stdout
+    assert "command" not in p.stderr
+
+    assert p.stderr.count("*******") >= 2
+    assert captured.err.count("*******") >= 2
+
+
+def test_git_cli_hide_token_run_git_command_check_error(capfd, caplog):
+    cli = GitCli()
+
+    caplog.set_level(logging.INFO)
+
+    with cli.hide_token("command"):
+        with pytest.raises(GitCliError):
+            cli._run_git_command(["non-existing-command"])
+
+    print(caplog.text)
+    assert "Command 'git non-existing-command' failed." in caplog.text
+    assert (
+        caplog.text.count("command") == 1
+    )  # only the command itself is printed directly by us
+
+    assert "'non-existing-*******' is not a git *******" in caplog.text
+
+
+def test_hide_token_multiple(capfd, caplog):
+    cli = GitCli()
+
+    caplog.set_level(logging.DEBUG)
+
+    with cli.hide_token("clone"):
+        with cli.hide_token("commit"):
+            p = cli._run_git_command(["help"])
+
+    captured = capfd.readouterr()
+
+    assert "clone" not in captured.out
+    assert "clone" not in captured.err
+    assert "clone" not in p.stdout
+    assert "clone" not in p.stderr
+
+    assert "commit" not in captured.out
+    assert "commit" not in captured.err
+    assert "commit" not in p.stdout
+    assert "commit" not in p.stderr
+
+    assert "clone" not in caplog.text
+    assert "commit" not in caplog.text
+
+    assert p.stdout.count("*****") >= 2
+
+
 def test_git_cli_outside_repo():
     with tempfile.TemporaryDirectory() as tmpdir:
         dir_path = Path(tmpdir)
@@ -157,9 +311,7 @@ def test_git_cli_add_success(n_paths: int, all_: bool):
         cli = GitCli()
         cli.add(git_dir, *pathspec, all_=all_)
 
-        tracked_files = cli._run_git_command(
-            ["ls-files", "-s"], git_dir, capture_text=True
-        ).stdout
+        tracked_files = cli._run_git_command(["ls-files", "-s"], git_dir).stdout
 
         for path in pathspec:
             assert path.name in tracked_files
@@ -219,7 +371,7 @@ def test_git_cli_commit(all_: bool, empty: bool, allow_empty: bool):
 
         cli.commit(git_dir, "Add Test", all_, allow_empty)
 
-        git_log = cli._run_git_command(["log"], git_dir, capture_text=True).stdout
+        git_log = cli._run_git_command(["log"], git_dir).stdout
 
         assert "Add Test" in git_log
 
@@ -474,9 +626,7 @@ def test_git_cli_push_to_url_local_repository():
 
         local_repo = dir_path / "local_repo"
         local_repo.mkdir()
-        cli._run_git_command(
-            ["clone", source_repo.resolve(), local_repo],
-        )
+        cli._run_git_command(["clone", source_repo.resolve(), local_repo])
 
         # remove all references to the original repo
         cli._run_git_command(

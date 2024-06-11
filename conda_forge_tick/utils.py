@@ -14,7 +14,7 @@ import traceback
 import typing
 import warnings
 from collections import defaultdict
-from typing import Any, Callable, Dict, Iterable, Optional, Set, Tuple, cast
+from typing import Any, Callable, Dict, Iterable, Optional, Set, Tuple, cast, overload
 
 import jinja2
 import jinja2.sandbox
@@ -1298,12 +1298,38 @@ def change_log_level(logger, new_level):
         logger.setLevel(saved_logger_level)
 
 
+@overload
+def replace_tokens(s: str, tokens: Iterable[str]) -> str: ...
+
+
+@overload
+def replace_tokens(s: None, tokens: Iterable[str]) -> None: ...
+
+
+def replace_tokens(s: str | None, tokens: Iterable[str]) -> str | None:
+    """
+    Replace tokens in a string with asterisks of the same length.
+
+    None values are passed through.
+
+    :param s: The string to replace tokens in.
+    :param tokens: The tokens to replace.
+
+    :return: The string with the tokens replaced.
+    """
+    if not s:
+        return s
+    for token in tokens:
+        s = s.replace(token, "*" * len(token))
+    return s
+
+
 def print_subprocess_output_strip_token(
-    completed_process: subprocess.CompletedProcess, token: str
+    completed_process: subprocess.CompletedProcess, *tokens: str
 ) -> None:
     """
     Use this function to print the outputs (stdout and stderr) of a subprocess.CompletedProcess object
-    that may contain sensitive information. The token will be replaced with a string
+    that may contain sensitive information. The token or tokens will be replaced with a string
     of asterisks of the same length.
 
     This function assumes that you have called subprocess.run() with the arguments text=True, stdout=subprocess.PIPE,
@@ -1315,7 +1341,7 @@ def print_subprocess_output_strip_token(
 
     :param completed_process: The subprocess.CompletedProcess object to print the outputs of. You have probably
         obtained this object by calling subprocess.run().
-    :param token: The token to replace with asterisks.
+    :param tokens: The token or tokens to replace with asterisks.
 
     :raises ValueError: If the completed_process object does not contain str in stdout or stderr.
     """
@@ -1331,7 +1357,7 @@ def print_subprocess_output_strip_token(
                 "text=True."
             )
 
-        captured = captured.replace(token, "*" * len(token))
+        replace_tokens(captured, tokens)
         print(captured, file=out_dev, end="")
         out_dev.flush()
 
