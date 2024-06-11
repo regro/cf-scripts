@@ -127,6 +127,17 @@ def get_default_container_name():
     return cname
 
 
+class ContainerRuntimeError(RuntimeError):
+    """An error raised when running a container fails."""
+
+    def __init__(self, *, error, name, cmd, returncode, traceback=None):
+        self.name = name
+        self.cmd = cmd
+        self.returncode = returncode
+        self.traceback = traceback
+        super().__init__(error)
+
+
 def get_default_container_run_args(
     tmpfs_size_mb: int = DEFAULT_CONTAINER_TMPFS_SIZE_MB,
 ):
@@ -230,26 +241,40 @@ def run_container_task(
     )
     # we handle this ourselves to customize the error message
     if res.returncode != 0:
-        raise RuntimeError(
-            f"Error running {name} in container - return code {res.returncode}:"
+        raise ContainerRuntimeError(
+            error=f"Error running {name} in container - return code {res.returncode}:"
             f"\ncmd: {pprint.pformat(cmd)}"
-            f"\noutput: {pprint.pformat(res.stdout)}"
+            f"\noutput: {pprint.pformat(res.stdout)}",
+            name=name,
+            cmd=pprint.pformat(cmd),
+            returncode=res.returncode,
         )
 
     try:
         ret = json_loads(res.stdout)
     except json.JSONDecodeError:
-        raise RuntimeError(
-            f"Error running {name} in container - JSON could not parse stdout:"
+        raise ContainerRuntimeError(
+            error=f"Error running {name} in container - JSON could not parse stdout:"
             f"\ncmd: {pprint.pformat(cmd)}"
-            f"\noutput: {pprint.pformat(res.stdout)}"
+            f"\noutput: {pprint.pformat(res.stdout)}",
+            name=name,
+            cmd=pprint.pformat(cmd),
+            returncode=res.returncode,
         )
 
     if "error" in ret:
-        raise RuntimeError(
-            f"Error running {name} in container - error {ret['error']} raised:"
-            f"\ncmd: {pprint.pformat(cmd)}"
-            f"\nstdout: {pprint.pformat(ret)}"
+        ret_str = (
+            ret["error"]
+            .split("(", maxsplit=1)[1]
+            .rsplit(")", maxsplit=1)[0]
+            .decode("unicode_escape")
+        )
+        raise ContainerRuntimeError(
+            error=f"Error running {name} in container - error {ret['error'].split('(')[0]} raised:\n{ret_str}",
+            name=name,
+            cmd=pprint.pformat(cmd),
+            returncode=res.returncode,
+            traceback=ret["traceback"].decode("unicode_escape"),
         )
 
     return ret["data"]
