@@ -598,15 +598,6 @@ def test_git_platform_backend_get_remote_url_https():
     assert url == f"https://github.com/{owner}/{repo}.git"
 
 
-def test_git_platform_backend_get_remote_url_ssh():
-    owner = "OWNER"
-    repo = "REPO"
-
-    url = GitPlatformBackend.get_remote_url(owner, repo, GitConnectionMode.SSH)
-
-    assert url == f"git@github.com:{owner}/{repo}.git"
-
-
 def test_github_backend_from_token():
     token = "TOKEN"
 

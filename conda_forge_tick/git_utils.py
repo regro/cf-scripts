@@ -108,7 +108,11 @@ class Bound(float, enum.Enum):
 
 
 class GitConnectionMode(enum.StrEnum):
-    SSH = "ssh"
+    """
+    We don't need anything else than HTTPS for now, but this would be the place to
+    add more connection modes (e.g. SSH).
+    """
+
     HTTPS = "https"
 
 
@@ -419,8 +423,6 @@ class GitPlatformBackend(ABC):
         match connection_mode:
             case GitConnectionMode.HTTPS:
                 return f"https://github.com/{owner}/{repo_name}.git"
-            case GitConnectionMode.SSH:
-                return f"git@github.com:{owner}/{repo_name}.git"
             case _:
                 raise ValueError(f"Unsupported connection mode: {connection_mode}")
 
