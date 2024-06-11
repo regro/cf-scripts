@@ -553,34 +553,11 @@ class IncrementAlphaRawURL(BaseRawURL):
 
 class Github(VersionFromFeed):
     name = "Github"
-    version_prefix = None
-
-    def set_version_prefix(self, version: str, split_url: list[str]):
-        self.version_prefix = self.get_version_prefix(version, split_url)
-        if self.version_prefix is None:
-            return
-        logger.debug(f"Found version prefix from url: {self.version_prefix}")
-        self.ver_prefix_remove = [self.version_prefix] + self.ver_prefix_remove
-
-    def get_version_prefix(self, version: str, split_url: list[str]):
-        """Returns prefix for the first split that contains version. If prefix
-        is empty - returns None."""
-        r = re.compile(rf"^(.*){version}")
-        for split in split_url:
-            match = r.match(split)
-            if match is not None:
-                if match.group(1) == "":
-                    return None
-                return match.group(1)
-
-        return None
 
     def get_url(self, meta_yaml) -> Optional[str]:
         if "github.com" not in meta_yaml["url"]:
             return None
         split_url = meta_yaml["url"].lower().split("/")
-        version = meta_yaml["version"]
-        self.set_version_prefix(version, split_url)
         package_owner = split_url[split_url.index("github.com") + 1]
         gh_package_name = split_url[split_url.index("github.com") + 2]
         return f"https://github.com/{package_owner}/{gh_package_name}/releases.atom"
