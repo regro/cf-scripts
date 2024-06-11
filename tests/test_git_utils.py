@@ -159,6 +159,44 @@ def test_git_cli_hide_token_stdout_no_error(capfd):
     assert p.stdout.count("***") > 5
 
 
+def test_git_cli_hide_token_stdout_error_check_error(caplog, capfd):
+    cli = GitCli()
+
+    caplog.set_level(logging.DEBUG)
+
+    with cli.hide_token("all"):
+        with pytest.raises(GitCliError):
+            # git help --a prints to stdout (!) and then exits with an error
+            cli._run_git_command(["help", "--a"])
+
+    captured = capfd.readouterr()
+
+    assert "all" not in captured.out
+    assert "all" not in captured.err
+    assert "all" not in caplog.text
+
+    assert "***" in caplog.text
+
+
+def test_git_cli_hide_token_stdout_error_no_check_error(caplog, capfd):
+    cli = GitCli()
+
+    caplog.set_level(logging.DEBUG)
+
+    with cli.hide_token("all"):
+        p = cli._run_git_command(["help", "--a"], check_error=False)
+
+    captured = capfd.readouterr()
+
+    assert "all" not in captured.out
+    assert "all" not in captured.err
+    assert "all" not in p.stdout
+    assert "all" not in p.stderr
+    assert "all" not in caplog.text
+
+    assert "***" in p.stdout
+
+
 def test_git_cli_hide_token_stderr_no_check_error(capfd):
     cli = GitCli()
 
@@ -194,31 +232,43 @@ def test_git_cli_hide_token_run_git_command_check_error(capfd, caplog):
     assert "'non-existing-*******' is not a git *******" in caplog.text
 
 
-def test_hide_token_multiple(capfd, caplog):
+def test_git_cli_hide_token_multiple(capfd, caplog):
     cli = GitCli()
 
     caplog.set_level(logging.DEBUG)
 
     with cli.hide_token("clone"):
         with cli.hide_token("commit"):
-            p = cli._run_git_command(["help"])
+            p1 = cli._run_git_command(["help"])
 
-    captured = capfd.readouterr()
+            captured = capfd.readouterr()
 
-    assert "clone" not in captured.out
-    assert "clone" not in captured.err
-    assert "clone" not in p.stdout
-    assert "clone" not in p.stderr
+            assert "clone" not in captured.out
+            assert "clone" not in captured.err
+            assert "clone" not in p1.stdout
+            assert "clone" not in p1.stderr
 
-    assert "commit" not in captured.out
-    assert "commit" not in captured.err
-    assert "commit" not in p.stdout
-    assert "commit" not in p.stderr
+            assert "commit" not in captured.out
+            assert "commit" not in captured.err
+            assert "commit" not in p1.stdout
+            assert "commit" not in p1.stderr
 
-    assert "clone" not in caplog.text
-    assert "commit" not in caplog.text
+            assert "clone" not in caplog.text
+            assert "commit" not in caplog.text
 
-    assert p.stdout.count("*****") >= 2
+            assert p1.stdout.count("*****") >= 2
+
+        # we left the context manager, so "commit" should be visible again, but "clone" should still be hidden
+        p2 = cli._run_git_command(["help"])
+
+        captured = capfd.readouterr()
+
+        assert "clone" not in captured.out
+        assert "clone" not in captured.err
+        assert "clone" not in p2.stdout
+        assert "clone" not in p2.stderr
+
+        assert "commit" in p2.stdout
 
 
 def test_git_cli_outside_repo():
