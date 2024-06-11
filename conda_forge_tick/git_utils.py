@@ -406,7 +406,7 @@ class GitPlatformBackend(ABC):
     def get_remote_url(
         owner: str,
         repo_name: str,
-        connection_mode: GitConnectionMode = GitConnectionMode.SSH,
+        connection_mode: GitConnectionMode = GitConnectionMode.HTTPS,
     ) -> str:
         """
         Get the URL of a remote repository.
