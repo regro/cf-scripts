@@ -835,9 +835,9 @@ def test_git_platform_backend_clone_fork_and_branch(
     )
 
     convenience_method_mock.assert_called_once_with(
-        origin_url=f"git@github.com:USER/{repo_name}.git",
+        origin_url=f"https://github.com/USER/{repo_name}.git",
         target_dir=target_dir,
-        upstream_url=f"git@github.com:{upstream_owner}/{repo_name}.git",
+        upstream_url=f"https://github.com/{upstream_owner}/{repo_name}.git",
         new_branch=new_branch,
         base_branch=base_branch,
     )
