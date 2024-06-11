@@ -1934,39 +1934,39 @@ package:
   - category: main
     dependencies: {}
     hash:
-      md5: b64218b9b8b8ee90aabc8d078f6510f5
-      sha256: 366564c9bdbb0f92a69a953ac4533030e944b4b95358eace2df292eba8175593
+      md5: 44667f1043c21681173ff4d02f1259b9
+      sha256: 923183f7f45f50e012982f61e09eaae1fc990875c81d39cec01889db7aa1ccd1
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.06.10.23.22.33-hd8ed1ab_0.conda
-    version: 2024.06.10.23.22.33
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.06.11.11.32.55-hd8ed1ab_0.conda
+    version: 2024.06.11.11.32.55
   - category: main
     dependencies: {}
     hash:
-      md5: b64218b9b8b8ee90aabc8d078f6510f5
-      sha256: 366564c9bdbb0f92a69a953ac4533030e944b4b95358eace2df292eba8175593
+      md5: 44667f1043c21681173ff4d02f1259b9
+      sha256: 923183f7f45f50e012982f61e09eaae1fc990875c81d39cec01889db7aa1ccd1
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.06.10.23.22.33-hd8ed1ab_0.conda
-    version: 2024.06.10.23.22.33
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.06.11.11.32.55-hd8ed1ab_0.conda
+    version: 2024.06.11.11.32.55
   - category: main
     dependencies: {}
     hash:
-      md5: b64218b9b8b8ee90aabc8d078f6510f5
-      sha256: 366564c9bdbb0f92a69a953ac4533030e944b4b95358eace2df292eba8175593
+      md5: 44667f1043c21681173ff4d02f1259b9
+      sha256: 923183f7f45f50e012982f61e09eaae1fc990875c81d39cec01889db7aa1ccd1
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.06.10.23.22.33-hd8ed1ab_0.conda
-    version: 2024.06.10.23.22.33
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.06.11.11.32.55-hd8ed1ab_0.conda
+    version: 2024.06.11.11.32.55
   - category: main
     dependencies:
       click: '>=8'
@@ -8298,43 +8298,43 @@ package:
       python: '>=3.11,<3.12.0a0'
       python_abi: 3.11.*
     hash:
-      md5: 8b2e1f4d8c738801bcaec3193d453b69
-      sha256: 6940e6aa4965b0046964958e57151fd04e1ce5fc5c9fcc99796a92b6c61d8946
+      md5: a0662a939f35a43684e7fee4e350daef
+      sha256: c54c9f073739f65d7b00a9a0758b8ca117fba74e69b195287dc533e91468cc23
     manager: conda
     name: menuinst
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/linux-64/menuinst-2.1.0-py311h38be061_0.conda
-    version: 2.1.0
+      https://conda.anaconda.org/conda-forge/linux-64/menuinst-2.1.1-py311h38be061_0.conda
+    version: 2.1.1
   - category: main
     dependencies:
       python: '>=3.11,<3.12.0a0'
       python_abi: 3.11.*
     hash:
-      md5: feceed7acc2f44495dc051c11c3a9e07
-      sha256: 72bd7f5be0110c38a9bd5c157813791e466404ac6374dfd33fac45bfb920aa15
+      md5: 3116e2fc44145b7565ab98483739b07d
+      sha256: faba09afa2cafd40f7287b6b85012fa7e97ab4dd2e6fb3994f0df3cf81fa136d
     manager: conda
     name: menuinst
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/osx-64/menuinst-2.1.0-py311h6eed73b_0.conda
-    version: 2.1.0
+      https://conda.anaconda.org/conda-forge/osx-64/menuinst-2.1.1-py311h6eed73b_0.conda
+    version: 2.1.1
   - category: main
     dependencies:
       python: '>=3.11,<3.12.0a0'
       python_abi: 3.11.*
     hash:
-      md5: 713cdbc1f008021ebb56f79c68a6bf0a
-      sha256: 5eae582ed043b4c85a7368ff4f156d5545a8f5fb477214d7e509ae43de689102
+      md5: c10d5b343167e508451f7f1cfad002f3
+      sha256: 901c4276a0f5d4200d6d202d3760344eb591309029eacd6820322b96a9703562
     manager: conda
     name: menuinst
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/osx-arm64/menuinst-2.1.0-py311h267d04e_0.conda
-    version: 2.1.0
+      https://conda.anaconda.org/conda-forge/osx-arm64/menuinst-2.1.1-py311h267d04e_0.conda
+    version: 2.1.1
   - category: main
     dependencies:
       python: '>=3.8'
@@ -10490,49 +10490,49 @@ package:
     version: 1.1.3
   - category: main
     dependencies:
-      execnet: '>=1.1'
-      pytest: '>=6.2.0'
-      python: '>=3.7'
+      execnet: '>=2.1'
+      pytest: '>=7.0.0'
+      python: '>=3.8'
     hash:
-      md5: d5f595da2daead898ca958ac62f0307b
-      sha256: 8dc1d422e48e5a80eb72e26ed0135bb4843cf508d3b1cb006c3257c8639784d1
+      md5: b39568655c127a9c4a44d178ac99b6d0
+      sha256: c9f27ed55352bee2c9f7cc2fdaf12b322ee280b1989d7e763b4540d4fe7ec995
     manager: conda
     name: pytest-xdist
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/pytest-xdist-3.5.0-pyhd8ed1ab_0.conda
-    version: 3.5.0
+      https://conda.anaconda.org/conda-forge/noarch/pytest-xdist-3.6.1-pyhd8ed1ab_0.conda
+    version: 3.6.1
   - category: main
     dependencies:
-      execnet: '>=1.1'
-      pytest: '>=6.2.0'
-      python: '>=3.7'
+      execnet: '>=2.1'
+      pytest: '>=7.0.0'
+      python: '>=3.8'
     hash:
-      md5: d5f595da2daead898ca958ac62f0307b
-      sha256: 8dc1d422e48e5a80eb72e26ed0135bb4843cf508d3b1cb006c3257c8639784d1
+      md5: b39568655c127a9c4a44d178ac99b6d0
+      sha256: c9f27ed55352bee2c9f7cc2fdaf12b322ee280b1989d7e763b4540d4fe7ec995
     manager: conda
     name: pytest-xdist
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/pytest-xdist-3.5.0-pyhd8ed1ab_0.conda
-    version: 3.5.0
+      https://conda.anaconda.org/conda-forge/noarch/pytest-xdist-3.6.1-pyhd8ed1ab_0.conda
+    version: 3.6.1
   - category: main
     dependencies:
-      execnet: '>=1.1'
-      pytest: '>=6.2.0'
-      python: '>=3.7'
+      execnet: '>=2.1'
+      pytest: '>=7.0.0'
+      python: '>=3.8'
     hash:
-      md5: d5f595da2daead898ca958ac62f0307b
-      sha256: 8dc1d422e48e5a80eb72e26ed0135bb4843cf508d3b1cb006c3257c8639784d1
+      md5: b39568655c127a9c4a44d178ac99b6d0
+      sha256: c9f27ed55352bee2c9f7cc2fdaf12b322ee280b1989d7e763b4540d4fe7ec995
     manager: conda
     name: pytest-xdist
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/pytest-xdist-3.5.0-pyhd8ed1ab_0.conda
-    version: 3.5.0
+      https://conda.anaconda.org/conda-forge/noarch/pytest-xdist-3.6.1-pyhd8ed1ab_0.conda
+    version: 3.6.1
   - category: main
     dependencies:
       bzip2: '>=1.0.8,<2.0a0'
