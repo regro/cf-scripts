@@ -1,8 +1,11 @@
 import logging
 import os
 import shutil
+import sys
 import tempfile
 from contextlib import contextmanager
+
+import wurlitzer
 
 from conda_forge_tick.os_utils import chmod_plus_rwX, sync_dirs
 from conda_forge_tick.utils import CB_CONFIG, run_container_task
@@ -97,23 +100,37 @@ def provide_source_code_local(recipe_dir):
     str
         The path to the source code directory.
     """
+    out = None
+    err = None
+
     try:
-        from conda_build.api import render
-        from conda_build.config import Config
-        from conda_build.source import provide
+        with wurlitzer.pipes() as (out, err):
+            from conda_build.api import render
+            from conda_build.config import Config
+            from conda_build.source import provide
 
-        # Use conda build to do all the downloading/extracting bits
-        md = render(
-            recipe_dir,
-            config=Config(**CB_CONFIG),
-            finalize=False,
-            bypass_env_check=True,
-        )
-        if not md:
-            return None
-        md = md[0][0]
+            # Use conda build to do all the downloading/extracting bits
+            md = render(
+                recipe_dir,
+                config=Config(**CB_CONFIG),
+                finalize=False,
+                bypass_env_check=True,
+            )
+            if not md:
+                return None
+            md = md[0][0]
 
-        # provide source dir
-        yield provide(md)
+            # provide source dir
+            yield provide(md)
     except (SystemExit, Exception) as e:
-        raise RuntimeError("conda build src exception:" + str(e))
+        if out:
+            sys.stdout.write(out.getvalue())
+        if err:
+            sys.stderr.write(err.getvalue())
+
+        raise RuntimeError("conda build src exception: " + str(e))
+
+    if out:
+        sys.stdout.write(out.getvalue())
+    if err:
+        sys.stderr.write(err.getvalue())
