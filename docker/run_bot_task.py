@@ -108,7 +108,6 @@ def _run_bot_task(func, *, log_level, existing_feedstock_node_attrs, **kwargs):
         try:
             with (
                 redirect_stdout(sys.stderr),
-                wurlitzer.pipes(stdout=sys.__stderr__),
                 tempfile.TemporaryDirectory() as tmpdir,
                 pushd(tmpdir),
             ):
@@ -155,7 +154,7 @@ def _provide_source_code():
         output_source_code = "/cf_tick_dir/source_dir"
         os.makedirs(output_source_code, exist_ok=True)
 
-        with provide_source_code_local(recipe_dir) as cb_work_dir:
+        with wurlitzer.pipes(), provide_source_code_local(recipe_dir) as cb_work_dir:
             chmod_plus_rwX(cb_work_dir, recursive=True, skip_on_error=True)
             sync_dirs(
                 cb_work_dir, output_source_code, ignore_dot_git=True, update_git=False
