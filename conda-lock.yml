@@ -13504,38 +13504,38 @@ package:
     dependencies:
       python: '>=3.5'
     hash:
-      md5: f3ff53745230227174d4e8a936464960
-      sha256: aa410e9af8c8b1bef672d63e4a6716674f4c63cdc7b9294f9493fc26b1416471
+      md5: 148173e7d516d3ae4bb5565069ec25bf
+      sha256: 6795da0c4982e7ed61375d547fca22bdd566f9319bc787377a07bb43c3d02b82
     manager: conda
     name: wurlitzer
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/noarch/wurlitzer-3.1.0-pyhd8ed1ab_0.conda
-    version: 3.1.0
+    url: https://conda.anaconda.org/conda-forge/noarch/wurlitzer-3.1.1-pyhd8ed1ab_0.conda
+    version: 3.1.1
   - category: main
     dependencies:
       python: '>=3.5'
     hash:
-      md5: f3ff53745230227174d4e8a936464960
-      sha256: aa410e9af8c8b1bef672d63e4a6716674f4c63cdc7b9294f9493fc26b1416471
+      md5: 148173e7d516d3ae4bb5565069ec25bf
+      sha256: 6795da0c4982e7ed61375d547fca22bdd566f9319bc787377a07bb43c3d02b82
     manager: conda
     name: wurlitzer
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/noarch/wurlitzer-3.1.0-pyhd8ed1ab_0.conda
-    version: 3.1.0
+    url: https://conda.anaconda.org/conda-forge/noarch/wurlitzer-3.1.1-pyhd8ed1ab_0.conda
+    version: 3.1.1
   - category: main
     dependencies:
       python: '>=3.5'
     hash:
-      md5: f3ff53745230227174d4e8a936464960
-      sha256: aa410e9af8c8b1bef672d63e4a6716674f4c63cdc7b9294f9493fc26b1416471
+      md5: 148173e7d516d3ae4bb5565069ec25bf
+      sha256: 6795da0c4982e7ed61375d547fca22bdd566f9319bc787377a07bb43c3d02b82
     manager: conda
     name: wurlitzer
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/noarch/wurlitzer-3.1.0-pyhd8ed1ab_0.conda
-    version: 3.1.0
+    url: https://conda.anaconda.org/conda-forge/noarch/wurlitzer-3.1.1-pyhd8ed1ab_0.conda
+    version: 3.1.1
   - category: main
     dependencies:
       libgcc-ng: '>=9.3.0'
