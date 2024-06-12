@@ -645,6 +645,9 @@ def create_migration_yaml_creator(
                     with fold_log_lines(
                         "making pinning migrator for %s" % pinning_name
                     ):
+                        pinnings_together = packages_to_migrate_together.get(
+                            pinning_name, [pinning_name]
+                        )
                         print("    %s:" % pinning_name, flush=True)
                         print("        package name:", package_name, flush=True)
                         print("        feedstock name:", fs_name, flush=True)
@@ -656,7 +659,12 @@ def create_migration_yaml_creator(
                             "            curr pin: %s\n"
                             "            pin_spec: %s\n"
                             "            pinnings: %s"
-                            % (current_version, current_pin, pin_spec, pinnings),
+                            % (
+                                current_version,
+                                current_pin,
+                                pin_spec,
+                                pinnings_together,
+                            ),
                             flush=True,
                         )
                         migrators.append(
@@ -667,9 +675,7 @@ def create_migration_yaml_creator(
                                 pin_spec,
                                 fs_name,
                                 cfp_gx,
-                                pinnings=packages_to_migrate_together.get(
-                                    pinning_name, [pinning_name]
-                                ),
+                                pinnings=pinnings_together,
                                 full_graph=gx,
                             ),
                         )
