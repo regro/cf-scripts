@@ -510,6 +510,37 @@ def test_container_tasks_provide_source_code_containerized(use_containers):
 @pytest.mark.skipif(
     not (HAVE_CONTAINERS and HAVE_TEST_IMAGE), reason="containers not available"
 )
+def test_container_tasks_provide_source_code_containerized_patches(use_containers):
+    with (
+        tempfile.TemporaryDirectory() as tmpdir,
+        pushd(tmpdir),
+    ):
+        subprocess.run(
+            [
+                "git",
+                "clone",
+                "https://github.com/conda-forge/tiledb-feedstock.git",
+            ]
+        )
+        with pushd("tiledb-feedstock"):
+            subprocess.run(
+                [
+                    "git",
+                    "checkout",
+                    "2.23.x",
+                ]
+            )
+
+        with provide_source_code_containerized("tiledb-feedstock/recipe") as source_dir:
+            assert os.path.exists(source_dir)
+            assert os.path.isdir(source_dir)
+            assert "tiledb" in os.listdir(source_dir)
+            assert "CMakeLists.txt" in os.listdir(source_dir)
+
+
+@pytest.mark.skipif(
+    not (HAVE_CONTAINERS and HAVE_TEST_IMAGE), reason="containers not available"
+)
 def test_container_tasks_is_recipe_solvable_containerized(use_containers):
     with tempfile.TemporaryDirectory() as tmpdir:
         with pushd(tmpdir):
