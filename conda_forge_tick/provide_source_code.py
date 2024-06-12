@@ -112,7 +112,7 @@ def provide_source_code_local(recipe_dir):
             )
 
     try:
-        with wurlitzer.pipes(stderr=wurlitzer.STDOU) as (out):
+        with wurlitzer.pipes(stderr=wurlitzer.STDOUT) as (out, _):
             from conda_build.api import render
             from conda_build.config import Config
             from conda_build.source import provide
