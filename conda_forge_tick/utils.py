@@ -267,6 +267,7 @@ def run_container_task(
             ret["error"]
             .split("(", maxsplit=1)[1]
             .rsplit(")", maxsplit=1)[0]
+            .encode("raw_unicode_escape")
             .decode("unicode_escape")
         )
         raise ContainerRuntimeError(
@@ -274,7 +275,9 @@ def run_container_task(
             name=name,
             cmd=pprint.pformat(cmd),
             returncode=res.returncode,
-            traceback=ret["traceback"].decode("unicode_escape"),
+            traceback=ret["traceback"]
+            .encode("raw_unicode_escape")
+            .decode("unicode_escape"),
         )
 
     return ret["data"]
