@@ -25,6 +25,7 @@ import traceback
 from contextlib import contextmanager, redirect_stdout
 
 import click
+import wurlitzer
 
 existing_feedstock_node_attrs_option = click.option(
     "--existing-feedstock-node-attrs",
@@ -107,6 +108,7 @@ def _run_bot_task(func, *, log_level, existing_feedstock_node_attrs, **kwargs):
         try:
             with (
                 redirect_stdout(sys.stderr),
+                wurlitzer.pipes(stdout=sys.__stderr__),
                 tempfile.TemporaryDirectory() as tmpdir,
                 pushd(tmpdir),
             ):
