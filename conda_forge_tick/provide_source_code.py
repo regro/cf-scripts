@@ -101,21 +101,18 @@ def provide_source_code_local(recipe_dir):
         The path to the source code directory.
     """
     out = None
-    err = None
 
-    def _print_out_err():
+    def _print_out():
         try:
             if out:
                 sys.stdout.write(out.read())
-            if err:
-                sys.stderr.write(err.read())
         except Exception as e:
             logger.error(
                 "Error printing out/err in getting conda build src!", exc_info=e
             )
 
     try:
-        with wurlitzer.pipes() as (out, err):
+        with wurlitzer.pipes(stderr=wurlitzer.STDOU) as (out):
             from conda_build.api import render
             from conda_build.config import Config
             from conda_build.source import provide
@@ -134,7 +131,7 @@ def provide_source_code_local(recipe_dir):
             # provide source dir
             yield provide(md)
     except (SystemExit, Exception) as e:
-        _print_out_err()
+        _print_out()
         raise RuntimeError("conda build src exception: " + str(e))
 
-    _print_out_err()
+    _print_out()
