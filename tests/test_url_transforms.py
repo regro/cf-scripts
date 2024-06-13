@@ -1,5 +1,7 @@
 import os
 
+import pytest
+
 from conda_forge_tick.url_transforms import gen_transformed_urls
 
 
@@ -278,3 +280,67 @@ def test_url_transform_complicated_github():
         "https://github.com/releases/download/{{ version }}/{{ name }}/{{ name }}-{{ version }}.tar.bz2",  # noqa
         "https://github.com/releases/download/{{ version }}/{{ name }}/{{ name }}-{{ version }}.tar.xz",  # noqa
     }
+
+
+TRANFORM_URLS = {
+    # a la https://github.com/conda-forge/packageurl-python-feedstock/pull/22
+    """
+https://pypi.io/packages/source/p/packageurl-python/packageurl-python-{{ version }}.tar.gz
+""".strip(): r"""
+https://files.pythonhosted.org/packages/source/p/packageurl-python/packageurl_python-{{ version }}.tar
+https://files.pythonhosted.org/packages/source/p/packageurl-python/packageurl_python-{{ version }}.tar.bz2
+https://files.pythonhosted.org/packages/source/p/packageurl-python/packageurl_python-{{ version }}.tar.gz
+https://files.pythonhosted.org/packages/source/p/packageurl-python/packageurl_python-{{ version }}.tar.xz
+https://files.pythonhosted.org/packages/source/p/packageurl-python/packageurl_python-{{ version }}.tgz
+https://files.pythonhosted.org/packages/source/p/packageurl-python/packageurl_python-{{ version }}.zip
+https://files.pythonhosted.org/packages/source/p/packageurl-python/packageurl_python-v{{ version }}.tar
+https://files.pythonhosted.org/packages/source/p/packageurl-python/packageurl_python-v{{ version }}.tar.bz2
+https://files.pythonhosted.org/packages/source/p/packageurl-python/packageurl_python-v{{ version }}.tar.gz
+https://files.pythonhosted.org/packages/source/p/packageurl-python/packageurl_python-v{{ version }}.tar.xz
+https://files.pythonhosted.org/packages/source/p/packageurl-python/packageurl_python-v{{ version }}.tgz
+https://files.pythonhosted.org/packages/source/p/packageurl-python/packageurl_python-v{{ version }}.zip
+https://files.pythonhosted.org/packages/source/p/packageurl-python/packageurl-python-{{ version }}.tar
+https://files.pythonhosted.org/packages/source/p/packageurl-python/packageurl-python-{{ version }}.tar.bz2
+https://files.pythonhosted.org/packages/source/p/packageurl-python/packageurl-python-{{ version }}.tar.gz
+https://files.pythonhosted.org/packages/source/p/packageurl-python/packageurl-python-{{ version }}.tar.xz
+https://files.pythonhosted.org/packages/source/p/packageurl-python/packageurl-python-{{ version }}.tgz
+https://files.pythonhosted.org/packages/source/p/packageurl-python/packageurl-python-{{ version }}.zip
+https://files.pythonhosted.org/packages/source/p/packageurl-python/packageurl-python-v{{ version }}.tar
+https://files.pythonhosted.org/packages/source/p/packageurl-python/packageurl-python-v{{ version }}.tar.bz2
+https://files.pythonhosted.org/packages/source/p/packageurl-python/packageurl-python-v{{ version }}.tar.gz
+https://files.pythonhosted.org/packages/source/p/packageurl-python/packageurl-python-v{{ version }}.tar.xz
+https://files.pythonhosted.org/packages/source/p/packageurl-python/packageurl-python-v{{ version }}.tgz
+https://files.pythonhosted.org/packages/source/p/packageurl-python/packageurl-python-v{{ version }}.zip
+https://pypi.io/packages/source/p/packageurl-python/packageurl_python-{{ version }}.tar
+https://pypi.io/packages/source/p/packageurl-python/packageurl_python-{{ version }}.tar.bz2
+https://pypi.io/packages/source/p/packageurl-python/packageurl_python-{{ version }}.tar.gz
+https://pypi.io/packages/source/p/packageurl-python/packageurl_python-{{ version }}.tar.xz
+https://pypi.io/packages/source/p/packageurl-python/packageurl_python-{{ version }}.tgz
+https://pypi.io/packages/source/p/packageurl-python/packageurl_python-{{ version }}.zip
+https://pypi.io/packages/source/p/packageurl-python/packageurl_python-v{{ version }}.tar
+https://pypi.io/packages/source/p/packageurl-python/packageurl_python-v{{ version }}.tar.bz2
+https://pypi.io/packages/source/p/packageurl-python/packageurl_python-v{{ version }}.tar.gz
+https://pypi.io/packages/source/p/packageurl-python/packageurl_python-v{{ version }}.tar.xz
+https://pypi.io/packages/source/p/packageurl-python/packageurl_python-v{{ version }}.tgz
+https://pypi.io/packages/source/p/packageurl-python/packageurl_python-v{{ version }}.zip
+https://pypi.io/packages/source/p/packageurl-python/packageurl-python-{{ version }}.tar
+https://pypi.io/packages/source/p/packageurl-python/packageurl-python-{{ version }}.tar.bz2
+https://pypi.io/packages/source/p/packageurl-python/packageurl-python-{{ version }}.tar.gz
+https://pypi.io/packages/source/p/packageurl-python/packageurl-python-{{ version }}.tar.xz
+https://pypi.io/packages/source/p/packageurl-python/packageurl-python-{{ version }}.tgz
+https://pypi.io/packages/source/p/packageurl-python/packageurl-python-{{ version }}.zip
+https://pypi.io/packages/source/p/packageurl-python/packageurl-python-v{{ version }}.tar
+https://pypi.io/packages/source/p/packageurl-python/packageurl-python-v{{ version }}.tar.bz2
+https://pypi.io/packages/source/p/packageurl-python/packageurl-python-v{{ version }}.tar.gz
+https://pypi.io/packages/source/p/packageurl-python/packageurl-python-v{{ version }}.tar.xz
+https://pypi.io/packages/source/p/packageurl-python/packageurl-python-v{{ version }}.tgz
+https://pypi.io/packages/source/p/packageurl-python/packageurl-python-v{{ version }}.zip
+"""
+}
+
+
+@pytest.mark.parametrize("url", TRANFORM_URLS)
+def test_url_transform(url):
+    urls = {*gen_transformed_urls(url.strip())}
+    expected = {line.strip() for line in TRANFORM_URLS[url].strip().splitlines()}
+    assert urls == expected

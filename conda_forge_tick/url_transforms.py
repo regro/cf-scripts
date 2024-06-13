@@ -6,6 +6,7 @@ from itertools import permutations
 EXTS = [".tar.gz", ".zip", ".tar", ".tar.bz2", ".tar.xz", ".tgz"]
 PYPI_URLS = ["https://pypi.io", "https://files.pythonhosted.org"]
 
+
 def _ext_munger(url):
     for old_ext, new_ext in permutations(EXTS, 2):
         if url.endswith(old_ext):
@@ -62,16 +63,25 @@ def _pypi_name_munger(url):
     is_pypi = any(url.startswith(pypi) for pypi in PYPI_URLS)
     has_version = re.search(r"\{\{\s*version", bn)
 
-    # try the original url first, as a fallback (probably can't be removed?)
+    # try the original URL first, as a fallback (probably can't be removed?)
     yield url
 
     if not (is_sdist and is_pypi and has_version):
         return
 
     # try static PEP625 name with PEP345 distribution name (_ not -)
-    yield os.path.join(dn, '%s-{{ version }}.tar.gz' % dist_bn.replace("-", "_"))
-    # many legacy names had - which would match the name
-    yield os.path.join(dn, '%s-{{ version }}.tar.gz' % dist_bn)
+    patterns = [
+        # fully normalized
+        r"[\.\-]+",
+        # older, partial normalization
+        r"[\-]+",
+    ]
+
+    for pattern in patterns:
+        for dist_bn_case in {dist_bn, dist_bn.lower()}:
+            yield os.path.join(
+                dn, "%s-{{ version }}.tar.gz" % re.sub(pattern, "_", dist_bn_case)
+            )
 
 
 def _pypi_munger(url):
