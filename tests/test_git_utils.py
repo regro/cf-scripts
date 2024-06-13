@@ -80,16 +80,10 @@ def test_git_cli_run_git_command_mock(
 
     working_directory = Path("TEST_DIR")
 
-    def run_command():
-        cli._run_git_command(
-            ["COMMAND", "ARG1", "ARG2"], working_directory, check_error
-        )
-
     if token_hidden:
-        with cli.hide_token("TOKEN"):
-            run_command()
-    else:
-        run_command()
+        cli.add_hidden_token("TOKEN")
+
+    cli._run_git_command(["COMMAND", "ARG1", "ARG2"], working_directory, check_error)
 
     stderr_args = {"stderr": subprocess.PIPE} if token_hidden else {}
 
@@ -113,14 +107,9 @@ def test_git_cli_run_git_command_stdout_captured(
     """
     cli = GitCli()
 
-    def run_command() -> subprocess.CompletedProcess:
-        return cli._run_git_command(["version"], check_error=check_error)
-
     if token_hidden:
-        with cli.hide_token("TOKEN"):
-            p = run_command()
-    else:
-        p = run_command()
+        cli.add_hidden_token("TOKEN")
+    p = cli._run_git_command(["version"], check_error=check_error)
 
     captured = capfd.readouterr()
 
@@ -146,8 +135,8 @@ def test_git_cli_run_git_command_stderr_not_captured(capfd):
 def test_git_cli_hide_token_stdout_no_error(capfd):
     cli = GitCli()
 
-    with cli.hide_token("git"):
-        p = cli._run_git_command(["help"])
+    cli.add_hidden_token("git")
+    p = cli._run_git_command(["help"])
 
     captured = capfd.readouterr()
 
@@ -164,10 +153,10 @@ def test_git_cli_hide_token_stdout_error_check_error(caplog, capfd):
 
     caplog.set_level(logging.DEBUG)
 
-    with cli.hide_token("all"):
-        with pytest.raises(GitCliError):
-            # git help --a prints to stdout (!) and then exits with an error
-            cli._run_git_command(["help", "--a"])
+    cli.add_hidden_token("all")
+    with pytest.raises(GitCliError):
+        # git help --a prints to stdout (!) and then exits with an error
+        cli._run_git_command(["help", "--a"])
 
     captured = capfd.readouterr()
 
@@ -183,8 +172,8 @@ def test_git_cli_hide_token_stdout_error_no_check_error(caplog, capfd):
 
     caplog.set_level(logging.DEBUG)
 
-    with cli.hide_token("all"):
-        p = cli._run_git_command(["help", "--a"], check_error=False)
+    cli.add_hidden_token("all")
+    p = cli._run_git_command(["help", "--a"], check_error=False)
 
     captured = capfd.readouterr()
 
@@ -200,8 +189,8 @@ def test_git_cli_hide_token_stdout_error_no_check_error(caplog, capfd):
 def test_git_cli_hide_token_stderr_no_check_error(capfd):
     cli = GitCli()
 
-    with cli.hide_token("command"):
-        p = cli._run_git_command(["non-existing-command"], check_error=False)
+    cli.add_hidden_token("command")
+    p = cli._run_git_command(["non-existing-command"], check_error=False)
 
     captured = capfd.readouterr()
 
@@ -219,9 +208,9 @@ def test_git_cli_hide_token_run_git_command_check_error(capfd, caplog):
 
     caplog.set_level(logging.INFO)
 
-    with cli.hide_token("command"):
-        with pytest.raises(GitCliError):
-            cli._run_git_command(["non-existing-command"])
+    cli.add_hidden_token("command")
+    with pytest.raises(GitCliError):
+        cli._run_git_command(["non-existing-command"])
 
     print(caplog.text)
     assert "Command 'git non-existing-command' failed." in caplog.text
@@ -237,38 +226,26 @@ def test_git_cli_hide_token_multiple(capfd, caplog):
 
     caplog.set_level(logging.DEBUG)
 
-    with cli.hide_token("clone"):
-        with cli.hide_token("commit"):
-            p1 = cli._run_git_command(["help"])
+    cli.add_hidden_token("clone")
+    cli.add_hidden_token("commit")
+    p1 = cli._run_git_command(["help"])
 
-            captured = capfd.readouterr()
+    captured = capfd.readouterr()
 
-            assert "clone" not in captured.out
-            assert "clone" not in captured.err
-            assert "clone" not in p1.stdout
-            assert "clone" not in p1.stderr
+    assert "clone" not in captured.out
+    assert "clone" not in captured.err
+    assert "clone" not in p1.stdout
+    assert "clone" not in p1.stderr
 
-            assert "commit" not in captured.out
-            assert "commit" not in captured.err
-            assert "commit" not in p1.stdout
-            assert "commit" not in p1.stderr
+    assert "commit" not in captured.out
+    assert "commit" not in captured.err
+    assert "commit" not in p1.stdout
+    assert "commit" not in p1.stderr
 
-            assert "clone" not in caplog.text
-            assert "commit" not in caplog.text
+    assert "clone" not in caplog.text
+    assert "commit" not in caplog.text
 
-            assert p1.stdout.count("*****") >= 2
-
-        # we left the context manager, so "commit" should be visible again, but "clone" should still be hidden
-        p2 = cli._run_git_command(["help"])
-
-        captured = capfd.readouterr()
-
-        assert "clone" not in captured.out
-        assert "clone" not in captured.err
-        assert "clone" not in p2.stdout
-        assert "clone" not in p2.stderr
-
-        assert "commit" in p2.stdout
+    assert p1.stdout.count("*****") >= 2
 
 
 def test_git_cli_outside_repo():
@@ -1083,6 +1060,28 @@ def test_github_backend_from_token():
 
     assert backend.github3_client.session.auth.token == token
     # we cannot verify the pygithub token trivially
+
+
+@pytest.mark.parametrize("from_token", [True, False])
+def test_github_backend_token_to_hide(caplog, capfd, from_token: bool):
+    caplog.set_level(logging.DEBUG)
+    token = "commit"
+
+    if from_token:
+        backend = GitHubBackend.from_token(token)
+    else:
+        backend = GitHubBackend(MagicMock(), MagicMock(), token)
+
+    # the token should be hidden by default, without any context manager
+    p = backend.cli._run_git_command(["help"])
+
+    captured = capfd.readouterr()
+
+    assert token not in caplog.text
+    assert token not in captured.out
+    assert token not in captured.err
+    assert token not in p.stdout
+    assert token not in p.stderr
 
 
 @pytest.mark.parametrize("does_exist", [True, False])
