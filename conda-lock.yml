@@ -1934,39 +1934,39 @@ package:
   - category: main
     dependencies: {}
     hash:
-      md5: f2926703e3009a6cc0178550f1b9af0a
-      sha256: a49c28ebdc83c8b65da03e91ddce7bd641a1bcefdb5cd3ad57c7f3b966d1dd8c
+      md5: 47e6dfb8a1bcf287499ea06b1bdecdd0
+      sha256: 117fcc55ab0b9b2fd594256847330cd633b64ae544b2b705a63863004db22f19
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.06.13.09.56.18-hd8ed1ab_0.conda
-    version: 2024.06.13.09.56.18
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.06.13.15.42.23-hd8ed1ab_0.conda
+    version: 2024.06.13.15.42.23
   - category: main
     dependencies: {}
     hash:
-      md5: f2926703e3009a6cc0178550f1b9af0a
-      sha256: a49c28ebdc83c8b65da03e91ddce7bd641a1bcefdb5cd3ad57c7f3b966d1dd8c
+      md5: 47e6dfb8a1bcf287499ea06b1bdecdd0
+      sha256: 117fcc55ab0b9b2fd594256847330cd633b64ae544b2b705a63863004db22f19
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.06.13.09.56.18-hd8ed1ab_0.conda
-    version: 2024.06.13.09.56.18
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.06.13.15.42.23-hd8ed1ab_0.conda
+    version: 2024.06.13.15.42.23
   - category: main
     dependencies: {}
     hash:
-      md5: f2926703e3009a6cc0178550f1b9af0a
-      sha256: a49c28ebdc83c8b65da03e91ddce7bd641a1bcefdb5cd3ad57c7f3b966d1dd8c
+      md5: 47e6dfb8a1bcf287499ea06b1bdecdd0
+      sha256: 117fcc55ab0b9b2fd594256847330cd633b64ae544b2b705a63863004db22f19
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.06.13.09.56.18-hd8ed1ab_0.conda
-    version: 2024.06.13.09.56.18
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.06.13.15.42.23-hd8ed1ab_0.conda
+    version: 2024.06.13.15.42.23
   - category: main
     dependencies:
       click: '>=8'
@@ -5687,43 +5687,43 @@ package:
       python: '>=3.11,<3.12.0a0'
       python_abi: 3.11.*
     hash:
-      md5: 41d52d822edf991bf0e6b08c1921a8ec
-      sha256: 976f7bf3c3a49c3066f36b67c12ae06b31542e53b843bb4362f31c9e449c6c46
+      md5: 01a505ab9b4e3af12baa98b82f5fcafa
+      sha256: 30a3947da86b74e09b1013d232f40b4b960c192b7dce35407e89b10e3e28cdc7
     manager: conda
     name: jsonpointer
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/linux-64/jsonpointer-2.4-py311h38be061_3.conda
-    version: '2.4'
+      https://conda.anaconda.org/conda-forge/linux-64/jsonpointer-3.0.0-py311h38be061_0.conda
+    version: 3.0.0
   - category: main
     dependencies:
       python: '>=3.11,<3.12.0a0'
       python_abi: 3.11.*
     hash:
-      md5: ed1c23d0e55abd27d8b9e31c58105140
-      sha256: b0ba738e1dbf3b69558557cd1e63310364e045b8c8e7f73fdce7e71928b5f22a
+      md5: e6239ae1b58ab3e7f6863ee46dba46b5
+      sha256: b98237f5071161a30b711062b1c9306a2f7abea0b97fabfeff662919f40d1f00
     manager: conda
     name: jsonpointer
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/osx-64/jsonpointer-2.4-py311h6eed73b_3.conda
-    version: '2.4'
+      https://conda.anaconda.org/conda-forge/osx-64/jsonpointer-3.0.0-py311h6eed73b_0.conda
+    version: 3.0.0
   - category: main
     dependencies:
       python: '>=3.11,<3.12.0a0'
       python_abi: 3.11.*
     hash:
-      md5: b6008a5b9180e58a235f5e45432dfe2e
-      sha256: 807d6c44f3e34139bfd25db4409381a6ce37fad2902c58f10fa7e1c30a64333d
+      md5: d962e72d8c1d0efb22f0e54e8e97cd71
+      sha256: 05ead39da575f7e25ad1e07755cf24e4b389bb2de945a14049b93e51034b47f9
     manager: conda
     name: jsonpointer
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/osx-arm64/jsonpointer-2.4-py311h267d04e_3.conda
-    version: '2.4'
+      https://conda.anaconda.org/conda-forge/osx-arm64/jsonpointer-3.0.0-py311h267d04e_0.conda
+    version: 3.0.0
   - category: main
     dependencies:
       attrs: '>=22.2.0'
@@ -9912,43 +9912,43 @@ package:
       pydantic: '>=2.5.2'
       python: '>=3.8'
     hash:
-      md5: 886104531fef83c0a1643c166cd46ee3
-      sha256: ea83470d580090be5ecdebe3959a94c859ff741727a4f4f6560f3182beab49bf
+      md5: 9caf738cb14c961a6b9e558d0a840519
+      sha256: fbe5b5e9214b347abf8ca38fba09013ee3cbc8cc4aa26abb4faaf0d06ba21e57
     manager: conda
     name: pydantic-extra-types
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/pydantic-extra-types-2.8.0-pyhd8ed1ab_0.conda
-    version: 2.8.0
+      https://conda.anaconda.org/conda-forge/noarch/pydantic-extra-types-2.8.1-pyhd8ed1ab_0.conda
+    version: 2.8.1
   - category: main
     dependencies:
       pydantic: '>=2.5.2'
       python: '>=3.8'
     hash:
-      md5: 886104531fef83c0a1643c166cd46ee3
-      sha256: ea83470d580090be5ecdebe3959a94c859ff741727a4f4f6560f3182beab49bf
+      md5: 9caf738cb14c961a6b9e558d0a840519
+      sha256: fbe5b5e9214b347abf8ca38fba09013ee3cbc8cc4aa26abb4faaf0d06ba21e57
     manager: conda
     name: pydantic-extra-types
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/pydantic-extra-types-2.8.0-pyhd8ed1ab_0.conda
-    version: 2.8.0
+      https://conda.anaconda.org/conda-forge/noarch/pydantic-extra-types-2.8.1-pyhd8ed1ab_0.conda
+    version: 2.8.1
   - category: main
     dependencies:
       pydantic: '>=2.5.2'
       python: '>=3.8'
     hash:
-      md5: 886104531fef83c0a1643c166cd46ee3
-      sha256: ea83470d580090be5ecdebe3959a94c859ff741727a4f4f6560f3182beab49bf
+      md5: 9caf738cb14c961a6b9e558d0a840519
+      sha256: fbe5b5e9214b347abf8ca38fba09013ee3cbc8cc4aa26abb4faaf0d06ba21e57
     manager: conda
     name: pydantic-extra-types
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/pydantic-extra-types-2.8.0-pyhd8ed1ab_0.conda
-    version: 2.8.0
+      https://conda.anaconda.org/conda-forge/noarch/pydantic-extra-types-2.8.1-pyhd8ed1ab_0.conda
+    version: 2.8.1
   - category: main
     dependencies:
       cryptography: '>=3.4.0'
