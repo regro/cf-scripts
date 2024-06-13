@@ -758,7 +758,7 @@ def get_repo(
 
     assert repo is not None
 
-    return feedstock_repo_name, repo
+    return str(feedstock_dir), repo
 
 
 @lock_git_operation()
