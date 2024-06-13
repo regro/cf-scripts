@@ -1,13 +1,18 @@
 import os
 import typing
 from dataclasses import dataclass
+from pathlib import Path
 
 from networkx import DiGraph
 
 from conda_forge_tick.lazy_json_backends import load
+from conda_forge_tick.utils import get_keys_default
 
 if typing.TYPE_CHECKING:
     from conda_forge_tick.migrators_types import AttrsTypedDict
+
+
+GIT_CLONE_DIR = Path("feedstocks").resolve()
 
 
 if os.path.exists("all_feedstocks.json"):
@@ -58,3 +63,40 @@ class FeedstockContext:
         A link to the feedstocks GitHub repository.
         """
         return f"https://github.com/{self.git_repo_owner}/{self.git_repo_name}"
+
+    @property
+    def local_clone_dir(self) -> Path:
+        """
+        The local path to the feedstock repository.
+        """
+        return GIT_CLONE_DIR / self.git_repo_name
+
+    @property
+    def automerge(self) -> bool | str:
+        """
+        Get the automerge setting of the feedstock.
+
+        Note: A better solution to implement this is to use the NodeAttributes Pydantic
+        model for the attrs field. This will be done in the future.
+        """
+        return get_keys_default(
+            self.attrs,
+            ["conda-forge.yml", "bot", "automerge"],
+            {},
+            False,
+        )
+
+    @property
+    def check_solvable(self) -> bool:
+        """
+        Get the check_solvable setting of the feedstock.
+
+        Note: A better solution to implement this is to use the NodeAttributes Pydantic
+        model for the attrs field. This will be done in the future.
+        """
+        return get_keys_default(
+            self.attrs,
+            ["conda-forge.yml", "bot", "check_solvable"],
+            {},
+            False,
+        )

@@ -518,7 +518,6 @@ def run_test_migration(
             feedstock_name=name,
             attrs=pmy,
         )
-        fctx.feedstock_dir = os.path.dirname(tmpdir)
         m.effective_graph.add_node(name)
         m.effective_graph.nodes[name]["payload"] = MockLazyJson({})
         m.pr_body(fctx)
