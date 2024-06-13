@@ -340,7 +340,7 @@ class Version(Migrator):
         try:
             _, hint = get_dep_updates_and_hints(
                 update_deps,
-                os.path.join(feedstock_ctx.feedstock_dir, "recipe"),
+                str(feedstock_ctx.local_clone_dir / "recipe"),
                 feedstock_ctx.attrs,
                 self.python_nodes,
                 "new_version",

@@ -226,7 +226,6 @@ def run_migration_local(
         attrs=node_attrs,
     )
     feedstock_ctx.default_branch = default_branch
-    feedstock_ctx.feedstock_dir = feedstock_dir
     recipe_dir = os.path.join(feedstock_dir, "recipe")
 
     data = {
