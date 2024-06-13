@@ -86,13 +86,17 @@ PR_KEYS_TO_KEEP = {
 }
 
 
+def get_bot_token():
+    with sensitive_env() as env:
+        return env["BOT_TOKEN"]
+
+
 def github3_client() -> github3.GitHub:
     """
     This will be removed in the future, use the GitHubBackend class instead.
     """
     if not hasattr(GITHUB3_CLIENT, "client"):
-        with sensitive_env() as env:
-            GITHUB3_CLIENT.client = github3.login(token=env["BOT_TOKEN"])
+        GITHUB3_CLIENT.client = github3.login(token=get_bot_token())
     return GITHUB3_CLIENT.client
 
 
@@ -101,11 +105,10 @@ def github_client() -> github.Github:
     This will be removed in the future, use the GitHubBackend class instead.
     """
     if not hasattr(GITHUB_CLIENT, "client"):
-        with sensitive_env() as env:
-            GITHUB_CLIENT.client = github.Github(
-                auth=github.Auth.Token(env["BOT_TOKEN"]),
-                per_page=100,
-            )
+        GITHUB_CLIENT.client = github.Github(
+            auth=github.Auth.Token(get_bot_token()),
+            per_page=100,
+        )
     return GITHUB_CLIENT.client
 
 
@@ -997,8 +1000,7 @@ def github_backend() -> GitHubBackend:
     """
     This helper method will be removed in the future, use the GitHubBackend class directly.
     """
-    with sensitive_env() as env:
-        return GitHubBackend.from_token(env["BOT_TOKEN"])
+    return GitHubBackend.from_token(get_bot_token())
 
 
 def is_github_api_limit_reached() -> bool:
@@ -1058,17 +1060,18 @@ def delete_branch(pr_json: LazyJson, dry_run: bool = False) -> None:
     gh = github3_client()
     deploy_repo = gh.me().login + "/" + name
 
-    with sensitive_env() as env:
-        run_command_hiding_token(
-            [
-                "git",
-                "push",
-                f"https://{env['BOT_TOKEN']}@github.com/{deploy_repo}.git",
-                "--delete",
-                ref,
-            ],
-            token=env["BOT_TOKEN"],
-        )
+    token = get_bot_token()
+
+    run_command_hiding_token(
+        [
+            "git",
+            "push",
+            f"https://{token}@github.com/{deploy_repo}.git",
+            "--delete",
+            ref,
+        ],
+        token=token,
+    )
     # Replace ref so we know not to try again
     pr_json["head"]["ref"] = "this_is_not_a_branch"
 
@@ -1135,11 +1138,10 @@ def lazy_update_pr_json(
     pr_json : dict-like
         A dict-like object with the current PR information.
     """
-    with sensitive_env() as env:
-        hdrs = {
-            "Authorization": f"token {env['BOT_TOKEN']}",
-            "Accept": "application/vnd.github.v3+json",
-        }
+    hdrs = {
+        "Authorization": f"token {get_bot_token()}",
+        "Accept": "application/vnd.github.v3+json",
+    }
     if not force and "ETag" in pr_json:
         hdrs["If-None-Match"] = pr_json["ETag"]
 
@@ -1306,9 +1308,9 @@ def push_repo(
         The dict representing the PR, can be used with `from_json`
         to create a PR instance.
     """
-    with sensitive_env() as env, pushd(feedstock_dir):
+    with pushd(feedstock_dir):
         # Copyright (c) 2016 Aaron Meurer, Gil Forsyth
-        token = env["BOT_TOKEN"]
+        token = get_bot_token()
         gh_username = github3_client().me().login
 
         head = gh_username + ":" + branch
