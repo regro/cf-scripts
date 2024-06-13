@@ -1,8 +1,10 @@
 import os
+import re
+
 from itertools import permutations
 
 EXTS = [".tar.gz", ".zip", ".tar", ".tar.bz2", ".tar.xz", ".tgz"]
-
+PYPI_URLS = ["https://pypi.io", "https://files.pythonhosted.org"]
 
 def _ext_munger(url):
     for old_ext, new_ext in permutations(EXTS, 2):
@@ -48,22 +50,28 @@ def _v_munger(url):
 
 
 def _pypi_domain_munger(url):
-    for old_d, new_d in permutations(
-        ["https://pypi.io", "https://files.pythonhosted.org"],
-        2,
-    ):
+    for old_d, new_d in permutations(PYPI_URLS, 2):
         yield url.replace(old_d, new_d, 1)
 
 
 def _pypi_name_munger(url):
     bn = os.path.basename(url)
-    if (
-        url.startswith("https://pypi.io")
-        or url.startswith("https://files.pythonhosted.org")
-    ) and ("{{ version }}" in bn and "{{ name" not in bn):
-        yield os.path.join(os.path.dirname(url), "{{ name }}-{{ version }}.tar.gz")
+    dn = os.path.dirname(url)
+    dist_bn = os.path.basename(os.path.dirname(url))
+    is_sdist = url.endswith(".tar.gz")
+    is_pypi = any(url.startswith(pypi) for pypi in PYPI_URLS)
+    has_version = re.search(r"\{\{\s*version", bn)
 
+    # try the original url first, as a fallback (probably can't be removed?)
     yield url
+
+    if not (is_sdist and is_pypi and has_version):
+        return
+
+    # try static PEP625 name with PEP345 distribution name (_ not -)
+    yield os.path.join(dn, '%s-{{ version }}.tar.gz' % dist_bn.replace("-", "_"))
+    # many legacy names had - which would match the name
+    yield os.path.join(dn, '%s-{{ version }}.tar.gz' % dist_bn)
 
 
 def _pypi_munger(url):
@@ -141,7 +149,9 @@ def gen_transformed_urls(url):
     url : str
         The URL to transform.
     """
-    yield from _gen_new_urls(
+    yielded = []
+
+    for new_url in _gen_new_urls(
         url,
         [
             _ext_munger,
@@ -154,4 +164,7 @@ def gen_transformed_urls(url):
             _pypi_name_munger,
             _github_munger,
         ],
-    )
+    ):
+        if new_url not in yielded:
+            yield new_url
+            yielded.append(new_url)
