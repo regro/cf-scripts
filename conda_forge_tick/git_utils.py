@@ -1,6 +1,5 @@
 """Utilities for managing github repos"""
 
-import contextlib
 import copy
 import enum
 import logging
@@ -221,14 +220,13 @@ class GitCli:
 
         return p
 
-    @contextlib.contextmanager
-    def hide_token(self, token: str):
+    def add_hidden_token(self, token: str) -> None:
         """
-        Within this context manager, the given token will be hidden in the logs.
+        Permanently hide a token in the logs.
+
+        :param token: The token to hide.
         """
         self.__hidden_tokens.append(token)
-        yield
-        self.__hidden_tokens.pop()
 
     @lock_git_operation()
     def add(self, git_dir: Path, *pathspec: Path, all_: bool = False):
@@ -727,14 +725,26 @@ class GitHubBackend(GitPlatformBackend):
     The number of items to fetch per page from the GitHub API.
     """
 
-    def __init__(self, github3_client: github3.GitHub, pygithub_client: github.Github):
+    def __init__(
+        self,
+        github3_client: github3.GitHub,
+        pygithub_client: github.Github,
+        token_to_hide: str | None = None,
+    ):
         """
         Create a new GitHubBackend.
 
         Note: Because we need additional response headers, we wrap the github3 session of the github3 client
         with our own session wrapper and replace the github3 client's session with it.
+
+        :param github3_client: The github3 client to use for interacting with the GitHub API.
+        :param pygithub_client: The PyGithub client to use for interacting with the GitHub API.
+        :param token_to_hide: A token to hide in the CLI output. If None, no tokens are hidden.
         """
-        super().__init__(GitCli())
+        cli = GitCli()
+        if token_to_hide:
+            cli.add_hidden_token(token_to_hide)
+        super().__init__(cli)
         self.github3_client = github3_client
         self._github3_session = _Github3SessionWrapper(self.github3_client.session)
         self.github3_client.session = self._github3_session
@@ -746,6 +756,7 @@ class GitHubBackend(GitPlatformBackend):
         return cls(
             github3.login(token=token),
             github.Github(auth=github.Auth.Token(token), per_page=cls._GITHUB_PER_PAGE),
+            token_to_hide=token,
         )
 
     def does_repository_exist(self, owner: str, repo_name: str) -> bool:
