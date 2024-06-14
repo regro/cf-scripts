@@ -335,7 +335,59 @@ https://pypi.io/packages/source/p/packageurl-python/packageurl-python-v{{ versio
 https://pypi.io/packages/source/p/packageurl-python/packageurl-python-v{{ version }}.tar.xz
 https://pypi.io/packages/source/p/packageurl-python/packageurl-python-v{{ version }}.tgz
 https://pypi.io/packages/source/p/packageurl-python/packageurl-python-v{{ version }}.zip
-"""
+""",
+    """
+https://pypi.io/packages/source/p/worst-case/Worst.-Case-{{ version }}.tar.gz
+""".strip(): r"""
+https://files.pythonhosted.org/packages/source/p/worst-case/worst_case-{{ version }}.tar
+https://files.pythonhosted.org/packages/source/p/worst-case/worst_case-{{ version }}.tar.bz2
+https://files.pythonhosted.org/packages/source/p/worst-case/worst_case-{{ version }}.tar.gz
+https://files.pythonhosted.org/packages/source/p/worst-case/worst_case-{{ version }}.tar.xz
+https://files.pythonhosted.org/packages/source/p/worst-case/worst_case-{{ version }}.tgz
+https://files.pythonhosted.org/packages/source/p/worst-case/worst_case-{{ version }}.zip
+https://files.pythonhosted.org/packages/source/p/worst-case/worst_case-v{{ version }}.tar
+https://files.pythonhosted.org/packages/source/p/worst-case/worst_case-v{{ version }}.tar.bz2
+https://files.pythonhosted.org/packages/source/p/worst-case/worst_case-v{{ version }}.tar.gz
+https://files.pythonhosted.org/packages/source/p/worst-case/worst_case-v{{ version }}.tar.xz
+https://files.pythonhosted.org/packages/source/p/worst-case/worst_case-v{{ version }}.tgz
+https://files.pythonhosted.org/packages/source/p/worst-case/worst_case-v{{ version }}.zip
+https://files.pythonhosted.org/packages/source/p/worst-case/Worst.-Case-{{ version }}.tar
+https://files.pythonhosted.org/packages/source/p/worst-case/Worst.-Case-{{ version }}.tar.bz2
+https://files.pythonhosted.org/packages/source/p/worst-case/Worst.-Case-{{ version }}.tar.gz
+https://files.pythonhosted.org/packages/source/p/worst-case/Worst.-Case-{{ version }}.tar.xz
+https://files.pythonhosted.org/packages/source/p/worst-case/Worst.-Case-{{ version }}.tgz
+https://files.pythonhosted.org/packages/source/p/worst-case/Worst.-Case-{{ version }}.zip
+https://files.pythonhosted.org/packages/source/p/worst-case/Worst.-Case-v{{ version }}.tar
+https://files.pythonhosted.org/packages/source/p/worst-case/Worst.-Case-v{{ version }}.tar.bz2
+https://files.pythonhosted.org/packages/source/p/worst-case/Worst.-Case-v{{ version }}.tar.gz
+https://files.pythonhosted.org/packages/source/p/worst-case/Worst.-Case-v{{ version }}.tar.xz
+https://files.pythonhosted.org/packages/source/p/worst-case/Worst.-Case-v{{ version }}.tgz
+https://files.pythonhosted.org/packages/source/p/worst-case/Worst.-Case-v{{ version }}.zip
+https://pypi.io/packages/source/p/worst-case/worst_case-{{ version }}.tar
+https://pypi.io/packages/source/p/worst-case/worst_case-{{ version }}.tar.bz2
+https://pypi.io/packages/source/p/worst-case/worst_case-{{ version }}.tar.gz
+https://pypi.io/packages/source/p/worst-case/worst_case-{{ version }}.tar.xz
+https://pypi.io/packages/source/p/worst-case/worst_case-{{ version }}.tgz
+https://pypi.io/packages/source/p/worst-case/worst_case-{{ version }}.zip
+https://pypi.io/packages/source/p/worst-case/worst_case-v{{ version }}.tar
+https://pypi.io/packages/source/p/worst-case/worst_case-v{{ version }}.tar.bz2
+https://pypi.io/packages/source/p/worst-case/worst_case-v{{ version }}.tar.gz
+https://pypi.io/packages/source/p/worst-case/worst_case-v{{ version }}.tar.xz
+https://pypi.io/packages/source/p/worst-case/worst_case-v{{ version }}.tgz
+https://pypi.io/packages/source/p/worst-case/worst_case-v{{ version }}.zip
+https://pypi.io/packages/source/p/worst-case/Worst.-Case-{{ version }}.tar
+https://pypi.io/packages/source/p/worst-case/Worst.-Case-{{ version }}.tar.bz2
+https://pypi.io/packages/source/p/worst-case/Worst.-Case-{{ version }}.tar.gz
+https://pypi.io/packages/source/p/worst-case/Worst.-Case-{{ version }}.tar.xz
+https://pypi.io/packages/source/p/worst-case/Worst.-Case-{{ version }}.tgz
+https://pypi.io/packages/source/p/worst-case/Worst.-Case-{{ version }}.zip
+https://pypi.io/packages/source/p/worst-case/Worst.-Case-v{{ version }}.tar
+https://pypi.io/packages/source/p/worst-case/Worst.-Case-v{{ version }}.tar.bz2
+https://pypi.io/packages/source/p/worst-case/Worst.-Case-v{{ version }}.tar.gz
+https://pypi.io/packages/source/p/worst-case/Worst.-Case-v{{ version }}.tar.xz
+https://pypi.io/packages/source/p/worst-case/Worst.-Case-v{{ version }}.tgz
+https://pypi.io/packages/source/p/worst-case/Worst.-Case-v{{ version }}.zip
+""",
 }
 
 
