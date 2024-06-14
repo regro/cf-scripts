@@ -61,9 +61,13 @@ def _pypi_name_munger(url):
     is_sdist = url.endswith(".tar.gz")
     is_pypi = any(url.startswith(pypi) for pypi in PYPI_URLS)
     has_version = re.search(r"\{\{\s*version", bn)
+    has_name = re.search(r"\{\{\s*name", bn)
 
     # try the original URL first, as a fallback (probably can't be removed?)
     yield url
+
+    if is_pypi and has_version and not has_name:
+        yield os.path.join(dn, "{{ name }}-{{ version }}.tar.gz")
 
     if not (is_sdist and is_pypi and has_version):
         return
