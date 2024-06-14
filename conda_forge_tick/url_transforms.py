@@ -158,7 +158,7 @@ def gen_transformed_urls(url):
     url : str
         The URL to transform.
     """
-    yielded = []
+    yielded = set()
 
     for new_url in _gen_new_urls(
         url,
@@ -176,4 +176,4 @@ def gen_transformed_urls(url):
     ):
         if new_url not in yielded:
             yield new_url
-            yielded.append(new_url)
+            yielded.add(new_url)
