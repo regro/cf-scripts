@@ -1934,39 +1934,39 @@ package:
   - category: main
     dependencies: {}
     hash:
-      md5: 7bfa149f37695faed1c9728ec7447d8e
-      sha256: 3b0be6486b0f38b49cc1a94c714176d77a8ef3f86955c09ffbfb024e8a7afddc
+      md5: 24c90b1a559fb9872b3aab870e255aba
+      sha256: 664fdd8d478887470782d2c41ed318aee861c1fa14432ba88bddc15c5d4b7a10
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.06.14.18.16.31-hd8ed1ab_0.conda
-    version: 2024.06.14.18.16.31
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.06.15.04.43.42-hd8ed1ab_0.conda
+    version: 2024.06.15.04.43.42
   - category: main
     dependencies: {}
     hash:
-      md5: 7bfa149f37695faed1c9728ec7447d8e
-      sha256: 3b0be6486b0f38b49cc1a94c714176d77a8ef3f86955c09ffbfb024e8a7afddc
+      md5: 24c90b1a559fb9872b3aab870e255aba
+      sha256: 664fdd8d478887470782d2c41ed318aee861c1fa14432ba88bddc15c5d4b7a10
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.06.14.18.16.31-hd8ed1ab_0.conda
-    version: 2024.06.14.18.16.31
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.06.15.04.43.42-hd8ed1ab_0.conda
+    version: 2024.06.15.04.43.42
   - category: main
     dependencies: {}
     hash:
-      md5: 7bfa149f37695faed1c9728ec7447d8e
-      sha256: 3b0be6486b0f38b49cc1a94c714176d77a8ef3f86955c09ffbfb024e8a7afddc
+      md5: 24c90b1a559fb9872b3aab870e255aba
+      sha256: 664fdd8d478887470782d2c41ed318aee861c1fa14432ba88bddc15c5d4b7a10
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.06.14.18.16.31-hd8ed1ab_0.conda
-    version: 2024.06.14.18.16.31
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.06.15.04.43.42-hd8ed1ab_0.conda
+    version: 2024.06.15.04.43.42
   - category: main
     dependencies:
       click: '>=8'
@@ -9912,43 +9912,43 @@ package:
       pydantic: '>=2.5.2'
       python: '>=3.8'
     hash:
-      md5: 9caf738cb14c961a6b9e558d0a840519
-      sha256: fbe5b5e9214b347abf8ca38fba09013ee3cbc8cc4aa26abb4faaf0d06ba21e57
+      md5: 9f8a8a6ec5789e1511f88dedcaff9361
+      sha256: 752920e9ebb693478d45fd2e68c25121c80aabbde535a7d17d658e8f119c6c19
     manager: conda
     name: pydantic-extra-types
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/pydantic-extra-types-2.8.1-pyhd8ed1ab_0.conda
-    version: 2.8.1
+      https://conda.anaconda.org/conda-forge/noarch/pydantic-extra-types-2.8.2-pyhd8ed1ab_0.conda
+    version: 2.8.2
   - category: main
     dependencies:
       pydantic: '>=2.5.2'
       python: '>=3.8'
     hash:
-      md5: 9caf738cb14c961a6b9e558d0a840519
-      sha256: fbe5b5e9214b347abf8ca38fba09013ee3cbc8cc4aa26abb4faaf0d06ba21e57
+      md5: 9f8a8a6ec5789e1511f88dedcaff9361
+      sha256: 752920e9ebb693478d45fd2e68c25121c80aabbde535a7d17d658e8f119c6c19
     manager: conda
     name: pydantic-extra-types
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/pydantic-extra-types-2.8.1-pyhd8ed1ab_0.conda
-    version: 2.8.1
+      https://conda.anaconda.org/conda-forge/noarch/pydantic-extra-types-2.8.2-pyhd8ed1ab_0.conda
+    version: 2.8.2
   - category: main
     dependencies:
       pydantic: '>=2.5.2'
       python: '>=3.8'
     hash:
-      md5: 9caf738cb14c961a6b9e558d0a840519
-      sha256: fbe5b5e9214b347abf8ca38fba09013ee3cbc8cc4aa26abb4faaf0d06ba21e57
+      md5: 9f8a8a6ec5789e1511f88dedcaff9361
+      sha256: 752920e9ebb693478d45fd2e68c25121c80aabbde535a7d17d658e8f119c6c19
     manager: conda
     name: pydantic-extra-types
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/pydantic-extra-types-2.8.1-pyhd8ed1ab_0.conda
-    version: 2.8.1
+      https://conda.anaconda.org/conda-forge/noarch/pydantic-extra-types-2.8.2-pyhd8ed1ab_0.conda
+    version: 2.8.2
   - category: main
     dependencies:
       cryptography: '>=3.4.0'
