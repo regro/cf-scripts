@@ -146,6 +146,14 @@ class GitPlatformError(Exception):
     pass
 
 
+class DuplicatePullRequestError(GitPlatformError):
+    """
+    Raised if a pull request already exists.
+    """
+
+    pass
+
+
 class RepositoryNotFoundError(Exception):
     """
     Raised when a repository is not found.
@@ -685,6 +693,7 @@ class GitPlatformBackend(ABC):
         :returns: The data of the created pull request.
 
         :raises GitPlatformError: If the pull request could not be created.
+        :raises DuplicatePullRequestError: If a pull request already exists and the backend checks for it.
         """
         pass
 
@@ -882,12 +891,19 @@ class GitHubBackend(GitPlatformBackend):
             target_owner, target_repo
         )
 
-        response: github3.pulls.ShortPullRequest | None = repo.create_pull(
-            title=title,
-            base=base_branch,
-            head=f"{self.user}:{head_branch}",
-            body=body,
-        )
+        try:
+            response: github3.pulls.ShortPullRequest | None = repo.create_pull(
+                title=title,
+                base=base_branch,
+                head=f"{self.user}:{head_branch}",
+                body=body,
+            )
+        except github3.exceptions.UnprocessableEntity as e:
+            if any("already exists" in error.get("message", "") for error in e.errors):
+                raise DuplicatePullRequestError(
+                    f"Pull request from {self.user}:{head_branch} to {target_owner}:{base_branch} already exists."
+                ) from e
+            raise
 
         if response is None:
             raise GitPlatformError("Could not create pull request.")
