@@ -89,6 +89,7 @@ class PullRequestDataValid(ValidatedBaseModel):
     """
     Information about a pull request, as retrieved from the GitHub API.
     Refer to git_utils.PR_KEYS_TO_KEEP for the keys that are kept in the PR object.
+    ALSO UPDATE PR_KEYS_TO_KEEP IF YOU CHANGE THIS CLASS!
 
     GitHub documentation: https://docs.github.com/en/rest/pulls/pulls?apiVersion=2022-11-28#get-a-pull-request
     """
