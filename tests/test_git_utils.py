@@ -16,6 +16,7 @@ from requests.structures import CaseInsensitiveDict
 from conda_forge_tick.git_utils import (
     Bound,
     DryRunBackend,
+    DuplicatePullRequestError,
     GitCli,
     GitCliError,
     GitConnectionMode,
@@ -1044,6 +1045,41 @@ def test_git_cli_clone_fork_and_branch_non_existing_remote_existing_target_dir(c
         assert "trying to reset hard" in caplog.text
 
 
+def _github_api_json_fixture(name: str) -> dict:
+    with Path(__file__).parent.joinpath(f"github_api/{name}.json").open() as f:
+        return json.load(f)
+
+
+@pytest.fixture()
+def github_response_create_issue_comment() -> dict:
+    return _github_api_json_fixture("create_issue_comment_pytest")
+
+
+@pytest.fixture()
+def github_response_create_pull_duplicate() -> dict:
+    return _github_api_json_fixture("create_pull_duplicate")
+
+
+@pytest.fixture()
+def github_response_create_pull_validation_error() -> dict:
+    return _github_api_json_fixture("create_pull_validation_error")
+
+
+@pytest.fixture()
+def github_response_get_pull() -> dict:
+    return _github_api_json_fixture("get_pull_pytest")
+
+
+@pytest.fixture()
+def github_response_get_repo() -> dict:
+    return _github_api_json_fixture("get_repo_pytest")
+
+
+@pytest.fixture()
+def github_response_headers() -> dict:
+    return _github_api_json_fixture("github_response_headers")
+
+
 def test_github_backend_from_token():
     token = "TOKEN"
 
@@ -1305,28 +1341,23 @@ def test_github_backend_get_api_requests_left_zero_valid_reset_time(caplog):
 
 
 @mock.patch("requests.Session.request")
-def test_github_backend_create_pull_request_mock(request_mock: MagicMock):
-    with open(Path(__file__).parent / "github_api" / "get_repo_pytest.json") as f:
-        get_repo_response = json.load(f)
-
-    with open(
-        Path(__file__).parent / "github_api" / "github_response_headers.json"
-    ) as f:
-        response_headers = json.load(f)
-
-    with open(Path(__file__).parent / "github_api" / "get_pull_pytest.json") as f:
-        create_pull_response = json.load(f)
-
+def test_github_backend_create_pull_request_mock(
+    request_mock: MagicMock,
+    github_response_get_repo: dict,
+    github_response_headers: dict,
+    github_response_get_pull: dict,
+):
     def request_side_effect(method, _url, **_kwargs):
         response = requests.Response()
         if method == "GET":
             response.status_code = 200
-            response.json = lambda: get_repo_response
+            response.json = lambda: github_response_get_repo
             return response
         if method == "POST":
             response.status_code = 201
-            response.json = lambda: create_pull_response
-            response.headers = CaseInsensitiveDict(response_headers)
+            # note that the "create pull" response body is identical to the "get pull" response body
+            response.json = lambda: github_response_get_pull
+            response.headers = CaseInsensitiveDict(github_response_headers)
             return response
         assert False, f"Unexpected method: {method}"
 
@@ -1380,18 +1411,93 @@ def test_github_backend_create_pull_request_mock(request_mock: MagicMock):
 
 
 @mock.patch("requests.Session.request")
-def test_github_backend_comment_on_pull_request_success(request_mock: MagicMock):
-    with open(Path(__file__).parent / "github_api" / "get_repo_pytest.json") as f:
-        get_repo_response = json.load(f)
+def test_github_backend_create_pull_request_duplicate(
+    request_mock: MagicMock,
+    github_response_get_repo: dict,
+    github_response_create_pull_duplicate: dict,
+):
+    def request_side_effect(method, _url, **_kwargs):
+        response = requests.Response()
+        if method == "GET":
+            response.status_code = 200
+            response.json = lambda: github_response_get_repo
+            return response
+        if method == "POST":
+            response.status_code = 422
+            # note that the "create pull" response body is identical to the "get pull" response body
+            response.json = lambda: github_response_create_pull_duplicate
+            return response
+        assert False, f"Unexpected method: {method}"
 
-    with open(Path(__file__).parent / "github_api" / "get_pull_pytest.json") as f:
-        get_pull_response = json.load(f)
+    request_mock.side_effect = request_side_effect
 
-    with open(
-        Path(__file__).parent / "github_api" / "create_issue_comment_pytest.json"
-    ) as f:
-        create_comment_response = json.load(f)
+    pygithub_mock = MagicMock()
+    pygithub_mock.get_user.return_value.login = "CURRENT_USER"
 
+    backend = GitHubBackend(github3.login(token="TOKEN"), pygithub_mock, "")
+
+    with pytest.raises(
+        DuplicatePullRequestError,
+        match="Pull request from CURRENT_USER:HEAD_BRANCH to conda-forge:BASE_BRANCH already exists",
+    ):
+        backend.create_pull_request(
+            "conda-forge",
+            "pytest-feedstock",
+            "BASE_BRANCH",
+            "HEAD_BRANCH",
+            "TITLE",
+            "BODY",
+        )
+
+
+@mock.patch("requests.Session.request")
+def test_github_backend_create_pull_request_validation_error(
+    request_mock: MagicMock,
+    github_response_get_repo: dict,
+    github_response_create_pull_validation_error: dict,
+):
+    """
+    Test that other GitHub API 422 validation errors are not caught as DuplicatePullRequestError.
+    """
+
+    def request_side_effect(method, _url, **_kwargs):
+        response = requests.Response()
+        if method == "GET":
+            response.status_code = 200
+            response.json = lambda: github_response_get_repo
+            return response
+        if method == "POST":
+            response.status_code = 422
+            # note that the "create pull" response body is identical to the "get pull" response body
+            response.json = lambda: github_response_create_pull_validation_error
+            return response
+        assert False, f"Unexpected method: {method}"
+
+    request_mock.side_effect = request_side_effect
+
+    pygithub_mock = MagicMock()
+    pygithub_mock.get_user.return_value.login = "CURRENT_USER"
+
+    backend = GitHubBackend(github3.login(token="TOKEN"), pygithub_mock, "")
+
+    with pytest.raises(github3.exceptions.UnprocessableEntity):
+        backend.create_pull_request(
+            "conda-forge",
+            "pytest-feedstock",
+            "BASE_BRANCH",
+            "HEAD_BRANCH",
+            "TITLE",
+            "BODY",
+        )
+
+
+@mock.patch("requests.Session.request")
+def test_github_backend_comment_on_pull_request_success(
+    request_mock: MagicMock,
+    github_response_get_repo: dict,
+    github_response_get_pull: dict,
+    github_response_create_issue_comment: dict,
+):
     def request_side_effect(method, url, **_kwargs):
         response = requests.Response()
         if (
@@ -1399,7 +1505,7 @@ def test_github_backend_comment_on_pull_request_success(request_mock: MagicMock)
             and url == "https://api.github.com/repos/conda-forge/pytest-feedstock"
         ):
             response.status_code = 200
-            response.json = lambda: get_repo_response
+            response.json = lambda: github_response_get_repo
             return response
         if (
             method == "GET"
@@ -1407,7 +1513,7 @@ def test_github_backend_comment_on_pull_request_success(request_mock: MagicMock)
             == "https://api.github.com/repos/conda-forge/pytest-feedstock/pulls/1337"
         ):
             response.status_code = 200
-            response.json = lambda: get_pull_response
+            response.json = lambda: github_response_get_pull
             return response
         if (
             method == "POST"
@@ -1415,7 +1521,7 @@ def test_github_backend_comment_on_pull_request_success(request_mock: MagicMock)
             == "https://api.github.com/repos/conda-forge/pytest-feedstock/issues/1337/comments"
         ):
             response.status_code = 201
-            response.json = lambda: create_comment_response
+            response.json = lambda: github_response_create_issue_comment
             return response
         assert False, f"Unexpected endpoint: {method} {url}"
 
@@ -1467,10 +1573,8 @@ def test_github_backend_comment_on_pull_request_repo_not_found(request_mock: Mag
 @mock.patch("requests.Session.request")
 def test_github_backend_comment_on_pull_request_pull_request_not_found(
     request_mock: MagicMock,
+    github_response_get_repo: dict,
 ):
-    with open(Path(__file__).parent / "github_api" / "get_repo_pytest.json") as f:
-        get_repo_response = json.load(f)
-
     def request_side_effect(method, url, **_kwargs):
         response = requests.Response()
         if (
@@ -1478,7 +1582,7 @@ def test_github_backend_comment_on_pull_request_pull_request_not_found(
             and url == "https://api.github.com/repos/conda-forge/pytest-feedstock"
         ):
             response.status_code = 200
-            response.json = lambda: get_repo_response
+            response.json = lambda: github_response_get_repo
             return response
         if (
             method == "GET"
@@ -1507,22 +1611,17 @@ def test_github_backend_comment_on_pull_request_pull_request_not_found(
 @mock.patch("requests.Session.request")
 def test_github_backend_comment_on_pull_request_unexpected_response(
     request_mock: MagicMock,
+    github_response_get_repo: dict,
+    github_response_get_pull: dict,
 ):
-    with open(Path(__file__).parent / "github_api" / "get_repo_pytest.json") as f:
-        get_repo_response = json.load(f)
-
-    with open(Path(__file__).parent / "github_api" / "get_pull_pytest.json") as f:
-        get_pull_response = json.load(f)
-
     def request_side_effect(method, url, **_kwargs):
-        # noinspection DuplicatedCode
         response = requests.Response()
         if (
             method == "GET"
             and url == "https://api.github.com/repos/conda-forge/pytest-feedstock"
         ):
             response.status_code = 200
-            response.json = lambda: get_repo_response
+            response.json = lambda: github_response_get_repo
             return response
         if (
             method == "GET"
@@ -1530,7 +1629,7 @@ def test_github_backend_comment_on_pull_request_unexpected_response(
             == "https://api.github.com/repos/conda-forge/pytest-feedstock/pulls/1337"
         ):
             response.status_code = 200
-            response.json = lambda: get_pull_response
+            response.json = lambda: github_response_get_pull
             return response
         if (
             method == "POST"
