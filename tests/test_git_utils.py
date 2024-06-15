@@ -1044,25 +1044,6 @@ def test_git_cli_clone_fork_and_branch_non_existing_remote_existing_target_dir(c
         assert "trying to reset hard" in caplog.text
 
 
-def test_git_platform_backend_get_remote_url_https():
-    owner = "OWNER"
-    repo = "REPO"
-
-    url = GitPlatformBackend.get_remote_url(owner, repo, GitConnectionMode.HTTPS)
-
-    assert url == f"https://github.com/{owner}/{repo}.git"
-
-
-def test_git_platform_backend_get_remote_url_token():
-    owner = "OWNER"
-    repo = "REPO"
-    token = "TOKEN"
-
-    url = GitPlatformBackend.get_remote_url(owner, repo, GitConnectionMode.HTTPS, token)
-
-    assert url == f"https://{token}@github.com/{owner}/{repo}.git"
-
-
 def test_github_backend_from_token():
     token = "TOKEN"
 
@@ -1104,6 +1085,27 @@ def test_github_backend_does_repository_exist(does_exist: bool):
 
     assert backend.does_repository_exist("OWNER", "REPO") is does_exist
     github3_client.repository.assert_called_once_with("OWNER", "REPO")
+
+
+def test_github_backend_get_remote_url_https():
+    owner = "OWNER"
+    repo = "REPO"
+    backend = GitHubBackend(MagicMock(), MagicMock(), "")
+
+    url = backend.get_remote_url(owner, repo, GitConnectionMode.HTTPS)
+
+    assert url == f"https://github.com/{owner}/{repo}.git"
+
+
+def test_github_backend_get_remote_url_token():
+    owner = "OWNER"
+    repo = "REPO"
+    token = "TOKEN"
+    backend = GitHubBackend(MagicMock(), MagicMock(), "")
+
+    url = backend.get_remote_url(owner, repo, GitConnectionMode.HTTPS, token)
+
+    assert url == f"https://{token}@github.com/{owner}/{repo}.git"
 
 
 @mock.patch("time.sleep", return_value=None)
@@ -1606,6 +1608,48 @@ def test_dry_run_backend_does_repository_exist_other_repo():
     assert backend.does_repository_exist("conda-forge", "pytest-feedstock")
     assert not backend.does_repository_exist(
         "conda-forge", "this-repository-does-not-exist"
+    )
+
+
+@pytest.mark.parametrize("token", [None, "TOKEN"])
+def test_dry_run_backend_get_remote_url_non_fork(token: str | None):
+    backend = DryRunBackend()
+
+    url = backend.get_remote_url("OWNER", "REPO", GitConnectionMode.HTTPS, token)
+
+    if token is None:
+        assert url == "https://github.com/OWNER/REPO.git"
+    else:
+        assert url == "https://TOKEN@github.com/OWNER/REPO.git"
+
+
+@pytest.mark.parametrize("token", [None, "TOKEN"])
+def test_dry_run_backend_get_remote_url_non_existing_fork(token: str | None):
+    backend = DryRunBackend()
+
+    with pytest.raises(RepositoryNotFoundError, match="does not exist"):
+        backend.get_remote_url(backend.user, "REPO", GitConnectionMode.HTTPS, token)
+
+    backend.fork("UPSTREAM_OWNER", "REPO2")
+
+    with pytest.raises(RepositoryNotFoundError, match="does not exist"):
+        backend.get_remote_url(backend.user, "REPO", GitConnectionMode.HTTPS, token)
+
+
+@pytest.mark.parametrize("token", [None, "TOKEN"])
+def test_dry_run_backend_get_remote_url_existing_fork(token: str | None):
+    backend = DryRunBackend()
+
+    backend.fork("UPSTREAM_OWNER", "pytest-feedstock")
+
+    url = backend.get_remote_url(
+        backend.user, "pytest-feedstock", GitConnectionMode.HTTPS, token
+    )
+
+    # note that the URL does not indicate anymore that it is a fork
+    assert (
+        url
+        == f"https://{f'{token}@' if token else ''}github.com/UPSTREAM_OWNER/pytest-feedstock.git"
     )
 
 
