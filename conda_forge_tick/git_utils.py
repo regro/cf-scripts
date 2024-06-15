@@ -548,20 +548,37 @@ class GitPlatformBackend(ABC):
         owner: str,
         repo_name: str,
         connection_mode: GitConnectionMode = GitConnectionMode.HTTPS,
+        token: str | None = None,
     ) -> str:
         """
         Get the URL of a remote repository.
         :param owner: The owner of the repository.
         :param repo_name: The name of the repository.
         :param connection_mode: The connection mode to use.
+        :param token: A token to use for authentication. If falsy, no token is used. Use get_authenticated_remote_url
+        instead if you want to use the token of the current user.
         :raises ValueError: If the connection mode is not supported.
         """
         # Currently we don't need any abstraction for other platforms than GitHub, so we don't build such abstractions.
         match connection_mode:
             case GitConnectionMode.HTTPS:
-                return f"https://github.com/{owner}/{repo_name}.git"
+                return f"https://{f'{token}@' if token else ''}github.com/{owner}/{repo_name}.git"
             case _:
                 raise ValueError(f"Unsupported connection mode: {connection_mode}")
+
+    @abstractmethod
+    def push_to_repository(
+        self, owner: str, repo_name: str, git_dir: Path, branch: str
+    ):
+        """
+        Push changes to a repository.
+        :param owner: The owner of the repository.
+        :param repo_name: The name of the repository.
+        :param git_dir: The directory of the git repository.
+        :param branch: The branch to push to.
+        :raises GitPlatformError: If the push fails.
+        """
+        pass
 
     @abstractmethod
     def fork(self, owner: str, repo_name: str):
@@ -729,7 +746,7 @@ class GitHubBackend(GitPlatformBackend):
         self,
         github3_client: github3.GitHub,
         pygithub_client: github.Github,
-        token_to_hide: str | None = None,
+        token: str,
     ):
         """
         Create a new GitHubBackend.
@@ -739,12 +756,14 @@ class GitHubBackend(GitPlatformBackend):
 
         :param github3_client: The github3 client to use for interacting with the GitHub API.
         :param pygithub_client: The PyGithub client to use for interacting with the GitHub API.
-        :param token_to_hide: A token to hide in the CLI output. If None, no tokens are hidden.
+        :param token: The token that will be hidden in CLI outputs and used for writing to git repositories. Note that
+        you need to authenticate github3 and PyGithub yourself. Use the `from_token` class method to create an instance
+        that has all necessary clients set up.
         """
         cli = GitCli()
-        if token_to_hide:
-            cli.add_hidden_token(token_to_hide)
+        cli.add_hidden_token(token)
         super().__init__(cli)
+        self.__token = token
         self.github3_client = github3_client
         self._github3_session = _Github3SessionWrapper(self.github3_client.session)
         self.github3_client.session = self._github3_session
@@ -756,12 +775,21 @@ class GitHubBackend(GitPlatformBackend):
         return cls(
             github3.login(token=token),
             github.Github(auth=github.Auth.Token(token), per_page=cls._GITHUB_PER_PAGE),
-            token_to_hide=token,
+            token=token,
         )
 
     def does_repository_exist(self, owner: str, repo_name: str) -> bool:
         repo = self.github3_client.repository(owner, repo_name)
         return repo is not None
+
+    def push_to_repository(
+        self, owner: str, repo_name: str, git_dir: Path, branch: str
+    ):
+        # we need an authenticated URL with write access
+        remote_url = self.get_remote_url(
+            owner, repo_name, GitConnectionMode.HTTPS, self.__token
+        )
+        self.cli.push_to_url(git_dir, remote_url, branch)
 
     @lock_git_operation()
     def fork(self, owner: str, repo_name: str):
@@ -921,6 +949,13 @@ class DryRunBackend(GitPlatformBackend):
         # We do not use the GitHub API because unauthenticated requests are quite strictly rate-limited.
         return self.cli.does_remote_exist(
             self.get_remote_url(owner, repo_name, GitConnectionMode.HTTPS)
+        )
+
+    def push_to_repository(
+        self, owner: str, repo_name: str, git_dir: Path, branch: str
+    ):
+        logger.debug(
+            f"Dry Run: Pushing changes from {git_dir} to {owner}/{repo_name} on branch {branch}."
         )
 
     @lock_git_operation()
