@@ -1062,7 +1062,7 @@ class DryRunBackend(GitPlatformBackend):
                 "base": GithubPullRequestBase(repo=GithubRepository(name=target_repo)),
             }
         )
-    
+
     def comment_on_pull_request(
         self, repo_owner: str, repo_name: str, pr_number: int, comment: str
     ):

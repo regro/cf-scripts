@@ -1080,6 +1080,16 @@ def github_response_headers() -> dict:
     return _github_api_json_fixture("github_response_headers")
 
 
+def test_git_platform_backend_get_remote_url_token():
+    owner = "OWNER"
+    repo = "REPO"
+    token = "TOKEN"
+
+    url = GitPlatformBackend.get_remote_url(owner, repo, GitConnectionMode.HTTPS, token)
+
+    assert url == f"https://{token}@github.com/{owner}/{repo}.git"
+
+
 def test_github_backend_from_token():
     token = "TOKEN"
 
