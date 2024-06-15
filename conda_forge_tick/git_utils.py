@@ -14,7 +14,7 @@ from datetime import datetime
 from email import utils
 from functools import cached_property
 from pathlib import Path
-from typing import Dict, Iterator, Literal, Optional, Tuple, Union
+from typing import Dict, Iterator, Optional, Union
 
 import backoff
 import github
@@ -33,7 +33,6 @@ from conda_forge_tick import sensitive_env
 # and pull all the needed info from the various source classes)
 from conda_forge_tick.lazy_json_backends import LazyJson
 
-from .contexts import FeedstockContext
 from .executors import lock_git_operation
 from .models.pr_json import (
     GithubPullRequestBase,
@@ -43,7 +42,6 @@ from .models.pr_json import (
     PullRequestInfoHead,
     PullRequestState,
 )
-from .os_utils import pushd
 from .utils import get_bot_run_url, replace_tokens, run_command_hiding_token
 
 logger = logging.getLogger(__name__)
@@ -1105,41 +1103,6 @@ def is_github_api_limit_reached() -> bool:
 
 
 @lock_git_operation()
-def get_repo(
-    fctx: FeedstockContext,
-    branch: str,
-    base_branch: str = "main",
-) -> Tuple[str, github3.repos.Repository] | Tuple[Literal[False], Literal[False]]:
-    """Get the feedstock repo
-
-    Parameters
-    ----------
-    fctx : FeedstockContext
-        Feedstock context used for constructing feedstock urls, etc.
-    branch : str
-        The branch to be made.
-    base_branch : str, optional
-        The base branch from which to make the new branch.
-
-    Returns
-    -------
-    recipe_dir : str
-        The recipe directory
-    repo : github3 repository
-        The github3 repository object.
-    """
-
-    # This is needed because we want to migrate to the new backend step-by-step
-    repo: github3.repos.Repository | None = github3_client().repository(
-        fctx.git_repo_owner, fctx.git_repo_name
-    )
-
-    assert repo is not None
-
-    return str(feedstock_dir), repo
-
-
-@lock_git_operation()
 def delete_branch(pr_json: LazyJson, dry_run: bool = False) -> None:
     ref = pr_json["head"]["ref"]
     if dry_run:
@@ -1358,97 +1321,6 @@ def close_out_labels(
         return dict(pr_json)
 
     return None
-
-
-@lock_git_operation()
-def push_repo(
-    fctx: FeedstockContext,
-    feedstock_dir: str,
-    body: str,
-    repo: github3.repos.Repository,
-    title: str,
-    branch: str,
-    base_branch: str = "main",
-    dry_run: bool = False,
-) -> Union[dict, bool, None]:
-    """Push a repo up to github
-
-    Parameters
-    ----------
-    fctx : FeedstockContext
-        Feedstock context used for constructing feedstock urls, etc.
-    feedstock_dir : str
-        The feedstock directory
-    body : str
-        The PR body.
-    repo : github3.repos.Repository
-        The feedstock repo as a github3 object.
-    title : str
-        The title of the PR.
-    head : str, optional
-        The github head for the PR in the form `username:branch`.
-    branch : str
-        The head branch of the PR.
-    base_branch : str, optional
-        The base branch or target branch of the PR.
-
-    Returns
-    -------
-    pr_json: dict
-        The dict representing the PR, can be used with `from_json`
-        to create a PR instance.
-    """
-    with pushd(feedstock_dir):
-        # Copyright (c) 2016 Aaron Meurer, Gil Forsyth
-        token = get_bot_token()
-        gh_username = github3_client().me().login
-
-        head = gh_username + ":" + branch
-
-        deploy_repo = gh_username + "/" + fctx.feedstock_name + "-feedstock"
-        if dry_run:
-            repo_url = f"https://github.com/{deploy_repo}.git"
-            print(f"dry run: adding remote and pushing up branch for {repo_url}")
-        else:
-            ecode = run_command_hiding_token(
-                [
-                    "git",
-                    "remote",
-                    "add",
-                    "regro_remote",
-                    f"https://{token}@github.com/{deploy_repo}.git",
-                ],
-                token=token,
-            )
-            if ecode != 0:
-                print("Failed to add git remote!")
-                return False
-
-            ecode = run_command_hiding_token(
-                ["git", "push", "--set-upstream", "regro_remote", branch],
-                token=token,
-            )
-            if ecode != 0:
-                print("Failed to push to remote!")
-                return False
-
-    # lastly make a PR for the feedstock
-    print("Creating conda-forge feedstock pull request...")
-    if dry_run:
-        print(f"dry run: create pr with title: {title}")
-        return False
-    else:
-        pr = repo.create_pull(title, base_branch, head, body=body)
-        if pr is None:
-            print("Failed to create pull request!")
-            return False
-        else:
-            print("Pull request created at " + pr.html_url)
-
-    # Return a json object so we can remake the PR if needed
-    pr_dict: dict = pr.as_dict()
-
-    return trim_pr_json_keys(pr_dict)
 
 
 def comment_on_pr(pr_json, comment, repo):
