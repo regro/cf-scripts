@@ -1053,6 +1053,16 @@ def test_git_platform_backend_get_remote_url_https():
     assert url == f"https://github.com/{owner}/{repo}.git"
 
 
+def test_git_platform_backend_get_remote_url_token():
+    owner = "OWNER"
+    repo = "REPO"
+    token = "TOKEN"
+
+    url = GitPlatformBackend.get_remote_url(owner, repo, GitConnectionMode.HTTPS, token)
+
+    assert url == f"https://{token}@github.com/{owner}/{repo}.git"
+
+
 def test_github_backend_from_token():
     token = "TOKEN"
 
@@ -1088,7 +1098,7 @@ def test_github_backend_token_to_hide(caplog, capfd, from_token: bool):
 def test_github_backend_does_repository_exist(does_exist: bool):
     github3_client = MagicMock()
 
-    backend = GitHubBackend(github3_client, MagicMock())
+    backend = GitHubBackend(github3_client, MagicMock(), "")
 
     github3_client.repository.return_value = MagicMock() if does_exist else None
 
@@ -1110,7 +1120,7 @@ def test_github_backend_fork_not_exists_repo_found(
     repository = MagicMock()
     github3_client.repository.return_value = repository
 
-    backend = GitHubBackend(github3_client, MagicMock())
+    backend = GitHubBackend(github3_client, MagicMock(), "")
     user_mock.return_value = "USER"
     backend.fork("UPSTREAM-OWNER", "REPO")
 
@@ -1118,6 +1128,21 @@ def test_github_backend_fork_not_exists_repo_found(
     github3_client.repository.assert_called_once_with("UPSTREAM-OWNER", "REPO")
     repository.create_fork.assert_called_once()
     sleep_mock.assert_called_once_with(5)
+
+
+@mock.patch("conda_forge_tick.git_utils.GitCli.push_to_url")
+def test_github_backend_push_to_repository(push_to_url_mock: MagicMock):
+    backend = GitHubBackend.from_token("THIS_IS_THE_TOKEN")
+
+    git_dir = Path("GIT_DIR")
+
+    backend.push_to_repository("OWNER", "REPO", git_dir, "BRANCH_NAME")
+
+    push_to_url_mock.assert_called_once_with(
+        git_dir,
+        "https://THIS_IS_THE_TOKEN@github.com/OWNER/REPO.git",
+        "BRANCH_NAME",
+    )
 
 
 @pytest.mark.parametrize("branch_already_synced", [True, False])
@@ -1158,7 +1183,7 @@ def test_github_backend_fork_exists(
         upstream_repo.default_branch = "UPSTREAM_BRANCH_NAME"
         fork_repo.default_branch = "FORK_BRANCH_NAME"
 
-    backend = GitHubBackend(MagicMock(), pygithub_client)
+    backend = GitHubBackend(MagicMock(), pygithub_client, "")
     backend.fork("UPSTREAM-OWNER", "REPO")
 
     if not branch_already_synced:
@@ -1181,7 +1206,7 @@ def test_github_backend_remote_does_not_exist(
     github3_client = MagicMock()
     github3_client.repository.return_value = None
 
-    backend = GitHubBackend(github3_client, MagicMock())
+    backend = GitHubBackend(github3_client, MagicMock(), "")
 
     user_mock.return_value = "USER"
 
@@ -1198,7 +1223,7 @@ def test_github_backend_user():
     user.login = "USER"
     pygithub_client.get_user.return_value = user
 
-    backend = GitHubBackend(MagicMock(), pygithub_client)
+    backend = GitHubBackend(MagicMock(), pygithub_client, "")
 
     for _ in range(4):
         # cached property
@@ -1213,7 +1238,7 @@ def test_github_backend_get_api_requests_left_github_exception(caplog):
         "API Error"
     )
 
-    backend = GitHubBackend(github3_client, MagicMock())
+    backend = GitHubBackend(github3_client, MagicMock(), "")
 
     assert backend.get_api_requests_left() is None
     assert "API error while fetching" in caplog.text
@@ -1225,7 +1250,7 @@ def test_github_backend_get_api_requests_left_unexpected_response_schema(caplog)
     github3_client = MagicMock()
     github3_client.rate_limit.return_value = {"some": "gibberish data"}
 
-    backend = GitHubBackend(github3_client, MagicMock())
+    backend = GitHubBackend(github3_client, MagicMock(), "")
 
     assert backend.get_api_requests_left() is None
     assert "API Error while parsing"
@@ -1237,7 +1262,7 @@ def test_github_backend_get_api_requests_left_nonzero():
     github3_client = MagicMock()
     github3_client.rate_limit.return_value = {"resources": {"core": {"remaining": 5}}}
 
-    backend = GitHubBackend(github3_client, MagicMock())
+    backend = GitHubBackend(github3_client, MagicMock(), "")
 
     assert backend.get_api_requests_left() == 5
 
@@ -1249,7 +1274,7 @@ def test_github_backend_get_api_requests_left_zero_invalid_reset_time(caplog):
 
     github3_client.rate_limit.return_value = {"resources": {"core": {"remaining": 0}}}
 
-    backend = GitHubBackend(github3_client, MagicMock())
+    backend = GitHubBackend(github3_client, MagicMock(), "")
 
     assert backend.get_api_requests_left() == 0
 
@@ -1269,7 +1294,7 @@ def test_github_backend_get_api_requests_left_zero_valid_reset_time(caplog):
         "resources": {"core": {"remaining": 0, "reset": reset_timestamp}}
     }
 
-    backend = GitHubBackend(github3_client, MagicMock())
+    backend = GitHubBackend(github3_client, MagicMock(), "")
 
     assert backend.get_api_requests_left() == 0
 
@@ -1308,7 +1333,7 @@ def test_github_backend_create_pull_request_mock(request_mock: MagicMock):
     pygithub_mock = MagicMock()
     pygithub_mock.get_user.return_value.login = "CURRENT_USER"
 
-    backend = GitHubBackend(github3.login(token="TOKEN"), pygithub_mock)
+    backend = GitHubBackend(github3.login(token="TOKEN"), pygithub_mock, "")
 
     pr_data = backend.create_pull_request(
         "conda-forge",
@@ -1394,7 +1419,7 @@ def test_github_backend_comment_on_pull_request_success(request_mock: MagicMock)
 
     request_mock.side_effect = request_side_effect
 
-    backend = GitHubBackend(github3.login(token="TOKEN"), MagicMock())
+    backend = GitHubBackend(github3.login(token="TOKEN"), MagicMock(), "")
 
     backend.comment_on_pull_request(
         "conda-forge",
@@ -1426,7 +1451,7 @@ def test_github_backend_comment_on_pull_request_repo_not_found(request_mock: Mag
 
     request_mock.side_effect = request_side_effect
 
-    backend = GitHubBackend(github3.login(token="TOKEN"), MagicMock())
+    backend = GitHubBackend(github3.login(token="TOKEN"), MagicMock(), "")
 
     with pytest.raises(RepositoryNotFoundError):
         backend.comment_on_pull_request(
@@ -1463,7 +1488,7 @@ def test_github_backend_comment_on_pull_request_pull_request_not_found(
         assert False, f"Unexpected endpoint: {method} {url}"
 
     request_mock.side_effect = request_side_effect
-    backend = GitHubBackend(github3.login(token="TOKEN"), MagicMock())
+    backend = GitHubBackend(github3.login(token="TOKEN"), MagicMock(), "")
 
     with pytest.raises(
         GitPlatformError,
@@ -1516,7 +1541,7 @@ def test_github_backend_comment_on_pull_request_unexpected_response(
 
     request_mock.side_effect = request_side_effect
 
-    backend = GitHubBackend(github3.login(token="TOKEN"), MagicMock())
+    backend = GitHubBackend(github3.login(token="TOKEN"), MagicMock(), "")
 
     with pytest.raises(GitPlatformError, match="Could not comment on pull request"):
         backend.comment_on_pull_request(
@@ -1528,7 +1553,7 @@ def test_github_backend_comment_on_pull_request_unexpected_response(
 
 
 @pytest.mark.parametrize(
-    "backend", [GitHubBackend(MagicMock(), MagicMock()), DryRunBackend()]
+    "backend", [GitHubBackend(MagicMock(), MagicMock(), ""), DryRunBackend()]
 )
 @mock.patch(
     "conda_forge_tick.git_utils.GitHubBackend.user", new_callable=mock.PropertyMock
@@ -1547,7 +1572,7 @@ def test_git_platform_backend_clone_fork_and_branch(
 
     user_mock.return_value = "USER"
 
-    backend = GitHubBackend(MagicMock(), MagicMock())
+    backend = GitHubBackend(MagicMock(), MagicMock(), "")
     backend.clone_fork_and_branch(
         upstream_owner, repo_name, target_dir, new_branch, base_branch
     )
@@ -1581,6 +1606,21 @@ def test_dry_run_backend_does_repository_exist_other_repo():
     assert backend.does_repository_exist("conda-forge", "pytest-feedstock")
     assert not backend.does_repository_exist(
         "conda-forge", "this-repository-does-not-exist"
+    )
+
+
+def test_dry_run_backend_push_to_repository(caplog):
+    caplog.set_level(logging.DEBUG)
+
+    backend = DryRunBackend()
+
+    git_dir = Path("GIT_DIR")
+
+    backend.push_to_repository("OWNER", "REPO", git_dir, "BRANCH_NAME")
+
+    assert (
+        "Dry Run: Pushing changes from GIT_DIR to OWNER/REPO on branch BRANCH_NAME"
+        in caplog.text
     )
 
 
