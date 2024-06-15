@@ -543,8 +543,8 @@ class GitPlatformBackend(ABC):
         """
         pass
 
-    @staticmethod
     def get_remote_url(
+        self,
         owner: str,
         repo_name: str,
         connection_mode: GitConnectionMode = GitConnectionMode.HTTPS,
@@ -558,6 +558,8 @@ class GitPlatformBackend(ABC):
         :param token: A token to use for authentication. If falsy, no token is used. Use get_authenticated_remote_url
         instead if you want to use the token of the current user.
         :raises ValueError: If the connection mode is not supported.
+        :raises RepositoryNotFoundError: If the repository does not exist. This is only raised if the backend relies on
+        the repository existing to generate the URL.
         """
         # Currently we don't need any abstraction for other platforms than GitHub, so we don't build such abstractions.
         match connection_mode:
@@ -937,7 +939,12 @@ class DryRunBackend(GitPlatformBackend):
 
     def __init__(self):
         super().__init__(GitCli())
-        self._repos: set[str] = set()
+        self._repos: dict[str, str] = {}
+        """
+        _repos maps from repository name to the owner of the upstream repository.
+        If a remote URL of a fork is requested with get_remote_url, _USER (the virtual current user) is
+        replaced by the owner of the upstream repository. This allows cloning the forked repository.
+        """
 
     def get_api_requests_left(self) -> Bound:
         return Bound.INFINITY
@@ -950,6 +957,26 @@ class DryRunBackend(GitPlatformBackend):
         return self.cli.does_remote_exist(
             self.get_remote_url(owner, repo_name, GitConnectionMode.HTTPS)
         )
+
+    def get_remote_url(
+        self,
+        owner: str,
+        repo_name: str,
+        connection_mode: GitConnectionMode = GitConnectionMode.HTTPS,
+        token: str | None = None,
+    ) -> str:
+        if owner != self._USER:
+            return super().get_remote_url(owner, repo_name, connection_mode, token)
+        # redirect to the upstream repository
+        try:
+            upstream_owner = self._repos[repo_name]
+        except KeyError:
+            raise RepositoryNotFoundError(
+                f"Repository {owner}/{repo_name} appears to be a virtual fork but does not exist. Note that dry-run "
+                "forks are persistent only for the duration of the backend instance."
+            )
+
+        return super().get_remote_url(upstream_owner, repo_name, connection_mode, token)
 
     def push_to_repository(
         self, owner: str, repo_name: str, git_dir: Path, branch: str
@@ -967,7 +994,7 @@ class DryRunBackend(GitPlatformBackend):
         logger.debug(
             f"Dry Run: Creating fork of {owner}/{repo_name} for user {self._USER}."
         )
-        self._repos.add(repo_name)
+        self._repos[repo_name] = owner
 
     def _sync_default_branch(self, upstream_owner: str, upstream_repo: str):
         logger.debug(
