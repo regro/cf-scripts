@@ -961,7 +961,8 @@ class DryRunBackend(GitPlatformBackend):
     @lock_git_operation()
     def fork(self, owner: str, repo_name: str):
         if repo_name in self._repos:
-            raise ValueError(f"Fork of {repo_name} already exists.")
+            logger.debug(f"Fork of {repo_name} already exists. Doing nothing.")
+            return
 
         logger.debug(
             f"Dry Run: Creating fork of {owner}/{repo_name} for user {self._USER}."

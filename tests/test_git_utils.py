@@ -1635,11 +1635,8 @@ def test_dry_run_backend_fork(caplog):
         in caplog.text
     )
 
-    with pytest.raises(ValueError, match="Fork of REPO already exists"):
-        backend.fork("UPSTREAM_OWNER", "REPO")
-
-    with pytest.raises(ValueError, match="Fork of REPO already exists"):
-        backend.fork("OTHER_OWNER", "REPO")
+    # this should not raise an error
+    backend.fork("UPSTREAM_OWNER", "REPO")
 
 
 def test_dry_run_backend_sync_default_branch(caplog):
