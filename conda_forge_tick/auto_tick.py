@@ -397,6 +397,43 @@ def _handle_solvability_error(
             vpri["new_version_attempts"][_new_ver] -= 0.8
 
 
+def _check_and_process_solvability(
+    migrator: Migrator, context: FeedstockContext, base_branch: str
+) -> bool:
+    """
+    If the migration needs a solvability check, perform the check. If the recipe is not solvable, handle the error
+    by setting the corresponding fields in the feedstock attributes.
+    If the recipe is solvable, reset the fields that track the solvability check status.
+
+    :param migrator: The migrator that was run
+    :param context: The current FeedstockContext of the feedstock that was migrated
+    :param base_branch: The branch of the feedstock repository that is the migration target
+
+    :returns: True if the migration can proceed normally, False if a required solvability check failed and the migration
+    needs to be aborted
+    """
+    if not _is_solvability_check_needed(migrator, context, base_branch):
+        return True
+
+    solvable, solvability_errors, _ = is_recipe_solvable(
+        str(context.local_clone_dir),
+        build_platform=context.attrs["conda-forge.yml"].get(
+            "build_platform",
+            None,
+        ),
+    )
+    if solvable:
+        _reset_pre_pr_migrator_fields(
+            context.attrs,
+            get_migrator_name(migrator),
+            is_version=isinstance(migrator, Version),
+        )
+        return True
+
+    _handle_solvability_error(solvability_errors, context, migrator, base_branch)
+    return False
+
+
 def get_spoofed_closed_pr_info() -> PullRequestInfoSpecial:
     return PullRequestInfoSpecial(
         id=str(uuid4()),
@@ -501,24 +538,9 @@ def run(
     else:
         rerender_info = _RerenderInfo(nontrivial_migration_yaml_changes=False)
 
-    if _is_solvability_check_needed(migrator, context, base_branch):
-        solvable, solvability_errors, _ = is_recipe_solvable(
-            str(context.local_clone_dir),
-            build_platform=context.attrs["conda-forge.yml"].get(
-                "build_platform",
-                None,
-            ),
-        )
-        if not solvable:
-            _handle_solvability_error(
-                solvability_errors, context, migrator, base_branch
-            )
-            shutil.rmtree(context.local_clone_dir)
-            return False, False
-        else:
-            _reset_pre_pr_migrator_fields(
-                context.attrs, migrator_name, is_version=is_version_migration
-            )
+    if not _check_and_process_solvability(migrator, context, base_branch):
+        logger.warning("Skipping migration due to solvability check failure")
+        return False, False
 
     pr_data: PullRequestData | PullRequestInfoSpecial | None = None
     """
