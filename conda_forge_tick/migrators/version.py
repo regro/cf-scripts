@@ -11,7 +11,7 @@ import conda.exceptions
 import networkx as nx
 from conda.models.version import VersionOrder
 
-from conda_forge_tick.contexts import FeedstockContext
+from conda_forge_tick.contexts import ClonedFeedstockContext, FeedstockContext
 from conda_forge_tick.migrators.core import Migrator
 from conda_forge_tick.models.pr_info import MigratorName
 from conda_forge_tick.os_utils import pushd
@@ -219,7 +219,7 @@ class Version(Migrator):
                 )
             )
 
-    def pr_body(self, feedstock_ctx: FeedstockContext) -> str:
+    def pr_body(self, feedstock_ctx: ClonedFeedstockContext) -> str:
         if feedstock_ctx.feedstock_name in self.effective_graph.nodes:
             pred = [
                 (
@@ -319,7 +319,7 @@ class Version(Migrator):
 
         return super().pr_body(feedstock_ctx, add_label_text=False).format(body)
 
-    def _hint_and_maybe_update_deps(self, feedstock_ctx):
+    def _hint_and_maybe_update_deps(self, feedstock_ctx: ClonedFeedstockContext):
         update_deps = get_keys_default(
             feedstock_ctx.attrs,
             ["conda-forge.yml", "bot", "inspection"],

@@ -4,7 +4,6 @@ import json
 import logging
 import os
 import random
-import shutil
 import textwrap
 import time
 import traceback
@@ -30,7 +29,7 @@ from conda.models.version import VersionOrder
 from conda_forge_tick.cli_context import CliContext
 from conda_forge_tick.deploy import deploy
 from conda_forge_tick.contexts import (
-    GIT_CLONE_DIR,
+    ClonedFeedstockContext,
     FeedstockContext,
     MigratorSessionContext,
 )
@@ -151,7 +150,7 @@ def _get_pre_pr_migrator_attempts(attrs, migrator_name, *, is_version):
 
 def _prepare_feedstock_repository(
     backend: GitPlatformBackend,
-    context: FeedstockContext,
+    context: ClonedFeedstockContext,
     branch: str,
     base_branch: str,
 ) -> bool:
@@ -196,7 +195,7 @@ def _prepare_feedstock_repository(
 
 def _commit_migration(
     cli: GitCli,
-    context: FeedstockContext,
+    context: ClonedFeedstockContext,
     commit_message: str,
     allow_empty_commits: bool = False,
     raise_commit_errors: bool = True,
@@ -252,7 +251,7 @@ class _RerenderInfo:
 
 
 def _run_rerender(
-    git_cli: GitCli, context: FeedstockContext, suppress_errors: bool = False
+    git_cli: GitCli, context: ClonedFeedstockContext, suppress_errors: bool = False
 ) -> _RerenderInfo:
     logger.info("Rerendering the feedstock")
 
@@ -398,7 +397,7 @@ def _handle_solvability_error(
 
 
 def _check_and_process_solvability(
-    migrator: Migrator, context: FeedstockContext, base_branch: str
+    migrator: Migrator, context: ClonedFeedstockContext, base_branch: str
 ) -> bool:
     """
     If the migration needs a solvability check, perform the check. If the recipe is not solvable, handle the error
@@ -442,8 +441,36 @@ def get_spoofed_closed_pr_info() -> PullRequestInfoSpecial:
     )
 
 
-def run(
+def run_with_tmpdir(
     context: FeedstockContext,
+    migrator: Migrator,
+    rerender: bool = True,
+    base_branch: str = "main",
+    dry_run: bool = False,
+    **kwargs: typing.Any,
+) -> tuple[MigrationUidTypedDict, dict] | tuple[Literal[False], Literal[False]]:
+    """
+    For a given feedstock and migration run the migration in a temporary directory that will be deleted after the
+    migration is complete.
+
+    The parameters are the same as for the `run` function. The only difference is that you pass a FeedstockContext
+    instance instead of a ClonedFeedstockContext instance.
+
+    The exceptions are the same as for the `run` function.
+    """
+    with context.reserve_clone_directory() as cloned_context:
+        return run(
+            context=cloned_context,
+            migrator=migrator,
+            rerender=rerender,
+            base_branch=base_branch,
+            dry_run=dry_run,
+            **kwargs,
+        )
+
+
+def run(
+    context: ClonedFeedstockContext,
     migrator: Migrator,
     rerender: bool = True,
     base_branch: str = "main",
@@ -454,8 +481,8 @@ def run(
 
     Parameters
     ----------
-    context: FeedstockContext
-        The node attributes
+    context: ClonedFeedstockContext
+        The current feedstock context, already containing information about a temporary directory for the feedstock.
     migrator: Migrator instance
         The migrator to run on the feedstock
     rerender : bool
@@ -513,7 +540,6 @@ def run(
         logger.critical(
             f"Failed to migrate {context.feedstock_name}, {context.attrs.get('pr_info', {}).get('bad')}",
         )
-        shutil.rmtree(context.local_clone_dir)
         return False, False
 
     # We raise an exception if we don't plan to rerender and wanted an empty commit.
@@ -607,8 +633,6 @@ def run(
         context.attrs, migrator_name, is_version=is_version_migration
     )
 
-    logger.info("Removing feedstock dir")
-    shutil.rmtree(context.local_clone_dir)
     return migration_run_data["migrate_return_value"], pr_lazy_json
 
 
@@ -690,7 +714,7 @@ def _run_migrator_on_feedstock_branch(
     attrs,
     base_branch,
     migrator,
-    fctx,
+    fctx: FeedstockContext,
     dry_run,
     mctx,
     migrator_name,
@@ -702,7 +726,7 @@ def _run_migrator_on_feedstock_branch(
             fctx.attrs["new_version"] = attrs.get("version_pr_info", {}).get(
                 "new_version", None
             )
-            migrator_uid, pr_json = run(
+            migrator_uid, pr_json = run_with_tmpdir(
                 context=fctx,
                 migrator=migrator,
                 rerender=migrator.rerender,
@@ -1013,7 +1037,6 @@ def _run_migrator(migrator, mctx, temp, time_per, dry_run):
                     dump_graph(mctx.graph)
 
                 with filter_reprinted_lines("rm-tmp"):
-                    eval_cmd(["rm", "-rf", f"{GIT_CLONE_DIR}/*"])
                     for f in glob.glob("/tmp/*"):
                         if f not in temp:
                             try:
