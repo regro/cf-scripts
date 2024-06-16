@@ -477,6 +477,34 @@ def run(
     base_branch: str = "main",
     **kwargs: typing.Any,
 ) -> tuple[MigrationUidTypedDict, dict] | tuple[Literal[False], Literal[False]]:
+    """
+    For a given feedstock and migration run the migration in a temporary directory that will be deleted after the
+    migration is complete.
+
+    The parameters are the same as for the `run` function. The only difference is that you pass a FeedstockContext
+    instance instead of a ClonedFeedstockContext instance.
+
+    The exceptions are the same as for the `run` function.
+    """
+    with context.reserve_clone_directory() as cloned_context:
+        return run(
+            context=cloned_context,
+            migrator=migrator,
+            rerender=rerender,
+            base_branch=base_branch,
+            dry_run=dry_run,
+            **kwargs,
+        )
+
+
+def run(
+    context: ClonedFeedstockContext,
+    migrator: Migrator,
+    rerender: bool = True,
+    base_branch: str = "main",
+    dry_run: bool = False,
+    **kwargs: typing.Any,
+) -> tuple[MigrationUidTypedDict, dict] | tuple[Literal[False], Literal[False]]:
     """For a given feedstock and migration run the migration
 
     Parameters
