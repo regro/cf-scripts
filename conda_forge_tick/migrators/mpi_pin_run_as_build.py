@@ -92,6 +92,9 @@ class MPIPinRunAsBuildCleanup(MiniMigrator):
             if len(new_lines) > 0:
                 with open(fname, "w") as fp:
                     fp.write("\n".join(new_lines))
+                    if new_lines[-1]:
+                        # ensure trailing newline
+                        fp.write("\n")
             else:
                 with pushd(recipe_dir):
                     subprocess.run(["rm", "-f", "conda_build_config.yaml"])

@@ -245,9 +245,12 @@ class StdlibMigrator(MiniMigrator):
             # that in the conda_build_config, and remove all `__osx` constraints in
             # the meta.yaml (see further up).
             # this line almost always has a selector, keep the alignment
-            cbc_lines = _replacer(
+            new_cbc_lines = _replacer(
                 cbc_lines, r"^MACOSX_DEPLOYMENT_TARGET:", "c_stdlib_version:        "
             )
-
-            with open(fname, "w") as fp:
-                fp.write("".join(cbc_lines) + "\n")
+            if new_cbc_lines != cbc_lines:
+                with open(fname, "w") as fp:
+                    fp.write("".join(new_cbc_lines))
+                    if new_cbc_lines and not new_cbc_lines[-1].endswith("\n"):
+                        # ensure trailing newline
+                        fp.write("\n")
