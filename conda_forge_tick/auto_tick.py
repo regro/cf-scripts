@@ -10,13 +10,6 @@ import traceback
 import typing
 from dataclasses import dataclass
 from typing import AnyStr, Literal, cast
-
-from .models.pr_info import PullRequestInfoSpecial
-from .models.pr_json import PullRequestData, PullRequestState
-
-if typing.TYPE_CHECKING:
-    from .migrators_types import MigrationUidTypedDict
-
 from urllib.error import URLError
 from uuid import uuid4
 
@@ -75,6 +68,10 @@ from conda_forge_tick.utils import (
     load_existing_graph,
     sanitize_string,
 )
+
+from .migrators_types import MigrationUidTypedDict
+from .models.pr_info import PullRequestInfoSpecial
+from .models.pr_json import PullRequestData, PullRequestState
 
 logger = logging.getLogger(__name__)
 
@@ -793,6 +790,7 @@ def _run_migrator_on_feedstock_branch(
 
     except (github3.GitHubError, github.GithubException) as e:
         # TODO: pull this down into run() - also check the other exceptions
+        # TODO: continue here, after that run locally and add tests, backend should be injected into run
         if hasattr(e, "msg") and e.msg == "Repository was archived so is read-only.":
             attrs["archived"] = True
         else:
@@ -1124,7 +1122,7 @@ def _update_nodes_with_bot_rerun(gx: nx.DiGraph, package: str | None = None):
 
     nodes = gx.nodes.items() if not package else [(package, gx.nodes[package])]
 
-    for i, (name, node) in nodes:
+    for i, (name, node) in enumerate(nodes):
         # logger.info(
         #     f"node: {i} memory usage: "
         #     f"{psutil.Process().memory_info().rss // 1024 ** 2}MB",
@@ -1332,6 +1330,7 @@ def main(ctx: CliContext, package: str | None = None) -> None:
             smithy_version=smithy_version,
             pinning_version=pinning_version,
         )
+        # TODO: this does not support --online
         migrators = load_migrators()
 
     # compute the time per migrator
