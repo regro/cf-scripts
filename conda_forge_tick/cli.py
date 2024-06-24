@@ -245,16 +245,22 @@ def make_import_to_package_mapping(
 
 
 @main.command(name="make-migrators")
+@click.option(
+    "--version-only/--all",
+    default=False,
+    help="If given, only initialize the Version migrator.",
+)
 @pass_context
 def make_migrators(
     ctx: CliContext,
+    version_only: bool,
 ) -> None:
     """
     Make the migrators.
     """
     from . import make_migrators as _make_migrators
 
-    _make_migrators.main(ctx)
+    _make_migrators.main(ctx, version_only=version_only)
 
 
 if __name__ == "__main__":

@@ -690,36 +690,9 @@ def create_migration_yaml_creator(
                 continue
 
 
-def initialize_migrators(
+def initialize_version_migrator(
     gx: nx.DiGraph,
-) -> MutableSequence[Migrator]:
-    migrators: List[Migrator] = []
-
-    add_arch_migrate(migrators, gx)
-
-    add_replacement_migrator(
-        migrators,
-        gx,
-        cast("PackageName", "build"),
-        cast("PackageName", "python-build"),
-        "The conda package name 'build' is deprecated "
-        "and too generic. Use 'python-build instead.'",
-    )
-
-    pinning_migrators: List[Migrator] = []
-    migration_factory(pinning_migrators, gx)
-    create_migration_yaml_creator(migrators=pinning_migrators, gx=gx)
-
-    with fold_log_lines("migration graph sizes"):
-        print("rebuild migration graph sizes:", flush=True)
-        for m in migrators + pinning_migrators:
-            if isinstance(m, GraphMigrator):
-                print(
-                    f'    {getattr(m, "name", m)} graph size: '
-                    f'{len(getattr(m, "graph", []))}',
-                    flush=True,
-                )
-
+) -> Version:
     with fold_log_lines("making version migrator"):
         print("building package import maps and version migrator", flush=True)
         python_nodes = {
@@ -754,8 +727,43 @@ def initialize_migrators(
             ],
         )
 
-        random.shuffle(pinning_migrators)
-        migrators = [version_migrator] + migrators + pinning_migrators
+    return version_migrator
+
+
+def initialize_migrators(
+    gx: nx.DiGraph,
+) -> MutableSequence[Migrator]:
+    migrators: List[Migrator] = []
+
+    add_arch_migrate(migrators, gx)
+
+    add_replacement_migrator(
+        migrators,
+        gx,
+        cast("PackageName", "build"),
+        cast("PackageName", "python-build"),
+        "The conda package name 'build' is deprecated "
+        "and too generic. Use 'python-build instead.'",
+    )
+
+    pinning_migrators: List[Migrator] = []
+    migration_factory(pinning_migrators, gx)
+    create_migration_yaml_creator(migrators=pinning_migrators, gx=gx)
+
+    with fold_log_lines("migration graph sizes"):
+        print("rebuild migration graph sizes:", flush=True)
+        for m in migrators + pinning_migrators:
+            if isinstance(m, GraphMigrator):
+                print(
+                    f'    {getattr(m, "name", m)} graph size: '
+                    f'{len(getattr(m, "graph", []))}',
+                    flush=True,
+                )
+
+    version_migrator = initialize_version_migrator(gx)
+
+    random.shuffle(pinning_migrators)
+    migrators = [version_migrator] + migrators + pinning_migrators
 
     return migrators
 
@@ -808,9 +816,13 @@ def load_migrators() -> MutableSequence[Migrator]:
     return migrators
 
 
-def main(ctx: CliContext) -> None:
+def main(ctx: CliContext, version_only: bool = False) -> None:
     gx = load_existing_graph()
-    migrators = initialize_migrators(gx)
+    migrators = (
+        initialize_migrators(gx)
+        if not version_only
+        else [initialize_version_migrator(gx)]
+    )
     with (
         fold_log_lines("dumping migrators to JSON"),
         lazy_json_override_backends(
