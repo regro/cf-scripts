@@ -31,7 +31,6 @@ class MigratorSessionContext:
     graph: DiGraph = None
     smithy_version: str = ""
     pinning_version: str = ""
-    dry_run: bool = True
 
 
 @dataclass(frozen=True)

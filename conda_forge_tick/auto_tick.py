@@ -9,7 +9,7 @@ import time
 import traceback
 import typing
 from dataclasses import dataclass
-from typing import Literal, cast
+from typing import AnyStr, Literal, cast
 
 from .models.pr_info import PullRequestInfoSpecial
 from .models.pr_json import PullRequestData, PullRequestState
@@ -46,6 +46,7 @@ from conda_forge_tick.git_utils import (
 )
 from conda_forge_tick.lazy_json_backends import (
     LazyJson,
+    does_key_exist_in_hashmap,
     get_all_keys_for_hashmap,
     lazy_json_transaction,
     remove_key_for_hashmap,
@@ -662,7 +663,7 @@ def run(
     return migration_run_data["migrate_return_value"], pr_lazy_json
 
 
-def _compute_time_per_migrator(mctx, migrators):
+def _compute_time_per_migrator(migrators):
     # we weight each migrator by the number of available nodes to migrate
     num_nodes = []
     for migrator in tqdm.tqdm(migrators, ncols=80, desc="computing time per migrator"):
@@ -918,7 +919,26 @@ def _is_migrator_done(_mg_start, good_prs, time_per, pr_limit):
     return False
 
 
-def _run_migrator(migrator, mctx, temp, time_per, git_backend: GitPlatformBackend):
+def _run_migrator(
+    migrator: Migrator,
+    mctx: MigratorSessionContext,
+    temp: list[AnyStr],
+    time_per: float,
+    git_backend: GitPlatformBackend,
+    package: str | None = None,
+) -> int:
+    """
+    Run a migrator.
+
+    :param migrator: The migrator to run.
+    :param mctx: The migrator session context.
+    :param temp: The list of temporary files.
+    :param time_per: The time limit of this migrator.
+    :param git_backend: The GitPlatformBackend instance to use.
+    :param package: The package to update, if None, all packages are updated.
+
+    :return: The number of "good" PRs created by the migrator.
+    """
     _mg_start = time.time()
 
     migrator_name = get_migrator_name(migrator)
@@ -939,6 +959,14 @@ def _run_migrator(migrator, mctx, temp, time_per, git_backend: GitPlatformBacken
         effective_graph = migrator.effective_graph
 
         possible_nodes = list(migrator.order(effective_graph, mctx.graph))
+
+        if package:
+            if package not in possible_nodes:
+                logger.warning(
+                    f"Package {package} is not a candidate for migration of {migrator_name}"
+                )
+                return 0
+            possible_nodes = [package]
 
         # version debugging info
         if isinstance(migrator, Version):
@@ -1084,18 +1112,26 @@ def _setup_limits():
         resource.setrlimit(resource.RLIMIT_AS, (limit_int, limit_int))
 
 
-def _update_nodes_with_bot_rerun(gx: nx.DiGraph):
-    """Go through all the open PRs and check if they are rerun"""
+def _update_nodes_with_bot_rerun(gx: nx.DiGraph, package: str | None = None):
+    """
+    Go through all the open PRs and check if they are rerun
+
+    :param gx: the dependency graph
+    :param package: the package to update, if None, all packages are updated
+    """
 
     print("processing bot-rerun labels", flush=True)
 
-    for i, (name, node) in enumerate(gx.nodes.items()):
+    nodes = gx.nodes.items() if not package else [(package, gx.nodes[package])]
+
+    for i, (name, node) in nodes:
         # logger.info(
         #     f"node: {i} memory usage: "
         #     f"{psutil.Process().memory_info().rss // 1024 ** 2}MB",
         # )
         with node["payload"] as payload:
             if payload.get("archived", False):
+                logger.debug(f"skipping archived package {name}")
                 continue
             with payload["pr_info"] as pri, payload["version_pr_info"] as vpri:
                 # reset bad
@@ -1145,12 +1181,21 @@ def _filter_ignored_versions(attrs, version):
         return version
 
 
-def _update_nodes_with_new_versions(gx):
-    """Updates every node with it's new version (when available)"""
+def _update_nodes_with_new_versions(gx: nx.DiGraph, package: str | None = None):
+    """
+    Updates every node with its new version (when available)
+
+    :param gx: the dependency graph
+    :param package: the package to update, if None, all packages are updated
+    """
 
     print("updating nodes with new versions", flush=True)
 
-    version_nodes = get_all_keys_for_hashmap("versions")
+    if package and not does_key_exist_in_hashmap("versions", package):
+        logger.warning(f"Package {package} not found in versions hashmap")
+        return
+
+    version_nodes = get_all_keys_for_hashmap("versions") if not package else [package]
 
     for node in version_nodes:
         version_data = LazyJson(f"versions/{node}.json").data
@@ -1176,13 +1221,35 @@ def _update_nodes_with_new_versions(gx):
                         vpri["new_version"] = version_from_data
 
 
-def _remove_closed_pr_json():
+def _remove_closed_pr_json(package: str | None = None):
+    """
+    Remove the pull request information for closed PRs.
+
+    :param package: The package to remove the PR information for. If None, all PR information is removed. If you pass
+    a package, closed pr_json files are not removed because this would require iterating all pr_json files.
+    """
     print("collapsing closed PR json", flush=True)
+
+    if package:
+        pr_info_nodes = (
+            [package] if does_key_exist_in_hashmap("pr_info", package) else []
+        )
+        version_pr_info_nodes = (
+            [package] if does_key_exist_in_hashmap("version_pr_info", package) else []
+        )
+
+        if not pr_info_nodes:
+            logger.warning(f"Package {package} not found in pr_info hashmap")
+        if not version_pr_info_nodes:
+            logger.warning(f"Package {package} not found in version_pr_info hashmap")
+    else:
+        pr_info_nodes = get_all_keys_for_hashmap("pr_info")
+        version_pr_info_nodes = get_all_keys_for_hashmap("version_pr_info")
 
     # first we go from nodes to pr json and update the pr info and remove the data
     name_nodes = [
-        ("pr_info", get_all_keys_for_hashmap("pr_info")),
-        ("version_pr_info", get_all_keys_for_hashmap("version_pr_info")),
+        ("pr_info", pr_info_nodes),
+        ("version_pr_info", version_pr_info_nodes),
     ]
     for name, nodes in name_nodes:
         for node in nodes:
@@ -1215,6 +1282,11 @@ def _remove_closed_pr_json():
 
     # at this point, any json blob referenced in the pr info is state != closed
     # so we can remove anything that is empty or closed
+    if package:
+        logger.info(
+            "Since you requested a run for a specific package, we are not removing closed pr_json files."
+        )
+        return
     nodes = get_all_keys_for_hashmap("pr_json")
     for node in nodes:
         pr = LazyJson(f"pr_json/{node}.json")
@@ -1225,22 +1297,22 @@ def _remove_closed_pr_json():
             )
 
 
-def _update_graph_with_pr_info():
-    _remove_closed_pr_json()
+def _update_graph_with_pr_info(package: str | None = None):
+    _remove_closed_pr_json(package)
     gx = load_existing_graph()
-    _update_nodes_with_bot_rerun(gx)
-    _update_nodes_with_new_versions(gx)
+    _update_nodes_with_bot_rerun(gx, package)
+    _update_nodes_with_new_versions(gx, package)
     dump_graph(gx)
 
 
-def main(ctx: CliContext) -> None:
+def main(ctx: CliContext, package: str | None = None) -> None:
     global START_TIME
     START_TIME = time.time()
 
     _setup_limits()
 
     with fold_log_lines("updating graph with PR info"):
-        _update_graph_with_pr_info()
+        _update_graph_with_pr_info(package)
         deploy(ctx, dirs_to_deploy=["version_pr_info", "pr_json", "pr_info"])
 
     # record tmp dir so we can be sure to clean it later
@@ -1259,7 +1331,6 @@ def main(ctx: CliContext) -> None:
             graph=gx,
             smithy_version=smithy_version,
             pinning_version=pinning_version,
-            dry_run=ctx.dry_run,
         )
         migrators = load_migrators()
 
@@ -1271,7 +1342,6 @@ def main(ctx: CliContext) -> None:
             time_per_migrator,
             tot_time_per_migrator,
         ) = _compute_time_per_migrator(
-            mctx,
             migrators,
         )
         for i, migrator in enumerate(migrators):
