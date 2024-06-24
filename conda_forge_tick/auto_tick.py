@@ -444,9 +444,9 @@ def get_spoofed_closed_pr_info() -> PullRequestInfoSpecial:
 def run_with_tmpdir(
     context: FeedstockContext,
     migrator: Migrator,
+    git_backend: GitPlatformBackend,
     rerender: bool = True,
     base_branch: str = "main",
-    dry_run: bool = False,
     **kwargs: typing.Any,
 ) -> tuple[MigrationUidTypedDict, dict] | tuple[Literal[False], Literal[False]]:
     """
@@ -462,9 +462,9 @@ def run_with_tmpdir(
         return run(
             context=cloned_context,
             migrator=migrator,
+            git_backend=git_backend,
             rerender=rerender,
             base_branch=base_branch,
-            dry_run=dry_run,
             **kwargs,
         )
 
@@ -472,9 +472,9 @@ def run_with_tmpdir(
 def run(
     context: ClonedFeedstockContext,
     migrator: Migrator,
+    git_backend: GitPlatformBackend,
     rerender: bool = True,
     base_branch: str = "main",
-    dry_run: bool = False,
     **kwargs: typing.Any,
 ) -> tuple[MigrationUidTypedDict, dict] | tuple[Literal[False], Literal[False]]:
     """For a given feedstock and migration run the migration
@@ -485,12 +485,12 @@ def run(
         The current feedstock context, already containing information about a temporary directory for the feedstock.
     migrator: Migrator instance
         The migrator to run on the feedstock
+    git_backend: GitPlatformBackend
+        The git backend to use. Use the DryRunBackend for testing.
     rerender : bool
         Whether to rerender
     base_branch : str, optional
         The base branch to which the PR will be targeted.
-    dry_run : bool, optional
-        Whether to run in dry run mode.
     kwargs: dict
         The keyword arguments to pass to the migrator.
 
@@ -506,8 +506,6 @@ def run(
     GitCliError
         If an error occurs during a git command which is not suppressed
     """
-    git_backend: GitPlatformBackend = DryRunBackend() if dry_run else github_backend()
-
     # sometimes we get weird directory issues so make sure we reset
     os.chdir(BOT_HOME_DIR)
 
@@ -715,7 +713,7 @@ def _run_migrator_on_feedstock_branch(
     base_branch,
     migrator,
     fctx: FeedstockContext,
-    dry_run,
+    git_backend: GitPlatformBackend,
     mctx,
     migrator_name,
     good_prs,
@@ -729,9 +727,9 @@ def _run_migrator_on_feedstock_branch(
             migrator_uid, pr_json = run_with_tmpdir(
                 context=fctx,
                 migrator=migrator,
+                git_backend=git_backend,
                 rerender=migrator.rerender,
                 base_branch=base_branch,
-                dry_run=dry_run,
                 hash_type=attrs.get("hash_type", "sha256"),
             )
         finally:
@@ -892,7 +890,7 @@ def _is_migrator_done(_mg_start, good_prs, time_per, pr_limit):
     return False
 
 
-def _run_migrator(migrator, mctx, temp, time_per, dry_run):
+def _run_migrator(migrator, mctx, temp, time_per, git_backend: GitPlatformBackend):
     _mg_start = time.time()
 
     migrator_name = get_migrator_name(migrator)
@@ -1010,14 +1008,14 @@ def _run_migrator(migrator, mctx, temp, time_per, dry_run):
                         )
                     ):
                         good_prs, break_loop = _run_migrator_on_feedstock_branch(
-                            attrs,
-                            base_branch,
-                            migrator,
-                            fctx,
-                            dry_run,
-                            mctx,
-                            migrator_name,
-                            good_prs,
+                            attrs=attrs,
+                            base_branch=base_branch,
+                            migrator=migrator,
+                            fctx=fctx,
+                            git_backend=git_backend,
+                            mctx=mctx,
+                            migrator_name=migrator_name,
+                            good_prs=good_prs,
                         )
                         if break_loop:
                             break
@@ -1033,8 +1031,7 @@ def _run_migrator(migrator, mctx, temp, time_per, dry_run):
                 os.chdir(BOT_HOME_DIR)
 
                 # Write graph partially through
-                if not dry_run:
-                    dump_graph(mctx.graph)
+                dump_graph(mctx.graph)
 
                 with filter_reprinted_lines("rm-tmp"):
                     for f in glob.glob("/tmp/*"):
@@ -1267,13 +1264,15 @@ def main(ctx: CliContext) -> None:
                 flush=True,
             )
 
+    git_backend = github_backend() if not ctx.dry_run else DryRunBackend()
+
     for mg_ind, migrator in enumerate(migrators):
         good_prs = _run_migrator(
             migrator,
             mctx,
             temp,
             time_per_migrator[mg_ind],
-            ctx.dry_run,
+            git_backend,
         )
         if good_prs > 0:
             pass
