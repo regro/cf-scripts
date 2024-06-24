@@ -490,9 +490,9 @@ def run(
         return run(
             context=cloned_context,
             migrator=migrator,
+            git_backend=git_backend,
             rerender=rerender,
             base_branch=base_branch,
-            dry_run=dry_run,
             **kwargs,
         )
 
@@ -500,9 +500,9 @@ def run(
 def run(
     context: ClonedFeedstockContext,
     migrator: Migrator,
+    git_backend: GitPlatformBackend,
     rerender: bool = True,
     base_branch: str = "main",
-    dry_run: bool = False,
     **kwargs: typing.Any,
 ) -> tuple[MigrationUidTypedDict, dict] | tuple[Literal[False], Literal[False]]:
     """For a given feedstock and migration run the migration
