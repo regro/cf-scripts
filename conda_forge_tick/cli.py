@@ -151,11 +151,20 @@ def update_upstream_versions(
 
 
 @main.command(name="auto-tick")
+@click.argument(
+    "package",
+    required=False,
+)
 @pass_context
-def auto_tick(ctx: CliContext) -> None:
+def auto_tick(ctx: CliContext, package: str | None) -> None:
+    """
+    Run the main bot logic that runs all migrations, updates the graph accordingly, and opens the corresponding PRs.
+
+    If PACKAGE is given, only run the bot for that package, otherwise run the bot for all packages.
+    """
     from . import auto_tick
 
-    auto_tick.main(ctx)
+    auto_tick.main(ctx, package=package)
 
 
 @main.command(name="make-status-report")
