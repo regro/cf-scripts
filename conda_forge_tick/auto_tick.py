@@ -29,13 +29,12 @@ from conda_forge_tick.deploy import deploy
 from conda_forge_tick.feedstock_parser import BOOTSTRAP_MAPPINGS
 from conda_forge_tick.git_utils import (
     DryRunBackend,
-    DuplicatePullRequestError,
     GitCli,
     GitCliError,
     GitPlatformBackend,
     RepositoryNotFoundError,
     github_backend,
-    is_github_api_limit_reached,
+    is_github_api_limit_reached, DuplicatePullRequestError,
 )
 from conda_forge_tick.lazy_json_backends import (
     LazyJson,
@@ -49,8 +48,7 @@ from conda_forge_tick.make_migrators import (
     PR_LIMIT,
     load_migrators,
 )
-from conda_forge_tick.migration_runner import run_migration
-from conda_forge_tick.migrators import MigrationYaml, Migrator, Version
+from conda_forge_tick.migrators import Migrator, Version, MigrationYaml
 from conda_forge_tick.migrators.version import VersionMigrationError
 from conda_forge_tick.os_utils import eval_cmd
 from conda_forge_tick.rerender_feedstock import rerender_feedstock
@@ -68,6 +66,7 @@ from conda_forge_tick.utils import (
     load_existing_graph,
     sanitize_string,
 )
+from .migration_runner import run_migration
 
 from .migrators_types import MigrationUidTypedDict
 from .models.pr_info import PullRequestInfoSpecial
@@ -441,34 +440,6 @@ def get_spoofed_closed_pr_info() -> PullRequestInfoSpecial:
 
 def run_with_tmpdir(
     context: FeedstockContext,
-    migrator: Migrator,
-    git_backend: GitPlatformBackend,
-    rerender: bool = True,
-    base_branch: str = "main",
-    **kwargs: typing.Any,
-) -> tuple[MigrationUidTypedDict, dict] | tuple[Literal[False], Literal[False]]:
-    """
-    For a given feedstock and migration run the migration in a temporary directory that will be deleted after the
-    migration is complete.
-
-    The parameters are the same as for the `run` function. The only difference is that you pass a FeedstockContext
-    instance instead of a ClonedFeedstockContext instance.
-
-    The exceptions are the same as for the `run` function.
-    """
-    with context.reserve_clone_directory() as cloned_context:
-        return run(
-            context=cloned_context,
-            migrator=migrator,
-            git_backend=git_backend,
-            rerender=rerender,
-            base_branch=base_branch,
-            **kwargs,
-        )
-
-
-def run(
-    context: ClonedFeedstockContext,
     migrator: Migrator,
     git_backend: GitPlatformBackend,
     rerender: bool = True,
@@ -879,10 +850,11 @@ def _run_migrator_on_feedstock_branch(
     return good_prs, break_loop
 
 
-def _is_migrator_done(_mg_start, good_prs, time_per, pr_limit):
+def _is_migrator_done(
+    _mg_start, good_prs, time_per, pr_limit, git_backend: GitPlatformBackend
+):
     curr_time = time.time()
-    backend = github_backend()
-    api_req = backend.get_api_requests_left()
+    api_req = git_backend.get_api_requests_left()
 
     if curr_time - START_TIME > TIMEOUT:
         logger.info(
@@ -960,7 +932,7 @@ def _run_migrator(
 
         if package:
             if package not in possible_nodes:
-                logger.warning(
+                logger.info(
                     f"Package {package} is not a candidate for migration of {migrator_name}"
                 )
                 return 0
@@ -998,7 +970,9 @@ def _run_migrator(
             flush=True,
         )
 
-        if _is_migrator_done(_mg_start, good_prs, time_per, migrator.pr_limit):
+        if _is_migrator_done(
+            _mg_start, good_prs, time_per, migrator.pr_limit, git_backend
+        ):
             return 0
 
     for node_name in possible_nodes:
@@ -1015,7 +989,9 @@ def _run_migrator(
         ):
             # Don't let CI timeout, break ahead of the timeout so we make certain
             # to write to the repo
-            if _is_migrator_done(_mg_start, good_prs, time_per, migrator.pr_limit):
+            if _is_migrator_done(
+                _mg_start, good_prs, time_per, migrator.pr_limit, git_backend
+            ):
                 break
 
             base_branches = migrator.get_possible_feedstock_branches(attrs)
@@ -1370,6 +1346,7 @@ def main(ctx: CliContext, package: str | None = None) -> None:
             temp,
             time_per_migrator[mg_ind],
             git_backend,
+            package,
         )
         if good_prs > 0:
             pass
@@ -1384,5 +1361,5 @@ def main(ctx: CliContext, package: str | None = None) -> None:
             #     ],
             # )
 
-    logger.info("API Calls Remaining: %d", github_backend().get_api_requests_left())
+    logger.info(f"API Calls Remaining: {git_backend.get_api_requests_left()}")
     logger.info("Done")

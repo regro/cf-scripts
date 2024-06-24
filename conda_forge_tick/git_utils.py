@@ -39,6 +39,7 @@ from .models.pr_json import (
     GithubPullRequestMergeableState,
     GithubRepository,
     PullRequestData,
+    PullRequestDataValid,
     PullRequestInfoHead,
     PullRequestState,
 )
@@ -1045,7 +1046,7 @@ class DryRunBackend(GitPlatformBackend):
         logger.debug("==============================================================")
 
         now = datetime.now()
-        return PullRequestData.model_validate(
+        return PullRequestDataValid.model_validate(
             {
                 "ETag": "GITHUB_PR_ETAG",
                 "Last-Modified": utils.format_datetime(now),
