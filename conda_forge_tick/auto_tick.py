@@ -931,7 +931,8 @@ def _run_migrator(
         if package:
             if package not in possible_nodes:
                 logger.info(
-                    f"Package {package} is not a candidate for migration of {migrator_name}"
+                    f"Package {package} is not a candidate for migration of {migrator_name}. "
+                    f"If you want to investigate this, run the make-migrators command."
                 )
                 return 0
             possible_nodes = [package]
