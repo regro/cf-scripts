@@ -149,12 +149,18 @@ def update_upstream_versions(
 
 
 @main.command(name="auto-tick")
+@click.option(
+    "--migrator",
+    "-m",
+    type=str,
+    multiple=True,
+)
 @click.argument(
     "package",
     required=False,
 )
 @pass_context
-def auto_tick(ctx: CliContext, package: str | None) -> None:
+def auto_tick(ctx: CliContext, package: str | None, migrator: tuple[str, ...]) -> None:
     """
     Run the main bot logic that runs all migrations, updates the graph accordingly, and opens the corresponding PRs.
 
@@ -162,7 +168,7 @@ def auto_tick(ctx: CliContext, package: str | None) -> None:
     """
     from . import auto_tick
 
-    auto_tick.main(ctx, package=package)
+    auto_tick.main(ctx, package=package, migrator_names=migrator)
 
 
 @main.command(name="make-status-report")

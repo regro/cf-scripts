@@ -773,8 +773,14 @@ def _load(name):
         return make_from_lazy_json_data(lzj.data)
 
 
-def load_migrators() -> MutableSequence[Migrator]:
-    """Loads all current migrators.
+def load_migrators(migrator_names: tuple[str, ...] = ()) -> MutableSequence[Migrator]:
+    """
+    Loads all current migrators.
+
+    Parameters
+    ----------
+    migrator_names : tuple of str
+        The names of the migrators to load. If empty, all migrators will be loaded.
 
     Returns
     -------
@@ -785,7 +791,11 @@ def load_migrators() -> MutableSequence[Migrator]:
     version_migrator = None
     pinning_migrators = []
     longterm_migrators = []
-    all_names = get_all_keys_for_hashmap("migrators")
+    all_names = (
+        get_all_keys_for_hashmap("migrators")
+        if not migrator_names
+        else list(migrator_names)
+    )
     with executor("process", 4) as pool:
         futs = [pool.submit(_load, name) for name in all_names]
 
@@ -806,12 +816,14 @@ def load_migrators() -> MutableSequence[Migrator]:
             else:
                 migrators.append(migrator)
 
-    if version_migrator is None:
+    if version_migrator is None and not migrator_names:
         raise RuntimeError("No version migrator found in the migrators directory!")
+
+    version_migrators = [version_migrator] if version_migrator is not None else []
 
     random.shuffle(pinning_migrators)
     random.shuffle(longterm_migrators)
-    migrators = [version_migrator] + migrators + pinning_migrators + longterm_migrators
+    migrators = version_migrators + migrators + pinning_migrators + longterm_migrators
 
     return migrators
 

@@ -67,8 +67,8 @@ from conda_forge_tick.utils import (
     load_existing_graph,
     sanitize_string,
 )
-from .migration_runner import run_migration
 
+from .migration_runner import run_migration
 from .migrators_types import MigrationUidTypedDict
 from .models.pr_info import PullRequestInfoSpecial
 from .models.pr_json import PullRequestData, PullRequestState
@@ -1281,7 +1281,16 @@ def _update_graph_with_pr_info(package: str | None = None):
     dump_graph(gx)
 
 
-def main(ctx: CliContext, package: str | None = None) -> None:
+def main(
+    ctx: CliContext, package: str | None = None, migrator_names: tuple[str, ...] = ()
+) -> None:
+    """
+    Run the main bot function.
+
+    :param ctx: The CLI context.
+    :param package: The package to update, if None, all packages are updated.
+    :param migrator_names: The names of the migrators to run. If empty, all migrators are run.
+    """
     global START_TIME
     START_TIME = time.time()
 
@@ -1309,7 +1318,7 @@ def main(ctx: CliContext, package: str | None = None) -> None:
             pinning_version=pinning_version,
         )
         # TODO: this does not support --online
-        migrators = load_migrators()
+        migrators = load_migrators(migrator_names)
 
     # compute the time per migrator
     with fold_log_lines("computing migrator run times"):
