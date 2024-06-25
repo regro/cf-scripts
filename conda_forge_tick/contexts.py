@@ -117,6 +117,13 @@ class ClonedFeedstockContext(FeedstockContext):
     # a ClonedFeedstockContext object in place - it will not be reflected in the original FeedstockContext object.
     local_clone_dir: Path
 
+    @contextmanager
+    def reserve_clone_directory(self) -> Iterator[ClonedFeedstockContext]:
+        """
+        This method is a no-op for ClonedFeedstockContext objects because the directory has already been reserved.
+        """
+        yield self
+
     @property
     def git_repo_owner(self) -> str:
         return "conda-forge"
