@@ -1934,39 +1934,39 @@ package:
   - category: main
     dependencies: {}
     hash:
-      md5: a96e6b32473cd6ec005c6a84c829e941
-      sha256: b5de0e221c180122826ea4e0878b0eda431cca1fed65c29c03c8775b414ff983
+      md5: 117ee9d08cfd0c510c10a7931dfade59
+      sha256: 3f04baafc220fc691c3e1aa98e91239676809fb239507429a3aecbf4fc635656
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.06.24.21.57.20-hd8ed1ab_0.conda
-    version: 2024.06.24.21.57.20
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.06.25.03.09.40-hd8ed1ab_0.conda
+    version: 2024.06.25.03.09.40
   - category: main
     dependencies: {}
     hash:
-      md5: a96e6b32473cd6ec005c6a84c829e941
-      sha256: b5de0e221c180122826ea4e0878b0eda431cca1fed65c29c03c8775b414ff983
+      md5: 117ee9d08cfd0c510c10a7931dfade59
+      sha256: 3f04baafc220fc691c3e1aa98e91239676809fb239507429a3aecbf4fc635656
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.06.24.21.57.20-hd8ed1ab_0.conda
-    version: 2024.06.24.21.57.20
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.06.25.03.09.40-hd8ed1ab_0.conda
+    version: 2024.06.25.03.09.40
   - category: main
     dependencies: {}
     hash:
-      md5: a96e6b32473cd6ec005c6a84c829e941
-      sha256: b5de0e221c180122826ea4e0878b0eda431cca1fed65c29c03c8775b414ff983
+      md5: 117ee9d08cfd0c510c10a7931dfade59
+      sha256: 3f04baafc220fc691c3e1aa98e91239676809fb239507429a3aecbf4fc635656
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.06.24.21.57.20-hd8ed1ab_0.conda
-    version: 2024.06.24.21.57.20
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.06.25.03.09.40-hd8ed1ab_0.conda
+    version: 2024.06.25.03.09.40
   - category: main
     dependencies:
       click: '>=8'
@@ -11623,15 +11623,15 @@ package:
       python: '>=3.11,<3.12.0a0'
       python_abi: 3.11.*
     hash:
-      md5: 764b0e055f59dbd7d114d32b8c6e55e6
-      sha256: f2312e5565f39308639f982729c151c2c75d5eaf86ac2863e19765f9797f7f3b
+      md5: 92bf19ecf13e70907ae8c301de32ed10
+      sha256: 196efa22d669d5c39a294eab73915534893364f44d87fbf230527041f20a2c95
     manager: conda
     name: scipy
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/linux-64/scipy-1.13.1-py311h517d4fd_0.conda
-    version: 1.13.1
+      https://conda.anaconda.org/conda-forge/linux-64/scipy-1.14.0-py311h517d4fd_0.conda
+    version: 1.14.0
   - category: main
     dependencies:
       __osx: '>=10.13'
@@ -11645,14 +11645,14 @@ package:
       python: '>=3.11,<3.12.0a0'
       python_abi: 3.11.*
     hash:
-      md5: e7f86277ec9b453bdf2fc1ef54740033
-      sha256: 058a04f1c13a6812884c1bcc9295b2b259ef48685ad30ce8c24e86226e7a43b4
+      md5: 8a76c9e3d525d3a3537b6835a7fe4538
+      sha256: a8d858ea6b1100a87a8cda6d49ce94ddd88d39ab77de378609fd1ab64bfbc430
     manager: conda
     name: scipy
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/osx-64/scipy-1.13.1-py311h40a1ab3_0.conda
-    version: 1.13.1
+    url: https://conda.anaconda.org/conda-forge/osx-64/scipy-1.14.0-py311h40a1ab3_0.conda
+    version: 1.14.0
   - category: main
     dependencies:
       __osx: '>=11.0'
@@ -11666,15 +11666,15 @@ package:
       python: '>=3.11,<3.12.0a0'
       python_abi: 3.11.*
     hash:
-      md5: af2deddee1cc1f11a8a5799a64ecfe3a
-      sha256: 5fd68198ac99720a1cfc3d5e4f534909917ab02b5feb8bc6a70553f54ae65fb7
+      md5: b931df1a1fea50fcca51e03c744fda31
+      sha256: 72d639dbcf6160f3634ce3d0b9ca3ba109ea8b73dc2d6f2298e4befcfa5f8778
     manager: conda
     name: scipy
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/osx-arm64/scipy-1.13.1-py311hceeca8c_0.conda
-    version: 1.13.1
+      https://conda.anaconda.org/conda-forge/osx-arm64/scipy-1.14.0-py311hceeca8c_0.conda
+    version: 1.14.0
   - category: main
     dependencies:
       cffi: '>=1.7'
