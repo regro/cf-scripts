@@ -29,12 +29,13 @@ from conda_forge_tick.deploy import deploy
 from conda_forge_tick.feedstock_parser import BOOTSTRAP_MAPPINGS
 from conda_forge_tick.git_utils import (
     DryRunBackend,
+    DuplicatePullRequestError,
     GitCli,
     GitCliError,
     GitPlatformBackend,
     RepositoryNotFoundError,
     github_backend,
-    is_github_api_limit_reached, DuplicatePullRequestError,
+    is_github_api_limit_reached,
 )
 from conda_forge_tick.lazy_json_backends import (
     LazyJson,
@@ -48,7 +49,7 @@ from conda_forge_tick.make_migrators import (
     PR_LIMIT,
     load_migrators,
 )
-from conda_forge_tick.migrators import Migrator, Version, MigrationYaml
+from conda_forge_tick.migrators import MigrationYaml, Migrator, Version
 from conda_forge_tick.migrators.version import VersionMigrationError
 from conda_forge_tick.os_utils import eval_cmd
 from conda_forge_tick.rerender_feedstock import rerender_feedstock
@@ -569,9 +570,9 @@ def run(
     None means: We don't update the PR data.
     """
     if (
-            isinstance(migrator, MigrationYaml)
-            and not rerender_info.nontrivial_migration_yaml_changes
-            and context.attrs["name"] != "conda-forge-pinning"
+        isinstance(migrator, MigrationYaml)
+        and not rerender_info.nontrivial_migration_yaml_changes
+        and context.attrs["name"] != "conda-forge-pinning"
     ):
         # spoof this so it looks like the package is done
         pr_data = get_spoofed_closed_pr_info()
