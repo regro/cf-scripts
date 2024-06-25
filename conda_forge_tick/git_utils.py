@@ -1037,11 +1037,12 @@ class DryRunBackend(GitPlatformBackend):
                 Target Repository: {target_owner}/{target_repo}
                 Branches: {self.user}:{head_branch} -> {target_owner}:{base_branch}
                 Body:
-                {body}
-                ==============================================================
                 """
             )
         )
+
+        logger.debug(body)
+        logger.debug("==============================================================")
 
         now = datetime.now()
         return PullRequestData.model_validate(

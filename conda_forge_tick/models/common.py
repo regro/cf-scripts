@@ -10,6 +10,7 @@ from pydantic import (
     BeforeValidator,
     ConfigDict,
     Field,
+    PlainSerializer,
     UrlConstraints,
 )
 from pydantic_core import Url
@@ -77,7 +78,7 @@ def none_to_empty_dict(value: T | None) -> T | dict[Never]:
     return value
 
 
-NoneIsEmptyDict = Annotated[dict[T], BeforeValidator(none_to_empty_dict)]
+NoneIsEmptyDict = Annotated[dict[K, V], BeforeValidator(none_to_empty_dict)]
 """
 A generic dict type that converts `None` to an empty dict.
 This should not be needed if this proper data model is used in production.
@@ -151,22 +152,15 @@ def parse_rfc_2822_date(value: str) -> datetime:
     return email.utils.parsedate_to_datetime(value)
 
 
-RFC2822Date = Annotated[datetime, BeforeValidator(parse_rfc_2822_date)]
+def serialize_rfc_2822_date(value: datetime) -> str:
+    return email.utils.format_datetime(value)
 
 
-def none_to_empty_dict(value: T | None) -> T | dict[Never, Never]:
-    """
-    Convert `None` to an empty dictionary f, otherwise keep the value as is.
-    """
-    if value is None:
-        return {}
-    return value
-
-
-NoneIsEmptyDict = Annotated[dict[K, V], BeforeValidator(none_to_empty_dict)]
-"""
-A generic dict type that converts `None` to an empty dict.
-"""
+RFC2822Date = Annotated[
+    datetime,
+    BeforeValidator(parse_rfc_2822_date),
+    PlainSerializer(serialize_rfc_2822_date),
+]
 
 
 GitUrl = Annotated[Url, UrlConstraints(allowed_schemes=["git"])]

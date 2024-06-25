@@ -27,12 +27,12 @@ import tqdm
 from conda.models.version import VersionOrder
 
 from conda_forge_tick.cli_context import CliContext
-from conda_forge_tick.deploy import deploy
 from conda_forge_tick.contexts import (
     ClonedFeedstockContext,
     FeedstockContext,
     MigratorSessionContext,
 )
+from conda_forge_tick.deploy import deploy
 from conda_forge_tick.feedstock_parser import BOOTSTRAP_MAPPINGS
 from conda_forge_tick.git_utils import (
     DryRunBackend,
@@ -620,7 +620,7 @@ def run(
             os.path.join("pr_json", f"{pr_data.id}.json"),
         )
         with pr_lazy_json as __edit_pr_lazy_json:
-            __edit_pr_lazy_json.update(**pr_data.model_dump())
+            __edit_pr_lazy_json.update(**pr_data.model_dump(mode="json"))
     else:
         pr_lazy_json = False
 
