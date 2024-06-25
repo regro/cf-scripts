@@ -1934,39 +1934,39 @@ package:
   - category: main
     dependencies: {}
     hash:
-      md5: 26481ca77401fdfb639795d955e6c333
-      sha256: 2c3e9fbc7a28e214b17265d8b5fa2a91b2ec4e0de48a0e427e12b971093e5e89
+      md5: 7ec88be996b147d25036706ad539dc79
+      sha256: 6356b682eceaf9d3cf952a938cad02eba59c2703897a42cc88a0b7c761cc2f15
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.06.25.09.45.53-hd8ed1ab_0.conda
-    version: 2024.06.25.09.45.53
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.06.25.07.25.29-hd8ed1ab_0.conda
+    version: 2024.06.25.07.25.29
   - category: main
     dependencies: {}
     hash:
-      md5: 26481ca77401fdfb639795d955e6c333
-      sha256: 2c3e9fbc7a28e214b17265d8b5fa2a91b2ec4e0de48a0e427e12b971093e5e89
+      md5: 7ec88be996b147d25036706ad539dc79
+      sha256: 6356b682eceaf9d3cf952a938cad02eba59c2703897a42cc88a0b7c761cc2f15
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.06.25.09.45.53-hd8ed1ab_0.conda
-    version: 2024.06.25.09.45.53
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.06.25.07.25.29-hd8ed1ab_0.conda
+    version: 2024.06.25.07.25.29
   - category: main
     dependencies: {}
     hash:
-      md5: 26481ca77401fdfb639795d955e6c333
-      sha256: 2c3e9fbc7a28e214b17265d8b5fa2a91b2ec4e0de48a0e427e12b971093e5e89
+      md5: 7ec88be996b147d25036706ad539dc79
+      sha256: 6356b682eceaf9d3cf952a938cad02eba59c2703897a42cc88a0b7c761cc2f15
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.06.25.09.45.53-hd8ed1ab_0.conda
-    version: 2024.06.25.09.45.53
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.06.25.07.25.29-hd8ed1ab_0.conda
+    version: 2024.06.25.07.25.29
   - category: main
     dependencies:
       click: '>=8'
@@ -11781,41 +11781,41 @@ package:
     dependencies:
       python: '>=3.8'
     hash:
-      md5: 985e9e86e1b0fc75a74a9bfab9309ef7
-      sha256: 34ecbc63df6052a320838335a0e594b60050c92de79254045e52095bc27dde03
+      md5: 258e66f95f814d51ada2a1fe9274039b
+      sha256: a43d33436f4ac57ebd6ee15f700b33b26a2d37b7e43981b1fa036908579dafd6
     manager: conda
     name: setuptools
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/setuptools-70.1.1-pyhd8ed1ab_0.conda
-    version: 70.1.1
+      https://conda.anaconda.org/conda-forge/noarch/setuptools-70.1.0-pyhd8ed1ab_0.conda
+    version: 70.1.0
   - category: main
     dependencies:
       python: '>=3.8'
     hash:
-      md5: 985e9e86e1b0fc75a74a9bfab9309ef7
-      sha256: 34ecbc63df6052a320838335a0e594b60050c92de79254045e52095bc27dde03
+      md5: 258e66f95f814d51ada2a1fe9274039b
+      sha256: a43d33436f4ac57ebd6ee15f700b33b26a2d37b7e43981b1fa036908579dafd6
     manager: conda
     name: setuptools
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/setuptools-70.1.1-pyhd8ed1ab_0.conda
-    version: 70.1.1
+      https://conda.anaconda.org/conda-forge/noarch/setuptools-70.1.0-pyhd8ed1ab_0.conda
+    version: 70.1.0
   - category: main
     dependencies:
       python: '>=3.8'
     hash:
-      md5: 985e9e86e1b0fc75a74a9bfab9309ef7
-      sha256: 34ecbc63df6052a320838335a0e594b60050c92de79254045e52095bc27dde03
+      md5: 258e66f95f814d51ada2a1fe9274039b
+      sha256: a43d33436f4ac57ebd6ee15f700b33b26a2d37b7e43981b1fa036908579dafd6
     manager: conda
     name: setuptools
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/setuptools-70.1.1-pyhd8ed1ab_0.conda
-    version: 70.1.1
+      https://conda.anaconda.org/conda-forge/noarch/setuptools-70.1.0-pyhd8ed1ab_0.conda
+    version: 70.1.0
   - category: main
     dependencies:
       packaging: '>=20.0'
