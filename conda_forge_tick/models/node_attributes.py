@@ -295,13 +295,13 @@ class NodeAttributesValid(StrictBaseModel):
             for output in self.meta_yaml.outputs or []:
                 if output.version is None:
                     raise ValueError(
-                        "If the `top-level version` field is None, all outputs must specify their own versions."
+                        "If the top-level `version` field is None, all outputs must specify their own versions."
                     )
                 output_versions.add(output.version)
 
             if self.version not in output_versions:
                 raise ValueError(
-                    "The to[-level ]`version` field must match at least one of the `outputs[].version` fields "
+                    "The top-level `version` field must match at least one of the `outputs[].version` fields "
                     "in the `meta_yaml` field."
                 )
             return self
