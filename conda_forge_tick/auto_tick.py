@@ -10,13 +10,6 @@ import traceback
 import typing
 from dataclasses import dataclass
 from typing import Literal, cast
-
-from .models.pr_info import PullRequestInfoSpecial
-from .models.pr_json import PullRequestData, PullRequestState
-
-if typing.TYPE_CHECKING:
-    from .migrators_types import MigrationUidTypedDict
-
 from urllib.error import URLError
 from uuid import uuid4
 
@@ -74,6 +67,10 @@ from conda_forge_tick.utils import (
     load_existing_graph,
     sanitize_string,
 )
+
+from .migrators_types import MigrationUidTypedDict
+from .models.pr_info import PullRequestInfoSpecial
+from .models.pr_json import PullRequestData, PullRequestState
 
 logger = logging.getLogger(__name__)
 
