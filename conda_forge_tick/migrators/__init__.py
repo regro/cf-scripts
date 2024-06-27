@@ -29,7 +29,7 @@ from .numpy2 import Numpy2Migrator
 from .pip_check import PipCheckMigrator
 from .pip_wheel_dep import PipWheelMigrator
 from .qt_to_qt_main import QtQtMainMigrator
-from .replacement import Replacement
 from .r_ucrt import RUCRTCleanup
+from .replacement import Replacement
 from .use_pip import PipMigrator
 from .version import Version

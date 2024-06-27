@@ -1,4 +1,3 @@
-import re
 import typing
 from typing import Any
 
