@@ -180,17 +180,17 @@ class ArchRebuild(GraphMigrator):
     def filter(self, attrs: "AttrsTypedDict", not_bad_str_start: str = "") -> bool:
         if super().filter(attrs):
             return True
-        muid = frozen_to_json_friendly(self.migrator_uid(attrs))
         for arch in self.arches:
             configured_arch = (
                 attrs.get("conda-forge.yml", {}).get("provider", {}).get(arch)
+            ) or (
+                attrs.get("conda-forge.yml", {}).get("build_platform", {}).get(arch) not in [None, arch]
             )
-            if configured_arch:
-                return muid in _sanitized_muids(
-                    attrs.get("pr_info", {}).get("PRed", []),
-                )
-        else:
-            return False
+            if not configured_arch:
+                # This arch is not in provider or build_platform
+                return False
+
+        return True
 
     def migrate(
         self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any
@@ -347,17 +347,17 @@ class OSXArm(GraphMigrator):
     def filter(self, attrs: "AttrsTypedDict", not_bad_str_start: str = "") -> bool:
         if super().filter(attrs):
             return True
-        muid = frozen_to_json_friendly(self.migrator_uid(attrs))
         for arch in self.arches:
             configured_arch = (
                 attrs.get("conda-forge.yml", {}).get("provider", {}).get(arch)
+            ) or (
+                attrs.get("conda-forge.yml", {}).get("build_platform", {}).get(arch) not in [None, arch]
             )
-            if configured_arch:
-                return muid in _sanitized_muids(
-                    attrs.get("pr_info", {}).get("PRed", []),
-                )
-        else:
-            return False
+            if not configured_arch:
+                # This arch is not in provider or build_platform
+                return False
+
+        return True
 
     def migrate(
         self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any
