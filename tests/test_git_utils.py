@@ -1772,14 +1772,15 @@ def test_dry_run_backend_fork(caplog):
 
     backend = DryRunBackend()
 
-    backend.fork("UPSTREAM_OWNER", "REPO")
+    backend.fork("conda-forge", "pytest-feedstock")
     assert (
-        "Dry Run: Creating fork of UPSTREAM_OWNER/REPO for user auto-tick-bot-dry-run"
+        "Dry Run: Creating fork of conda-forge/pytest-feedstock for user auto-tick-bot-dry-run"
         in caplog.text
     )
 
     # this should not raise an error
-    backend.fork("UPSTREAM_OWNER", "REPO")
+    with pytest.raises(RepositoryNotFoundError):
+        backend.fork("conda-forge", "this-repository-does-not-exist")
 
 
 def test_dry_run_backend_sync_default_branch(caplog):
