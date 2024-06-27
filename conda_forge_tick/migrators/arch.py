@@ -9,15 +9,9 @@ from conda_forge_tick.make_graph import (
     get_deps_from_outputs_lut,
     make_outputs_lut_from_graph,
 )
-from conda_forge_tick.migrators.core import GraphMigrator, _sanitized_muids
+from conda_forge_tick.migrators.core import GraphMigrator
 from conda_forge_tick.os_utils import pushd
-from conda_forge_tick.utils import (
-    as_iterable,
-    frozen_to_json_friendly,
-    pluck,
-    yaml_safe_dump,
-    yaml_safe_load,
-)
+from conda_forge_tick.utils import as_iterable, pluck, yaml_safe_dump, yaml_safe_load
 
 from .migration_yaml import all_noarch
 
@@ -184,7 +178,8 @@ class ArchRebuild(GraphMigrator):
             configured_arch = (
                 attrs.get("conda-forge.yml", {}).get("provider", {}).get(arch)
             ) or (
-                attrs.get("conda-forge.yml", {}).get("build_platform", {}).get(arch) not in [None, arch]
+                attrs.get("conda-forge.yml", {}).get("build_platform", {}).get(arch)
+                not in [None, arch]
             )
             if not configured_arch:
                 # This arch is not in provider or build_platform
@@ -351,7 +346,8 @@ class OSXArm(GraphMigrator):
             configured_arch = (
                 attrs.get("conda-forge.yml", {}).get("provider", {}).get(arch)
             ) or (
-                attrs.get("conda-forge.yml", {}).get("build_platform", {}).get(arch) not in [None, arch]
+                attrs.get("conda-forge.yml", {}).get("build_platform", {}).get(arch)
+                not in [None, arch]
             )
             if not configured_arch:
                 # This arch is not in provider or build_platform
