@@ -1005,6 +1005,11 @@ class DryRunBackend(GitPlatformBackend):
             logger.debug(f"Fork of {repo_name} already exists. Doing nothing.")
             return
 
+        if not self.does_repository_exist(owner, repo_name):
+            raise RepositoryNotFoundError(
+                f"Cannot fork non-existing repository {owner}/{repo_name}."
+            )
+
         logger.debug(
             f"Dry Run: Creating fork of {owner}/{repo_name} for user {self._USER}."
         )
