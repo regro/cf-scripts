@@ -62,7 +62,7 @@ from conda_forge_tick.migrators import (
     PipWheelMigrator,
     QtQtMainMigrator,
     Replacement,
-    RUCRTCleanup
+    RUCRTCleanup,
     StdlibMigrator,
     UpdateCMakeArgsMigrator,
     UpdateConfigSubGuessMigrator,
