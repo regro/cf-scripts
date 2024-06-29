@@ -93,8 +93,6 @@ build:
 
 requirements:
   build:
-    - cross-r-base {{ r_base }}  # [build_platform != target_platform]
-    - r-rlang                    # [build_platform != target_platform]
     - {{ compiler('c') }}              # [not win]
     - {{ compiler('m2w64_c') }}        # [win]
     - {{ posix }}filesystem        # [win]
@@ -132,7 +130,7 @@ extra:
 
 
 @flaky
-def test_cross_rbase(tmpdir):
+def test_r_ucrt(tmpdir):
     run_test_migration(
         m=version_migrator_rbase,
         inp=rbase_recipe,
