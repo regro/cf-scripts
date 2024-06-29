@@ -15,11 +15,11 @@ from conda_forge_tick.git_utils import (
     GitPlatformBackend,
     RepositoryNotFoundError,
 )
-from conda_forge_tick.lazy_json_backends import LazyJson
 from conda_forge_tick.migrators_types import AttrsTypedDict
+from tests.fake_lazy_json import FakeLazyJson
 
 demo_attrs = AttrsTypedDict(
-    {"conda-forge.yml": {"provider": {"default_branch": "main"}}}
+    {"conda-forge.yml": {"provider": {"default_branch": "main"}, "bot": {}}}
 )
 
 
@@ -63,8 +63,8 @@ def test_prepare_feedstock_repository_repository_not_found(caplog):
 
         demo_attrs_copy = copy.deepcopy(demo_attrs)
 
-        attrs = LazyJson(str(tmpdir / "test-attrs-1337.json"))
-        pr_info = LazyJson(str(tmpdir / "test-pr-info-1337.json"))
+        attrs = FakeLazyJson()
+        pr_info = FakeLazyJson()
 
         with attrs:
             for key, value in demo_attrs_copy.items():
