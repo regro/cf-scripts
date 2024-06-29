@@ -22,7 +22,7 @@ def _cleanup_raw_yaml(raw_yaml):
             continue
         if "set native =" in line:
             continue
-        if re.search(r"\s*- skip: (T|t)rue\s+\# \[win\]", line):
+        if re.search(r"\s*skip: (T|t)rue\s+\# \[win\]", line):
             nspaces = len(line) - len(line.lstrip())
             spaces = " " * nspaces
             comment = (
