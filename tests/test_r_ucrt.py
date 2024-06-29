@@ -103,6 +103,8 @@ requirements:
   host:
     - r-base
     - r-rlang
+    - gmp
+    - mpfr
   run:
     - r-base
     - r-rlang
