@@ -62,6 +62,7 @@ from conda_forge_tick.migrators import (
     PipWheelMigrator,
     QtQtMainMigrator,
     Replacement,
+    RUCRTCleanup,
     StdlibMigrator,
     UpdateCMakeArgsMigrator,
     UpdateConfigSubGuessMigrator,
@@ -294,6 +295,8 @@ def add_rebuild_migration_yaml(
         piggy_back_migrations.append(LibboostMigrator())
     if migration_name == "numpy2":
         piggy_back_migrations.append(Numpy2Migrator())
+    if migration_name.startswith("r-base44"):
+        piggy_back_migrations.append(RUCRTCleanup())
     # stdlib migrator runs on top of ALL migrations, see
     # https://github.com/conda-forge/conda-forge.github.io/issues/2102
     piggy_back_migrations.append(StdlibMigrator())
