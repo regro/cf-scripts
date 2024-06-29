@@ -1,3 +1,4 @@
+import re
 import typing
 from typing import Any
 
@@ -21,6 +22,15 @@ def _cleanup_raw_yaml(raw_yaml):
             continue
         if "set native =" in line:
             continue
+        if re.search(r"\s*- skip: (T|t)rue\s+\# \[win\]", line):
+            nspaces = len(line) - len(line.lstrip())
+            spaces = " " * nspaces
+            comment = (
+                spaces
+                + "# Checking windows to see if it passes. Uncomment the line if it fails."
+            )
+            lines.append(comment)
+            lines.append(spaces + "# " + line.lstrip())
         lines.append(line)
 
     return "\n".join(lines) + "\n"

@@ -26,6 +26,7 @@ source:
 
 build:
   merge_build_host: true  # [win]
+  skip: True   # [win]
   number: 1
   rpaths:
     - lib/R/lib/
@@ -86,6 +87,8 @@ source:
   sha256: 75c265d51cc2b34beb27040edb09823c7b954d3990a7a931e40690b75d4aad5f
 
 build:
+  # Checking windows to see if it passes. Uncomment the line if it fails.
+  # skip: True   # [win]
   number: 0
   rpaths:
     - lib/R/lib/
