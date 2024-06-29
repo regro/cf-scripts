@@ -31,6 +31,7 @@ def _cleanup_raw_yaml(raw_yaml):
             )
             lines.append(comment)
             lines.append(spaces + "# " + line.lstrip())
+            continue
         lines.append(line)
 
     return "\n".join(lines) + "\n"
