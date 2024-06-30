@@ -2654,20 +2654,20 @@ package:
   - category: main
     dependencies:
       __osx: '>=11.0'
-      krb5: '>=1.21.2,<1.22.0a0'
+      krb5: '>=1.21.3,<1.22.0a0'
       libcurl: 8.8.0
       libssh2: '>=1.11.0,<2.0a0'
-      libzlib: '>=1.2.13,<2.0.0a0'
-      openssl: '>=3.3.0,<4.0a0'
+      libzlib: '>=1.2.13,<2.0a0'
+      openssl: '>=3.3.1,<4.0a0'
       zstd: '>=1.5.6,<1.6.0a0'
     hash:
-      md5: cbddcfb5f00336f3381e7f1c6bf9ab70
-      sha256: 0680ea855424f2baa6ef347e71352bb3ae1db526c3db1682f87b318e054340f9
+      md5: 6d3dd14f3ca37d3e85fdfcd823a95493
+      sha256: ea338876ae59afa402b7ad3f83b59ff235fbb47d8b108fbd338ce0effa88e969
     manager: conda
     name: curl
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/osx-arm64/curl-8.8.0-h653d890_0.conda
+    url: https://conda.anaconda.org/conda-forge/osx-arm64/curl-8.8.0-h653d890_1.conda
     version: 8.8.0
   - category: main
     dependencies:
@@ -5930,18 +5930,19 @@ package:
     version: 1.21.3
   - category: main
     dependencies:
-      libcxx: '>=15.0.7'
+      __osx: '>=11.0'
+      libcxx: '>=16'
       libedit: '>=3.1.20191231,<4.0a0'
-      openssl: '>=3.1.2,<4.0a0'
+      openssl: '>=3.3.1,<4.0a0'
     hash:
-      md5: 92f1cff174a538e0722bf2efb16fc0b2
-      sha256: 70bdb9b4589ec7c7d440e485ae22b5a352335ffeb91a771d4c162996c3070875
+      md5: c6dc8a0fdec13a0565936655c33069a1
+      sha256: 4442f957c3c77d69d9da3521268cad5d54c9033f1a73f99cde0a3658937b159b
     manager: conda
     name: krb5
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/osx-arm64/krb5-1.21.2-h92f50d5_0.conda
-    version: 1.21.2
+    url: https://conda.anaconda.org/conda-forge/osx-arm64/krb5-1.21.3-h237132a_0.conda
+    version: 1.21.3
   - category: main
     dependencies:
       ld64_osx-64: '711'
@@ -6305,20 +6306,20 @@ package:
     version: 8.8.0
   - category: main
     dependencies:
-      krb5: '>=1.21.2,<1.22.0a0'
+      krb5: '>=1.21.3,<1.22.0a0'
       libnghttp2: '>=1.58.0,<2.0a0'
       libssh2: '>=1.11.0,<2.0a0'
-      libzlib: '>=1.2.13,<2.0.0a0'
-      openssl: '>=3.3.0,<4.0a0'
+      libzlib: '>=1.2.13,<2.0a0'
+      openssl: '>=3.3.1,<4.0a0'
       zstd: '>=1.5.6,<1.6.0a0'
     hash:
-      md5: 245b30f99dc5379ebe1c78899be8d3f5
-      sha256: b83aa249e7c8abc1aa56593ad50d1b4c0a52f5f3d5fd7c489c2ccfc3a548f391
+      md5: e9580b0bb247a2ccf937b16161478f19
+      sha256: 9da82a9bd72e9872941da32be54543076c92dbeb2aba688a1c24adbc1c699e64
     manager: conda
     name: libcurl
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/osx-arm64/libcurl-8.8.0-h7b6f9a7_0.conda
+    url: https://conda.anaconda.org/conda-forge/osx-arm64/libcurl-8.8.0-h7b6f9a7_1.conda
     version: 8.8.0
   - category: main
     dependencies:
@@ -10163,20 +10164,20 @@ package:
   - category: main
     dependencies:
       __osx: '>=11.0'
-      dnspython: '>=1.16.0,<3.0.0'
+      dnspython: <3.0.0,>=1.16.0
       libcxx: '>=16'
       python: '>=3.11,<3.12.0a0'
       python_abi: 3.11.*
     hash:
-      md5: 5c7566d9a0661c37f91f38646f6f4c48
-      sha256: e4c518d8ba94919b058ab0c5cc3b4e9f13e2659b130ac8b4078df01071e3bd5b
+      md5: dd982188311e0157c4132733c4218ff3
+      sha256: 37a921c43e79d77ca58d78429ecf9b75e7f050fda753b986e2aa732d1abc303f
     manager: conda
     name: pymongo
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/osx-arm64/pymongo-4.7.3-py311hb9542d7_0.conda
-    version: 4.7.3
+      https://conda.anaconda.org/conda-forge/osx-arm64/pymongo-4.8.0-py311hb9542d7_0.conda
+    version: 4.8.0
   - category: main
     dependencies:
       cffi: '>=1.4.1'
@@ -10841,15 +10842,15 @@ package:
       python: '>=3.11,<3.12.0a0'
       python_abi: 3.11.*
     hash:
-      md5: 213e714f8974598c163f78bd4d420caa
-      sha256: d172f22c71908af1b25b0e9b2656709f2ad19140066ae4df9111a39bc675d1fc
+      md5: 62fde7f833864e78b2e8f68878a7eac8
+      sha256: f3c861fa90377b3f5f401693b053ea32d5778a058c1e83275dfb3028c7184190
     manager: conda
     name: python-rapidjson
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/osx-arm64/python-rapidjson-1.17-py311hb9542d7_0.conda
-    version: '1.17'
+      https://conda.anaconda.org/conda-forge/osx-arm64/python-rapidjson-1.18-py311hb9542d7_0.conda
+    version: '1.18'
   - category: main
     dependencies:
       python: '>=3.8'
@@ -13243,14 +13244,14 @@ package:
       __osx: '>=11.0'
       libcxx: '>=16'
     hash:
-      md5: 5d29bcbc10048cea9a87b55e7ac8a5a7
-      sha256: 698da5451e73c916be54bf01fce57408030c8431512fe5537db33ac2fa80fff2
+      md5: f9049d424d73b055430d7be989618509
+      sha256: 9f8404982c09807670147b3b8d0650426eaf0c9a8f2f7c26f398e9eb5c2b8f04
     manager: conda
     name: uv
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/osx-arm64/uv-0.2.13-hc069d6b_0.conda
-    version: 0.2.13
+    url: https://conda.anaconda.org/conda-forge/osx-arm64/uv-0.2.18-hc069d6b_0.conda
+    version: 0.2.18
   - category: main
     dependencies:
       distlib: <1,>=0.3.7
