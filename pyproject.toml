@@ -37,17 +37,11 @@ write_to_template = "__version__ = '{version}'\n"
 [tool.pytest_env]
 CF_TICK_PYTEST = "true"
 
-[tool.black]
-line-length = 88
-
-[tool.isort]
-profile = "black"
-
 [tool.ruff]
 extend-exclude = ["conda_forge_tick/migrators/disabled/legacy.py"]
 
 [tool.ruff.lint]
-select = ["E", "F", "W"]
+select = ["E", "F", "I", "W"]
 preview = true
 
 [tool.ruff.lint.pycodestyle]
