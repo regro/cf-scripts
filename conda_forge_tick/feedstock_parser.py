@@ -16,8 +16,10 @@ from requests.models import Response
 
 if typing.TYPE_CHECKING:
     from mypy_extensions import TestTypedDict
-    from .migrators_types import PackageName, RequirementsTypedDict
+
     from conda_forge_tick.migrators_types import MetaYamlTypedDict
+
+    from .migrators_types import PackageName, RequirementsTypedDict
 
 from conda_forge_tick.lazy_json_backends import LazyJson, dumps, loads
 from conda_forge_tick.utils import run_container_task
