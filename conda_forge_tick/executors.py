@@ -16,9 +16,21 @@ class DummyLock:
         pass
 
 
-TRLOCK = TRLock()
-PRLOCK = DummyLock()
-DRLOCK = DummyLock()
+GIT_LOCK_THREAD = TRLock()
+GIT_LOCK_PROCESS = DummyLock()
+GIT_LOCK_DASK = DummyLock()
+
+
+@contextlib.contextmanager
+def lock_git_operation():
+    """
+    A context manager to lock git operations - it can be acquired once per thread, once per process,
+    and once per dask worker.
+    Note that this is a reentrant lock, so it can be acquired multiple times by the same thread/process/worker.
+    """
+
+    with GIT_LOCK_THREAD, GIT_LOCK_PROCESS, GIT_LOCK_DASK:
+        yield
 
 
 logger = logging.getLogger(__name__)
@@ -27,10 +39,12 @@ logger = logging.getLogger(__name__)
 class DaskRLock(DaskLock):
     """A reentrant lock for dask that is always blocking and never times out."""
 
-    def acquire(self):
-        if not hasattr(self, "_rcount"):
-            self._rcount = 0
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._rcount = 0
+        self._rdata = None
 
+    def acquire(self, *args):
         self._rcount += 1
 
         if self._rcount == 1:
@@ -39,29 +53,29 @@ class DaskRLock(DaskLock):
         return self._rdata
 
     def release(self):
-        if not hasattr(self, "_rcount") or self._rcount == 0:
+        if self._rcount == 0:
             raise RuntimeError("Lock not acquired so cannot be released!")
 
         self._rcount -= 1
 
         if self._rcount == 0:
-            delattr(self, "_rdata")
+            self._rdata = None
             return super().release()
         else:
             return None
 
 
 def _init_process(lock):
-    global PRLOCK
-    PRLOCK = lock
+    global GIT_LOCK_PROCESS
+    GIT_LOCK_PROCESS = lock
 
 
 def _init_dask(lock):
-    global DRLOCK
-    # it appears we have to construct the locak by name instead
+    global GIT_LOCK_DASK
+    # it appears we have to construct the lock by name instead
     # of passing the object itself
     # otherwise dask uses a regular lock
-    DRLOCK = DaskRLock(name=lock)
+    GIT_LOCK_DASK = DaskRLock(name=lock)
 
 
 @contextlib.contextmanager
@@ -70,8 +84,8 @@ def executor(kind: str, max_workers: int, daemon=True) -> typing.Iterator[Execut
 
     This allows us to easily use other executors as needed.
     """
-    global DRLOCK
-    global PRLOCK
+    global GIT_LOCK_DASK
+    global GIT_LOCK_PROCESS
 
     if kind == "thread":
         with ThreadPoolExecutor(max_workers=max_workers) as pool_t:
@@ -85,7 +99,7 @@ def executor(kind: str, max_workers: int, daemon=True) -> typing.Iterator[Execut
             initargs=(lock,),
         ) as pool_p:
             yield pool_p
-        PRLOCK = DummyLock()
+        GIT_LOCK_PROCESS = DummyLock()
     elif kind in ["dask", "dask-process", "dask-thread"]:
         import dask
         import distributed
@@ -101,6 +115,6 @@ def executor(kind: str, max_workers: int, daemon=True) -> typing.Iterator[Execut
                 with distributed.Client(cluster) as client:
                     client.run(_init_dask, "cftick")
                     yield ClientExecutor(client)
-                DRLOCK = DummyLock()
+                GIT_LOCK_DASK = DummyLock()
     else:
         raise NotImplementedError("That kind is not implemented")
