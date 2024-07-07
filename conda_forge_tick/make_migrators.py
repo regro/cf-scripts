@@ -695,7 +695,6 @@ def create_migration_yaml_creator(
 
 def initialize_migrators(
     gx: nx.DiGraph,
-    dry_run: bool = False,
 ) -> MutableSequence[Migrator]:
     migrators: List[Migrator] = []
 
@@ -814,10 +813,7 @@ def load_migrators() -> MutableSequence[Migrator]:
 
 def main(ctx: CliContext) -> None:
     gx = load_existing_graph()
-    migrators = initialize_migrators(
-        gx,
-        dry_run=ctx.dry_run,
-    )
+    migrators = initialize_migrators(gx)
     with (
         fold_log_lines("dumping migrators to JSON"),
         lazy_json_override_backends(

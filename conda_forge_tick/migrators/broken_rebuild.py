@@ -2,6 +2,7 @@ import os
 
 import networkx as nx
 
+from conda_forge_tick.contexts import ClonedFeedstockContext
 from conda_forge_tick.migrators.core import Migrator
 
 BROKEN_PACKAGES = """\
@@ -380,7 +381,7 @@ class RebuildBroken(Migrator):
         self.set_build_number(os.path.join(recipe_dir, "meta.yaml"))
         return super().migrate(recipe_dir, attrs)
 
-    def pr_body(self, feedstock_ctx) -> str:
+    def pr_body(self, feedstock_ctx: ClonedFeedstockContext) -> str:
         body = super().pr_body(feedstock_ctx)
         body = body.format(
             """\
