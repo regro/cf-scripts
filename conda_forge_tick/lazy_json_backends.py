@@ -26,6 +26,7 @@ import rapidjson as json
 import requests
 
 from .cli_context import CliContext
+from .executors import lock_git_operation
 
 logger = logging.getLogger(__name__)
 
@@ -159,10 +160,8 @@ class FileLazyJsonBackend(LazyJsonBackend):
         }
 
     def hdel(self, name: str, keys: Iterable[str]) -> None:
-        from .executors import DRLOCK, PRLOCK, TRLOCK
-
         lzj_names = [get_sharded_path(f"{name}/{key}.json") for key in keys]
-        with PRLOCK, DRLOCK, TRLOCK:
+        with lock_git_operation():
             subprocess.run(
                 ["git", "rm", "--ignore-unmatch", "-f"] + lzj_names,
                 capture_output=True,
@@ -629,6 +628,17 @@ def get_all_keys_for_hashmap(name):
     """Get all keys for the hashmap `name`."""
     backend = LAZY_JSON_BACKENDS[CF_TICK_GRAPH_DATA_PRIMARY_BACKEND]()
     return backend.hkeys(name)
+
+
+def does_key_exist_in_hashmap(name: str, key: str) -> bool:
+    """
+    Check if a key exists in a hashmap, using the primary backend.
+    :param name: The hashmap name.
+    :param key: The key to check.
+    :return: True if the key exists, False otherwise.
+    """
+    backend = LAZY_JSON_BACKENDS[CF_TICK_GRAPH_DATA_PRIMARY_BACKEND]()
+    return backend.hexists(name, key)
 
 
 @contextlib.contextmanager

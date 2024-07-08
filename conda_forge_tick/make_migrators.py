@@ -693,37 +693,9 @@ def create_migration_yaml_creator(
                 continue
 
 
-def initialize_migrators(
+def initialize_version_migrator(
     gx: nx.DiGraph,
-    dry_run: bool = False,
-) -> MutableSequence[Migrator]:
-    migrators: List[Migrator] = []
-
-    add_arch_migrate(migrators, gx)
-
-    add_replacement_migrator(
-        migrators,
-        gx,
-        cast("PackageName", "build"),
-        cast("PackageName", "python-build"),
-        "The conda package name 'build' is deprecated "
-        "and too generic. Use 'python-build instead.'",
-    )
-
-    pinning_migrators: List[Migrator] = []
-    migration_factory(pinning_migrators, gx)
-    create_migration_yaml_creator(migrators=pinning_migrators, gx=gx)
-
-    with fold_log_lines("migration graph sizes"):
-        print("rebuild migration graph sizes:", flush=True)
-        for m in migrators + pinning_migrators:
-            if isinstance(m, GraphMigrator):
-                print(
-                    f'    {getattr(m, "name", m)} graph size: '
-                    f'{len(getattr(m, "graph", []))}',
-                    flush=True,
-                )
-
+) -> Version:
     with fold_log_lines("making version migrator"):
         print("building package import maps and version migrator", flush=True)
         python_nodes = {
@@ -758,8 +730,43 @@ def initialize_migrators(
             ],
         )
 
-        random.shuffle(pinning_migrators)
-        migrators = [version_migrator] + migrators + pinning_migrators
+    return version_migrator
+
+
+def initialize_migrators(
+    gx: nx.DiGraph,
+) -> MutableSequence[Migrator]:
+    migrators: List[Migrator] = []
+
+    add_arch_migrate(migrators, gx)
+
+    add_replacement_migrator(
+        migrators,
+        gx,
+        cast("PackageName", "build"),
+        cast("PackageName", "python-build"),
+        "The conda package name 'build' is deprecated "
+        "and too generic. Use 'python-build instead.'",
+    )
+
+    pinning_migrators: List[Migrator] = []
+    migration_factory(pinning_migrators, gx)
+    create_migration_yaml_creator(migrators=pinning_migrators, gx=gx)
+
+    with fold_log_lines("migration graph sizes"):
+        print("rebuild migration graph sizes:", flush=True)
+        for m in migrators + pinning_migrators:
+            if isinstance(m, GraphMigrator):
+                print(
+                    f'    {getattr(m, "name", m)} graph size: '
+                    f'{len(getattr(m, "graph", []))}',
+                    flush=True,
+                )
+
+    version_migrator = initialize_version_migrator(gx)
+
+    random.shuffle(pinning_migrators)
+    migrators = [version_migrator] + migrators + pinning_migrators
 
     return migrators
 
@@ -769,8 +776,14 @@ def _load(name):
         return make_from_lazy_json_data(lzj.data)
 
 
-def load_migrators() -> MutableSequence[Migrator]:
-    """Loads all current migrators.
+def load_migrators(migrator_names: tuple[str, ...] = ()) -> MutableSequence[Migrator]:
+    """
+    Loads all current migrators.
+
+    Parameters
+    ----------
+    migrator_names : tuple of str
+        The names of the migrators to load. If empty, all migrators will be loaded.
 
     Returns
     -------
@@ -781,7 +794,11 @@ def load_migrators() -> MutableSequence[Migrator]:
     version_migrator = None
     pinning_migrators = []
     longterm_migrators = []
-    all_names = get_all_keys_for_hashmap("migrators")
+    all_names = (
+        get_all_keys_for_hashmap("migrators")
+        if not migrator_names
+        else list(migrator_names)
+    )
     with executor("process", 4) as pool:
         futs = [pool.submit(_load, name) for name in all_names]
 
@@ -802,21 +819,24 @@ def load_migrators() -> MutableSequence[Migrator]:
             else:
                 migrators.append(migrator)
 
-    if version_migrator is None:
+    if version_migrator is None and not migrator_names:
         raise RuntimeError("No version migrator found in the migrators directory!")
+
+    version_migrators = [version_migrator] if version_migrator is not None else []
 
     random.shuffle(pinning_migrators)
     random.shuffle(longterm_migrators)
-    migrators = [version_migrator] + migrators + pinning_migrators + longterm_migrators
+    migrators = version_migrators + migrators + pinning_migrators + longterm_migrators
 
     return migrators
 
 
-def main(ctx: CliContext) -> None:
+def main(ctx: CliContext, version_only: bool = False) -> None:
     gx = load_existing_graph()
-    migrators = initialize_migrators(
-        gx,
-        dry_run=ctx.dry_run,
+    migrators = (
+        initialize_migrators(gx)
+        if not version_only
+        else [initialize_version_migrator(gx)]
     )
     with (
         fold_log_lines("dumping migrators to JSON"),
