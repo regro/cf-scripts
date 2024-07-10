@@ -1258,6 +1258,7 @@ default_sources = (
     "ROSDistro",
     "RawURL",
     "Github",
+    "GithubReleases",
     "IncrementAlphaRawURL",
     "NVIDIA",
 )
