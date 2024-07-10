@@ -602,13 +602,13 @@ class GithubReleases(AbstractSource):
             return False
         # "/releases/latest" redirects to "/releases/tag/<tag name>"
         url_components = r.url.split("/")
-        latest = "/".join(url_components[url_components.index("releases") + 2:])
+        latest = "/".join(url_components[url_components.index("releases") + 2 :])
         # If it is a pre-release don't give back the pre-release version
         if not len(latest) or latest == "latest" or parse_version(latest).is_prerelease:
             return False
         for prefix in ("v", "release-", "releases/"):
             if latest.startswith(prefix):
-                latest = latest[len(prefix):]
+                latest = latest[len(prefix) :]
                 break
         # Extract version number starting at the first digit.
         if match := re.search(r"(\d+[^\s]*)", latest):

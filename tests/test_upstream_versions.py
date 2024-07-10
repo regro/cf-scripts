@@ -1696,11 +1696,12 @@ def test_github_version_prefix(url, version, version_prefix, tmpdir):
     else:
         assert gh.version_prefix == version_prefix
 
+
 @pytest.mark.parametrize(
     "url, feedstock_version",
     [
         ("https://github.com/spglib/spglib/archive/v2.3.0.tar.gz", "2.3.0"),
-    ]
+    ],
 )
 @flaky
 def test_github_releases(tmpdir, url, feedstock_version):
@@ -1721,11 +1722,18 @@ def test_github_releases(tmpdir, url, feedstock_version):
 @pytest.mark.parametrize(
     "url, feedstock_version, latest_release, latest_tag",
     [
-        ("https://github.com/spglib/spglib/archive/v2.3.0.tar.gz", "2.3.0", "2.4.0", "2.5.0"),
-    ]
+        (
+            "https://github.com/spglib/spglib/archive/v2.3.0.tar.gz",
+            "2.3.0",
+            "2.4.0",
+            "2.5.0",
+        ),
+    ],
 )
 @flaky
-def test_github_tag_not_released(tmpdir, url, feedstock_version, latest_release, latest_tag):
+def test_github_tag_not_released(
+    tmpdir, url, feedstock_version, latest_release, latest_tag
+):
     """
     Reported in Element: autotick bot caught a tag not published as a release.
     User only wants releases, not tags. This test will start failing once
