@@ -50,6 +50,10 @@ YAML_PATH = os.path.join(os.path.dirname(__file__), "test_yaml")
         ("libevent", "2.1.12"),
         ("boost", "1.74.0"),
         ("boostcpp", "1.74.0"),
+        # these contains sources that depend on conda build config variants
+        ("polars_mixed_selectors", "1.1.0"),
+        ("polars_name_selectors", "1.1.0"),
+        ("polars_variant_selectors", "1.1.0"),
         # upstream is not available
         # ("mumps", "5.2.1"),
         # ("cb3multi", "6.0.0"),
