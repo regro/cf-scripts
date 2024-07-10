@@ -586,6 +586,36 @@ class Github(VersionFromFeed):
         return f"https://github.com/{package_owner}/{gh_package_name}/releases.atom"
 
 
+class GithubReleases(AbstractSource):
+    name = "GithubReleases"
+
+    def get_url(self, meta_yaml) -> Optional[str]:
+        if "github.com" not in meta_yaml["url"]:
+            return None
+        # might be namespaced
+        owner, repo = meta_yaml["url"].split("/")[3:5]
+        return f"https://github.com/{owner}/{repo}/releases/latest"
+
+    def get_version(self, url: str) -> Optional[str]:
+        r = requests.get(url)
+        if not r.ok:
+            return False
+        # "/releases/latest" redirects to "/releases/tag/<tag name>"
+        url_components = r.url.split("/")
+        latest = "/".join(url_components[url_components.index("releases") + 2:])
+        # If it is a pre-release don't give back the pre-release version
+        if not len(latest) or latest == "latest" or parse_version(latest).is_prerelease:
+            return False
+        for prefix in ("v", "release-", "releases/"):
+            if latest.startswith(prefix):
+                latest = latest[len(prefix):]
+                break
+        # Extract version number starting at the first digit.
+        if match := re.search(r"(\d+[^\s]*)", latest):
+            latest = match.group(0)
+        return latest
+
+
 class LibrariesIO(VersionFromFeed):
     name = "LibrariesIO"
 

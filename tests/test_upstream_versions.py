@@ -18,6 +18,7 @@ from conda_forge_tick.update_sources import (
     NVIDIA,
     AbstractSource,
     Github,
+    GithubReleases,
     PyPI,
     RawURL,
     next_version,
@@ -1694,3 +1695,55 @@ def test_github_version_prefix(url, version, version_prefix, tmpdir):
         assert gh.version_prefix is None
     else:
         assert gh.version_prefix == version_prefix
+
+@pytest.mark.parametrize(
+    "url, feedstock_version",
+    [
+        ("https://github.com/spglib/spglib/archive/v2.3.0.tar.gz", "2.3.0"),
+    ]
+)
+@flaky
+def test_github_releases(tmpdir, url, feedstock_version):
+    meta_yaml = LazyJson(os.path.join(tmpdir, "cf-scripts-test.json"))
+    with meta_yaml as _meta_yaml:
+        _meta_yaml.update(
+            {
+                "version": feedstock_version,
+                "url": url,
+            }
+        )
+
+    ghr = GithubReleases()
+    url = ghr.get_url(meta_yaml)
+    assert VersionOrder(ghr.get_version(url)) > VersionOrder(feedstock_version)
+
+
+@pytest.mark.parametrize(
+    "url, feedstock_version, latest_release, latest_tag",
+    [
+        ("https://github.com/spglib/spglib/archive/v2.3.0.tar.gz", "2.3.0", "2.4.0", "2.5.0"),
+    ]
+)
+@flaky
+def test_github_tag_not_released(tmpdir, url, feedstock_version, latest_release, latest_tag):
+    """
+    Reported in Element: autotick bot caught a tag not published as a release.
+    User only wants releases, not tags. This test will start failing once
+    they do release 2.5.0. We can either publish a fake repo with the same data
+    or remove this test once it passes the code review.
+    """
+    meta_yaml = LazyJson(os.path.join(tmpdir, "cf-scripts-test.json"))
+    with meta_yaml as _meta_yaml:
+        _meta_yaml.update(
+            {
+                "version": feedstock_version,
+                "url": url,
+            }
+        )
+    gh = Github()
+    url = gh.get_url(meta_yaml)
+    assert latest_tag == gh.get_version(url)
+
+    ghr = GithubReleases()
+    url = ghr.get_url(meta_yaml)
+    assert latest_release == ghr.get_version(url)
