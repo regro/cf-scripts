@@ -450,9 +450,6 @@ class MockLazyJson:
         pass
 
 
-G = nx.DiGraph()
-G.add_node("conda", reqs=["python"])
-G.nodes["conda"]["payload"] = MockLazyJson({})
 os.environ["RUN_URL"] = "hi world"
 
 
