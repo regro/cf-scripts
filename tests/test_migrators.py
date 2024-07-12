@@ -2,8 +2,6 @@ import os
 import re
 import subprocess
 
-import networkx as nx
-
 from conda_forge_tick.contexts import FeedstockContext
 from conda_forge_tick.feedstock_parser import populate_feedstock_attributes
 from conda_forge_tick.migrators import (
@@ -450,9 +448,6 @@ class MockLazyJson:
         pass
 
 
-G = nx.DiGraph()
-G.add_node("conda", reqs=["python"])
-G.nodes["conda"]["payload"] = MockLazyJson({})
 os.environ["RUN_URL"] = "hi world"
 
 
