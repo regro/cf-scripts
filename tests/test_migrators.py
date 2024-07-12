@@ -458,9 +458,9 @@ def run_test_migration(
     kwargs: dict,
     prb: dict,
     mr_out: dict,
-    should_filter=False,
-    tmpdir=None,
-    make_body=False,
+    tmpdir: str,
+    should_filter: bool = False,
+    make_body: bool = False,
 ):
     if mr_out:
         mr_out.update(bot_rerun=False)
@@ -556,8 +556,8 @@ def run_minimigrator(
     inp: str,
     output: str,
     mr_out: dict,
+    tmpdir: str,
     should_filter: bool = False,
-    tmpdir=None,
 ):
     if mr_out:
         mr_out.update(bot_rerun=False)

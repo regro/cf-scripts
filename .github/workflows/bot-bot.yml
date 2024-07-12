@@ -2,6 +2,9 @@ name: bot-bot
 
 on:
   workflow_dispatch: null
+  schedule:
+    - cron: '15 * * * *'
+  
 
 concurrency: bot
 
