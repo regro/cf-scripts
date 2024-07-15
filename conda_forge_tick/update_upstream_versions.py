@@ -32,6 +32,7 @@ from .update_sources import (
     NVIDIA,
     AbstractSource,
     Github,
+    GithubReleases,
     IncrementAlphaRawURL,
     PyPI,
     RawURL,
@@ -417,6 +418,7 @@ def all_version_sources():
         ROSDistro(),
         RawURL(),
         Github(),
+        GithubReleases(),
         IncrementAlphaRawURL(),
         NVIDIA(),
     )
