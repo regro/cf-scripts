@@ -530,8 +530,9 @@ def load_feedstock_local(
 def load_feedstock_containerized(
     name: str,
     sub_graph: typing.MutableMapping,
-    meta_yaml: Optional[str] = None,
-    conda_forge_yaml: Optional[str] = None,
+    meta_yaml: str | None = None,
+    recipe_yaml: str | None = None,
+    conda_forge_yaml: str | None = None,
     mark_not_archived: bool = False,
 ):
     """Load a feedstock into subgraph based on its name. If meta_yaml and/or
@@ -545,9 +546,11 @@ def load_feedstock_containerized(
         Name of the feedstock
     sub_graph : MutableMapping
         The existing metadata if any
-    meta_yaml : Optional[str]
+    meta_yaml : str | None
         The string meta.yaml, overrides the file in the feedstock if provided
-    conda_forge_yaml : Optional[str]
+    recipe_yaml : str | None
+        The string recipe.yaml, overrides the file in the feedstock if provided
+    conda_forge_yaml : str | None
         The string conda-forge.yaml, overrides the file in the feedstock if provided
     mark_not_archived : bool
         If True, forcibly mark the feedstock as not archived in the node attrs.
@@ -564,6 +567,9 @@ def load_feedstock_containerized(
 
     if meta_yaml is not None:
         args += ["--meta-yaml", meta_yaml]
+
+    if recipe_yaml is not None:
+        args += ["--recipe-yaml", recipe_yaml]
 
     if conda_forge_yaml is not None:
         args += ["--conda-forge-yaml", conda_forge_yaml]
@@ -592,10 +598,11 @@ def load_feedstock_containerized(
 def load_feedstock(
     name: str,
     sub_graph: typing.MutableMapping,
-    meta_yaml: Optional[str] = None,
-    conda_forge_yaml: Optional[str] = None,
+    meta_yaml: str | None = None,
+    recipe_yaml: str | None = None,
+    conda_forge_yaml: str | None = None,
     mark_not_archived: bool = False,
-    use_container: bool = True,
+    use_container: bool | None = None,
 ):
     """Load a feedstock into subgraph based on its name. If meta_yaml and/or
     conda_forge_yaml are not provided, they will be fetched from the feedstock.
@@ -606,9 +613,11 @@ def load_feedstock(
         Name of the feedstock
     sub_graph : MutableMapping
         The existing metadata if any
-    meta_yaml : Optional[str]
+    meta_yaml : str | None
         The string meta.yaml, overrides the file in the feedstock if provided
-    conda_forge_yaml : Optional[str]
+    recipe_yaml : str | None
+        The string recipe.yaml, overrides the file in the feedstock if provided
+    conda_forge_yaml : str | None
         The string conda-forge.yaml, overrides the file in the feedstock if provided
     mark_not_archived : bool
         If True, forcibly mark the feedstock as not archived in the node attrs.
@@ -632,6 +641,7 @@ def load_feedstock(
             name,
             sub_graph,
             meta_yaml=meta_yaml,
+            recipe_yaml=recipe_yaml,
             conda_forge_yaml=conda_forge_yaml,
             mark_not_archived=mark_not_archived,
         )
@@ -640,6 +650,7 @@ def load_feedstock(
             name,
             sub_graph,
             meta_yaml=meta_yaml,
+            recipe_yaml=recipe_yaml,
             conda_forge_yaml=conda_forge_yaml,
             mark_not_archived=mark_not_archived,
         )
