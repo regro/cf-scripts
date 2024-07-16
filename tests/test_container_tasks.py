@@ -680,7 +680,7 @@ def test_migration_runner_run_migration_containerized_version(
     with open(os.path.join(tmpdir, fs_dir, "recipe", "meta.yaml"), "w") as f:
         f.write(inp)
 
-    pmy = populate_feedstock_attributes(name, {}, inp, "{}")
+    pmy = populate_feedstock_attributes(name, {}, inp, None, "{}")
 
     # these are here for legacy migrators
     pmy["version"] = pmy["meta_yaml"]["package"]["version"]
