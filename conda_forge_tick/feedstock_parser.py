@@ -474,6 +474,10 @@ def load_feedstock_local(
     sub_graph : MutableMapping
         The sub_graph, now updated with the feedstock metadata
     """
+
+    if meta_yaml is not None and recipe_yaml is not None:
+        raise ValueError("Only either `meta_yaml` or `recipe_yaml` can be overridden.")
+
     # pull down one copy of the repo
     with tempfile.TemporaryDirectory() as tmpdir:
         feedstock_dir = _fetch_static_repo(name, tmpdir)
