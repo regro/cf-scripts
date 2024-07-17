@@ -456,7 +456,7 @@ def run_test_migration(
     inp: str,
     output: str,
     kwargs: dict,
-    prb: dict,
+    prb: str,
     mr_out: dict,
     tmpdir: str,
     should_filter: bool = False,
