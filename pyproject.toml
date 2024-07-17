@@ -9,7 +9,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "cf-scripts"
 authors = [
-    {name = "conda-forge-tick development team", email = "condaforge@gmail.com"},
+    {name = "cf-scripts development team", email = "condaforge@gmail.com"},
 ]
 description = "Flagship repo for cf-regro-autotick-bot"
 dynamic = ["version"]
