@@ -715,8 +715,7 @@ def initialize_migrators(
         gx,
         cast("PackageName", "mpir"),
         cast("PackageName", "gmp"),
-        "The package 'mpir' is deprecated and unmaintained. "
-        "Use 'gmp' instead.",
+        "The package 'mpir' is deprecated and unmaintained. Use 'gmp' instead.",
     )
 
     pinning_migrators: List[Migrator] = []
