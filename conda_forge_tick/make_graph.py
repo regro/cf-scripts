@@ -45,6 +45,10 @@ COMPILER_STUBS_WITH_STRONG_EXPORTS = [
     "cxx_compiler_stub",
     "fortran_compiler_stub",
     "cuda_compiler_stub",
+    "m2w64_c_compiler_stub",
+    "m2w64_c_stdlib_stub",
+    "m2w64_cxx_compiler_stub",
+    "m2w64_fortran_compiler_stub",
 ]
 
 
