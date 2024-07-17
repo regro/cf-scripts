@@ -7,7 +7,7 @@ requires = [
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "conda-forge-tick"
+name = "cf-scripts"
 authors = [
     {name = "conda-forge-tick development team", email = "condaforge@gmail.com"},
 ]
