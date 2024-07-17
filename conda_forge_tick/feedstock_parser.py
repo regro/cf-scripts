@@ -224,6 +224,9 @@ def populate_feedstock_attributes(
 
     from conda_forge_tick.chaindb import ChainDB, _convert_to_dict
 
+    if meta_yaml is None and recipe_yaml is None:
+        raise ValueError("Either `meta_yaml` or  `recipe_yaml` needs to be given.")
+
     sub_graph.update({"feedstock_name": name, "parsing_error": False, "branch": "main"})
 
     if mark_not_archived:
