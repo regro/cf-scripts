@@ -380,6 +380,17 @@ def _render_meta_yaml(text: str, for_pinning: bool = False, **kwargs) -> str:
         raise
 
 
+def parse_recipe_yaml(
+    text: str,
+    for_pinning=False,
+    platform=None,
+    arch=None,
+    log_debug=False,
+    use_container: bool = True,
+):
+    raise NotImplementedError()
+
+
 def parse_meta_yaml(
     text: str,
     for_pinning=False,

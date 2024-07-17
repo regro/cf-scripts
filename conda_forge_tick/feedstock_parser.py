@@ -1,5 +1,4 @@
 import collections.abc
-import glob
 import hashlib
 import logging
 import os
@@ -25,7 +24,7 @@ if typing.TYPE_CHECKING:
 from conda_forge_tick.lazy_json_backends import LazyJson, dumps, loads
 from conda_forge_tick.utils import run_container_task
 
-from .utils import as_iterable, parse_meta_yaml
+from .utils import as_iterable, parse_meta_yaml, parse_recipe_yaml
 
 logger = logging.getLogger(__name__)
 
@@ -217,12 +216,15 @@ def populate_feedstock_attributes(
     meta_yaml: str | None = None,
     recipe_yaml: str | None = None,
     conda_forge_yaml: str | None = None,
-    mark_not_archived=False,
-    feedstock_dir=None,
+    mark_not_archived: bool = False,
+    feedstock_dir: str | Path | None = None,
 ) -> typing.MutableMapping:
     """Parse the various configuration information into something usable"""
 
     from conda_forge_tick.chaindb import ChainDB, _convert_to_dict
+
+    if isinstance(feedstock_dir, str):
+        feedstock_dir = Path(feedstock_dir)
 
     if meta_yaml is None and recipe_yaml is None:
         raise ValueError("Either `meta_yaml` or  `recipe_yaml` needs to be given.")
@@ -249,25 +251,23 @@ def populate_feedstock_attributes(
     if feedstock_dir is not None:
         logger.debug(
             "# of ci support files: %s",
-            len(glob.glob(os.path.join(feedstock_dir, ".ci_support", "*.yaml"))),
+            len(list(feedstock_dir.joinpath(".ci_support").glob("*.yaml"))),
         )
 
     try:
         if (
             feedstock_dir is not None
-            and len(glob.glob(os.path.join(feedstock_dir, ".ci_support", "*.yaml"))) > 0
+            and len(list(feedstock_dir.joinpath(".ci_support").glob("*.yaml"))) > 0
         ):
-            recipe_dir = os.path.join(feedstock_dir, "recipe")
+            recipe_dir = feedstock_dir / "recipe"
             ci_support_files = sorted(
-                glob.glob(
-                    os.path.join(feedstock_dir, ".ci_support", "*.yaml"),
-                ),
+                feedstock_dir.joinpath(".ci_support").glob("*.yaml")
             )
             variant_yamls = []
-            plat_arch = []
+            plat_archs = []
             for cbc_path in ci_support_files:
-                logger.debug("parsing conda-build config: %s", cbc_path)
-                cbc_name = os.path.basename(cbc_path)
+                logger.debug(f"parsing conda-build config: {cbc_path}")
+                cbc_name = cbc_path.name
                 cbc_name_parts = cbc_name.replace(".yaml", "").split("_")
                 plat = cbc_name_parts[0]
                 if len(cbc_name_parts) == 1:
@@ -282,7 +282,7 @@ def populate_feedstock_attributes(
                     if plat.endswith(_tt):
                         plat = plat[: -len(_tt)]
                         break
-                plat_arch.append((plat, arch))
+                plat_archs.append((plat, arch))
 
                 if isinstance(meta_yaml, str):
                     variant_yamls.append(
@@ -297,10 +297,18 @@ def populate_feedstock_attributes(
                             ),
                         ),
                     )
+                else:
+                    variant_yamls.append(
+                        parse_recipe_yaml(
+                            recipe_yaml,
+                            platform=plat,
+                            arch=arch,
+                        ),
+                    )
 
                 # sometimes the requirements come out to None or [None]
                 # and this ruins the aggregated meta_yaml / breaks stuff
-                logger.debug("getting reqs for config: %s", cbc_path)
+                logger.debug(f"getting reqs for config: {cbc_path}")
                 if "requirements" in variant_yamls[-1]:
                     variant_yamls[-1]["requirements"] = _clean_req_nones(
                         variant_yamls[-1]["requirements"],
@@ -315,30 +323,31 @@ def populate_feedstock_attributes(
                             )
 
                 # collapse them down
-                logger.debug("collapsing reqs for %s", name)
+                logger.debug(f"collapsing reqs for {name}")
                 final_cfgs = {}
-                for plat_arch, varyml in zip(plat_arch, variant_yamls):
+                for plat_arch, varyml in zip(plat_archs, variant_yamls):
                     if plat_arch not in final_cfgs:
                         final_cfgs[plat_arch] = []
                     final_cfgs[plat_arch].append(varyml)
                 for k in final_cfgs:
                     ymls = final_cfgs[k]
                     final_cfgs[k] = _dedupe_meta_yaml(_convert_to_dict(ChainDB(*ymls)))
-                plat_arch = []
-                variant_yamls = []
+
+                plat_archs.clear()
+                variant_yamls.clear()
                 for k, v in final_cfgs.items():
-                    plat_arch.append(k)
+                    plat_archs.append(k)
                     variant_yamls.append(v)
         else:
             logger.debug("doing generic parsing")
-            plat_arch = [("win", "64"), ("osx", "64"), ("linux", "64")]
+            plat_archs = [("win", "64"), ("osx", "64"), ("linux", "64")]
             for k in set(sub_graph["conda-forge.yml"].get("provider", {})):
                 if "_" in k:
-                    plat_arch.append(tuple(k.split("_")))
+                    plat_archs.append(tuple(k.split("_")))
             if isinstance(meta_yaml, str):
                 variant_yamls = [
                     parse_meta_yaml(meta_yaml, platform=plat, arch=arch)
-                    for plat, arch in plat_arch
+                    for plat, arch in plat_archs
                 ]
     except Exception as e:
         import traceback
@@ -347,11 +356,11 @@ def populate_feedstock_attributes(
         sub_graph["parsing_error"] = f"make_graph: render error {e}\n{trb}"
         raise
 
-    logger.debug("platforms: %s", plat_arch)
-    sub_graph["platforms"] = ["_".join(k) for k in plat_arch]
+    logger.debug("platforms: %s", plat_archs)
+    sub_graph["platforms"] = ["_".join(k) for k in plat_archs]
 
     # this makes certain that we have consistent ordering
-    sorted_variant_yamls = [x for _, x in sorted(zip(plat_arch, variant_yamls))]
+    sorted_variant_yamls = [x for _, x in sorted(zip(plat_archs, variant_yamls))]
     yaml_dict = ChainDB(*sorted_variant_yamls)
     if not yaml_dict:
         logger.error(f"Something odd happened when parsing recipe {name}")
@@ -368,7 +377,7 @@ def populate_feedstock_attributes(
         if k.endswith("_meta_yaml") or k.endswith("_requirements"):
             sub_graph.pop(k)
 
-    for k, v in zip(plat_arch, variant_yamls):
+    for k, v in zip(plat_archs, variant_yamls):
         plat_arch_name = "_".join(k)
         sub_graph[f"{plat_arch_name}_meta_yaml"] = v
         _, sub_graph[f"{plat_arch_name}_requirements"], _ = _extract_requirements(
