@@ -33,8 +33,8 @@ from conda_forge_tick.lazy_json_backends import (
 from conda_forge_tick.os_utils import pushd
 
 HAVE_MONGODB = (
-    "MONGODB_CONNECTION_STRING" in conda_forge_tick.global_sensitive_env.clasified_info
-    and conda_forge_tick.global_sensitive_env.clasified_info[
+    "MONGODB_CONNECTION_STRING" in conda_forge_tick.global_sensitive_env.classified_info
+    and conda_forge_tick.global_sensitive_env.classified_info[
         "MONGODB_CONNECTION_STRING"
     ]
     is not None
