@@ -45,6 +45,7 @@ dependencies:
   - python-dateutil
   - python-graphviz
   - python-rapidjson
+  - rattler-build
   - requests
   - ruamel.yaml
   - ruamel.yaml.jinja2
