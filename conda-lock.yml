@@ -11129,15 +11129,15 @@ package:
       python: '>=3.8'
       rattler-build: ''
     hash:
-      md5: 4ad1feda817f0e841423c6d9cadfc15a
-      sha256: 8515fdb6569afdfd820390455dd03f726aaec18ccaf24a1d49ac15bb9049b8cc
+      md5: 66033ccae66a9d081f00d98c410147bc
+      sha256: 4da4acbfb08f05ab02da3447cdbd053ef8ff747eef8c1307680866d30822c8b0
     manager: conda
     name: rattler-build-conda-compat
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/rattler-build-conda-compat-0.0.6-pyhd8ed1ab_0.conda
-    version: 0.0.6
+      https://conda.anaconda.org/conda-forge/noarch/rattler-build-conda-compat-0.1.2-pyhd8ed1ab_0.conda
+    version: 0.1.2
   - category: main
     dependencies:
       conda-build: ''
@@ -11145,15 +11145,15 @@ package:
       python: '>=3.8'
       rattler-build: ''
     hash:
-      md5: 4ad1feda817f0e841423c6d9cadfc15a
-      sha256: 8515fdb6569afdfd820390455dd03f726aaec18ccaf24a1d49ac15bb9049b8cc
+      md5: 66033ccae66a9d081f00d98c410147bc
+      sha256: 4da4acbfb08f05ab02da3447cdbd053ef8ff747eef8c1307680866d30822c8b0
     manager: conda
     name: rattler-build-conda-compat
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/rattler-build-conda-compat-0.0.6-pyhd8ed1ab_0.conda
-    version: 0.0.6
+      https://conda.anaconda.org/conda-forge/noarch/rattler-build-conda-compat-0.1.2-pyhd8ed1ab_0.conda
+    version: 0.1.2
   - category: main
     dependencies:
       conda-build: ''
@@ -11161,15 +11161,15 @@ package:
       python: '>=3.8'
       rattler-build: ''
     hash:
-      md5: 4ad1feda817f0e841423c6d9cadfc15a
-      sha256: 8515fdb6569afdfd820390455dd03f726aaec18ccaf24a1d49ac15bb9049b8cc
+      md5: 66033ccae66a9d081f00d98c410147bc
+      sha256: 4da4acbfb08f05ab02da3447cdbd053ef8ff747eef8c1307680866d30822c8b0
     manager: conda
     name: rattler-build-conda-compat
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/rattler-build-conda-compat-0.0.6-pyhd8ed1ab_0.conda
-    version: 0.0.6
+      https://conda.anaconda.org/conda-forge/noarch/rattler-build-conda-compat-0.1.2-pyhd8ed1ab_0.conda
+    version: 0.1.2
   - category: main
     dependencies:
       libgcc-ng: '>=12'
@@ -11896,41 +11896,41 @@ package:
     dependencies:
       python: '>=3.8'
     hash:
-      md5: 693bb57e8f92120caa956898065f3627
-      sha256: 869ea7688c040911ac1050d5765fa1f3d8ea1858c9f9cecb0df136a2f5e44f46
+      md5: aede3d5c0882ebed2f07024400a111ed
+      sha256: b09ba557d62111d315f1841176cf01fd75e5ae0ae9d6360ccb6aaca1e9a6935f
     manager: conda
     name: setuptools
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/setuptools-70.3.0-pyhd8ed1ab_0.conda
-    version: 70.3.0
+      https://conda.anaconda.org/conda-forge/noarch/setuptools-71.0.1-pyhd8ed1ab_0.conda
+    version: 71.0.1
   - category: main
     dependencies:
       python: '>=3.8'
     hash:
-      md5: 693bb57e8f92120caa956898065f3627
-      sha256: 869ea7688c040911ac1050d5765fa1f3d8ea1858c9f9cecb0df136a2f5e44f46
+      md5: aede3d5c0882ebed2f07024400a111ed
+      sha256: b09ba557d62111d315f1841176cf01fd75e5ae0ae9d6360ccb6aaca1e9a6935f
     manager: conda
     name: setuptools
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/setuptools-70.3.0-pyhd8ed1ab_0.conda
-    version: 70.3.0
+      https://conda.anaconda.org/conda-forge/noarch/setuptools-71.0.1-pyhd8ed1ab_0.conda
+    version: 71.0.1
   - category: main
     dependencies:
       python: '>=3.8'
     hash:
-      md5: 693bb57e8f92120caa956898065f3627
-      sha256: 869ea7688c040911ac1050d5765fa1f3d8ea1858c9f9cecb0df136a2f5e44f46
+      md5: aede3d5c0882ebed2f07024400a111ed
+      sha256: b09ba557d62111d315f1841176cf01fd75e5ae0ae9d6360ccb6aaca1e9a6935f
     manager: conda
     name: setuptools
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/setuptools-70.3.0-pyhd8ed1ab_0.conda
-    version: 70.3.0
+      https://conda.anaconda.org/conda-forge/noarch/setuptools-71.0.1-pyhd8ed1ab_0.conda
+    version: 71.0.1
   - category: main
     dependencies:
       packaging: '>=20.0'
