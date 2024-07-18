@@ -730,10 +730,7 @@ def _parse_meta_yaml_impl(
 
     logger.debug("jinja2 environmment:\n%s", pprint.pformat(cfg_as_dict))
 
-    if for_pinning:
-        content = _render_meta_yaml(text, for_pinning=for_pinning, **cfg_as_dict)
-    else:
-        content = _render_meta_yaml(text, **cfg_as_dict)
+    content = _render_meta_yaml(text, for_pinning=for_pinning, **cfg_as_dict)
 
     try:
         return parse(content, cbc)
