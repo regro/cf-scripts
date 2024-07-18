@@ -23,13 +23,10 @@ repos:
         args:
           - --py36-plus
 
-  - repo: https://github.com/codespell-project/codespell
-    rev: v2.3.0
+  - repo: https://github.com/crate-ci/typos
+    rev: v1.23.2
     hooks:
-      - id: codespell
-        args:
-          - --exclude-file=.codespellignorelines
-          - --ignore-words=.codespellignorewords
+      - id: typos
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.5.0
