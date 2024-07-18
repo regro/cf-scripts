@@ -27,7 +27,7 @@ from .lazy_json_backends import LazyJson
 if typing.TYPE_CHECKING:
     from mypy_extensions import TypedDict
 
-    from conda_forge_tick.migrators_types import MetaYamlTypedDict
+    from conda_forge_tick.migrators_types import RecipeTypedDict
 
 logger = logging.getLogger(__name__)
 
@@ -387,7 +387,33 @@ def parse_recipe_yaml(
     arch=None,
     log_debug=False,
     use_container: bool = True,
-):
+) -> "RecipeTypedDict":
+    """Parse the recipe.yaml.
+
+    Parameters
+    ----------
+    text : str
+        The raw text in conda-forge feedstock recipe.yaml file
+    for_pinning : bool, optional
+        If True, render the recipe.yaml for pinning migrators, by default False.
+    platform : str, optional
+        The platform (e.g., 'linux', 'osx', 'win').
+    arch : str, optional
+        The CPU architecture (e.g., '64', 'aarch64').
+    log_debug : bool, optional
+        If True, print extra debugging info. Default is False.
+    use_container
+        Whether to use a container to run the parsing.
+        If None, the function will use a container if the environment
+        variable `CF_TICK_IN_CONTAINER` is 'false'. This feature can be
+        used to avoid container in container calls.
+
+    Returns
+    -------
+    dict :
+        The parsed YAML dict. If parsing fails, returns an empty dict. May raise
+        for some errors. Have fun.
+    """
     raise NotImplementedError()
 
 
@@ -400,7 +426,7 @@ def parse_meta_yaml(
     orig_cbc_path=None,
     log_debug=False,
     use_container: bool = True,
-):
+) -> "RecipeTypedDict":
     """Parse the meta.yaml.
 
     Parameters
@@ -466,7 +492,7 @@ def parse_meta_yaml_containerized(
     cbc_path=None,
     orig_cbc_path=None,
     log_debug=False,
-):
+) -> "RecipeTypedDict":
     """Parse the meta.yaml.
 
     **This function runs the parsing in a container.**
@@ -551,7 +577,7 @@ def parse_meta_yaml_local(
     cbc_path=None,
     orig_cbc_path=None,
     log_debug=False,
-) -> "MetaYamlTypedDict":
+) -> "RecipeTypedDict":
     """Parse the meta.yaml.
 
     Parameters
@@ -634,7 +660,7 @@ def _parse_meta_yaml_impl(
     cbc_path=None,
     log_debug=False,
     orig_cbc_path=None,
-) -> "MetaYamlTypedDict":
+) -> "RecipeTypedDict":
     import conda_build.api
     import conda_build.environ
     from conda_build.config import Config

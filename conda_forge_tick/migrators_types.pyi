@@ -58,7 +58,7 @@ class MetaYamlOutputs(TypedDict, total=False):
     # TODO: Not entirely sure this is right
     build: BuildRunExportsDict
 
-class MetaYamlTypedDict(TypedDict, total=False):
+class RecipeTypedDict(TypedDict, total=False):
     about: "AboutTypedDict"
     build: "BuildTypedDict"
     extra: "ExtraTypedDict"
@@ -107,7 +107,7 @@ class AttrsTypedDict_(TypedDict, total=False):
     build: BuildTypedDict
     extra: ExtraTypedDict
     feedstock_name: str
-    meta_yaml: MetaYamlTypedDict
+    meta_yaml: "RecipeTypedDict"
     package: PackageTypedDict
     raw_meta_yaml: str
     req: Set[str]

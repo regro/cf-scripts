@@ -17,7 +17,7 @@ from requests.models import Response
 if typing.TYPE_CHECKING:
     from mypy_extensions import TestTypedDict
 
-    from conda_forge_tick.migrators_types import MetaYamlTypedDict
+    from conda_forge_tick.migrators_types import RecipeTypedDict
 
     from .migrators_types import PackageName, RequirementsTypedDict
 
@@ -67,7 +67,7 @@ def _dedupe_meta_yaml(meta_yaml):
 
 
 def _get_requirements(
-    meta_yaml: "MetaYamlTypedDict",
+    meta_yaml: "RecipeTypedDict",
     outputs: bool = True,
     build: bool = True,
     host: bool = True,
@@ -297,7 +297,7 @@ def populate_feedstock_attributes(
                             ),
                         ),
                     )
-                else:
+                elif isinstance(recipe_yaml, str):
                     variant_yamls.append(
                         parse_recipe_yaml(
                             recipe_yaml,
