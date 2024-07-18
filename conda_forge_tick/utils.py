@@ -386,7 +386,7 @@ def parse_recipe_yaml(
     platform=None,
     arch=None,
     log_debug=False,
-    use_container: bool = True,
+    use_container: bool | None = True,
 ) -> "RecipeTypedDict":
     """Parse the recipe.yaml.
 
@@ -414,6 +414,90 @@ def parse_recipe_yaml(
         The parsed YAML dict. If parsing fails, returns an empty dict. May raise
         for some errors. Have fun.
     """
+    in_container = os.environ.get("CF_TICK_IN_CONTAINER", "false") == "true"
+    if use_container is None:
+        use_container = not in_container
+
+    if use_container and not in_container:
+        return parse_recipe_yaml_containerized(
+            text,
+            for_pinning=for_pinning,
+            platform=platform,
+            arch=arch,
+            log_debug=log_debug,
+        )
+    else:
+        return parse_recipe_yaml_local(
+            text,
+            for_pinning=for_pinning,
+            platform=platform,
+            arch=arch,
+            log_debug=log_debug,
+        )
+
+
+def parse_recipe_yaml_containerized(
+    text: str,
+    for_pinning=False,
+    platform=None,
+    arch=None,
+    log_debug=False,
+) -> "RecipeTypedDict":
+    """Parse the recipe.yaml.
+
+    **This function runs the parsing in a container.**
+
+    Parameters
+    ----------
+    text : str
+        The raw text in conda-forge feedstock recipe.yaml file
+    for_pinning : bool, optional
+        If True, render the recipe.yaml for pinning migrators, by default False.
+    platform : str, optional
+        The platform (e.g., 'linux', 'osx', 'win').
+    arch : str, optional
+        The CPU architecture (e.g., '64', 'aarch64').
+    log_debug : bool, optional
+        If True, print extra debugging info. Default is False.
+
+    Returns
+    -------
+    dict :
+        The parsed YAML dict. If parsing fails, returns an empty dict. May raise
+        for some errors. Have fun.
+    """
+    raise NotImplementedError()
+
+
+def parse_recipe_yaml_local(
+    text: str,
+    for_pinning=False,
+    platform=None,
+    arch=None,
+    log_debug=False,
+) -> "RecipeTypedDict":
+    """Parse the recipe.yaml.
+
+    Parameters
+    ----------
+    text : str
+        The raw text in conda-forge feedstock recipe.yaml file
+    for_pinning : bool, optional
+        If True, render the recipe.yaml for pinning migrators, by default False.
+    platform : str, optional
+        The platform (e.g., 'linux', 'osx', 'win').
+    arch : str, optional
+        The CPU architecture (e.g., '64', 'aarch64').
+    log_debug : bool, optional
+        If True, print extra debugging info. Default is False.
+
+    Returns
+    -------
+    dict :
+        The parsed YAML dict. If parsing fails, returns an empty dict. May raise
+        for some errors. Have fun.
+    """
+
     raise NotImplementedError()
 
 
@@ -425,7 +509,7 @@ def parse_meta_yaml(
     cbc_path=None,
     orig_cbc_path=None,
     log_debug=False,
-    use_container: bool = True,
+    use_container: bool | None = True,
 ) -> "RecipeTypedDict":
     """Parse the meta.yaml.
 
