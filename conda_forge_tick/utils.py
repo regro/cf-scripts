@@ -466,7 +466,26 @@ def parse_recipe_yaml_containerized(
         The parsed YAML dict. If parsing fails, returns an empty dict. May raise
         for some errors. Have fun.
     """
-    raise NotImplementedError()
+    args = []
+
+    if platform is not None:
+        args += ["--platform", platform]
+
+    if arch is not None:
+        args += ["--arch", arch]
+
+    if log_debug:
+        args += ["--log-debug"]
+
+    if for_pinning:
+        args += ["--for-pinning"]
+
+    return run_container_task(
+        "parse-recipe-yaml",
+        args,
+        input=text,
+        mount_readonly=True,
+    )
 
 
 def parse_recipe_yaml_local(

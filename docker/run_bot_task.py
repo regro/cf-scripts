@@ -389,6 +389,24 @@ def _parse_meta_yaml(
     )
 
 
+def _parse_recipe_yaml(
+    *,
+    for_pinning,
+    platform,
+    arch,
+    log_debug,
+):
+    from conda_forge_tick.utils import parse_recipe_yaml_local
+
+    return parse_recipe_yaml_local(
+        sys.stdin.read(),
+        for_pinning=for_pinning,
+        platform=platform,
+        arch=arch,
+        log_debug=log_debug,
+    )
+
+
 def _check_solvable(
     *,
     timeout,
@@ -470,6 +488,44 @@ def parse_meta_yaml(
         arch=arch,
         cbc_path=cbc_path,
         orig_cbc_path=orig_cbc_path,
+        log_debug=log_debug,
+    )
+
+
+@cli.command(name="parse-recipe-yaml")
+@log_level_option
+@click.option(
+    "--for-pinning",
+    is_flag=True,
+    help="Parse the recipe.yaml for pinning requirements.",
+)
+@click.option(
+    "--platform",
+    type=str,
+    default=None,
+    help="The platform (e.g., 'linux', 'osx', 'win').",
+)
+@click.option(
+    "--arch",
+    type=str,
+    default=None,
+    help="The CPU architecture (e.g., '64', 'aarch64').",
+)
+@click.option("--log-debug", is_flag=True, help="Log debug information.")
+def parse_recipe_yaml(
+    log_level,
+    for_pinning,
+    platform,
+    arch,
+    log_debug,
+):
+    return _run_bot_task(
+        _parse_recipe_yaml,
+        log_level=log_level,
+        existing_feedstock_node_attrs=None,
+        for_pinning=for_pinning,
+        platform=platform,
+        arch=arch,
         log_debug=log_debug,
     )
 
