@@ -438,7 +438,7 @@ def lazy_update_pr_json(
 
     This function will use the ETag in the GitHub API to update PR information
     lazily. It sends the ETag to github properly and if nothing is changed on their
-    end, it simply returns the PR. Otherwise the information is refershed.
+    end, it simply returns the PR. Otherwise the information is refreshed.
 
     Parameters
     ----------

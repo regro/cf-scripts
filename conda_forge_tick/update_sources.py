@@ -83,7 +83,7 @@ def next_version(ver: str, increment_alpha: bool = False) -> Iterator[str]:
         if idot < n_dot - 1:
             ver_split.append(".")
 
-    def _yeild_splits_from_index(start, ver_split_start, num_bump):
+    def _yield_splits_from_index(start, ver_split_start, num_bump):
         if start < len(ver_split_start) and num_bump > 0:
             ver_split = copy.deepcopy(ver_split_start)
             for k in reversed(range(start, len(ver_split))):
@@ -97,7 +97,7 @@ def next_version(ver: str, increment_alpha: bool = False) -> Iterator[str]:
                     for kk in range(num_bump):
                         ver_split[k] = str(t + 1 + kk)
                         yield "".join(ver_split)
-                        yield from _yeild_splits_from_index(
+                        yield from _yield_splits_from_index(
                             k + 1,
                             ver_split,
                             num_bump - 1,
@@ -111,7 +111,7 @@ def next_version(ver: str, increment_alpha: bool = False) -> Iterator[str]:
                     for kk in range(num_bump):
                         ver_split[k] = chr(ord(ver_split[k]) + 1)
                         yield "".join(ver_split)
-                        yield from _yeild_splits_from_index(
+                        yield from _yield_splits_from_index(
                             k + 1,
                             ver_split,
                             num_bump - 1,
@@ -120,7 +120,7 @@ def next_version(ver: str, increment_alpha: bool = False) -> Iterator[str]:
                 else:
                     continue
 
-    for ver in _yeild_splits_from_index(0, ver_split, 2):
+    for ver in _yield_splits_from_index(0, ver_split, 2):
         yield ver
 
 

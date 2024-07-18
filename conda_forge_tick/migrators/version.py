@@ -418,28 +418,28 @@ class Version(Migrator):
                 )
 
         @functools.lru_cache(maxsize=1024)
-        def _get_attemps_nr(node):
+        def _get_attempts_nr(node):
             with graph.nodes[node]["payload"] as attrs:
                 with attrs["version_pr_info"] as vpri:
                     new_version = vpri.get("new_version", "")
                     attempts = vpri.get("new_version_attempts", {}).get(new_version, 0)
             return min(attempts, 3)
 
-        def _get_attemps_r(node, seen):
+        def _get_attempts_r(node, seen):
             seen |= {node}
-            attempts = _get_attemps_nr(node)
+            attempts = _get_attempts_nr(node)
             for d in nx.descendants(graph, node):
                 if d not in seen:
-                    attempts = max(attempts, _get_attemps_r(d, seen))
+                    attempts = max(attempts, _get_attempts_r(d, seen))
             return attempts
 
         @functools.lru_cache(maxsize=1024)
-        def _get_attemps(node):
+        def _get_attempts(node):
             if _has_solver_checks(node):
                 seen = set()
-                return _get_attemps_r(node, seen)
+                return _get_attempts_r(node, seen)
             else:
-                return _get_attemps_nr(node)
+                return _get_attempts_nr(node)
 
         def _desc_cmp(node1, node2):
             if _has_solver_checks(node1) and _has_solver_checks(node2):
@@ -457,7 +457,7 @@ class Version(Migrator):
         return sorted(
             sorted(
                 sorted(nodes_to_sort, key=lambda x: random.uniform(0, 1)),
-                key=_get_attemps,
+                key=_get_attempts,
             ),
             key=functools.cmp_to_key(_desc_cmp),
         )
