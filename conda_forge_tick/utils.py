@@ -517,7 +517,29 @@ def parse_recipe_yaml_local(
         for some errors. Have fun.
     """
 
+    # recipe_yaml_data = _render_recipe_yaml(text)
+
     raise NotImplementedError()
+
+
+def _render_recipe_yaml(text: str) -> dict[str, Any]:
+    """
+    Renders the given recipe YAML text using the `rattler-build` command-line tool.
+
+    Args:
+        text (str): The recipe YAML text to render.
+
+    Returns:
+        dict[str, Any]: The rendered recipe as a dictionary.
+    """
+    res = subprocess.run(
+        ["rattler-build", "build", "--render-only"],
+        stdout=subprocess.PIPE,
+        text=True,
+        input=text,
+        check=True,
+    )
+    return json.loads(res.stdout)
 
 
 def parse_meta_yaml(
