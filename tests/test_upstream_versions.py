@@ -18,6 +18,7 @@ from conda_forge_tick.update_sources import (
     NVIDIA,
     AbstractSource,
     Github,
+    GithubReleases,
     PyPI,
     RawURL,
     next_version,
@@ -1257,6 +1258,7 @@ default_sources = (
     "ROSDistro",
     "RawURL",
     "Github",
+    "GithubReleases",
     "IncrementAlphaRawURL",
     "NVIDIA",
 )
@@ -1694,3 +1696,25 @@ def test_github_version_prefix(url, version, version_prefix, tmpdir):
         assert gh.version_prefix is None
     else:
         assert gh.version_prefix == version_prefix
+
+
+@pytest.mark.parametrize(
+    "url, feedstock_version",
+    [
+        ("https://github.com/spglib/spglib/archive/v2.3.0.tar.gz", "2.3.0"),
+    ],
+)
+@flaky
+def test_github_releases(tmpdir, url, feedstock_version):
+    meta_yaml = LazyJson(os.path.join(tmpdir, "cf-scripts-test.json"))
+    with meta_yaml as _meta_yaml:
+        _meta_yaml.update(
+            {
+                "version": feedstock_version,
+                "url": url,
+            }
+        )
+
+    ghr = GithubReleases()
+    url = ghr.get_url(meta_yaml)
+    assert VersionOrder(ghr.get_version(url)) > VersionOrder(feedstock_version)

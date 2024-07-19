@@ -63,7 +63,7 @@ def test_env_is_protected_against_malicious_recipes(tmpdir, caplog, env_setup):
     with pushd(tmpdir):
         subprocess.run(["git", "init"])
 
-    pmy = populate_feedstock_attributes("blah", {}, in_yaml, "{}")
+    pmy = populate_feedstock_attributes("blah", {}, in_yaml, None, "{}")
 
     # This url gets saved in https://github.com/regro/cf-graph-countyfair
     pswd = os.environ.get("TEST_BOT_TOKEN_VAL", "unpassword")

@@ -25,7 +25,7 @@ from .utils import load_existing_graph
 logger = logging.getLogger(__name__)
 
 NUM_GITHUB_THREADS = 2
-KEEP_PR_FRACTION = 1.5
+KEEP_PR_FRACTION = 0.25
 
 
 def _update_pr(update_function, dry_run, gx, job, n_jobs):

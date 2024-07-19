@@ -347,6 +347,7 @@ def _parse_feedstock(
     *,
     attrs,
     meta_yaml,
+    recipe_yaml,
     conda_forge_yaml,
     mark_not_archived,
 ):
@@ -358,6 +359,7 @@ def _parse_feedstock(
         name,
         attrs,
         meta_yaml=meta_yaml,
+        recipe_yaml=recipe_yaml,
         conda_forge_yaml=conda_forge_yaml,
         mark_not_archived=mark_not_archived,
     )
@@ -477,6 +479,9 @@ def parse_meta_yaml(
 @existing_feedstock_node_attrs_option
 @click.option("--meta-yaml", default=None, type=str, help="The meta.yaml file to use.")
 @click.option(
+    "--recipe-yaml", default=None, type=str, help="The recipe.yaml file to use."
+)
+@click.option(
     "--conda-forge-yaml", default=None, type=str, help="The meta.yaml file to use."
 )
 @click.option(
@@ -486,6 +491,7 @@ def parse_feedstock(
     log_level,
     existing_feedstock_node_attrs,
     meta_yaml,
+    recipe_yaml,
     conda_forge_yaml,
     mark_not_archived,
 ):
@@ -494,6 +500,7 @@ def parse_feedstock(
         log_level=log_level,
         existing_feedstock_node_attrs=existing_feedstock_node_attrs,
         meta_yaml=meta_yaml,
+        recipe_yaml=recipe_yaml,
         conda_forge_yaml=conda_forge_yaml,
         mark_not_archived=mark_not_archived,
     )

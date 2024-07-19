@@ -201,7 +201,7 @@ def run_test_migration(
     except Exception:
         name = "blah"
 
-    pmy = populate_feedstock_attributes(name, {}, inp, cf_yml)
+    pmy = populate_feedstock_attributes(name, {}, inp, None, cf_yml)
 
     # these are here for legacy migrators
     pmy["version"] = pmy["meta_yaml"]["package"]["version"]

@@ -83,7 +83,7 @@ def next_version(ver: str, increment_alpha: bool = False) -> Iterator[str]:
         if idot < n_dot - 1:
             ver_split.append(".")
 
-    def _yeild_splits_from_index(start, ver_split_start, num_bump):
+    def _yield_splits_from_index(start, ver_split_start, num_bump):
         if start < len(ver_split_start) and num_bump > 0:
             ver_split = copy.deepcopy(ver_split_start)
             for k in reversed(range(start, len(ver_split))):
@@ -97,7 +97,7 @@ def next_version(ver: str, increment_alpha: bool = False) -> Iterator[str]:
                     for kk in range(num_bump):
                         ver_split[k] = str(t + 1 + kk)
                         yield "".join(ver_split)
-                        yield from _yeild_splits_from_index(
+                        yield from _yield_splits_from_index(
                             k + 1,
                             ver_split,
                             num_bump - 1,
@@ -111,7 +111,7 @@ def next_version(ver: str, increment_alpha: bool = False) -> Iterator[str]:
                     for kk in range(num_bump):
                         ver_split[k] = chr(ord(ver_split[k]) + 1)
                         yield "".join(ver_split)
-                        yield from _yeild_splits_from_index(
+                        yield from _yield_splits_from_index(
                             k + 1,
                             ver_split,
                             num_bump - 1,
@@ -120,7 +120,7 @@ def next_version(ver: str, increment_alpha: bool = False) -> Iterator[str]:
                 else:
                     continue
 
-    for ver in _yeild_splits_from_index(0, ver_split, 2):
+    for ver in _yield_splits_from_index(0, ver_split, 2):
         yield ver
 
 
@@ -584,6 +584,36 @@ class Github(VersionFromFeed):
         package_owner = split_url[split_url.index("github.com") + 1]
         gh_package_name = split_url[split_url.index("github.com") + 2]
         return f"https://github.com/{package_owner}/{gh_package_name}/releases.atom"
+
+
+class GithubReleases(AbstractSource):
+    name = "GithubReleases"
+
+    def get_url(self, meta_yaml) -> Optional[str]:
+        if "github.com" not in meta_yaml["url"]:
+            return None
+        # might be namespaced
+        owner, repo = meta_yaml["url"].split("/")[3:5]
+        return f"https://github.com/{owner}/{repo}/releases/latest"
+
+    def get_version(self, url: str) -> Optional[str]:
+        r = requests.get(url)
+        if not r.ok:
+            return False
+        # "/releases/latest" redirects to "/releases/tag/<tag name>"
+        url_components = r.url.split("/")
+        latest = "/".join(url_components[url_components.index("releases") + 2 :])
+        # If it is a pre-release don't give back the pre-release version
+        if not len(latest) or latest == "latest" or parse_version(latest).is_prerelease:
+            return False
+        for prefix in ("v", "release-", "releases/"):
+            if latest.startswith(prefix):
+                latest = latest[len(prefix) :]
+                break
+        # Extract version number starting at the first digit.
+        if match := re.search(r"(\d+[^\s]*)", latest):
+            latest = match.group(0)
+        return latest
 
 
 class LibrariesIO(VersionFromFeed):

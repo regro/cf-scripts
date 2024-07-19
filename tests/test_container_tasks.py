@@ -4,6 +4,7 @@ import json
 import logging
 import os
 import pprint
+import shutil
 import subprocess
 import tempfile
 
@@ -47,7 +48,8 @@ VERSION = Version(set())
 YAML_PATH = os.path.join(os.path.dirname(__file__), "test_yaml")
 
 HAVE_CONTAINERS = (
-    subprocess.run(["docker", "--version"], capture_output=True).returncode == 0
+    shutil.which("docker") is not None
+    and subprocess.run(["docker", "--version"], capture_output=True).returncode == 0
 )
 
 if HAVE_CONTAINERS:
@@ -571,6 +573,9 @@ yaml_rebuild = MigrationYaml(yaml_contents="{}", name="hi")
 yaml_rebuild.cycles = []
 
 
+@pytest.mark.skipif(
+    not (HAVE_CONTAINERS and HAVE_TEST_IMAGE), reason="containers not available"
+)
 def test_migration_runner_run_migration_containerized_yaml_rebuild(tmpdir):
     fs_dir = os.path.join(tmpdir, "scipy-feedstock")
     rp_dir = os.path.join(fs_dir, "recipe")
@@ -627,6 +632,9 @@ def test_migration_runner_run_migration_containerized_yaml_rebuild(tmpdir):
     assert saved_migration == yaml_rebuild.yaml_contents
 
 
+@pytest.mark.skipif(
+    not (HAVE_CONTAINERS and HAVE_TEST_IMAGE), reason="containers not available"
+)
 @pytest.mark.parametrize(
     "case,new_ver",
     [
@@ -672,7 +680,7 @@ def test_migration_runner_run_migration_containerized_version(
     with open(os.path.join(tmpdir, fs_dir, "recipe", "meta.yaml"), "w") as f:
         f.write(inp)
 
-    pmy = populate_feedstock_attributes(name, {}, inp, "{}")
+    pmy = populate_feedstock_attributes(name, {}, inp, None, "{}")
 
     # these are here for legacy migrators
     pmy["version"] = pmy["meta_yaml"]["package"]["version"]

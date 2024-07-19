@@ -799,7 +799,7 @@ class LazyJson(MutableMapping):
                 backend.hset(self.hashmap, self.node, data_str)
 
         if purge:
-            # this evicts the josn from memory and trades i/o for mem
+            # this evicts the json from memory and trades i/o for mem
             # the bot uses too much mem if we don't do this
             self._data = None
             self._data_hash_at_load = None

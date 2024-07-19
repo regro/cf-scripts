@@ -282,7 +282,7 @@ def test_url_transform_complicated_github():
     }
 
 
-TRANFORM_URLS = {
+TRANSFORM_URLS = {
     # a la https://github.com/conda-forge/packageurl-python-feedstock/pull/22
     """
 https://pypi.io/packages/source/p/packageurl-python/packageurl-python-{{ version }}.tar.gz
@@ -535,8 +535,8 @@ https://pypi.io/packages/source/p/worst-case/{{ name.replace('-', '_') }}-v{{ ve
 }
 
 
-@pytest.mark.parametrize("url", TRANFORM_URLS)
+@pytest.mark.parametrize("url", TRANSFORM_URLS)
 def test_url_transform(url):
     urls = {*gen_transformed_urls(url.strip())}
-    expected = {line.strip() for line in TRANFORM_URLS[url].strip().splitlines()}
+    expected = {line.strip() for line in TRANSFORM_URLS[url].strip().splitlines()}
     assert urls == expected

@@ -2,8 +2,6 @@ import os
 import re
 import subprocess
 
-import networkx as nx
-
 from conda_forge_tick.contexts import FeedstockContext
 from conda_forge_tick.feedstock_parser import populate_feedstock_attributes
 from conda_forge_tick.migrators import (
@@ -450,9 +448,6 @@ class MockLazyJson:
         pass
 
 
-G = nx.DiGraph()
-G.add_node("conda", reqs=["python"])
-G.nodes["conda"]["payload"] = MockLazyJson({})
 os.environ["RUN_URL"] = "hi world"
 
 
@@ -461,11 +456,11 @@ def run_test_migration(
     inp: str,
     output: str,
     kwargs: dict,
-    prb: dict,
+    prb: str,
     mr_out: dict,
-    should_filter=False,
-    tmpdir=None,
-    make_body=False,
+    tmpdir: str,
+    should_filter: bool = False,
+    make_body: bool = False,
 ):
     if mr_out:
         mr_out.update(bot_rerun=False)
@@ -485,7 +480,7 @@ def run_test_migration(
     except Exception:
         name = "blah"
 
-    pmy = populate_feedstock_attributes(name, {}, inp, cf_yml)
+    pmy = populate_feedstock_attributes(name, {}, inp, None, cf_yml)
 
     # these are here for legacy migrators
     pmy["version"] = pmy["meta_yaml"]["package"]["version"]
@@ -561,8 +556,8 @@ def run_minimigrator(
     inp: str,
     output: str,
     mr_out: dict,
+    tmpdir: str,
     should_filter: bool = False,
-    tmpdir=None,
 ):
     if mr_out:
         mr_out.update(bot_rerun=False)
@@ -582,7 +577,7 @@ def run_minimigrator(
     except Exception:
         name = "blah"
 
-    pmy = populate_feedstock_attributes(name, {}, inp, cf_yml)
+    pmy = populate_feedstock_attributes(name, {}, inp, None, cf_yml)
     filtered = migrator.filter(pmy)
     if should_filter and filtered:
         return migrator
