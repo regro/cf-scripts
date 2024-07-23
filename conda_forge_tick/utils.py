@@ -517,9 +517,7 @@ def parse_recipe_yaml_local(
         for some errors. Have fun.
     """
 
-    # recipe_yaml_data = _render_recipe_yaml(text)
-
-    raise NotImplementedError()
+    return _render_recipe_yaml(text)[0]["recipe"]
 
 
 def _render_recipe_yaml(text: str) -> dict[str, Any]:
@@ -535,6 +533,7 @@ def _render_recipe_yaml(text: str) -> dict[str, Any]:
     res = subprocess.run(
         ["rattler-build", "build", "--render-only"],
         stdout=subprocess.PIPE,
+        stderr=subprocess.DEVNULL,
         text=True,
         input=text,
         check=True,
