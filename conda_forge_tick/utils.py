@@ -528,8 +528,7 @@ def parse_recipe_yaml_local(
     """
 
     rendered_recipe = _render_recipe_yaml(text)
-    validated_recipes = _validate_rendered_recipes(rendered_recipe)
-    parsed_recipes = _parse_validated_recipes(validated_recipes)
+    parsed_recipes = _parse_validated_recipes(rendered_recipe)
     return parsed_recipes
 
 
@@ -560,98 +559,99 @@ def _render_recipe_yaml(
         input=text,
         check=True,
     )
-    return json.loads(res.stdout)
-
-
-def _validate_rendered_recipes(
-    parsed_recipes: list[dict[str, Any]],
-) -> list[SimpleRecipe]:
-    return [SimpleRecipe.model_validate(recipe["recipe"]) for recipe in parsed_recipes]
+    return [output["recipe"] for output in json.loads(res.stdout)]
 
 
 def _parse_validated_recipes(
-    validated_recipes: list[SimpleRecipe],
+    validated_recipes: list[dict[str, Any]],
 ) -> "RecipeTypedDict":
     first = validated_recipes[0]
-    about = first.about
-    build = first.build
-    requirements = first.requirements
-    package = first.package
-    source = first.source
+    about = first["about"]
+    build = first["build"]
+    requirements = first["requirements"]
+    package = first["package"]
+    source = first["source"]
 
     about_data = (
         None
         if about is None
         else {
-            "description": about.description,
+            "description": about.get("description"),
             "dev_url": None,
-            "doc_url": about.documentation,
-            "home": about.homepage,
-            "license": about.license_,
-            "license_family": about.license_,
-            "license_file": about.license_file,
-            "summary": about.summary,
+            "doc_url": about.get("documentation"),
+            "home": about.get("homepage"),
+            "license": about.get("license_"),
+            "license_family": about.get("license_"),
+            "license_file": about.get("license_file"),
+            "summary": about.get("summary"),
         }
     )
     build_data = (
         None
         if build is None or requirements is None
         else {
-            "noarch": build.noarch,
-            "number": build.number,
-            "script": build.script,
-            "run_exports": requirements.run_exports,
+            "noarch": build.get("noarch"),
+            "number": build.get("number"),
+            "script": build.get("script"),
+            "run_exports": requirements.get("run_exports"),
         }
     )
     recipe_maintainer_data = (
-        None if first.extra is None else first.extra.get("recipe-maintainers")
+        None if first.get("extra") is None else first["extra"].get("recipe-maintainers")
     )
     package_data = (
-        None if package is None else {"name": package.name, "version": package.version}
+        None
+        if package is None
+        else {"name": package.get("name"), "version": package.get("version")}
     )
     requirements_data = (
         None
         if requirements is None
         else {
-            "build": requirements.build,
-            "host": requirements.host,
-            "run": requirements.run,
+            "build": requirements.get("build"),
+            "host": requirements.get("host"),
+            "run": requirements.get("run"),
         }
     )
     source_data = (
         None
         if source is None
         else {
-            "fn": source.file_name,
-            "patches": source.patches,
-            "sha256": source.sha256,
-            "url": source.url,
+            "fn": source.get("file_name"),
+            "patches": source.get("patches"),
+            "sha256": source.get("sha256"),
+            "url": source.get("url"),
         }
     )
     output_data = []
     for recipe in validated_recipes:
-        package_output = recipe.package
-        requirements_output = recipe.requirements
+        package_output = recipe.get("package")
+        requirements_output = recipe.get("requirements")
         run_exports_output = (
-            None if requirements_output is None else requirements_output.run_exports
+            None
+            if requirements_output is None
+            else requirements_output.get("run_exports")
         )
         requirements_output_data = (
             None
             if requirements_output is None
             else {
-                "build": requirements_output.build,
-                "host": requirements_output.host,
-                "run": requirements_output.run,
+                "build": requirements_output.get("build"),
+                "host": requirements_output.get("host"),
+                "run": requirements_output.get("run"),
             }
         )
         build_output_data = (
             None
             if run_exports_output is None
-            else {"strong": run_exports_output.strong, "weak": run_exports_output.weak}
+            else {
+                "strong": run_exports_output.get("strong"),
+                "weak": run_exports_output.get("weak"),
+            }
         )
         output_data.append(
             {
-                "name": None if package_output is None else package_output.name,
+                "name": None if package_output is None else package_output.get("name"),
                 "requirements": requirements_output_data,
                 "test": None,
                 "build": build_output_data,
