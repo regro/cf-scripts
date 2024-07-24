@@ -527,7 +527,10 @@ def parse_recipe_yaml_local(
         for some errors. Have fun.
     """
 
-    rendered_recipe = _render_recipe_yaml(text)[0]["recipe"]
+    rendered_recipe = _render_recipe_yaml(text)
+    validated_recipes = _validate_rendered_recipes(rendered_recipe)
+    parsed_recipes = _parse_validated_recipes(validated_recipes)
+    return parsed_recipes
 
 
 def _render_recipe_yaml(
@@ -560,7 +563,7 @@ def _render_recipe_yaml(
     return json.loads(res.stdout)
 
 
-def _validate_parsed_recipes(
+def _validate_rendered_recipes(
     parsed_recipes: list[dict[str, Any]],
 ) -> list[SimpleRecipe]:
     return [SimpleRecipe.model_validate(recipe["recipe"]) for recipe in parsed_recipes]
