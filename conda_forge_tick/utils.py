@@ -20,6 +20,7 @@ import jinja2
 import jinja2.sandbox
 import networkx as nx
 import ruamel.yaml
+from conda_recipe_v2_schema.model import SimpleRecipe
 
 from . import sensitive_env
 from .lazy_json_backends import LazyJson
@@ -385,6 +386,7 @@ def parse_recipe_yaml(
     for_pinning=False,
     platform=None,
     arch=None,
+    cbc_path=None,
     log_debug=False,
     use_container: bool | None = True,
 ) -> "RecipeTypedDict":
@@ -400,6 +402,8 @@ def parse_recipe_yaml(
         The platform (e.g., 'linux', 'osx', 'win').
     arch : str, optional
         The CPU architecture (e.g., '64', 'aarch64').
+    cbc_path : str, optional
+        The path to global pinning file.
     log_debug : bool, optional
         If True, print extra debugging info. Default is False.
     use_container
@@ -441,6 +445,7 @@ def parse_recipe_yaml_containerized(
     for_pinning=False,
     platform=None,
     arch=None,
+    cbc_path=None,
     log_debug=False,
 ) -> "RecipeTypedDict":
     """Parse the recipe.yaml.
@@ -457,6 +462,8 @@ def parse_recipe_yaml_containerized(
         The platform (e.g., 'linux', 'osx', 'win').
     arch : str, optional
         The CPU architecture (e.g., '64', 'aarch64').
+    cbc_path : str, optional
+        The path to global pinning file.
     log_debug : bool, optional
         If True, print extra debugging info. Default is False.
 
@@ -493,6 +500,7 @@ def parse_recipe_yaml_local(
     for_pinning=False,
     platform=None,
     arch=None,
+    cbc_path=None,
     log_debug=False,
 ) -> "RecipeTypedDict":
     """Parse the recipe.yaml.
@@ -507,6 +515,8 @@ def parse_recipe_yaml_local(
         The platform (e.g., 'linux', 'osx', 'win').
     arch : str, optional
         The CPU architecture (e.g., '64', 'aarch64').
+    cbc_path : str, optional
+        The path to global pinning file.
     log_debug : bool, optional
         If True, print extra debugging info. Default is False.
 
@@ -517,28 +527,143 @@ def parse_recipe_yaml_local(
         for some errors. Have fun.
     """
 
-    return _render_recipe_yaml(text)[0]["recipe"]
+    rendered_recipe = _render_recipe_yaml(text)[0]["recipe"]
 
 
-def _render_recipe_yaml(text: str) -> dict[str, Any]:
+def _render_recipe_yaml(
+    text: str,
+    cbc_path=None,
+) -> list[dict[str, Any]]:
     """
     Renders the given recipe YAML text using the `rattler-build` command-line tool.
 
-    Args:
-        text (str): The recipe YAML text to render.
+    Parameters
+    ----------
+    text : str
+        The recipe YAML text to render.
+    cbc_path : str, optional
+        The path to global pinning file.
 
-    Returns:
-        dict[str, Any]: The rendered recipe as a dictionary.
+    Returns
+    -------
+    dict[str, Any]
+        The rendered recipe as a dictionary.
     """
+    variant_config_flags = [] if cbc_path is None else ["--variant-config", cbc_path]
     res = subprocess.run(
-        ["rattler-build", "build", "--render-only"],
+        ["rattler-build", "build", "--render-only"] + variant_config_flags,
         stdout=subprocess.PIPE,
-        stderr=subprocess.DEVNULL,
         text=True,
         input=text,
         check=True,
     )
     return json.loads(res.stdout)
+
+
+def _validate_parsed_recipes(
+    parsed_recipes: list[dict[str, Any]],
+) -> list[SimpleRecipe]:
+    return [SimpleRecipe.model_validate(recipe["recipe"]) for recipe in parsed_recipes]
+
+
+def _parse_validated_recipes(
+    validated_recipes: list[SimpleRecipe],
+) -> "RecipeTypedDict":
+    first = validated_recipes[0]
+    about = first.about
+    build = first.build
+    requirements = first.requirements
+    package = first.package
+    source = first.source
+
+    about_data = (
+        None
+        if about is None
+        else {
+            "description": about.description,
+            "dev_url": None,
+            "doc_url": about.documentation,
+            "home": about.homepage,
+            "license": about.license_,
+            "license_family": about.license_,
+            "license_file": about.license_file,
+            "summary": about.summary,
+        }
+    )
+    build_data = (
+        None
+        if build is None or requirements is None
+        else {
+            "noarch": build.noarch,
+            "number": build.number,
+            "script": build.script,
+            "run_exports": requirements.run_exports,
+        }
+    )
+    recipe_maintainer_data = (
+        None if first.extra is None else first.extra.get("recipe-maintainers")
+    )
+    package_data = (
+        None if package is None else {"name": package.name, "version": package.version}
+    )
+    requirements_data = (
+        None
+        if requirements is None
+        else {
+            "build": requirements.build,
+            "host": requirements.host,
+            "run": requirements.run,
+        }
+    )
+    source_data = (
+        None
+        if source is None
+        else {
+            "fn": source.file_name,
+            "patches": source.patches,
+            "sha256": source.sha256,
+            "url": source.url,
+        }
+    )
+    output_data = []
+    for recipe in validated_recipes:
+        package_output = recipe.package
+        requirements_output = recipe.requirements
+        run_exports_output = (
+            None if requirements_output is None else requirements_output.run_exports
+        )
+        requirements_output_data = (
+            None
+            if requirements_output is None
+            else {
+                "build": requirements_output.build,
+                "host": requirements_output.host,
+                "run": requirements_output.run,
+            }
+        )
+        build_output_data = (
+            None
+            if run_exports_output is None
+            else {"strong": run_exports_output.strong, "weak": run_exports_output.weak}
+        )
+        output_data.append(
+            {
+                "name": None if package_output is None else package_output.name,
+                "requirements": requirements_output_data,
+                "test": None,
+                "build": build_output_data,
+            }
+        )
+    return {
+        "about": about_data,
+        "build": build_data,
+        "extra": recipe_maintainer_data,
+        "package": package_data,
+        "requirements": requirements_data,
+        "source": source_data,
+        "test": None,
+        "outputs": output_data,
+    }
 
 
 def parse_meta_yaml(
