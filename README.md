@@ -160,6 +160,12 @@ __migrator:
     - package1
     - package2
 
+  # The bot only looks at host/run requirements of a recipe to determine which feedstocks
+  # to migrate to. This option is added to make the bot look at build requirements too.
+  # This is only needed when doing a migration for a package with a strong run exports.
+  # i.e. for a compiler.
+  include_build_requirements: false
+
   # If this key is set to dict, the conda-forge.yml will be modified by the migration
   # with the contents of this dict. This can be used to add keys to the conda-forge.yml
   # or to change them. You can replace subkeys by using a dot in the key name (e.g., `a.b.c`
@@ -182,7 +188,7 @@ __migrator:
   # natural version ordering. Each changed pin can be mapped to a list
   # that determines the ordering. The highest (e.g., item with highest list index)
   # version is kept for version migrations.
-  oridering:
+  ordering:
     pin1:
       - value1
       - value2
