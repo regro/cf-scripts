@@ -570,19 +570,19 @@ def _parse_validated_recipes(
     build = first["build"]
     requirements = first["requirements"]
     package = first["package"]
-    source = first["source"]
+    source = first.get("source")
 
     about_data = (
         None
         if about is None
         else {
             "description": about.get("description"),
-            "dev_url": None,
+            "dev_url": about.get("repository"),
             "doc_url": about.get("documentation"),
             "home": about.get("homepage"),
-            "license": about.get("license_"),
-            "license_family": about.get("license_"),
-            "license_file": about.get("license_file"),
+            "license": about.get("license"),
+            "license_family": about.get("license"),
+            "license_file": about.get("license_file")[0],
             "summary": about.get("summary"),
         }
     )
@@ -591,19 +591,24 @@ def _parse_validated_recipes(
         if build is None or requirements is None
         else {
             "noarch": build.get("noarch"),
-            "number": build.get("number"),
+            "number": str(build.get("number")),
             "script": build.get("script"),
             "run_exports": requirements.get("run_exports"),
         }
-    )
-    recipe_maintainer_data = (
-        None if first.get("extra") is None else first["extra"].get("recipe-maintainers")
     )
     package_data = (
         None
         if package is None
         else {"name": package.get("name"), "version": package.get("version")}
     )
+    if len(source) > 0:
+        source_data = {
+            "fn": source[0].get("file_name"),
+            "patches": source[0].get("patches"),
+            "sha256": source[0].get("sha256"),
+            "url": source[0].get("url"),
+        }
+
     requirements_data = (
         None
         if requirements is None
@@ -613,20 +618,11 @@ def _parse_validated_recipes(
             "run": requirements.get("run"),
         }
     )
-    source_data = (
-        None
-        if source is None
-        else {
-            "fn": source.get("file_name"),
-            "patches": source.get("patches"),
-            "sha256": source.get("sha256"),
-            "url": source.get("url"),
-        }
-    )
     output_data = []
     for recipe in validated_recipes:
         package_output = recipe.get("package")
         requirements_output = recipe.get("requirements")
+
         run_exports_output = (
             None
             if requirements_output is None
@@ -657,16 +653,25 @@ def _parse_validated_recipes(
                 "build": build_output_data,
             }
         )
-    return {
+
+    parsed_recipes = {
         "about": about_data,
         "build": build_data,
-        "extra": recipe_maintainer_data,
         "package": package_data,
         "requirements": requirements_data,
         "source": source_data,
         "test": None,
         "outputs": output_data,
     }
+
+    return _remove_none_values(parsed_recipes)
+
+
+def _remove_none_values(d):
+    """Recursively remove dictionary entries with None values."""
+    if not isinstance(d, dict):
+        return d
+    return {k: _remove_none_values(v) for k, v in d.items() if v is not None}
 
 
 def parse_meta_yaml(
