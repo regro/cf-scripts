@@ -26,8 +26,5 @@ def test_parse_validated_recipes():
     text = TEST_META_YAML_PATH.joinpath("mplb.yaml").read_text()
     meta_yaml_dict = parse_meta_yaml_local(text)
 
-    assert recipe_yaml_dict["about"] == meta_yaml_dict["about"]
-    assert recipe_yaml_dict["build"] == meta_yaml_dict["build"]
-    assert recipe_yaml_dict["package"] == meta_yaml_dict["package"]
-    assert recipe_yaml_dict["requirements"] == meta_yaml_dict["requirements"]
-    assert recipe_yaml_dict["source"] == meta_yaml_dict["source"]
+    for key in ["about", "build", "package", "requirements", "source", "extra"]:
+        assert recipe_yaml_dict[key] == meta_yaml_dict[key]

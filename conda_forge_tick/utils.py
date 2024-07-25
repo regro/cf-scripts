@@ -662,6 +662,7 @@ def _parse_validated_recipes(
         "source": source_data,
         "test": None,
         "outputs": output_data,
+        "extra": first.get("extra"),
     }
 
     return _remove_none_values(parsed_recipes)
