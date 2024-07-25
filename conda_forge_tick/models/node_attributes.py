@@ -94,8 +94,6 @@ class NodeAttributesValid(StrictBaseModel):
 
     meta_yaml: MetaYaml | None
 
-    recipe_yaml: Recipe | None
-
     """
     A unified representation of the `recipe/meta.yaml` file in the feedstock repository.
     The unified representation is not directly generated from the raw content of the `meta.yaml` file, but by
