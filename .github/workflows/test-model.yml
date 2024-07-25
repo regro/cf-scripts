@@ -1,6 +1,7 @@
 name: test-model
 
 on:
+  pull_request: null
   workflow_dispatch:
   schedule:
     - cron: "10 8 * * *" # daily at 8:10 UTC
