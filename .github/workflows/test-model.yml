@@ -1,13 +1,9 @@
 name: test-model
 
 on:
-  push:
-    branches:
-      - master
-  pull_request: null
   workflow_dispatch:
   schedule:
-    - cron: "10 8 * * *" # every hour
+    - cron: "10 8 * * *" # daily at 8:10 UTC
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
