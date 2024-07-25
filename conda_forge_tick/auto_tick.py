@@ -283,12 +283,9 @@ def _run_rerender(
     changed_files = git_cli.diffed_files(context.local_clone_dir, "HEAD~")
 
     recipe_dir = context.local_clone_dir / "recipe"
-    migrators_dir = context.local_clone_dir / "migrators"
 
     nontrivial_migration_yaml_changes = any(
-        not file.is_relative_to(recipe_dir)
-        and not file.is_relative_to(migrators_dir)
-        and not file.name.startswith("README")
+        not file.is_relative_to(recipe_dir) and not file.name.startswith("README")
         for file in changed_files
     )
 
