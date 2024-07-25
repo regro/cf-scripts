@@ -49,6 +49,8 @@ jobs:
       - name: run pytest (model)
         run: |
           cd cf-graph
+          # for pull requests, a failed model test should not be a failed check
+          # this is a hack around the absence of https://github.com/orgs/community/discussions/15452
           pytest \
             --durations 10 \
-            ../tests/model
+            ../tests/model ${{ github.event_name == 'pull_request' && '|| [ $? = 1 ]' || '' }}
