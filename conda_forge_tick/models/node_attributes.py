@@ -14,7 +14,6 @@ from conda_forge_tick.models.common import (
     before_validator_ensure_dict,
 )
 from conda_forge_tick.models.meta_yaml import MetaYaml
-from conda_forge_tick.models.recipe_yaml import Recipe
 
 
 class Requirements(StrictBaseModel):

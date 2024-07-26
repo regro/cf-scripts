@@ -20,7 +20,6 @@ import jinja2
 import jinja2.sandbox
 import networkx as nx
 import ruamel.yaml
-from conda_recipe_v2_schema.model import SimpleRecipe
 
 from . import sensitive_env
 from .lazy_json_backends import LazyJson
