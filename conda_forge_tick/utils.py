@@ -387,7 +387,7 @@ def parse_recipe_yaml(
     arch=None,
     cbc_path=None,
     log_debug=False,
-    use_container: bool | None = True,
+    use_container: bool | None = None,
 ) -> "RecipeTypedDict":
     """Parse the recipe.yaml.
 
@@ -682,7 +682,7 @@ def parse_meta_yaml(
     cbc_path=None,
     orig_cbc_path=None,
     log_debug=False,
-    use_container: bool | None = True,
+    use_container: bool | None = None,
 ) -> "RecipeTypedDict":
     """Parse the meta.yaml.
 
