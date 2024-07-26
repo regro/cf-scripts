@@ -25,7 +25,7 @@ from .utils import load_existing_graph
 logger = logging.getLogger(__name__)
 
 NUM_GITHUB_THREADS = 2
-KEEP_PR_FRACTION = 0.25
+KEEP_PR_FRACTION = 0.5
 
 
 def _update_pr(update_function, dry_run, gx, job, n_jobs):
@@ -89,7 +89,8 @@ def _update_pr(update_function, dry_run, gx, job, n_jobs):
             except (github3.GitHubError, github.GithubException) as e:
                 logger.error(f"GITHUB ERROR ON FEEDSTOCK: {name}")
                 failed_refresh += 1
-                if is_github_api_limit_reached(e):
+                if is_github_api_limit_reached():
+                    logger.warning("GitHub API error", exc_info=e)
                     break
             except (github3.exceptions.ConnectionError, github.GithubException):
                 logger.error(f"GITHUB ERROR ON FEEDSTOCK: {name}")

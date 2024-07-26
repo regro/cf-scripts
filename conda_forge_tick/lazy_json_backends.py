@@ -26,6 +26,7 @@ import rapidjson as json
 import requests
 
 from .cli_context import CliContext
+from .executors import lock_git_operation
 
 logger = logging.getLogger(__name__)
 
@@ -159,10 +160,8 @@ class FileLazyJsonBackend(LazyJsonBackend):
         }
 
     def hdel(self, name: str, keys: Iterable[str]) -> None:
-        from .executors import DRLOCK, PRLOCK, TRLOCK
-
         lzj_names = [get_sharded_path(f"{name}/{key}.json") for key in keys]
-        with PRLOCK, DRLOCK, TRLOCK:
+        with lock_git_operation():
             subprocess.run(
                 ["git", "rm", "--ignore-unmatch", "-f"] + lzj_names,
                 capture_output=True,
@@ -800,7 +799,7 @@ class LazyJson(MutableMapping):
                 backend.hset(self.hashmap, self.node, data_str)
 
         if purge:
-            # this evicts the josn from memory and trades i/o for mem
+            # this evicts the json from memory and trades i/o for mem
             # the bot uses too much mem if we don't do this
             self._data = None
             self._data_hash_at_load = None

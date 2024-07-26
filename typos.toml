@@ -1,0 +1,16 @@
+[files]
+extend-exclude = [
+    ".git/",
+    ".pixi/",
+    ".codespellrc",
+    ".codespellignorelines",
+    ".codespellignorewords",
+    "**/*.yaml",
+    "tests/test_parse_munged_run_export.py",
+    "tests/test_parse_munged_run_export.py",
+]
+ignore-hidden = false
+
+[default.extend-identifiers]
+rever = "rever"
+Rever = "Rever"

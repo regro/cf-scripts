@@ -901,7 +901,7 @@ def parse_meta_yaml_local(
             return _run(use_orig_cbc_path=False)
         except (SystemExit, Exception) as e:
             raise RuntimeError(
-                "cond build error: %s\n%s"
+                "conda build error: %s\n%s"
                 % (
                     repr(e),
                     traceback.format_exc(),

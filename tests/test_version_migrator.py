@@ -13,6 +13,10 @@ VERSION = Version(set())
 
 YAML_PATH = os.path.join(os.path.dirname(__file__), "test_yaml")
 
+VARIANT_SOURCES_NOT_IMPLEMENTED = (
+    "Sources that depend on conda build config variants are not supported yet."
+)
+
 
 @pytest.mark.parametrize(
     "case,new_ver",
@@ -50,6 +54,22 @@ YAML_PATH = os.path.join(os.path.dirname(__file__), "test_yaml")
         ("libevent", "2.1.12"),
         ("boost", "1.74.0"),
         ("boostcpp", "1.74.0"),
+        # these contain sources that depend on conda build config variants
+        pytest.param(
+            "polars_mixed_selectors",
+            "1.1.0",
+            marks=pytest.mark.xfail(reason=VARIANT_SOURCES_NOT_IMPLEMENTED),
+        ),
+        pytest.param(
+            "polars_name_selectors",
+            "1.1.0",
+            marks=pytest.mark.xfail(reason=VARIANT_SOURCES_NOT_IMPLEMENTED),
+        ),
+        pytest.param(
+            "polars_variant_selectors",
+            "1.1.0",
+            marks=pytest.mark.xfail(reason=VARIANT_SOURCES_NOT_IMPLEMENTED),
+        ),
         # upstream is not available
         # ("mumps", "5.2.1"),
         # ("cb3multi", "6.0.0"),
