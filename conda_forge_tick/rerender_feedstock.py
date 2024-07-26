@@ -20,7 +20,7 @@ from conda_forge_tick.utils import run_container_task
 logger = logging.getLogger(__name__)
 
 
-def rerender_feedstock(feedstock_dir, timeout=900, use_container=True):
+def rerender_feedstock(feedstock_dir, timeout=900, use_container=None):
     """Rerender a feedstock.
 
     Parameters
