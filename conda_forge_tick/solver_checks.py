@@ -16,7 +16,7 @@ def is_recipe_solvable(
     timeout=600,
     verbosity=None,
     build_platform=None,
-    use_container=True,
+    use_container=None,
 ):
     """Compute if a recipe is solvable.
 

@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 
 @contextmanager
-def provide_source_code(recipe_dir, use_container=True):
+def provide_source_code(recipe_dir, use_container=None):
     """Context manager to provide the source code for a recipe.
 
     Parameters
