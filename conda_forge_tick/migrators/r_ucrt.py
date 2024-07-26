@@ -14,6 +14,8 @@ def _cleanup_raw_yaml(raw_yaml):
     for line in raw_yaml.splitlines():
         line = line.replace("{{ native }}", "")
         line = line.replace("{{native}}", "")
+        line = line.replace("{{posix}}pkg-config", "pkg-config")
+        line = line.replace("{{ posix }}pkg-config", "pkg-config")
         if "merge_build_host: " in line:
             continue
         if "- gcc-libs" in line:
