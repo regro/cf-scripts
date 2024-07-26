@@ -27,7 +27,7 @@ from .lazy_json_backends import LazyJson
 if typing.TYPE_CHECKING:
     from mypy_extensions import TypedDict
 
-    from conda_forge_tick.migrators_types import MetaYamlTypedDict
+    from conda_forge_tick.migrators_types import RecipeTypedDict
 
 logger = logging.getLogger(__name__)
 
@@ -380,6 +380,300 @@ def _render_meta_yaml(text: str, for_pinning: bool = False, **kwargs) -> str:
         raise
 
 
+def parse_recipe_yaml(
+    text: str,
+    for_pinning=False,
+    platform=None,
+    arch=None,
+    cbc_path=None,
+    log_debug=False,
+    use_container: bool | None = None,
+) -> "RecipeTypedDict":
+    """Parse the recipe.yaml.
+
+    Parameters
+    ----------
+    text : str
+        The raw text in conda-forge feedstock recipe.yaml file
+    for_pinning : bool, optional
+        If True, render the recipe.yaml for pinning migrators, by default False.
+    platform : str, optional
+        The platform (e.g., 'linux', 'osx', 'win').
+    arch : str, optional
+        The CPU architecture (e.g., '64', 'aarch64').
+    cbc_path : str, optional
+        The path to global pinning file.
+    log_debug : bool, optional
+        If True, print extra debugging info. Default is False.
+    use_container
+        Whether to use a container to run the parsing.
+        If None, the function will use a container if the environment
+        variable `CF_TICK_IN_CONTAINER` is 'false'. This feature can be
+        used to avoid container in container calls.
+
+    Returns
+    -------
+    dict :
+        The parsed YAML dict. If parsing fails, returns an empty dict. May raise
+        for some errors. Have fun.
+    """
+    in_container = os.environ.get("CF_TICK_IN_CONTAINER", "false") == "true"
+    if use_container is None:
+        use_container = not in_container
+
+    if use_container and not in_container:
+        return parse_recipe_yaml_containerized(
+            text,
+            for_pinning=for_pinning,
+            platform=platform,
+            arch=arch,
+            log_debug=log_debug,
+        )
+    else:
+        return parse_recipe_yaml_local(
+            text,
+            for_pinning=for_pinning,
+            platform=platform,
+            arch=arch,
+            log_debug=log_debug,
+        )
+
+
+def parse_recipe_yaml_containerized(
+    text: str,
+    for_pinning=False,
+    platform=None,
+    arch=None,
+    cbc_path=None,
+    log_debug=False,
+) -> "RecipeTypedDict":
+    """Parse the recipe.yaml.
+
+    **This function runs the parsing in a container.**
+
+    Parameters
+    ----------
+    text : str
+        The raw text in conda-forge feedstock recipe.yaml file
+    for_pinning : bool, optional
+        If True, render the recipe.yaml for pinning migrators, by default False.
+    platform : str, optional
+        The platform (e.g., 'linux', 'osx', 'win').
+    arch : str, optional
+        The CPU architecture (e.g., '64', 'aarch64').
+    cbc_path : str, optional
+        The path to global pinning file.
+    log_debug : bool, optional
+        If True, print extra debugging info. Default is False.
+
+    Returns
+    -------
+    dict :
+        The parsed YAML dict. If parsing fails, returns an empty dict. May raise
+        for some errors. Have fun.
+    """
+    args = []
+
+    if platform is not None:
+        args += ["--platform", platform]
+
+    if arch is not None:
+        args += ["--arch", arch]
+
+    if log_debug:
+        args += ["--log-debug"]
+
+    if for_pinning:
+        args += ["--for-pinning"]
+
+    return run_container_task(
+        "parse-recipe-yaml",
+        args,
+        input=text,
+        mount_readonly=True,
+    )
+
+
+def parse_recipe_yaml_local(
+    text: str,
+    for_pinning=False,
+    platform=None,
+    arch=None,
+    cbc_path=None,
+    log_debug=False,
+) -> "RecipeTypedDict":
+    """Parse the recipe.yaml.
+
+    Parameters
+    ----------
+    text : str
+        The raw text in conda-forge feedstock recipe.yaml file
+    for_pinning : bool, optional
+        If True, render the recipe.yaml for pinning migrators, by default False.
+    platform : str, optional
+        The platform (e.g., 'linux', 'osx', 'win').
+    arch : str, optional
+        The CPU architecture (e.g., '64', 'aarch64').
+    cbc_path : str, optional
+        The path to global pinning file.
+    log_debug : bool, optional
+        If True, print extra debugging info. Default is False.
+
+    Returns
+    -------
+    dict :
+        The parsed YAML dict. If parsing fails, returns an empty dict. May raise
+        for some errors. Have fun.
+    """
+
+    rendered_recipe = _render_recipe_yaml(text)
+    parsed_recipes = _parse_validated_recipes(rendered_recipe)
+    return parsed_recipes
+
+
+def _render_recipe_yaml(
+    text: str,
+    cbc_path=None,
+) -> list[dict[str, Any]]:
+    """
+    Renders the given recipe YAML text using the `rattler-build` command-line tool.
+
+    Parameters
+    ----------
+    text : str
+        The recipe YAML text to render.
+    cbc_path : str, optional
+        The path to global pinning file.
+
+    Returns
+    -------
+    dict[str, Any]
+        The rendered recipe as a dictionary.
+    """
+    variant_config_flags = [] if cbc_path is None else ["--variant-config", cbc_path]
+    res = subprocess.run(
+        ["rattler-build", "build", "--render-only"] + variant_config_flags,
+        stdout=subprocess.PIPE,
+        text=True,
+        input=text,
+        check=True,
+    )
+    return [output["recipe"] for output in json.loads(res.stdout)]
+
+
+def _parse_validated_recipes(
+    validated_recipes: list[dict[str, Any]],
+) -> "RecipeTypedDict":
+    first = validated_recipes[0]
+    about = first["about"]
+    build = first["build"]
+    requirements = first["requirements"]
+    package = first["package"]
+    source = first.get("source")
+
+    about_data = (
+        None
+        if about is None
+        else {
+            "description": about.get("description"),
+            "dev_url": about.get("repository"),
+            "doc_url": about.get("documentation"),
+            "home": about.get("homepage"),
+            "license": about.get("license"),
+            "license_family": about.get("license"),
+            "license_file": about.get("license_file")[0],
+            "summary": about.get("summary"),
+        }
+    )
+    build_data = (
+        None
+        if build is None or requirements is None
+        else {
+            "noarch": build.get("noarch"),
+            "number": str(build.get("number")),
+            "script": build.get("script"),
+            "run_exports": requirements.get("run_exports"),
+        }
+    )
+    package_data = (
+        None
+        if package is None
+        else {"name": package.get("name"), "version": package.get("version")}
+    )
+    if len(source) > 0:
+        source_data = {
+            "fn": source[0].get("file_name"),
+            "patches": source[0].get("patches"),
+            "sha256": source[0].get("sha256"),
+            "url": source[0].get("url"),
+        }
+
+    requirements_data = (
+        None
+        if requirements is None
+        else {
+            "build": requirements.get("build"),
+            "host": requirements.get("host"),
+            "run": requirements.get("run"),
+        }
+    )
+    output_data = []
+    for recipe in validated_recipes:
+        package_output = recipe.get("package")
+        requirements_output = recipe.get("requirements")
+
+        run_exports_output = (
+            None
+            if requirements_output is None
+            else requirements_output.get("run_exports")
+        )
+        requirements_output_data = (
+            None
+            if requirements_output is None
+            else {
+                "build": requirements_output.get("build"),
+                "host": requirements_output.get("host"),
+                "run": requirements_output.get("run"),
+            }
+        )
+        build_output_data = (
+            None
+            if run_exports_output is None
+            else {
+                "strong": run_exports_output.get("strong"),
+                "weak": run_exports_output.get("weak"),
+            }
+        )
+        output_data.append(
+            {
+                "name": None if package_output is None else package_output.get("name"),
+                "requirements": requirements_output_data,
+                "test": None,
+                "build": build_output_data,
+            }
+        )
+
+    parsed_recipes = {
+        "about": about_data,
+        "build": build_data,
+        "package": package_data,
+        "requirements": requirements_data,
+        "source": source_data,
+        "test": None,
+        "outputs": output_data,
+        "extra": first.get("extra"),
+    }
+
+    return _remove_none_values(parsed_recipes)
+
+
+def _remove_none_values(d):
+    """Recursively remove dictionary entries with None values."""
+    if not isinstance(d, dict):
+        return d
+    return {k: _remove_none_values(v) for k, v in d.items() if v is not None}
+
+
 def parse_meta_yaml(
     text: str,
     for_pinning=False,
@@ -388,8 +682,8 @@ def parse_meta_yaml(
     cbc_path=None,
     orig_cbc_path=None,
     log_debug=False,
-    use_container: bool = True,
-):
+    use_container: bool | None = None,
+) -> "RecipeTypedDict":
     """Parse the meta.yaml.
 
     Parameters
@@ -455,7 +749,7 @@ def parse_meta_yaml_containerized(
     cbc_path=None,
     orig_cbc_path=None,
     log_debug=False,
-):
+) -> "RecipeTypedDict":
     """Parse the meta.yaml.
 
     **This function runs the parsing in a container.**
@@ -540,7 +834,7 @@ def parse_meta_yaml_local(
     cbc_path=None,
     orig_cbc_path=None,
     log_debug=False,
-) -> "MetaYamlTypedDict":
+) -> "RecipeTypedDict":
     """Parse the meta.yaml.
 
     Parameters
@@ -623,7 +917,7 @@ def _parse_meta_yaml_impl(
     cbc_path=None,
     log_debug=False,
     orig_cbc_path=None,
-) -> "MetaYamlTypedDict":
+) -> "RecipeTypedDict":
     import conda_build.api
     import conda_build.environ
     from conda_build.config import Config

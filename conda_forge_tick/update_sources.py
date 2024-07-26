@@ -7,7 +7,7 @@ import re
 import subprocess
 import typing
 import urllib.parse
-from typing import Iterator, List, Optional, Set
+from typing import Iterator, List, Optional
 
 import feedparser
 import requests
@@ -22,7 +22,7 @@ from conda_forge_tick.utils import parse_meta_yaml
 from .hashing import hash_url
 
 if typing.TYPE_CHECKING:
-    from conda_forge_tick.migrators_types import MetaYamlTypedDict, SourceTypedDict
+    from conda_forge_tick.migrators_types import RecipeTypedDict, SourceTypedDict
 
 
 CRAN_INDEX: Optional[dict] = None
@@ -35,7 +35,7 @@ CURL_ONLY_URL_SLUGS = [
 ]
 
 
-def urls_from_meta(meta_yaml: "MetaYamlTypedDict") -> Set[str]:
+def urls_from_meta(meta_yaml: "RecipeTypedDict") -> set[str]:
     source: "SourceTypedDict" = meta_yaml["source"]
     sources: typing.List["SourceTypedDict"]
     if isinstance(source, collections.abc.Mapping):
@@ -332,7 +332,7 @@ class ROSDistro(AbstractSource):
                 logger.error("ROS Distro initialization failed", exc_info=True)
                 ROS_DISTRO_INDEX = {}
 
-    def get_url(self, meta_yaml: "MetaYamlTypedDict") -> Optional[str]:
+    def get_url(self, meta_yaml: "RecipeTypedDict") -> Optional[str]:
         if not meta_yaml["name"].startswith("ros-"):
             return None
 

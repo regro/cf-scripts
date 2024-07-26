@@ -91,7 +91,8 @@ class NodeAttributesValid(StrictBaseModel):
     MD5 is obviously not recommended but used by a lot of feedstocks.
     """
 
-    meta_yaml: MetaYaml
+    meta_yaml: MetaYaml | None
+
     """
     A unified representation of the `recipe/meta.yaml` file in the feedstock repository.
     The unified representation is not directly generated from the raw content of the `meta.yaml` file, but by
