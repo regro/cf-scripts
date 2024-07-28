@@ -1,7 +1,5 @@
 import typing
-from typing import Dict, List, Set, Union
-
-from mypy_extensions import TypedDict
+from typing import Dict, List, Set, TypedDict, Union
 
 PackageName = typing.NewType("PackageName", str)
 
