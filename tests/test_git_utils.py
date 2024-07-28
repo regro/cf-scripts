@@ -1,3 +1,4 @@
+import logging
 import subprocess
 import tempfile
 from pathlib import Path
@@ -589,15 +590,6 @@ def test_git_cli_clone_fork_and_branch_non_existing_remote_existing_target_dir(c
         assert "trying to reset hard" in caplog.text
 
 
-def test_git_platform_backend_get_remote_url_https():
-    owner = "OWNER"
-    repo = "REPO"
-
-    url = GitPlatformBackend.get_remote_url(owner, repo, GitConnectionMode.HTTPS)
-
-    assert url == f"https://github.com/{owner}/{repo}.git"
-
-
 def test_github_backend_from_token():
     token = "TOKEN"
 
@@ -624,6 +616,16 @@ def test_github_backend_does_repository_exist(does_exist: bool):
 
     assert backend.does_repository_exist("OWNER", "REPO") is does_exist
     github3_client.repository.assert_called_once_with("OWNER", "REPO")
+
+
+def test_github_backend_get_remote_url_https():
+    owner = "OWNER"
+    repo = "REPO"
+    backend = GitHubBackend(MagicMock(), MagicMock())
+
+    url = backend.get_remote_url(owner, repo, GitConnectionMode.HTTPS)
+
+    assert url == f"https://github.com/{owner}/{repo}.git"
 
 
 @mock.patch("time.sleep", return_value=None)
@@ -852,9 +854,11 @@ def test_dry_run_backend_get_api_requests_left():
 def test_dry_run_backend_does_repository_exist_own_repo():
     backend = DryRunBackend()
 
-    assert not backend.does_repository_exist("auto-tick-bot-dry-run", "REPO")
-    backend.fork("UPSTREAM_OWNER", "REPO")
-    assert backend.does_repository_exist("auto-tick-bot-dry-run", "REPO")
+    assert not backend.does_repository_exist(
+        "auto-tick-bot-dry-run", "pytest-feedstock"
+    )
+    backend.fork("conda-forge", "pytest-feedstock")
+    assert backend.does_repository_exist("auto-tick-bot-dry-run", "pytest-feedstock")
 
 
 def test_dry_run_backend_does_repository_exist_other_repo():
@@ -866,26 +870,51 @@ def test_dry_run_backend_does_repository_exist_other_repo():
     )
 
 
+def test_dry_run_backend_get_remote_url_non_fork():
+    backend = DryRunBackend()
+
+    url = backend.get_remote_url("OWNER", "REPO", GitConnectionMode.HTTPS)
+
+    assert url == "https://github.com/OWNER/REPO.git"
+
+
+def test_dry_run_backend_get_remote_url_non_existing_fork():
+    backend = DryRunBackend()
+
+    with pytest.raises(RepositoryNotFoundError, match="does not exist"):
+        backend.get_remote_url(backend.user, "REPO", GitConnectionMode.HTTPS)
+
+
+def test_dry_run_backend_get_remote_url_existing_fork():
+    backend = DryRunBackend()
+
+    backend.fork("conda-forge", "pytest-feedstock")
+
+    url = backend.get_remote_url(
+        backend.user, "pytest-feedstock", GitConnectionMode.HTTPS
+    )
+
+    # note that the URL does not indicate anymore that it is a fork
+    assert url == "https://github.com/conda-forge/pytest-feedstock.git"
+
+
 def test_dry_run_backend_fork(caplog):
-    caplog.set_level("DEBUG")
+    caplog.set_level(logging.DEBUG)
 
     backend = DryRunBackend()
 
-    backend.fork("UPSTREAM_OWNER", "REPO")
+    backend.fork("conda-forge", "pytest-feedstock")
     assert (
-        "Dry Run: Creating fork of UPSTREAM_OWNER/REPO for user auto-tick-bot-dry-run"
+        "Dry Run: Creating fork of conda-forge/pytest-feedstock for user auto-tick-bot-dry-run"
         in caplog.text
     )
 
-    with pytest.raises(ValueError, match="Fork of REPO already exists"):
-        backend.fork("UPSTREAM_OWNER", "REPO")
-
-    with pytest.raises(ValueError, match="Fork of REPO already exists"):
-        backend.fork("OTHER_OWNER", "REPO")
+    with pytest.raises(RepositoryNotFoundError):
+        backend.fork("conda-forge", "this-repository-does-not-exist")
 
 
 def test_dry_run_backend_sync_default_branch(caplog):
-    caplog.set_level("DEBUG")
+    caplog.set_level(logging.DEBUG)
 
     backend = DryRunBackend()
 
