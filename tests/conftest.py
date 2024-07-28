@@ -1,4 +1,6 @@
 import os
+from types import TracebackType
+from typing import Self
 
 import pytest
 
@@ -82,3 +84,21 @@ def use_containers():
         os.environ.pop("CF_TICK_IN_CONTAINER", None)
     else:
         os.environ["CF_TICK_IN_CONTAINER"] = old_in_container
+
+
+class FakeLazyJson(dict):
+    def __enter__(self) -> Self:
+        return self
+
+    def __exit__(
+        self,
+        exc_type: type[BaseException] | None,
+        exc_val: BaseException | None,
+        exc_tb: TracebackType | None,
+    ) -> None:
+        pass
+
+
+@pytest.fixture
+def fake_lazy_json():
+    return FakeLazyJson()
