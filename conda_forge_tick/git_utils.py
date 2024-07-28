@@ -11,7 +11,7 @@ from abc import ABC, abstractmethod
 from datetime import datetime
 from functools import cached_property
 from pathlib import Path
-from typing import Dict, Literal, Optional, Tuple, Union
+from typing import Dict, Optional, Union
 
 import backoff
 import github
@@ -41,8 +41,6 @@ GITHUB3_CLIENT = threading.local()
 GITHUB_CLIENT = threading.local()
 
 MAX_GITHUB_TIMEOUT = 60
-
-GIT_CLONE_DIR = "./feedstocks/"
 
 BOT_RERUN_LABEL = {
     "name": "bot-rerun",
@@ -406,8 +404,8 @@ class GitPlatformBackend(ABC):
         """
         pass
 
-    @staticmethod
     def get_remote_url(
+        self,
         owner: str,
         repo_name: str,
         connection_mode: GitConnectionMode = GitConnectionMode.HTTPS,
@@ -418,6 +416,8 @@ class GitPlatformBackend(ABC):
         :param repo_name: The name of the repository.
         :param connection_mode: The connection mode to use.
         :raises ValueError: If the connection mode is not supported.
+        :raises RepositoryNotFoundError: If the repository does not exist. This is only raised if the backend relies on
+        the repository existing to generate the URL.
         """
         # Currently we don't need any abstraction for other platforms than GitHub, so we don't build such abstractions.
         match connection_mode:
@@ -627,6 +627,12 @@ class DryRunBackend(GitPlatformBackend):
     def __init__(self):
         super().__init__(GitCli())
         self._repos: set[str] = set()
+        self._repos: dict[str, str] = {}
+        """
+        _repos maps from repository name to the owner of the upstream repository.
+        If a remote URL of a fork is requested with get_remote_url, _USER (the virtual current user) is
+        replaced by the owner of the upstream repository. This allows cloning the forked repository.
+        """
 
     def get_api_requests_left(self) -> Bound:
         return Bound.INFINITY
@@ -640,15 +646,40 @@ class DryRunBackend(GitPlatformBackend):
             self.get_remote_url(owner, repo_name, GitConnectionMode.HTTPS)
         )
 
+    def get_remote_url(
+        self,
+        owner: str,
+        repo_name: str,
+        connection_mode: GitConnectionMode = GitConnectionMode.HTTPS,
+    ) -> str:
+        if owner != self._USER:
+            return super().get_remote_url(owner, repo_name, connection_mode)
+        # redirect to the upstream repository
+        try:
+            upstream_owner = self._repos[repo_name]
+        except KeyError:
+            raise RepositoryNotFoundError(
+                f"Repository {owner}/{repo_name} appears to be a virtual fork but does not exist. Note that dry-run "
+                "forks are persistent only for the duration of the backend instance."
+            )
+
+        return super().get_remote_url(upstream_owner, repo_name, connection_mode)
+
     @lock_git_operation()
     def fork(self, owner: str, repo_name: str):
         if repo_name in self._repos:
-            raise ValueError(f"Fork of {repo_name} already exists.")
+            logger.debug(f"Fork of {repo_name} already exists. Doing nothing.")
+            return
+
+        if not self.does_repository_exist(owner, repo_name):
+            raise RepositoryNotFoundError(
+                f"Cannot fork non-existing repository {owner}/{repo_name}."
+            )
 
         logger.debug(
             f"Dry Run: Creating fork of {owner}/{repo_name} for user {self._USER}."
         )
-        self._repos.add(repo_name)
+        self._repos[repo_name] = owner
 
     def _sync_default_branch(self, upstream_owner: str, upstream_repo: str):
         logger.debug(
@@ -704,61 +735,6 @@ def feedstock_url(fctx: FeedstockContext, protocol: str = "ssh") -> str:
 def feedstock_repo(fctx: FeedstockContext) -> str:
     """Gets the name of the feedstock repository."""
     return fctx.feedstock_name + "-feedstock"
-
-
-@lock_git_operation()
-def get_repo(
-    fctx: FeedstockContext,
-    branch: str,
-    base_branch: str = "main",
-) -> Tuple[str, github3.repos.Repository] | Tuple[Literal[False], Literal[False]]:
-    """Get the feedstock repo
-
-    Parameters
-    ----------
-    fctx : FeedstockContext
-        Feedstock context used for constructing feedstock urls, etc.
-    branch : str
-        The branch to be made.
-    base_branch : str, optional
-        The base branch from which to make the new branch.
-
-    Returns
-    -------
-    recipe_dir : str
-        The recipe directory
-    repo : github3 repository
-        The github3 repository object.
-    """
-    backend = github_backend()
-    feedstock_repo_name = feedstock_repo(fctx)
-
-    try:
-        backend.fork("conda-forge", feedstock_repo_name)
-    except RepositoryNotFoundError:
-        logger.warning(f"Could not fork conda-forge/{feedstock_repo_name}")
-        with fctx.attrs["pr_info"] as pri:
-            pri["bad"] = f"{fctx.feedstock_name}: Git repository not found.\n"
-        return False, False
-
-    feedstock_dir = Path(GIT_CLONE_DIR) / (fctx.feedstock_name + "-feedstock")
-
-    backend.clone_fork_and_branch(
-        upstream_owner="conda-forge",
-        repo_name=feedstock_repo_name,
-        target_dir=feedstock_dir,
-        new_branch=branch,
-        base_branch=base_branch,
-    )
-
-    # This is needed because we want to migrate to the new backend step-by-step
-    repo: github3.repos.Repository | None = github3_client().repository(
-        "conda-forge", feedstock_repo_name
-    )
-
-    assert repo is not None
-
-    return str(feedstock_dir), repo
 
 
 @lock_git_operation()
