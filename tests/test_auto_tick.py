@@ -5,7 +5,8 @@ import pytest
 
 from conda_forge_tick.auto_tick import run_with_tmpdir
 from conda_forge_tick.contexts import ClonedFeedstockContext, FeedstockContext
-from tests.test_contexts import demo_attrs
+
+demo_attrs = {"conda-forge.yml": {"provider": {"default_branch": "main"}}}
 
 
 @pytest.mark.parametrize("dry_run", [True, False])

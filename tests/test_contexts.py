@@ -3,28 +3,21 @@ import pytest
 from conda_forge_tick.contexts import DEFAULT_BRANCHES, FeedstockContext
 from conda_forge_tick.migrators_types import AttrsTypedDict
 
-# to make the typechecker happy, this satisfies the AttrsTypedDict type
-demo_attrs = AttrsTypedDict(
-    {"conda-forge.yml": {"provider": {"default_branch": "main"}}}
-)
+demo_attrs = {"conda-forge.yml": {"provider": {"default_branch": "main"}}}
 
-demo_attrs_automerge = AttrsTypedDict(
-    {
-        "conda-forge.yml": {
-            "provider": {"default_branch": "main"},
-            "bot": {"automerge": True},
-        }
+demo_attrs_automerge = {
+    "conda-forge.yml": {
+        "provider": {"default_branch": "main"},
+        "bot": {"automerge": True},
     }
-)
+}
 
-demo_attrs_check_solvable = AttrsTypedDict(
-    {
-        "conda-forge.yml": {
-            "provider": {"default_branch": "main"},
-            "bot": {"check_solvable": True},
-        }
+demo_attrs_check_solvable = {
+    "conda-forge.yml": {
+        "provider": {"default_branch": "main"},
+        "bot": {"check_solvable": True},
     }
-)
+}
 
 
 def test_feedstock_context_default_branch_not_set():

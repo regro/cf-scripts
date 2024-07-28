@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import os
 import tempfile
-import typing
 from collections.abc import Iterator
 from contextlib import contextmanager
 from dataclasses import dataclass
@@ -11,10 +10,7 @@ from pathlib import Path
 from networkx import DiGraph
 
 from conda_forge_tick.lazy_json_backends import load
-
-if typing.TYPE_CHECKING:
-    from conda_forge_tick.migrators_types import AttrsTypedDict
-
+from conda_forge_tick.migrators_types import AttrsTypedDict
 
 if os.path.exists("all_feedstocks.json"):
     with open("all_feedstocks.json") as f:
