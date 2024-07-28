@@ -10,10 +10,6 @@ import typing
 from subprocess import CalledProcessError
 from textwrap import dedent
 from typing import Literal, MutableMapping, cast
-
-if typing.TYPE_CHECKING:
-    from .migrators_types import MigrationUidTypedDict
-
 from urllib.error import URLError
 from uuid import uuid4
 
@@ -68,6 +64,8 @@ from conda_forge_tick.utils import (
     load_existing_graph,
     sanitize_string,
 )
+
+from .migrators_types import MigrationUidTypedDict
 
 logger = logging.getLogger(__name__)
 
