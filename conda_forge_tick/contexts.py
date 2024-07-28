@@ -43,6 +43,10 @@ class FeedstockContext:
             return self._default_branch
 
     @property
+    def git_repo_owner(self) -> str:
+        return "conda-forge"
+
+    @property
     def git_repo_name(self) -> str:
         return f"{self.feedstock_name}-feedstock"
 
