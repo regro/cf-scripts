@@ -18,7 +18,12 @@ jobs:
   tests:
     name: tests
     runs-on: "ubuntu-latest"
+    permissions:
+      actions: write  # for deleting cache entries
+      contents: read
     strategy:
+      # continue running the tests even if one of the groups fails
+      fail-fast: false
       matrix:
         # if change the number of groups here, also change it next to --splits below
         group: [1, 2]
@@ -79,6 +84,27 @@ jobs:
         run: |
           docker build -t ${{ env.IMAGE_NAME }}:test .
 
+      # Save Test Durations logic:
+      # https://github.com/jerry-git/pytest-split/issues/20#issuecomment-1682947832
+      - name: "[Test Durations] Restore Test Durations (1)"
+        id: test-duration-cache-restore-1
+        uses: actions/cache/restore@0c45773b623bea8c8e75f6c82b208c3cf94ea4f9  # v4
+        with:
+          path: .test_durations.1
+          key: test-durations-1
+
+      - name: "[Test Durations] Restore Test Durations (2)"
+        id: test-duration-cache-restore-2
+        uses: actions/cache/restore@0c45773b623bea8c8e75f6c82b208c3cf94ea4f9  # v4
+        with:
+          path: .test_durations.2
+          key: test-durations-2
+
+      - name: "[Test Durations] Combine Test Duration Cache Files"
+        if: steps.test-duration-cache-restore-1.outputs.cache-hit == 'true' && steps.test-duration-cache-restore-2.outputs.cache-hit == 'true'
+        run: |
+          jq '. + input' .test_durations.1 .test_durations.2 > .test_durations
+
       - name: run pytest
         run: |
           export TEST_BOT_TOKEN_VAL=unpassword
@@ -88,7 +114,8 @@ jobs:
           pytest \
             -v \
             --splits 2 --group ${{ matrix.group }} \
-            --splitting-algorithm least_duration \
+            --store-durations \
+            --durations-path=.test_durations.${{ matrix.group }} \
             --randomly-seed=${{ github.run_id }} \
             --splitting-algorithm least_duration \
             --cov=conda_forge_tick \
@@ -101,6 +128,22 @@ jobs:
             tests
         env:
           MONGODB_CONNECTION_STRING: "mongodb://127.0.0.1:27017/?directConnection=true&serverSelectionTimeoutMS=2000"
+
+      - name: "[Test Duration] Delete test duration cache (${{ matrix.group }})"
+        continue-on-error: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh extension install actions/gh-actions-cache
+          gh actions-cache delete test-durations-${{ matrix.group }} -R ${{ github.repository }} --confirm
+
+      - name: "[Test Durations] Save Test Durations"
+        id: test-duration-cache-save
+        uses: actions/cache/save@0c45773b623bea8c8e75f6c82b208c3cf94ea4f9  # v4
+        if: always()
+        with:
+          path: .test_durations.${{ matrix.group }}
+          key: test-durations-${{ matrix.group }}
 
       - name: Upload coverage
         uses: actions/upload-artifact@0b2256b8c012f0828dc542b3febcab082c67f72b # v4
