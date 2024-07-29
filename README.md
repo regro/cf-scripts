@@ -283,6 +283,8 @@ As `conda-forge` grew, the "single job + global data access" model became increa
 
 #### Current Bot Jobs and Structure
 
+[**Current GitHub Runner Allocation**](docs/runner_allocation.md)
+
 In this section, we list the collection of jobs that comprise the bot. Each job touches a distinct part of the bot's data structure and is run in parallel with the other jobs. We have also specified the GitHub Actions workflow that runs each job. See those files for further details on which commands are run.
 
 **bot** / `bot-bot.yml`: The main job that runs the bot, making PRs to feedstocks, etc. This job writes data on the PRs it makes to `cf-graph-countyfair/pr_info` and `cf-graph-countyfair/version_pr_info`. It also writes new PR JSON blobs to `cf-graph-countyfair/pr_json` for each PR to track their statuses on GitHub.
