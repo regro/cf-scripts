@@ -1611,15 +1611,15 @@ package:
       truststore: '>=0.8.0'
       zstandard: '>=0.19.0'
     hash:
-      md5: 8408fb2adcce818ff95758d1826dad2b
-      sha256: c9f46253e502e74ed3933cf72081d74aa10c98e781132325617307d05b3030b3
+      md5: 63a6341170bb4762fbf5557d8a6ba48f
+      sha256: d02721990001d49babfde6fab507b02dffc3daa49f3dca9b10d1abcd17d2ece8
     manager: conda
     name: conda
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/linux-64/conda-24.5.0-py311h38be061_0.conda
-    version: 24.5.0
+      https://conda.anaconda.org/conda-forge/linux-64/conda-24.7.1-py311h38be061_0.conda
+    version: 24.7.1
   - category: main
     dependencies:
       archspec: '>=0.2.3'
@@ -1644,14 +1644,14 @@ package:
       truststore: '>=0.8.0'
       zstandard: '>=0.19.0'
     hash:
-      md5: 3dda44c16d02ca2382edd31aad178475
-      sha256: e05096548a77220aada303e523b1d66a8831ed3eb0b77b60730cbd73cbae722c
+      md5: 590c80d0f321747c708ccb7c0bc4223b
+      sha256: f96d4a442d0c22502ee3e0b056b469d34f4300f68914df884b5c4d79d69ecd33
     manager: conda
     name: conda
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/osx-64/conda-24.5.0-py311h6eed73b_0.conda
-    version: 24.5.0
+    url: https://conda.anaconda.org/conda-forge/osx-64/conda-24.7.1-py311h6eed73b_0.conda
+    version: 24.7.1
   - category: main
     dependencies:
       archspec: '>=0.2.3'
@@ -1676,15 +1676,15 @@ package:
       truststore: '>=0.8.0'
       zstandard: '>=0.19.0'
     hash:
-      md5: 4bc0033520bc8fe4ad85bd8e03c76da6
-      sha256: 6b2dae699444d58aaf6ace2a4414b82b2c87c6a0c7db4e4761c3e4336b2008eb
+      md5: 660f89d76379dd970ffde5a1854ecc96
+      sha256: 17929dad75589a0f379713b9ecff2534f2c847a11185270830cfe4d4d5272229
     manager: conda
     name: conda
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/osx-arm64/conda-24.5.0-py311h267d04e_0.conda
-    version: 24.5.0
+      https://conda.anaconda.org/conda-forge/osx-arm64/conda-24.7.1-py311h267d04e_0.conda
+    version: 24.7.1
   - category: main
     dependencies:
       beautifulsoup4: ''
@@ -11136,15 +11136,15 @@ package:
       tomli: ''
       typing-extensions: '>=4.12.2,<5'
     hash:
-      md5: 438e2a4551c19fc16d086f996af6a00c
-      sha256: 0401894114c3e2d4531903c5312a446293e5d2d73baa4e0f6f28cca4bd8e0a95
+      md5: 3a3f4c8ee79342663e8148df5309bd2a
+      sha256: 520ef93d7e652f64c815bb7491c1776a5a03d092d3d9846c7b3756291f374744
     manager: conda
     name: rattler-build-conda-compat
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/rattler-build-conda-compat-0.2.3-pyhd8ed1ab_1.conda
-    version: 0.2.3
+      https://conda.anaconda.org/conda-forge/noarch/rattler-build-conda-compat-0.2.4-pyhd8ed1ab_0.conda
+    version: 0.2.4
   - category: main
     dependencies:
       conda-build: ''
@@ -11154,15 +11154,15 @@ package:
       tomli: ''
       typing-extensions: '>=4.12.2,<5'
     hash:
-      md5: 438e2a4551c19fc16d086f996af6a00c
-      sha256: 0401894114c3e2d4531903c5312a446293e5d2d73baa4e0f6f28cca4bd8e0a95
+      md5: 3a3f4c8ee79342663e8148df5309bd2a
+      sha256: 520ef93d7e652f64c815bb7491c1776a5a03d092d3d9846c7b3756291f374744
     manager: conda
     name: rattler-build-conda-compat
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/rattler-build-conda-compat-0.2.3-pyhd8ed1ab_1.conda
-    version: 0.2.3
+      https://conda.anaconda.org/conda-forge/noarch/rattler-build-conda-compat-0.2.4-pyhd8ed1ab_0.conda
+    version: 0.2.4
   - category: main
     dependencies:
       conda-build: ''
@@ -11172,15 +11172,15 @@ package:
       tomli: ''
       typing-extensions: '>=4.12.2,<5'
     hash:
-      md5: 438e2a4551c19fc16d086f996af6a00c
-      sha256: 0401894114c3e2d4531903c5312a446293e5d2d73baa4e0f6f28cca4bd8e0a95
+      md5: 3a3f4c8ee79342663e8148df5309bd2a
+      sha256: 520ef93d7e652f64c815bb7491c1776a5a03d092d3d9846c7b3756291f374744
     manager: conda
     name: rattler-build-conda-compat
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/rattler-build-conda-compat-0.2.3-pyhd8ed1ab_1.conda
-    version: 0.2.3
+      https://conda.anaconda.org/conda-forge/noarch/rattler-build-conda-compat-0.2.4-pyhd8ed1ab_0.conda
+    version: 0.2.4
   - category: main
     dependencies:
       libgcc-ng: '>=12'
