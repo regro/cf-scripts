@@ -18,6 +18,10 @@ jobs:
   tests:
     name: tests
     runs-on: "ubuntu-latest"
+    strategy:
+      matrix:
+        # if change the number of groups here, also change it next to --splits below
+        group: [1, 2]
     defaults:
       run:
         shell: bash -leo pipefail {0}
@@ -79,8 +83,14 @@ jobs:
         run: |
           export TEST_BOT_TOKEN_VAL=unpassword
           export BOT_TOKEN=${TEST_BOT_TOKEN_VAL}
+          # note: we do not use pytest-xdist (-n auto) here for now because they interfere with hiding the
+          # MONGODB_CONNECTION_STRING sensitive environment variable
           pytest \
             -v \
+            --splits 2 --group ${{ matrix.group }} \
+            --splitting-algorithm least_duration \
+            --randomly-seed=${{ github.run_id }} \
+            --splitting-algorithm least_duration \
             --cov=conda_forge_tick \
             --cov=tests \
             --cov-config=.coveragerc \
@@ -91,6 +101,38 @@ jobs:
             tests
         env:
           MONGODB_CONNECTION_STRING: "mongodb://127.0.0.1:27017/?directConnection=true&serverSelectionTimeoutMS=2000"
+
+      - name: Upload coverage
+        uses: actions/upload-artifact@0b2256b8c012f0828dc542b3febcab082c67f72b # v4
+        with:
+          name: coverage-${{ matrix.group }}
+          path: .coverage
+
+  test-coverage:
+    name: test-coverage
+    needs: tests
+    runs-on: "ubuntu-latest"
+    defaults:
+      run:
+        shell: bash -leo pipefail {0}
+    steps:
+      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4
+
+      - uses: mamba-org/setup-micromamba@f8b8a1e23a26f60a44c853292711bacfd3eac822 # v1
+        with:
+          environment-file: conda-lock.yml
+          environment-name: cf-scripts
+          condarc-file: autotick-bot/condarc
+
+      - name: Download Coverage Artifacts
+        uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16 # v4
+        with:
+          pattern: coverage-*
+
+      - name: Combine Coverage
+        run: |
+          coverage combine coverage-*/.coverage*
+          coverage xml
 
       - name: upload codecov
         uses: codecov/codecov-action@e28ff129e5465c2c0dcc6f003fc735cb6ae0c673 # v4
