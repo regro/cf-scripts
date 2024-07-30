@@ -394,6 +394,7 @@ def _parse_recipe_yaml(
     for_pinning,
     platform,
     arch,
+    cbc_path,
     log_debug,
 ):
     from conda_forge_tick.utils import parse_recipe_yaml_local
@@ -403,6 +404,7 @@ def _parse_recipe_yaml(
         for_pinning=for_pinning,
         platform=platform,
         arch=arch,
+        cbc_path=cbc_path,
         log_debug=log_debug,
     )
 
@@ -511,12 +513,16 @@ def parse_meta_yaml(
     default=None,
     help="The CPU architecture (e.g., '64', 'aarch64').",
 )
+@click.option(
+    "--cbc-path", type=str, default=None, help="The path to global pinning file."
+)
 @click.option("--log-debug", is_flag=True, help="Log debug information.")
 def parse_recipe_yaml(
     log_level,
     for_pinning,
     platform,
     arch,
+    cbc_path,
     log_debug,
 ):
     return _run_bot_task(
@@ -526,6 +532,7 @@ def parse_recipe_yaml(
         for_pinning=for_pinning,
         platform=platform,
         arch=arch,
+        cbc_path=cbc_path,
         log_debug=log_debug,
     )
 

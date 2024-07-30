@@ -1,8 +1,10 @@
 from pathlib import Path
 
 from conda_forge_tick.utils import (
+    _process_recipe_for_pinning,
     _render_recipe_yaml,
     parse_meta_yaml,
+    parse_munged_run_export,
     parse_recipe_yaml,
 )
 
@@ -28,3 +30,56 @@ def test_parse_validated_recipes():
 
     for key in ["about", "build", "package", "requirements", "source", "extra"]:
         assert recipe_yaml_dict[key] == meta_yaml_dict[key]
+
+
+def test_process_recipe_for_pinning():
+    input_recipes = [
+        {
+            "some_key": {
+                "pin_subpackage": {"name": "example_package", "upper_bound": "x.x"}
+            }
+        },
+        {
+            "another_key": [
+                {
+                    "pin_compatible": {
+                        "name": "another_package",
+                        "lower_bound": "x.x.x.x",
+                    }
+                }
+            ]
+        },
+    ]
+    expected_result = [
+        {
+            "some_key": {
+                "pin_subpackage": "__quote_plus__%7B%27package_name%27%3A+%27example_package%27%2C+%27upper_bound%27%3A+%27x.x%27%7D__quote_plus__",
+            }
+        },
+        {
+            "another_key": [
+                {
+                    "pin_compatible": "__quote_plus__%7B%27package_name%27%3A+%27another_package%27%2C+%27lower_bound%27%3A+%27x.x.x.x%27%7D__quote_plus__",
+                }
+            ]
+        },
+    ]
+
+    assert _process_recipe_for_pinning(input_recipes) == expected_result
+
+
+def test_parse_munged_run_export():
+    recipe = TEST_RECIPE_YAML_PATH.joinpath("slepc.yaml").read_text()
+    recipe_yaml = parse_recipe_yaml(
+        recipe,
+        for_pinning=True,
+    )
+    assert recipe_yaml["build"]["run_exports"]["weak"] == [
+        "__quote_plus__%7B%27package_name%27%3A+%27slepc%27%2C+%27lower_bound%27%3A+%27x.x.x.x.x.x%27%2C+%27upper_bound%27%3A+%27x.x%27%7D__quote_plus__"
+    ]
+
+    assert parse_munged_run_export(recipe_yaml["build"]["run_exports"]["weak"][0]) == {
+        "package_name": "slepc",
+        "lower_bound": "x.x.x.x.x.x",
+        "upper_bound": "x.x",
+    }

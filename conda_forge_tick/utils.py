@@ -382,11 +382,11 @@ def _render_meta_yaml(text: str, for_pinning: bool = False, **kwargs) -> str:
 
 def parse_recipe_yaml(
     text: str,
-    for_pinning=False,
-    platform=None,
-    arch=None,
-    cbc_path=None,
-    log_debug=False,
+    for_pinning: bool = False,
+    platform: str | None = None,
+    arch: str | None = None,
+    cbc_path: str | None = None,
+    log_debug: bool = False,
     use_container: bool | None = None,
 ) -> "RecipeTypedDict":
     """Parse the recipe.yaml.
@@ -427,6 +427,7 @@ def parse_recipe_yaml(
             for_pinning=for_pinning,
             platform=platform,
             arch=arch,
+            cbc_path=cbc_path,
             log_debug=log_debug,
         )
     else:
@@ -435,17 +436,18 @@ def parse_recipe_yaml(
             for_pinning=for_pinning,
             platform=platform,
             arch=arch,
+            cbc_path=cbc_path,
             log_debug=log_debug,
         )
 
 
 def parse_recipe_yaml_containerized(
     text: str,
-    for_pinning=False,
-    platform=None,
-    arch=None,
-    cbc_path=None,
-    log_debug=False,
+    for_pinning: bool = False,
+    platform: str | None = None,
+    arch: str | None = None,
+    cbc_path: str | None = None,
+    log_debug: bool = False,
 ) -> "RecipeTypedDict":
     """Parse the recipe.yaml.
 
@@ -496,11 +498,11 @@ def parse_recipe_yaml_containerized(
 
 def parse_recipe_yaml_local(
     text: str,
-    for_pinning=False,
-    platform=None,
-    arch=None,
-    cbc_path=None,
-    log_debug=False,
+    for_pinning: bool = False,
+    platform: str | None = None,
+    arch: str | None = None,
+    cbc_path: str | None = None,
+    log_debug: bool = False,
 ) -> "RecipeTypedDict":
     """Parse the recipe.yaml.
 
@@ -526,14 +528,17 @@ def parse_recipe_yaml_local(
         for some errors. Have fun.
     """
 
-    rendered_recipe = _render_recipe_yaml(text)
-    parsed_recipes = _parse_validated_recipes(rendered_recipe)
+    rendered_recipes = _render_recipe_yaml(text, cbc_path=cbc_path, platform=platform)
+    if for_pinning:
+        rendered_recipes = _process_recipe_for_pinning(rendered_recipes)
+    parsed_recipes = _parse_recipes(rendered_recipes)
     return parsed_recipes
 
 
 def _render_recipe_yaml(
     text: str,
-    cbc_path=None,
+    platform: str | None = None,
+    cbc_path: str | None = None,
 ) -> list[dict[str, Any]]:
     """
     Renders the given recipe YAML text using the `rattler-build` command-line tool.
@@ -542,6 +547,8 @@ def _render_recipe_yaml(
     ----------
     text : str
         The recipe YAML text to render.
+    platform : str, optional
+        The platform (e.g., 'linux', 'osx', 'win').
     cbc_path : str, optional
         The path to global pinning file.
 
@@ -551,8 +558,11 @@ def _render_recipe_yaml(
         The rendered recipe as a dictionary.
     """
     variant_config_flags = [] if cbc_path is None else ["--variant-config", cbc_path]
+    build_platform_flags = [] if platform is None else ["--build-platform", platform]
     res = subprocess.run(
-        ["rattler-build", "build", "--render-only"] + variant_config_flags,
+        ["rattler-build", "build", "--render-only"]
+        + variant_config_flags
+        + build_platform_flags,
         stdout=subprocess.PIPE,
         text=True,
         input=text,
@@ -561,7 +571,27 @@ def _render_recipe_yaml(
     return [output["recipe"] for output in json.loads(res.stdout)]
 
 
-def _parse_validated_recipes(
+def _process_recipe_for_pinning(recipes: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    def replace_name_key(d: dict[str, Any]) -> Any:
+        for key, value in d.items():
+            if isinstance(value, dict):
+                if key in ["pin_subpackage", "pin_compatible"] and "name" in value:
+                    # Create a new dictionary with 'package_name' first
+                    new_value = {"package_name": value.pop("name")}
+                    new_value.update(value)
+                    d[key] = _munge_dict_repr(new_value)
+                else:
+                    replace_name_key(value)
+            elif isinstance(value, list):
+                for item in value:
+                    if isinstance(item, dict):
+                        replace_name_key(item)
+        return d
+
+    return [replace_name_key(recipe) for recipe in recipes]
+
+
+def _parse_recipes(
     validated_recipes: list[dict[str, Any]],
 ) -> "RecipeTypedDict":
     first = validated_recipes[0]
@@ -585,6 +615,17 @@ def _parse_validated_recipes(
             "summary": about.get("summary"),
         }
     )
+    if run_exports := requirements.get("run_exports"):
+        weak = run_exports.get("weak")
+        if isinstance(weak, list) and isinstance(weak[0], dict):
+            run_exports["weak"] = [value for entry in weak for value in entry.values()]
+
+        strong = run_exports.get("strong")
+        if isinstance(strong, list) and isinstance(strong[0], dict):
+            run_exports["strong"] = [
+                value for entry in strong for value in entry.values()
+            ]
+
     build_data = (
         None
         if build is None or requirements is None
