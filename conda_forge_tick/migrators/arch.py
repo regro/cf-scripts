@@ -4,7 +4,7 @@ from typing import Any, Optional, Sequence
 
 import networkx as nx
 
-from conda_forge_tick.contexts import FeedstockContext
+from conda_forge_tick.contexts import ClonedFeedstockContext, FeedstockContext
 from conda_forge_tick.make_graph import (
     get_deps_from_outputs_lut,
     make_outputs_lut_from_graph,
@@ -213,7 +213,7 @@ class ArchRebuild(GraphMigrator):
     def pr_title(self, feedstock_ctx: FeedstockContext) -> str:
         return "Arch Migrator"
 
-    def pr_body(self, feedstock_ctx: FeedstockContext) -> str:
+    def pr_body(self, feedstock_ctx: ClonedFeedstockContext) -> str:
         body = super().pr_body(feedstock_ctx)
         body = body.format(
             dedent(
@@ -384,7 +384,7 @@ class OSXArm(GraphMigrator):
     def pr_title(self, feedstock_ctx: FeedstockContext) -> str:
         return "ARM OSX Migrator"
 
-    def pr_body(self, feedstock_ctx: FeedstockContext) -> str:
+    def pr_body(self, feedstock_ctx: ClonedFeedstockContext) -> str:
         body = super().pr_body(feedstock_ctx)
         body = body.format(
             dedent(
