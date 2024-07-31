@@ -219,7 +219,9 @@ class Version(Migrator):
                 )
             )
 
-    def pr_body(self, feedstock_ctx: ClonedFeedstockContext, add_label_text: bool = False) -> str:
+    def pr_body(
+        self, feedstock_ctx: ClonedFeedstockContext, add_label_text: bool = False
+    ) -> str:
         if feedstock_ctx.feedstock_name in self.effective_graph.nodes:
             pred = [
                 (
