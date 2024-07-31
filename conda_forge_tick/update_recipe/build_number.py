@@ -1,4 +1,7 @@
 import re
+from typing import Callable
+
+import yaml
 
 DEFAULT_BUILD_PATTERNS = (
     (re.compile(r"(\s*?)number:\s*([0-9]+)"), "number: {}"),
@@ -13,7 +16,11 @@ DEFAULT_BUILD_PATTERNS = (
 )
 
 
-def update_build_number(raw_meta_yaml, new_build_number, build_patterns=None):
+def update_build_number_meta_yaml(
+    raw_meta_yaml: str,
+    new_build_number: Callable[[str], str] | str,
+    build_patterns=None,
+):
     """Update the build number for a recipe.
 
     Parameters
@@ -51,3 +58,14 @@ def update_build_number(raw_meta_yaml, new_build_number, build_patterns=None):
         raw_meta_yaml = "\n".join(lines) + "\n"
 
     return raw_meta_yaml
+
+
+def update_build_number_recipe_yaml(
+    raw_recipe_yaml: str, new_build_number: Callable[[str], str] | str
+):
+    recipe = yaml.safe_load(raw_recipe_yaml)
+    if callable(new_build_number):
+        recipe["build"]["number"] = new_build_number(recipe["build"]["number"])
+    else:
+        recipe["build"]["number"] = new_build_number
+    return yaml.dump(recipe)

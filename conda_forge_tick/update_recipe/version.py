@@ -379,7 +379,9 @@ def _try_to_update_version(cmeta: Any, src: str, hash_type: str):
     return updated_version, errors
 
 
-def update_version(raw_meta_yaml, version, hash_type="sha256"):
+def update_meta_yaml_version(
+    raw_meta_yaml: str, version: str, hash_type: str = "sha256"
+) -> tuple[str | None, set[str]]:
     """Update the version in a recipe.
 
     Parameters
@@ -395,7 +397,7 @@ def update_version(raw_meta_yaml, version, hash_type="sha256"):
     -------
     updated_meta_yaml : str or None
         The updated meta.yaml. Will be None if there is an error.
-    errors : str of str
+    errors : set of str
         A set of strings giving any errors found when updating the
         version. The set will be empty if there were no errors.
     """
@@ -527,3 +529,28 @@ def update_version(raw_meta_yaml, version, hash_type="sha256"):
     else:
         logger.critical("Recipe did not change in version migration!")
         return None, errors
+
+
+def update_recipe_yaml_version(
+    raw_recipe_yaml: str, version: str, hash_type: str = "sha256"
+) -> tuple[str | None, set[str]]:
+    """Update the version in a recipe.
+
+    Parameters
+    ----------
+    raw_recipe_yaml : str
+        The recipe meta.yaml as a string.
+    version : str
+        The version of the recipe.
+    hash_type : str, optional
+        The kind of hash used on the source. Default is sha256.
+
+    Returns
+    -------
+    updated_recipe_yaml : str or None
+        The updated meta.yaml. Will be None if there is an error.
+    errors : set of str
+        A set of strings giving any errors found when updating the
+        version. The set will be empty if there were no errors.
+    """
+    raise NotImplementedError()

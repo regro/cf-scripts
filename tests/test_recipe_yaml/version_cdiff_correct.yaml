@@ -1,0 +1,41 @@
+schema_version: 1
+
+context:
+  org: GoogleContainerTools
+  name: container-diff
+  version: 0.15.0
+  src_dir: "\"[\"src/github.com\", org, name]|join(\"/\")\""
+
+package:
+  name: container-diff
+  version: ${{ version }}
+
+source:
+  - url: https://github.com/${{ org }}/${{ name }}/archive/v${{ version }}.tar.gz
+    sha256: 4bdd73a81b6f7a988cf270236471016525d0541f5fe04286043f3db28e4b250c
+    target_directory: ${{ src_dir }}
+  - url: https://storage.googleapis.com/container-diff/v${{ version }}/container-diff-windows-amd64.exe
+    sha256: 497123dfd22051c8facb4bfca67dbd0e3ed9a08ead8217eb2f5e534d70810822  # [win]
+    target_directory: bin
+
+build:
+  number: 0
+
+requirements:
+  build:
+    - if: unix
+      then: ${{ compiler("go") }}
+
+tests:
+  - script:
+      - container-diff
+
+about:
+  license: Apache-2.0
+  license_file: ${{ src_dir }}/LICENSE
+  summary: Diff your Docker containers
+  homepage: https://github.com/GoogleContainerTools/container-diff
+
+extra:
+  recipe-maintainers:
+    - jakirkham

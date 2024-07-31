@@ -5,6 +5,7 @@ import datetime
 import logging
 import re
 import typing
+from pathlib import Path
 from typing import Any, List, Sequence, Set
 
 import dateutil.parser
@@ -14,7 +15,8 @@ from conda_forge_tick.contexts import FeedstockContext
 from conda_forge_tick.lazy_json_backends import LazyJson
 from conda_forge_tick.make_graph import make_outputs_lut_from_graph
 from conda_forge_tick.path_lengths import cyclic_topological_sort
-from conda_forge_tick.update_recipe import update_build_number
+from conda_forge_tick.update_recipe import update_build_number_meta_yaml
+from conda_forge_tick.update_recipe.build_number import update_build_number_recipe_yaml
 from conda_forge_tick.utils import (
     frozen_to_json_friendly,
     get_bot_run_url,
@@ -439,7 +441,7 @@ class Migrator:
     def migrate(
         self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any
     ) -> "MigrationUidTypedDict":
-        """Perform the migration, updating the ``meta.yaml``
+        """Perform the migration, updating the recipe
 
         Parameters
         ----------
@@ -560,25 +562,34 @@ class Migrator:
         }
         return cyclic_topological_sort(graph, top_level)
 
-    def set_build_number(self, filename: str) -> None:
+    def set_build_number(self, filename: str | Path) -> None:
         """Bump the build number of the specified recipe.
 
         Parameters
         ----------
-        filename : str
-            Path the the meta.yaml
+        filename : str | Path
+            Path the the recipe file
         """
-        with open(filename) as f:
-            raw = f.read()
+        filename = Path(filename)
+        raw = filename.read_text()
 
-        new_myaml = update_build_number(
-            raw,
-            self.new_build_number,
-            build_patterns=self.build_patterns,
-        )
+        if filename.name == "meta.yaml":
+            new_yaml = update_build_number_meta_yaml(
+                raw,
+                self.new_build_number,
+                build_patterns=self.build_patterns,
+            )
+        elif filename.name == "recipe.yaml":
+            new_yaml = update_build_number_recipe_yaml(
+                raw,
+                self.new_build_number,
+            )
+        else:
+            raise ValueError(
+                f"`{filename=}` needs to be a `meta.yaml` or `recipe.yaml`."
+            )
 
-        with open(filename, "w") as f:
-            f.write(new_myaml)
+        filename.write_text(new_yaml)
 
     def new_build_number(self, old_number: int) -> int:
         """Determine the new build number to use.

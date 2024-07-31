@@ -150,7 +150,7 @@ def _extract_requirements(meta_yaml, outputs_to_keep=None):
             requirements_dict[section].update(
                 list(as_iterable(req.get(section, []) or [])),
             )
-        test: "TestTypedDict" = block.get("test", {})
+        test: "TestTypedDict" = {} if block.get("test") is None else block.get("test")
         requirements_dict["test"].update(test.get("requirements", []) or [])
         requirements_dict["test"].update(test.get("requires", []) or [])
         run_exports = (block.get("build", {}) or {}).get("run_exports", {})
@@ -350,6 +350,11 @@ def populate_feedstock_attributes(
                     parse_meta_yaml(meta_yaml, platform=plat, arch=arch)
                     for plat, arch in plat_archs
                 ]
+            elif isinstance(recipe_yaml, str):
+                variant_yamls = [
+                    parse_recipe_yaml(recipe_yaml, platform=plat, arch=arch)
+                    for plat, arch in plat_archs
+                ]
     except Exception as e:
         import traceback
 
@@ -378,11 +383,11 @@ def populate_feedstock_attributes(
         if k.endswith("_meta_yaml") or k.endswith("_requirements"):
             sub_graph.pop(k)
 
-    for k, v in zip(plat_archs, variant_yamls):
-        plat_arch_name = "_".join(k)
-        sub_graph[f"{plat_arch_name}_meta_yaml"] = v
+    for plat_arch, variant_yaml in zip(plat_archs, variant_yamls):
+        plat_arch_name = "_".join(plat_arch)
+        sub_graph[f"{plat_arch_name}_meta_yaml"] = variant_yaml
         _, sub_graph[f"{plat_arch_name}_requirements"], _ = _extract_requirements(
-            v,
+            variant_yaml,
             outputs_to_keep=BOOTSTRAP_MAPPINGS.get(name, None),
         )
 

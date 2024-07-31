@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pytest
 from flaky import flaky
-from test_migrators import run_test_migration
+from test_migrators import run_test_migration, run_test_migration_recipe_yaml
 
 from conda_forge_tick.migrators import Version
 from conda_forge_tick.migrators.version import VersionMigrationError
@@ -13,6 +13,7 @@ from conda_forge_tick.migrators.version import VersionMigrationError
 VERSION = Version(set())
 
 YAML_PATH = os.path.join(os.path.dirname(__file__), "test_yaml")
+RECIPE_YAML_PATH = Path(__file__).parent.joinpath("test_recipe_yaml")
 
 VARIANT_SOURCES_NOT_IMPLEMENTED = (
     "Sources that depend on conda build config variants are not supported yet."
@@ -171,6 +172,34 @@ def test_version_cupy(tmpdir, caplog):
             "version": new_ver,
         },
         tmpdir=tmpdir,
+    )
+
+
+def test_version_cdiff_recipe_yaml(tmp_path, caplog):
+    case = "cdiff"
+    new_ver = "8.5.0"
+    caplog.set_level(
+        logging.DEBUG,
+        logger="conda_forge_tick.migrators.version",
+    )
+
+    in_yaml = RECIPE_YAML_PATH.joinpath(f"version_{case}.yaml").read_text()
+    out_yaml = RECIPE_YAML_PATH.joinpath(f"version_{case}_correct.yaml").read_text()
+
+    kwargs = {"new_version": new_ver}
+
+    run_test_migration_recipe_yaml(
+        migrator=VERSION,
+        in_yaml=in_yaml,
+        output=out_yaml,
+        kwargs=kwargs,
+        prb="Dependencies have been updated if changed",
+        mr_out={
+            "migrator_name": Version.name,
+            "migrator_version": Version.migrator_version,
+            "version": new_ver,
+        },
+        tmp_path=tmp_path,
     )
 
 

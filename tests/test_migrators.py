@@ -2,6 +2,9 @@ import os
 import re
 import subprocess
 from pathlib import Path
+from pathlib import Path
+
+import yaml
 
 from conda_forge_tick.contexts import FeedstockContext
 from conda_forge_tick.feedstock_parser import populate_feedstock_attributes
@@ -545,6 +548,94 @@ def run_test_migration(
         if "new_version" in kwargs:
             pmy["version_pr_info"] = {"new_version": kwargs["new_version"]}
         assert m.filter(pmy) is True
+    finally:
+        pmy.pop("version_pr_info", None)
+
+    return pmy
+
+
+def run_test_migration_recipe_yaml(
+    migrator: Migrator,
+    in_yaml: str,
+    output: str,
+    kwargs: dict,
+    prb: str,
+    mr_out: dict,
+    tmp_path: Path,
+    should_filter: bool = False,
+    make_body: bool = False,
+):
+    if mr_out:
+        mr_out.update(bot_rerun=False)
+
+    tmp_path.joinpath("recipe.yaml").write_text(in_yaml)
+
+    # read the conda-forge.yml
+    cf_yml_path = tmp_path.parent / "conda-forge.yml"
+    cf_yml = cf_yml_path.read_text() if cf_yml_path.exists() else "{}"
+
+    name = yaml.safe_load(in_yaml)["package"]["name"]
+    pmy = populate_feedstock_attributes(
+        name, sub_graph={}, recipe_yaml=in_yaml, conda_forge_yaml=cf_yml
+    )
+
+    # these are here for legacy migrators
+    pmy["version"] = pmy["meta_yaml"]["package"]["version"]
+    pmy["req"] = set()
+    for k in ["build", "host", "run"]:
+        req = pmy["meta_yaml"].get("requirements", {}) or {}
+        _set = req.get(k) or set()
+        pmy["req"] |= set(_set)
+    pmy.update(kwargs)
+
+    try:
+        if "new_version" in kwargs:
+            pmy["version_pr_info"] = {"new_version": kwargs["new_version"]}
+        assert migrator.filter(pmy) == should_filter
+    finally:
+        pmy.pop("version_pr_info", None)
+    if should_filter:
+        return pmy
+
+    migrator.run_pre_piggyback_migrations(
+        str(tmp_path),
+        pmy,
+        hash_type=pmy.get("hash_type", "sha256"),
+    )
+    mr = migrator.migrate(str(tmp_path), pmy, hash_type=pmy.get("hash_type", "sha256"))
+    migrator.run_post_piggyback_migrations(
+        str(tmp_path),
+        pmy,
+        hash_type=pmy.get("hash_type", "sha256"),
+    )
+
+    if make_body:
+        fctx = FeedstockContext(
+            feedstock_name=name,
+            attrs=pmy,
+        )
+        fctx.feedstock_dir = tmp_path.name
+        migrator.effective_graph.add_node(name)
+        migrator.effective_graph.nodes[name]["payload"] = MockLazyJson({})
+        migrator.pr_body(fctx)
+
+    assert mr_out == mr
+    if not mr:
+        return pmy
+
+    pmy["pr_info"] = {}
+    pmy["pr_info"].update(PRed=[frozen_to_json_friendly(mr)])
+    actual_output = tmp_path.joinpath("recipe.yaml").read_text()
+    assert actual_output == output
+    # TODO: fix subgraph here (need this to be xsh file)
+    if isinstance(migrator, Version):
+        pass
+    else:
+        assert prb in migrator.pr_body(None)
+    try:
+        if "new_version" in kwargs:
+            pmy["version_pr_info"] = {"new_version": kwargs["new_version"]}
+        assert migrator.filter(pmy) is True
     finally:
         pmy.pop("version_pr_info", None)
 
