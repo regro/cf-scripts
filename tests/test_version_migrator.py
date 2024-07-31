@@ -1,6 +1,7 @@
 import logging
 import os
 import random
+from pathlib import Path
 
 import pytest
 from flaky import flaky
@@ -153,15 +154,10 @@ def test_version_cupy(tmpdir, caplog):
         logger="conda_forge_tick.migrators.version",
     )
 
-    with open(os.path.join(YAML_PATH, "version_%s.yaml" % case)) as fp:
-        in_yaml = fp.read()
-
-    with open(os.path.join(YAML_PATH, "version_%s_correct.yaml" % case)) as fp:
-        out_yaml = fp.read()
+    in_yaml = Path(YAML_PATH).joinpath(f"version_{case}.yaml").read_text()
+    out_yaml = Path(YAML_PATH).joinpath(f"version_{case}_correct.yaml").read_text()
 
     kwargs = {"new_version": new_ver}
-    if case == "sha1":
-        kwargs["hash_type"] = "sha1"
 
     run_test_migration(
         m=VERSION,
