@@ -465,15 +465,12 @@ def run_test_migration(
 ):
     if mr_out:
         mr_out.update(bot_rerun=False)
-    with open(os.path.join(tmpdir, "meta.yaml"), "w") as f:
-        f.write(inp)
+
+    Path(tmpdir).joinpath("meta.yaml").write_text(inp)
 
     # read the conda-forge.yml
-    if os.path.exists(os.path.join(tmpdir, "..", "conda-forge.yml")):
-        with open(os.path.join(tmpdir, "..", "conda-forge.yml")) as fp:
-            cf_yml = fp.read()
-    else:
-        cf_yml = "{}"
+    cf_yml_path = Path(tmpdir).parent / "conda-forge.yml"
+    cf_yml = cf_yml_path.read_text() if cf_yml_path.exists() else "{}"
 
     # Load the meta.yaml (this is done in the graph)
     try:
@@ -481,7 +478,9 @@ def run_test_migration(
     except Exception:
         name = "blah"
 
-    pmy = populate_feedstock_attributes(name, {}, inp, None, cf_yml)
+    pmy = populate_feedstock_attributes(
+        name, sub_graph={}, meta_yaml=inp, conda_forge_yaml=cf_yml
+    )
 
     # these are here for legacy migrators
     pmy["version"] = pmy["meta_yaml"]["package"]["version"]
@@ -496,7 +495,7 @@ def run_test_migration(
     try:
         if "new_version" in kwargs:
             pmy["version_pr_info"] = {"new_version": kwargs["new_version"]}
-        assert m.filter(pmy) is should_filter
+        assert m.filter(pmy) == should_filter
     finally:
         pmy.pop("version_pr_info", None)
     if should_filter:

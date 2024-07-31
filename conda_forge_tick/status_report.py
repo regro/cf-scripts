@@ -351,7 +351,7 @@ def _compute_recently_closed(total_status, old_closed_status, old_total_status):
     # grab any new stuff
     closed_status = {m: now for m in set(old_total_status) - set(total_status)}
 
-    # grab anything rcent from previous stuff
+    # grab anything recent from previous stuff
     for m, nm in old_closed_status.items():
         tm = int(dateutil.parser.parse(nm.split(" closed at ", 1)[1]).timestamp())
         if m not in total_status and now - tm < two_weeks:
@@ -408,6 +408,7 @@ def main() -> None:
     os.makedirs("./status/migration_svg", exist_ok=True)
     regular_status = {}
     longterm_status = {}
+    paused_status = {}
 
     for migrator in migrators:
         if hasattr(migrator, "name"):
@@ -434,6 +435,8 @@ def main() -> None:
                     or isinstance(migrator, OSXArm)
                 ):
                     longterm_status[migrator_name] = f"{migrator.name} Migration Status"
+                elif mgconf.get("paused", False):
+                    paused_status[migrator_name] = f"{migrator.name} Migration Status"
                 else:
                     regular_status[migrator_name] = f"{migrator.name} Migration Status"
             else:
@@ -486,9 +489,13 @@ def main() -> None:
     with open("./status/longterm_status.json", "w") as f:
         json.dump(longterm_status, f, sort_keys=True, indent=2)
 
+    with open("./status/paused_status.json", "w") as f:
+        json.dump(paused_status, f, sort_keys=True, indent=2)
+
     total_status = {}
     total_status.update(regular_status)
     total_status.update(longterm_status)
+    total_status.update(paused_status)
     with open("./status/total_status.json", "w") as f:
         json.dump(total_status, f, sort_keys=True, indent=2)
 

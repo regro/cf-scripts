@@ -5,7 +5,7 @@ import datetime
 import logging
 import re
 import typing
-from typing import Any, List, Optional, Sequence, Set
+from typing import Any, List, Sequence, Set
 
 import dateutil.parser
 import networkx as nx
@@ -222,11 +222,11 @@ class Migrator:
         self,
         pr_limit: int = 0,
         # TODO: Validate this?
-        obj_version: Optional[int] = None,
-        piggy_back_migrations: Optional[Sequence[MiniMigrator]] = None,
-        check_solvable=True,
-        graph: nx.DiGraph = None,
-        effective_graph: nx.DiGraph = None,
+        obj_version: int | None = None,
+        piggy_back_migrations: Sequence[MiniMigrator] | None = None,
+        check_solvable: bool = True,
+        graph: nx.DiGraph | None = None,
+        effective_graph: nx.DiGraph | None = None,
     ):
         if not hasattr(self, "_init_args"):
             self._init_args = []
@@ -611,16 +611,16 @@ class GraphMigrator(Migrator):
     def __init__(
         self,
         *,
-        name: Optional[str] = None,
-        graph: nx.DiGraph = None,
+        name: str | None = None,
+        graph: nx.DiGraph | None = None,
         pr_limit: int = 0,
-        top_level: Set["PackageName"] = None,
-        cycles: Optional[Sequence["PackageName"]] = None,
-        obj_version: Optional[int] = None,
-        piggy_back_migrations: Optional[Sequence[MiniMigrator]] = None,
-        check_solvable=True,
+        top_level: Set["PackageName"] | None = None,
+        cycles: Sequence["PackageName"] | None = None,
+        obj_version: int | None = None,
+        piggy_back_migrations: Sequence[MiniMigrator] | None = None,
+        check_solvable: bool = True,
         ignored_deps_per_node=None,
-        effective_graph: nx.DiGraph = None,
+        effective_graph: nx.DiGraph | None = None,
     ):
         if not hasattr(self, "_init_args"):
             self._init_args = []
