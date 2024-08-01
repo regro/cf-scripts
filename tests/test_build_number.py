@@ -34,27 +34,66 @@ def test_update_build_number_meta_yaml_function(meta_yaml, new_meta_yaml):
     assert out_meta_yaml == new_meta_yaml
 
 
-def test_update_build_number_recipe_yaml():
-    in_yaml = """\
+RECIPE_YAML_IN_CONTEXT_1 = """\
+context:
+  build_number: 100
+build:
+  number: ${{ build_number }}
+"""
+
+RECIPE_YAML_EXP_CONTEXT_1 = """\
+context:
+  build_number: 101
+build:
+  number: ${{ build_number }}
+"""
+
+RECIPE_YAML_IN_CONTEXT_2 = """\
+context:
+  build: 100
+build:
+  number: ${{ build }}
+"""
+
+RECIPE_YAML_EXP_CONTEXT_2 = """\
+context:
+  build: 101
+build:
+  number: ${{ build }}
+"""
+
+RECIPE_YAML_IN_LITERAL = """\
 build:
   number: 100
 """
-    expected_yaml = """\
-build:
-  number: 0
-"""
-    out_meta_yaml = update_build_number_recipe_yaml(in_yaml, 0)
-    assert out_meta_yaml == expected_yaml
 
-
-def test_update_build_number_recipe_yaml_function():
-    in_yaml = """\
-build:
-  number: 100
-"""
-    expected_yaml = """\
+RECIPE_YAML_EXP_LITERAL = """\
 build:
   number: 101
 """
-    out_meta_yaml = update_build_number_recipe_yaml(in_yaml, lambda x: x + 1)
-    assert out_meta_yaml == expected_yaml
+
+
+@pytest.mark.parametrize(
+    "recipe_yaml,expected_recipe_yaml",
+    [
+        (RECIPE_YAML_IN_CONTEXT_1, RECIPE_YAML_EXP_CONTEXT_1),
+        (RECIPE_YAML_IN_CONTEXT_2, RECIPE_YAML_EXP_CONTEXT_2),
+        (RECIPE_YAML_IN_LITERAL, RECIPE_YAML_EXP_LITERAL),
+    ],
+)
+def test_update_build_number_recipe_yaml(recipe_yaml, expected_recipe_yaml):
+    out_recipe_yaml = update_build_number_recipe_yaml(recipe_yaml, 101)
+    assert out_recipe_yaml == expected_recipe_yaml
+
+
+@pytest.mark.parametrize(
+    "recipe_yaml,expected_recipe_yaml",
+    [
+        (RECIPE_YAML_IN_CONTEXT_1, RECIPE_YAML_EXP_CONTEXT_1),
+        (RECIPE_YAML_IN_CONTEXT_2, RECIPE_YAML_EXP_CONTEXT_2),
+        (RECIPE_YAML_IN_LITERAL, RECIPE_YAML_EXP_LITERAL),
+    ],
+)
+def test_update_build_number_recipe_yaml_function(recipe_yaml, expected_recipe_yaml):
+    out_recipe_yaml = update_build_number_recipe_yaml(recipe_yaml, lambda x: x + 1)
+    assert out_recipe_yaml == expected_recipe_yaml

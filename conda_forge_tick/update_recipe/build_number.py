@@ -63,9 +63,23 @@ def update_build_number_meta_yaml(
 def update_build_number_recipe_yaml(
     raw_recipe_yaml: str, new_build_number: Callable[[str], str] | str
 ):
+    def replace_build_number(recipe, first_key, second_key):
+        if first := recipe.get(first_key):
+            if second_key in first and isinstance(first[second_key], int):
+                if callable(new_build_number):
+                    first[second_key] = new_build_number(first[second_key])
+                else:
+                    first[second_key] = new_build_number
+
     recipe = yaml.safe_load(raw_recipe_yaml)
-    if callable(new_build_number):
-        recipe["build"]["number"] = new_build_number(recipe["build"]["number"])
-    else:
-        recipe["build"]["number"] = new_build_number
-    return yaml.dump(recipe)
+
+    cases = [
+        ("build", "number"),
+        ("context", "build_number"),
+        ("context", "build"),
+    ]
+
+    for case in cases:
+        replace_build_number(recipe, *case)
+
+    return yaml.dump(recipe, sort_keys=False)
