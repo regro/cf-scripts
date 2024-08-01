@@ -219,7 +219,7 @@ class Version(Migrator):
                 )
             )
 
-    def pr_body(self, feedstock_ctx: FeedstockContext) -> str:
+    def pr_body(self, feedstock_ctx: FeedstockContext, add_label_text=False) -> str:
         if feedstock_ctx.feedstock_name in self.effective_graph.nodes:
             pred = [
                 (
