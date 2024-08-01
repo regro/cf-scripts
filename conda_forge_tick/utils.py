@@ -631,7 +631,7 @@ def _parse_recipes(
         }
     )
 
-    parse_recipe_yaml_requirements(requirements)
+    _parse_recipe_yaml_requirements(requirements)
 
     build_data = (
         None
@@ -715,7 +715,7 @@ def _parse_recipes(
     return _remove_none_values(parsed_recipes)
 
 
-def parse_recipe_yaml_requirements(requirements):
+def _parse_recipe_yaml_requirements(requirements):
     """Parse requirement section of render by rattler-build to fit `RecipeTypedDict`
 
 
