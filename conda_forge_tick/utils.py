@@ -482,6 +482,9 @@ def parse_recipe_yaml_containerized(
     if arch is not None:
         args += ["--arch", arch]
 
+    if cbc_path is not None:
+        args += ["--cbc-path", cbc_path]
+
     if log_debug:
         args += ["--log-debug"]
 
@@ -594,6 +597,18 @@ def _process_recipe_for_pinning(recipes: list[dict[str, Any]]) -> list[dict[str,
 def _parse_recipes(
     validated_recipes: list[dict[str, Any]],
 ) -> "RecipeTypedDict":
+    """Parses validated recipes and transform them to fit `RecipeTypedDict`
+
+    Parameters
+    ----------
+    validated_recipes : list[dict[str, Any]]
+        The recipes validated and rendered by `rattler-build`
+
+    Returns
+    -------
+    RecipeTypedDict
+        A dict conforming to conda-build's rendered output
+    """
     first = validated_recipes[0]
     about = first["about"]
     build = first["build"]
@@ -615,16 +630,8 @@ def _parse_recipes(
             "summary": about.get("summary"),
         }
     )
-    if run_exports := requirements.get("run_exports"):
-        weak = run_exports.get("weak")
-        if isinstance(weak, list) and isinstance(weak[0], dict):
-            run_exports["weak"] = [value for entry in weak for value in entry.values()]
 
-        strong = run_exports.get("strong")
-        if isinstance(strong, list) and isinstance(strong[0], dict):
-            run_exports["strong"] = [
-                value for entry in strong for value in entry.values()
-            ]
+    parse_recipe_yaml_requirements(requirements)
 
     build_data = (
         None
@@ -706,6 +713,42 @@ def _parse_recipes(
     }
 
     return _remove_none_values(parsed_recipes)
+
+
+def parse_recipe_yaml_requirements(requirements):
+    """Parse requirement section of render by rattler-build to fit `RecipeTypedDict`
+
+
+    When rendering the recipe by rattler build,
+    `requirements["run_exports"]["weak"]` gives a list looking like:
+    [
+        {
+          "pin_subpackage": {
+            "name": "slepc",
+            "lower_bound": "x.x.x.x.x.x",
+            "upper_bound": "x.x"
+          }
+        }
+    ]
+    `run_exports["weak"]` of RecipeTypedDict looks like:
+    [
+        "pin_subpackage"
+    ]
+
+    The same applies to "strong".
+
+    This function takes care of this transformation
+    """
+    if run_exports := requirements.get("run_exports"):
+        weak = run_exports.get("weak")
+        if isinstance(weak, list) and isinstance(weak[0], dict):
+            run_exports["weak"] = [value for entry in weak for value in entry.values()]
+
+        strong = run_exports.get("strong")
+        if isinstance(strong, list) and isinstance(strong[0], dict):
+            run_exports["strong"] = [
+                value for entry in strong for value in entry.values()
+            ]
 
 
 def _remove_none_values(d):
