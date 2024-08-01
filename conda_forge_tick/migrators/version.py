@@ -17,8 +17,8 @@ from conda_forge_tick.migrators.core import Migrator
 from conda_forge_tick.models.pr_info import MigratorName
 from conda_forge_tick.update_deps import get_dep_updates_and_hints
 from conda_forge_tick.update_recipe import (
-    update_meta_yaml_version,
     update_recipe_yaml_version,
+    update_version,
 )
 from conda_forge_tick.utils import get_keys_default, sanitize_string
 
@@ -204,7 +204,7 @@ class Version(Migrator):
         if meta_yaml_path.exists():
             output_path = meta_yaml_path
             raw_meta_yaml = meta_yaml_path.read_text()
-            updated_recipe, errors = update_meta_yaml_version(
+            updated_recipe, errors = update_version(
                 raw_meta_yaml,
                 version,
                 hash_type=hash_type,

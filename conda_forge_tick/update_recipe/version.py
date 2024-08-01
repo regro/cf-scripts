@@ -379,7 +379,7 @@ def _try_to_update_version(cmeta: Any, src: str, hash_type: str):
     return updated_version, errors
 
 
-def update_meta_yaml_version(
+def update_version(
     raw_meta_yaml: str, version: str, hash_type: str = "sha256"
 ) -> tuple[str | None, set[str]]:
     """Update the version in a recipe.

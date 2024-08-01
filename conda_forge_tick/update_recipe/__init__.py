@@ -9,4 +9,4 @@ from .build_number import (
 )
 
 # noqa
-from .version import update_meta_yaml_version, update_recipe_yaml_version  # noqa
+from .version import update_recipe_yaml_version, update_version  # noqa
