@@ -1693,7 +1693,7 @@ package:
       chardet: ''
       conda: '>=23.7.0'
       conda-index: '>=0.4.0'
-      conda-package-handling: '>=1.3'
+      conda-package-handling: '>=2.2.0'
       filelock: ''
       frozendict: '>=2.4.2'
       jinja2: ''
@@ -1714,15 +1714,15 @@ package:
       ripgrep: ''
       tqdm: ''
     hash:
-      md5: 2934a4e4d7f4c6de558f071208144e31
-      sha256: a8ec9f9daa18d171df1f5cfac60fcad78219a27f11eb1e6d9d87d504da6fea54
+      md5: 3537101504b2889c9ab74e9499ea6af4
+      sha256: 4eda5ebd8113324e9fa267ddd663d65b9371b29031050ddd3a4f7ce36d002635
     manager: conda
     name: conda-build
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/linux-64/conda-build-24.5.1-py311h38be061_0.conda
-    version: 24.5.1
+      https://conda.anaconda.org/conda-forge/linux-64/conda-build-24.7.1-py311h38be061_0.conda
+    version: 24.7.1
   - category: main
     dependencies:
       beautifulsoup4: ''
@@ -1730,7 +1730,7 @@ package:
       chardet: ''
       conda: '>=23.7.0'
       conda-index: '>=0.4.0'
-      conda-package-handling: '>=1.3'
+      conda-package-handling: '>=2.2.0'
       filelock: ''
       frozendict: '>=2.4.2'
       jinja2: ''
@@ -1750,15 +1750,15 @@ package:
       ripgrep: ''
       tqdm: ''
     hash:
-      md5: f79705cbd8e906cc1406d73e41998f46
-      sha256: 4afa2bf5823687ce3801c06f4594a9d4cdf3fcb060b8a2f394bfde5f21c9c583
+      md5: 17091a0cc85144dc473ac396092747a0
+      sha256: 618126d04414d72fd22f8ee446678674970da666c7d95272635387e2f5fe8180
     manager: conda
     name: conda-build
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/osx-64/conda-build-24.5.1-py311h6eed73b_0.conda
-    version: 24.5.1
+      https://conda.anaconda.org/conda-forge/osx-64/conda-build-24.7.1-py311h6eed73b_0.conda
+    version: 24.7.1
   - category: main
     dependencies:
       beautifulsoup4: ''
@@ -1766,7 +1766,7 @@ package:
       chardet: ''
       conda: '>=23.7.0'
       conda-index: '>=0.4.0'
-      conda-package-handling: '>=1.3'
+      conda-package-handling: '>=2.2.0'
       filelock: ''
       frozendict: '>=2.4.2'
       jinja2: ''
@@ -1786,15 +1786,15 @@ package:
       ripgrep: ''
       tqdm: ''
     hash:
-      md5: 3ead88952bd88835ab0a51922c629afb
-      sha256: 4c308c675de080d650d5cb95de97b937e6232db8541de97b23e4bfadbb830aa6
+      md5: c34934b801064baa87ca0241c12a152a
+      sha256: c3d4e2886839f3c6e07bc0808f7f4b63a74f11cb777a7eb9941bfe1dabc60b09
     manager: conda
     name: conda-build
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/osx-arm64/conda-build-24.5.1-py311h267d04e_0.conda
-    version: 24.5.1
+      https://conda.anaconda.org/conda-forge/osx-arm64/conda-build-24.7.1-py311h267d04e_0.conda
+    version: 24.7.1
   - category: main
     dependencies:
       boltons: '>=23.0.0'
@@ -2351,7 +2351,7 @@ package:
       pycryptodome: ''
       pygithub: '>=2,<3'
       python: '>=3.6'
-      rattler-build-conda-compat: '>=0.0.6'
+      rattler-build-conda-compat: '>=0.2.4'
       requests: ''
       ruamel.yaml: '>=0.16'
       scrypt: ''
@@ -2360,15 +2360,15 @@ package:
       toolz: ''
       vsts-python-api: ''
     hash:
-      md5: 3e6d66a028d50eb578bcf739fa9351e8
-      sha256: 1731e6b08f8ef1b1128a3f0d52534e89d52397e1d8b112df9fbb085a87f334f7
+      md5: 25bbff79c9967ee622e0fd070dba55e5
+      sha256: ee44f8b6f3a4ebc381cf49428956efdb913feecf7e76d5f4562b33d7323392a8
     manager: conda
     name: conda-smithy
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-smithy-3.37.1-unix_pyh707e725_0.conda
-    version: 3.37.1
+      https://conda.anaconda.org/conda-forge/noarch/conda-smithy-3.37.2-unix_pyh707e725_0.conda
+    version: 3.37.2
   - category: main
     dependencies:
       __unix: ''
@@ -2388,7 +2388,7 @@ package:
       pycryptodome: ''
       pygithub: '>=2,<3'
       python: '>=3.6'
-      rattler-build-conda-compat: '>=0.0.6'
+      rattler-build-conda-compat: '>=0.2.4'
       requests: ''
       ruamel.yaml: '>=0.16'
       scrypt: ''
@@ -2397,15 +2397,15 @@ package:
       toolz: ''
       vsts-python-api: ''
     hash:
-      md5: 3e6d66a028d50eb578bcf739fa9351e8
-      sha256: 1731e6b08f8ef1b1128a3f0d52534e89d52397e1d8b112df9fbb085a87f334f7
+      md5: 25bbff79c9967ee622e0fd070dba55e5
+      sha256: ee44f8b6f3a4ebc381cf49428956efdb913feecf7e76d5f4562b33d7323392a8
     manager: conda
     name: conda-smithy
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-smithy-3.37.1-unix_pyh707e725_0.conda
-    version: 3.37.1
+      https://conda.anaconda.org/conda-forge/noarch/conda-smithy-3.37.2-unix_pyh707e725_0.conda
+    version: 3.37.2
   - category: main
     dependencies:
       __unix: ''
@@ -2425,7 +2425,7 @@ package:
       pycryptodome: ''
       pygithub: '>=2,<3'
       python: '>=3.6'
-      rattler-build-conda-compat: '>=0.0.6'
+      rattler-build-conda-compat: '>=0.2.4'
       requests: ''
       ruamel.yaml: '>=0.16'
       scrypt: ''
@@ -2434,15 +2434,15 @@ package:
       toolz: ''
       vsts-python-api: ''
     hash:
-      md5: 3e6d66a028d50eb578bcf739fa9351e8
-      sha256: 1731e6b08f8ef1b1128a3f0d52534e89d52397e1d8b112df9fbb085a87f334f7
+      md5: 25bbff79c9967ee622e0fd070dba55e5
+      sha256: ee44f8b6f3a4ebc381cf49428956efdb913feecf7e76d5f4562b33d7323392a8
     manager: conda
     name: conda-smithy
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-smithy-3.37.1-unix_pyh707e725_0.conda
-    version: 3.37.1
+      https://conda.anaconda.org/conda-forge/noarch/conda-smithy-3.37.2-unix_pyh707e725_0.conda
+    version: 3.37.2
   - category: main
     dependencies:
       python: '>=3.8'
