@@ -89,8 +89,7 @@ def _update_pr(update_function, dry_run, gx, job, n_jobs):
             except (github3.GitHubError, github.GithubException) as e:
                 logger.error(f"GITHUB ERROR ON FEEDSTOCK: {name}")
                 failed_refresh += 1
-                if is_github_api_limit_reached():
-                    logger.warning("GitHub API error", exc_info=e)
+                if is_github_api_limit_reached(e):
                     break
             except (github3.exceptions.ConnectionError, github.GithubException):
                 logger.error(f"GITHUB ERROR ON FEEDSTOCK: {name}")
