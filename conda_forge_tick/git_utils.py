@@ -550,11 +550,6 @@ class GitHubBackend(GitPlatformBackend):
         return repo
 
     def does_repository_exist(self, owner: str, repo_name: str) -> bool:
-        """
-        Check if a repository exists.
-        :param owner: The owner of the repository.
-        :param repo_name: The name of the repository.
-        """
         try:
             self._get_repo(owner, repo_name)
             return True
