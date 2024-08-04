@@ -117,12 +117,12 @@ def get_default_container_name():
     """Get the default container name for the bot.
 
     If the environment variable `CI` is set to `true`, the container name is `conda-forge-tick:test`.
-    Otherwise, the container name is `ghcr.io/regro/conda-forge-tick:master`.
+    Otherwise, the container name is `ghcr.io/regro/conda-forge-tick:latest`.
     """
     if os.environ.get("CF_TICK_PYTEST", "false") == "true":
         cname = "conda-forge-tick:test"
     else:
-        cname = "ghcr.io/regro/conda-forge-tick:master"
+        cname = "ghcr.io/regro/conda-forge-tick:latest"
 
     return cname
 
