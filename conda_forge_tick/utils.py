@@ -122,7 +122,7 @@ def get_default_container_name():
     if os.environ.get("CF_TICK_PYTEST", "false") == "true":
         cname = "conda-forge-tick:test"
     else:
-        cname = "ghcr.io/regro/conda-forge-tick:master"
+        cname = "ghcr.io/regro/conda-forge-tick:latest"
 
     return cname
 
