@@ -14,7 +14,7 @@ Description:
 
 <!-- Please describe your PR here. -->
 
-Checklist: 
+Checklist:
 
 - [ ] Pydantic model updated or no update needed
 
