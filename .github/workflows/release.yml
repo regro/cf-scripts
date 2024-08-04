@@ -26,7 +26,7 @@ jobs:
     steps:
       - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4
         with:
-          fetch-tags: true
+          fetch-depth: 0
 
       - uses: mamba-org/setup-micromamba@f8b8a1e23a26f60a44c853292711bacfd3eac822 # v1
         with:
