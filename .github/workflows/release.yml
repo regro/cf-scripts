@@ -37,7 +37,9 @@ jobs:
       - name: compute next version
         id: version
         run: |
+          echo "current version: "$(git describe --tags --abbrev=0)
           NEXT=$(python autotick-bot/compute_next_version.py)
+          echo "next version: ${NEXT}"
           echo "NEXT=${NEXT}" >> "$GITHUB_OUTPUT"
 
       - name: log into ghcr.io
