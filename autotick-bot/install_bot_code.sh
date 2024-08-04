@@ -22,7 +22,7 @@ sudo apt-get autoclean -y >& /dev/null
 sudo docker image prune --all --force
 df -h
 
-docker pull ghcr.io/regro/conda-forge-tick:master
+docker pull ghcr.io/regro/conda-forge-tick:latest
 
 git config --global user.name regro-cf-autotick-bot
 git config --global user.email 36490558+regro-cf-autotick-bot@users.noreply.github.com
@@ -33,7 +33,7 @@ conda update conda-forge-pinning --yes
 cd cf-scripts
 
 export GIT_FULL_HASH=$(git rev-parse HEAD)
-pip install -e .
+pip install --no-deps --no-build-isolation -e .
 
 cd ..
 
