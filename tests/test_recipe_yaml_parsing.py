@@ -54,13 +54,17 @@ def test_process_recipe_for_pinning():
     expected_result = [
         {
             "some_key": {
-                "pin_subpackage": "__quote_plus__%7B%27package_name%27%3A+%27example_package%27%2C+%27upper_bound%27%3A+%27x.x%27%7D__quote_plus__",
+                "pin_subpackage": {
+                    "name": "__quote_plus__%7B%27package_name%27%3A+%27example_package%27%2C+%27upper_bound%27%3A+%27x.x%27%7D__quote_plus__"
+                },
             }
         },
         {
             "another_key": [
                 {
-                    "pin_compatible": "__quote_plus__%7B%27package_name%27%3A+%27another_package%27%2C+%27lower_bound%27%3A+%27x.x.x.x%27%7D__quote_plus__",
+                    "pin_compatible": {
+                        "name": "__quote_plus__%7B%27package_name%27%3A+%27another_package%27%2C+%27lower_bound%27%3A+%27x.x.x.x%27%7D__quote_plus__"
+                    },
                 }
             ]
         },

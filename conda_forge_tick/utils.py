@@ -595,7 +595,7 @@ def _process_recipe_for_pinning(recipes: list[dict[str, Any]]) -> list[dict[str,
                     # Create a new dictionary with 'package_name' first
                     new_value = {"package_name": value.pop("name")}
                     new_value.update(value)
-                    d[key] = _munge_dict_repr(new_value)
+                    d[key] = {"name": _munge_dict_repr(new_value)}
                 else:
                     replace_name_key(value)
             elif isinstance(value, list):
@@ -775,7 +775,7 @@ def _parse_recipe_yaml_requirements(requirements) -> None:
                     result.append(entry)
                 elif isinstance(entry, dict):
                     for key in ["pin_subpackage", "pin_compatible"]:
-                        if key in entry:
+                        if key in entry and "name" in entry[key]:
                             result.append(entry[key]["name"])
             run_exports[strength] = result
 
