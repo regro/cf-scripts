@@ -41,7 +41,9 @@ else
     echo "Skipping cloning of cf-graph and pinning feedstock"
 fi
 
-docker pull ghcr.io/regro/conda-forge-tick:$(python -c "import conda_forge_tick; print(conda_forge_tick.__version__)")
+bot_tag=$(python -c "import conda_forge_tick; print(conda_forge_tick.__version__)")
+docker_tag=${CF_TICK_CONTAINER_TAG:-${bot_tag}}
+docker pull ghcr.io/regro/conda-forge-tick:${docker_tag}
 
 echo -e "\n\n============================================\n============================================"
 conda info

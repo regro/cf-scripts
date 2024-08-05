@@ -5,11 +5,15 @@ on:
     - cron: '42 * * * *'
   workflow_dispatch: null
 
+concurrency: bot-pypi-mapping
+
+env:
+  CF_TICK_CONTAINER_TAG: latest
+
 jobs:
   pypi-mapping:
     name: pypi-mapping
     runs-on: "ubuntu-latest"
-    concurrency: pypi-mapping
     defaults:
       run:
         shell: bash -leo pipefail {0}
@@ -45,7 +49,6 @@ jobs:
           conda-forge-tick make-import-to-package-mapping
         env:
           BOT_TOKEN: ${{ secrets.AUTOTICK_BOT_TOKEN }}
-          CF_TICK_CONTAINER_TAG: latest
 
       - name: build pypi mapping
         if: success() && ! env.CI_SKIP
@@ -55,7 +58,6 @@ jobs:
           conda-forge-tick make-mappings
         env:
           BOT_TOKEN: ${{ secrets.AUTOTICK_BOT_TOKEN }}
-          CF_TICK_CONTAINER_TAG: latest
 
       - name: deploy
         if: github.ref == 'refs/heads/master' && ! cancelled() && ! env.CI_SKIP
