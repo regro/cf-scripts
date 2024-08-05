@@ -612,8 +612,15 @@ def test_github_backend_does_repository_exist(does_exist: bool):
     github3_client = MagicMock()
 
     backend = GitHubBackend(github3_client, MagicMock())
+    response = MagicMock()
+    response.status_code = 200 if does_exist else 404
 
-    github3_client.repository.return_value = MagicMock() if does_exist else None
+    if not does_exist:
+        github3_client.repository.side_effect = github3.exceptions.NotFoundError(
+            response
+        )
+    else:
+        github3_client.repository.return_value = MagicMock()
 
     assert backend.does_repository_exist("OWNER", "REPO") is does_exist
     github3_client.repository.assert_called_once_with("OWNER", "REPO")
@@ -702,7 +709,9 @@ def test_github_backend_remote_does_not_exist(
     exists_mock.return_value = False
 
     github3_client = MagicMock()
-    github3_client.repository.return_value = None
+    response = MagicMock()
+    response.status_code = 404
+    github3_client.repository.side_effect = github3.exceptions.NotFoundError(response)
 
     backend = GitHubBackend(github3_client, MagicMock())
 

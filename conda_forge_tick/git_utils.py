@@ -530,9 +530,29 @@ class GitHubBackend(GitPlatformBackend):
             github.Github(auth=github.Auth.Token(token), per_page=cls._GITHUB_PER_PAGE),
         )
 
+    def _get_repo(self, owner: str, repo_name: str) -> None | github3.repos.Repository:
+        repo = None
+        try:
+            repo = self.github3_client.repository(owner, repo_name)
+        except github3.exceptions.NotFoundError:
+            raise RepositoryNotFoundError(
+                f"Repository {owner}/{repo_name} does not exist."
+            )
+        except Exception as e:
+            logger.warning(
+                f"GitHub API error fetching repo {owner}/{repo_name}.",
+                exc_info=e,
+            )
+            raise e
+
+        return repo
+
     def does_repository_exist(self, owner: str, repo_name: str) -> bool:
-        repo = self.github3_client.repository(owner, repo_name)
-        return repo is not None
+        try:
+            self._get_repo(owner, repo_name)
+            return True
+        except RepositoryNotFoundError:
+            return False
 
     @lock_git_operation()
     def fork(self, owner: str, repo_name: str):
@@ -541,11 +561,7 @@ class GitHubBackend(GitPlatformBackend):
             self._sync_default_branch(owner, repo_name)
             return
 
-        repo = self.github3_client.repository(owner, repo_name)
-        if repo is None:
-            raise RepositoryNotFoundError(
-                f"Repository {owner}/{repo_name} does not exist."
-            )
+        repo = self._get_repo(owner, repo_name)
 
         logger.debug(f"Forking {owner}/{repo_name}.")
         repo.create_fork()

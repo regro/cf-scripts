@@ -5,6 +5,9 @@ on:
 
 concurrency: update-status-page
 
+env:
+  CF_TICK_CONTAINER_TAG: latest
+
 jobs:
   update_status_page:
     name: update-status-page

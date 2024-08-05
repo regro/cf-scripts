@@ -7,6 +7,9 @@ on:
 
 concurrency: versions
 
+env:
+  CF_TICK_CONTAINER_TAG: latest
+
 jobs:
   versions:
     name: versions

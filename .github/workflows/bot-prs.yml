@@ -7,6 +7,9 @@ on:
 
 concurrency: prs
 
+env:
+  CF_TICK_CONTAINER_TAG: latest
+
 jobs:
   prs:
     name: prs

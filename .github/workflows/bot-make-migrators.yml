@@ -7,6 +7,9 @@ on:
 
 concurrency: bot-make-migrators
 
+env:
+  CF_TICK_CONTAINER_TAG: latest
+
 jobs:
   make-migrators:
     name: make-migrators

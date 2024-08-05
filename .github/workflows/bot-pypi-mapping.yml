@@ -5,11 +5,15 @@ on:
     - cron: '42 * * * *'
   workflow_dispatch: null
 
+concurrency: bot-pypi-mapping
+
+env:
+  CF_TICK_CONTAINER_TAG: latest
+
 jobs:
   pypi-mapping:
     name: pypi-mapping
     runs-on: "ubuntu-latest"
-    concurrency: pypi-mapping
     defaults:
       run:
         shell: bash -leo pipefail {0}
