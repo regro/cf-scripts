@@ -5,9 +5,6 @@ on:
 
 concurrency: update-status-page
 
-env:
-  CF_TICK_CONTAINER_TAG: latest
-
 jobs:
   update_status_page:
     name: update-status-page
@@ -16,8 +13,18 @@ jobs:
       run:
         shell: bash -leo pipefail {0}
     steps:
+      - name: get latest release
+        id: latest_release
+        run: |
+          tag_name=$(gh api repos/regro/cf-scripts/releases/latest --jq '.tag_name')
+          echo "latest release: ${tag_name}"
+          echo "tag_name=${tag_name}" >> "$GITHUB_OUTPUT"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4
         with:
+          ref: ${{ steps.latest_release.outputs.tag_name }}
           path: cf-scripts
 
       - uses: mamba-org/setup-micromamba@f8b8a1e23a26f60a44c853292711bacfd3eac822 # v1
