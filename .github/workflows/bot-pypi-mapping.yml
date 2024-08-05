@@ -45,6 +45,7 @@ jobs:
           conda-forge-tick make-import-to-package-mapping
         env:
           BOT_TOKEN: ${{ secrets.AUTOTICK_BOT_TOKEN }}
+          CF_TICK_CONTAINER_TAG: latest
 
       - name: build pypi mapping
         if: success() && ! env.CI_SKIP
@@ -54,6 +55,7 @@ jobs:
           conda-forge-tick make-mappings
         env:
           BOT_TOKEN: ${{ secrets.AUTOTICK_BOT_TOKEN }}
+          CF_TICK_CONTAINER_TAG: latest
 
       - name: deploy
         if: github.ref == 'refs/heads/master' && ! cancelled() && ! env.CI_SKIP
