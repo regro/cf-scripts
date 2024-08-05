@@ -5,11 +5,11 @@ import datetime
 import logging
 import re
 import typing
-from typing import Any, List, Sequence, Set
 from pathlib import Path
+from typing import Any, List, Sequence, Set
+
 import dateutil.parser
 import networkx as nx
-
 from rattler_build_conda_compat import modify_recipe
 
 from conda_forge_tick.contexts import FeedstockContext

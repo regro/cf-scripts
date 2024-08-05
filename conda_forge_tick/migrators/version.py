@@ -5,16 +5,17 @@ import os
 import random
 import typing
 import warnings
+from pathlib import Path
 from typing import Any, List, Sequence
 
 import conda.exceptions
 import networkx as nx
 from conda.models.version import VersionOrder
+from rattler_build_conda_compat import modify_recipe
 
 from conda_forge_tick.contexts import FeedstockContext
 from conda_forge_tick.migrators.core import Migrator
 from conda_forge_tick.models.pr_info import MigratorName
-from conda_forge_tick.os_utils import pushd
 from conda_forge_tick.update_deps import get_dep_updates_and_hints
 from conda_forge_tick.update_recipe import update_version
 from conda_forge_tick.utils import get_keys_default, sanitize_string
@@ -195,20 +196,29 @@ class Version(Migrator):
     ) -> "MigrationUidTypedDict":
         version = attrs["new_version"]
 
-        with open(os.path.join(recipe_dir, "meta.yaml")) as fp:
-            raw_meta_yaml = fp.read()
+        path = Path(recipe_dir) / "meta.yaml"
+        if not path.exists():
+            path = Path(recipe_dir) / "recipe.yaml"
+        if not path.exists():
+            raise FileNotFoundError(
+                f"Could not find meta.yaml or recipe.yaml in {recipe_dir}"
+            )
 
-        updated_meta_yaml, errors = update_version(
-            raw_meta_yaml,
-            version,
-            hash_type=hash_type,
-        )
+        if path.name == "recipe.yaml":
+            updated_meta_yaml = modify_recipe.update_version(path, version)
+            errors = []
+        else:
+            raw_meta_yaml = path.read_text()
+
+            updated_meta_yaml, errors = update_version(
+                raw_meta_yaml,
+                version,
+                hash_type=hash_type,
+            )
 
         if len(errors) == 0 and updated_meta_yaml is not None:
-            with pushd(recipe_dir):
-                with open("meta.yaml", "w") as fp:
-                    fp.write(updated_meta_yaml)
-                self.set_build_number("meta.yaml")
+            path.write_text(updated_meta_yaml)
+            self.set_build_number(str(path))
 
             return super().migrate(recipe_dir, attrs)
         else:
