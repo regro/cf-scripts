@@ -728,7 +728,7 @@ def _parse_recipes(
     return _remove_none_values(parsed_recipes)
 
 
-def _parse_recipe_yaml_requirements(requirements):
+def _parse_recipe_yaml_requirements(requirements) -> None:
     """Parse requirement section of render by rattler-build to fit `RecipeTypedDict`
 
 
@@ -741,27 +741,43 @@ def _parse_recipe_yaml_requirements(requirements):
             "lower_bound": "x.x.x.x.x.x",
             "upper_bound": "x.x"
           }
-        }
+        },
+        "numpy"
     ]
     `run_exports["weak"]` of RecipeTypedDict looks like:
     [
-        "pin_subpackage"
+        "slepc",
+        "numpy"
     ]
 
     The same applies to "strong".
 
     This function takes care of this transformation
-    """
-    if run_exports := requirements.get("run_exports"):
-        weak = run_exports.get("weak")
-        if isinstance(weak, list) and isinstance(weak[0], dict):
-            run_exports["weak"] = [value for entry in weak for value in entry.values()]
 
-        strong = run_exports.get("strong")
-        if isinstance(strong, list) and isinstance(strong[0], dict):
-            run_exports["strong"] = [
-                value for entry in strong for value in entry.values()
-            ]
+        requirements : dict
+        The requirements section of the recipe rendered by rattler-build.
+        This parameter will be modified by this function.
+    """
+    if "run_exports" not in requirements:
+        return
+
+    run_exports = requirements["run_exports"]
+    for strength in ["strong", "weak"]:
+        original = run_exports.get(strength)
+        if (
+            isinstance(original, list)
+            and len(original) > 0
+            and isinstance(original[0], dict)
+        ):
+            result = []
+            for entry in original:
+                if isinstance(entry, str):
+                    result.append(entry)
+                elif isinstance(entry, dict):
+                    for key in ["pin_subpackage", "pin_compatible"]:
+                        if key in entry:
+                            result.append(entry[key]["name"])
+            run_exports[strength] = result
 
 
 def _remove_none_values(d):

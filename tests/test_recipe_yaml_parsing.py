@@ -1,6 +1,7 @@
 from pathlib import Path
 
 from conda_forge_tick.utils import (
+    _parse_recipe_yaml_requirements,
     _process_recipe_for_pinning,
     _render_recipe_yaml,
     parse_meta_yaml,
@@ -66,6 +67,51 @@ def test_process_recipe_for_pinning():
     ]
 
     assert _process_recipe_for_pinning(input_recipes) == expected_result
+
+
+def test_parse_recipe_yaml_requirements_pin_subpackage():
+    requirements = {
+        "run_exports": {
+            "weak": [
+                {
+                    "pin_subpackage": {
+                        "name": "slepc",
+                        "lower_bound": "x.x.x.x.x.x",
+                        "upper_bound": "x.x",
+                    }
+                }
+            ]
+        }
+    }
+
+    _parse_recipe_yaml_requirements(requirements)
+    assert requirements["run_exports"]["weak"] == ["slepc"]
+
+
+def test_parse_recipe_yaml_requirements_pin_compatible():
+    requirements = {
+        "run_exports": {
+            "strong": [
+                {
+                    "pin_compatible": {
+                        "name": "slepc",
+                        "lower_bound": "x.x.x.x.x.x",
+                        "upper_bound": "x.x",
+                    }
+                }
+            ]
+        }
+    }
+
+    _parse_recipe_yaml_requirements(requirements)
+    assert requirements["run_exports"]["strong"] == ["slepc"]
+
+
+def test_parse_recipe_yaml_requirements_str():
+    requirements = {"run_exports": {"weak": ["slepc"]}}
+
+    _parse_recipe_yaml_requirements(requirements)
+    assert requirements["run_exports"]["weak"] == ["slepc"]
 
 
 def test_parse_munged_run_export():
