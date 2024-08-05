@@ -24,7 +24,17 @@ jobs:
         shell: bash -leo pipefail {0}
 
     steps:
+      - name: get latest release
+        id: latest_release
+        run: |
+          latest_tag=$(gh repos/{owner}/{repo}/releases/latest --jq '.tag_name')
+          echo "tag_name=${tag}" >> "$GITHUB_OUTPUT"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4
+        with:
+          ref: ${{ steps.latest_release.outputs.tag_name }}
 
       - uses: mamba-org/setup-micromamba@f8b8a1e23a26f60a44c853292711bacfd3eac822 # v1
         with:
@@ -34,12 +44,12 @@ jobs:
 
       - name: configure conda and install code
         run: |
-          export GIT_FULL_HASH=`git rev-parse HEAD`
-          export RUN_URL=""
           pip install --no-deps --no-build-isolation -e .
 
       - name: test versions
         run: |
+          python -c "import conda_forge_tick; print(conda_forge_tick.__version__, flush=True)"
+
           cd ..
           python -c "import conda_forge_tick; assert conda_forge_tick.__version__ != '0.0.0'"
           cd -
@@ -86,6 +96,7 @@ jobs:
             tests
         env:
           MONGODB_CONNECTION_STRING: "mongodb://127.0.0.1:27017/?directConnection=true&serverSelectionTimeoutMS=2000"
+          RUN_URL: ""
 
       - name: upload codecov
         uses: codecov/codecov-action@e28ff129e5465c2c0dcc6f003fc735cb6ae0c673 # v4

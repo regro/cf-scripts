@@ -32,7 +32,6 @@ conda update conda-forge-pinning --yes
 
 cd cf-scripts
 
-export GIT_FULL_HASH=$(git rev-parse HEAD)
 pip install --no-deps --no-build-isolation -e .
 
 cd ..
