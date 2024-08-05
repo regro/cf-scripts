@@ -1,7 +1,7 @@
 [build-system]
 requires = [
     "setuptools>=45",
-    "setuptools_scm>=7",
+    "setuptools_scm>=8",
     "tomli>=1.0.0; python_version < '3.11'",
 ]
 build-backend = "setuptools.build_meta"
@@ -33,9 +33,6 @@ package-dir = {conda_forge_tick = "conda_forge_tick"}
 [tool.setuptools_scm]
 write_to = "conda_forge_tick/_version.py"
 write_to_template = "__version__ = '{version}'\n"
-
-[tool.pytest_env]
-CF_TICK_PYTEST = "true"
 
 [tool.ruff]
 extend-exclude = ["conda_forge_tick/migrators/disabled/legacy.py"]

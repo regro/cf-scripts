@@ -22,6 +22,7 @@ import networkx as nx
 import ruamel.yaml
 
 from . import sensitive_env
+from ._version import __version__
 from .lazy_json_backends import LazyJson
 
 if typing.TYPE_CHECKING:
@@ -116,13 +117,15 @@ def parse_munged_run_export(p: str) -> Dict:
 def get_default_container_name():
     """Get the default container name for the bot.
 
-    If the environment variable `CI` is set to `true`, the container name is `conda-forge-tick:test`.
-    Otherwise, the container name is `ghcr.io/regro/conda-forge-tick:master`.
+    The image is stored at `ghcr.io/regro/conda-forge-tick`.
+
+    If the environment variable `CF_TICK_CONTAINER_TAG` is set, then that tag is pulled.
+    Otherwise, we pull the tag `__version__`.
     """
-    if os.environ.get("CF_TICK_PYTEST", "false") == "true":
-        cname = "conda-forge-tick:test"
-    else:
-        cname = "ghcr.io/regro/conda-forge-tick:master"
+    cname = (
+        f"{os.environ.get('CF_TICK_CONTAINER_NAME', 'ghcr.io/regro/conda-forge-tick')}"
+        + f":{os.environ.get('CF_TICK_CONTAINER_TAG', __version__)}"
+    )
 
     return cname
 
@@ -153,28 +156,38 @@ def get_default_container_run_args(
     list
         The command to run a container.
     """
+    extra_env_vars = []
+    if os.environ.get("RUN_URL", None) is not None:
+        extra_env_vars.append("-e")
+        extra_env_vars.append("RUN_URL")
+
     tmpfs_size_bytes = tmpfs_size_mb * 1000 * 1000
-    return [
-        "docker",
-        "run",
-        "-e",
-        "CF_TICK_IN_CONTAINER=true",
-        "--security-opt=no-new-privileges",
-        "--read-only",
-        "--cap-drop=all",
-        "--mount",
-        f"type=tmpfs,destination=/tmp,tmpfs-mode=1777,tmpfs-size={tmpfs_size_bytes}",
-        "-m",
-        "6000m",
-        "--cpus",
-        "1",
-        "--ulimit",
-        "nofile=1024:1024",
-        "--ulimit",
-        "nproc=2048:2048",
-        "--rm",
-        "-i",
-    ]
+    return (
+        [
+            "docker",
+            "run",
+            "-e",
+            "CF_TICK_IN_CONTAINER=true",
+        ]
+        + extra_env_vars
+        + [
+            "--security-opt=no-new-privileges",
+            "--read-only",
+            "--cap-drop=all",
+            "--mount",
+            f"type=tmpfs,destination=/tmp,tmpfs-mode=1777,tmpfs-size={tmpfs_size_bytes}",
+            "-m",
+            "6000m",
+            "--cpus",
+            "1",
+            "--ulimit",
+            "nofile=1024:1024",
+            "--ulimit",
+            "nproc=2048:2048",
+            "--rm",
+            "-i",
+        ]
+    )
 
 
 def run_container_task(

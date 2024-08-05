@@ -228,6 +228,8 @@ If your migrator needs special configuration, you should write a new factory fun
 - `RUN_URL`: set to the URL of the CI build (now set to a GHA run URL)
 - `MEMORY_LIMIT_GB`: set to the memory limit in GB for the bot
 - `BOT_TOKEN`: a GitHub token for the bot user
+- `CF_TICK_CONTAINER_NAME`: the name of the container to use in the bot, otherwise defaults to `ghcr.io/regro/conda-forge-tick`
+- `CF_TICK_CONTAINER_TAG`: set this to override the default container tag used in production runs, otherwise the value of `__version__` is used
 
 ### Running Tests
 
@@ -356,11 +358,11 @@ This is an important number to know when proposing a migration
 ### `conda-forge-tick` Container Image and Dockerfile
 
 The bot relies on a container image to run certain tasks. The image is built from the `Dockerfile` in the root of
-this repository and hosted via `ghcr.io`. The `latest` tag is used for production jobs and updated automatically
+this repository and hosted via `ghcr.io`. The `__version__` tag is used for production jobs and updated automatically
 when PRs are merged. The container is typically run via
 
 ```bash
-docker run --rm -t conda-forge-tick:latest python /opt/autotick-bot/docker/run_bot_task.py <task> <args>
+docker run --rm -t conda-forge-tick:<__version__> python /opt/autotick-bot/docker/run_bot_task.py <task> <args>
 ```
 
 See the [run_bot_task.py](docker/run_bot_task.py) script for more information.

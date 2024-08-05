@@ -5,6 +5,7 @@ on:
     branches:
       - master
   pull_request: null
+  merge_group: null
 
 env:
   PY_COLORS: "1"
@@ -33,23 +34,15 @@ jobs:
 
       - name: configure conda and install code
         run: |
-          export GIT_FULL_HASH=`git rev-parse HEAD`
-          export RUN_URL=""
           pip install --no-deps --no-build-isolation -e .
 
       - name: test versions
         run: |
-          pip uninstall conda-forge-tick --yes
-          [[ $(python setup.py --version) != "0.0.0" ]] || exit 1
-
-          rm -rf dist/*
-          python setup.py sdist
-          pip install -vv --no-deps --no-build-isolation dist/*.tar.gz
           cd ..
           python -c "import conda_forge_tick; assert conda_forge_tick.__version__ != '0.0.0'"
           cd -
-          pip uninstall conda-forge-tick --yes
 
+          pip uninstall conda-forge-tick --yes
           rm -rf dist/*
           python -m build --sdist . --outdir dist
           pip install --no-deps --no-build-isolation dist/*.tar.gz
@@ -91,6 +84,7 @@ jobs:
             tests
         env:
           MONGODB_CONNECTION_STRING: "mongodb://127.0.0.1:27017/?directConnection=true&serverSelectionTimeoutMS=2000"
+          RUN_URL: ""
 
       - name: upload codecov
         uses: codecov/codecov-action@e28ff129e5465c2c0dcc6f003fc735cb6ae0c673 # v4
