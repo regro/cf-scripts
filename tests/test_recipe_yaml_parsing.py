@@ -118,7 +118,7 @@ def test_parse_recipe_yaml_requirements_str():
     assert requirements["run_exports"]["weak"] == ["slepc"]
 
 
-def test_parse_munged_run_export():
+def test_parse_munged_run_export_slepc():
     recipe = TEST_RECIPE_YAML_PATH.joinpath("slepc.yaml").read_text()
     recipe_yaml = parse_recipe_yaml(
         recipe,
@@ -132,4 +132,33 @@ def test_parse_munged_run_export():
         "package_name": "slepc",
         "lower_bound": "x.x.x.x.x.x",
         "upper_bound": "x.x",
+    }
+
+
+def test_parse_munged_run_export_slepc_weak_strong():
+    recipe = TEST_RECIPE_YAML_PATH.joinpath("slepc_weak_strong.yaml").read_text()
+    recipe_yaml = parse_recipe_yaml(
+        recipe,
+        for_pinning=True,
+    )
+    assert recipe_yaml["build"]["run_exports"]["weak"] == [
+        "__quote_plus__%7B%27package_name%27%3A+%27slepc%27%2C+%27lower_bound%27%3A+%27x.x.x.x.x.x%27%2C+%27upper_bound%27%3A+%27x.x%27%7D__quote_plus__"
+    ]
+
+    assert recipe_yaml["build"]["run_exports"]["strong"] == [
+        "__quote_plus__%7B%27package_name%27%3A+%27slepc%27%2C+%27lower_bound%27%3A+%27x.x.x.x.x.x%27%2C+%27upper_bound%27%3A+%27x%27%7D__quote_plus__"
+    ]
+
+    assert parse_munged_run_export(recipe_yaml["build"]["run_exports"]["weak"][0]) == {
+        "package_name": "slepc",
+        "lower_bound": "x.x.x.x.x.x",
+        "upper_bound": "x.x",
+    }
+
+    assert parse_munged_run_export(
+        recipe_yaml["build"]["run_exports"]["strong"][0]
+    ) == {
+        "package_name": "slepc",
+        "lower_bound": "x.x.x.x.x.x",
+        "upper_bound": "x",
     }
