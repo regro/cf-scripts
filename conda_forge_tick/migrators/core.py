@@ -6,9 +6,11 @@ import logging
 import re
 import typing
 from typing import Any, List, Sequence, Set
-
+from pathlib import Path
 import dateutil.parser
 import networkx as nx
+
+from rattler_build_conda_compat import modify_recipe
 
 from conda_forge_tick.contexts import FeedstockContext
 from conda_forge_tick.lazy_json_backends import LazyJson
@@ -566,19 +568,20 @@ class Migrator:
         Parameters
         ----------
         filename : str
-            Path the the meta.yaml
+            Path to the recipe file (meta.yaml or recipe.yaml)
         """
-        with open(filename) as f:
-            raw = f.read()
+        path = Path(filename)
+        if path.name == "recipe.yaml":
+            new_myaml = modify_recipe.update_build_number(self.new_build_number)
+        else:
+            raw = path.read_text()
 
-        new_myaml = update_build_number(
-            raw,
-            self.new_build_number,
-            build_patterns=self.build_patterns,
-        )
-
-        with open(filename, "w") as f:
-            f.write(new_myaml)
+            new_myaml = update_build_number(
+                raw,
+                self.new_build_number,
+                build_patterns=self.build_patterns,
+            )
+        path.write_text(new_myaml)
 
     def new_build_number(self, old_number: int) -> int:
         """Determine the new build number to use.

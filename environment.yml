@@ -46,6 +46,7 @@ dependencies:
   - python-graphviz
   - python-rapidjson
   - rattler-build
+  - rattler-build-conda-compat
   - requests
   - ruamel.yaml
   - ruamel.yaml.jinja2
