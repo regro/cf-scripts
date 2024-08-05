@@ -7,6 +7,9 @@ on:
 
 concurrency: bot-v2
 
+env:
+  CF_TICK_CONTAINER_TAG: latest
+
 jobs:
   bot:
     name: bot
@@ -54,7 +57,6 @@ jobs:
           MEMORY_LIMIT_GB: 7
           CF_TICK_GRAPH_DATA_BACKENDS: "${{ vars.CF_TICK_GRAPH_DATA_BACKENDS }}"
           MONGODB_CONNECTION_STRING: ${{ secrets.MONGODB_CONNECTION_STRING }}
-          CF_TICK_CONTAINER_TAG: latest
 
       - name: status of changes
         if: github.ref == 'refs/heads/master' && always() && ! env.CI_SKIP
