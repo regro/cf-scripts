@@ -122,9 +122,10 @@ def get_default_container_name():
     If the environment variable `CF_TICK_CONTAINER_TAG` is set, then that tag is pulled.
     Otherwise, we pull the tag `__version__`.
     """
-    cname = f"{os.environ.get('CF_TICK_CONTAINER_NAME', 'ghcr.io/regro/conda-forge-tick')}:{os.environ.get(
-        'CF_TICK_CONTAINER_TAG', __version__
-    )}"
+    cname = (
+        f"{os.environ.get('CF_TICK_CONTAINER_NAME', 'ghcr.io/regro/conda-forge-tick')}"
+        + f":{os.environ.get('CF_TICK_CONTAINER_TAG', __version__)}"
+    )
 
     return cname
 
