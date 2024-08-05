@@ -41,6 +41,20 @@ def set_cf_tick_container_tag_to_test():
 
 
 @pytest.fixture(autouse=True, scope="session")
+def set_cf_tick_container_name_to_local():
+    old_cftcn = os.environ.get("CF_TICK_CONTAINER_NAME")
+    if old_cftcn is None:
+        os.environ["CF_TICK_CONTAINER_NAME"] = "conda-forge-tick"
+
+    yield
+
+    if old_cftcn is None:
+        del os.environ["CF_TICK_CONTAINER_NAME"]
+    else:
+        os.environ["CF_TICK_CONTAINER_NAME"] = old_cftcn
+
+
+@pytest.fixture(autouse=True, scope="session")
 def turn_off_containers_by_default():
     old_in_container = os.environ.get("CF_TICK_IN_CONTAINER")
 
