@@ -43,6 +43,7 @@ jobs:
           conda-forge-tick make-status-report
         env:
           BOT_TOKEN: ${{ secrets.AUTOTICK_BOT_TOKEN }}
+          CF_TICK_CONTAINER_TAG: latest
 
       - name: deploy
         if: github.ref == 'refs/heads/master' && ! cancelled() && ! env.CI_SKIP

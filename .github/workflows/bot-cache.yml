@@ -62,6 +62,7 @@ jobs:
         env:
           CF_TICK_GRAPH_DATA_BACKENDS: "${{ vars.CF_TICK_GRAPH_DATA_BACKENDS }}"
           MONGODB_CONNECTION_STRING: ${{ secrets.MONGODB_CONNECTION_STRING }}
+          CF_TICK_CONTAINER_TAG: latest
 
   bot-cache-trigger:
     needs: bot-cache

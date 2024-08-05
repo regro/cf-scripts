@@ -22,6 +22,7 @@ import networkx as nx
 import ruamel.yaml
 
 from . import sensitive_env
+from ._version import __version__
 from .lazy_json_backends import LazyJson
 
 if typing.TYPE_CHECKING:
@@ -122,7 +123,9 @@ def get_default_container_name():
     if os.environ.get("CF_TICK_PYTEST", "false") == "true":
         cname = "conda-forge-tick:test"
     else:
-        cname = "ghcr.io/regro/conda-forge-tick:latest"
+        cname = "ghcr.io/regro/conda-forge-tick:" + os.environ.get(
+            "CF_TICK_CONTAINER_TAG", __version__
+        )
 
     return cname
 

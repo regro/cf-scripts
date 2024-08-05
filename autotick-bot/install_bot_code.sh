@@ -22,8 +22,6 @@ sudo apt-get autoclean -y >& /dev/null
 sudo docker image prune --all --force
 df -h
 
-docker pull ghcr.io/regro/conda-forge-tick:latest
-
 git config --global user.name regro-cf-autotick-bot
 git config --global user.email 36490558+regro-cf-autotick-bot@users.noreply.github.com
 git config --global pull.rebase false
@@ -32,7 +30,6 @@ conda update conda-forge-pinning --yes
 
 cd cf-scripts
 
-export GIT_FULL_HASH=$(git rev-parse HEAD)
 pip install --no-deps --no-build-isolation -e .
 
 cd ..
@@ -43,6 +40,8 @@ if [[ "$1" != "--no-clone-graph-and-pinning" ]]; then
 else
     echo "Skipping cloning of cf-graph and pinning feedstock"
 fi
+
+docker pull ghcr.io/regro/conda-forge-tick:$(python -c "import conda_forge_tick; print(conda_forge_tick.__version__)")
 
 echo -e "\n\n============================================\n============================================"
 conda info
