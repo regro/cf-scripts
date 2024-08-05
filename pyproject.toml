@@ -34,9 +34,6 @@ package-dir = {conda_forge_tick = "conda_forge_tick"}
 write_to = "conda_forge_tick/_version.py"
 write_to_template = "__version__ = '{version}'\n"
 
-[tool.pytest_env]
-CF_TICK_PYTEST = "true"
-
 [tool.ruff]
 extend-exclude = ["conda_forge_tick/migrators/disabled/legacy.py"]
 
