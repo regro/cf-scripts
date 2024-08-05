@@ -27,7 +27,7 @@ jobs:
       - name: get latest release
         id: latest_release
         run: |
-          latest_tag=$(gh api repos/{owner}/{repo}/releases/latest --jq '.tag_name')
+          latest_tag=$(gh api repos/regro/cf-scripts/releases/latest --jq '.tag_name')
           echo "tag_name=${tag}" >> "$GITHUB_OUTPUT"
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
