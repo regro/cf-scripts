@@ -43,8 +43,6 @@ jobs:
 
       - name: configure conda and install code
         run: |
-          export GIT_FULL_HASH=`git rev-parse HEAD`
-          export RUN_URL=""
           pip install --no-deps --no-build-isolation -e .
 
       - name: test versions
@@ -123,6 +121,7 @@ jobs:
             tests
         env:
           MONGODB_CONNECTION_STRING: "mongodb://127.0.0.1:27017/?directConnection=true&serverSelectionTimeoutMS=2000"
+          RUN_URL: ""
 
       - name: "[Test Duration] Delete test duration cache (${{ matrix.group }})"
         continue-on-error: true
