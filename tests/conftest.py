@@ -27,15 +27,31 @@ def env_setup():
 
 
 @pytest.fixture(autouse=True, scope="session")
-def set_cf_tick_pytest_envvar():
-    old_ci = os.environ.get("CF_TICK_PYTEST")
-    if old_ci is None:
-        os.environ["CF_TICK_PYTEST"] = "true"
+def set_cf_tick_container_tag_to_test():
+    old_cftct = os.environ.get("CF_TICK_CONTAINER_TAG")
+    if old_cftct is None:
+        os.environ["CF_TICK_CONTAINER_TAG"] = "test"
+
     yield
-    if old_ci is None:
-        del os.environ["CF_TICK_PYTEST"]
+
+    if old_cftct is None:
+        del os.environ["CF_TICK_CONTAINER_TAG"]
     else:
-        os.environ["CF_TICK_PYTEST"] = old_ci
+        os.environ["CF_TICK_CONTAINER_TAG"] = old_cftct
+
+
+@pytest.fixture(autouse=True, scope="session")
+def set_cf_tick_container_name_to_local():
+    old_cftcn = os.environ.get("CF_TICK_CONTAINER_NAME")
+    if old_cftcn is None:
+        os.environ["CF_TICK_CONTAINER_NAME"] = "conda-forge-tick"
+
+    yield
+
+    if old_cftcn is None:
+        del os.environ["CF_TICK_CONTAINER_NAME"]
+    else:
+        os.environ["CF_TICK_CONTAINER_NAME"] = old_cftcn
 
 
 @pytest.fixture(autouse=True, scope="session")
