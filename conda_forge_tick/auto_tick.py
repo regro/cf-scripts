@@ -9,11 +9,7 @@ import traceback
 import typing
 from subprocess import CalledProcessError
 from textwrap import dedent
-from typing import MutableMapping, Tuple, cast
-
-if typing.TYPE_CHECKING:
-    from .migrators_types import MigrationUidTypedDict
-
+from typing import Literal, MutableMapping, cast
 from urllib.error import URLError
 from uuid import uuid4
 
@@ -24,11 +20,14 @@ import tqdm
 from conda.models.version import VersionOrder
 
 from conda_forge_tick.cli_context import CliContext
-from conda_forge_tick.contexts import FeedstockContext, MigratorSessionContext
+from conda_forge_tick.contexts import (
+    ClonedFeedstockContext,
+    FeedstockContext,
+    MigratorSessionContext,
+)
 from conda_forge_tick.deploy import deploy
 from conda_forge_tick.feedstock_parser import BOOTSTRAP_MAPPINGS
 from conda_forge_tick.git_utils import (
-    GIT_CLONE_DIR,
     comment_on_pr,
     get_repo,
     github_backend,
@@ -65,6 +64,8 @@ from conda_forge_tick.utils import (
     load_existing_graph,
     sanitize_string,
 )
+
+from .migrators_types import MigrationUidTypedDict
 
 logger = logging.getLogger(__name__)
 
@@ -139,33 +140,52 @@ def _get_pre_pr_migrator_attempts(attrs, migrator_name, *, is_version):
             return pri.get("pre_pr_migrator_attempts", {}).get(migrator_name, 0)
 
 
-def run(
-    feedstock_ctx: FeedstockContext,
+def run_with_tmpdir(
+    context: FeedstockContext,
     migrator: Migrator,
-    protocol: str = "ssh",
-    pull_request: bool = True,
     rerender: bool = True,
-    fork: bool = True,
     base_branch: str = "main",
     dry_run: bool = False,
     **kwargs: typing.Any,
-) -> Tuple["MigrationUidTypedDict", dict]:
+) -> tuple[MigrationUidTypedDict, dict] | tuple[Literal[False], Literal[False]]:
+    """
+    For a given feedstock and migration run the migration in a temporary directory that will be deleted after the
+    migration is complete.
+
+    The parameters are the same as for the `run` function. The only difference is that you pass a FeedstockContext
+    instance instead of a ClonedFeedstockContext instance.
+
+    The exceptions are the same as for the `run` function.
+    """
+    with context.reserve_clone_directory() as cloned_context:
+        return run(
+            context=cloned_context,
+            migrator=migrator,
+            rerender=rerender,
+            base_branch=base_branch,
+            dry_run=dry_run,
+            **kwargs,
+        )
+
+
+def run(
+    context: ClonedFeedstockContext,
+    migrator: Migrator,
+    rerender: bool = True,
+    base_branch: str = "main",
+    dry_run: bool = False,
+    **kwargs: typing.Any,
+) -> tuple[MigrationUidTypedDict, dict] | tuple[Literal[False], Literal[False]]:
     """For a given feedstock and migration run the migration
 
     Parameters
     ----------
-    feedstock_ctx: FeedstockContext
-        The node attributes
+    context: ClonedFeedstockContext
+        The current feedstock context, already containing information about a temporary directory for the feedstock.
     migrator: Migrator instance
         The migrator to run on the feedstock
-    protocol : str, optional
-        The git protocol to use, defaults to ``ssh``
-    pull_request : bool, optional
-        If true issue pull request, defaults to true
     rerender : bool
         Whether to rerender
-    fork : bool
-        If true create a fork, defaults to true
     base_branch : str, optional
         The base branch to which the PR will be targeted. Defaults to "main".
     kwargs: dict
@@ -183,25 +203,25 @@ def run(
     os.chdir(BOT_HOME_DIR)
 
     # get the repo
-    branch_name = migrator.remote_branch(feedstock_ctx) + "_h" + uuid4().hex[0:6]
+    branch_name = migrator.remote_branch(context) + "_h" + uuid4().hex[0:6]
 
     migrator_name = get_migrator_name(migrator)
     is_version_migration = isinstance(migrator, Version)
     _increment_pre_pr_migrator_attempt(
-        feedstock_ctx.attrs,
+        context.attrs,
         migrator_name,
         is_version=is_version_migration,
     )
 
     # TODO: run this in parallel
-    feedstock_dir, repo = get_repo(
-        fctx=feedstock_ctx, branch=branch_name, base_branch=base_branch
-    )
+    repo = get_repo(context=context, branch=branch_name, base_branch=base_branch)
+
+    feedstock_dir = str(context.local_clone_dir)
     if not feedstock_dir or not repo:
         logger.critical(
             "Failed to migrate %s, %s",
-            feedstock_ctx.feedstock_name,
-            feedstock_ctx.attrs.get("pr_info", {}).get("bad"),
+            context.feedstock_name,
+            context.attrs.get("pr_info", {}).get("bad"),
         )
         return False, False
 
@@ -211,19 +231,18 @@ def run(
     migration_run_data = run_migration(
         migrator=migrator,
         feedstock_dir=feedstock_dir,
-        feedstock_name=feedstock_ctx.feedstock_name,
-        node_attrs=feedstock_ctx.attrs,
-        default_branch=feedstock_ctx.default_branch,
+        feedstock_name=context.feedstock_name,
+        node_attrs=context.attrs,
+        default_branch=context.default_branch,
         **kwargs,
     )
 
     if not migration_run_data["migrate_return_value"]:
         logger.critical(
             "Failed to migrate %s, %s",
-            feedstock_ctx.feedstock_name,
-            feedstock_ctx.attrs.get("pr_info", {}).get("bad"),
+            context.feedstock_name,
+            context.attrs.get("pr_info", {}).get("bad"),
         )
-        eval_cmd(["rm", "-rf", feedstock_dir])
         return False, False
 
     # rerender, maybe
@@ -266,12 +285,12 @@ def run(
                 else:
                     # for check solvable or automerge, we always raise rerender errors
                     if get_keys_default(
-                        feedstock_ctx.attrs,
+                        context.attrs,
                         ["conda-forge.yml", "bot", "check_solvable"],
                         {},
                         False,
                     ) or get_keys_default(
-                        feedstock_ctx.attrs,
+                        context.attrs,
                         ["conda-forge.yml", "bot", "automerge"],
                         {},
                         False,
@@ -300,7 +319,7 @@ def run(
             make_rerender_comment = False
 
     feedstock_automerge = get_keys_default(
-        feedstock_ctx.attrs,
+        context.attrs,
         ["conda-forge.yml", "bot", "automerge"],
         {},
         False,
@@ -314,13 +333,13 @@ def run(
 
     migrator_check_solvable = getattr(migrator, "check_solvable", True)
     feedstock_check_solvable = get_keys_default(
-        feedstock_ctx.attrs,
+        context.attrs,
         ["conda-forge.yml", "bot", "check_solvable"],
         {},
         False,
     )
     pr_attempts = _get_pre_pr_migrator_attempts(
-        feedstock_ctx.attrs,
+        context.attrs,
         migrator_name,
         is_version=is_version_migration,
     )
@@ -343,14 +362,14 @@ def run(
     )
 
     if (
-        feedstock_ctx.feedstock_name != "conda-forge-pinning"
+        context.feedstock_name != "conda-forge-pinning"
         and (base_branch == "master" or base_branch == "main")
         # feedstocks that have problematic bootstrapping will not always be solvable
-        and feedstock_ctx.feedstock_name not in BOOTSTRAP_MAPPINGS
+        and context.feedstock_name not in BOOTSTRAP_MAPPINGS
         # stuff in cycles always goes
-        and feedstock_ctx.attrs["name"] not in getattr(migrator, "cycles", set())
+        and context.attrs["name"] not in getattr(migrator, "cycles", set())
         # stuff at the top always goes
-        and feedstock_ctx.attrs["name"] not in getattr(migrator, "top_level", set())
+        and context.attrs["name"] not in getattr(migrator, "top_level", set())
         # either the migrator or the feedstock has to request solver checks
         and (migrator_check_solvable or feedstock_check_solvable)
         # we try up to MAX_SOLVER_ATTEMPTS times and then we just skip
@@ -359,7 +378,7 @@ def run(
     ):
         solvable, errors, _ = is_recipe_solvable(
             feedstock_dir,
-            build_platform=feedstock_ctx.attrs["conda-forge.yml"].get(
+            build_platform=context.attrs["conda-forge.yml"].get(
                 "build_platform",
                 None,
             ),
@@ -381,7 +400,7 @@ def run(
             ).strip()
 
             _set_pre_pr_migrator_error(
-                feedstock_ctx.attrs,
+                context.attrs,
                 migrator_name,
                 _solver_err_str,
                 is_version=is_version_migration,
@@ -390,15 +409,14 @@ def run(
             # remove part of a try for solver errors to make those slightly
             # higher priority next time the bot runs
             if isinstance(migrator, Version):
-                with feedstock_ctx.attrs["version_pr_info"] as vpri:
+                with context.attrs["version_pr_info"] as vpri:
                     _new_ver = vpri["new_version"]
                     vpri["new_version_attempts"][_new_ver] -= 0.8
 
-            eval_cmd(["rm", "-rf", feedstock_dir])
             return False, False
         else:
             _reset_pre_pr_migrator_fields(
-                feedstock_ctx.attrs, migrator_name, is_version=is_version_migration
+                context.attrs, migrator_name, is_version=is_version_migration
             )
 
     # TODO: Better annotation here
@@ -406,7 +424,7 @@ def run(
     if (
         isinstance(migrator, MigrationYaml)
         and not diffed_files
-        and feedstock_ctx.attrs["name"] != "conda-forge-pinning"
+        and context.attrs["name"] != "conda-forge-pinning"
     ):
         # spoof this so it looks like the package is done
         pr_json = {
@@ -417,11 +435,8 @@ def run(
     else:
         # push up
         try:
-            # TODO: remove this hack, but for now this is the only way to get
-            # the feedstock dir into pr_body
-            feedstock_ctx.feedstock_dir = feedstock_dir
             pr_json = push_repo(
-                fctx=feedstock_ctx,
+                fctx=context,
                 feedstock_dir=feedstock_dir,
                 body=migration_run_data["pr_body"],
                 repo=repo,
@@ -463,14 +478,13 @@ comment. Hopefully you all can fix this!
         ljpr = False
 
     # If we've gotten this far then the node is good
-    with feedstock_ctx.attrs["pr_info"] as pri:
+    with context.attrs["pr_info"] as pri:
         pri["bad"] = False
     _reset_pre_pr_migrator_fields(
-        feedstock_ctx.attrs, migrator_name, is_version=is_version_migration
+        context.attrs, migrator_name, is_version=is_version_migration
     )
 
     logger.info("Removing feedstock dir")
-    eval_cmd(["rm", "-rf", feedstock_dir])
     return migration_run_data["migrate_return_value"], ljpr
 
 
@@ -564,11 +578,10 @@ def _run_migrator_on_feedstock_branch(
             fctx.attrs["new_version"] = attrs.get("version_pr_info", {}).get(
                 "new_version", None
             )
-            migrator_uid, pr_json = run(
-                feedstock_ctx=fctx,
+            migrator_uid, pr_json = run_with_tmpdir(
+                context=fctx,
                 migrator=migrator,
                 rerender=migrator.rerender,
-                protocol="https",
                 hash_type=attrs.get("hash_type", "sha256"),
                 base_branch=base_branch,
                 dry_run=dry_run,
@@ -875,7 +888,6 @@ def _run_migrator(migrator, mctx, temp, time_per, dry_run):
                     dump_graph(mctx.graph)
 
                 with filter_reprinted_lines("rm-tmp"):
-                    eval_cmd(["rm", "-rf", f"{GIT_CLONE_DIR}/*"])
                     for f in glob.glob("/tmp/*"):
                         if f not in temp:
                             try:
