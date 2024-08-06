@@ -764,11 +764,7 @@ def _parse_recipe_yaml_requirements(requirements) -> None:
     run_exports = requirements["run_exports"]
     for strength in ["strong", "weak"]:
         original = run_exports.get(strength)
-        if (
-            isinstance(original, list)
-            and len(original) > 0
-            and isinstance(original[0], dict)
-        ):
+        if isinstance(original, list):
             result = []
             for entry in original:
                 if isinstance(entry, str):
