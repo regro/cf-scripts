@@ -47,26 +47,40 @@ def test_parse_cudnn(plat, arch, cfg, has_cudnn):
         ), pprint.pformat(meta)
 
 
-def test_parse_cudnn_recipe_yaml():
-    plat = "linux-64"
-    cfg = "linux_64_cuda_compiler_version10.2numpy1.19python3.9.____cpython.yaml"
+@pytest.mark.parametrize(
+    "plat,cfg,has_cudnn",
+    [
+        (
+            "linux-64",
+            "linux_64_cuda_compiler_version10.2numpy1.19python3.9.____cpython.yaml",
+            True,
+        ),
+        ("osx-64", "osx_64_numpy1.16python3.6.____cpython.yaml", False),
+    ],
+)
+def test_parse_cudnn_recipe_yaml(plat, cfg, has_cudnn):
     recipe_dir = Path(__file__).parent.joinpath(
         "pytorch-cpu-feedstock", "recipe_yaml", "recipe"
     )
     recipe_text = recipe_dir.joinpath("recipe.yaml").read_text()
 
-    meta = parse_recipe_yaml(
+    parsed_recipe = parse_recipe_yaml(
         recipe_text,
         for_pinning=False,
         platform=plat,
         cbc_path=str(recipe_dir.joinpath("..", ".ci_support", cfg)),
-        log_debug=True,
     )
 
-    assert any(
-        "cudnn" in out.get("requirements", {}).get("host", [])
-        for out in meta["outputs"]
-    ), pprint.pformat(meta)
+    if has_cudnn:
+        assert any(
+            "cudnn" in out.get("requirements", {}).get("host", [])
+            for out in parsed_recipe["outputs"]
+        ), pprint.pformat(parsed_recipe)
+    else:
+        assert all(
+            "cudnn" not in out.get("requirements", {}).get("host", [])
+            for out in parsed_recipe["outputs"]
+        ), pprint.pformat(parsed_recipe)
 
 
 def test_get_requirements():
