@@ -398,7 +398,6 @@ def parse_recipe_yaml(
     for_pinning: bool = False,
     platform: str | None = None,
     cbc_path: str | None = None,
-    log_debug: bool = False,
     use_container: bool | None = None,
 ) -> "RecipeTypedDict":
     """Parse the recipe.yaml.
@@ -671,17 +670,17 @@ def _parse_recipes(
             None
             if requirements_output is None
             else {
-                "build": requirements_output.get("build"),
-                "host": requirements_output.get("host"),
-                "run": requirements_output.get("run"),
+                "build": requirements_output.get("build", []),
+                "host": requirements_output.get("host", []),
+                "run": requirements_output.get("run", []),
             }
         )
         build_output_data = (
             None
             if run_exports_output is None
             else {
-                "strong": run_exports_output.get("strong"),
-                "weak": run_exports_output.get("weak"),
+                "strong": run_exports_output.get("strong", []),
+                "weak": run_exports_output.get("weak", []),
             }
         )
         output_data.append(

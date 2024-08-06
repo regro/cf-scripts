@@ -507,14 +507,12 @@ def parse_meta_yaml(
     "--cbc-path", type=str, default=None, help="The path to global pinning file."
 )
 def parse_recipe_yaml(
-    log_level,
     for_pinning,
     platform,
     cbc_path,
 ):
     return _run_bot_task(
         _parse_recipe_yaml,
-        log_level=log_level,
         existing_feedstock_node_attrs=None,
         for_pinning=for_pinning,
         platform=platform,
