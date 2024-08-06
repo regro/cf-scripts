@@ -397,7 +397,6 @@ def parse_recipe_yaml(
     text: str,
     for_pinning: bool = False,
     platform: str | None = None,
-    arch: str | None = None,
     cbc_path: str | None = None,
     log_debug: bool = False,
     use_container: bool | None = None,
@@ -411,9 +410,7 @@ def parse_recipe_yaml(
     for_pinning : bool, optional
         If True, render the recipe.yaml for pinning migrators, by default False.
     platform : str, optional
-        The platform (e.g., 'linux', 'osx', 'win').
-    arch : str, optional
-        The CPU architecture (e.g., '64', 'aarch64').
+        The platform (e.g., 'linux-64', 'osx-arm64', 'win-64').
     cbc_path : str, optional
         The path to global pinning file.
     log_debug : bool, optional
@@ -439,7 +436,6 @@ def parse_recipe_yaml(
             text,
             for_pinning=for_pinning,
             platform=platform,
-            arch=arch,
             cbc_path=cbc_path,
             log_debug=log_debug,
         )
@@ -448,9 +444,7 @@ def parse_recipe_yaml(
             text,
             for_pinning=for_pinning,
             platform=platform,
-            arch=arch,
             cbc_path=cbc_path,
-            log_debug=log_debug,
         )
 
 
@@ -458,9 +452,7 @@ def parse_recipe_yaml_containerized(
     text: str,
     for_pinning: bool = False,
     platform: str | None = None,
-    arch: str | None = None,
     cbc_path: str | None = None,
-    log_debug: bool = False,
 ) -> "RecipeTypedDict":
     """Parse the recipe.yaml.
 
@@ -473,9 +465,7 @@ def parse_recipe_yaml_containerized(
     for_pinning : bool, optional
         If True, render the recipe.yaml for pinning migrators, by default False.
     platform : str, optional
-        The platform (e.g., 'linux', 'osx', 'win').
-    arch : str, optional
-        The CPU architecture (e.g., '64', 'aarch64').
+        The platform (e.g., 'linux-64', 'osx-arm64', 'win-64').
     cbc_path : str, optional
         The path to global pinning file.
     log_debug : bool, optional
@@ -492,14 +482,8 @@ def parse_recipe_yaml_containerized(
     if platform is not None:
         args += ["--platform", platform]
 
-    if arch is not None:
-        args += ["--arch", arch]
-
     if cbc_path is not None:
         args += ["--cbc-path", cbc_path]
-
-    if log_debug:
-        args += ["--log-debug"]
 
     if for_pinning:
         args += ["--for-pinning"]
@@ -516,9 +500,7 @@ def parse_recipe_yaml_local(
     text: str,
     for_pinning: bool = False,
     platform: str | None = None,
-    arch: str | None = None,
     cbc_path: str | None = None,
-    log_debug: bool = False,
 ) -> "RecipeTypedDict":
     """Parse the recipe.yaml.
 
@@ -529,9 +511,7 @@ def parse_recipe_yaml_local(
     for_pinning : bool, optional
         If True, render the recipe.yaml for pinning migrators, by default False.
     platform : str, optional
-        The platform (e.g., 'linux', 'osx', 'win').
-    arch : str, optional
-        The CPU architecture (e.g., '64', 'aarch64').
+        The platform (e.g., 'linux-64', 'osx-arm64', 'win-64').
     cbc_path : str, optional
         The path to global pinning file.
     log_debug : bool, optional

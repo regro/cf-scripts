@@ -303,7 +303,6 @@ def populate_feedstock_attributes(
                             recipe_yaml,
                             platform=plat,
                             cbc_path=cbc_path,
-                            arch=arch,
                         ),
                     )
 
