@@ -25,9 +25,9 @@ requirements:
     - suitesparse
   run_exports:
     strong:
-      - ${{ pin_subpackage('slepc', upper_bound='x') }}
+      - ${{ pin_subpackage('slepc', upper_bound='x') }} # comment
     weak:
-      - ${{ pin_subpackage('slepc', upper_bound='x.x') }}
+      - ${{ pin_subpackage('slepc', upper_bound='x.x') }} # comment
 
 about:
   summary: SLEPc Scalable Library for Eigenvalue Problem Computations
