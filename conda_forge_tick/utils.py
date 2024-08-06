@@ -437,7 +437,6 @@ def parse_recipe_yaml(
             for_pinning=for_pinning,
             platform=platform,
             cbc_path=cbc_path,
-            log_debug=log_debug,
         )
     else:
         return parse_recipe_yaml_local(
