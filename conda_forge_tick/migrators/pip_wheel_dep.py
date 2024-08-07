@@ -129,6 +129,9 @@ class PipWheelMigrator(MiniMigrator):
         handled_packages = set()
 
         with pushd(recipe_dir):
+            if not os.path.exists("meta.yaml") and os.path.exists("recipe.yaml"):
+                logger.info(f"Skipping {self.__class__.__name__} for recipe.yaml")
+                return
             with open("meta.yaml") as f:
                 lines = f.readlines()
             in_reqs = False

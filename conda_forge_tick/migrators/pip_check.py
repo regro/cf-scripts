@@ -1,6 +1,8 @@
 import io
+import os
 import re
 import typing
+import logging
 from typing import Any
 
 import ruamel.yaml
@@ -11,6 +13,8 @@ from conda_forge_tick.os_utils import pushd
 
 if typing.TYPE_CHECKING:
     from ..migrators_types import AttrsTypedDict
+
+logger = logging.getLogger(__name__)
 
 # matches lines like 'key: val  # [blah or blad]'
 # giving back key, val, "blah or blad" in the groups
@@ -159,6 +163,9 @@ class PipCheckMigrator(MiniMigrator):
         with pushd(recipe_dir):
             mapping = {}
             groups = {}
+            if not os.path.exists("meta.yaml") and os.path.exists("recipe.yaml"):
+                logger.info(f"Skipping {self.__class__.__name__} for recipe.yaml")
+                return
             with open("meta.yaml") as fp:
                 lines = []
                 for line in fp.readlines():
