@@ -2,7 +2,9 @@ from __future__ import annotations
 
 import logging
 from typing import TYPE_CHECKING, Any, Literal
-from conda_forge_tick.update_recipe.v2.yaml import _load_yaml, _dump_yaml_to_str
+
+from conda_forge_tick.update_recipe.v2.yaml import _dump_yaml_to_str, _load_yaml
+
 if TYPE_CHECKING:
     from pathlib import Path
 
@@ -11,7 +13,9 @@ logger = logging.getLogger(__name__)
 HashType = Literal["md5", "sha256"]
 
 
-def _update_build_number_in_context(recipe: dict[str, Any], new_build_number: int) -> bool:
+def _update_build_number_in_context(
+    recipe: dict[str, Any], new_build_number: int
+) -> bool:
     for key in recipe.get("context", {}):
         if key.startswith("build_") or key == "build":
             recipe["context"][key] = new_build_number
@@ -19,7 +23,9 @@ def _update_build_number_in_context(recipe: dict[str, Any], new_build_number: in
     return False
 
 
-def _update_build_number_in_recipe(recipe: dict[str, Any], new_build_number: int) -> bool:
+def _update_build_number_in_recipe(
+    recipe: dict[str, Any], new_build_number: int
+) -> bool:
     is_modified = False
     if "build" in recipe and "number" in recipe["build"]:
         recipe["build"]["number"] = new_build_number

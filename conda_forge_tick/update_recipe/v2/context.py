@@ -1,6 +1,9 @@
 import jinja2
 
-def load_recipe_context(context: dict[str, str], jinja_env: jinja2.Environment) -> dict[str, str]:
+
+def load_recipe_context(
+    context: dict[str, str], jinja_env: jinja2.Environment
+) -> dict[str, str]:
     """
     Load all string values from the context dictionary as Jinja2 templates.
     Use linux-64 as default target_platform, build_platform, and mpi.

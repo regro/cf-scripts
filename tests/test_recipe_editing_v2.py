@@ -1,12 +1,14 @@
-import pytest
 from pathlib import Path
 
-from conda_forge_tick.recipe_editing_v2 import update_build_number, update_version
+import pytest
+
+from conda_forge_tick.update_recipe.v2 import update_build_number, update_version
 
 
 @pytest.fixture
 def data_dir() -> Path:
     return Path(__file__).parent / "recipe_v2"
+
 
 def test_build_number_mod(data_dir: Path) -> None:
     tests = data_dir / "build_number"

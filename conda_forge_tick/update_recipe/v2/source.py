@@ -1,8 +1,13 @@
 import typing
-from typing import Union, List, TypedDict, Any, Iterator, NotRequired, Mapping
-from conda_forge_tick.update_recipe.v2.conditional_list import visit_conditional_list, ConditionalList
+from typing import Any, Iterator, List, Mapping, NotRequired, TypedDict, Union
+
+from conda_forge_tick.update_recipe.v2.conditional_list import (
+    ConditionalList,
+    visit_conditional_list,
+)
 
 OptionalUrlList = Union[str, List[str], None]
+
 
 class Source(TypedDict):
     url: NotRequired[str | list[str]]
@@ -29,8 +34,7 @@ def get_all_sources(recipe: Mapping[Any, Any]) -> Iterator[Source]:
     # Try getting all url top-level sources
     if sources is not None:
         source_list = visit_conditional_list(sources, None)
-        for source in source_list:
-            yield source
+        yield from source_list
 
     outputs = recipe.get("outputs", None)
     if outputs is None:
@@ -43,5 +47,4 @@ def get_all_sources(recipe: Mapping[Any, Any]) -> Iterator[Source]:
         if sources is None:
             continue
         source_list = visit_conditional_list(sources, None)
-        for source in source_list:
-            yield source
+        yield from source_list

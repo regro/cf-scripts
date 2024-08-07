@@ -6,12 +6,12 @@ import logging
 import re
 from typing import TYPE_CHECKING, Literal
 
+import requests
+
 from conda_forge_tick.update_recipe.v2.context import load_recipe_context
 from conda_forge_tick.update_recipe.v2.jinja import jinja_env
 from conda_forge_tick.update_recipe.v2.source import Source, get_all_sources
-from conda_forge_tick.update_recipe.v2.yaml import _load_yaml, _dump_yaml_to_str
-
-import requests
+from conda_forge_tick.update_recipe.v2.yaml import _dump_yaml_to_str, _load_yaml
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -19,6 +19,7 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 HashType = Literal["md5", "sha256"]
+
 
 class CouldNotUpdateVersionError(Exception):
     NO_CONTEXT = "Could not find context in recipe"

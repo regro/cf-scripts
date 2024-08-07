@@ -1,12 +1,16 @@
 from __future__ import annotations
 
-from typing import Any, TypedDict
+from typing import TypedDict
 
 import jinja2
-import yaml
+from jinja2.sandbox import SandboxedEnvironment
 
-from conda_forge_tick.jinja.filters import _bool, _split, _version_to_build_string
-from conda_forge_tick.jinja.objects import (
+from conda_forge_tick.update_recipe.v2.jinja.filters import (
+    _bool,
+    _split,
+    _version_to_build_string,
+)
+from conda_forge_tick.update_recipe.v2.jinja.objects import (
     _stub_compatible_pin,
     _stub_is_linux,
     _stub_is_unix,
@@ -15,20 +19,21 @@ from conda_forge_tick.jinja.objects import (
     _stub_subpackage_pin,
     _StubEnv,
 )
-from conda_forge_tick.jinja.utils import _MissingUndefined
-from conda_forge_tick.loader import load_yaml
+from conda_forge_tick.update_recipe.v2.jinja.utils import _MissingUndefined
+
+# from conda_forge_tick.update_recipe.v2.loader import load_yaml
 
 
 class RecipeWithContext(TypedDict, total=False):
     context: dict[str, str]
 
 
-def jinja_env() -> jinja2.Environment:
+def jinja_env() -> SandboxedEnvironment:
     """
     Create a `rattler-build` specific Jinja2 environment with modified syntax.
     Target platform, build platform, and mpi are set to linux-64 by default.
     """
-    env = jinja2.sandbox.SandboxedEnvironment(
+    env = SandboxedEnvironment(
         variable_start_string="${{",
         variable_end_string="}}",
         trim_blocks=True,
@@ -71,7 +76,9 @@ def jinja_env() -> jinja2.Environment:
     return env
 
 
-def load_recipe_context(context: dict[str, str], jinja_env: jinja2.Environment) -> dict[str, str]:
+def load_recipe_context(
+    context: dict[str, str], jinja_env: jinja2.Environment
+) -> dict[str, str]:
     """
     Load all string values from the context dictionary as Jinja2 templates.
     Use linux-64 as default target_platform, build_platform, and mpi.
@@ -87,30 +94,30 @@ def load_recipe_context(context: dict[str, str], jinja_env: jinja2.Environment) 
     return context
 
 
-def render_recipe_with_context(recipe_content: RecipeWithContext) -> dict[str, Any]:
-    """
-    Render the recipe using known values from context section.
-    Unknown values are not evaluated and are kept as it is.
-    Target platform, build platform, and mpi are set to linux-64 by default.
+# def render_recipe_with_context(recipe_content: RecipeWithContext) -> dict[str, Any]:
+#     """
+#     Render the recipe using known values from context section.
+#     Unknown values are not evaluated and are kept as it is.
+#     Target platform, build platform, and mpi are set to linux-64 by default.
 
-    Examples:
-    ---
-    ```python
-    >>> from pathlib import Path
-    >>> from conda_forge_tick.loader import load_yaml
-    >>> recipe_content = load_yaml((Path().resolve() / "tests" / "data" / "eval_recipe_using_context.yaml").read_text())
-    >>> evaluated_context = render_recipe_with_context(recipe_content)
-    >>> assert "my_value-${{ not_present_value }}" == evaluated_context["build"]["string"]
-    >>>
-    ```
-    """
-    env = jinja_env()
-    context = recipe_content.get("context", {})
-    # render out the context section and retrieve dictionary
-    context_variables = load_recipe_context(context, env)
+#     Examples:
+#     ---
+#     ```python
+#     >>> from pathlib import Path
+#     >>> from conda_forge_tick.loader import load_yaml
+#     >>> recipe_content = load_yaml((Path().resolve() / "tests" / "data" / "eval_recipe_using_context.yaml").read_text())
+#     >>> evaluated_context = render_recipe_with_context(recipe_content)
+#     >>> assert "my_value-${{ not_present_value }}" == evaluated_context["build"]["string"]
+#     >>>
+#     ```
+#     """
+#     env = jinja_env()
+#     context = recipe_content.get("context", {})
+#     # render out the context section and retrieve dictionary
+#     context_variables = load_recipe_context(context, env)
 
-    # render the rest of the document with the values from the context
-    # and keep undefined expressions _as is_.
-    template = env.from_string(yaml.dump(recipe_content))
-    rendered_content = template.render(context_variables)
-    return load_yaml(rendered_content)
+#     # render the rest of the document with the values from the context
+#     # and keep undefined expressions _as is_.
+#     template = env.from_string(yaml.dump(recipe_content))
+#     rendered_content = template.render(context_variables)
+#     return load_yaml(rendered_content)
