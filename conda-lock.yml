@@ -2742,15 +2742,15 @@ package:
       pyyaml: '>=5.3.1'
       toolz: '>=0.10.0'
     hash:
-      md5: 80f7ce024289c333fdc5ad54a194fc86
-      sha256: 2991b4eefe1e4cfa631c569795885377dc19ab30ef9bfaece9664578426b9e9d
+      md5: bf68bf9ff9a18f1b17aa8c817225aee0
+      sha256: e4fc0235e03931d2d28d50f193c9a2c7b5ae8a70728dfd5a954f1d2cc7acfd92
     manager: conda
     name: dask-core
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/dask-core-2024.7.1-pyhd8ed1ab_0.conda
-    version: 2024.7.1
+      https://conda.anaconda.org/conda-forge/noarch/dask-core-2024.8.0-pyhd8ed1ab_0.conda
+    version: 2024.8.0
   - category: main
     dependencies:
       click: '>=8.1'
@@ -2763,15 +2763,15 @@ package:
       pyyaml: '>=5.3.1'
       toolz: '>=0.10.0'
     hash:
-      md5: 80f7ce024289c333fdc5ad54a194fc86
-      sha256: 2991b4eefe1e4cfa631c569795885377dc19ab30ef9bfaece9664578426b9e9d
+      md5: bf68bf9ff9a18f1b17aa8c817225aee0
+      sha256: e4fc0235e03931d2d28d50f193c9a2c7b5ae8a70728dfd5a954f1d2cc7acfd92
     manager: conda
     name: dask-core
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/dask-core-2024.7.1-pyhd8ed1ab_0.conda
-    version: 2024.7.1
+      https://conda.anaconda.org/conda-forge/noarch/dask-core-2024.8.0-pyhd8ed1ab_0.conda
+    version: 2024.8.0
   - category: main
     dependencies:
       click: '>=8.1'
@@ -2784,15 +2784,15 @@ package:
       pyyaml: '>=5.3.1'
       toolz: '>=0.10.0'
     hash:
-      md5: 80f7ce024289c333fdc5ad54a194fc86
-      sha256: 2991b4eefe1e4cfa631c569795885377dc19ab30ef9bfaece9664578426b9e9d
+      md5: bf68bf9ff9a18f1b17aa8c817225aee0
+      sha256: e4fc0235e03931d2d28d50f193c9a2c7b5ae8a70728dfd5a954f1d2cc7acfd92
     manager: conda
     name: dask-core
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/dask-core-2024.7.1-pyhd8ed1ab_0.conda
-    version: 2024.7.1
+      https://conda.anaconda.org/conda-forge/noarch/dask-core-2024.8.0-pyhd8ed1ab_0.conda
+    version: 2024.8.0
   - category: main
     dependencies:
       expat: '>=2.4.2,<3.0a0'
@@ -2938,7 +2938,7 @@ package:
       click: '>=8.0'
       cloudpickle: '>=1.5.0'
       cytoolz: '>=0.10.1'
-      dask-core: '>=2024.7.1,<2024.7.2.0a0'
+      dask-core: '>=2024.8.0,<2024.8.1.0a0'
       jinja2: '>=2.10.3'
       locket: '>=1.0.0'
       msgpack-python: '>=1.0.0'
@@ -2953,21 +2953,21 @@ package:
       urllib3: '>=1.24.3'
       zict: '>=3.0.0'
     hash:
-      md5: 0a8e18bb76f2dd6ce7e9b1fb9dbba78a
-      sha256: 6b619bc34192f7d2f1115175e17fd0de4772db31a19248e712b34f5ee56b7cf8
+      md5: f9a7fbaeb79d4b57d1ed742930b4eec4
+      sha256: ecc6061749213572490b8f118bdfc24729350c302d6b6baaf20d398f814708f5
     manager: conda
     name: distributed
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/distributed-2024.7.1-pyhd8ed1ab_0.conda
-    version: 2024.7.1
+      https://conda.anaconda.org/conda-forge/noarch/distributed-2024.8.0-pyhd8ed1ab_0.conda
+    version: 2024.8.0
   - category: main
     dependencies:
       click: '>=8.0'
       cloudpickle: '>=1.5.0'
       cytoolz: '>=0.10.1'
-      dask-core: '>=2024.7.1,<2024.7.2.0a0'
+      dask-core: '>=2024.8.0,<2024.8.1.0a0'
       jinja2: '>=2.10.3'
       locket: '>=1.0.0'
       msgpack-python: '>=1.0.0'
@@ -2982,21 +2982,21 @@ package:
       urllib3: '>=1.24.3'
       zict: '>=3.0.0'
     hash:
-      md5: 0a8e18bb76f2dd6ce7e9b1fb9dbba78a
-      sha256: 6b619bc34192f7d2f1115175e17fd0de4772db31a19248e712b34f5ee56b7cf8
+      md5: f9a7fbaeb79d4b57d1ed742930b4eec4
+      sha256: ecc6061749213572490b8f118bdfc24729350c302d6b6baaf20d398f814708f5
     manager: conda
     name: distributed
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/distributed-2024.7.1-pyhd8ed1ab_0.conda
-    version: 2024.7.1
+      https://conda.anaconda.org/conda-forge/noarch/distributed-2024.8.0-pyhd8ed1ab_0.conda
+    version: 2024.8.0
   - category: main
     dependencies:
       click: '>=8.0'
       cloudpickle: '>=1.5.0'
       cytoolz: '>=0.10.1'
-      dask-core: '>=2024.7.1,<2024.7.2.0a0'
+      dask-core: '>=2024.8.0,<2024.8.1.0a0'
       jinja2: '>=2.10.3'
       locket: '>=1.0.0'
       msgpack-python: '>=1.0.0'
@@ -3011,15 +3011,15 @@ package:
       urllib3: '>=1.24.3'
       zict: '>=3.0.0'
     hash:
-      md5: 0a8e18bb76f2dd6ce7e9b1fb9dbba78a
-      sha256: 6b619bc34192f7d2f1115175e17fd0de4772db31a19248e712b34f5ee56b7cf8
+      md5: f9a7fbaeb79d4b57d1ed742930b4eec4
+      sha256: ecc6061749213572490b8f118bdfc24729350c302d6b6baaf20d398f814708f5
     manager: conda
     name: distributed
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/distributed-2024.7.1-pyhd8ed1ab_0.conda
-    version: 2024.7.1
+      https://conda.anaconda.org/conda-forge/noarch/distributed-2024.8.0-pyhd8ed1ab_0.conda
+    version: 2024.8.0
   - category: main
     dependencies:
       python: '>=3.6'
