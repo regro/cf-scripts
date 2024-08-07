@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from rattler_build_conda_compat.jinja.utils import _MissingUndefined
+from conda_forge_tick.jinja.utils import _MissingUndefined
 
 
 def _version_to_build_string(some_string: str | _MissingUndefined) -> str:

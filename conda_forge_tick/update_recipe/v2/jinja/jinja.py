@@ -5,8 +5,8 @@ from typing import Any, TypedDict
 import jinja2
 import yaml
 
-from rattler_build_conda_compat.jinja.filters import _bool, _split, _version_to_build_string
-from rattler_build_conda_compat.jinja.objects import (
+from conda_forge_tick.jinja.filters import _bool, _split, _version_to_build_string
+from conda_forge_tick.jinja.objects import (
     _stub_compatible_pin,
     _stub_is_linux,
     _stub_is_unix,
@@ -15,8 +15,8 @@ from rattler_build_conda_compat.jinja.objects import (
     _stub_subpackage_pin,
     _StubEnv,
 )
-from rattler_build_conda_compat.jinja.utils import _MissingUndefined
-from rattler_build_conda_compat.loader import load_yaml
+from conda_forge_tick.jinja.utils import _MissingUndefined
+from conda_forge_tick.loader import load_yaml
 
 
 class RecipeWithContext(TypedDict, total=False):
@@ -97,7 +97,7 @@ def render_recipe_with_context(recipe_content: RecipeWithContext) -> dict[str, A
     ---
     ```python
     >>> from pathlib import Path
-    >>> from rattler_build_conda_compat.loader import load_yaml
+    >>> from conda_forge_tick.loader import load_yaml
     >>> recipe_content = load_yaml((Path().resolve() / "tests" / "data" / "eval_recipe_using_context.yaml").read_text())
     >>> evaluated_context = render_recipe_with_context(recipe_content)
     >>> assert "my_value-${{ not_present_value }}" == evaluated_context["build"]["string"]

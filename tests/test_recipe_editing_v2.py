@@ -1,7 +1,7 @@
 import pytest
 from pathlib import Path
 
-from rattler_build_conda_compat.modify_recipe import update_build_number, update_version
+from conda_forge_tick.recipe_editing_v2 import update_build_number, update_version
 
 
 @pytest.fixture
