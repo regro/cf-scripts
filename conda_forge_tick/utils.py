@@ -6,7 +6,6 @@ import itertools
 import json
 import logging
 import os
-from pathlib import Path
 import pprint
 import subprocess
 import sys
