@@ -92,32 +92,3 @@ def load_recipe_context(
             context[key] = rendered_value
 
     return context
-
-
-# def render_recipe_with_context(recipe_content: RecipeWithContext) -> dict[str, Any]:
-#     """
-#     Render the recipe using known values from context section.
-#     Unknown values are not evaluated and are kept as it is.
-#     Target platform, build platform, and mpi are set to linux-64 by default.
-
-#     Examples:
-#     ---
-#     ```python
-#     >>> from pathlib import Path
-#     >>> from conda_forge_tick.loader import load_yaml
-#     >>> recipe_content = load_yaml((Path().resolve() / "tests" / "data" / "eval_recipe_using_context.yaml").read_text())
-#     >>> evaluated_context = render_recipe_with_context(recipe_content)
-#     >>> assert "my_value-${{ not_present_value }}" == evaluated_context["build"]["string"]
-#     >>>
-#     ```
-#     """
-#     env = jinja_env()
-#     context = recipe_content.get("context", {})
-#     # render out the context section and retrieve dictionary
-#     context_variables = load_recipe_context(context, env)
-
-#     # render the rest of the document with the values from the context
-#     # and keep undefined expressions _as is_.
-#     template = env.from_string(yaml.dump(recipe_content))
-#     rendered_content = template.render(context_variables)
-#     return load_yaml(rendered_content)

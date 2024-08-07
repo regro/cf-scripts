@@ -21,7 +21,7 @@ ConditionalList = Union[T, IfStatement[T], List[Union[T, IfStatement[T]]]]
 def visit_conditional_list(  # noqa: C901
     value: T | IfStatement[T] | list[T | IfStatement[T]],
     evaluator: Callable[[Any], bool] | None = None,
-) -> Generator[T, None, None]:
+) -> Generator[T]:
     """
     A function that yields individual branches of a conditional list.
 
@@ -35,7 +35,7 @@ def visit_conditional_list(  # noqa: C901
     A generator that yields the individual branches.
     """
 
-    def yield_from_list(value: list[K] | K) -> Generator[K, None, None]:
+    def yield_from_list(value: list[K] | K) -> Generator[K]:
         if isinstance(value, list):
             yield from value
         else:
