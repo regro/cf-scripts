@@ -1,0 +1,39 @@
+schema_version: 1
+
+context:
+  version: 3.19.1
+  sha256: 280737e9ef762d7f0079ad3ad29913215c799ebf124651c723c1972f71fbc0db
+  build: 0
+
+package:
+  name: slepc
+  version: ${{ version }}
+
+source:
+  url: http://slepc.upv.es/download/distrib/slepc-${{ version }}.tar.gz
+  sha256: ${{ sha256 }}
+
+build:
+  number: ${{ build }}
+  string: real_h${{ PKG_HASH }}_${{ build }}
+  skip:
+    - win
+
+requirements:
+  run:
+    - petsc
+    - suitesparse
+  run_exports:
+    - ${{ pin_subpackage('slepc', upper_bound='x.x') }}
+
+about:
+  summary: SLEPc Scalable Library for Eigenvalue Problem Computations
+  license: BSD-2-Clause
+  license_file: LICENSE.md
+  homepage: http://slepc.upv.es/
+
+extra:
+  recipe-maintainers:
+    - dalcinl
+    - joseeroman
+    - minrk

@@ -19,6 +19,15 @@ jobs:
   tests:
     name: tests
     runs-on: "ubuntu-latest"
+    permissions:
+      actions: write  # for deleting cache entries
+      contents: read
+    strategy:
+      # continue running the tests even if one of the groups fails
+      fail-fast: false
+      matrix:
+        # if change the number of groups here, also change it next to --splits below
+        group: [1, 2]
     defaults:
       run:
         shell: bash -leo pipefail {0}
@@ -53,7 +62,7 @@ jobs:
 
           python -m pip install -v --no-deps --no-build-isolation -e .
 
-      - name: Start MongoDB
+      - name: start MongoDB
         uses: MongoCamp/mongodb-github-action@e76ad215d47c31a99b4b0b1fde05f6cd1185df1a # e76ad215d47c31a99b4b0b1fde05f6cd1185df1a
         with:
           mongodb-version: "latest"
@@ -64,16 +73,44 @@ jobs:
         env:
           MONGODB_CONNECTION_STRING: "mongodb://127.0.0.1:27017/?directConnection=true&serverSelectionTimeoutMS=2000"
 
+      - name: set up docker buildx
+        uses: docker/setup-buildx-action@v3
+
       - name: build docker image
-        run: |
-          docker build -t ${{ env.IMAGE_NAME }}:test .
+        uses: docker/build-push-action@16ebe778df0e7752d2cfcbd924afdbbd89c1a755 # v6
+        with:
+          context: .
+          push: false
+          load: true
+          tags: ${{ env.IMAGE_NAME }}:test
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: restore test durations
+        uses: actions/cache/restore@0c45773b623bea8c8e75f6c82b208c3cf94ea4f9  # v4
+        with:
+          path: .test_durations
+          key: test-durations-${{ github.ref }}-${{ github.sha }}
+          restore-keys: |
+            test-durations-${{ github.ref }}-
+            test-durations-
 
       - name: run pytest
         run: |
           export TEST_BOT_TOKEN_VAL=unpassword
           export BOT_TOKEN=${TEST_BOT_TOKEN_VAL}
+          # note: we do not use pytest-xdist (-n auto) here for now because they interfere with hiding the
+          # MONGODB_CONNECTION_STRING sensitive environment variable
+          if [[ -f .test_durations ]]; then
+            cp .test_durations .test_durations.${{ matrix.group }}
+          fi
           pytest \
             -v \
+            --splits 2 --group ${{ matrix.group }} \
+            --store-durations \
+            --durations-path=.test_durations.${{ matrix.group }} \
+            --randomly-seed=${{ github.run_id }} \
+            --splitting-algorithm least_duration \
             --cov=conda_forge_tick \
             --cov=tests \
             --cov-config=.coveragerc \
@@ -86,7 +123,63 @@ jobs:
           MONGODB_CONNECTION_STRING: "mongodb://127.0.0.1:27017/?directConnection=true&serverSelectionTimeoutMS=2000"
           RUN_URL: ""
 
+      - name: upload test durations
+        uses: actions/upload-artifact@0b2256b8c012f0828dc542b3febcab082c67f72b # v4
+        with:
+          name: test-durations-${{ matrix.group }}
+          path: .test_durations.${{ matrix.group }}
+
+      - name: upload coverage
+        uses: actions/upload-artifact@0b2256b8c012f0828dc542b3febcab082c67f72b # v4
+        with:
+          name: coverage-${{ matrix.group }}
+          path: .coverage
+
+  test-coverage-and-durations:
+    name: test-coverage-and-durations
+    needs: tests
+    runs-on: "ubuntu-latest"
+    defaults:
+      run:
+        shell: bash -leo pipefail {0}
+    steps:
+      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4
+
+      - uses: mamba-org/setup-micromamba@f8b8a1e23a26f60a44c853292711bacfd3eac822 # v1
+        with:
+          environment-file: conda-lock.yml
+          environment-name: cf-scripts
+          condarc-file: autotick-bot/condarc
+
+      - name: download coverage artifacts
+        uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16 # v4
+        with:
+          pattern: coverage-*
+
+      - name: combine coverage
+        run: |
+          coverage combine coverage-*/.coverage*
+          coverage xml
+
       - name: upload codecov
         uses: codecov/codecov-action@e28ff129e5465c2c0dcc6f003fc735cb6ae0c673 # v4
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
+
+      - name: cache test durations
+        uses: actions/cache@0c45773b623bea8c8e75f6c82b208c3cf94ea4f9  # v4
+        with:
+          path: .test_durations
+          key: test-durations-${{ github.ref }}-${{ github.sha }}
+          restore-keys: |
+            test-durations-${{ github.ref }}-
+            test-durations-
+
+      - name: download test duration artifacts
+        uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16 # v4
+        with:
+          pattern: test-durations-*
+
+      - name: combine test durations
+        run: |
+          jq '. + input' test-durations-*/.test_durations.* > .test_durations

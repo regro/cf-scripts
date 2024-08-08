@@ -502,6 +502,9 @@ def test_lazy_json(tmpdir, backend):
             assert len(lj) == 0
             assert not lj
         finally:
+            be = LAZY_JSON_BACKENDS[backend]()
+            be.hdel("lazy_json", ["hi"])
+
             conda_forge_tick.lazy_json_backends.CF_TICK_GRAPH_DATA_BACKENDS = (
                 old_backend
             )

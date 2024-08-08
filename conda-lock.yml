@@ -3,9 +3,9 @@ metadata:
     - url: conda-forge
       used_env_vars: []
   content_hash:
-    linux-64: 2b3c0976e57cb73f4954a13b0019b2082ff53a96d28c7dc99af6330878412da3
-    osx-64: a823286e2d460d09bcee256454c86ab7a53966fa2b7539cf573af939e8711fff
-    osx-arm64: c3255180ca12c8077951328d65d1f846ebe057235066735d459a689c605ae02d
+    linux-64: 74b8ba2455a1c26564be8d99f414d006c68b4448b50a09a2682b6cd487deb834
+    osx-64: d4f9ea8b9b5e8c6656029f5f2c36281636e03170c29250e41541975a8d5c78b6
+    osx-arm64: 0df568ade8cdfaea2654d2331a61e925288d6d56e0072d96c53941b5e8221271
   platforms:
     - osx-arm64
     - linux-64
@@ -10447,6 +10447,93 @@ package:
     url:
       https://conda.anaconda.org/conda-forge/noarch/pytest-env-1.1.3-pyhd8ed1ab_0.conda
     version: 1.1.3
+  - category: main
+    dependencies:
+      importlib-metadata: '>=3.6.0'
+      pytest: ''
+      python: '>=3.6'
+    hash:
+      md5: 203b5d3f85a47940f7ec6b6e1747786e
+      sha256: bd1953e4bc20ffd52cfee41b27b3a781ca6e281004d0dd59e2dd60b0192c7a86
+    manager: conda
+    name: pytest-randomly
+    optional: false
+    platform: linux-64
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/pytest-randomly-3.15.0-pyhd8ed1ab_0.conda
+    version: 3.15.0
+  - category: main
+    dependencies:
+      importlib-metadata: '>=3.6.0'
+      pytest: ''
+      python: '>=3.6'
+    hash:
+      md5: 203b5d3f85a47940f7ec6b6e1747786e
+      sha256: bd1953e4bc20ffd52cfee41b27b3a781ca6e281004d0dd59e2dd60b0192c7a86
+    manager: conda
+    name: pytest-randomly
+    optional: false
+    platform: osx-64
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/pytest-randomly-3.15.0-pyhd8ed1ab_0.conda
+    version: 3.15.0
+  - category: main
+    dependencies:
+      importlib-metadata: '>=3.6.0'
+      pytest: ''
+      python: '>=3.6'
+    hash:
+      md5: 203b5d3f85a47940f7ec6b6e1747786e
+      sha256: bd1953e4bc20ffd52cfee41b27b3a781ca6e281004d0dd59e2dd60b0192c7a86
+    manager: conda
+    name: pytest-randomly
+    optional: false
+    platform: osx-arm64
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/pytest-randomly-3.15.0-pyhd8ed1ab_0.conda
+    version: 3.15.0
+  - category: main
+    dependencies:
+      pytest: '>=5.4'
+      python: '>=3.6,<4'
+    hash:
+      md5: d15a8b5c3a050fc3cf7d4509c70441f4
+      sha256: 34b2849d08d1cd7672b873c72df37d071d10402df89c6f8ac82d43cbeaa33442
+    manager: conda
+    name: pytest-split
+    optional: false
+    platform: linux-64
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/pytest-split-0.8.2-pyhd8ed1ab_0.conda
+    version: 0.8.2
+  - category: main
+    dependencies:
+      pytest: '>=5.4'
+      python: '>=3.6,<4'
+    hash:
+      md5: d15a8b5c3a050fc3cf7d4509c70441f4
+      sha256: 34b2849d08d1cd7672b873c72df37d071d10402df89c6f8ac82d43cbeaa33442
+    manager: conda
+    name: pytest-split
+    optional: false
+    platform: osx-64
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/pytest-split-0.8.2-pyhd8ed1ab_0.conda
+    version: 0.8.2
+  - category: main
+    dependencies:
+      pytest: '>=5.4'
+      python: '>=3.6,<4'
+    hash:
+      md5: d15a8b5c3a050fc3cf7d4509c70441f4
+      sha256: 34b2849d08d1cd7672b873c72df37d071d10402df89c6f8ac82d43cbeaa33442
+    manager: conda
+    name: pytest-split
+    optional: false
+    platform: osx-arm64
+    url:
+      https://conda.anaconda.org/conda-forge/noarch/pytest-split-0.8.2-pyhd8ed1ab_0.conda
+    version: 0.8.2
   - category: main
     dependencies:
       execnet: '>=2.1'
