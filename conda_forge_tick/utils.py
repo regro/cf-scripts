@@ -396,7 +396,7 @@ def _render_meta_yaml(text: str, for_pinning: bool = False, **kwargs) -> str:
 def parse_recipe_yaml(
     text: str,
     for_pinning: bool = False,
-    platform: str | None = None,
+    platform_arch: str | None = None,
     cbc_path: str | None = None,
     use_container: bool | None = None,
 ) -> "RecipeTypedDict":
@@ -408,8 +408,8 @@ def parse_recipe_yaml(
         The raw text in conda-forge feedstock recipe.yaml file
     for_pinning : bool, optional
         If True, render the recipe.yaml for pinning migrators, by default False.
-    platform : str, optional
-        The platform (e.g., 'linux-64', 'osx-arm64', 'win-64').
+    platform_arch : str, optional
+        The platform and arch (e.g., 'linux-64', 'osx-arm64', 'win-64').
     cbc_path : str, optional
         The path to global pinning file.
     log_debug : bool, optional
@@ -434,14 +434,14 @@ def parse_recipe_yaml(
         return parse_recipe_yaml_containerized(
             text,
             for_pinning=for_pinning,
-            platform=platform,
+            platform_arch=platform_arch,
             cbc_path=cbc_path,
         )
     else:
         return parse_recipe_yaml_local(
             text,
             for_pinning=for_pinning,
-            platform=platform,
+            platform_arch=platform_arch,
             cbc_path=cbc_path,
         )
 
@@ -449,7 +449,7 @@ def parse_recipe_yaml(
 def parse_recipe_yaml_containerized(
     text: str,
     for_pinning: bool = False,
-    platform: str | None = None,
+    platform_arch: str | None = None,
     cbc_path: str | None = None,
 ) -> "RecipeTypedDict":
     """Parse the recipe.yaml.
@@ -462,12 +462,10 @@ def parse_recipe_yaml_containerized(
         The raw text in conda-forge feedstock recipe.yaml file
     for_pinning : bool, optional
         If True, render the recipe.yaml for pinning migrators, by default False.
-    platform : str, optional
-        The platform (e.g., 'linux-64', 'osx-arm64', 'win-64').
+    platform_arch : str, optional
+        The platform and arch (e.g., 'linux-64', 'osx-arm64', 'win-64').
     cbc_path : str, optional
         The path to global pinning file.
-    log_debug : bool, optional
-        If True, print extra debugging info. Default is False.
 
     Returns
     -------
@@ -477,8 +475,8 @@ def parse_recipe_yaml_containerized(
     """
     args = []
 
-    if platform is not None:
-        args += ["--platform", platform]
+    if platform_arch is not None:
+        args += ["--platform-arch", platform_arch]
 
     if cbc_path is not None:
         args += ["--cbc-path", cbc_path]
@@ -497,7 +495,7 @@ def parse_recipe_yaml_containerized(
 def parse_recipe_yaml_local(
     text: str,
     for_pinning: bool = False,
-    platform: str | None = None,
+    platform_arch: str | None = None,
     cbc_path: str | None = None,
 ) -> "RecipeTypedDict":
     """Parse the recipe.yaml.
@@ -508,12 +506,10 @@ def parse_recipe_yaml_local(
         The raw text in conda-forge feedstock recipe.yaml file
     for_pinning : bool, optional
         If True, render the recipe.yaml for pinning migrators, by default False.
-    platform : str, optional
-        The platform (e.g., 'linux-64', 'osx-arm64', 'win-64').
+    platform_arch : str, optional
+        The platform and arch (e.g., 'linux-64', 'osx-arm64', 'win-64').
     cbc_path : str, optional
         The path to global pinning file.
-    log_debug : bool, optional
-        If True, print extra debugging info. Default is False.
 
     Returns
     -------
@@ -522,7 +518,9 @@ def parse_recipe_yaml_local(
         for some errors. Have fun.
     """
 
-    rendered_recipes = _render_recipe_yaml(text, cbc_path=cbc_path, platform=platform)
+    rendered_recipes = _render_recipe_yaml(
+        text, cbc_path=cbc_path, platform_arch=platform_arch
+    )
     if for_pinning:
         rendered_recipes = _process_recipe_for_pinning(rendered_recipes)
     parsed_recipes = _parse_recipes(rendered_recipes)
@@ -531,7 +529,7 @@ def parse_recipe_yaml_local(
 
 def _render_recipe_yaml(
     text: str,
-    platform: str | None = None,
+    platform_arch: str | None = None,
     cbc_path: str | None = None,
 ) -> list[dict[str, Any]]:
     """
@@ -552,7 +550,9 @@ def _render_recipe_yaml(
         The rendered recipe as a dictionary.
     """
     variant_config_flags = [] if cbc_path is None else ["--variant-config", cbc_path]
-    build_platform_flags = [] if platform is None else ["--build-platform", platform]
+    build_platform_flags = (
+        [] if platform_arch is None else ["--build-platform", platform_arch]
+    )
     res = subprocess.run(
         ["rattler-build", "build", "--render-only"]
         + variant_config_flags

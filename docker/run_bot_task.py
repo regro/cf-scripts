@@ -392,7 +392,7 @@ def _parse_meta_yaml(
 def _parse_recipe_yaml(
     *,
     for_pinning,
-    platform,
+    platform_arch,
     cbc_path,
 ):
     from conda_forge_tick.utils import parse_recipe_yaml_local
@@ -400,7 +400,7 @@ def _parse_recipe_yaml(
     return parse_recipe_yaml_local(
         sys.stdin.read(),
         for_pinning=for_pinning,
-        platform=platform,
+        platform_arch=platform_arch,
         cbc_path=cbc_path,
     )
 
@@ -498,24 +498,24 @@ def parse_meta_yaml(
     help="Parse the recipe.yaml for pinning requirements.",
 )
 @click.option(
-    "--platform",
+    "--platform-arch",
     type=str,
     default=None,
-    help="The platform (e.g., 'linux-64', 'osx-arm64', 'win-64').",
+    help="The platform and arch (e.g., 'linux-64', 'osx-arm64', 'win-64').",
 )
 @click.option(
     "--cbc-path", type=str, default=None, help="The path to global pinning file."
 )
 def parse_recipe_yaml(
     for_pinning,
-    platform,
+    platform_arch,
     cbc_path,
 ):
     return _run_bot_task(
         _parse_recipe_yaml,
         existing_feedstock_node_attrs=None,
         for_pinning=for_pinning,
-        platform=platform,
+        platform_arch=platform_arch,
         cbc_path=cbc_path,
     )
 

@@ -67,7 +67,7 @@ def test_parse_cudnn_recipe_yaml(plat, cfg, has_cudnn):
     parsed_recipe = parse_recipe_yaml(
         recipe_text,
         for_pinning=False,
-        platform=plat,
+        platform_arch=plat,
         cbc_path=str(recipe_dir.joinpath("..", ".ci_support", cfg)),
     )
 
