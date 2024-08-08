@@ -132,7 +132,7 @@ def update_version(
         except HashError:
             errors.add(f"Could not hash {url}")
 
-    if len(errors) != 0:
+    if errors:
         return None, errors
 
     return _dump_yaml_to_str(data), {}
