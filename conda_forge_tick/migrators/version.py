@@ -5,6 +5,7 @@ import os
 import random
 import typing
 import warnings
+from pathlib import Path
 from typing import Any, List, Sequence
 
 import conda.exceptions
@@ -14,9 +15,8 @@ from conda.models.version import VersionOrder
 from conda_forge_tick.contexts import FeedstockContext
 from conda_forge_tick.migrators.core import Migrator
 from conda_forge_tick.models.pr_info import MigratorName
-from conda_forge_tick.os_utils import pushd
 from conda_forge_tick.update_deps import get_dep_updates_and_hints
-from conda_forge_tick.update_recipe import update_version
+from conda_forge_tick.update_recipe import update_version, v2
 from conda_forge_tick.utils import get_keys_default, sanitize_string
 
 if typing.TYPE_CHECKING:
@@ -195,23 +195,31 @@ class Version(Migrator):
     ) -> "MigrationUidTypedDict":
         version = attrs["new_version"]
 
-        with open(os.path.join(recipe_dir, "meta.yaml")) as fp:
-            raw_meta_yaml = fp.read()
+        recipe_dir = Path(recipe_dir)
+        meta_yaml = recipe_dir / "meta.yaml"
+        recipe_yaml = recipe_dir / "recipe.yaml"
+        if meta_yaml.exists():
+            raw_meta_yaml = meta_yaml.read_text()
 
-        updated_meta_yaml, errors = update_version(
-            raw_meta_yaml,
-            version,
-            hash_type=hash_type,
-        )
+            updated_meta_yaml, errors = update_version(
+                raw_meta_yaml,
+                version,
+                hash_type=hash_type,
+            )
 
-        if len(errors) == 0 and updated_meta_yaml is not None:
-            with pushd(recipe_dir):
-                with open("meta.yaml", "w") as fp:
-                    fp.write(updated_meta_yaml)
-                self.set_build_number("meta.yaml")
+            if len(errors) == 0 and updated_meta_yaml is not None:
+                meta_yaml.write_text(updated_meta_yaml)
+                self.set_build_number(meta_yaml)
 
-            return super().migrate(recipe_dir, attrs)
-        else:
+                return super().migrate(recipe_dir, attrs)
+
+        elif recipe_yaml.exists():
+            updated_recipe, errors = v2.update_version(recipe_yaml, version)
+            if len(errors) == 0 and updated_recipe is not None:
+                recipe_yaml.write_text(updated_recipe)
+                self.set_build_number(recipe_yaml)
+
+        if len(errors) != 0:
             raise VersionMigrationError(
                 _fmt_error_message(
                     errors,
