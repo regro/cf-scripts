@@ -76,6 +76,11 @@ jobs:
       - name: cache docker layers
         uses: jpribyl/action-docker-layer-caching@c632825d12ec837065f49726ea27ddd40bcc7894 # v0.1.1
         continue-on-error: true
+        with:
+          key: docker-cache-{hash}
+          restore-keys: |
+            docker-cache-
+          skip-save: true
 
       - name: build docker image
         run: |
