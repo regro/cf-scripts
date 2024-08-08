@@ -171,4 +171,4 @@ jobs:
 
       - name: combine test durations
         run: |
-          jq '. + input' test-durations-1/.test_durations.1 test-durations-2/.test_durations.2 > .test_durations
+          jq '. + input' test-durations-*/.test_durations.* > .test_durations
