@@ -57,3 +57,4 @@ versions/*
 .pixi
 pixi.lock
 pixi.toml
+.ruff_cache/
