@@ -62,7 +62,7 @@ jobs:
 
           python -m pip install -v --no-deps --no-build-isolation -e .
 
-      - name: Start MongoDB
+      - name: start MongoDB
         uses: MongoCamp/mongodb-github-action@e76ad215d47c31a99b4b0b1fde05f6cd1185df1a # e76ad215d47c31a99b4b0b1fde05f6cd1185df1a
         with:
           mongodb-version: "latest"
@@ -77,26 +77,13 @@ jobs:
         run: |
           docker build -t ${{ env.IMAGE_NAME }}:test .
 
-      # Save Test Durations logic:
-      # https://github.com/jerry-git/pytest-split/issues/20#issuecomment-1682947832
-      - name: "[Test Durations] Restore Test Durations (1)"
-        id: test-duration-cache-restore-1
+      - name: restore test durations
         uses: actions/cache/restore@0c45773b623bea8c8e75f6c82b208c3cf94ea4f9  # v4
         with:
-          path: .test_durations.1
-          key: test-durations-1
-
-      - name: "[Test Durations] Restore Test Durations (2)"
-        id: test-duration-cache-restore-2
-        uses: actions/cache/restore@0c45773b623bea8c8e75f6c82b208c3cf94ea4f9  # v4
-        with:
-          path: .test_durations.2
-          key: test-durations-2
-
-      - name: "[Test Durations] Combine Test Duration Cache Files"
-        if: steps.test-duration-cache-restore-1.outputs.cache-hit == 'true' && steps.test-duration-cache-restore-2.outputs.cache-hit == 'true'
-        run: |
-          jq '. + input' .test_durations.1 .test_durations.2 > .test_durations
+          path: .test_durations
+          key: test-durations--${{ github.ref }}
+          restore-keys: |
+            test-durations-
 
       - name: run pytest
         run: |
@@ -123,30 +110,20 @@ jobs:
           MONGODB_CONNECTION_STRING: "mongodb://127.0.0.1:27017/?directConnection=true&serverSelectionTimeoutMS=2000"
           RUN_URL: ""
 
-      - name: "[Test Duration] Delete test duration cache (${{ matrix.group }})"
-        continue-on-error: true
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          gh extension install actions/gh-actions-cache
-          gh actions-cache delete test-durations-${{ matrix.group }} -R ${{ github.repository }} --confirm
-
-      - name: "[Test Durations] Save Test Durations"
-        id: test-duration-cache-save
-        uses: actions/cache/save@0c45773b623bea8c8e75f6c82b208c3cf94ea4f9  # v4
-        if: always()
+      - name: upload test durations
+        uses: actions/upload-artifact@0b2256b8c012f0828dc542b3febcab082c67f72b # v4
         with:
+          name: test-durations-${{ matrix.group }}
           path: .test_durations.${{ matrix.group }}
-          key: test-durations-${{ matrix.group }}
 
-      - name: Upload coverage
+      - name: upload coverage
         uses: actions/upload-artifact@0b2256b8c012f0828dc542b3febcab082c67f72b # v4
         with:
           name: coverage-${{ matrix.group }}
           path: .coverage
 
-  test-coverage:
-    name: test-coverage
+  test-coverage-and-durations:
+    name: test-coverage-and-durations
     needs: tests
     runs-on: "ubuntu-latest"
     defaults:
@@ -161,12 +138,12 @@ jobs:
           environment-name: cf-scripts
           condarc-file: autotick-bot/condarc
 
-      - name: Download Coverage Artifacts
+      - name: download coverage artifacts
         uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16 # v4
         with:
           pattern: coverage-*
 
-      - name: Combine Coverage
+      - name: combine coverage
         run: |
           coverage combine coverage-*/.coverage*
           coverage xml
@@ -175,3 +152,20 @@ jobs:
         uses: codecov/codecov-action@e28ff129e5465c2c0dcc6f003fc735cb6ae0c673 # v4
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
+
+      - name: cache test durations
+        uses: actions/cache@0c45773b623bea8c8e75f6c82b208c3cf94ea4f9  # v4
+        with:
+          path: .test_durations
+          key: test-durations--${{ github.ref }}
+          restore-keys: |
+            test-durations-
+
+      - name: download test duration artifacts
+        uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16 # v4
+        with:
+          pattern: test-durations-*
+
+      - name: combine test durations
+        run: |
+          jq '. + input' .test_durations.1 .test_durations.2 > .test_durations
