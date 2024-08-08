@@ -1,17 +1,15 @@
 from __future__ import annotations
 
 import copy
-import hashlib
 import logging
 import re
 from typing import TYPE_CHECKING, Literal
-
-import requests
 
 from conda_forge_tick.update_recipe.v2.context import load_recipe_context
 from conda_forge_tick.update_recipe.v2.jinja import jinja_env
 from conda_forge_tick.update_recipe.v2.source import Source, get_all_sources
 from conda_forge_tick.update_recipe.v2.yaml import _dump_yaml_to_str, _load_yaml
+from conda_forge_tick.update_recipe.version import _try_url_and_hash_it
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -27,6 +25,13 @@ class CouldNotUpdateVersionError(Exception):
 
     def __init__(self, message: str = "Could not update version") -> None:
         self.message = message
+        super().__init__(self.message)
+
+
+class HashError(Exception):
+    def __init__(self, url: str) -> None:
+        self.url = url
+        self.message = f"Could not hash {url}"
         super().__init__(self.message)
 
 
@@ -66,15 +71,17 @@ def update_hash(source: Source, url: str, hash_: Hash | None) -> None:
         source[hash_.hash_type] = hash_.hash_value
     else:
         # download and hash the file
-        hasher = hashlib.sha256()
-        print(f"Retrieving and hashing {url}")
-        with requests.get(url, stream=True, timeout=100) as r:
-            for chunk in r.iter_content(chunk_size=4096):
-                hasher.update(chunk)
-        source["sha256"] = hasher.hexdigest()
+        logger.debug(f"Retrieving and hashing {url}")
+        new_hash = _try_url_and_hash_it(url, "sha256")
+        if new_hash is None:
+            logger.error(f"Could not hash {url}")
+            raise HashError(url)
+        source["sha256"] = new_hash
 
 
-def update_version(file: Path, new_version: str, hash_: Hash | None) -> str:
+def update_version(
+    file: Path, new_version: str, hash_: Hash | None
+) -> (str | None, set[str]):
     """
     Update the version in the recipe file.
 
@@ -92,9 +99,10 @@ def update_version(file: Path, new_version: str, hash_: Hash | None) -> str:
     data = _load_yaml(file)
 
     if "context" not in data:
-        raise CouldNotUpdateVersionError(CouldNotUpdateVersionError.NO_CONTEXT)
+        # raise CouldNotUpdateVersionError(CouldNotUpdateVersionError.NO_CONTEXT)
+        return None, {CouldNotUpdateVersionError.NO_CONTEXT}
     if "version" not in data["context"]:
-        raise CouldNotUpdateVersionError(CouldNotUpdateVersionError.NO_VERSION)
+        return None, {CouldNotUpdateVersionError.NO_VERSION}
 
     data["context"]["version"] = new_version
 
@@ -119,7 +127,9 @@ def update_version(file: Path, new_version: str, hash_: Hash | None) -> str:
 
         template = env.from_string(url)
         rendered_url = template.render(context_variables)
+        try:
+            update_hash(source, rendered_url, hash_)
+        except HashError:
+            return None, set(f"Could not retrieve hash for '{rendered_url}'")
 
-        update_hash(source, rendered_url, hash_)
-
-    return _dump_yaml_to_str(data)
+    return _dump_yaml_to_str(data), {}

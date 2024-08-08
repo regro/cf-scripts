@@ -5,7 +5,7 @@ import logging
 import pprint
 import re
 import traceback
-from typing import Any, MutableMapping
+from typing import Any, MutableMapping, Optional, Set
 
 import jinja2
 import jinja2.sandbox
@@ -99,7 +99,7 @@ def _compile_all_selectors(cmeta: Any, src: str):
     return set(selectors)
 
 
-def _try_url_and_hash_it(url: str, hash_type: str):
+def _try_url_and_hash_it(url: str, hash_type: str) -> Optional[str]:
     logger.debug("downloading url: %s", url)
 
     try:
@@ -379,7 +379,9 @@ def _try_to_update_version(cmeta: Any, src: str, hash_type: str):
     return updated_version, errors
 
 
-def update_version(raw_meta_yaml, version, hash_type="sha256"):
+def update_version(
+    raw_meta_yaml: str, version: str, hash_type: str = "sha256"
+) -> (Optional[str], Set[str]):
     """Update the version in a recipe.
 
     Parameters
@@ -395,7 +397,7 @@ def update_version(raw_meta_yaml, version, hash_type="sha256"):
     -------
     updated_meta_yaml : str or None
         The updated meta.yaml. Will be None if there is an error.
-    errors : str of str
+    errors : set of str
         A set of strings giving any errors found when updating the
         version. The set will be empty if there were no errors.
     """
