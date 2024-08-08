@@ -23,6 +23,6 @@ def _bool(value: str) -> bool:
     return bool(value)
 
 
-def _split(s: str, sep: str = " ") -> list[str]:
+def _split(s: str, sep: str | None = None) -> list[str]:
     """Filter that split a string by a separator"""
     return s.split(sep)
