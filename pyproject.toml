@@ -39,6 +39,7 @@ extend-exclude = ["conda_forge_tick/migrators/disabled/legacy.py"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "W"]
+ignore = ["E501"]
 preview = true
 
 [tool.ruff.lint.pycodestyle]

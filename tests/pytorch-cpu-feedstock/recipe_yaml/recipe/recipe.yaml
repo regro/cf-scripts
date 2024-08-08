@@ -1,0 +1,160 @@
+context:
+  version: 1.6.0
+  commit: b31f58de6fa8bbda5353b3c77d9be4914399724d
+
+recipe:
+  name: pytorch-recipe
+  version: ${{ version }}
+
+source:
+  # for local testing use a tarball including submodules
+  patches:
+    # https://github.com/pytorch/pytorch/pull/49281
+    - fix_std_stdint.patch
+    # cpp_extension patch does not apply cleanly on master
+    # we should try to upstream again on the next version
+    - cpp_extension.patch
+    # It is unclear that upstream will allow us to integrate the
+    # shared linker path below until their intel compiler issues
+    # are resolved.
+    - remove_shared_linker_flag_override.patch
+    - nccl_socket.patch
+    - fix_dispatch_apply_auto.patch
+    - fix_map_anonymous.patch
+  git: https://github.com/pytorch/pytorch.git
+  rev: ${{ commit }}
+
+build:
+  number: 1
+
+outputs:
+  - package:
+      name: pytorch
+    build:
+      string: cpu_py{{ CONDA_PY }}h{{ PKG_HASH }}_{{ PKG_BUILDNUM }}
+    requirements:
+      build:
+        - ${{ compiler('c') }}
+        - ${{ compiler('cxx') }}
+        - if: "cuda_compiler_version != \"None\""
+          then: ${{ compiler('cuda') }}
+        # Dec 2020: it seems that git is broken on windows, so we use m2-git
+        - if: not win
+          then: patch
+        - if: win
+          then: m2-patch
+        - if: not win
+          then: git
+        - if: win
+          then: m2-git
+        - if: linux
+          then: libgomp
+        - if: osx
+          then: llvm-openmp
+      host:
+        # For some reason cmake and ninja need to be installed
+        # alongside python in the host
+        # https://github.com/conda-forge/pytorch-cpu-feedstock/pull/21#discussion_r541397252
+        - cmake
+        - if: not win
+          then: git
+        - if: win
+          then: m2-git
+        - ninja
+        # GPU requirements
+        - if: "cuda_compiler_version != \"None\""
+          then: cudnn
+        - if: "cuda_compiler_version != \"None\""
+          then: nccl
+        - if: "cuda_compiler_version != \"None\""
+          then: magma
+        # other requirements
+        - python
+        - numpy
+        - pip
+        - setuptools
+        - pyyaml
+        - requests
+        - future
+        - six
+        - cffi
+        - mkl-devel ${{ mkl }}
+        - mkl ${{ mkl }}
+        - libblas * *_mkl
+        - typing
+        - if: unix
+          then: libuv
+        - if: unix
+          then: pkg-config
+      run:
+        - mkl ${{ mkl }}
+        - libblas * *_mkl
+        - if: osx
+          then: llvm-openmp
+        - if: cuda_compiler_version == "None"
+          then: _pytorch_select ==0.1
+        - if: cuda_compiler_version != "None"
+          then: _pytorch_select ==0.2
+        # GPU requirements without run_exports
+        - if: "cuda_compiler_version != \"None\""
+          then: ${{ pin_compatible('cudnn') }}
+        - if: "cuda_compiler_version != \"None\""
+          then: ${{ pin_compatible('magma', upper_bound='x.x.x') }}
+        # other requirements
+        - python
+        - ${{ pin_compatible('numpy') }}
+        - cffi
+        # if future isn't installed on python 3, `pip check` can give
+        # the user an error
+        - future
+        - if: py2k
+          then: typing
+        # Need ninja to load C++ extensions
+        - ninja
+    tests:
+      - python:
+          imports:
+            - torch
+          pip_check: true
+      - files:
+          source:
+            - test
+        requirements:
+          run:
+            - ${{ compiler('c') }}
+            - ${{ compiler('cxx') }}
+            - setuptools
+            - hypothesis
+            - pytest
+            - tabulate
+            - pydot
+            - if: linux
+              then: mock
+            - pip
+        script:
+          - if: not win
+            then: OMP_NUM_THREADS=4 python ./test/run_test.py || true
+          - if: win
+            then: python ./test/run_test.py
+  - package:
+      name: pytorch-cpu
+  - package:
+      name: pytorch-gpu
+    requirements:
+      run:
+        - ${{ pin_subpackage("pytorch", exact=True) }}
+    tests:
+      - script:
+          - "echo \"hello world\""
+
+about:
+  license: BSD-3-Clause
+  license_file: LICENSE
+  summary: PyTorch is an optimized tensor library for deep learning using GPUs and CPUs.
+  homepage: https://pytorch.org/
+
+extra:
+  recipe-maintainers:
+    - hmaarrfk
+    - sodre
+  feedstock-name: pytorch-cpu
