@@ -73,18 +73,14 @@ jobs:
         env:
           MONGODB_CONNECTION_STRING: "mongodb://127.0.0.1:27017/?directConnection=true&serverSelectionTimeoutMS=2000"
 
-      - name: cache docker layers
-        uses: jpribyl/action-docker-layer-caching@c632825d12ec837065f49726ea27ddd40bcc7894 # v0.1.1
-        continue-on-error: true
-        with:
-          key: docker-cache-{hash}
-          restore-keys: |
-            docker-cache-
-          skip-save: true
-
       - name: build docker image
-        run: |
-          docker build -t ${{ env.IMAGE_NAME }}:test .
+        uses: docker/build-push-action@5176d81f87c23d6fc96624dfdbcd9f3830bbe445 # v5
+        with:
+          context: .
+          push: false
+          tags: ${{ env.IMAGE_NAME }}:test
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
       - name: restore test durations
         uses: actions/cache/restore@0c45773b623bea8c8e75f6c82b208c3cf94ea4f9  # v4
