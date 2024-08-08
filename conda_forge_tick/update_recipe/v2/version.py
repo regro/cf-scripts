@@ -99,7 +99,6 @@ def update_version(
     data = _load_yaml(file)
 
     if "context" not in data:
-        # raise CouldNotUpdateVersionError(CouldNotUpdateVersionError.NO_CONTEXT)
         return None, {CouldNotUpdateVersionError.NO_CONTEXT}
     if "version" not in data["context"]:
         return None, {CouldNotUpdateVersionError.NO_VERSION}
@@ -113,6 +112,7 @@ def update_version(
     # for r-recipes we add the default `cran_mirror` variable
     context_variables["cran_mirror"] = "https://cran.r-project.org"
 
+    errors: set[str] = set()
     for source in get_all_sources(data):
         # render the whole URL and find the hash
         if "url" not in source:
@@ -130,6 +130,9 @@ def update_version(
         try:
             update_hash(source, rendered_url, hash_)
         except HashError:
-            return None, set(f"Could not retrieve hash for '{rendered_url}'")
+            errors.add(f"Could not hash {url}")
+
+    if len(errors) != 0:
+        return None, errors
 
     return _dump_yaml_to_str(data), {}

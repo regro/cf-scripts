@@ -5,7 +5,7 @@ from ruamel.yaml import YAML
 
 yaml = YAML()
 yaml.preserve_quotes = True
-yaml.width = 4096
+yaml.width = 320
 yaml.indent(mapping=2, sequence=4, offset=2)
 
 
