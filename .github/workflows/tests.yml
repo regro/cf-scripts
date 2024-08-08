@@ -91,7 +91,9 @@ jobs:
           export BOT_TOKEN=${TEST_BOT_TOKEN_VAL}
           # note: we do not use pytest-xdist (-n auto) here for now because they interfere with hiding the
           # MONGODB_CONNECTION_STRING sensitive environment variable
-          cp .test_durations .test_durations.${{ matrix.group }}
+          if [[ -f .test_durations ]]; then
+            cp .test_durations .test_durations.${{ matrix.group }}
+          fi
           pytest \
             -v \
             --splits 2 --group ${{ matrix.group }} \
