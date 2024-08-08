@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import copy
 import logging
-import re
 from typing import TYPE_CHECKING, Literal
 
 from conda_forge_tick.update_recipe.v2.context import load_recipe_context
@@ -42,12 +41,6 @@ class Hash:
 
     def __str__(self) -> str:
         return f"{self.hash_type}: {self.hash_value}"
-
-
-def _has_jinja_version(url: str) -> bool:
-    """Check if the URL has a jinja `${{ version }}` in it."""
-    pattern = r"\${{\s*version"
-    return re.search(pattern, url) is not None
 
 
 def update_hash(source: Source, url: str, hash_: Hash | None) -> None:
@@ -93,7 +86,8 @@ def update_version(
 
     Returns:
     --------
-    The updated recipe as a string.
+    * The updated recipe string (or None if there was an error).
+    * A set of errors that occurred during the update.
     """
 
     data = _load_yaml(file)
@@ -103,14 +97,20 @@ def update_version(
     if "version" not in data["context"]:
         return None, {CouldNotUpdateVersionError.NO_VERSION}
 
+    old_context = copy.deepcopy(data["context"])
     data["context"]["version"] = new_version
+
+    CRAN_MIRROR = "https://cran.r-project.org"
 
     # set up the jinja context
     env = jinja_env()
     context = copy.deepcopy(data.get("context", {}))
-    context_variables = load_recipe_context(context, env)
+    old_context_variables = load_recipe_context(old_context, env)
+    old_context_variables["cran_mirror"] = CRAN_MIRROR
+
+    new_context_variables = load_recipe_context(context, env)
     # for r-recipes we add the default `cran_mirror` variable
-    context_variables["cran_mirror"] = "https://cran.r-project.org"
+    new_context_variables["cran_mirror"] = CRAN_MIRROR
 
     errors: set[str] = set()
     for source in get_all_sources(data):
@@ -122,11 +122,14 @@ def update_version(
         if isinstance(url, list):
             url = url[0]
 
-        if not _has_jinja_version(url):
+        template = env.from_string(url)
+        old_rendered_url = template.render(old_context_variables)
+        rendered_url = template.render(new_context_variables)
+
+        # nothing to do
+        if old_rendered_url == rendered_url:
             continue
 
-        template = env.from_string(url)
-        rendered_url = template.render(context_variables)
         try:
             update_hash(source, rendered_url, hash_)
         except HashError:

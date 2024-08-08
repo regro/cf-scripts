@@ -51,7 +51,7 @@ def update_build_number(file: Path, new_build_number: int = 0) -> str:
 
     Returns:
     --------
-    The updated recipe as a string.
+    * The updated recipe as a string.
     """
     data = _load_yaml(file)
     build_number_modified = _update_build_number_in_context(data, new_build_number)
