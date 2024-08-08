@@ -211,8 +211,6 @@ class Version(Migrator):
                 meta_yaml.write_text(updated_meta_yaml)
                 self.set_build_number(meta_yaml)
 
-                return super().migrate(recipe_dir, attrs)
-
         elif recipe_yaml.exists():
             updated_recipe, errors = v2.update_version(recipe_yaml, version)
             if len(errors) == 0 and updated_recipe is not None:
@@ -226,6 +224,8 @@ class Version(Migrator):
                     version,
                 )
             )
+        else:
+            return super().migrate(recipe_dir, attrs)
 
     def pr_body(self, feedstock_ctx: FeedstockContext, add_label_text=False) -> str:
         if feedstock_ctx.feedstock_name in self.effective_graph.nodes:
