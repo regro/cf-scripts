@@ -81,7 +81,7 @@ jobs:
         uses: actions/cache/restore@0c45773b623bea8c8e75f6c82b208c3cf94ea4f9  # v4
         with:
           path: .test_durations
-          key: test-durations--${{ github.ref }}
+          key: test-durations-${{ github.ref }}
           restore-keys: |
             test-durations-
 
@@ -91,6 +91,7 @@ jobs:
           export BOT_TOKEN=${TEST_BOT_TOKEN_VAL}
           # note: we do not use pytest-xdist (-n auto) here for now because they interfere with hiding the
           # MONGODB_CONNECTION_STRING sensitive environment variable
+          cp .test_durations .test_durations.${{ matrix.group }}
           pytest \
             -v \
             --splits 2 --group ${{ matrix.group }} \
@@ -157,7 +158,7 @@ jobs:
         uses: actions/cache@0c45773b623bea8c8e75f6c82b208c3cf94ea4f9  # v4
         with:
           path: .test_durations
-          key: test-durations--${{ github.ref }}
+          key: test-durations-${{ github.ref }}
           restore-keys: |
             test-durations-
 
@@ -168,4 +169,4 @@ jobs:
 
       - name: combine test durations
         run: |
-          jq '. + input' .test_durations.1 .test_durations.2 > .test_durations
+          jq '. + input' test-durations-1/.test_durations.1 test-durations-2/.test_durations.2 > .test_durations
