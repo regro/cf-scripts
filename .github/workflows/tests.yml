@@ -74,7 +74,7 @@ jobs:
           MONGODB_CONNECTION_STRING: "mongodb://127.0.0.1:27017/?directConnection=true&serverSelectionTimeoutMS=2000"
 
       - name: cache docker layers
-        uses: jpribyl/action-docker-layer-caching@v0.1.1
+        uses: jpribyl/action-docker-layer-caching@c632825d12ec837065f49726ea27ddd40bcc7894 # v0.1.1
         continue-on-error: true
 
       - name: build docker image
