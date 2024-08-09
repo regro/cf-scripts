@@ -215,6 +215,7 @@ build:
     true_new_meta_yaml = """\
 {% set foo = "bar" %}
 {% set xfoo = 10 %}  # [win or osx]
+{% set namesel = "val1" %}  # [py2k]
 {% set name = "val1" %}  # [py2k]
 {% set name = "val2" %}  # [py3k and win]
 {% set version = "4.5.6" %}
