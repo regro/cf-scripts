@@ -1,0 +1,14 @@
+context:
+  version: "1.1-26"
+  posix: ${{ 'm2' if win else '' }}
+  native: ${{ 'm2w64' if win else '' }}
+
+package:
+  name: r-systemfit
+  version: ${{ version|replace("-", "_") }}
+
+source:
+  url:
+    - ${{ cran_mirror }}/src/contrib/systemfit_${{ version }}.tar.gz
+    - ${{ cran_mirror }}/src/contrib/Archive/systemfit/systemfit_${{ version }}.tar.gz
+  sha256: a99a59787dc5556afe9a1a153f2a3a8047aa7d357aab450101e20ab1f329f758

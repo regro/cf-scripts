@@ -1,0 +1,11 @@
+# set the build number to something
+package:
+  name: recipe_1
+  version: "0.1.0"
+
+# set the build number to something directly in the recipe text
+build:
+  number: 321
+
+source:
+- url: foo
