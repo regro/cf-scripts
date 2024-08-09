@@ -34,6 +34,9 @@ MUNGED_LINE_RE = re.compile(
 # this regex matches any line with a selector
 SELECTOR_RE = re.compile(r"^.*#\s*\[(.*)\]")
 
+# this regex matches a lint that only has a selector on it
+ONLY_SELECTOR_RE = re.compile(r"^\s*#\s*\[(.*)\]")
+
 # this one matches bad yaml syntax with a selector on a multiline string start
 BAD_MULTILINE_STRING_WITH_SELECTOR = re.compile(r"[^|#]*\|\s+#")
 
@@ -46,6 +49,10 @@ def _get_yaml_parser():
     parser.width = 320
     parser.preserve_quotes = True
     return parser
+
+
+def _line_is_only_selector(line):
+    return ONLY_SELECTOR_RE.match(line) is not None
 
 
 def _config_has_key_with_selectors(cfg: dict, key: str):
@@ -96,7 +103,10 @@ def _parse_jinja2_variables(meta_yaml: str) -> dict:
             n.node,
             jinja2.nodes.Const,
         ):
-            if _config_has_key_with_selectors(jinja2_vals, n.target.name):
+            if _config_has_key_with_selectors(jinja2_vals, n.target.name) or (
+                (i < len(all_nodes) - 1)
+                and _line_is_only_selector(all_nodes[i + 1].nodes[0].data.strip())
+            ):
                 # selectors!
 
                 # this block runs if we see the key for the
