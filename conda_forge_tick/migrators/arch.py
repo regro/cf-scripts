@@ -1,4 +1,5 @@
 import typing
+from pathlib import Path
 from textwrap import dedent
 from typing import Any, Optional, Sequence
 
@@ -194,10 +195,11 @@ class ArchRebuild(GraphMigrator):
     def migrate(
         self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any
     ) -> "MigrationUidTypedDict":
-        recipe_file = self.find_recipe(recipe_dir)
+        recipe_dir_p = Path(recipe_dir)
+        recipe_file = self.find_recipe(recipe_dir_p)
         self.set_build_number(recipe_file)
 
-        conda_forge_yml = recipe_dir / "conda-forge.yml"
+        conda_forge_yml = recipe_dir_p / "conda-forge.yml"
         with conda_forge_yml.open() as f:
             y = yaml_safe_load(f)
 
@@ -368,10 +370,11 @@ class OSXArm(GraphMigrator):
     def migrate(
         self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any
     ) -> "MigrationUidTypedDict":
-        recipe_file = self.find_recipe(recipe_dir)
+        recipe_dir_p = Path(recipe_dir)
+        recipe_file = self.find_recipe(recipe_dir_p)
         self.set_build_number(recipe_file)
 
-        conda_forge_yml = recipe_dir / "conda-forge.yml"
+        conda_forge_yml = recipe_dir_p / "conda-forge.yml"
         with conda_forge_yml.open() as f:
             y = yaml_safe_load(f)
 

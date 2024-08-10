@@ -561,8 +561,25 @@ class Migrator:
         }
         return cyclic_topological_sort(graph, top_level)
 
-    def find_recipe(self, recipe_dir: str) -> Path:
-        """Find the recipe, either meta.yaml or recipe.yaml"""
+    def find_recipe(self, recipe_dir: str | Path) -> Path:
+        """
+        Find the recipe, either meta.yaml or recipe.yaml in the recipe_dir
+
+        Parameters
+        ----------
+        recipe_dir : str or Path
+            Path to the recipe directory
+
+        Returns
+        -------
+        recipe_path : Path
+            Path to the recipe file
+
+        Raises
+        ------
+        FileNotFoundError
+            If no recipe is found in the recipe_dir
+        """
         recipe_dir = Path(recipe_dir)
         if recipe_dir.joinpath("meta.yaml").exists():
             return recipe_dir.joinpath("meta.yaml")
