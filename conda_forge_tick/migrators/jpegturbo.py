@@ -18,11 +18,8 @@ class JpegTurboMigrator(MiniMigrator):
         return "jpeg" not in host_req
 
     def migrate(self, recipe_dir, attrs, **kwargs):
-        fname = os.path.join(recipe_dir, "meta.yaml")
-        if os.path.exists(fname):
-            with open(fname) as fp:
-                lines = fp.readlines()
+        recipe_file = self.find_recipe(recipe_dir)
 
-            new_lines = _parse_jpeg(lines)
-            with open(fname, "w") as fp:
-                fp.write("".join(new_lines))
+        lines = recipe_file.read_text().splitlines(keepends=True)
+        new_lines = _parse_jpeg(lines)
+        recipe_file.write_text("".join(new_lines))
