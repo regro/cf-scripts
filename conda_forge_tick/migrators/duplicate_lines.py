@@ -1,7 +1,7 @@
+import logging
 import os
 import re
 import typing
-import logging
 from typing import Any
 
 from conda_forge_tick.migrators.core import MiniMigrator
@@ -12,6 +12,7 @@ if typing.TYPE_CHECKING:
 
 
 logger = logging.getLogger(__name__)
+
 
 class DuplicateLinesCleanup(MiniMigrator):
     regex_to_check = {
@@ -36,7 +37,7 @@ class DuplicateLinesCleanup(MiniMigrator):
             if not os.path.exists("meta.yaml") and os.path.exists("recipe.yaml"):
                 logger.info(f"Skipping {self.__class__.__name__} for recipe.yaml")
                 return
-            
+
             with open("meta.yaml") as fp:
                 raw_yaml = fp.read()
 

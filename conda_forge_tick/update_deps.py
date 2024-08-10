@@ -203,6 +203,10 @@ def get_dep_updates_and_hints(
         # no dependency updates or hinting
         return {}, ""
 
+    if not (Path(recipe_dir) / "meta.yaml").exists():
+        logger.info("no meta.yaml found, skipping dep updates")
+        return {}, ""
+
     if update_deps in ["hint", "hint-source", "update-source"]:
         dep_comparison = get_depfinder_comparison(
             recipe_dir,

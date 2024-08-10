@@ -195,7 +195,9 @@ class Version(Migrator):
     ) -> "MigrationUidTypedDict":
         version = attrs["new_version"]
 
-        if not os.path.exists(os.path.join(recipe_dir, "meta.yaml")) and os.path.exists(os.path.join(recipe_dir, "recipe.yaml")):
+        if not os.path.exists(os.path.join(recipe_dir, "meta.yaml")) and os.path.exists(
+            os.path.join(recipe_dir, "recipe.yaml")
+        ):
             logger.info(f"Skipping {self.__class__.__name__} for recipe.yaml")
             return
 

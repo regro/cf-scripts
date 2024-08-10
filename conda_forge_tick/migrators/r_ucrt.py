@@ -1,7 +1,7 @@
+import logging
 import os
 import re
 import typing
-import logging
 from typing import Any
 
 from conda_forge_tick.migrators.core import MiniMigrator

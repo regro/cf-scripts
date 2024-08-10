@@ -198,7 +198,9 @@ def _scrape_license_string(pkg):
             ],
             check=True,
         )
-        if not os.path.exists("r-%s/meta.yaml" % pkg) and os.path.exists("r-%s/recipe.yaml" % pkg):
+        if not os.path.exists("r-%s/meta.yaml" % pkg) and os.path.exists(
+            "r-%s/recipe.yaml" % pkg
+        ):
             logger.info("Skipping _scrape_license_string for recipe.yaml")
             return
         with open("r-%s/meta.yaml" % pkg) as fp:
@@ -337,8 +339,12 @@ class LicenseMigrator(MiniMigrator):
                         Copyright (c) 2017, Anthony Scopatz
                         Copyright (c) 2018, The Regro Developers
                         All rights reserved."""
-                        if not os.path.exists("meta.yaml") and os.path.exists("recipe.yaml"):
-                            logger.info("Skipping _scrape_license_string for recipe.yaml")
+                        if not os.path.exists("meta.yaml") and os.path.exists(
+                            "recipe.yaml"
+                        ):
+                            logger.info(
+                                "Skipping _scrape_license_string for recipe.yaml"
+                            )
                             return
                         with open("meta.yaml") as f:
                             raw = f.read()

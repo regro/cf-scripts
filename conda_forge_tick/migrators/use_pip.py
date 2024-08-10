@@ -1,6 +1,6 @@
+import logging
 import os
 import typing
-import logging
 from typing import Any
 
 from conda_forge_tick.os_utils import pushd
