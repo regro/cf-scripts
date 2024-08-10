@@ -588,12 +588,12 @@ class Migrator:
         else:
             raise FileNotFoundError("No recipe found in %s" % recipe_dir)
 
-    def set_build_number(self, filename: str) -> None:
+    def set_build_number(self, filename: str | Path) -> None:
         """Bump the build number of the specified recipe.
 
         Parameters
         ----------
-        filename : str
+        filename : str or Path
             Path the the meta.yaml
         """
         with open(filename) as f:
