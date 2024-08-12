@@ -1946,39 +1946,39 @@ package:
   - category: main
     dependencies: {}
     hash:
-      md5: dd7f770ddae874ebeba0baad870aef6c
-      sha256: 9f451e95ca723850725950b30cc2a07d246bcb612343db2704c68dc858b8680c
+      md5: 4328abfbd6cbb1db41762edcdab0bf4f
+      sha256: 576b395ef70a1842d615eab3d9e21ec0a6b4595c72397bd9c9bf9f8a9e8ff28e
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.08.09.18.00.16-hd8ed1ab_0.conda
-    version: 2024.08.09.18.00.16
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.08.11.23.19.01-hd8ed1ab_0.conda
+    version: 2024.08.11.23.19.01
   - category: main
     dependencies: {}
     hash:
-      md5: dd7f770ddae874ebeba0baad870aef6c
-      sha256: 9f451e95ca723850725950b30cc2a07d246bcb612343db2704c68dc858b8680c
+      md5: 4328abfbd6cbb1db41762edcdab0bf4f
+      sha256: 576b395ef70a1842d615eab3d9e21ec0a6b4595c72397bd9c9bf9f8a9e8ff28e
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.08.09.18.00.16-hd8ed1ab_0.conda
-    version: 2024.08.09.18.00.16
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.08.11.23.19.01-hd8ed1ab_0.conda
+    version: 2024.08.11.23.19.01
   - category: main
     dependencies: {}
     hash:
-      md5: dd7f770ddae874ebeba0baad870aef6c
-      sha256: 9f451e95ca723850725950b30cc2a07d246bcb612343db2704c68dc858b8680c
+      md5: 4328abfbd6cbb1db41762edcdab0bf4f
+      sha256: 576b395ef70a1842d615eab3d9e21ec0a6b4595c72397bd9c9bf9f8a9e8ff28e
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.08.09.18.00.16-hd8ed1ab_0.conda
-    version: 2024.08.09.18.00.16
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.08.11.23.19.01-hd8ed1ab_0.conda
+    version: 2024.08.11.23.19.01
   - category: main
     dependencies:
       click: '>=8'
@@ -8252,43 +8252,43 @@ package:
       python: '>=3.11,<3.12.0a0'
       python_abi: 3.11.*
     hash:
-      md5: a0662a939f35a43684e7fee4e350daef
-      sha256: c54c9f073739f65d7b00a9a0758b8ca117fba74e69b195287dc533e91468cc23
+      md5: 8056bb9339279f0eae65c44d58fd4f3c
+      sha256: adcf3c91e7da0b8d7e404caf9d7729b72962392464e58936908838aa854ac6b2
     manager: conda
     name: menuinst
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/linux-64/menuinst-2.1.1-py311h38be061_0.conda
-    version: 2.1.1
+      https://conda.anaconda.org/conda-forge/linux-64/menuinst-2.1.2-py311h38be061_0.conda
+    version: 2.1.2
   - category: main
     dependencies:
       python: '>=3.11,<3.12.0a0'
       python_abi: 3.11.*
     hash:
-      md5: 3116e2fc44145b7565ab98483739b07d
-      sha256: faba09afa2cafd40f7287b6b85012fa7e97ab4dd2e6fb3994f0df3cf81fa136d
+      md5: 050835ceeef9c4b3d331928dd5cae852
+      sha256: 766478983dd8999f82f4da23ea04c904d9b6f1861a931446601fc518411b0cd0
     manager: conda
     name: menuinst
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/osx-64/menuinst-2.1.1-py311h6eed73b_0.conda
-    version: 2.1.1
+      https://conda.anaconda.org/conda-forge/osx-64/menuinst-2.1.2-py311h6eed73b_0.conda
+    version: 2.1.2
   - category: main
     dependencies:
       python: '>=3.11,<3.12.0a0'
       python_abi: 3.11.*
     hash:
-      md5: c10d5b343167e508451f7f1cfad002f3
-      sha256: 901c4276a0f5d4200d6d202d3760344eb591309029eacd6820322b96a9703562
+      md5: 058592c908c094f801eca9ed5e8a686b
+      sha256: 775c2ff1ce9377725e324e3df8c0bd0cc3c2d3599b6b02c98e0d2a3df5c62e55
     manager: conda
     name: menuinst
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/osx-arm64/menuinst-2.1.1-py311h267d04e_0.conda
-    version: 2.1.1
+      https://conda.anaconda.org/conda-forge/osx-arm64/menuinst-2.1.2-py311h267d04e_0.conda
+    version: 2.1.2
   - category: main
     dependencies:
       python: '>=3.8'
@@ -11718,46 +11718,46 @@ package:
     version: 0.2.8
   - category: main
     dependencies:
-      python: ''
-      ruamel.yaml: '>=0.15.10'
+      python: '>=3.8'
+      ruamel.yaml: '>=0.16.1'
     hash:
-      md5: 12f4cc11476f0f9ef90102792732ee38
-      sha256: baf55a7a8929705f7dfe16f6df7e47afb657b9cc79672710f8b660f0604b33ed
+      md5: 1256ba83f97fd9e29bc3bbd54d98debe
+      sha256: d9ff6eca8bfc60682d4f9a1377d46df8d53afe4dae824f4ad2b1a261d86d76f1
     manager: conda
     name: ruamel.yaml.jinja2
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/ruamel.yaml.jinja2-0.2.4-py_1.tar.bz2
-    version: 0.2.4
+      https://conda.anaconda.org/conda-forge/noarch/ruamel.yaml.jinja2-0.2.7-pyhd8ed1ab_0.conda
+    version: 0.2.7
   - category: main
     dependencies:
-      python: ''
-      ruamel.yaml: '>=0.15.10'
+      python: '>=3.8'
+      ruamel.yaml: '>=0.16.1'
     hash:
-      md5: 12f4cc11476f0f9ef90102792732ee38
-      sha256: baf55a7a8929705f7dfe16f6df7e47afb657b9cc79672710f8b660f0604b33ed
+      md5: 1256ba83f97fd9e29bc3bbd54d98debe
+      sha256: d9ff6eca8bfc60682d4f9a1377d46df8d53afe4dae824f4ad2b1a261d86d76f1
     manager: conda
     name: ruamel.yaml.jinja2
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/ruamel.yaml.jinja2-0.2.4-py_1.tar.bz2
-    version: 0.2.4
+      https://conda.anaconda.org/conda-forge/noarch/ruamel.yaml.jinja2-0.2.7-pyhd8ed1ab_0.conda
+    version: 0.2.7
   - category: main
     dependencies:
-      python: ''
-      ruamel.yaml: '>=0.15.10'
+      python: '>=3.8'
+      ruamel.yaml: '>=0.16.1'
     hash:
-      md5: 12f4cc11476f0f9ef90102792732ee38
-      sha256: baf55a7a8929705f7dfe16f6df7e47afb657b9cc79672710f8b660f0604b33ed
+      md5: 1256ba83f97fd9e29bc3bbd54d98debe
+      sha256: d9ff6eca8bfc60682d4f9a1377d46df8d53afe4dae824f4ad2b1a261d86d76f1
     manager: conda
     name: ruamel.yaml.jinja2
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/ruamel.yaml.jinja2-0.2.4-py_1.tar.bz2
-    version: 0.2.4
+      https://conda.anaconda.org/conda-forge/noarch/ruamel.yaml.jinja2-0.2.7-pyhd8ed1ab_0.conda
+    version: 0.2.7
   - category: main
     dependencies:
       libblas: '>=3.9.0,<4.0a0'
