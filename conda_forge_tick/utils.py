@@ -193,7 +193,7 @@ def get_default_container_run_args(
 def run_container_task(
     name: str,
     args: Iterable[str],
-    json_loads: Optional[Callable] = json.loads,
+    json_loads: Callable = json.loads,
     tmpfs_size_mb: int = DEFAULT_CONTAINER_TMPFS_SIZE_MB,
     input: Optional[str] = None,
     mount_dir: Optional[str] = None,
@@ -639,7 +639,7 @@ def _parse_recipes(
         if package is None
         else {"name": package.get("name"), "version": package.get("version")}
     )
-    if len(source) > 0:
+    if isinstance(source, list) and len(source) > 0:
         source_data = {
             "fn": source[0].get("file_name"),
             "patches": source[0].get("patches"),
