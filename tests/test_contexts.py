@@ -24,8 +24,13 @@ def test_feedstock_context_default_branch_not_set():
     context = FeedstockContext("TEST-FEEDSTOCK-NAME", demo_attrs)
     assert context.default_branch == "main"
 
+    # note: this does not overwrite the default branch
     DEFAULT_BRANCHES["TEST-FEEDSTOCK-NAME"] = "develop"
-    assert context.default_branch == "develop"
+    assert context.default_branch == "main"
+
+    DEFAULT_BRANCHES["TEST-FEEDSTOCK-NAME2"] = "develop"
+    context2 = FeedstockContext("TEST-FEEDSTOCK-NAME2", demo_attrs)
+    assert context2.default_branch == "develop"
 
 
 def test_feedstock_context_default_branch_set():
