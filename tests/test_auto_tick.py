@@ -52,3 +52,4 @@ def test_run_with_tmpdir(
     assert isinstance(cloned_context, ClonedFeedstockContext)
 
     assert cloned_context.feedstock_name == context.feedstock_name
+    assert cloned_context.default_branch == context.default_branch
