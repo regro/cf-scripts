@@ -429,14 +429,14 @@ def main() -> None:
                     "__migrator",
                     {},
                 )
-                if (
+                if mgconf.get("paused", False):
+                    paused_status[migrator_name] = f"{migrator.name} Migration Status"
+                elif (
                     mgconf.get("longterm", False)
                     or isinstance(migrator, ArchRebuild)
                     or isinstance(migrator, OSXArm)
                 ):
                     longterm_status[migrator_name] = f"{migrator.name} Migration Status"
-                elif mgconf.get("paused", False):
-                    paused_status[migrator_name] = f"{migrator.name} Migration Status"
                 else:
                     regular_status[migrator_name] = f"{migrator.name} Migration Status"
             else:
