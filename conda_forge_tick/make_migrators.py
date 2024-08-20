@@ -218,6 +218,7 @@ def add_rebuild_migration_yaml(
     nominal_pr_limit: int = PR_LIMIT,
     max_solver_attempts: int = 3,
     force_pr_after_solver_attempts: int = MAX_SOLVER_ATTEMPTS * 2,
+    include_build_requirements: bool = False,
 ) -> None:
     """Adds rebuild migrator.
 
@@ -245,6 +246,8 @@ def add_rebuild_migration_yaml(
         The number of PRs per hour, defaults to 5
     force_pr_after_solver_attempts : int, optional
         The number of solver attempts after which to force a PR, defaults to 100.
+    include_build_requirements : bool, optional
+        Check build requirements for package_names, defaults to false.
     """
 
     total_graph = create_rebuild_graph(
@@ -253,6 +256,7 @@ def add_rebuild_migration_yaml(
         excluded_feedstocks,
         exclude_pinned_pkgs=exclude_pinned_pkgs,
         include_noarch=config.get("include_noarch", False),
+        include_build_requirements=include_build_requirements,
     )
 
     # Note at this point the graph is made of all packages that have a
@@ -439,6 +443,9 @@ def migration_factory(
                     set(loaded_yaml) | {ly.replace("_", "-") for ly in loaded_yaml}
                 ) & all_package_names
             exclude_pinned_pkgs = migrator_config.get("exclude_pinned_pkgs", True)
+            include_build_requirements = migrator_config.get(
+                "include_build_requirements", False
+            )
 
             age = time.time() - loaded_yaml.get("migrator_ts", time.time())
             age /= 24 * 60 * 60
@@ -480,6 +487,7 @@ def migration_factory(
                     nominal_pr_limit=_pr_limit,
                     max_solver_attempts=max_solver_attempts,
                     force_pr_after_solver_attempts=force_pr_after_solver_attempts,
+                    include_build_requirements=include_build_requirements,
                 )
                 if skip_solver_checks:
                     assert not migrators[-1].check_solvable
