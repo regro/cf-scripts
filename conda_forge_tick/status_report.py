@@ -402,7 +402,7 @@ def main() -> None:
             pinning_version=pinning_version,
             dry_run=False,
         )
-        migrators = load_migrators()
+        migrators = load_migrators(skip_paused=False)
 
     os.makedirs("./status/migration_json", exist_ok=True)
     os.makedirs("./status/migration_svg", exist_ok=True)
