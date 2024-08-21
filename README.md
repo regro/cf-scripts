@@ -228,6 +228,7 @@ If your migrator needs special configuration, you should write a new factory fun
 - `RUN_URL`: set to the URL of the CI build (now set to a GHA run URL)
 - `MEMORY_LIMIT_GB`: set to the memory limit in GB for the bot
 - `BOT_TOKEN`: a GitHub token for the bot user
+- `CF_TICK_CONTAINER_NAME`: the name of the container to use in the bot, otherwise defaults to `ghcr.io/regro/conda-forge-tick`
 - `CF_TICK_CONTAINER_TAG`: set this to override the default container tag used in production runs, otherwise the value of `__version__` is used
 
 ### Running Tests
@@ -283,6 +284,8 @@ The bot started mostly as a single script, in `xonsh`, that was run in a cron-li
 As `conda-forge` grew, the "single job + global data access" model became increasingly unmanageable. Thus, over time, the bot has been split into separate jobs that run in parallel. This gradual refactoring has maintained the bot's performance despite `conda-forge`'s extreme growth. The cost has been increased complexity, the need to more carefully manage data access/updates, and the loss of strong consistency between the different parts of the bot's data. As of 2024, the bot is a collection of cron jobs, run in parallel, combined with a carefully separated data model based on eventual consistency.
 
 #### Current Bot Jobs and Structure
+
+[**Current GitHub Runner Allocation**](docs/runner_allocation.md)
 
 In this section, we list the collection of jobs that comprise the bot. Each job touches a distinct part of the bot's data structure and is run in parallel with the other jobs. We have also specified the GitHub Actions workflow that runs each job. See those files for further details on which commands are run.
 

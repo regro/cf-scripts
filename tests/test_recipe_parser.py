@@ -16,6 +16,7 @@ from conda_forge_tick.recipe_parser._parser import (
 
 def test_parsing_ml_jinja2():
     meta_yaml = """\
+{% set namesel = 'val1' %}  # [py2k]
 {% set name = 'val1' %}  # [py2k]
 {% set name = 'val2' %}#[py3k and win]
 {% set version = '4.5.6' %}
@@ -77,6 +78,7 @@ build:
 """
 
     meta_yaml_canonical = """\
+{% set namesel = "val1" %}  # [py2k]
 {% set name = "val1" %}  # [py2k]
 {% set name = "val2" %}  # [py3k and win]
 {% set version = "4.5.6" %}
@@ -140,6 +142,7 @@ build:
     cm = CondaMetaYAML(meta_yaml)
 
     # check the jinja2 keys
+    assert cm.jinja2_vars["namesel__###conda-selector###__py2k"] == "val1"
     assert cm.jinja2_vars["name__###conda-selector###__py2k"] == "val1"
     assert cm.jinja2_vars["name__###conda-selector###__py3k and win"] == "val2"
     assert cm.jinja2_vars["version"] == "4.5.6"
@@ -212,6 +215,7 @@ build:
     true_new_meta_yaml = """\
 {% set foo = "bar" %}
 {% set xfoo = 10 %}  # [win or osx]
+{% set namesel = "val1" %}  # [py2k]
 {% set name = "val1" %}  # [py2k]
 {% set name = "val2" %}  # [py3k and win]
 {% set version = "4.5.6" %}

@@ -218,6 +218,7 @@ def add_rebuild_migration_yaml(
     nominal_pr_limit: int = PR_LIMIT,
     max_solver_attempts: int = 3,
     force_pr_after_solver_attempts: int = MAX_SOLVER_ATTEMPTS * 2,
+    paused: bool = False,
 ) -> None:
     """Adds rebuild migrator.
 
@@ -245,6 +246,8 @@ def add_rebuild_migration_yaml(
         The number of PRs per hour, defaults to 5
     force_pr_after_solver_attempts : int, optional
         The number of solver attempts after which to force a PR, defaults to 100.
+    paused : bool, optional
+        Whether the migration is paused, defaults to False.
     """
 
     total_graph = create_rebuild_graph(
@@ -314,6 +317,7 @@ def add_rebuild_migration_yaml(
         piggy_back_migrations=piggy_back_migrations,
         max_solver_attempts=max_solver_attempts,
         force_pr_after_solver_attempts=force_pr_after_solver_attempts,
+        paused=paused,
         **config,
     )
 
@@ -466,24 +470,25 @@ def migration_factory(
             else:
                 skip_solver_checks = False
 
-            if not paused:
-                add_rebuild_migration_yaml(
-                    migrators=migrators,
-                    gx=gx,
-                    package_names=list(package_names),
-                    output_to_feedstock=output_to_feedstock,
-                    excluded_feedstocks=excluded_feedstocks,
-                    exclude_pinned_pkgs=exclude_pinned_pkgs,
-                    migration_yaml=yaml_contents,
-                    migration_name=os.path.splitext(yaml_file)[0],
-                    config=migrator_config,
-                    nominal_pr_limit=_pr_limit,
-                    max_solver_attempts=max_solver_attempts,
-                    force_pr_after_solver_attempts=force_pr_after_solver_attempts,
-                )
-                if skip_solver_checks:
-                    assert not migrators[-1].check_solvable
-            else:
+            add_rebuild_migration_yaml(
+                migrators=migrators,
+                gx=gx,
+                package_names=list(package_names),
+                output_to_feedstock=output_to_feedstock,
+                excluded_feedstocks=excluded_feedstocks,
+                exclude_pinned_pkgs=exclude_pinned_pkgs,
+                migration_yaml=yaml_contents,
+                migration_name=os.path.splitext(yaml_file)[0],
+                config=migrator_config,
+                nominal_pr_limit=_pr_limit,
+                max_solver_attempts=max_solver_attempts,
+                force_pr_after_solver_attempts=force_pr_after_solver_attempts,
+                paused=paused,
+            )
+            if skip_solver_checks:
+                assert not migrators[-1].check_solvable
+
+            if paused:
                 print(f"skipping migration {__mname} because it is paused", flush=True)
 
 
@@ -777,8 +782,13 @@ def _load(name):
         return make_from_lazy_json_data(lzj.data)
 
 
-def load_migrators() -> MutableSequence[Migrator]:
+def load_migrators(skip_paused: bool = True) -> MutableSequence[Migrator]:
     """Loads all current migrators.
+
+    Parameters
+    ----------
+    skip_paused : bool, optional
+        Whether to skip paused migrators, defaults to True.
 
     Returns
     -------
@@ -797,6 +807,9 @@ def load_migrators() -> MutableSequence[Migrator]:
             as_completed(futs), desc="loading migrators", ncols=80, total=len(all_names)
         ):
             migrator = fut.result()
+
+            if getattr(migrator, "paused", False) and skip_paused:
+                continue
 
             if isinstance(migrator, Version):
                 version_migrator = migrator

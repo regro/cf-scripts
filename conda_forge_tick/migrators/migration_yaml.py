@@ -141,6 +141,7 @@ class MigrationYaml(GraphMigrator):
         effective_graph: nx.DiGraph = None,
         force_pr_after_solver_attempts=100,
         longterm=False,
+        paused=False,
         **kwargs: Any,
     ):
         if not hasattr(self, "_init_args"):
@@ -163,6 +164,7 @@ class MigrationYaml(GraphMigrator):
                 "effective_graph": effective_graph,
                 "longterm": longterm,
                 "force_pr_after_solver_attempts": force_pr_after_solver_attempts,
+                "paused": paused,
             }
             self._init_kwargs.update(copy.deepcopy(kwargs))
 
@@ -187,6 +189,7 @@ class MigrationYaml(GraphMigrator):
         self.max_solver_attempts = max_solver_attempts
         self.longterm = longterm
         self.force_pr_after_solver_attempts = force_pr_after_solver_attempts
+        self.paused = paused
 
         self._reset_effective_graph()
 

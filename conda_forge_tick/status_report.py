@@ -402,7 +402,7 @@ def main() -> None:
             pinning_version=pinning_version,
             dry_run=False,
         )
-        migrators = load_migrators()
+        migrators = load_migrators(skip_paused=False)
 
     os.makedirs("./status/migration_json", exist_ok=True)
     os.makedirs("./status/migration_svg", exist_ok=True)
@@ -429,14 +429,14 @@ def main() -> None:
                     "__migrator",
                     {},
                 )
-                if (
+                if mgconf.get("paused", False):
+                    paused_status[migrator_name] = f"{migrator.name} Migration Status"
+                elif (
                     mgconf.get("longterm", False)
                     or isinstance(migrator, ArchRebuild)
                     or isinstance(migrator, OSXArm)
                 ):
                     longterm_status[migrator_name] = f"{migrator.name} Migration Status"
-                elif mgconf.get("paused", False):
-                    paused_status[migrator_name] = f"{migrator.name} Migration Status"
                 else:
                     regular_status[migrator_name] = f"{migrator.name} Migration Status"
             else:

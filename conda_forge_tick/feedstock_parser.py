@@ -298,12 +298,16 @@ def populate_feedstock_attributes(
                         ),
                     )
                 elif isinstance(recipe_yaml, str):
+                    platform_arch = (
+                        f"{plat}-{arch}"
+                        if isinstance(plat, str) and isinstance(arch, str)
+                        else None
+                    )
                     variant_yamls.append(
                         parse_recipe_yaml(
                             recipe_yaml,
-                            platform=plat,
+                            platform_arch=platform_arch,
                             cbc_path=cbc_path,
-                            arch=arch,
                         ),
                     )
 

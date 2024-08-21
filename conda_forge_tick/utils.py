@@ -117,15 +117,15 @@ def parse_munged_run_export(p: str) -> Dict:
 def get_default_container_name():
     """Get the default container name for the bot.
 
-    If the environment variable `CI` is set to `true`, the container name is `conda-forge-tick:test`.
-    Otherwise, the container name is `ghcr.io/regro/conda-forge-tick:latest`.
+    The image is stored at `ghcr.io/regro/conda-forge-tick`.
+
+    If the environment variable `CF_TICK_CONTAINER_TAG` is set, then that tag is pulled.
+    Otherwise, we pull the tag `__version__`.
     """
-    if os.environ.get("CF_TICK_PYTEST", "false") == "true":
-        cname = "conda-forge-tick:test"
-    else:
-        cname = "ghcr.io/regro/conda-forge-tick:" + os.environ.get(
-            "CF_TICK_CONTAINER_TAG", __version__
-        )
+    cname = (
+        f"{os.environ.get('CF_TICK_CONTAINER_NAME', 'ghcr.io/regro/conda-forge-tick')}"
+        + f":{os.environ.get('CF_TICK_CONTAINER_TAG', __version__)}"
+    )
 
     return cname
 
@@ -193,7 +193,7 @@ def get_default_container_run_args(
 def run_container_task(
     name: str,
     args: Iterable[str],
-    json_loads: Optional[Callable] = json.loads,
+    json_loads: Callable = json.loads,
     tmpfs_size_mb: int = DEFAULT_CONTAINER_TMPFS_SIZE_MB,
     input: Optional[str] = None,
     mount_dir: Optional[str] = None,
@@ -395,11 +395,9 @@ def _render_meta_yaml(text: str, for_pinning: bool = False, **kwargs) -> str:
 
 def parse_recipe_yaml(
     text: str,
-    for_pinning=False,
-    platform=None,
-    arch=None,
-    cbc_path=None,
-    log_debug=False,
+    for_pinning: bool = False,
+    platform_arch: str | None = None,
+    cbc_path: str | None = None,
     use_container: bool | None = None,
 ) -> "RecipeTypedDict":
     """Parse the recipe.yaml.
@@ -410,10 +408,8 @@ def parse_recipe_yaml(
         The raw text in conda-forge feedstock recipe.yaml file
     for_pinning : bool, optional
         If True, render the recipe.yaml for pinning migrators, by default False.
-    platform : str, optional
-        The platform (e.g., 'linux', 'osx', 'win').
-    arch : str, optional
-        The CPU architecture (e.g., '64', 'aarch64').
+    platform_arch : str, optional
+        The platform and arch (e.g., 'linux-64', 'osx-arm64', 'win-64').
     cbc_path : str, optional
         The path to global pinning file.
     log_debug : bool, optional
@@ -438,27 +434,23 @@ def parse_recipe_yaml(
         return parse_recipe_yaml_containerized(
             text,
             for_pinning=for_pinning,
-            platform=platform,
-            arch=arch,
-            log_debug=log_debug,
+            platform_arch=platform_arch,
+            cbc_path=cbc_path,
         )
     else:
         return parse_recipe_yaml_local(
             text,
             for_pinning=for_pinning,
-            platform=platform,
-            arch=arch,
-            log_debug=log_debug,
+            platform_arch=platform_arch,
+            cbc_path=cbc_path,
         )
 
 
 def parse_recipe_yaml_containerized(
     text: str,
-    for_pinning=False,
-    platform=None,
-    arch=None,
-    cbc_path=None,
-    log_debug=False,
+    for_pinning: bool = False,
+    platform_arch: str | None = None,
+    cbc_path: str | None = None,
 ) -> "RecipeTypedDict":
     """Parse the recipe.yaml.
 
@@ -470,14 +462,10 @@ def parse_recipe_yaml_containerized(
         The raw text in conda-forge feedstock recipe.yaml file
     for_pinning : bool, optional
         If True, render the recipe.yaml for pinning migrators, by default False.
-    platform : str, optional
-        The platform (e.g., 'linux', 'osx', 'win').
-    arch : str, optional
-        The CPU architecture (e.g., '64', 'aarch64').
+    platform_arch : str, optional
+        The platform and arch (e.g., 'linux-64', 'osx-arm64', 'win-64').
     cbc_path : str, optional
         The path to global pinning file.
-    log_debug : bool, optional
-        If True, print extra debugging info. Default is False.
 
     Returns
     -------
@@ -487,14 +475,11 @@ def parse_recipe_yaml_containerized(
     """
     args = []
 
-    if platform is not None:
-        args += ["--platform", platform]
+    if platform_arch is not None:
+        args += ["--platform-arch", platform_arch]
 
-    if arch is not None:
-        args += ["--arch", arch]
-
-    if log_debug:
-        args += ["--log-debug"]
+    if cbc_path is not None:
+        args += ["--cbc-path", cbc_path]
 
     if for_pinning:
         args += ["--for-pinning"]
@@ -509,11 +494,9 @@ def parse_recipe_yaml_containerized(
 
 def parse_recipe_yaml_local(
     text: str,
-    for_pinning=False,
-    platform=None,
-    arch=None,
-    cbc_path=None,
-    log_debug=False,
+    for_pinning: bool = False,
+    platform_arch: str | None = None,
+    cbc_path: str | None = None,
 ) -> "RecipeTypedDict":
     """Parse the recipe.yaml.
 
@@ -523,14 +506,10 @@ def parse_recipe_yaml_local(
         The raw text in conda-forge feedstock recipe.yaml file
     for_pinning : bool, optional
         If True, render the recipe.yaml for pinning migrators, by default False.
-    platform : str, optional
-        The platform (e.g., 'linux', 'osx', 'win').
-    arch : str, optional
-        The CPU architecture (e.g., '64', 'aarch64').
+    platform_arch : str, optional
+        The platform and arch (e.g., 'linux-64', 'osx-arm64', 'win-64').
     cbc_path : str, optional
         The path to global pinning file.
-    log_debug : bool, optional
-        If True, print extra debugging info. Default is False.
 
     Returns
     -------
@@ -539,14 +518,19 @@ def parse_recipe_yaml_local(
         for some errors. Have fun.
     """
 
-    rendered_recipe = _render_recipe_yaml(text)
-    parsed_recipes = _parse_validated_recipes(rendered_recipe)
+    rendered_recipes = _render_recipe_yaml(
+        text, cbc_path=cbc_path, platform_arch=platform_arch
+    )
+    if for_pinning:
+        rendered_recipes = _process_recipe_for_pinning(rendered_recipes)
+    parsed_recipes = _parse_recipes(rendered_recipes)
     return parsed_recipes
 
 
 def _render_recipe_yaml(
     text: str,
-    cbc_path=None,
+    platform_arch: str | None = None,
+    cbc_path: str | None = None,
 ) -> list[dict[str, Any]]:
     """
     Renders the given recipe YAML text using the `rattler-build` command-line tool.
@@ -555,6 +539,8 @@ def _render_recipe_yaml(
     ----------
     text : str
         The recipe YAML text to render.
+    platform : str, optional
+        The platform (e.g., 'linux', 'osx', 'win').
     cbc_path : str, optional
         The path to global pinning file.
 
@@ -564,8 +550,13 @@ def _render_recipe_yaml(
         The rendered recipe as a dictionary.
     """
     variant_config_flags = [] if cbc_path is None else ["--variant-config", cbc_path]
+    build_platform_flags = (
+        [] if platform_arch is None else ["--build-platform", platform_arch]
+    )
     res = subprocess.run(
-        ["rattler-build", "build", "--render-only"] + variant_config_flags,
+        ["rattler-build", "build", "--render-only"]
+        + variant_config_flags
+        + build_platform_flags,
         stdout=subprocess.PIPE,
         text=True,
         input=text,
@@ -574,9 +565,41 @@ def _render_recipe_yaml(
     return [output["recipe"] for output in json.loads(res.stdout)]
 
 
-def _parse_validated_recipes(
+def _process_recipe_for_pinning(recipes: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    def replace_name_key(d: dict[str, Any]) -> Any:
+        for key, value in d.items():
+            if isinstance(value, dict):
+                if key in ["pin_subpackage", "pin_compatible"] and "name" in value:
+                    # Create a new dictionary with 'package_name' first
+                    new_value = {"package_name": value.pop("name")}
+                    new_value.update(value)
+                    d[key] = {"name": _munge_dict_repr(new_value)}
+                else:
+                    replace_name_key(value)
+            elif isinstance(value, list):
+                for item in value:
+                    if isinstance(item, dict):
+                        replace_name_key(item)
+        return d
+
+    return [replace_name_key(recipe) for recipe in recipes]
+
+
+def _parse_recipes(
     validated_recipes: list[dict[str, Any]],
 ) -> "RecipeTypedDict":
+    """Parses validated recipes and transform them to fit `RecipeTypedDict`
+
+    Parameters
+    ----------
+    validated_recipes : list[dict[str, Any]]
+        The recipes validated and rendered by `rattler-build`
+
+    Returns
+    -------
+    RecipeTypedDict
+        A dict conforming to conda-build's rendered output
+    """
     first = validated_recipes[0]
     about = first["about"]
     build = first["build"]
@@ -598,6 +621,9 @@ def _parse_validated_recipes(
             "summary": about.get("summary"),
         }
     )
+
+    _parse_recipe_yaml_requirements(requirements)
+
     build_data = (
         None
         if build is None or requirements is None
@@ -613,7 +639,7 @@ def _parse_validated_recipes(
         if package is None
         else {"name": package.get("name"), "version": package.get("version")}
     )
-    if len(source) > 0:
+    if isinstance(source, list) and len(source) > 0:
         source_data = {
             "fn": source[0].get("file_name"),
             "patches": source[0].get("patches"),
@@ -644,17 +670,17 @@ def _parse_validated_recipes(
             None
             if requirements_output is None
             else {
-                "build": requirements_output.get("build"),
-                "host": requirements_output.get("host"),
-                "run": requirements_output.get("run"),
+                "build": requirements_output.get("build", []),
+                "host": requirements_output.get("host", []),
+                "run": requirements_output.get("run", []),
             }
         )
         build_output_data = (
             None
             if run_exports_output is None
             else {
-                "strong": run_exports_output.get("strong"),
-                "weak": run_exports_output.get("weak"),
+                "strong": run_exports_output.get("strong", []),
+                "weak": run_exports_output.get("weak", []),
             }
         )
         output_data.append(
@@ -678,6 +704,54 @@ def _parse_validated_recipes(
     }
 
     return _remove_none_values(parsed_recipes)
+
+
+def _parse_recipe_yaml_requirements(requirements) -> None:
+    """Parse requirement section of render by rattler-build to fit `RecipeTypedDict`
+
+
+    When rendering the recipe by rattler build,
+    `requirements["run_exports"]["weak"]` gives a list looking like:
+    [
+        {
+          "pin_subpackage": {
+            "name": "slepc",
+            "lower_bound": "x.x.x.x.x.x",
+            "upper_bound": "x.x"
+          }
+        },
+        "numpy"
+    ]
+    `run_exports["weak"]` of RecipeTypedDict looks like:
+    [
+        "slepc",
+        "numpy"
+    ]
+
+    The same applies to "strong".
+
+    This function takes care of this transformation
+
+        requirements : dict
+        The requirements section of the recipe rendered by rattler-build.
+        This parameter will be modified by this function.
+    """
+    if "run_exports" not in requirements:
+        return
+
+    run_exports = requirements["run_exports"]
+    for strength in ["strong", "weak"]:
+        original = run_exports.get(strength)
+        if isinstance(original, list):
+            result = []
+            for entry in original:
+                if isinstance(entry, str):
+                    result.append(entry)
+                elif isinstance(entry, dict):
+                    for key in ["pin_subpackage", "pin_compatible"]:
+                        if key in entry and "name" in entry[key]:
+                            result.append(entry[key]["name"])
+            run_exports[strength] = result
 
 
 def _remove_none_values(d):
