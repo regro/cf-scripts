@@ -4,7 +4,7 @@ import os
 import tempfile
 from collections.abc import Iterator
 from contextlib import contextmanager
-from dataclasses import InitVar, dataclass, field
+from dataclasses import dataclass
 from pathlib import Path
 
 from networkx import DiGraph
@@ -33,13 +33,13 @@ class MigratorSessionContext:
 class FeedstockContext:
     feedstock_name: str
     attrs: AttrsTypedDict
-    default_branch: str = field(init=False)
-    init_default_branch: InitVar[str | None] = None
+    default_branch: str = ""
+    """
+    If not provided, this is set to a default branch read from all_feedstocks.json, or 'main'.
+    """
 
-    def __post_init__(self, init_default_branch: str | None):
-        if init_default_branch is not None:
-            object.__setattr__(self, "default_branch", init_default_branch)
-        else:
+    def __post_init__(self):
+        if not self.default_branch:
             object.__setattr__(
                 self,
                 "default_branch",
@@ -61,11 +61,8 @@ class FeedstockContext:
             local_clone_dir = Path(tmpdir) / self.git_repo_name
             local_clone_dir.mkdir()
 
-            context_dict = self.__dict__.copy()
-            context_dict["init_default_branch"] = context_dict.pop("default_branch")
-
             yield ClonedFeedstockContext(
-                **context_dict,
+                **self.__dict__,
                 local_clone_dir=local_clone_dir,
             )
 

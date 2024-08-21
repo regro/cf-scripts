@@ -227,7 +227,7 @@ def run_migration_local(
     feedstock_ctx = ClonedFeedstockContext(
         feedstock_name=feedstock_name,
         attrs=node_attrs,
-        init_default_branch=default_branch,
+        default_branch=default_branch,
         local_clone_dir=Path(feedstock_dir),
     )
     recipe_dir = os.path.join(feedstock_dir, "recipe")
