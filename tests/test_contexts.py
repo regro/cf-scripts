@@ -51,7 +51,7 @@ def test_feedstock_context_git_repo_name():
     assert context.git_repo_name == "TEST-FEEDSTOCK-NAME-feedstock"
 
 
-@pytest.mark.parametrize("default_branch", [None, "feature"])
+@pytest.mark.parametrize("default_branch", [None, "", "feature"])
 @pytest.mark.parametrize(
     "attrs", [demo_attrs, demo_attrs_automerge, demo_attrs_check_solvable]
 )
