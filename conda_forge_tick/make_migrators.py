@@ -709,15 +709,6 @@ def initialize_migrators(
     add_replacement_migrator(
         migrators,
         gx,
-        cast("PackageName", "build"),
-        cast("PackageName", "python-build"),
-        "The conda package name 'build' is deprecated "
-        "and too generic. Use 'python-build' instead.",
-    )
-
-    add_replacement_migrator(
-        migrators,
-        gx,
         cast("PackageName", "mpir"),
         cast("PackageName", "gmp"),
         "The package 'mpir' is deprecated and unmaintained. Use 'gmp' instead.",
