@@ -1818,15 +1818,15 @@ package:
       wurlitzer: ''
       zstandard: ''
     hash:
-      md5: 0ba24c3ac5c0a4a466fd50d5677be7a1
-      sha256: 3dae08bf38c50355c753f4fd7ca3bab75a5436c6bf7550af78b123218e104daf
+      md5: a1fb0ddbc8e4fe9d7b87f3c3f5ee1134
+      sha256: ab70ce295f3af05c45c843304dba45a78d5f0fb0ab6a9cab294fc410efe80e77
     manager: conda
     name: conda-forge-feedstock-check-solvable
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-feedstock-check-solvable-0.7.2-pyhd8ed1ab_0.conda
-    version: 0.7.2
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-feedstock-check-solvable-0.7.3-pyhd8ed1ab_0.conda
+    version: 0.7.3
   - category: main
     dependencies:
       boltons: '>=23.0.0'
@@ -1846,15 +1846,15 @@ package:
       wurlitzer: ''
       zstandard: ''
     hash:
-      md5: 0ba24c3ac5c0a4a466fd50d5677be7a1
-      sha256: 3dae08bf38c50355c753f4fd7ca3bab75a5436c6bf7550af78b123218e104daf
+      md5: a1fb0ddbc8e4fe9d7b87f3c3f5ee1134
+      sha256: ab70ce295f3af05c45c843304dba45a78d5f0fb0ab6a9cab294fc410efe80e77
     manager: conda
     name: conda-forge-feedstock-check-solvable
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-feedstock-check-solvable-0.7.2-pyhd8ed1ab_0.conda
-    version: 0.7.2
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-feedstock-check-solvable-0.7.3-pyhd8ed1ab_0.conda
+    version: 0.7.3
   - category: main
     dependencies:
       boltons: '>=23.0.0'
@@ -1874,15 +1874,15 @@ package:
       wurlitzer: ''
       zstandard: ''
     hash:
-      md5: 0ba24c3ac5c0a4a466fd50d5677be7a1
-      sha256: 3dae08bf38c50355c753f4fd7ca3bab75a5436c6bf7550af78b123218e104daf
+      md5: a1fb0ddbc8e4fe9d7b87f3c3f5ee1134
+      sha256: ab70ce295f3af05c45c843304dba45a78d5f0fb0ab6a9cab294fc410efe80e77
     manager: conda
     name: conda-forge-feedstock-check-solvable
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-feedstock-check-solvable-0.7.2-pyhd8ed1ab_0.conda
-    version: 0.7.2
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-feedstock-check-solvable-0.7.3-pyhd8ed1ab_0.conda
+    version: 0.7.3
   - category: main
     dependencies:
       beautifulsoup4: ''
@@ -1946,39 +1946,39 @@ package:
   - category: main
     dependencies: {}
     hash:
-      md5: 4c93eee103bae88f42f522b07a3e5867
-      sha256: ae20f79ed007745cd6d8b2cf7620b71470945a591c6c7070f181b7fcbe005a4f
+      md5: a746de692e3d7e0df46a8403f158a026
+      sha256: e047044d0a5f498cfdeddb1c2fc77d456ef04cda3ef95694dbbe1902f49e3181
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.08.21.07.06.37-hd8ed1ab_0.conda
-    version: 2024.08.21.07.06.37
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.08.21.19.53.34-hd8ed1ab_0.conda
+    version: 2024.08.21.19.53.34
   - category: main
     dependencies: {}
     hash:
-      md5: 4c93eee103bae88f42f522b07a3e5867
-      sha256: ae20f79ed007745cd6d8b2cf7620b71470945a591c6c7070f181b7fcbe005a4f
+      md5: a746de692e3d7e0df46a8403f158a026
+      sha256: e047044d0a5f498cfdeddb1c2fc77d456ef04cda3ef95694dbbe1902f49e3181
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.08.21.07.06.37-hd8ed1ab_0.conda
-    version: 2024.08.21.07.06.37
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.08.21.19.53.34-hd8ed1ab_0.conda
+    version: 2024.08.21.19.53.34
   - category: main
     dependencies: {}
     hash:
-      md5: 4c93eee103bae88f42f522b07a3e5867
-      sha256: ae20f79ed007745cd6d8b2cf7620b71470945a591c6c7070f181b7fcbe005a4f
+      md5: a746de692e3d7e0df46a8403f158a026
+      sha256: e047044d0a5f498cfdeddb1c2fc77d456ef04cda3ef95694dbbe1902f49e3181
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.08.21.07.06.37-hd8ed1ab_0.conda
-    version: 2024.08.21.07.06.37
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.08.21.19.53.34-hd8ed1ab_0.conda
+    version: 2024.08.21.19.53.34
   - category: main
     dependencies:
       click: '>=8'
