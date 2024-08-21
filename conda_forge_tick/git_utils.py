@@ -11,7 +11,7 @@ from abc import ABC, abstractmethod
 from datetime import datetime
 from functools import cached_property
 from pathlib import Path
-from typing import Dict, Literal, Optional, Tuple, Union
+from typing import Dict, Literal, Optional, Union
 
 import backoff
 import github
@@ -28,7 +28,7 @@ from conda_forge_tick import sensitive_env
 # and pull all the needed info from the various source classes)
 from conda_forge_tick.lazy_json_backends import LazyJson
 
-from .contexts import FeedstockContext
+from .contexts import ClonedFeedstockContext, FeedstockContext
 from .executors import lock_git_operation
 from .os_utils import pushd
 from .utils import get_bot_run_url, run_command_hiding_token
@@ -41,8 +41,6 @@ GITHUB3_CLIENT = threading.local()
 GITHUB_CLIENT = threading.local()
 
 MAX_GITHUB_TIMEOUT = 60
-
-GIT_CLONE_DIR = "./feedstocks/"
 
 BOT_RERUN_LABEL = {
     "name": "bot-rerun",
@@ -724,15 +722,15 @@ def feedstock_repo(fctx: FeedstockContext) -> str:
 
 @lock_git_operation()
 def get_repo(
-    fctx: FeedstockContext,
+    context: ClonedFeedstockContext,
     branch: str,
     base_branch: str = "main",
-) -> Tuple[str, github3.repos.Repository] | Tuple[Literal[False], Literal[False]]:
+) -> github3.repos.Repository | Literal[False]:
     """Get the feedstock repo
 
     Parameters
     ----------
-    fctx : FeedstockContext
+    context : ClonedFeedstockContext
         Feedstock context used for constructing feedstock urls, etc.
     branch : str
         The branch to be made.
@@ -741,28 +739,24 @@ def get_repo(
 
     Returns
     -------
-    recipe_dir : str
-        The recipe directory
     repo : github3 repository
         The github3 repository object.
     """
     backend = github_backend()
-    feedstock_repo_name = feedstock_repo(fctx)
+    feedstock_repo_name = feedstock_repo(context)
 
     try:
         backend.fork("conda-forge", feedstock_repo_name)
     except RepositoryNotFoundError:
         logger.warning(f"Could not fork conda-forge/{feedstock_repo_name}")
-        with fctx.attrs["pr_info"] as pri:
-            pri["bad"] = f"{fctx.feedstock_name}: Git repository not found.\n"
+        with context.attrs["pr_info"] as pri:
+            pri["bad"] = f"{context.feedstock_name}: Git repository not found.\n"
         return False, False
-
-    feedstock_dir = Path(GIT_CLONE_DIR) / (fctx.feedstock_name + "-feedstock")
 
     backend.clone_fork_and_branch(
         upstream_owner="conda-forge",
         repo_name=feedstock_repo_name,
-        target_dir=feedstock_dir,
+        target_dir=context.local_clone_dir,
         new_branch=branch,
         base_branch=base_branch,
     )
@@ -774,7 +768,7 @@ def get_repo(
 
     assert repo is not None
 
-    return str(feedstock_dir), repo
+    return repo
 
 
 @lock_git_operation()

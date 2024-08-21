@@ -10,7 +10,7 @@ from typing import Any, List, Sequence, Set
 import dateutil.parser
 import networkx as nx
 
-from conda_forge_tick.contexts import FeedstockContext
+from conda_forge_tick.contexts import ClonedFeedstockContext, FeedstockContext
 from conda_forge_tick.lazy_json_backends import LazyJson
 from conda_forge_tick.make_graph import make_outputs_lut_from_graph
 from conda_forge_tick.path_lengths import cyclic_topological_sort
@@ -455,7 +455,9 @@ class Migrator:
         """
         return self.migrator_uid(attrs)
 
-    def pr_body(self, feedstock_ctx: FeedstockContext, add_label_text=True) -> str:
+    def pr_body(
+        self, feedstock_ctx: ClonedFeedstockContext, add_label_text=True
+    ) -> str:
         """Create a PR message body
 
         Returns

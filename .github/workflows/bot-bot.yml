@@ -64,6 +64,8 @@ jobs:
           MEMORY_LIMIT_GB: 7
           CF_TICK_GRAPH_DATA_BACKENDS: "${{ vars.CF_TICK_GRAPH_DATA_BACKENDS }}"
           MONGODB_CONNECTION_STRING: ${{ secrets.MONGODB_CONNECTION_STRING }}
+          # emptied at the beginning and end of each run, used by Python tempdir
+          TMPDIR: ${{ runner.temp }}
 
       - name: status of changes
         if: github.ref == 'refs/heads/master' && always() && ! env.CI_SKIP

@@ -6,7 +6,7 @@ from typing import Any, Sequence
 
 import networkx as nx
 
-from conda_forge_tick.contexts import FeedstockContext
+from conda_forge_tick.contexts import ClonedFeedstockContext, FeedstockContext
 from conda_forge_tick.migrators.core import Migrator
 
 if typing.TYPE_CHECKING:
@@ -127,7 +127,7 @@ class Replacement(Migrator):
         self.set_build_number(os.path.join(recipe_dir, "meta.yaml"))
         return super().migrate(recipe_dir, attrs)
 
-    def pr_body(self, feedstock_ctx: FeedstockContext) -> str:
+    def pr_body(self, feedstock_ctx: ClonedFeedstockContext) -> str:
         body = super().pr_body(feedstock_ctx)
         body = body.format(
             "I noticed that this recipe depends on `%s` instead of \n"

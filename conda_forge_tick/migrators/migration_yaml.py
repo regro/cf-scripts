@@ -10,7 +10,7 @@ from typing import Any, List, MutableSet, Optional, Sequence, Set
 
 import networkx as nx
 
-from conda_forge_tick.contexts import FeedstockContext
+from conda_forge_tick.contexts import ClonedFeedstockContext, FeedstockContext
 from conda_forge_tick.feedstock_parser import PIN_SEP_PAT
 from conda_forge_tick.make_graph import get_deps_from_outputs_lut
 from conda_forge_tick.migrators.core import GraphMigrator, Migrator, MiniMigrator
@@ -283,7 +283,7 @@ class MigrationYaml(GraphMigrator):
 
             return super().migrate(recipe_dir, attrs)
 
-    def pr_body(self, feedstock_ctx: "FeedstockContext") -> str:
+    def pr_body(self, feedstock_ctx: ClonedFeedstockContext) -> str:
         body = super().pr_body(feedstock_ctx)
         if feedstock_ctx.feedstock_name == "conda-forge-pinning":
             additional_body = (
@@ -537,7 +537,7 @@ class MigrationYamlCreator(Migrator):
 
         return super().migrate(recipe_dir, attrs)
 
-    def pr_body(self, feedstock_ctx: "FeedstockContext") -> str:
+    def pr_body(self, feedstock_ctx: ClonedFeedstockContext) -> str:
         body = (
             "This PR has been triggered in an effort to update the pin for"
             " **{name}**. The current pinned version is {current_pin}, "

@@ -3,8 +3,9 @@ import logging
 import os
 import shutil
 import tempfile
+from pathlib import Path
 
-from conda_forge_tick.contexts import FeedstockContext
+from conda_forge_tick.contexts import ClonedFeedstockContext
 from conda_forge_tick.lazy_json_backends import LazyJson, dumps
 from conda_forge_tick.os_utils import (
     chmod_plus_rwX,
@@ -221,12 +222,14 @@ def run_migration_local(
           - pr_body: The PR body for the migration.
     """
 
-    feedstock_ctx = FeedstockContext(
+    # it would be better if we don't re-instantiate ClonedFeedstockContext ourselves and let
+    # FeedstockContext.reserve_clone_directory be the only way to create a ClonedFeedstockContext
+    feedstock_ctx = ClonedFeedstockContext(
         feedstock_name=feedstock_name,
         attrs=node_attrs,
+        default_branch=default_branch,
+        local_clone_dir=Path(feedstock_dir),
     )
-    feedstock_ctx.default_branch = default_branch
-    feedstock_ctx.feedstock_dir = feedstock_dir
     recipe_dir = os.path.join(feedstock_dir, "recipe")
 
     data = {

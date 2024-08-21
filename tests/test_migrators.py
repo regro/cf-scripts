@@ -3,7 +3,7 @@ import re
 import subprocess
 from pathlib import Path
 
-from conda_forge_tick.contexts import FeedstockContext
+from conda_forge_tick.contexts import ClonedFeedstockContext
 from conda_forge_tick.feedstock_parser import populate_feedstock_attributes
 from conda_forge_tick.migrators import (
     MigrationYaml,
@@ -514,11 +514,11 @@ def run_test_migration(
     )
 
     if make_body:
-        fctx = FeedstockContext(
+        fctx = ClonedFeedstockContext(
             feedstock_name=name,
             attrs=pmy,
+            local_clone_dir=Path(tmpdir),
         )
-        fctx.feedstock_dir = os.path.dirname(tmpdir)
         m.effective_graph.add_node(name)
         m.effective_graph.nodes[name]["payload"] = MockLazyJson({})
         m.pr_body(fctx)
