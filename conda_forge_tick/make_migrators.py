@@ -181,6 +181,15 @@ def add_arch_migrate(migrators: MutableSequence[Migrator], gx: nx.DiGraph) -> No
                 graph=total_graph,
                 pr_limit=PR_LIMIT,
                 name="aarch64 and ppc64le addition",
+                piggy_back_migrations=[
+                    Build2HostMigrator(),
+                    CondaForgeYAMLCleanup(),
+                    UpdateCMakeArgsMigrator(),
+                    GuardTestingMigrator(),
+                    CrossCompilationForARMAndPower(),
+                    NoCondaInspectMigrator(),
+                    MPIPinRunAsBuildCleanup(),
+                ],                
             ),
         )
 
@@ -287,6 +296,8 @@ def add_rebuild_migration_yaml(
         ExtraJinja2KeysCleanup(),
         Build2HostMigrator(),
         NoCondaInspectMigrator(),
+        UpdateCMakeArgsMigrator(),
+        GuardTestingMigrator(),        
         CrossCompilationForARMAndPower(),
         MPIPinRunAsBuildCleanup(),
     ]
@@ -756,6 +767,9 @@ def initialize_migrators(
                 Build2HostMigrator(),
                 NoCondaInspectMigrator(),
                 PipWheelMigrator(),
+                UpdateCMakeArgsMigrator(),
+                GuardTestingMigrator(),                
+                CrossCompilationForARMAndPower(),
                 MPIPinRunAsBuildCleanup(),
                 DependencyUpdateMigrator(python_nodes),
                 StdlibMigrator(),
