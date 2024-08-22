@@ -11844,24 +11844,24 @@ package:
       __glibc: '>=2.17,<3.0.a0'
       libblas: '>=3.9.0,<4.0a0'
       libcblas: '>=3.9.0,<4.0a0'
-      libgcc-ng: '>=12'
+      libgcc-ng: '>=13'
       libgfortran-ng: ''
-      libgfortran5: '>=12.4.0'
+      libgfortran5: '>=13.3.0'
       liblapack: '>=3.9.0,<4.0a0'
-      libstdcxx-ng: '>=12'
+      libstdcxx-ng: '>=13'
       numpy: '>=1.23.5'
       python: '>=3.11,<3.12.0a0'
       python_abi: 3.11.*
     hash:
-      md5: 9a1e580d3c39175925a652eda3bbccc8
-      sha256: 13c676641b9712bb07f312616e4ca24835b8e1c234494431f339702e4a9b829e
+      md5: eb7e2a849cd47483d7e9eeb728c7a8c5
+      sha256: 36fd14d01a746bad1f9bc56045aa4fcfcdfe7b064a6d0c5a415dcdc8c0056983
     manager: conda
     name: scipy
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/linux-64/scipy-1.14.0-py311h0a5b728_2.conda
-    version: 1.14.0
+      https://conda.anaconda.org/conda-forge/linux-64/scipy-1.14.1-py311he1f765f_0.conda
+    version: 1.14.1
   - category: main
     dependencies:
       __osx: '>=10.13'
