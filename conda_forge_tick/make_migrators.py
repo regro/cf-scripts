@@ -189,7 +189,7 @@ def add_arch_migrate(migrators: MutableSequence[Migrator], gx: nx.DiGraph) -> No
                     CrossCompilationForARMAndPower(),
                     NoCondaInspectMigrator(),
                     MPIPinRunAsBuildCleanup(),
-                ],                
+                ],
             ),
         )
 
@@ -297,7 +297,7 @@ def add_rebuild_migration_yaml(
         Build2HostMigrator(),
         NoCondaInspectMigrator(),
         UpdateCMakeArgsMigrator(),
-        GuardTestingMigrator(),        
+        GuardTestingMigrator(),
         CrossCompilationForARMAndPower(),
         MPIPinRunAsBuildCleanup(),
     ]
@@ -768,7 +768,7 @@ def initialize_migrators(
                 NoCondaInspectMigrator(),
                 PipWheelMigrator(),
                 UpdateCMakeArgsMigrator(),
-                GuardTestingMigrator(),                
+                GuardTestingMigrator(),
                 CrossCompilationForARMAndPower(),
                 MPIPinRunAsBuildCleanup(),
                 DependencyUpdateMigrator(python_nodes),
