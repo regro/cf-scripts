@@ -30,6 +30,7 @@ from tests_integration.shared import (
     GitHubAccount,
     get_github_token,
     is_user_account,
+    setup_logging,
     write_github_output,
 )
 
@@ -73,10 +74,6 @@ class RepositoryOwner(Protocol):
 
     def get_repos(self) -> Iterable[Repository]:
         pass
-
-
-def setup_logging(level: int | str):
-    logging.basicConfig(level=level)
 
 
 def get_test_feedstock_names() -> set[str]:
@@ -206,10 +203,10 @@ def write_scenario_ids():
 
 
 def main():
-    setup_logging(logging.INFO)
     prepare_all_accounts()
     write_scenario_ids()
 
 
 if __name__ == "__main__":
+    setup_logging(logging.INFO)
     main()

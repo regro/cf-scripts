@@ -1,3 +1,4 @@
+import logging
 import os
 from enum import StrEnum
 from pathlib import Path
@@ -36,6 +37,12 @@ GITHUB_OUTPUT_KEY_SCENARIO_IDS = "scenario_ids"
 
 DEFINITIONS_DIR = Path(__file__).parent / "definitions"
 
+FEEDSTOCK_SUFFIX = "-feedstock"
+
+
+def setup_logging(level: int | str):
+    logging.basicConfig(level=level)
+
 
 def get_github_token(account: GitHubAccount) -> str:
     return os.environ[GITHUB_TOKEN_ENV_VARS[account]]
@@ -48,6 +55,3 @@ def is_user_account(account: GitHubAccount) -> bool:
 def write_github_output(key: str, value: str):
     with open(os.environ[ENV_GITHUB_OUTPUT], "a") as f:
         f.write(f"{key}={value}\n")
-
-
-FEEDSTOCK_SUFFIX = "-feedstock"

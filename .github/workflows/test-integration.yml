@@ -19,8 +19,10 @@ defaults:
 
 jobs:
   setup-repositories:
-    name: Set up Integration Test Repositories
+    name: Set up Integration Tests
     runs-on: ubuntu-latest
+    outputs:
+      scenario_ids: ${{ steps.setup_repositories.outputs.scenario_ids }}
     steps:
       - name: Checkout
         uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4
@@ -33,7 +35,34 @@ jobs:
           condarc-file: autotick-bot/condarc
 
       - name: Set up Integration Test Repositories
+        id: setup_repositories
         run: python -m tests_integration.setup_repositories
+        env:
+          GH_TOKEN_STAGING_CONDA_FORGE: ${{ secrets.GH_TOKEN_STAGING_CONDA_FORGE }}
+          GH_TOKEN_STAGING_BOT_USER: ${{ secrets.GH_TOKEN_STAGING_BOT_USER }}
+          GH_TOKEN_STAGING_REGRO: ${{ secrets.GH_TOKEN_STAGING_REGRO }}
+
+  run-test-scenario:
+    name: Run Integration Test Scenario
+    runs-on: ubuntu-latest
+    needs: setup-repositories
+    strategy:
+      matrix:
+        scenario_id: ${{ fromJson(needs.setup-repositories.outputs.scenario_ids) }}
+      max-parallel: 1
+    steps:
+      - name: Checkout
+        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4
+
+      - name: setup-micromamba
+        uses: mamba-org/setup-micromamba@f8b8a1e23a26f60a44c853292711bacfd3eac822 # v1
+        with:
+          environment-file: conda-lock.yml
+          environment-name: cf-scripts
+          condarc-file: autotick-bot/condarc
+
+      - name: Run Integration Test Scenario
+        run: python -m tests_integration.step_prepare ${{ matrix.scenario_id }}
         env:
           GH_TOKEN_STAGING_CONDA_FORGE: ${{ secrets.GH_TOKEN_STAGING_CONDA_FORGE }}
           GH_TOKEN_STAGING_BOT_USER: ${{ secrets.GH_TOKEN_STAGING_BOT_USER }}
