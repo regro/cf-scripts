@@ -8,10 +8,16 @@ from unittest.mock import ANY, MagicMock, create_autospec
 import pytest
 from conftest import FakeLazyJson
 
-from conda_forge_tick.auto_tick import _prepare_feedstock_repository, run_with_tmpdir
+from conda_forge_tick.auto_tick import (
+    _commit_migration,
+    _prepare_feedstock_repository,
+    run_with_tmpdir,
+)
 from conda_forge_tick.contexts import ClonedFeedstockContext, FeedstockContext
 from conda_forge_tick.git_utils import (
     DryRunBackend,
+    GitCli,
+    GitCliError,
     GitPlatformBackend,
     RepositoryNotFoundError,
 )
@@ -141,6 +147,157 @@ def test_prepare_feedstock_repository_complete_fail():
             _prepare_feedstock_repository(backend, cloned_context, "new_branch", "main")
             is False
         )
+
+
+@pytest.mark.parametrize("raise_commit_errors", [True, False])
+@pytest.mark.parametrize("allow_empty_commits", [True, False])
+def test_commit_migration_nonempty(
+    raise_commit_errors: bool, allow_empty_commits: bool
+):
+    backend = DryRunBackend()
+
+    context = FeedstockContext(
+        feedstock_name="pytest",
+        attrs=demo_attrs,
+    )
+
+    with context.reserve_clone_directory() as cloned_context:
+        assert _prepare_feedstock_repository(
+            backend, cloned_context, "new_branch", "main"
+        )
+
+        # now we do our "migration"
+        cloned_context.local_clone_dir.joinpath("conda-forge.yml").unlink()
+        with cloned_context.local_clone_dir.joinpath("new_file.txt").open("w") as f:
+            f.write("Hello World!")
+
+        _commit_migration(
+            backend.cli,
+            cloned_context,
+            "COMMIT_MESSAGE_1337",
+            allow_empty_commits,
+            raise_commit_errors,
+        )
+
+        # commit should be there
+        assert (
+            "COMMIT_MESSAGE_1337"
+            in backend.cli._run_git_command(
+                ["log", "-1", "--pretty=%B"],
+                cloned_context.local_clone_dir,
+                capture_text=True,
+            ).stdout
+        )
+
+
+@pytest.mark.parametrize("raise_commit_errors", [True, False])
+@pytest.mark.parametrize("allow_empty_commits", [True, False])
+def test_commit_migration_empty(raise_commit_errors: bool, allow_empty_commits: bool):
+    backend = DryRunBackend()
+
+    context = FeedstockContext(
+        feedstock_name="pytest",
+        attrs=demo_attrs,
+    )
+
+    with context.reserve_clone_directory() as cloned_context:
+        assert _prepare_feedstock_repository(
+            backend, cloned_context, "new_branch", "main"
+        )
+
+        if raise_commit_errors and not allow_empty_commits:
+            with pytest.raises(GitCliError):
+                _commit_migration(
+                    backend.cli,
+                    cloned_context,
+                    "COMMIT_MESSAGE",
+                    allow_empty_commits,
+                    raise_commit_errors,
+                )
+            return
+        else:
+            # everything should work normally
+            _commit_migration(
+                backend.cli,
+                cloned_context,
+                "COMMIT_MESSAGE_1337",
+                allow_empty_commits,
+                raise_commit_errors,
+            )
+
+        if not allow_empty_commits:
+            return
+
+        # commit should be there
+        assert (
+            "COMMIT_MESSAGE_1337"
+            in backend.cli._run_git_command(
+                ["log", "-1", "--pretty=%B"],
+                cloned_context.local_clone_dir,
+                capture_text=True,
+            ).stdout
+        )
+
+
+@pytest.mark.parametrize("raise_commit_errors", [True, False])
+@pytest.mark.parametrize("allow_empty_commits", [True, False])
+def test_commit_migration_mock_no_error(
+    allow_empty_commits: bool, raise_commit_errors: bool
+):
+    cli = create_autospec(GitCli)
+
+    clone_dir = Path("LOCAL_CLONE_DIR")
+
+    context = ClonedFeedstockContext(
+        feedstock_name="pytest", attrs=demo_attrs, local_clone_dir=clone_dir
+    )
+
+    _commit_migration(
+        cli, context, "COMMIT MESSAGE 1337", allow_empty_commits, raise_commit_errors
+    )
+
+    cli.commit.assert_called_once_with(
+        clone_dir, "COMMIT MESSAGE 1337", allow_empty=allow_empty_commits
+    )
+
+
+@pytest.mark.parametrize("raise_commit_errors", [True, False])
+@pytest.mark.parametrize("allow_empty_commits", [True, False])
+def test_commit_migration_mock_error(
+    allow_empty_commits: bool, raise_commit_errors: bool
+):
+    cli = create_autospec(GitCli)
+
+    clone_dir = Path("LOCAL_CLONE_DIR")
+
+    cli.commit.side_effect = GitCliError("Error")
+
+    context = ClonedFeedstockContext(
+        feedstock_name="pytest", attrs=demo_attrs, local_clone_dir=clone_dir
+    )
+
+    if raise_commit_errors:
+        with pytest.raises(GitCliError):
+            _commit_migration(
+                cli,
+                context,
+                "COMMIT MESSAGE 1337",
+                allow_empty_commits,
+                raise_commit_errors,
+            )
+    else:
+        _commit_migration(
+            cli,
+            context,
+            "COMMIT MESSAGE 1337",
+            allow_empty_commits,
+            raise_commit_errors,
+        )
+
+    cli.add.assert_called_once_with(clone_dir, all_=True)
+    cli.commit.assert_called_once_with(
+        clone_dir, "COMMIT MESSAGE 1337", allow_empty=allow_empty_commits
+    )
 
 
 @pytest.mark.parametrize("dry_run", [True, False])
