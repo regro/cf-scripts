@@ -23,6 +23,7 @@ dependencies:
   - curl
   - depfinder
   - distributed
+  - fastapi
   - feedparser
   - frozendict
   - git
@@ -56,6 +57,7 @@ dependencies:
   - streamz
   - tar
   - tqdm
+  - uvicorn
   - wget
   - wurlitzer
   - yaml
