@@ -36,9 +36,8 @@ cd ..
 
 if [[ "$1" != "--no-clone-graph-and-pinning" ]]; then
     git clone --depth=5 https://github.com/regro/cf-graph-countyfair.git cf-graph
-    git clone --depth=1 https://github.com/conda-forge/conda-forge-pinning-feedstock.git
 else
-    echo "Skipping cloning of cf-graph and pinning feedstock"
+    echo "Skipping cloning of cf-graph"
 fi
 
 bot_tag=$(python -c "import conda_forge_tick; print(conda_forge_tick.__version__)")
