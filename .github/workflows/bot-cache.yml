@@ -57,7 +57,7 @@ jobs:
       - name: install bot code
         if: success() && ! env.CI_SKIP
         run: |
-          source cf-scripts/autotick-bot/install_bot_code.sh --no-clone-graph-and-pinning
+          source cf-scripts/autotick-bot/install_bot_code.sh --no-clone-graph
 
       - name: run sync
         if: success() && ! env.CI_SKIP
@@ -110,7 +110,7 @@ jobs:
       - name: install bot code
         if: success() && ! env.CI_SKIP
         run: |
-          source cf-scripts/autotick-bot/install_bot_code.sh --no-clone-graph-and-pinning
+          source cf-scripts/autotick-bot/install_bot_code.sh --no-clone-graph
 
       - name: trigger next job
         uses: benc-uk/workflow-dispatch@25b02cc069be46d637e8fe2f1e8484008e9e9609 # v1.2.3
