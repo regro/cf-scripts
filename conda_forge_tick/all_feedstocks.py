@@ -1,4 +1,5 @@
 import logging
+import os
 from typing import List
 
 import tqdm
@@ -9,11 +10,15 @@ from .lazy_json_backends import dump, load
 
 logger = logging.getLogger(__name__)
 
+DEFAULT_CONDA_FORGE_ORG = "conda-forge"
+ENV_OVERRIDE_CONDA_FORGE_ORG = "CF_TICK_OVERRIDE_CONDA_FORGE_ORG"
+
 
 def get_all_feedstocks_from_github():
     gh = github_client()
 
-    org = gh.get_organization("conda-forge")
+    org_name = os.getenv(ENV_OVERRIDE_CONDA_FORGE_ORG, DEFAULT_CONDA_FORGE_ORG)
+    org = gh.get_organization(org_name)
     archived = set()
     not_archived = set()
     default_branches = {}

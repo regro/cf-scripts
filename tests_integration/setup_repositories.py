@@ -36,6 +36,10 @@ from tests_integration.shared import (
 
 LOGGER = logging.getLogger(__name__)
 
+IGNORE_FEEDSTOCK_NAMES = {
+    "__pycache__",
+}
+
 
 @dataclass(frozen=True)
 class GitHubAccountSetup:
@@ -84,7 +88,7 @@ def get_test_feedstock_names() -> set[str]:
     # note: the trailing "/" is needed to only get the directories,
     # because of a Python bug this only works in Python 3.11 or later (which is fine)
     # https://bugs.python.org/issue22276
-    return {path.name for path in DEFINITIONS_DIR.glob("*/")}
+    return {path.name for path in DEFINITIONS_DIR.glob("*/")} - IGNORE_FEEDSTOCK_NAMES
 
 
 def _or_empty_set(value: set[str]) -> set[str] | str:
@@ -97,6 +101,7 @@ def _or_empty_set(value: set[str]) -> set[str] | str:
 def prepare_repositories(
     owner: RepositoryOwner,
     owner_name: str,
+    existing_repos: Iterable[Repository],
     target_names: Iterable[str],
     delete_only: bool,
     suffix: str | None = None,
@@ -107,12 +112,13 @@ def prepare_repositories(
 
     :param owner: The owner of the repositories.
     :param owner_name: The name of the owner (for logging).
+    :param existing_repos: The existing repositories of the owner.
     :param target_names: The names of the repositories that should exist after the preparation (excluding the suffix).
     :param suffix: If given, only repositories with the given suffix are considered for deletion and the target names
                    are extended with the suffix.
     :param delete_only: If True, only delete unnecessary repositories and do not create any new ones.
     """
-    existing_names = {repo.name for repo in owner.get_repos()}
+    existing_names = {repo.name for repo in existing_repos}
     target_names = set(target_names)
 
     if suffix:
@@ -151,17 +157,21 @@ def prepare_accounts(setup_infos: Iterable[GitHubAccountSetup]):
         github = Github(get_github_token(setup_info.account))
 
         owner: RepositoryOwner
+        existing_repos: Iterable[Repository]
         if is_user_account(setup_info.account):
             current_user = github.get_user()
             if current_user.login != setup_info.account:
                 raise ValueError("The token is not for the expected user")
             owner = current_user
+            existing_repos = current_user.get_repos(type="owner")
         else:
             owner = github.get_organization(setup_info.account)
+            existing_repos = owner.get_repos()
 
         prepare_repositories(
             owner=owner,
             owner_name=setup_info.account,
+            existing_repos=existing_repos,
             target_names=setup_info.target_names,
             delete_only=setup_info.delete_only,
             suffix=setup_info.suffix,
@@ -175,7 +185,7 @@ def prepare_all_accounts():
     setup_infos: list[GitHubAccountSetup] = [
         GitHubAccountSetup(
             GitHubAccount.CONDA_FORGE_ORG,
-            test_feedstock_names,
+            test_feedstock_names | {"conda-forge-pinning"},
             FEEDSTOCK_SUFFIX,
         ),
         GitHubAccountSetup(

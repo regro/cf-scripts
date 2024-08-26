@@ -231,6 +231,11 @@ If your migrator needs special configuration, you should write a new factory fun
 - `CF_TICK_CONTAINER_NAME`: the name of the container to use in the bot, otherwise defaults to `ghcr.io/regro/conda-forge-tick`
 - `CF_TICK_CONTAINER_TAG`: set this to override the default container tag used in production runs, otherwise the value of `__version__` is used
 
+
+For testing purposes, the following additional environment variables are read:
+
+- `CF_TICK_OVERRIDE_CONDA_FORGE_ORG`: the name of the GitHub organization that contains the feedstocks (defaults to `conda-forge`)
+
 ### Running Tests
 
 The test suite relies on `pytest` and uses `docker`. To run the tests, use the following command:

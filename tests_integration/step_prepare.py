@@ -58,5 +58,4 @@ def main(scenario_id: int):
 
 if __name__ == "__main__":
     setup_logging(logging.INFO)
-    scenario_id = int(os.environ[ENV_TEST_SCENARIO_ID])
-    main(scenario_id)
+    main(int(os.environ[ENV_TEST_SCENARIO_ID]))

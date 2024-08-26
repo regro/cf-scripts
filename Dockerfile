@@ -30,7 +30,8 @@ RUN conda activate base && \
     pip install --no-deps --no-build-isolation -e . && \
     cd - && \
     conda deactivate && \
-    conda deactivate
+    conda deactivate && \
+    rm -rf $AUTOTICK_BOT_DIR/.git   # was needed by setuptools-scm
 
 # now make the conda user for running tasks and set the user
 RUN useradd --shell /bin/bash -c "" -m conda

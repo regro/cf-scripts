@@ -6,6 +6,15 @@ from .cli_context import CliContext
 from .lazy_json_backends import CF_TICK_GRAPH_DATA_HASHMAPS, get_lazy_json_backends
 from .utils import get_bot_run_url, load_existing_graph, run_command_hiding_token
 
+"""
+Environment Variables:
+
+GITHUB_WORKFLOW (optional): The name of the workflow.
+RUN_URL (optional): The URL of the run.
+BOT_TOKEN (optional): The bot's GitHub token.
+DEPLOY_REPO (optional): The GitHub repository to deploy to. Default: "regro/cf-graph-countyfair".
+"""
+
 
 def _run_git_cmd(cmd, **kwargs):
     return subprocess.run(["git"] + cmd, check=True, **kwargs)
@@ -67,7 +76,9 @@ def _deploy_batch(*, files_to_add, batch, n_added, max_per_batch=200):
                         "push",
                         "https://{token}@github.com/{deploy_repo}.git".format(
                             token=env.get("BOT_TOKEN", ""),
-                            deploy_repo="regro/cf-graph-countyfair",
+                            deploy_repo=os.getenv(
+                                "DEPLOY_REPO", "regro/cf-graph-countyfair"
+                            ),
                         ),
                         "master",
                     ],

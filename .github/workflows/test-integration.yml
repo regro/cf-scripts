@@ -26,6 +26,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4
+        with:
+          path: cf-scripts
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@988b5a0280414f521da01fcc63a27aeeb4b104db # v3
@@ -33,7 +35,7 @@ jobs:
       - name: Build Docker Image
         uses: docker/build-push-action@16ebe778df0e7752d2cfcbd924afdbbd89c1a755 # v6
         with:
-          context: .
+          context: cf-scripts
           push: false
           load: true
           tags: conda-forge-tick:test
@@ -50,13 +52,15 @@ jobs:
       - name: setup-micromamba
         uses: mamba-org/setup-micromamba@f8b8a1e23a26f60a44c853292711bacfd3eac822 # v1
         with:
-          environment-file: conda-lock.yml
+          environment-file: cf-scripts/conda-lock.yml
           environment-name: cf-scripts
-          condarc-file: autotick-bot/condarc
+          condarc-file: cf-scripts/autotick-bot/condarc
 
       - name: Set up Integration Test Repositories
         id: setup_repositories
-        run: python -m tests_integration.setup_repositories
+        run: |
+          pushd cf-scripts
+          python -m tests_integration.setup_repositories
         env:
           GH_TOKEN_STAGING_CONDA_FORGE: ${{ secrets.GH_TOKEN_STAGING_CONDA_FORGE }}
           GH_TOKEN_STAGING_BOT_USER: ${{ secrets.GH_TOKEN_STAGING_BOT_USER }}
@@ -69,11 +73,14 @@ jobs:
     strategy:
       matrix:
         scenario_id: ${{ fromJson(needs.setup-repositories.outputs.scenario_ids) }}
+
       max-parallel: 1
       fail-fast: false
     steps:
       - name: Checkout
         uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4
+        with:
+          path: cf-scripts
 
       - name: Download Docker Image
         uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16 # v4
@@ -89,17 +96,14 @@ jobs:
       - name: setup-micromamba
         uses: mamba-org/setup-micromamba@f8b8a1e23a26f60a44c853292711bacfd3eac822 # v1
         with:
-          environment-file: conda-lock.yml
+          environment-file: cf-scripts/conda-lock.yml
           environment-name: cf-scripts
-          condarc-file: autotick-bot/condarc
-
-      - name: Install Bot Code
-        run: |
-          cd $GITHUB_WORKSPACE/..
-          source cf-scripts/autotick-bot/install_bot_code.sh
+          condarc-file: cf-scripts/autotick-bot/condarc
 
       - name: Prepare Scenario
-        run: python -m tests_integration.step_prepare
+        run: |
+          pushd cf-scripts
+          python -m tests_integration.step_prepare
         env:
           SCENARIO_ID: ${{ matrix.scenario_id }}
           GH_TOKEN_STAGING_CONDA_FORGE: ${{ secrets.GH_TOKEN_STAGING_CONDA_FORGE }}
@@ -108,6 +112,7 @@ jobs:
 
       - name: Start HTTP Proxy
         run: |
+          pushd cf-scripts
           ./tests_integration/mock_proxy_start.sh &
           sleep 10
           # Install CA Certificate
@@ -116,14 +121,52 @@ jobs:
           sudo update-ca-certificates
         env:
           SCENARIO_ID: ${{ matrix.scenario_id }}
-          PYTHONPATH: ${{ github.workspace }}
+          PYTHONPATH: ${{ github.workspace }}/cf-scripts
 
-      - name: "[Test] update_upstream_versions"
+      - name: Install Bot Code
+        run: |
+          source cf-scripts/autotick-bot/install_bot_code.sh
+        env:
+          CF_GRAPH_REMOTE: https://github.com/regro-staging/cf-graph-countyfair.git
+          CF_PINNING_REMOTE: https://github.com/conda-forge-bot-staging/conda-forge-pinning-feedstock.git
+          PRUNE_DOCKER: false
+          PULL_DOCKER: false
+
+      - name: "[Test] Gather all Feedstocks"
         run: |
           pushd cf-graph
-          conda-forge-tick update-upstream-versions --job=1 --n-jobs=1
+          conda-forge-tick gather-all-feedstocks
         env:
-          # MongoDB is not supported in the integration test infrastructure.
+          BOT_TOKEN: ${{ secrets.GH_TOKEN_STAGING_BOT_USER }}
+          CF_TICK_OVERRIDE_CONDA_FORGE_ORG: conda-forge-bot-staging
+
+      - name: "[Test] Deploy to GitHub"
+        run: |
+          pushd cf-graph
+          conda-forge-tick deploy-to-github
+        env:
+          RUN_URL: "https://github.com/regro/cf-scripts/actions/runs/${{ github.run_id }}"
+          # note that we need the token scoped for regro-staging
+          BOT_TOKEN: ${{ secrets.GH_TOKEN_STAGING_REGRO }}
+          DEPLOY_REPO: regro-staging/cf-graph-countyfair
+
+      - name: Clear Runner
+        run: source cf-scripts/tests_integration/clear_runner.sh
+
+      - name: Install Bot Code
+        run: |
+          source cf-scripts/autotick-bot/install_bot_code.sh
+        env:
+          CF_GRAPH_REMOTE: https://github.com/regro-staging/cf-graph-countyfair.git
+          CF_PINNING_REMOTE: https://github.com/conda-forge-bot-staging/conda-forge-pinning-feedstock.git
+          PRUNE_DOCKER: false
+          PULL_DOCKER: false
+
+      - name: "[Test] Make Graph"
+        run: |
+          pushd cf-graph
+          conda-forge-tick make-graph --update-nodes-and-edges
+        env:
           CF_TICK_GRAPH_DATA_BACKENDS: file
 
       - name: "[Test] Deploy to GitHub"
@@ -131,13 +174,28 @@ jobs:
           pushd cf-graph
           conda-forge-tick deploy-to-github
         env:
-          RUN_URL: "https://https://github.com/regro/cf-scripts/actions/runs/${{ github.run_id }}"
-          BOT_TOKEN: ${{ secrets.GH_TOKEN_STAGING_BOT_USER }}
+          RUN_URL: "https://github.com/regro/cf-scripts/actions/runs/${{ github.run_id }}"
+          BOT_TOKEN: ${{ secrets.GH_TOKEN_STAGING_REGRO }}
+          DEPLOY_REPO: regro-staging/cf-graph-countyfair
 
-      - name: Test Step
-        run: python -m tests_integration.test_request
+      - name: Clear Runner
+        run: source cf-scripts/tests_integration/clear_runner.sh
+
+      - name: Install Bot Code
+        run: |
+          source cf-scripts/autotick-bot/install_bot_code.sh
         env:
-          HTTP_PROXY: "http://localhost:8080"
-          HTTPS_PROXY: "http://localhost:8080"
-          REQUESTS_CA_BUNDLE: "/etc/ssl/certs/ca-certificates.crt"
-          SSL_CERT_FILE: "/etc/ssl/certs/ca-certificates.crt"
+          CF_GRAPH_REMOTE: https://github.com/regro-staging/cf-graph-countyfair.git
+          CF_PINNING_REMOTE: https://github.com/conda-forge-bot-staging/conda-forge-pinning-feedstock.git
+          PRUNE_DOCKER: false
+          PULL_DOCKER: false
+
+      #- name: "[Test] update_upstream_versions"
+      #  run: |
+      #    pushd cf-graph
+      #    conda-forge-tick update-upstream-versions
+      #  env:
+      #    # MongoDB is not supported in the integration test infrastructure.
+      #    CF_TICK_GRAPH_DATA_BACKENDS: file
+      #    CF_TICK_CONTAINER_NAME: conda-forge-tick
+      #    CF_TICK_CONTAINER_TAG: test
