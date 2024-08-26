@@ -34,7 +34,7 @@ pip install --no-deps --no-build-isolation -e .
 
 cd ..
 
-if [[ "$1" != "--no-clone-graph-and-pinning" ]]; then
+if [[ "$1" != "--no-clone-graph" ]]; then
     git clone --depth=5 https://github.com/regro/cf-graph-countyfair.git cf-graph
 else
     echo "Skipping cloning of cf-graph"
