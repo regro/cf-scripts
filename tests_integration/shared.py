@@ -1,5 +1,8 @@
+import importlib
 import logging
 import os
+import types
+from collections.abc import Iterator
 from enum import StrEnum
 from pathlib import Path
 
@@ -31,11 +34,14 @@ ENV_GITHUB_RUN_ID = "GITHUB_RUN_ID"
 """
 Used as a random seed for the integration tests.
 """
+ENV_TEST_SCENARIO_ID = "SCENARIO_ID"
 
 GITHUB_OUTPUT_KEY_SCENARIO_IDS = "scenario_ids"
 
+TESTS_INTEGRATION_DIR_NAME = "tests_integration"
+DEFINITIONS_DIR_NAME = "definitions"
 
-DEFINITIONS_DIR = Path(__file__).parent / "definitions"
+DEFINITIONS_DIR = Path(__file__).parent / DEFINITIONS_DIR_NAME
 
 FEEDSTOCK_SUFFIX = "-feedstock"
 
@@ -55,3 +61,15 @@ def is_user_account(account: GitHubAccount) -> bool:
 def write_github_output(key: str, value: str):
     with open(os.environ[ENV_GITHUB_OUTPUT], "a") as f:
         f.write(f"{key}={value}\n")
+
+
+def get_test_case_modules(scenario: dict[str, str]) -> Iterator[types.ModuleType]:
+    """
+    Yields all test case modules of the given scenario.
+    """
+    return (
+        importlib.import_module(
+            f"{TESTS_INTEGRATION_DIR_NAME}.{DEFINITIONS_DIR_NAME}.{feedstock}.{test_case}"
+        )
+        for feedstock, test_case in scenario.items()
+    )

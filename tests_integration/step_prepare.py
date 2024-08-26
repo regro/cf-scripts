@@ -1,19 +1,22 @@
 """
 After closing all open Pull Requests in the conda-forge staging organization,
 runs the prepare() method of all test cases of the current test scenario to prepare the test environment.
+
+Expects the scenario ID to be present in the environment variable named after ENV_TEST_SCENARIO_ID.
 """
 
-import importlib
 import logging
-import sys
+import os
 
 from github import Github
 
 from tests_integration.collect_test_scenarios import get_test_scenario
 from tests_integration.shared import (
+    ENV_TEST_SCENARIO_ID,
     FEEDSTOCK_SUFFIX,
     GitHubAccount,
     get_github_token,
+    get_test_case_modules,
     setup_logging,
 )
 
@@ -35,13 +38,10 @@ def close_all_open_pull_requests():
 
 
 def run_all_prepare_functions(scenario: dict[str, str]):
-    for feedstock, test_case in scenario.items():
-        test_case_module = importlib.import_module(
-            f"tests_integration.definitions.{feedstock}.{test_case}"
-        )
-
+    for test_module in get_test_case_modules(scenario):
         try:
-            test_case_module.prepare()
+            logging.info("Preparing %s...", test_module.__name__)
+            test_module.prepare()
         except AttributeError:
             raise AttributeError("The test case must define a prepare() function.")
 
@@ -58,6 +58,5 @@ def main(scenario_id: int):
 
 if __name__ == "__main__":
     setup_logging(logging.INFO)
-    if len(sys.argv) != 2:
-        raise ValueError("Expected exactly one argument: the scenario ID.")
-    main(int(sys.argv[1]))
+    scenario_id = int(os.environ[ENV_TEST_SCENARIO_ID])
+    main(scenario_id)

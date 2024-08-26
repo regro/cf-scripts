@@ -43,7 +43,7 @@ jobs:
           GH_TOKEN_STAGING_REGRO: ${{ secrets.GH_TOKEN_STAGING_REGRO }}
 
   run-test-scenario:
-    name: Run Integration Test Scenario
+    name: Run Scenarios
     runs-on: ubuntu-latest
     needs: setup-repositories
     strategy:
@@ -61,9 +61,30 @@ jobs:
           environment-name: cf-scripts
           condarc-file: autotick-bot/condarc
 
-      - name: Run Integration Test Scenario
-        run: python -m tests_integration.step_prepare ${{ matrix.scenario_id }}
+      - name: Prepare Scenario
+        run: python -m tests_integration.step_prepare
         env:
+          SCENARIO_ID: ${{ matrix.scenario_id }}
           GH_TOKEN_STAGING_CONDA_FORGE: ${{ secrets.GH_TOKEN_STAGING_CONDA_FORGE }}
           GH_TOKEN_STAGING_BOT_USER: ${{ secrets.GH_TOKEN_STAGING_BOT_USER }}
           GH_TOKEN_STAGING_REGRO: ${{ secrets.GH_TOKEN_STAGING_REGRO }}
+
+      - name: Start HTTP Proxy
+        run: |
+          ./tests_integration/mock_proxy_start.sh &
+          sleep 10
+          # Install CA Certificate
+          sudo wget -e use_proxy=yes -e http_proxy=127.0.0.1:8080 -O /usr/local/share/ca-certificates/mitmproxy.crt \
+            http://mitm.it/cert/pem
+          sudo update-ca-certificates
+        env:
+          SCENARIO_ID: ${{ matrix.scenario_id }}
+          PYTHONPATH: ${{ github.workspace }}
+
+      - name: Test Step
+        run: python -m tests_integration.test_request
+        env:
+          HTTP_PROXY: "http://localhost:8080"
+          HTTPS_PROXY: "http://localhost:8080"
+          REQUESTS_CA_BUNDLE: "/etc/ssl/certs/ca-certificates.crt"
+          SSL_CERT_FILE: "/etc/ssl/certs/ca-certificates.crt"
