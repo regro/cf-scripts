@@ -122,7 +122,7 @@ class ArchRebuild(GraphMigrator):
                         "conda-forge",
                         "migrations",
                         "arch_rebuild.txt",
-                    )                    
+                    )
                 ) as f:
                     target_packages = set(f.read().split())
 
@@ -277,7 +277,7 @@ class OSXArm(GraphMigrator):
                         "conda-forge",
                         "migrations",
                         "osx_arm64.txt",
-                    )                    
+                    )
                 ) as f:
                     target_packages = set(f.read().split())
 
