@@ -106,10 +106,6 @@ def main(lockfile, reformat_only, force):
         for spec in envyml["dependencies"]:
             spec = MatchSpec(spec)
 
-            # we always pull the latest on the fly when the bot runs
-            if spec.name == "conda-forge-pinning":
-                continue
-
             for platform in envyml["platforms"]:
                 if old_platform_pkg_to_ver[platform].get(
                     spec.name
