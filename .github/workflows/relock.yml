@@ -16,25 +16,6 @@ jobs:
         shell: bash -leo pipefail {0}
 
     steps:
-      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4
-
-      - uses: mamba-org/setup-micromamba@f8b8a1e23a26f60a44c853292711bacfd3eac822 # v1
-        with:
-          environment-file: conda-lock.yml
-          environment-name: cf-scripts
-          condarc-file: autotick-bot/condarc
-
-      - name: relock
-        id: relock
-        run: |
-          python autotick-bot/relock_me.py conda-lock.yml > summary.txt
-          {
-            echo 'SUMMARY<<EOF'
-            cat summary.txt
-            echo EOF
-          } >> "$GITHUB_OUTPUT"
-          rm summary.txt
-
       # https://stackoverflow.com/a/73828715/1745538
       - name: skip if PR already exists
         id: check
@@ -53,9 +34,31 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.AUTOTICK_BOT_TOKEN }}
 
-      - name: open PR
+      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4
         if: ${{ steps.check.outputs.skip != 'true' }}
+
+      - uses: mamba-org/setup-micromamba@f8b8a1e23a26f60a44c853292711bacfd3eac822 # v1
+        if: ${{ steps.check.outputs.skip != 'true' }}
+        with:
+          environment-file: conda-lock.yml
+          environment-name: cf-scripts
+          condarc-file: autotick-bot/condarc
+
+      - name: relock
+        id: relock
+        if: ${{ steps.check.outputs.skip != 'true' }}
+        run: |
+          python autotick-bot/relock_me.py conda-lock.yml > summary.txt
+          {
+            echo 'SUMMARY<<EOF'
+            cat summary.txt
+            echo EOF
+          } >> "$GITHUB_OUTPUT"
+          rm summary.txt
+
+      - name: open PR
         id: pr
+        if: ${{ steps.check.outputs.skip != 'true' }}
         uses: peter-evans/create-pull-request@c5a7806660adbe173f04e3e038b0ccdcd758773c # v6
         with:
           commit-message: relock w/ conda-lock
