@@ -3,7 +3,7 @@ name: relock
 on:
   workflow_dispatch: null
   schedule:
-    - cron: '15 */3 * * *'
+    - cron: '15 * * * *'
 
 concurrency: relock
 
@@ -11,71 +11,11 @@ jobs:
   relock:
     name: relock
     runs-on: "ubuntu-latest"
-    defaults:
-      run:
-        shell: bash -leo pipefail {0}
-
     steps:
-      # https://stackoverflow.com/a/73828715/1745538
-      - name: skip if PR already exists
-        id: check
-        run: |
-          prs=$(gh pr list \
-              --repo "$GITHUB_REPOSITORY" \
-              --head 'relock-deps' \
-              --base 'master' \
-              --json title \
-              --jq 'length')
-          if [[ ${prs} !=  "0" ]]; then
-              echo "skip=true" >> "$GITHUB_OUTPUT"
-          else
-              echo "skip=false" >> "$GITHUB_OUTPUT"
-          fi
-        env:
-          GH_TOKEN: ${{ secrets.AUTOTICK_BOT_TOKEN }}
-
       - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4
-        if: ${{ steps.check.outputs.skip != 'true' }}
 
-      - uses: mamba-org/setup-micromamba@f8b8a1e23a26f60a44c853292711bacfd3eac822 # v1
-        if: ${{ steps.check.outputs.skip != 'true' }}
+      - uses: beckermr/relock-conda@8db9717dce0545d2273eb6957282c825db1a9c03 # v2
         with:
-          environment-file: conda-lock.yml
-          environment-name: cf-scripts
-          condarc-file: autotick-bot/condarc
-
-      - name: relock
-        id: relock
-        if: ${{ steps.check.outputs.skip != 'true' }}
-        run: |
-          python autotick-bot/relock_me.py conda-lock.yml > summary.txt
-          {
-            echo 'SUMMARY<<EOF'
-            cat summary.txt
-            echo EOF
-          } >> "$GITHUB_OUTPUT"
-          rm summary.txt
-
-      - name: open PR
-        id: pr
-        if: ${{ steps.check.outputs.skip != 'true' }}
-        uses: peter-evans/create-pull-request@c5a7806660adbe173f04e3e038b0ccdcd758773c # v6
-        with:
-          commit-message: relock w/ conda-lock
-          title: relock w/ conda-lock
-          body: "This pull request relocks the dependencies with conda-lock.
-
-
-            ${{ steps.relock.outputs.SUMMARY }}"
-          branch: relock-deps
-          delete-branch: true
-          token: ${{ secrets.AUTOTICK_BOT_TOKEN }}
-          committer: regro-cf-autotick-bot <36490558+regro-cf-autotick-bot@users.noreply.github.com>
-          author: regro-cf-autotick-bot <36490558+regro-cf-autotick-bot@users.noreply.github.com>
-          labels: dependencies
-
-      - name: automerge
-        if: ${{ steps.check.outputs.skip != 'true' && steps.pr.outputs.pull-request-number != '' }}
-        run: gh pr merge --merge --auto "${{ steps.pr.outputs.pull-request-number }}"
-        env:
-          GH_TOKEN: ${{ secrets.AUTOTICK_BOT_TOKEN }}
+          github-token: ${{ secrets.AUTOTICK_BOT_TOKEN }}
+          automerge: true
+          skip-if-pr-exists: true
