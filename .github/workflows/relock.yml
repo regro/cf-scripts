@@ -35,7 +35,26 @@ jobs:
           } >> "$GITHUB_OUTPUT"
           rm summary.txt
 
-      - name: Open PR
+      # https://stackoverflow.com/a/73828715/1745538
+      - name: skip if PR already exists
+        id: check
+        run: |
+          prs=$(gh pr list \
+              --repo "$GITHUB_REPOSITORY" \
+              --head 'relock-deps' \
+              --base 'master' \
+              --json title \
+              --jq 'length')
+          if [[ ${prs} !=  "0" ]]; then
+              echo "skip=true" >> "$GITHUB_OUTPUT"
+          else
+              echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
+        env:
+          GH_TOKEN: ${{ secrets.AUTOTICK_BOT_TOKEN }}
+
+      - name: open PR
+        if: ${{ steps.check.outputs.skip != 'true' }}
         id: pr
         uses: peter-evans/create-pull-request@c5a7806660adbe173f04e3e038b0ccdcd758773c # v6
         with:
@@ -53,7 +72,7 @@ jobs:
           labels: dependencies
 
       - name: automerge
-        if: ${{ steps.pr.outputs.pull-request-number != '' }}
+        if: ${{ steps.check.outputs.skip != 'true' && steps.pr.outputs.pull-request-number != '' }}
         run: gh pr merge --merge --auto "${{ steps.pr.outputs.pull-request-number }}"
         env:
           GH_TOKEN: ${{ secrets.AUTOTICK_BOT_TOKEN }}
