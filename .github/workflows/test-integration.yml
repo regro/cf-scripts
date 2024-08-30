@@ -17,6 +17,26 @@ defaults:
   run:
     shell: bash -leo pipefail {0}
 
+env:
+  # Test Instrumentation
+  GH_TOKEN_STAGING_CONDA_FORGE: ${{ secrets.GH_TOKEN_STAGING_CONDA_FORGE }}
+  GH_TOKEN_STAGING_BOT_USER: ${{ secrets.GH_TOKEN_STAGING_BOT_USER }}
+  GH_TOKEN_STAGING_REGRO: ${{ secrets.GH_TOKEN_STAGING_REGRO }}
+  # Bot
+  CF_TICK_OVERRIDE_CONDA_FORGE_ORG: conda-forge-bot-staging
+  CF_TICK_GRAPH_DATA_BACKENDS: file
+  CF_TICK_CONTAINER_NAME: conda-forge-tick
+  CF_TICK_CONTAINER_TAG: test
+  # Deploy to GitHub step
+  DEPLOY_REPO: regro-staging/cf-graph-countyfair
+  RUN_URL: "https://github.com/regro/cf-scripts/actions/runs/${{ github.run_id }}"
+  # Install Bot Code step
+  CF_GRAPH_REMOTE: https://github.com/regro-staging/cf-graph-countyfair.git
+  CF_PINNING_REMOTE: https://github.com/conda-forge-bot-staging/conda-forge-pinning-feedstock.git
+  PRUNE_DOCKER: false
+  PULL_DOCKER: false
+  UPDATE_PINNINGS: false
+
 jobs:
   setup-repositories:
     name: Set up Integration Tests
@@ -61,10 +81,6 @@ jobs:
         run: |
           pushd cf-scripts
           python -m tests_integration.setup_repositories
-        env:
-          GH_TOKEN_STAGING_CONDA_FORGE: ${{ secrets.GH_TOKEN_STAGING_CONDA_FORGE }}
-          GH_TOKEN_STAGING_BOT_USER: ${{ secrets.GH_TOKEN_STAGING_BOT_USER }}
-          GH_TOKEN_STAGING_REGRO: ${{ secrets.GH_TOKEN_STAGING_REGRO }}
 
   run-test-scenario:
     name: Run Scenarios
@@ -105,9 +121,6 @@ jobs:
           python -m tests_integration.step_prepare
         env:
           SCENARIO_ID: ${{ matrix.scenario_id }}
-          GH_TOKEN_STAGING_CONDA_FORGE: ${{ secrets.GH_TOKEN_STAGING_CONDA_FORGE }}
-          GH_TOKEN_STAGING_BOT_USER: ${{ secrets.GH_TOKEN_STAGING_BOT_USER }}
-          GH_TOKEN_STAGING_REGRO: ${{ secrets.GH_TOKEN_STAGING_REGRO }}
 
       - name: Start HTTP Proxy
         run: |
@@ -126,10 +139,7 @@ jobs:
         run: |
           source cf-scripts/autotick-bot/install_bot_code.sh
         env:
-          CF_GRAPH_REMOTE: https://github.com/regro-staging/cf-graph-countyfair.git
-          CF_PINNING_REMOTE: https://github.com/conda-forge-bot-staging/conda-forge-pinning-feedstock.git
-          PRUNE_DOCKER: false
-          PULL_DOCKER: false
+          # This is the first install, so we need to update the pinnings
           UPDATE_PINNINGS: true
 
       - name: "[Test] Gather all Feedstocks"
@@ -138,104 +148,62 @@ jobs:
           conda-forge-tick --debug gather-all-feedstocks
         env:
           BOT_TOKEN: ${{ secrets.GH_TOKEN_STAGING_BOT_USER }}
-          CF_TICK_OVERRIDE_CONDA_FORGE_ORG: conda-forge-bot-staging
 
       - name: "[Test] Deploy to GitHub"
         run: |
           pushd cf-graph
           conda-forge-tick --debug deploy-to-github
         env:
-          RUN_URL: "https://github.com/regro/cf-scripts/actions/runs/${{ github.run_id }}"
           # note that we need the token scoped for regro-staging
           BOT_TOKEN: ${{ secrets.GH_TOKEN_STAGING_REGRO }}
-          DEPLOY_REPO: regro-staging/cf-graph-countyfair
 
-      - name: Clear Runner
-        run: source cf-scripts/tests_integration/clear_runner.sh
-
-      - name: Install Bot Code
+      - name: Reinstall Bot Code
         run: |
+          source cf-scripts/tests_integration/clear_runner.sh
           source cf-scripts/autotick-bot/install_bot_code.sh
-        env:
-          CF_GRAPH_REMOTE: https://github.com/regro-staging/cf-graph-countyfair.git
-          CF_PINNING_REMOTE: https://github.com/conda-forge-bot-staging/conda-forge-pinning-feedstock.git
-          PRUNE_DOCKER: false
-          PULL_DOCKER: false
-          UPDATE_PINNINGS: false
 
       - name: "[Test] Make Graph (Nodes and Edges)"
         run: |
           pushd cf-graph
           conda-forge-tick --debug make-graph --update-nodes-and-edges
-        env:
-          CF_TICK_GRAPH_DATA_BACKENDS: file
 
       - name: "[Test] Deploy to GitHub"
         run: |
           pushd cf-graph
           conda-forge-tick --debug deploy-to-github
         env:
-          RUN_URL: "https://github.com/regro/cf-scripts/actions/runs/${{ github.run_id }}"
           BOT_TOKEN: ${{ secrets.GH_TOKEN_STAGING_REGRO }}
-          DEPLOY_REPO: regro-staging/cf-graph-countyfair
 
-      - name: Clear Runner
-        run: source cf-scripts/tests_integration/clear_runner.sh
-
-      - name: Install Bot Code
+      - name: Reinstall Bot Code
         run: |
+          source cf-scripts/tests_integration/clear_runner.sh
           source cf-scripts/autotick-bot/install_bot_code.sh
-        env:
-          CF_GRAPH_REMOTE: https://github.com/regro-staging/cf-graph-countyfair.git
-          CF_PINNING_REMOTE: https://github.com/conda-forge-bot-staging/conda-forge-pinning-feedstock.git
-          PRUNE_DOCKER: false
-          PULL_DOCKER: false
-          UPDATE_PINNINGS: false
 
       - name: "[Test] Make Graph (Node Attributes)"
         run: |
           pushd cf-graph
           conda-forge-tick --debug make-graph
-        env:
-          CF_TICK_GRAPH_DATA_BACKENDS: file
-          CF_TICK_OVERRIDE_CONDA_FORGE_ORG: conda-forge-bot-staging
 
       - name: "[Test] Deploy to GitHub"
         run: |
           pushd cf-graph
           conda-forge-tick --debug deploy-to-github
         env:
-          RUN_URL: "https://github.com/regro/cf-scripts/actions/runs/${{ github.run_id }}"
           BOT_TOKEN: ${{ secrets.GH_TOKEN_STAGING_REGRO }}
-          DEPLOY_REPO: regro-staging/cf-graph-countyfair
 
-      - name: Clear Runner
-        run: source cf-scripts/tests_integration/clear_runner.sh
-
-      - name: Install Bot Code
+      - name: Reinstall Bot Code
         run: |
+          source cf-scripts/tests_integration/clear_runner.sh
           source cf-scripts/autotick-bot/install_bot_code.sh
-        env:
-          CF_GRAPH_REMOTE: https://github.com/regro-staging/cf-graph-countyfair.git
-          CF_PINNING_REMOTE: https://github.com/conda-forge-bot-staging/conda-forge-pinning-feedstock.git
-          PRUNE_DOCKER: false
-          PULL_DOCKER: false
-          UPDATE_PINNINGS: false
 
       - name: "[Test] update_upstream_versions"
         run: |
           pushd cf-graph
           conda-forge-tick --debug update-upstream-versions
-        env:
-          CF_TICK_GRAPH_DATA_BACKENDS: file
-          CF_TICK_CONTAINER_NAME: conda-forge-tick
-          CF_TICK_CONTAINER_TAG: test
 
       - name: "[Test] Deploy to GitHub"
         run: |
           pushd cf-graph
           conda-forge-tick --debug deploy-to-github
         env:
-          RUN_URL: "https://github.com/regro/cf-scripts/actions/runs/${{ github.run_id }}"
           BOT_TOKEN: ${{ secrets.GH_TOKEN_STAGING_REGRO }}
-          DEPLOY_REPO: regro-staging/cf-graph-countyfair
