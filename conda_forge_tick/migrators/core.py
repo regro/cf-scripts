@@ -367,7 +367,7 @@ class Migrator:
 
         bad_attr = _parse_bad_attr(attrs, not_bad_str_start)
         if bad_attr:
-            logger.debug("%s: bad attr" % __name)
+            logger.debug("%s: bad attr - %s", __name, bad_attr)
 
         return attrs.get("archived", False) or parse_already_pred() or bad_attr
 
