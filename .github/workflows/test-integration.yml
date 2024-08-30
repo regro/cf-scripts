@@ -73,7 +73,6 @@ jobs:
     strategy:
       matrix:
         scenario_id: ${{ fromJson(needs.setup-repositories.outputs.scenario_ids) }}
-
       max-parallel: 1
       fail-fast: false
     steps:
@@ -131,11 +130,12 @@ jobs:
           CF_PINNING_REMOTE: https://github.com/conda-forge-bot-staging/conda-forge-pinning-feedstock.git
           PRUNE_DOCKER: false
           PULL_DOCKER: false
+          UPDATE_PINNINGS: true
 
       - name: "[Test] Gather all Feedstocks"
         run: |
           pushd cf-graph
-          conda-forge-tick gather-all-feedstocks
+          conda-forge-tick --debug gather-all-feedstocks
         env:
           BOT_TOKEN: ${{ secrets.GH_TOKEN_STAGING_BOT_USER }}
           CF_TICK_OVERRIDE_CONDA_FORGE_ORG: conda-forge-bot-staging
@@ -143,7 +143,7 @@ jobs:
       - name: "[Test] Deploy to GitHub"
         run: |
           pushd cf-graph
-          conda-forge-tick deploy-to-github
+          conda-forge-tick --debug deploy-to-github
         env:
           RUN_URL: "https://github.com/regro/cf-scripts/actions/runs/${{ github.run_id }}"
           # note that we need the token scoped for regro-staging
@@ -161,18 +161,19 @@ jobs:
           CF_PINNING_REMOTE: https://github.com/conda-forge-bot-staging/conda-forge-pinning-feedstock.git
           PRUNE_DOCKER: false
           PULL_DOCKER: false
+          UPDATE_PINNINGS: false
 
       - name: "[Test] Make Graph (Nodes and Edges)"
         run: |
           pushd cf-graph
-          conda-forge-tick make-graph --update-nodes-and-edges
+          conda-forge-tick --debug make-graph --update-nodes-and-edges
         env:
           CF_TICK_GRAPH_DATA_BACKENDS: file
 
       - name: "[Test] Deploy to GitHub"
         run: |
           pushd cf-graph
-          conda-forge-tick deploy-to-github
+          conda-forge-tick --debug deploy-to-github
         env:
           RUN_URL: "https://github.com/regro/cf-scripts/actions/runs/${{ github.run_id }}"
           BOT_TOKEN: ${{ secrets.GH_TOKEN_STAGING_REGRO }}
@@ -189,11 +190,12 @@ jobs:
           CF_PINNING_REMOTE: https://github.com/conda-forge-bot-staging/conda-forge-pinning-feedstock.git
           PRUNE_DOCKER: false
           PULL_DOCKER: false
+          UPDATE_PINNINGS: false
 
       - name: "[Test] Make Graph (Node Attributes)"
         run: |
           pushd cf-graph
-          conda-forge-tick make-graph
+          conda-forge-tick --debug make-graph
         env:
           CF_TICK_GRAPH_DATA_BACKENDS: file
           CF_TICK_OVERRIDE_CONDA_FORGE_ORG: conda-forge-bot-staging
@@ -201,7 +203,7 @@ jobs:
       - name: "[Test] Deploy to GitHub"
         run: |
           pushd cf-graph
-          conda-forge-tick deploy-to-github
+          conda-forge-tick --debug deploy-to-github
         env:
           RUN_URL: "https://github.com/regro/cf-scripts/actions/runs/${{ github.run_id }}"
           BOT_TOKEN: ${{ secrets.GH_TOKEN_STAGING_REGRO }}
@@ -218,12 +220,22 @@ jobs:
           CF_PINNING_REMOTE: https://github.com/conda-forge-bot-staging/conda-forge-pinning-feedstock.git
           PRUNE_DOCKER: false
           PULL_DOCKER: false
+          UPDATE_PINNINGS: false
 
       - name: "[Test] update_upstream_versions"
         run: |
           pushd cf-graph
-          conda-forge-tick update-upstream-versions
+          conda-forge-tick --debug update-upstream-versions
         env:
           CF_TICK_GRAPH_DATA_BACKENDS: file
           CF_TICK_CONTAINER_NAME: conda-forge-tick
           CF_TICK_CONTAINER_TAG: test
+
+      - name: "[Test] Deploy to GitHub"
+        run: |
+          pushd cf-graph
+          conda-forge-tick --debug deploy-to-github
+        env:
+          RUN_URL: "https://github.com/regro/cf-scripts/actions/runs/${{ github.run_id }}"
+          BOT_TOKEN: ${{ secrets.GH_TOKEN_STAGING_REGRO }}
+          DEPLOY_REPO: regro-staging/cf-graph-countyfair

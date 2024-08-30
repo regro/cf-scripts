@@ -6,6 +6,7 @@
 # - CF_PINNING_REMOTE: The URL to clone the conda-forge-pinning-feedstock repository from (optional).
 # - PRUNE_DOCKER: Whether to prune docker images (optional, default is true).
 # - PULL_DOCKER: Whether to pull the conda-forge-tick Docker image from GHCR (optional, default is true).
+# - UPDATE_PINNINGS: Whether to update the conda-forge-pinnings of conda (optional, default is true).
 
 set -euxo pipefail
 
@@ -41,7 +42,9 @@ git config --global user.name regro-cf-autotick-bot
 git config --global user.email 36490558+regro-cf-autotick-bot@users.noreply.github.com
 git config --global pull.rebase false
 
-conda update conda-forge-pinning --yes
+if [[ ${UPDATE_PINNINGS:-true} == "true" ]]; then
+    conda update conda-forge-pinning --yes
+fi
 
 cd cf-scripts
 
