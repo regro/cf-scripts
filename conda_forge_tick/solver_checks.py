@@ -136,10 +136,7 @@ def _is_recipe_solvable_containerized(
         )
 
         data = run_container_task(
-            "check-solvable",
-            args,
-            mount_readonly=True,
-            mount_dir=tmp_feedstock_dir,
+            "check-solvable", args, mount_readonly=True, mount_dir=tmp_feedstock_dir
         )
 
         # When tempfile removes tempdir, it tries to reset permissions on subdirs.

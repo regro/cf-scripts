@@ -82,8 +82,7 @@ if HAVE_CONTAINERS:
 )
 def test_container_tasks_get_latest_version(use_containers):
     data = run_container_task(
-        "get-latest-version",
-        ["--existing-feedstock-node-attrs", "conda-smithy"],
+        "get-latest-version", ["--existing-feedstock-node-attrs", "conda-smithy"]
     )
     assert VersionOrder(data["new_version"]) >= VersionOrder(conda_smithy.__version__)
 
@@ -156,8 +155,7 @@ def test_container_tasks_get_latest_version_containerized_mpas_tools(use_contain
 def test_container_tasks_parse_feedstock(use_containers):
     with tempfile.TemporaryDirectory() as tmpdir, pushd(tmpdir):
         data = run_container_task(
-            "parse-feedstock",
-            ["--existing-feedstock-node-attrs", "conda-smithy"],
+            "parse-feedstock", ["--existing-feedstock-node-attrs", "conda-smithy"]
         )
 
         with (

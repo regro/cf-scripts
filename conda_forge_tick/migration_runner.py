@@ -158,13 +158,13 @@ def run_migration_containerized(
         data = run_container_task(
             "migrate-feedstock",
             args,
-            mount_readonly=False,
-            mount_dir=tmpdir,
             input=(
                 dumps(node_attrs.data)
                 if isinstance(node_attrs, LazyJson)
                 else dumps(node_attrs)
             ),
+            mount_readonly=False,
+            mount_dir=tmpdir,
         )
 
         sync_dirs(

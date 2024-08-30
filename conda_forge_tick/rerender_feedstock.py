@@ -100,10 +100,7 @@ def rerender_feedstock_containerized(feedstock_dir, timeout=900):
         )
 
         data = run_container_task(
-            "rerender-feedstock",
-            args,
-            mount_readonly=False,
-            mount_dir=tmpdir,
+            "rerender-feedstock", args, mount_readonly=False, mount_dir=tmpdir
         )
 
         if data["commit_message"] is not None:

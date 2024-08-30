@@ -36,6 +36,8 @@ PIN_SEP_PAT = re.compile(r" |>|<|=|\[")
 # to build graph edges
 BOOTSTRAP_MAPPINGS = {}
 
+ENV_OVERRIDE_CONDA_FORGE_ORG = "CF_TICK_OVERRIDE_CONDA_FORGE_ORG"
+
 
 def _dedupe_list_ordered(list_with_dupes):
     if not isinstance(list_with_dupes, list):
@@ -166,11 +168,12 @@ def _extract_requirements(meta_yaml, outputs_to_keep=None):
 
 
 def _fetch_static_repo(name, dest):
+    conda_forge_org = os.getenv(ENV_OVERRIDE_CONDA_FORGE_ORG, "conda-forge")
     found_branch = None
     for branch in ["main", "master"]:
         try:
             r = requests.get(
-                f"https://github.com/conda-forge/{name}-feedstock/archive/{branch}.zip",
+                f"https://github.com/{conda_forge_org}/{name}-feedstock/archive/{branch}.zip",
             )
             r.raise_for_status()
             found_branch = branch
@@ -607,6 +610,7 @@ def load_feedstock_containerized(
         ],
         json_loads=loads,
         input=json_blob,
+        pass_env_vars=[ENV_OVERRIDE_CONDA_FORGE_ORG],
     )
 
     return data

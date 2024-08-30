@@ -196,8 +196,9 @@ def run_container_task(
     json_loads: Callable = json.loads,
     tmpfs_size_mb: int = DEFAULT_CONTAINER_TMPFS_SIZE_MB,
     input: Optional[str] = None,
-    mount_dir: Optional[str] = None,
+    pass_env_vars: Optional[Iterable[str]] = None,
     mount_readonly: bool = True,
+    mount_dir: Optional[str] = None,
 ):
     """Run a bot task in a container.
 
@@ -213,6 +214,11 @@ def run_container_task(
         The size of the tmpfs in MB, by default 10.
     input
         The input to pass to the container, by default None.
+    pass_env_vars
+        The environment variables to pass to the container, by default None.
+        You only pass the names of the environment variables. The values are
+        taken from the current environment.
+        If the environment variable is not set, it is not passed and no error is raised.
     mount_dir
         The directory to mount to the container at `/cf_tick_dir`, by default None.
     mount_readonly
@@ -231,12 +237,20 @@ def run_container_task(
     else:
         mnt_args = []
 
+    env_args = []
+    for env_arg_name in pass_env_vars or []:
+        if env_arg_name not in os.environ:
+            logger.debug("environment variable %s not set, not passing", env_arg_name)
+            continue
+        env_args.extend(["-e", f"{env_arg_name}={os.environ[env_arg_name]}"])
+
     log_level_str = str(logging.getLevelName(logger.getEffectiveLevel())).lower()
     logger.debug("computed effective logging level: %s", log_level_str)
 
     cmd = [
         *get_default_container_run_args(tmpfs_size_mb=tmpfs_size_mb),
         *mnt_args,
+        *env_args,
         get_default_container_name(),
         "/opt/conda/envs/cf-scripts/bin/python",
         "-u",
@@ -485,10 +499,7 @@ def parse_recipe_yaml_containerized(
         args += ["--for-pinning"]
 
     return run_container_task(
-        "parse-recipe-yaml",
-        args,
-        input=text,
-        mount_readonly=True,
+        "parse-recipe-yaml", args, input=text, mount_readonly=True
     )
 
 

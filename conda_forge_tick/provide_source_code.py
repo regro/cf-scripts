@@ -71,10 +71,7 @@ def provide_source_code_containerized(recipe_dir):
         tmp_source_dir = os.path.join(tmpdir, "source_dir")
 
         run_container_task(
-            "provide-source-code",
-            [],
-            mount_readonly=False,
-            mount_dir=tmpdir,
+            "provide-source-code", [], mount_readonly=False, mount_dir=tmpdir
         )
 
         yield tmp_source_dir

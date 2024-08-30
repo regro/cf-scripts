@@ -162,12 +162,41 @@ jobs:
           PRUNE_DOCKER: false
           PULL_DOCKER: false
 
-      - name: "[Test] Make Graph"
+      - name: "[Test] Make Graph (Nodes and Edges)"
         run: |
           pushd cf-graph
           conda-forge-tick make-graph --update-nodes-and-edges
         env:
           CF_TICK_GRAPH_DATA_BACKENDS: file
+
+      - name: "[Test] Deploy to GitHub"
+        run: |
+          pushd cf-graph
+          conda-forge-tick deploy-to-github
+        env:
+          RUN_URL: "https://github.com/regro/cf-scripts/actions/runs/${{ github.run_id }}"
+          BOT_TOKEN: ${{ secrets.GH_TOKEN_STAGING_REGRO }}
+          DEPLOY_REPO: regro-staging/cf-graph-countyfair
+
+      - name: Clear Runner
+        run: source cf-scripts/tests_integration/clear_runner.sh
+
+      - name: Install Bot Code
+        run: |
+          source cf-scripts/autotick-bot/install_bot_code.sh
+        env:
+          CF_GRAPH_REMOTE: https://github.com/regro-staging/cf-graph-countyfair.git
+          CF_PINNING_REMOTE: https://github.com/conda-forge-bot-staging/conda-forge-pinning-feedstock.git
+          PRUNE_DOCKER: false
+          PULL_DOCKER: false
+
+      - name: "[Test] Make Graph (Node Attributes)"
+        run: |
+          pushd cf-graph
+          conda-forge-tick make-graph
+        env:
+          CF_TICK_GRAPH_DATA_BACKENDS: file
+          CF_TICK_OVERRIDE_CONDA_FORGE_ORG: conda-forge-bot-staging
 
       - name: "[Test] Deploy to GitHub"
         run: |
