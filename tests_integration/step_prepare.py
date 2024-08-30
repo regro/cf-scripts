@@ -11,6 +11,7 @@ import os
 from github import Github
 
 from tests_integration.collect_test_scenarios import get_test_scenario
+from tests_integration.lib.integration_test_helper import IntegrationTestHelper
 from tests_integration.shared import (
     ENV_TEST_SCENARIO_ID,
     FEEDSTOCK_SUFFIX,
@@ -38,10 +39,11 @@ def close_all_open_pull_requests():
 
 
 def run_all_prepare_functions(scenario: dict[str, str]):
+    test_helper = IntegrationTestHelper()
     for test_module in get_test_case_modules(scenario):
         try:
             logging.info("Preparing %s...", test_module.__name__)
-            test_module.prepare()
+            test_module.prepare(test_helper)
         except AttributeError:
             raise AttributeError("The test case must define a prepare() function.")
 

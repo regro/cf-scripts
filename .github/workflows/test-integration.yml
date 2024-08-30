@@ -19,6 +19,8 @@ defaults:
 
 env:
   # Test Instrumentation
+  # Note: This passes secrets to steps that don't need them.
+  # We would not do this in a production setting.
   GH_TOKEN_STAGING_CONDA_FORGE: ${{ secrets.GH_TOKEN_STAGING_CONDA_FORGE }}
   GH_TOKEN_STAGING_BOT_USER: ${{ secrets.GH_TOKEN_STAGING_BOT_USER }}
   GH_TOKEN_STAGING_REGRO: ${{ secrets.GH_TOKEN_STAGING_REGRO }}
