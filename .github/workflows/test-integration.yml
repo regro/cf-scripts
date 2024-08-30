@@ -190,12 +190,11 @@ jobs:
           PRUNE_DOCKER: false
           PULL_DOCKER: false
 
-      #- name: "[Test] update_upstream_versions"
-      #  run: |
-      #    pushd cf-graph
-      #    conda-forge-tick update-upstream-versions
-      #  env:
-      #    # MongoDB is not supported in the integration test infrastructure.
-      #    CF_TICK_GRAPH_DATA_BACKENDS: file
-      #    CF_TICK_CONTAINER_NAME: conda-forge-tick
-      #    CF_TICK_CONTAINER_TAG: test
+      - name: "[Test] update_upstream_versions"
+        run: |
+          pushd cf-graph
+          conda-forge-tick update-upstream-versions
+        env:
+          CF_TICK_GRAPH_DATA_BACKENDS: file
+          CF_TICK_CONTAINER_NAME: conda-forge-tick
+          CF_TICK_CONTAINER_TAG: test
