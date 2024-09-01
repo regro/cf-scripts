@@ -4,7 +4,7 @@ on:
   workflow_dispatch: null
   push:
     branches:
-      - master
+      - main
 
 env:
   PY_COLORS: "1"

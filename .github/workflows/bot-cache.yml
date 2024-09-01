@@ -114,7 +114,7 @@ jobs:
 
       - name: trigger next job
         uses: benc-uk/workflow-dispatch@25b02cc069be46d637e8fe2f1e8484008e9e9609 # v1.2.3
-        if: github.ref == 'refs/heads/master' && ! cancelled() && ! failure() && ! env.CI_SKIP
+        if: github.ref == 'refs/heads/main' && ! cancelled() && ! failure() && ! env.CI_SKIP
         with:
           workflow: bot-cache
           ref: ${{ github.event.ref }}
