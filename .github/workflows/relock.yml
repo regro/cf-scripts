@@ -14,7 +14,7 @@ jobs:
     steps:
       - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4
 
-      - uses: beckermr/relock-conda@8db9717dce0545d2273eb6957282c825db1a9c03 # v2
+      - uses: beckermr/relock-conda@42a320ed9e9dd880ae07ec31169ba174ebed08b3 # v2
         with:
           github-token: ${{ secrets.AUTOTICK_BOT_TOKEN }}
           automerge: true
