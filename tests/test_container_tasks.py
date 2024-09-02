@@ -15,6 +15,7 @@ from conda_forge_feedstock_ops.container_utils import (
     get_default_log_level_args,
     run_container_operation,
 )
+from conda_forge_feedstock_ops.os_utils import get_user_execute_permissions
 from flaky import flaky
 from test_migrators import sample_yaml_rebuild, updated_yaml_rebuild
 
@@ -29,7 +30,7 @@ from conda_forge_tick.lazy_json_backends import (
 )
 from conda_forge_tick.migration_runner import run_migration_containerized
 from conda_forge_tick.migrators import MigrationYaml, Version
-from conda_forge_tick.os_utils import get_user_execute_permissions, pushd
+from conda_forge_tick.os_utils import pushd
 from conda_forge_tick.provide_source_code import provide_source_code_containerized
 from conda_forge_tick.rerender_feedstock import rerender_feedstock
 from conda_forge_tick.solver_checks import is_recipe_solvable
