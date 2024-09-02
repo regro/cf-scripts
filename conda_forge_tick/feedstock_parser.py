@@ -12,6 +12,11 @@ from typing import Optional, Set, Union
 
 import requests
 import yaml
+from conda_forge_feedstock_ops.container_utils import (
+    get_default_log_level_args,
+    run_container_operation,
+    should_use_container,
+)
 from requests.models import Response
 
 if typing.TYPE_CHECKING:
@@ -22,7 +27,6 @@ if typing.TYPE_CHECKING:
     from .migrators_types import PackageName, RequirementsTypedDict
 
 from conda_forge_tick.lazy_json_backends import LazyJson, dumps, loads
-from conda_forge_tick.utils import run_container_task
 
 from .utils import as_iterable, parse_meta_yaml, parse_recipe_yaml
 
@@ -580,7 +584,14 @@ def load_feedstock_containerized(
     if "feedstock_name" not in sub_graph:
         sub_graph["feedstock_name"] = name
 
-    args = []
+    args = [
+        "conda-forge-tick-container",
+        "parse-feedstock",
+        "--existing-feedstock-node-attrs",
+        "-",
+    ]
+
+    args += get_default_log_level_args(logger)
 
     if meta_yaml is not None:
         args += ["--meta-yaml", meta_yaml]
@@ -598,13 +609,8 @@ def load_feedstock_containerized(
         dumps(sub_graph.data) if isinstance(sub_graph, LazyJson) else dumps(sub_graph)
     )
 
-    data = run_container_task(
-        "parse-feedstock",
-        [
-            "--existing-feedstock-node-attrs",
-            "-",
-            *args,
-        ],
+    data = run_container_operation(
+        args,
         json_loads=loads,
         input=json_blob,
     )
@@ -641,7 +647,7 @@ def load_feedstock(
     use_container : bool, optional
         Whether to use a container to run the version parsing.
         If None, the function will use a container if the environment
-        variable `CF_TICK_IN_CONTAINER` is 'false'. This feature can be
+        variable `CF_FEEDSTOCK_OPS_IN_CONTAINER` is 'false'. This feature can be
         used to avoid container in container calls.
 
     Returns
@@ -649,11 +655,8 @@ def load_feedstock(
     sub_graph : MutableMapping
         The sub_graph, now updated with the feedstock metadata
     """
-    in_container = os.environ.get("CF_TICK_IN_CONTAINER", "false") == "true"
-    if use_container is None:
-        use_container = not in_container
 
-    if use_container and not in_container:
+    if should_use_container(use_container=use_container):
         return load_feedstock_containerized(
             name,
             sub_graph,

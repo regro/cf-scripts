@@ -11,6 +11,10 @@ import tempfile
 import conda_smithy
 import pytest
 from conda.models.version import VersionOrder
+from conda_forge_feedstock_ops.container_utils import (
+    get_default_log_level_args,
+    run_container_operation,
+)
 from flaky import flaky
 from test_migrators import sample_yaml_rebuild, updated_yaml_rebuild
 
@@ -40,7 +44,6 @@ from conda_forge_tick.utils import (
     frozen_to_json_friendly,
     parse_meta_yaml,
     parse_meta_yaml_containerized,
-    run_container_task,
 )
 
 VERSION = Version(set())
@@ -81,9 +84,14 @@ if HAVE_CONTAINERS:
     not (HAVE_CONTAINERS and HAVE_TEST_IMAGE), reason="containers not available"
 )
 def test_container_tasks_get_latest_version(use_containers):
-    data = run_container_task(
-        "get-latest-version",
-        ["--existing-feedstock-node-attrs", "conda-smithy"],
+    data = run_container_operation(
+        [
+            "conda-forge-tick-container",
+            "get-latest-version",
+            "--existing-feedstock-node-attrs",
+            "conda-smithy",
+        ]
+        + get_default_log_level_args(logging.getLogger("conda_forge_tick")),
     )
     assert VersionOrder(data["new_version"]) >= VersionOrder(conda_smithy.__version__)
 
@@ -100,12 +108,14 @@ def test_container_tasks_get_latest_version_json(use_containers):
     ):
         existing_feedstock_node_attrs = dumps(lzj.data)
 
-        data = run_container_task(
-            "get-latest-version",
+        data = run_container_operation(
             [
+                "conda-forge-tick-container",
+                "get-latest-version",
                 "--existing-feedstock-node-attrs",
                 existing_feedstock_node_attrs,
-            ],
+            ]
+            + get_default_log_level_args(logging.getLogger("conda_forge_tick")),
         )
         assert VersionOrder(data["new_version"]) >= VersionOrder(
             conda_smithy.__version__
@@ -155,9 +165,14 @@ def test_container_tasks_get_latest_version_containerized_mpas_tools(use_contain
 )
 def test_container_tasks_parse_feedstock(use_containers):
     with tempfile.TemporaryDirectory() as tmpdir, pushd(tmpdir):
-        data = run_container_task(
-            "parse-feedstock",
-            ["--existing-feedstock-node-attrs", "conda-smithy"],
+        data = run_container_operation(
+            [
+                "conda-forge-tick-container",
+                "parse-feedstock",
+                "--existing-feedstock-node-attrs",
+                "conda-smithy",
+            ]
+            + get_default_log_level_args(logging.getLogger("conda_forge_tick")),
         )
 
         with (
@@ -183,9 +198,14 @@ def test_container_tasks_parse_feedstock_json(use_containers):
         attrs = copy.deepcopy(lzj.data)
         existing_feedstock_node_attrs = dumps(lzj.data)
 
-        data = run_container_task(
-            "parse-feedstock",
-            ["--existing-feedstock-node-attrs", existing_feedstock_node_attrs],
+        data = run_container_operation(
+            [
+                "conda-forge-tick-container",
+                "parse-feedstock",
+                "--existing-feedstock-node-attrs",
+                existing_feedstock_node_attrs,
+            ]
+            + get_default_log_level_args(logging.getLogger("conda_forge_tick")),
         )
         assert data["feedstock_name"] == attrs["feedstock_name"]
         assert not data["parsing_error"]

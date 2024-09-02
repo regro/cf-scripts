@@ -139,7 +139,7 @@ def _provide_source_code():
     logger = logging.getLogger("conda_forge_tick.container")
 
     with tempfile.TemporaryDirectory() as tmpdir:
-        input_recipe_dir = "/cf_tick_dir/recipe_dir"
+        input_recipe_dir = "/cf_feedstock_ops_dir/recipe_dir"
         logger.debug(
             f"input container recipe dir {input_recipe_dir}: {os.listdir(input_recipe_dir)}"
         )
@@ -150,7 +150,7 @@ def _provide_source_code():
             f"copied container recipe dir {recipe_dir}: {os.listdir(recipe_dir)}"
         )
 
-        output_source_code = "/cf_tick_dir/source_dir"
+        output_source_code = "/cf_feedstock_ops_dir/source_dir"
         os.makedirs(output_source_code, exist_ok=True)
 
         with provide_source_code_local(recipe_dir) as cb_work_dir:
@@ -196,14 +196,14 @@ def _rerender_feedstock(*, timeout):
     logger = logging.getLogger("conda_forge_tick.container")
 
     with tempfile.TemporaryDirectory() as tmpdir:
-        input_fs_dir = glob.glob("/cf_tick_dir/*-feedstock")
+        input_fs_dir = glob.glob("/cf_feedstock_ops_dir/*-feedstock")
         assert len(input_fs_dir) == 1, f"expected one feedstock, got {input_fs_dir}"
         input_fs_dir = input_fs_dir[0]
         logger.debug(
             f"input container feedstock dir {input_fs_dir}: {os.listdir(input_fs_dir)}"
         )
         input_permissions = os.path.join(
-            "/cf_tick_dir", f"permissions-{os.path.basename(input_fs_dir)}.json"
+            "/cf_feedstock_ops_dir", f"permissions-{os.path.basename(input_fs_dir)}.json"
         )
         with open(input_permissions) as f:
             input_permissions = json.load(f)
@@ -283,14 +283,14 @@ def _migrate_feedstock(*, feedstock_name, default_branch, attrs, input_kwargs):
     logger = logging.getLogger("conda_forge_tick.container")
 
     with tempfile.TemporaryDirectory() as tmpdir:
-        input_fs_dir = glob.glob("/cf_tick_dir/*-feedstock")
+        input_fs_dir = glob.glob("/cf_feedstock_ops_dir/*-feedstock")
         assert len(input_fs_dir) == 1, f"expected one feedstock, got {input_fs_dir}"
         input_fs_dir = input_fs_dir[0]
         logger.debug(
             f"input container feedstock dir {input_fs_dir}: {os.listdir(input_fs_dir)}"
         )
         input_permissions = os.path.join(
-            "/cf_tick_dir", f"permissions-{os.path.basename(input_fs_dir)}.json"
+            "/cf_feedstock_ops_dir", f"permissions-{os.path.basename(input_fs_dir)}.json"
         )
         with open(input_permissions) as f:
             input_permissions = json.load(f)
@@ -301,7 +301,7 @@ def _migrate_feedstock(*, feedstock_name, default_branch, attrs, input_kwargs):
 
         reset_permissions_with_user_execute(fs_dir, input_permissions)
 
-        with open("/cf_tick_dir/migrator.json") as f:
+        with open("/cf_feedstock_ops_dir/migrator.json") as f:
             migrator = make_from_lazy_json_data(loads(f.read()))
 
         kwargs = loads(input_kwargs) if input_kwargs else {}
@@ -417,12 +417,12 @@ def _check_solvable(
     logger = logging.getLogger("conda_forge_tick.container")
 
     logger.debug(
-        f"input container feedstock dir /cf_tick_dir: {os.listdir('/cf_tick_dir')}"
+        f"input container feedstock dir /cf_feedstock_ops_dir: {os.listdir('/cf_feedstock_ops_dir')}"
     )
 
     data = {}
     data["solvable"], data["errors"], data["solvable_by_variant"] = is_recipe_solvable(
-        "/cf_tick_dir",
+        "/cf_feedstock_ops_dir",
         use_container=False,
         timeout=timeout,
         verbosity=verbosity,

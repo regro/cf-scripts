@@ -223,13 +223,13 @@ If your migrator needs special configuration, you should write a new factory fun
 - `CF_TICK_GRAPH_DATA_BACKENDS`: See [`LazyJson` Data Structures and Backends](#lazyjson-data-structures-and-backends) below.
 - `CF_TICK_GRAPH_DATA_USE_FILE_CACHE`: See [`LazyJson` Data Structures and Backends](#lazyjson-data-structures-and-backends) below.
 - `MONGODB_CONNECTION_STRING`: See [`LazyJson` Data Structures and Backends](#lazyjson-data-structures-and-backends) below.
-- `CF_TICK_IN_CONTAINER`: set to `true` to indicate that the bot is running in a container, prevents container in container issues
+- `CF_FEEDSTOCK_OPS_IN_CONTAINER`: set to `true` to indicate that the bot is running in a container, prevents container in container issues
 - `TIMEOUT`: set to the number of seconds to wait before timing out the bot
 - `RUN_URL`: set to the URL of the CI build (now set to a GHA run URL)
 - `MEMORY_LIMIT_GB`: set to the memory limit in GB for the bot
 - `BOT_TOKEN`: a GitHub token for the bot user
-- `CF_TICK_CONTAINER_NAME`: the name of the container to use in the bot, otherwise defaults to `ghcr.io/regro/conda-forge-tick`
-- `CF_TICK_CONTAINER_TAG`: set this to override the default container tag used in production runs, otherwise the value of `__version__` is used
+- `CF_FEEDSTOCK_OPS_CONTAINER_NAME`: the name of the container to use in the bot, otherwise defaults to `ghcr.io/regro/conda-forge-tick`
+- `CF_FEEDSTOCK_OPS_CONTAINER_TAG`: set this to override the default container tag used in production runs, otherwise the value of `__version__` is used
 
 ### Running Tests
 
