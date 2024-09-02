@@ -18,6 +18,7 @@ import github3
 import networkx as nx
 import tqdm
 from conda.models.version import VersionOrder
+from conda_forge_feedstock_ops.container_utils import ContainerRuntimeError
 
 from conda_forge_tick.cli_context import CliContext
 from conda_forge_tick.contexts import (
@@ -52,7 +53,6 @@ from conda_forge_tick.os_utils import eval_cmd, pushd
 from conda_forge_tick.rerender_feedstock import rerender_feedstock
 from conda_forge_tick.solver_checks import is_recipe_solvable
 from conda_forge_tick.utils import (
-    ContainerRuntimeError,
     change_log_level,
     dump_graph,
     filter_reprinted_lines,
