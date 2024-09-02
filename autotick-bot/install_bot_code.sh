@@ -44,6 +44,12 @@ bot_tag=$(python -c "import conda_forge_tick; print(conda_forge_tick.__version__
 docker_tag=${CF_FEEDSTOCK_OPS_CONTAINER_TAG:-${bot_tag}}
 docker pull ghcr.io/regro/conda-forge-tick:${docker_tag}
 
+export CF_FEEDSTOCK_OPS_CONTAINER_TAG=${docker_tag}
+export CF_FEEDSTOCK_OPS_CONTAINER_NAME="ghcr.io/regro/conda-forge-tick"
+
+echo "CF_FEEDSTOCK_OPS_CONTAINER_TAG=${CF_FEEDSTOCK_OPS_CONTAINER_TAG}" >> "$GITHUB_ENV"
+echo "CF_FEEDSTOCK_OPS_CONTAINER_NAME=${CF_FEEDSTOCK_OPS_CONTAINER_NAME}" >> "$GITHUB_ENV"
+
 echo -e "\n\n============================================\n============================================"
 conda info
 conda config --show-sources

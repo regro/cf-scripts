@@ -133,7 +133,8 @@ def _run_bot_task(func, *, log_level, existing_feedstock_node_attrs, **kwargs):
 
 
 def _provide_source_code():
-    from conda_forge_tick.os_utils import chmod_plus_rwX, sync_dirs
+    from conda_forge_feedstock_ops.os_utils import chmod_plus_rwX, sync_dirs
+
     from conda_forge_tick.provide_source_code import provide_source_code_local
 
     logger = logging.getLogger("conda_forge_tick.container")
@@ -185,12 +186,13 @@ def _execute_git_cmds_and_report(*, cmds, cwd, msg):
 
 
 def _rerender_feedstock(*, timeout):
-    from conda_forge_tick.os_utils import (
+    from conda_forge_feedstock_ops.os_utils import (
         chmod_plus_rwX,
         get_user_execute_permissions,
         reset_permissions_with_user_execute,
         sync_dirs,
     )
+
     from conda_forge_tick.rerender_feedstock import rerender_feedstock_local
 
     logger = logging.getLogger("conda_forge_tick.container")
@@ -271,15 +273,16 @@ def _rerender_feedstock(*, timeout):
 
 
 def _migrate_feedstock(*, feedstock_name, default_branch, attrs, input_kwargs):
-    from conda_forge_tick.lazy_json_backends import loads
-    from conda_forge_tick.migration_runner import run_migration_local
-    from conda_forge_tick.migrators import make_from_lazy_json_data
-    from conda_forge_tick.os_utils import (
+    from conda_forge_feedstock_ops.os_utils import (
         chmod_plus_rwX,
         get_user_execute_permissions,
         reset_permissions_with_user_execute,
         sync_dirs,
     )
+
+    from conda_forge_tick.lazy_json_backends import loads
+    from conda_forge_tick.migration_runner import run_migration_local
+    from conda_forge_tick.migrators import make_from_lazy_json_data
 
     logger = logging.getLogger("conda_forge_tick.container")
 
