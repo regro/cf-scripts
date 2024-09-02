@@ -117,6 +117,8 @@ jobs:
             --durations=10 \
             --ignore=tests/model \
             tests
+
+          ls -lah
         env:
           MONGODB_CONNECTION_STRING: "mongodb://127.0.0.1:27017/?directConnection=true&serverSelectionTimeoutMS=2000"
           RUN_URL: ""
