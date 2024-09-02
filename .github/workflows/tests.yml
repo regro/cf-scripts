@@ -83,8 +83,6 @@ jobs:
           push: false
           load: true
           tags: ${{ env.IMAGE_NAME }}:test
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
 
       - name: restore test durations
         uses: actions/cache/restore@0c45773b623bea8c8e75f6c82b208c3cf94ea4f9  # v4
@@ -128,12 +126,14 @@ jobs:
         with:
           name: test-durations-${{ matrix.group }}
           path: .test_durations.${{ matrix.group }}
+          include-hidden-files: true
 
       - name: upload coverage
         uses: actions/upload-artifact@50769540e7f4bd5e21e526ee35c689e35e0d6874 # v4
         with:
           name: coverage-${{ matrix.group }}
           path: .coverage
+          include-hidden-files: true
 
   test-coverage-and-durations:
     name: test-coverage-and-durations

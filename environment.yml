@@ -72,3 +72,5 @@ dependencies:
   - pytest-split
   - setuptools_scm>=7
   - python-build
+  - pip:
+      - git+https://github.com/regro/conda-forge-feedstock-ops.git@0.3.0
