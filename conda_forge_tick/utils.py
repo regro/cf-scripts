@@ -23,6 +23,7 @@ import ruamel.yaml
 from conda_forge_feedstock_ops.container_utils import (
     get_default_log_level_args,
     run_container_operation,
+    should_use_container,
 )
 
 from . import sensitive_env
@@ -247,11 +248,7 @@ def parse_recipe_yaml(
         The parsed YAML dict. If parsing fails, returns an empty dict. May raise
         for some errors. Have fun.
     """
-    in_container = os.environ.get("CF_FEEDSTOCK_OPS_IN_CONTAINER", "false") == "true"
-    if use_container is None:
-        use_container = not in_container
-
-    if use_container and not in_container:
+    if should_use_container(use_container=use_container):
         return parse_recipe_yaml_containerized(
             text,
             for_pinning=for_pinning,
@@ -627,11 +624,7 @@ def parse_meta_yaml(
         The parsed YAML dict. If parsing fails, returns an empty dict. May raise
         for some errors. Have fun.
     """
-    in_container = os.environ.get("CF_FEEDSTOCK_OPS_IN_CONTAINER", "false") == "true"
-    if use_container is None:
-        use_container = not in_container
-
-    if use_container and not in_container:
+    if should_use_container(use_container=use_container):
         return parse_meta_yaml_containerized(
             text,
             for_pinning=for_pinning,
