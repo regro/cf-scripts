@@ -203,7 +203,8 @@ def _rerender_feedstock(*, timeout):
             f"input container feedstock dir {input_fs_dir}: {os.listdir(input_fs_dir)}"
         )
         input_permissions = os.path.join(
-            "/cf_feedstock_ops_dir", f"permissions-{os.path.basename(input_fs_dir)}.json"
+            "/cf_feedstock_ops_dir",
+            f"permissions-{os.path.basename(input_fs_dir)}.json",
         )
         with open(input_permissions) as f:
             input_permissions = json.load(f)
@@ -290,7 +291,8 @@ def _migrate_feedstock(*, feedstock_name, default_branch, attrs, input_kwargs):
             f"input container feedstock dir {input_fs_dir}: {os.listdir(input_fs_dir)}"
         )
         input_permissions = os.path.join(
-            "/cf_feedstock_ops_dir", f"permissions-{os.path.basename(input_fs_dir)}.json"
+            "/cf_feedstock_ops_dir",
+            f"permissions-{os.path.basename(input_fs_dir)}.json",
         )
         with open(input_permissions) as f:
             input_permissions = json.load(f)

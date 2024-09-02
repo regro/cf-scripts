@@ -31,10 +31,7 @@ from conda_forge_tick.migration_runner import run_migration_containerized
 from conda_forge_tick.migrators import MigrationYaml, Version
 from conda_forge_tick.os_utils import get_user_execute_permissions, pushd
 from conda_forge_tick.provide_source_code import provide_source_code_containerized
-from conda_forge_tick.rerender_feedstock import (
-    rerender_feedstock_containerized,
-    rerender_feedstock_local,
-)
+from conda_forge_tick.rerender_feedstock import rerender_feedstock
 from conda_forge_tick.solver_checks import is_recipe_solvable
 from conda_forge_tick.update_upstream_versions import (
     all_version_sources,
@@ -300,10 +297,11 @@ def test_container_tasks_rerender_feedstock_containerized_same_as_local(
                     )
 
             try:
-                msg = rerender_feedstock_containerized(
+                msg = rerender_feedstock(
                     os.path.join(
                         tmpdir_cont, "conda-forge-feedstock-check-solvable-feedstock"
                     ),
+                    use_container=True,
                 )
             finally:
                 captured = capfd.readouterr()
@@ -345,10 +343,11 @@ def test_container_tasks_rerender_feedstock_containerized_same_as_local(
                     )
 
             try:
-                local_msg = rerender_feedstock_local(
+                local_msg = rerender_feedstock(
                     os.path.join(
                         tmpdir_local, "conda-forge-feedstock-check-solvable-feedstock"
                     ),
+                    use_container=False,
                 )
             finally:
                 local_captured = capfd.readouterr()
@@ -411,10 +410,11 @@ def test_container_tasks_rerender_feedstock_containerized_empty(use_containers):
                         check=True,
                     )
 
-            local_msg = rerender_feedstock_local(
+            local_msg = rerender_feedstock(
                 os.path.join(
                     tmpdir_local, "conda-forge-feedstock-check-solvable-feedstock"
                 ),
+                use_container=False,
             )
 
             assert local_msg is not None
@@ -425,10 +425,11 @@ def test_container_tasks_rerender_feedstock_containerized_empty(use_containers):
                 )
 
         # now run in container and make sure commit message is None
-        msg = rerender_feedstock_containerized(
+        msg = rerender_feedstock(
             os.path.join(
                 tmpdir_local, "conda-forge-feedstock-check-solvable-feedstock"
             ),
+            use_container=True,
         )
 
         assert msg is None
@@ -455,8 +456,9 @@ def test_container_tasks_rerender_feedstock_containerized_permissions(use_contai
                 )
                 orig_exec = get_user_execute_permissions(".")
 
-            local_msg = rerender_feedstock_local(
+            local_msg = rerender_feedstock(
                 os.path.join(tmpdir, "conda-forge-feedstock-check-solvable-feedstock"),
+                use_container=False,
             )
 
             if local_msg is not None:
@@ -490,8 +492,9 @@ def test_container_tasks_rerender_feedstock_containerized_permissions(use_contai
                         check=True,
                     )
 
-            msg = rerender_feedstock_containerized(
+            msg = rerender_feedstock(
                 os.path.join(tmpdir, "conda-forge-feedstock-check-solvable-feedstock"),
+                use_container=True,
             )
             assert msg is not None
 
