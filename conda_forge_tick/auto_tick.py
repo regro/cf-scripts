@@ -670,7 +670,7 @@ def _run_migrator_on_feedstock_branch(
         logger.exception("NON GITHUB ERROR")
 
         # we don't set bad for rerendering errors
-        if "conda smithy rerender -c auto --no-check-uptodate" not in str(e):
+        if "conda smithy rerender -c auto --no-check-uptodate" not in str(e) and "Failed to rerender" not in str(e):
             with attrs["pr_info"] as pri:
                 pri["bad"] = {
                     "exception": str(e),
