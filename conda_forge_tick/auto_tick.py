@@ -15,6 +15,7 @@ from uuid import uuid4
 
 import github
 import github3
+import github3.repos
 import networkx as nx
 import tqdm
 from conda.models.version import VersionOrder
@@ -29,8 +30,11 @@ from conda_forge_tick.contexts import (
 from conda_forge_tick.deploy import deploy
 from conda_forge_tick.feedstock_parser import BOOTSTRAP_MAPPINGS
 from conda_forge_tick.git_utils import (
+    DryRunBackend,
+    GitPlatformBackend,
+    RepositoryNotFoundError,
     comment_on_pr,
-    get_repo,
+    github3_client,
     github_backend,
     is_github_api_limit_reached,
     push_repo,
@@ -140,9 +144,55 @@ def _get_pre_pr_migrator_attempts(attrs, migrator_name, *, is_version):
             return pri.get("pre_pr_migrator_attempts", {}).get(migrator_name, 0)
 
 
+def _prepare_feedstock_repository(
+    backend: GitPlatformBackend,
+    context: ClonedFeedstockContext,
+    branch: str,
+    base_branch: str,
+) -> bool:
+    """
+    Prepare a feedstock repository for migration by forking and cloning it. The local clone will be present in
+    context.local_clone_dir.
+
+    Any errors are written to the pr_info attribute of the feedstock context and logged.
+
+    :param backend: The GitPlatformBackend instance to use.
+    :param context: The current context
+    :param branch: The branch to create in the forked repository.
+    :param base_branch: The base branch to branch from.
+    :return: True if the repository was successfully prepared, False otherwise.
+    """
+    try:
+        backend.fork(context.git_repo_owner, context.git_repo_name)
+    except RepositoryNotFoundError:
+        logger.warning(
+            f"Could not fork {context.git_repo_owner}/{context.git_repo_name}: Not Found"
+        )
+
+        error_message = f"{context.feedstock_name}: Git repository not found."
+        logger.critical(
+            f"Failed to migrate {context.feedstock_name}, {error_message}",
+        )
+
+        with context.attrs["pr_info"] as pri:
+            pri["bad"] = error_message
+
+        return False
+
+    backend.clone_fork_and_branch(
+        upstream_owner=context.git_repo_owner,
+        repo_name=context.git_repo_name,
+        target_dir=context.local_clone_dir,
+        new_branch=branch,
+        base_branch=base_branch,
+    )
+    return True
+
+
 def run_with_tmpdir(
     context: FeedstockContext,
     migrator: Migrator,
+    git_backend: GitPlatformBackend,
     rerender: bool = True,
     base_branch: str = "main",
     dry_run: bool = False,
@@ -161,6 +211,7 @@ def run_with_tmpdir(
         return run(
             context=cloned_context,
             migrator=migrator,
+            git_backend=git_backend,
             rerender=rerender,
             base_branch=base_branch,
             dry_run=dry_run,
@@ -171,6 +222,7 @@ def run_with_tmpdir(
 def run(
     context: ClonedFeedstockContext,
     migrator: Migrator,
+    git_backend: GitPlatformBackend,
     rerender: bool = True,
     base_branch: str = "main",
     dry_run: bool = False,
@@ -184,6 +236,8 @@ def run(
         The current feedstock context, already containing information about a temporary directory for the feedstock.
     migrator: Migrator instance
         The migrator to run on the feedstock
+    git_backend: GitPlatformBackend
+        The git backend to use. Use the DryRunBackend for testing.
     rerender : bool
         Whether to rerender
     base_branch : str, optional
@@ -202,9 +256,6 @@ def run(
     # sometimes we get weird directory issues so make sure we reset
     os.chdir(BOT_HOME_DIR)
 
-    # get the repo
-    branch_name = migrator.remote_branch(context) + "_h" + uuid4().hex[0:6]
-
     migrator_name = get_migrator_name(migrator)
     is_version_migration = isinstance(migrator, Version)
     _increment_pre_pr_migrator_attempt(
@@ -213,20 +264,25 @@ def run(
         is_version=is_version_migration,
     )
 
-    # TODO: run this in parallel
-    repo = get_repo(context=context, branch=branch_name, base_branch=base_branch)
-
-    feedstock_dir = str(context.local_clone_dir)
-    if not feedstock_dir or not repo:
-        logger.critical(
-            "Failed to migrate %s, %s",
-            context.feedstock_name,
-            context.attrs.get("pr_info", {}).get("bad"),
-        )
+    branch_name = migrator.remote_branch(context) + "_h" + uuid4().hex[0:6]
+    if not _prepare_feedstock_repository(
+        git_backend,
+        context,
+        branch_name,
+        base_branch,
+    ):
+        # something went wrong during forking or cloning
         return False, False
 
     # need to use an absolute path here
-    feedstock_dir = os.path.abspath(feedstock_dir)
+    feedstock_dir = str(context.local_clone_dir.resolve())
+
+    # This is needed because we want to migrate to the new backend step-by-step
+    repo: github3.repos.Repository | None = github3_client().repository(
+        context.git_repo_owner, context.git_repo_name
+    )
+
+    assert repo is not None
 
     migration_run_data = run_migration(
         migrator=migrator,
@@ -566,7 +622,8 @@ def _run_migrator_on_feedstock_branch(
     attrs,
     base_branch,
     migrator,
-    fctx,
+    fctx: FeedstockContext,
+    git_backend: GitPlatformBackend,
     dry_run,
     mctx,
     migrator_name,
@@ -581,6 +638,7 @@ def _run_migrator_on_feedstock_branch(
             migrator_uid, pr_json = run_with_tmpdir(
                 context=fctx,
                 migrator=migrator,
+                git_backend=git_backend,
                 rerender=migrator.rerender,
                 hash_type=attrs.get("hash_type", "sha256"),
                 base_branch=base_branch,
@@ -745,7 +803,9 @@ def _is_migrator_done(_mg_start, good_prs, time_per, pr_limit):
     return False
 
 
-def _run_migrator(migrator, mctx, temp, time_per, dry_run):
+def _run_migrator(
+    migrator, mctx, temp, time_per, dry_run, git_backend: GitPlatformBackend
+):
     _mg_start = time.time()
 
     migrator_name = get_migrator_name(migrator)
@@ -863,14 +923,15 @@ def _run_migrator(migrator, mctx, temp, time_per, dry_run):
                         )
                     ):
                         good_prs, break_loop = _run_migrator_on_feedstock_branch(
-                            attrs,
-                            base_branch,
-                            migrator,
-                            fctx,
-                            dry_run,
-                            mctx,
-                            migrator_name,
-                            good_prs,
+                            attrs=attrs,
+                            base_branch=base_branch,
+                            migrator=migrator,
+                            fctx=fctx,
+                            git_backend=git_backend,
+                            dry_run=dry_run,
+                            mctx=mctx,
+                            migrator_name=migrator_name,
+                            good_prs=good_prs,
                         )
                         if break_loop:
                             break
@@ -1119,14 +1180,11 @@ def main(ctx: CliContext) -> None:
                 ),
                 flush=True,
             )
+    git_backend = github_backend() if not ctx.dry_run else DryRunBackend()
 
     for mg_ind, migrator in enumerate(migrators):
         good_prs = _run_migrator(
-            migrator,
-            mctx,
-            temp,
-            time_per_migrator[mg_ind],
-            ctx.dry_run,
+            migrator, mctx, temp, time_per_migrator[mg_ind], ctx.dry_run, git_backend
         )
         if good_prs > 0:
             pass

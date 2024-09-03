@@ -46,6 +46,11 @@ def test_feedstock_context_default_branch_set():
     assert context.default_branch == "feature"
 
 
+def test_feedstock_context_git_repo_owner():
+    context = FeedstockContext("TEST-FEEDSTOCK-NAME", demo_attrs)
+    assert context.git_repo_owner == "conda-forge"
+
+
 def test_feedstock_context_git_repo_name():
     context = FeedstockContext("TEST-FEEDSTOCK-NAME", demo_attrs)
     assert context.git_repo_name == "TEST-FEEDSTOCK-NAME-feedstock"
@@ -68,6 +73,7 @@ def test_feedstock_context_reserve_clone_directory(
             if default_branch
             else "main"
         )
+        assert cloned_context.git_repo_owner == "conda-forge"
         assert cloned_context.git_repo_name == "pytest-feedstock"
 
         assert cloned_context.local_clone_dir.exists()
