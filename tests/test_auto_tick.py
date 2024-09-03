@@ -6,6 +6,7 @@ from unittest import mock
 from unittest.mock import ANY, MagicMock, create_autospec
 
 import pytest
+from conftest import FakeLazyJson
 
 from conda_forge_tick.auto_tick import _prepare_feedstock_repository, run_with_tmpdir
 from conda_forge_tick.contexts import ClonedFeedstockContext, FeedstockContext
@@ -14,7 +15,6 @@ from conda_forge_tick.git_utils import (
     GitPlatformBackend,
     RepositoryNotFoundError,
 )
-from conftest import FakeLazyJson
 
 demo_attrs = {"conda-forge.yml": {"provider": {"default_branch": "main"}}}
 
