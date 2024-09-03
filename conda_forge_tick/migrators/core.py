@@ -764,7 +764,7 @@ class GraphMigrator(Migrator):
         name = attrs.get("name", "")
 
         if super().filter(attrs, "Upstream:"):
-            logger.debug("filter %s: archived or done", name)
+            logger.debug("filter %s: archived or done or bad attr", name)
             return True
 
         if attrs.get("feedstock_name", None) not in self.graph:
