@@ -14,7 +14,7 @@ from conda_forge_tick.git_utils import (
     GitPlatformBackend,
     RepositoryNotFoundError,
 )
-from tests.conftest import FakeLazyJson
+from conftest import FakeLazyJson
 
 demo_attrs = {"conda-forge.yml": {"provider": {"default_branch": "main"}}}
 
