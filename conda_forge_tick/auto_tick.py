@@ -19,6 +19,7 @@ import github3.repos
 import networkx as nx
 import tqdm
 from conda.models.version import VersionOrder
+from conda_forge_feedstock_ops.container_utils import ContainerRuntimeError
 
 from conda_forge_tick.cli_context import CliContext
 from conda_forge_tick.contexts import (
@@ -56,7 +57,6 @@ from conda_forge_tick.os_utils import eval_cmd, pushd
 from conda_forge_tick.rerender_feedstock import rerender_feedstock
 from conda_forge_tick.solver_checks import is_recipe_solvable
 from conda_forge_tick.utils import (
-    ContainerRuntimeError,
     change_log_level,
     dump_graph,
     filter_reprinted_lines,
@@ -728,7 +728,9 @@ def _run_migrator_on_feedstock_branch(
         logger.exception("NON GITHUB ERROR")
 
         # we don't set bad for rerendering errors
-        if "conda smithy rerender -c auto --no-check-uptodate" not in str(e):
+        if "conda smithy rerender -c auto --no-check-uptodate" not in str(
+            e
+        ) and "Failed to rerender" not in str(e):
             with attrs["pr_info"] as pri:
                 pri["bad"] = {
                     "exception": str(e),

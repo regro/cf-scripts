@@ -68,13 +68,13 @@ jobs:
           TMPDIR: ${{ runner.temp }}
 
       - name: status of changes
-        if: github.ref == 'refs/heads/master' && always() && ! env.CI_SKIP
+        if: github.ref == 'refs/heads/main' && always() && ! env.CI_SKIP
         run: |
           pushd cf-graph
           git status
 
       - name: deploy
-        if: github.ref == 'refs/heads/master' && always() && ! env.CI_SKIP
+        if: github.ref == 'refs/heads/main' && always() && ! env.CI_SKIP
         run: |
           pushd cf-graph
 
@@ -85,7 +85,7 @@ jobs:
           RUN_ID: ${{ github.run_id }}
 
       - name: bump on fail
-        if: github.ref == 'refs/heads/master' && failure() && ! env.CI_SKIP
+        if: github.ref == 'refs/heads/main' && failure() && ! env.CI_SKIP
         run: |
           export ACTION_URL="https://github.com/regro/cf-scripts/actions/runs/${RUN_ID}"
           python cf-scripts/autotick-bot/bump_bot_team.py
@@ -95,8 +95,8 @@ jobs:
           ACTION_NAME: ${{ github.workflow }}
 
       - name: trigger next job
-        uses: benc-uk/workflow-dispatch@25b02cc069be46d637e8fe2f1e8484008e9e9609 # v1.2.3
-        if: github.ref == 'refs/heads/master' && ! cancelled() && ! failure() && ! env.CI_SKIP
+        uses: benc-uk/workflow-dispatch@e2e5e9a103e331dad343f381a29e654aea3cf8fc # v1.2.4
+        if: github.ref == 'refs/heads/main' && ! cancelled() && ! failure() && ! env.CI_SKIP
         with:
           workflow: bot-bot
           ref: ${{ github.event.ref }}

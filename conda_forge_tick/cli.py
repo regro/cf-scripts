@@ -94,7 +94,9 @@ def main(
         )
     if no_containers:
         logger.info("Running without containers")
-        click_context.with_resource(override_env("CF_TICK_IN_CONTAINER", "true"))
+        click_context.with_resource(
+            override_env("CF_FEEDSTOCK_OPS_IN_CONTAINER", "true")
+        )
 
 
 @main.command(name="gather-all-feedstocks")
