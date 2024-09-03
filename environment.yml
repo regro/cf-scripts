@@ -13,13 +13,14 @@ dependencies:
   - click
   - conda
   - conda-lock
-  - conda-forge-feedstock-check-solvable>=0.4.0
+  - conda-forge-feedstock-check-solvable >=0.4.0
+  - conda-forge-feedstock-ops >=0.3.0
   - conda-forge-pinning
   - conda-libmamba-solver
-  - conda-forge-metadata>=0.3.0
+  - conda-forge-metadata >=0.3.0
   - conda-package-handling
-  - conda-smithy >= 3.34.1
-  - conda-build>=3.24.0
+  - conda-smithy >=3.34.1
+  - conda-build >=3.24.0
   - curl
   - depfinder
   - distributed
@@ -27,12 +28,12 @@ dependencies:
   - frozendict
   - git
   - github3.py
-  - grayskull>=2.5
+  - grayskull >=2.5
   - jinja2
   - lockfile
-  - mamba>=0.23
+  - mamba >=0.23
   - msgpack-python
-  - networkx!=2.8.1
+  - networkx !=2.8.1
   - numpy
   - packaging
   - psutil
@@ -51,7 +52,6 @@ dependencies:
   - ruamel.yaml.jinja2
   - scipy
   - setuptools
-  - setuptools_scm>=8
   - stopit
   - streamz
   - tar
@@ -60,7 +60,7 @@ dependencies:
   - wurlitzer
   - yaml
   - pip
-  - pytest<8.1.0
+  - pytest <8.1.0
   - codecov
   - requests-mock
   - pre-commit
@@ -70,7 +70,5 @@ dependencies:
   - pytest-env
   - pytest-randomly
   - pytest-split
-  - setuptools_scm>=7
+  - setuptools_scm >=8
   - python-build
-  - pip:
-      - git+https://github.com/regro/conda-forge-feedstock-ops.git@0.3.0
