@@ -2,6 +2,17 @@ name: tests-reusable
 
 on:
   workflow_call:
+    inputs:
+      lockfile:
+        description: "The lockfile to use"
+        required: false
+        default: "conda-lock.yml"
+        type: string
+      lockfile-is-artifact:
+        description: "Whether the lockfile is an artifact"
+        required: false
+        default: false
+        type: boolean
     secrets:
       CODECOV_TOKEN:
         required: true
@@ -32,9 +43,22 @@ jobs:
         with:
           repository: "regro/cf-scripts"
 
+      - name: copy existing lockfile to correct location
+        if:  ${{ !inputs.lockfile-is-artifact }}
+        run: |
+          mkdir input-lockfile
+          cp ${{ inputs.lockfile }} input-lockfile/${{ inputs.lockfile }}
+
+      - name: download lockfile if it is an artifact
+        if: ${{ inputs.lockfile-is-artifact }}
+        uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16 # v4
+        with:
+          name: ${{ inputs.lockfile }}
+          path: input-lockfile
+
       - uses: mamba-org/setup-micromamba@f8b8a1e23a26f60a44c853292711bacfd3eac822 # v1
         with:
-          environment-file: conda-lock.yml
+          environment-file: input-lockfile/${{ inputs.lockfile }}
           environment-name: cf-scripts
           condarc-file: autotick-bot/condarc
 
