@@ -97,8 +97,3 @@ class FakeLazyJson(dict):
         exc_tb: TracebackType | None,
     ) -> None:
         pass
-
-
-@pytest.fixture
-def fake_lazy_json():
-    return FakeLazyJson()
