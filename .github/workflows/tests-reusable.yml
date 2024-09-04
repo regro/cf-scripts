@@ -43,11 +43,12 @@ jobs:
         with:
           repository: "regro/cf-scripts"
 
-      - name: copy existing lockfile to correct location
+      - name: get the lockfile
         if:  ${{ !inputs.lockfile-is-artifact }}
         run: |
+          wget https://raw.githubusercontent.com/regro/cf-graph-countyfair/master/conda-lock.yml
           mkdir input-lockfile
-          cp ${{ inputs.lockfile }} input-lockfile/${{ inputs.lockfile }}
+          mv conda-lock.yml input-lockfile/${{ inputs.lockfile }}
 
       - name: download lockfile if it is an artifact
         if: ${{ inputs.lockfile-is-artifact }}
@@ -56,9 +57,14 @@ jobs:
           name: ${{ inputs.lockfile }}
           path: input-lockfile
 
+      - name: move lockfile to repo
+        run: |
+          mv input-lockfile/${{ inputs.lockfile }} conda-lock.yml
+          rm -rf input-lockfile
+
       - uses: mamba-org/setup-micromamba@f8b8a1e23a26f60a44c853292711bacfd3eac822 # v1
         with:
-          environment-file: input-lockfile/${{ inputs.lockfile }}
+          environment-file: conda-lock.yml
           environment-name: cf-scripts
           condarc-file: autotick-bot/condarc
 
