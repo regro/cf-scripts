@@ -18,6 +18,7 @@ from conda_forge_tick.os_utils import pushd
 from conda_forge_tick.utils import (
     get_bot_run_url,
     get_keys_default,
+    get_migrator_name,
     pluck,
     yaml_safe_dump,
     yaml_safe_load,
@@ -285,7 +286,8 @@ class MigrationYaml(GraphMigrator):
 
     def pr_body(self, feedstock_ctx: ClonedFeedstockContext) -> str:
         body = super().pr_body(feedstock_ctx)
-        url = f"https://conda-forge.org/status/migration/?name={self.name}"
+        name = get_migrator_name(self)
+        url = f"https://conda-forge.org/status/migration/?name={name}"
         if feedstock_ctx.feedstock_name == "conda-forge-pinning":
             additional_body = (
                 "This PR has been triggered in an effort to close out the "
@@ -300,7 +302,7 @@ class MigrationYaml(GraphMigrator):
                 "the your rebuild has been merged.**\n\n"
                 "<hr>"
                 "".format(
-                    name=self.name,
+                    name=name,
                     url=url,
                 )
             )
@@ -318,7 +320,7 @@ class MigrationYaml(GraphMigrator):
                 "the your rebuild has been merged.**\n\n"
                 "<hr>"
                 "".format(
-                    name=self.name,
+                    name=name,
                     url=url,
                 )
             )
