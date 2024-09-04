@@ -8767,15 +8767,15 @@ package:
       python: '>=3.11,<3.12.0a0'
       python_abi: 3.11.*
     hash:
-      md5: 8be12c9181351e6d02b7d94f3552840a
-      sha256: 07b0899b7f459b830cc3a7331fc1e043938253093f202361eb20e6c4e0267759
+      md5: da5f27f7c621bd5ed30a4b8b2e022dab
+      sha256: 46787dedac5fabee2d79d6682af0de9a2d388e765850773cd8bb397a4ad06be8
     manager: conda
     name: numpy
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/linux-64/numpy-2.1.0-py311h71ddf71_1.conda
-    version: 2.1.0
+      https://conda.anaconda.org/conda-forge/linux-64/numpy-2.1.1-py311h71ddf71_0.conda
+    version: 2.1.1
   - category: main
     dependencies:
       __osx: '>=10.13'
