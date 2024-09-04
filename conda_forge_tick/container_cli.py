@@ -714,5 +714,28 @@ def check_solvable(log_level, timeout, verbosity, additional_channels, build_pla
     )
 
 
+@cli.command(name="update-version")
+@log_level_option
+@click.option("--version", type=str, required=True, help="The version to update to.")
+@click.option(
+    "--hash-type",
+    type=str,
+    required=True,
+    help="The type of hash to use.",
+)
+def update_version(
+    log_level,
+    version,
+    hash_type,
+):
+    return _run_bot_task(
+        _update_version,
+        log_level=log_level,
+        existing_feedstock_node_attrs=None,
+        version=version,
+        hash_type=hash_type,
+    )
+
+
 if __name__ == "__main__":
     cli()
