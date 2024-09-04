@@ -130,6 +130,10 @@ __migrator:
   # The bot will skip noarch feedstocks by default.
   include_noarch: false
 
+  # If `include_build` is set to true, the bot will include build requirements in the migration.
+  # The bot will skip build requirements by default, which prevents compiler migrations.
+  include_build: false
+
   # The pr_limit controls how many PRs that bot makes in a single run.
   # Typical values range from 5 (small/slow) to 30 (large/fast). If not given,
   # the bot will scale this limit automatically to make new migrations more responsive
