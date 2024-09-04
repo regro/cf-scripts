@@ -256,6 +256,7 @@ def add_rebuild_migration_yaml(
         excluded_feedstocks,
         exclude_pinned_pkgs=exclude_pinned_pkgs,
         include_noarch=config.get("include_noarch", False),
+        include_build=config.get("include_build", False),
     )
 
     # Note at this point the graph is made of all packages that have a

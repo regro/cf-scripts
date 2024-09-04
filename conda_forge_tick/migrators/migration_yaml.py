@@ -657,6 +657,7 @@ def create_rebuild_graph(
     excluded_feedstocks: MutableSet[str] = None,
     exclude_pinned_pkgs: bool = True,
     include_noarch: bool = False,
+    include_build: bool = False,
 ) -> nx.DiGraph:
     total_graph = copy.deepcopy(gx)
     excluded_feedstocks = set() if excluded_feedstocks is None else excluded_feedstocks
@@ -677,7 +678,10 @@ def create_rebuild_graph(
         requirements = attrs.get("requirements", {})
         host = requirements.get("host", set())
         build = requirements.get("build", set())
-        bh = host or build
+        if include_build:
+            bh = host | build
+        else:
+            bh = host or build
         only_python = "python" in package_names
         inclusion_criteria = bh & set(package_names) and (
             include_noarch or not all_noarch(attrs, only_python=only_python)
@@ -687,7 +691,7 @@ def create_rebuild_graph(
         all_reqs = requirements.get("run", set())
         if inclusion_criteria:
             all_reqs = all_reqs | requirements.get("test", set())
-            all_reqs = all_reqs | (host or build)
+            all_reqs = all_reqs | bh
         rq = get_deps_from_outputs_lut(
             all_reqs,
             gx.graph["outputs_lut"],
