@@ -13,7 +13,7 @@
 [![bot-make-migrators](https://github.com/regro/cf-scripts/actions/workflows/bot-make-migrators.yml/badge.svg)](https://github.com/regro/cf-scripts/actions/workflows/bot-make-migrators.yml)
 [![bot-cache](https://github.com/regro/cf-scripts/actions/workflows/bot-cache.yml/badge.svg)](https://github.com/regro/cf-scripts/actions/workflows/bot-cache.yml)
 [![test-model](https://github.com/regro/cf-scripts/actions/workflows/test-model.yml/badge.svg)](https://github.com/regro/cf-scripts/actions/workflows/test-model.yml)
-[![relock](https://github.com/regro/cf-scripts/actions/workflows/relock.yml/badge.svg)](https://github.com/regro/cf-scripts/actions/workflows/relock.yml)
+
 
 the actual bot in an actual place doing an actual thing
 
