@@ -326,6 +326,54 @@ def _migrate_feedstock(*, feedstock_name, default_branch, attrs, input_kwargs):
     return data
 
 
+def _update_version(*, version, hash_type):
+    from conda_forge_feedstock_ops.os_utils import (
+        chmod_plus_rwX,
+        get_user_execute_permissions,
+        reset_permissions_with_user_execute,
+        sync_dirs,
+    )
+
+    from conda_forge_tick.update_recipe.version import (
+        _update_version_feedstock_dir_local,
+    )
+
+    logger = logging.getLogger("conda_forge_tick.container")
+
+    with tempfile.TemporaryDirectory() as tmpdir:
+        input_fs_dir = glob.glob("/cf_feedstock_ops_dir/*-feedstock")
+        assert len(input_fs_dir) == 1, f"expected one feedstock, got {input_fs_dir}"
+        input_fs_dir = input_fs_dir[0]
+        logger.debug(
+            f"input container feedstock dir {input_fs_dir}: {os.listdir(input_fs_dir)}"
+        )
+        input_permissions = os.path.join(
+            "/cf_feedstock_ops_dir",
+            f"permissions-{os.path.basename(input_fs_dir)}.json",
+        )
+        with open(input_permissions) as f:
+            input_permissions = json.load(f)
+
+        fs_dir = os.path.join(tmpdir, os.path.basename(input_fs_dir))
+        sync_dirs(input_fs_dir, fs_dir, ignore_dot_git=True, update_git=False)
+        logger.debug(f"copied container feedstock dir {fs_dir}: {os.listdir(fs_dir)}")
+
+        reset_permissions_with_user_execute(fs_dir, input_permissions)
+
+        updated, errors = _update_version_feedstock_dir_local(
+            fs_dir,
+            version,
+            hash_type,
+        )
+        data = {"updated": updated, "errors": errors}
+
+        data["permissions"] = get_user_execute_permissions(fs_dir)
+        sync_dirs(fs_dir, input_fs_dir, ignore_dot_git=True, update_git=False)
+        chmod_plus_rwX(input_fs_dir, recursive=True, skip_on_error=True)
+
+    return data
+
+
 def _get_latest_version(*, attrs, sources):
     from conda_forge_tick.update_upstream_versions import (
         all_version_sources,

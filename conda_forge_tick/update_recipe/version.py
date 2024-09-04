@@ -1,16 +1,32 @@
 import collections.abc
 import hashlib
 import io
+import json
 import logging
+import os
 import pprint
 import re
+import shutil
+import tempfile
 import traceback
 from typing import Any, MutableMapping
 
 import jinja2
 import jinja2.sandbox
+from conda_forge_feedstock_ops.container_utils import (
+    get_default_log_level_args,
+    run_container_operation,
+    should_use_container,
+)
+from conda_forge_feedstock_ops.os_utils import (
+    chmod_plus_rwX,
+    get_user_execute_permissions,
+    reset_permissions_with_user_execute,
+    sync_dirs,
+)
 
 from conda_forge_tick.hashing import hash_url
+from conda_forge_tick.lazy_json_backends import loads
 from conda_forge_tick.recipe_parser import CONDA_SELECTOR, CondaMetaYAML
 from conda_forge_tick.url_transforms import gen_transformed_urls
 from conda_forge_tick.utils import sanitize_string
@@ -377,6 +393,115 @@ def _try_to_update_version(cmeta: Any, src: str, hash_type: str):
     logger.info("updated|errors: %r|%r", updated_version, errors)
 
     return updated_version, errors
+
+
+def update_version_feedstock_dir(
+    feedstock_dir, version, hash_type="sha256", use_container=None
+):
+    """Update the version in a recipe.
+
+    Parameters
+    ----------
+    feedstock_dir : str
+        The feedstock directory w/ the recipe to update.
+    version : str
+        The version of the recipe.
+    hash_type : str, optional
+        The kind of hash used on the source. Default is sha256.
+    use_container : bool, optional
+        Whether to use a container to run the version parsing.
+        If None, the function will use a container if the environment
+        variable `CF_FEEDSTOCK_OPS_IN_CONTAINER` is 'false'. This feature can be
+        used to avoid container in container calls.
+
+    Returns
+    -------
+    updated : bool
+        If the recipe was updated, True, otherwise False.
+    errors : str of str
+        A set of strings giving any errors found when updating the
+        version. The set will be empty if there were no errors.
+    """
+    if should_use_container(use_container=use_container):
+        return _update_version_feedstock_dir_containerized(
+            feedstock_dir,
+            version,
+            hash_type,
+        )
+    else:
+        return _update_version_feedstock_dir_local(
+            feedstock_dir,
+            version,
+            hash_type,
+        )
+
+
+def _update_version_feedstock_dir_local(feedstock_dir, version, hash_type):
+    with open(os.path.join(feedstock_dir, "recipe", "meta.yaml")) as f:
+        raw_meta_yaml = f.read()
+    updated_meta_yaml, errors = update_version(
+        raw_meta_yaml, version, hash_type=hash_type
+    )
+    if updated_meta_yaml is not None:
+        with open(os.path.join(feedstock_dir, "recipe", "meta.yaml"), "w") as f:
+            f.write(updated_meta_yaml)
+
+    return updated_meta_yaml is not None, errors
+
+
+def _update_version_feedstock_dir_containerized(feedstock_dir, version, hash_type):
+    with tempfile.TemporaryDirectory() as tmpdir:
+        tmp_feedstock_dir = os.path.join(tmpdir, os.path.basename(feedstock_dir))
+        sync_dirs(
+            feedstock_dir, tmp_feedstock_dir, ignore_dot_git=True, update_git=False
+        )
+
+        perms = get_user_execute_permissions(feedstock_dir)
+        with open(
+            os.path.join(tmpdir, f"permissions-{os.path.basename(feedstock_dir)}.json"),
+            "w",
+        ) as f:
+            json.dump(perms, f)
+
+        chmod_plus_rwX(tmpdir, recursive=True)
+
+        logger.debug(f"host feedstock dir {feedstock_dir}: {os.listdir(feedstock_dir)}")
+        logger.debug(
+            f"copied host feedstock dir {tmp_feedstock_dir}: {os.listdir(tmp_feedstock_dir)}"
+        )
+
+        args = [
+            "conda-forge-tick-container",
+            "update-version",
+            "--version",
+            version,
+            "--hash-type",
+            hash_type,
+        ]
+        args += get_default_log_level_args(logger)
+
+        data = run_container_operation(
+            args,
+            mount_readonly=False,
+            mount_dir=tmpdir,
+            json_loads=loads,
+        )
+
+        sync_dirs(
+            tmp_feedstock_dir,
+            feedstock_dir,
+            ignore_dot_git=True,
+            update_git=False,
+        )
+        reset_permissions_with_user_execute(feedstock_dir, data["permissions"])
+
+        # When tempfile removes tempdir, it tries to reset permissions on subdirs.
+        # This causes a permission error since the subdirs were made by the user
+        # in the container. So we remove the subdir we made before cleaning up.
+        shutil.rmtree(tmp_feedstock_dir)
+
+    data.pop("permissions", None)
+    return data["updated"], data["errors"]
 
 
 def update_version(raw_meta_yaml, version, hash_type="sha256"):
