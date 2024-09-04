@@ -285,10 +285,11 @@ class MigrationYaml(GraphMigrator):
 
     def pr_body(self, feedstock_ctx: ClonedFeedstockContext) -> str:
         body = super().pr_body(feedstock_ctx)
+        url = f"https://conda-forge.org/status/migration/?name={self.name}"
         if feedstock_ctx.feedstock_name == "conda-forge-pinning":
             additional_body = (
                 "This PR has been triggered in an effort to close out the "
-                "migration for **{name}**.\n\n"
+                "migration for [**{name}**]({url}).\n\n"
                 "Notes and instructions for merging this PR:\n"
                 "1. Please merge the PR only after the tests have passed. \n"
                 "2. Feel free to push to the bot's branch to update this PR "
@@ -300,11 +301,13 @@ class MigrationYaml(GraphMigrator):
                 "<hr>"
                 "".format(
                     name=self.name,
+                    url=url,
                 )
             )
         else:
             additional_body = (
-                "This PR has been triggered in an effort to update **{name}**.\n\n"
+                "This PR has been triggered in an effort to update "
+                "[**{name}**]({url}).\n\n"
                 "Notes and instructions for merging this PR:\n"
                 "1. Please merge the PR only after the tests have passed. \n"
                 "2. Feel free to push to the bot's branch to update this PR "
@@ -316,6 +319,7 @@ class MigrationYaml(GraphMigrator):
                 "<hr>"
                 "".format(
                     name=self.name,
+                    url=url,
                 )
             )
 

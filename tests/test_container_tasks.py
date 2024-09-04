@@ -644,7 +644,8 @@ def test_migration_runner_run_migration_containerized_yaml_rebuild(tmpdir):
     assert migration_data["commit_message"] == "Rebuild for hi"
     assert migration_data["pr_title"] == "Rebuild for hi"
     assert migration_data["pr_body"].startswith(
-        "This PR has been triggered in an effort to update **hi**."
+        "This PR has been triggered in an effort to update "
+        "[**hi**](https://conda-forge.org/status/migration/?name=hi)."
     )
 
     with open(os.path.join(rp_dir, "meta.yaml")) as f:
