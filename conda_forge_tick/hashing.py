@@ -2,12 +2,18 @@ import functools
 import hashlib
 import math
 import time
-from multiprocessing import Pipe, Process
+from multiprocessing import Pipe, Process, connection
 
 import requests
 
 
-def _hash_url(url, hash_type, progress=False, conn=None, timeout=None):
+def _hash_url(
+    url: str,
+    hash_type: str,
+    progress: bool = False,
+    conn: connection.Connection | None = None,
+    timeout: int | None = None,
+) -> str | None:
     _hash = None
     try:
         ha = getattr(hashlib, hash_type)()
@@ -68,7 +74,12 @@ def _hash_url(url, hash_type, progress=False, conn=None, timeout=None):
 
 
 @functools.lru_cache(maxsize=1024)
-def hash_url(url, timeout=None, progress=False, hash_type="sha256"):
+def hash_url(
+    url: str,
+    timeout: int | None = None,
+    progress: bool = False,
+    hash_type: str = "sha256",
+) -> str | None:
     """Hash a url with a timeout.
 
     Parameters
