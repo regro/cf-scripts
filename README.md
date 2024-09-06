@@ -237,17 +237,17 @@ If your migrator needs special configuration, you should write a new factory fun
 
 ### Getting a Working Environment
 
-The bot has an abstract set of requirements stored in the `environment.yml` file in this repo. 
+The bot has an abstract set of requirements stored in the `environment.yml` file in this repo.
 
-It's production environment is locked via `conda-lock`. The lockfile is stored in `cf-graph-countyfair` 
-at [https://github.com/regro/cf-graph-countyfair/blob/master/conda-lock.yml](https://github.com/regro/cf-graph-countyfair/blob/master/conda-lock.yml). 
+It's production environment is locked via `conda-lock`. The lockfile is stored in `cf-graph-countyfair`
+at [https://github.com/regro/cf-graph-countyfair/blob/master/conda-lock.yml](https://github.com/regro/cf-graph-countyfair/blob/master/conda-lock.yml).
 The production environment is relocked regularly using a GitHub Actions [job](https://github.com/regro/cf-graph-countyfair/actions/workflows/relock.yaml).
 
 There are two ways to get a working environment:
 
 1. Use the `environment.yml` file in the repo with `conda env`.
 2. Download the lockfile and use `conda-lock`. The best way to download the lockfile is via `wget` or `curl` or similar:
-   
+
    ```bash
    wget https://raw.githubusercontent.com/regro/cf-graph-countyfair/master/conda-lock.yml
    ```
