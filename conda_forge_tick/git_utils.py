@@ -341,7 +341,9 @@ class GitCli:
 
         # --relative ensures that we do not assemble invalid paths below if git_dir is a subdirectory
         ret = self._run_git_command(
-            ["diff", "--name-only", "--relative", commit_a, commit_b], git_dir
+            ["diff", "--name-only", "--relative", commit_a, commit_b],
+            git_dir,
+            capture_text=True,
         )
 
         return (git_dir / line for line in ret.stdout.splitlines())
