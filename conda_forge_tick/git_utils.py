@@ -167,6 +167,43 @@ class GitCli:
             raise GitCliError("Error running git command.") from e
 
     @lock_git_operation()
+    def add(self, git_dir: Path, *pathspec: Path, all_: bool = False):
+        """
+        Add files to the git index with `git add`.
+        :param git_dir: The directory of the git repository.
+        :param pathspec: The files to add.
+        :param all_: If True, not only add the files in pathspec, but also where the index already has an entry.
+        If all_ is set with empty pathspec, all files in the entire working tree are updated.
+        :raises ValueError: If pathspec is empty and all_ is False.
+        :raises GitCliError: If the git command fails.
+        """
+        if not pathspec and not all_:
+            raise ValueError("Either pathspec or all_ must be set.")
+
+        all_arg = ["--all"] if all_ else []
+
+        self._run_git_command(["add", *all_arg, *pathspec], git_dir)
+
+    @lock_git_operation()
+    def commit(
+        self, git_dir: Path, message: str, all_: bool = False, allow_empty: bool = False
+    ):
+        """
+        Commit changes to the git repository with `git commit`.
+        :param git_dir: The directory of the git repository.
+        :param message: The commit message.
+        :param allow_empty: If True, allow an empty commit.
+        :param all_: Automatically stage files that have been modified and deleted, but new files are not affected.
+        :raises GitCliError: If the git command fails.
+        """
+        all_arg = ["-a"] if all_ else []
+        allow_empty_arg = ["--allow-empty"] if allow_empty else []
+
+        self._run_git_command(
+            ["commit", *all_arg, *allow_empty_arg, "-m", message], git_dir
+        )
+
+    @lock_git_operation()
     def reset_hard(self, git_dir: Path, to_treeish: str = "HEAD"):
         """
         Reset the git index of a directory to the state of the last commit with `git reset --hard HEAD`.

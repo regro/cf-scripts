@@ -7,7 +7,6 @@ import random
 import time
 import traceback
 import typing
-from subprocess import CalledProcessError
 from textwrap import dedent
 from typing import Literal, MutableMapping, cast
 from urllib.error import URLError
@@ -31,6 +30,8 @@ from conda_forge_tick.deploy import deploy
 from conda_forge_tick.feedstock_parser import BOOTSTRAP_MAPPINGS
 from conda_forge_tick.git_utils import (
     DryRunBackend,
+    GitCli,
+    GitCliError,
     GitPlatformBackend,
     RepositoryNotFoundError,
     comment_on_pr,
@@ -189,6 +190,39 @@ def _prepare_feedstock_repository(
     return True
 
 
+def _commit_migration(
+    cli: GitCli,
+    context: ClonedFeedstockContext,
+    commit_message: str,
+    allow_empty_commits: bool = False,
+    raise_commit_errors: bool = True,
+) -> None:
+    """
+    Commit a migration that has been run in the local clone of a feedstock repository.
+    If an error occurs during the commit, it is logged.
+    :param cli: The GitCli instance to use.
+    :param context: The FeedstockContext instance.
+    :param commit_message: The commit message to use.
+    :param allow_empty_commits: Whether the migrator allows empty commits.
+    :param raise_commit_errors: Whether to raise an exception if an error occurs during the commit.
+    :raises GitCliError: If an error occurs during the commit and raise_commit_errors is True.
+    """
+    cli.add(
+        context.local_clone_dir,
+        all_=True,
+    )
+
+    try:
+        cli.commit(
+            context.local_clone_dir, commit_message, allow_empty=allow_empty_commits
+        )
+    except GitCliError as e:
+        logger.info("could not commit to feedstock - likely no changes", exc_info=e)
+
+        if raise_commit_errors:
+            raise
+
+
 def run_with_tmpdir(
     context: FeedstockContext,
     migrator: Migrator,
@@ -274,19 +308,10 @@ def run(
         # something went wrong during forking or cloning
         return False, False
 
-    # need to use an absolute path here
-    feedstock_dir = str(context.local_clone_dir.resolve())
-
-    # This is needed because we want to migrate to the new backend step-by-step
-    repo: github3.repos.Repository | None = github3_client().repository(
-        context.git_repo_owner, context.git_repo_name
-    )
-
-    assert repo is not None
-
+    # feedstock_dir must be an absolute path
     migration_run_data = run_migration(
         migrator=migrator,
-        feedstock_dir=feedstock_dir,
+        feedstock_dir=str(context.local_clone_dir.resolve()),
         feedstock_name=context.feedstock_name,
         node_attrs=context.attrs,
         default_branch=context.default_branch,
@@ -301,27 +326,28 @@ def run(
         )
         return False, False
 
+    # We raise an exception if we don't plan to rerender and wanted an empty commit.
+    # This prevents PRs that don't actually get made from getting marked as done.
+    _commit_migration(
+        cli=git_backend.cli,
+        context=context,
+        commit_message=migration_run_data["commit_message"],
+        allow_empty_commits=migrator.allow_empty_commits,
+        raise_commit_errors=migrator.allow_empty_commits and not rerender,
+    )
+
+    # This is needed because we want to migrate to the new backend step-by-step
+    repo: github3.repos.Repository | None = github3_client().repository(
+        context.git_repo_owner, context.git_repo_name
+    )
+
+    assert repo is not None
+
+    feedstock_dir = str(context.local_clone_dir.resolve())
+
     # rerender, maybe
     diffed_files: typing.List[str] = []
     with pushd(feedstock_dir):
-        msg = migration_run_data["commit_message"]
-        try:
-            eval_cmd(["git", "add", "--all", "."])
-            if migrator.allow_empty_commits:
-                eval_cmd(["git", "commit", "--allow-empty", "-am", msg])
-            else:
-                eval_cmd(["git", "commit", "-am", msg])
-        except CalledProcessError as e:
-            logger.info(
-                "could not commit to feedstock - "
-                "likely no changes - error is '%s'" % (repr(e)),
-            )
-            # we bail here if we do not plan to rerender and we wanted an empty
-            # commit
-            # this prevents PRs that don't actually get made from getting marked as done
-            if migrator.allow_empty_commits and not rerender:
-                raise e
-
         if rerender:
             head_ref = eval_cmd(["git", "rev-parse", "HEAD"]).strip()
             logger.info("Rerendering the feedstock")
