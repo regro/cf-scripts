@@ -16,6 +16,7 @@ def _cleanup_raw_yaml(raw_yaml):
         line = line.replace("{{native}}", "")
         line = line.replace("{{posix}}pkg-config", "pkg-config")
         line = line.replace("{{ posix }}pkg-config", "pkg-config")
+        line = line.replace("- m2w64-pkg-config", "pkg-config")
         line = line.replace("- m2w64-toolchain", "- {{ compiler('m2w64_c') }}")
         if "merge_build_host: " in line:
             continue
@@ -44,7 +45,7 @@ class RUCRTCleanup(MiniMigrator):
     """Cleanup the R recipes for ucrt"""
 
     def filter(self, attrs: "AttrsTypedDict", not_bad_str_start: str = "") -> bool:
-        return "native" not in attrs.get("raw_meta_yaml", "")
+        return not any(w in attrs.get("raw_meta_yaml", "") for w in ["native", "- posix", "- m2w64"])
 
     def migrate(self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any) -> None:
         with pushd(recipe_dir):
