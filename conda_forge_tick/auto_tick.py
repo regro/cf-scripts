@@ -308,7 +308,7 @@ def run(
         # something went wrong during forking or cloning
         return False, False
 
-    # feedstock_dir must be absolute
+    # feedstock_dir must be an absolute path
     migration_run_data = run_migration(
         migrator=migrator,
         feedstock_dir=str(context.local_clone_dir.resolve()),
