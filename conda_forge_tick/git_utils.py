@@ -11,7 +11,7 @@ from abc import ABC, abstractmethod
 from datetime import datetime
 from functools import cached_property
 from pathlib import Path
-from typing import Dict, Optional, Union
+from typing import Dict, Iterator, Optional, Union
 
 import backoff
 import github
@@ -326,6 +326,25 @@ class GitCli:
         self._run_git_command(
             ["checkout", "--quiet", "-b", branch] + start_point_option, git_dir
         )
+
+    def diffed_files(
+        self, git_dir: Path, commit_a: str, commit_b: str = "HEAD"
+    ) -> Iterator[Path]:
+        """
+        Get the files that are different between two commits.
+        :param git_dir: The directory of the git repository. This should be the root of the repository.
+            If it is a subdirectory, only the files in that subdirectory will be returned.
+        :param commit_a: The first commit.
+        :param commit_b: The second commit.
+        :return: An iterator over the files that are different between the two commits.
+        """
+
+        # --relative ensures that we do not assemble invalid paths below if git_dir is a subdirectory
+        ret = self._run_git_command(
+            ["diff", "--name-only", "--relative", commit_a, commit_b], git_dir
+        )
+
+        return (git_dir / line for line in ret.stdout.splitlines())
 
     @lock_git_operation()
     def clone_fork_and_branch(
