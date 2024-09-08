@@ -23,10 +23,7 @@ def _cleanup_raw_yaml(raw_yaml):
         if "- gcc-libs" in line:
             continue
         if "- posix" in line:
-            if "set posix" in raw_yaml:
-                line = line.replace("- posix", "- {{ posix }}base")
-            else:
-                line = line.replace("- posix", "- m2-base")
+            line = line.replace("- posix", "- m2-base")
         if "set native =" in line:
             continue
         if re.search(r"\s*skip: (T|t)rue\s+\# \[win\]", line):
