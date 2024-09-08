@@ -45,7 +45,10 @@ class RUCRTCleanup(MiniMigrator):
     """Cleanup the R recipes for ucrt"""
 
     def filter(self, attrs: "AttrsTypedDict", not_bad_str_start: str = "") -> bool:
-        return not any(w in attrs.get("raw_meta_yaml", "") for w in ["native", "- posix", "- m2w64"])
+        return not any(
+            w in attrs.get("raw_meta_yaml", "")
+            for w in ["native", "- posix", "- m2w64"]
+        )
 
     def migrate(self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any) -> None:
         with pushd(recipe_dir):
