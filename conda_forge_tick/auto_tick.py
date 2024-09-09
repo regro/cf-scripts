@@ -402,9 +402,9 @@ def run(
     )
 
     if rerender:
-        # for version migrations, check solvable or automerge, we always raise rerender errors
+        # for version migrations, without check solvable or automerge, we can suppress rerender errors
         suppress_errors = (
-            not is_version_migration
+            is_version_migration
             and not context.check_solvable
             and not context.automerge
         )
