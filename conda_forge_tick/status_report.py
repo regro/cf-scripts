@@ -67,10 +67,9 @@ def _ok_version(ver):
 def write_version_migrator_status(migrator, mctx):
     """write the status of the version migrator"""
 
-    out: Dict[str, Any] = {
-        "queued": set(),
-        "errored": set(),
-        "errors": {},
+    out: Dict[str, Dict[str, str]] = {
+        "queued": {},  # name -> pending version
+        "errors": {},  # name -> error
     }
 
     gx = mctx.graph
@@ -109,9 +108,8 @@ def write_version_migrator_status(migrator, mctx):
                 ):
                     attempts = vpri.get("new_version_attempts", {}).get(new_version, 0)
                     if attempts == 0:
-                        out["queued"].add(node)
+                        out["queued"][node] = new_version
                     else:
-                        out["errored"].add(node)
                         out["errors"][node] = f"{attempts:.2f} attempts - " + vpri.get(
                             "new_version_errors",
                             {},
@@ -122,6 +120,12 @@ def write_version_migrator_status(migrator, mctx):
                         )
 
     with open("./status/version_status.json", "w") as f:
+        old_out = out.copy()
+        old_out["queued"] = set(out["queued"].keys())
+        old_out["errored"] = set(out["errors"].keys())
+        json.dump(old_out, f, sort_keys=True, indent=2, default=_sorted_set_json)
+
+    with open("./status/version_status.v2.json", "w") as f:
         json.dump(out, f, sort_keys=True, indent=2, default=_sorted_set_json)
 
 
