@@ -4,9 +4,11 @@ import json
 import logging
 import os
 import random
+import textwrap
 import time
 import traceback
 import typing
+from dataclasses import dataclass
 from textwrap import dedent
 from typing import Literal, MutableMapping, cast
 from urllib.error import URLError
@@ -54,7 +56,7 @@ from conda_forge_tick.make_migrators import (
 from conda_forge_tick.migration_runner import run_migration
 from conda_forge_tick.migrators import MigrationYaml, Migrator, Version
 from conda_forge_tick.migrators.version import VersionMigrationError
-from conda_forge_tick.os_utils import eval_cmd, pushd
+from conda_forge_tick.os_utils import eval_cmd
 from conda_forge_tick.rerender_feedstock import rerender_feedstock
 from conda_forge_tick.solver_checks import is_recipe_solvable
 from conda_forge_tick.utils import (
@@ -223,6 +225,70 @@ def _commit_migration(
             raise
 
 
+@dataclass(frozen=True)
+class _RerenderInfo:
+    """
+    Additional information about a rerender operation.
+    """
+
+    nontrivial_changes: bool
+    """
+    True if any files which are not in the following list were changed during the rerender, False otherwise:
+    1. anything in the recipe directory
+    2. the README file
+    """
+    rerender_comment: str | None = None
+    """
+    If requested, a comment to be added to the PR to indicate an issue with the rerender.
+    None if no comment should be added.
+    """
+
+
+def _run_rerender(
+    git_cli: GitCli, context: ClonedFeedstockContext, suppress_errors: bool = False
+) -> _RerenderInfo:
+    logger.info("Rerendering the feedstock")
+
+    try:
+        rerender_msg = rerender_feedstock(str(context.local_clone_dir), timeout=900)
+    except Exception as e:
+        logger.error("RERENDER ERROR", exc_info=e)
+
+        if not suppress_errors:
+            raise
+
+        rerender_comment = textwrap.dedent(
+            """
+            Hi! This feedstock was not able to be rerendered after the version update changes. I
+            have pushed the version update changes anyways and am trying to rerender again with this
+            comment. Hopefully you all can fix this!
+
+            @conda-forge-admin rerender
+            """
+        )
+
+        return _RerenderInfo(
+            nontrivial_changes=False, rerender_comment=rerender_comment
+        )
+
+    if rerender_msg is None:
+        return _RerenderInfo(nontrivial_changes=False)
+
+    git_cli.commit(context.local_clone_dir, rerender_msg, all_=True, allow_empty=True)
+
+    # HEAD~ is the state before the last commit
+    changed_files = git_cli.diffed_files(context.local_clone_dir, "HEAD~")
+
+    recipe_dir = context.local_clone_dir / "recipe"
+
+    nontrivial_changes = any(
+        not file.is_relative_to(recipe_dir) and not file.name.startswith("README")
+        for file in changed_files
+    )
+
+    return _RerenderInfo(nontrivial_changes=nontrivial_changes)
+
+
 def run_with_tmpdir(
     context: FeedstockContext,
     migrator: Migrator,
@@ -336,6 +402,20 @@ def run(
         raise_commit_errors=migrator.allow_empty_commits and not rerender,
     )
 
+    if rerender:
+        # for version migrations, without check solvable or automerge, we can suppress rerender errors
+        suppress_errors = (
+            is_version_migration
+            and not context.check_solvable
+            and not context.automerge
+        )
+
+        rerender_info = _run_rerender(
+            git_backend.cli, context, suppress_errors=suppress_errors
+        )
+    else:
+        rerender_info = _RerenderInfo(nontrivial_changes=False)
+
     # This is needed because we want to migrate to the new backend step-by-step
     repo: github3.repos.Repository | None = github3_client().repository(
         context.git_repo_owner, context.git_repo_name
@@ -345,73 +425,13 @@ def run(
 
     feedstock_dir = str(context.local_clone_dir.resolve())
 
-    # rerender, maybe
-    diffed_files: typing.List[str] = []
-    with pushd(feedstock_dir):
-        if rerender:
-            head_ref = eval_cmd(["git", "rev-parse", "HEAD"]).strip()
-            logger.info("Rerendering the feedstock")
-
-            try:
-                rerender_msg = rerender_feedstock(feedstock_dir, timeout=900)
-                if rerender_msg is not None:
-                    eval_cmd(["git", "commit", "--allow-empty", "-am", rerender_msg])
-
-                make_rerender_comment = False
-            except Exception as e:
-                # I am trying this bit of code to force these errors
-                # to be surfaced in the logs at the right time.
-                print(f"RERENDER ERROR: {e}", flush=True)
-                if not isinstance(migrator, Version):
-                    raise
-                else:
-                    # for check solvable or automerge, we always raise rerender errors
-                    if get_keys_default(
-                        context.attrs,
-                        ["conda-forge.yml", "bot", "check_solvable"],
-                        {},
-                        False,
-                    ) or get_keys_default(
-                        context.attrs,
-                        ["conda-forge.yml", "bot", "automerge"],
-                        {},
-                        False,
-                    ):
-                        raise
-                    else:
-                        make_rerender_comment = True
-
-            # If we tried to run the MigrationYaml and rerender did nothing (we only
-            # bumped the build number and dropped a yaml file in migrations) bail
-            # for instance platform specific migrations
-            gdiff = eval_cmd(
-                ["git", "diff", "--name-only", f"{head_ref.strip()}...HEAD"]
-            )
-
-            diffed_files = [
-                _
-                for _ in gdiff.split()
-                if not (
-                    _.startswith("recipe")
-                    or _.startswith("migrators")
-                    or _.startswith("README")
-                )
-            ]
-        else:
-            make_rerender_comment = False
-
-    feedstock_automerge = get_keys_default(
-        context.attrs,
-        ["conda-forge.yml", "bot", "automerge"],
-        {},
-        False,
-    )
     if isinstance(migrator, Version):
-        has_automerge = feedstock_automerge in [True, "version"]
+        has_automerge = context.automerge in [True, "version"]
     else:
-        has_automerge = getattr(
-            migrator, "automerge", False
-        ) and feedstock_automerge in [True, "migration"]
+        has_automerge = getattr(migrator, "automerge", False) and context.automerge in [
+            True,
+            "migration",
+        ]
 
     migrator_check_solvable = getattr(migrator, "check_solvable", True)
     feedstock_check_solvable = get_keys_default(
@@ -432,7 +452,7 @@ def run(
     logger.info(
         f"""automerge and check_solvable status/settings:
     automerge:
-        feedstock_automerge: {feedstock_automerge}
+        feedstock_automerge: {context.automerge}
         migratror_automerge: {getattr(migrator, 'automerge', False)}
         has_automerge: {has_automerge} (only considers feedstock if version migration)
     check_solvable:
@@ -505,7 +525,7 @@ def run(
     pr_json: typing.Union[MutableMapping, None, bool]
     if (
         isinstance(migrator, MigrationYaml)
-        and not diffed_files
+        and not rerender_info.nontrivial_changes
         and context.attrs["name"] != "conda-forge-pinning"
     ):
         # spoof this so it looks like the package is done
@@ -538,15 +558,10 @@ def run(
                 pr_json = False
                 ljpr = False
 
-    if pr_json and pr_json["state"] != "closed" and make_rerender_comment:
+    if pr_json and pr_json["state"] != "closed" and rerender_info.rerender_comment:
         comment_on_pr(
             pr_json,
-            """\
-Hi! This feedstock was not able to be rerendered after the version update changes. I
-have pushed the version update changes anyways and am trying to rerender again with this
-comment. Hopefully you all can fix this!
-
-@conda-forge-admin rerender""",
+            rerender_info.rerender_comment,
             repo,
         )
 

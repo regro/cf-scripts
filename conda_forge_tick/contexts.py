@@ -11,6 +11,7 @@ from networkx import DiGraph
 
 from conda_forge_tick.lazy_json_backends import load
 from conda_forge_tick.migrators_types import AttrsTypedDict
+from conda_forge_tick.utils import get_keys_default
 
 if os.path.exists("all_feedstocks.json"):
     with open("all_feedstocks.json") as f:
@@ -53,6 +54,34 @@ class FeedstockContext:
     @property
     def git_repo_name(self) -> str:
         return f"{self.feedstock_name}-feedstock"
+
+    @property
+    def automerge(self) -> bool | str:
+        """
+        Get the automerge setting of the feedstock.
+        Note: A better solution to implement this is to use the NodeAttributes Pydantic
+        model for the attrs field. This can be done in the future.
+        """
+        return get_keys_default(
+            self.attrs,
+            ["conda-forge.yml", "bot", "automerge"],
+            {},
+            False,
+        )
+
+    @property
+    def check_solvable(self) -> bool:
+        """
+        Get the check_solvable setting of the feedstock.
+        Note: A better solution to implement this is to use the NodeAttributes Pydantic
+        model for the attrs field. This can be done in the future.
+        """
+        return get_keys_default(
+            self.attrs,
+            ["conda-forge.yml", "bot", "check_solvable"],
+            {},
+            False,
+        )
 
     @contextmanager
     def reserve_clone_directory(self) -> Iterator[ClonedFeedstockContext]:

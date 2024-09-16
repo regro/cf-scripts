@@ -136,6 +136,7 @@ class AttrsTypedDict_(TypedDict, total=False):
     new_version: Union[str, bool]
     archived: bool
     PRed: List[PRedElementTypedDict]
+    version_pr_info: typing.Any
     # Legacy types in here
     bad: Union[bool, str]
     # TODO: ADD in

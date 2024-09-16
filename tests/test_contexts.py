@@ -56,6 +56,25 @@ def test_feedstock_context_git_repo_name():
     assert context.git_repo_name == "TEST-FEEDSTOCK-NAME-feedstock"
 
 
+@pytest.mark.parametrize("automerge", [True, False])
+def test_feedstock_context_automerge(automerge: bool):
+    context = FeedstockContext(
+        "TEST-FEEDSTOCK-NAME", demo_attrs_automerge if automerge else demo_attrs
+    )
+
+    assert context.automerge == automerge
+
+
+@pytest.mark.parametrize("check_solvable", [True, False])
+def test_feedstock_context_check_solvable(check_solvable: bool):
+    context = FeedstockContext(
+        "TEST-FEEDSTOCK-NAME",
+        demo_attrs_check_solvable if check_solvable else demo_attrs,
+    )
+
+    assert context.check_solvable == check_solvable
+
+
 @pytest.mark.parametrize("default_branch", [None, "", "feature"])
 @pytest.mark.parametrize(
     "attrs", [demo_attrs, demo_attrs_automerge, demo_attrs_check_solvable]
