@@ -9,7 +9,6 @@ import time
 import traceback
 import typing
 from dataclasses import dataclass
-from textwrap import dedent
 from typing import Literal, MutableMapping, cast
 from urllib.error import URLError
 from uuid import uuid4
@@ -289,6 +288,141 @@ def _run_rerender(
     return _RerenderInfo(nontrivial_changes=nontrivial_changes)
 
 
+def _should_automerge(migrator: Migrator, context: FeedstockContext) -> bool:
+    """
+    Determine if a migration should be auto merged based on the feedstock and migrator settings.
+
+    :param migrator: The migrator to check.
+    :param context: The feedstock context.
+
+    :return: True if the migrator should be auto merged, False otherwise.
+    """
+    if isinstance(migrator, Version):
+        return context.automerge in [True, "version"]
+    else:
+        return getattr(migrator, "automerge", False) and context.automerge in [
+            True,
+            "migration",
+        ]
+
+
+def _is_solvability_check_needed(
+    migrator: Migrator, context: FeedstockContext, base_branch: str
+) -> bool:
+    migrator_check_solvable = getattr(migrator, "check_solvable", True)
+    pr_attempts = _get_pre_pr_migrator_attempts(
+        context.attrs,
+        migrator_name=get_migrator_name(migrator),
+        is_version=isinstance(migrator, Version),
+    )
+    max_pr_attempts = getattr(
+        migrator, "force_pr_after_solver_attempts", MAX_SOLVER_ATTEMPTS * 2
+    )
+
+    logger.info(
+        textwrap.dedent(
+            f"""
+            automerge and check_solvable status/settings:
+            automerge:
+                feedstock_automerge: {context.automerge}
+                migrator_automerge: {getattr(migrator, 'automerge', False)}
+                has_automerge: {_should_automerge(migrator, context)} (only considers feedstock if version migration)
+            check_solvable:
+                feedstock_check_solvable: {context.check_solvable}
+                migrator_check_solvable: {migrator_check_solvable}
+            pre_pr_migrator_attempts: {pr_attempts}
+            force_pr_after_solver_attempts: {max_pr_attempts}
+            """
+        )
+    )
+
+    return (
+        context.feedstock_name != "conda-forge-pinning"
+        and (base_branch == "master" or base_branch == "main")
+        # feedstocks that have problematic bootstrapping will not always be solvable
+        and context.feedstock_name not in BOOTSTRAP_MAPPINGS
+        # stuff in cycles always goes
+        and context.attrs["name"] not in getattr(migrator, "cycles", set())
+        # stuff at the top always goes
+        and context.attrs["name"] not in getattr(migrator, "top_level", set())
+        # either the migrator or the feedstock has to request solver checks
+        and (migrator_check_solvable or context.check_solvable)
+        # we try up to MAX_SOLVER_ATTEMPTS times, and then we just skip
+        # the solver check and issue the PR if automerge is off
+        and (_should_automerge(migrator, context) or (pr_attempts < max_pr_attempts))
+    )
+
+
+def _handle_solvability_error(
+    errors: list[str], context: FeedstockContext, migrator: Migrator, base_branch: str
+) -> None:
+    ci_url = get_bot_run_url()
+    ci_url = f"(<a href='{ci_url}'>bot CI job</a>)" if ci_url else ""
+    _solver_err_str = textwrap.dedent(
+        f"""
+        not solvable {ci_url} @ {base_branch}
+        <details>
+        <div align="left">
+        <pre>
+        {'</pre><pre>'.join(sorted(set(errors)))}
+        </pre>
+        </div>
+        </details>
+        """,
+    ).strip()
+
+    _set_pre_pr_migrator_error(
+        context.attrs,
+        get_migrator_name(migrator),
+        _solver_err_str,
+        is_version=isinstance(migrator, Version),
+    )
+
+    # remove part of a try for solver errors to make those slightly
+    # higher priority next time the bot runs
+    if isinstance(migrator, Version):
+        with context.attrs["version_pr_info"] as vpri:
+            _new_ver = vpri["new_version"]
+            vpri["new_version_attempts"][_new_ver] -= 0.8
+
+
+def _check_and_process_solvability(
+    migrator: Migrator, context: ClonedFeedstockContext, base_branch: str
+) -> bool:
+    """
+    If the migration needs a solvability check, perform the check. If the recipe is not solvable, handle the error
+    by setting the corresponding fields in the feedstock attributes.
+    If the recipe is solvable, reset the fields that track the solvability check status.
+
+    :param migrator: The migrator that was run
+    :param context: The current FeedstockContext of the feedstock that was migrated
+    :param base_branch: The branch of the feedstock repository that is the migration target
+
+    :returns: True if the migration can proceed normally, False if a required solvability check failed and the migration
+    needs to be aborted
+    """
+    if not _is_solvability_check_needed(migrator, context, base_branch):
+        return True
+
+    solvable, solvability_errors, _ = is_recipe_solvable(
+        str(context.local_clone_dir),
+        build_platform=context.attrs["conda-forge.yml"].get(
+            "build_platform",
+            None,
+        ),
+    )
+    if solvable:
+        _reset_pre_pr_migrator_fields(
+            context.attrs,
+            get_migrator_name(migrator),
+            is_version=isinstance(migrator, Version),
+        )
+        return True
+
+    _handle_solvability_error(solvability_errors, context, migrator, base_branch)
+    return False
+
+
 def run_with_tmpdir(
     context: FeedstockContext,
     migrator: Migrator,
@@ -416,6 +550,10 @@ def run(
     else:
         rerender_info = _RerenderInfo(nontrivial_changes=False)
 
+    if not _check_and_process_solvability(migrator, context, base_branch):
+        logger.warning("Skipping migration due to solvability check failure")
+        return False, False
+
     # This is needed because we want to migrate to the new backend step-by-step
     repo: github3.repos.Repository | None = github3_client().repository(
         context.git_repo_owner, context.git_repo_name
@@ -424,102 +562,6 @@ def run(
     assert repo is not None
 
     feedstock_dir = str(context.local_clone_dir.resolve())
-
-    if isinstance(migrator, Version):
-        has_automerge = context.automerge in [True, "version"]
-    else:
-        has_automerge = getattr(migrator, "automerge", False) and context.automerge in [
-            True,
-            "migration",
-        ]
-
-    migrator_check_solvable = getattr(migrator, "check_solvable", True)
-    feedstock_check_solvable = get_keys_default(
-        context.attrs,
-        ["conda-forge.yml", "bot", "check_solvable"],
-        {},
-        False,
-    )
-    pr_attempts = _get_pre_pr_migrator_attempts(
-        context.attrs,
-        migrator_name,
-        is_version=is_version_migration,
-    )
-    max_pr_attempts = getattr(
-        migrator, "force_pr_after_solver_attempts", MAX_SOLVER_ATTEMPTS * 2
-    )
-
-    logger.info(
-        f"""automerge and check_solvable status/settings:
-    automerge:
-        feedstock_automerge: {context.automerge}
-        migratror_automerge: {getattr(migrator, 'automerge', False)}
-        has_automerge: {has_automerge} (only considers feedstock if version migration)
-    check_solvable:
-        feedstock_checksolvable: {feedstock_check_solvable}
-        migrator_check_solvable: {migrator_check_solvable}
-    pre_pr_migrator_attempts: {pr_attempts}
-    force_pr_after_solver_attempts: {max_pr_attempts}
-"""
-    )
-
-    if (
-        context.feedstock_name != "conda-forge-pinning"
-        and (base_branch == "master" or base_branch == "main")
-        # feedstocks that have problematic bootstrapping will not always be solvable
-        and context.feedstock_name not in BOOTSTRAP_MAPPINGS
-        # stuff in cycles always goes
-        and context.attrs["name"] not in getattr(migrator, "cycles", set())
-        # stuff at the top always goes
-        and context.attrs["name"] not in getattr(migrator, "top_level", set())
-        # either the migrator or the feedstock has to request solver checks
-        and (migrator_check_solvable or feedstock_check_solvable)
-        # we try up to MAX_SOLVER_ATTEMPTS times and then we just skip
-        # the solver check and issue the PR if automerge is off
-        and (has_automerge or (pr_attempts < max_pr_attempts))
-    ):
-        solvable, errors, _ = is_recipe_solvable(
-            feedstock_dir,
-            build_platform=context.attrs["conda-forge.yml"].get(
-                "build_platform",
-                None,
-            ),
-        )
-        if not solvable:
-            ci_url = get_bot_run_url()
-            ci_url = f"(<a href='{ci_url}'>bot CI job</a>)" if ci_url else ""
-            _solver_err_str = dedent(
-                f"""
-                not solvable {ci_url} @ {base_branch}
-                <details>
-                <div align="left">
-                <pre>
-                {'</pre><pre>'.join(sorted(set(errors)))}
-                </pre>
-                </div>
-                </details>
-                """,
-            ).strip()
-
-            _set_pre_pr_migrator_error(
-                context.attrs,
-                migrator_name,
-                _solver_err_str,
-                is_version=is_version_migration,
-            )
-
-            # remove part of a try for solver errors to make those slightly
-            # higher priority next time the bot runs
-            if isinstance(migrator, Version):
-                with context.attrs["version_pr_info"] as vpri:
-                    _new_ver = vpri["new_version"]
-                    vpri["new_version_attempts"][_new_ver] -= 0.8
-
-            return False, False
-        else:
-            _reset_pre_pr_migrator_fields(
-                context.attrs, migrator_name, is_version=is_version_migration
-            )
 
     # TODO: Better annotation here
     pr_json: typing.Union[MutableMapping, None, bool]
