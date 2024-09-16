@@ -332,7 +332,6 @@ def test_run_with_tmpdir(
         git_backend=git_backend,
         rerender=rerender,
         base_branch=base_branch,
-        dry_run=dry_run,
         **kwargs,
     )
 
