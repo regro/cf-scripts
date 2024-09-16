@@ -410,7 +410,9 @@ def run(
             and not context.automerge
         )
 
-        rerender_info = _run_rerender(git_backend.cli, context, suppress_errors)
+        rerender_info = _run_rerender(
+            git_backend.cli, context, suppress_errors=suppress_errors
+        )
     else:
         rerender_info = _RerenderInfo(nontrivial_changes=False)
 
