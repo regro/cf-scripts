@@ -262,7 +262,7 @@ def _run_rerender(
             Hi! This feedstock was not able to be rerendered after the version update changes. I
             have pushed the version update changes anyways and am trying to rerender again with this
             comment. Hopefully you all can fix this!
-            
+
             @conda-forge-admin rerender
             """
         )
@@ -286,7 +286,7 @@ def _run_rerender(
         for file in changed_files
     )
 
-    return _RerenderInfo(nontrivial_changes)
+    return _RerenderInfo(nontrivial_changes=nontrivial_changes)
 
 
 def run_with_tmpdir(
