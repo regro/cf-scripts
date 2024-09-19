@@ -9,7 +9,7 @@ import requests
 from ruamel.yaml import YAML
 
 from conda_forge_tick.lazy_json_backends import CF_TICK_GRAPH_GITHUB_BACKEND_BASE_URL
-from conda_forge_tick.migrators import MiniMigrator
+from conda_forge_tick.migrators import MiniMigrator, _skip_due_to_schema
 from conda_forge_tick.os_utils import pushd
 from conda_forge_tick.utils import get_keys_default
 
@@ -76,7 +76,7 @@ class PipWheelMigrator(MiniMigrator):
 
         if wheel_url is None:
             return True
-        return False
+        return False or _skip_due_to_schema(attrs, self.allowed_schema_versions)
 
     def determine_wheel(self, source_url: str, version: str):
         pkg = source_url.split("/")[6]

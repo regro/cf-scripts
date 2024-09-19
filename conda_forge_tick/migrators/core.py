@@ -30,6 +30,22 @@ if typing.TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
+def _skip_due_to_schema(
+    attrs: "AttrsTypedDict", allowed_schema_versions: List[int]
+) -> bool:
+    __name = attrs.get("name", "")
+    if attrs["meta_yaml"].get("schema_version", 0) not in allowed_schema_versions:
+        logger.debug(
+            "%s: schema version not allowed - %r not in %r",
+            __name,
+            attrs["meta_yaml"].get("schema_version", 0),
+            allowed_schema_versions,
+        )
+        return True
+    else:
+        return False
+
+
 def _make_effective_graph(graph, migrator):
     """Prune graph only to nodes that need rebuilds."""
     gx2 = copy.deepcopy(graph)
@@ -142,6 +158,7 @@ def make_from_lazy_json_data(data):
 
 class MiniMigrator:
     post_migration = False
+    allowed_schema_versions = [0]
 
     def __init__(self):
         if not hasattr(self, "_init_args"):
@@ -205,6 +222,8 @@ class Migrator:
     migrator_version = 0
 
     allow_empty_commits = False
+
+    allowed_schema_versions = [0]
 
     build_patterns = (
         (re.compile(r"(\s*?)number:\s*([0-9]+)"), "number: {}"),
@@ -369,7 +388,12 @@ class Migrator:
         if bad_attr:
             logger.debug("%s: bad attr - %s", __name, bad_attr)
 
-        return attrs.get("archived", False) or parse_already_pred() or bad_attr
+        return (
+            attrs.get("archived", False)
+            or parse_already_pred()
+            or bad_attr
+            or _skip_due_to_schema(attrs, self.allowed_schema_versions)
+        )
 
     def get_possible_feedstock_branches(self, attrs: "AttrsTypedDict") -> List[str]:
         """Return the valid possible branches to which to apply this migration to
@@ -764,7 +788,10 @@ class GraphMigrator(Migrator):
         name = attrs.get("name", "")
 
         if super().filter(attrs, "Upstream:"):
-            logger.debug("filter %s: archived or done or bad attr", name)
+            logger.debug(
+                "filter %s: archived or done or bad attr or schema_version not allowed",
+                name,
+            )
             return True
 
         if attrs.get("feedstock_name", None) not in self.graph:
