@@ -34,7 +34,13 @@ def _skip_due_to_schema(
     attrs: "AttrsTypedDict", allowed_schema_versions: List[int]
 ) -> bool:
     __name = attrs.get("name", "")
-    if attrs["meta_yaml"].get("schema_version", 0) not in allowed_schema_versions:
+    schema_version = get_keys_default(
+        attrs,
+        ["meta_yaml", "schema_version"],
+        {},
+        0,
+    )
+    if schema_version not in allowed_schema_versions:
         logger.debug(
             "%s: schema version not allowed - %r not in %r",
             __name,
