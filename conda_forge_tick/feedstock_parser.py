@@ -230,8 +230,10 @@ def populate_feedstock_attributes(
     if isinstance(feedstock_dir, str):
         feedstock_dir = Path(feedstock_dir)
 
-    if meta_yaml is None and recipe_yaml is None:
-        raise ValueError("Either `meta_yaml` or  `recipe_yaml` needs to be given.")
+    if (meta_yaml is None and recipe_yaml is None) or (
+        meta_yaml is not None and recipe_yaml is not None
+    ):
+        raise ValueError("Either `meta_yaml` or `recipe_yaml` needs to be given.")
 
     sub_graph.update({"feedstock_name": name, "parsing_error": False, "branch": "main"})
 
@@ -245,6 +247,8 @@ def populate_feedstock_attributes(
 
     if isinstance(meta_yaml, str):
         sub_graph["raw_meta_yaml"] = meta_yaml
+    elif isinstance(recipe_yaml, str):
+        sub_graph["raw_meta_yaml"] = recipe_yaml
 
     # Get the conda-forge.yml
     if isinstance(conda_forge_yaml, str):
@@ -301,6 +305,7 @@ def populate_feedstock_attributes(
                             ),
                         ),
                     )
+                    variant_yamls[-1]["schema_version"] = 0
                 elif isinstance(recipe_yaml, str):
                     platform_arch = (
                         f"{plat}-{arch}"
@@ -313,6 +318,9 @@ def populate_feedstock_attributes(
                             platform_arch=platform_arch,
                             cbc_path=cbc_path,
                         ),
+                    )
+                    variant_yamls[-1]["schema_version"] = variant_yamls[-1].get(
+                        "schema_version", 1
                     )
 
                 # sometimes the requirements come out to None or [None]
@@ -358,6 +366,10 @@ def populate_feedstock_attributes(
                     parse_meta_yaml(meta_yaml, platform=plat, arch=arch)
                     for plat, arch in plat_archs
                 ]
+            elif isinstance(recipe_yaml, str):
+                raise NotImplementedError(
+                    "recipe_yaml generic parsing not implemented yet! Ensure the feedstock has .ci_support files."
+                )
     except Exception as e:
         import traceback
 

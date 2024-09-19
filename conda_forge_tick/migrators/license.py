@@ -6,7 +6,7 @@ import tempfile
 import typing
 from typing import Any
 
-from conda_forge_tick.migrators.core import MiniMigrator
+from conda_forge_tick.migrators.core import MiniMigrator, _skip_due_to_schema
 from conda_forge_tick.os_utils import pushd
 from conda_forge_tick.provide_source_code import provide_source_code
 from conda_forge_tick.recipe_parser import CondaMetaYAML
@@ -293,7 +293,7 @@ class LicenseMigrator(MiniMigrator):
             or any(n in license_fam for n in NEEDED_FAMILIES)
             or _is_r(attrs)
         ) and "license_file" not in attrs.get("meta_yaml", {}).get("about", {}):
-            return False
+            return False or _skip_due_to_schema(attrs, self.allowed_schema_versions)
         return True
 
     def migrate(self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any) -> None:

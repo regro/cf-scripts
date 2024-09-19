@@ -96,7 +96,7 @@ class Version(Migrator):
         conditional = super().filter(attrs)
 
         result = bool(
-            conditional  # if archived/finished
+            conditional  # if archived/finished/schema version skip
             or len(
                 [
                     k
