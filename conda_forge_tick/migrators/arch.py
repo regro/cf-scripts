@@ -1,5 +1,6 @@
 import os
 import typing
+from pathlib import Path
 from textwrap import dedent
 from typing import Any, Optional, Sequence
 
@@ -11,7 +12,6 @@ from conda_forge_tick.make_graph import (
     make_outputs_lut_from_graph,
 )
 from conda_forge_tick.migrators.core import GraphMigrator, _sanitized_muids
-from conda_forge_tick.os_utils import pushd
 from conda_forge_tick.utils import (
     as_iterable,
     frozen_to_json_friendly,
@@ -202,18 +202,26 @@ class ArchRebuild(GraphMigrator):
     def migrate(
         self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any
     ) -> "MigrationUidTypedDict":
-        with pushd(recipe_dir + "/.."):
-            self.set_build_number("recipe/meta.yaml")
-            with open("conda-forge.yml") as f:
-                y = yaml_safe_load(f)
-            if "provider" not in y:
-                y["provider"] = {}
-            for k, v in self.arches.items():
-                if k not in y["provider"]:
-                    y["provider"][k] = v
+        recipe_dir_p = Path(recipe_dir)
+        recipe_file = self.find_recipe(recipe_dir_p)
+        self.set_build_number(recipe_file)
 
-            with open("conda-forge.yml", "w") as f:
-                yaml_safe_dump(y, f)
+        conda_forge_yml = recipe_dir_p / "conda-forge.yml"
+        with conda_forge_yml.open() as f:
+            y = yaml_safe_load(f)
+
+        # we should do this recursively but the cf yaml is usually
+        # one key deep so this is fine
+        for k, v in self.additional_keys.items():
+            if isinstance(v, dict):
+                if k not in y:
+                    y[k] = {}
+                for _k, _v in v.items():
+                    y[k][_k] = _v
+            else:
+                y[k] = v
+        with conda_forge_yml.open("w") as f:
+            yaml_safe_dump(y, f)
 
         return super().migrate(recipe_dir, attrs, **kwargs)
 
@@ -375,22 +383,26 @@ class OSXArm(GraphMigrator):
     def migrate(
         self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any
     ) -> "MigrationUidTypedDict":
-        with pushd(recipe_dir + "/.."):
-            self.set_build_number("recipe/meta.yaml")
-            with open("conda-forge.yml") as f:
-                y = yaml_safe_load(f)
-            # we should do this recursively but the cf yaml is usually
-            # one key deep so this is fine
-            for k, v in self.additional_keys.items():
-                if isinstance(v, dict):
-                    if k not in y:
-                        y[k] = {}
-                    for _k, _v in v.items():
-                        y[k][_k] = _v
-                else:
-                    y[k] = v
-            with open("conda-forge.yml", "w") as f:
-                yaml_safe_dump(y, f)
+        recipe_dir_p = Path(recipe_dir)
+        recipe_file = self.find_recipe(recipe_dir_p)
+        self.set_build_number(recipe_file)
+
+        conda_forge_yml = recipe_dir_p / "conda-forge.yml"
+        with conda_forge_yml.open() as f:
+            y = yaml_safe_load(f)
+
+        # we should do this recursively but the cf yaml is usually
+        # one key deep so this is fine
+        for k, v in self.additional_keys.items():
+            if isinstance(v, dict):
+                if k not in y:
+                    y[k] = {}
+                for _k, _v in v.items():
+                    y[k][_k] = _v
+            else:
+                y[k] = v
+        with conda_forge_yml.open("w") as f:
+            yaml_safe_dump(y, f)
 
         return super().migrate(recipe_dir, attrs, **kwargs)
 

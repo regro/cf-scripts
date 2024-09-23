@@ -5,6 +5,7 @@ import datetime
 import logging
 import re
 import typing
+from pathlib import Path
 from typing import Any, List, Sequence, Set
 
 import dateutil.parser
@@ -592,12 +593,39 @@ class Migrator:
         }
         return cyclic_topological_sort(graph, top_level)
 
-    def set_build_number(self, filename: str) -> None:
+    def find_recipe(self, recipe_dir: str | Path) -> Path:
+        """
+        Find the recipe, either meta.yaml or recipe.yaml in the recipe_dir
+
+        Parameters
+        ----------
+        recipe_dir : str or Path
+            Path to the recipe directory
+
+        Returns
+        -------
+        recipe_path : Path
+            Path to the recipe file
+
+        Raises
+        ------
+        FileNotFoundError
+            If no recipe is found in the recipe_dir
+        """
+        recipe_dir = Path(recipe_dir)
+        if recipe_dir.joinpath("meta.yaml").exists():
+            return recipe_dir.joinpath("meta.yaml")
+        elif recipe_dir.joinpath("recipe.yaml").exists():
+            return recipe_dir.joinpath("recipe.yaml")
+        else:
+            raise FileNotFoundError("No recipe found in %s" % recipe_dir)
+
+    def set_build_number(self, filename: str | Path) -> None:
         """Bump the build number of the specified recipe.
 
         Parameters
         ----------
-        filename : str
+        filename : str or Path
             Path the the meta.yaml
         """
         with open(filename) as f:

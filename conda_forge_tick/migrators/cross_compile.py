@@ -40,6 +40,9 @@ class UpdateConfigSubGuessMigrator(CrossCompilationMigratorBase):
             return
         try:
             with provide_source_code(recipe_dir) as cb_work_dir:
+                if not os.path.exists("meta.yaml") and os.path.exists("recipe.yaml"):
+                    logger.info(f"Skipping {self.__class__.__name__} for recipe.yaml")
+                    return
                 if cb_work_dir is None:
                     return
                 directories = set()
@@ -159,6 +162,9 @@ class CrossPythonMigrator(CrossCompilationMigratorBase):
     def migrate(self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any) -> None:
         host_reqs = attrs.get("requirements", {}).get("host", set())
         with pushd(recipe_dir):
+            if not os.path.exists("meta.yaml") and os.path.exists("recipe.yaml"):
+                logger.info(f"Skipping {self.__class__.__name__} for recipe.yaml")
+                return
             with open("meta.yaml") as f:
                 lines = f.readlines()
             in_reqs = False
@@ -267,6 +273,9 @@ class Build2HostMigrator(MiniMigrator):
 
     def migrate(self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any) -> None:
         with pushd(recipe_dir):
+            if not os.path.exists("meta.yaml") and os.path.exists("recipe.yaml"):
+                logger.info(f"Skipping {self.__class__.__name__} for recipe.yaml")
+                return
             with open("meta.yaml") as fp:
                 meta_yaml = fp.readlines()
 
@@ -297,6 +306,9 @@ class NoCondaInspectMigrator(MiniMigrator):
 
     def migrate(self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any) -> None:
         with pushd(recipe_dir):
+            if not os.path.exists("meta.yaml") and os.path.exists("recipe.yaml"):
+                logger.info(f"Skipping {self.__class__.__name__} for recipe.yaml")
+                return
             with open("meta.yaml") as fp:
                 meta_yaml = fp.readlines()
 
@@ -333,6 +345,9 @@ class CrossRBaseMigrator(CrossCompilationMigratorBase):
 
     def migrate(self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any) -> None:
         with pushd(recipe_dir):
+            if not os.path.exists("meta.yaml") and os.path.exists("recipe.yaml"):
+                logger.info(f"Skipping {self.__class__.__name__} for recipe.yaml")
+                return
             with open("meta.yaml") as fp:
                 meta_yaml = fp.readlines()
 

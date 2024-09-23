@@ -110,6 +110,11 @@ class Replacement(Migrator):
     def migrate(
         self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any
     ) -> "MigrationUidTypedDict":
+        if not os.path.exists(os.path.join(recipe_dir, "meta.yaml")) and os.path.exists(
+            os.path.join(recipe_dir, "recipe.yaml")
+        ):
+            logger.info(f"Skipping {self.__class__.__name__} for recipe.yaml")
+            return
         with open(os.path.join(recipe_dir, "meta.yaml")) as f:
             raw = f.read()
         lines = raw.splitlines()
