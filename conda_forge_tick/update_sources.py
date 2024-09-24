@@ -739,4 +739,3 @@ class CratesIO(AbstractSource):
             return f"{name_len}/{package[0]}/{package}"
         else:
             return f"{package[0:2]}/{package[2:4]}/{package}"
-

@@ -74,7 +74,7 @@ class TestCratesIOGetVersion:
         result = CratesIO().get_version(url)
         assert result is None
 
-    @patch('conda_forge_tick.update_sources.requests.get')
+    @patch("conda_forge_tick.update_sources.requests.get")
     def test_empty_package(self, mock_get):
         pkg = "syn"
         tier = CratesIO._tier_directory(pkg)
