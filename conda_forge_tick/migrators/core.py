@@ -603,7 +603,9 @@ class Migrator:
         """
         filename = Path(filename)
         if filename.name == "recipe.yaml":
-            filename.write_text(v1_recipe.update_build_number(filename, self.new_build_number))
+            filename.write_text(
+                v1_recipe.update_build_number(filename, self.new_build_number)
+            )
         else:
             raw = filename.read_text()
 
