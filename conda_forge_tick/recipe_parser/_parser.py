@@ -44,7 +44,7 @@ BAD_MULTILINE_STRING_WITH_SELECTOR = re.compile(r"[^|#]*\|\s+#")
 def _get_yaml_parser(typ="jinja2"):
     """yaml parser that is jinja2 aware"""
     # using a function here so settings are always the same
-    parser = YAML(typ="jinja2")
+    parser = YAML(typ=typ)
     parser.indent(mapping=2, sequence=4, offset=2)
     parser.width = 320
     parser.preserve_quotes = True

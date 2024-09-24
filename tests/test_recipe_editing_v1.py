@@ -2,7 +2,7 @@ from pathlib import Path
 
 import pytest
 
-from conda_forge_tick.update_recipe.v1 import update_build_number
+from conda_forge_tick.update_recipe.v1_recipe import update_build_number
 
 
 @pytest.fixture
