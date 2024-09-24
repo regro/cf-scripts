@@ -15,7 +15,7 @@ from conda_forge_tick.contexts import ClonedFeedstockContext, FeedstockContext
 from conda_forge_tick.lazy_json_backends import LazyJson
 from conda_forge_tick.make_graph import make_outputs_lut_from_graph
 from conda_forge_tick.path_lengths import cyclic_topological_sort
-from conda_forge_tick.update_recipe import update_build_number, v2
+from conda_forge_tick.update_recipe import update_build_number, v1
 from conda_forge_tick.utils import (
     frozen_to_json_friendly,
     get_bot_run_url,
@@ -603,7 +603,7 @@ class Migrator:
         """
         filename = Path(filename)
         if filename.name == "recipe.yaml":
-            filename.write_text(v2.update_build_number(filename, self.new_build_number))
+            filename.write_text(v1.update_build_number(filename, self.new_build_number))
         else:
             raw = filename.read_text()
 
