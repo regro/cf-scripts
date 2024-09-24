@@ -5,6 +5,7 @@ import datetime
 import logging
 import re
 import typing
+from pathlib import Path
 from typing import Any, List, Sequence, Set
 
 import dateutil.parser
@@ -14,7 +15,7 @@ from conda_forge_tick.contexts import ClonedFeedstockContext, FeedstockContext
 from conda_forge_tick.lazy_json_backends import LazyJson
 from conda_forge_tick.make_graph import make_outputs_lut_from_graph
 from conda_forge_tick.path_lengths import cyclic_topological_sort
-from conda_forge_tick.update_recipe import update_build_number
+from conda_forge_tick.update_recipe import update_build_number, v1_recipe
 from conda_forge_tick.utils import (
     frozen_to_json_friendly,
     get_bot_run_url,
@@ -592,7 +593,7 @@ class Migrator:
         }
         return cyclic_topological_sort(graph, top_level)
 
-    def set_build_number(self, filename: str) -> None:
+    def set_build_number(self, filename: str | Path) -> None:
         """Bump the build number of the specified recipe.
 
         Parameters
@@ -600,17 +601,21 @@ class Migrator:
         filename : str
             Path the the meta.yaml
         """
-        with open(filename) as f:
-            raw = f.read()
+        filename = Path(filename)
+        if filename.name == "recipe.yaml":
+            filename.write_text(
+                v1_recipe.update_build_number(filename, self.new_build_number)
+            )
+        else:
+            raw = filename.read_text()
 
-        new_myaml = update_build_number(
-            raw,
-            self.new_build_number,
-            build_patterns=self.build_patterns,
-        )
+            new_myaml = update_build_number(
+                raw,
+                self.new_build_number,
+                build_patterns=self.build_patterns,
+            )
 
-        with open(filename, "w") as f:
-            f.write(new_myaml)
+            filename.write_text(new_myaml)
 
     def new_build_number(self, old_number: int) -> int:
         """Determine the new build number to use.
