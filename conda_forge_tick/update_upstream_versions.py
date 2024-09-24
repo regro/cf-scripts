@@ -32,10 +32,10 @@ from conda_forge_tick.executors import executor
 from conda_forge_tick.lazy_json_backends import LazyJson, dumps
 from conda_forge_tick.update_sources import (
     CRAN,
-    CratesIO,
     NPM,
     NVIDIA,
     AbstractSource,
+    CratesIO,
     Github,
     GithubReleases,
     IncrementAlphaRawURL,

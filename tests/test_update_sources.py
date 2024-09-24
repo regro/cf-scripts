@@ -1,7 +1,8 @@
-from conda_forge_tick.update_sources import CratesIO
-from unittest.mock import patch, Mock
+from unittest.mock import Mock, patch
 
 import pytest
+
+from conda_forge_tick.update_sources import CratesIO
 
 
 class TestCratesIOTierDirectory:
