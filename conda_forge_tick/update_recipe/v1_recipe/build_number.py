@@ -1,9 +1,10 @@
 from __future__ import annotations
 
+import io
 import logging
 import re
-import io
 from typing import TYPE_CHECKING, Any, Callable, Literal
+
 from conda_forge_tick.recipe_parser._parser import _get_yaml_parser
 
 if TYPE_CHECKING:
