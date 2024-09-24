@@ -63,14 +63,14 @@ def _update_build_number_in_recipe(
 
 
 def _load_yaml(file: Path):
-    yaml = _get_yaml_parser(typ="safe")
+    yaml = _get_yaml_parser(typ="rt")
     with file.open("r") as f:
         return yaml.load(f)
 
 
 def _dump_yaml_to_str(data: dict) -> str:
     """Dump a dictionary to a YAML string."""
-    yaml = _get_yaml_parser(typ=None)
+    yaml = _get_yaml_parser(typ="rt")
     with io.StringIO() as f:
         yaml.dump(data, f)
         return f.getvalue()
