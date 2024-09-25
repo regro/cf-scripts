@@ -1254,6 +1254,7 @@ def test_update_upstream_versions_no_packages_to_update(
 default_sources = (
     "PyPI",
     "CRAN",
+    "CratesIO",
     "NPM",
     "ROSDistro",
     "RawURL",
