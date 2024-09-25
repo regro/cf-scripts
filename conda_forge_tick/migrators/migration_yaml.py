@@ -280,7 +280,10 @@ class MigrationYaml(GraphMigrator):
                         yaml_safe_dump(cfg, fp)
 
             with pushd(recipe_dir):
-                self.set_build_number("meta.yaml")
+                if os.path.exists("recipe.yaml"):
+                    self.set_build_number("recipe.yaml")
+                else:
+                    self.set_build_number("meta.yaml")
 
             return super().migrate(recipe_dir, attrs)
 
