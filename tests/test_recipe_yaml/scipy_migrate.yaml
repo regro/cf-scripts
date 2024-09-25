@@ -1,0 +1,71 @@
+context:
+  version: "1.3.2"
+
+package:
+  name: scipy
+  version: ${{ version }}
+
+source:
+  url: https://github.com/scipy/scipy/archive/v${{ version }}.tar.gz
+  sha256: ac0937d29a3f93cc26737fdf318c09408e9a48adee1648a25d0cdce5647b8eb4
+  patches:
+    - gh10591.patch
+    - ${{ "relax_gmres_error_check.patch" if aarch64 }}
+    - ${{ "skip_problematic_boost_test.patch" if aarch64 or ppc64le }}
+    - ${{ "skip_problematic_root_finding.patch" if aarch64 or ppc64le }}
+    # remove this patch when updating to 1.3.3
+    - if: version == "1.3.2"
+      then:
+        - ${{ "scipy-1.3.2-bad-tests.patch" if osx and match(python, "3.8") }}
+        - ${{ "gh11046.patch" if ppc64le }}
+
+build:
+  number: 0
+  skip:
+    - win or py2k
+
+requirements:
+  build:
+    - ${{ compiler('fortran') }}
+    - ${{ compiler('c') }}
+    - ${{ compiler('cxx') }}
+  host:
+    - libblas
+    - libcblas
+    - liblapack
+    - python
+    - setuptools
+    - cython
+    - numpy
+    - pip
+  run:
+    - python
+    - ${{ pin_compatible('numpy') }}
+
+tests:
+  - requirements:
+      run:
+        - pytest
+        - pytest-xdist
+        - mpmath
+        - ${{ "blas * netlib" if ppc64le and version == "1.3.2" }}
+    script: pytest ./foo
+
+about:
+  homepage: http://www.scipy.org/
+  license: BSD-3-Clause
+  license_file: LICENSE.txt
+  summary: Scientific Library for Python
+  description: |
+    SciPy is a Python-based ecosystem of open-source software for mathematics,
+    science, and engineering.
+  documentation: http://www.scipy.org/docs.html
+  repository: https://github.com/scipy/scipy
+
+extra:
+  recipe-maintainers:
+    - jakirkham
+    - msarahan
+    - rgommers
+    - ocefpaf
+    - beckermr
