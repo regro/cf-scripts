@@ -1,0 +1,37 @@
+package:
+  name: wbg-rand
+  version: "0.4.0"
+
+source:
+  url: https://crates.io/api/v1/crates/wbg-rand/0.4.0/download
+  fn: "wbg-rand-0.4.0.tar.gz"
+  sha256: 5505e10cb191f56fed835c35baf4ac97b5466148a13fbcaeb1173198b1a52b4c
+
+build:
+  number: 0
+  skip: true  # [win]
+
+requirements:
+  build:
+    - {{ compiler('rust') }}
+    - {{ compiler('c') }}
+    - {{ stdlib("c") }}
+    - cargo-bundle-licenses
+
+test:
+  commands:
+    - echo "This is a placeholder for the test section"
+
+about:
+  home: https://github.com/alexcrichton/wbg-rand
+  summary: 'Random numbers for wasm32-unknown-unknown in Rust'
+  description: |
+    Implementation of rand for wasm32-unknown-unknown in Rust using #[wasm_bindgen].
+  license: MIT AND Apache-2.0
+  license_file:
+    - LICENSE-MIT
+    - LICENSE-APACHE
+
+extra:
+  recipe-maintainers:
+    - mbhall88
