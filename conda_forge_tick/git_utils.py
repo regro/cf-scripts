@@ -5,10 +5,13 @@ import enum
 import logging
 import math
 import subprocess
+import sys
+import textwrap
 import threading
 import time
 from abc import ABC, abstractmethod
 from datetime import datetime
+from email import utils
 from functools import cached_property
 from pathlib import Path
 from typing import Dict, Iterator, Optional, Union
@@ -20,7 +23,9 @@ import github3.exceptions
 import github3.pulls
 import github3.repos
 import requests
+from github3.session import GitHubSession
 from requests.exceptions import RequestException, Timeout
+from requests.structures import CaseInsensitiveDict
 
 from conda_forge_tick import sensitive_env
 
@@ -28,10 +33,16 @@ from conda_forge_tick import sensitive_env
 # and pull all the needed info from the various source classes)
 from conda_forge_tick.lazy_json_backends import LazyJson
 
-from .contexts import FeedstockContext
 from .executors import lock_git_operation
-from .os_utils import pushd
-from .utils import get_bot_run_url, run_command_hiding_token
+from .models.pr_json import (
+    GithubPullRequestBase,
+    GithubPullRequestMergeableState,
+    GithubRepository,
+    PullRequestDataValid,
+    PullRequestInfoHead,
+    PullRequestState,
+)
+from .utils import get_bot_run_url, replace_tokens, run_command_hiding_token
 
 logger = logging.getLogger(__name__)
 
@@ -50,7 +61,7 @@ CF_BOT_NAMES = {"regro-cf-autotick-bot", "conda-forge-linter"}
 
 # these keys are kept from github PR json blobs
 # to add more keys to keep, put them in the right spot in the dict and
-# set them to None. Also add them to the PullRequestInfo Pydantic model!
+# set them to None. Also add them to the PullRequestDataValid Pydantic model!
 PR_KEYS_TO_KEEP = {
     "ETag": None,
     "Last-Modified": None,
@@ -72,13 +83,17 @@ PR_KEYS_TO_KEEP = {
 }
 
 
+def get_bot_token():
+    with sensitive_env() as env:
+        return env["BOT_TOKEN"]
+
+
 def github3_client() -> github3.GitHub:
     """
     This will be removed in the future, use the GitHubBackend class instead.
     """
     if not hasattr(GITHUB3_CLIENT, "client"):
-        with sensitive_env() as env:
-            GITHUB3_CLIENT.client = github3.login(token=env["BOT_TOKEN"])
+        GITHUB3_CLIENT.client = github3.login(token=get_bot_token())
     return GITHUB3_CLIENT.client
 
 
@@ -87,11 +102,10 @@ def github_client() -> github.Github:
     This will be removed in the future, use the GitHubBackend class instead.
     """
     if not hasattr(GITHUB_CLIENT, "client"):
-        with sensitive_env() as env:
-            GITHUB_CLIENT.client = github.Github(
-                auth=github.Auth.Token(env["BOT_TOKEN"]),
-                per_page=100,
-            )
+        GITHUB_CLIENT.client = github.Github(
+            auth=github.Auth.Token(get_bot_token()),
+            per_page=100,
+        )
     return GITHUB_CLIENT.client
 
 
@@ -115,6 +129,26 @@ class GitConnectionMode(enum.StrEnum):
 
 
 class GitCliError(Exception):
+    """
+    A generic error that occurred while running a git CLI command.
+    """
+
+    pass
+
+
+class GitPlatformError(Exception):
+    """
+    A generic error that occurred while interacting with a git platform.
+    """
+
+    pass
+
+
+class DuplicatePullRequestError(GitPlatformError):
+    """
+    Raised if a pull request already exists.
+    """
+
     pass
 
 
@@ -134,22 +168,23 @@ class GitCli:
     If this does impact performance too much, we can consider a per-repository locking strategy.
     """
 
-    @staticmethod
+    def __init__(self):
+        self.__hidden_tokens: list[str] = []
+
     @lock_git_operation()
     def _run_git_command(
+        self,
         cmd: list[str | Path],
         working_directory: Path | None = None,
         check_error: bool = True,
-        capture_text: bool = False,
     ) -> subprocess.CompletedProcess:
         """
-        Run a git command.
+        Run a git command. stdout is only printed if the command fails. stderr is printed by default.
+        stdout is always captured, we capture stderr only if tokens are hidden.
         :param cmd: The command to run, as a list of strings.
         :param working_directory: The directory to run the command in. If None, the command will be run in the current
         working directory.
         :param check_error: If True, raise a GitCliError if the git command fails.
-        :param capture_text: If True, capture the output of the git command as text. The output will be in the
-        returned result object.
         :return: The result of the git command.
         :raises GitCliError: If the git command fails and check_error is True.
         :raises FileNotFoundError: If the working directory does not exist.
@@ -157,14 +192,44 @@ class GitCli:
         git_command = ["git"] + cmd
 
         logger.debug(f"Running git command: {git_command}")
-        capture_args = {"capture_output": True, "text": True} if capture_text else {}
+
+        # we only need to capture stderr if we want to hide tokens
+        stderr_args = {"stderr": subprocess.PIPE} if self.__hidden_tokens else {}
 
         try:
-            return subprocess.run(
-                git_command, check=check_error, cwd=working_directory, **capture_args
+            p = subprocess.run(
+                git_command,
+                check=check_error,
+                cwd=working_directory,
+                stdout=subprocess.PIPE,
+                **stderr_args,
+                text=True,
             )
         except subprocess.CalledProcessError as e:
-            raise GitCliError("Error running git command.") from e
+            e.stdout = replace_tokens(e.stdout, self.__hidden_tokens)
+            e.stderr = replace_tokens(e.stderr, self.__hidden_tokens)
+            logger.info(
+                f"Command '{' '.join(map(str, git_command))}' failed.\nstdout:\n{e.stdout}\nend of stdout"
+            )
+            if self.__hidden_tokens:
+                logger.info(f"stderr:\n{e.stderr}\nend of stderr")
+            raise GitCliError(f"Error running git command: {repr(e)}") from e
+
+        p.stdout = replace_tokens(p.stdout, self.__hidden_tokens)
+        p.stderr = replace_tokens(p.stderr, self.__hidden_tokens)
+
+        if self.__hidden_tokens:
+            # we suppressed stderr, so we need to print it here
+            print(p.stderr, file=sys.stderr, end="")
+
+        return p
+
+    def add_hidden_token(self, token: str) -> None:
+        """
+        Permanently hide a token in the logs.
+        :param token: The token to hide.
+        """
+        self.__hidden_tokens.append(token)
 
     @lock_git_operation()
     def add(self, git_dir: Path, *pathspec: Path, all_: bool = False):
@@ -232,6 +297,18 @@ class GitCli:
             raise GitCliError(
                 f"Error cloning repository from {origin_url}. Does the repository exist? Is target_dir empty?"
             ) from e
+
+    @lock_git_operation()
+    def push_to_url(self, git_dir: Path, remote_url: str, branch: str):
+        """
+        Push changes to a remote URL.
+        :param git_dir: The directory of the git repository.
+        :param remote_url: The URL of the remote.
+        :param branch: The branch to push to.
+        :raises GitCliError: If the git command fails.
+        """
+
+        self._run_git_command(["push", remote_url, branch], git_dir)
 
     @lock_git_operation()
     def add_remote(self, git_dir: Path, remote_name: str, remote_url: str):
@@ -343,7 +420,6 @@ class GitCli:
         ret = self._run_git_command(
             ["diff", "--name-only", "--relative", commit_a, commit_b],
             git_dir,
-            capture_text=True,
         )
 
         return (git_dir / line for line in ret.stdout.splitlines())
@@ -467,12 +543,15 @@ class GitPlatformBackend(ABC):
         owner: str,
         repo_name: str,
         connection_mode: GitConnectionMode = GitConnectionMode.HTTPS,
+        token: str | None = None,
     ) -> str:
         """
         Get the URL of a remote repository.
         :param owner: The owner of the repository.
         :param repo_name: The name of the repository.
         :param connection_mode: The connection mode to use.
+        :param token: A token to use for authentication. If falsy, no token is used. Use get_authenticated_remote_url
+        instead if you want to use the token of the current user.
         :raises ValueError: If the connection mode is not supported.
         :raises RepositoryNotFoundError: If the repository does not exist. This is only raised if the backend relies on
         the repository existing to generate the URL.
@@ -480,9 +559,23 @@ class GitPlatformBackend(ABC):
         # Currently we don't need any abstraction for other platforms than GitHub, so we don't build such abstractions.
         match connection_mode:
             case GitConnectionMode.HTTPS:
-                return f"https://github.com/{owner}/{repo_name}.git"
+                return f"https://{f'{token}@' if token else ''}github.com/{owner}/{repo_name}.git"
             case _:
                 raise ValueError(f"Unsupported connection mode: {connection_mode}")
+
+    @abstractmethod
+    def push_to_repository(
+        self, owner: str, repo_name: str, git_dir: Path, branch: str
+    ):
+        """
+        Push changes to a repository.
+        :param owner: The owner of the repository.
+        :param repo_name: The name of the repository.
+        :param git_dir: The directory of the git repository.
+        :param branch: The branch to push to.
+        :raises GitPlatformError: If the push fails.
+        """
+        pass
 
     @abstractmethod
     def fork(self, owner: str, repo_name: str):
@@ -563,6 +656,71 @@ class GitPlatformBackend(ABC):
         """
         return self.get_api_requests_left() in (0, None)
 
+    @abstractmethod
+    def create_pull_request(
+        self,
+        target_owner: str,
+        target_repo: str,
+        base_branch: str,
+        head_branch: str,
+        title: str,
+        body: str,
+    ) -> PullRequestDataValid:
+        """
+        Create a pull request from a forked repository. It is assumed that the forked repository is owned by the
+        current user and has the same name as the target repository.
+        :param target_owner: The owner of the target repository.
+        :param target_repo: The name of the target repository.
+        :param base_branch: The base branch of the pull request, located in the target repository.
+        :param head_branch: The head branch of the pull request, located in the forked repository.
+        :param title: The title of the pull request.
+        :param body: The body of the pull request.
+        :returns: The data of the created pull request.
+        :raises GitPlatformError: If the pull request could not be created.
+        :raises DuplicatePullRequestError: If a pull request already exists and the backend checks for it.
+        """
+        pass
+
+    @abstractmethod
+    def comment_on_pull_request(
+        self, repo_owner: str, repo_name: str, pr_number: int, comment: str
+    ) -> None:
+        """
+        Comment on an existing pull request.
+        :param repo_owner: The owner of the repository.
+        :param repo_name: The name of the repository.
+        :param pr_number: The number of the pull request.
+        :param comment: The comment to post.
+        :raises RepositoryNotFoundError: If the repository does not exist.
+        :raises GitPlatformError: If the comment could not be posted, including if the pull request does not exist.
+        """
+        pass
+
+
+class _Github3SessionWrapper:
+    """
+    This is a wrapper around the github3.session.GitHubSession that allows us to intercept the response headers.
+    """
+
+    def __init__(self, session: GitHubSession):
+        super().__init__()
+        self._session = session
+        self.last_response_headers: CaseInsensitiveDict[str] = CaseInsensitiveDict()
+
+    def __getattr__(self, item):
+        return getattr(self._session, item)
+
+    def _forward_request(self, method, *args, **kwargs):
+        response = method(*args, **kwargs)
+        self.last_response_headers = copy.deepcopy(response.headers)
+        return response
+
+    def post(self, *args, **kwargs):
+        return self._forward_request(self._session.post, *args, **kwargs)
+
+    def get(self, *args, **kwargs):
+        return self._forward_request(self._session.get, *args, **kwargs)
+
 
 class GitHubBackend(GitPlatformBackend):
     """
@@ -578,9 +736,28 @@ class GitHubBackend(GitPlatformBackend):
     The number of items to fetch per page from the GitHub API.
     """
 
-    def __init__(self, github3_client: github3.GitHub, pygithub_client: github.Github):
-        super().__init__(GitCli())
+    def __init__(
+        self, github3_client: github3.GitHub, pygithub_client: github.Github, token: str
+    ):
+        """
+        Create a new GitHubBackend.
+        Note: Because we need additional response headers, we wrap the github3 session of the github3 client
+        with our own session wrapper and replace the github3 client's session with it.
+        :param github3_client: The github3 client to use for interacting with the GitHub API.
+        :param pygithub_client: The PyGithub client to use for interacting with the GitHub API.
+        :param token: The token that will be hidden in CLI outputs and used for writing to git repositories. Note that
+        you need to authenticate github3 and PyGithub yourself. Use the `from_token` class method to create an instance
+        that has all necessary clients set up.
+        """
+        cli = GitCli()
+        cli.add_hidden_token(token)
+        super().__init__(cli)
+        self.__token = token
+
         self.github3_client = github3_client
+        self._github3_session = _Github3SessionWrapper(self.github3_client.session)
+        self.github3_client.session = self._github3_session
+
         self.pygithub_client = pygithub_client
 
     @classmethod
@@ -588,10 +765,10 @@ class GitHubBackend(GitPlatformBackend):
         return cls(
             github3.login(token=token),
             github.Github(auth=github.Auth.Token(token), per_page=cls._GITHUB_PER_PAGE),
+            token=token,
         )
 
     def _get_repo(self, owner: str, repo_name: str) -> None | github3.repos.Repository:
-        repo = None
         try:
             repo = self.github3_client.repository(owner, repo_name)
         except github3.exceptions.NotFoundError:
@@ -613,6 +790,16 @@ class GitHubBackend(GitPlatformBackend):
             return True
         except RepositoryNotFoundError:
             return False
+
+    @lock_git_operation()
+    def push_to_repository(
+        self, owner: str, repo_name: str, git_dir: Path, branch: str
+    ):
+        # we need an authenticated URL with write access
+        remote_url = self.get_remote_url(
+            owner, repo_name, GitConnectionMode.HTTPS, self.__token
+        )
+        self.cli.push_to_url(git_dir, remote_url, branch)
 
     @lock_git_operation()
     def fork(self, owner: str, repo_name: str):
@@ -686,6 +873,69 @@ class GitHubBackend(GitPlatformBackend):
 
         return remaining_limit
 
+    def create_pull_request(
+        self,
+        target_owner: str,
+        target_repo: str,
+        base_branch: str,
+        head_branch: str,
+        title: str,
+        body: str,
+    ) -> PullRequestDataValid:
+        repo: github3.repos.Repository = self.github3_client.repository(
+            target_owner, target_repo
+        )
+
+        try:
+            response: github3.pulls.ShortPullRequest | None = repo.create_pull(
+                title=title,
+                base=base_branch,
+                head=f"{self.user}:{head_branch}",
+                body=body,
+            )
+        except github3.exceptions.UnprocessableEntity as e:
+            if any("already exists" in error.get("message", "") for error in e.errors):
+                raise DuplicatePullRequestError(
+                    f"Pull request from {self.user}:{head_branch} to {target_owner}:{base_branch} already exists."
+                ) from e
+            raise
+
+        if response is None:
+            raise GitPlatformError("Could not create pull request.")
+
+        # fields like ETag and Last-Modified are stored in the response headers, we need to extract them
+        header_fields = {
+            k: self._github3_session.last_response_headers[k]
+            for k in PullRequestDataValid.HEADER_FIELDS
+        }
+
+        # note: this ignores extra fields in the response
+        return PullRequestDataValid.model_validate(response.as_dict() | header_fields)
+
+    def comment_on_pull_request(
+        self, repo_owner: str, repo_name: str, pr_number: int, comment: str
+    ) -> None:
+        try:
+            repo = self.github3_client.repository(repo_owner, repo_name)
+        except github3.exceptions.NotFoundError:
+            raise RepositoryNotFoundError(
+                f"Repository {repo_owner}/{repo_name} not found."
+            )
+
+        try:
+            pr = repo.pull_request(pr_number)
+        except github3.exceptions.NotFoundError:
+            raise GitPlatformError(
+                f"Pull request {repo_owner}/{repo_name}#{pr_number} not found."
+            )
+
+        try:
+            pr.create_comment(comment)
+        except github3.GitHubError:
+            raise GitPlatformError(
+                f"Could not comment on pull request {repo_owner}/{repo_name}#{pr_number}."
+            )
+
 
 class DryRunBackend(GitPlatformBackend):
     """
@@ -700,7 +950,6 @@ class DryRunBackend(GitPlatformBackend):
 
     def __init__(self):
         super().__init__(GitCli())
-        self._repos: set[str] = set()
         self._repos: dict[str, str] = {}
         """
         _repos maps from repository name to the owner of the upstream repository.
@@ -725,9 +974,10 @@ class DryRunBackend(GitPlatformBackend):
         owner: str,
         repo_name: str,
         connection_mode: GitConnectionMode = GitConnectionMode.HTTPS,
+        token: str | None = None,
     ) -> str:
         if owner != self._USER:
-            return super().get_remote_url(owner, repo_name, connection_mode)
+            return super().get_remote_url(owner, repo_name, connection_mode, token)
         # redirect to the upstream repository
         try:
             upstream_owner = self._repos[repo_name]
@@ -737,9 +987,15 @@ class DryRunBackend(GitPlatformBackend):
                 "forks are persistent only for the duration of the backend instance."
             )
 
-        return super().get_remote_url(upstream_owner, repo_name, connection_mode)
+        return super().get_remote_url(upstream_owner, repo_name, connection_mode, token)
 
-    @lock_git_operation()
+    def push_to_repository(
+        self, owner: str, repo_name: str, git_dir: Path, branch: str
+    ):
+        logger.debug(
+            f"Dry Run: Pushing changes from {git_dir} to {owner}/{repo_name} on branch {branch}."
+        )
+
     def fork(self, owner: str, repo_name: str):
         if repo_name in self._repos:
             logger.debug(f"Fork of {repo_name} already exists. Doing nothing.")
@@ -764,13 +1020,75 @@ class DryRunBackend(GitPlatformBackend):
     def user(self) -> str:
         return self._USER
 
+    def create_pull_request(
+        self,
+        target_owner: str,
+        target_repo: str,
+        base_branch: str,
+        head_branch: str,
+        title: str,
+        body: str,
+    ) -> PullRequestDataValid:
+        debug_out = textwrap.dedent(
+            f"""
+            ==============================================================
+            Dry Run: Create Pull Request
+            Title: "{title}"
+            Target Repository: {target_owner}/{target_repo}
+            Branches: {self.user}:{head_branch} -> {target_owner}:{base_branch}
+            Body:
+            """
+        )
+        debug_out += body
+        debug_out += "\n=============================================================="
+        logger.debug(debug_out)
+
+        now = datetime.now()
+        return PullRequestDataValid.model_validate(
+            {
+                "ETag": "GITHUB_PR_ETAG",
+                "Last-Modified": utils.format_datetime(now),
+                "id": 13371337,
+                "html_url": f"https://github.com/{target_owner}/{target_repo}/pulls/1337",
+                "created_at": now,
+                "mergeable_state": GithubPullRequestMergeableState.CLEAN,
+                "mergeable": True,
+                "merged": False,
+                "draft": False,
+                "number": 1337,
+                "state": PullRequestState.OPEN,
+                "head": PullRequestInfoHead(ref=head_branch),
+                "base": GithubPullRequestBase(repo=GithubRepository(name=target_repo)),
+            }
+        )
+
+    def comment_on_pull_request(
+        self, repo_owner: str, repo_name: str, pr_number: int, comment: str
+    ):
+        if not self.does_repository_exist(repo_owner, repo_name):
+            raise RepositoryNotFoundError(
+                f"Repository {repo_owner}/{repo_name} not found."
+            )
+
+        logger.debug(
+            textwrap.dedent(
+                f"""
+                ==============================================================
+                Dry Run: Comment on Pull Request
+                Pull Request: {repo_owner}/{repo_name}#{pr_number}
+                Comment:
+                {comment}
+                ==============================================================
+                """
+            )
+        )
+
 
 def github_backend() -> GitHubBackend:
     """
     This helper method will be removed in the future, use the GitHubBackend class directly.
     """
-    with sensitive_env() as env:
-        return GitHubBackend.from_token(env["BOT_TOKEN"])
+    return GitHubBackend.from_token(get_bot_token())
 
 
 def is_github_api_limit_reached() -> bool:
@@ -784,33 +1102,6 @@ def is_github_api_limit_reached() -> bool:
     return backend.is_api_limit_reached()
 
 
-def feedstock_url(fctx: FeedstockContext, protocol: str = "ssh") -> str:
-    """Returns the URL for a conda-forge feedstock."""
-    feedstock = fctx.feedstock_name + "-feedstock"
-    if feedstock.startswith("http://github.com/"):
-        return feedstock
-    elif feedstock.startswith("https://github.com/"):
-        return feedstock
-    elif feedstock.startswith("git@github.com:"):
-        return feedstock
-    protocol = protocol.lower()
-    if protocol == "http":
-        url = "http://github.com/conda-forge/" + feedstock + ".git"
-    elif protocol == "https":
-        url = "https://github.com/conda-forge/" + feedstock + ".git"
-    elif protocol == "ssh":
-        url = "git@github.com:conda-forge/" + feedstock + ".git"
-    else:
-        msg = f"Unrecognized github protocol {protocol}, must be ssh, http, or https."
-        raise ValueError(msg)
-    return url
-
-
-def feedstock_repo(fctx: FeedstockContext) -> str:
-    """Gets the name of the feedstock repository."""
-    return fctx.feedstock_name + "-feedstock"
-
-
 @lock_git_operation()
 def delete_branch(pr_json: LazyJson, dry_run: bool = False) -> None:
     ref = pr_json["head"]["ref"]
@@ -822,17 +1113,18 @@ def delete_branch(pr_json: LazyJson, dry_run: bool = False) -> None:
     gh = github3_client()
     deploy_repo = gh.me().login + "/" + name
 
-    with sensitive_env() as env:
-        run_command_hiding_token(
-            [
-                "git",
-                "push",
-                f"https://{env['BOT_TOKEN']}@github.com/{deploy_repo}.git",
-                "--delete",
-                ref,
-            ],
-            token=env["BOT_TOKEN"],
-        )
+    token = get_bot_token()
+
+    run_command_hiding_token(
+        [
+            "git",
+            "push",
+            f"https://{token}@github.com/{deploy_repo}.git",
+            "--delete",
+            ref,
+        ],
+        token=token,
+    )
     # Replace ref so we know not to try again
     pr_json["head"]["ref"] = "this_is_not_a_branch"
 
@@ -899,11 +1191,10 @@ def lazy_update_pr_json(
     pr_json : dict-like
         A dict-like object with the current PR information.
     """
-    with sensitive_env() as env:
-        hdrs = {
-            "Authorization": f"token {env['BOT_TOKEN']}",
-            "Accept": "application/vnd.github.v3+json",
-        }
+    hdrs = {
+        "Authorization": f"token {get_bot_token()}",
+        "Accept": "application/vnd.github.v3+json",
+    }
     if not force and "ETag" in pr_json:
         hdrs["If-None-Match"] = pr_json["ETag"]
 
@@ -1030,147 +1321,6 @@ def close_out_labels(
         return dict(pr_json)
 
     return None
-
-
-@lock_git_operation()
-def push_repo(
-    fctx: FeedstockContext,
-    feedstock_dir: str,
-    body: str,
-    repo: github3.repos.Repository,
-    title: str,
-    branch: str,
-    base_branch: str = "main",
-    head: Optional[str] = None,
-    dry_run: bool = False,
-) -> Union[dict, bool, None]:
-    """Push a repo up to github
-
-    Parameters
-    ----------
-    fctx : FeedstockContext
-        Feedstock context used for constructing feedstock urls, etc.
-    feedstock_dir : str
-        The feedstock directory
-    body : str
-        The PR body.
-    repo : github3.repos.Repository
-        The feedstock repo as a github3 object.
-    title : str
-        The title of the PR.
-    head : str, optional
-        The github head for the PR in the form `username:branch`.
-    branch : str
-        The head branch of the PR.
-    base_branch : str, optional
-        The base branch or target branch of the PR.
-
-    Returns
-    -------
-    pr_json: dict
-        The dict representing the PR, can be used with `from_json`
-        to create a PR instance.
-    """
-    with sensitive_env() as env, pushd(feedstock_dir):
-        # Copyright (c) 2016 Aaron Meurer, Gil Forsyth
-        token = env["BOT_TOKEN"]
-        gh_username = github3_client().me().login
-
-        if head is None:
-            head = gh_username + ":" + branch
-
-        deploy_repo = gh_username + "/" + fctx.feedstock_name + "-feedstock"
-        if dry_run:
-            repo_url = f"https://github.com/{deploy_repo}.git"
-            print(f"dry run: adding remote and pushing up branch for {repo_url}")
-        else:
-            ecode = run_command_hiding_token(
-                [
-                    "git",
-                    "remote",
-                    "add",
-                    "regro_remote",
-                    f"https://{token}@github.com/{deploy_repo}.git",
-                ],
-                token=token,
-            )
-            if ecode != 0:
-                print("Failed to add git remote!")
-                return False
-
-            ecode = run_command_hiding_token(
-                ["git", "push", "--set-upstream", "regro_remote", branch],
-                token=token,
-            )
-            if ecode != 0:
-                print("Failed to push to remote!")
-                return False
-
-    # lastly make a PR for the feedstock
-    print("Creating conda-forge feedstock pull request...")
-    if dry_run:
-        print(f"dry run: create pr with title: {title}")
-        return False
-    else:
-        pr = repo.create_pull(title, base_branch, head, body=body)
-        if pr is None:
-            print("Failed to create pull request!")
-            return False
-        else:
-            print("Pull request created at " + pr.html_url)
-
-    # Return a json object so we can remake the PR if needed
-    pr_dict: dict = pr.as_dict()
-
-    return trim_pr_json_keys(pr_dict)
-
-
-def comment_on_pr(pr_json, comment, repo):
-    """Make a comment on a PR.
-
-    Parameters
-    ----------
-    pr_json : dict
-        A dict-like json blob with the PR information
-    comment : str
-        The comment to make.
-    repo : github3.repos.Repository
-        The feedstock repo as a github3 object.
-    """
-    pr_obj = repo.pull_request(pr_json["number"])
-    pr_obj.create_comment(comment)
-
-
-@backoff.on_exception(
-    backoff.expo,
-    (RequestException, Timeout),
-    max_time=MAX_GITHUB_TIMEOUT,
-)
-def ensure_label_exists(
-    repo: github3.repos.Repository,
-    label_dict: dict,
-    dry_run: bool = False,
-) -> None:
-    if dry_run:
-        print(f"dry run: ensure label exists {label_dict['name']}")
-    try:
-        repo.label(label_dict["name"])
-    except github3.exceptions.NotFoundError:
-        repo.create_label(**label_dict)
-
-
-def label_pr(
-    repo: github3.repos.Repository,
-    pr_json: LazyJson,
-    label_dict: dict,
-    dry_run: bool = False,
-) -> None:
-    ensure_label_exists(repo, label_dict, dry_run)
-    if dry_run:
-        print(f"dry run: label pr {pr_json['number']} with {label_dict['name']}")
-    else:
-        iss = repo.issue(pr_json["number"])
-        iss.add_labels(label_dict["name"])
 
 
 def close_out_dirty_prs(
