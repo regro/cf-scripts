@@ -154,7 +154,7 @@ def _extract_requirements(meta_yaml, outputs_to_keep=None):
                 list(as_iterable(req.get(section, []) or [])),
             )
 
-        test: "TestTypedDict" = block.get("test", {})
+        test: "TestTypedDict" = block.get("test", {}) or {}
         requirements_dict["test"].update(test.get("requirements", []) or [])
         requirements_dict["test"].update(test.get("requires", []) or [])
 
