@@ -509,8 +509,8 @@ def _parse_recipes(
             {
                 "name": None if package_output is None else package_output.get("name"),
                 "requirements": requirements_output_data,
-                "test": None,
                 "build": build_output_data,
+                "tests": recipe.get("tests", []),
             }
         )
 
@@ -520,7 +520,6 @@ def _parse_recipes(
         "package": package_data,
         "requirements": requirements_data,
         "source": source_data,
-        "test": None,
         "outputs": output_data,
         "extra": first.get("extra"),
     }
