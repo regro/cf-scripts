@@ -35,6 +35,7 @@ from conda_forge_tick.update_sources import (
     NPM,
     NVIDIA,
     AbstractSource,
+    CratesIO,
     Github,
     GithubReleases,
     IncrementAlphaRawURL,
@@ -418,6 +419,7 @@ def all_version_sources():
     return (
         PyPI(),
         CRAN(),
+        CratesIO(),
         NPM(),
         ROSDistro(),
         RawURL(),

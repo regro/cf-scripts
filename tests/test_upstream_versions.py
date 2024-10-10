@@ -17,6 +17,7 @@ from conda_forge_tick.update_sources import (
     NPM,
     NVIDIA,
     AbstractSource,
+    CratesIO,
     Github,
     GithubReleases,
     PyPI,
@@ -1254,6 +1255,7 @@ def test_update_upstream_versions_no_packages_to_update(
 default_sources = (
     "PyPI",
     "CRAN",
+    "CratesIO",
     "NPM",
     "ROSDistro",
     "RawURL",
@@ -1718,3 +1720,37 @@ def test_github_releases(tmpdir, url, feedstock_version):
     ghr = GithubReleases()
     url = ghr.get_url(meta_yaml)
     assert VersionOrder(ghr.get_version(url)) > VersionOrder(feedstock_version)
+
+
+def test_latest_version_cratesio(tmpdir):
+    name = "wbg-rand"
+    recipe_path = os.path.join(YAML_PATH, "version_wbg-rand.yaml")
+    curr_ver = "0.4.0"
+    ver = "0.4.1"
+    source = CratesIO()
+
+    with open(recipe_path) as fd:
+        inp = fd.read()
+
+    pmy = LazyJson(os.path.join(str(tmpdir), "cf-scripts-test.json"))
+    with pmy as _pmy:
+        yml = parse_meta_yaml(inp)
+        _pmy.update(yml["source"])
+        _pmy.update(
+            {
+                "feedstock_name": name,
+                "version": curr_ver,
+                "raw_meta_yaml": inp,
+                "meta_yaml": yml,
+            },
+        )
+
+    attempt = get_latest_version(name, pmy, [source], use_container=False)
+    if ver is None:
+        assert attempt["new_version"] is not False
+        assert attempt["new_version"] != curr_ver
+        assert VersionOrder(attempt["new_version"]) > VersionOrder(curr_ver)
+    elif ver is False:
+        assert attempt["new_version"] is ver
+    else:
+        assert ver == attempt["new_version"]

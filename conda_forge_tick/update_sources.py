@@ -2,11 +2,13 @@ import abc
 import collections.abc
 import copy
 import functools
+import json
 import logging
 import re
 import subprocess
 import typing
 import urllib.parse
+from pathlib import Path
 from typing import Iterator, List, Optional
 
 import feedparser
@@ -708,3 +710,46 @@ class NVIDIA(AbstractSource):
 
     def get_version(self, url: str) -> Optional[str]:
         return url  # = next version, same as in BaseRawURL
+
+
+class CratesIO(AbstractSource):
+    name = "CratesIO"
+
+    def get_url(self, meta_yaml) -> Optional[str]:
+        if "crates.io" not in meta_yaml["url"]:
+            return None
+
+        pkg = Path(meta_yaml["url"]).parts[5]
+        tier = self._tier_directory(pkg)
+
+        return f"https://index.crates.io/{tier}"
+
+    def get_version(self, url: str) -> Optional[str]:
+        r = requests.get(url)
+
+        if not r.ok:
+            return None
+
+        # the response body is a newline-delimited JSON stream, with the latest version
+        # being the last line
+        latest = json.loads(r.text.splitlines()[-1])
+
+        return latest.get("vers")
+
+    @staticmethod
+    def _tier_directory(package: str) -> str:
+        """Depending on the length of the package name, the tier directory structure
+        will differ.
+        Documented here: https://doc.rust-lang.org/cargo/reference/registry-index.html#index-files
+        """
+        if not package:
+            raise ValueError("Package name cannot be empty")
+
+        name_len = len(package)
+
+        if name_len <= 2:
+            return f"{name_len}/{package}"
+        elif name_len == 3:
+            return f"{name_len}/{package[0]}/{package}"
+        else:
+            return f"{package[0:2]}/{package[2:4]}/{package}"

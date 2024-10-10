@@ -171,6 +171,7 @@ def run_migration_containerized(
                 if isinstance(node_attrs, LazyJson)
                 else dumps(node_attrs)
             ),
+            extra_container_args=["-e", "RUN_URL"],
         )
 
         sync_dirs(
