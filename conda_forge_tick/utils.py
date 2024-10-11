@@ -7,6 +7,7 @@ import json
 import logging
 import os
 import pprint
+import re
 import subprocess
 import sys
 import tempfile
@@ -349,6 +350,28 @@ def parse_recipe_yaml_local(
     return parsed_recipes
 
 
+def replace_compiler_with_stub(text: str) -> str:
+    """
+    Replace compiler function calls with a stub function call to match the conda-build
+    output.
+
+    Parameters
+    ----------
+    text : str
+
+    Returns
+    -------
+    str
+    """
+    pattern = r'\$\{\{\s*compiler\((["\'])(.*?)\1\)\s*\}\}'
+    text = re.sub(pattern, lambda m: f"{m.group(2)}_compiler_stub", text)
+
+    pattern = r'\$\{\{\s*stdlib\((["\'])(.*?)\1\)\s*\}\}'
+    text = re.sub(pattern, lambda m: f"{m.group(2)}_stdlib_stub", text)
+
+    return text
+
+
 def _render_recipe_yaml(
     text: str,
     platform_arch: str | None = None,
@@ -375,13 +398,16 @@ def _render_recipe_yaml(
     build_platform_flags = (
         [] if platform_arch is None else ["--build-platform", platform_arch]
     )
+
+    prepared_text = replace_compiler_with_stub(text)
+
     res = subprocess.run(
         ["rattler-build", "build", "--render-only"]
         + variant_config_flags
         + build_platform_flags,
         stdout=subprocess.PIPE,
         text=True,
-        input=text,
+        input=prepared_text,
         check=True,
     )
     return [output["recipe"] for output in json.loads(res.stdout)]
@@ -509,8 +535,8 @@ def _parse_recipes(
             {
                 "name": None if package_output is None else package_output.get("name"),
                 "requirements": requirements_output_data,
-                "test": None,
                 "build": build_output_data,
+                "tests": recipe.get("tests", []),
             }
         )
 
@@ -520,7 +546,6 @@ def _parse_recipes(
         "package": package_data,
         "requirements": requirements_data,
         "source": source_data,
-        "test": None,
         "outputs": output_data,
         "extra": first.get("extra"),
     }
