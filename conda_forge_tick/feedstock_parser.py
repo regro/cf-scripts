@@ -27,8 +27,7 @@ if typing.TYPE_CHECKING:
     from .migrators_types import PackageName, RequirementsTypedDict
 
 from conda_forge_tick.lazy_json_backends import LazyJson, dumps, loads
-
-from .utils import as_iterable, parse_meta_yaml, parse_recipe_yaml
+from conda_forge_tick.utils import as_iterable, parse_meta_yaml, parse_recipe_yaml
 
 logger = logging.getLogger(__name__)
 
@@ -154,9 +153,23 @@ def _extract_requirements(meta_yaml, outputs_to_keep=None):
             requirements_dict[section].update(
                 list(as_iterable(req.get(section, []) or [])),
             )
-        test: "TestTypedDict" = block.get("test", {})
+
+        test: "TestTypedDict" = block.get("test", {}) or {}
         requirements_dict["test"].update(test.get("requirements", []) or [])
         requirements_dict["test"].update(test.get("requires", []) or [])
+
+        if "tests" in block:
+            for test in block.get("tests", []):
+                # only script tests have requirements
+                if "requirements" in test:
+                    run_reqs = test["requirements"].get("run", [])
+                    build_reqs = test["requirements"].get("build", [])
+                    requirements_dict["test"].update(run_reqs + build_reqs)
+                if "python" in test:
+                    # if pip_check is unset or True, we need pip
+                    if test.get("pip_check", True):
+                        requirements_dict["test"].add("pip")
+
         run_exports = (block.get("build", {}) or {}).get("run_exports", {})
         if isinstance(run_exports, dict) and run_exports.get("strong"):
             strong_exports = True
@@ -686,3 +699,31 @@ def load_feedstock(
             conda_forge_yaml=conda_forge_yaml,
             mark_not_archived=mark_not_archived,
         )
+
+
+if __name__ == "__main__":
+    import json
+    import os
+    import sys
+
+    # Do not use docker when debugging
+    os.environ["CF_FEEDSTOCK_OPS_IN_CONTAINER"] = "true"
+
+    if len(sys.argv) < 2:
+        print(f"Usage: {sys.argv[0]} feedstock_name")
+        sys.exit(1)
+    feedstock_name = sys.argv[1]
+
+    graph = {}
+    load_feedstock_local(
+        "carma",
+        graph,
+    )
+
+    class SetEncoder(json.JSONEncoder):
+        def default(self, obj):
+            if isinstance(obj, set):
+                return list(obj)
+            return json.JSONEncoder.default(self, obj)
+
+    print(json.dumps(graph, indent=4, cls=SetEncoder))
