@@ -719,3 +719,7 @@ if __name__ == "__main__":
 
     pprint.pprint(graph)
     print(json.dumps(graph, indent=4, cls=SetEncoder))
+
+    from pathlib import Path
+
+    Path("out.json").write_text(json.dumps(graph, indent=4, cls=SetEncoder))
