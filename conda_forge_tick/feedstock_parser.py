@@ -702,14 +702,23 @@ def load_feedstock(
 
 
 if __name__ == "__main__":
+    import json
+    import os
+    import sys
+
+    # Do not use docker when debugging
+    os.environ["CF_FEEDSTOCK_OPS_IN_CONTAINER"] = "true"
+
+    if len(sys.argv) < 2:
+        print(f"Usage: {sys.argv[0]} feedstock_name")
+        sys.exit(1)
+    feedstock_name = sys.argv[1]
+
     graph = {}
     load_feedstock_local(
         "carma",
         graph,
     )
-
-    import json
-    import pprint
 
     class SetEncoder(json.JSONEncoder):
         def default(self, obj):
@@ -717,9 +726,4 @@ if __name__ == "__main__":
                 return list(obj)
             return json.JSONEncoder.default(self, obj)
 
-    pprint.pprint(graph)
     print(json.dumps(graph, indent=4, cls=SetEncoder))
-
-    from pathlib import Path
-
-    Path("out.json").write_text(json.dumps(graph, indent=4, cls=SetEncoder))
