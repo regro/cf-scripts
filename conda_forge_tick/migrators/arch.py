@@ -228,7 +228,7 @@ class ArchRebuild(GraphMigrator):
         This feedstock is being rebuilt as part of the aarch64/ppc64le migration.
 
         **Feel free to merge the PR if CI is all green, but please don't close it
-        without reaching out the the ARM migrators first at @conda-forge/arm-arch.**
+        without reaching out the the ARM migrators first at <code>@</code>conda-forge/arm-arch.**
         """,
             ),
         )
@@ -405,7 +405,7 @@ class OSXArm(GraphMigrator):
         This feedstock is being rebuilt as part of the ARM OSX migration.
 
         **Feel free to merge the PR if CI is all green, but please don't close it
-        without reaching out the the ARM OSX team first at @conda-forge/help-osx-arm64.**
+        without reaching out the the ARM OSX team first at <code>@</code>conda-forge/help-osx-arm64.**
         """,  # noqa
             ),
         )
