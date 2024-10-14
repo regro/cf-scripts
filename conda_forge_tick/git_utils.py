@@ -5,7 +5,6 @@ import enum
 import logging
 import math
 import subprocess
-import sys
 import textwrap
 import threading
 import time
@@ -28,9 +27,6 @@ from requests.exceptions import RequestException, Timeout
 from requests.structures import CaseInsensitiveDict
 
 from conda_forge_tick import sensitive_env
-
-# TODO: handle the URLs more elegantly (most likely make this a true library
-# and pull all the needed info from the various source classes)
 from conda_forge_tick.lazy_json_backends import LazyJson
 
 from .executors import lock_git_operation
@@ -42,7 +38,7 @@ from .models.pr_json import (
     PullRequestInfoHead,
     PullRequestState,
 )
-from .utils import get_bot_run_url, replace_tokens, run_command_hiding_token
+from .utils import get_bot_run_url, run_command_hiding_token
 
 logger = logging.getLogger(__name__)
 
@@ -168,23 +164,24 @@ class GitCli:
     If this does impact performance too much, we can consider a per-repository locking strategy.
     """
 
-    def __init__(self):
-        self.__hidden_tokens: list[str] = []
-
     @lock_git_operation()
     def _run_git_command(
         self,
         cmd: list[str | Path],
         working_directory: Path | None = None,
         check_error: bool = True,
+        suppress_all_output: bool = False,
     ) -> subprocess.CompletedProcess:
         """
-        Run a git command. stdout is only printed if the command fails. stderr is printed by default.
-        stdout is always captured, we capture stderr only if tokens are hidden.
+        Run a git command. stdout is by default only printed if the command fails. stderr is always printed by default.
+        stdout is, by default, always available in the returned CompletedProcess, stderr is never.
+
         :param cmd: The command to run, as a list of strings.
         :param working_directory: The directory to run the command in. If None, the command will be run in the current
         working directory.
         :param check_error: If True, raise a GitCliError if the git command fails.
+        :param suppress_all_output: If True, suppress all output (stdout and stderr). Also, the returned
+        CompletedProcess will have stdout and stderr set to None. Use this for sensitive commands.
         :return: The result of the git command.
         :raises GitCliError: If the git command fails and check_error is True.
         :raises FileNotFoundError: If the working directory does not exist.
@@ -193,43 +190,30 @@ class GitCli:
 
         logger.debug(f"Running git command: {git_command}")
 
-        # we only need to capture stderr if we want to hide tokens
-        stderr_args = {"stderr": subprocess.PIPE} if self.__hidden_tokens else {}
+        # stdout and stderr are piped to devnull if suppress_all_output is True
+        stdout_args = (
+            {"stdout": subprocess.PIPE}
+            if not suppress_all_output
+            else {"stdout": subprocess.DEVNULL}
+        )
+        stderr_args = {} if not suppress_all_output else {"stderr": subprocess.DEVNULL}
 
         try:
             p = subprocess.run(
                 git_command,
                 check=check_error,
                 cwd=working_directory,
-                stdout=subprocess.PIPE,
+                **stdout_args,
                 **stderr_args,
                 text=True,
             )
         except subprocess.CalledProcessError as e:
-            e.stdout = replace_tokens(e.stdout, self.__hidden_tokens)
-            e.stderr = replace_tokens(e.stderr, self.__hidden_tokens)
             logger.info(
-                f"Command '{' '.join(map(str, git_command))}' failed.\nstdout:\n{e.stdout}\nend of stdout"
+                f"Command '{' '.join(map(str, git_command))}' failed.\nstdout:\n{e.stdout or '<None>'}\nend of stdout"
             )
-            if self.__hidden_tokens:
-                logger.info(f"stderr:\n{e.stderr}\nend of stderr")
-            raise GitCliError(f"Error running git command: {repr(e)}") from e
-
-        p.stdout = replace_tokens(p.stdout, self.__hidden_tokens)
-        p.stderr = replace_tokens(p.stderr, self.__hidden_tokens)
-
-        if self.__hidden_tokens:
-            # we suppressed stderr, so we need to print it here
-            print(p.stderr, file=sys.stderr, end="")
+            raise GitCliError(f"Error running git command: {repr(e)}")
 
         return p
-
-    def add_hidden_token(self, token: str) -> None:
-        """
-        Permanently hide a token in the logs.
-        :param token: The token to hide.
-        """
-        self.__hidden_tokens.append(token)
 
     @lock_git_operation()
     def add(self, git_dir: Path, *pathspec: Path, all_: bool = False):
@@ -321,6 +305,31 @@ class GitCli:
         :raises FileNotFoundError: If git_dir does not exist
         """
         self._run_git_command(["remote", "add", remote_name, remote_url], git_dir)
+
+    @lock_git_operation()
+    def add_token(self, git_dir: Path, origin: str, token: str):
+        """
+        Configures git with a local configuration to use the given token for the given origin.
+        Internally, this sets the `http.<origin>/.extraheader` git configuration key to
+        `AUTHORIZATION: basic <token>`.
+        This is similar to how the GitHub Checkout action does it:
+        https://github.com/actions/checkout/blob/eef61447b9ff4aafe5dcd4e0bbf5d482be7e7871/adrs/0153-checkout-v2.md#PAT
+
+        The CLI outputs of this command are suppressed to avoid leaking the token.
+        :param git_dir: The directory of the git repository.
+        :param origin: The origin to use the token for. Origin is SCHEME://HOST[:PORT] (without trailing slash).
+        :param token: The token to use.
+        """
+        self._run_git_command(
+            [
+                "config",
+                "--local",
+                f"http.{origin}/.extraheader",
+                f"AUTHORIZATION: basic {token}",
+            ],
+            git_dir,
+            suppress_all_output=True,
+        )
 
     @lock_git_operation()
     def fetch_all(self, git_dir: Path):
@@ -522,6 +531,9 @@ class GitPlatformBackend(ABC):
     If this does impact performance too much, we can consider a per-repository locking strategy.
     """
 
+    # Currently we don't need any abstraction for other platforms than GitHub, so we don't build such abstractions.
+    GIT_PLATFORM_ORIGIN = "https://github.com"
+
     def __init__(self, git_cli: GitCli):
         """
         Create a new GitPlatformBackend.
@@ -543,23 +555,19 @@ class GitPlatformBackend(ABC):
         owner: str,
         repo_name: str,
         connection_mode: GitConnectionMode = GitConnectionMode.HTTPS,
-        token: str | None = None,
     ) -> str:
         """
         Get the URL of a remote repository.
         :param owner: The owner of the repository.
         :param repo_name: The name of the repository.
         :param connection_mode: The connection mode to use.
-        :param token: A token to use for authentication. If falsy, no token is used. Use get_authenticated_remote_url
-        instead if you want to use the token of the current user.
         :raises ValueError: If the connection mode is not supported.
         :raises RepositoryNotFoundError: If the repository does not exist. This is only raised if the backend relies on
         the repository existing to generate the URL.
         """
-        # Currently we don't need any abstraction for other platforms than GitHub, so we don't build such abstractions.
         match connection_mode:
             case GitConnectionMode.HTTPS:
-                return f"https://{f'{token}@' if token else ''}github.com/{owner}/{repo_name}.git"
+                return f"{self.GIT_PLATFORM_ORIGIN}/{owner}/{repo_name}.git"
             case _:
                 raise ValueError(f"Unsupported connection mode: {connection_mode}")
 
@@ -745,12 +753,11 @@ class GitHubBackend(GitPlatformBackend):
         with our own session wrapper and replace the github3 client's session with it.
         :param github3_client: The github3 client to use for interacting with the GitHub API.
         :param pygithub_client: The PyGithub client to use for interacting with the GitHub API.
-        :param token: The token that will be hidden in CLI outputs and used for writing to git repositories. Note that
-        you need to authenticate github3 and PyGithub yourself. Use the `from_token` class method to create an instance
+        :param token: The token used for writing to git repositories. Note that you need to authenticate github3
+        and PyGithub yourself. Use the `from_token` class method to create an instance
         that has all necessary clients set up.
         """
         cli = GitCli()
-        cli.add_hidden_token(token)
         super().__init__(cli)
         self.__token = token
 
@@ -795,9 +802,14 @@ class GitHubBackend(GitPlatformBackend):
     def push_to_repository(
         self, owner: str, repo_name: str, git_dir: Path, branch: str
     ):
-        # we need an authenticated URL with write access
+        # We add the token here and not immediately after cloning as an additional defense-in-depth measure.
+        # Since add_token is idempotent, it is safe to call it multiple times.
+        self.cli.add_token(git_dir, self.GIT_PLATFORM_ORIGIN, self.__token)
+
         remote_url = self.get_remote_url(
-            owner, repo_name, GitConnectionMode.HTTPS, self.__token
+            owner,
+            repo_name,
+            GitConnectionMode.HTTPS,
         )
         self.cli.push_to_url(git_dir, remote_url, branch)
 
@@ -974,10 +986,9 @@ class DryRunBackend(GitPlatformBackend):
         owner: str,
         repo_name: str,
         connection_mode: GitConnectionMode = GitConnectionMode.HTTPS,
-        token: str | None = None,
     ) -> str:
         if owner != self._USER:
-            return super().get_remote_url(owner, repo_name, connection_mode, token)
+            return super().get_remote_url(owner, repo_name, connection_mode)
         # redirect to the upstream repository
         try:
             upstream_owner = self._repos[repo_name]
@@ -987,7 +998,7 @@ class DryRunBackend(GitPlatformBackend):
                 "forks are persistent only for the duration of the backend instance."
             )
 
-        return super().get_remote_url(upstream_owner, repo_name, connection_mode, token)
+        return super().get_remote_url(upstream_owner, repo_name, connection_mode)
 
     def push_to_repository(
         self, owner: str, repo_name: str, git_dir: Path, branch: str

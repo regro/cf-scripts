@@ -72,11 +72,11 @@ def test_git_cli_run_git_command_error(subprocess_run_mock: MagicMock):
         cli._run_git_command(["GIT_COMMAND"], working_directory)
 
 
-@pytest.mark.parametrize("token_hidden", [True, False])
+@pytest.mark.parametrize("suppress_all_output", [True, False])
 @pytest.mark.parametrize("check_error", [True, False])
 @mock.patch("subprocess.run")
 def test_git_cli_run_git_command_mock(
-    subprocess_run_mock: MagicMock, check_error: bool, token_hidden: bool
+    subprocess_run_mock: MagicMock, check_error: bool, suppress_all_output: bool
 ):
     """
     This test checks if all parameters are passed correctly to the subprocess.run function.
@@ -85,35 +85,34 @@ def test_git_cli_run_git_command_mock(
 
     working_directory = Path("TEST_DIR")
 
-    if token_hidden:
-        cli.add_hidden_token("TOKEN")
+    cli._run_git_command(
+        ["COMMAND", "ARG1", "ARG2"], working_directory, check_error, suppress_all_output
+    )
 
-    cli._run_git_command(["COMMAND", "ARG1", "ARG2"], working_directory, check_error)
-
-    stderr_args = {"stderr": subprocess.PIPE} if token_hidden else {}
+    stdout_args = (
+        {"stdout": subprocess.PIPE}
+        if not suppress_all_output
+        else {"stdout": subprocess.DEVNULL}
+    )
+    stderr_args = {} if not suppress_all_output else {"stderr": subprocess.DEVNULL}
 
     subprocess_run_mock.assert_called_once_with(
         ["git", "COMMAND", "ARG1", "ARG2"],
         check=check_error,
         cwd=working_directory,
-        stdout=subprocess.PIPE,
+        **stdout_args,
         **stderr_args,
         text=True,
     )
 
 
-@pytest.mark.parametrize("token_hidden", [True, False])
 @pytest.mark.parametrize("check_error", [True, False])
-def test_git_cli_run_git_command_stdout_captured(
-    capfd, check_error: bool, token_hidden: bool
-):
+def test_git_cli_run_git_command_stdout_captured(capfd, check_error: bool):
     """
     Verify that the stdout of the git command is captured and not printed to the console.
     """
     cli = GitCli()
 
-    if token_hidden:
-        cli.add_hidden_token("TOKEN")
     p = cli._run_git_command(["version"], check_error=check_error)
 
     captured = capfd.readouterr()
@@ -135,122 +134,6 @@ def test_git_cli_run_git_command_stderr_not_captured(capfd):
     assert captured.out == ""
     assert "command" in captured.err
     assert p.stderr is None
-
-
-def test_git_cli_hide_token_stdout_no_error(capfd):
-    cli = GitCli()
-
-    cli.add_hidden_token("git")
-    p = cli._run_git_command(["help"])
-
-    captured = capfd.readouterr()
-
-    assert "git" not in captured.out
-    assert "git" not in captured.err
-    assert "git" not in p.stdout
-    assert "git" not in p.stderr
-
-    assert p.stdout.count("***") > 5
-
-
-def test_git_cli_hide_token_stdout_error_check_error(caplog, capfd):
-    cli = GitCli()
-
-    caplog.set_level(logging.DEBUG)
-
-    cli.add_hidden_token("all")
-    with pytest.raises(GitCliError):
-        # git help --a prints to stdout (!) and then exits with an error
-        cli._run_git_command(["help", "--a"])
-
-    captured = capfd.readouterr()
-
-    assert "all" not in captured.out
-    assert "all" not in captured.err
-    assert "all" not in caplog.text
-
-    assert "***" in caplog.text
-
-
-def test_git_cli_hide_token_stdout_error_no_check_error(caplog, capfd):
-    cli = GitCli()
-
-    caplog.set_level(logging.DEBUG)
-
-    cli.add_hidden_token("all")
-    p = cli._run_git_command(["help", "--a"], check_error=False)
-
-    captured = capfd.readouterr()
-
-    assert "all" not in captured.out
-    assert "all" not in captured.err
-    assert "all" not in p.stdout
-    assert "all" not in p.stderr
-    assert "all" not in caplog.text
-
-    assert "***" in p.stdout
-
-
-def test_git_cli_hide_token_stderr_no_check_error(capfd):
-    cli = GitCli()
-
-    cli.add_hidden_token("command")
-    p = cli._run_git_command(["non-existing-command"], check_error=False)
-
-    captured = capfd.readouterr()
-
-    assert "command" not in captured.out
-    assert "command" not in captured.err
-    assert "command" not in p.stdout
-    assert "command" not in p.stderr
-
-    assert p.stderr.count("*******") >= 1
-    assert captured.err.count("*******") >= 1
-
-
-def test_git_cli_hide_token_run_git_command_check_error(capfd, caplog):
-    cli = GitCli()
-
-    caplog.set_level(logging.INFO)
-
-    cli.add_hidden_token("command")
-    with pytest.raises(GitCliError):
-        cli._run_git_command(["non-existing-command"])
-
-    print(caplog.text)
-    assert "Command 'git non-existing-command' failed." in caplog.text
-    assert (
-        caplog.text.count("command") == 1
-    )  # only the command itself is printed directly by us
-
-    assert "'non-existing-*******'" in caplog.text
-
-
-def test_git_cli_hide_token_multiple(capfd, caplog):
-    cli = GitCli()
-
-    caplog.set_level(logging.DEBUG)
-
-    cli.add_hidden_token("clone")
-    cli.add_hidden_token("commit")
-    p1 = cli._run_git_command(["help"])
-
-    captured = capfd.readouterr()
-
-    assert "clone" not in captured.out
-    assert "clone" not in captured.err
-    assert "clone" not in p1.stdout
-    assert "clone" not in p1.stderr
-
-    assert "commit" not in captured.out
-    assert "commit" not in captured.err
-    assert "commit" not in p1.stdout
-    assert "commit" not in p1.stderr
-
-    assert "clone" not in caplog.text
-    assert "commit" not in caplog.text
-
-    assert p1.stdout.count("*****") >= 2
 
 
 def test_git_cli_outside_repo():
@@ -653,6 +536,29 @@ def test_git_cli_push_to_url_local_repository():
         ).stdout.decode()
 
         assert "test.txt" in source_git_log
+
+
+@mock.patch("conda_forge_tick.git_utils.GitCli._run_git_command")
+def test_git_cli_add_token_mock(run_git_command_mock: MagicMock):
+    cli = GitCli()
+
+    git_dir = Path("TEST_DIR")
+
+    origin = "https://git-repository.com"
+    token = "TOKEN"
+
+    cli.add_token(git_dir, origin, token)
+
+    run_git_command_mock.assert_called_once_with(
+        [
+            "config",
+            "--local",
+            "http.https://git-repository.com/.extraheader",
+            "AUTHORIZATION: basic TOKEN",
+        ],
+        git_dir,
+        suppress_all_output=True,
+    )
 
 
 @mock.patch("conda_forge_tick.git_utils.GitCli._run_git_command")
@@ -1099,28 +1005,6 @@ def test_github_backend_from_token():
     # we cannot verify the pygithub token trivially
 
 
-@pytest.mark.parametrize("from_token", [True, False])
-def test_github_backend_token_to_hide(caplog, capfd, from_token: bool):
-    caplog.set_level(logging.DEBUG)
-    token = "commit"
-
-    if from_token:
-        backend = GitHubBackend.from_token(token)
-    else:
-        backend = GitHubBackend(MagicMock(), MagicMock(), token)
-
-    # the token should be hidden by default, without any context manager
-    p = backend.cli._run_git_command(["help"])
-
-    captured = capfd.readouterr()
-
-    assert token not in caplog.text
-    assert token not in captured.out
-    assert token not in captured.err
-    assert token not in p.stdout
-    assert token not in p.stderr
-
-
 @pytest.mark.parametrize("does_exist", [True, False])
 def test_github_backend_does_repository_exist(does_exist: bool):
     github3_client = MagicMock()
@@ -1150,17 +1034,6 @@ def test_github_backend_get_remote_url_https():
     assert url == f"https://github.com/{owner}/{repo}.git"
 
 
-def test_github_backend_get_remote_url_token():
-    owner = "OWNER"
-    repo = "REPO"
-    token = "TOKEN"
-    backend = GitHubBackend(MagicMock(), MagicMock(), "")
-
-    url = backend.get_remote_url(owner, repo, GitConnectionMode.HTTPS, token)
-
-    assert url == f"https://{token}@github.com/{owner}/{repo}.git"
-
-
 @mock.patch("time.sleep", return_value=None)
 @mock.patch(
     "conda_forge_tick.git_utils.GitHubBackend.user", new_callable=mock.PropertyMock
@@ -1185,17 +1058,26 @@ def test_github_backend_fork_not_exists_repo_found(
     sleep_mock.assert_called_once_with(5)
 
 
+@mock.patch("conda_forge_tick.git_utils.GitCli.add_token")
 @mock.patch("conda_forge_tick.git_utils.GitCli.push_to_url")
-def test_github_backend_push_to_repository(push_to_url_mock: MagicMock):
+def test_github_backend_push_to_repository(
+    push_to_url_mock: MagicMock, add_token_mock: MagicMock
+):
     backend = GitHubBackend.from_token("THIS_IS_THE_TOKEN")
 
     git_dir = Path("GIT_DIR")
 
     backend.push_to_repository("OWNER", "REPO", git_dir, "BRANCH_NAME")
 
+    add_token_mock.assert_called_once_with(
+        git_dir,
+        "https://github.com",
+        "THIS_IS_THE_TOKEN",
+    )
+
     push_to_url_mock.assert_called_once_with(
         git_dir,
-        "https://THIS_IS_THE_TOKEN@github.com/OWNER/REPO.git",
+        "https://github.com/OWNER/REPO.git",
         "BRANCH_NAME",
     )
 
@@ -1697,48 +1579,41 @@ def test_dry_run_backend_does_repository_exist_other_repo():
     )
 
 
-@pytest.mark.parametrize("token", [None, "TOKEN"])
-def test_dry_run_backend_get_remote_url_non_fork(token: str | None):
+def test_dry_run_backend_get_remote_url_non_fork():
     backend = DryRunBackend()
 
-    url = backend.get_remote_url("OWNER", "REPO", GitConnectionMode.HTTPS, token)
+    url = backend.get_remote_url("OWNER", "REPO", GitConnectionMode.HTTPS)
 
-    if token is None:
-        assert url == "https://github.com/OWNER/REPO.git"
-    else:
-        assert url == "https://TOKEN@github.com/OWNER/REPO.git"
+    assert url == "https://github.com/OWNER/REPO.git"
 
 
-@pytest.mark.parametrize("token", [None, "TOKEN"])
-def test_dry_run_backend_get_remote_url_non_existing_fork(token: str | None):
+def test_dry_run_backend_get_remote_url_non_existing_fork():
     backend = DryRunBackend()
 
     with pytest.raises(RepositoryNotFoundError, match="does not exist"):
-        backend.get_remote_url(backend.user, "REPO", GitConnectionMode.HTTPS, token)
+        backend.get_remote_url(backend.user, "REPO", GitConnectionMode.HTTPS)
 
     backend.fork("conda-forge", "pytest-feedstock")
 
     with pytest.raises(RepositoryNotFoundError, match="does not exist"):
         backend.get_remote_url(
-            backend.user, "pydantic-feedstock", GitConnectionMode.HTTPS, token
+            backend.user, "pydantic-feedstock", GitConnectionMode.HTTPS
         )
 
 
-@pytest.mark.parametrize("token", [None, "TOKEN"])
-def test_dry_run_backend_get_remote_url_existing_fork(token: str | None):
+def test_dry_run_backend_get_remote_url_existing_fork():
     backend = DryRunBackend()
 
     backend.fork("conda-forge", "pytest-feedstock")
 
     url = backend.get_remote_url(
-        backend.user, "pytest-feedstock", GitConnectionMode.HTTPS, token
+        backend.user,
+        "pytest-feedstock",
+        GitConnectionMode.HTTPS,
     )
 
     # note that the URL does not indicate anymore that it is a fork
-    assert (
-        url
-        == f"https://{f'{token}@' if token else ''}github.com/conda-forge/pytest-feedstock.git"
-    )
+    assert url == "https://github.com/conda-forge/pytest-feedstock.git"
 
 
 def test_dry_run_backend_push_to_repository(caplog):
