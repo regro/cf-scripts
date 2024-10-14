@@ -332,6 +332,23 @@ class GitCli:
         )
 
     @lock_git_operation()
+    def clear_token(self, git_dir, origin):
+        """
+        Clear the token for the given origin.
+        :param git_dir: The directory of the git repository.
+        :param origin: The origin to clear the token for.
+        """
+        self._run_git_command(
+            [
+                "config",
+                "--local",
+                "--unset",
+                f"http.{origin}/.extraheader",
+            ],
+            git_dir,
+        )
+
+    @lock_git_operation()
     def fetch_all(self, git_dir: Path):
         """
         Fetch all changes from all remotes.
@@ -802,8 +819,7 @@ class GitHubBackend(GitPlatformBackend):
     def push_to_repository(
         self, owner: str, repo_name: str, git_dir: Path, branch: str
     ):
-        # We add the token here and not immediately after cloning as an additional defense-in-depth measure.
-        # Since add_token is idempotent, it is safe to call it multiple times.
+        # We add the token here and remove it immediately after pushing as an additional defense-in-depth measure.
         self.cli.add_token(git_dir, self.GIT_PLATFORM_ORIGIN, self.__token)
 
         remote_url = self.get_remote_url(
@@ -812,6 +828,8 @@ class GitHubBackend(GitPlatformBackend):
             GitConnectionMode.HTTPS,
         )
         self.cli.push_to_url(git_dir, remote_url, branch)
+
+        self.cli.clear_token(git_dir, self.GIT_PLATFORM_ORIGIN)
 
     @lock_git_operation()
     def fork(self, owner: str, repo_name: str):

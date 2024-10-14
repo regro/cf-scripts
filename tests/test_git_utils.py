@@ -562,6 +562,27 @@ def test_git_cli_add_token_mock(run_git_command_mock: MagicMock):
 
 
 @mock.patch("conda_forge_tick.git_utils.GitCli._run_git_command")
+def test_git_cli_clear_token_mock(run_git_command_mock: MagicMock):
+    cli = GitCli()
+
+    git_dir = Path("TEST_DIR")
+
+    origin = "https://git-repository.com"
+
+    cli.clear_token(git_dir, origin)
+
+    run_git_command_mock.assert_called_once_with(
+        [
+            "config",
+            "--local",
+            "--unset",
+            "http.https://git-repository.com/.extraheader",
+        ],
+        git_dir,
+    )
+
+
+@mock.patch("conda_forge_tick.git_utils.GitCli._run_git_command")
 def test_git_cli_fetch_all_mock(run_git_command_mock: MagicMock):
     cli = GitCli()
 
@@ -1058,10 +1079,11 @@ def test_github_backend_fork_not_exists_repo_found(
     sleep_mock.assert_called_once_with(5)
 
 
+@mock.patch("conda_forge_tick.git_utils.GitCli.clear_token")
 @mock.patch("conda_forge_tick.git_utils.GitCli.add_token")
 @mock.patch("conda_forge_tick.git_utils.GitCli.push_to_url")
 def test_github_backend_push_to_repository(
-    push_to_url_mock: MagicMock, add_token_mock: MagicMock
+    push_to_url_mock: MagicMock, add_token_mock: MagicMock, clear_token_mock: MagicMock
 ):
     backend = GitHubBackend.from_token("THIS_IS_THE_TOKEN")
 
@@ -1080,6 +1102,8 @@ def test_github_backend_push_to_repository(
         "https://github.com/OWNER/REPO.git",
         "BRANCH_NAME",
     )
+
+    clear_token_mock.assert_called_once_with(git_dir, "https://github.com")
 
 
 @pytest.mark.parametrize("branch_already_synced", [True, False])
