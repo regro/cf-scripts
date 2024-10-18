@@ -1,11 +1,15 @@
 from datetime import datetime
 from enum import StrEnum
-from typing import Literal
+from typing import ClassVar, Literal
 
 from pydantic import UUID4, AnyHttpUrl, Field, TypeAdapter
 from pydantic_extra_types.color import Color
 
-from conda_forge_tick.models.common import RFC2822Date, StrictBaseModel
+from conda_forge_tick.models.common import (
+    RFC2822Date,
+    StrictBaseModel,
+    ValidatedBaseModel,
+)
 
 
 class PullRequestLabelShort(StrictBaseModel):
@@ -48,7 +52,7 @@ class PullRequestState(StrEnum):
     """
 
 
-class PullRequestInfoHead(StrictBaseModel):
+class PullRequestInfoHead(ValidatedBaseModel):
     ref: str
     """
     The head branch of the pull request.
@@ -73,20 +77,29 @@ class GithubPullRequestMergeableState(StrEnum):
     CLEAN = "clean"
 
 
-class GithubRepository(StrictBaseModel):
+class GithubRepository(ValidatedBaseModel):
     name: str
 
 
-class GithubPullRequestBase(StrictBaseModel):
+class GithubPullRequestBase(ValidatedBaseModel):
     repo: GithubRepository
 
 
-class PullRequestDataValid(StrictBaseModel):
+class PullRequestDataValid(ValidatedBaseModel):
     """
     Information about a pull request, as retrieved from the GitHub API.
     Refer to git_utils.PR_KEYS_TO_KEEP for the keys that are kept in the PR object.
+    ALSO UPDATE PR_KEYS_TO_KEEP IF YOU CHANGE THIS CLASS!
 
     GitHub documentation: https://docs.github.com/en/rest/pulls/pulls?apiVersion=2022-11-28#get-a-pull-request
+    """
+
+    HEADER_FIELDS: ClassVar[set[str]] = {
+        "ETag",
+        "Last-Modified",
+    }
+    """
+    A set of all header fields that are stored in the PR object.
     """
 
     e_tag: str | None = Field(None, alias="ETag")
@@ -98,7 +111,6 @@ class PullRequestDataValid(StrictBaseModel):
     """
     Taken from the GitHub response header.
     """
-    # TODO: add a serializer for this field
 
     id: int | None = None
     """
