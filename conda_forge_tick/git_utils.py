@@ -819,17 +819,18 @@ class GitHubBackend(GitPlatformBackend):
     def push_to_repository(
         self, owner: str, repo_name: str, git_dir: Path, branch: str
     ):
-        # We add the token here and remove it immediately after pushing as an additional defense-in-depth measure.
-        self.cli.add_token(git_dir, self.GIT_PLATFORM_ORIGIN, self.__token)
+        # We add the token and remove it immediately after pushing as an additional defense-in-depth measure.
+        try:
+            self.cli.add_token(git_dir, self.GIT_PLATFORM_ORIGIN, self.__token)
 
-        remote_url = self.get_remote_url(
-            owner,
-            repo_name,
-            GitConnectionMode.HTTPS,
-        )
-        self.cli.push_to_url(git_dir, remote_url, branch)
-
-        self.cli.clear_token(git_dir, self.GIT_PLATFORM_ORIGIN)
+            remote_url = self.get_remote_url(
+                owner,
+                repo_name,
+                GitConnectionMode.HTTPS,
+            )
+            self.cli.push_to_url(git_dir, remote_url, branch)
+        finally:
+            self.cli.clear_token(git_dir, self.GIT_PLATFORM_ORIGIN)
 
     @lock_git_operation()
     def fork(self, owner: str, repo_name: str):
