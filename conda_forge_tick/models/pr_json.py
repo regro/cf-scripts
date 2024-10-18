@@ -111,7 +111,6 @@ class PullRequestDataValid(ValidatedBaseModel):
     """
     Taken from the GitHub response header.
     """
-    # TODO: add a serializer for this field
 
     id: int | None = None
     """
