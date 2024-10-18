@@ -15,7 +15,7 @@ import traceback
 import typing
 import warnings
 from collections import defaultdict
-from typing import Any, Dict, Iterable, Optional, Set, Tuple, cast, overload
+from typing import Any, Dict, Iterable, Optional, Set, Tuple, cast
 
 import jinja2
 import jinja2.sandbox
@@ -1232,79 +1232,29 @@ def change_log_level(logger, new_level):
         logger.setLevel(saved_logger_level)
 
 
-@overload
-def replace_tokens(s: str, tokens: Iterable[str]) -> str: ...
-
-
-@overload
-def replace_tokens(s: None, tokens: Iterable[str]) -> None: ...
-
-
-def replace_tokens(s: str | None, tokens: Iterable[str]) -> str | None:
-    """
-    Replace tokens in a string with asterisks of the same length.
-    None values are passed through.
-    :param s: The string to replace tokens in.
-    :param tokens: The tokens to replace.
-    :return: The string with the tokens replaced.
-    """
-    if not s:
-        return s
-    for token in tokens:
-        s = s.replace(token, "*" * len(token))
-    return s
-
-
-def print_subprocess_output_strip_token(
-    completed_process: subprocess.CompletedProcess, *tokens: str
-) -> None:
-    """
-    Use this function to print the outputs (stdout and stderr) of a subprocess.CompletedProcess object
-    that may contain sensitive information. The token or tokens will be replaced with a string
-    of asterisks of the same length.
-
-    This function assumes that you have called subprocess.run() with the arguments text=True, stdout=subprocess.PIPE,
-    stderr=subprocess.PIPE.
-
-    If stdout or stderr is None, it will not be printed.
-
-    See run_command_hiding_token() for a convenience method that combines running a command and printing the output.
-
-    :param completed_process: The subprocess.CompletedProcess object to print the outputs of. You have probably
-        obtained this object by calling subprocess.run().
-    :param tokens: The token or tokens to replace with asterisks.
-
-    :raises ValueError: If the completed_process object does not contain str in stdout or stderr.
-    """
-    out, err = completed_process.stdout, completed_process.stderr
-
-    for captured, out_dev in [(out, sys.stdout), (err, sys.stderr)]:
-        if captured is None:
-            continue
-
-        if not isinstance(captured, str):
-            raise ValueError(
-                f"Expected stdout and stderr to be str, but got {type(captured)}. Run subprocess.run() with "
-                "text=True."
-            )
-
-        captured = replace_tokens(captured, tokens)
-        print(captured, file=out_dev, end="")
-        out_dev.flush()
-
-
 def run_command_hiding_token(args: list[str], token: str) -> int:
     """
     Run a command and hide the token in the output.
 
-    This is a convenience method for print_subprocess_output_strip_token() if you don't need full control
-    over subprocess.run().
+    Prints the outputs (stdout and stderr) of the subprocess.CompletedProcess object.
+    The token or tokens will be replaced with a string of asterisks of the same length.
+
+    If stdout or stderr is None, it will not be printed.
 
     :param args: The command to run.
     :param token: The token to hide in the output.
     :return: The return code of the command.
     """
     p = subprocess.run(args, text=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    print_subprocess_output_strip_token(p, token)
+
+    out, err = p.stdout, p.stderr
+
+    for captured, out_dev in [(out, sys.stdout), (err, sys.stderr)]:
+        if captured is None:
+            continue
+
+        captured = captured.replace(token, "*" * len(token))
+        print(captured, file=out_dev, end="")
+        out_dev.flush()
 
     return p.returncode
