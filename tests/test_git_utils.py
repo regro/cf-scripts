@@ -956,7 +956,7 @@ def test_git_cli_clone_fork_and_branch_non_existing_remote_existing_target_dir(c
 )
 @mock.patch("conda_forge_tick.git_utils.GitCli.clone_fork_and_branch")
 def test_git_platform_backend_clone_fork_and_branch(
-    convenience_method_mock: MagicMock,
+    clone_fork_and_branch_mock: MagicMock,
     user_mock: MagicMock,
     backend: GitPlatformBackend,
 ):
@@ -973,7 +973,7 @@ def test_git_platform_backend_clone_fork_and_branch(
         upstream_owner, repo_name, target_dir, new_branch, base_branch
     )
 
-    convenience_method_mock.assert_called_once_with(
+    clone_fork_and_branch_mock.assert_called_once_with(
         origin_url=f"https://github.com/USER/{repo_name}.git",
         target_dir=target_dir,
         upstream_url=f"https://github.com/{upstream_owner}/{repo_name}.git",
