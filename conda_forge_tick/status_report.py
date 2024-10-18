@@ -275,7 +275,7 @@ def graph_migrator_status(
                 .get("PR", {})
                 .get(
                     "html_url",
-                    feedstock_ctx.git_href,
+                    feedstock_ctx.git_http_ref,
                 ),
             )
 
@@ -302,7 +302,7 @@ def graph_migrator_status(
             # I needed to fake some PRs they don't have html_urls though
             node_metadata["pr_url"] = pr_json["PR"].get(
                 "html_url",
-                feedstock_ctx.git_href,
+                feedstock_ctx.git_http_ref,
             )
             node_metadata["pr_status"] = pr_json["PR"].get("mergeable_state", "")
 

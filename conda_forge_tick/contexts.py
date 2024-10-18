@@ -56,7 +56,7 @@ class FeedstockContext:
         return f"{self.feedstock_name}-feedstock"
 
     @property
-    def git_href(self) -> str:
+    def git_http_ref(self) -> str:
         """
         A link to the feedstock's GitHub repository.
         """
