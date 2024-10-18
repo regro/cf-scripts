@@ -1690,13 +1690,15 @@ def test_dry_run_backend_create_pull_request(caplog):
     backend = DryRunBackend()
     caplog.set_level(logging.DEBUG)
 
+    body_text = "This is a long\nbody text"
+
     pr_data = backend.create_pull_request(
         "conda-forge",
         "pytest-feedstock",
         "BASE_BRANCH",
         "HEAD_BRANCH",
         "TITLE",
-        "BODY_TEXT",
+        body_text,
     )
 
     # caplog validation
@@ -1707,7 +1709,7 @@ def test_dry_run_backend_create_pull_request(caplog):
         f"Branches: {backend.user}:HEAD_BRANCH -> conda-forge:BASE_BRANCH"
         in caplog.text
     )
-    assert "Body:\nBODY_TEXT" in caplog.text
+    assert f"Body:\n{body_text}" in caplog.text
 
     # pr_data validation
     assert pr_data.e_tag == "GITHUB_PR_ETAG"
@@ -1727,15 +1729,17 @@ def test_dry_run_backend_comment_on_pull_request(caplog):
     backend = DryRunBackend()
     caplog.set_level(logging.DEBUG)
 
+    comment_text = "This is a long\ncomment text"
+
     backend.comment_on_pull_request(
         "conda-forge",
         "pytest-feedstock",
         1337,
-        "COMMENT",
+        comment_text,
     )
 
     assert "Comment on Pull Request" in caplog.text
-    assert "Comment:\nCOMMENT" in caplog.text
+    assert f"Comment:\n{comment_text}" in caplog.text
     assert "Pull Request: conda-forge/pytest-feedstock#1337" in caplog.text
 
 

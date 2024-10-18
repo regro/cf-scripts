@@ -1050,6 +1050,31 @@ class DryRunBackend(GitPlatformBackend):
     def user(self) -> str:
         return self._USER
 
+    @staticmethod
+    def print_dry_run_message(title: str, data: dict[str, str]):
+        """
+        Print a dry run output message.
+        :param title: The title of the message.
+        :param data: The data to print. The keys are the field names and the values are the field values.
+        Please capitalize the keys for consistency.
+        """
+        border = "=============================================================="
+        output = textwrap.dedent(
+            f"""
+            {border}
+            Dry Run: {title}"""
+        )
+
+        def format_field(key: str, value: str) -> str:
+            if "\n" in value:
+                return f"{key}:\n{value}"
+            return f"{key}: {value}"
+
+        output += "".join(format_field(key, value) for key, value in data.items())
+        output += f"\n{border}"
+
+        logger.debug(output)
+
     def create_pull_request(
         self,
         target_owner: str,
@@ -1059,19 +1084,15 @@ class DryRunBackend(GitPlatformBackend):
         title: str,
         body: str,
     ) -> PullRequestDataValid:
-        debug_out = textwrap.dedent(
-            f"""
-            ==============================================================
-            Dry Run: Create Pull Request
-            Title: "{title}"
-            Target Repository: {target_owner}/{target_repo}
-            Branches: {self.user}:{head_branch} -> {target_owner}:{base_branch}
-            Body:
-            """
+        self.print_dry_run_message(
+            "Create Pull Request",
+            {
+                "Title": f'"{title}"',
+                "Target Repository": f"{target_owner}/{target_repo}",
+                "Branches": f"{self.user}:{head_branch} -> {target_owner}:{base_branch}",
+                "Body": body,
+            },
         )
-        debug_out += body
-        debug_out += "\n=============================================================="
-        logger.debug(debug_out)
 
         now = datetime.now()
         return PullRequestDataValid.model_validate(
@@ -1100,17 +1121,12 @@ class DryRunBackend(GitPlatformBackend):
                 f"Repository {repo_owner}/{repo_name} not found."
             )
 
-        logger.debug(
-            textwrap.dedent(
-                f"""
-                ==============================================================
-                Dry Run: Comment on Pull Request
-                Pull Request: {repo_owner}/{repo_name}#{pr_number}
-                Comment:
-                {comment}
-                ==============================================================
-                """
-            )
+        self.print_dry_run_message(
+            "Comment on Pull Request",
+            {
+                "Pull Request": f"{repo_owner}/{repo_name}#{pr_number}",
+                "Comment": comment,
+            },
         )
 
 
