@@ -185,93 +185,6 @@ def _execute_git_cmds_and_report(*, cmds, cwd, msg):
         raise e
 
 
-def _rerender_feedstock(*, timeout):
-    from conda_forge_feedstock_ops.os_utils import (
-        chmod_plus_rwX,
-        get_user_execute_permissions,
-        reset_permissions_with_user_execute,
-        sync_dirs,
-    )
-
-    from conda_forge_tick.rerender_feedstock import rerender_feedstock_local
-
-    logger = logging.getLogger("conda_forge_tick.container")
-
-    with tempfile.TemporaryDirectory() as tmpdir:
-        input_fs_dir = glob.glob("/cf_feedstock_ops_dir/*-feedstock")
-        assert len(input_fs_dir) == 1, f"expected one feedstock, got {input_fs_dir}"
-        input_fs_dir = input_fs_dir[0]
-        logger.debug(
-            f"input container feedstock dir {input_fs_dir}: {os.listdir(input_fs_dir)}"
-        )
-        input_permissions = os.path.join(
-            "/cf_feedstock_ops_dir",
-            f"permissions-{os.path.basename(input_fs_dir)}.json",
-        )
-        with open(input_permissions) as f:
-            input_permissions = json.load(f)
-
-        fs_dir = os.path.join(tmpdir, os.path.basename(input_fs_dir))
-        sync_dirs(input_fs_dir, fs_dir, ignore_dot_git=True, update_git=False)
-        logger.debug(f"copied container feedstock dir {fs_dir}: {os.listdir(fs_dir)}")
-
-        reset_permissions_with_user_execute(fs_dir, input_permissions)
-
-        has_gitignore = os.path.exists(os.path.join(fs_dir, ".gitignore"))
-        if has_gitignore:
-            shutil.move(
-                os.path.join(fs_dir, ".gitignore"),
-                os.path.join(fs_dir, ".gitignore.bak"),
-            )
-
-        cmds = [
-            ["git", "init", "-b", "main", "."],
-            ["git", "add", "."],
-            ["git", "commit", "-am", "initial commit"],
-        ]
-        if has_gitignore:
-            cmds += [
-                ["git", "mv", ".gitignore.bak", ".gitignore"],
-                ["git", "commit", "-am", "put back gitignore"],
-            ]
-        _execute_git_cmds_and_report(
-            cmds=cmds,
-            cwd=fs_dir,
-            msg="git init failed for rerender",
-        )
-
-        if timeout is not None:
-            kwargs = {"timeout": timeout}
-        else:
-            kwargs = {}
-        msg = rerender_feedstock_local(fs_dir, **kwargs)
-
-        if logger.getEffectiveLevel() <= logging.DEBUG:
-            cmds = [
-                ["git", "status"],
-                ["git", "diff", "--name-only"],
-                ["git", "diff", "--name-only", "--staged"],
-                ["git", "--no-pager", "diff"],
-                ["git", "--no-pager", "diff", "--staged"],
-            ]
-            _execute_git_cmds_and_report(
-                cmds=cmds,
-                cwd=fs_dir,
-                msg="git status failed for rerender",
-            )
-
-        # if something changed, copy back the new feedstock
-        if msg is not None:
-            output_permissions = get_user_execute_permissions(fs_dir)
-            sync_dirs(fs_dir, input_fs_dir, ignore_dot_git=True, update_git=False)
-        else:
-            output_permissions = input_permissions
-
-        chmod_plus_rwX(input_fs_dir, recursive=True, skip_on_error=True)
-
-        return {"commit_message": msg, "permissions": output_permissions}
-
-
 def _migrate_feedstock(*, feedstock_name, default_branch, attrs, input_kwargs):
     from conda_forge_feedstock_ops.os_utils import (
         chmod_plus_rwX,
@@ -620,18 +533,6 @@ def get_latest_version(log_level, existing_feedstock_node_attrs, sources):
         log_level=log_level,
         existing_feedstock_node_attrs=existing_feedstock_node_attrs,
         sources=sources,
-    )
-
-
-@cli.command(name="rerender-feedstock")
-@log_level_option
-@click.option("--timeout", default=None, type=int, help="The timeout for the rerender.")
-def rerender_feedstock(log_level, timeout):
-    return _run_bot_task(
-        _rerender_feedstock,
-        log_level=log_level,
-        existing_feedstock_node_attrs=None,
-        timeout=timeout,
     )
 
 
