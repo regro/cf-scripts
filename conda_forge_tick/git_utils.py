@@ -5,12 +5,10 @@ import enum
 import logging
 import math
 import subprocess
-import textwrap
 import threading
 import time
 from abc import ABC, abstractmethod
 from datetime import datetime
-from email import utils
 from functools import cached_property
 from pathlib import Path
 from typing import Dict, Iterator, Optional, Union
@@ -22,22 +20,17 @@ import github3.exceptions
 import github3.pulls
 import github3.repos
 import requests
-from github3.session import GitHubSession
 from requests.exceptions import RequestException, Timeout
-from requests.structures import CaseInsensitiveDict
 
 from conda_forge_tick import sensitive_env
+
+# TODO: handle the URLs more elegantly (most likely make this a true library
+# and pull all the needed info from the various source classes)
 from conda_forge_tick.lazy_json_backends import LazyJson
 
+from .contexts import FeedstockContext
 from .executors import lock_git_operation
-from .models.pr_json import (
-    GithubPullRequestBase,
-    GithubPullRequestMergeableState,
-    GithubRepository,
-    PullRequestDataValid,
-    PullRequestInfoHead,
-    PullRequestState,
-)
+from .os_utils import pushd
 from .utils import get_bot_run_url, run_command_hiding_token
 
 logger = logging.getLogger(__name__)
@@ -57,7 +50,7 @@ CF_BOT_NAMES = {"regro-cf-autotick-bot", "conda-forge-linter"}
 
 # these keys are kept from github PR json blobs
 # to add more keys to keep, put them in the right spot in the dict and
-# set them to None. Also add them to the PullRequestDataValid Pydantic model!
+# set them to None. Also add them to the PullRequestInfo Pydantic model!
 PR_KEYS_TO_KEEP = {
     "ETag": None,
     "Last-Modified": None,
@@ -79,17 +72,13 @@ PR_KEYS_TO_KEEP = {
 }
 
 
-def get_bot_token():
-    with sensitive_env() as env:
-        return env["BOT_TOKEN"]
-
-
 def github3_client() -> github3.GitHub:
     """
     This will be removed in the future, use the GitHubBackend class instead.
     """
     if not hasattr(GITHUB3_CLIENT, "client"):
-        GITHUB3_CLIENT.client = github3.login(token=get_bot_token())
+        with sensitive_env() as env:
+            GITHUB3_CLIENT.client = github3.login(token=env["BOT_TOKEN"])
     return GITHUB3_CLIENT.client
 
 
@@ -98,10 +87,11 @@ def github_client() -> github.Github:
     This will be removed in the future, use the GitHubBackend class instead.
     """
     if not hasattr(GITHUB_CLIENT, "client"):
-        GITHUB_CLIENT.client = github.Github(
-            auth=github.Auth.Token(get_bot_token()),
-            per_page=100,
-        )
+        with sensitive_env() as env:
+            GITHUB_CLIENT.client = github.Github(
+                auth=github.Auth.Token(env["BOT_TOKEN"]),
+                per_page=100,
+            )
     return GITHUB_CLIENT.client
 
 
@@ -125,26 +115,6 @@ class GitConnectionMode(enum.StrEnum):
 
 
 class GitCliError(Exception):
-    """
-    A generic error that occurred while running a git CLI command.
-    """
-
-    pass
-
-
-class GitPlatformError(Exception):
-    """
-    A generic error that occurred while interacting with a git platform.
-    """
-
-    pass
-
-
-class DuplicatePullRequestError(GitPlatformError):
-    """
-    Raised if a pull request already exists.
-    """
-
     pass
 
 
@@ -164,24 +134,22 @@ class GitCli:
     If this does impact performance too much, we can consider a per-repository locking strategy.
     """
 
+    @staticmethod
     @lock_git_operation()
     def _run_git_command(
-        self,
         cmd: list[str | Path],
         working_directory: Path | None = None,
         check_error: bool = True,
-        suppress_all_output: bool = False,
+        capture_text: bool = False,
     ) -> subprocess.CompletedProcess:
         """
-        Run a git command. stdout is by default only printed if the command fails. stderr is always printed by default.
-        stdout is, by default, always available in the returned CompletedProcess, stderr is never.
-
+        Run a git command.
         :param cmd: The command to run, as a list of strings.
         :param working_directory: The directory to run the command in. If None, the command will be run in the current
         working directory.
         :param check_error: If True, raise a GitCliError if the git command fails.
-        :param suppress_all_output: If True, suppress all output (stdout and stderr). Also, the returned
-        CompletedProcess will have stdout and stderr set to None. Use this for sensitive commands.
+        :param capture_text: If True, capture the output of the git command as text. The output will be in the
+        returned result object.
         :return: The result of the git command.
         :raises GitCliError: If the git command fails and check_error is True.
         :raises FileNotFoundError: If the working directory does not exist.
@@ -189,31 +157,14 @@ class GitCli:
         git_command = ["git"] + cmd
 
         logger.debug(f"Running git command: {git_command}")
-
-        # stdout and stderr are piped to devnull if suppress_all_output is True
-        stdout_args = (
-            {"stdout": subprocess.PIPE}
-            if not suppress_all_output
-            else {"stdout": subprocess.DEVNULL}
-        )
-        stderr_args = {} if not suppress_all_output else {"stderr": subprocess.DEVNULL}
+        capture_args = {"capture_output": True, "text": True} if capture_text else {}
 
         try:
-            p = subprocess.run(
-                git_command,
-                check=check_error,
-                cwd=working_directory,
-                **stdout_args,
-                **stderr_args,
-                text=True,
+            return subprocess.run(
+                git_command, check=check_error, cwd=working_directory, **capture_args
             )
         except subprocess.CalledProcessError as e:
-            logger.info(
-                f"Command '{' '.join(map(str, git_command))}' failed.\nstdout:\n{e.stdout or '<None>'}\nend of stdout"
-            )
-            raise GitCliError(f"Error running git command: {repr(e)}")
-
-        return p
+            raise GitCliError("Error running git command.") from e
 
     @lock_git_operation()
     def add(self, git_dir: Path, *pathspec: Path, all_: bool = False):
@@ -283,18 +234,6 @@ class GitCli:
             ) from e
 
     @lock_git_operation()
-    def push_to_url(self, git_dir: Path, remote_url: str, branch: str):
-        """
-        Push changes to a remote URL.
-        :param git_dir: The directory of the git repository.
-        :param remote_url: The URL of the remote.
-        :param branch: The branch to push to.
-        :raises GitCliError: If the git command fails.
-        """
-
-        self._run_git_command(["push", remote_url, branch], git_dir)
-
-    @lock_git_operation()
     def add_remote(self, git_dir: Path, remote_name: str, remote_url: str):
         """
         Add a remote to a git repository.
@@ -305,48 +244,6 @@ class GitCli:
         :raises FileNotFoundError: If git_dir does not exist
         """
         self._run_git_command(["remote", "add", remote_name, remote_url], git_dir)
-
-    @lock_git_operation()
-    def add_token(self, git_dir: Path, origin: str, token: str):
-        """
-        Configures git with a local configuration to use the given token for the given origin.
-        Internally, this sets the `http.<origin>/.extraheader` git configuration key to
-        `AUTHORIZATION: basic <token>`.
-        This is similar to how the GitHub Checkout action does it:
-        https://github.com/actions/checkout/blob/eef61447b9ff4aafe5dcd4e0bbf5d482be7e7871/adrs/0153-checkout-v2.md#PAT
-
-        The CLI outputs of this command are suppressed to avoid leaking the token.
-        :param git_dir: The directory of the git repository.
-        :param origin: The origin to use the token for. Origin is SCHEME://HOST[:PORT] (without trailing slash).
-        :param token: The token to use.
-        """
-        self._run_git_command(
-            [
-                "config",
-                "--local",
-                f"http.{origin}/.extraheader",
-                f"AUTHORIZATION: basic {token}",
-            ],
-            git_dir,
-            suppress_all_output=True,
-        )
-
-    @lock_git_operation()
-    def clear_token(self, git_dir, origin):
-        """
-        Clear the token for the given origin.
-        :param git_dir: The directory of the git repository.
-        :param origin: The origin to clear the token for.
-        """
-        self._run_git_command(
-            [
-                "config",
-                "--local",
-                "--unset",
-                f"http.{origin}/.extraheader",
-            ],
-            git_dir,
-        )
 
     @lock_git_operation()
     def fetch_all(self, git_dir: Path):
@@ -446,6 +343,7 @@ class GitCli:
         ret = self._run_git_command(
             ["diff", "--name-only", "--relative", commit_a, commit_b],
             git_dir,
+            capture_text=True,
         )
 
         return (git_dir / line for line in ret.stdout.splitlines())
@@ -548,9 +446,6 @@ class GitPlatformBackend(ABC):
     If this does impact performance too much, we can consider a per-repository locking strategy.
     """
 
-    # Currently we don't need any abstraction for other platforms than GitHub, so we don't build such abstractions.
-    GIT_PLATFORM_ORIGIN = "https://github.com"
-
     def __init__(self, git_cli: GitCli):
         """
         Create a new GitPlatformBackend.
@@ -582,25 +477,12 @@ class GitPlatformBackend(ABC):
         :raises RepositoryNotFoundError: If the repository does not exist. This is only raised if the backend relies on
         the repository existing to generate the URL.
         """
+        # Currently we don't need any abstraction for other platforms than GitHub, so we don't build such abstractions.
         match connection_mode:
             case GitConnectionMode.HTTPS:
-                return f"{self.GIT_PLATFORM_ORIGIN}/{owner}/{repo_name}.git"
+                return f"https://github.com/{owner}/{repo_name}.git"
             case _:
                 raise ValueError(f"Unsupported connection mode: {connection_mode}")
-
-    @abstractmethod
-    def push_to_repository(
-        self, owner: str, repo_name: str, git_dir: Path, branch: str
-    ):
-        """
-        Push changes to a repository.
-        :param owner: The owner of the repository.
-        :param repo_name: The name of the repository.
-        :param git_dir: The directory of the git repository.
-        :param branch: The branch to push to.
-        :raises GitPlatformError: If the push fails.
-        """
-        pass
 
     @abstractmethod
     def fork(self, owner: str, repo_name: str):
@@ -681,71 +563,6 @@ class GitPlatformBackend(ABC):
         """
         return self.get_api_requests_left() in (0, None)
 
-    @abstractmethod
-    def create_pull_request(
-        self,
-        target_owner: str,
-        target_repo: str,
-        base_branch: str,
-        head_branch: str,
-        title: str,
-        body: str,
-    ) -> PullRequestDataValid:
-        """
-        Create a pull request from a forked repository. It is assumed that the forked repository is owned by the
-        current user and has the same name as the target repository.
-        :param target_owner: The owner of the target repository.
-        :param target_repo: The name of the target repository.
-        :param base_branch: The base branch of the pull request, located in the target repository.
-        :param head_branch: The head branch of the pull request, located in the forked repository.
-        :param title: The title of the pull request.
-        :param body: The body of the pull request.
-        :returns: The data of the created pull request.
-        :raises GitPlatformError: If the pull request could not be created.
-        :raises DuplicatePullRequestError: If a pull request already exists and the backend checks for it.
-        """
-        pass
-
-    @abstractmethod
-    def comment_on_pull_request(
-        self, repo_owner: str, repo_name: str, pr_number: int, comment: str
-    ) -> None:
-        """
-        Comment on an existing pull request.
-        :param repo_owner: The owner of the repository.
-        :param repo_name: The name of the repository.
-        :param pr_number: The number of the pull request.
-        :param comment: The comment to post.
-        :raises RepositoryNotFoundError: If the repository does not exist.
-        :raises GitPlatformError: If the comment could not be posted, including if the pull request does not exist.
-        """
-        pass
-
-
-class _Github3SessionWrapper:
-    """
-    This is a wrapper around the github3.session.GitHubSession that allows us to intercept the response headers.
-    """
-
-    def __init__(self, session: GitHubSession):
-        super().__init__()
-        self._session = session
-        self.last_response_headers: CaseInsensitiveDict[str] = CaseInsensitiveDict()
-
-    def __getattr__(self, item):
-        return getattr(self._session, item)
-
-    def _forward_request(self, method, *args, **kwargs):
-        response = method(*args, **kwargs)
-        self.last_response_headers = copy.deepcopy(response.headers)
-        return response
-
-    def post(self, *args, **kwargs):
-        return self._forward_request(self._session.post, *args, **kwargs)
-
-    def get(self, *args, **kwargs):
-        return self._forward_request(self._session.get, *args, **kwargs)
-
 
 class GitHubBackend(GitPlatformBackend):
     """
@@ -761,27 +578,9 @@ class GitHubBackend(GitPlatformBackend):
     The number of items to fetch per page from the GitHub API.
     """
 
-    def __init__(
-        self, github3_client: github3.GitHub, pygithub_client: github.Github, token: str
-    ):
-        """
-        Create a new GitHubBackend.
-        Note: Because we need additional response headers, we wrap the github3 session of the github3 client
-        with our own session wrapper and replace the github3 client's session with it.
-        :param github3_client: The github3 client to use for interacting with the GitHub API.
-        :param pygithub_client: The PyGithub client to use for interacting with the GitHub API.
-        :param token: The token used for writing to git repositories. Note that you need to authenticate github3
-        and PyGithub yourself. Use the `from_token` class method to create an instance
-        that has all necessary clients set up.
-        """
-        cli = GitCli()
-        super().__init__(cli)
-        self.__token = token
-
+    def __init__(self, github3_client: github3.GitHub, pygithub_client: github.Github):
+        super().__init__(GitCli())
         self.github3_client = github3_client
-        self._github3_session = _Github3SessionWrapper(self.github3_client.session)
-        self.github3_client.session = self._github3_session
-
         self.pygithub_client = pygithub_client
 
     @classmethod
@@ -789,10 +588,10 @@ class GitHubBackend(GitPlatformBackend):
         return cls(
             github3.login(token=token),
             github.Github(auth=github.Auth.Token(token), per_page=cls._GITHUB_PER_PAGE),
-            token=token,
         )
 
     def _get_repo(self, owner: str, repo_name: str) -> None | github3.repos.Repository:
+        repo = None
         try:
             repo = self.github3_client.repository(owner, repo_name)
         except github3.exceptions.NotFoundError:
@@ -814,23 +613,6 @@ class GitHubBackend(GitPlatformBackend):
             return True
         except RepositoryNotFoundError:
             return False
-
-    @lock_git_operation()
-    def push_to_repository(
-        self, owner: str, repo_name: str, git_dir: Path, branch: str
-    ):
-        # We add the token and remove it immediately after pushing as an additional defense-in-depth measure.
-        try:
-            self.cli.add_token(git_dir, self.GIT_PLATFORM_ORIGIN, self.__token)
-
-            remote_url = self.get_remote_url(
-                owner,
-                repo_name,
-                GitConnectionMode.HTTPS,
-            )
-            self.cli.push_to_url(git_dir, remote_url, branch)
-        finally:
-            self.cli.clear_token(git_dir, self.GIT_PLATFORM_ORIGIN)
 
     @lock_git_operation()
     def fork(self, owner: str, repo_name: str):
@@ -904,69 +686,6 @@ class GitHubBackend(GitPlatformBackend):
 
         return remaining_limit
 
-    def create_pull_request(
-        self,
-        target_owner: str,
-        target_repo: str,
-        base_branch: str,
-        head_branch: str,
-        title: str,
-        body: str,
-    ) -> PullRequestDataValid:
-        repo: github3.repos.Repository = self.github3_client.repository(
-            target_owner, target_repo
-        )
-
-        try:
-            response: github3.pulls.ShortPullRequest | None = repo.create_pull(
-                title=title,
-                base=base_branch,
-                head=f"{self.user}:{head_branch}",
-                body=body,
-            )
-        except github3.exceptions.UnprocessableEntity as e:
-            if any("already exists" in error.get("message", "") for error in e.errors):
-                raise DuplicatePullRequestError(
-                    f"Pull request from {self.user}:{head_branch} to {target_owner}:{base_branch} already exists."
-                ) from e
-            raise
-
-        if response is None:
-            raise GitPlatformError("Could not create pull request.")
-
-        # fields like ETag and Last-Modified are stored in the response headers, we need to extract them
-        header_fields = {
-            k: self._github3_session.last_response_headers[k]
-            for k in PullRequestDataValid.HEADER_FIELDS
-        }
-
-        # note: this ignores extra fields in the response
-        return PullRequestDataValid.model_validate(response.as_dict() | header_fields)
-
-    def comment_on_pull_request(
-        self, repo_owner: str, repo_name: str, pr_number: int, comment: str
-    ) -> None:
-        try:
-            repo = self.github3_client.repository(repo_owner, repo_name)
-        except github3.exceptions.NotFoundError:
-            raise RepositoryNotFoundError(
-                f"Repository {repo_owner}/{repo_name} not found."
-            )
-
-        try:
-            pr = repo.pull_request(pr_number)
-        except github3.exceptions.NotFoundError:
-            raise GitPlatformError(
-                f"Pull request {repo_owner}/{repo_name}#{pr_number} not found."
-            )
-
-        try:
-            pr.create_comment(comment)
-        except github3.GitHubError:
-            raise GitPlatformError(
-                f"Could not comment on pull request {repo_owner}/{repo_name}#{pr_number}."
-            )
-
 
 class DryRunBackend(GitPlatformBackend):
     """
@@ -981,6 +700,7 @@ class DryRunBackend(GitPlatformBackend):
 
     def __init__(self):
         super().__init__(GitCli())
+        self._repos: set[str] = set()
         self._repos: dict[str, str] = {}
         """
         _repos maps from repository name to the owner of the upstream repository.
@@ -1019,13 +739,7 @@ class DryRunBackend(GitPlatformBackend):
 
         return super().get_remote_url(upstream_owner, repo_name, connection_mode)
 
-    def push_to_repository(
-        self, owner: str, repo_name: str, git_dir: Path, branch: str
-    ):
-        logger.debug(
-            f"Dry Run: Pushing changes from {git_dir} to {owner}/{repo_name} on branch {branch}."
-        )
-
+    @lock_git_operation()
     def fork(self, owner: str, repo_name: str):
         if repo_name in self._repos:
             logger.debug(f"Fork of {repo_name} already exists. Doing nothing.")
@@ -1050,91 +764,13 @@ class DryRunBackend(GitPlatformBackend):
     def user(self) -> str:
         return self._USER
 
-    @staticmethod
-    def print_dry_run_message(title: str, data: dict[str, str]):
-        """
-        Print a dry run output message.
-        :param title: The title of the message.
-        :param data: The data to print. The keys are the field names and the values are the field values.
-        Please capitalize the keys for consistency.
-        """
-        border = "=============================================================="
-        output = textwrap.dedent(
-            f"""
-            {border}
-            Dry Run: {title}"""
-        )
-
-        def format_field(key: str, value: str) -> str:
-            if "\n" in value:
-                return f"{key}:\n{value}"
-            return f"{key}: {value}"
-
-        output += "".join(format_field(key, value) for key, value in data.items())
-        output += f"\n{border}"
-
-        logger.debug(output)
-
-    def create_pull_request(
-        self,
-        target_owner: str,
-        target_repo: str,
-        base_branch: str,
-        head_branch: str,
-        title: str,
-        body: str,
-    ) -> PullRequestDataValid:
-        self.print_dry_run_message(
-            "Create Pull Request",
-            {
-                "Title": f'"{title}"',
-                "Target Repository": f"{target_owner}/{target_repo}",
-                "Branches": f"{self.user}:{head_branch} -> {target_owner}:{base_branch}",
-                "Body": body,
-            },
-        )
-
-        now = datetime.now()
-        return PullRequestDataValid.model_validate(
-            {
-                "ETag": "GITHUB_PR_ETAG",
-                "Last-Modified": utils.format_datetime(now),
-                "id": 13371337,
-                "html_url": f"https://github.com/{target_owner}/{target_repo}/pulls/1337",
-                "created_at": now,
-                "mergeable_state": GithubPullRequestMergeableState.CLEAN,
-                "mergeable": True,
-                "merged": False,
-                "draft": False,
-                "number": 1337,
-                "state": PullRequestState.OPEN,
-                "head": PullRequestInfoHead(ref=head_branch),
-                "base": GithubPullRequestBase(repo=GithubRepository(name=target_repo)),
-            }
-        )
-
-    def comment_on_pull_request(
-        self, repo_owner: str, repo_name: str, pr_number: int, comment: str
-    ):
-        if not self.does_repository_exist(repo_owner, repo_name):
-            raise RepositoryNotFoundError(
-                f"Repository {repo_owner}/{repo_name} not found."
-            )
-
-        self.print_dry_run_message(
-            "Comment on Pull Request",
-            {
-                "Pull Request": f"{repo_owner}/{repo_name}#{pr_number}",
-                "Comment": comment,
-            },
-        )
-
 
 def github_backend() -> GitHubBackend:
     """
     This helper method will be removed in the future, use the GitHubBackend class directly.
     """
-    return GitHubBackend.from_token(get_bot_token())
+    with sensitive_env() as env:
+        return GitHubBackend.from_token(env["BOT_TOKEN"])
 
 
 def is_github_api_limit_reached() -> bool:
@@ -1148,6 +784,33 @@ def is_github_api_limit_reached() -> bool:
     return backend.is_api_limit_reached()
 
 
+def feedstock_url(fctx: FeedstockContext, protocol: str = "ssh") -> str:
+    """Returns the URL for a conda-forge feedstock."""
+    feedstock = fctx.feedstock_name + "-feedstock"
+    if feedstock.startswith("http://github.com/"):
+        return feedstock
+    elif feedstock.startswith("https://github.com/"):
+        return feedstock
+    elif feedstock.startswith("git@github.com:"):
+        return feedstock
+    protocol = protocol.lower()
+    if protocol == "http":
+        url = "http://github.com/conda-forge/" + feedstock + ".git"
+    elif protocol == "https":
+        url = "https://github.com/conda-forge/" + feedstock + ".git"
+    elif protocol == "ssh":
+        url = "git@github.com:conda-forge/" + feedstock + ".git"
+    else:
+        msg = f"Unrecognized github protocol {protocol}, must be ssh, http, or https."
+        raise ValueError(msg)
+    return url
+
+
+def feedstock_repo(fctx: FeedstockContext) -> str:
+    """Gets the name of the feedstock repository."""
+    return fctx.feedstock_name + "-feedstock"
+
+
 @lock_git_operation()
 def delete_branch(pr_json: LazyJson, dry_run: bool = False) -> None:
     ref = pr_json["head"]["ref"]
@@ -1159,18 +822,17 @@ def delete_branch(pr_json: LazyJson, dry_run: bool = False) -> None:
     gh = github3_client()
     deploy_repo = gh.me().login + "/" + name
 
-    token = get_bot_token()
-
-    run_command_hiding_token(
-        [
-            "git",
-            "push",
-            f"https://{token}@github.com/{deploy_repo}.git",
-            "--delete",
-            ref,
-        ],
-        token=token,
-    )
+    with sensitive_env() as env:
+        run_command_hiding_token(
+            [
+                "git",
+                "push",
+                f"https://{env['BOT_TOKEN']}@github.com/{deploy_repo}.git",
+                "--delete",
+                ref,
+            ],
+            token=env["BOT_TOKEN"],
+        )
     # Replace ref so we know not to try again
     pr_json["head"]["ref"] = "this_is_not_a_branch"
 
@@ -1237,10 +899,11 @@ def lazy_update_pr_json(
     pr_json : dict-like
         A dict-like object with the current PR information.
     """
-    hdrs = {
-        "Authorization": f"token {get_bot_token()}",
-        "Accept": "application/vnd.github.v3+json",
-    }
+    with sensitive_env() as env:
+        hdrs = {
+            "Authorization": f"token {env['BOT_TOKEN']}",
+            "Accept": "application/vnd.github.v3+json",
+        }
     if not force and "ETag" in pr_json:
         hdrs["If-None-Match"] = pr_json["ETag"]
 
@@ -1367,6 +1030,147 @@ def close_out_labels(
         return dict(pr_json)
 
     return None
+
+
+@lock_git_operation()
+def push_repo(
+    fctx: FeedstockContext,
+    feedstock_dir: str,
+    body: str,
+    repo: github3.repos.Repository,
+    title: str,
+    branch: str,
+    base_branch: str = "main",
+    head: Optional[str] = None,
+    dry_run: bool = False,
+) -> Union[dict, bool, None]:
+    """Push a repo up to github
+
+    Parameters
+    ----------
+    fctx : FeedstockContext
+        Feedstock context used for constructing feedstock urls, etc.
+    feedstock_dir : str
+        The feedstock directory
+    body : str
+        The PR body.
+    repo : github3.repos.Repository
+        The feedstock repo as a github3 object.
+    title : str
+        The title of the PR.
+    head : str, optional
+        The github head for the PR in the form `username:branch`.
+    branch : str
+        The head branch of the PR.
+    base_branch : str, optional
+        The base branch or target branch of the PR.
+
+    Returns
+    -------
+    pr_json: dict
+        The dict representing the PR, can be used with `from_json`
+        to create a PR instance.
+    """
+    with sensitive_env() as env, pushd(feedstock_dir):
+        # Copyright (c) 2016 Aaron Meurer, Gil Forsyth
+        token = env["BOT_TOKEN"]
+        gh_username = github3_client().me().login
+
+        if head is None:
+            head = gh_username + ":" + branch
+
+        deploy_repo = gh_username + "/" + fctx.feedstock_name + "-feedstock"
+        if dry_run:
+            repo_url = f"https://github.com/{deploy_repo}.git"
+            print(f"dry run: adding remote and pushing up branch for {repo_url}")
+        else:
+            ecode = run_command_hiding_token(
+                [
+                    "git",
+                    "remote",
+                    "add",
+                    "regro_remote",
+                    f"https://{token}@github.com/{deploy_repo}.git",
+                ],
+                token=token,
+            )
+            if ecode != 0:
+                print("Failed to add git remote!")
+                return False
+
+            ecode = run_command_hiding_token(
+                ["git", "push", "--set-upstream", "regro_remote", branch],
+                token=token,
+            )
+            if ecode != 0:
+                print("Failed to push to remote!")
+                return False
+
+    # lastly make a PR for the feedstock
+    print("Creating conda-forge feedstock pull request...")
+    if dry_run:
+        print(f"dry run: create pr with title: {title}")
+        return False
+    else:
+        pr = repo.create_pull(title, base_branch, head, body=body)
+        if pr is None:
+            print("Failed to create pull request!")
+            return False
+        else:
+            print("Pull request created at " + pr.html_url)
+
+    # Return a json object so we can remake the PR if needed
+    pr_dict: dict = pr.as_dict()
+
+    return trim_pr_json_keys(pr_dict)
+
+
+def comment_on_pr(pr_json, comment, repo):
+    """Make a comment on a PR.
+
+    Parameters
+    ----------
+    pr_json : dict
+        A dict-like json blob with the PR information
+    comment : str
+        The comment to make.
+    repo : github3.repos.Repository
+        The feedstock repo as a github3 object.
+    """
+    pr_obj = repo.pull_request(pr_json["number"])
+    pr_obj.create_comment(comment)
+
+
+@backoff.on_exception(
+    backoff.expo,
+    (RequestException, Timeout),
+    max_time=MAX_GITHUB_TIMEOUT,
+)
+def ensure_label_exists(
+    repo: github3.repos.Repository,
+    label_dict: dict,
+    dry_run: bool = False,
+) -> None:
+    if dry_run:
+        print(f"dry run: ensure label exists {label_dict['name']}")
+    try:
+        repo.label(label_dict["name"])
+    except github3.exceptions.NotFoundError:
+        repo.create_label(**label_dict)
+
+
+def label_pr(
+    repo: github3.repos.Repository,
+    pr_json: LazyJson,
+    label_dict: dict,
+    dry_run: bool = False,
+) -> None:
+    ensure_label_exists(repo, label_dict, dry_run)
+    if dry_run:
+        print(f"dry run: label pr {pr_json['number']} with {label_dict['name']}")
+    else:
+        iss = repo.issue(pr_json["number"])
+        iss.add_labels(label_dict["name"])
 
 
 def close_out_dirty_prs(
