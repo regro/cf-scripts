@@ -56,14 +56,6 @@ def test_feedstock_context_git_repo_name():
     assert context.git_repo_name == "TEST-FEEDSTOCK-NAME-feedstock"
 
 
-def test_feedstock_context_git_http_ref():
-    context = FeedstockContext("TEST-FEEDSTOCK-NAME", demo_attrs)
-    assert (
-        context.git_http_ref
-        == "https://github.com/conda-forge/TEST-FEEDSTOCK-NAME-feedstock"
-    )
-
-
 @pytest.mark.parametrize("automerge", [True, False])
 def test_feedstock_context_automerge(automerge: bool):
     context = FeedstockContext(
@@ -102,10 +94,6 @@ def test_feedstock_context_reserve_clone_directory(
         )
         assert cloned_context.git_repo_owner == "conda-forge"
         assert cloned_context.git_repo_name == "pytest-feedstock"
-        assert (
-            cloned_context.git_http_ref
-            == "https://github.com/conda-forge/pytest-feedstock"
-        )
 
         assert cloned_context.local_clone_dir.exists()
         assert cloned_context.local_clone_dir.is_dir()

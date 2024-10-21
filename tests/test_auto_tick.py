@@ -125,6 +125,7 @@ def test_prepare_feedstock_repository_complete_dry_run():
             in backend.cli._run_git_command(
                 ["status"],
                 cloned_context.local_clone_dir,
+                capture_text=True,
             ).stdout
         )
 
@@ -184,6 +185,7 @@ def test_commit_migration_nonempty(
             in backend.cli._run_git_command(
                 ["log", "-1", "--pretty=%B"],
                 cloned_context.local_clone_dir,
+                capture_text=True,
             ).stdout
         )
 
@@ -232,6 +234,7 @@ def test_commit_migration_empty(raise_commit_errors: bool, allow_empty_commits: 
             in backend.cli._run_git_command(
                 ["log", "-1", "--pretty=%B"],
                 cloned_context.local_clone_dir,
+                capture_text=True,
             ).stdout
         )
 
@@ -323,6 +326,7 @@ def test_run_with_tmpdir(
         git_backend=git_backend,
         rerender=rerender,
         base_branch=base_branch,
+        dry_run=dry_run,
         **kwargs,
     )
 
@@ -332,6 +336,7 @@ def test_run_with_tmpdir(
         git_backend=git_backend,
         rerender=rerender,
         base_branch=base_branch,
+        dry_run=dry_run,
         **kwargs,
     )
 
