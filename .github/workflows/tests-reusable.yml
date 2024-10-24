@@ -43,12 +43,11 @@ jobs:
         with:
           repository: "regro/cf-scripts"
 
-      - name: get the lockfile
+      - name: prep the lockfile
         if:  ${{ !inputs.lockfile-is-artifact }}
         run: |
-          wget https://raw.githubusercontent.com/regro/cf-graph-countyfair/master/conda-lock.yml
           mkdir input-lockfile
-          mv conda-lock.yml input-lockfile/${{ inputs.lockfile }}
+          mv cf-scripts/conda-lock.yml input-lockfile/${{ inputs.lockfile }}
 
       - name: download lockfile if it is an artifact
         if: ${{ inputs.lockfile-is-artifact }}
@@ -180,12 +179,11 @@ jobs:
         with:
           repository: "regro/cf-scripts"
 
-      - name: get the lockfile
+      - name: prep the lockfile
         if:  ${{ !inputs.lockfile-is-artifact }}
         run: |
-          wget https://raw.githubusercontent.com/regro/cf-graph-countyfair/master/conda-lock.yml
           mkdir input-lockfile
-          mv conda-lock.yml input-lockfile/${{ inputs.lockfile }}
+          mv cf-scripts/conda-lock.yml input-lockfile/${{ inputs.lockfile }}
 
       - name: download lockfile if it is an artifact
         if: ${{ inputs.lockfile-is-artifact }}
