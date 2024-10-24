@@ -2,6 +2,7 @@ name: relock
 
 on:
   workflow_dispatch: null
+  issue_comment: null
   schedule:
     - cron: '*/30 * * * *'
 
