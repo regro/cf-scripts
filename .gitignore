@@ -58,4 +58,3 @@ versions/*
 pixi.lock
 pixi.toml
 .ruff_cache/
-conda-lock.yml

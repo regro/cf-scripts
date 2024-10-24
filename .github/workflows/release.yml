@@ -28,10 +28,6 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: get the lockfile
-        run: |
-          wget https://raw.githubusercontent.com/regro/cf-graph-countyfair/master/conda-lock.yml
-
       - uses: mamba-org/setup-micromamba@f8b8a1e23a26f60a44c853292711bacfd3eac822 # v1
         with:
           environment-file: conda-lock.yml
