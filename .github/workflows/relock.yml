@@ -1,0 +1,21 @@
+name: relock
+
+on:
+  workflow_dispatch: null
+  schedule:
+    - cron: '*/30 * * * *'
+
+concurrency: relock
+
+jobs:
+  relock:
+    name: relock
+    runs-on: "ubuntu-latest"
+    steps:
+      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332
+
+      - uses: beckermr/relock-conda@49530e32234db1af2014b31a9e7c484488ec5daa
+        with:
+          github-token: ${{ secrets.AUTOTICK_BOT_TOKEN }}
+          automerge: true
+          skip-if-pr-exists: true
