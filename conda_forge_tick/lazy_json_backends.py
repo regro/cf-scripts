@@ -837,7 +837,7 @@ def default(obj: Any) -> Any:
     elif isinstance(obj, Set):
         return {"__set__": True, "elements": sorted(obj)}
     elif isinstance(obj, nx.DiGraph):
-        nld = nx.node_link_data(obj)
+        nld = nx.node_link_data(obj, edges="links")
         links = nld["links"]
         links2 = sorted(links, key=lambda x: f'{x["source"]}{x["target"]}')
         nld["links"] = links2

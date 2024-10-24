@@ -1041,7 +1041,7 @@ def pluck(G: nx.DiGraph, node_id: Any) -> None:
 
 
 def dump_graph_json(gx: nx.DiGraph, filename: str = "graph.json") -> None:
-    nld = nx.node_link_data(gx)
+    nld = nx.node_link_data(gx, edges="links")
     links = nld["links"]
     links2 = sorted(links, key=lambda x: f'{x["source"]}{x["target"]}')
     nld["links"] = links2
