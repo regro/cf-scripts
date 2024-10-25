@@ -9659,44 +9659,44 @@ package:
       python: '>=3.11,<3.12.0a0'
       python_abi: 3.11.*
     hash:
-      md5: 8b746f1e8fc1cd8f7ce67ad694d7530b
-      sha256: dda8211015c82fd3f9f54a1e0b58826b02800426480fb3ab4f9ce7fdd2d8ef98
+      md5: 0ffc1f53106a38f059b151c465891ed3
+      sha256: 2ac3f1ed6e6a2a0c67a3922f4b5faf382855ad02cc0c85c5d56291c7a94296d0
     manager: conda
     name: psutil
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/linux-64/psutil-6.0.0-py311h9ecbd09_2.conda
-    version: 6.0.0
+      https://conda.anaconda.org/conda-forge/linux-64/psutil-6.1.0-py311h9ecbd09_0.conda
+    version: 6.1.0
   - category: main
     dependencies:
       __osx: '>=10.13'
       python: '>=3.11,<3.12.0a0'
       python_abi: 3.11.*
     hash:
-      md5: fe445c1bac949f22c62abad0ea88854c
-      sha256: e277e2d1deebc79f5d8de8d4a9b0460c3f4dec11de696db741cb6c4dadb58910
+      md5: 446e328d89429c077ccd74d7e9d8853e
+      sha256: 340d19b16a2f5b663b4f000188467831b107dcaa5b15522e172d6a27820d3b01
     manager: conda
     name: psutil
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/osx-64/psutil-6.0.0-py311h1314207_2.conda
-    version: 6.0.0
+    url: https://conda.anaconda.org/conda-forge/osx-64/psutil-6.1.0-py311h1314207_0.conda
+    version: 6.1.0
   - category: main
     dependencies:
       __osx: '>=11.0'
       python: '>=3.11,<3.12.0a0'
       python_abi: 3.11.*
     hash:
-      md5: 0eb709db6c3df7018487a4768f040587
-      sha256: ae55c3d420cd12f0d4c79c6a5241d7b60e4cf93c0ad469d6874ac3fdb5994236
+      md5: e226eba0c52ecd6786e73c8ad7f41e79
+      sha256: 6237f04371995fa8e8f16481dcd4e01d2733a82750180a362a9f4953ffbb3cde
     manager: conda
     name: psutil
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/osx-arm64/psutil-6.0.0-py311hae2e1ce_2.conda
-    version: 6.0.0
+      https://conda.anaconda.org/conda-forge/osx-arm64/psutil-6.1.0-py311hae2e1ce_0.conda
+    version: 6.1.0
   - category: main
     dependencies:
       __glibc: '>=2.17,<3.0.a0'
