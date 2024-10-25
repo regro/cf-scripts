@@ -2011,39 +2011,39 @@ package:
   - category: main
     dependencies: {}
     hash:
-      md5: 06fb8cf2a56f13d455ddc000dc3be410
-      sha256: 5c169e5c0ac2a61bcc968d0e3c5b34ee823468386ce9419f4ad406537648800d
+      md5: 6011db6c3edfa77417f8dac276a00c18
+      sha256: 301a01486bfc0f29590ab96fc79ce6a0460812d84f7c2ab35aae3f9532fd6add
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.10.25.11.54.39-hd8ed1ab_0.conda
-    version: 2024.10.25.11.54.39
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.10.25.13.38.33-hd8ed1ab_0.conda
+    version: 2024.10.25.13.38.33
   - category: main
     dependencies: {}
     hash:
-      md5: 06fb8cf2a56f13d455ddc000dc3be410
-      sha256: 5c169e5c0ac2a61bcc968d0e3c5b34ee823468386ce9419f4ad406537648800d
+      md5: 6011db6c3edfa77417f8dac276a00c18
+      sha256: 301a01486bfc0f29590ab96fc79ce6a0460812d84f7c2ab35aae3f9532fd6add
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.10.25.11.54.39-hd8ed1ab_0.conda
-    version: 2024.10.25.11.54.39
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.10.25.13.38.33-hd8ed1ab_0.conda
+    version: 2024.10.25.13.38.33
   - category: main
     dependencies: {}
     hash:
-      md5: 06fb8cf2a56f13d455ddc000dc3be410
-      sha256: 5c169e5c0ac2a61bcc968d0e3c5b34ee823468386ce9419f4ad406537648800d
+      md5: 6011db6c3edfa77417f8dac276a00c18
+      sha256: 301a01486bfc0f29590ab96fc79ce6a0460812d84f7c2ab35aae3f9532fd6add
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.10.25.11.54.39-hd8ed1ab_0.conda
-    version: 2024.10.25.11.54.39
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.10.25.13.38.33-hd8ed1ab_0.conda
+    version: 2024.10.25.13.38.33
   - category: main
     dependencies:
       click: '>=8'
