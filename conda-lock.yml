@@ -2011,39 +2011,39 @@ package:
   - category: main
     dependencies: {}
     hash:
-      md5: 46bc7d0c607ffd00ff3483fa3cf8a581
-      sha256: 2092b5a5dcc9886c846070e9775a6f133f7ad9d331f64b5d8dfe0624595b5f23
+      md5: 8da1420437a8fb5722142b39fdd603c3
+      sha256: e4934f58c69b3115609e2d83be4c46202ab359b85cacfe8bf230780b9b22aaa9
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.10.25.16.27.57-hd8ed1ab_0.conda
-    version: 2024.10.25.16.27.57
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.10.25.18.47.03-hd8ed1ab_0.conda
+    version: 2024.10.25.18.47.03
   - category: main
     dependencies: {}
     hash:
-      md5: 46bc7d0c607ffd00ff3483fa3cf8a581
-      sha256: 2092b5a5dcc9886c846070e9775a6f133f7ad9d331f64b5d8dfe0624595b5f23
+      md5: 8da1420437a8fb5722142b39fdd603c3
+      sha256: e4934f58c69b3115609e2d83be4c46202ab359b85cacfe8bf230780b9b22aaa9
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.10.25.16.27.57-hd8ed1ab_0.conda
-    version: 2024.10.25.16.27.57
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.10.25.18.47.03-hd8ed1ab_0.conda
+    version: 2024.10.25.18.47.03
   - category: main
     dependencies: {}
     hash:
-      md5: 46bc7d0c607ffd00ff3483fa3cf8a581
-      sha256: 2092b5a5dcc9886c846070e9775a6f133f7ad9d331f64b5d8dfe0624595b5f23
+      md5: 8da1420437a8fb5722142b39fdd603c3
+      sha256: e4934f58c69b3115609e2d83be4c46202ab359b85cacfe8bf230780b9b22aaa9
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.10.25.16.27.57-hd8ed1ab_0.conda
-    version: 2024.10.25.16.27.57
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.10.25.18.47.03-hd8ed1ab_0.conda
+    version: 2024.10.25.18.47.03
   - category: main
     dependencies:
       click: '>=8'
@@ -9971,15 +9971,15 @@ package:
       python: '>=3.11,<3.12.0a0'
       python_abi: 3.11.*
     hash:
-      md5: c412a37578bd7d2b0af23ac4961484b5
-      sha256: 1519245e60e9a7a07c3725fa479a5d4005fabd9035d0b9fd64a67644200bc557
+      md5: a7746f79ccba8e47f74a6a48a93f3d18
+      sha256: 36764b41d648fde26a752d4ce0ad87a9567ac38b821e5a81466917e5d1aff9dd
     manager: conda
     name: pycryptodome
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/linux-64/pycryptodome-3.20.0-py311h35130b2_1.conda
-    version: 3.20.0
+      https://conda.anaconda.org/conda-forge/linux-64/pycryptodome-3.21.0-py311h35130b2_0.conda
+    version: 3.21.0
   - category: main
     dependencies:
       __osx: '>=10.13'
@@ -9987,15 +9987,15 @@ package:
       python: '>=3.11,<3.12.0a0'
       python_abi: 3.11.*
     hash:
-      md5: 55f12f5257d1f9fe04598c722c26af78
-      sha256: a241a8eb3a89709bdf2f6ca393d50fd71183e5145e6c272c18517f15126f182d
+      md5: 081f1263ca6d5133b2d4af2444b2c796
+      sha256: a5b1f5a38eed9a6cf1a6224d3be226aac1dd3c22be22f3f7b6d9a5cc5d34c45f
     manager: conda
     name: pycryptodome
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/osx-64/pycryptodome-3.20.0-py311hcd1f478_1.conda
-    version: 3.20.0
+      https://conda.anaconda.org/conda-forge/osx-64/pycryptodome-3.21.0-py311hcd1f478_0.conda
+    version: 3.21.0
   - category: main
     dependencies:
       __osx: '>=11.0'
@@ -10003,15 +10003,15 @@ package:
       python: '>=3.11,<3.12.0a0'
       python_abi: 3.11.*
     hash:
-      md5: 7228324958ce47fadf7218c3129b2dfb
-      sha256: 2a5984ee72e671870311edf12917739affa2a0d92091078b72feeecee199e38a
+      md5: e8f75dc6043d2bbc055659cdcd1f54fa
+      sha256: fa5343ecc294d5f2645f6fe28677769cc71c038b3dab4fbc32e56da37144abc8
     manager: conda
     name: pycryptodome
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/osx-arm64/pycryptodome-3.20.0-py311ha9d8091_1.conda
-    version: 3.20.0
+      https://conda.anaconda.org/conda-forge/osx-arm64/pycryptodome-3.21.0-py311ha9d8091_0.conda
+    version: 3.21.0
   - category: main
     dependencies:
       annotated-types: '>=0.6.0'
