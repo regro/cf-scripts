@@ -2011,39 +2011,39 @@ package:
   - category: main
     dependencies: {}
     hash:
-      md5: 6011db6c3edfa77417f8dac276a00c18
-      sha256: 301a01486bfc0f29590ab96fc79ce6a0460812d84f7c2ab35aae3f9532fd6add
+      md5: 46bc7d0c607ffd00ff3483fa3cf8a581
+      sha256: 2092b5a5dcc9886c846070e9775a6f133f7ad9d331f64b5d8dfe0624595b5f23
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.10.25.13.38.33-hd8ed1ab_0.conda
-    version: 2024.10.25.13.38.33
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.10.25.16.27.57-hd8ed1ab_0.conda
+    version: 2024.10.25.16.27.57
   - category: main
     dependencies: {}
     hash:
-      md5: 6011db6c3edfa77417f8dac276a00c18
-      sha256: 301a01486bfc0f29590ab96fc79ce6a0460812d84f7c2ab35aae3f9532fd6add
+      md5: 46bc7d0c607ffd00ff3483fa3cf8a581
+      sha256: 2092b5a5dcc9886c846070e9775a6f133f7ad9d331f64b5d8dfe0624595b5f23
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.10.25.13.38.33-hd8ed1ab_0.conda
-    version: 2024.10.25.13.38.33
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.10.25.16.27.57-hd8ed1ab_0.conda
+    version: 2024.10.25.16.27.57
   - category: main
     dependencies: {}
     hash:
-      md5: 6011db6c3edfa77417f8dac276a00c18
-      sha256: 301a01486bfc0f29590ab96fc79ce6a0460812d84f7c2ab35aae3f9532fd6add
+      md5: 46bc7d0c607ffd00ff3483fa3cf8a581
+      sha256: 2092b5a5dcc9886c846070e9775a6f133f7ad9d331f64b5d8dfe0624595b5f23
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.10.25.13.38.33-hd8ed1ab_0.conda
-    version: 2024.10.25.13.38.33
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.10.25.16.27.57-hd8ed1ab_0.conda
+    version: 2024.10.25.16.27.57
   - category: main
     dependencies:
       click: '>=8'
@@ -11790,38 +11790,38 @@ package:
       __glibc: '>=2.17,<3.0.a0'
       libgcc: '>=13'
     hash:
-      md5: 78ecf732e9165aa28abb40699795b796
-      sha256: 18e222e44a28787efcb09449e642bd710ee35bad0c8b551363d4c5b4a460451d
+      md5: d214df5d083a659f75e7cdafd9500383
+      sha256: fd9d568112a6cf6dfa00828a70c730289fa046a86b641899e298c5ed3fd50ca6
     manager: conda
     name: ripgrep
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/linux-64/ripgrep-14.1.0-h8fae777_1.conda
-    version: 14.1.0
+    url: https://conda.anaconda.org/conda-forge/linux-64/ripgrep-14.1.1-h8fae777_0.conda
+    version: 14.1.1
   - category: main
     dependencies:
       __osx: '>=10.13'
     hash:
-      md5: 7ef348c1a89f90e745a65c378c772e0e
-      sha256: d5f07a95137fd2ee1b18e847c698bcf8b366d81984d0b5afbcc2ef7a5c8ace9a
+      md5: 8457bf2f3a39b5ad494e4aa93594204c
+      sha256: 7c2539a29a163e96c9aa43079b09f92a52b51984309c528188591f9eb35a904d
     manager: conda
     name: ripgrep
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/osx-64/ripgrep-14.1.0-h9bb4cbb_1.conda
-    version: 14.1.0
+    url: https://conda.anaconda.org/conda-forge/osx-64/ripgrep-14.1.1-h926acf8_0.conda
+    version: 14.1.1
   - category: main
     dependencies:
       __osx: '>=11.0'
     hash:
-      md5: 3526fdc67736e57892c361d50b2d4a74
-      sha256: 61773ba4a5c40a8566666b3a92c8d2bc457e3d3cb6e54a95fa9c7930d554d473
+      md5: a5ac0a2bfc92f3cb9b6cfc9caf9de5c9
+      sha256: bea65d7f355ac3db84b046e2db3b203d78ac261451bf5dd7a5719fc8102fa73e
     manager: conda
     name: ripgrep
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/osx-arm64/ripgrep-14.1.0-h3bba108_1.conda
-    version: 14.1.0
+    url: https://conda.anaconda.org/conda-forge/osx-arm64/ripgrep-14.1.1-h0ef69ab_0.conda
+    version: 14.1.1
   - category: main
     dependencies:
       __glibc: '>=2.17,<3.0.a0'
