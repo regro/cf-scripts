@@ -413,21 +413,21 @@ def determine_best_matches_for_pypi_import(
 
 def main() -> None:
     # Statically defined mappings from pypi_name_mapping_static.yaml
-    static_packager_mappings: List[Mapping] = load_static_mappings()
+    static_package_mappings: List[Mapping] = load_static_mappings()
 
     # Mappings extracted from the graph
     pypi_package_mappings: List[Mapping] = extract_pypi_information()
 
     # best_imports is indexed by import_name.
     best_imports, ordered_import_names = determine_best_matches_for_pypi_import(
-        mapping=pypi_package_mappings + static_packager_mappings,
+        mapping=pypi_package_mappings + static_package_mappings,
     )
 
     grayskull_style_from_imports = convert_to_grayskull_style_yaml(best_imports)
     grayskull_style = add_missing_pypi_names(
         grayskull_style_from_imports,
         pypi_package_mappings,
-        static_packager_mappings,
+        static_package_mappings,
     )
 
     dirname = pathlib.Path(".") / "mappings" / "pypi"
@@ -442,7 +442,7 @@ def main() -> None:
         with (dirname / f"name_mapping.{suffix}").open("w") as fp:
             dumper(
                 sorted(
-                    static_packager_mappings + pypi_package_mappings,
+                    static_package_mappings + pypi_package_mappings,
                     key=lambda pkg: pkg["conda_name"],
                 ),
                 fp,
