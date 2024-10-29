@@ -2011,39 +2011,39 @@ package:
   - category: main
     dependencies: {}
     hash:
-      md5: 6d8ba1fb6f47bdfbe359ce5fe94c3665
-      sha256: 2a53c2264aeec59ad6147ba2e9e8c900dbbe59b6be8ad99199953409fdd0c8a2
+      md5: 77a9627ac95396d369ef57c09ed3bf4c
+      sha256: 705461aad2d98fc0f711d2497bce5e3fa90e7c474557f0db5beca4ebfe854d48
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.10.29.03.54.34-hd8ed1ab_0.conda
-    version: 2024.10.29.03.54.34
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.10.29.12.41.35-hd8ed1ab_0.conda
+    version: 2024.10.29.12.41.35
   - category: main
     dependencies: {}
     hash:
-      md5: 6d8ba1fb6f47bdfbe359ce5fe94c3665
-      sha256: 2a53c2264aeec59ad6147ba2e9e8c900dbbe59b6be8ad99199953409fdd0c8a2
+      md5: 77a9627ac95396d369ef57c09ed3bf4c
+      sha256: 705461aad2d98fc0f711d2497bce5e3fa90e7c474557f0db5beca4ebfe854d48
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.10.29.03.54.34-hd8ed1ab_0.conda
-    version: 2024.10.29.03.54.34
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.10.29.12.41.35-hd8ed1ab_0.conda
+    version: 2024.10.29.12.41.35
   - category: main
     dependencies: {}
     hash:
-      md5: 6d8ba1fb6f47bdfbe359ce5fe94c3665
-      sha256: 2a53c2264aeec59ad6147ba2e9e8c900dbbe59b6be8ad99199953409fdd0c8a2
+      md5: 77a9627ac95396d369ef57c09ed3bf4c
+      sha256: 705461aad2d98fc0f711d2497bce5e3fa90e7c474557f0db5beca4ebfe854d48
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.10.29.03.54.34-hd8ed1ab_0.conda
-    version: 2024.10.29.03.54.34
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.10.29.12.41.35-hd8ed1ab_0.conda
+    version: 2024.10.29.12.41.35
   - category: main
     dependencies:
       click: '>=8'
@@ -13664,15 +13664,15 @@ package:
       platformdirs: <5,>=3.9.1
       python: '>=3.8'
     hash:
-      md5: a6ed1227ba6ec37cfc2b25e6512f729f
-      sha256: 18bae5ff9f02793ca56d295f0a5f1d4443623ee3be09a6805eb7d4b18245968c
+      md5: dae21509d62aa7bf676279ced3edcb3f
+      sha256: 189b935224732267df10dc116bce0835bd76fcdb20c30f560591c92028d513b0
     manager: conda
     name: virtualenv
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/virtualenv-20.27.0-pyhd8ed1ab_0.conda
-    version: 20.27.0
+      https://conda.anaconda.org/conda-forge/noarch/virtualenv-20.27.1-pyhd8ed1ab_0.conda
+    version: 20.27.1
   - category: main
     dependencies:
       distlib: <1,>=0.3.7
@@ -13680,15 +13680,15 @@ package:
       platformdirs: <5,>=3.9.1
       python: '>=3.8'
     hash:
-      md5: a6ed1227ba6ec37cfc2b25e6512f729f
-      sha256: 18bae5ff9f02793ca56d295f0a5f1d4443623ee3be09a6805eb7d4b18245968c
+      md5: dae21509d62aa7bf676279ced3edcb3f
+      sha256: 189b935224732267df10dc116bce0835bd76fcdb20c30f560591c92028d513b0
     manager: conda
     name: virtualenv
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/virtualenv-20.27.0-pyhd8ed1ab_0.conda
-    version: 20.27.0
+      https://conda.anaconda.org/conda-forge/noarch/virtualenv-20.27.1-pyhd8ed1ab_0.conda
+    version: 20.27.1
   - category: main
     dependencies:
       distlib: <1,>=0.3.7
@@ -13696,15 +13696,15 @@ package:
       platformdirs: <5,>=3.9.1
       python: '>=3.8'
     hash:
-      md5: a6ed1227ba6ec37cfc2b25e6512f729f
-      sha256: 18bae5ff9f02793ca56d295f0a5f1d4443623ee3be09a6805eb7d4b18245968c
+      md5: dae21509d62aa7bf676279ced3edcb3f
+      sha256: 189b935224732267df10dc116bce0835bd76fcdb20c30f560591c92028d513b0
     manager: conda
     name: virtualenv
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/virtualenv-20.27.0-pyhd8ed1ab_0.conda
-    version: 20.27.0
+      https://conda.anaconda.org/conda-forge/noarch/virtualenv-20.27.1-pyhd8ed1ab_0.conda
+    version: 20.27.1
   - category: main
     dependencies:
       msrest: '>=0.6.0,<0.7.0'
