@@ -119,3 +119,7 @@
 - pypi_name: libigl
   import_name: igl
   conda_name: igl
+
+- pypi_name: pyyaml
+  import_name: yaml
+  conda_name: pyyaml
