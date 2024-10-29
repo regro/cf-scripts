@@ -1959,15 +1959,15 @@ package:
       ruamel.yaml: ''
       typing-extensions: ''
     hash:
-      md5: 3ebe8ada26ac6a082abc08e9305c509c
-      sha256: 31637889fcb139f7a86b079e6e9bcedaf17c67b6abe78d7313741a5563eb8ced
+      md5: 93f4ef42763aa9a23f19a816fcda5f85
+      sha256: d039411f4f9e4bf135826ead16955f039abf931219a62c6b22ad13fb830274b9
     manager: conda
     name: conda-forge-metadata
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-metadata-0.10.0-pyhd8ed1ab_0.conda
-    version: 0.10.0
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-metadata-0.11.0-pyhd8ed1ab_0.conda
+    version: 0.11.0
   - category: main
     dependencies:
       beautifulsoup4: ''
@@ -1979,15 +1979,15 @@ package:
       ruamel.yaml: ''
       typing-extensions: ''
     hash:
-      md5: 3ebe8ada26ac6a082abc08e9305c509c
-      sha256: 31637889fcb139f7a86b079e6e9bcedaf17c67b6abe78d7313741a5563eb8ced
+      md5: 93f4ef42763aa9a23f19a816fcda5f85
+      sha256: d039411f4f9e4bf135826ead16955f039abf931219a62c6b22ad13fb830274b9
     manager: conda
     name: conda-forge-metadata
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-metadata-0.10.0-pyhd8ed1ab_0.conda
-    version: 0.10.0
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-metadata-0.11.0-pyhd8ed1ab_0.conda
+    version: 0.11.0
   - category: main
     dependencies:
       beautifulsoup4: ''
@@ -1999,15 +1999,15 @@ package:
       ruamel.yaml: ''
       typing-extensions: ''
     hash:
-      md5: 3ebe8ada26ac6a082abc08e9305c509c
-      sha256: 31637889fcb139f7a86b079e6e9bcedaf17c67b6abe78d7313741a5563eb8ced
+      md5: 93f4ef42763aa9a23f19a816fcda5f85
+      sha256: d039411f4f9e4bf135826ead16955f039abf931219a62c6b22ad13fb830274b9
     manager: conda
     name: conda-forge-metadata
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-metadata-0.10.0-pyhd8ed1ab_0.conda
-    version: 0.10.0
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-metadata-0.11.0-pyhd8ed1ab_0.conda
+    version: 0.11.0
   - category: main
     dependencies: {}
     hash:
