@@ -9333,42 +9333,42 @@ package:
       setuptools: ''
       wheel: ''
     hash:
-      md5: 6c78fbb8ddfd64bcb55b5cbafd2d2c43
-      sha256: d820e5358bcb117fa6286e55d4550c60b0332443df62121df839eab2d11c890b
+      md5: 5dd546fe99b44fda83963d15f84263b7
+      sha256: 499313e72e20225f84c2e9690bbaf5b952c8d7e0bf34b728278538f766b81628
     manager: conda
     name: pip
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/noarch/pip-24.2-pyh8b19718_1.conda
-    version: '24.2'
+    url: https://conda.anaconda.org/conda-forge/noarch/pip-24.3.1-pyh8b19718_0.conda
+    version: 24.3.1
   - category: main
     dependencies:
       python: '>=3.8,<3.13.0a0'
       setuptools: ''
       wheel: ''
     hash:
-      md5: 6c78fbb8ddfd64bcb55b5cbafd2d2c43
-      sha256: d820e5358bcb117fa6286e55d4550c60b0332443df62121df839eab2d11c890b
+      md5: 5dd546fe99b44fda83963d15f84263b7
+      sha256: 499313e72e20225f84c2e9690bbaf5b952c8d7e0bf34b728278538f766b81628
     manager: conda
     name: pip
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/noarch/pip-24.2-pyh8b19718_1.conda
-    version: '24.2'
+    url: https://conda.anaconda.org/conda-forge/noarch/pip-24.3.1-pyh8b19718_0.conda
+    version: 24.3.1
   - category: main
     dependencies:
       python: '>=3.8,<3.13.0a0'
       setuptools: ''
       wheel: ''
     hash:
-      md5: 6c78fbb8ddfd64bcb55b5cbafd2d2c43
-      sha256: d820e5358bcb117fa6286e55d4550c60b0332443df62121df839eab2d11c890b
+      md5: 5dd546fe99b44fda83963d15f84263b7
+      sha256: 499313e72e20225f84c2e9690bbaf5b952c8d7e0bf34b728278538f766b81628
     manager: conda
     name: pip
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/noarch/pip-24.2-pyh8b19718_1.conda
-    version: '24.2'
+    url: https://conda.anaconda.org/conda-forge/noarch/pip-24.3.1-pyh8b19718_0.conda
+    version: 24.3.1
   - category: main
     dependencies:
       libgcc-ng: '>=12'
