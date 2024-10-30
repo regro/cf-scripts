@@ -3347,32 +3347,6 @@ package:
     version: 2.6.3
   - category: main
     dependencies:
-      __osx: '>=10.13'
-      libexpat: 2.6.3
-    hash:
-      md5: 474cd8746e9f896fc5ae84af3c951796
-      sha256: 79b0da6ca997f7a939bfb9631356afbc519343944fc81cc4261c6b3a85f6db32
-    manager: conda
-    name: expat
-    optional: false
-    platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/osx-64/expat-2.6.3-hac325c4_0.conda
-    version: 2.6.3
-  - category: main
-    dependencies:
-      __osx: '>=11.0'
-      libexpat: 2.6.3
-    hash:
-      md5: 726bbcf3549fe22b4556285d946fed2d
-      sha256: 4d52ad7a7eb39f71a38bbf2b6377183024bd3bf4cfb5dcd33b31636a6f9a7abc
-    manager: conda
-    name: expat
-    optional: false
-    platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/osx-arm64/expat-2.6.3-hf9b8971_0.conda
-    version: 2.6.3
-  - category: main
-    dependencies:
       python: '>=3.6'
       sgmllib3k: ''
     hash:
@@ -3671,50 +3645,53 @@ package:
     version: '0.83'
   - category: main
     dependencies:
-      expat: '>=2.5.0,<3.0a0'
+      __glibc: '>=2.17,<3.0.a0'
       freetype: '>=2.12.1,<3.0a0'
-      libgcc-ng: '>=12'
-      libuuid: '>=2.32.1,<3.0a0'
-      libzlib: '>=1.2.13,<2.0.0a0'
+      libexpat: '>=2.6.3,<3.0a0'
+      libgcc: '>=13'
+      libuuid: '>=2.38.1,<3.0a0'
+      libzlib: '>=1.3.1,<2.0a0'
     hash:
-      md5: 0f69b688f52ff6da70bccb7ff7001d1d
-      sha256: 155d534c9037347ea7439a2c6da7c24ffec8e5dd278889b4c57274a1d91e0a83
+      md5: 8f5b0b297b59e1ac160ad4beec99dbee
+      sha256: 7093aa19d6df5ccb6ca50329ef8510c6acb6b0d8001191909397368b65b02113
     manager: conda
     name: fontconfig
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/linux-64/fontconfig-2.14.2-h14ed4e7_0.conda
-    version: 2.14.2
+      https://conda.anaconda.org/conda-forge/linux-64/fontconfig-2.15.0-h7e30c49_1.conda
+    version: 2.15.0
   - category: main
     dependencies:
-      expat: '>=2.5.0,<3.0a0'
+      __osx: '>=10.13'
       freetype: '>=2.12.1,<3.0a0'
-      libzlib: '>=1.2.13,<2.0.0a0'
+      libexpat: '>=2.6.3,<3.0a0'
+      libzlib: '>=1.3.1,<2.0a0'
     hash:
-      md5: 86cc5867dfbee4178118392bae4a3c89
-      sha256: f63e6d1d6aef8ba6de4fc54d3d7898a153479888d40ffdf2e4cfad6f92679d34
+      md5: 84ccec5ee37eb03dd352db0a3f89ada3
+      sha256: 61a9aa1d2dd115ffc1ab372966dc8b1ac7b69870e6b1744641da276b31ea5c0b
     manager: conda
     name: fontconfig
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/osx-64/fontconfig-2.14.2-h5bb23bf_0.conda
-    version: 2.14.2
+    url: https://conda.anaconda.org/conda-forge/osx-64/fontconfig-2.15.0-h37eeddb_1.conda
+    version: 2.15.0
   - category: main
     dependencies:
-      expat: '>=2.5.0,<3.0a0'
+      __osx: '>=11.0'
       freetype: '>=2.12.1,<3.0a0'
-      libzlib: '>=1.2.13,<2.0.0a0'
+      libexpat: '>=2.6.3,<3.0a0'
+      libzlib: '>=1.3.1,<2.0a0'
     hash:
-      md5: f77d47ddb6d3cc5b39b9bdf65635afbb
-      sha256: 7094917fc6758186e17c61d8ee8fd2bbbe9f303b4addac61d918fa415c497e2b
+      md5: 7b29f48742cea5d1ccb5edd839cb5621
+      sha256: f79d3d816fafbd6a2b0f75ebc3251a30d3294b08af9bb747194121f5efa364bc
     manager: conda
     name: fontconfig
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/osx-arm64/fontconfig-2.14.2-h82840c6_0.conda
-    version: 2.14.2
+      https://conda.anaconda.org/conda-forge/osx-arm64/fontconfig-2.15.0-h1383a14_1.conda
+    version: 2.15.0
   - category: main
     dependencies:
       fonts-conda-forge: ''
@@ -10601,52 +10578,52 @@ package:
     version: 8.0.2
   - category: main
     dependencies:
-      coverage: '>=5.2.1'
+      coverage: '>=7.5'
       pytest: '>=4.6'
-      python: '>=3.8'
+      python: '>=3.9'
       toml: ''
     hash:
-      md5: c54c0107057d67ddf077751339ec2c63
-      sha256: 218306243faf3c36347131c2b36bb189daa948ac2e92c7ab52bb26cc8c157b3c
+      md5: cb8a11b6d209e3d85e5094bdbd9ebd9c
+      sha256: 915323edaee9f6f3ebd8c2e5450b4865700edf2c85eb2bba61980e66c6f03c5d
     manager: conda
     name: pytest-cov
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/pytest-cov-5.0.0-pyhd8ed1ab_0.conda
-    version: 5.0.0
+      https://conda.anaconda.org/conda-forge/noarch/pytest-cov-6.0.0-pyhd8ed1ab_0.conda
+    version: 6.0.0
   - category: main
     dependencies:
-      coverage: '>=5.2.1'
+      coverage: '>=7.5'
       pytest: '>=4.6'
-      python: '>=3.8'
+      python: '>=3.9'
       toml: ''
     hash:
-      md5: c54c0107057d67ddf077751339ec2c63
-      sha256: 218306243faf3c36347131c2b36bb189daa948ac2e92c7ab52bb26cc8c157b3c
+      md5: cb8a11b6d209e3d85e5094bdbd9ebd9c
+      sha256: 915323edaee9f6f3ebd8c2e5450b4865700edf2c85eb2bba61980e66c6f03c5d
     manager: conda
     name: pytest-cov
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/pytest-cov-5.0.0-pyhd8ed1ab_0.conda
-    version: 5.0.0
+      https://conda.anaconda.org/conda-forge/noarch/pytest-cov-6.0.0-pyhd8ed1ab_0.conda
+    version: 6.0.0
   - category: main
     dependencies:
-      coverage: '>=5.2.1'
+      coverage: '>=7.5'
       pytest: '>=4.6'
-      python: '>=3.8'
+      python: '>=3.9'
       toml: ''
     hash:
-      md5: c54c0107057d67ddf077751339ec2c63
-      sha256: 218306243faf3c36347131c2b36bb189daa948ac2e92c7ab52bb26cc8c157b3c
+      md5: cb8a11b6d209e3d85e5094bdbd9ebd9c
+      sha256: 915323edaee9f6f3ebd8c2e5450b4865700edf2c85eb2bba61980e66c6f03c5d
     manager: conda
     name: pytest-cov
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/pytest-cov-5.0.0-pyhd8ed1ab_0.conda
-    version: 5.0.0
+      https://conda.anaconda.org/conda-forge/noarch/pytest-cov-6.0.0-pyhd8ed1ab_0.conda
+    version: 6.0.0
   - category: main
     dependencies:
       pytest: '>=7.4.2'
