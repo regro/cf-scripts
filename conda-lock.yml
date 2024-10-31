@@ -12157,41 +12157,41 @@ package:
     dependencies:
       python: '>=3.8'
     hash:
-      md5: d5cd48392c67fb6849ba459c2c2b671f
-      sha256: 6725235722095c547edd24275053c615158d6163f396550840aebd6e209e4738
+      md5: 2ce9825396daf72baabaade36cee16da
+      sha256: a36d020b9f32fc3f1a6488a1c4a9c13988c6468faf6895bf30ca69521a61230e
     manager: conda
     name: setuptools
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/setuptools-75.1.0-pyhd8ed1ab_0.conda
-    version: 75.1.0
+      https://conda.anaconda.org/conda-forge/noarch/setuptools-75.3.0-pyhd8ed1ab_0.conda
+    version: 75.3.0
   - category: main
     dependencies:
       python: '>=3.8'
     hash:
-      md5: d5cd48392c67fb6849ba459c2c2b671f
-      sha256: 6725235722095c547edd24275053c615158d6163f396550840aebd6e209e4738
+      md5: 2ce9825396daf72baabaade36cee16da
+      sha256: a36d020b9f32fc3f1a6488a1c4a9c13988c6468faf6895bf30ca69521a61230e
     manager: conda
     name: setuptools
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/setuptools-75.1.0-pyhd8ed1ab_0.conda
-    version: 75.1.0
+      https://conda.anaconda.org/conda-forge/noarch/setuptools-75.3.0-pyhd8ed1ab_0.conda
+    version: 75.3.0
   - category: main
     dependencies:
       python: '>=3.8'
     hash:
-      md5: d5cd48392c67fb6849ba459c2c2b671f
-      sha256: 6725235722095c547edd24275053c615158d6163f396550840aebd6e209e4738
+      md5: 2ce9825396daf72baabaade36cee16da
+      sha256: a36d020b9f32fc3f1a6488a1c4a9c13988c6468faf6895bf30ca69521a61230e
     manager: conda
     name: setuptools
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/setuptools-75.1.0-pyhd8ed1ab_0.conda
-    version: 75.1.0
+      https://conda.anaconda.org/conda-forge/noarch/setuptools-75.3.0-pyhd8ed1ab_0.conda
+    version: 75.3.0
   - category: main
     dependencies:
       packaging: '>=20.0'
