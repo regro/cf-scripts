@@ -13,9 +13,9 @@ jobs:
     name: relock
     runs-on: "ubuntu-latest"
     steps:
-      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
 
-      - uses: beckermr/relock-conda@49530e32234db1af2014b31a9e7c484488ec5daa
+      - uses: conda-incubator/relock-conda@571d6d5735006079443f1f50ecc7a638a8569a94
         with:
           github-token: ${{ secrets.AUTOTICK_BOT_TOKEN }}
           automerge: true
