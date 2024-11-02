@@ -593,15 +593,15 @@ package:
       python-dateutil: '>=2.1,<3.0.0'
       urllib3: '>=1.25.4,!=2.2.0,<3'
     hash:
-      md5: f5a4167efcae6e9cfa36f7010beccb82
-      sha256: 8a2da90195f25db57dc859a87f573d4509ebca59d9fa9157f7c6973654a99167
+      md5: e4b44d26ac2aeba09162e2736581918e
+      sha256: 0241483ccece78bd5d705a85cf467dee0a40db57a8f2827d0be6e1b22c77b311
     manager: conda
     name: botocore
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/botocore-1.35.53-pyge310_1234567_0.conda
-    version: 1.35.53
+      https://conda.anaconda.org/conda-forge/noarch/botocore-1.35.54-pyge310_1234567_0.conda
+    version: 1.35.54
   - category: main
     dependencies:
       jmespath: '>=0.7.1,<2.0.0'
@@ -609,15 +609,15 @@ package:
       python-dateutil: '>=2.1,<3.0.0'
       urllib3: '>=1.25.4,!=2.2.0,<3'
     hash:
-      md5: f5a4167efcae6e9cfa36f7010beccb82
-      sha256: 8a2da90195f25db57dc859a87f573d4509ebca59d9fa9157f7c6973654a99167
+      md5: e4b44d26ac2aeba09162e2736581918e
+      sha256: 0241483ccece78bd5d705a85cf467dee0a40db57a8f2827d0be6e1b22c77b311
     manager: conda
     name: botocore
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/botocore-1.35.53-pyge310_1234567_0.conda
-    version: 1.35.53
+      https://conda.anaconda.org/conda-forge/noarch/botocore-1.35.54-pyge310_1234567_0.conda
+    version: 1.35.54
   - category: main
     dependencies:
       jmespath: '>=0.7.1,<2.0.0'
@@ -625,15 +625,15 @@ package:
       python-dateutil: '>=2.1,<3.0.0'
       urllib3: '>=1.25.4,!=2.2.0,<3'
     hash:
-      md5: f5a4167efcae6e9cfa36f7010beccb82
-      sha256: 8a2da90195f25db57dc859a87f573d4509ebca59d9fa9157f7c6973654a99167
+      md5: e4b44d26ac2aeba09162e2736581918e
+      sha256: 0241483ccece78bd5d705a85cf467dee0a40db57a8f2827d0be6e1b22c77b311
     manager: conda
     name: botocore
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/botocore-1.35.53-pyge310_1234567_0.conda
-    version: 1.35.53
+      https://conda.anaconda.org/conda-forge/noarch/botocore-1.35.54-pyge310_1234567_0.conda
+    version: 1.35.54
   - category: main
     dependencies:
       __glibc: '>=2.17,<3.0.a0'
@@ -8750,52 +8750,52 @@ package:
       python: '>=3.11,<3.12.0a0'
       python_abi: 3.11.*
     hash:
-      md5: 4e72b55892331ada8fbcf5954df582f2
-      sha256: da4c6cf1a51afc95aeeecf403cd1efbaed0ab19567d59a3e2e316313073476e4
+      md5: 1b3c543b0cc96310bcf0b825d5a68cb1
+      sha256: d2fdae6b0e80c23248f0f6bf7b5e3b6e0f56f69f420e9f5da5a6aae2c95b1493
     manager: conda
     name: numpy
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/linux-64/numpy-2.1.2-py311h71ddf71_0.conda
-    version: 2.1.2
+      https://conda.anaconda.org/conda-forge/linux-64/numpy-2.1.3-py311h71ddf71_0.conda
+    version: 2.1.3
   - category: main
     dependencies:
       __osx: '>=10.13'
       libblas: '>=3.9.0,<4.0a0'
       libcblas: '>=3.9.0,<4.0a0'
-      libcxx: '>=17'
+      libcxx: '>=18'
       liblapack: '>=3.9.0,<4.0a0'
       python: '>=3.11,<3.12.0a0'
       python_abi: 3.11.*
     hash:
-      md5: 530bb67b583c4411577ae86f601cc91f
-      sha256: 70bbd9d0d8b71230fbcd15b70abd2fc25296bf9f5d0998cb4505becee72021fc
+      md5: 220e4e917b6133e0cbb879c48c058adc
+      sha256: 2ddc0acaf8602eda5e555435a37641439aa7876425fe7b40214f15dab182e5e3
     manager: conda
     name: numpy
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/osx-64/numpy-2.1.2-py311h394b0bb_0.conda
-    version: 2.1.2
+    url: https://conda.anaconda.org/conda-forge/osx-64/numpy-2.1.3-py311h14ed71f_0.conda
+    version: 2.1.3
   - category: main
     dependencies:
       __osx: '>=11.0'
       libblas: '>=3.9.0,<4.0a0'
       libcblas: '>=3.9.0,<4.0a0'
-      libcxx: '>=17'
+      libcxx: '>=18'
       liblapack: '>=3.9.0,<4.0a0'
       python: '>=3.11,<3.12.0a0'
       python_abi: 3.11.*
     hash:
-      md5: cb63c4873246766bb2cc99ec5f1441ff
-      sha256: ae7d50683de4c56404c0ce847cd00c5f1b74dfabe03253382cc5330c08259294
+      md5: 3205b87adf34406ae1a83e8bf46cd987
+      sha256: 5a95da4a8de64fb44b0045c92f579d3529b2cccbd5a38ec7901e03ee10f707d5
     manager: conda
     name: numpy
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/osx-arm64/numpy-2.1.2-py311h6de8079_0.conda
-    version: 2.1.2
+      https://conda.anaconda.org/conda-forge/osx-arm64/numpy-2.1.3-py311h649a571_0.conda
+    version: 2.1.3
   - category: main
     dependencies:
       blinker: ''
