@@ -20,6 +20,8 @@ VERSION_WITH_FLANG = Version(
     [
         # multiple outputs
         ("lapack", "1.10.0"),
+        # comments in compiler block
+        ("prima", "1.10.0"),
     ],
 )
 def test_stdlib(feedstock, new_ver, tmpdir):
