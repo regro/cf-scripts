@@ -22,6 +22,8 @@ VERSION_WITH_FLANG = Version(
         ("lapack", "1.10.0"),
         # comments in compiler block
         ("prima", "1.10.0"),
+        # remove selector for non-m2w64 fortran compilers
+        ("mfront", "1.10.0"),
     ],
 )
 def test_stdlib(feedstock, new_ver, tmpdir):

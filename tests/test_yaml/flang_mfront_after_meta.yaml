@@ -1,0 +1,86 @@
+{% set name = "mfront" %}
+{% set version = "1.10.0" %}
+
+package:
+  name: {{ name|lower }}
+  version: {{ version }}
+
+source:
+  # fake source url to get version migrator to pass
+  url: https://github.com/scipy/scipy/archive/refs/tags/v{{ version }}.tar.gz
+  sha256: 3f9e587a96844a9b4ee7f998cfe4dc3964dc95c4ca94d7de6a77bffb99f873da
+  # fn: {{ name }}_{{ version }}.tar.gz
+  # url: https://github.com/thelfer/tfel/archive/refs/tags/TFEL-{{ version }}.tar.gz
+  # sha256: {{ sha256 }}
+  # patches:
+  #   - patches/support_llvm-flang.patch  # [win]
+
+build:
+  number: 0
+  skip: true  # [py2k or osx or (python_impl == 'pypy')]
+  skip: true  # [win and py<39]
+  detect_binary_files_with_prefix: true
+  run_exports:
+    - {{ pin_subpackage('mfront', max_pin='x.x.x') }}
+
+requirements:
+  build:
+    - {{ compiler("fortran") }}
+    - {{ compiler('c') }}
+    - {{ stdlib("c") }}
+    - {{ compiler('cxx') }}
+    - cmake
+    - make  # [not win]
+    - ninja                       # [win]
+    - clang                       # [win]
+    - lld                         # [win]
+    - libgomp  # [linux]
+    - llvm-openmp  # [osx]
+  host:
+    - libboost-python-devel
+    - python
+    - zlib  # [linux]
+  run:
+    - python
+    - libstdcxx-ng  # [linux]
+    - libgcc-ng  # [linux]
+
+test:
+  commands:
+    - tfel-config --version
+    - tfel-doc --version  # [linux]
+    - tfel-check --version  # [linux]
+    - mtest --version
+    - mfront --list-stress-criteria
+    - mfront-doc --version
+    - mfront-query --version
+    - mfm --version
+    - test -f $PREFIX/lib/libTFELConfig.so  # [linux]
+    - test -f $PREFIX/lib/libTFELUnicodeSupport.so  # [linux]
+    - test -f $PREFIX/lib/libTFELGlossary.so  # [linux]
+    - test -f $PREFIX/lib/libTFELException.so  # [linux]
+    - test -f $PREFIX/lib/libTFELUtilities.so  # [linux]
+
+  imports:
+    - tfel
+    - tfel.math
+    - tfel.material
+
+about:
+  home: http://tfel.sourceforge.net
+  license: GPL-3.0-only
+  license_family: GPL
+  license_file: LICENCE-GNU-GPL
+  summary: MFront, a code generation tool dedicated to material knowledge
+  description: |
+    MFront is a code generator which translates a set of closely related domain specific languages into plain C++ on top of the TFEL library. Those languages cover three kinds of material knowledge:
+    material properties (for instance the Young modulus, the thermal conductivity, etc.)
+    mechanical behaviours. Numerical performances of generated mechanical behaviours were given a particular attention. Various benchmarks show that MFront implementations are competitive with native implementations available in the Cast3M, Code-Aster, Abaqus Standard and Cyrano3 solvers.
+    simple point-wise models, such as material swelling used in fuel performance codes.
+  doc_url: http://tfel.sourceforge.net/documentations.html
+  dev_url: http://tfel.sourceforge.net/devel.html
+
+extra:
+  recipe-maintainers:
+    - Krande
+    - ldallolio
