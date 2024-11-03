@@ -24,6 +24,8 @@ VERSION_WITH_FLANG = Version(
         ("prima", "1.10.0"),
         # remove selector for non-m2w64 fortran compilers
         ("mfront", "1.10.0"),
+        # includes cxx (non-m2w64) as a language
+        ("plplot", "1.10.0"),
     ],
 )
 def test_stdlib(feedstock, new_ver, tmpdir):
