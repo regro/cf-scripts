@@ -18,6 +18,8 @@ VERSION_WITH_FLANG = Version(
 @pytest.mark.parametrize(
     "feedstock,new_ver",
     [
+        # multiple outputs
+        ("lapack", "1.10.0"),
     ],
 )
 def test_stdlib(feedstock, new_ver, tmpdir):
