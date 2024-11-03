@@ -26,6 +26,8 @@ VERSION_WITH_FLANG = Version(
         ("mfront", "1.10.0"),
         # includes cxx (non-m2w64) as a language
         ("plplot", "1.10.0"),
+        # includes m2w64_cxx compiler
+        ("pcmsolver-split", "1.10.0"),
     ],
 )
 def test_stdlib(feedstock, new_ver, tmpdir):
