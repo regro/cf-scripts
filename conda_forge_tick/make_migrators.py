@@ -60,6 +60,7 @@ from conda_forge_tick.migrators import (
     Numpy2Migrator,
     PipMigrator,
     PipWheelMigrator,
+    PyPIOrgMigrator,
     QtQtMainMigrator,
     Replacement,
     RUCRTCleanup,
@@ -290,6 +291,7 @@ def add_rebuild_migration_yaml(
         NoCondaInspectMigrator(),
         CrossCompilationForARMAndPower(),
         MPIPinRunAsBuildCleanup(),
+        PyPIOrgMigrator(),
     ]
     if migration_name == "qt515":
         piggy_back_migrations.append(QtQtMainMigrator())
