@@ -1,0 +1,165 @@
+{% set name = "PCMSolver" %}
+{% set version = "1.10.0" %}
+{% set build = 0 %}
+
+package:
+  name: {{ name|lower }}-split
+  version: {{ version }}
+
+source:
+  # fake source url to get version migrator to pass
+  url: https://github.com/scipy/scipy/archive/refs/tags/v{{ version }}.tar.gz
+  sha256: 3f9e587a96844a9b4ee7f998cfe4dc3964dc95c4ca94d7de6a77bffb99f873da
+  # url: https://github.com/{{ name }}/{{ name|lower }}/archive/v{{ version }}.tar.gz
+  # patches:
+  #   # 0004 and 0005 introduced at build=10
+  #   - [...]
+  # sha256: {{ sha256 }}
+
+build:
+  number: {{ build }}
+  # Only build for one python version because python module is repackaged as noarch
+  skip: true  # [py != 312]
+
+requirements:
+  build:
+    - python                              # [build_platform != target_platform]
+    - cross-python_{{ target_platform }}  # [build_platform != target_platform]
+    - {{ stdlib("c") }}
+    - {{ compiler("c") }}
+    - {{ compiler("cxx") }}
+    - {{ compiler("fortran") }}
+    - cmake
+    - make                                # [unix]
+    - ninja                               # [win]
+  host:
+    - libboost-devel
+    - eigen
+    - python
+    - zlib
+  run:
+    - python
+
+outputs:
+  - name: pcmsolver
+    build:
+      noarch: python
+      # Only one pcmsolver variant by having a shared build string for all platforms
+      string: py_{{ build }}
+      run_exports:
+        - {{ pin_subpackage('pcmsolver', max_pin='x.x.x') }}
+        - {{ pin_subpackage('libpcm', max_pin='x.x.x') }}
+    requirements:
+      host:
+        - python
+      run:
+        - python
+        - {{ pin_subpackage('libpcm', max_pin='x.x.x') }}
+    files:
+      - bin/*.py                                                       # [unix]
+      - lib/python3.12/site-packages/pcmsolver                         # [unix]
+      - Library/bin/*.py                                               # [win]
+      - Lib/site-packages/pcmsolver                                    # [win]
+    test:
+      imports:
+        - pcmsolver
+      files:
+        - molecule.inp
+      requires:
+        - m2w64-binutils                                               # [win]   # provides objdump.exe
+      commands:
+        # Verify library
+        - test -L $PREFIX/lib/libpcm$SHLIB_EXT                         # [unix]
+        - test ! -f $PREFIX/lib/libpcm.a                               # [unix]
+        - test -f $SP_DIR/pcmsolver/pcmparser.py                       # [unix]
+        - if not exist %PREFIX%\\Library\\lib\\libpcm.dll.a exit 1     # [win]   # gnu import lib
+        - if not exist %PREFIX%\\Library\\lib\\libpcm.lib exit 1       # [win]   # ms import lib
+        - if not exist %PREFIX%\\Library\\bin\\libpcm.dll exit 1       # [win]   # gnu/ms dyn lib
+        - if exist %PREFIX%\\Library\\lib\\libpcm.a exit 1             # [win]   # gnu static lib removed
+        - if not exist %SP_DIR%\\pcmsolver\\pcmparser.py exit 1        # [win]
+        # Verify executable
+        - test -f $PREFIX/bin/go_pcm.py                                # [unix]
+        - test -f $PREFIX/bin/run_pcm                                  # [unix]
+        - if not exist %PREFIX%\\Library\\bin\\go_pcm.py exit 1        # [win]
+        - if not exist %PREFIX%\\Library\\bin\\run_pcm.exe exit 1      # [win]
+        # Verify accessories
+        - test -e $PREFIX/include/PCMSolver/pcmsolver.h                # [unix]
+        - test -e $PREFIX/share/cmake/PCMSolver/PCMSolverConfig.cmake  # [unix]
+        - if not exist %PREFIX%\\Library\\include\\PCMSolver\\pcmsolver.h exit 1  # [win]
+        - if not exist %PREFIX%\\Library\\share\\cmake\\PCMSolver\\PCMSolverConfig.cmake exit 1  # [win]
+        # Inspect linkage
+        - ldd -v $PREFIX/lib/libpcm$SHLIB_EXT                          # [linux and build_platform == target_platform]
+        - otool -L $PREFIX/lib/libpcm$SHLIB_EXT                        # [osx]
+        - objdump.exe -p %PREFIX%\\Library\\bin\\libpcm.dll | findstr /i "dll"  # [win]
+        # Actually test
+        - python $PREFIX/bin/go_pcm.py --inp molecule.inp --exe $PREFIX/bin  # [unix]
+        - python %PREFIX%\\Library\\bin\\go_pcm.py --inp molecule.inp --exe %PREFIX%\\Library\\bin  # [win]
+        - cat molecule.out                                             # [unix]
+        - type molecule.out                                            # [win]
+
+  - name: libpcm
+    build:
+      run_exports:
+        - {{ pin_subpackage('libpcm', max_pin='x.x.x') }}
+    requirements:
+      build:
+        - {{ stdlib("c") }}
+        - {{ compiler("c") }}
+        - {{ compiler("cxx") }}
+        - {{ compiler("fortran") }}
+      host:
+        - libboost-headers
+        - eigen
+        - zlib
+      run:
+    files:
+      - bin/run_pcm                        # [unix]
+      - lib/libpcm*                        # [unix]
+      - share/cmake/PCMSolver              # [unix]
+      - include/PCMSolver                  # [unix]
+      - Library/include/PCMSolver          # [win]
+      - Library/bin/run_pcm*               # [win]
+      - Library/bin/libpcm*                # [win]
+      - Library/lib/libpcm*                # [win]
+      - Library/share/cmake/PCMSolver      # [win]
+    test:
+      requires:
+        - m2w64-binutils                                               # [win]   # provides objdump.exe
+      commands:
+        # Verify library
+        - test -L $PREFIX/lib/libpcm$SHLIB_EXT                         # [unix]
+        - test ! -f $PREFIX/lib/libpcm.a                               # [unix]
+        - if not exist %PREFIX%\\Library\\lib\\libpcm.dll.a exit 1     # [win]   # gnu import lib
+        - if not exist %PREFIX%\\Library\\lib\\libpcm.lib exit 1       # [win]   # ms import lib
+        - if not exist %PREFIX%\\Library\\bin\\libpcm.dll exit 1       # [win]   # gnu/ms dyn lib
+        - if exist %PREFIX%\\Library\\lib\\libpcm.a exit 1             # [win]   # gnu static lib removed
+        # Verify executable
+        - test -f $PREFIX/bin/run_pcm                                  # [unix]
+        - if not exist %PREFIX%\\Library\\bin\\run_pcm.exe exit 1      # [win]
+        # Verify accessories
+        - test -e $PREFIX/include/PCMSolver/pcmsolver.h                # [unix]
+        - test -e $PREFIX/share/cmake/PCMSolver/PCMSolverConfig.cmake  # [unix]
+        - if not exist %PREFIX%\\Library\\include\\PCMSolver\\pcmsolver.h exit 1  # [win]
+        - if not exist %PREFIX%\\Library\\share\\cmake\\PCMSolver\\PCMSolverConfig.cmake exit 1  # [win]
+        # Inspect linkage
+        - ldd -v $PREFIX/lib/libpcm$SHLIB_EXT                          # [linux and build_platform == target_platform]
+        - otool -L $PREFIX/lib/libpcm$SHLIB_EXT                        # [osx]
+        - objdump.exe -p %PREFIX%\\Library\\bin\\libpcm.dll | findstr /i "dll"  # [win]
+
+about:
+  home: https://github.com/PCMSolver/pcmsolver
+  dev_url: https://github.com/PCMSolver/pcmsolver
+  doc_url: https://pcmsolver.readthedocs.io/en/stable/
+  doc_source_url: https://github.com/PCMSolver/pcmsolver/tree/master/doc
+  license: LGPL-3.0-only AND MIT AND MIT-0 AND Apache-2.0
+  license_url: https://opensource.org/license/lgpl-3-0/
+  license_file:
+    - LICENSE
+    - THIRD-PARTY-LICENSES
+  license_family: LGPL
+  summary: "R. Di Remigio & L. Frediani's Polarizable Continuum Model (PCM)"
+
+extra:
+  recipe-maintainers:
+    - loriab
+    - robertodr
