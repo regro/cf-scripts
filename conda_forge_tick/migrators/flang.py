@@ -35,26 +35,21 @@ def _process_section(lines):
     if not any(pat_m2f.match(x) for x in lines):
         return lines
 
-    comp_bools = [(i, pat_comp.match(x)) for i, x in enumerate(lines)]
-    comp_lines = [i for i, is_comp in comp_bools if is_comp]
+    # `c_` stands for compilers (and comments)
+    c_bools = [(i, pat_comp.match(x)) for i, x in enumerate(lines)]
+    c_lines = [i for i, is_comp in c_bools if is_comp]
     # extend in both directions so we can take forward and backward differences;
     # -2 is so that `diff > 1` below will be true even if there's a comment in
     # the very first line; needed to get matching number of block beginnings/ends.
-    comp_lines_ext = [-2] + comp_lines + [len(lines)]
-    comp_fw_diff = [
-        (i, i_next - i) for i, i_next in zip(comp_lines, comp_lines_ext[2:])
-    ]
-    comp_bw_diff = [
-        (i, i - i_prev) for i, i_prev in zip(comp_lines, comp_lines_ext[:-2])
-    ]
-    comp_blocks_end = [i for i, diff in comp_fw_diff if diff > 1]
-    comp_blocks_begin = [i for i, diff in comp_bw_diff if diff > 1]
+    c_lines_ext = [-2] + c_lines + [len(lines)]
+    c_fw_diff = [(i, i_next - i) for i, i_next in zip(c_lines, c_lines_ext[2:])]
+    c_bw_diff = [(i, i - i_prev) for i, i_prev in zip(c_lines, c_lines_ext[:-2])]
+    c_end = [i for i, diff in c_fw_diff if diff > 1]
+    c_begin = [i for i, diff in c_bw_diff if diff > 1]
 
     m2f_line = [i for i, x in enumerate(lines) if pat_m2f.match(x)][0]
     indent = pat_m2f.sub(r"\g<indent>", lines[m2f_line])
-    begin, end = [
-        (b, e) for b, e in zip(comp_blocks_begin, comp_blocks_end) if b <= m2f_line <= e
-    ][0]
+    begin, end = [(b, e) for b, e in zip(c_begin, c_end) if b <= m2f_line <= e][0]
 
     langs = {pat_comp.sub(r"\g<lang>", x) for x in lines[begin : end + 1]}
     # if we caught a comment, lang will be ""
