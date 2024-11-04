@@ -37,12 +37,15 @@ def _process_section(lines):
 
     comp_bools = [(i, pat_comp.match(x)) for i, x in enumerate(lines)]
     comp_lines = [i for i, is_comp in comp_bools if is_comp]
+    # extend in both directions so we can take forward and backward differences;
+    # -2 is so that `diff > 1` below will be true even if there's a comment in
+    # the very first line; needed to get matching number of block beginnings/ends.
+    comp_lines_ext = [-2] + comp_lines + [len(lines)]
     comp_fw_diff = [
-        (i, i_next - i)
-        for i, i_next in zip(comp_lines, comp_lines[1:] + [len(lines) + 2])
+        (i, i_next - i) for i, i_next in zip(comp_lines, comp_lines_ext[2:])
     ]
     comp_bw_diff = [
-        (i, i - i_prev) for i, i_prev in zip(comp_lines, [-2] + comp_lines[:-1])
+        (i, i - i_prev) for i, i_prev in zip(comp_lines, comp_lines_ext[:-2])
     ]
     comp_blocks_end = [i for i, diff in comp_fw_diff if diff > 1]
     comp_blocks_begin = [i for i, diff in comp_bw_diff if diff > 1]
