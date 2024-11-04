@@ -29,6 +29,7 @@ from .mpi_pin_run_as_build import MPIPinRunAsBuildCleanup
 from .numpy2 import Numpy2Migrator
 from .pip_check import PipCheckMigrator
 from .pip_wheel_dep import PipWheelMigrator
+from .pypi_org import PyPIOrgMigrator
 from .qt_to_qt_main import QtQtMainMigrator
 from .r_ucrt import RUCRTCleanup
 from .replacement import Replacement
