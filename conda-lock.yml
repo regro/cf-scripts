@@ -2011,39 +2011,39 @@ package:
   - category: main
     dependencies: {}
     hash:
-      md5: 930dc7e3664351a1fe6cb1eef17225d5
-      sha256: cb90e7b0e00fee26e7009e2dfcfa1aa303419c9061521c14780fa98da9258fa3
+      md5: b2c4095adf830105c11ff36967a059f5
+      sha256: 8383e9c487012f90a35635b60fb4ff928eb2660934289a7206f6d37f7efb7c86
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.11.04.11.32.56-hd8ed1ab_0.conda
-    version: 2024.11.04.11.32.56
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.11.04.15.38.56-hd8ed1ab_0.conda
+    version: 2024.11.04.15.38.56
   - category: main
     dependencies: {}
     hash:
-      md5: 930dc7e3664351a1fe6cb1eef17225d5
-      sha256: cb90e7b0e00fee26e7009e2dfcfa1aa303419c9061521c14780fa98da9258fa3
+      md5: b2c4095adf830105c11ff36967a059f5
+      sha256: 8383e9c487012f90a35635b60fb4ff928eb2660934289a7206f6d37f7efb7c86
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.11.04.11.32.56-hd8ed1ab_0.conda
-    version: 2024.11.04.11.32.56
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.11.04.15.38.56-hd8ed1ab_0.conda
+    version: 2024.11.04.15.38.56
   - category: main
     dependencies: {}
     hash:
-      md5: 930dc7e3664351a1fe6cb1eef17225d5
-      sha256: cb90e7b0e00fee26e7009e2dfcfa1aa303419c9061521c14780fa98da9258fa3
+      md5: b2c4095adf830105c11ff36967a059f5
+      sha256: 8383e9c487012f90a35635b60fb4ff928eb2660934289a7206f6d37f7efb7c86
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.11.04.11.32.56-hd8ed1ab_0.conda
-    version: 2024.11.04.11.32.56
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.11.04.15.38.56-hd8ed1ab_0.conda
+    version: 2024.11.04.15.38.56
   - category: main
     dependencies:
       click: '>=8'
@@ -7427,33 +7427,33 @@ package:
     dependencies:
       __osx: '>=10.13'
       libgfortran: 5.*
-      libgfortran5: '>=12.3.0'
-      llvm-openmp: '>=16.0.6'
+      libgfortran5: '>=13.2.0'
+      llvm-openmp: '>=17.0.6'
     hash:
-      md5: 6bf3c78f6d014543765570c8e1c65642
-      sha256: f86ff61991104bfa4fc7725c6d45c29516e7eb504a6d73ee23c50cd208900906
+      md5: fb2bd274e80e8456de4337d627255071
+      sha256: cf76b065abc5f18c3d8facbf59b8208b3cb0ecc319cfe216850bb19ca6f6f812
     manager: conda
     name: libopenblas
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/osx-64/libopenblas-0.3.28-openmp_h8869122_0.conda
+      https://conda.anaconda.org/conda-forge/osx-64/libopenblas-0.3.28-openmp_h1e3e198_0.conda
     version: 0.3.28
   - category: main
     dependencies:
       __osx: '>=11.0'
       libgfortran: 5.*
-      libgfortran5: '>=12.3.0'
-      llvm-openmp: '>=16.0.6'
+      libgfortran5: '>=13.2.0'
+      llvm-openmp: '>=17.0.6'
     hash:
-      md5: 9306fd5b6b39b2b7e13c1d50c3fee354
-      sha256: 43d69d072f1a3774994d31f9d3241cfa0f1c5560b536989020d7cde30fbef956
+      md5: 9c538526b67347e2601f1530c4953ce5
+      sha256: 7dfb0e28a354058d8aebcc40f0a99ad9c22f3fdda56e36329c39e5b6f89e493e
     manager: conda
     name: libopenblas
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/osx-arm64/libopenblas-0.3.28-openmp_h517c56d_0.conda
+      https://conda.anaconda.org/conda-forge/osx-arm64/libopenblas-0.3.28-openmp_h8b6c093_0.conda
     version: 0.3.28
   - category: main
     dependencies:
