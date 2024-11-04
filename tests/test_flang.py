@@ -30,7 +30,7 @@ VERSION_WITH_FLANG = Version(
         ("pcmsolver-split", "1.10.0"),
     ],
 )
-def test_stdlib(feedstock, new_ver, tmpdir):
+def test_flang(feedstock, new_ver, tmpdir):
     before = f"flang_{feedstock}_before_meta.yaml"
     with open(os.path.join(TEST_YAML_PATH, before)) as fp:
         in_yaml = fp.read()
