@@ -18,6 +18,7 @@ from .cstdlib import StdlibMigrator
 from .dep_updates import DependencyUpdateMigrator
 from .duplicate_lines import DuplicateLinesCleanup
 from .extra_jinj2a_keys_cleanup import ExtraJinja2KeysCleanup
+from .flang import FlangMigrator
 from .jinja2_vars_cleanup import Jinja2VarsCleanup
 from .jpegturbo import JpegTurboMigrator
 from .libboost import LibboostMigrator

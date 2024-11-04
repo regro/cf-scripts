@@ -1,0 +1,269 @@
+{% set version = "1.10.0" %}
+# if build is reset to 0 (for new version), update increment for blas_minor below
+{% set build = 0 %}
+{% set version_major = version.split(".")[0] %}
+# blas_major denotes major infrastructural change to how blas is managed
+{% set blas_major = "2" %}
+# make sure we do not create colliding version strings of output "blas"
+# for builds across lapack-versions within the same blas_major
+{% set blas_minor = build + 200 %}
+
+{% if unix %}
+{% set library = "" %}
+{% else %}
+{% set library = "Library/" %}
+{% endif %}
+
+package:
+  name: blas-split
+  version: {{ version }}
+
+source:
+  # fake source url to get version migrator to pass
+  url: https://github.com/scipy/scipy/archive/refs/tags/v{{ version }}.tar.gz
+  sha256: 3f9e587a96844a9b4ee7f998cfe4dc3964dc95c4ca94d7de6a77bffb99f873da
+  # url: https://github.com/Reference-LAPACK/lapack/archive/v{{ version }}.tar.gz
+  # sha256: 4b9ba79bfd4921ca820e83979db76ab3363155709444a787979e81c22285ffa9
+  # patches:
+  #   # Avoid setting current_version and compatibility_version
+  #   - patches/0001-Avoid-setting-current_version-and-compatibility_vers.patch  # [osx]
+
+build:
+  number: {{ build }}
+
+requirements:
+  build:
+    - {{ stdlib("c") }}
+    - {{ compiler("c") }}
+    - {{ compiler("fortran") }}
+    - ninja                             # [win]
+    - make                              # [unix]
+    - cmake
+
+outputs:
+  - name: libblas
+    build:
+      string: {{ build_num }}_h{{ PKG_HASH }}_netlib
+      track_features:
+        # netlib variants must have at least 1 more feature
+        # than all variants of non-netlib blas implementations
+        - blas_netlib
+        - blas_netlib_2
+      run_exports:
+        - {{ pin_subpackage("libblas", max_pin="x") }}
+    requirements:
+      build:
+        - {{ stdlib("c") }}
+        - {{ compiler("c") }}
+        - {{ compiler("fortran") }}
+      run_constrained:
+        - blas * netlib
+    files:
+      - {{ library }}lib/pkgconfig/blas.pc
+      - lib/libblas.so                          # [linux]
+      - lib/libblas.so.{{ version_major }}      # [linux]
+      - lib/libblas.so.{{ version }}            # [linux]
+      - lib/libblas.dylib                       # [osx]
+      - lib/libblas.{{ version_major }}.dylib   # [osx]
+      - lib/libblas.{{ version }}.dylib         # [osx]
+      - Library/bin/libblas.dll                 # [win]
+      - Library/lib/blas.lib                    # [win]
+      - Library/lib/libblas.dll.a               # [win]
+    test:
+      commands:
+        - echo "no need to revalidate `files:` specification"
+
+  - name: libtmglib
+    build:
+      string: {{ build_num }}_h{{ PKG_HASH }}_netlib
+      track_features:
+        - blas_netlib
+        - blas_netlib_2
+      run_exports:
+        - {{ pin_subpackage("libtmglib", max_pin="x") }}
+    requirements:
+      build:
+        - {{ stdlib("c") }}
+        - {{ compiler("c") }}
+        - {{ compiler("fortran") }}
+      run_constrained:
+        - blas * netlib
+    files:
+      - lib/libtmglib.so                          # [linux]
+      - lib/libtmglib.so.{{ version_major }}      # [linux]
+      - lib/libtmglib.so.{{ version }}            # [linux]
+      - lib/libtmglib.dylib                       # [osx]
+      - lib/libtmglib.{{ version_major }}.dylib   # [osx]
+      - lib/libtmglib.{{ version }}.dylib         # [osx]
+      - Library/bin/libtmglib.dll                 # [win]
+      - Library/lib/libtmglib.dll.a               # [win]
+    test:
+      commands:
+        - echo "no need to revalidate `files:` specification"
+
+  - name: libcblas
+    build:
+      string: {{ build_num }}_h{{ PKG_HASH }}_netlib
+      track_features:
+        - blas_netlib
+        - blas_netlib_2
+      run_exports:
+        - {{ pin_subpackage("libcblas", max_pin="x") }}
+    requirements:
+      build:
+        - {{ stdlib("c") }}
+        - {{ compiler("c") }}
+        - {{ compiler("fortran") }}
+      run:
+        - libblas {{ version }}
+    files:
+      - {{ library }}include/cblas*.h
+      - {{ library }}lib/pkgconfig/cblas.pc
+      - {{ library }}lib/cmake/cblas-{{ version }}/*.cmake
+      - lib/libcblas.so                          # [linux]
+      - lib/libcblas.so.{{ version_major }}      # [linux]
+      - lib/libcblas.so.{{ version }}            # [linux]
+      - lib/libcblas.dylib                       # [osx]
+      - lib/libcblas.{{ version_major }}.dylib   # [osx]
+      - lib/libcblas.{{ version }}.dylib         # [osx]
+      - Library/bin/libcblas.dll                 # [win]
+      - Library/lib/cblas.lib                    # [win]
+      - Library/lib/libcblas.dll.a               # [win]
+    test:
+      commands:
+        - echo "no need to revalidate `files:` specification"
+
+  - name: liblapack
+    build:
+      string: {{ build_num }}_h{{ PKG_HASH }}_netlib
+      track_features:
+        - blas_netlib
+        - blas_netlib_2
+      run_exports:
+        - {{ pin_subpackage("liblapack", max_pin="x") }}
+    requirements:
+      build:
+        - {{ stdlib("c") }}
+        - {{ compiler("c") }}
+        - {{ compiler("fortran") }}
+      run:
+        - libblas {{ version }}
+    files:
+      - {{ library }}lib/pkgconfig/lapack.pc
+      - {{ library }}lib/cmake/lapack-{{ version }}/*.cmake
+      - lib/liblapack.so                          # [linux]
+      - lib/liblapack.so.{{ version_major }}      # [linux]
+      - lib/liblapack.so.{{ version }}            # [linux]
+      - lib/liblapack.dylib                       # [osx]
+      - lib/liblapack.{{ version_major }}.dylib   # [osx]
+      - lib/liblapack.{{ version }}.dylib         # [osx]
+      - Library/bin/liblapack.dll                 # [win]
+      - Library/lib/lapack.lib                    # [win]
+      - Library/lib/liblapack.dll.a               # [win]
+    test:
+      commands:
+        - echo "no need to revalidate `files:` specification"
+
+  - name: liblapacke
+    build:
+      string: {{ build_num }}_h{{ PKG_HASH }}_netlib
+      track_features:
+        - blas_netlib
+        - blas_netlib_2
+      run_exports:
+        - {{ pin_subpackage("liblapacke", max_pin="x") }}
+    requirements:
+      build:
+        - {{ stdlib("c") }}
+        - {{ compiler("c") }}
+        - {{ compiler("fortran") }}
+      run:
+        - libblas    {{ version }}
+        - libcblas   {{ version }}
+        - liblapack  {{ version }}
+    files:
+      - {{ library }}include/lapack*.h
+      - {{ library }}lib/pkgconfig/lapacke.pc
+      - {{ library }}lib/cmake/lapacke-{{ version }}/*.cmake
+      - lib/liblapacke.so                          # [linux]
+      - lib/liblapacke.so.{{ version_major }}      # [linux]
+      - lib/liblapacke.so.{{ version }}            # [linux]
+      - lib/liblapacke.dylib                       # [osx]
+      - lib/liblapacke.{{ version_major }}.dylib   # [osx]
+      - lib/liblapacke.{{ version }}.dylib         # [osx]
+      - Library/bin/liblapacke.dll                 # [win]
+      - Library/lib/lapacke.lib                    # [win]
+      - Library/lib/liblapacke.dll.a               # [win]
+    test:
+      commands:
+        - echo "no need to revalidate `files:` specification"
+
+  - name: blas-devel
+    build:
+      string: {{ build_num }}_netlib
+      track_features:
+        - blas_netlib
+        - blas_netlib_2
+    requirements:
+      run:
+        - {{ pin_subpackage("libblas", exact=True) }}
+        - {{ pin_subpackage("libcblas", exact=True) }}
+        - {{ pin_subpackage("liblapack", exact=True) }}
+        - {{ pin_subpackage("liblapacke", exact=True) }}
+    test:
+      commands:
+        - echo "pure meta-package"
+
+  # For conda-forge blas selector, see also blas-feedstock
+  - name: blas
+    version: {{ blas_major }}.{{ blas_minor }}
+    build:
+      string: netlib
+      track_features:
+        - blas_netlib
+        - blas_netlib_2
+    requirements:
+      - {{ pin_subpackage("liblapack", exact=True) }}
+      - {{ pin_subpackage("liblapacke", exact=True) }}
+      - {{ pin_subpackage("libcblas", exact=True) }}
+      - {{ pin_subpackage("libblas", exact=True) }}
+      - {{ pin_subpackage("blas-devel", exact=True) }}
+      - {{ pin_subpackage("libtmglib", exact=True) }}
+    test:
+      commands:
+        {% for each_lib in ['blas', 'cblas', 'lapack', 'lapacke'] %}
+        - test -f $PREFIX/lib/lib{{ each_lib }}.so                          # [linux]
+        - test -f $PREFIX/lib/lib{{ each_lib }}.so.{{ version_major }}      # [linux]
+        - test -f $PREFIX/lib/lib{{ each_lib }}.so.{{ version }}            # [linux]
+        - test -f $PREFIX/lib/lib{{ each_lib }}.dylib                       # [osx]
+        - test -f $PREFIX/lib/lib{{ each_lib }}.{{ version_major }}.dylib   # [osx]
+        - test -f $PREFIX/lib/lib{{ each_lib }}.{{ version }}.dylib         # [osx]
+        - test -f $PREFIX/lib/pkgconfig/{{ each_lib }}.pc                   # [unix]
+        - if not exist "%LIBRARY_LIB%\\pkgconfig\\{{ each_lib }}.pc" exit 1  # [win]
+        - if not exist "%LIBRARY_LIB%\\{{ each_lib }}.lib" exit 1           # [win]
+        - if not exist "%LIBRARY_BIN%\\lib{{ each_lib }}.dll" exit 1        # [win]
+        {% endfor %}
+
+  # For compatiblity (see #33)
+  - name: lapack
+    build:
+      string: netlib
+    requirements:
+      run:
+        - liblapack {{ version }}
+    test:
+      commands:
+        - echo "pure meta-package"
+
+about:
+  home: http://www.netlib.org/lapack
+  license: BSD-3-Clause
+  license_file: LICENSE
+  summary: Linear Algebra PACKage
+
+extra:
+  feedstock-name: lapack
+  recipe-maintainers:
+    - jakirkham
+    - isuruf
+    - h-vetinari
