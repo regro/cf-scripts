@@ -13,7 +13,7 @@ from conda_forge_tick.utils import yaml_safe_load
     [
         (
             textwrap.dedent(
-                """
+                """\
                 build:
                   noarch: python
 
@@ -32,7 +32,9 @@ from conda_forge_tick.utils import yaml_safe_load
                 """
             ),
             textwrap.dedent(
-                """
+                """\
+                {% set python_min = python_min|default("0.1a0") %}
+
                 build:
                   noarch: python
 
@@ -54,7 +56,7 @@ from conda_forge_tick.utils import yaml_safe_load
         ),
         (
             textwrap.dedent(
-                """
+                """\
                 build:
                   noarch: python
 
@@ -72,7 +74,9 @@ from conda_forge_tick.utils import yaml_safe_load
                 """
             ),
             textwrap.dedent(
-                """
+                """\
+                {% set python_min = python_min|default("0.1a0") %}
+
                 build:
                   noarch: python
 
@@ -95,7 +99,7 @@ from conda_forge_tick.utils import yaml_safe_load
         ),
         (
             textwrap.dedent(
-                """
+                """\
                 build:
                   noarch: python
 
@@ -114,7 +118,9 @@ from conda_forge_tick.utils import yaml_safe_load
                 """
             ),
             textwrap.dedent(
-                """
+                """\
+                {% set python_min = python_min|default("0.1a0") %}
+
                 build:
                   noarch: python
 
@@ -136,7 +142,7 @@ from conda_forge_tick.utils import yaml_safe_load
         ),
         (
             textwrap.dedent(
-                """
+                """\
                 build:
                   noarch: python
 
@@ -155,7 +161,9 @@ from conda_forge_tick.utils import yaml_safe_load
                 """
             ),
             textwrap.dedent(
-                """
+                """\
+                {% set python_min = python_min|default("0.1a0") %}
+
                 build:
                   noarch: python
 
