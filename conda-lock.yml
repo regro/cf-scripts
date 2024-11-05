@@ -796,93 +796,93 @@ package:
   - category: main
     dependencies:
       msgpack-python: '>=0.5.2,<2.0.0'
-      python: '>=3.7'
+      python: '>=3.8'
       requests: '>=2.16.0'
     hash:
-      md5: a54e449940b3e4bb2129b8daae0c1f65
-      sha256: 8d8dadbea881c690037e432075357ad6629f7b050e129a5944a0402d674fd754
+      md5: e2ab0c0094abfe6021c0b03b7a54cbec
+      sha256: 144327f53a9a3b1e76f378da88b0e04cb8534c31838f4a393650adb07872c333
     manager: conda
     name: cachecontrol
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/cachecontrol-0.14.0-pyhd8ed1ab_1.conda
-    version: 0.14.0
+      https://conda.anaconda.org/conda-forge/noarch/cachecontrol-0.14.1-pyhd8ed1ab_0.conda
+    version: 0.14.1
   - category: main
     dependencies:
       msgpack-python: '>=0.5.2,<2.0.0'
-      python: '>=3.7'
+      python: '>=3.8'
       requests: '>=2.16.0'
     hash:
-      md5: a54e449940b3e4bb2129b8daae0c1f65
-      sha256: 8d8dadbea881c690037e432075357ad6629f7b050e129a5944a0402d674fd754
+      md5: e2ab0c0094abfe6021c0b03b7a54cbec
+      sha256: 144327f53a9a3b1e76f378da88b0e04cb8534c31838f4a393650adb07872c333
     manager: conda
     name: cachecontrol
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/cachecontrol-0.14.0-pyhd8ed1ab_1.conda
-    version: 0.14.0
+      https://conda.anaconda.org/conda-forge/noarch/cachecontrol-0.14.1-pyhd8ed1ab_0.conda
+    version: 0.14.1
   - category: main
     dependencies:
       msgpack-python: '>=0.5.2,<2.0.0'
-      python: '>=3.7'
+      python: '>=3.8'
       requests: '>=2.16.0'
     hash:
-      md5: a54e449940b3e4bb2129b8daae0c1f65
-      sha256: 8d8dadbea881c690037e432075357ad6629f7b050e129a5944a0402d674fd754
+      md5: e2ab0c0094abfe6021c0b03b7a54cbec
+      sha256: 144327f53a9a3b1e76f378da88b0e04cb8534c31838f4a393650adb07872c333
     manager: conda
     name: cachecontrol
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/cachecontrol-0.14.0-pyhd8ed1ab_1.conda
-    version: 0.14.0
+      https://conda.anaconda.org/conda-forge/noarch/cachecontrol-0.14.1-pyhd8ed1ab_0.conda
+    version: 0.14.1
   - category: main
     dependencies:
-      cachecontrol: 0.14.0
+      cachecontrol: 0.14.1
       filelock: '>=3.8.0'
-      python: '>=3.7'
+      python: '>=3.8'
     hash:
-      md5: 42a12b0b21d64b36a9ab9a24a04eb910
-      sha256: 482d0f3ce8dad6b881f76620ee18152755c61bb968039dcbc0ad45689c70b0d5
+      md5: 7086cfe05f71ea0d9a509b4e3509554d
+      sha256: 1d84e360e3e9aba097dc40ca5c081ab28712be07c118e2039eca094f563cf0b4
     manager: conda
     name: cachecontrol-with-filecache
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/cachecontrol-with-filecache-0.14.0-pyhd8ed1ab_1.conda
-    version: 0.14.0
+      https://conda.anaconda.org/conda-forge/noarch/cachecontrol-with-filecache-0.14.1-pyhd8ed1ab_0.conda
+    version: 0.14.1
   - category: main
     dependencies:
-      cachecontrol: 0.14.0
+      cachecontrol: 0.14.1
       filelock: '>=3.8.0'
-      python: '>=3.7'
+      python: '>=3.8'
     hash:
-      md5: 42a12b0b21d64b36a9ab9a24a04eb910
-      sha256: 482d0f3ce8dad6b881f76620ee18152755c61bb968039dcbc0ad45689c70b0d5
+      md5: 7086cfe05f71ea0d9a509b4e3509554d
+      sha256: 1d84e360e3e9aba097dc40ca5c081ab28712be07c118e2039eca094f563cf0b4
     manager: conda
     name: cachecontrol-with-filecache
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/cachecontrol-with-filecache-0.14.0-pyhd8ed1ab_1.conda
-    version: 0.14.0
+      https://conda.anaconda.org/conda-forge/noarch/cachecontrol-with-filecache-0.14.1-pyhd8ed1ab_0.conda
+    version: 0.14.1
   - category: main
     dependencies:
-      cachecontrol: 0.14.0
+      cachecontrol: 0.14.1
       filelock: '>=3.8.0'
-      python: '>=3.7'
+      python: '>=3.8'
     hash:
-      md5: 42a12b0b21d64b36a9ab9a24a04eb910
-      sha256: 482d0f3ce8dad6b881f76620ee18152755c61bb968039dcbc0ad45689c70b0d5
+      md5: 7086cfe05f71ea0d9a509b4e3509554d
+      sha256: 1d84e360e3e9aba097dc40ca5c081ab28712be07c118e2039eca094f563cf0b4
     manager: conda
     name: cachecontrol-with-filecache
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/cachecontrol-with-filecache-0.14.0-pyhd8ed1ab_1.conda
-    version: 0.14.0
+      https://conda.anaconda.org/conda-forge/noarch/cachecontrol-with-filecache-0.14.1-pyhd8ed1ab_0.conda
+    version: 0.14.1
   - category: main
     dependencies:
       python: '>=3.7'
