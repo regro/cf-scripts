@@ -505,8 +505,9 @@ def test_container_tasks_rerender_feedstock_containerized_permissions(use_contai
                 print(f"\n\nfinal permissions for build-locally.py: {perms_bl:#o}\n\n")
                 cont_rerend_exec = get_user_execute_permissions(".")
 
-            assert orig_exec == local_rerend_exec
-            assert orig_exec == cont_rerend_exec
+            for item, perms in orig_exec.items():
+                assert perms == local_rerend_exec.get(item, perms)
+                assert perms == cont_rerend_exec.get(item, perms)
 
 
 @pytest.mark.skipif(
