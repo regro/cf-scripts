@@ -2425,7 +2425,7 @@ package:
       license-expression: ''
       pycryptodome: ''
       pygithub: '>=2,<3'
-      python: '>=3.6'
+      python: '>=3.9'
       rattler-build-conda-compat: '>=1.2.0,<2.0.0a0'
       requests: ''
       ruamel.yaml: '>=0.16'
@@ -2435,15 +2435,15 @@ package:
       toolz: ''
       vsts-python-api: ''
     hash:
-      md5: 1347fda83050a91d91fe795d46bc74ab
-      sha256: 251556c2bbe91ba9260dea52ada715bdd078ffdc3d70be19b235bd1b74b426bd
+      md5: 0941cd6204cc411ac5d9c59afcaead19
+      sha256: 29b6513a30522f6d9581bddb9dde707d9ee5137014f2fed5b9c58b2cb261e1ea
     manager: conda
     name: conda-smithy
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-smithy-3.43.2-unix_pyh707e725_0.conda
-    version: 3.43.2
+      https://conda.anaconda.org/conda-forge/noarch/conda-smithy-3.44.0-unix_pyhd81877a_0.conda
+    version: 3.44.0
   - category: main
     dependencies:
       __unix: ''
@@ -2462,7 +2462,7 @@ package:
       license-expression: ''
       pycryptodome: ''
       pygithub: '>=2,<3'
-      python: '>=3.6'
+      python: '>=3.9'
       rattler-build-conda-compat: '>=1.2.0,<2.0.0a0'
       requests: ''
       ruamel.yaml: '>=0.16'
@@ -2472,15 +2472,15 @@ package:
       toolz: ''
       vsts-python-api: ''
     hash:
-      md5: 1347fda83050a91d91fe795d46bc74ab
-      sha256: 251556c2bbe91ba9260dea52ada715bdd078ffdc3d70be19b235bd1b74b426bd
+      md5: 0941cd6204cc411ac5d9c59afcaead19
+      sha256: 29b6513a30522f6d9581bddb9dde707d9ee5137014f2fed5b9c58b2cb261e1ea
     manager: conda
     name: conda-smithy
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-smithy-3.43.2-unix_pyh707e725_0.conda
-    version: 3.43.2
+      https://conda.anaconda.org/conda-forge/noarch/conda-smithy-3.44.0-unix_pyhd81877a_0.conda
+    version: 3.44.0
   - category: main
     dependencies:
       __unix: ''
@@ -2499,7 +2499,7 @@ package:
       license-expression: ''
       pycryptodome: ''
       pygithub: '>=2,<3'
-      python: '>=3.6'
+      python: '>=3.9'
       rattler-build-conda-compat: '>=1.2.0,<2.0.0a0'
       requests: ''
       ruamel.yaml: '>=0.16'
@@ -2509,15 +2509,15 @@ package:
       toolz: ''
       vsts-python-api: ''
     hash:
-      md5: 1347fda83050a91d91fe795d46bc74ab
-      sha256: 251556c2bbe91ba9260dea52ada715bdd078ffdc3d70be19b235bd1b74b426bd
+      md5: 0941cd6204cc411ac5d9c59afcaead19
+      sha256: 29b6513a30522f6d9581bddb9dde707d9ee5137014f2fed5b9c58b2cb261e1ea
     manager: conda
     name: conda-smithy
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-smithy-3.43.2-unix_pyh707e725_0.conda
-    version: 3.43.2
+      https://conda.anaconda.org/conda-forge/noarch/conda-smithy-3.44.0-unix_pyhd81877a_0.conda
+    version: 3.44.0
   - category: main
     dependencies:
       python: '>=3.8'
