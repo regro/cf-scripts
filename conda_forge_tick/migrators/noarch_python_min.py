@@ -1,3 +1,4 @@
+import logging
 import os
 import textwrap
 import typing
@@ -11,6 +12,8 @@ from conda_forge_tick.migrators.libboost import _slice_into_output_sections
 
 if typing.TYPE_CHECKING:
     from ..migrators_types import AttrsTypedDict
+
+logger = logging.getLogger(__name__)
 
 
 def _has_noarch_python(lines):
@@ -44,7 +47,7 @@ def _process_req_list(section, req_list_name, new_python_req, force_apply=False)
             new_lines.append(line)
             continue
 
-        indent = len(line) - lstrip_line
+        indent = len(line) - len(lstrip_line)
         if curr_indent is None:
             curr_indent = indent
 
@@ -61,6 +64,7 @@ def _process_req_list(section, req_list_name, new_python_req, force_apply=False)
                     comment = ""
                 else:
                     spec, comment = spec_and_comment
+                spec = spec.strip()
 
                 name_and_req = spec.split(" ", maxsplit=1)
                 if len(name_and_req) == 1:
@@ -71,6 +75,13 @@ def _process_req_list(section, req_list_name, new_python_req, force_apply=False)
 
                 name = name.strip()
                 req = req.strip()
+                logger.debug(
+                    "requirement line decomp: indent='%s', name='%s', req='%s', comment='%s'",
+                    indent_to_keep,
+                    name,
+                    req,
+                    comment,
+                )
 
                 if name == "python" and (force_apply or req == ""):
                     new_line = (
@@ -80,11 +91,16 @@ def _process_req_list(section, req_list_name, new_python_req, force_apply=False)
                         + ("  #" + comment if comment != "" else "")
                     )
                     if line.endswith("\n"):
-                        new_line += "\n"
+                        if not new_line.endswith("\n"):
+                            new_line += "\n"
+                    else:
+                        if new_line.endswith("\n"):
+                            new_line = new_line[:-1]
                 else:
                     new_line = line
         else:
             if line.lstrip().startswith(req_list_name + ":"):
+                logger.debug("found %s for processing req list", req_list_name)
                 in_section = True
                 found_it = True
 
@@ -93,7 +109,7 @@ def _process_req_list(section, req_list_name, new_python_req, force_apply=False)
         new_lines.append(new_line)
         curr_indent = indent
 
-    return found_it
+    return found_it, new_lines
 
 
 def _add_test_requires(section):
@@ -112,7 +128,7 @@ def _add_test_requires(section):
             new_lines.append(line)
             continue
 
-        indent = len(line) - lstrip_line
+        indent = len(line) - len(lstrip_line)
 
         if lstrip_line.startswith("test:"):
             in_test = True
@@ -123,8 +139,8 @@ def _add_test_requires(section):
         if in_test:
             indent_size = indent - test_indent
             requires_lines = [
-                indent + "requires:",
-                indent + indent_size + "- python ={{ python_min }}",
+                (" " * indent) + "requires:",
+                (" " * (indent + indent_size)) + "- python ={{ python_min }}",
             ]
             if line.endswith("\n"):
                 requires_lines = [_line + "\n" for _line in requires_lines]
@@ -143,16 +159,25 @@ def _process_section(section, force_noarch_python=False, force_apply=False):
     if (not _has_noarch_python(section)) and (not force_noarch_python):
         return section
 
-    _process_req_list(section, "host", "{{ python_min }}.*", force_apply=force_apply)
-    _process_req_list(section, "run", ">={{ python_min }}", force_apply=force_apply)
-    found_it = _process_req_list(
+    found_it, section = _process_req_list(
+        section, "host", "{{ python_min }}.*", force_apply=force_apply
+    )
+    logger.debug("applied `noarch: python` host? %s", found_it)
+    found_it, section = _process_req_list(
+        section, "run", ">={{ python_min }}", force_apply=force_apply
+    )
+    logger.debug("applied `noarch: python` to run? %s", found_it)
+    found_it, section = _process_req_list(
         section,
         "requires",
         "={{ python_min }}",
         force_apply=force_apply,
     )
+    logger.debug("applied `noarch: python` to test.requires? %s", found_it)
     if not found_it and force_apply:
-        _add_test_requires(section)
+        section = _add_test_requires(section)
+
+    return section
 
 
 def _apply_noarch_python_min(

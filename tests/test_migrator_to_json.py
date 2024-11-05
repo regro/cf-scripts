@@ -49,17 +49,27 @@ def test_migrator_to_json_minimigrators_noarchpythonmin(force):
     data = migrator.to_lazy_json_data()
     pprint.pprint(data)
     lzj_data = dumps(data)
+    hsh = hashlib.sha1(
+        dumps(
+            {
+                "class": data["class"],
+                "args": data["args"],
+                "kwargs": data["kwargs"],
+            }
+        ).encode("utf-8")
+    ).hexdigest()
+
     assert data == {
         "__mini_migrator__": True,
         "args": [],
         "kwargs": {"force": force},
-        "name": "NoarchPythonMinCleanup",
+        "name": f"NoarchPythonMinCleanup_h{hsh}",
         "class": "NoarchPythonMinCleanup",
     }
 
     migrator2 = make_from_lazy_json_data(loads(lzj_data))
     assert migrator2._init_args == []
-    assert migrator2._init_kwargs == {}
+    assert migrator2._init_kwargs == {"force": force}
     assert isinstance(migrator2, migrator.__class__)
     assert dumps(migrator2.to_lazy_json_data()) == lzj_data
 
