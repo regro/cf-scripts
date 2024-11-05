@@ -143,7 +143,15 @@ def _add_test_requires(section):
                 (" " * (indent + indent_size)) + "- python ={{ python_min }}",
             ]
             if line.endswith("\n"):
-                requires_lines = [_line + "\n" for _line in requires_lines]
+                requires_lines = [
+                    _line + "\n" if not _line.endswith("\n") else _line
+                    for _line in requires_lines
+                ]
+            else:
+                requires_lines = [
+                    _line[-1] if _line.endswith("\n") else _line
+                    for _line in requires_lines
+                ]
 
             new_lines += requires_lines
             new_lines.append(line)
