@@ -35,6 +35,7 @@ def _process_req_list(section, req_list_name, new_python_req, force_apply=False)
     new_lines = []
     curr_indent = None
     in_section = False
+    adjusted_python = False
     for line in section:
         lstrip_line = line.lstrip()
 
@@ -53,6 +54,18 @@ def _process_req_list(section, req_list_name, new_python_req, force_apply=False)
 
         if in_section:
             if indent < curr_indent:
+                if not adjusted_python and req_list_name not in ["host", "run"]:
+                    logger.debug("adding python to section %s", req_list_name)
+                    # insert python as spec
+                    new_line = curr_indent * " " + "- python " + new_python_req
+                    if line.endswith("\n"):
+                        if not new_line.endswith("\n"):
+                            new_line += "\n"
+                    else:
+                        if new_line.endswith("\n"):
+                            new_line = new_line[:-1]
+                    new_lines.append(new_line)
+
                 # the section ended
                 in_section = False
                 new_line = line
@@ -84,6 +97,7 @@ def _process_req_list(section, req_list_name, new_python_req, force_apply=False)
                 )
 
                 if name == "python" and (force_apply or req == ""):
+                    adjusted_python = True
                     new_line = (
                         indent_to_keep
                         + "- python "
@@ -131,6 +145,7 @@ def _add_test_requires(section):
         indent = len(line) - len(lstrip_line)
 
         if lstrip_line.startswith("test:"):
+            logger.debug("found test section for adding requires")
             in_test = True
             test_indent = indent
             new_lines.append(line)
@@ -204,7 +219,7 @@ def _process_section(section, force_noarch_python=False, force_apply=False):
         force_apply=force_apply,
     )
     logger.debug("applied `noarch: python` to test.requires? %s", found_it)
-    if not found_it and force_apply:
+    if not found_it:
         section = _add_test_requires(section)
 
     return section

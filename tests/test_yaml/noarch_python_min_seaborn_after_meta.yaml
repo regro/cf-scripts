@@ -1,0 +1,78 @@
+{% set python_min = python_min|default("0.1a0") %}
+{% set version = "0.13.2" %}
+{% set build = 0 %}
+
+package:
+  name: seaborn-split
+  version: {{ version }}
+
+source:
+  url: https://pypi.io/packages/source/s/seaborn/seaborn-{{ version }}.tar.gz
+  sha256: 93e60a40988f4d65e9f4885df477e2fdaff6b73a9ded434c1ab356dd57eefff7
+
+build:
+  number: {{ build }}
+  noarch: python
+
+test:
+  imports:
+    - seaborn
+  requires:
+    - pip
+    - python ={{ python_min }}
+  commands:
+    - pip check
+
+outputs:
+  - name: seaborn-base
+    build:
+      noarch: python
+    script: build_base.bat  # [win]
+    script: build_base.sh  # [not win]
+    requirements:
+      host:
+        - python {{ python_min }}.*
+        - pip
+        - flit-core >=3.2,<4
+      run:
+        - python >={{ python_min }}
+        - numpy >=1.20,!=1.24.0
+        - matplotlib-base >=3.4,!=3.6.1
+        - scipy >=1.7
+        - pandas >=1.2
+      run_constrained:
+        # should be {{ pin_subpackage("seaborn", exact=True) }}
+        # but this seems to be broken right now: https://github.com/conda/conda-build/issues/4415
+        - seaborn ={{ version }}=*_{{ build }}
+      test:
+        requires:
+          - python ={{ python_min }}
+        imports:
+          - seaborn
+
+  - name: seaborn
+    build:
+      noarch: python
+    requirements:
+      run:
+        - statsmodels >=0.12
+        - {{ pin_subpackage('seaborn-base', exact=True) }}
+
+about:
+  home: https://seaborn.pydata.org
+  license: BSD-3-Clause
+  license_family: BSD
+  license_file: LICENSE.md
+  summary: Statistical data visualization
+  description: |
+    Seaborn is a Python visualization library based on matplotlib. It
+    provides a high-level interface for drawing attractive statistical graphics.
+  doc_url: https://seaborn.pydata.org
+  dev_url: https://github.com/mwaskom/seaborn
+
+extra:
+  feedstock-name: seaborn
+  recipe-maintainers:
+    - msarahan
+    - r-jain1
+    - croth1
