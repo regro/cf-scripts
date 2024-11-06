@@ -211,7 +211,9 @@ def _process_section(section, force_noarch_python=False, force_apply=False):
 
 
 def _apply_noarch_python_min(
-    recipe_dir: str, attrs: "AttrsTypedDict", force_apply=False
+    recipe_dir: str,
+    attrs: "AttrsTypedDict",
+    preserve_existing_specs: bool = True,
 ) -> None:
     fname = os.path.join(recipe_dir, "meta.yaml")
     if os.path.exists(fname):
@@ -232,7 +234,7 @@ def _apply_noarch_python_min(
                 section,
                 force_noarch_python=has_global_noarch_python
                 and (not has_build_override),
-                force_apply=force_apply,
+                force_apply=not preserve_existing_specs,
             )
 
         with open(fname, "w") as fp:
@@ -242,14 +244,14 @@ def _apply_noarch_python_min(
 class NoarchPythonMinCleanup(MiniMigrator):
     post_migration = True
 
-    def __init__(self, force=False):
+    def __init__(self, preserve_existing_specs: bool = True):
         if not hasattr(self, "_init_args"):
             self._init_args = []
 
         if not hasattr(self, "_init_kwargs"):
-            self._init_kwargs = {"force": force}
+            self._init_kwargs = {"preserve_existing_specs": preserve_existing_specs}
 
-        self.force = force
+        self.preserve_existing_specs = preserve_existing_specs
 
     def filter(self, attrs: "AttrsTypedDict", not_bad_str_start: str = "") -> bool:
         """If True SKIP the node"""
@@ -268,7 +270,9 @@ class NoarchPythonMinCleanup(MiniMigrator):
         )
 
     def migrate(self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any) -> None:
-        _apply_noarch_python_min(recipe_dir, attrs, force_apply=self.force)
+        _apply_noarch_python_min(
+            recipe_dir, attrs, preserve_existing_specs=self.preserve_existing_specs
+        )
 
 
 class NoarchPythonMinMigrator(Migrator):
