@@ -318,7 +318,9 @@ class NoarchPythonMinMigrator(Migrator):
             pr_limit,
             graph=graph,
             effective_graph=effective_graph,
-            piggy_back_migrations=[NoarchPythonMinCleanup(force=True)]
+            piggy_back_migrations=[
+                NoarchPythonMinCleanup(preserve_existing_specs=False)
+            ]
             + (piggy_back_migrations or []),
         )
         self.name = "noarch_python_min"
