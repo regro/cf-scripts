@@ -13,7 +13,7 @@ from conda_forge_feedstock_ops.container_utils import (
 )
 from conda_forge_feedstock_ops.os_utils import chmod_plus_rwX, sync_dirs
 
-from conda_forge_tick.utils import CB_CONFIG
+from conda_forge_tick.utils import EXTRA_DEFAULT_VARIANT_CONFIG
 
 logger = logging.getLogger(__name__)
 
@@ -124,15 +124,15 @@ def provide_source_code_local(recipe_dir):
     try:
         with wurlitzer.pipes(stderr=wurlitzer.STDOUT) as (out, _):
             from conda_build.api import render
-            from conda_build.config import Config
             from conda_build.source import provide
 
             # Use conda build to do all the downloading/extracting bits
+            variants = {k: [v] for k, v in EXTRA_DEFAULT_VARIANT_CONFIG.items()}
             md = render(
                 recipe_dir,
-                config=Config(**CB_CONFIG),
                 finalize=False,
                 bypass_env_check=True,
+                variants=variants,
             )
             if not md:
                 return None
