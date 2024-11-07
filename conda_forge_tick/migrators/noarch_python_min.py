@@ -57,13 +57,7 @@ def _process_req_list(section, req_list_name, new_python_req, force_apply=False)
                 if not adjusted_python and req_list_name not in ["host", "run"]:
                     logger.debug("adding python to section %s", req_list_name)
                     # insert python as spec
-                    new_line = curr_indent * " " + "- python " + new_python_req
-                    if line.endswith("\n"):
-                        if not new_line.endswith("\n"):
-                            new_line += "\n"
-                    else:
-                        if new_line.endswith("\n"):
-                            new_line = new_line[:-1]
+                    new_line = curr_indent * " " + "- python " + new_python_req + "\n"
                     new_lines.append(new_line)
 
                 # the section ended
@@ -103,13 +97,8 @@ def _process_req_list(section, req_list_name, new_python_req, force_apply=False)
                         + "- python "
                         + new_python_req
                         + ("  #" + comment if comment != "" else "")
+                        + "\n"
                     )
-                    if line.endswith("\n"):
-                        if not new_line.endswith("\n"):
-                            new_line += "\n"
-                    else:
-                        if new_line.endswith("\n"):
-                            new_line = new_line[:-1]
                 else:
                     new_line = line
         else:
@@ -154,20 +143,9 @@ def _add_test_requires(section):
         if in_test:
             indent_size = indent - test_indent
             requires_lines = [
-                (" " * indent) + "requires:",
-                (" " * (indent + indent_size)) + "- python {{ python_min }}",
+                (" " * indent) + "requires:" + "\n",
+                (" " * (indent + indent_size)) + "- python {{ python_min }}" + "\n",
             ]
-            if line.endswith("\n"):
-                requires_lines = [
-                    _line + "\n" if not _line.endswith("\n") else _line
-                    for _line in requires_lines
-                ]
-            else:
-                requires_lines = [
-                    _line[-1] if _line.endswith("\n") else _line
-                    for _line in requires_lines
-                ]
-
             new_lines += requires_lines
             new_lines.append(line)
 
