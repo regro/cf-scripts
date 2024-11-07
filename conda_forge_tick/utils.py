@@ -55,6 +55,10 @@ class MockOS:
         self.sep = "/"
 
 
+EXTRA_DEFAULT_VARIANT_CONFIG = {
+    "python_min": "9999",
+}
+
 CB_CONFIG = dict(
     os=MockOS(),
     environ=defaultdict(str),
@@ -66,8 +70,8 @@ CB_CONFIG = dict(
     cran_mirror="https://cran.r-project.org",
     datetime=datetime,
     load_file_regex=lambda *args, **kwargs: None,
-    python_min="9999",
 )
+CB_CONFIG.update(EXTRA_DEFAULT_VARIANT_CONFIG)
 
 
 def _munge_dict_repr(dct: Dict[Any, Any]) -> str:
@@ -93,8 +97,8 @@ CB_CONFIG_PINNING = dict(
     cran_mirror="https://cran.r-project.org",
     datetime=datetime,
     load_file_regex=lambda *args, **kwargs: None,
-    python_min="9999",
 )
+CB_CONFIG_PINNING.update(EXTRA_DEFAULT_VARIANT_CONFIG)
 
 DEFAULT_GRAPH_FILENAME = "graph.json"
 
