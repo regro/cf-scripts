@@ -72,6 +72,7 @@ def _process_req_list(section, req_list_name, new_python_req, force_apply=False)
                 else:
                     spec, comment = spec_and_comment
                 spec = spec.strip()
+                comment = comment.strip()
 
                 name_and_req = spec.split(" ", maxsplit=1)
                 if len(name_and_req) == 1:
@@ -96,7 +97,7 @@ def _process_req_list(section, req_list_name, new_python_req, force_apply=False)
                         indent_to_keep
                         + "- python "
                         + new_python_req
-                        + ("  #" + comment if comment != "" else "")
+                        + ("  # " + comment if comment != "" else "")
                         + "\n"
                     )
                 else:
