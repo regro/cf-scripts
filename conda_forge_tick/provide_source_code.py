@@ -133,6 +133,7 @@ def provide_source_code_local(recipe_dir):
                 config=Config(**CB_CONFIG),
                 finalize=False,
                 bypass_env_check=True,
+                variants={"python_min": ["9999"]},
             )
             if not md:
                 return None
