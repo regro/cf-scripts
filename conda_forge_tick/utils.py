@@ -66,6 +66,7 @@ CB_CONFIG = dict(
     cran_mirror="https://cran.r-project.org",
     datetime=datetime,
     load_file_regex=lambda *args, **kwargs: None,
+    python_min="9999",
 )
 
 
@@ -92,6 +93,7 @@ CB_CONFIG_PINNING = dict(
     cran_mirror="https://cran.r-project.org",
     datetime=datetime,
     load_file_regex=lambda *args, **kwargs: None,
+    python_min="9999",
 )
 
 DEFAULT_GRAPH_FILENAME = "graph.json"
