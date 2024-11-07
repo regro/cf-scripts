@@ -76,14 +76,12 @@ def test_noarch_python_min_minimigrator(feedstock, new_ver, tmpdir):
             ),
             textwrap.dedent(
                 """\
-                {% set python_min = python_min|default("0.1a0") %}
-
                 build:
                   noarch: python
 
                 requirements:
                   host:
-                    - python {{ python_min }}.*
+                    - python {{ python_min }}
                     - numpy
                   run:
                     - python >={{ python_min }}
@@ -91,7 +89,7 @@ def test_noarch_python_min_minimigrator(feedstock, new_ver, tmpdir):
 
                 test:
                   requires:
-                    - python ={{ python_min }}
+                    - python {{ python_min }}
                     - numpy
                 """
             ),
@@ -118,14 +116,12 @@ def test_noarch_python_min_minimigrator(feedstock, new_ver, tmpdir):
             ),
             textwrap.dedent(
                 """\
-                {% set python_min = python_min|default("0.1a0") %}
-
                 build:
                   noarch: python
 
                 requirements:
                   host:
-                    - python {{ python_min }}.*
+                    - python {{ python_min }}
                     - numpy
                   run:
                     - python >={{ python_min }}
@@ -133,7 +129,7 @@ def test_noarch_python_min_minimigrator(feedstock, new_ver, tmpdir):
 
                 test:
                   requires:
-                    - python ={{ python_min }}
+                    - python {{ python_min }}
                   imports:
                     - blah
                 """
@@ -162,8 +158,6 @@ def test_noarch_python_min_minimigrator(feedstock, new_ver, tmpdir):
             ),
             textwrap.dedent(
                 """\
-                {% set python_min = python_min|default("0.1a0") %}
-
                 build:
                   noarch: python
 
@@ -205,14 +199,12 @@ def test_noarch_python_min_minimigrator(feedstock, new_ver, tmpdir):
             ),
             textwrap.dedent(
                 """\
-                {% set python_min = python_min|default("0.1a0") %}
-
                 build:
                   noarch: python
 
                 requirements:
                   host:
-                    - python {{ python_min }}.*  # this is cool
+                    - python {{ python_min }}  # this is cool
                     - numpy
                   run:
                     - python >={{ python_min }}
@@ -220,7 +212,7 @@ def test_noarch_python_min_minimigrator(feedstock, new_ver, tmpdir):
 
                 test:
                   requires:
-                    - python ={{ python_min }}
+                    - python {{ python_min }}
                     - numpy
                 """
             ),
@@ -304,8 +296,6 @@ def test_noarch_python_min_minimigrator(feedstock, new_ver, tmpdir):
             ),
             textwrap.dedent(
                 """\
-                {% set python_min = python_min|default("0.1a0") %}
-
                 requirements:
                   host:
                     - python
@@ -320,14 +310,14 @@ def test_noarch_python_min_minimigrator(feedstock, new_ver, tmpdir):
                       noarch: python
                     requirements:
                       host:
-                        - python {{ python_min }}.*
+                        - python {{ python_min }}
                         - numpy
                       run:
                         - python >={{ python_min }}
                         - numpy
                     test:
                       requires:
-                        - python ={{ python_min }}
+                        - python {{ python_min }}
                       imports:
                         - blah
 
@@ -394,14 +384,12 @@ def test_noarch_python_min_minimigrator(feedstock, new_ver, tmpdir):
             ),
             textwrap.dedent(
                 """\
-                {% set python_min = python_min|default("0.1a0") %}
-
                 build:
                   noarch: python
 
                 requirements:
                   host:
-                    - python {{ python_min }}.*
+                    - python {{ python_min }}
                     - numpy
                   run:
                     - python >={{ python_min }}
@@ -425,7 +413,7 @@ def test_noarch_python_min_minimigrator(feedstock, new_ver, tmpdir):
                   - name: blah-2
                     requirements:
                       host:
-                        - python {{ python_min }}.*
+                        - python {{ python_min }}
                         - numpy
                       run:
                         - python >={{ python_min }}
@@ -433,7 +421,7 @@ def test_noarch_python_min_minimigrator(feedstock, new_ver, tmpdir):
 
                 test:
                   requires:
-                    - python ={{ python_min }}
+                    - python {{ python_min }}
                     - numpy
                 """
             ),

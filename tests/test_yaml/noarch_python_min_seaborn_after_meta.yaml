@@ -19,7 +19,7 @@ test:
     - seaborn
   requires:
     - pip
-    - python ={{ python_min }}
+    - python {{ python_min }}
   commands:
     - pip check
 
@@ -31,7 +31,7 @@ outputs:
     script: build_base.sh  # [not win]
     requirements:
       host:
-        - python {{ python_min }}.*
+        - python {{ python_min }}
         - pip
         - flit-core >=3.2,<4
       run:
@@ -46,7 +46,7 @@ outputs:
         - seaborn ={{ version }}=*_{{ build }}
       test:
         requires:
-          - python ={{ python_min }}
+          - python {{ python_min }}
         imports:
           - seaborn
 

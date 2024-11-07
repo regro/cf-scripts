@@ -155,7 +155,7 @@ def _add_test_requires(section):
             indent_size = indent - test_indent
             requires_lines = [
                 (" " * indent) + "requires:",
-                (" " * (indent + indent_size)) + "- python ={{ python_min }}",
+                (" " * (indent + indent_size)) + "- python {{ python_min }}",
             ]
             if line.endswith("\n"):
                 requires_lines = [
@@ -178,34 +178,12 @@ def _add_test_requires(section):
     return new_lines
 
 
-def _add_default_python_min_value(section):
-    new_line = '{% set python_min = python_min|default("0.1a0") %}'
-    if section[0].endswith("\n"):
-        new_line += "\n"
-        extra_space = "\n"
-    else:
-        extra_space = ""
-    add_it = True
-    for line in section:
-        if "{% set python_min = " in line:
-            add_it = False
-            break
-
-    if add_it:
-        if "{% " not in section[0]:
-            return [new_line, extra_space] + section
-        else:
-            return [new_line] + section
-    else:
-        return section
-
-
 def _process_section(section, force_noarch_python=False, force_apply=False):
     if (not _has_noarch_python(section)) and (not force_noarch_python):
         return section
 
     found_it, section = _process_req_list(
-        section, "host", "{{ python_min }}.*", force_apply=force_apply
+        section, "host", "{{ python_min }}", force_apply=force_apply
     )
     logger.debug("applied `noarch: python` host? %s", found_it)
     found_it, section = _process_req_list(
@@ -215,7 +193,7 @@ def _process_section(section, force_noarch_python=False, force_apply=False):
     found_it, section = _process_req_list(
         section,
         "requires",
-        "={{ python_min }}",
+        "{{ python_min }}",
         force_apply=force_apply,
     )
     logger.debug("applied `noarch: python` to test.requires? %s", found_it)
@@ -237,8 +215,6 @@ def _apply_noarch_python_min(
 
         new_lines = []
         sections = _slice_into_output_sections(lines, attrs)
-        if any(_has_noarch_python(section) for section in sections.values()):
-            sections[-1] = _add_default_python_min_value(sections[-1])
         output_indices = sorted(list(sections.keys()))
         has_global_noarch_python = _has_noarch_python(sections[-1])
         for output_index in output_indices:
