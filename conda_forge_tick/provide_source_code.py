@@ -1,3 +1,4 @@
+import glob
 import logging
 import os
 import shutil
@@ -12,8 +13,6 @@ from conda_forge_feedstock_ops.container_utils import (
     should_use_container,
 )
 from conda_forge_feedstock_ops.os_utils import chmod_plus_rwX, sync_dirs
-
-from conda_forge_tick.utils import EXTRA_DEFAULT_VARIANT_CONFIG
 
 logger = logging.getLogger(__name__)
 
@@ -124,10 +123,27 @@ def provide_source_code_local(recipe_dir):
     try:
         with wurlitzer.pipes(stderr=wurlitzer.STDOUT) as (out, _):
             from conda_build.api import render
+            from conda_build.config import get_or_merge_config
             from conda_build.source import provide
+            from conda_build.variants import (
+                get_package_variants,
+                list_of_dicts_to_dict_of_lists,
+            )
 
             # Use conda build to do all the downloading/extracting bits
-            variants = {k: [v] for k, v in EXTRA_DEFAULT_VARIANT_CONFIG.items()}
+            config = get_or_merge_config(None)
+            ci_support_files = sorted(
+                glob.glob(os.path.join(recipe_dir, "../.ci_support/*.yaml"))
+            )
+            if ci_support_files:
+                config.variant_config_files = [ci_support_files[0]]
+            else:
+                config.variant_config_files = [
+                    # try global pinnings
+                    os.path.join(os.environ["CONDA_PREFIX"], "conda_build_config.yaml")
+                ]
+            variants = get_package_variants(recipe_dir, config=config)[0]
+            variants = list_of_dicts_to_dict_of_lists([variants])
             md = render(
                 recipe_dir,
                 finalize=False,
