@@ -122,10 +122,16 @@ def provide_source_code_local(recipe_dir):
     try:
         with wurlitzer.pipes(stderr=wurlitzer.STDOUT) as (out, _):
             from conda_build.api import render
+            from conda_build.config import get_or_merge_config
             from conda_build.source import provide
             from conda_build.variants import get_package_variants
 
             # Use conda build to do all the downloading/extracting bits
+            config = get_or_merge_config(None)
+            config.variant_config_files = [
+                # global pinnings
+                os.path.join(os.environ["CONDA_PREFIX"], "conda_build_config.yaml")
+            ]
             variants = get_package_variants(recipe_dir)[0]
             variants = {k: [v] for k, v in variants.items()}
             md = render(
