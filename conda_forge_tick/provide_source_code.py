@@ -1,3 +1,4 @@
+import glob
 import logging
 import os
 import shutil
@@ -124,16 +125,25 @@ def provide_source_code_local(recipe_dir):
             from conda_build.api import render
             from conda_build.config import get_or_merge_config
             from conda_build.source import provide
-            from conda_build.variants import get_package_variants
+            from conda_build.variants import (
+                get_package_variants,
+                list_of_dicts_to_dict_of_lists,
+            )
 
             # Use conda build to do all the downloading/extracting bits
             config = get_or_merge_config(None)
-            config.variant_config_files = [
-                # global pinnings
-                os.path.join(os.environ["CONDA_PREFIX"], "conda_build_config.yaml")
-            ]
-            variants = get_package_variants(recipe_dir)[0]
-            variants = {k: [v] for k, v in variants.items()}
+            ci_support_files = sorted(
+                glob.glob(os.path.join(recipe_dir, "../.ci_support/*.yaml"))
+            )
+            if ci_support_files:
+                config.variant_config_files = [ci_support_files[0]]
+            else:
+                config.variant_config_files = [
+                    # try global pinnings
+                    os.path.join(os.environ["CONDA_PREFIX"], "conda_build_config.yaml")
+                ]
+            variants = get_package_variants(recipe_dir, config=config)[0]
+            variants = list_of_dicts_to_dict_of_lists([variants])
             md = render(
                 recipe_dir,
                 finalize=False,
