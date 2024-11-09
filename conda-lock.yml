@@ -2011,39 +2011,39 @@ package:
   - category: main
     dependencies: {}
     hash:
-      md5: bed45f31a17990be1a9f9bf25a4a4aa7
-      sha256: b133157e1198ea8310a899e4fd34e5c3487fcdf3cc3a70ac54297b6f865fb3b9
+      md5: 3fd73ab84c4b9762f91af8ba3e7098fc
+      sha256: 17389daa611a003fe1b3bd5e2df88064dd4558d7a1dfd058f4d5ee2fb749172f
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.11.08.21.03.17-hd8ed1ab_0.conda
-    version: 2024.11.08.21.03.17
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.11.09.05.29.22-hd8ed1ab_0.conda
+    version: 2024.11.09.05.29.22
   - category: main
     dependencies: {}
     hash:
-      md5: bed45f31a17990be1a9f9bf25a4a4aa7
-      sha256: b133157e1198ea8310a899e4fd34e5c3487fcdf3cc3a70ac54297b6f865fb3b9
+      md5: 3fd73ab84c4b9762f91af8ba3e7098fc
+      sha256: 17389daa611a003fe1b3bd5e2df88064dd4558d7a1dfd058f4d5ee2fb749172f
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.11.08.21.03.17-hd8ed1ab_0.conda
-    version: 2024.11.08.21.03.17
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.11.09.05.29.22-hd8ed1ab_0.conda
+    version: 2024.11.09.05.29.22
   - category: main
     dependencies: {}
     hash:
-      md5: bed45f31a17990be1a9f9bf25a4a4aa7
-      sha256: b133157e1198ea8310a899e4fd34e5c3487fcdf3cc3a70ac54297b6f865fb3b9
+      md5: 3fd73ab84c4b9762f91af8ba3e7098fc
+      sha256: 17389daa611a003fe1b3bd5e2df88064dd4558d7a1dfd058f4d5ee2fb749172f
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.11.08.21.03.17-hd8ed1ab_0.conda
-    version: 2024.11.08.21.03.17
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.11.09.05.29.22-hd8ed1ab_0.conda
+    version: 2024.11.09.05.29.22
   - category: main
     dependencies:
       click: '>=8'
@@ -13812,38 +13812,38 @@ package:
     dependencies:
       python: '>=3.8'
     hash:
-      md5: d44e3b085abcaef02983c6305b84b584
-      sha256: d828764736babb4322b8102094de38074dedfc71f5ff405c9dfee89191c14ebc
+      md5: f9751d7c71df27b2d29f5cab3378982e
+      sha256: 8a51067f8e1a2cb0b5e89672dbcc0369e344a92e869c38b2946584aa09ab7088
     manager: conda
     name: wheel
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/noarch/wheel-0.44.0-pyhd8ed1ab_0.conda
-    version: 0.44.0
+    url: https://conda.anaconda.org/conda-forge/noarch/wheel-0.45.0-pyhd8ed1ab_0.conda
+    version: 0.45.0
   - category: main
     dependencies:
       python: '>=3.8'
     hash:
-      md5: d44e3b085abcaef02983c6305b84b584
-      sha256: d828764736babb4322b8102094de38074dedfc71f5ff405c9dfee89191c14ebc
+      md5: f9751d7c71df27b2d29f5cab3378982e
+      sha256: 8a51067f8e1a2cb0b5e89672dbcc0369e344a92e869c38b2946584aa09ab7088
     manager: conda
     name: wheel
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/noarch/wheel-0.44.0-pyhd8ed1ab_0.conda
-    version: 0.44.0
+    url: https://conda.anaconda.org/conda-forge/noarch/wheel-0.45.0-pyhd8ed1ab_0.conda
+    version: 0.45.0
   - category: main
     dependencies:
       python: '>=3.8'
     hash:
-      md5: d44e3b085abcaef02983c6305b84b584
-      sha256: d828764736babb4322b8102094de38074dedfc71f5ff405c9dfee89191c14ebc
+      md5: f9751d7c71df27b2d29f5cab3378982e
+      sha256: 8a51067f8e1a2cb0b5e89672dbcc0369e344a92e869c38b2946584aa09ab7088
     manager: conda
     name: wheel
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/noarch/wheel-0.44.0-pyhd8ed1ab_0.conda
-    version: 0.44.0
+    url: https://conda.anaconda.org/conda-forge/noarch/wheel-0.45.0-pyhd8ed1ab_0.conda
+    version: 0.45.0
   - category: main
     dependencies:
       __glibc: '>=2.17,<3.0.a0'
