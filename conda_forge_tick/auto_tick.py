@@ -627,7 +627,7 @@ def run(
     return migration_run_data["migrate_return_value"], ljpr
 
 
-def _compute_time_per_migrator(mctx, migrators):
+def _compute_time_per_migrator(migrators):
     # we weight each migrator by the number of available nodes to migrate
     num_nodes = []
     for migrator in tqdm.tqdm(migrators, ncols=80, desc="computing time per migrator"):
@@ -886,9 +886,7 @@ def _is_migrator_done(_mg_start, good_prs, time_per, pr_limit):
     return False
 
 
-def _run_migrator(
-    migrator, mctx, temp, time_per, dry_run, git_backend: GitPlatformBackend
-):
+def _run_migrator(migrator, mctx, temp, time_per, git_backend: GitPlatformBackend):
     _mg_start = time.time()
 
     migrator_name = get_migrator_name(migrator)
@@ -1030,8 +1028,7 @@ def _run_migrator(
                 os.chdir(BOT_HOME_DIR)
 
                 # Write graph partially through
-                if not dry_run:
-                    dump_graph(mctx.graph)
+                dump_graph(mctx.graph)
 
                 with filter_reprinted_lines("rm-tmp"):
                     for f in glob.glob("/tmp/*"):
@@ -1231,7 +1228,6 @@ def main(ctx: CliContext) -> None:
             graph=gx,
             smithy_version=smithy_version,
             pinning_version=pinning_version,
-            dry_run=ctx.dry_run,
         )
         migrators = load_migrators()
 
@@ -1243,7 +1239,6 @@ def main(ctx: CliContext) -> None:
             time_per_migrator,
             tot_time_per_migrator,
         ) = _compute_time_per_migrator(
-            mctx,
             migrators,
         )
         for i, migrator in enumerate(migrators):
@@ -1267,7 +1262,7 @@ def main(ctx: CliContext) -> None:
 
     for mg_ind, migrator in enumerate(migrators):
         good_prs = _run_migrator(
-            migrator, mctx, temp, time_per_migrator[mg_ind], ctx.dry_run, git_backend
+            migrator, mctx, temp, time_per_migrator[mg_ind], git_backend
         )
         if good_prs > 0:
             pass

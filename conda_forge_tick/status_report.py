@@ -404,7 +404,6 @@ def main() -> None:
             graph=gx,
             smithy_version=smithy_version,
             pinning_version=pinning_version,
-            dry_run=False,
         )
         migrators = load_migrators(skip_paused=False)
 
