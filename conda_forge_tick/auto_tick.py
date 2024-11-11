@@ -31,12 +31,13 @@ from conda_forge_tick.deploy import deploy
 from conda_forge_tick.feedstock_parser import BOOTSTRAP_MAPPINGS
 from conda_forge_tick.git_utils import (
     DryRunBackend,
+    DuplicatePullRequestError,
     GitCli,
     GitCliError,
     GitPlatformBackend,
     RepositoryNotFoundError,
     github_backend,
-    is_github_api_limit_reached, DuplicatePullRequestError,
+    is_github_api_limit_reached,
 )
 from conda_forge_tick.lazy_json_backends import (
     LazyJson,
@@ -50,7 +51,7 @@ from conda_forge_tick.make_migrators import (
     PR_LIMIT,
     load_migrators,
 )
-from conda_forge_tick.migrators import Migrator, Version, MigrationYaml
+from conda_forge_tick.migrators import MigrationYaml, Migrator, Version
 from conda_forge_tick.migrators.version import VersionMigrationError
 from conda_forge_tick.os_utils import eval_cmd
 from conda_forge_tick.rerender_feedstock import rerender_feedstock
@@ -67,8 +68,8 @@ from conda_forge_tick.utils import (
     load_existing_graph,
     sanitize_string,
 )
-from .migration_runner import run_migration
 
+from .migration_runner import run_migration
 from .migrators_types import MigrationUidTypedDict
 from .models.pr_json import PullRequestData, PullRequestInfoSpecial, PullRequestState
 
