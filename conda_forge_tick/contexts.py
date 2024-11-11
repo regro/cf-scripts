@@ -27,7 +27,6 @@ class MigratorSessionContext:
     graph: DiGraph = None
     smithy_version: str = ""
     pinning_version: str = ""
-    dry_run: bool = True
 
 
 @dataclass(frozen=True)
@@ -54,6 +53,13 @@ class FeedstockContext:
     @property
     def git_repo_name(self) -> str:
         return f"{self.feedstock_name}-feedstock"
+
+    @property
+    def git_http_ref(self) -> str:
+        """
+        A link to the feedstock's GitHub repository.
+        """
+        return f"https://github.com/{self.git_repo_owner}/{self.git_repo_name}"
 
     @property
     def automerge(self) -> bool | str:
