@@ -55,13 +55,6 @@ class FeedstockContext:
         return f"{self.feedstock_name}-feedstock"
 
     @property
-    def git_http_ref(self) -> str:
-        """
-        A link to the feedstock's GitHub repository.
-        """
-        return f"https://github.com/{self.git_repo_owner}/{self.git_repo_name}"
-
-    @property
     def automerge(self) -> bool | str:
         """
         Get the automerge setting of the feedstock.
