@@ -6,7 +6,10 @@ import pytest
 from test_migrators import run_test_migration
 
 from conda_forge_tick.migrators import NoarchPythonMinCleanup, Version
-from conda_forge_tick.migrators.noarch_python_min import _apply_noarch_python_min
+from conda_forge_tick.migrators.noarch_python_min import (
+    _apply_noarch_python_min,
+    _get_curr_python_min,
+)
 from conda_forge_tick.utils import yaml_safe_load
 
 TEST_YAML_PATH = os.path.join(os.path.dirname(__file__), "test_yaml")
@@ -14,6 +17,12 @@ TEST_YAML_PATH = os.path.join(os.path.dirname(__file__), "test_yaml")
 VERSION_WITH_NOARCHPY = Version(
     set(),
     piggy_back_migrations=[NoarchPythonMinCleanup()],
+)
+GLOBAL_PYTHON_MIN = _get_curr_python_min()
+NEXT_GLOBAL_PYTHON_MIN = (
+    GLOBAL_PYTHON_MIN.split(".")[0]
+    + "."
+    + str(int(GLOBAL_PYTHON_MIN.split(".")[1]) + 1)
 )
 
 
@@ -186,6 +195,89 @@ def test_noarch_python_min_minimigrator(feedstock, new_ver, tmpdir):
                 requirements:
                   host:
                     - python 3.6.*  # this is cool
+                    - numpy
+                  run:
+                    - python
+                    - numpy
+
+                test:
+                  requires:
+                    - python =3.6
+                    - numpy
+                """
+            ),
+            textwrap.dedent(
+                """\
+                build:
+                  noarch: python
+
+                requirements:
+                  host:
+                    - python {{ python_min }}  # this is cool
+                    - numpy
+                  run:
+                    - python >={{ python_min }}
+                    - numpy
+
+                test:
+                  requires:
+                    - python {{ python_min }}
+                    - numpy
+                """
+            ),
+            False,
+        ),
+        (
+            textwrap.dedent(
+                f"""\
+                build:
+                  noarch: python
+
+                requirements:
+                  host:
+                    - python >={NEXT_GLOBAL_PYTHON_MIN}  # this is cool
+                    - numpy
+                  run:
+                    - python
+                    - numpy
+
+                test:
+                  requires:
+                    - python =3.6
+                    - numpy
+                """
+            ),
+            textwrap.dedent(
+                f"""\
+                {{% set python_min = '{NEXT_GLOBAL_PYTHON_MIN}' %}}
+                build:
+                  noarch: python
+
+                requirements:
+                  host:
+                    - python {{{{ python_min }}}}  # this is cool
+                    - numpy
+                  run:
+                    - python >={{{{ python_min }}}}
+                    - numpy
+
+                test:
+                  requires:
+                    - python {{{{ python_min }}}}
+                    - numpy
+                """
+            ),
+            False,
+        ),
+        (
+            textwrap.dedent(
+                f"""\
+                build:
+                  noarch: python
+
+                requirements:
+                  host:
+                    - python >={GLOBAL_PYTHON_MIN}  # this is cool
                     - numpy
                   run:
                     - python

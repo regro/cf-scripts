@@ -1,3 +1,4 @@
+import functools
 import logging
 import os
 import textwrap
@@ -5,15 +6,29 @@ import typing
 from typing import Any, Sequence
 
 import networkx as nx
+from conda.models.version import VersionOrder
+from conda_build.config import Config
+from conda_build.variants import parse_config_file
 
 from conda_forge_tick.contexts import ClonedFeedstockContext
 from conda_forge_tick.migrators.core import Migrator, MiniMigrator, _skip_due_to_schema
 from conda_forge_tick.migrators.libboost import _slice_into_output_sections
+from conda_forge_tick.os_utils import pushd
 
 if typing.TYPE_CHECKING:
     from ..migrators_types import AttrsTypedDict
 
 logger = logging.getLogger(__name__)
+
+
+@functools.lru_cache(maxsize=1)
+def _get_curr_python_min():
+    with pushd(os.environ["CONDA_PREFIX"]):
+        pinnings = parse_config_file(
+            "conda_build_config.yaml",
+            config=Config(),
+        )
+    return pinnings.get("python_min", None)[0]
 
 
 def _has_noarch_python(lines):
@@ -36,6 +51,7 @@ def _process_req_list(section, req_list_name, new_python_req, force_apply=False)
     curr_indent = None
     in_section = False
     adjusted_python = False
+    python_min_override = None
     for line in section:
         lstrip_line = line.lstrip()
 
@@ -100,6 +116,9 @@ def _process_req_list(section, req_list_name, new_python_req, force_apply=False)
                         + ("  # " + comment if comment != "" else "")
                         + "\n"
                     )
+                    if req.startswith(">="):
+                        python_min_override = req[2:].strip()
+
                 else:
                     new_line = line
         else:
@@ -113,7 +132,7 @@ def _process_req_list(section, req_list_name, new_python_req, force_apply=False)
         new_lines.append(new_line)
         curr_indent = indent
 
-    return found_it, new_lines
+    return found_it, new_lines, python_min_override
 
 
 def _add_test_requires(section):
@@ -159,17 +178,17 @@ def _add_test_requires(section):
 
 def _process_section(section, force_noarch_python=False, force_apply=False):
     if (not _has_noarch_python(section)) and (not force_noarch_python):
-        return section
+        return section, None
 
-    found_it, section = _process_req_list(
+    found_it, section, python_min_override = _process_req_list(
         section, "host", "{{ python_min }}", force_apply=force_apply
     )
     logger.debug("applied `noarch: python` host? %s", found_it)
-    found_it, section = _process_req_list(
+    found_it, section, _ = _process_req_list(
         section, "run", ">={{ python_min }}", force_apply=force_apply
     )
     logger.debug("applied `noarch: python` to run? %s", found_it)
-    found_it, section = _process_req_list(
+    found_it, section, _ = _process_req_list(
         section,
         "requires",
         "{{ python_min }}",
@@ -179,7 +198,7 @@ def _process_section(section, force_noarch_python=False, force_apply=False):
     if not found_it:
         section = _add_test_requires(section)
 
-    return section
+    return section, python_min_override
 
 
 def _apply_noarch_python_min(
@@ -192,6 +211,7 @@ def _apply_noarch_python_min(
         with open(fname) as fp:
             lines = fp.readlines()
 
+        python_min_override = set()
         new_lines = []
         sections = _slice_into_output_sections(lines, attrs)
         output_indices = sorted(list(sections.keys()))
@@ -200,13 +220,41 @@ def _apply_noarch_python_min(
             section = sections[output_index]
             has_build_override = _has_build_section(section) and (output_index != -1)
             # _process_section returns list of lines already
-            new_lines += _process_section(
+            _new_lines, _python_min_override = _process_section(
                 section,
                 force_noarch_python=has_global_noarch_python
                 and (not has_build_override),
                 force_apply=not preserve_existing_specs,
             )
+            new_lines += _new_lines
+            if _python_min_override is not None:
+                python_min_override.add(_python_min_override)
 
+        if python_min_override and not preserve_existing_specs:
+            python_min_override.add(_get_curr_python_min())
+            ok_versions = set()
+            for ver in python_min_override:
+                try:
+                    VersionOrder(ver.replace("-", "."))
+                    ok_versions.add(ver)
+                except Exception as e:
+                    logger.error(
+                        "found invalid python min version: %s", ver, exc_info=e
+                    )
+            if ok_versions:
+                python_min_version = max(
+                    ok_versions,
+                    key=lambda x: VersionOrder(x.replace("-", ".")),
+                )
+                logger.debug(
+                    "found python min version: %s (global min is %s)",
+                    python_min_version,
+                    _get_curr_python_min(),
+                )
+                if python_min_version != _get_curr_python_min():
+                    new_lines = [
+                        f"{{% set python_min = '{python_min_version}' %}}\n"
+                    ] + new_lines
         with open(fname, "w") as fp:
             fp.write("".join(new_lines))
 
