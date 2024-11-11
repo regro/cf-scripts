@@ -1016,8 +1016,8 @@ def github_response_get_repo() -> dict:
 
 
 @pytest.fixture()
-def github_response_headers() -> dict:
-    return _github_api_json_fixture("github_response_headers")
+def create_pull_response_headers() -> dict:
+    return _github_api_json_fixture("create_pull_response_headers")
 
 
 def test_github_backend_from_token():
@@ -1272,7 +1272,7 @@ def test_github_backend_get_api_requests_left_zero_valid_reset_time(caplog):
 def test_github_backend_create_pull_request_mock(
     request_mock: MagicMock,
     github_response_get_repo: dict,
-    github_response_headers: dict,
+    create_pull_response_headers: dict,
     github_response_get_pull: dict,
 ):
     def request_side_effect(method, _url, **_kwargs):
@@ -1285,7 +1285,7 @@ def test_github_backend_create_pull_request_mock(
             response.status_code = 201
             # note that the "create pull" response body is identical to the "get pull" response body
             response.json = lambda: github_response_get_pull
-            response.headers = CaseInsensitiveDict(github_response_headers)
+            response.headers = CaseInsensitiveDict(create_pull_response_headers)
             return response
         assert False, f"Unexpected method: {method}"
 
@@ -1336,6 +1336,12 @@ def test_github_backend_create_pull_request_mock(
     assert pr_data.updated_at == datetime.datetime(
         2024, 5, 27, 13, 31, 50, tzinfo=datetime.timezone.utc
     )
+
+    assert (
+        pr_data.e_tag
+        == '"9995f8b0b0fe850244173c40390fbe8cb00fe525d7e58954bd6dd4bbcb74785a"'
+    )
+    assert pr_data.last_modified is None
 
 
 @mock.patch("requests.Session.request")
