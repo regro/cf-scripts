@@ -1,3 +1,4 @@
+import base64
 import datetime
 import json
 import logging
@@ -549,12 +550,14 @@ def test_git_cli_add_token_mock(run_git_command_mock: MagicMock):
 
     cli.add_token(git_dir, origin, token)
 
+    http_basic_token = base64.b64encode(f"x-access-token:{token}".encode()).decode()
+
     run_git_command_mock.assert_called_once_with(
         [
             "config",
             "--local",
             "http.https://git-repository.com/.extraheader",
-            "AUTHORIZATION: basic TOKEN",
+            f"AUTHORIZATION: basic {http_basic_token}",
         ],
         git_dir,
         suppress_all_output=True,

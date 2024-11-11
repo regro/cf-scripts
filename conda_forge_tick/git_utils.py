@@ -1,5 +1,6 @@
 """Utilities for managing github repos"""
 
+import base64
 import copy
 import enum
 import logging
@@ -311,7 +312,7 @@ class GitCli:
         """
         Configures git with a local configuration to use the given token for the given origin.
         Internally, this sets the `http.<origin>/.extraheader` git configuration key to
-        `AUTHORIZATION: basic <token>`.
+        `AUTHORIZATION: basic <base64-encoded HTTP basic token>`.
         This is similar to how the GitHub Checkout action does it:
         https://github.com/actions/checkout/blob/eef61447b9ff4aafe5dcd4e0bbf5d482be7e7871/adrs/0153-checkout-v2.md#PAT
 
@@ -320,12 +321,14 @@ class GitCli:
         :param origin: The origin to use the token for. Origin is SCHEME://HOST[:PORT] (without trailing slash).
         :param token: The token to use.
         """
+        http_basic_token = base64.b64encode(f"x-access-token:{token}".encode()).decode()
+
         self._run_git_command(
             [
                 "config",
                 "--local",
                 f"http.{origin}/.extraheader",
-                f"AUTHORIZATION: basic {token}",
+                f"AUTHORIZATION: basic {http_basic_token}",
             ],
             git_dir,
             suppress_all_output=True,
