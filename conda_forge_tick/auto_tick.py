@@ -1226,7 +1226,6 @@ def main(ctx: CliContext) -> None:
             graph=gx,
             smithy_version=smithy_version,
             pinning_version=pinning_version,
-            dry_run=ctx.dry_run,
         )
         migrators = load_migrators()
 
