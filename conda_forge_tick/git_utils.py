@@ -488,7 +488,7 @@ class GitCli:
                 raise GitCliError(
                     f"Could not clone {origin_url} - does the remote exist?"
                 )
-            logger.debug(
+            logger.info(
                 f"Cloning {origin_url} into {target_dir} was not successful - "
                 f"trying to reset hard since the directory already exists. This will fail if the target directory is "
                 f"not a git repository."
@@ -498,7 +498,7 @@ class GitCli:
         try:
             self.add_remote(target_dir, "upstream", upstream_url)
         except GitCliError as e:
-            logger.debug(
+            logger.info(
                 "It looks like remote 'upstream' already exists. Ignoring.", exc_info=e
             )
             pass
@@ -511,7 +511,7 @@ class GitCli:
             try:
                 self.checkout_branch(target_dir, f"upstream/{base_branch}", track=True)
             except GitCliError as e:
-                logger.debug(
+                logger.info(
                     "Could not check out with git checkout --track. Trying git checkout -b.",
                     exc_info=e,
                 )
@@ -527,12 +527,12 @@ class GitCli:
         self.reset_hard(target_dir, f"upstream/{base_branch}")
 
         try:
-            logger.debug(
+            logger.info(
                 f"Trying to checkout branch {new_branch} without creating a new branch"
             )
             self.checkout_branch(target_dir, new_branch)
         except GitCliError:
-            logger.debug(
+            logger.info(
                 f"It seems branch {new_branch} does not exist. Creating it.",
             )
             self.checkout_new_branch(target_dir, new_branch, start_point=base_branch)
