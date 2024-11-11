@@ -9,7 +9,7 @@ import time
 import traceback
 import typing
 from dataclasses import dataclass
-from typing import Literal, MutableMapping, cast
+from typing import Literal, cast
 from urllib.error import URLError
 from uuid import uuid4
 
@@ -31,15 +31,13 @@ from conda_forge_tick.deploy import deploy
 from conda_forge_tick.feedstock_parser import BOOTSTRAP_MAPPINGS
 from conda_forge_tick.git_utils import (
     DryRunBackend,
+    DuplicatePullRequestError,
     GitCli,
     GitCliError,
     GitPlatformBackend,
     RepositoryNotFoundError,
-    comment_on_pr,
-    github3_client,
     github_backend,
     is_github_api_limit_reached,
-    push_repo,
 )
 from conda_forge_tick.lazy_json_backends import (
     LazyJson,
@@ -72,6 +70,7 @@ from conda_forge_tick.utils import (
 )
 
 from .migrators_types import MigrationUidTypedDict
+from .models.pr_json import PullRequestData, PullRequestInfoSpecial, PullRequestState
 
 logger = logging.getLogger(__name__)
 
@@ -423,13 +422,20 @@ def _check_and_process_solvability(
     return False
 
 
+def get_spoofed_closed_pr_info() -> PullRequestInfoSpecial:
+    return PullRequestInfoSpecial(
+        id=str(uuid4()),
+        merged_at="never issued",
+        state="closed",
+    )
+
+
 def run_with_tmpdir(
     context: FeedstockContext,
     migrator: Migrator,
     git_backend: GitPlatformBackend,
     rerender: bool = True,
     base_branch: str = "main",
-    dry_run: bool = False,
     **kwargs: typing.Any,
 ) -> tuple[MigrationUidTypedDict, dict] | tuple[Literal[False], Literal[False]]:
     """
@@ -448,7 +454,6 @@ def run_with_tmpdir(
             git_backend=git_backend,
             rerender=rerender,
             base_branch=base_branch,
-            dry_run=dry_run,
             **kwargs,
         )
 
@@ -459,7 +464,6 @@ def run(
     git_backend: GitPlatformBackend,
     rerender: bool = True,
     base_branch: str = "main",
-    dry_run: bool = False,
     **kwargs: typing.Any,
 ) -> tuple[MigrationUidTypedDict, dict] | tuple[Literal[False], Literal[False]]:
     """For a given feedstock and migration run the migration
@@ -554,67 +558,64 @@ def run(
         logger.warning("Skipping migration due to solvability check failure")
         return False, False
 
-    # This is needed because we want to migrate to the new backend step-by-step
-    repo: github3.repos.Repository | None = github3_client().repository(
-        context.git_repo_owner, context.git_repo_name
-    )
-
-    assert repo is not None
-
-    feedstock_dir = str(context.local_clone_dir.resolve())
-
-    # TODO: Better annotation here
-    pr_json: typing.Union[MutableMapping, None, bool]
+    pr_data: PullRequestData | PullRequestInfoSpecial | None
+    """
+    The PR data for the PR that was created. The contents of this variable will be stored in the bot's database.
+    None means: We don't update the PR data.
+    """
     if (
         isinstance(migrator, MigrationYaml)
         and not rerender_info.nontrivial_changes
         and context.attrs["name"] != "conda-forge-pinning"
     ):
         # spoof this so it looks like the package is done
-        pr_json = {
-            "state": "closed",
-            "merged_at": "never issued",
-            "id": str(uuid4()),
-        }
+        pr_data = get_spoofed_closed_pr_info()
     else:
-        # push up
+        # push and PR
+        git_backend.push_to_repository(
+            owner=git_backend.user,
+            repo_name=context.git_repo_name,
+            git_dir=context.local_clone_dir,
+            branch=branch_name,
+        )
         try:
-            pr_json = push_repo(
-                fctx=context,
-                feedstock_dir=feedstock_dir,
-                body=migration_run_data["pr_body"],
-                repo=repo,
-                title=migration_run_data["pr_title"],
-                branch=branch_name,
+            pr_data = git_backend.create_pull_request(
+                target_owner=context.git_repo_owner,
+                target_repo=context.git_repo_name,
                 base_branch=base_branch,
-                dry_run=dry_run,
+                head_branch=branch_name,
+                title=migration_run_data["pr_title"],
+                body=migration_run_data["pr_body"],
             )
+        except DuplicatePullRequestError:
+            # This shouldn't happen too often anymore since we won't double PR
+            logger.warning(
+                f"Attempted to create a duplicate PR for merging {git_backend.user}:{branch_name} "
+                f"into {context.git_repo_owner}:{base_branch}. Ignoring."
+            )
+            # Don't update the PR data
+            pr_data = None
 
-        # This shouldn't happen too often any more since we won't double PR
-        except github3.GitHubError as e:
-            if e.msg != "Validation Failed":
-                raise
-            else:
-                print(f"Error during push {e}")
-                # If we just push to the existing PR then do nothing to the json
-                pr_json = False
-                ljpr = False
-
-    if pr_json and pr_json["state"] != "closed" and rerender_info.rerender_comment:
-        comment_on_pr(
-            pr_json,
-            rerender_info.rerender_comment,
-            repo,
+    if (
+        pr_data
+        and pr_data.state != PullRequestState.CLOSED
+        and rerender_info.rerender_comment
+    ):
+        git_backend.comment_on_pull_request(
+            repo_owner=context.git_repo_owner,
+            repo_name=context.git_repo_name,
+            pr_number=pr_data.number,
+            comment=rerender_info.rerender_comment,
         )
 
-    if pr_json:
-        ljpr = LazyJson(
-            os.path.join("pr_json", str(pr_json["id"]) + ".json"),
+    if pr_data:
+        pr_lazy_json = LazyJson(
+            os.path.join("pr_json", f"{pr_data.id}.json"),
         )
-        with ljpr as __ljpr:
-            __ljpr.update(**pr_json)
+        with pr_lazy_json as __edit_pr_lazy_json:
+            __edit_pr_lazy_json.update(**pr_data.model_dump(mode="json"))
     else:
-        ljpr = False
+        pr_lazy_json = False
 
     # If we've gotten this far then the node is good
     with context.attrs["pr_info"] as pri:
@@ -623,8 +624,7 @@ def run(
         context.attrs, migrator_name, is_version=is_version_migration
     )
 
-    logger.info("Removing feedstock dir")
-    return migration_run_data["migrate_return_value"], ljpr
+    return migration_run_data["migrate_return_value"], pr_lazy_json
 
 
 def _compute_time_per_migrator(migrators):
@@ -707,7 +707,6 @@ def _run_migrator_on_feedstock_branch(
     migrator,
     fctx: FeedstockContext,
     git_backend: GitPlatformBackend,
-    dry_run,
     mctx,
     migrator_name,
     good_prs,
@@ -723,9 +722,8 @@ def _run_migrator_on_feedstock_branch(
                 migrator=migrator,
                 git_backend=git_backend,
                 rerender=migrator.rerender,
-                hash_type=attrs.get("hash_type", "sha256"),
                 base_branch=base_branch,
-                dry_run=dry_run,
+                hash_type=attrs.get("hash_type", "sha256"),
             )
         finally:
             fctx.attrs.pop("new_version", None)
@@ -758,6 +756,7 @@ def _run_migrator_on_feedstock_branch(
                 )
 
     except (github3.GitHubError, github.GithubException) as e:
+        # TODO: pull this down into run() - also check the other exceptions
         if hasattr(e, "msg") and e.msg == "Repository was archived so is read-only.":
             attrs["archived"] = True
         else:
@@ -1009,7 +1008,6 @@ def _run_migrator(migrator, mctx, temp, time_per, git_backend: GitPlatformBacken
                             migrator=migrator,
                             fctx=fctx,
                             git_backend=git_backend,
-                            dry_run=dry_run,
                             mctx=mctx,
                             migrator_name=migrator_name,
                             good_prs=good_prs,
