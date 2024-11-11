@@ -100,6 +100,8 @@ class PullRequestDataValid(ValidatedBaseModel):
     }
     """
     A set of all header fields that are stored in the PR object.
+    Header fields are assumed to be used for caching purposes and always optional.
+    The corresponding fields should be set to None if they are not present in the response.
     """
 
     e_tag: str | None = Field(None, alias="ETag")

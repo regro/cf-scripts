@@ -939,7 +939,7 @@ class GitHubBackend(GitPlatformBackend):
 
         # fields like ETag and Last-Modified are stored in the response headers, we need to extract them
         header_fields = {
-            k: self._github3_session.last_response_headers[k]
+            k: self._github3_session.last_response_headers.get(k, None)
             for k in PullRequestDataValid.HEADER_FIELDS
         }
 
