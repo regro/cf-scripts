@@ -1,5 +1,6 @@
 import contextlib
 from io import StringIO
+from subprocess import CompletedProcess
 from unittest import mock
 from unittest.mock import MagicMock, mock_open
 
@@ -12,6 +13,7 @@ from conda_forge_tick.utils import (
     load_existing_graph,
     load_graph,
     parse_munged_run_export,
+    print_subprocess_output_strip_token,
     run_command_hiding_token,
 )
 
@@ -151,6 +153,104 @@ def test_munge_dict_repr():
     d = {"a": 1, "b": 2, "weak": [1, 2, 3], "strong": {"a": 1, "b": 2}}
     print(_munge_dict_repr(d))
     assert parse_munged_run_export(_munge_dict_repr(d)) == d
+
+
+def test_print_subprocess_output_strip_token_all_none():
+    stdout = StringIO()
+    stderr = StringIO()
+
+    p = CompletedProcess(args=[], returncode=0, stdout=None, stderr=None)
+
+    with contextlib.redirect_stdout(stdout), contextlib.redirect_stderr(stderr):
+        print_subprocess_output_strip_token(p, "TOKEN")
+
+    assert stdout.getvalue() == ""
+    assert stderr.getvalue() == ""
+
+
+def test_print_subprocess_output_strip_token_stdout_only():
+    stdout = StringIO()
+    stderr = StringIO()
+
+    p = CompletedProcess(args=[], returncode=0, stdout="stdout", stderr=None)
+
+    with contextlib.redirect_stdout(stdout), contextlib.redirect_stderr(stderr):
+        print_subprocess_output_strip_token(p, "TOKEN")
+
+    assert stdout.getvalue() == "stdout"
+    assert stderr.getvalue() == ""
+
+
+def test_print_subprocess_output_strip_token_stderr_only():
+    stdout = StringIO()
+    stderr = StringIO()
+
+    p = CompletedProcess(args=[], returncode=0, stdout=None, stderr="stderr")
+
+    with contextlib.redirect_stdout(stdout), contextlib.redirect_stderr(stderr):
+        print_subprocess_output_strip_token(p, "TOKEN")
+
+    assert stdout.getvalue() == ""
+    assert stderr.getvalue() == "stderr"
+
+
+def test_print_subprocess_output_strip_token_both():
+    stdout = StringIO()
+    stderr = StringIO()
+
+    p = CompletedProcess(
+        args=[], returncode=0, stdout="stdTOKEN.out", stderr="stdTOKEN.err"
+    )
+
+    with contextlib.redirect_stdout(stdout), contextlib.redirect_stderr(stderr):
+        print_subprocess_output_strip_token(p, "TOKEN")
+
+    assert stdout.getvalue() == "std*****.out"
+    assert stderr.getvalue() == "std*****.err"
+
+
+def test_print_subprocess_output_strip_token_no_token():
+    stdout = StringIO()
+    stderr = StringIO()
+
+    p = CompletedProcess(args=[], returncode=0, stdout="stdout", stderr="stderr")
+
+    with contextlib.redirect_stdout(stdout), contextlib.redirect_stderr(stderr):
+        print_subprocess_output_strip_token(p, "TOKEN")
+
+    assert stdout.getvalue() == "stdout"
+    assert stderr.getvalue() == "stderr"
+
+
+def test_print_subprocess_output_strip_token_multiple_occurrences():
+    stdout = StringIO()
+    stderr = StringIO()
+
+    p = CompletedProcess(
+        args=[], returncode=1, stdout="stdTOKEN-TOKEN.out", stderr="stdTOKEN-TOKEN.err"
+    )
+
+    with contextlib.redirect_stdout(stdout), contextlib.redirect_stderr(stderr):
+        print_subprocess_output_strip_token(p, "TOKEN")
+
+    assert stdout.getvalue() == "std*****-*****.out"
+    assert stderr.getvalue() == "std*****-*****.err"
+
+
+def test_print_subprocess_output_strip_token_bytes_in_stdout():
+    stdout = StringIO()
+    stderr = StringIO()
+
+    p = CompletedProcess(
+        args=[], returncode=1, stdout=b"stdTOKEN-TOKEN.out", stderr=b""
+    )
+
+    with pytest.raises(ValueError, match="Expected stdout and stderr to be str"):
+        with contextlib.redirect_stdout(stdout), contextlib.redirect_stderr(stderr):
+            print_subprocess_output_strip_token(p, "TOKEN")
+
+    assert stdout.getvalue() == ""
+    assert stderr.getvalue() == ""
 
 
 def test_run_command_hiding_token():
