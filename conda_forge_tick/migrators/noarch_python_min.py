@@ -28,7 +28,7 @@ def _get_curr_python_min():
             "conda_build_config.yaml",
             config=Config(),
         )
-    return pinnings.get("python_min", None)[0]
+    return (pinnings.get("python_min", [None]) or [None])[0]
 
 
 def _has_noarch_python(lines):
