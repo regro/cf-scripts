@@ -2011,39 +2011,39 @@ package:
   - category: main
     dependencies: {}
     hash:
-      md5: ad1a88b77887af945a1fa26271d71c7c
-      sha256: 2af23ea2bc4fc4f64f2792b063e4c08f46e143e2ff352da7d907cd48b824749b
+      md5: 01ba0cb414db6b7b80ea3273e5db1c37
+      sha256: 1b11fa4a79798c2254f26b3cbb03b87e17ad091ca6ebd301ec9219faca525f88
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.11.12.14.24.54-hd8ed1ab_0.conda
-    version: 2024.11.12.14.24.54
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.11.13.19.27.51-hd8ed1ab_0.conda
+    version: 2024.11.13.19.27.51
   - category: main
     dependencies: {}
     hash:
-      md5: ad1a88b77887af945a1fa26271d71c7c
-      sha256: 2af23ea2bc4fc4f64f2792b063e4c08f46e143e2ff352da7d907cd48b824749b
+      md5: 01ba0cb414db6b7b80ea3273e5db1c37
+      sha256: 1b11fa4a79798c2254f26b3cbb03b87e17ad091ca6ebd301ec9219faca525f88
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.11.12.14.24.54-hd8ed1ab_0.conda
-    version: 2024.11.12.14.24.54
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.11.13.19.27.51-hd8ed1ab_0.conda
+    version: 2024.11.13.19.27.51
   - category: main
     dependencies: {}
     hash:
-      md5: ad1a88b77887af945a1fa26271d71c7c
-      sha256: 2af23ea2bc4fc4f64f2792b063e4c08f46e143e2ff352da7d907cd48b824749b
+      md5: 01ba0cb414db6b7b80ea3273e5db1c37
+      sha256: 1b11fa4a79798c2254f26b3cbb03b87e17ad091ca6ebd301ec9219faca525f88
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.11.12.14.24.54-hd8ed1ab_0.conda
-    version: 2024.11.12.14.24.54
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.11.13.19.27.51-hd8ed1ab_0.conda
+    version: 2024.11.13.19.27.51
   - category: main
     dependencies:
       click: '>=8'
@@ -8659,39 +8659,39 @@ package:
     version: '6.5'
   - category: main
     dependencies:
-      python: '>=3.10'
+      python: ''
     hash:
-      md5: 1d4c088869f206413c59acdd309908b7
-      sha256: ad3ac7c22d4f68a5a50ae584ae259af91fbf96f688bf2955750bbdb61bb88fc1
+      md5: fd40bf7f7f4bc4b647dc8512053d9873
+      sha256: 39625cd0c9747fa5c46a9a90683b8997d8b9649881b3dc88336b13b7bdd60117
     manager: conda
     name: networkx
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/noarch/networkx-3.4.2-pyhd8ed1ab_1.conda
+    url: https://conda.anaconda.org/conda-forge/noarch/networkx-3.4.2-pyh267e887_2.conda
     version: 3.4.2
   - category: main
     dependencies:
       python: '>=3.10'
     hash:
-      md5: 1d4c088869f206413c59acdd309908b7
-      sha256: ad3ac7c22d4f68a5a50ae584ae259af91fbf96f688bf2955750bbdb61bb88fc1
+      md5: fd40bf7f7f4bc4b647dc8512053d9873
+      sha256: 39625cd0c9747fa5c46a9a90683b8997d8b9649881b3dc88336b13b7bdd60117
     manager: conda
     name: networkx
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/noarch/networkx-3.4.2-pyhd8ed1ab_1.conda
+    url: https://conda.anaconda.org/conda-forge/noarch/networkx-3.4.2-pyh267e887_2.conda
     version: 3.4.2
   - category: main
     dependencies:
       python: '>=3.10'
     hash:
-      md5: 1d4c088869f206413c59acdd309908b7
-      sha256: ad3ac7c22d4f68a5a50ae584ae259af91fbf96f688bf2955750bbdb61bb88fc1
+      md5: fd40bf7f7f4bc4b647dc8512053d9873
+      sha256: 39625cd0c9747fa5c46a9a90683b8997d8b9649881b3dc88336b13b7bdd60117
     manager: conda
     name: networkx
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/noarch/networkx-3.4.2-pyhd8ed1ab_1.conda
+    url: https://conda.anaconda.org/conda-forge/noarch/networkx-3.4.2-pyh267e887_2.conda
     version: 3.4.2
   - category: main
     dependencies:
@@ -11317,43 +11317,43 @@ package:
   - category: main
     dependencies:
       __glibc: '>=2.17,<3.0.a0'
-      openssl: '>=3.3.2,<4.0a0'
+      openssl: '>=3.4.0,<4.0a0'
     hash:
-      md5: 4a766dca206aa313dced0cdd09ac5986
-      sha256: d1025ea35941d4c1f9dfd22f5bf1020df7fe9820952497dee589dbc7354743b5
+      md5: 8539ad5b9b7110dc2ae71fde6fc2cbfa
+      sha256: fb471e1a48ccabf3a02bf0fa55e5244f7ac24d7389c0e0c3a789a9281f38a9ca
     manager: conda
     name: rattler-build
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/linux-64/rattler-build-0.29.0-h51b9b6e_1.conda
-    version: 0.29.0
+      https://conda.anaconda.org/conda-forge/linux-64/rattler-build-0.30.0-h51b9b6e_0.conda
+    version: 0.30.0
   - category: main
     dependencies:
       __osx: '>=10.13'
     hash:
-      md5: 83972ed46e475924db21df623f45ce1f
-      sha256: 6875685f716aba0359cc4bbb019094f4579d271c466471ab255b6d37e0948824
+      md5: 95052326bbc60b7ab594f20f8270d6c4
+      sha256: 7464dbb5fab6379fa31eee92eedf89f416c89eb1126da7c1ba0388dfb7e001e7
     manager: conda
     name: rattler-build
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/osx-64/rattler-build-0.29.0-h0f13631_1.conda
-    version: 0.29.0
+      https://conda.anaconda.org/conda-forge/osx-64/rattler-build-0.30.0-h0f13631_0.conda
+    version: 0.30.0
   - category: main
     dependencies:
       __osx: '>=11.0'
     hash:
-      md5: 1a77e43b5c4eb9f8deb5c92f99eefbb1
-      sha256: 40112184f5e80197905a845379043bfa99ee0f7a8c1f0a499bb7d098cee525dc
+      md5: 3663fabf851630e7b69701ec24e82fc3
+      sha256: c82164b88fbd170a43677162e9ac05e1abd27baa9ed183521f4aebc9fe3e750b
     manager: conda
     name: rattler-build
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/osx-arm64/rattler-build-0.29.0-hcbb27f7_1.conda
-    version: 0.29.0
+      https://conda.anaconda.org/conda-forge/osx-arm64/rattler-build-0.30.0-hcbb27f7_0.conda
+    version: 0.30.0
   - category: main
     dependencies:
       conda-build: ''
