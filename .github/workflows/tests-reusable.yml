@@ -142,7 +142,7 @@ jobs:
             --splits 2 --group ${{ matrix.group }} \
             --store-durations \
             --durations-path=.test_durations.${{ matrix.group }} \
-            --splitting-algorithm duration_based_chunks \
+            --splitting-algorithm least_duration \
             --clean-durations \
             --cov=conda_forge_tick \
             --cov=tests \
@@ -154,6 +154,7 @@ jobs:
             tests
             # --splitting-algorithm least_duration \
             # --randomly-seed=${{ github.run_id }} \
+            head -n 100 .test_durations.${{ matrix.group }}
         env:
           MONGODB_CONNECTION_STRING: "mongodb://127.0.0.1:27017/?directConnection=true&serverSelectionTimeoutMS=2000"
           RUN_URL: ""
@@ -240,3 +241,11 @@ jobs:
       - name: combine test durations
         run: |
           jq '. + input' test-durations-*/.test_durations.* > .test_durations
+          head -n 100 .test_durations
+
+      - name: upload test durations
+        uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882 # v4
+        with:
+          name: test-durations
+          path: .test_durations
+          include-hidden-files: true
