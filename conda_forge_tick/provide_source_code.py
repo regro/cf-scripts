@@ -16,6 +16,14 @@ from conda_forge_feedstock_ops.os_utils import chmod_plus_rwX, sync_dirs
 
 logger = logging.getLogger(__name__)
 
+CONDA_BUILD_SPECIAL_KEYS = (
+    "pin_run_as_build",
+    "ignore_version",
+    "ignore_build_only_deps",
+    "extend_keys",
+    "zip_keys",
+)
+
 
 @contextmanager
 def provide_source_code(recipe_dir, use_container=None):
@@ -125,10 +133,6 @@ def provide_source_code_local(recipe_dir):
             from conda_build.api import render
             from conda_build.config import get_or_merge_config
             from conda_build.source import provide
-            from conda_build.variants import (
-                get_package_variants,
-                list_of_dicts_to_dict_of_lists,
-            )
 
             # Use conda build to do all the downloading/extracting bits
             config = get_or_merge_config(None)
@@ -142,13 +146,12 @@ def provide_source_code_local(recipe_dir):
                     # try global pinnings
                     os.path.join(os.environ["CONDA_PREFIX"], "conda_build_config.yaml")
                 ]
-            variants = get_package_variants(recipe_dir, config=config)[0]
-            variants = list_of_dicts_to_dict_of_lists([variants])
+
             md = render(
                 recipe_dir,
+                config=config,
                 finalize=False,
                 bypass_env_check=True,
-                variants=variants,
             )
             if not md:
                 return None
@@ -158,6 +161,7 @@ def provide_source_code_local(recipe_dir):
             yield provide(md)
     except (SystemExit, Exception) as e:
         _print_out()
+        logger.error("Error in getting conda build src!", exc_info=e)
         raise RuntimeError("conda build src exception: " + str(e))
 
     _print_out()
