@@ -3,9 +3,9 @@ metadata:
     - url: conda-forge
       used_env_vars: []
   content_hash:
-    linux-64: f856dc440fc86e4368c2eb85d11eea62926e62c6de2069c37e374b3e070898f0
-    osx-64: f3c8ccf49f4dfcf77ab1e6c2b31798ab094143be1f821acd700b92008bdeb20a
-    osx-arm64: a7bfece9c5f75372ae9aa7156c80a2be9799254978f880f06e81bb5127cce542
+    linux-64: edc493578310dc74fcd551d5647c4dd82fccb14c36ea1174f0f1df543ba2131a
+    osx-64: 3c78f8ba137712dabf12aca8d5402b7881e7c94157dfbe0ee5c5d72e908631cf
+    osx-arm64: b7238ce176b67715c2ba4974d42237d44b3b6955b2b361b32d7a3f2f0339228f
   platforms:
     - osx-arm64
     - linux-64
@@ -2435,15 +2435,15 @@ package:
       toolz: ''
       vsts-python-api: ''
     hash:
-      md5: 5b86b85d691dab79598b0b89735714cf
-      sha256: 9ab9b08dfcc5141e79b25570cd868f801ed4f62dc8168639a685eed7440a5a04
+      md5: c2d33db9c8a400a7a7de28512ee6e145
+      sha256: 01345cc69f9c9adcdc69fd708fd958d7489202f8e3000058cc958eed1a1fd43e
     manager: conda
     name: conda-smithy
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-smithy-3.44.3-unix_pyhd81877a_0.conda
-    version: 3.44.3
+      https://conda.anaconda.org/conda-forge/noarch/conda-smithy-3.44.4-unix_pyhd81877a_0.conda
+    version: 3.44.4
   - category: main
     dependencies:
       __unix: ''
@@ -2472,15 +2472,15 @@ package:
       toolz: ''
       vsts-python-api: ''
     hash:
-      md5: 5b86b85d691dab79598b0b89735714cf
-      sha256: 9ab9b08dfcc5141e79b25570cd868f801ed4f62dc8168639a685eed7440a5a04
+      md5: c2d33db9c8a400a7a7de28512ee6e145
+      sha256: 01345cc69f9c9adcdc69fd708fd958d7489202f8e3000058cc958eed1a1fd43e
     manager: conda
     name: conda-smithy
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-smithy-3.44.3-unix_pyhd81877a_0.conda
-    version: 3.44.3
+      https://conda.anaconda.org/conda-forge/noarch/conda-smithy-3.44.4-unix_pyhd81877a_0.conda
+    version: 3.44.4
   - category: main
     dependencies:
       __unix: ''
@@ -2509,15 +2509,15 @@ package:
       toolz: ''
       vsts-python-api: ''
     hash:
-      md5: 5b86b85d691dab79598b0b89735714cf
-      sha256: 9ab9b08dfcc5141e79b25570cd868f801ed4f62dc8168639a685eed7440a5a04
+      md5: c2d33db9c8a400a7a7de28512ee6e145
+      sha256: 01345cc69f9c9adcdc69fd708fd958d7489202f8e3000058cc958eed1a1fd43e
     manager: conda
     name: conda-smithy
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-smithy-3.44.3-unix_pyhd81877a_0.conda
-    version: 3.44.3
+      https://conda.anaconda.org/conda-forge/noarch/conda-smithy-3.44.4-unix_pyhd81877a_0.conda
+    version: 3.44.4
   - category: main
     dependencies:
       python: '>=3.8'
@@ -10662,51 +10662,6 @@ package:
     url:
       https://conda.anaconda.org/conda-forge/noarch/pytest-env-1.1.4-pyhd8ed1ab_0.conda
     version: 1.1.4
-  - category: main
-    dependencies:
-      importlib-metadata: '>=3.6.0'
-      pytest: ''
-      python: '>=3.6'
-    hash:
-      md5: 203b5d3f85a47940f7ec6b6e1747786e
-      sha256: bd1953e4bc20ffd52cfee41b27b3a781ca6e281004d0dd59e2dd60b0192c7a86
-    manager: conda
-    name: pytest-randomly
-    optional: false
-    platform: linux-64
-    url:
-      https://conda.anaconda.org/conda-forge/noarch/pytest-randomly-3.15.0-pyhd8ed1ab_0.conda
-    version: 3.15.0
-  - category: main
-    dependencies:
-      importlib-metadata: '>=3.6.0'
-      pytest: ''
-      python: '>=3.6'
-    hash:
-      md5: 203b5d3f85a47940f7ec6b6e1747786e
-      sha256: bd1953e4bc20ffd52cfee41b27b3a781ca6e281004d0dd59e2dd60b0192c7a86
-    manager: conda
-    name: pytest-randomly
-    optional: false
-    platform: osx-64
-    url:
-      https://conda.anaconda.org/conda-forge/noarch/pytest-randomly-3.15.0-pyhd8ed1ab_0.conda
-    version: 3.15.0
-  - category: main
-    dependencies:
-      importlib-metadata: '>=3.6.0'
-      pytest: ''
-      python: '>=3.6'
-    hash:
-      md5: 203b5d3f85a47940f7ec6b6e1747786e
-      sha256: bd1953e4bc20ffd52cfee41b27b3a781ca6e281004d0dd59e2dd60b0192c7a86
-    manager: conda
-    name: pytest-randomly
-    optional: false
-    platform: osx-arm64
-    url:
-      https://conda.anaconda.org/conda-forge/noarch/pytest-randomly-3.15.0-pyhd8ed1ab_0.conda
-    version: 3.15.0
   - category: main
     dependencies:
       pytest: '>=5.4'
