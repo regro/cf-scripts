@@ -223,7 +223,8 @@ def _try_replace_hash(
 def _try_to_update_version(cmeta: Any, src: str, hash_type: str):
     errors = set()
 
-    if len(src) == 1 and all("path" in k for k in src):
+    local_vals = ["path", "folder"]
+    if all(any(lval in k for lval in local_vals) for k in src):
         return None, errors
 
     if not any("url" in k for k in src):
