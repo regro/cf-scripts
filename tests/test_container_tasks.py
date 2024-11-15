@@ -31,7 +31,10 @@ from conda_forge_tick.lazy_json_backends import (
 from conda_forge_tick.migration_runner import run_migration_containerized
 from conda_forge_tick.migrators import MigrationYaml, Version
 from conda_forge_tick.os_utils import pushd
-from conda_forge_tick.provide_source_code import provide_source_code_containerized
+from conda_forge_tick.provide_source_code import (
+    provide_source_code_containerized,
+    provide_source_code_local,
+)
 from conda_forge_tick.rerender_feedstock import rerender_feedstock
 from conda_forge_tick.solver_checks import is_recipe_solvable
 from conda_forge_tick.update_recipe.version import update_version_feedstock_dir
@@ -776,3 +779,23 @@ def test_container_tasks_update_version_feedstock_dir():
             output = fp.read()
 
         assert actual_output == output
+
+
+@flaky
+def test_container_tasks_provide_source_code_local(use_containers):
+    with (
+        tempfile.TemporaryDirectory() as tmpdir,
+        pushd(tmpdir),
+    ):
+        subprocess.run(
+            [
+                "git",
+                "clone",
+                "https://github.com/conda-forge/git-remote-s3-feedstock.git",
+            ]
+        )
+
+        with provide_source_code_local("git-remote-s3-feedstock/recipe") as source_dir:
+            assert os.path.exists(source_dir)
+            assert os.path.isdir(source_dir)
+            assert "pyproject.toml" in os.listdir(source_dir)

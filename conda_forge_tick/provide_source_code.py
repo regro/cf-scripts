@@ -1,6 +1,7 @@
 import glob
 import logging
 import os
+import pprint
 import shutil
 import sys
 import tempfile
@@ -15,6 +16,14 @@ from conda_forge_feedstock_ops.container_utils import (
 from conda_forge_feedstock_ops.os_utils import chmod_plus_rwX, sync_dirs
 
 logger = logging.getLogger(__name__)
+
+CONDA_BUILD_SPECIAL_KEYS = (
+    "pin_run_as_build",
+    "ignore_version",
+    "ignore_build_only_deps",
+    "extend_keys",
+    "zip_keys",
+)
 
 
 @contextmanager
@@ -144,6 +153,13 @@ def provide_source_code_local(recipe_dir):
                 ]
             variants = get_package_variants(recipe_dir, config=config)[0]
             variants = list_of_dicts_to_dict_of_lists([variants])
+            for key in CONDA_BUILD_SPECIAL_KEYS:
+                if key in variants:
+                    del variants[key]
+            logger.debug(
+                "conda build src input variants:\n%s", pprint.pformat(variants)
+            )
+
             md = render(
                 recipe_dir,
                 finalize=False,
@@ -158,6 +174,7 @@ def provide_source_code_local(recipe_dir):
             yield provide(md)
     except (SystemExit, Exception) as e:
         _print_out()
+        logger.error("Error in getting conda build src!", exc_info=e)
         raise RuntimeError("conda build src exception: " + str(e))
 
     _print_out()
