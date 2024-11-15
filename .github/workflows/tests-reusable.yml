@@ -132,15 +132,18 @@ jobs:
           # note: we do not use pytest-xdist (-n auto) here for now because they interfere with hiding the
           # MONGODB_CONNECTION_STRING sensitive environment variable
           if [[ -f .test_durations ]]; then
+            echo "Copied test durations"
             cp .test_durations .test_durations.${{ matrix.group }}
+          else
+            echo "No test durations found"
           fi
           pytest \
             -v \
             --splits 2 --group ${{ matrix.group }} \
             --store-durations \
             --durations-path=.test_durations.${{ matrix.group }} \
-            --randomly-seed=${{ github.run_id }} \
-            --splitting-algorithm least_duration \
+            --splitting-algorithm duration_based_chunks \
+            --clean-durations \
             --cov=conda_forge_tick \
             --cov=tests \
             --cov-config=.coveragerc \
@@ -149,6 +152,8 @@ jobs:
             --durations=10 \
             --ignore=tests/model \
             tests
+            # --splitting-algorithm least_duration \
+            # --randomly-seed=${{ github.run_id }} \
         env:
           MONGODB_CONNECTION_STRING: "mongodb://127.0.0.1:27017/?directConnection=true&serverSelectionTimeoutMS=2000"
           RUN_URL: ""
