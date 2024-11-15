@@ -2011,39 +2011,39 @@ package:
   - category: main
     dependencies: {}
     hash:
-      md5: f2084072a1b9d9f7b540226e57333d72
-      sha256: fc733196099aad9778074ff6b50fb421127a4b8097653f397c0a4d6dbb7e9670
+      md5: 26772325de40e8190fdf2af3a125e6a2
+      sha256: 07f3d4d7a06fc0bd88d188cb70365f9317e37d490368dc054511adab0cafc504
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.11.14.06.00.25-hd8ed1ab_0.conda
-    version: 2024.11.14.06.00.25
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.11.14.13.03.00-hd8ed1ab_0.conda
+    version: 2024.11.14.13.03.00
   - category: main
     dependencies: {}
     hash:
-      md5: f2084072a1b9d9f7b540226e57333d72
-      sha256: fc733196099aad9778074ff6b50fb421127a4b8097653f397c0a4d6dbb7e9670
+      md5: 26772325de40e8190fdf2af3a125e6a2
+      sha256: 07f3d4d7a06fc0bd88d188cb70365f9317e37d490368dc054511adab0cafc504
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.11.14.06.00.25-hd8ed1ab_0.conda
-    version: 2024.11.14.06.00.25
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.11.14.13.03.00-hd8ed1ab_0.conda
+    version: 2024.11.14.13.03.00
   - category: main
     dependencies: {}
     hash:
-      md5: f2084072a1b9d9f7b540226e57333d72
-      sha256: fc733196099aad9778074ff6b50fb421127a4b8097653f397c0a4d6dbb7e9670
+      md5: 26772325de40e8190fdf2af3a125e6a2
+      sha256: 07f3d4d7a06fc0bd88d188cb70365f9317e37d490368dc054511adab0cafc504
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.11.14.06.00.25-hd8ed1ab_0.conda
-    version: 2024.11.14.06.00.25
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.11.14.13.03.00-hd8ed1ab_0.conda
+    version: 2024.11.14.13.03.00
   - category: main
     dependencies:
       click: '>=8'
@@ -4208,14 +4208,14 @@ package:
       requests: '>=2.18'
       uritemplate: '>=3.0.0'
     hash:
-      md5: 6f618415bfcac23339b8ce91a2b4a09f
-      sha256: 675facbb59ed1ce8be09eef2bc02e752178c770b3a0f183370735593f2d65c65
+      md5: af351e78fb9a0b3bdba5a1c29380a9c9
+      sha256: 6d1f9487a0f462769e2ac27cb75b296d4ce5a90eb6f494ea1c242d067295c3bf
     manager: conda
     name: github3.py
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/github3.py-4.0.1-pyhd8ed1ab_0.conda
+      https://conda.anaconda.org/conda-forge/noarch/github3.py-4.0.1-pyhd8ed1ab_1.conda
     version: 4.0.1
   - category: main
     dependencies:
@@ -4225,14 +4225,14 @@ package:
       requests: '>=2.18'
       uritemplate: '>=3.0.0'
     hash:
-      md5: 6f618415bfcac23339b8ce91a2b4a09f
-      sha256: 675facbb59ed1ce8be09eef2bc02e752178c770b3a0f183370735593f2d65c65
+      md5: af351e78fb9a0b3bdba5a1c29380a9c9
+      sha256: 6d1f9487a0f462769e2ac27cb75b296d4ce5a90eb6f494ea1c242d067295c3bf
     manager: conda
     name: github3.py
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/github3.py-4.0.1-pyhd8ed1ab_0.conda
+      https://conda.anaconda.org/conda-forge/noarch/github3.py-4.0.1-pyhd8ed1ab_1.conda
     version: 4.0.1
   - category: main
     dependencies:
@@ -4242,14 +4242,14 @@ package:
       requests: '>=2.18'
       uritemplate: '>=3.0.0'
     hash:
-      md5: 6f618415bfcac23339b8ce91a2b4a09f
-      sha256: 675facbb59ed1ce8be09eef2bc02e752178c770b3a0f183370735593f2d65c65
+      md5: af351e78fb9a0b3bdba5a1c29380a9c9
+      sha256: 6d1f9487a0f462769e2ac27cb75b296d4ce5a90eb6f494ea1c242d067295c3bf
     manager: conda
     name: github3.py
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/github3.py-4.0.1-pyhd8ed1ab_0.conda
+      https://conda.anaconda.org/conda-forge/noarch/github3.py-4.0.1-pyhd8ed1ab_1.conda
     version: 4.0.1
   - category: main
     dependencies:
