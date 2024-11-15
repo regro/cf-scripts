@@ -1,7 +1,6 @@
 import glob
 import logging
 import os
-import pprint
 import shutil
 import sys
 import tempfile
@@ -134,10 +133,6 @@ def provide_source_code_local(recipe_dir):
             from conda_build.api import render
             from conda_build.config import get_or_merge_config
             from conda_build.source import provide
-            from conda_build.variants import (
-                get_package_variants,
-                list_of_dicts_to_dict_of_lists,
-            )
 
             # Use conda build to do all the downloading/extracting bits
             config = get_or_merge_config(None)
@@ -151,20 +146,12 @@ def provide_source_code_local(recipe_dir):
                     # try global pinnings
                     os.path.join(os.environ["CONDA_PREFIX"], "conda_build_config.yaml")
                 ]
-            variants = get_package_variants(recipe_dir, config=config)[0]
-            variants = list_of_dicts_to_dict_of_lists([variants])
-            for key in CONDA_BUILD_SPECIAL_KEYS:
-                if key in variants:
-                    del variants[key]
-            logger.debug(
-                "conda build src input variants:\n%s", pprint.pformat(variants)
-            )
 
             md = render(
                 recipe_dir,
+                config=config,
                 finalize=False,
                 bypass_env_check=True,
-                variants=variants,
             )
             if not md:
                 return None
