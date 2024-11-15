@@ -234,7 +234,7 @@ jobs:
 
       - name: combine test durations
         run: |
-          jq '. + input' test-durations-*/.test_durations.* > .test_durations"
+          jq '. + input' test-durations-*/.test_durations.* > .test_durations
 
       - name: upload test durations
         uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882 # v4
