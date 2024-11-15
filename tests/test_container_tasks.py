@@ -82,6 +82,7 @@ if HAVE_CONTAINERS:
 @pytest.mark.skipif(
     not (HAVE_CONTAINERS and HAVE_TEST_IMAGE), reason="containers not available"
 )
+@flaky
 def test_container_tasks_get_latest_version(use_containers):
     data = run_container_operation(
         [
@@ -98,6 +99,7 @@ def test_container_tasks_get_latest_version(use_containers):
 @pytest.mark.skipif(
     not (HAVE_CONTAINERS and HAVE_TEST_IMAGE), reason="containers not available"
 )
+@flaky
 def test_container_tasks_get_latest_version_json(use_containers):
     with (
         tempfile.TemporaryDirectory() as tmpdir,
@@ -124,6 +126,7 @@ def test_container_tasks_get_latest_version_json(use_containers):
 @pytest.mark.skipif(
     not (HAVE_CONTAINERS and HAVE_TEST_IMAGE), reason="containers not available"
 )
+@flaky
 def test_container_tasks_get_latest_version_containerized(use_containers):
     with (
         tempfile.TemporaryDirectory() as tmpdir,
@@ -144,6 +147,7 @@ def test_container_tasks_get_latest_version_containerized(use_containers):
 @pytest.mark.skipif(
     not (HAVE_CONTAINERS and HAVE_TEST_IMAGE), reason="containers not available"
 )
+@flaky
 def test_container_tasks_get_latest_version_containerized_mpas_tools(use_containers):
     with (
         tempfile.TemporaryDirectory() as tmpdir,
@@ -266,6 +270,7 @@ def test_container_tasks_parse_meta_yaml_containerized(use_containers):
 @pytest.mark.skipif(
     not (HAVE_CONTAINERS and HAVE_TEST_IMAGE), reason="containers not available"
 )
+@flaky
 def test_container_tasks_rerender_feedstock_containerized_same_as_local(
     use_containers, capfd
 ):
@@ -386,6 +391,7 @@ def test_container_tasks_rerender_feedstock_containerized_same_as_local(
 @pytest.mark.skipif(
     not (HAVE_CONTAINERS and HAVE_TEST_IMAGE), reason="containers not available"
 )
+@flaky
 def test_container_tasks_rerender_feedstock_containerized_empty(use_containers):
     with tempfile.TemporaryDirectory() as tmpdir_local:
         # first run the rerender locally
@@ -440,6 +446,7 @@ def test_container_tasks_rerender_feedstock_containerized_empty(use_containers):
 @pytest.mark.skipif(
     not (HAVE_CONTAINERS and HAVE_TEST_IMAGE), reason="containers not available"
 )
+@flaky
 def test_container_tasks_rerender_feedstock_containerized_permissions(use_containers):
     with tempfile.TemporaryDirectory() as tmpdir:
         with pushd(tmpdir):
@@ -513,6 +520,7 @@ def test_container_tasks_rerender_feedstock_containerized_permissions(use_contai
 @pytest.mark.skipif(
     not (HAVE_CONTAINERS and HAVE_TEST_IMAGE), reason="containers not available"
 )
+@flaky
 def test_container_tasks_provide_source_code_containerized(use_containers):
     with (
         tempfile.TemporaryDirectory() as tmpdir,
@@ -538,6 +546,7 @@ def test_container_tasks_provide_source_code_containerized(use_containers):
 @pytest.mark.skipif(
     not (HAVE_CONTAINERS and HAVE_TEST_IMAGE), reason="containers not available"
 )
+@flaky
 def test_container_tasks_provide_source_code_containerized_patches(use_containers):
     with (
         tempfile.TemporaryDirectory() as tmpdir,
@@ -569,6 +578,7 @@ def test_container_tasks_provide_source_code_containerized_patches(use_container
 @pytest.mark.skipif(
     not (HAVE_CONTAINERS and HAVE_TEST_IMAGE), reason="containers not available"
 )
+@flaky
 def test_container_tasks_is_recipe_solvable_containerized(use_containers):
     with tempfile.TemporaryDirectory() as tmpdir:
         with pushd(tmpdir):
@@ -602,6 +612,7 @@ yaml_rebuild.cycles = []
 @pytest.mark.skipif(
     not (HAVE_CONTAINERS and HAVE_TEST_IMAGE), reason="containers not available"
 )
+@flaky
 def test_migration_runner_run_migration_containerized_yaml_rebuild(tmpdir):
     fs_dir = os.path.join(tmpdir, "scipy-feedstock")
     rp_dir = os.path.join(fs_dir, "recipe")
