@@ -70,12 +70,18 @@ def test_rul_transforms_pypi_name():
 def test_url_transform_pypi():
     urls = set(list(gen_transformed_urls("https://pypi.io/{{ name }}/{{ name }}-barf")))
     assert urls == {
+        "https://pypi.io/{{ name|lower }}/{{ name|lower }}-barf",
+        "https://files.pythonhosted.org/{{ name.replace('-', '_') }}/{{ name.replace('-', '_') }}-barf",
+        "https://files.pythonhosted.org/{{ name|lower }}/{{ name|lower }}-barf",
+        "https://files.pythonhosted.org/{{ name.replace('_', '-') }}/{{ name.replace('_', '-') }}-barf",
+        "https://pypi.io/{{ name.replace('-', '_') }}/{{ name.replace('-', '_') }}-barf",
+        "https://pypi.io/{{ name.replace('_', '-') }}/{{ name.replace('_', '-') }}-barf",
         "https://files.pythonhosted.org/{{ name }}/{{ name }}-barf",
-        "https://files.pythonhosted.org/{{ name }}/{{ name.replace('-', '_') }}-barf",
-        "https://files.pythonhosted.org/{{ name }}/{{ name.replace('_', '-') }}-barf",
         "https://pypi.io/{{ name }}/{{ name }}-barf",
-        "https://pypi.io/{{ name }}/{{ name.replace('-', '_') }}-barf",
-        "https://pypi.io/{{ name }}/{{ name.replace('_', '-') }}-barf",
+        "https://files.pythonhosted.org/{{ name.replace('-', '_').lower() }}/{{ name.replace('-', '_').lower() }}-barf",
+        "https://files.pythonhosted.org/{{ name.replace('_', '-').lower() }}/{{ name.replace('_', '-').lower() }}-barf",
+        "https://pypi.io/{{ name.replace('-', '_').lower() }}/{{ name.replace('-', '_').lower() }}-barf",
+        "https://pypi.io/{{ name.replace('_', '-').lower() }}/{{ name.replace('_', '-').lower() }}-barf",
     }
 
     urls = set(
@@ -90,6 +96,16 @@ def test_url_transform_pypi():
         "https://files.pythonhosted.org/{{ name }}/{{ name.replace('_', '-') }}-barf",
         "https://pypi.io/{{ name }}/{{ name }}-barf",
         "https://pypi.io/{{ name }}/{{ name.replace('_', '-') }}-barf",
+        "https://files.pythonhosted.org/{{ name.replace('-', '_') }}/{{ name.replace('_', '-') }}-barf",
+        "https://files.pythonhosted.org/{{ name|lower }}/{{ name.replace('_', '-') }}-barf",
+        "https://pypi.io/{{ name.replace('-', '_').lower() }}/{{ name.replace('_', '-') }}-barf",
+        "https://files.pythonhosted.org/{{ name.replace('-', '_').lower() }}/{{ name.replace('_', '-') }}-barf",
+        "https://pypi.io/{{ name.replace('-', '_') }}/{{ name.replace('_', '-') }}-barf",
+        "https://pypi.io/{{ name.replace('_', '-').lower() }}/{{ name.replace('_', '-') }}-barf",
+        "https://files.pythonhosted.org/{{ name.replace('_', '-') }}/{{ name.replace('_', '-') }}-barf",
+        "https://pypi.io/{{ name|lower }}/{{ name.replace('_', '-') }}-barf",
+        "https://pypi.io/{{ name.replace('_', '-') }}/{{ name.replace('_', '-') }}-barf",
+        "https://files.pythonhosted.org/{{ name.replace('_', '-').lower() }}/{{ name.replace('_', '-') }}-barf",
     }
 
     urls = set(
@@ -104,6 +120,16 @@ def test_url_transform_pypi():
         "https://files.pythonhosted.org/{{ name }}/{{ name.replace('_','-') }}-barf",
         "https://pypi.io/{{ name }}/{{ name }}-barf",
         "https://pypi.io/{{ name }}/{{ name.replace('_','-') }}-barf",
+        "https://files.pythonhosted.org/{{ name|lower }}/{{ name.replace('_','-') }}-barf",
+        "https://pypi.io/{{ name.replace('_', '-') }}/{{ name.replace('_','-') }}-barf",
+        "https://files.pythonhosted.org/{{ name.replace('_', '-') }}/{{ name.replace('_','-') }}-barf",
+        "https://files.pythonhosted.org/{{ name.replace('-', '_').lower() }}/{{ name.replace('_','-') }}-barf",
+        "https://pypi.io/{{ name|lower }}/{{ name.replace('_','-') }}-barf",
+        "https://pypi.io/{{ name.replace('_', '-').lower() }}/{{ name.replace('_','-') }}-barf",
+        "https://pypi.io/{{ name.replace('-', '_').lower() }}/{{ name.replace('_','-') }}-barf",
+        "https://files.pythonhosted.org/{{ name.replace('_', '-').lower() }}/{{ name.replace('_','-') }}-barf",
+        "https://files.pythonhosted.org/{{ name.replace('-', '_') }}/{{ name.replace('_','-') }}-barf",
+        "https://pypi.io/{{ name.replace('-', '_') }}/{{ name.replace('_','-') }}-barf",
     }
 
     urls = set(
@@ -118,6 +144,16 @@ def test_url_transform_pypi():
         "https://files.pythonhosted.org/{{ name }}/{{ name|replace('_','-') }}-barf",
         "https://pypi.io/{{ name }}/{{ name }}-barf",
         "https://pypi.io/{{ name }}/{{ name|replace('_','-') }}-barf",
+        "https://files.pythonhosted.org/{{ name.replace('-', '_') }}/{{ name|replace('_','-') }}-barf",
+        "https://files.pythonhosted.org/{{ name.replace('-', '_').lower() }}/{{ name|replace('_','-') }}-barf",
+        "https://files.pythonhosted.org/{{ name|lower }}/{{ name|replace('_','-') }}-barf",
+        "https://files.pythonhosted.org/{{ name.replace('_', '-').lower() }}/{{ name|replace('_','-') }}-barf",
+        "https://pypi.io/{{ name.replace('_', '-') }}/{{ name|replace('_','-') }}-barf",
+        "https://pypi.io/{{ name|lower }}/{{ name|replace('_','-') }}-barf",
+        "https://pypi.io/{{ name.replace('-', '_') }}/{{ name|replace('_','-') }}-barf",
+        "https://pypi.io/{{ name.replace('_', '-').lower() }}/{{ name|replace('_','-') }}-barf",
+        "https://files.pythonhosted.org/{{ name.replace('_', '-') }}/{{ name|replace('_','-') }}-barf",
+        "https://pypi.io/{{ name.replace('-', '_').lower() }}/{{ name|replace('_','-') }}-barf",
     }
 
     urls = set(
@@ -132,6 +168,16 @@ def test_url_transform_pypi():
         'https://files.pythonhosted.org/{{ name }}/{{ name.replace("_", "-") }}-barf',
         "https://pypi.io/{{ name }}/{{ name }}-barf",
         'https://pypi.io/{{ name }}/{{ name.replace("_", "-") }}-barf',
+        "https://pypi.io/{{ name.replace('_', '-').lower() }}/{{ name.replace(\"_\", \"-\") }}-barf",
+        "https://pypi.io/{{ name.replace('-', '_') }}/{{ name.replace(\"_\", \"-\") }}-barf",
+        "https://files.pythonhosted.org/{{ name.replace('-', '_') }}/{{ name.replace(\"_\", \"-\") }}-barf",
+        'https://pypi.io/{{ name|lower }}/{{ name.replace("_", "-") }}-barf',
+        "https://files.pythonhosted.org/{{ name.replace('_', '-').lower() }}/{{ name.replace(\"_\", \"-\") }}-barf",
+        "https://files.pythonhosted.org/{{ name.replace('-', '_').lower() }}/{{ name.replace(\"_\", \"-\") }}-barf",
+        "https://pypi.io/{{ name.replace('_', '-') }}/{{ name.replace(\"_\", \"-\") }}-barf",
+        'https://files.pythonhosted.org/{{ name|lower }}/{{ name.replace("_", "-") }}-barf',
+        "https://pypi.io/{{ name.replace('-', '_').lower() }}/{{ name.replace(\"_\", \"-\") }}-barf",
+        "https://files.pythonhosted.org/{{ name.replace('_', '-') }}/{{ name.replace(\"_\", \"-\") }}-barf",
     }
 
 
@@ -243,6 +289,126 @@ def test_url_transform_complicated_pypi():
         "https://pypi.io/{{ name }}/{{ name }}-v{{ version }}.tar",
         "https://pypi.io/{{ name }}/{{ name }}-v{{ version }}.tar.bz2",
         "https://pypi.io/{{ name }}/{{ name }}-v{{ version }}.tar.xz",
+        "https://files.pythonhosted.org/{{ name|lower }}/{{ name.replace('_', '-') }}-{{ version }}.tgz",
+        "https://pypi.io/{{ name.replace('_', '-').lower() }}/{{ name.replace('_', '-') }}-{{ version }}.tar.xz",
+        "https://pypi.io/{{ name.replace('_', '-').lower() }}/{{ name.replace('_', '-') }}-{{ version }}.tar.bz2",
+        "https://pypi.io/{{ name.replace('_', '-') }}/{{ name.replace('_', '-') }}-v{{ version }}.tar.gz",
+        "https://pypi.io/{{ name.replace('-', '_') }}/{{ name.replace('_', '-') }}-v{{ version }}.zip",
+        "https://pypi.io/{{ name|lower }}/{{ name.replace('_', '-') }}-{{ version }}.tar.xz",
+        "https://pypi.io/{{ name.replace('-', '_') }}/{{ name.replace('_', '-') }}-{{ version }}.tar",
+        "https://pypi.io/{{ name.replace('-', '_').lower() }}/{{ name.replace('_', '-') }}-{{ version }}.tgz",
+        "https://pypi.io/{{ name.replace('-', '_') }}/{{ name.replace('_', '-') }}-v{{ version }}.tgz",
+        "https://pypi.io/{{ name.replace('-', '_').lower() }}/{{ name.replace('_', '-') }}-{{ version }}.zip",
+        "https://files.pythonhosted.org/{{ name.replace('-', '_') }}/{{ name.replace('_', '-') }}-{{ version }}.tgz",
+        "https://files.pythonhosted.org/{{ name.replace('_', '-').lower() }}/{{ name.replace('_', '-') }}-{{ version }}.zip",
+        "https://files.pythonhosted.org/{{ name|lower }}/{{ name.replace('_', '-') }}-{{ version }}.tar.xz",
+        "https://files.pythonhosted.org/{{ name.replace('_', '-').lower() }}/{{ name.replace('_', '-') }}-v{{ version }}.tar",
+        "https://files.pythonhosted.org/{{ name.replace('_', '-') }}/{{ name.replace('_', '-') }}-{{ version }}.tar",
+        "https://pypi.io/{{ name.replace('_', '-') }}/{{ name.replace('_', '-') }}-{{ version }}.tar",
+        "https://pypi.io/{{ name.replace('_', '-') }}/{{ name.replace('_', '-') }}-{{ version }}.zip",
+        "https://pypi.io/{{ name.replace('_', '-').lower() }}/{{ name.replace('_', '-') }}-{{ version }}.tgz",
+        "https://files.pythonhosted.org/{{ name.replace('-', '_').lower() }}/{{ name.replace('_', '-') }}-v{{ version }}.tar.xz",
+        "https://files.pythonhosted.org/{{ name.replace('_', '-').lower() }}/{{ name.replace('_', '-') }}-v{{ version }}.tar.xz",
+        "https://files.pythonhosted.org/{{ name|lower }}/{{ name.replace('_', '-') }}-{{ version }}.zip",
+        "https://pypi.io/{{ name.replace('-', '_') }}/{{ name.replace('_', '-') }}-{{ version }}.tar.xz",
+        "https://pypi.io/{{ name.replace('_', '-').lower() }}/{{ name.replace('_', '-') }}-{{ version }}.zip",
+        "https://pypi.io/{{ name|lower }}/{{ name.replace('_', '-') }}-v{{ version }}.tgz",
+        "https://files.pythonhosted.org/{{ name.replace('_', '-').lower() }}/{{ name.replace('_', '-') }}-v{{ version }}.tar.gz",
+        "https://pypi.io/{{ name.replace('_', '-') }}/{{ name.replace('_', '-') }}-{{ version }}.tar.xz",
+        "https://files.pythonhosted.org/{{ name.replace('_', '-').lower() }}/{{ name.replace('_', '-') }}-v{{ version }}.tgz",
+        "https://files.pythonhosted.org/{{ name.replace('-', '_').lower() }}/{{ name.replace('_', '-') }}-{{ version }}.tgz",
+        "https://pypi.io/{{ name|lower }}/{{ name.replace('_', '-') }}-{{ version }}.tar.bz2",
+        "https://pypi.io/{{ name.replace('-', '_').lower() }}/{{ name.replace('_', '-') }}-v{{ version }}.tar.bz2",
+        "https://pypi.io/{{ name.replace('-', '_').lower() }}/{{ name.replace('_', '-') }}-v{{ version }}.tar.gz",
+        "https://files.pythonhosted.org/{{ name.replace('-', '_') }}/{{ name.replace('_', '-') }}-{{ version }}.zip",
+        "https://pypi.io/{{ name.replace('-', '_') }}/{{ name.replace('_', '-') }}-{{ version }}.zip",
+        "https://files.pythonhosted.org/{{ name.replace('-', '_') }}/{{ name.replace('_', '-') }}-v{{ version }}.zip",
+        "https://pypi.io/{{ name.replace('_', '-') }}/{{ name.replace('_', '-') }}-{{ version }}.tar.gz",
+        "https://pypi.io/{{ name.replace('_', '-') }}/{{ name.replace('_', '-') }}-v{{ version }}.tar.xz",
+        "https://files.pythonhosted.org/{{ name.replace('_', '-').lower() }}/{{ name.replace('_', '-') }}-{{ version }}.tar.gz",
+        "https://files.pythonhosted.org/{{ name|lower }}/{{ name.replace('_', '-') }}-v{{ version }}.tar.xz",
+        "https://files.pythonhosted.org/{{ name.replace('-', '_') }}/{{ name.replace('_', '-') }}-v{{ version }}.tar.xz",
+        "https://pypi.io/{{ name.replace('-', '_') }}/{{ name.replace('_', '-') }}-{{ version }}.tar.gz",
+        "https://files.pythonhosted.org/{{ name.replace('_', '-').lower() }}/{{ name.replace('_', '-') }}-v{{ version }}.tar.bz2",
+        "https://pypi.io/{{ name|lower }}/{{ name.replace('_', '-') }}-{{ version }}.tar.gz",
+        "https://pypi.io/{{ name.replace('-', '_') }}/{{ name.replace('_', '-') }}-{{ version }}.tar.bz2",
+        "https://files.pythonhosted.org/{{ name.replace('_', '-') }}/{{ name.replace('_', '-') }}-v{{ version }}.tar.bz2",
+        "https://files.pythonhosted.org/{{ name.replace('_', '-') }}/{{ name.replace('_', '-') }}-v{{ version }}.tar.gz",
+        "https://files.pythonhosted.org/{{ name|lower }}/{{ name.replace('_', '-') }}-v{{ version }}.tgz",
+        "https://files.pythonhosted.org/{{ name.replace('_', '-').lower() }}/{{ name.replace('_', '-') }}-{{ version }}.tar",
+        "https://pypi.io/{{ name.replace('-', '_').lower() }}/{{ name.replace('_', '-') }}-{{ version }}.tar",
+        "https://pypi.io/{{ name|lower }}/{{ name.replace('_', '-') }}-v{{ version }}.tar.bz2",
+        "https://files.pythonhosted.org/{{ name|lower }}/{{ name.replace('_', '-') }}-{{ version }}.tar.gz",
+        "https://files.pythonhosted.org/{{ name.replace('-', '_') }}/{{ name.replace('_', '-') }}-v{{ version }}.tar.gz",
+        "https://files.pythonhosted.org/{{ name|lower }}/{{ name.replace('_', '-') }}-v{{ version }}.tar.bz2",
+        "https://pypi.io/{{ name|lower }}/{{ name.replace('_', '-') }}-v{{ version }}.tar.gz",
+        "https://files.pythonhosted.org/{{ name.replace('_', '-') }}/{{ name.replace('_', '-') }}-{{ version }}.tar.gz",
+        "https://files.pythonhosted.org/{{ name.replace('_', '-') }}/{{ name.replace('_', '-') }}-{{ version }}.zip",
+        "https://pypi.io/{{ name.replace('_', '-').lower() }}/{{ name.replace('_', '-') }}-v{{ version }}.tar.gz",
+        "https://pypi.io/{{ name|lower }}/{{ name.replace('_', '-') }}-v{{ version }}.tar",
+        "https://pypi.io/{{ name|lower }}/{{ name.replace('_', '-') }}-{{ version }}.tar",
+        "https://files.pythonhosted.org/{{ name.replace('_', '-') }}/{{ name.replace('_', '-') }}-v{{ version }}.zip",
+        "https://files.pythonhosted.org/{{ name|lower }}/{{ name.replace('_', '-') }}-v{{ version }}.tar.gz",
+        "https://files.pythonhosted.org/{{ name|lower }}/{{ name.replace('_', '-') }}-{{ version }}.tar",
+        "https://files.pythonhosted.org/{{ name|lower }}/{{ name.replace('_', '-') }}-{{ version }}.tar.bz2",
+        "https://pypi.io/{{ name.replace('_', '-').lower() }}/{{ name.replace('_', '-') }}-v{{ version }}.tar.bz2",
+        "https://files.pythonhosted.org/{{ name|lower }}/{{ name.replace('_', '-') }}-v{{ version }}.tar",
+        "https://files.pythonhosted.org/{{ name.replace('_', '-') }}/{{ name.replace('_', '-') }}-v{{ version }}.tar.xz",
+        "https://files.pythonhosted.org/{{ name.replace('-', '_').lower() }}/{{ name.replace('_', '-') }}-v{{ version }}.tar.bz2",
+        "https://pypi.io/{{ name.replace('_', '-') }}/{{ name.replace('_', '-') }}-v{{ version }}.tar",
+        "https://files.pythonhosted.org/{{ name.replace('-', '_') }}/{{ name.replace('_', '-') }}-{{ version }}.tar.gz",
+        "https://files.pythonhosted.org/{{ name.replace('_', '-').lower() }}/{{ name.replace('_', '-') }}-{{ version }}.tar.bz2",
+        "https://pypi.io/{{ name.replace('-', '_').lower() }}/{{ name.replace('_', '-') }}-v{{ version }}.zip",
+        "https://files.pythonhosted.org/{{ name.replace('_', '-') }}/{{ name.replace('_', '-') }}-{{ version }}.tgz",
+        "https://pypi.io/{{ name.replace('_', '-') }}/{{ name.replace('_', '-') }}-v{{ version }}.zip",
+        "https://pypi.io/{{ name.replace('-', '_').lower() }}/{{ name.replace('_', '-') }}-{{ version }}.tar.gz",
+        "https://files.pythonhosted.org/{{ name.replace('-', '_').lower() }}/{{ name.replace('_', '-') }}-{{ version }}.tar.xz",
+        "https://pypi.io/{{ name|lower }}/{{ name.replace('_', '-') }}-v{{ version }}.tar.xz",
+        "https://pypi.io/{{ name.replace('_', '-') }}/{{ name.replace('_', '-') }}-v{{ version }}.tar.bz2",
+        "https://files.pythonhosted.org/{{ name.replace('_', '-') }}/{{ name.replace('_', '-') }}-{{ version }}.tar.bz2",
+        "https://files.pythonhosted.org/{{ name.replace('-', '_').lower() }}/{{ name.replace('_', '-') }}-v{{ version }}.tar.gz",
+        "https://pypi.io/{{ name.replace('-', '_').lower() }}/{{ name.replace('_', '-') }}-v{{ version }}.tgz",
+        "https://pypi.io/{{ name.replace('-', '_').lower() }}/{{ name.replace('_', '-') }}-v{{ version }}.tar",
+        "https://pypi.io/{{ name.replace('_', '-') }}/{{ name.replace('_', '-') }}-v{{ version }}.tgz",
+        "https://files.pythonhosted.org/{{ name.replace('-', '_') }}/{{ name.replace('_', '-') }}-{{ version }}.tar",
+        "https://pypi.io/{{ name|lower }}/{{ name.replace('_', '-') }}-v{{ version }}.zip",
+        "https://pypi.io/{{ name.replace('_', '-').lower() }}/{{ name.replace('_', '-') }}-{{ version }}.tar",
+        "https://files.pythonhosted.org/{{ name.replace('-', '_') }}/{{ name.replace('_', '-') }}-v{{ version }}.tar",
+        "https://pypi.io/{{ name.replace('-', '_').lower() }}/{{ name.replace('_', '-') }}-v{{ version }}.tar.xz",
+        "https://files.pythonhosted.org/{{ name.replace('-', '_').lower() }}/{{ name.replace('_', '-') }}-v{{ version }}.tar",
+        "https://files.pythonhosted.org/{{ name.replace('-', '_').lower() }}/{{ name.replace('_', '-') }}-{{ version }}.zip",
+        "https://pypi.io/{{ name.replace('_', '-').lower() }}/{{ name.replace('_', '-') }}-v{{ version }}.tgz",
+        "https://pypi.io/{{ name|lower }}/{{ name.replace('_', '-') }}-{{ version }}.tgz",
+        "https://pypi.io/{{ name.replace('-', '_') }}/{{ name.replace('_', '-') }}-v{{ version }}.tar",
+        "https://files.pythonhosted.org/{{ name.replace('-', '_').lower() }}/{{ name.replace('_', '-') }}-v{{ version }}.zip",
+        "https://files.pythonhosted.org/{{ name.replace('-', '_').lower() }}/{{ name.replace('_', '-') }}-{{ version }}.tar.gz",
+        "https://pypi.io/{{ name|lower }}/{{ name.replace('_', '-') }}-{{ version }}.zip",
+        "https://pypi.io/{{ name.replace('-', '_').lower() }}/{{ name.replace('_', '-') }}-{{ version }}.tar.xz",
+        "https://files.pythonhosted.org/{{ name|lower }}/{{ name.replace('_', '-') }}-v{{ version }}.zip",
+        "https://files.pythonhosted.org/{{ name.replace('_', '-') }}/{{ name.replace('_', '-') }}-v{{ version }}.tgz",
+        "https://pypi.io/{{ name.replace('-', '_') }}/{{ name.replace('_', '-') }}-v{{ version }}.tar.gz",
+        "https://files.pythonhosted.org/{{ name.replace('_', '-') }}/{{ name.replace('_', '-') }}-v{{ version }}.tar",
+        "https://pypi.io/{{ name.replace('-', '_') }}/{{ name.replace('_', '-') }}-{{ version }}.tgz",
+        "https://pypi.io/{{ name.replace('_', '-').lower() }}/{{ name.replace('_', '-') }}-v{{ version }}.tar.xz",
+        "https://files.pythonhosted.org/{{ name.replace('_', '-') }}/{{ name.replace('_', '-') }}-{{ version }}.tar.xz",
+        "https://files.pythonhosted.org/{{ name.replace('-', '_').lower() }}/{{ name.replace('_', '-') }}-v{{ version }}.tgz",
+        "https://pypi.io/{{ name.replace('-', '_') }}/{{ name.replace('_', '-') }}-v{{ version }}.tar.xz",
+        "https://pypi.io/{{ name.replace('_', '-').lower() }}/{{ name.replace('_', '-') }}-{{ version }}.tar.gz",
+        "https://pypi.io/{{ name.replace('-', '_').lower() }}/{{ name.replace('_', '-') }}-{{ version }}.tar.bz2",
+        "https://pypi.io/{{ name.replace('-', '_') }}/{{ name.replace('_', '-') }}-v{{ version }}.tar.bz2",
+        "https://files.pythonhosted.org/{{ name.replace('_', '-').lower() }}/{{ name.replace('_', '-') }}-{{ version }}.tgz",
+        "https://files.pythonhosted.org/{{ name.replace('_', '-').lower() }}/{{ name.replace('_', '-') }}-{{ version }}.tar.xz",
+        "https://files.pythonhosted.org/{{ name.replace('-', '_').lower() }}/{{ name.replace('_', '-') }}-{{ version }}.tar",
+        "https://files.pythonhosted.org/{{ name.replace('-', '_') }}/{{ name.replace('_', '-') }}-v{{ version }}.tar.bz2",
+        "https://pypi.io/{{ name.replace('_', '-') }}/{{ name.replace('_', '-') }}-{{ version }}.tar.bz2",
+        "https://files.pythonhosted.org/{{ name.replace('-', '_').lower() }}/{{ name.replace('_', '-') }}-{{ version }}.tar.bz2",
+        "https://pypi.io/{{ name.replace('_', '-').lower() }}/{{ name.replace('_', '-') }}-v{{ version }}.zip",
+        "https://files.pythonhosted.org/{{ name.replace('-', '_') }}/{{ name.replace('_', '-') }}-{{ version }}.tar.xz",
+        "https://pypi.io/{{ name.replace('_', '-').lower() }}/{{ name.replace('_', '-') }}-v{{ version }}.tar",
+        "https://pypi.io/{{ name.replace('_', '-') }}/{{ name.replace('_', '-') }}-{{ version }}.tgz",
+        "https://files.pythonhosted.org/{{ name.replace('-', '_') }}/{{ name.replace('_', '-') }}-v{{ version }}.tgz",
+        "https://files.pythonhosted.org/{{ name.replace('-', '_') }}/{{ name.replace('_', '-') }}-{{ version }}.tar.bz2",
+        "https://files.pythonhosted.org/{{ name.replace('_', '-').lower() }}/{{ name.replace('_', '-') }}-v{{ version }}.zip",
     }
 
 
@@ -407,6 +573,78 @@ https://pypi.io/packages/source/p/packageurl-python/{{ name.replace('-', '_') }}
 https://pypi.io/packages/source/p/packageurl-python/{{ name.replace('-', '_') }}-v{{ version }}.tar.xz
 https://pypi.io/packages/source/p/packageurl-python/{{ name.replace('-', '_') }}-v{{ version }}.tgz
 https://pypi.io/packages/source/p/packageurl-python/{{ name.replace('-', '_') }}-v{{ version }}.zip
+https://files.pythonhosted.org/packages/source/p/packageurl-python/{{ name|lower }}-{{ version }}.tar.xz
+https://files.pythonhosted.org/packages/source/p/packageurl-python/{{ name|lower }}-v{{ version }}.tar.gz
+https://files.pythonhosted.org/packages/source/p/packageurl-python/{{ name|lower }}-{{ version }}.tar
+https://files.pythonhosted.org/packages/source/p/packageurl-python/{{ name|lower }}-v{{ version }}.tar
+https://pypi.io/packages/source/p/packageurl-python/{{ name|lower }}-{{ version }}.tar.gz
+https://files.pythonhosted.org/packages/source/p/packageurl-python/{{ name|lower }}-{{ version }}.tar.gz
+https://pypi.io/packages/source/p/packageurl-python/{{ name|lower }}-{{ version }}.tar
+https://pypi.io/packages/source/p/packageurl-python/{{ name|lower }}-v{{ version }}.tar.xz
+https://pypi.io/packages/source/p/packageurl-python/{{ name|lower }}-{{ version }}.tar.xz
+https://files.pythonhosted.org/packages/source/p/packageurl-python/{{ name|lower }}-{{ version }}.tgz
+https://files.pythonhosted.org/packages/source/p/packageurl-python/{{ name|lower }}-{{ version }}.zip
+https://pypi.io/packages/source/p/packageurl-python/{{ name|lower }}-v{{ version }}.tar.bz2
+https://pypi.io/packages/source/p/packageurl-python/{{ name|lower }}-v{{ version }}.zip
+https://pypi.io/packages/source/p/packageurl-python/{{ name|lower }}-{{ version }}.tar.bz2
+https://files.pythonhosted.org/packages/source/p/packageurl-python/{{ name|lower }}-v{{ version }}.zip
+https://pypi.io/packages/source/p/packageurl-python/{{ name|lower }}-v{{ version }}.tar
+https://pypi.io/packages/source/p/packageurl-python/{{ name|lower }}-v{{ version }}.tar.gz
+https://files.pythonhosted.org/packages/source/p/packageurl-python/{{ name|lower }}-v{{ version }}.tar.xz
+https://files.pythonhosted.org/packages/source/p/packageurl-python/{{ name|lower }}-{{ version }}.tar.bz2
+https://pypi.io/packages/source/p/packageurl-python/{{ name|lower }}-v{{ version }}.tgz
+https://files.pythonhosted.org/packages/source/p/packageurl-python/{{ name|lower }}-v{{ version }}.tgz
+https://pypi.io/packages/source/p/packageurl-python/{{ name|lower }}-{{ version }}.zip
+https://files.pythonhosted.org/packages/source/p/packageurl-python/{{ name|lower }}-v{{ version }}.tar.bz2
+https://pypi.io/packages/source/p/packageurl-python/{{ name|lower }}-{{ version }}.tgz
+https://files.pythonhosted.org/packages/source/p/packageurl-python/{{ name.replace('-', '_').lower() }}-v{{ version }}.tar
+https://pypi.io/packages/source/p/packageurl-python/{{ name.replace('_', '-').lower() }}-{{ version }}.zip
+https://pypi.io/packages/source/p/packageurl-python/{{ name.replace('-', '_').lower() }}-v{{ version }}.tar
+https://files.pythonhosted.org/packages/source/p/packageurl-python/{{ name.replace('-', '_').lower() }}-v{{ version }}.tar.bz2
+https://pypi.io/packages/source/p/packageurl-python/{{ name.replace('_', '-').lower() }}-{{ version }}.tar.xz
+https://files.pythonhosted.org/packages/source/p/packageurl-python/{{ name.replace('_', '-').lower() }}-v{{ version }}.tar.xz
+https://files.pythonhosted.org/packages/source/p/packageurl-python/{{ name.replace('-', '_').lower() }}-{{ version }}.tar
+https://pypi.io/packages/source/p/packageurl-python/{{ name.replace('_', '-').lower() }}-v{{ version }}.tar.xz
+https://pypi.io/packages/source/p/packageurl-python/{{ name.replace('_', '-').lower() }}-{{ version }}.tar
+https://pypi.io/packages/source/p/packageurl-python/{{ name.replace('_', '-').lower() }}-v{{ version }}.tgz
+https://files.pythonhosted.org/packages/source/p/packageurl-python/{{ name.replace('_', '-').lower() }}-{{ version }}.tar.gz
+https://files.pythonhosted.org/packages/source/p/packageurl-python/{{ name.replace('_', '-').lower() }}-v{{ version }}.tar
+https://files.pythonhosted.org/packages/source/p/packageurl-python/{{ name.replace('_', '-').lower() }}-{{ version }}.tar
+https://files.pythonhosted.org/packages/source/p/packageurl-python/{{ name.replace('_', '-').lower() }}-v{{ version }}.tar.gz
+https://pypi.io/packages/source/p/packageurl-python/{{ name.replace('_', '-').lower() }}-{{ version }}.tar.bz2
+https://files.pythonhosted.org/packages/source/p/packageurl-python/{{ name.replace('-', '_').lower() }}-{{ version }}.zip
+https://files.pythonhosted.org/packages/source/p/packageurl-python/{{ name.replace('-', '_').lower() }}-{{ version }}.tar.gz
+https://pypi.io/packages/source/p/packageurl-python/{{ name.replace('-', '_').lower() }}-v{{ version }}.tar.gz
+https://files.pythonhosted.org/packages/source/p/packageurl-python/{{ name.replace('-', '_').lower() }}-{{ version }}.tar.xz
+https://pypi.io/packages/source/p/packageurl-python/{{ name.replace('_', '-').lower() }}-{{ version }}.tgz
+https://pypi.io/packages/source/p/packageurl-python/{{ name.replace('_', '-').lower() }}-v{{ version }}.tar.bz2
+https://files.pythonhosted.org/packages/source/p/packageurl-python/{{ name.replace('_', '-').lower() }}-{{ version }}.zip
+https://pypi.io/packages/source/p/packageurl-python/{{ name.replace('_', '-').lower() }}-v{{ version }}.tar
+https://files.pythonhosted.org/packages/source/p/packageurl-python/{{ name.replace('_', '-').lower() }}-{{ version }}.tar.xz
+https://files.pythonhosted.org/packages/source/p/packageurl-python/{{ name.replace('_', '-').lower() }}-{{ version }}.tgz
+https://pypi.io/packages/source/p/packageurl-python/{{ name.replace('-', '_').lower() }}-{{ version }}.tgz
+https://files.pythonhosted.org/packages/source/p/packageurl-python/{{ name.replace('_', '-').lower() }}-v{{ version }}.tgz
+https://files.pythonhosted.org/packages/source/p/packageurl-python/{{ name.replace('-', '_').lower() }}-v{{ version }}.tar.gz
+https://pypi.io/packages/source/p/packageurl-python/{{ name.replace('-', '_').lower() }}-v{{ version }}.tar.bz2
+https://pypi.io/packages/source/p/packageurl-python/{{ name.replace('_', '-').lower() }}-{{ version }}.tar.gz
+https://files.pythonhosted.org/packages/source/p/packageurl-python/{{ name.replace('-', '_').lower() }}-{{ version }}.tar.bz2
+https://pypi.io/packages/source/p/packageurl-python/{{ name.replace('-', '_').lower() }}-{{ version }}.tar
+https://files.pythonhosted.org/packages/source/p/packageurl-python/{{ name.replace('_', '-').lower() }}-v{{ version }}.zip
+https://files.pythonhosted.org/packages/source/p/packageurl-python/{{ name.replace('-', '_').lower() }}-v{{ version }}.tgz
+https://pypi.io/packages/source/p/packageurl-python/{{ name.replace('-', '_').lower() }}-v{{ version }}.zip
+https://pypi.io/packages/source/p/packageurl-python/{{ name.replace('_', '-').lower() }}-v{{ version }}.zip
+https://pypi.io/packages/source/p/packageurl-python/{{ name.replace('-', '_').lower() }}-v{{ version }}.tar.xz
+https://files.pythonhosted.org/packages/source/p/packageurl-python/{{ name.replace('_', '-').lower() }}-{{ version }}.tar.bz2
+https://pypi.io/packages/source/p/packageurl-python/{{ name.replace('-', '_').lower() }}-{{ version }}.tar.bz2
+https://pypi.io/packages/source/p/packageurl-python/{{ name.replace('-', '_').lower() }}-v{{ version }}.tgz
+https://pypi.io/packages/source/p/packageurl-python/{{ name.replace('-', '_').lower() }}-{{ version }}.zip
+https://files.pythonhosted.org/packages/source/p/packageurl-python/{{ name.replace('-', '_').lower() }}-{{ version }}.tgz
+https://pypi.io/packages/source/p/packageurl-python/{{ name.replace('-', '_').lower() }}-{{ version }}.tar.xz
+https://files.pythonhosted.org/packages/source/p/packageurl-python/{{ name.replace('-', '_').lower() }}-v{{ version }}.zip
+https://pypi.io/packages/source/p/packageurl-python/{{ name.replace('-', '_').lower() }}-{{ version }}.tar.gz
+https://files.pythonhosted.org/packages/source/p/packageurl-python/{{ name.replace('-', '_').lower() }}-v{{ version }}.tar.xz
+https://files.pythonhosted.org/packages/source/p/packageurl-python/{{ name.replace('_', '-').lower() }}-v{{ version }}.tar.bz2
+https://pypi.io/packages/source/p/packageurl-python/{{ name.replace('_', '-').lower() }}-v{{ version }}.tar.gz
 """,
     """
 https://pypi.io/packages/source/p/worst-case/Worst.-Case-{{ version }}.tar.gz
@@ -531,6 +769,78 @@ https://pypi.io/packages/source/p/worst-case/{{ name.replace('-', '_') }}-v{{ ve
 https://pypi.io/packages/source/p/worst-case/{{ name.replace('-', '_') }}-v{{ version }}.tar
 https://pypi.io/packages/source/p/worst-case/{{ name.replace('-', '_') }}-v{{ version }}.tgz
 https://pypi.io/packages/source/p/worst-case/{{ name.replace('-', '_') }}-v{{ version }}.zip
+https://files.pythonhosted.org/packages/source/p/worst-case/{{ name|lower }}-v{{ version }}.tar.xz
+https://files.pythonhosted.org/packages/source/p/worst-case/{{ name|lower }}-v{{ version }}.tgz
+https://files.pythonhosted.org/packages/source/p/worst-case/{{ name|lower }}-{{ version }}.tar.gz
+https://pypi.io/packages/source/p/worst-case/{{ name|lower }}-v{{ version }}.zip
+https://files.pythonhosted.org/packages/source/p/worst-case/{{ name|lower }}-{{ version }}.zip
+https://pypi.io/packages/source/p/worst-case/{{ name|lower }}-{{ version }}.tar.gz
+https://pypi.io/packages/source/p/worst-case/{{ name|lower }}-v{{ version }}.tar.bz2
+https://files.pythonhosted.org/packages/source/p/worst-case/{{ name|lower }}-{{ version }}.tar
+https://pypi.io/packages/source/p/worst-case/{{ name|lower }}-v{{ version }}.tgz
+https://files.pythonhosted.org/packages/source/p/worst-case/{{ name|lower }}-{{ version }}.tar.bz2
+https://files.pythonhosted.org/packages/source/p/worst-case/{{ name|lower }}-v{{ version }}.tar
+https://pypi.io/packages/source/p/worst-case/{{ name|lower }}-{{ version }}.zip
+https://files.pythonhosted.org/packages/source/p/worst-case/{{ name|lower }}-v{{ version }}.zip
+https://pypi.io/packages/source/p/worst-case/{{ name|lower }}-v{{ version }}.tar.xz
+https://files.pythonhosted.org/packages/source/p/worst-case/{{ name|lower }}-v{{ version }}.tar.bz2
+https://files.pythonhosted.org/packages/source/p/worst-case/{{ name|lower }}-{{ version }}.tgz
+https://pypi.io/packages/source/p/worst-case/{{ name|lower }}-{{ version }}.tgz
+https://pypi.io/packages/source/p/worst-case/{{ name|lower }}-{{ version }}.tar.xz
+https://pypi.io/packages/source/p/worst-case/{{ name|lower }}-{{ version }}.tar
+https://pypi.io/packages/source/p/worst-case/{{ name|lower }}-v{{ version }}.tar.gz
+https://files.pythonhosted.org/packages/source/p/worst-case/{{ name|lower }}-{{ version }}.tar.xz
+https://pypi.io/packages/source/p/worst-case/{{ name|lower }}-v{{ version }}.tar
+https://files.pythonhosted.org/packages/source/p/worst-case/{{ name|lower }}-v{{ version }}.tar.gz
+https://pypi.io/packages/source/p/worst-case/{{ name|lower }}-{{ version }}.tar.bz2
+https://files.pythonhosted.org/packages/source/p/worst-case/{{ name.replace('_', '-').lower() }}-{{ version }}.tar.xz
+https://files.pythonhosted.org/packages/source/p/worst-case/{{ name.replace('_', '-').lower() }}-v{{ version }}.zip
+https://pypi.io/packages/source/p/worst-case/{{ name.replace('_', '-').lower() }}-v{{ version }}.tgz
+https://files.pythonhosted.org/packages/source/p/worst-case/{{ name.replace('_', '-').lower() }}-{{ version }}.tgz
+https://files.pythonhosted.org/packages/source/p/worst-case/{{ name.replace('_', '-').lower() }}-v{{ version }}.tar.gz
+https://pypi.io/packages/source/p/worst-case/{{ name.replace('-', '_').lower() }}-v{{ version }}.tgz
+https://files.pythonhosted.org/packages/source/p/worst-case/{{ name.replace('-', '_').lower() }}-{{ version }}.tar.bz2
+https://pypi.io/packages/source/p/worst-case/{{ name.replace('-', '_').lower() }}-{{ version }}.tar.bz2
+https://pypi.io/packages/source/p/worst-case/{{ name.replace('-', '_').lower() }}-v{{ version }}.tar.gz
+https://pypi.io/packages/source/p/worst-case/{{ name.replace('-', '_').lower() }}-v{{ version }}.tar.xz
+https://files.pythonhosted.org/packages/source/p/worst-case/{{ name.replace('-', '_').lower() }}-v{{ version }}.tgz
+https://pypi.io/packages/source/p/worst-case/{{ name.replace('_', '-').lower() }}-v{{ version }}.tar.bz2
+https://pypi.io/packages/source/p/worst-case/{{ name.replace('_', '-').lower() }}-{{ version }}.zip
+https://files.pythonhosted.org/packages/source/p/worst-case/{{ name.replace('-', '_').lower() }}-{{ version }}.tgz
+https://pypi.io/packages/source/p/worst-case/{{ name.replace('-', '_').lower() }}-v{{ version }}.tar
+https://pypi.io/packages/source/p/worst-case/{{ name.replace('-', '_').lower() }}-{{ version }}.tar
+https://pypi.io/packages/source/p/worst-case/{{ name.replace('-', '_').lower() }}-v{{ version }}.zip
+https://files.pythonhosted.org/packages/source/p/worst-case/{{ name.replace('-', '_').lower() }}-{{ version }}.tar.xz
+https://files.pythonhosted.org/packages/source/p/worst-case/{{ name.replace('-', '_').lower() }}-{{ version }}.tar.gz
+https://pypi.io/packages/source/p/worst-case/{{ name.replace('-', '_').lower() }}-{{ version }}.zip
+https://files.pythonhosted.org/packages/source/p/worst-case/{{ name.replace('_', '-').lower() }}-v{{ version }}.tar.bz2
+https://files.pythonhosted.org/packages/source/p/worst-case/{{ name.replace('_', '-').lower() }}-v{{ version }}.tar
+https://pypi.io/packages/source/p/worst-case/{{ name.replace('_', '-').lower() }}-v{{ version }}.tar.xz
+https://pypi.io/packages/source/p/worst-case/{{ name.replace('_', '-').lower() }}-v{{ version }}.tar
+https://files.pythonhosted.org/packages/source/p/worst-case/{{ name.replace('_', '-').lower() }}-{{ version }}.tar
+https://pypi.io/packages/source/p/worst-case/{{ name.replace('_', '-').lower() }}-{{ version }}.tar
+https://pypi.io/packages/source/p/worst-case/{{ name.replace('-', '_').lower() }}-{{ version }}.tar.xz
+https://pypi.io/packages/source/p/worst-case/{{ name.replace('-', '_').lower() }}-v{{ version }}.tar.bz2
+https://pypi.io/packages/source/p/worst-case/{{ name.replace('_', '-').lower() }}-{{ version }}.tgz
+https://files.pythonhosted.org/packages/source/p/worst-case/{{ name.replace('-', '_').lower() }}-v{{ version }}.tar.xz
+https://files.pythonhosted.org/packages/source/p/worst-case/{{ name.replace('-', '_').lower() }}-v{{ version }}.tar.gz
+https://pypi.io/packages/source/p/worst-case/{{ name.replace('_', '-').lower() }}-{{ version }}.tar.gz
+https://files.pythonhosted.org/packages/source/p/worst-case/{{ name.replace('-', '_').lower() }}-v{{ version }}.zip
+https://pypi.io/packages/source/p/worst-case/{{ name.replace('_', '-').lower() }}-v{{ version }}.tar.gz
+https://files.pythonhosted.org/packages/source/p/worst-case/{{ name.replace('_', '-').lower() }}-{{ version }}.tar.bz2
+https://files.pythonhosted.org/packages/source/p/worst-case/{{ name.replace('-', '_').lower() }}-v{{ version }}.tar
+https://pypi.io/packages/source/p/worst-case/{{ name.replace('_', '-').lower() }}-{{ version }}.tar.bz2
+https://files.pythonhosted.org/packages/source/p/worst-case/{{ name.replace('_', '-').lower() }}-v{{ version }}.tgz
+https://pypi.io/packages/source/p/worst-case/{{ name.replace('-', '_').lower() }}-{{ version }}.tgz
+https://files.pythonhosted.org/packages/source/p/worst-case/{{ name.replace('_', '-').lower() }}-{{ version }}.zip
+https://files.pythonhosted.org/packages/source/p/worst-case/{{ name.replace('-', '_').lower() }}-{{ version }}.tar
+https://files.pythonhosted.org/packages/source/p/worst-case/{{ name.replace('-', '_').lower() }}-{{ version }}.zip
+https://pypi.io/packages/source/p/worst-case/{{ name.replace('_', '-').lower() }}-{{ version }}.tar.xz
+https://files.pythonhosted.org/packages/source/p/worst-case/{{ name.replace('_', '-').lower() }}-v{{ version }}.tar.xz
+https://pypi.io/packages/source/p/worst-case/{{ name.replace('_', '-').lower() }}-v{{ version }}.zip
+https://pypi.io/packages/source/p/worst-case/{{ name.replace('-', '_').lower() }}-{{ version }}.tar.gz
+https://files.pythonhosted.org/packages/source/p/worst-case/{{ name.replace('_', '-').lower() }}-{{ version }}.tar.gz
+https://files.pythonhosted.org/packages/source/p/worst-case/{{ name.replace('-', '_').lower() }}-v{{ version }}.tar.bz2
 """,
 }
 

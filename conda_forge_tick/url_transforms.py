@@ -91,8 +91,20 @@ def _pypi_munger(url):
     names = [
         [
             "{{ name }}",
+            ("{{ name|lower }}",),
+        ],
+        [
+            "{{ name }}",
             (
+                "{{ name.replace('_', '-').lower() }}",
                 "{{ name.replace('_', '-') }}",
+                '{{ name.replace("_", "-").lower() }}',
+                "{{ name.replace('_','-').lower() }}",
+                '{{ name.replace("_","-").lower() }}',
+                "{{ name|replace('_', '-')|lower }}",
+                '{{ name|replace("_", "-")|lower }}',
+                "{{ name|replace('_','-')|lower }}",
+                '{{ name|replace("_","-")|lower }}',
                 '{{ name.replace("_", "-") }}',
                 "{{ name.replace('_','-') }}",
                 '{{ name.replace("_","-") }}',
@@ -105,7 +117,15 @@ def _pypi_munger(url):
         [
             "{{ name }}",
             (
+                "{{ name.replace('-', '_').lower() }}",
                 "{{ name.replace('-', '_') }}",
+                '{{ name.replace("-", "_").lower() }}',
+                "{{ name.replace('-','_').lower() }}",
+                '{{ name.replace("-","_").lower() }}',
+                "{{ name|replace('-', '_')|lower }}",
+                '{{ name|replace("-", "_")|lower }}',
+                "{{ name|replace('-','_')|lower }}",
+                '{{ name|replace("-","_")|lower }}',
                 '{{ name.replace("-", "_") }}',
                 "{{ name.replace('-','_') }}",
                 '{{ name.replace("-","_") }}',
@@ -117,16 +137,36 @@ def _pypi_munger(url):
         ],
     ]
     if "/pypi." in url or "/files.pythonhosted.org" in url:
-        burl, eurl = url.rsplit("/", 1)
+        burl, murl, eurl = url.rsplit("/", 2)
         for _names in names:
             for vhave, vrep in permutations(_names, 2):
                 if isinstance(vhave, tuple):
                     for _v in vhave:
-                        if _v in eurl:
-                            yield burl + "/" + eurl.replace(_v, vrep)
-                elif vhave in eurl:
+                        if _v in eurl or _v in murl:
+                            yield (
+                                burl
+                                + "/"
+                                + murl.replace(_v, vrep)
+                                + "/"
+                                + eurl.replace(_v, vrep)
+                            )
+                elif vhave in eurl or vhave in murl:
                     assert isinstance(vrep, tuple)
-                    yield burl + "/" + eurl.replace(vhave, vrep[0])
+                    yield (
+                        burl
+                        + "/"
+                        + murl.replace(vhave, vrep[0])
+                        + "/"
+                        + eurl.replace(vhave, vrep[0])
+                    )
+                    if len(vrep) > 1:
+                        yield (
+                            burl
+                            + "/"
+                            + murl.replace(vhave, vrep[1])
+                            + "/"
+                            + eurl.replace(vhave, vrep[1])
+                        )
 
 
 def _github_munger(url):
