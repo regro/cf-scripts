@@ -82,6 +82,16 @@ def test_url_transform_pypi():
         "https://files.pythonhosted.org/{{ name.replace('_', '-').lower() }}/{{ name.replace('_', '-').lower() }}-barf",
         "https://pypi.io/{{ name.replace('-', '_').lower() }}/{{ name.replace('-', '_').lower() }}-barf",
         "https://pypi.io/{{ name.replace('_', '-').lower() }}/{{ name.replace('_', '-').lower() }}-barf",
+        "https://pypi.io/{{ name }}/{{ name.replace('-', '_').lower() }}-barf",
+        "https://files.pythonhosted.org/{{ name }}/{{ name.replace('_', '-').lower() }}-barf",
+        "https://pypi.io/{{ name }}/{{ name.replace('_', '-') }}-barf",
+        "https://files.pythonhosted.org/{{ name }}/{{ name|lower }}-barf",
+        "https://files.pythonhosted.org/{{ name }}/{{ name.replace('-', '_').lower() }}-barf",
+        "https://pypi.io/{{ name }}/{{ name.replace('-', '_') }}-barf",
+        "https://pypi.io/{{ name }}/{{ name.replace('_', '-').lower() }}-barf",
+        "https://files.pythonhosted.org/{{ name }}/{{ name.replace('-', '_') }}-barf",
+        "https://pypi.io/{{ name }}/{{ name|lower }}-barf",
+        "https://files.pythonhosted.org/{{ name }}/{{ name.replace('_', '-') }}-barf",
     }
 
     urls = set(
