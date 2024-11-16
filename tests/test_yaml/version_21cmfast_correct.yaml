@@ -1,0 +1,76 @@
+{% set name = "21cmFAST" %}
+{% set version = "3.4.0" %}
+
+package:
+  name: {{ name|lower }}
+  version: {{ version }}
+
+source:
+  url: https://pypi.io/packages/source/{{ name[0] }}/{{ name|lower }}/{{ name|lower }}-{{ version }}.tar.gz
+  sha256: aff3b5a2adb30ad9a6c2274461901686606e9fdb5e3ff7040cbdf22755d7469f
+
+
+build:
+  number: 0
+  script:
+    - export SETUPTOOLS_SCM_PRETEND_VERSION={{ version }}
+    - INC=${PREFIX}/include LIB=${PREFIX}/lib {{ PYTHON }} -m pip install . -vv
+  skip: true  # [win]
+
+requirements:
+  build:
+    - {{ compiler('c') }}
+    - llvm-openmp  # [osx]
+    - libgomp      # [linux]
+    - python       # [build_platform != target_platform]
+    - cross-python_{{ target_platform }}  # [build_platform != target_platform]
+  host:
+    - python
+    - pip
+    - cffi
+    - fftw
+    - gsl
+    - llvm-openmp  # [osx]
+    - libgomp      # [linux]
+    - libblas
+    - nomkl
+  run:
+    - python
+    - scipy
+    - numpy
+    - click
+    - pyyaml
+    - cffi >=1.0
+    - scipy
+    - astropy >=2.0
+    - h5py >=2.8.0
+    - cached-property
+    - matplotlib-base
+    - fftw
+    - gsl
+    - nomkl
+    - bidict
+    - psutil
+    - setuptools_scm
+
+test:
+  imports:
+    - py21cmfast
+  commands:
+    - 21cmfast --help
+
+about:
+  home: https://github.com/21cmFAST/21cmFAST
+  license: MIT
+  license_family: MIT
+  license_file: LICENSE
+  summary: A semi-numerical cosmological simulation code for the 21cm signal
+  description: |
+    21cmFAST provides a simple and fast simulation package for the cosmological
+    21cm signal as either coeval cubes or full lightcones.
+  doc_url: https://21cmFAST.readthedocs.io/
+  dev_url: https://github.com/21cmFAST/21cmFAST
+
+extra:
+  recipe-maintainers:
+    - steven-murray

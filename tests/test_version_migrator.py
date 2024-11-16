@@ -56,6 +56,7 @@ VARIANT_SOURCES_NOT_IMPLEMENTED = (
         ("boost", "1.74.0"),
         ("boostcpp", "1.74.0"),
         ("event_stream", "1.6.3"),
+        ("21cmfast", "3.4.0"),
         # these contain sources that depend on conda build config variants
         pytest.param(
             "polars_mixed_selectors",
