@@ -593,15 +593,15 @@ package:
       python-dateutil: '>=2.1,<3.0.0'
       urllib3: '>=1.25.4,!=2.2.0,<3'
     hash:
-      md5: 3fab8ee950f3ce61342f629099d532df
-      sha256: e1b315d7f0e2f819a0715db185a6c8a7704b5cbe58f53e191067e19ee15cc4ab
+      md5: f6ca7743a8eb6a2dd26d82395348eff9
+      sha256: c484095c92c86c10209d70c54f07e4311531e1ad2e1fa2a9fdc193b0611b720e
     manager: conda
     name: botocore
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/botocore-1.35.62-pyge310_1234567_0.conda
-    version: 1.35.62
+      https://conda.anaconda.org/conda-forge/noarch/botocore-1.35.63-pyge310_1234567_0.conda
+    version: 1.35.63
   - category: main
     dependencies:
       jmespath: '>=0.7.1,<2.0.0'
@@ -609,15 +609,15 @@ package:
       python-dateutil: '>=2.1,<3.0.0'
       urllib3: '>=1.25.4,!=2.2.0,<3'
     hash:
-      md5: 3fab8ee950f3ce61342f629099d532df
-      sha256: e1b315d7f0e2f819a0715db185a6c8a7704b5cbe58f53e191067e19ee15cc4ab
+      md5: f6ca7743a8eb6a2dd26d82395348eff9
+      sha256: c484095c92c86c10209d70c54f07e4311531e1ad2e1fa2a9fdc193b0611b720e
     manager: conda
     name: botocore
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/botocore-1.35.62-pyge310_1234567_0.conda
-    version: 1.35.62
+      https://conda.anaconda.org/conda-forge/noarch/botocore-1.35.63-pyge310_1234567_0.conda
+    version: 1.35.63
   - category: main
     dependencies:
       jmespath: '>=0.7.1,<2.0.0'
@@ -625,15 +625,15 @@ package:
       python-dateutil: '>=2.1,<3.0.0'
       urllib3: '>=1.25.4,!=2.2.0,<3'
     hash:
-      md5: 3fab8ee950f3ce61342f629099d532df
-      sha256: e1b315d7f0e2f819a0715db185a6c8a7704b5cbe58f53e191067e19ee15cc4ab
+      md5: f6ca7743a8eb6a2dd26d82395348eff9
+      sha256: c484095c92c86c10209d70c54f07e4311531e1ad2e1fa2a9fdc193b0611b720e
     manager: conda
     name: botocore
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/botocore-1.35.62-pyge310_1234567_0.conda
-    version: 1.35.62
+      https://conda.anaconda.org/conda-forge/noarch/botocore-1.35.63-pyge310_1234567_0.conda
+    version: 1.35.63
   - category: main
     dependencies:
       __glibc: '>=2.17,<3.0.a0'
@@ -2435,15 +2435,15 @@ package:
       toolz: ''
       vsts-python-api: ''
     hash:
-      md5: c2d33db9c8a400a7a7de28512ee6e145
-      sha256: 01345cc69f9c9adcdc69fd708fd958d7489202f8e3000058cc958eed1a1fd43e
+      md5: 3ca6133c5482c4357f98f716a716e7f3
+      sha256: 977c72ae2653085c86afaa5c1bb77f03d49a59f3845113ac55e2b1119f2be3ca
     manager: conda
     name: conda-smithy
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-smithy-3.44.4-unix_pyhd81877a_0.conda
-    version: 3.44.4
+      https://conda.anaconda.org/conda-forge/noarch/conda-smithy-3.44.5-unix_pyh707e725_0.conda
+    version: 3.44.5
   - category: main
     dependencies:
       __unix: ''
@@ -2472,15 +2472,15 @@ package:
       toolz: ''
       vsts-python-api: ''
     hash:
-      md5: c2d33db9c8a400a7a7de28512ee6e145
-      sha256: 01345cc69f9c9adcdc69fd708fd958d7489202f8e3000058cc958eed1a1fd43e
+      md5: 3ca6133c5482c4357f98f716a716e7f3
+      sha256: 977c72ae2653085c86afaa5c1bb77f03d49a59f3845113ac55e2b1119f2be3ca
     manager: conda
     name: conda-smithy
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-smithy-3.44.4-unix_pyhd81877a_0.conda
-    version: 3.44.4
+      https://conda.anaconda.org/conda-forge/noarch/conda-smithy-3.44.5-unix_pyh707e725_0.conda
+    version: 3.44.5
   - category: main
     dependencies:
       __unix: ''
@@ -2509,15 +2509,15 @@ package:
       toolz: ''
       vsts-python-api: ''
     hash:
-      md5: c2d33db9c8a400a7a7de28512ee6e145
-      sha256: 01345cc69f9c9adcdc69fd708fd958d7489202f8e3000058cc958eed1a1fd43e
+      md5: 3ca6133c5482c4357f98f716a716e7f3
+      sha256: 977c72ae2653085c86afaa5c1bb77f03d49a59f3845113ac55e2b1119f2be3ca
     manager: conda
     name: conda-smithy
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-smithy-3.44.4-unix_pyhd81877a_0.conda
-    version: 3.44.4
+      https://conda.anaconda.org/conda-forge/noarch/conda-smithy-3.44.5-unix_pyh707e725_0.conda
+    version: 3.44.5
   - category: main
     dependencies:
       python: '>=3.8'
