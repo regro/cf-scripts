@@ -150,6 +150,13 @@ def _pypi_munger(url):
                                 + "/"
                                 + eurl.replace(_v, vrep)
                             )
+                            yield (
+                                burl
+                                + "/"
+                                + murl
+                                + "/"
+                                + eurl.replace(_v, vrep)
+                            )
                 elif vhave in eurl or vhave in murl:
                     assert isinstance(vrep, tuple)
                     yield (
@@ -159,11 +166,25 @@ def _pypi_munger(url):
                         + "/"
                         + eurl.replace(vhave, vrep[0])
                     )
+                    yield (
+                        burl
+                        + "/"
+                        + murl
+                        + "/"
+                        + eurl.replace(vhave, vrep[0])
+                    )
                     if len(vrep) > 1:
                         yield (
                             burl
                             + "/"
                             + murl.replace(vhave, vrep[1])
+                            + "/"
+                            + eurl.replace(vhave, vrep[1])
+                        )
+                        yield (
+                            burl
+                            + "/"
+                            + murl
                             + "/"
                             + eurl.replace(vhave, vrep[1])
                         )
