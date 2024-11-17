@@ -460,9 +460,22 @@ def _remove_quoted_jinja2_vars(lines):
     """
     new_lines = []
     for line in lines:
+        if "'{{" in line and "}}'" in line:
+            start_jinja = line.find("'{{")
+            end_jinja = line.find("}}'")
+        elif '"{{' in line and '}}"' in line:
+            start_jinja = line.find('"{{')
+            end_jinja = line.find('}}"')
+        else:
+            start_jinja = None
+            end_jinja = None
+
         if (
-            ("'{{" in line and "}}'" in line) or ('"{{' in line and '}}"' in line)
-        ) and ("(" in line and ")" in line):
+            start_jinja is not None
+            and end_jinja is not None
+            and "(" in line[start_jinja:end_jinja]
+            and ")" in line[start_jinja:end_jinja]
+        ):
             new_lines.append(re.sub(r"['\"]{{", "{{", line))
             new_lines[-1] = re.sub(r"}}['\"]", "}}", new_lines[-1])
         else:
