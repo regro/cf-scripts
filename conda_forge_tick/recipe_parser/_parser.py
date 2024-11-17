@@ -462,7 +462,7 @@ def _remove_quoted_jinja2_vars(lines):
     for line in lines:
         if (
             ("'{{" in line and "}}'" in line) or ('"{{' in line and '}}"' in line)
-        ) and ("pin_" in line or "compiler" in line or "stdlib" in line):
+        ) and ("(" in line and ")" in line):
             new_lines.append(re.sub(r"['\"]{{", "{{", line))
             new_lines[-1] = re.sub(r"}}['\"]", "}}", new_lines[-1])
         else:
