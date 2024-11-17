@@ -1,4 +1,5 @@
 import io
+import os
 
 import pytest
 
@@ -1603,3 +1604,20 @@ test:
     s.seek(0)
     new_recipe = s.read()
     assert new_recipe == recipe_correct
+
+
+YAML_PATH = os.path.join(os.path.dirname(__file__), "test_yaml")
+
+
+@pytest.mark.parametrize("recipe", os.listdir(YAML_PATH))
+def test_recipe_parser_yaml_suite(recipe):
+    if (
+        recipe.endswith("_correct.yaml") and "duplicate_lines_cleanup" not in recipe
+    ) or recipe.endswith("_after_meta.yaml"):
+        with open(os.path.join(YAML_PATH, recipe)) as f:
+            recipe = f.read()
+            cm = CondaMetaYAML(recipe)
+            s = io.StringIO()
+            cm.dump(s)
+            s.seek(0)
+            assert s.read() == recipe
