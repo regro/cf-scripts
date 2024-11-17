@@ -60,6 +60,7 @@ VARIANT_SOURCES_NOT_IMPLEMENTED = (
         ("pyrsmq", "0.6.0"),
         ("quart_trio", "0.11.1"),
         ("reproc", "14.2.5"),
+        ("riskfolio_lib", "6.3.1"),
         # these contain sources that depend on conda build config variants
         pytest.param(
             "polars_mixed_selectors",
