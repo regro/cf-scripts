@@ -58,7 +58,7 @@ outputs:   # [linux]
         # different versions per cpptango
         - cpptango                                                                    # [linux]
       run:   # [linux]
-        - "{{ pin_subpackage('libhdbpp-timescale', exact=True) }}"                    # [linux]
+        - {{ pin_subpackage('libhdbpp-timescale', exact=True) }}                    # [linux]
     files:   # [linux]
       - "lib/libhdb++timescale.so.{{ version }}.dbg"                                  # [linux]
     test:   # [linux]

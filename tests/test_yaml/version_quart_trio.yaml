@@ -1,0 +1,45 @@
+{% set name = "Quart-Trio" %}
+{% set version = "0.7.0" %}
+
+package:
+  name: {{ name|lower }}
+  version: {{ version }}
+
+source:
+  url: https://pypi.io/packages/source/{{ name[0] }}/{{ name }}/{{ name }}-{{ version }}.tar.gz
+  sha256: 933e3c18e232ece30ccbac7579fdc5f62f2f9c79c3273d6c341f5a1686791eb1
+
+build:
+  noarch: python
+  number: 0
+  script: {{ PYTHON }} -m pip install . -vv
+
+requirements:
+  host:
+    - python >=3.7.0
+    - pip
+  run:
+    - python >=3.7.0
+    - quart >=0.11.1
+    - trio >=0.10.0
+    - hypercorn >=0.6.0
+
+test:
+  imports:
+    - quart_trio
+
+about:
+  home: https://gitlab.com/pgjones/quart-trio
+  license: MIT
+  license_family: MIT
+  license_file: LICENSE
+  summary: Quart-Trio is an extension for Quart to support the Trio event loop
+  description: |
+    Quart-Trio is an extension for Quart to support the Trio event loop.
+    This is an alternative to using the asyncio event loop present in the Python
+    standard library and supported by default in Quart.
+
+extra:
+  recipe-maintainers:
+    - dhirschfeld
+    - scopatz

@@ -447,6 +447,42 @@ def _build_jinja2_expr_tmp(jinja2_exprs):
     return "\n".join(exprs + tmpls)
 
 
+def _remove_quoted_jinja2_vars(lines):
+    """Remove any quoted jinja2 vars from the lines.
+
+    Sometimes people write
+
+        '{{ pin_compatible('x') }}'
+
+    which causes the parser to fail.
+
+    We remove all instances of "['\"]{{" and "}}['\"]" to be safe.
+    """
+    new_lines = []
+    for line in lines:
+        if "'{{" in line and "}}'" in line:
+            start_jinja = line.find("'{{")
+            end_jinja = line.find("}}'")
+        elif '"{{' in line and '}}"' in line:
+            start_jinja = line.find('"{{')
+            end_jinja = line.find('}}"')
+        else:
+            start_jinja = None
+            end_jinja = None
+
+        if (
+            start_jinja is not None
+            and end_jinja is not None
+            and "(" in line[start_jinja:end_jinja]
+            and ")" in line[start_jinja:end_jinja]
+        ):
+            new_lines.append(re.sub(r"['\"]{{", "{{", line))
+            new_lines[-1] = re.sub(r"}}['\"]", "}}", new_lines[-1])
+        else:
+            new_lines.append(line)
+    return new_lines
+
+
 class CondaMetaYAML:
     """Crude parsing of conda recipes.
 
@@ -498,9 +534,15 @@ class CondaMetaYAML:
                     "with a conda build selector! (offending line: '%s')" % line,
                 )
 
-        # remove multiline jinja2 statements
+        # pre-munge odd syntax that we do not want
         lines = list(io.StringIO(meta_yaml).readlines())
+
+        # remove multiline jinja2 statements
         lines = _munge_multiline_jinja2(lines)
+
+        # get rid of quoted jinja2 vars
+        lines = _remove_quoted_jinja2_vars(lines)
+
         meta_yaml = "".join(lines)
 
         # get any variables set in the file by jinja2
