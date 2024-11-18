@@ -2011,39 +2011,39 @@ package:
   - category: main
     dependencies: {}
     hash:
-      md5: b29608caeeb1207dd7c3cc36e41e60a7
-      sha256: e281952ff5dbbf559e0e2d28d638fef0837eee69c27f15d231a0fc7d8a2203de
+      md5: f268ae1d72eda7fc3e908683323d1388
+      sha256: 07dc613d0faf07149d1f973e38345c040fe2b4adf320765410bca14a25f350ef
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.11.18.09.20.23-hd8ed1ab_0.conda
-    version: 2024.11.18.09.20.23
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.11.18.14.47.37-hd8ed1ab_0.conda
+    version: 2024.11.18.14.47.37
   - category: main
     dependencies: {}
     hash:
-      md5: b29608caeeb1207dd7c3cc36e41e60a7
-      sha256: e281952ff5dbbf559e0e2d28d638fef0837eee69c27f15d231a0fc7d8a2203de
+      md5: f268ae1d72eda7fc3e908683323d1388
+      sha256: 07dc613d0faf07149d1f973e38345c040fe2b4adf320765410bca14a25f350ef
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.11.18.09.20.23-hd8ed1ab_0.conda
-    version: 2024.11.18.09.20.23
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.11.18.14.47.37-hd8ed1ab_0.conda
+    version: 2024.11.18.14.47.37
   - category: main
     dependencies: {}
     hash:
-      md5: b29608caeeb1207dd7c3cc36e41e60a7
-      sha256: e281952ff5dbbf559e0e2d28d638fef0837eee69c27f15d231a0fc7d8a2203de
+      md5: f268ae1d72eda7fc3e908683323d1388
+      sha256: 07dc613d0faf07149d1f973e38345c040fe2b4adf320765410bca14a25f350ef
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.11.18.09.20.23-hd8ed1ab_0.conda
-    version: 2024.11.18.09.20.23
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.11.18.14.47.37-hd8ed1ab_0.conda
+    version: 2024.11.18.14.47.37
   - category: main
     dependencies:
       click: '>=8'
@@ -11451,86 +11451,90 @@ package:
     version: 0.35.1
   - category: main
     dependencies:
-      libgcc-ng: '>=12'
+      __glibc: '>=2.17,<3.0.a0'
+      libgcc: '>=13'
     hash:
-      md5: 82ca53502dfd5a64a80dee76dae14685
-      sha256: bb2e4e0ce93bc61bc7c03c4f66abcb8161b0a4f1c41b5156cf1e5e17892b05d8
+      md5: 69fbc0a9e42eb5fe6733d2d60d818822
+      sha256: a1973f41a6b956f1305f9aaefdf14b2f35a8c9615cfe5f143f1784ed9aa6bf47
     manager: conda
     name: reproc
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/linux-64/reproc-14.2.4.post0-hd590300_1.conda
-    version: 14.2.4.post0
+      https://conda.anaconda.org/conda-forge/linux-64/reproc-14.2.5.post0-hb9d3cd8_0.conda
+    version: 14.2.5.post0
   - category: main
-    dependencies: {}
+    dependencies:
+      __osx: '>=10.13'
     hash:
-      md5: d7c3258e871481be5bbaf28b4729e29f
-      sha256: 41c7fb3ef17684c98c1d2c50d0eaba388beed400dbc4cc099a9f31a2819ef594
+      md5: eda18d4a7dce3831016086a482965345
+      sha256: dda2a8bc1bf16b563b74c2a01dccea657bda573b0c45e708bfeee01c208bcbaf
     manager: conda
     name: reproc
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/osx-64/reproc-14.2.4.post0-h10d778d_1.conda
-    version: 14.2.4.post0
+      https://conda.anaconda.org/conda-forge/osx-64/reproc-14.2.5.post0-h6e16a3a_0.conda
+    version: 14.2.5.post0
   - category: main
-    dependencies: {}
+    dependencies:
+      __osx: '>=11.0'
     hash:
-      md5: ef7ae6d7bb50c8c735551d825e1ea287
-      sha256: e12534c909613b56c539eed6f4cd55da2eb03086435101fad79c383a9c3df527
+      md5: f1d129089830365d9dac932c4dd8c675
+      sha256: a5f0dbfa8099a3d3c281ea21932b6359775fd8ce89acc53877a6ee06f50642bc
     manager: conda
     name: reproc
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/osx-arm64/reproc-14.2.4.post0-h93a5062_1.conda
-    version: 14.2.4.post0
+      https://conda.anaconda.org/conda-forge/osx-arm64/reproc-14.2.5.post0-h5505292_0.conda
+    version: 14.2.5.post0
   - category: main
     dependencies:
-      libgcc-ng: '>=12'
-      libstdcxx-ng: '>=12'
-      reproc: 14.2.4.post0
+      __glibc: '>=2.17,<3.0.a0'
+      libgcc: '>=13'
+      libstdcxx: '>=13'
+      reproc: 14.2.5.post0
     hash:
-      md5: 715e1d720ec1a03715bebd237972fca5
-      sha256: 8f0c6852471c0f2b02ab21d7c2877e30fc7f4d7d8034ca90bd9fdc3a22277fe9
+      md5: 828302fca535f9cfeb598d5f7c204323
+      sha256: 568485837b905b1ea7bdb6e6496d914b83db57feda57f6050d5a694977478691
     manager: conda
     name: reproc-cpp
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/linux-64/reproc-cpp-14.2.4.post0-h59595ed_1.conda
-    version: 14.2.4.post0
+      https://conda.anaconda.org/conda-forge/linux-64/reproc-cpp-14.2.5.post0-h5888daf_0.conda
+    version: 14.2.5.post0
   - category: main
     dependencies:
-      __osx: '>=10.9'
-      libcxx: '>=16.0.6'
-      reproc: 14.2.4.post0
+      __osx: '>=10.13'
+      libcxx: '>=18'
+      reproc: 14.2.5.post0
     hash:
-      md5: a32e95ada0ee860c91e87266700970c3
-      sha256: dfdf987c7584d61a690a390872f89f968fb25ba44c76a9417f73e09bba1da3bc
+      md5: 420229341978751bd96faeced92c200e
+      sha256: 4d8638b7f44082302c7687c99079789f42068d34cddc0959c11ad5d28aab3d47
     manager: conda
     name: reproc-cpp
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/osx-64/reproc-cpp-14.2.4.post0-h93d8f39_1.conda
-    version: 14.2.4.post0
+      https://conda.anaconda.org/conda-forge/osx-64/reproc-cpp-14.2.5.post0-h240833e_0.conda
+    version: 14.2.5.post0
   - category: main
     dependencies:
-      __osx: '>=10.9'
-      libcxx: '>=16.0.6'
-      reproc: 14.2.4.post0
+      __osx: '>=11.0'
+      libcxx: '>=18'
+      reproc: 14.2.5.post0
     hash:
-      md5: f81d00496e13ee828f84b3ef17e41346
-      sha256: 83736a55ff9cf3a54591aa44c3ee1181cd570c0a452b8d8a2ab113f3e0b0974b
+      md5: 11a3d09937d250fc4423bf28837d9363
+      sha256: f1b6aa9d9131ea159a5883bc5990b91b4b8f56eb52e0dc2b01aa9622e14edc81
     manager: conda
     name: reproc-cpp
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/osx-arm64/reproc-cpp-14.2.4.post0-h965bd2d_1.conda
-    version: 14.2.4.post0
+      https://conda.anaconda.org/conda-forge/osx-arm64/reproc-cpp-14.2.5.post0-h286801f_0.conda
+    version: 14.2.5.post0
   - category: main
     dependencies:
       certifi: '>=2017.4.17'
