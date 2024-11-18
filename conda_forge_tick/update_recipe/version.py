@@ -148,12 +148,15 @@ def _try_pypi_api(url_tmpl: str, context: MutableMapping, hash_type: str):
     if "version" not in context:
         return None, None
 
-    if not any(pypi_slug in url_tmpl for pypi_slug in ["/pypi.org", "/pypi.io", "/files.pythonhosted.org"]):
+    if not any(
+        pypi_slug in url_tmpl
+        for pypi_slug in ["/pypi.org", "/pypi.io", "/files.pythonhosted.org"]
+    ):
         return None, None
 
     r = requests.get(
         f"https://pypi.org/simple/{context['name']}/",
-        headers={"Accept": "application/vnd.pypi.simple.v1+json"}
+        headers={"Accept": "application/vnd.pypi.simple.v1+json"},
     )
     r.raise_for_status()
 
@@ -171,7 +174,9 @@ def _try_pypi_api(url_tmpl: str, context: MutableMapping, hash_type: str):
                 break
 
     if finfo is None or ext is None:
-        logger.debug("src dist for version %s not found in PyPI API", context["version"])
+        logger.debug(
+            "src dist for version %s not found in PyPI API", context["version"]
+        )
         return None, None
 
     bn, _ = os.path.split(url_tmpl)
@@ -193,7 +198,9 @@ def _try_pypi_api(url_tmpl: str, context: MutableMapping, hash_type: str):
     if name_tmpl is not None:
         new_url_tmpl = os.path.join(bn, name_tmpl + "-" + "{{ version }}" + ext)
     else:
-        new_url_tmpl = os.path.join(bn, finfo["filename"].replace(context["version"], "{{ version }}"))
+        new_url_tmpl = os.path.join(
+            bn, finfo["filename"].replace(context["version"], "{{ version }}")
+        )
 
     logger.debug("new url template from PyPI API: %s", new_url_tmpl)
     url = _render_jinja2(new_url_tmpl, context)
