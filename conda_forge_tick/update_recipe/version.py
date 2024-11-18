@@ -213,6 +213,8 @@ def _try_pypi_api(url_tmpl: str, context: MutableMapping, hash_type: str):
     if new_hash is not None:
         return new_url_tmpl, new_hash
 
+    return None, None
+
 
 def _get_new_url_tmpl_and_hash(url_tmpl: str, context: MutableMapping, hash_type: str):
     logger.info(
