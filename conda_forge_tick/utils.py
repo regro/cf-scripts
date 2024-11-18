@@ -1087,7 +1087,7 @@ def load_graph(filename: str = DEFAULT_GRAPH_FILENAME) -> Optional[nx.DiGraph]:
     """
     dta = copy.deepcopy(LazyJson(filename).data)
     if dta:
-        return nx.node_link_graph(dta)
+        return nx.node_link_graph(dta, edges="links")
     else:
         return None
 
