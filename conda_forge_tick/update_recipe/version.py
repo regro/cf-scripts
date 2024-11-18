@@ -13,6 +13,7 @@ from typing import Any, MutableMapping
 
 import jinja2
 import jinja2.sandbox
+import requests
 from conda_forge_feedstock_ops.container_utils import (
     get_default_log_level_args,
     run_container_operation,
@@ -140,6 +141,72 @@ def _render_jinja2(tmpl, context):
     )
 
 
+def _try_pypi_api(url_tmpl: str, context: MutableMapping, hash_type: str):
+    if "name" not in context:
+        return None, None
+
+    if "version" not in context:
+        return None, None
+
+    if not any(pypi_slug in url_tmpl for pypi_slug in ["/pypi.org", "/pypi.io", "/files.pythonhosted.org"]):
+        return None, None
+
+    r = requests.get(
+        f"https://pypi.org/simple/{context['name']}/",
+        headers={"Accept": "application/vnd.pypi.simple.v1+json"}
+    )
+    r.raise_for_status()
+
+    data = r.json()
+    logger.debug("PyPI API data:\n%s", pprint.pformat(data))
+
+    valid_src_exts = {".tar.gz", ".tar.bz2", ".tar.xz", ".zip", ".tgz"}
+    finfo = None
+    ext = None
+    for _finfo in data["files"]:
+        for valid_ext in valid_src_exts:
+            if _finfo["filename"].endswith(context["version"] + valid_ext):
+                ext = valid_ext
+                finfo = _finfo
+                break
+
+    if finfo is None or ext is None:
+        logger.debug("src dist for version %s not found in PyPI API", context["version"])
+        return None, None
+
+    bn, _ = os.path.split(url_tmpl)
+    pypi_name = finfo["filename"].split(context["version"] + ext)[0]
+    logger.debug("PyPI API file name: %s", pypi_name)
+    name_tmpl = None
+    for tmpl in [
+        "{{ name }}",
+        "{{ name.lower() }}",
+        "{{ name.replace('-', '_') }}",
+        "{{ name.replace('_', '-') }}",
+        "{{ name.replace('-', '_').lower() }}",
+        "{{ name.replace('_', '-').lower() }}",
+    ]:
+        if pypi_name == _render_jinja2(tmpl, context) + "-":
+            name_tmpl = tmpl
+            break
+
+    if name_tmpl is not None:
+        new_url_tmpl = os.path.join(bn, name_tmpl + "-" + "{{ version }}" + ext)
+    else:
+        new_url_tmpl = os.path.join(bn, finfo["filename"].replace(context["version"], "{{ version }}"))
+
+    logger.debug("new url template from PyPI API: %s", new_url_tmpl)
+    url = _render_jinja2(new_url_tmpl, context)
+    new_hash = _try_url_and_hash_it(url, hash_type)
+    if new_hash is not None:
+        return new_url_tmpl, new_hash
+
+    new_url_tmpl = finfo["url"]
+    new_hash = _try_url_and_hash_it(url, hash_type)
+    if new_hash is not None:
+        return new_url_tmpl, new_hash
+
+
 def _get_new_url_tmpl_and_hash(url_tmpl: str, context: MutableMapping, hash_type: str):
     logger.info(
         "hashing URL template: %s",
@@ -164,6 +231,13 @@ def _get_new_url_tmpl_and_hash(url_tmpl: str, context: MutableMapping, hash_type
 
     new_url_tmpl = None
     new_hash = None
+
+    try:
+        new_url_tmpl, new_hash = _try_pypi_api(url_tmpl, context, hash_type)
+        if new_hash is not None and new_url_tmpl is not None:
+            return new_url_tmpl, new_hash
+    except Exception as e:
+        logger.debug("PyPI API url+hash update failed: %s", repr(e), exc_info=e)
 
     for new_url_tmpl in gen_transformed_urls(url_tmpl):
         try:
