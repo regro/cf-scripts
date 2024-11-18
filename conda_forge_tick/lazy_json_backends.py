@@ -852,7 +852,7 @@ def object_hook(dct: dict) -> Union[LazyJson, Set, dict]:
     elif "__set__" in dct:
         return set(dct["elements"])
     elif "__nx_digraph__" in dct:
-        return nx.node_link_graph(dct["node_link_data"])
+        return nx.node_link_graph(dct["node_link_data"], edges="links")
     return dct
 
 
