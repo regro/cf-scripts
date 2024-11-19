@@ -43,6 +43,12 @@ def _jinja2_munger_factory(field):
     return _jinja_munger
 
 
+def _v_munger(url):
+    for vhave, vrep in permutations(["v{{ v", "{{ v"]):
+        if vhave in url and (vrep in vhave or vrep not in url):
+            yield url.replace(vhave, vrep)
+
+
 def _pypi_name_munger(url):
     bn = os.path.basename(url)
     dn = os.path.dirname(url)
@@ -74,12 +80,6 @@ def _pypi_name_munger(url):
             yield os.path.join(
                 dn, "%s-{{ version }}.tar.gz" % re.sub(pattern, "_", dist_bn_case)
             )
-
-
-def _v_munger(url):
-    for vhave, vrep in permutations(["v{{ v", "{{ v"]):
-        if vhave in url and (vrep in vhave or vrep not in url):
-            yield url.replace(vhave, vrep)
 
 
 def _github_munger(url):
