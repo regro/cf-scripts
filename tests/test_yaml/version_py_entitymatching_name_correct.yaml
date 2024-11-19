@@ -1,0 +1,72 @@
+{% set version = "0.4.2" %}
+{% set sha256 = "3656a8ab0bdce297ed3ae13c890c0091deeae79367aad44e3f84effd44b60f7f" %}
+
+package:
+  name: py_entitymatching
+  version: {{ version }}
+
+source:
+  url: https://files.pythonhosted.org/packages/3d/77/81c61707e98558cadac41f7e7aaf15f217cdd5cc6f106fdec57d8b36eff3/py-entitymatching-{{ version }}.tar.gz
+  sha256: {{ sha256 }}
+
+build:
+  number: 0
+  script: python -m pip install --no-deps --ignore-installed .
+  skip: true  # [not x86_64]
+
+requirements:
+  build:
+    - {{ compiler('c') }}
+    - {{ compiler('cxx') }}
+    - msinttypes  # [vc9]
+  host:
+    - python
+    - pip
+    - setuptools
+    - cython
+    - six
+    - py_stringsimjoin >=0.3.0
+    - cloudpickle
+    - pyparsing >=2.1.4
+    - scikit-learn >=0.18,<0.22.0a0
+    - xgboost  # [not win]
+    - pyqt
+    - requests
+    - ipython  # ==5.6
+    - numpy  # ==1.16.2
+  run:
+    - python
+    - {{ pin_compatible('numpy') }}
+    - six
+    - pandas
+    - joblib
+    - pyprind
+    - py_stringsimjoin >=0.3.0
+    - cloudpickle >=0.2.1
+    - pyparsing >=2.1.4
+    - scikit-learn >=0.18,<0.22.0a0
+    - xgboost  # [not win]
+    - pyqt
+    - requests
+    - ipython  # ==5.6
+    - matplotlib-base >=2.2.4
+
+test:
+  imports:
+    - py_entitymatching
+
+about:
+  home: https://sites.google.com/site/anhaidgroup/projects/magellan/py_entitymatching
+  license: BSD-3-Clause
+  license_family: BSD
+  license_file: LICENSE
+  summary: Python library for entity matching.
+  description: |
+    This project seeks to build a Python software package to match entities
+    between two tables using supervised learning.
+  doc_url: http://anhaidgroup.github.io/py_entitymatching/
+  dev_url: https://github.com/anhaidgroup/py_entitymatching
+
+extra:
+  recipe-maintainers:
+    - pjmartinkus
