@@ -1,6 +1,9 @@
+import os
+import re
 from itertools import permutations
 
 EXTS = [".tar.gz", ".zip", ".tar", ".tar.bz2", ".tar.xz", ".tgz"]
+PYPI_SLUGS = ["/pypi.io/", "/pypi.org/", "/files.pythonhosted.org/"]
 
 
 def _ext_munger(url):
@@ -38,6 +41,39 @@ def _jinja2_munger_factory(field):
                 yield url.replace(curr, new)
 
     return _jinja_munger
+
+
+def _pypi_name_munger(url):
+    bn = os.path.basename(url)
+    dn = os.path.dirname(url)
+    dist_bn = os.path.basename(os.path.dirname(url))
+    is_sdist = url.endswith(".tar.gz")
+    is_pypi = any(pypi in url for pypi in PYPI_SLUGS)
+    has_version = re.search(r"\{\{\s*version", bn)
+    has_name = re.search(r"\{\{\s*name", bn)
+
+    # try the original URL first, as a fallback (probably can't be removed?)
+    yield url
+
+    if is_pypi and has_version and not has_name:
+        yield os.path.join(dn, "{{ name }}-{{ version }}.tar.gz")
+
+    if not (is_sdist and is_pypi and has_version):
+        return
+
+    # try static PEP625 name with PEP345 distribution name (_ not -)
+    patterns = [
+        # fully normalized
+        r"[\.\-]+",
+        # older, partial normalization
+        r"[\-]+",
+    ]
+
+    for pattern in patterns:
+        for dist_bn_case in {dist_bn, dist_bn.lower()}:
+            yield os.path.join(
+                dn, "%s-{{ version }}.tar.gz" % re.sub(pattern, "_", dist_bn_case)
+            )
 
 
 def _v_munger(url):
@@ -90,6 +126,7 @@ def gen_transformed_urls(url):
             _jinja2_munger_factory("version"),
             _jinja2_munger_factory("name[0]"),
             _github_munger,
+            _pypi_name_munger,
         ],
     ):
         if new_url not in yielded:

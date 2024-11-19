@@ -1,3 +1,5 @@
+import os
+
 import pytest
 
 from conda_forge_tick.url_transforms import gen_transformed_urls
@@ -50,57 +52,6 @@ def test_url_transform_exts():
         "blah.tar.bz2",
         "blah.zip",
         "blah.tar.xz",
-    }
-
-
-def test_url_transform_pypi():
-    urls = set(list(gen_transformed_urls("https://pypi.io/{{ name }}/{{ name }}-barf")))
-    assert urls == {
-        "https://pypi.io/{{ name }}/{{ name }}-barf",
-    }
-
-    urls = set(
-        list(
-            gen_transformed_urls(
-                "https://pypi.io/{{ name }}/{{ name.replace('_', '-') }}-barf",
-            ),
-        ),
-    )
-    assert urls == {
-        "https://pypi.io/{{ name }}/{{ name.replace('_', '-') }}-barf",
-    }
-
-    urls = set(
-        list(
-            gen_transformed_urls(
-                "https://pypi.io/{{ name }}/{{ name.replace('_','-') }}-barf",
-            ),
-        ),
-    )
-    assert urls == {
-        "https://pypi.io/{{ name }}/{{ name.replace('_','-') }}-barf",
-    }
-
-    urls = set(
-        list(
-            gen_transformed_urls(
-                "https://pypi.io/{{ name }}/{{ name|replace('_','-') }}-barf",
-            ),
-        ),
-    )
-    assert urls == {
-        "https://pypi.io/{{ name }}/{{ name|replace('_','-') }}-barf",
-    }
-
-    urls = set(
-        list(
-            gen_transformed_urls(
-                'https://pypi.io/{{ name }}/{{ name.replace("_", "-") }}-barf',
-            ),
-        ),
-    )
-    assert urls == {
-        'https://pypi.io/{{ name }}/{{ name.replace("_", "-") }}-barf',
     }
 
 
@@ -167,6 +118,18 @@ def test_url_transform_complicated_pypi():
     }
 
 
+def test_rul_transforms_pypi_name():
+    urls = set(
+        list(
+            gen_transformed_urls(
+                "https://pypi.io/packages/source/{{ name[0] }}/{{ name }}"
+                "/dash_extensions-{{ version }}.tar.gz",
+            ),
+        ),
+    )
+    assert any("{{ name }}-{{ version }}" in os.path.basename(url) for url in urls)
+
+
 def test_url_transform_complicated_github():
     urls = set(
         list(
@@ -220,6 +183,30 @@ https://pypi.io/packages/source/p/packageurl-python/packageurl-python-v{{ versio
 https://pypi.io/packages/source/p/packageurl-python/packageurl-python-v{{ version }}.tar.xz
 https://pypi.io/packages/source/p/packageurl-python/packageurl-python-v{{ version }}.tgz
 https://pypi.io/packages/source/p/packageurl-python/packageurl-python-v{{ version }}.zip
+https://pypi.io/packages/source/p/packageurl-python/packageurl_python-v{{ version }}.zip
+https://pypi.io/packages/source/p/packageurl-python/{{ name }}-v{{ version }}.tgz
+https://pypi.io/packages/source/p/packageurl-python/packageurl_python-{{ version }}.zip
+https://pypi.io/packages/source/p/packageurl-python/packageurl_python-{{ version }}.tgz
+https://pypi.io/packages/source/p/packageurl-python/{{ name }}-v{{ version }}.tar
+https://pypi.io/packages/source/p/packageurl-python/packageurl_python-v{{ version }}.tar
+https://pypi.io/packages/source/p/packageurl-python/packageurl_python-{{ version }}.tar.gz
+https://pypi.io/packages/source/p/packageurl-python/{{ name }}-v{{ version }}.zip
+https://pypi.io/packages/source/p/packageurl-python/{{ name }}-{{ version }}.tgz
+https://pypi.io/packages/source/p/packageurl-python/{{ name }}-v{{ version }}.tar.gz
+https://pypi.io/packages/source/p/packageurl-python/packageurl_python-{{ version }}.tar
+https://pypi.io/packages/source/p/packageurl-python/packageurl_python-v{{ version }}.tar.gz
+https://pypi.io/packages/source/p/packageurl-python/packageurl_python-v{{ version }}.tgz
+https://pypi.io/packages/source/p/packageurl-python/packageurl_python-v{{ version }}.tar.bz2
+https://pypi.io/packages/source/p/packageurl-python/packageurl_python-{{ version }}.tar.bz2
+https://pypi.io/packages/source/p/packageurl-python/{{ name }}-v{{ version }}.tar.xz
+https://pypi.io/packages/source/p/packageurl-python/{{ name }}-{{ version }}.tar.gz
+https://pypi.io/packages/source/p/packageurl-python/packageurl_python-v{{ version }}.tar.xz
+https://pypi.io/packages/source/p/packageurl-python/{{ name }}-{{ version }}.tar.xz
+https://pypi.io/packages/source/p/packageurl-python/{{ name }}-v{{ version }}.tar.bz2
+https://pypi.io/packages/source/p/packageurl-python/{{ name }}-{{ version }}.tar
+https://pypi.io/packages/source/p/packageurl-python/{{ name }}-{{ version }}.zip
+https://pypi.io/packages/source/p/packageurl-python/{{ name }}-{{ version }}.tar.bz2
+https://pypi.io/packages/source/p/packageurl-python/packageurl_python-{{ version }}.tar.xz
 """,
     """
 https://pypi.io/packages/source/p/worst-case/Worst.-Case-{{ version }}.tar.gz
@@ -236,6 +223,30 @@ https://pypi.io/packages/source/p/worst-case/Worst.-Case-v{{ version }}.tar.gz
 https://pypi.io/packages/source/p/worst-case/Worst.-Case-v{{ version }}.tar.xz
 https://pypi.io/packages/source/p/worst-case/Worst.-Case-v{{ version }}.tgz
 https://pypi.io/packages/source/p/worst-case/Worst.-Case-v{{ version }}.zip
+https://pypi.io/packages/source/p/worst-case/{{ name }}-{{ version }}.tar.gz
+https://pypi.io/packages/source/p/worst-case/{{ name }}-v{{ version }}.tgz
+https://pypi.io/packages/source/p/worst-case/worst_case-{{ version }}.tar
+https://pypi.io/packages/source/p/worst-case/{{ name }}-{{ version }}.tgz
+https://pypi.io/packages/source/p/worst-case/worst_case-v{{ version }}.zip
+https://pypi.io/packages/source/p/worst-case/worst_case-v{{ version }}.tgz
+https://pypi.io/packages/source/p/worst-case/{{ name }}-{{ version }}.zip
+https://pypi.io/packages/source/p/worst-case/{{ name }}-{{ version }}.tar.bz2
+https://pypi.io/packages/source/p/worst-case/{{ name }}-v{{ version }}.tar
+https://pypi.io/packages/source/p/worst-case/{{ name }}-{{ version }}.tar.xz
+https://pypi.io/packages/source/p/worst-case/worst_case-{{ version }}.tar.xz
+https://pypi.io/packages/source/p/worst-case/worst_case-v{{ version }}.tar.gz
+https://pypi.io/packages/source/p/worst-case/{{ name }}-v{{ version }}.tar.bz2
+https://pypi.io/packages/source/p/worst-case/worst_case-{{ version }}.zip
+https://pypi.io/packages/source/p/worst-case/worst_case-{{ version }}.tgz
+https://pypi.io/packages/source/p/worst-case/{{ name }}-{{ version }}.tar
+https://pypi.io/packages/source/p/worst-case/{{ name }}-v{{ version }}.zip
+https://pypi.io/packages/source/p/worst-case/{{ name }}-v{{ version }}.tar.xz
+https://pypi.io/packages/source/p/worst-case/worst_case-{{ version }}.tar.bz2
+https://pypi.io/packages/source/p/worst-case/worst_case-v{{ version }}.tar.xz
+https://pypi.io/packages/source/p/worst-case/worst_case-v{{ version }}.tar
+https://pypi.io/packages/source/p/worst-case/worst_case-{{ version }}.tar.gz
+https://pypi.io/packages/source/p/worst-case/{{ name }}-v{{ version }}.tar.gz
+https://pypi.io/packages/source/p/worst-case/worst_case-v{{ version }}.tar.bz2
 """,
 }
 
