@@ -173,6 +173,7 @@ def _try_pypi_api(url_tmpl: str, context: MutableMapping, hash_type: str):
             break
 
     if orig_pypi_name is None or not r.ok:
+        logger.debug("PyPI name not found!")
         r.raise_for_status()
 
     data = r.json()
@@ -224,7 +225,9 @@ def _try_pypi_api(url_tmpl: str, context: MutableMapping, hash_type: str):
     if new_hash is not None:
         return new_url_tmpl, new_hash
 
-    new_url_tmpl = finfo["url"]
+    new_url_tmpl = finfo["url"].replace(context["version"], "{{ version }}")
+    logger.debug("new url template from PyPI API: %s", new_url_tmpl)
+    url = _render_jinja2(new_url_tmpl, context)
     new_hash = _try_url_and_hash_it(url, hash_type)
     if new_hash is not None:
         return new_url_tmpl, new_hash
@@ -249,7 +252,7 @@ def _get_new_url_tmpl_and_hash(url_tmpl: str, context: MutableMapping, hash_type
     try:
         url = _render_jinja2(url_tmpl, context)
         new_hash = _try_url_and_hash_it(url, hash_type)
-        if new_hash is not None:
+        if new_hash is not None and url != url_tmpl:
             return url_tmpl, new_hash
     except jinja2.UndefinedError:
         pass
