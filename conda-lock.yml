@@ -10625,46 +10625,46 @@ package:
     version: 1.1.4
   - category: main
     dependencies:
-      pytest: '>=5.4'
-      python: '>=3.6,<4'
+      pytest: '>=5.0.0,<9.0.0'
+      python: '>=3.9'
     hash:
-      md5: d15a8b5c3a050fc3cf7d4509c70441f4
-      sha256: 34b2849d08d1cd7672b873c72df37d071d10402df89c6f8ac82d43cbeaa33442
+      md5: 3bd32c44526b455aa146d8fdb27a65b3
+      sha256: 2de536333c132df88358d3373a0cebc0280b958c59d4f54a1d56740f3aadae09
     manager: conda
     name: pytest-split
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/pytest-split-0.8.2-pyhd8ed1ab_0.conda
-    version: 0.8.2
+      https://conda.anaconda.org/conda-forge/noarch/pytest-split-0.10.0-pyhff2d567_0.conda
+    version: 0.10.0
   - category: main
     dependencies:
-      pytest: '>=5.4'
-      python: '>=3.6,<4'
+      pytest: '>=5.0.0,<9.0.0'
+      python: '>=3.9'
     hash:
-      md5: d15a8b5c3a050fc3cf7d4509c70441f4
-      sha256: 34b2849d08d1cd7672b873c72df37d071d10402df89c6f8ac82d43cbeaa33442
+      md5: 3bd32c44526b455aa146d8fdb27a65b3
+      sha256: 2de536333c132df88358d3373a0cebc0280b958c59d4f54a1d56740f3aadae09
     manager: conda
     name: pytest-split
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/pytest-split-0.8.2-pyhd8ed1ab_0.conda
-    version: 0.8.2
+      https://conda.anaconda.org/conda-forge/noarch/pytest-split-0.10.0-pyhff2d567_0.conda
+    version: 0.10.0
   - category: main
     dependencies:
-      pytest: '>=5.4'
-      python: '>=3.6,<4'
+      pytest: '>=5.0.0,<9.0.0'
+      python: '>=3.9'
     hash:
-      md5: d15a8b5c3a050fc3cf7d4509c70441f4
-      sha256: 34b2849d08d1cd7672b873c72df37d071d10402df89c6f8ac82d43cbeaa33442
+      md5: 3bd32c44526b455aa146d8fdb27a65b3
+      sha256: 2de536333c132df88358d3373a0cebc0280b958c59d4f54a1d56740f3aadae09
     manager: conda
     name: pytest-split
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/pytest-split-0.8.2-pyhd8ed1ab_0.conda
-    version: 0.8.2
+      https://conda.anaconda.org/conda-forge/noarch/pytest-split-0.10.0-pyhff2d567_0.conda
+    version: 0.10.0
   - category: main
     dependencies:
       execnet: '>=2.1'
@@ -11236,40 +11236,40 @@ package:
       openssl: '>=3.4.0,<4.0a0'
       patchelf: ''
     hash:
-      md5: e029c092d352321fd135a8dd9026551d
-      sha256: e2890fca5cb7bb7ca5d7b9a336d7c3090239786a415197fcf1f3bf0ca127b86a
+      md5: 2f9468af1dbc810c0c1d69416cbe430b
+      sha256: 6e2a0552cda057fd6ce240d9f9f851252ca897a59dd1d226a4fcd368f07e7b34
     manager: conda
     name: rattler-build
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/linux-64/rattler-build-0.31.0-h51b9b6e_0.conda
+      https://conda.anaconda.org/conda-forge/linux-64/rattler-build-0.31.0-h51b9b6e_1.conda
     version: 0.31.0
   - category: main
     dependencies:
       __osx: '>=10.13'
     hash:
-      md5: 28fa9ade50300cac86ceb5d44099082c
-      sha256: d8572427a814ee38f2fed059dfbce2854dcc30a54195a0404d5a4f820b43e042
+      md5: c9432a876e7ee8285ee42cfeec3349bd
+      sha256: d98717209cbb725a0438a0f16e0200fc90c2ab636fadf1849194dd3a7cbc933c
     manager: conda
     name: rattler-build
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/osx-64/rattler-build-0.31.0-h0f13631_0.conda
+      https://conda.anaconda.org/conda-forge/osx-64/rattler-build-0.31.0-h0f13631_1.conda
     version: 0.31.0
   - category: main
     dependencies:
       __osx: '>=11.0'
     hash:
-      md5: 66b2d9aa996c4ea0ce720c2adf05847c
-      sha256: 333d148f3690d0c1fbe4198dbbffac34809e818a68801533d6c4ce4c29b18801
+      md5: 4b47d55508e68d45960bf14056f8420c
+      sha256: 9a271bc58aa9ff753f602312b0de2e37584ebc58e80e0688e5b5367087bbb6a1
     manager: conda
     name: rattler-build
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/osx-arm64/rattler-build-0.31.0-hcbb27f7_0.conda
+      https://conda.anaconda.org/conda-forge/osx-arm64/rattler-build-0.31.0-hcbb27f7_1.conda
     version: 0.31.0
   - category: main
     dependencies:
