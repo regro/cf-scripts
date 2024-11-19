@@ -62,6 +62,8 @@ VARIANT_SOURCES_NOT_IMPLEMENTED = (
         ("reproc", "14.2.5"),
         ("riskfolio_lib", "6.3.1"),
         ("algotree", "0.7.3"),
+        ("py_entitymatching", "0.4.2"),
+        ("py_entitymatching_name", "0.4.2"),
         # these contain sources that depend on conda build config variants
         pytest.param(
             "polars_mixed_selectors",
