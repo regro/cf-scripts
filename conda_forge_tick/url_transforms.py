@@ -125,8 +125,8 @@ def gen_transformed_urls(url):
             _jinja2_munger_factory("name"),
             _jinja2_munger_factory("version"),
             _jinja2_munger_factory("name[0]"),
-            _github_munger,
             _pypi_name_munger,
+            _github_munger,
         ],
     ):
         if new_url not in yielded:
