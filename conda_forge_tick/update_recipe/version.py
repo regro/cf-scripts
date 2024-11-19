@@ -151,15 +151,29 @@ def _try_pypi_api(url_tmpl: str, context: MutableMapping, hash_type: str):
     ):
         return None, None
 
-    orig_pypi_name = url_tmpl.split("/")[-2]
-    if "{{ name }}" in orig_pypi_name:
-        orig_pypi_name = _render_jinja2(orig_pypi_name, context)
+    orig_pypi_name = None
+    orig_pypi_name_candidates = [url_tmpl.split("/")[-2], context.get("name", None)]
+    for _orig_pypi_name in orig_pypi_name_candidates:
+        if _orig_pypi_name is None:
+            continue
 
-    r = requests.get(
-        f"https://pypi.org/simple/{orig_pypi_name}/",
-        headers={"Accept": "application/vnd.pypi.simple.v1+json"},
-    )
-    r.raise_for_status()
+        if "{{ name }}" in _orig_pypi_name:
+            _orig_pypi_name = _render_jinja2(_orig_pypi_name, context)
+
+        try:
+            r = requests.get(
+                f"https://pypi.org/simple/{_orig_pypi_name}/",
+                headers={"Accept": "application/vnd.pypi.simple.v1+json"},
+            )
+            r.raise_for_status()
+        except Exception as e:
+            logger.debug("PyPI API request failed: %s", repr(e), exc_info=e)
+        else:
+            orig_pypi_name = _orig_pypi_name
+            break
+
+    if orig_pypi_name is None or not r.ok:
+        r.raise_for_status()
 
     data = r.json()
     logger.debug("PyPI API data:\n%s", pprint.pformat(data))
