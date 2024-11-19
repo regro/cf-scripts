@@ -142,9 +142,6 @@ def _render_jinja2(tmpl, context):
 
 
 def _try_pypi_api(url_tmpl: str, context: MutableMapping, hash_type: str):
-    if "name" not in context:
-        return None, None
-
     if "version" not in context:
         return None, None
 
@@ -154,8 +151,12 @@ def _try_pypi_api(url_tmpl: str, context: MutableMapping, hash_type: str):
     ):
         return None, None
 
+    orig_pypi_name = url_tmpl.split("/")[-2]
+    if "{{ name }}" in orig_pypi_name:
+        orig_pypi_name = _render_jinja2(orig_pypi_name, context)
+
     r = requests.get(
-        f"https://pypi.org/simple/{context['name']}/",
+        f"https://pypi.org/simple/{orig_pypi_name}/",
         headers={"Accept": "application/vnd.pypi.simple.v1+json"},
     )
     r.raise_for_status()
@@ -183,17 +184,18 @@ def _try_pypi_api(url_tmpl: str, context: MutableMapping, hash_type: str):
     pypi_name = finfo["filename"].split(context["version"] + ext)[0]
     logger.debug("PyPI API file name: %s", pypi_name)
     name_tmpl = None
-    for tmpl in [
-        "{{ name }}",
-        "{{ name.lower() }}",
-        "{{ name.replace('-', '_') }}",
-        "{{ name.replace('_', '-') }}",
-        "{{ name.replace('-', '_').lower() }}",
-        "{{ name.replace('_', '-').lower() }}",
-    ]:
-        if pypi_name == _render_jinja2(tmpl, context) + "-":
-            name_tmpl = tmpl
-            break
+    if "name" in context:
+        for tmpl in [
+            "{{ name }}",
+            "{{ name.lower() }}",
+            "{{ name.replace('-', '_') }}",
+            "{{ name.replace('_', '-') }}",
+            "{{ name.replace('-', '_').lower() }}",
+            "{{ name.replace('_', '-').lower() }}",
+        ]:
+            if pypi_name == _render_jinja2(tmpl, context) + "-":
+                name_tmpl = tmpl
+                break
 
     if name_tmpl is not None:
         new_url_tmpl = os.path.join(bn, name_tmpl + "-" + "{{ version }}" + ext)
