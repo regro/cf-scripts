@@ -1,5 +1,4 @@
 {% set version = "0.3.2" %}
-{% set name = "py_entitymatching" %}
 {% set sha256 = "f8e7a677901c4e35564d374b305e2beac13d615d49260787565877c0b07da1bb" %}
 
 package:

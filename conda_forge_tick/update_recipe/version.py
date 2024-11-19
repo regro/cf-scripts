@@ -141,18 +141,31 @@ def _render_jinja2(tmpl, context):
     )
 
 
-def _try_pypi_api(url_tmpl: str, context: MutableMapping, hash_type: str):
+def _try_pypi_api(url_tmpl: str, context: MutableMapping, hash_type: str, cmeta: Any):
     if "version" not in context:
         return None, None
 
     if not any(
         pypi_slug in url_tmpl
-        for pypi_slug in ["/pypi.org", "/pypi.io", "/files.pythonhosted.org"]
+        for pypi_slug in ["/pypi.org/", "/pypi.io/", "/files.pythonhosted.org/"]
     ):
         return None, None
 
     orig_pypi_name = None
-    orig_pypi_name_candidates = [url_tmpl.split("/")[-2], context.get("name", None)]
+    orig_pypi_name_candidates = [
+        url_tmpl.split("/")[-2],
+        context.get("name", None),
+        (cmeta.meta.get("package", {}) or {}).get("name", None),
+    ]
+    if "outputs" in cmeta.meta:
+        for output in cmeta.meta["outputs"]:
+            output = output or {}
+            orig_pypi_name_candidates.append(output.get("name", None))
+    orig_pypi_name_candidates = sorted(
+        {nc for nc in orig_pypi_name_candidates if nc is not None and len(nc) > 0},
+        key=lambda x: len(x),
+    )
+    logger.info("PyPI name candidates: %s", orig_pypi_name_candidates)
     for _orig_pypi_name in orig_pypi_name_candidates:
         if _orig_pypi_name is None:
             continue
@@ -173,8 +186,10 @@ def _try_pypi_api(url_tmpl: str, context: MutableMapping, hash_type: str):
             break
 
     if orig_pypi_name is None or not r.ok:
-        logger.debug("PyPI name not found!")
+        logger.error("PyPI name not found!")
         r.raise_for_status()
+
+    logger.info("PyPI name: %s", orig_pypi_name)
 
     data = r.json()
     logger.debug("PyPI API data:\n%s", pprint.pformat(data))
@@ -190,8 +205,10 @@ def _try_pypi_api(url_tmpl: str, context: MutableMapping, hash_type: str):
                 break
 
     if finfo is None or ext is None:
-        logger.debug(
-            "src dist for version %s not found in PyPI API", context["version"]
+        logger.error(
+            "src dist for version %s not found in PyPI API for name %s",
+            context["version"],
+            orig_pypi_name,
         )
         return None, None
 
@@ -235,33 +252,32 @@ def _try_pypi_api(url_tmpl: str, context: MutableMapping, hash_type: str):
     return None, None
 
 
-def _get_new_url_tmpl_and_hash(url_tmpl: str, context: MutableMapping, hash_type: str):
+def _get_new_url_tmpl_and_hash(
+    url_tmpl: str, context: MutableMapping, hash_type: str, cmeta: Any
+):
     logger.info(
-        "hashing URL template: %s",
+        "processing URL template: %s",
         url_tmpl,
     )
     try:
-        logger.info(
-            "rendered URL: %s",
-            _render_jinja2(url_tmpl, context),
-        )
+        url = _render_jinja2(url_tmpl, context)
+        logger.info("initial rendered URL: %s", url)
     except jinja2.UndefinedError:
         logger.info("initial URL template does not render")
         pass
 
-    try:
-        url = _render_jinja2(url_tmpl, context)
+    if url != url_tmpl:
         new_hash = _try_url_and_hash_it(url, hash_type)
-        if new_hash is not None and url != url_tmpl:
+        if new_hash is not None:
             return url_tmpl, new_hash
-    except jinja2.UndefinedError:
-        pass
+    else:
+        logger.info("initial URL template does not update with version. skipping it.")
 
     new_url_tmpl = None
     new_hash = None
 
     try:
-        new_url_tmpl, new_hash = _try_pypi_api(url_tmpl, context, hash_type)
+        new_url_tmpl, new_hash = _try_pypi_api(url_tmpl, context, hash_type, cmeta)
         if new_hash is not None and new_url_tmpl is not None:
             return new_url_tmpl, new_hash
     except Exception as e:
@@ -447,6 +463,7 @@ def _try_to_update_version(cmeta: Any, src: str, hash_type: str):
                     url_tmpl,
                     context,
                     hash_type,
+                    cmeta,
                 )
                 if new_hash is not None:
                     break
@@ -457,6 +474,7 @@ def _try_to_update_version(cmeta: Any, src: str, hash_type: str):
                 src[url_key],
                 context,
                 hash_type,
+                cmeta,
             )
             if new_hash is None:
                 errors.add("could not hash URL template '%s'" % src[url_key])
