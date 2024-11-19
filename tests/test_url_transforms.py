@@ -55,6 +55,18 @@ def test_url_transform_exts():
     }
 
 
+def test_url_transforms_pypi_name():
+    urls = set(
+        list(
+            gen_transformed_urls(
+                "https://pypi.io/packages/source/{{ name[0] }}/{{ name }}"
+                "/dash_extensions-{{ version }}.tar.gz",
+            ),
+        ),
+    )
+    assert any("{{ name }}-{{ version }}" in os.path.basename(url) for url in urls)
+
+
 def test_url_transform_github():
     urls = set(
         list(
@@ -116,18 +128,6 @@ def test_url_transform_complicated_pypi():
         "https://pypi.io/{{ name }}/{{ name.replace('_', '-') }}-v{{ version }}.tar.bz2",
         "https://pypi.io/{{ name }}/{{ name.replace('_', '-') }}-v{{ version }}.tar.xz",
     }
-
-
-def test_rul_transforms_pypi_name():
-    urls = set(
-        list(
-            gen_transformed_urls(
-                "https://pypi.io/packages/source/{{ name[0] }}/{{ name }}"
-                "/dash_extensions-{{ version }}.tar.gz",
-            ),
-        ),
-    )
-    assert any("{{ name }}-{{ version }}" in os.path.basename(url) for url in urls)
 
 
 def test_url_transform_complicated_github():
