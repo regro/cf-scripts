@@ -9946,48 +9946,51 @@ package:
   - category: main
     dependencies:
       annotated-types: '>=0.6.0'
-      pydantic-core: 2.23.4
-      python: '>=3.7'
+      pydantic-core: 2.27.0
+      python: '>=3.9'
       typing-extensions: '>=4.6.1'
+      typing_extensions: '>=4.12.2'
     hash:
-      md5: 1eb533bb8eb2199e3fef3e4aa147319f
-      sha256: 1b7b0dc9f6af4da156bf22b0263be70829364a08145c696d3670facff2f6441a
+      md5: c8d0d99422d56d42185f43e1d4808cb5
+      sha256: fbb18b5d24acad15c452d1d4467999d1a6cbc7b3a89771c0b2424031ddc303b4
     manager: conda
     name: pydantic
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/noarch/pydantic-2.9.2-pyhd8ed1ab_0.conda
-    version: 2.9.2
+    url: https://conda.anaconda.org/conda-forge/noarch/pydantic-2.10.0-pyh10f6f8f_0.conda
+    version: 2.10.0
   - category: main
     dependencies:
       annotated-types: '>=0.6.0'
-      pydantic-core: 2.23.4
-      python: '>=3.7'
+      pydantic-core: 2.27.0
+      python: '>=3.9'
       typing-extensions: '>=4.6.1'
+      typing_extensions: '>=4.12.2'
     hash:
-      md5: 1eb533bb8eb2199e3fef3e4aa147319f
-      sha256: 1b7b0dc9f6af4da156bf22b0263be70829364a08145c696d3670facff2f6441a
+      md5: c8d0d99422d56d42185f43e1d4808cb5
+      sha256: fbb18b5d24acad15c452d1d4467999d1a6cbc7b3a89771c0b2424031ddc303b4
     manager: conda
     name: pydantic
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/noarch/pydantic-2.9.2-pyhd8ed1ab_0.conda
-    version: 2.9.2
+    url: https://conda.anaconda.org/conda-forge/noarch/pydantic-2.10.0-pyh10f6f8f_0.conda
+    version: 2.10.0
   - category: main
     dependencies:
       annotated-types: '>=0.6.0'
-      pydantic-core: 2.23.4
-      python: '>=3.7'
+      pydantic-core: 2.27.0
+      python: '>=3.9'
       typing-extensions: '>=4.6.1'
+      typing_extensions: '>=4.12.2'
     hash:
-      md5: 1eb533bb8eb2199e3fef3e4aa147319f
-      sha256: 1b7b0dc9f6af4da156bf22b0263be70829364a08145c696d3670facff2f6441a
+      md5: c8d0d99422d56d42185f43e1d4808cb5
+      sha256: fbb18b5d24acad15c452d1d4467999d1a6cbc7b3a89771c0b2424031ddc303b4
     manager: conda
     name: pydantic
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/noarch/pydantic-2.9.2-pyhd8ed1ab_0.conda
-    version: 2.9.2
+    url: https://conda.anaconda.org/conda-forge/noarch/pydantic-2.10.0-pyh10f6f8f_0.conda
+    version: 2.10.0
   - category: main
     dependencies:
       __glibc: '>=2.17,<3.0.a0'
@@ -9996,15 +9999,15 @@ package:
       python_abi: 3.11.*
       typing-extensions: '>=4.6.0,!=4.7.0'
     hash:
-      md5: 5e24fd648b7926bec16e535efda533c2
-      sha256: 3cdbe29c2b4aec34aabcf03cf2b34a6284563c03bdb43b63d204e6d9f6f0dbfc
+      md5: baa3052ad91dcb6f66398c313ece7312
+      sha256: fe793e71bc131fb86c24b77c83983d93d6e5cb0fd8dc1543df6bacea30e746e6
     manager: conda
     name: pydantic-core
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/linux-64/pydantic-core-2.23.4-py311h9e33e62_0.conda
-    version: 2.23.4
+      https://conda.anaconda.org/conda-forge/linux-64/pydantic-core-2.27.0-py311h9e33e62_0.conda
+    version: 2.27.0
   - category: main
     dependencies:
       __osx: '>=10.13'
@@ -10012,15 +10015,15 @@ package:
       python_abi: 3.11.*
       typing-extensions: '>=4.6.0,!=4.7.0'
     hash:
-      md5: 78401e8334f544491d76a426f3cc5ad5
-      sha256: c13a8ba4c3eb5014eba9a28b1925e0a8802c43a199f788642dee1acd518e0815
+      md5: 13faf7256c3cc7aae2151b73864d7e73
+      sha256: fe55ee08ce6cfd84ad14c121e403d572ae473957dea7c6d43182fed820820791
     manager: conda
     name: pydantic-core
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/osx-64/pydantic-core-2.23.4-py311h95688db_0.conda
-    version: 2.23.4
+      https://conda.anaconda.org/conda-forge/osx-64/pydantic-core-2.27.0-py311h3b9c2be_0.conda
+    version: 2.27.0
   - category: main
     dependencies:
       __osx: '>=11.0'
@@ -10028,15 +10031,15 @@ package:
       python_abi: 3.11.*
       typing-extensions: '>=4.6.0,!=4.7.0'
     hash:
-      md5: 9d638548f9a18cab78220984c0fda22b
-      sha256: cfb1342c6363a01b1315ac8298a44e56f686d7e82cfdbb04d1ab156939f98ef1
+      md5: 3627b2e367c37bc151fa17fc5adcd7f4
+      sha256: 7d120c7784fd4ac9b44c39da3932489bd48627b15a81e91a02d2d6d96fec0bb3
     manager: conda
     name: pydantic-core
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/osx-arm64/pydantic-core-2.23.4-py311h481aa64_0.conda
-    version: 2.23.4
+      https://conda.anaconda.org/conda-forge/osx-arm64/pydantic-core-2.27.0-py311h3ff9189_0.conda
+    version: 2.27.0
   - category: main
     dependencies:
       pydantic: '>=2.5.2'
