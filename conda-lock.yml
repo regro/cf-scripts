@@ -11249,15 +11249,15 @@ package:
     dependencies:
       __osx: '>=10.13'
     hash:
-      md5: c9432a876e7ee8285ee42cfeec3349bd
-      sha256: d98717209cbb725a0438a0f16e0200fc90c2ab636fadf1849194dd3a7cbc933c
+      md5: c5a88302964eb227e719da9d35943c77
+      sha256: 27d37dc74a3031119d544c74c312f283fbff1a2311bdd58f4fb0b7e16b1a6d8f
     manager: conda
     name: rattler-build
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/osx-64/rattler-build-0.31.0-h0f13631_1.conda
-    version: 0.31.0
+      https://conda.anaconda.org/conda-forge/osx-64/rattler-build-0.31.1-h0f13631_0.conda
+    version: 0.31.1
   - category: main
     dependencies:
       __osx: '>=11.0'
