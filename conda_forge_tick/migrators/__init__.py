@@ -1,5 +1,5 @@
 # flake8: noqa
-from .arch import ArchRebuild, OSXArm
+from .arch import ArchRebuild, OSXArm, WinArm64
 from .broken_rebuild import RebuildBroken
 from .conda_forge_yaml_cleanup import CondaForgeYAMLCleanup
 from .core import GraphMigrator, Migrator, MiniMigrator, make_from_lazy_json_data
