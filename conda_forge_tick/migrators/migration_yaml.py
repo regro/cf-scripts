@@ -612,18 +612,25 @@ def _req_is_python(req):
     return PIN_SEP_PAT.split(req)[0].strip().lower() == "python"
 
 
+def _combine_build(output_build, global_build):
+    build = copy.deepcopy(global_build)
+    build.update(output_build)
+    return build
+
+
 def all_noarch(attrs, only_python=False):
     meta_yaml = attrs.get("meta_yaml", {}) or {}
+    global_build = meta_yaml.get("build", {}) or {}
 
     if not only_python:
         outputs = meta_yaml.get("outputs", [])
         if meta_yaml.get("outputs", []):
             return all(
-                "noarch" in (output.get("build", {}) or {}) for output in outputs
+                "noarch" in _combine_build(output.get("build", {}) or {}, global_build)
+                for output in outputs
             )
 
-        return "noarch" in (meta_yaml.get("build", {}) or {})
-
+        return "noarch" in global_build
     else:
         reqs = (
             meta_yaml.get("requirements", {}).get("host", [])
@@ -631,13 +638,13 @@ def all_noarch(attrs, only_python=False):
             or []
         )
         if any(_req_is_python(req) for req in reqs):
-            all_noarch = "python" == meta_yaml.get("build", {}).get("noarch", None)
+            all_noarch = "python" == global_build.get("noarch", None)
         else:
             all_noarch = True
 
         for output in meta_yaml.get("outputs", []):
             # some nodes have None
-            _build = output.get("build", {}) or {}
+            _build = _combine_build(output.get("build", {}) or {}, global_build)
 
             # some nodes have a list here
             _reqs = output.get("requirements", {})
