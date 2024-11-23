@@ -294,6 +294,7 @@ def add_rebuild_migration_yaml(
         CrossCompilationForARMAndPower(),
         MPIPinRunAsBuildCleanup(),
         PyPIOrgMigrator(),
+        StdlibMigrator(),
     ]
     if migration_name == "qt515":
         piggy_back_migrations.append(QtQtMainMigrator())
@@ -307,9 +308,6 @@ def add_rebuild_migration_yaml(
         piggy_back_migrations.append(RUCRTCleanup())
     if migration_name.startswith("flang19"):
         piggy_back_migrations.append(FlangMigrator())
-    # stdlib migrator runs on top of ALL migrations, see
-    # https://github.com/conda-forge/conda-forge.github.io/issues/2102
-    piggy_back_migrations.append(StdlibMigrator())
     cycles = set()
     for cyc in nx.simple_cycles(total_graph):
         cycles |= set(cyc)
@@ -773,6 +771,7 @@ def initialize_migrators(
                 PipWheelMigrator(),
                 MPIPinRunAsBuildCleanup(),
                 DependencyUpdateMigrator(python_nodes),
+                PyPIOrgMigrator(),
                 StdlibMigrator(),
             ],
         )
