@@ -3,8 +3,10 @@ import tempfile
 import textwrap
 
 import pytest
+from test_migrators import run_test_migration
 
 from conda_forge_tick.migrators.noarch_python_min import (
+    NoarchPythonMinMigrator,
     _apply_noarch_python_min,
     _get_curr_python_min,
 )
@@ -418,3 +420,28 @@ def test_apply_noarch_python_min(
 
         with open(mypth) as f:
             assert f.read() == expected_meta_yaml
+
+
+def test_noarch_python_min_migrator(tmpdir):
+    with open(
+        os.path.join(TEST_YAML_PATH, "noarch_python_min_seaborn_before_meta.yaml")
+    ) as f:
+        recipe_before = f.read()
+    with open(
+        os.path.join(TEST_YAML_PATH, "noarch_python_min_seaborn_after_meta.yaml")
+    ) as f:
+        recipe_after = f.read()
+    m = NoarchPythonMinMigrator()
+    run_test_migration(
+        m=m,
+        inp=recipe_before,
+        output=recipe_after,
+        kwargs={},
+        prb="This PR updates the recipe to use the `noarch: python`",
+        mr_out={
+            "migrator_name": "NoarchPythonMinMigrator",
+            "migrator_version": m.migrator_version,
+            "name": "noarch_python_min",
+        },
+        tmpdir=tmpdir,
+    )
