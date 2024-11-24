@@ -332,7 +332,8 @@ class NoarchPythonMinMigrator(Migrator):
                 """
             This PR updates the recipe to use the `noarch: python` syntax as described in
             [CFEP-25](https://github.com/conda-forge/cfep/blob/main/cfep-25.md). Please
-            see the linked document for more information on the changes made.
+            see our [documentation](https://conda-forge.org/docs/maintainer/knowledge_base/#noarch-python)
+            for more details.
             """,
             )
         )
