@@ -3,7 +3,7 @@ import logging
 import os
 import textwrap
 import typing
-from typing import Any, Sequence
+from typing import Sequence
 
 import networkx as nx
 from conda.models.version import VersionOrder
@@ -208,8 +208,9 @@ def _process_section(section, force_noarch_python=False, force_apply=False):
 def _apply_noarch_python_min(
     recipe_dir: str,
     attrs: "AttrsTypedDict",
-    preserve_existing_specs: bool = True,
 ) -> None:
+    preserve_existing_specs = False
+
     fname = os.path.join(recipe_dir, "meta.yaml")
     if os.path.exists(fname):
         with open(fname) as fp:
@@ -263,40 +264,6 @@ def _apply_noarch_python_min(
             fp.write("".join(new_lines))
 
 
-class NoarchPythonMinCleanup(MiniMigrator):
-    post_migration = True
-
-    def __init__(self, preserve_existing_specs: bool = True):
-        if not hasattr(self, "_init_args"):
-            self._init_args = []
-
-        if not hasattr(self, "_init_kwargs"):
-            self._init_kwargs = {"preserve_existing_specs": preserve_existing_specs}
-
-        self.preserve_existing_specs = preserve_existing_specs
-
-    def filter(self, attrs: "AttrsTypedDict", not_bad_str_start: str = "") -> bool:
-        """If True SKIP the node"""
-        has_noarch_python = False
-        has_python_min = False
-        for line in attrs.get("raw_meta_yaml", "").splitlines():
-            if line.lstrip().startswith("noarch: python"):
-                has_noarch_python = True
-            if "{{ python_min }}" in line:
-                has_python_min = True
-
-        needs_migration = has_noarch_python and (not has_python_min)
-
-        return (not needs_migration) or _skip_due_to_schema(
-            attrs, self.allowed_schema_versions
-        )
-
-    def migrate(self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any) -> None:
-        _apply_noarch_python_min(
-            recipe_dir, attrs, preserve_existing_specs=self.preserve_existing_specs
-        )
-
-
 class NoarchPythonMinMigrator(Migrator):
     """Migrator for converting `noarch: python` recipes to the CFEP-25 syntax."""
 
@@ -325,10 +292,7 @@ class NoarchPythonMinMigrator(Migrator):
             pr_limit,
             graph=graph,
             effective_graph=effective_graph,
-            piggy_back_migrations=[
-                NoarchPythonMinCleanup(preserve_existing_specs=False)
-            ]
-            + (piggy_back_migrations or []),
+            piggy_back_migrations=piggy_back_migrations,
         )
         self.name = "noarch_python_min"
 
@@ -355,6 +319,10 @@ class NoarchPythonMinMigrator(Migrator):
         # the actual migration is done via a mini-migrator so that we can
         # apply this to other migrators as well
         self.set_build_number(os.path.join(recipe_dir, "meta.yaml"))
+        _apply_noarch_python_min(
+            recipe_dir,
+            attrs,
+        )
         return super().migrate(recipe_dir, attrs)
 
     def pr_body(self, feedstock_ctx: ClonedFeedstockContext) -> str:

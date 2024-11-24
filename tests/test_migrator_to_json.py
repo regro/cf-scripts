@@ -3,7 +3,6 @@ import inspect
 import pprint
 
 import networkx as nx
-import pytest
 
 import conda_forge_tick.migrators
 from conda_forge_tick.lazy_json_backends import dumps, loads
@@ -43,41 +42,6 @@ def test_migrator_to_json_dep_update_minimigrator():
     assert dumps(migrator2.to_lazy_json_data()) == lzj_data
 
 
-@pytest.mark.parametrize("preserve_existing_specs", [True, False])
-def test_migrator_to_json_minimigrators_noarchpythonmin(preserve_existing_specs):
-    migrator = conda_forge_tick.migrators.NoarchPythonMinCleanup(
-        preserve_existing_specs=preserve_existing_specs
-    )
-    data = migrator.to_lazy_json_data()
-    pprint.pprint(data)
-    lzj_data = dumps(data)
-    hsh = hashlib.sha1(
-        dumps(
-            {
-                "class": data["class"],
-                "args": data["args"],
-                "kwargs": data["kwargs"],
-            }
-        ).encode("utf-8")
-    ).hexdigest()
-
-    assert data == {
-        "__mini_migrator__": True,
-        "args": [],
-        "kwargs": {"preserve_existing_specs": preserve_existing_specs},
-        "name": f"NoarchPythonMinCleanup_h{hsh}",
-        "class": "NoarchPythonMinCleanup",
-    }
-
-    migrator2 = make_from_lazy_json_data(loads(lzj_data))
-    assert migrator2._init_args == []
-    assert migrator2._init_kwargs == {
-        "preserve_existing_specs": preserve_existing_specs
-    }
-    assert isinstance(migrator2, migrator.__class__)
-    assert dumps(migrator2.to_lazy_json_data()) == lzj_data
-
-
 def test_migrator_to_json_minimigrators_nodeps():
     possible_migrators = dir(conda_forge_tick.migrators)
     for migrator_name in possible_migrators:
@@ -87,7 +51,6 @@ def test_migrator_to_json_minimigrators_nodeps():
             and issubclass(migrator, conda_forge_tick.migrators.MiniMigrator)
             and migrator != conda_forge_tick.migrators.MiniMigrator
             and migrator != conda_forge_tick.migrators.DependencyUpdateMigrator
-            and migrator != conda_forge_tick.migrators.NoarchPythonMinCleanup
         ):
             migrator = migrator()
             data = migrator.to_lazy_json_data()

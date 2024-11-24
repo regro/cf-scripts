@@ -35,4 +35,4 @@ from .r_ucrt import RUCRTCleanup
 from .replacement import Replacement
 from .use_pip import PipMigrator
 from .version import Version
-from .noarch_python_min import NoarchPythonMinCleanup, NoarchPythonMinMigrator
+from .noarch_python_min import NoarchPythonMinMigrator
