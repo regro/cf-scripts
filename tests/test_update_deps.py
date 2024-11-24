@@ -106,7 +106,20 @@ def test_make_grayskull_recipe():
     ) as f:
         attrs = load(f)
     recipe = make_grayskull_recipe(attrs)
+    print(recipe, flush=True)
     assert recipe != ""
+    assert attrs["version"] in recipe
+
+
+def test_make_grayskull_recipe_github_url():
+    with open(
+        os.path.join(os.path.dirname(__file__), "test_yaml", "ngmix.json"),
+    ) as f:
+        attrs = load(f)
+    recipe = make_grayskull_recipe(attrs)
+    print(recipe, flush=True)
+    assert recipe != ""
+    assert attrs["version"] in recipe
 
 
 def test_get_grayskull_comparison():

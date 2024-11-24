@@ -313,7 +313,50 @@ def make_grayskull_recipe(attrs, version_key="version"):
         pkg_version = attrs.get("version_pr_info", {}).get(version_key)
     else:
         pkg_version = attrs[version_key]
-    pkg_name = attrs["name"]
+
+    src = attrs["meta_yaml"].get("source", {}) or {}
+    if isinstance(src, dict):
+        src = [src]
+    is_pypi = False
+    is_github = False
+    for s in src:
+        if "url" in s:
+            if any(
+                pypi_slug in s["url"]
+                for pypi_slug in [
+                    "/pypi.io/",
+                    "/pypi.org/",
+                    "/pypi.python.org/",
+                    "/files.pythonhosted.org/",
+                ]
+            ):
+                is_pypi = True
+                break
+
+    if not is_pypi:
+        for s in src:
+            if "url" in s:
+                if "github.com/" in s["url"]:
+                    is_github = True
+                    github_url = s["url"]
+                    break
+    # we don't know so assume pypi
+    if not is_pypi and not is_github:
+        is_pypi = True
+
+    if is_pypi:
+        pkg_name = attrs["name"]
+    elif is_github:
+        url_parts = github_url.split("/")
+        if len(url_parts) < 5:
+            logger.warning(
+                "github url %s for grayskull dep update is too short! assuming pypi...",
+                github_url,
+            )
+            pkg_name = attrs["name"]
+        else:
+            pkg_name = "/".join(url_parts[:5])
+
     is_noarch = "noarch: python" in attrs["raw_meta_yaml"]
     logger.info(
         "making grayskull recipe for pkg %s w/ version %s",
