@@ -102,6 +102,7 @@ def add_replacement_migrator(
     old_pkg: "PackageName",
     new_pkg: "PackageName",
     rationale: str,
+    alt_migrator: type[Replacement] | None = None,
 ) -> None:
     """Adds a migrator to replace one package with another.
 
@@ -140,6 +141,17 @@ def add_replacement_migrator(
 
         # post plucking we can have several strange cases, lets remove all selfloops
         total_graph.remove_edges_from(nx.selfloop_edges(total_graph))
+
+        if alt_migrator is not None:
+            migrators.append(
+                alt_migrator(
+                    old_pkg=old_pkg,
+                    new_pkg=new_pkg,
+                    rationale=rationale,
+                    pr_limit=PR_LIMIT,
+                    graph=total_graph,
+                ),
+            )
 
         migrators.append(
             Replacement(
