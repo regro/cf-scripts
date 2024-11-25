@@ -133,6 +133,8 @@ def make_graph(
 @click.argument(
     "package",
     required=False,
+    default=None,
+    type=str,
 )
 @pass_context
 def update_upstream_versions(
@@ -154,6 +156,8 @@ def update_upstream_versions(
 @click.argument(
     "package",
     required=False,
+    default=None,
+    type=str,
 )
 @pass_context
 def auto_tick(ctx: CliContext, package: str | None) -> None:
