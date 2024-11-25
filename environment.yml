@@ -37,7 +37,7 @@ dependencies:
   - numpy
   - packaging
   - psutil
-  - pydantic <2.10
+  - pydantic
   - pydantic-extra-types
   - pygithub
   - pymongo
