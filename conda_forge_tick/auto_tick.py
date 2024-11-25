@@ -893,7 +893,7 @@ def _run_migrator(
     temp: list[AnyStr],
     time_per: float,
     git_backend: GitPlatformBackend,
-    package: str | None = None,
+    feedstock: str | None = None,
 ) -> int:
     """
     Run a migrator.
@@ -903,7 +903,8 @@ def _run_migrator(
     :param temp: The list of temporary files.
     :param time_per: The time limit of this migrator.
     :param git_backend: The GitPlatformBackend instance to use.
-    :param package: The package to update, if None, all packages are updated.
+    :param feedstock: The feedstock to update, if None, all feedstocks are updated. Does not contain the `-feedstock`
+    suffix.
 
     :return: The number of "good" PRs created by the migrator.
     """
@@ -928,14 +929,14 @@ def _run_migrator(
 
         possible_nodes = list(migrator.order(effective_graph, mctx.graph))
 
-        if package:
-            if package not in possible_nodes:
+        if feedstock:
+            if feedstock not in possible_nodes:
                 logger.info(
-                    f"Package {package} is not a candidate for migration of {migrator_name}. "
+                    f"Feedstock {feedstock} is not a candidate for migration of {migrator_name}. "
                     f"If you want to investigate this, run the make-migrators command."
                 )
                 return 0
-            possible_nodes = [package]
+            possible_nodes = [feedstock]
 
         # version debugging info
         if isinstance(migrator, Version):
@@ -1085,17 +1086,18 @@ def _setup_limits():
         resource.setrlimit(resource.RLIMIT_AS, (limit_int, limit_int))
 
 
-def _update_nodes_with_bot_rerun(gx: nx.DiGraph, package: str | None = None):
+def _update_nodes_with_bot_rerun(gx: nx.DiGraph, feedstock: str | None = None):
     """
     Go through all the open PRs and check if they are rerun
 
     :param gx: the dependency graph
-    :param package: the package to update, if None, all packages are updated
+    :param feedstock: The feedstock to update. If None, all feedstocks are updated. Does not contain the `-feedstock`
+    suffix.
     """
 
     print("processing bot-rerun labels", flush=True)
 
-    nodes = gx.nodes.items() if not package else [(package, gx.nodes[package])]
+    nodes = gx.nodes.items() if not feedstock else [(feedstock, gx.nodes[feedstock])]
 
     for i, (name, node) in enumerate(nodes):
         # logger.info(
@@ -1154,21 +1156,24 @@ def _filter_ignored_versions(attrs, version):
         return version
 
 
-def _update_nodes_with_new_versions(gx: nx.DiGraph, package: str | None = None):
+def _update_nodes_with_new_versions(gx: nx.DiGraph, feedstock: str | None = None):
     """
     Updates every node with its new version (when available)
 
     :param gx: the dependency graph
-    :param package: the package to update, if None, all packages are updated
+    :param feedstock: the feedstock to update, if None, all feedstocks are updated. Does not contain the `-feedstock`
+    suffix.
     """
 
     print("updating nodes with new versions", flush=True)
 
-    if package and not does_key_exist_in_hashmap("versions", package):
-        logger.warning(f"Package {package} not found in versions hashmap")
+    if feedstock and not does_key_exist_in_hashmap("versions", feedstock):
+        logger.warning(f"Feedstock {feedstock} not found in versions hashmap")
         return
 
-    version_nodes = get_all_keys_for_hashmap("versions") if not package else [package]
+    version_nodes = (
+        get_all_keys_for_hashmap("versions") if not feedstock else [feedstock]
+    )
 
     for node in version_nodes:
         version_data = LazyJson(f"versions/{node}.json").data
@@ -1194,27 +1199,32 @@ def _update_nodes_with_new_versions(gx: nx.DiGraph, package: str | None = None):
                         vpri["new_version"] = version_from_data
 
 
-def _remove_closed_pr_json(package: str | None = None):
+def _remove_closed_pr_json(feedstock: str | None = None):
     """
     Remove the pull request information for closed PRs.
 
-    :param package: The package to remove the PR information for. If None, all PR information is removed. If you pass
-    a package, closed pr_json files are not removed because this would require iterating all pr_json files.
+    :param feedstock: The feedstock to remove the PR information for. If None, all PR information is removed. If you pass
+    a feedstock, closed pr_json files are not removed because this would require iterating all pr_json files. Does not
+    contain the `-feedstock` suffix.
     """
     print("collapsing closed PR json", flush=True)
 
-    if package:
+    if feedstock:
         pr_info_nodes = (
-            [package] if does_key_exist_in_hashmap("pr_info", package) else []
+            [feedstock] if does_key_exist_in_hashmap("pr_info", feedstock) else []
         )
         version_pr_info_nodes = (
-            [package] if does_key_exist_in_hashmap("version_pr_info", package) else []
+            [feedstock]
+            if does_key_exist_in_hashmap("version_pr_info", feedstock)
+            else []
         )
 
         if not pr_info_nodes:
-            logger.warning(f"Package {package} not found in pr_info hashmap")
+            logger.warning(f"Feedstock {feedstock} not found in pr_info hashmap")
         if not version_pr_info_nodes:
-            logger.warning(f"Package {package} not found in version_pr_info hashmap")
+            logger.warning(
+                f"Feedstock {feedstock} not found in version_pr_info hashmap"
+            )
     else:
         pr_info_nodes = get_all_keys_for_hashmap("pr_info")
         version_pr_info_nodes = get_all_keys_for_hashmap("version_pr_info")
@@ -1255,7 +1265,7 @@ def _remove_closed_pr_json(package: str | None = None):
 
     # at this point, any json blob referenced in the pr info is state != closed
     # so we can remove anything that is empty or closed
-    if package:
+    if feedstock:
         logger.info(
             "Since you requested a run for a specific package, we are not removing closed pr_json files."
         )
@@ -1270,22 +1280,32 @@ def _remove_closed_pr_json(package: str | None = None):
             )
 
 
-def _update_graph_with_pr_info(package: str | None = None):
-    _remove_closed_pr_json(package)
+def _update_graph_with_pr_info(feedstock: str | None = None):
+    """
+    :param feedstock: The feedstock to update the graph for. If None, all feedstocks are updated. Does not contain the
+    `-feedstock` suffix.
+    """
+    _remove_closed_pr_json(feedstock)
     gx = load_existing_graph()
-    _update_nodes_with_bot_rerun(gx, package)
-    _update_nodes_with_new_versions(gx, package)
+    _update_nodes_with_bot_rerun(gx, feedstock)
+    _update_nodes_with_new_versions(gx, feedstock)
     dump_graph(gx)
 
 
-def main(ctx: CliContext, package: str | None = None) -> None:
+def main(ctx: CliContext, feedstock: str | None = None) -> None:
+    """
+    Run the main bot logic.
+
+    :param ctx: The CLI context.
+    :param feedstock: If not None, only the given feedstock is updated. Does not contain the `-feedstock` suffix.
+    """
     global START_TIME
     START_TIME = time.time()
 
     _setup_limits()
 
     with fold_log_lines("updating graph with PR info"):
-        _update_graph_with_pr_info(package)
+        _update_graph_with_pr_info(feedstock)
         deploy(ctx, dirs_to_deploy=["version_pr_info", "pr_json", "pr_info"])
 
     # record tmp dir so we can be sure to clean it later
@@ -1339,7 +1359,7 @@ def main(ctx: CliContext, package: str | None = None) -> None:
 
     for mg_ind, migrator in enumerate(migrators):
         good_prs = _run_migrator(
-            migrator, mctx, temp, time_per_migrator[mg_ind], git_backend, package
+            migrator, mctx, temp, time_per_migrator[mg_ind], git_backend, feedstock
         )
         if good_prs > 0:
             pass
