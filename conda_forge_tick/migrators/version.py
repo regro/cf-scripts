@@ -313,7 +313,7 @@ class Version(Migrator):
 
         body += self._hint_and_maybe_update_deps(feedstock_ctx)
 
-        return super().custom_pr_body(add_label_text=False).format(body)
+        return self.custom_pr_body(add_label_text=False).format(body)
 
     def _hint_and_maybe_update_deps(self, feedstock_ctx: ClonedFeedstockContext):
         update_deps = get_keys_default(
