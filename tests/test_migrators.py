@@ -544,7 +544,7 @@ def run_test_migration(
     if isinstance(m, Version):
         pass
     else:
-        assert prb in m.pr_body(None)
+        assert prb in m.pr_body()
     try:
         if "new_version" in kwargs:
             pmy["version_pr_info"] = {"new_version": kwargs["new_version"]}
@@ -680,7 +680,8 @@ def test_all_noarch(meta, is_all_noarch):
     "meta,is_all_noarch",
     [
         (
-            json.loads("""\
+            json.loads(
+                """\
 {
   "about": {
    "description": "NetworkX is a Python language software package for the creation,\\nmanipulation, and study of the structure, dynamics, and functions of complex\\nnetworks.",
@@ -744,11 +745,13 @@ def test_all_noarch(meta, is_all_noarch):
    "sha256": "307c3669428c5362aab27c8a1260aa8f47c4e91d3891f48be0141738d8d053e1",
    "url": "https://pypi.org/packages/source/n/networkx/networkx-3.4.2.tar.gz"
   }
- }"""),
+ }"""
+            ),
             True,
         ),
         (
-            json.loads("""\
+            json.loads(
+                """\
 {
   "about": {
    "description": "This is a python extension ",
@@ -817,7 +820,8 @@ def test_all_noarch(meta, is_all_noarch):
     "pytest"
    ]
   }
- }"""),
+ }"""
+            ),
             False,
         ),
     ],

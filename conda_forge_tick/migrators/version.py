@@ -5,7 +5,7 @@ import os
 import random
 import typing
 import warnings
-from typing import Any, List, Sequence
+from typing import Any, List, Literal, Sequence
 
 import conda.exceptions
 import networkx as nx
@@ -68,9 +68,8 @@ class Version(Migrator):
             self._init_kwargs = copy.deepcopy(kwargs)
 
         self.python_nodes = python_nodes
-        if "check_solvable" in kwargs:
-            kwargs.pop("check_solvable")
-        super().__init__(*args, **kwargs, check_solvable=False)
+        kwargs["check_solvable"] = False
+        super().__init__(*args, **kwargs)
         self._new_version = None
 
         self._reset_effective_graph()
@@ -192,7 +191,7 @@ class Version(Migrator):
         attrs: "AttrsTypedDict",
         hash_type: str = "sha256",
         **kwargs: Any,
-    ) -> "MigrationUidTypedDict":
+    ) -> MigrationUidTypedDict | Literal[False]:
         version = attrs["new_version"]
 
         with open(os.path.join(recipe_dir, "meta.yaml")) as fp:
@@ -219,19 +218,17 @@ class Version(Migrator):
                 )
             )
 
-    def pr_body(
-        self, feedstock_ctx: ClonedFeedstockContext, add_label_text: bool = False
-    ) -> str:
-        if feedstock_ctx.feedstock_name in self.effective_graph.nodes:
+    def pr_body(self, feedstock_ctx: ClonedFeedstockContext) -> str:
+        if feedstock_ctx.feedstock_name in self.effective_graph.nodes:  # type: ignore[union-attr] # TODO: effective_graph shouldn't be allowed to be None
             pred = [
                 (
                     name,
-                    self.effective_graph.nodes[name]["payload"]["version_pr_info"][
+                    self.effective_graph.nodes[name]["payload"]["version_pr_info"][  # type: ignore[union-attr] # TODO: effective_graph shouldn't be allowed to be None
                         "new_version"
                     ],
                 )
                 for name in list(
-                    self.effective_graph.predecessors(feedstock_ctx.feedstock_name),
+                    self.effective_graph.predecessors(feedstock_ctx.feedstock_name),  # type: ignore[union-attr] # TODO: effective_graph shouldn't be allowed to be None
                 )
             ]
         else:
@@ -319,7 +316,7 @@ class Version(Migrator):
 
         body += self._hint_and_maybe_update_deps(feedstock_ctx)
 
-        return super().pr_body(feedstock_ctx, add_label_text=False).format(body)
+        return super().custom_pr_body(add_label_text=False).format(body)
 
     def _hint_and_maybe_update_deps(self, feedstock_ctx: ClonedFeedstockContext):
         update_deps = get_keys_default(
@@ -438,8 +435,7 @@ class Version(Migrator):
         @functools.lru_cache(maxsize=1024)
         def _get_attempts(node):
             if _has_solver_checks(node):
-                seen = set()
-                return _get_attempts_r(node, seen)
+                return _get_attempts_r(node, seen=set())
             else:
                 return _get_attempts_nr(node)
 

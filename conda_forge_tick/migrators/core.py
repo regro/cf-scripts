@@ -6,7 +6,7 @@ import logging
 import re
 import typing
 from pathlib import Path
-from typing import Any, List, Sequence, Set
+from typing import Any, List, Literal, Sequence, Set
 
 import dateutil.parser
 import networkx as nx
@@ -469,7 +469,7 @@ class Migrator:
 
     def migrate(
         self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any
-    ) -> "MigrationUidTypedDict":
+    ) -> MigrationUidTypedDict | Literal[False]:
         """Perform the migration, updating the ``meta.yaml``
 
         Parameters
@@ -486,16 +486,11 @@ class Migrator:
         """
         return self.migrator_uid(attrs)
 
-    def pr_body(
-        self, feedstock_ctx: ClonedFeedstockContext, add_label_text=True
-    ) -> str:
-        """Create a PR message body
-
-        Returns
-        -------
-        body: str
-            The body of the PR message
-            :param feedstock_ctx:
+    @staticmethod
+    def custom_pr_body(add_label_text: bool = False):
+        """
+        Create a PR message body, where the label text is optional.
+        :param add_label_text: Whether to add an explanatory text for the bot-rerun label
         """
         body = "{}\n\n"
 
@@ -521,6 +516,16 @@ class Migrator:
             + "</sub>"
         )
         return body
+
+    def pr_body(self, feedstock_ctx: ClonedFeedstockContext) -> str:
+        """
+        Children override this method to provide a custom PR body.
+
+        By default, identical to the custom_pr_body method, but with the add_label_text parameter set to True.
+
+        :param feedstock_ctx: The feedstock context (might be needed by subclasses)
+        """
+        return self.custom_pr_body(add_label_text=True)
 
     def commit_message(self, feedstock_ctx: FeedstockContext) -> str:
         """Create a commit message

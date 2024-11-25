@@ -53,8 +53,8 @@ def _process_section(lines):
 
     langs = {pat_comp.sub(r"\g<lang>", x) for x in lines[begin : end + 1]}
     # if we caught a comment, lang will be ""
-    langs = sorted([x for x in langs if x])
-    comp_block_new = [f'{indent}- {{{{ compiler("{lang}") }}}}' for lang in langs]
+    langs_list = sorted([x for x in langs if x])
+    comp_block_new = [f'{indent}- {{{{ compiler("{lang}") }}}}' for lang in langs_list]
     comp_block_new = [f'{indent}- {{{{ stdlib("c") }}}}'] + comp_block_new
 
     new_lines = lines[:begin] + comp_block_new + lines[end + 1 :]

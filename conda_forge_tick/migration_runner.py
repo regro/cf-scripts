@@ -257,7 +257,7 @@ def run_migration_local(
     migrator.run_post_piggyback_migrations(recipe_dir, feedstock_ctx.attrs, **kwargs)
 
     data["commit_message"] = migrator.commit_message(feedstock_ctx)
-    data["pr_body"] = migrator.pr_body(feedstock_ctx)
+    data["pr_body"] = migrator.pr_body()
     data["pr_title"] = migrator.pr_title(feedstock_ctx)
 
     return data

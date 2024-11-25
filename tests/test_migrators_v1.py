@@ -271,7 +271,7 @@ def run_test_migration(
     if isinstance(m, Version):
         pass
     else:
-        assert prb in m.pr_body(None)
+        assert prb in m.pr_body()
     try:
         if "new_version" in kwargs:
             pmy["version_pr_info"] = {"new_version": kwargs["new_version"]}

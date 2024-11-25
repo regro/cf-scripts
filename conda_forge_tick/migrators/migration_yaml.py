@@ -6,7 +6,7 @@ import re
 import time
 import typing
 from collections import defaultdict
-from typing import Any, List, MutableSet, Optional, Sequence, Set
+from typing import Any, Collection, Literal, MutableSet, Optional, Sequence, Set
 
 import networkx as nx
 
@@ -129,8 +129,8 @@ class MigrationYaml(GraphMigrator):
         name: str,
         graph: nx.DiGraph = None,
         pr_limit: int = 50,
-        top_level: Set["PackageName"] = None,
-        cycles: Optional[Sequence["PackageName"]] = None,
+        top_level: Set["PackageName"] | None = None,
+        cycles: Optional[Collection["PackageName"]] = None,
         migration_number: Optional[int] = None,
         bump_number: int = 1,
         piggy_back_migrations: Optional[Sequence[MiniMigrator]] = None,
@@ -246,7 +246,7 @@ class MigrationYaml(GraphMigrator):
 
     def migrate(
         self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any
-    ) -> "MigrationUidTypedDict":
+    ) -> MigrationUidTypedDict | Literal[False]:
         # if conda-forge-pinning update the pins and close the migration
         if attrs.get("name", "") == "conda-forge-pinning":
             # read up the conda build config
@@ -459,7 +459,7 @@ class MigrationYamlCreator(Migrator):
         pr_limit: int = 1,
         bump_number: int = 1,
         effective_graph: nx.DiGraph = None,
-        pinnings: Optional[List[int]] = None,
+        pinnings: list[str] | None = None,
         **kwargs: Any,
     ):
         if pinnings is None:
@@ -520,7 +520,7 @@ class MigrationYamlCreator(Migrator):
 
     def migrate(
         self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any
-    ) -> "MigrationUidTypedDict":
+    ) -> MigrationUidTypedDict | Literal[False]:
         migration_yaml_dict = {
             "__migrator": {
                 "build_number": 1,
@@ -664,7 +664,7 @@ def all_noarch(attrs, only_python=False):
 def create_rebuild_graph(
     gx: nx.DiGraph,
     package_names: Sequence[str],
-    excluded_feedstocks: MutableSet[str] = None,
+    excluded_feedstocks: MutableSet[str] | None = None,
     exclude_pinned_pkgs: bool = True,
     include_noarch: bool = False,
     include_build: bool = False,
@@ -676,7 +676,7 @@ def create_rebuild_graph(
     # where numpy needs to be rebuilt despite being pinned.
     if exclude_pinned_pkgs:
         for node in package_names:
-            excluded_feedstocks.update(gx.graph["outputs_lut"].get(node, {node}))
+            excluded_feedstocks |= gx.graph["outputs_lut"].get(node, {node})
 
     included_nodes = set()
 

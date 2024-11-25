@@ -9,7 +9,7 @@ import time
 import traceback
 import typing
 from dataclasses import dataclass
-from typing import Literal, cast
+from typing import Any, Literal, cast
 from urllib.error import URLError
 from uuid import uuid4
 
@@ -70,12 +70,15 @@ from conda_forge_tick.utils import (
 )
 
 from .migrators_types import MigrationUidTypedDict
-from .models.pr_json import PullRequestData, PullRequestInfoSpecial, PullRequestState
+from .models.pr_json import (
+    PullRequestData,
+    PullRequestInfoSpecial,
+    PullRequestState,
+)
 
 logger = logging.getLogger(__name__)
 
 BOT_HOME_DIR: str = os.getcwd()
-START_TIME = None
 TIMEOUT = int(os.environ.get("TIMEOUT", 600))
 
 # migrator runs on loop so avoid any seeds at current time should that happen
@@ -424,9 +427,9 @@ def _check_and_process_solvability(
 
 def get_spoofed_closed_pr_info() -> PullRequestInfoSpecial:
     return PullRequestInfoSpecial(
-        id=str(uuid4()),
+        id=uuid4(),
         merged_at="never issued",
-        state="closed",
+        state=PullRequestState.CLOSED,
     )
 
 
@@ -437,7 +440,10 @@ def run_with_tmpdir(
     rerender: bool = True,
     base_branch: str = "main",
     **kwargs: typing.Any,
-) -> tuple[MigrationUidTypedDict, dict] | tuple[Literal[False], Literal[False]]:
+) -> (
+    tuple[MigrationUidTypedDict, LazyJson | Literal[False]]
+    | tuple[Literal[False], Literal[False]]
+):
     """
     For a given feedstock and migration run the migration in a temporary directory that will be deleted after the
     migration is complete.
@@ -465,7 +471,10 @@ def run(
     rerender: bool = True,
     base_branch: str = "main",
     **kwargs: typing.Any,
-) -> tuple[MigrationUidTypedDict, dict] | tuple[Literal[False], Literal[False]]:
+) -> (
+    tuple[MigrationUidTypedDict, LazyJson | Literal[False]]
+    | tuple[Literal[False], Literal[False]]
+):
     """For a given feedstock and migration run the migration
 
     Parameters
@@ -601,6 +610,10 @@ def run(
         and pr_data.state != PullRequestState.CLOSED
         and rerender_info.rerender_comment
     ):
+        if pr_data.number is None:
+            raise ValueError(
+                f"Unexpected GitHub API response: PR number is missing for PR ID {pr_data.id}."
+            )
         git_backend.comment_on_pull_request(
             repo_owner=context.git_repo_owner,
             repo_name=context.git_repo_name,
@@ -608,12 +621,14 @@ def run(
             comment=rerender_info.rerender_comment,
         )
 
+    pr_lazy_json: LazyJson | Literal[False]
     if pr_data:
-        pr_lazy_json = LazyJson(
+        pr_lazy_json_present = LazyJson(
             os.path.join("pr_json", f"{pr_data.id}.json"),
         )
-        with pr_lazy_json as __edit_pr_lazy_json:
+        with pr_lazy_json_present as __edit_pr_lazy_json:
             __edit_pr_lazy_json.update(**pr_data.model_dump(mode="json"))
+        pr_lazy_json = pr_lazy_json_present
     else:
         pr_lazy_json = False
 
@@ -624,7 +639,10 @@ def run(
         context.attrs, migrator_name, is_version=is_version_migration
     )
 
-    return migration_run_data["migrate_return_value"], pr_lazy_json
+    migrate_return_value: MigrationUidTypedDict = migration_run_data[
+        "migrate_return_value"
+    ]
+    return migrate_return_value, pr_lazy_json
 
 
 def _compute_time_per_migrator(migrators):
@@ -633,8 +651,8 @@ def _compute_time_per_migrator(migrators):
     for migrator in tqdm.tqdm(migrators, ncols=80, desc="computing time per migrator"):
         if isinstance(migrator, Version):
             _num_nodes = 0
-            for node_name in migrator.effective_graph.nodes:
-                with migrator.effective_graph.nodes[node_name]["payload"] as attrs:
+            for node_name in migrator.effective_graph.nodes:  # type: ignore[union-attr] # TODO: effective_graph can be None
+                with migrator.effective_graph.nodes[node_name]["payload"] as attrs:  # type: ignore[union-attr] # TODO: effective_graph can be None
                     with attrs["version_pr_info"] as vpri:
                         _attempts = vpri.get("new_version_attempts", {}).get(
                             vpri.get("new_version", ""),
@@ -644,7 +662,7 @@ def _compute_time_per_migrator(migrators):
                         _num_nodes += 1
             _num_nodes = max(
                 _num_nodes,
-                min(PR_LIMIT * 4, len(migrator.effective_graph.nodes)),
+                min(PR_LIMIT * 4, len(migrator.effective_graph.nodes)),  # type: ignore[union-attr] # TODO: effective_graph can be None
             )
             num_nodes.append(_num_nodes)
         else:
@@ -684,23 +702,6 @@ def _compute_time_per_migrator(migrators):
     return num_nodes, time_per_migrator, tot_time_per_migrator
 
 
-def _over_time_limit():
-    _now = time.time()
-    print(
-        """\
-
-=~>=~>=~>=~>=~>=~>=~>=~>=~>=~>=~>=~>=~>=~>=~>=~>=~>=~>=~>=~>=~>=~>=~>=~>=~>=~>
-=~> elpased time %ds (timeout %ds)
-=~>=~>=~>=~>=~>=~>=~>=~>=~>=~>=~>=~>=~>=~>=~>=~>=~>=~>=~>=~>=~>=~>=~>=~>=~>=~>
-
-"""
-        % (_now - START_TIME, TIMEOUT),
-        flush=True,
-        end="",
-    )
-    return _now - START_TIME > TIMEOUT
-
-
 def _run_migrator_on_feedstock_branch(
     attrs,
     base_branch,
@@ -730,7 +731,7 @@ def _run_migrator_on_feedstock_branch(
         # if migration successful
         if migrator_uid:
             with attrs["pr_info"] as pri:
-                d = frozen_to_json_friendly(migrator_uid)
+                d: Any = frozen_to_json_friendly(migrator_uid)
                 # if we have the PR already do nothing
                 if d["data"] in [
                     existing_pr["data"] for existing_pr in pri.get("PRed", [])
@@ -738,7 +739,7 @@ def _run_migrator_on_feedstock_branch(
                     pass
                 else:
                     if not pr_json:
-                        pr_json = {
+                        pr_json = {  # type: ignore[assignment] # TODO: incompatible with LazyJson
                             "state": "closed",
                             "head": {
                                 "ref": "<this_is_not_a_branch>",
@@ -847,15 +848,15 @@ def _run_migrator_on_feedstock_branch(
     return good_prs, break_loop
 
 
-def _is_migrator_done(_mg_start, good_prs, time_per, pr_limit):
+def _is_migrator_done(_mg_start, good_prs, time_per, pr_limit, start_time: float):
     curr_time = time.time()
     backend = github_backend()
     api_req = backend.get_api_requests_left()
 
-    if curr_time - START_TIME > TIMEOUT:
+    if curr_time - start_time > TIMEOUT:
         logger.info(
             "BOT TIMEOUT: breaking after %d seconds (limit %d)",
-            curr_time - START_TIME,
+            curr_time - start_time,
             TIMEOUT,
         )
         return True
@@ -885,7 +886,9 @@ def _is_migrator_done(_mg_start, good_prs, time_per, pr_limit):
     return False
 
 
-def _run_migrator(migrator, mctx, temp, time_per, git_backend: GitPlatformBackend):
+def _run_migrator(
+    migrator, mctx, temp, time_per, git_backend: GitPlatformBackend, start_time: float
+):
     _mg_start = time.time()
 
     migrator_name = get_migrator_name(migrator)
@@ -939,7 +942,9 @@ def _run_migrator(migrator, mctx, temp, time_per, git_backend: GitPlatformBacken
             flush=True,
         )
 
-        if _is_migrator_done(_mg_start, good_prs, time_per, migrator.pr_limit):
+        if _is_migrator_done(
+            _mg_start, good_prs, time_per, migrator.pr_limit, start_time
+        ):
             return 0
 
     for node_name in possible_nodes:
@@ -956,7 +961,9 @@ def _run_migrator(migrator, mctx, temp, time_per, git_backend: GitPlatformBacken
         ):
             # Don't let CI timeout, break ahead of the timeout so we make certain
             # to write to the repo
-            if _is_migrator_done(_mg_start, good_prs, time_per, migrator.pr_limit):
+            if _is_migrator_done(
+                _mg_start, good_prs, time_per, migrator.pr_limit, start_time
+            ):
                 break
 
             base_branches = migrator.get_possible_feedstock_branches(attrs)
@@ -1201,8 +1208,7 @@ def _update_graph_with_pr_info():
 
 
 def main(ctx: CliContext) -> None:
-    global START_TIME
-    START_TIME = time.time()
+    start_time = time.time()
 
     _setup_limits()
 
@@ -1260,7 +1266,12 @@ def main(ctx: CliContext) -> None:
 
     for mg_ind, migrator in enumerate(migrators):
         good_prs = _run_migrator(
-            migrator, mctx, temp, time_per_migrator[mg_ind], git_backend
+            migrator,
+            mctx,
+            temp,
+            time_per_migrator[mg_ind],
+            git_backend,
+            start_time=start_time,
         )
         if good_prs > 0:
             pass

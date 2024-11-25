@@ -16,12 +16,11 @@ from typing import (
     MutableSet,
     Sequence,
     Set,
-    Union,
     cast,
 )
 
 if typing.TYPE_CHECKING:
-    from .migrators_types import PackageName
+    from .migrators_types import BuildTypedDict, PackageName
 
 import networkx as nx
 import tqdm
@@ -105,7 +104,6 @@ def add_replacement_migrator(
     old_pkg: "PackageName",
     new_pkg: "PackageName",
     rationale: str,
-    alt_migrator: Union[Migrator, None] = None,
 ) -> None:
     """Adds a migrator to replace one package with another.
 
@@ -145,26 +143,15 @@ def add_replacement_migrator(
         # post plucking we can have several strange cases, lets remove all selfloops
         total_graph.remove_edges_from(nx.selfloop_edges(total_graph))
 
-        if alt_migrator is not None:
-            migrators.append(
-                alt_migrator(
-                    old_pkg=old_pkg,
-                    new_pkg=new_pkg,
-                    rationale=rationale,
-                    pr_limit=PR_LIMIT,
-                    graph=total_graph,
-                ),
-            )
-        else:
-            migrators.append(
-                Replacement(
-                    old_pkg=old_pkg,
-                    new_pkg=new_pkg,
-                    rationale=rationale,
-                    pr_limit=PR_LIMIT,
-                    graph=total_graph,
-                ),
-            )
+        migrators.append(
+            Replacement(
+                old_pkg=old_pkg,
+                new_pkg=new_pkg,
+                rationale=rationale,
+                pr_limit=PR_LIMIT,
+                graph=total_graph,
+            ),
+        )
 
 
 def add_arch_migrate(migrators: MutableSequence[Migrator], gx: nx.DiGraph) -> None:
@@ -212,7 +199,7 @@ def add_rebuild_migration_yaml(
     migrators: MutableSequence[Migrator],
     gx: nx.DiGraph,
     package_names: Sequence[str],
-    output_to_feedstock: Mapping[str, str],
+    output_to_feedstock: Mapping[str, set[str]],
     excluded_feedstocks: MutableSet[str],
     exclude_pinned_pkgs: bool,
     migration_yaml: str,
@@ -408,7 +395,7 @@ def migration_factory(
             for yaml_file, _ in migration_yamls
         ]
 
-    output_to_feedstock = gx.graph["outputs_lut"]
+    output_to_feedstock: Mapping[str, set[str]] = gx.graph["outputs_lut"]
     all_package_names = set(
         sum(
             (
@@ -593,13 +580,13 @@ def create_migration_yaml_creator(
                 # find the most stringent max pin for this feedstock if any
                 pin_spec = ""
                 for block in [meta_yaml] + meta_yaml.get("outputs", []) or []:
-                    build = block.get("build", {}) or {}
+                    build: BuildTypedDict = block.get("build", {}) or {}
 
                     # parse back to dict
                     possible_p_dicts = []
                     if isinstance(build.get("run_exports", None), MutableMapping):
-                        for _, v in build.get("run_exports", {}).items():
-                            for p in v:
+                        for _, v in build.get("run_exports", {}).items():  # type: ignore[union-attr] # TODO: the isinstance check above does not lead to correct type inference
+                            for p in v:  # type: ignore[union-attr] # TODO: the isinstance check above does not lead to correct type inference
                                 possible_p_dicts.append(parse_munged_run_export(p))
                     else:
                         for p in build.get("run_exports", []) or []:
