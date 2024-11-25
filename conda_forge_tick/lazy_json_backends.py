@@ -638,7 +638,7 @@ def does_key_exist_in_hashmap(name: str, key: str) -> bool:
     :return: True if the key exists, False otherwise.
     """
     backend = LAZY_JSON_BACKENDS[CF_TICK_GRAPH_DATA_PRIMARY_BACKEND]()
-    return backend.hexists(name, name)
+    return backend.hexists(key, name)
 
 
 @contextlib.contextmanager
