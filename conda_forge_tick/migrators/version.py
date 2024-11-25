@@ -432,7 +432,8 @@ class Version(Migrator):
         @functools.lru_cache(maxsize=1024)
         def _get_attempts(node):
             if _has_solver_checks(node):
-                return _get_attempts_r(node, seen=set())
+                seen: set = set()
+                return _get_attempts_r(node, seen)
             else:
                 return _get_attempts_nr(node)
 
