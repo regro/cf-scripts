@@ -1223,7 +1223,7 @@ def test_include_node_bad_pull_request_upstream(caplog):
 
 
 def test_update_upstream_versions_nonexistent_package(caplog):
-    feedstock_name = "nonexistent-package"
+    feedstock_name = "nonexistent-feedstock"
 
     caplog.set_level(logging.DEBUG)
     update_upstream_versions(
@@ -1231,7 +1231,7 @@ def test_update_upstream_versions_nonexistent_package(caplog):
         feedstock=feedstock_name,
     )
 
-    assert "Package nonexistent-package not found in graph" in caplog.text
+    assert "Feedstock nonexistent-feedstock not found in graph" in caplog.text
 
 
 @mock.patch("conda_forge_tick.update_upstream_versions.filter_nodes_for_job")
@@ -1645,7 +1645,7 @@ def test_main(
     makedirs_mock.assert_called_once_with("versions", exist_ok=True)
     load_graph_mock.assert_called_once()
     update_upstream_versions_mock.assert_called_once_with(
-        gx, debug=debug, job=3, n_jobs=10, package="testpackage"
+        gx, debug=debug, job=3, n_jobs=10, feedstock="testpackage"
     )
 
 

@@ -141,19 +141,34 @@ def test_cli_mock_commands_pass_context(
 
 
 @pytest.mark.parametrize("job, n_jobs", [(1, 5), (3, 7), (4, 4)])
-@pytest.mark.parametrize("package", ["foo", "bar", "baz"])
+@pytest.mark.parametrize("feedstock", ["foo", "bar"])
 @mock.patch("conda_forge_tick.update_upstream_versions.main")
 def test_cli_mock_update_upstream_versions(
-    cmd_mock: MagicMock, job: int, n_jobs: int, package: str
+    cmd_mock: MagicMock, job: int, n_jobs: int, feedstock: str
 ):
     runner = CliRunner()
     result = runner.invoke(
         main,
-        ["update-upstream-versions", f"--job={job}", f"--n-jobs={n_jobs}", package],
+        ["update-upstream-versions", f"--job={job}", f"--n-jobs={n_jobs}", feedstock],
     )
 
     assert result.exit_code == 0
-    cmd_mock.assert_called_once_with(mock.ANY, job=job, n_jobs=n_jobs, package=package)
+    cmd_mock.assert_called_once_with(
+        mock.ANY, job=job, n_jobs=n_jobs, feedstock=feedstock
+    )
+
+
+@pytest.mark.parametrize("feedstock", ["foo", "bar"])
+@mock.patch("conda_forge_tick.auto_tick.main")
+def test_cli_mock_auto_tick(cmd_mock: MagicMock, feedstock: str):
+    runner = CliRunner()
+    result = runner.invoke(
+        main,
+        ["auto-tick", feedstock],
+    )
+
+    assert result.exit_code == 0
+    cmd_mock.assert_called_once_with(mock.ANY, feedstock=feedstock)
 
 
 @pytest.mark.parametrize("job, n_jobs", [(1, 5), (3, 7), (4, 4)])
