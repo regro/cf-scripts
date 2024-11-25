@@ -162,7 +162,7 @@ def _build_graph_process_pool(
         n_tot = len(futures)
         n_left = len(futures)
         start = time.time()
-        eta = -1
+        eta = -1.0
         for f in as_completed(futures):
             n_left -= 1
             if n_left % 10 == 0:

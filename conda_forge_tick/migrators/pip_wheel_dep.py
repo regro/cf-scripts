@@ -45,7 +45,7 @@ class PipWheelMigrator(MiniMigrator):
 
     def _get_version(self, attrs: "AttrsTypedDict") -> str:
         return (
-            attrs.get("new_version", "")
+            attrs.get("new_version", "")  # type: ignore[return-value] # TODO: allowing the version to be bool is bad for type checking
             or attrs.get("version_pr_info", {}).get("new_version", "")
             or attrs.get(
                 "version",
@@ -55,7 +55,7 @@ class PipWheelMigrator(MiniMigrator):
 
     def filter(self, attrs: "AttrsTypedDict", not_bad_str_start: str = "") -> bool:
         run_reqs = attrs.get("requirements", {}).get("run", set())
-        source_url = attrs.get("url") or attrs.get("source", {}).get("url")
+        source_url: str = attrs.get("url") or attrs.get("source", {}).get("url")  # type: ignore[assignment] # TODO: this assumes source.url exists
         url_names = ["pypi.python.org", "pypi.org", "pypi.io"]
         if not any(s in source_url for s in url_names):
             return True
@@ -96,7 +96,7 @@ class PipWheelMigrator(MiniMigrator):
         return wheel_url, wheel_file
 
     def migrate(self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any) -> None:
-        source_url = attrs.get("url") or attrs.get("source", {}).get("url")
+        source_url: str = attrs.get("url") or attrs.get("source", {}).get("url")  # type: ignore[assignment] # TODO: this assumes source.url exists
         version = self._get_version(attrs)
         if not version:
             return None
@@ -116,6 +116,8 @@ class PipWheelMigrator(MiniMigrator):
             import pkginfo
 
             wheel_metadata = pkginfo.get_metadata(wheel_file)
+            if wheel_metadata is None:
+                raise ValueError(f"pkginfo could not parse {wheel_file}.")
             wheel_metadata.extractMetadata()
             for dep in wheel_metadata.requires_dist:
                 parsed_req = pkg_resources.Requirement.parse(dep)

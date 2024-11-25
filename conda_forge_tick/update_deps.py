@@ -122,7 +122,7 @@ def extract_missing_packages(
         {node, node.replace("-", "_"), node.replace("_", "-")},
     )
 
-    d = {}
+    d: dict[str, set[str]] = {}
     cf_minus_df = set(run_packages)
     df_minus_cf = set()
     for import_name, supplying_pkgs in required_packages.items():
@@ -407,7 +407,7 @@ def get_grayskull_comparison(attrs, version_key="version"):
 
     # load the feedstock with the grayskull meta_yaml
     new_attrs = load_feedstock(attrs.get("feedstock_name"), {}, meta_yaml=gs_recipe)
-    d = {}
+    d: dict[str, dict[str, set[str]]] = {}
     for section in SECTIONS_TO_PARSE:
         gs_run = {c for c in new_attrs.get("total_requirements").get(section, set())}
 
