@@ -11,7 +11,6 @@ from unittest.mock import MagicMock
 import github3.exceptions
 import pytest
 import requests
-from pydantic_core import Url
 from requests.structures import CaseInsensitiveDict
 
 from conda_forge_tick.git_utils import (
@@ -1322,8 +1321,9 @@ def test_github_backend_create_pull_request_mock(
     )
     assert pr_data.head is not None
     assert pr_data.head.ref == "HEAD_BRANCH"
-    assert pr_data.html_url == Url(
-        "https://github.com/conda-forge/pytest-feedstock/pull/1337"
+    assert (
+        str(pr_data.html_url)
+        == "https://github.com/conda-forge/pytest-feedstock/pull/1337"
     )
     assert pr_data.id == 1853804278
     assert pr_data.labels == []
@@ -1724,8 +1724,9 @@ def test_dry_run_backend_create_pull_request(caplog):
     assert pr_data.e_tag == "GITHUB_PR_ETAG"
     assert pr_data.last_modified is not None
     assert pr_data.id == 13371337
-    assert pr_data.html_url == Url(
-        "https://github.com/conda-forge/pytest-feedstock/pulls/1337"
+    assert (
+        str(pr_data.html_url)
+        == "https://github.com/conda-forge/pytest-feedstock/pulls/1337"
     )
     assert pr_data.created_at is not None
     assert pr_data.number == 1337
