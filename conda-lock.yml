@@ -2011,39 +2011,39 @@ package:
   - category: main
     dependencies: {}
     hash:
-      md5: 0e6320be57b7df73afcff401a6e34b62
-      sha256: 0b2beff0e8402d97bb441865840ad06673a09a53fcbc69c0a365eb39d71fa6bc
+      md5: 3768d309d6a8a6f6d51bc4df743ee817
+      sha256: 029941d36f3601f70271d5ab6964f8922331bf28bc4c38973c0a2b6bfff6cb24
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.11.23.20.32.37-hd8ed1ab_0.conda
-    version: 2024.11.23.20.32.37
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.11.25.08.53.39-hd8ed1ab_0.conda
+    version: 2024.11.25.08.53.39
   - category: main
     dependencies: {}
     hash:
-      md5: 0e6320be57b7df73afcff401a6e34b62
-      sha256: 0b2beff0e8402d97bb441865840ad06673a09a53fcbc69c0a365eb39d71fa6bc
+      md5: 3768d309d6a8a6f6d51bc4df743ee817
+      sha256: 029941d36f3601f70271d5ab6964f8922331bf28bc4c38973c0a2b6bfff6cb24
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.11.23.20.32.37-hd8ed1ab_0.conda
-    version: 2024.11.23.20.32.37
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.11.25.08.53.39-hd8ed1ab_0.conda
+    version: 2024.11.25.08.53.39
   - category: main
     dependencies: {}
     hash:
-      md5: 0e6320be57b7df73afcff401a6e34b62
-      sha256: 0b2beff0e8402d97bb441865840ad06673a09a53fcbc69c0a365eb39d71fa6bc
+      md5: 3768d309d6a8a6f6d51bc4df743ee817
+      sha256: 029941d36f3601f70271d5ab6964f8922331bf28bc4c38973c0a2b6bfff6cb24
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.11.23.20.32.37-hd8ed1ab_0.conda
-    version: 2024.11.23.20.32.37
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.11.25.08.53.39-hd8ed1ab_0.conda
+    version: 2024.11.25.08.53.39
   - category: main
     dependencies:
       click: '>=8'
@@ -13774,44 +13774,44 @@ package:
       python: '>=3.11,<3.12.0a0'
       python_abi: 3.11.*
     hash:
-      md5: 810ae646bcc50a017380336d874e4014
-      sha256: 426ee582e676e15a85846743060710fc4dbe4dd562b21d80d751694ffa263e41
+      md5: 452e39fb544b1ec9cc6c5b2ac9c47efa
+      sha256: 8e9a7a1a69d0d59b3cb0066fbdbf16dc7a0d9554ffc2a365e67eca72230ca3e8
     manager: conda
     name: wrapt
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/linux-64/wrapt-1.16.0-py311h9ecbd09_1.conda
-    version: 1.16.0
+      https://conda.anaconda.org/conda-forge/linux-64/wrapt-1.17.0-py311h9ecbd09_0.conda
+    version: 1.17.0
   - category: main
     dependencies:
       __osx: '>=10.13'
       python: '>=3.11,<3.12.0a0'
       python_abi: 3.11.*
     hash:
-      md5: acb599cfd03298bd560740fee0d1609e
-      sha256: b27b52c77fc29c42923a82480f3cc19dffc95139ce418f47a9463c7b23f46c3b
+      md5: d6968f9048802d4a3c608cae0fc08b6d
+      sha256: 11b52a28ad0ea90a6e890bfc1e59f57e7119465a4fe1327f8b007aa1e20f6fc0
     manager: conda
     name: wrapt
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/osx-64/wrapt-1.16.0-py311h3336109_1.conda
-    version: 1.16.0
+    url: https://conda.anaconda.org/conda-forge/osx-64/wrapt-1.17.0-py311h4d7f069_0.conda
+    version: 1.17.0
   - category: main
     dependencies:
       __osx: '>=11.0'
       python: '>=3.11,<3.12.0a0'
       python_abi: 3.11.*
     hash:
-      md5: ff3535f6abd3ec8e0589ead32a8c86fc
-      sha256: 5667c48efd5e19e2754660293f00899dfd92b9228e19e7140cc46efcd0af8784
+      md5: a56950191b7efa9406bbaff925173d20
+      sha256: fff7f86570f0a3fd90878b75b552bafddb854e8f4d68a171cd427a13e9eb160c
     manager: conda
     name: wrapt
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/osx-arm64/wrapt-1.16.0-py311h460d6c5_1.conda
-    version: 1.16.0
+      https://conda.anaconda.org/conda-forge/osx-arm64/wrapt-1.17.0-py311h917b07b_0.conda
+    version: 1.17.0
   - category: main
     dependencies:
       python: '>=3.5'
