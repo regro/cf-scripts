@@ -25,7 +25,7 @@ from conda_forge_tick.lazy_json_backends import (
 from .all_feedstocks import get_all_feedstocks, get_archived_feedstocks
 from .cli_context import CliContext
 from .executors import executor
-from .utils import as_iterable, dump_graph, load_graph
+from .utils import as_iterable, dump_graph, load_existing_graph
 
 # from conda_forge_tick.profiler import profiling
 
@@ -257,7 +257,7 @@ def _create_edges(gx: nx.DiGraph) -> nx.DiGraph:
 
 
 def _add_run_exports(nodes_to_update):
-    gx = load_graph()
+    gx = load_existing_graph()
 
     new_names = [name for name in nodes_to_update if name not in gx.nodes]
     for name in nodes_to_update:
@@ -336,7 +336,7 @@ def main(
     logger.info(f"archived nodes: {len(archived_names)}")
 
     if update_nodes_and_edges:
-        gx = load_graph()
+        gx = load_existing_graph()
 
         new_names = [name for name in names if name not in gx.nodes]
         with lazy_json_override_backends(
