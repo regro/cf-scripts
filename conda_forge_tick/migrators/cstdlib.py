@@ -99,11 +99,11 @@ def _process_section(output_index, attrs, lines):
             line_compiler_c = i
             indent_c = match.group("indent")
             selector_c = match.group("selector") or ""
-        elif match := pat_compiler_m2c.search(line):
+        elif match := pat_compiler_m2c.match(line):
             line_compiler_m2c = i
             indent_m2c = match.group("indent")
             selector_m2c = match.group("selector") or ""
-        elif match := pat_compiler_other.search(line):
+        elif match := pat_compiler_other.match(line):
             line_compiler_other = i
             indent_other = match.group("indent")
             selector_other = match.group("selector") or ""
