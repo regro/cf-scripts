@@ -1354,5 +1354,5 @@ def main(ctx: CliContext, package: str | None = None) -> None:
             #     ],
             # )
 
-    logger.info(f"API Calls Remaining: {git_backend.get_api_requests_left()}")
+    logger.info("API Calls Remaining: %s", git_backend.get_api_requests_left())
     logger.info("Done")
