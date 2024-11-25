@@ -758,7 +758,6 @@ def _run_migrator_on_feedstock_branch(
 
     except (github3.GitHubError, github.GithubException) as e:
         # TODO: pull this down into run() - also check the other exceptions
-        # TODO: continue here, after that run locally and add tests, backend should be injected into run
         if hasattr(e, "msg") and e.msg == "Repository was archived so is read-only.":
             attrs["archived"] = True
         else:
