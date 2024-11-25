@@ -1,7 +1,6 @@
 import logging
 import os
 import re
-import typing
 from typing import Any, Literal, Sequence
 
 import networkx as nx
@@ -9,9 +8,7 @@ import networkx as nx
 from conda_forge_tick.contexts import ClonedFeedstockContext, FeedstockContext
 from conda_forge_tick.migrators.core import Migrator
 
-if typing.TYPE_CHECKING:
-    from ..migrators_types import AttrsTypedDict, MigrationUidTypedDict, PackageName
-
+from ..migrators_types import AttrsTypedDict, MigrationUidTypedDict, PackageName
 
 logger = logging.getLogger(__name__)
 

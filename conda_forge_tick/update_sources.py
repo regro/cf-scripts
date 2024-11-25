@@ -19,13 +19,10 @@ from conda.models.version import VersionOrder
 # TODO: parse_version has bad type annotations
 from pkg_resources import parse_version
 
+from conda_forge_tick.migrators_types import RecipeTypedDict, SourceTypedDict
 from conda_forge_tick.utils import parse_meta_yaml
 
 from .hashing import hash_url
-
-if typing.TYPE_CHECKING:
-    from conda_forge_tick.migrators_types import RecipeTypedDict, SourceTypedDict
-
 
 CRAN_INDEX: Optional[dict] = None
 

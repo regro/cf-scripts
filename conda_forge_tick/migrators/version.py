@@ -3,7 +3,6 @@ import functools
 import logging
 import os
 import random
-import typing
 import warnings
 from typing import Any, List, Literal, Sequence
 
@@ -13,18 +12,16 @@ from conda.models.version import VersionOrder
 
 from conda_forge_tick.contexts import ClonedFeedstockContext, FeedstockContext
 from conda_forge_tick.migrators.core import Migrator
+from conda_forge_tick.migrators_types import (
+    AttrsTypedDict,
+    MigrationUidTypedDict,
+    PackageName,
+)
 from conda_forge_tick.models.pr_info import MigratorName
 from conda_forge_tick.os_utils import pushd
 from conda_forge_tick.update_deps import get_dep_updates_and_hints
 from conda_forge_tick.update_recipe import update_version
 from conda_forge_tick.utils import get_keys_default, sanitize_string
-
-if typing.TYPE_CHECKING:
-    from conda_forge_tick.migrators_types import (
-        AttrsTypedDict,
-        MigrationUidTypedDict,
-        PackageName,
-    )
 
 SKIP_DEPS_NODES = [
     "ansible",

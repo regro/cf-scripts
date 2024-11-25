@@ -1,5 +1,4 @@
 import os
-import typing
 from textwrap import dedent
 from typing import Any, Collection, Literal, Optional, Sequence
 
@@ -11,6 +10,7 @@ from conda_forge_tick.make_graph import (
     make_outputs_lut_from_graph,
 )
 from conda_forge_tick.migrators.core import GraphMigrator, _sanitized_muids
+from conda_forge_tick.migrators_types import AttrsTypedDict, MigrationUidTypedDict
 from conda_forge_tick.os_utils import pushd
 from conda_forge_tick.utils import (
     as_iterable,
@@ -20,12 +20,8 @@ from conda_forge_tick.utils import (
     yaml_safe_load,
 )
 
-from .migration_yaml import all_noarch
-
-if typing.TYPE_CHECKING:
-    from conda_forge_tick.migrators_types import AttrsTypedDict, MigrationUidTypedDict
-
 from .core import MiniMigrator
+from .migration_yaml import all_noarch
 
 
 def _filter_excluded_deps(graph, excluded_dependencies):

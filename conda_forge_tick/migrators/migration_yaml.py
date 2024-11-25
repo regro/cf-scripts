@@ -4,7 +4,6 @@ import os
 import random
 import re
 import time
-import typing
 from collections import defaultdict
 from typing import Any, Collection, Literal, MutableSet, Optional, Sequence, Set
 
@@ -24,8 +23,7 @@ from conda_forge_tick.utils import (
     yaml_safe_load,
 )
 
-if typing.TYPE_CHECKING:
-    from ..migrators_types import AttrsTypedDict, MigrationUidTypedDict, PackageName
+from ..migrators_types import AttrsTypedDict, MigrationUidTypedDict, PackageName
 
 logger = logging.getLogger(__name__)
 

@@ -6,7 +6,6 @@ import pprint
 import random
 import re
 import time
-import typing
 from concurrent.futures import as_completed
 from typing import (
     List,
@@ -18,9 +17,6 @@ from typing import (
     Set,
     cast,
 )
-
-if typing.TYPE_CHECKING:
-    from .migrators_types import BuildTypedDict, PackageName
 
 import networkx as nx
 import tqdm
@@ -86,6 +82,8 @@ from conda_forge_tick.utils import (
     pluck,
     yaml_safe_load,
 )
+
+from .migrators_types import BuildTypedDict, PackageName
 
 # migrator runs on loop so avoid any seeds at current time should that happen
 random.seed(os.urandom(64))

@@ -7,12 +7,11 @@ from conda_forge_tick.migrators.core import _parse_bad_attr, _skip_due_to_schema
 from conda_forge_tick.migrators.replacement import Replacement
 from conda_forge_tick.utils import frozen_to_json_friendly
 
-if typing.TYPE_CHECKING:
-    from ..migrators_types import (
-        AttrsTypedDict,
-        MigrationUidTypedDict,
-        RequirementsTypedDict,
-    )
+from ..migrators_types import (
+    AttrsTypedDict,
+    MigrationUidTypedDict,
+    RequirementsTypedDict,
+)
 
 
 class MatplotlibBase(Replacement):

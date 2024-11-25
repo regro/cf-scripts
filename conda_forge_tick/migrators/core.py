@@ -22,10 +22,10 @@ from conda_forge_tick.utils import (
     get_keys_default,
 )
 
+from ..migrators_types import AttrsTypedDict, MigrationUidTypedDict, PackageName
+
 if typing.TYPE_CHECKING:
     from conda_forge_tick.utils import JsonFriendly
-
-    from ..migrators_types import AttrsTypedDict, MigrationUidTypedDict, PackageName
 
 
 logger = logging.getLogger(__name__)
