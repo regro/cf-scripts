@@ -13,7 +13,7 @@ jobs:
     name: relock
     runs-on: "ubuntu-latest"
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      - uses: actions/checkout@7e9057f62545d3b3a3fc10ccc93cec4d0bd2c5a5
 
       - uses: conda-incubator/relock-conda@571d6d5735006079443f1f50ecc7a638a8569a94
         with:
