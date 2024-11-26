@@ -57,6 +57,7 @@ from conda_forge_tick.migrators import (
     MigrationYaml,
     Migrator,
     MPIPinRunAsBuildCleanup,
+    NoarchPythonMinMigrator,
     NoCondaInspectMigrator,
     Numpy2Migrator,
     PipMigrator,
@@ -727,15 +728,13 @@ def initialize_migrators(
         "has required dependencies and astropy has all optional dependencies.",
     )
 
-    # turned off due to issue with not editing build sections when there
-    # is no host
-    # with fold_log_lines("making `noarch: python` migrator"):
-    #     migrators.append(
-    #         NoarchPythonMinMigrator(
-    #             graph=gx,
-    #             pr_limit=1,  # will turn up later
-    #         ),
-    #     )
+    with fold_log_lines("making `noarch: python` migrator"):
+        migrators.append(
+            NoarchPythonMinMigrator(
+                graph=gx,
+                pr_limit=1,  # will turn up later
+            ),
+        )
 
     pinning_migrators: List[Migrator] = []
     migration_factory(pinning_migrators, gx)

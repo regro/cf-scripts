@@ -26,6 +26,7 @@ from conda_forge_tick.migrators import (
     GraphMigrator,
     MatplotlibBase,
     Migrator,
+    NoarchPythonMinMigrator,
     OSXArm,
     Replacement,
     Version,
@@ -424,7 +425,11 @@ def main() -> None:
         )
         print("name:", migrator_name, flush=True)
 
-        if isinstance(migrator, GraphMigrator) or isinstance(migrator, Replacement):
+        if (
+            isinstance(migrator, GraphMigrator)
+            or isinstance(migrator, Replacement)
+            or isinstance(migrator, NoarchPythonMinMigrator)
+        ):
             if isinstance(migrator, GraphMigrator):
                 mgconf = yaml.safe_load(getattr(migrator, "yaml_contents", "{}")).get(
                     "__migrator",
