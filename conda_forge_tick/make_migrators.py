@@ -719,6 +719,15 @@ def initialize_migrators(
         "The package 'mpir' is deprecated and unmaintained. Use 'gmp' instead.",
     )
 
+    add_replacement_migrator(
+        migrators,
+        gx,
+        cast("PackageName", "astropy"),
+        cast("PackageName", "astropy-base"),
+        "The astropy feedstock has been split into two packages, astropy-base only "
+        "has required dependancies and astropy has all optional dependancies.",
+    )
+
     # turned off due to issue with not editing build sections when there
     # is no host
     # with fold_log_lines("making `noarch: python` migrator"):
