@@ -22,6 +22,7 @@ NEXT_GLOBAL_PYTHON_MIN = (
 )
 
 
+@pytest.mark.parametrize("replace_host_with_build", [True, False])
 @pytest.mark.parametrize(
     "meta_yaml,expected_meta_yaml",
     [
@@ -403,7 +404,14 @@ NEXT_GLOBAL_PYTHON_MIN = (
 def test_apply_noarch_python_min(
     meta_yaml,
     expected_meta_yaml,
+    replace_host_with_build,
 ):
+    if replace_host_with_build:
+        meta_yaml = meta_yaml.replace("host:", "build:")
+        expected_meta_yaml = expected_meta_yaml.replace("host:", "build:")
+        assert "host" not in meta_yaml
+        assert "host" not in expected_meta_yaml
+
     with tempfile.TemporaryDirectory() as recipe_dir:
         mypth = os.path.join(recipe_dir, "meta.yaml")
         with open(mypth, "w") as f:
