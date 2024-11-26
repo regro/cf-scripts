@@ -57,7 +57,6 @@ from conda_forge_tick.migrators import (
     MigrationYaml,
     Migrator,
     MPIPinRunAsBuildCleanup,
-    NoarchPythonMinMigrator,
     NoCondaInspectMigrator,
     Numpy2Migrator,
     PipMigrator,
@@ -725,7 +724,7 @@ def initialize_migrators(
         cast("PackageName", "astropy"),
         cast("PackageName", "astropy-base"),
         "The astropy feedstock has been split into two packages, astropy-base only "
-        "has required dependancies and astropy has all optional dependancies.",
+        "has required dependencies and astropy has all optional dependencies.",
     )
 
     # turned off due to issue with not editing build sections when there
