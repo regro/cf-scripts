@@ -152,16 +152,16 @@ def add_replacement_migrator(
                     graph=total_graph,
                 ),
             )
-
-        migrators.append(
-            Replacement(
-                old_pkg=old_pkg,
-                new_pkg=new_pkg,
-                rationale=rationale,
-                pr_limit=PR_LIMIT,
-                graph=total_graph,
-            ),
-        )
+        else:
+            migrators.append(
+                Replacement(
+                    old_pkg=old_pkg,
+                    new_pkg=new_pkg,
+                    rationale=rationale,
+                    pr_limit=PR_LIMIT,
+                    graph=total_graph,
+                ),
+            )
 
 
 def add_arch_migrate(migrators: MutableSequence[Migrator], gx: nx.DiGraph) -> None:
