@@ -703,7 +703,9 @@ def create_migration_yaml_creator(
                 continue
 
 
-def add_noarch_python_min_migrator(migrators: MutableSequence[Migrator], gx: nx.DiGraph):
+def add_noarch_python_min_migrator(
+    migrators: MutableSequence[Migrator], gx: nx.DiGraph
+):
     with fold_log_lines("making `noarch: python` migrator"):
         gx2 = copy.deepcopy(gx)
         for node in list(gx2.nodes):

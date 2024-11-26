@@ -425,13 +425,10 @@ def main() -> None:
         print("name:", migrator_name, flush=True)
 
         if (
-            (
-                isinstance(migrator, GraphMigrator)
-                or isinstance(migrator, Replacement)
-                or isinstance(migrator, Migrator)
-            )
-            and not isinstance(migrator, Version)
-        ):
+            isinstance(migrator, GraphMigrator)
+            or isinstance(migrator, Replacement)
+            or isinstance(migrator, Migrator)
+        ) and not isinstance(migrator, Version):
             if isinstance(migrator, GraphMigrator):
                 mgconf = yaml.safe_load(getattr(migrator, "yaml_contents", "{}")).get(
                     "__migrator",
