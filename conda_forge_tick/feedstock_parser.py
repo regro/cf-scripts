@@ -1,6 +1,7 @@
 import collections.abc
 import hashlib
 import logging
+import os
 import re
 import tempfile
 import typing
@@ -19,10 +20,13 @@ from conda_forge_feedstock_ops.container_utils import (
 from requests.models import Response
 
 from conda_forge_tick.lazy_json_backends import LazyJson, dumps, loads
-from conda_forge_tick.migrators_types import RecipeTypedDict
+from conda_forge_tick.migrators_types import (
+    PackageName,
+    RecipeTypedDict,
+    RequirementsTypedDict,
+    TestTypedDict,
+)
 from conda_forge_tick.utils import as_iterable, parse_meta_yaml, parse_recipe_yaml
-
-from .migrators_types import PackageName, RequirementsTypedDict, TestTypedDict
 
 logger = logging.getLogger(__name__)
 
@@ -698,7 +702,6 @@ def load_feedstock(
 
 if __name__ == "__main__":
     import json
-    import os
     import sys
 
     # Do not use docker when debugging
