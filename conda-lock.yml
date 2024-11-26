@@ -2436,15 +2436,15 @@ package:
       toolz: ''
       vsts-python-api: ''
     hash:
-      md5: f06b9ae0996caaa80c92d3903aa4613f
-      sha256: eab8934eb32402507a61c6175cac94315f1640b347f6a556b9224bc9e9bd9ef3
+      md5: a7754d975997d5bc24541bff8bc29af2
+      sha256: 922dc181d4a3b9cda8c76c7da6c2c09ac3687d0703142c9a39a74ec8753902c9
     manager: conda
     name: conda-smithy
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-smithy-3.44.7-unix_pyhd81877a_2.conda
-    version: 3.44.7
+      https://conda.anaconda.org/conda-forge/noarch/conda-smithy-3.44.8-unix_pyhd81877a_0.conda
+    version: 3.44.8
   - category: main
     dependencies:
       __unix: ''
@@ -2473,15 +2473,15 @@ package:
       toolz: ''
       vsts-python-api: ''
     hash:
-      md5: f06b9ae0996caaa80c92d3903aa4613f
-      sha256: eab8934eb32402507a61c6175cac94315f1640b347f6a556b9224bc9e9bd9ef3
+      md5: a7754d975997d5bc24541bff8bc29af2
+      sha256: 922dc181d4a3b9cda8c76c7da6c2c09ac3687d0703142c9a39a74ec8753902c9
     manager: conda
     name: conda-smithy
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-smithy-3.44.7-unix_pyhd81877a_2.conda
-    version: 3.44.7
+      https://conda.anaconda.org/conda-forge/noarch/conda-smithy-3.44.8-unix_pyhd81877a_0.conda
+    version: 3.44.8
   - category: main
     dependencies:
       __unix: ''
@@ -2510,15 +2510,15 @@ package:
       toolz: ''
       vsts-python-api: ''
     hash:
-      md5: f06b9ae0996caaa80c92d3903aa4613f
-      sha256: eab8934eb32402507a61c6175cac94315f1640b347f6a556b9224bc9e9bd9ef3
+      md5: a7754d975997d5bc24541bff8bc29af2
+      sha256: 922dc181d4a3b9cda8c76c7da6c2c09ac3687d0703142c9a39a74ec8753902c9
     manager: conda
     name: conda-smithy
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-smithy-3.44.7-unix_pyhd81877a_2.conda
-    version: 3.44.7
+      https://conda.anaconda.org/conda-forge/noarch/conda-smithy-3.44.8-unix_pyhd81877a_0.conda
+    version: 3.44.8
   - category: main
     dependencies:
       python: '>=3.8'
@@ -12930,45 +12930,45 @@ package:
       python: '>=3.11,<3.12.0a0'
       python_abi: 3.11.*
     hash:
-      md5: 616fed0b6f5c925250be779b05d1d7f7
-      sha256: 21390d0c5708581959ebd89702433c1d06a56ddd834797a194b217f98e38df53
+      md5: df3aee9c3e44489257a840b8354e77b9
+      sha256: afa3489113154b5cb0724b0bf120b62df91f426dabfe5d02f2ba09e90d346b28
     manager: conda
     name: tornado
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/linux-64/tornado-6.4.1-py311h9ecbd09_1.conda
-    version: 6.4.1
+      https://conda.anaconda.org/conda-forge/linux-64/tornado-6.4.2-py311h9ecbd09_0.conda
+    version: 6.4.2
   - category: main
     dependencies:
       __osx: '>=10.13'
       python: '>=3.11,<3.12.0a0'
       python_abi: 3.11.*
     hash:
-      md5: 5e051c4c2b80c381173b2c1719265617
-      sha256: 2e54c0d478b8d0793f89b855749aa74acaa185d08d353d8e5aa95f8e89eb6123
+      md5: 073c42a2b6b7e4219325b1f5983c7579
+      sha256: 5273ba307489570df61d82a6b3365b2a27862765099cf4ef3830569fa4a30f27
     manager: conda
     name: tornado
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/osx-64/tornado-6.4.1-py311h3336109_1.conda
-    version: 6.4.1
+      https://conda.anaconda.org/conda-forge/osx-64/tornado-6.4.2-py311h4d7f069_0.conda
+    version: 6.4.2
   - category: main
     dependencies:
       __osx: '>=11.0'
       python: '>=3.11,<3.12.0a0'
       python_abi: 3.11.*
     hash:
-      md5: 8ba6d177509dc4fac7af09749556eed0
-      sha256: bba4940ef7522c3b4ae6eacd296e5e110de3659f7e4c3654d4fc2bb213c2091c
+      md5: 183b74c576dc7f920dae168997dbd1dd
+      sha256: 80b79a7d4ed8e16019b8c634cca66935d18fc98be358c76a6ead8c611306ee14
     manager: conda
     name: tornado
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/osx-arm64/tornado-6.4.1-py311h460d6c5_1.conda
-    version: 6.4.1
+      https://conda.anaconda.org/conda-forge/osx-arm64/tornado-6.4.2-py311h917b07b_0.conda
+    version: 6.4.2
   - category: main
     dependencies:
       colorama: ''
