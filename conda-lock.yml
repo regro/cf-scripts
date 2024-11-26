@@ -4104,23 +4104,23 @@ package:
     dependencies:
       __glibc: '>=2.17,<3.0.a0'
       libcurl: '>=8.10.1,<9.0a0'
-      libexpat: '>=2.6.3,<3.0a0'
+      libexpat: '>=2.6.4,<3.0a0'
       libgcc: '>=13'
       libiconv: '>=1.17,<2.0a0'
       libzlib: '>=1.3.1,<2.0a0'
-      openssl: '>=3.3.2,<4.0a0'
+      openssl: '>=3.4.0,<4.0a0'
       pcre2: '>=10.44,<10.45.0a0'
       perl: 5.*
     hash:
-      md5: 5cb49c00a7aa5f400b70e95b84d90595
-      sha256: ec0e20ae0aa8146895a107adf7ef9949759942617f5cbecb783284528df6b06c
+      md5: 3b7a5e35dd484e8de87522b63f7daf15
+      sha256: 548008002931bd7152a27f135ec58df7a9fdb3c97e955613af48c4f80310b4e2
     manager: conda
     name: git
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/linux-64/git-2.47.0-pl5321h59d505e_0.conda
-    version: 2.47.0
+      https://conda.anaconda.org/conda-forge/linux-64/git-2.47.1-pl5321h59d505e_0.conda
+    version: 2.47.1
   - category: main
     dependencies:
       __osx: '>=10.10'
@@ -13542,52 +13542,52 @@ package:
     version: 0.5.4
   - category: main
     dependencies:
-      distlib: <1,>=0.3.7
-      filelock: <4,>=3.12.2
-      platformdirs: <5,>=3.9.1
-      python: '>=3.8'
+      distlib: '>=0.3.7,<1'
+      filelock: '>=3.12.2,<4'
+      platformdirs: '>=3.9.1,<5'
+      python: '>=3.9'
     hash:
-      md5: dae21509d62aa7bf676279ced3edcb3f
-      sha256: 189b935224732267df10dc116bce0835bd76fcdb20c30f560591c92028d513b0
+      md5: 1d601bc1d28b5ce6d112b90f4b9b8ede
+      sha256: 82776f74e90a296b79415361faa6b10f360755c1fb8e6d59ca68509e6fe7e115
     manager: conda
     name: virtualenv
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/virtualenv-20.27.1-pyhd8ed1ab_0.conda
-    version: 20.27.1
+      https://conda.anaconda.org/conda-forge/noarch/virtualenv-20.28.0-pyhd8ed1ab_0.conda
+    version: 20.28.0
   - category: main
     dependencies:
-      distlib: <1,>=0.3.7
-      filelock: <4,>=3.12.2
-      platformdirs: <5,>=3.9.1
-      python: '>=3.8'
+      distlib: '>=0.3.7,<1'
+      filelock: '>=3.12.2,<4'
+      platformdirs: '>=3.9.1,<5'
+      python: '>=3.9'
     hash:
-      md5: dae21509d62aa7bf676279ced3edcb3f
-      sha256: 189b935224732267df10dc116bce0835bd76fcdb20c30f560591c92028d513b0
+      md5: 1d601bc1d28b5ce6d112b90f4b9b8ede
+      sha256: 82776f74e90a296b79415361faa6b10f360755c1fb8e6d59ca68509e6fe7e115
     manager: conda
     name: virtualenv
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/virtualenv-20.27.1-pyhd8ed1ab_0.conda
-    version: 20.27.1
+      https://conda.anaconda.org/conda-forge/noarch/virtualenv-20.28.0-pyhd8ed1ab_0.conda
+    version: 20.28.0
   - category: main
     dependencies:
-      distlib: <1,>=0.3.7
-      filelock: <4,>=3.12.2
-      platformdirs: <5,>=3.9.1
-      python: '>=3.8'
+      distlib: '>=0.3.7,<1'
+      filelock: '>=3.12.2,<4'
+      platformdirs: '>=3.9.1,<5'
+      python: '>=3.9'
     hash:
-      md5: dae21509d62aa7bf676279ced3edcb3f
-      sha256: 189b935224732267df10dc116bce0835bd76fcdb20c30f560591c92028d513b0
+      md5: 1d601bc1d28b5ce6d112b90f4b9b8ede
+      sha256: 82776f74e90a296b79415361faa6b10f360755c1fb8e6d59ca68509e6fe7e115
     manager: conda
     name: virtualenv
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/virtualenv-20.27.1-pyhd8ed1ab_0.conda
-    version: 20.27.1
+      https://conda.anaconda.org/conda-forge/noarch/virtualenv-20.28.0-pyhd8ed1ab_0.conda
+    version: 20.28.0
   - category: main
     dependencies:
       msrest: '>=0.6.0,<0.7.0'
