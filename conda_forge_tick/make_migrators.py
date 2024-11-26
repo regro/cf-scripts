@@ -723,7 +723,7 @@ def initialize_migrators(
         migrators.append(
             NoarchPythonMinMigrator(
                 graph=gx,
-                pr_limit=PR_LIMIT,
+                pr_limit=1,  # will turn up later
             ),
         )
 
