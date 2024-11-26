@@ -703,6 +703,27 @@ def create_migration_yaml_creator(
                 continue
 
 
+def add_noarch_python_min_migrator(migrators: MutableSequence[Migrator], gx: nx.DiGraph):
+    with fold_log_lines("making `noarch: python` migrator"):
+        gx2 = copy.deepcopy(gx)
+        for node in list(gx2.nodes):
+            has_noarch_python = False
+            with gx2.nodes[node]["payload"] as attrs:
+                for line in attrs.get("raw_meta_yaml", "").splitlines():
+                    if line.lstrip().startswith("noarch: python"):
+                        has_noarch_python = True
+                        break
+            if not has_noarch_python:
+                pluck(gx2, node)
+
+        migrators.append(
+            NoarchPythonMinMigrator(
+                graph=gx2,
+                pr_limit=1,  # will turn up later
+            ),
+        )
+
+
 def initialize_migrators(
     gx: nx.DiGraph,
     dry_run: bool = False,
@@ -719,13 +740,7 @@ def initialize_migrators(
         "The package 'mpir' is deprecated and unmaintained. Use 'gmp' instead.",
     )
 
-    # with fold_log_lines("making `noarch: python` migrator"):
-    #     migrators.append(
-    #         NoarchPythonMinMigrator(
-    #             graph=gx,
-    #             pr_limit=1,  # will turn up later
-    #         ),
-    #     )
+    add_noarch_python_min_migrator(migrators, gx)
 
     pinning_migrators: List[Migrator] = []
     migration_factory(pinning_migrators, gx)
