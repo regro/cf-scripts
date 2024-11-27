@@ -763,6 +763,16 @@ def initialize_migrators(
         "The package 'mpir' is deprecated and unmaintained. Use 'gmp' instead.",
     )
 
+    add_replacement_migrator(
+        migrators,
+        gx,
+        cast("PackageName", "astropy"),
+        cast("PackageName", "astropy-base"),
+        "The astropy feedstock has been split into two packages, astropy-base only "
+        "has required dependencies and astropy now has all optional dependencies. "
+        "To maintain the old behavior you should migrate to astropy-base.",
+    )
+
     add_noarch_python_min_migrator(migrators, gx)
 
     pinning_migrators: List[Migrator] = []
