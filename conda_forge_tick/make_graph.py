@@ -89,6 +89,8 @@ def get_attrs(name: str, mark_not_archived=False) -> LazyJson:
             data = load_feedstock(
                 name, sub_graph.data, mark_not_archived=mark_not_archived
             )
+            if "parsing_error" not in data:
+                data["parsing_error"] = False
             sub_graph.clear()
             sub_graph.update(data)
         except Exception as e:
