@@ -125,11 +125,22 @@ def _process_req_list(section, req_list_name, new_python_req, force_apply=False)
 
         if in_section:
             if indent < curr_indent:
-                if not adjusted_python and req_list_name not in ["host", "run"]:
+                if not adjusted_python and req_list_name not in [
+                    "build",
+                    "host",
+                    "run",
+                ]:
                     logger.debug("adding python to section %s", req_list_name)
                     # insert python as spec
-                    new_line = curr_indent * " " + "- python " + new_python_req + "\n"
-                    new_lines.append(new_line)
+                    _new_line = curr_indent * " " + "- python " + new_python_req + "\n"
+                    loc = -1
+                    while new_lines[loc].strip() == "":
+                        loc -= 1
+                    if loc == -1:
+                        new_lines.append(_new_line)
+                    else:
+                        loc += 1
+                        new_lines = new_lines[:loc] + [_new_line] + new_lines[loc:]
 
                 # the section ended
                 in_section = False
