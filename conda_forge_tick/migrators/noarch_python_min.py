@@ -42,10 +42,51 @@ def _has_noarch_python(lines):
     return False
 
 
+def _is_comment_or_empty(line):
+    return line.strip() == "" or line.strip().startswith("#")
+
+
 def _has_build_section(lines):
+    in_requirements = False
+    indent = None
     for line in lines:
-        if line.lstrip().startswith("build:"):
+        if (
+            indent is not None
+            and not _is_comment_or_empty(line)
+            and len(line) - len(line.lstrip()) <= indent
+        ):
+            in_requirements = False
+            indent = None
+
+        if line.lstrip().startswith("requirements:"):
+            indent = len(line) - len(line.lstrip())
+            in_requirements = True
+
+        if line.lstrip().startswith("build:") and not in_requirements:
             return True
+
+    return False
+
+
+def _has_req_section(lines, section_name):
+    in_requirements = False
+    indent = None
+    for line in lines:
+        if (
+            indent is not None
+            and not _is_comment_or_empty(line)
+            and len(line) - len(line.lstrip()) <= indent
+        ):
+            in_requirements = False
+            indent = None
+
+        if line.lstrip().startswith("requirements:"):
+            indent = len(line) - len(line.lstrip())
+            in_requirements = True
+
+        if line.lstrip().startswith(section_name + ":") and in_requirements:
+            return True
+
     return False
 
 
@@ -56,6 +97,8 @@ def _process_req_list(section, req_list_name, new_python_req, force_apply=False)
     in_section = False
     adjusted_python = False
     python_min_override = None
+    req_or_test_indent = None
+    in_req_or_test = False
     for line in section:
         lstrip_line = line.lstrip()
 
@@ -68,17 +111,36 @@ def _process_req_list(section, req_list_name, new_python_req, force_apply=False)
             new_lines.append(line)
             continue
 
+        if (
+            req_or_test_indent is not None
+            and not _is_comment_or_empty(line)
+            and len(line) - len(line.lstrip()) <= req_or_test_indent
+        ):
+            in_req_or_test = False
+            req_or_test_indent = None
+
         indent = len(line) - len(lstrip_line)
         if curr_indent is None:
             curr_indent = indent
 
         if in_section:
             if indent < curr_indent:
-                if not adjusted_python and req_list_name not in ["host", "run"]:
+                if not adjusted_python and req_list_name not in [
+                    "build",
+                    "host",
+                    "run",
+                ]:
                     logger.debug("adding python to section %s", req_list_name)
                     # insert python as spec
-                    new_line = curr_indent * " " + "- python " + new_python_req + "\n"
-                    new_lines.append(new_line)
+                    _new_line = curr_indent * " " + "- python " + new_python_req + "\n"
+                    loc = -1
+                    while new_lines[loc].strip() == "":
+                        loc -= 1
+                    if loc == -1:
+                        new_lines.append(_new_line)
+                    else:
+                        loc += 1
+                        new_lines = new_lines[:loc] + [_new_line] + new_lines[loc:]
 
                 # the section ended
                 in_section = False
@@ -126,12 +188,18 @@ def _process_req_list(section, req_list_name, new_python_req, force_apply=False)
                 else:
                     new_line = line
         else:
-            if line.lstrip().startswith(req_list_name + ":"):
+            if line.lstrip().startswith(req_list_name + ":") and in_req_or_test:
                 logger.debug("found %s for processing req list", req_list_name)
                 in_section = True
                 found_it = True
 
             new_line = line
+
+        if line.lstrip().startswith("requirements:") or line.lstrip().startswith(
+            "test:"
+        ):
+            req_or_test_indent = len(line) - len(line.lstrip())
+            in_req_or_test = True
 
         new_lines.append(new_line)
         curr_indent = indent
@@ -180,12 +248,14 @@ def _add_test_requires(section):
     return new_lines
 
 
-def _process_section(section, force_noarch_python=False, force_apply=False):
+def _process_section(
+    section, force_noarch_python=False, force_apply=False, build_or_host="host"
+):
     if (not _has_noarch_python(section)) and (not force_noarch_python):
         return section, None
 
     found_it, section, python_min_override = _process_req_list(
-        section, "host", "{{ python_min }}", force_apply=force_apply
+        section, build_or_host, "{{ python_min }}", force_apply=force_apply
     )
     logger.debug("applied `noarch: python` host? %s", found_it)
     found_it, section, _ = _process_req_list(
@@ -227,9 +297,20 @@ def _apply_noarch_python_min(
             # _process_section returns list of lines already
             _new_lines, _python_min_override = _process_section(
                 section,
-                force_noarch_python=has_global_noarch_python
-                and (not has_build_override),
+                force_noarch_python=(
+                    has_global_noarch_python
+                    and (
+                        (not has_build_override)
+                        or (has_build_override and _has_noarch_python(section))
+                    )
+                ),
                 force_apply=not preserve_existing_specs,
+                build_or_host=(
+                    "build"
+                    if not _has_req_section(section, "host")
+                    and _has_req_section(section, "build")
+                    else "host"
+                ),
             )
             new_lines += _new_lines
             if _python_min_override is not None:
@@ -267,6 +348,7 @@ def _apply_noarch_python_min(
 class NoarchPythonMinMigrator(Migrator):
     """Migrator for converting `noarch: python` recipes to the CFEP-25 syntax."""
 
+    migrator_version = 1
     bump_number = 1
 
     def __init__(
@@ -329,12 +411,12 @@ class NoarchPythonMinMigrator(Migrator):
         body = super().pr_body(feedstock_ctx)
         body = body.format(
             textwrap.dedent(
-                """
-            This PR updates the recipe to use the `noarch: python` syntax as described in
-            [CFEP-25](https://github.com/conda-forge/cfep/blob/main/cfep-25.md). Please
-            see our [documentation](https://conda-forge.org/docs/maintainer/knowledge_base/#noarch-python)
-            for more details.
-            """,
+                """\
+This PR updates the recipe to use the `noarch: python` syntax as described in \
+[CFEP-25](https://github.com/conda-forge/cfep/blob/main/cfep-25.md). Please \
+see our [documentation](https://conda-forge.org/docs/maintainer/knowledge_base/#noarch-python) \
+for more details.
+""",
             )
         )
         return body

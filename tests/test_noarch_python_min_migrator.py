@@ -22,6 +22,7 @@ NEXT_GLOBAL_PYTHON_MIN = (
 )
 
 
+@pytest.mark.parametrize("replace_host_with_build", [True, False])
 @pytest.mark.parametrize(
     "meta_yaml,expected_meta_yaml",
     [
@@ -403,7 +404,14 @@ NEXT_GLOBAL_PYTHON_MIN = (
 def test_apply_noarch_python_min(
     meta_yaml,
     expected_meta_yaml,
+    replace_host_with_build,
 ):
+    if replace_host_with_build:
+        meta_yaml = meta_yaml.replace("host:", "build:")
+        expected_meta_yaml = expected_meta_yaml.replace("host:", "build:")
+        assert "host" not in meta_yaml
+        assert "host" not in expected_meta_yaml
+
     with tempfile.TemporaryDirectory() as recipe_dir:
         mypth = os.path.join(recipe_dir, "meta.yaml")
         with open(mypth, "w") as f:
@@ -422,13 +430,14 @@ def test_apply_noarch_python_min(
             assert f.read() == expected_meta_yaml
 
 
-def test_noarch_python_min_migrator(tmpdir):
+@pytest.mark.parametrize("name", ["seaborn", "extra_new_line"])
+def test_noarch_python_min_migrator(tmpdir, name):
     with open(
-        os.path.join(TEST_YAML_PATH, "noarch_python_min_seaborn_before_meta.yaml")
+        os.path.join(TEST_YAML_PATH, f"noarch_python_min_{name}_before_meta.yaml")
     ) as f:
         recipe_before = f.read()
     with open(
-        os.path.join(TEST_YAML_PATH, "noarch_python_min_seaborn_after_meta.yaml")
+        os.path.join(TEST_YAML_PATH, f"noarch_python_min_{name}_after_meta.yaml")
     ) as f:
         recipe_after = f.read()
     m = NoarchPythonMinMigrator()
