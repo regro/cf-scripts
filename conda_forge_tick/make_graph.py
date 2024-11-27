@@ -95,7 +95,9 @@ def get_attrs(name: str, mark_not_archived=False) -> LazyJson:
             import traceback
 
             trb = traceback.format_exc()
-            sub_graph["parsing_error"] = sanitize_string(f"make_graph: {e}\n{trb}")
+            sub_graph["parsing_error"] = sanitize_string(
+                f"feedstock parsing error: {e}\n{trb}"
+            )
             raise e
 
     return lzj

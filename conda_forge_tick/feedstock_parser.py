@@ -275,8 +275,11 @@ def populate_feedstock_attributes(
                 k: v for k, v in yaml.safe_load(conda_forge_yaml).items()
             }
         except Exception as e:
+            import traceback
+
+            trb = traceback.format_exc()
             sub_graph["parsing_error"] = sanitize_string(
-                f"cannot load conda-forge.yml: {e}"
+                f"feedstock parsing error: cannot load conda-forge.yml: {e}\n{trb}"
             )
             return sub_graph
 
@@ -399,7 +402,7 @@ def populate_feedstock_attributes(
 
         trb = traceback.format_exc()
         sub_graph["parsing_error"] = sanitize_string(
-            f"make_graph: render error {e}\n{trb}"
+            f"feedstock parsing error: cannot rendering recipe: {e}\n{trb}"
         )
         raise
 
@@ -411,7 +414,9 @@ def populate_feedstock_attributes(
     yaml_dict = ChainDB(*sorted_variant_yamls)
     if not yaml_dict:
         logger.error(f"Something odd happened when parsing recipe {name}")
-        sub_graph["parsing_error"] = "make_graph: Could not parse"
+        sub_graph["parsing_error"] = (
+            "feedstock parsing error: could not combine metadata dicts across platforms"
+        )
         return sub_graph
 
     sub_graph["meta_yaml"] = _dedupe_meta_yaml(_convert_to_dict(yaml_dict))
