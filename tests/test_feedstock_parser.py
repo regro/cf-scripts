@@ -3,7 +3,7 @@ from pathlib import Path
 
 import pytest
 
-from conda_forge_tick.feedstock_parser import _get_requirements
+from conda_forge_tick.feedstock_parser import _get_requirements, load_feedstock_local
 from conda_forge_tick.utils import parse_meta_yaml, parse_recipe_yaml
 
 
@@ -96,3 +96,12 @@ def test_get_requirements():
     assert _get_requirements(meta_yaml) == {"1", "2", "3", "4", "5", "6"}
     assert _get_requirements(meta_yaml, outputs=False) == {"1", "2", "3"}
     assert _get_requirements(meta_yaml, host=False) == {"1", "2", "5", "6"}
+
+
+def test_feedstock_parser_load_feedstock_local_semi_ate_stdf():
+    attrs = load_feedstock_local(
+        "semi-ate-stdf",
+        {},
+    )
+    assert attrs["feedstock_name"] == "semi-ate-stdf"
+    assert "parsing_error" in attrs
