@@ -89,13 +89,14 @@ def get_attrs(name: str, mark_not_archived=False) -> LazyJson:
             data = load_feedstock(
                 name, sub_graph.data, mark_not_archived=mark_not_archived
             )
+            sub_graph.clear()
+            sub_graph.update(data)
         except Exception as e:
             import traceback
 
             trb = traceback.format_exc()
-            data["parsing_error"] = sanitize_string(f"make_graph: {e}\n{trb}")
-        sub_graph.clear()
-        sub_graph.update(data)
+            sub_graph["parsing_error"] = sanitize_string(f"make_graph: {e}\n{trb}")
+            raise e
 
     return lzj
 
