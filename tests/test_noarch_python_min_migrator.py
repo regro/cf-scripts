@@ -430,13 +430,14 @@ def test_apply_noarch_python_min(
             assert f.read() == expected_meta_yaml
 
 
-def test_noarch_python_min_migrator(tmpdir):
+@pytest.mark.parametrize("name", ["seaborn", "extra_new_line"])
+def test_noarch_python_min_migrator(tmpdir, name):
     with open(
-        os.path.join(TEST_YAML_PATH, "noarch_python_min_seaborn_before_meta.yaml")
+        os.path.join(TEST_YAML_PATH, f"noarch_python_min_{name}_before_meta.yaml")
     ) as f:
         recipe_before = f.read()
     with open(
-        os.path.join(TEST_YAML_PATH, "noarch_python_min_seaborn_after_meta.yaml")
+        os.path.join(TEST_YAML_PATH, f"noarch_python_min_{name}_after_meta.yaml")
     ) as f:
         recipe_after = f.read()
     m = NoarchPythonMinMigrator()

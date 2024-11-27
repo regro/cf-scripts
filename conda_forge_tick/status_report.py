@@ -224,28 +224,25 @@ def graph_migrator_status(
                     attrs.get("pr_info", {})
                     .get("pre_pr_migrator_status", {})
                     .get(migrator_name, "")
-                ):
+                ) or attrs.get("parsing_error", ""):
                     out["bot-error"].add(node)
                     fc = "#000000"
                     fntc = "white"
                 else:
                     out["awaiting-pr"].add(node)
                     fc = "#35b779"
-            elif not isinstance(migrator, Replacement):
+            else:
                 if "bot error" in (
                     attrs.get("pr_info", {})
                     .get("pre_pr_migrator_status", {})
                     .get(migrator_name, "")
-                ):
+                ) or attrs.get("parsing_error", ""):
                     out["bot-error"].add(node)
                     fc = "#000000"
                     fntc = "white"
                 else:
                     out["awaiting-parents"].add(node)
                     fc = "#fde725"
-            else:
-                out["awaiting-pr"].add(node)
-                fc = "#35b779"
         elif "PR" not in pr_json or "state" not in pr_json["PR"]:
             out["bot-error"].add(node)
             fc = "#000000"
@@ -294,7 +291,7 @@ def graph_migrator_status(
                     {},
                 )
                 .get(migrator_name, "")
-            )
+            ) or attrs.get("parsing_error", "")
         else:
             node_metadata["pre_pr_migrator_status"] = ""
 
