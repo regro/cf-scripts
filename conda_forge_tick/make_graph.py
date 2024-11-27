@@ -25,7 +25,7 @@ from conda_forge_tick.lazy_json_backends import (
 from .all_feedstocks import get_all_feedstocks, get_archived_feedstocks
 from .cli_context import CliContext
 from .executors import executor
-from .utils import as_iterable, dump_graph, load_graph
+from .utils import as_iterable, dump_graph, load_graph, sanitize_string
 
 # from conda_forge_tick.profiler import profiling
 
@@ -85,9 +85,20 @@ def make_outputs_lut_from_graph(gx):
 def get_attrs(name: str, mark_not_archived=False) -> LazyJson:
     lzj = LazyJson(f"node_attrs/{name}.json")
     with lzj as sub_graph:
-        data = load_feedstock(name, sub_graph.data, mark_not_archived=mark_not_archived)
-        sub_graph.clear()
-        sub_graph.update(data)
+        try:
+            data = load_feedstock(
+                name, sub_graph.data, mark_not_archived=mark_not_archived
+            )
+            sub_graph.clear()
+            sub_graph.update(data)
+        except Exception as e:
+            import traceback
+
+            trb = traceback.format_exc()
+            sub_graph["parsing_error"] = sanitize_string(
+                f"feedstock parsing error: {e}\n{trb}"
+            )
+            raise e
 
     return lzj
 

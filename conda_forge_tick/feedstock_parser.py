@@ -27,7 +27,12 @@ if typing.TYPE_CHECKING:
     from .migrators_types import PackageName, RequirementsTypedDict
 
 from conda_forge_tick.lazy_json_backends import LazyJson, dumps, loads
-from conda_forge_tick.utils import as_iterable, parse_meta_yaml, parse_recipe_yaml
+from conda_forge_tick.utils import (
+    as_iterable,
+    parse_meta_yaml,
+    parse_recipe_yaml,
+    sanitize_string,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -265,9 +270,18 @@ def populate_feedstock_attributes(
 
     # Get the conda-forge.yml
     if isinstance(conda_forge_yaml, str):
-        sub_graph["conda-forge.yml"] = {
-            k: v for k, v in yaml.safe_load(conda_forge_yaml).items()
-        }
+        try:
+            sub_graph["conda-forge.yml"] = {
+                k: v for k, v in yaml.safe_load(conda_forge_yaml).items()
+            }
+        except Exception as e:
+            import traceback
+
+            trb = traceback.format_exc()
+            sub_graph["parsing_error"] = sanitize_string(
+                f"feedstock parsing error: cannot load conda-forge.yml: {e}\n{trb}"
+            )
+            return sub_graph
 
     if feedstock_dir is not None:
         logger.debug(
@@ -387,7 +401,9 @@ def populate_feedstock_attributes(
         import traceback
 
         trb = traceback.format_exc()
-        sub_graph["parsing_error"] = f"make_graph: render error {e}\n{trb}"
+        sub_graph["parsing_error"] = sanitize_string(
+            f"feedstock parsing error: cannot rendering recipe: {e}\n{trb}"
+        )
         raise
 
     logger.debug("platforms: %s", plat_archs)
@@ -398,7 +414,9 @@ def populate_feedstock_attributes(
     yaml_dict = ChainDB(*sorted_variant_yamls)
     if not yaml_dict:
         logger.error(f"Something odd happened when parsing recipe {name}")
-        sub_graph["parsing_error"] = "make_graph: Could not parse"
+        sub_graph["parsing_error"] = (
+            "feedstock parsing error: could not combine metadata dicts across platforms"
+        )
         return sub_graph
 
     sub_graph["meta_yaml"] = _dedupe_meta_yaml(_convert_to_dict(yaml_dict))
@@ -541,7 +559,9 @@ def load_feedstock_local(
                 if mark_not_archived:
                     sub_graph.update({"archived": False})
 
-                sub_graph["parsing_error"] = f"make_graph: {feedstock_dir.status_code}"
+                sub_graph["parsing_error"] = sanitize_string(
+                    f"make_graph: {feedstock_dir.status_code}"
+                )
                 return sub_graph
 
             meta_yaml_path = Path(feedstock_dir).joinpath("recipe", "meta.yaml")
