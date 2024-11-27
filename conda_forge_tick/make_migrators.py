@@ -742,7 +742,7 @@ def initialize_migrators(
         "The package 'mpir' is deprecated and unmaintained. Use 'gmp' instead.",
     )
 
-    # add_noarch_python_min_migrator(migrators, gx)
+    add_noarch_python_min_migrator(migrators, gx)
 
     pinning_migrators: List[Migrator] = []
     migration_factory(pinning_migrators, gx)
