@@ -40,6 +40,12 @@ ONLY_SELECTOR_RE = re.compile(r"^\s*#\s*\[(.*)\]")
 # this one matches bad yaml syntax with a selector on a multiline string start
 BAD_MULTILINE_STRING_WITH_SELECTOR = re.compile(r"[^|#]*\|\s+#")
 
+# this one finds set statements that have adjustments to newlines via {%- or -%}
+# they cause problems with the parser and so we remove those
+BAD_JINJA2_SET_STATEMENT = re.compile(
+    r"^\s*({%-\s+set\s+.*?=.*?-?%}|{%-?\s+set\s+.*?=.*?-%})\s*(#.*)?$"
+)
+
 
 def _get_yaml_parser(typ="jinja2"):
     """yaml parser that is jinja2 aware"""
@@ -483,6 +489,27 @@ def _remove_quoted_jinja2_vars(lines):
     return new_lines
 
 
+def _remove_bad_jinja2_set_statements(lines):
+    """Remove any jinja2 set statements that have bad newline adjustments
+    by removing the adjustments.
+
+    This function turns things like
+
+        {%- set var = val -%}
+
+    into
+
+        {% set var = val %}
+    """
+    new_lines = []
+    for line in lines:
+        if BAD_JINJA2_SET_STATEMENT.match(line):
+            new_lines.append(line.replace("{%-", "{%").replace("-%}", "%}"))
+        else:
+            new_lines.append(line)
+    return new_lines
+
+
 class CondaMetaYAML:
     """Crude parsing of conda recipes.
 
@@ -536,6 +563,9 @@ class CondaMetaYAML:
 
         # pre-munge odd syntax that we do not want
         lines = list(io.StringIO(meta_yaml).readlines())
+
+        # remove bad jinja2 set statements
+        lines = _remove_bad_jinja2_set_statements(lines)
 
         # remove multiline jinja2 statements
         lines = _munge_multiline_jinja2(lines)
