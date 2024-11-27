@@ -2012,39 +2012,39 @@ package:
   - category: main
     dependencies: {}
     hash:
-      md5: a86533d6de9b2efd8c51f013ae190699
-      sha256: 4abf1ccc3b026274646c8d22d2bf9e827cde6ae5275752c22d141eadce2f0ea7
+      md5: aa81d799d99e0fe424ce796a8b3dfc17
+      sha256: 7659b14b21671fa419bd59d7f0759023c2c67e980819de50f631681eb559b409
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.11.27.08.46.57-hd8ed1ab_0.conda
-    version: 2024.11.27.08.46.57
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.11.27.13.47.37-hd8ed1ab_0.conda
+    version: 2024.11.27.13.47.37
   - category: main
     dependencies: {}
     hash:
-      md5: a86533d6de9b2efd8c51f013ae190699
-      sha256: 4abf1ccc3b026274646c8d22d2bf9e827cde6ae5275752c22d141eadce2f0ea7
+      md5: aa81d799d99e0fe424ce796a8b3dfc17
+      sha256: 7659b14b21671fa419bd59d7f0759023c2c67e980819de50f631681eb559b409
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.11.27.08.46.57-hd8ed1ab_0.conda
-    version: 2024.11.27.08.46.57
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.11.27.13.47.37-hd8ed1ab_0.conda
+    version: 2024.11.27.13.47.37
   - category: main
     dependencies: {}
     hash:
-      md5: a86533d6de9b2efd8c51f013ae190699
-      sha256: 4abf1ccc3b026274646c8d22d2bf9e827cde6ae5275752c22d141eadce2f0ea7
+      md5: aa81d799d99e0fe424ce796a8b3dfc17
+      sha256: 7659b14b21671fa419bd59d7f0759023c2c67e980819de50f631681eb559b409
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.11.27.08.46.57-hd8ed1ab_0.conda
-    version: 2024.11.27.08.46.57
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.11.27.13.47.37-hd8ed1ab_0.conda
+    version: 2024.11.27.13.47.37
   - category: main
     dependencies:
       click: '>=8'
@@ -11017,43 +11017,43 @@ package:
       python: '>=3.9'
       typing_extensions: '>3.10.0.2'
     hash:
-      md5: ad7b75a56099eab25550893a5f82ca62
-      sha256: 5b7cd2ba1ffc1dee9c581b6ccd2501f92efbddb1295cd78c8ce9736c6ec2b4bc
+      md5: 3ec7a7dd072707e61baac6d474349958
+      sha256: 0b86419e6efa61738e3cd647d475b40e5d7facd53b30febe9d7dac15b51741df
     manager: conda
     name: python-utils
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/python-utils-3.9.0-pyhff2d567_1.conda
-    version: 3.9.0
+      https://conda.anaconda.org/conda-forge/noarch/python-utils-3.9.1-pyhff2d567_0.conda
+    version: 3.9.1
   - category: main
     dependencies:
       python: '>=3.9'
       typing_extensions: '>3.10.0.2'
     hash:
-      md5: ad7b75a56099eab25550893a5f82ca62
-      sha256: 5b7cd2ba1ffc1dee9c581b6ccd2501f92efbddb1295cd78c8ce9736c6ec2b4bc
+      md5: 3ec7a7dd072707e61baac6d474349958
+      sha256: 0b86419e6efa61738e3cd647d475b40e5d7facd53b30febe9d7dac15b51741df
     manager: conda
     name: python-utils
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/python-utils-3.9.0-pyhff2d567_1.conda
-    version: 3.9.0
+      https://conda.anaconda.org/conda-forge/noarch/python-utils-3.9.1-pyhff2d567_0.conda
+    version: 3.9.1
   - category: main
     dependencies:
       python: '>=3.9'
       typing_extensions: '>3.10.0.2'
     hash:
-      md5: ad7b75a56099eab25550893a5f82ca62
-      sha256: 5b7cd2ba1ffc1dee9c581b6ccd2501f92efbddb1295cd78c8ce9736c6ec2b4bc
+      md5: 3ec7a7dd072707e61baac6d474349958
+      sha256: 0b86419e6efa61738e3cd647d475b40e5d7facd53b30febe9d7dac15b51741df
     manager: conda
     name: python-utils
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/python-utils-3.9.0-pyhff2d567_1.conda
-    version: 3.9.0
+      https://conda.anaconda.org/conda-forge/noarch/python-utils-3.9.1-pyhff2d567_0.conda
+    version: 3.9.1
   - category: main
     dependencies: {}
     hash:
