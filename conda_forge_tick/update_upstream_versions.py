@@ -13,6 +13,7 @@ from typing import (
     List,
     Literal,
     Mapping,
+    MutableMapping,
     Optional,
     Tuple,
     TypeVar,
@@ -181,7 +182,7 @@ def get_latest_version_local(
 
 def get_latest_version_containerized(
     name: str,
-    attrs: Mapping[str, Any],
+    attrs: MutableMapping[str, Any],
     sources: Iterable[AbstractSource],
 ) -> Dict[str, Union[Literal[False], str]]:
     """
@@ -253,7 +254,7 @@ def get_latest_version(
         The new version information.
     """
     if should_use_container(use_container=use_container):
-        return get_latest_version_containerized(name, attrs, sources)
+        return get_latest_version_containerized(name, dict(attrs), sources)
     else:
         return get_latest_version_local(name, attrs, sources)
 

@@ -1,5 +1,5 @@
 import typing
-from typing import Dict, List, Set, TypedDict, Union
+from typing import Dict, List, Literal, Set, TypedDict, Union
 
 PackageName = typing.NewType("PackageName", str)
 
@@ -64,7 +64,7 @@ class MetaYamlOutputs(TypedDict, total=False):
     requirements: "RequirementsTypedDict"
     test: "TestTypedDict"
     # TODO: Not entirely sure this is right
-    build: BuildRunExportsDict
+    build: BuildTypedDict
 
 
 class RecipeTypedDict(TypedDict, total=False):
@@ -80,10 +80,12 @@ class RecipeTypedDict(TypedDict, total=False):
 
 class MigrationUidTypedDict(TypedDict, total=False):
     bot_rerun: bool
+    branch: str
     migrator_name: str
     migrator_version: int
     name: str
     migrator_object_version: int
+    pin_version: str
     # Used by version migrators
     version: str
 
@@ -94,9 +96,10 @@ class PackageTypedDict(TypedDict):
 
 
 class RequirementsTypedDict(TypedDict, total=False):
-    build: List[str]
-    host: List[str]
-    run: List[str]
+    build: set[str]
+    host: set[str]
+    run: set[str]
+    test: set[str]
 
 
 class SourceTypedDict(TypedDict, total=False):
@@ -121,12 +124,14 @@ class PRedElementTypedDict(TypedDict, total=False):
 class AttrsTypedDict_(TypedDict, total=False):
     about: AboutTypedDict
     build: BuildTypedDict
+    branch: str
     extra: ExtraTypedDict
     feedstock_name: str
     meta_yaml: "RecipeTypedDict"
     package: PackageTypedDict
     raw_meta_yaml: str
     req: Set[str]
+    name: str
     platforms: List[str]
     pr_info: typing.Any
     requirements: RequirementsTypedDict
@@ -135,12 +140,13 @@ class AttrsTypedDict_(TypedDict, total=False):
     version: str
     new_version: Union[str, bool]
     archived: bool
+    outputs_names: set[str]
     PRed: List[PRedElementTypedDict]
     version_pr_info: typing.Any
+    url: str
+    parsing_error: str | Literal[False]
     # Legacy types in here
     bad: Union[bool, str]
-    # TODO: ADD in
-    #  "conda-forge.yml":
 
 
 class CondaForgeYamlContents(TypedDict, total=False):

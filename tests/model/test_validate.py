@@ -215,4 +215,4 @@ def test_model_invalid(model: PerPackageModel, invalid_feedstock: str):
 
 
 def test_validate_pr_json(pr_json: str):
-    PullRequestData.validate_json(pr_json)
+    TypeAdapter(PullRequestData).validate_json(pr_json)

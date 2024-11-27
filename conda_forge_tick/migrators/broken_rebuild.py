@@ -4,6 +4,7 @@ import networkx as nx
 
 from conda_forge_tick.contexts import ClonedFeedstockContext
 from conda_forge_tick.migrators.core import Migrator
+from conda_forge_tick.migrators_types import AttrsTypedDict
 
 BROKEN_PACKAGES = """\
 linux-ppc64le/adios2-2.7.1-mpi_mpich_py36ha1d8cba_0.tar.bz2
@@ -371,7 +372,7 @@ class RebuildBroken(Migrator):
         """
         return graph
 
-    def filter(self, attrs) -> bool:
+    def filter(self, attrs: AttrsTypedDict, not_bad_str_start: str = "") -> bool:
         return (
             super().filter(attrs)
             or attrs["feedstock_name"] not in self.feedstocks_to_migrate

@@ -6,7 +6,7 @@ import logging
 import re
 import typing
 from pathlib import Path
-from typing import Any, List, Sequence, Set
+from typing import Any, List, Literal, Sequence, Set
 
 import dateutil.parser
 import networkx as nx
@@ -22,10 +22,10 @@ from conda_forge_tick.utils import (
     get_keys_default,
 )
 
+from ..migrators_types import AttrsTypedDict, MigrationUidTypedDict, PackageName
+
 if typing.TYPE_CHECKING:
     from conda_forge_tick.utils import JsonFriendly
-
-    from ..migrators_types import AttrsTypedDict, MigrationUidTypedDict, PackageName
 
 
 logger = logging.getLogger(__name__)
@@ -92,7 +92,7 @@ def _parse_bad_attr(attrs: "AttrsTypedDict", not_bad_str_start: str) -> bool:
     else:
         bad_bool = bad
 
-    return bad_bool or attrs.get("parsing_error", False)
+    return bad_bool or bool(attrs.get("parsing_error", False))
 
 
 def _gen_active_feedstocks_payloads(nodes, gx):
@@ -255,10 +255,10 @@ class Migrator:
         effective_graph: nx.DiGraph | None = None,
     ):
         if not hasattr(self, "_init_args"):
-            self._init_args = []
+            self._init_args: list[Any] = []
 
         if not hasattr(self, "_init_kwargs"):
-            self._init_kwargs = {
+            self._init_kwargs: dict[str, Any] = {
                 "pr_limit": pr_limit,
                 "obj_version": obj_version,
                 "piggy_back_migrations": piggy_back_migrations,
@@ -328,7 +328,7 @@ class Migrator:
         return [
             a[1]
             for a in list(
-                self.effective_graph.out_edges(feedstock_ctx.feedstock_name),
+                self.effective_graph.out_edges(feedstock_ctx.feedstock_name),  # type: ignore[union-attr] # TODO: effective_graph should not be allowed to be None
             )
         ][:limit]
 
@@ -361,7 +361,7 @@ class Migrator:
                 "MigrationUidTypedDict",
                 pr_data["data"],
             )
-            already_migrated_uids: typing.Iterable["MigrationUidTypedDict"] = list(
+            already_migrated_uids: list["MigrationUidTypedDict"] = list(
                 z["data"] for z in attrs.get("pr_info", {}).get("PRed", [])
             )
             already_pred = migrator_uid in already_migrated_uids
@@ -431,7 +431,7 @@ class Migrator:
 
     def run_pre_piggyback_migrations(
         self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any
-    ) -> "MigrationUidTypedDict":
+    ) -> None:
         """Perform any pre piggyback migrations, updating the feedstock.
 
         Parameters
@@ -450,7 +450,7 @@ class Migrator:
 
     def run_post_piggyback_migrations(
         self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any
-    ) -> "MigrationUidTypedDict":
+    ) -> None:
         """Perform any post piggyback migrations, updating the feedstock.
 
         Parameters
@@ -469,7 +469,7 @@ class Migrator:
 
     def migrate(
         self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any
-    ) -> "MigrationUidTypedDict":
+    ) -> MigrationUidTypedDict | Literal[False]:
         """Perform the migration, updating the ``meta.yaml``
 
         Parameters
@@ -486,16 +486,11 @@ class Migrator:
         """
         return self.migrator_uid(attrs)
 
-    def pr_body(
-        self, feedstock_ctx: ClonedFeedstockContext, add_label_text=True
-    ) -> str:
-        """Create a PR message body
-
-        Returns
-        -------
-        body: str
-            The body of the PR message
-            :param feedstock_ctx:
+    @staticmethod
+    def custom_pr_body(add_label_text: bool = False):
+        """
+        Create a PR message body, where the label text is optional.
+        :param add_label_text: Whether to add an explanatory text for the bot-rerun label
         """
         body = "{}\n\n"
 
@@ -521,6 +516,16 @@ class Migrator:
             + "</sub>"
         )
         return body
+
+    def pr_body(self, feedstock_ctx: ClonedFeedstockContext) -> str:
+        """
+        Children override this method to provide a custom PR body.
+
+        By default, identical to the custom_pr_body method, but with the add_label_text parameter set to True.
+
+        :param feedstock_ctx: The feedstock context (might be needed by subclasses)
+        """
+        return self.custom_pr_body(add_label_text=True)
 
     def commit_message(self, feedstock_ctx: FeedstockContext) -> str:
         """Create a commit message
@@ -646,7 +651,7 @@ class GraphMigrator(Migrator):
     def __init__(
         self,
         *,
-        name: str | None = None,
+        name: str = "graph-migrator",
         graph: nx.DiGraph | None = None,
         pr_limit: int = 0,
         top_level: Set["PackageName"] | None = None,

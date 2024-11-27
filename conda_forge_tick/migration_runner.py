@@ -4,6 +4,7 @@ import os
 import shutil
 import tempfile
 from pathlib import Path
+from typing import Any
 
 from conda_forge_feedstock_ops.container_utils import (
     get_default_log_level_args,
@@ -239,7 +240,7 @@ def run_migration_local(
     )
     recipe_dir = os.path.join(feedstock_dir, "recipe")
 
-    data = {
+    data: dict[str, Any] = {
         "migrate_return_value": None,
         "commit_message": None,
         "pr_title": None,
