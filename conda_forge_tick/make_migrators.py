@@ -718,6 +718,8 @@ def add_noarch_python_min_migrator(
             if not has_noarch_python:
                 pluck(gx2, node)
 
+        gx2.clear_edges()
+
         migrators.append(
             NoarchPythonMinMigrator(
                 graph=gx2,
