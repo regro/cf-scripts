@@ -130,15 +130,14 @@ class Replacement(Migrator):
     def pr_body(self, feedstock_ctx: ClonedFeedstockContext) -> str:
         body = super().pr_body(feedstock_ctx)
         body = body.format(
-            "I noticed that this recipe depends on `%s` instead of \n"
-            "`%s`. %s \n"
-            "This PR makes this change."
-            "\n"
-            "Notes and instructions for merging this PR:\n"
-            "1. Make sure that the recipe can indeed only depend on `%s`. \n"
-            "2. Please merge the PR only after the tests have passed. \n"
-            "3. Feel free to push to the bot's branch to update this PR if "
-            "needed. \n" % (self.old_pkg, self.new_pkg, self.rationale, self.new_pkg),
+            """\
+I noticed that this recipe depends on `{}` instead of `{}`. {} Thus I made this PR.
+
+Notes and instructions for merging this PR:
+1. Make sure that the recipe can indeed only depend on `{}`.
+2. Please merge the PR only after the tests have passed.
+3. Feel free to push to the bot's branch to update this PR if \
+needed.""".format(self.old_pkg, self.new_pkg, self.rationale, self.new_pkg),
         )
         return body
 
