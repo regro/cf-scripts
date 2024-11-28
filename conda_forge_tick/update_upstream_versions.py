@@ -421,12 +421,12 @@ def all_version_sources():
         CRAN(),
         CratesIO(),
         NPM(),
-        ROSDistro(),
-        RawURL(),
         Github(),
         GithubReleases(),
-        IncrementAlphaRawURL(),
         NVIDIA(),
+        ROSDistro(),
+        RawURL(),
+        IncrementAlphaRawURL(),
     )
 
 

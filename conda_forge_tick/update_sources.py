@@ -618,20 +618,6 @@ class GithubReleases(AbstractSource):
         return latest
 
 
-class LibrariesIO(VersionFromFeed):
-    name = "LibrariesIO"
-
-    def get_url(self, meta_yaml) -> Optional[str]:
-        urls = meta_yaml["url"]
-        if not isinstance(meta_yaml["url"], list):
-            urls = [urls]
-        for url in urls:
-            if self.url_contains not in url:
-                continue
-            pkg = self.package_name(url)
-            return f"https://libraries.io/{self.name}/{pkg}/versions.atom"
-
-
 class NVIDIA(AbstractSource):
     """Like BaseRawURL but it embeds logic based on NVIDIA's packaging schema."""
 
