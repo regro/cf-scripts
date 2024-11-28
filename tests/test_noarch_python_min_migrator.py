@@ -148,6 +148,46 @@ NEXT_GLOBAL_PYTHON_MIN = (
         ),
         (
             textwrap.dedent(
+                """\
+                build:
+                  noarch: python
+
+                requirements:
+                  host:
+                    - python 3.6.*  # this is cool
+                    - numpy
+                  run:
+                    - python <=3.12
+                    - numpy
+
+                test:
+                  requires:
+                    - python =3.6
+                    - numpy
+                """
+            ),
+            textwrap.dedent(
+                """\
+                build:
+                  noarch: python
+
+                requirements:
+                  host:
+                    - python {{ python_min }}  # this is cool
+                    - numpy
+                  run:
+                    - python >={{ python_min }},<3.13a0
+                    - numpy
+
+                test:
+                  requires:
+                    - python {{ python_min }}
+                    - numpy
+                """
+            ),
+        ),
+        (
+            textwrap.dedent(
                 f"""\
                 build:
                   noarch: python
@@ -157,7 +197,7 @@ NEXT_GLOBAL_PYTHON_MIN = (
                     - python >={NEXT_GLOBAL_PYTHON_MIN}  # this is cool
                     - numpy
                   run:
-                    - python
+                    - python >={NEXT_GLOBAL_PYTHON_MIN}
                     - numpy
 
                 test:
@@ -198,7 +238,7 @@ NEXT_GLOBAL_PYTHON_MIN = (
                     - python >={GLOBAL_PYTHON_MIN}  # this is cool
                     - numpy
                   run:
-                    - python
+                    - python >={GLOBAL_PYTHON_MIN}
                     - numpy
 
                 test:
@@ -218,6 +258,87 @@ NEXT_GLOBAL_PYTHON_MIN = (
                     - numpy
                   run:
                     - python >={{ python_min }}
+                    - numpy
+
+                test:
+                  requires:
+                    - python {{ python_min }}
+                    - numpy
+                """
+            ),
+        ),
+        (
+            textwrap.dedent(
+                f"""\
+                build:
+                  noarch: python
+
+                requirements:
+                  host:
+                    - python >={NEXT_GLOBAL_PYTHON_MIN}  # this is cool
+                    - numpy
+                  run:
+                    - python >={NEXT_GLOBAL_PYTHON_MIN},<3.13
+                    - numpy
+
+                test:
+                  requires:
+                    - python =3.6
+                    - numpy
+                """
+            ),
+            textwrap.dedent(
+                f"""\
+                {{% set python_min = '{NEXT_GLOBAL_PYTHON_MIN}' %}}
+                build:
+                  noarch: python
+
+                requirements:
+                  host:
+                    - python {{{{ python_min }}}}  # this is cool
+                    - numpy
+                  run:
+                    - python >={{{{ python_min }}}},<3.13
+                    - numpy
+
+                test:
+                  requires:
+                    - python {{{{ python_min }}}}
+                    - numpy
+                """
+            ),
+        ),
+        (
+            textwrap.dedent(
+                f"""\
+                build:
+                  noarch: python
+
+                requirements:
+                  host:
+                    - python >={GLOBAL_PYTHON_MIN}  # this is cool
+                    - numpy
+                  run:
+                    - python >={GLOBAL_PYTHON_MIN},<3.12
+                    - numpy
+
+                test:
+                  requires:
+                    - python =3.6
+                    - numpy
+                """
+            ),
+            textwrap.dedent(
+                """\
+                build:
+                  noarch: python
+
+                requirements:
+                  host:
+                    - python {{ python_min }}  # this is cool
+                    - numpy
+                  run:
+                    - python >={{ python_min }},<3.12
                     - numpy
 
                 test:
@@ -430,7 +551,7 @@ def test_apply_noarch_python_min(
             assert f.read() == expected_meta_yaml
 
 
-@pytest.mark.parametrize("name", ["seaborn", "extra_new_line"])
+@pytest.mark.parametrize("name", ["seaborn", "extra_new_line", "zospy"])
 def test_noarch_python_min_migrator(tmpdir, name):
     with open(
         os.path.join(TEST_YAML_PATH, f"noarch_python_min_{name}_before_meta.yaml")
