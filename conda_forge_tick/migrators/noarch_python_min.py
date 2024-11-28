@@ -90,6 +90,61 @@ def _has_req_section(lines, section_name):
     return False
 
 
+def _extract_bounds(req):
+    comma_parts = req.split(",")
+    parts = []
+    for part in comma_parts:
+        parts += part.split("|")
+    num_upper = sum("<" in part for part in parts)
+    if num_upper == 1:
+        for part in parts:
+            if "<" in part:
+                upper = part
+                break
+        upper_ver = upper.replace("<=", "").replace("<", "").strip()
+        if "<=" in upper:
+            upper_ver = upper_ver.split(".")
+            if len(upper_ver) < 2:
+                upper_ver.append("0")
+            upper_ver[-1] = str(int(upper_ver[-1]) + 1)
+            upper_ver[-1] = upper_ver[-1] + "a0"
+            upper_ver = ".".join(upper_ver)
+    elif num_upper == 0:
+        upper_ver = None
+    else:
+        raise RuntimeError(
+            "Encountered a python requirement `{req}` that cannot easily be "
+            "handled by the bot for setting the runtime python "
+            "version range. The bot will not be able to issue the "
+            "`noarch: python` min migration PR!"
+        )
+
+    num_lower = sum(">" in part for part in parts)
+    if num_lower == 1:
+        for part in parts:
+            if ">" in part:
+                lower = part
+                break
+        lower_ver = lower.replace(">=", "").replace(">", "").strip()
+        if ">" in lower and ">=" not in lower:
+            lower_ver = lower_ver.split(".")
+            if len(lower_ver) < 2:
+                lower_ver.append("0")
+            lower_ver[-1] = str(int(lower_ver[-1]) + 1)
+            lower_ver = ".".join(lower_ver)
+    elif num_lower == 0:
+        lower_ver = None
+    else:
+        raise RuntimeError(
+            "Encountered a python requirement `{req}` that cannot easily be "
+            "handled by the bot for setting the runtime python "
+            "version range. The bot will not be able to issue the "
+            "`noarch: python` min migration PR!"
+        )
+
+    return lower_ver, upper_ver
+
+
 def _process_req_list(section, req_list_name, new_python_req, force_apply=False):
     found_it = False
     new_lines = []
@@ -175,16 +230,22 @@ def _process_req_list(section, req_list_name, new_python_req, force_apply=False)
 
                 if name == "python" and (force_apply or req == ""):
                     adjusted_python = True
+
+                    _new_py_req = new_python_req
+                    if req_list_name == "run":
+                        py_lower_bound, py_upper_bound = _extract_bounds(req)
+                        if py_upper_bound is not None:
+                            _new_py_req = new_python_req + f",<{py_upper_bound}"
+                        if py_lower_bound is not None:
+                            python_min_override = py_lower_bound
+
                     new_line = (
                         indent_to_keep
                         + "- python "
-                        + new_python_req
+                        + _new_py_req
                         + ("  # " + comment if comment != "" else "")
                         + "\n"
                     )
-                    if req.startswith(">="):
-                        python_min_override = req[2:].strip()
-
                 else:
                     new_line = line
         else:
@@ -254,11 +315,11 @@ def _process_section(
     if (not _has_noarch_python(section)) and (not force_noarch_python):
         return section, None
 
-    found_it, section, python_min_override = _process_req_list(
+    found_it, section, _ = _process_req_list(
         section, build_or_host, "{{ python_min }}", force_apply=force_apply
     )
     logger.debug("applied `noarch: python` host? %s", found_it)
-    found_it, section, _ = _process_req_list(
+    found_it, section, python_min_override = _process_req_list(
         section, "run", ">={{ python_min }}", force_apply=force_apply
     )
     logger.debug("applied `noarch: python` to run? %s", found_it)
