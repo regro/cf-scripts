@@ -773,7 +773,7 @@ def initialize_migrators(
         "To maintain the old behavior you should migrate to astropy-base.",
     )
 
-    #add_noarch_python_min_migrator(migrators, gx)
+    # add_noarch_python_min_migrator(migrators, gx)
 
     pinning_migrators: List[Migrator] = []
     migration_factory(pinning_migrators, gx)
