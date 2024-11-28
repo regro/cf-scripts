@@ -2012,39 +2012,39 @@ package:
   - category: main
     dependencies: {}
     hash:
-      md5: 2d8307b0a149a102b6d420984ed4738a
-      sha256: dc7f22ab2709610ead0f5cdd54efad2a5a0dda707e8f92667a33f34a9c42c727
+      md5: 8e3b07fe1fa564c960fd72362a82daa2
+      sha256: 55d4680d304fb7cf9089a4f35fc382907377213c711f9e9b93a9911e49fce66f
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.11.28.02.22.47-hd8ed1ab_0.conda
-    version: 2024.11.28.02.22.47
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.11.28.07.56.21-hd8ed1ab_0.conda
+    version: 2024.11.28.07.56.21
   - category: main
     dependencies: {}
     hash:
-      md5: 2d8307b0a149a102b6d420984ed4738a
-      sha256: dc7f22ab2709610ead0f5cdd54efad2a5a0dda707e8f92667a33f34a9c42c727
+      md5: 8e3b07fe1fa564c960fd72362a82daa2
+      sha256: 55d4680d304fb7cf9089a4f35fc382907377213c711f9e9b93a9911e49fce66f
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.11.28.02.22.47-hd8ed1ab_0.conda
-    version: 2024.11.28.02.22.47
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.11.28.07.56.21-hd8ed1ab_0.conda
+    version: 2024.11.28.07.56.21
   - category: main
     dependencies: {}
     hash:
-      md5: 2d8307b0a149a102b6d420984ed4738a
-      sha256: dc7f22ab2709610ead0f5cdd54efad2a5a0dda707e8f92667a33f34a9c42c727
+      md5: 8e3b07fe1fa564c960fd72362a82daa2
+      sha256: 55d4680d304fb7cf9089a4f35fc382907377213c711f9e9b93a9911e49fce66f
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.11.28.02.22.47-hd8ed1ab_0.conda
-    version: 2024.11.28.02.22.47
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.11.28.07.56.21-hd8ed1ab_0.conda
+    version: 2024.11.28.07.56.21
   - category: main
     dependencies:
       click: '>=8'
@@ -10172,38 +10172,38 @@ package:
     dependencies:
       python: '>=3.9'
     hash:
-      md5: ae45081e9e726f978c514ae1977bd1fb
-      sha256: 49a20637a285f7c9acb2064b91d8c63bce5821f007598cfa64e3913ed4264354
+      md5: 84c5c40ea7c5bbc6243556e5daed20e7
+      sha256: 158d8911e873e2a339c27768933747bf9c2aec1caa038f1b7b38a011734a956f
     manager: conda
     name: pyjwt
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/noarch/pyjwt-2.10.0-pyhff2d567_0.conda
-    version: 2.10.0
+    url: https://conda.anaconda.org/conda-forge/noarch/pyjwt-2.10.1-pyhd8ed1ab_0.conda
+    version: 2.10.1
   - category: main
     dependencies:
       python: '>=3.9'
     hash:
-      md5: ae45081e9e726f978c514ae1977bd1fb
-      sha256: 49a20637a285f7c9acb2064b91d8c63bce5821f007598cfa64e3913ed4264354
+      md5: 84c5c40ea7c5bbc6243556e5daed20e7
+      sha256: 158d8911e873e2a339c27768933747bf9c2aec1caa038f1b7b38a011734a956f
     manager: conda
     name: pyjwt
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/noarch/pyjwt-2.10.0-pyhff2d567_0.conda
-    version: 2.10.0
+    url: https://conda.anaconda.org/conda-forge/noarch/pyjwt-2.10.1-pyhd8ed1ab_0.conda
+    version: 2.10.1
   - category: main
     dependencies:
       python: '>=3.9'
     hash:
-      md5: ae45081e9e726f978c514ae1977bd1fb
-      sha256: 49a20637a285f7c9acb2064b91d8c63bce5821f007598cfa64e3913ed4264354
+      md5: 84c5c40ea7c5bbc6243556e5daed20e7
+      sha256: 158d8911e873e2a339c27768933747bf9c2aec1caa038f1b7b38a011734a956f
     manager: conda
     name: pyjwt
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/noarch/pyjwt-2.10.0-pyhff2d567_0.conda
-    version: 2.10.0
+    url: https://conda.anaconda.org/conda-forge/noarch/pyjwt-2.10.1-pyhd8ed1ab_0.conda
+    version: 2.10.1
   - category: main
     dependencies:
       python: '>=3.3'
