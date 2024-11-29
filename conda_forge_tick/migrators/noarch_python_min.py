@@ -455,8 +455,12 @@ class NoarchPythonMinMigrator(Migrator):
         )
 
     def migrate(self, recipe_dir, attrs, **kwargs):
-        # the actual migration is done via a mini-migrator so that we can
-        # apply this to other migrators as well
+        # if the feedstock has already been update, return a migration ID
+        # and make no changes.
+        for line in attrs.get("raw_meta_yaml", "").splitlines():
+            if "{{ python_min }}" in line:
+                return super().migrate(recipe_dir, attrs)
+
         self.set_build_number(os.path.join(recipe_dir, "meta.yaml"))
         _apply_noarch_python_min(
             recipe_dir,
