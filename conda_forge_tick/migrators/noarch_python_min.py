@@ -443,18 +443,14 @@ class NoarchPythonMinMigrator(Migrator):
 
     def filter(self, attrs) -> bool:
         has_noarch_python = False
-        has_python_min = False
         for line in attrs.get("raw_meta_yaml", "").splitlines():
             if line.lstrip().startswith("noarch: python"):
                 has_noarch_python = True
-            if "{{ python_min }}" in line:
-                has_python_min = True
-
-        needs_migration = has_noarch_python and (not has_python_min)
+                break
 
         return (
             super().filter(attrs)
-            or (not needs_migration)
+            or (not has_noarch_python)
             or _skip_due_to_schema(attrs, self.allowed_schema_versions)
         )
 
