@@ -138,7 +138,7 @@ def make_graph(
 )
 @pass_context
 def update_upstream_versions(
-    ctx: CliContext, job: int, n_jobs: int, feedstock: Optional[str]
+    ctx: CliContext, job: int, n_jobs: int, feedstock: str | None
 ) -> None:
     """
     Update the upstream versions of feedstocks in the graph.
