@@ -741,7 +741,7 @@ def add_noarch_python_min_migrator(
         migrators.append(
             NoarchPythonMinMigrator(
                 graph=gx2,
-                pr_limit=5,
+                pr_limit=20,
                 piggy_back_migrations=_make_mini_migrators_with_defaults(),
             ),
         )
