@@ -1,7 +1,7 @@
 import os
 import re
 
-from conda_forge_tick.migrators.core import MiniMigrator, _skip_due_to_schema
+from conda_forge_tick.migrators.core import MiniMigrator, skip_migrator_due_to_schema
 from conda_forge_tick.migrators.libboost import _replacer
 
 # pin_compatible("numpy"...)
@@ -16,7 +16,7 @@ class Numpy2Migrator(MiniMigrator):
         lines = attrs["raw_meta_yaml"].splitlines()
         has_pcn = any(pat_pcn.search(line) for line in lines)
         # filter() returns True if we _don't_ want to migrate
-        return (not (has_pcn)) or _skip_due_to_schema(
+        return (not (has_pcn)) or skip_migrator_due_to_schema(
             attrs, self.allowed_schema_versions
         )
 

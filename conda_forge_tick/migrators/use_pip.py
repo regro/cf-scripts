@@ -4,7 +4,7 @@ from typing import Any
 from conda_forge_tick.os_utils import pushd
 from conda_forge_tick.utils import as_iterable
 
-from .core import MiniMigrator, _skip_due_to_schema
+from .core import MiniMigrator, skip_migrator_due_to_schema
 
 if typing.TYPE_CHECKING:
     from ..migrators_types import AttrsTypedDict
@@ -20,9 +20,9 @@ class PipMigrator(MiniMigrator):
         scripts = as_iterable(
             attrs.get("meta_yaml", {}).get("build", {}).get("script", []),
         )
-        return (not bool(set(self.bad_install) & set(scripts))) or _skip_due_to_schema(
-            attrs, self.allowed_schema_versions
-        )
+        return (
+            not bool(set(self.bad_install) & set(scripts))
+        ) or skip_migrator_due_to_schema(attrs, self.allowed_schema_versions)
 
     def migrate(self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any) -> None:
         with pushd(recipe_dir):

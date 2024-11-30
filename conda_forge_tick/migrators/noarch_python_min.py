@@ -11,7 +11,11 @@ from conda_build.config import Config
 from conda_build.variants import parse_config_file
 
 from conda_forge_tick.contexts import ClonedFeedstockContext
-from conda_forge_tick.migrators.core import Migrator, MiniMigrator, _skip_due_to_schema
+from conda_forge_tick.migrators.core import (
+    Migrator,
+    MiniMigrator,
+    skip_migrator_due_to_schema,
+)
 from conda_forge_tick.migrators.libboost import _slice_into_output_sections
 from conda_forge_tick.os_utils import pushd
 
@@ -451,7 +455,7 @@ class NoarchPythonMinMigrator(Migrator):
         return (
             super().filter(attrs)
             or (not has_noarch_python)
-            or _skip_due_to_schema(attrs, self.allowed_schema_versions)
+            or skip_migrator_due_to_schema(attrs, self.allowed_schema_versions)
         )
 
     def migrate(self, recipe_dir, attrs, **kwargs):
