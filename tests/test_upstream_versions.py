@@ -1231,7 +1231,7 @@ def test_update_upstream_versions_nonexistent_package(caplog):
         feedstock=feedstock_name,
     )
 
-    assert "Feedstock nonexistent-feedstock not found in graph" in caplog.text
+    assert f"Feedstock {feedstock_name}-feedstock not found in graph" in caplog.text
 
 
 @mock.patch("conda_forge_tick.update_upstream_versions.filter_nodes_for_job")
