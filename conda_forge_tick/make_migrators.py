@@ -72,6 +72,7 @@ from conda_forge_tick.migrators import (
     UpdateConfigSubGuessMigrator,
     Version,
     make_from_lazy_json_data,
+    skip_migrator_due_to_schema,
 )
 from conda_forge_tick.migrators.arch import OSXArm
 from conda_forge_tick.migrators.migration_yaml import (
@@ -729,11 +730,14 @@ def add_noarch_python_min_migrator(
         for node in list(gx2.nodes):
             has_noarch_python = False
             with gx2.nodes[node]["payload"] as attrs:
+                skip_schema = skip_migrator_due_to_schema(
+                    attrs, NoarchPythonMinMigrator.allowed_schema_versions
+                )
                 for line in attrs.get("raw_meta_yaml", "").splitlines():
                     if line.lstrip().startswith("noarch: python"):
                         has_noarch_python = True
                         break
-            if not has_noarch_python:
+            if (not has_noarch_python) or skip_schema:
                 pluck(gx2, node)
 
         gx2.clear_edges()

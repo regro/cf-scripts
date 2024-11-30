@@ -31,7 +31,7 @@ if typing.TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
-def _skip_due_to_schema(
+def skip_migrator_due_to_schema(
     attrs: "AttrsTypedDict", allowed_schema_versions: List[int]
 ) -> bool:
     __name = attrs.get("name", "")
@@ -399,7 +399,7 @@ class Migrator:
             attrs.get("archived", False)
             or parse_already_pred()
             or bad_attr
-            or _skip_due_to_schema(attrs, self.allowed_schema_versions)
+            or skip_migrator_due_to_schema(attrs, self.allowed_schema_versions)
         )
 
     def get_possible_feedstock_branches(self, attrs: "AttrsTypedDict") -> List[str]:

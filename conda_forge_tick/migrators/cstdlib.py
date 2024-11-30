@@ -1,7 +1,7 @@
 import os
 import re
 
-from conda_forge_tick.migrators.core import MiniMigrator, _skip_due_to_schema
+from conda_forge_tick.migrators.core import MiniMigrator, skip_migrator_due_to_schema
 from conda_forge_tick.migrators.libboost import _replacer, _slice_into_output_sections
 
 pat_stub = re.compile(r"(c|cxx|fortran)_compiler_stub")
@@ -201,7 +201,7 @@ class StdlibMigrator(MiniMigrator):
         has_sysroot = any(pat_sysroot_217.search(line) for line in lines)
         # filter() returns True if we _don't_ want to migrate
         return (
-            _skip_due_to_schema(attrs, self.allowed_schema_versions)
+            skip_migrator_due_to_schema(attrs, self.allowed_schema_versions)
             or already_migrated
             or not (has_compiler or has_sysroot)
         )
