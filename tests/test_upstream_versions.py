@@ -1223,7 +1223,7 @@ def test_include_node_bad_pull_request_upstream(caplog):
 
 
 def test_update_upstream_versions_nonexistent_package(caplog):
-    feedstock_name = "nonexistent-feedstock"
+    feedstock_name = "nonexistent"
 
     caplog.set_level(logging.DEBUG)
     update_upstream_versions(
