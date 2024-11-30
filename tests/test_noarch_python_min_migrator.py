@@ -350,6 +350,46 @@ NEXT_GLOBAL_PYTHON_MIN = (
         ),
         (
             textwrap.dedent(
+                f"""\
+                build:
+                  noarch: python
+
+                requirements:
+                  host:
+                    - python >=3.8  # this is cool
+                    - numpy
+                  run:
+                    - python >=3.8,<{GLOBAL_PYTHON_MIN}
+                    - numpy
+
+                test:
+                  requires:
+                    - python =3.6
+                    - numpy
+                """
+            ),
+            textwrap.dedent(
+                """\
+                build:
+                  noarch: python
+
+                requirements:
+                  host:
+                    - python {{ python_min }}  # this is cool
+                    - numpy
+                  run:
+                    - python {{ python_min }}
+                    - numpy
+
+                test:
+                  requires:
+                    - python {{ python_min }}
+                    - numpy
+                """
+            ),
+        ),
+        (
+            textwrap.dedent(
                 """\
                 requirements:
                   host:

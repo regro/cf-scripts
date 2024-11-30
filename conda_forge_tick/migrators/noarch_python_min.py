@@ -149,6 +149,29 @@ def _extract_bounds(req):
     return lower_ver, upper_ver
 
 
+def _get_ok_versions_min_max(input_versions):
+    ok_versions = set()
+    for ver in input_versions:
+        try:
+            VersionOrder(ver.replace("-", "."))
+            ok_versions.add(ver)
+        except Exception as e:
+            logger.error("found invalid version: %s", ver, exc_info=e)
+    if ok_versions:
+        max_version = max(
+            ok_versions,
+            key=lambda x: VersionOrder(x.replace("-", ".")),
+        )
+        min_version = min(
+            ok_versions,
+            key=lambda x: VersionOrder(x.replace("-", ".")),
+        )
+    else:
+        max_version = None
+        min_version = None
+    return ok_versions, min_version, max_version
+
+
 def _process_req_list(section, req_list_name, new_python_req, force_apply=False):
     found_it = False
     new_lines = []
@@ -239,7 +262,15 @@ def _process_req_list(section, req_list_name, new_python_req, force_apply=False)
                     if req_list_name == "run":
                         py_lower_bound, py_upper_bound = _extract_bounds(req)
                         if py_upper_bound is not None:
-                            _new_py_req = new_python_req + f",<{py_upper_bound}"
+                            ok_versions, _, _ = _get_ok_versions_min_max(
+                                [py_upper_bound]
+                            )
+                            if ok_versions and VersionOrder(
+                                py_upper_bound
+                            ) <= VersionOrder(_get_curr_python_min()):
+                                _new_py_req = new_python_req.replace(">=", "")
+                            else:
+                                _new_py_req = new_python_req + f",<{py_upper_bound}"
                         if py_lower_bound is not None:
                             python_min_override = py_lower_bound
 
@@ -383,20 +414,10 @@ def _apply_noarch_python_min(
 
         if python_min_override and not preserve_existing_specs:
             python_min_override.add(_get_curr_python_min())
-            ok_versions = set()
-            for ver in python_min_override:
-                try:
-                    VersionOrder(ver.replace("-", "."))
-                    ok_versions.add(ver)
-                except Exception as e:
-                    logger.error(
-                        "found invalid python min version: %s", ver, exc_info=e
-                    )
-            if ok_versions:
-                python_min_version = max(
-                    ok_versions,
-                    key=lambda x: VersionOrder(x.replace("-", ".")),
-                )
+            ok_versions, _, python_min_version = _get_ok_versions_min_max(
+                python_min_override
+            )
+            if python_min_version is not None and ok_versions:
                 logger.debug(
                     "found python min version: %s (global min is %s)",
                     python_min_version,
