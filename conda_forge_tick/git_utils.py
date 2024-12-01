@@ -1338,8 +1338,6 @@ def close_out_labels(
     pr_json: LazyJson,
     dry_run: bool = False,
 ) -> Optional[dict]:
-    gh = github3_client()
-
     # run this twice so we always have the latest info (eg a thing was already closed)
     if pr_json["state"] != "closed" and "bot-rerun" in [
         lab["name"] for lab in pr_json.get("labels", [])
@@ -1356,6 +1354,7 @@ def close_out_labels(
         if dry_run:
             print("dry run: comment and close pr %s" % pr_json["id"])
         else:
+            gh = github3_client()
             pr_obj = get_pr_obj_from_pr_json(pr_json, gh)
             pr_obj.create_comment(
                 "Due to the `bot-rerun` label I'm closing "
@@ -1377,8 +1376,6 @@ def close_out_dirty_prs(
     pr_json: LazyJson,
     dry_run: bool = False,
 ) -> Optional[dict]:
-    gh = github3_client()
-
     # run this twice so we always have the latest info (eg a thing was already closed)
     if pr_json["state"] != "closed" and pr_json["mergeable_state"] == "dirty":
         # update
@@ -1397,6 +1394,7 @@ def close_out_dirty_prs(
         if dry_run:
             print("dry run: comment and close pr %s" % pr_json["id"])
         else:
+            gh = github3_client()
             pr_obj = get_pr_obj_from_pr_json(pr_json, gh)
 
             if all(
