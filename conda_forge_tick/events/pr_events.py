@@ -39,19 +39,19 @@ def react_to_pr(uid: str, dry_run: bool = False) -> None:
 
             with pr_json:
                 pr_data = close_out_labels(pr_json, dry_run=dry_run)
-                if not dry_run and pr_data is not None:
+                if not dry_run and pr_data is not None and pr_data != pr_json.data:
                     updated_pr = True
                     pr_json.update(pr_data)
 
             with pr_json:
                 pr_data = refresh_pr(pr_json, dry_run=dry_run)
-                if not dry_run and pr_data is not None:
+                if not dry_run and pr_data is not None and pr_data != pr_json.data:
                     updated_pr = True
                     pr_json.update(pr_data)
 
             with pr_json:
                 pr_data = close_out_dirty_prs(pr_json, dry_run=dry_run)
-                if not dry_run and pr_data is not None:
+                if not dry_run and pr_data is not None and pr_data != pr_json.data:
                     updated_pr = True
                     pr_json.update(pr_data)
 
