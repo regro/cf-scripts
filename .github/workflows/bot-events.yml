@@ -18,7 +18,7 @@ on:
         required: true
         type: string
       dry-run:
-        description: 'Whether to run the bot in dry-run mode, making no changes.'
+        description: 'Run the bot in `dry-run` mode, making no changes.'
         required: false
         default: false
         type: boolean
@@ -60,7 +60,9 @@ jobs:
       - name: install bot code
         if: success() && ! env.CI_SKIP
         run: |
-          source cf-scripts/autotick-bot/install_bot_code.sh --no-clone-graph
+          source cf-scripts/autotick-bot/install_bot_code.sh \
+            --no-clone-graph \
+            --no-clean-disk-space
         env:
           BOT_TOKEN: ${{ secrets.AUTOTICK_BOT_TOKEN }}
 
