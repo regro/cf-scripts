@@ -26,7 +26,8 @@ def react_to_pr(uid: str, dry_run: bool = False) -> None:
     dry_run : bool, optional
         If True, do not actually make any changes, by default False.
     """
-    # read the data from the github backend
+    updated_pr = False
+
     with lazy_json_override_backends(["github"]):
         pr_data = copy.deepcopy(LazyJson(f"pr_json/{uid}.json").data)
 
@@ -38,20 +39,23 @@ def react_to_pr(uid: str, dry_run: bool = False) -> None:
 
             with pr_json:
                 pr_data = close_out_labels(pr_json, dry_run=dry_run)
-                if not dry_run:
+                if not dry_run and pr_data is not None:
+                    updated_pr = True
                     pr_json.update(pr_data)
 
             with pr_json:
                 pr_data = refresh_pr(pr_json, dry_run=dry_run)
-                if not dry_run:
+                if not dry_run and pr_data is not None:
+                    updated_pr = True
                     pr_json.update(pr_data)
 
             with pr_json:
                 pr_data = close_out_dirty_prs(pr_json, dry_run=dry_run)
-                if not dry_run:
+                if not dry_run and pr_data is not None:
+                    updated_pr = True
                     pr_json.update(pr_data)
 
-            if not dry_run:
+            if not dry_run and updated_pr:
                 gh = github_client()
                 repo = gh.get_repo("regro/cf-graph-countyfair")
                 fpath = get_sharded_path(f"pr_json/{uid}.json")

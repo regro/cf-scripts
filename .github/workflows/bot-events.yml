@@ -62,7 +62,8 @@ jobs:
         run: |
           source cf-scripts/autotick-bot/install_bot_code.sh \
             --no-clone-graph \
-            --no-clean-disk-space
+            --no-clean-disk-space \
+            --no-pull-container
         env:
           BOT_TOKEN: ${{ secrets.AUTOTICK_BOT_TOKEN }}
 
@@ -70,7 +71,7 @@ jobs:
         if: success() && ! env.CI_SKIP
         run: |
           export RUN_URL="https://github.com/regro/cf-scripts/actions/runs/${RUN_ID}"
-          if [[ '${{ github.event.inputs.dry-run}}' == 'false' ]]; then
+          if [[ '${{ github.event.inputs.dry-run}}' == 'true' ]]; then
             kwargs="--dry-run"
           else
             kwargs=""
