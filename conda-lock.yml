@@ -2012,39 +2012,39 @@ package:
   - category: main
     dependencies: {}
     hash:
-      md5: 42f443564f8bc4a9a7d59f365967d551
-      sha256: 1df87ba97fb7d50e1c8ad6d5166565318766d76043f2142ca89c64a252bd81b3
+      md5: ba18c4bdc0c337e4472da5e252e30934
+      sha256: 533b9a331bf73f02115cfecc08899553c9b413d1eb6fdf4926a0eece1ff413e4
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.11.30.12.23.39-hd8ed1ab_0.conda
-    version: 2024.11.30.12.23.39
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.12.01.14.32.23-hd8ed1ab_0.conda
+    version: 2024.12.01.14.32.23
   - category: main
     dependencies: {}
     hash:
-      md5: 42f443564f8bc4a9a7d59f365967d551
-      sha256: 1df87ba97fb7d50e1c8ad6d5166565318766d76043f2142ca89c64a252bd81b3
+      md5: ba18c4bdc0c337e4472da5e252e30934
+      sha256: 533b9a331bf73f02115cfecc08899553c9b413d1eb6fdf4926a0eece1ff413e4
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.11.30.12.23.39-hd8ed1ab_0.conda
-    version: 2024.11.30.12.23.39
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.12.01.14.32.23-hd8ed1ab_0.conda
+    version: 2024.12.01.14.32.23
   - category: main
     dependencies: {}
     hash:
-      md5: 42f443564f8bc4a9a7d59f365967d551
-      sha256: 1df87ba97fb7d50e1c8ad6d5166565318766d76043f2142ca89c64a252bd81b3
+      md5: ba18c4bdc0c337e4472da5e252e30934
+      sha256: 533b9a331bf73f02115cfecc08899553c9b413d1eb6fdf4926a0eece1ff413e4
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.11.30.12.23.39-hd8ed1ab_0.conda
-    version: 2024.11.30.12.23.39
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.12.01.14.32.23-hd8ed1ab_0.conda
+    version: 2024.12.01.14.32.23
   - category: main
     dependencies:
       click: '>=8'
@@ -12780,38 +12780,38 @@ package:
     dependencies:
       python: '>=3.9'
     hash:
-      md5: 3fa1089b4722df3a900135925f4519d9
-      sha256: 354b8a64d4f3311179d85aefc529ca201a36afc1af090d0010c46be7b79f9a47
+      md5: ee8ab0fe4c8dfc5a6319f7f8246022fc
+      sha256: 706f35327a1b433fb57bb99e9fef878e90317fd6ea8cbcd454fb4af1a2e3f035
     manager: conda
     name: tomli
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/noarch/tomli-2.1.0-pyhff2d567_0.conda
-    version: 2.1.0
+    url: https://conda.anaconda.org/conda-forge/noarch/tomli-2.2.1-pyhd8ed1ab_0.conda
+    version: 2.2.1
   - category: main
     dependencies:
       python: '>=3.9'
     hash:
-      md5: 3fa1089b4722df3a900135925f4519d9
-      sha256: 354b8a64d4f3311179d85aefc529ca201a36afc1af090d0010c46be7b79f9a47
+      md5: ee8ab0fe4c8dfc5a6319f7f8246022fc
+      sha256: 706f35327a1b433fb57bb99e9fef878e90317fd6ea8cbcd454fb4af1a2e3f035
     manager: conda
     name: tomli
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/noarch/tomli-2.1.0-pyhff2d567_0.conda
-    version: 2.1.0
+    url: https://conda.anaconda.org/conda-forge/noarch/tomli-2.2.1-pyhd8ed1ab_0.conda
+    version: 2.2.1
   - category: main
     dependencies:
       python: '>=3.9'
     hash:
-      md5: 3fa1089b4722df3a900135925f4519d9
-      sha256: 354b8a64d4f3311179d85aefc529ca201a36afc1af090d0010c46be7b79f9a47
+      md5: ee8ab0fe4c8dfc5a6319f7f8246022fc
+      sha256: 706f35327a1b433fb57bb99e9fef878e90317fd6ea8cbcd454fb4af1a2e3f035
     manager: conda
     name: tomli
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/noarch/tomli-2.1.0-pyhff2d567_0.conda
-    version: 2.1.0
+    url: https://conda.anaconda.org/conda-forge/noarch/tomli-2.2.1-pyhd8ed1ab_0.conda
+    version: 2.2.1
   - category: main
     dependencies:
       python: '>=3.9'
