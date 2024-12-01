@@ -51,7 +51,6 @@ def react_to_pr(uid: str, dry_run: bool = False) -> None:
                 if not dry_run:
                     pr_json.update(pr_data)
 
-            # write the data back to the github backend
             if not dry_run:
                 gh = github_client()
                 repo = gh.get_repo("regro/cf-graph-countyfair")
