@@ -70,7 +70,7 @@ jobs:
         if: success() && ! env.CI_SKIP
         run: |
           export RUN_URL="https://github.com/regro/cf-scripts/actions/runs/${RUN_ID}"
-          if [[ '${{ github.event.inputs.dry-run}}' == 'false' ]]; then
+          if [[ '${{ github.event.inputs.dry-run}}' == 'true' ]]; then
             kwargs="--dry-run"
           else
             kwargs=""
