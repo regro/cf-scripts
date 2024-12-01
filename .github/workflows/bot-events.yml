@@ -46,7 +46,7 @@ jobs:
           ref: ${{ steps.latest_release.outputs.tag_name }}
           path: cf-scripts
 
-      - uses: mamba-org/setup-micromamba@617811f69075e3fd3ae68ca64220ad065877f246 # v1
+      - uses: mamba-org/setup-micromamba@06375d89d211a1232ef63355742e9e2e564bc7f7 # v1
         with:
           environment-file: cf-scripts/conda-lock.yml
           environment-name: cf-scripts
