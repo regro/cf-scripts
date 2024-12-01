@@ -225,28 +225,25 @@ def graph_migrator_status(
                     attrs.get("pr_info", {})
                     .get("pre_pr_migrator_status", {})
                     .get(migrator_name, "")
-                ):
+                ) or attrs.get("parsing_error", ""):
                     out["bot-error"].add(node)
                     fc = "#000000"
                     fntc = "white"
                 else:
                     out["awaiting-pr"].add(node)
                     fc = "#35b779"
-            elif not isinstance(migrator, Replacement):
+            else:
                 if "bot error" in (
                     attrs.get("pr_info", {})
                     .get("pre_pr_migrator_status", {})
                     .get(migrator_name, "")
-                ):
+                ) or attrs.get("parsing_error", ""):
                     out["bot-error"].add(node)
                     fc = "#000000"
                     fntc = "white"
                 else:
                     out["awaiting-parents"].add(node)
                     fc = "#fde725"
-            else:
-                out["awaiting-pr"].add(node)
-                fc = "#35b779"
         elif "PR" not in pr_json or "state" not in pr_json["PR"]:
             out["bot-error"].add(node)
             fc = "#000000"
@@ -295,7 +292,7 @@ def graph_migrator_status(
                     {},
                 )
                 .get(migrator_name, "")
-            )
+            ) or attrs.get("parsing_error", "")
         else:
             node_metadata["pre_pr_migrator_status"] = ""
 
@@ -425,7 +422,11 @@ def main() -> None:
         )
         print("name:", migrator_name, flush=True)
 
-        if isinstance(migrator, GraphMigrator) or isinstance(migrator, Replacement):
+        if (
+            isinstance(migrator, GraphMigrator)
+            or isinstance(migrator, Replacement)
+            or isinstance(migrator, Migrator)
+        ) and not isinstance(migrator, Version):
             if isinstance(migrator, GraphMigrator):
                 mgconf = yaml.safe_load(getattr(migrator, "yaml_contents", "{}")).get(
                     "__migrator",
@@ -444,6 +445,7 @@ def main() -> None:
                     regular_status[migrator_name] = f"{migrator.name} Migration Status"
             else:
                 regular_status[migrator_name] = f"{migrator.name} Migration Status"
+
             status, _, gv = graph_migrator_status(migrator, mctx.graph)
             num_viz = status.pop("_num_viz", 0)
             with open(

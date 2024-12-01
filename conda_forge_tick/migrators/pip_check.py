@@ -6,7 +6,7 @@ from typing import Any
 import ruamel.yaml
 from ruamel.yaml import YAML
 
-from conda_forge_tick.migrators.core import MiniMigrator, _skip_due_to_schema
+from conda_forge_tick.migrators.core import MiniMigrator, skip_migrator_due_to_schema
 from conda_forge_tick.os_utils import pushd
 
 if typing.TYPE_CHECKING:
@@ -153,7 +153,7 @@ class PipCheckMigrator(MiniMigrator):
             or attrs["requirements"].get("build", set())
             or set()
         )
-        return "python" not in build_host or _skip_due_to_schema(
+        return "python" not in build_host or skip_migrator_due_to_schema(
             attrs, self.allowed_schema_versions
         )
 

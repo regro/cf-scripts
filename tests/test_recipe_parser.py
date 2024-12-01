@@ -1285,9 +1285,9 @@ extra:
 
 
 def test_recipe_parses_cupy():
-    recipe = r"""{% set name = "cupy" %}
-{% set version = "10.1.0" %}
-{% set sha256 = "ad28e7311b2023391f2278b7649828decdd9d9599848e18845eb4ab1b2d01936" %}
+    recipe = r"""{% set name = "cupy" -%}
+{%- set version = "10.1.0" %}
+{%- set sha256 = "ad28e7311b2023391f2278b7649828decdd9d9599848e18845eb4ab1b2d01936" -%}
 
 {% if cuda_compiler_version in (None, "None", True, False) %}
 {% set cuda_major = 0 %}

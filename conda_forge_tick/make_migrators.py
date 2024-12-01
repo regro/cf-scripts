@@ -56,7 +56,9 @@ from conda_forge_tick.migrators import (
     LicenseMigrator,
     MigrationYaml,
     Migrator,
+    MiniMigrator,
     MPIPinRunAsBuildCleanup,
+    NoarchPythonMinMigrator,
     NoCondaInspectMigrator,
     Numpy2Migrator,
     PipMigrator,
@@ -70,6 +72,7 @@ from conda_forge_tick.migrators import (
     UpdateConfigSubGuessMigrator,
     Version,
     make_from_lazy_json_data,
+    skip_migrator_due_to_schema,
 )
 from conda_forge_tick.migrators.arch import OSXArm, WinArm64
 from conda_forge_tick.migrators.migration_yaml import (
@@ -96,6 +99,29 @@ PR_LIMIT = 5
 MAX_PR_LIMIT = 50
 MAX_SOLVER_ATTEMPTS = 50
 CHECK_SOLVABLE_TIMEOUT = 90  # 90 days
+DEFAULT_MINI_MIGRATORS = [
+    CondaForgeYAMLCleanup,
+    Jinja2VarsCleanup,
+    DuplicateLinesCleanup,
+    PipMigrator,
+    LicenseMigrator,
+    CondaForgeYAMLCleanup,
+    ExtraJinja2KeysCleanup,
+    Build2HostMigrator,
+    NoCondaInspectMigrator,
+    MPIPinRunAsBuildCleanup,
+    PyPIOrgMigrator,
+]
+
+
+def _make_mini_migrators_with_defaults(
+    extra_mini_migrators: list[MiniMigrator] = None,
+) -> list[MiniMigrator]:
+    extra_mini_migrators = extra_mini_migrators or []
+    for klass in DEFAULT_MINI_MIGRATORS:
+        if not any(isinstance(m, klass) for m in extra_mini_migrators):
+            extra_mini_migrators.append(klass())
+    return extra_mini_migrators
 
 
 def add_replacement_migrator(
@@ -291,17 +317,7 @@ def add_rebuild_migration_yaml(
         if (node in total_graph) and len(list(total_graph.predecessors(node))) == 0
     }
     piggy_back_migrations = [
-        Jinja2VarsCleanup(),
-        DuplicateLinesCleanup(),
-        PipMigrator(),
-        LicenseMigrator(),
-        CondaForgeYAMLCleanup(),
-        ExtraJinja2KeysCleanup(),
-        Build2HostMigrator(),
-        NoCondaInspectMigrator(),
         CrossCompilationForARMAndPower(),
-        MPIPinRunAsBuildCleanup(),
-        PyPIOrgMigrator(),
         StdlibMigrator(),
     ]
     if migration_name == "qt515":
@@ -316,6 +332,10 @@ def add_rebuild_migration_yaml(
         piggy_back_migrations.append(RUCRTCleanup())
     if migration_name.startswith("flang19"):
         piggy_back_migrations.append(FlangMigrator())
+    piggy_back_migrations = _make_mini_migrators_with_defaults(
+        extra_mini_migrators=piggy_back_migrations
+    )
+
     cycles = set()
     for cyc in nx.simple_cycles(total_graph):
         cycles |= set(cyc)
@@ -711,6 +731,35 @@ def create_migration_yaml_creator(
                 continue
 
 
+def add_noarch_python_min_migrator(
+    migrators: MutableSequence[Migrator], gx: nx.DiGraph
+):
+    with fold_log_lines("making `noarch: python` migrator"):
+        gx2 = copy.deepcopy(gx)
+        for node in list(gx2.nodes):
+            has_noarch_python = False
+            with gx2.nodes[node]["payload"] as attrs:
+                skip_schema = skip_migrator_due_to_schema(
+                    attrs, NoarchPythonMinMigrator.allowed_schema_versions
+                )
+                for line in attrs.get("raw_meta_yaml", "").splitlines():
+                    if line.lstrip().startswith("noarch: python"):
+                        has_noarch_python = True
+                        break
+            if (not has_noarch_python) or skip_schema:
+                pluck(gx2, node)
+
+        gx2.clear_edges()
+
+        migrators.append(
+            NoarchPythonMinMigrator(
+                graph=gx2,
+                pr_limit=20,
+                piggy_back_migrations=_make_mini_migrators_with_defaults(),
+            ),
+        )
+
+
 def initialize_migrators(
     gx: nx.DiGraph,
     dry_run: bool = False,
@@ -726,6 +775,18 @@ def initialize_migrators(
         cast("PackageName", "gmp"),
         "The package 'mpir' is deprecated and unmaintained. Use 'gmp' instead.",
     )
+
+    add_replacement_migrator(
+        migrators,
+        gx,
+        cast("PackageName", "astropy"),
+        cast("PackageName", "astropy-base"),
+        "The astropy feedstock has been split into two packages, astropy-base only "
+        "has required dependencies and astropy now has all optional dependencies. "
+        "To maintain the old behavior you should migrate to astropy-base.",
+    )
+
+    add_noarch_python_min_migrator(migrators, gx)
 
     pinning_migrators: List[Migrator] = []
     migration_factory(pinning_migrators, gx)
@@ -758,22 +819,13 @@ def initialize_migrators(
             python_nodes=python_nodes,
             graph=gx,
             pr_limit=PR_LIMIT * 4,
-            piggy_back_migrations=[
-                CondaForgeYAMLCleanup(),
-                Jinja2VarsCleanup(),
-                DuplicateLinesCleanup(),
-                PipMigrator(),
-                LicenseMigrator(),
-                CondaForgeYAMLCleanup(),
-                ExtraJinja2KeysCleanup(),
-                Build2HostMigrator(),
-                NoCondaInspectMigrator(),
-                PipWheelMigrator(),
-                MPIPinRunAsBuildCleanup(),
-                DependencyUpdateMigrator(python_nodes),
-                PyPIOrgMigrator(),
-                StdlibMigrator(),
-            ],
+            piggy_back_migrations=_make_mini_migrators_with_defaults(
+                extra_mini_migrators=[
+                    PipWheelMigrator(),
+                    DependencyUpdateMigrator(python_nodes),
+                    StdlibMigrator(),
+                ],
+            ),
         )
 
         random.shuffle(pinning_migrators)

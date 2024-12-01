@@ -3,7 +3,7 @@ import os
 import typing
 from typing import Any
 
-from conda_forge_tick.migrators.core import MiniMigrator, _skip_due_to_schema
+from conda_forge_tick.migrators.core import MiniMigrator, skip_migrator_due_to_schema
 from conda_forge_tick.os_utils import pushd
 from conda_forge_tick.provide_source_code import provide_source_code
 from conda_forge_tick.utils import yaml_safe_dump, yaml_safe_load
@@ -28,7 +28,9 @@ class CrossCompilationMigratorBase(MiniMigrator):
             if compiler in build_reqs:
                 needed = True
                 break
-        return (not needed) or _skip_due_to_schema(attrs, self.allowed_schema_versions)
+        return (not needed) or skip_migrator_due_to_schema(
+            attrs, self.allowed_schema_versions
+        )
 
 
 class UpdateConfigSubGuessMigrator(CrossCompilationMigratorBase):
@@ -153,7 +155,7 @@ class CrossPythonMigrator(CrossCompilationMigratorBase):
         return (
             "python" not in host_reqs
             or "python" in build_reqs
-            or _skip_due_to_schema(attrs, self.allowed_schema_versions)
+            or skip_migrator_due_to_schema(attrs, self.allowed_schema_versions)
         )
 
     def migrate(self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any) -> None:
@@ -211,7 +213,7 @@ class CrossPythonMigrator(CrossCompilationMigratorBase):
 class UpdateCMakeArgsMigrator(CrossCompilationMigratorBase):
     def filter(self, attrs: "AttrsTypedDict", not_bad_str_start: str = "") -> bool:
         build_reqs = attrs.get("requirements", {}).get("build", set())
-        return "cmake" not in build_reqs or _skip_due_to_schema(
+        return "cmake" not in build_reqs or skip_migrator_due_to_schema(
             attrs, self.allowed_schema_versions
         )
 
@@ -244,7 +246,7 @@ class Build2HostMigrator(MiniMigrator):
         build_reqs = attrs.get("requirements", {}).get("build", set())
         host_reqs = attrs.get("requirements", {}).get("host", set())
         run_reqs = attrs.get("requirements", {}).get("run", set())
-        skip_schema = _skip_due_to_schema(attrs, self.allowed_schema_versions)
+        skip_schema = skip_migrator_due_to_schema(attrs, self.allowed_schema_versions)
         if (
             len(attrs.get("outputs_names", [])) <= 1
             and "python" in build_reqs
@@ -289,7 +291,7 @@ class NoCondaInspectMigrator(MiniMigrator):
     post_migration = True
 
     def filter(self, attrs: "AttrsTypedDict", not_bad_str_start: str = "") -> bool:
-        skip_schema = _skip_due_to_schema(attrs, self.allowed_schema_versions)
+        skip_schema = skip_migrator_due_to_schema(attrs, self.allowed_schema_versions)
         if "conda inspect" in attrs.get("raw_meta_yaml", "") and not skip_schema:
             return False
         else:
@@ -323,7 +325,7 @@ ${R} CMD INSTALL --build . ${R_ARGS}
 class CrossRBaseMigrator(CrossCompilationMigratorBase):
     def filter(self, attrs: "AttrsTypedDict", not_bad_str_start: str = "") -> bool:
         host_reqs = attrs.get("requirements", {}).get("host", set())
-        skip_schema = _skip_due_to_schema(attrs, self.allowed_schema_versions)
+        skip_schema = skip_migrator_due_to_schema(attrs, self.allowed_schema_versions)
         if (
             "r-base" in host_reqs or attrs.get("name", "").startswith("r-")
         ) and not skip_schema:
@@ -383,7 +385,7 @@ class CrossCompilationForARMAndPower(MiniMigrator):
     post_migration = True
 
     def filter(self, attrs: "AttrsTypedDict", not_bad_str_start: str = "") -> bool:
-        return _skip_due_to_schema(attrs, self.allowed_schema_versions)
+        return skip_migrator_due_to_schema(attrs, self.allowed_schema_versions)
 
     def migrate(self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any) -> None:
         with pushd(recipe_dir):
