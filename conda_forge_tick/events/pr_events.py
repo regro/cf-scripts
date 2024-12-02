@@ -83,7 +83,11 @@ def react_to_pr(uid: str, dry_run: bool = False) -> None:
                         print("pushed PR update", flush=True)
                         break
                     except Exception as e:
-                        print("failed to push PR update - trying %d more times" % (ntries - nt - 1), flush=True)
+                        print(
+                            "failed to push PR update - trying %d more times"
+                            % (ntries - nt - 1),
+                            flush=True,
+                        )
                         if nt == ntries - 1:
                             raise e
             else:
