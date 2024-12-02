@@ -617,6 +617,13 @@ def run(
         )
         with pr_lazy_json as __edit_pr_lazy_json:
             __edit_pr_lazy_json.update(**pr_data.model_dump(mode="json"))
+
+        if "id" in pr_lazy_json:
+            _push_pr_json_via_gh_api(
+                pr_lazy_json["id"],
+                pr_lazy_json.data if hasattr(pr_lazy_json, "data") else pr_lazy_json,
+            )
+
     else:
         pr_lazy_json = False
 
@@ -761,11 +768,6 @@ def _run_migrator_on_feedstock_branch(
                     if "PRed" not in pri:
                         pri["PRed"] = []
                     pri["PRed"].append(d)
-
-                    if "id" in pr_json:
-                        _push_pr_json_via_gh_api(
-                            pr_json["id"], pr_json.data if hasattr(pr_json, "data") else pr_json
-                        )
 
                 pri.update(
                     {
