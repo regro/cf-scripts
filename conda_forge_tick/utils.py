@@ -33,7 +33,7 @@ from .lazy_json_backends import LazyJson
 if typing.TYPE_CHECKING:
     from mypy_extensions import TypedDict
 
-    from conda_forge_tick.migrators_types import RecipeTypedDict
+from conda_forge_tick.migrators_types import RecipeTypedDict
 
 logger = logging.getLogger(__name__)
 

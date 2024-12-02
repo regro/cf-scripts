@@ -199,9 +199,11 @@ def _migrate_feedstock(*, feedstock_name, default_branch, attrs, input_kwargs):
     logger = logging.getLogger("conda_forge_tick.container")
 
     with tempfile.TemporaryDirectory() as tmpdir:
-        input_fs_dir = glob.glob("/cf_feedstock_ops_dir/*-feedstock")
-        assert len(input_fs_dir) == 1, f"expected one feedstock, got {input_fs_dir}"
-        input_fs_dir = input_fs_dir[0]
+        input_fs_dir_list = glob.glob("/cf_feedstock_ops_dir/*-feedstock")
+        assert (
+            len(input_fs_dir_list) == 1
+        ), f"expected one feedstock, got {input_fs_dir_list}"
+        input_fs_dir = input_fs_dir_list[0]
         logger.debug(
             f"input container feedstock dir {input_fs_dir}: {os.listdir(input_fs_dir)}"
         )
@@ -253,9 +255,11 @@ def _update_version(*, version, hash_type):
     logger = logging.getLogger("conda_forge_tick.container")
 
     with tempfile.TemporaryDirectory() as tmpdir:
-        input_fs_dir = glob.glob("/cf_feedstock_ops_dir/*-feedstock")
-        assert len(input_fs_dir) == 1, f"expected one feedstock, got {input_fs_dir}"
-        input_fs_dir = input_fs_dir[0]
+        input_fs_dir_list = glob.glob("/cf_feedstock_ops_dir/*-feedstock")
+        assert (
+            len(input_fs_dir_list) == 1
+        ), f"expected one feedstock, got {input_fs_dir_list}"
+        input_fs_dir = input_fs_dir_list[0]
         logger.debug(
             f"input container feedstock dir {input_fs_dir}: {os.listdir(input_fs_dir)}"
         )
@@ -472,12 +476,14 @@ def parse_meta_yaml(
     "--cbc-path", type=str, default=None, help="The path to global pinning file."
 )
 def parse_recipe_yaml(
+    log_level,
     for_pinning,
     platform_arch,
     cbc_path,
 ):
     return _run_bot_task(
         _parse_recipe_yaml,
+        log_level=log_level,
         existing_feedstock_node_attrs=None,
         for_pinning=for_pinning,
         platform_arch=platform_arch,

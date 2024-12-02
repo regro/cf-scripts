@@ -118,7 +118,8 @@ def write_version_migrator_status(migrator, mctx):
                         )
 
     with open("./status/version_status.json", "w") as f:
-        old_out = out.copy()
+        old_out: dict[str, dict[str, str] | set[str]] = {}
+        old_out.update(out)
         old_out["queued"] = set(out["queued"].keys())
         old_out["errored"] = set(out["errors"].keys())
         json.dump(old_out, f, sort_keys=True, indent=2, default=_sorted_set_json)

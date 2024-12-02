@@ -1,7 +1,6 @@
 import os
-import typing
 from textwrap import dedent
-from typing import Any, Optional, Sequence
+from typing import Any, Collection, Literal, Optional, Sequence
 
 import networkx as nx
 
@@ -11,6 +10,7 @@ from conda_forge_tick.make_graph import (
     make_outputs_lut_from_graph,
 )
 from conda_forge_tick.migrators.core import GraphMigrator, _sanitized_muids
+from conda_forge_tick.migrators_types import AttrsTypedDict, MigrationUidTypedDict
 from conda_forge_tick.os_utils import pushd
 from conda_forge_tick.utils import (
     as_iterable,
@@ -20,12 +20,8 @@ from conda_forge_tick.utils import (
     yaml_safe_load,
 )
 
-from .migration_yaml import all_noarch
-
-if typing.TYPE_CHECKING:
-    from conda_forge_tick.migrators_types import AttrsTypedDict, MigrationUidTypedDict
-
 from .core import MiniMigrator
+from .migration_yaml import all_noarch
 
 
 def _filter_excluded_deps(graph, excluded_dependencies):
@@ -106,10 +102,10 @@ class ArchRebuild(GraphMigrator):
     def __init__(
         self,
         graph: nx.DiGraph = None,
-        name: Optional[str] = None,
+        name: str = "aarch64 and ppc64le addition",
         pr_limit: int = 0,
         piggy_back_migrations: Optional[Sequence[MiniMigrator]] = None,
-        target_packages: Optional[Sequence[str]] = None,
+        target_packages: Optional[Collection[str]] = None,
         effective_graph: nx.DiGraph = None,
         _do_init: bool = True,
     ):
@@ -201,7 +197,7 @@ class ArchRebuild(GraphMigrator):
 
     def migrate(
         self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any
-    ) -> "MigrationUidTypedDict":
+    ) -> MigrationUidTypedDict | Literal[False]:
         with pushd(recipe_dir + "/.."):
             self.set_build_number("recipe/meta.yaml")
             with open("conda-forge.yml") as f:
@@ -248,8 +244,8 @@ class OSXArm(GraphMigrator):
     # We purposefully don't want to bump build number for this migrator
     bump_number = 0
 
-    ignored_packages = set()
-    excluded_dependencies = set()
+    ignored_packages: set[str] = set()
+    excluded_dependencies: set[str] = set()
 
     arches = ["osx_arm64"]
 
@@ -261,10 +257,10 @@ class OSXArm(GraphMigrator):
     def __init__(
         self,
         graph: nx.DiGraph = None,
-        name: Optional[str] = None,
+        name: str = "arm osx addition",
         pr_limit: int = 0,
         piggy_back_migrations: Optional[Sequence[MiniMigrator]] = None,
-        target_packages: Optional[Sequence[str]] = None,
+        target_packages: Optional[Collection[str]] = None,
         effective_graph: nx.DiGraph = None,
         _do_init: bool = True,
     ):
@@ -316,12 +312,14 @@ class OSXArm(GraphMigrator):
             # are not added to the graph
             _filter_excluded_deps(graph, self.excluded_dependencies)
 
-            target_packages = set(target_packages)
+            target_packages_modified = set(target_packages)
 
             # filter the graph down to the target packages
-            if target_packages:
-                target_packages.add("python")  # hack that is ~harmless?
-                _cut_to_target_packages(graph, target_packages)
+            if target_packages_modified:
+                target_packages_modified.add("python")  # hack that is ~harmless?
+                _cut_to_target_packages(graph, target_packages_modified)
+
+            target_packages = target_packages_modified
 
             # filter out stub packages and ignored packages
             _filter_stubby_and_ignored_nodes(graph, self.ignored_packages)
@@ -374,7 +372,7 @@ class OSXArm(GraphMigrator):
 
     def migrate(
         self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any
-    ) -> "MigrationUidTypedDict":
+    ) -> MigrationUidTypedDict | Literal[False]:
         with pushd(recipe_dir + "/.."):
             self.set_build_number("recipe/meta.yaml")
             with open("conda-forge.yml") as f:

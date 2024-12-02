@@ -46,9 +46,9 @@ class UpdateConfigSubGuessMigrator(CrossCompilationMigratorBase):
                     return
                 directories = set()
                 with pushd(cb_work_dir):
-                    for dp, dn, fn in os.walk("."):
-                        for f in fn:
-                            if f != "config.sub":
+                    for dp, dn, filename in os.walk("."):
+                        for name in filename:
+                            if name != "config.sub":
                                 continue
                             if os.path.exists(os.path.join(dp, "config.guess")):
                                 directories.add(dp)
