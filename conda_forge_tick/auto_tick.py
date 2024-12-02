@@ -768,7 +768,6 @@ def _run_migrator_on_feedstock_branch(
                     if "PRed" not in pri:
                         pri["PRed"] = []
                     pri["PRed"].append(d)
-
                 pri.update(
                     {
                         "smithy_version": mctx.smithy_version,
