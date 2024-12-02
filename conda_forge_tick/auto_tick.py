@@ -37,11 +37,14 @@ from conda_forge_tick.git_utils import (
     GitPlatformBackend,
     RepositoryNotFoundError,
     github_backend,
+    github_client,
     is_github_api_limit_reached,
 )
 from conda_forge_tick.lazy_json_backends import (
     LazyJson,
+    dumps,
     get_all_keys_for_hashmap,
+    get_sharded_path,
     lazy_json_transaction,
     remove_key_for_hashmap,
 )
@@ -701,6 +704,16 @@ def _over_time_limit():
     return _now - START_TIME > TIMEOUT
 
 
+def _push_pr_json_via_gh_api(pr_id: str, pr_json: dict):
+    gh = github_client()
+    repo = gh.repository("conda-forge", "cf-graph-countyfair")
+    repo.create_file(
+        get_sharded_path(f"pr_json/{pr_id}.json"),
+        f"pr_json - {pr_id} - {get_bot_run_url()}",
+        dumps(pr_json),
+    )
+
+
 def _run_migrator_on_feedstock_branch(
     attrs,
     base_branch,
@@ -753,6 +766,10 @@ def _run_migrator_on_feedstock_branch(
                         "smithy_version": mctx.smithy_version,
                         "pinning_version": mctx.pinning_version,
                     },
+                )
+            if "id" in pr_json:
+                _push_pr_json_via_gh_api(
+                    pr_json["id"], pr_json.data if hasattr(pr_json, "data") else pr_json
                 )
 
     except (github3.GitHubError, github.GithubException) as e:
