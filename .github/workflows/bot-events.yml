@@ -1,4 +1,4 @@
-name: bot-event
+name: bot-events
 
 run-name: 'event: ${{ inputs.event }} ${{ inputs.uid }}'
 
