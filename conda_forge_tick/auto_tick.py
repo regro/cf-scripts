@@ -619,8 +619,8 @@ def run(
             __edit_pr_lazy_json.update(**pr_data.model_dump(mode="json"))
 
         if "id" in pr_lazy_json:
-            _push_pr_json_via_gh_api(
-                pr_lazy_json["id"],
+            _push_file_via_gh_api(
+                f"pr_json/{pr_lazy_json['id']}.json",
                 pr_lazy_json.data if hasattr(pr_lazy_json, "data") else pr_lazy_json,
             )
 
@@ -711,21 +711,28 @@ def _over_time_limit():
     return _now - START_TIME > TIMEOUT
 
 
-def _push_pr_json_via_gh_api(pr_id: str, pr_json: dict):
+def _push_file_via_gh_api(filename: str, json_data: dict):
+    bn, fn = os.path.split(filename)
+    if fn.endswith(".json"):
+        fn = fn[:-5]
+    data = dumps(json_data)
+
     gh = github_client()
     repo = gh.get_repo("regro/cf-graph-countyfair")
     ntries = 10
     for tr in range(ntries):
         try:
             repo.create_file(
-                get_sharded_path(f"pr_json/{pr_id}.json"),
-                f"pr_json - {pr_id} - {get_bot_run_url()}",
-                dumps(pr_json),
+                get_sharded_path(filename),
+                f"{bn} - {fn} - {get_bot_run_url()}",
+                data,
             )
             break
         except Exception as e:
             logger.warning(
-                "failed to push pr_json - trying %d more times" % (ntries - tr - 1),
+                "failed to push '%s' - trying %d more times",
+                filename,
+                ntries - tr - 1,
                 exc_info=e,
             )
             if tr == ntries - 1:
@@ -768,6 +775,13 @@ def _run_migrator_on_feedstock_branch(
                 ]:
                     pass
                 else:
+                    pri.update(
+                        {
+                            "smithy_version": mctx.smithy_version,
+                            "pinning_version": mctx.pinning_version,
+                        },
+                    )
+
                     if not pr_json:
                         pr_json = {
                             "state": "closed",
@@ -779,12 +793,8 @@ def _run_migrator_on_feedstock_branch(
                     if "PRed" not in pri:
                         pri["PRed"] = []
                     pri["PRed"].append(d)
-                pri.update(
-                    {
-                        "smithy_version": mctx.smithy_version,
-                        "pinning_version": mctx.pinning_version,
-                    },
-                )
+
+                    _push_file_via_gh_api(pri.file_name, pri.data)
 
     except (github3.GitHubError, github.GithubException) as e:
         # TODO: pull this down into run() - also check the other exceptions
