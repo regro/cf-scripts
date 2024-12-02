@@ -714,11 +714,22 @@ def _over_time_limit():
 def _push_pr_json_via_gh_api(pr_id: str, pr_json: dict):
     gh = github_client()
     repo = gh.get_repo("regro/cf-graph-countyfair")
-    repo.create_file(
-        get_sharded_path(f"pr_json/{pr_id}.json"),
-        f"pr_json - {pr_id} - {get_bot_run_url()}",
-        dumps(pr_json),
-    )
+    ntries = 10
+    for tr in range(ntries):
+        try:
+            repo.create_file(
+                get_sharded_path(f"pr_json/{pr_id}.json"),
+                f"pr_json - {pr_id} - {get_bot_run_url()}",
+                dumps(pr_json),
+            )
+            break
+        except Exception as e:
+            logger.warning(
+                "failed to push pr_json - trying %d more times" % (ntries - tr - 1),
+                exc_info=e,
+            )
+            if tr == ntries - 1:
+                raise e
 
 
 def _run_migrator_on_feedstock_branch(
@@ -783,6 +794,7 @@ def _run_migrator_on_feedstock_branch(
             logger.critical(
                 "GITHUB ERROR ON FEEDSTOCK: %s",
                 fctx.feedstock_name,
+                exc_info=e,
             )
 
             if is_github_api_limit_reached():
@@ -790,7 +802,7 @@ def _run_migrator_on_feedstock_branch(
                 break_loop = True
 
     except VersionMigrationError as e:
-        logger.exception("VERSION MIGRATION ERROR")
+        logger.exception("VERSION MIGRATION ERROR", exc_info=e)
 
         _set_pre_pr_migrator_error(
             attrs,
@@ -802,7 +814,7 @@ def _run_migrator_on_feedstock_branch(
         )
 
     except URLError as e:
-        logger.exception("URLError ERROR")
+        logger.exception("URLError ERROR", exc_info=e)
         with attrs["pr_info"] as pri:
             pri["bad"] = {
                 "exception": str(e),
@@ -827,7 +839,7 @@ def _run_migrator_on_feedstock_branch(
             is_version=isinstance(migrator, Version),
         )
     except Exception as e:
-        logger.exception("NON GITHUB ERROR")
+        logger.exception("NON GITHUB ERROR", exc_info=e)
 
         # we don't set bad for rerendering errors
         if "conda smithy rerender -c auto --no-check-uptodate" not in str(
