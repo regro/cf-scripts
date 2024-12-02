@@ -37,11 +37,14 @@ from conda_forge_tick.git_utils import (
     GitPlatformBackend,
     RepositoryNotFoundError,
     github_backend,
+    github_client,
     is_github_api_limit_reached,
 )
 from conda_forge_tick.lazy_json_backends import (
     LazyJson,
+    dumps,
     get_all_keys_for_hashmap,
+    get_sharded_path,
     lazy_json_transaction,
     remove_key_for_hashmap,
 )
@@ -614,6 +617,13 @@ def run(
         )
         with pr_lazy_json as __edit_pr_lazy_json:
             __edit_pr_lazy_json.update(**pr_data.model_dump(mode="json"))
+
+        if "id" in pr_lazy_json:
+            _push_pr_json_via_gh_api(
+                pr_lazy_json["id"],
+                pr_lazy_json.data if hasattr(pr_lazy_json, "data") else pr_lazy_json,
+            )
+
     else:
         pr_lazy_json = False
 
@@ -699,6 +709,16 @@ def _over_time_limit():
         end="",
     )
     return _now - START_TIME > TIMEOUT
+
+
+def _push_pr_json_via_gh_api(pr_id: str, pr_json: dict):
+    gh = github_client()
+    repo = gh.repository("conda-forge", "cf-graph-countyfair")
+    repo.create_file(
+        get_sharded_path(f"pr_json/{pr_id}.json"),
+        f"pr_json - {pr_id} - {get_bot_run_url()}",
+        dumps(pr_json),
+    )
 
 
 def _run_migrator_on_feedstock_branch(
