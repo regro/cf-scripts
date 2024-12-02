@@ -1,6 +1,7 @@
 import functools
 import logging
 import os
+import random
 import textwrap
 import typing
 from typing import Sequence
@@ -20,7 +21,7 @@ from conda_forge_tick.migrators.libboost import _slice_into_output_sections
 from conda_forge_tick.os_utils import pushd
 
 if typing.TYPE_CHECKING:
-    from ..migrators_types import AttrsTypedDict
+    from ..migrators_types import AttrsTypedDict, PackageName
 
 logger = logging.getLogger(__name__)
 
@@ -415,6 +416,7 @@ class NoarchPythonMinMigrator(Migrator):
 
     migrator_version = 1
     bump_number = 1
+    max_solver_attempts = 3
 
     def __init__(
         self,
@@ -500,3 +502,49 @@ for more details.
         n = super().migrator_uid(attrs)
         n["name"] = self.name
         return n
+
+    def order(
+        self,
+        graph: nx.DiGraph,
+        total_graph: nx.DiGraph,
+    ) -> Sequence["PackageName"]:
+        if hasattr(self, "name"):
+            assert isinstance(self.name, str)
+            migrator_name = self.name.lower().replace(" ", "")
+        else:
+            migrator_name = self.__class__.__name__.lower()
+
+        def _not_has_error(node):
+            if migrator_name in total_graph.nodes[node]["payload"].get(
+                "pr_info",
+                {},
+            ).get("pre_pr_migrator_status", {}) and (
+                total_graph.nodes[node]["payload"]
+                .get("pr_info", {})
+                .get(
+                    "pre_pr_migrator_attempts",
+                    {},
+                )
+                .get(
+                    migrator_name,
+                    self.max_solver_attempts,
+                )
+                >= self.max_solver_attempts
+            ):
+                return 0
+            else:
+                return 1
+
+        return sorted(
+            graph,
+            key=lambda x: (
+                _not_has_error(x),
+                (
+                    random.uniform(0, 1)
+                    if not _not_has_error(x)
+                    else len(nx.descendants(total_graph, x))
+                ),
+                x,
+            ),
+            reverse=True,
+        )
