@@ -448,7 +448,7 @@ def update_upstream_versions(
     :param feedstock: The feedstock to update. If None, update all feedstocks. Does not contain the `-feedstock` suffix.
     """
     if feedstock and feedstock not in gx.nodes:
-        logger.error(f"Feedstock {feedstock} not found in graph. Exiting.")
+        logger.error(f"Feedstock {feedstock}-feedstock not found in graph. Exiting.")
         return
 
     # In the future, we should have some sort of typed graph structure

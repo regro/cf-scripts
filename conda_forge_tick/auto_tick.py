@@ -932,7 +932,7 @@ def _run_migrator(
         if feedstock:
             if feedstock not in possible_nodes:
                 logger.info(
-                    f"Feedstock {feedstock} is not a candidate for migration of {migrator_name}. "
+                    f"Feedstock {feedstock}-feedstock is not a candidate for migration of {migrator_name}. "
                     f"If you want to investigate this, run the make-migrators command."
                 )
                 return 0
@@ -1168,7 +1168,7 @@ def _update_nodes_with_new_versions(gx: nx.DiGraph, feedstock: str | None = None
     print("updating nodes with new versions", flush=True)
 
     if feedstock and not does_key_exist_in_hashmap("versions", feedstock):
-        logger.warning(f"Feedstock {feedstock} not found in versions hashmap")
+        logger.warning(f"Feedstock {feedstock}-feedstock not found in versions hashmap")
         return
 
     version_nodes = (
@@ -1220,10 +1220,12 @@ def _remove_closed_pr_json(feedstock: str | None = None):
         )
 
         if not pr_info_nodes:
-            logger.warning(f"Feedstock {feedstock} not found in pr_info hashmap")
+            logger.warning(
+                f"Feedstock {feedstock}-feedstock not found in pr_info hashmap"
+            )
         if not version_pr_info_nodes:
             logger.warning(
-                f"Feedstock {feedstock} not found in version_pr_info hashmap"
+                f"Feedstock {feedstock}-feedstock not found in version_pr_info hashmap"
             )
     else:
         pr_info_nodes = get_all_keys_for_hashmap("pr_info")
