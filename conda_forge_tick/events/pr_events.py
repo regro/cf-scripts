@@ -66,17 +66,25 @@ def react_to_pr(uid: str, dry_run: bool = False) -> None:
                     pr_json.update(pr_data)
 
             if not dry_run and updated_pr:
-                print("pushed PR update", flush=True)
                 gh = github_client()
                 repo = gh.get_repo("regro/cf-graph-countyfair")
                 fpath = get_sharded_path(f"pr_json/{uid}.json")
-                cnts = repo.get_contents(fpath)
                 message = f"event - pr {uid} - {get_bot_run_url()}"
-                repo.update_file(
-                    fpath,
-                    message,
-                    dumps(pr_json.data),
-                    cnts.sha,
-                )
+                ntries = 10
+                for nt in range(ntries):
+                    try:
+                        cnts = repo.get_contents(fpath)
+                        repo.update_file(
+                            fpath,
+                            message,
+                            dumps(pr_json.data),
+                            cnts.sha,
+                        )
+                        print("pushed PR update", flush=True)
+                        break
+                    except Exception as e:
+                        print("failed to push PR update - trying %d more times" % (ntries - nt - 1), flush=True)
+                        if nt == ntries - 1:
+                            raise e
             else:
                 print("no changes to push", flush=True)
