@@ -269,19 +269,7 @@ def _create_edges(gx: nx.DiGraph) -> nx.DiGraph:
     return gx
 
 
-def _add_run_exports(nodes_to_update):
-    gx = load_graph()
-
-    new_names = [name for name in nodes_to_update if name not in gx.nodes]
-    for name in nodes_to_update:
-        sub_graph = {
-            "payload": LazyJson(f"node_attrs/{name}.json"),
-        }
-        if name in new_names:
-            gx.add_node(name, **sub_graph)
-        else:
-            gx.nodes[name].update(**sub_graph)
-
+def _make_graph_metadata(gx: nx.DiGraph):
     outputs_lut = make_outputs_lut_from_graph(gx)
 
     # collect all of the strong run exports
@@ -292,6 +280,29 @@ def _add_run_exports(nodes_to_update):
         for node_name, node in gx.nodes.items()
         if node.get("payload").get("strong_exports", False)
     } | set(COMPILER_STUBS_WITH_STRONG_EXPORTS)
+
+    with LazyJson("graph_metadata.json") as attrs:
+        attrs["outputs_lut"] = outputs_lut
+        attrs["strong_exports"] = strong_exports
+
+
+def _add_run_exports(gx: nx.DiGraph, nodes_to_update: set(str)):
+    with LazyJson("graph_metadata.json") as attrs:
+        outputs_lut = attrs.get("outputs_lut", None)
+        strong_exports = attrs.get("strong_exports", None)
+
+    if outputs_lut is None:
+        outputs_lut = make_outputs_lut_from_graph(gx)
+
+    if strong_exports is None:
+        # collect all of the strong run exports
+        # we add the compiler stubs so that we know when host and run
+        # envs will have compiler-related packages in them
+        strong_exports = {
+            node_name
+            for node_name, node in gx.nodes.items()
+            if node.get("payload").get("strong_exports", False)
+        } | set(COMPILER_STUBS_WITH_STRONG_EXPORTS)
 
     for node in nodes_to_update:
         with gx.nodes[node]["payload"] as attrs:
@@ -310,11 +321,6 @@ def _update_graph_nodes(
         mark_not_archived=mark_not_archived,
     )
     logger.info("feedstock fetch loop completed")
-
-    logger.info("adding run exports")
-    _add_run_exports(names)
-    logger.info("done adding run exports")
-
     logger.info(f"memory usage: {psutil.virtual_memory()}")
 
 
@@ -354,8 +360,8 @@ def main(
         new_names = [name for name in names if name not in gx.nodes]
         with lazy_json_override_backends(
             ["file"],
-            hashmaps_to_sync=["node_attrs"],
-            keys_to_sync=set(tot_names_for_this_job),
+            hashmaps_to_sync=["node_attrs", "lazy_json"],
+            keys_to_sync=set(tot_names_for_this_job) | {"graph_metadata"},
         ):
             for name in names:
                 sub_graph = {
@@ -365,6 +371,12 @@ def main(
                     gx.add_node(name, **sub_graph)
                 else:
                     gx.nodes[name].update(**sub_graph)
+
+            _make_graph_metadata(gx)
+
+            logger.info("adding run exports")
+            _add_run_exports(gx, names)
+            logger.info("done adding run exports")
 
             gx = _create_edges(gx)
 
