@@ -713,7 +713,7 @@ def _over_time_limit():
 
 def _push_pr_json_via_gh_api(pr_id: str, pr_json: dict):
     gh = github_client()
-    repo = gh.repository("conda-forge", "cf-graph-countyfair")
+    repo = gh.get_repo("conda-forge/cf-graph-countyfair")
     repo.create_file(
         get_sharded_path(f"pr_json/{pr_id}.json"),
         f"pr_json - {pr_id} - {get_bot_run_url()}",
