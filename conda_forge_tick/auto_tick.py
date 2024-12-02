@@ -767,10 +767,11 @@ def _run_migrator_on_feedstock_branch(
                         "pinning_version": mctx.pinning_version,
                     },
                 )
-            if "id" in pr_json:
-                _push_pr_json_via_gh_api(
-                    pr_json["id"], pr_json.data if hasattr(pr_json, "data") else pr_json
-                )
+
+                if "id" in pr_json:
+                    _push_pr_json_via_gh_api(
+                        pr_json["id"], pr_json.data if hasattr(pr_json, "data") else pr_json
+                    )
 
     except (github3.GitHubError, github.GithubException) as e:
         # TODO: pull this down into run() - also check the other exceptions
