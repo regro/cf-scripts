@@ -77,6 +77,8 @@ jobs:
             kwargs=""
           fi
 
+          pushd cf-scripts
+
           conda-forge-tick ${kwargs} \
             react-to-event \
             --event='${{ inputs.event }}' \
