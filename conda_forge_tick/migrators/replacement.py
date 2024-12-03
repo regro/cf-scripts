@@ -2,7 +2,7 @@ import logging
 import os
 import re
 import typing
-from typing import Any, Sequence
+from typing import Any
 
 import networkx as nx
 
@@ -77,25 +77,6 @@ class Replacement(Migrator):
         self.name = f"{old_pkg}-to-{new_pkg}"
 
         self._reset_effective_graph()
-
-    def order(
-        self,
-        graph: nx.DiGraph,
-        total_graph: nx.DiGraph,
-    ) -> Sequence["PackageName"]:
-        """Order to run migrations in
-
-        Parameters
-        ----------
-        graph : nx.DiGraph
-            The graph of migratable PRs
-
-        Returns
-        -------
-        graph : nx.DiGraph
-            The ordered graph.
-        """
-        return graph
 
     def filter(self, attrs: "AttrsTypedDict", not_bad_str_start: str = "") -> bool:
         requirements = attrs.get("requirements", {})
