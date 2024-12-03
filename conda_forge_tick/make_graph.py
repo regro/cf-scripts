@@ -211,13 +211,19 @@ def _build_graph_sequential(
             logger.error(f"Error updating node {name}", exc_info=e)
 
 
-def _add_run_exports_per_node(attrs, outputs_lut, strong_exports):
+def _get_all_deps_for_node(attrs, outputs_lut):
     # replace output package names with feedstock names via LUT
     deps = set()
     for req_section in attrs.get("requirements", {}).values():
         deps.update(
             get_deps_from_outputs_lut(req_section, outputs_lut),
         )
+
+    return deps
+
+
+def _add_run_exports_per_node(attrs, outputs_lut, strong_exports):
+    deps = _get_all_deps_for_node(attrs, outputs_lut)
 
     # handle strong run exports
     # TODO: do this per platform
@@ -241,9 +247,7 @@ def _create_edges(gx: nx.DiGraph) -> nx.DiGraph:
     all_nodes = list(gx.nodes.keys())
     for node in all_nodes:
         with gx.nodes[node]["payload"] as attrs:
-            deps = _add_run_exports_per_node(
-                attrs, gx.graph["outputs_lut"], gx.graph["strong_exports"]
-            )
+            deps = _get_all_deps_for_node(attrs, gx.graph["outputs_lut"])
 
         for dep in deps:
             if dep not in gx.nodes:
