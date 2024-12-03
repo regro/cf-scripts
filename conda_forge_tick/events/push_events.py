@@ -29,7 +29,13 @@ def _react_to_push(name: str, dry_run: bool = False) -> None:
     fname = f"node_attrs/{name}.json"
 
     with lazy_json_override_backends(["github"], use_file_cache=False):
-        attrs_data = copy.deepcopy(LazyJson(fname).data)
+        try:
+            attrs_data = copy.deepcopy(LazyJson(fname).data)
+        except KeyError as e:
+            if f"{name} not found in hashmap node_attrs" in str(e):
+                attrs_data = {}
+            else:
+                raise e
         graph_data = copy.deepcopy(LazyJson("graph.json").data)
         gx = nx.node_link_graph(graph_data, edges="links")
 
