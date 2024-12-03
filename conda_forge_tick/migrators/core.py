@@ -225,6 +225,8 @@ class Migrator:
 
     rerender = True
 
+    max_solver_attempts = 3
+
     # bump this if the migrator object needs a change mid migration
     migrator_version = 0
 
