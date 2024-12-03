@@ -286,7 +286,7 @@ def _make_graph_metadata(gx: nx.DiGraph):
         attrs["strong_exports"] = strong_exports
 
 
-def _add_run_exports(gx: nx.DiGraph, nodes_to_update: set(str)):
+def _add_run_exports(gx: nx.DiGraph, nodes_to_update: set[str]):
     with LazyJson("graph_metadata.json") as attrs:
         outputs_lut = attrs.get("outputs_lut", None)
         strong_exports = attrs.get("strong_exports", None)
