@@ -230,19 +230,6 @@ def _add_run_exports_per_node(attrs, outputs_lut, strong_exports):
 def _create_edges(gx: nx.DiGraph) -> nx.DiGraph:
     logger.info("inferring nodes and edges")
 
-    # make the outputs look up table so we can link properly
-    # and add this as an attr so we can use later
-    gx.graph["outputs_lut"] = make_outputs_lut_from_graph(gx)
-
-    # collect all of the strong run exports
-    # we add the compiler stubs so that we know when host and run
-    # envs will have compiler-related packages in them
-    strong_exports = {
-        node_name
-        for node_name, node in gx.nodes.items()
-        if node.get("payload").get("strong_exports", False)
-    } | set(COMPILER_STUBS_WITH_STRONG_EXPORTS)
-
     # This drops all the edge data and only keeps the node data
     gx = nx.create_empty_copy(gx)
 
@@ -252,7 +239,7 @@ def _create_edges(gx: nx.DiGraph) -> nx.DiGraph:
     for node in all_nodes:
         with gx.nodes[node]["payload"] as attrs:
             deps = _add_run_exports_per_node(
-                attrs, gx.graph["outputs_lut"], strong_exports
+                attrs, gx.graph["outputs_lut"], gx.graph["strong_exports"]
             )
 
         for dep in deps:
@@ -269,44 +256,31 @@ def _create_edges(gx: nx.DiGraph) -> nx.DiGraph:
     return gx
 
 
-def _make_graph_metadata(gx: nx.DiGraph):
-    outputs_lut = make_outputs_lut_from_graph(gx)
+def _add_graph_metadata(gx: nx.DiGraph):
+    logger.info("adding graph metadata")
+
+    # make the outputs look up table so we can link properly
+    # and add this as an attr so we can use later
+    gx.graph["outputs_lut"] = make_outputs_lut_from_graph(gx)
 
     # collect all of the strong run exports
     # we add the compiler stubs so that we know when host and run
     # envs will have compiler-related packages in them
-    strong_exports = {
+    gx.graph["strong_exports"] = {
         node_name
         for node_name, node in gx.nodes.items()
         if node.get("payload").get("strong_exports", False)
     } | set(COMPILER_STUBS_WITH_STRONG_EXPORTS)
 
-    with LazyJson("graph_metadata.json") as attrs:
-        attrs["outputs_lut"] = outputs_lut
-        attrs["strong_exports"] = strong_exports
-
 
 def _add_run_exports(gx: nx.DiGraph, nodes_to_update: set[str]):
-    with LazyJson("graph_metadata.json") as attrs:
-        outputs_lut = attrs.get("outputs_lut", None)
-        strong_exports = attrs.get("strong_exports", None)
-
-    if outputs_lut is None:
-        outputs_lut = make_outputs_lut_from_graph(gx)
-
-    if strong_exports is None:
-        # collect all of the strong run exports
-        # we add the compiler stubs so that we know when host and run
-        # envs will have compiler-related packages in them
-        strong_exports = {
-            node_name
-            for node_name, node in gx.nodes.items()
-            if node.get("payload").get("strong_exports", False)
-        } | set(COMPILER_STUBS_WITH_STRONG_EXPORTS)
+    logger.info("adding run exports")
 
     for node in nodes_to_update:
         with gx.nodes[node]["payload"] as attrs:
-            _add_run_exports_per_node(attrs, outputs_lut, strong_exports)
+            _add_run_exports_per_node(
+                attrs, gx.graph["outputs_lut"], gx.graph["strong_exports"]
+            )
 
 
 def _update_graph_nodes(
@@ -360,8 +334,8 @@ def main(
         new_names = [name for name in names if name not in gx.nodes]
         with lazy_json_override_backends(
             ["file"],
-            hashmaps_to_sync=["node_attrs", "lazy_json"],
-            keys_to_sync=set(tot_names_for_this_job) | {"graph_metadata"},
+            hashmaps_to_sync=["node_attrs"],
+            keys_to_sync=set(tot_names_for_this_job),
         ):
             for name in names:
                 sub_graph = {
@@ -372,11 +346,9 @@ def main(
                 else:
                     gx.nodes[name].update(**sub_graph)
 
-            _make_graph_metadata(gx)
+            _add_graph_metadata(gx)
 
-            logger.info("adding run exports")
             _add_run_exports(gx, names)
-            logger.info("done adding run exports")
 
             gx = _create_edges(gx)
 
