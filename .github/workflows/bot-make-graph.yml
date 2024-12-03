@@ -13,7 +13,7 @@ jobs:
     runs-on: "ubuntu-latest"
     strategy:
       matrix:
-        job_num: [ 1, 2, 3 ]
+        job_num: [ 1, 2, 3, 4, 5, 6 ]
     defaults:
       run:
         shell: bash -leo pipefail {0}
@@ -56,7 +56,7 @@ jobs:
         run: |
           pushd cf-graph
 
-          conda-forge-tick make-graph --job=${BOT_JOB} --n-jobs=3
+          conda-forge-tick make-graph --job=${BOT_JOB} --n-jobs=6
         env:
           CF_TICK_GRAPH_DATA_BACKENDS: "${{ vars.CF_TICK_GRAPH_DATA_BACKENDS }}"
           MONGODB_CONNECTION_STRING: ${{ secrets.MONGODB_CONNECTION_STRING }}

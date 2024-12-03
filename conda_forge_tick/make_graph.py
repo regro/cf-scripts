@@ -89,6 +89,7 @@ def try_load_feedstock(name: str, attrs: LazyJson, mark_not_archived=False) -> L
             data["parsing_error"] = False
         attrs.clear()
         attrs.update(data)
+        attrs["last_updated"] = int(time.time())
     except Exception as e:
         import traceback
 

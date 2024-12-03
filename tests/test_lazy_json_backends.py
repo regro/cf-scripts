@@ -1,8 +1,12 @@
+import base64
 import hashlib
 import json
 import logging
 import os
 import pickle
+import tempfile
+import time
+import uuid
 from unittest import mock
 from unittest.mock import MagicMock
 
@@ -10,6 +14,7 @@ import pytest
 
 import conda_forge_tick
 import conda_forge_tick.utils
+from conda_forge_tick.git_utils import github_client
 from conda_forge_tick.lazy_json_backends import (
     CF_TICK_GRAPH_GITHUB_BACKEND_BASE_URL,
     LAZY_JSON_BACKENDS,
@@ -27,6 +32,7 @@ from conda_forge_tick.lazy_json_backends import (
     lazy_json_transaction,
     load,
     loads,
+    push_lazy_json_via_gh_api,
     remove_key_for_hashmap,
     sync_lazy_json_across_backends,
 )
@@ -771,3 +777,57 @@ def test_github_offline_hget_not_found(
 def test_github_online_hget_not_found(name: str, key: str):
     with pytest.raises(KeyError):
         GithubLazyJsonBackend().hget(name, key)
+
+
+@pytest.mark.skipif(
+    ("CF_TICK_LIVE_TEST" not in os.environ)
+    or (os.environ["CF_TICK_LIVE_TEST"] not in ["true", 1, "1"]),
+    reason="Live bot tests not enabled.",
+)
+def test_push_lazy_json_via_gh_api():
+    uid = uuid.uuid4().hex
+    fname = f"test_file_h{uid}.json"
+
+    try:
+        with (
+            tempfile.TemporaryDirectory() as tmpdir,
+            pushd(str(tmpdir)),
+            lazy_json_override_backends(["file"]),
+        ):
+            lzj = LazyJson(fname)
+            with lzj:
+                lzj["uid"] = uid
+
+            gh = github_client()
+            repo = gh.get_repo("regro/cf-graph-countyfair")
+
+            push_lazy_json_via_gh_api(lzj)
+            print("sleeping for 5 seconds to allow github to update", flush=True)
+            time.sleep(5)
+            curr_data = base64.b64decode(
+                repo.get_contents(fname).content.encode("utf-8")
+            ).decode("utf-8")
+            assert json.loads(curr_data) == lzj.data
+
+            with lzj:
+                lzj["uid"] = "new_uid"
+
+            push_lazy_json_via_gh_api(lzj)
+            print("sleeping for 5 seconds to allow github to update", flush=True)
+            time.sleep(5)
+            curr_data = base64.b64decode(
+                repo.get_contents(fname).content.encode("utf-8")
+            ).decode("utf-8")
+            assert json.loads(curr_data) == lzj.data
+    finally:
+        message = f"remove file {fname} from testing"
+        for tr in range(10):
+            try:
+                contents = repo.get_contents(fname)
+                repo.delete_file(fname, message, contents.sha)
+                break
+            except Exception as e:
+                if tr == 9:
+                    raise e
+                else:
+                    pass
