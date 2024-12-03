@@ -1,6 +1,7 @@
 import copy
 import tempfile
 
+import networkx as nx
 import requests
 
 from conda_forge_tick.lazy_json_backends import (
@@ -8,7 +9,11 @@ from conda_forge_tick.lazy_json_backends import (
     lazy_json_override_backends,
     push_lazy_json_via_gh_api,
 )
-from conda_forge_tick.make_graph import _migrate_schema, try_load_feedstock
+from conda_forge_tick.make_graph import (
+    _add_run_exports_per_node,
+    _migrate_schema,
+    try_load_feedstock,
+)
 
 
 def _get_archived_feedstocks():
@@ -25,6 +30,8 @@ def _react_to_push(name: str, dry_run: bool = False) -> None:
 
     with lazy_json_override_backends(["github"], use_file_cache=False):
         attrs_data = copy.deepcopy(LazyJson(fname).data)
+        graph_data = copy.deepcopy(LazyJson("graph.json").data)
+        gx = nx.node_link_graph(graph_data, edges="links")
 
     with tempfile.TemporaryDirectory():
         with lazy_json_override_backends(["file"]):
@@ -39,6 +46,15 @@ def _react_to_push(name: str, dry_run: bool = False) -> None:
                     try_load_feedstock(name, attrs, mark_not_archived=True)
                 else:
                     print("dry run - loading feedstock", flush=True)
+
+                if not dry_run:
+                    _add_run_exports_per_node(
+                        attrs,
+                        gx.graph["outputs_lut"],
+                        gx.graph["strong_exports"],
+                    )
+                else:
+                    print("dry run - adding run exports", flush=True)
 
                 if not dry_run:
                     _migrate_schema(name, attrs)
