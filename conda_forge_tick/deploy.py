@@ -11,6 +11,48 @@ def _run_git_cmd(cmd, **kwargs):
     return subprocess.run(["git"] + cmd, check=True, **kwargs)
 
 
+def _pull_changes(batch):
+    r = subprocess.run(
+        ["git", "pull", "-s", "recursive", "-X", "theirs"],
+        text=True,
+        capture_output=True,
+    )
+    n_added = 0
+    if r.returncode != 0:
+        files_to_commit = []
+        for line in r.stderr.splitlines() + r.stdout.splitlines():
+            if "following files would be overwritten by merge" in line.lower():
+                in_section = True
+                continue
+
+            if "commit your changes or stash them before you merge" in line.lower():
+                in_section = False
+                continue
+
+            if in_section:
+                fname = line.strip()
+                if os.path.exists(fname):
+                    files_to_commit.append(fname)
+
+        for fname in files_to_commit:
+            n_added += 1
+            _run_git_cmd(["add", fname])
+
+        if files_to_commit:
+            _step_name = os.environ.get("GITHUB_WORKFLOW", "update graph")
+            _run_git_cmd(
+                [
+                    "commit",
+                    "-m",
+                    f"{_step_name} - conflicts for batch {batch: >3d} - {get_bot_run_url()}",
+                ],
+            )
+
+        _run_git_cmd(["pull", "-s", "recursive", "-X", "theirs"])
+
+    return n_added
+
+
 def _deploy_batch(*, files_to_add, batch, n_added, max_per_batch=200):
     n_added_this_batch = 0
     while files_to_add and n_added_this_batch < max_per_batch:
@@ -52,7 +94,9 @@ def _deploy_batch(*, files_to_add, batch, n_added, max_per_batch=200):
         while status != 0 and num_try < 10 and graph_ok:
             try:
                 print("\n\n>>>>>>>>>>>> git pull try %d\n\n" % num_try, flush=True)
-                _run_git_cmd(["pull", "-s", "recursive", "-X", "theirs"])
+                _n_added = _pull_changes(batch)
+                n_added += _n_added
+                n_added_this_batch += _n_added
             except Exception as e:
                 print(
                     "\n\n>>>>>>>>>>>> git pull try %d failed: %s \n\n" % (num_try, e),
