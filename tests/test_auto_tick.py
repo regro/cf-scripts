@@ -1,6 +1,11 @@
+import base64
 import copy
+import json
 import logging
+import os
 import tempfile
+import time
+import uuid
 from pathlib import Path
 from unittest import mock
 from unittest.mock import ANY, MagicMock, create_autospec
@@ -11,6 +16,7 @@ from conftest import FakeLazyJson
 from conda_forge_tick.auto_tick import (
     _commit_migration,
     _prepare_feedstock_repository,
+    _push_file_via_gh_api,
     run_with_tmpdir,
 )
 from conda_forge_tick.contexts import ClonedFeedstockContext, FeedstockContext
@@ -20,6 +26,7 @@ from conda_forge_tick.git_utils import (
     GitCliError,
     GitPlatformBackend,
     RepositoryNotFoundError,
+    github_client,
 )
 
 demo_attrs = {"conda-forge.yml": {"provider": {"default_branch": "main"}}}
@@ -342,3 +349,46 @@ def test_run_with_tmpdir(
 
     assert cloned_context.feedstock_name == context.feedstock_name
     assert cloned_context.default_branch == context.default_branch
+
+
+@pytest.mark.skipif(
+    ("CF_TICK_LIVE_TEST" not in os.environ)
+    or (os.environ["CF_TICK_LIVE_TEST"] not in ["true", 1, "1"]),
+    reason="Live bot tests not enabled.",
+)
+def test_push_file_via_gh_api():
+    try:
+        uid = uuid.uuid4().hex
+        fname = f"test_file_h{uid}.json"
+        json_data = {"uid": uid}
+        gh = github_client()
+        repo = gh.get_repo("regro/cf-graph-countyfair")
+
+        _push_file_via_gh_api(fname, json_data)
+        print("sleeping for 5 seconds to allow github to update", flush=True)
+        time.sleep(5)
+        curr_data = base64.b64decode(
+            repo.get_contents(fname).content.encode("utf-8")
+        ).decode("utf-8")
+        assert json.loads(curr_data) == json_data
+
+        json_data["uid"] = "new_uid"
+        _push_file_via_gh_api(fname, json_data)
+        print("sleeping for 5 seconds to allow github to update", flush=True)
+        time.sleep(5)
+        curr_data = base64.b64decode(
+            repo.get_contents(fname).content.encode("utf-8")
+        ).decode("utf-8")
+        assert json.loads(curr_data) == json_data
+    finally:
+        message = f"remove file {fname} from testing"
+        for tr in range(10):
+            try:
+                contents = repo.get_contents(fname)
+                repo.delete_file(fname, message, contents.sha)
+                break
+            except Exception as e:
+                if tr == 9:
+                    raise e
+                else:
+                    pass

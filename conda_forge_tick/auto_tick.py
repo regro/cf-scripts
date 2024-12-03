@@ -711,22 +711,40 @@ def _over_time_limit():
     return _now - START_TIME > TIMEOUT
 
 
+def _get_pth_blob_sha(pth, gh):
+    try:
+        return gh.get_repo("regro/cf-graph-countyfair").get_contents(pth).sha
+    except Exception:
+        return None
+
+
 def _push_file_via_gh_api(filename: str, json_data: dict):
     bn, fn = os.path.split(filename)
     if fn.endswith(".json"):
         fn = fn[:-5]
     data = dumps(json_data)
+    pth = get_sharded_path(filename)
+    msg = f"{bn} - {fn} - {get_bot_run_url()}"
 
     gh = github_client()
     repo = gh.get_repo("regro/cf-graph-countyfair")
     ntries = 10
     for tr in range(ntries):
         try:
-            repo.create_file(
-                get_sharded_path(filename),
-                f"{bn} - {fn} - {get_bot_run_url()}",
-                data,
-            )
+            sha = _get_pth_blob_sha(pth, gh)
+            if sha is None:
+                repo.create_file(
+                    pth,
+                    msg,
+                    data,
+                )
+            else:
+                repo.update_file(
+                    pth,
+                    msg,
+                    data,
+                    sha,
+                )
             break
         except Exception as e:
             logger.warning(
