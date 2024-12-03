@@ -4,16 +4,13 @@ import tempfile
 from conda_forge_tick.git_utils import (
     close_out_dirty_prs,
     close_out_labels,
-    github_client,
     refresh_pr,
 )
 from conda_forge_tick.lazy_json_backends import (
     LazyJson,
-    dumps,
-    get_sharded_path,
     lazy_json_override_backends,
+    push_lazy_json_via_gh_api,
 )
-from conda_forge_tick.utils import get_bot_run_url
 
 
 def _react_to_pr(uid: str, dry_run: bool = False) -> None:
@@ -57,17 +54,7 @@ def _react_to_pr(uid: str, dry_run: bool = False) -> None:
                     pr_json.update(pr_data)
 
             if not dry_run and updated_pr:
-                gh = github_client()
-                repo = gh.get_repo("regro/cf-graph-countyfair")
-                fpath = get_sharded_path(f"pr_json/{uid}.json")
-                message = f"event - pr {uid} - {get_bot_run_url()}"
-                cnts = repo.get_contents(fpath)
-                repo.update_file(
-                    fpath,
-                    message,
-                    dumps(pr_json.data),
-                    cnts.sha,
-                )
+                push_lazy_json_via_gh_api(pr_json)
                 print("pushed PR update", flush=True)
             else:
                 print("no changes to push", flush=True)

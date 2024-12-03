@@ -928,3 +928,55 @@ def main_cache(ctx: CliContext):
             sync_lazy_json_across_backends()
         finally:
             CF_TICK_GRAPH_DATA_BACKENDS = OLD_CF_TICK_GRAPH_DATA_BACKENDS
+
+
+def _get_pth_blob_sha(pth, gh):
+    try:
+        return gh.get_repo("regro/cf-graph-countyfair").get_contents(pth).sha
+    except Exception:
+        return None
+
+
+def push_lazy_json_via_gh_api(lzj: LazyJson):
+    from conda_forge_tick.git_utils import github_client
+    from conda_forge_tick.utils import get_bot_run_url
+
+    json_data = lzj.data
+    filename = lzj.file_name
+
+    bn, fn = os.path.split(filename)
+    if fn.endswith(".json"):
+        fn = fn[:-5]
+    data = dumps(json_data)
+    pth = get_sharded_path(filename)
+    msg = f"{bn} - {fn} - {get_bot_run_url()}"
+
+    gh = github_client()
+    repo = gh.get_repo("regro/cf-graph-countyfair")
+    ntries = 10
+    for tr in range(ntries):
+        try:
+            sha = _get_pth_blob_sha(pth, gh)
+            if sha is None:
+                repo.create_file(
+                    pth,
+                    msg,
+                    data,
+                )
+            else:
+                repo.update_file(
+                    pth,
+                    msg,
+                    data,
+                    sha,
+                )
+            break
+        except Exception as e:
+            logger.warning(
+                "failed to push '%s' - trying %d more times",
+                filename,
+                ntries - tr - 1,
+                exc_info=e,
+            )
+            if tr == ntries - 1:
+                raise e

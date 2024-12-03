@@ -37,15 +37,13 @@ from conda_forge_tick.git_utils import (
     GitPlatformBackend,
     RepositoryNotFoundError,
     github_backend,
-    github_client,
     is_github_api_limit_reached,
 )
 from conda_forge_tick.lazy_json_backends import (
     LazyJson,
-    dumps,
     get_all_keys_for_hashmap,
-    get_sharded_path,
     lazy_json_transaction,
+    push_lazy_json_via_gh_api,
     remove_key_for_hashmap,
 )
 from conda_forge_tick.make_migrators import (
@@ -619,10 +617,7 @@ def run(
             __edit_pr_lazy_json.update(**pr_data.model_dump(mode="json"))
 
         if "id" in pr_lazy_json:
-            _push_file_via_gh_api(
-                f"pr_json/{pr_lazy_json['id']}.json",
-                pr_lazy_json.data if hasattr(pr_lazy_json, "data") else pr_lazy_json,
-            )
+            push_lazy_json_via_gh_api(pr_lazy_json)
 
     else:
         pr_lazy_json = False
@@ -711,52 +706,6 @@ def _over_time_limit():
     return _now - START_TIME > TIMEOUT
 
 
-def _get_pth_blob_sha(pth, gh):
-    try:
-        return gh.get_repo("regro/cf-graph-countyfair").get_contents(pth).sha
-    except Exception:
-        return None
-
-
-def _push_file_via_gh_api(filename: str, json_data: dict):
-    bn, fn = os.path.split(filename)
-    if fn.endswith(".json"):
-        fn = fn[:-5]
-    data = dumps(json_data)
-    pth = get_sharded_path(filename)
-    msg = f"{bn} - {fn} - {get_bot_run_url()}"
-
-    gh = github_client()
-    repo = gh.get_repo("regro/cf-graph-countyfair")
-    ntries = 10
-    for tr in range(ntries):
-        try:
-            sha = _get_pth_blob_sha(pth, gh)
-            if sha is None:
-                repo.create_file(
-                    pth,
-                    msg,
-                    data,
-                )
-            else:
-                repo.update_file(
-                    pth,
-                    msg,
-                    data,
-                    sha,
-                )
-            break
-        except Exception as e:
-            logger.warning(
-                "failed to push '%s' - trying %d more times",
-                filename,
-                ntries - tr - 1,
-                exc_info=e,
-            )
-            if tr == ntries - 1:
-                raise e
-
-
 def _run_migrator_on_feedstock_branch(
     attrs,
     base_branch,
@@ -812,7 +761,7 @@ def _run_migrator_on_feedstock_branch(
                         pri["PRed"] = []
                     pri["PRed"].append(d)
 
-                    _push_file_via_gh_api(pri.file_name, pri.data)
+                    push_lazy_json_via_gh_api(pri)
 
     except (github3.GitHubError, github.GithubException) as e:
         # TODO: pull this down into run() - also check the other exceptions

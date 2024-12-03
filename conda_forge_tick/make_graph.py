@@ -82,25 +82,28 @@ def make_outputs_lut_from_graph(gx):
     return outputs_lut
 
 
+def try_load_feedstock(name: str, attrs: LazyJson, mark_not_archived=False) -> LazyJson:
+    try:
+        data = load_feedstock(name, attrs.data, mark_not_archived=mark_not_archived)
+        if "parsing_error" not in data:
+            data["parsing_error"] = False
+        attrs.clear()
+        attrs.update(data)
+        attrs["last_updated"] = int(time.time())
+    except Exception as e:
+        import traceback
+
+        trb = traceback.format_exc()
+        attrs["parsing_error"] = sanitize_string(f"feedstock parsing error: {e}\n{trb}")
+        raise e
+
+    return attrs
+
+
 def get_attrs(name: str, mark_not_archived=False) -> LazyJson:
     lzj = LazyJson(f"node_attrs/{name}.json")
     with lzj as sub_graph:
-        try:
-            data = load_feedstock(
-                name, sub_graph.data, mark_not_archived=mark_not_archived
-            )
-            if "parsing_error" not in data:
-                data["parsing_error"] = False
-            sub_graph.clear()
-            sub_graph.update(data)
-        except Exception as e:
-            import traceback
-
-            trb = traceback.format_exc()
-            sub_graph["parsing_error"] = sanitize_string(
-                f"feedstock parsing error: {e}\n{trb}"
-            )
-            raise e
+        try_load_feedstock(name, sub_graph, mark_not_archived=mark_not_archived)
 
     return lzj
 
@@ -348,14 +351,12 @@ def main(
 
             _add_graph_metadata(gx)
 
-            _add_run_exports(gx, names)
-
             gx = _create_edges(gx)
-
-            _migrate_schemas(tot_names)
 
         dump_graph(gx)
     else:
+        gx = load_graph()
+
         with lazy_json_override_backends(
             ["file"],
             hashmaps_to_sync=["node_attrs"],
@@ -366,6 +367,7 @@ def main(
                 mark_not_archived=True,
                 debug=ctx.debug,
             )
+            _add_run_exports(gx, names_for_this_job)
 
             _update_nodes_with_archived(
                 archived_names_for_this_job,
