@@ -82,25 +82,28 @@ def make_outputs_lut_from_graph(gx):
     return outputs_lut
 
 
+def try_load_feedstock(name: str, attrs: LazyJson, mark_not_archived=False) -> LazyJson:
+    try:
+        data = load_feedstock(name, attrs.data, mark_not_archived=mark_not_archived)
+        if "parsing_error" not in data:
+            data["parsing_error"] = False
+        attrs.clear()
+        attrs.update(data)
+        attrs["last_updated"] = int(time.time())
+    except Exception as e:
+        import traceback
+
+        trb = traceback.format_exc()
+        attrs["parsing_error"] = sanitize_string(f"feedstock parsing error: {e}\n{trb}")
+        raise e
+
+    return attrs
+
+
 def get_attrs(name: str, mark_not_archived=False) -> LazyJson:
     lzj = LazyJson(f"node_attrs/{name}.json")
     with lzj as sub_graph:
-        try:
-            data = load_feedstock(
-                name, sub_graph.data, mark_not_archived=mark_not_archived
-            )
-            if "parsing_error" not in data:
-                data["parsing_error"] = False
-            sub_graph.clear()
-            sub_graph.update(data)
-        except Exception as e:
-            import traceback
-
-            trb = traceback.format_exc()
-            sub_graph["parsing_error"] = sanitize_string(
-                f"feedstock parsing error: {e}\n{trb}"
-            )
-            raise e
+        try_load_feedstock(name, sub_graph, mark_not_archived=mark_not_archived)
 
     return lzj
 
@@ -208,13 +211,19 @@ def _build_graph_sequential(
             logger.error(f"Error updating node {name}", exc_info=e)
 
 
-def _add_run_exports_per_node(attrs, outputs_lut, strong_exports):
+def _get_all_deps_for_node(attrs, outputs_lut):
     # replace output package names with feedstock names via LUT
     deps = set()
     for req_section in attrs.get("requirements", {}).values():
         deps.update(
             get_deps_from_outputs_lut(req_section, outputs_lut),
         )
+
+    return deps
+
+
+def _add_run_exports_per_node(attrs, outputs_lut, strong_exports):
+    deps = _get_all_deps_for_node(attrs, outputs_lut)
 
     # handle strong run exports
     # TODO: do this per platform
@@ -230,19 +239,6 @@ def _add_run_exports_per_node(attrs, outputs_lut, strong_exports):
 def _create_edges(gx: nx.DiGraph) -> nx.DiGraph:
     logger.info("inferring nodes and edges")
 
-    # make the outputs look up table so we can link properly
-    # and add this as an attr so we can use later
-    gx.graph["outputs_lut"] = make_outputs_lut_from_graph(gx)
-
-    # collect all of the strong run exports
-    # we add the compiler stubs so that we know when host and run
-    # envs will have compiler-related packages in them
-    strong_exports = {
-        node_name
-        for node_name, node in gx.nodes.items()
-        if node.get("payload").get("strong_exports", False)
-    } | set(COMPILER_STUBS_WITH_STRONG_EXPORTS)
-
     # This drops all the edge data and only keeps the node data
     gx = nx.create_empty_copy(gx)
 
@@ -251,9 +247,7 @@ def _create_edges(gx: nx.DiGraph) -> nx.DiGraph:
     all_nodes = list(gx.nodes.keys())
     for node in all_nodes:
         with gx.nodes[node]["payload"] as attrs:
-            deps = _add_run_exports_per_node(
-                attrs, gx.graph["outputs_lut"], strong_exports
-            )
+            deps = _get_all_deps_for_node(attrs, gx.graph["outputs_lut"])
 
         for dep in deps:
             if dep not in gx.nodes:
@@ -269,33 +263,31 @@ def _create_edges(gx: nx.DiGraph) -> nx.DiGraph:
     return gx
 
 
-def _add_run_exports(nodes_to_update):
-    gx = load_graph()
+def _add_graph_metadata(gx: nx.DiGraph):
+    logger.info("adding graph metadata")
 
-    new_names = [name for name in nodes_to_update if name not in gx.nodes]
-    for name in nodes_to_update:
-        sub_graph = {
-            "payload": LazyJson(f"node_attrs/{name}.json"),
-        }
-        if name in new_names:
-            gx.add_node(name, **sub_graph)
-        else:
-            gx.nodes[name].update(**sub_graph)
-
-    outputs_lut = make_outputs_lut_from_graph(gx)
+    # make the outputs look up table so we can link properly
+    # and add this as an attr so we can use later
+    gx.graph["outputs_lut"] = make_outputs_lut_from_graph(gx)
 
     # collect all of the strong run exports
     # we add the compiler stubs so that we know when host and run
     # envs will have compiler-related packages in them
-    strong_exports = {
+    gx.graph["strong_exports"] = {
         node_name
         for node_name, node in gx.nodes.items()
         if node.get("payload").get("strong_exports", False)
     } | set(COMPILER_STUBS_WITH_STRONG_EXPORTS)
 
+
+def _add_run_exports(gx: nx.DiGraph, nodes_to_update: set[str]):
+    logger.info("adding run exports")
+
     for node in nodes_to_update:
         with gx.nodes[node]["payload"] as attrs:
-            _add_run_exports_per_node(attrs, outputs_lut, strong_exports)
+            _add_run_exports_per_node(
+                attrs, gx.graph["outputs_lut"], gx.graph["strong_exports"]
+            )
 
 
 def _update_graph_nodes(
@@ -310,11 +302,6 @@ def _update_graph_nodes(
         mark_not_archived=mark_not_archived,
     )
     logger.info("feedstock fetch loop completed")
-
-    logger.info("adding run exports")
-    _add_run_exports(names)
-    logger.info("done adding run exports")
-
     logger.info(f"memory usage: {psutil.virtual_memory()}")
 
 
@@ -366,12 +353,14 @@ def main(
                 else:
                     gx.nodes[name].update(**sub_graph)
 
-            gx = _create_edges(gx)
+            _add_graph_metadata(gx)
 
-            _migrate_schemas(tot_names)
+            gx = _create_edges(gx)
 
         dump_graph(gx)
     else:
+        gx = load_graph()
+
         with lazy_json_override_backends(
             ["file"],
             hashmaps_to_sync=["node_attrs"],
@@ -382,6 +371,7 @@ def main(
                 mark_not_archived=True,
                 debug=ctx.debug,
             )
+            _add_run_exports(gx, names_for_this_job)
 
             _update_nodes_with_archived(
                 archived_names_for_this_job,

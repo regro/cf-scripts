@@ -1,19 +1,32 @@
-name: bot-versions
+name: bot-events
+
+run-name: 'event: ${{ inputs.event }} ${{ inputs.uid }}'
 
 on:
-  schedule:
-    - cron: '15,45 * * * *'
-  workflow_dispatch: null
-
-concurrency: versions
+  workflow_dispatch:
+    inputs:
+      event:
+        description: 'The github event.'
+        required: true
+        default: null
+        type: choice
+        options:
+          - pr
+          - push
+      uid:
+        description: 'The unique id of the event. For PRs, this is the PR number. For pushes, this is the feedstock name.'
+        required: true
+        type: string
+      dry-run:
+        description: 'Run the bot in `dry-run` mode, making no changes.'
+        required: false
+        default: false
+        type: boolean
 
 jobs:
-  versions:
-    name: versions
+  react-to-event:
+    name: react-to-event
     runs-on: "ubuntu-latest"
-    strategy:
-      matrix:
-        job_num: [ 1, 2, 3, 4, 5, 6 ]
     defaults:
       run:
         shell: bash -leo pipefail {0}
@@ -32,6 +45,7 @@ jobs:
         with:
           ref: ${{ steps.latest_release.outputs.tag_name }}
           path: cf-scripts
+          token: ${{ secrets.AUTOTICK_BOT_TOKEN }}
 
       - uses: mamba-org/setup-micromamba@06375d89d211a1232ef63355742e9e2e564bc7f7 # v1
         with:
@@ -47,38 +61,31 @@ jobs:
       - name: install bot code
         if: success() && ! env.CI_SKIP
         run: |
-          source cf-scripts/autotick-bot/install_bot_code.sh
+          source cf-scripts/autotick-bot/install_bot_code.sh \
+            --no-clone-graph \
+            --no-clean-disk-space \
+            --no-pull-container
         env:
           BOT_TOKEN: ${{ secrets.AUTOTICK_BOT_TOKEN }}
 
-      - name: get versions
+      - name: react to event
         if: success() && ! env.CI_SKIP
         run: |
-          pushd cf-graph
-
-          conda-forge-tick update-upstream-versions --job=${BOT_JOB} --n-jobs=6
-        env:
-          BOT_JOB: ${{ matrix.job_num }}
-          CF_TICK_GRAPH_DATA_BACKENDS: "${{ vars.CF_TICK_GRAPH_DATA_BACKENDS }}"
-          MONGODB_CONNECTION_STRING: ${{ secrets.MONGODB_CONNECTION_STRING }}
-
-      - name: deploy
-        if: github.ref == 'refs/heads/main' && ! cancelled() && ! env.CI_SKIP
-        run: |
-          pushd cf-graph
-
           export RUN_URL="https://github.com/regro/cf-scripts/actions/runs/${RUN_ID}"
-          conda-forge-tick deploy-to-github
-        env:
-          BOT_TOKEN: ${{ secrets.AUTOTICK_BOT_TOKEN }}
-          RUN_ID: ${{ github.run_id }}
+          if [[ '${{ github.event.inputs.dry-run}}' == 'true' ]]; then
+            kwargs="--dry-run"
+          else
+            kwargs=""
+          fi
 
-      - name: bump on fail
-        if: github.ref == 'refs/heads/main' && failure() && ! env.CI_SKIP
-        run: |
-          export ACTION_URL="https://github.com/regro/cf-scripts/actions/runs/${RUN_ID}"
-          python cf-scripts/autotick-bot/bump_bot_team.py
+          pushd cf-scripts
+
+          conda-forge-tick ${kwargs} \
+            react-to-event \
+            --event='${{ inputs.event }}' \
+            --uid='${{ inputs.uid }}'
         env:
           BOT_TOKEN: ${{ secrets.AUTOTICK_BOT_TOKEN }}
           RUN_ID: ${{ github.run_id }}
-          ACTION_NAME: ${{ github.workflow }}
+          # emptied at the beginning and end of each run, used by Python tempdir
+          TMPDIR: ${{ runner.temp }}

@@ -250,6 +250,36 @@ def make_migrators(
     _make_migrators.main(ctx)
 
 
+@main.command(name="react-to-event")
+@click.option(
+    "--event",
+    required=True,
+    help="The event to react to.",
+    type=click.Choice(["pr", "push"]),
+)
+@click.option(
+    "--uid",
+    required=True,
+    help=(
+        "The unique identifier of the event. It is the PR "
+        "id for PR events or the feedstock name for push events"
+    ),
+    type=str,
+)
+@pass_context
+def react_to_event(
+    ctx: CliContext,
+    event: str,
+    uid: str,
+) -> None:
+    """
+    React to an event.
+    """
+    from .events import react_to_event
+
+    react_to_event(ctx, event, uid)
+
+
 if __name__ == "__main__":
     # This entrypoint can be used for debugging.
     # click will read the command line arguments and call the corresponding
