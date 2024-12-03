@@ -351,14 +351,12 @@ def main(
 
             _add_graph_metadata(gx)
 
-            _add_run_exports(gx, names)
-
             gx = _create_edges(gx)
-
-            _migrate_schemas(tot_names)
 
         dump_graph(gx)
     else:
+        gx = load_graph()
+
         with lazy_json_override_backends(
             ["file"],
             hashmaps_to_sync=["node_attrs"],
@@ -369,6 +367,7 @@ def main(
                 mark_not_archived=True,
                 debug=ctx.debug,
             )
+            _add_run_exports(gx, names_for_this_job)
 
             _update_nodes_with_archived(
                 archived_names_for_this_job,
