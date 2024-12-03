@@ -3,6 +3,7 @@
 import copy
 import datetime
 import logging
+import random
 import re
 import typing
 from pathlib import Path
@@ -14,7 +15,6 @@ import networkx as nx
 from conda_forge_tick.contexts import ClonedFeedstockContext, FeedstockContext
 from conda_forge_tick.lazy_json_backends import LazyJson
 from conda_forge_tick.make_graph import make_outputs_lut_from_graph
-from conda_forge_tick.path_lengths import cyclic_topological_sort
 from conda_forge_tick.update_recipe import update_build_number, v1_recipe
 from conda_forge_tick.utils import (
     frozen_to_json_friendly,
@@ -574,24 +574,48 @@ class Migrator:
         graph: nx.DiGraph,
         total_graph: nx.DiGraph,
     ) -> Sequence["PackageName"]:
-        """Order to run migrations in
+        """Run the order by number of decedents, ties are resolved by package name"""
 
-        Parameters
-        ----------
-        graph : nx.DiGraph
-            The graph of migratable PRs
+        if hasattr(self, "name"):
+            assert isinstance(self.name, str)
+            migrator_name = self.name.lower().replace(" ", "")
+        else:
+            migrator_name = self.__class__.__name__.lower()
 
-        Returns
-        -------
+        def _not_has_error(node):
+            if migrator_name in total_graph.nodes[node]["payload"].get(
+                "pr_info",
+                {},
+            ).get("pre_pr_migrator_status", {}) and (
+                total_graph.nodes[node]["payload"]
+                .get("pr_info", {})
+                .get(
+                    "pre_pr_migrator_attempts",
+                    {},
+                )
+                .get(
+                    migrator_name,
+                    self.max_solver_attempts,
+                )
+                >= self.max_solver_attempts
+            ):
+                return 0
+            else:
+                return 1
 
-        """
-        top_level = {
-            node
-            for node in graph
-            if not list(graph.predecessors(node))
-            or list(graph.predecessors(node)) == [node]
-        }
-        return cyclic_topological_sort(graph, top_level)
+        return sorted(
+            graph,
+            key=lambda x: (
+                _not_has_error(x),
+                (
+                    random.uniform(0, 1)
+                    if not _not_has_error(x)
+                    else len(nx.descendants(total_graph, x))
+                ),
+                x,
+            ),
+            reverse=True,
+        )
 
     def set_build_number(self, filename: str | Path) -> None:
         """Bump the build number of the specified recipe.

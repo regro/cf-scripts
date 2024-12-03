@@ -1,7 +1,6 @@
 import copy
 import logging
 import os
-import random
 import re
 import time
 import typing
@@ -388,54 +387,6 @@ class MigrationYaml(GraphMigrator):
         n = super().migrator_uid(attrs)
         n["name"] = self.name
         return n
-
-    def order(
-        self,
-        graph: nx.DiGraph,
-        total_graph: nx.DiGraph,
-    ) -> Sequence["PackageName"]:
-        """Run the order by number of decedents, ties are resolved by package name"""
-
-        if hasattr(self, "name"):
-            assert isinstance(self.name, str)
-            migrator_name = self.name.lower().replace(" ", "")
-        else:
-            migrator_name = self.__class__.__name__.lower()
-
-        def _not_has_error(node):
-            if migrator_name in total_graph.nodes[node]["payload"].get(
-                "pr_info",
-                {},
-            ).get("pre_pr_migrator_status", {}) and (
-                total_graph.nodes[node]["payload"]
-                .get("pr_info", {})
-                .get(
-                    "pre_pr_migrator_attempts",
-                    {},
-                )
-                .get(
-                    migrator_name,
-                    3,
-                )
-                >= self.max_solver_attempts
-            ):
-                return 0
-            else:
-                return 1
-
-        return sorted(
-            graph,
-            key=lambda x: (
-                _not_has_error(x),
-                (
-                    random.uniform(0, 1)
-                    if not _not_has_error(x)
-                    else len(nx.descendants(total_graph, x))
-                ),
-                x,
-            ),
-            reverse=True,
-        )
 
 
 class MigrationYamlCreator(Migrator):
