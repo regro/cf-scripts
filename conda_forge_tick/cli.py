@@ -255,7 +255,7 @@ def make_migrators(
     "--event",
     required=True,
     help="The event to react to.",
-    type=click.Choice(["pr"]),
+    type=click.Choice(["pr", "push"]),
 )
 @click.option(
     "--uid",
