@@ -230,19 +230,6 @@ def _add_run_exports_per_node(attrs, outputs_lut, strong_exports):
 def _create_edges(gx: nx.DiGraph) -> nx.DiGraph:
     logger.info("inferring nodes and edges")
 
-    # make the outputs look up table so we can link properly
-    # and add this as an attr so we can use later
-    gx.graph["outputs_lut"] = make_outputs_lut_from_graph(gx)
-
-    # collect all of the strong run exports
-    # we add the compiler stubs so that we know when host and run
-    # envs will have compiler-related packages in them
-    strong_exports = {
-        node_name
-        for node_name, node in gx.nodes.items()
-        if node.get("payload").get("strong_exports", False)
-    } | set(COMPILER_STUBS_WITH_STRONG_EXPORTS)
-
     # This drops all the edge data and only keeps the node data
     gx = nx.create_empty_copy(gx)
 
@@ -252,7 +239,7 @@ def _create_edges(gx: nx.DiGraph) -> nx.DiGraph:
     for node in all_nodes:
         with gx.nodes[node]["payload"] as attrs:
             deps = _add_run_exports_per_node(
-                attrs, gx.graph["outputs_lut"], strong_exports
+                attrs, gx.graph["outputs_lut"], gx.graph["strong_exports"]
             )
 
         for dep in deps:
@@ -269,33 +256,31 @@ def _create_edges(gx: nx.DiGraph) -> nx.DiGraph:
     return gx
 
 
-def _add_run_exports(nodes_to_update):
-    gx = load_graph()
+def _add_graph_metadata(gx: nx.DiGraph):
+    logger.info("adding graph metadata")
 
-    new_names = [name for name in nodes_to_update if name not in gx.nodes]
-    for name in nodes_to_update:
-        sub_graph = {
-            "payload": LazyJson(f"node_attrs/{name}.json"),
-        }
-        if name in new_names:
-            gx.add_node(name, **sub_graph)
-        else:
-            gx.nodes[name].update(**sub_graph)
-
-    outputs_lut = make_outputs_lut_from_graph(gx)
+    # make the outputs look up table so we can link properly
+    # and add this as an attr so we can use later
+    gx.graph["outputs_lut"] = make_outputs_lut_from_graph(gx)
 
     # collect all of the strong run exports
     # we add the compiler stubs so that we know when host and run
     # envs will have compiler-related packages in them
-    strong_exports = {
+    gx.graph["strong_exports"] = {
         node_name
         for node_name, node in gx.nodes.items()
         if node.get("payload").get("strong_exports", False)
     } | set(COMPILER_STUBS_WITH_STRONG_EXPORTS)
 
+
+def _add_run_exports(gx: nx.DiGraph, nodes_to_update: set[str]):
+    logger.info("adding run exports")
+
     for node in nodes_to_update:
         with gx.nodes[node]["payload"] as attrs:
-            _add_run_exports_per_node(attrs, outputs_lut, strong_exports)
+            _add_run_exports_per_node(
+                attrs, gx.graph["outputs_lut"], gx.graph["strong_exports"]
+            )
 
 
 def _update_graph_nodes(
@@ -310,11 +295,6 @@ def _update_graph_nodes(
         mark_not_archived=mark_not_archived,
     )
     logger.info("feedstock fetch loop completed")
-
-    logger.info("adding run exports")
-    _add_run_exports(names)
-    logger.info("done adding run exports")
-
     logger.info(f"memory usage: {psutil.virtual_memory()}")
 
 
@@ -365,6 +345,10 @@ def main(
                     gx.add_node(name, **sub_graph)
                 else:
                     gx.nodes[name].update(**sub_graph)
+
+            _add_graph_metadata(gx)
+
+            _add_run_exports(gx, names)
 
             gx = _create_edges(gx)
 
