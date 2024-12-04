@@ -2009,39 +2009,39 @@ package:
   - category: main
     dependencies: {}
     hash:
-      md5: 4a9378989e42ff07da76921e1035cd7b
-      sha256: a96ad6b1ad20d15a588b16e05be690cc23d9c534c92fcbb77ccb8034c01217d2
+      md5: 05d8714259d65152c1e678e41f794c59
+      sha256: 370438ffd8f4cb4d4a40d892420deeba8d75375ca7234aed6ece01b4f8e3661e
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.12.04.08.48.04-hd8ed1ab_0.conda
-    version: 2024.12.04.08.48.04
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.12.04.13.11.23-hd8ed1ab_0.conda
+    version: 2024.12.04.13.11.23
   - category: main
     dependencies: {}
     hash:
-      md5: 4a9378989e42ff07da76921e1035cd7b
-      sha256: a96ad6b1ad20d15a588b16e05be690cc23d9c534c92fcbb77ccb8034c01217d2
+      md5: 05d8714259d65152c1e678e41f794c59
+      sha256: 370438ffd8f4cb4d4a40d892420deeba8d75375ca7234aed6ece01b4f8e3661e
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.12.04.08.48.04-hd8ed1ab_0.conda
-    version: 2024.12.04.08.48.04
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.12.04.13.11.23-hd8ed1ab_0.conda
+    version: 2024.12.04.13.11.23
   - category: main
     dependencies: {}
     hash:
-      md5: 4a9378989e42ff07da76921e1035cd7b
-      sha256: a96ad6b1ad20d15a588b16e05be690cc23d9c534c92fcbb77ccb8034c01217d2
+      md5: 05d8714259d65152c1e678e41f794c59
+      sha256: 370438ffd8f4cb4d4a40d892420deeba8d75375ca7234aed6ece01b4f8e3661e
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.12.04.08.48.04-hd8ed1ab_0.conda
-    version: 2024.12.04.08.48.04
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.12.04.13.11.23-hd8ed1ab_0.conda
+    version: 2024.12.04.13.11.23
   - category: main
     dependencies:
       click: '>=8'
@@ -9932,14 +9932,14 @@ package:
       typing-extensions: '>=4.6.1'
       typing_extensions: '>=4.12.2'
     hash:
-      md5: a03e28b933eaad08664b53887930cc1f
-      sha256: 30233fadbd184369569af60c4ca634f86385a8652ba63867e3f44c977750da20
+      md5: 194ef7f91286978521350f171b117f01
+      sha256: cac9eebd3d5f8d8a497a9025d756257ddc75b8b3393e6737cb45077bd744d4f8
     manager: conda
     name: pydantic
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/noarch/pydantic-2.10.2-pyh3cfb1c2_1.conda
-    version: 2.10.2
+    url: https://conda.anaconda.org/conda-forge/noarch/pydantic-2.10.3-pyh3cfb1c2_0.conda
+    version: 2.10.3
   - category: main
     dependencies:
       annotated-types: '>=0.6.0'
@@ -9948,14 +9948,14 @@ package:
       typing-extensions: '>=4.6.1'
       typing_extensions: '>=4.12.2'
     hash:
-      md5: a03e28b933eaad08664b53887930cc1f
-      sha256: 30233fadbd184369569af60c4ca634f86385a8652ba63867e3f44c977750da20
+      md5: 194ef7f91286978521350f171b117f01
+      sha256: cac9eebd3d5f8d8a497a9025d756257ddc75b8b3393e6737cb45077bd744d4f8
     manager: conda
     name: pydantic
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/noarch/pydantic-2.10.2-pyh3cfb1c2_1.conda
-    version: 2.10.2
+    url: https://conda.anaconda.org/conda-forge/noarch/pydantic-2.10.3-pyh3cfb1c2_0.conda
+    version: 2.10.3
   - category: main
     dependencies:
       annotated-types: '>=0.6.0'
@@ -9964,14 +9964,14 @@ package:
       typing-extensions: '>=4.6.1'
       typing_extensions: '>=4.12.2'
     hash:
-      md5: a03e28b933eaad08664b53887930cc1f
-      sha256: 30233fadbd184369569af60c4ca634f86385a8652ba63867e3f44c977750da20
+      md5: 194ef7f91286978521350f171b117f01
+      sha256: cac9eebd3d5f8d8a497a9025d756257ddc75b8b3393e6737cb45077bd744d4f8
     manager: conda
     name: pydantic
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/noarch/pydantic-2.10.2-pyh3cfb1c2_1.conda
-    version: 2.10.2
+    url: https://conda.anaconda.org/conda-forge/noarch/pydantic-2.10.3-pyh3cfb1c2_0.conda
+    version: 2.10.3
   - category: main
     dependencies:
       __glibc: '>=2.17,<3.0.a0'
