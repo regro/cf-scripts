@@ -19,10 +19,8 @@ def react_to_event(ctx: CliContext, event: str, uid: str) -> None:
 
         react_to_pr(uid, dry_run=ctx.dry_run)
     elif event == "push":
-        # TODO: not running this for now
-        # from .push_events import react_to_push
+        from .push_events import react_to_push
 
-        # react_to_push(uid, dry_run=ctx.dry_run)
-        pass
+        react_to_push(uid, dry_run=ctx.dry_run)
     else:
         raise RuntimeError(f"Event `{event}` w/ uid `{uid}` not recognized!")
