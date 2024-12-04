@@ -35,7 +35,7 @@ logger = logging.getLogger(__name__)
 pin_sep_pat = re.compile(r" |>|<|=|\[")
 random.seed(os.urandom(64))
 
-RANDOM_FRAC_TO_UPDATE = 0.25
+RANDOM_FRAC_TO_UPDATE = 1.1
 
 # AFAIK, go and rust do not have strong run exports and so do not need to
 # appear here
@@ -159,7 +159,8 @@ def _migrate_schema(name, sub_graph):
                             pri["bad"] = False
 
     if "parsing_error" not in sub_graph:
-        sub_graph["parsing_error"] = "make_graph: missing parsing_error key"
+        with lazy_json_transaction():
+            sub_graph["parsing_error"] = "make_graph: missing parsing_error key"
 
 
 def _build_graph_process_pool(
