@@ -82,6 +82,22 @@ def make_outputs_lut_from_graph(gx):
     return outputs_lut
 
 
+def _add_required_lazy_json_refs(attrs, name):
+    for sub_lzj in ["version_pr_info", "pr_info"]:
+        if sub_lzj not in attrs:
+            attrs[sub_lzj] = LazyJson(f"{sub_lzj}/{name}.json")
+
+    with attrs["version_pr_info"] as vpri:
+        for key in ["new_version_attempts", "new_version_errors"]:
+            if key not in vpri:
+                vpri[key] = {}
+
+    with attrs["pr_info"] as pri:
+        for key in ["pre_pr_migrator_status", "pre_pr_migrator_attempts"]:
+            if key not in pri:
+                pri[key] = {}
+
+
 def try_load_feedstock(name: str, attrs: LazyJson, mark_not_archived=False) -> LazyJson:
     try:
         data = load_feedstock(name, attrs.data, mark_not_archived=mark_not_archived)
@@ -89,6 +105,7 @@ def try_load_feedstock(name: str, attrs: LazyJson, mark_not_archived=False) -> L
             data["parsing_error"] = False
         attrs.clear()
         attrs.update(data)
+        _add_required_lazy_json_refs(attrs, name)
         attrs["last_updated"] = int(time.time())
     except Exception as e:
         import traceback
@@ -110,13 +127,14 @@ def get_attrs(name: str, mark_not_archived=False) -> LazyJson:
 
 def _migrate_schema(name, sub_graph):
     # schema migrations and fixes go here
-    if "version_pr_info" not in sub_graph:
+    with lazy_json_transaction():
+        _add_required_lazy_json_refs(sub_graph, name)
+
+    vpri_move_keys = ["new_version_attempts", "new_version_errors"]
+    if any(key in sub_graph for key in vpri_move_keys):
         with lazy_json_transaction():
-            sub_graph["version_pr_info"] = LazyJson(f"version_pr_info/{name}.json")
             with sub_graph["version_pr_info"] as vpri:
-                for key in ["new_version_attempts", "new_version_errors"]:
-                    if key not in vpri:
-                        vpri[key] = {}
+                for key in vpri_move_keys:
                     if key in sub_graph:
                         vpri[key].update(sub_graph.pop(key))
 
@@ -125,16 +143,13 @@ def _migrate_schema(name, sub_graph):
             with sub_graph["version_pr_info"] as vpri:
                 vpri["new_version"] = sub_graph.pop("new_version")
 
-    if "pr_info" not in sub_graph:
+    pre_key = "pre_pr_migrator_status"
+    pre_key_att = "pre_pr_migrator_attempts"
+    pri_move_keys = [pre_key, pre_key_att]
+    if any(key in sub_graph for key in pri_move_keys):
         with lazy_json_transaction():
-            sub_graph["pr_info"] = LazyJson(f"pr_info/{name}.json")
             with sub_graph["pr_info"] as pri:
-                pre_key = "pre_pr_migrator_status"
-                pre_key_att = "pre_pr_migrator_attempts"
-
-                for key in [pre_key, pre_key_att]:
-                    if key not in pri:
-                        pri[key] = {}
+                for key in pri_move_keys:
                     if key in sub_graph:
                         pri[key].update(sub_graph.pop(key))
 
@@ -371,7 +386,9 @@ def main(
             hashmaps_to_sync=["node_attrs"],
             keys_to_sync=set(tot_names_for_this_job),
         ):
-            if not schema_migration_only:
+            if schema_migration_only:
+                _migrate_schemas(tot_names_for_this_job)
+            else:
                 _update_graph_nodes(
                     names_for_this_job,
                     mark_not_archived=True,
@@ -382,5 +399,3 @@ def main(
                 _update_nodes_with_archived(
                     archived_names_for_this_job,
                 )
-
-            _migrate_schemas(tot_names_for_this_job)

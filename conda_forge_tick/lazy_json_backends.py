@@ -7,7 +7,7 @@ import os
 import subprocess
 import urllib
 from abc import ABC, abstractmethod
-from collections.abc import Callable, MutableMapping
+from collections.abc import Callable, Collection, MutableMapping
 from typing import (
     IO,
     Any,
@@ -829,6 +829,14 @@ class LazyJson(MutableMapping):
         self._dump(purge=True)
         self._in_context = False
 
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, LazyJson):
+            return self.file_name == other.file_name and self.data == other.data
+        elif isinstance(other, dict):
+            return self.data == other
+        else:
+            return super().__eq__(other)
+
 
 def default(obj: Any) -> Any:
     """For custom object serialization."""
@@ -937,7 +945,7 @@ def _get_pth_blob_sha(pth, gh):
         return None
 
 
-def push_lazy_json_via_gh_api(lzj: LazyJson):
+def _push_lazy_json_via_gh_api(lzj: LazyJson):
     from conda_forge_tick.git_utils import github_client
     from conda_forge_tick.utils import get_bot_run_url
 
@@ -980,3 +988,78 @@ def push_lazy_json_via_gh_api(lzj: LazyJson):
             )
             if tr == ntries - 1:
                 raise e
+
+
+def _recursive_push_lazy_json_via_gh_api(data, seen=None):
+    seen = seen or []
+
+    if isinstance(data, LazyJson):
+        _push_lazy_json_via_gh_api(data)
+
+    if isinstance(data, Mapping):
+        for v in data.values():
+            if v not in seen:
+                seen.append(v)
+                seen = _recursive_push_lazy_json_via_gh_api(v, seen=seen)
+    elif (
+        isinstance(data, Collection)
+        and not isinstance(data, str)
+        and not isinstance(data, bytes)
+    ):
+        for v in data:
+            if v not in seen:
+                seen.append(v)
+                seen = _recursive_push_lazy_json_via_gh_api(v, seen=seen)
+
+    return seen
+
+
+def push_lazy_json_via_gh_api(lzj: LazyJson, recursive: bool = False):
+    """Push a lazy json object to the cf-graph-countyfair repo via the GitHub API.
+
+    Parameters
+    ----------
+    lzj : LazyJson
+        The lazy json object to push.
+    recursive : bool, optional
+        If True, push all lazy json objects in the data structure, by default False.
+    """
+    if recursive:
+        _recursive_push_lazy_json_via_gh_api(lzj)
+    else:
+        _push_lazy_json_via_gh_api(lzj)
+
+
+def touch_all_lazy_json_refs(data, _seen=None):
+    """Touch all lazy json refs in the data structure to ensure they are loaded
+    and ready to use.
+
+    Parameters
+    ----------
+    data : Any
+        The data structure to touch. The data structure will be recursively
+        traversed to touch all LazyJson objects by calling their `data` property.
+    """
+    from collections.abc import Mapping
+
+    _seen = _seen or []
+
+    if isinstance(data, LazyJson):
+        data.data
+
+    if isinstance(data, Mapping):
+        for v in data.values():
+            if v not in _seen:
+                _seen.append(v)
+                _seen = touch_all_lazy_json_refs(v, _seen=_seen)
+    elif (
+        isinstance(data, Collection)
+        and not isinstance(data, str)
+        and not isinstance(data, bytes)
+    ):
+        for v in data:
+            if v not in _seen:
+                _seen.append(v)
+                _seen = touch_all_lazy_json_refs(v, _seen=_seen)
+
+    return _seen

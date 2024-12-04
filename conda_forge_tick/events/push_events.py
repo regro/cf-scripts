@@ -9,10 +9,10 @@ from conda_forge_tick.lazy_json_backends import (
     LazyJson,
     lazy_json_override_backends,
     push_lazy_json_via_gh_api,
+    touch_all_lazy_json_refs,
 )
 from conda_forge_tick.make_graph import (
     _add_run_exports_per_node,
-    _migrate_schema,
     try_load_feedstock,
 )
 from conda_forge_tick.os_utils import pushd
@@ -69,65 +69,57 @@ def _react_to_push(name: str, dry_run: bool = False) -> None:
     # first update the feedstocks
     _update_feedstocks(name)
 
-    # now pull down the data
-    with lazy_json_override_backends(["github"], use_file_cache=False):
-        try:
-            attrs_data = copy.deepcopy(LazyJson(fname).data)
-        except KeyError as e:
-            if f"{name} not found in hashmap node_attrs" in str(e):
-                attrs_data = {}
+    with tempfile.TemporaryDirectory() as tmpdir, pushd(str(tmpdir)):
+        # this pulls down the data
+        with lazy_json_override_backends(["github"]):
+            try:
+                attrs = LazyJson(fname)
+                touch_all_lazy_json_refs(attrs)
+            except KeyError as e:
+                if f"{name} not found in hashmap node_attrs" in str(e):
+                    attrs = None
+                else:
+                    raise e
+            graph_data = copy.deepcopy(LazyJson("graph.json").data)
+            gx = nx.node_link_graph(graph_data, edges="links")
+
+        # now update the node
+        with lazy_json_override_backends(["file"]):
+            if attrs is None:
+                attrs = LazyJson(fname)
+
+            with attrs:
+                data_before = copy.deepcopy(attrs.data)
+
+                if not dry_run:
+                    try_load_feedstock(name, attrs, mark_not_archived=True)
+                else:
+                    print("dry run - loading feedstock", flush=True)
+
+                if not dry_run:
+                    _add_run_exports_per_node(
+                        attrs,
+                        gx.graph["outputs_lut"],
+                        gx.graph["strong_exports"],
+                    )
+                else:
+                    print("dry run - adding run exports", flush=True)
+
+                if not dry_run:
+                    archived_names = _get_archived_feedstocks()
+                    if name in archived_names:
+                        attrs["archived"] = True
+                else:
+                    print("dry run - checking archived", flush=True)
+
+                if not dry_run and data_before != attrs.data:
+                    updated_node = True
+
+            if not dry_run and updated_node:
+                push_lazy_json_via_gh_api(attrs, recursive=True)
+                print("pushed node update", flush=True)
             else:
-                raise e
-        graph_data = copy.deepcopy(LazyJson("graph.json").data)
-        gx = nx.node_link_graph(graph_data, edges="links")
-
-    # now update the node
-    with (
-        tempfile.TemporaryDirectory() as tmpdir,
-        pushd(str(tmpdir)),
-        lazy_json_override_backends(["file"]),
-    ):
-        attrs = LazyJson(fname)
-        with attrs:
-            attrs.update(attrs_data)
-
-        with attrs:
-            data_before = copy.deepcopy(attrs.data)
-
-            if not dry_run:
-                try_load_feedstock(name, attrs, mark_not_archived=True)
-            else:
-                print("dry run - loading feedstock", flush=True)
-
-            if not dry_run:
-                _add_run_exports_per_node(
-                    attrs,
-                    gx.graph["outputs_lut"],
-                    gx.graph["strong_exports"],
-                )
-            else:
-                print("dry run - adding run exports", flush=True)
-
-            if not dry_run:
-                _migrate_schema(name, attrs)
-            else:
-                print("dry run - migrating schema", flush=True)
-
-            if not dry_run:
-                archived_names = _get_archived_feedstocks()
-                if name in archived_names:
-                    attrs["archived"] = True
-            else:
-                print("dry run - checking archived", flush=True)
-
-            if not dry_run and data_before != attrs.data:
-                updated_node = True
-
-        if not dry_run and updated_node:
-            push_lazy_json_via_gh_api(attrs)
-            print("pushed node update", flush=True)
-        else:
-            print("no changes to push", flush=True)
+                print("no changes to push", flush=True)
 
 
 def react_to_push(uid: str, dry_run: bool = False) -> None:
