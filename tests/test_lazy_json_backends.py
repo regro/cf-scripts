@@ -866,6 +866,72 @@ def test_push_lazy_json_via_gh_api(recursive):
                         pass
 
 
+@pytest.mark.skipif(
+    ("CF_TICK_LIVE_TEST" not in os.environ)
+    or (os.environ["CF_TICK_LIVE_TEST"] not in ["true", 1, "1"]),
+    reason="Live bot tests not enabled.",
+)
+def test_push_lazy_json_via_gh_api_nopush():
+    uid = uuid.uuid4().hex
+    fname = f"test_file_h{uid}.json"
+
+    try:
+        with (
+            tempfile.TemporaryDirectory() as tmpdir,
+            pushd(str(tmpdir)),
+            lazy_json_override_backends(["file"]),
+        ):
+            lzj = LazyJson(fname)
+            with lzj:
+                lzj["uid"] = uid
+
+            gh = github_client()
+            repo = gh.get_repo("regro/cf-graph-countyfair")
+
+            push_lazy_json_via_gh_api(lzj)
+            print("sleeping for 5 seconds to allow github to update", flush=True)
+            time.sleep(5)
+            cnt = repo.get_contents(fname)
+            curr_data = base64.b64decode(cnt.content.encode("utf-8")).decode("utf-8")
+            assert json.loads(curr_data)["uid"] == lzj.data["uid"]
+
+            push_lazy_json_via_gh_api(lzj)
+            print("sleeping for 5 seconds to allow github to update", flush=True)
+            time.sleep(5)
+            cnt_again = repo.get_contents(fname)
+            assert cnt.sha == cnt_again.sha
+            curr_data = base64.b64decode(cnt_again.content.encode("utf-8")).decode(
+                "utf-8"
+            )
+            assert json.loads(curr_data)["uid"] == lzj.data["uid"]
+
+            with lzj:
+                lzj["uid"] = "new_uid"
+
+            push_lazy_json_via_gh_api(lzj)
+            print("sleeping for 5 seconds to allow github to update", flush=True)
+            time.sleep(5)
+            curr_data = base64.b64decode(
+                repo.get_contents(fname).content.encode("utf-8")
+            ).decode("utf-8")
+            assert json.loads(curr_data)["uid"] == lzj.data["uid"]
+
+    finally:
+        message = f"remove files {fname} from testing"
+        fnames = [fname]
+        for _fname in fnames:
+            for tr in range(10):
+                try:
+                    contents = repo.get_contents(_fname)
+                    repo.delete_file(_fname, message, contents.sha)
+                    break
+                except Exception as e:
+                    if tr == 9:
+                        raise e
+                    else:
+                        pass
+
+
 def test_lazy_json_eq():
     with (
         tempfile.TemporaryDirectory() as tmpdir,
