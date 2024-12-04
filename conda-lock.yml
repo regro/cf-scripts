@@ -2009,39 +2009,39 @@ package:
   - category: main
     dependencies: {}
     hash:
-      md5: 05d8714259d65152c1e678e41f794c59
-      sha256: 370438ffd8f4cb4d4a40d892420deeba8d75375ca7234aed6ece01b4f8e3661e
+      md5: 93beb33c4f93205c5f2e29438c0afad9
+      sha256: 376a5075a077aa6e40e677dda68c8d30f1b4c3904c4794bc1020877d90a421d1
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.12.04.13.11.23-hd8ed1ab_0.conda
-    version: 2024.12.04.13.11.23
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.12.04.13.54.14-hd8ed1ab_0.conda
+    version: 2024.12.04.13.54.14
   - category: main
     dependencies: {}
     hash:
-      md5: 05d8714259d65152c1e678e41f794c59
-      sha256: 370438ffd8f4cb4d4a40d892420deeba8d75375ca7234aed6ece01b4f8e3661e
+      md5: 93beb33c4f93205c5f2e29438c0afad9
+      sha256: 376a5075a077aa6e40e677dda68c8d30f1b4c3904c4794bc1020877d90a421d1
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.12.04.13.11.23-hd8ed1ab_0.conda
-    version: 2024.12.04.13.11.23
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.12.04.13.54.14-hd8ed1ab_0.conda
+    version: 2024.12.04.13.54.14
   - category: main
     dependencies: {}
     hash:
-      md5: 05d8714259d65152c1e678e41f794c59
-      sha256: 370438ffd8f4cb4d4a40d892420deeba8d75375ca7234aed6ece01b4f8e3661e
+      md5: 93beb33c4f93205c5f2e29438c0afad9
+      sha256: 376a5075a077aa6e40e677dda68c8d30f1b4c3904c4794bc1020877d90a421d1
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.12.04.13.11.23-hd8ed1ab_0.conda
-    version: 2024.12.04.13.11.23
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.12.04.13.54.14-hd8ed1ab_0.conda
+    version: 2024.12.04.13.54.14
   - category: main
     dependencies:
       click: '>=8'
@@ -5136,42 +5136,42 @@ package:
       idna: '>=2.6'
       python: ''
     hash:
-      md5: 1303beb57b40f8f4ff6fb1bb23bf0553
-      sha256: 026cb82ada41be9ee2836a2ace526e85c4603e77617887c41c6e62c9bde798b3
+      md5: c27acdecaf3c311e5781b81fe02d9641
+      sha256: 6fc0a91c590b3055bfb7983e6521c7b780ab8b11025058eaf898049ea827d829
     manager: conda
     name: hyperlink
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/hyperlink-21.0.0-pyhd3deb0d_0.tar.bz2
+      https://conda.anaconda.org/conda-forge/noarch/hyperlink-21.0.0-pyh29332c3_1.conda
     version: 21.0.0
   - category: main
     dependencies:
       idna: '>=2.6'
-      python: ''
+      python: '>=3.9'
     hash:
-      md5: 1303beb57b40f8f4ff6fb1bb23bf0553
-      sha256: 026cb82ada41be9ee2836a2ace526e85c4603e77617887c41c6e62c9bde798b3
+      md5: c27acdecaf3c311e5781b81fe02d9641
+      sha256: 6fc0a91c590b3055bfb7983e6521c7b780ab8b11025058eaf898049ea827d829
     manager: conda
     name: hyperlink
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/hyperlink-21.0.0-pyhd3deb0d_0.tar.bz2
+      https://conda.anaconda.org/conda-forge/noarch/hyperlink-21.0.0-pyh29332c3_1.conda
     version: 21.0.0
   - category: main
     dependencies:
       idna: '>=2.6'
-      python: ''
+      python: '>=3.9'
     hash:
-      md5: 1303beb57b40f8f4ff6fb1bb23bf0553
-      sha256: 026cb82ada41be9ee2836a2ace526e85c4603e77617887c41c6e62c9bde798b3
+      md5: c27acdecaf3c311e5781b81fe02d9641
+      sha256: 6fc0a91c590b3055bfb7983e6521c7b780ab8b11025058eaf898049ea827d829
     manager: conda
     name: hyperlink
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/hyperlink-21.0.0-pyhd3deb0d_0.tar.bz2
+      https://conda.anaconda.org/conda-forge/noarch/hyperlink-21.0.0-pyh29332c3_1.conda
     version: 21.0.0
   - category: main
     dependencies:
@@ -7155,6 +7155,34 @@ package:
     url:
       https://conda.anaconda.org/conda-forge/osx-arm64/libllvm19-19.1.5-hc4b4ae8_0.conda
     version: 19.1.5
+  - category: main
+    dependencies:
+      __glibc: '>=2.17,<3.0.a0'
+      libgcc: '>=13'
+    hash:
+      md5: 137c535dddd880f844f33ed91b8abdba
+      sha256: 31637db828ec67ab8697de324e6074af5a36cbeddc37202d8d31e2fb397619e8
+    manager: conda
+    name: liblzma
+    optional: false
+    platform: linux-64
+    url: https://conda.anaconda.org/conda-forge/linux-64/liblzma-5.6.3-hb9d3cd8_0.conda
+    version: 5.6.3
+  - category: main
+    dependencies:
+      __glibc: '>=2.17,<3.0.a0'
+      libgcc: '>=13'
+      liblzma: 5.6.3
+    hash:
+      md5: 7069f4de645461447f1ab7736c94db26
+      sha256: 98020d4b4cc6c728d2e6dc1174cb2548cf03ce5098cd17c37b32f06e896a943a
+    manager: conda
+    name: liblzma-devel
+    optional: false
+    platform: linux-64
+    url:
+      https://conda.anaconda.org/conda-forge/linux-64/liblzma-devel-5.6.3-hb9d3cd8_0.conda
+    version: 5.6.3
   - category: main
     dependencies:
       __glibc: '>=2.17,<3.0.a0'
@@ -13951,16 +13979,21 @@ package:
     version: '2024.1'
   - category: main
     dependencies:
-      libgcc-ng: '>=12'
+      __glibc: '>=2.17,<3.0.a0'
+      libgcc: '>=13'
+      liblzma: 5.6.3
+      liblzma-devel: 5.6.3
+      xz-gpl-tools: 5.6.3
+      xz-tools: 5.6.3
     hash:
-      md5: 2161070d867d1b1204ea749c8eec4ef0
-      sha256: 03a6d28ded42af8a347345f82f3eebdd6807a08526d47899a42d62d319609162
+      md5: 504333561007fbf0af129f0cee4f5652
+      sha256: 32cd43b293f1e6498831c499195afc5693c2bd604244a08fe8dd7107a20757d2
     manager: conda
     name: xz
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/linux-64/xz-5.2.6-h166bdaf_0.tar.bz2
-    version: 5.2.6
+    url: https://conda.anaconda.org/conda-forge/linux-64/xz-5.6.3-hbcc6ac9_0.conda
+    version: 5.6.3
   - category: main
     dependencies: {}
     hash:
@@ -13983,6 +14016,35 @@ package:
     platform: osx-arm64
     url: https://conda.anaconda.org/conda-forge/osx-arm64/xz-5.2.6-h57fd34a_0.tar.bz2
     version: 5.2.6
+  - category: main
+    dependencies:
+      __glibc: '>=2.17,<3.0.a0'
+      libgcc: '>=13'
+      liblzma: 5.6.3
+    hash:
+      md5: e4f1e59ca2971e8d0fdde0928c3f7b7f
+      sha256: e9829eb1207239198f03eba61d17d0f946bbaa7602f7ee019efe72ccb26525db
+    manager: conda
+    name: xz-gpl-tools
+    optional: false
+    platform: linux-64
+    url:
+      https://conda.anaconda.org/conda-forge/linux-64/xz-gpl-tools-5.6.3-hbcc6ac9_0.conda
+    version: 5.6.3
+  - category: main
+    dependencies:
+      __glibc: '>=2.17,<3.0.a0'
+      libgcc: '>=13'
+      liblzma: 5.6.3
+    hash:
+      md5: 40270c1e058fd1d31caee8bf2c68fc3a
+      sha256: 7d03d4c0d18dbac0ebb9550890fddeb4d21a375709339a6bdedd0104bc4f4967
+    manager: conda
+    name: xz-tools
+    optional: false
+    platform: linux-64
+    url: https://conda.anaconda.org/conda-forge/linux-64/xz-tools-5.6.3-hb9d3cd8_0.conda
+    version: 5.6.3
   - category: main
     dependencies:
       libgcc-ng: '>=9.4.0'
