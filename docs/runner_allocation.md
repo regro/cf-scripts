@@ -15,7 +15,7 @@ These are split across our workflows as follows:
 - `bot-prs` (daily for ~30 minutes) - 4 runners
 - `bot-pypi-mapping` (hourly for ~5 minutes) - 1 runner
 - `bot-update-status-page` - 1 runner
-- `bot-update-nodes` (4x daily for ~30 minutes) - 6 runners
+- `bot-update-nodes` - 3 runners
 - `bot-versions` - 6 runners
 - `docker` (on demand) - 1 runner
 - `keepalive` (hourly for ~5 minutes) - 1 runner
