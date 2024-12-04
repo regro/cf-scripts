@@ -939,11 +939,12 @@ def main_cache(ctx: CliContext):
             CF_TICK_GRAPH_DATA_BACKENDS = OLD_CF_TICK_GRAPH_DATA_BACKENDS
 
 
-def _get_pth_blob_sha(pth, gh):
+def _get_pth_blob_sha_and_content(pth, gh):
     try:
-        return gh.get_repo("regro/cf-graph-countyfair").get_contents(pth).sha
+        cnt = gh.get_repo("regro/cf-graph-countyfair").get_contents(pth)
+        return cnt.sha, cnt.decoded_content.decode("utf-8")
     except github.UnknownObjectException:
-        return None
+        return None, None
 
 
 def _push_lazy_json_via_gh_api(lzj: LazyJson):
@@ -966,7 +967,7 @@ def _push_lazy_json_via_gh_api(lzj: LazyJson):
             gh = github_client()
             repo = gh.get_repo("regro/cf-graph-countyfair")
 
-            sha = _get_pth_blob_sha(pth, gh)
+            sha, cnt = _get_pth_blob_sha_and_content(pth, gh)
             if sha is None:
                 repo.create_file(
                     pth,
@@ -974,12 +975,13 @@ def _push_lazy_json_via_gh_api(lzj: LazyJson):
                     data,
                 )
             else:
-                repo.update_file(
-                    pth,
-                    msg,
-                    data,
-                    sha,
-                )
+                if cnt != data:
+                    repo.update_file(
+                        pth,
+                        msg,
+                        data,
+                        sha,
+                    )
             break
         except Exception as e:
             logger.warning(
