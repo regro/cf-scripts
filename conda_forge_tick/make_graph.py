@@ -319,7 +319,11 @@ def _migrate_schemas(nodes):
 
 
 def main(
-    ctx: CliContext, job: int = 1, n_jobs: int = 1, update_nodes_and_edges: bool = False
+    ctx: CliContext,
+    job: int = 1,
+    n_jobs: int = 1,
+    update_nodes_and_edges: bool = False,
+    schema_migration_only: bool = False,
 ) -> None:
     logger.info("getting all nodes")
     names = get_all_feedstocks(cached=True)
@@ -367,15 +371,16 @@ def main(
             hashmaps_to_sync=["node_attrs"],
             keys_to_sync=set(tot_names_for_this_job),
         ):
-            _update_graph_nodes(
-                names_for_this_job,
-                mark_not_archived=True,
-                debug=ctx.debug,
-            )
-            _add_run_exports(gx, names_for_this_job)
+            if not schema_migration_only:
+                _update_graph_nodes(
+                    names_for_this_job,
+                    mark_not_archived=True,
+                    debug=ctx.debug,
+                )
+                _add_run_exports(gx, names_for_this_job)
 
-            _update_nodes_with_archived(
-                archived_names_for_this_job,
-            )
+                _update_nodes_with_archived(
+                    archived_names_for_this_job,
+                )
 
             _migrate_schemas(tot_names_for_this_job)

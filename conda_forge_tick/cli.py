@@ -114,16 +114,29 @@ def gather_all_feedstocks() -> None:
     is_flag=True,
     help="If given, update the nodes and edges in the graph. Otherwise, only update the node attrs.",
 )
+@click.option(
+    "--schema-migration-only",
+    is_flag=True,
+    help="If given, only migrate the schema of the node attrs.",
+)
 @pass_context
 def make_graph(
-    ctx: CliContext, job: int, n_jobs: int, update_nodes_and_edges: bool
+    ctx: CliContext,
+    job: int,
+    n_jobs: int,
+    update_nodes_and_edges: bool,
+    schema_migration_only: bool,
 ) -> None:
     from . import make_graph
 
     check_job_param_relative(job, n_jobs)
 
     make_graph.main(
-        ctx, job=job, n_jobs=n_jobs, update_nodes_and_edges=update_nodes_and_edges
+        ctx,
+        job=job,
+        n_jobs=n_jobs,
+        update_nodes_and_edges=update_nodes_and_edges,
+        schema_migration_only=schema_migration_only,
     )
 
 
