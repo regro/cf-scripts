@@ -1,5 +1,6 @@
 import os
 import subprocess
+import sys
 
 from . import sensitive_env
 from .cli_context import CliContext
@@ -7,8 +8,15 @@ from .lazy_json_backends import CF_TICK_GRAPH_DATA_HASHMAPS, get_lazy_json_backe
 from .utils import get_bot_run_url, load_existing_graph, run_command_hiding_token
 
 
+def _flush_io():
+    sys.stdout.flush()
+    sys.stderr.flush()
+
+
 def _run_git_cmd(cmd, **kwargs):
-    return subprocess.run(["git"] + cmd, check=True, **kwargs)
+    r = subprocess.run(["git"] + cmd, check=True, **kwargs)
+    _flush_io()
+    return r
 
 
 def _pull_changes(batch):
@@ -50,6 +58,8 @@ def _pull_changes(batch):
 
         _run_git_cmd(["pull", "-s", "recursive", "-X", "theirs"])
 
+    _flush_io()
+
     return n_added
 
 
@@ -64,7 +74,7 @@ def _deploy_batch(*, files_to_add, batch, n_added, max_per_batch=200):
                 n_added_this_batch += 1
                 n_added += 1
             except Exception as e:
-                print(e)
+                print(e, flush=True)
 
     if n_added_this_batch > 0:
         try:
@@ -77,7 +87,7 @@ def _deploy_batch(*, files_to_add, batch, n_added, max_per_batch=200):
                 ],
             )
         except Exception as e:
-            print(e)
+            print(e, flush=True)
 
         # make sure the graph can load, if not we will error
         try:
@@ -91,7 +101,7 @@ def _deploy_batch(*, files_to_add, batch, n_added, max_per_batch=200):
 
         status = 1
         num_try = 0
-        while status != 0 and num_try < 10 and graph_ok:
+        while status != 0 and num_try < 100 and graph_ok:
             try:
                 print("\n\n>>>>>>>>>>>> git pull try %d\n\n" % num_try, flush=True)
                 _n_added = _pull_changes(batch)
@@ -117,6 +127,7 @@ def _deploy_batch(*, files_to_add, batch, n_added, max_per_batch=200):
                     ],
                     token=env.get("BOT_TOKEN", ""),
                 )
+                _flush_io()
             num_try += 1
 
         if status != 0 or not graph_ok:
@@ -136,7 +147,7 @@ def deploy(ctx: CliContext, dirs_to_deploy: list[str] = None):
     try:
         _run_git_cmd(["pull", "-s", "recursive", "-X", "theirs"])
     except Exception as e:
-        print(e)
+        print(e, flush=True)
 
     files_to_add = set()
     if dirs_to_deploy is None:
