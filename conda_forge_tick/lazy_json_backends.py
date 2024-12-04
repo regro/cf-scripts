@@ -942,7 +942,7 @@ def main_cache(ctx: CliContext):
 def _get_pth_blob_sha(pth, gh):
     try:
         return gh.get_repo("regro/cf-graph-countyfair").get_contents(pth).sha
-    except github.GithubException.UnknownObjectException:
+    except github.UnknownObjectException:
         return None
 
 
