@@ -35,7 +35,7 @@ logger = logging.getLogger(__name__)
 pin_sep_pat = re.compile(r" |>|<|=|\[")
 random.seed(os.urandom(64))
 
-RANDOM_FRAC_TO_UPDATE = 0.25
+RANDOM_FRAC_TO_UPDATE = 1.1
 
 # AFAIK, go and rust do not have strong run exports and so do not need to
 # appear here
