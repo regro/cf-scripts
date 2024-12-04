@@ -21,6 +21,7 @@ from typing import (
     Union,
 )
 
+import github
 import networkx as nx
 import rapidjson as json
 import requests
@@ -941,7 +942,7 @@ def main_cache(ctx: CliContext):
 def _get_pth_blob_sha(pth, gh):
     try:
         return gh.get_repo("regro/cf-graph-countyfair").get_contents(pth).sha
-    except Exception:
+    except github.GithubException.UnknownObjectException:
         return None
 
 
@@ -959,11 +960,12 @@ def _push_lazy_json_via_gh_api(lzj: LazyJson):
     pth = get_sharded_path(filename)
     msg = f"{bn} - {fn} - {get_bot_run_url()}"
 
-    gh = github_client()
-    repo = gh.get_repo("regro/cf-graph-countyfair")
     ntries = 10
     for tr in range(ntries):
         try:
+            gh = github_client()
+            repo = gh.get_repo("regro/cf-graph-countyfair")
+
             sha = _get_pth_blob_sha(pth, gh)
             if sha is None:
                 repo.create_file(
