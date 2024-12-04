@@ -53,7 +53,7 @@ jobs:
         env:
           BOT_TOKEN: ${{ secrets.AUTOTICK_BOT_TOKEN }}
 
-      - name: make graph
+      - name: update nodes
         if: success() && ! env.CI_SKIP
         run: |
           pushd cf-graph
