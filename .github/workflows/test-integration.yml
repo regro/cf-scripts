@@ -232,3 +232,7 @@ jobs:
           conda-forge-tick --debug deploy-to-github
         env:
           BOT_TOKEN: ${{ secrets.GH_TOKEN_STAGING_REGRO }}
+
+      - name: Print Proxy Logs
+        if: always()
+        run: cat /tmp/mitmproxy.log
