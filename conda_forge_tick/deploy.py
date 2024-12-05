@@ -28,6 +28,7 @@ def _pull_changes(batch):
     n_added = 0
     if r.returncode != 0:
         files_to_commit = []
+        in_section = False
         for line in r.stderr.splitlines() + r.stdout.splitlines():
             if "following files would be overwritten by merge" in line.lower():
                 in_section = True
