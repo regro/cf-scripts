@@ -61,7 +61,8 @@ jobs:
           export RUN_URL="https://github.com/regro/cf-scripts/actions/runs/${RUN_ID}"
           conda-forge-tick make-graph \
             --job=${BOT_JOB} \
-            --n-jobs=${NUM_BOT_JOBS}
+            --n-jobs=${NUM_BOT_JOBS} \
+            --schema-migration-only
         env:
           CF_TICK_GRAPH_DATA_BACKENDS: "${{ vars.CF_TICK_GRAPH_DATA_BACKENDS }}"
           MONGODB_CONNECTION_STRING: ${{ secrets.MONGODB_CONNECTION_STRING }}
