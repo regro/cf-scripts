@@ -46,10 +46,11 @@ def _pull_changes(batch):
                 fname = line.strip()
                 if os.path.exists(fname):
                     files_to_commit.append(fname)
+                continue
 
         for fname in files_to_commit:
             n_added += 1
-            print(f"committing {n_added: >5d}: {fname}", flush=True)
+            print(f"committing for conflicts {n_added: >5d}: {fname}", flush=True)
             _run_git_cmd(["add", fname])
 
         if files_to_commit:
