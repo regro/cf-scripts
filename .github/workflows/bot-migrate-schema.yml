@@ -1,15 +1,13 @@
-name: bot-update-nodes
+name: bot-migrate-schema
 
 on:
   workflow_dispatch: null
-  schedule:
-    - cron: '*/30 * * * *'
 
 concurrency: bot-update-nodes
 
 jobs:
-  update-nodes:
-    name: update-nodes
+  migrate-schema:
+    name: migrate-schema
     runs-on: "ubuntu-latest"
     env:
       NUM_BOT_JOBS: 3
@@ -62,7 +60,8 @@ jobs:
           export RUN_URL="https://github.com/regro/cf-scripts/actions/runs/${RUN_ID}"
           conda-forge-tick make-graph \
             --job=${BOT_JOB} \
-            --n-jobs=${NUM_BOT_JOBS}
+            --n-jobs=${NUM_BOT_JOBS} \
+            --schema-migration-only
         env:
           CF_TICK_GRAPH_DATA_BACKENDS: "${{ vars.CF_TICK_GRAPH_DATA_BACKENDS }}"
           MONGODB_CONNECTION_STRING: ${{ secrets.MONGODB_CONNECTION_STRING }}
