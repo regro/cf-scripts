@@ -29,22 +29,27 @@ def _pull_changes(batch):
     if r.returncode != 0:
         files_to_commit = []
         in_section = False
+        indent = None
         for line in r.stderr.splitlines() + r.stdout.splitlines():
-            if "following files would be overwritten by merge" in line.lower():
+            if line.startswith("error:"):
                 in_section = True
                 continue
 
-            if "commit your changes or stash them before you merge" in line.lower():
+            if in_section and indent is not None and not line.startswith(indent):
                 in_section = False
+                indent = None
                 continue
 
             if in_section:
+                if indent is None:
+                    indent = line[: len(line) - len(line.lstrip())]
                 fname = line.strip()
                 if os.path.exists(fname):
                     files_to_commit.append(fname)
 
         for fname in files_to_commit:
             n_added += 1
+            print(f"committing {n_added: >5d}: {fname}", flush=True)
             _run_git_cmd(["add", fname])
 
         if files_to_commit:
