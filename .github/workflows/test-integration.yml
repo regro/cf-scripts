@@ -27,8 +27,8 @@ env:
   # Bot
   CF_TICK_OVERRIDE_CONDA_FORGE_ORG: conda-forge-bot-staging
   CF_TICK_GRAPH_DATA_BACKENDS: file
-  CF_TICK_CONTAINER_NAME: conda-forge-tick
-  CF_TICK_CONTAINER_TAG: test
+  CF_FEEDSTOCK_OPS_CONTAINER_NAME: conda-forge-tick
+  CF_FEEDSTOCK_OPS_CONTAINER_TAG: test
   # Deploy to GitHub step
   DEPLOY_REPO: regro-staging/cf-graph-countyfair
   RUN_URL: "https://github.com/regro/cf-scripts/actions/runs/${{ github.run_id }}"
