@@ -406,6 +406,7 @@ def _render_recipe_yaml(
         + variant_config_flags
         + build_platform_flags,
         stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
         text=True,
         input=prepared_text,
         check=True,
