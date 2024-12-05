@@ -661,7 +661,10 @@ def load_feedstock_containerized(
         args,
         json_loads=loads,
         input=json_blob,
-        pass_env_vars=[ENV_OVERRIDE_CONDA_FORGE_ORG],
+        extra_container_args=[
+            "-e",
+            f"{ENV_OVERRIDE_CONDA_FORGE_ORG}={os.environ[ENV_OVERRIDE_CONDA_FORGE_ORG]}",
+        ],
     )
 
     return data
