@@ -76,11 +76,14 @@ if [[ "${pull_cont}" == "true" ]]; then
     docker pull ghcr.io/regro/conda-forge-tick:"${docker_tag}"
 fi
 
-export CF_FEEDSTOCK_OPS_CONTAINER_TAG=${docker_tag}
-export CF_FEEDSTOCK_OPS_CONTAINER_NAME="ghcr.io/regro/conda-forge-tick"
 
-echo "CF_FEEDSTOCK_OPS_CONTAINER_TAG=${CF_FEEDSTOCK_OPS_CONTAINER_TAG}" >> "$GITHUB_ENV"
-echo "CF_FEEDSTOCK_OPS_CONTAINER_NAME=${CF_FEEDSTOCK_OPS_CONTAINER_NAME}" >> "$GITHUB_ENV"
+# TODO
+#export CF_FEEDSTOCK_OPS_CONTAINER_TAG=${docker_tag}
+#export CF_FEEDSTOCK_OPS_CONTAINER_NAME="ghcr.io/regro/conda-forge-tick"
+
+# TODO
+#echo "CF_FEEDSTOCK_OPS_CONTAINER_TAG=${CF_FEEDSTOCK_OPS_CONTAINER_TAG}" >> "$GITHUB_ENV"
+#echo "CF_FEEDSTOCK_OPS_CONTAINER_NAME=${CF_FEEDSTOCK_OPS_CONTAINER_NAME}" >> "$GITHUB_ENV"
 
 echo -e "\n\n============================================\n============================================"
 conda info
