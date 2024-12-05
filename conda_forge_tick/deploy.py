@@ -163,7 +163,7 @@ def deploy(ctx: CliContext, dirs_to_deploy: list[str] = None):
 
     # pull changes, add ours, make a commit
     try:
-        _run_git_cmd(["pull", "-s", "recursive", "-X", "theirs"])
+        _pull_changes(0)
     except Exception as e:
         print(e, flush=True)
 
