@@ -1,0 +1,20 @@
+azure:
+  settings_win:
+    install_atl: true
+    variables:
+      SET_PAGEFILE: 'True'
+bot:
+  abi_migration_branches:
+  - 18.x
+  - 17.x
+build_platform:
+  linux_aarch64: linux_64
+  linux_ppc64le: linux_64
+  osx_arm64: osx_64
+conda_build:
+  pkg_format: '2'
+conda_forge_output_validation: true
+github:
+  branch_name: main
+  tooling_branch_name: main
+test: native_and_emulated

@@ -27,6 +27,7 @@ repos:
     rev: typos-dict-v0.11.37
     hooks:
       - id: typos
+        exclude: ^tests_integration\/definitions\/.*\/resources\/
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.8.1

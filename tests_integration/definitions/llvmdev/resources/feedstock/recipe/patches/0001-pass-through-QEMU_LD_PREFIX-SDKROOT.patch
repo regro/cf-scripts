@@ -1,0 +1,22 @@
+From 352d0290403c1e8ae0093eb7c3973fa5074ad2dd Mon Sep 17 00:00:00 2001
+From: Isuru Fernando <isuruf@gmail.com>
+Date: Tue, 4 Aug 2020 21:06:30 -0500
+Subject: [PATCH] pass through QEMU_LD_PREFIX & SDKROOT
+
+---
+ llvm/utils/lit/lit/TestingConfig.py | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/llvm/utils/lit/lit/TestingConfig.py b/llvm/utils/lit/lit/TestingConfig.py
+index eb9f8de2a7f9..94f50e130adb 100644
+--- a/llvm/utils/lit/lit/TestingConfig.py
++++ b/llvm/utils/lit/lit/TestingConfig.py
+@@ -25,6 +25,8 @@ class TestingConfig(object):
+             "LD_LIBRARY_PATH",
+             "SYSTEMROOT",
+             "TERM",
++            "QEMU_LD_PREFIX",
++            "SDKROOT",
+             "CLANG",
+             "LLDB",
+             "LD_PRELOAD",

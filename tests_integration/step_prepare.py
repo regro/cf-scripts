@@ -44,6 +44,7 @@ def reset_cf_graph():
         GitHubAccount.REGRO_ORG,
         "cf-graph-countyfair",
         Path(__file__).parent / "resources" / "empty-graph",
+        branch="main",
     )
 
 

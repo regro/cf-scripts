@@ -1,3 +1,4 @@
+import copy
 import importlib
 import logging
 import os
@@ -6,7 +7,8 @@ from collections.abc import Iterator
 from enum import StrEnum
 from pathlib import Path
 
-from fastapi import APIRouter
+import httpx
+from fastapi import APIRouter, Request, Response
 
 
 class GitHubAccount(StrEnum):
@@ -47,6 +49,14 @@ DEFINITIONS_DIR = Path(__file__).parent / DEFINITIONS_DIR_NAME
 
 FEEDSTOCK_SUFFIX = "-feedstock"
 
+REDIRECT_URLS = {
+    "https://raw.githubusercontent.com/regro/cf-graph-countyfair/master/mappings/pypi/name_mapping.yaml",
+    "https://raw.githubusercontent.com/regro/cf-graph-countyfair/master/mappings/pypi/grayskull_pypi_mapping.json",
+}
+"""
+Those URLs are redirected to the actual upstream URLs in the tests.
+"""
+
 
 def setup_logging(level: int | str):
     logging.basicConfig(level=level)
@@ -77,6 +87,21 @@ def get_test_case_modules(scenario: dict[str, str]) -> Iterator[types.ModuleType
     )
 
 
+def _get_proxy_request_handler(url: str):
+    url_copy = copy.deepcopy(url)
+
+    async def handle_redirect(request: Request):
+        async with httpx.AsyncClient() as client:
+            proxy = await client.get(url_copy)
+        return Response(
+            content=proxy.content,
+            status_code=proxy.status_code,
+            headers=dict(proxy.headers),
+        )
+
+    return handle_redirect
+
+
 def get_global_router():
     """
     Returns the global FastAPI router to be included in all test scenarios.
@@ -90,5 +115,14 @@ def get_global_router():
     @router.get("/cran.r-project.org/src/contrib/Archive/")
     def handle_cran_index_archive():
         return ""
+
+    for url in REDIRECT_URLS:
+        assert url.startswith("https://")
+
+        router.add_route(
+            url.replace("https://", "/"),
+            _get_proxy_request_handler(url),
+            methods=["GET"],
+        )
 
     return router

@@ -28,7 +28,11 @@ class IntegrationTestHelper:
 
     @classmethod
     def overwrite_github_repository(
-        cls, owner_account: GitHubAccount, repo_name: str, source_dir: Path
+        cls,
+        owner_account: GitHubAccount,
+        repo_name: str,
+        source_dir: Path,
+        branch: str = "main",
     ):
         """
         Overwrite the contents of the repository with the contents of the source directory.
@@ -37,12 +41,13 @@ class IntegrationTestHelper:
         :param owner_account: The owner of the repository.
         :param repo_name: The name of the repository.
         :param source_dir: The directory containing the new contents of the repository.
+        :param branch: The branch to overwrite.
         """
         # We execute all git operations in a separate temporary directory to avoid side effects.
         with TemporaryDirectory(repo_name) as tmpdir_str:
             tmpdir = Path(tmpdir_str)
             cls._overwrite_github_repository_with_tmpdir(
-                owner_account, repo_name, source_dir, tmpdir, branch="master"
+                owner_account, repo_name, source_dir, tmpdir, branch
             )
 
     @staticmethod
