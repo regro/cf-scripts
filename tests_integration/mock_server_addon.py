@@ -17,6 +17,7 @@ from mitmproxy.http import HTTPFlow
 from tests_integration.collect_test_scenarios import get_test_scenario
 from tests_integration.shared import (
     ENV_TEST_SCENARIO_ID,
+    get_global_router,
     get_test_case_modules,
 )
 
@@ -38,6 +39,8 @@ def _setup_fastapi():
     scenario = get_test_scenario(scenario_id)
 
     app = FastAPI()
+
+    app.include_router(get_global_router())
 
     for test_module in get_test_case_modules(scenario):
         try:

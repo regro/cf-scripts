@@ -22,52 +22,72 @@ class IntegrationTestHelper:
         :param feedstock_name: The name of the feedstock repository, without the "-feedstock" suffix.
         :param source_dir: The directory containing the new contents of the feedstock.
         """
+        cls.overwrite_github_repository(
+            GitHubAccount.CONDA_FORGE_ORG, feedstock_name + FEEDSTOCK_SUFFIX, source_dir
+        )
+
+    @classmethod
+    def overwrite_github_repository(
+        cls, owner_account: GitHubAccount, repo_name: str, source_dir: Path
+    ):
+        """
+        Overwrite the contents of the repository with the contents of the source directory.
+        This prunes the entire git history.
+
+        :param owner_account: The owner of the repository.
+        :param repo_name: The name of the repository.
+        :param source_dir: The directory containing the new contents of the repository.
+        """
         # We execute all git operations in a separate temporary directory to avoid side effects.
-        with TemporaryDirectory(feedstock_name) as tmpdir_str:
+        with TemporaryDirectory(repo_name) as tmpdir_str:
             tmpdir = Path(tmpdir_str)
-            cls._overwrite_feedstock_contents_with_tmpdir(
-                feedstock_name, source_dir, tmpdir
+            cls._overwrite_github_repository_with_tmpdir(
+                owner_account, repo_name, source_dir, tmpdir, branch="master"
             )
 
     @staticmethod
-    def _overwrite_feedstock_contents_with_tmpdir(
-        feedstock_name: str, source_dir: Path, tmpdir: Path
+    def _overwrite_github_repository_with_tmpdir(
+        owner_account: GitHubAccount,
+        repo_name: str,
+        source_dir: Path,
+        tmpdir: Path,
+        branch: str = "main",
     ):
         """
         See `overwrite_feedstock_contents`.
         """
-        tmp_feedstock_dir = tmpdir / f"{feedstock_name}{FEEDSTOCK_SUFFIX}"
-        shutil.copytree(source_dir, tmp_feedstock_dir)
+        dest_dir = tmpdir / repo_name
+        shutil.copytree(source_dir, dest_dir)
 
         # Remove the .git directory (if it exists)
-        shutil.rmtree(tmp_feedstock_dir / ".git", ignore_errors=True)
+        shutil.rmtree(dest_dir / ".git", ignore_errors=True)
 
         # Initialize a new git repository and commit everything
         subprocess.run(
-            ["git", "init", "--initial-branch=main"], cwd=tmp_feedstock_dir, check=True
+            ["git", "init", f"--initial-branch={branch}"], cwd=dest_dir, check=True
         )
-        subprocess.run(["git", "add", "--all"], cwd=tmp_feedstock_dir, check=True)
+        subprocess.run(["git", "add", "--all"], cwd=dest_dir, check=True)
         subprocess.run(
-            ["git", "commit", "-m", "Overwrite Feedstock Contents"],
-            cwd=tmp_feedstock_dir,
+            ["git", "commit", "-m", "Overwrite Repository Contents"],
+            cwd=dest_dir,
             check=True,
         )
 
-        # Push the new contents to the feedstock repository
-        push_token = get_github_token(GitHubAccount.CONDA_FORGE_ORG)
+        # Push the new contents to the repository
+        push_token = get_github_token(owner_account)
         run_command_hiding_token(
             [
                 "git",
                 "push",
-                f"https://{push_token}@github.com/{GitHubAccount.CONDA_FORGE_ORG}/{feedstock_name}{FEEDSTOCK_SUFFIX}.git",
-                "main",
+                f"https://{push_token}@github.com/{owner_account}/{repo_name}.git",
+                branch,
                 "--force",
             ],
             token=push_token,
-            cwd=tmp_feedstock_dir,
+            cwd=dest_dir,
             check=True,
         )
 
         LOGGER.info(
-            f"Feedstock contents of {feedstock_name} have been overwritten successfully."
+            f"Repository contents of {repo_name} have been overwritten successfully."
         )

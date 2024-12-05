@@ -7,6 +7,7 @@ Expects the scenario ID to be present in the environment variable named after EN
 
 import logging
 import os
+from pathlib import Path
 
 from github import Github
 
@@ -38,6 +39,14 @@ def close_all_open_pull_requests():
             pr.edit(state="closed")
 
 
+def reset_cf_graph():
+    IntegrationTestHelper.overwrite_github_repository(
+        GitHubAccount.REGRO_ORG,
+        "cf-graph-countyfair",
+        Path(__file__).parent / "resources" / "empty-graph",
+    )
+
+
 def run_all_prepare_functions(scenario: dict[str, str]):
     test_helper = IntegrationTestHelper()
     for test_module in get_test_case_modules(scenario):
@@ -50,6 +59,8 @@ def run_all_prepare_functions(scenario: dict[str, str]):
 
 def main(scenario_id: int):
     close_all_open_pull_requests()
+    reset_cf_graph()
+
     scenario = get_test_scenario(scenario_id)
 
     logging.info("Preparing test scenario %d...", scenario_id)

@@ -21,6 +21,7 @@ docs/_build/
 
 node_attrs/*
 graph.json
+!tests_integration/resources/empty-graph/graph.json
 pr_json/*
 pr_status/*
 status/*

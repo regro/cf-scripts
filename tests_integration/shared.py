@@ -6,6 +6,8 @@ from collections.abc import Iterator
 from enum import StrEnum
 from pathlib import Path
 
+from fastapi import APIRouter
+
 
 class GitHubAccount(StrEnum):
     CONDA_FORGE_ORG = "conda-forge-bot-staging"
@@ -73,3 +75,20 @@ def get_test_case_modules(scenario: dict[str, str]) -> Iterator[types.ModuleType
         )
         for feedstock, test_case in scenario.items()
     )
+
+
+def get_global_router():
+    """
+    Returns the global FastAPI router to be included in all test scenarios.
+    """
+    router = APIRouter()
+
+    @router.get("/cran.r-project.org/src/contrib/")
+    def handle_cran_index():
+        return ""
+
+    @router.get("/cran.r-project.org/src/contrib/Archive/")
+    def handle_cran_index_archive():
+        return ""
+
+    return router
