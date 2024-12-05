@@ -3,7 +3,7 @@ name: bot-update-nodes
 on:
   workflow_dispatch: null
   schedule:
-    - cron: '*/30 */3 * * *'
+    - cron: '15 */3 * * *'
 
 concurrency: bot-update-nodes
 
