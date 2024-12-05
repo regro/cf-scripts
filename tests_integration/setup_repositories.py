@@ -185,7 +185,7 @@ def prepare_all_accounts():
     setup_infos: list[GitHubAccountSetup] = [
         GitHubAccountSetup(
             GitHubAccount.CONDA_FORGE_ORG,
-            test_feedstock_names | {"conda-forge-pinning"},
+            test_feedstock_names,
             FEEDSTOCK_SUFFIX,
         ),
         GitHubAccountSetup(
