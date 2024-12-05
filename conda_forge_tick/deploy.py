@@ -111,7 +111,8 @@ def _deploy_batch(*, files_to_add, batch, n_added, max_per_batch=200):
             gx = load_existing_graph()
             # TODO: be more selective about which json to check
             for node, attrs in gx.nodes.items():
-                attrs["payload"]._load()
+                with attrs["payload"]:
+                    pass
             graph_ok = True
         except Exception:
             graph_ok = False
