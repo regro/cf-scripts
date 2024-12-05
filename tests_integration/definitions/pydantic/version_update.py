@@ -11,7 +11,7 @@ router = APIRouter()
 def handle():
     return {
         # rest omitted
-        "info": {"name": "pydantic", "version": "2.10.3"}
+        "info": {"name": "pydantic", "version": "2.10.2"}
     }
 
 

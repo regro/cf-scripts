@@ -1,5 +1,5 @@
 {% set name = "pydantic" %}
-{% set version = "2.10.2" %}
+{% set version = "2.10.1" %}
 {% set repo_url = "https://github.com/pydantic/pydantic" %}
 {% set docs_url = "https://docs.pydantic.dev" %}
 
