@@ -200,8 +200,7 @@ jobs:
       - name: "[Test] update-upstream-versions"
         run: |
           pushd cf-graph
-          env | grep proxy
-          env | grep PROXY
+          env
           conda-forge-tick --debug update-upstream-versions
         env:
           HTTP_PROXY: http://127.0.0.1:8080
