@@ -1,3 +1,4 @@
+import os
 import typing
 from textwrap import dedent
 from typing import Any, Optional, Sequence
@@ -116,7 +117,13 @@ class ArchRebuild(GraphMigrator):
             if target_packages is None:
                 # We are constraining the scope of this migrator
                 with open(
-                    "../conda-forge-pinning-feedstock/recipe/migrations/arch_rebuild.txt",
+                    os.path.join(
+                        os.environ["CONDA_PREFIX"],
+                        "share",
+                        "conda-forge",
+                        "migrations",
+                        "arch_rebuild.txt",
+                    )
                 ) as f:
                     target_packages = set(f.read().split())
 
@@ -221,7 +228,7 @@ class ArchRebuild(GraphMigrator):
         This feedstock is being rebuilt as part of the aarch64/ppc64le migration.
 
         **Feel free to merge the PR if CI is all green, but please don't close it
-        without reaching out the the ARM migrators first at @conda-forge/arm-arch.**
+        without reaching out the the ARM migrators first at <code>@</code>conda-forge/arm-arch.**
         """,
             ),
         )
@@ -265,7 +272,13 @@ class OSXArm(GraphMigrator):
             if target_packages is None:
                 # We are constraining the scope of this migrator
                 with open(
-                    "../conda-forge-pinning-feedstock/recipe/migrations/osx_arm64.txt",
+                    os.path.join(
+                        os.environ["CONDA_PREFIX"],
+                        "share",
+                        "conda-forge",
+                        "migrations",
+                        "osx_arm64.txt",
+                    )
                 ) as f:
                     target_packages = set(f.read().split())
 
@@ -392,7 +405,7 @@ class OSXArm(GraphMigrator):
         This feedstock is being rebuilt as part of the ARM OSX migration.
 
         **Feel free to merge the PR if CI is all green, but please don't close it
-        without reaching out the the ARM OSX team first at @conda-forge/help-osx-arm64.**
+        without reaching out the the ARM OSX team first at <code>@</code>conda-forge/help-osx-arm64.**
         """,  # noqa
             ),
         )

@@ -50,7 +50,7 @@ USER conda
 
 # deal with git config for user and mounted directory
 RUN conda activate cf-scripts && \
-    git config --global --add safe.directory /cf_tick_dir && \
+    git config --global --add safe.directory /cf_feedstock_ops_dir && \
     git config --global init.defaultBranch main && \
     git config --global user.email "conda@conda.conda" && \
     git config --global user.name "conda conda" && \

@@ -39,8 +39,6 @@ from conda_forge_tick.utils import (
     load_existing_graph,
 )
 
-from .git_utils import feedstock_url
-
 GH_MERGE_STATE_STATUS = [
     "behind",
     "blocked",
@@ -67,10 +65,9 @@ def _ok_version(ver):
 def write_version_migrator_status(migrator, mctx):
     """write the status of the version migrator"""
 
-    out: Dict[str, Any] = {
-        "queued": set(),
-        "errored": set(),
-        "errors": {},
+    out: Dict[str, Dict[str, str]] = {
+        "queued": {},  # name -> pending version
+        "errors": {},  # name -> error
     }
 
     gx = mctx.graph
@@ -109,9 +106,8 @@ def write_version_migrator_status(migrator, mctx):
                 ):
                     attempts = vpri.get("new_version_attempts", {}).get(new_version, 0)
                     if attempts == 0:
-                        out["queued"].add(node)
+                        out["queued"][node] = new_version
                     else:
-                        out["errored"].add(node)
                         out["errors"][node] = f"{attempts:.2f} attempts - " + vpri.get(
                             "new_version_errors",
                             {},
@@ -122,6 +118,12 @@ def write_version_migrator_status(migrator, mctx):
                         )
 
     with open("./status/version_status.json", "w") as f:
+        old_out = out.copy()
+        old_out["queued"] = set(out["queued"].keys())
+        old_out["errored"] = set(out["errors"].keys())
+        json.dump(old_out, f, sort_keys=True, indent=2, default=_sorted_set_json)
+
+    with open("./status/version_status.v2.json", "w") as f:
         json.dump(out, f, sort_keys=True, indent=2, default=_sorted_set_json)
 
 
@@ -222,28 +224,25 @@ def graph_migrator_status(
                     attrs.get("pr_info", {})
                     .get("pre_pr_migrator_status", {})
                     .get(migrator_name, "")
-                ):
+                ) or attrs.get("parsing_error", ""):
                     out["bot-error"].add(node)
                     fc = "#000000"
                     fntc = "white"
                 else:
                     out["awaiting-pr"].add(node)
                     fc = "#35b779"
-            elif not isinstance(migrator, Replacement):
+            else:
                 if "bot error" in (
                     attrs.get("pr_info", {})
                     .get("pre_pr_migrator_status", {})
                     .get(migrator_name, "")
-                ):
+                ) or attrs.get("parsing_error", ""):
                     out["bot-error"].add(node)
                     fc = "#000000"
                     fntc = "white"
                 else:
                     out["awaiting-parents"].add(node)
                     fc = "#fde725"
-            else:
-                out["awaiting-pr"].add(node)
-                fc = "#35b779"
         elif "PR" not in pr_json or "state" not in pr_json["PR"]:
             out["bot-error"].add(node)
             fc = "#000000"
@@ -273,7 +272,7 @@ def graph_migrator_status(
                 .get("PR", {})
                 .get(
                     "html_url",
-                    feedstock_url(fctx=feedstock_ctx, protocol="https").strip(".git"),
+                    feedstock_ctx.git_http_ref,
                 ),
             )
 
@@ -292,7 +291,7 @@ def graph_migrator_status(
                     {},
                 )
                 .get(migrator_name, "")
-            )
+            ) or attrs.get("parsing_error", "")
         else:
             node_metadata["pre_pr_migrator_status"] = ""
 
@@ -300,7 +299,7 @@ def graph_migrator_status(
             # I needed to fake some PRs they don't have html_urls though
             node_metadata["pr_url"] = pr_json["PR"].get(
                 "html_url",
-                feedstock_url(fctx=feedstock_ctx, protocol="https").strip(".git"),
+                feedstock_ctx.git_http_ref,
             )
             node_metadata["pr_status"] = pr_json["PR"].get("mergeable_state", "")
 
@@ -400,7 +399,6 @@ def main() -> None:
             graph=gx,
             smithy_version=smithy_version,
             pinning_version=pinning_version,
-            dry_run=False,
         )
         migrators = load_migrators(skip_paused=False)
 
@@ -423,7 +421,11 @@ def main() -> None:
         )
         print("name:", migrator_name, flush=True)
 
-        if isinstance(migrator, GraphMigrator) or isinstance(migrator, Replacement):
+        if (
+            isinstance(migrator, GraphMigrator)
+            or isinstance(migrator, Replacement)
+            or isinstance(migrator, Migrator)
+        ) and not isinstance(migrator, Version):
             if isinstance(migrator, GraphMigrator):
                 mgconf = yaml.safe_load(getattr(migrator, "yaml_contents", "{}")).get(
                     "__migrator",
@@ -441,6 +443,7 @@ def main() -> None:
                     regular_status[migrator_name] = f"{migrator.name} Migration Status"
             else:
                 regular_status[migrator_name] = f"{migrator.name} Migration Status"
+
             status, _, gv = graph_migrator_status(migrator, mctx.graph)
             num_viz = status.pop("_num_viz", 0)
             with open(

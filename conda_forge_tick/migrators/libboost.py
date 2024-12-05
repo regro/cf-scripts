@@ -1,7 +1,7 @@
 import os
 import re
 
-from conda_forge_tick.migrators.core import MiniMigrator
+from conda_forge_tick.migrators.core import MiniMigrator, skip_migrator_due_to_schema
 
 
 def _slice_into_output_sections(meta_yaml_lines, attrs):
@@ -214,7 +214,9 @@ class LibboostMigrator(MiniMigrator):
         run_req = (attrs.get("requirements", {}) or {}).get("run", set()) or set()
         all_req = set(host_req) | set(run_req)
         # filter() returns True if we _don't_ want to migrate
-        return not bool({"boost", "boost-cpp"} & all_req)
+        return (
+            not bool({"boost", "boost-cpp"} & all_req)
+        ) or skip_migrator_due_to_schema(attrs, self.allowed_schema_versions)
 
     def migrate(self, recipe_dir, attrs, **kwargs):
         fname = os.path.join(recipe_dir, "meta.yaml")

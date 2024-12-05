@@ -1,7 +1,8 @@
 # autotick-bot
 
 [![tests](https://github.com/regro/cf-scripts/actions/workflows/tests.yml/badge.svg)](https://github.com/regro/cf-scripts/actions/workflows/tests.yml)
-[![pre-commit.ci status](https://results.pre-commit.ci/badge/github/regro/cf-scripts/master.svg)](https://results.pre-commit.ci/latest/github/regro/cf-scripts/master)
+[![pre-commit.ci status](https://results.pre-commit.ci/badge/github/regro/cf-scripts/main.svg)](https://results.pre-commit.ci/latest/github/regro/cf-scripts/main)
+[![relock](https://github.com/regro/cf-scripts/actions/workflows/relock.yml/badge.svg)](https://github.com/regro/cf-scripts/actions/workflows/relock.yml)
 [![bot-bot](https://github.com/regro/cf-scripts/actions/workflows/bot-bot.yml/badge.svg)](https://github.com/regro/cf-scripts/actions/workflows/bot-bot.yml)
 [![bot-keepalive](https://github.com/regro/cf-scripts/actions/workflows/bot-keepalive.yml/badge.svg)](https://github.com/regro/cf-scripts/actions/workflows/bot-keepalive.yml)
 [![bot-update-status-page](https://github.com/regro/cf-scripts/actions/workflows/bot-update-status-page.yml/badge.svg)](https://github.com/regro/cf-scripts/actions/workflows/bot-update-status-page.yml)
@@ -10,10 +11,12 @@
 [![bot-prs](https://github.com/regro/cf-scripts/actions/workflows/bot-prs.yml/badge.svg)](https://github.com/regro/cf-scripts/actions/workflows/bot-prs.yml)
 [![bot-feedstocks](https://github.com/regro/cf-scripts/actions/workflows/bot-feedstocks.yml/badge.svg)](https://github.com/regro/cf-scripts/actions/workflows/bot-feedstocks.yml)
 [![bot-make-graph](https://github.com/regro/cf-scripts/actions/workflows/bot-make-graph.yml/badge.svg)](https://github.com/regro/cf-scripts/actions/workflows/bot-make-graph.yml)
+[![bot-update-nodes](https://github.com/regro/cf-scripts/actions/workflows/bot-update-nodes.yml/badge.svg)](https://github.com/regro/cf-scripts/actions/workflows/bot-update-nodes.yml)
+[![bot-migrate-schema](https://github.com/regro/cf-scripts/actions/workflows/bot-migrate-schema.yml/badge.svg)](https://github.com/regro/cf-scripts/actions/workflows/bot-migrate-schema.yml)
 [![bot-make-migrators](https://github.com/regro/cf-scripts/actions/workflows/bot-make-migrators.yml/badge.svg)](https://github.com/regro/cf-scripts/actions/workflows/bot-make-migrators.yml)
 [![bot-cache](https://github.com/regro/cf-scripts/actions/workflows/bot-cache.yml/badge.svg)](https://github.com/regro/cf-scripts/actions/workflows/bot-cache.yml)
 [![test-model](https://github.com/regro/cf-scripts/actions/workflows/test-model.yml/badge.svg)](https://github.com/regro/cf-scripts/actions/workflows/test-model.yml)
-[![relock](https://github.com/regro/cf-scripts/actions/workflows/relock.yml/badge.svg)](https://github.com/regro/cf-scripts/actions/workflows/relock.yml)
+
 
 the actual bot in an actual place doing an actual thing
 
@@ -34,7 +37,7 @@ Check out the following pages for status information on the bot:
 
 ## Starting and Stopping the Worker
 
-In order to start the worker, make a commit to master with the file `please.go`
+In order to start the worker, make a commit to main with the file `please.go`
 in the `autotick-bot` subdirectory.
 
 If you want to stop the worker, rename the file to `please.stop`, and it will not restart
@@ -130,6 +133,10 @@ __migrator:
   # The bot will skip noarch feedstocks by default.
   include_noarch: false
 
+  # If `include_build` is set to true, the bot will include build requirements in the migration.
+  # The bot will skip build requirements by default, which prevents compiler migrations.
+  include_build: false
+
   # The pr_limit controls how many PRs that bot makes in a single run.
   # Typical values range from 5 (small/slow) to 30 (large/fast). If not given,
   # the bot will scale this limit automatically to make new migrations more responsive
@@ -223,13 +230,31 @@ If your migrator needs special configuration, you should write a new factory fun
 - `CF_TICK_GRAPH_DATA_BACKENDS`: See [`LazyJson` Data Structures and Backends](#lazyjson-data-structures-and-backends) below.
 - `CF_TICK_GRAPH_DATA_USE_FILE_CACHE`: See [`LazyJson` Data Structures and Backends](#lazyjson-data-structures-and-backends) below.
 - `MONGODB_CONNECTION_STRING`: See [`LazyJson` Data Structures and Backends](#lazyjson-data-structures-and-backends) below.
-- `CF_TICK_IN_CONTAINER`: set to `true` to indicate that the bot is running in a container, prevents container in container issues
+- `CF_FEEDSTOCK_OPS_IN_CONTAINER`: set to `true` to indicate that the bot is running in a container, prevents container in container issues
 - `TIMEOUT`: set to the number of seconds to wait before timing out the bot
 - `RUN_URL`: set to the URL of the CI build (now set to a GHA run URL)
 - `MEMORY_LIMIT_GB`: set to the memory limit in GB for the bot
 - `BOT_TOKEN`: a GitHub token for the bot user
-- `CF_TICK_CONTAINER_NAME`: the name of the container to use in the bot, otherwise defaults to `ghcr.io/regro/conda-forge-tick`
-- `CF_TICK_CONTAINER_TAG`: set this to override the default container tag used in production runs, otherwise the value of `__version__` is used
+- `CF_FEEDSTOCK_OPS_CONTAINER_NAME`: the name of the container to use in the bot, otherwise defaults to `ghcr.io/regro/conda-forge-tick`
+- `CF_FEEDSTOCK_OPS_CONTAINER_TAG`: set this to override the default container tag used in production runs, otherwise the value of `__version__` is used
+- `CF_TICK_LIVE_TEST`: set to `true` to enable tests of the bot that require a working GitHub API token for `BOT_TOKEN`
+
+### Getting a Working Environment
+
+The bot has an abstract set of requirements stored in the `environment.yml` file in this repo.
+
+It's production environment is locked via `conda-lock`. The lockfile is stored in `cf-scripts`
+at [https://github.com/regro/cf-scripts/blob/main/conda-lock.yml](https://github.com/regro/cf-scripts/blob/main/conda-lock.yml).
+The production environment is relocked regularly using a GitHub Actions [job](https://github.com/regro/cf-scripts/actions/workflows/relock.yaml).
+
+There are two ways to get a working environment:
+
+1. Use the `environment.yml` file in the repo with `conda env`.
+2. Download the lockfile and use `conda-lock`. The best way to download the lockfile is via `wget` or `curl` or similar:
+
+   ```bash
+   wget https://raw.githubusercontent.com/regro/cf-scripts/main/conda-lock.yml
+   ```
 
 
 For testing purposes, the following additional environment variables are read:

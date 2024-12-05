@@ -5,15 +5,20 @@ import shutil
 import tempfile
 from pathlib import Path
 
-from conda_forge_tick.contexts import ClonedFeedstockContext
-from conda_forge_tick.lazy_json_backends import LazyJson, dumps
-from conda_forge_tick.os_utils import (
+from conda_forge_feedstock_ops.container_utils import (
+    get_default_log_level_args,
+    run_container_operation,
+    should_use_container,
+)
+from conda_forge_feedstock_ops.os_utils import (
     chmod_plus_rwX,
     get_user_execute_permissions,
     reset_permissions_with_user_execute,
     sync_dirs,
 )
-from conda_forge_tick.utils import run_container_task
+
+from conda_forge_tick.contexts import ClonedFeedstockContext
+from conda_forge_tick.lazy_json_backends import LazyJson, dumps
 
 logger = logging.getLogger(__name__)
 
@@ -43,7 +48,10 @@ def run_migration(
     default_branch : str
         The default branch of the feedstock.
     use_container : bool, optional
-        Whether to run the migration in a container, by default True.
+        Whether to use a container to run the version parsing.
+        If None, the function will use a container if the environment
+        variable `CF_FEEDSTOCK_OPS_IN_CONTAINER` is 'false'. This feature can be
+        used to avoid container in container calls.
     **kwargs : dict
         Additional keyword arguments to pass to the migration.
 
@@ -56,11 +64,7 @@ def run_migration(
           - pr_title: The PR title for the migration.
           - pr_body: The PR body for the migration.
     """
-    in_container = os.environ.get("CF_TICK_IN_CONTAINER", "false") == "true"
-    if use_container is None:
-        use_container = not in_container
-
-    if use_container and not in_container:
+    if should_use_container(use_container=use_container):
         return run_migration_containerized(
             migrator=migrator,
             feedstock_dir=feedstock_dir,
@@ -144,6 +148,8 @@ def run_migration_containerized(
             f.write(dumps(migrator.to_lazy_json_data()))
 
         args = [
+            "conda-forge-tick-container",
+            "migrate-feedstock",
             "--feedstock-name",
             feedstock_name,
             "--default-branch",
@@ -151,20 +157,21 @@ def run_migration_containerized(
             "--existing-feedstock-node-attrs",
             "-",
         ]
+        args += get_default_log_level_args(logger)
 
         if kwargs:
             args += ["--kwargs", dumps(kwargs)]
 
-        data = run_container_task(
-            "migrate-feedstock",
+        data = run_container_operation(
             args,
+            mount_readonly=False,
+            mount_dir=tmpdir,
             input=(
                 dumps(node_attrs.data)
                 if isinstance(node_attrs, LazyJson)
                 else dumps(node_attrs)
             ),
-            mount_readonly=False,
-            mount_dir=tmpdir,
+            extra_container_args=["-e", "RUN_URL"],
         )
 
         sync_dirs(

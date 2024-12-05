@@ -4,8 +4,12 @@ import os
 import shutil
 import tempfile
 
-from conda_forge_tick.os_utils import sync_dirs
-from conda_forge_tick.utils import run_container_task
+from conda_forge_feedstock_ops.container_utils import (
+    get_default_log_level_args,
+    run_container_operation,
+    should_use_container,
+)
+from conda_forge_feedstock_ops.os_utils import sync_dirs
 
 logger = logging.getLogger(__name__)
 
@@ -40,10 +44,10 @@ def is_recipe_solvable(
         (gobbs of output).
     build_platform : dict, optional
         The `build_platform` section of the `conda-forge.yml` file.`
-    use_container
-        Whether to use a container to run the parsing.
+    use_container : bool, optional
+        Whether to use a container to run the version parsing.
         If None, the function will use a container if the environment
-        variable `CF_TICK_IN_CONTAINER` is 'false'. This feature can be
+        variable `CF_FEEDSTOCK_OPS_IN_CONTAINER` is 'false'. This feature can be
         used to avoid container in container calls.
 
     Returns
@@ -71,11 +75,7 @@ def is_recipe_solvable(
             f" -> verbosity={verbosity}"
         )
 
-    in_container = os.environ.get("CF_TICK_IN_CONTAINER", "false") == "true"
-    if use_container is None:
-        use_container = not in_container
-
-    if use_container and not in_container:
+    if should_use_container(use_container=use_container):
         return _is_recipe_solvable_containerized(
             feedstock_dir,
             additional_channels=additional_channels,
@@ -112,11 +112,14 @@ def _is_recipe_solvable_containerized(
     """
 
     args = [
+        "conda-forge-tick-container",
+        "check-solvable",
         "--timeout",
         str(timeout),
         "--verbosity",
         str(verbosity),
     ]
+    args += get_default_log_level_args(logger)
 
     if additional_channels:
         args += ["--additional-channels", ",".join(additional_channels)]
@@ -135,8 +138,10 @@ def _is_recipe_solvable_containerized(
             f"copied host feedstock dir {tmp_feedstock_dir}: {os.listdir(tmp_feedstock_dir)}"
         )
 
-        data = run_container_task(
-            "check-solvable", args, mount_readonly=True, mount_dir=tmp_feedstock_dir
+        data = run_container_operation(
+            args,
+            mount_readonly=True,
+            mount_dir=tmp_feedstock_dir,
         )
 
         # When tempfile removes tempdir, it tries to reset permissions on subdirs.

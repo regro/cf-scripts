@@ -12,6 +12,11 @@ from typing import Optional, Set, Union
 
 import requests
 import yaml
+from conda_forge_feedstock_ops.container_utils import (
+    get_default_log_level_args,
+    run_container_operation,
+    should_use_container,
+)
 from requests.models import Response
 
 if typing.TYPE_CHECKING:
@@ -22,9 +27,12 @@ if typing.TYPE_CHECKING:
     from .migrators_types import PackageName, RequirementsTypedDict
 
 from conda_forge_tick.lazy_json_backends import LazyJson, dumps, loads
-from conda_forge_tick.utils import run_container_task
-
-from .utils import as_iterable, parse_meta_yaml, parse_recipe_yaml
+from conda_forge_tick.utils import (
+    as_iterable,
+    parse_meta_yaml,
+    parse_recipe_yaml,
+    sanitize_string,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -152,9 +160,23 @@ def _extract_requirements(meta_yaml, outputs_to_keep=None):
             requirements_dict[section].update(
                 list(as_iterable(req.get(section, []) or [])),
             )
-        test: "TestTypedDict" = block.get("test", {})
+
+        test: "TestTypedDict" = block.get("test", {}) or {}
         requirements_dict["test"].update(test.get("requirements", []) or [])
         requirements_dict["test"].update(test.get("requires", []) or [])
+
+        if "tests" in block:
+            for test in block.get("tests", []):
+                # only script tests have requirements
+                if "requirements" in test:
+                    run_reqs = test["requirements"].get("run", [])
+                    build_reqs = test["requirements"].get("build", [])
+                    requirements_dict["test"].update(run_reqs + build_reqs)
+                if "python" in test:
+                    # if pip_check is unset or True, we need pip
+                    if test.get("pip_check", True):
+                        requirements_dict["test"].add("pip")
+
         run_exports = (block.get("build", {}) or {}).get("run_exports", {})
         if isinstance(run_exports, dict) and run_exports.get("strong"):
             strong_exports = True
@@ -229,8 +251,10 @@ def populate_feedstock_attributes(
     if isinstance(feedstock_dir, str):
         feedstock_dir = Path(feedstock_dir)
 
-    if meta_yaml is None and recipe_yaml is None:
-        raise ValueError("Either `meta_yaml` or  `recipe_yaml` needs to be given.")
+    if (meta_yaml is None and recipe_yaml is None) or (
+        meta_yaml is not None and recipe_yaml is not None
+    ):
+        raise ValueError("Either `meta_yaml` or `recipe_yaml` needs to be given.")
 
     sub_graph.update({"feedstock_name": name, "parsing_error": False, "branch": "main"})
 
@@ -244,12 +268,23 @@ def populate_feedstock_attributes(
 
     if isinstance(meta_yaml, str):
         sub_graph["raw_meta_yaml"] = meta_yaml
+    elif isinstance(recipe_yaml, str):
+        sub_graph["raw_meta_yaml"] = recipe_yaml
 
     # Get the conda-forge.yml
     if isinstance(conda_forge_yaml, str):
-        sub_graph["conda-forge.yml"] = {
-            k: v for k, v in yaml.safe_load(conda_forge_yaml).items()
-        }
+        try:
+            sub_graph["conda-forge.yml"] = {
+                k: v for k, v in yaml.safe_load(conda_forge_yaml).items()
+            }
+        except Exception as e:
+            import traceback
+
+            trb = traceback.format_exc()
+            sub_graph["parsing_error"] = sanitize_string(
+                f"feedstock parsing error: cannot load conda-forge.yml: {e}\n{trb}"
+            )
+            return sub_graph
 
     if feedstock_dir is not None:
         logger.debug(
@@ -300,6 +335,7 @@ def populate_feedstock_attributes(
                             ),
                         ),
                     )
+                    variant_yamls[-1]["schema_version"] = 0
                 elif isinstance(recipe_yaml, str):
                     platform_arch = (
                         f"{plat}-{arch}"
@@ -312,6 +348,9 @@ def populate_feedstock_attributes(
                             platform_arch=platform_arch,
                             cbc_path=cbc_path,
                         ),
+                    )
+                    variant_yamls[-1]["schema_version"] = variant_yamls[-1].get(
+                        "schema_version", 1
                     )
 
                 # sometimes the requirements come out to None or [None]
@@ -357,11 +396,17 @@ def populate_feedstock_attributes(
                     parse_meta_yaml(meta_yaml, platform=plat, arch=arch)
                     for plat, arch in plat_archs
                 ]
+            elif isinstance(recipe_yaml, str):
+                raise NotImplementedError(
+                    "recipe_yaml generic parsing not implemented yet! Ensure the feedstock has .ci_support files."
+                )
     except Exception as e:
         import traceback
 
         trb = traceback.format_exc()
-        sub_graph["parsing_error"] = f"make_graph: render error {e}\n{trb}"
+        sub_graph["parsing_error"] = sanitize_string(
+            f"feedstock parsing error: cannot rendering recipe: {e}\n{trb}"
+        )
         raise
 
     logger.debug("platforms: %s", plat_archs)
@@ -372,7 +417,9 @@ def populate_feedstock_attributes(
     yaml_dict = ChainDB(*sorted_variant_yamls)
     if not yaml_dict:
         logger.error(f"Something odd happened when parsing recipe {name}")
-        sub_graph["parsing_error"] = "make_graph: Could not parse"
+        sub_graph["parsing_error"] = (
+            "feedstock parsing error: could not combine metadata dicts across platforms"
+        )
         return sub_graph
 
     sub_graph["meta_yaml"] = _dedupe_meta_yaml(_convert_to_dict(yaml_dict))
@@ -515,7 +562,9 @@ def load_feedstock_local(
                 if mark_not_archived:
                     sub_graph.update({"archived": False})
 
-                sub_graph["parsing_error"] = f"make_graph: {feedstock_dir.status_code}"
+                sub_graph["parsing_error"] = sanitize_string(
+                    f"make_graph: {feedstock_dir.status_code}"
+                )
                 return sub_graph
 
             meta_yaml_path = Path(feedstock_dir).joinpath("recipe", "meta.yaml")
@@ -583,7 +632,14 @@ def load_feedstock_containerized(
     if "feedstock_name" not in sub_graph:
         sub_graph["feedstock_name"] = name
 
-    args = []
+    args = [
+        "conda-forge-tick-container",
+        "parse-feedstock",
+        "--existing-feedstock-node-attrs",
+        "-",
+    ]
+
+    args += get_default_log_level_args(logger)
 
     if meta_yaml is not None:
         args += ["--meta-yaml", meta_yaml]
@@ -601,13 +657,8 @@ def load_feedstock_containerized(
         dumps(sub_graph.data) if isinstance(sub_graph, LazyJson) else dumps(sub_graph)
     )
 
-    data = run_container_task(
-        "parse-feedstock",
-        [
-            "--existing-feedstock-node-attrs",
-            "-",
-            *args,
-        ],
+    data = run_container_operation(
+        args,
         json_loads=loads,
         input=json_blob,
         pass_env_vars=[ENV_OVERRIDE_CONDA_FORGE_ORG],
@@ -645,7 +696,7 @@ def load_feedstock(
     use_container : bool, optional
         Whether to use a container to run the version parsing.
         If None, the function will use a container if the environment
-        variable `CF_TICK_IN_CONTAINER` is 'false'. This feature can be
+        variable `CF_FEEDSTOCK_OPS_IN_CONTAINER` is 'false'. This feature can be
         used to avoid container in container calls.
 
     Returns
@@ -653,11 +704,8 @@ def load_feedstock(
     sub_graph : MutableMapping
         The sub_graph, now updated with the feedstock metadata
     """
-    in_container = os.environ.get("CF_TICK_IN_CONTAINER", "false") == "true"
-    if use_container is None:
-        use_container = not in_container
 
-    if use_container and not in_container:
+    if should_use_container(use_container=use_container):
         return load_feedstock_containerized(
             name,
             sub_graph,
@@ -675,3 +723,31 @@ def load_feedstock(
             conda_forge_yaml=conda_forge_yaml,
             mark_not_archived=mark_not_archived,
         )
+
+
+if __name__ == "__main__":
+    import json
+    import os
+    import sys
+
+    # Do not use docker when debugging
+    os.environ["CF_FEEDSTOCK_OPS_IN_CONTAINER"] = "true"
+
+    if len(sys.argv) < 2:
+        print(f"Usage: {sys.argv[0]} feedstock_name")
+        sys.exit(1)
+    feedstock_name = sys.argv[1]
+
+    graph = {}
+    load_feedstock_local(
+        "carma",
+        graph,
+    )
+
+    class SetEncoder(json.JSONEncoder):
+        def default(self, obj):
+            if isinstance(obj, set):
+                return list(obj)
+            return json.JSONEncoder.default(self, obj)
+
+    print(json.dumps(graph, indent=4, cls=SetEncoder))

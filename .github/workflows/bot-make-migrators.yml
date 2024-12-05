@@ -25,12 +25,12 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
         with:
           ref: ${{ steps.latest_release.outputs.tag_name }}
           path: cf-scripts
 
-      - uses: mamba-org/setup-micromamba@f8b8a1e23a26f60a44c853292711bacfd3eac822 # v1
+      - uses: mamba-org/setup-micromamba@06375d89d211a1232ef63355742e9e2e564bc7f7 # v1
         with:
           environment-file: cf-scripts/conda-lock.yml
           environment-name: cf-scripts
@@ -59,7 +59,7 @@ jobs:
           MONGODB_CONNECTION_STRING: ${{ secrets.MONGODB_CONNECTION_STRING }}
 
       - name: deploy
-        if: github.ref == 'refs/heads/master' && always() && ! env.CI_SKIP
+        if: github.ref == 'refs/heads/main' && always() && ! env.CI_SKIP
         run: |
           pushd cf-graph
 
@@ -70,15 +70,15 @@ jobs:
           RUN_ID: ${{ github.run_id }}
 
       - name: trigger next job
-        uses: benc-uk/workflow-dispatch@25b02cc069be46d637e8fe2f1e8484008e9e9609 # v1.2.3
-        if: github.ref == 'refs/heads/master' && ! cancelled() && ! failure() && ! env.CI_SKIP
+        uses: benc-uk/workflow-dispatch@e2e5e9a103e331dad343f381a29e654aea3cf8fc # v1.2.4
+        if: github.ref == 'refs/heads/main' && ! cancelled() && ! failure() && ! env.CI_SKIP
         with:
           workflow: bot-make-migrators
           ref: ${{ github.event.ref }}
           token: ${{ secrets.AUTOTICK_BOT_TOKEN }}
 
       - name: bump on fail
-        if: github.ref == 'refs/heads/master' && failure() && ! env.CI_SKIP
+        if: github.ref == 'refs/heads/main' && failure() && ! env.CI_SKIP
         run: |
           export ACTION_URL="https://github.com/regro/cf-scripts/actions/runs/${RUN_ID}"
           python cf-scripts/autotick-bot/bump_bot_team.py

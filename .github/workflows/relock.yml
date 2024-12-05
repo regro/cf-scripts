@@ -2,8 +2,9 @@ name: relock
 
 on:
   workflow_dispatch: null
+  issue_comment: null
   schedule:
-    - cron: '15 */3 * * *'
+    - cron: '*/30 * * * *'
 
 concurrency: relock
 
@@ -11,49 +12,11 @@ jobs:
   relock:
     name: relock
     runs-on: "ubuntu-latest"
-    defaults:
-      run:
-        shell: bash -leo pipefail {0}
-
     steps:
-      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
 
-      - uses: mamba-org/setup-micromamba@f8b8a1e23a26f60a44c853292711bacfd3eac822 # v1
+      - uses: conda-incubator/relock-conda@7e9057f62545d3b3a3fc10ccc93cec4d0bd2c5a5
         with:
-          environment-file: conda-lock.yml
-          environment-name: cf-scripts
-          condarc-file: autotick-bot/condarc
-
-      - name: relock
-        id: relock
-        run: |
-          python autotick-bot/relock_me.py conda-lock.yml > summary.txt
-          {
-            echo 'SUMMARY<<EOF'
-            cat summary.txt
-            echo EOF
-          } >> "$GITHUB_OUTPUT"
-          rm summary.txt
-
-      - name: Open PR
-        id: pr
-        uses: peter-evans/create-pull-request@c5a7806660adbe173f04e3e038b0ccdcd758773c # v6
-        with:
-          commit-message: relock w/ conda-lock
-          title: relock w/ conda-lock
-          body: "This pull request relocks the dependencies with conda-lock.
-
-
-            ${{ steps.relock.outputs.SUMMARY }}"
-          branch: relock-deps
-          delete-branch: true
-          token: ${{ secrets.AUTOTICK_BOT_TOKEN }}
-          committer: regro-cf-autotick-bot <36490558+regro-cf-autotick-bot@users.noreply.github.com>
-          author: regro-cf-autotick-bot <36490558+regro-cf-autotick-bot@users.noreply.github.com>
-          labels: dependencies
-
-      - name: automerge
-        if: ${{ steps.pr.outputs.pull-request-number != '' }}
-        run: gh pr merge --merge --auto "${{ steps.pr.outputs.pull-request-number }}"
-        env:
-          GH_TOKEN: ${{ secrets.AUTOTICK_BOT_TOKEN }}
+          github-token: ${{ secrets.AUTOTICK_BOT_TOKEN }}
+          automerge: true
+          skip-if-pr-exists: true

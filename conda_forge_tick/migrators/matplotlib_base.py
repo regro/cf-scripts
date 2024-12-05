@@ -3,7 +3,7 @@ import os
 import typing
 from typing import Any
 
-from conda_forge_tick.migrators.core import _parse_bad_attr
+from conda_forge_tick.migrators.core import _parse_bad_attr, skip_migrator_due_to_schema
 from conda_forge_tick.migrators.replacement import Replacement
 from conda_forge_tick.utils import frozen_to_json_friendly
 
@@ -49,7 +49,13 @@ class MatplotlibBase(Replacement):
         )
         _no_dep = len(rq & self.packages) == 0
 
-        return _is_archived or _is_pred or _is_bad or _no_dep
+        return (
+            _is_archived
+            or _is_pred
+            or _is_bad
+            or _no_dep
+            or skip_migrator_due_to_schema(attrs, self.allowed_schema_versions)
+        )
 
     def migrate(
         self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any

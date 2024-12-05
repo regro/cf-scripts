@@ -1,5 +1,6 @@
 import os
 import subprocess
+import sys
 
 from . import sensitive_env
 from .cli_context import CliContext
@@ -16,8 +17,76 @@ DEPLOY_REPO (optional): The GitHub repository to deploy to. Default: "regro/cf-g
 """
 
 
+def _flush_io():
+    sys.stdout.flush()
+    sys.stderr.flush()
+
+
 def _run_git_cmd(cmd, **kwargs):
-    return subprocess.run(["git"] + cmd, check=True, **kwargs)
+    r = subprocess.run(["git"] + cmd, check=True, **kwargs)
+    _flush_io()
+    return r
+
+
+def _parse_gh_conflicts(output):
+    files_to_commit = []
+    in_section = False
+    indent = None
+    for line in output.splitlines():
+        print(line, flush=True)
+        if not line.strip():
+            continue
+
+        if line.startswith("error:"):
+            in_section = True
+            continue
+
+        if in_section and indent is not None and not line.startswith(indent):
+            in_section = False
+            indent = None
+            continue
+
+        if in_section:
+            if indent is None:
+                indent = line[: len(line) - len(line.lstrip())]
+            fname = line.strip()
+            if os.path.exists(fname):
+                files_to_commit.append(fname)
+            continue
+
+    return files_to_commit
+
+
+def _pull_changes(batch):
+    r = subprocess.run(
+        ["git", "pull", "-s", "recursive", "-X", "theirs"],
+        text=True,
+        capture_output=True,
+    )
+    n_added = 0
+    if r.returncode != 0:
+        files_to_commit = _parse_gh_conflicts(r.stderr + "\n" + r.stdout)
+
+        for fname in files_to_commit:
+            n_added += 1
+            print(f"committing for conflicts {n_added: >5d}: {fname}", flush=True)
+            _run_git_cmd(["add", fname])
+
+        if files_to_commit:
+            _step_name = os.environ.get("GITHUB_WORKFLOW", "update graph")
+            _run_git_cmd(
+                [
+                    "commit",
+                    "-m",
+                    f"{_step_name} - conflicts for batch {batch: >3d} - {get_bot_run_url()}",
+                ],
+            )
+
+        _run_git_cmd(["pull", "-s", "recursive", "-X", "theirs"])
+
+    _flush_io()
+
+    return n_added
 
 
 def _deploy_batch(*, files_to_add, batch, n_added, max_per_batch=200):
@@ -31,7 +100,7 @@ def _deploy_batch(*, files_to_add, batch, n_added, max_per_batch=200):
                 n_added_this_batch += 1
                 n_added += 1
             except Exception as e:
-                print(e)
+                print(e, flush=True)
 
     if n_added_this_batch > 0:
         try:
@@ -44,24 +113,27 @@ def _deploy_batch(*, files_to_add, batch, n_added, max_per_batch=200):
                 ],
             )
         except Exception as e:
-            print(e)
+            print(e, flush=True)
 
         # make sure the graph can load, if not we will error
         try:
             gx = load_existing_graph()
             # TODO: be more selective about which json to check
             for node, attrs in gx.nodes.items():
-                attrs["payload"]._load()
+                with attrs["payload"]:
+                    pass
             graph_ok = True
         except Exception:
             graph_ok = False
 
         status = 1
         num_try = 0
-        while status != 0 and num_try < 10 and graph_ok:
+        while status != 0 and num_try < 100 and graph_ok:
             try:
                 print("\n\n>>>>>>>>>>>> git pull try %d\n\n" % num_try, flush=True)
-                _run_git_cmd(["pull", "-s", "recursive", "-X", "theirs"])
+                _n_added = _pull_changes(batch)
+                n_added += _n_added
+                n_added_this_batch += _n_added
             except Exception as e:
                 print(
                     "\n\n>>>>>>>>>>>> git pull try %d failed: %s \n\n" % (num_try, e),
@@ -84,6 +156,7 @@ def _deploy_batch(*, files_to_add, batch, n_added, max_per_batch=200):
                     ],
                     token=env.get("BOT_TOKEN", ""),
                 )
+                _flush_io()
             num_try += 1
 
         if status != 0 or not graph_ok:
@@ -103,7 +176,7 @@ def deploy(ctx: CliContext, dirs_to_deploy: list[str] = None):
     try:
         _run_git_cmd(["pull", "-s", "recursive", "-X", "theirs"])
     except Exception as e:
-        print(e)
+        print(e, flush=True)
 
     files_to_add = set()
     if dirs_to_deploy is None:

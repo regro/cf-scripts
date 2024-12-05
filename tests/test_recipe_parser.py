@@ -1,4 +1,5 @@
 import io
+import os
 
 import pytest
 
@@ -1284,9 +1285,9 @@ extra:
 
 
 def test_recipe_parses_cupy():
-    recipe = r"""{% set name = "cupy" %}
-{% set version = "10.1.0" %}
-{% set sha256 = "ad28e7311b2023391f2278b7649828decdd9d9599848e18845eb4ab1b2d01936" %}
+    recipe = r"""{% set name = "cupy" -%}
+{%- set version = "10.1.0" %}
+{%- set sha256 = "ad28e7311b2023391f2278b7649828decdd9d9599848e18845eb4ab1b2d01936" -%}
 
 {% if cuda_compiler_version in (None, "None", True, False) %}
 {% set cuda_major = 0 %}
@@ -1603,3 +1604,20 @@ test:
     s.seek(0)
     new_recipe = s.read()
     assert new_recipe == recipe_correct
+
+
+YAML_PATH = os.path.join(os.path.dirname(__file__), "test_yaml")
+
+
+@pytest.mark.parametrize("recipe", os.listdir(YAML_PATH))
+def test_recipe_parser_yaml_suite(recipe):
+    if (
+        recipe.endswith("_correct.yaml") and "duplicate_lines_cleanup" not in recipe
+    ) or recipe.endswith("_after_meta.yaml"):
+        with open(os.path.join(YAML_PATH, recipe)) as f:
+            recipe = f.read()
+            cm = CondaMetaYAML(recipe)
+            s = io.StringIO()
+            cm.dump(s)
+            s.seek(0)
+            assert s.read() == recipe

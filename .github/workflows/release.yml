@@ -4,7 +4,7 @@ on:
   workflow_dispatch: null
   push:
     branches:
-      - master
+      - main
 
 env:
   PY_COLORS: "1"
@@ -24,11 +24,11 @@ jobs:
         shell: bash -leo pipefail {0}
 
     steps:
-      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
         with:
           fetch-depth: 0
 
-      - uses: mamba-org/setup-micromamba@f8b8a1e23a26f60a44c853292711bacfd3eac822 # v1
+      - uses: mamba-org/setup-micromamba@06375d89d211a1232ef63355742e9e2e564bc7f7 # v1
         with:
           environment-file: conda-lock.yml
           environment-name: cf-scripts
@@ -37,7 +37,7 @@ jobs:
       - name: compute next version
         id: version
         run: |
-          echo "current version: "$(git describe --tags --abbrev=0)
+          echo "current version: "$(git tag --sort=committerdate | tail -1)
           NEXT=$(python autotick-bot/compute_next_version.py)
           echo "next version: ${NEXT}"
           echo "NEXT=${NEXT}" >> "$GITHUB_OUTPUT"
@@ -51,7 +51,7 @@ jobs:
 
       - name: build docker metadata
         id: meta
-        uses: docker/metadata-action@8e5442c4ef9f78752691e2d8f8d19755c6f78e81 # v5
+        uses: docker/metadata-action@369eb591f429131d6889c46b94e711f089e6ca96 # v5
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           flavor: |
@@ -61,7 +61,7 @@ jobs:
             type=raw,value=latest
 
       - name: build and push image
-        uses: docker/build-push-action@16ebe778df0e7752d2cfcbd924afdbbd89c1a755 # v6
+        uses: docker/build-push-action@48aba3b46d1b1fec4febb7c5d0c644b249a11355 # v6
         with:
           context: .
           push: true

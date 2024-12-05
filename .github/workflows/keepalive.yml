@@ -11,8 +11,8 @@ jobs:
     name: Cronjob based github action
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4
-      - uses: gautamkrishnar/keepalive-workflow@24ba73b43d5ea8d2b3d56fb9b8de951ba9a3dd18 # v2
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+      - uses: gautamkrishnar/keepalive-workflow@995aec69bb3f2b45b20f4e107907992c8715086d # v2
         with:
           commit_message: "Ah ah ah, stayin' alive"
           committer_username: conda-forge-bot

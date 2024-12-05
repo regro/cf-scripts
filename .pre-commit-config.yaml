@@ -11,25 +11,25 @@ ci:
 
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.6.0
+    rev: v5.0.0
     hooks:
       - id: end-of-file-fixer
       - id: trailing-whitespace
 
   - repo: https://github.com/asottile/pyupgrade
-    rev: v3.17.0
+    rev: v3.19.0
     hooks:
       - id: pyupgrade
         args:
           - --py36-plus
 
   - repo: https://github.com/crate-ci/typos
-    rev: v1.23.6
+    rev: typos-dict-v0.11.37
     hooks:
       - id: typos
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.5.6
+    rev: v0.8.1
     hooks:
       - id: ruff
         args: [ --fix ]

@@ -94,7 +94,9 @@ def main(
         )
     if no_containers:
         logger.info("Running without containers")
-        click_context.with_resource(override_env("CF_TICK_IN_CONTAINER", "true"))
+        click_context.with_resource(
+            override_env("CF_FEEDSTOCK_OPS_IN_CONTAINER", "true")
+        )
 
 
 @main.command(name="gather-all-feedstocks")
@@ -112,16 +114,29 @@ def gather_all_feedstocks() -> None:
     is_flag=True,
     help="If given, update the nodes and edges in the graph. Otherwise, only update the node attrs.",
 )
+@click.option(
+    "--schema-migration-only",
+    is_flag=True,
+    help="If given, only migrate the schema of the node attrs.",
+)
 @pass_context
 def make_graph(
-    ctx: CliContext, job: int, n_jobs: int, update_nodes_and_edges: bool
+    ctx: CliContext,
+    job: int,
+    n_jobs: int,
+    update_nodes_and_edges: bool,
+    schema_migration_only: bool,
 ) -> None:
     from . import make_graph
 
     check_job_param_relative(job, n_jobs)
 
     make_graph.main(
-        ctx, job=job, n_jobs=n_jobs, update_nodes_and_edges=update_nodes_and_edges
+        ctx,
+        job=job,
+        n_jobs=n_jobs,
+        update_nodes_and_edges=update_nodes_and_edges,
+        schema_migration_only=schema_migration_only,
     )
 
 
@@ -246,6 +261,36 @@ def make_migrators(
     from . import make_migrators as _make_migrators
 
     _make_migrators.main(ctx)
+
+
+@main.command(name="react-to-event")
+@click.option(
+    "--event",
+    required=True,
+    help="The event to react to.",
+    type=click.Choice(["pr", "push"]),
+)
+@click.option(
+    "--uid",
+    required=True,
+    help=(
+        "The unique identifier of the event. It is the PR "
+        "id for PR events or the feedstock name for push events"
+    ),
+    type=str,
+)
+@pass_context
+def react_to_event(
+    ctx: CliContext,
+    event: str,
+    uid: str,
+) -> None:
+    """
+    React to an event.
+    """
+    from .events import react_to_event
+
+    react_to_event(ctx, event, uid)
 
 
 if __name__ == "__main__":

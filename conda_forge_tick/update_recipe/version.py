@@ -1,16 +1,33 @@
 import collections.abc
 import hashlib
 import io
+import json
 import logging
+import os
 import pprint
 import re
+import shutil
+import tempfile
 import traceback
 from typing import Any, MutableMapping
 
 import jinja2
 import jinja2.sandbox
+import requests
+from conda_forge_feedstock_ops.container_utils import (
+    get_default_log_level_args,
+    run_container_operation,
+    should_use_container,
+)
+from conda_forge_feedstock_ops.os_utils import (
+    chmod_plus_rwX,
+    get_user_execute_permissions,
+    reset_permissions_with_user_execute,
+    sync_dirs,
+)
 
 from conda_forge_tick.hashing import hash_url
+from conda_forge_tick.lazy_json_backends import loads
 from conda_forge_tick.recipe_parser import CONDA_SELECTOR, CondaMetaYAML
 from conda_forge_tick.url_transforms import gen_transformed_urls
 from conda_forge_tick.utils import sanitize_string
@@ -124,30 +141,147 @@ def _render_jinja2(tmpl, context):
     )
 
 
-def _get_new_url_tmpl_and_hash(url_tmpl: str, context: MutableMapping, hash_type: str):
+def _try_pypi_api(url_tmpl: str, context: MutableMapping, hash_type: str, cmeta: Any):
+    if "version" not in context:
+        return None, None
+
+    if not any(
+        pypi_slug in url_tmpl
+        for pypi_slug in ["/pypi.org/", "/pypi.io/", "/files.pythonhosted.org/"]
+    ):
+        return None, None
+
+    orig_pypi_name = None
+    orig_pypi_name_candidates = [
+        url_tmpl.split("/")[-2],
+        context.get("name", None),
+        (cmeta.meta.get("package", {}) or {}).get("name", None),
+    ]
+    if "outputs" in cmeta.meta:
+        for output in cmeta.meta["outputs"]:
+            output = output or {}
+            orig_pypi_name_candidates.append(output.get("name", None))
+    orig_pypi_name_candidates = sorted(
+        {nc for nc in orig_pypi_name_candidates if nc is not None and len(nc) > 0},
+        key=lambda x: len(x),
+    )
+    logger.info("PyPI name candidates: %s", orig_pypi_name_candidates)
+    for _orig_pypi_name in orig_pypi_name_candidates:
+        if _orig_pypi_name is None:
+            continue
+
+        if "{{ name }}" in _orig_pypi_name:
+            _orig_pypi_name = _render_jinja2(_orig_pypi_name, context)
+
+        try:
+            r = requests.get(
+                f"https://pypi.org/simple/{_orig_pypi_name}/",
+                headers={"Accept": "application/vnd.pypi.simple.v1+json"},
+            )
+            r.raise_for_status()
+        except Exception as e:
+            logger.debug("PyPI API request failed: %s", repr(e), exc_info=e)
+        else:
+            orig_pypi_name = _orig_pypi_name
+            break
+
+    if orig_pypi_name is None or not r.ok:
+        logger.error("PyPI name not found!")
+        r.raise_for_status()
+
+    logger.info("PyPI name: %s", orig_pypi_name)
+
+    data = r.json()
+    logger.debug("PyPI API data:\n%s", pprint.pformat(data))
+
+    valid_src_exts = {".tar.gz", ".tar.bz2", ".tar.xz", ".zip", ".tgz"}
+    finfo = None
+    ext = None
+    for _finfo in data["files"]:
+        for valid_ext in valid_src_exts:
+            if _finfo["filename"].endswith(context["version"] + valid_ext):
+                ext = valid_ext
+                finfo = _finfo
+                break
+
+    if finfo is None or ext is None:
+        logger.error(
+            "src dist for version %s not found in PyPI API for name %s",
+            context["version"],
+            orig_pypi_name,
+        )
+        return None, None
+
+    bn, _ = os.path.split(url_tmpl)
+    pypi_name = finfo["filename"].split(context["version"] + ext)[0]
+    logger.debug("PyPI API file name: %s", pypi_name)
+    name_tmpl = None
+    if "name" in context:
+        for tmpl in [
+            "{{ name }}",
+            "{{ name.lower() }}",
+            "{{ name.replace('-', '_') }}",
+            "{{ name.replace('_', '-') }}",
+            "{{ name.replace('-', '_').lower() }}",
+            "{{ name.replace('_', '-').lower() }}",
+        ]:
+            if pypi_name == _render_jinja2(tmpl, context) + "-":
+                name_tmpl = tmpl
+                break
+
+    if name_tmpl is not None:
+        new_url_tmpl = os.path.join(bn, name_tmpl + "-" + "{{ version }}" + ext)
+    else:
+        new_url_tmpl = os.path.join(
+            bn, finfo["filename"].replace(context["version"], "{{ version }}")
+        )
+
+    logger.debug("new url template from PyPI API: %s", new_url_tmpl)
+    url = _render_jinja2(new_url_tmpl, context)
+    new_hash = _try_url_and_hash_it(url, hash_type)
+    if new_hash is not None:
+        return new_url_tmpl, new_hash
+
+    new_url_tmpl = finfo["url"].replace(context["version"], "{{ version }}")
+    logger.debug("new url template from PyPI API: %s", new_url_tmpl)
+    url = _render_jinja2(new_url_tmpl, context)
+    new_hash = _try_url_and_hash_it(url, hash_type)
+    if new_hash is not None:
+        return new_url_tmpl, new_hash
+
+    return None, None
+
+
+def _get_new_url_tmpl_and_hash(
+    url_tmpl: str, context: MutableMapping, hash_type: str, cmeta: Any
+):
     logger.info(
-        "hashing URL template: %s",
+        "processing URL template: %s",
         url_tmpl,
     )
     try:
-        logger.info(
-            "rendered URL: %s",
-            _render_jinja2(url_tmpl, context),
-        )
+        url = _render_jinja2(url_tmpl, context)
+        logger.info("initial rendered URL: %s", url)
     except jinja2.UndefinedError:
         logger.info("initial URL template does not render")
         pass
 
-    try:
-        url = _render_jinja2(url_tmpl, context)
+    if url != url_tmpl:
         new_hash = _try_url_and_hash_it(url, hash_type)
         if new_hash is not None:
             return url_tmpl, new_hash
-    except jinja2.UndefinedError:
-        pass
+    else:
+        logger.info("initial URL template does not update with version. skipping it.")
 
     new_url_tmpl = None
     new_hash = None
+
+    try:
+        new_url_tmpl, new_hash = _try_pypi_api(url_tmpl, context, hash_type, cmeta)
+        if new_hash is not None and new_url_tmpl is not None:
+            return new_url_tmpl, new_hash
+    except Exception as e:
+        logger.debug("PyPI API url+hash update failed: %s", repr(e), exc_info=e)
 
     for new_url_tmpl in gen_transformed_urls(url_tmpl):
         try:
@@ -207,7 +341,8 @@ def _try_replace_hash(
 def _try_to_update_version(cmeta: Any, src: str, hash_type: str):
     errors = set()
 
-    if len(src) == 1 and all("path" in k for k in src):
+    local_vals = ["path", "folder"]
+    if all(any(lval in k for lval in local_vals) for k in src):
         return None, errors
 
     if not any("url" in k for k in src):
@@ -328,6 +463,7 @@ def _try_to_update_version(cmeta: Any, src: str, hash_type: str):
                     url_tmpl,
                     context,
                     hash_type,
+                    cmeta,
                 )
                 if new_hash is not None:
                     break
@@ -338,6 +474,7 @@ def _try_to_update_version(cmeta: Any, src: str, hash_type: str):
                 src[url_key],
                 context,
                 hash_type,
+                cmeta,
             )
             if new_hash is None:
                 errors.add("could not hash URL template '%s'" % src[url_key])
@@ -377,6 +514,115 @@ def _try_to_update_version(cmeta: Any, src: str, hash_type: str):
     logger.info("updated|errors: %r|%r", updated_version, errors)
 
     return updated_version, errors
+
+
+def update_version_feedstock_dir(
+    feedstock_dir, version, hash_type="sha256", use_container=None
+):
+    """Update the version in a recipe.
+
+    Parameters
+    ----------
+    feedstock_dir : str
+        The feedstock directory w/ the recipe to update.
+    version : str
+        The version of the recipe.
+    hash_type : str, optional
+        The kind of hash used on the source. Default is sha256.
+    use_container : bool, optional
+        Whether to use a container to run the version parsing.
+        If None, the function will use a container if the environment
+        variable `CF_FEEDSTOCK_OPS_IN_CONTAINER` is 'false'. This feature can be
+        used to avoid container in container calls.
+
+    Returns
+    -------
+    updated : bool
+        If the recipe was updated, True, otherwise False.
+    errors : str of str
+        A set of strings giving any errors found when updating the
+        version. The set will be empty if there were no errors.
+    """
+    if should_use_container(use_container=use_container):
+        return _update_version_feedstock_dir_containerized(
+            feedstock_dir,
+            version,
+            hash_type,
+        )
+    else:
+        return _update_version_feedstock_dir_local(
+            feedstock_dir,
+            version,
+            hash_type,
+        )
+
+
+def _update_version_feedstock_dir_local(feedstock_dir, version, hash_type):
+    with open(os.path.join(feedstock_dir, "recipe", "meta.yaml")) as f:
+        raw_meta_yaml = f.read()
+    updated_meta_yaml, errors = update_version(
+        raw_meta_yaml, version, hash_type=hash_type
+    )
+    if updated_meta_yaml is not None:
+        with open(os.path.join(feedstock_dir, "recipe", "meta.yaml"), "w") as f:
+            f.write(updated_meta_yaml)
+
+    return updated_meta_yaml is not None, errors
+
+
+def _update_version_feedstock_dir_containerized(feedstock_dir, version, hash_type):
+    with tempfile.TemporaryDirectory() as tmpdir:
+        tmp_feedstock_dir = os.path.join(tmpdir, os.path.basename(feedstock_dir))
+        sync_dirs(
+            feedstock_dir, tmp_feedstock_dir, ignore_dot_git=True, update_git=False
+        )
+
+        perms = get_user_execute_permissions(feedstock_dir)
+        with open(
+            os.path.join(tmpdir, f"permissions-{os.path.basename(feedstock_dir)}.json"),
+            "w",
+        ) as f:
+            json.dump(perms, f)
+
+        chmod_plus_rwX(tmpdir, recursive=True)
+
+        logger.debug(f"host feedstock dir {feedstock_dir}: {os.listdir(feedstock_dir)}")
+        logger.debug(
+            f"copied host feedstock dir {tmp_feedstock_dir}: {os.listdir(tmp_feedstock_dir)}"
+        )
+
+        args = [
+            "conda-forge-tick-container",
+            "update-version",
+            "--version",
+            version,
+            "--hash-type",
+            hash_type,
+        ]
+        args += get_default_log_level_args(logger)
+
+        data = run_container_operation(
+            args,
+            mount_readonly=False,
+            mount_dir=tmpdir,
+            json_loads=loads,
+        )
+
+        sync_dirs(
+            tmp_feedstock_dir,
+            feedstock_dir,
+            ignore_dot_git=True,
+            update_git=False,
+        )
+        reset_permissions_with_user_execute(feedstock_dir, data["permissions"])
+
+        # When tempfile removes tempdir, it tries to reset permissions on subdirs.
+        # This causes a permission error since the subdirs were made by the user
+        # in the container. So we remove the subdir we made before cleaning up.
+        shutil.rmtree(tmp_feedstock_dir)
+
+    data.pop("permissions", None)
+    return data["updated"], data["errors"]
 
 
 def update_version(raw_meta_yaml, version, hash_type="sha256"):

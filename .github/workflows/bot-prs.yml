@@ -3,7 +3,7 @@ name: bot-prs
 on:
   workflow_dispatch: null
   schedule:
-    - cron: '*/15 * * * *'
+    - cron: '15 12 * * *'
 
 concurrency: prs
 
@@ -11,7 +11,10 @@ jobs:
   prs:
     name: prs
     runs-on: "ubuntu-latest"
+    env:
+      NUM_BOT_JOBS: 4
     strategy:
+      fail-fast: false
       matrix:
         job_num: [ 1, 2, 3, 4 ]
     defaults:
@@ -28,12 +31,12 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
         with:
           ref: ${{ steps.latest_release.outputs.tag_name }}
           path: cf-scripts
 
-      - uses: mamba-org/setup-micromamba@f8b8a1e23a26f60a44c853292711bacfd3eac822 # v1
+      - uses: mamba-org/setup-micromamba@06375d89d211a1232ef63355742e9e2e564bc7f7 # v1
         with:
           environment-file: cf-scripts/conda-lock.yml
           environment-name: cf-scripts
@@ -57,7 +60,7 @@ jobs:
           pushd cf-graph
 
           export RUN_URL="https://github.com/regro/cf-scripts/actions/runs/${RUN_ID}"
-          conda-forge-tick update-prs --job=${BOT_JOB} --n-jobs=4
+          conda-forge-tick update-prs --job=${BOT_JOB} --n-jobs=${NUM_BOT_JOBS}
         env:
           BOT_TOKEN: ${{ secrets.AUTOTICK_BOT_TOKEN }}
           RUN_ID: ${{ github.run_id }}
@@ -66,7 +69,7 @@ jobs:
           MONGODB_CONNECTION_STRING: ${{ secrets.MONGODB_CONNECTION_STRING }}
 
       - name: deploy
-        if: github.ref == 'refs/heads/master' && ! cancelled() && ! env.CI_SKIP
+        if: github.ref == 'refs/heads/main' && ! cancelled() && ! env.CI_SKIP
         run: |
           pushd cf-graph
 
@@ -77,7 +80,7 @@ jobs:
           RUN_ID: ${{ github.run_id }}
 
       - name: bump on fail
-        if: github.ref == 'refs/heads/master' && failure() && ! env.CI_SKIP
+        if: github.ref == 'refs/heads/main' && failure() && ! env.CI_SKIP
         run: |
           export ACTION_URL="https://github.com/regro/cf-scripts/actions/runs/${RUN_ID}"
           python cf-scripts/autotick-bot/bump_bot_team.py
@@ -104,12 +107,12 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
         with:
           ref: ${{ steps.latest_release.outputs.tag_name }}
           path: cf-scripts
 
-      - uses: mamba-org/setup-micromamba@f8b8a1e23a26f60a44c853292711bacfd3eac822 # v1
+      - uses: mamba-org/setup-micromamba@06375d89d211a1232ef63355742e9e2e564bc7f7 # v1
         with:
           environment-file: cf-scripts/conda-lock.yml
           environment-name: cf-scripts
@@ -120,24 +123,8 @@ jobs:
           cd cf-scripts
           python autotick-bot/stop_me_if_needed.py
 
-      - name: trigger next job
-        uses: benc-uk/workflow-dispatch@25b02cc069be46d637e8fe2f1e8484008e9e9609 # v1.2.3
-        if: github.ref == 'refs/heads/master' && ! cancelled() && ! failure() && ! env.CI_SKIP
-        with:
-          workflow: bot-prs
-          ref: ${{ github.event.ref }}
-          token: ${{ secrets.AUTOTICK_BOT_TOKEN }}
-
-      - name: trigger status page
-        uses: benc-uk/workflow-dispatch@25b02cc069be46d637e8fe2f1e8484008e9e9609 # v1.2.3
-        if: github.ref == 'refs/heads/master' && ! cancelled() && ! failure() && ! env.CI_SKIP
-        with:
-          workflow: bot-update-status-page
-          ref: ${{ github.event.ref }}
-          token: ${{ secrets.AUTOTICK_BOT_TOKEN }}
-
       - name: bump on fail
-        if: github.ref == 'refs/heads/master' && failure() && ! env.CI_SKIP
+        if: github.ref == 'refs/heads/main' && failure() && ! env.CI_SKIP
         run: |
           export ACTION_URL="https://github.com/regro/cf-scripts/actions/runs/${RUN_ID}"
           python cf-scripts/autotick-bot/bump_bot_team.py

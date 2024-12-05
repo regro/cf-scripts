@@ -46,9 +46,41 @@ def test_feedstock_context_default_branch_set():
     assert context.default_branch == "feature"
 
 
+def test_feedstock_context_git_repo_owner():
+    context = FeedstockContext("TEST-FEEDSTOCK-NAME", demo_attrs)
+    assert context.git_repo_owner == "conda-forge"
+
+
 def test_feedstock_context_git_repo_name():
     context = FeedstockContext("TEST-FEEDSTOCK-NAME", demo_attrs)
     assert context.git_repo_name == "TEST-FEEDSTOCK-NAME-feedstock"
+
+
+def test_feedstock_context_git_http_ref():
+    context = FeedstockContext("TEST-FEEDSTOCK-NAME", demo_attrs)
+    assert (
+        context.git_http_ref
+        == "https://github.com/conda-forge/TEST-FEEDSTOCK-NAME-feedstock"
+    )
+
+
+@pytest.mark.parametrize("automerge", [True, False])
+def test_feedstock_context_automerge(automerge: bool):
+    context = FeedstockContext(
+        "TEST-FEEDSTOCK-NAME", demo_attrs_automerge if automerge else demo_attrs
+    )
+
+    assert context.automerge == automerge
+
+
+@pytest.mark.parametrize("check_solvable", [True, False])
+def test_feedstock_context_check_solvable(check_solvable: bool):
+    context = FeedstockContext(
+        "TEST-FEEDSTOCK-NAME",
+        demo_attrs_check_solvable if check_solvable else demo_attrs,
+    )
+
+    assert context.check_solvable == check_solvable
 
 
 @pytest.mark.parametrize("default_branch", [None, "", "feature"])
@@ -68,7 +100,12 @@ def test_feedstock_context_reserve_clone_directory(
             if default_branch
             else "main"
         )
+        assert cloned_context.git_repo_owner == "conda-forge"
         assert cloned_context.git_repo_name == "pytest-feedstock"
+        assert (
+            cloned_context.git_http_ref
+            == "https://github.com/conda-forge/pytest-feedstock"
+        )
 
         assert cloned_context.local_clone_dir.exists()
         assert cloned_context.local_clone_dir.is_dir()

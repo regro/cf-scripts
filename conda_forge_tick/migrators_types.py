@@ -128,6 +128,7 @@ class AttrsTypedDict_(TypedDict, total=False):
     raw_meta_yaml: str
     req: Set[str]
     platforms: List[str]
+    pr_info: typing.Any
     requirements: RequirementsTypedDict
     source: SourceTypedDict
     test: TestTypedDict
@@ -135,6 +136,7 @@ class AttrsTypedDict_(TypedDict, total=False):
     new_version: Union[str, bool]
     archived: bool
     PRed: List[PRedElementTypedDict]
+    version_pr_info: typing.Any
     # Legacy types in here
     bad: Union[bool, str]
     # TODO: ADD in

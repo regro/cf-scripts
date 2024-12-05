@@ -1,3 +1,4 @@
+import glob
 import logging
 import os
 import shutil
@@ -6,11 +7,22 @@ import tempfile
 from contextlib import contextmanager
 
 import wurlitzer
-
-from conda_forge_tick.os_utils import chmod_plus_rwX, sync_dirs
-from conda_forge_tick.utils import CB_CONFIG, run_container_task
+from conda_forge_feedstock_ops.container_utils import (
+    get_default_log_level_args,
+    run_container_operation,
+    should_use_container,
+)
+from conda_forge_feedstock_ops.os_utils import chmod_plus_rwX, sync_dirs
 
 logger = logging.getLogger(__name__)
+
+CONDA_BUILD_SPECIAL_KEYS = (
+    "pin_run_as_build",
+    "ignore_version",
+    "ignore_build_only_deps",
+    "extend_keys",
+    "zip_keys",
+)
 
 
 @contextmanager
@@ -21,18 +33,18 @@ def provide_source_code(recipe_dir, use_container=None):
     ----------
     recipe_dir : str
         The path to the recipe directory.
+    use_container : bool, optional
+        Whether to use a container to run the version parsing.
+        If None, the function will use a container if the environment
+        variable `CF_FEEDSTOCK_OPS_IN_CONTAINER` is 'false'. This feature can be
+        used to avoid container in container calls.
 
     Returns
     -------
     str
         The path to the source code directory.
     """
-
-    in_container = os.environ.get("CF_TICK_IN_CONTAINER", "false") == "true"
-    if use_container is None:
-        use_container = not in_container
-
-    if use_container and not in_container:
+    if should_use_container(use_container=use_container):
         with provide_source_code_containerized(recipe_dir) as source_dir:
             yield source_dir
     else:
@@ -70,8 +82,16 @@ def provide_source_code_containerized(recipe_dir):
 
         tmp_source_dir = os.path.join(tmpdir, "source_dir")
 
-        run_container_task(
-            "provide-source-code", [], mount_readonly=False, mount_dir=tmpdir
+        args = [
+            "conda-forge-tick-container",
+            "provide-source-code",
+        ]
+        args += get_default_log_level_args(logger)
+
+        run_container_operation(
+            args,
+            mount_readonly=False,
+            mount_dir=tmpdir,
         )
 
         yield tmp_source_dir
@@ -111,13 +131,25 @@ def provide_source_code_local(recipe_dir):
     try:
         with wurlitzer.pipes(stderr=wurlitzer.STDOUT) as (out, _):
             from conda_build.api import render
-            from conda_build.config import Config
+            from conda_build.config import get_or_merge_config
             from conda_build.source import provide
 
             # Use conda build to do all the downloading/extracting bits
+            config = get_or_merge_config(None)
+            ci_support_files = sorted(
+                glob.glob(os.path.join(recipe_dir, "../.ci_support/*.yaml"))
+            )
+            if ci_support_files:
+                config.variant_config_files = [ci_support_files[0]]
+            else:
+                config.variant_config_files = [
+                    # try global pinnings
+                    os.path.join(os.environ["CONDA_PREFIX"], "conda_build_config.yaml")
+                ]
+
             md = render(
                 recipe_dir,
-                config=Config(**CB_CONFIG),
+                config=config,
                 finalize=False,
                 bypass_env_check=True,
             )
@@ -129,6 +161,7 @@ def provide_source_code_local(recipe_dir):
             yield provide(md)
     except (SystemExit, Exception) as e:
         _print_out()
+        logger.error("Error in getting conda build src!", exc_info=e)
         raise RuntimeError("conda build src exception: " + str(e))
 
     _print_out()

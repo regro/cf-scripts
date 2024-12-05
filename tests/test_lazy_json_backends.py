@@ -1,8 +1,12 @@
+import base64
 import hashlib
 import json
 import logging
 import os
 import pickle
+import tempfile
+import time
+import uuid
 from unittest import mock
 from unittest.mock import MagicMock
 
@@ -10,6 +14,7 @@ import pytest
 
 import conda_forge_tick
 import conda_forge_tick.utils
+from conda_forge_tick.git_utils import github_client
 from conda_forge_tick.lazy_json_backends import (
     CF_TICK_GRAPH_GITHUB_BACKEND_BASE_URL,
     LAZY_JSON_BACKENDS,
@@ -27,8 +32,10 @@ from conda_forge_tick.lazy_json_backends import (
     lazy_json_transaction,
     load,
     loads,
+    push_lazy_json_via_gh_api,
     remove_key_for_hashmap,
     sync_lazy_json_across_backends,
+    touch_all_lazy_json_refs,
 )
 from conda_forge_tick.os_utils import pushd
 
@@ -771,3 +778,196 @@ def test_github_offline_hget_not_found(
 def test_github_online_hget_not_found(name: str, key: str):
     with pytest.raises(KeyError):
         GithubLazyJsonBackend().hget(name, key)
+
+
+@pytest.mark.skipif(
+    ("CF_TICK_LIVE_TEST" not in os.environ)
+    or (os.environ["CF_TICK_LIVE_TEST"] not in ["true", 1, "1"]),
+    reason="Live bot tests not enabled.",
+)
+@pytest.mark.parametrize("recursive", [True, False])
+def test_push_lazy_json_via_gh_api(recursive):
+    uid = uuid.uuid4().hex
+    fname = f"test_file_h{uid}.json"
+    fname_sub = f"test_file_sub_h{uid}.json"
+
+    try:
+        with (
+            tempfile.TemporaryDirectory() as tmpdir,
+            pushd(str(tmpdir)),
+            lazy_json_override_backends(["file"]),
+        ):
+            lzj_sub = LazyJson(fname_sub)
+            with lzj_sub:
+                lzj_sub["uid"] = uid
+            lzj = LazyJson(fname)
+            with lzj:
+                lzj["uid"] = uid
+                lzj["sub_lzj"] = lzj_sub
+
+            gh = github_client()
+            repo = gh.get_repo("regro/cf-graph-countyfair")
+
+            push_lazy_json_via_gh_api(lzj, recursive=recursive)
+            print("sleeping for 5 seconds to allow github to update", flush=True)
+            time.sleep(5)
+            curr_data = base64.b64decode(
+                repo.get_contents(fname).content.encode("utf-8")
+            ).decode("utf-8")
+            assert json.loads(curr_data)["uid"] == lzj.data["uid"]
+            if recursive:
+                curr_data_sub = base64.b64decode(
+                    repo.get_contents(fname_sub).content.encode("utf-8")
+                ).decode("utf-8")
+                assert json.loads(curr_data_sub)["uid"] == lzj_sub.data["uid"]
+            else:
+                with pytest.raises(Exception):
+                    repo.get_contents(fname_sub)
+
+            with lzj:
+                lzj["uid"] = "new_uid"
+            with lzj_sub:
+                lzj_sub["uid"] = "new_uid"
+
+            push_lazy_json_via_gh_api(lzj, recursive=recursive)
+            print("sleeping for 5 seconds to allow github to update", flush=True)
+            time.sleep(5)
+            curr_data = base64.b64decode(
+                repo.get_contents(fname).content.encode("utf-8")
+            ).decode("utf-8")
+            assert json.loads(curr_data)["uid"] == lzj.data["uid"]
+            if recursive:
+                curr_data_sub = base64.b64decode(
+                    repo.get_contents(fname_sub).content.encode("utf-8")
+                ).decode("utf-8")
+                assert json.loads(curr_data_sub)["uid"] == lzj_sub.data["uid"]
+            else:
+                with pytest.raises(Exception):
+                    repo.get_contents(fname_sub)
+
+    finally:
+        message = f"remove files {fname} and {fname_sub} from testing"
+
+        if recursive:
+            fnames = [fname, fname_sub]
+        else:
+            fnames = [fname]
+
+        for _fname in fnames:
+            for tr in range(10):
+                try:
+                    contents = repo.get_contents(_fname)
+                    repo.delete_file(_fname, message, contents.sha)
+                    break
+                except Exception as e:
+                    if tr == 9:
+                        raise e
+                    else:
+                        pass
+
+
+@pytest.mark.skipif(
+    ("CF_TICK_LIVE_TEST" not in os.environ)
+    or (os.environ["CF_TICK_LIVE_TEST"] not in ["true", 1, "1"]),
+    reason="Live bot tests not enabled.",
+)
+def test_push_lazy_json_via_gh_api_nopush():
+    uid = uuid.uuid4().hex
+    fname = f"test_file_h{uid}.json"
+
+    try:
+        with (
+            tempfile.TemporaryDirectory() as tmpdir,
+            pushd(str(tmpdir)),
+            lazy_json_override_backends(["file"]),
+        ):
+            lzj = LazyJson(fname)
+            with lzj:
+                lzj["uid"] = uid
+
+            gh = github_client()
+            repo = gh.get_repo("regro/cf-graph-countyfair")
+
+            push_lazy_json_via_gh_api(lzj)
+            print("sleeping for 5 seconds to allow github to update", flush=True)
+            time.sleep(5)
+            cnt = repo.get_contents(fname)
+            curr_data = base64.b64decode(cnt.content.encode("utf-8")).decode("utf-8")
+            assert json.loads(curr_data)["uid"] == lzj.data["uid"]
+
+            push_lazy_json_via_gh_api(lzj)
+            print("sleeping for 5 seconds to allow github to update", flush=True)
+            time.sleep(5)
+            cnt_again = repo.get_contents(fname)
+            assert cnt.sha == cnt_again.sha
+            curr_data = base64.b64decode(cnt_again.content.encode("utf-8")).decode(
+                "utf-8"
+            )
+            assert json.loads(curr_data)["uid"] == lzj.data["uid"]
+
+            with lzj:
+                lzj["uid"] = "new_uid"
+
+            push_lazy_json_via_gh_api(lzj)
+            print("sleeping for 5 seconds to allow github to update", flush=True)
+            time.sleep(5)
+            curr_data = base64.b64decode(
+                repo.get_contents(fname).content.encode("utf-8")
+            ).decode("utf-8")
+            assert json.loads(curr_data)["uid"] == lzj.data["uid"]
+
+    finally:
+        message = f"remove files {fname} from testing"
+        fnames = [fname]
+        for _fname in fnames:
+            for tr in range(10):
+                try:
+                    contents = repo.get_contents(_fname)
+                    repo.delete_file(_fname, message, contents.sha)
+                    break
+                except Exception as e:
+                    if tr == 9:
+                        raise e
+                    else:
+                        pass
+
+
+def test_lazy_json_eq():
+    with (
+        tempfile.TemporaryDirectory() as tmpdir,
+        pushd(str(tmpdir)),
+        lazy_json_override_backends(["github"]),
+    ):
+        ngmix = LazyJson("node_attrs/ngmix.json")
+        touch_all_lazy_json_refs(ngmix)
+        ngmix2 = LazyJson("node_attrs/ngmix.json")
+        touch_all_lazy_json_refs(ngmix2)
+
+        fitsio = LazyJson("node_attrs/fitsio.json")
+        touch_all_lazy_json_refs(ngmix2)
+
+        assert ngmix == ngmix2
+        assert fitsio != ngmix2
+        assert ngmix2 == ngmix
+        assert ngmix2 != fitsio
+
+        assert ngmix.data == ngmix2
+        assert ngmix2 == ngmix.data
+
+        assert ngmix.data == ngmix2.data
+        assert fitsio.data != ngmix2.data
+        assert ngmix2.data == ngmix.data
+        assert ngmix2.data != fitsio.data
+
+        with ngmix["pr_info"] as pri:
+            pri.clear()
+        assert ngmix.data != ngmix2.data
+        assert ngmix2.data != ngmix.data
+        assert ngmix != ngmix2
+        assert ngmix2 != ngmix
+
+        del ngmix.data["pr_info"]
+        assert ngmix.data != ngmix2.data
+        assert ngmix2.data != ngmix.data
+        assert ngmix != ngmix2
+        assert ngmix2 != ngmix

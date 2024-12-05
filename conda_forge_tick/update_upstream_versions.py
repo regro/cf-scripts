@@ -21,16 +21,21 @@ from typing import (
 
 import networkx as nx
 import tqdm
+from conda_forge_feedstock_ops.container_utils import (
+    get_default_log_level_args,
+    run_container_operation,
+    should_use_container,
+)
 
 from conda_forge_tick.cli_context import CliContext
-
-from .executors import executor
-from .lazy_json_backends import LazyJson, dumps
-from .update_sources import (
+from conda_forge_tick.executors import executor
+from conda_forge_tick.lazy_json_backends import LazyJson, dumps
+from conda_forge_tick.update_sources import (
     CRAN,
     NPM,
     NVIDIA,
     AbstractSource,
+    CratesIO,
     Github,
     GithubReleases,
     IncrementAlphaRawURL,
@@ -38,7 +43,7 @@ from .update_sources import (
     RawURL,
     ROSDistro,
 )
-from .utils import get_keys_default, load_existing_graph, run_container_task
+from conda_forge_tick.utils import get_keys_default, load_existing_graph
 
 T = TypeVar("T")
 
@@ -201,16 +206,20 @@ def get_latest_version_containerized(
     if "feedstock_name" not in attrs:
         attrs["feedstock_name"] = name
 
+    args = [
+        "conda-forge-tick-container",
+        "get-latest-version",
+        "--existing-feedstock-node-attrs",
+        "-",
+        "--sources",
+        ",".join([source.name for source in sources]),
+    ]
+    args += get_default_log_level_args(logger)
+
     json_blob = dumps(attrs.data) if isinstance(attrs, LazyJson) else dumps(attrs)
 
-    return run_container_task(
-        "get-latest-version",
-        [
-            "--existing-feedstock-node-attrs",
-            "-",
-            "--sources",
-            ",".join([source.name for source in sources]),
-        ],
+    return run_container_operation(
+        args,
         input=json_blob,
     )
 
@@ -232,10 +241,10 @@ def get_latest_version(
         The node attributes of the feedstock.
     sources
         The version sources to use.
-    use_container
+    use_container : bool, optional
         Whether to use a container to run the version parsing.
         If None, the function will use a container if the environment
-        variable `CF_TICK_IN_CONTAINER` is 'false'. This feature can be
+        variable `CF_FEEDSTOCK_OPS_IN_CONTAINER` is 'false'. This feature can be
         used to avoid container in container calls.
 
     Returns
@@ -243,11 +252,7 @@ def get_latest_version(
     version_data : dict
         The new version information.
     """
-    in_container = os.environ.get("CF_TICK_IN_CONTAINER", "false") == "true"
-    if use_container is None:
-        use_container = not in_container
-
-    if use_container and not in_container:
+    if should_use_container(use_container=use_container):
         return get_latest_version_containerized(name, attrs, sources)
     else:
         return get_latest_version_local(name, attrs, sources)
@@ -414,13 +419,14 @@ def all_version_sources():
     return (
         PyPI(),
         CRAN(),
+        CratesIO(),
         NPM(),
-        ROSDistro(),
-        RawURL(),
         Github(),
         GithubReleases(),
-        IncrementAlphaRawURL(),
         NVIDIA(),
+        ROSDistro(),
+        RawURL(),
+        IncrementAlphaRawURL(),
     )
 
 

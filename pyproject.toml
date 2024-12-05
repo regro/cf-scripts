@@ -22,6 +22,7 @@ home = "https://github.com/regro/cf-scripts"
 
 [project.scripts]
 conda-forge-tick = "conda_forge_tick.cli:main"
+conda-forge-tick-container = "conda_forge_tick.container_cli:cli"
 
 [tool.setuptools]
 include-package-data = true

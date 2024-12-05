@@ -2,7 +2,7 @@ import re
 import typing
 from typing import Any
 
-from conda_forge_tick.migrators.core import MiniMigrator
+from conda_forge_tick.migrators.core import MiniMigrator, skip_migrator_due_to_schema
 from conda_forge_tick.os_utils import pushd
 
 if typing.TYPE_CHECKING:
@@ -23,7 +23,9 @@ class DuplicateLinesCleanup(MiniMigrator):
         raw_yaml = attrs.get("raw_meta_yaml", "")
         for line in raw_yaml.splitlines():
             if any(r.match(line) for r in self.regex_to_check.values()):
-                return False
+                return False or skip_migrator_due_to_schema(
+                    attrs, self.allowed_schema_versions
+                )
 
         return True
 

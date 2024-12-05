@@ -2,7 +2,7 @@ import logging
 import typing
 from typing import Any
 
-from conda_forge_tick.migrators.core import MiniMigrator
+from conda_forge_tick.migrators.core import MiniMigrator, skip_migrator_due_to_schema
 from conda_forge_tick.update_deps import apply_dep_update, get_dep_updates_and_hints
 from conda_forge_tick.utils import get_keys_default
 
@@ -32,7 +32,9 @@ class DependencyUpdateMigrator(MiniMigrator):
             "hint",
         )
         if update_deps in ["update-all", "update-source", "update-grayskull"]:
-            return False
+            return False or skip_migrator_due_to_schema(
+                attrs, self.allowed_schema_versions
+            )
 
         return True
 

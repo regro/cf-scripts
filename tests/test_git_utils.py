@@ -1,3 +1,7 @@
+import base64
+import datetime
+import json
+import logging
 import subprocess
 import tempfile
 from pathlib import Path
@@ -6,17 +10,25 @@ from unittest.mock import MagicMock
 
 import github3.exceptions
 import pytest
+import requests
+from requests.structures import CaseInsensitiveDict
 
 from conda_forge_tick.git_utils import (
     Bound,
     DryRunBackend,
+    DuplicatePullRequestError,
     GitCli,
     GitCliError,
     GitConnectionMode,
     GitHubBackend,
     GitPlatformBackend,
+    GitPlatformError,
     RepositoryNotFoundError,
     trim_pr_json_keys,
+)
+from conda_forge_tick.models.pr_json import (
+    GithubPullRequestMergeableState,
+    PullRequestState,
 )
 
 """
@@ -38,7 +50,11 @@ def test_git_cli_run_git_command_no_error(
     )
 
     subprocess_run_mock.assert_called_once_with(
-        ["git", "GIT_COMMAND", "ARG1", "ARG2"], check=check_error, cwd=working_directory
+        ["git", "GIT_COMMAND", "ARG1", "ARG2"],
+        check=check_error,
+        cwd=working_directory,
+        stdout=subprocess.PIPE,
+        text=True,
     )
 
 
@@ -54,6 +70,70 @@ def test_git_cli_run_git_command_error(subprocess_run_mock: MagicMock):
 
     with pytest.raises(GitCliError):
         cli._run_git_command(["GIT_COMMAND"], working_directory)
+
+
+@pytest.mark.parametrize("suppress_all_output", [True, False])
+@pytest.mark.parametrize("check_error", [True, False])
+@mock.patch("subprocess.run")
+def test_git_cli_run_git_command_mock(
+    subprocess_run_mock: MagicMock, check_error: bool, suppress_all_output: bool
+):
+    """
+    This test checks if all parameters are passed correctly to the subprocess.run function.
+    """
+    cli = GitCli()
+
+    working_directory = Path("TEST_DIR")
+
+    cli._run_git_command(
+        ["COMMAND", "ARG1", "ARG2"], working_directory, check_error, suppress_all_output
+    )
+
+    stdout_args = (
+        {"stdout": subprocess.PIPE}
+        if not suppress_all_output
+        else {"stdout": subprocess.DEVNULL}
+    )
+    stderr_args = {} if not suppress_all_output else {"stderr": subprocess.DEVNULL}
+
+    subprocess_run_mock.assert_called_once_with(
+        ["git", "COMMAND", "ARG1", "ARG2"],
+        check=check_error,
+        cwd=working_directory,
+        **stdout_args,
+        **stderr_args,
+        text=True,
+    )
+
+
+@pytest.mark.parametrize("check_error", [True, False])
+def test_git_cli_run_git_command_stdout_captured(capfd, check_error: bool):
+    """
+    Verify that the stdout of the git command is captured and not printed to the console.
+    """
+    cli = GitCli()
+
+    p = cli._run_git_command(["version"], check_error=check_error)
+
+    captured = capfd.readouterr()
+
+    assert captured.out == ""
+    assert p.stdout.startswith("git version")
+
+
+def test_git_cli_run_git_command_stderr_not_captured(capfd):
+    """
+    Verify that the stderr of the git command is not captured if no token is hidden.
+    """
+    cli = GitCli()
+
+    p = cli._run_git_command(["non-existing-command"], check_error=False)
+
+    captured = capfd.readouterr()
+
+    assert captured.out == ""
+    assert "command" in captured.err
+    assert p.stderr is None
 
 
 def test_git_cli_outside_repo():
@@ -84,9 +164,10 @@ def test_git_cli_outside_repo():
 
 
 # noinspection PyProtectedMember
-def init_temp_git_repo(git_dir: Path):
+def init_temp_git_repo(git_dir: Path, bare: bool = False):
     cli = GitCli()
-    cli._run_git_command(["init"], working_directory=git_dir)
+    bare_arg = ["--bare"] if bare else []
+    cli._run_git_command(["init", *bare_arg, "-b", "main"], working_directory=git_dir)
     cli._run_git_command(
         ["config", "user.name", "CI Test User"], working_directory=git_dir
     )
@@ -94,6 +175,123 @@ def init_temp_git_repo(git_dir: Path):
         ["config", "user.email", "ci-test-user-invalid@example.com"],
         working_directory=git_dir,
     )
+
+
+@pytest.mark.parametrize(
+    "n_paths,all_", [(0, True), (1, False), (1, True), (2, False), (2, True)]
+)
+@mock.patch("conda_forge_tick.git_utils.GitCli._run_git_command")
+def test_git_cli_add_success_mock(
+    run_git_command_mock: MagicMock, n_paths: int, all_: bool
+):
+    cli = GitCli()
+
+    git_dir = Path("TEST_DIR")
+    paths = [Path(f"test{i}.txt") for i in range(n_paths)]
+
+    cli.add(git_dir, *paths, all_=all_)
+
+    expected_all_arg = ["--all"] if all_ else []
+
+    run_git_command_mock.assert_called_once_with(
+        ["add", *expected_all_arg, *paths], git_dir
+    )
+
+
+@mock.patch("conda_forge_tick.git_utils.GitCli._run_git_command")
+def test_git_cli_add_no_arguments_error(run_git_command_mock: MagicMock):
+    cli = GitCli()
+
+    git_dir = Path("TEST_DIR")
+
+    with pytest.raises(ValueError, match="Either pathspec or all_ must be set"):
+        cli.add(git_dir)
+
+    run_git_command_mock.assert_not_called()
+
+
+@pytest.mark.parametrize(
+    "n_paths,all_", [(0, True), (1, False), (1, True), (2, False), (2, True)]
+)
+def test_git_cli_add_success(n_paths: int, all_: bool):
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        git_dir = Path(tmp_dir)
+        init_temp_git_repo(git_dir)
+
+        pathspec = [git_dir / f"test{i}.txt" for i in range(n_paths)]
+
+        for path in pathspec + [git_dir / "all_tracker.txt"]:
+            path.touch()
+
+        cli = GitCli()
+        cli.add(git_dir, *pathspec, all_=all_)
+
+        tracked_files = cli._run_git_command(
+            ["ls-files", "-s"],
+            git_dir,
+        ).stdout
+
+        for path in pathspec:
+            assert path.name in tracked_files
+
+        if all_ and n_paths == 0:
+            # note that n_paths has to be zero to add unknown files to the working tree
+            assert "all_tracker.txt" in tracked_files
+        else:
+            assert "all_tracker.txt" not in tracked_files
+
+
+@pytest.mark.parametrize("allow_empty", [True, False])
+@pytest.mark.parametrize("all_", [True, False])
+@mock.patch("conda_forge_tick.git_utils.GitCli._run_git_command")
+def test_git_cli_commit_success_mock(
+    run_git_command_mock: MagicMock, all_: bool, allow_empty: bool
+):
+    git_dir = Path("GIT_DIR")
+    message = "COMMIT_MESSAGE"
+
+    cli = GitCli()
+    cli.commit(git_dir, message, all_, allow_empty)
+
+    expected_all_arg = ["-a"] if all_ else []
+    expected_allow_empty_arg = ["--allow-empty"] if allow_empty else []
+
+    run_git_command_mock.assert_called_once_with(
+        ["commit", *expected_all_arg, *expected_allow_empty_arg, "-m", message], git_dir
+    )
+
+
+@pytest.mark.parametrize("allow_empty", [True, False])
+@pytest.mark.parametrize("empty", [True, False])
+@pytest.mark.parametrize("all_", [True, False])
+def test_git_cli_commit(all_: bool, empty: bool, allow_empty: bool):
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        git_dir = Path(tmp_dir)
+        init_temp_git_repo(git_dir)
+
+        cli = GitCli()
+
+        test_file = git_dir.joinpath("test.txt")
+        with test_file.open("w") as f:
+            f.write("Hello, World!")
+        cli.add(git_dir, git_dir / "test.txt")
+        cli.commit(git_dir, "Add Test")
+
+        if not empty:
+            test_file.unlink()
+            if not all_:
+                cli.add(git_dir, git_dir / "test.txt")
+
+        if empty and not allow_empty:
+            with pytest.raises(GitCliError):
+                cli.commit(git_dir, "Add Test", all_, allow_empty)
+            return
+
+        cli.commit(git_dir, "Add Test", all_, allow_empty)
+
+        git_log = cli._run_git_command(["log"], git_dir).stdout
+
+        assert "Add Test" in git_log
 
 
 def test_git_cli_reset_hard_already_reset():
@@ -279,6 +477,114 @@ def test_git_cli_add_remote():
 
 
 @mock.patch("conda_forge_tick.git_utils.GitCli._run_git_command")
+def test_git_cli_push_to_url_mock(run_git_command_mock: MagicMock):
+    cli = GitCli()
+
+    git_dir = Path("TEST_DIR")
+    remote_url = "https://git-repository.com/repo.git"
+
+    cli.push_to_url(git_dir, remote_url, "BRANCH_NAME")
+
+    run_git_command_mock.assert_called_once_with(
+        ["push", remote_url, "BRANCH_NAME"], git_dir
+    )
+
+
+@mock.patch("conda_forge_tick.git_utils.GitCli._run_git_command")
+def test_git_cli_push_to_url_mock_error(run_git_command_mock: MagicMock):
+    cli = GitCli()
+
+    run_git_command_mock.side_effect = GitCliError("Error")
+
+    with pytest.raises(GitCliError):
+        cli.push_to_url(
+            Path("TEST_DIR"), "https://git-repository.com/repo.git", "BRANCH_NAME"
+        )
+
+
+def test_git_cli_push_to_url_local_repository():
+    cli = GitCli()
+
+    with tempfile.TemporaryDirectory() as tmpdir:
+        dir_path = Path(tmpdir)
+
+        source_repo = dir_path / "source_repo"
+        source_repo.mkdir()
+        init_temp_git_repo(source_repo, bare=True)
+
+        local_repo = dir_path / "local_repo"
+        local_repo.mkdir()
+        cli._run_git_command(["clone", source_repo.resolve(), local_repo])
+
+        # remove all references to the original repo
+        cli._run_git_command(
+            ["remote", "remove", "origin"], working_directory=local_repo
+        )
+
+        with local_repo.joinpath("test.txt").open("w") as f:
+            f.write("Hello, World!")
+
+        cli._run_git_command(["add", "test.txt"], working_directory=local_repo)
+        cli._run_git_command(
+            ["commit", "-am", "Add test.txt"], working_directory=local_repo
+        )
+
+        cli.push_to_url(local_repo, str(source_repo.resolve()), "main")
+
+        source_git_log = subprocess.run(
+            "git log", cwd=source_repo, shell=True, capture_output=True
+        ).stdout.decode()
+
+        assert "test.txt" in source_git_log
+
+
+@mock.patch("conda_forge_tick.git_utils.GitCli._run_git_command")
+def test_git_cli_add_token_mock(run_git_command_mock: MagicMock):
+    cli = GitCli()
+
+    git_dir = Path("TEST_DIR")
+
+    origin = "https://git-repository.com"
+    token = "TOKEN"
+
+    cli.add_token(git_dir, origin, token)
+
+    http_basic_token = base64.b64encode(f"x-access-token:{token}".encode()).decode()
+
+    run_git_command_mock.assert_called_once_with(
+        [
+            "config",
+            "--local",
+            "http.https://git-repository.com/.extraheader",
+            f"AUTHORIZATION: basic {http_basic_token}",
+        ],
+        git_dir,
+        suppress_all_output=True,
+    )
+
+
+@mock.patch("conda_forge_tick.git_utils.GitCli._run_git_command")
+def test_git_cli_clear_token_mock(run_git_command_mock: MagicMock):
+    cli = GitCli()
+
+    git_dir = Path("TEST_DIR")
+
+    origin = "https://git-repository.com"
+
+    cli.clear_token(git_dir, origin)
+
+    run_git_command_mock.assert_called_once_with(
+        [
+            "config",
+            "--local",
+            "--unset",
+            "http.https://git-repository.com/.extraheader",
+        ],
+        git_dir,
+    )
+
+
+@mock.patch("conda_forge_tick.git_utils.GitCli._run_git_command")
 def test_git_cli_fetch_all_mock(run_git_command_mock: MagicMock):
     cli = GitCli()
 
@@ -434,6 +740,61 @@ def test_git_cli_checkout_branch_no_track():
         )
 
 
+def test_git_cli_diffed_files():
+    cli = GitCli()
+
+    with tempfile.TemporaryDirectory() as tmpdir:
+        dir_path = Path(tmpdir)
+
+        init_temp_git_repo(dir_path)
+
+        cli.commit(dir_path, "Initial commit", allow_empty=True)
+        dir_path.joinpath("test.txt").touch()
+        cli.add(dir_path, dir_path / "test.txt")
+        cli.commit(dir_path, "Add test.txt")
+
+        diffed_files = list(cli.diffed_files(dir_path, "HEAD~1"))
+
+        assert (dir_path / "test.txt") in diffed_files
+        assert len(diffed_files) == 1
+
+
+def test_git_cli_diffed_files_no_diff():
+    cli = GitCli()
+
+    with tempfile.TemporaryDirectory() as tmpdir:
+        dir_path = Path(tmpdir)
+
+        init_temp_git_repo(dir_path)
+
+        cli.commit(dir_path, "Initial commit", allow_empty=True)
+
+        diffed_files = list(cli.diffed_files(dir_path, "HEAD"))
+
+        assert len(diffed_files) == 0
+
+
+@mock.patch("conda_forge_tick.git_utils.GitCli._run_git_command")
+def test_git_cli_diffed_files_mock(run_git_command_mock: MagicMock):
+    cli = GitCli()
+
+    git_dir = Path("TEST_DIR")
+    commit = "COMMIT"
+
+    run_git_command_mock.return_value = subprocess.CompletedProcess(
+        args=[], returncode=0, stdout="test.txt\n"
+    )
+
+    diffed_files = list(cli.diffed_files(git_dir, commit))
+
+    run_git_command_mock.assert_called_once_with(
+        ["diff", "--name-only", "--relative", commit, "HEAD"],
+        git_dir,
+    )
+
+    assert diffed_files == [git_dir / "test.txt"]
+
+
 def test_git_cli_clone_fork_and_branch_minimal():
     fork_url = "https://github.com/regro-cf-autotick-bot/pytest-feedstock.git"
     upstream_url = "https://github.com/conda-forge/pytest-feedstock.git"
@@ -488,7 +849,7 @@ def test_git_cli_clone_fork_and_branch_mock(
     fork_url = "https://github.com/regro-cf-autotick-bot/pytest-feedstock.git"
     upstream_url = "https://github.com/conda-forge/pytest-feedstock.git"
 
-    caplog.set_level("DEBUG")
+    caplog.set_level(logging.DEBUG)
 
     cli = GitCli()
 
@@ -577,7 +938,7 @@ def test_git_cli_clone_fork_and_branch_non_existing_remote_existing_target_dir(c
     new_branch = "NEW_BRANCH"
 
     cli = GitCli()
-    caplog.set_level("DEBUG")
+    caplog.set_level(logging.DEBUG)
 
     with tempfile.TemporaryDirectory() as tmpdir:
         dir_path = Path(tmpdir) / "duckdb-feedstock"
@@ -589,13 +950,73 @@ def test_git_cli_clone_fork_and_branch_non_existing_remote_existing_target_dir(c
         assert "trying to reset hard" in caplog.text
 
 
-def test_git_platform_backend_get_remote_url_https():
-    owner = "OWNER"
-    repo = "REPO"
+@pytest.mark.parametrize(
+    "backend", [GitHubBackend(MagicMock(), MagicMock(), ""), DryRunBackend()]
+)
+@mock.patch(
+    "conda_forge_tick.git_utils.GitHubBackend.user", new_callable=mock.PropertyMock
+)
+@mock.patch("conda_forge_tick.git_utils.GitCli.clone_fork_and_branch")
+def test_git_platform_backend_clone_fork_and_branch(
+    clone_fork_and_branch_mock: MagicMock,
+    user_mock: MagicMock,
+    backend: GitPlatformBackend,
+):
+    upstream_owner = "UPSTREAM-OWNER"
+    repo_name = "REPO"
+    target_dir = Path("TARGET_DIR")
+    new_branch = "NEW_BRANCH"
+    base_branch = "BASE_BRANCH"
 
-    url = GitPlatformBackend.get_remote_url(owner, repo, GitConnectionMode.HTTPS)
+    user_mock.return_value = "USER"
 
-    assert url == f"https://github.com/{owner}/{repo}.git"
+    backend = GitHubBackend(MagicMock(), MagicMock(), "")
+    backend.clone_fork_and_branch(
+        upstream_owner, repo_name, target_dir, new_branch, base_branch
+    )
+
+    clone_fork_and_branch_mock.assert_called_once_with(
+        origin_url=f"https://github.com/USER/{repo_name}.git",
+        target_dir=target_dir,
+        upstream_url=f"https://github.com/{upstream_owner}/{repo_name}.git",
+        new_branch=new_branch,
+        base_branch=base_branch,
+    )
+
+
+def _github_api_json_fixture(name: str) -> dict:
+    with Path(__file__).parent.joinpath(f"github_api/{name}.json").open() as f:
+        return json.load(f)
+
+
+@pytest.fixture()
+def github_response_create_issue_comment() -> dict:
+    return _github_api_json_fixture("create_issue_comment_pytest")
+
+
+@pytest.fixture()
+def github_response_create_pull_duplicate() -> dict:
+    return _github_api_json_fixture("create_pull_duplicate")
+
+
+@pytest.fixture()
+def github_response_create_pull_validation_error() -> dict:
+    return _github_api_json_fixture("create_pull_validation_error")
+
+
+@pytest.fixture()
+def github_response_get_pull() -> dict:
+    return _github_api_json_fixture("get_pull_pytest")
+
+
+@pytest.fixture()
+def github_response_get_repo() -> dict:
+    return _github_api_json_fixture("get_repo_pytest")
+
+
+@pytest.fixture()
+def create_pull_response_headers() -> dict:
+    return _github_api_json_fixture("create_pull_response_headers")
 
 
 def test_github_backend_from_token():
@@ -611,7 +1032,7 @@ def test_github_backend_from_token():
 def test_github_backend_does_repository_exist(does_exist: bool):
     github3_client = MagicMock()
 
-    backend = GitHubBackend(github3_client, MagicMock())
+    backend = GitHubBackend(github3_client, MagicMock(), "")
     response = MagicMock()
     response.status_code = 200 if does_exist else 404
 
@@ -624,6 +1045,16 @@ def test_github_backend_does_repository_exist(does_exist: bool):
 
     assert backend.does_repository_exist("OWNER", "REPO") is does_exist
     github3_client.repository.assert_called_once_with("OWNER", "REPO")
+
+
+def test_github_backend_get_remote_url_https():
+    owner = "OWNER"
+    repo = "REPO"
+    backend = GitHubBackend(MagicMock(), MagicMock(), "")
+
+    url = backend.get_remote_url(owner, repo, GitConnectionMode.HTTPS)
+
+    assert url == f"https://github.com/{owner}/{repo}.git"
 
 
 @mock.patch("time.sleep", return_value=None)
@@ -640,7 +1071,7 @@ def test_github_backend_fork_not_exists_repo_found(
     repository = MagicMock()
     github3_client.repository.return_value = repository
 
-    backend = GitHubBackend(github3_client, MagicMock())
+    backend = GitHubBackend(github3_client, MagicMock(), "")
     user_mock.return_value = "USER"
     backend.fork("UPSTREAM-OWNER", "REPO")
 
@@ -648,6 +1079,33 @@ def test_github_backend_fork_not_exists_repo_found(
     github3_client.repository.assert_called_once_with("UPSTREAM-OWNER", "REPO")
     repository.create_fork.assert_called_once()
     sleep_mock.assert_called_once_with(5)
+
+
+@mock.patch("conda_forge_tick.git_utils.GitCli.clear_token")
+@mock.patch("conda_forge_tick.git_utils.GitCli.add_token")
+@mock.patch("conda_forge_tick.git_utils.GitCli.push_to_url")
+def test_github_backend_push_to_repository(
+    push_to_url_mock: MagicMock, add_token_mock: MagicMock, clear_token_mock: MagicMock
+):
+    backend = GitHubBackend.from_token("THIS_IS_THE_TOKEN")
+
+    git_dir = Path("GIT_DIR")
+
+    backend.push_to_repository("OWNER", "REPO", git_dir, "BRANCH_NAME")
+
+    add_token_mock.assert_called_once_with(
+        git_dir,
+        "https://github.com",
+        "THIS_IS_THE_TOKEN",
+    )
+
+    push_to_url_mock.assert_called_once_with(
+        git_dir,
+        "https://github.com/OWNER/REPO.git",
+        "BRANCH_NAME",
+    )
+
+    clear_token_mock.assert_called_once_with(git_dir, "https://github.com")
 
 
 @pytest.mark.parametrize("branch_already_synced", [True, False])
@@ -663,7 +1121,7 @@ def test_github_backend_fork_exists(
     branch_already_synced: bool,
     caplog,
 ):
-    caplog.set_level("DEBUG")
+    caplog.set_level(logging.DEBUG)
 
     exists_mock.return_value = True
     user_mock.return_value = "USER"
@@ -688,7 +1146,7 @@ def test_github_backend_fork_exists(
         upstream_repo.default_branch = "UPSTREAM_BRANCH_NAME"
         fork_repo.default_branch = "FORK_BRANCH_NAME"
 
-    backend = GitHubBackend(MagicMock(), pygithub_client)
+    backend = GitHubBackend(MagicMock(), pygithub_client, "")
     backend.fork("UPSTREAM-OWNER", "REPO")
 
     if not branch_already_synced:
@@ -713,7 +1171,7 @@ def test_github_backend_remote_does_not_exist(
     response.status_code = 404
     github3_client.repository.side_effect = github3.exceptions.NotFoundError(response)
 
-    backend = GitHubBackend(github3_client, MagicMock())
+    backend = GitHubBackend(github3_client, MagicMock(), "")
 
     user_mock.return_value = "USER"
 
@@ -730,7 +1188,7 @@ def test_github_backend_user():
     user.login = "USER"
     pygithub_client.get_user.return_value = user
 
-    backend = GitHubBackend(MagicMock(), pygithub_client)
+    backend = GitHubBackend(MagicMock(), pygithub_client, "")
 
     for _ in range(4):
         # cached property
@@ -745,7 +1203,7 @@ def test_github_backend_get_api_requests_left_github_exception(caplog):
         "API Error"
     )
 
-    backend = GitHubBackend(github3_client, MagicMock())
+    backend = GitHubBackend(github3_client, MagicMock(), "")
 
     assert backend.get_api_requests_left() is None
     assert "API error while fetching" in caplog.text
@@ -757,7 +1215,7 @@ def test_github_backend_get_api_requests_left_unexpected_response_schema(caplog)
     github3_client = MagicMock()
     github3_client.rate_limit.return_value = {"some": "gibberish data"}
 
-    backend = GitHubBackend(github3_client, MagicMock())
+    backend = GitHubBackend(github3_client, MagicMock(), "")
 
     assert backend.get_api_requests_left() is None
     assert "API Error while parsing"
@@ -769,7 +1227,7 @@ def test_github_backend_get_api_requests_left_nonzero():
     github3_client = MagicMock()
     github3_client.rate_limit.return_value = {"resources": {"core": {"remaining": 5}}}
 
-    backend = GitHubBackend(github3_client, MagicMock())
+    backend = GitHubBackend(github3_client, MagicMock(), "")
 
     assert backend.get_api_requests_left() == 5
 
@@ -781,7 +1239,7 @@ def test_github_backend_get_api_requests_left_zero_invalid_reset_time(caplog):
 
     github3_client.rate_limit.return_value = {"resources": {"core": {"remaining": 0}}}
 
-    backend = GitHubBackend(github3_client, MagicMock())
+    backend = GitHubBackend(github3_client, MagicMock(), "")
 
     assert backend.get_api_requests_left() == 0
 
@@ -790,7 +1248,7 @@ def test_github_backend_get_api_requests_left_zero_invalid_reset_time(caplog):
 
 
 def test_github_backend_get_api_requests_left_zero_valid_reset_time(caplog):
-    caplog.set_level("INFO")
+    caplog.set_level(logging.INFO)
 
     github3_client = MagicMock()
 
@@ -801,46 +1259,332 @@ def test_github_backend_get_api_requests_left_zero_valid_reset_time(caplog):
         "resources": {"core": {"remaining": 0, "reset": reset_timestamp}}
     }
 
-    backend = GitHubBackend(github3_client, MagicMock())
+    backend = GitHubBackend(github3_client, MagicMock(), "")
 
     assert backend.get_api_requests_left() == 0
 
     github3_client.rate_limit.assert_called_once()
-    assert f"will reset at {reset_timestamp_str}" in caplog.text  #
+    assert f"will reset at {reset_timestamp_str}" in caplog.text
 
 
-@pytest.mark.parametrize(
-    "backend", [GitHubBackend(MagicMock(), MagicMock()), DryRunBackend()]
-)
-@mock.patch(
-    "conda_forge_tick.git_utils.GitHubBackend.user", new_callable=mock.PropertyMock
-)
-@mock.patch("conda_forge_tick.git_utils.GitCli.clone_fork_and_branch")
-def test_git_platform_backend_clone_fork_and_branch(
-    convenience_method_mock: MagicMock,
-    user_mock: MagicMock,
-    backend: GitPlatformBackend,
+@mock.patch("requests.Session.request")
+def test_github_backend_create_pull_request_mock(
+    request_mock: MagicMock,
+    github_response_get_repo: dict,
+    create_pull_response_headers: dict,
+    github_response_get_pull: dict,
 ):
-    upstream_owner = "UPSTREAM-OWNER"
-    repo_name = "REPO"
-    target_dir = Path("TARGET_DIR")
-    new_branch = "NEW_BRANCH"
-    base_branch = "BASE_BRANCH"
+    def request_side_effect(method, _url, **_kwargs):
+        response = requests.Response()
+        if method == "GET":
+            response.status_code = 200
+            response.json = lambda: github_response_get_repo
+            return response
+        if method == "POST":
+            response.status_code = 201
+            # note that the "create pull" response body is identical to the "get pull" response body
+            response.json = lambda: github_response_get_pull
+            response.headers = CaseInsensitiveDict(create_pull_response_headers)
+            return response
+        assert False, f"Unexpected method: {method}"
 
-    user_mock.return_value = "USER"
+    request_mock.side_effect = request_side_effect
 
-    backend = GitHubBackend(MagicMock(), MagicMock())
-    backend.clone_fork_and_branch(
-        upstream_owner, repo_name, target_dir, new_branch, base_branch
+    pygithub_mock = MagicMock()
+    pygithub_mock.get_user.return_value.login = "CURRENT_USER"
+
+    backend = GitHubBackend(github3.login(token="TOKEN"), pygithub_mock, "")
+
+    pr_data = backend.create_pull_request(
+        "conda-forge",
+        "pytest-feedstock",
+        "BASE_BRANCH",
+        "HEAD_BRANCH",
+        "TITLE",
+        "BODY",
     )
 
-    convenience_method_mock.assert_called_once_with(
-        origin_url=f"https://github.com/USER/{repo_name}.git",
-        target_dir=target_dir,
-        upstream_url=f"https://github.com/{upstream_owner}/{repo_name}.git",
-        new_branch=new_branch,
-        base_branch=base_branch,
+    request_mock.assert_called_with(
+        "POST",
+        "https://api.github.com/repos/conda-forge/pytest-feedstock/pulls",
+        data='{"title": "TITLE", "body": "BODY", "base": "BASE_BRANCH", "head": "CURRENT_USER:HEAD_BRANCH"}',
+        json=None,
+        timeout=mock.ANY,
     )
+
+    assert pr_data.base is not None
+    assert pr_data.base.repo.name == "pytest-feedstock"
+    assert pr_data.closed_at is None
+    assert pr_data.created_at is not None
+    assert pr_data.created_at == datetime.datetime(
+        2024, 5, 3, 17, 4, 20, tzinfo=datetime.timezone.utc
+    )
+    assert pr_data.head is not None
+    assert pr_data.head.ref == "HEAD_BRANCH"
+    assert (
+        str(pr_data.html_url)
+        == "https://github.com/conda-forge/pytest-feedstock/pull/1337"
+    )
+    assert pr_data.id == 1853804278
+    assert pr_data.labels == []
+    assert pr_data.mergeable is True
+    assert pr_data.mergeable_state == GithubPullRequestMergeableState.CLEAN
+    assert pr_data.merged is False
+    assert pr_data.merged_at is None
+    assert pr_data.number == 1337
+    assert pr_data.state == PullRequestState.OPEN
+    assert pr_data.updated_at == datetime.datetime(
+        2024, 5, 27, 13, 31, 50, tzinfo=datetime.timezone.utc
+    )
+
+    assert (
+        pr_data.e_tag
+        == '"9995f8b0b0fe850244173c40390fbe8cb00fe525d7e58954bd6dd4bbcb74785a"'
+    )
+    assert pr_data.last_modified is None
+
+
+@mock.patch("requests.Session.request")
+def test_github_backend_create_pull_request_duplicate(
+    request_mock: MagicMock,
+    github_response_get_repo: dict,
+    github_response_create_pull_duplicate: dict,
+):
+    def request_side_effect(method, _url, **_kwargs):
+        response = requests.Response()
+        if method == "GET":
+            response.status_code = 200
+            response.json = lambda: github_response_get_repo
+            return response
+        if method == "POST":
+            response.status_code = 422
+            # note that the "create pull" response body is identical to the "get pull" response body
+            response.json = lambda: github_response_create_pull_duplicate
+            return response
+        assert False, f"Unexpected method: {method}"
+
+    request_mock.side_effect = request_side_effect
+
+    pygithub_mock = MagicMock()
+    pygithub_mock.get_user.return_value.login = "CURRENT_USER"
+
+    backend = GitHubBackend(github3.login(token="TOKEN"), pygithub_mock, "")
+
+    with pytest.raises(
+        DuplicatePullRequestError,
+        match="Pull request from CURRENT_USER:HEAD_BRANCH to conda-forge:BASE_BRANCH already exists",
+    ):
+        backend.create_pull_request(
+            "conda-forge",
+            "pytest-feedstock",
+            "BASE_BRANCH",
+            "HEAD_BRANCH",
+            "TITLE",
+            "BODY",
+        )
+
+
+@mock.patch("requests.Session.request")
+def test_github_backend_create_pull_request_validation_error(
+    request_mock: MagicMock,
+    github_response_get_repo: dict,
+    github_response_create_pull_validation_error: dict,
+):
+    """
+    Test that other GitHub API 422 validation errors are not caught as DuplicatePullRequestError.
+    """
+
+    def request_side_effect(method, _url, **_kwargs):
+        response = requests.Response()
+        if method == "GET":
+            response.status_code = 200
+            response.json = lambda: github_response_get_repo
+            return response
+        if method == "POST":
+            response.status_code = 422
+            # note that the "create pull" response body is identical to the "get pull" response body
+            response.json = lambda: github_response_create_pull_validation_error
+            return response
+        assert False, f"Unexpected method: {method}"
+
+    request_mock.side_effect = request_side_effect
+
+    pygithub_mock = MagicMock()
+    pygithub_mock.get_user.return_value.login = "CURRENT_USER"
+
+    backend = GitHubBackend(github3.login(token="TOKEN"), pygithub_mock, "")
+
+    with pytest.raises(github3.exceptions.UnprocessableEntity):
+        backend.create_pull_request(
+            "conda-forge",
+            "pytest-feedstock",
+            "BASE_BRANCH",
+            "HEAD_BRANCH",
+            "TITLE",
+            "BODY",
+        )
+
+
+@mock.patch("requests.Session.request")
+def test_github_backend_comment_on_pull_request_success(
+    request_mock: MagicMock,
+    github_response_get_repo: dict,
+    github_response_get_pull: dict,
+    github_response_create_issue_comment: dict,
+):
+    def request_side_effect(method, url, **_kwargs):
+        response = requests.Response()
+        if (
+            method == "GET"
+            and url == "https://api.github.com/repos/conda-forge/pytest-feedstock"
+        ):
+            response.status_code = 200
+            response.json = lambda: github_response_get_repo
+            return response
+        if (
+            method == "GET"
+            and url
+            == "https://api.github.com/repos/conda-forge/pytest-feedstock/pulls/1337"
+        ):
+            response.status_code = 200
+            response.json = lambda: github_response_get_pull
+            return response
+        if (
+            method == "POST"
+            and url
+            == "https://api.github.com/repos/conda-forge/pytest-feedstock/issues/1337/comments"
+        ):
+            response.status_code = 201
+            response.json = lambda: github_response_create_issue_comment
+            return response
+        assert False, f"Unexpected endpoint: {method} {url}"
+
+    request_mock.side_effect = request_side_effect
+
+    backend = GitHubBackend(github3.login(token="TOKEN"), MagicMock(), "")
+
+    backend.comment_on_pull_request(
+        "conda-forge",
+        "pytest-feedstock",
+        1337,
+        "COMMENT",
+    )
+
+    request_mock.assert_called_with(
+        "POST",
+        "https://api.github.com/repos/conda-forge/pytest-feedstock/issues/1337/comments",
+        data='{"body": "COMMENT"}',
+        json=None,
+        timeout=mock.ANY,
+    )
+
+
+@mock.patch("requests.Session.request")
+def test_github_backend_comment_on_pull_request_repo_not_found(request_mock: MagicMock):
+    def request_side_effect(method, url, **_kwargs):
+        response = requests.Response()
+        if (
+            method == "GET"
+            and url == "https://api.github.com/repos/conda-forge/pytest-feedstock"
+        ):
+            response.status_code = 404
+            return response
+        assert False, f"Unexpected endpoint: {method} {url}"
+
+    request_mock.side_effect = request_side_effect
+
+    backend = GitHubBackend(github3.login(token="TOKEN"), MagicMock(), "")
+
+    with pytest.raises(RepositoryNotFoundError):
+        backend.comment_on_pull_request(
+            "conda-forge",
+            "pytest-feedstock",
+            1337,
+            "COMMENT",
+        )
+
+
+@mock.patch("requests.Session.request")
+def test_github_backend_comment_on_pull_request_pull_request_not_found(
+    request_mock: MagicMock,
+    github_response_get_repo: dict,
+):
+    def request_side_effect(method, url, **_kwargs):
+        response = requests.Response()
+        if (
+            method == "GET"
+            and url == "https://api.github.com/repos/conda-forge/pytest-feedstock"
+        ):
+            response.status_code = 200
+            response.json = lambda: github_response_get_repo
+            return response
+        if (
+            method == "GET"
+            and url
+            == "https://api.github.com/repos/conda-forge/pytest-feedstock/pulls/1337"
+        ):
+            response.status_code = 404
+            return response
+        assert False, f"Unexpected endpoint: {method} {url}"
+
+    request_mock.side_effect = request_side_effect
+    backend = GitHubBackend(github3.login(token="TOKEN"), MagicMock(), "")
+
+    with pytest.raises(
+        GitPlatformError,
+        match="Pull request conda-forge/pytest-feedstock#1337 not found",
+    ):
+        backend.comment_on_pull_request(
+            "conda-forge",
+            "pytest-feedstock",
+            1337,
+            "COMMENT",
+        )
+
+
+@mock.patch("requests.Session.request")
+def test_github_backend_comment_on_pull_request_unexpected_response(
+    request_mock: MagicMock,
+    github_response_get_repo: dict,
+    github_response_get_pull: dict,
+):
+    def request_side_effect(method, url, **_kwargs):
+        response = requests.Response()
+        if (
+            method == "GET"
+            and url == "https://api.github.com/repos/conda-forge/pytest-feedstock"
+        ):
+            response.status_code = 200
+            response.json = lambda: github_response_get_repo
+            return response
+        if (
+            method == "GET"
+            and url
+            == "https://api.github.com/repos/conda-forge/pytest-feedstock/pulls/1337"
+        ):
+            response.status_code = 200
+            response.json = lambda: github_response_get_pull
+            return response
+        if (
+            method == "POST"
+            and url
+            == "https://api.github.com/repos/conda-forge/pytest-feedstock/issues/1337/comments"
+        ):
+            response.status_code = 500
+            return response
+        assert False, f"Unexpected endpoint: {method} {url}"
+
+    request_mock.side_effect = request_side_effect
+
+    backend = GitHubBackend(github3.login(token="TOKEN"), MagicMock(), "")
+
+    with pytest.raises(GitPlatformError, match="Could not comment on pull request"):
+        backend.comment_on_pull_request(
+            "conda-forge",
+            "pytest-feedstock",
+            1337,
+            "COMMENT",
+        )
 
 
 def test_dry_run_backend_get_api_requests_left():
@@ -852,9 +1596,11 @@ def test_dry_run_backend_get_api_requests_left():
 def test_dry_run_backend_does_repository_exist_own_repo():
     backend = DryRunBackend()
 
-    assert not backend.does_repository_exist("auto-tick-bot-dry-run", "REPO")
-    backend.fork("UPSTREAM_OWNER", "REPO")
-    assert backend.does_repository_exist("auto-tick-bot-dry-run", "REPO")
+    assert not backend.does_repository_exist(
+        "auto-tick-bot-dry-run", "pytest-feedstock"
+    )
+    backend.fork("conda-forge", "pytest-feedstock")
+    assert backend.does_repository_exist("auto-tick-bot-dry-run", "pytest-feedstock")
 
 
 def test_dry_run_backend_does_repository_exist_other_repo():
@@ -866,26 +1612,75 @@ def test_dry_run_backend_does_repository_exist_other_repo():
     )
 
 
-def test_dry_run_backend_fork(caplog):
-    caplog.set_level("DEBUG")
+def test_dry_run_backend_get_remote_url_non_fork():
+    backend = DryRunBackend()
+
+    url = backend.get_remote_url("OWNER", "REPO", GitConnectionMode.HTTPS)
+
+    assert url == "https://github.com/OWNER/REPO.git"
+
+
+def test_dry_run_backend_get_remote_url_non_existing_fork():
+    backend = DryRunBackend()
+
+    with pytest.raises(RepositoryNotFoundError, match="does not exist"):
+        backend.get_remote_url(backend.user, "REPO", GitConnectionMode.HTTPS)
+
+    backend.fork("conda-forge", "pytest-feedstock")
+
+    with pytest.raises(RepositoryNotFoundError, match="does not exist"):
+        backend.get_remote_url(
+            backend.user, "pydantic-feedstock", GitConnectionMode.HTTPS
+        )
+
+
+def test_dry_run_backend_get_remote_url_existing_fork():
+    backend = DryRunBackend()
+
+    backend.fork("conda-forge", "pytest-feedstock")
+
+    url = backend.get_remote_url(
+        backend.user,
+        "pytest-feedstock",
+        GitConnectionMode.HTTPS,
+    )
+
+    # note that the URL does not indicate anymore that it is a fork
+    assert url == "https://github.com/conda-forge/pytest-feedstock.git"
+
+
+def test_dry_run_backend_push_to_repository(caplog):
+    caplog.set_level(logging.DEBUG)
 
     backend = DryRunBackend()
 
-    backend.fork("UPSTREAM_OWNER", "REPO")
+    git_dir = Path("GIT_DIR")
+
+    backend.push_to_repository("OWNER", "REPO", git_dir, "BRANCH_NAME")
+
     assert (
-        "Dry Run: Creating fork of UPSTREAM_OWNER/REPO for user auto-tick-bot-dry-run"
+        "Dry Run: Pushing changes from GIT_DIR to OWNER/REPO on branch BRANCH_NAME"
         in caplog.text
     )
 
-    with pytest.raises(ValueError, match="Fork of REPO already exists"):
-        backend.fork("UPSTREAM_OWNER", "REPO")
 
-    with pytest.raises(ValueError, match="Fork of REPO already exists"):
-        backend.fork("OTHER_OWNER", "REPO")
+def test_dry_run_backend_fork(caplog):
+    caplog.set_level(logging.DEBUG)
+
+    backend = DryRunBackend()
+
+    backend.fork("conda-forge", "pytest-feedstock")
+    assert (
+        "Dry Run: Creating fork of conda-forge/pytest-feedstock for user auto-tick-bot-dry-run"
+        in caplog.text
+    )
+
+    with pytest.raises(RepositoryNotFoundError):
+        backend.fork("conda-forge", "this-repository-does-not-exist")
 
 
 def test_dry_run_backend_sync_default_branch(caplog):
-    caplog.set_level("DEBUG")
+    caplog.set_level(logging.DEBUG)
 
     backend = DryRunBackend()
 
@@ -898,6 +1693,64 @@ def test_dry_run_backend_user():
     backend = DryRunBackend()
 
     assert backend.user == "auto-tick-bot-dry-run"
+
+
+def test_dry_run_backend_create_pull_request(caplog):
+    backend = DryRunBackend()
+    caplog.set_level(logging.DEBUG)
+
+    body_text = "This is a long\nbody text"
+
+    pr_data = backend.create_pull_request(
+        "conda-forge",
+        "pytest-feedstock",
+        "BASE_BRANCH",
+        "HEAD_BRANCH",
+        "TITLE",
+        body_text,
+    )
+
+    # caplog validation
+    assert "Create Pull Request" in caplog.text
+    assert 'Title: "TITLE"' in caplog.text
+    assert "Target Repository: conda-forge/pytest-feedstock" in caplog.text
+    assert (
+        f"Branches: {backend.user}:HEAD_BRANCH -> conda-forge:BASE_BRANCH"
+        in caplog.text
+    )
+    assert f"Body:\n{body_text}" in caplog.text
+
+    # pr_data validation
+    assert pr_data.e_tag == "GITHUB_PR_ETAG"
+    assert pr_data.last_modified is not None
+    assert pr_data.id == 13371337
+    assert (
+        str(pr_data.html_url)
+        == "https://github.com/conda-forge/pytest-feedstock/pulls/1337"
+    )
+    assert pr_data.created_at is not None
+    assert pr_data.number == 1337
+    assert pr_data.state == PullRequestState.OPEN
+    assert pr_data.head.ref == "HEAD_BRANCH"
+    assert pr_data.base.repo.name == "pytest-feedstock"
+
+
+def test_dry_run_backend_comment_on_pull_request(caplog):
+    backend = DryRunBackend()
+    caplog.set_level(logging.DEBUG)
+
+    comment_text = "This is a long\ncomment text"
+
+    backend.comment_on_pull_request(
+        "conda-forge",
+        "pytest-feedstock",
+        1337,
+        comment_text,
+    )
+
+    assert "Comment on Pull Request" in caplog.text
+    assert f"Comment:\n{comment_text}" in caplog.text
+    assert "Pull Request: conda-forge/pytest-feedstock#1337" in caplog.text
 
 
 def test_trim_pr_json_keys():

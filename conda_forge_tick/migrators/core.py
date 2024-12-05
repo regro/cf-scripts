@@ -3,8 +3,10 @@
 import copy
 import datetime
 import logging
+import random
 import re
 import typing
+from pathlib import Path
 from typing import Any, List, Sequence, Set
 
 import dateutil.parser
@@ -13,8 +15,7 @@ import networkx as nx
 from conda_forge_tick.contexts import ClonedFeedstockContext, FeedstockContext
 from conda_forge_tick.lazy_json_backends import LazyJson
 from conda_forge_tick.make_graph import make_outputs_lut_from_graph
-from conda_forge_tick.path_lengths import cyclic_topological_sort
-from conda_forge_tick.update_recipe import update_build_number
+from conda_forge_tick.update_recipe import update_build_number, v1_recipe
 from conda_forge_tick.utils import (
     frozen_to_json_friendly,
     get_bot_run_url,
@@ -28,6 +29,28 @@ if typing.TYPE_CHECKING:
 
 
 logger = logging.getLogger(__name__)
+
+
+def skip_migrator_due_to_schema(
+    attrs: "AttrsTypedDict", allowed_schema_versions: List[int]
+) -> bool:
+    __name = attrs.get("name", "")
+    schema_version = get_keys_default(
+        attrs,
+        ["meta_yaml", "schema_version"],
+        {},
+        0,
+    )
+    if schema_version not in allowed_schema_versions:
+        logger.debug(
+            "%s: schema version not allowed - %r not in %r",
+            __name,
+            attrs["meta_yaml"].get("schema_version", 0),
+            allowed_schema_versions,
+        )
+        return True
+    else:
+        return False
 
 
 def _make_effective_graph(graph, migrator):
@@ -142,6 +165,7 @@ def make_from_lazy_json_data(data):
 
 class MiniMigrator:
     post_migration = False
+    allowed_schema_versions = [0]
 
     def __init__(self):
         if not hasattr(self, "_init_args"):
@@ -201,10 +225,14 @@ class Migrator:
 
     rerender = True
 
+    max_solver_attempts = 3
+
     # bump this if the migrator object needs a change mid migration
     migrator_version = 0
 
     allow_empty_commits = False
+
+    allowed_schema_versions = [0]
 
     build_patterns = (
         (re.compile(r"(\s*?)number:\s*([0-9]+)"), "number: {}"),
@@ -367,9 +395,14 @@ class Migrator:
 
         bad_attr = _parse_bad_attr(attrs, not_bad_str_start)
         if bad_attr:
-            logger.debug("%s: bad attr" % __name)
+            logger.debug("%s: bad attr - %s", __name, bad_attr)
 
-        return attrs.get("archived", False) or parse_already_pred() or bad_attr
+        return (
+            attrs.get("archived", False)
+            or parse_already_pred()
+            or bad_attr
+            or skip_migrator_due_to_schema(attrs, self.allowed_schema_versions)
+        )
 
     def get_possible_feedstock_branches(self, attrs: "AttrsTypedDict") -> List[str]:
         """Return the valid possible branches to which to apply this migration to
@@ -543,26 +576,50 @@ class Migrator:
         graph: nx.DiGraph,
         total_graph: nx.DiGraph,
     ) -> Sequence["PackageName"]:
-        """Order to run migrations in
+        """Run the order by number of decedents, ties are resolved by package name"""
 
-        Parameters
-        ----------
-        graph : nx.DiGraph
-            The graph of migratable PRs
+        if hasattr(self, "name"):
+            assert isinstance(self.name, str)
+            migrator_name = self.name.lower().replace(" ", "")
+        else:
+            migrator_name = self.__class__.__name__.lower()
 
-        Returns
-        -------
+        def _not_has_error(node):
+            if migrator_name in total_graph.nodes[node]["payload"].get(
+                "pr_info",
+                {},
+            ).get("pre_pr_migrator_status", {}) and (
+                total_graph.nodes[node]["payload"]
+                .get("pr_info", {})
+                .get(
+                    "pre_pr_migrator_attempts",
+                    {},
+                )
+                .get(
+                    migrator_name,
+                    self.max_solver_attempts,
+                )
+                >= self.max_solver_attempts
+            ):
+                return 0
+            else:
+                return 1
 
-        """
-        top_level = {
-            node
-            for node in graph
-            if not list(graph.predecessors(node))
-            or list(graph.predecessors(node)) == [node]
-        }
-        return cyclic_topological_sort(graph, top_level)
+        return sorted(
+            graph,
+            key=lambda x: (
+                _not_has_error(x),
+                (
+                    random.uniform(0, 1)
+                    if not _not_has_error(x)
+                    else len(nx.descendants(total_graph, x))
+                ),
+                x,
+            ),
+            reverse=True,
+        )
 
-    def set_build_number(self, filename: str) -> None:
+    def set_build_number(self, filename: str | Path) -> None:
         """Bump the build number of the specified recipe.
 
         Parameters
@@ -570,17 +627,21 @@ class Migrator:
         filename : str
             Path the the meta.yaml
         """
-        with open(filename) as f:
-            raw = f.read()
+        filename = Path(filename)
+        if filename.name == "recipe.yaml":
+            filename.write_text(
+                v1_recipe.update_build_number(filename, self.new_build_number)
+            )
+        else:
+            raw = filename.read_text()
 
-        new_myaml = update_build_number(
-            raw,
-            self.new_build_number,
-            build_patterns=self.build_patterns,
-        )
+            new_myaml = update_build_number(
+                raw,
+                self.new_build_number,
+                build_patterns=self.build_patterns,
+            )
 
-        with open(filename, "w") as f:
-            f.write(new_myaml)
+            filename.write_text(new_myaml)
 
     def new_build_number(self, old_number: int) -> int:
         """Determine the new build number to use.
@@ -764,7 +825,10 @@ class GraphMigrator(Migrator):
         name = attrs.get("name", "")
 
         if super().filter(attrs, "Upstream:"):
-            logger.debug("filter %s: archived or done", name)
+            logger.debug(
+                "filter %s: archived or done or bad attr or schema_version not allowed",
+                name,
+            )
             return True
 
         if attrs.get("feedstock_name", None) not in self.graph:
