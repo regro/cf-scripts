@@ -5,7 +5,7 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 
 from conda_forge_tick.utils import (
-    print_subprocess_output_strip_token,
+    run_command_hiding_token,
 )
 from tests_integration.shared import FEEDSTOCK_SUFFIX, GitHubAccount, get_github_token
 
@@ -53,7 +53,7 @@ class IntegrationTestHelper:
 
         # Push the new contents to the feedstock repository
         push_token = get_github_token(GitHubAccount.CONDA_FORGE_ORG)
-        push_res = subprocess.run(
+        run_command_hiding_token(
             [
                 "git",
                 "push",
@@ -61,14 +61,10 @@ class IntegrationTestHelper:
                 "main",
                 "--force",
             ],
-            text=True,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
+            token=push_token,
             cwd=tmp_feedstock_dir,
             check=True,
         )
-
-        print_subprocess_output_strip_token(push_res, token=push_token)
 
         LOGGER.info(
             f"Feedstock contents of {feedstock_name} have been overwritten successfully."
