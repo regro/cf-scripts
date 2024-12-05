@@ -113,17 +113,20 @@ jobs:
           environment-name: cf-scripts
           condarc-file: cf-scripts/autotick-bot/condarc
 
+      - name: Install Bot Code (no graph clone)
+        run: |
+          source cf-scripts/autotick-bot/install_bot_code.sh --no-pull-container --no-clone-graph # this is the first time, so we clean disk space
+
       - name: Prepare Scenario
         run: |
           pushd cf-scripts
-          pip install --no-deps --no-build-isolation -e .
           python -m tests_integration.step_prepare
         env:
           SCENARIO_ID: ${{ matrix.scenario_id }}
 
       - name: Install Bot Code
         run: |
-          source cf-scripts/autotick-bot/install_bot_code.sh --no-pull-container  # this is the first time, so we clean disk space
+          source cf-scripts/autotick-bot/install_bot_code.sh --no-pull-container --no-clean-disk-space
 
       - name: Start HTTP Proxy
         run: |
