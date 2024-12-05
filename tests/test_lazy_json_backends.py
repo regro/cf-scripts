@@ -38,6 +38,7 @@ from conda_forge_tick.lazy_json_backends import (
     touch_all_lazy_json_refs,
 )
 from conda_forge_tick.os_utils import pushd
+from conda_forge_tick.settings import DEPLOY_REPO
 
 HAVE_MONGODB = (
     "MONGODB_CONNECTION_STRING" in conda_forge_tick.global_sensitive_env.classified_info
@@ -806,7 +807,7 @@ def test_push_lazy_json_via_gh_api(recursive):
                 lzj["sub_lzj"] = lzj_sub
 
             gh = github_client()
-            repo = gh.get_repo("regro/cf-graph-countyfair")
+            repo = gh.get_repo(DEPLOY_REPO)
 
             push_lazy_json_via_gh_api(lzj, recursive=recursive)
             print("sleeping for 5 seconds to allow github to update", flush=True)
@@ -886,7 +887,7 @@ def test_push_lazy_json_via_gh_api_nopush():
                 lzj["uid"] = uid
 
             gh = github_client()
-            repo = gh.get_repo("regro/cf-graph-countyfair")
+            repo = gh.get_repo(DEPLOY_REPO)
 
             push_lazy_json_via_gh_api(lzj)
             print("sleeping for 5 seconds to allow github to update", flush=True)

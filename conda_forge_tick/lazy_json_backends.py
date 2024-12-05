@@ -28,6 +28,7 @@ import requests
 
 from .cli_context import CliContext
 from .executors import lock_git_operation
+from .settings import DEPLOY_REPO
 
 logger = logging.getLogger(__name__)
 
@@ -53,9 +54,7 @@ CF_TICK_GRAPH_DATA_HASHMAPS = [
     "migrators",
 ]
 
-CF_TICK_GRAPH_GITHUB_BACKEND_BASE_URL = (
-    "https://github.com/regro/cf-graph-countyfair/raw/master"
-)
+CF_TICK_GRAPH_GITHUB_BACKEND_BASE_URL = f"https://github.com/{DEPLOY_REPO}/raw/master"
 CF_TICK_GRAPH_GITHUB_BACKEND_NUM_DIRS = 5
 
 
@@ -941,7 +940,7 @@ def main_cache(ctx: CliContext):
 
 def _get_pth_blob_sha_and_content(pth, gh):
     try:
-        cnt = gh.get_repo("regro/cf-graph-countyfair").get_contents(pth)
+        cnt = gh.get_repo(DEPLOY_REPO).get_contents(pth)
         return cnt.sha, cnt.decoded_content.decode("utf-8")
     except github.UnknownObjectException:
         return None, None
@@ -965,7 +964,7 @@ def _push_lazy_json_via_gh_api(lzj: LazyJson):
     for tr in range(ntries):
         try:
             gh = github_client()
-            repo = gh.get_repo("regro/cf-graph-countyfair")
+            repo = gh.get_repo(DEPLOY_REPO)
 
             sha, cnt = _get_pth_blob_sha_and_content(pth, gh)
             if sha is None:
