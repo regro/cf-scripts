@@ -106,7 +106,6 @@ def try_load_feedstock(name: str, attrs: LazyJson, mark_not_archived=False) -> L
         attrs.clear()
         attrs.update(data)
         _add_required_lazy_json_refs(attrs, name)
-        attrs["last_updated"] = int(time.time())
     except Exception as e:
         import traceback
 
@@ -129,6 +128,10 @@ def _migrate_schema(name, sub_graph):
     # schema migrations and fixes go here
     with lazy_json_transaction():
         _add_required_lazy_json_refs(sub_graph, name)
+
+    if "last_updated" in sub_graph:
+        with lazy_json_transaction():
+            sub_graph.pop("last_updated")
 
     vpri_move_keys = ["new_version_attempts", "new_version_errors"]
     if any(key in sub_graph for key in vpri_move_keys):
