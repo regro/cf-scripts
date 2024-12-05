@@ -34,10 +34,6 @@ env:
   RUN_URL: "https://github.com/regro/cf-scripts/actions/runs/${{ github.run_id }}"
   # Install Bot Code step
   CF_GRAPH_REMOTE: https://github.com/regro-staging/cf-graph-countyfair.git
-  CF_PINNING_REMOTE: https://github.com/conda-forge-bot-staging/conda-forge-pinning-feedstock.git
-  PRUNE_DOCKER: false
-  PULL_DOCKER: false
-  UPDATE_PINNINGS: false
 
 jobs:
   setup-repositories:
@@ -66,7 +62,7 @@ jobs:
           outputs: type=docker,dest=/tmp/image.tar
 
       - name: Upload Docker Image
-        uses: actions/upload-artifact@834a144ee995460fba8ed112a2fc961b36a5ec5a # v4
+        uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882 # v4
         with:
           name: conda-forge-tick
           path: /tmp/image.tar
@@ -117,6 +113,10 @@ jobs:
           environment-name: cf-scripts
           condarc-file: cf-scripts/autotick-bot/condarc
 
+      - name: Install Bot Code
+        run: |
+          source cf-scripts/autotick-bot/install_bot_code.sh --no-pull-container  # this is the first time, so we clean disk space
+
       - name: Prepare Scenario
         run: |
           pushd cf-scripts
@@ -137,13 +137,6 @@ jobs:
           SCENARIO_ID: ${{ matrix.scenario_id }}
           PYTHONPATH: ${{ github.workspace }}/cf-scripts
 
-      - name: Install Bot Code
-        run: |
-          source cf-scripts/autotick-bot/install_bot_code.sh
-        env:
-          # This is the first install, so we need to update the pinnings
-          UPDATE_PINNINGS: true
-
       - name: "[Test] Gather all Feedstocks"
         run: |
           pushd cf-graph
@@ -162,7 +155,7 @@ jobs:
       - name: Reinstall Bot Code
         run: |
           source cf-scripts/tests_integration/clear_runner.sh
-          source cf-scripts/autotick-bot/install_bot_code.sh
+          source cf-scripts/autotick-bot/install_bot_code.sh --no-clean-disk-space --no-pull-container
 
       - name: "[Test] Make Graph (Nodes and Edges)"
         run: |
@@ -179,7 +172,7 @@ jobs:
       - name: Reinstall Bot Code
         run: |
           source cf-scripts/tests_integration/clear_runner.sh
-          source cf-scripts/autotick-bot/install_bot_code.sh
+          source cf-scripts/autotick-bot/install_bot_code.sh --no-clean-disk-space --no-pull-container
 
       - name: "[Test] Make Graph (Node Attributes)"
         run: |
@@ -196,7 +189,7 @@ jobs:
       - name: Reinstall Bot Code
         run: |
           source cf-scripts/tests_integration/clear_runner.sh
-          source cf-scripts/autotick-bot/install_bot_code.sh
+          source cf-scripts/autotick-bot/install_bot_code.sh --no-clean-disk-space --no-pull-container
 
       - name: "[Test] update_upstream_versions"
         run: |
