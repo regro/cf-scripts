@@ -14,6 +14,7 @@ jobs:
     env:
       NUM_BOT_JOBS: 3
     strategy:
+      fail-fast: false
       matrix:
         job_num: [ 1, 2, 3 ]
     defaults:

@@ -19,6 +19,35 @@ def _run_git_cmd(cmd, **kwargs):
     return r
 
 
+def _parse_gh_conflicts(output):
+    files_to_commit = []
+    in_section = False
+    indent = None
+    for line in output.splitlines():
+        print(line, flush=True)
+        if not line.strip():
+            continue
+
+        if line.startswith("error:"):
+            in_section = True
+            continue
+
+        if in_section and indent is not None and not line.startswith(indent):
+            in_section = False
+            indent = None
+            continue
+
+        if in_section:
+            if indent is None:
+                indent = line[: len(line) - len(line.lstrip())]
+            fname = line.strip()
+            if os.path.exists(fname):
+                files_to_commit.append(fname)
+            continue
+
+    return files_to_commit
+
+
 def _pull_changes(batch):
     r = subprocess.run(
         ["git", "pull", "-s", "recursive", "-X", "theirs"],
@@ -27,24 +56,11 @@ def _pull_changes(batch):
     )
     n_added = 0
     if r.returncode != 0:
-        files_to_commit = []
-        in_section = False
-        for line in r.stderr.splitlines() + r.stdout.splitlines():
-            if "following files would be overwritten by merge" in line.lower():
-                in_section = True
-                continue
-
-            if "commit your changes or stash them before you merge" in line.lower():
-                in_section = False
-                continue
-
-            if in_section:
-                fname = line.strip()
-                if os.path.exists(fname):
-                    files_to_commit.append(fname)
+        files_to_commit = _parse_gh_conflicts(r.stderr + "\n" + r.stdout)
 
         for fname in files_to_commit:
             n_added += 1
+            print(f"committing for conflicts {n_added: >5d}: {fname}", flush=True)
             _run_git_cmd(["add", fname])
 
         if files_to_commit:
@@ -95,7 +111,8 @@ def _deploy_batch(*, files_to_add, batch, n_added, max_per_batch=200):
             gx = load_existing_graph()
             # TODO: be more selective about which json to check
             for node, attrs in gx.nodes.items():
-                attrs["payload"]._load()
+                with attrs["payload"]:
+                    pass
             graph_ok = True
         except Exception:
             graph_ok = False
