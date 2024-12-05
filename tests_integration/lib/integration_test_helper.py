@@ -43,7 +43,9 @@ class IntegrationTestHelper:
         shutil.rmtree(tmp_feedstock_dir / ".git", ignore_errors=True)
 
         # Initialize a new git repository and commit everything
-        subprocess.run(["git", "init"], cwd=tmp_feedstock_dir, check=True)
+        subprocess.run(
+            ["git", "init", "--initial-branch=main"], cwd=tmp_feedstock_dir, check=True
+        )
         subprocess.run(["git", "add", "--all"], cwd=tmp_feedstock_dir, check=True)
         subprocess.run(
             ["git", "commit", "-m", "Overwrite Feedstock Contents"],
