@@ -101,11 +101,6 @@ jobs:
           name: conda-forge-tick
           path: /tmp
 
-      - name: Load Docker Image
-        run: |
-          docker load --input /tmp/image.tar
-          docker image ls -a
-
       - name: setup-micromamba
         uses: mamba-org/setup-micromamba@f8b8a1e23a26f60a44c853292711bacfd3eac822 # v1
         with:
@@ -115,12 +110,17 @@ jobs:
 
       - name: Install Bot Code (no graph clone)
         run: |
-          source cf-scripts/autotick-bot/install_bot_code.sh --no-pull-container --no-clone-graph # this is the first time, so we clean disk space
+          source cf-scripts/autotick-bot/install_bot_code.sh --no-pull-container --no-clone-graph # this is the first time, so we clean disk space, but don't clone the graph
+
+      - name: Load Docker Image
+        run: |
+          docker load --input /tmp/image.tar
+          docker image ls -a
 
       - name: Prepare Scenario
         run: |
           pushd cf-scripts
-          python -m tests_integration.step_prepare
+          python -m tests_integration.step_prepare  # this creates the cf-graph repository
         env:
           SCENARIO_ID: ${{ matrix.scenario_id }}
 
