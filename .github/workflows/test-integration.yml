@@ -182,6 +182,8 @@ jobs:
         run: |
           pushd cf-graph
           conda-forge-tick --debug make-graph
+        env:
+          CF_TICK_RANDOM_FRAC_TO_UPDATE: 1.0
 
       - name: "[Test] Deploy to GitHub"
         run: |

@@ -35,7 +35,7 @@ logger = logging.getLogger(__name__)
 pin_sep_pat = re.compile(r" |>|<|=|\[")
 random.seed(os.urandom(64))
 
-RANDOM_FRAC_TO_UPDATE = 0.25
+RANDOM_FRAC_TO_UPDATE = float(os.environ.get("CF_TICK_RANDOM_FRAC_TO_UPDATE", "0.25"))
 
 # AFAIK, go and rust do not have strong run exports and so do not need to
 # appear here
@@ -219,6 +219,7 @@ def _build_graph_sequential(
 ) -> None:
     for name in names:
         if random.uniform(0, 1) >= RANDOM_FRAC_TO_UPDATE:
+            logger.debug(f"skipping {name} due to random fraction to update")
             continue
 
         try:
