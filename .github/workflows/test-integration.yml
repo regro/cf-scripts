@@ -203,8 +203,8 @@ jobs:
           env
           conda-forge-tick --debug update-upstream-versions
         env:
-          HTTP_PROXY: http://127.0.0.1:8080
-          HTTPS_PROXY: http://127.0.0.1:8080
+          http_proxy: http://127.0.0.1:8080
+          https_proxy: http://127.0.0.1:8080
 
       - name: "[Test] Deploy to GitHub"
         run: |
@@ -223,8 +223,8 @@ jobs:
           pushd cf-graph
           conda-forge-tick --debug auto-tick
         env:
-          HTTP_PROXY: http://127.0.0.1:8080
-          HTTPS_PROXY: http://127.0.0.1:8080
+          http_proxy: http://127.0.0.1:8080
+          https_proxy: http://127.0.0.1:8080
 
       - name: "[Test] Deploy to GitHub"
         run: |
