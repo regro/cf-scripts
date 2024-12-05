@@ -19,6 +19,35 @@ def _run_git_cmd(cmd, **kwargs):
     return r
 
 
+def _parse_gh_conflicts(output):
+    files_to_commit = []
+    in_section = False
+    indent = None
+    for line in output.splitlines():
+        print(line, flush=True)
+        if not line.strip():
+            continue
+
+        if line.startswith("error:"):
+            in_section = True
+            continue
+
+        if in_section and indent is not None and not line.startswith(indent):
+            in_section = False
+            indent = None
+            continue
+
+        if in_section:
+            if indent is None:
+                indent = line[: len(line) - len(line.lstrip())]
+            fname = line.strip()
+            if os.path.exists(fname):
+                files_to_commit.append(fname)
+            continue
+
+    return files_to_commit
+
+
 def _pull_changes(batch):
     r = subprocess.run(
         ["git", "pull", "-s", "recursive", "-X", "theirs"],
@@ -27,26 +56,7 @@ def _pull_changes(batch):
     )
     n_added = 0
     if r.returncode != 0:
-        files_to_commit = []
-        in_section = False
-        indent = None
-        for line in r.stderr.splitlines() + r.stdout.splitlines():
-            if line.startswith("error:"):
-                in_section = True
-                continue
-
-            if in_section and indent is not None and not line.startswith(indent):
-                in_section = False
-                indent = None
-                continue
-
-            if in_section:
-                if indent is None:
-                    indent = line[: len(line) - len(line.lstrip())]
-                fname = line.strip()
-                if os.path.exists(fname):
-                    files_to_commit.append(fname)
-                continue
+        files_to_commit = _parse_gh_conflicts(r.stderr + "\n" + r.stdout)
 
         for fname in files_to_commit:
             n_added += 1
