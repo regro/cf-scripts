@@ -144,6 +144,8 @@ jobs:
       - name: "[Test] Gather all Feedstocks"
         run: |
           pushd cf-graph
+          # don't use proxy for git CLI operations (applies to all further steps)
+          git config --global http."https://github.com".proxy ""
           conda-forge-tick --debug gather-all-feedstocks
         env:
           BOT_TOKEN: ${{ secrets.GH_TOKEN_STAGING_BOT_USER }}
@@ -203,7 +205,6 @@ jobs:
       - name: "[Test] update-upstream-versions"
         run: |
           pushd cf-graph
-          env
           conda-forge-tick --debug update-upstream-versions
         env:
           http_proxy: http://127.0.0.1:8080
