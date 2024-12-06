@@ -261,6 +261,7 @@ jobs:
           REQUESTS_CA_BUNDLE: /etc/ssl/certs/ca-certificates.crt
           CF_FEEDSTOCK_OPS_CONTAINER_PROXY_MODE: true
           CF_FEEDSTOCK_OPS_PROXY_IN_CONTAINER: http://172.17.0.1:8080
+          BOT_TOKEN: ${{ secrets.GH_TOKEN_STAGING_REGRO }}
 
       - name: "[Test] Deploy to GitHub"
         run: |
