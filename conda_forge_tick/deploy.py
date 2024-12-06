@@ -119,7 +119,7 @@ def _deploy_batch(*, files_to_add, batch, n_added, max_per_batch=200):
 
         status = 1
         num_try = 0
-        while status != 0 and num_try < 100 and graph_ok:
+        while status != 0 and num_try < 20 and graph_ok:
             try:
                 print("\n\n>>>>>>>>>>>> git pull try %d\n\n" % num_try, flush=True)
                 _n_added = _pull_changes(batch)
