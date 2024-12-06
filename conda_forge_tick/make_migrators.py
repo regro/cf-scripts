@@ -95,8 +95,8 @@ random.seed(os.urandom(64))
 
 logger = logging.getLogger(__name__)
 
-PR_LIMIT = 5
-MAX_PR_LIMIT = 50
+PR_LIMIT = 2
+MAX_PR_LIMIT = 20
 MAX_SOLVER_ATTEMPTS = 50
 CHECK_SOLVABLE_TIMEOUT = 90  # 90 days
 DEFAULT_MINI_MIGRATORS = [
@@ -370,10 +370,10 @@ def add_rebuild_migration_yaml(
     pr_limits = [
         min(2, nominal_pr_limit),
         nominal_pr_limit,
-        min(int(nominal_pr_limit * 4), MAX_PR_LIMIT),
-        min(int(nominal_pr_limit * 3), MAX_PR_LIMIT),
         min(int(nominal_pr_limit * 2), MAX_PR_LIMIT),
-        min(int(nominal_pr_limit * 1.5), MAX_PR_LIMIT),
+        min(int(nominal_pr_limit * 1.75), MAX_PR_LIMIT),
+        min(int(nominal_pr_limit * 1.50), MAX_PR_LIMIT),
+        min(int(nominal_pr_limit * 1.25), MAX_PR_LIMIT),
         min(nominal_pr_limit, MAX_PR_LIMIT),
     ]
 
@@ -709,6 +709,7 @@ def create_migration_yaml_creator(
                                 cfp_gx,
                                 pinnings=pinnings_together,
                                 full_graph=gx,
+                                pr_limit=1,
                             ),
                         )
             except Exception as e:
@@ -809,7 +810,7 @@ def initialize_migrators(
         version_migrator = Version(
             python_nodes=python_nodes,
             graph=gx,
-            pr_limit=PR_LIMIT * 4,
+            pr_limit=PR_LIMIT * 2,
             piggy_back_migrations=_make_mini_migrators_with_defaults(
                 extra_mini_migrators=[
                     PipWheelMigrator(),
