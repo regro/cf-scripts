@@ -157,7 +157,7 @@ jobs:
           conda-forge-tick --debug deploy-to-github
         env:
           # note that we need the token scoped for regro-staging
-          BOT_TOKEN: ${{ secrets.GH_TOKEN_STAGING_REGRO }}
+          REGRO_TOKEN: ${{ secrets.GH_TOKEN_STAGING_REGRO }}
 
       - name: Reinstall Bot Code
         run: |
@@ -174,7 +174,7 @@ jobs:
           pushd cf-graph
           conda-forge-tick --debug deploy-to-github
         env:
-          BOT_TOKEN: ${{ secrets.GH_TOKEN_STAGING_REGRO }}
+          REGRO_TOKEN: ${{ secrets.GH_TOKEN_STAGING_REGRO }}
 
       - name: Reinstall Bot Code
         run: |
@@ -193,7 +193,7 @@ jobs:
           pushd cf-graph
           conda-forge-tick --debug deploy-to-github
         env:
-          BOT_TOKEN: ${{ secrets.GH_TOKEN_STAGING_REGRO }}
+          REGRO_TOKEN: ${{ secrets.GH_TOKEN_STAGING_REGRO }}
 
       - name: Reinstall Bot Code
         run: |
@@ -220,7 +220,7 @@ jobs:
           pushd cf-graph
           conda-forge-tick --debug deploy-to-github
         env:
-          BOT_TOKEN: ${{ secrets.GH_TOKEN_STAGING_REGRO }}
+          REGRO_TOKEN: ${{ secrets.GH_TOKEN_STAGING_REGRO }}
 
       - name: Reinstall Bot Code
         run: |
@@ -244,7 +244,7 @@ jobs:
           pushd cf-graph
           conda-forge-tick --debug deploy-to-github
         env:
-          BOT_TOKEN: ${{ secrets.GH_TOKEN_STAGING_REGRO }}
+          REGRO_TOKEN: ${{ secrets.GH_TOKEN_STAGING_REGRO }}
 
       - name: Reinstall Bot Code
         run: |
@@ -262,14 +262,15 @@ jobs:
           REQUESTS_CA_BUNDLE: /etc/ssl/certs/ca-certificates.crt
           CF_FEEDSTOCK_OPS_CONTAINER_PROXY_MODE: true
           CF_FEEDSTOCK_OPS_PROXY_IN_CONTAINER: http://172.17.0.1:8080
-          BOT_TOKEN: ${{ secrets.GH_TOKEN_STAGING_REGRO }}
+          BOT_TOKEN: ${{ secrets.GH_TOKEN_STAGING_BOT_USER }}
+          REGRO_TOKEN: ${{ secrets.GH_TOKEN_STAGING_REGRO }}
 
       - name: "[Test] Deploy to GitHub"
         run: |
           pushd cf-graph
           conda-forge-tick --debug deploy-to-github
         env:
-          BOT_TOKEN: ${{ secrets.GH_TOKEN_STAGING_REGRO }}
+          REGRO_TOKEN: ${{ secrets.GH_TOKEN_STAGING_REGRO }}
 
       - name: Print Proxy Logs
         if: always()
