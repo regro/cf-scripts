@@ -58,7 +58,7 @@ for arg in "$@"; do
 done
 if [[ "${clone_graph}" == "true" ]]; then
     cf_graph_remote=${CF_GRAPH_REMOTE:-"https://github.com/regro/cf-graph-countyfair.git"}
-    git clone --depth=20 "${cf_graph_remote}" cf-graph
+    git clone --depth=5 "${cf_graph_remote}" cf-graph
 else
   echo "Skipping cloning of cf-graph"
 fi
