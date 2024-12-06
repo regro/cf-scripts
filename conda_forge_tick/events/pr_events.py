@@ -4,7 +4,6 @@ import tempfile
 from conda_forge_tick.git_utils import (
     close_out_dirty_prs,
     close_out_labels,
-    parse_pr_json_last_updated,
     refresh_pr,
 )
 from conda_forge_tick.lazy_json_backends import (
@@ -21,8 +20,6 @@ def _react_to_pr(uid: str, dry_run: bool = False) -> None:
     with lazy_json_override_backends(["github"], use_file_cache=False):
         pr_data = copy.deepcopy(LazyJson(f"pr_json/{uid}.json").data)
 
-    last_updated = parse_pr_json_last_updated(pr_data)
-
     with (
         tempfile.TemporaryDirectory() as tmpdir,
         pushd(str(tmpdir)),
@@ -34,19 +31,6 @@ def _react_to_pr(uid: str, dry_run: bool = False) -> None:
 
         with pr_json:
             pr_data = refresh_pr(pr_json, dry_run=dry_run)
-            if pr_data is not None:
-                new_last_updated = parse_pr_json_last_updated(pr_data)
-            if (
-                last_updated is not None
-                and new_last_updated is not None
-                and new_last_updated < last_updated
-            ):
-                print(
-                    f"PR data from GitHub API is stale ('{new_last_updated.isoformat()}' "
-                    f"is before '{last_updated.isoformat()}') - skipping update!",
-                    flush=True,
-                )
-                return
             if not dry_run and pr_data is not None and pr_data != pr_json.data:
                 print("refreshed PR data", flush=True)
                 updated_pr = True
