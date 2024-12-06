@@ -50,6 +50,14 @@ T = TypeVar("T")
 # conda_forge_tick :: cft
 logger = logging.getLogger(__name__)
 
+CONTAINER_PROXY_MODE = os.environ.get(
+    "CF_FEEDSTOCK_OPS_CONTAINER_PROXY_MODE", "false"
+).lower() in ("yes", "true", "t", "1")
+"""
+Whether to use a proxy that is locally configured for all requests inside the container.
+Set the environment variable `CF_FEEDSTOCK_OPS_CONTAINER_PROXY_MODE` to 'true' to enable this feature.
+"""
+
 
 def ignore_version(attrs: Mapping[str, Any], version: str) -> bool:
     """
@@ -179,6 +187,28 @@ def get_latest_version_local(
     return version_data
 
 
+def _get_proxy_mode_container_args():
+    if not CONTAINER_PROXY_MODE:
+        return []
+    assert os.environ["SSL_CERT_FILE"] == os.environ["REQUESTS_CA_BUNDLE"]
+    return [
+        "-e",
+        f"http_proxy={os.environ['http_proxy']}",
+        "-e",
+        f"https_proxy={os.environ['https_proxy']}",
+        "-e",
+        f"no_proxy={os.environ.get('no_proxy', '')}",
+        "-e",
+        "SSL_CERT_FILE=/etc/ssl/certs/ca-certificates.crt",
+        "-e",
+        "REQUESTS_CA_BUNDLE=/etc/ssl/certs/ca-certificates.crt",
+        "--network",
+        "host",
+        "-v",
+        f"{os.environ['SSL_CERT_FILE']}:/etc/ssl/certs/ca-certificates.crt:ro",
+    ]
+
+
 def get_latest_version_containerized(
     name: str,
     attrs: Mapping[str, Any],
@@ -221,6 +251,7 @@ def get_latest_version_containerized(
     return run_container_operation(
         args,
         input=json_blob,
+        extra_container_args=_get_proxy_mode_container_args(),
     )
 
 

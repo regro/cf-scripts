@@ -208,6 +208,9 @@ jobs:
         env:
           http_proxy: http://127.0.0.1:8080
           https_proxy: http://127.0.0.1:8080
+          SSL_CERT_FILE: /etc/ssl/certs/ca-certificates.crt
+          REQUESTS_CA_BUNDLE: /etc/ssl/certs/ca-certificates.crt
+          CF_FEEDSTOCK_OPS_CONTAINER_PROXY_MODE: true
 
       - name: "[Test] Deploy to GitHub"
         run: |
@@ -228,6 +231,9 @@ jobs:
         env:
           http_proxy: http://127.0.0.1:8080
           https_proxy: http://127.0.0.1:8080
+          SSL_CERT_FILE: /etc/ssl/certs/ca-certificates.crt
+          REQUESTS_CA_BUNDLE: /etc/ssl/certs/ca-certificates.crt
+          CF_FEEDSTOCK_OPS_CONTAINER_PROXY_MODE: true
 
       - name: "[Test] Deploy to GitHub"
         run: |
