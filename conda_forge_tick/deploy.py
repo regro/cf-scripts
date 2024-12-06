@@ -2,8 +2,8 @@ import os
 import subprocess
 import sys
 
-from . import sensitive_env
 from .cli_context import CliContext
+from .git_utils import get_bot_token
 from .lazy_json_backends import CF_TICK_GRAPH_DATA_HASHMAPS, get_lazy_json_backends
 from .settings import DEPLOY_REPO
 from .utils import get_bot_run_url, load_existing_graph, run_command_hiding_token
@@ -141,20 +141,19 @@ def _deploy_batch(*, files_to_add, batch, n_added, max_per_batch=200):
                 )
                 pass
             print("\n\n>>>>>>>>>>>> git push try %d\n\n" % num_try, flush=True)
-            with sensitive_env() as env:
-                status = run_command_hiding_token(
-                    [
-                        "git",
-                        "push",
-                        "https://{token}@github.com/{deploy_repo}.git".format(
-                            token=env.get("BOT_TOKEN", ""),
-                            deploy_repo=DEPLOY_REPO,
-                        ),
-                        "master",
-                    ],
-                    token=env.get("BOT_TOKEN", ""),
-                )
-                _flush_io()
+            status = run_command_hiding_token(
+                [
+                    "git",
+                    "push",
+                    "https://{token}@github.com/{deploy_repo}.git".format(
+                        token=get_bot_token(),
+                        deploy_repo=DEPLOY_REPO,
+                    ),
+                    "master",
+                ],
+                token=get_bot_token(),
+            )
+            _flush_io()
             num_try += 1
 
         if status != 0 or not graph_ok:
