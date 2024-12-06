@@ -226,6 +226,30 @@ jobs:
           source cf-scripts/tests_integration/clear_runner.sh
           source cf-scripts/autotick-bot/install_bot_code.sh --no-clean-disk-space --no-pull-container
 
+      - name: "[Test] make-migrators"
+        run: |
+          pushd cf-graph
+          conda-forge-tick --debug make-migrators
+        env:
+          http_proxy: http://127.0.0.1:8080
+          https_proxy: http://127.0.0.1:8080
+          SSL_CERT_FILE: /etc/ssl/certs/ca-certificates.crt
+          REQUESTS_CA_BUNDLE: /etc/ssl/certs/ca-certificates.crt
+          CF_FEEDSTOCK_OPS_CONTAINER_PROXY_MODE: true
+          CF_FEEDSTOCK_OPS_PROXY_IN_CONTAINER: http://172.17.0.1:8080
+
+      - name: "[Test] Deploy to GitHub"
+        run: |
+          pushd cf-graph
+          conda-forge-tick --debug deploy-to-github
+        env:
+          BOT_TOKEN: ${{ secrets.GH_TOKEN_STAGING_REGRO }}
+
+      - name: Reinstall Bot Code
+        run: |
+          source cf-scripts/tests_integration/clear_runner.sh
+          source cf-scripts/autotick-bot/install_bot_code.sh --no-clean-disk-space --no-pull-container
+
       - name: "[Test] auto-tick"
         run: |
           pushd cf-graph
