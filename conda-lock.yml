@@ -2009,39 +2009,39 @@ package:
   - category: main
     dependencies: {}
     hash:
-      md5: b320c45a59dda1803e788b843bcd2a7f
-      sha256: 64edfec99a3a620afb4c5bad71006861c6f3b83507f7b7847454570f24a56fd4
+      md5: b4ac58cd3507eb04f248f4854d8eb59f
+      sha256: 278737dcff16271a8a408cc63309224c496beab36986addec67e34f0438f2881
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.12.05.17.22.05-hd8ed1ab_0.conda
-    version: 2024.12.05.17.22.05
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.12.05.23.59.20-hd8ed1ab_0.conda
+    version: 2024.12.05.23.59.20
   - category: main
     dependencies: {}
     hash:
-      md5: b320c45a59dda1803e788b843bcd2a7f
-      sha256: 64edfec99a3a620afb4c5bad71006861c6f3b83507f7b7847454570f24a56fd4
+      md5: b4ac58cd3507eb04f248f4854d8eb59f
+      sha256: 278737dcff16271a8a408cc63309224c496beab36986addec67e34f0438f2881
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.12.05.17.22.05-hd8ed1ab_0.conda
-    version: 2024.12.05.17.22.05
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.12.05.23.59.20-hd8ed1ab_0.conda
+    version: 2024.12.05.23.59.20
   - category: main
     dependencies: {}
     hash:
-      md5: b320c45a59dda1803e788b843bcd2a7f
-      sha256: 64edfec99a3a620afb4c5bad71006861c6f3b83507f7b7847454570f24a56fd4
+      md5: b4ac58cd3507eb04f248f4854d8eb59f
+      sha256: 278737dcff16271a8a408cc63309224c496beab36986addec67e34f0438f2881
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.12.05.17.22.05-hd8ed1ab_0.conda
-    version: 2024.12.05.17.22.05
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.12.05.23.59.20-hd8ed1ab_0.conda
+    version: 2024.12.05.23.59.20
   - category: main
     dependencies:
       click: '>=8'
@@ -7774,59 +7774,59 @@ package:
       libdeflate: '>=1.22,<1.23.0a0'
       libgcc: '>=13'
       libjpeg-turbo: '>=3.0.0,<4.0a0'
+      liblzma: '>=5.6.3,<6.0a0'
       libstdcxx: '>=13'
       libwebp-base: '>=1.4.0,<2.0a0'
       libzlib: '>=1.3.1,<2.0a0'
-      xz: '>=5.2.6,<6.0a0'
       zstd: '>=1.5.6,<1.6.0a0'
     hash:
-      md5: 63872517c98aa305da58a757c443698e
-      sha256: 9890121db85f6ef463fe12eb04ef1471176e3ef3b5e2d62e8d6dac713df00df4
+      md5: be54fb40ea32e8fe9dbaa94d4528b57e
+      sha256: 18653b4a5c73e19c5e86ff72dab9bf59f5cc43d7f404a6be705d152dfd5e0660
     manager: conda
     name: libtiff
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/linux-64/libtiff-4.7.0-he137b08_1.conda
+    url: https://conda.anaconda.org/conda-forge/linux-64/libtiff-4.7.0-hc4654cb_2.conda
     version: 4.7.0
   - category: main
     dependencies:
       __osx: '>=10.13'
       lerc: '>=4.0.0,<5.0a0'
-      libcxx: '>=17'
+      libcxx: '>=18'
       libdeflate: '>=1.22,<1.23.0a0'
       libjpeg-turbo: '>=3.0.0,<4.0a0'
+      liblzma: '>=5.6.3,<6.0a0'
       libwebp-base: '>=1.4.0,<2.0a0'
       libzlib: '>=1.3.1,<2.0a0'
-      xz: '>=5.2.6,<6.0a0'
       zstd: '>=1.5.6,<1.6.0a0'
     hash:
-      md5: 4b78bcdcc8780cede8b3d090deba874d
-      sha256: 4d58c695dfed6f308d0fd3ff552e0078bb98bc0be2ea0bf55820eb6e86fa5355
+      md5: 99a4153a4ee19d4902c0c08bfae4cdb4
+      sha256: dba23d6c9c1df6092e894b69d53fcdb78cdd10eab8e1b57f040de91a8beed908
     manager: conda
     name: libtiff
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/osx-64/libtiff-4.7.0-h583c2ba_1.conda
+    url: https://conda.anaconda.org/conda-forge/osx-64/libtiff-4.7.0-hf4bdac2_2.conda
     version: 4.7.0
   - category: main
     dependencies:
       __osx: '>=11.0'
       lerc: '>=4.0.0,<5.0a0'
-      libcxx: '>=17'
+      libcxx: '>=18'
       libdeflate: '>=1.22,<1.23.0a0'
       libjpeg-turbo: '>=3.0.0,<4.0a0'
+      liblzma: '>=5.6.3,<6.0a0'
       libwebp-base: '>=1.4.0,<2.0a0'
       libzlib: '>=1.3.1,<2.0a0'
-      xz: '>=5.2.6,<6.0a0'
       zstd: '>=1.5.6,<1.6.0a0'
     hash:
-      md5: b9abf45f7c64caf3303725f1aa0e9a4d
-      sha256: 97ba24c74750b6e731b3fe0d2a751cda6148b4937d2cc3f72d43bf7b3885c39d
+      md5: 8e14b5225c593f099a21971568e6d7b4
+      sha256: d9e6835fd189b85eb90dbfdcc51f5375decbf5bb53130042f49bbd6bfb0b24be
     manager: conda
     name: libtiff
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/osx-arm64/libtiff-4.7.0-hfce79cd_1.conda
+    url: https://conda.anaconda.org/conda-forge/osx-arm64/libtiff-4.7.0-ha962b0a_2.conda
     version: 4.7.0
   - category: main
     dependencies:
@@ -7949,48 +7949,48 @@ package:
       icu: '>=75.1,<76.0a0'
       libgcc: '>=13'
       libiconv: '>=1.17,<2.0a0'
+      liblzma: '>=5.6.3,<6.0a0'
       libzlib: '>=1.3.1,<2.0a0'
-      xz: '>=5.2.6,<6.0a0'
     hash:
-      md5: c81a9f1118541aaa418ccb22190c817e
-      sha256: 8c9d6a3a421ac5bf965af495d1b0a08c6fb2245ba156550bc064a7b4f8fc7bd8
+      md5: 1a21e49e190d1ffe58531a81b6e400e1
+      sha256: c3b05bdc40d27a9249f0bb60f3f71718f94104b8bcd200163a6c9d4ade7aa052
     manager: conda
     name: libxml2
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/linux-64/libxml2-2.13.5-hb346dea_0.conda
+    url: https://conda.anaconda.org/conda-forge/linux-64/libxml2-2.13.5-h8d12d68_1.conda
     version: 2.13.5
   - category: main
     dependencies:
       __osx: '>=10.13'
       icu: '>=75.1,<76.0a0'
       libiconv: '>=1.17,<2.0a0'
+      liblzma: '>=5.6.3,<6.0a0'
       libzlib: '>=1.3.1,<2.0a0'
-      xz: '>=5.2.6,<6.0a0'
     hash:
-      md5: 8711bc6fb054192dc432741dcd233ac3
-      sha256: 66e1bf40699daf83b39e1281f06c64cf83499de3a9c05d59477fadded6d85b18
+      md5: 23c629eba5239465a34bca0ed9c0b5d3
+      sha256: b9332bd8d47a72b7b8fa2ae13c24387ed4f5fd4e1f7ecf0031068c6a755267ae
     manager: conda
     name: libxml2
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/osx-64/libxml2-2.13.5-h495214b_0.conda
+    url: https://conda.anaconda.org/conda-forge/osx-64/libxml2-2.13.5-hebb159f_1.conda
     version: 2.13.5
   - category: main
     dependencies:
       __osx: '>=11.0'
       icu: '>=75.1,<76.0a0'
       libiconv: '>=1.17,<2.0a0'
+      liblzma: '>=5.6.3,<6.0a0'
       libzlib: '>=1.3.1,<2.0a0'
-      xz: '>=5.2.6,<6.0a0'
     hash:
-      md5: 967d4a9dadd710415ee008d862a07c99
-      sha256: 936de9c0e91cb6f178c48ea14313cf6c79bdb1f474c785c117c41492b0407a98
+      md5: 3dc3cff0eca1640a6acbbfab2f78139e
+      sha256: d7af3f25a4cece170502acd38f2dafbea4521f373f46dcb28a37fbe6ac2da544
     manager: conda
     name: libxml2
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/osx-arm64/libxml2-2.13.5-hbbdcc80_0.conda
+    url: https://conda.anaconda.org/conda-forge/osx-arm64/libxml2-2.13.5-h178c5d8_1.conda
     version: 2.13.5
   - category: main
     dependencies:
