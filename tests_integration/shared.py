@@ -47,9 +47,10 @@ DEFINITIONS_DIR = Path(__file__).parent / DEFINITIONS_DIR_NAME
 
 FEEDSTOCK_SUFFIX = "-feedstock"
 
-REDIRECT_URLS = {
+TRANSPARENT_URLS = {
     "https://raw.githubusercontent.com/regro/cf-graph-countyfair/master/mappings/pypi/name_mapping.yaml",
     "https://raw.githubusercontent.com/regro/cf-graph-countyfair/master/mappings/pypi/grayskull_pypi_mapping.json",
+    "https://api.github.com/{path:path}",  # anything that starts with https://api.github.com/
 }
 """
 Those URLs are redirected to the actual upstream URLs in the tests.
@@ -114,7 +115,7 @@ def get_global_router():
     def handle_cran_index_archive():
         return ""
 
-    for url in REDIRECT_URLS:
+    for url in TRANSPARENT_URLS:
         assert url.startswith("https://")
 
         router.add_route(
