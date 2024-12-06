@@ -199,9 +199,6 @@ jobs:
 
       - name: Setup tmate session
         uses: mxschmitt/action-tmate@v3
-        env:
-          http_proxy: http://127.0.0.1:8080
-          https_proxy: http://127.0.0.1:8080
 
       - name: "[Test] update-upstream-versions"
         run: |
