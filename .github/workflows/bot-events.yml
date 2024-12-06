@@ -83,6 +83,7 @@ jobs:
             --event='${{ inputs.event }}' \
             --uid='${{ inputs.uid }}'
         env:
+          BOT_TOKEN : ${{ secrets.AUTOTICK_BOT_TOKEN }}
           REGRO_TOKEN: ${{ secrets.AUTOTICK_BOT_TOKEN }}
           RUN_ID: ${{ github.run_id }}
           # emptied at the beginning and end of each run, used by Python tempdir
