@@ -129,6 +129,7 @@ jobs:
         run: |
           export TEST_BOT_TOKEN_VAL=unpassword
           export BOT_TOKEN=${TEST_BOT_TOKEN_VAL}
+          export REGRO_TOKEN=${TEST_REGRO_TOKEN_VAL}
           # note: we do not use pytest-xdist (-n auto) here for now because they interfere with hiding the
           # MONGODB_CONNECTION_STRING sensitive environment variable
           if [[ -f .test_durations ]]; then

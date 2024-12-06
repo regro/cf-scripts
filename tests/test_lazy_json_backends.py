@@ -14,7 +14,7 @@ import pytest
 
 import conda_forge_tick
 import conda_forge_tick.utils
-from conda_forge_tick.git_utils import github_client
+from conda_forge_tick.git_utils import pygithub_client_regro
 from conda_forge_tick.lazy_json_backends import (
     CF_TICK_GRAPH_GITHUB_BACKEND_BASE_URL,
     LAZY_JSON_BACKENDS,
@@ -805,7 +805,7 @@ def test_push_lazy_json_via_gh_api(recursive):
                 lzj["uid"] = uid
                 lzj["sub_lzj"] = lzj_sub
 
-            gh = github_client()
+            gh = pygithub_client_regro()
             repo = gh.get_repo("regro/cf-graph-countyfair")
 
             push_lazy_json_via_gh_api(lzj, recursive=recursive)
@@ -885,7 +885,7 @@ def test_push_lazy_json_via_gh_api_nopush():
             with lzj:
                 lzj["uid"] = uid
 
-            gh = github_client()
+            gh = pygithub_client_regro()
             repo = gh.get_repo("regro/cf-graph-countyfair")
 
             push_lazy_json_via_gh_api(lzj)

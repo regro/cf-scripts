@@ -3,7 +3,7 @@ from typing import List
 
 import tqdm
 
-from conda_forge_tick.git_utils import github_client
+from conda_forge_tick.git_utils import pygithub_client_bot_user
 
 from .lazy_json_backends import dump, load
 
@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 
 
 def get_all_feedstocks_from_github():
-    gh = github_client()
+    gh = pygithub_client_bot_user()
 
     org = gh.get_organization("conda-forge")
     archived = set()

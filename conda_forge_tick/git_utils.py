@@ -46,7 +46,7 @@ logger = logging.getLogger(__name__)
 backoff._decorator._is_event_loop = lambda: False
 
 GITHUB3_CLIENT = threading.local()
-GITHUB_CLIENT = threading.local()
+PYGITHUB_CLIENT = threading.local()
 
 MAX_GITHUB_TIMEOUT = 60
 
@@ -80,30 +80,56 @@ PR_KEYS_TO_KEEP = {
 }
 
 
-def get_bot_token():
+def get_bot_user_token():
+    """
+    Get the bot user token, as set via the BOT_TOKEN environment variable.
+    """
     with sensitive_env() as env:
         return env["BOT_TOKEN"]
 
 
-def github3_client() -> github3.GitHub:
+def get_regro_token():
     """
-    This will be removed in the future, use the GitHubBackend class instead.
+    Get the regro organization token, as set via the REGRO_TOKEN environment variable.
     """
-    if not hasattr(GITHUB3_CLIENT, "client"):
-        GITHUB3_CLIENT.client = github3.login(token=get_bot_token())
-    return GITHUB3_CLIENT.client
+    with sensitive_env() as env:
+        return env["REGRO_TOKEN"]
 
 
-def github_client() -> github.Github:
+def github3_client_bot_user() -> github3.GitHub:
     """
+    Return a pre-authenticated github3 client for the bot user.
     This will be removed in the future, use the GitHubBackend class instead.
     """
-    if not hasattr(GITHUB_CLIENT, "client"):
-        GITHUB_CLIENT.client = github.Github(
-            auth=github.Auth.Token(get_bot_token()),
+    if not hasattr(GITHUB3_CLIENT, "bot_user_client"):
+        GITHUB3_CLIENT.bot_user_client = github3.login(token=get_bot_user_token())
+    return GITHUB3_CLIENT.bot_user_client
+
+
+def pygithub_client_bot_user() -> github.Github:
+    """
+    Return a pre-authenticated PyGithub client for the bot user.
+    This will be removed in the future, use the GitHubBackend class instead.
+    """
+    if not hasattr(PYGITHUB_CLIENT, "bot_user_client"):
+        PYGITHUB_CLIENT.bot_user_client = github.Github(
+            auth=github.Auth.Token(get_bot_user_token()),
             per_page=100,
         )
-    return GITHUB_CLIENT.client
+    return PYGITHUB_CLIENT.bot_user_client
+
+
+def pygithub_client_regro() -> github.Github:
+    """
+    Return a pre-authenticated PyGithub client for the bot user.
+    This will be removed in the future, use the GitHubBackend class instead.
+    """
+    if not hasattr(PYGITHUB_CLIENT, "regro_client"):
+        PYGITHUB_CLIENT.regro_client = github.Github(
+            auth=github.Auth.Token(get_regro_token()),
+            per_page=100,
+        )
+    return PYGITHUB_CLIENT.regro_client
 
 
 class Bound(float, enum.Enum):
@@ -1137,7 +1163,7 @@ def github_backend() -> GitHubBackend:
     """
     This helper method will be removed in the future, use the GitHubBackend class directly.
     """
-    return GitHubBackend.from_token(get_bot_token())
+    return GitHubBackend.from_token(get_bot_user_token())
 
 
 def is_github_api_limit_reached() -> bool:
@@ -1159,10 +1185,10 @@ def delete_branch(pr_json: LazyJson, dry_run: bool = False) -> None:
         return
     name = pr_json["base"]["repo"]["name"]
 
-    gh = github3_client()
+    gh = github3_client_bot_user()
     deploy_repo = gh.me().login + "/" + name
 
-    token = get_bot_token()
+    token = get_bot_user_token()
 
     run_command_hiding_token(
         [
@@ -1253,7 +1279,7 @@ def lazy_update_pr_json(
     last_updated = parse_pr_json_last_updated(pr_json)
 
     hdrs = {
-        "Authorization": f"token {get_bot_token()}",
+        "Authorization": f"token {get_bot_user_token()}",
         "Accept": "application/vnd.github.v3+json",
     }
     if not force and "ETag" in pr_json:
@@ -1376,7 +1402,7 @@ def close_out_labels(
         if dry_run:
             print("dry run: comment and close pr %s" % pr_json["id"])
         else:
-            gh = github3_client()
+            gh = github3_client_bot_user()
             pr_obj = get_pr_obj_from_pr_json(pr_json, gh)
             pr_obj.create_comment(
                 "Due to the `bot-rerun` label I'm closing "
@@ -1419,7 +1445,7 @@ def close_out_dirty_prs(
         if dry_run:
             print("dry run: comment and close pr %s" % pr_json["id"])
         else:
-            gh = github3_client()
+            gh = github3_client_bot_user()
             pr_obj = get_pr_obj_from_pr_json(pr_json, gh)
 
             if all(
