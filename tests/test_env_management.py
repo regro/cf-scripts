@@ -5,24 +5,32 @@ from conda_forge_tick.env_management import SensitiveEnv
 
 def test_simple_sensitive_env(env_setup):
     os.environ["BOT_TOKEN"] = "hi"
+    os.environ["REGRO_TOKEN"] = "there"
     s = SensitiveEnv()
 
     s.hide_env_vars()
     assert "BOT_TOKEN" not in os.environ
+    assert "REGRO_TOKEN" not in os.environ
 
     s.reveal_env_vars()
     assert "BOT_TOKEN" in os.environ
+    assert "REGRO_TOKEN" in os.environ
     assert os.environ["BOT_TOKEN"] == "hi"
+    assert os.environ["REGRO_TOKEN"] == "there"
 
 
 def test_ctx_sensitive_env(env_setup):
     os.environ["BOT_TOKEN"] = "hi"
+    os.environ["REGRO_TOKEN"] = "there"
     s = SensitiveEnv()
 
     with s.sensitive_env():
         assert "BOT_TOKEN" in os.environ
+        assert "REGRO_TOKEN" in os.environ
         assert os.environ["BOT_TOKEN"] == "hi"
+        assert os.environ["REGRO_TOKEN"] == "there"
     assert "BOT_TOKEN" not in os.environ
+    assert "REGRO_TOKEN" not in os.environ
 
 
 def test_double_sensitive_env(env_setup):

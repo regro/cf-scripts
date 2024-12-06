@@ -234,7 +234,8 @@ If your migrator needs special configuration, you should write a new factory fun
 - `TIMEOUT`: set to the number of seconds to wait before timing out the bot
 - `RUN_URL`: set to the URL of the CI build (now set to a GHA run URL)
 - `MEMORY_LIMIT_GB`: set to the memory limit in GB for the bot
-- `BOT_TOKEN`: a GitHub token for the bot user
+- `BOT_TOKEN`: a GitHub token for the bot user, having access to the `regro-cf-autotick-bot` GitHub account
+- `REGRO_TOKEN`: a GitHub token that has permission to access the `regro` organization (currently identical with `BOT_TOKEN` in production but needed to use fine-grained tokens)
 - `CF_FEEDSTOCK_OPS_CONTAINER_NAME`: the name of the container to use in the bot, otherwise defaults to `ghcr.io/regro/conda-forge-tick`
 - `CF_FEEDSTOCK_OPS_CONTAINER_TAG`: set this to override the default container tag used in production runs, otherwise the value of `__version__` is used
 - `CF_TICK_LIVE_TEST`: set to `true` to enable tests of the bot that require a working GitHub API token for `BOT_TOKEN`
