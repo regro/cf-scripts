@@ -1,3 +1,4 @@
+import base64
 import contextlib
 import functools
 import glob
@@ -942,7 +943,11 @@ def main_cache(ctx: CliContext):
 def _get_pth_blob_sha_and_content(pth, gh):
     try:
         cnt = gh.get_repo("regro/cf-graph-countyfair").get_contents(pth)
-        return cnt.sha, cnt.decoded_content.decode("utf-8")
+        # I was using the decoded_content attribute here, but it seems that
+        # every once and a while github does not send the encoding correctly
+        # so I switched to doing the decoding by hand.
+        data = base64.b64decode(cnt.content.encode("utf-8")).decode("utf-8")
+        return cnt.sha, data
     except github.UnknownObjectException:
         return None, None
 
