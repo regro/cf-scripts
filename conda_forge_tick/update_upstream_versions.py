@@ -50,12 +50,25 @@ T = TypeVar("T")
 # conda_forge_tick :: cft
 logger = logging.getLogger(__name__)
 
+# TODO: https://github.com/conda-forge/conda-forge-feedstock-ops/pull/34
 CONTAINER_PROXY_MODE = os.environ.get(
     "CF_FEEDSTOCK_OPS_CONTAINER_PROXY_MODE", "false"
 ).lower() in ("yes", "true", "t", "1")
 """
 Whether to use a proxy that is locally configured for all requests inside the container.
 Set the environment variable `CF_FEEDSTOCK_OPS_CONTAINER_PROXY_MODE` to 'true' to enable this feature.
+"""
+
+PROXY_IN_CONTAINER = os.environ.get(
+    "CF_FEEDSTOCK_OPS_PROXY_IN_CONTAINER", "http://host.docker.internal:8080"
+)
+"""
+The hostname of the proxy to use in the container.
+The default value of 'http://host.docker.internal:8080' is the default value for Docker Desktop on Windows and macOS.
+It also works for OrbStack.
+
+For podman, use http://host.containers.internal:8080.
+For GitHub Actions, use http://172.17.0.1:8080, see https://stackoverflow.com/a/65505308
 """
 
 
@@ -193,17 +206,15 @@ def _get_proxy_mode_container_args():
     assert os.environ["SSL_CERT_FILE"] == os.environ["REQUESTS_CA_BUNDLE"]
     return [
         "-e",
-        f"http_proxy={os.environ['http_proxy']}",
+        f"http_proxy={PROXY_IN_CONTAINER}",
         "-e",
-        f"https_proxy={os.environ['https_proxy']}",
+        f"https_proxy={PROXY_IN_CONTAINER}",
         "-e",
         f"no_proxy={os.environ.get('no_proxy', '')}",
         "-e",
         "SSL_CERT_FILE=/etc/ssl/certs/ca-certificates.crt",
         "-e",
         "REQUESTS_CA_BUNDLE=/etc/ssl/certs/ca-certificates.crt",
-        "--network",
-        "host",
         "-v",
         f"{os.environ['SSL_CERT_FILE']}:/etc/ssl/certs/ca-certificates.crt:ro",
     ]

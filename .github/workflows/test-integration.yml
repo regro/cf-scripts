@@ -211,6 +211,7 @@ jobs:
           SSL_CERT_FILE: /etc/ssl/certs/ca-certificates.crt
           REQUESTS_CA_BUNDLE: /etc/ssl/certs/ca-certificates.crt
           CF_FEEDSTOCK_OPS_CONTAINER_PROXY_MODE: true
+          PROXY_IN_CONTAINER: http://172.17.0.1:8080
 
       - name: "[Test] Deploy to GitHub"
         run: |
@@ -234,6 +235,7 @@ jobs:
           SSL_CERT_FILE: /etc/ssl/certs/ca-certificates.crt
           REQUESTS_CA_BUNDLE: /etc/ssl/certs/ca-certificates.crt
           CF_FEEDSTOCK_OPS_CONTAINER_PROXY_MODE: true
+          PROXY_IN_CONTAINER: http://172.17.0.1:8080
 
       - name: "[Test] Deploy to GitHub"
         run: |
