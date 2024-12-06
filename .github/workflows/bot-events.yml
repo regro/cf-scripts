@@ -65,8 +65,6 @@ jobs:
             --no-clone-graph \
             --no-clean-disk-space \
             --no-pull-container
-        env:
-          BOT_TOKEN: ${{ secrets.AUTOTICK_BOT_TOKEN }}
 
       - name: react to event
         if: success() && ! env.CI_SKIP

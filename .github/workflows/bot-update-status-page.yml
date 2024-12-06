@@ -44,8 +44,6 @@ jobs:
         if: success() && ! env.CI_SKIP
         run: |
           source cf-scripts/autotick-bot/install_bot_code.sh
-        env:
-          BOT_TOKEN: ${{ secrets.AUTOTICK_BOT_TOKEN }}
 
       - name: update status page
         if: success() && ! env.CI_SKIP
