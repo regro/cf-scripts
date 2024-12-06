@@ -66,6 +66,7 @@ class IntegrationTestHelper:
 
         # Remove the .git directory (if it exists)
         shutil.rmtree(dest_dir / ".git", ignore_errors=True)
+        dest_dir.joinpath(".git").unlink(missing_ok=True)  # if it is a file
 
         # Initialize a new git repository and commit everything
         subprocess.run(

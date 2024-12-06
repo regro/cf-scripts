@@ -29,9 +29,7 @@ IS_USER_ACCOUNT: dict[GitHubAccount, bool] = {
     GitHubAccount.REGRO_ORG: False,
 }
 
-REGRO_ACCOUNT_REPOS = {
-    "cf-graph-countyfair",
-}
+REGRO_ACCOUNT_REPOS = {"cf-graph-countyfair"}
 
 ENV_GITHUB_OUTPUT = "GITHUB_OUTPUT"
 ENV_GITHUB_RUN_ID = "GITHUB_RUN_ID"
