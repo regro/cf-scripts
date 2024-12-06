@@ -1,7 +1,6 @@
 import logging
 import os
 import time
-from typing import Optional
 
 import click
 from click import Context, IntRange
@@ -144,31 +143,46 @@ def make_graph(
 @job_option
 @n_jobs_option
 @click.argument(
-    "package",
+    "feedstock",
     required=False,
+    default=None,
+    type=str,
 )
 @pass_context
 def update_upstream_versions(
-    ctx: CliContext, job: int, n_jobs: int, package: Optional[str]
+    ctx: CliContext, job: int, n_jobs: int, feedstock: str | None
 ) -> None:
     """
     Update the upstream versions of feedstocks in the graph.
 
-    If PACKAGE is given, only update that package, otherwise update all packages.
+    If FEEDSTOCK is given, only update that feedstock, otherwise update all feedstocks.
+    The FEEDSTOCK argument should omit the `-feedstock` suffix.
     """
     from . import update_upstream_versions
 
     check_job_param_relative(job, n_jobs)
 
-    update_upstream_versions.main(ctx, job=job, n_jobs=n_jobs, package=package)
+    update_upstream_versions.main(ctx, job=job, n_jobs=n_jobs, feedstock=feedstock)
 
 
 @main.command(name="auto-tick")
+@click.argument(
+    "feedstock",
+    required=False,
+    default=None,
+    type=str,
+)
 @pass_context
-def auto_tick(ctx: CliContext) -> None:
+def auto_tick(ctx: CliContext, feedstock: str | None) -> None:
+    """
+    Run the main bot logic that runs all migrations, updates the graph accordingly, and opens the corresponding PRs.
+
+    If FEEDSTOCK is given, only run the bot for that feedstock, otherwise run the bot for all feedstocks.
+    The FEEDSTOCK argument should omit the `-feedstock` suffix.
+    """
     from . import auto_tick
 
-    auto_tick.main(ctx)
+    auto_tick.main(ctx, feedstock=feedstock)
 
 
 @main.command(name="make-status-report")
