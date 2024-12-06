@@ -420,7 +420,7 @@ class NoarchPythonMinMigrator(Migrator):
     def __init__(
         self,
         *,
-        pr_limit: int = 10,
+        pr_limit: int = 0,
         graph: nx.DiGraph = None,
         effective_graph: nx.DiGraph = None,
         piggy_back_migrations: Sequence[MiniMigrator] | None = None,
