@@ -3,6 +3,7 @@ import functools
 import logging
 import os
 import random
+import secrets
 import typing
 import warnings
 from typing import Any, List, Sequence
@@ -31,6 +32,8 @@ SKIP_DEPS_NODES = [
 ]
 
 logger = logging.getLogger(__name__)
+
+RNG = secrets.SystemRandom()
 
 
 class VersionMigrationError(Exception):
@@ -454,11 +457,10 @@ class Version(Migrator):
             else:
                 return 0
 
-        random.seed()
         nodes_to_sort = list(graph.nodes)
         return sorted(
             sorted(
-                sorted(nodes_to_sort, key=lambda x: random.uniform(0, 1)),
+                sorted(nodes_to_sort, key=lambda x: RNG.random()),
                 key=_get_attempts,
             ),
             key=functools.cmp_to_key(_desc_cmp),

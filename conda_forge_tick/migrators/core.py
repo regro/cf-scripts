@@ -3,8 +3,8 @@
 import copy
 import datetime
 import logging
-import random
 import re
+import secrets
 import typing
 from pathlib import Path
 from typing import Any, List, Sequence, Set
@@ -29,6 +29,8 @@ if typing.TYPE_CHECKING:
 
 
 logger = logging.getLogger(__name__)
+
+RNG = secrets.SystemRandom()
 
 
 def skip_migrator_due_to_schema(
@@ -610,7 +612,7 @@ class Migrator:
             key=lambda x: (
                 _not_has_error(x),
                 (
-                    random.uniform(0, 1)
+                    RNG.random()
                     if not _not_has_error(x)
                     else len(nx.descendants(total_graph, x))
                 ),

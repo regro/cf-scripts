@@ -1,7 +1,7 @@
 import copy
 import hashlib
 import logging
-import random
+import secrets
 from concurrent.futures._base import as_completed
 
 import github
@@ -24,6 +24,8 @@ from .utils import load_existing_graph
 
 logger = logging.getLogger(__name__)
 
+RNG = secrets.SystemRandom()
+
 NUM_GITHUB_THREADS = 2
 KEEP_PR_FRACTION = 0.5
 
@@ -42,7 +44,7 @@ def _update_pr(update_function, dry_run, gx, job, n_jobs):
     ]
 
     # this makes sure that github rate limits are dispersed
-    random.shuffle(node_ids)
+    RNG.shuffle(node_ids)
 
     with executor("thread", NUM_GITHUB_THREADS) as pool:
         for node_id in tqdm.tqdm(
@@ -56,7 +58,7 @@ def _update_pr(update_function, dry_run, gx, job, n_jobs):
                 continue
             prs = node.get("pr_info", {}).get("PRed", [])
             for i, migration in enumerate(prs):
-                if random.uniform(0, 1) >= KEEP_PR_FRACTION:
+                if RNG.random() >= KEEP_PR_FRACTION:
                     continue
 
                 pr_json = migration.get("PR", None)
