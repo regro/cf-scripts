@@ -2,6 +2,10 @@ name: bot-events
 
 run-name: 'event: ${{ inputs.event }} ${{ inputs.uid }}'
 
+concurrency:
+  group: 'event: ${{ inputs.event }} ${{ inputs.uid }}'
+  cancel-in-progress: false
+
 on:
   workflow_dispatch:
     inputs:
