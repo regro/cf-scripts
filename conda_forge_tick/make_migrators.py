@@ -3,8 +3,8 @@ import glob
 import logging
 import os
 import pprint
-import random
 import re
+import secrets
 import time
 import typing
 from concurrent.futures import as_completed
@@ -90,10 +90,9 @@ from conda_forge_tick.utils import (
     yaml_safe_load,
 )
 
-# migrator runs on loop so avoid any seeds at current time should that happen
-random.seed(os.urandom(64))
-
 logger = logging.getLogger(__name__)
+
+RNG = secrets.SystemRandom()
 
 PR_LIMIT = 2
 MAX_PR_LIMIT = 20
@@ -820,7 +819,7 @@ def initialize_migrators(
             ),
         )
 
-        random.shuffle(pinning_migrators)
+        RNG.shuffle(pinning_migrators)
         migrators = [version_migrator] + migrators + pinning_migrators
 
     return migrators
@@ -875,8 +874,8 @@ def load_migrators(skip_paused: bool = True) -> MutableSequence[Migrator]:
     if version_migrator is None:
         raise RuntimeError("No version migrator found in the migrators directory!")
 
-    random.shuffle(pinning_migrators)
-    random.shuffle(longterm_migrators)
+    RNG.shuffle(pinning_migrators)
+    RNG.shuffle(longterm_migrators)
     migrators = [version_migrator] + migrators + pinning_migrators + longterm_migrators
 
     return migrators

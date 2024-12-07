@@ -1,8 +1,7 @@
 import hashlib
 import logging
-import os
-import random
 import re
+import secrets
 import time
 import typing
 from collections import defaultdict
@@ -33,7 +32,7 @@ from .utils import as_iterable, dump_graph, load_graph, sanitize_string
 logger = logging.getLogger(__name__)
 
 pin_sep_pat = re.compile(r" |>|<|=|\[")
-random.seed(os.urandom(64))
+RNG = secrets.SystemRandom()
 
 RANDOM_FRAC_TO_UPDATE = 0.1
 
@@ -190,7 +189,7 @@ def _build_graph_process_pool(
         futures = {
             pool.submit(get_attrs, name, mark_not_archived=mark_not_archived): name
             for name in names
-            if random.uniform(0, 1) < RANDOM_FRAC_TO_UPDATE
+            if RNG.random() < RANDOM_FRAC_TO_UPDATE
         }
         logger.info("submitted all nodes")
 
@@ -221,7 +220,7 @@ def _build_graph_sequential(
     mark_not_archived=False,
 ) -> None:
     for name in names:
-        if random.uniform(0, 1) >= RANDOM_FRAC_TO_UPDATE:
+        if RNG.random() >= RANDOM_FRAC_TO_UPDATE:
             continue
 
         try:

@@ -3,7 +3,6 @@ import glob
 import json
 import logging
 import os
-import random
 import textwrap
 import time
 import traceback
@@ -78,9 +77,6 @@ logger = logging.getLogger(__name__)
 BOT_HOME_DIR: str = os.getcwd()
 START_TIME = None
 TIMEOUT = int(os.environ.get("TIMEOUT", 600))
-
-# migrator runs on loop so avoid any seeds at current time should that happen
-random.seed(os.urandom(64))
 
 
 def _set_pre_pr_migrator_error(attrs, migrator_name, error_str, *, is_version):
