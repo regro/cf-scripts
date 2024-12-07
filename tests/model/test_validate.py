@@ -55,7 +55,6 @@ NODE_ATTRS_BAD_FEEDSTOCKS = {
     "st-annotated-text",  # bot.inspect should be bot.inspection in conda-forge.yml
     "espaloma",  # typo in `conda-forge.yml`.azure
     "sparc-x",  # `conda-forge.yml`.channels is unexpected
-    "jupyter_core",  # `conda-forge.yml`.abi_migration_branches is unexpected, should be moved to `conda-forge.yml`.bot
     "bamnostic",  # unrecognized field `conda-forge.yml`.build
     "pyrosm",  # unrecognized option `conda-forge.yml`.build, legacy field `conda-forge.yml`.matrix does not validate
     "sketchnu",  # `conda-forge.yml`.conda_build.pkg_format may not be None
@@ -182,10 +181,14 @@ def test_model_valid(model: PerPackageModel, valid_feedstock: str):
             raise
         pytest.skip(f"{path} does not exist")
 
-    if (json.loads(node_attrs).get("meta_yaml", {}) or {}).get(
+    data = json.loads(node_attrs)
+    if (data.get("meta_yaml", {}) or {}).get(
         "schema_version", 0
     ) == 1:
         pytest.xfail("recipes using schema version 1 cannot yet be validated")
+
+    if data.get("archived", False):
+        pytest.xfail("archived feedstocks need not be valid")
 
     model.model.validate_json(node_attrs)
 
