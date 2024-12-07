@@ -182,9 +182,7 @@ def test_model_valid(model: PerPackageModel, valid_feedstock: str):
         pytest.skip(f"{path} does not exist")
 
     data = json.loads(node_attrs)
-    if (data.get("meta_yaml", {}) or {}).get(
-        "schema_version", 0
-    ) == 1:
+    if (data.get("meta_yaml", {}) or {}).get("schema_version", 0) == 1:
         pytest.xfail("recipes using schema version 1 cannot yet be validated")
 
     if data.get("archived", False):
