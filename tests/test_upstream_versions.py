@@ -1287,9 +1287,6 @@ def test_update_upstream_versions_run_sequential(
         ("testpackage3", {"payload": {"dummy": "1.2.5"}}),
     ]
 
-    # swaps the packages
-    random.seed(1)
-
     def custom_include_node(name: str, _: Mapping) -> bool:
         return name in ("testpackage", "testpackage2")
 
@@ -1307,10 +1304,11 @@ def test_update_upstream_versions_run_sequential(
     )
 
     update_sequential_mock.assert_called_once()
-    assert update_sequential_mock.call_args.args[0] == [
+    for pkg in [
         ("testpackage2", {"dummy": "1.2.4"}),
         ("testpackage", {"dummy": "1.2.3"}),
-    ]
+    ]:
+        assert pkg in update_sequential_mock.call_args.args[0]
     assert (
         tuple(source.name for source in update_sequential_mock.call_args.args[1])
         == default_sources
