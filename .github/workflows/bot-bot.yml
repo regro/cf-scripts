@@ -76,6 +76,8 @@ jobs:
       - name: deploy
         if: github.ref == 'refs/heads/main' && always() && ! env.CI_SKIP
         run: |
+          sudo docker image prune --all --force
+
           pushd cf-graph
 
           export RUN_URL="https://github.com/regro/cf-scripts/actions/runs/${RUN_ID}"
