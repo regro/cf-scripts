@@ -88,12 +88,13 @@ def get_test_case_modules(scenario: dict[str, str]) -> Iterator[types.ModuleType
 def _get_proxy_request_handler():
     async def handle_redirect(request: Request):
         async with httpx.AsyncClient() as client:
-            # noinspection HttpUrlsUsage
-            proxy = await client.get(
-                str(request.url).replace(
-                    f"http://{VIRTUAL_PROXY_HOSTNAME}/", "https://"
-                )
+            target_url = request.url.replace(
+                scheme="https",
+                port=443,
+                hostname=request.url.path.split("/")[1],
+                path="/".join(request.url.path.split("/")[2:]),
             )
+            proxy = await client.get(str(target_url))
         return Response(
             content=proxy.content,
             status_code=proxy.status_code,
