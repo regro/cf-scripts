@@ -1,4 +1,3 @@
-import copy
 import importlib
 import logging
 import os
@@ -86,12 +85,15 @@ def get_test_case_modules(scenario: dict[str, str]) -> Iterator[types.ModuleType
     )
 
 
-def _get_proxy_request_handler(url: str):
-    url_copy = copy.deepcopy(url)
-
+def _get_proxy_request_handler():
     async def handle_redirect(request: Request):
         async with httpx.AsyncClient() as client:
-            proxy = await client.get(url_copy)
+            # noinspection HttpUrlsUsage
+            proxy = await client.get(
+                str(request.url).replace(
+                    f"http://{VIRTUAL_PROXY_HOSTNAME}/", "https://"
+                )
+            )
         return Response(
             content=proxy.content,
             status_code=proxy.status_code,
@@ -120,8 +122,12 @@ def get_global_router():
 
         router.add_route(
             url.replace("https://", "/"),
-            _get_proxy_request_handler(url),
+            _get_proxy_request_handler(),
             methods=["GET"],
         )
 
     return router
+
+
+VIRTUAL_PROXY_HOSTNAME = "virtual.proxy"
+VIRTUAL_PROXY_PORT = 80

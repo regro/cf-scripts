@@ -17,14 +17,13 @@ from mitmproxy.http import HTTPFlow
 from tests_integration.collect_test_scenarios import get_test_scenario
 from tests_integration.shared import (
     ENV_TEST_SCENARIO_ID,
+    VIRTUAL_PROXY_HOSTNAME,
+    VIRTUAL_PROXY_PORT,
     get_global_router,
     get_test_case_modules,
 )
 
 LOGGER = logging.getLogger(__name__)
-
-VIRTUAL_PROXY_HOSTNAME = "virtual.proxy"
-VIRTUAL_PROXY_PORT = 80
 
 
 def request(flow: HTTPFlow):
