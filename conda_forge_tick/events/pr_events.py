@@ -11,13 +11,13 @@ from conda_forge_tick.lazy_json_backends import (
 )
 
 
-def _react_to_pr(uid: str) -> None:
+def _react_to_pr(uid: str, dry_run: bool = False) -> None:
     with lazy_json_override_backends(["github_api"], use_file_cache=False):
         pr_json = LazyJson(f"pr_json/{uid}.json")
 
         with pr_json:
             if pr_json["state"] != "closed":
-                pr_data = close_out_labels(copy.deepcopy(pr_json.data))
+                pr_data = close_out_labels(copy.deepcopy(pr_json.data), dry_run=dry_run)
                 if pr_data is not None:
                     if (
                         "ETag" in pr_json
@@ -28,7 +28,7 @@ def _react_to_pr(uid: str) -> None:
                     pr_json.update(pr_data)
 
             if pr_json["state"] != "closed":
-                pr_data = refresh_pr(copy.deepcopy(pr_json.data))
+                pr_data = refresh_pr(copy.deepcopy(pr_json.data), dry_run=dry_run)
                 if pr_data is not None:
                     if (
                         "ETag" in pr_json
@@ -39,7 +39,9 @@ def _react_to_pr(uid: str) -> None:
                     pr_json.update(pr_data)
 
             if pr_json["state"] != "closed":
-                pr_data = close_out_dirty_prs(copy.deepcopy(pr_json.data))
+                pr_data = close_out_dirty_prs(
+                    copy.deepcopy(pr_json.data), dry_run=dry_run
+                )
                 if pr_data is not None:
                     if (
                         "ETag" in pr_json
