@@ -1,5 +1,6 @@
 import os
 import typing
+from pathlib import Path
 from textwrap import dedent
 from typing import Any, Optional, Sequence
 
@@ -91,6 +92,7 @@ class ArchRebuild(GraphMigrator):
     rerender = True
     # We purposefully don't want to bump build number for this migrator
     bump_number = 0
+    allowed_schema_versions = [0, 1]
     ignored_packages = {
         "make",
         "perl",
@@ -202,8 +204,15 @@ class ArchRebuild(GraphMigrator):
     def migrate(
         self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any
     ) -> "MigrationUidTypedDict":
+        recipe_dir_path = Path(recipe_dir)
         with pushd(recipe_dir + "/.."):
-            self.set_build_number("recipe/meta.yaml")
+            if (recipe_dir_path / "recipe/meta.yaml").exists():
+                self.set_build_number("recipe/meta.yaml")
+            elif (recipe_dir_path / "recipe/recipe.yaml").exists():
+                self.set_build_number("recipe/recipe.yaml")
+            else:
+                raise FileNotFoundError("No meta.yaml or recipe.yaml found")
+
             with open("conda-forge.yml") as f:
                 y = yaml_safe_load(f)
             if "provider" not in y:
@@ -247,6 +256,7 @@ class OSXArm(GraphMigrator):
     rerender = True
     # We purposefully don't want to bump build number for this migrator
     bump_number = 0
+    allowed_schema_versions = [0, 1]
 
     ignored_packages = set()
     excluded_dependencies = set()
@@ -375,8 +385,15 @@ class OSXArm(GraphMigrator):
     def migrate(
         self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any
     ) -> "MigrationUidTypedDict":
+        recipe_dir_path = Path(recipe_dir)
         with pushd(recipe_dir + "/.."):
-            self.set_build_number("recipe/meta.yaml")
+            if (recipe_dir_path / "recipe/meta.yaml").exists():
+                self.set_build_number("recipe/meta.yaml")
+            elif (recipe_dir_path / "recipe/recipe.yaml").exists():
+                self.set_build_number("recipe/recipe.yaml")
+            else:
+                raise FileNotFoundError("No meta.yaml or recipe.yaml found")
+
             with open("conda-forge.yml") as f:
                 y = yaml_safe_load(f)
             # we should do this recursively but the cf yaml is usually
