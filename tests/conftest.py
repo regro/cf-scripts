@@ -10,8 +10,10 @@ from conda_forge_tick import global_sensitive_env
 @pytest.fixture
 def env_setup():
     if "TEST_BOT_TOKEN_VAL" not in os.environ:
-        old_pwd = os.environ.pop("BOT_TOKEN", None)
+        old_bot_token = os.environ.pop("BOT_TOKEN", None)
+        old_regro_token = os.environ.pop("REGRO_TOKEN", None)
         os.environ["BOT_TOKEN"] = "unpassword"
+        os.environ["REGRO_TOKEN"] = "unpassword"
         global_sensitive_env.hide_env_vars()
 
     old_pwd2 = os.environ.pop("pwd", None)
@@ -21,8 +23,10 @@ def env_setup():
 
     if "TEST_BOT_TOKEN_VAL" not in os.environ:
         global_sensitive_env.reveal_env_vars()
-        if old_pwd:
-            os.environ["BOT_TOKEN"] = old_pwd
+        if old_bot_token:
+            os.environ["BOT_TOKEN"] = old_bot_token
+        if old_regro_token:
+            os.environ["REGRO_TOKEN"] = old_regro_token
 
     if old_pwd2:
         os.environ["pwd"] = old_pwd2

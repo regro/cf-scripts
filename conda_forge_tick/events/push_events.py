@@ -4,7 +4,7 @@ import tempfile
 import networkx as nx
 import requests
 
-from conda_forge_tick.git_utils import github_client
+from conda_forge_tick.git_utils import pygithub_client_bot_user
 from conda_forge_tick.lazy_json_backends import (
     LazyJson,
     lazy_json_override_backends,
@@ -33,7 +33,7 @@ def _get_archived_feedstocks():
 def _update_feedstocks(name: str) -> None:
     feedstocks = copy.deepcopy(_get_feedstocks())
 
-    gh = github_client()
+    gh = pygithub_client_bot_user()
     repo = gh.get_repo(f"conda-forge/{name}-feedstock")
     changed = False
     if repo.archived:
