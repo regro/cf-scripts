@@ -971,3 +971,119 @@ def test_lazy_json_eq():
         assert ngmix2.data != ngmix.data
         assert ngmix != ngmix2
         assert ngmix2 != ngmix
+
+
+@pytest.mark.skipif(
+    ("CF_TICK_LIVE_TEST" not in os.environ)
+    or (os.environ["CF_TICK_LIVE_TEST"] not in ["true", 1, "1"]),
+    reason="Live bot tests not enabled.",
+)
+def test_lazy_json_backends_github_api():
+    uid = uuid.uuid4().hex
+    node = f"test_file_h{uid}"
+    fname = node + ".json"
+
+    # to make the i/o nice for -s
+    print("", flush=True)
+
+    def _sleep():
+        print("sleeping for 5 seconds to allow github to update", flush=True)
+        time.sleep(5)
+
+    try:
+        with lazy_json_override_backends(["github_api"], use_file_cache=False):
+            backend = LAZY_JSON_BACKENDS[get_lazy_json_primary_backend()]()
+
+            assert not backend.hexists("lazy_json", node)
+            lzj = LazyJson(fname)
+            assert not backend.hexists("lazy_json", node)
+            with lzj:
+                lzj["uid"] = uid
+            _sleep()
+            assert backend.hexists("lazy_json", node)
+            assert json.loads(backend.hget("lazy_json", node))["uid"] == lzj.data["uid"]
+
+            with lzj:
+                lzj["uid"] = "new_uid"
+            _sleep()
+            assert json.loads(backend.hget("lazy_json", node))["uid"] == lzj.data["uid"]
+
+            backend.hdel("lazy_json", [node])
+            _sleep()
+            assert not backend.hexists("lazy_json", node)
+    finally:
+        gh = github_client()
+        repo = gh.get_repo("regro/cf-graph-countyfair")
+        message = f"remove files {fname} from testing"
+        for tr in range(10):
+            try:
+                contents = repo.get_contents(fname)
+                repo.delete_file(fname, message, contents.sha)
+                break
+            except Exception:
+                pass
+
+
+@pytest.mark.skipif(
+    ("CF_TICK_LIVE_TEST" not in os.environ)
+    or (os.environ["CF_TICK_LIVE_TEST"] not in ["true", 1, "1"]),
+    reason="Live bot tests not enabled.",
+)
+def test_lazy_json_backends_github_api_nopush():
+    uid = uuid.uuid4().hex
+    node = f"test_file_h{uid}"
+    fname = node + ".json"
+
+    # to make the i/o nice for -s
+    print("", flush=True)
+
+    def _sleep():
+        print("sleeping for 5 seconds to allow github to update", flush=True)
+        time.sleep(5)
+
+    try:
+        with lazy_json_override_backends(["github_api"], use_file_cache=False):
+            gh = github_client()
+            repo = gh.get_repo("regro/cf-graph-countyfair")
+
+            lzj = LazyJson(fname)
+            with lzj:
+                lzj["uid"] = uid
+            _sleep()
+
+            cnt = repo.get_contents(fname)
+            curr_data = base64.b64decode(cnt.content.encode("utf-8")).decode("utf-8")
+            assert json.loads(curr_data)["uid"] == lzj.data["uid"]
+
+            with lzj:
+                pass
+            _sleep()
+            cnt_again = repo.get_contents(fname)
+            assert cnt.sha == cnt_again.sha
+            curr_data = base64.b64decode(cnt_again.content.encode("utf-8")).decode(
+                "utf-8"
+            )
+            assert json.loads(curr_data)["uid"] == lzj.data["uid"]
+
+            with lzj:
+                lzj["uid"] = "new_uid"
+            _sleep()
+            curr_data = base64.b64decode(
+                repo.get_contents(fname).content.encode("utf-8")
+            ).decode("utf-8")
+            assert json.loads(curr_data)["uid"] == lzj.data["uid"]
+
+    finally:
+        message = f"remove files {fname} from testing"
+        fnames = [fname]
+        for _fname in fnames:
+            for tr in range(10):
+                try:
+                    contents = repo.get_contents(_fname)
+                    repo.delete_file(_fname, message, contents.sha)
+                    break
+                except Exception as e:
+                    if tr == 9:
+                        raise e
+                    else:
+                        pass
