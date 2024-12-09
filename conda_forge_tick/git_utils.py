@@ -10,7 +10,7 @@ import textwrap
 import threading
 import time
 from abc import ABC, abstractmethod
-from datetime import datetime, timezone
+from datetime import datetime
 from email import utils
 from functools import cached_property
 from pathlib import Path
@@ -1218,24 +1218,15 @@ def trim_pr_json_keys(
     return pr_json
 
 
-def parse_pr_json_last_updated(pr_data: Union[Dict, LazyJson]) -> Optional[datetime]:
-    """Parse the last updated time from a PR json blob. If it is not present, return None."""
-    last_updated = pr_data.get("updated_at", None)
-    if last_updated is not None:
-        last_updated = datetime.fromisoformat(last_updated)
-        if last_updated.tzinfo is None:
-            last_updated = last_updated.replace(tzinfo=timezone.utc)
-    return last_updated
-
-
 def lazy_update_pr_json(
     pr_json: Union[Dict, LazyJson], force: bool = False
 ) -> Union[Dict, LazyJson]:
     """Lazily update a GitHub PR.
 
-    This function will use the ETag in the GitHub API to update PR information
-    lazily. It sends the ETag to github properly and if nothing is changed on their
-    end, it simply returns the PR. Otherwise the information is refreshed.
+    This function will use the Last-Modified field in the GitHub API to update
+    PR information lazily. It sends the Last-Modified to github properly and
+    if nothing is changed on their end, it simply returns the PR. Otherwise
+    the information is refreshed.
 
     Parameters
     ----------
@@ -1243,21 +1234,19 @@ def lazy_update_pr_json(
         A dict-like object with the current PR information.
     force : bool, optional
         If True, forcibly update the PR json even if it is not out of date
-        according to the ETag. Default is False.
+        according to the Last-Modified. Default is False.
 
     Returns
     -------
     pr_json : dict-like
         A dict-like object with the current PR information.
     """
-    last_updated = parse_pr_json_last_updated(pr_json)
-
     hdrs = {
         "Authorization": f"token {get_bot_token()}",
         "Accept": "application/vnd.github.v3+json",
     }
-    if not force and "ETag" in pr_json:
-        hdrs["If-None-Match"] = pr_json["ETag"]
+    if not force and "Last-Modified" in pr_json:
+        hdrs["if-modified-since"] = pr_json["Last-Modified"]
 
     if "repo" not in pr_json["base"] or (
         "repo" in pr_json["base"] and "name" not in pr_json["base"]["repo"]
@@ -1282,19 +1271,9 @@ def lazy_update_pr_json(
     )
 
     if r.status_code == 200:
-        # I have seen things come in out of order for reasons I do not
-        # fully understand. We do not update in this case. - MRB
-        new_last_updated = parse_pr_json_last_updated(r.json())
-        if (
-            last_updated is None
-            or new_last_updated is None
-            or new_last_updated > last_updated
-        ):
-            pr_json = trim_pr_json_keys(pr_json, src_pr_json=r.json())
-            pr_json["ETag"] = r.headers["ETag"]
-            pr_json["Last-Modified"] = r.headers["Last-Modified"]
-        else:
-            pr_json = trim_pr_json_keys(pr_json)
+        pr_json = trim_pr_json_keys(pr_json, src_pr_json=r.json())
+        pr_json["ETag"] = r.headers["ETag"]
+        pr_json["Last-Modified"] = r.headers["Last-Modified"]
     else:
         pr_json = trim_pr_json_keys(pr_json)
 
