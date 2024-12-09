@@ -1233,9 +1233,10 @@ def lazy_update_pr_json(
 ) -> Union[Dict, LazyJson]:
     """Lazily update a GitHub PR.
 
-    This function will use the ETag in the GitHub API to update PR information
-    lazily. It sends the ETag to github properly and if nothing is changed on their
-    end, it simply returns the PR. Otherwise the information is refreshed.
+    This function will use the Last-Modified field in the GitHub API to update
+    PR information lazily. It sends the Last-Modified to github properly and
+    if nothing is changed on their end, it simply returns the PR. Otherwise
+    the information is refreshed.
 
     Parameters
     ----------
@@ -1243,7 +1244,7 @@ def lazy_update_pr_json(
         A dict-like object with the current PR information.
     force : bool, optional
         If True, forcibly update the PR json even if it is not out of date
-        according to the ETag. Default is False.
+        according to the Last-Modified. Default is False.
 
     Returns
     -------
@@ -1256,8 +1257,8 @@ def lazy_update_pr_json(
         "Authorization": f"token {get_bot_token()}",
         "Accept": "application/vnd.github.v3+json",
     }
-    if not force and "ETag" in pr_json:
-        hdrs["If-None-Match"] = pr_json["ETag"]
+    if not force and "Last-Modified" in pr_json:
+        hdrs["if-modified-since"] = pr_json["Last-Modified"]
 
     if "repo" not in pr_json["base"] or (
         "repo" in pr_json["base"] and "name" not in pr_json["base"]["repo"]

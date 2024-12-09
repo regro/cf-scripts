@@ -20,9 +20,9 @@ def _react_to_pr(uid: str, dry_run: bool = False) -> None:
                 pr_data = close_out_labels(copy.deepcopy(pr_json.data), dry_run=dry_run)
                 if pr_data is not None:
                     if (
-                        "ETag" in pr_json
-                        and "ETag" in pr_data
-                        and pr_json["ETag"] != pr_data["ETag"]
+                        "Last-Modified" in pr_json
+                        and "Last-Modified" in pr_data
+                        and pr_json["Last-Modified"] != pr_data["Last-Modified"]
                     ):
                         print("closed PR due to bot-rerun label", flush=True)
                     pr_json.update(pr_data)
@@ -31,9 +31,9 @@ def _react_to_pr(uid: str, dry_run: bool = False) -> None:
                 pr_data = refresh_pr(copy.deepcopy(pr_json.data), dry_run=dry_run)
                 if pr_data is not None:
                     if (
-                        "ETag" in pr_json
-                        and "ETag" in pr_data
-                        and pr_json["ETag"] != pr_data["ETag"]
+                        "Last-Modified" in pr_json
+                        and "Last-Modified" in pr_data
+                        and pr_json["Last-Modified"] != pr_data["Last-Modified"]
                     ):
                         print("refreshed PR data", flush=True)
                     pr_json.update(pr_data)
@@ -44,9 +44,9 @@ def _react_to_pr(uid: str, dry_run: bool = False) -> None:
                 )
                 if pr_data is not None:
                     if (
-                        "ETag" in pr_json
-                        and "ETag" in pr_data
-                        and pr_json["ETag"] != pr_data["ETag"]
+                        "Last-Modified" in pr_json
+                        and "Last-Modified" in pr_data
+                        and pr_json["Last-Modified"] != pr_data["Last-Modified"]
                     ):
                         print("closed PR due to merge conflicts", flush=True)
                     pr_json.update(pr_data)
