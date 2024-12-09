@@ -52,6 +52,7 @@ TRANSPARENT_URLS = {
     "https://raw.githubusercontent.com/regro/cf-graph-countyfair/master/mappings/pypi/name_mapping.yaml",
     "https://raw.githubusercontent.com/regro/cf-graph-countyfair/master/mappings/pypi/grayskull_pypi_mapping.json",
     "https://api.github.com/{path:path}",  # anything that starts with https://api.github.com/
+    "https://pypi.io/packages/source/{path:path}",  # source archives from PyPI
 }
 """
 Those URLs are redirected to the actual upstream URLs in the tests.
