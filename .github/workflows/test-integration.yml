@@ -77,6 +77,8 @@ jobs:
         run: |
           pushd cf-scripts
           python -m tests_integration.setup_repositories
+        env:
+          TEST_SETUP_TOKEN: ${{ secrets.GH_TOKEN_STAGING_BOT_USER }}
 
   run-test-scenario:
     name: Run Scenarios
@@ -122,6 +124,7 @@ jobs:
           python -m tests_integration.step_prepare  # this creates the cf-graph repository
         env:
           SCENARIO_ID: ${{ matrix.scenario_id }}
+          TEST_SETUP_TOKEN: ${{ secrets.GH_TOKEN_STAGING_BOT_USER }}
 
       - name: Install Bot Code
         run: |
