@@ -189,9 +189,6 @@ jobs:
           source cf-scripts/tests_integration/clear_runner.sh
           source cf-scripts/autotick-bot/install_bot_code.sh --no-clean-disk-space --no-pull-container
 
-      - name: Setup tmate session
-        uses: mxschmitt/action-tmate@v3
-
       - name: "[Test] update-upstream-versions"
         run: |
           pushd cf-graph
