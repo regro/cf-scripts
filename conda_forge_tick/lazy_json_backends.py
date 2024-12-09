@@ -452,9 +452,19 @@ class GithubAPILazyJsonBackend(LazyJsonBackend):
         )
 
     def hget(self, name: str, key: str) -> str:
+        from conda_forge_tick.git_utils import get_bot_token
+
         pth = get_sharded_path(f"{name}/{key}.json")
-        cnts = self._repo.get_contents(pth)
-        return base64.b64decode(cnts.content.encode("utf-8")).decode("utf-8")
+        hrds = {
+            "Accept": "application/vnd.github.raw+json",
+            "Authorization": f"Bearer {get_bot_token()}",
+        }
+        cnts = requests.get(
+            f"https://api.github.com/repos/{CF_TICK_GRAPH_GITHUB_BACKEND_REPO}/contents/{pth}",
+            headers=hrds,
+        )
+        cnts.raise_for_status()
+        return cnts.text
 
 
 @functools.lru_cache(maxsize=128)
