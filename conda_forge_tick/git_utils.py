@@ -1288,7 +1288,7 @@ def lazy_update_pr_json(
         if (
             last_updated is None
             or new_last_updated is None
-            or new_last_updated >= last_updated
+            or new_last_updated > last_updated
         ):
             pr_json = trim_pr_json_keys(pr_json, src_pr_json=r.json())
             pr_json["ETag"] = r.headers["ETag"]
