@@ -10,7 +10,7 @@ import textwrap
 import threading
 import time
 from abc import ABC, abstractmethod
-from datetime import datetime, timezone
+from datetime import datetime
 from email import utils
 from functools import cached_property
 from pathlib import Path
