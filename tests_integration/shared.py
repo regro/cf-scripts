@@ -17,9 +17,9 @@ class GitHubAccount(StrEnum):
 
 
 GITHUB_TOKEN_ENV_VARS: dict[GitHubAccount, str] = {
-    GitHubAccount.CONDA_FORGE_ORG: "GH_TOKEN_STAGING_CONDA_FORGE",
-    GitHubAccount.BOT_USER: "GH_TOKEN_STAGING_BOT_USER",
-    GitHubAccount.REGRO_ORG: "GH_TOKEN_STAGING_REGRO",
+    GitHubAccount.CONDA_FORGE_ORG: "BOT_TOKEN",
+    GitHubAccount.BOT_USER: "BOT_TOKEN",
+    GitHubAccount.REGRO_ORG: "BOT_TOKEN",
 }
 
 IS_USER_ACCOUNT: dict[GitHubAccount, bool] = {
