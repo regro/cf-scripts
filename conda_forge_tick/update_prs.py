@@ -81,9 +81,9 @@ def _update_pr(update_function, dry_run, gx, job, n_jobs):
                 if res:
                     succeeded_refresh += 1
                     if (
-                        "ETag" in pr_json
-                        and "ETag" in res
-                        and pr_json["ETag"] != res["ETag"]
+                        "Last-Modified" in pr_json
+                        and "Last-Modified" in res
+                        and pr_json["Last-Modified"] != res["Last-Modified"]
                     ):
                         tqdm.tqdm.write(f"Updated PR json for {name}: {res['id']}")
                     with pr_json as attrs:
