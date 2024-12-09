@@ -130,39 +130,39 @@ package:
     version: 4.7.0
   - category: main
     dependencies:
-      python: ''
+      python: '>=3.9'
     hash:
-      md5: 5f095bc6454094e96f146491fd03633b
-      sha256: ae9fb8f68281f84482f2c234379aa12405a9e365151d43af20b3ae1f17312111
+      md5: f4e90937bbfc3a4a92539545a37bb448
+      sha256: 5b9ef6d338525b332e17c3ed089ca2f53a5d74b7a7b432747d29c6466e39346d
     manager: conda
     name: appdirs
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/noarch/appdirs-1.4.4-pyh9f0ad1d_0.tar.bz2
+    url: https://conda.anaconda.org/conda-forge/noarch/appdirs-1.4.4-pyhd8ed1ab_1.conda
     version: 1.4.4
   - category: main
     dependencies:
-      python: ''
+      python: '>=3.9'
     hash:
-      md5: 5f095bc6454094e96f146491fd03633b
-      sha256: ae9fb8f68281f84482f2c234379aa12405a9e365151d43af20b3ae1f17312111
+      md5: f4e90937bbfc3a4a92539545a37bb448
+      sha256: 5b9ef6d338525b332e17c3ed089ca2f53a5d74b7a7b432747d29c6466e39346d
     manager: conda
     name: appdirs
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/noarch/appdirs-1.4.4-pyh9f0ad1d_0.tar.bz2
+    url: https://conda.anaconda.org/conda-forge/noarch/appdirs-1.4.4-pyhd8ed1ab_1.conda
     version: 1.4.4
   - category: main
     dependencies:
-      python: ''
+      python: '>=3.9'
     hash:
-      md5: 5f095bc6454094e96f146491fd03633b
-      sha256: ae9fb8f68281f84482f2c234379aa12405a9e365151d43af20b3ae1f17312111
+      md5: f4e90937bbfc3a4a92539545a37bb448
+      sha256: 5b9ef6d338525b332e17c3ed089ca2f53a5d74b7a7b432747d29c6466e39346d
     manager: conda
     name: appdirs
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/noarch/appdirs-1.4.4-pyh9f0ad1d_0.tar.bz2
+    url: https://conda.anaconda.org/conda-forge/noarch/appdirs-1.4.4-pyhd8ed1ab_1.conda
     version: 1.4.4
   - category: main
     dependencies:
@@ -2009,39 +2009,39 @@ package:
   - category: main
     dependencies: {}
     hash:
-      md5: 3554f9f5b4ce09699dd71740ef73b368
-      sha256: 05653215a8dfde0852f6866c14fc8eb5bd04dcf81cf3d627f53a1a5efec32975
+      md5: 880f1b18684f45ee4587ca9e99de707c
+      sha256: 8dfcb9956db3b296cb22b35d89a7dbdc2f2082238c2178c09ccd887b8934835e
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.12.09.13.20.54-hd8ed1ab_0.conda
-    version: 2024.12.09.13.20.54
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.12.09.13.38.16-hd8ed1ab_0.conda
+    version: 2024.12.09.13.38.16
   - category: main
     dependencies: {}
     hash:
-      md5: 3554f9f5b4ce09699dd71740ef73b368
-      sha256: 05653215a8dfde0852f6866c14fc8eb5bd04dcf81cf3d627f53a1a5efec32975
+      md5: 880f1b18684f45ee4587ca9e99de707c
+      sha256: 8dfcb9956db3b296cb22b35d89a7dbdc2f2082238c2178c09ccd887b8934835e
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.12.09.13.20.54-hd8ed1ab_0.conda
-    version: 2024.12.09.13.20.54
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.12.09.13.38.16-hd8ed1ab_0.conda
+    version: 2024.12.09.13.38.16
   - category: main
     dependencies: {}
     hash:
-      md5: 3554f9f5b4ce09699dd71740ef73b368
-      sha256: 05653215a8dfde0852f6866c14fc8eb5bd04dcf81cf3d627f53a1a5efec32975
+      md5: 880f1b18684f45ee4587ca9e99de707c
+      sha256: 8dfcb9956db3b296cb22b35d89a7dbdc2f2082238c2178c09ccd887b8934835e
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.12.09.13.20.54-hd8ed1ab_0.conda
-    version: 2024.12.09.13.20.54
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.12.09.13.38.16-hd8ed1ab_0.conda
+    version: 2024.12.09.13.38.16
   - category: main
     dependencies:
       click: '>=8'
@@ -8770,48 +8770,45 @@ package:
       blinker: ''
       cryptography: ''
       pyjwt: '>=1.0.0'
-      python: '>=3.6'
+      python: '>=3.9'
     hash:
-      md5: 8f882b197fd9c4941a787926baea4868
-      sha256: 0cfd5146a91d3974f4abfc2a45de890371d510a77238fe553e036ec8c031dc5b
+      md5: bf5f2c90d503d43a8c45cedf766b4b8e
+      sha256: bec65607d36759e85aab2331ff7f056cb32be0bca92ee2b955aea3306330bd1b
     manager: conda
     name: oauthlib
     optional: false
     platform: linux-64
-    url:
-      https://conda.anaconda.org/conda-forge/noarch/oauthlib-3.2.2-pyhd8ed1ab_0.tar.bz2
+    url: https://conda.anaconda.org/conda-forge/noarch/oauthlib-3.2.2-pyhd8ed1ab_1.conda
     version: 3.2.2
   - category: main
     dependencies:
       blinker: ''
       cryptography: ''
       pyjwt: '>=1.0.0'
-      python: '>=3.6'
+      python: '>=3.9'
     hash:
-      md5: 8f882b197fd9c4941a787926baea4868
-      sha256: 0cfd5146a91d3974f4abfc2a45de890371d510a77238fe553e036ec8c031dc5b
+      md5: bf5f2c90d503d43a8c45cedf766b4b8e
+      sha256: bec65607d36759e85aab2331ff7f056cb32be0bca92ee2b955aea3306330bd1b
     manager: conda
     name: oauthlib
     optional: false
     platform: osx-64
-    url:
-      https://conda.anaconda.org/conda-forge/noarch/oauthlib-3.2.2-pyhd8ed1ab_0.tar.bz2
+    url: https://conda.anaconda.org/conda-forge/noarch/oauthlib-3.2.2-pyhd8ed1ab_1.conda
     version: 3.2.2
   - category: main
     dependencies:
       blinker: ''
       cryptography: ''
       pyjwt: '>=1.0.0'
-      python: '>=3.6'
+      python: '>=3.9'
     hash:
-      md5: 8f882b197fd9c4941a787926baea4868
-      sha256: 0cfd5146a91d3974f4abfc2a45de890371d510a77238fe553e036ec8c031dc5b
+      md5: bf5f2c90d503d43a8c45cedf766b4b8e
+      sha256: bec65607d36759e85aab2331ff7f056cb32be0bca92ee2b955aea3306330bd1b
     manager: conda
     name: oauthlib
     optional: false
     platform: osx-arm64
-    url:
-      https://conda.anaconda.org/conda-forge/noarch/oauthlib-3.2.2-pyhd8ed1ab_0.tar.bz2
+    url: https://conda.anaconda.org/conda-forge/noarch/oauthlib-3.2.2-pyhd8ed1ab_1.conda
     version: 3.2.2
   - category: main
     dependencies:
