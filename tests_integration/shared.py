@@ -1,12 +1,14 @@
 import importlib
 import logging
 import os
+import ssl
 import types
 from collections.abc import Iterator
 from enum import StrEnum
 from pathlib import Path
 
 import httpx
+import truststore
 from fastapi import APIRouter, Request, Response
 
 
@@ -55,6 +57,18 @@ TRANSPARENT_URLS = {
 Those URLs are redirected to the actual upstream URLs in the tests.
 """
 
+ALL_HTTP_METHODS = [
+    "GET",
+    "HEAD",
+    "POST",
+    "PUT",
+    "DELETE",
+    "CONNECT",
+    "OPTIONS",
+    "TRACE",
+    "PATCH",
+]
+
 
 def setup_logging(level: int | str):
     logging.basicConfig(level=level)
@@ -87,14 +101,24 @@ def get_test_case_modules(scenario: dict[str, str]) -> Iterator[types.ModuleType
 
 def _get_proxy_request_handler():
     async def handle_redirect(request: Request):
-        async with httpx.AsyncClient() as client:
+        # use system CA certificates for better debugging support
+        ssl_context = truststore.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
+        async with httpx.AsyncClient(verify=ssl_context) as client:
+            forward_hostname = request.url.path.split("/")[1]
             target_url = request.url.replace(
                 scheme="https",
                 port=443,
-                hostname=request.url.path.split("/")[1],
+                hostname=forward_hostname,
                 path="/".join(request.url.path.split("/")[2:]),
             )
-            proxy = await client.get(str(target_url), headers=dict(request.headers))
+            forward_headers = dict(request.headers)
+            forward_headers["host"] = forward_hostname
+            print(request.method + " " + str(target_url))
+            proxy = await client.request(
+                method=request.method,
+                url=str(target_url),
+                headers=forward_headers,
+            )
         return Response(
             content=proxy.content,
             status_code=proxy.status_code,
@@ -124,7 +148,7 @@ def get_global_router():
         router.add_route(
             url.replace("https://", "/"),
             _get_proxy_request_handler(),
-            methods=["GET"],
+            methods=ALL_HTTP_METHODS,
         )
 
     return router

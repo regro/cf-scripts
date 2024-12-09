@@ -58,6 +58,7 @@ dependencies:
   - streamz
   - tar
   - tqdm
+  - truststore
   - wget
   - wurlitzer
   - yaml
