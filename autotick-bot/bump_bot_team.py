@@ -8,7 +8,7 @@ import github
 today = datetime.today().strftime("%Y-%m-%d")
 issue_title = f"[{today}] failed job {os.environ['ACTION_NAME']}"
 
-gh = github.Github(os.environ["REGRO_TOKEN"])
+gh = github.Github(os.environ["BOT_TOKEN"])
 repo = gh.get_repo("regro/cf-scripts")
 
 # find any issues from today, if any

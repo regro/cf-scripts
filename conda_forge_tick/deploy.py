@@ -3,7 +3,7 @@ import subprocess
 import sys
 
 from .cli_context import CliContext
-from .git_utils import get_regro_token
+from .git_utils import get_bot_token
 from .lazy_json_backends import CF_TICK_GRAPH_DATA_HASHMAPS, get_lazy_json_backends
 from .settings import DEPLOY_REPO
 from .utils import get_bot_run_url, load_existing_graph, run_command_hiding_token
@@ -128,7 +128,7 @@ def _deploy_batch(*, files_to_add, batch, n_added, max_per_batch=200):
 
         status = 1
         num_try = 0
-        while status != 0 and num_try < 20 and graph_ok:
+        while status != 0 and num_try < 100 and graph_ok:
             try:
                 print("\n\n>>>>>>>>>>>> git pull try %d\n\n" % num_try, flush=True)
                 _n_added = _pull_changes(batch)
@@ -146,12 +146,12 @@ def _deploy_batch(*, files_to_add, batch, n_added, max_per_batch=200):
                     "git",
                     "push",
                     "https://{token}@github.com/{deploy_repo}.git".format(
-                        token=get_regro_token(),
+                        token=get_bot_token(),
                         deploy_repo=DEPLOY_REPO,
                     ),
                     "master",
                 ],
-                token=get_regro_token(),
+                token=get_bot_token(),
             )
             _flush_io()
             num_try += 1

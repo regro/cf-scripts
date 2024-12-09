@@ -1,13 +1,8 @@
 import os
 import subprocess
 
-import pytest
 
-
-@pytest.mark.parametrize("token_env_variable", ["BOT_TOKEN", "REGRO_TOKEN"])
-def test_env_is_protected_against_malicious_recipes(
-    tmpdir, caplog, env_setup, token_env_variable: str
-):
+def test_env_is_protected_against_malicious_recipes(tmpdir, caplog, env_setup):
     import logging
 
     from conda_forge_tick.feedstock_parser import populate_feedstock_attributes
@@ -21,7 +16,7 @@ def test_env_is_protected_against_malicious_recipes(
 
     source:
       url:
-        - https://{{ os.environ["*TOKEN_ENV_VARIABLE*"][0] }}/{{ os.environ["*TOKEN_ENV_VARIABLE*"][1:] }}
+        - https://{{ os.environ["BOT_TOKEN"][0] }}/{{ os.environ["BOT_TOKEN"][1:] }}
         - {{ os.environ['pwd'] }}
       sha256: dca77e463c56d42bbf915197c9b95e98913c85bef150d2e1dd18626b8c2c9c32
     build:
@@ -54,8 +49,8 @@ def test_env_is_protected_against_malicious_recipes(
     extra:
       recipe-maintainers:
         - kthyng
-        - {{ os.environ["*TOKEN_ENV_VARIABLE*"] }}
-    """.replace("*TOKEN_ENV_VARIABLE*", token_env_variable)  # noqa
+        - {{ os.environ["BOT_TOKEN"] }}
+    """  # noqa
     caplog.set_level(
         logging.DEBUG,
         logger="conda_forge_tick.migrators.version",

@@ -952,7 +952,7 @@ def _get_pth_blob_sha_and_content(pth, gh):
 
 
 def _push_lazy_json_via_gh_api(lzj: LazyJson):
-    from conda_forge_tick.git_utils import pygithub_client_regro
+    from conda_forge_tick.git_utils import github_client
     from conda_forge_tick.utils import get_bot_run_url
 
     json_data = lzj.data
@@ -968,7 +968,7 @@ def _push_lazy_json_via_gh_api(lzj: LazyJson):
     ntries = 10
     for tr in range(ntries):
         try:
-            gh = pygithub_client_regro()
+            gh = github_client()
             repo = gh.get_repo(DEPLOY_REPO)
 
             sha, cnt = _get_pth_blob_sha_and_content(pth, gh)
