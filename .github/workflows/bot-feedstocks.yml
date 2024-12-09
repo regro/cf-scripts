@@ -52,7 +52,7 @@ jobs:
 
           conda-forge-tick gather-all-feedstocks
         env:
-          BOT_TOKEN: ${{ secrets.AUTOTICK_BOT_TOKEN }}
+          REGRO_TOKEN: ${{ secrets.AUTOTICK_BOT_TOKEN }}
 
       - name: deploy
         if: github.ref == 'refs/heads/main' && ! cancelled() && ! env.CI_SKIP
