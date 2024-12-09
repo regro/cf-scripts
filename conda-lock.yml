@@ -2009,39 +2009,39 @@ package:
   - category: main
     dependencies: {}
     hash:
-      md5: ae05278d88af6fe097ca22edc6e13291
-      sha256: c075bb7f362e127522358b7b30b01179114d08087d7add90055931df8c389b51
+      md5: fbe06cd28e565824a6e29324b31a8ea7
+      sha256: 1254f9946357524f86b4702fd47ca7d4a932243879257db3d43de66ef28c82fe
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.12.09.00.13.35-hd8ed1ab_0.conda
-    version: 2024.12.09.00.13.35
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.12.09.02.24.54-hd8ed1ab_0.conda
+    version: 2024.12.09.02.24.54
   - category: main
     dependencies: {}
     hash:
-      md5: ae05278d88af6fe097ca22edc6e13291
-      sha256: c075bb7f362e127522358b7b30b01179114d08087d7add90055931df8c389b51
+      md5: fbe06cd28e565824a6e29324b31a8ea7
+      sha256: 1254f9946357524f86b4702fd47ca7d4a932243879257db3d43de66ef28c82fe
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.12.09.00.13.35-hd8ed1ab_0.conda
-    version: 2024.12.09.00.13.35
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.12.09.02.24.54-hd8ed1ab_0.conda
+    version: 2024.12.09.02.24.54
   - category: main
     dependencies: {}
     hash:
-      md5: ae05278d88af6fe097ca22edc6e13291
-      sha256: c075bb7f362e127522358b7b30b01179114d08087d7add90055931df8c389b51
+      md5: fbe06cd28e565824a6e29324b31a8ea7
+      sha256: 1254f9946357524f86b4702fd47ca7d4a932243879257db3d43de66ef28c82fe
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.12.09.00.13.35-hd8ed1ab_0.conda
-    version: 2024.12.09.00.13.35
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.12.09.02.24.54-hd8ed1ab_0.conda
+    version: 2024.12.09.02.24.54
   - category: main
     dependencies:
       click: '>=8'
@@ -10421,45 +10421,45 @@ package:
     version: 6.0.1
   - category: main
     dependencies:
-      python: '>=3.7'
+      python: '>=3.9'
       tomli: '>=1.1.0'
     hash:
-      md5: 5003da197661e40a2509e9c4651f1eea
-      sha256: 71c3945bacc4c32f65908e41823dfaeb5f3bed51c3782d0eec8f15fcf38c58c3
+      md5: d4582021af437c931d7d77ec39007845
+      sha256: 065ac44591da9abf1ff740feb25929554b920b00d09287a551fcced2c9791092
     manager: conda
     name: pyproject_hooks
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/pyproject_hooks-1.2.0-pyh7850678_0.conda
+      https://conda.anaconda.org/conda-forge/noarch/pyproject_hooks-1.2.0-pyhd8ed1ab_1.conda
     version: 1.2.0
   - category: main
     dependencies:
-      python: '>=3.7'
+      python: '>=3.9'
       tomli: '>=1.1.0'
     hash:
-      md5: 5003da197661e40a2509e9c4651f1eea
-      sha256: 71c3945bacc4c32f65908e41823dfaeb5f3bed51c3782d0eec8f15fcf38c58c3
+      md5: d4582021af437c931d7d77ec39007845
+      sha256: 065ac44591da9abf1ff740feb25929554b920b00d09287a551fcced2c9791092
     manager: conda
     name: pyproject_hooks
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/pyproject_hooks-1.2.0-pyh7850678_0.conda
+      https://conda.anaconda.org/conda-forge/noarch/pyproject_hooks-1.2.0-pyhd8ed1ab_1.conda
     version: 1.2.0
   - category: main
     dependencies:
-      python: '>=3.7'
+      python: '>=3.9'
       tomli: '>=1.1.0'
     hash:
-      md5: 5003da197661e40a2509e9c4651f1eea
-      sha256: 71c3945bacc4c32f65908e41823dfaeb5f3bed51c3782d0eec8f15fcf38c58c3
+      md5: d4582021af437c931d7d77ec39007845
+      sha256: 065ac44591da9abf1ff740feb25929554b920b00d09287a551fcced2c9791092
     manager: conda
     name: pyproject_hooks
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/pyproject_hooks-1.2.0-pyh7850678_0.conda
+      https://conda.anaconda.org/conda-forge/noarch/pyproject_hooks-1.2.0-pyhd8ed1ab_1.conda
     version: 1.2.0
   - category: main
     dependencies:
