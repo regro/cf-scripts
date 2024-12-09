@@ -94,7 +94,7 @@ def _get_proxy_request_handler():
                 hostname=request.url.path.split("/")[1],
                 path="/".join(request.url.path.split("/")[2:]),
             )
-            proxy = await client.get(str(target_url))
+            proxy = await client.get(str(target_url), headers=dict(request.headers))
         return Response(
             content=proxy.content,
             status_code=proxy.status_code,
