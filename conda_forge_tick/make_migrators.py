@@ -1,3 +1,4 @@
+import contextlib
 import copy
 import glob
 import logging
@@ -123,6 +124,60 @@ def _make_mini_migrators_with_defaults(
     return extra_mini_migrators
 
 
+def _compute_migrator_pr_limit(
+    migrator: Migrator, nominal_pr_limit: int
+) -> (int, int, float):
+    # adaptively set PR limits based on the number of PRs made so far
+    number_pred = 0
+    for _, v in migrator.graph.nodes.items():
+        payload = v.get("payload", {}) or {}
+        if not isinstance(payload, LazyJson):
+            payload = contextlib.nullcontext(enter_result=payload)
+
+        with payload as p:
+            muid = migrator.migrator_uid(p)
+            pr_info = p.get("pr_info", {}) or {}
+            if not isinstance(pr_info, LazyJson):
+                pr_info = contextlib.nullcontext(enter_result=pr_info)
+            with pr_info as pri:
+                muids = [
+                    pred.get("data", {}) or {} for pred in (pri.get("PRed", []) or [])
+                ]
+                if muid in muids:
+                    number_pred += 1
+
+    tot_nodes = len(migrator.graph.nodes)
+    frac_pred = number_pred / tot_nodes
+
+    tenth = int(tot_nodes / 10)
+    quarter = int(tot_nodes / 4)
+    half = int(tot_nodes / 2)
+    three_quarters = int(tot_nodes * 0.75)
+    number_pred_breaks = sorted(
+        [0, 10, tenth, quarter, half, three_quarters, tot_nodes]
+    )
+    pr_limits = [
+        min(2, nominal_pr_limit),
+        nominal_pr_limit,
+        min(int(nominal_pr_limit * 2), MAX_PR_LIMIT),
+        min(int(nominal_pr_limit * 1.75), MAX_PR_LIMIT),
+        min(int(nominal_pr_limit * 1.50), MAX_PR_LIMIT),
+        min(int(nominal_pr_limit * 1.25), MAX_PR_LIMIT),
+        min(nominal_pr_limit, MAX_PR_LIMIT),
+    ]
+
+    pr_limit = None
+    for i, lim in enumerate(number_pred_breaks):
+        if number_pred <= lim:
+            pr_limit = pr_limits[i]
+            break
+
+    if pr_limit is None:
+        pr_limit = nominal_pr_limit
+
+    return pr_limit, number_pred, frac_pred
+
+
 def add_replacement_migrator(
     migrators: MutableSequence[Migrator],
     gx: nx.DiGraph,
@@ -189,6 +244,13 @@ def add_replacement_migrator(
                     graph=total_graph,
                 ),
             )
+
+        # adaptively set PR limits based on the number of PRs made so far
+        pr_limit, _, _ = _compute_migrator_pr_limit(
+            migrators[-1],
+            PR_LIMIT,
+        )
+        migrators[-1].pr_limit = pr_limit
 
 
 def add_arch_migrate(migrators: MutableSequence[Migrator], gx: nx.DiGraph) -> None:
@@ -345,46 +407,10 @@ def add_rebuild_migration_yaml(
     )
 
     # adaptively set PR limits based on the number of PRs made so far
-    number_pred = len(
-        [
-            k
-            for k, v in migrator.graph.nodes.items()
-            if migrator.migrator_uid(v.get("payload", {}))
-            in [
-                vv.get("data", {})
-                for vv in v.get("payload", {}).get("pr_info", {}).get("PRed", [])
-            ]
-        ],
-    )
-    tot_nodes = len(migrator.graph.nodes)
-    frac_pred = number_pred / tot_nodes
-
-    tenth = int(tot_nodes / 10)
-    quarter = int(tot_nodes / 4)
-    half = int(tot_nodes / 2)
-    three_quarters = int(tot_nodes * 0.75)
-    number_pred_breaks = sorted(
-        [0, 10, tenth, quarter, half, three_quarters, tot_nodes]
-    )
-    pr_limits = [
-        min(2, nominal_pr_limit),
+    pr_limit, number_pred, frac_pred = _compute_migrator_pr_limit(
+        migrator,
         nominal_pr_limit,
-        min(int(nominal_pr_limit * 2), MAX_PR_LIMIT),
-        min(int(nominal_pr_limit * 1.75), MAX_PR_LIMIT),
-        min(int(nominal_pr_limit * 1.50), MAX_PR_LIMIT),
-        min(int(nominal_pr_limit * 1.25), MAX_PR_LIMIT),
-        min(nominal_pr_limit, MAX_PR_LIMIT),
-    ]
-
-    pr_limit = None
-    for i, lim in enumerate(number_pred_breaks):
-        if number_pred <= lim:
-            pr_limit = pr_limits[i]
-            break
-
-    if pr_limit is None:
-        pr_limit = nominal_pr_limit
-
+    )
     migrator.pr_limit = pr_limit
 
     print(f"migration yaml:\n{migration_yaml}", flush=True)
@@ -749,6 +775,13 @@ def add_noarch_python_min_migrator(
                 piggy_back_migrations=_make_mini_migrators_with_defaults(),
             ),
         )
+
+        # adaptively set PR limits based on the number of PRs made so far
+        pr_limit, _, _ = _compute_migrator_pr_limit(
+            migrators[-1],
+            PR_LIMIT,
+        )
+        migrators[-1].pr_limit = pr_limit
 
 
 def initialize_migrators(
