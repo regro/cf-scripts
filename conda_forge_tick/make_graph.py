@@ -19,6 +19,7 @@ from conda_forge_tick.lazy_json_backends import (
     get_lazy_json_backends,
     lazy_json_override_backends,
     lazy_json_transaction,
+    sync_lazy_json_hashmap_key,
 )
 
 from .all_feedstocks import get_all_feedstocks, get_archived_feedstocks
@@ -363,25 +364,22 @@ def main(
         gx = load_graph()
 
         new_names = [name for name in names if name not in gx.nodes]
-        with lazy_json_override_backends(
-            ["file"],
-            hashmaps_to_sync=["node_attrs"],
-            keys_to_sync=set(tot_names_for_this_job),
-        ):
-            for name in names:
-                sub_graph = {
-                    "payload": LazyJson(f"node_attrs/{name}.json"),
-                }
-                if name in new_names:
-                    gx.add_node(name, **sub_graph)
-                else:
-                    gx.nodes[name].update(**sub_graph)
+        for name in names:
+            sub_graph = {
+                "payload": LazyJson(f"node_attrs/{name}.json"),
+            }
+            if name in new_names:
+                gx.add_node(name, **sub_graph)
+            else:
+                gx.nodes[name].update(**sub_graph)
 
-            _add_graph_metadata(gx)
+        _add_graph_metadata(gx)
 
-            gx = _create_edges(gx)
+        gx = _create_edges(gx)
 
         dump_graph(gx)
+
+        sync_lazy_json_hashmap_key("lazy_json", "graph.json", "file", ["github_api"])
     else:
         gx = load_graph()
 

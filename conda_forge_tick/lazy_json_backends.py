@@ -863,6 +863,32 @@ def get_lazy_json_primary_backend():
     return CF_TICK_GRAPH_DATA_PRIMARY_BACKEND
 
 
+def sync_lazy_json_hashmap_key(
+    hashmap,
+    key,
+    source_backend,
+    destination_backends,
+):
+    src = LAZY_JSON_BACKENDS[source_backend]()
+    src_data = src.hget(hashmap, key)
+    for backend_name in destination_backends:
+        backend = LAZY_JSON_BACKENDS[backend_name]()
+        backend.hset(hashmap, key, src_data)
+
+
+def sync_lazy_json_object(
+    lzj,
+    source_backend,
+    destination_backends,
+):
+    sync_lazy_json_hashmap_key(
+        lzj.hashmap,
+        lzj.node,
+        source_backend,
+        destination_backends,
+    )
+
+
 class LazyJson(MutableMapping):
     """Lazy load a dict from a json file and save it when updated"""
 
@@ -1101,186 +1127,6 @@ def main_cache(ctx: CliContext):
             sync_lazy_json_across_backends()
         finally:
             CF_TICK_GRAPH_DATA_BACKENDS = OLD_CF_TICK_GRAPH_DATA_BACKENDS
-
-
-def _get_pth_blob_sha_and_content(pth, gh):
-    try:
-        cnt = gh.get_repo("regro/cf-graph-countyfair").get_contents(pth)
-        # I was using the decoded_content attribute here, but it seems that
-        # every once and a while github does not send the encoding correctly
-        # so I switched to doing the decoding by hand.
-        data = base64.b64decode(cnt.content.encode("utf-8")).decode("utf-8")
-        return cnt.sha, data
-    except github.UnknownObjectException:
-        return None, None
-
-
-def _push_lazy_json_via_gh_api(lzj: LazyJson):
-    from conda_forge_tick.git_utils import github_client
-    from conda_forge_tick.utils import get_bot_run_url
-
-    json_data = lzj.data
-    filename = lzj.file_name
-
-    bn, fn = os.path.split(filename)
-    if fn.endswith(".json"):
-        fn = fn[:-5]
-    data = dumps(json_data)
-    pth = get_sharded_path(filename)
-    msg = f"{bn} - {fn} - {get_bot_run_url()}"
-
-    ntries = 10
-    for tr in range(ntries):
-        try:
-            gh = github_client()
-            repo = gh.get_repo("regro/cf-graph-countyfair")
-
-            sha, cnt = _get_pth_blob_sha_and_content(pth, gh)
-            if sha is None:
-                repo.create_file(
-                    pth,
-                    msg,
-                    data,
-                )
-            else:
-                if cnt != data:
-                    repo.update_file(
-                        pth,
-                        msg,
-                        data,
-                        sha,
-                    )
-            break
-        except Exception as e:
-            logger.warning(
-                "failed to push '%s' - trying %d more times",
-                filename,
-                ntries - tr - 1,
-                exc_info=e,
-            )
-            if tr == ntries - 1:
-                raise e
-
-
-def _gather_lzj_refs(data, refs=None, seen=None):
-    # this routine gathers the refs so that any refs within refs
-    # are after the first ref in the list
-    # we then push them in reverse order so that the state of
-    # repo is consistent at any time
-    seen = seen or []
-    refs = refs or []
-
-    if isinstance(data, LazyJson) and data not in refs:
-        refs.append(data)
-
-    if isinstance(data, Mapping):
-        for v in data.values():
-            if v not in seen:
-                seen.append(v)
-                refs, seen = _gather_lzj_refs(v, refs=refs, seen=seen)
-    elif (
-        isinstance(data, Collection)
-        and not isinstance(data, str)
-        and not isinstance(data, bytes)
-    ):
-        for v in data:
-            if v not in seen:
-                seen.append(v)
-                refs, seen = _gather_lzj_refs(v, refs=refs, seen=seen)
-
-    return refs, seen
-
-
-# keeping this code in case I need it later
-# def _push_lazy_json_blobs_via_gh_api(lzjs):
-#     from conda_forge_tick.git_utils import github_client
-#     from conda_forge_tick.utils import get_bot_run_url
-
-#     gh = github_client()
-#     repo = gh.get_repo("regro/cf-graph-countyfair")
-
-#     path_to_contents = {}
-#     for lzj in lzjs:
-#         pth = get_sharded_path(lzj.file_name)
-#         _, base_content = _get_pth_blob_sha_and_content(pth, gh)
-#         head_content = dumps(lzj.data)
-#         if base_content != head_content:
-#             path_to_contents[pth] = head_content
-
-#     if not path_to_contents:
-#         return
-
-#     bn, fn = os.path.split(lzjs[0].file_name)
-#     if fn.endswith(".json"):
-#         fn = fn[:-5]
-#     msg = f"{bn} - {fn} - {get_bot_run_url()}"
-
-#     ref = f"heads/{repo.default_branch}"
-#     base_sha = repo.get_git_ref(ref).object.sha
-#     base_commit = repo.get_git_commit(base_sha)
-#     base_tree = base_commit.tree
-#     input_blobs = []
-#     for pth, cnt in path_to_contents.items():
-#         input_blobs.append(
-#             github.InputGitTreeElement(
-#                 pth,
-#                 "100644",
-#                 "blob",
-#                 content=cnt,
-#             )
-#         )
-#     head_tree = repo.create_git_tree(
-#         input_blobs,
-#         base_tree=base_tree,
-#     )
-#     head_commit = repo.create_git_commit(
-#         msg,
-#         head_tree,
-#         [base_commit],
-#     )
-#     # no patch method in pygithub
-#     headers, data = repo._requester.requestJsonAndCheck(
-#         "PATCH", f"{repo.url}/git/refs/" + ref, input={"sha": head_commit.sha}
-#     )
-#     new_head_ref = github.GitRef.GitRef(repo._requester, headers, data, completed=True)
-#     assert (
-#         new_head_ref.object.sha == head_commit.sha
-#     ), "Failed to update ref when committing blobs!"
-
-
-# def _push_lazy_json_blobs_via_gh_api_with_retries(lzjs):
-#     ntries = 10
-#     for tr in range(ntries):
-#         try:
-#             _push_lazy_json_blobs_via_gh_api(lzjs)
-#             break
-#         except Exception as e:
-#             logger.warning(
-#                 "failed to push blobs - trying %d more times",
-#                 ntries - tr - 1,
-#                 exc_info=e,
-#             )
-#             if tr == ntries - 1:
-#                 raise e
-
-
-def push_lazy_json_via_gh_api(lzj: LazyJson, recursive: bool = False):
-    """Push a lazy json object to the cf-graph-countyfair repo via the GitHub API.
-
-    Parameters
-    ----------
-    lzj : LazyJson
-        The lazy json object to push.
-    recursive : bool, optional
-        If True, push all lazy json objects in the data structure, by default False.
-    """
-    if recursive:
-        refs, _ = _gather_lzj_refs(lzj)
-    else:
-        refs = [lzj]
-
-    for ref in refs[::-1]:
-        _push_lazy_json_via_gh_api(ref)
 
 
 def touch_all_lazy_json_refs(data, _seen=None):
