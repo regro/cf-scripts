@@ -757,7 +757,7 @@ def _run_migrator_on_feedstock_branch(
                         pri["PRed"] = []
                     pri["PRed"].append(d)
 
-                    sync_lazy_json_object(pri, "file", ["github_api"])
+                sync_lazy_json_object(pri, "file", ["github_api"])
 
     except (github3.GitHubError, github.GithubException) as e:
         # TODO: pull this down into run() - also check the other exceptions
