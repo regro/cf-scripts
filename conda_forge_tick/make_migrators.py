@@ -37,6 +37,7 @@ from conda_forge_tick.lazy_json_backends import (
     get_all_keys_for_hashmap,
     lazy_json_override_backends,
     remove_key_for_hashmap,
+    sync_lazy_json_hashmap_key,
 )
 from conda_forge_tick.migrators import (
     ArchRebuild,
@@ -941,6 +942,10 @@ def main(ctx: CliContext) -> None:
 
                 with LazyJson(f"migrators/{data['name']}.json") as lzj:
                     lzj.update(data)
+
+                sync_lazy_json_hashmap_key(
+                    "migrators", data["name"], "file", ["github_api"]
+                )
 
             except Exception as e:
                 logger.error(f"Error dumping migrator {migrator} to JSON!", exc_info=e)

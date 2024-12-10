@@ -5,7 +5,7 @@ import tqdm
 
 from conda_forge_tick.git_utils import github_client
 
-from .lazy_json_backends import dump, load
+from .lazy_json_backends import dump, load, sync_lazy_json_hashmap_key
 
 logger = logging.getLogger(__name__)
 
@@ -68,3 +68,4 @@ def main() -> None:
     data = get_all_feedstocks_from_github()
     with open("all_feedstocks.json", "w") as fp:
         dump(data, fp)
+    sync_lazy_json_hashmap_key("lazy_json", "all_feedstocks", "file", ["github_api"])
