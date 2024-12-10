@@ -3,7 +3,7 @@ name: bot-prs
 on:
   workflow_dispatch: null
   schedule:
-    - cron: '15 12 * * *'
+    - cron: '15 * * * *'
 
 concurrency: prs
 
