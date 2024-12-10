@@ -302,6 +302,8 @@ def _add_run_exports(gx: nx.DiGraph, nodes_to_update: set[str]):
     logger.info("adding run exports")
 
     for node in nodes_to_update:
+        if node not in gx.nodes:
+            continue
         with gx.nodes[node]["payload"] as attrs:
             _add_run_exports_per_node(
                 attrs, gx.graph["outputs_lut"], gx.graph["strong_exports"]
