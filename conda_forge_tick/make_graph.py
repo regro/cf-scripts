@@ -379,7 +379,7 @@ def main(
 
         dump_graph(gx)
 
-        sync_lazy_json_hashmap_key("lazy_json", "graph.json", "file", ["github_api"])
+        sync_lazy_json_hashmap_key("lazy_json", "graph", "file", ["github_api"])
     else:
         gx = load_graph()
 
