@@ -873,7 +873,10 @@ def sync_lazy_json_hashmap_key(
     src_data = src.hget(hashmap, key)
     for backend_name in destination_backends:
         backend = LAZY_JSON_BACKENDS[backend_name]()
-        backend.hset(hashmap, key, src_data)
+        if not backend.hexists(hashmap, key) or (
+            backend.hget(hashmap, key) != src_data
+        ):
+            backend.hset(hashmap, key, src_data)
 
 
 def sync_lazy_json_object(
