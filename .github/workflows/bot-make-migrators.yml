@@ -57,6 +57,7 @@ jobs:
         env:
           CF_TICK_GRAPH_DATA_BACKENDS: "${{ vars.CF_TICK_GRAPH_DATA_BACKENDS }}"
           MONGODB_CONNECTION_STRING: ${{ secrets.MONGODB_CONNECTION_STRING }}
+          BOT_TOKEN: ${{ secrets.AUTOTICK_BOT_TOKEN }}
 
       # NOTE: this is disabled for now, as it is not needed when using the GH API
       # and a github repo as the primary data store
