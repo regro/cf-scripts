@@ -821,9 +821,8 @@ def test_lazy_json_eq():
 
 
 @pytest.mark.skipif(
-    ("CF_TICK_LIVE_TEST" not in os.environ)
-    or (os.environ["CF_TICK_LIVE_TEST"] not in ["true", 1, "1"]),
-    reason="Live bot tests not enabled.",
+    not conda_forge_tick.global_sensitive_env.classified_info.get("BOT_TOKEN", None),
+    reason="No token for live tests.",
 )
 def test_lazy_json_backends_github_api():
     uid = uuid.uuid4().hex
@@ -872,9 +871,8 @@ def test_lazy_json_backends_github_api():
 
 
 @pytest.mark.skipif(
-    ("CF_TICK_LIVE_TEST" not in os.environ)
-    or (os.environ["CF_TICK_LIVE_TEST"] not in ["true", 1, "1"]),
-    reason="Live bot tests not enabled.",
+    not conda_forge_tick.global_sensitive_env.classified_info.get("BOT_TOKEN", None),
+    reason="No token for live tests.",
 )
 def test_lazy_json_backends_github_api_nopush():
     uid = uuid.uuid4().hex

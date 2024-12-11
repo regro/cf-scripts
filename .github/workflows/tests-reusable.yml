@@ -16,6 +16,8 @@ on:
     secrets:
       CODECOV_TOKEN:
         required: true
+      BOT_TOKEN:
+        required: true
 
 env:
   PY_COLORS: "1"
@@ -152,6 +154,7 @@ jobs:
         env:
           MONGODB_CONNECTION_STRING: "mongodb://127.0.0.1:27017/?directConnection=true&serverSelectionTimeoutMS=2000"
           RUN_URL: ""
+          BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
 
       - name: upload test durations
         uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882 # v4
