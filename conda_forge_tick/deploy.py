@@ -224,7 +224,7 @@ def deploy(ctx: CliContext, dirs_to_deploy: list[str] = None):
 
     print("found %d files to add" % len(files_to_add), flush=True)
 
-    if len(files_to_add) <= 20:
+    if len(files_to_add) <= 30:
         step_name = os.environ.get("GITHUB_WORKFLOW", "update graph")
         for pth in files_to_add:
             print(f"pushing file '{pth}' to the graph via the GitHub API", flush=True)
