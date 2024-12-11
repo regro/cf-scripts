@@ -4,8 +4,10 @@ import functools
 import glob
 import hashlib
 import logging
+import math
 import os
 import subprocess
+import time
 import urllib
 from abc import ABC, abstractmethod
 from collections.abc import Callable, Collection, MutableMapping
@@ -350,6 +352,12 @@ class GithubAPILazyJsonBackend(LazyJsonBackend):
         msg = f"{bn} - {fn} - {get_bot_run_url()}"
 
         ntries = 10
+
+        # exponential backoff will be base ** tr
+        # we fail at ntries - 1 so the last time we
+        # compute the backoff is at ntries - 2
+        base = math.exp(math.log(60.0) / (ntries - 2.0))
+
         for tr in range(ntries):
             try:
                 try:
@@ -386,6 +394,8 @@ class GithubAPILazyJsonBackend(LazyJsonBackend):
                 )
                 if tr == ntries - 1:
                     raise e
+                else:
+                    time.sleep(base**tr)
 
     def hmset(self, name: str, mapping: Mapping[str, str]) -> None:
         for key, value in mapping.items():
@@ -414,6 +424,12 @@ class GithubAPILazyJsonBackend(LazyJsonBackend):
         msg = f"{bn} - {fn} - {get_bot_run_url()}"
 
         ntries = 10
+
+        # exponential backoff will be base ** tr
+        # we fail at ntries - 1 so the last time we
+        # compute the backoff is at ntries - 2
+        base = math.exp(math.log(60.0) / (ntries - 2.0))
+
         for tr in range(ntries):
             try:
                 try:
@@ -438,6 +454,8 @@ class GithubAPILazyJsonBackend(LazyJsonBackend):
                 )
                 if tr == ntries - 1:
                     raise e
+                else:
+                    time.sleep(base**tr)
 
     def hdel(self, name: str, keys: Iterable[str]) -> None:
         for key in keys:
@@ -459,12 +477,33 @@ class GithubAPILazyJsonBackend(LazyJsonBackend):
             "Accept": "application/vnd.github.raw+json",
             "Authorization": f"Bearer {get_bot_token()}",
         }
-        cnts = requests.get(
-            f"https://api.github.com/repos/{CF_TICK_GRAPH_GITHUB_BACKEND_REPO}/contents/{pth}",
-            headers=hrds,
-        )
-        cnts.raise_for_status()
-        return cnts.text
+
+        ntries = 10
+
+        # exponential backoff will be base ** tr
+        # we fail at ntries - 1 so the last time we
+        # compute the backoff is at ntries - 2
+        base = math.exp(math.log(60.0) / (ntries - 2.0))
+
+        for tr in range(ntries):
+            try:
+                cnts = requests.get(
+                    f"https://api.github.com/repos/{CF_TICK_GRAPH_GITHUB_BACKEND_REPO}/contents/{pth}",
+                    headers=hrds,
+                )
+                cnts.raise_for_status()
+                return cnts.text
+            except Exception as e:
+                logger.warning(
+                    "failed to pull '%s' - trying %d more times",
+                    pth,
+                    ntries - tr - 1,
+                    exc_info=e,
+                )
+                if tr == ntries - 1:
+                    raise e
+                else:
+                    time.sleep(base**tr)
 
 
 @functools.lru_cache(maxsize=128)
