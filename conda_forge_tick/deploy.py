@@ -1,3 +1,4 @@
+import logging
 import os
 import subprocess
 import sys
@@ -16,6 +17,8 @@ from .utils import (
     load_existing_graph,
     run_command_hiding_token,
 )
+
+logger = logging.getLogger(__name__)
 
 
 def _flush_io():
@@ -226,11 +229,14 @@ def deploy(ctx: CliContext, dirs_to_deploy: list[str] = None):
 
     do_git_ops = False
     files_to_try_again = set()
+    files_done = set()
     if len(files_to_add) <= 30:
         step_name = os.environ.get("GITHUB_WORKFLOW", "update graph")
         for pth in files_to_add:
             try:
-                print(f"pushing file '{pth}' to the graph via the GitHub API", flush=True)
+                print(
+                    f"pushing file '{pth}' to the graph via the GitHub API", flush=True
+                )
 
                 # make a nice message for stuff managed via LazyJson
                 msg_pth = pth
@@ -243,7 +249,9 @@ def deploy(ctx: CliContext, dirs_to_deploy: list[str] = None):
 
                 push_file_via_gh_api(pth, CF_TICK_GRAPH_GITHUB_BACKEND_REPO, msg)
             except Exception as e:
-                logger.warning("git push via API failed - trying via git CLI", exc_info=e)
+                logger.warning(
+                    "git push via API failed - trying via git CLI", exc_info=e
+                )
                 do_git_ops = True
                 files_to_try_again.add(pth)
             else:
