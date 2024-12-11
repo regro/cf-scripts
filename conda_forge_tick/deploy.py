@@ -4,8 +4,18 @@ import sys
 
 from . import sensitive_env
 from .cli_context import CliContext
-from .lazy_json_backends import CF_TICK_GRAPH_DATA_HASHMAPS, get_lazy_json_backends
-from .utils import get_bot_run_url, load_existing_graph, run_command_hiding_token
+from .git_utils import push_file_via_gh_api
+from .lazy_json_backends import (
+    CF_TICK_GRAPH_DATA_HASHMAPS,
+    CF_TICK_GRAPH_GITHUB_BACKEND_REPO,
+    get_lazy_json_backends,
+)
+from .utils import (
+    fold_log_lines,
+    get_bot_run_url,
+    load_existing_graph,
+    run_command_hiding_token,
+)
 
 
 def _flush_io():
@@ -120,32 +130,36 @@ def _deploy_batch(*, files_to_add, batch, n_added, max_per_batch=200):
         status = 1
         num_try = 0
         while status != 0 and num_try < 20 and graph_ok:
-            try:
-                print("\n\n>>>>>>>>>>>> git pull try %d\n\n" % num_try, flush=True)
-                _n_added = _pull_changes(batch)
-                n_added += _n_added
-                n_added_this_batch += _n_added
-            except Exception as e:
-                print(
-                    "\n\n>>>>>>>>>>>> git pull try %d failed: %s \n\n" % (num_try, e),
-                    flush=True,
-                )
-                pass
-            print("\n\n>>>>>>>>>>>> git push try %d\n\n" % num_try, flush=True)
-            with sensitive_env() as env:
-                status = run_command_hiding_token(
-                    [
-                        "git",
-                        "push",
-                        "https://{token}@github.com/{deploy_repo}.git".format(
-                            token=env.get("BOT_TOKEN", ""),
-                            deploy_repo="regro/cf-graph-countyfair",
-                        ),
-                        "master",
-                    ],
-                    token=env.get("BOT_TOKEN", ""),
-                )
-                _flush_io()
+            with fold_log_lines(">>>>>>>>>>>> git pull+push try %d" % num_try):
+                try:
+                    print(">>>>>>>>>>>> git pull", flush=True)
+                    _n_added = _pull_changes(batch)
+                    n_added += _n_added
+                    n_added_this_batch += _n_added
+                except Exception as e:
+                    print(
+                        ">>>>>>>>>>>> git pull failed: %s" % repr(e),
+                        flush=True,
+                    )
+                    pass
+
+                print(">>>>>>>>>>>> git push try", flush=True)
+                with sensitive_env() as env:
+                    status = run_command_hiding_token(
+                        [
+                            "git",
+                            "push",
+                            "https://{token}@github.com/{deploy_repo}.git".format(
+                                token=env.get("BOT_TOKEN", ""),
+                                deploy_repo="regro/cf-graph-countyfair",
+                            ),
+                            "master",
+                        ],
+                        token=env.get("BOT_TOKEN", ""),
+                    )
+                if status != 0:
+                    print(">>>>>>>>>>>> git push failed", flush=True)
+
             num_try += 1
 
         if status != 0 or not graph_ok:
@@ -160,12 +174,6 @@ def deploy(ctx: CliContext, dirs_to_deploy: list[str] = None):
     if ctx.dry_run:
         print("(dry run) deploying")
         return
-
-    # pull changes, add ours, make a commit
-    try:
-        _pull_changes(0)
-    except Exception as e:
-        print(e, flush=True)
 
     files_to_add = set()
     if dirs_to_deploy is None:
@@ -216,14 +224,30 @@ def deploy(ctx: CliContext, dirs_to_deploy: list[str] = None):
 
     print("found %d files to add" % len(files_to_add), flush=True)
 
-    n_added = 0
-    batch = 0
-    while files_to_add:
-        batch += 1
-        n_added += _deploy_batch(
-            files_to_add=files_to_add,
-            n_added=n_added,
-            batch=batch,
-        )
+    if len(files_to_add) <= 20:
+        step_name = os.environ.get("GITHUB_WORKFLOW", "update graph")
+        for pth in files_to_add:
+            print(f"pushing file '{pth}' to the graph via the GitHub API", flush=True)
 
-    print(f"deployed {n_added} files to graph in {batch} batches", flush=True)
+            # make a nice message for stuff managed via LazyJson
+            msg_pth = pth
+            parts = pth.split("/")
+            if pth.endswith(".json") and (
+                len(parts) > 1 and parts[0] in CF_TICK_GRAPH_DATA_HASHMAPS
+            ):
+                msg_pth = f"{parts[0]}/{parts[-1]}"
+            msg = f"{step_name} - {msg_pth} - {get_bot_run_url()}"
+
+            push_file_via_gh_api(pth, CF_TICK_GRAPH_GITHUB_BACKEND_REPO, msg)
+    else:
+        n_added = 0
+        batch = 0
+        while files_to_add:
+            batch += 1
+            n_added += _deploy_batch(
+                files_to_add=files_to_add,
+                n_added=n_added,
+                batch=batch,
+            )
+
+        print(f"deployed {n_added} files to graph in {batch} batches", flush=True)
