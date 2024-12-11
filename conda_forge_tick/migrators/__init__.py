@@ -41,4 +41,5 @@ from .r_ucrt import RUCRTCleanup
 from .replacement import Replacement
 from .use_pip import PipMigrator
 from .version import Version
+from .xz_to_liblzma_devel import XzLibLzmaDevelMigrator
 from .noarch_python_min import NoarchPythonMinMigrator

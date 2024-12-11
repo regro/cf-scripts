@@ -42,8 +42,8 @@ from conda_forge_tick.lazy_json_backends import (
     LazyJson,
     get_all_keys_for_hashmap,
     lazy_json_transaction,
-    push_lazy_json_via_gh_api,
     remove_key_for_hashmap,
+    sync_lazy_json_object,
 )
 from conda_forge_tick.make_migrators import (
     MAX_SOLVER_ATTEMPTS,
@@ -613,7 +613,7 @@ def run(
             __edit_pr_lazy_json.update(**pr_data.model_dump(mode="json"))
 
         if "id" in pr_lazy_json:
-            push_lazy_json_via_gh_api(pr_lazy_json)
+            sync_lazy_json_object(pr_lazy_json, "file", ["github_api"])
 
     else:
         pr_lazy_json = False
@@ -757,7 +757,7 @@ def _run_migrator_on_feedstock_branch(
                         pri["PRed"] = []
                     pri["PRed"].append(d)
 
-                    push_lazy_json_via_gh_api(pri)
+                sync_lazy_json_object(pri, "file", ["github_api"])
 
     except (github3.GitHubError, github.GithubException) as e:
         # TODO: pull this down into run() - also check the other exceptions

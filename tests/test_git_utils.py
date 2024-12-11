@@ -4,6 +4,8 @@ import json
 import logging
 import subprocess
 import tempfile
+import time
+import uuid
 from pathlib import Path
 from unittest import mock
 from unittest.mock import MagicMock
@@ -13,6 +15,7 @@ import pytest
 import requests
 from requests.structures import CaseInsensitiveDict
 
+import conda_forge_tick
 from conda_forge_tick.git_utils import (
     Bound,
     DryRunBackend,
@@ -24,12 +27,16 @@ from conda_forge_tick.git_utils import (
     GitPlatformBackend,
     GitPlatformError,
     RepositoryNotFoundError,
+    _get_pth_blob_sha_and_content,
+    github_client,
+    push_file_via_gh_api,
     trim_pr_json_keys,
 )
 from conda_forge_tick.models.pr_json import (
     GithubPullRequestMergeableState,
     PullRequestState,
 )
+from conda_forge_tick.os_utils import pushd
 
 """
 Note: You have to have git installed on your machine to run these tests.
@@ -1786,3 +1793,54 @@ def test_trim_pr_json_keys_src():
     assert pr_json["base"]["repo"] == {"name": "foo"}
     assert pr_json["id"] == 435
     assert "r" not in pr_json
+
+
+@pytest.mark.skipif(
+    not conda_forge_tick.global_sensitive_env.classified_info.get("BOT_TOKEN", None),
+    reason="No token for live tests.",
+)
+def test_git_utils_push_file_via_gh_api():
+    uid = uuid.uuid4().hex
+    node = f"test_file_h{uid}"
+    fname = node + ".json"
+
+    repo_name = "regro/cf-graph-countyfair"
+    gh = github_client()
+    repo = gh.get_repo(repo_name)
+
+    # to make the i/o nice for -s
+    print("", flush=True)
+
+    def _sleep():
+        print("sleeping for 5 seconds to allow github to update", flush=True)
+        time.sleep(5)
+
+    with tempfile.TemporaryDirectory() as tmpdir, pushd(str(tmpdir)):
+        try:
+            with open(fname, "w") as f:
+                f.write('{"uid": "initial_uid"}')
+            push_file_via_gh_api(fname, repo_name, f"testing - push - {fname}")
+            _sleep()
+            _, data = _get_pth_blob_sha_and_content(fname, repo)
+            assert json.loads(data)["uid"] == "initial_uid"
+
+            with open(fname, "w") as f:
+                f.write('{"uid": "new_uid"}')
+            push_file_via_gh_api(fname, repo_name, f"testing - push - {fname}")
+            _sleep()
+            sha, data = _get_pth_blob_sha_and_content(fname, repo)
+            assert json.loads(data)["uid"] == "new_uid"
+
+            push_file_via_gh_api(fname, repo_name, f"testing - push - {fname}")
+            _sleep()
+            new_sha, data = _get_pth_blob_sha_and_content(fname, repo)
+            assert sha == new_sha
+        finally:
+            message = f"remove files {fname} from testing"
+            for tr in range(10):
+                try:
+                    contents = repo.get_contents(fname)
+                    repo.delete_file(fname, message, contents.sha)
+                    break
+                except Exception:
+                    pass
