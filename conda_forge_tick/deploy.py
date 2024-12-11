@@ -249,6 +249,9 @@ def deploy(ctx: CliContext, dirs_to_deploy: list[str] = None):
             else:
                 files_done.add(pth)
 
+            if do_git_ops:
+                break
+
     if do_git_ops:
         files_to_add = list((set(files_to_add) - files_done) | files_to_try_again)
         n_added = 0
