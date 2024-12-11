@@ -231,7 +231,7 @@ def deploy(ctx: CliContext, dirs_to_deploy: list[str] = None):
         for pth in files_to_add
             try:
                 print(f"pushing file '{pth}' to the graph via the GitHub API", flush=True)
-    
+
                 # make a nice message for stuff managed via LazyJson
                 msg_pth = pth
                 parts = pth.split("/")
@@ -240,7 +240,7 @@ def deploy(ctx: CliContext, dirs_to_deploy: list[str] = None):
                 ):
                     msg_pth = f"{parts[0]}/{parts[-1]}"
                 msg = f"{step_name} - {msg_pth} - {get_bot_run_url()}"
-    
+
                 push_file_via_gh_api(pth, CF_TICK_GRAPH_GITHUB_BACKEND_REPO, msg)
             except Exception as e:
                 logger.warning("git push via API failed - trying via git CLI", exc_info=e)
