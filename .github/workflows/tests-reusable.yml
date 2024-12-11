@@ -16,6 +16,8 @@ on:
     secrets:
       CODECOV_TOKEN:
         required: true
+      BOT_TOKEN:
+        required: true
 
 env:
   PY_COLORS: "1"
@@ -61,7 +63,7 @@ jobs:
           mv input-lockfile/${{ inputs.lockfile }} conda-lock.yml
           rm -rf input-lockfile
 
-      - uses: mamba-org/setup-micromamba@617811f69075e3fd3ae68ca64220ad065877f246 # v1
+      - uses: mamba-org/setup-micromamba@06375d89d211a1232ef63355742e9e2e564bc7f7 # v1
         with:
           environment-file: conda-lock.yml
           environment-name: cf-scripts
@@ -109,7 +111,7 @@ jobs:
         uses: docker/setup-buildx-action@v3
 
       - name: build docker image
-        uses: docker/build-push-action@4f58ea79222b3b9dc2c8bbdd6debcef730109a75 # v6
+        uses: docker/build-push-action@48aba3b46d1b1fec4febb7c5d0c644b249a11355 # v6
         with:
           context: .
           push: false
@@ -128,7 +130,6 @@ jobs:
       - name: run pytest
         run: |
           export TEST_BOT_TOKEN_VAL=unpassword
-          export BOT_TOKEN=${TEST_BOT_TOKEN_VAL}
           # note: we do not use pytest-xdist (-n auto) here for now because they interfere with hiding the
           # MONGODB_CONNECTION_STRING sensitive environment variable
           if [[ -f .test_durations ]]; then
@@ -152,6 +153,7 @@ jobs:
         env:
           MONGODB_CONNECTION_STRING: "mongodb://127.0.0.1:27017/?directConnection=true&serverSelectionTimeoutMS=2000"
           RUN_URL: ""
+          BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
 
       - name: upload test durations
         uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882 # v4
@@ -197,7 +199,7 @@ jobs:
           mv input-lockfile/${{ inputs.lockfile }} conda-lock.yml
           rm -rf input-lockfile
 
-      - uses: mamba-org/setup-micromamba@617811f69075e3fd3ae68ca64220ad065877f246 # v1
+      - uses: mamba-org/setup-micromamba@06375d89d211a1232ef63355742e9e2e564bc7f7 # v1
         with:
           environment-file: conda-lock.yml
           environment-name: cf-scripts
@@ -214,7 +216,7 @@ jobs:
           coverage xml
 
       - name: upload codecov
-        uses: codecov/codecov-action@b9fd7d16f6d7d1b5d2bec1a2887e65ceed900238 # v4
+        uses: codecov/codecov-action@015f24e6818733317a2da2edd6290ab26238649a # v4
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
 

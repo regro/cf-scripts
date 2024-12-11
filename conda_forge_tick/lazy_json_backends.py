@@ -1,13 +1,16 @@
+import base64
 import contextlib
 import functools
 import glob
 import hashlib
 import logging
+import math
 import os
 import subprocess
+import time
 import urllib
 from abc import ABC, abstractmethod
-from collections.abc import Callable, MutableMapping
+from collections.abc import Callable, Collection, MutableMapping
 from typing import (
     IO,
     Any,
@@ -21,6 +24,7 @@ from typing import (
     Union,
 )
 
+import github
 import networkx as nx
 import rapidjson as json
 import requests
@@ -52,8 +56,9 @@ CF_TICK_GRAPH_DATA_HASHMAPS = [
     "migrators",
 ]
 
+CF_TICK_GRAPH_GITHUB_BACKEND_REPO = "regro/cf-graph-countyfair"
 CF_TICK_GRAPH_GITHUB_BACKEND_BASE_URL = (
-    "https://github.com/regro/cf-graph-countyfair/raw/master"
+    f"https://github.com/{CF_TICK_GRAPH_GITHUB_BACKEND_REPO}/raw/master"
 )
 CF_TICK_GRAPH_GITHUB_BACKEND_NUM_DIRS = 5
 
@@ -303,6 +308,204 @@ class GithubLazyJsonBackend(LazyJsonBackend):
         )
 
 
+class GithubAPILazyJsonBackend(LazyJsonBackend):
+    """LazyJsonBackend that uses the GitHub API to store and retrieve JSON files.
+
+    This backend will read and write files, but cannot be used to synchronize
+    hashmap data across backends.
+    """
+
+    def __init__(self):
+        from conda_forge_tick.git_utils import github_client
+
+        self._gh = github_client()
+        self._repo = self._gh.get_repo(CF_TICK_GRAPH_GITHUB_BACKEND_REPO)
+
+    @contextlib.contextmanager
+    def transaction_context(self) -> "Iterator[FileLazyJsonBackend]":
+        # context not required
+        yield self
+
+    @contextlib.contextmanager
+    def snapshot_context(self) -> "Iterator[FileLazyJsonBackend]":
+        # context not required
+        yield self
+
+    def hexists(self, name: str, key: str) -> bool:
+        pth = get_sharded_path(f"{name}/{key}.json")
+        try:
+            self._repo.get_contents(pth)
+        except github.UnknownObjectException:
+            return False
+        else:
+            return True
+
+    def hset(self, name: str, key: str, value: str) -> None:
+        from conda_forge_tick.utils import get_bot_run_url
+
+        filename = f"{name}/{key}.json"
+
+        bn, fn = os.path.split(filename)
+        if fn.endswith(".json"):
+            fn = fn[:-5]
+        pth = get_sharded_path(filename)
+        msg = f"{bn} - {fn} - {get_bot_run_url()}"
+
+        ntries = 10
+
+        # exponential backoff will be base ** tr
+        # we fail at ntries - 1 so the last time we
+        # compute the backoff is at ntries - 2
+        base = math.exp(math.log(60.0) / (ntries - 2.0))
+
+        for tr in range(ntries):
+            try:
+                try:
+                    _cnts = self._repo.get_contents(pth)
+                    cnt = base64.b64decode(_cnts.content.encode("utf-8")).decode(
+                        "utf-8"
+                    )
+                    sha = _cnts.sha
+                except github.UnknownObjectException:
+                    sha = None
+                    cnt = None
+
+                if sha is None:
+                    self._repo.create_file(
+                        pth,
+                        msg,
+                        value,
+                    )
+                else:
+                    if cnt != value:
+                        self._repo.update_file(
+                            pth,
+                            msg,
+                            value,
+                            sha,
+                        )
+                break
+            except Exception as e:
+                logger.warning(
+                    "failed to push '%s' - trying %d more times",
+                    filename,
+                    ntries - tr - 1,
+                    exc_info=e,
+                )
+                if tr == ntries - 1:
+                    raise e
+                else:
+                    time.sleep(base**tr)
+
+    def hmset(self, name: str, mapping: Mapping[str, str]) -> None:
+        for key, value in mapping.items():
+            self.hset(name, key, value)
+
+    def hmget(self, name: str, keys: Iterable[str]) -> List[str]:
+        return [self.hget(name, key) for key in keys]
+
+    def hgetall(self, name: str, hashval: bool = False) -> Dict[str, str]:
+        raise NotImplementedError(
+            "hgetall not implemented for GithubAPILazyJsonBackend. "
+            "You cannot use the GithubAPILazyJsonBackend as "
+            "source or target for hashmap synchronization or other"
+            "commands that require listing all hashmap keys."
+        )
+
+    def _hdel_one(self, name: str, key: str) -> None:
+        from conda_forge_tick.utils import get_bot_run_url
+
+        filename = f"{name}/{key}.json"
+
+        bn, fn = os.path.split(filename)
+        if fn.endswith(".json"):
+            fn = fn[:-5]
+        pth = get_sharded_path(filename)
+        msg = f"{bn} - {fn} - {get_bot_run_url()}"
+
+        ntries = 10
+
+        # exponential backoff will be base ** tr
+        # we fail at ntries - 1 so the last time we
+        # compute the backoff is at ntries - 2
+        base = math.exp(math.log(60.0) / (ntries - 2.0))
+
+        for tr in range(ntries):
+            try:
+                try:
+                    _cnts = self._repo.get_contents(pth)
+                    sha = _cnts.sha
+                except github.UnknownObjectException:
+                    sha = None
+
+                if sha is not None:
+                    self._repo.delete_file(
+                        pth,
+                        msg,
+                        sha,
+                    )
+                break
+            except Exception as e:
+                logger.warning(
+                    "failed to delete '%s' - trying %d more times",
+                    filename,
+                    ntries - tr - 1,
+                    exc_info=e,
+                )
+                if tr == ntries - 1:
+                    raise e
+                else:
+                    time.sleep(base**tr)
+
+    def hdel(self, name: str, keys: Iterable[str]) -> None:
+        for key in keys:
+            self._hdel_one(name, key)
+
+    def hkeys(self, name: str) -> List[str]:
+        raise NotImplementedError(
+            "hkeys not implemented for GithubAPILazyJsonBackend. "
+            "You cannot use the GithubAPILazyJsonBackend as "
+            "source or target for hashmap synchronization or other"
+            "commands that require listing all hashmap keys."
+        )
+
+    def hget(self, name: str, key: str) -> str:
+        from conda_forge_tick.git_utils import get_bot_token
+
+        pth = get_sharded_path(f"{name}/{key}.json")
+        hrds = {
+            "Accept": "application/vnd.github.raw+json",
+            "Authorization": f"Bearer {get_bot_token()}",
+        }
+
+        ntries = 10
+
+        # exponential backoff will be base ** tr
+        # we fail at ntries - 1 so the last time we
+        # compute the backoff is at ntries - 2
+        base = math.exp(math.log(60.0) / (ntries - 2.0))
+
+        for tr in range(ntries):
+            try:
+                cnts = requests.get(
+                    f"https://api.github.com/repos/{CF_TICK_GRAPH_GITHUB_BACKEND_REPO}/contents/{pth}",
+                    headers=hrds,
+                )
+                cnts.raise_for_status()
+                return cnts.text
+            except Exception as e:
+                logger.warning(
+                    "failed to pull '%s' - trying %d more times",
+                    pth,
+                    ntries - tr - 1,
+                    exc_info=e,
+                )
+                if tr == ntries - 1:
+                    raise e
+                else:
+                    time.sleep(base**tr)
+
+
 @functools.lru_cache(maxsize=128)
 def _get_graph_data_mongodb_client_cached(pid):
     import pymongo
@@ -462,6 +665,7 @@ LAZY_JSON_BACKENDS = {
     "file": FileLazyJsonBackend,
     "mongodb": MongoDBLazyJsonBackend,
     "github": GithubLazyJsonBackend,
+    "github_api": GithubAPILazyJsonBackend,
 }
 
 
@@ -698,6 +902,35 @@ def get_lazy_json_primary_backend():
     return CF_TICK_GRAPH_DATA_PRIMARY_BACKEND
 
 
+def sync_lazy_json_hashmap_key(
+    hashmap,
+    key,
+    source_backend,
+    destination_backends,
+):
+    src = LAZY_JSON_BACKENDS[source_backend]()
+    src_data = src.hget(hashmap, key)
+    for backend_name in destination_backends:
+        backend = LAZY_JSON_BACKENDS[backend_name]()
+        if not backend.hexists(hashmap, key) or (
+            backend.hget(hashmap, key) != src_data
+        ):
+            backend.hset(hashmap, key, src_data)
+
+
+def sync_lazy_json_object(
+    lzj,
+    source_backend,
+    destination_backends,
+):
+    sync_lazy_json_hashmap_key(
+        lzj.hashmap,
+        lzj.node,
+        source_backend,
+        destination_backends,
+    )
+
+
 class LazyJson(MutableMapping):
     """Lazy load a dict from a json file and save it when updated"""
 
@@ -829,6 +1062,14 @@ class LazyJson(MutableMapping):
         self._dump(purge=True)
         self._in_context = False
 
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, LazyJson):
+            return self.file_name == other.file_name and self.data == other.data
+        elif isinstance(other, dict):
+            return self.data == other
+        else:
+            return super().__eq__(other)
+
 
 def default(obj: Any) -> Any:
     """For custom object serialization."""
@@ -928,3 +1169,38 @@ def main_cache(ctx: CliContext):
             sync_lazy_json_across_backends()
         finally:
             CF_TICK_GRAPH_DATA_BACKENDS = OLD_CF_TICK_GRAPH_DATA_BACKENDS
+
+
+def touch_all_lazy_json_refs(data, _seen=None):
+    """Touch all lazy json refs in the data structure to ensure they are loaded
+    and ready to use.
+
+    Parameters
+    ----------
+    data : Any
+        The data structure to touch. The data structure will be recursively
+        traversed to touch all LazyJson objects by calling their `data` property.
+    """
+    from collections.abc import Mapping
+
+    _seen = _seen or []
+
+    if isinstance(data, Mapping):
+        for v in data.values():
+            if v not in _seen:
+                _seen.append(v)
+                _seen = touch_all_lazy_json_refs(v, _seen=_seen)
+    elif (
+        isinstance(data, Collection)
+        and not isinstance(data, str)
+        and not isinstance(data, bytes)
+    ):
+        for v in data:
+            if v not in _seen:
+                _seen.append(v)
+                _seen = touch_all_lazy_json_refs(v, _seen=_seen)
+
+    if isinstance(data, LazyJson):
+        data.data
+
+    return _seen

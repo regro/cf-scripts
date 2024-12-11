@@ -406,6 +406,7 @@ def _render_recipe_yaml(
         + variant_config_flags
         + build_platform_flags,
         stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
         text=True,
         input=prepared_text,
         check=True,
@@ -805,15 +806,19 @@ def parse_meta_yaml_local(
                 module=r"conda_build\.environ",
             )
 
-            class NumpyFilter(logging.Filter):
+            class RenderingFilter(logging.Filter):
                 def filter(self, record):
-                    if record.msg.startswith("No numpy version specified"):
+                    if (
+                        record.msg.startswith("No numpy version specified")
+                        or record.msg.startswith("Setting build platform")
+                        or record.msg.startswith("Setting build arch")
+                    ):
                         return False
                     return True
 
-            np_filter = NumpyFilter()
+            rendering_filter = RenderingFilter()
             try:
-                logging.getLogger("conda_build.metadata").addFilter(np_filter)
+                logging.getLogger("conda_build.metadata").addFilter(rendering_filter)
 
                 return _parse_meta_yaml_impl(
                     text,
@@ -825,7 +830,7 @@ def parse_meta_yaml_local(
                     orig_cbc_path=(orig_cbc_path if use_orig_cbc_path else None),
                 )
             finally:
-                logging.getLogger("conda_build.metadata").removeFilter(np_filter)
+                logging.getLogger("conda_build.metadata").removeFilter(rendering_filter)
 
     try:
         return _run(use_orig_cbc_path=True)

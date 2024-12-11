@@ -1,7 +1,10 @@
+import json
 import os
 import re
 import subprocess
 from pathlib import Path
+
+import pytest
 
 from conda_forge_tick.contexts import ClonedFeedstockContext
 from conda_forge_tick.feedstock_parser import populate_feedstock_attributes
@@ -12,6 +15,7 @@ from conda_forge_tick.migrators import (
     Replacement,
     Version,
 )
+from conda_forge_tick.migrators.migration_yaml import all_noarch
 from conda_forge_tick.os_utils import pushd
 from conda_forge_tick.utils import frozen_to_json_friendly, parse_meta_yaml
 
@@ -606,3 +610,218 @@ def test_generic_replacement(tmpdir):
         },
         tmpdir=tmpdir,
     )
+
+
+@pytest.mark.parametrize(
+    "meta,is_all_noarch",
+    [
+        ({"build": {"noarch": "python"}}, True),
+        ({"build": {"noarch": "generic"}}, True),
+        ({"build": {"number": 1}}, False),
+        ({"build": {}}, False),
+        ({"build": None}, False),
+        ({}, False),
+        ({"build": {"noarch": "python"}, "outputs": [{"build": None}]}, True),
+        ({"build": {"noarch": "generic"}, "outputs": [{"build": None}]}, True),
+        ({"build": {"number": 1}, "outputs": [{"build": None}]}, False),
+        ({"build": {}, "outputs": [{"build": None}]}, False),
+        ({"build": None, "outputs": [{"build": None}]}, False),
+        ({"outputs": [{"build": None}]}, False),
+        ({"build": {"noarch": "python"}, "outputs": [{"build": {}}]}, True),
+        ({"build": {"noarch": "generic"}, "outputs": [{"build": {}}]}, True),
+        ({"build": {"number": 1}, "outputs": [{"build": {}}]}, False),
+        ({"build": {}, "outputs": [{"build": {}}]}, False),
+        ({"build": None, "outputs": [{"build": {}}]}, False),
+        ({"outputs": [{"build": {}}]}, False),
+        (
+            {
+                "build": {"noarch": "python"},
+                "outputs": [{"build": {"noarch": "python"}}],
+            },
+            True,
+        ),
+        (
+            {
+                "build": {"noarch": "generic"},
+                "outputs": [{"build": {"noarch": "python"}}],
+            },
+            True,
+        ),
+        ({"build": {"number": 1}, "outputs": [{"build": {"noarch": "python"}}]}, True),
+        ({"build": {}, "outputs": [{"build": {"noarch": "python"}}]}, True),
+        ({"build": None, "outputs": [{"build": {"noarch": "python"}}]}, True),
+        ({"outputs": [{"build": {"noarch": "python"}}]}, True),
+        (
+            {
+                "build": {"noarch": "python"},
+                "outputs": [{"build": {"noarch": "generic"}}],
+            },
+            True,
+        ),
+        (
+            {
+                "build": {"noarch": "generic"},
+                "outputs": [{"build": {"noarch": "generic"}}],
+            },
+            True,
+        ),
+        ({"build": {"number": 1}, "outputs": [{"build": {"noarch": "generic"}}]}, True),
+        ({"build": {}, "outputs": [{"build": {"noarch": "generic"}}]}, True),
+        ({"build": None, "outputs": [{"build": {"noarch": "generic"}}]}, True),
+        ({"outputs": [{"build": {"noarch": "generic"}}]}, True),
+    ],
+)
+def test_all_noarch(meta, is_all_noarch):
+    attrs = {"meta_yaml": meta}
+    assert all_noarch(attrs) == is_all_noarch
+
+
+@pytest.mark.parametrize(
+    "meta,is_all_noarch",
+    [
+        (
+            json.loads("""\
+{
+  "about": {
+   "description": "NetworkX is a Python language software package for the creation,\\nmanipulation, and study of the structure, dynamics, and functions of complex\\nnetworks.",
+   "dev_url": "https://github.com/networkx/networkx",
+   "doc_url": "https://networkx.org/documentation/stable/",
+   "home": "https://networkx.org/",
+   "license": "BSD-3-Clause",
+   "license_family": "BSD-3-Clause",
+   "license_file": "LICENSE.txt",
+   "summary": "Python package for creating and manipulating complex networks"
+  },
+  "build": {
+   "noarch": "python",
+   "number": "2",
+   "script": "${{ PYTHON }} -m pip install . -vv --no-deps --no-build-isolation"
+  },
+  "extra": {
+   "recipe-maintainers": [
+    "Schefflera-Arboricola",
+    "stefanv",
+    "synapticarbors",
+    "ocefpaf",
+    "SylvainCorlay",
+    "FelixMoelder",
+    "MridulS"
+   ]
+  },
+  "outputs": [
+   {
+    "build": null,
+    "name": "networkx",
+    "requirements": {
+     "build": [],
+     "host": [
+      "python ==3.10",
+      "setuptools >=61.2",
+      "pip"
+     ],
+     "run": [
+      "python >=3.10"
+     ]
+    }
+   }
+  ],
+  "package": {
+   "name": "networkx",
+   "version": "3.4.2"
+  },
+  "requirements": {
+   "host": [
+    "python ==3.10",
+    "setuptools >=61.2",
+    "pip"
+   ],
+   "run": [
+    "python >=3.10"
+   ]
+  },
+  "schema_version": 1,
+  "source": {
+   "sha256": "307c3669428c5362aab27c8a1260aa8f47c4e91d3891f48be0141738d8d053e1",
+   "url": "https://pypi.org/packages/source/n/networkx/networkx-3.4.2.tar.gz"
+  }
+ }"""),
+            True,
+        ),
+        (
+            json.loads("""\
+{
+  "about": {
+   "description": "This is a python extension ",
+   "dev_url": "https://github.com/esheldon/fitsio",
+   "doc_url": "https://github.com/esheldon/fitsio",
+   "home": "https://github.com/esheldon/fitsio",
+   "license": "GPL-2.0-only AND Zlib",
+   "license_file": [
+    "LICENSE.txt",
+    "LICENSE_cfitsio.txt",
+    "LICENSE_zlib.txt"
+   ],
+   "summary": "A python library to read from and write to FITS files."
+  },
+  "build": {
+   "ignore_run_exports_from": [
+    "zlib"
+   ],
+   "number": "1"
+  },
+  "extra": {
+   "recipe-maintainers": [
+    "beckermr"
+   ]
+  },
+  "package": {
+   "name": "fitsio",
+   "version": "1.2.4"
+  },
+  "requirements": {
+   "build": [
+    "libtool",
+    "c_compiler_stub",
+    "c_stdlib_stub",
+    "make"
+   ],
+   "host": [
+    "python",
+    "pip",
+    "setuptools",
+    "numpy",
+    "bzip2",
+    "libcurl",
+    "zlib"
+   ],
+   "run": [
+    "python",
+    "numpy",
+    "bzip2",
+    "setuptools"
+   ]
+  },
+  "schema_version": 0,
+  "source": {
+   "sha256": "22bd17b87daee97b69a8c90e9bf5b10c43ba8f6c51c0d563c6d7fbe6dc6b622d",
+   "url": "https://github.com/esheldon/fitsio/archive/refs/tags/1.2.4.tar.gz"
+  },
+  "test": {
+   "commands": [
+    "pytest --pyargs fitsio.tests"
+   ],
+   "imports": [
+    "fitsio"
+   ],
+   "requires": [
+    "pytest"
+   ]
+  }
+ }"""),
+            False,
+        ),
+    ],
+)
+def test_all_noarch_python(meta, is_all_noarch):
+    attrs = {"meta_yaml": meta}
+    assert all_noarch(attrs, only_python=True) == is_all_noarch

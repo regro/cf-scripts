@@ -2,6 +2,8 @@ name: bot-update-status-page
 
 on:
   workflow_dispatch: null
+  schedule:
+    - cron: '*/15 * * * *'
 
 concurrency: update-status-page
 
@@ -27,7 +29,7 @@ jobs:
           ref: ${{ steps.latest_release.outputs.tag_name }}
           path: cf-scripts
 
-      - uses: mamba-org/setup-micromamba@617811f69075e3fd3ae68ca64220ad065877f246 # v1
+      - uses: mamba-org/setup-micromamba@06375d89d211a1232ef63355742e9e2e564bc7f7 # v1
         with:
           environment-file: cf-scripts/conda-lock.yml
           environment-name: cf-scripts
@@ -57,6 +59,8 @@ jobs:
       - name: deploy
         if: github.ref == 'refs/heads/main' && ! cancelled() && ! env.CI_SKIP
         run: |
+          sudo docker image prune --all --force
+
           pushd cf-graph
 
           export RUN_URL="https://github.com/regro/cf-scripts/actions/runs/${RUN_ID}"
@@ -64,6 +68,14 @@ jobs:
         env:
           BOT_TOKEN: ${{ secrets.AUTOTICK_BOT_TOKEN }}
           RUN_ID: ${{ github.run_id }}
+
+      - name: trigger status page
+        uses: benc-uk/workflow-dispatch@e2e5e9a103e331dad343f381a29e654aea3cf8fc # v1.2.4
+        if: github.ref == 'refs/heads/main' && ! cancelled() && ! failure() && ! env.CI_SKIP
+        with:
+          workflow: bot-update-status-page
+          ref: ${{ github.event.ref }}
+          token: ${{ secrets.AUTOTICK_BOT_TOKEN }}
 
       - name: bump on fail
         if: github.ref == 'refs/heads/main' && failure() && ! env.CI_SKIP

@@ -3,7 +3,6 @@ import glob
 import json
 import logging
 import os
-import random
 import textwrap
 import time
 import traceback
@@ -44,6 +43,7 @@ from conda_forge_tick.lazy_json_backends import (
     get_all_keys_for_hashmap,
     lazy_json_transaction,
     remove_key_for_hashmap,
+    sync_lazy_json_object,
 )
 from conda_forge_tick.make_migrators import (
     MAX_SOLVER_ATTEMPTS,
@@ -77,9 +77,6 @@ logger = logging.getLogger(__name__)
 BOT_HOME_DIR: str = os.getcwd()
 START_TIME = None
 TIMEOUT = int(os.environ.get("TIMEOUT", 600))
-
-# migrator runs on loop so avoid any seeds at current time should that happen
-random.seed(os.urandom(64))
 
 
 def _set_pre_pr_migrator_error(attrs, migrator_name, error_str, *, is_version):
@@ -614,6 +611,10 @@ def run(
         )
         with pr_lazy_json as __edit_pr_lazy_json:
             __edit_pr_lazy_json.update(**pr_data.model_dump(mode="json"))
+
+        if "id" in pr_lazy_json:
+            sync_lazy_json_object(pr_lazy_json, "file", ["github_api"])
+
     else:
         pr_lazy_json = False
 
@@ -737,6 +738,13 @@ def _run_migrator_on_feedstock_branch(
                 ]:
                     pass
                 else:
+                    pri.update(
+                        {
+                            "smithy_version": mctx.smithy_version,
+                            "pinning_version": mctx.pinning_version,
+                        },
+                    )
+
                     if not pr_json:
                         pr_json = {
                             "state": "closed",
@@ -748,12 +756,8 @@ def _run_migrator_on_feedstock_branch(
                     if "PRed" not in pri:
                         pri["PRed"] = []
                     pri["PRed"].append(d)
-                pri.update(
-                    {
-                        "smithy_version": mctx.smithy_version,
-                        "pinning_version": mctx.pinning_version,
-                    },
-                )
+
+                sync_lazy_json_object(pri, "file", ["github_api"])
 
     except (github3.GitHubError, github.GithubException) as e:
         # TODO: pull this down into run() - also check the other exceptions
@@ -763,6 +767,7 @@ def _run_migrator_on_feedstock_branch(
             logger.critical(
                 "GITHUB ERROR ON FEEDSTOCK: %s",
                 fctx.feedstock_name,
+                exc_info=e,
             )
 
             if is_github_api_limit_reached():
@@ -770,7 +775,7 @@ def _run_migrator_on_feedstock_branch(
                 break_loop = True
 
     except VersionMigrationError as e:
-        logger.exception("VERSION MIGRATION ERROR")
+        logger.exception("VERSION MIGRATION ERROR", exc_info=e)
 
         _set_pre_pr_migrator_error(
             attrs,
@@ -782,7 +787,7 @@ def _run_migrator_on_feedstock_branch(
         )
 
     except URLError as e:
-        logger.exception("URLError ERROR")
+        logger.exception("URLError ERROR", exc_info=e)
         with attrs["pr_info"] as pri:
             pri["bad"] = {
                 "exception": str(e),
@@ -807,7 +812,7 @@ def _run_migrator_on_feedstock_branch(
             is_version=isinstance(migrator, Version),
         )
     except Exception as e:
-        logger.exception("NON GITHUB ERROR")
+        logger.exception("NON GITHUB ERROR", exc_info=e)
 
         # we don't set bad for rerendering errors
         if "conda smithy rerender -c auto --no-check-uptodate" not in str(

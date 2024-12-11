@@ -1,10 +1,11 @@
+import contextlib
 import copy
 import glob
 import logging
 import os
 import pprint
-import random
 import re
+import secrets
 import time
 import typing
 from concurrent.futures import as_completed
@@ -36,6 +37,7 @@ from conda_forge_tick.lazy_json_backends import (
     get_all_keys_for_hashmap,
     lazy_json_override_backends,
     remove_key_for_hashmap,
+    sync_lazy_json_hashmap_key,
 )
 from conda_forge_tick.migrators import (
     ArchRebuild,
@@ -56,7 +58,9 @@ from conda_forge_tick.migrators import (
     LicenseMigrator,
     MigrationYaml,
     Migrator,
+    MiniMigrator,
     MPIPinRunAsBuildCleanup,
+    NoarchPythonMinMigrator,
     NoCondaInspectMigrator,
     Numpy2Migrator,
     PipMigrator,
@@ -69,7 +73,9 @@ from conda_forge_tick.migrators import (
     UpdateCMakeArgsMigrator,
     UpdateConfigSubGuessMigrator,
     Version,
+    XzLibLzmaDevelMigrator,
     make_from_lazy_json_data,
+    skip_migrator_due_to_schema,
 )
 from conda_forge_tick.migrators.arch import OSXArm
 from conda_forge_tick.migrators.migration_yaml import (
@@ -87,15 +93,91 @@ from conda_forge_tick.utils import (
     yaml_safe_load,
 )
 
-# migrator runs on loop so avoid any seeds at current time should that happen
-random.seed(os.urandom(64))
-
 logger = logging.getLogger(__name__)
 
-PR_LIMIT = 5
-MAX_PR_LIMIT = 50
+RNG = secrets.SystemRandom()
+
+PR_LIMIT = 2
+MAX_PR_LIMIT = 20
 MAX_SOLVER_ATTEMPTS = 50
 CHECK_SOLVABLE_TIMEOUT = 90  # 90 days
+DEFAULT_MINI_MIGRATORS = [
+    CondaForgeYAMLCleanup,
+    Jinja2VarsCleanup,
+    DuplicateLinesCleanup,
+    PipMigrator,
+    LicenseMigrator,
+    CondaForgeYAMLCleanup,
+    ExtraJinja2KeysCleanup,
+    Build2HostMigrator,
+    NoCondaInspectMigrator,
+    MPIPinRunAsBuildCleanup,
+    PyPIOrgMigrator,
+]
+
+
+def _make_mini_migrators_with_defaults(
+    extra_mini_migrators: list[MiniMigrator] = None,
+) -> list[MiniMigrator]:
+    extra_mini_migrators = extra_mini_migrators or []
+    for klass in DEFAULT_MINI_MIGRATORS:
+        if not any(isinstance(m, klass) for m in extra_mini_migrators):
+            extra_mini_migrators.append(klass())
+    return extra_mini_migrators
+
+
+def _compute_migrator_pr_limit(
+    migrator: Migrator, nominal_pr_limit: int
+) -> (int, int, float):
+    # adaptively set PR limits based on the number of PRs made so far
+    number_pred = 0
+    for _, v in migrator.graph.nodes.items():
+        payload = v.get("payload", {}) or {}
+        if not isinstance(payload, LazyJson):
+            payload = contextlib.nullcontext(enter_result=payload)
+
+        with payload as p:
+            muid = migrator.migrator_uid(p)
+            pr_info = p.get("pr_info", {}) or {}
+            if not isinstance(pr_info, LazyJson):
+                pr_info = contextlib.nullcontext(enter_result=pr_info)
+            with pr_info as pri:
+                muids = [
+                    pred.get("data", {}) or {} for pred in (pri.get("PRed", []) or [])
+                ]
+                if muid in muids:
+                    number_pred += 1
+
+    tot_nodes = len(migrator.graph.nodes)
+    frac_pred = number_pred / tot_nodes
+
+    tenth = int(tot_nodes / 10)
+    quarter = int(tot_nodes / 4)
+    half = int(tot_nodes / 2)
+    three_quarters = int(tot_nodes * 0.75)
+    number_pred_breaks = sorted(
+        [0, 10, tenth, quarter, half, three_quarters, tot_nodes]
+    )
+    pr_limits = [
+        min(2, nominal_pr_limit),
+        nominal_pr_limit,
+        min(int(nominal_pr_limit * 2), MAX_PR_LIMIT),
+        min(int(nominal_pr_limit * 1.75), MAX_PR_LIMIT),
+        min(int(nominal_pr_limit * 1.50), MAX_PR_LIMIT),
+        min(int(nominal_pr_limit * 1.25), MAX_PR_LIMIT),
+        min(nominal_pr_limit, MAX_PR_LIMIT),
+    ]
+
+    pr_limit = None
+    for i, lim in enumerate(number_pred_breaks):
+        if number_pred <= lim:
+            pr_limit = pr_limits[i]
+            break
+
+    if pr_limit is None:
+        pr_limit = nominal_pr_limit
+
+    return pr_limit, number_pred, frac_pred
 
 
 def add_replacement_migrator(
@@ -164,6 +246,13 @@ def add_replacement_migrator(
                     graph=total_graph,
                 ),
             )
+
+        # adaptively set PR limits based on the number of PRs made so far
+        pr_limit, _, _ = _compute_migrator_pr_limit(
+            migrators[-1],
+            PR_LIMIT,
+        )
+        migrators[-1].pr_limit = pr_limit
 
 
 def add_arch_migrate(migrators: MutableSequence[Migrator], gx: nx.DiGraph) -> None:
@@ -282,17 +371,8 @@ def add_rebuild_migration_yaml(
         if (node in total_graph) and len(list(total_graph.predecessors(node))) == 0
     }
     piggy_back_migrations = [
-        Jinja2VarsCleanup(),
-        DuplicateLinesCleanup(),
-        PipMigrator(),
-        LicenseMigrator(),
-        CondaForgeYAMLCleanup(),
-        ExtraJinja2KeysCleanup(),
-        Build2HostMigrator(),
-        NoCondaInspectMigrator(),
         CrossCompilationForARMAndPower(),
-        MPIPinRunAsBuildCleanup(),
-        PyPIOrgMigrator(),
+        StdlibMigrator(),
     ]
     if migration_name == "qt515":
         piggy_back_migrations.append(QtQtMainMigrator())
@@ -306,9 +386,12 @@ def add_rebuild_migration_yaml(
         piggy_back_migrations.append(RUCRTCleanup())
     if migration_name.startswith("flang19"):
         piggy_back_migrations.append(FlangMigrator())
-    # stdlib migrator runs on top of ALL migrations, see
-    # https://github.com/conda-forge/conda-forge.github.io/issues/2102
-    piggy_back_migrations.append(StdlibMigrator())
+    if migration_name.startswith("xz_to_liblzma_devel"):
+        piggy_back_migrations.append(XzLibLzmaDevelMigrator())
+    piggy_back_migrations = _make_mini_migrators_with_defaults(
+        extra_mini_migrators=piggy_back_migrations
+    )
+
     cycles = set()
     for cyc in nx.simple_cycles(total_graph):
         cycles |= set(cyc)
@@ -328,46 +411,10 @@ def add_rebuild_migration_yaml(
     )
 
     # adaptively set PR limits based on the number of PRs made so far
-    number_pred = len(
-        [
-            k
-            for k, v in migrator.graph.nodes.items()
-            if migrator.migrator_uid(v.get("payload", {}))
-            in [
-                vv.get("data", {})
-                for vv in v.get("payload", {}).get("pr_info", {}).get("PRed", [])
-            ]
-        ],
-    )
-    tot_nodes = len(migrator.graph.nodes)
-    frac_pred = number_pred / tot_nodes
-
-    tenth = int(tot_nodes / 10)
-    quarter = int(tot_nodes / 4)
-    half = int(tot_nodes / 2)
-    three_quarters = int(tot_nodes * 0.75)
-    number_pred_breaks = sorted(
-        [0, 10, tenth, quarter, half, three_quarters, tot_nodes]
-    )
-    pr_limits = [
-        min(2, nominal_pr_limit),
+    pr_limit, number_pred, frac_pred = _compute_migrator_pr_limit(
+        migrator,
         nominal_pr_limit,
-        min(int(nominal_pr_limit * 4), MAX_PR_LIMIT),
-        min(int(nominal_pr_limit * 3), MAX_PR_LIMIT),
-        min(int(nominal_pr_limit * 2), MAX_PR_LIMIT),
-        min(int(nominal_pr_limit * 1.5), MAX_PR_LIMIT),
-        min(nominal_pr_limit, MAX_PR_LIMIT),
-    ]
-
-    pr_limit = None
-    for i, lim in enumerate(number_pred_breaks):
-        if number_pred <= lim:
-            pr_limit = pr_limits[i]
-            break
-
-    if pr_limit is None:
-        pr_limit = nominal_pr_limit
-
+    )
     migrator.pr_limit = pr_limit
 
     print(f"migration yaml:\n{migration_yaml}", flush=True)
@@ -691,6 +738,7 @@ def create_migration_yaml_creator(
                                 cfp_gx,
                                 pinnings=pinnings_together,
                                 full_graph=gx,
+                                pr_limit=1,
                             ),
                         )
             except Exception as e:
@@ -702,6 +750,42 @@ def create_migration_yaml_creator(
                     print("        feedstock name:", fs_name, flush=True)
                     print("        error:", repr(e), flush=True)
                 continue
+
+
+def add_noarch_python_min_migrator(
+    migrators: MutableSequence[Migrator], gx: nx.DiGraph
+):
+    with fold_log_lines("making `noarch: python` migrator"):
+        gx2 = copy.deepcopy(gx)
+        for node in list(gx2.nodes):
+            has_noarch_python = False
+            with gx2.nodes[node]["payload"] as attrs:
+                skip_schema = skip_migrator_due_to_schema(
+                    attrs, NoarchPythonMinMigrator.allowed_schema_versions
+                )
+                for line in attrs.get("raw_meta_yaml", "").splitlines():
+                    if line.lstrip().startswith("noarch: python"):
+                        has_noarch_python = True
+                        break
+            if (not has_noarch_python) or skip_schema:
+                pluck(gx2, node)
+
+        gx2.clear_edges()
+
+        migrators.append(
+            NoarchPythonMinMigrator(
+                graph=gx2,
+                pr_limit=PR_LIMIT,
+                piggy_back_migrations=_make_mini_migrators_with_defaults(),
+            ),
+        )
+
+        # adaptively set PR limits based on the number of PRs made so far
+        pr_limit, _, _ = _compute_migrator_pr_limit(
+            migrators[-1],
+            PR_LIMIT,
+        )
+        migrators[-1].pr_limit = pr_limit
 
 
 def initialize_migrators(
@@ -719,6 +803,18 @@ def initialize_migrators(
         cast("PackageName", "gmp"),
         "The package 'mpir' is deprecated and unmaintained. Use 'gmp' instead.",
     )
+
+    add_replacement_migrator(
+        migrators,
+        gx,
+        cast("PackageName", "astropy"),
+        cast("PackageName", "astropy-base"),
+        "The astropy feedstock has been split into two packages, astropy-base only "
+        "has required dependencies and astropy now has all optional dependencies. "
+        "To maintain the old behavior you should migrate to astropy-base.",
+    )
+
+    add_noarch_python_min_migrator(migrators, gx)
 
     pinning_migrators: List[Migrator] = []
     migration_factory(pinning_migrators, gx)
@@ -750,25 +846,17 @@ def initialize_migrators(
         version_migrator = Version(
             python_nodes=python_nodes,
             graph=gx,
-            pr_limit=PR_LIMIT * 4,
-            piggy_back_migrations=[
-                CondaForgeYAMLCleanup(),
-                Jinja2VarsCleanup(),
-                DuplicateLinesCleanup(),
-                PipMigrator(),
-                LicenseMigrator(),
-                CondaForgeYAMLCleanup(),
-                ExtraJinja2KeysCleanup(),
-                Build2HostMigrator(),
-                NoCondaInspectMigrator(),
-                PipWheelMigrator(),
-                MPIPinRunAsBuildCleanup(),
-                DependencyUpdateMigrator(python_nodes),
-                StdlibMigrator(),
-            ],
+            pr_limit=PR_LIMIT * 2,
+            piggy_back_migrations=_make_mini_migrators_with_defaults(
+                extra_mini_migrators=[
+                    PipWheelMigrator(),
+                    DependencyUpdateMigrator(python_nodes),
+                    StdlibMigrator(),
+                ],
+            ),
         )
 
-        random.shuffle(pinning_migrators)
+        RNG.shuffle(pinning_migrators)
         migrators = [version_migrator] + migrators + pinning_migrators
 
     return migrators
@@ -823,8 +911,8 @@ def load_migrators(skip_paused: bool = True) -> MutableSequence[Migrator]:
     if version_migrator is None:
         raise RuntimeError("No version migrator found in the migrators directory!")
 
-    random.shuffle(pinning_migrators)
-    random.shuffle(longterm_migrators)
+    RNG.shuffle(pinning_migrators)
+    RNG.shuffle(longterm_migrators)
     migrators = [version_migrator] + migrators + pinning_migrators + longterm_migrators
 
     return migrators
@@ -857,6 +945,10 @@ def main(ctx: CliContext) -> None:
 
                 with LazyJson(f"migrators/{data['name']}.json") as lzj:
                     lzj.update(data)
+
+                sync_lazy_json_hashmap_key(
+                    "migrators", data["name"], "file", ["github_api"]
+                )
 
             except Exception as e:
                 logger.error(f"Error dumping migrator {migrator} to JSON!", exc_info=e)

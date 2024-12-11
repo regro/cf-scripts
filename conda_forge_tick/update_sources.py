@@ -618,6 +618,10 @@ class GithubReleases(AbstractSource):
         return latest
 
 
+# TODO: this one does not work because the atom feeds from libraries.io
+# all return 403 and I cannot find the correct URL to use
+# also url_contains is not defined
+# also package_name is not defined
 class LibrariesIO(VersionFromFeed):
     name = "LibrariesIO"
 

@@ -4,6 +4,7 @@ import copy
 import datetime
 import logging
 import re
+import secrets
 import typing
 from pathlib import Path
 from typing import Any, List, Sequence, Set
@@ -14,7 +15,6 @@ import networkx as nx
 from conda_forge_tick.contexts import ClonedFeedstockContext, FeedstockContext
 from conda_forge_tick.lazy_json_backends import LazyJson
 from conda_forge_tick.make_graph import make_outputs_lut_from_graph
-from conda_forge_tick.path_lengths import cyclic_topological_sort
 from conda_forge_tick.update_recipe import update_build_number, v1_recipe
 from conda_forge_tick.utils import (
     frozen_to_json_friendly,
@@ -30,8 +30,10 @@ if typing.TYPE_CHECKING:
 
 logger = logging.getLogger(__name__)
 
+RNG = secrets.SystemRandom()
 
-def _skip_due_to_schema(
+
+def skip_migrator_due_to_schema(
     attrs: "AttrsTypedDict", allowed_schema_versions: List[int]
 ) -> bool:
     __name = attrs.get("name", "")
@@ -225,6 +227,8 @@ class Migrator:
 
     rerender = True
 
+    max_solver_attempts = 3
+
     # bump this if the migrator object needs a change mid migration
     migrator_version = 0
 
@@ -399,7 +403,7 @@ class Migrator:
             attrs.get("archived", False)
             or parse_already_pred()
             or bad_attr
-            or _skip_due_to_schema(attrs, self.allowed_schema_versions)
+            or skip_migrator_due_to_schema(attrs, self.allowed_schema_versions)
         )
 
     def get_possible_feedstock_branches(self, attrs: "AttrsTypedDict") -> List[str]:
@@ -574,24 +578,48 @@ class Migrator:
         graph: nx.DiGraph,
         total_graph: nx.DiGraph,
     ) -> Sequence["PackageName"]:
-        """Order to run migrations in
+        """Run the order by number of decedents, ties are resolved by package name"""
 
-        Parameters
-        ----------
-        graph : nx.DiGraph
-            The graph of migratable PRs
+        if hasattr(self, "name"):
+            assert isinstance(self.name, str)
+            migrator_name = self.name.lower().replace(" ", "")
+        else:
+            migrator_name = self.__class__.__name__.lower()
 
-        Returns
-        -------
+        def _not_has_error(node):
+            if migrator_name in total_graph.nodes[node]["payload"].get(
+                "pr_info",
+                {},
+            ).get("pre_pr_migrator_status", {}) and (
+                total_graph.nodes[node]["payload"]
+                .get("pr_info", {})
+                .get(
+                    "pre_pr_migrator_attempts",
+                    {},
+                )
+                .get(
+                    migrator_name,
+                    self.max_solver_attempts,
+                )
+                >= self.max_solver_attempts
+            ):
+                return 0
+            else:
+                return 1
 
-        """
-        top_level = {
-            node
-            for node in graph
-            if not list(graph.predecessors(node))
-            or list(graph.predecessors(node)) == [node]
-        }
-        return cyclic_topological_sort(graph, top_level)
+        return sorted(
+            graph,
+            key=lambda x: (
+                _not_has_error(x),
+                (
+                    RNG.random()
+                    if not _not_has_error(x)
+                    else len(nx.descendants(total_graph, x))
+                ),
+                x,
+            ),
+            reverse=True,
+        )
 
     def set_build_number(self, filename: str | Path) -> None:
         """Bump the build number of the specified recipe.

@@ -1257,12 +1257,12 @@ default_sources = (
     "CRAN",
     "CratesIO",
     "NPM",
-    "ROSDistro",
-    "RawURL",
     "Github",
     "GithubReleases",
-    "IncrementAlphaRawURL",
     "NVIDIA",
+    "ROSDistro",
+    "RawURL",
+    "IncrementAlphaRawURL",
 )
 
 
@@ -1287,9 +1287,6 @@ def test_update_upstream_versions_run_sequential(
         ("testpackage3", {"payload": {"dummy": "1.2.5"}}),
     ]
 
-    # swaps the packages
-    random.seed(1)
-
     def custom_include_node(name: str, _: Mapping) -> bool:
         return name in ("testpackage", "testpackage2")
 
@@ -1307,10 +1304,11 @@ def test_update_upstream_versions_run_sequential(
     )
 
     update_sequential_mock.assert_called_once()
-    assert update_sequential_mock.call_args.args[0] == [
+    for pkg in [
         ("testpackage2", {"dummy": "1.2.4"}),
         ("testpackage", {"dummy": "1.2.3"}),
-    ]
+    ]:
+        assert pkg in update_sequential_mock.call_args.args[0]
     assert (
         tuple(source.name for source in update_sequential_mock.call_args.args[1])
         == default_sources
@@ -1356,6 +1354,7 @@ def test_update_upstream_versions_run_parallel_custom_sources(
     ) == ("source a", "source b")
 
 
+@mock.patch("conda_forge_tick.update_upstream_versions.RANDOM_FRAC_TO_UPDATE", new=1.1)
 @mock.patch("conda_forge_tick.update_upstream_versions.get_latest_version")
 @mock.patch("conda_forge_tick.update_upstream_versions.LazyJson")
 def test_update_upstream_versions_sequential_error(
@@ -1393,6 +1392,7 @@ class BrokenException(Exception):
         raise Exception("broken exception")
 
 
+@mock.patch("conda_forge_tick.update_upstream_versions.RANDOM_FRAC_TO_UPDATE", new=1.1)
 @mock.patch("conda_forge_tick.update_upstream_versions.get_latest_version")
 @mock.patch("conda_forge_tick.update_upstream_versions.LazyJson")
 def test_update_upstream_versions_sequential_exception_repr_exception(
@@ -1427,6 +1427,7 @@ def test_update_upstream_versions_sequential_exception_repr_exception(
     )
 
 
+@mock.patch("conda_forge_tick.update_upstream_versions.RANDOM_FRAC_TO_UPDATE", new=1.1)
 @mock.patch("conda_forge_tick.update_upstream_versions.get_latest_version")
 @mock.patch("conda_forge_tick.update_upstream_versions.LazyJson")
 def test_update_upstream_versions_sequential(
@@ -1477,6 +1478,7 @@ def test_update_upstream_versions_sequential(
     assert "# 1     - testpackage2 - 1.2.4 -> 1.2.5" in caplog.text
 
 
+@mock.patch("conda_forge_tick.update_upstream_versions.RANDOM_FRAC_TO_UPDATE", new=1.1)
 @mock.patch("conda_forge_tick.update_upstream_versions.executor")
 @mock.patch("conda_forge_tick.update_upstream_versions.LazyJson")
 def test_update_upstream_versions_process_pool(
@@ -1537,6 +1539,7 @@ def test_update_upstream_versions_process_pool(
     assert "testpackage - 2.2.3 -> 2.2.4" in caplog.text
 
 
+@mock.patch("conda_forge_tick.update_upstream_versions.RANDOM_FRAC_TO_UPDATE", new=1.1)
 @mock.patch("conda_forge_tick.update_upstream_versions.executor")
 @mock.patch("conda_forge_tick.update_upstream_versions.LazyJson")
 def test_update_upstream_versions_process_pool_exception(
@@ -1580,6 +1583,7 @@ def test_update_upstream_versions_process_pool_exception(
     assert "source a error" in caplog.text
 
 
+@mock.patch("conda_forge_tick.update_upstream_versions.RANDOM_FRAC_TO_UPDATE", new=1.1)
 @mock.patch("conda_forge_tick.update_upstream_versions.executor")
 @mock.patch("conda_forge_tick.update_upstream_versions.LazyJson")
 def test_update_upstream_versions_process_pool_exception_repr_exception(

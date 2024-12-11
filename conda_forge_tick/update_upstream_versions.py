@@ -2,7 +2,7 @@ import functools
 import hashlib
 import logging
 import os
-import random
+import secrets
 import time
 from concurrent.futures import as_completed
 from typing import (
@@ -49,6 +49,10 @@ T = TypeVar("T")
 
 # conda_forge_tick :: cft
 logger = logging.getLogger(__name__)
+
+RNG = secrets.SystemRandom()
+
+RANDOM_FRAC_TO_UPDATE = 0.1
 
 
 def ignore_version(attrs: Mapping[str, Any], version: str) -> bool:
@@ -321,6 +325,9 @@ def _update_upstream_versions_sequential(
 ) -> None:
     node_count = 0
     for node, attrs in to_update:
+        if RNG.random() >= RANDOM_FRAC_TO_UPDATE:
+            continue
+
         # checking each node
         version_data: Dict[str, Union[Literal[False], str]] = {}
 
@@ -361,6 +368,9 @@ def _update_upstream_versions_process_pool(
             ncols=80,
             desc="submitting version update jobs",
         ):
+            if RNG.random() >= RANDOM_FRAC_TO_UPDATE:
+                continue
+
             futures.update(
                 {
                     pool.submit(get_latest_version, node, attrs, sources): (
@@ -421,12 +431,12 @@ def all_version_sources():
         CRAN(),
         CratesIO(),
         NPM(),
-        ROSDistro(),
-        RawURL(),
         Github(),
         GithubReleases(),
-        IncrementAlphaRawURL(),
         NVIDIA(),
+        ROSDistro(),
+        RawURL(),
+        IncrementAlphaRawURL(),
     )
 
 
@@ -475,7 +485,7 @@ def update_upstream_versions(
         ),
     )
 
-    random.shuffle(to_update)
+    RNG.shuffle(to_update)
 
     sources = all_version_sources() if sources is None else sources
 
