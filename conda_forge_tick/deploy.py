@@ -245,7 +245,7 @@ def deploy(ctx: CliContext, dirs_to_deploy: list[str] = None):
             except Exception as e:
                 logger.warning("git push via API failed - trying via git CLI", exc_info=e)
                 do_git_ops = True
-                files_to_try_again.append(pth)
+                files_to_try_again.add(pth)
             else:
                 files_done.add(pth)
 
