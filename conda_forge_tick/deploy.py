@@ -224,22 +224,33 @@ def deploy(ctx: CliContext, dirs_to_deploy: list[str] = None):
 
     print("found %d files to add" % len(files_to_add), flush=True)
 
+    do_git_ops = False
+    files_to_try_again = set()
     if len(files_to_add) <= 30:
         step_name = os.environ.get("GITHUB_WORKFLOW", "update graph")
-        for pth in files_to_add:
-            print(f"pushing file '{pth}' to the graph via the GitHub API", flush=True)
+        for pth in files_to_add
+            try:
+                print(f"pushing file '{pth}' to the graph via the GitHub API", flush=True)
+    
+                # make a nice message for stuff managed via LazyJson
+                msg_pth = pth
+                parts = pth.split("/")
+                if pth.endswith(".json") and (
+                    len(parts) > 1 and parts[0] in CF_TICK_GRAPH_DATA_HASHMAPS
+                ):
+                    msg_pth = f"{parts[0]}/{parts[-1]}"
+                msg = f"{step_name} - {msg_pth} - {get_bot_run_url()}"
+    
+                push_file_via_gh_api(pth, CF_TICK_GRAPH_GITHUB_BACKEND_REPO, msg)
+            except Exception as e:
+                logger.warning("git push via API failed - trying via git CLI", exc_info=e)
+                do_git_ops = True
+                files_to_try_again.append(pth)
+            else:
+                files_done.add(pth)
 
-            # make a nice message for stuff managed via LazyJson
-            msg_pth = pth
-            parts = pth.split("/")
-            if pth.endswith(".json") and (
-                len(parts) > 1 and parts[0] in CF_TICK_GRAPH_DATA_HASHMAPS
-            ):
-                msg_pth = f"{parts[0]}/{parts[-1]}"
-            msg = f"{step_name} - {msg_pth} - {get_bot_run_url()}"
-
-            push_file_via_gh_api(pth, CF_TICK_GRAPH_GITHUB_BACKEND_REPO, msg)
-    else:
+    if do_git_ops:
+        files_to_add = list((set(files_to_add) - files_done) | files_to_try_again)
         n_added = 0
         batch = 0
         while files_to_add:
