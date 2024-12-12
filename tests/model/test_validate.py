@@ -172,6 +172,17 @@ def pytest_generate_tests(metafunc):
 
 
 def test_model_valid(model: PerPackageModel, valid_feedstock: str):
+    try:
+        node_attrs_pth = get_sharded_path(f"node_attrs/{valid_feedstock}.json")
+        with open(node_attrs_pth) as f:
+            node_attrs = f.read()
+        data = json.loads(node_attrs)
+    except FileNotFoundError:
+        data = None
+
+    if data is not None and data.get("archived", False):
+        pytest.xfail("archived feedstocks need not be valid")
+
     path = get_sharded_path(model.base_path / f"{valid_feedstock}.json")
     try:
         with open(path) as f:
@@ -181,12 +192,12 @@ def test_model_valid(model: PerPackageModel, valid_feedstock: str):
             raise
         pytest.skip(f"{path} does not exist")
 
-    data = json.loads(node_attrs)
-    if (data.get("meta_yaml", {}) or {}).get("schema_version", 0) == 1:
+    if (
+        data is not None
+        and model.model is NodeAttributes
+        and (data.get("meta_yaml", {}) or {}).get("schema_version", 0) == 1
+    ):
         pytest.xfail("recipes using schema version 1 cannot yet be validated")
-
-    if data.get("archived", False):
-        pytest.xfail("archived feedstocks need not be valid")
 
     model.model.validate_json(node_attrs)
 
