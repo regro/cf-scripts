@@ -55,7 +55,7 @@ def eval_cmd(cmd: list[str], **kwargs) -> str:
     return c.stdout.decode("utf-8")
 
 
-def clean_disk_space(ci_service: str = "github_actions") -> None:
+def clean_disk_space(ci_service: str = "github-actions") -> None:
     """Clean up disk space on CI services.
 
     Parameters
