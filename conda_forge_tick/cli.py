@@ -293,6 +293,17 @@ def react_to_event(
     react_to_event(ctx, event, uid)
 
 
+@main.command(name="clean-disk-space")
+@click.option("--ci-service", required=True, type=click.Choice(["github-actions"]))
+def clean_disk_space(ci_service) -> None:
+    """
+    Clean up disk space on CI services.
+    """
+    from .os_utils import clean_disk_space
+
+    clean_disk_space(ci_service)
+
+
 if __name__ == "__main__":
     # This entrypoint can be used for debugging.
     # click will read the command line arguments and call the corresponding
