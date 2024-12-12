@@ -19,7 +19,7 @@ for arg in "$@"; do
   fi
 done
 if [[ "${clean_disk_space}" == "true" ]]; then
-  conda-forge-tick clean-disk-space
+  conda-forge-tick clean-disk-space --cli-service='github-actions'
 fi
 
 clone_graph="true"
