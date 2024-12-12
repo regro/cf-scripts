@@ -19,7 +19,6 @@ from conda_forge_tick.lazy_json_backends import (
     get_lazy_json_backends,
     lazy_json_override_backends,
     lazy_json_transaction,
-    sync_lazy_json_hashmap_key,
 )
 
 from .all_feedstocks import get_all_feedstocks, get_archived_feedstocks
@@ -379,7 +378,6 @@ def main(
 
         dump_graph(gx)
 
-        sync_lazy_json_hashmap_key("lazy_json", "graph", "file", ["github_api"])
     else:
         gx = load_graph()
 
