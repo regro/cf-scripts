@@ -96,7 +96,7 @@ logger = logging.getLogger(__name__)
 
 RNG = secrets.SystemRandom()
 
-PR_LIMIT = 2
+PR_LIMIT = 5
 MAX_PR_LIMIT = 20
 MAX_SOLVER_ATTEMPTS = 50
 CHECK_SOLVABLE_TIMEOUT = 90  # 90 days
