@@ -30,6 +30,35 @@ NUM_GITHUB_THREADS = 2
 KEEP_PR_FRACTION = 0.5
 
 
+def _combined_update_function(pr_json: dict, dry_run: bool) -> dict:
+    return_it = False
+
+    pr_data = refresh_pr(pr_json, dry_run=dry_run)
+    if pr_data is not None:
+        return_it = True
+        pr_json.update(pr_data)
+
+    pr_data = close_out_labels(pr_json, dry_run=dry_run)
+    if pr_data is not None:
+        return_it = True
+        pr_json.update(pr_data)
+
+    pr_data = refresh_pr(pr_json, dry_run=dry_run)
+    if pr_data is not None:
+        return_it = True
+        pr_json.update(pr_data)
+
+    pr_data = close_out_dirty_prs(pr_json, dry_run=dry_run)
+    if pr_data is not None:
+        return_it = True
+        pr_json.update(pr_data)
+
+    if return_it:
+        return pr_json
+    else:
+        return None
+
+
 def _update_pr(update_function, dry_run, gx, job, n_jobs):
     failed_refresh = 0
     succeeded_refresh = 0
@@ -112,61 +141,21 @@ def _update_pr(update_function, dry_run, gx, job, n_jobs):
     return succeeded_refresh, failed_refresh
 
 
-def update_graph_pr_status(
+def update_pr_combined(
     gx: nx.DiGraph,
     dry_run: bool = False,
     job=1,
     n_jobs=1,
 ) -> nx.DiGraph:
-    succeeded_refresh, failed_refresh = _update_pr(refresh_pr, dry_run, gx, job, n_jobs)
+    succeeded_refresh, failed_refresh = _update_pr(
+        _combined_update_function, dry_run, gx, job, n_jobs
+    )
 
     logger.info(f"JSON Refresh failed for {failed_refresh} PRs")
     logger.info(f"JSON Refresh succeed for {succeeded_refresh} PRs")
     return gx
 
 
-def close_labels(
-    gx: nx.DiGraph,
-    dry_run: bool = False,
-    job=1,
-    n_jobs=1,
-) -> nx.DiGraph:
-    succeeded_refresh, failed_refresh = _update_pr(
-        close_out_labels,
-        dry_run,
-        gx,
-        job,
-        n_jobs,
-    )
-
-    logger.info(f"bot re-run failed for {failed_refresh} PRs")
-    logger.info(f"bot re-run succeed for {succeeded_refresh} PRs")
-    return gx
-
-
-def close_dirty_prs(
-    gx: nx.DiGraph,
-    dry_run: bool = False,
-    job=1,
-    n_jobs=1,
-) -> nx.DiGraph:
-    succeeded_refresh, failed_refresh = _update_pr(
-        close_out_dirty_prs,
-        dry_run,
-        gx,
-        job,
-        n_jobs,
-    )
-
-    logger.info(f"close dirty PRs failed for {failed_refresh} PRs")
-    logger.info(f"close dirty PRs succeed for {succeeded_refresh} PRs")
-    return gx
-
-
 def main(ctx: CliContext, job: int = 1, n_jobs: int = 1) -> None:
     gx = load_existing_graph()
-
-    gx = close_labels(gx, ctx.dry_run, job=job, n_jobs=n_jobs)
-    gx = update_graph_pr_status(gx, ctx.dry_run, job=job, n_jobs=n_jobs)
-    # This function needs to run last since it edits the actual pr json!
-    gx = close_dirty_prs(gx, ctx.dry_run, job=job, n_jobs=n_jobs)
+    update_pr_combined(gx, ctx.dry_run, job=job, n_jobs=n_jobs)
