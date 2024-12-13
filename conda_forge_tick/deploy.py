@@ -11,6 +11,7 @@ from .lazy_json_backends import (
     CF_TICK_GRAPH_GITHUB_BACKEND_REPO,
     get_lazy_json_backends,
 )
+from .os_utils import clean_disk_space
 from .utils import (
     fold_log_lines,
     get_bot_run_url,
@@ -230,7 +231,7 @@ def deploy(ctx: CliContext, dirs_to_deploy: list[str] = None):
     do_git_ops = False
     files_to_try_again = set()
     files_done = set()
-    if len(files_to_add) <= 30:
+    if len(files_to_add) <= 100:
         step_name = os.environ.get("GITHUB_WORKFLOW", "update graph")
         for pth in files_to_add:
             try:
@@ -259,8 +260,12 @@ def deploy(ctx: CliContext, dirs_to_deploy: list[str] = None):
 
             if do_git_ops:
                 break
+    else:
+        do_git_ops = True
 
     if do_git_ops:
+        clean_disk_space()
+
         files_to_add = list((set(files_to_add) - files_done) | files_to_try_again)
         n_added = 0
         batch = 0

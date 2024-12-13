@@ -37,7 +37,6 @@ from conda_forge_tick.lazy_json_backends import (
     get_all_keys_for_hashmap,
     lazy_json_override_backends,
     remove_key_for_hashmap,
-    sync_lazy_json_hashmap_key,
 )
 from conda_forge_tick.migrators import (
     ArchRebuild,
@@ -97,7 +96,7 @@ logger = logging.getLogger(__name__)
 
 RNG = secrets.SystemRandom()
 
-PR_LIMIT = 2
+PR_LIMIT = 5
 MAX_PR_LIMIT = 20
 MAX_SOLVER_ATTEMPTS = 50
 CHECK_SOLVABLE_TIMEOUT = 90  # 90 days
@@ -846,7 +845,7 @@ def initialize_migrators(
         version_migrator = Version(
             python_nodes=python_nodes,
             graph=gx,
-            pr_limit=PR_LIMIT * 2,
+            pr_limit=PR_LIMIT * 4,
             piggy_back_migrations=_make_mini_migrators_with_defaults(
                 extra_mini_migrators=[
                     PipWheelMigrator(),
@@ -945,10 +944,6 @@ def main(ctx: CliContext) -> None:
 
                 with LazyJson(f"migrators/{data['name']}.json") as lzj:
                     lzj.update(data)
-
-                sync_lazy_json_hashmap_key(
-                    "migrators", data["name"], "file", ["github_api"]
-                )
 
             except Exception as e:
                 logger.error(f"Error dumping migrator {migrator} to JSON!", exc_info=e)

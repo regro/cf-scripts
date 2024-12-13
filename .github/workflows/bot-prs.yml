@@ -50,7 +50,7 @@ jobs:
       - name: install bot code
         if: success() && ! env.CI_SKIP
         run: |
-          source cf-scripts/autotick-bot/install_bot_code.sh
+          source cf-scripts/autotick-bot/install_bot_code.sh --no-clean-disk-space
         env:
           BOT_TOKEN: ${{ secrets.AUTOTICK_BOT_TOKEN }}
 
@@ -71,8 +71,6 @@ jobs:
       - name: deploy
         if: github.ref == 'refs/heads/main' && ! cancelled() && ! env.CI_SKIP
         run: |
-          sudo docker image prune --all --force
-
           pushd cf-graph
 
           export RUN_URL="https://github.com/regro/cf-scripts/actions/runs/${RUN_ID}"
