@@ -25,7 +25,7 @@ def _react_to_pr(uid: str, dry_run: bool = False) -> None:
                         and pr_json["Last-Modified"] != pr_data["Last-Modified"]
                     ):
                         print("refreshed PR data", flush=True)
-                    pr_json.update(pr_data)            
+                    pr_json.update(pr_data)
 
             if pr_json.get("state", None) != "closed":
                 pr_data = close_out_labels(copy.deepcopy(pr_json.data), dry_run=dry_run)
