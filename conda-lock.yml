@@ -2006,39 +2006,39 @@ package:
   - category: main
     dependencies: {}
     hash:
-      md5: 81101a01102075ec6d16b036ff7d0b04
-      sha256: d876968e89bd5986daa28b740311120367df89559e644447f3716d21dd1f0257
+      md5: 672f6cc3e533d4824083aba6d7364ac1
+      sha256: 694e74d1758d50e2858b53efbdcb317af3c5e01adfdc75fc5c366d246f113f28
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.12.13.07.39.45-hd8ed1ab_0.conda
-    version: 2024.12.13.07.39.45
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.12.13.13.25.37-hd8ed1ab_0.conda
+    version: 2024.12.13.13.25.37
   - category: main
     dependencies: {}
     hash:
-      md5: 81101a01102075ec6d16b036ff7d0b04
-      sha256: d876968e89bd5986daa28b740311120367df89559e644447f3716d21dd1f0257
+      md5: 672f6cc3e533d4824083aba6d7364ac1
+      sha256: 694e74d1758d50e2858b53efbdcb317af3c5e01adfdc75fc5c366d246f113f28
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.12.13.07.39.45-hd8ed1ab_0.conda
-    version: 2024.12.13.07.39.45
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.12.13.13.25.37-hd8ed1ab_0.conda
+    version: 2024.12.13.13.25.37
   - category: main
     dependencies: {}
     hash:
-      md5: 81101a01102075ec6d16b036ff7d0b04
-      sha256: d876968e89bd5986daa28b740311120367df89559e644447f3716d21dd1f0257
+      md5: 672f6cc3e533d4824083aba6d7364ac1
+      sha256: 694e74d1758d50e2858b53efbdcb317af3c5e01adfdc75fc5c366d246f113f28
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.12.13.07.39.45-hd8ed1ab_0.conda
-    version: 2024.12.13.07.39.45
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.12.13.13.25.37-hd8ed1ab_0.conda
+    version: 2024.12.13.13.25.37
   - category: main
     dependencies:
       click: '>=8'
@@ -12774,39 +12774,39 @@ package:
     version: 8.6.13
   - category: main
     dependencies:
-      python: '>=2.7'
+      python: '>=3.9'
     hash:
-      md5: f832c45a477c78bebd107098db465095
-      sha256: f0f3d697349d6580e4c2f35ba9ce05c65dc34f9f049e85e45da03800b46139c1
+      md5: b0dd904de08b7db706167240bf37b164
+      sha256: 34f3a83384ac3ac30aefd1309e69498d8a4aa0bf2d1f21c645f79b180e378938
     manager: conda
     name: toml
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/noarch/toml-0.10.2-pyhd8ed1ab_0.tar.bz2
+    url: https://conda.anaconda.org/conda-forge/noarch/toml-0.10.2-pyhd8ed1ab_1.conda
     version: 0.10.2
   - category: main
     dependencies:
-      python: '>=2.7'
+      python: '>=3.9'
     hash:
-      md5: f832c45a477c78bebd107098db465095
-      sha256: f0f3d697349d6580e4c2f35ba9ce05c65dc34f9f049e85e45da03800b46139c1
+      md5: b0dd904de08b7db706167240bf37b164
+      sha256: 34f3a83384ac3ac30aefd1309e69498d8a4aa0bf2d1f21c645f79b180e378938
     manager: conda
     name: toml
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/noarch/toml-0.10.2-pyhd8ed1ab_0.tar.bz2
+    url: https://conda.anaconda.org/conda-forge/noarch/toml-0.10.2-pyhd8ed1ab_1.conda
     version: 0.10.2
   - category: main
     dependencies:
-      python: '>=2.7'
+      python: '>=3.9'
     hash:
-      md5: f832c45a477c78bebd107098db465095
-      sha256: f0f3d697349d6580e4c2f35ba9ce05c65dc34f9f049e85e45da03800b46139c1
+      md5: b0dd904de08b7db706167240bf37b164
+      sha256: 34f3a83384ac3ac30aefd1309e69498d8a4aa0bf2d1f21c645f79b180e378938
     manager: conda
     name: toml
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/noarch/toml-0.10.2-pyhd8ed1ab_0.tar.bz2
+    url: https://conda.anaconda.org/conda-forge/noarch/toml-0.10.2-pyhd8ed1ab_1.conda
     version: 0.10.2
   - category: main
     dependencies:
