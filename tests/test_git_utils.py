@@ -1840,7 +1840,7 @@ def test_git_utils_push_and_delete_file_via_gh_api():
             delete_file_via_gh_api(fname, repo_name, f"testing - delete - {fname}")
             _sleep()
             new_sha, data = _get_pth_blob_sha_and_content(fname, repo)
-            assert sha is None
+            assert new_sha is None
             assert data is None
         finally:
             message = f"remove files {fname} from testing"
