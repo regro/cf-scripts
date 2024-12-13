@@ -1504,3 +1504,51 @@ def push_file_via_gh_api(pth: str, repo_full_name: str, msg: str) -> None:
             else:
                 # exponential backoff
                 time.sleep(base**tr)
+
+
+def delete_file_via_gh_api(pth: str, repo_full_name: str, msg: str) -> None:
+    """Delete a file from a repo via the GitHub API.
+
+    Parameters
+    ----------
+    pth : str
+        The path to the file.
+    repo_full_name : str
+        The full name of the repository (e.g., "conda-forge/conda-forge-pinning").
+    msg : str
+        The commit message.
+    """
+    ntries = 10
+
+    # exponential backoff will be base ** tr
+    # we fail at ntries - 1 so the last time we
+    # compute the backoff is at ntries - 2
+    base = math.exp(math.log(60.0) / (ntries - 2.0))
+
+    for tr in range(ntries):
+        try:
+            gh = github_client()
+            repo = gh.get_repo(repo_full_name)
+
+            sha, _ = _get_pth_blob_sha_and_content(pth, repo)
+
+            if sha is not None:
+                repo.delete_file(
+                    pth,
+                    msg,
+                    sha,
+                )
+            break
+
+        except Exception as e:
+            logger.warning(
+                "failed to delete '%s' - trying %d more times",
+                pth,
+                ntries - tr - 1,
+                exc_info=e,
+            )
+            if tr == ntries - 1:
+                raise e
+            else:
+                # exponential backoff
+                time.sleep(base**tr)

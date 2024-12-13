@@ -5,7 +5,7 @@ import sys
 
 from . import sensitive_env
 from .cli_context import CliContext
-from .git_utils import push_file_via_gh_api
+from .git_utils import delete_file_via_gh_api, push_file_via_gh_api
 from .lazy_json_backends import (
     CF_TICK_GRAPH_DATA_HASHMAPS,
     CF_TICK_GRAPH_GITHUB_BACKEND_REPO,
@@ -173,6 +173,37 @@ def _deploy_batch(*, files_to_add, batch, n_added, max_per_batch=200):
     return n_added_this_batch
 
 
+def _get_files_to_delete():
+    r = subprocess.run(
+        ["git", "diff", "--name-status", "--cached"],
+        text=True,
+        capture_output=True,
+        check=True,
+    )
+    files_to_delete = set()
+    for line in r.stdout.splitlines():
+        res = line.strip().split()
+        if len(res) < 2:
+            continue
+        status, fname = res[0:2]
+        if status == "D":
+            files_to_delete.add(fname)
+    return files_to_delete
+
+
+def _get_pth_commit_message(pth):
+    """make a nice message for stuff managed via LazyJson."""
+    step_name = os.environ.get("GITHUB_WORKFLOW", "update graph")
+    msg_pth = pth
+    parts = pth.split("/")
+    if pth.endswith(".json") and (
+        len(parts) > 1 and parts[0] in CF_TICK_GRAPH_DATA_HASHMAPS
+    ):
+        msg_pth = f"{parts[0]}/{parts[-1]}"
+    msg = f"{step_name} - {msg_pth} - {get_bot_run_url()}"
+    return msg
+
+
 def deploy(ctx: CliContext, dirs_to_deploy: list[str] = None):
     """Deploy the graph to GitHub"""
     if ctx.dry_run:
@@ -228,25 +259,23 @@ def deploy(ctx: CliContext, dirs_to_deploy: list[str] = None):
 
     print("found %d files to add" % len(files_to_add), flush=True)
 
+    files_to_delete = _get_files_to_delete()
+    print("found %d files to delete" % len(files_to_delete), flush=True)
+
     do_git_ops = False
     files_to_try_again = set()
     files_done = set()
-    if len(files_to_add) <= 100:
-        step_name = os.environ.get("GITHUB_WORKFLOW", "update graph")
+    if len(files_to_add) + len(files_to_delete) <= 100:
         for pth in files_to_add:
+            if do_git_ops:
+                break
+
             try:
                 print(
                     f"pushing file '{pth}' to the graph via the GitHub API", flush=True
                 )
 
-                # make a nice message for stuff managed via LazyJson
-                msg_pth = pth
-                parts = pth.split("/")
-                if pth.endswith(".json") and (
-                    len(parts) > 1 and parts[0] in CF_TICK_GRAPH_DATA_HASHMAPS
-                ):
-                    msg_pth = f"{parts[0]}/{parts[-1]}"
-                msg = f"{step_name} - {msg_pth} - {get_bot_run_url()}"
+                msg = _get_pth_commit_message(pth)
 
                 push_file_via_gh_api(pth, CF_TICK_GRAPH_GITHUB_BACKEND_REPO, msg)
             except Exception as e:
@@ -258,8 +287,26 @@ def deploy(ctx: CliContext, dirs_to_deploy: list[str] = None):
             else:
                 files_done.add(pth)
 
+        for pth in files_to_delete:
             if do_git_ops:
                 break
+
+            try:
+                print(
+                    f"deleting file '{pth}' from the graph via the GitHub API",
+                    flush=True,
+                )
+
+                # make a nice message for stuff managed via LazyJson
+                msg = _get_pth_commit_message(pth)
+
+                delete_file_via_gh_api(pth, CF_TICK_GRAPH_GITHUB_BACKEND_REPO, msg)
+            except Exception as e:
+                logger.warning(
+                    "git delete via API failed - trying via git CLI", exc_info=e
+                )
+                do_git_ops = True
+
     else:
         do_git_ops = True
 
