@@ -28,6 +28,7 @@ from conda_forge_tick.git_utils import (
     GitPlatformError,
     RepositoryNotFoundError,
     _get_pth_blob_sha_and_content,
+    delete_file_via_gh_api,
     github_client,
     push_file_via_gh_api,
     trim_pr_json_keys,
@@ -1799,7 +1800,7 @@ def test_trim_pr_json_keys_src():
     not conda_forge_tick.global_sensitive_env.classified_info.get("BOT_TOKEN", None),
     reason="No token for live tests.",
 )
-def test_git_utils_push_file_via_gh_api():
+def test_git_utils_push_and_delete_file_via_gh_api():
     uid = uuid.uuid4().hex
     node = f"test_file_h{uid}"
     fname = node + ".json"
@@ -1835,6 +1836,12 @@ def test_git_utils_push_file_via_gh_api():
             _sleep()
             new_sha, data = _get_pth_blob_sha_and_content(fname, repo)
             assert sha == new_sha
+
+            delete_file_via_gh_api(fname, repo_name, f"testing - delete - {fname}")
+            _sleep()
+            new_sha, data = _get_pth_blob_sha_and_content(fname, repo)
+            assert new_sha is None
+            assert data is None
         finally:
             message = f"remove files {fname} from testing"
             for tr in range(10):
