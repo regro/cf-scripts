@@ -160,6 +160,17 @@ def _migrate_schema(name, sub_graph):
                     if mn not in pri[pre_key_att]:
                         pri[pre_key_att][mn] = 1
 
+    with lazy_json_transaction():
+        with sub_graph["pr_info"] as pri:
+            for mn in pri[pre_key].keys():
+                if mn not in pri[pre_key_att]:
+                    pri[pre_key_att][mn] = 1
+
+        with sub_graph["version_pr_info"] as vpri:
+            for mn in vpri["new_version_errors"].keys():
+                if mn not in vpri["new_version_attempts"]:
+                    vpri["new_version_attempts"][mn] = 1
+
     keys_to_move = [
         "PRed",
         "smithy_version",
