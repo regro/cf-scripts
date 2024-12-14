@@ -8,7 +8,7 @@ import time
 import traceback
 import typing
 from dataclasses import dataclass
-from typing import Literal, cast
+from typing import AnyStr, Literal, cast
 from urllib.error import URLError
 from uuid import uuid4
 
@@ -40,6 +40,7 @@ from conda_forge_tick.git_utils import (
 )
 from conda_forge_tick.lazy_json_backends import (
     LazyJson,
+    does_key_exist_in_hashmap,
     get_all_keys_for_hashmap,
     lazy_json_transaction,
     remove_key_for_hashmap,
@@ -50,7 +51,6 @@ from conda_forge_tick.make_migrators import (
     PR_LIMIT,
     load_migrators,
 )
-from conda_forge_tick.migration_runner import run_migration
 from conda_forge_tick.migrators import MigrationYaml, Migrator, Version
 from conda_forge_tick.migrators.version import VersionMigrationError
 from conda_forge_tick.os_utils import eval_cmd
@@ -69,6 +69,7 @@ from conda_forge_tick.utils import (
     sanitize_string,
 )
 
+from .migration_runner import run_migration
 from .migrators_types import MigrationUidTypedDict
 from .models.pr_json import PullRequestData, PullRequestInfoSpecial, PullRequestState
 
@@ -852,10 +853,11 @@ def _run_migrator_on_feedstock_branch(
     return good_prs, break_loop
 
 
-def _is_migrator_done(_mg_start, good_prs, time_per, pr_limit):
+def _is_migrator_done(
+    _mg_start, good_prs, time_per, pr_limit, git_backend: GitPlatformBackend
+):
     curr_time = time.time()
-    backend = github_backend()
-    api_req = backend.get_api_requests_left()
+    api_req = git_backend.get_api_requests_left()
 
     if curr_time - START_TIME > TIMEOUT:
         logger.info(
@@ -890,7 +892,27 @@ def _is_migrator_done(_mg_start, good_prs, time_per, pr_limit):
     return False
 
 
-def _run_migrator(migrator, mctx, temp, time_per, git_backend: GitPlatformBackend):
+def _run_migrator(
+    migrator: Migrator,
+    mctx: MigratorSessionContext,
+    temp: list[AnyStr],
+    time_per: float,
+    git_backend: GitPlatformBackend,
+    feedstock: str | None = None,
+) -> int:
+    """
+    Run a migrator.
+
+    :param migrator: The migrator to run.
+    :param mctx: The migrator session context.
+    :param temp: The list of temporary files.
+    :param time_per: The time limit of this migrator.
+    :param git_backend: The GitPlatformBackend instance to use.
+    :param feedstock: The feedstock to update, if None, all feedstocks are updated. Does not contain the `-feedstock`
+    suffix.
+
+    :return: The number of "good" PRs created by the migrator.
+    """
     _mg_start = time.time()
 
     migrator_name = get_migrator_name(migrator)
@@ -911,6 +933,15 @@ def _run_migrator(migrator, mctx, temp, time_per, git_backend: GitPlatformBacken
         effective_graph = migrator.effective_graph
 
         possible_nodes = list(migrator.order(effective_graph, mctx.graph))
+
+        if feedstock:
+            if feedstock not in possible_nodes:
+                logger.info(
+                    f"Feedstock {feedstock}-feedstock is not a candidate for migration of {migrator_name}. "
+                    f"If you want to investigate this, run the make-migrators command."
+                )
+                return 0
+            possible_nodes = [feedstock]
 
         # version debugging info
         if isinstance(migrator, Version):
@@ -944,7 +975,9 @@ def _run_migrator(migrator, mctx, temp, time_per, git_backend: GitPlatformBacken
             flush=True,
         )
 
-        if _is_migrator_done(_mg_start, good_prs, time_per, migrator.pr_limit):
+        if _is_migrator_done(
+            _mg_start, good_prs, time_per, migrator.pr_limit, git_backend
+        ):
             return 0
 
     for node_name in possible_nodes:
@@ -961,7 +994,9 @@ def _run_migrator(migrator, mctx, temp, time_per, git_backend: GitPlatformBacken
         ):
             # Don't let CI timeout, break ahead of the timeout so we make certain
             # to write to the repo
-            if _is_migrator_done(_mg_start, good_prs, time_per, migrator.pr_limit):
+            if _is_migrator_done(
+                _mg_start, good_prs, time_per, migrator.pr_limit, git_backend
+            ):
                 break
 
             base_branches = migrator.get_possible_feedstock_branches(attrs)
@@ -1056,18 +1091,27 @@ def _setup_limits():
         resource.setrlimit(resource.RLIMIT_AS, (limit_int, limit_int))
 
 
-def _update_nodes_with_bot_rerun(gx: nx.DiGraph):
-    """Go through all the open PRs and check if they are rerun"""
+def _update_nodes_with_bot_rerun(gx: nx.DiGraph, feedstock: str | None = None):
+    """
+    Go through all the open PRs and check if they are rerun
+
+    :param gx: the dependency graph
+    :param feedstock: The feedstock to update. If None, all feedstocks are updated. Does not contain the `-feedstock`
+    suffix.
+    """
 
     print("processing bot-rerun labels", flush=True)
 
-    for i, (name, node) in enumerate(gx.nodes.items()):
+    nodes = gx.nodes.items() if not feedstock else [(feedstock, gx.nodes[feedstock])]
+
+    for i, (name, node) in enumerate(nodes):
         # logger.info(
         #     f"node: {i} memory usage: "
         #     f"{psutil.Process().memory_info().rss // 1024 ** 2}MB",
         # )
         with node["payload"] as payload:
             if payload.get("archived", False):
+                logger.debug(f"skipping archived package {name}")
                 continue
             with payload["pr_info"] as pri, payload["version_pr_info"] as vpri:
                 # reset bad
@@ -1117,12 +1161,24 @@ def _filter_ignored_versions(attrs, version):
         return version
 
 
-def _update_nodes_with_new_versions(gx):
-    """Updates every node with it's new version (when available)"""
+def _update_nodes_with_new_versions(gx: nx.DiGraph, feedstock: str | None = None):
+    """
+    Updates every node with its new version (when available)
+
+    :param gx: the dependency graph
+    :param feedstock: the feedstock to update, if None, all feedstocks are updated. Does not contain the `-feedstock`
+    suffix.
+    """
 
     print("updating nodes with new versions", flush=True)
 
-    version_nodes = get_all_keys_for_hashmap("versions")
+    if feedstock and not does_key_exist_in_hashmap("versions", feedstock):
+        logger.warning(f"Feedstock {feedstock}-feedstock not found in versions hashmap")
+        return
+
+    version_nodes = (
+        get_all_keys_for_hashmap("versions") if not feedstock else [feedstock]
+    )
 
     for node in version_nodes:
         version_data = LazyJson(f"versions/{node}.json").data
@@ -1148,13 +1204,42 @@ def _update_nodes_with_new_versions(gx):
                         vpri["new_version"] = version_from_data
 
 
-def _remove_closed_pr_json():
+def _remove_closed_pr_json(feedstock: str | None = None):
+    """
+    Remove the pull request information for closed PRs.
+
+    :param feedstock: The feedstock to remove the PR information for. If None, all PR information is removed. If you pass
+    a feedstock, closed pr_json files are not removed because this would require iterating all pr_json files. Does not
+    contain the `-feedstock` suffix.
+    """
     print("collapsing closed PR json", flush=True)
+
+    if feedstock:
+        pr_info_nodes = (
+            [feedstock] if does_key_exist_in_hashmap("pr_info", feedstock) else []
+        )
+        version_pr_info_nodes = (
+            [feedstock]
+            if does_key_exist_in_hashmap("version_pr_info", feedstock)
+            else []
+        )
+
+        if not pr_info_nodes:
+            logger.warning(
+                f"Feedstock {feedstock}-feedstock not found in pr_info hashmap"
+            )
+        if not version_pr_info_nodes:
+            logger.warning(
+                f"Feedstock {feedstock}-feedstock not found in version_pr_info hashmap"
+            )
+    else:
+        pr_info_nodes = get_all_keys_for_hashmap("pr_info")
+        version_pr_info_nodes = get_all_keys_for_hashmap("version_pr_info")
 
     # first we go from nodes to pr json and update the pr info and remove the data
     name_nodes = [
-        ("pr_info", get_all_keys_for_hashmap("pr_info")),
-        ("version_pr_info", get_all_keys_for_hashmap("version_pr_info")),
+        ("pr_info", pr_info_nodes),
+        ("version_pr_info", version_pr_info_nodes),
     ]
     for name, nodes in name_nodes:
         for node in nodes:
@@ -1187,6 +1272,11 @@ def _remove_closed_pr_json():
 
     # at this point, any json blob referenced in the pr info is state != closed
     # so we can remove anything that is empty or closed
+    if feedstock:
+        logger.info(
+            "Since you requested a run for a specific package, we are not removing closed pr_json files."
+        )
+        return
     nodes = get_all_keys_for_hashmap("pr_json")
     for node in nodes:
         pr = LazyJson(f"pr_json/{node}.json")
@@ -1197,22 +1287,32 @@ def _remove_closed_pr_json():
             )
 
 
-def _update_graph_with_pr_info():
-    _remove_closed_pr_json()
+def _update_graph_with_pr_info(feedstock: str | None = None):
+    """
+    :param feedstock: The feedstock to update the graph for. If None, all feedstocks are updated. Does not contain the
+    `-feedstock` suffix.
+    """
+    _remove_closed_pr_json(feedstock)
     gx = load_existing_graph()
-    _update_nodes_with_bot_rerun(gx)
-    _update_nodes_with_new_versions(gx)
+    _update_nodes_with_bot_rerun(gx, feedstock)
+    _update_nodes_with_new_versions(gx, feedstock)
     dump_graph(gx)
 
 
-def main(ctx: CliContext) -> None:
+def main(ctx: CliContext, feedstock: str | None = None) -> None:
+    """
+    Run the main bot logic.
+
+    :param ctx: The CLI context.
+    :param feedstock: If not None, only the given feedstock is updated. Does not contain the `-feedstock` suffix.
+    """
     global START_TIME
     START_TIME = time.time()
 
     _setup_limits()
 
     with fold_log_lines("updating graph with PR info"):
-        _update_graph_with_pr_info()
+        _update_graph_with_pr_info(feedstock)
         deploy(ctx, dirs_to_deploy=["version_pr_info", "pr_json", "pr_info"])
 
     # record tmp dir so we can be sure to clean it later
@@ -1232,6 +1332,7 @@ def main(ctx: CliContext) -> None:
             smithy_version=smithy_version,
             pinning_version=pinning_version,
         )
+        # TODO: this does not support --online
         migrators = load_migrators()
 
     # compute the time per migrator
@@ -1265,7 +1366,7 @@ def main(ctx: CliContext) -> None:
 
     for mg_ind, migrator in enumerate(migrators):
         good_prs = _run_migrator(
-            migrator, mctx, temp, time_per_migrator[mg_ind], git_backend
+            migrator, mctx, temp, time_per_migrator[mg_ind], git_backend, feedstock
         )
         if good_prs > 0:
             pass
@@ -1280,5 +1381,5 @@ def main(ctx: CliContext) -> None:
             #     ],
             # )
 
-    logger.info("API Calls Remaining: %d", github_backend().get_api_requests_left())
+    logger.info("API Calls Remaining: %s", git_backend.get_api_requests_left())
     logger.info("Done")

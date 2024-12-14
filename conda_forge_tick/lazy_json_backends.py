@@ -834,6 +834,17 @@ def get_all_keys_for_hashmap(name):
     return backend.hkeys(name)
 
 
+def does_key_exist_in_hashmap(name: str, key: str) -> bool:
+    """
+    Check if a key exists in a hashmap, using the primary backend.
+    :param name: The hashmap name.
+    :param key: The key to check.
+    :return: True if the key exists, False otherwise.
+    """
+    backend = LAZY_JSON_BACKENDS[CF_TICK_GRAPH_DATA_PRIMARY_BACKEND]()
+    return backend.hexists(name, key)
+
+
 @contextlib.contextmanager
 def lazy_json_transaction():
     try:

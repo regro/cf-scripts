@@ -446,7 +446,7 @@ def update_upstream_versions(
     debug: bool = False,
     job=1,
     n_jobs=1,
-    package: Optional[str] = None,
+    feedstock: Optional[str] = None,
 ) -> None:
     """
     Update the upstream versions of packages.
@@ -455,15 +455,15 @@ def update_upstream_versions(
     :param debug: Whether to run in debug mode
     :param job: The job number
     :param n_jobs: The total number of jobs
-    :param package: The package to update. If None, update all packages.
+    :param feedstock: The feedstock to update. If None, update all feedstocks. Does not contain the `-feedstock` suffix.
     """
-    if package and package not in gx.nodes:
-        logger.error(f"Package {package} not found in graph. Exiting.")
+    if feedstock and feedstock not in gx.nodes:
+        logger.error(f"Feedstock {feedstock}-feedstock not found in graph. Exiting.")
         return
 
     # In the future, we should have some sort of typed graph structure
     all_nodes: Iterable[Tuple[str, Mapping[str, Mapping]]] = (
-        [(package, gx.nodes.get(package))] if package else gx.nodes.items()
+        [(feedstock, gx.nodes.get(feedstock))] if feedstock else gx.nodes.items()
     )
 
     job_nodes = filter_nodes_for_job(all_nodes, job, n_jobs)
@@ -491,7 +491,7 @@ def update_upstream_versions(
 
     updater = (
         _update_upstream_versions_sequential
-        if debug or package
+        if debug or feedstock
         else _update_upstream_versions_process_pool
     )
 
@@ -503,14 +503,14 @@ def main(
     ctx: CliContext,
     job: int = 1,
     n_jobs: int = 1,
-    package: Optional[str] = None,
+    feedstock: Optional[str] = None,
 ) -> None:
     """
     Main function for updating the upstream versions of packages.
     :param ctx: The CLI context.
     :param job: The job number.
     :param n_jobs: The total number of jobs.
-    :param package: The package to update. If None, update all packages.
+    :param feedstock: The feedstock to update. If None, update all feedstocks. Does not contain the `-feedstock` suffix.
     """
     logger.info("Reading graph")
     # Graph enabled for inspection
@@ -524,5 +524,5 @@ def main(
         debug=ctx.debug,
         job=job,
         n_jobs=n_jobs,
-        package=package,
+        feedstock=feedstock,
     )

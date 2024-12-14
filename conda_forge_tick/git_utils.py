@@ -1074,7 +1074,7 @@ class DryRunBackend(GitPlatformBackend):
                 return f"{key}:\n{value}"
             return f"{key}: {value}"
 
-        output += "".join(format_field(key, value) for key, value in data.items())
+        output += "\n".join(format_field(key, value) for key, value in data.items())
         output += f"\n{border}"
 
         logger.debug(output)

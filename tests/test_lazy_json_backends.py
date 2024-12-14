@@ -21,6 +21,7 @@ from conda_forge_tick.lazy_json_backends import (
     GithubLazyJsonBackend,
     LazyJson,
     MongoDBLazyJsonBackend,
+    does_key_exist_in_hashmap,
     dump,
     dumps,
     get_all_keys_for_hashmap,
@@ -608,6 +609,17 @@ def test_lazy_json_backends_hashmap(tmpdir):
         assert get_all_keys_for_hashmap("lazy_json") == ["blah"]
         remove_key_for_hashmap("lazy_json", "blah")
         assert get_all_keys_for_hashmap("lazy_json") == []
+
+
+def test_does_key_exist_in_hashmap(tmpdir):
+    with pushd(tmpdir):
+        LazyJson("vanilla.json")
+        LazyJson("node_attrs/chocolate.json")
+        LazyJson("versions/strawberry.json")
+
+        assert does_key_exist_in_hashmap("node_attrs", "chocolate")
+        assert not does_key_exist_in_hashmap("node_attrs", "vanilla")
+        assert not does_key_exist_in_hashmap("node_attrs", "strawberry")
 
 
 def test_github_base_url() -> None:
