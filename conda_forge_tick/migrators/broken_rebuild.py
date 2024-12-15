@@ -1,9 +1,12 @@
 import os
+import secrets
 
 import networkx as nx
 
 from conda_forge_tick.contexts import ClonedFeedstockContext
 from conda_forge_tick.migrators.core import Migrator
+
+RNG = secrets.SystemRandom()
 
 BROKEN_PACKAGES = """\
 linux-ppc64le/adios2-2.7.1-mpi_mpich_py36ha1d8cba_0.tar.bz2
@@ -357,19 +360,7 @@ class RebuildBroken(Migrator):
         graph: nx.DiGraph,
         total_graph: nx.DiGraph,
     ):
-        """Order to run migrations in
-
-        Parameters
-        ----------
-        graph : nx.DiGraph
-            The graph of migratable PRs
-
-        Returns
-        -------
-        graph : nx.DiGraph
-            The ordered graph.
-        """
-        return graph
+        return sorted(list(graph.nodes), key=lambda x: RNG.random())
 
     def filter(self, attrs) -> bool:
         return (

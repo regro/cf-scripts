@@ -2,6 +2,7 @@ import copy
 import logging
 import os
 import re
+import secrets
 import time
 import typing
 from collections import defaultdict
@@ -26,6 +27,7 @@ from conda_forge_tick.utils import (
 if typing.TYPE_CHECKING:
     from ..migrators_types import AttrsTypedDict, MigrationUidTypedDict, PackageName
 
+RNG = secrets.SystemRandom()
 logger = logging.getLogger(__name__)
 
 
@@ -553,8 +555,8 @@ class MigrationYamlCreator(Migrator):
     ) -> Sequence["PackageName"]:
         """Run the order by number of decedents, ties are resolved by package name"""
         return sorted(
-            graph,
-            key=lambda x: (len(nx.descendants(total_graph, x)), x),
+            list(graph.nodes),
+            key=lambda x: (len(nx.descendants(total_graph, x)), RNG.random()),
             reverse=True,
         )
 

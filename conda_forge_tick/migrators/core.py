@@ -608,7 +608,7 @@ class Migrator:
                 return 1
 
         return sorted(
-            graph,
+            list(graph.nodes),
             key=lambda x: (
                 _not_has_error(x),
                 (
@@ -616,7 +616,7 @@ class Migrator:
                     if not _not_has_error(x)
                     else len(nx.descendants(total_graph, x))
                 ),
-                x,
+                RNG.random(),
             ),
             reverse=True,
         )

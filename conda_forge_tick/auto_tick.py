@@ -629,77 +629,66 @@ def run(
 
 
 def _compute_time_per_migrator(migrators):
-    # we weight each migrator by the number of available nodes to migrate
+    # we weight each migrator by the number of available nodes to migrate with a
+    # a penalty for attempts and accounting for the pr_limit
+    # the variables below are
+    #
+    #   num_nodes: the number of nodes available to migrate
+    #   mean_attempts: the mean number of attempts for the migrator's nodes to be done
+    #                  with a maximum of 3 attempts per node used for the penalty
+    #   share: the portion of the total time a migrator gets, we apply an absolute minimum
+    #          using a fixed number in seconds as well
+    #   min_time_per_migrator: the minimum time a migrator gets in seconds
+    min_time_per_migrator = 20.0
     num_nodes = []
+    shares = []
     for migrator in tqdm.tqdm(migrators, ncols=80, desc="computing time per migrator"):
+        pr_limit = getattr(migrator, "pr_limit", PR_LIMIT)
+
         if isinstance(migrator, Version):
-            _num_nodes = 0
+            # always set the mean attempts to 1 since we
+            # do not penalize the version migrator for retries
+            mean_attempts = 1.0
+        else:
+            mean_attempts = 0.0
             for node_name in migrator.effective_graph.nodes:
                 with migrator.effective_graph.nodes[node_name]["payload"] as attrs:
-                    with attrs["version_pr_info"] as vpri:
-                        _attempts = vpri.get("new_version_attempts", {}).get(
-                            vpri.get("new_version", ""),
-                            0,
-                        )
-                    if _attempts < 3:
-                        _num_nodes += 1
-            _num_nodes = max(
-                _num_nodes,
-                min(PR_LIMIT * 4, len(migrator.effective_graph.nodes)),
-            )
-            num_nodes.append(_num_nodes)
-        else:
-            num_nodes.append(
-                min(
-                    getattr(migrator, "pr_limit", PR_LIMIT) * 4,
-                    len(migrator.effective_graph.nodes),
-                ),
-            )
+                    mean_attempts += _get_pre_pr_migrator_attempts(
+                        attrs,
+                        migrator_name=get_migrator_name(migrator),
+                        is_version=isinstance(migrator, Version),
+                    )
+            mean_attempts /= max(len(migrator.effective_graph.nodes), 1.0)
+            # here mean attempts is before the migrator has been tried for this
+            # run of the bot, so we have to add 1
+            mean_attempts = min(mean_attempts, 2.0) + 1.0
 
-    num_nodes_tot = sum(num_nodes)
-    # do not divide by zero
-    time_per_node = float(os.environ.get("TIMEOUT", 600)) / max(num_nodes_tot, 1)
+        num_to_do = len(migrator.effective_graph.nodes)
+        num_nodes.append(num_to_do)
 
-    # also enforce a minimum of 300 seconds if any nodes can be migrated
+        # we allow at most pr_limit but we penalize for lots of attempts
+        _share = min(pr_limit, num_to_do) / mean_attempts
+        shares.append(_share)
+
+    tot_shares = sum(shares)
+
+    # the total time for shares is the total time minus the
+    #   minimum time per migrator * number of migrators
+    # it defaults to zero if the total time is less than the minimum time
+    # to visit all migrators
+    min_time = len(migrators) * min_time_per_migrator
+    total_time_for_shares = TIMEOUT - min_time
+    if total_time_for_shares < 0.0:
+        total_time_for_shares = 0.0
+    time_per_share = total_time_for_shares / (tot_shares if tot_shares > 0.0 else 1.0)
+
+    # now compute the time per migrator
     time_per_migrator = []
     for i, migrator in enumerate(migrators):
-        _time_per = num_nodes[i] * time_per_node
-
-        if num_nodes[i] > 0 and _time_per < 300:
-            _time_per = 300
-
-        time_per_migrator.append(_time_per)
-
-    # finally rescale to fit in the time we have
-    tot_time_per_migrator = sum(time_per_migrator)
-    if tot_time_per_migrator > 0:
-        time_fac = float(os.environ.get("TIMEOUT", 600)) / tot_time_per_migrator
-    else:
-        time_fac = 1.0
-    for i in range(len(time_per_migrator)):
-        time_per_migrator[i] = time_per_migrator[i] * time_fac
-
-    # recompute the total here
+        time_per_migrator.append(shares[i] * time_per_share + min_time_per_migrator)
     tot_time_per_migrator = sum(time_per_migrator)
 
     return num_nodes, time_per_migrator, tot_time_per_migrator
-
-
-def _over_time_limit():
-    _now = time.time()
-    print(
-        """\
-
-=~>=~>=~>=~>=~>=~>=~>=~>=~>=~>=~>=~>=~>=~>=~>=~>=~>=~>=~>=~>=~>=~>=~>=~>=~>=~>
-=~> elpased time %ds (timeout %ds)
-=~>=~>=~>=~>=~>=~>=~>=~>=~>=~>=~>=~>=~>=~>=~>=~>=~>=~>=~>=~>=~>=~>=~>=~>=~>=~>
-
-"""
-        % (_now - START_TIME, TIMEOUT),
-        flush=True,
-        end="",
-    )
-    return _now - START_TIME > TIMEOUT
 
 
 def _run_migrator_on_feedstock_branch(
@@ -1264,21 +1253,7 @@ def main(ctx: CliContext) -> None:
     git_backend = github_backend() if not ctx.dry_run else DryRunBackend()
 
     for mg_ind, migrator in enumerate(migrators):
-        good_prs = _run_migrator(
-            migrator, mctx, temp, time_per_migrator[mg_ind], git_backend
-        )
-        if good_prs > 0:
-            pass
-            # this has been causing issues with bad deploys
-            # turning off for now
-            # deploy(
-            #     ctx,
-            #     dirs_to_deploy=[
-            #         "pr_json",
-            #         "pr_info",
-            #         "version_pr_info",
-            #     ],
-            # )
+        _run_migrator(migrator, mctx, temp, time_per_migrator[mg_ind], git_backend)
 
     logger.info("API Calls Remaining: %d", github_backend().get_api_requests_left())
     logger.info("Done")
