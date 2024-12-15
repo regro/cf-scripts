@@ -555,7 +555,7 @@ class MigrationYamlCreator(Migrator):
     ) -> Sequence["PackageName"]:
         """Run the order by number of decedents, ties are resolved by package name"""
         return sorted(
-            graph,
+            list(graph.nodes),
             key=lambda x: (len(nx.descendants(total_graph, x)), RNG.random()),
             reverse=True,
         )
