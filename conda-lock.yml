@@ -1186,39 +1186,39 @@ package:
     version: 1.17.1
   - category: main
     dependencies:
-      python: '>=3.6.1'
+      python: '>=3.9'
     hash:
-      md5: ebb5f5f7dc4f1a3780ef7ea7738db08c
-      sha256: fbc03537a27ef756162c49b1d0608bf7ab12fa5e38ceb8563d6f4859e835ac5c
+      md5: 57df494053e17dce2ac3a0b33e1b2a2e
+      sha256: d5696636733b3c301054b948cdd793f118efacce361d9bd4afb57d5980a9064f
     manager: conda
     name: cfgv
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/noarch/cfgv-3.3.1-pyhd8ed1ab_0.tar.bz2
+    url: https://conda.anaconda.org/conda-forge/noarch/cfgv-3.3.1-pyhd8ed1ab_1.conda
     version: 3.3.1
   - category: main
     dependencies:
-      python: '>=3.6.1'
+      python: '>=3.9'
     hash:
-      md5: ebb5f5f7dc4f1a3780ef7ea7738db08c
-      sha256: fbc03537a27ef756162c49b1d0608bf7ab12fa5e38ceb8563d6f4859e835ac5c
+      md5: 57df494053e17dce2ac3a0b33e1b2a2e
+      sha256: d5696636733b3c301054b948cdd793f118efacce361d9bd4afb57d5980a9064f
     manager: conda
     name: cfgv
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/noarch/cfgv-3.3.1-pyhd8ed1ab_0.tar.bz2
+    url: https://conda.anaconda.org/conda-forge/noarch/cfgv-3.3.1-pyhd8ed1ab_1.conda
     version: 3.3.1
   - category: main
     dependencies:
-      python: '>=3.6.1'
+      python: '>=3.9'
     hash:
-      md5: ebb5f5f7dc4f1a3780ef7ea7738db08c
-      sha256: fbc03537a27ef756162c49b1d0608bf7ab12fa5e38ceb8563d6f4859e835ac5c
+      md5: 57df494053e17dce2ac3a0b33e1b2a2e
+      sha256: d5696636733b3c301054b948cdd793f118efacce361d9bd4afb57d5980a9064f
     manager: conda
     name: cfgv
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/noarch/cfgv-3.3.1-pyhd8ed1ab_0.tar.bz2
+    url: https://conda.anaconda.org/conda-forge/noarch/cfgv-3.3.1-pyhd8ed1ab_1.conda
     version: 3.3.1
   - category: main
     dependencies:
@@ -2006,39 +2006,39 @@ package:
   - category: main
     dependencies: {}
     hash:
-      md5: c155e101f0e0a32cb6cce907abef7c62
-      sha256: 6749a186062c4ea3f2cc905ac34c700413a9340045826111f2fab2acf209b3fb
+      md5: 9e71ffe122d78de507ae0b92bdf6588d
+      sha256: adb9fe51dcf297676c215091dcf338a59bc557aa18a6db9399cc19e8d091cba2
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.12.15.06.34.57-hd8ed1ab_0.conda
-    version: 2024.12.15.06.34.57
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.12.15.16.05.58-hd8ed1ab_0.conda
+    version: 2024.12.15.16.05.58
   - category: main
     dependencies: {}
     hash:
-      md5: c155e101f0e0a32cb6cce907abef7c62
-      sha256: 6749a186062c4ea3f2cc905ac34c700413a9340045826111f2fab2acf209b3fb
+      md5: 9e71ffe122d78de507ae0b92bdf6588d
+      sha256: adb9fe51dcf297676c215091dcf338a59bc557aa18a6db9399cc19e8d091cba2
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.12.15.06.34.57-hd8ed1ab_0.conda
-    version: 2024.12.15.06.34.57
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.12.15.16.05.58-hd8ed1ab_0.conda
+    version: 2024.12.15.16.05.58
   - category: main
     dependencies: {}
     hash:
-      md5: c155e101f0e0a32cb6cce907abef7c62
-      sha256: 6749a186062c4ea3f2cc905ac34c700413a9340045826111f2fab2acf209b3fb
+      md5: 9e71ffe122d78de507ae0b92bdf6588d
+      sha256: adb9fe51dcf297676c215091dcf338a59bc557aa18a6db9399cc19e8d091cba2
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.12.15.06.34.57-hd8ed1ab_0.conda
-    version: 2024.12.15.06.34.57
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.12.15.16.05.58-hd8ed1ab_0.conda
+    version: 2024.12.15.16.05.58
   - category: main
     dependencies:
       click: '>=8'
@@ -9569,14 +9569,14 @@ package:
       pyyaml: '>=5.1'
       virtualenv: '>=20.10.0'
     hash:
-      md5: 5971cc64048943605f352f7f8612de6c
-      sha256: 2490b18ec802d8f085f2de8298a3d275451f7db17769353080dfb121fe386675
+      md5: d0ea6ed474bf7f6db88fc85e6dc809b1
+      sha256: 3cfe4c777f1bb3f869cefd732357c7c657df7f0bba5c11cd64ced21e0b0a2b5b
     manager: conda
     name: pre-commit
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/pre-commit-4.0.1-pyha770c72_0.conda
+      https://conda.anaconda.org/conda-forge/noarch/pre-commit-4.0.1-pyha770c72_1.conda
     version: 4.0.1
   - category: main
     dependencies:
@@ -9587,14 +9587,14 @@ package:
       pyyaml: '>=5.1'
       virtualenv: '>=20.10.0'
     hash:
-      md5: 5971cc64048943605f352f7f8612de6c
-      sha256: 2490b18ec802d8f085f2de8298a3d275451f7db17769353080dfb121fe386675
+      md5: d0ea6ed474bf7f6db88fc85e6dc809b1
+      sha256: 3cfe4c777f1bb3f869cefd732357c7c657df7f0bba5c11cd64ced21e0b0a2b5b
     manager: conda
     name: pre-commit
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/pre-commit-4.0.1-pyha770c72_0.conda
+      https://conda.anaconda.org/conda-forge/noarch/pre-commit-4.0.1-pyha770c72_1.conda
     version: 4.0.1
   - category: main
     dependencies:
@@ -9605,14 +9605,14 @@ package:
       pyyaml: '>=5.1'
       virtualenv: '>=20.10.0'
     hash:
-      md5: 5971cc64048943605f352f7f8612de6c
-      sha256: 2490b18ec802d8f085f2de8298a3d275451f7db17769353080dfb121fe386675
+      md5: d0ea6ed474bf7f6db88fc85e6dc809b1
+      sha256: 3cfe4c777f1bb3f869cefd732357c7c657df7f0bba5c11cd64ced21e0b0a2b5b
     manager: conda
     name: pre-commit
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/pre-commit-4.0.1-pyha770c72_0.conda
+      https://conda.anaconda.org/conda-forge/noarch/pre-commit-4.0.1-pyha770c72_1.conda
     version: 4.0.1
   - category: main
     dependencies:
