@@ -676,7 +676,7 @@ def _compute_time_per_migrator(migrators):
     #   minimum time per migrator * number of migrators
     # it defaults to zero if the total time is less than the minimum time
     # to visit all migrators
-    min_time = len(migrators) * min_time_per_migrator
+    min_time = sum([1 for ntd in num_nodes if ntd > 0]) * min_time_per_migrator
     total_time_for_shares = TIMEOUT - min_time
     if total_time_for_shares < 0.0:
         total_time_for_shares = 0.0
@@ -685,7 +685,10 @@ def _compute_time_per_migrator(migrators):
     # now compute the time per migrator
     time_per_migrator = []
     for i, migrator in enumerate(migrators):
-        time_per_migrator.append(shares[i] * time_per_share + min_time_per_migrator)
+        _tp = shares[i] * time_per_share
+        if num_nodes[i] > 0:
+            _tp += min_time_per_migrator
+        time_per_migrator.append(_tp)
     tot_time_per_migrator = sum(time_per_migrator)
 
     return num_nodes, time_per_migrator, tot_time_per_migrator
