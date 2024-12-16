@@ -248,38 +248,38 @@ package:
     dependencies:
       python: '>=3.9'
     hash:
-      md5: 2018839db45c79654b57a924fcdd27d0
-      sha256: 8488a116dffe204015a90b41982c0270534bd1070f44a00b316d59e4a79ae8c7
+      md5: 356927ace43302bf6f5926e2a58dae6a
+      sha256: 750186af694a7130eaf7119fbb56db0d2326d8995ad5b8eae23c622b85fea29a
     manager: conda
     name: attrs
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/noarch/attrs-24.2.0-pyh71513ae_1.conda
-    version: 24.2.0
+    url: https://conda.anaconda.org/conda-forge/noarch/attrs-24.3.0-pyh71513ae_0.conda
+    version: 24.3.0
   - category: main
     dependencies:
       python: '>=3.9'
     hash:
-      md5: 2018839db45c79654b57a924fcdd27d0
-      sha256: 8488a116dffe204015a90b41982c0270534bd1070f44a00b316d59e4a79ae8c7
+      md5: 356927ace43302bf6f5926e2a58dae6a
+      sha256: 750186af694a7130eaf7119fbb56db0d2326d8995ad5b8eae23c622b85fea29a
     manager: conda
     name: attrs
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/noarch/attrs-24.2.0-pyh71513ae_1.conda
-    version: 24.2.0
+    url: https://conda.anaconda.org/conda-forge/noarch/attrs-24.3.0-pyh71513ae_0.conda
+    version: 24.3.0
   - category: main
     dependencies:
       python: '>=3.9'
     hash:
-      md5: 2018839db45c79654b57a924fcdd27d0
-      sha256: 8488a116dffe204015a90b41982c0270534bd1070f44a00b316d59e4a79ae8c7
+      md5: 356927ace43302bf6f5926e2a58dae6a
+      sha256: 750186af694a7130eaf7119fbb56db0d2326d8995ad5b8eae23c622b85fea29a
     manager: conda
     name: attrs
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/noarch/attrs-24.2.0-pyh71513ae_1.conda
-    version: 24.2.0
+    url: https://conda.anaconda.org/conda-forge/noarch/attrs-24.3.0-pyh71513ae_0.conda
+    version: 24.3.0
   - category: main
     dependencies:
       python: '>=3.9'
@@ -4863,15 +4863,15 @@ package:
       tomli: '>=1.2.2'
       trove-classifiers: ''
     hash:
-      md5: 31c57e2a780803fd44aba9b726398058
-      sha256: bcd1e3b68ed11c11c974c890341ec03784354c68f6e2fcc518eb3ce8e90d452a
+      md5: b85c18ba6e927ae0da3fde426c893cc8
+      sha256: e83420f81390535774ac33b83d05249b8993e5376b76b4d461f83a77549e493d
     manager: conda
     name: hatchling
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/hatchling-1.26.3-pypyhff2d567_0.conda
-    version: 1.26.3
+      https://conda.anaconda.org/conda-forge/noarch/hatchling-1.27.0-pypyhd8ed1ab_0.conda
+    version: 1.27.0
   - category: main
     dependencies:
       editables: '>=0.3'
@@ -4883,15 +4883,15 @@ package:
       tomli: '>=1.2.2'
       trove-classifiers: ''
     hash:
-      md5: 31c57e2a780803fd44aba9b726398058
-      sha256: bcd1e3b68ed11c11c974c890341ec03784354c68f6e2fcc518eb3ce8e90d452a
+      md5: b85c18ba6e927ae0da3fde426c893cc8
+      sha256: e83420f81390535774ac33b83d05249b8993e5376b76b4d461f83a77549e493d
     manager: conda
     name: hatchling
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/hatchling-1.26.3-pypyhff2d567_0.conda
-    version: 1.26.3
+      https://conda.anaconda.org/conda-forge/noarch/hatchling-1.27.0-pypyhd8ed1ab_0.conda
+    version: 1.27.0
   - category: main
     dependencies:
       editables: '>=0.3'
@@ -4903,15 +4903,15 @@ package:
       tomli: '>=1.2.2'
       trove-classifiers: ''
     hash:
-      md5: 31c57e2a780803fd44aba9b726398058
-      sha256: bcd1e3b68ed11c11c974c890341ec03784354c68f6e2fcc518eb3ce8e90d452a
+      md5: b85c18ba6e927ae0da3fde426c893cc8
+      sha256: e83420f81390535774ac33b83d05249b8993e5376b76b4d461f83a77549e493d
     manager: conda
     name: hatchling
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/hatchling-1.26.3-pypyhff2d567_0.conda
-    version: 1.26.3
+      https://conda.anaconda.org/conda-forge/noarch/hatchling-1.27.0-pypyhd8ed1ab_0.conda
+    version: 1.27.0
   - category: main
     dependencies:
       python: '>=3.9'
@@ -12615,42 +12615,42 @@ package:
     version: '2.5'
   - category: main
     dependencies:
-      python: '>=3.7'
+      python: '>=3.9'
     hash:
-      md5: 0f3ae9b96c6072d680c505425515fad1
-      sha256: cb17fc652f2fc22a0d8bce647f239b7a10b002f6b5794447f1f154558f6afc26
+      md5: e04d919bfa5be83554766a310a5758c9
+      sha256: 277d482be0d36e0add9c7c2c526f08cc05141fd2b5cfad058610ba8a8999d65c
     manager: conda
     name: stdlib-list
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/stdlib-list-0.11.0-pyhd8ed1ab_0.conda
+      https://conda.anaconda.org/conda-forge/noarch/stdlib-list-0.11.0-pyhd8ed1ab_1.conda
     version: 0.11.0
   - category: main
     dependencies:
-      python: '>=3.7'
+      python: '>=3.9'
     hash:
-      md5: 0f3ae9b96c6072d680c505425515fad1
-      sha256: cb17fc652f2fc22a0d8bce647f239b7a10b002f6b5794447f1f154558f6afc26
+      md5: e04d919bfa5be83554766a310a5758c9
+      sha256: 277d482be0d36e0add9c7c2c526f08cc05141fd2b5cfad058610ba8a8999d65c
     manager: conda
     name: stdlib-list
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/stdlib-list-0.11.0-pyhd8ed1ab_0.conda
+      https://conda.anaconda.org/conda-forge/noarch/stdlib-list-0.11.0-pyhd8ed1ab_1.conda
     version: 0.11.0
   - category: main
     dependencies:
-      python: '>=3.7'
+      python: '>=3.9'
     hash:
-      md5: 0f3ae9b96c6072d680c505425515fad1
-      sha256: cb17fc652f2fc22a0d8bce647f239b7a10b002f6b5794447f1f154558f6afc26
+      md5: e04d919bfa5be83554766a310a5758c9
+      sha256: 277d482be0d36e0add9c7c2c526f08cc05141fd2b5cfad058610ba8a8999d65c
     manager: conda
     name: stdlib-list
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/stdlib-list-0.11.0-pyhd8ed1ab_0.conda
+      https://conda.anaconda.org/conda-forge/noarch/stdlib-list-0.11.0-pyhd8ed1ab_1.conda
     version: 0.11.0
   - category: main
     dependencies:
