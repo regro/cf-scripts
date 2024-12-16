@@ -845,7 +845,7 @@ def initialize_migrators(
         version_migrator = Version(
             python_nodes=python_nodes,
             graph=gx,
-            pr_limit=PR_LIMIT * 4,
+            pr_limit=PR_LIMIT * 2,
             piggy_back_migrations=_make_mini_migrators_with_defaults(
                 extra_mini_migrators=[
                     PipWheelMigrator(),
