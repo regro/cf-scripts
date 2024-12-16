@@ -4,3 +4,6 @@
 [submodule "tests_integration/definitions/llvmdev/resources/feedstock"]
 	path = tests_integration/definitions/llvmdev/resources/feedstock
 	url = https://github.com/conda-forge/llvmdev-feedstock.git
+[submodule "tests_integration/definitions/pydantic/resources/feedstock"]
+	path = tests_integration/definitions/pydantic/resources/feedstock
+	url = https://github.com/conda-forge/pydantic-feedstock.git
