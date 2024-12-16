@@ -634,40 +634,32 @@ def _compute_time_per_migrator(migrators):
     # the variables below are
     #
     #   num_nodes: the number of nodes available to migrate
-    #   mean_attempts: the mean number of attempts for the migrator's nodes to be done
-    #                  with a maximum of 3 attempts per node used for the penalty
+    #   num_nodes_not_tried: # of nodes that have not been tried too many times
     #   share: the portion of the total time a migrator gets, we apply an absolute minimum
     #          using a fixed number in seconds as well
     #   min_time_per_migrator: the minimum time a migrator gets in seconds
     min_time_per_migrator = 20.0
+    num_nodes_not_tried = []
     num_nodes = []
     shares = []
     for migrator in tqdm.tqdm(migrators, ncols=80, desc="computing time per migrator"):
         pr_limit = getattr(migrator, "pr_limit", PR_LIMIT)
 
-        if isinstance(migrator, Version):
-            # always set the mean attempts to 1 since we
-            # do not penalize the version migrator for retries
-            mean_attempts = 1.0
-        else:
-            mean_attempts = 0.0
-            for node_name in migrator.effective_graph.nodes:
-                with migrator.effective_graph.nodes[node_name]["payload"] as attrs:
-                    mean_attempts += _get_pre_pr_migrator_attempts(
-                        attrs,
-                        migrator_name=get_migrator_name(migrator),
-                        is_version=isinstance(migrator, Version),
-                    )
-            mean_attempts /= max(len(migrator.effective_graph.nodes), 1.0)
-            # here mean attempts is before the migrator has been tried for this
-            # run of the bot, so we have to add 1
-            mean_attempts = min(mean_attempts, 2.0) + 1.0
+        num_to_do = 0.0
+        for node_name in migrator.effective_graph.nodes:
+            with migrator.effective_graph.nodes[node_name]["payload"] as attrs:
+                _attempts = _get_pre_pr_migrator_attempts(
+                    attrs,
+                    migrator_name=get_migrator_name(migrator),
+                    is_version=isinstance(migrator, Version),
+                )
+                if _attempts < getattr(migrator, "max_solver_attempts", 3):
+                    num_to_do += 1.0
 
-        num_to_do = len(migrator.effective_graph.nodes)
-        num_nodes.append(num_to_do)
+        num_nodes_not_tried.append(num_to_do)
+        num_nodes.append(len(migrator.effective_graph.nodes))
 
-        # we allow at most pr_limit but we penalize for lots of attempts
-        _share = min(pr_limit, num_to_do) / mean_attempts
+        _share = min(pr_limit, num_nodes_not_tried)
         shares.append(_share)
 
     tot_shares = sum(shares)
@@ -691,7 +683,7 @@ def _compute_time_per_migrator(migrators):
         time_per_migrator.append(_tp)
     tot_time_per_migrator = sum(time_per_migrator)
 
-    return num_nodes, time_per_migrator, tot_time_per_migrator
+    return num_nodes, time_per_migrator, tot_time_per_migrator, num_nodes_not_tried
 
 
 def _run_migrator_on_feedstock_branch(
@@ -1233,6 +1225,7 @@ def main(ctx: CliContext) -> None:
             num_nodes,
             time_per_migrator,
             tot_time_per_migrator,
+            num_nodes_not_tried,
         ) = _compute_time_per_migrator(
             migrators,
         )
@@ -1243,10 +1236,11 @@ def main(ctx: CliContext) -> None:
                 extra_name = ""
 
             print(
-                "    %s%s: %d - gets %f seconds (%f percent)"
+                "    %s%s: %d to try (%d total left)- gets %f seconds (%f percent)"
                 % (
                     migrator.__class__.__name__,
                     extra_name,
+                    num_nodes_not_tried[i],
                     num_nodes[i],
                     time_per_migrator[i],
                     time_per_migrator[i] / max(tot_time_per_migrator, 1) * 100,
