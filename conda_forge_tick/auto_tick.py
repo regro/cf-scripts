@@ -659,7 +659,7 @@ def _compute_time_per_migrator(migrators):
         num_nodes_not_tried.append(num_to_do)
         num_nodes.append(len(migrator.effective_graph.nodes))
 
-        _share = min(pr_limit, num_nodes_not_tried)
+        _share = min(pr_limit, num_to_do)
         shares.append(_share)
 
     tot_shares = sum(shares)
