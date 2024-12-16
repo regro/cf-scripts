@@ -10,3 +10,7 @@ router = APIRouter()
 def prepare(helper: IntegrationTestHelper):
     feedstock_dir = Path(__file__).parent / "resources" / "feedstock"
     helper.overwrite_feedstock_contents("conda-forge-pinning", feedstock_dir)
+
+
+def validate(helper: IntegrationTestHelper):
+    pass

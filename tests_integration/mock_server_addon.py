@@ -16,7 +16,7 @@ from mitmproxy.addons import asgiapp
 from mitmproxy.http import HTTPFlow
 
 from tests_integration.collect_test_scenarios import get_test_scenario
-from tests_integration.shared import (
+from tests_integration.lib.shared import (
     ENV_TEST_SCENARIO_ID,
     TRANSPARENT_URLS,
     VIRTUAL_PROXY_HOSTNAME,

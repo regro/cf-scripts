@@ -297,6 +297,14 @@ jobs:
           pushd cf-graph
           conda-forge-tick --debug deploy-to-github
 
+      - name: Validate Scenario
+        run: |
+          pushd cf-scripts
+          python -m tests_integration.step_validate
+        env:
+          SCENARIO_ID: ${{ matrix.scenario_id }}
+          TEST_SETUP_TOKEN: ${{ secrets.GH_TOKEN_STAGING_BOT_USER }}
+
       - name: Print Proxy Logs
         if: always()
         run: cat /tmp/mitmproxy.log

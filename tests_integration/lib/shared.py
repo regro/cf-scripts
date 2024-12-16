@@ -1,15 +1,12 @@
 import importlib
 import logging
 import os
-import ssl
 import types
 from collections.abc import Iterator
 from enum import StrEnum
 from pathlib import Path
 
-import httpx
-import truststore
-from fastapi import APIRouter, Request, Response
+from fastapi import APIRouter
 
 
 class GitHubAccount(StrEnum):
@@ -44,14 +41,14 @@ GITHUB_OUTPUT_KEY_SCENARIO_IDS = "scenario_ids"
 TESTS_INTEGRATION_DIR_NAME = "tests_integration"
 DEFINITIONS_DIR_NAME = "definitions"
 
-DEFINITIONS_DIR = Path(__file__).parent / DEFINITIONS_DIR_NAME
+DEFINITIONS_DIR = Path(__file__).parents[1] / DEFINITIONS_DIR_NAME
 
 FEEDSTOCK_SUFFIX = "-feedstock"
 
 TRANSPARENT_URLS = {
     "https://raw.githubusercontent.com/regro/cf-graph-countyfair/master/mappings/pypi/name_mapping.yaml",
     "https://raw.githubusercontent.com/regro/cf-graph-countyfair/master/mappings/pypi/grayskull_pypi_mapping.json",
-    "https://api.github.com/*",  # anything that starts with https://api.github.com/
+    "https://api.github.com/*",
     "https://pypi.io/packages/source/*",  # source archives from PyPI
     "https://api.anaconda.org/package/conda-forge/conda-forge-pinning",
     "https://api.anaconda.org/download/conda-forge/conda-forge-pinning/*",
@@ -59,19 +56,10 @@ TRANSPARENT_URLS = {
 }
 """
 Those URLs are redirected to the actual upstream URLs in the tests.
-"""
+Use Unix filename patterns (provided by fnmatch) to specify wildcards:
 
-ALL_HTTP_METHODS = [
-    "GET",
-    "HEAD",
-    "POST",
-    "PUT",
-    "DELETE",
-    "CONNECT",
-    "OPTIONS",
-    "TRACE",
-    "PATCH",
-]
+https://docs.python.org/3/library/fnmatch.html
+"""
 
 
 def setup_logging(level: int | str):
@@ -103,35 +91,6 @@ def get_test_case_modules(scenario: dict[str, str]) -> Iterator[types.ModuleType
     )
 
 
-def _get_proxy_request_handler():
-    async def handle_redirect(request: Request):
-        # use system CA certificates for better debugging support
-        ssl_context = truststore.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
-        async with httpx.AsyncClient(verify=ssl_context) as client:
-            forward_hostname = request.url.path.split("/")[1]
-            target_url = request.url.replace(
-                scheme="https",
-                port=443,
-                hostname=forward_hostname,
-                path="/".join(request.url.path.split("/")[2:]),
-            )
-            forward_headers = dict(request.headers)
-            forward_headers["host"] = forward_hostname
-            print(request.method + " " + str(target_url))
-            proxy = await client.request(
-                method=request.method,
-                url=str(target_url),
-                headers=forward_headers,
-            )
-        return Response(
-            content=proxy.content,
-            status_code=proxy.status_code,
-            headers=dict(proxy.headers),
-        )
-
-    return handle_redirect
-
-
 def get_global_router():
     """
     Returns the global FastAPI router to be included in all test scenarios.
@@ -145,15 +104,6 @@ def get_global_router():
     @router.get("/cran.r-project.org/src/contrib/Archive/")
     def handle_cran_index_archive():
         return ""
-
-    # for url in TRANSPARENT_URLS:
-    #    assert url.startswith("https://")
-
-    # router.add_route(
-    #    url.replace("https://", "/"),
-    #    _get_proxy_request_handler(),
-    #    methods=ALL_HTTP_METHODS,
-    # )
 
     return router
 

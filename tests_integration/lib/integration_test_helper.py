@@ -1,13 +1,21 @@
 import logging
 import shutil
 import subprocess
+import tempfile
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
+from github import Github
+
+from conda_forge_tick.git_utils import GitCli
 from conda_forge_tick.utils import (
     run_command_hiding_token,
 )
-from tests_integration.shared import FEEDSTOCK_SUFFIX, GitHubAccount, get_github_token
+from tests_integration.lib.shared import (
+    FEEDSTOCK_SUFFIX,
+    GitHubAccount,
+    get_github_token,
+)
 
 LOGGER = logging.getLogger(__name__)
 
@@ -96,4 +104,57 @@ class IntegrationTestHelper:
 
         LOGGER.info(
             f"Repository contents of {repo_name} have been overwritten successfully."
+        )
+
+    @staticmethod
+    def assert_version_pr_present(
+        feedstock: str, new_version: str, new_hash: str, old_version: str, old_hash: str
+    ):
+        """
+        Asserts that the bot has opened a version update PR.
+
+        :param feedstock: The feedstock we expect the PR for, without the -feedstock suffix.
+        :param new_version: The new version that is expected.
+        :param new_hash: The new SHA-256 source artifact hash.
+        :param old_version: The old version of the feedstock, to check that it no longer appears in the recipe.
+        :param old_hash: The old SHA-256 source artifact hash, to check that it no longer appears in the recipe.
+
+        :raises AssertionError: if the assertion fails
+        """
+        gh = Github(get_github_token(GitHubAccount.CONDA_FORGE_ORG))
+
+        full_feedstock_name = feedstock + FEEDSTOCK_SUFFIX
+        repo = gh.get_organization(GitHubAccount.CONDA_FORGE_ORG).get_repo(
+            full_feedstock_name
+        )
+        matching_prs = [
+            pr for pr in repo.get_pulls(state="open") if f"v{new_version}" in pr.title
+        ]
+
+        assert (
+            len(matching_prs) == 1
+        ), f"Found {len(matching_prs)} matching version PRs, but exactly 1 must be present."
+
+        matching_pr = matching_prs[0]
+
+        assert matching_pr.head.repo.owner.login == GitHubAccount.BOT_USER
+        assert matching_pr.head.repo.name == full_feedstock_name
+
+        cli = GitCli()
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            target_dir = Path(tmpdir) / full_feedstock_name
+            cli.clone_repo(matching_pr.head.repo.clone_url, target_dir)
+            cli.checkout_branch(target_dir, matching_pr.head.ref)
+
+            with open(target_dir / "recipe" / "meta.yaml") as f:
+                meta = f.read()
+
+        assert f'{{% set version = "{new_version}" %}}' in meta
+        assert f"sha256: {new_hash}" in meta
+        assert old_version not in meta
+        assert old_hash not in meta
+
+        LOGGER.info(
+            f"Version PR for {feedstock} v{new_version} validated successfully."
         )

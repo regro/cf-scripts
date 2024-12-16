@@ -22,7 +22,7 @@ from tests_integration.collect_test_scenarios import (
     collect_integration_test_cases,
     get_all_test_scenario_ids,
 )
-from tests_integration.shared import (
+from tests_integration.lib.shared import (
     DEFINITIONS_DIR,
     FEEDSTOCK_SUFFIX,
     GITHUB_OUTPUT_KEY_SCENARIO_IDS,

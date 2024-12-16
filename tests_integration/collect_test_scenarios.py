@@ -2,7 +2,7 @@ import collections
 import os
 import random
 
-from tests_integration.shared import DEFINITIONS_DIR, ENV_GITHUB_RUN_ID
+from tests_integration.lib.shared import DEFINITIONS_DIR, ENV_GITHUB_RUN_ID
 
 SKIP_TEST_CASES = {"__init__"}
 

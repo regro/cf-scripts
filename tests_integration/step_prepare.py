@@ -1,8 +1,8 @@
 """
 After closing all open Pull Requests in the conda-forge staging organization,
-runs the prepare() method of all test cases of the current test scenario to prepare the test environment.
+runs the prepare() function of all test cases of the current test scenario to prepare the test environment.
 
-Expects the scenario ID to be present in the environment variable named after ENV_TEST_SCENARIO_ID.
+Expects the scenario ID to be present in the environment variable named SCENARIO_ID.
 """
 
 import logging
@@ -13,7 +13,7 @@ from github import Github
 
 from tests_integration.collect_test_scenarios import get_test_scenario
 from tests_integration.lib.integration_test_helper import IntegrationTestHelper
-from tests_integration.shared import (
+from tests_integration.lib.shared import (
     ENV_TEST_SCENARIO_ID,
     FEEDSTOCK_SUFFIX,
     GitHubAccount,
