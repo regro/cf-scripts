@@ -51,8 +51,10 @@ FEEDSTOCK_SUFFIX = "-feedstock"
 TRANSPARENT_URLS = {
     "https://raw.githubusercontent.com/regro/cf-graph-countyfair/master/mappings/pypi/name_mapping.yaml",
     "https://raw.githubusercontent.com/regro/cf-graph-countyfair/master/mappings/pypi/grayskull_pypi_mapping.json",
-    "https://api.github.com/{path:path}",  # anything that starts with https://api.github.com/
-    "https://pypi.io/packages/source/{path:path}",  # source archives from PyPI
+    "https://api.github.com/*",  # anything that starts with https://api.github.com/
+    "https://pypi.io/packages/source/*",  # source archives from PyPI
+    "https://api.anaconda.org/package/conda-forge/conda-forge-pinning",
+    "https://api.anaconda.org/download/conda-forge/conda-forge-pinning/*",
 }
 """
 Those URLs are redirected to the actual upstream URLs in the tests.
@@ -143,14 +145,14 @@ def get_global_router():
     def handle_cran_index_archive():
         return ""
 
-    for url in TRANSPARENT_URLS:
-        assert url.startswith("https://")
+    # for url in TRANSPARENT_URLS:
+    #    assert url.startswith("https://")
 
-        router.add_route(
-            url.replace("https://", "/"),
-            _get_proxy_request_handler(),
-            methods=ALL_HTTP_METHODS,
-        )
+    # router.add_route(
+    #    url.replace("https://", "/"),
+    #    _get_proxy_request_handler(),
+    #    methods=ALL_HTTP_METHODS,
+    # )
 
     return router
 

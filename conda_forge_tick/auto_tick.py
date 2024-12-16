@@ -82,6 +82,11 @@ TIMEOUT = int(os.environ.get("TIMEOUT", 600))
 # migrator runs on loop so avoid any seeds at current time should that happen
 random.seed(os.urandom(64))
 
+FEEDSTOCK_OWNER = os.environ.get("CF_TICK_OVERRIDE_FEEDSTOCK_OWNER", "conda-forge")
+"""
+Set the CF_TICK_OVERRIDE_FEEDSTOCK_OWNER environment variable to override the GitHub user/org owning the feedstocks.
+"""
+
 
 def _set_pre_pr_migrator_error(attrs, migrator_name, error_str, *, is_version):
     if is_version:
@@ -979,6 +984,7 @@ def _run_migrator(migrator, mctx, temp, time_per, git_backend: GitPlatformBacken
             fctx = FeedstockContext(
                 feedstock_name=attrs["feedstock_name"],
                 attrs=attrs,
+                git_repo_owner=FEEDSTOCK_OWNER,
             )
 
             # map main to current default branch

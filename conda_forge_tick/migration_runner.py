@@ -231,6 +231,7 @@ def run_migration_local(
 
     # it would be better if we don't re-instantiate ClonedFeedstockContext ourselves and let
     # FeedstockContext.reserve_clone_directory be the only way to create a ClonedFeedstockContext
+    # note: git_repo_owner is not set here because we cannot access it
     feedstock_ctx = ClonedFeedstockContext(
         feedstock_name=feedstock_name,
         attrs=node_attrs,
