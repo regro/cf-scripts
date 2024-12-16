@@ -55,6 +55,7 @@ TRANSPARENT_URLS = {
     "https://pypi.io/packages/source/*",  # source archives from PyPI
     "https://api.anaconda.org/package/conda-forge/conda-forge-pinning",
     "https://api.anaconda.org/download/conda-forge/conda-forge-pinning/*",
+    "https://binstar-cio-packages-prod.s3.amazonaws.com/*",
 }
 """
 Those URLs are redirected to the actual upstream URLs in the tests.

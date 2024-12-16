@@ -185,13 +185,13 @@ def prepare_all_accounts():
     setup_infos: list[GitHubAccountSetup] = [
         GitHubAccountSetup(
             GitHubAccount.CONDA_FORGE_ORG,
-            test_feedstock_names,
-            FEEDSTOCK_SUFFIX,
+            target_names=test_feedstock_names,
+            suffix=FEEDSTOCK_SUFFIX,
         ),
         GitHubAccountSetup(
             GitHubAccount.BOT_USER,
-            test_feedstock_names,
-            FEEDSTOCK_SUFFIX,
+            target_names=set(),
+            suffix=FEEDSTOCK_SUFFIX,
             delete_only=True,  # see the top-level comment for the reason
         ),
         GitHubAccountSetup(
