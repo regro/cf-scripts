@@ -292,7 +292,8 @@ present in the current working directory by default, unless the `--online` flag 
 
 > [!TIP]
 > Use the `--online` flag when debugging the bot locally to avoid having to clone the whole
-> dependency graph.
+> dependency graph. With `--no-containers`, you disable the functionality of running sensitive tasks in a Docker
+> container, which may be helpful for debugging.
 
 The local debugging functionality is still work in progress and might not work for all commands.
 Currently, the following commands are supported and tested:
