@@ -455,9 +455,7 @@ def run_with_tmpdir(
         )
 
 
-def _make_and_sync_pr_lazy_json(
-    pr_data: PullRequestData | PullRequestInfoSpecial | None,
-) -> LazyJson:
+def _make_and_sync_pr_lazy_json(pr_data) -> LazyJson:
     if pr_data:
         pr_lazy_json = LazyJson(
             os.path.join("pr_json", f"{pr_data.id}.json"),
