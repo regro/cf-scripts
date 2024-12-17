@@ -455,6 +455,25 @@ def run_with_tmpdir(
         )
 
 
+def _make_and_sync_pr_lazy_json(
+    pr_data: PullRequestData | PullRequestInfoSpecial | None,
+) -> LazyJson:
+    if pr_data:
+        pr_lazy_json = LazyJson(
+            os.path.join("pr_json", f"{pr_data.id}.json"),
+        )
+        with pr_lazy_json as __edit_pr_lazy_json:
+            __edit_pr_lazy_json.update(**pr_data.model_dump(mode="json"))
+
+        if "id" in pr_lazy_json:
+            sync_lazy_json_object(pr_lazy_json, "file", ["github_api"])
+
+    else:
+        pr_lazy_json = False
+
+    return pr_lazy_json
+
+
 def run(
     context: ClonedFeedstockContext,
     migrator: Migrator,
@@ -521,11 +540,28 @@ def run(
 
     if not migration_run_data["migrate_return_value"]:
         logger.critical(
-            "Failed to migrate %s, %s",
+            "Failed to migrate %s: pr_info.bad is '%s'",
             context.feedstock_name,
-            context.attrs.get("pr_info", {}).get("bad"),
+            (context.attrs.get("pr_info", {}) or {}).get("bad", None),
         )
         return False, False
+
+    already_done = migration_run_data["migrate_return_value"].pop("already_done", False)
+
+    if already_done:
+        logger.info(
+            "Migration was already done manually for %s",
+            context.feedstock_name,
+        )
+
+        # spoof this so it looks like the package is done
+        pr_data = get_spoofed_closed_pr_info()
+        pr_lazy_json = _make_and_sync_pr_lazy_json(pr_data)
+        _reset_pre_pr_migrator_fields(
+            context.attrs, migrator_name, is_version=is_version_migration
+        )
+
+        return migration_run_data["migrate_return_value"], pr_lazy_json
 
     # We raise an exception if we don't plan to rerender and wanted an empty commit.
     # This prevents PRs that don't actually get made from getting marked as done.
@@ -605,18 +641,7 @@ def run(
             comment=rerender_info.rerender_comment,
         )
 
-    if pr_data:
-        pr_lazy_json = LazyJson(
-            os.path.join("pr_json", f"{pr_data.id}.json"),
-        )
-        with pr_lazy_json as __edit_pr_lazy_json:
-            __edit_pr_lazy_json.update(**pr_data.model_dump(mode="json"))
-
-        if "id" in pr_lazy_json:
-            sync_lazy_json_object(pr_lazy_json, "file", ["github_api"])
-
-    else:
-        pr_lazy_json = False
+    pr_lazy_json = _make_and_sync_pr_lazy_json(pr_data)
 
     # If we've gotten this far then the node is good
     with context.attrs["pr_info"] as pri:
