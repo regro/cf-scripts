@@ -87,7 +87,7 @@ outputs:
         - if: unix
           then: pkg-config
       run:
-        - mkl ${{ mkl }}
+        - mkl ${{ mkl }}.*
         - libblas * *_mkl
         - if: osx
           then: llvm-openmp
