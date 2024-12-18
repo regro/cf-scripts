@@ -4775,7 +4775,7 @@ package:
       httpx: '>=0.22.0'
       hyperlink: '>=21.0.0'
       keyring: '>=23.5.0'
-      packaging: '>=23.2'
+      packaging: '>=24.2'
       pexpect: '>=4.8,<5'
       platformdirs: '>=2.5.0'
       python: '>=3.9'
@@ -4785,16 +4785,16 @@ package:
       tomlkit: '>=0.11.1'
       userpath: '>=1.7,<2'
       uv: '>=0.1.35'
-      virtualenv: '>=20.26.1'
+      virtualenv: '>=20.26.6'
       zstandard: <1.0
     hash:
-      md5: 80dc9fa62b315216b1d940804fcc5cd4
-      sha256: 8f07e3cde1dabf76ce5141bdc4036774e30e53390f504b685f3d974cb604de98
+      md5: b34bdd91d7298c76d9891cea6c8ab27f
+      sha256: 908fc6e847da57da39011be839db0f56f16428d3d950f49a8c7ac1c9c1ed0505
     manager: conda
     name: hatch
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/noarch/hatch-1.14.0-pyhd8ed1ab_0.conda
+    url: https://conda.anaconda.org/conda-forge/noarch/hatch-1.14.0-pyhd8ed1ab_1.conda
     version: 1.14.0
   - category: main
     dependencies:
@@ -4803,7 +4803,7 @@ package:
       httpx: '>=0.22.0'
       hyperlink: '>=21.0.0'
       keyring: '>=23.5.0'
-      packaging: '>=23.2'
+      packaging: '>=24.2'
       pexpect: '>=4.8,<5'
       platformdirs: '>=2.5.0'
       python: '>=3.9'
@@ -4813,16 +4813,16 @@ package:
       tomlkit: '>=0.11.1'
       userpath: '>=1.7,<2'
       uv: '>=0.1.35'
-      virtualenv: '>=20.26.1'
+      virtualenv: '>=20.26.6'
       zstandard: <1.0
     hash:
-      md5: 80dc9fa62b315216b1d940804fcc5cd4
-      sha256: 8f07e3cde1dabf76ce5141bdc4036774e30e53390f504b685f3d974cb604de98
+      md5: b34bdd91d7298c76d9891cea6c8ab27f
+      sha256: 908fc6e847da57da39011be839db0f56f16428d3d950f49a8c7ac1c9c1ed0505
     manager: conda
     name: hatch
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/noarch/hatch-1.14.0-pyhd8ed1ab_0.conda
+    url: https://conda.anaconda.org/conda-forge/noarch/hatch-1.14.0-pyhd8ed1ab_1.conda
     version: 1.14.0
   - category: main
     dependencies:
@@ -4831,7 +4831,7 @@ package:
       httpx: '>=0.22.0'
       hyperlink: '>=21.0.0'
       keyring: '>=23.5.0'
-      packaging: '>=23.2'
+      packaging: '>=24.2'
       pexpect: '>=4.8,<5'
       platformdirs: '>=2.5.0'
       python: '>=3.9'
@@ -4841,16 +4841,16 @@ package:
       tomlkit: '>=0.11.1'
       userpath: '>=1.7,<2'
       uv: '>=0.1.35'
-      virtualenv: '>=20.26.1'
+      virtualenv: '>=20.26.6'
       zstandard: <1.0
     hash:
-      md5: 80dc9fa62b315216b1d940804fcc5cd4
-      sha256: 8f07e3cde1dabf76ce5141bdc4036774e30e53390f504b685f3d974cb604de98
+      md5: b34bdd91d7298c76d9891cea6c8ab27f
+      sha256: 908fc6e847da57da39011be839db0f56f16428d3d950f49a8c7ac1c9c1ed0505
     manager: conda
     name: hatch
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/noarch/hatch-1.14.0-pyhd8ed1ab_0.conda
+    url: https://conda.anaconda.org/conda-forge/noarch/hatch-1.14.0-pyhd8ed1ab_1.conda
     version: 1.14.0
   - category: main
     dependencies:
@@ -11367,41 +11367,41 @@ package:
       openssl: '>=3.4.0,<4.0a0'
       patchelf: ''
     hash:
-      md5: 2c7c4edf676b6b7be77c38ccad84253c
-      sha256: 6d9a1f1d9aaeccd35d574e526f0cb47d86f5b85bb0fcff0f5a2272ead854f905
+      md5: d52333ba118bb942ce5b279dc32f2f97
+      sha256: 929be274713effd49b4816b4b99b4b5d9534f88bc16b6bb65521f2e676d12c1d
     manager: conda
     name: rattler-build
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/linux-64/rattler-build-0.32.1-h51b9b6e_0.conda
-    version: 0.32.1
+      https://conda.anaconda.org/conda-forge/linux-64/rattler-build-0.33.0-hbcf9e9b_0.conda
+    version: 0.33.0
   - category: main
     dependencies:
       __osx: '>=10.13'
     hash:
-      md5: 283ff18d1d5b5037acf0faa2790cba88
-      sha256: d7abdf660d1e4e9f5e0eee6bf31e0827ba27bedb2be8571e90cff92b7a4a3bfc
+      md5: 58fd47faf88447235b8b18205bc83333
+      sha256: 1ec0d0c8db59c8b7888178e253fb3f299d131aa0e1bc82c1ee3548265c468ca1
     manager: conda
     name: rattler-build
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/osx-64/rattler-build-0.32.1-h0f13631_0.conda
-    version: 0.32.1
+      https://conda.anaconda.org/conda-forge/osx-64/rattler-build-0.33.0-h113f492_0.conda
+    version: 0.33.0
   - category: main
     dependencies:
       __osx: '>=11.0'
     hash:
-      md5: 2f36b462fa14b702434f3d682aa2b005
-      sha256: acef3f8b2b4a9489f91709cc702dbbc6e10dce931a172674a7131df99ce976b1
+      md5: 72902bab0c17edcb6e6f4debd8b2330d
+      sha256: 3cb1e80e64fec466e959d256506c05b25613831b771e5809fd60ea29dd22e4db
     manager: conda
     name: rattler-build
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/osx-arm64/rattler-build-0.32.1-hcbb27f7_0.conda
-    version: 0.32.1
+      https://conda.anaconda.org/conda-forge/osx-arm64/rattler-build-0.33.0-h760a855_0.conda
+    version: 0.33.0
   - category: main
     dependencies:
       conda-build: ''
