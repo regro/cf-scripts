@@ -104,13 +104,13 @@ def try_load_feedstock(name: str, attrs: LazyJson, mark_not_archived=False) -> L
             data["parsing_error"] = False
         attrs.clear()
         attrs.update(data)
-        _add_required_lazy_json_refs(attrs, name)
     except Exception as e:
         import traceback
 
         trb = traceback.format_exc()
         attrs["parsing_error"] = sanitize_string(f"feedstock parsing error: {e}\n{trb}")
-        raise e
+    finally:
+        _add_required_lazy_json_refs(attrs, name)
 
     return attrs
 
