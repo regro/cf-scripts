@@ -413,3 +413,150 @@ class OSXArm(GraphMigrator):
 
     def remote_branch(self, feedstock_ctx: FeedstockContext) -> str:
         return super().remote_branch(feedstock_ctx) + "_arm_osx"
+
+
+class WinArm64(GraphMigrator):
+    """
+    A Migrator that add win-arm64 builds to feedstocks
+    """
+
+    migrator_version = 1
+    rerender = True
+    # We purposefully don't want to bump build number for this migrator
+    bump_number = 0
+    ignored_packages = {}
+    arches = {"win_arm64": "win_64"}
+
+    def __init__(
+        self,
+        graph: nx.DiGraph = None,
+        name: Optional[str] = None,
+        pr_limit: int = 0,
+        piggy_back_migrations: Optional[Sequence[MiniMigrator]] = None,
+        target_packages: Optional[Sequence[str]] = None,
+        effective_graph: nx.DiGraph = None,
+        _do_init: bool = True,
+    ):
+        if _do_init:
+            if target_packages is None:
+                # We are constraining the scope of this migrator
+                with open(
+                    os.path.join(
+                        os.environ["CONDA_PREFIX"],
+                        "share",
+                        "conda-forge",
+                        "migrations",
+                        "win_arm64.txt",
+                    )
+                ) as f:
+                    target_packages = set(f.read().split())
+
+            if "outputs_lut" not in graph.graph:
+                graph.graph["outputs_lut"] = make_outputs_lut_from_graph(graph)
+
+            # rebuild the graph to only use edges from the arm and power requirements
+            graph2 = nx.create_empty_copy(graph)
+            for node, attrs in graph.nodes(data="payload"):
+                for plat_arch in self.arches:
+                    deps = set().union(
+                        *attrs.get(
+                            f"{plat_arch}_requirements",
+                            attrs.get("requirements", {}),
+                        ).values()
+                    )
+                    for dep in get_deps_from_outputs_lut(
+                        deps, graph.graph["outputs_lut"]
+                    ):
+                        graph2.add_edge(dep, node)
+                pass
+
+            graph = graph2
+            target_packages = set(target_packages)
+            if target_packages:
+                target_packages.add("python")  # hack that is ~harmless?
+                _cut_to_target_packages(graph, target_packages)
+
+            # filter out stub packages and ignored packages
+            _filter_stubby_and_ignored_nodes(graph, self.ignored_packages)
+
+        if not hasattr(self, "_init_args"):
+            self._init_args = []
+
+        if not hasattr(self, "_init_kwargs"):
+            self._init_kwargs = {
+                "graph": graph,
+                "name": name,
+                "pr_limit": pr_limit,
+                "piggy_back_migrations": piggy_back_migrations,
+                "target_packages": target_packages,
+                "effective_graph": effective_graph,
+                "_do_init": False,
+            }
+
+        super().__init__(
+            graph=graph,
+            pr_limit=pr_limit,
+            check_solvable=False,
+            piggy_back_migrations=piggy_back_migrations,
+            effective_graph=effective_graph,
+        )
+
+        assert not self.check_solvable, "We don't want to check solvability for aarch!"
+        self.target_packages = target_packages
+        self.name = name
+
+        if _do_init:
+            self._reset_effective_graph()
+
+    def filter(self, attrs: "AttrsTypedDict", not_bad_str_start: str = "") -> bool:
+        if super().filter(attrs):
+            return True
+        muid = frozen_to_json_friendly(self.migrator_uid(attrs))
+        for arch in self.arches:
+            configured_arch = (
+                attrs.get("conda-forge.yml", {}).get("provider", {}).get(arch)
+            )
+            if configured_arch:
+                return muid in _sanitized_muids(
+                    attrs.get("pr_info", {}).get("PRed", []),
+                )
+        else:
+            return False
+
+    def migrate(
+        self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any
+    ) -> "MigrationUidTypedDict":
+        with pushd(recipe_dir + "/.."):
+            self.set_build_number("recipe/meta.yaml")
+            with open("conda-forge.yml") as f:
+                y = yaml_safe_load(f)
+            if "provider" not in y:
+                y["provider"] = {}
+            for k, v in self.arches.items():
+                if k not in y["provider"]:
+                    y["provider"][k] = v
+
+            with open("conda-forge.yml", "w") as f:
+                yaml_safe_dump(y, f)
+
+        return super().migrate(recipe_dir, attrs, **kwargs)
+
+    def pr_title(self, feedstock_ctx: FeedstockContext) -> str:
+        return "Windows ARM Migrator"
+
+    def pr_body(self, feedstock_ctx: ClonedFeedstockContext) -> str:
+        body = super().pr_body(feedstock_ctx)
+        body = body.format(
+            dedent(
+                """\
+        This feedstock is being rebuilt as part of the windows arm migration.
+
+        **Feel free to merge the PR if CI is all green, but please don't close it
+        without reaching out the the ARM Windows team first at <code>@</code>conda-forge/help-win-arm64.**
+        """,
+            ),
+        )
+        return body
+
+    def remote_branch(self, feedstock_ctx: FeedstockContext) -> str:
+        return super().remote_branch(feedstock_ctx) + "_arm_win"
