@@ -204,6 +204,11 @@ def _get_pth_commit_message(pth):
     return msg
 
 
+def _reset_and_restore_file(pth):
+    subprocess.run(["git", "reset", "--", pth], capture_output=True, text=True)
+    subprocess.run(["git", "restore", "--", pth], capture_output=True, text=True)
+
+
 def deploy(ctx: CliContext, dirs_to_deploy: list[str] = None):
     """Deploy the graph to GitHub"""
     if ctx.dry_run:
@@ -306,16 +311,21 @@ def deploy(ctx: CliContext, dirs_to_deploy: list[str] = None):
                     "git delete via API failed - trying via git CLI", exc_info=e
                 )
                 do_git_ops = True
+            else:
+                files_done.add(pth)
 
     else:
         do_git_ops = True
 
+    for pth in files_done:
+        _reset_and_restore_file(pth)
+
+    batch = 0
     if do_git_ops:
         clean_disk_space()
 
         files_to_add = list((set(files_to_add) - files_done) | files_to_try_again)
         n_added = 0
-        batch = 0
         while files_to_add:
             batch += 1
             n_added += _deploy_batch(
@@ -325,3 +335,6 @@ def deploy(ctx: CliContext, dirs_to_deploy: list[str] = None):
             )
 
         print(f"deployed {n_added} files to graph in {batch} batches", flush=True)
+    else:
+        if files_done:
+            _pull_changes(batch)
