@@ -345,8 +345,8 @@ def _is_solvability_check_needed(
         # either the migrator or the feedstock has to request solver checks
         and (migrator_check_solvable or context.check_solvable)
         # we try up to max_pr_attempts times, and then we just skip
-        # the solver check and issue the PR if automerge is off
-        and (_should_automerge(migrator, context) or (pr_attempts < max_pr_attempts))
+        # the solver check and issue the PR
+        and (pr_attempts < max_pr_attempts)
     )
 
 
