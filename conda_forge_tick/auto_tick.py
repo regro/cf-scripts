@@ -47,6 +47,7 @@ from conda_forge_tick.lazy_json_backends import (
 )
 from conda_forge_tick.make_migrators import (
     FORCE_PR_AFTER_SOLVER_ATTEMPTS,
+    PR_ATTEMPT_LIMIT_FACTOR,
     PR_LIMIT,
     load_migrators,
 )
@@ -892,7 +893,7 @@ def _run_migrator_on_feedstock_branch(
     return good_prs, break_loop
 
 
-def _is_migrator_done(_mg_start, good_prs, time_per, pr_limit):
+def _is_migrator_done(_mg_start, good_prs, time_per, pr_limit, tried_prs):
     curr_time = time.time()
     backend = github_backend()
     api_req = backend.get_api_requests_left()
@@ -907,9 +908,17 @@ def _is_migrator_done(_mg_start, good_prs, time_per, pr_limit):
 
     if good_prs >= pr_limit:
         logger.info(
-            "MIGRATOR PR LIMIT: breaking after %d good PRs (limit %d)",
+            "MIGRATOR GOOD PR LIMIT: breaking after %d good PRs (limit %d)",
             good_prs,
             pr_limit,
+        )
+        return True
+
+    if tried_prs >= pr_limit * PR_ATTEMPT_LIMIT_FACTOR:
+        logger.info(
+            "MIGRATOR ATTEMPTED PR LIMIT: breaking after %d attempted PRs (limit %d)",
+            tried_prs,
+            pr_limit * PR_ATTEMPT_LIMIT_FACTOR,
         )
         return True
 
@@ -948,6 +957,7 @@ def _run_migrator(migrator, mctx, temp, time_per, git_backend: GitPlatformBacken
         ),
     ):
         good_prs = 0
+        tried_prs = 0
         effective_graph = migrator.effective_graph
 
         possible_nodes = list(migrator.order(effective_graph, mctx.graph))
@@ -984,7 +994,9 @@ def _run_migrator(migrator, mctx, temp, time_per, git_backend: GitPlatformBacken
             flush=True,
         )
 
-        if _is_migrator_done(_mg_start, good_prs, time_per, migrator.pr_limit):
+        if _is_migrator_done(
+            _mg_start, good_prs, time_per, migrator.pr_limit, tried_prs
+        ):
             return 0
 
     for node_name in possible_nodes:
@@ -1001,7 +1013,9 @@ def _run_migrator(migrator, mctx, temp, time_per, git_backend: GitPlatformBacken
         ):
             # Don't let CI timeout, break ahead of the timeout so we make certain
             # to write to the repo
-            if _is_migrator_done(_mg_start, good_prs, time_per, migrator.pr_limit):
+            if _is_migrator_done(
+                _mg_start, good_prs, time_per, migrator.pr_limit, tried_prs
+            ):
                 break
 
             base_branches = migrator.get_possible_feedstock_branches(attrs)
@@ -1047,6 +1061,7 @@ def _run_migrator(migrator, mctx, temp, time_per, git_backend: GitPlatformBacken
                             base_branch,
                         )
                     ):
+                        tried_prs += 1
                         good_prs, break_loop = _run_migrator_on_feedstock_branch(
                             attrs=attrs,
                             base_branch=base_branch,

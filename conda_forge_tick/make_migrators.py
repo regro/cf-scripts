@@ -97,6 +97,7 @@ logger = logging.getLogger(__name__)
 RNG = secrets.SystemRandom()
 
 PR_LIMIT = 5
+PR_ATTEMPT_LIMIT_FACTOR = 2
 MAX_PR_LIMIT = 20
 MAX_SOLVER_ATTEMPTS = 3
 FORCE_PR_AFTER_SOLVER_ATTEMPTS = 10
