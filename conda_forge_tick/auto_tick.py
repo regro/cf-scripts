@@ -720,6 +720,9 @@ def _run_migrator_on_feedstock_branch(
     good_prs,
 ):
     break_loop = False
+    sync_pr_info = False
+    sync_version_pr_info = False
+    is_version = isinstance(migrator, Version)
     try:
         try:
             fctx.attrs["new_version"] = attrs.get("version_pr_info", {}).get(
@@ -735,6 +738,7 @@ def _run_migrator_on_feedstock_branch(
             )
         finally:
             fctx.attrs.pop("new_version", None)
+
         # if migration successful
         if migrator_uid:
             with attrs["pr_info"] as pri:
@@ -764,7 +768,7 @@ def _run_migrator_on_feedstock_branch(
                         pri["PRed"] = []
                     pri["PRed"].append(d)
 
-                sync_lazy_json_object(pri, "file", ["github_api"])
+            sync_pr_info = True
 
     except (github3.GitHubError, github.GithubException) as e:
         # TODO: pull this down into run() - also check the other exceptions
@@ -790,8 +794,12 @@ def _run_migrator_on_feedstock_branch(
             str(
                 e
             ),  # we do not use any HTML formats here since at one point status page had them
-            is_version=isinstance(migrator, Version),
+            is_version=is_version,
         )
+        if is_version:
+            sync_version_pr_info = True
+        else:
+            sync_pr_info = True
 
     except URLError as e:
         logger.exception("URLError ERROR", exc_info=e)
@@ -804,6 +812,7 @@ def _run_migrator_on_feedstock_branch(
                 "code": getattr(e, "code"),
                 "url": getattr(e, "url"),
             }
+        sync_pr_info = True
 
         _set_pre_pr_migrator_error(
             attrs,
@@ -816,8 +825,14 @@ def _run_migrator_on_feedstock_branch(
                     str(traceback.format_exc()),
                 ),
             ),
-            is_version=isinstance(migrator, Version),
+            is_version=is_version,
         )
+
+        if is_version:
+            sync_version_pr_info = True
+        else:
+            sync_pr_info = True
+
     except Exception as e:
         logger.exception("NON GITHUB ERROR", exc_info=e)
 
@@ -832,6 +847,7 @@ def _run_migrator_on_feedstock_branch(
                         "\n",
                     ),
                 }
+            sync_pr_info = True
 
         if isinstance(e, ContainerRuntimeError):
             _err_str = str(e)
@@ -849,12 +865,29 @@ def _run_migrator_on_feedstock_branch(
                     _err_str,
                 ),
             ),
-            is_version=isinstance(migrator, Version),
+            is_version=is_version,
         )
+
+        if is_version:
+            sync_version_pr_info = True
+        else:
+            sync_pr_info = True
+
     else:
         if migrator_uid:
             # On successful PR add to our counter
             good_prs += 1
+
+    finally:
+        if sync_pr_info:
+            with attrs["pr_info"] as pri:
+                pass
+            sync_lazy_json_object(pri, "file", ["github_api"])
+
+        if sync_version_pr_info:
+            with attrs["version_pr_info"] as vpri:
+                pass
+            sync_lazy_json_object(vpri, "file", ["github_api"])
 
     return good_prs, break_loop
 
