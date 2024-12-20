@@ -921,39 +921,39 @@ package:
     version: 5.5.0
   - category: main
     dependencies:
-      python: '>=3.6'
+      python: '>=3.9'
     hash:
-      md5: 5dfee17f24e2dfd18d7392b48c9351e2
-      sha256: 9b193a4e483c4d0004bc5b88fac7a02516b6311137ab61b8db85aa9741422e35
+      md5: 1efe226b868cf59b8330356c37c8186e
+      sha256: 2560a98e3dc0ff4ff408a199d05922ae10fab2629417c4c4309e4226267cef8c
     manager: conda
     name: cachy
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/noarch/cachy-0.3.0-pyhd8ed1ab_1.tar.bz2
+    url: https://conda.anaconda.org/conda-forge/noarch/cachy-0.3.0-pyhd8ed1ab_2.conda
     version: 0.3.0
   - category: main
     dependencies:
-      python: '>=3.6'
+      python: '>=3.9'
     hash:
-      md5: 5dfee17f24e2dfd18d7392b48c9351e2
-      sha256: 9b193a4e483c4d0004bc5b88fac7a02516b6311137ab61b8db85aa9741422e35
+      md5: 1efe226b868cf59b8330356c37c8186e
+      sha256: 2560a98e3dc0ff4ff408a199d05922ae10fab2629417c4c4309e4226267cef8c
     manager: conda
     name: cachy
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/noarch/cachy-0.3.0-pyhd8ed1ab_1.tar.bz2
+    url: https://conda.anaconda.org/conda-forge/noarch/cachy-0.3.0-pyhd8ed1ab_2.conda
     version: 0.3.0
   - category: main
     dependencies:
-      python: '>=3.6'
+      python: '>=3.9'
     hash:
-      md5: 5dfee17f24e2dfd18d7392b48c9351e2
-      sha256: 9b193a4e483c4d0004bc5b88fac7a02516b6311137ab61b8db85aa9741422e35
+      md5: 1efe226b868cf59b8330356c37c8186e
+      sha256: 2560a98e3dc0ff4ff408a199d05922ae10fab2629417c4c4309e4226267cef8c
     manager: conda
     name: cachy
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/noarch/cachy-0.3.0-pyhd8ed1ab_1.tar.bz2
+    url: https://conda.anaconda.org/conda-forge/noarch/cachy-0.3.0-pyhd8ed1ab_2.conda
     version: 0.3.0
   - category: main
     dependencies:
@@ -1619,15 +1619,15 @@ package:
       truststore: '>=0.8.0'
       zstandard: '>=0.19.0'
     hash:
-      md5: a96ffe80dc7eafe4b7a729c05531cb73
-      sha256: 089612bc705dba5511296cb4e2520e3c32b52fd08aa00a2457e783560bcf97e8
+      md5: feb96c092af4829c3162e27051919bfc
+      sha256: f6cd60ff5009fc4d178782da448816b8fc52e576f097a5628eff469488da6519
     manager: conda
     name: conda
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/linux-64/conda-24.11.1-py311h38be061_0.conda
-    version: 24.11.1
+      https://conda.anaconda.org/conda-forge/linux-64/conda-24.11.2-py311h38be061_0.conda
+    version: 24.11.2
   - category: main
     dependencies:
       archspec: '>=0.2.3'
@@ -1652,15 +1652,15 @@ package:
       truststore: '>=0.8.0'
       zstandard: '>=0.19.0'
     hash:
-      md5: eccf77b0c1aa0c971efa9b94e640e82a
-      sha256: 5f3c5f62d912a03610f7af8577b2a55981e72ee4e88645fdb6c2f72a97d9089a
+      md5: 1a2101275678a77271eae7439b2c92c8
+      sha256: 0d0bb975525278f35e69dfe560c57f89d396bf26575b49292eb6d38edf1b5b99
     manager: conda
     name: conda
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/osx-64/conda-24.11.0-py311h6eed73b_0.conda
-    version: 24.11.0
+      https://conda.anaconda.org/conda-forge/osx-64/conda-24.11.2-py311h6eed73b_0.conda
+    version: 24.11.2
   - category: main
     dependencies:
       archspec: '>=0.2.3'
@@ -1685,15 +1685,15 @@ package:
       truststore: '>=0.8.0'
       zstandard: '>=0.19.0'
     hash:
-      md5: 1bbb222bc04996dc0e7250da52e5ad76
-      sha256: c8534d2637d255345a1b4fe808e2f21b14b581d7350927acd38324c260eed6bc
+      md5: ed749b3be558e879578dcfa4c15b0a6f
+      sha256: 9077d655938dc07711220733a451fa7d88bc1d55674003a426aa14817dc7291e
     manager: conda
     name: conda
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/osx-arm64/conda-24.11.1-py311h267d04e_0.conda
-    version: 24.11.1
+      https://conda.anaconda.org/conda-forge/osx-arm64/conda-24.11.2-py311h267d04e_0.conda
+    version: 24.11.2
   - category: main
     dependencies:
       beautifulsoup4: ''
