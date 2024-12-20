@@ -255,8 +255,8 @@ def _run_rerender(
 
         rerender_comment = textwrap.dedent(
             """
-            Hi! This feedstock was not able to be rerendered after the version update changes. I
-            have pushed the version update changes anyways and am trying to rerender again with this
+            Hi! This feedstock was not able to be rerendered after the bot migration changes. I
+            have pushed the bot migration changes anyways and am trying to rerender again with this
             comment. Hopefully you all can fix this!
 
             @conda-forge-admin rerender
@@ -306,6 +306,7 @@ def _should_automerge(migrator: Migrator, context: FeedstockContext) -> bool:
 def _is_solvability_check_needed(
     migrator: Migrator, context: FeedstockContext, base_branch: str
 ) -> bool:
+    migrator_automerge = getattr(migrator, "automerge", False)
     migrator_check_solvable = getattr(migrator, "check_solvable", True)
     pr_attempts = _get_pre_pr_migrator_attempts(
         context.attrs,
@@ -315,6 +316,7 @@ def _is_solvability_check_needed(
     max_pr_attempts = getattr(
         migrator, "force_pr_after_solver_attempts", FORCE_PR_AFTER_SOLVER_ATTEMPTS
     )
+    should_automerge = _should_automerge(migrator, context)
 
     logger.info(
         textwrap.dedent(
@@ -322,8 +324,8 @@ def _is_solvability_check_needed(
             automerge and check_solvable status/settings:
             automerge:
                 feedstock_automerge: {context.automerge}
-                migrator_automerge: {getattr(migrator, 'automerge', False)}
-                has_automerge: {_should_automerge(migrator, context)} (only considers feedstock if version migration)
+                migrator_automerge: {migrator_automerge}
+                has_automerge: {should_automerge} (== feedstock_automerge if Version migrator)
             check_solvable:
                 feedstock_check_solvable: {context.check_solvable}
                 migrator_check_solvable: {migrator_check_solvable}
@@ -573,31 +575,41 @@ def run(
     )
 
     if rerender:
-        # for version migrations, without check solvable or automerge, we can suppress rerender errors
-        suppress_errors = (
-            is_version_migration
-            and not context.check_solvable
-            and not context.automerge
+        # for migrations where we are skipping solver checks, we can
+        # suppress rerender errors as well
+        suppress_rerender_errors = not _is_solvability_check_needed(
+            migrator, context, base_branch
         )
 
         rerender_info = _run_rerender(
-            git_backend.cli, context, suppress_errors=suppress_errors
+            git_backend.cli, context, suppress_errors=suppress_rerender_errors
         )
     else:
         rerender_info = _RerenderInfo(nontrivial_changes=False)
+        suppress_rerender_errors = False
 
     if not _check_and_process_solvability(migrator, context, base_branch):
         logger.warning("Skipping migration due to solvability check failure")
         return False, False
 
+    # if we will make rerender comment, remove any automerge slugs in the PR title
+    if (
+        rerender_info.rerender_comment
+        and "[bot-automerge]" in migration_run_data["pr_title"]
+    ):
+        migration_run_data["pr_title"] = (
+            migration_run_data["pr_title"].replace("[bot-automerge]", "").strip()
+        )
+
     pr_data: PullRequestData | PullRequestInfoSpecial | None
     """
-    The PR data for the PR that was created. The contents of this variable will be stored in the bot's database.
-    None means: We don't update the PR data.
+    The PR data for the PR that was created. The contents of this variable
+    will be stored in the bot's database. None means: We don't update the PR data.
     """
     if (
         isinstance(migrator, MigrationYaml)
         and not rerender_info.nontrivial_changes
+        and not rerender_info.rerender_comment
         and context.attrs["name"] != "conda-forge-pinning"
     ):
         # spoof this so it looks like the package is done
