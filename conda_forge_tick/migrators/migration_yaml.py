@@ -141,7 +141,7 @@ class MigrationYaml(GraphMigrator):
         ignored_deps_per_node=None,
         max_solver_attempts=3,
         effective_graph: nx.DiGraph = None,
-        force_pr_after_solver_attempts=100,
+        force_pr_after_solver_attempts=10,
         longterm=False,
         paused=False,
         **kwargs: Any,
