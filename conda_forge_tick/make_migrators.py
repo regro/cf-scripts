@@ -98,7 +98,8 @@ RNG = secrets.SystemRandom()
 
 PR_LIMIT = 5
 MAX_PR_LIMIT = 20
-MAX_SOLVER_ATTEMPTS = 50
+MAX_SOLVER_ATTEMPTS = 3
+FORCE_PR_AFTER_SOLVER_ATTEMPTS = 10
 CHECK_SOLVABLE_TIMEOUT = 90  # 90 days
 DEFAULT_MINI_MIGRATORS = [
     CondaForgeYAMLCleanup,
@@ -307,7 +308,7 @@ def add_rebuild_migration_yaml(
     migration_name: str,
     nominal_pr_limit: int = PR_LIMIT,
     max_solver_attempts: int = 3,
-    force_pr_after_solver_attempts: int = MAX_SOLVER_ATTEMPTS * 2,
+    force_pr_after_solver_attempts: int = FORCE_PR_AFTER_SOLVER_ATTEMPTS,
     paused: bool = False,
 ) -> None:
     """Adds rebuild migrator.
@@ -478,14 +479,15 @@ def migration_factory(
             excluded_feedstocks = set(migrator_config.get("exclude", []))
             _pr_limit = min(migrator_config.pop("pr_limit", pr_limit), MAX_PR_LIMIT)
             max_solver_attempts = min(
-                migrator_config.pop("max_solver_attempts", 3),
+                migrator_config.pop("max_solver_attempts", MAX_SOLVER_ATTEMPTS),
                 MAX_SOLVER_ATTEMPTS,
             )
             force_pr_after_solver_attempts = min(
                 migrator_config.pop(
-                    "force_pr_after_solver_attempts", MAX_SOLVER_ATTEMPTS * 2
+                    "force_pr_after_solver_attempts",
+                    FORCE_PR_AFTER_SOLVER_ATTEMPTS,
                 ),
-                MAX_SOLVER_ATTEMPTS * 2,
+                FORCE_PR_AFTER_SOLVER_ATTEMPTS,
             )
 
             if "override_cbc_keys" in migrator_config:

@@ -46,7 +46,7 @@ from conda_forge_tick.lazy_json_backends import (
     sync_lazy_json_object,
 )
 from conda_forge_tick.make_migrators import (
-    MAX_SOLVER_ATTEMPTS,
+    FORCE_PR_AFTER_SOLVER_ATTEMPTS,
     PR_LIMIT,
     load_migrators,
 )
@@ -312,7 +312,7 @@ def _is_solvability_check_needed(
         is_version=isinstance(migrator, Version),
     )
     max_pr_attempts = getattr(
-        migrator, "force_pr_after_solver_attempts", MAX_SOLVER_ATTEMPTS * 2
+        migrator, "force_pr_after_solver_attempts", FORCE_PR_AFTER_SOLVER_ATTEMPTS
     )
 
     logger.info(
@@ -343,7 +343,7 @@ def _is_solvability_check_needed(
         and context.attrs["name"] not in getattr(migrator, "top_level", set())
         # either the migrator or the feedstock has to request solver checks
         and (migrator_check_solvable or context.check_solvable)
-        # we try up to MAX_SOLVER_ATTEMPTS times, and then we just skip
+        # we try up to max_pr_attempts times, and then we just skip
         # the solver check and issue the PR if automerge is off
         and (_should_automerge(migrator, context) or (pr_attempts < max_pr_attempts))
     )

@@ -158,7 +158,7 @@ __migrator:
 
   # The bot will forcibly make PRs for feedstocks that have failed the solver attempts after
   # this many tries.
-  force_pr_after_solver_attempts: 100
+  force_pr_after_solver_attempts: 10
 
   # If `override_cbc_keys` is set to a list, the bot will use this list of packages to
   # determine which feedstocks to migrate as opposed to the changed pins listed below.
