@@ -2006,39 +2006,39 @@ package:
   - category: main
     dependencies: {}
     hash:
-      md5: a94762953f852866b46b79dbcf760f03
-      sha256: da20c7580d88e02a330edbe71de7060535df9030f2ab7e5d3e6000cb0ad7fa74
+      md5: 35982d6215bd61cf6bb5badbaa671c3e
+      sha256: 8e55b6a38017a46d074c33a15b086ae7771c0cebe40a091eceec8544b5df5ec6
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.12.20.19.39.30-hd8ed1ab_0.conda
-    version: 2024.12.20.19.39.30
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.12.21.02.23.47-hd8ed1ab_0.conda
+    version: 2024.12.21.02.23.47
   - category: main
     dependencies: {}
     hash:
-      md5: a94762953f852866b46b79dbcf760f03
-      sha256: da20c7580d88e02a330edbe71de7060535df9030f2ab7e5d3e6000cb0ad7fa74
+      md5: 35982d6215bd61cf6bb5badbaa671c3e
+      sha256: 8e55b6a38017a46d074c33a15b086ae7771c0cebe40a091eceec8544b5df5ec6
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.12.20.19.39.30-hd8ed1ab_0.conda
-    version: 2024.12.20.19.39.30
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.12.21.02.23.47-hd8ed1ab_0.conda
+    version: 2024.12.21.02.23.47
   - category: main
     dependencies: {}
     hash:
-      md5: a94762953f852866b46b79dbcf760f03
-      sha256: da20c7580d88e02a330edbe71de7060535df9030f2ab7e5d3e6000cb0ad7fa74
+      md5: 35982d6215bd61cf6bb5badbaa671c3e
+      sha256: 8e55b6a38017a46d074c33a15b086ae7771c0cebe40a091eceec8544b5df5ec6
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.12.20.19.39.30-hd8ed1ab_0.conda
-    version: 2024.12.20.19.39.30
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.12.21.02.23.47-hd8ed1ab_0.conda
+    version: 2024.12.21.02.23.47
   - category: main
     dependencies:
       click: '>=8'
@@ -3094,39 +3094,39 @@ package:
     version: 2024.12.1
   - category: main
     dependencies:
-      python: '>=3.6'
+      python: '>=3.9'
     hash:
-      md5: bbdb409974cd6cb30071b1d978302726
-      sha256: ae1c13d709c8001331b5b9345e4bcd77e9ae712d25f7958b2ebcbe0b068731b7
+      md5: 0a2014fd9860f8b1eaa0b1f3d3771a08
+      sha256: 5603c7d0321963bb9b4030eadabc3fd7ca6103a38475b4e0ed13ed6d97c86f4e
     manager: conda
     name: distro
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/noarch/distro-1.9.0-pyhd8ed1ab_0.conda
+    url: https://conda.anaconda.org/conda-forge/noarch/distro-1.9.0-pyhd8ed1ab_1.conda
     version: 1.9.0
   - category: main
     dependencies:
-      python: '>=3.6'
+      python: '>=3.9'
     hash:
-      md5: bbdb409974cd6cb30071b1d978302726
-      sha256: ae1c13d709c8001331b5b9345e4bcd77e9ae712d25f7958b2ebcbe0b068731b7
+      md5: 0a2014fd9860f8b1eaa0b1f3d3771a08
+      sha256: 5603c7d0321963bb9b4030eadabc3fd7ca6103a38475b4e0ed13ed6d97c86f4e
     manager: conda
     name: distro
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/noarch/distro-1.9.0-pyhd8ed1ab_0.conda
+    url: https://conda.anaconda.org/conda-forge/noarch/distro-1.9.0-pyhd8ed1ab_1.conda
     version: 1.9.0
   - category: main
     dependencies:
-      python: '>=3.6'
+      python: '>=3.9'
     hash:
-      md5: bbdb409974cd6cb30071b1d978302726
-      sha256: ae1c13d709c8001331b5b9345e4bcd77e9ae712d25f7958b2ebcbe0b068731b7
+      md5: 0a2014fd9860f8b1eaa0b1f3d3771a08
+      sha256: 5603c7d0321963bb9b4030eadabc3fd7ca6103a38475b4e0ed13ed6d97c86f4e
     manager: conda
     name: distro
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/noarch/distro-1.9.0-pyhd8ed1ab_0.conda
+    url: https://conda.anaconda.org/conda-forge/noarch/distro-1.9.0-pyhd8ed1ab_1.conda
     version: 1.9.0
   - category: main
     dependencies:
