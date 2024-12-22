@@ -849,6 +849,15 @@ def _run_migrator_on_feedstock_branch(
     except Exception as e:
         logger.exception("NON GITHUB ERROR", exc_info=e)
 
+        if (
+            isinstance(e, ContainerRuntimeError)
+            and hasattr(e, "traceback")
+            and e.traceback
+        ):
+            _err_tb = str(e.traceback)
+        else:
+            _err_tb = str(traceback.format_exc())
+
         # we don't set bad for rerendering errors
         if (
             "conda smithy rerender -c auto --no-check-uptodate" not in str(e)
@@ -858,16 +867,11 @@ def _run_migrator_on_feedstock_branch(
             with attrs["pr_info"] as pri:
                 pri["bad"] = {
                     "exception": str(e),
-                    "traceback": str(traceback.format_exc()).split(
+                    "traceback": _err_tb.split(
                         "\n",
                     ),
                 }
             sync_pr_info = True
-
-        if isinstance(e, ContainerRuntimeError):
-            _err_str = str(e)
-        else:
-            _err_str = str(traceback.format_exc())
 
         _set_pre_pr_migrator_error(
             attrs,
@@ -877,7 +881,7 @@ def _run_migrator_on_feedstock_branch(
                 % (
                     '<a href="' + get_bot_run_url() + '">bot CI job</a>',
                     base_branch,
-                    _err_str,
+                    _err_tb,
                 ),
             ),
             is_version=is_version,
