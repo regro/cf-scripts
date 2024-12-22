@@ -3348,45 +3348,45 @@ package:
     version: 2.6.4
   - category: main
     dependencies:
-      python: '>=3.6'
+      python: '>=3.9'
       sgmllib3k: ''
     hash:
-      md5: eca844977cc204fcdc50341ca89617a1
-      sha256: 825fb533d832eca8f340d02517f6241ab64e6ea0a39c3a5aa618d9dc43836277
+      md5: 5ee4b7eebc1f6b020903d01604e279c6
+      sha256: c2cebdeb6bcb5dd332141be184245184452a61329be9ff24fb375e5edaff6af3
     manager: conda
     name: feedparser
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/feedparser-6.0.11-pyhd8ed1ab_0.conda
+      https://conda.anaconda.org/conda-forge/noarch/feedparser-6.0.11-pyhd8ed1ab_1.conda
     version: 6.0.11
   - category: main
     dependencies:
-      python: '>=3.6'
+      python: '>=3.9'
       sgmllib3k: ''
     hash:
-      md5: eca844977cc204fcdc50341ca89617a1
-      sha256: 825fb533d832eca8f340d02517f6241ab64e6ea0a39c3a5aa618d9dc43836277
+      md5: 5ee4b7eebc1f6b020903d01604e279c6
+      sha256: c2cebdeb6bcb5dd332141be184245184452a61329be9ff24fb375e5edaff6af3
     manager: conda
     name: feedparser
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/feedparser-6.0.11-pyhd8ed1ab_0.conda
+      https://conda.anaconda.org/conda-forge/noarch/feedparser-6.0.11-pyhd8ed1ab_1.conda
     version: 6.0.11
   - category: main
     dependencies:
-      python: '>=3.6'
+      python: '>=3.9'
       sgmllib3k: ''
     hash:
-      md5: eca844977cc204fcdc50341ca89617a1
-      sha256: 825fb533d832eca8f340d02517f6241ab64e6ea0a39c3a5aa618d9dc43836277
+      md5: 5ee4b7eebc1f6b020903d01604e279c6
+      sha256: c2cebdeb6bcb5dd332141be184245184452a61329be9ff24fb375e5edaff6af3
     manager: conda
     name: feedparser
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/feedparser-6.0.11-pyhd8ed1ab_0.conda
+      https://conda.anaconda.org/conda-forge/noarch/feedparser-6.0.11-pyhd8ed1ab_1.conda
     version: 6.0.11
   - category: main
     dependencies:
@@ -5585,40 +5585,40 @@ package:
       markupsafe: '>=2.0'
       python: '>=3.9'
     hash:
-      md5: 08cce3151bde4ecad7885bd9fb647532
-      sha256: 85a7169c078b8065bd9d121b0e7b99c8b88c42a411314b6ae5fcd81c48c4710a
+      md5: 2752a6ed44105bfb18c9bef1177d9dcd
+      sha256: 98977694b9ecaa3218662f843425f39501f81973c450f995eec68f1803ed71c3
     manager: conda
     name: jinja2
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/noarch/jinja2-3.1.4-pyhd8ed1ab_1.conda
-    version: 3.1.4
+    url: https://conda.anaconda.org/conda-forge/noarch/jinja2-3.1.5-pyhd8ed1ab_0.conda
+    version: 3.1.5
   - category: main
     dependencies:
       markupsafe: '>=2.0'
       python: '>=3.9'
     hash:
-      md5: 08cce3151bde4ecad7885bd9fb647532
-      sha256: 85a7169c078b8065bd9d121b0e7b99c8b88c42a411314b6ae5fcd81c48c4710a
+      md5: 2752a6ed44105bfb18c9bef1177d9dcd
+      sha256: 98977694b9ecaa3218662f843425f39501f81973c450f995eec68f1803ed71c3
     manager: conda
     name: jinja2
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/noarch/jinja2-3.1.4-pyhd8ed1ab_1.conda
-    version: 3.1.4
+    url: https://conda.anaconda.org/conda-forge/noarch/jinja2-3.1.5-pyhd8ed1ab_0.conda
+    version: 3.1.5
   - category: main
     dependencies:
       markupsafe: '>=2.0'
       python: '>=3.9'
     hash:
-      md5: 08cce3151bde4ecad7885bd9fb647532
-      sha256: 85a7169c078b8065bd9d121b0e7b99c8b88c42a411314b6ae5fcd81c48c4710a
+      md5: 2752a6ed44105bfb18c9bef1177d9dcd
+      sha256: 98977694b9ecaa3218662f843425f39501f81973c450f995eec68f1803ed71c3
     manager: conda
     name: jinja2
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/noarch/jinja2-3.1.4-pyhd8ed1ab_1.conda
-    version: 3.1.4
+    url: https://conda.anaconda.org/conda-forge/noarch/jinja2-3.1.5-pyhd8ed1ab_0.conda
+    version: 3.1.5
   - category: main
     dependencies:
       python: '>=3.9'
@@ -7890,41 +7890,44 @@ package:
     version: 2.38.1
   - category: main
     dependencies:
-      libgcc-ng: '>=12'
+      __glibc: '>=2.17,<3.0.a0'
+      libgcc: '>=13'
     hash:
-      md5: b26e8aa824079e1be0294e7152ca4559
-      sha256: 49bc5f6b1e11cb2babf2a2a731d1a680a5e08a858280876a779dbda06c78c35f
+      md5: 63f790534398730f59e1b899c3644d4a
+      sha256: c45283fd3e90df5f0bd3dbcd31f59cdd2b001d424cf30a07223655413b158eaf
     manager: conda
     name: libwebp-base
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/linux-64/libwebp-base-1.4.0-hd590300_0.conda
-    version: 1.4.0
+      https://conda.anaconda.org/conda-forge/linux-64/libwebp-base-1.5.0-h851e524_0.conda
+    version: 1.5.0
   - category: main
-    dependencies: {}
+    dependencies:
+      __osx: '>=10.13'
     hash:
-      md5: b2c0047ea73819d992484faacbbe1c24
-      sha256: 7bafd8f4c637778cd0aa390bf3a894feef0e1fcf6ea6000c7ffc25c4c5a65538
+      md5: 5e0cefc99a231ac46ba21e27ae44689f
+      sha256: 7f110eba04150f1fe5fe297f08fb5b82463eed74d1f068bc67c96637f9c63569
     manager: conda
     name: libwebp-base
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/osx-64/libwebp-base-1.4.0-h10d778d_0.conda
-    version: 1.4.0
+      https://conda.anaconda.org/conda-forge/osx-64/libwebp-base-1.5.0-h6cf52b4_0.conda
+    version: 1.5.0
   - category: main
-    dependencies: {}
+    dependencies:
+      __osx: '>=11.0'
     hash:
-      md5: c0af0edfebe780b19940e94871f1a765
-      sha256: 0d4bad713a512d79bfeb4d61821f447afab8b0792aca823f505ce6b195e9fde5
+      md5: 569466afeb84f90d5bb88c11cc23d746
+      sha256: f8bdb876b4bc8cb5df47c28af29188de8911c3fea4b799a33743500149de3f4a
     manager: conda
     name: libwebp-base
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/osx-arm64/libwebp-base-1.4.0-h93a5062_0.conda
-    version: 1.4.0
+      https://conda.anaconda.org/conda-forge/osx-arm64/libwebp-base-1.5.0-h2471fea_0.conda
+    version: 1.5.0
   - category: main
     dependencies:
       __glibc: '>=2.17,<3.0.a0'
@@ -12656,42 +12659,42 @@ package:
     version: 0.11.0
   - category: main
     dependencies:
-      python: ''
+      python: '>=3.9'
       setuptools: ''
     hash:
-      md5: a07ae164291cd456aa3012f44654a950
-      sha256: 1377c7b0e79cff757df64be25b47c565233d44247d21350b4be458bf965d3fd1
+      md5: 1a75f7cf86fb7549c7a275b498f8d50d
+      sha256: 897802f14de8de4c61a50b17c489c2f44a465dd78286c2a6b55f696092c8807b
     manager: conda
     name: stopit
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/noarch/stopit-1.1.2-py_0.tar.bz2
+    url: https://conda.anaconda.org/conda-forge/noarch/stopit-1.1.2-pyhd8ed1ab_1.conda
     version: 1.1.2
   - category: main
     dependencies:
-      python: ''
+      python: '>=3.9'
       setuptools: ''
     hash:
-      md5: a07ae164291cd456aa3012f44654a950
-      sha256: 1377c7b0e79cff757df64be25b47c565233d44247d21350b4be458bf965d3fd1
+      md5: 1a75f7cf86fb7549c7a275b498f8d50d
+      sha256: 897802f14de8de4c61a50b17c489c2f44a465dd78286c2a6b55f696092c8807b
     manager: conda
     name: stopit
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/noarch/stopit-1.1.2-py_0.tar.bz2
+    url: https://conda.anaconda.org/conda-forge/noarch/stopit-1.1.2-pyhd8ed1ab_1.conda
     version: 1.1.2
   - category: main
     dependencies:
-      python: ''
+      python: '>=3.9'
       setuptools: ''
     hash:
-      md5: a07ae164291cd456aa3012f44654a950
-      sha256: 1377c7b0e79cff757df64be25b47c565233d44247d21350b4be458bf965d3fd1
+      md5: 1a75f7cf86fb7549c7a275b498f8d50d
+      sha256: 897802f14de8de4c61a50b17c489c2f44a465dd78286c2a6b55f696092c8807b
     manager: conda
     name: stopit
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/noarch/stopit-1.1.2-py_0.tar.bz2
+    url: https://conda.anaconda.org/conda-forge/noarch/stopit-1.1.2-pyhd8ed1ab_1.conda
     version: 1.1.2
   - category: main
     dependencies:
