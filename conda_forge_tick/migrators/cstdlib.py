@@ -57,6 +57,11 @@ def _process_section(output_index, attrs, lines):
         except IndexError:
             raise RuntimeError(f"Could not find output {output_index}!")
 
+    # sometimes v0 outputs have requirements that are just lists
+    # these are always run requirements
+    if output_index != -1 and not hasattr(reqs, "get"):
+        reqs = {"run": reqs}
+
     build_reqs = reqs.get("build", set()) or set()
 
     # check if there's a compiler in the output we're processing
