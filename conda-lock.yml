@@ -1357,43 +1357,40 @@ package:
       __unix: ''
       python: '>=3.9'
     hash:
-      md5: cb8e52f28f5e592598190c562e7b5bf1
-      sha256: 1cd5fc6ccdd5141378e51252a7a3810b07fd5a7e6934a5b4a7eccba66566224b
+      md5: f22f4d4970e09d68a10b922cbb0408d3
+      sha256: c920d23cd1fcf565031c679adb62d848af60d6fbb0edc2d50ba475cea4f0d8ab
     manager: conda
     name: click
     optional: false
     platform: linux-64
-    url:
-      https://conda.anaconda.org/conda-forge/noarch/click-8.1.7-unix_pyh707e725_1.conda
-    version: 8.1.7
+    url: https://conda.anaconda.org/conda-forge/noarch/click-8.1.8-pyh707e725_0.conda
+    version: 8.1.8
   - category: main
     dependencies:
       __unix: ''
       python: '>=3.9'
     hash:
-      md5: cb8e52f28f5e592598190c562e7b5bf1
-      sha256: 1cd5fc6ccdd5141378e51252a7a3810b07fd5a7e6934a5b4a7eccba66566224b
+      md5: f22f4d4970e09d68a10b922cbb0408d3
+      sha256: c920d23cd1fcf565031c679adb62d848af60d6fbb0edc2d50ba475cea4f0d8ab
     manager: conda
     name: click
     optional: false
     platform: osx-64
-    url:
-      https://conda.anaconda.org/conda-forge/noarch/click-8.1.7-unix_pyh707e725_1.conda
-    version: 8.1.7
+    url: https://conda.anaconda.org/conda-forge/noarch/click-8.1.8-pyh707e725_0.conda
+    version: 8.1.8
   - category: main
     dependencies:
       __unix: ''
       python: '>=3.9'
     hash:
-      md5: cb8e52f28f5e592598190c562e7b5bf1
-      sha256: 1cd5fc6ccdd5141378e51252a7a3810b07fd5a7e6934a5b4a7eccba66566224b
+      md5: f22f4d4970e09d68a10b922cbb0408d3
+      sha256: c920d23cd1fcf565031c679adb62d848af60d6fbb0edc2d50ba475cea4f0d8ab
     manager: conda
     name: click
     optional: false
     platform: osx-arm64
-    url:
-      https://conda.anaconda.org/conda-forge/noarch/click-8.1.7-unix_pyh707e725_1.conda
-    version: 8.1.7
+    url: https://conda.anaconda.org/conda-forge/noarch/click-8.1.8-pyh707e725_0.conda
+    version: 8.1.8
   - category: main
     dependencies:
       click: ''
@@ -4456,7 +4453,7 @@ package:
       pip: ''
       pkginfo: ''
       progressbar2: '>=3.53.0'
-      python: '>=3.8'
+      python: '>=3.9'
       rapidfuzz: '>=3.0.0'
       requests: ''
       ruamel.yaml: '>=0.16.10'
@@ -4467,13 +4464,13 @@ package:
       tomli: ''
       tomli-w: ''
     hash:
-      md5: 4c78d39f91a349d89f40a7895b171f5a
-      sha256: 419e1b5d4d346e8c20c08e1981b3f65539e65ccbd03099b30b0161e18fb264ab
+      md5: 43a55fdbb5fbe1ff1200c6f91ca1472b
+      sha256: 7b32ea282ddf4c1414e34b27639fc218f956af12fecc9c5ccebb104711ca228a
     manager: conda
     name: grayskull
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/noarch/grayskull-2.7.3-pyhd8ed1ab_0.conda
+    url: https://conda.anaconda.org/conda-forge/noarch/grayskull-2.7.3-pyhd8ed1ab_1.conda
     version: 2.7.3
   - category: main
     dependencies:
@@ -4484,7 +4481,7 @@ package:
       pip: ''
       pkginfo: ''
       progressbar2: '>=3.53.0'
-      python: '>=3.8'
+      python: '>=3.9'
       rapidfuzz: '>=3.0.0'
       requests: ''
       ruamel.yaml: '>=0.16.10'
@@ -4495,13 +4492,13 @@ package:
       tomli: ''
       tomli-w: ''
     hash:
-      md5: 4c78d39f91a349d89f40a7895b171f5a
-      sha256: 419e1b5d4d346e8c20c08e1981b3f65539e65ccbd03099b30b0161e18fb264ab
+      md5: 43a55fdbb5fbe1ff1200c6f91ca1472b
+      sha256: 7b32ea282ddf4c1414e34b27639fc218f956af12fecc9c5ccebb104711ca228a
     manager: conda
     name: grayskull
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/noarch/grayskull-2.7.3-pyhd8ed1ab_0.conda
+    url: https://conda.anaconda.org/conda-forge/noarch/grayskull-2.7.3-pyhd8ed1ab_1.conda
     version: 2.7.3
   - category: main
     dependencies:
@@ -4512,7 +4509,7 @@ package:
       pip: ''
       pkginfo: ''
       progressbar2: '>=3.53.0'
-      python: '>=3.8'
+      python: '>=3.9'
       rapidfuzz: '>=3.0.0'
       requests: ''
       ruamel.yaml: '>=0.16.10'
@@ -4523,13 +4520,13 @@ package:
       tomli: ''
       tomli-w: ''
     hash:
-      md5: 4c78d39f91a349d89f40a7895b171f5a
-      sha256: 419e1b5d4d346e8c20c08e1981b3f65539e65ccbd03099b30b0161e18fb264ab
+      md5: 43a55fdbb5fbe1ff1200c6f91ca1472b
+      sha256: 7b32ea282ddf4c1414e34b27639fc218f956af12fecc9c5ccebb104711ca228a
     manager: conda
     name: grayskull
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/noarch/grayskull-2.7.3-pyhd8ed1ab_0.conda
+    url: https://conda.anaconda.org/conda-forge/noarch/grayskull-2.7.3-pyhd8ed1ab_1.conda
     version: 2.7.3
   - category: main
     dependencies:
