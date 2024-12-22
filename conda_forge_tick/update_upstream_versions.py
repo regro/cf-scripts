@@ -325,9 +325,6 @@ def _update_upstream_versions_sequential(
 ) -> None:
     node_count = 0
     for node, attrs in to_update:
-        if RNG.random() >= RANDOM_FRAC_TO_UPDATE:
-            continue
-
         # checking each node
         version_data: Dict[str, Union[Literal[False], str]] = {}
 
