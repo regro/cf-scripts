@@ -2,6 +2,8 @@ name: bot-migrate-schema
 
 on:
   workflow_dispatch: null
+  schedule:
+    - cron: '45 */2 * * *'
 
 concurrency: bot-update-nodes
 
