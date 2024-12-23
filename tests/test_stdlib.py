@@ -48,6 +48,10 @@ VERSION_WITH_STDLIB = Version(
         ("gz-common", "5_5.6.0", False),
         # test recipe with quoting
         ("libhdbpp-timescale", "2.1.0", False),
+        # test section before build
+        ("unicorn", "2.0.1.post1", False),
+        # commented compiler dep
+        ("pysyntect", "0.3.0", False),
     ],
 )
 def test_stdlib(feedstock, new_ver, expect_cbc, tmpdir):
