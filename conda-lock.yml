@@ -4464,14 +4464,14 @@ package:
       tomli: ''
       tomli-w: ''
     hash:
-      md5: 43a55fdbb5fbe1ff1200c6f91ca1472b
-      sha256: 7b32ea282ddf4c1414e34b27639fc218f956af12fecc9c5ccebb104711ca228a
+      md5: 29917cbe825ebbc43c8d03fcb2bb9f6e
+      sha256: dbeb91007288823cb0b5dd4f161cb070c83da609a098e0861c7fadf654b6fc97
     manager: conda
     name: grayskull
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/noarch/grayskull-2.7.3-pyhd8ed1ab_1.conda
-    version: 2.7.3
+    url: https://conda.anaconda.org/conda-forge/noarch/grayskull-2.7.4-pyhd8ed1ab_0.conda
+    version: 2.7.4
   - category: main
     dependencies:
       beautifulsoup4: ''
@@ -4492,14 +4492,14 @@ package:
       tomli: ''
       tomli-w: ''
     hash:
-      md5: 43a55fdbb5fbe1ff1200c6f91ca1472b
-      sha256: 7b32ea282ddf4c1414e34b27639fc218f956af12fecc9c5ccebb104711ca228a
+      md5: 29917cbe825ebbc43c8d03fcb2bb9f6e
+      sha256: dbeb91007288823cb0b5dd4f161cb070c83da609a098e0861c7fadf654b6fc97
     manager: conda
     name: grayskull
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/noarch/grayskull-2.7.3-pyhd8ed1ab_1.conda
-    version: 2.7.3
+    url: https://conda.anaconda.org/conda-forge/noarch/grayskull-2.7.4-pyhd8ed1ab_0.conda
+    version: 2.7.4
   - category: main
     dependencies:
       beautifulsoup4: ''
@@ -4520,14 +4520,14 @@ package:
       tomli: ''
       tomli-w: ''
     hash:
-      md5: 43a55fdbb5fbe1ff1200c6f91ca1472b
-      sha256: 7b32ea282ddf4c1414e34b27639fc218f956af12fecc9c5ccebb104711ca228a
+      md5: 29917cbe825ebbc43c8d03fcb2bb9f6e
+      sha256: dbeb91007288823cb0b5dd4f161cb070c83da609a098e0861c7fadf654b6fc97
     manager: conda
     name: grayskull
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/noarch/grayskull-2.7.3-pyhd8ed1ab_1.conda
-    version: 2.7.3
+    url: https://conda.anaconda.org/conda-forge/noarch/grayskull-2.7.4-pyhd8ed1ab_0.conda
+    version: 2.7.4
   - category: main
     dependencies:
       __glibc: '>=2.17,<3.0.a0'
