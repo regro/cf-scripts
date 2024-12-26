@@ -4458,20 +4458,19 @@ package:
       requests: ''
       ruamel.yaml: '>=0.16.10'
       ruamel.yaml.jinja2: ''
-      semver: '>=3.0.0,<3.1.dev0'
       setuptools: '>=30.3.0'
       stdlib-list: ''
       tomli: ''
       tomli-w: ''
     hash:
-      md5: 29917cbe825ebbc43c8d03fcb2bb9f6e
-      sha256: dbeb91007288823cb0b5dd4f161cb070c83da609a098e0861c7fadf654b6fc97
+      md5: ed33838ff4101f964c7d1fa85a12e616
+      sha256: ba757054a2db5e477b07c5bcb8fcfa1385f8e7ab0f827f37c2977673a9897448
     manager: conda
     name: grayskull
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/noarch/grayskull-2.7.4-pyhd8ed1ab_0.conda
-    version: 2.7.4
+    url: https://conda.anaconda.org/conda-forge/noarch/grayskull-2.7.5-pyhd8ed1ab_0.conda
+    version: 2.7.5
   - category: main
     dependencies:
       beautifulsoup4: ''
@@ -4486,20 +4485,19 @@ package:
       requests: ''
       ruamel.yaml: '>=0.16.10'
       ruamel.yaml.jinja2: ''
-      semver: '>=3.0.0,<3.1.dev0'
       setuptools: '>=30.3.0'
       stdlib-list: ''
       tomli: ''
       tomli-w: ''
     hash:
-      md5: 29917cbe825ebbc43c8d03fcb2bb9f6e
-      sha256: dbeb91007288823cb0b5dd4f161cb070c83da609a098e0861c7fadf654b6fc97
+      md5: ed33838ff4101f964c7d1fa85a12e616
+      sha256: ba757054a2db5e477b07c5bcb8fcfa1385f8e7ab0f827f37c2977673a9897448
     manager: conda
     name: grayskull
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/noarch/grayskull-2.7.4-pyhd8ed1ab_0.conda
-    version: 2.7.4
+    url: https://conda.anaconda.org/conda-forge/noarch/grayskull-2.7.5-pyhd8ed1ab_0.conda
+    version: 2.7.5
   - category: main
     dependencies:
       beautifulsoup4: ''
@@ -4514,20 +4512,19 @@ package:
       requests: ''
       ruamel.yaml: '>=0.16.10'
       ruamel.yaml.jinja2: ''
-      semver: '>=3.0.0,<3.1.dev0'
       setuptools: '>=30.3.0'
       stdlib-list: ''
       tomli: ''
       tomli-w: ''
     hash:
-      md5: 29917cbe825ebbc43c8d03fcb2bb9f6e
-      sha256: dbeb91007288823cb0b5dd4f161cb070c83da609a098e0861c7fadf654b6fc97
+      md5: ed33838ff4101f964c7d1fa85a12e616
+      sha256: ba757054a2db5e477b07c5bcb8fcfa1385f8e7ab0f827f37c2977673a9897448
     manager: conda
     name: grayskull
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/noarch/grayskull-2.7.4-pyhd8ed1ab_0.conda
-    version: 2.7.4
+    url: https://conda.anaconda.org/conda-forge/noarch/grayskull-2.7.5-pyhd8ed1ab_0.conda
+    version: 2.7.5
   - category: main
     dependencies:
       __glibc: '>=2.17,<3.0.a0'
@@ -12169,42 +12166,6 @@ package:
     url:
       https://conda.anaconda.org/conda-forge/linux-64/secretstorage-3.3.3-py311h38be061_3.conda
     version: 3.3.3
-  - category: main
-    dependencies:
-      python: '>=3.9'
-    hash:
-      md5: ed39b4a7d7e9294cd8fa1ca05d5bd06b
-      sha256: eb0ea2df6124615038b064ce00fa61e85b0860444496cfc208c78fb23bbb87ab
-    manager: conda
-    name: semver
-    optional: false
-    platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/noarch/semver-3.0.2-pyhd8ed1ab_1.conda
-    version: 3.0.2
-  - category: main
-    dependencies:
-      python: '>=3.9'
-    hash:
-      md5: ed39b4a7d7e9294cd8fa1ca05d5bd06b
-      sha256: eb0ea2df6124615038b064ce00fa61e85b0860444496cfc208c78fb23bbb87ab
-    manager: conda
-    name: semver
-    optional: false
-    platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/noarch/semver-3.0.2-pyhd8ed1ab_1.conda
-    version: 3.0.2
-  - category: main
-    dependencies:
-      python: '>=3.9'
-    hash:
-      md5: ed39b4a7d7e9294cd8fa1ca05d5bd06b
-      sha256: eb0ea2df6124615038b064ce00fa61e85b0860444496cfc208c78fb23bbb87ab
-    manager: conda
-    name: semver
-    optional: false
-    platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/noarch/semver-3.0.2-pyhd8ed1ab_1.conda
-    version: 3.0.2
   - category: main
     dependencies:
       python: '>=3.9'
