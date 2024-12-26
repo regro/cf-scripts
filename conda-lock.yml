@@ -2003,39 +2003,39 @@ package:
   - category: main
     dependencies: {}
     hash:
-      md5: 103c70dac94949838a14040e499a7deb
-      sha256: 5f6c92441ef49538eba74464c8021933e38571667d88e695fac68be6e129e8c2
+      md5: 711d662998ef45d626f18735442986aa
+      sha256: 9cbdace05a3983df20ca16a957037935a20cdab63806c30b51e054b267aab855
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.12.26.03.25.00-hd8ed1ab_0.conda
-    version: 2024.12.26.03.25.00
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.12.26.18.39.45-hd8ed1ab_0.conda
+    version: 2024.12.26.18.39.45
   - category: main
     dependencies: {}
     hash:
-      md5: 103c70dac94949838a14040e499a7deb
-      sha256: 5f6c92441ef49538eba74464c8021933e38571667d88e695fac68be6e129e8c2
+      md5: 711d662998ef45d626f18735442986aa
+      sha256: 9cbdace05a3983df20ca16a957037935a20cdab63806c30b51e054b267aab855
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.12.26.03.25.00-hd8ed1ab_0.conda
-    version: 2024.12.26.03.25.00
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.12.26.18.39.45-hd8ed1ab_0.conda
+    version: 2024.12.26.18.39.45
   - category: main
     dependencies: {}
     hash:
-      md5: 103c70dac94949838a14040e499a7deb
-      sha256: 5f6c92441ef49538eba74464c8021933e38571667d88e695fac68be6e129e8c2
+      md5: 711d662998ef45d626f18735442986aa
+      sha256: 9cbdace05a3983df20ca16a957037935a20cdab63806c30b51e054b267aab855
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.12.26.03.25.00-hd8ed1ab_0.conda
-    version: 2024.12.26.03.25.00
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.12.26.18.39.45-hd8ed1ab_0.conda
+    version: 2024.12.26.18.39.45
   - category: main
     dependencies:
       click: '>=8'
@@ -5842,14 +5842,14 @@ package:
       python: '>=3.9'
       secretstorage: '>=3.2'
     hash:
-      md5: 8067b23a97d7ee4bb0fd81500ba4bbe3
-      sha256: 0f15886df2dfdd7474fc15b9bf890669cbfd0becb0072eafb9a3ba1e949d9a57
+      md5: cdd58ab99c214b55d56099108a914282
+      sha256: b6f57c17cf098022c32fe64e85e9615d427a611c48a5947cdfc357490210a124
     manager: conda
     name: keyring
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/noarch/keyring-25.5.0-pyha804496_1.conda
-    version: 25.5.0
+    url: https://conda.anaconda.org/conda-forge/noarch/keyring-25.6.0-pyha804496_0.conda
+    version: 25.6.0
   - category: main
     dependencies:
       __osx: ''
@@ -5860,14 +5860,14 @@ package:
       jaraco.functools: ''
       python: '>=3.9'
     hash:
-      md5: 339563eac6844e73dc51563da2604b53
-      sha256: 711983a6f4640038ea05137c5baefe9b46f0baf9e34dd3df5d0321473155fa7c
+      md5: d2c0c5bda93c249f877c7fceea9e63af
+      sha256: c8b436fa9853bf8b836c96afbb7684a04955b80b37f5d5285fd836b6a8566cc5
     manager: conda
     name: keyring
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/noarch/keyring-25.5.0-pyh534df25_1.conda
-    version: 25.5.0
+    url: https://conda.anaconda.org/conda-forge/noarch/keyring-25.6.0-pyh534df25_0.conda
+    version: 25.6.0
   - category: main
     dependencies:
       __osx: ''
@@ -5878,14 +5878,14 @@ package:
       jaraco.functools: ''
       python: '>=3.9'
     hash:
-      md5: 339563eac6844e73dc51563da2604b53
-      sha256: 711983a6f4640038ea05137c5baefe9b46f0baf9e34dd3df5d0321473155fa7c
+      md5: d2c0c5bda93c249f877c7fceea9e63af
+      sha256: c8b436fa9853bf8b836c96afbb7684a04955b80b37f5d5285fd836b6a8566cc5
     manager: conda
     name: keyring
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/noarch/keyring-25.5.0-pyh534df25_1.conda
-    version: 25.5.0
+    url: https://conda.anaconda.org/conda-forge/noarch/keyring-25.6.0-pyh534df25_0.conda
+    version: 25.6.0
   - category: main
     dependencies:
       libgcc-ng: '>=10.3.0'
