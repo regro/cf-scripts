@@ -4463,14 +4463,14 @@ package:
       tomli: ''
       tomli-w: ''
     hash:
-      md5: ed33838ff4101f964c7d1fa85a12e616
-      sha256: ba757054a2db5e477b07c5bcb8fcfa1385f8e7ab0f827f37c2977673a9897448
+      md5: 0dcc39e5a77b0f84a63cfe303c5bfea6
+      sha256: 3b0c678f7353f0b6554f3995735e6bb5a513f775a308e8252194f8fd5c26a9b4
     manager: conda
     name: grayskull
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/noarch/grayskull-2.7.5-pyhd8ed1ab_0.conda
-    version: 2.7.5
+    url: https://conda.anaconda.org/conda-forge/noarch/grayskull-2.7.6-pyhd8ed1ab_0.conda
+    version: 2.7.6
   - category: main
     dependencies:
       beautifulsoup4: ''
@@ -4490,14 +4490,14 @@ package:
       tomli: ''
       tomli-w: ''
     hash:
-      md5: ed33838ff4101f964c7d1fa85a12e616
-      sha256: ba757054a2db5e477b07c5bcb8fcfa1385f8e7ab0f827f37c2977673a9897448
+      md5: 0dcc39e5a77b0f84a63cfe303c5bfea6
+      sha256: 3b0c678f7353f0b6554f3995735e6bb5a513f775a308e8252194f8fd5c26a9b4
     manager: conda
     name: grayskull
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/noarch/grayskull-2.7.5-pyhd8ed1ab_0.conda
-    version: 2.7.5
+    url: https://conda.anaconda.org/conda-forge/noarch/grayskull-2.7.6-pyhd8ed1ab_0.conda
+    version: 2.7.6
   - category: main
     dependencies:
       beautifulsoup4: ''
@@ -4517,14 +4517,14 @@ package:
       tomli: ''
       tomli-w: ''
     hash:
-      md5: ed33838ff4101f964c7d1fa85a12e616
-      sha256: ba757054a2db5e477b07c5bcb8fcfa1385f8e7ab0f827f37c2977673a9897448
+      md5: 0dcc39e5a77b0f84a63cfe303c5bfea6
+      sha256: 3b0c678f7353f0b6554f3995735e6bb5a513f775a308e8252194f8fd5c26a9b4
     manager: conda
     name: grayskull
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/noarch/grayskull-2.7.5-pyhd8ed1ab_0.conda
-    version: 2.7.5
+    url: https://conda.anaconda.org/conda-forge/noarch/grayskull-2.7.6-pyhd8ed1ab_0.conda
+    version: 2.7.6
   - category: main
     dependencies:
       __glibc: '>=2.17,<3.0.a0'
@@ -5211,40 +5211,40 @@ package:
       python: '>=3.9'
       ukkonen: ''
     hash:
-      md5: af684ea869a37193a5c116a9aabf659a
-      sha256: cea6b39c4bedef6fefd296d0b153ff1c853ec0754cf8cd2fd165685e1e6fb56d
+      md5: 5ec16e7ad9bab911ff0696940953f505
+      sha256: 8acc3bfc7781ea1ddc8c013faff5106a0539e5671e31bee0d81011a1e2df20d8
     manager: conda
     name: identify
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/noarch/identify-2.6.3-pyhd8ed1ab_1.conda
-    version: 2.6.3
+    url: https://conda.anaconda.org/conda-forge/noarch/identify-2.6.4-pyhd8ed1ab_0.conda
+    version: 2.6.4
   - category: main
     dependencies:
       python: '>=3.9'
       ukkonen: ''
     hash:
-      md5: af684ea869a37193a5c116a9aabf659a
-      sha256: cea6b39c4bedef6fefd296d0b153ff1c853ec0754cf8cd2fd165685e1e6fb56d
+      md5: 5ec16e7ad9bab911ff0696940953f505
+      sha256: 8acc3bfc7781ea1ddc8c013faff5106a0539e5671e31bee0d81011a1e2df20d8
     manager: conda
     name: identify
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/noarch/identify-2.6.3-pyhd8ed1ab_1.conda
-    version: 2.6.3
+    url: https://conda.anaconda.org/conda-forge/noarch/identify-2.6.4-pyhd8ed1ab_0.conda
+    version: 2.6.4
   - category: main
     dependencies:
       python: '>=3.9'
       ukkonen: ''
     hash:
-      md5: af684ea869a37193a5c116a9aabf659a
-      sha256: cea6b39c4bedef6fefd296d0b153ff1c853ec0754cf8cd2fd165685e1e6fb56d
+      md5: 5ec16e7ad9bab911ff0696940953f505
+      sha256: 8acc3bfc7781ea1ddc8c013faff5106a0539e5671e31bee0d81011a1e2df20d8
     manager: conda
     name: identify
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/noarch/identify-2.6.3-pyhd8ed1ab_1.conda
-    version: 2.6.3
+    url: https://conda.anaconda.org/conda-forge/noarch/identify-2.6.4-pyhd8ed1ab_0.conda
+    version: 2.6.4
   - category: main
     dependencies:
       python: '>=3.9'
