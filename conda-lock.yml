@@ -2003,39 +2003,39 @@ package:
   - category: main
     dependencies: {}
     hash:
-      md5: 725ab6e0d68a455a7b6027a6dfd371c2
-      sha256: 81f4f8274092ca75e024f35b537a6bbc45182375df9f84f823a87ccdc2ab9aa7
+      md5: 82aec143fbab32c8d7196592f93b0059
+      sha256: f6de1b4d1de5372affec0a9aebf12e7ea43e8c5c9c11b9a5c634dac8578b3b94
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.12.31.06.17.53-hd8ed1ab_0.conda
-    version: 2024.12.31.06.17.53
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.12.31.18.36.35-hd8ed1ab_0.conda
+    version: 2024.12.31.18.36.35
   - category: main
     dependencies: {}
     hash:
-      md5: 725ab6e0d68a455a7b6027a6dfd371c2
-      sha256: 81f4f8274092ca75e024f35b537a6bbc45182375df9f84f823a87ccdc2ab9aa7
+      md5: 82aec143fbab32c8d7196592f93b0059
+      sha256: f6de1b4d1de5372affec0a9aebf12e7ea43e8c5c9c11b9a5c634dac8578b3b94
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.12.31.06.17.53-hd8ed1ab_0.conda
-    version: 2024.12.31.06.17.53
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.12.31.18.36.35-hd8ed1ab_0.conda
+    version: 2024.12.31.18.36.35
   - category: main
     dependencies: {}
     hash:
-      md5: 725ab6e0d68a455a7b6027a6dfd371c2
-      sha256: 81f4f8274092ca75e024f35b537a6bbc45182375df9f84f823a87ccdc2ab9aa7
+      md5: 82aec143fbab32c8d7196592f93b0059
+      sha256: f6de1b4d1de5372affec0a9aebf12e7ea43e8c5c9c11b9a5c634dac8578b3b94
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.12.31.06.17.53-hd8ed1ab_0.conda
-    version: 2024.12.31.06.17.53
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2024.12.31.18.36.35-hd8ed1ab_0.conda
+    version: 2024.12.31.18.36.35
   - category: main
     dependencies:
       click: '>=8'
@@ -13075,41 +13075,41 @@ package:
   - category: main
     dependencies:
       colorama: ''
-      python: '>=3.7'
+      python: '>=3.9'
     hash:
-      md5: 4085c9db273a148e149c03627350e22c
-      sha256: 5673b7104350a6998cb86cccf1d0058217d86950e8d6c927d8530606028edb1d
+      md5: 9efbfdc37242619130ea42b1cc4ed861
+      sha256: 11e2c85468ae9902d24a27137b6b39b4a78099806e551d390e394a8c34b48e40
     manager: conda
     name: tqdm
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/noarch/tqdm-4.67.1-pyhd8ed1ab_0.conda
+    url: https://conda.anaconda.org/conda-forge/noarch/tqdm-4.67.1-pyhd8ed1ab_1.conda
     version: 4.67.1
   - category: main
     dependencies:
       colorama: ''
-      python: '>=3.7'
+      python: '>=3.9'
     hash:
-      md5: 4085c9db273a148e149c03627350e22c
-      sha256: 5673b7104350a6998cb86cccf1d0058217d86950e8d6c927d8530606028edb1d
+      md5: 9efbfdc37242619130ea42b1cc4ed861
+      sha256: 11e2c85468ae9902d24a27137b6b39b4a78099806e551d390e394a8c34b48e40
     manager: conda
     name: tqdm
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/noarch/tqdm-4.67.1-pyhd8ed1ab_0.conda
+    url: https://conda.anaconda.org/conda-forge/noarch/tqdm-4.67.1-pyhd8ed1ab_1.conda
     version: 4.67.1
   - category: main
     dependencies:
       colorama: ''
-      python: '>=3.7'
+      python: '>=3.9'
     hash:
-      md5: 4085c9db273a148e149c03627350e22c
-      sha256: 5673b7104350a6998cb86cccf1d0058217d86950e8d6c927d8530606028edb1d
+      md5: 9efbfdc37242619130ea42b1cc4ed861
+      sha256: 11e2c85468ae9902d24a27137b6b39b4a78099806e551d390e394a8c34b48e40
     manager: conda
     name: tqdm
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/noarch/tqdm-4.67.1-pyhd8ed1ab_0.conda
+    url: https://conda.anaconda.org/conda-forge/noarch/tqdm-4.67.1-pyhd8ed1ab_1.conda
     version: 4.67.1
   - category: main
     dependencies:
