@@ -1810,7 +1810,7 @@ package:
       libmambapy: '>=1.5.1,<2.0a0'
       psutil: ''
       py-rattler: '>=0.6.2,<0.7a0'
-      python: '>=3.7'
+      python: '>=3.10'
       python-rapidjson: ''
       requests: ''
       ruamel.yaml: ''
@@ -1818,14 +1818,14 @@ package:
       wurlitzer: ''
       zstandard: ''
     hash:
-      md5: 3f7cbcdb25b878ecbc23bf6db4665f62
-      sha256: 9cca9468a25434debda988373155f8a59f817ad5db1b3cfbe274cdde0c72bdc1
+      md5: 892e842ea13b7d216d54671063305495
+      sha256: 6242cbb37729d7e4cb3ae67a08608d88a232c2590080836de3c8bdc505593dff
     manager: conda
     name: conda-forge-feedstock-check-solvable
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-feedstock-check-solvable-0.8.1-pyhd8ed1ab_0.conda
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-feedstock-check-solvable-0.8.1-pyhd8ed1ab_1.conda
     version: 0.8.1
   - category: main
     dependencies:
@@ -1838,7 +1838,7 @@ package:
       libmambapy: '>=1.5.1,<2.0a0'
       psutil: ''
       py-rattler: '>=0.6.2,<0.7a0'
-      python: '>=3.7'
+      python: '>=3.10'
       python-rapidjson: ''
       requests: ''
       ruamel.yaml: ''
@@ -1846,14 +1846,14 @@ package:
       wurlitzer: ''
       zstandard: ''
     hash:
-      md5: 3f7cbcdb25b878ecbc23bf6db4665f62
-      sha256: 9cca9468a25434debda988373155f8a59f817ad5db1b3cfbe274cdde0c72bdc1
+      md5: 892e842ea13b7d216d54671063305495
+      sha256: 6242cbb37729d7e4cb3ae67a08608d88a232c2590080836de3c8bdc505593dff
     manager: conda
     name: conda-forge-feedstock-check-solvable
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-feedstock-check-solvable-0.8.1-pyhd8ed1ab_0.conda
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-feedstock-check-solvable-0.8.1-pyhd8ed1ab_1.conda
     version: 0.8.1
   - category: main
     dependencies:
@@ -1866,7 +1866,7 @@ package:
       libmambapy: '>=1.5.1,<2.0a0'
       psutil: ''
       py-rattler: '>=0.6.2,<0.7a0'
-      python: '>=3.7'
+      python: '>=3.10'
       python-rapidjson: ''
       requests: ''
       ruamel.yaml: ''
@@ -1874,14 +1874,14 @@ package:
       wurlitzer: ''
       zstandard: ''
     hash:
-      md5: 3f7cbcdb25b878ecbc23bf6db4665f62
-      sha256: 9cca9468a25434debda988373155f8a59f817ad5db1b3cfbe274cdde0c72bdc1
+      md5: 892e842ea13b7d216d54671063305495
+      sha256: 6242cbb37729d7e4cb3ae67a08608d88a232c2590080836de3c8bdc505593dff
     manager: conda
     name: conda-forge-feedstock-check-solvable
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-feedstock-check-solvable-0.8.1-pyhd8ed1ab_0.conda
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-feedstock-check-solvable-0.8.1-pyhd8ed1ab_1.conda
     version: 0.8.1
   - category: main
     dependencies:
@@ -2003,39 +2003,39 @@ package:
   - category: main
     dependencies: {}
     hash:
-      md5: 9bd34b744f1f0cb1d99654101be41953
-      sha256: 4444b5c62ac7e446c7c5a535df1b00f1cd3f63abd873b48cb17d82c1c353f5be
+      md5: bc8bb6d84af7419227f31a902d27291d
+      sha256: 782f21dc1b367c57644eb8c65225ed157a7913ff0cbe4f5ac090f9164ef4f33d
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.01.02.18.17.44-hd8ed1ab_0.conda
-    version: 2025.01.02.18.17.44
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.01.02.20.43.49-hd8ed1ab_0.conda
+    version: 2025.01.02.20.43.49
   - category: main
     dependencies: {}
     hash:
-      md5: 9bd34b744f1f0cb1d99654101be41953
-      sha256: 4444b5c62ac7e446c7c5a535df1b00f1cd3f63abd873b48cb17d82c1c353f5be
+      md5: bc8bb6d84af7419227f31a902d27291d
+      sha256: 782f21dc1b367c57644eb8c65225ed157a7913ff0cbe4f5ac090f9164ef4f33d
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.01.02.18.17.44-hd8ed1ab_0.conda
-    version: 2025.01.02.18.17.44
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.01.02.20.43.49-hd8ed1ab_0.conda
+    version: 2025.01.02.20.43.49
   - category: main
     dependencies: {}
     hash:
-      md5: 9bd34b744f1f0cb1d99654101be41953
-      sha256: 4444b5c62ac7e446c7c5a535df1b00f1cd3f63abd873b48cb17d82c1c353f5be
+      md5: bc8bb6d84af7419227f31a902d27291d
+      sha256: 782f21dc1b367c57644eb8c65225ed157a7913ff0cbe4f5ac090f9164ef4f33d
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.01.02.18.17.44-hd8ed1ab_0.conda
-    version: 2025.01.02.18.17.44
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.01.02.20.43.49-hd8ed1ab_0.conda
+    version: 2025.01.02.20.43.49
   - category: main
     dependencies:
       click: '>=8'
