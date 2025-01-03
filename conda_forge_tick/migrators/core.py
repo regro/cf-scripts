@@ -1,7 +1,6 @@
 """Base classes for migrating repos"""
 
 import copy
-import datetime
 import logging
 import re
 import secrets
@@ -9,7 +8,6 @@ import typing
 from pathlib import Path
 from typing import Any, List, Sequence, Set
 
-import dateutil.parser
 import networkx as nx
 
 from conda_forge_tick.contexts import ClonedFeedstockContext, FeedstockContext
