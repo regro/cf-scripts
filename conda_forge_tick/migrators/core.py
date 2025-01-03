@@ -1,7 +1,6 @@
 """Base classes for migrating repos"""
 
 import copy
-import datetime
 import logging
 import re
 import secrets
@@ -9,7 +8,6 @@ import typing
 from pathlib import Path
 from typing import Any, List, Sequence, Set
 
-import dateutil.parser
 import networkx as nx
 
 from conda_forge_tick.contexts import ClonedFeedstockContext, FeedstockContext
@@ -722,7 +720,7 @@ class GraphMigrator(Migrator):
         self.cycles = set(cycles or [])
         self.ignored_deps_per_node = ignored_deps_per_node or {}
 
-    def all_predecessors_issued_and_stale(self, attrs: "AttrsTypedDict") -> bool:
+    def all_predecessors_issued(self, attrs: "AttrsTypedDict") -> bool:
         # Check if all upstreams have been issue and are stale
         for node, payload in _gen_active_feedstocks_payloads(
             self.graph.predecessors(attrs["feedstock_name"]),
@@ -744,44 +742,6 @@ class GraphMigrator(Migrator):
                 )
                 # not yet issued
                 return False
-            else:
-                # issued so check timestamp
-                pr_index = pr_muids.index(muid)
-                ts = (
-                    payload.get("pr_info", {})
-                    .get("PRed", [])[pr_index]
-                    .get("PR", {})
-                    .get("created_at", None)
-                )
-                state = (
-                    payload.get("pr_info", {})
-                    .get("PRed", [])[pr_index]
-                    .get("PR", {"state": "open"})
-                    .get("state", "")
-                )
-                if state == "open":
-                    if ts is not None:
-                        now = datetime.datetime.now(datetime.timezone.utc)
-                        ts = dateutil.parser.parse(ts)
-                        if now - ts < datetime.timedelta(days=14):
-                            logger.debug(
-                                "node %s has PR %s open for %s",
-                                node,
-                                muid.get("data", {}).get("name", None),
-                                now - ts,
-                            )
-                            return False
-                    else:
-                        # no timestamp so keep things open
-                        logger.debug(
-                            "node %s has PR %s:%s with no timestamp",
-                            node,
-                            muid.get("data", {}).get("name", None),
-                            payload.get("pr_info", {})
-                            .get("PRed", [])[pr_index]["PR"]
-                            .file_name,
-                        )
-                        return False
 
         return True
 
@@ -843,11 +803,11 @@ class GraphMigrator(Migrator):
         ):
             return False
 
-        # once all PRs are issued (not merged) and old propose the change in pin
-        if name == "conda-forge-pinning" and self.all_predecessors_issued_and_stale(
+        # once all PRs are issued (not merged), propose the change in pin
+        if name == "conda-forge-pinning" and self.all_predecessors_issued(
             attrs=attrs,
         ):
-            logger.debug("not filtered %s: pinning parents issued and stale", name)
+            logger.debug("not filtered %s: pinning parents issued", name)
             return False
 
         # Check if all upstreams have been built
