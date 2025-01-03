@@ -69,8 +69,7 @@ PR_INFO_BAD_FEEDSTOCKS = {
     "font-ttf-noto-emoji",  # PRed.0.data.version is not a valid conda version
 }
 
-VERSION_PR_INFO_BAD_FEEDSTOCKS = {
-}
+VERSION_PR_INFO_BAD_FEEDSTOCKS = {}
 
 
 @dataclass
