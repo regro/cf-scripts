@@ -51,7 +51,6 @@ NODE_ATTRS_BAD_FEEDSTOCKS = {
     "path.py",  # build.noarch: true in meta.yaml, which should probably be build.noarch: python
     "parallel-hashmap",  # build.noarch: true (should be generic) but also probably broken on Windows
     "ipython_memory_usage",  # bot.inspect should be bot.inspection in conda-forge.yml
-    "alibabacloud-openapi-util",  # "grayskull-update" should be "update-grayskull" in conda-forge.yml
     "st-annotated-text",  # bot.inspect should be bot.inspection in conda-forge.yml
     "espaloma",  # typo in `conda-forge.yml`.azure
     "sparc-x",  # `conda-forge.yml`.channels is unexpected
@@ -71,7 +70,6 @@ PR_INFO_BAD_FEEDSTOCKS = {
 }
 
 VERSION_PR_INFO_BAD_FEEDSTOCKS = {
-    "r-rgdal",  # mismatched versions in new_version_errors and new_version_attempts
 }
 
 
