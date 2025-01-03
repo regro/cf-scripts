@@ -25,6 +25,7 @@ from conda_forge_tick.migrators import (
     ArchRebuild,
     GraphMigrator,
     MatplotlibBase,
+    MigrationYamlCreator,
     Migrator,
     OSXArm,
     Replacement,
@@ -409,6 +410,11 @@ def main() -> None:
     paused_status = {}
 
     for migrator in migrators:
+        # we do not show these on the status page since they are used to
+        # open and close migrations
+        if isinstance(migrator, MigrationYamlCreator):
+            continue
+
         if hasattr(migrator, "name"):
             assert isinstance(migrator.name, str)
             migrator_name = migrator.name.lower().replace(" ", "")

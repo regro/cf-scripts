@@ -1,3 +1,4 @@
+import copy
 import os
 import typing
 from textwrap import dedent
@@ -204,8 +205,12 @@ class ArchRebuild(GraphMigrator):
     ) -> "MigrationUidTypedDict":
         with pushd(recipe_dir + "/.."):
             self.set_build_number("recipe/meta.yaml")
+
             with open("conda-forge.yml") as f:
                 y = yaml_safe_load(f)
+
+            y_orig = copy.deepcopy(y)
+
             if "provider" not in y:
                 y["provider"] = {}
             for k, v in self.arches.items():
@@ -215,7 +220,11 @@ class ArchRebuild(GraphMigrator):
             with open("conda-forge.yml", "w") as f:
                 yaml_safe_dump(y, f)
 
-        return super().migrate(recipe_dir, attrs, **kwargs)
+        muid = super().migrate(recipe_dir, attrs, **kwargs)
+        if y_orig == y:
+            muid["already_done"] = True
+
+        return muid
 
     def pr_title(self, feedstock_ctx: FeedstockContext) -> str:
         return "Arch Migrator"
@@ -377,8 +386,12 @@ class OSXArm(GraphMigrator):
     ) -> "MigrationUidTypedDict":
         with pushd(recipe_dir + "/.."):
             self.set_build_number("recipe/meta.yaml")
+
             with open("conda-forge.yml") as f:
                 y = yaml_safe_load(f)
+
+            y_orig = copy.deepcopy(y)
+
             # we should do this recursively but the cf yaml is usually
             # one key deep so this is fine
             for k, v in self.additional_keys.items():
@@ -389,10 +402,15 @@ class OSXArm(GraphMigrator):
                         y[k][_k] = _v
                 else:
                     y[k] = v
+
             with open("conda-forge.yml", "w") as f:
                 yaml_safe_dump(y, f)
 
-        return super().migrate(recipe_dir, attrs, **kwargs)
+        muid = super().migrate(recipe_dir, attrs, **kwargs)
+        if y_orig == y:
+            muid["already_done"] = True
+
+        return muid
 
     def pr_title(self, feedstock_ctx: FeedstockContext) -> str:
         return "ARM OSX Migrator"

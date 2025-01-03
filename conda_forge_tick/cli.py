@@ -1,5 +1,4 @@
 import logging
-import os
 import time
 from typing import Optional
 
@@ -83,9 +82,6 @@ def main(
 
     ctx.debug = debug
     ctx.dry_run = dry_run
-
-    if ctx.debug:
-        os.environ["CONDA_FORGE_TICK_DEBUG"] = "1"
 
     if online:
         logger.info("Running in online mode")
