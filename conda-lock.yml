@@ -12133,15 +12133,15 @@ package:
       python: '>=3.11,<3.12.0a0'
       python_abi: 3.11.*
     hash:
-      md5: c4aee8cadc4c9fc9a91aca0803473690
-      sha256: b28d91a55205b886308da82428cd522e9dce0ef912445a2e9d89318379c15759
+      md5: 09e861917e6fb36c0cf30a49935cd4bd
+      sha256: bb950e08ce5c81380655abc382b7ff4c5850346757c8e013bd32b42a6d99f328
     manager: conda
     name: scipy
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/linux-64/scipy-1.14.1-py311he9a78e4_2.conda
-    version: 1.14.1
+      https://conda.anaconda.org/conda-forge/linux-64/scipy-1.15.0-py311hc1ac118_0.conda
+    version: 1.15.0
   - category: main
     dependencies:
       __osx: '>=10.13'
