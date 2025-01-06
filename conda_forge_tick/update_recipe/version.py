@@ -10,6 +10,7 @@ import shutil
 import tempfile
 import traceback
 from typing import Any, MutableMapping
+from pathlib import Path
 
 import jinja2
 import jinja2.sandbox
@@ -116,7 +117,7 @@ def _compile_all_selectors(cmeta: Any, src: str):
     return set(selectors)
 
 
-def _try_url_and_hash_it(url: str, hash_type: str):
+def _try_url_and_hash_it(url: str, hash_type: str) -> str | None:
     logger.debug("downloading url: %s", url)
 
     try:
@@ -543,6 +544,7 @@ def update_version_feedstock_dir(
         A set of strings giving any errors found when updating the
         version. The set will be empty if there were no errors.
     """
+    feedstock_dir = Path(feedstock_dir)
     if should_use_container(use_container=use_container):
         return _update_version_feedstock_dir_containerized(
             feedstock_dir,
@@ -557,20 +559,24 @@ def update_version_feedstock_dir(
         )
 
 
-def _update_version_feedstock_dir_local(feedstock_dir, version, hash_type):
-    with open(os.path.join(feedstock_dir, "recipe", "meta.yaml")) as f:
+def _update_version_feedstock_dir_local(feedstock_dir, version, hash_type) -> (bool, set):
+    if os.path.join(feedstock_dir, "recipe", "recipe.yaml"):
+        return update_version_v1(feedstock_dir, version, hash_type)
+
+    recipe_path = os.path.join(feedstock_dir, "recipe", "meta.yaml")
+    with open(recipe_path) as f:
         raw_meta_yaml = f.read()
     updated_meta_yaml, errors = update_version(
         raw_meta_yaml, version, hash_type=hash_type
     )
     if updated_meta_yaml is not None:
-        with open(os.path.join(feedstock_dir, "recipe", "meta.yaml"), "w") as f:
+        with open(recipe_path, "w") as f:
             f.write(updated_meta_yaml)
 
     return updated_meta_yaml is not None, errors
 
 
-def _update_version_feedstock_dir_containerized(feedstock_dir, version, hash_type):
+def _update_version_feedstock_dir_containerized(feedstock_dir, version, hash_type, recipe_version: int = 0):
     with tempfile.TemporaryDirectory() as tmpdir:
         tmp_feedstock_dir = os.path.join(tmpdir, os.path.basename(feedstock_dir))
         sync_dirs(
@@ -625,7 +631,73 @@ def _update_version_feedstock_dir_containerized(feedstock_dir, version, hash_typ
     return data["updated"], data["errors"]
 
 
-def update_version(raw_meta_yaml, version, hash_type="sha256"):
+def update_version_v1(feedstock_dir: str, version: str, hash_type: str) -> (bool , set[str]):
+    """Update the version in a recipe.
+
+    Parameters
+    ----------
+    raw_meta_yaml : str
+        The recipe meta.yaml as a string.
+    version : str
+        The version of the recipe.
+    hash_type : str
+        The kind of hash used on the source.
+    """
+    # extract all the URL sources from a given recipe / feedstock directory
+    from rattler_build_conda_compat.loader import load_yaml
+    from rattler_build_conda_compat.recipe_sources import render_all_sources
+
+    feedstock_dir = Path(feedstock_dir)
+    recipe_path = feedstock_dir / "recipe" / "recipe.yaml"
+    recipe = load_yaml(recipe_path.read_text())
+    variants = feedstock_dir.glob(".ci_support/*.yaml")
+    # load all variants
+    variants = [load_yaml(variant.read_text()) for variant in variants]
+
+    rendered_sources = render_all_sources(recipe, variants, override_version=version)
+
+    print("rendered_sources", rendered_sources)
+
+    # load recipe text
+    recipe_path = feedstock_dir / "recipe" / "recipe.yaml"
+    recipe = recipe_path.read_text()
+
+    # update the version with a regex replace
+    for line in recipe.splitlines():
+        if match := re.match(r"^(\s+)version:\s.*$", line):
+            indentation = match.group(1)
+            recipe = recipe.replace(line, f"{indentation}version: \"{version}\"")
+            break
+
+    for source in rendered_sources:
+        # update the hash value
+        urls = source.url
+        if not isinstance(urls, list):
+            urls = [urls]
+        found_hash = False
+        for url in source.url:
+            if source.sha256 is not None:
+                hash_type = "sha256"
+            elif source.md5 is not None:
+                hash_type = "md5"
+            new_hash = _try_url_and_hash_it(source.url, hash_type)
+            if new_hash is not None:
+                if hash_type == "sha256":
+                    recipe = recipe.replace(source.sha256, new_hash)
+                else:
+                    recipe = recipe.replace(source.md5, new_hash)
+                found_hash = True
+                break
+
+        if not found_hash:
+            return False, set(["could not find a hash for the source"])
+
+    # write the updated recipe back to the file
+    recipe_path.write_text(recipe)
+
+    return True, set()
+
+def update_version(raw_meta_yaml, version, hash_type="sha256", recipe_version: int = 0) -> (str, set[str]):
     """Update the version in a recipe.
 
     Parameters
@@ -656,6 +728,9 @@ def update_version(raw_meta_yaml, version, hash_type="sha256"):
             version,
         )
         return None, errors
+
+    if recipe_version == 1:
+        update_version_v1(raw_meta_yaml, version, hash_type)
 
     try:
         cmeta = CondaMetaYAML(raw_meta_yaml)
@@ -773,3 +848,30 @@ def update_version(raw_meta_yaml, version, hash_type="sha256"):
     else:
         logger.critical("Recipe did not change in version migration!")
         return None, errors
+
+
+if __name__ == "__main__":
+    # parse args and invoke update_version_feedstock_dir
+    import argparse
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument("feedstock_dir", help="The feedstock directory to update.")
+    parser.add_argument("version", help="The new version to update to.")
+    parser.add_argument(
+        "--hash-type",
+        default="sha256",
+        help="The hash type to use for the source.",
+    )
+    parser.add_argument(
+        "--use-container",
+        action="store_true",
+        help="Use a container to run the version parsing.",
+    )
+
+    args = parser.parse_args()
+    updated, errors = update_version_feedstock_dir(
+        args.feedstock_dir,
+        args.version,
+        hash_type=args.hash_type,
+        use_container=args.use_container,
+    )
