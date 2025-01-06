@@ -2000,39 +2000,39 @@ package:
   - category: main
     dependencies: {}
     hash:
-      md5: 4b6e6fe261fab96d4dd5c429df579937
-      sha256: c992f4d48ee6ba2f9d30bd8359c7cff11c87596370da8b1991310006c4062c92
+      md5: 795c62d5b14e1dd609ee4462d12cf22d
+      sha256: c1c8d478d8dec1d2719c0570305ca4bd2dad67476d6aeced61856507d5f37a66
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.01.06.04.01.50-hd8ed1ab_0.conda
-    version: 2025.01.06.04.01.50
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.01.06.12.46.45-hd8ed1ab_0.conda
+    version: 2025.01.06.12.46.45
   - category: main
     dependencies: {}
     hash:
-      md5: 4b6e6fe261fab96d4dd5c429df579937
-      sha256: c992f4d48ee6ba2f9d30bd8359c7cff11c87596370da8b1991310006c4062c92
+      md5: 795c62d5b14e1dd609ee4462d12cf22d
+      sha256: c1c8d478d8dec1d2719c0570305ca4bd2dad67476d6aeced61856507d5f37a66
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.01.06.04.01.50-hd8ed1ab_0.conda
-    version: 2025.01.06.04.01.50
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.01.06.12.46.45-hd8ed1ab_0.conda
+    version: 2025.01.06.12.46.45
   - category: main
     dependencies: {}
     hash:
-      md5: 4b6e6fe261fab96d4dd5c429df579937
-      sha256: c992f4d48ee6ba2f9d30bd8359c7cff11c87596370da8b1991310006c4062c92
+      md5: 795c62d5b14e1dd609ee4462d12cf22d
+      sha256: c1c8d478d8dec1d2719c0570305ca4bd2dad67476d6aeced61856507d5f37a66
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.01.06.04.01.50-hd8ed1ab_0.conda
-    version: 2025.01.06.04.01.50
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.01.06.12.46.45-hd8ed1ab_0.conda
+    version: 2025.01.06.12.46.45
   - category: main
     dependencies:
       click: '>=8'
@@ -11459,15 +11459,15 @@ package:
       openssl: '>=3.4.0,<4.0a0'
       patchelf: ''
     hash:
-      md5: c8d94ca9d2667a2c37ab3b1cd3ec0fe4
-      sha256: 54cbd84b13fa9eedee174e09ada326649f72e0b9b672ecad2734223f638d78c9
+      md5: ea3a9334595b5407ea0b7b6b441199d7
+      sha256: edcf791757a3465c6d79c106ff8b12e5babfea6c1c364112902e15c583c2bb23
     manager: conda
     name: rattler-build
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/linux-64/rattler-build-0.33.2-hbcf9e9b_0.conda
-    version: 0.33.2
+      https://conda.anaconda.org/conda-forge/linux-64/rattler-build-0.33.3-hbcf9e9b_0.conda
+    version: 0.33.3
   - category: main
     dependencies:
       __osx: '>=10.13'
