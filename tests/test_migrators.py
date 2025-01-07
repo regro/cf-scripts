@@ -17,7 +17,11 @@ from conda_forge_tick.migrators import (
 )
 from conda_forge_tick.migrators.migration_yaml import all_noarch
 from conda_forge_tick.os_utils import pushd
-from conda_forge_tick.utils import frozen_to_json_friendly, parse_meta_yaml
+from conda_forge_tick.utils import (
+    frozen_to_json_friendly,
+    parse_meta_yaml,
+    parse_recipe_yaml,
+)
 
 sample_yaml_rebuild = """
 {% set version = "1.3.2" %}
@@ -466,35 +470,60 @@ def run_test_migration(
     tmpdir: str,
     should_filter: bool = False,
     make_body: bool = False,
+    recipe_version: int = 0,
 ):
+    tmpdir_p = Path(tmpdir)
     if mr_out:
         mr_out.update(bot_rerun=False)
 
-    Path(tmpdir).joinpath("meta.yaml").write_text(inp)
-
+    if recipe_version == 0:
+        tmpdir_p.joinpath("meta.yaml").write_text(inp)
+    else:
+        tmpdir_p.joinpath(".ci_support").mkdir()
+        tmpdir_p.joinpath("recipe", "recipe.yaml").write_text(inp)
+        (tmpdir_p / ".ci_support" / "linux_64_.yaml").write_text(
+            "target_platform: linux-64"
+        )
     # read the conda-forge.yml
     cf_yml_path = Path(tmpdir).parent / "conda-forge.yml"
     cf_yml = cf_yml_path.read_text() if cf_yml_path.exists() else "{}"
 
     # Load the meta.yaml (this is done in the graph)
-    try:
-        name = parse_meta_yaml(inp)["package"]["name"]
-    except Exception:
-        name = "blah"
+    if recipe_version == 0:
+        try:
+            name = parse_meta_yaml(inp)["package"]["name"]
+        except Exception:
+            name = "blah"
 
-    pmy = populate_feedstock_attributes(
-        name, sub_graph={}, meta_yaml=inp, conda_forge_yaml=cf_yml
-    )
+        pmy = populate_feedstock_attributes(
+            name, sub_graph={}, meta_yaml=inp, conda_forge_yaml=cf_yml
+        )
 
-    # these are here for legacy migrators
-    pmy["version"] = pmy["meta_yaml"]["package"]["version"]
-    pmy["req"] = set()
-    for k in ["build", "host", "run"]:
-        req = pmy["meta_yaml"].get("requirements", {}) or {}
-        _set = req.get(k) or set()
-        pmy["req"] |= set(_set)
-    pmy["raw_meta_yaml"] = inp
-    pmy.update(kwargs)
+        # these are here for legacy migrators
+        pmy["version"] = pmy["meta_yaml"]["package"]["version"]
+        pmy["req"] = set()
+        for k in ["build", "host", "run"]:
+            req = pmy["meta_yaml"].get("requirements", {}) or {}
+            _set = req.get(k) or set()
+            pmy["req"] |= set(_set)
+        pmy["raw_meta_yaml"] = inp
+        pmy.update(kwargs)
+    else:
+        try:
+            name = parse_recipe_yaml(inp)["package"]["name"]
+        except Exception:
+            name = "blah"
+
+        pmy = populate_feedstock_attributes(
+            name,
+            sub_graph={},
+            recipe_yaml=inp,
+            conda_forge_yaml=cf_yml,
+            feedstock_dir=tmpdir_p,
+        )
+        pmy["version"] = pmy["meta_yaml"]["package"]["version"]
+        pmy["raw_meta_yaml"] = inp
+        pmy.update(kwargs)
 
     try:
         if "new_version" in kwargs:
@@ -533,8 +562,10 @@ def run_test_migration(
 
     pmy["pr_info"] = {}
     pmy["pr_info"].update(PRed=[frozen_to_json_friendly(mr)])
-    with open(os.path.join(tmpdir, "meta.yaml")) as f:
-        actual_output = f.read()
+    if recipe_version == 0:
+        actual_output = tmpdir_p.joinpath("meta.yaml").read_text()
+    else:
+        actual_output = tmpdir_p.joinpath("recipe", "recipe.yaml").read_text()
     # strip jinja comments
     pat = re.compile(r"{#.*#}")
     actual_output = pat.sub("", actual_output)

@@ -132,3 +132,8 @@ def gen_transformed_urls(url):
         if new_url not in yielded:
             yield new_url
             yielded.add(new_url)
+
+
+if __name__ == "__main__":
+    url = "https://github.com/xtensor-stack/xtensor/archive/{{ version }}.tar.gz"
+    print(set(gen_transformed_urls(url)))

@@ -9,8 +9,8 @@ import re
 import shutil
 import tempfile
 import traceback
-from typing import Any, MutableMapping
 from pathlib import Path
+from typing import Any, MutableMapping
 
 import jinja2
 import jinja2.sandbox
@@ -153,20 +153,35 @@ def _try_pypi_api(url_tmpl: str, context: MutableMapping, hash_type: str, cmeta:
         return None, None
 
     orig_pypi_name = None
-    orig_pypi_name_candidates = [
-        url_tmpl.split("/")[-2],
-        context.get("name", None),
-        (cmeta.meta.get("package", {}) or {}).get("name", None),
-    ]
-    if "outputs" in cmeta.meta:
-        for output in cmeta.meta["outputs"]:
-            output = output or {}
-            orig_pypi_name_candidates.append(output.get("name", None))
+
+    # this is a v0 recipe
+    if hasattr(cmeta, "meta"):
+        orig_pypi_name_candidates = [
+            url_tmpl.split("/")[-2],
+            context.get("name", None),
+            (cmeta.meta.get("package", {}) or {}).get("name", None),
+        ]
+        if "outputs" in cmeta.meta:
+            for output in cmeta.meta["outputs"]:
+                output = output or {}
+                orig_pypi_name_candidates.append(output.get("name", None))
+    else:
+        # this is a v1 recipe
+        orig_pypi_name_candidates = [
+            url_tmpl.split("/")[-2],
+            context.get("name", None),
+            cmeta.get("package", {}).get("name", None),
+        ]
+        # for v1 recipe compatibility
+        if "outputs" in cmeta:
+            if package_name := output.get("package", {}).get("name", None):
+                orig_pypi_name_candidates.append(package_name)
+
     orig_pypi_name_candidates = sorted(
         {nc for nc in orig_pypi_name_candidates if nc is not None and len(nc) > 0},
         key=lambda x: len(x),
     )
-    logger.info("PyPI name candidates: %s", orig_pypi_name_candidates)
+
     for _orig_pypi_name in orig_pypi_name_candidates:
         if _orig_pypi_name is None:
             continue
@@ -220,11 +235,11 @@ def _try_pypi_api(url_tmpl: str, context: MutableMapping, hash_type: str, cmeta:
     if "name" in context:
         for tmpl in [
             "{{ name }}",
-            "{{ name.lower() }}",
-            "{{ name.replace('-', '_') }}",
-            "{{ name.replace('_', '-') }}",
-            "{{ name.replace('-', '_').lower() }}",
-            "{{ name.replace('_', '-').lower() }}",
+            "{{ name | lower }}",
+            "{{ name | replace('-', '_') }}",
+            "{{ name | replace('_', '-') }}",
+            "{{ name | replace('-', '_') | lower }}",
+            "{{ name | replace('_', '-') | lower }}",
         ]:
             if pypi_name == _render_jinja2(tmpl, context) + "-":
                 name_tmpl = tmpl
@@ -559,7 +574,9 @@ def update_version_feedstock_dir(
         )
 
 
-def _update_version_feedstock_dir_local(feedstock_dir, version, hash_type) -> (bool, set):
+def _update_version_feedstock_dir_local(
+    feedstock_dir, version, hash_type
+) -> (bool, set):
     if os.path.join(feedstock_dir, "recipe", "recipe.yaml"):
         return update_version_v1(feedstock_dir, version, hash_type)
 
@@ -576,7 +593,9 @@ def _update_version_feedstock_dir_local(feedstock_dir, version, hash_type) -> (b
     return updated_meta_yaml is not None, errors
 
 
-def _update_version_feedstock_dir_containerized(feedstock_dir, version, hash_type, recipe_version: int = 0):
+def _update_version_feedstock_dir_containerized(
+    feedstock_dir, version, hash_type, recipe_version: int = 0
+):
     with tempfile.TemporaryDirectory() as tmpdir:
         tmp_feedstock_dir = os.path.join(tmpdir, os.path.basename(feedstock_dir))
         sync_dirs(
@@ -631,15 +650,17 @@ def _update_version_feedstock_dir_containerized(feedstock_dir, version, hash_typ
     return data["updated"], data["errors"]
 
 
-def update_version_v1(feedstock_dir: str, version: str, hash_type: str) -> (bool , set[str]):
+def update_version_v1(
+    feedstock_dir: str, version: str, hash_type: str
+) -> (str | None, set[str]):
     """Update the version in a recipe.
 
     Parameters
     ----------
-    raw_meta_yaml : str
-        The recipe meta.yaml as a string.
+    feedstock_dir : str
+        The feedstock directory to update.
     version : str
-        The version of the recipe.
+        The new version of the recipe.
     hash_type : str
         The kind of hash used on the source.
     """
@@ -649,12 +670,17 @@ def update_version_v1(feedstock_dir: str, version: str, hash_type: str) -> (bool
 
     feedstock_dir = Path(feedstock_dir)
     recipe_path = feedstock_dir / "recipe" / "recipe.yaml"
-    recipe = load_yaml(recipe_path.read_text())
+    recipe_yaml = load_yaml(recipe_path.read_text())
     variants = feedstock_dir.glob(".ci_support/*.yaml")
     # load all variants
     variants = [load_yaml(variant.read_text()) for variant in variants]
+    if not len(variants):
+        # if there are no variants, then we need to add an empty one
+        variants = [{}]
 
-    rendered_sources = render_all_sources(recipe, variants, override_version=version)
+    rendered_sources = render_all_sources(
+        recipe_yaml, variants, override_version=version
+    )
 
     print("rendered_sources", rendered_sources)
 
@@ -666,38 +692,61 @@ def update_version_v1(feedstock_dir: str, version: str, hash_type: str) -> (bool
     for line in recipe.splitlines():
         if match := re.match(r"^(\s+)version:\s.*$", line):
             indentation = match.group(1)
-            recipe = recipe.replace(line, f"{indentation}version: \"{version}\"")
+            recipe = recipe.replace(line, f'{indentation}version: "{version}"')
             break
 
     for source in rendered_sources:
         # update the hash value
         urls = source.url
+        # zip url and template
         if not isinstance(urls, list):
-            urls = [urls]
+            urls = zip([urls], [source.template])
+        else:
+            urls = zip(urls, source.template)
+
         found_hash = False
-        for url in source.url:
+        for url, template in urls:
             if source.sha256 is not None:
                 hash_type = "sha256"
             elif source.md5 is not None:
                 hash_type = "md5"
-            new_hash = _try_url_and_hash_it(source.url, hash_type)
+
+            # convert to regular jinja2 template
+            template = template.replace("${{", "{{")
+            new_tmpl, new_hash = _get_new_url_tmpl_and_hash(
+                template,
+                source.context,
+                hash_type,
+                recipe_yaml,
+            )
+            print("new_hash", new_hash)
+            print("new_tmpl", new_tmpl)
+
             if new_hash is not None:
                 if hash_type == "sha256":
                     recipe = recipe.replace(source.sha256, new_hash)
                 else:
                     recipe = recipe.replace(source.md5, new_hash)
                 found_hash = True
+
+                # convert back to v1 minijinja template
+                print("New template", new_tmpl)
+                new_tmpl = new_tmpl.replace("{{", "${{")
+                print("replace", source.template, new_tmpl)
+                if new_tmpl != source.template:
+                    recipe = recipe.replace(source.template, new_tmpl)
+
                 break
 
         if not found_hash:
-            return False, set(["could not find a hash for the source"])
+            return None, {"could not find a hash for the source"}
 
-    # write the updated recipe back to the file
-    recipe_path.write_text(recipe)
+    return recipe, set()
 
-    return True, set()
 
-def update_version(raw_meta_yaml, version, hash_type="sha256", recipe_version: int = 0) -> (str, set[str]):
+def update_version(
+    raw_meta_yaml, version, hash_type="sha256", recipe_version: int = 0
+) -> (str, set[str]):
     """Update the version in a recipe.
 
     Parameters
