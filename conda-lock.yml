@@ -88,14 +88,14 @@ package:
       sniffio: '>=1.1'
       typing_extensions: '>=4.5'
     hash:
-      md5: c88107912954a983c2caf25f7fd55158
-      sha256: 687537ee3af30f8784986bf40cac30e88138770b16e51ca9850c9c23c09aeba1
+      md5: 848d25bfbadf020ee4d4ba90e5668252
+      sha256: f1455d2953e3eb6d71bc49881c8558d8e01888469dfd21061dd48afb6183e836
     manager: conda
     name: anyio
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/noarch/anyio-4.7.0-pyhd8ed1ab_0.conda
-    version: 4.7.0
+    url: https://conda.anaconda.org/conda-forge/noarch/anyio-4.8.0-pyhd8ed1ab_0.conda
+    version: 4.8.0
   - category: main
     dependencies:
       exceptiongroup: '>=1.0.2'
@@ -104,14 +104,14 @@ package:
       sniffio: '>=1.1'
       typing_extensions: '>=4.5'
     hash:
-      md5: c88107912954a983c2caf25f7fd55158
-      sha256: 687537ee3af30f8784986bf40cac30e88138770b16e51ca9850c9c23c09aeba1
+      md5: 848d25bfbadf020ee4d4ba90e5668252
+      sha256: f1455d2953e3eb6d71bc49881c8558d8e01888469dfd21061dd48afb6183e836
     manager: conda
     name: anyio
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/noarch/anyio-4.7.0-pyhd8ed1ab_0.conda
-    version: 4.7.0
+    url: https://conda.anaconda.org/conda-forge/noarch/anyio-4.8.0-pyhd8ed1ab_0.conda
+    version: 4.8.0
   - category: main
     dependencies:
       exceptiongroup: '>=1.0.2'
@@ -120,14 +120,14 @@ package:
       sniffio: '>=1.1'
       typing_extensions: '>=4.5'
     hash:
-      md5: c88107912954a983c2caf25f7fd55158
-      sha256: 687537ee3af30f8784986bf40cac30e88138770b16e51ca9850c9c23c09aeba1
+      md5: 848d25bfbadf020ee4d4ba90e5668252
+      sha256: f1455d2953e3eb6d71bc49881c8558d8e01888469dfd21061dd48afb6183e836
     manager: conda
     name: anyio
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/noarch/anyio-4.7.0-pyhd8ed1ab_0.conda
-    version: 4.7.0
+    url: https://conda.anaconda.org/conda-forge/noarch/anyio-4.8.0-pyhd8ed1ab_0.conda
+    version: 4.8.0
   - category: main
     dependencies:
       python: '>=3.9'
@@ -2000,39 +2000,39 @@ package:
   - category: main
     dependencies: {}
     hash:
-      md5: 795c62d5b14e1dd609ee4462d12cf22d
-      sha256: c1c8d478d8dec1d2719c0570305ca4bd2dad67476d6aeced61856507d5f37a66
+      md5: 684f537d1c5ea05d02a34e6e1a40f6d6
+      sha256: 801a3244dbed76d8e9dc239a44e1de962f1450fa52e8a8500fedf19bb652a2f6
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.01.06.12.46.45-hd8ed1ab_0.conda
-    version: 2025.01.06.12.46.45
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.01.06.23.00.11-hd8ed1ab_0.conda
+    version: 2025.01.06.23.00.11
   - category: main
     dependencies: {}
     hash:
-      md5: 795c62d5b14e1dd609ee4462d12cf22d
-      sha256: c1c8d478d8dec1d2719c0570305ca4bd2dad67476d6aeced61856507d5f37a66
+      md5: 684f537d1c5ea05d02a34e6e1a40f6d6
+      sha256: 801a3244dbed76d8e9dc239a44e1de962f1450fa52e8a8500fedf19bb652a2f6
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.01.06.12.46.45-hd8ed1ab_0.conda
-    version: 2025.01.06.12.46.45
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.01.06.23.00.11-hd8ed1ab_0.conda
+    version: 2025.01.06.23.00.11
   - category: main
     dependencies: {}
     hash:
-      md5: 795c62d5b14e1dd609ee4462d12cf22d
-      sha256: c1c8d478d8dec1d2719c0570305ca4bd2dad67476d6aeced61856507d5f37a66
+      md5: 684f537d1c5ea05d02a34e6e1a40f6d6
+      sha256: 801a3244dbed76d8e9dc239a44e1de962f1450fa52e8a8500fedf19bb652a2f6
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.01.06.12.46.45-hd8ed1ab_0.conda
-    version: 2025.01.06.12.46.45
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.01.06.23.00.11-hd8ed1ab_0.conda
+    version: 2025.01.06.23.00.11
   - category: main
     dependencies:
       click: '>=8'
@@ -6439,44 +6439,47 @@ package:
     version: '1.23'
   - category: main
     dependencies:
-      libgcc-ng: '>=7.5.0'
-      ncurses: '>=6.2,<7.0.0a0'
+      __glibc: '>=2.17,<3.0.a0'
+      libgcc: '>=13'
+      ncurses: '>=6.5,<7.0a0'
     hash:
-      md5: 4d331e44109e3f0e19b4cb8f9b82f3e1
-      sha256: a57d37c236d8f7c886e01656f4949d9dcca131d2a0728609c6f7fa338b65f1cf
+      md5: 8247f80f3dc464d9322e85007e307fe8
+      sha256: 4d0d69ddf9cc7d724a1ccf3a9852e44c8aea9825692582bac2c4e8d21ec95ccd
     manager: conda
     name: libedit
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/linux-64/libedit-3.1.20191231-he28a2e2_2.tar.bz2
-    version: 3.1.20191231
+      https://conda.anaconda.org/conda-forge/linux-64/libedit-3.1.20240808-pl5321h7949ede_0.conda
+    version: 3.1.20240808
   - category: main
     dependencies:
-      ncurses: '>=6.2,<7.0.0a0'
+      __osx: '>=10.13'
+      ncurses: '>=6.5,<7.0a0'
     hash:
-      md5: 6016a8a1d0e63cac3de2c352cd40208b
-      sha256: dbd3c3f2eca1d21c52e4c03b21930bbce414c4592f8ce805801575b9e9256095
+      md5: 32bff389574b5f03cdce349aa0486dcd
+      sha256: 3fb953fcc1fe3d0a90984517b95ebf3817cab96876a9cd9f22d3d493483a97e3
     manager: conda
     name: libedit
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/osx-64/libedit-3.1.20191231-h0678c8f_2.tar.bz2
-    version: 3.1.20191231
+      https://conda.anaconda.org/conda-forge/osx-64/libedit-3.1.20240808-pl5321ha958ccf_0.conda
+    version: 3.1.20240808
   - category: main
     dependencies:
-      ncurses: '>=6.2,<7.0.0a0'
+      __osx: '>=11.0'
+      ncurses: '>=6.5,<7.0a0'
     hash:
-      md5: 30e4362988a2623e9eb34337b83e01f9
-      sha256: 3912636197933ecfe4692634119e8644904b41a58f30cad9d1fc02f6ba4d9fca
+      md5: af89aa84ffb5ee551ce0c137b951a3b5
+      sha256: fb934d7a03279ec8eae4bf1913ac9058fcf6fed35290d8ffa6e04157f396a3b1
     manager: conda
     name: libedit
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/osx-arm64/libedit-3.1.20191231-hc8eb9b7_2.tar.bz2
-    version: 3.1.20191231
+      https://conda.anaconda.org/conda-forge/osx-arm64/libedit-3.1.20240808-pl5321hafb1f1b_0.conda
+    version: 3.1.20240808
   - category: main
     dependencies:
       libgcc-ng: '>=12'
