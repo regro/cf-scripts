@@ -223,8 +223,8 @@ class Version(Migrator):
     ) -> "MigrationUidTypedDict":
         version = attrs["new_version"]
         recipe_dir = Path(recipe_dir)
-        recipe_file = recipe_dir / "recipe" / "meta.yaml"
-        recipe_yaml = recipe_dir / "recipe" / "recipe.yaml"
+        recipe_file = recipe_dir / "meta.yaml"
+        recipe_yaml = recipe_dir / "recipe.yaml"
         if recipe_file.exists():
             raw_meta_yaml = recipe_file.read_text()
             updated_meta_yaml, errors = update_version(
