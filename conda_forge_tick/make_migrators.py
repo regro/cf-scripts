@@ -150,7 +150,7 @@ def _compute_migrator_pr_limit(
                     number_pred += 1
 
     tot_nodes = len(migrator.graph.nodes)
-    frac_pred = number_pred / tot_nodes
+    frac_pred = number_pred / tot_nodes if tot_nodes > 0 else 1.0
 
     tenth = int(tot_nodes / 10)
     quarter = int(tot_nodes / 4)
