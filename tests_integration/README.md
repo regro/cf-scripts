@@ -57,7 +57,8 @@ you have to define three things:
 overwrite the feedstock repository in the test environment. The `IntegrationTestHelper` provides methods to interact
 with the test environment.
 
-2. A `router` object to define mock responses for specific HTTP requests. Those are intercepted by an HTTP proxy.
+2. A `router` object to define mock responses for specific HTTP requests. All web requests are intercepted by an HTTP proxy.
+Consult `tests_integration.lib.shared.TRANSPARENT_URLS` to define URLs that should not be intercepted.
 
 3. A function `validate(helper: IntegrationTestHelper)` for validating the state after the bot has run.
 The `IntegrationTestHelper` provides convenience methods such as `assert_version_pr_present` to check for the presence
