@@ -132,10 +132,6 @@ def test_version_up_v1(case, new_ver, tmpdir, caplog):
     in_yaml = (YAML_V1_PATH / f"version_{case}.yaml").read_text()
     out_yaml = (YAML_V1_PATH / f"version_{case}_correct.yaml").read_text()
 
-    # create a tempdir that looks like a feedstock with a recipe/recipe.yaml file
-    recipe_dir = tmpdir.mkdir("recipe")
-    recipe_dir.join("recipe.yaml").write(in_yaml)
-
     kwargs = {"new_version": new_ver}
     if case == "sha1":
         kwargs["hash_type"] = "sha1"
