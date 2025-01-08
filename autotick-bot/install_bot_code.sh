@@ -1,8 +1,13 @@
 #!/bin/bash
 
 # Environment Variables:
-# - CF_FEEDSTOCK_OPS_CONTAINER_TAG: The tag of the container to use for the bot (optional).
+# - CF_FEEDSTOCK_OPS_CONTAINER_NAME: The name of the container image to use for the bot (optional, not used but left intact)
+# - CF_FEEDSTOCK_OPS_CONTAINER_TAG: The tag of the container image to use for the bot (optional).
 # - CF_GRAPH_REMOTE: The URL to clone the cf-graph repository from (optional).
+
+# Sets the following environment variables via GITHUB_ENV:
+# - CF_FEEDSTOCK_OPS_CONTAINER_NAME (see above)
+# - CF_FEEDSTOCK_OPS_CONTAINER_TAG (see above)
 
 set -euo pipefail
 
@@ -55,14 +60,12 @@ if [[ "${pull_cont}" == "true" ]]; then
     docker pull ghcr.io/regro/conda-forge-tick:"${docker_tag}"
 fi
 
+# left intact if already set
+export CF_FEEDSTOCK_OPS_CONTAINER_TAG=${docker_tag}
+export CF_FEEDSTOCK_OPS_CONTAINER_NAME=${CF_FEEDSTOCK_OPS_CONTAINER_NAME:-"ghcr.io/regro/conda-forge-tick"}
 
-# TODO
-#export CF_FEEDSTOCK_OPS_CONTAINER_TAG=${docker_tag}
-#export CF_FEEDSTOCK_OPS_CONTAINER_NAME="ghcr.io/regro/conda-forge-tick"
-
-# TODO
-#echo "CF_FEEDSTOCK_OPS_CONTAINER_TAG=${CF_FEEDSTOCK_OPS_CONTAINER_TAG}" >> "$GITHUB_ENV"
-#echo "CF_FEEDSTOCK_OPS_CONTAINER_NAME=${CF_FEEDSTOCK_OPS_CONTAINER_NAME}" >> "$GITHUB_ENV"
+echo "CF_FEEDSTOCK_OPS_CONTAINER_TAG=${CF_FEEDSTOCK_OPS_CONTAINER_TAG}" >> "$GITHUB_ENV"
+echo "CF_FEEDSTOCK_OPS_CONTAINER_NAME=${CF_FEEDSTOCK_OPS_CONTAINER_NAME}" >> "$GITHUB_ENV"
 
 echo -e "\n\n============================================\n============================================"
 conda info
