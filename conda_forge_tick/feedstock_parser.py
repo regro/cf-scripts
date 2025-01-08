@@ -19,6 +19,8 @@ from conda_forge_feedstock_ops.container_utils import (
 )
 from requests.models import Response
 
+from conda_forge_tick.settings import CONDA_FORGE_ORG
+
 if typing.TYPE_CHECKING:
     from mypy_extensions import TestTypedDict
 
@@ -663,7 +665,7 @@ def load_feedstock_containerized(
         input=json_blob,
         extra_container_args=[
             "-e",
-            f"{ENV_OVERRIDE_CONDA_FORGE_ORG}={os.environ[ENV_OVERRIDE_CONDA_FORGE_ORG]}",
+            f"{ENV_OVERRIDE_CONDA_FORGE_ORG}={CONDA_FORGE_ORG}",
         ],
     )
 
