@@ -601,22 +601,24 @@ def _update_version_feedstock_dir_local(
 ) -> (bool, set):
     feedstock_path = Path(feedstock_dir)
 
-    recipe = feedstock_path / "recipe" / "meta.yaml"
-    if recipe.exists():
+    recipe_path = None
+    recipe_path_v0 = feedstock_path / "recipe" / "meta.yaml"
+    recipe_path_v1 = feedstock_path / "recipe" / "recipe.yaml"
+    if recipe_path_v0.exists():
+        recipe_path = recipe_path_v0
         updated_meta_yaml, errors = update_version(
             recipe.read_text(), version, hash_type=hash_type
         )
+    elif recipe_path_v1.exists():
+        recipe_path = recipe_path_v1
+        updated_meta_yaml, errors = update_version_v1(
+            feedstock_dir, version, hash_type
+        )
     else:
-        recipe = feedstock_path / "recipe" / "recipe.yaml"
-        if recipe.exists():
-            updated_meta_yaml, errors = update_version_v1(
-                feedstock_dir, version, hash_type
-            )
-        else:
-            return False, {"no recipe found"}
+        return False, {"no recipe found"}
 
     if updated_meta_yaml is not None:
-        recipe.write_text(updated_meta_yaml)
+        recipe_path.write_text(updated_meta_yaml)
 
     return updated_meta_yaml is not None, errors
 
