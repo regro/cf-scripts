@@ -682,8 +682,6 @@ def update_version_v1(
         recipe_yaml, variants, override_version=version
     )
 
-    print("rendered_sources", rendered_sources)
-
     # load recipe text
     recipe_path = feedstock_dir / "recipe" / "recipe.yaml"
     recipe = recipe_path.read_text()
@@ -719,8 +717,6 @@ def update_version_v1(
                 hash_type,
                 recipe_yaml,
             )
-            print("new_hash", new_hash)
-            print("new_tmpl", new_tmpl)
 
             if new_hash is not None:
                 if hash_type == "sha256":
@@ -730,9 +726,7 @@ def update_version_v1(
                 found_hash = True
 
                 # convert back to v1 minijinja template
-                print("New template", new_tmpl)
                 new_tmpl = new_tmpl.replace("{{", "${{")
-                print("replace", source.template, new_tmpl)
                 if new_tmpl != source.template:
                     recipe = recipe.replace(source.template, new_tmpl)
 
@@ -745,7 +739,7 @@ def update_version_v1(
 
 
 def update_version(
-    raw_meta_yaml, version, hash_type="sha256", recipe_version: int = 0
+    raw_meta_yaml, version, hash_type="sha256"
 ) -> (str, set[str]):
     """Update the version in a recipe.
 
@@ -777,9 +771,6 @@ def update_version(
             version,
         )
         return None, errors
-
-    if recipe_version == 1:
-        update_version_v1(raw_meta_yaml, version, hash_type)
 
     try:
         cmeta = CondaMetaYAML(raw_meta_yaml)

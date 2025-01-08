@@ -106,10 +106,8 @@ class Version(Migrator):
                 "raw_meta_yaml" in attrs
                 and "{% set version" not in attrs["raw_meta_yaml"]
             ):
-                print("ugh")
                 return True
         elif schema_version == 1:
-            print("Checking ... ")
             # load yaml and check if context is there
             if "raw_meta_yaml" in attrs:
                 from rattler_build_conda_compat.loader import load_yaml
@@ -120,9 +118,7 @@ class Version(Migrator):
                         return True
         else:
             raise NotImplementedError("Schema version not implemented!")
-        print("Still OK")
         conditional = super().filter(attrs)
-        print("Conditional: %r" % conditional)
         result = bool(
             conditional  # if archived/finished/schema version skip
             or len(
