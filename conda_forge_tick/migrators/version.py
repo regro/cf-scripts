@@ -223,18 +223,18 @@ class Version(Migrator):
         version = attrs["new_version"]
         recipe_dir = Path(recipe_dir)
         recipe = None
-        recipe_v0 = recipe_dir / "meta.yaml"
-        recipe_v1 = recipe_dir / "recipe.yaml"
-        if recipe_v0.exists():
-            raw_meta_yaml = recipe_v0.read_text()
-            recipe = recipe_v0
+        recipe_path_v0 = recipe_dir / "meta.yaml"
+        recipe_path_v1 = recipe_dir / "recipe.yaml"
+        if recipe_path_v0.exists():
+            raw_meta_yaml = recipe_path_v0.read_text()
+            recipe = recipe_path_v0
             updated_meta_yaml, errors = update_version(
                 raw_meta_yaml,
                 version,
                 hash_type=hash_type,
             )
-        elif recipe_v1.exists():
-            recipe = recipe_v1
+        elif recipe_path_v1.exists():
+            recipe = recipe_path_v1
             updated_meta_yaml, errors = update_version_v1(
                 # we need to give the "feedstock_dir" (not recipe dir)
                 recipe_dir.parent,
@@ -243,7 +243,7 @@ class Version(Migrator):
             )
         else:
             raise FileNotFoundError(
-                f"Neither {recipe_v0} nor {recipe_v1} exists in {recipe_dir}",
+                f"Neither {recipe_path_v0} nor {recipe_path_v1} exists in {recipe_dir}",
             )
 
         if len(errors) == 0 and updated_meta_yaml is not None:
