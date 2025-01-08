@@ -692,8 +692,8 @@ def update_version_v1(
 
     Returns
     -------
-    updated_meta_yaml : str or None
-        The updated meta.yaml. Will be None if there is an error.
+    recipe_text : str or None
+        The text of the updated recipe.yaml. Will be None if there is an error.
     errors : set of str
     """
     # extract all the URL sources from a given recipe / feedstock directory
@@ -714,15 +714,15 @@ def update_version_v1(
         recipe_yaml, variants, override_version=version
     )
 
-    # load recipe text
-    recipe_path = feedstock_dir / "recipe" / "recipe.yaml"
-    recipe = recipe_path.read_text()
+    recipe_text = recipe_path.read_text()
 
     # update the version with a regex replace
-    for line in recipe.splitlines():
+    for line in recipe_text.splitlines():
         if match := re.match(r"^(\s+)version:\s.*$", line):
             indentation = match.group(1)
-            recipe = recipe.replace(line, f'{indentation}version: "{version}"')
+            recipe_text = recipe_text.replace(
+                line, f'{indentation}version: "{version}"'
+            )
             break
 
     for source in rendered_sources:
@@ -752,22 +752,22 @@ def update_version_v1(
 
             if new_hash is not None:
                 if hash_type == "sha256":
-                    recipe = recipe.replace(source.sha256, new_hash)
+                    recipe_text = recipe_text.replace(source.sha256, new_hash)
                 else:
-                    recipe = recipe.replace(source.md5, new_hash)
+                    recipe_text = recipe_text.replace(source.md5, new_hash)
                 found_hash = True
 
                 # convert back to v1 minijinja template
                 new_tmpl = new_tmpl.replace("{{", "${{")
                 if new_tmpl != source.template:
-                    recipe = recipe.replace(source.template, new_tmpl)
+                    recipe_text = recipe_text.replace(source.template, new_tmpl)
 
                 break
 
         if not found_hash:
             return None, {"could not find a hash for the source"}
 
-    return recipe, set()
+    return recipe_text, set()
 
 
 def update_version(raw_meta_yaml, version, hash_type="sha256") -> (str, set[str]):
