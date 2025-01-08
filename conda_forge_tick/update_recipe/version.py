@@ -924,7 +924,6 @@ if __name__ == "__main__":
     # parse args and invoke update_version_feedstock_dir
     import argparse
 
-    # set log level to debug
     from conda_forge_tick.utils import setup_logging
 
     setup_logging("INFO")
