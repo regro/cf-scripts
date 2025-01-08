@@ -219,26 +219,31 @@ class Version(Migrator):
     ) -> "MigrationUidTypedDict":
         version = attrs["new_version"]
         recipe_dir = Path(recipe_dir)
-        recipe_file = recipe_dir / "meta.yaml"
+        file = recipe_dir / "meta.yaml"
         recipe_yaml = recipe_dir / "recipe.yaml"
-        if recipe_file.exists():
-            raw_meta_yaml = recipe_file.read_text()
+        if file.exists():
+            raw_meta_yaml = file.read_text()
             updated_meta_yaml, errors = update_version(
                 raw_meta_yaml,
                 version,
                 hash_type=hash_type,
             )
         elif recipe_yaml.exists():
-            recipe_file = recipe_yaml
+            file = recipe_yaml
             updated_meta_yaml, errors = update_version_v1(
-                recipe_dir,
+                # we need to give the "feedstock_dir" (not recipe dir)
+                recipe_dir.parent,
                 version,
                 hash_type=hash_type,
             )
+        else:
+            raise FileNotFoundError(
+                f"Neither {file} nor {recipe_yaml} exists in {recipe_dir}",
+            )
 
         if len(errors) == 0 and updated_meta_yaml is not None:
-            recipe_file.write_text(updated_meta_yaml)
-            self.set_build_number(recipe_file)
+            file.write_text(updated_meta_yaml)
+            self.set_build_number(file)
 
             return super().migrate(recipe_dir, attrs)
         else:

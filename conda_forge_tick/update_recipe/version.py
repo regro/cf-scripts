@@ -738,9 +738,7 @@ def update_version_v1(
     return recipe, set()
 
 
-def update_version(
-    raw_meta_yaml, version, hash_type="sha256"
-) -> (str, set[str]):
+def update_version(raw_meta_yaml, version, hash_type="sha256") -> (str, set[str]):
     """Update the version in a recipe.
 
     Parameters

@@ -478,12 +478,15 @@ def run_test_migration(
 
     if recipe_version == 0:
         tmpdir_p.joinpath("meta.yaml").write_text(inp)
+        recipe_dir = str(tmpdir_p)
     else:
         tmpdir_p.joinpath(".ci_support").mkdir()
         tmpdir_p.joinpath("recipe", "recipe.yaml").write_text(inp)
         (tmpdir_p / ".ci_support" / "linux_64_.yaml").write_text(
             "target_platform: linux-64"
         )
+
+        recipe_dir = str(tmpdir_p / "recipe")
     # read the conda-forge.yml
     cf_yml_path = Path(tmpdir).parent / "conda-forge.yml"
     cf_yml = cf_yml_path.read_text() if cf_yml_path.exists() else "{}"
@@ -535,13 +538,13 @@ def run_test_migration(
         return pmy
 
     m.run_pre_piggyback_migrations(
-        tmpdir,
+        recipe_dir,
         pmy,
         hash_type=pmy.get("hash_type", "sha256"),
     )
-    mr = m.migrate(tmpdir, pmy, hash_type=pmy.get("hash_type", "sha256"))
+    mr = m.migrate(recipe_dir, pmy, hash_type=pmy.get("hash_type", "sha256"))
     m.run_post_piggyback_migrations(
-        tmpdir,
+        recipe_dir,
         pmy,
         hash_type=pmy.get("hash_type", "sha256"),
     )
@@ -565,7 +568,7 @@ def run_test_migration(
     if recipe_version == 0:
         actual_output = tmpdir_p.joinpath("meta.yaml").read_text()
     else:
-        actual_output = tmpdir_p.joinpath("recipe", "recipe.yaml").read_text()
+        actual_output = tmpdir_p.joinpath("recipe/recipe.yaml").read_text()
     # strip jinja comments
     pat = re.compile(r"{#.*#}")
     actual_output = pat.sub("", actual_output)
