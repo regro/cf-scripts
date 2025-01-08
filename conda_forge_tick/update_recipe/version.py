@@ -702,7 +702,8 @@ def update_version_v1(
 
     feedstock_dir = Path(feedstock_dir)
     recipe_path = feedstock_dir / "recipe" / "recipe.yaml"
-    recipe_yaml = load_yaml(recipe_path.read_text())
+    recipe_text = recipe_path.read_text()
+    recipe_yaml = load_yaml(recipe_text)
     variants = feedstock_dir.glob(".ci_support/*.yaml")
     # load all variants
     variants = [load_yaml(variant.read_text()) for variant in variants]
@@ -713,8 +714,6 @@ def update_version_v1(
     rendered_sources = render_all_sources(
         recipe_yaml, variants, override_version=version
     )
-
-    recipe_text = recipe_path.read_text()
 
     # update the version with a regex replace
     for line in recipe_text.splitlines():
