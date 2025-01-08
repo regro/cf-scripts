@@ -181,6 +181,7 @@ def _try_pypi_api(url_tmpl: str, context: MutableMapping, hash_type: str, cmeta:
         {nc for nc in orig_pypi_name_candidates if nc is not None and len(nc) > 0},
         key=lambda x: len(x),
     )
+    logger.info("PyPI name candidates: %s", orig_pypi_name_candidates)
 
     for _orig_pypi_name in orig_pypi_name_candidates:
         if _orig_pypi_name is None:
