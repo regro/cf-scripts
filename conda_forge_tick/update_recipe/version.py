@@ -611,9 +611,7 @@ def _update_version_feedstock_dir_local(
         )
     elif recipe_path_v1.exists():
         recipe_path = recipe_path_v1
-        updated_meta_yaml, errors = update_version_v1(
-            feedstock_dir, version, hash_type
-        )
+        updated_meta_yaml, errors = update_version_v1(feedstock_dir, version, hash_type)
     else:
         return False, {"no recipe found"}
 
