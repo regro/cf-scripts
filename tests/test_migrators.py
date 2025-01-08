@@ -479,7 +479,7 @@ def run_test_migration(
     if recipe_version == 0:
         tmpdir_p.joinpath("meta.yaml").write_text(inp)
         recipe_dir = str(tmpdir_p)
-    else:
+    elif recipe_version == 1:
         tmpdir_p.joinpath(".ci_support").mkdir()
         tmpdir_p.joinpath("recipe", "recipe.yaml").write_text(inp)
         (tmpdir_p / ".ci_support" / "linux_64_.yaml").write_text(
@@ -487,6 +487,9 @@ def run_test_migration(
         )
 
         recipe_dir = str(tmpdir_p / "recipe")
+    else:
+        raise ValueError(f"Unsupported recipe version: {recipe_version}")
+
     # read the conda-forge.yml
     cf_yml_path = Path(tmpdir).parent / "conda-forge.yml"
     cf_yml = cf_yml_path.read_text() if cf_yml_path.exists() else "{}"

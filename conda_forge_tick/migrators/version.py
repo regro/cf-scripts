@@ -11,6 +11,7 @@ from typing import Any, List, Sequence
 import conda.exceptions
 import networkx as nx
 from conda.models.version import VersionOrder
+from rattler_build_conda_compat.loader import load_yaml
 
 from conda_forge_tick.contexts import ClonedFeedstockContext, FeedstockContext
 from conda_forge_tick.migrators.core import Migrator
@@ -102,22 +103,24 @@ class Version(Migrator):
         )
         print("Checking schema version: %d" % schema_version)
         if schema_version == 0:
-            if (
-                "raw_meta_yaml" in attrs
-                and "{% set version" not in attrs["raw_meta_yaml"]
-            ):
+            if "raw_meta_yaml" not in attrs:
+                return True
+            if "{% set version" not in attrs["raw_meta_yaml"]:
                 return True
         elif schema_version == 1:
             # load yaml and check if context is there
-            if "raw_meta_yaml" in attrs:
-                from rattler_build_conda_compat.loader import load_yaml
+            if "raw_meta_yaml" not in attrs:
+                return True
 
-                yaml = load_yaml(attrs["raw_meta_yaml"])
-                if "context" in yaml:
-                    if "version" not in yaml["context"]:
-                        return True
+            yaml = load_yaml(attrs["raw_meta_yaml"])
+            if "context" not in yaml:
+                return True
+
+            if "version" not in yaml["context"]:
+                return True
         else:
             raise NotImplementedError("Schema version not implemented!")
+
         conditional = super().filter(attrs)
         result = bool(
             conditional  # if archived/finished/schema version skip
@@ -219,17 +222,19 @@ class Version(Migrator):
     ) -> "MigrationUidTypedDict":
         version = attrs["new_version"]
         recipe_dir = Path(recipe_dir)
-        file = recipe_dir / "meta.yaml"
-        recipe_yaml = recipe_dir / "recipe.yaml"
-        if file.exists():
-            raw_meta_yaml = file.read_text()
+        recipe = None
+        recipe_v0 = recipe_dir / "meta.yaml"
+        recipe_v1 = recipe_dir / "recipe.yaml"
+        if recipe_v0.exists():
+            raw_meta_yaml = recipe_v0.read_text()
+            recipe = recipe_v0
             updated_meta_yaml, errors = update_version(
                 raw_meta_yaml,
                 version,
                 hash_type=hash_type,
             )
-        elif recipe_yaml.exists():
-            file = recipe_yaml
+        elif recipe_v1.exists():
+            recipe = recipe_v1
             updated_meta_yaml, errors = update_version_v1(
                 # we need to give the "feedstock_dir" (not recipe dir)
                 recipe_dir.parent,
@@ -238,12 +243,12 @@ class Version(Migrator):
             )
         else:
             raise FileNotFoundError(
-                f"Neither {file} nor {recipe_yaml} exists in {recipe_dir}",
+                f"Neither {recipe_v0} nor {recipe_v1} exists in {recipe_dir}",
             )
 
         if len(errors) == 0 and updated_meta_yaml is not None:
-            file.write_text(updated_meta_yaml)
-            self.set_build_number(file)
+            recipe.write_text(updated_meta_yaml)
+            self.set_build_number(recipe)
 
             return super().migrate(recipe_dir, attrs)
         else:

@@ -143,6 +143,28 @@ def _render_jinja2(tmpl, context):
 
 
 def _try_pypi_api(url_tmpl: str, context: MutableMapping, hash_type: str, cmeta: Any):
+    """
+    Try to get a new version from the PyPI API. The returned URL might use a different
+    format (host) than the original URL template, e.g. `https://files.pythonhosted.org/`
+    instead of `https://pypi.io/`.
+
+    Parameters
+    ----------
+    url_tmpl : str
+        The URL template to try to update.
+    context : dict
+        The context to render the URL template.
+    hash_type : str
+        The hash type to use.
+
+    Returns
+    -------
+    new_url_tmpl : str or None
+        The new URL template if found.
+    new_hash : str or None
+        The new hash if found.
+    """
+
     if "version" not in context:
         return None, None
 
@@ -667,6 +689,12 @@ def update_version_v1(
         The new version of the recipe.
     hash_type : str
         The kind of hash used on the source.
+
+    Returns
+    -------
+    updated_meta_yaml : str or None
+        The updated meta.yaml. Will be None if there is an error.
+    errors : set of str
     """
     # extract all the URL sources from a given recipe / feedstock directory
     from rattler_build_conda_compat.loader import load_yaml
@@ -897,7 +925,10 @@ if __name__ == "__main__":
     import argparse
 
     # set log level to debug
-    logging.basicConfig(level=logging.DEBUG)
+    from conda_forge_tick.utils import setup_logging
+
+    setup_logging("INFO")
+
     parser = argparse.ArgumentParser()
     parser.add_argument("feedstock_dir", help="The feedstock directory to update.")
     parser.add_argument("version", help="The new version to update to.")
