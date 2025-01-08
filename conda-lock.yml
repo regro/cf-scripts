@@ -2000,39 +2000,39 @@ package:
   - category: main
     dependencies: {}
     hash:
-      md5: 2fb96e80682a0e6c9e1cde6ea44fc340
-      sha256: 0c073649d4f1a9aee1c45f3e46eaee6c71ed468b950d27d9298e84088d2eb047
+      md5: 6260cd329bd0f7d20dd3be8836c38e75
+      sha256: e0c7a554f6a0a6d7431bedeb864b58bcd949684c371c8852c8ebbb3f71a9434a
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.01.08.04.32.23-hd8ed1ab_0.conda
-    version: 2025.01.08.04.32.23
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.01.08.14.39.32-hd8ed1ab_0.conda
+    version: 2025.01.08.14.39.32
   - category: main
     dependencies: {}
     hash:
-      md5: 2fb96e80682a0e6c9e1cde6ea44fc340
-      sha256: 0c073649d4f1a9aee1c45f3e46eaee6c71ed468b950d27d9298e84088d2eb047
+      md5: 6260cd329bd0f7d20dd3be8836c38e75
+      sha256: e0c7a554f6a0a6d7431bedeb864b58bcd949684c371c8852c8ebbb3f71a9434a
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.01.08.04.32.23-hd8ed1ab_0.conda
-    version: 2025.01.08.04.32.23
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.01.08.14.39.32-hd8ed1ab_0.conda
+    version: 2025.01.08.14.39.32
   - category: main
     dependencies: {}
     hash:
-      md5: 2fb96e80682a0e6c9e1cde6ea44fc340
-      sha256: 0c073649d4f1a9aee1c45f3e46eaee6c71ed468b950d27d9298e84088d2eb047
+      md5: 6260cd329bd0f7d20dd3be8836c38e75
+      sha256: e0c7a554f6a0a6d7431bedeb864b58bcd949684c371c8852c8ebbb3f71a9434a
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.01.08.04.32.23-hd8ed1ab_0.conda
-    version: 2025.01.08.04.32.23
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.01.08.14.39.32-hd8ed1ab_0.conda
+    version: 2025.01.08.14.39.32
   - category: main
     dependencies:
       click: '>=8'
@@ -2313,46 +2313,49 @@ package:
     dependencies:
       conda-package-streaming: '>=0.9.0'
       python: '>=3.9'
+      requests: ''
       zstandard: '>=0.15'
     hash:
-      md5: 28b86d110bda4ef40e680d1afa9ddb1d
-      sha256: d150295cb2dab74486a81ae518f4556d2c0a93cf22ae5c8fe7ed163a8c4fc176
+      md5: 32c158f481b4fd7630c565030f7bc482
+      sha256: 8b2b1c235b7cbfa8488ad88ff934bdad25bac6a4c035714681fbff85b602f3f0
     manager: conda
     name: conda-package-handling
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-package-handling-2.4.0-pyha770c72_1.conda
+      https://conda.anaconda.org/conda-forge/noarch/conda-package-handling-2.4.0-pyh7900ff3_2.conda
     version: 2.4.0
   - category: main
     dependencies:
       conda-package-streaming: '>=0.9.0'
       python: '>=3.9'
+      requests: ''
       zstandard: '>=0.15'
     hash:
-      md5: 28b86d110bda4ef40e680d1afa9ddb1d
-      sha256: d150295cb2dab74486a81ae518f4556d2c0a93cf22ae5c8fe7ed163a8c4fc176
+      md5: 32c158f481b4fd7630c565030f7bc482
+      sha256: 8b2b1c235b7cbfa8488ad88ff934bdad25bac6a4c035714681fbff85b602f3f0
     manager: conda
     name: conda-package-handling
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-package-handling-2.4.0-pyha770c72_1.conda
+      https://conda.anaconda.org/conda-forge/noarch/conda-package-handling-2.4.0-pyh7900ff3_2.conda
     version: 2.4.0
   - category: main
     dependencies:
       conda-package-streaming: '>=0.9.0'
       python: '>=3.9'
+      requests: ''
       zstandard: '>=0.15'
     hash:
-      md5: 28b86d110bda4ef40e680d1afa9ddb1d
-      sha256: d150295cb2dab74486a81ae518f4556d2c0a93cf22ae5c8fe7ed163a8c4fc176
+      md5: 32c158f481b4fd7630c565030f7bc482
+      sha256: 8b2b1c235b7cbfa8488ad88ff934bdad25bac6a4c035714681fbff85b602f3f0
     manager: conda
     name: conda-package-handling
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-package-handling-2.4.0-pyha770c72_1.conda
+      https://conda.anaconda.org/conda-forge/noarch/conda-package-handling-2.4.0-pyh7900ff3_2.conda
     version: 2.4.0
   - category: main
     dependencies:
