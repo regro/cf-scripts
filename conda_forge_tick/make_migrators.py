@@ -1,10 +1,11 @@
+import contextlib
 import copy
 import glob
 import logging
 import os
 import pprint
-import random
 import re
+import secrets
 import time
 import typing
 from concurrent.futures import as_completed
@@ -71,6 +72,7 @@ from conda_forge_tick.migrators import (
     UpdateCMakeArgsMigrator,
     UpdateConfigSubGuessMigrator,
     Version,
+    XzLibLzmaDevelMigrator,
     make_from_lazy_json_data,
     skip_migrator_due_to_schema,
 )
@@ -90,15 +92,16 @@ from conda_forge_tick.utils import (
     yaml_safe_load,
 )
 
-# migrator runs on loop so avoid any seeds at current time should that happen
-random.seed(os.urandom(64))
-
 logger = logging.getLogger(__name__)
 
-PR_LIMIT = 2
+RNG = secrets.SystemRandom()
+
+PR_LIMIT = 5
+PR_ATTEMPT_LIMIT_FACTOR = 2
 MAX_PR_LIMIT = 20
-MAX_SOLVER_ATTEMPTS = 50
-CHECK_SOLVABLE_TIMEOUT = 90  # 90 days
+MAX_SOLVER_ATTEMPTS = 3
+FORCE_PR_AFTER_SOLVER_ATTEMPTS = 10
+CHECK_SOLVABLE_TIMEOUT = 30  # in days
 DEFAULT_MINI_MIGRATORS = [
     CondaForgeYAMLCleanup,
     Jinja2VarsCleanup,
@@ -122,6 +125,60 @@ def _make_mini_migrators_with_defaults(
         if not any(isinstance(m, klass) for m in extra_mini_migrators):
             extra_mini_migrators.append(klass())
     return extra_mini_migrators
+
+
+def _compute_migrator_pr_limit(
+    migrator: Migrator, nominal_pr_limit: int
+) -> (int, int, float):
+    # adaptively set PR limits based on the number of PRs made so far
+    number_pred = 0
+    for _, v in migrator.graph.nodes.items():
+        payload = v.get("payload", {}) or {}
+        if not isinstance(payload, LazyJson):
+            payload = contextlib.nullcontext(enter_result=payload)
+
+        with payload as p:
+            muid = migrator.migrator_uid(p)
+            pr_info = p.get("pr_info", {}) or {}
+            if not isinstance(pr_info, LazyJson):
+                pr_info = contextlib.nullcontext(enter_result=pr_info)
+            with pr_info as pri:
+                muids = [
+                    pred.get("data", {}) or {} for pred in (pri.get("PRed", []) or [])
+                ]
+                if muid in muids:
+                    number_pred += 1
+
+    tot_nodes = len(migrator.graph.nodes)
+    frac_pred = number_pred / tot_nodes
+
+    tenth = int(tot_nodes / 10)
+    quarter = int(tot_nodes / 4)
+    half = int(tot_nodes / 2)
+    three_quarters = int(tot_nodes * 0.75)
+    number_pred_breaks = sorted(
+        [0, 10, tenth, quarter, half, three_quarters, tot_nodes]
+    )
+    pr_limits = [
+        min(2, nominal_pr_limit),
+        nominal_pr_limit,
+        min(int(nominal_pr_limit * 2), MAX_PR_LIMIT),
+        min(int(nominal_pr_limit * 1.75), MAX_PR_LIMIT),
+        min(int(nominal_pr_limit * 1.50), MAX_PR_LIMIT),
+        min(int(nominal_pr_limit * 1.25), MAX_PR_LIMIT),
+        min(nominal_pr_limit, MAX_PR_LIMIT),
+    ]
+
+    pr_limit = None
+    for i, lim in enumerate(number_pred_breaks):
+        if number_pred <= lim:
+            pr_limit = pr_limits[i]
+            break
+
+    if pr_limit is None:
+        pr_limit = nominal_pr_limit
+
+    return pr_limit, number_pred, frac_pred
 
 
 def add_replacement_migrator(
@@ -191,6 +248,13 @@ def add_replacement_migrator(
                 ),
             )
 
+        # adaptively set PR limits based on the number of PRs made so far
+        pr_limit, _, _ = _compute_migrator_pr_limit(
+            migrators[-1],
+            PR_LIMIT,
+        )
+        migrators[-1].pr_limit = pr_limit
+
 
 def add_arch_migrate(migrators: MutableSequence[Migrator], gx: nx.DiGraph) -> None:
     """Adds rebuild migrators.
@@ -245,7 +309,7 @@ def add_rebuild_migration_yaml(
     migration_name: str,
     nominal_pr_limit: int = PR_LIMIT,
     max_solver_attempts: int = 3,
-    force_pr_after_solver_attempts: int = MAX_SOLVER_ATTEMPTS * 2,
+    force_pr_after_solver_attempts: int = FORCE_PR_AFTER_SOLVER_ATTEMPTS,
     paused: bool = False,
 ) -> None:
     """Adds rebuild migrator.
@@ -323,6 +387,8 @@ def add_rebuild_migration_yaml(
         piggy_back_migrations.append(RUCRTCleanup())
     if migration_name.startswith("flang19"):
         piggy_back_migrations.append(FlangMigrator())
+    if migration_name.startswith("xz_to_liblzma_devel"):
+        piggy_back_migrations.append(XzLibLzmaDevelMigrator())
     piggy_back_migrations = _make_mini_migrators_with_defaults(
         extra_mini_migrators=piggy_back_migrations
     )
@@ -346,46 +412,10 @@ def add_rebuild_migration_yaml(
     )
 
     # adaptively set PR limits based on the number of PRs made so far
-    number_pred = len(
-        [
-            k
-            for k, v in migrator.graph.nodes.items()
-            if migrator.migrator_uid(v.get("payload", {}))
-            in [
-                vv.get("data", {})
-                for vv in v.get("payload", {}).get("pr_info", {}).get("PRed", [])
-            ]
-        ],
-    )
-    tot_nodes = len(migrator.graph.nodes)
-    frac_pred = number_pred / tot_nodes
-
-    tenth = int(tot_nodes / 10)
-    quarter = int(tot_nodes / 4)
-    half = int(tot_nodes / 2)
-    three_quarters = int(tot_nodes * 0.75)
-    number_pred_breaks = sorted(
-        [0, 10, tenth, quarter, half, three_quarters, tot_nodes]
-    )
-    pr_limits = [
-        min(2, nominal_pr_limit),
+    pr_limit, number_pred, frac_pred = _compute_migrator_pr_limit(
+        migrator,
         nominal_pr_limit,
-        min(int(nominal_pr_limit * 2), MAX_PR_LIMIT),
-        min(int(nominal_pr_limit * 1.75), MAX_PR_LIMIT),
-        min(int(nominal_pr_limit * 1.50), MAX_PR_LIMIT),
-        min(int(nominal_pr_limit * 1.25), MAX_PR_LIMIT),
-        min(nominal_pr_limit, MAX_PR_LIMIT),
-    ]
-
-    pr_limit = None
-    for i, lim in enumerate(number_pred_breaks):
-        if number_pred <= lim:
-            pr_limit = pr_limits[i]
-            break
-
-    if pr_limit is None:
-        pr_limit = nominal_pr_limit
-
+    )
     migrator.pr_limit = pr_limit
 
     print(f"migration yaml:\n{migration_yaml}", flush=True)
@@ -450,14 +480,15 @@ def migration_factory(
             excluded_feedstocks = set(migrator_config.get("exclude", []))
             _pr_limit = min(migrator_config.pop("pr_limit", pr_limit), MAX_PR_LIMIT)
             max_solver_attempts = min(
-                migrator_config.pop("max_solver_attempts", 3),
+                migrator_config.pop("max_solver_attempts", MAX_SOLVER_ATTEMPTS),
                 MAX_SOLVER_ATTEMPTS,
             )
             force_pr_after_solver_attempts = min(
                 migrator_config.pop(
-                    "force_pr_after_solver_attempts", MAX_SOLVER_ATTEMPTS * 2
+                    "force_pr_after_solver_attempts",
+                    FORCE_PR_AFTER_SOLVER_ATTEMPTS,
                 ),
-                MAX_SOLVER_ATTEMPTS * 2,
+                FORCE_PR_AFTER_SOLVER_ATTEMPTS,
             )
 
             if "override_cbc_keys" in migrator_config:
@@ -751,6 +782,13 @@ def add_noarch_python_min_migrator(
             ),
         )
 
+        # adaptively set PR limits based on the number of PRs made so far
+        pr_limit, _, _ = _compute_migrator_pr_limit(
+            migrators[-1],
+            PR_LIMIT,
+        )
+        migrators[-1].pr_limit = pr_limit
+
 
 def initialize_migrators(
     gx: nx.DiGraph,
@@ -820,7 +858,7 @@ def initialize_migrators(
             ),
         )
 
-        random.shuffle(pinning_migrators)
+        RNG.shuffle(pinning_migrators)
         migrators = [version_migrator] + migrators + pinning_migrators
 
     return migrators
@@ -875,8 +913,8 @@ def load_migrators(skip_paused: bool = True) -> MutableSequence[Migrator]:
     if version_migrator is None:
         raise RuntimeError("No version migrator found in the migrators directory!")
 
-    random.shuffle(pinning_migrators)
-    random.shuffle(longterm_migrators)
+    RNG.shuffle(pinning_migrators)
+    RNG.shuffle(longterm_migrators)
     migrators = [version_migrator] + migrators + pinning_migrators + longterm_migrators
 
     return migrators

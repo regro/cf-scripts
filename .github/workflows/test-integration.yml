@@ -28,7 +28,7 @@ env:
   CF_FEEDSTOCK_OPS_CONTAINER_NAME: conda-forge-tick
   CF_FEEDSTOCK_OPS_CONTAINER_TAG: test
   # Deploy to GitHub step
-  DEPLOY_REPO: regro-staging/cf-graph-countyfair
+  CF_TICK_GRAPH_GITHUB_BACKEND_REPO: regro-staging/cf-graph-countyfair
   RUN_URL: "https://github.com/regro/cf-scripts/actions/runs/${{ github.run_id }}"
   # Install Bot Code step
   CF_GRAPH_REMOTE: https://github.com/regro-staging/cf-graph-countyfair.git

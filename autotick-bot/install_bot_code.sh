@@ -6,38 +6,6 @@
 
 set -euo pipefail
 
-clean_disk_space="true"
-for arg in "$@"; do
-  if [[ "$arg" == "--no-clean-disk-space" ]]; then
-    clean_disk_space="false"
-  fi
-done
-if [[ "${clean_disk_space}" == "true" ]]; then
-  # clean disk space
-  sudo mkdir -p /opt/empty_dir || true
-  for d in \
-   /opt/ghc \
-   /opt/hostedtoolcache \
-   /usr/lib/jvm \
-   /usr/local/.ghcup \
-   /usr/local/lib/android \
-   /usr/local/share/powershell \
-   /usr/share/dotnet \
-   /usr/share/swift \
-  ; do
-    sudo rsync --stats -a --delete /opt/empty_dir/ $d || true
-  done
-
-  # dpkg does not fail if the package is not installed
-  sudo dpkg --remove firefox \
-      google-chrome-stable \
-      microsoft-edge-stable
-  sudo apt-get autoremove -y >& /dev/null
-  sudo apt-get autoclean -y >& /dev/null
-  sudo docker image prune --all --force
-  df -h
-fi
-
 git config --global user.name regro-cf-autotick-bot
 git config --global user.email 36490558+regro-cf-autotick-bot@users.noreply.github.com
 git config --global pull.rebase false
@@ -50,6 +18,17 @@ cd cf-scripts
 pip install --no-deps --no-build-isolation -e .
 
 cd ..
+
+clean_disk_space="true"
+for arg in "$@"; do
+  if [[ "$arg" == "--no-clean-disk-space" ]]; then
+    clean_disk_space="false"
+  fi
+done
+if [[ "${clean_disk_space}" == "true" ]]; then
+  conda-forge-tick clean-disk-space --cli-service='github-actions'
+fi
+
 clone_graph="true"
 for arg in "$@"; do
   if [[ "$arg" == "--no-clone-graph" ]]; then

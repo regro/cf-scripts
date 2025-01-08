@@ -3,7 +3,7 @@ name: bot-prs
 on:
   workflow_dispatch: null
   schedule:
-    - cron: '15 12 * * *'
+    - cron: '15 * * * *'
 
 concurrency: prs
 
@@ -50,7 +50,7 @@ jobs:
       - name: install bot code
         if: success() && ! env.CI_SKIP
         run: |
-          source cf-scripts/autotick-bot/install_bot_code.sh
+          source cf-scripts/autotick-bot/install_bot_code.sh --no-clean-disk-space
         env:
           BOT_TOKEN: ${{ secrets.AUTOTICK_BOT_TOKEN }}
 

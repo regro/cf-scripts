@@ -57,6 +57,11 @@ def _process_section(output_index, attrs, lines):
         except IndexError:
             raise RuntimeError(f"Could not find output {output_index}!")
 
+    # sometimes v0 outputs have requirements that are just lists
+    # these are always run requirements
+    if output_index != -1 and not hasattr(reqs, "get"):
+        reqs = {"run": reqs}
+
     build_reqs = reqs.get("build", set()) or set()
 
     # check if there's a compiler in the output we're processing
@@ -68,8 +73,22 @@ def _process_section(output_index, attrs, lines):
     line_script = line_host = line_run = line_constrain = line_test = 0
     indent_c = indent_m2c = indent_other = ""
     selector_c = selector_m2c = selector_other = ""
+    test_indent = None
+    curr_indent = None
     last_line_was_build = False
     for i, line in enumerate(lines):
+        # skip comments or blank lines
+        if not line.strip() or line.strip().startswith("#"):
+            continue
+
+        curr_indent = len(line) - len(line.lstrip())
+        if test_indent is not None and curr_indent > test_indent:
+            # we're still in the test section, skip
+            continue
+        elif test_indent is not None:
+            # we're done with the test section
+            test_indent = None
+
         if last_line_was_build:
             # process this separately from the if-else-chain below
             keys_after_nonreq_build = [
@@ -115,16 +134,17 @@ def _process_section(output_index, attrs, lines):
             line_constrain = i
         elif re.match(r"^\s*test:.*", line):
             line_test = i
-            # ensure we don't read past test section (may contain unrelated deps)
-            break
+            test_indent = len(line) - len(line.lstrip())
 
     if line_build:
         # double-check whether there are compilers in the build section
         # that may have gotten ignored by selectors; we explicitly only
         # want to match with compilers in build, not host or run
-        build_reqs = lines[
-            line_build : (line_host or line_run or line_constrain or line_test or -1)
-        ]
+        if line_test > line_build:
+            end_build = line_host or line_run or line_constrain or line_test or -1
+        else:
+            end_build = line_host or line_run or line_constrain or -1
+        build_reqs = lines[line_build:end_build]
         needs_stdlib |= any(pat_compiler.search(line) for line in build_reqs)
 
     if not needs_stdlib:

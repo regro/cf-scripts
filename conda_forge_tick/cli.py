@@ -1,5 +1,4 @@
 import logging
-import os
 import time
 from typing import Optional
 
@@ -83,9 +82,6 @@ def main(
 
     ctx.debug = debug
     ctx.dry_run = dry_run
-
-    if ctx.debug:
-        os.environ["CONDA_FORGE_TICK_DEBUG"] = "1"
 
     if online:
         logger.info("Running in online mode")
@@ -291,6 +287,17 @@ def react_to_event(
     from .events import react_to_event
 
     react_to_event(ctx, event, uid)
+
+
+@main.command(name="clean-disk-space")
+@click.option("--ci-service", required=True, type=click.Choice(["github-actions"]))
+def clean_disk_space(ci_service) -> None:
+    """
+    Clean up disk space on CI services.
+    """
+    from .os_utils import clean_disk_space
+
+    clean_disk_space(ci_service)
 
 
 if __name__ == "__main__":

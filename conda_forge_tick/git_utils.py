@@ -10,7 +10,7 @@ import textwrap
 import threading
 import time
 from abc import ABC, abstractmethod
-from datetime import datetime, timezone
+from datetime import datetime
 from email import utils
 from functools import cached_property
 from pathlib import Path
@@ -18,6 +18,7 @@ from typing import Dict, Iterator, Optional, Union
 
 import backoff
 import github
+import github.Repository
 import github3
 import github3.exceptions
 import github3.pulls
@@ -1219,24 +1220,15 @@ def trim_pr_json_keys(
     return pr_json
 
 
-def parse_pr_json_last_updated(pr_data: Union[Dict, LazyJson]) -> Optional[datetime]:
-    """Parse the last updated time from a PR json blob. If it is not present, return None."""
-    last_updated = pr_data.get("updated_at", None)
-    if last_updated is not None:
-        last_updated = datetime.fromisoformat(last_updated)
-        if last_updated.tzinfo is None:
-            last_updated = last_updated.replace(tzinfo=timezone.utc)
-    return last_updated
-
-
 def lazy_update_pr_json(
     pr_json: Union[Dict, LazyJson], force: bool = False
 ) -> Union[Dict, LazyJson]:
     """Lazily update a GitHub PR.
 
-    This function will use the ETag in the GitHub API to update PR information
-    lazily. It sends the ETag to github properly and if nothing is changed on their
-    end, it simply returns the PR. Otherwise the information is refreshed.
+    This function will use the Last-Modified field in the GitHub API to update
+    PR information lazily. It sends the Last-Modified to github properly and
+    if nothing is changed on their end, it simply returns the PR. Otherwise
+    the information is refreshed.
 
     Parameters
     ----------
@@ -1244,21 +1236,19 @@ def lazy_update_pr_json(
         A dict-like object with the current PR information.
     force : bool, optional
         If True, forcibly update the PR json even if it is not out of date
-        according to the ETag. Default is False.
+        according to the Last-Modified. Default is False.
 
     Returns
     -------
     pr_json : dict-like
         A dict-like object with the current PR information.
     """
-    last_updated = parse_pr_json_last_updated(pr_json)
-
     hdrs = {
         "Authorization": f"token {get_bot_token()}",
         "Accept": "application/vnd.github.v3+json",
     }
-    if not force and "ETag" in pr_json:
-        hdrs["If-None-Match"] = pr_json["ETag"]
+    if not force and "Last-Modified" in pr_json:
+        hdrs["if-modified-since"] = pr_json["Last-Modified"]
 
     if "repo" not in pr_json["base"] or (
         "repo" in pr_json["base"] and "name" not in pr_json["base"]["repo"]
@@ -1283,19 +1273,9 @@ def lazy_update_pr_json(
     )
 
     if r.status_code == 200:
-        # I have seen things come in out of order for reasons I do not
-        # fully understand. We do not update in this case. - MRB
-        new_last_updated = parse_pr_json_last_updated(r.json())
-        if (
-            last_updated is None
-            or new_last_updated is None
-            or new_last_updated >= last_updated
-        ):
-            pr_json = trim_pr_json_keys(pr_json, src_pr_json=r.json())
-            pr_json["ETag"] = r.headers["ETag"]
-            pr_json["Last-Modified"] = r.headers["Last-Modified"]
-        else:
-            pr_json = trim_pr_json_keys(pr_json)
+        pr_json = trim_pr_json_keys(pr_json, src_pr_json=r.json())
+        pr_json["ETag"] = r.headers["ETag"]
+        pr_json["Last-Modified"] = r.headers["Last-Modified"]
     else:
         pr_json = trim_pr_json_keys(pr_json)
 
@@ -1454,3 +1434,122 @@ def close_out_dirty_prs(
         return d
 
     return None
+
+
+def _get_pth_blob_sha_and_content(
+    pth: str, repo: github.Repository.Repository
+) -> (str | None, str | None):
+    try:
+        cnt = repo.get_contents(pth)
+        # I was using the decoded_content attribute here, but it seems that
+        # every once and a while github does not send the encoding correctly
+        # so I switched to doing the decoding by hand.
+        data = base64.b64decode(cnt.content.encode("utf-8")).decode("utf-8")
+        return cnt.sha, data
+    except github.UnknownObjectException:
+        return None, None
+
+
+def push_file_via_gh_api(pth: str, repo_full_name: str, msg: str) -> None:
+    """Push a file to a repo via the GitHub API.
+
+    Parameters
+    ----------
+    pth : str
+        The path to the file.
+    repo_full_name : str
+        The full name of the repository (e.g., "conda-forge/conda-forge-pinning").
+    msg : str
+        The commit message.
+    """
+    with open(pth) as f:
+        data = f.read()
+
+    ntries = 10
+
+    # exponential backoff will be base ** tr
+    # we fail at ntries - 1 so the last time we
+    # compute the backoff is at ntries - 2
+    base = math.exp(math.log(60.0) / (ntries - 2.0))
+
+    for tr in range(ntries):
+        try:
+            gh = github_client()
+            repo = gh.get_repo(repo_full_name)
+
+            sha, cnt = _get_pth_blob_sha_and_content(pth, repo)
+            if sha is None:
+                repo.create_file(
+                    pth,
+                    msg,
+                    data,
+                )
+            else:
+                if cnt != data:
+                    repo.update_file(
+                        pth,
+                        msg,
+                        data,
+                        sha,
+                    )
+            break
+        except Exception as e:
+            logger.warning(
+                "failed to push '%s' - trying %d more times",
+                pth,
+                ntries - tr - 1,
+                exc_info=e,
+            )
+            if tr == ntries - 1:
+                raise e
+            else:
+                # exponential backoff
+                time.sleep(base**tr)
+
+
+def delete_file_via_gh_api(pth: str, repo_full_name: str, msg: str) -> None:
+    """Delete a file from a repo via the GitHub API.
+
+    Parameters
+    ----------
+    pth : str
+        The path to the file.
+    repo_full_name : str
+        The full name of the repository (e.g., "conda-forge/conda-forge-pinning").
+    msg : str
+        The commit message.
+    """
+    ntries = 10
+
+    # exponential backoff will be base ** tr
+    # we fail at ntries - 1 so the last time we
+    # compute the backoff is at ntries - 2
+    base = math.exp(math.log(60.0) / (ntries - 2.0))
+
+    for tr in range(ntries):
+        try:
+            gh = github_client()
+            repo = gh.get_repo(repo_full_name)
+
+            sha, _ = _get_pth_blob_sha_and_content(pth, repo)
+
+            if sha is not None:
+                repo.delete_file(
+                    pth,
+                    msg,
+                    sha,
+                )
+            break
+
+        except Exception as e:
+            logger.warning(
+                "failed to delete '%s' - trying %d more times",
+                pth,
+                ntries - tr - 1,
+                exc_info=e,
+            )
+            if tr == ntries - 1:
+                raise e
+            else:
+                # exponential backoff
+                time.sleep(base**tr)

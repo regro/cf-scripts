@@ -1,8 +1,8 @@
 import hashlib
 import logging
 import os
-import random
 import re
+import secrets
 import time
 import typing
 from collections import defaultdict
@@ -33,7 +33,7 @@ from .utils import as_iterable, dump_graph, load_graph, sanitize_string
 logger = logging.getLogger(__name__)
 
 pin_sep_pat = re.compile(r" |>|<|=|\[")
-random.seed(os.urandom(64))
+RNG = secrets.SystemRandom()
 
 RANDOM_FRAC_TO_UPDATE = float(os.environ.get("CF_TICK_RANDOM_FRAC_TO_UPDATE", "0.1"))
 
@@ -105,13 +105,13 @@ def try_load_feedstock(name: str, attrs: LazyJson, mark_not_archived=False) -> L
             data["parsing_error"] = False
         attrs.clear()
         attrs.update(data)
-        _add_required_lazy_json_refs(attrs, name)
     except Exception as e:
         import traceback
 
         trb = traceback.format_exc()
         attrs["parsing_error"] = sanitize_string(f"feedstock parsing error: {e}\n{trb}")
-        raise e
+    finally:
+        _add_required_lazy_json_refs(attrs, name)
 
     return attrs
 
@@ -161,6 +161,17 @@ def _migrate_schema(name, sub_graph):
                     if mn not in pri[pre_key_att]:
                         pri[pre_key_att][mn] = 1
 
+    with lazy_json_transaction():
+        with sub_graph["pr_info"] as pri:
+            for mn in pri[pre_key].keys():
+                if mn not in pri[pre_key_att]:
+                    pri[pre_key_att][mn] = 1
+
+        with sub_graph["version_pr_info"] as vpri:
+            for mn in vpri["new_version_errors"].keys():
+                if mn not in vpri["new_version_attempts"]:
+                    vpri["new_version_attempts"][mn] = 1
+
     keys_to_move = [
         "PRed",
         "smithy_version",
@@ -190,7 +201,7 @@ def _build_graph_process_pool(
         futures = {
             pool.submit(get_attrs, name, mark_not_archived=mark_not_archived): name
             for name in names
-            if random.uniform(0, 1) < RANDOM_FRAC_TO_UPDATE
+            if RNG.random() < RANDOM_FRAC_TO_UPDATE
         }
         logger.info("submitted all nodes")
 
@@ -221,7 +232,7 @@ def _build_graph_sequential(
     mark_not_archived=False,
 ) -> None:
     for name in names:
-        if random.uniform(0, 1) >= RANDOM_FRAC_TO_UPDATE:
+        if RNG.random() >= RANDOM_FRAC_TO_UPDATE:
             logger.debug(f"skipping {name} due to random fraction to update")
             continue
 
@@ -304,6 +315,8 @@ def _add_run_exports(gx: nx.DiGraph, nodes_to_update: set[str]):
     logger.info("adding run exports")
 
     for node in nodes_to_update:
+        if node not in gx.nodes:
+            continue
         with gx.nodes[node]["payload"] as attrs:
             _add_run_exports_per_node(
                 attrs, gx.graph["outputs_lut"], gx.graph["strong_exports"]
@@ -363,25 +376,21 @@ def main(
         gx = load_graph()
 
         new_names = [name for name in names if name not in gx.nodes]
-        with lazy_json_override_backends(
-            ["file"],
-            hashmaps_to_sync=["node_attrs"],
-            keys_to_sync=set(tot_names_for_this_job),
-        ):
-            for name in names:
-                sub_graph = {
-                    "payload": LazyJson(f"node_attrs/{name}.json"),
-                }
-                if name in new_names:
-                    gx.add_node(name, **sub_graph)
-                else:
-                    gx.nodes[name].update(**sub_graph)
+        for name in names:
+            sub_graph = {
+                "payload": LazyJson(f"node_attrs/{name}.json"),
+            }
+            if name in new_names:
+                gx.add_node(name, **sub_graph)
+            else:
+                gx.nodes[name].update(**sub_graph)
 
-            _add_graph_metadata(gx)
+        _add_graph_metadata(gx)
 
-            gx = _create_edges(gx)
+        gx = _create_edges(gx)
 
         dump_graph(gx)
+
     else:
         gx = load_graph()
 

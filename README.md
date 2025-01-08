@@ -12,7 +12,6 @@
 [![bot-feedstocks](https://github.com/regro/cf-scripts/actions/workflows/bot-feedstocks.yml/badge.svg)](https://github.com/regro/cf-scripts/actions/workflows/bot-feedstocks.yml)
 [![bot-make-graph](https://github.com/regro/cf-scripts/actions/workflows/bot-make-graph.yml/badge.svg)](https://github.com/regro/cf-scripts/actions/workflows/bot-make-graph.yml)
 [![bot-update-nodes](https://github.com/regro/cf-scripts/actions/workflows/bot-update-nodes.yml/badge.svg)](https://github.com/regro/cf-scripts/actions/workflows/bot-update-nodes.yml)
-[![bot-migrate-schema](https://github.com/regro/cf-scripts/actions/workflows/bot-migrate-schema.yml/badge.svg)](https://github.com/regro/cf-scripts/actions/workflows/bot-migrate-schema.yml)
 [![bot-make-migrators](https://github.com/regro/cf-scripts/actions/workflows/bot-make-migrators.yml/badge.svg)](https://github.com/regro/cf-scripts/actions/workflows/bot-make-migrators.yml)
 [![bot-cache](https://github.com/regro/cf-scripts/actions/workflows/bot-cache.yml/badge.svg)](https://github.com/regro/cf-scripts/actions/workflows/bot-cache.yml)
 [![test-model](https://github.com/regro/cf-scripts/actions/workflows/test-model.yml/badge.svg)](https://github.com/regro/cf-scripts/actions/workflows/test-model.yml)
@@ -158,7 +157,7 @@ __migrator:
 
   # The bot will forcibly make PRs for feedstocks that have failed the solver attempts after
   # this many tries.
-  force_pr_after_solver_attempts: 100
+  force_pr_after_solver_attempts: 10
 
   # If `override_cbc_keys` is set to a list, the bot will use this list of packages to
   # determine which feedstocks to migrate as opposed to the changed pins listed below.
@@ -237,7 +236,6 @@ If your migrator needs special configuration, you should write a new factory fun
 - `BOT_TOKEN`: a GitHub token for the bot user
 - `CF_FEEDSTOCK_OPS_CONTAINER_NAME`: the name of the container to use in the bot, otherwise defaults to `ghcr.io/regro/conda-forge-tick`
 - `CF_FEEDSTOCK_OPS_CONTAINER_TAG`: set this to override the default container tag used in production runs, otherwise the value of `__version__` is used
-- `CF_TICK_LIVE_TEST`: set to `true` to enable tests of the bot that require a working GitHub API token for `BOT_TOKEN`
 
 ### Getting a Working Environment
 
@@ -298,7 +296,8 @@ present in the current working directory by default, unless the `--online` flag 
 
 > [!TIP]
 > Use the `--online` flag when debugging the bot locally to avoid having to clone the whole
-> dependency graph.
+> dependency graph. With `--no-containers`, you disable the functionality of running sensitive tasks in a Docker
+> container, which may be helpful for debugging.
 
 The local debugging functionality is still work in progress and might not work for all commands.
 Currently, the following commands are supported and tested:
