@@ -560,7 +560,6 @@ def update_version_feedstock_dir(
         A set of strings giving any errors found when updating the
         version. The set will be empty if there were no errors.
     """
-    feedstock_dir = Path(feedstock_dir)
     if should_use_container(use_container=use_container):
         return _update_version_feedstock_dir_containerized(
             feedstock_dir,
@@ -578,7 +577,8 @@ def update_version_feedstock_dir(
 def _update_version_feedstock_dir_local(
     feedstock_dir, version, hash_type
 ) -> (bool, set):
-    if os.path.join(feedstock_dir, "recipe", "recipe.yaml"):
+    feedstock_path = Path(feedstock_dir)
+    if (feedstock_path / "recipe" / "recipe.yaml").exists():
         return update_version_v1(feedstock_dir, version, hash_type)
 
     recipe_path = os.path.join(feedstock_dir, "recipe", "meta.yaml")
@@ -594,9 +594,7 @@ def _update_version_feedstock_dir_local(
     return updated_meta_yaml is not None, errors
 
 
-def _update_version_feedstock_dir_containerized(
-    feedstock_dir, version, hash_type, recipe_version: int = 0
-):
+def _update_version_feedstock_dir_containerized(feedstock_dir, version, hash_type):
     with tempfile.TemporaryDirectory() as tmpdir:
         tmp_feedstock_dir = os.path.join(tmpdir, os.path.basename(feedstock_dir))
         sync_dirs(
@@ -893,6 +891,8 @@ if __name__ == "__main__":
     # parse args and invoke update_version_feedstock_dir
     import argparse
 
+    # set log level to debug
+    logging.basicConfig(level=logging.DEBUG)
     parser = argparse.ArgumentParser()
     parser.add_argument("feedstock_dir", help="The feedstock directory to update.")
     parser.add_argument("version", help="The new version to update to.")
