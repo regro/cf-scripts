@@ -484,7 +484,8 @@ def run_test_migration(
         tmpdir_p.joinpath("recipe").mkdir()
         tmpdir_p.joinpath("recipe", "recipe.yaml").write_text(inp)
         (tmpdir_p / ".ci_support" / "linux_64_.yaml").write_text(
-            "target_platform: linux-64"
+            "target_platform:\n"
+            "- linux-64"
         )
 
         recipe_dir = str(tmpdir_p / "recipe")
