@@ -101,7 +101,6 @@ class Version(Migrator):
             {},
             0,
         )
-        print("Checking schema version: %d" % schema_version)
         if schema_version == 0:
             if "raw_meta_yaml" not in attrs:
                 return True
