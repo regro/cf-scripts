@@ -607,7 +607,7 @@ def _update_version_feedstock_dir_local(
     if recipe_path_v0.exists():
         recipe_path = recipe_path_v0
         updated_meta_yaml, errors = update_version(
-            recipe.read_text(), version, hash_type=hash_type
+            recipe_path_v0.read_text(), version, hash_type=hash_type
         )
     elif recipe_path_v1.exists():
         recipe_path = recipe_path_v1
