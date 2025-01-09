@@ -124,6 +124,7 @@ def test_version_up(case, new_ver, tmpdir, caplog):
         ("build_as_expr", "3.6.2"),
         ("conditional_sources", "3.24.11"),
         ("cranmirror", "0.3.3"),
+        ("event_stream", "1.6.3"),
     ],
 )
 @flaky
