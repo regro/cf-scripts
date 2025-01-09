@@ -123,6 +123,7 @@ def test_version_up(case, new_ver, tmpdir, caplog):
         ("build_number_via_context", "0.20.1"),
         ("build_as_expr", "3.6.2"),
         ("conditional_sources", "3.24.11"),
+        ("cranmirror", "0.3.3"),
     ],
 )
 @flaky

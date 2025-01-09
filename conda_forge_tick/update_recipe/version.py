@@ -715,6 +715,15 @@ def update_version_v1(
         recipe_yaml, variants, override_version=version
     )
 
+    # mangle the version if it is R
+    for source in rendered_sources:
+        if isinstance(source.template, list):
+            if any([_is_r_url(t) for t in source.template]):
+                version = version.replace("_", "-")
+        else:
+            if _is_r_url(source.template):
+                version = version.replace("_", "-")
+
     # update the version with a regex replace
     for line in recipe_text.splitlines():
         if match := re.match(r"^(\s+)version:\s.*$", line):
@@ -758,8 +767,8 @@ def update_version_v1(
 
                 # convert back to v1 minijinja template
                 new_tmpl = new_tmpl.replace("{{", "${{")
-                if new_tmpl != source.template:
-                    recipe_text = recipe_text.replace(source.template, new_tmpl)
+                if new_tmpl != template:
+                    recipe_text = recipe_text.replace(template, new_tmpl)
 
                 break
 
