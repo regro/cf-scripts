@@ -126,6 +126,7 @@ def test_version_up(case, new_ver, tmpdir, caplog):
         ("cranmirror", "0.3.3"),
         ("event_stream", "1.6.3"),
         ("selshaurl", "3.7.0"),
+        ("libssh", "0.11.1"),
     ],
 )
 @flaky
