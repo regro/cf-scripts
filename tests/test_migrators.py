@@ -484,10 +484,9 @@ def run_test_migration(
         tmpdir_p.joinpath("recipe").mkdir()
         tmpdir_p.joinpath("recipe", "recipe.yaml").write_text(inp)
         for target_platform in ("linux-64", "osx-arm64", "win-64"):
-            (tmpdir_p / ".ci_support" / f"{target_platform.replace('-', '_')}_.yaml").write_text(
-                "target_platform:\n"
-                f"- {target_platform}\n"
-            )
+            (
+                tmpdir_p / ".ci_support" / f"{target_platform.replace('-', '_')}_.yaml"
+            ).write_text("target_platform:\n" f"- {target_platform}\n")
 
         recipe_dir = str(tmpdir_p / "recipe")
     else:
