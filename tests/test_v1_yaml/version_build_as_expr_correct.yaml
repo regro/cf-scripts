@@ -1,7 +1,7 @@
 context:
   name: oneDNN
   version: "3.6.2"
-  build: 1
+  build: 0
   variant_build: ${{ variant_build_base | int + 100 if dnnl_cpu_runtime == "omp" else build_base }}
   desc_omp: In this package oneDNN is built with the OpenMP CPU runtime.
   desc_tbb: In this package oneDNN is built with the TBB CPU runtime.

@@ -135,8 +135,17 @@ def _try_url_and_hash_it(url: str, hash_type: str) -> str | None:
 
 
 def _render_jinja2(tmpl, context):
+    env = jinja2.Environment(undefined=jinja2.StrictUndefined)
+
+    # We need to add the split filter to support v1 recipes
+    def split_filter(value, sep):
+        return value.split(sep)
+
+    filters = {"split": split_filter}
+    filters["split"] = split_filter
+
     return (
-        jinja2.sandbox.SandboxedEnvironment(undefined=jinja2.StrictUndefined)
+        env
         .from_string(tmpl)
         .render(**context)
     )
@@ -732,8 +741,9 @@ def update_version_v1(
                 line, f'{indentation}version: "{version}"'
             )
             break
-
+    print("All sources: ", rendered_sources)
     for source in rendered_sources:
+        print("Updating source: ", source)
         # update the hash value
         urls = source.url
         # zip url and template
@@ -750,9 +760,9 @@ def update_version_v1(
                 hash_type = "md5"
 
             # convert to regular jinja2 template
-            template = template.replace("${{", "{{")
+            cb_template = template.replace("${{", "{{")
             new_tmpl, new_hash = _get_new_url_tmpl_and_hash(
-                template,
+                cb_template,
                 source.context,
                 hash_type,
                 recipe_yaml,
