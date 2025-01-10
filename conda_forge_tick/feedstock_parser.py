@@ -8,7 +8,7 @@ import typing
 import zipfile
 from collections import defaultdict
 from pathlib import Path
-from typing import Optional, Set, Union, Any
+from typing import Any, Optional, Set, Union
 
 import requests
 import yaml
@@ -108,10 +108,14 @@ def _get_requirements(
         for output in outputs_:
             if schema_version == 0:
                 if output.get("name") in outputs_to_keep:
-                    reqs |= _parse_requirements(output.get("requirements", {}) or {}, **kw)
+                    reqs |= _parse_requirements(
+                        output.get("requirements", {}) or {}, **kw
+                    )
             elif schema_version == 1:
                 if output.get("package", {}).get("name") in outputs_to_keep:
-                    reqs |= _parse_requirements(output.get("requirements", {}) or {}, **kw)
+                    reqs |= _parse_requirements(
+                        output.get("requirements", {}) or {}, **kw
+                    )
             else:
                 raise ValueError(f"Unknown schema version {schema_version}")
     else:
@@ -142,12 +146,12 @@ def _parse_requirements(
         reqlist = _build + _host + _run
 
     # remove any pin expressions / dictionaries in the v1 schema
-    print("\n\n\nSCHEMA VERSION", schema_version)
     if schema_version == 1:
         reqlist = [req for req in reqlist if not isinstance(req, dict)]
 
     packages = (PIN_SEP_PAT.split(x)[0].lower() for x in reqlist if x is not None)
     return {typing.cast("PackageName", pkg) for pkg in packages}
+
 
 def _filter_v1_pins(reqs: list[str | dict[str, Any]]) -> list[str]:
     res = []
@@ -164,7 +168,6 @@ def _filter_v1_pins(reqs: list[str | dict[str, Any]]) -> list[str]:
 
 
 def _extract_requirements(meta_yaml, outputs_to_keep=None, schema_version=0):
-    print("EXTRACT REQUIREMENTS SCHEMA VERSION", schema_version)
     strong_exports = False
     requirements_dict = defaultdict(set)
 
@@ -188,9 +191,6 @@ def _extract_requirements(meta_yaml, outputs_to_keep=None, schema_version=0):
             requirements_dict["run"].update(set(req))
             continue
         for section in ["build", "host", "run"]:
-            print(section)
-            print(requirements_dict[section])
-            print(req.get(section, []))
             requirements_dict[section].update(
                 list(as_iterable(_filter_v1_pins(req.get(section, []) or []))),
             )
@@ -198,7 +198,7 @@ def _extract_requirements(meta_yaml, outputs_to_keep=None, schema_version=0):
         test: "TestTypedDict" = block.get("test", {}) or {}
         requirements_dict["test"].update(test.get("requirements", []) or [])
         requirements_dict["test"].update(test.get("requires", []) or [])
-
+        # TODO improve code (wolf)
         if "tests" in block:
             for test in block.get("tests", []):
                 # only script tests have requirements

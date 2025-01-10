@@ -141,14 +141,9 @@ def _render_jinja2(tmpl, context):
     def split_filter(value, sep):
         return value.split(sep)
 
-    filters = {"split": split_filter}
-    filters["split"] = split_filter
+    env.filters["split"] = split_filter
 
-    return (
-        env
-        .from_string(tmpl)
-        .render(**context)
-    )
+    return env.from_string(tmpl).render(**context)
 
 
 def _try_pypi_api(url_tmpl: str, context: MutableMapping, hash_type: str, cmeta: Any):

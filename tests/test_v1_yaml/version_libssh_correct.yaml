@@ -2,7 +2,7 @@ schema_version: 1
 
 context:
   name: libssh
-  version: 0.11.1
+  version: "0.11.1"
 
 package:
   name: ${{ name|lower }}
@@ -28,7 +28,7 @@ requirements:
     - zlib
     - krb5
   run_exports:
-    # We pin to a minor version due to an incompatibility 
+    # We pin to a minor version due to an incompatibility
     # between 0.8 and 0.10
     # https://abi-laboratory.pro/index.php?view=timeline&l=libssh
     - ${{ pin_subpackage('libssh', upper_bound='x.x') }}
