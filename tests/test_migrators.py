@@ -578,6 +578,8 @@ def run_test_migration(
     pat = re.compile(r"{#.*#}")
     actual_output = pat.sub("", actual_output)
     output = pat.sub("", output)
+    print(actual_output)
+
     assert actual_output == output
     # TODO: fix subgraph here (need this to be xsh file)
     if isinstance(m, Version):
