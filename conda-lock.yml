@@ -590,15 +590,15 @@ package:
       python-dateutil: '>=2.1,<3.0.0'
       urllib3: '>=1.25.4,!=2.2.0,<3'
     hash:
-      md5: cb661002b44a4906d519e80106ae829c
-      sha256: f06c2f31d127090cbc7d13817c578f58d8e84d0a0ca708b87bdd81f24a3f4b9f
+      md5: c17c0e0898494bec0d61653efb61936c
+      sha256: 13b556d49a415514dc64d2464941a64c13118ce5e1f3df8aeb94a4224d7e4a32
     manager: conda
     name: botocore
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/botocore-1.35.96-pyge310_1234567_0.conda
-    version: 1.35.96
+      https://conda.anaconda.org/conda-forge/noarch/botocore-1.35.97-pyge310_1234567_0.conda
+    version: 1.35.97
   - category: main
     dependencies:
       jmespath: '>=0.7.1,<2.0.0'
@@ -606,15 +606,15 @@ package:
       python-dateutil: '>=2.1,<3.0.0'
       urllib3: '>=1.25.4,!=2.2.0,<3'
     hash:
-      md5: cb661002b44a4906d519e80106ae829c
-      sha256: f06c2f31d127090cbc7d13817c578f58d8e84d0a0ca708b87bdd81f24a3f4b9f
+      md5: c17c0e0898494bec0d61653efb61936c
+      sha256: 13b556d49a415514dc64d2464941a64c13118ce5e1f3df8aeb94a4224d7e4a32
     manager: conda
     name: botocore
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/botocore-1.35.96-pyge310_1234567_0.conda
-    version: 1.35.96
+      https://conda.anaconda.org/conda-forge/noarch/botocore-1.35.97-pyge310_1234567_0.conda
+    version: 1.35.97
   - category: main
     dependencies:
       jmespath: '>=0.7.1,<2.0.0'
@@ -622,15 +622,15 @@ package:
       python-dateutil: '>=2.1,<3.0.0'
       urllib3: '>=1.25.4,!=2.2.0,<3'
     hash:
-      md5: cb661002b44a4906d519e80106ae829c
-      sha256: f06c2f31d127090cbc7d13817c578f58d8e84d0a0ca708b87bdd81f24a3f4b9f
+      md5: c17c0e0898494bec0d61653efb61936c
+      sha256: 13b556d49a415514dc64d2464941a64c13118ce5e1f3df8aeb94a4224d7e4a32
     manager: conda
     name: botocore
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/botocore-1.35.96-pyge310_1234567_0.conda
-    version: 1.35.96
+      https://conda.anaconda.org/conda-forge/noarch/botocore-1.35.97-pyge310_1234567_0.conda
+    version: 1.35.97
   - category: main
     dependencies:
       __glibc: '>=2.17,<3.0.a0'
@@ -11465,15 +11465,15 @@ package:
       openssl: '>=3.4.0,<4.0a0'
       patchelf: ''
     hash:
-      md5: 2f4dc06884a58913cfb4110c0aa3b667
-      sha256: 3044a7ce89f39637b86cf8402a116dda290c053708bc36db387148fe5e7727bd
+      md5: 00f0ee844ee97954cba99ccf8c0b6bf5
+      sha256: 1b7e2a532fc2d7947184e5d39fb46f036c873795828e27546171712dfa5a0119
     manager: conda
     name: rattler-build
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/linux-64/rattler-build-0.34.0-hbcf9e9b_0.conda
-    version: 0.34.0
+      https://conda.anaconda.org/conda-forge/linux-64/rattler-build-0.34.1-hbcf9e9b_0.conda
+    version: 0.34.1
   - category: main
     dependencies:
       __osx: '>=10.13'
@@ -12495,41 +12495,41 @@ package:
       libgcc: '>=13'
       libstdcxx: '>=13'
     hash:
-      md5: a6fd59a46869ebdb00e113fff550e3f7
-      sha256: c95c3ec6f605256226bd82dd5907489478209c5f076a644b660c73d0da12ffa4
+      md5: 5d9c3488b20c66da19f94d8da1d227a8
+      sha256: 6c27f832d57ff83694cacc2dc2e0e4f9380827cffddd3f01f82bc34fc02cf37f
     manager: conda
     name: simdjson
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/linux-64/simdjson-3.11.4-h84d6215_0.conda
-    version: 3.11.4
+    url: https://conda.anaconda.org/conda-forge/linux-64/simdjson-3.11.5-h84d6215_0.conda
+    version: 3.11.5
   - category: main
     dependencies:
       __osx: '>=10.13'
       libcxx: '>=18'
     hash:
-      md5: f49106c3c7d4014d03fe2fda0c197732
-      sha256: eab609b4eccdc35d0d40e76f2c4fde4a401346084b165541c41138bba2f248a6
+      md5: e4b771815f10233fdc66bd575b1ab367
+      sha256: d0c3c28631b2796a6d45cd4ebd5cd33f695857237d79095b35a8b51b1151d3d5
     manager: conda
     name: simdjson
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/osx-64/simdjson-3.11.4-h9275861_0.conda
-    version: 3.11.4
+    url: https://conda.anaconda.org/conda-forge/osx-64/simdjson-3.11.5-h9275861_0.conda
+    version: 3.11.5
   - category: main
     dependencies:
       __osx: '>=11.0'
       libcxx: '>=18'
     hash:
-      md5: 051c7224f22524c3c770154ef77c5bf7
-      sha256: 20afcaaa0792f3027a1f2b2f5545169353a22a83101f7e222e29870909b8a1cf
+      md5: 90c5f4c4665de49613262a6e00394780
+      sha256: ec742488e4d9750abf7dee2ad8c74ed1d1173adf37403d1f88b63be432e11c5e
     manager: conda
     name: simdjson
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/osx-arm64/simdjson-3.11.4-ha393de7_0.conda
-    version: 3.11.4
+      https://conda.anaconda.org/conda-forge/osx-arm64/simdjson-3.11.5-ha393de7_0.conda
+    version: 3.11.5
   - category: main
     dependencies:
       python: '>=3.9'
@@ -13293,41 +13293,41 @@ package:
     dependencies:
       python: '>=3.9'
     hash:
-      md5: 8bfccf68234f18601408209ae7137151
-      sha256: f8947320b424ee647744a89ce554187bed0d1ae334ff453c429c490031e20136
+      md5: c09a1ab3bdcabb625004ab692cda1e6f
+      sha256: cd090ae0b665695b827a46c566532b9c586e746c0d6ddfe6350be02c737c6c5b
     manager: conda
     name: trove-classifiers
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/trove-classifiers-2025.1.7.14-pyhd8ed1ab_0.conda
-    version: 2025.1.7.14
+      https://conda.anaconda.org/conda-forge/noarch/trove-classifiers-2025.1.10.15-pyhd8ed1ab_0.conda
+    version: 2025.1.10.15
   - category: main
     dependencies:
       python: '>=3.9'
     hash:
-      md5: 8bfccf68234f18601408209ae7137151
-      sha256: f8947320b424ee647744a89ce554187bed0d1ae334ff453c429c490031e20136
+      md5: c09a1ab3bdcabb625004ab692cda1e6f
+      sha256: cd090ae0b665695b827a46c566532b9c586e746c0d6ddfe6350be02c737c6c5b
     manager: conda
     name: trove-classifiers
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/trove-classifiers-2025.1.7.14-pyhd8ed1ab_0.conda
-    version: 2025.1.7.14
+      https://conda.anaconda.org/conda-forge/noarch/trove-classifiers-2025.1.10.15-pyhd8ed1ab_0.conda
+    version: 2025.1.10.15
   - category: main
     dependencies:
       python: '>=3.9'
     hash:
-      md5: 8bfccf68234f18601408209ae7137151
-      sha256: f8947320b424ee647744a89ce554187bed0d1ae334ff453c429c490031e20136
+      md5: c09a1ab3bdcabb625004ab692cda1e6f
+      sha256: cd090ae0b665695b827a46c566532b9c586e746c0d6ddfe6350be02c737c6c5b
     manager: conda
     name: trove-classifiers
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/trove-classifiers-2025.1.7.14-pyhd8ed1ab_0.conda
-    version: 2025.1.7.14
+      https://conda.anaconda.org/conda-forge/noarch/trove-classifiers-2025.1.10.15-pyhd8ed1ab_0.conda
+    version: 2025.1.10.15
   - category: main
     dependencies:
       python: '>=3.10'
