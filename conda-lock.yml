@@ -12161,14 +12161,14 @@ package:
       python: '>=3.11,<3.12.0a0'
       python_abi: 3.11.*
     hash:
-      md5: 60a4d1e4030ea6c0bfbcd0d1d1de211d
-      sha256: eaafe7e8cb62288c91bd8ec5bce27f9312b8c9886bed43952be7aef16bb7ae1f
+      md5: 5d2df740d6abe134bd009bf4d1b5995b
+      sha256: 602a2710954f928d6d09257445bd2eb300eb8a16280565765e7d071dd02bbf9e
     manager: conda
     name: scipy
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/osx-64/scipy-1.15.0-py311h9d25053_1.conda
-    version: 1.15.0
+    url: https://conda.anaconda.org/conda-forge/osx-64/scipy-1.15.1-py311h9d25053_0.conda
+    version: 1.15.1
   - category: main
     dependencies:
       __osx: '>=11.0'
@@ -12182,15 +12182,15 @@ package:
       python: '>=3.11,<3.12.0a0'
       python_abi: 3.11.*
     hash:
-      md5: d342439097100c754a350e25216e0e8b
-      sha256: 628a6cfddfcb6347d65edff4b6b3997065ea5d926bb26661f947065f94e1c899
+      md5: f130e7362bc3ab2cca1aa8cc43880521
+      sha256: ac0309ec3045dcddfa038a1ebe053d821f31a0dd2bfdc98340645e6a6dd3ecbe
     manager: conda
     name: scipy
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/osx-arm64/scipy-1.15.0-py311h809cfb5_1.conda
-    version: 1.15.0
+      https://conda.anaconda.org/conda-forge/osx-arm64/scipy-1.15.1-py311h809cfb5_0.conda
+    version: 1.15.1
   - category: main
     dependencies:
       __glibc: '>=2.17,<3.0.a0'
