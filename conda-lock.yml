@@ -2000,39 +2000,39 @@ package:
   - category: main
     dependencies: {}
     hash:
-      md5: 739d32400b1035ed1d375ec574926c77
-      sha256: 392759e6602adb7638ab5a7a2eda2c1a9252db047ea7a44e14bd2321c0eb745c
+      md5: 326762f10357248f380c4d2fa1682868
+      sha256: aa16d13f7977ca901eb5c8054d5ab1c3395ea70274e714113e91e604d742e92a
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.01.11.10.43.51-hd8ed1ab_0.conda
-    version: 2025.01.11.10.43.51
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.01.11.16.15.44-hd8ed1ab_0.conda
+    version: 2025.01.11.16.15.44
   - category: main
     dependencies: {}
     hash:
-      md5: 739d32400b1035ed1d375ec574926c77
-      sha256: 392759e6602adb7638ab5a7a2eda2c1a9252db047ea7a44e14bd2321c0eb745c
+      md5: 326762f10357248f380c4d2fa1682868
+      sha256: aa16d13f7977ca901eb5c8054d5ab1c3395ea70274e714113e91e604d742e92a
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.01.11.10.43.51-hd8ed1ab_0.conda
-    version: 2025.01.11.10.43.51
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.01.11.16.15.44-hd8ed1ab_0.conda
+    version: 2025.01.11.16.15.44
   - category: main
     dependencies: {}
     hash:
-      md5: 739d32400b1035ed1d375ec574926c77
-      sha256: 392759e6602adb7638ab5a7a2eda2c1a9252db047ea7a44e14bd2321c0eb745c
+      md5: 326762f10357248f380c4d2fa1682868
+      sha256: aa16d13f7977ca901eb5c8054d5ab1c3395ea70274e714113e91e604d742e92a
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.01.11.10.43.51-hd8ed1ab_0.conda
-    version: 2025.01.11.10.43.51
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.01.11.16.15.44-hd8ed1ab_0.conda
+    version: 2025.01.11.16.15.44
   - category: main
     dependencies:
       click: '>=8'
@@ -10265,14 +10265,14 @@ package:
       python: '>=3.11,<3.12.0a0'
       python_abi: 3.11.*
     hash:
-      md5: fac6ff3d4d525bd9f380a227e7109623
-      sha256: 188e2c0d037a02ba059bafb768baa206034f20987c52c1436c7e30f0d6ae915a
+      md5: f7449b76a5f6d23703a2b4c0489f473e
+      sha256: ad801fbcc0422b907e3ac61d2718784533505c7720fee5c467ee0e593e8d7187
     manager: conda
     name: pygit2
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/linux-64/pygit2-1.16.0-py311h9ecbd09_0.conda
+      https://conda.anaconda.org/conda-forge/linux-64/pygit2-1.16.0-py311h9ecbd09_1.conda
     version: 1.16.0
   - category: main
     dependencies:
@@ -10282,14 +10282,14 @@ package:
       python: '>=3.11,<3.12.0a0'
       python_abi: 3.11.*
     hash:
-      md5: e8c986f417007e6d32003830cdc0795c
-      sha256: d909c8bd84ca46fe31e4e6c072afd77bf6a4239665a121f7332d31b415a94720
+      md5: e7c8bdea19386c9bb45d95f5f0cce69c
+      sha256: 2438b5dedb991721725fc4fefc7c1c616d0af3712961b2ad745cbd887be7254e
     manager: conda
     name: pygit2
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/osx-64/pygit2-1.16.0-py311h4d7f069_0.conda
+      https://conda.anaconda.org/conda-forge/osx-64/pygit2-1.16.0-py311h4d7f069_1.conda
     version: 1.16.0
   - category: main
     dependencies:
@@ -10299,14 +10299,14 @@ package:
       python: '>=3.11,<3.12.0a0'
       python_abi: 3.11.*
     hash:
-      md5: fcd23a41ae464072a0fb40cf42803bdd
-      sha256: 589cb7b30534c5be9cb9c83f70adf8664784f9e0e6b6a02ac8f5da9b6751c070
+      md5: 9d7d4eb00cebbef38cf60908bd0af623
+      sha256: 1cecc4d0b1012cf174e8efbc3bad622a66a98b248252f40a223afd8d49e64b69
     manager: conda
     name: pygit2
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/osx-arm64/pygit2-1.16.0-py311h917b07b_0.conda
+      https://conda.anaconda.org/conda-forge/osx-arm64/pygit2-1.16.0-py311h917b07b_1.conda
     version: 1.16.0
   - category: main
     dependencies:
