@@ -1269,7 +1269,7 @@ def _remove_closed_pr_json(feedstock: str | None = None):
     # so we can remove anything that is empty or closed
     if feedstock:
         logger.info(
-            "Since you requested a run for a specific package, we are not removing closed pr_json files."
+            "Since you requested a run for a specific feedstock, we are not removing closed pr_json files."
         )
         return
     nodes = get_all_keys_for_hashmap("pr_json")
