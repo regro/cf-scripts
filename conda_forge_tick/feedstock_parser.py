@@ -1,7 +1,6 @@
 import collections.abc
 import hashlib
 import logging
-import os
 import re
 import tempfile
 import typing
@@ -19,7 +18,7 @@ from conda_forge_feedstock_ops.container_utils import (
 )
 from requests.models import Response
 
-from conda_forge_tick.settings import CONDA_FORGE_ORG
+from conda_forge_tick.settings import CONDA_FORGE_ORG, ENV_OVERRIDE_CONDA_FORGE_ORG
 
 if typing.TYPE_CHECKING:
     from mypy_extensions import TestTypedDict
@@ -45,8 +44,6 @@ PIN_SEP_PAT = re.compile(r" |>|<|=|\[")
 # for these nodes, we only use the bootstrap requirements
 # to build graph edges
 BOOTSTRAP_MAPPINGS = {}
-
-ENV_OVERRIDE_CONDA_FORGE_ORG = "CF_TICK_OVERRIDE_CONDA_FORGE_ORG"
 
 
 def _dedupe_list_ordered(list_with_dupes):
