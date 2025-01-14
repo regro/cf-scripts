@@ -10,7 +10,7 @@ from .lazy_json_backends import (
     get_lazy_json_backends,
 )
 from .os_utils import clean_disk_space
-from .settings import DEPLOY_REPO
+from .settings import GRAPH_REPO
 from .utils import (
     fold_log_lines,
     get_bot_run_url,
@@ -161,7 +161,7 @@ def _deploy_batch(*, files_to_add, batch, n_added, max_per_batch=200):
                     "push",
                     "https://{token}@github.com/{deploy_repo}.git".format(
                         token=get_bot_token(),
-                        deploy_repo=DEPLOY_REPO,
+                        deploy_repo=GRAPH_REPO,
                     ),
                     "master",
                 ],
@@ -287,7 +287,7 @@ def deploy(ctx: CliContext, dirs_to_deploy: list[str] = None):
 
                 msg = _get_pth_commit_message(pth)
 
-                push_file_via_gh_api(pth, DEPLOY_REPO, msg)
+                push_file_via_gh_api(pth, GRAPH_REPO, msg)
             except Exception as e:
                 logger.warning(
                     "git push via API failed - trying via git CLI", exc_info=e
@@ -310,7 +310,7 @@ def deploy(ctx: CliContext, dirs_to_deploy: list[str] = None):
                 # make a nice message for stuff managed via LazyJson
                 msg = _get_pth_commit_message(pth)
 
-                delete_file_via_gh_api(pth, DEPLOY_REPO, msg)
+                delete_file_via_gh_api(pth, GRAPH_REPO, msg)
             except Exception as e:
                 logger.warning(
                     "git delete via API failed - trying via git CLI", exc_info=e

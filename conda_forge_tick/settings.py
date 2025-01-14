@@ -1,7 +1,7 @@
 import os
 
-ENV_DEPLOY_REPO = "CF_TICK_GRAPH_GITHUB_BACKEND_REPO"
-DEPLOY_REPO = os.getenv(ENV_DEPLOY_REPO, "regro/cf-graph-countyfair")
+ENV_GRAPH_REPO = "CF_TICK_GRAPH_GITHUB_BACKEND_REPO"
+GRAPH_REPO = os.getenv(ENV_GRAPH_REPO, "regro/cf-graph-countyfair")
 """
 The GitHub repository to deploy to. Default: "regro/cf-graph-countyfair".
 Overwrite with the environment variable CF_TICK_GRAPH_GITHUB_BACKEND_REPO.
