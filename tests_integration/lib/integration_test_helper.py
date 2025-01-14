@@ -67,7 +67,7 @@ class IntegrationTestHelper:
         branch: str = "main",
     ):
         """
-        See `overwrite_feedstock_contents`.
+        See `overwrite_github_repository`.
         """
         dest_dir = tmpdir / repo_name
         shutil.copytree(source_dir, dest_dir)
