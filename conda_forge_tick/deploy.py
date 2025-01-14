@@ -140,7 +140,7 @@ def _deploy_batch(*, files_to_add, batch, n_added, max_per_batch=200):
 
         status = 1
         num_try = 0
-        while status != 0 and num_try < 100 and graph_ok:
+        while status != 0 and num_try < 20 and graph_ok:
             with fold_log_lines(">>>>>>>>>>>> git pull+push try %d" % num_try):
                 try:
                     print(">>>>>>>>>>>> git pull", flush=True)
