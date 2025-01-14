@@ -48,6 +48,7 @@ else
   echo "Skipping cloning of cf-graph"
 fi
 
+docker_name=${CF_FEEDSTOCK_OPS_CONTAINER_NAME:-"ghcr.io/regro/conda-forge-tick"}
 bot_tag=$(python -c "import conda_forge_tick; print(conda_forge_tick.__version__)")
 docker_tag=${CF_FEEDSTOCK_OPS_CONTAINER_TAG:-${bot_tag}}
 
@@ -58,12 +59,12 @@ for arg in "$@"; do
   fi
 done
 if [[ "${pull_cont}" == "true" ]]; then
-    docker pull ghcr.io/regro/conda-forge-tick:"${docker_tag}"
+    docker pull "${docker_name}:${docker_tag}"
 fi
 
 # left intact if already set
 export CF_FEEDSTOCK_OPS_CONTAINER_TAG=${docker_tag}
-export CF_FEEDSTOCK_OPS_CONTAINER_NAME=${CF_FEEDSTOCK_OPS_CONTAINER_NAME:-"ghcr.io/regro/conda-forge-tick"}
+export CF_FEEDSTOCK_OPS_CONTAINER_NAME=${docker_name}
 
 echo "CF_FEEDSTOCK_OPS_CONTAINER_TAG=${CF_FEEDSTOCK_OPS_CONTAINER_TAG}" >> "$GITHUB_ENV"
 echo "CF_FEEDSTOCK_OPS_CONTAINER_NAME=${CF_FEEDSTOCK_OPS_CONTAINER_NAME}" >> "$GITHUB_ENV"
