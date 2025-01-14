@@ -8,6 +8,8 @@ from pathlib import Path
 
 from fastapi import APIRouter
 
+from conda_forge_tick.settings import GITHUB_RUNNER_DEBUG
+
 
 class GitHubAccount(StrEnum):
     CONDA_FORGE_ORG = "conda-forge-bot-staging"
@@ -62,7 +64,16 @@ https://docs.python.org/3/library/fnmatch.html
 """
 
 
-def setup_logging(level: int | str):
+def setup_logging(default_level: int):
+    """
+    Set up the Python logging module.
+    Uses the passed log level as the default level.
+    If running within GitHub Actions and the workflow runs in debug mode, the log level is never set above DEBUG.
+    """
+    if GITHUB_RUNNER_DEBUG and default_level > logging.DEBUG:
+        level = logging.DEBUG
+    else:
+        level = default_level
     logging.basicConfig(level=level)
 
 
