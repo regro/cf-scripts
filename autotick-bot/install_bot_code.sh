@@ -3,7 +3,7 @@
 # Environment Variables:
 # - CF_FEEDSTOCK_OPS_CONTAINER_NAME: The name of the container image to use for the bot (optional, not used but left intact)
 # - CF_FEEDSTOCK_OPS_CONTAINER_TAG: The tag of the container image to use for the bot (optional).
-# - CF_GRAPH_REMOTE: The URL to clone the cf-graph repository from (optional).
+# - CF_TICK_GRAPH_GITHUB_BACKEND_REPO: The GitHub repository to clone cf-graph from. Default: regro/cf-graph-countyfair
 
 # Sets the following environment variables via GITHUB_ENV:
 # - CF_FEEDSTOCK_OPS_CONTAINER_NAME (see above)
@@ -41,7 +41,8 @@ for arg in "$@"; do
   fi
 done
 if [[ "${clone_graph}" == "true" ]]; then
-    cf_graph_remote=${CF_GRAPH_REMOTE:-"https://github.com/regro/cf-graph-countyfair.git"}
+    cf_graph_repo=${CF_TICK_GRAPH_GITHUB_BACKEND_REPO:-"regro/cf-graph-countyfair"}
+    cf_graph_remote="https://github.com/${cf_graph_repo}.git"
     git clone --depth=5 "${cf_graph_remote}" cf-graph
 else
   echo "Skipping cloning of cf-graph"
