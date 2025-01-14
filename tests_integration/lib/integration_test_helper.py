@@ -22,16 +22,22 @@ LOGGER = logging.getLogger(__name__)
 
 class IntegrationTestHelper:
     @classmethod
-    def overwrite_feedstock_contents(cls, feedstock_name: str, source_dir: Path):
+    def overwrite_feedstock_contents(
+        cls, feedstock_name: str, source_dir: Path, branch: str = "main"
+    ):
         """
         Overwrite the contents of the feedstock with the contents of the source directory.
         This prunes the entire git history.
 
         :param feedstock_name: The name of the feedstock repository, without the "-feedstock" suffix.
         :param source_dir: The directory containing the new contents of the feedstock.
+        :param branch: The branch to overwrite.
         """
         cls.overwrite_github_repository(
-            GitHubAccount.CONDA_FORGE_ORG, feedstock_name + FEEDSTOCK_SUFFIX, source_dir
+            GitHubAccount.CONDA_FORGE_ORG,
+            feedstock_name + FEEDSTOCK_SUFFIX,
+            source_dir,
+            branch,
         )
 
     @classmethod

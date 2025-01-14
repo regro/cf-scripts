@@ -19,6 +19,9 @@ def prepare(helper: IntegrationTestHelper):
     feedstock_dir = Path(__file__).parent / "resources" / "feedstock"
     helper.overwrite_feedstock_contents("pydantic", feedstock_dir)
 
+    feedstock_v1_dir = Path(__file__).parent / "resources" / "feedstock_v1"
+    helper.overwrite_feedstock_contents("pydantic", feedstock_v1_dir, branch="1.x")
+
 
 def validate(helper: IntegrationTestHelper):
     helper.assert_version_pr_present(
