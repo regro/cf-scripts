@@ -1,6 +1,5 @@
 import hashlib
 import logging
-import os
 import re
 import secrets
 import time
@@ -25,6 +24,7 @@ from conda_forge_tick.lazy_json_backends import (
 from .all_feedstocks import get_all_feedstocks, get_archived_feedstocks
 from .cli_context import CliContext
 from .executors import executor
+from .settings import RANDOM_FRAC_TO_UPDATE
 from .utils import as_iterable, dump_graph, load_graph, sanitize_string
 
 # from conda_forge_tick.profiler import profiling
@@ -34,8 +34,6 @@ logger = logging.getLogger(__name__)
 
 pin_sep_pat = re.compile(r" |>|<|=|\[")
 RNG = secrets.SystemRandom()
-
-RANDOM_FRAC_TO_UPDATE = float(os.environ.get("CF_TICK_RANDOM_FRAC_TO_UPDATE", "0.1"))
 
 # AFAIK, go and rust do not have strong run exports and so do not need to
 # appear here

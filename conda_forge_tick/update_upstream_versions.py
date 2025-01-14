@@ -30,6 +30,7 @@ from conda_forge_feedstock_ops.container_utils import (
 from conda_forge_tick.cli_context import CliContext
 from conda_forge_tick.executors import executor
 from conda_forge_tick.lazy_json_backends import LazyJson, dumps
+from conda_forge_tick.settings import RANDOM_FRAC_TO_UPDATE
 from conda_forge_tick.update_sources import (
     CRAN,
     NPM,
@@ -51,8 +52,6 @@ T = TypeVar("T")
 logger = logging.getLogger(__name__)
 
 RNG = secrets.SystemRandom()
-
-RANDOM_FRAC_TO_UPDATE = float(os.environ.get("CF_TICK_RANDOM_FRAC_TO_UPDATE", "0.1"))
 
 # TODO: https://github.com/conda-forge/conda-forge-feedstock-ops/pull/34
 CONTAINER_PROXY_MODE = os.environ.get(
