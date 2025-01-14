@@ -237,6 +237,8 @@ If your migrator needs special configuration, you should write a new factory fun
 - `CF_FEEDSTOCK_OPS_CONTAINER_NAME`: the name of the container to use in the bot, otherwise defaults to `ghcr.io/regro/conda-forge-tick`
 - `CF_FEEDSTOCK_OPS_CONTAINER_TAG`: set this to override the default container tag used in production runs, otherwise the value of `__version__` is used
 
+Additional environment variables are described in [the settings module](conda_forge_tick/settings.py).
+
 ### Getting a Working Environment
 
 The bot has an abstract set of requirements stored in the `environment.yml` file in this repo.
@@ -253,11 +255,6 @@ There are two ways to get a working environment:
    ```bash
    wget https://raw.githubusercontent.com/regro/cf-scripts/main/conda-lock.yml
    ```
-
-
-For testing purposes, the following additional environment variables are read:
-
-- `CF_TICK_OVERRIDE_CONDA_FORGE_ORG`: the name of the GitHub organization that contains the feedstocks (defaults to `conda-forge`)
 
 ### Running Tests
 
