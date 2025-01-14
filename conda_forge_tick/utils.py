@@ -324,6 +324,7 @@ def _flatten_requirement_pin_dicts(
     The `${{ pin_subpackage(foo) }}` and `${{ pin_compatible(foo) }}` functions
     are converted into dictionaries. However, we want to extract the name only.
     """
+
     def flatten_pin(s: str | dict[str, Any]) -> str:
         if isinstance(s, dict):
             if "pin_subpackage" in s:
