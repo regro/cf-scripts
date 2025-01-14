@@ -1,7 +1,10 @@
 import collections.abc
 import hashlib
+import json
 import logging
+import os
 import re
+import sys
 import tempfile
 import typing
 import zipfile
@@ -727,10 +730,6 @@ def load_feedstock(
 
 
 if __name__ == "__main__":
-    import json
-    import os
-    import sys
-
     # Do not use docker when debugging
     os.environ["CF_FEEDSTOCK_OPS_IN_CONTAINER"] = "true"
 
