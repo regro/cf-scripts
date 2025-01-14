@@ -239,6 +239,11 @@ class TestRecipeYamlParsing:
         """Test parsing different recipe files."""
         recipe_yaml = recipe_env.recipe_path.parent / f"{recipe_name}.yaml"
         subgraph = {}
-        populate_feedstock_attributes(recipe_name, subgraph, recipe_yaml=recipe_yaml.read_text(), feedstock_dir=recipe_env.root)
+        populate_feedstock_attributes(
+            recipe_name,
+            subgraph,
+            recipe_yaml=recipe_yaml.read_text(),
+            feedstock_dir=recipe_env.root,
+        )
 
         assert subgraph["feedstock_name"] == recipe_name
