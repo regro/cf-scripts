@@ -159,10 +159,7 @@ def _deploy_batch(*, files_to_add, batch, n_added, max_per_batch=200):
                 [
                     "git",
                     "push",
-                    "https://{token}@github.com/{deploy_repo}.git".format(
-                        token=get_bot_token(),
-                        deploy_repo=GRAPH_REPO,
-                    ),
+                    f"https://{get_bot_token()}@github.com/{GRAPH_REPO}.git",
                     "master",
                 ],
                 token=get_bot_token(),
