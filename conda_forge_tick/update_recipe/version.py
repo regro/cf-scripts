@@ -135,7 +135,7 @@ def _try_url_and_hash_it(url: str, hash_type: str) -> str | None:
 
 
 def _render_jinja2(tmpl, context):
-    env = jinja2.Environment(undefined=jinja2.StrictUndefined)
+    env = jinja2.sandbox.SandboxedEnvironment(undefined=jinja2.StrictUndefined)
 
     # We need to add the split filter to support v1 recipes
     def split_filter(value, sep):
