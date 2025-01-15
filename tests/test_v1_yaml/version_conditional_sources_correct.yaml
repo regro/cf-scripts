@@ -1,0 +1,65 @@
+context:
+  name: blpapi
+  version: "3.24.11"
+  blpapicpp_linux_version: ${{ version }}.1
+  blpapicpp_win_version: ${{ version }}.1
+  blpapicpp_osx_version: ${{ version }}.1
+
+package:
+  name: ${{ name|lower }}
+  version: ${{ version }}
+
+source:
+  - url: https://blpapi.bloomberg.com/repository/releases/python/${{ name }}-${{ version }}.tar.gz
+    sha256: 94dc699df262187b3afe4f163526aac67fb5982b008efe851836e9f1cd5358c1
+  - if: linux
+    then:
+      url: https://blpapi.bloomberg.com/download/releases/raw/files/blpapi_cpp_${{ blpapicpp_linux_version }}-linux.tar.gz
+      sha256: eb1a9aa834a969a8ccbbb04061274623659a1fb273abda4413b47fe59e7ee412
+      target_directory: blpapi
+  - if: win
+    then:
+      url: https://blpapi.bloomberg.com/download/releases/raw/files/blpapi_cpp_${{ blpapicpp_win_version }}-windows.zip
+      sha256: e63c0b75d50097194c425489a08cec9c0374ab7b8eafe5b015c076bb2432fa19
+      target_directory: blpapi
+  - if: osx and arm64
+    then:
+      url: https://blpapi.bloomberg.com/download/releases/raw/files/blpapi_cpp_${{ blpapicpp_osx_version }}-macos-arm64.tar.gz
+      sha256: fa96331edf06dd2342cb27771367516296067e94961ec6e600add1c2eed9c41d
+      target_directory: blpapi
+
+build:
+  number: 0
+  skip: osx and x86_64
+
+requirements:
+  build:
+    - ${{ compiler('cxx') }}
+    - ${{ stdlib("c") }}
+    - if: build_platform != target_platform
+      then: python
+    - if: build_platform != target_platform
+      then: cross-python_${{ target_platform }}
+  host:
+    - python
+    - setuptools
+    - pip
+  run:
+    - python
+
+tests:
+  - python:
+      imports:
+        - blpapi
+
+about:
+  license: LicenseRef-Bloomberg-BLPAPI
+  license_file: License.txt
+  summary: Python SDK for Bloomberg BLPAPI
+  homepage: https://www.bloomberg.com/professional/support/api-library/
+
+extra:
+  recipe-maintainers:
+    - reggied
+    - matthewgilbert
+    - adament

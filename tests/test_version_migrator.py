@@ -12,7 +12,8 @@ from conda_forge_tick.migrators.version import VersionMigrationError
 
 VERSION = Version(set())
 
-YAML_PATH = os.path.join(os.path.dirname(__file__), "test_yaml")
+YAML_PATH = Path(__file__).parent / "test_yaml"
+YAML_V1_PATH = Path(__file__).parent / "test_v1_yaml"
 
 VARIANT_SOURCES_NOT_IMPLEMENTED = (
     "Sources that depend on conda build config variants are not supported yet."
@@ -92,11 +93,8 @@ def test_version_up(case, new_ver, tmpdir, caplog):
         logger="conda_forge_tick.migrators.version",
     )
 
-    with open(os.path.join(YAML_PATH, "version_%s.yaml" % case)) as fp:
-        in_yaml = fp.read()
-
-    with open(os.path.join(YAML_PATH, "version_%s_correct.yaml" % case)) as fp:
-        out_yaml = fp.read()
+    in_yaml = (YAML_PATH / f"version_{case}.yaml").read_text()
+    out_yaml = (YAML_PATH / f"version_{case}_correct.yaml").read_text()
 
     kwargs = {"new_version": new_ver}
     if case == "sha1":
@@ -114,6 +112,50 @@ def test_version_up(case, new_ver, tmpdir, caplog):
             "version": new_ver,
         },
         tmpdir=tmpdir,
+    )
+
+
+@pytest.mark.parametrize(
+    "case,new_ver",
+    [
+        ("pypi_url", "0.7.1"),
+        ("jolt", "5.2.0"),
+        ("build_number_via_context", "0.20.1"),
+        ("build_as_expr", "3.6.2"),
+        ("conditional_sources", "3.24.11"),
+        ("cranmirror", "0.3.3"),
+        ("event_stream", "1.6.3"),
+        ("selshaurl", "3.7.0"),
+        ("libssh", "0.11.1"),
+    ],
+)
+@flaky
+def test_version_up_v1(case, new_ver, tmpdir, caplog):
+    caplog.set_level(
+        logging.DEBUG,
+        logger="conda_forge_tick.migrators.version",
+    )
+
+    in_yaml = (YAML_V1_PATH / f"version_{case}.yaml").read_text()
+    out_yaml = (YAML_V1_PATH / f"version_{case}_correct.yaml").read_text()
+
+    kwargs = {"new_version": new_ver}
+    if case == "sha1":
+        kwargs["hash_type"] = "sha1"
+
+    run_test_migration(
+        m=VERSION,
+        inp=in_yaml,
+        output=out_yaml,
+        kwargs=kwargs,
+        prb="Dependencies have been updated if changed",
+        mr_out={
+            "migrator_name": Version.name,
+            "migrator_version": Version.migrator_version,
+            "version": new_ver,
+        },
+        tmpdir=tmpdir,
+        recipe_version=1,
     )
 
 
