@@ -20,7 +20,6 @@ from typing import (
     Any,
     Dict,
     Iterable,
-    Mapping,
     MutableMapping,
     Optional,
     Sequence,
