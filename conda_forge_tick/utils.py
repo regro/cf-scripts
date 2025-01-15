@@ -337,7 +337,7 @@ def _flatten_requirement_pin_dicts(
     """
 
     def flatten_pin(s: str | Mapping[str, Any]) -> str:
-        if isinstance(s, MutableMapping):
+        if isinstance(s, Mapping):
             if "pin_subpackage" in s:
                 return s["pin_subpackage"]["name"]
             elif "pin_compatible" in s:
