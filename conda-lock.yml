@@ -590,15 +590,15 @@ package:
       python-dateutil: '>=2.1,<3.0.0'
       urllib3: '>=1.25.4,!=2.2.0,<3'
     hash:
-      md5: 9339c25f3950c02f3867755c33f15c31
-      sha256: 52fe0374f84c8ef7b2385d25cc53551a98b6407904be76e13921d264f5cd64be
+      md5: 9c59cda1ba96b3c8199709001210901e
+      sha256: 44c00fcf777cbbcd1e03c09e1919b58de5b36c615ab000bfd8caf95d21b41251
     manager: conda
     name: botocore
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/botocore-1.35.98-pyge310_1234567_0.conda
-    version: 1.35.98
+      https://conda.anaconda.org/conda-forge/noarch/botocore-1.35.99-pyge310_1234567_0.conda
+    version: 1.35.99
   - category: main
     dependencies:
       jmespath: '>=0.7.1,<2.0.0'
@@ -606,15 +606,15 @@ package:
       python-dateutil: '>=2.1,<3.0.0'
       urllib3: '>=1.25.4,!=2.2.0,<3'
     hash:
-      md5: 9339c25f3950c02f3867755c33f15c31
-      sha256: 52fe0374f84c8ef7b2385d25cc53551a98b6407904be76e13921d264f5cd64be
+      md5: 9c59cda1ba96b3c8199709001210901e
+      sha256: 44c00fcf777cbbcd1e03c09e1919b58de5b36c615ab000bfd8caf95d21b41251
     manager: conda
     name: botocore
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/botocore-1.35.98-pyge310_1234567_0.conda
-    version: 1.35.98
+      https://conda.anaconda.org/conda-forge/noarch/botocore-1.35.99-pyge310_1234567_0.conda
+    version: 1.35.99
   - category: main
     dependencies:
       jmespath: '>=0.7.1,<2.0.0'
@@ -622,15 +622,15 @@ package:
       python-dateutil: '>=2.1,<3.0.0'
       urllib3: '>=1.25.4,!=2.2.0,<3'
     hash:
-      md5: 9339c25f3950c02f3867755c33f15c31
-      sha256: 52fe0374f84c8ef7b2385d25cc53551a98b6407904be76e13921d264f5cd64be
+      md5: 9c59cda1ba96b3c8199709001210901e
+      sha256: 44c00fcf777cbbcd1e03c09e1919b58de5b36c615ab000bfd8caf95d21b41251
     manager: conda
     name: botocore
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/botocore-1.35.98-pyge310_1234567_0.conda
-    version: 1.35.98
+      https://conda.anaconda.org/conda-forge/noarch/botocore-1.35.99-pyge310_1234567_0.conda
+    version: 1.35.99
   - category: main
     dependencies:
       __glibc: '>=2.17,<3.0.a0'
@@ -11513,15 +11513,15 @@ package:
       tomli: ''
       typing-extensions: '>=4.12.2,<5'
     hash:
-      md5: 87789bf1df9f0bac8323d59a440e3f38
-      sha256: 776fdb588c31f812722dbd55dc2ae701cac95d54a0b2555359f81b4551b44a9b
+      md5: 1fa20e7246385b4365452a1859f1fda1
+      sha256: cc0f6178409a50f8ec45d08dafa558aa97bcbeb07ccb06deb3193db251ffb21f
     manager: conda
     name: rattler-build-conda-compat
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/rattler-build-conda-compat-1.3.1-pyhd8ed1ab_0.conda
-    version: 1.3.1
+      https://conda.anaconda.org/conda-forge/noarch/rattler-build-conda-compat-1.3.2-pyhd8ed1ab_0.conda
+    version: 1.3.2
   - category: main
     dependencies:
       conda-build: ''
@@ -11532,15 +11532,15 @@ package:
       tomli: ''
       typing-extensions: '>=4.12.2,<5'
     hash:
-      md5: 87789bf1df9f0bac8323d59a440e3f38
-      sha256: 776fdb588c31f812722dbd55dc2ae701cac95d54a0b2555359f81b4551b44a9b
+      md5: 1fa20e7246385b4365452a1859f1fda1
+      sha256: cc0f6178409a50f8ec45d08dafa558aa97bcbeb07ccb06deb3193db251ffb21f
     manager: conda
     name: rattler-build-conda-compat
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/rattler-build-conda-compat-1.3.1-pyhd8ed1ab_0.conda
-    version: 1.3.1
+      https://conda.anaconda.org/conda-forge/noarch/rattler-build-conda-compat-1.3.2-pyhd8ed1ab_0.conda
+    version: 1.3.2
   - category: main
     dependencies:
       conda-build: ''
@@ -11551,15 +11551,15 @@ package:
       tomli: ''
       typing-extensions: '>=4.12.2,<5'
     hash:
-      md5: 87789bf1df9f0bac8323d59a440e3f38
-      sha256: 776fdb588c31f812722dbd55dc2ae701cac95d54a0b2555359f81b4551b44a9b
+      md5: 1fa20e7246385b4365452a1859f1fda1
+      sha256: cc0f6178409a50f8ec45d08dafa558aa97bcbeb07ccb06deb3193db251ffb21f
     manager: conda
     name: rattler-build-conda-compat
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/rattler-build-conda-compat-1.3.1-pyhd8ed1ab_0.conda
-    version: 1.3.1
+      https://conda.anaconda.org/conda-forge/noarch/rattler-build-conda-compat-1.3.2-pyhd8ed1ab_0.conda
+    version: 1.3.2
   - category: main
     dependencies:
       libgcc-ng: '>=12'
