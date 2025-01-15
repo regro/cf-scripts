@@ -15,7 +15,18 @@ import traceback
 import typing
 import warnings
 from collections import defaultdict
-from typing import Any, Dict, Iterable, Optional, Set, Tuple, cast
+from typing import (
+    Any,
+    Dict,
+    Iterable,
+    Mapping,
+    MutableMapping,
+    Optional,
+    Sequence,
+    Set,
+    Tuple,
+    cast,
+)
 
 import jinja2
 import jinja2.sandbox
@@ -325,7 +336,7 @@ def _flatten_requirement_pin_dicts(
     are converted into dictionaries. However, we want to extract the name only.
     """
 
-    def flatten_pin(s: str | dict[str, Any]) -> str:
+    def flatten_pin(s: str | Mapping[str, Any]) -> str:
         if isinstance(s, dict):
             if "pin_subpackage" in s:
                 return s["pin_subpackage"]["name"]
@@ -334,10 +345,10 @@ def _flatten_requirement_pin_dicts(
             raise ValueError(f"Unknown pinning dict: {s}")
         return s
 
-    def flatten_requirement_list(list: list[str | dict[str, Any]]) -> list[str]:
+    def flatten_requirement_list(list: Sequence[str | Mapping[str, Any]]) -> list[str]:
         return [flatten_pin(s) for s in list]
 
-    def flatten_requirements(output: dict[str, Any]) -> dict[str, Any]:
+    def flatten_requirements(output: MutableMapping[str, Any]) -> dict[str, Any]:
         if "requirements" in output:
             requirements = output["requirements"]
             for key in ["build", "host", "run"]:
