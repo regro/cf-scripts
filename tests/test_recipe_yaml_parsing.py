@@ -247,3 +247,7 @@ class TestRecipeYamlParsing:
         )
 
         assert subgraph["feedstock_name"] == recipe_name
+        for key, value in subgraph["total_requirements"].items():
+            assert isinstance(value, set)
+            for el in value:
+                assert isinstance(el, str)
