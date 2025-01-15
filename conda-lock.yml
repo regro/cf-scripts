@@ -2000,39 +2000,39 @@ package:
   - category: main
     dependencies: {}
     hash:
-      md5: 326762f10357248f380c4d2fa1682868
-      sha256: aa16d13f7977ca901eb5c8054d5ab1c3395ea70274e714113e91e604d742e92a
+      md5: d27d08f79e985904f55e402439b47855
+      sha256: b332fe805a0f937ebe5299163f196ecbd4deaa43cf2e022e3793aab747217e77
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.01.11.16.15.44-hd8ed1ab_0.conda
-    version: 2025.01.11.16.15.44
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.01.15.18.31.45-hd8ed1ab_0.conda
+    version: 2025.01.15.18.31.45
   - category: main
     dependencies: {}
     hash:
-      md5: 326762f10357248f380c4d2fa1682868
-      sha256: aa16d13f7977ca901eb5c8054d5ab1c3395ea70274e714113e91e604d742e92a
+      md5: d27d08f79e985904f55e402439b47855
+      sha256: b332fe805a0f937ebe5299163f196ecbd4deaa43cf2e022e3793aab747217e77
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.01.11.16.15.44-hd8ed1ab_0.conda
-    version: 2025.01.11.16.15.44
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.01.15.18.31.45-hd8ed1ab_0.conda
+    version: 2025.01.15.18.31.45
   - category: main
     dependencies: {}
     hash:
-      md5: 326762f10357248f380c4d2fa1682868
-      sha256: aa16d13f7977ca901eb5c8054d5ab1c3395ea70274e714113e91e604d742e92a
+      md5: d27d08f79e985904f55e402439b47855
+      sha256: b332fe805a0f937ebe5299163f196ecbd4deaa43cf2e022e3793aab747217e77
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.01.11.16.15.44-hd8ed1ab_0.conda
-    version: 2025.01.11.16.15.44
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.01.15.18.31.45-hd8ed1ab_0.conda
+    version: 2025.01.15.18.31.45
   - category: main
     dependencies:
       click: '>=8'
@@ -8100,43 +8100,43 @@ package:
       boolean.py: '>=4.0.0'
       python: '>=3.9'
     hash:
-      md5: 36101053c83ff9d5fea9608d7064f14a
-      sha256: 3820e3df98090da4551b200beab2f387f2aa48235f6dbc43a888a9d9e7be0a08
+      md5: 2a43a839295263cb57e9a8a10f6a0654
+      sha256: b3f4cc0564f2327967fd4e4ff2de58f961f0d3b59f4c8c16304cda83e8a4b4b8
     manager: conda
     name: license-expression
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/license-expression-30.4.0-pyhd8ed1ab_1.conda
-    version: 30.4.0
+      https://conda.anaconda.org/conda-forge/noarch/license-expression-30.4.1-pyhd8ed1ab_0.conda
+    version: 30.4.1
   - category: main
     dependencies:
       boolean.py: '>=4.0.0'
       python: '>=3.9'
     hash:
-      md5: 36101053c83ff9d5fea9608d7064f14a
-      sha256: 3820e3df98090da4551b200beab2f387f2aa48235f6dbc43a888a9d9e7be0a08
+      md5: 2a43a839295263cb57e9a8a10f6a0654
+      sha256: b3f4cc0564f2327967fd4e4ff2de58f961f0d3b59f4c8c16304cda83e8a4b4b8
     manager: conda
     name: license-expression
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/license-expression-30.4.0-pyhd8ed1ab_1.conda
-    version: 30.4.0
+      https://conda.anaconda.org/conda-forge/noarch/license-expression-30.4.1-pyhd8ed1ab_0.conda
+    version: 30.4.1
   - category: main
     dependencies:
       boolean.py: '>=4.0.0'
       python: '>=3.9'
     hash:
-      md5: 36101053c83ff9d5fea9608d7064f14a
-      sha256: 3820e3df98090da4551b200beab2f387f2aa48235f6dbc43a888a9d9e7be0a08
+      md5: 2a43a839295263cb57e9a8a10f6a0654
+      sha256: b3f4cc0564f2327967fd4e4ff2de58f961f0d3b59f4c8c16304cda83e8a4b4b8
     manager: conda
     name: license-expression
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/license-expression-30.4.0-pyhd8ed1ab_1.conda
-    version: 30.4.0
+      https://conda.anaconda.org/conda-forge/noarch/license-expression-30.4.1-pyhd8ed1ab_0.conda
+    version: 30.4.1
   - category: main
     dependencies:
       __osx: '>=10.13'
@@ -13103,38 +13103,38 @@ package:
     dependencies:
       python: '>=3.9'
     hash:
-      md5: 663a601868ec1196889bce4f8493a55f
-      sha256: ccc437aeade22da74754dba70320b2391314929eeb6ac9ecec254abcb2d7c673
+      md5: 32e37e8fe9ef45c637ee38ad51377769
+      sha256: 304834f2438017921d69f05b3f5a6394b42dc89a90a6128a46acbf8160d377f6
     manager: conda
     name: tomli-w
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/noarch/tomli-w-1.1.0-pyhd8ed1ab_1.conda
-    version: 1.1.0
+    url: https://conda.anaconda.org/conda-forge/noarch/tomli-w-1.2.0-pyhd8ed1ab_0.conda
+    version: 1.2.0
   - category: main
     dependencies:
       python: '>=3.9'
     hash:
-      md5: 663a601868ec1196889bce4f8493a55f
-      sha256: ccc437aeade22da74754dba70320b2391314929eeb6ac9ecec254abcb2d7c673
+      md5: 32e37e8fe9ef45c637ee38ad51377769
+      sha256: 304834f2438017921d69f05b3f5a6394b42dc89a90a6128a46acbf8160d377f6
     manager: conda
     name: tomli-w
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/noarch/tomli-w-1.1.0-pyhd8ed1ab_1.conda
-    version: 1.1.0
+    url: https://conda.anaconda.org/conda-forge/noarch/tomli-w-1.2.0-pyhd8ed1ab_0.conda
+    version: 1.2.0
   - category: main
     dependencies:
       python: '>=3.9'
     hash:
-      md5: 663a601868ec1196889bce4f8493a55f
-      sha256: ccc437aeade22da74754dba70320b2391314929eeb6ac9ecec254abcb2d7c673
+      md5: 32e37e8fe9ef45c637ee38ad51377769
+      sha256: 304834f2438017921d69f05b3f5a6394b42dc89a90a6128a46acbf8160d377f6
     manager: conda
     name: tomli-w
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/noarch/tomli-w-1.1.0-pyhd8ed1ab_1.conda
-    version: 1.1.0
+    url: https://conda.anaconda.org/conda-forge/noarch/tomli-w-1.2.0-pyhd8ed1ab_0.conda
+    version: 1.2.0
   - category: main
     dependencies:
       python: '>=3.9'
