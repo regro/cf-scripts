@@ -15,7 +15,18 @@ import traceback
 import typing
 import warnings
 from collections import defaultdict
-from typing import Any, Dict, Iterable, Optional, Set, Tuple, cast
+from collections.abc import Mapping
+from typing import (
+    Any,
+    Dict,
+    Iterable,
+    MutableMapping,
+    Optional,
+    Sequence,
+    Set,
+    Tuple,
+    cast,
+)
 
 import jinja2
 import jinja2.sandbox
@@ -315,6 +326,62 @@ def parse_recipe_yaml_containerized(
     )
 
 
+def _flatten_requirement_pin_dicts(
+    recipes: list["RecipeTypedDict"],
+) -> list["RecipeTypedDict"]:
+    """
+    Flatten out any "pin" dictionaries.
+
+    The `${{ pin_subpackage(foo) }}` and `${{ pin_compatible(foo) }}` functions
+    are converted into dictionaries. However, we want to extract the name only.
+    """
+
+    def flatten_pin(s: str | Mapping[str, Any]) -> str:
+        if isinstance(s, Mapping):
+            if "pin_subpackage" in s:
+                return s["pin_subpackage"]["name"]
+            elif "pin_compatible" in s:
+                return s["pin_compatible"]["name"]
+            raise ValueError(f"Unknown pinning dict: {s}")
+        return s
+
+    def flatten_requirement_list(list: Sequence[str | Mapping[str, Any]]) -> list[str]:
+        return [flatten_pin(s) for s in list]
+
+    def flatten_requirements(output: MutableMapping[str, Any]) -> dict[str, Any]:
+        if "requirements" in output:
+            requirements = output["requirements"]
+            for key in ["build", "host", "run"]:
+                if key in requirements:
+                    requirements[key] = flatten_requirement_list(requirements[key])
+            if "run_exports" in requirements:
+                if isinstance(requirements["run_exports"], list):
+                    requirements["run_exports"] = flatten_requirement_list(
+                        requirements["run_exports"]
+                    )
+                else:
+                    for key in requirements["run_exports"]:
+                        requirements["run_exports"][key] = flatten_requirement_list(
+                            requirements["run_exports"][key]
+                        )
+
+    for recipe in recipes:
+        if "requirements" in recipe:
+            flatten_requirements(recipe)
+
+        if "outputs" in recipe:
+            for output in recipe["outputs"]:
+                flatten_requirements(output)
+
+        if "tests" in recipe:
+            # script tests can have `run` and `build` requirements
+            for test in recipe["tests"]:
+                if "requirements" in test:
+                    flatten_requirements(test)
+
+    return recipes
+
+
 def parse_recipe_yaml_local(
     text: str,
     for_pinning: bool = False,
@@ -346,6 +413,8 @@ def parse_recipe_yaml_local(
     )
     if for_pinning:
         rendered_recipes = _process_recipe_for_pinning(rendered_recipes)
+    else:
+        rendered_recipes = _flatten_requirement_pin_dicts(rendered_recipes)
     parsed_recipes = _parse_recipes(rendered_recipes)
     return parsed_recipes
 
