@@ -15,7 +15,7 @@ import traceback
 import typing
 import warnings
 from collections import defaultdict
-from collections.abc import MutableMapping
+from collections.abc import Mapping
 from typing import (
     Any,
     Dict,
