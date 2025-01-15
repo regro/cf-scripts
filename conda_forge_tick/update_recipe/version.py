@@ -736,9 +736,8 @@ def update_version_v1(
                 line, f'{indentation}version: "{version}"'
             )
             break
-    print("All sources: ", rendered_sources)
+
     for source in rendered_sources:
-        print("Updating source: ", source)
         # update the hash value
         urls = source.url
         # zip url and template
@@ -931,34 +930,3 @@ def update_version(raw_meta_yaml, version, hash_type="sha256") -> (str, set[str]
     else:
         logger.critical("Recipe did not change in version migration!")
         return None, errors
-
-
-if __name__ == "__main__":
-    # parse args and invoke update_version_feedstock_dir
-    import argparse
-
-    from conda_forge_tick.utils import setup_logging
-
-    setup_logging("INFO")
-
-    parser = argparse.ArgumentParser()
-    parser.add_argument("feedstock_dir", help="The feedstock directory to update.")
-    parser.add_argument("version", help="The new version to update to.")
-    parser.add_argument(
-        "--hash-type",
-        default="sha256",
-        help="The hash type to use for the source.",
-    )
-    parser.add_argument(
-        "--use-container",
-        action="store_true",
-        help="Use a container to run the version parsing.",
-    )
-
-    args = parser.parse_args()
-    updated, errors = update_version_feedstock_dir(
-        args.feedstock_dir,
-        args.version,
-        hash_type=args.hash_type,
-        use_container=args.use_container,
-    )
