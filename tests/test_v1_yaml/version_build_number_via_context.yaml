@@ -191,9 +191,9 @@ outputs:
       name: torchvision-tests
     build:
       script: true
-    # requirements:
-      # run:
-        # - ${{ pin_subpackage('torchvision', exact=True) }}
+    requirements:
+      run:
+        - ${{ pin_subpackage('torchvision', exact=True) }}
     tests:
       - files:
           source:

@@ -8,7 +8,7 @@ import typing
 import zipfile
 from collections import defaultdict
 from pathlib import Path
-from typing import Any, Optional, Set, Union
+from typing import Optional, Set, Union
 
 import requests
 import yaml
@@ -81,7 +81,6 @@ def _get_requirements(
     host: bool = True,
     run: bool = True,
     outputs_to_keep: Optional[Set["PackageName"]] = None,
-    schema_version: int = 0,
 ) -> "Set[PackageName]":
     """Get the list of recipe requirements from a meta.yaml dict
 
@@ -101,23 +100,13 @@ def _get_requirements(
     reqs : `set`
         the set of recipe requirements
     """
-    kw = dict(build=build, host=host, run=run, schema_version=schema_version)
+    kw = dict(build=build, host=host, run=run)
     if outputs_to_keep:
         reqs = set()
         outputs_ = meta_yaml.get("outputs", []) or [] if outputs else []
         for output in outputs_:
-            if schema_version == 0:
-                if output.get("name") in outputs_to_keep:
-                    reqs |= _parse_requirements(
-                        output.get("requirements", {}) or {}, **kw
-                    )
-            elif schema_version == 1:
-                if output.get("package", {}).get("name") in outputs_to_keep:
-                    reqs |= _parse_requirements(
-                        output.get("requirements", {}) or {}, **kw
-                    )
-            else:
-                raise ValueError(f"Unknown schema version {schema_version}")
+            if output.get("name") in outputs_to_keep:
+                reqs |= _parse_requirements(output.get("requirements", {}) or {}, **kw)
     else:
         reqs = _parse_requirements(meta_yaml.get("requirements", {}), **kw)
         outputs_ = meta_yaml.get("outputs", []) or [] if outputs else []
@@ -132,7 +121,6 @@ def _parse_requirements(
     build: bool = True,
     host: bool = True,
     run: bool = True,
-    schema_version: int = 0,
 ) -> typing.MutableSet["PackageName"]:
     """Flatten a YAML requirements section into a list of names"""
     if not req:  # handle None as empty
@@ -145,43 +133,19 @@ def _parse_requirements(
         _run = list(as_iterable(req.get("run", []) or [] if run else []))
         reqlist = _build + _host + _run
 
-    # remove any pin expressions / dictionaries in the v1 schema
-    if schema_version == 1:
-        reqlist = [req for req in reqlist if not isinstance(req, dict)]
-
     packages = (PIN_SEP_PAT.split(x)[0].lower() for x in reqlist if x is not None)
     return {typing.cast("PackageName", pkg) for pkg in packages}
 
 
-def _filter_v1_pins(reqs: list[str | dict[str, Any]]) -> list[str]:
-    res = []
-    for el in reqs:
-        if isinstance(el, dict):
-            if "pin_subpackage" in el:
-                res.append(f"pin_subpackage {el['pin_subpackage']['name']}")
-            elif "pin_compatible" in el:
-                res.append(f"pin_compatible {el['pin_compatible']['name']}")
-            else:
-                logger.warning(f"Unknown pin type: {el}")
-        else:
-            res.append(el)
-
-
-def _extract_requirements(meta_yaml, outputs_to_keep=None, schema_version=0):
+def _extract_requirements(meta_yaml, outputs_to_keep=None):
     strong_exports = False
     requirements_dict = defaultdict(set)
 
     if outputs_to_keep:
         metas = []
         for output in meta_yaml.get("outputs", []) or []:
-            if schema_version == 0:
-                if output.get("name") in outputs_to_keep:
-                    metas.append(output)
-            elif schema_version == 1:
-                if output.get("package", {}).get("name") in outputs_to_keep:
-                    metas.append(output)
-            else:
-                raise ValueError(f"Unknown schema version {schema_version}")
+            if output.get("name") in outputs_to_keep:
+                metas.append(output)
     else:
         metas = [meta_yaml] + meta_yaml.get("outputs", []) or []
 
@@ -192,13 +156,13 @@ def _extract_requirements(meta_yaml, outputs_to_keep=None, schema_version=0):
             continue
         for section in ["build", "host", "run"]:
             requirements_dict[section].update(
-                list(as_iterable(_filter_v1_pins(req.get(section, []) or []))),
+                list(as_iterable(req.get(section, []) or [])),
             )
 
         test: "TestTypedDict" = block.get("test", {}) or {}
         requirements_dict["test"].update(test.get("requirements", []) or [])
         requirements_dict["test"].update(test.get("requires", []) or [])
-        # TODO improve code (wolf)
+
         if "tests" in block:
             for test in block.get("tests", []):
                 # only script tests have requirements
@@ -465,16 +429,12 @@ def populate_feedstock_attributes(
         if k.endswith("_meta_yaml") or k.endswith("_requirements"):
             sub_graph.pop(k)
 
-    schema_version = 0
-    if recipe_yaml is not None:
-        schema_version = 1
     for k, v in zip(plat_archs, variant_yamls):
         plat_arch_name = "_".join(k)
         sub_graph[f"{plat_arch_name}_meta_yaml"] = v
         _, sub_graph[f"{plat_arch_name}_requirements"], _ = _extract_requirements(
             v,
             outputs_to_keep=BOOTSTRAP_MAPPINGS.get(name, None),
-            schema_version=schema_version,
         )
 
     (
@@ -484,7 +444,6 @@ def populate_feedstock_attributes(
     ) = _extract_requirements(
         meta_yaml,
         outputs_to_keep=BOOTSTRAP_MAPPINGS.get(name, None),
-        schema_version=schema_version,
     )
 
     # handle multi outputs
@@ -508,7 +467,6 @@ def populate_feedstock_attributes(
     req = _get_requirements(
         yaml_dict,
         outputs_to_keep=BOOTSTRAP_MAPPINGS.get(name, []),
-        schema_version=schema_version,
     )
     sub_graph["req"] = req
 
@@ -527,10 +485,7 @@ def populate_feedstock_attributes(
         and len(yaml_dict["outputs"]) > 0
         and "version" in yaml_dict["outputs"][0]
     ):
-        if schema_version == 0:
-            sub_graph["version"] = yaml_dict["outputs"][0]["version"]
-        elif schema_version == 1:
-            sub_graph["version"] = yaml_dict["outputs"][0]["package"]["version"]
+        sub_graph["version"] = yaml_dict["outputs"][0]["version"]
 
     # set the url and hash
     sub_graph.pop("url", None)
