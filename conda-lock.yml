@@ -1744,7 +1744,7 @@ package:
       patch: '>=2.6'
       pkginfo: ''
       psutil: ''
-      py-lief: <0.15
+      py-lief: ''
       python: '>=3.11,<3.12.0a0'
       python-libarchive-c: ''
       python_abi: 3.11.*
@@ -1754,15 +1754,15 @@ package:
       ripgrep: ''
       tqdm: ''
     hash:
-      md5: 6ce396f196a85ae60ad24afb8d55d717
-      sha256: 8ed3c1de9c1915f6d4c49caecbd0f85ec9908ca21f2938c9c94c7586ab7b20f8
+      md5: 0cd1446c4a52d860578b13dc099f24f5
+      sha256: 780b99395a10bb304c048c277b03e9d19693819997e3251a116c74fef2c8a2c3
     manager: conda
     name: conda-build
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/osx-64/conda-build-24.11.2-py311h6eed73b_1.conda
-    version: 24.11.2
+      https://conda.anaconda.org/conda-forge/osx-64/conda-build-25.1.1-py311h6eed73b_0.conda
+    version: 25.1.1
   - category: main
     dependencies:
       beautifulsoup4: ''
@@ -1780,7 +1780,7 @@ package:
       patch: '>=2.6'
       pkginfo: ''
       psutil: ''
-      py-lief: <0.15
+      py-lief: ''
       python: '>=3.11,<3.12.0a0'
       python-libarchive-c: ''
       python_abi: 3.11.*
@@ -1790,15 +1790,15 @@ package:
       ripgrep: ''
       tqdm: ''
     hash:
-      md5: 07faeadd8c6a2105c1780d19176827b7
-      sha256: 312a69a11bc637bab3462cf166fade3ded2852a67cc3d63611925bed2584219b
+      md5: 7ac13f85231cfbdde85de16595622243
+      sha256: 688f2754066c1391d5fe4dfbb8d26a3855887bb07a0ac4400f5c38c00312b119
     manager: conda
     name: conda-build
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/osx-arm64/conda-build-24.11.2-py311h267d04e_1.conda
-    version: 24.11.2
+      https://conda.anaconda.org/conda-forge/osx-arm64/conda-build-25.1.1-py311h267d04e_0.conda
+    version: 25.1.1
   - category: main
     dependencies:
       boltons: '>=23.0.0'
@@ -6918,13 +6918,13 @@ package:
       libzlib: '>=1.3.1,<2.0a0'
       pcre2: '>=10.44,<10.45.0a0'
     hash:
-      md5: 13e8e54035ddd2b91875ba399f0f7c04
-      sha256: 49ee9401d483a76423461c50dcd37f91d070efaec7e4dc2828d8cdd2ce694231
+      md5: 37d1af619d999ee8f1f73cf5a06f4e2f
+      sha256: f0804a9e46ae7b32ca698d26c1c95aa82a91f71b6051883d4a46bea725be9ea4
     manager: conda
     name: libglib
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/linux-64/libglib-2.82.2-h2ff4ddf_0.conda
+    url: https://conda.anaconda.org/conda-forge/linux-64/libglib-2.82.2-h2ff4ddf_1.conda
     version: 2.82.2
   - category: main
     dependencies:
@@ -6935,13 +6935,13 @@ package:
       libzlib: '>=1.3.1,<2.0a0'
       pcre2: '>=10.44,<10.45.0a0'
     hash:
-      md5: 2e0511f82f1481210f148e1205fe2482
-      sha256: d782be2d8d6784f0b8584ca3cfa93357cddc71b0975560a2bcabd174dac60fff
+      md5: 05e05255a2e9c5e9c1b6322d84b4999b
+      sha256: 78fab559eefc52856331462304a4c55c054fa8f0b0feb31ff5496d06c08342ba
     manager: conda
     name: libglib
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/osx-64/libglib-2.82.2-hb6ef654_0.conda
+    url: https://conda.anaconda.org/conda-forge/osx-64/libglib-2.82.2-h5c976ab_1.conda
     version: 2.82.2
   - category: main
     dependencies:
@@ -6952,13 +6952,13 @@ package:
       libzlib: '>=1.3.1,<2.0a0'
       pcre2: '>=10.44,<10.45.0a0'
     hash:
-      md5: 890783f64502fa6bfcdc723cfbf581b4
-      sha256: 101fb31c509d6a69ac5d612b51d4088ddbc675fca18cf0c3589cfee26cd01ca0
+      md5: 849da57c370384ce48bef2e050488882
+      sha256: d002aeaa51424e331f8504a54b6ba4388a6011a0ebcac29296f3d14282bf733b
     manager: conda
     name: libglib
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/osx-arm64/libglib-2.82.2-h07bd6cf_0.conda
+    url: https://conda.anaconda.org/conda-forge/osx-arm64/libglib-2.82.2-hdff4504_1.conda
     version: 2.82.2
   - category: main
     dependencies:
@@ -7195,29 +7195,31 @@ package:
   - category: main
     dependencies:
       __osx: '>=10.13'
-      libcxx: '>=17'
+      libcxx: '>=18'
+      mbedtls: '>=3.5.1,<3.6.0a0'
     hash:
-      md5: fea38f7bd278c21851f208358dd8e5b4
-      sha256: a91a753d4a589e4c920c1a1281b33d668ab03cf964408866acc174a45c184288
+      md5: 3cd86f84a4f59e0e5b950c81ecce2925
+      sha256: b39f065d616673c8d2f07b78fbeff5b405052217516a8df07c665135b9b61bdc
     manager: conda
     name: liblief
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/osx-64/liblief-0.14.1-hac325c4_2.conda
-    version: 0.14.1
+    url: https://conda.anaconda.org/conda-forge/osx-64/liblief-0.16.0-h240833e_1.conda
+    version: 0.16.0
   - category: main
     dependencies:
       __osx: '>=11.0'
-      libcxx: '>=17'
+      libcxx: '>=18'
+      mbedtls: '>=3.5.1,<3.6.0a0'
     hash:
-      md5: 9cd24e3468e4c510836f68f453a31df8
-      sha256: 0da590030191ce2f52ce315165b88898bd2df5b51374bb33a57722a84521a7f5
+      md5: 4f4746caa1b42a823d83478444fe2a79
+      sha256: a612668585faf65d5718ca6ac6deed78a59c3a34a100683210394f352834628b
     manager: conda
     name: liblief
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/osx-arm64/liblief-0.14.1-hf9b8971_2.conda
-    version: 0.14.1
+    url: https://conda.anaconda.org/conda-forge/osx-arm64/liblief-0.16.0-h286801f_1.conda
+    version: 0.16.0
   - category: main
     dependencies:
       libcxx: '>=16'
@@ -8491,6 +8493,32 @@ package:
     url:
       https://conda.anaconda.org/conda-forge/osx-arm64/markupsafe-3.0.2-py311h4921393_1.conda
     version: 3.0.2
+  - category: main
+    dependencies:
+      __osx: '>=10.13'
+      libcxx: '>=18'
+    hash:
+      md5: 1b6943cf07d3b150ba155e7004da9c81
+      sha256: 18760c990017dd9091981cc9740c6161a72d544e9eecb94ea3c9d9592a9f2425
+    manager: conda
+    name: mbedtls
+    optional: false
+    platform: osx-64
+    url: https://conda.anaconda.org/conda-forge/osx-64/mbedtls-3.5.1-h240833e_1.conda
+    version: 3.5.1
+  - category: main
+    dependencies:
+      __osx: '>=11.0'
+      libcxx: '>=18'
+    hash:
+      md5: 1971b31c091c167f7d1bcb1b3beb9644
+      sha256: 1ddc82a1f4c076f6521250bc7e9d8854157fb2f18a0a6ef2186aa4042ab593b9
+    manager: conda
+    name: mbedtls
+    optional: false
+    platform: osx-arm64
+    url: https://conda.anaconda.org/conda-forge/osx-arm64/mbedtls-3.5.1-h286801f_1.conda
+    version: 3.5.1
   - category: main
     dependencies:
       python: '>=3.9'
@@ -9876,37 +9904,37 @@ package:
   - category: main
     dependencies:
       __osx: '>=10.13'
-      libcxx: '>=17'
-      liblief: 0.14.1
+      libcxx: '>=18'
+      liblief: 0.16.0
       python: '>=3.11,<3.12.0a0'
       python_abi: 3.11.*
     hash:
-      md5: 3ae70c55fef0bf23940c95bf5170fe75
-      sha256: bd95024dd3668a78eb131c9bcb6a24983573b2756f0cb4fb614cd31c5ebfa537
+      md5: de9ce666ae196b5788903ed2404a05a4
+      sha256: bcfc1b720ad88829863b7e047bcd633d0741127729573580084b3fd2a51614f9
     manager: conda
     name: py-lief
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/osx-64/py-lief-0.14.1-py311hd89902b_2.conda
-    version: 0.14.1
+      https://conda.anaconda.org/conda-forge/osx-64/py-lief-0.16.0-py311hc356e98_1.conda
+    version: 0.16.0
   - category: main
     dependencies:
       __osx: '>=11.0'
-      libcxx: '>=17'
-      liblief: 0.14.1
+      libcxx: '>=18'
+      liblief: 0.16.0
       python: '>=3.11,<3.12.0a0'
       python_abi: 3.11.*
     hash:
-      md5: 49783632a9410a8f1bfa69b0d8d2f7cb
-      sha256: f3553cdfc03f772f4b6cc0f364c5b61ed85ec688920fdba22fa7a73e1c52af0b
+      md5: d39103453ffdf43ec3d6eaf880b105b9
+      sha256: b364cb9e379fc55438eba0f85f33e82dfa0b10943971c4ed43744dc642db7f26
     manager: conda
     name: py-lief
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/osx-arm64/py-lief-0.14.1-py311h3f08180_2.conda
-    version: 0.14.1
+      https://conda.anaconda.org/conda-forge/osx-arm64/py-lief-0.16.0-py311h155a34a_1.conda
+    version: 0.16.0
   - category: main
     dependencies:
       __glibc: '>=2.17,<3.0.a0'
