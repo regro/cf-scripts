@@ -4920,7 +4920,7 @@ package:
       packaging: '>=21.3'
       pathspec: '>=0.10.1'
       pluggy: '>=1.0.0'
-      python: '>=3.8'
+      python: '>=3.7'
       tomli: '>=1.2.2'
       trove-classifiers: ''
     hash:
@@ -4940,7 +4940,7 @@ package:
       packaging: '>=21.3'
       pathspec: '>=0.10.1'
       pluggy: '>=1.0.0'
-      python: '>=3.8'
+      python: '>=3.7'
       tomli: '>=1.2.2'
       trove-classifiers: ''
     hash:
@@ -7726,42 +7726,42 @@ package:
       libgcc: '>=13'
       libzlib: '>=1.3.1,<2.0a0'
     hash:
-      md5: b58da17db24b6e08bcbf8fed2fb8c915
-      sha256: 48af21ebc2cbf358976f1e0f4a0ab9e91dfc83d0ef337cf3837c6f5bc22fb352
+      md5: 84bd1c9a82b455e7a2f390375fb38f90
+      sha256: 7bb84f44e1bd756da4a3d0d43308324a5533e6ba9f4772475884bce44d405064
     manager: conda
     name: libsqlite
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/linux-64/libsqlite-3.47.2-hee588c1_0.conda
-    version: 3.47.2
+      https://conda.anaconda.org/conda-forge/linux-64/libsqlite-3.48.0-hee588c1_0.conda
+    version: 3.48.0
   - category: main
     dependencies:
       __osx: '>=10.13'
       libzlib: '>=1.3.1,<2.0a0'
     hash:
-      md5: 44d9799fda97eb34f6d88ac1e3eb0ea6
-      sha256: 4d5e188d921f93c97ce172fc8c4341e8171670ec98d76f9961f65f6306fcda77
+      md5: bddb50cc09176da1659c53ebb8dfbba0
+      sha256: 92b391120bf47091490cd7c36b0a60b82f848b6c4ad289713e518402cb5077ff
     manager: conda
     name: libsqlite
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/osx-64/libsqlite-3.47.2-hdb6dae5_0.conda
-    version: 3.47.2
+    url: https://conda.anaconda.org/conda-forge/osx-64/libsqlite-3.48.0-hdb6dae5_0.conda
+    version: 3.48.0
   - category: main
     dependencies:
       __osx: '>=11.0'
       libzlib: '>=1.3.1,<2.0a0'
     hash:
-      md5: 122d6f29470f1a991e85608e77e56a8a
-      sha256: f192f3c8973de9ec4c214990715f13b781965247a5cedf9162e7f9e699cfc3c4
+      md5: 714719df4f49e30f9728956f240846ca
+      sha256: b31169cf0ca7b6835baca4ab92d6cf2eee83b1a12a11b72f39521e8baf4d6acb
     manager: conda
     name: libsqlite
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/osx-arm64/libsqlite-3.47.2-h3f77e49_0.conda
-    version: 3.47.2
+      https://conda.anaconda.org/conda-forge/osx-arm64/libsqlite-3.48.0-h3f77e49_0.conda
+    version: 3.48.0
   - category: main
     dependencies:
       __glibc: '>=2.17,<3.0.a0'
@@ -11468,41 +11468,41 @@ package:
       openssl: '>=3.4.0,<4.0a0'
       patchelf: ''
     hash:
-      md5: abc1b766deb7ad6700e3b5bd581a55a6
-      sha256: 16a99dfcbad143d7083f3085a6e1cc114d409e86fae7066488c713a0853eb528
+      md5: d95bf270ec8fee3acd5741e43ee6efe2
+      sha256: 6342d5bb6282f40008404130a2ca8943ae41a92c7c12eefa7bd63fe25e3961e1
     manager: conda
     name: rattler-build
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/linux-64/rattler-build-0.35.1-hff40e2b_0.conda
-    version: 0.35.1
+      https://conda.anaconda.org/conda-forge/linux-64/rattler-build-0.35.3-hff40e2b_0.conda
+    version: 0.35.3
   - category: main
     dependencies:
       __osx: '>=10.13'
     hash:
-      md5: 604e62edb9895d411758d72228bb861b
-      sha256: 5e7325d2822936dcdca3da7aca1d3ec67161b8492090bf8d774590f183b936bd
+      md5: 3d223bbdf242eee7229b7de51a46ee89
+      sha256: 498b5d63f3814f4d827db0b3d15b748cbc6d4037ed2d515d3296fcb6ebc4882a
     manager: conda
     name: rattler-build
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/osx-64/rattler-build-0.35.1-h625f1b7_0.conda
-    version: 0.35.1
+      https://conda.anaconda.org/conda-forge/osx-64/rattler-build-0.35.3-h625f1b7_0.conda
+    version: 0.35.3
   - category: main
     dependencies:
       __osx: '>=11.0'
     hash:
-      md5: af576072225d22bc78c6b841831fdab5
-      sha256: 922623ec2f1be9e3bf6b5d53b1ee0c134d86c83dd1a80abd8b7572502e8f4c8f
+      md5: a66fb69b3698446e365563b112782343
+      sha256: af382b805815a20d7083891fb58b5b04f525109e54289c2acf0b3fd4b43bde9a
     manager: conda
     name: rattler-build
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/osx-arm64/rattler-build-0.35.1-h3ab7716_0.conda
-    version: 0.35.1
+      https://conda.anaconda.org/conda-forge/osx-arm64/rattler-build-0.35.3-h3ab7716_0.conda
+    version: 0.35.3
   - category: main
     dependencies:
       conda-build: ''
