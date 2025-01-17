@@ -3,9 +3,9 @@ metadata:
     - url: conda-forge
       used_env_vars: []
   content_hash:
-    linux-64: e7523adc9dabfdd8c235228a86af516fcdcf1163d039489d9badc6198e28353a
-    osx-64: aa83115cf73d4255a3cdab97fdcaaa74d063ea982169d2fe7e0e1263c8f9cb73
-    osx-arm64: 77724ead9c908522f581e645d719909946de348df318a1213cb2822da25a57f0
+    linux-64: 9ccb70c73b195b7bde8a8877fa7c8443d1e33d56032fad5e3860e9517127614e
+    osx-64: 777ee2aa1525078483527bf81063cface005ecbd26243fd1936962a81c0a27fa
+    osx-arm64: ced97f9b4d6d7c60f7e46128fbab17b9711275d8bffdec3fa0ec7a149e379533
   platforms:
     - osx-arm64
     - linux-64
@@ -11468,41 +11468,41 @@ package:
       openssl: '>=3.4.0,<4.0a0'
       patchelf: ''
     hash:
-      md5: d95bf270ec8fee3acd5741e43ee6efe2
-      sha256: 6342d5bb6282f40008404130a2ca8943ae41a92c7c12eefa7bd63fe25e3961e1
+      md5: 00f0ee844ee97954cba99ccf8c0b6bf5
+      sha256: 1b7e2a532fc2d7947184e5d39fb46f036c873795828e27546171712dfa5a0119
     manager: conda
     name: rattler-build
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/linux-64/rattler-build-0.35.3-hff40e2b_0.conda
-    version: 0.35.3
+      https://conda.anaconda.org/conda-forge/linux-64/rattler-build-0.34.1-hbcf9e9b_0.conda
+    version: 0.34.1
   - category: main
     dependencies:
       __osx: '>=10.13'
     hash:
-      md5: 3d223bbdf242eee7229b7de51a46ee89
-      sha256: 498b5d63f3814f4d827db0b3d15b748cbc6d4037ed2d515d3296fcb6ebc4882a
+      md5: 3fdf3737edcc0d52ef2bac53c0be2eec
+      sha256: a2ac52117ae7f9a02ba5e81cc5c2b9b69d344a5acbaea1da30cd90bc5aebf02f
     manager: conda
     name: rattler-build
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/osx-64/rattler-build-0.35.3-h625f1b7_0.conda
-    version: 0.35.3
+      https://conda.anaconda.org/conda-forge/osx-64/rattler-build-0.34.1-h113f492_0.conda
+    version: 0.34.1
   - category: main
     dependencies:
       __osx: '>=11.0'
     hash:
-      md5: a66fb69b3698446e365563b112782343
-      sha256: af382b805815a20d7083891fb58b5b04f525109e54289c2acf0b3fd4b43bde9a
+      md5: 6a90b9b09f09ebab4c29a70524741c1d
+      sha256: 99ab62bfb6c1e0d97ce7ad9ae0e6d332cd6833cc4dfee996bb8356c3b97494f8
     manager: conda
     name: rattler-build
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/osx-arm64/rattler-build-0.35.3-h3ab7716_0.conda
-    version: 0.35.3
+      https://conda.anaconda.org/conda-forge/osx-arm64/rattler-build-0.34.1-h760a855_0.conda
+    version: 0.34.1
   - category: main
     dependencies:
       conda-build: ''
