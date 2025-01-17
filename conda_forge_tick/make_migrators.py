@@ -39,6 +39,7 @@ from conda_forge_tick.lazy_json_backends import (
     remove_key_for_hashmap,
 )
 from conda_forge_tick.migrators import (
+    AddNVIDIATools,
     ArchRebuild,
     Build2HostMigrator,
     CondaForgeYAMLCleanup,
@@ -75,7 +76,6 @@ from conda_forge_tick.migrators import (
     XzLibLzmaDevelMigrator,
     make_from_lazy_json_data,
     skip_migrator_due_to_schema,
-    AddNVIDIATools,
 )
 from conda_forge_tick.migrators.arch import OSXArm
 from conda_forge_tick.migrators.migration_yaml import (

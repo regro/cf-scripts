@@ -1,21 +1,20 @@
-import os.path
-import logging
 import copy
+import logging
+import os.path
 from typing import Any
 
-from conda_forge_tick.contexts import ClonedFeedstockContext
 import conda_forge_tick.migrators
-
+from conda_forge_tick.contexts import ClonedFeedstockContext
 from conda_forge_tick.migrators_types import AttrsTypedDict, MigrationUidTypedDict
 from conda_forge_tick.utils import (
+    get_bot_run_url,
     yaml_safe_dump,
     yaml_safe_load,
-    get_bot_run_url,
 )
 
 
 def _file_contains(filename, string):
-    with open(filename, "r") as f:
+    with open(filename) as f:
         return string in f.read()
 
 
@@ -25,7 +24,7 @@ def _insert_requirements_build(meta):
     after: list[str] = []
     requirements_found = False
     build_found = False
-    with open(meta, "r") as f:
+    with open(meta) as f:
         for line in f:
             if build_found:
                 insert_before = False
@@ -52,7 +51,7 @@ def _insert_build_script(meta):
     after: list[str] = []
     script_found = False
     build_found = False
-    with open(meta, "r") as f:
+    with open(meta) as f:
         for line in f:
             if not insert_before:
                 pass
