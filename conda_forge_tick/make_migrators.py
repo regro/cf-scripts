@@ -75,6 +75,7 @@ from conda_forge_tick.migrators import (
     XzLibLzmaDevelMigrator,
     make_from_lazy_json_data,
     skip_migrator_due_to_schema,
+    AddNVIDIATools,
 )
 from conda_forge_tick.migrators.arch import OSXArm
 from conda_forge_tick.migrators.migration_yaml import (
@@ -794,7 +795,11 @@ def initialize_migrators(
     gx: nx.DiGraph,
     dry_run: bool = False,
 ) -> MutableSequence[Migrator]:
-    migrators: List[Migrator] = []
+    migrators: List[Migrator] = [
+        AddNVIDIATools(
+            check_solvable=False,
+        ),
+    ]
 
     add_arch_migrate(migrators, gx)
 

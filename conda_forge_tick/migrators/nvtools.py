@@ -1,0 +1,245 @@
+import os.path
+import logging
+import copy
+from typing import Any
+
+from conda_forge_tick.contexts import ClonedFeedstockContext
+import conda_forge_tick.migrators
+
+from conda_forge_tick.migrators_types import AttrsTypedDict, MigrationUidTypedDict
+from conda_forge_tick.utils import (
+    yaml_safe_dump,
+    yaml_safe_load,
+    get_bot_run_url,
+)
+
+
+def _file_contains(filename, string):
+    with open(filename, "r") as f:
+        return string in f.read()
+
+
+def _insert_requirements_build(meta):
+    insert_before: bool = True
+    before: list[str] = []
+    after: list[str] = []
+    requirements_found = False
+    build_found = False
+    with open(meta, "r") as f:
+        for line in f:
+            if build_found:
+                insert_before = False
+            elif line.startswith("requirements"):
+                requirements_found = True
+            elif requirements_found and line.lstrip().startswith("build"):
+                build_found = True
+
+            if insert_before:
+                before.append(line)
+            else:
+                after.append(line)
+
+    if not (build_found or requirements_found):
+        return
+
+    with open(meta, "w") as f:
+        f.writelines(before + ["    - cf-nvidia-tools  # [linux]\n"] + after)
+
+
+def _insert_build_script(meta):
+    insert_before: bool = True
+    before: list[str] = []
+    after: list[str] = []
+    script_found = False
+    build_found = False
+    with open(meta, "r") as f:
+        for line in f:
+            if not insert_before:
+                pass
+            elif line.startswith("build"):
+                build_found = True
+            elif build_found and line.lstrip().startswith("script"):
+                script_found = True
+            elif build_found and script_found:
+                if line.lstrip().startswith("-"):
+                    # inside script
+                    pass
+                else:
+                    # empty script section?
+                    insert_before = False
+            if insert_before:
+                before.append(line)
+            else:
+                after.append(line)
+
+    if not (script_found or build_found):
+        return
+
+    with open(meta, "w") as f:
+        f.writelines(
+            before
+            + ['    - check-glibc "$PREFIX"/lib/*.so.* "$PREFIX"/bin/*  # [linux]\n']
+            + after
+        )
+
+
+class AddNVIDIATools(conda_forge_tick.migrators.Migrator):
+    """Add the cf-nvidia-tools package to NVIDIA redist feedstocks.
+
+    In order to ensure that NVIDIA's redistributed binaries (redists) are being packaged
+    correctly, NVIDIA has created a package containing a collection of tools to perform
+    common actions for NVIDIA recipes.
+
+    At this time, the package may be used to check Linux binaries for their minimum glibc
+    requirement in order to ensure that the correct metadata is being used in the conda
+    package.
+
+    This migrator will attempt to add this glibc check to all feedstocks which download any
+    artifacts from https://developer.download.nvidia.com. The check involves adding
+    something like:
+
+    ```bash
+    check-glibc "$PREFIX"/lib/*.so.* "$PREFIX"/bin/*
+    ```
+
+    to the build script after the package artifacts have been installed.
+
+    > [!NOTE]
+    > A human needs to verify that the glob expression is checking all of the correct
+    > artifacts!
+
+    More information about cf-nvidia-tools is available in the feedstock's
+    [README](https://github.com/conda-forge/cf-nvidia-tools-feedstock/tree/main/recipe).
+
+    Please ping carterbox for questions.
+    """
+
+    name = "NVIDIA Tools Migrator"
+
+    rerender = True
+
+    max_solver_attempts = 3
+
+    migrator_version = 0
+
+    allow_empty_commits = False
+
+    allowed_schema_versions = [0]
+
+    def filter(self, attrs: "AttrsTypedDict", not_bad_str_start: str = "") -> bool:
+        """If true don't act upon node
+
+        Parameters
+        ----------
+        attrs : dict
+            The node attributes
+        not_bad_str_start : str, optional
+            If the 'bad' notice starts with the string then it is not
+            to be excluded. For example, rebuild migrations don't need
+            to worry about if the upstream can be fetched. Defaults to ``''``
+
+        Returns
+        -------
+        bool :
+            True if node is to be skipped
+        """
+        return (
+            attrs["archived"]
+            or "https://developer.download.nvidia.com" not in attrs["source"]["url"]
+        )
+
+    def migrate(
+        self, recipe_dir: str, attrs: AttrsTypedDict, **kwargs: Any
+    ) -> MigrationUidTypedDict:
+        """Perform the migration, updating the ``meta.yaml``
+
+        Parameters
+        ----------
+        recipe_dir : str
+            The directory of the recipe
+        attrs : dict
+            The node attributes
+
+        Returns
+        -------
+        namedtuple or bool:
+            If namedtuple continue with PR, if False scrap local folder
+        """
+        # STEP 0: Bump the build number
+        self.set_build_number(os.path.join(recipe_dir, "meta.yaml"))
+
+        # STEP 1: Add cf-nvidia-tools to build requirements
+        meta = os.path.join(recipe_dir, "meta.yaml")
+        if _file_contains(meta, "cf-nvidia-tools"):
+            logging.debug("cf-nvidia-tools already in meta.yaml; not adding again.")
+        else:
+            _insert_requirements_build(meta)
+            logging.debug("cf-nvidia-tools added to meta.yaml.")
+
+        # STEP 2: Add check-glibc to the build script
+        build = os.path.join(recipe_dir, "build.sh")
+        if os.path.isfile(build):
+            if _file_contains(build, "check-glibc"):
+                logging.debug(
+                    "build.sh already contains check-glibc; not adding again."
+                )
+            else:
+                with open(build, "a") as file:
+                    file.write('\ncheck-glibc "$PREFIX"/lib/*.so.* "$PREFIX"/bin/*\n')
+                logging.debug("Added check-glibc to build.sh")
+        else:
+            if _file_contains(meta, "check-glibc"):
+                logging.debug(
+                    "meta.yaml already contains check-glibc; not adding again."
+                )
+            else:
+                _insert_build_script(meta)
+                logging.debug("Added check-glibc to meta.yaml")
+
+        # STEP 3: Remove os_version keys from conda-forge.yml
+        config = os.path.join(recipe_dir, "..", "conda-forge.yml")
+        with open(config) as f:
+            y = yaml_safe_load(f)
+        y_orig = copy.deepcopy(y)
+        y.pop("os_version", None)
+        if y_orig != y:
+            with open(config, "w") as f:
+                yaml_safe_dump(y, f)
+
+        return self.migrator_uid(attrs)
+
+    def pr_body(
+        self, feedstock_ctx: ClonedFeedstockContext, add_label_text=True
+    ) -> str:
+        """Create a PR message body
+
+        Returns
+        -------
+        body: str
+            The body of the PR message
+            :param feedstock_ctx:
+        """
+        body = f"{AddNVIDIATools.__doc__}\n\n"
+
+        if add_label_text:
+            body += (
+                "If this PR was opened in error or needs to be updated please add "
+                "the `bot-rerun` label to this PR. The bot will close this PR and "
+                "schedule another one. If you do not have permissions to add this "
+                "label, you can use the phrase "
+                "<code>@<space/>conda-forge-admin, please rerun bot</code> "
+                "in a PR comment to have the `conda-forge-admin` add it for you.\n\n"
+            )
+
+        body += (
+            "<sub>"
+            "This PR was created by the [regro-cf-autotick-bot](https://github.com/regro/cf-scripts). "
+            "The **regro-cf-autotick-bot** is a service to automatically "
+            "track the dependency graph, migrate packages, and "
+            "propose package version updates for conda-forge. "
+            "Feel free to drop us a line if there are any "
+            "[issues](https://github.com/regro/cf-scripts/issues)! "
+            + f"This PR was generated by {get_bot_run_url()} - please use this URL for debugging."
+            + "</sub>"
+        )
+        return body
