@@ -4,7 +4,7 @@ on:
   workflow_dispatch: null
   issue_comment: null
   schedule:
-    - cron: '15 * * * *'
+    - cron: '30 * * * *'
 
 concurrency: relock
 
