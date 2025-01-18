@@ -15,8 +15,9 @@ jobs:
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
-      - uses: conda-incubator/relock-conda@1a8af9036f92f2d61b7e770f452f6255a02e260f # v18
+      - uses: conda-incubator/relock-conda@b99e8465ac98aff5f3624060b351bb537de0cb4f # v19
         with:
           github-token: ${{ secrets.AUTOTICK_BOT_TOKEN }}
           automerge: true
           skip-if-pr-exists: true
+          git-user-name: regro-cf-autotick-bot
