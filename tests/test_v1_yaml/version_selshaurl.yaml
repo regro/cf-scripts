@@ -1,0 +1,51 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/prefix-dev/recipe-format/main/schema.json
+schema_version: 1
+
+context:
+  name: embree
+  version: 2.14.0
+
+package:
+  name: ${{ name }}
+  version: ${{ version }}
+
+source:
+  - if: linux
+    then:
+      - url: https://github.com/${{ name }}/${{ name }}/releases/download/v${{ version }}/${{ name }}-${{ version }}.x86_64.linux.tar.gz
+        sha256: 8cca2d7ef6e3f18668246c9eed609e03e720e4033d069164c991c5feb078443c
+        file_name: ${{ name }}-${{ version }}.tar.gz
+  - if: osx
+    then:
+      - url: https://github.com/${{ name }}/${{ name }}/releases/download/v${{ version }}/${{ name }}-${{ version }}.x86_64.macosx.tar.gz
+        sha256: f6113506bab9430f98773b0ab7776efe387f4d40c8785d8f8c427a91c36f4cfe
+        file_name: ${{ name }}-${{ version }}.tar.gz
+  - if: win
+    then:
+      - url: https://github.com/${{ name }}/${{ name }}/releases/download/v${{ version }}/${{ name }}-${{ version }}.x64.vc14.windows.zip
+        sha256: 6432449254f56b037f17d876403f919f6c136cc16ec91f7778001b10eea115ac
+        file_name: ${{ name }}-${{ version }}.zip
+
+build:
+  number: 100
+  prefix_detection:
+    ignore_binary_files: true
+  script:
+    - mkdir doc
+    - touch doc/LICENSE.txt
+
+requirements:
+  build:
+    - if: win
+      then: python
+
+about:
+  license: Apache-2.0
+  license_file: doc/LICENSE.txt
+  summary: High Performance Ray Tracing Kernels
+  homepage: https://embree.github.io/
+
+extra:
+  recipe-maintainers:
+    - scopatz
+    - Xarthisius

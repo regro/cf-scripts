@@ -1,23 +1,23 @@
 import copy
 import functools
 import logging
-import os
 import random
 import secrets
 import typing
 import warnings
+from pathlib import Path
 from typing import Any, List, Sequence
 
 import conda.exceptions
 import networkx as nx
 from conda.models.version import VersionOrder
+from rattler_build_conda_compat.loader import load_yaml
 
 from conda_forge_tick.contexts import ClonedFeedstockContext, FeedstockContext
 from conda_forge_tick.migrators.core import Migrator
 from conda_forge_tick.models.pr_info import MigratorName
-from conda_forge_tick.os_utils import pushd
 from conda_forge_tick.update_deps import get_dep_updates_and_hints
-from conda_forge_tick.update_recipe import update_version
+from conda_forge_tick.update_recipe import update_version, update_version_v1
 from conda_forge_tick.utils import get_keys_default, sanitize_string
 
 if typing.TYPE_CHECKING:
@@ -62,6 +62,7 @@ class Version(Migrator):
     migrator_version = 0
     rerender = True
     name = MigratorName.VERSION
+    allowed_schema_versions = {0, 1}
 
     def __init__(self, python_nodes, *args, **kwargs):
         if not hasattr(self, "_init_args"):
@@ -93,11 +94,33 @@ class Version(Migrator):
         self._new_version = new_version
 
         # if no jinja2 version, then move on
-        if "raw_meta_yaml" in attrs and "{% set version" not in attrs["raw_meta_yaml"]:
-            return True
+
+        schema_version = get_keys_default(
+            attrs,
+            ["meta_yaml", "schema_version"],
+            {},
+            0,
+        )
+        if schema_version == 0:
+            if "raw_meta_yaml" not in attrs:
+                return True
+            if "{% set version" not in attrs["raw_meta_yaml"]:
+                return True
+        elif schema_version == 1:
+            # load yaml and check if context is there
+            if "raw_meta_yaml" not in attrs:
+                return True
+
+            yaml = load_yaml(attrs["raw_meta_yaml"])
+            if "context" not in yaml:
+                return True
+
+            if "version" not in yaml["context"]:
+                return True
+        else:
+            raise NotImplementedError("Schema version not implemented!")
 
         conditional = super().filter(attrs)
-
         result = bool(
             conditional  # if archived/finished/schema version skip
             or len(
@@ -197,21 +220,34 @@ class Version(Migrator):
         **kwargs: Any,
     ) -> "MigrationUidTypedDict":
         version = attrs["new_version"]
-
-        with open(os.path.join(recipe_dir, "meta.yaml")) as fp:
-            raw_meta_yaml = fp.read()
-
-        updated_meta_yaml, errors = update_version(
-            raw_meta_yaml,
-            version,
-            hash_type=hash_type,
-        )
+        recipe_dir = Path(recipe_dir)
+        recipe_path = None
+        recipe_path_v0 = recipe_dir / "meta.yaml"
+        recipe_path_v1 = recipe_dir / "recipe.yaml"
+        if recipe_path_v0.exists():
+            raw_meta_yaml = recipe_path_v0.read_text()
+            recipe_path = recipe_path_v0
+            updated_meta_yaml, errors = update_version(
+                raw_meta_yaml,
+                version,
+                hash_type=hash_type,
+            )
+        elif recipe_path_v1.exists():
+            recipe_path = recipe_path_v1
+            updated_meta_yaml, errors = update_version_v1(
+                # we need to give the "feedstock_dir" (not recipe dir)
+                recipe_dir.parent,
+                version,
+                hash_type=hash_type,
+            )
+        else:
+            raise FileNotFoundError(
+                f"Neither {recipe_path_v0} nor {recipe_path_v1} exists in {recipe_dir}",
+            )
 
         if len(errors) == 0 and updated_meta_yaml is not None:
-            with pushd(recipe_dir):
-                with open("meta.yaml", "w") as fp:
-                    fp.write(updated_meta_yaml)
-                self.set_build_number("meta.yaml")
+            recipe_path.write_text(updated_meta_yaml)
+            self.set_build_number(recipe_path)
 
             return super().migrate(recipe_dir, attrs)
         else:
