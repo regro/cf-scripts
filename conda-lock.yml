@@ -8871,15 +8871,15 @@ package:
       python: '>=3.11,<3.12.0a0'
       python_abi: 3.11.*
     hash:
-      md5: 54a2d01ec2cfc01644f17d25978b0ecf
-      sha256: effedc59ede8fa025df3a1e14d876e03e6686d808d8b5da1e9a34e780d8f1a65
+      md5: 15059981f9cc9b79fff94cc17264356e
+      sha256: 5048ba2c0b2cf5f481926297689185110b43764e288cda6a680cb94eb5aeb1a4
     manager: conda
     name: numpy
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/linux-64/numpy-2.2.1-py311hf916aec_0.conda
-    version: 2.2.1
+      https://conda.anaconda.org/conda-forge/linux-64/numpy-2.2.2-py311h5d046bc_0.conda
+    version: 2.2.2
   - category: main
     dependencies:
       __osx: '>=10.13'
@@ -8890,14 +8890,14 @@ package:
       python: '>=3.11,<3.12.0a0'
       python_abi: 3.11.*
     hash:
-      md5: 1d0267d2cfa7f6ef6456d289295f4a34
-      sha256: 8c42b26edd5ce34aef8f0452a017433973d619bb47aad6686d5cff613cdb1125
+      md5: 644b70c0769f30ba10772b4a838991cf
+      sha256: 0ac6f2fb0926fc003ca3f4ed3a57af51fdd326eccbf2c8cb18e98ab819b0e1db
     manager: conda
     name: numpy
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/osx-64/numpy-2.2.1-py311h4632d39_0.conda
-    version: 2.2.1
+    url: https://conda.anaconda.org/conda-forge/osx-64/numpy-2.2.2-py311h27c81cd_0.conda
+    version: 2.2.2
   - category: main
     dependencies:
       __osx: '>=11.0'
@@ -8908,15 +8908,15 @@ package:
       python: '>=3.11,<3.12.0a0'
       python_abi: 3.11.*
     hash:
-      md5: 45a192c0d0d911d5b4729bd28f0edacf
-      sha256: c12323423555f69beb6b9788c166eeae177c366ce155de6f0c8bd57fa72bead7
+      md5: 6d1b15ff68cfe01d25d30935e5a30835
+      sha256: bbe9a357eb9675bee0e38870b42a7306ea8f7d0e0625c213490803b6da931712
     manager: conda
     name: numpy
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/osx-arm64/numpy-2.2.1-py311h4b914e2_0.conda
-    version: 2.2.1
+      https://conda.anaconda.org/conda-forge/osx-arm64/numpy-2.2.2-py311h762c074_0.conda
+    version: 2.2.2
   - category: main
     dependencies:
       blinker: ''
