@@ -81,6 +81,8 @@ VARIANT_SOURCES_NOT_IMPLEMENTED = (
             "1.1.0",
             marks=pytest.mark.xfail(reason=VARIANT_SOURCES_NOT_IMPLEMENTED),
         ),
+        # use conda build config variants directly to select source
+        ("polars_by_variant", "1.20.0"),
         # upstream is not available
         # ("mumps", "5.2.1"),
         # ("cb3multi", "6.0.0"),
