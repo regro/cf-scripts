@@ -166,40 +166,40 @@ package:
     version: 1.4.4
   - category: main
     dependencies:
-      python: '>=3.6'
+      python: '>=3.9'
     hash:
-      md5: 192278292e20704f663b9c766909d67b
-      sha256: cef4062ea91f07a961a808801d6b34a163632150037f4bd28232310ff0301cd7
+      md5: 845b38297fca2f2d18a29748e2ece7fa
+      sha256: eb68e1ce9e9a148168a4b1e257a8feebffdb0664b557bb526a1e4853f2d2fc00
     manager: conda
     name: archspec
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/noarch/archspec-0.2.3-pyhd8ed1ab_0.conda
-    version: 0.2.3
+    url: https://conda.anaconda.org/conda-forge/noarch/archspec-0.2.5-pyhd8ed1ab_0.conda
+    version: 0.2.5
   - category: main
     dependencies:
-      python: '>=3.6'
+      python: '>=3.9'
     hash:
-      md5: 192278292e20704f663b9c766909d67b
-      sha256: cef4062ea91f07a961a808801d6b34a163632150037f4bd28232310ff0301cd7
+      md5: 845b38297fca2f2d18a29748e2ece7fa
+      sha256: eb68e1ce9e9a148168a4b1e257a8feebffdb0664b557bb526a1e4853f2d2fc00
     manager: conda
     name: archspec
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/noarch/archspec-0.2.3-pyhd8ed1ab_0.conda
-    version: 0.2.3
+    url: https://conda.anaconda.org/conda-forge/noarch/archspec-0.2.5-pyhd8ed1ab_0.conda
+    version: 0.2.5
   - category: main
     dependencies:
-      python: '>=3.6'
+      python: '>=3.9'
     hash:
-      md5: 192278292e20704f663b9c766909d67b
-      sha256: cef4062ea91f07a961a808801d6b34a163632150037f4bd28232310ff0301cd7
+      md5: 845b38297fca2f2d18a29748e2ece7fa
+      sha256: eb68e1ce9e9a148168a4b1e257a8feebffdb0664b557bb526a1e4853f2d2fc00
     manager: conda
     name: archspec
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/noarch/archspec-0.2.3-pyhd8ed1ab_0.conda
-    version: 0.2.3
+    url: https://conda.anaconda.org/conda-forge/noarch/archspec-0.2.5-pyhd8ed1ab_0.conda
+    version: 0.2.5
   - category: main
     dependencies:
       libgcc-ng: '>=12'
@@ -2000,39 +2000,39 @@ package:
   - category: main
     dependencies: {}
     hash:
-      md5: bb8d05134fe35768d6e4ab5d4fd003f8
-      sha256: 10d0491b35b3d244473f0c34e5e8e7fc3ddb38bec281dce803227c229d825a94
+      md5: 45077897c2764f4fe4e0ec9002407833
+      sha256: 0adb01fb6fd2638188fd61a404470bbe684874ee1211fb5b5164135dd1513e82
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.01.19.06.29.07-hd8ed1ab_0.conda
-    version: 2025.01.19.06.29.07
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.01.20.06.20.24-hd8ed1ab_0.conda
+    version: 2025.01.20.06.20.24
   - category: main
     dependencies: {}
     hash:
-      md5: bb8d05134fe35768d6e4ab5d4fd003f8
-      sha256: 10d0491b35b3d244473f0c34e5e8e7fc3ddb38bec281dce803227c229d825a94
+      md5: 45077897c2764f4fe4e0ec9002407833
+      sha256: 0adb01fb6fd2638188fd61a404470bbe684874ee1211fb5b5164135dd1513e82
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.01.19.06.29.07-hd8ed1ab_0.conda
-    version: 2025.01.19.06.29.07
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.01.20.06.20.24-hd8ed1ab_0.conda
+    version: 2025.01.20.06.20.24
   - category: main
     dependencies: {}
     hash:
-      md5: bb8d05134fe35768d6e4ab5d4fd003f8
-      sha256: 10d0491b35b3d244473f0c34e5e8e7fc3ddb38bec281dce803227c229d825a94
+      md5: 45077897c2764f4fe4e0ec9002407833
+      sha256: 0adb01fb6fd2638188fd61a404470bbe684874ee1211fb5b5164135dd1513e82
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.01.19.06.29.07-hd8ed1ab_0.conda
-    version: 2025.01.19.06.29.07
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.01.20.06.20.24-hd8ed1ab_0.conda
+    version: 2025.01.20.06.20.24
   - category: main
     dependencies:
       click: '>=8'
