@@ -76,7 +76,7 @@ class AddNVIDIATools(conda_forge_tick.migrators.Migrator):
 
     This migrator will attempt to add this glibc check to all feedstocks which download any
     artifacts from https://developer.download.nvidia.com. The check involves adding
-    something like:
+    "cf-nvidia-tools" to the top-level build requirements and something like:
 
     ```bash
     check-glibc "$PREFIX"/lib/*.so.* "$PREFIX"/bin/*
@@ -87,6 +87,11 @@ class AddNVIDIATools(conda_forge_tick.migrators.Migrator):
     > [!NOTE]
     > A human needs to verify that the glob expression is checking all of the correct
     > artifacts!
+
+    > [!NOTE]
+    > If the recipe does not have a top-level requirements.build section, it should be
+    > refactored so that the top-level package does not share a name with one of the
+    > outputs. i.e. The top-level package name should be something like "libcufoo-split".
 
     More information about cf-nvidia-tools is available in the feedstock's
     [README](https://github.com/conda-forge/cf-nvidia-tools-feedstock/tree/main/recipe).
