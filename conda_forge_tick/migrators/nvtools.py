@@ -13,73 +13,54 @@ from conda_forge_tick.utils import (
 )
 
 
-def _file_contains(filename, string):
+def _file_contains(filename: str, string: str) -> bool:
+    """Return whether the given file contains the given string."""
     with open(filename) as f:
         return string in f.read()
 
 
-def _insert_requirements_build(meta):
-    insert_before: bool = True
-    before: list[str] = []
-    after: list[str] = []
-    requirements_found = False
-    build_found = False
-    with open(meta) as f:
+def _insert_subsection(
+    filename: str,
+    section: str,
+    subsection: str,
+    new_item: str,
+) -> None:
+    """Append a new item onto the end of the section.subsection of a recipe."""
+    # Strategy: Read the file as a list of strings. Split the file in half at the end of the
+    # section.subsection section. Append the new_item to the first half. Combine the two
+    # file halves. Write the file back to disk.
+    first_half: list[str] = []
+    second_half: list[str] = []
+    break_located: bool = False
+    section_found: bool = False
+    subsection_found: bool = False
+    with open(filename) as f:
         for line in f:
-            if build_found:
-                insert_before = False
-            elif line.startswith("requirements"):
-                requirements_found = True
-            elif requirements_found and line.lstrip().startswith("build"):
-                build_found = True
-
-            if insert_before:
-                before.append(line)
+            if break_located:
+                second_half.append(line)
             else:
-                after.append(line)
+                if line.startswith(section):
+                    section_found = True
+                elif section_found and line.lstrip().startswith(subsection):
+                    subsection_found = True
+                elif section_found and subsection_found:
+                    if line.lstrip().startswith("-"):
+                        # Inside section.subsection elements start with "-". We assume there
+                        # is at least one item under section.subsection already.
+                        first_half.append(line)
+                        continue
+                    else:
+                        break_located = True
+                        second_half.append(line)
+                        continue
+                first_half.append(line)
 
-    if not (build_found or requirements_found):
+    if not break_located:
+        # Don't overwrite file if we didn't find section.subsection
         return
 
-    with open(meta, "w") as f:
-        f.writelines(before + ["    - cf-nvidia-tools  # [linux]\n"] + after)
-
-
-def _insert_build_script(meta):
-    insert_before: bool = True
-    before: list[str] = []
-    after: list[str] = []
-    script_found = False
-    build_found = False
-    with open(meta) as f:
-        for line in f:
-            if not insert_before:
-                pass
-            elif line.startswith("build"):
-                build_found = True
-            elif build_found and line.lstrip().startswith("script"):
-                script_found = True
-            elif build_found and script_found:
-                if line.lstrip().startswith("-"):
-                    # inside script
-                    pass
-                else:
-                    # empty script section?
-                    insert_before = False
-            if insert_before:
-                before.append(line)
-            else:
-                after.append(line)
-
-    if not (script_found or build_found):
-        return
-
-    with open(meta, "w") as f:
-        f.writelines(
-            before
-            + ['    - check-glibc "$PREFIX"/lib/*.so.* "$PREFIX"/bin/*  # [linux]\n']
-            + after
-        )
+    with open(filename, "w") as f:
+        f.writelines(first_half + [new_item] + second_half)
 
 
 class AddNVIDIATools(conda_forge_tick.migrators.Migrator):
@@ -172,7 +153,12 @@ class AddNVIDIATools(conda_forge_tick.migrators.Migrator):
         if _file_contains(meta, "cf-nvidia-tools"):
             logging.debug("cf-nvidia-tools already in meta.yaml; not adding again.")
         else:
-            _insert_requirements_build(meta)
+            _insert_subsection(
+                meta,
+                "requirements",
+                "build",
+                "    - cf-nvidia-tools  # [linux]\n",
+            )
             logging.debug("cf-nvidia-tools added to meta.yaml.")
 
         # STEP 2: Add check-glibc to the build script
@@ -192,7 +178,12 @@ class AddNVIDIATools(conda_forge_tick.migrators.Migrator):
                     "meta.yaml already contains check-glibc; not adding again."
                 )
             else:
-                _insert_build_script(meta)
+                _insert_subsection(
+                    meta,
+                    "build",
+                    "script",
+                    '    - check-glibc "$PREFIX"/lib/*.so.* "$PREFIX"/bin/*  # [linux]\n',
+                )
                 logging.debug("Added check-glibc to meta.yaml")
 
         # STEP 3: Remove os_version keys from conda-forge.yml
