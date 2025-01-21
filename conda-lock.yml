@@ -2100,15 +2100,15 @@ package:
       libmambapy: '>=2.0.0'
       python: '>=3.9'
     hash:
-      md5: 940d8b4082cfb7842369421623aa29d7
-      sha256: e320ed0dd819442e39d63012221350ed207836f80c5c292b43bc4191a924fe35
+      md5: 36c2fe2da65a701dc2223fb43ea31e83
+      sha256: fbdb8f51e14847e620649a6ba29069e255d1a72e0ad94f57aad6a2401ad94acd
     manager: conda
     name: conda-libmamba-solver
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-libmamba-solver-24.11.1-pyhd8ed1ab_0.conda
-    version: 24.11.1
+      https://conda.anaconda.org/conda-forge/noarch/conda-libmamba-solver-25.1.0-pyhd8ed1ab_0.conda
+    version: 25.1.0
   - category: main
     dependencies:
       boltons: '>=23.0.0'
@@ -2116,15 +2116,15 @@ package:
       libmambapy: '>=2.0.0'
       python: '>=3.9'
     hash:
-      md5: 940d8b4082cfb7842369421623aa29d7
-      sha256: e320ed0dd819442e39d63012221350ed207836f80c5c292b43bc4191a924fe35
+      md5: 36c2fe2da65a701dc2223fb43ea31e83
+      sha256: fbdb8f51e14847e620649a6ba29069e255d1a72e0ad94f57aad6a2401ad94acd
     manager: conda
     name: conda-libmamba-solver
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-libmamba-solver-24.11.1-pyhd8ed1ab_0.conda
-    version: 24.11.1
+      https://conda.anaconda.org/conda-forge/noarch/conda-libmamba-solver-25.1.0-pyhd8ed1ab_0.conda
+    version: 25.1.0
   - category: main
     dependencies:
       boltons: '>=23.0.0'
@@ -2132,15 +2132,15 @@ package:
       libmambapy: '>=2.0.0'
       python: '>=3.9'
     hash:
-      md5: 940d8b4082cfb7842369421623aa29d7
-      sha256: e320ed0dd819442e39d63012221350ed207836f80c5c292b43bc4191a924fe35
+      md5: 36c2fe2da65a701dc2223fb43ea31e83
+      sha256: fbdb8f51e14847e620649a6ba29069e255d1a72e0ad94f57aad6a2401ad94acd
     manager: conda
     name: conda-libmamba-solver
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-libmamba-solver-24.11.1-pyhd8ed1ab_0.conda
-    version: 24.11.1
+      https://conda.anaconda.org/conda-forge/noarch/conda-libmamba-solver-25.1.0-pyhd8ed1ab_0.conda
+    version: 25.1.0
   - category: main
     dependencies:
       cachecontrol-with-filecache: '>=0.12.9'
