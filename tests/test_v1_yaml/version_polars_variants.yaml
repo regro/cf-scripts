@@ -1,0 +1,17 @@
+channel_sources:
+  - conda-forge/label/rust_dev,conda-forge/label/cargo-patch-dev,conda-forge
+channel_targets:
+  - conda-forge main
+c_compiler:
+  - clang  # [win]
+c_compiler_version:
+  - 17  # [win]
+cxx_compiler:
+  - clangxx  # [win]
+cxx_compiler_version:
+  - 17  # [win]
+
+polars_variant:
+  - polars  # [not ppc64le]
+  - polars-lts-cpu
+  - polars-u64-idx  # [not ppc64le]
