@@ -29,7 +29,10 @@ from requests.exceptions import RequestException, Timeout
 from requests.structures import CaseInsensitiveDict
 
 from conda_forge_tick import sensitive_env
-from conda_forge_tick.lazy_json_backends import LazyJson
+from conda_forge_tick.lazy_json_backends import (
+    LazyJson,
+    _test_and_raise_besides_file_not_exists,
+)
 
 from .executors import lock_git_operation
 from .models.pr_json import (
@@ -1445,7 +1448,8 @@ def _get_pth_blob_sha_and_content(
         # so I switched to doing the decoding by hand.
         data = base64.b64decode(cnt.content.encode("utf-8")).decode("utf-8")
         return cnt.sha, data
-    except github.UnknownObjectException:
+    except github.GithubException as e:
+        _test_and_raise_besides_file_not_exists(e)
         return None, None
 
 
