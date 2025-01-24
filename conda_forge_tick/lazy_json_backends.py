@@ -311,11 +311,7 @@ class GithubLazyJsonBackend(LazyJsonBackend):
 def _test_and_raise_besides_file_not_exists(e: github.GithubException):
     if isinstance(e, github.UnknownObjectException):
         return
-    if (
-        isinstance(e, github.GithubException)
-        and e.status == 404
-        and "No object found" in e.data["message"]
-    ):
+    if e.status == 404 and "No object found" in e.data["message"]:
         return
     raise e
 
