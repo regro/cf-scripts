@@ -308,6 +308,18 @@ class GithubLazyJsonBackend(LazyJsonBackend):
         )
 
 
+def _test_and_raise_besides_file_not_exists(e):
+    if isinstance(e, github.UnknownObjectException):
+        pass
+    elif isinstance(e, github.GithubException):
+        if e.status == 404 and "No object found" in e.data["message"]:
+            pass
+        else:
+            raise e
+    else:
+        raise e
+
+
 class GithubAPILazyJsonBackend(LazyJsonBackend):
     """LazyJsonBackend that uses the GitHub API to store and retrieve JSON files.
 
@@ -336,8 +348,7 @@ class GithubAPILazyJsonBackend(LazyJsonBackend):
         try:
             self._repo.get_contents(pth)
         except (github.UnknownObjectException, github.GithubException) as e:
-            if isinstance(e, github.GithubException) and (e.status != 404 or "No object found" not in e.data["message"]):
-                raise e
+            _test_and_raise_besides_file_not_exists(e)
             return False
         else:
             return True
@@ -369,11 +380,7 @@ class GithubAPILazyJsonBackend(LazyJsonBackend):
                     )
                     sha = _cnts.sha
                 except (github.UnknownObjectException, github.GithubException) as e:
-                    if (
-                        isinstance(e, github.GithubException)
-                        and (e.status != 404 or "No object found" not in e.data["message"])
-                    ):
-                        raise e
+                    _test_and_raise_besides_file_not_exists(e)
                     sha = None
                     cnt = None
 
@@ -443,11 +450,7 @@ class GithubAPILazyJsonBackend(LazyJsonBackend):
                     _cnts = self._repo.get_contents(pth)
                     sha = _cnts.sha
                 except (github.UnknownObjectException, github.GithubException) as e:
-                    if (
-                        isinstance(e, github.GithubException)
-                        and (e.status != 404 or "No object found" not in e.data["message"])
-                    ):
-                        raise e
+                    _test_and_raise_besides_file_not_exists(e)
                     sha = None
 
                 if sha is not None:
