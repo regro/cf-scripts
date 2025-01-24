@@ -335,7 +335,9 @@ class GithubAPILazyJsonBackend(LazyJsonBackend):
         pth = get_sharded_path(f"{name}/{key}.json")
         try:
             self._repo.get_contents(pth)
-        except github.UnknownObjectException:
+        except (github.UnknownObjectException, github.GithubException) as e:
+            if isinstance(e, github.GithubException) and (e.status != 404 or "No object found" not in e.data["message"]):
+                raise e
             return False
         else:
             return True
@@ -366,7 +368,12 @@ class GithubAPILazyJsonBackend(LazyJsonBackend):
                         "utf-8"
                     )
                     sha = _cnts.sha
-                except github.UnknownObjectException:
+                except (github.UnknownObjectException, github.GithubException) as e:
+                    if (
+                        isinstance(e, github.GithubException)
+                        and (e.status != 404 or "No object found" not in e.data["message"])
+                    ):
+                        raise e
                     sha = None
                     cnt = None
 
@@ -435,7 +442,12 @@ class GithubAPILazyJsonBackend(LazyJsonBackend):
                 try:
                     _cnts = self._repo.get_contents(pth)
                     sha = _cnts.sha
-                except github.UnknownObjectException:
+                except (github.UnknownObjectException, github.GithubException) as e:
+                    if (
+                        isinstance(e, github.GithubException)
+                        and (e.status != 404 or "No object found" not in e.data["message"])
+                    ):
+                        raise e
                     sha = None
 
                 if sha is not None:
