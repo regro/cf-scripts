@@ -248,38 +248,38 @@ package:
     dependencies:
       python: '>=3.9'
     hash:
-      md5: 356927ace43302bf6f5926e2a58dae6a
-      sha256: 750186af694a7130eaf7119fbb56db0d2326d8995ad5b8eae23c622b85fea29a
+      md5: 2cc3f588512f04f3a0c64b4e9bedc02d
+      sha256: 1f267886522dfb9ae4e5ebbc3135b5eb13cff27bdbfe8d881a4d893459166ab4
     manager: conda
     name: attrs
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/noarch/attrs-24.3.0-pyh71513ae_0.conda
-    version: 24.3.0
+    url: https://conda.anaconda.org/conda-forge/noarch/attrs-25.1.0-pyh71513ae_0.conda
+    version: 25.1.0
   - category: main
     dependencies:
       python: '>=3.9'
     hash:
-      md5: 356927ace43302bf6f5926e2a58dae6a
-      sha256: 750186af694a7130eaf7119fbb56db0d2326d8995ad5b8eae23c622b85fea29a
+      md5: 2cc3f588512f04f3a0c64b4e9bedc02d
+      sha256: 1f267886522dfb9ae4e5ebbc3135b5eb13cff27bdbfe8d881a4d893459166ab4
     manager: conda
     name: attrs
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/noarch/attrs-24.3.0-pyh71513ae_0.conda
-    version: 24.3.0
+    url: https://conda.anaconda.org/conda-forge/noarch/attrs-25.1.0-pyh71513ae_0.conda
+    version: 25.1.0
   - category: main
     dependencies:
       python: '>=3.9'
     hash:
-      md5: 356927ace43302bf6f5926e2a58dae6a
-      sha256: 750186af694a7130eaf7119fbb56db0d2326d8995ad5b8eae23c622b85fea29a
+      md5: 2cc3f588512f04f3a0c64b4e9bedc02d
+      sha256: 1f267886522dfb9ae4e5ebbc3135b5eb13cff27bdbfe8d881a4d893459166ab4
     manager: conda
     name: attrs
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/noarch/attrs-24.3.0-pyh71513ae_0.conda
-    version: 24.3.0
+    url: https://conda.anaconda.org/conda-forge/noarch/attrs-25.1.0-pyh71513ae_0.conda
+    version: 25.1.0
   - category: main
     dependencies:
       python: '>=3.9'
@@ -590,15 +590,15 @@ package:
       python-dateutil: '>=2.1,<3.0.0'
       urllib3: '>=1.25.4,!=2.2.0,<3'
     hash:
-      md5: 5c46e96ac662c1b57db4f7651804215e
-      sha256: 67521850850a3956687f33120ec7dd761bfaa10d212d11d2a9764aac791d44a3
+      md5: bf6fdc4a0ce24496406963d5915ad70f
+      sha256: 71459964682087886e0589f287cb0a51cc384ddbbacc02dd576fed447d1d7741
     manager: conda
     name: botocore
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/botocore-1.36.5-pyge310_1234567_0.conda
-    version: 1.36.5
+      https://conda.anaconda.org/conda-forge/noarch/botocore-1.36.6-pyge310_1234567_0.conda
+    version: 1.36.6
   - category: main
     dependencies:
       jmespath: '>=0.7.1,<2.0.0'
@@ -606,15 +606,15 @@ package:
       python-dateutil: '>=2.1,<3.0.0'
       urllib3: '>=1.25.4,!=2.2.0,<3'
     hash:
-      md5: 5c46e96ac662c1b57db4f7651804215e
-      sha256: 67521850850a3956687f33120ec7dd761bfaa10d212d11d2a9764aac791d44a3
+      md5: bf6fdc4a0ce24496406963d5915ad70f
+      sha256: 71459964682087886e0589f287cb0a51cc384ddbbacc02dd576fed447d1d7741
     manager: conda
     name: botocore
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/botocore-1.36.5-pyge310_1234567_0.conda
-    version: 1.36.5
+      https://conda.anaconda.org/conda-forge/noarch/botocore-1.36.6-pyge310_1234567_0.conda
+    version: 1.36.6
   - category: main
     dependencies:
       jmespath: '>=0.7.1,<2.0.0'
@@ -622,15 +622,15 @@ package:
       python-dateutil: '>=2.1,<3.0.0'
       urllib3: '>=1.25.4,!=2.2.0,<3'
     hash:
-      md5: 5c46e96ac662c1b57db4f7651804215e
-      sha256: 67521850850a3956687f33120ec7dd761bfaa10d212d11d2a9764aac791d44a3
+      md5: bf6fdc4a0ce24496406963d5915ad70f
+      sha256: 71459964682087886e0589f287cb0a51cc384ddbbacc02dd576fed447d1d7741
     manager: conda
     name: botocore
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/botocore-1.36.5-pyge310_1234567_0.conda
-    version: 1.36.5
+      https://conda.anaconda.org/conda-forge/noarch/botocore-1.36.6-pyge310_1234567_0.conda
+    version: 1.36.6
   - category: main
     dependencies:
       __glibc: '>=2.17,<3.0.a0'
