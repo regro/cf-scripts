@@ -34,8 +34,13 @@ jobs:
           environment-name: cf-scripts
           condarc-file: autotick-bot/condarc
 
+      - name: stop me if needed
+        run: |
+          python autotick-bot/stop_me_if_needed.py
+
       - name: compute next version
         id: version
+        if: ${{ ! env.CI_SKIP }}
         run: |
           echo "current version: "$(git tag --sort=committerdate | tail -1)
           NEXT=$(python autotick-bot/compute_next_version.py)
@@ -44,6 +49,7 @@ jobs:
 
       - name: log into ghcr.io
         uses: docker/login-action@9780b0c442fbb1117ed29e0efdff1e18412f7567 # v3.3.0
+        if: ${{ ! env.CI_SKIP }}
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
@@ -52,6 +58,7 @@ jobs:
       - name: build docker metadata
         id: meta
         uses: docker/metadata-action@369eb591f429131d6889c46b94e711f089e6ca96 # v5.6.1
+        if: ${{ ! env.CI_SKIP }}
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           flavor: |
@@ -62,6 +69,7 @@ jobs:
 
       - name: build and push image
         uses: docker/build-push-action@b32b51a8eda65d6793cd0494a773d4f6bcef32dc # v6.11.0
+        if: ${{ ! env.CI_SKIP }}
         with:
           context: .
           push: true
@@ -69,6 +77,7 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
 
       - name: tag and release
+        if: ${{ ! env.CI_SKIP }}
         run: |
           python autotick-bot/release.py "${{ steps.version.outputs.NEXT }}"
         env:

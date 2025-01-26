@@ -30,12 +30,18 @@ jobs:
           environment-name: cf-scripts
           condarc-file: autotick-bot/condarc
 
+      - name: stop me if needed
+        run: |
+          python autotick-bot/stop_me_if_needed.py
+
       - name: configure conda, install code, and clone cf-graph
+        if: ${{ ! env.CI_SKIP }}
         run: |
           pip install --no-deps --no-build-isolation -e .
           git clone --depth=1 https://github.com/regro/cf-graph-countyfair.git cf-graph
 
       - name: conda info and env
+        if: ${{ ! env.CI_SKIP }}
         run: |
           echo "=================================================================="
           echo "=================================================================="
@@ -47,6 +53,7 @@ jobs:
           conda list
 
       - name: run pytest (model)
+        if: ${{ ! env.CI_SKIP }}
         run: |
           cd cf-graph
           # for pull requests, a failed model test should not be a failed check
