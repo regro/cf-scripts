@@ -307,6 +307,7 @@ def _get_new_url_tmpl_and_hash(
         logger.info("initial rendered URL: %s", url)
     except jinja2.UndefinedError:
         logger.info("initial URL template does not render")
+        url = None
         pass
 
     if url != url_tmpl:
