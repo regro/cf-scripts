@@ -2968,43 +2968,43 @@ package:
       python: '>=3.9'
       wrapt: <2,>=1.10
     hash:
-      md5: eaef2e94d5bd76f758545d172c1fda67
-      sha256: a20ebf2c9b02a6eb32412ceb5c4cffaae49417db7e75414a76417538293a9402
+      md5: 0cef44b1754ae4d6924ac0eef6b9fdbe
+      sha256: d614bcff10696f1efc714df07651b50bf3808401fcc03814309ecec242cc8870
     manager: conda
     name: deprecated
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/deprecated-1.2.15-pyhd8ed1ab_1.conda
-    version: 1.2.15
+      https://conda.anaconda.org/conda-forge/noarch/deprecated-1.2.18-pyhd8ed1ab_0.conda
+    version: 1.2.18
   - category: main
     dependencies:
       python: '>=3.9'
       wrapt: <2,>=1.10
     hash:
-      md5: eaef2e94d5bd76f758545d172c1fda67
-      sha256: a20ebf2c9b02a6eb32412ceb5c4cffaae49417db7e75414a76417538293a9402
+      md5: 0cef44b1754ae4d6924ac0eef6b9fdbe
+      sha256: d614bcff10696f1efc714df07651b50bf3808401fcc03814309ecec242cc8870
     manager: conda
     name: deprecated
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/deprecated-1.2.15-pyhd8ed1ab_1.conda
-    version: 1.2.15
+      https://conda.anaconda.org/conda-forge/noarch/deprecated-1.2.18-pyhd8ed1ab_0.conda
+    version: 1.2.18
   - category: main
     dependencies:
       python: '>=3.9'
       wrapt: <2,>=1.10
     hash:
-      md5: eaef2e94d5bd76f758545d172c1fda67
-      sha256: a20ebf2c9b02a6eb32412ceb5c4cffaae49417db7e75414a76417538293a9402
+      md5: 0cef44b1754ae4d6924ac0eef6b9fdbe
+      sha256: d614bcff10696f1efc714df07651b50bf3808401fcc03814309ecec242cc8870
     manager: conda
     name: deprecated
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/deprecated-1.2.15-pyhd8ed1ab_1.conda
-    version: 1.2.15
+      https://conda.anaconda.org/conda-forge/noarch/deprecated-1.2.18-pyhd8ed1ab_0.conda
+    version: 1.2.18
   - category: main
     dependencies:
       python: '>=3.9'
@@ -10589,43 +10589,46 @@ package:
       botocore: '>=1.12.54'
       python: '>=3.9'
       typing-extensions: '>=4'
+      typing_extensions: '>=4'
     hash:
-      md5: 48d6f8cd09038343cdc7a776cbe06540
-      sha256: 573aa767ac0bcbc6c213aa8a5b6581750cba580a7fb5ce0779a909925084e5cb
+      md5: 39faa6fea40e7c91f005f238e51e548b
+      sha256: c4847e835a53b3d148a466d1a620adb3d6a8b9ee68c78e7958ec089415834e9a
     manager: conda
     name: pynamodb
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/noarch/pynamodb-6.0.1-pyhd8ed1ab_1.conda
-    version: 6.0.1
+    url: https://conda.anaconda.org/conda-forge/noarch/pynamodb-6.0.2-pyhd8ed1ab_0.conda
+    version: 6.0.2
   - category: main
     dependencies:
       botocore: '>=1.12.54'
       python: '>=3.9'
       typing-extensions: '>=4'
+      typing_extensions: '>=4'
     hash:
-      md5: 48d6f8cd09038343cdc7a776cbe06540
-      sha256: 573aa767ac0bcbc6c213aa8a5b6581750cba580a7fb5ce0779a909925084e5cb
+      md5: 39faa6fea40e7c91f005f238e51e548b
+      sha256: c4847e835a53b3d148a466d1a620adb3d6a8b9ee68c78e7958ec089415834e9a
     manager: conda
     name: pynamodb
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/noarch/pynamodb-6.0.1-pyhd8ed1ab_1.conda
-    version: 6.0.1
+    url: https://conda.anaconda.org/conda-forge/noarch/pynamodb-6.0.2-pyhd8ed1ab_0.conda
+    version: 6.0.2
   - category: main
     dependencies:
       botocore: '>=1.12.54'
       python: '>=3.9'
       typing-extensions: '>=4'
+      typing_extensions: '>=4'
     hash:
-      md5: 48d6f8cd09038343cdc7a776cbe06540
-      sha256: 573aa767ac0bcbc6c213aa8a5b6581750cba580a7fb5ce0779a909925084e5cb
+      md5: 39faa6fea40e7c91f005f238e51e548b
+      sha256: c4847e835a53b3d148a466d1a620adb3d6a8b9ee68c78e7958ec089415834e9a
     manager: conda
     name: pynamodb
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/noarch/pynamodb-6.0.1-pyhd8ed1ab_1.conda
-    version: 6.0.1
+    url: https://conda.anaconda.org/conda-forge/noarch/pynamodb-6.0.2-pyhd8ed1ab_0.conda
+    version: 6.0.2
   - category: main
     dependencies:
       python: '>=3.9'
