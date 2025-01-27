@@ -1,3 +1,4 @@
+import itertools
 import json
 import os
 import re
@@ -5,6 +6,7 @@ import subprocess
 from pathlib import Path
 
 import pytest
+import yaml
 
 from conda_forge_tick.contexts import ClonedFeedstockContext
 from conda_forge_tick.feedstock_parser import populate_feedstock_attributes
@@ -471,26 +473,58 @@ def run_test_migration(
     should_filter: bool = False,
     make_body: bool = False,
     recipe_version: int = 0,
+    conda_build_config: str | None = None,
 ):
     tmpdir_p = Path(tmpdir)
     if mr_out:
         mr_out.update(bot_rerun=False)
 
     if recipe_version == 0:
+        if conda_build_config:
+            raise ValueError(
+                "conda_build_config is only supported for recipe version 1 in this test function"
+            )
         tmpdir_p.joinpath("meta.yaml").write_text(inp)
-        recipe_dir = str(tmpdir_p)
+        recipe_dir_p = tmpdir_p
     elif recipe_version == 1:
         tmpdir_p.joinpath(".ci_support").mkdir()
         tmpdir_p.joinpath("recipe").mkdir()
         tmpdir_p.joinpath("recipe", "recipe.yaml").write_text(inp)
-        for target_platform in ("linux-64", "osx-arm64", "win-64"):
-            (
-                tmpdir_p / ".ci_support" / f"{target_platform.replace('-', '_')}_.yaml"
-            ).write_text("target_platform:\n" f"- {target_platform}\n")
 
-        recipe_dir = str(tmpdir_p / "recipe")
+        build_variants = (
+            yaml.safe_load(conda_build_config) if conda_build_config else {}
+        )
+
+        if "target_platform" not in build_variants:
+            build_variants["target_platform"] = ["linux-64", "osx-arm64", "win-64"]
+
+        # move target_platform to the beginning of the keys
+        build_variants = {
+            "target_platform": build_variants.pop("target_platform"),
+            **build_variants,
+        }
+
+        for assignment in itertools.product(*build_variants.values()):
+            assignment_map = dict(zip(build_variants.keys(), assignment))
+            variant_name = "_".join(
+                str(value).replace("-", "_").replace("/", "")
+                for value in assignment_map.values()
+            )
+            (tmpdir_p / ".ci_support" / f"{variant_name}_.yaml").write_text(
+                yaml.dump({k: [v] for k, v in assignment_map.items()})
+            )
+
+        recipe_dir_p = tmpdir_p / "recipe"
     else:
         raise ValueError(f"Unsupported recipe version: {recipe_version}")
+
+    if conda_build_config:
+        conda_build_config_file = recipe_dir_p / "conda_build_config.yaml"
+        conda_build_config_file.write_text(conda_build_config)
+    else:
+        conda_build_config_file = None
+
+    recipe_dir = str(recipe_dir_p)
 
     # read the conda-forge.yml
     cf_yml_path = Path(tmpdir).parent / "conda-forge.yml"
@@ -499,7 +533,9 @@ def run_test_migration(
     # Load the meta.yaml (this is done in the graph)
     if recipe_version == 0:
         try:
-            name = parse_meta_yaml(inp)["package"]["name"]
+            name = parse_meta_yaml(inp, cbc_path=conda_build_config_file)["package"][
+                "name"
+            ]
         except Exception:
             name = "blah"
 
@@ -518,7 +554,9 @@ def run_test_migration(
         pmy.update(kwargs)
     else:
         try:
-            name = parse_recipe_yaml(inp)["package"]["name"]
+            name = parse_recipe_yaml(inp, cbc_path=conda_build_config_file)["package"][
+                "name"
+            ]
         except Exception:
             name = "blah"
 
@@ -720,7 +758,8 @@ def test_all_noarch(meta, is_all_noarch):
     "meta,is_all_noarch",
     [
         (
-            json.loads("""\
+            json.loads(
+                """\
 {
   "about": {
    "description": "NetworkX is a Python language software package for the creation,\\nmanipulation, and study of the structure, dynamics, and functions of complex\\nnetworks.",
@@ -784,11 +823,13 @@ def test_all_noarch(meta, is_all_noarch):
    "sha256": "307c3669428c5362aab27c8a1260aa8f47c4e91d3891f48be0141738d8d053e1",
    "url": "https://pypi.org/packages/source/n/networkx/networkx-3.4.2.tar.gz"
   }
- }"""),
+ }"""
+            ),
             True,
         ),
         (
-            json.loads("""\
+            json.loads(
+                """\
 {
   "about": {
    "description": "This is a python extension ",
@@ -857,7 +898,8 @@ def test_all_noarch(meta, is_all_noarch):
     "pytest"
    ]
   }
- }"""),
+ }"""
+            ),
             False,
         ),
     ],

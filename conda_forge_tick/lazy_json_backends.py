@@ -306,6 +306,14 @@ class GithubLazyJsonBackend(LazyJsonBackend):
         )
 
 
+def _test_and_raise_besides_file_not_exists(e: github.GithubException):
+    if isinstance(e, github.UnknownObjectException):
+        return
+    if e.status == 404 and "No object found" in e.data["message"]:
+        return
+    raise e
+
+
 class GithubAPILazyJsonBackend(LazyJsonBackend):
     """LazyJsonBackend that uses the GitHub API to store and retrieve JSON files.
 
@@ -333,7 +341,8 @@ class GithubAPILazyJsonBackend(LazyJsonBackend):
         pth = get_sharded_path(f"{name}/{key}.json")
         try:
             self._repo.get_contents(pth)
-        except github.UnknownObjectException:
+        except github.GithubException as e:
+            _test_and_raise_besides_file_not_exists(e)
             return False
         else:
             return True
@@ -364,7 +373,8 @@ class GithubAPILazyJsonBackend(LazyJsonBackend):
                         "utf-8"
                     )
                     sha = _cnts.sha
-                except github.UnknownObjectException:
+                except github.GithubException as e:
+                    _test_and_raise_besides_file_not_exists(e)
                     sha = None
                     cnt = None
 
@@ -433,7 +443,8 @@ class GithubAPILazyJsonBackend(LazyJsonBackend):
                 try:
                     _cnts = self._repo.get_contents(pth)
                     sha = _cnts.sha
-                except github.UnknownObjectException:
+                except github.GithubException as e:
+                    _test_and_raise_besides_file_not_exists(e)
                     sha = None
 
                 if sha is not None:

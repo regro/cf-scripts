@@ -12,7 +12,19 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - uses: mamba-org/setup-micromamba@4b9113af4fba0e9e1124b252dd6497a419e7396d # v1.11.0
+        with:
+          environment-file: conda-lock.yml
+          environment-name: cf-scripts
+          condarc-file: autotick-bot/condarc
+
+      - name: stop me if needed
+        run: |
+          python autotick-bot/stop_me_if_needed.py
+
       - uses: gautamkrishnar/keepalive-workflow@995aec69bb3f2b45b20f4e107907992c8715086d # v2.0.8
+        if: ${{ ! env.CI_SKIP }}
         with:
           commit_message: "Ah ah ah, stayin' alive"
           committer_username: conda-forge-bot

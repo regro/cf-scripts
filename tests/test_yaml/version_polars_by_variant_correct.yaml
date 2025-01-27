@@ -1,0 +1,79 @@
+{% set version = "1.20.0" %}
+
+# Note: This recipe is specifically designed to work well with the autotick bot.
+# Also refer to https://github.com/conda-forge/rust-feedstock/blob/main/recipe/meta.yaml.
+package:
+  name: {{ polars_variant }}
+  version: {{ version }}
+
+source:
+  - url: https://pypi.org/packages/source/p/polars/polars-{{ version }}.tar.gz  # [polars_variant == "polars"]
+    sha256: e8e9e3156fae02b58e276e5f2c16a5907a79b38617a9e2d731b533d87798f451  # [polars_variant == "polars"]
+  - url: https://pypi.org/packages/source/p/polars-lts-cpu/polars_lts_cpu-{{ version }}.tar.gz  # [polars_variant == "polars-lts-cpu"]
+    sha256: f8770fe1a752f60828ec73e6215c7dadcb2badd1f34dcb1def7a0f4ca0ac36f8  # [polars_variant == "polars-lts-cpu"]
+  - url: https://pypi.org/packages/source/p/polars-u64-idx/polars_u64_idx-{{ version }}.tar.gz  # [polars_variant == "polars-u64-idx"]
+    sha256: a92fadacf59776bef2d777f99345c4d089cf4f8b3fd61f5728087bab27a46a75  # [polars_variant == "polars-u64-idx"]
+    patches:
+      - 0001-Patch-libz-ng-sys.patch  # [target_platform == "win-64"]
+
+
+build:
+  number: 0
+
+requirements:
+  build:
+    - python                              # [build_platform != target_platform]
+    # there is no cross-python for linux-64 -> win-64
+    - cross-python_{{ target_platform }}  # [build_platform != target_platform and not target_platform == "win-64"]
+    - crossenv                            # [build_platform != target_platform]
+    - maturin >=1.3.2,<2                  # [build_platform != target_platform]
+    - {{ compiler('c') }}
+    - {{ compiler('cxx') }}               # [win]
+    # clang_win-64 already adds all required run_exports for the windows build
+    - {{ stdlib("c") }}  # [not (build_platform != target_platform and target_platform == "win-64")]
+    - {{ compiler('rust') }}
+    - posix                               # [build_platform == "win-64"]
+    - cmake
+    - make                                # [unix]
+    - cargo-feature                       # [build_platform != target_platform and target_platform == "win-64"]
+    - cargo-patch                         # [build_platform != target_platform and target_platform == "win-64"]
+    - cargo-bundle-licenses
+  host:
+    - python
+    - pip
+    - maturin >=1.3.2,<2
+  run:
+    - python
+    - numpy >=1.16.0
+    - backports.zoneinfo                   # [py<39]
+    - typing_extensions >=4.0.0            # [py<311]
+    - packaging                            # [py>=310]
+test:
+  imports:
+    - polars
+  commands:
+    - pip check
+    - python -c "from polars import DataFrame"
+  requires:
+    - pip
+about:
+  home: https://github.com/pola-rs/polars
+  license: MIT
+  license_family: MIT
+  license_file:
+    - LICENSE
+    - THIRDPARTY.yml
+  summary: Polars is a blazingly fast DataFrames library implemented in Rust using Apache Arrow(2) as memory model.
+  doc_url: https://pola-rs.github.io/polars-book/user-guide/index.html
+  dev_url: https://github.com/pola-rs/polars
+extra:
+  recipe-maintainers:
+    - borchero
+    - Maxyme
+    - timkpaine
+    - ritchie46
+    - sugatoray
+    - xhochy
+    - dhirschfeld
+    - pavelzw
+    - '0xbe7a'
