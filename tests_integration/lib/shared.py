@@ -51,7 +51,9 @@ TRANSPARENT_URLS = {
     "https://raw.githubusercontent.com/regro/cf-graph-countyfair/master/mappings/pypi/name_mapping.yaml",
     "https://raw.githubusercontent.com/regro/cf-graph-countyfair/master/mappings/pypi/grayskull_pypi_mapping.json",
     "https://api.github.com/*",
-    "https://pypi.io/packages/source/*",  # source archives from PyPI
+    "https://pypi.io/packages/source/*",
+    "https://pypi.org/packages/source/*",
+    "https://files.pythonhosted.org/packages/*",
     "https://api.anaconda.org/package/conda-forge/conda-forge-pinning",
     "https://api.anaconda.org/download/conda-forge/conda-forge-pinning/*",
     "https://binstar-cio-packages-prod.s3.amazonaws.com/*",

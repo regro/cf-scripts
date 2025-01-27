@@ -1,3 +1,4 @@
+import json
 from pathlib import Path
 
 from fastapi import APIRouter
@@ -6,13 +7,24 @@ from tests_integration.lib.integration_test_helper import IntegrationTestHelper
 
 router = APIRouter()
 
+PYPI_SIMPLE_API_RESPONSE = json.loads(
+    Path(__file__)
+    .parent.joinpath("resources/pypi_simple_api_response.json")
+    .read_text()
+)
+
 
 @router.get("/pypi.org/pypi/pydantic/json")
-def handle():
+def handle_pypi_json_api():
     return {
         # rest omitted
         "info": {"name": "pydantic", "version": "2.10.2"}
     }
+
+
+@router.get("/pypi.org/simple/pydantic/")
+def handle_pypi_simple_api():
+    return PYPI_SIMPLE_API_RESPONSE
 
 
 def prepare(helper: IntegrationTestHelper):
