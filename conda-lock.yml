@@ -1889,15 +1889,15 @@ package:
       pyyaml: ''
       rattler-build-conda-compat: '>=0.0.2,<2.0.0a0'
     hash:
-      md5: fc2247dea46d5a2fcb390c5dd53a9151
-      sha256: e44d17ace1e3916de7c1b1628a4a635088295ae825ece9fdbdd164409f94bab2
+      md5: 5ad034cd3f0b4bff682cf48a527e2de2
+      sha256: 38406e3a3fe4fefd7f1e400fdf7e09d2aaad1b5aa09175edb3cd1445eaf655e2
     manager: conda
     name: conda-forge-feedstock-ops
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-feedstock-ops-0.10.2-pyhd8ed1ab_0.conda
-    version: 0.10.2
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-feedstock-ops-0.11.0-pyhd8ed1ab_0.conda
+    version: 0.11.0
   - category: main
     dependencies:
       click: ''
@@ -1908,15 +1908,15 @@ package:
       pyyaml: ''
       rattler-build-conda-compat: '>=0.0.2,<2.0.0a0'
     hash:
-      md5: fc2247dea46d5a2fcb390c5dd53a9151
-      sha256: e44d17ace1e3916de7c1b1628a4a635088295ae825ece9fdbdd164409f94bab2
+      md5: 5ad034cd3f0b4bff682cf48a527e2de2
+      sha256: 38406e3a3fe4fefd7f1e400fdf7e09d2aaad1b5aa09175edb3cd1445eaf655e2
     manager: conda
     name: conda-forge-feedstock-ops
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-feedstock-ops-0.10.2-pyhd8ed1ab_0.conda
-    version: 0.10.2
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-feedstock-ops-0.11.0-pyhd8ed1ab_0.conda
+    version: 0.11.0
   - category: main
     dependencies:
       click: ''
@@ -1927,15 +1927,15 @@ package:
       pyyaml: ''
       rattler-build-conda-compat: '>=0.0.2,<2.0.0a0'
     hash:
-      md5: fc2247dea46d5a2fcb390c5dd53a9151
-      sha256: e44d17ace1e3916de7c1b1628a4a635088295ae825ece9fdbdd164409f94bab2
+      md5: 5ad034cd3f0b4bff682cf48a527e2de2
+      sha256: 38406e3a3fe4fefd7f1e400fdf7e09d2aaad1b5aa09175edb3cd1445eaf655e2
     manager: conda
     name: conda-forge-feedstock-ops
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-feedstock-ops-0.10.2-pyhd8ed1ab_0.conda
-    version: 0.10.2
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-feedstock-ops-0.11.0-pyhd8ed1ab_0.conda
+    version: 0.11.0
   - category: main
     dependencies:
       beautifulsoup4: ''
