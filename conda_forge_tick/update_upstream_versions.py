@@ -30,6 +30,7 @@ from conda_forge_feedstock_ops.container_utils import (
 from conda_forge_tick.cli_context import CliContext
 from conda_forge_tick.executors import executor
 from conda_forge_tick.lazy_json_backends import LazyJson, dumps
+from conda_forge_tick.settings import RANDOM_FRAC_TO_UPDATE
 from conda_forge_tick.update_sources import (
     CRAN,
     NPM,
@@ -51,8 +52,6 @@ T = TypeVar("T")
 logger = logging.getLogger(__name__)
 
 RNG = secrets.SystemRandom()
-
-RANDOM_FRAC_TO_UPDATE = 0.1
 
 
 def ignore_version(attrs: Mapping[str, Any], version: str) -> bool:
