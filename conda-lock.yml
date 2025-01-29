@@ -10543,15 +10543,15 @@ package:
       python: '>=3.11,<3.12.0a0'
       python_abi: 3.11.*
     hash:
-      md5: 55b0b73f9cf7b2be9cd96e3e4b7e62b9
-      sha256: 4b5521971a8d22d42ea3d4b926b7f91b580a9c7374ba104bb4b687d6d31391bb
+      md5: 7c6a81193753488aa77150613ec31d1a
+      sha256: d64b7fa2b303a5a2a5c62e00a2d9bd0dad21294df6e6a20f336e8cc6ce6c1fae
     manager: conda
     name: pymongo
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/linux-64/pymongo-4.10.1-py311hfdbb021_0.conda
-    version: 4.10.1
+      https://conda.anaconda.org/conda-forge/linux-64/pymongo-4.11-py311hfdbb021_0.conda
+    version: '4.11'
   - category: main
     dependencies:
       __osx: '>=10.13'
@@ -10573,19 +10573,19 @@ package:
     dependencies:
       __osx: '>=11.0'
       dnspython: <3.0.0,>=1.16.0
-      libcxx: '>=17'
+      libcxx: '>=18'
       python: '>=3.11,<3.12.0a0'
       python_abi: 3.11.*
     hash:
-      md5: e0c033122ad46efb12aeb533bb0fdeef
-      sha256: 55852f61a4fbbef2545ea6b3340345eed9a4f27c2328625f8f224c2c6c695754
+      md5: a4d3e09a78b047237c660d10343ce4b6
+      sha256: a01480c8a3db8dca3b039be38ba105f2caf2004bbfcdd2c1bf0b22908894e041
     manager: conda
     name: pymongo
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/osx-arm64/pymongo-4.10.1-py311h3f08180_0.conda
-    version: 4.10.1
+      https://conda.anaconda.org/conda-forge/osx-arm64/pymongo-4.11-py311h155a34a_0.conda
+    version: '4.11'
   - category: main
     dependencies:
       __glibc: '>=2.17,<3.0.a0'
@@ -11554,41 +11554,41 @@ package:
       openssl: '>=3.4.0,<4.0a0'
       patchelf: ''
     hash:
-      md5: c926bc2b91cdb32687e9a9f5909a4aa9
-      sha256: 0c8c82fd3cf13e69f5c600767b7ba60db38c4cdea0cbad66fdb624ada52a7f27
+      md5: 4dff31b8352470c70864a0a9a760591c
+      sha256: a391fdffb14c0c43f2ec3cb770e510fca43f748e219cefa68dc8cda3f1f6f698
     manager: conda
     name: rattler-build
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/linux-64/rattler-build-0.35.6-hff40e2b_0.conda
-    version: 0.35.6
+      https://conda.anaconda.org/conda-forge/linux-64/rattler-build-0.35.7-hff40e2b_0.conda
+    version: 0.35.7
   - category: main
     dependencies:
       __osx: '>=10.13'
     hash:
-      md5: 1ac44d901cbc43e92eb26a5ae66f98e3
-      sha256: 5bc1d0180f986da4cf0282b5848afc70c5587242571871a5f0f915b3c7377ecc
+      md5: 8b4152182eec3ec18a2998c9b3332152
+      sha256: 93461d01fbb7173e6eee5a7b922cefcd8fd76415b631ccd937471945d5b9ed53
     manager: conda
     name: rattler-build
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/osx-64/rattler-build-0.35.6-h625f1b7_0.conda
-    version: 0.35.6
+      https://conda.anaconda.org/conda-forge/osx-64/rattler-build-0.35.7-h625f1b7_0.conda
+    version: 0.35.7
   - category: main
     dependencies:
       __osx: '>=11.0'
     hash:
-      md5: 2c1ad2d4c0bfcc7e83c49e4aff1ecc14
-      sha256: 9247021b374a0744ec26fc5130e75def2ddbe88212a804df72c1b256cc9c9393
+      md5: c5b3e60a2f315f5b2b3fed6d9b5c3e0b
+      sha256: d4220050fede5d3697c65a2fa62c33a77c11d9617ec9331d4703d0e8ccdeb116
     manager: conda
     name: rattler-build
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/osx-arm64/rattler-build-0.35.6-h3ab7716_0.conda
-    version: 0.35.6
+      https://conda.anaconda.org/conda-forge/osx-arm64/rattler-build-0.35.7-h3ab7716_0.conda
+    version: 0.35.7
   - category: main
     dependencies:
       conda-build: ''
