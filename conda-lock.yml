@@ -1644,15 +1644,15 @@ package:
       truststore: '>=0.8.0'
       zstandard: '>=0.19.0'
     hash:
-      md5: f29a6d9109b62fe44a8ecf270320a040
-      sha256: 097ab1d04dc975d4213bde16b99ccf6b0da03bb2551a425890a681965e047c3f
+      md5: 99098ed3d2866cb85cc46664ee1ff568
+      sha256: afd4d03543c8d19b8b894a0a282a4cbe24f3bdcb3b3259109c55ed21602e8a50
     manager: conda
     name: conda
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/linux-64/conda-25.1.0-py311h38be061_0.conda
-    version: 25.1.0
+      https://conda.anaconda.org/conda-forge/linux-64/conda-25.1.1-py311h38be061_0.conda
+    version: 25.1.1
   - category: main
     dependencies:
       archspec: '>=0.2.3'
@@ -1677,14 +1677,14 @@ package:
       truststore: '>=0.8.0'
       zstandard: '>=0.19.0'
     hash:
-      md5: 354ddc792d5d81322c9c6ea060269145
-      sha256: 93fecd32ea28076387f0170f5b14b639ab8944d048a3cf4a2349f83b62b400b3
+      md5: 4f40be13eb78f6f9a37d722aa4aa155b
+      sha256: 5c4d62086f9f2be709aa6082c65a6607307960a2c9c345b1d7b86c3b19c9b5b2
     manager: conda
     name: conda
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/osx-64/conda-25.1.0-py311h6eed73b_0.conda
-    version: 25.1.0
+    url: https://conda.anaconda.org/conda-forge/osx-64/conda-25.1.1-py311h6eed73b_0.conda
+    version: 25.1.1
   - category: main
     dependencies:
       archspec: '>=0.2.3'
@@ -1709,15 +1709,15 @@ package:
       truststore: '>=0.8.0'
       zstandard: '>=0.19.0'
     hash:
-      md5: 3bc1fd5b2e7fd0bd437e2b9c522ceb00
-      sha256: acd5033db2cb1d6f1d3300bdbf22987aac6d1fba36dce254a218a5cface67fde
+      md5: b434b08787706bfc8008e4b87ec81b71
+      sha256: 9d6714d324f7b32ceca77f5a418830903568fb89632d29543a9124ce164be3a3
     manager: conda
     name: conda
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/osx-arm64/conda-25.1.0-py311h267d04e_0.conda
-    version: 25.1.0
+      https://conda.anaconda.org/conda-forge/osx-arm64/conda-25.1.1-py311h267d04e_0.conda
+    version: 25.1.1
   - category: main
     dependencies:
       beautifulsoup4: ''
