@@ -3,7 +3,6 @@ import logging
 import os.path
 from typing import Any
 
-import conda_forge_tick.migrators
 from conda_forge_tick.contexts import ClonedFeedstockContext
 from conda_forge_tick.migrators_types import AttrsTypedDict, MigrationUidTypedDict
 from conda_forge_tick.utils import (
@@ -11,6 +10,8 @@ from conda_forge_tick.utils import (
     yaml_safe_dump,
     yaml_safe_load,
 )
+
+from .core import Migrator
 
 
 def _file_contains(filename: str, string: str) -> bool:
@@ -63,7 +64,7 @@ def _insert_subsection(
         f.writelines(first_half + [new_item] + second_half)
 
 
-class AddNVIDIATools(conda_forge_tick.migrators.Migrator):
+class AddNVIDIATools(Migrator):
     """Add the cf-nvidia-tools package to NVIDIA redist feedstocks.
 
     In order to ensure that NVIDIA's redistributed binaries (redists) are being packaged
