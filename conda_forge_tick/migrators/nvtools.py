@@ -176,7 +176,9 @@ class AddNVIDIATools(Migrator):
                 )
             else:
                 with open(build, "a") as file:
-                    file.write('\ncheck-glibc "$PREFIX"/lib*/*.so.* "$PREFIX"/bin/* "$PREFIX"/targets/*/lib*/*.so.* "$PREFIX"/targets/*/bin/*\n')
+                    file.write(
+                        '\ncheck-glibc "$PREFIX"/lib*/*.so.* "$PREFIX"/bin/* "$PREFIX"/targets/*/lib*/*.so.* "$PREFIX"/targets/*/bin/*\n'
+                    )
                 logging.debug("Added check-glibc to build.sh")
         else:
             if _file_contains(meta, "check-glibc"):
