@@ -81,6 +81,8 @@ VARIANT_SOURCES_NOT_IMPLEMENTED = (
             "1.1.0",
             marks=pytest.mark.xfail(reason=VARIANT_SOURCES_NOT_IMPLEMENTED),
         ),
+        # use conda build config variants directly to select source
+        ("polars_by_variant", "1.20.0"),
         # upstream is not available
         # ("mumps", "5.2.1"),
         # ("cb3multi", "6.0.0"),
@@ -127,6 +129,7 @@ def test_version_up(case, new_ver, tmpdir, caplog):
         ("event_stream", "1.6.3"),
         ("selshaurl", "3.7.0"),
         ("libssh", "0.11.1"),
+        ("polars", "1.20.0"),
     ],
 )
 @flaky
@@ -138,6 +141,13 @@ def test_version_up_v1(case, new_ver, tmpdir, caplog):
 
     in_yaml = (YAML_V1_PATH / f"version_{case}.yaml").read_text()
     out_yaml = (YAML_V1_PATH / f"version_{case}_correct.yaml").read_text()
+
+    try:
+        conda_build_config = (
+            YAML_V1_PATH / f"version_{case}_variants.yaml"
+        ).read_text()
+    except FileNotFoundError:
+        conda_build_config = None
 
     kwargs = {"new_version": new_ver}
     if case == "sha1":
@@ -156,6 +166,7 @@ def test_version_up_v1(case, new_ver, tmpdir, caplog):
         },
         tmpdir=tmpdir,
         recipe_version=1,
+        conda_build_config=conda_build_config,
     )
 
 

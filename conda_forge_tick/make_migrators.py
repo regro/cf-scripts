@@ -74,6 +74,7 @@ from conda_forge_tick.migrators import (
     UpdateConfigSubGuessMigrator,
     Version,
     XzLibLzmaDevelMigrator,
+    YAMLRoundTrip,
     make_from_lazy_json_data,
     skip_migrator_due_to_schema,
 )
@@ -779,7 +780,9 @@ def add_noarch_python_min_migrator(
             NoarchPythonMinMigrator(
                 graph=gx2,
                 pr_limit=PR_LIMIT,
-                piggy_back_migrations=_make_mini_migrators_with_defaults(),
+                piggy_back_migrations=_make_mini_migrators_with_defaults(
+                    extra_mini_migrators=[YAMLRoundTrip()],
+                ),
             ),
         )
 
