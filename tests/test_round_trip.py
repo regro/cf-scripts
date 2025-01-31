@@ -5,13 +5,17 @@ from conda_forge_tick.migrators.round_trip import YAMLRoundTrip
 
 def test_round_trip_v0():
     myaml = """\
-blah:  # [unix]
+blah: &foo # [unix]
 - blah  # [osx]
 - foo
+foo: *foo
 """
 
     fmyaml = """\
 blah:   # [unix]
+  - blah # [osx]
+  - foo
+foo:
   - blah # [osx]
   - foo
 """

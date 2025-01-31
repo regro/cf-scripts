@@ -54,6 +54,7 @@ def _get_yaml_parser(typ="jinja2"):
     parser.indent(mapping=2, sequence=4, offset=2)
     parser.width = 320
     parser.preserve_quotes = True
+    parser.representer.ignore_aliases = lambda x: True
     return parser
 
 
