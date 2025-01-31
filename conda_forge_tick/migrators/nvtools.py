@@ -163,7 +163,7 @@ class AddNVIDIATools(Migrator):
                 meta,
                 "requirements",
                 "build",
-                "    - cf-nvidia-tools  # [linux]\n",
+                "    - cf-nvidia-tools 1  # [linux]\n",
             )
             logging.debug("cf-nvidia-tools added to meta.yaml.")
 
