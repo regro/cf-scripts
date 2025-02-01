@@ -63,7 +63,7 @@ jobs:
           mv input-lockfile/${{ inputs.lockfile }} conda-lock.yml
           rm -rf input-lockfile
 
-      - uses: mamba-org/setup-micromamba@4b9113af4fba0e9e1124b252dd6497a419e7396d # v1.11.0
+      - uses: mamba-org/setup-micromamba@0dea6379afdaffa5d528b3d1dabc45da37f443fc # v2.0.4
         with:
           environment-file: conda-lock.yml
           environment-name: cf-scripts
@@ -121,7 +121,7 @@ jobs:
         if: ${{ ! env.CI_SKIP }}
 
       - name: build docker image
-        uses: docker/build-push-action@b32b51a8eda65d6793cd0494a773d4f6bcef32dc # v6.11.0
+        uses: docker/build-push-action@ca877d9245402d1537745e0e356eab47c3520991 # v6.13.0
         if: ${{ ! env.CI_SKIP }}
         with:
           context: .
@@ -214,7 +214,7 @@ jobs:
           mv input-lockfile/${{ inputs.lockfile }} conda-lock.yml
           rm -rf input-lockfile
 
-      - uses: mamba-org/setup-micromamba@4b9113af4fba0e9e1124b252dd6497a419e7396d # v1.11.0
+      - uses: mamba-org/setup-micromamba@0dea6379afdaffa5d528b3d1dabc45da37f443fc # v2.0.4
         with:
           environment-file: conda-lock.yml
           environment-name: cf-scripts
@@ -237,7 +237,7 @@ jobs:
           coverage xml
 
       - name: upload codecov
-        uses: codecov/codecov-action@1e68e06f1dbfde0e4cefc87efeba9e4643565303 # v5.1.8
+        uses: codecov/codecov-action@13ce06bfc6bbe3ecf90edbbf1bc32fe5978ca1d3 # v5.1.8
         if: ${{ ! env.CI_SKIP }}
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
