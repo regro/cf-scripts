@@ -51,7 +51,7 @@ jobs:
           path: cf-scripts
           token: ${{ secrets.AUTOTICK_BOT_TOKEN }}
 
-      - uses: mamba-org/setup-micromamba@4b9113af4fba0e9e1124b252dd6497a419e7396d # v1.11.0
+      - uses: mamba-org/setup-micromamba@0dea6379afdaffa5d528b3d1dabc45da37f443fc # v2.0.4
         with:
           environment-file: cf-scripts/conda-lock.yml
           environment-name: cf-scripts
