@@ -1732,7 +1732,7 @@ package:
       menuinst: '>=2'
       packaging: ''
       patch: '>=2.6'
-      patchelf: ''
+      patchelf: <0.18
       pkginfo: ''
       psutil: ''
       py-lief: <0.15
@@ -1745,14 +1745,14 @@ package:
       ripgrep: ''
       tqdm: ''
     hash:
-      md5: fb65790f486c12b49e68e6845c33c97f
-      sha256: db5d8f1fe038dbb95c007f1785649de9f2878ed084d834e759823e1018d35db2
+      md5: 042b21e5544f72b2aa122018fda0b13a
+      sha256: 0d0c0abfce707348fd3513d1a1bfd62b836fc9e0272bea320442cb5d25dccd56
     manager: conda
     name: conda-build
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/linux-64/conda-build-25.1.1-py311h38be061_2.conda
+      https://conda.anaconda.org/conda-forge/linux-64/conda-build-25.1.1-py311h38be061_3.conda
     version: 25.1.1
   - category: main
     dependencies:
@@ -1781,14 +1781,14 @@ package:
       ripgrep: ''
       tqdm: ''
     hash:
-      md5: e7c91499829621404747f24d8bc19529
-      sha256: 685bc2e7b158b1fd76c4e943d03b0e0e254d6cea293c8ed542b4fd8b61db0bee
+      md5: 2cf0a46ecc7510834e3da83cc80518bb
+      sha256: 62c6b69d5cb216e6d6018c5fc664b65b95c581a704055863c3c6df1adf30de12
     manager: conda
     name: conda-build
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/osx-64/conda-build-25.1.1-py311h6eed73b_2.conda
+      https://conda.anaconda.org/conda-forge/osx-64/conda-build-25.1.1-py311h6eed73b_3.conda
     version: 25.1.1
   - category: main
     dependencies:
@@ -1817,14 +1817,14 @@ package:
       ripgrep: ''
       tqdm: ''
     hash:
-      md5: 596f6f76ff491f983681b81a2e22b0c6
-      sha256: cc5ba44d9102ce30b08a4e53e7689644f6bf4528302c4a98732ad116d40c7719
+      md5: e3ffa8f66a92b52ae3a3018a51e3f89b
+      sha256: 33bd7d856d5237ba33557c81417de6bff61580d175f1b72ec6861e5db6eb8cee
     manager: conda
     name: conda-build
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/osx-arm64/conda-build-25.1.1-py311h267d04e_2.conda
+      https://conda.anaconda.org/conda-forge/osx-arm64/conda-build-25.1.1-py311h267d04e_3.conda
     version: 25.1.1
   - category: main
     dependencies:
@@ -2027,39 +2027,39 @@ package:
   - category: main
     dependencies: {}
     hash:
-      md5: a5ce74af0be1131db78f26eb635e7685
-      sha256: baef7cee216603e02f41cf33064ab80d914f94ce244982e270263816eeb681fd
+      md5: 5a0d2d192151d9dfc4cdd23714c0fa96
+      sha256: 3edff08c3fca2eb76611e7ae5a23f633c756dc42005f01c6fcf92dc7def568e9
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.01.31.17.27.30-hd8ed1ab_0.conda
-    version: 2025.01.31.17.27.30
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.02.01.00.51.58-hd8ed1ab_0.conda
+    version: 2025.02.01.00.51.58
   - category: main
     dependencies: {}
     hash:
-      md5: a5ce74af0be1131db78f26eb635e7685
-      sha256: baef7cee216603e02f41cf33064ab80d914f94ce244982e270263816eeb681fd
+      md5: 5a0d2d192151d9dfc4cdd23714c0fa96
+      sha256: 3edff08c3fca2eb76611e7ae5a23f633c756dc42005f01c6fcf92dc7def568e9
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.01.31.17.27.30-hd8ed1ab_0.conda
-    version: 2025.01.31.17.27.30
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.02.01.00.51.58-hd8ed1ab_0.conda
+    version: 2025.02.01.00.51.58
   - category: main
     dependencies: {}
     hash:
-      md5: a5ce74af0be1131db78f26eb635e7685
-      sha256: baef7cee216603e02f41cf33064ab80d914f94ce244982e270263816eeb681fd
+      md5: 5a0d2d192151d9dfc4cdd23714c0fa96
+      sha256: 3edff08c3fca2eb76611e7ae5a23f633c756dc42005f01c6fcf92dc7def568e9
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.01.31.17.27.30-hd8ed1ab_0.conda
-    version: 2025.01.31.17.27.30
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.02.01.00.51.58-hd8ed1ab_0.conda
+    version: 2025.02.01.00.51.58
   - category: main
     dependencies:
       click: '>=8'
