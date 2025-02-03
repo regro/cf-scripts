@@ -318,16 +318,16 @@ def test_container_tasks_rerender_feedstock_containerized_same_as_local(
                 print(f"out: {captured.out}\nerr: {captured.err}")
 
             if "git commit -m " in captured.err:
-                assert (
-                    msg is not None
-                ), f"msg: {msg}\nout: {captured.out}\nerr: {captured.err}"
-                assert msg.startswith(
-                    "MNT:"
-                ), f"msg: {msg}\nout: {captured.out}\nerr: {captured.err}"
+                assert msg is not None, (
+                    f"msg: {msg}\nout: {captured.out}\nerr: {captured.err}"
+                )
+                assert msg.startswith("MNT:"), (
+                    f"msg: {msg}\nout: {captured.out}\nerr: {captured.err}"
+                )
             else:
-                assert (
-                    msg is None
-                ), f"msg: {msg}\nout: {captured.out}\nerr: {captured.err}"
+                assert msg is None, (
+                    f"msg: {msg}\nout: {captured.out}\nerr: {captured.err}"
+                )
 
         with pushd(tmpdir_local):
             subprocess.run(
@@ -377,9 +377,9 @@ def test_container_tasks_rerender_feedstock_containerized_same_as_local(
         rel_local_fnames = {
             os.path.relpath(fname, tmpdir_local) for fname in local_fnames
         }
-        assert (
-            rel_cont_fnames == rel_local_fnames
-        ), f"{rel_cont_fnames} != {rel_local_fnames}"
+        assert rel_cont_fnames == rel_local_fnames, (
+            f"{rel_cont_fnames} != {rel_local_fnames}"
+        )
 
         for cfname in cont_fnames:
             lfname = os.path.join(tmpdir_local, os.path.relpath(cfname, tmpdir_cont))

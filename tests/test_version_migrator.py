@@ -203,9 +203,9 @@ def test_version_noup(case, new_ver, tmpdir, caplog):
             tmpdir=tmpdir,
         )
 
-    assert "The recipe did not change in the version migration," in str(
+    assert "The recipe did not change in the version migration," in str(e.value), (
         e.value
-    ), e.value
+    )
 
 
 def test_version_cupy(tmpdir, caplog):

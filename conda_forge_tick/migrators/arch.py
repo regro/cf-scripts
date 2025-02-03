@@ -357,9 +357,9 @@ class OSXArm(GraphMigrator):
             effective_graph=effective_graph,
         )
 
-        assert (
-            not self.check_solvable
-        ), "We don't want to check solvability for arm osx!"
+        assert not self.check_solvable, (
+            "We don't want to check solvability for arm osx!"
+        )
         self.target_packages = target_packages
         self.name = name
 

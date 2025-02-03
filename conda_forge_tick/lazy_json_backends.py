@@ -1091,7 +1091,7 @@ def default(obj: Any) -> Any:
     elif isinstance(obj, nx.DiGraph):
         nld = nx.node_link_data(obj, edges="links")
         links = nld["links"]
-        links2 = sorted(links, key=lambda x: f'{x["source"]}{x["target"]}')
+        links2 = sorted(links, key=lambda x: f"{x['source']}{x['target']}")
         nld["links"] = links2
         return {"__nx_digraph__": True, "node_link_data": nld}
     raise TypeError(repr(obj) + " is not JSON serializable")
