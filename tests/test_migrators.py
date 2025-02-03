@@ -442,7 +442,7 @@ matplotlib = Replacement(
     old_pkg="matplotlib",
     new_pkg="matplotlib-base",
     rationale=(
-        "Unless you need `pyqt`, recipes should depend only on " "`matplotlib-base`."
+        "Unless you need `pyqt`, recipes should depend only on `matplotlib-base`."
     ),
     pr_limit=5,
 )

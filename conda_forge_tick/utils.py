@@ -904,7 +904,7 @@ def parse_meta_yaml_local(
     try:
         return _run(use_orig_cbc_path=True)
     except (SystemExit, Exception):
-        logger.debug("parsing w/ conda_build_config.yaml failed! " "trying without...")
+        logger.debug("parsing w/ conda_build_config.yaml failed! trying without...")
         try:
             return _run(use_orig_cbc_path=False)
         except (SystemExit, Exception) as e:
@@ -1117,7 +1117,7 @@ def pluck(G: nx.DiGraph, node_id: Any) -> None:
 def dump_graph_json(gx: nx.DiGraph, filename: str = "graph.json") -> None:
     nld = nx.node_link_data(gx, edges="links")
     links = nld["links"]
-    links2 = sorted(links, key=lambda x: f'{x["source"]}{x["target"]}')
+    links2 = sorted(links, key=lambda x: f"{x['source']}{x['target']}")
     nld["links"] = links2
 
     lzj = LazyJson(filename)
