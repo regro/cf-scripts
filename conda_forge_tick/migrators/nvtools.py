@@ -130,7 +130,8 @@ class AddNVIDIATools(Migrator):
             True if node is to be skipped
         """
         return (
-            attrs["archived"]
+            super().filter(attrs)
+            or attrs["archived"]
             or "https://developer.download.nvidia.com" not in attrs["source"]["url"]
         )
 
