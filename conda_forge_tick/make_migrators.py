@@ -798,11 +798,7 @@ def initialize_migrators(
     gx: nx.DiGraph,
     dry_run: bool = False,
 ) -> MutableSequence[Migrator]:
-    migrators: List[Migrator] = [
-        AddNVIDIATools(
-            check_solvable=False,
-        ),
-    ]
+    migrators: List[Migrator] = []
 
     add_arch_migrate(migrators, gx)
 
@@ -825,6 +821,12 @@ def initialize_migrators(
     )
 
     add_noarch_python_min_migrator(migrators, gx)
+
+    migrators.append(
+        AddNVIDIATools(
+            check_solvable=False,
+        )
+    )
 
     pinning_migrators: List[Migrator] = []
     migration_factory(pinning_migrators, gx)
