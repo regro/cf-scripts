@@ -142,8 +142,7 @@ def test_migrator_to_json_matplotlib_base():
         old_pkg="matplotlib",
         new_pkg="matplotlib-base",
         rationale=(
-            "Unless you need `pyqt`, recipes should depend only on "
-            "`matplotlib-base`."
+            "Unless you need `pyqt`, recipes should depend only on `matplotlib-base`."
         ),
         pr_limit=5,
     )
@@ -193,8 +192,7 @@ def test_migrator_to_json_rebuild():
         old_pkg="matplotlib",
         new_pkg="matplotlib-base",
         rationale=(
-            "Unless you need `pyqt`, recipes should depend only on "
-            "`matplotlib-base`."
+            "Unless you need `pyqt`, recipes should depend only on `matplotlib-base`."
         ),
         pr_limit=5,
     )

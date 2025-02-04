@@ -837,8 +837,8 @@ def initialize_migrators(
         for m in migrators + pinning_migrators:
             if isinstance(m, GraphMigrator):
                 print(
-                    f'    {getattr(m, "name", m)} graph size: '
-                    f'{len(getattr(m, "graph", []))}',
+                    f"    {getattr(m, 'name', m)} graph size: "
+                    f"{len(getattr(m, 'graph', []))}",
                     flush=True,
                 )
 
