@@ -12,8 +12,14 @@ on:
     branches: [main]
 
 jobs:
+  setup-repositories:
+    name: Set up Integration Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Emit positive check
+        run: echo "Integration tests do not run on PRs, only in the merge queue."
   run-test-scenario:
-    name: Emit positive check
+    name: Run Scenarios
     runs-on: ubuntu-latest
     steps:
       - name: Emit positive check
