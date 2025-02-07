@@ -364,7 +364,7 @@ def _handle_solvability_error(
         <details>
         <div align="left">
         <pre>
-        {'</pre><pre>'.join(sorted(set(errors)))}
+        {"</pre><pre>".join(sorted(set(errors)))}
         </pre>
         </div>
         </details>
