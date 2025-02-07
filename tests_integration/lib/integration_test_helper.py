@@ -137,9 +137,9 @@ class IntegrationTestHelper:
             pr for pr in repo.get_pulls(state="open") if f"v{new_version}" in pr.title
         ]
 
-        assert (
-            len(matching_prs) == 1
-        ), f"Found {len(matching_prs)} matching version PRs, but exactly 1 must be present."
+        assert len(matching_prs) == 1, (
+            f"Found {len(matching_prs)} matching version PRs, but exactly 1 must be present."
+        )
 
         matching_pr = matching_prs[0]
 
