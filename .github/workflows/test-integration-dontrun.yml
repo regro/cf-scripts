@@ -1,0 +1,20 @@
+name: Integration Tests do not run on PRs
+
+# Integration tests do only run in the merge queue (and on main) because they need access to secrets.
+# This workflow simply emits a positive check while the PR is not merged yet.
+# It is needed because the merge_group trigger only works if there is a required check for the
+# corresponding job, but that in return means that we need to emit a check on the pull_request event as well,
+# because otherwise the PR cannot be put into the merge queue.
+# See also https://github.com/orgs/community/discussions/51120
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  run-test-scenario:
+    name: Emit positive check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Emit positive check
+        run: echo "Integration tests do not run on PRs, only in the merge queue."
