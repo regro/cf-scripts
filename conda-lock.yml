@@ -1927,15 +1927,15 @@ package:
       wurlitzer: ''
       zstandard: ''
     hash:
-      md5: 63a863ebd48b4860beea5a4e520abbf5
-      sha256: 34d49b1c25425ac62fd05f3d0b3a06e4d59182781a5d015306ced4a13b1b214e
+      md5: e00850372391a2d6dd24f80989769820
+      sha256: fbb14bdf64f9cdab0675fff6b2d5af47e17e3cdebe399c2427b0a4c638439605
     manager: conda
     name: conda-forge-feedstock-check-solvable
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-feedstock-check-solvable-0.9.0-pyhd8ed1ab_0.conda
-    version: 0.9.0
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-feedstock-check-solvable-0.10.0-pyhd8ed1ab_0.conda
+    version: 0.10.0
   - category: main
     dependencies:
       boltons: '>=23.0.0'
@@ -1954,15 +1954,15 @@ package:
       wurlitzer: ''
       zstandard: ''
     hash:
-      md5: 63a863ebd48b4860beea5a4e520abbf5
-      sha256: 34d49b1c25425ac62fd05f3d0b3a06e4d59182781a5d015306ced4a13b1b214e
+      md5: e00850372391a2d6dd24f80989769820
+      sha256: fbb14bdf64f9cdab0675fff6b2d5af47e17e3cdebe399c2427b0a4c638439605
     manager: conda
     name: conda-forge-feedstock-check-solvable
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-feedstock-check-solvable-0.9.0-pyhd8ed1ab_0.conda
-    version: 0.9.0
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-feedstock-check-solvable-0.10.0-pyhd8ed1ab_0.conda
+    version: 0.10.0
   - category: main
     dependencies:
       boltons: '>=23.0.0'
@@ -1981,15 +1981,15 @@ package:
       wurlitzer: ''
       zstandard: ''
     hash:
-      md5: 63a863ebd48b4860beea5a4e520abbf5
-      sha256: 34d49b1c25425ac62fd05f3d0b3a06e4d59182781a5d015306ced4a13b1b214e
+      md5: e00850372391a2d6dd24f80989769820
+      sha256: fbb14bdf64f9cdab0675fff6b2d5af47e17e3cdebe399c2427b0a4c638439605
     manager: conda
     name: conda-forge-feedstock-check-solvable
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-feedstock-check-solvable-0.9.0-pyhd8ed1ab_0.conda
-    version: 0.9.0
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-feedstock-check-solvable-0.10.0-pyhd8ed1ab_0.conda
+    version: 0.10.0
   - category: main
     dependencies:
       click: ''
