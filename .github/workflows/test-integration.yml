@@ -119,7 +119,8 @@ jobs:
 
       - name: Install Bot Code (no graph clone)
         run: |
-          source cf-scripts/autotick-bot/install_bot_code.sh --no-pull-container --no-clone-graph # this is the first time, so we clean disk space, but don't clone the graph
+          # this is the first time, so we clean disk space, but don't clone the graph
+          source cf-scripts/autotick-bot/install_bot_code.sh --no-pull-container --no-clone-graph
 
       - name: Load Docker Image
         run: |
