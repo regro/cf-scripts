@@ -1,7 +1,7 @@
-name: Integration Tests do not run on PRs
+name: Integration Tests do not run on PRs from forks
 
-# Integration tests do only run in the merge queue (and on main) because they need access to secrets.
-# This workflow simply emits a positive check while the PR is not merged yet.
+# Integration tests do only run in the merge queue for PRs from forks because they need access to secrets.
+# This workflow simply emits a positive check for PRs from forks to indicate that the integration tests do not run.
 # It is needed because the merge_group trigger only works if there is a required check for the
 # corresponding job, but that in return means that we need to emit a check on the pull_request event as well,
 # because otherwise the PR cannot be put into the merge queue.
@@ -15,12 +15,14 @@ jobs:
   setup-repositories:
     name: Set up Integration Tests
     runs-on: ubuntu-latest
+    if: github.event.pull_request.head.repo.full_name != github.repository
     steps:
       - name: Emit positive check
-        run: echo "Integration tests do not run on PRs, only in the merge queue."
+        run: echo "Integration tests do not run on PRs from forks, only in the merge queue."
   run-test-scenario:
     name: Run Scenarios
     runs-on: ubuntu-latest
+    if: github.event.pull_request.head.repo.full_name != github.repository
     steps:
       - name: Emit positive check
-        run: echo "Integration tests do not run on PRs, only in the merge queue."
+        run: echo "Integration tests do not run on PRs from forks, only in the merge queue."
