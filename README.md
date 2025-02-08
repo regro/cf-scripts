@@ -302,6 +302,7 @@ Currently, the following commands are supported and tested:
 - `update-upstream-versions`
 
 ### Integration Tests
+
 See [tests_integration/README.md](tests_integration/README.md).
 
 ### Structure of the Bot's Jobs

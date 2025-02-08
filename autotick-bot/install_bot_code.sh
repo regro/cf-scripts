@@ -41,9 +41,9 @@ for arg in "$@"; do
   fi
 done
 if [[ "${clone_graph}" == "true" ]]; then
-    cf_graph_repo=${CF_TICK_GRAPH_GITHUB_BACKEND_REPO:-"regro/cf-graph-countyfair"}
-    cf_graph_remote="https://github.com/${cf_graph_repo}.git"
-    git clone --depth=5 "${cf_graph_remote}" cf-graph
+  cf_graph_repo=${CF_TICK_GRAPH_GITHUB_BACKEND_REPO:-"regro/cf-graph-countyfair"}
+  cf_graph_remote="https://github.com/${cf_graph_repo}.git"
+  git clone --depth=5 "${cf_graph_remote}" cf-graph
 else
   echo "Skipping cloning of cf-graph"
 fi
@@ -59,7 +59,7 @@ for arg in "$@"; do
   fi
 done
 if [[ "${pull_cont}" == "true" ]]; then
-    docker pull "${docker_name}:${docker_tag}"
+  docker pull "${docker_name}:${docker_tag}"
 fi
 
 # left intact if already set

@@ -31,7 +31,8 @@ RUN conda activate base && \
     cd - && \
     conda deactivate && \
     conda deactivate && \
-    rm -rf $AUTOTICK_BOT_DIR/.git   # was needed by setuptools-scm
+    rm -rf $AUTOTICK_BOT_DIR/.git   # was needed by setuptools-scm for package install
+                                    # but can delete now
 
 # now make the conda user for running tasks and set the user
 RUN useradd --shell /bin/bash -c "" -m conda
