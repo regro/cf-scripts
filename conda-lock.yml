@@ -2110,39 +2110,39 @@ package:
   - category: main
     dependencies: {}
     hash:
-      md5: e7102751d9715730bfea9ccaedf561ef
-      sha256: d54f82dcfa71f7c084c92695defcdc411695461a3bfaa0d8a43537c13c1db314
+      md5: 2b1fa1500054e6579b2459117fde18b1
+      sha256: c7abcc7ce1e1d3c4321cfa8e29c5e204bd811f68f3b691082e12c034f919c077
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.02.08.22.33.06-hd8ed1ab_0.conda
-    version: 2025.02.08.22.33.06
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.02.09.08.37.15-hd8ed1ab_0.conda
+    version: 2025.02.09.08.37.15
   - category: main
     dependencies: {}
     hash:
-      md5: e7102751d9715730bfea9ccaedf561ef
-      sha256: d54f82dcfa71f7c084c92695defcdc411695461a3bfaa0d8a43537c13c1db314
+      md5: 2b1fa1500054e6579b2459117fde18b1
+      sha256: c7abcc7ce1e1d3c4321cfa8e29c5e204bd811f68f3b691082e12c034f919c077
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.02.08.22.33.06-hd8ed1ab_0.conda
-    version: 2025.02.08.22.33.06
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.02.09.08.37.15-hd8ed1ab_0.conda
+    version: 2025.02.09.08.37.15
   - category: main
     dependencies: {}
     hash:
-      md5: e7102751d9715730bfea9ccaedf561ef
-      sha256: d54f82dcfa71f7c084c92695defcdc411695461a3bfaa0d8a43537c13c1db314
+      md5: 2b1fa1500054e6579b2459117fde18b1
+      sha256: c7abcc7ce1e1d3c4321cfa8e29c5e204bd811f68f3b691082e12c034f919c077
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.02.08.22.33.06-hd8ed1ab_0.conda
-    version: 2025.02.08.22.33.06
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.02.09.08.37.15-hd8ed1ab_0.conda
+    version: 2025.02.09.08.37.15
   - category: main
     dependencies:
       click: '>=8'
@@ -5543,40 +5543,40 @@ package:
       python: '>=3.9'
       ukkonen: ''
     hash:
-      md5: d751c3b4a973ed15b57be90d68c716d1
-      sha256: bb7483a113966d3d10b6e91edb79e7006f050fd40a842935848c15d12eff56d3
+      md5: 1027da8216437467b4588fa79e143d89
+      sha256: 27c1c5c1f3090ce826a08d50e70c53c77a8b6b39561b2967388f014fa2d52297
     manager: conda
     name: identify
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/noarch/identify-2.6.6-pyhd8ed1ab_0.conda
-    version: 2.6.6
+    url: https://conda.anaconda.org/conda-forge/noarch/identify-2.6.7-pyhd8ed1ab_0.conda
+    version: 2.6.7
   - category: main
     dependencies:
       python: '>=3.9'
       ukkonen: ''
     hash:
-      md5: d751c3b4a973ed15b57be90d68c716d1
-      sha256: bb7483a113966d3d10b6e91edb79e7006f050fd40a842935848c15d12eff56d3
+      md5: 1027da8216437467b4588fa79e143d89
+      sha256: 27c1c5c1f3090ce826a08d50e70c53c77a8b6b39561b2967388f014fa2d52297
     manager: conda
     name: identify
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/noarch/identify-2.6.6-pyhd8ed1ab_0.conda
-    version: 2.6.6
+    url: https://conda.anaconda.org/conda-forge/noarch/identify-2.6.7-pyhd8ed1ab_0.conda
+    version: 2.6.7
   - category: main
     dependencies:
       python: '>=3.9'
       ukkonen: ''
     hash:
-      md5: d751c3b4a973ed15b57be90d68c716d1
-      sha256: bb7483a113966d3d10b6e91edb79e7006f050fd40a842935848c15d12eff56d3
+      md5: 1027da8216437467b4588fa79e143d89
+      sha256: 27c1c5c1f3090ce826a08d50e70c53c77a8b6b39561b2967388f014fa2d52297
     manager: conda
     name: identify
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/noarch/identify-2.6.6-pyhd8ed1ab_0.conda
-    version: 2.6.6
+    url: https://conda.anaconda.org/conda-forge/noarch/identify-2.6.7-pyhd8ed1ab_0.conda
+    version: 2.6.7
   - category: main
     dependencies:
       python: '>=3.9'
