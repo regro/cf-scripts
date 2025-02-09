@@ -30,7 +30,9 @@ from conda_forge_feedstock_ops.container_utils import (
 from conda_forge_tick.cli_context import CliContext
 from conda_forge_tick.executors import executor
 from conda_forge_tick.lazy_json_backends import LazyJson, dumps
-from conda_forge_tick.settings import RANDOM_FRAC_TO_UPDATE
+from conda_forge_tick.settings import (
+    FRAC_UPDATE_UPSTREAM_VERSIONS,
+)
 from conda_forge_tick.update_sources import (
     CRAN,
     NPM,
@@ -364,7 +366,7 @@ def _update_upstream_versions_process_pool(
             ncols=80,
             desc="submitting version update jobs",
         ):
-            if RNG.random() >= RANDOM_FRAC_TO_UPDATE:
+            if RNG.random() >= FRAC_UPDATE_UPSTREAM_VERSIONS:
                 continue
 
             futures.update(

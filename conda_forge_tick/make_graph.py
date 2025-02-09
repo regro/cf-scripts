@@ -24,7 +24,7 @@ from conda_forge_tick.lazy_json_backends import (
 from .all_feedstocks import get_all_feedstocks, get_archived_feedstocks
 from .cli_context import CliContext
 from .executors import executor
-from .settings import RANDOM_FRAC_TO_UPDATE
+from .settings import FRAC_MAKE_GRAPH
 from .utils import as_iterable, dump_graph, load_graph, sanitize_string
 
 # from conda_forge_tick.profiler import profiling
@@ -199,7 +199,7 @@ def _build_graph_process_pool(
         futures = {
             pool.submit(get_attrs, name, mark_not_archived=mark_not_archived): name
             for name in names
-            if RNG.random() < RANDOM_FRAC_TO_UPDATE
+            if RNG.random() < FRAC_MAKE_GRAPH
         }
         logger.info("submitted all nodes")
 
@@ -230,7 +230,7 @@ def _build_graph_sequential(
     mark_not_archived=False,
 ) -> None:
     for name in names:
-        if RNG.random() >= RANDOM_FRAC_TO_UPDATE:
+        if RNG.random() >= FRAC_MAKE_GRAPH:
             logger.debug(f"skipping {name} due to random fraction to update")
             continue
 

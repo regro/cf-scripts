@@ -21,10 +21,19 @@ Whether we are executing within a GitHub Actions run with debug logging enabled.
 https://docs.github.com/en/actions/writing-workflows/choosing-what-your-workflow-does/store-information-in-variables#default-environment-variables
 """
 
-ENV_RANDOM_FRAC_TO_UPDATE = "CF_TICK_RANDOM_FRAC_TO_UPDATE"
-RANDOM_FRAC_TO_UPDATE = float(os.getenv(ENV_RANDOM_FRAC_TO_UPDATE, "0.1"))
+ENV_FRAC_UPDATE_UPSTREAM_VERSIONS = "CF_TICK_FRAC_UPDATE_UPSTREAM_VERSIONS"
+FRAC_UPDATE_UPSTREAM_VERSIONS = float(
+    os.getenv(ENV_FRAC_UPDATE_UPSTREAM_VERSIONS, "0.1")
+)
 """
-The fraction of feedstocks (randomly selected) to update in certain jobs. Default: 0.1.
-Currently used by update-upstream-versions and make-graph.
-In tests, you probably need to set this to 1.0 to update all feedstocks.
+The fraction of feedstocks (randomly selected) to update in the update-upstream-versions job.
+This is currently only respected when running concurrently (via process pool), not in sequential mode.
+Therefore, you don't need to set this when debugging locally.
+"""
+
+ENV_RANDOM_FRAC_MAKE_GRAPH = "CF_TICK_FRAC_MAKE_GRAPH"
+FRAC_MAKE_GRAPH = float(os.getenv(ENV_RANDOM_FRAC_MAKE_GRAPH, "0.1"))
+"""
+The fraction of feedstocks (randomly selected) to update in the make-graph job.
+In tests or when debugging, you probably need to set this to 1.0 to update all feedstocks.
 """
