@@ -2,7 +2,7 @@
 
 set -euxo pipefail
 
-# If debugging locally, set DEBUG_PROXY_SERVER to true.
+# If debugging locally, set PROXY_DEBUG_LOGGING to true to show full HTTP request/response details.
 # We can't enable this in GitHub Actions because it will expose GitHub secrets.
 PROXY_DEBUG_LOGGING=${PROXY_DEBUG_LOGGING:-false}
 
