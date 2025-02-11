@@ -2285,39 +2285,39 @@ package:
   - category: main
     dependencies: {}
     hash:
-      md5: 2b1fa1500054e6579b2459117fde18b1
-      sha256: c7abcc7ce1e1d3c4321cfa8e29c5e204bd811f68f3b691082e12c034f919c077
+      md5: 7a0b3b13e7cb627eef5f5ed714cb93ba
+      sha256: cef6052312391b84d596ba990859bf0cc8cb7f3c2a600ea232c3f34893c38317
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: linux-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.02.09.08.37.15-hd8ed1ab_0.conda
-    version: 2025.02.09.08.37.15
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.02.10.18.05.55-hd8ed1ab_0.conda
+    version: 2025.02.10.18.05.55
   - category: main
     dependencies: {}
     hash:
-      md5: 2b1fa1500054e6579b2459117fde18b1
-      sha256: c7abcc7ce1e1d3c4321cfa8e29c5e204bd811f68f3b691082e12c034f919c077
+      md5: 7a0b3b13e7cb627eef5f5ed714cb93ba
+      sha256: cef6052312391b84d596ba990859bf0cc8cb7f3c2a600ea232c3f34893c38317
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: osx-64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.02.09.08.37.15-hd8ed1ab_0.conda
-    version: 2025.02.09.08.37.15
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.02.10.18.05.55-hd8ed1ab_0.conda
+    version: 2025.02.10.18.05.55
   - category: main
     dependencies: {}
     hash:
-      md5: 2b1fa1500054e6579b2459117fde18b1
-      sha256: c7abcc7ce1e1d3c4321cfa8e29c5e204bd811f68f3b691082e12c034f919c077
+      md5: 7a0b3b13e7cb627eef5f5ed714cb93ba
+      sha256: cef6052312391b84d596ba990859bf0cc8cb7f3c2a600ea232c3f34893c38317
     manager: conda
     name: conda-forge-pinning
     optional: false
     platform: osx-arm64
     url:
-      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.02.09.08.37.15-hd8ed1ab_0.conda
-    version: 2025.02.09.08.37.15
+      https://conda.anaconda.org/conda-forge/noarch/conda-forge-pinning-2025.02.10.18.05.55-hd8ed1ab_0.conda
+    version: 2025.02.10.18.05.55
   - category: main
     dependencies:
       click: '>=8'
@@ -10637,42 +10637,42 @@ package:
       setuptools: ''
       wheel: ''
     hash:
-      md5: c2548760a02ed818f92dd0d8c81b55b4
-      sha256: 094fa4c825f8b9e8403e0c0b569c3d50892325acdac1010ff43cc3ac65bf62cd
+      md5: 79b5c1440aedc5010f687048d9103628
+      sha256: 585940f09d87787f79f73ff5dff8eb2af8a67e5bec5eebf2f553cd26c840ba69
     manager: conda
     name: pip
     optional: false
     platform: linux-64
-    url: https://conda.anaconda.org/conda-forge/noarch/pip-25.0-pyh8b19718_0.conda
-    version: '25.0'
+    url: https://conda.anaconda.org/conda-forge/noarch/pip-25.0.1-pyh8b19718_0.conda
+    version: 25.0.1
   - category: main
     dependencies:
       python: '>=3.9,<3.13.0a0'
       setuptools: ''
       wheel: ''
     hash:
-      md5: c2548760a02ed818f92dd0d8c81b55b4
-      sha256: 094fa4c825f8b9e8403e0c0b569c3d50892325acdac1010ff43cc3ac65bf62cd
+      md5: 79b5c1440aedc5010f687048d9103628
+      sha256: 585940f09d87787f79f73ff5dff8eb2af8a67e5bec5eebf2f553cd26c840ba69
     manager: conda
     name: pip
     optional: false
     platform: osx-64
-    url: https://conda.anaconda.org/conda-forge/noarch/pip-25.0-pyh8b19718_0.conda
-    version: '25.0'
+    url: https://conda.anaconda.org/conda-forge/noarch/pip-25.0.1-pyh8b19718_0.conda
+    version: 25.0.1
   - category: main
     dependencies:
       python: '>=3.9,<3.13.0a0'
       setuptools: ''
       wheel: ''
     hash:
-      md5: c2548760a02ed818f92dd0d8c81b55b4
-      sha256: 094fa4c825f8b9e8403e0c0b569c3d50892325acdac1010ff43cc3ac65bf62cd
+      md5: 79b5c1440aedc5010f687048d9103628
+      sha256: 585940f09d87787f79f73ff5dff8eb2af8a67e5bec5eebf2f553cd26c840ba69
     manager: conda
     name: pip
     optional: false
     platform: osx-arm64
-    url: https://conda.anaconda.org/conda-forge/noarch/pip-25.0-pyh8b19718_0.conda
-    version: '25.0'
+    url: https://conda.anaconda.org/conda-forge/noarch/pip-25.0.1-pyh8b19718_0.conda
+    version: 25.0.1
   - category: main
     dependencies:
       __glibc: '>=2.17,<3.0.a0'
