@@ -11,15 +11,9 @@ from conda_forge_tick.make_graph import (
     get_deps_from_outputs_lut,
     make_outputs_lut_from_graph,
 )
-from conda_forge_tick.migrators.core import GraphMigrator, _sanitized_muids
+from conda_forge_tick.migrators.core import GraphMigrator
 from conda_forge_tick.os_utils import pushd
-from conda_forge_tick.utils import (
-    as_iterable,
-    frozen_to_json_friendly,
-    pluck,
-    yaml_safe_dump,
-    yaml_safe_load,
-)
+from conda_forge_tick.utils import as_iterable, pluck, yaml_safe_dump, yaml_safe_load
 
 from .migration_yaml import all_noarch
 
@@ -188,17 +182,18 @@ class ArchRebuild(GraphMigrator):
     def filter(self, attrs: "AttrsTypedDict", not_bad_str_start: str = "") -> bool:
         if super().filter(attrs):
             return True
-        muid = frozen_to_json_friendly(self.migrator_uid(attrs))
         for arch in self.arches:
             configured_arch = (
                 attrs.get("conda-forge.yml", {}).get("provider", {}).get(arch)
+            ) or (
+                attrs.get("conda-forge.yml", {}).get("build_platform", {}).get(arch)
+                not in [None, arch]
             )
-            if configured_arch:
-                return muid in _sanitized_muids(
-                    attrs.get("pr_info", {}).get("PRed", []),
-                )
-        else:
-            return False
+            if not configured_arch:
+                # This arch is not in provider or build_platform
+                return False
+
+        return True
 
     def migrate(
         self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any
@@ -369,17 +364,18 @@ class OSXArm(GraphMigrator):
     def filter(self, attrs: "AttrsTypedDict", not_bad_str_start: str = "") -> bool:
         if super().filter(attrs):
             return True
-        muid = frozen_to_json_friendly(self.migrator_uid(attrs))
         for arch in self.arches:
             configured_arch = (
                 attrs.get("conda-forge.yml", {}).get("provider", {}).get(arch)
+            ) or (
+                attrs.get("conda-forge.yml", {}).get("build_platform", {}).get(arch)
+                not in [None, arch]
             )
-            if configured_arch:
-                return muid in _sanitized_muids(
-                    attrs.get("pr_info", {}).get("PRed", []),
-                )
-        else:
-            return False
+            if not configured_arch:
+                # This arch is not in provider or build_platform
+                return False
+
+        return True
 
     def migrate(
         self, recipe_dir: str, attrs: "AttrsTypedDict", **kwargs: Any
