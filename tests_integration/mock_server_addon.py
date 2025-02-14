@@ -1,3 +1,4 @@
+#!/usr/bin/env mitmdump -s
 """
 Start this file with `mitmdump -s mock_server_addon.py`.
 
