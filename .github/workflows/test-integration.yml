@@ -79,6 +79,7 @@ jobs:
 
       - name: Set up Integration Test Repositories
         id: setup_repositories
+        # note: this writes `scenario_ids` to GITHUB_OUTPUT
         run: |
           cd cf-scripts
           python -m tests_integration.setup_repositories
