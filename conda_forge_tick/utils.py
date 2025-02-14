@@ -1320,6 +1320,9 @@ def run_command_hiding_token(args: list[str], token: str, **kwargs) -> int:
     :param kwargs: additional arguments for subprocess.run
     :return: The return code of the command.
     """
+    if kwargs.keys() & {"text", "stdout", "stderr"}:
+        raise ValueError("text, stdout, and stderr are not allowed in kwargs")
+
     p = subprocess.run(
         args, text=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, **kwargs
     )
