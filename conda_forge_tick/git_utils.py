@@ -194,7 +194,7 @@ class GitCli:
         git_command = ["git"] + cmd
 
         if not suppress_all_output:
-            logger.debug(f"Running git command: {git_command}")
+            logger.debug("Running git command: %s", git_command)
 
         # stdout and stderr are piped to devnull if suppress_all_output is True
         stdout_args = (
