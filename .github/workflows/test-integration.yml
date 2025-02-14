@@ -183,7 +183,7 @@ jobs:
         working-directory: cf-graph
         run: conda-forge-tick --debug make-graph
         env:
-          CF_TICK_FRAC_MAKE_GRAPH: 1.0
+          CF_TICK_FRAC_MAKE_GRAPH: "1.0"
 
       - name: "[Test] Deploy to GitHub"
         working-directory: cf-graph
