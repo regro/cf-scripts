@@ -20,14 +20,6 @@ from .utils import (
 
 logger = logging.getLogger(__name__)
 
-"""
-Environment Variables:
-
-GITHUB_WORKFLOW (optional): The name of the workflow.
-RUN_URL (optional): The URL of the run.
-BOT_TOKEN (optional): The bot's GitHub token.
-"""
-
 
 def _flush_io():
     sys.stdout.flush()
