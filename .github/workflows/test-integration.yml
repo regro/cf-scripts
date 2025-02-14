@@ -73,16 +73,15 @@ jobs:
           condarc-file: cf-scripts/autotick-bot/condarc
 
       - name: Run pip install
+        working-directory: cf-scripts
         run: |
-          cd cf-scripts
           pip install --no-deps --no-build-isolation -e .
 
       - name: Set up Integration Test Repositories
         id: setup_repositories
+        working-directory: cf-scripts
         # note: this writes `scenario_ids` to GITHUB_OUTPUT
-        run: |
-          cd cf-scripts
-          python -m tests_integration.setup_repositories
+        run: python -m tests_integration.setup_repositories
         env:
           TEST_SETUP_TOKEN: ${{ secrets.GH_TOKEN_STAGING_BOT_USER }}
 
@@ -119,9 +118,8 @@ jobs:
           condarc-file: cf-scripts/autotick-bot/condarc
 
       - name: Install Bot Code (no graph clone)
-        run: |
-          # this is the first time, so we clean disk space, but don't clone the graph
-          source cf-scripts/autotick-bot/install_bot_code.sh --no-pull-container --no-clone-graph
+        # this is the first time, so we clean disk space, but don't clone the graph
+        run: source cf-scripts/autotick-bot/install_bot_code.sh --no-pull-container --no-clone-graph
 
       - name: Load Docker Image
         run: |
@@ -129,9 +127,8 @@ jobs:
           docker image ls -a
 
       - name: Prepare Scenario
-        run: |
-          cd cf-scripts
-          python -m tests_integration.step_prepare  # this creates the cf-graph repository
+        working-directory: cf-scripts
+        run: python -m tests_integration.step_prepare  # this creates the cf-graph repository
         env:
           SCENARIO_ID: ${{ matrix.scenario_id }}
           TEST_SETUP_TOKEN: ${{ secrets.GH_TOKEN_STAGING_BOT_USER }}
@@ -141,8 +138,8 @@ jobs:
           source cf-scripts/autotick-bot/install_bot_code.sh --no-pull-container --no-clean-disk-space
 
       - name: Start HTTP Proxy
+        working-directory: cf-scripts
         run: |
-          cd cf-scripts
           ./tests_integration/mock_proxy_start.sh &
           sleep 10
           # Install CA Certificate
@@ -154,16 +151,15 @@ jobs:
           PYTHONPATH: ${{ github.workspace }}/cf-scripts
 
       - name: "[Test] Gather all Feedstocks"
+        working-directory: cf-graph
         run: |
-          cd cf-graph
           # don't use proxy for git CLI operations (applies to all further steps)
           git config --global http."https://github.com".proxy ""
           conda-forge-tick --debug gather-all-feedstocks
 
       - name: "[Test] Deploy to GitHub"
-        run: |
-          cd cf-graph
-          conda-forge-tick --debug deploy-to-github
+        working-directory: cf-graph
+        run: conda-forge-tick --debug deploy-to-github
 
       - name: Reinstall Bot Code
         run: |
@@ -171,14 +167,12 @@ jobs:
           source cf-scripts/autotick-bot/install_bot_code.sh --no-clean-disk-space --no-pull-container
 
       - name: "[Test] Make Graph (Nodes and Edges)"
-        run: |
-          cd cf-graph
-          conda-forge-tick --debug make-graph --update-nodes-and-edges
+        working-directory: cf-graph
+        run: conda-forge-tick --debug make-graph --update-nodes-and-edges
 
       - name: "[Test] Deploy to GitHub"
-        run: |
-          cd cf-graph
-          conda-forge-tick --debug deploy-to-github
+        working-directory: cf-graph
+        run: conda-forge-tick --debug deploy-to-github
 
       - name: Reinstall Bot Code
         run: |
@@ -186,16 +180,14 @@ jobs:
           source cf-scripts/autotick-bot/install_bot_code.sh --no-clean-disk-space --no-pull-container
 
       - name: "[Test] Make Graph (Node Attributes)"
-        run: |
-          cd cf-graph
-          conda-forge-tick --debug make-graph
+        working-directory: cf-graph
+        run: conda-forge-tick --debug make-graph
         env:
           CF_TICK_FRAC_MAKE_GRAPH: 1.0
 
       - name: "[Test] Deploy to GitHub"
-        run: |
-          cd cf-graph
-          conda-forge-tick --debug deploy-to-github
+        working-directory: cf-graph
+        run: conda-forge-tick --debug deploy-to-github
 
       - name: Reinstall Bot Code
         run: |
@@ -203,9 +195,8 @@ jobs:
           source cf-scripts/autotick-bot/install_bot_code.sh --no-clean-disk-space --no-pull-container
 
       - name: "[Test] update-upstream-versions"
-        run: |
-          cd cf-graph
-          conda-forge-tick --debug update-upstream-versions
+        working-directory: cf-graph
+        run: conda-forge-tick --debug update-upstream-versions
         env:
           http_proxy: http://127.0.0.1:8080
           https_proxy: http://127.0.0.1:8080
@@ -215,9 +206,8 @@ jobs:
           CF_FEEDSTOCK_OPS_PROXY_IN_CONTAINER: http://172.17.0.1:8080
 
       - name: "[Test] Deploy to GitHub"
-        run: |
-          cd cf-graph
-          conda-forge-tick --debug deploy-to-github
+        working-directory: cf-graph
+        run: conda-forge-tick --debug deploy-to-github
 
       - name: Reinstall Bot Code
         run: |
@@ -225,9 +215,8 @@ jobs:
           source cf-scripts/autotick-bot/install_bot_code.sh --no-clean-disk-space --no-pull-container
 
       - name: "[Test] make-migrators (1/2)"
-        run: |
-          cd cf-graph
-          conda-forge-tick --debug make-migrators
+        working-directory: cf-graph
+        run: conda-forge-tick --debug make-migrators
         env:
           http_proxy: http://127.0.0.1:8080
           https_proxy: http://127.0.0.1:8080
@@ -237,9 +226,8 @@ jobs:
           CF_FEEDSTOCK_OPS_PROXY_IN_CONTAINER: http://172.17.0.1:8080
 
       - name: "[Test] Deploy to GitHub"
-        run: |
-          cd cf-graph
-          conda-forge-tick --debug deploy-to-github
+        working-directory: cf-graph
+        run: conda-forge-tick --debug deploy-to-github
 
       - name: Reinstall Bot Code
         run: |
@@ -247,9 +235,8 @@ jobs:
           source cf-scripts/autotick-bot/install_bot_code.sh --no-clean-disk-space --no-pull-container
 
       - name: "[Test] auto-tick (1/2)"
-        run: |
-          cd cf-graph
-          conda-forge-tick --debug auto-tick
+        working-directory: cf-graph
+        run: conda-forge-tick --debug auto-tick
         env:
           http_proxy: http://127.0.0.1:8080
           https_proxy: http://127.0.0.1:8080
@@ -259,9 +246,8 @@ jobs:
           CF_FEEDSTOCK_OPS_PROXY_IN_CONTAINER: http://172.17.0.1:8080
 
       - name: "[Test] Deploy to GitHub"
-        run: |
-          cd cf-graph
-          conda-forge-tick --debug deploy-to-github
+        working-directory: cf-graph
+        run: conda-forge-tick --debug deploy-to-github
 
       - name: Reinstall Bot Code
         run: |
@@ -269,9 +255,8 @@ jobs:
           source cf-scripts/autotick-bot/install_bot_code.sh --no-clean-disk-space --no-pull-container
 
       - name: "[Test] make-migrators (2/2)"
-        run: |
-          cd cf-graph
-          conda-forge-tick --debug make-migrators
+        working-directory: cf-graph
+        run: conda-forge-tick --debug make-migrators
         env:
           http_proxy: http://127.0.0.1:8080
           https_proxy: http://127.0.0.1:8080
@@ -281,9 +266,8 @@ jobs:
           CF_FEEDSTOCK_OPS_PROXY_IN_CONTAINER: http://172.17.0.1:8080
 
       - name: "[Test] Deploy to GitHub"
-        run: |
-          cd cf-graph
-          conda-forge-tick --debug deploy-to-github
+        working-directory: cf-graph
+        run: conda-forge-tick --debug deploy-to-github
 
       - name: Reinstall Bot Code
         run: |
@@ -291,9 +275,8 @@ jobs:
           source cf-scripts/autotick-bot/install_bot_code.sh --no-clean-disk-space --no-pull-container
 
       - name: "[Test] auto-tick (2/2)"
-        run: |
-          cd cf-graph
-          conda-forge-tick --debug auto-tick
+        working-directory: cf-graph
+        run: conda-forge-tick --debug auto-tick
         env:
           http_proxy: http://127.0.0.1:8080
           https_proxy: http://127.0.0.1:8080
@@ -303,14 +286,12 @@ jobs:
           CF_FEEDSTOCK_OPS_PROXY_IN_CONTAINER: http://172.17.0.1:8080
 
       - name: "[Test] Deploy to GitHub"
-        run: |
-          cd cf-graph
-          conda-forge-tick --debug deploy-to-github
+        working-directory: cf-graph
+        run: conda-forge-tick --debug deploy-to-github
 
       - name: Validate Scenario
-        run: |
-          cd cf-scripts
-          python -m tests_integration.step_validate
+        working-directory: cf-scripts
+        run: python -m tests_integration.step_validate
         env:
           SCENARIO_ID: ${{ matrix.scenario_id }}
           TEST_SETUP_TOKEN: ${{ secrets.GH_TOKEN_STAGING_BOT_USER }}
