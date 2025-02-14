@@ -1,3 +1,10 @@
+"""
+This module contains global settings for the bot.
+For each setting available as `SETTING_NAME`, there is an environment variable available as `ENV_SETTING_NAME`
+that can be used to override the default value.
+Note that there is no further validation of environment variables as of now.
+"""
+
 import os
 
 ENV_GRAPH_REPO = "CF_TICK_GRAPH_GITHUB_BACKEND_REPO"
