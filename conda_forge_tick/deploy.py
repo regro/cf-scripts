@@ -10,7 +10,7 @@ from .lazy_json_backends import (
     get_lazy_json_backends,
 )
 from .os_utils import clean_disk_space
-from .settings import GRAPH_REPO
+from .settings import GRAPH_REPO, GRAPH_REPO_DEFAULT_BRANCH
 from .utils import (
     fold_log_lines,
     get_bot_run_url,
@@ -152,7 +152,7 @@ def _deploy_batch(*, files_to_add, batch, n_added, max_per_batch=200):
                     "git",
                     "push",
                     f"https://{get_bot_token()}@github.com/{GRAPH_REPO}.git",
-                    "master",
+                    GRAPH_REPO_DEFAULT_BRANCH,
                 ],
                 token=get_bot_token(),
             )

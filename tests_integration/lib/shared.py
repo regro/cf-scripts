@@ -8,7 +8,7 @@ from pathlib import Path
 
 from fastapi import APIRouter
 
-from conda_forge_tick.settings import GITHUB_RUNNER_DEBUG
+from conda_forge_tick.settings import GITHUB_RUNNER_DEBUG, GRAPH_REPO_DEFAULT_BRANCH
 
 
 class GitHubAccount(StrEnum):
@@ -48,8 +48,8 @@ DEFINITIONS_DIR = Path(__file__).parents[1] / DEFINITIONS_DIR_NAME
 FEEDSTOCK_SUFFIX = "-feedstock"
 
 TRANSPARENT_URLS = {
-    "https://raw.githubusercontent.com/regro/cf-graph-countyfair/master/mappings/pypi/name_mapping.yaml",
-    "https://raw.githubusercontent.com/regro/cf-graph-countyfair/master/mappings/pypi/grayskull_pypi_mapping.json",
+    f"https://raw.githubusercontent.com/regro/cf-graph-countyfair/{GRAPH_REPO_DEFAULT_BRANCH}/mappings/pypi/name_mapping.yaml",
+    f"https://raw.githubusercontent.com/regro/cf-graph-countyfair/{GRAPH_REPO_DEFAULT_BRANCH}/mappings/pypi/grayskull_pypi_mapping.json",
     "https://api.github.com/*",
     "https://pypi.io/packages/source/*",
     "https://pypi.org/packages/source/*",

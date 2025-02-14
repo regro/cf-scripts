@@ -31,7 +31,7 @@ import requests
 
 from .cli_context import CliContext
 from .executors import lock_git_operation
-from .settings import GRAPH_REPO
+from .settings import GRAPH_REPO, GRAPH_REPO_DEFAULT_BRANCH
 
 logger = logging.getLogger(__name__)
 
@@ -57,7 +57,9 @@ CF_TICK_GRAPH_DATA_HASHMAPS = [
     "migrators",
 ]
 
-CF_TICK_GRAPH_GITHUB_BACKEND_BASE_URL = f"https://github.com/{GRAPH_REPO}/raw/master"
+CF_TICK_GRAPH_GITHUB_BACKEND_BASE_URL = (
+    f"https://github.com/{GRAPH_REPO}/raw/{GRAPH_REPO_DEFAULT_BRANCH}"
+)
 CF_TICK_GRAPH_GITHUB_BACKEND_NUM_DIRS = 5
 
 

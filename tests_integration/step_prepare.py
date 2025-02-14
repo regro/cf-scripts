@@ -11,6 +11,7 @@ from pathlib import Path
 
 from github import Github
 
+from conda_forge_tick.settings import GRAPH_REPO_DEFAULT_BRANCH
 from tests_integration.collect_test_scenarios import get_test_scenario
 from tests_integration.lib.integration_test_helper import IntegrationTestHelper
 from tests_integration.lib.shared import (
@@ -44,7 +45,7 @@ def reset_cf_graph():
         GitHubAccount.REGRO_ORG,
         "cf-graph-countyfair",
         Path(__file__).parent / "resources" / "empty-graph",
-        branch="master",
+        branch=GRAPH_REPO_DEFAULT_BRANCH,
     )
 
 

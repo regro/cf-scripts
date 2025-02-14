@@ -15,6 +15,11 @@ The GitHub repository to deploy to. Default: "regro/cf-graph-countyfair".
 Overwrite with the environment variable CF_TICK_GRAPH_GITHUB_BACKEND_REPO.
 """
 
+GRAPH_REPO_DEFAULT_BRANCH: str = "master"
+"""
+The default branch of the GRAPH_REPO repository.
+"""
+
 ENV_OVERRIDE_CONDA_FORGE_ORG = "CF_TICK_OVERRIDE_CONDA_FORGE_ORG"
 CONDA_FORGE_ORG: str = os.getenv(ENV_OVERRIDE_CONDA_FORGE_ORG, "conda-forge")
 """
