@@ -231,7 +231,7 @@ def _build_graph_sequential(
 ) -> None:
     for name in names:
         if RNG.random() >= FRAC_MAKE_GRAPH:
-            logger.debug(f"skipping {name} due to random fraction to update")
+            logger.debug("skipping %s due to random fraction to update", name)
             continue
 
         try:
