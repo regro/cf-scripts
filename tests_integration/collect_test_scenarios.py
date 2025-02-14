@@ -18,7 +18,7 @@ def collect_integration_test_cases() -> dict[str, list[str]]:
         "feedstock2": ["version_update"],
     }
 
-    The return value of this function is deterministic (sorted by feedstock name and test case name).
+    The return value of this function is sorted by feedstock name and test case name.
     """
     test_cases = collections.defaultdict(list)
 
