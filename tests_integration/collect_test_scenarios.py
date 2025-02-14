@@ -79,6 +79,7 @@ def get_test_scenario(scenario_id: int) -> dict[str, str]:
     }
 
     for test_cases in test_cases_extended.values():
+        # in-place
         random.shuffle(test_cases)
 
     def pop_test_scenario():
