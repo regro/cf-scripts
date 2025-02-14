@@ -49,7 +49,8 @@ in the cf-graph. See the [workflow file](../.github/workflows/test-integration.y
 Also, a test case is always bound to one specific feedstock.
 
 ### Test Case Definition
-To define a test case, create a Python file in the definitions dir of the feedstock. Referring to
+To define a test case, create a Python file in the definitions dir of the feedstock. You can name it arbitrarily.
+Referring to
 [this](definitions/pydantic/version_update.py) minimal test case,
 you have to define three things:
 
