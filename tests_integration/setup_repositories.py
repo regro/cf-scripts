@@ -180,7 +180,7 @@ def prepare_accounts(setup_infos: Iterable[GitHubAccountSetup]):
 
 def prepare_all_accounts():
     test_feedstock_names = get_test_feedstock_names()
-    logging.info("Test feedstock names: %s", _or_empty_set(test_feedstock_names))
+    LOGGER.info("Test feedstock names: %s", _or_empty_set(test_feedstock_names))
 
     setup_infos: list[GitHubAccountSetup] = [
         GitHubAccountSetup(

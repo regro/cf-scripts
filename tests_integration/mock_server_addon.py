@@ -48,9 +48,10 @@ def _setup_fastapi():
     for test_module in get_test_case_modules(scenario):
         LOGGER.info("Setting up mocks for %s...", test_module.__name__)
         try:
-            app.include_router(test_module.router)
-        except AttributeError:
-            raise AttributeError("The test case must define a FastAPI router.")
+            router = test_module.router
+        except AttributeError as e:
+            raise AttributeError("The test case must define a FastAPI router.") from e
+        app.include_router(router)
 
     return app
 

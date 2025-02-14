@@ -15,15 +15,21 @@ from tests_integration.lib.shared import (
     setup_logging,
 )
 
+LOGGER = logging.getLogger(__name__)
+
 
 def run_all_validate_functions(scenario: dict[str, str]):
     test_helper = IntegrationTestHelper()
     for test_module in get_test_case_modules(scenario):
+        LOGGER.info("Validating %s...", test_module.__name__)
         try:
-            logging.info("Validating %s...", test_module.__name__)
-            test_module.validate(test_helper)
-        except AttributeError:
-            raise AttributeError("The test case must define a validate() function.")
+            validate_function = test_module.validate
+        except AttributeError as e:
+            raise AttributeError(
+                "The test case must define a validate() function."
+            ) from e
+
+        validate_function(test_helper)
 
 
 def main(scenario_id: int):

@@ -52,11 +52,15 @@ def reset_cf_graph():
 def run_all_prepare_functions(scenario: dict[str, str]):
     test_helper = IntegrationTestHelper()
     for test_module in get_test_case_modules(scenario):
+        LOGGER.info("Preparing %s...", test_module.__name__)
         try:
-            logging.info("Preparing %s...", test_module.__name__)
-            test_module.prepare(test_helper)
-        except AttributeError:
-            raise AttributeError("The test case must define a prepare() function.")
+            prepare_function = test_module.prepare
+        except AttributeError as e:
+            raise AttributeError(
+                "The test case must define a prepare() function."
+            ) from e
+
+        prepare_function(test_helper)
 
 
 def main(scenario_id: int):
@@ -65,8 +69,8 @@ def main(scenario_id: int):
 
     scenario = get_test_scenario(scenario_id)
 
-    logging.info("Preparing test scenario %d...", scenario_id)
-    logging.info("Scenario: %s", scenario)
+    LOGGER.info("Preparing test scenario %d...", scenario_id)
+    LOGGER.info("Scenario: %s", scenario)
 
     run_all_prepare_functions(scenario)
 
